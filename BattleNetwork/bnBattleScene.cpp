@@ -29,8 +29,7 @@ using sf::Font;
 #include "bnShaderResourceManager.h"
 #include "bnPA.h"
 #include "bnEngine.h"
-#include "bnBattleResults.cpp"
-#include "bnEaseFunctions.h"
+#include "bnBattleResults.h"
 
 int BattleScene::Run(Player* player, Mob* mob) {
   if (mob->GetMobCount() == 0) {
@@ -166,7 +165,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
   bool initFadeOut = false;
 
   bool isPreBattle = false;
-  double preBattleLength = 2; // in seconds
+  double preBattleLength = 1; // in seconds
 
   Timer summonTimer;
   bool showSummonText = false;

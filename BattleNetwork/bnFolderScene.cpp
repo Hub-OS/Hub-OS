@@ -8,6 +8,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
+#include "bnTimer.h"
 #include "bnEngine.h"
 
 #include <SFML/Graphics.hpp>
@@ -79,11 +80,17 @@ int FolderScene::Run()
 
   // Current chip graphic
   sf::Sprite chip(*TEXTURES.GetTexture(TextureType::CHIP_CARDS));
+  sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(0);
+  chip.setTextureRect(cardSubFrame);
   chip.setScale(2.f, 2.f);
-  chip.setPosition(28.f, 45.f);
+  chip.setPosition(83.f, 93.f);
+  chip.setOrigin(chip.getLocalBounds().width/2.0f, chip.getLocalBounds().height/2.0f);
 
   sf::Sprite chipIcon(*TEXTURES.GetTexture(TextureType::CHIP_ICONS));
   chipIcon.setScale(2.f, 2.f);
+
+  Timer chipRevealTimer;
+  chipRevealTimer.Start();
 
   // Transition
   sf::Shader& transition = *SHADERS.GetShader(ShaderType::TRANSITION);
@@ -148,6 +155,7 @@ int FolderScene::Run()
 
     sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(iter->GetID());
     chip.setTextureRect(cardSubFrame);
+    chip.setScale((float)Ease::Linear(chipRevealTimer.GetElapsed() / 1000.0, 0.25)*2.0f, 2.0f);
     ENGINE.Draw(chip, false);
 
     // This draws the currently highlighted chip
@@ -172,7 +180,7 @@ int FolderScene::Run()
 
     int offset = (int)(iter->GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-    element.setPosition(2.f*25.f, 143.f);
+    element.setPosition(2.f*25.f, 142.f);
     ENGINE.Draw(element, false);
 
     // Now that we are at the viewing range, draw each chip in the list
@@ -184,7 +192,7 @@ int FolderScene::Run()
         ENGINE.Draw(chipIcon, false);
 
         chipLabel->setFillColor(sf::Color::White);
-        chipLabel->setPosition(2.f*124.f, 60.0f + (32.f*i));
+        chipLabel->setPosition(2.f*120.f, 60.0f + (32.f*i));
         chipLabel->setString(iter->GetShortName());
         ENGINE.Draw(chipLabel, false);
 
@@ -219,6 +227,8 @@ int FolderScene::Run()
           selectInputCooldown = maxSelectInputCooldown;
           currChipIndex--;
           AUDIO.Play(AudioType::CHIP_SELECT);
+
+          chipRevealTimer.Reset();
         }
       }
       else if (INPUT.has(PRESSED_DOWN)) {
@@ -229,6 +239,8 @@ int FolderScene::Run()
           selectInputCooldown = maxSelectInputCooldown;
           currChipIndex++;
           AUDIO.Play(AudioType::CHIP_SELECT);
+
+          chipRevealTimer.Reset();
         }
       }
       else {

@@ -254,6 +254,9 @@
     <Filter Include="Battle\Entity\Summons\Roll">
       <UniqueIdentifier>{541f9cd8-4857-4700-bb63-5aa7ce04599b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utilities\EaseIns">
+      <UniqueIdentifier>{4c3c2b6a-708e-484b-b3df-2e0e0deaa39d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -483,6 +486,9 @@
     </ClCompile>
     <ClCompile Include="bnRollHeart.cpp">
       <Filter>Battle\Entity\Summons\Roll</Filter>
+    </ClCompile>
+    <ClCompile Include="bnEaseFunctions.cpp">
+      <Filter>Utilities\EaseIns</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -809,7 +815,7 @@
       <Filter>Battle\Entity\Summons\Roll</Filter>
     </ClInclude>
     <ClInclude Include="bnEaseFunctions.h">
-      <Filter>Utilities</Filter>
+      <Filter>Utilities\EaseIns</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

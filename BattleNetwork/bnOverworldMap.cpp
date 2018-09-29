@@ -145,7 +145,7 @@ namespace Overworld {
 
           r = std::min(255.0, r); g = std::min(255.0, g); b = std::min(255.0, b);
 
-          sf::Color applied(r, g, b, 255);
+          sf::Color applied((sf::Uint8)r, (sf::Uint8)g, (sf::Uint8)b, 255);
           tileSprite.setColor(applied);
         }
       }
@@ -242,7 +242,7 @@ namespace Overworld {
 
           r = std::min(255.0, r); g = std::min(255.0, g); b = std::min(255.0, b);
 
-          sf::Color applied(r, g, b, 255);
+          sf::Color applied((sf::Uint8)r, (sf::Uint8)g, (sf::Uint8)b, 255);
           tileSprite.setColor(applied);
         }
       }

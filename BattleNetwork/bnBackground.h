@@ -34,7 +34,7 @@ protected:
     occuranceX = std::max(occuranceX, (unsigned)1);
     occuranceY = std::max(occuranceY, (unsigned)1);
 
-    vertices.resize(occuranceX * occuranceY * 4);
+    vertices.resize(occuranceX * occuranceY * (unsigned)4);
 
     textureRect = sf::IntRect(0, 0, textureSize.x, textureSize.y);
 

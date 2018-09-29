@@ -1,5 +1,7 @@
 #pragma once
 
+#include "bnEaseFunctions.h"
+
 class Mob;
 class Player;
 
