@@ -5,13 +5,14 @@
 
 using sf::IntRect;
 
-Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions) : animationComponent(this)
+Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _playbackSpeed) : animationComponent(this)
 {
   root = this;
   SetLayer(0);
   field = _field;
   team = _team;
   numOfExplosions = _numOfExplosions;
+  playbackSpeed = _playbackSpeed;
   count = 0;
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
@@ -34,7 +35,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions) : animatio
   AUDIO.Play(AudioType::EXPLODE);
 
   animationComponent.SetAnimation("EXPLODE", [this]() { this->setColor(sf::Color(255, 255, 255, 0)); });
-  animationComponent.SetPlaybackSpeed(0.5);
+  animationComponent.SetPlaybackSpeed(playbackSpeed);
   animationComponent.Update(0.1);
 
   if (_numOfExplosions > 0) {
@@ -52,10 +53,11 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
     root = copy.root;
 
   count = 0; // uneeded for this copy
-  SetLayer(0);
+  SetLayer(1);
   field = copy.GetField();
   team = copy.GetTeam();
   numOfExplosions = copy.numOfExplosions-1;
+  playbackSpeed = copy.playbackSpeed;
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
   animationComponent.Setup("resources/mobs/mob_explosion.animation");
@@ -74,10 +76,10 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 
   offset = sf::Vector2f((float)randX, (float)randY);
 
-  AUDIO.Play(AudioType::EXPLODE);
+  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
 
   animationComponent.SetAnimation("EXPLODE", [this]() { this->Delete(); root->IncrementExplosionCount(); });
-  animationComponent.SetPlaybackSpeed(0.5);
+  animationComponent.SetPlaybackSpeed(playbackSpeed);
   animationComponent.Update(0.1);
 
   if (numOfExplosions > 1) {

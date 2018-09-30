@@ -11,8 +11,10 @@ private:
   sf::Vector2f offset;
   int count;
   Explosion* root;
+  double playbackSpeed;
+
 public:
-  Explosion(Field* _field, Team _team, int _numOfExplosions=1);
+  Explosion(Field* _field, Team _team, int _numOfExplosions=1, double _playbackSpeed=0.55);
   Explosion(const Explosion& copy);
   ~Explosion();
 

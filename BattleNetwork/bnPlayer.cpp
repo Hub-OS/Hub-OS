@@ -75,7 +75,7 @@ void Player::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<Player>>(7);
+    this->StateChange<ExplodeState<Player>>(10, 0.65);
     this->StateUpdate(_elapsed);
     return;
   }

@@ -24,8 +24,9 @@ private:
   sf::Shader* whiteout;
   double elapsed;
   int numOfExplosions;
+  double playbackSpeed;
 public:
-  ExplodeState(int _numOfExplosions=3);
+  ExplodeState(int _numOfExplosions=3, double _playbackSpeed=0.55);
   ~ExplodeState();
 
   void OnEnter(Any& e);
@@ -37,7 +38,8 @@ public:
 #include "bnLogger.h"
 
 template<typename Any>
-ExplodeState<Any>::ExplodeState(int _numOfExplosions) : numOfExplosions(_numOfExplosions), AIState<Any>() {
+ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
+  : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
   // Enforce template constraints on class
   _DerivedFrom<Any, Entity>();
 
@@ -62,7 +64,7 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   /* Spawn an explosion */
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
-  explosion = new Explosion(field, e.GetTeam(), this->numOfExplosions);
+  explosion = new Explosion(field, e.GetTeam(), this->numOfExplosions, this->playbackSpeed);
   field->OwnEntity(explosion, tile->GetX(), tile->GetY());
 }
 

@@ -36,7 +36,7 @@ frame duration="0.05" x="79" y="58" w="35" h="54" originx="17" originy="42"
 frame duration="0.05" x="117" y="54" w="35" h="62" originx="14" originy="46"
 
 animation state="PLAYER_HIT"
-frame duration="0.5" x="370" y="5" w="33" h="53" originx="16" originy="46"
+frame duration="0.2" x="370" y="5" w="33" h="53" originx="16" originy="46"
 frame duration="0.01" x="156" y="58" w="33" h="49" originx="16" originy="43"
 frame duration="0.01" x="193" y="60" w="33" h="49" originx="16" originy="41"
 

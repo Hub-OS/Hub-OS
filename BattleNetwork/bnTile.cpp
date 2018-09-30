@@ -206,6 +206,10 @@ namespace Battle {
     if (!ContainsEntity(_entity)) {
       _entity->SetTile(this);
       entities.push_back(_entity);
+
+      // Sort by layer (draw order)
+      // e.g. layer 0 draws first so it must be last in the draw list
+      std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
     }
   }
 

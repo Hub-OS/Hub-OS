@@ -47,28 +47,13 @@ public:
   }
 
   /*
-    For states that require arguments, pass the argument type in for V 
+    For states that require arguments, pass the arguments
     e.g. 
 
-    struct ThrowBombStateArgs {
-       float throwSpeed;
-       int damage;
-       bool stun;
-    }
-
-    ... some time later ...
-
-    this->StateChange<PlayerThrowBombState, ThrowBombStateArgs>({200.f, 300, true});
-
-    --------------------------------------------------------------------
-
-    For single arguments just pass in primitive for V 
-    e.g.
-
-    this->StateChange<PlayerHitState>(20.f);
+    this->StateChange<PlayerThrowBombState>(200.f, 300, true);
   */
-  template<typename U, typename V>
-  void StateChange(V args) {
+  template<typename U, typename ...Args>
+  void StateChange(Args... args) {
     _DerivedFrom<U, AIState<T>>();
 
     if (lock == AI<T>::StateLock::Locked) {
@@ -80,7 +65,7 @@ public:
       delete stateMachine;
     }
 
-    stateMachine = new U(args);
+    stateMachine = new U(args...);
     stateMachine->OnEnter(*ref);
   }
 

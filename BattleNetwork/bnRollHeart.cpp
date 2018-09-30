@@ -59,15 +59,15 @@ void RollHeart::Update(float _elapsed) {
   if (height <= 0) height = 0;
 
   if (height == 0 && doOnce) {
+    AUDIO.Play(AudioType::RECOVER);
+    doOnce = false;
+    this->setColor(sf::Color(255, 255, 255, 0)); // hidden
     player->SetHealth(player->GetHealth() + heal);
     player->SetAnimation("PLAYER_HEAL", [this]() {
       player->SetAnimation("PLAYER_IDLE", [this]() {
         summons->RemoveEntity(this);
       });
     });
-    AUDIO.Play(AudioType::RECOVER);
-    doOnce = false;
-    this->setColor(sf::Color(255, 255, 255, 0)); // hidden
   }
 }
 
