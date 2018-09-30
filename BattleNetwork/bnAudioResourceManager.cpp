@@ -61,7 +61,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::CUSTOM_SCREEN_OPEN, "resources/sfx/chip_screen_open.ogg"); status++;
   LoadSource(AudioType::ITEM_GET, "resources/sfx/item_get.ogg"); status++;
   LoadSource(AudioType::DELETED, "resources/sfx/deleted.ogg"); status++;
-  LoadSource(AudioType::EXPLODE, "resources/sfx/explode.ogg"); status++;
+  LoadSource(AudioType::EXPLODE, "resources/sfx/explode_once.ogg"); status++;
   LoadSource(AudioType::GUN, "resources/sfx/gun.ogg"); status++;
   LoadSource(AudioType::HEALTH_ALERT, "resources/sfx/health_alert.ogg"); status++;
   LoadSource(AudioType::HURT, "resources/sfx/hurt.ogg"); status++;

@@ -325,9 +325,6 @@
     <ClCompile Include="bnPlayerHitState.cpp">
       <Filter>Battle\Entity\Character\Player\Megaman\States</Filter>
     </ClCompile>
-    <ClCompile Include="bnLongExplosion.cpp">
-      <Filter>Battle\Entity\Artifact\Explosion</Filter>
-    </ClCompile>
     <ClCompile Include="bnArtifact.cpp">
       <Filter>Battle\Entity\Artifact</Filter>
     </ClCompile>
@@ -490,6 +487,9 @@
     <ClCompile Include="bnEaseFunctions.cpp">
       <Filter>Utilities\EaseIns</Filter>
     </ClCompile>
+    <ClCompile Include="bnExplosion.cpp">
+      <Filter>Battle\Entity\Artifact\Explosion</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -602,9 +602,6 @@
     </ClInclude>
     <ClInclude Include="bnArtifact.h">
       <Filter>Battle\Entity\Artifact</Filter>
-    </ClInclude>
-    <ClInclude Include="bnLongExplosion.h">
-      <Filter>Battle\Entity\Artifact\Explosion</Filter>
     </ClInclude>
     <ClInclude Include="bnCamera.h">
       <Filter>Engine\Camera</Filter>
@@ -816,6 +813,9 @@
     </ClInclude>
     <ClInclude Include="bnEaseFunctions.h">
       <Filter>Utilities\EaseIns</Filter>
+    </ClInclude>
+    <ClInclude Include="bnExplosion.h">
+      <Filter>Battle\Entity\Artifact\Explosion</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

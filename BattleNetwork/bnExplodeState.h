@@ -2,7 +2,7 @@
 #include "bnMeta.h"
 #include "bnEntity.h"
 #include "bnAIState.h"
-#include "bnLongExplosion.h"
+#include "bnExplosion.h"
 #include "bnShaderResourceManager.h"
 
 /*
@@ -22,9 +22,10 @@ class ExplodeState : public AIState<Any>
 private:
   Entity* explosion;
   sf::Shader* whiteout;
-
+  double elapsed;
+  int numOfExplosions;
 public:
-  ExplodeState();
+  ExplodeState(int _numOfExplosions=3);
   ~ExplodeState();
 
   void OnEnter(Any& e);
@@ -32,12 +33,11 @@ public:
   void OnLeave(Any& e);
 };
 
-#include "bnLongExplosion.h"
 #include "bnField.h"
 #include "bnLogger.h"
 
 template<typename Any>
-ExplodeState<Any>::ExplodeState() : AIState<Any>() {
+ExplodeState<Any>::ExplodeState(int _numOfExplosions) : numOfExplosions(_numOfExplosions), AIState<Any>() {
   // Enforce template constraints on class
   _DerivedFrom<Any, Entity>();
 
@@ -45,6 +45,8 @@ ExplodeState<Any>::ExplodeState() : AIState<Any>() {
   explosion = nullptr;
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
+
+  elapsed = 0;
 }
 
 template<typename Any>
@@ -60,14 +62,16 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   /* Spawn an explosion */
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
-  explosion = new LongExplosion(field, e.GetTeam());
+  explosion = new Explosion(field, e.GetTeam(), this->numOfExplosions);
   field->OwnEntity(explosion, tile->GetX(), tile->GetY());
 }
 
 template<typename Any>
 void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
+  elapsed += _elapsed;
+
   /* freeze frame, flash white */
-  if ((int)((_elapsed) * 5) % 2 == 0) {
+  if ((((int)(elapsed * 15))) % 2 == 0) {
     e.SetShader(whiteout);
   }
   else {

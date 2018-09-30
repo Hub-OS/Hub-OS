@@ -232,7 +232,7 @@
     <ClCompile Include="bnMettaur.cpp" />
     <ClCompile Include="bnEngine.cpp" />
     <ClCompile Include="bnSelectedChipsUI.cpp" />
-    <ClCompile Include="bnLongExplosion.cpp" />
+    <ClCompile Include="bnExplosion.cpp" />
     <ClCompile Include="bnPlayerControlledState.cpp" />
     <ClCompile Include="bnCamera.cpp" />
     <ClCompile Include="bnCanonSmoke.cpp" />
@@ -291,7 +291,7 @@
     <ClInclude Include="bnField.h" />
     <ClInclude Include="bnBattleScene.h" />
     <ClInclude Include="bnLayered.h" />
-    <ClInclude Include="bnLongExplosion.h" />
+    <ClInclude Include="bnExplosion.h" />
     <ClInclude Include="bnMainMenuScene.h" />
     <ClInclude Include="bnMemory.h" />
     <ClInclude Include="bnMettaurIdleState.h" />

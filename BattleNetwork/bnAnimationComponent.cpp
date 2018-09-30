@@ -28,6 +28,7 @@ void AnimationComponent::Setup(string _path)
 void AnimationComponent::Load() {
   animation = Animation(path);
   animation.Load();
+  this->Update(0);
 }
 
 void AnimationComponent::SetPlaybackSpeed(const double playbackSpeed)
