@@ -1,4 +1,4 @@
-#include <SFML\Window.hpp>
+#include <SFML/Window.hpp>
 using sf::Event;
 using sf::Keyboard;
 #include "bnEngine.h"

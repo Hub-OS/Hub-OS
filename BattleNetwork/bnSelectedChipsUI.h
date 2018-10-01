@@ -1,5 +1,5 @@
 #pragma once
-#include <SFML\Graphics.hpp>
+#include <SFML/Graphics.hpp>
 using sf::Font;
 using sf::Text;
 using sf::Sprite;

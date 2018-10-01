@@ -1,5 +1,5 @@
 #pragma once
-#include <SFML\System.hpp>
+#include <SFML/System.hpp>
 
 class Timer {
   sf::Clock clock;

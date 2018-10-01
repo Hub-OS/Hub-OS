@@ -2,7 +2,7 @@
 
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include <SFML\Graphics.hpp>
+#include <SFML/Graphics.hpp>
 
 class TextBox : public sf::Drawable, public sf::Transformable {
 private:

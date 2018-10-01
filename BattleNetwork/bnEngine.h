@@ -1,5 +1,5 @@
 #pragma once
-#include <SFML\Graphics.hpp>
+#include <SFML/Graphics.hpp>
 using sf::Drawable;
 using sf::RenderWindow;
 using sf::VideoMode;

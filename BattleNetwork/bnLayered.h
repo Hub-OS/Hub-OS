@@ -1,4 +1,4 @@
-#include <SFML\Graphics.hpp>
+#include <SFML/Graphics.hpp>
 #include "bnSmartShader.h"
 using sf::Drawable;
 using sf::RenderWindow;
