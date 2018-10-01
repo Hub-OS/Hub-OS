@@ -12,7 +12,7 @@
 #define ATTACK_TO_IDLE_COOLDOWN 150.0f
 #define HIT_COOLDOWN 300.0f
 
-PlayerControlledState::PlayerControlledState() : InputManager(&InputManager::GetInstance()), AIState<Player>()
+PlayerControlledState::PlayerControlledState() : inputManager(&InputManager::GetInstance()), AIState<Player>()
 {
   //Cooldowns. TODO: Take these out. We base actions on animation speed now.
   moveKeyPressCooldown = MOVE_KEY_PRESS_COOLDOWN;
@@ -55,22 +55,22 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   static Direction direction = Direction::NONE;
   if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN) {
-    if (InputManager->has(PRESSED_UP)) {
+    if (inputManager->has(PRESSED_UP)) {
       direction = Direction::UP;
     }
-    else if (InputManager->has(PRESSED_LEFT)) {
+    else if (inputManager->has(PRESSED_LEFT)) {
       direction = Direction::LEFT;
     }
-    else if (InputManager->has(PRESSED_DOWN)) {
+    else if (inputManager->has(PRESSED_DOWN)) {
       direction = Direction::DOWN;
     }
-    else if (InputManager->has(PRESSED_RIGHT)) {
+    else if (inputManager->has(PRESSED_RIGHT)) {
       direction = Direction::RIGHT;
     }
   }
  
 
-  if (InputManager->has(PRESSED_A) && isChargeHeld == false) {
+  if (inputManager->has(PRESSED_A) && isChargeHeld == false) {
     player.Attack(player.chargeComponent.GetChargeCounter());
     isChargeHeld = true;
 
@@ -87,16 +87,16 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     player.SetAnimation(PLAYER_SHOOTING, onFinish);
   }
 
-  if (InputManager->has(RELEASED_UP)) {
+  if (inputManager->has(RELEASED_UP)) {
     direction = Direction::NONE;
   }
-  else if (InputManager->has(RELEASED_LEFT)) {
+  else if (inputManager->has(RELEASED_LEFT)) {
     direction = Direction::NONE;
   }
-  else if (InputManager->has(RELEASED_DOWN)) {
+  else if (inputManager->has(RELEASED_DOWN)) {
     direction = Direction::NONE;
   }
-  else if (InputManager->has(RELEASED_RIGHT)) {
+  else if (inputManager->has(RELEASED_RIGHT)) {
     direction = Direction::NONE;
   }
 

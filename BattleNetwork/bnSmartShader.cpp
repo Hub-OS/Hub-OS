@@ -76,14 +76,14 @@
     /*if (ref->getUniformLocation(uniform) == -1) {
       throw new std::exception("Shader program has no uniform named " + uniform);
     }*/
-    funiforms.insert_or_assign(uniform, fvalue);
+    funiforms.emplace(uniform, fvalue);
   }
 
   void SmartShader::SetUniform(std::string uniform, int ivalue) {
     /*if (ref->getUniformLocation(uniform) == -1) {
       throw new std::exception("Shader program has no uniform named " + uniform);
     }*/
-    iuniforms.insert_or_assign(uniform, ivalue);
+    iuniforms.emplace(uniform, ivalue);
   }
 
   void SmartShader::Reset() {

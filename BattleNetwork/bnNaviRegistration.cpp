@@ -3,6 +3,7 @@
 #include "bnLogger.h"
 #include <exception>
 #include <atomic>
+#include <thread>
 
 NaviRegistration::NaviInfo::NaviInfo() : symbol(), overworldTexture(), battleTexture()
 {

@@ -5,6 +5,7 @@
 #include "bnBattleItem.h"
 #include <vector>
 #include <map>
+#include <stdexcept>
 
 class Mob
 {
@@ -109,7 +110,7 @@ public:
 
   const Character& GetMobAt(int index) {
     if (index < 0 || index >= spawn.size()) {
-      throw new std::exception("Invalid index range for Mob::GetMobAt()");
+      throw new std::runtime_error(std::string("Invalid index range for Mob::GetMobAt()"));
     }
     return *spawn[index]->mob;
   }

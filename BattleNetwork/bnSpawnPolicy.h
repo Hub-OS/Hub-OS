@@ -84,7 +84,7 @@ template<class T, class DefaultState = NoState<T>>
 class Rank1 : public RankedSpawnPolicy<T, DefaultState> {
 public:
   Rank1(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    generate = new T(T::Rank::_1);
+    this->generate = new T(T::Rank::_1);
   }
 };
 
@@ -93,7 +93,7 @@ class Rank2 : public RankedSpawnPolicy<T, DefaultState> {
   public:
 
   Rank2(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    generate = new T(T::Rank::_2);
+    this->generate = new T(T::Rank::_2);
   }
 };
 
@@ -102,7 +102,7 @@ class Rank3 : public RankedSpawnPolicy<T, DefaultState> {
   public:
 
   Rank3(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    generate = new T(T::Rank::_3);
+    this->generate = new T(T::Rank::_3);
   }
 };
 
@@ -111,8 +111,8 @@ class RankSP : public RankedSpawnPolicy<T, DefaultState> {
 public:
 
   RankSP(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    generate = new T(T::Rank::SP);
-    generate->SetName(SP(generate->GetName()));
+    this->generate = new T(T::Rank::SP);
+    this->generate->SetName(SP(this->generate->GetName()));
   }
 };
 
@@ -121,7 +121,7 @@ class RankEX : public RankedSpawnPolicy<T, DefaultState> {
 public:
 
   RankEX(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    generate = new T(T::Rank::EX);
-    generate->SetName(EX(generate->GetName()));
+    this->generate = new T(T::Rank::EX);
+    this->generate->SetName(EX(this->generate->GetName()));
   }
 };

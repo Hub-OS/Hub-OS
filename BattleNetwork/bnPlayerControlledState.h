@@ -7,7 +7,7 @@ class InputManager;
 class PlayerControlledState : public AIState<Player>
 {
 private:
-  InputManager * InputManager;
+  InputManager * inputManager;
 
   //Cooldowns
   float moveKeyPressCooldown;
