@@ -90,7 +90,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
   }
 }
 
-Animate & Animate::operator<<(On& rhs)
+Animate & Animate::operator<<(On rhs)
 {
   if (rhs.doOnce) {
     this->onetimeCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
@@ -102,7 +102,7 @@ Animate & Animate::operator<<(On& rhs)
   return *this;
 }
 
-Animate & Animate::operator<<(Mode & rhs)
+Animate & Animate::operator<<(Mode rhs)
 {
   this->playbackMode = rhs.playback;
 

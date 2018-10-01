@@ -131,10 +131,11 @@ SelectedNavi SelectNaviScene::Run(SelectedNavi currentNavi) {
 
   bool gotoNextScene = false;
 
-  SmartShader pixelated = LOAD_SHADER(TEXEL_PIXEL_BLUR);
+  SmartShader pixelated;
+  pixelated = LOAD_SHADER(TEXEL_PIXEL_BLUR);
 
   // Load glowing pad animation (never changes/always plays)
-  Animation glowpadAnimator = Animation("resources/backgrounds/select/glow_pad.animation");
+  Animation glowpadAnimator("resources/backgrounds/select/glow_pad.animation");
   glowpadAnimator.Load();
   glowpadAnimator.SetAnimation("GLOW");
   glowpadAnimator << Animate::Mode(Animate::Mode::Loop);

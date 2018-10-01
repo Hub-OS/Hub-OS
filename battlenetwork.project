@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="battlenetwork" InternalType="">
+  <VirtualDirectory Name="extern">
+    <VirtualDirectory Name="includes">
+      <VirtualDirectory Name="libfreetype">
+        <VirtualDirectory Name="windows">
+          <VirtualDirectory Name="freetype">
+            <VirtualDirectory Name="config">
+              <File Name="extern/includes/libfreetype/windows/freetype/config/ftconfig.h"/>
+              <File Name="extern/includes/libfreetype/windows/freetype/config/ftheader.h"/>
+              <File Name="extern/includes/libfreetype/windows/freetype/config/ftstdlib.h"/>
+              <File Name="extern/includes/libfreetype/windows/freetype/config/ftmodule.h"/>
+              <File Name="extern/includes/libfreetype/windows/freetype/config/ftoption.h"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="internal">
+              <File Name="extern/includes/libfreetype/windows/freetype/internal/internal.h"/>
+            </VirtualDirectory>
+            <File Name="extern/includes/libfreetype/windows/freetype/ftglyph.h"/>
+            <File Name="extern/includes/libfreetype/windows/freetype/ftbitmap.h"/>
+            <File Name="extern/includes/libfreetype/windows/freetype/freetype.h"/>
+            <File Name="extern/includes/libfreetype/windows/freetype/ftmoderr.h"/>
+            <File Name="extern/includes/libfreetype/windows/freetype/ftimage.h"/>
+            <File Name="extern/includes/libfreetype/windows/freetype/ftsystem.h"/>
+            <File Name="extern/includes/libfreetype/windows/freetype/fttypes.h"/>
+            <File Name="extern/includes/libfreetype/windows/freetype/fterrdef.h"/>
+            <File Name="extern/includes/libfreetype/windows/freetype/ftoutln.h"/>
+            <File Name="extern/includes/libfreetype/windows/freetype/fterrors.h"/>
+          </VirtualDirectory>
+          <File Name="extern/includes/libfreetype/windows/ft2build.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="osx">
+          <VirtualDirectory Name="freetype2">
+            <VirtualDirectory Name="freetype">
+              <VirtualDirectory Name="config">
+                <File Name="extern/includes/libfreetype/osx/freetype2/freetype/config/ftconfig.h"/>
+                <File Name="extern/includes/libfreetype/osx/freetype2/freetype/config/ftheader.h"/>
+                <File Name="extern/includes/libfreetype/osx/freetype2/freetype/config/ftstdlib.h"/>
+                <File Name="extern/includes/libfreetype/osx/freetype2/freetype/config/ftmodule.h"/>
+                <File Name="extern/includes/libfreetype/osx/freetype2/freetype/config/ftoption.h"/>
+              </VirtualDirectory>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/fttrigon.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftautoh.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftotval.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftpfr.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftglyph.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftsynth.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftstroke.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftlzw.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftmac.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftbitmap.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftgasp.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/freetype.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ttunpat.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftgzip.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftincrem.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftxf86.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftcid.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftbbox.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftmoderr.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftrender.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftimage.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftsystem.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftmodapi.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftmm.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftbdf.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/fttypes.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/tttables.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/fterrdef.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftchapters.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftoutln.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftbzip2.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftlcdfil.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftwinfnt.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftlist.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftcache.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/fterrors.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/t1tables.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftadvanc.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftsizes.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftsnames.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ttnameid.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/ftgxval.h"/>
+              <File Name="extern/includes/libfreetype/osx/freetype2/freetype/tttags.h"/>
+            </VirtualDirectory>
+          </VirtualDirectory>
+          <File Name="extern/includes/libfreetype/osx/ft2build.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+      <VirtualDirectory Name="libsndfile">
+        <VirtualDirectory Name="osx">
+          <File Name="extern/includes/libsndfile/osx/sndfile.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="windows">
+          <File Name="extern/includes/libsndfile/windows/sndfile.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
+      <VirtualDirectory Name="SFML">
+        <VirtualDirectory Name="Window">
+          <File Name="extern/includes/SFML/Window/GlResource.hpp"/>
+          <File Name="extern/includes/SFML/Window/Window.hpp"/>
+          <File Name="extern/includes/SFML/Window/Event.hpp"/>
+          <File Name="extern/includes/SFML/Window/Keyboard.hpp"/>
+          <File Name="extern/includes/SFML/Window/WindowStyle.hpp"/>
+          <File Name="extern/includes/SFML/Window/Context.hpp"/>
+          <File Name="extern/includes/SFML/Window/Touch.hpp"/>
+          <File Name="extern/includes/SFML/Window/ContextSettings.hpp"/>
+          <File Name="extern/includes/SFML/Window/Joystick.hpp"/>
+          <File Name="extern/includes/SFML/Window/Export.hpp"/>
+          <File Name="extern/includes/SFML/Window/Mouse.hpp"/>
+          <File Name="extern/includes/SFML/Window/WindowHandle.hpp"/>
+          <File Name="extern/includes/SFML/Window/VideoMode.hpp"/>
+          <File Name="extern/includes/SFML/Window/Sensor.hpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="System">
+          <File Name="extern/includes/SFML/System/String.hpp"/>
+          <File Name="extern/includes/SFML/System/Mutex.hpp"/>
+          <File Name="extern/includes/SFML/System/Err.hpp"/>
+          <File Name="extern/includes/SFML/System/Lock.hpp"/>
+          <File Name="extern/includes/SFML/System/NonCopyable.hpp"/>
+          <File Name="extern/includes/SFML/System/Vector3.hpp"/>
+          <File Name="extern/includes/SFML/System/Thread.hpp"/>
+          <File Name="extern/includes/SFML/System/MemoryInputStream.hpp"/>
+          <File Name="extern/includes/SFML/System/Clock.hpp"/>
+          <File Name="extern/includes/SFML/System/InputStream.hpp"/>
+          <File Name="extern/includes/SFML/System/Utf.hpp"/>
+          <File Name="extern/includes/SFML/System/ThreadLocal.hpp"/>
+          <File Name="extern/includes/SFML/System/FileInputStream.hpp"/>
+          <File Name="extern/includes/SFML/System/Vector2.hpp"/>
+          <File Name="extern/includes/SFML/System/ThreadLocalPtr.hpp"/>
+          <File Name="extern/includes/SFML/System/Export.hpp"/>
+          <File Name="extern/includes/SFML/System/Sleep.hpp"/>
+          <File Name="extern/includes/SFML/System/NativeActivity.hpp"/>
+          <File Name="extern/includes/SFML/System/Time.hpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Audio">
+          <File Name="extern/includes/SFML/Audio/InputSoundFile.hpp"/>
+          <File Name="extern/includes/SFML/Audio/OutputSoundFile.hpp"/>
+          <File Name="extern/includes/SFML/Audio/SoundBufferRecorder.hpp"/>
+          <File Name="extern/includes/SFML/Audio/SoundFileFactory.hpp"/>
+          <File Name="extern/includes/SFML/Audio/SoundBuffer.hpp"/>
+          <File Name="extern/includes/SFML/Audio/Listener.hpp"/>
+          <File Name="extern/includes/SFML/Audio/Music.hpp"/>
+          <File Name="extern/includes/SFML/Audio/SoundSource.hpp"/>
+          <File Name="extern/includes/SFML/Audio/SoundFileWriter.hpp"/>
+          <File Name="extern/includes/SFML/Audio/AlResource.hpp"/>
+          <File Name="extern/includes/SFML/Audio/SoundFileReader.hpp"/>
+          <File Name="extern/includes/SFML/Audio/SoundStream.hpp"/>
+          <File Name="extern/includes/SFML/Audio/Sound.hpp"/>
+          <File Name="extern/includes/SFML/Audio/Export.hpp"/>
+          <File Name="extern/includes/SFML/Audio/SoundRecorder.hpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Graphics">
+          <File Name="extern/includes/SFML/Graphics/Shape.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Transform.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Shader.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/RectangleShape.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/RenderStates.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/ConvexShape.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Glyph.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/BlendMode.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Texture.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/View.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Image.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/VertexArray.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/PrimitiveType.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/CircleShape.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Text.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Transformable.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/RenderTarget.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Vertex.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Sprite.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/RenderWindow.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Export.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Rect.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Font.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/RenderTexture.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Drawable.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Glsl.hpp"/>
+          <File Name="extern/includes/SFML/Graphics/Color.hpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Network">
+          <File Name="extern/includes/SFML/Network/SocketSelector.hpp"/>
+          <File Name="extern/includes/SFML/Network/Packet.hpp"/>
+          <File Name="extern/includes/SFML/Network/UdpSocket.hpp"/>
+          <File Name="extern/includes/SFML/Network/TcpSocket.hpp"/>
+          <File Name="extern/includes/SFML/Network/Ftp.hpp"/>
+          <File Name="extern/includes/SFML/Network/Http.hpp"/>
+          <File Name="extern/includes/SFML/Network/SocketHandle.hpp"/>
+          <File Name="extern/includes/SFML/Network/TcpListener.hpp"/>
+          <File Name="extern/includes/SFML/Network/Socket.hpp"/>
+          <File Name="extern/includes/SFML/Network/Export.hpp"/>
+          <File Name="extern/includes/SFML/Network/IpAddress.hpp"/>
+        </VirtualDirectory>
+        <File Name="extern/includes/SFML/Window.hpp"/>
+        <File Name="extern/includes/SFML/Main.hpp"/>
+        <File Name="extern/includes/SFML/OpenGL.hpp"/>
+        <File Name="extern/includes/SFML/Audio.hpp"/>
+        <File Name="extern/includes/SFML/Graphics.hpp"/>
+        <File Name="extern/includes/SFML/Network.hpp"/>
+        <File Name="extern/includes/SFML/Config.hpp"/>
+        <File Name="extern/includes/SFML/System.hpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="GL">
+        <File Name="extern/includes/GL/wglew.h"/>
+        <File Name="extern/includes/GL/glew.h"/>
+        <File Name="extern/includes/GL/glxew.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="AL">
+        <File Name="extern/includes/AL/efx-presets.h"/>
+        <File Name="extern/includes/AL/alext.h"/>
+        <File Name="extern/includes/AL/efx.h"/>
+        <File Name="extern/includes/AL/efx-creative.h"/>
+        <File Name="extern/includes/AL/alc.h"/>
+        <File Name="extern/includes/AL/al.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="jpeg">
+        <File Name="extern/includes/jpeg/jpeglib.h"/>
+        <File Name="extern/includes/jpeg/jmorecfg.h"/>
+        <File Name="extern/includes/jpeg/jerror.h"/>
+        <File Name="extern/includes/jpeg/jconfig.h"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="BattleNetwork">
+    <File Name="BattleNetwork/bnMob.h"/>
+    <File Name="BattleNetwork/bnChargeComponent.h"/>
+    <File Name="BattleNetwork/bnMobFactory.h"/>
+    <File Name="BattleNetwork/bnInputEvent.h"/>
+    <File Name="BattleNetwork/bnMobState.h"/>
+    <File Name="BattleNetwork/bnProgsManIdleState.h"/>
+    <File Name="BattleNetwork/bnComponent.h"/>
+    <File Name="BattleNetwork/bnProgsManBossFight.h"/>
+    <File Name="BattleNetwork/bnCanodumb.cpp"/>
+    <File Name="BattleNetwork/bnInfiniteMap.h"/>
+    <File Name="BattleNetwork/main.cpp"/>
+    <File Name="BattleNetwork/bnPlayerIdleState.h"/>
+    <File Name="BattleNetwork/bnRollHeart.cpp"/>
+    <File Name="BattleNetwork/bnLanBackground.cpp"/>
+    <File Name="BattleNetwork/bnTextureResourceManager.h"/>
+    <File Name="BattleNetwork/bnOverworldMap.cpp"/>
+    <File Name="BattleNetwork/bnStarman.cpp"/>
+    <File Name="BattleNetwork/bnCanodumbMob.h"/>
+    <File Name="BattleNetwork/bnCamera.cpp"/>
+    <File Name="BattleNetwork/bnAudioResourceManager.cpp"/>
+    <File Name="BattleNetwork/bnTile.h"/>
+    <File Name="BattleNetwork/bnExplosion.cpp"/>
+    <File Name="BattleNetwork/bnRollHeal.cpp"/>
+    <File Name="BattleNetwork/bnLogger.h"/>
+    <File Name="BattleNetwork/bnMettaurMoveState.h"/>
+    <File Name="BattleNetwork/bnPA.h"/>
+    <File Name="BattleNetwork/bnExplodeState.h"/>
+    <File Name="BattleNetwork/bnElements.h"/>
+    <File Name="BattleNetwork/bnAI.h"/>
+    <File Name="BattleNetwork/bnNaviRegistration.h"/>
+    <File Name="BattleNetwork/bnSelectMobScene.h"/>
+    <File Name="BattleNetwork/bnAnimate.h"/>
+    <File Name="BattleNetwork/bnVirusBackground.h"/>
+    <File Name="BattleNetwork/bnCharacter.h"/>
+    <File Name="BattleNetwork/SceneNode.h"/>
+    <File Name="BattleNetwork/bnMettaurIdleState.cpp"/>
+    <File Name="BattleNetwork/bnSelectMobScene.cpp"/>
+    <File Name="BattleNetwork/bnMainMenuScene.cpp"/>
+    <File Name="BattleNetwork/bnBattleItem.h"/>
+    <File Name="BattleNetwork/bnCharacter.cpp"/>
+    <File Name="BattleNetwork/bnMettaurAttackState.cpp"/>
+    <File Name="BattleNetwork/bnTextureResourceManager.cpp"/>
+    <File Name="BattleNetwork/bnChipSummonHandler.h"/>
+    <File Name="BattleNetwork/bnCanodumbIdleState.h"/>
+    <File Name="BattleNetwork/bnPlayer.cpp"/>
+    <File Name="BattleNetwork/bnMettaur.cpp"/>
+    <File Name="BattleNetwork/bnCannon.cpp"/>
+    <File Name="BattleNetwork/bnQueueNaviRegistration.h"/>
+    <File Name="BattleNetwork/bnCanodumbAttackState.cpp"/>
+    <File Name="BattleNetwork/resource.h"/>
+    <File Name="BattleNetwork/bnMobHealthUI.h"/>
+    <File Name="BattleNetwork/bnField.h"/>
+    <File Name="BattleNetwork/bnInfiniteMap.cpp"/>
+    <File Name="BattleNetwork/bnStringEncoder.h"/>
+    <File Name="BattleNetwork/bnAudioResourceManager.h"/>
+    <File Name="BattleNetwork/bnMobHealthUI.cpp"/>
+    <File Name="BattleNetwork/bnMainMenuScene.h"/>
+    <File Name="BattleNetwork/bnTwoMettaurMob.h"/>
+    <File Name="BattleNetwork/bnWave.cpp"/>
+    <File Name="BattleNetwork/bnTileBehavior.h"/>
+    <File Name="BattleNetwork/bnCanodumbMob.cpp"/>
+    <File Name="BattleNetwork/bnCanonSmoke.h"/>
+    <File Name="BattleNetwork/bnFramedTextBox.h"/>
+    <File Name="BattleNetwork/bnProgsManIdleState.cpp"/>
+    <File Name="BattleNetwork/bnCanodumb.h"/>
+    <File Name="BattleNetwork/bnAnimationComponent.h"/>
+    <File Name="BattleNetwork/bnPlayerState.h"/>
+    <File Name="BattleNetwork/bnGraveyardBackground.h"/>
+    <File Name="BattleNetwork/bnProgsMan.cpp"/>
+    <File Name="BattleNetwork/bnArtifact.cpp"/>
+    <File Name="BattleNetwork/bnRollHeart.h"/>
+    <File Name="BattleNetwork/bnEntity.cpp"/>
+    <File Name="BattleNetwork/bnGraveyardBackground.cpp"/>
+    <File Name="BattleNetwork/bnPlayerHitState.cpp"/>
+    <File Name="BattleNetwork/bnMettaurMoveState.cpp"/>
+    <File Name="BattleNetwork/bnFileUtil.h"/>
+    <File Name="BattleNetwork/bnChipSelectionCust.cpp"/>
+    <File Name="BattleNetwork/bnBuster.cpp"/>
+    <File Name="BattleNetwork/bnChipFolder.h"/>
+    <File Name="BattleNetwork/bnPlayerHealthUI.cpp"/>
+    <File Name="BattleNetwork/bnInputManager.cpp"/>
+    <File Name="BattleNetwork/bnWave.h"/>
+    <File Name="BattleNetwork/bnRoll.cpp"/>
+    <File Name="BattleNetwork/bnChipUseListener.cpp"/>
+    <File Name="BattleNetwork/bnSmartShader.cpp"/>
+    <File Name="BattleNetwork/bnCanonSmoke.cpp"/>
+    <File Name="BattleNetwork/bnEaseFunctions.h"/>
+    <File Name="BattleNetwork/bnAnimationComponent.cpp"/>
+    <File Name="BattleNetwork/bnLanBackground.h"/>
+    <File Name="BattleNetwork/bnPixelInState.h"/>
+    <File Name="BattleNetwork/bnSpell.h"/>
+    <File Name="BattleNetwork/bnTileState.h"/>
+    <File Name="BattleNetwork/bnOverworldLight.cpp"/>
+    <File Name="BattleNetwork/bnCanodumbAttackState.h"/>
+    <File Name="BattleNetwork/bnAgent.h"/>
+    <File Name="BattleNetwork/bnChronoXConfigReader.h"/>
+    <File Name="BattleNetwork/SceneNode.cpp"/>
+    <File Name="BattleNetwork/bnProgsManPunchState.cpp"/>
+    <File Name="BattleNetwork/bnBuster.h"/>
+    <File Name="BattleNetwork/bnChipLibrary.cpp"/>
+    <File Name="BattleNetwork/bnSmartShader.h"/>
+    <File Name="BattleNetwork/bnBasicSword.cpp"/>
+    <File Name="BattleNetwork/bnRandomMettaurMob.cpp"/>
+    <File Name="BattleNetwork/bnSelectedChipsUI.h"/>
+    <File Name="BattleNetwork/bnTextBox.h"/>
+    <File Name="BattleNetwork/bnTimer.h"/>
+    <File Name="BattleNetwork/bnRollHeal.h"/>
+    <File Name="BattleNetwork/bnOverworldMap.h"/>
+    <File Name="BattleNetwork/bnChipUseListener.h"/>
+    <File Name="BattleNetwork/bnDirection.h"/>
+    <File Name="BattleNetwork/bnMettaurAttackState.h"/>
+    <File Name="BattleNetwork/bnVirusBackground.cpp"/>
+    <File Name="BattleNetwork/bnEntity.h"/>
+    <File Name="BattleNetwork/bnAIState.h"/>
+    <File Name="BattleNetwork/bnProgsManBossFight.cpp"/>
+    <File Name="BattleNetwork/bnChip.h"/>
+    <File Name="BattleNetwork/bnNoState.h"/>
+    <File Name="BattleNetwork/bnBattleScene.h"/>
+    <File Name="BattleNetwork/bnAnimatedCharacter.h"/>
+    <File Name="BattleNetwork/bnProgBomb.cpp"/>
+    <File Name="BattleNetwork/bnTwoMettaurMob.cpp"/>
+    <File Name="BattleNetwork/bnCanodumbCursor.h"/>
+    <File Name="BattleNetwork/bnSelectedChipsUI.cpp"/>
+    <File Name="BattleNetwork/bnSelectNaviScene.h"/>
+    <File Name="BattleNetwork/bnRandomMettaurMob.h"/>
+    <File Name="BattleNetwork/bnLayered.h"/>
+    <File Name="BattleNetwork/bnNaviRegistration.cpp"/>
+    <File Name="BattleNetwork/bnCamera.h"/>
+    <File Name="BattleNetwork/bnChipFolder.cpp"/>
+    <File Name="BattleNetwork/bnTextureType.h"/>
+    <File Name="BattleNetwork/bnChipUsePublisher.h"/>
+    <File Name="BattleNetwork/bnArtifact.h"/>
+    <File Name="BattleNetwork/bnBasicSword.h"/>
+    <File Name="BattleNetwork/bnShaderResourceManager.cpp"/>
+    <File Name="BattleNetwork/bnMettaurIdleState.h"/>
+    <File Name="BattleNetwork/bnPlayerHitState.h"/>
+    <File Name="BattleNetwork/bnProgsMan.h"/>
+    <File Name="BattleNetwork/bnChip.cpp"/>
+    <File Name="BattleNetwork/bnBackground.h"/>
+    <File Name="BattleNetwork/bnInputManager.h"/>
+    <File Name="BattleNetwork/bnEaseFunctions.cpp"/>
+    <File Name="BattleNetwork/bnField.cpp"/>
+    <File Name="BattleNetwork/bnPlayerControlledState.cpp"/>
+    <File Name="BattleNetwork/bnPlayerChipUseListener.h"/>
+    <File Name="BattleNetwork/bnCannon.h"/>
+    <File Name="BattleNetwork/bnSpawnPolicy.h"/>
+    <File Name="BattleNetwork/bnPlayerHealthUI.h"/>
+    <File Name="BattleNetwork/bnOverworldLight.h"/>
+    <File Name="BattleNetwork/bnChargeComponent.cpp"/>
+    <File Name="BattleNetwork/bnGridBackground.cpp"/>
+    <File Name="BattleNetwork/bnMeta.h"/>
+    <File Name="BattleNetwork/bnStarman.h"/>
+    <File Name="BattleNetwork/bnAnimatedCharacter.cpp"/>
+    <File Name="BattleNetwork/bnAnimate.cpp"/>
+    <File Name="BattleNetwork/bnShaderType.h"/>
+    <File Name="BattleNetwork/bnAudioType.h"/>
+    <File Name="BattleNetwork/bnEngine.cpp"/>
+    <File Name="BattleNetwork/bnSpell.cpp"/>
+    <File Name="BattleNetwork/bnSelectNaviScene.cpp"/>
+    <File Name="BattleNetwork/bnFolderScene.cpp"/>
+    <File Name="BattleNetwork/bnTeam.h"/>
+    <File Name="BattleNetwork/bnEngine.h"/>
+    <File Name="BattleNetwork/bnProgBomb.h"/>
+    <File Name="BattleNetwork/bnExplosion.h"/>
+    <File Name="BattleNetwork/bnBattleScene.cpp"/>
+    <File Name="BattleNetwork/bnPlayerIdleState.cpp"/>
+    <File Name="BattleNetwork/bnAnimation.h"/>
+    <File Name="BattleNetwork/bnChipLibrary.h"/>
+    <File Name="BattleNetwork/bnProgsManMoveState.h"/>
+    <File Name="BattleNetwork/bnAnimation.cpp"/>
+    <File Name="BattleNetwork/bnCanodumbCursor.cpp"/>
+    <File Name="BattleNetwork/bnMemory.h"/>
+    <File Name="BattleNetwork/bnPlayerControlledState.h"/>
+    <File Name="BattleNetwork/bnFolderScene.h"/>
+    <File Name="BattleNetwork/bnProgsManPunchState.h"/>
+    <File Name="BattleNetwork/bnRoll.h"/>
+    <File Name="BattleNetwork/bnLogger.cpp"/>
+    <File Name="BattleNetwork/bnShaderResourceManager.h"/>
+    <File Name="BattleNetwork/bnCanodumbIdleState.cpp"/>
+    <File Name="BattleNetwork/mmbn.ico.c"/>
+    <File Name="BattleNetwork/bnTile.cpp"/>
+    <File Name="BattleNetwork/bnProgsManMoveState.cpp"/>
+    <File Name="BattleNetwork/bnBattleResults.h"/>
+    <File Name="BattleNetwork/bnBattleResults.cpp"/>
+    <File Name="BattleNetwork/bnPerlinNoise.h"/>
+    <File Name="BattleNetwork/bnGridBackground.h"/>
+    <File Name="BattleNetwork/bnPA.cpp"/>
+    <File Name="BattleNetwork/bnMettaur.h"/>
+    <File Name="BattleNetwork/bnChipSelectionCust.h"/>
+    <File Name="BattleNetwork/bnPlayer.h"/>
+  </VirtualDirectory>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="Cross GCC ( x86_64-linux-gnu )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g -Wall -std=c++11" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+        <IncludePath Value="./extern/includes"/>
+      </Compiler>
+      <Linker Options="-O0" Required="yes">
+        <LibraryPath Value="."/>
+        <LibraryPath Value="Debug"/>
+        <LibraryPath Value="./extern/libs"/>
+        <Library Value="sfml-system-s-d"/>
+        <Library Value="sfml-graphics-s-d"/>
+        <Library Value="sfml-audio-s-d"/>
+        <Library Value="sfml-window-s-d"/>
+      </Linker>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="./Debug" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

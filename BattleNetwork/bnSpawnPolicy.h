@@ -22,13 +22,14 @@ protected:
   T* generate;
 
   virtual void EnforceConstraints() {
-    _DerivedFrom<T, Character>();
-    _DerivedFrom<T, AI<T>>();
+   // _DerivedFrom<T, Character>();
+   // _DerivedFrom<T, AI<T>>();
   }
 
 public:
   SpawnPolicy(Mob& mob) { EnforceConstraints(); }
-
+  virtual ~SpawnPolicy() { ; }
+  
   virtual T* GetSpawned() { return generate; }
 
   virtual std::function<void(Character*)>& GetIntroCallback() { return intro; }
@@ -51,23 +52,23 @@ class RankedSpawnPolicy : public SpawnPolicy<T> {
       // This retains the current entity type and stores it in a function. We do this to transform the 
       // unknown type back later and can call the proper state change
       auto pixelStateInvoker = [&mob](Character* character) {
-        auto onFinish = [&mob]() { mob.FlagNextReady(); };
+        auto onFinish = [&mob]() { /*mob.FlagNextReady();*/ };
 
         T* agent = dynamic_cast<T*>(character);
 
         if (agent) {
-          agent->StateChange<PixelInState<T>, std::function<void()> >(onFinish);
+          agent->template StateChange<PixelInState<T>>(onFinish);
         }
       };
 
       auto defaultStateInvoker = [](Character* character) { 
         T* agent = dynamic_cast<T*>(character); 
         
-        if (agent) { agent->StateChange<DefaultState>(); }
+        if (agent) { agent->template StateChange<DefaultState>(); }
       };
 
-      intro = pixelStateInvoker;
-      ready = defaultStateInvoker;
+      this->intro = pixelStateInvoker;
+      this->ready = defaultStateInvoker;
     }
 
   public:

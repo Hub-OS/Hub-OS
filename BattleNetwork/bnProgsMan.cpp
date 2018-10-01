@@ -74,7 +74,7 @@ void ProgsMan::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<ProgsMan>>();
+    // this->template StateChange<ExplodeState<ProgsMan>>();
     this->LockState();
   }
   else {

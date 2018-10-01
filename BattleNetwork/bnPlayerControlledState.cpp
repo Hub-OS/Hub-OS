@@ -25,7 +25,7 @@ PlayerControlledState::PlayerControlledState() : inputManager(&InputManager::Get
 
 PlayerControlledState::~PlayerControlledState()
 {
-  InputManager = nullptr;
+  inputManager = nullptr;
 }
 
 void PlayerControlledState::OnEnter(Player& player) {
@@ -35,7 +35,7 @@ void PlayerControlledState::OnEnter(Player& player) {
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   // Action controls take priority over movement
-  if (InputManager->has(RELEASED_A)) {
+  if (inputManager->has(RELEASED_A)) {
     if (attackKeyPressCooldown >= ATTACK_KEY_PRESS_COOLDOWN && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
       player.chargeComponent.SetCharging(false);

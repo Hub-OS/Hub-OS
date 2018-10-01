@@ -174,8 +174,8 @@ int main(int argc, char** argv) {
   LayeredDrawable progSprite;
 
   int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE + (unsigned)ShaderType::SHADER_TYPE_SIZE;
-  std::atomic<int> progress = 0;
-  std::atomic<int> navisLoaded = 0;
+  std::atomic<int> progress{0};
+  std::atomic<int> navisLoaded{0};
 
   sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
   sf::Thread audioLoad(&RunAudioInit, &progress);

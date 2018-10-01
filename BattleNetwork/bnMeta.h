@@ -9,5 +9,5 @@
  */
 template<class Any, class Base> struct _DerivedFrom {
   static void constraints(Any* p) { Base* pb = p; }
-  _DerivedFrom() { void(*p)(Any*) = constraints; }
+  _DerivedFrom() { /*void(*p)(Any*) = constraints;*/ }
 };

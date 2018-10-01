@@ -82,8 +82,8 @@ public:
   void Clear() { callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; }
 
   void operator() (float progress, sf::Sprite& target, FrameList& sequence);
-  Animate& operator << (On& rhs);
-  Animate& operator << (Mode& rhs);
+  Animate& operator << (On rhs);
+  Animate& operator << (Mode rhs);
   void operator << (std::function<void()> finishNotifier);
 
   void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence) const;
