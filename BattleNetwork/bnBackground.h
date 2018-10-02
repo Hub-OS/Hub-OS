@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnSmartShader.h"
 
+#include <cmath>
 /*
 Backgrounds must fill the entire screen by repeating the texture
 Some are animated and need to support texture offsets while filling

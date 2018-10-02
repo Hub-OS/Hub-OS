@@ -6,6 +6,7 @@ using sf::IntRect;
 #include "bnFileUtil.h"
 #include "bnLogger.h"
 #include "bnEntity.h"
+#include <cmath>
 
 Animation::Animation() : animator(), path("") {
   ;

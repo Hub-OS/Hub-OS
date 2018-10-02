@@ -1,5 +1,6 @@
 #include "bnOverworldMap.h"
 #include "bnEngine.h"
+#include <cmath>
 
 namespace Overworld {
   Map::Map(int numOfCols, int numOfRows, int tileWidth, int tileHeight) : cols(numOfCols), rows(numOfRows), tileWidth(tileWidth), tileHeight(tileHeight), sf::Drawable() {
