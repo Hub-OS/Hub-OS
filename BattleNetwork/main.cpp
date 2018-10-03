@@ -11,6 +11,7 @@
 #include <time.h>
 #include <queue>
 #include <atomic>
+#include <cmath>
 
 // Engine addons
 #include "bnQueueNaviRegistration.h"
@@ -329,13 +330,13 @@ int main(int argc, char** argv) {
       // oldest at the top (at most 30 on screen) at full transparency
       logLabel->setString(logs[i]);
       logLabel->setPosition(0.f, 320 - (i * 10.f) - 15.f);
-      logLabel->setFillColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*fmax(0, 255 - (255 / 30)*i))));
+      logLabel->setFillColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*std::fmax(0, 255 - (255 / 30)*i))));
       ENGINE.Draw(logLabel);
     }
 
     if (progs) {
       animator(progAnimProgress, progSprite, progAnim);
-      ENGINE.Draw(&progSprite);
+      // ENGINE.Draw(&progSprite);
 
       if (navisLoaded < (int)NAVIS.Size()) {
         navisLoadedLabel->setString(std::string("Loading Navi Data ") + std::to_string(navisLoaded) + " / " + std::to_string(NAVIS.Size()));
@@ -349,7 +350,7 @@ int main(int argc, char** argv) {
       }
     }
 
-    ENGINE.Draw(&logoSprite);
+    // ENGINE.Draw(&logoSprite);
 
     ENGINE.DrawUnderlay();
     ENGINE.DrawLayers();
