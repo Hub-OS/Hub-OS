@@ -336,7 +336,7 @@ int main(int argc, char** argv) {
 
     if (progs) {
       animator(progAnimProgress, progSprite, progAnim);
-      ENGINE.Draw(&progSprite);
+      // ENGINE.Draw(&progSprite);
 
       if (navisLoaded < (int)NAVIS.Size()) {
         navisLoadedLabel->setString(std::string("Loading Navi Data ") + std::to_string(navisLoaded) + " / " + std::to_string(NAVIS.Size()));
@@ -350,7 +350,7 @@ int main(int argc, char** argv) {
       }
     }
 
-    ENGINE.Draw(&logoSprite);
+    // ENGINE.Draw(&logoSprite);
 
     ENGINE.DrawUnderlay();
     ENGINE.DrawLayers();
