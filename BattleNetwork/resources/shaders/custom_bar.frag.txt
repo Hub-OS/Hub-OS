@@ -10,14 +10,14 @@ void main()
     {
       if(factor >= 1.0)
       {
-          pixel.r = pixel.b = 0;
-          pixel.g = sin((pos.x+(factor*2))*100) + 0.5*sin(pos.x+(factor)*100);
+          pixel.r = pixel.b = 0.0;
+          pixel.g = sin((pos.x+(factor*2.0))*100.0) + 0.5*sin(pos.x+(factor)*100.0);
       }
       else
       {
-        pixel.r = 0;
+        pixel.r = 0.0;
   
-        vec2 size = textureSize(texture,0);
+        vec2 size = vec2(256.0, 0.0);
 
         /* Hard-coded the red bar min and max in the texture until I can do it programatically*/ 
         if(pos.x > 9.0/size.x && pos.x <= ((size.x-10.0) * factor)/size.x)

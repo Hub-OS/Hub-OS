@@ -18,7 +18,7 @@ void main()
     vec2 distortionMapCoordinate = gl_TexCoord[0].st;
     //distortionMapCoordinate.y = 1.0f - distortionMapCoordinate.y;
 
-    vec2 size = textureSize(currentTexture,0);
+    vec2 size = vec2(0.0, 0.0); // textureSize(currentTexture,0);
     vec2 screenCoord = vec2(gl_TexCoord[0].s, (gl_TexCoord[0].t)) * size;
 
     if(screenCoord.x >= x && screenCoord.x <= x + w && screenCoord.y >= y && screenCoord.y <= y + h) {
