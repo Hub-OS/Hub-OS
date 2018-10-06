@@ -6,10 +6,10 @@ void main()
     vec2 pos = gl_TexCoord[0].xy;
     vec4 pixel = texture2D(texture, vec2(gl_TexCoord[0].x, gl_TexCoord[0].y));
 
-    float redStart = 150.0;
+    float redStart = 128.0;
     float redEnd = 255.0;
     float value = clamp(factor, 0.0, 1.0);
-    float delta = (redStart*(1.0-value))+(redEnd*value);
+    float delta = mix(redStart, redEnd, value);
     delta = delta/redEnd;
 
     // Target the red gradient
@@ -23,7 +23,7 @@ void main()
       {
         pixel.g = sin((pos.x+(factor*2))*100) + 0.5*sin(pos.x+(factor)*100);
       }
-      else if(delta >= prevR) // Otherwise change the gradient to a loading bar
+      else if(delta > prevR) // Otherwise change the gradient to a loading bar
       {
         pixel.r = 224.0/255.0;
         pixel.g = 232.0/255.0;
