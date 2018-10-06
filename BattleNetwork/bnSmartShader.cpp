@@ -1,18 +1,14 @@
 #include "bnSmartShader.h"
 
-  sf::Shader* ref;
-  std::map<std::string, int>    iuniforms; std::map<std::string, int>::iterator iiter;
-  std::map<std::string, float>  funiforms; std::map<std::string, float>::iterator fiter;
-  // NOTE: add support for other unform types as needed
-
   SmartShader::SmartShader() {
 
   }
 
-  SmartShader::SmartShader(SmartShader& copy) {
-    copy.funiforms = funiforms;
-    copy.iuniforms = iuniforms;
-    copy.ref = ref;
+  SmartShader::SmartShader(const SmartShader& copy) {
+    funiforms = copy.funiforms;
+    iuniforms = copy.iuniforms;
+    vfuniforms = copy.vfuniforms;
+    ref = copy.ref;
   }
 
   SmartShader::~SmartShader() {
@@ -21,17 +17,17 @@
     ref = nullptr;
   }
 
-  SmartShader::SmartShader(sf::Shader& rhs) {
-    ref = &rhs;
+  SmartShader::SmartShader(const sf::Shader& rhs) {
+    ref = &const_cast<sf::Shader&>(rhs);
   }
 
- SmartShader& SmartShader::operator=(sf::Shader& rhs) {
-   ref = &rhs;
+ SmartShader& SmartShader::operator=(const sf::Shader& rhs) {
+   ref = &const_cast<sf::Shader&>(rhs);
    return *this;
   }
 
- SmartShader& SmartShader::operator=(sf::Shader* rhs) {
-   ref = rhs;
+ SmartShader& SmartShader::operator=(const sf::Shader* rhs) {
+   ref = const_cast<sf::Shader*>(rhs);
    return *this;
  }
 
@@ -40,15 +36,20 @@
  }
 
   void SmartShader::ApplyUniforms() {
-    iiter = iuniforms.begin();
-    fiter = funiforms.begin();
+    iiter iIter = iuniforms.begin();
+    fiter fIter = funiforms.begin();
+    vfiter vfIter = vfuniforms.begin();
 
-    for (; iiter != iuniforms.end(); iiter++) {
-      ref->setUniform(iiter->first, iiter->second);
+    for (; iIter != iuniforms.end(); iIter++) {
+      ref->setUniform(iIter->first, iIter->second);
     }
 
-    for (; fiter != funiforms.end(); fiter++) {
-      ref->setUniform(fiter->first, fiter->second);
+    for (; fIter != funiforms.end(); fIter++) {
+      ref->setUniform(fIter->first, fIter->second);
+    }
+
+    for (; vfIter != vfuniforms.end(); vfIter++) {
+      ref->setUniform(vfIter->first, vfIter->second);
     }
   }
 
@@ -57,33 +58,37 @@
       return;
     }
 
-    iiter = iuniforms.begin();
-    fiter = funiforms.begin();
+    iiter iIter = iuniforms.begin();
+    fiter fIter = funiforms.begin();
+    vfiter vfIter = vfuniforms.begin();
 
-    for (; iiter != iuniforms.end(); iiter++) {
-      ref->setUniform(iiter->first, 0);
+    for (; iIter != iuniforms.end(); iIter++) {
+      ref->setUniform(iIter->first, 0);
     }
 
-    for (; fiter != funiforms.end(); fiter++) {
-      ref->setUniform(fiter->first, 0.f);
+    for (; fIter != funiforms.end(); fIter++) {
+      ref->setUniform(fIter->first, 0.f);
+    }
+
+    for (; vfIter != vfuniforms.end(); vfIter++) {
+      ref->setUniform(vfIter->first, 0.f);
     }
 
     iuniforms.clear();
     funiforms.clear();
+    vfuniforms.clear();
   }
 
   void SmartShader::SetUniform(std::string uniform, float fvalue) {
-    /*if (ref->getUniformLocation(uniform) == -1) {
-      throw new std::exception("Shader program has no uniform named " + uniform);
-    }*/
-    funiforms.emplace(uniform, fvalue);
+    funiforms[uniform] = fvalue;
   }
 
   void SmartShader::SetUniform(std::string uniform, int ivalue) {
-    /*if (ref->getUniformLocation(uniform) == -1) {
-      throw new std::exception("Shader program has no uniform named " + uniform);
-    }*/
-    iuniforms.emplace(uniform, ivalue);
+    iuniforms[uniform] = ivalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, const sf::Vector2f& vfvalue) {
+    vfuniforms[uniform] = vfvalue;
   }
 
   void SmartShader::Reset() {

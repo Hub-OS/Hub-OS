@@ -10,20 +10,26 @@ private:
   std::map<std::string, int>    iuniforms;
   std::map<std::string, float>  funiforms;
   std::map<std::string, double> duniforms;
+  std::map<std::string, sf::Vector2f> vfuniforms;
   // TODO: add support for other unform types as needed
+
+  typedef std::map<std::string, int>::iterator iiter;
+  typedef std::map<std::string, float>::iterator fiter;
+  typedef std::map<std::string, sf::Vector2f>::iterator vfiter;
 
   void ApplyUniforms();
   void ResetUniforms();
 
 public:
   SmartShader();
-  SmartShader(SmartShader&);
+  SmartShader(const SmartShader&);
   ~SmartShader();
-  SmartShader(sf::Shader& rhs);
-  SmartShader& operator=(sf::Shader& rhs);
-  SmartShader& operator=(sf::Shader* rhs);
+  SmartShader(const sf::Shader& rhs);
+  SmartShader& operator=(const sf::Shader& rhs);
+  SmartShader& operator=(const sf::Shader* rhs);
   void SetUniform(std::string uniform, float fvalue);
   void SetUniform(std::string uniform, int ivalue);
+  void SetUniform(std::string uniform, const sf::Vector2f& vfvalue);
   void Reset();
   sf::Shader* Get();
 };

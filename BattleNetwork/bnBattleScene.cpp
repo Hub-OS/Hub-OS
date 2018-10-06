@@ -195,13 +195,17 @@ int BattleScene::Run(Player* player, Mob* mob) {
   distortionMap.setRepeated(true);
   distortionMap.setSmooth(true);
 
+  sf::Vector2u textureSize = ENGINE.GetPostProcessingBuffer().getSize();
+
   sf::Shader& heatShader = *SHADERS.GetShader(ShaderType::SPOT_DISTORTION);
   heatShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
   heatShader.setUniform("distortionMapTexture", distortionMap);
+  heatShader.setUniform("textureSize", sf::Glsl::Vec2(textureSize.x, textureSize.y));
 
   sf::Shader& iceShader = *SHADERS.GetShader(ShaderType::SPOT_REFLECTION);
   iceShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
+  heatShader.setUniform("textureSize", sf::Glsl::Vec2(textureSize.x, textureSize.y));
   iceShader.setUniform("shine", 0.3f);
 
   std::vector<std::vector<Drawable*>> miscComponents;
