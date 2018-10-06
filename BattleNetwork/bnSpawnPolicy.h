@@ -5,8 +5,7 @@
 #include "bnPixelInState.h"
 #include "bnStringEncoder.h"
 #include "bnNoState.h"
-
-class Mob;
+#include "bnMob.h"
 
 /*
 This class handles the semantics of spawning a special character type.

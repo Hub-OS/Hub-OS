@@ -5,6 +5,7 @@
 #include "bnChip.h"
 #include "bnTile.h"
 #include "bnField.h"
+#include "bnSpawnPolicy.h"
 
 ProgsManBossFight::ProgsManBossFight(Field* field) : MobFactory(field)
 {

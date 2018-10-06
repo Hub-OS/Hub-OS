@@ -49,13 +49,13 @@ void Engine::Draw(LayeredDrawable* _drawable) {
   // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
   LayeredDrawable* context = _drawable;
-  SmartShader& shader = context->GetShader();
+  SmartShader* shader = &context->GetShader();
 
-  if (shader.Get() != nullptr) {
+  if (shader) {
     const sf::Texture* original = context->getTexture();
-    shader.ApplyUniforms();
-    postprocessing.draw(*context, shader.Get()); // bake
-    shader.ResetUniforms();
+    shader->ApplyUniforms();
+    postprocessing.draw(*context); // bake
+    shader->ResetUniforms();
   } else {
     Draw(context, true);
   }

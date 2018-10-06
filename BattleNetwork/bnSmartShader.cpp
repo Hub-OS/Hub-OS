@@ -6,13 +6,13 @@
   // NOTE: add support for other unform types as needed
 
   SmartShader::SmartShader() {
-
+    ref = nullptr;
   }
 
-  SmartShader::SmartShader(SmartShader& copy) {
-    copy.funiforms = funiforms;
-    copy.iuniforms = iuniforms;
-    copy.ref = ref;
+  SmartShader::SmartShader(const SmartShader& copy) {
+    funiforms = copy.funiforms;
+    iuniforms = copy.iuniforms;
+    ref = copy.ref;
   }
 
   SmartShader::~SmartShader() {
@@ -21,17 +21,17 @@
     ref = nullptr;
   }
 
-  SmartShader::SmartShader(sf::Shader& rhs) {
-    ref = &rhs;
+  SmartShader::SmartShader(const sf::Shader& rhs) {
+    ref = &const_cast<sf::Shader&>(rhs);
   }
 
- SmartShader& SmartShader::operator=(sf::Shader& rhs) {
-   ref = &rhs;
+ SmartShader& SmartShader::operator=(const sf::Shader& rhs) {
+   ref = &const_cast<sf::Shader&>(rhs);
    return *this;
   }
 
- SmartShader& SmartShader::operator=(sf::Shader* rhs) {
-   ref = rhs;
+ SmartShader& SmartShader::operator=(const sf::Shader* rhs) {
+   ref = const_cast<sf::Shader*>(rhs);
    return *this;
  }
 

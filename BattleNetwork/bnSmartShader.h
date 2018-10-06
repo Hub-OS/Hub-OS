@@ -17,11 +17,11 @@ private:
 
 public:
   SmartShader();
-  SmartShader(SmartShader&);
+  SmartShader(const SmartShader&);
   ~SmartShader();
-  SmartShader(sf::Shader& rhs);
-  SmartShader& operator=(sf::Shader& rhs);
-  SmartShader& operator=(sf::Shader* rhs);
+  SmartShader(const sf::Shader& rhs);
+  SmartShader& operator=(const sf::Shader& rhs);
+  SmartShader& operator=(const sf::Shader* rhs);
   void SetUniform(std::string uniform, float fvalue);
   void SetUniform(std::string uniform, int ivalue);
   void Reset();

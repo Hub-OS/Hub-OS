@@ -1,5 +1,6 @@
 #include "bnTwoMettaurMob.h"
 #include "bnField.h"
+#include "bnSpawnPolicy.h"
 
 TwoMettaurMob::TwoMettaurMob(Field* field) : MobFactory(field)
 {
