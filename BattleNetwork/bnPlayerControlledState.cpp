@@ -128,7 +128,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
     if (moved) {
       moveKeyPressCooldown = 0.0f;
-      auto onFinish = [&player, &direction]() {
+      auto onFinish = [&]() {
         //Cooldown until player's movement catches up to actual position (avoid walking through spells)
         if (player.previous) {
           player.AdoptNextTile();
