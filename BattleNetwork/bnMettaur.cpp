@@ -121,7 +121,7 @@ void Mettaur::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    //this->StateChange<ExplodeState<Mettaur>>();
+    this->StateChange<ExplodeState<Mettaur>>();
     
     if (Mettaur::metIDs.size() > 0) {
       vector<int>::iterator it = find(Mettaur::metIDs.begin(), Mettaur::metIDs.end(), metID);

@@ -51,7 +51,7 @@ class RankedSpawnPolicy : public SpawnPolicy<T> {
       // This retains the current entity type and stores it in a function. We do this to transform the 
       // unknown type back later and can call the proper state change
       auto pixelStateInvoker = [&mob](Character* character) {
-        auto onFinish = [&mob]() { /*mob.FlagNextReady();*/ };
+        auto onFinish = [&mob]() { mob.FlagNextReady(); };
 
         T* agent = dynamic_cast<T*>(character);
 
