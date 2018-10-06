@@ -7,6 +7,7 @@
 #include "bnChip.h"
 #include "bnField.h"
 #include "bnTile.h"
+#include "bnSpawnPolicy.h"
 
 RandomMettaurMob::RandomMettaurMob(Field* field) : MobFactory(field)
 {

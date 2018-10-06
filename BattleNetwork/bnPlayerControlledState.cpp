@@ -25,7 +25,7 @@ PlayerControlledState::PlayerControlledState() : inputManager(&InputManager::Get
 
 PlayerControlledState::~PlayerControlledState()
 {
-  InputManager = nullptr;
+  inputManager = nullptr;
 }
 
 void PlayerControlledState::OnEnter(Player& player) {
@@ -35,13 +35,13 @@ void PlayerControlledState::OnEnter(Player& player) {
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   // Action controls take priority over movement
-  if (InputManager->has(RELEASED_A)) {
+  if (inputManager->has(RELEASED_A)) {
     if (attackKeyPressCooldown >= ATTACK_KEY_PRESS_COOLDOWN && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
       player.chargeComponent.SetCharging(false);
       isChargeHeld = false;
       attackKeyPressCooldown = 0.0f;
-      auto onFinish = [&player, this]() {player.SetAnimation(PLAYER_IDLE); this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; };
+      auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE); this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; };
       player.SetAnimation(PLAYER_SHOOTING, onFinish);
     }
     else {
@@ -75,9 +75,9 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     isChargeHeld = true;
 
     attackKeyPressCooldown = 0.0f;
-    auto onFinish = [&player, this]() { 
+    auto onFinish = [&]() { 
 
-      if (isChargeHeld) {
+      if (this->isChargeHeld) {
         player.chargeComponent.SetCharging(true);
       }
 
@@ -128,7 +128,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
     if (moved) {
       moveKeyPressCooldown = 0.0f;
-      auto onFinish = [&player]() {
+      auto onFinish = [&]() {
         //Cooldown until player's movement catches up to actual position (avoid walking through spells)
         if (player.previous) {
           player.AdoptNextTile();

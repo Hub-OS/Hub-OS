@@ -1,6 +1,5 @@
 #pragma once
 #include "bnCharacter.h"
-#include "bnSpawnPolicy.h"
 #include "bnMeta.h"
 #include "bnBattleItem.h"
 #include <vector>

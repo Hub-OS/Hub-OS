@@ -46,7 +46,7 @@ public:
 
   void SetShader(SmartShader& _shader) {
     RevokeShader();
-    shader =_shader;
+    shader = _shader;
   }
 
   SmartShader& GetShader() {

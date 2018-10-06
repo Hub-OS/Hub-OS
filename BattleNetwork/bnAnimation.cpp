@@ -6,9 +6,14 @@ using sf::IntRect;
 #include "bnFileUtil.h"
 #include "bnLogger.h"
 #include "bnEntity.h"
+#include <cmath>
 
 Animation::Animation() : animator(), path("") {
   ;
+}
+
+Animation::Animation(const char* _path) : animator(), path(std::string(_path)) {
+    
 }
 
 Animation::Animation(string _path) : animator(), path(_path) {
@@ -147,13 +152,13 @@ FrameList & Animation::GetFrameList(std::string animation)
   return animations[animation];
 }
 
-Animation & Animation::operator<<(Animate::On & rhs)
+Animation & Animation::operator<<(Animate::On rhs)
 {
   animator << rhs;
   return *this;
 }
 
-Animation & Animation::operator<<(Animate::Mode & rhs)
+Animation & Animation::operator<<(Animate::Mode rhs)
 {
   animator << rhs;
   return *this;

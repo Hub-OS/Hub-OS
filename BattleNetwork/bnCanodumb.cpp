@@ -97,7 +97,7 @@ void Canodumb::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<Canodumb>>();
+    this->StateChange<ExplodeState<Canodumb>>(3,0.55);
     this->LockState();
   }
   else {

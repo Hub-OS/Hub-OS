@@ -86,7 +86,8 @@ int SelectMobScene::Run(SelectedNavi navi)
 
   bool gotoNextScene = false;
 
-  SmartShader shader = LOAD_SHADER(TEXEL_PIXEL_BLUR);
+  SmartShader shader;
+  shader = LOAD_SHADER(TEXEL_PIXEL_BLUR);
   float factor = 125;
 
   // Current selection index

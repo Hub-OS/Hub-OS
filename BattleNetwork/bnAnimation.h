@@ -15,6 +15,7 @@ using std::to_string;
 class Animation {
 public:
   Animation();
+  Animation(const char* path);
   Animation(string _path);
   ~Animation();
 
@@ -25,8 +26,8 @@ public:
 
   FrameList& GetFrameList(std::string animation);
 
-  Animation& operator<<(Animate::On& rhs);
-  Animation& operator<<(Animate::Mode& rhs);
+  Animation& operator<<(Animate::On rhs);
+  Animation& operator<<(Animate::Mode rhs);
   void operator<<(std::function<void()> onFinish);
 
 private:

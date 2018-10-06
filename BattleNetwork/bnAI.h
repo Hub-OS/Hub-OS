@@ -31,7 +31,7 @@ public:
 
   template<typename U>
   void StateChange() {
-    _DerivedFrom<U, AIState<T>>();
+    //_DerivedFrom<U, AIState<T>>();
 
     if (lock == AI<T>::StateLock::Locked) {
       return;
@@ -54,7 +54,7 @@ public:
   */
   template<typename U, typename ...Args>
   void StateChange(Args... args) {
-    _DerivedFrom<U, AIState<T>>();
+    //_DerivedFrom<U, AIState<T>>();
 
     if (lock == AI<T>::StateLock::Locked) {
       return;

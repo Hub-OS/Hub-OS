@@ -5,8 +5,7 @@
 #include "bnPixelInState.h"
 #include "bnStringEncoder.h"
 #include "bnNoState.h"
-
-class Mob;
+#include "bnMob.h"
 
 /*
 This class handles the semantics of spawning a special character type.
@@ -22,13 +21,14 @@ protected:
   T* generate;
 
   virtual void EnforceConstraints() {
-    _DerivedFrom<T, Character>();
-    _DerivedFrom<T, AI<T>>();
+   // _DerivedFrom<T, Character>();
+   // _DerivedFrom<T, AI<T>>();
   }
 
 public:
   SpawnPolicy(Mob& mob) { EnforceConstraints(); }
-
+  virtual ~SpawnPolicy() { ; }
+  
   virtual T* GetSpawned() { return generate; }
 
   virtual std::function<void(Character*)>& GetIntroCallback() { return intro; }
@@ -56,18 +56,18 @@ class RankedSpawnPolicy : public SpawnPolicy<T> {
         T* agent = dynamic_cast<T*>(character);
 
         if (agent) {
-          agent->StateChange<PixelInState<T>, std::function<void()> >(onFinish);
+          agent->template StateChange<PixelInState<T>>(onFinish);
         }
       };
 
       auto defaultStateInvoker = [](Character* character) { 
         T* agent = dynamic_cast<T*>(character); 
         
-        if (agent) { agent->StateChange<DefaultState>(); }
+        if (agent) { agent->template StateChange<DefaultState>(); }
       };
 
-      intro = pixelStateInvoker;
-      ready = defaultStateInvoker;
+      this->intro = pixelStateInvoker;
+      this->ready = defaultStateInvoker;
     }
 
   public:

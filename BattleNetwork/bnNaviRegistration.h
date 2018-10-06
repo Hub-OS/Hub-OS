@@ -6,6 +6,7 @@
 #include <atomic>
 #include <SFML/Graphics.hpp>
 #include "bnElements.h"
+#include "bnPlayer.h"
 
 /*
   Use this singleton to register custom navis and have them automatically appear on the select, overworld, and battle scenes
@@ -60,7 +61,7 @@ public:
     const std::string GetSpeedString() const;
     const std::string GetAttackString() const;
     const std::string GetSpecialDescriptionString() const;
-    const Element NaviRegistration::NaviInfo::GetElement() const;
+    const Element GetElement() const;
 
     Player* GetNavi() const;
   };

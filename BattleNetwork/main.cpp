@@ -11,6 +11,7 @@
 #include <time.h>
 #include <queue>
 #include <atomic>
+#include <cmath>
 
 // Engine addons
 #include "bnQueueNaviRegistration.h"
@@ -174,8 +175,8 @@ int main(int argc, char** argv) {
   LayeredDrawable progSprite;
 
   int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE + (unsigned)ShaderType::SHADER_TYPE_SIZE;
-  std::atomic<int> progress = 0;
-  std::atomic<int> navisLoaded = 0;
+  std::atomic<int> progress{0};
+  std::atomic<int> navisLoaded{0};
 
   sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
   sf::Thread audioLoad(&RunAudioInit, &progress);
@@ -329,7 +330,7 @@ int main(int argc, char** argv) {
       // oldest at the top (at most 30 on screen) at full transparency
       logLabel->setString(logs[i]);
       logLabel->setPosition(0.f, 320 - (i * 10.f) - 15.f);
-      logLabel->setFillColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*fmax(0, 255 - (255 / 30)*i))));
+      logLabel->setFillColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*std::fmax(0, 255 - (255 / 30)*i))));
       ENGINE.Draw(logLabel);
     }
 

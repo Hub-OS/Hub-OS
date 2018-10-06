@@ -1,7 +1,7 @@
 #include "bnSmartShader.h"
 
   SmartShader::SmartShader() {
-
+    ref = nullptr;
   }
 
   SmartShader::SmartShader(const SmartShader& copy) {
