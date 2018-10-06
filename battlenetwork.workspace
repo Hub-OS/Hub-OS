@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Workspace Name="battlenetwork" Database="">
-  <Project Name="battlenetwork" Path="battlenetwork.project" Active="Yes"/>
+<CodeLite_Workspace Name="battlenetwork" Database="" Version="10.0.0">
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="no">
       <Environment/>
