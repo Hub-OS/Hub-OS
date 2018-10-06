@@ -6,26 +6,28 @@ void main()
     vec2 pos = gl_TexCoord[0].xy;
     vec4 pixel = texture2D(texture, vec2(gl_TexCoord[0].x, gl_TexCoord[0].y));
 
-    if(pixel.rgb == vec3(1,0,0)) 
+    float redStart = 150.0;
+    float redEnd = 255.0;
+    float value = clamp(factor, 0.0, 1.0);
+    float delta = (redStart*(1.0-value))+(redEnd*value);
+    delta = delta/redEnd;
+
+    // Target the red gradient
+    if(pixel.r >= redStart/redEnd && pixel.g == 0.0 && pixel.b == 0.0) 
     {
+      float prevR = pixel.r;
+      pixel.r = 0;
+
+      // If the timer is complete...
       if(factor >= 1.0)
       {
-          pixel.r = pixel.b = 0;
-          pixel.g = sin((pos.x+(factor*2))*100) + 0.5*sin(pos.x+(factor)*100);
+        pixel.g = sin((pos.x+(factor*2))*100) + 0.5*sin(pos.x+(factor)*100);
       }
-      else
+      else if(delta >= prevR) // Otherwise change the gradient to a loading bar
       {
-        pixel.r = 0;
-  
-        vec2 size = textureSize(texture,0);
-
-        /* Hard-coded the red bar min and max in the texture until I can do it programatically*/ 
-        if(pos.x > 9.0/size.x && pos.x <= ((size.x-10.0) * factor)/size.x)
-        {
-          pixel.r = 224.0/255.0;
-          pixel.g = 232.0/255.0;
-          pixel.b = 248.0/255.0;
-        }
+        pixel.r = 224.0/255.0;
+        pixel.g = 232.0/255.0;
+        pixel.b = 248.0/255.0;
       }
     }
 
