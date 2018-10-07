@@ -205,7 +205,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
   sf::Shader& iceShader = *SHADERS.GetShader(ShaderType::SPOT_REFLECTION);
   iceShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
-  heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2(textureSize.x, textureSize.y));
+  iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2(textureSize.x, textureSize.y));
   iceShader.setUniform("shine", 0.3f);
 
   std::vector<std::vector<Drawable*>> miscComponents;
