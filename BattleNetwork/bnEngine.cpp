@@ -51,10 +51,10 @@ void Engine::Draw(LayeredDrawable* _drawable) {
   LayeredDrawable* context = _drawable;
   SmartShader* shader = &context->GetShader();
 
-  if (shader) {
+  if (shader && shader->Get()) {
     const sf::Texture* original = context->getTexture();
     shader->ApplyUniforms();
-    postprocessing.draw(*context); // bake
+    postprocessing.draw(*context, shader->Get()); // bake
     shader->ResetUniforms();
   } else {
     Draw(context, true);

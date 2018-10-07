@@ -50,7 +50,7 @@ LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch). $(LibraryP
 AR       := /usr/bin/x86_64-linux-gnu-ar rcu
 CXX      := g++
 CC       := gcc
-CXXFLAGS := -fPIC -shared -g -Wall -std=c++11 $(Preprocessors) -D_GLIBCXX_USE_CXX11_ABI=0
+CXXFLAGS := -fPIC -shared -g -Wall -Wno-sign-compare -Wno-reorder -Wno-switch -std=c++11 $(Preprocessors) -D_GLIBCXX_USE_CXX11_ABI=0
 CFLAGS   :=   $(Preprocessors)
 ASFLAGS  := 
 AS       := /usr/bin/x86_64-linux-gnu-as
