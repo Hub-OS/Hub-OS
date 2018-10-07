@@ -20,7 +20,7 @@ Spell::Spell(void) : animationComponent(this), Entity() {
   hitHeight = 0.0f;
   direction = Direction::NONE;
   texture = nullptr;
-  bool markTile = false;
+  markTile = false;
 }
 
 Spell::~Spell(void) {
