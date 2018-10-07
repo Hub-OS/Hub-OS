@@ -6,7 +6,7 @@ void main()
     vec2 pos = gl_TexCoord[0].xy;
     vec4 pixel = texture2D(texture, vec2(gl_TexCoord[0].x, gl_TexCoord[0].y));
 
-    float redStart = 128.0;
+    float redStart = 127.0;
     float redEnd = 255.0;
     float value = clamp(factor, 0.0, 1.0);
     float delta = mix(redStart, redEnd, value);

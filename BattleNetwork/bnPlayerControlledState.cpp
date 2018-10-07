@@ -36,12 +36,12 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   // Action controls take priority over movement
   if (inputManager->has(RELEASED_A)) {
-    if (attackKeyPressCooldown >= ATTACK_KEY_PRESS_COOLDOWN && isChargeHeld == true) {
+    if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
       player.chargeComponent.SetCharging(false);
       isChargeHeld = false;
       attackKeyPressCooldown = 0.0f;
-      auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE); this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; };
+      auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};
       player.SetAnimation(PLAYER_SHOOTING, onFinish);
     }
     else {
