@@ -19,12 +19,12 @@ void main()
       // vec2 distortionMapCoordinate = gl_TexCoord[0].st; NOTE: Bump mapping?
 
       vec2 reflectionMapCoordinate = gl_TexCoord[0].st;
-      reflectionMapCoordinate.y = 1.0f - reflectionMapCoordinate.y; // flip
-      reflectionMapCoordinate.y += 0.11f; // offset reflection
+      reflectionMapCoordinate.y = 1.0 - reflectionMapCoordinate.y; // flip
+      reflectionMapCoordinate.y += 0.11; // offset reflection
 
       vec4 color1 = texture2D(currentTexture, gl_TexCoord[0].st);
 
-      if(color1.r < 224.0f/255.0f && color1.g >= 200.0f/255.0f && color1.b >= 184.f/255.f) {
+      if(color1.r < 224.0/255.0 && color1.g >= 200.0/255.0 && color1.b >= 184.0/255.0) {
         vec4 color2 = texture2D(sceneTexture, reflectionMapCoordinate);
 
         gl_FragColor = ( 1.0 - shine) * color1 + shine * color2;

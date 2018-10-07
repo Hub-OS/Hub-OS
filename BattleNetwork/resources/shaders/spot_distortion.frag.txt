@@ -18,7 +18,7 @@ void main()
     gl_FragColor = gl_Color * texture2D(currentTexture, gl_TexCoord[0].st);
 
     vec2 distortionMapCoordinate = gl_TexCoord[0].st;
-    //distortionMapCoordinate.y = 1.0f - distortionMapCoordinate.y;
+    //distortionMapCoordinate.y = 1.0 - distortionMapCoordinate.y;
 
     vec2 size = textureSizeIn;
     vec2 screenCoord = vec2(gl_TexCoord[0].s, (gl_TexCoord[0].t)) * size;
@@ -39,8 +39,8 @@ void main()
     // We want negative offsets too, so we subtract 0.5 and multiply by 2
     // We end up with values in the range [-1, 1]
     vec2 distortionPositionOffset = distortionMapValue.xy;
-    distortionPositionOffset -= vec2(0.5f, 0.5f);
-    distortionPositionOffset *= 2.f;
+    distortionPositionOffset -= vec2(0.5, 0.5);
+    distortionPositionOffset *= 2.0;
 
     // The factor scales the offset and thus controls the severity
     distortionPositionOffset *= distortionFactor;
@@ -54,9 +54,9 @@ void main()
     // to tell us how "high up" we are and damp accordingly
     // Remember, OpenGL 0 is at the bottom
 
-    float percentage = 1.0f - (((y+h)-screenCoord.y )/ h);
+    float percentage = 1.0 - (((y+h)-screenCoord.y )/ h);
 
-    float percentage2 = 1.0f - (((y+(h*2.0))-screenCoord.y )/ (h*2.0));
+    float percentage2 = 1.0 - (((y+(h*2.0))-screenCoord.y )/ (h*2.0));
 
     distortionPositionOffset *= percentage;
     

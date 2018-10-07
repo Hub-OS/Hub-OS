@@ -2,6 +2,7 @@
 #include "bnCharacter.h"
 #include "bnMeta.h"
 #include "bnBattleItem.h"
+#include "bnField.h"
 #include <vector>
 #include <map>
 #include <stdexcept>

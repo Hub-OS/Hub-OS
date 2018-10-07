@@ -4,6 +4,7 @@
 #include "bnPlayer.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include <cmath>
 
 #define GRAVITY 9.81f
 
@@ -42,7 +43,7 @@ void ProgBomb::PrepareThrowPath() {
 
   // Calculate projectile variables on init 
   velX = (target->getPosition().x - posX) / arcDuration;
-  velY = -1.0f * ((float) abs(target->getPosition().y + 0.5f * GRAVITY * arcDuration * arcDuration - posY)) / arcDuration;
+  velY = -1.0f * ((float) fabs(target->getPosition().y + 0.5f * GRAVITY * arcDuration * arcDuration - posY)) / arcDuration;
   arcProgress = 0;
 }
 
