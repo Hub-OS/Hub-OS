@@ -98,7 +98,7 @@ list(REMOVE_DUPLICATES SFML_FIND_COMPONENTS)
 
 # Choose which target definitions must be imported
 if (SFML_STATIC_LIBRARIES)
-	set(SFML_IS_FRAMEWORK_INSTALL "FALSE")
+	set(SFML_IS_FRAMEWORK_INSTALL "")
     if (SFML_IS_FRAMEWORK_INSTALL)
         message(WARNING "Static frameworks are not supported by SFML. Clear SFML_DIR cache entry, \
 and either change SFML_STATIC_LIBRARIES or CMAKE_FIND_FRAMEWORK before calling find_package(SFML)")
