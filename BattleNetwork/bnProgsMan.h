@@ -23,11 +23,13 @@ public:
   virtual void RefreshTexture();
   virtual vector<Drawable*> GetMiscComponents();
   virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
+  virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
   virtual int GetHealth() const;
   virtual TextureType GetTextureType() const;
 
   void SetHealth(int _health);
   virtual const bool Hit(int _damage);
+
   virtual const float GetHitHeight() const;
   virtual int* GetAnimOffset();
 
@@ -41,4 +43,6 @@ private:
   TextureType textureType;
   MobHealthUI* healthUI;
   sf::Shader* whiteout;
+  sf::Shader* stun;
+
 };

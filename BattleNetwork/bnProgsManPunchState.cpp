@@ -13,6 +13,7 @@ ProgsManPunchState::~ProgsManPunchState()
 void ProgsManPunchState::OnEnter(ProgsMan& progs) {
   auto onFinish = [this, &progs]() { this->Attack(progs); };
   progs.SetAnimation(MOB_ATTACKING, onFinish);
+  progs.SetCounterFrame(1);
 }
 
 void ProgsManPunchState::OnLeave(ProgsMan& progs) {

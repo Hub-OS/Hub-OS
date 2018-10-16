@@ -490,6 +490,9 @@
     <ClCompile Include="bnExplosion.cpp">
       <Filter>Battle\Entity\Artifact\Explosion</Filter>
     </ClCompile>
+    <ClCompile Include="bnProgsManThrowState.cpp">
+      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -816,6 +819,9 @@
     </ClInclude>
     <ClInclude Include="bnExplosion.h">
       <Filter>Battle\Entity\Artifact\Explosion</Filter>
+    </ClInclude>
+    <ClInclude Include="bnProgsManThrowState.h">
+      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

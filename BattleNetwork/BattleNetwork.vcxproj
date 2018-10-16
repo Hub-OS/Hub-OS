@@ -110,7 +110,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)\extern\libs</AdditionalLibraryDirectories>
       <AdditionalDependencies>freetype.lib;glew.lib;jpeg.lib;openal32.lib;sndfile.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-audio-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
@@ -222,6 +222,7 @@
     <ClCompile Include="bnAnimationComponent.cpp" />
     <ClCompile Include="bnProgsManBossFight.cpp" />
     <ClCompile Include="bnProgsManIdleState.cpp" />
+    <ClCompile Include="bnProgsManThrowState.cpp" />
     <ClCompile Include="bnRandomMettaurMob.cpp" />
     <ClCompile Include="bnRoll.cpp" />
     <ClCompile Include="bnRollHeal.cpp" />
@@ -274,6 +275,7 @@
     <ClInclude Include="bnChipUsePublisher.h" />
     <ClInclude Include="bnComponent.h" />
     <ClInclude Include="bnEaseFunctions.h" />
+    <ClInclude Include="bnProgsManThrowState.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />
     <ClInclude Include="bnTileBehavior.h" />

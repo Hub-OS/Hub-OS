@@ -18,6 +18,8 @@ ProgBomb::ProgBomb(Field* _field, Team _team, Battle::Tile* _target, float _dura
   deleted = false;
   hit = false;
   texture = TEXTURES.GetTexture(TextureType::SPELL_PROG_BOMB);
+  setTexture(*texture);
+  setScale(2.f, 2.f);
 
   progress = 0.0f;
   hitHeight = 0.0f;
@@ -25,7 +27,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, Battle::Tile* _target, float _dura
 
   //animation.addFrame(0.3f, IntRect(0, 0, 19, 41));
 
-  arcDuration = _duration;
+  arcDuration = _duration*1000.0f;
   arcProgress = 0;
   target = _target;
 
@@ -42,27 +44,16 @@ void ProgBomb::PrepareThrowPath() {
   posY = tile->getPosition().y;
 
   // Calculate projectile variables on init 
-  velX = (target->getPosition().x - posX) / arcDuration;
-  velY = -1.0f * ((float) fabs(target->getPosition().y + 0.5f * GRAVITY * arcDuration * arcDuration - posY)) / arcDuration;
+  velX = (target->getPosition().x - posX) / (arcDuration/1000.0f);
+  velY = -1.0f * ((float) fabs(target->getPosition().y + 0.5f * (GRAVITY * (arcDuration/1000.0f) * (arcDuration/1000.0f)) - posY)) / (arcDuration / 1000.0f);
   arcProgress = 0;
 }
 
 void ProgBomb::Update(float _elapsed) {
-  arcProgress += _elapsed / 1000.0f; // convert from ms to s
+  arcProgress += _elapsed * 1000.0f; // convert from s to ms
 
-  if (!tile->IsWalkable()) {
-    deleted = true;
-    return;
-  }
-
-  setTexture(*texture);
-  setScale(2.f, 2.f);
-  setPosition(tile->getPosition().x + 5.f, tile->getPosition().y - 50.0f);
+  setPosition(tile->getPosition().x + 5.f, tile->getPosition().y);
   setRotation(-(arcProgress / arcDuration)*45.0f);
-  progress += 0.05f;
-  if (progress < 1.f) {
-   // animation(*this, progress);
-  }
 
   /* Have a target tile in mind
   calculate the time to the tile
@@ -72,8 +63,8 @@ void ProgBomb::Update(float _elapsed) {
   */
   sf::Vector2f pos(getPosition());
 
-  pos.x = velX * arcProgress + pos.x;
-  pos.y = 0.5f * GRAVITY * arcProgress * arcProgress + velY * arcProgress + pos.y;
+  pos.x = (velX * (arcProgress/1000.0f)) + pos.x;
+  pos.y += 0.5f * GRAVITY * ((arcProgress / 1000.0f) * (arcProgress / 1000.0f)) + (velY * (arcProgress / 1000.0f));
 
   setPosition(pos);
 

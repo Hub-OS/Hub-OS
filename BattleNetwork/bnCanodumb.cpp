@@ -64,7 +64,6 @@ int* Canodumb::GetAnimOffset() {
 }
 
 void Canodumb::Update(float _elapsed) {
-
   healthUI->Update();
   this->SetShader(nullptr);
 

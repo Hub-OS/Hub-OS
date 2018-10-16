@@ -40,6 +40,7 @@ ProgsMan::ProgsMan(Rank _rank)
   animationComponent.Load();
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
+  stun = SHADERS.GetShader(ShaderType::YELLOW);
 }
 
 ProgsMan::~ProgsMan(void) {
@@ -60,29 +61,56 @@ int* ProgsMan::GetAnimOffset() {
     res[0] = 75;
     res[1] = 115;
   } else if (mob->GetTextureType() == TextureType::MOB_PROGSMAN_THROW) {
-    res[0] = 75;
+    res[0] = 145;
     res[1] = 115;
   }
 
   return res;
 }
 
+void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
+  animationComponent.AddCallback(frame, onEnter, onLeave, doOnce);
+}
+
 void ProgsMan::Update(float _elapsed) {
-  SetShader(nullptr);
+  healthUI->Update();
+  this->SetShader(nullptr);
+  this->RefreshTexture();
+
+  if (_elapsed <= 0) return;
+
+  hitHeight = getLocalBounds().height;
+
+  if (stunCooldown > 0) {
+    stunCooldown -= _elapsed;
+    healthUI->Update();
+    Entity::Update(_elapsed);
+
+    if (stunCooldown <= 0) {
+      stunCooldown = 0;
+      animationComponent.Update(_elapsed);
+    }
+
+    if ((((int)(stunCooldown * 15))) % 2 == 0) {
+      this->SetShader(stun);
+    }
+
+    if (GetHealth() > 0) {
+      return;
+    }
+  }
 
   this->StateUpdate(_elapsed);
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<ProgsMan>>();
+    this->StateChange<ExplodeState<ProgsMan>>(12, 0.75);
     this->LockState();
   }
   else {
-    this->RefreshTexture();
     animationComponent.Update(_elapsed);
   }
 
-  healthUI->Update();
   Entity::Update(_elapsed);
 }
 
@@ -133,8 +161,9 @@ void ProgsMan::SetHealth(int _health) {
 }
 
 const bool ProgsMan::Hit(int _damage) {
-  SetShader(whiteout);
   (health - _damage < 0) ? health = 0 : health -= _damage;
+  SetShader(whiteout);
+
   return health;
 }
 

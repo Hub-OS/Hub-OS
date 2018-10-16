@@ -5,6 +5,7 @@
 #include "bnField.h"
 #include "bnProgsManIdleState.h"
 #include "bnProgsManPunchState.h"
+#include "bnProgsManThrowState.h"
 
 #include "bnMettaur.h"
 
@@ -43,6 +44,7 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
           // Try shooting. 
 
           // Throw bombs.
+          return progs.StateChange<ProgsManThrowState>();
         }
       }
     }

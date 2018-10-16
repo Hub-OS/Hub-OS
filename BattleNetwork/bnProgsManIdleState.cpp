@@ -3,7 +3,7 @@
 #include "bnProgsMan.h"
 
 
-ProgsManIdleState::ProgsManIdleState() : cooldown(100.f), AIState<ProgsMan>()
+ProgsManIdleState::ProgsManIdleState() : cooldown(0.5f), AIState<ProgsMan>()
 {
 }
 
@@ -18,6 +18,8 @@ void ProgsManIdleState::OnEnter(ProgsMan& progs) {
 
 void ProgsManIdleState::OnUpdate(float _elapsed, ProgsMan& progs) {
   cooldown -= _elapsed;
+
+  printf("cooldown: %f", cooldown);
 
   if (cooldown < 0) {
     progs.StateChange<ProgsManMoveState>();
