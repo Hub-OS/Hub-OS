@@ -87,8 +87,8 @@ public:
     }
 
     // TODO: mix the two based on transition type and progress
-    window.draw(top);
-    window.draw(last);
+    //window.draw(top);
+    //window.draw(last);
   }
 
 };
