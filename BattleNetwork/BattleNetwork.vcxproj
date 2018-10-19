@@ -278,6 +278,9 @@
     <ClInclude Include="bnProgsManThrowState.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />
+    <ClInclude Include="bnActivity.h" />
+    <ClInclude Include="bnActivityManager.h" />
+    <ClInclude Include="bnSegue.h" />
     <ClInclude Include="bnTileBehavior.h" />
     <ClInclude Include="bnElements.h" />
     <ClInclude Include="bnFolderScene.h" />
@@ -348,6 +351,7 @@
     <ClInclude Include="bnPlayerState.h" />
     <ClInclude Include="bnPlayerHealthUI.h" />
     <ClInclude Include="bnBuster.h" />
+    <ClInclude Include="bnFadeOutWhiteSegue.h" />
     <ClInclude Include="bnTwoMettaurMob.h" />
     <ClInclude Include="bnVirusBackground.h" />
     <ClInclude Include="bnWave.h" />

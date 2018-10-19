@@ -18,33 +18,37 @@ void Engine::Initialize() {
 
   window->setIcon(sfml_icon.width, sfml_icon.height, sfml_icon.pixel_data);
 
-  postprocessing.create((unsigned int)view.getSize().x, (unsigned int)view.getSize().y); // Same as display
-
   // See the random generator with current time
   srand((unsigned int)time(0));
 }
 
 void Engine::Draw(Drawable& _drawable, bool applyShaders) {
+  if (!HasRenderSurface()) return;
+
   if (applyShaders) {
-    postprocessing.draw(_drawable, state);
+    surface->draw(_drawable, state);
   } else {
-    postprocessing.draw(_drawable);
+    surface->draw(_drawable);
   }
 }
 
 void Engine::Draw(Drawable* _drawable, bool applyShaders) {
+  if (!HasRenderSurface()) return;
+
   if (!_drawable) {
     return;
   }
 
   if (applyShaders) {
-    postprocessing.draw(*_drawable, state);
+    surface->draw(*_drawable, state);
   } else {
-    postprocessing.draw(*_drawable);
+    surface->draw(*_drawable);
   }
 }
 
 void Engine::Draw(LayeredDrawable* _drawable) {
+  if (!HasRenderSurface()) return;
+
   // For now, support at most one shader.
   // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
@@ -54,13 +58,15 @@ void Engine::Draw(LayeredDrawable* _drawable) {
   if (shader && shader->Get()) {
     const sf::Texture* original = context->getTexture();
     shader->ApplyUniforms();
-    postprocessing.draw(*context, shader->Get()); // bake
+    surface->draw(*context, shader->Get()); // bake
     shader->ResetUniforms();
   } else {
     Draw(context, true);
   }
 }
 void Engine::Draw(vector<LayeredDrawable*> _drawable) {
+  if (!HasRenderSurface()) return;
+
   auto it = _drawable.begin();
   for (it; it != _drawable.end(); ++it) {
     /*
@@ -94,7 +100,7 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
     SmartShader& shader = context->GetShader();
     if (shader.Get() != nullptr) {
       shader.ApplyUniforms();
-      postprocessing.draw(*context, shader.Get()); // bake
+      surface->draw(*context, shader.Get()); // bake
       shader.ResetUniforms();
     } else {
       Draw(context, true);
@@ -103,27 +109,12 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
 }
 
 void Engine::Draw(vector<Drawable*> _drawable, bool applyShaders) {
+  if (!HasRenderSurface()) return;
+
   auto it = _drawable.begin();
   for (it; it != _drawable.end(); ++it) {
     Draw(*it, applyShaders);
   }
-}
-
-void Engine::Display() {
-
-  //view = cam->GetView();
-  //window->setView(view);
-
-  // flip and ready buffer
-  postprocessing.display();
-  // Capture buffer in a drawable context
-  sf::Sprite postFX(postprocessing.getTexture());
-  // drawbuffer on top of the scene
-  window->draw(postFX);
-  // show final result
-  window->display();
-  // Prepare buffer for next cycle
-  postprocessing.clear(sf::Color::Transparent);
 }
 
 bool Engine::Running() {

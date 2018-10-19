@@ -12,6 +12,8 @@ using std::vector;
 
 class Engine {
 public:
+  friend class ActivityManager;
+
   static Engine& GetInstance();
   void Initialize();
   void Draw(Drawable& _drawable, bool applyShaders = true);
@@ -19,7 +21,6 @@ public:
   void Draw(vector<Drawable*> _drawable, bool applyShaders = true);
   void Draw(LayeredDrawable * _drawable);
   void Draw(vector<LayeredDrawable*> _drawable);
-  void Display();
   bool Running();
   void Clear();
   RenderWindow* GetWindow() const;
@@ -41,8 +42,16 @@ public:
   const sf::View GetDefaultView();
   Camera* GetCamera();
 
-  sf::RenderTexture& GetPostProcessingBuffer() {
-    return postprocessing;
+  void SetRenderSurface(sf::RenderTexture& _surface) {
+    surface = &_surface;
+  }
+
+  const bool HasRenderSurface() {
+    return (surface != nullptr);
+  }
+
+  sf::RenderTexture& GetRenderSurface() {
+    return *surface;
   }
 
   // TODO: make this private again
@@ -58,7 +67,7 @@ private:
   Layers layers;
   Overlay overlay;
   sf::RenderStates state;
-  sf::RenderTexture postprocessing;
+  sf::RenderTexture* surface;
   Camera* cam;
 
 };

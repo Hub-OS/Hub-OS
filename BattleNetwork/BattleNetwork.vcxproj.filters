@@ -146,18 +146,6 @@
     <Filter Include="Battle\Components\Animation\Charge">
       <UniqueIdentifier>{ab250ee0-5fc9-498e-97e9-3b1f28a188c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes">
-      <UniqueIdentifier>{2c22d20c-e987-4431-9a4b-554d71926008}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes\Battle">
-      <UniqueIdentifier>{10976369-a638-4250-b08c-f835a7bbfe7d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes\Main Menu">
-      <UniqueIdentifier>{d2dc3e83-cab6-4455-9e10-e5295c5f8d2d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes\Select Mob">
-      <UniqueIdentifier>{82986475-2577-4085-b6c9-d114b769337c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Battle\Entity\Character\Player\Megaman">
       <UniqueIdentifier>{8cbbf029-e0d4-4f36-96ba-f9d11ea106df}</UniqueIdentifier>
     </Filter>
@@ -197,9 +185,6 @@
     <Filter Include="Battle\Chips\Folder">
       <UniqueIdentifier>{bef66beb-f219-4d07-8d52-25a90241ac54}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes\Folder">
-      <UniqueIdentifier>{4207b872-406d-4138-948a-a0d7c9fbdfa1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utilities">
       <UniqueIdentifier>{8c50a11b-c013-4ca0-a58e-cfc37e58a64f}</UniqueIdentifier>
     </Filter>
@@ -217,9 +202,6 @@
     </Filter>
     <Filter Include="Battle\Chips\ChipUsePublisher\UI">
       <UniqueIdentifier>{2ffdbd56-f900-4230-b51b-8239abe620b8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes\Select Navi">
-      <UniqueIdentifier>{9d3a1388-2568-497b-8e9d-9c02c4cc066e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine\Addons">
       <UniqueIdentifier>{1f5b033a-23dc-49c3-851a-b980cd582e04}</UniqueIdentifier>
@@ -256,6 +238,27 @@
     </Filter>
     <Filter Include="Utilities\EaseIns">
       <UniqueIdentifier>{4c3c2b6a-708e-484b-b3df-2e0e0deaa39d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities">
+      <UniqueIdentifier>{2c22d20c-e987-4431-9a4b-554d71926008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle">
+      <UniqueIdentifier>{10976369-a638-4250-b08c-f835a7bbfe7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Main Menu">
+      <UniqueIdentifier>{d2dc3e83-cab6-4455-9e10-e5295c5f8d2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Select Mob">
+      <UniqueIdentifier>{82986475-2577-4085-b6c9-d114b769337c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Folder">
+      <UniqueIdentifier>{4207b872-406d-4138-948a-a0d7c9fbdfa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Select Navi">
+      <UniqueIdentifier>{9d3a1388-2568-497b-8e9d-9c02c4cc066e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Seugues">
+      <UniqueIdentifier>{342cc4ce-391b-400f-85a2-a564949a77c2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -398,13 +401,13 @@
       <Filter>Engine\Animate</Filter>
     </ClCompile>
     <ClCompile Include="bnBattleScene.cpp">
-      <Filter>Scenes\Battle</Filter>
+      <Filter>Activities\Battle</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectMobScene.cpp">
-      <Filter>Scenes\Select Mob</Filter>
+      <Filter>Activities\Select Mob</Filter>
     </ClCompile>
     <ClCompile Include="bnMainMenuScene.cpp">
-      <Filter>Scenes\Main Menu</Filter>
+      <Filter>Activities\Main Menu</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimation.cpp">
       <Filter>Engine\Animate</Filter>
@@ -446,7 +449,7 @@
       <Filter>Battle\Chips\Folder</Filter>
     </ClCompile>
     <ClCompile Include="bnFolderScene.cpp">
-      <Filter>Scenes\Folder</Filter>
+      <Filter>Activities\Folder</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimatedCharacter.cpp">
       <Filter>Battle\Entity\Character</Filter>
@@ -461,7 +464,7 @@
       <Filter>Battle\Entity\Character\Player\Starman</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectNaviScene.cpp">
-      <Filter>Scenes\Select Navi</Filter>
+      <Filter>Activities\Select Navi</Filter>
     </ClCompile>
     <ClCompile Include="bnNaviRegistration.cpp">
       <Filter>Engine\Addons\NaviRegistration</Filter>
@@ -692,13 +695,13 @@
       <Filter>Battle\Mob\Boss\ProgsMan</Filter>
     </ClInclude>
     <ClInclude Include="bnBattleScene.h">
-      <Filter>Scenes\Battle</Filter>
+      <Filter>Activities\Battle</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectMobScene.h">
-      <Filter>Scenes\Select Mob</Filter>
+      <Filter>Activities\Select Mob</Filter>
     </ClInclude>
     <ClInclude Include="bnMainMenuScene.h">
-      <Filter>Scenes\Main Menu</Filter>
+      <Filter>Activities\Main Menu</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimation.h">
       <Filter>Engine\Animate</Filter>
@@ -743,7 +746,7 @@
       <Filter>Battle\Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnFolderScene.h">
-      <Filter>Scenes\Folder</Filter>
+      <Filter>Activities\Folder</Filter>
     </ClInclude>
     <ClInclude Include="bnSpawnPolicy.h">
       <Filter>Battle\Mob</Filter>
@@ -773,7 +776,7 @@
       <Filter>Battle\Entity\Character\Player\Starman</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectNaviScene.h">
-      <Filter>Scenes\Select Navi</Filter>
+      <Filter>Activities\Select Navi</Filter>
     </ClInclude>
     <ClInclude Include="bnNaviRegistration.h">
       <Filter>Engine\Addons\NaviRegistration</Filter>
@@ -822,6 +825,18 @@
     </ClInclude>
     <ClInclude Include="bnProgsManThrowState.h">
       <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnActivityManager.h">
+      <Filter>Activities</Filter>
+    </ClInclude>
+    <ClInclude Include="bnActivity.h">
+      <Filter>Activities</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFadeOutWhiteSegue.h">
+      <Filter>Activities\Seugues</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSegue.h">
+      <Filter>Activities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
