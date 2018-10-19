@@ -12,11 +12,13 @@ class ActivityManager {
 private:
   std::stack<Activity*> activities;
   sf::RenderTexture* surface;
+  bool willLeave;
 
 public:
   ActivityManager() {
     surface = new sf::RenderTexture();
     surface->create((unsigned int)ENGINE.view.getSize().x, (unsigned int)ENGINE.view.getSize().y); 
+    willLeave = false;
   }
 
   ~ActivityManager() {
@@ -33,11 +35,11 @@ public:
   template<typename T, typename DurationType=Duration<&sf::milliseconds, 500>>
   class Segue {
   public:
-    template<typename U>
+    template<typename U, typename... Args>
     static void To() {
       bool hasLast = (ActivityManager::GetInstance().activities.size() > 0);
       Activity* last = hasLast ? ActivityManager::GetInstance().activities.top() : nullptr;
-      Activity* next = new U();
+      Activity* next = new U(Args... args);
       ::Segue* effect = new T(DurationType::value(), last, next);
 
       effect->OnStart();
@@ -46,21 +48,27 @@ public:
     }
   };
 
-  template<typename T>
-  class JumpTo {
-    JumpTo() {
-      bool hasLast = (ActivityManager::GetInstance().activities.size() > 0);
-      Activity* last = hasLast ? ActivityManager::GetInstance().activities.top() : nullptr;
-      Activity* next = new U();
-      last->OnEnd();
+  template<typename T, typename... Args>
+  static void Push() {
+    bool hasLast = (ActivityManager::GetInstance().activities.size() > 0);
+    Activity* last = hasLast ? ActivityManager::GetInstance().activities.top() : nullptr;
+    Activity* next = new U(Args... args);
+    last->OnEnd();
 
-      activities.pop();
-      delete last;
+    activities.pop();
+    delete last;
 
-      next->OnStart();
-      activities.push(effect);
-    }
-  };
+    next->OnStart();
+    activities.push(effect);
+  }
+
+  static void QueuePop() {
+    bool hasMore = (ActivityManager::GetInstance().activities.size() > 0);
+
+    if (!hasMore) return;
+
+    ActivityManager::GetInstance().willLeave = true;
+  }
 
   static ActivityManager& GetInstance() {
     static ActivityManager ref;
@@ -74,9 +82,20 @@ private:
     activities.push(segue->next);
   }
 
+  void Pop() {
+    Activity* activity = activities.top();
+    activity->OnEnd();
+    delete activity;
+    activities.pop();
+  }
+
   void Update(double _elapsed) {
     if (activities.size() == 0)
       return;
+
+    if (willLeave) {
+      Pop();
+    }
 
     activities.top()->OnUpdate(_elapsed);
   }

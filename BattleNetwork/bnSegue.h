@@ -1,5 +1,6 @@
 #pragma once
 #include "bnActivity.h"
+#include "bnTimer.h"
 #include <SFML/Graphics.hpp>
 #include "bnActivityManager.h"
 

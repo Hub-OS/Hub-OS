@@ -1,3 +1,4 @@
+#include "bnActivityManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
@@ -86,6 +87,8 @@ int main(int argc, char** argv) {
     AUDIO.EnableAudio(config.IsAudioEnabled());
     INPUT.SupportChronoXGamepad(config);
   }
+
+  ActivityManager::Push<MainMenuScene>();
 
   sf::Texture* alert = TEXTURES.LoadTextureFromFile("resources/ui/alert.png");
   sf::Sprite alertSprite(*alert);

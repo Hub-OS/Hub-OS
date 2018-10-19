@@ -1,21 +1,5 @@
-#include <time.h>
 #include "bnMainMenuScene.h"
-#include "bnFolderScene.h"
-#include "bnOverworldMap.h"
-#include "bnInfiniteMap.h"
-#include "bnSelectNaviScene.h"
-#include "bnSelectMobScene.h"
-#include "bnMemory.h"
-#include "bnCamera.h"
-#include "bnInputManager.h"
-#include "bnAudioResourceManager.h"
-#include "bnShaderResourceManager.h"
-#include "bnTextureResourceManager.h"
-#include "bnNaviRegistration.h"
-#include "bnEngine.h"
-#include "bnAnimation.h"
-#include "bnLanBackground.h"
-#include <SFML/Graphics.hpp>
+
 using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
@@ -23,75 +7,69 @@ using sf::Event;
 using sf::Font;
  
 void MainMenuScene::OnStart() {
-  Camera camera(ENGINE.GetDefaultView());
+  // Stream menu music 
+  AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
+
+  camera = Camera(ENGINE.GetDefaultView());
   ENGINE.SetCamera(camera);
 
-  bool showHUD = true;
+  showHUD = true;
 
   // Selection input delays
-  double maxSelectInputCooldown = 0.5; // half of a second
-  double selectInputCooldown = maxSelectInputCooldown;
+  maxSelectInputCooldown = 0.5; // half of a second
+  selectInputCooldown = maxSelectInputCooldown;
 
   // ui sprite maps
-  sf::Sprite ui(LOAD_TEXTURE(MAIN_MENU_UI));
+  ui = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_UI));
   ui.setScale(2.f, 2.f);
-  Animation uiAnimator("resources/ui/main_menu_ui.animation");
+  uiAnimator = Animation("resources/ui/main_menu_ui.animation");
   uiAnimator.Load();
 
   // Stream menu music 
   AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
 
   // Transition
-  sf::Shader& transition = LOAD_SHADER(TRANSITION);
-  transition.setUniform("texture", sf::Shader::CurrentTexture);
-  transition.setUniform("map", LOAD_TEXTURE(NOISE_TEXTURE));
-  transition.setUniform("progress", 0.f);
-  float transitionProgress = 0.9f;
-  ENGINE.RevokeShader();
+  transition = &LOAD_SHADER(TRANSITION);
+  transition->setUniform("texture", sf::Shader::CurrentTexture);
+  transition->setUniform("map", LOAD_TEXTURE(NOISE_TEXTURE));
+  transition->setUniform("progress", 0.f);
+  transitionProgress = 0.9f;
 
-  Clock clock;
-  float elapsed = 0.0f;
-  float totalTime = 0.f;
-  int menuSelectionIndex = 0;
+  menuSelectionIndex = 0;
 
-  sf::Sprite overlay(LOAD_TEXTURE(MAIN_MENU));
+  overlay = sf::Sprite(LOAD_TEXTURE(MAIN_MENU));
   overlay.setScale(2.f, 2.f);
 
-  sf::Sprite ow(LOAD_TEXTURE(MAIN_MENU_OW));
+  ow = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_OW));
   ow.setScale(2.f, 2.f);
 
-  Background* bg = new LanBackground();
+  bg = new LanBackground();
 
-  Overworld::Map* map = new Overworld::InfiniteMap(10, 20, 47, 24);
+  map = new Overworld::InfiniteMap(10, 20, 47, 24);
   map->SetCamera(&camera);
 
   // Keep track of selected navi
-  SelectedNavi currentNavi = 0;
+  currentNavi = 0;
 
-  sf::Sprite owNavi(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
+  owNavi = sf::Sprite(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
   owNavi.setScale(2.f, 2.f);
   owNavi.setPosition(0, 0.f);
-  Animation naviAnimator("resources/navis/megaman/megaman.animation");
+  naviAnimator = Animation("resources/navis/megaman/megaman.animation");
   naviAnimator.Load();
   naviAnimator.SetAnimation("PLAYER_OW_RD");
   naviAnimator << Animate::Mode(Animate::Mode::Loop);
 
   map->AddSprite(&owNavi);
 
-  bool gotoNextScene = false;
+  gotoNextScene = false;
 }
 
 void MainMenuScene::OnUpdate(double _elapsed) {
   INPUT.update();
   map->Update(elapsed);
 
-  ENGINE.Clear();
-
   camera.Update(elapsed);
   bg->Update(elapsed);
-
-  ENGINE.Draw(bg);
-  ENGINE.Draw(map);
 
   // Draw navi moving
   naviAnimator.Update(elapsed, &owNavi);
@@ -214,7 +192,7 @@ void MainMenuScene::OnUpdate(double _elapsed) {
       elapsed = 0;
 
       if (result == 0) {
-        break; // Breaks the while-loop
+        // ActivityManager::Pop();
       }
     }
 
@@ -228,6 +206,19 @@ void MainMenuScene::OnUpdate(double _elapsed) {
   if (menuSelectionIndex != lastMenuSelectionIndex) {
     AUDIO.Play(AudioType::CHIP_SELECT);
   }
+}
+
+void MainMenuScene::OnLeave() {
+
+}
+
+void MainMenuScene::OnResume() {
+
+}
+
+void MainMenuScene::OnDraw(sf::RenderTexture& surface) {
+  ENGINE.Draw(bg);
+  ENGINE.Draw(map);
 
   ENGINE.Draw(overlay);
 
@@ -327,32 +318,17 @@ void MainMenuScene::OnUpdate(double _elapsed) {
     ENGINE.Draw(ui);
   }
 
-  sf::Texture postprocessing; // = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+  sf::Texture postprocessing = surface.getTexture();
   sf::Sprite transitionPost;
   transitionPost.setTexture(postprocessing);
 
-  transition.setUniform("progress", transitionProgress);
+  transition->setUniform("progress", transitionProgress);
 
   LayeredDrawable* bake = new LayeredDrawable(transitionPost);
-  bake->SetShader(&transition);
+  bake->SetShader(transition);
 
   ENGINE.Draw(bake);
   delete bake;
-
-  // Write contents to screen (always last step)
-  // ENGINE.Display();
-}
-
-void MainMenuScene::OnLeave() {
-
-}
-
-void MainMenuScene::OnResume() {
-
-}
-
-void MainMenuScene::OnDraw(sf::RenderTexture& surface) {
-
 }
 
 void MainMenuScene::OnEnd() {

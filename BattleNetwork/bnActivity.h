@@ -1,5 +1,12 @@
 #pragma once
 
+/*
+forward decl
+*/
+namespace sf {
+  class RenderTexture;
+}
+
 class Activity {
 public:
   virtual void OnStart() = 0;
