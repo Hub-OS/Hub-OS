@@ -459,7 +459,7 @@ SelectedNavi SelectNaviScene::Run(SelectedNavi currentNavi) {
       // TODO: Highlight the chosen navi symbol
     } 
 
-    sf::Texture postprocessing = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+    sf::Texture postprocessing; // = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
     sf::Sprite transitionPost;
     transitionPost.setTexture(postprocessing);
 
@@ -472,7 +472,7 @@ SelectedNavi SelectNaviScene::Run(SelectedNavi currentNavi) {
     delete bake;
 
     // Write contents to screen (always last step)
-    ENGINE.Display();
+    // ENGINE.Display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
   }

@@ -7,7 +7,7 @@
 #include <stack>
 
 class ActivityManager {
-  friend class Segue;
+  friend class ::Segue;
 
 private:
   std::stack<Activity*> activities;
@@ -35,8 +35,8 @@ public:
   public:
     template<typename U>
     static void To() {
-      bool hasLast = (SceneManager::GetInstance().activities.size() > 0);
-      Activity* last = hasLast ? SceneManager::GetInstance().activities.top() : nullptr;
+      bool hasLast = (ActivityManager::GetInstance().activities.size() > 0);
+      Activity* last = hasLast ? ActivityManager::GetInstance().activities.top() : nullptr;
       Activity* next = new U();
       ::Segue* effect = new T(DurationType::value(), last, next);
 
@@ -49,8 +49,8 @@ public:
   template<typename T>
   class JumpTo {
     JumpTo() {
-      bool hasLast = (SceneManager::GetInstance().activities.size() > 0);
-      Activity* last = hasLast ? SceneManager::GetInstance().activities.top() : nullptr;
+      bool hasLast = (ActivityManager::GetInstance().activities.size() > 0);
+      Activity* last = hasLast ? ActivityManager::GetInstance().activities.top() : nullptr;
       Activity* next = new U();
       last->OnEnd();
 
@@ -62,7 +62,18 @@ public:
     }
   };
 
+  static ActivityManager& GetInstance() {
+    static ActivityManager ref;
+    return ref;
+  }
+
 private:
+  void EndSegue(::Segue* segue) {
+    segue->OnEnd();
+    activities.pop();
+    activities.push(segue->next);
+  }
+
   void Update(double _elapsed) {
     if (activities.size() == 0)
       return;

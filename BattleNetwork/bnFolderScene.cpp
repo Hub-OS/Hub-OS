@@ -274,7 +274,7 @@ int FolderScene::Run()
       gotoNextScene = false;
     }
 
-    sf::Texture postprocessing = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+    sf::Texture postprocessing; //ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
     sf::Sprite transitionPost;
     transitionPost.setTexture(postprocessing);
 
@@ -287,7 +287,7 @@ int FolderScene::Run()
     delete bake;
 
     // Write contents to screen (always last step)
-    ENGINE.Display();
+    //ENGINE.Display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
   }

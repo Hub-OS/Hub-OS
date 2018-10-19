@@ -195,7 +195,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
   distortionMap.setRepeated(true);
   distortionMap.setSmooth(true);
 
-  sf::Vector2u textureSize = ENGINE.GetPostProcessingBuffer().getSize();
+  sf::Vector2u textureSize; // ENGINE.GetPostProcessingBuffer().getSize();
 
   sf::Shader& heatShader = *SHADERS.GetShader(ShaderType::SPOT_DISTORTION);
   heatShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
@@ -356,7 +356,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
         float repos = (float)(tile->getPosition().y - 4.f) - (tile->GetHeight() / 1.5f);
         heatShader.setUniform("y", repos);
 
-        sf::Texture postprocessing = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+        sf::Texture postprocessing; // = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
 
         sf::Sprite distortionPost;
         distortionPost.setTexture(postprocessing);
@@ -373,7 +373,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
         float repos = (float)(tile->getPosition().y - 4.f);
         iceShader.setUniform("y", repos);
 
-        sf::Texture postprocessing = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+        sf::Texture postprocessing; // = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
 
         sf::Sprite reflectionPost;
         reflectionPost.setTexture(postprocessing);
@@ -802,7 +802,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
     }
 
     // Write contents to screen (always last step)
-    ENGINE.Display();
+    // ENGINE.Display();
 
     // TODO: make camera effects apply only to individual scenes that request them
     // This will avoid this hack here to move elements around on screen

@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
     ENGINE.Clear();
 
     // Write contents to screen
-    ENGINE.Display();
+    // ENGINE.Display();
 
     if (messageCooldown <= 0) {
       inConfigMessageState = false;
@@ -357,7 +357,7 @@ int main(int argc, char** argv) {
     ENGINE.DrawOverlay();
 
     // Write contents to screen
-    ENGINE.Display();
+    //ENGINE.Display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
   }
@@ -412,7 +412,7 @@ int main(int argc, char** argv) {
     ENGINE.DrawOverlay();
 
     // Write contents to screen
-    ENGINE.Display();
+    //ENGINE.Display();
 
     // Prepare for next render 
     ENGINE.Clear();

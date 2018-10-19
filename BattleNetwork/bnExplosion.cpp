@@ -36,7 +36,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
 
   animationComponent.SetAnimation("EXPLODE", [this]() { this->setColor(sf::Color(255, 255, 255, 0)); });
   animationComponent.SetPlaybackSpeed(playbackSpeed);
-  animationComponent.Update(0.1);
+  animationComponent.Update(0.1f);
 
   if (_numOfExplosions > 0) {
     animationComponent.AddCallback(9, [this, _field, _team, _numOfExplosions]() {
@@ -80,7 +80,7 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 
   animationComponent.SetAnimation("EXPLODE", [this]() { this->Delete(); root->IncrementExplosionCount(); });
   animationComponent.SetPlaybackSpeed(playbackSpeed);
-  animationComponent.Update(0.1);
+  animationComponent.Update(0.1f);
 
   if (numOfExplosions > 1) {
     animationComponent.AddCallback(9, [this]() {

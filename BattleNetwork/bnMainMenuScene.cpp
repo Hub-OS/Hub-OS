@@ -21,9 +21,8 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 using sf::Font;
-
-int MainMenuScene::Run()
-{
+ 
+void MainMenuScene::OnStart() {
   Camera camera(ENGINE.GetDefaultView());
   ENGINE.SetCamera(camera);
 
@@ -31,7 +30,7 @@ int MainMenuScene::Run()
 
   // Selection input delays
   double maxSelectInputCooldown = 0.5; // half of a second
-  double selectInputCooldown = maxSelectInputCooldown;        
+  double selectInputCooldown = maxSelectInputCooldown;
 
   // ui sprite maps
   sf::Sprite ui(LOAD_TEXTURE(MAIN_MENU_UI));
@@ -80,284 +79,283 @@ int MainMenuScene::Run()
   map->AddSprite(&owNavi);
 
   bool gotoNextScene = false;
+}
 
-  while (ENGINE.Running()) {
+void MainMenuScene::OnUpdate(double _elapsed) {
+  INPUT.update();
+  map->Update(elapsed);
 
-    float elapsedSeconds = clock.restart().asSeconds();
-    totalTime += elapsedSeconds;
+  ENGINE.Clear();
 
-    float FPS = 0.f;
+  camera.Update(elapsed);
+  bg->Update(elapsed);
 
-    if (elapsedSeconds > 0.f) {
-      FPS = 1.0f / elapsedSeconds;
-      std::string fpsStr = std::to_string(FPS);
-      fpsStr.resize(4);
-      ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
-    }
+  ENGINE.Draw(bg);
+  ENGINE.Draw(map);
 
-    INPUT.update();
-    map->Update(elapsed);
+  // Draw navi moving
+  naviAnimator.Update(elapsed, &owNavi);
 
-    ENGINE.Clear();
+  int lastMenuSelectionIndex = menuSelectionIndex;
 
-    camera.Update(elapsed);
-    bg->Update(elapsed);
+  // Move the navi down
+  owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*elapsed, 0));
 
-    ENGINE.Draw(bg);
-    ENGINE.Draw(map);
+  // TODO: fix this broken camera system
+  sf::Vector2f camOffset = camera.GetView().getSize();
+  camOffset.x /= 5;
+  camOffset.y /= 3.5;
 
-    // Draw navi moving
-    naviAnimator.Update(elapsed, &owNavi);
+  // Follow the navi
+  camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
 
-    int lastMenuSelectionIndex = menuSelectionIndex;
+  if (!gotoNextScene && transitionProgress == 0.f) {
+    if (INPUT.has(PRESSED_UP)) {
+      selectInputCooldown -= elapsed;
 
-    // Move the navi down
-    owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*elapsed, 0));
-
-    // TODO: fix this broken camera system
-    sf::Vector2f camOffset = camera.GetView().getSize();
-    camOffset.x /= 5;
-    camOffset.y /= 3.5;
-
-    // Follow the navi
-    camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
-    
-    if (!gotoNextScene && transitionProgress == 0.f) {
-      if (INPUT.has(PRESSED_UP)) {
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
-          // Go to previous mob 
-          selectInputCooldown = maxSelectInputCooldown;
-          menuSelectionIndex--;
-        }
-      }
-      else if (INPUT.has(PRESSED_DOWN)) {
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
-          // Go to next mob 
-          selectInputCooldown = maxSelectInputCooldown;
-          menuSelectionIndex++;
-        }
-      }
-      else {
-        selectInputCooldown = 0;
-      }
-      
-      if (INPUT.has(PRESSED_A)) {
-
-        // Folder Select
-        if (menuSelectionIndex == 1) {
-          gotoNextScene = true;
-          AUDIO.Play(AudioType::CHIP_DESC);
-        }
-
-        // Navi select
-        if (menuSelectionIndex == 2) {
-          gotoNextScene = true;
-          AUDIO.Play(AudioType::CHIP_DESC);
-        }
-
-        // Mob select
-        if (menuSelectionIndex == 3) {
-          gotoNextScene = true;
-          AUDIO.Play(AudioType::CHIP_DESC);
-        }
-      }
-    } 
-
-    /*if (INPUT.has(PRESSED_PAUSE)) {
-      static bool toggle = false;
-      toggle = !toggle;
-      showHUD = false;
-      map->ToggleLighting(toggle);
-    }*/
-
-    if (elapsed > 0) {
-      if (gotoNextScene) {
-        transitionProgress += 1 * elapsed;
-      }
-      else {
-        transitionProgress -= 1 * elapsed;
+      if (selectInputCooldown <= 0) {
+        // Go to previous mob 
+        selectInputCooldown = maxSelectInputCooldown;
+        menuSelectionIndex--;
       }
     }
+    else if (INPUT.has(PRESSED_DOWN)) {
+      selectInputCooldown -= elapsed;
 
-    transitionProgress = std::max(0.f, transitionProgress);
-    transitionProgress = std::min(1.f, transitionProgress);
+      if (selectInputCooldown <= 0) {
+        // Go to next mob 
+        selectInputCooldown = maxSelectInputCooldown;
+        menuSelectionIndex++;
+      }
+    }
+    else {
+      selectInputCooldown = 0;
+    }
 
-    if (transitionProgress >= 1.f) {
+    if (INPUT.has(PRESSED_A)) {
 
+      // Folder Select
       if (menuSelectionIndex == 1) {
-        int result = FolderScene::Run();
-
-        // reset internal clock (or everything will teleport)
-        elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-        std::cout << "time slept: " << elapsed << "\n";
-        clock.restart();
-        elapsed = 0;
-
-        if (result == 0) {
-          break; // Breaks the while-loop
-        }
-      } else if (menuSelectionIndex == 2) {
-        currentNavi = SelectNaviScene::Run(currentNavi);
-
-        owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
-        naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
-        naviAnimator.Load();
-        naviAnimator.SetAnimation("PLAYER_OW_RD");
-        naviAnimator << Animate::Mode(Animate::Mode::Loop);
-
-        // reset internal clock (or everything will teleport)
-        elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-        std::cout << "time slept: " << elapsed << "\n";
-        clock.restart();
-        elapsed = 0;
-
-      } else if (menuSelectionIndex == 3) {
-        int result = SelectMobScene::Run(currentNavi);
-
-        // reset internal clock (or everything will teleport)
-        elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-        std::cout << "time slept: " << elapsed << "\n";
-        clock.restart();
-        elapsed = 0;
-
-        if (result == 0) {
-          break; // Breaks the while-loop
-        }
-      } 
-
-      gotoNextScene = false;
-    }
-
-    menuSelectionIndex = std::max(0, menuSelectionIndex);
-    menuSelectionIndex = std::min(3, menuSelectionIndex);
-
-    
-    if (menuSelectionIndex != lastMenuSelectionIndex) {
-      AUDIO.Play(AudioType::CHIP_SELECT);
-    }
-
-    ENGINE.Draw(overlay);
-
-    if (showHUD) {
-      uiAnimator.SetAnimation("CHIP_FOLDER");
-
-      if (menuSelectionIndex == 0) {
-        uiAnimator.SetFrame(2, &ui);
-        ui.setPosition(50.f, 50.f);
-        ENGINE.Draw(ui);
-
-        uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
-        uiAnimator.SetFrame(2, &ui);
-        ui.setPosition(100.f, 50.f);
-        ENGINE.Draw(ui);
-      }
-      else {
-        uiAnimator.SetFrame(1, &ui);
-        ui.setPosition(20.f, 50.f);
-        ENGINE.Draw(ui);
-
-        uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
-        uiAnimator.SetFrame(1, &ui);
-        ui.setPosition(100.f, 50.f);
-        ENGINE.Draw(ui);
+        gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
       }
 
-      uiAnimator.SetAnimation("LIBRARY");
-
-      if (menuSelectionIndex == 1) {
-        uiAnimator.SetFrame(2, &ui);
-        ui.setPosition(50.f, 120.f);
-        ENGINE.Draw(ui);
-
-        uiAnimator.SetAnimation("LIBRARY_LABEL");
-        uiAnimator.SetFrame(2, &ui);
-        ui.setPosition(100.f, 120.f);
-        ENGINE.Draw(ui);
-      }
-      else {
-        uiAnimator.SetFrame(1, &ui);
-        ui.setPosition(20.f, 120.f);
-        ENGINE.Draw(ui);
-
-        uiAnimator.SetAnimation("LIBRARY_LABEL");
-        uiAnimator.SetFrame(1, &ui);
-        ui.setPosition(100.f, 120.f);
-        ENGINE.Draw(ui);
-      }
-
-      uiAnimator.SetAnimation("NAVI");
-
+      // Navi select
       if (menuSelectionIndex == 2) {
-        uiAnimator.SetFrame(2, &ui);
-        ui.setPosition(50.f, 190.f);
-        ENGINE.Draw(ui);
-
-        uiAnimator.SetAnimation("NAVI_LABEL");
-        uiAnimator.SetFrame(2, &ui);
-        ui.setPosition(100.f, 190.f);
-        ENGINE.Draw(ui);
-      }
-      else {
-        uiAnimator.SetFrame(1, &ui);
-        ui.setPosition(20.f, 190.f);
-        ENGINE.Draw(ui);
-
-        uiAnimator.SetAnimation("NAVI_LABEL");
-        uiAnimator.SetFrame(1, &ui);
-        ui.setPosition(100.f, 190.f);
-        ENGINE.Draw(ui);
+        gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
       }
 
-      uiAnimator.SetAnimation("MOB_SELECT");
-
+      // Mob select
       if (menuSelectionIndex == 3) {
-        uiAnimator.SetFrame(2, &ui);
-        ui.setPosition(50.f, 260.f);
-        ENGINE.Draw(ui);
-
-        uiAnimator.SetAnimation("MOB_SELECT_LABEL");
-        uiAnimator.SetFrame(2, &ui);
-        ui.setPosition(100.f, 260.f);
-        ENGINE.Draw(ui);
+        gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
       }
-      else {
-        uiAnimator.SetFrame(1, &ui);
-        ui.setPosition(20.f, 260.f);
-        ENGINE.Draw(ui);
+    }
+  }
 
-        uiAnimator.SetAnimation("MOB_SELECT_LABEL");
-        uiAnimator.SetFrame(1, &ui);
-        ui.setPosition(100.f, 260.f);
-        ENGINE.Draw(ui);
+  /*if (INPUT.has(PRESSED_PAUSE)) {
+    static bool toggle = false;
+    toggle = !toggle;
+    showHUD = false;
+    map->ToggleLighting(toggle);
+  }*/
+
+  if (elapsed > 0) {
+    if (gotoNextScene) {
+      transitionProgress += 1 * elapsed;
+    }
+    else {
+      transitionProgress -= 1 * elapsed;
+    }
+  }
+
+  transitionProgress = std::max(0.f, transitionProgress);
+  transitionProgress = std::min(1.f, transitionProgress);
+
+  if (transitionProgress >= 1.f) {
+
+    if (menuSelectionIndex == 1) {
+      int result = FolderScene::Run();
+
+      // reset internal clock (or everything will teleport)
+      elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+      std::cout << "time slept: " << elapsed << "\n";
+      clock.restart();
+      elapsed = 0;
+
+      if (result == 0) {
+        break; // Breaks the while-loop
       }
+    }
+    else if (menuSelectionIndex == 2) {
+      currentNavi = SelectNaviScene::Run(currentNavi);
 
+      owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
+      naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
+      naviAnimator.Load();
+      naviAnimator.SetAnimation("PLAYER_OW_RD");
+      naviAnimator << Animate::Mode(Animate::Mode::Loop);
+
+      // reset internal clock (or everything will teleport)
+      elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+      std::cout << "time slept: " << elapsed << "\n";
+      clock.restart();
+      elapsed = 0;
+
+    }
+    else if (menuSelectionIndex == 3) {
+      int result = SelectMobScene::Run(currentNavi);
+
+      // reset internal clock (or everything will teleport)
+      elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+      std::cout << "time slept: " << elapsed << "\n";
+      clock.restart();
+      elapsed = 0;
+
+      if (result == 0) {
+        break; // Breaks the while-loop
+      }
+    }
+
+    gotoNextScene = false;
+  }
+
+  menuSelectionIndex = std::max(0, menuSelectionIndex);
+  menuSelectionIndex = std::min(3, menuSelectionIndex);
+
+
+  if (menuSelectionIndex != lastMenuSelectionIndex) {
+    AUDIO.Play(AudioType::CHIP_SELECT);
+  }
+
+  ENGINE.Draw(overlay);
+
+  if (showHUD) {
+    uiAnimator.SetAnimation("CHIP_FOLDER");
+
+    if (menuSelectionIndex == 0) {
+      uiAnimator.SetFrame(2, &ui);
+      ui.setPosition(50.f, 50.f);
+      ENGINE.Draw(ui);
+
+      uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
+      uiAnimator.SetFrame(2, &ui);
+      ui.setPosition(100.f, 50.f);
+      ENGINE.Draw(ui);
+    }
+    else {
+      uiAnimator.SetFrame(1, &ui);
+      ui.setPosition(20.f, 50.f);
+      ENGINE.Draw(ui);
+
+      uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
+      uiAnimator.SetFrame(1, &ui);
+      ui.setPosition(100.f, 50.f);
       ENGINE.Draw(ui);
     }
 
-    sf::Texture postprocessing = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
-    sf::Sprite transitionPost;
-    transitionPost.setTexture(postprocessing);
+    uiAnimator.SetAnimation("LIBRARY");
 
-    transition.setUniform("progress", transitionProgress);
+    if (menuSelectionIndex == 1) {
+      uiAnimator.SetFrame(2, &ui);
+      ui.setPosition(50.f, 120.f);
+      ENGINE.Draw(ui);
 
-    LayeredDrawable* bake = new LayeredDrawable(transitionPost);
-    bake->SetShader(&transition);
+      uiAnimator.SetAnimation("LIBRARY_LABEL");
+      uiAnimator.SetFrame(2, &ui);
+      ui.setPosition(100.f, 120.f);
+      ENGINE.Draw(ui);
+    }
+    else {
+      uiAnimator.SetFrame(1, &ui);
+      ui.setPosition(20.f, 120.f);
+      ENGINE.Draw(ui);
 
-    ENGINE.Draw(bake);
-    delete bake;
+      uiAnimator.SetAnimation("LIBRARY_LABEL");
+      uiAnimator.SetFrame(1, &ui);
+      ui.setPosition(100.f, 120.f);
+      ENGINE.Draw(ui);
+    }
 
-    // Write contents to screen (always last step)
-    ENGINE.Display();
+    uiAnimator.SetAnimation("NAVI");
 
-    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
+    if (menuSelectionIndex == 2) {
+      uiAnimator.SetFrame(2, &ui);
+      ui.setPosition(50.f, 190.f);
+      ENGINE.Draw(ui);
+
+      uiAnimator.SetAnimation("NAVI_LABEL");
+      uiAnimator.SetFrame(2, &ui);
+      ui.setPosition(100.f, 190.f);
+      ENGINE.Draw(ui);
+    }
+    else {
+      uiAnimator.SetFrame(1, &ui);
+      ui.setPosition(20.f, 190.f);
+      ENGINE.Draw(ui);
+
+      uiAnimator.SetAnimation("NAVI_LABEL");
+      uiAnimator.SetFrame(1, &ui);
+      ui.setPosition(100.f, 190.f);
+      ENGINE.Draw(ui);
+    }
+
+    uiAnimator.SetAnimation("MOB_SELECT");
+
+    if (menuSelectionIndex == 3) {
+      uiAnimator.SetFrame(2, &ui);
+      ui.setPosition(50.f, 260.f);
+      ENGINE.Draw(ui);
+
+      uiAnimator.SetAnimation("MOB_SELECT_LABEL");
+      uiAnimator.SetFrame(2, &ui);
+      ui.setPosition(100.f, 260.f);
+      ENGINE.Draw(ui);
+    }
+    else {
+      uiAnimator.SetFrame(1, &ui);
+      ui.setPosition(20.f, 260.f);
+      ENGINE.Draw(ui);
+
+      uiAnimator.SetAnimation("MOB_SELECT_LABEL");
+      uiAnimator.SetFrame(1, &ui);
+      ui.setPosition(100.f, 260.f);
+      ENGINE.Draw(ui);
+    }
+
+    ENGINE.Draw(ui);
   }
 
+  sf::Texture postprocessing; // = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+  sf::Sprite transitionPost;
+  transitionPost.setTexture(postprocessing);
+
+  transition.setUniform("progress", transitionProgress);
+
+  LayeredDrawable* bake = new LayeredDrawable(transitionPost);
+  bake->SetShader(&transition);
+
+  ENGINE.Draw(bake);
+  delete bake;
+
+  // Write contents to screen (always last step)
+  // ENGINE.Display();
+}
+
+void MainMenuScene::OnLeave() {
+
+}
+
+void MainMenuScene::OnResume() {
+
+}
+
+void MainMenuScene::OnDraw(sf::RenderTexture& surface) {
+
+}
+
+void MainMenuScene::OnEnd() {
   AUDIO.StopStream();
   ENGINE.RevokeShader();
-
-  return 0; // signal game over to the main stack
 }
