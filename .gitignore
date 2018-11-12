@@ -27,3 +27,5 @@ Debug/
 
 # Visual studio created files 
 .vs/
+
+.idea/
