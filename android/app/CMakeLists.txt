@@ -5,10 +5,25 @@
 
 cmake_minimum_required(VERSION 3.4.1)
 
-# Creates and names a library, sets it as either STATIC
-# or SHARED, and provides the relative paths to its source code.
-# You can define multiple libraries, and CMake builds them for you.
-# Gradle automatically packages shared libraries with your APK.
+set(SFML_REPO ${CMAKE_CURRENT_SOURCE_DIR}/../../extern/SFML)
+
+include_directories(${SFML_REPO}/extlibs/headers/freetype2 ${SFML_REPO}/extlibs/headers)
+
+set(OPENAL_LIBRARY ${SFML_REPO}/extlibs/libs-android/${ANDROID_ABI}/libopenal.so)
+set(OPENAL_INCLUDE_DIR ${SFML_REPO}/extlibs/headers/AL)
+set(FREETYPE_LIBRARY ${SFML_REPO}/extlibs/libs-android/${ANDROID_ABI}/libfreetype.a)
+set(VORBISENC_LIBRARY ${SFML_REPO}/extlibs/libs-android/${ANDROID_ABI}/libvorbisenc.a)
+set(VORBISFILE_LIBRARY ${SFML_REPO}/extlibs/libs-android/${ANDROID_ABI}/libvorbisfile.a)
+set(VORBIS_LIBRARY ${SFML_REPO}/extlibs/libs-android/${ANDROID_ABI}/libvorbis.a)
+set(OGG_LIBRARY ${SFML_REPO}/extlibs/libs-android/${ANDROID_ABI}/libogg.a)
+set(VORBIS_INCLUDE_DIR ${SFML_REPO}/extlibs/headers/vorbis)
+set(OGG_INCLUDE_DIR ${SFML_REPO}/extlibs/headers/ogg)
+set(FLAC_INCLUDE_DIR ${SFML_REPO}/extlibs/headers/flac)
+set(FLAC_LIBRARY ${SFML_REPO}/extlibs/libs-android/${ANDROID_ABI}/libFLAC.a)
+set(CMAKE_FIND_FRAMEWORK NEVER)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../extern/SFML ./sfml-build)
+
 
 file(GLOB BATTLENETWORK_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork/*.cpp)
 
@@ -44,7 +59,7 @@ target_link_libraries( # Specifies the target library.
         EGL
         GLESv1_CM
         
-        -L${CMAKE_CURRENT_SOURCE_DIR}/../../extern/libs-armeabi-v7a
+        -L${SFML_BUILD}/
         sfml-system
         sfml-window
         sfml-audio
