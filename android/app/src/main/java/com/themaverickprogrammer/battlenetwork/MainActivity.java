@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
-public class MainActivity extends NativeActivity{
+public class MainActivity extends NativeActivity {
 
     // Used to load the 'native-lib' library on application startup.
     static {
