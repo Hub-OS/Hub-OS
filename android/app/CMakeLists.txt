@@ -57,7 +57,7 @@ target_link_libraries( # Specifies the target library.
         log
         android
         EGL
-        GLESv1_CM
+        GLESv2
         
         -L${SFML_BUILD}/
         sfml-system
