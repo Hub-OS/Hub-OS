@@ -48,20 +48,34 @@ sf::Shader* ShaderResourceManager::GetShader(ShaderType _stype) {
 }
 
 ShaderResourceManager::ShaderResourceManager(void) {
-  paths.push_back("resources/shaders/black_fade.frag.txt");
-  paths.push_back("resources/shaders/custom_bar.frag.txt");
-  paths.push_back("resources/shaders/greyscale.frag.txt");
-  paths.push_back("resources/shaders/outline.frag.txt");
-  paths.push_back("resources/shaders/pixel_blur.frag.txt");
-  paths.push_back("resources/shaders/texel_pixel_blur.frag.txt");
-  paths.push_back("resources/shaders/texel_texture_wrap.frag.txt");
-  paths.push_back("resources/shaders/white.frag.txt");
-  paths.push_back("resources/shaders/white_fade.frag.txt");
-  paths.push_back("resources/shaders/yellow.frag.txt");
-  paths.push_back("resources/shaders/distortion.frag.txt");
-  paths.push_back("resources/shaders/spot_distortion.frag.txt");
-  paths.push_back("resources/shaders/spot_reflection.frag.txt");
-  paths.push_back("resources/shaders/transition.frag.txt");
+  std::string version = "glsl_110";
+
+  #ifdef SFML_SYSTEM_ANDROID
+    version = "glsl_150";
+  #endif
+
+  paths.push_back(std::string() + "resources/shaders/" + version + "/black_fade.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/custom_bar.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/greyscale.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/outline.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/pixel_blur.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/texel_pixel_blur.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/texel_texture_wrap.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/white.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/white_fade.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/yellow.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/distortion.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/spot_distortion.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/spot_reflection.frag.txt");
+  paths.push_back(std::string() + "resources/shaders/" + version + "/transition.frag.txt");
+
+  #ifdef SFML_SYSTEM_ANDROID
+    // ShaderType::ES2_DEFAULT_FRAG
+    paths.push_back(std::string() + "resources/shaders/" + version + "/default.frag.txt");
+
+    // ShaderType::ES2_DEFAULT_VERT
+    paths.push_back(std::string() + "resources/shaders/" + version + "/default.vert.txt");
+  #endif
 }
 
 ShaderResourceManager::~ShaderResourceManager(void) {
