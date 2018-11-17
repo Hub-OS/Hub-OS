@@ -9,7 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.themaverickprogrammer.battlenetwork.MainActivity">
+        <activity android:screenOrientation="landscape" android:name="com.themaverickprogrammer.battlenetwork.MainActivity">
             <meta-data android:name="android.app.lib_name"
                        android:value="native-lib" />
             <intent-filter>

@@ -157,13 +157,13 @@ namespace Overworld {
         tileSprite.setPosition(pos);
 
         if (cam->IsInView(tileSprite)) {
-          target.draw(tileSprite, states);
+          target.draw(tileSprite); // target.draw(tileSprite, states);
         }
       }
       else {
         tileSprite.setPosition(pos);
 
-        target.draw(tileSprite, states);
+        target.draw(tileSprite); // target.draw(tileSprite, states);
       }
     }
 

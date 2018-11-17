@@ -25,6 +25,7 @@ void Engine::Initialize() {
 }
 
 void Engine::Draw(Drawable& _drawable, bool applyShaders) {
+  applyShaders = false; // TODO: take out when SFML supports OpenGL ES 2.0
   if (applyShaders) {
     postprocessing.draw(_drawable, state);
   } else {
@@ -33,6 +34,8 @@ void Engine::Draw(Drawable& _drawable, bool applyShaders) {
 }
 
 void Engine::Draw(Drawable* _drawable, bool applyShaders) {
+  applyShaders = false; // TODO: take out when SFML supports OpenGL ES 2.0
+
   if (!_drawable) {
     return;
   }
@@ -51,7 +54,7 @@ void Engine::Draw(LayeredDrawable* _drawable) {
   LayeredDrawable* context = _drawable;
   SmartShader* shader = &context->GetShader();
 
-  if (shader && shader->Get()) {
+  if (false && shader && shader->Get()) {
     const sf::Texture* original = context->getTexture();
     shader->ApplyUniforms();
     postprocessing.draw(*context, shader->Get()); // bake
@@ -92,7 +95,7 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
 
     LayeredDrawable* context = *it;
     SmartShader& shader = context->GetShader();
-    if (shader.Get() != nullptr) {
+    if (false && shader.Get() != nullptr) {
       shader.ApplyUniforms();
       postprocessing.draw(*context, shader.Get()); // bake
       shader.ResetUniforms();
@@ -200,11 +203,11 @@ void Engine::DrawUnderlay() {
 
 void Engine::SetShader(sf::Shader* shader) {
 
-  if (shader == nullptr) {
+  //if (shader == nullptr) {
     state = sf::RenderStates::Default;
-  } else {
-    state.shader = shader;
-  }
+  //} else {
+  //  state.shader = shader;
+ // }
 }
 
 void Engine::RevokeShader() {

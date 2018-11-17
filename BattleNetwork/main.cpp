@@ -43,12 +43,12 @@ void RunGraphicsInit(std::atomic<int> * progress) {
   Logger::Logf("Loaded textures: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
   Logger::GetMutex()->unlock();
 
-  begin_time = clock();
+  /*begin_time = clock();
   SHADERS.LoadAllShaders(*progress);
 
   Logger::GetMutex()->lock();
   Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
-  Logger::GetMutex()->unlock();
+  Logger::GetMutex()->unlock();*/
 }
 
 void RunAudioInit(std::atomic<int> * progress) {
@@ -61,7 +61,9 @@ void RunAudioInit(std::atomic<int> * progress) {
 }
 
 int main(int argc, char** argv) {
-  // Render context must:
+  sf::Keyboard::setVirtualKeyboardVisible(true);
+
+    // Render context must:
   //                    1) always run from main thread and 
   //                    2) load before we do any loading screen rendering
   const clock_t begin_time = clock();
@@ -74,7 +76,7 @@ int main(int argc, char** argv) {
   AUDIO;
   QueuNaviRegistration(); // Queues navis to be loaded later
 
-  // State flags
+    // State flags
   bool inConfigMessageState = true;
 
   ChronoXConfigReader config("options.ini");
@@ -174,7 +176,7 @@ int main(int argc, char** argv) {
   LayeredDrawable bgSprite;
   LayeredDrawable progSprite;
 
-  int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE + (unsigned)ShaderType::SHADER_TYPE_SIZE;
+  int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE; //  + (unsigned)ShaderType::SHADER_TYPE_SIZE;
   std::atomic<int> progress{0};
   std::atomic<int> navisLoaded{0};
 
@@ -264,9 +266,9 @@ int main(int argc, char** argv) {
 
         if (!whiteShader) {
           try {
-            whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
-            whiteShader->setUniform("opacity", 0.0f);
-            ENGINE.SetShader(whiteShader);
+            //whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
+            //whiteShader->setUniform("opacity", 0.0f);
+            //ENGINE.SetShader(whiteShader);
           }
           catch (std::exception e) {
             // didnt catchup? debug
@@ -299,7 +301,7 @@ int main(int argc, char** argv) {
         }
 
         // update shader 
-        whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
+        //whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
       }
 
       if (INPUT.has(PRESSED_START) && navisLoaded == NAVIS.Size()) {

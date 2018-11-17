@@ -1,0 +1,26 @@
+entity name="ProgsMan"
+
+animation state="MOB_MOVING" width="59" height="75"
+frame duration="0.05" startx="0" starty="0"
+frame duration="0.05" startx="59" starty="0"
+
+animation state="MOB_IDLE" width="59" height="66"
+frame duration="0.01" startx="0" starty="0"
+
+animation state="MOB_HIT" width="97" height="70"
+frame duration="0.1" startx="0" starty="0"
+
+animation state="MOB_ATTACKING" width="97" height="70"
+frame duration="0.05" startx="0" starty="0"
+frame duration="0.05" startx="97" starty="0"
+frame duration="0.05" startx="194" starty="0"
+frame duration="0.05" startx="291" starty="0"
+frame duration="0.05" startx="388" starty="0"
+frame duration="0.1" startx="485" starty="0"
+
+animation state="MOB_THROW" width="89" height="69"
+frame duration="0.05" startx="0" starty="0"
+frame duration="0.05" startx="89" starty="0"
+frame duration="0.05" startx="178" starty="0"
+frame duration="0.05" startx="267" starty="0"
+frame duration="0.05" startx="356" starty="0"

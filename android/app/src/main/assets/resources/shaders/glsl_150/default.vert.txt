@@ -1,0 +1,11 @@
+#version 150
+ 
+uniform mat4 viewMatrix, projMatrix;
+ 
+in vec4 position;
+ 
+void main()
+{
+    gl_Position = projMatrix * viewMatrix * position ;
+    gl_TexCoord[0] = gl_MultiTexCoord0; 
+}

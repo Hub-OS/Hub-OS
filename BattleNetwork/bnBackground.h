@@ -98,7 +98,7 @@ public:
     states.shader = textureWrap;
 
     // draw the vertex array
-    target.draw(vertices, states);
+    target.draw(vertices); // target.draw(vertices, states);
   }
 
   sf::VertexArray vertices;
