@@ -22,6 +22,8 @@ set(FLAC_INCLUDE_DIR ${SFML_REPO}/extlibs/headers/flac)
 set(FLAC_LIBRARY ${SFML_REPO}/extlibs/libs-android/${ANDROID_ABI}/libFLAC.a)
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
+add_definitions(-DSFML_OPENGL_ES2)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../extern/SFML ./sfml-build)
 
 
