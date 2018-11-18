@@ -8,6 +8,7 @@
 #include "bnAnimate.h"
 #include "bnChronoXConfigReader.h"
 #include "SFML/System.hpp"
+#include "SFML/Window/Touch.hpp"
 #include <time.h>
 #include <queue>
 #include <atomic>
@@ -43,12 +44,12 @@ void RunGraphicsInit(std::atomic<int> * progress) {
   Logger::Logf("Loaded textures: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
   Logger::GetMutex()->unlock();
 
-  /*begin_time = clock();
+  begin_time = clock();
   SHADERS.LoadAllShaders(*progress);
 
   Logger::GetMutex()->lock();
   Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
-  Logger::GetMutex()->unlock();*/
+  Logger::GetMutex()->unlock();
 }
 
 void RunAudioInit(std::atomic<int> * progress) {
@@ -176,9 +177,12 @@ int main(int argc, char** argv) {
   LayeredDrawable bgSprite;
   LayeredDrawable progSprite;
 
-  int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE; //  + (unsigned)ShaderType::SHADER_TYPE_SIZE;
+  int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE  + (unsigned)ShaderType::SHADER_TYPE_SIZE;
   std::atomic<int> progress{0};
   std::atomic<int> navisLoaded{0};
+
+  // MASSIVE HACK
+  totalObjects -= 2;
 
   sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
   sf::Thread audioLoad(&RunAudioInit, &progress);
@@ -304,7 +308,7 @@ int main(int argc, char** argv) {
         //whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
       }
 
-      if (INPUT.has(PRESSED_START) && navisLoaded == NAVIS.Size()) {
+      if ((sf::Touch::isDown(0) || INPUT.has(PRESSED_START)) && navisLoaded == NAVIS.Size()) {
         inLoadState = false;
       }
     }
