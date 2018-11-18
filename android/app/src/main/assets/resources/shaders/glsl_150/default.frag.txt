@@ -5,7 +5,7 @@ vec4 fragColor;
 
 void main()
 {
-    vec2 uv = gl_FragCoord.xy/iResolution.xy;
+    vec2 uv = gl_FragCoord.xy;
     fragColor = texture2D(texture, texCoord.st);
     gl_FragColor = fragColor;
 }
