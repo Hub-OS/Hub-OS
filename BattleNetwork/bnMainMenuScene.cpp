@@ -5,8 +5,8 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 using sf::Font;
- 
-void MainMenuScene::OnStart() {
+
+void MainMenuScene::onStart() {
   // Stream menu music 
   AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
 
@@ -64,7 +64,7 @@ void MainMenuScene::OnStart() {
   gotoNextScene = false;
 }
 
-void MainMenuScene::OnUpdate(double _elapsed) {
+void MainMenuScene::onUpdate(double elapsed) {
   INPUT.update();
   map->Update(elapsed);
 
@@ -87,7 +87,7 @@ void MainMenuScene::OnUpdate(double _elapsed) {
   // Follow the navi
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
 
-  if (!gotoNextScene && transitionProgress == 0.f) {
+  if (!gotoNextScene) {
     if (INPUT.has(PRESSED_UP)) {
       selectInputCooldown -= elapsed;
 
@@ -139,84 +139,70 @@ void MainMenuScene::OnUpdate(double _elapsed) {
     map->ToggleLighting(toggle);
   }*/
 
-  if (elapsed > 0) {
-    if (gotoNextScene) {
-      transitionProgress += 1 * elapsed;
-    }
-    else {
-      transitionProgress -= 1 * elapsed;
-    }
+
+  if (menuSelectionIndex == 1) {
+    /*int result = FolderScene::Run();
+
+    // reset internal clock (or everything will teleport)
+    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+    std::cout << "time slept: " << elapsed << "\n";
+    clock.restart();
+    elapsed = 0;
+
+    if (result == 0) {
+      // break; // Breaks the while-loop
+      ActivityManager::Segue<CheckerSegue>::To<FolderScene>();
+    }*/
+  }
+  else if (menuSelectionIndex == 2) {
+    /*currentNavi = SelectNaviScene::Run(currentNavi);
+
+    owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
+    naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
+    naviAnimator.Load();
+    naviAnimator.SetAnimation("PLAYER_OW_RD");
+    naviAnimator << Animate::Mode(Animate::Mode::Loop);
+
+    // reset internal clock (or everything will teleport)
+    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+    std::cout << "time slept: " << elapsed << "\n";
+    clock.restart();
+    elapsed = 0;*/
+
+  }
+  else if (menuSelectionIndex == 3) {
+    /*int result = SelectMobScene::Run(currentNavi);
+
+    // reset internal clock (or everything will teleport)
+    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+    std::cout << "time slept: " << elapsed << "\n";
+    clock.restart();
+    elapsed = 0;
+
+    if (result == 0) {
+      // ActivityManager::Pop();
+    }*/
   }
 
-  transitionProgress = std::max(0.f, transitionProgress);
-  transitionProgress = std::min(1.f, transitionProgress);
-
-  if (transitionProgress >= 1.f) {
-
-    if (menuSelectionIndex == 1) {
-      int result = FolderScene::Run();
-
-      // reset internal clock (or everything will teleport)
-      elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-      std::cout << "time slept: " << elapsed << "\n";
-      clock.restart();
-      elapsed = 0;
-
-      if (result == 0) {
-        break; // Breaks the while-loop
-      }
-    }
-    else if (menuSelectionIndex == 2) {
-      currentNavi = SelectNaviScene::Run(currentNavi);
-
-      owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
-      naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
-      naviAnimator.Load();
-      naviAnimator.SetAnimation("PLAYER_OW_RD");
-      naviAnimator << Animate::Mode(Animate::Mode::Loop);
-
-      // reset internal clock (or everything will teleport)
-      elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-      std::cout << "time slept: " << elapsed << "\n";
-      clock.restart();
-      elapsed = 0;
-
-    }
-    else if (menuSelectionIndex == 3) {
-      int result = SelectMobScene::Run(currentNavi);
-
-      // reset internal clock (or everything will teleport)
-      elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-      std::cout << "time slept: " << elapsed << "\n";
-      clock.restart();
-      elapsed = 0;
-
-      if (result == 0) {
-        // ActivityManager::Pop();
-      }
-    }
-
-    gotoNextScene = false;
-  }
+  gotoNextScene = false;
 
   menuSelectionIndex = std::max(0, menuSelectionIndex);
   menuSelectionIndex = std::min(3, menuSelectionIndex);
-
 
   if (menuSelectionIndex != lastMenuSelectionIndex) {
     AUDIO.Play(AudioType::CHIP_SELECT);
   }
 }
 
-void MainMenuScene::OnLeave() {
+void MainMenuScene::onLeave() {
 
 }
 
-void MainMenuScene::OnResume() {
+void MainMenuScene::onResume() {
 
 }
 
-void MainMenuScene::OnDraw(sf::RenderTexture& surface) {
+void MainMenuScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(bg);
   ENGINE.Draw(map);
 
@@ -317,21 +303,9 @@ void MainMenuScene::OnDraw(sf::RenderTexture& surface) {
 
     ENGINE.Draw(ui);
   }
-
-  sf::Texture postprocessing = surface.getTexture();
-  sf::Sprite transitionPost;
-  transitionPost.setTexture(postprocessing);
-
-  transition->setUniform("progress", transitionProgress);
-
-  LayeredDrawable* bake = new LayeredDrawable(transitionPost);
-  bake->SetShader(transition);
-
-  ENGINE.Draw(bake);
-  delete bake;
 }
 
-void MainMenuScene::OnEnd() {
+void MainMenuScene::onEnd() {
   AUDIO.StopStream();
   ENGINE.RevokeShader();
 }

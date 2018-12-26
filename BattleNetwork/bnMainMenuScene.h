@@ -1,5 +1,6 @@
 #pragma once
-#include "bnActivity.h"
+#include "Swoosh/Activity.h"
+
 #include "bnFolderScene.h"
 #include "bnOverworldMap.h"
 #include "bnInfiniteMap.h"
@@ -18,7 +19,7 @@
 #include <SFML/Graphics.hpp>
 #include <time.h>
 
-class MainMenuScene : public Activity {
+class MainMenuScene : public swoosh::Activity {
 private:
   Camera camera;
   bool showHUD;
@@ -31,14 +32,6 @@ private:
   sf::Sprite ui;
   Animation uiAnimator;
 
-
-  // Transition
-  sf::Shader* transition;
-  float transitionProgress;
-
-  sf::Clock clock;
-  float elapsed;
-  float totalTime;
   int menuSelectionIndex;;
 
   sf::Sprite overlay;
@@ -55,11 +48,11 @@ private:
 
 public:
   MainMenuScene() = default;
-  virtual void OnStart();
-  virtual void OnUpdate(double _elapsed);
-  virtual void OnLeave();
-  virtual void OnResume();
-  virtual void OnDraw(sf::RenderTexture& surface);
-  virtual void OnEnd();
+  virtual void onStart();
+  virtual void onUpdate(double elapsed);
+  virtual void onLeave();
+  virtual void onResume();
+  virtual void onDraw(sf::RenderTexture& surface);
+  virtual void onEnd();
   virtual ~MainMenuScene() { ; }
 };

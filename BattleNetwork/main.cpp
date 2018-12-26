@@ -1,4 +1,5 @@
-#include "bnActivityManager.h"
+#include "Swoosh/ActivityController.h"
+
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
@@ -19,6 +20,9 @@
 
 // Timer
 using sf::Clock;
+
+// Swoosh activity management
+using swoosh::ActivityController;
 
 // Title card character
 #define TITLE_ANIM_CHAR_SPRITES 14
@@ -87,8 +91,6 @@ int main(int argc, char** argv) {
     AUDIO.EnableAudio(config.IsAudioEnabled());
     INPUT.SupportChronoXGamepad(config);
   }
-
-  ActivityManager::Push<MainMenuScene>();
 
   sf::Texture* alert = TEXTURES.LoadTextureFromFile("resources/ui/alert.png");
   sf::Sprite alertSprite(*alert);
@@ -372,19 +374,27 @@ int main(int argc, char** argv) {
   delete font;
   delete logo;
 
-  // Stop music and go to select screen 
+  // Stop music and go to menu screen 
   AUDIO.StopStream();
+
+  // Create an activity controller 
+  // Behaves like a state machine using stacks
+  ActivityController app(*ENGINE.GetWindow());
+  app.push<MainMenuScene>();
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
-    int win = MainMenuScene::Run(); // MainMenuScene::Run();
+    clock.restart();
 
-    if (win != 1) {
-      // Start the game over music
-      AUDIO.Stream("resources/loops/game_over.ogg");
-      ENGINE.Clear();
-      break;
-    }
+    INPUT.update();
+
+    // Use the activity controller to update and draw scenes
+    app.update(elapsed);
+    app.draw();
+
+    ENGINE.Clear();
+
+    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
   }
 
   sf::Sprite gameOver;
@@ -393,6 +403,9 @@ int main(int argc, char** argv) {
   gameOver.setOrigin(gameOver.getLocalBounds().width / 2, gameOver.getLocalBounds().height / 2);
   gameOver.setPosition(logoPos);
   float fadeInCooldown = 500.0f; // half a second
+
+  // Start the game over music
+  AUDIO.Stream("resources/loops/game_over.ogg");
 
   // Show gameover screen
   while (ENGINE.Running()) {
@@ -414,8 +427,7 @@ int main(int argc, char** argv) {
     ENGINE.DrawLayers();
     ENGINE.DrawOverlay();
 
-    // Write contents to screen
-    //ENGINE.Display();
+    // Update the activity controller
 
     // Prepare for next render 
     ENGINE.Clear();

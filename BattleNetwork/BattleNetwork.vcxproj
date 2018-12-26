@@ -186,8 +186,8 @@
     <ClCompile Include="bnCharacter.cpp" />
     <ClCompile Include="bnChipFolder.cpp" />
     <ClCompile Include="bnChipUseListener.cpp" />
-    <ClCompile Include="bnEaseFunctions.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />
+    <ClCompile Include="bnGameOverScene.cpp" />
     <ClCompile Include="bnGraveyardBackground.cpp" />
     <ClCompile Include="bnGridBackground.cpp" />
     <ClCompile Include="bnInfiniteMap.cpp" />
@@ -274,13 +274,10 @@
     <ClInclude Include="bnChipUseListener.h" />
     <ClInclude Include="bnChipUsePublisher.h" />
     <ClInclude Include="bnComponent.h" />
-    <ClInclude Include="bnEaseFunctions.h" />
+    <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnProgsManThrowState.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />
-    <ClInclude Include="bnActivity.h" />
-    <ClInclude Include="bnActivityManager.h" />
-    <ClInclude Include="bnSegue.h" />
     <ClInclude Include="bnTileBehavior.h" />
     <ClInclude Include="bnElements.h" />
     <ClInclude Include="bnFolderScene.h" />
@@ -351,7 +348,6 @@
     <ClInclude Include="bnPlayerState.h" />
     <ClInclude Include="bnPlayerHealthUI.h" />
     <ClInclude Include="bnBuster.h" />
-    <ClInclude Include="bnFadeOutWhiteSegue.h" />
     <ClInclude Include="bnTwoMettaurMob.h" />
     <ClInclude Include="bnVirusBackground.h" />
     <ClInclude Include="bnWave.h" />
@@ -360,7 +356,6 @@
     <ClInclude Include="bnSelectedChipsUI.h" />
     <ClInclude Include="bnMettaurAttackState.h" />
     <ClInclude Include="bnMeta.h" />
-    <ClInclude Include="bnTimer.h" />
     <ClInclude Include="bnFileUtil.h" />
     <ClInclude Include="bnCanonSmoke.h" />
     <ClInclude Include="bnNaviRegistration.h" />
@@ -370,6 +365,14 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />
+    <ClInclude Include="Swoosh\ActionList.h" />
+    <ClInclude Include="Swoosh\Activity.h" />
+    <ClInclude Include="Swoosh\ActivityController.h" />
+    <ClInclude Include="Swoosh\Ease.h" />
+    <ClInclude Include="Swoosh\EmbedGLSL.h" />
+    <ClInclude Include="Swoosh\Game.h" />
+    <ClInclude Include="Swoosh\Segue.h" />
+    <ClInclude Include="Swoosh\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BattleNetwork.rc" />

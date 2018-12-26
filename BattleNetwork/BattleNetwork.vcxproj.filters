@@ -236,29 +236,32 @@
     <Filter Include="Battle\Entity\Summons\Roll">
       <UniqueIdentifier>{541f9cd8-4857-4700-bb63-5aa7ce04599b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utilities\EaseIns">
-      <UniqueIdentifier>{4c3c2b6a-708e-484b-b3df-2e0e0deaa39d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities">
+    <Filter Include="Engine\Activities">
       <UniqueIdentifier>{2c22d20c-e987-4431-9a4b-554d71926008}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle">
+    <Filter Include="Engine\Activities\Battle">
       <UniqueIdentifier>{10976369-a638-4250-b08c-f835a7bbfe7d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Main Menu">
+    <Filter Include="Engine\Activities\Main Menu">
       <UniqueIdentifier>{d2dc3e83-cab6-4455-9e10-e5295c5f8d2d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Select Mob">
+    <Filter Include="Engine\Activities\Select Mob">
       <UniqueIdentifier>{82986475-2577-4085-b6c9-d114b769337c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Folder">
+    <Filter Include="Engine\Activities\Folder">
       <UniqueIdentifier>{4207b872-406d-4138-948a-a0d7c9fbdfa1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Select Navi">
+    <Filter Include="Engine\Activities\Select Navi">
       <UniqueIdentifier>{9d3a1388-2568-497b-8e9d-9c02c4cc066e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Seugues">
+    <Filter Include="Swoosh">
+      <UniqueIdentifier>{5715b012-ca4e-4847-93d1-5167c97e10ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Activities\Segues">
       <UniqueIdentifier>{342cc4ce-391b-400f-85a2-a564949a77c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Activities\GameOver">
+      <UniqueIdentifier>{d6f2acf8-b44a-4ccc-89c5-4f76f2f39c29}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -401,13 +404,13 @@
       <Filter>Engine\Animate</Filter>
     </ClCompile>
     <ClCompile Include="bnBattleScene.cpp">
-      <Filter>Activities\Battle</Filter>
+      <Filter>Engine\Activities\Battle</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectMobScene.cpp">
-      <Filter>Activities\Select Mob</Filter>
+      <Filter>Engine\Activities\Select Mob</Filter>
     </ClCompile>
     <ClCompile Include="bnMainMenuScene.cpp">
-      <Filter>Activities\Main Menu</Filter>
+      <Filter>Engine\Activities\Main Menu</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimation.cpp">
       <Filter>Engine\Animate</Filter>
@@ -449,7 +452,7 @@
       <Filter>Battle\Chips\Folder</Filter>
     </ClCompile>
     <ClCompile Include="bnFolderScene.cpp">
-      <Filter>Activities\Folder</Filter>
+      <Filter>Engine\Activities\Folder</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimatedCharacter.cpp">
       <Filter>Battle\Entity\Character</Filter>
@@ -464,7 +467,7 @@
       <Filter>Battle\Entity\Character\Player\Starman</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectNaviScene.cpp">
-      <Filter>Activities\Select Navi</Filter>
+      <Filter>Engine\Activities\Select Navi</Filter>
     </ClCompile>
     <ClCompile Include="bnNaviRegistration.cpp">
       <Filter>Engine\Addons\NaviRegistration</Filter>
@@ -487,14 +490,14 @@
     <ClCompile Include="bnRollHeart.cpp">
       <Filter>Battle\Entity\Summons\Roll</Filter>
     </ClCompile>
-    <ClCompile Include="bnEaseFunctions.cpp">
-      <Filter>Utilities\EaseIns</Filter>
-    </ClCompile>
     <ClCompile Include="bnExplosion.cpp">
       <Filter>Battle\Entity\Artifact\Explosion</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManThrowState.cpp">
       <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnGameOverScene.cpp">
+      <Filter>Engine\Activities\GameOver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -655,9 +658,6 @@
     <ClInclude Include="bnCannon.h">
       <Filter>Battle\Entity\Spell\Cannon</Filter>
     </ClInclude>
-    <ClInclude Include="bnTimer.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="bnBattleItem.h">
       <Filter>Battle\Results\ItemGet</Filter>
     </ClInclude>
@@ -695,13 +695,13 @@
       <Filter>Battle\Mob\Boss\ProgsMan</Filter>
     </ClInclude>
     <ClInclude Include="bnBattleScene.h">
-      <Filter>Activities\Battle</Filter>
+      <Filter>Engine\Activities\Battle</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectMobScene.h">
-      <Filter>Activities\Select Mob</Filter>
+      <Filter>Engine\Activities\Select Mob</Filter>
     </ClInclude>
     <ClInclude Include="bnMainMenuScene.h">
-      <Filter>Activities\Main Menu</Filter>
+      <Filter>Engine\Activities\Main Menu</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimation.h">
       <Filter>Engine\Animate</Filter>
@@ -746,7 +746,7 @@
       <Filter>Battle\Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnFolderScene.h">
-      <Filter>Activities\Folder</Filter>
+      <Filter>Engine\Activities\Folder</Filter>
     </ClInclude>
     <ClInclude Include="bnSpawnPolicy.h">
       <Filter>Battle\Mob</Filter>
@@ -776,7 +776,7 @@
       <Filter>Battle\Entity\Character\Player\Starman</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectNaviScene.h">
-      <Filter>Activities\Select Navi</Filter>
+      <Filter>Engine\Activities\Select Navi</Filter>
     </ClInclude>
     <ClInclude Include="bnNaviRegistration.h">
       <Filter>Engine\Addons\NaviRegistration</Filter>
@@ -817,26 +817,38 @@
     <ClInclude Include="bnRollHeart.h">
       <Filter>Battle\Entity\Summons\Roll</Filter>
     </ClInclude>
-    <ClInclude Include="bnEaseFunctions.h">
-      <Filter>Utilities\EaseIns</Filter>
-    </ClInclude>
     <ClInclude Include="bnExplosion.h">
       <Filter>Battle\Entity\Artifact\Explosion</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManThrowState.h">
       <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
     </ClInclude>
-    <ClInclude Include="bnActivityManager.h">
-      <Filter>Activities</Filter>
+    <ClInclude Include="Swoosh\ActionList.h">
+      <Filter>Swoosh</Filter>
     </ClInclude>
-    <ClInclude Include="bnActivity.h">
-      <Filter>Activities</Filter>
+    <ClInclude Include="Swoosh\Activity.h">
+      <Filter>Swoosh</Filter>
     </ClInclude>
-    <ClInclude Include="bnFadeOutWhiteSegue.h">
-      <Filter>Activities\Seugues</Filter>
+    <ClInclude Include="Swoosh\ActivityController.h">
+      <Filter>Swoosh</Filter>
     </ClInclude>
-    <ClInclude Include="bnSegue.h">
-      <Filter>Activities</Filter>
+    <ClInclude Include="Swoosh\Ease.h">
+      <Filter>Swoosh</Filter>
+    </ClInclude>
+    <ClInclude Include="Swoosh\EmbedGLSL.h">
+      <Filter>Swoosh</Filter>
+    </ClInclude>
+    <ClInclude Include="Swoosh\Game.h">
+      <Filter>Swoosh</Filter>
+    </ClInclude>
+    <ClInclude Include="Swoosh\Segue.h">
+      <Filter>Swoosh</Filter>
+    </ClInclude>
+    <ClInclude Include="Swoosh\Timer.h">
+      <Filter>Swoosh</Filter>
+    </ClInclude>
+    <ClInclude Include="bnGameOverScene.h">
+      <Filter>Engine\Activities\GameOver</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

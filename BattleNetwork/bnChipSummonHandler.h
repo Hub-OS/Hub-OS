@@ -6,7 +6,7 @@
 #include "bnPlayer.h"
 #include "bnField.h"
 #include "bnTile.h"
-#include "bnTimer.h"
+#include "Swoosh\Timer.h"
 
 class ChipSummonHandler : public ChipUseListener {
 private:
