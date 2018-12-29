@@ -6,12 +6,20 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
-void MainMenuScene::onStart() {
-  // Stream menu music 
-  AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
+MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
+  camera(ENGINE.GetDefaultView()),
+  swoosh::Activity(controller)
+{
+  // Transition
+  transition = &LOAD_SHADER(TRANSITION);
+  transition->setUniform("texture", sf::Shader::CurrentTexture);
+  transition->setUniform("map", LOAD_TEXTURE(NOISE_TEXTURE));
+  transition->setUniform("progress", 0.f);
 
-  camera = Camera(ENGINE.GetDefaultView());
-  ENGINE.SetCamera(camera);
+  bg = new LanBackground();
+
+  map = new Overworld::InfiniteMap(10, 20, 47, 24);
+  map->SetCamera(&camera);
 
   showHUD = true;
 
@@ -24,29 +32,6 @@ void MainMenuScene::onStart() {
   ui.setScale(2.f, 2.f);
   uiAnimator = Animation("resources/ui/main_menu_ui.animation");
   uiAnimator.Load();
-
-  // Stream menu music 
-  AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
-
-  // Transition
-  transition = &LOAD_SHADER(TRANSITION);
-  transition->setUniform("texture", sf::Shader::CurrentTexture);
-  transition->setUniform("map", LOAD_TEXTURE(NOISE_TEXTURE));
-  transition->setUniform("progress", 0.f);
-  transitionProgress = 0.9f;
-
-  menuSelectionIndex = 0;
-
-  overlay = sf::Sprite(LOAD_TEXTURE(MAIN_MENU));
-  overlay.setScale(2.f, 2.f);
-
-  ow = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_OW));
-  ow.setScale(2.f, 2.f);
-
-  bg = new LanBackground();
-
-  map = new Overworld::InfiniteMap(10, 20, 47, 24);
-  map->SetCamera(&camera);
 
   // Keep track of selected navi
   currentNavi = 0;
@@ -61,7 +46,20 @@ void MainMenuScene::onStart() {
 
   map->AddSprite(&owNavi);
 
+  overlay = sf::Sprite(LOAD_TEXTURE(MAIN_MENU));
+  overlay.setScale(2.f, 2.f);
+
+  ow = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_OW));
+  ow.setScale(2.f, 2.f);
+}
+
+void MainMenuScene::onStart() {
   gotoNextScene = false;
+
+  // Stream menu music 
+  AUDIO.StopStream();
+  AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
+  ENGINE.SetCamera(camera);
 }
 
 void MainMenuScene::onUpdate(double elapsed) {
@@ -196,6 +194,14 @@ void MainMenuScene::onUpdate(double elapsed) {
 
 void MainMenuScene::onLeave() {
 
+}
+
+void MainMenuScene::onExit()
+{
+}
+
+void MainMenuScene::onEnter()
+{
 }
 
 void MainMenuScene::onResume() {

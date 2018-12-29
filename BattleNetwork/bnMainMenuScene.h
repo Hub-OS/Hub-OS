@@ -44,15 +44,19 @@ private:
   sf::Sprite owNavi;
   Animation naviAnimator;
 
+  sf::Shader* transition;
+
   bool gotoNextScene;
 
 public:
-  MainMenuScene() = default;
-  virtual void onStart();
+  MainMenuScene(swoosh::ActivityController&);
   virtual void onUpdate(double elapsed);
-  virtual void onLeave();
-  virtual void onResume();
   virtual void onDraw(sf::RenderTexture& surface);
+  virtual void onStart();
+  virtual void onLeave();
+  virtual void onExit();
+  virtual void onEnter();
+  virtual void onResume();
   virtual void onEnd();
   virtual ~MainMenuScene() { ; }
 };

@@ -29,6 +29,8 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
+#include "Swoosh\Activity.h"
+
 class SelectMobScene : public swoosh::Activity
 {
 private:
@@ -84,7 +86,7 @@ private:
 
 public:
   SelectMobScene(swoosh::ActivityController&, SelectedNavi);
-  ~SelectMobScene() { ; }
+  ~SelectMobScene();
 
   virtual void onResume();
   virtual void onUpdate(double elapsed);

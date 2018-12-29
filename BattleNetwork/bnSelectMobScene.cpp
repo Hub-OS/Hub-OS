@@ -1,4 +1,5 @@
 #include "bnSelectMobScene.h"
+#include "Swoosh\ActivityController.h"
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi) : 
   transition(LOAD_SHADER(TRANSITION)),
@@ -73,7 +74,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   textbox.SetSpeed(20);
 }
 
-void SelectMobScene::~SelectMobScene() {
+SelectMobScene::~SelectMobScene() {
   delete font;
   delete mobFont;
   delete hpFont;
@@ -349,11 +350,4 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   // Write contents to screen (always last step)
   //ENGINE.Display();
-
-  elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
-}
-
-ENGINE.RevokeShader();
-
-return 0; // signal game over to the main stack
 }

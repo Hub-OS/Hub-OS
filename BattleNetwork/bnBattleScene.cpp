@@ -806,3 +806,27 @@ void BattleScene::onUpdate(double elapsed) {
 void BattleScene::onDraw(sf::RenderTexture& surface) {
 
 }
+
+void BattleScene::onStart() {
+
+}
+
+void BattleScene::onLeave() {
+
+}
+
+void BattleScene::onExit() {
+
+}
+
+void BattleScene::onEnter() {
+
+}
+
+void BattleScene::onResume() {
+
+}
+
+void BattleScene::onEnd() {
+
+}
