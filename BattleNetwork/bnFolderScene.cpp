@@ -203,6 +203,8 @@ void FolderScene::onResume() {
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
+  ENGINE.SetRenderSurface(surface);
+
   ENGINE.Draw(bg);
   ENGINE.Draw(menuLabel);
 

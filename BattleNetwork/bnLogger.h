@@ -38,7 +38,7 @@ public:
       file << "StartTime " << time(0) << endl;
     }
 
-    //cerr << _message << endl;
+    cerr << _message << endl;
     logs.push(_message);
     file << _message << endl;
   }
@@ -59,7 +59,7 @@ public:
     std::string ret(buffer);
     va_end(vl);
     delete[] buffer;
-   // cerr << ret << endl;
+    cerr << ret << endl;
     logs.push(ret);
 
     if (!file.is_open()) {

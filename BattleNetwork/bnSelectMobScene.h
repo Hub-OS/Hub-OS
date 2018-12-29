@@ -90,5 +90,11 @@ public:
 
   virtual void onResume();
   virtual void onUpdate(double elapsed);
+  virtual void onDraw(sf::RenderTexture& surface);
+  virtual void onStart();
+  virtual void onLeave();
+  virtual void onExit();
+  virtual void onEnter();
+  virtual void onEnd();
 };
 

@@ -804,7 +804,7 @@ void BattleScene::onUpdate(double elapsed) {
 }
 
 void BattleScene::onDraw(sf::RenderTexture& surface) {
-
+  ENGINE.SetRenderSurface(surface);
 }
 
 void BattleScene::onStart() {

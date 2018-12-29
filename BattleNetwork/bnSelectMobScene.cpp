@@ -351,3 +351,27 @@ void SelectMobScene::onUpdate(double elapsed) {
   // Write contents to screen (always last step)
   //ENGINE.Display();
 }
+
+void SelectMobScene::onDraw(sf::RenderTexture & surface) {
+  ENGINE.SetRenderSurface(surface);
+}
+
+void SelectMobScene::onStart() {
+
+}
+
+void SelectMobScene::onLeave() {
+
+}
+
+void SelectMobScene::onExit() {
+
+}
+
+void SelectMobScene::onEnter() {
+
+}
+
+void SelectMobScene::onEnd() {
+
+}

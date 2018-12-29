@@ -139,6 +139,11 @@ int main(int argc, char** argv) {
   float elapsed = 0.0f;
   float messageCooldown = 3000; 
 
+  sf::RenderTexture loadSurface;
+  //loadSurface.create(480, 320);
+  loadSurface.create(ENGINE.GetWindow()->getSize().x, ENGINE.GetWindow()->getSize().y, ENGINE.GetWindow()->getSettings());
+  ENGINE.SetRenderSurface(loadSurface);
+
   while (inConfigMessageState && ENGINE.Running()) {
     clock.restart();
 
@@ -162,6 +167,13 @@ int main(int argc, char** argv) {
 
     ENGINE.Draw(alertSprite);
     ENGINE.Draw(message);
+
+    loadSurface.display();
+
+    sf::Sprite postprocess(loadSurface.getTexture());
+
+    ENGINE.GetWindow()->draw(postprocess);
+    ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
   }
@@ -361,8 +373,12 @@ int main(int argc, char** argv) {
     ENGINE.DrawLayers();
     ENGINE.DrawOverlay();
 
-    // Write contents to screen
-    //ENGINE.Display();
+    loadSurface.display();
+
+    sf::Sprite postprocess(loadSurface.getTexture());
+
+    ENGINE.GetWindow()->draw(postprocess);
+    ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
   }
@@ -380,7 +396,7 @@ int main(int argc, char** argv) {
   // Create an activity controller 
   // Behaves like a state machine using stacks
   ActivityController app(*ENGINE.GetWindow());
-  app.push<MainMenuScene>();
+  //app.push<MainMenuScene>();
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
@@ -390,9 +406,13 @@ int main(int argc, char** argv) {
 
     // Use the activity controller to update and draw scenes
     app.update(elapsed);
-    app.draw();
 
     ENGINE.Clear();
+    ENGINE.DrawUnderlay();
+    ENGINE.DrawLayers();
+    ENGINE.DrawOverlay();
+
+    app.draw();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
   }
@@ -436,5 +456,7 @@ int main(int argc, char** argv) {
 
   }
   
+  //delete loadSurface;
+
   return EXIT_SUCCESS;
 }

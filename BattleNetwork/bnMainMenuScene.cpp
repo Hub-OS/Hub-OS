@@ -209,6 +209,8 @@ void MainMenuScene::onResume() {
 }
 
 void MainMenuScene::onDraw(sf::RenderTexture& surface) {
+  ENGINE.SetRenderSurface(surface);
+
   ENGINE.Draw(bg);
   ENGINE.Draw(map);
 

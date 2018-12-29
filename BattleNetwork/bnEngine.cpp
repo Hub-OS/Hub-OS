@@ -122,6 +122,10 @@ bool Engine::Running() {
 }
 
 void Engine::Clear() {
+  if (HasRenderSurface()) {
+    surface->clear();
+  }
+
   underlay.Clear();
   layers.Clear();
   overlay.Clear();

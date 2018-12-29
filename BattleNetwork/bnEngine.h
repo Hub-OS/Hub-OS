@@ -46,6 +46,10 @@ public:
     surface = &_surface;
   }
 
+  void SetRenderSurface(sf::RenderTexture* _surface) {
+    surface = _surface;
+  }
+
   const bool HasRenderSurface() {
     return (surface != nullptr);
   }

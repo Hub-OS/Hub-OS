@@ -21,6 +21,8 @@ void GameOverScene::onUpdate(double elapsed) {
 }
 
 void GameOverScene::onDraw(sf::RenderTexture& surface) {
+  ENGINE.SetRenderSurface(surface);
+
   sf::Vector2f logoPos = (sf::Vector2f)((sf::Vector2i)ENGINE.GetWindow()->getSize() / 2);
 
   sf::Sprite gameOver;
