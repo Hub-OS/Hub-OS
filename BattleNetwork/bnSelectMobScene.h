@@ -30,6 +30,8 @@ using sf::Event;
 using sf::Font;
 
 #include "Swoosh\Activity.h"
+#include "Segues\CrossZoom.h"
+#include "Segues\Checkerboard.h"
 
 class SelectMobScene : public swoosh::Activity
 {
@@ -37,6 +39,10 @@ private:
   SelectedNavi selectedNavi;
 
   Camera camera;
+
+  MobFactory* factory;
+  Mob* mob;
+  Field* field;
 
   // Menu name font
   sf::Font* font;
@@ -64,14 +70,10 @@ private:
   sf::Sprite bg;
 
   // Current mob graphic
-  sf::Sprite mob;
+  sf::Sprite mobSpr;
 
   // Animator for mobs
   Animation mobAnimator;
-
-  // Transition
-  sf::Shader& transition;
-  float transitionProgress;
 
   bool gotoNextScene;
 

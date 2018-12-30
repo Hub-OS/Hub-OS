@@ -44,8 +44,6 @@ private:
   sf::Sprite owNavi;
   Animation naviAnimator;
 
-  sf::Shader* transition;
-
   bool gotoNextScene;
 
 public:

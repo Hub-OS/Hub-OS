@@ -1,4 +1,9 @@
+#include <Swoosh\ActivityController.h>
 #include "bnBattleScene.h"
+#include "bnGameOverScene.h"
+
+#include "Segues\WhiteWashFade.h"
+#include "Segues\PixelateBlackwashFade.h"
 
 BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob) :
   swoosh::Activity(controller), 
@@ -13,6 +18,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
   summons(player),
   chipListener(player),
+  folder(new ChipFolder()),
   chipCustGUI(folder, 8),
   camera(*ENGINE.GetCamera()),
   chipUI(player)
@@ -53,7 +59,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   /*
   Chips + Chip select setup*/
-  folder = new ChipFolder(); // TODO: this would be read in from a file
   chips = nullptr;
   chipCount = 0;
 
@@ -165,11 +170,15 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2(textureSize.x, textureSize.y));
   iceShader.setUniform("shine", 0.3f);
+}
 
-  inBattleState = true;
+BattleScene::~BattleScene()
+{
 }
 
 void BattleScene::onUpdate(double elapsed) {
+  this->elapsed = elapsed;
+
   // check every frame 
   if (!isPlayerDeleted) {
     isPlayerDeleted = player->IsDeleted();
@@ -208,8 +217,6 @@ void BattleScene::onUpdate(double elapsed) {
     isMobDeleted = true; // Hack. Just to trigger fade out and spawn a new mob
   }
 
-  INPUT.update();
-
   camera.Update(elapsed);
 
   background->Update(elapsed);
@@ -247,6 +254,23 @@ void BattleScene::onUpdate(double elapsed) {
   if (!(isPaused || isInChipSelect) && summons.IsSummonOver() && !isPreBattle) {
     field->Update(elapsed);
   }
+
+  // update the cust if not paused nor in chip select nor in mob intro nor battle results
+  if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle)) {
+    customProgress += elapsed;
+
+    if (battleTimer.isPaused()) {
+      // start counting seconds again 
+      battleTimer.start();
+    }
+  }
+  else {
+    battleTimer.pause();
+  }
+}
+
+void BattleScene::onDraw(sf::RenderTexture& surface) {
+  ENGINE.SetRenderSurface(surface);
 
   ENGINE.Clear();
 
@@ -426,7 +450,7 @@ void BattleScene::onUpdate(double elapsed) {
     }
     else {
       double battleStartSecs = battleStartTimer.getElapsed().asSeconds();
-      double scale = swoosh::ease::wideParabola(battleStartSecs, preBattleLength, 1.0);
+      double scale = swoosh::ease::wideParabola(battleStartSecs, preBattleLength, 2.0);
       battleStart.setScale(2.f, (float)scale*2.f);
 
       if (battleStartSecs >= preBattleLength)
@@ -738,7 +762,8 @@ void BattleScene::onUpdate(double elapsed) {
             BattleItem* reward = battleResults->GetReward();
             if (reward) delete reward;
 
-            inBattleState = false;
+            using segue = swoosh::intent::segue<PixelateBlackWashFade>;
+            getController().queuePop<segue>();
           }
           else {
             AUDIO.Play(AudioType::ITEM_GET);
@@ -750,21 +775,10 @@ void BattleScene::onUpdate(double elapsed) {
   }
   else if (isBattleRoundOver && isPlayerDeleted) {
     if (!initFadeOut) {
-      AUDIO.StopStream();
-      shaderCooldown = 1;
-      ENGINE.SetShader(&whiteShader);
       initFadeOut = true;
+      using segue = swoosh::intent::segue<WhiteWashFade>::to<GameOverScene>;
+      getController().queueRewind<segue>();
     }
-    else {
-      if (shaderCooldown < 0) {
-        shaderCooldown = 0;
-        inBattleState = false;
-      }
-    }
-
-    shaderCooldown -= elapsed;
-
-    whiteShader.setUniform("opacity", 1.f - (float)(shaderCooldown)*0.5f);
   }
 
   // Write contents to screen (always last step)
@@ -775,19 +789,6 @@ void BattleScene::onUpdate(double elapsed) {
   tile = nullptr;
   while (field->GetNextTile(tile)) {
     tile->move(cameraAntiOffset);
-  }
-
-  // update the cust if not paused nor in chip select nor in mob intro nor battle results
-  if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle)) {
-    customProgress += elapsed;
-
-    if (battleTimer.isPaused()) {
-      // start counting seconds again 
-      battleTimer.start();
-    }
-  }
-  else {
-    battleTimer.pause();
   }
 
   if (customProgress / customDuration >= 1.0) {
@@ -803,10 +804,6 @@ void BattleScene::onUpdate(double elapsed) {
   customBarShader.setUniform("factor", (float)(customProgress / customDuration));
 }
 
-void BattleScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-}
-
 void BattleScene::onStart() {
 
 }
@@ -816,7 +813,7 @@ void BattleScene::onLeave() {
 }
 
 void BattleScene::onExit() {
-
+  ENGINE.RevokeShader();
 }
 
 void BattleScene::onEnter() {

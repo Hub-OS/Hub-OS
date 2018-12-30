@@ -8,6 +8,7 @@
 class GameOverScene : public swoosh::Activity {
 private:
   float fadeInCooldown;
+  sf::Sprite gameOver;
 
 public:
   GameOverScene(swoosh::ActivityController&);
@@ -18,7 +19,7 @@ public:
   void onLeave() { ; }
   void onExit() { ; }
   void onEnter() { ; }
-  void onResume() { ; }
+  void onResume();
   void onDraw(sf::RenderTexture& surface);
   void onEnd() { ; }
 };

@@ -1,8 +1,7 @@
+#include <Swoosh\ActivityController.h>
 #include "bnSelectMobScene.h"
-#include "Swoosh\ActivityController.h"
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi) : 
-  transition(LOAD_SHADER(TRANSITION)),
   camera(ENGINE.GetDefaultView()),
   textbox(280, 100),
   swoosh::Activity(controller)
@@ -46,17 +45,10 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   bg.setScale(2.f, 2.f);
 
   // Current mob graphic
-  mob = sf::Sprite(LOAD_TEXTURE(MOB_METTAUR_IDLE));
-  mob.setScale(2.f, 2.f);
-  mob.setOrigin(mob.getLocalBounds().width / 2.f, mob.getLocalBounds().height / 2.f);
-  mob.setPosition(110.f, 130.f);
-
-  // Transition
-  transition.setUniform("texture", sf::Shader::CurrentTexture);
-  transition.setUniform("map", LOAD_TEXTURE(NOISE_TEXTURE));
-  transition.setUniform("progress", 0.f);
-  transitionProgress = 0.9f;
-  ENGINE.RevokeShader();
+  mobSpr = sf::Sprite(LOAD_TEXTURE(MOB_METTAUR_IDLE));
+  mobSpr.setScale(2.f, 2.f);
+  mobSpr.setOrigin(mobSpr.getLocalBounds().width / 2.f, mobSpr.getLocalBounds().height / 2.f);
+  mobSpr.setPosition(110.f, 130.f);
 
   gotoNextScene = false;
 
@@ -75,64 +67,42 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 }
 
 SelectMobScene::~SelectMobScene() {
-  delete font;
+  /*delete font;
   delete mobFont;
   delete hpFont;
   delete mobLabel;
   delete attackLabel;
   delete speedLabel;
   delete menuLabel;
-  delete hpLabel;
+  delete hpLabel;*/
+
+  /*if (mob) delete mob;
+  if (factory) delete factory;
+  if (field) delete field;*/
 }
 
 void SelectMobScene::onResume() {
+  if(mob) delete mob;
+  if(factory) delete factory;
+  if(field) delete field;
+
+  // Fix camera if offset from battle
+  ENGINE.SetCamera(camera);
+
   // Re-play music
   AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
+
+  gotoNextScene = false;
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
   camera.Update(elapsed);
   textbox.Update(elapsed);
 
-  ENGINE.Draw(bg);
-  ENGINE.Draw(menuLabel);
-
-  // Draw mob name with shadow
-  mobLabel->setPosition(277.f, 17.f);
-  mobLabel->setFillColor(sf::Color(138, 138, 138));
-  ENGINE.Draw(mobLabel);
-  mobLabel->setPosition(275.f, 15.f);
-  mobLabel->setFillColor(sf::Color::White);
-  ENGINE.Draw(mobLabel);
-
-  // Draw attack rating with shadow
-  attackLabel->setPosition(432.f, 48.f);
-  attackLabel->setFillColor(sf::Color(88, 88, 88));
-  ENGINE.Draw(attackLabel);
-  attackLabel->setPosition(430.f, 46.f);
-  attackLabel->setFillColor(sf::Color::White);
-  ENGINE.Draw(attackLabel);
-
-  // Draw speed rating with shadow
-  speedLabel->setPosition(432.f, 80.f);
-  speedLabel->setFillColor(sf::Color(88, 88, 88));
-  ENGINE.Draw(speedLabel);
-  speedLabel->setPosition(430.f, 78.f);
-  speedLabel->setFillColor(sf::Color::White);
-  ENGINE.Draw(speedLabel);
-
-  // Draw hp
-  ENGINE.Draw(hpLabel);
-
-  ENGINE.DrawUnderlay();
-  ENGINE.DrawLayers();
-  ENGINE.DrawOverlay();
-
-
   int prevSelect = mobSelectionIndex;
 
   // Scene keyboard controls
-  if (!gotoNextScene && transitionProgress == 0.f) {
+  if (!gotoNextScene) {
     textbox.Play();
 
     if (INPUT.has(PRESSED_LEFT)) {
@@ -166,6 +136,10 @@ void SelectMobScene::onUpdate(double elapsed) {
     if (INPUT.has(PRESSED_B)) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+
+      using segue = swoosh::intent::segue<Checkerboard>;
+
+      getController().queuePop<segue>();
     }
   }
 
@@ -233,51 +207,34 @@ void SelectMobScene::onUpdate(double elapsed) {
     factor = 125;
 
     if (mobSelectionIndex == 0) {
-      mob.setTexture(*TEXTURES.GetTexture(TextureType::MOB_METTAUR_IDLE), true);
-      mob.setPosition(110.f, 130.f);
+      mobSpr.setTexture(*TEXTURES.GetTexture(TextureType::MOB_METTAUR_IDLE), true);
+      mobSpr.setPosition(110.f, 130.f);
 
       textbox.SetMessage("Tutorial ranked Mettaurs. You got this!");
     }
     else if (mobSelectionIndex == 1) {
-      mob.setTexture(*TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_IDLE), true);
-      mob.setPosition(100.f, 110.f);
+      mobSpr.setTexture(*TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_IDLE), true);
+      mobSpr.setPosition(100.f, 110.f);
 
       textbox.SetMessage("A rogue Mr. Prog that became too strong to control.");
     }
     else if (mobSelectionIndex == 2) {
-      mob.setTexture(*TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
-      mob.setPosition(100.f, 130.f);
+      mobSpr.setTexture(*TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
+      mobSpr.setPosition(100.f, 130.f);
 
       mobAnimator = Animation("resources/mobs/canodumb/canodumb.animation");
       mobAnimator.Load();
       mobAnimator.SetAnimation(MOB_CANODUMB_IDLE_1);
-      mobAnimator.SetFrame(1, &mob);
+      mobAnimator.SetFrame(1, &mobSpr);
 
       textbox.SetMessage("A family of cannon based virii. Watch out!");
     }
     else {
-      mob.setTexture(*TEXTURES.GetTexture(TextureType::MOB_ANYTHING_GOES), true);
-      mob.setPosition(110.f, 130.f);
+      mobSpr.setTexture(*TEXTURES.GetTexture(TextureType::MOB_ANYTHING_GOES), true);
+      mobSpr.setPosition(110.f, 130.f);
       textbox.SetMessage("A randomly generated mob and field. Anything goes.");
     }
   }
-
-  float progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
-
-  if (progress > 1.f) progress = 1.f;
-
-  mob.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255.0*progress)));
-
-  float range = (125.f - factor) / 125.f;
-  mob.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
-
-  sf::IntRect t = mob.getTextureRect();
-  sf::Vector2u size = mob.getTexture()->getSize();
-  shader.SetUniform("x", (float)t.left / (float)size.x);
-  shader.SetUniform("y", (float)t.top / (float)size.y);
-  shader.SetUniform("w", (float)t.width / (float)size.x);
-  shader.SetUniform("h", (float)t.height / (float)size.y);
-  shader.SetUniform("pixel_threshold", (float)(factor / 400.f));
 
   factor -= elapsed * 180.f;
 
@@ -285,25 +242,25 @@ void SelectMobScene::onUpdate(double elapsed) {
     factor = 0.f;
   }
 
-  // Refresh mob graphic origin every frame as it may change
-  mob.setOrigin(mob.getTextureRect().width / 2.f, mob.getTextureRect().height / 2.f);
-  hpLabel->setOrigin(hpLabel->getLocalBounds().width, 0);
+  float progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
 
-  LayeredDrawable* bake = new LayeredDrawable(sf::Sprite(mob));
-  bake->SetShader(shader);
+  if (progress > 1.f) progress = 1.f;
 
-  ENGINE.Draw(bake);
-  delete bake;
+  mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255.0*progress)));
+
+  float range = (125.f - factor) / 125.f;
+  mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 
   // Make a selection
-  if (INPUT.has(PRESSED_A)) {
+  if (INPUT.has(PRESSED_A)&& !gotoNextScene) {
+    gotoNextScene = true;
+
     AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOWEST);
 
     // Stop music and go to battle screen 
     AUDIO.StopStream();
 
-    Field* field(new Field(6, 3));
-    MobFactory* factory = nullptr;
+    field = new Field(6, 3);
 
     if (mobSelectionIndex == 0) {
       // see how the random mob works around holes
@@ -320,40 +277,72 @@ void SelectMobScene::onUpdate(double elapsed) {
       factory = new RandomMettaurMob(field);
     }
 
-    Mob* mob = factory->Build();
+    mob = factory->Build();
 
     Player* player = NAVIS.At(selectedNavi).GetNavi();
 
-    getController().push<BattleScene>(player, mob);
-
-    // Fix camera if offset from battle
-    ENGINE.SetCamera(camera);
-
-    delete mob;
-    delete factory;
-    delete field;
+    using segue = swoosh::intent::segue<CrossZoom>::to<BattleScene>;
+    getController().push<segue>(player, mob);
   }
-
-  ENGINE.Draw(textbox);
-
-  sf::Texture postprocessing; // = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
-  sf::Sprite transitionPost;
-  transitionPost.setTexture(postprocessing);
-
-  transition.setUniform("progress", transitionProgress);
-
-  bake = new LayeredDrawable(transitionPost);
-  bake->SetShader(&transition);
-
-  ENGINE.Draw(bake);
-  delete bake;
-
-  // Write contents to screen (always last step)
-  //ENGINE.Display();
 }
 
 void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   ENGINE.SetRenderSurface(surface);
+
+  ENGINE.Draw(bg);
+  ENGINE.Draw(menuLabel);
+
+  // Draw mob name with shadow
+  mobLabel->setPosition(277.f, 17.f);
+  mobLabel->setFillColor(sf::Color(138, 138, 138));
+  ENGINE.Draw(mobLabel);
+  mobLabel->setPosition(275.f, 15.f);
+  mobLabel->setFillColor(sf::Color::White);
+  ENGINE.Draw(mobLabel);
+
+  // Draw attack rating with shadow
+  attackLabel->setPosition(432.f, 48.f);
+  attackLabel->setFillColor(sf::Color(88, 88, 88));
+  ENGINE.Draw(attackLabel);
+  attackLabel->setPosition(430.f, 46.f);
+  attackLabel->setFillColor(sf::Color::White);
+  ENGINE.Draw(attackLabel);
+
+  // Draw speed rating with shadow
+  speedLabel->setPosition(432.f, 80.f);
+  speedLabel->setFillColor(sf::Color(88, 88, 88));
+  ENGINE.Draw(speedLabel);
+  speedLabel->setPosition(430.f, 78.f);
+  speedLabel->setFillColor(sf::Color::White);
+  ENGINE.Draw(speedLabel);
+
+  // Draw hp
+  ENGINE.Draw(hpLabel);
+
+  ENGINE.DrawUnderlay();
+  ENGINE.DrawLayers();
+  ENGINE.DrawOverlay();
+
+  sf::IntRect t = mobSpr.getTextureRect();
+  sf::Vector2u size = mobSpr.getTexture()->getSize();
+  shader.SetUniform("x", (float)t.left / (float)size.x);
+  shader.SetUniform("y", (float)t.top / (float)size.y);
+  shader.SetUniform("w", (float)t.width / (float)size.x);
+  shader.SetUniform("h", (float)t.height / (float)size.y);
+  shader.SetUniform("pixel_threshold", (float)(factor / 400.f));
+
+
+  // Refresh mob graphic origin every frame as it may change
+  mobSpr.setOrigin(mobSpr.getTextureRect().width / 2.f, mobSpr.getTextureRect().height / 2.f);
+  hpLabel->setOrigin(hpLabel->getLocalBounds().width, 0);
+
+  LayeredDrawable* bake = new LayeredDrawable(sf::Sprite(mobSpr));
+  bake->SetShader(shader);
+
+  ENGINE.Draw(bake);
+  delete bake;
+
+  ENGINE.Draw(textbox);
 }
 
 void SelectMobScene::onStart() {

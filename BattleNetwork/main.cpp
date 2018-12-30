@@ -1,4 +1,4 @@
-#include "Swoosh/ActivityController.h"
+#include <Swoosh/ActivityController.h>
 
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
@@ -6,6 +6,7 @@
 #include "bnNaviRegistration.h"
 #include "bnInputManager.h"
 #include "bnEngine.h"
+#include "bnGameOverScene.h"
 #include "bnMainMenuScene.h"
 #include "bnAnimate.h"
 #include "bnChronoXConfigReader.h"
@@ -396,7 +397,8 @@ int main(int argc, char** argv) {
   // Create an activity controller 
   // Behaves like a state machine using stacks
   ActivityController app(*ENGINE.GetWindow());
-  //app.push<MainMenuScene>();
+  app.push<GameOverScene>();
+  app.push<MainMenuScene>();
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
@@ -414,49 +416,10 @@ int main(int argc, char** argv) {
 
     app.draw();
 
-    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+    ENGINE.GetWindow()->display();
+
+    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
   }
-
-  sf::Sprite gameOver;
-  gameOver.setTexture(*TEXTURES.GetTexture(TextureType::GAME_OVER));
-  gameOver.setScale(2.f, 2.f);
-  gameOver.setOrigin(gameOver.getLocalBounds().width / 2, gameOver.getLocalBounds().height / 2);
-  gameOver.setPosition(logoPos);
-  float fadeInCooldown = 500.0f; // half a second
-
-  // Start the game over music
-  AUDIO.Stream("resources/loops/game_over.ogg");
-
-  // Show gameover screen
-  while (ENGINE.Running()) {
-    clock.restart();
-
-    INPUT.update();
-
-    fadeInCooldown -= elapsed;
-
-    if (fadeInCooldown < 0) {
-      fadeInCooldown = 0;
-    }
-
-    gameOver.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255 - (255 * (fadeInCooldown / 500.f)))));
-    ENGINE.Draw(gameOver);
-
-    // Draw loop
-    ENGINE.DrawUnderlay();
-    ENGINE.DrawLayers();
-    ENGINE.DrawOverlay();
-
-    // Update the activity controller
-
-    // Prepare for next render 
-    ENGINE.Clear();
-
-    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-
-  }
-  
-  //delete loadSurface;
 
   return EXIT_SUCCESS;
 }

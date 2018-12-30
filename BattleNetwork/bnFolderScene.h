@@ -67,12 +67,15 @@ private:
 public:
   std::string FormatChipDesc(const std::string&& desc);
 
-  FolderScene() = default;
   virtual void onStart();
   virtual void onUpdate(double elapsed);
   virtual void onLeave();
+  virtual void onExit();
+  virtual void onEnter();
   virtual void onResume();
   virtual void onDraw(sf::RenderTexture& surface);
   virtual void onEnd();
+
+  FolderScene(swoosh::ActivityController&);
   virtual ~FolderScene();
 };

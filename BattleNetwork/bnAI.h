@@ -75,9 +75,12 @@ public:
 
       if (nextState != nullptr) {
         stateMachine->OnLeave(*ref);
-        delete stateMachine;
 
+        AIState<T>* oldState = stateMachine;
         stateMachine = nextState;
+
+        delete oldState;
+
         stateMachine->OnEnter(*ref);
       }
     }

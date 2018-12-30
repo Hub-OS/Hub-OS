@@ -8,8 +8,9 @@
 #define QUEUED 2
 
 ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) : 
-  greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)), folder(_folder)
+  greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE))
 {
+  folder = _folder;
   cap = std::min(cap, 8);
   chipCap = cap;
   queue = new Bucket[chipCap];

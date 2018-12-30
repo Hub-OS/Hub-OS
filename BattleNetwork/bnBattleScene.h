@@ -124,7 +124,6 @@ private:
 
   // States. TODO: Abstract this further into battle state classes
   bool isPaused;
-  bool inBattleState;
   bool isInChipSelect;
   bool isChipSelectReady;
   bool isPlayerDeleted;
@@ -159,6 +158,9 @@ private:
 
   std::vector<std::vector<Drawable*>> miscComponents;
 
+  // for time-based graphics effects
+  double elapsed;
+
 public:
   virtual void onUpdate(double elapsed);
   virtual void onDraw(sf::RenderTexture& surface);
@@ -169,5 +171,5 @@ public:
   virtual void onResume();
   virtual void onEnd();
   BattleScene(swoosh::ActivityController&, Player*, Mob*);
-  virtual ~BattleScene() { ; }
+  virtual ~BattleScene();
 };

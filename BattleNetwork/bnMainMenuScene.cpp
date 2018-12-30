@@ -1,4 +1,9 @@
+#include <Swoosh\ActivityController.h>
+
 #include "bnMainMenuScene.h"
+
+#include "Segues\PushIn.h"
+#include "Segues\Checkerboard.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -10,12 +15,6 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetDefaultView()),
   swoosh::Activity(controller)
 {
-  // Transition
-  transition = &LOAD_SHADER(TRANSITION);
-  transition->setUniform("texture", sf::Shader::CurrentTexture);
-  transition->setUniform("map", LOAD_TEXTURE(NOISE_TEXTURE));
-  transition->setUniform("progress", 0.f);
-
   bg = new LanBackground();
 
   map = new Overworld::InfiniteMap(10, 20, 47, 24);
@@ -51,19 +50,19 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
   ow = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_OW));
   ow.setScale(2.f, 2.f);
+
+  gotoNextScene = false;
+
 }
 
 void MainMenuScene::onStart() {
-  gotoNextScene = false;
-
-  // Stream menu music 
   AUDIO.StopStream();
   AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
   ENGINE.SetCamera(camera);
 }
 
 void MainMenuScene::onUpdate(double elapsed) {
-  INPUT.update();
+  // std::cout << "elapsed: " << elapsed << std::endl;
   map->Update(elapsed);
 
   camera.Update(elapsed);
@@ -86,11 +85,40 @@ void MainMenuScene::onUpdate(double elapsed) {
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
 
   if (!gotoNextScene) {
+    if (INPUT.has(PRESSED_A)) {
+
+      // Folder Select
+      if (menuSelectionIndex == 1) {
+        gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
+
+        using swoosh::intent::direction;
+        using segue = swoosh::intent::segue<PushIn<direction::left>>;
+        this->getController().push<segue::to<FolderScene>>();
+      }
+
+      // Navi select
+      if (menuSelectionIndex == 2) {
+        gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
+        using segue = swoosh::intent::segue<Checkerboard>::to<SelectNaviScene>;
+        this->getController().push<segue>(currentNavi);
+      }
+
+      // Mob select
+      if (menuSelectionIndex == 3) {
+        gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
+        using segue = swoosh::intent::segue<Checkerboard>::to<SelectMobScene>;
+        this->getController().push<segue>(currentNavi);
+      }
+    }
+
     if (INPUT.has(PRESSED_UP)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
-        // Go to previous mob 
+        // Go to previous selection 
         selectInputCooldown = maxSelectInputCooldown;
         menuSelectionIndex--;
       }
@@ -99,34 +127,13 @@ void MainMenuScene::onUpdate(double elapsed) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
-        // Go to next mob 
+        // Go to next selection 
         selectInputCooldown = maxSelectInputCooldown;
         menuSelectionIndex++;
       }
     }
     else {
       selectInputCooldown = 0;
-    }
-
-    if (INPUT.has(PRESSED_A)) {
-
-      // Folder Select
-      if (menuSelectionIndex == 1) {
-        gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
-      }
-
-      // Navi select
-      if (menuSelectionIndex == 2) {
-        gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
-      }
-
-      // Mob select
-      if (menuSelectionIndex == 3) {
-        gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
-      }
     }
   }
 
@@ -136,53 +143,6 @@ void MainMenuScene::onUpdate(double elapsed) {
     showHUD = false;
     map->ToggleLighting(toggle);
   }*/
-
-
-  if (menuSelectionIndex == 1) {
-    /*int result = FolderScene::Run();
-
-    // reset internal clock (or everything will teleport)
-    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-    std::cout << "time slept: " << elapsed << "\n";
-    clock.restart();
-    elapsed = 0;
-
-    if (result == 0) {
-      // break; // Breaks the while-loop
-      ActivityManager::Segue<CheckerSegue>::To<FolderScene>();
-    }*/
-  }
-  else if (menuSelectionIndex == 2) {
-    /*currentNavi = SelectNaviScene::Run(currentNavi);
-
-    owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
-    naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
-    naviAnimator.Load();
-    naviAnimator.SetAnimation("PLAYER_OW_RD");
-    naviAnimator << Animate::Mode(Animate::Mode::Loop);
-
-    // reset internal clock (or everything will teleport)
-    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-    std::cout << "time slept: " << elapsed << "\n";
-    clock.restart();
-    elapsed = 0;*/
-
-  }
-  else if (menuSelectionIndex == 3) {
-    /*int result = SelectMobScene::Run(currentNavi);
-
-    // reset internal clock (or everything will teleport)
-    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-    std::cout << "time slept: " << elapsed << "\n";
-    clock.restart();
-    elapsed = 0;
-
-    if (result == 0) {
-      // ActivityManager::Pop();
-    }*/
-  }
-
-  gotoNextScene = false;
 
   menuSelectionIndex = std::max(0, menuSelectionIndex);
   menuSelectionIndex = std::min(3, menuSelectionIndex);
@@ -202,10 +162,18 @@ void MainMenuScene::onExit()
 
 void MainMenuScene::onEnter()
 {
+  // If coming back from navi select, the navi has changed, update it
+  owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
+  naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
+  naviAnimator.Load();
+  naviAnimator.SetAnimation("PLAYER_OW_RD");
+  naviAnimator << Animate::Mode(Animate::Mode::Loop);
 }
 
 void MainMenuScene::onResume() {
+  gotoNextScene = false;
 
+  ENGINE.SetCamera(camera);
 }
 
 void MainMenuScene::onDraw(sf::RenderTexture& surface) {
