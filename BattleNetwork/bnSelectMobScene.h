@@ -31,7 +31,7 @@ using sf::Font;
 
 #include "Swoosh\Activity.h"
 #include "Segues\CrossZoom.h"
-#include "Segues\Checkerboard.h"
+#include "Segues\BlackWashFade.h"
 
 class SelectMobScene : public swoosh::Activity
 {

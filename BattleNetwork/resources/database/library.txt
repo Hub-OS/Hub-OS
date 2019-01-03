@@ -1,9 +1,9 @@
 # Lines beginning with pound '#' are comments and are ignored
 # Types are Normal (or None), Fire, Aqua, Wood, Elec, Wind, Sword, Break, Cursor, Plus, and Summon
 
-Chip name="Cannon"  cardIndex="0" iconIndex="0" damage="20" type="Normal" codes="A,A,B,C,C" desc="Cannon attack to 1 enemy" rarity="1"
+Chip name="Cannon"  cardIndex="0" iconIndex="0" damage="20" type="Normal" codes="A,A,A,A,A,B,B,B,C,C,C,B,C,C" desc="Cannon attack to 1 enemy" rarity="1"
 
-Chip name="Roll3" cardIndex="134" iconIndex="232" damage="60" type="Normal" codes="R" desc="Attacks enmy, then heals you" rarity="5"
+#Chip name="Roll3" cardIndex="134" iconIndex="232" damage="60" type="Normal" codes="R" desc="Attacks enmy, then heals you" rarity="5"
 
 # Chip name="Swrd"     cardIndex="15" iconIndex="30" damage="20" type="Sword" codes="L" desc="Cuts enmy in front! Range: 1" rarity="1" 
 # Chip name="WideSwrd" cardIndex="16" iconIndex="31" damage="30" type="Sword" codes="L" desc="Cuts enmy in front! Range: 3" # rarity="1" 

@@ -137,7 +137,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
-      using segue = swoosh::intent::segue<Checkerboard>;
+      using segue = swoosh::intent::segue<BlackWashFade>;
 
       getController().queuePop<segue>();
     }

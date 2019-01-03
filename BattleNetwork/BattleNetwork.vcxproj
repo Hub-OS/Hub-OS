@@ -188,6 +188,7 @@
     <ClCompile Include="bnCharacter.cpp" />
     <ClCompile Include="bnChipFolder.cpp" />
     <ClCompile Include="bnChipUseListener.cpp" />
+    <ClCompile Include="bnFakeScene.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />
     <ClCompile Include="bnGameOverScene.cpp" />
     <ClCompile Include="bnGraveyardBackground.cpp" />
@@ -276,6 +277,7 @@
     <ClInclude Include="bnChipUseListener.h" />
     <ClInclude Include="bnChipUsePublisher.h" />
     <ClInclude Include="bnComponent.h" />
+    <ClInclude Include="bnFakeScene.h" />
     <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnProgsManThrowState.h" />
     <ClInclude Include="bnRoll.h" />
@@ -367,12 +369,15 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />
+    <ClInclude Include="Segues\BlackWashFade.h" />
     <ClInclude Include="Segues\Checkerboard.h" />
     <ClInclude Include="Segues\CrossZoom.h" />
+    <ClInclude Include="Segues\DiamondTileSwipe.h" />
     <ClInclude Include="Segues\PixelateBlackWashFade.h" />
     <ClInclude Include="Segues\PushIn.h" />
     <ClInclude Include="Segues\SlideIn.h" />
     <ClInclude Include="Segues\WhiteWashFade.h" />
+    <ClInclude Include="Segues\ZoomFadeIn.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BattleNetwork.rc" />

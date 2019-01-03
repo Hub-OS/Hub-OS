@@ -14,22 +14,31 @@ public:
   AIState(const AIState<T>& rhs) = default;
   AIState(AIState<T>&& ref) = default;
 
+  template<class U, typename ...Args>
+  void ChangeState(Args... args) {
+    _DerivedFrom<U, AIState<T>>();
+
+    if (nextState) { delete nextState; }
+
+    nextState = new U(args...);
+  }
+
   template<class U>
   void ChangeState() {
     _DerivedFrom<U, AIState<T>>();
+
+    if (nextState) { delete nextState; }
 
     nextState = new U();
   }
 
   AIState<T>* Update(float _elapsed, T& context) {
-    nextState = nullptr;
+    // if (nextState) { nextState = nullptr; }
 
+    // nextState could be non-null after update
     OnUpdate(_elapsed, context);
-    if (nextState) {
-      return nextState;
-    }
 
-    return nullptr;
+    return nextState;
   }
 
   virtual ~AIState() { ; }

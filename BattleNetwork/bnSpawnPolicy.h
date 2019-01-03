@@ -21,8 +21,8 @@ protected:
   T* generate;
 
   virtual void EnforceConstraints() {
-   // _DerivedFrom<T, Character>();
-   // _DerivedFrom<T, AI<T>>();
+   _DerivedFrom<T, Character>();
+   _DerivedFrom<T, AI<T>>();
   }
 
 public:
@@ -56,14 +56,14 @@ class RankedSpawnPolicy : public SpawnPolicy<T> {
         T* agent = dynamic_cast<T*>(character);
 
         if (agent) {
-          agent->template StateChange<PixelInState<T>>(onFinish);
+          agent->template ChangeState<PixelInState<T>>(onFinish);
         }
       };
 
       auto defaultStateInvoker = [](Character* character) { 
         T* agent = dynamic_cast<T*>(character); 
         
-        if (agent) { agent->template StateChange<DefaultState>(); }
+        if (agent) { agent->template ChangeState<DefaultState>(); }
       };
 
       this->intro = pixelStateInvoker;

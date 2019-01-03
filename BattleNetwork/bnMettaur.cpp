@@ -33,7 +33,7 @@ int Mettaur::currMetIndex = 0;
 
 Mettaur::Mettaur(Rank _rank)
   : animationComponent(this), AI<Mettaur>(this), Character(_rank) {
-  this->StateChange<MettaurIdleState>();
+  this->ChangeState<MettaurIdleState>();
   name = "Mettaur";
   Entity::team = Team::BLUE;
 
@@ -117,11 +117,11 @@ void Mettaur::Update(float _elapsed) {
 
   if (_elapsed <= 0) return;
 
-  this->StateUpdate(_elapsed);
+  this->AI<Mettaur>::Update(_elapsed);
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<Mettaur>>();
+    this->ChangeState<ExplodeState<Mettaur>>();
     
     if (Mettaur::metIDs.size() > 0) {
       vector<int>::iterator it = find(Mettaur::metIDs.begin(), Mettaur::metIDs.end(), metID);

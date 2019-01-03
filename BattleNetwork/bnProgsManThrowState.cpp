@@ -20,7 +20,7 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
     progs.GetField()->OwnEntity(bomb, progs.GetTile()->GetX(), progs.GetTile()->GetY()); 
   };
 
-  auto onFinish  = [this, &progs]() { progs.StateChange<ProgsManIdleState>(); };
+  auto onFinish  = [this, &progs]() { progs.ChangeState<ProgsManIdleState>(); };
 
   progs.SetAnimation(MOB_THROW, onFinish);
   progs.SetCounterFrame(2);

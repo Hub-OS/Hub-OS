@@ -3,6 +3,7 @@
 #include "bnAIState.h"
 #include "bnEntity.h"
 #include "bnAgent.h"
+#include "bnNoState.h"
 
 template<typename T>
 class AI : public Agent {
@@ -30,46 +31,43 @@ public:
   ~AI() { if (stateMachine) { delete stateMachine; ref = nullptr; this->FreeTarget(); } }
 
   template<typename U>
-  void StateChange() {
-    //_DerivedFrom<U, AIState<T>>();
+  void ChangeState() {
+    _DerivedFrom<U, AIState<T>>();
 
     if (lock == AI<T>::StateLock::Locked) {
       return;
     }
 
-    if (stateMachine) {
-      stateMachine->OnLeave(*ref);
-      delete stateMachine;
+    if (!stateMachine) {
+      stateMachine = new NoState<T>();
     }
 
-    stateMachine = new U();
-    stateMachine->OnEnter(*ref);
+    stateMachine->ChangeState<U>();
   }
 
   /*
     For states that require arguments, pass the arguments
     e.g. 
 
-    this->StateChange<PlayerThrowBombState>(200.f, 300, true);
+    this->ChangeState<PlayerThrowBombState>(200.f, 300, true);
   */
-  template<typename U, typename ...Args>
-  void StateChange(Args... args) {
-    //_DerivedFrom<U, AIState<T>>();
+  
+template<typename U, typename ...Args>
+  void ChangeState(Args... args) {
+    _DerivedFrom<U, AIState<T>>();
 
     if (lock == AI<T>::StateLock::Locked) {
       return;
     }
 
-    if (stateMachine) {
-      stateMachine->OnLeave(*ref);
-      delete stateMachine;
+    if (!stateMachine) {
+      stateMachine = new NoState<T>();
     }
 
-    stateMachine = new U(args...);
-    stateMachine->OnEnter(*ref);
+    stateMachine->ChangeState<U>(args...);
   }
 
-  void StateUpdate(float _elapsed) {
+  void Update(float _elapsed) {
     if (stateMachine != nullptr) {
       AIState<T>* nextState = stateMachine->Update(_elapsed, *ref);
 

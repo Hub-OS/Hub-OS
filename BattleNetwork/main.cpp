@@ -8,6 +8,7 @@
 #include "bnEngine.h"
 #include "bnGameOverScene.h"
 #include "bnMainMenuScene.h"
+#include "bnFakeScene.h"
 #include "bnAnimate.h"
 #include "bnChronoXConfigReader.h"
 #include "SFML/System.hpp"
@@ -384,6 +385,8 @@ int main(int argc, char** argv) {
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
   }
 
+  sf::Texture loadingScreenSnapshot = ENGINE.GetRenderSurface().getTexture();
+
   // Cleanup
   ENGINE.RevokeShader();
   ENGINE.Clear();
@@ -399,6 +402,10 @@ int main(int argc, char** argv) {
   ActivityController app(*ENGINE.GetWindow());
   app.push<GameOverScene>();
   app.push<MainMenuScene>();
+
+  // This scene will immediately pop off the stack 
+  // and segue into the previous scene on the stack: MainMenuScene
+  app.push<FakeScene>(loadingScreenSnapshot);
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {

@@ -1,6 +1,8 @@
 #include "bnSelectNaviScene.h"
 #include "Swoosh\ActivityController.h"
 
+#include "Segues\Checkerboard.h"
+
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
   naviSelectionIndex(currentNavi),
   camera(ENGINE.GetDefaultView()),
@@ -212,12 +214,6 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
 
     if (UI_LEFT_POS < UI_LEFT_POS_MAX) {
-      static bool once = true;
-
-      if (once) {
-        AUDIO.Play(AudioType::TOSS_ITEM); once = false;
-      }
-
       UI_LEFT_POS += elapsed * 500;
     }
     else {
@@ -321,7 +317,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
 
-      getController().queuePop<swoosh::intent::segue<Checkerboard>>();
+      getController().queuePop<swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>>();
     }
 
     if (INPUT.has(PRESSED_UP)) {
@@ -330,14 +326,6 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
     if (INPUT.has(PRESSED_DOWN)) {
       textbox.ShowNextLine();
-    }
-  }
-
-  if (elapsed > 0) {
-    if (gotoNextScene) {
-      if (UI_TOP_POS > 250 && UI_LEFT_POS < -300) {
-        getController().queuePop();
-      }
     }
   }
 

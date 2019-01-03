@@ -14,7 +14,7 @@
 
 Canodumb::Canodumb(Rank _rank)
   :  AI<Canodumb>(this), AnimatedCharacter(_rank) {
-  this->StateChange<CanodumbIdleState>();
+  // this->StateChange<CanodumbIdleState>();
   Entity::team = Team::BLUE;
   hitHeight = 50;
   healthUI = new MobHealthUI(this);
@@ -92,11 +92,11 @@ void Canodumb::Update(float _elapsed) {
     }
   }
 
-  this->StateUpdate(_elapsed);
+  this->AI<Canodumb>::Update(_elapsed);
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<Canodumb>>(3,0.55);
+    this->ChangeState<ExplodeState<Canodumb>>(3,0.55);
     this->LockState();
   }
   else {

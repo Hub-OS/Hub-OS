@@ -260,6 +260,9 @@
     <Filter Include="Activities\Main Menu\Overworld\Map\Dynamic">
       <UniqueIdentifier>{18a112b3-8ba5-4851-82b8-4d75444b101c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Fake">
+      <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -495,6 +498,9 @@
     </ClCompile>
     <ClCompile Include="bnGameOverScene.cpp">
       <Filter>Activities\GameOver</Filter>
+    </ClCompile>
+    <ClCompile Include="bnFakeScene.cpp">
+      <Filter>Activities\Fake</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -839,6 +845,18 @@
       <Filter>Segues</Filter>
     </ClInclude>
     <ClInclude Include="Segues\PushIn.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFakeScene.h">
+      <Filter>Activities\Fake</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\ZoomFadeIn.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\DiamondTileSwipe.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\BlackWashFade.h">
       <Filter>Segues</Filter>
     </ClInclude>
   </ItemGroup>

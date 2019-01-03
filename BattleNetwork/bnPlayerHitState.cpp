@@ -13,7 +13,7 @@ PlayerHitState::~PlayerHitState()
 }
 
 void PlayerHitState::OnEnter(Player& player) {
-  auto onFinished = [&player]() { player.StateChange<PlayerControlledState>(); };
+  auto onFinished = [&player]() { player.ChangeState<PlayerControlledState>(); };
   player.SetAnimation(PLAYER_HIT,onFinished);
   AUDIO.Play(AudioType::HURT, AudioPriority::LOWEST);
 }

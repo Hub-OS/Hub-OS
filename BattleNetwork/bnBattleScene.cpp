@@ -70,7 +70,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   Set Scene*/
   field = mob->GetField();
 
-  player->StateChange<PlayerIdleState>();
+  player->ChangeState<PlayerIdleState>();
   field->AddEntity(player, 2, 2);
 
   playerHealthUI = player->GetHealthUI();
@@ -491,7 +491,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       // toggle the flag
       isMobFinished = true;
       // allow the player to be controlled by keys
-      player->StateChange<PlayerControlledState>();
+      player->ChangeState<PlayerControlledState>();
       // Move mob out of the PixelInState 
       mob->DefaultState();
       // show the chip select screen

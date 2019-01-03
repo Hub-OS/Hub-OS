@@ -4,6 +4,7 @@
 
 #include "Segues\PushIn.h"
 #include "Segues\Checkerboard.h"
+#include "Segues\WhiteWashFade.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -101,15 +102,16 @@ void MainMenuScene::onUpdate(double elapsed) {
       if (menuSelectionIndex == 2) {
         gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
-        using segue = swoosh::intent::segue<Checkerboard>::to<SelectNaviScene>;
-        this->getController().push<segue>(currentNavi);
+        using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>;
+        using intent = segue::to<SelectNaviScene>;
+        this->getController().push<intent>(currentNavi);
       }
 
       // Mob select
       if (menuSelectionIndex == 3) {
         gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
-        using segue = swoosh::intent::segue<Checkerboard>::to<SelectMobScene>;
+        using segue = swoosh::intent::segue<WhiteWashFade>::to<SelectMobScene>;
         this->getController().push<segue>(currentNavi);
       }
     }
