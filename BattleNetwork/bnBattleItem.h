@@ -18,6 +18,7 @@ public:
   int GetID() { return cardID; }
   const std::string GetName() { return name;  }
   bool IsChip() { return isChip; }
+  Chip GetChip() { return chip; }
   char GetChipCode() {
     return chip.GetCode();
   }

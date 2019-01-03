@@ -231,7 +231,8 @@ void BattleScene::onUpdate(double elapsed) {
   // e.g.
   /*
     // Somewhere in the scene's INIT routine...
-    Battle::Component* healthUI = player->GetComponent<PlayerHealthUI>();
+    Battle::Component* component = player->GetComponent<PlayerHealthUI>();
+    SceneNode* healthUI = dynamic_cast<SceneNode*>(component); // is of both types
     if(healthUI) {
       chipCustGUI.AddSceneNode(healthUI); // healthUI will now offset in chipcustGUI local space
     }
@@ -485,7 +486,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   else if (INPUT.has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle) {
     chipUI.UseNextChip();
   }
-  else if ((!isMobFinished && mob->IsSpawningDone()) || (INPUT.has(PRESSED_START) && customProgress >= customDuration && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle)) {
+  else if ((!isMobFinished && mob->IsSpawningDone()) || 
+    (
+      INPUT.has(PRESSED_START) && customProgress >= customDuration && !isInChipSelect && !isPaused && 
+      !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle
+    )) {
     // enemy intro finished
     if (!isMobFinished) {
       // toggle the flag
@@ -758,9 +763,16 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         if (INPUT.has(PRESSED_A)) {
           // Have to hit twice
           if (battleResults->IsFinished()) {
-            // TODO: sent the battle item off to the player's gaming session for storage
             BattleItem* reward = battleResults->GetReward();
-            if (reward) delete reward;
+            
+            if (reward) {
+              if (reward->IsChip()) {
+                // TODO: sent the battle item off to the player's 
+                // persistent session storage
+                CHIPLIB.AddChip(reward->GetChip());
+              }
+              delete reward;
+            }
 
             using segue = swoosh::intent::segue<PixelateBlackWashFade>;
             getController().queuePop<segue>();

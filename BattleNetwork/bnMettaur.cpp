@@ -220,7 +220,10 @@ const float Mettaur::GetHitHeight() const {
 
 const bool Mettaur::IsMettaurTurn() const
 {
-  return (Mettaur::metIDs.at(Mettaur::currMetIndex) == this->metID);
+  if(Mettaur::metIDs.size() > 0)
+    return (Mettaur::metIDs.at(Mettaur::currMetIndex) == this->metID);
+
+  return false;
 }
 
 void Mettaur::NextMettaurTurn() {

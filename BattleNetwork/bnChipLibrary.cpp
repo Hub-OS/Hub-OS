@@ -76,6 +76,11 @@ const Element ChipLibrary::GetElementFromStr(std::string type)
   return elemType;
 }
 
+void ChipLibrary::AddChip(Chip chip)
+{
+  library.push_back(chip);
+}
+
 // Used as the folder in battle
 void ChipLibrary::LoadLibrary() {
   // TODO: put this utility in an input stream class and inhert from that

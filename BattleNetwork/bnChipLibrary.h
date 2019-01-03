@@ -18,6 +18,8 @@ public:
 
   static const  Element GetElementFromStr(std::string);
 
+  void AddChip(Chip chip);
+
 protected:
   void LoadLibrary();
 
