@@ -1,27 +1,27 @@
-StartTime 1546476137
-Engine initialized: 0.501000 secs
+StartTime 1546488781
+Engine initialized: 0.486000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/backgrounds/title/tile_en.png
 Loaded font: resources/fonts/mmbnthin_regular.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded audio: resources/sfx/appear.ogg
+Loaded audio: resources/sfx/area_grab.ogg
 Loaded texture: resources/tiles/img_blue_normal.png
 Loaded texture: resources/tiles/img_blue_cracked.png
-Loaded audio: resources/sfx/area_grab.ogg
 Loaded texture: resources/tiles/img_blue_broken.png
 Loaded texture: resources/tiles/img_blue_ice.png
 Loaded texture: resources/tiles/img_blue_grass.png
 Loaded texture: resources/tiles/img_blue_purple.png
+Loaded audio: resources/sfx/area_grab_touchdown.ogg
 Loaded texture: resources/tiles/img_blue_empty.png
 Loaded texture: resources/tiles/img_red_normal.png
 Loaded texture: resources/tiles/img_red_cracked.png
-Loaded audio: resources/sfx/area_grab_touchdown.ogg
 Loaded texture: resources/tiles/img_red_broken.png
 Loaded texture: resources/tiles/img_red_ice.png
 Loaded texture: resources/tiles/img_red_grass.png
+Loaded audio: resources/sfx/buster_charged.ogg
 Loaded texture: resources/tiles/img_red_purple.png
 Loaded texture: resources/tiles/img_red_empty.png
-Loaded audio: resources/sfx/buster_charged.ogg
 Loaded audio: resources/sfx/buster_charging.ogg
 Loaded audio: resources/sfx/cannon.ogg
 Loaded audio: resources/sfx/counter.ogg
@@ -30,8 +30,8 @@ Loaded audio: resources/sfx/chip_choose.ogg
 Loaded audio: resources/sfx/chip_confirm.ogg
 Loaded audio: resources/sfx/chip_desc.ogg
 Loaded audio: resources/sfx/chip_desc_close.ogg
-Loaded audio: resources/sfx/chip_select.ogg
 Loaded texture: resources/navis/megaman/navi_megaman_atlas.png
+Loaded audio: resources/sfx/chip_select.ogg
 Loaded audio: resources/sfx/chip_error.ogg
 Loaded audio: resources/sfx/custom_bar_full.ogg
 Loaded texture: resources/navis/starman/navi_starman_atlas.png
@@ -42,64 +42,64 @@ Loaded texture: resources/mobs/mob_move.png
 Loaded texture: resources/mobs/mob_explosion.png
 Loaded texture: resources/mobs/mettaur/mob_mettaur_move.png
 Loaded texture: resources/mobs/mettaur/mob_mettaur_hit.png
-Loaded audio: resources/sfx/deleted.ogg
 Loaded texture: resources/mobs/mettaur/mob_mettaur_attack.png
+Loaded audio: resources/sfx/deleted.ogg
 Loaded texture: resources/mobs/mettaur/mob_mettaur_move_blue.png
-Loaded audio: resources/sfx/explode_once.ogg
 Loaded texture: resources/mobs/mettaur/mob_mettaur_hit_blue.png
 Loaded texture: resources/mobs/mettaur/mob_mettaur_attack_blue.png
+Loaded audio: resources/sfx/explode_once.ogg
 Loaded texture: resources/mobs/progsman/mob_progsman_idle.png
-Loaded audio: resources/sfx/gun.ogg
 Loaded texture: resources/mobs/progsman/mob_progsman_move.png
-Loaded audio: resources/sfx/health_alert.ogg
+Loaded audio: resources/sfx/gun.ogg
 Loaded texture: resources/mobs/progsman/mob_progsman_shoot.png
 Loaded texture: resources/mobs/progsman/mob_progsman_hit.png
-Loaded audio: resources/sfx/hurt.ogg
+Loaded audio: resources/sfx/health_alert.ogg
 Loaded texture: resources/mobs/progsman/mob_progsman_punch.png
+Loaded audio: resources/sfx/hurt.ogg
 Loaded texture: resources/mobs/progsman/mob_progsman_throw.png
-Loaded audio: resources/sfx/panel_crack.ogg
 Loaded texture: resources/mobs/canodumb/canodumb_atlas.png
 Loaded texture: resources/mobs/select/random.png
 Loaded texture: resources/spells/spell_bullet_hit.png
-Loaded audio: resources/sfx/panel_return.ogg
+Loaded audio: resources/sfx/panel_crack.ogg
 Loaded texture: resources/spells/spell_buster_charge.png
 Loaded texture: resources/spells/spell_wave.png
+Loaded audio: resources/sfx/panel_return.ogg
 Loaded texture: resources/spells/spell_prog_bomb.png
-Loaded audio: resources/sfx/pause.ogg
 Loaded texture: resources/ui/chip_select.png
 Loaded texture: resources/ui/chip_cursor_small.png
 Loaded texture: resources/ui/chip_cursor_big.png
+Loaded audio: resources/sfx/pause.ogg
 Loaded audio: resources/sfx/pre_battle.ogg
 Loaded audio: resources/sfx/recover.ogg
 Loaded audio: resources/sfx/spreader.ogg
 Loaded audio: resources/sfx/sword_swing.ogg
 Loaded audio: resources/sfx/toss_item.ogg
-Loaded texture: resources/ui/chip_cards.png
 Loaded audio: resources/sfx/wave.ogg
+Loaded audio: resources/sfx/invisible.ogg
+Loaded texture: resources/ui/chip_cards.png
+Loaded audio: resources/sfx/pa_advance.ogg
 Loaded texture: resources/ui/chip_icons.png
 Loaded texture: resources/ui/chip_nodata.png
 Loaded texture: resources/ui/chip_senddata.png
+Loaded audio: resources/sfx/point.ogg
 Loaded texture: resources/ui/program_advance.png
 Loaded texture: resources/ui/battle_start.png
-Loaded audio: resources/sfx/invisible.ogg
 Loaded texture: resources/ui/battle_results.png
 Loaded texture: resources/ui/zenny.png
+Loaded audio: resources/sfx/new_game.ogg
 Loaded texture: resources/ui/nodata.png
+Loaded audio: resources/sfx/text.ogg
+Loaded audio sources: 0.227000 secs
 Loaded texture: resources/ui/folder_chip.png
-Loaded audio: resources/sfx/pa_advance.ogg
 Loaded texture: resources/ui/folder_dock.png
 Loaded texture: resources/ui/folder_rarity.png
 Loaded texture: resources/ui/scrollbar.png
-Loaded audio: resources/sfx/point.ogg
 Loaded texture: resources/backgrounds/select/glow_sheet.png
 Loaded texture: resources/backgrounds/select/pad_base.png
 Loaded texture: resources/backgrounds/select/pad_bottom.png
 Loaded texture: resources/backgrounds/select/char_name.png
-Loaded audio: resources/sfx/new_game.ogg
 Loaded texture: resources/backgrounds/select/stat.png
 Loaded texture: resources/backgrounds/select/element.png
-Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.224000 secs
 Loaded texture: resources/backgrounds/select/info_box.png
 Loaded texture: resources/backgrounds/select/symbol_slots.png
 Loaded texture: resources/backgrounds/title/bg_blue.png
@@ -122,7 +122,7 @@ Loaded texture: resources/shaders/textures/heat.png
 Loaded texture: resources/shaders/textures/noise.png
 Loaded texture: resources/shaders/textures/noise_invert.png
 Loaded texture: resources/ui/light.png
-Loaded textures: 0.290000 secs
+Loaded textures: 0.295000 secs
 Loaded shader: resources/shaders/black_fade.frag.txt
 Loaded shader: resources/shaders/custom_bar.frag.txt
 Loaded shader: resources/shaders/greyscale.frag.txt
@@ -137,7 +137,7 @@ Loaded shader: resources/shaders/distortion.frag.txt
 Loaded shader: resources/shaders/spot_distortion.frag.txt
 Loaded shader: resources/shaders/spot_reflection.frag.txt
 Loaded shader: resources/shaders/transition.frag.txt
-Loaded shaders: 0.008000 secs
+Loaded shaders: 0.007000 secs
 Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
 Loaded texture: resources/ui/img_health.png
 Loaded texture: resources/spells/spell_buster_charge.png
@@ -150,15 +150,8 @@ Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
 Loaded texture: resources/ui/img_health.png
 Loaded texture: resources/spells/spell_buster_charge.png
 Loaded navi: Roll
-Loaded registered navis: 0.646000 secs
+Loaded registered navis: 0.649000 secs
 Loaded texture: resources/backgrounds/lan/bg.png
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/mmbnthin_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
@@ -177,6 +170,7 @@ Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded texture: resources/ui/custom.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
 Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
 Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
 Loaded texture: resources/ui/img_health.png
@@ -190,15 +184,6 @@ Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded texture: resources/ui/custom.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/mmbnthin_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
 Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
 Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
 Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
@@ -208,7 +193,7 @@ Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded texture: resources/backgrounds/grave/fg.png
+Loaded texture: resources/backgrounds/virus/fg.png
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded texture: resources/ui/custom.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf

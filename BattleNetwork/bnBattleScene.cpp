@@ -660,6 +660,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             nextLabelHeight += stepLabel.getLocalBounds().height;
           }
           increment = 0;
+          nextLabelHeight = 0;
         }
         else {
           if (!advanceSoundPlay) {
@@ -667,24 +668,57 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             advanceSoundPlay = true;
           }
 
+          for (int i = 0; i < chipCount; i++) {
+            std::string formatted = chips[i]->GetShortName();
+            formatted.resize(9, ' ');
+            formatted[8] = chips[i]->GetCode();
+
+            sf::Text stepLabel = sf::Text(formatted, *mobFont);
+
+            stepLabel.setOrigin(0, 0);
+            stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight*2.f));
+            stepLabel.setScale(1.0f, 1.0f);
+            stepLabel.setOutlineColor(sf::Color(48, 56, 80));
+            stepLabel.setOutlineThickness(2.f);
+
+            if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
+              if (i == hasPA) {
+                Chip* paChip = programAdvance.GetAdvanceChip();
+
+                sf::Text stepLabel = sf::Text(paChip->GetShortName(), *mobFont);
+                stepLabel.setOrigin(0, 0);
+                stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight*2.f));
+                stepLabel.setScale(1.0f, 1.0f);
+
+                stepLabel.setOutlineColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
+                stepLabel.setOutlineThickness(2.f);
+                ENGINE.Draw(stepLabel, false);
+              }
+              else {
+                // make the next label relative to the hidden one and skip drawing
+                nextLabelHeight += stepLabel.getLocalBounds().height;
+
+                continue;
+              }
+
+            }
+            else {
+              ENGINE.Draw(stepLabel, false);
+            }
+
+            // make the next label relative to this one
+            nextLabelHeight += stepLabel.getLocalBounds().height;
+          }
+
           increment += elapsed * 5.f;
-
-          Chip* paChip = programAdvance.GetAdvanceChip();
-
-          sf::Text stepLabel = sf::Text(paChip->GetShortName(), *mobFont);
-
-          stepLabel.setOrigin(0, 0);
-          stepLabel.setPosition(40.0f, 80.f);
-          stepLabel.setScale(1.0f, 1.0f);
-          stepLabel.setOutlineColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
-          stepLabel.setOutlineThickness(2.f);
-          ENGINE.Draw(stepLabel, false);
         }
 
         if (listStepCounter > 0.f) {
           listStepCounter -= elapsed;
         }
         else {
+          // +2 = 1 step for showing PA label and 1 step for showing merged chip
+          // That's the chips we want to show + 1 + 1 = chipCount + 2
           if (paStepIndex == chipCount + 2) {
             advanceSoundPlay = false;
 
@@ -726,10 +760,15 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             hasPA = -1; // state over 
           }
           else {
-            listStepCounter = listStepCooldown * 0.7f; // Quicker about non-PA chips
+            if (paStepIndex == chipCount + 1) {
+              listStepCounter = listStepCooldown * 2.0f; // Linger on the screen when merged
+            }
+            else {
+              listStepCounter = listStepCooldown * 0.7f; // Quicker about non-PA chips
+            }
 
             if (paStepIndex >= hasPA && paStepIndex <= hasPA + paSteps.size() - 1) {
-              listStepCounter = listStepCooldown;
+              listStepCounter = listStepCooldown; // Take our time with the PA chips 
               AUDIO.Play(AudioType::POINT);
             }
 

@@ -64,6 +64,8 @@ Mettaur::Mettaur(Rank _rank)
 
   metID = (int)Mettaur::metIDs.size();
   Mettaur::metIDs.push_back((int)Mettaur::metIDs.size());
+
+  this->Update(0);
 }
 
 Mettaur::~Mettaur(void) {
