@@ -29,6 +29,10 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   components = mob->GetComponents();
 
+  for (auto c : components) {
+    c->Inject(*this);
+  }
+
   /*
   Program Advance + labels
   */
@@ -124,7 +128,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   else {
     AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
   }
-
  
   isPaused = false;
   isInChipSelect = false;
@@ -175,6 +178,14 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
 BattleScene::~BattleScene()
 {
+}
+
+// What to do if we inject a chip publisher, subscribe it to the main listener
+void BattleScene::Inject(ChipUsePublisher& pub)
+{
+  this->enemyChipListener.Subscribe(pub);
+  SceneNode* node = dynamic_cast<SceneNode*>(&pub);
+  this->scenenodes.push_back(node);
 }
 
 void BattleScene::onUpdate(double elapsed) {
@@ -261,6 +272,11 @@ void BattleScene::onUpdate(double elapsed) {
   if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle)) {
     customProgress += elapsed;
 
+    // Update components
+    for (auto& component : components) {
+      component->Update(elapsed);
+    }
+
     if (battleTimer.isPaused()) {
       // start counting seconds again 
       battleTimer.start();
@@ -338,7 +354,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       float repos = (float)(tile->getPosition().y - 4.f) - (tile->GetHeight() / 1.5f);
       heatShader.setUniform("y", repos);
 
-      sf::Texture postprocessing; // = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+      sf::Texture postprocessing = surface.getTexture(); // Make a copy
 
       sf::Sprite distortionPost;
       distortionPost.setTexture(postprocessing);
@@ -355,7 +371,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       float repos = (float)(tile->getPosition().y - 4.f);
       iceShader.setUniform("y", repos);
 
-      sf::Texture postprocessing; // = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+      sf::Texture postprocessing = surface.getTexture(); // Make a copy
 
       sf::Sprite reflectionPost;
       reflectionPost.setTexture(postprocessing);
@@ -373,11 +389,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(list);
   }
 
-
-  // TODO: move this back into the Update loop once UI components are refactored
-  for (auto& component : components) {
-    component->Update(elapsed);
+  // Draw scene nodes
+  for (auto node : scenenodes) {
+    node->OnDraw();
   }
+
 
   ENGINE.Draw(playerHealthUI, false);
 

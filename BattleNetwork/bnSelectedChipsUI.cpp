@@ -84,7 +84,12 @@ void SelectedChipsUI::UseNextChip() {
     return;
   }
 
-  this->Broadcast(*selectedChips[curr]);
+  this->Broadcast(*selectedChips[curr], *player);
 
   curr++;
+}
+
+void SelectedChipsUI::Inject(BattleScene& scene) {
+  // This player component is manually assigned and 
+  // does not need injection at this time
 }

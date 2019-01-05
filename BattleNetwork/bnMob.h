@@ -94,7 +94,8 @@ public:
     spawn.clear();
 
     for (int i = 0; i < components.size(); i++) {
-      delete components[i];
+      Component* c = components[i];
+      if (c) { delete c; }
     }
 
     components.clear();

@@ -88,7 +88,7 @@ public:
     summon = std::string();
   }
 
-  void OnChipUse(Chip& chip) {
+  void OnChipUse(Chip& chip, Character& character) {
     player->SetCharging(false);
 
     std::string name = chip.GetShortName();

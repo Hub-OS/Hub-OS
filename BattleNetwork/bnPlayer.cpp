@@ -9,14 +9,6 @@
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
-#define MOVE_ANIMATION_SPRITES 4
-#define MOVE_ANIMATION_WIDTH 38
-#define MOVE_ANIMATION_HEIGHT 58
-
-#define SHOOT_ANIMATION_SPRITES 5
-#define SHOOT_ANIMATION_WIDTH 75
-#define SHOOT_ANIMATION_HEIGHT 58
-
 Player::Player(void)
   : health(100),
   state(PLAYER_IDLE),
@@ -161,6 +153,8 @@ bool Player::Move(Direction _direction) {
 }
 
 void Player::AdoptNextTile() {
+  if (next == nullptr) return;
+
   SetTile(next);
   tile->AddEntity(this);
   previous->RemoveEntity(this);

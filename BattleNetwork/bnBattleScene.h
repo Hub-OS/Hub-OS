@@ -18,6 +18,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnPA.h"
 #include "bnEngine.h"
+#include "bnSceneNode.h"
 #include "bnBattleResults.h"
 #include "bnBattleScene.h"
 #include "bnMob.h"
@@ -25,6 +26,7 @@
 #include "bnPlayer.h"
 #include "bnSelectedChipsUI.h"
 #include "bnPlayerChipUseListener.h"
+#include "bnEnemyChipUseListener.h"
 #include "bnChipSummonHandler.h"
 #include "bnMemory.h"
 
@@ -98,6 +100,7 @@ private:
   // Chip UI for player
   SelectedChipsUI chipUI;
   PlayerChipUseListener chipListener;
+  EnemyChipUseListener enemyChipListener;
 
   // Other components
   std::vector<Component*> components;
@@ -159,6 +162,11 @@ private:
   sf::Texture& distortionMap;
   sf::Vector2u textureSize; 
 
+
+  // TODO: replace misc components with SceneNodes completely
+  // e.g. this->AddSceneNodes(nodes);
+  std::vector<SceneNode*> scenenodes;
+
   std::vector<std::vector<Drawable*>> miscComponents;
 
   // for time-based graphics effects
@@ -175,4 +183,7 @@ public:
   virtual void onEnd();
   BattleScene(swoosh::ActivityController&, Player*, Mob*);
   virtual ~BattleScene();
+
+  // External component injection into the battle system
+  void Inject(ChipUsePublisher& pub);
 };

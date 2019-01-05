@@ -16,7 +16,7 @@ Canodumb::Canodumb(Rank _rank)
   :  AI<Canodumb>(this), AnimatedCharacter(_rank) {
   // this->StateChange<CanodumbIdleState>();
   Entity::team = Team::BLUE;
-  hitHeight = 50;
+  hitHeight = 25;
   healthUI = new MobHealthUI(this);
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
@@ -48,6 +48,8 @@ Canodumb::Canodumb(Rank _rank)
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);
+
+  animationComponent.Update(0);
 }
 
 Canodumb::~Canodumb(void) {

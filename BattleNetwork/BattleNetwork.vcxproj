@@ -263,6 +263,7 @@
     <ClInclude Include="bnAnimate.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
+    <ClInclude Include="bnEnemyChipUseListener.h" />
     <ClInclude Include="bnBackground.h" />
     <ClInclude Include="bnBasicSword.h" />
     <ClInclude Include="bnBattleItem.h" />

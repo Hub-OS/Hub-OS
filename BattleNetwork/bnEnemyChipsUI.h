@@ -12,20 +12,23 @@ using std::ostringstream;
 using std::vector;
 
 #include "bnChipUsePublisher.h"
+#include "bnSceneNode.h"
 
 class Character;
 class Player;
 class Chip;
 
-class EnemyChipsUI : public ChipUsePublisher, public Component {
+class EnemyChipsUI : public ChipUsePublisher, public Component, public SceneNode {
 public:
   EnemyChipsUI(Character* owner);
   virtual ~EnemyChipsUI(void);
 
   bool GetNextComponent(Drawable*& out);
   void Update(float _elapsed);
+  void OnDraw();
   void LoadChips(std::vector<Chip> incoming);
   void UseNextChip();
+  void Inject(BattleScene&);
 private:
   std::vector<Chip> selectedChips;
   int chipCount;

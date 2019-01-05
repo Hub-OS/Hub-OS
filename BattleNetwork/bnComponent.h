@@ -1,6 +1,7 @@
 #pragma once
 
 class Entity;
+class BattleScene;
 
 /* 
 Components need to be genric enough to be used by all in-battle entities
@@ -19,4 +20,5 @@ public:
 
   Entity* GetOwner() { return owner;  }
   virtual void Update(float _elapsed) = 0;
+  virtual void Inject(BattleScene&) = 0;
 };

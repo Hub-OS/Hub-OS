@@ -203,12 +203,6 @@
     <Filter Include="Activities\Battle\Content\Chips\ChipUseListener\Any">
       <UniqueIdentifier>{66d9858f-2c9d-4e25-9578-5c0dd84e32b6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\ChipUsePublisher">
-      <UniqueIdentifier>{0be851a6-6c86-4ffb-a4f9-0f230a542869}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\ChipUsePublisher\UI">
-      <UniqueIdentifier>{2ffdbd56-f900-4230-b51b-8239abe620b8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\AI">
       <UniqueIdentifier>{b0e97f40-0be3-48ff-a3c0-924576c7938e}</UniqueIdentifier>
     </Filter>
@@ -260,12 +254,6 @@
     <Filter Include="Activities\Fake">
       <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\ChipUsePublisher\UI\Player">
-      <UniqueIdentifier>{9a26a8e6-989b-4317-874a-6c1699773fb3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\ChipUsePublisher\UI\Any">
-      <UniqueIdentifier>{a9b3e791-0104-4027-a099-7c4207f47ea1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Mob\SpawnPolicies">
       <UniqueIdentifier>{81d9d5d5-0eae-40eb-bcf8-b901b9638cec}</UniqueIdentifier>
     </Filter>
@@ -280,6 +268,21 @@
     </Filter>
     <Filter Include="Engine\Graphics\SceneNodes">
       <UniqueIdentifier>{a3ca0f30-7208-4c3d-afd4-401fdaf8c61d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\UI">
+      <UniqueIdentifier>{a8e9ac2a-8f91-4965-9108-64886a52dd16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\ChipUsePublisher">
+      <UniqueIdentifier>{0be851a6-6c86-4ffb-a4f9-0f230a542869}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\ChipUsePublisher\UI">
+      <UniqueIdentifier>{2ffdbd56-f900-4230-b51b-8239abe620b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\ChipUsePublisher\UI\Player">
+      <UniqueIdentifier>{9a26a8e6-989b-4317-874a-6c1699773fb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\ChipUsePublisher\UI\Any">
+      <UniqueIdentifier>{a9b3e791-0104-4027-a099-7c4207f47ea1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -484,12 +487,6 @@
     <ClCompile Include="bnGridBackground.cpp">
       <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClCompile>
-    <ClCompile Include="bnMobHealthUI.cpp">
-      <Filter>Activities\Battle\Content\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="bnPlayerHealthUI.cpp">
-      <Filter>Activities\Battle\Content\Components</Filter>
-    </ClCompile>
     <ClCompile Include="bnRoll.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\Player\Roll</Filter>
     </ClCompile>
@@ -512,16 +509,22 @@
       <Filter>Activities\Fake</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectedChipsUI.cpp">
-      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI\Player</Filter>
+      <Filter>Activities\Battle\Content\Components\ChipUsePublisher\UI\Player</Filter>
     </ClCompile>
     <ClCompile Include="bnEnemyChipsUI.cpp">
-      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI\Any</Filter>
+      <Filter>Activities\Battle\Content\Components\ChipUsePublisher\UI\Any</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimate.cpp">
       <Filter>Engine\Graphics\Animate</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimation.cpp">
       <Filter>Engine\Graphics\Animate</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMobHealthUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="bnPlayerHealthUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -776,7 +779,7 @@
       <Filter>Activities\Battle\Content\Chips\ChipUseListener</Filter>
     </ClInclude>
     <ClInclude Include="bnChipUsePublisher.h">
-      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher</Filter>
+      <Filter>Activities\Battle\Content\Components\ChipUsePublisher</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerChipUseListener.h">
       <Filter>Activities\Battle\Content\Chips\ChipUseListener\Player</Filter>
@@ -807,12 +810,6 @@
     </ClInclude>
     <ClInclude Include="bnGridBackground.h">
       <Filter>Activities\Battle\Content\Backgrounds</Filter>
-    </ClInclude>
-    <ClInclude Include="bnMobHealthUI.h">
-      <Filter>Activities\Battle\Content\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="bnPlayerHealthUI.h">
-      <Filter>Activities\Battle\Content\Components</Filter>
     </ClInclude>
     <ClInclude Include="bnTileBehavior.h">
       <Filter>Activities\Battle\Content\AI</Filter>
@@ -869,10 +866,10 @@
       <Filter>Segues</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectedChipsUI.h">
-      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI\Player</Filter>
+      <Filter>Activities\Battle\Content\Components\ChipUsePublisher\UI\Player</Filter>
     </ClInclude>
     <ClInclude Include="bnEnemyChipsUI.h">
-      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI\Any</Filter>
+      <Filter>Activities\Battle\Content\Components\ChipUsePublisher\UI\Any</Filter>
     </ClInclude>
     <ClInclude Include="bnSpawnPolicy.h">
       <Filter>Activities\Battle\Content\Mob\SpawnPolicies</Filter>
@@ -888,6 +885,15 @@
     </ClInclude>
     <ClInclude Include="bnSceneNode.h">
       <Filter>Engine\Graphics\SceneNodes</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMobHealthUI.h">
+      <Filter>Activities\Battle\Content\Components\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="bnPlayerHealthUI.h">
+      <Filter>Activities\Battle\Content\Components\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="bnEnemyChipUseListener.h">
+      <Filter>Activities\Battle\Content\Chips\ChipUseListener\Any</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

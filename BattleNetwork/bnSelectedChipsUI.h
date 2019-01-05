@@ -15,6 +15,7 @@ using std::vector;
 class Entity;
 class Player;
 class Chip;
+class BattleScene;
 
 class SelectedChipsUI : public ChipUsePublisher, public Component {
 public:
@@ -25,6 +26,7 @@ public:
   void Update(float _elapsed);
   void LoadChips(Chip** incoming, int size);
   void UseNextChip();
+  void Inject(BattleScene&);
 private:
   Chip** selectedChips;
   int chipCount;

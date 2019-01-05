@@ -15,7 +15,7 @@ public:
   PlayerChipUseListener(Player* _player) : ChipUseListener() { player = _player; }
   PlayerChipUseListener(Player& _player) : ChipUseListener() { player = &_player;  }
 
-  void OnChipUse(Chip& chip) {
+  void OnChipUse(Chip& chip, Character& character) {
     player->SetCharging(false);
 
     std::string name = chip.GetShortName();
