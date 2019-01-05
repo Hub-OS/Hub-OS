@@ -12,11 +12,6 @@ void AnimatedCharacter::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-bool AnimatedCharacter::Move(Direction _direction) {
-  assert(false && "Move shouldn't be called directly from AnimatedCharacter");
-  return false;
-}
-
 vector<Drawable*> AnimatedCharacter::GetMiscComponents() {
   assert(false && "GetMiscComponents shouldn't be called directly from AnimatedCharacter");
   return vector<Drawable*>();
@@ -27,6 +22,7 @@ void AnimatedCharacter::AddAnimation(string _state, FrameList _frameList, float 
 
 void AnimatedCharacter::SetAnimation(string _state, std::function<void()> onFinish) {
   animationComponent.SetAnimation(_state, onFinish);
+  animationComponent.Update(0);
 }
 
 void AnimatedCharacter::SetCounterFrame(int frame)

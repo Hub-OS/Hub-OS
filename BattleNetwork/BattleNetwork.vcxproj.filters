@@ -526,6 +526,9 @@
     <ClCompile Include="bnPlayerHealthUI.cpp">
       <Filter>Activities\Battle\Content\Components\UI</Filter>
     </ClCompile>
+    <ClCompile Include="bnChipUsePublisher.cpp">
+      <Filter>Activities\Battle\Content\Components\ChipUsePublisher</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">

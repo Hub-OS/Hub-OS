@@ -27,7 +27,7 @@ void FakeScene::onUpdate(double elapsed) {
     triggered = true;
 
     using pattern = DiamondTileSwipe<swoosh::intent::direction::right>;
-    using segue = swoosh::intent::segue<pattern, swoosh::intent::sec<3>>;
+    using segue = swoosh::intent::segue<pattern, swoosh::intent::sec<1>>;
     getController().queuePop<segue>();
   }
 }

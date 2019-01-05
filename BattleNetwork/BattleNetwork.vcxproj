@@ -188,6 +188,7 @@
     <ClCompile Include="bnCharacter.cpp" />
     <ClCompile Include="bnChipFolder.cpp" />
     <ClCompile Include="bnChipUseListener.cpp" />
+    <ClCompile Include="bnChipUsePublisher.cpp" />
     <ClCompile Include="bnEnemyChipsUI.cpp" />
     <ClCompile Include="bnFakeScene.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />

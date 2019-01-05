@@ -26,7 +26,7 @@ public:
   virtual const bool Hit(int damage);
   virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction);
+  virtual bool Move(Direction _direction) = 0;
   virtual vector<Drawable*> GetMiscComponents();
   virtual TextureType GetTextureType();
 
@@ -34,8 +34,10 @@ public:
 
   void SetTile(Battle::Tile* _tile);
   Battle::Tile* GetTile() const;
+  void SlideToTile(bool );
 
   void SetField(Field* _field);
+
   Field* GetField() const;
 
   Team GetTeam() const;
@@ -46,6 +48,7 @@ public:
 
   void SetFloatShoe(bool state);
   bool HasFloatShoe();
+  Direction GetPreviousDirection();
 
   void Delete();
   bool IsDeleted() const;
@@ -53,15 +56,22 @@ public:
   void SetElement(Element _elem);
   const Element GetElement() const;
 
+  void AdoptNextTile();
+
 protected:
   bool ownedByField;
   Battle::Tile* next;
   Battle::Tile* tile;
   Battle::Tile* previous;
+  sf::Vector2f tileOffset;
   Field* field;
   Team team;
   Element element;
   bool passthrough;
   bool floatShoe;
+  bool isSliding; // If sliding/gliding to a tile
   bool deleted;
+  int moveCount;
+  Direction direction;
+  Direction previousDirection;
 };

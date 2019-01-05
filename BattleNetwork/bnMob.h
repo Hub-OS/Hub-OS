@@ -90,12 +90,12 @@ public:
       delete spawn[i]->mob;
       delete spawn[i];
     }
+
     field = nullptr;
     spawn.clear();
 
-    for (int i = 0; i < components.size(); i++) {
-      Component* c = components[i];
-      if (c) { delete c; }
+    for (Component* c : components) {
+      delete c;
     }
 
     components.clear();

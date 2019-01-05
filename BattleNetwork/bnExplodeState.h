@@ -42,7 +42,7 @@ template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
   // Enforce template constraints on class
-  // _DerivedFrom<Any, Entity>();
+  _DerivedFrom<Any, Entity>();
 
   // If we make it here, we are the proper type
   explosion = nullptr;

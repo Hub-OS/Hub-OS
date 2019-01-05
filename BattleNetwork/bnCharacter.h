@@ -22,7 +22,7 @@ public:
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
 
-  virtual const bool Hit(int damage);
+  virtual const bool Hit(int damage, bool recoil = true);
   virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);
@@ -31,10 +31,10 @@ public:
   virtual void SetAnimation(string _state);
   virtual void SetCounterFrame(int frame);
   virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
-  virtual int GetHealth();
   virtual int* GetAnimOffset();
 
-  void SetHealth(int _health);
+  virtual int GetHealth() const;
+  virtual void SetHealth(int _health);
 
   void TryDelete();
   void ToggleCounter(bool on = true);

@@ -21,10 +21,7 @@ void Character::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-bool Character::Move(Direction _direction) {
-  assert(false && "Move shouldn't be called directly from Character");
-  return false;
-}
+bool Character::Move(Direction _direction) { return false;  }
 
 vector<Drawable*> Character::GetMiscComponents() {
   assert(false && "GetMiscComponents shouldn't be called directly from Character");
@@ -49,7 +46,7 @@ void Character::OnFrameCallback(int frame, std::function<void()> onEnter, std::f
   assert(false && "OnFrameCallback shouldn't be called directly from Character");
 }
 
-int Character::GetHealth() {
+int Character::GetHealth() const {
   return health;
 }
 
@@ -58,7 +55,7 @@ const float Character::GetHitHeight() const {
   return 0;
 }
 
-const bool Character::Hit(int damage) {
+const bool Character::Hit(int damage, bool recoil) {
   //assert(false && "Hit shouldn't be called directly from Entity");
   return false;
 }
@@ -69,6 +66,8 @@ int* Character::GetAnimOffset() {
 
 void Character::SetHealth(const int _health) {
   health = _health;
+  if (health < 0) health = 0;
+
 }
 
 void Character::TryDelete() {

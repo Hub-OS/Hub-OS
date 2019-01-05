@@ -20,7 +20,7 @@ EnemyChipsUI::EnemyChipsUI(Character* _owner) : ChipUsePublisher(), Component(_o
   icon.setScale(sf::Vector2f(2.f, 2.f));
 }
 
-EnemyChipsUI::~EnemyChipsUI(void) {
+EnemyChipsUI::~EnemyChipsUI() {
 }
 
 bool EnemyChipsUI::GetNextComponent(Drawable*& out) {

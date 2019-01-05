@@ -181,4 +181,5 @@ void ProgsMan::SetCounterFrame(int frame)
 void ProgsMan::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
   animationComponent.SetAnimation(_state, onFinish);
+  animationComponent.Update(0);
 }

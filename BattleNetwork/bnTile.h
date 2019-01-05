@@ -69,6 +69,10 @@ namespace Battle {
     Field* field;
     float cooldown;
     float cooldownLength;
+    float slideCooldown;
+    float slideCooldownLength;
+    float lavaBurnCooldown;
+    float lavaBurnCooldownLength;
     bool hasSpell;
   };
 

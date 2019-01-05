@@ -71,20 +71,11 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
  
 
   if (inputManager->has(PRESSED_A) && isChargeHeld == false) {
-    player.Attack(player.chargeComponent.GetChargeCounter());
     isChargeHeld = true;
-
     attackKeyPressCooldown = 0.0f;
-    auto onFinish = [&]() { 
 
-      if (this->isChargeHeld) {
-        player.chargeComponent.SetCharging(true);
-      }
-
-      player.SetAnimation(PLAYER_IDLE); 
-      this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; 
-    };
-    player.SetAnimation(PLAYER_SHOOTING, onFinish);
+    player.chargeComponent.SetCharging(true);
+    this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; 
   }
 
   if (inputManager->has(RELEASED_UP)) {
@@ -100,31 +91,8 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     direction = Direction::NONE;
   }
 
-  if (!player.HasFloatShoe()) {
-    if (player.GetTile()->GetState() == TileState::ICE) {
-      if (previousDirection != Direction::NONE) {
-        bool moved = player.Move(previousDirection);
-
-        if (moved) {
-          player.AdoptNextTile();
-        }
-        else {
-          previousDirection = Direction::NONE;
-        }
-      }
-    }
-    else if (player.GetTile()->GetState() == TileState::LAVA) {
-      // player.SetHealth(player.GetHealth() - 1);
-    }
-    else {
-      previousDirection = Direction::NONE;
-    }
-  }
-
   if (direction != Direction::NONE && player.state != PLAYER_SHOOTING) {
     bool moved = player.Move(direction);
-
-    previousDirection = direction;
 
     if (moved) {
       moveKeyPressCooldown = 0.0f;

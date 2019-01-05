@@ -1,4 +1,5 @@
 #include "bnGameOverScene.h"
+#include "Swoosh\ActivityController.h"
 
 GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(controller) {
   fadeInCooldown = 2.0f;
@@ -31,7 +32,7 @@ void GameOverScene::onUpdate(double elapsed) {
 void GameOverScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
 
-  sf::Vector2f logoPos = (sf::Vector2f)((sf::Vector2i)ENGINE.GetWindow()->getSize() / 2);
+  sf::Vector2f logoPos = (sf::Vector2f)((sf::Vector2i)getController().getInitialWindowSize() / 2);
   gameOver.setPosition(logoPos);
   gameOver.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255 * (1.0f-(fadeInCooldown / 2.f)))));
   ENGINE.Draw(gameOver);

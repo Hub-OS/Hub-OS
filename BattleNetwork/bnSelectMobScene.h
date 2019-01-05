@@ -66,6 +66,9 @@ private:
   float maxNumberCooldown;
   float numberCooldown;
 
+  bool doOnce; // scene effects
+  bool showMob; // toggle hide / show mob
+
   // select menu graphic
   sf::Sprite bg;
 

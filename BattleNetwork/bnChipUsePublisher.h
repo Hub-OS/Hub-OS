@@ -19,6 +19,7 @@ private:
   }
 
 public:
+  virtual ~ChipUsePublisher();
   virtual void UseNextChip() = 0;
 
   void Broadcast(Chip& chip, Character& user) {

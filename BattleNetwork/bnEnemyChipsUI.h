@@ -21,7 +21,7 @@ class Chip;
 class EnemyChipsUI : public ChipUsePublisher, public Component, public SceneNode {
 public:
   EnemyChipsUI(Character* owner);
-  virtual ~EnemyChipsUI(void);
+  virtual ~EnemyChipsUI();
 
   bool GetNextComponent(Drawable*& out);
   void Update(float _elapsed);

@@ -178,6 +178,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
 BattleScene::~BattleScene()
 {
+  components.clear();
+  scenenodes.clear();
 }
 
 // What to do if we inject a chip publisher, subscribe it to the main listener
@@ -273,8 +275,8 @@ void BattleScene::onUpdate(double elapsed) {
     customProgress += elapsed;
 
     // Update components
-    for (auto& component : components) {
-      component->Update(elapsed);
+    for (auto c : components) {
+      c->Update(elapsed);
     }
 
     if (battleTimer.isPaused()) {

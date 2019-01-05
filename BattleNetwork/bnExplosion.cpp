@@ -91,8 +91,10 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 
 void Explosion::Update(float _elapsed) {
   if (this == root) {
-    if (count == numOfExplosions-1)
+    if (count == numOfExplosions - 1) {
       Delete();
+      return;
+    }
   }
 
   animationComponent.Update(_elapsed);

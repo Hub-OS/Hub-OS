@@ -51,6 +51,8 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   mobSpr.setPosition(110.f, 130.f);
 
   gotoNextScene = false;
+  doOnce = false; // wait until the scene starts or resumes
+  showMob = false;
 
   shader = LOAD_SHADER(TEXEL_PIXEL_BLUR);
   factor = 125;
@@ -60,7 +62,6 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 
   // Text box navigator
   textbox.Stop();
-  textbox.Mute();
   textbox.setPosition(100, 210);
   textbox.SetTextColor(sf::Color::Black);
   textbox.SetSpeed(20);
@@ -93,6 +94,9 @@ void SelectMobScene::onResume() {
   AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
 
   gotoNextScene = false;
+  doOnce = true;
+  showMob = true;
+  textbox.Play();
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
@@ -103,8 +107,6 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    textbox.Play();
-
     if (INPUT.has(PRESSED_LEFT)) {
       selectInputCooldown -= elapsed;
 
@@ -185,7 +187,6 @@ void SelectMobScene::onUpdate(double elapsed) {
       else {
         if (mobLabel->getString()[i] != ' ') {
           newstr += (char)(((rand() % (90 - 65)) + 65) + 1);
-          AUDIO.Play(AudioType::TEXT, AudioPriority::LOWEST);
         }
         else {
           newstr += ' ';
@@ -201,7 +202,6 @@ void SelectMobScene::onUpdate(double elapsed) {
     mobLabel->setString(sf::String(newstr));
   }
 
-  static bool doOnce = true;
   if (mobSelectionIndex != prevSelect || doOnce) {
     doOnce = false;
     factor = 125;
@@ -339,18 +339,23 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   LayeredDrawable* bake = new LayeredDrawable(sf::Sprite(mobSpr));
   bake->SetShader(shader);
 
-  ENGINE.Draw(bake);
-  delete bake;
+  if (showMob) {
+    ENGINE.Draw(bake);
+    delete bake;
+  }
 
   ENGINE.Draw(textbox);
 }
 
 void SelectMobScene::onStart() {
-
+  textbox.Play();
+  factor = 125;
+  doOnce = true;
+  showMob = true;
 }
 
 void SelectMobScene::onLeave() {
-
+  textbox.Stop();
 }
 
 void SelectMobScene::onExit() {

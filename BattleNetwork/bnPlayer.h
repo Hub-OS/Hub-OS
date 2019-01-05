@@ -24,12 +24,11 @@ public:
 
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);
-  void AdoptNextTile();
   void Attack(float _charge);
   virtual vector<Drawable*> GetMiscComponents();
 
-  int GetHealth() const;
-  void SetHealth(int _health);
+  virtual int GetHealth() const;
+  virtual void SetHealth(int _health);
   virtual const bool Hit(int _damage);
   int GetMoveCount() const;
   int GetHitCount() const;
@@ -49,7 +48,6 @@ protected:
   int cloakTimeSecs;
 
   int health;
-  int moveCount;
   int hitCount;
 
   int alpha;

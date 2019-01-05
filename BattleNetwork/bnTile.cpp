@@ -9,6 +9,8 @@
 #define START_X 0.0f
 #define START_Y 144.f
 #define COOLDOWN 10.f
+#define LAVA_COOLDOWN 0.5f;
+#define SLIDE_COOLDOWN 0.1f;
 #define FLICKER 3.0f
 #define Y_OFFSET 10.0f
 
@@ -24,6 +26,10 @@ namespace Battle {
     }
     cooldown = 0.0f;
     cooldownLength = COOLDOWN;
+    slideCooldown = 0.0f;
+    slideCooldownLength = SLIDE_COOLDOWN;
+    lavaBurnCooldown = 0.0f;
+    lavaBurnCooldownLength = LAVA_COOLDOWN;
     state = TileState::NORMAL;
     RefreshTexture();
     elapsed = 0;
@@ -123,6 +129,14 @@ namespace Battle {
       cooldown = cooldownLength;
     }
 
+    if (_state == TileState::LAVA) {
+      lavaBurnCooldown = lavaBurnCooldownLength;
+    }
+
+    if (_state == TileState::ICE) {
+      slideCooldown = slideCooldownLength;
+    }
+
     state = _state;
   }
 
@@ -207,6 +221,11 @@ namespace Battle {
       _entity->SetTile(this);
       entities.push_back(_entity);
 
+      if (this->state == TileState::ICE && slideCooldown <= 0.0f && !_entity->HasFloatShoe())
+      {
+        _entity->SlideToTile(true);
+      }
+
       // Sort by layer (draw order)
       // e.g. layer 0 draws first so it must be last in the draw list
       std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
@@ -261,10 +280,14 @@ namespace Battle {
   void Tile::Update(float _elapsed) {
     hasSpell = false;
 
+    lavaBurnCooldown -= 1 * _elapsed;
+    slideCooldown -= 1 * _elapsed;
+
+
     vector<Entity*> copies = entities;
     for (vector<Entity*>::iterator entity = copies.begin(); entity != copies.end(); entity++) {
 
-      if ((*entity)->IsDeleted())
+      if ((*entity) == nullptr || (*entity)->IsDeleted())
         continue;
 
       if (!hasSpell) {
@@ -275,6 +298,14 @@ namespace Battle {
       }
 
       (*entity)->Update(_elapsed);
+
+      if (this->state == TileState::LAVA && lavaBurnCooldown <= 0.0f) {
+        Character* character = dynamic_cast<Character*>(*entity);
+
+        if (character) {
+          character->SetHealth(character->GetHealth() - 1);
+        }
+      }
     }
 
     this->RefreshTexture();
@@ -286,5 +317,14 @@ namespace Battle {
     if (cooldown <= 0.0f && state == TileState::BROKEN) {
       state = TileState::NORMAL;
     }
+
+    if (lavaBurnCooldown <= 0.0f && state == TileState::LAVA) {
+      lavaBurnCooldown = lavaBurnCooldownLength; // restart timer
+    }
+
+    if (slideCooldown <= 0.0f && state == TileState::ICE) {
+      slideCooldownLength = slideCooldownLength; // restart timer
+    }
+
   }
 }

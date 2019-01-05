@@ -64,7 +64,7 @@ void Player::Update(float _elapsed) {
     return;
 
   if (tile != nullptr) {
-    setPosition(tile->getPosition().x + (tile->GetWidth() / 2.0f), tile->getPosition().y + (tile->GetHeight() / 2.0f));
+    setPosition(tileOffset.x + tile->getPosition().x + (tile->GetWidth() / 2.0f), tileOffset.y + tile->getPosition().y + (tile->GetHeight() / 2.0f));
   }
 
   // Explode if health depleted
@@ -105,6 +105,7 @@ void Player::Update(float _elapsed) {
 
 bool Player::Move(Direction _direction) {
   bool moved = false;
+
   Battle::Tile* temp = tile;
   if (_direction == Direction::UP) {
     if (tile->GetY() - 1 > 0) {
@@ -138,29 +139,20 @@ bool Player::Move(Direction _direction) {
       next = field->GetAt(tile->GetX() + 1, tile->GetY());
       if (Teammate(next->GetTeam()) && next->IsWalkable()) {
         ;
+      } else {
+         next = nullptr;
       }
- else {
-   next = nullptr;
- }
     }
   }
 
   if (next) {
     previous = temp;
+
+    if (isSliding) return false;
+
     moved = true;
   }
   return moved;
-}
-
-void Player::AdoptNextTile() {
-  if (next == nullptr) return;
-
-  SetTile(next);
-  tile->AddEntity(this);
-  previous->RemoveEntity(this);
-  previous = nullptr;
-  next = nullptr;
-  moveCount++;
 }
 
 void Player::Attack(float _charge) {
@@ -184,6 +176,9 @@ vector<Drawable*> Player::GetMiscComponents() {
 
 void Player::SetHealth(int _health) {
   health = _health;
+
+  if (health < 0) health = 0;
+
   healthUI->Update();
 }
 
