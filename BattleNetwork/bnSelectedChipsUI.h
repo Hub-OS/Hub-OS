@@ -16,13 +16,13 @@ class Entity;
 class Player;
 class Chip;
 
-class SelectedChipsUI : public ChipUsePublisher {
+class SelectedChipsUI : public ChipUsePublisher, public Component {
 public:
   SelectedChipsUI(Player* _player);
   ~SelectedChipsUI(void);
 
   bool GetNextComponent(Drawable*& out);
-  void Update();
+  void Update(float _elapsed);
   void LoadChips(Chip** incoming, int size);
   void UseNextChip();
 private:

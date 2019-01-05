@@ -13,9 +13,6 @@
     <Filter Include="Engine\Input">
       <UniqueIdentifier>{4a441b30-9e2f-4ff8-921a-60ef383f26d9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Animate">
-      <UniqueIdentifier>{fe12002d-65c0-4184-bb5f-72f816483120}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Resources">
       <UniqueIdentifier>{0e5b07ae-1ba2-404d-a462-579ab664eac6}</UniqueIdentifier>
     </Filter>
@@ -263,6 +260,27 @@
     <Filter Include="Activities\Fake">
       <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\ChipUsePublisher\UI\Player">
+      <UniqueIdentifier>{9a26a8e6-989b-4317-874a-6c1699773fb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\ChipUsePublisher\UI\Any">
+      <UniqueIdentifier>{a9b3e791-0104-4027-a099-7c4207f47ea1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Mob\SpawnPolicies">
+      <UniqueIdentifier>{81d9d5d5-0eae-40eb-bcf8-b901b9638cec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Mob\SpawnPolicies\ChipSpawnPolicies">
+      <UniqueIdentifier>{818f9f46-08a6-49c1-917e-8f8dbd065e02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Graphics">
+      <UniqueIdentifier>{fe12002d-65c0-4184-bb5f-72f816483120}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Graphics\Animate">
+      <UniqueIdentifier>{f7b3b6ba-319e-41c2-9861-e349a23173bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Graphics\SceneNodes">
+      <UniqueIdentifier>{a3ca0f30-7208-4c3d-afd4-401fdaf8c61d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -400,9 +418,6 @@
     <ClCompile Include="bnAgent.h">
       <Filter>Activities\Battle\Content\AI</Filter>
     </ClCompile>
-    <ClCompile Include="bnAnimate.cpp">
-      <Filter>Engine\Animate</Filter>
-    </ClCompile>
     <ClCompile Include="bnBattleScene.cpp">
       <Filter>Activities\Battle</Filter>
     </ClCompile>
@@ -411,9 +426,6 @@
     </ClCompile>
     <ClCompile Include="bnMainMenuScene.cpp">
       <Filter>Activities\Main Menu</Filter>
-    </ClCompile>
-    <ClCompile Include="bnAnimation.cpp">
-      <Filter>Engine\Animate</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayer.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\Player\Megaman</Filter>
@@ -457,9 +469,6 @@
     <ClCompile Include="bnAnimatedCharacter.cpp">
       <Filter>Activities\Battle\Content\Entity\Character</Filter>
     </ClCompile>
-    <ClCompile Include="bnSelectedChipsUI.cpp">
-      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI</Filter>
-    </ClCompile>
     <ClCompile Include="bnChipUseListener.cpp">
       <Filter>Activities\Battle\Content\Chips\ChipUseListener</Filter>
     </ClCompile>
@@ -501,6 +510,18 @@
     </ClCompile>
     <ClCompile Include="bnFakeScene.cpp">
       <Filter>Activities\Fake</Filter>
+    </ClCompile>
+    <ClCompile Include="bnSelectedChipsUI.cpp">
+      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="bnEnemyChipsUI.cpp">
+      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI\Any</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAnimate.cpp">
+      <Filter>Engine\Graphics\Animate</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAnimation.cpp">
+      <Filter>Engine\Graphics\Animate</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -673,9 +694,6 @@
     <ClInclude Include="bnInputEvent.h">
       <Filter>Engine\Input</Filter>
     </ClInclude>
-    <ClInclude Include="bnAnimate.h">
-      <Filter>Engine\Animate</Filter>
-    </ClInclude>
     <ClInclude Include="bnBasicSword.h">
       <Filter>Activities\Battle\Content\Entity\Spell\Sword\Basic</Filter>
     </ClInclude>
@@ -705,9 +723,6 @@
     </ClInclude>
     <ClInclude Include="bnMainMenuScene.h">
       <Filter>Activities\Main Menu</Filter>
-    </ClInclude>
-    <ClInclude Include="bnAnimation.h">
-      <Filter>Engine\Animate</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayer.h">
       <Filter>Activities\Battle\Content\Entity\Character\Player\Megaman</Filter>
@@ -751,9 +766,6 @@
     <ClInclude Include="bnFolderScene.h">
       <Filter>Activities\Folder</Filter>
     </ClInclude>
-    <ClInclude Include="bnSpawnPolicy.h">
-      <Filter>Activities\Battle\Content\Mob</Filter>
-    </ClInclude>
     <ClInclude Include="bnAnimatedCharacter.h">
       <Filter>Activities\Battle\Content\Entity\Character</Filter>
     </ClInclude>
@@ -765,9 +777,6 @@
     </ClInclude>
     <ClInclude Include="bnChipUsePublisher.h">
       <Filter>Activities\Battle\Content\Chips\ChipUsePublisher</Filter>
-    </ClInclude>
-    <ClInclude Include="bnSelectedChipsUI.h">
-      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerChipUseListener.h">
       <Filter>Activities\Battle\Content\Chips\ChipUseListener\Player</Filter>
@@ -858,6 +867,27 @@
     </ClInclude>
     <ClInclude Include="Segues\BlackWashFade.h">
       <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSelectedChipsUI.h">
+      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="bnEnemyChipsUI.h">
+      <Filter>Activities\Battle\Content\Chips\ChipUsePublisher\UI\Any</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSpawnPolicy.h">
+      <Filter>Activities\Battle\Content\Mob\SpawnPolicies</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipsSpawnPolicy.h">
+      <Filter>Activities\Battle\Content\Mob\SpawnPolicies\ChipSpawnPolicies</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAnimate.h">
+      <Filter>Engine\Graphics\Animate</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAnimation.h">
+      <Filter>Engine\Graphics\Animate</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSceneNode.h">
+      <Filter>Engine\Graphics\SceneNodes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -99,6 +99,9 @@ private:
   SelectedChipsUI chipUI;
   PlayerChipUseListener chipListener;
 
+  // Other components
+  std::vector<Component*> components;
+
   /*
   Background for scene*/
   Background* background;

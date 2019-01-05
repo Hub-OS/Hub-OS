@@ -1,4 +1,5 @@
 #pragma once
+#include "bnComponent.h"
 #include "bnCharacter.h"
 #include "bnMeta.h"
 #include "bnBattleItem.h"
@@ -18,6 +19,7 @@ public:
   };
 
 private:
+  std::vector<Component*> components;
   std::vector<MobData*> spawn;
   std::vector<MobData*>::iterator iter;
   std::vector<std::function<void(Character*)>> defaultStateInvokers;
@@ -90,6 +92,12 @@ public:
     }
     field = nullptr;
     spawn.clear();
+
+    for (int i = 0; i < components.size(); i++) {
+      delete components[i];
+    }
+
+    components.clear();
   }
 
   Field* GetField() {
@@ -144,6 +152,12 @@ public:
 
     defaultStateInvokers.clear();
   }
+
+  void AddComponent(Component* component) {
+    components.push_back(component);
+  }
+
+  std::vector<Component*> GetComponents() { return components; }
 
   MobData* GetNextMob() {
     this->nextReady = false;

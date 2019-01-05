@@ -188,6 +188,7 @@
     <ClCompile Include="bnCharacter.cpp" />
     <ClCompile Include="bnChipFolder.cpp" />
     <ClCompile Include="bnChipUseListener.cpp" />
+    <ClCompile Include="bnEnemyChipsUI.cpp" />
     <ClCompile Include="bnFakeScene.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />
     <ClCompile Include="bnGameOverScene.cpp" />
@@ -274,9 +275,11 @@
     <ClInclude Include="bnCanodumbIdleState.h" />
     <ClInclude Include="bnCharacter.h" />
     <ClInclude Include="bnChipFolder.h" />
+    <ClInclude Include="bnChipsSpawnPolicy.h" />
     <ClInclude Include="bnChipUseListener.h" />
     <ClInclude Include="bnChipUsePublisher.h" />
     <ClInclude Include="bnComponent.h" />
+    <ClInclude Include="bnEnemyChipsUI.h" />
     <ClInclude Include="bnFakeScene.h" />
     <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnProgsManThrowState.h" />
@@ -369,6 +372,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />
+    <ClInclude Include="bnSceneNode.h" />
     <ClInclude Include="Segues\BlackWashFade.h" />
     <ClInclude Include="Segues\Checkerboard.h" />
     <ClInclude Include="Segues\CrossZoom.h" />

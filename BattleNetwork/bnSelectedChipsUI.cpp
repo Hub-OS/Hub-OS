@@ -12,7 +12,7 @@ using std::to_string;
 #include "bnChip.h"
 #include "bnEngine.h"
 
-SelectedChipsUI::SelectedChipsUI(Player* _player) : ChipUsePublisher()
+SelectedChipsUI::SelectedChipsUI(Player* _player) : ChipUsePublisher(), Component(_player)
   , player(_player) {
   chipCount = curr = 0;
   icon = sf::Sprite(*TEXTURES.GetTexture(CHIP_ICONS));
@@ -37,7 +37,7 @@ bool SelectedChipsUI::GetNextComponent(Drawable*& out) {
   return false;
 }
 
-void SelectedChipsUI::Update() {
+void SelectedChipsUI::Update(float _elapsed) {
   if (player) {
  
     // TODO: Move draw out of update. Utilize components.

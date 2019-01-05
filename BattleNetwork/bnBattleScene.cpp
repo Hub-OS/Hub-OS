@@ -23,10 +23,11 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   camera(*ENGINE.GetCamera()),
   chipUI(player)
 {
-
   if (mob->GetMobCount() == 0) {
     Logger::Log(std::string("Warning: Mob was empty when battle started. Mob Type: ") + typeid(mob).name());
   }
+
+  components = mob->GetComponents();
 
   /*
   Program Advance + labels
@@ -372,6 +373,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(list);
   }
 
+
+  // TODO: move this back into the Update loop once UI components are refactored
+  for (auto& component : components) {
+    component->Update(elapsed);
+  }
+
   ENGINE.Draw(playerHealthUI, false);
 
   /*for (int d = 1; d <= field->GetHeight(); d++) {
@@ -437,7 +444,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
 
   if (!isPlayerDeleted) {
-    chipUI.Update(); // DRAW 
+    chipUI.Update(elapsed); // DRAW 
 
     Drawable* component;
     while (chipUI.GetNextComponent(component)) {

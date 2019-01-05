@@ -399,7 +399,8 @@ int main(int argc, char** argv) {
 
   // Create an activity controller 
   // Behaves like a state machine using stacks
-  ActivityController app(*ENGINE.GetWindow());
+  sf::Vector2u virtualWindowSize(480, 320);
+  ActivityController app(*ENGINE.GetWindow(), virtualWindowSize);
   app.push<GameOverScene>();
   app.push<MainMenuScene>();
 

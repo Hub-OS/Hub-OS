@@ -1,5 +1,6 @@
 #include <list>
 
+#include "bnComponent.h"
 #include "bnChip.h"
 #include "bnChipUseListener.h"
 

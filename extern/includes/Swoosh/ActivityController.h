@@ -36,6 +36,15 @@ namespace swoosh {
       segueAction = SegueAction::NONE;
     }
 
+    ActivityController(sf::RenderWindow& window, sf::Vector2u virtualWindowSize) : handle(window) {
+      initWindowSize = virtualWindowSize;
+
+      surface = new sf::RenderTexture();
+      surface->create((unsigned int)virtualWindowSize.x, (unsigned int)virtualWindowSize.y);
+      willLeave = false;
+      segueAction = SegueAction::NONE;
+    }
+
     ~ActivityController() {
       if (segueAction != SegueAction::NONE) {
         swoosh::Segue* effect = dynamic_cast<swoosh::Segue*>(activities.top());

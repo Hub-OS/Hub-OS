@@ -7,11 +7,16 @@ Components need to be genric enough to be used by all in-battle entities
 */
 
 class Component {
+private: 
+  Entity* owner;
+
 public:
-  Component() = default;
-  ~Component() = default;
+  Component(Entity* owner) { this->owner = owner; };
+  ~Component() { ; }
+
   Component(Component&& rhs) = delete;
   Component(const Component& rhs) = delete;
 
-  virtual void Update(float _elapsed, Entity& context) = 0;
+  Entity* GetOwner() { return owner;  }
+  virtual void Update(float _elapsed) = 0;
 };

@@ -2,6 +2,7 @@
 #include "bnField.h"
 #include "bnTile.h"
 #include "bnSpawnPolicy.h"
+#include "bnChipsSpawnPolicy.h"
 
 CanodumbMob::CanodumbMob(Field* field) : MobFactory(field)
 {
@@ -18,7 +19,7 @@ Mob* CanodumbMob::Build() {
   Battle::Tile* tile = field->GetAt(4, 2);
   if (!tile->IsWalkable()) { tile->SetState(TileState::NORMAL); }
 
-  mob->Spawn< Rank1<Canodumb, CanodumbIdleState> >(5, 2);
+  mob->Spawn< ChipsSpawnPolicy<Canodumb, CanodumbIdleState> >(5, 2);
   mob->Spawn< Rank2<Canodumb, CanodumbIdleState> >(6, 1);
   mob->Spawn< Rank3<Canodumb, CanodumbIdleState> >(6, 3);
 

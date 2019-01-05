@@ -32,17 +32,17 @@ Mob* RandomMettaurMob::Build() {
 
       if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE) {
         if (rand() % 50 > 30) {
-          if (rand() % 10 > 8) {
-            mob->Spawn<Rank1<Mettaur, MettaurIdleState>>(i + 1, j + 1);
+          if (rand() % 10 > 5) {
+            mob->Spawn<Rank1<ProgsMan, ProgsManIdleState>>(i + 1, j + 1);
           }
           else if(rand() % 10 > 5) {
             mob->Spawn<RankSP<Mettaur, MettaurIdleState>>(i + 1, j + 1);
           }
           else if (rand() % 10 > 3) {
             if (rand() % 10 > 8) {
-              mob->Spawn<Rank1<Canodumb, CanodumbIdleState>>(i + 1, j + 1);
+              mob->Spawn<Rank3<Canodumb, CanodumbIdleState>>(i + 1, j + 1);
             }
-            else if (rand() % 10 > 5) {
+            else if (rand() % 10 > 10) {
               mob->Spawn<Rank2<Canodumb, CanodumbIdleState>>(i + 1, j + 1);
             }
             else {
