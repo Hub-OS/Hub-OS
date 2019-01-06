@@ -23,7 +23,6 @@ public:
   virtual ~Player(void);
 
   virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction);
   void Attack(float _charge);
   virtual vector<Drawable*> GetMiscComponents();
 

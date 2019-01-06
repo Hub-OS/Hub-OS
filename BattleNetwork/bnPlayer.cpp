@@ -103,58 +103,6 @@ void Player::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-bool Player::Move(Direction _direction) {
-  bool moved = false;
-
-  Battle::Tile* temp = tile;
-  if (_direction == Direction::UP) {
-    if (tile->GetY() - 1 > 0) {
-      next = field->GetAt(tile->GetX(), tile->GetY() - 1);
-      if (Teammate(next->GetTeam()) && next->IsWalkable()) {
-        ;
-      } else {
-        next = nullptr;
-      }
-    }
-  } else if (_direction == Direction::LEFT) {
-    if (tile->GetX() - 1 > 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY());
-      if (Teammate(next->GetTeam()) && next->IsWalkable()) {
-        ;
-      } else {
-        next = nullptr;
-      }
-    }
-  } else if (_direction == Direction::DOWN) {
-    if (tile->GetY() + 1 <= (int)field->GetHeight()) {
-      next = field->GetAt(tile->GetX(), tile->GetY() + 1);
-      if (Teammate(next->GetTeam()) && next->IsWalkable()) {
-        ;
-      } else {
-        next = nullptr;
-      }
-    }
-  } else if (_direction == Direction::RIGHT) {
-    if (tile->GetX() + 1 <= static_cast<int>(field->GetWidth())) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY());
-      if (Teammate(next->GetTeam()) && next->IsWalkable()) {
-        ;
-      } else {
-         next = nullptr;
-      }
-    }
-  }
-
-  if (next) {
-    previous = temp;
-
-    if (isSliding) return false;
-
-    moved = true;
-  }
-  return moved;
-}
-
 void Player::Attack(float _charge) {
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
     Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged());
@@ -187,6 +135,8 @@ int Player::GetHealth() const {
 }
 
 const bool Player::Hit(int _damage) {
+  return false;
+
   if (this->IsPassthrough() || invincibilityCooldown > 0) return false;
 
   bool result = true;

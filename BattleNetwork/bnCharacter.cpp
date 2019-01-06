@@ -21,8 +21,6 @@ void Character::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-bool Character::Move(Direction _direction) { return false;  }
-
 vector<Drawable*> Character::GetMiscComponents() {
   assert(false && "GetMiscComponents shouldn't be called directly from Character");
   return vector<Drawable*>();

@@ -30,6 +30,8 @@ void Entity::Update(float _elapsed) {
     
     sf::Vector2f pos = this->getPosition() + this->tileOffset;
     sf::Vector2f tar = this->next->getPosition();
+    tar = sf::Vector2f(tar.x + (tile->GetWidth() / 2.0f), tar.y  + (tile->GetHeight() / 2.0f));
+
     sf::Vector2f delta = swoosh::game::directionTo<float>(tar, pos);
     delta.x = delta.x * 200.0 * _elapsed;
     delta.y = delta.y * 200.0 *_elapsed;
@@ -47,8 +49,8 @@ void Entity::Update(float _elapsed) {
     {
       Battle::Tile* prevTile = this->GetTile();
       this->tileOffset = sf::Vector2f(0, 0);
+
       this->AdoptNextTile();
-      isSliding = this->GetTile() ? (this->GetTile()->GetState() == TileState::ICE) : false;
 
       if (isSliding) {
         std::cout << "we are sliding" << std::endl;;
@@ -66,7 +68,7 @@ void Entity::Update(float _elapsed) {
           this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() - 1);
         }
 
-        if (!(this->next && this->next->GetTeam() == this->GetTeam())) {
+        if (!(this->next && this->next->GetTeam() == this->GetTeam() && this->next->GetState() == TileState::ICE)) {
           // Conditions not met
           std::cout << "Conditions not met" << std::endl;
           isSliding = false;
@@ -79,6 +81,72 @@ void Entity::Update(float _elapsed) {
   if (IsDeleted()) {
     field->RemoveEntity(this);
   }
+}
+
+bool Entity::Move(Direction _direction) {
+  bool moved = false;
+
+  Battle::Tile* temp = tile;
+  if (_direction == Direction::UP) {
+    if (tile->GetY() - 1 > 0) {
+      next = field->GetAt(tile->GetX(), tile->GetY() - 1);
+      if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+        ;
+      }
+      else {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::LEFT) {
+    if (tile->GetX() - 1 > 0) {
+      next = field->GetAt(tile->GetX() - 1, tile->GetY());
+      if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+        ;
+      }
+      else {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::DOWN) {
+    if (tile->GetY() + 1 <= (int)field->GetHeight()) {
+      next = field->GetAt(tile->GetX(), tile->GetY() + 1);
+      if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+        ;
+      }
+      else {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::RIGHT) {
+    if (tile->GetX() + 1 <= static_cast<int>(field->GetWidth())) {
+      next = field->GetAt(tile->GetX() + 1, tile->GetY());
+      if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+        ;
+      }
+      else {
+        next = nullptr;
+      }
+    }
+  }
+
+  if (next) {
+    this->previousDirection = _direction;
+
+    previous = temp;
+
+    if (isSliding) return false;
+
+    moved = true;
+  }
+  return moved;
+}
+
+bool Entity::CanMoveTo(Battle::Tile * next)
+{
+  return next? (this->HasFloatShoe()? true : next->IsWalkable()) : false;
 }
 
 vector<Drawable*> Entity::GetMiscComponents() {
@@ -180,6 +248,10 @@ void Entity::AdoptNextTile()
 {
   if (next == nullptr) return;
 
+  if (next->GetState() == TileState::ICE && !this->HasFloatShoe()) {
+    this->SlideToTile(true);
+  }
+
   SetTile(next);
   tile->AddEntity(this);
 
@@ -189,6 +261,13 @@ void Entity::AdoptNextTile()
   }
 
   next = nullptr;
+
+  if (this->isSliding) {
+    std::cout << "direction: " << (int)this->GetPreviousDirection() << std::endl;
+    this->Move(this->GetPreviousDirection());
+
+    if (!next) this->SlideToTile(false);
+  }
 
   moveCount++;
 }

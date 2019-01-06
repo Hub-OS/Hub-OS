@@ -54,15 +54,12 @@ void PA::LoadPA()
     if (line.find("PA") != string::npos) {
       if (!currSteps.empty()) {
         if (currSteps.size() > 1) {
-          std::cout << "PA entry 1: " << currPA << " " << (unsigned)atoi(icon.c_str()) << " " << (unsigned)atoi(damage.c_str()) << " " << type << endl;
-
           Element elemType = ChipLibrary::GetElementFromStr(type);
 
           advances.push_back(PA::PAData({ currPA, (unsigned)atoi(icon.c_str()), (unsigned)atoi(damage.c_str()), elemType, currSteps }));
           currSteps.clear();
         }
         else {
-          //std::cout << "Error. PA " + currPA + " only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.\n";
           Logger::Log("Error. PA \"" + currPA + "\": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.");
           currSteps.clear();
         }
@@ -79,7 +76,6 @@ void PA::LoadPA()
       currSteps.push_back(PA::PAData::Required({ name,code[0] }));
 
       //std::cout << "chip step: " << name << " " << code[0] << endl;
-
     }
 
     data = data.substr(endline + 1);
@@ -135,8 +131,6 @@ const int PA::FindPA(Chip ** input, unsigned size)
   for (iter = advances.begin(); iter != advances.end(); iter++) {
     bool match = false;
     
-    std::cout << "iter->steps.size() " << iter->steps.size() << "\n";
-
     if (iter->steps.size() > size) {
       continue; // try next 
     }
@@ -151,11 +145,6 @@ const int PA::FindPA(Chip ** input, unsigned size)
           char code = input[i + index]->GetCode();
 
           if (code == '=') { code = '*'; } // Transform back from compatible font char
-
-          std::cout << "iter->steps[i].code " << iter->steps[i].code << "\n";
-          std::cout << "code " << code << "\n";
-          std::cout << "iter->steps[i].chipShortName " << iter->steps[i].chipShortName << "\n";
-          std::cout << "input[i]->GetShortName() " << input[i + index]->GetShortName() << "\n";
 
           if (iter->steps[i].code == code && iter->steps[i].chipShortName == input[i + index]->GetShortName()) {
             match = true;

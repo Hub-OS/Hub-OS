@@ -221,11 +221,6 @@ namespace Battle {
       _entity->SetTile(this);
       entities.push_back(_entity);
 
-      if (this->state == TileState::ICE && slideCooldown <= 0.0f && !_entity->HasFloatShoe())
-      {
-        _entity->SlideToTile(true);
-      }
-
       // Sort by layer (draw order)
       // e.g. layer 0 draws first so it must be last in the draw list
       std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
@@ -297,8 +292,6 @@ namespace Battle {
           hasSpell = isSpell->IsTileHighlightEnabled();
       }
 
-      (*entity)->Update(_elapsed);
-
       if (this->state == TileState::LAVA && lavaBurnCooldown <= 0.0f) {
         Character* character = dynamic_cast<Character*>(*entity);
 
@@ -306,10 +299,12 @@ namespace Battle {
           character->SetHealth(character->GetHealth() - 1);
         }
       }
+
+      (*entity)->Update(_elapsed);
     }
 
     this->RefreshTexture();
-
+    
     if (state == TileState::BROKEN) {
       cooldown -= 1 * _elapsed;
     }

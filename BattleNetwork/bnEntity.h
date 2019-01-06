@@ -26,7 +26,8 @@ public:
   virtual const bool Hit(int damage);
   virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction) = 0;
+  virtual bool Move(Direction _direction);
+  virtual bool CanMoveTo(Battle::Tile* next);
   virtual vector<Drawable*> GetMiscComponents();
   virtual TextureType GetTextureType();
 
