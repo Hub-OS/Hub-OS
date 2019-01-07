@@ -95,7 +95,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
 
-  gotoNextScene = false;
+  gotoNextScene = true;
 
   pixelated = LOAD_SHADER(TEXEL_PIXEL_BLUR);
 
@@ -247,6 +247,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
 
 void SelectNaviScene::onStart()
 {
+  gotoNextScene = false;
 }
 
 void SelectNaviScene::onLeave()
@@ -263,6 +264,7 @@ void SelectNaviScene::onEnter()
 
 void SelectNaviScene::onResume()
 {
+  gotoNextScene = false;
 }
 
 void SelectNaviScene::onEnd()

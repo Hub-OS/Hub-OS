@@ -43,6 +43,7 @@ public:
     }
 
     stateMachine->ChangeState<U>();
+    this->Update(0);
   }
 
   /*
@@ -61,10 +62,12 @@ template<typename U, typename ...Args>
     }
 
     if (!stateMachine) {
+      std::cout << "changing AI state to NoState" << std::endl;
       stateMachine = new NoState<T>();
     }
 
     stateMachine->ChangeState<U>(args...);
+    this->Update(0);
   }
 
   void Update(float _elapsed) {

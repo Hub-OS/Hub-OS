@@ -78,7 +78,7 @@ void Canodumb::Update(float _elapsed) {
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
     healthUI->Update();
-    Entity::Update(_elapsed);
+    Character::Update(_elapsed);
 
     if (stunCooldown <= 0) {
       stunCooldown = 0;
@@ -105,7 +105,7 @@ void Canodumb::Update(float _elapsed) {
     animationComponent.Update(_elapsed);
   }
 
-  Entity::Update(_elapsed);
+  Character::Update(_elapsed);
 }
 
 vector<Drawable*> Canodumb::GetMiscComponents() {

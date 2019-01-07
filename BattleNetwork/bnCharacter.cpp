@@ -8,6 +8,8 @@ Character::Character(Rank _rank) :
   stunCooldown(0),
   name("unnamed"),
   rank(_rank) {
+  burnCycle = sf::milliseconds(150);
+  elapsedBurnTime = burnCycle.asSeconds();
 }
 
 Character::~Character() {
@@ -18,6 +20,20 @@ const Character::Rank Character::GetRank() const {
 }
 
 void Character::Update(float _elapsed) {
+  elapsedBurnTime -= _elapsed;
+
+  if (this->IsBattleActive()) {
+    if (this->GetTile() && this->GetTile()->GetState() == TileState::LAVA) {
+      if (elapsedBurnTime <= 0 && this->GetElement() != Element::FIRE) {
+        elapsedBurnTime = burnCycle.asSeconds();
+        this->SetHealth(this->GetHealth() - 1);
+      }
+    }
+    else {
+      elapsedBurnTime = 0;
+    }
+  }
+
   Entity::Update(_elapsed);
 }
 
@@ -53,9 +69,14 @@ const float Character::GetHitHeight() const {
   return 0;
 }
 
-const bool Character::Hit(int damage, bool recoil) {
-  //assert(false && "Hit shouldn't be called directly from Entity");
-  return false;
+const bool Character::Hit(int damage) {
+  this->SetHealth(this->GetHealth() - damage);
+
+  if (this->GetHealth() < 0) {
+    this->SetHealth(0);
+  }
+
+  return true;
 }
 
 int* Character::GetAnimOffset() {

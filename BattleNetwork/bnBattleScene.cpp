@@ -245,7 +245,7 @@ void BattleScene::onUpdate(double elapsed) {
   // e.g.
   /*
     // Somewhere in the scene's INIT routine...
-    Battle::Component* component = player->GetComponent<PlayerHealthUI>();
+    Component* component = player->GetComponent<PlayerHealthUI>();
     SceneNode* healthUI = dynamic_cast<SceneNode*>(component); // is of both types
     if(healthUI) {
       chipCustGUI.AddSceneNode(healthUI); // healthUI will now offset in chipcustGUI local space
@@ -274,6 +274,8 @@ void BattleScene::onUpdate(double elapsed) {
   if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle)) {
     customProgress += elapsed;
 
+    field->SetBattleActive(true);
+
     // Update components
     for (auto c : components) {
       c->Update(elapsed);
@@ -286,6 +288,7 @@ void BattleScene::onUpdate(double elapsed) {
   }
   else {
     battleTimer.pause();
+    field->SetBattleActive(false);
   }
 }
 
@@ -356,6 +359,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       float repos = (float)(tile->getPosition().y - 4.f) - (tile->GetHeight() / 1.5f);
       heatShader.setUniform("y", repos);
 
+      surface.display();
       sf::Texture postprocessing = surface.getTexture(); // Make a copy
 
       sf::Sprite distortionPost;
@@ -373,6 +377,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       float repos = (float)(tile->getPosition().y - 4.f);
       iceShader.setUniform("y", repos);
 
+      surface.display();
       sf::Texture postprocessing = surface.getTexture(); // Make a copy
 
       sf::Sprite reflectionPost;
@@ -829,13 +834,14 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           if (battleResults->IsFinished()) {
             BattleItem* reward = battleResults->GetReward();
             
-            if (reward) {
+            if (reward != nullptr) {
               if (reward->IsChip()) {
                 // TODO: sent the battle item off to the player's 
                 // persistent session storage
                 CHIPLIB.AddChip(reward->GetChip());
+                delete reward;
+                reward = nullptr;
               }
-              delete reward;
             }
 
             using segue = swoosh::intent::segue<PixelateBlackWashFade>;

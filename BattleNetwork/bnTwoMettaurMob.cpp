@@ -22,7 +22,7 @@ Mob* TwoMettaurMob::Build() {
         Battle::Tile* tile = field->GetAt(i + 1, j + 1);
         if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE) {
           if (rand() % 50 > 25 && count-- > 0)
-            mob->Spawn<ChipsSpawnPolicy<Mettaur, MettaurIdleState>>(i + 1, j + 1);
+            mob->Spawn<Rank1<Mettaur, MettaurIdleState>>(i + 1, j + 1);
         }
       }
     }

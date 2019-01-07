@@ -32,7 +32,10 @@ public:
 
   void Update(float _elapsed);
 
+  void SetBattleActive(bool state);
+
 private:
+  bool isBattleActive;
   int width;
   int height;
   vector<vector<Battle::Tile*>> tiles;

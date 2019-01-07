@@ -9,8 +9,6 @@
 #define START_X 0.0f
 #define START_Y 144.f
 #define COOLDOWN 10.f
-#define LAVA_COOLDOWN 0.5f;
-#define SLIDE_COOLDOWN 0.1f;
 #define FLICKER 3.0f
 #define Y_OFFSET 10.0f
 
@@ -26,10 +24,6 @@ namespace Battle {
     }
     cooldown = 0.0f;
     cooldownLength = COOLDOWN;
-    slideCooldown = 0.0f;
-    slideCooldownLength = SLIDE_COOLDOWN;
-    lavaBurnCooldown = 0.0f;
-    lavaBurnCooldownLength = LAVA_COOLDOWN;
     state = TileState::NORMAL;
     RefreshTexture();
     elapsed = 0;
@@ -39,6 +33,7 @@ namespace Battle {
     height = getTextureRect().height * getScale().y;
     setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = false;
+    isBattleActive = false;
   }
 
   Tile::~Tile(void) {
@@ -114,6 +109,7 @@ namespace Battle {
     height = getTextureRect().height * getScale().y;
     setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = other.hasSpell;
+    isBattleActive = other.isBattleActive;
   }
 
   const TileState Tile::GetState() const {
@@ -127,14 +123,6 @@ namespace Battle {
 
     if (_state == TileState::CRACKED) {
       cooldown = cooldownLength;
-    }
-
-    if (_state == TileState::LAVA) {
-      lavaBurnCooldown = lavaBurnCooldownLength;
-    }
-
-    if (_state == TileState::ICE) {
-      slideCooldown = slideCooldownLength;
     }
 
     state = _state;
@@ -275,10 +263,6 @@ namespace Battle {
   void Tile::Update(float _elapsed) {
     hasSpell = false;
 
-    lavaBurnCooldown -= 1 * _elapsed;
-    slideCooldown -= 1 * _elapsed;
-
-
     vector<Entity*> copies = entities;
     for (vector<Entity*>::iterator entity = copies.begin(); entity != copies.end(); entity++) {
 
@@ -292,14 +276,7 @@ namespace Battle {
           hasSpell = isSpell->IsTileHighlightEnabled();
       }
 
-      if (this->state == TileState::LAVA && lavaBurnCooldown <= 0.0f) {
-        Character* character = dynamic_cast<Character*>(*entity);
-
-        if (character) {
-          character->SetHealth(character->GetHealth() - 1);
-        }
-      }
-
+      (*entity)->SetBattleActive(isBattleActive);
       (*entity)->Update(_elapsed);
     }
 
@@ -313,13 +290,9 @@ namespace Battle {
       state = TileState::NORMAL;
     }
 
-    if (lavaBurnCooldown <= 0.0f && state == TileState::LAVA) {
-      lavaBurnCooldown = lavaBurnCooldownLength; // restart timer
-    }
-
-    if (slideCooldown <= 0.0f && state == TileState::ICE) {
-      slideCooldownLength = slideCooldownLength; // restart timer
-    }
-
+  }
+  void Tile::SetBattleActive(bool state)
+  {
+    isBattleActive = state;
   }
 }

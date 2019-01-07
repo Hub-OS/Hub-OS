@@ -50,7 +50,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   mobSpr.setOrigin(mobSpr.getLocalBounds().width / 2.f, mobSpr.getLocalBounds().height / 2.f);
   mobSpr.setPosition(110.f, 130.f);
 
-  gotoNextScene = false;
+  gotoNextScene = true; 
   doOnce = false; // wait until the scene starts or resumes
   showMob = false;
 
@@ -352,6 +352,7 @@ void SelectMobScene::onStart() {
   factor = 125;
   doOnce = true;
   showMob = true;
+  gotoNextScene = false;
 }
 
 void SelectMobScene::onLeave() {

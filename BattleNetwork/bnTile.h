@@ -55,6 +55,8 @@ namespace Battle {
 
     void Update(float _elapsed);
 
+    void SetBattleActive(bool state);
+
     vector<Entity*> entities;
   private:
     int x;
@@ -69,11 +71,8 @@ namespace Battle {
     Field* field;
     float cooldown;
     float cooldownLength;
-    float slideCooldown;
-    float slideCooldownLength;
-    float lavaBurnCooldown;
-    float lavaBurnCooldownLength;
     bool hasSpell;
+    bool isBattleActive;
   };
 
 

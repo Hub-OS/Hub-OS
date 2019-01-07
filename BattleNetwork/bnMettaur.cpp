@@ -33,7 +33,7 @@ int Mettaur::currMetIndex = 0;
 
 Mettaur::Mettaur(Rank _rank)
   : animationComponent(this), AI<Mettaur>(this), Character(_rank) {
-  this->ChangeState<MettaurIdleState>();
+  //this->ChangeState<MettaurIdleState>();
   name = "Mettaur";
   Entity::team = Team::BLUE;
 
@@ -99,7 +99,7 @@ void Mettaur::Update(float _elapsed) {
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
     healthUI->Update();
-    Entity::Update(_elapsed);
+    Character::Update(_elapsed);
 
     if (stunCooldown <= 0) {
       stunCooldown = 0;
@@ -144,7 +144,7 @@ void Mettaur::Update(float _elapsed) {
     animationComponent.Update(_elapsed);
   }
 
-  Entity::Update(_elapsed);
+  Character::Update(_elapsed);
 }
 
 void Mettaur::RefreshTexture() {
@@ -167,13 +167,14 @@ void Mettaur::RefreshTexture() {
   }
   setTexture(*TEXTURES.GetTexture(textureType));
 
-  if (state == MOB_IDLE) {
-    setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 25.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 45.0f);
-    hitHeight = getLocalBounds().height;
-  } else if (state == MOB_MOVING) {
+  if (state == MOB_MOVING) {
     setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 35.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 60.0f);
   } else if (state == MOB_ATTACKING) {
     setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 55.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 105.0f);
+    hitHeight = getLocalBounds().height;
+  }
+  else {
+    setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 25.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 45.0f);
     hitHeight = getLocalBounds().height;
   }
 }

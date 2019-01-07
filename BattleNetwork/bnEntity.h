@@ -58,8 +58,13 @@ public:
   const Element GetElement() const;
 
   void AdoptNextTile();
+  void SetBattleActive(bool state);
+  const bool IsBattleActive() { return isBattleActive; }
 
 protected:
+  // used to toggle some effects inbetween paused scene moments
+  bool isBattleActive; 
+
   bool ownedByField;
   Battle::Tile* next;
   Battle::Tile* tile;

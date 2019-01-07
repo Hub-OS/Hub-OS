@@ -10,7 +10,7 @@
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
 Player::Player(void)
-  : health(100),
+  : health(150),
   state(PLAYER_IDLE),
   chargeComponent(this),
   animationComponent(this),
@@ -100,7 +100,7 @@ void Player::Update(float _elapsed) {
   //Components updates
   chargeComponent.update(_elapsed);
 
-  Entity::Update(_elapsed);
+  Character::Update(_elapsed);
 }
 
 void Player::Attack(float _charge) {
@@ -135,7 +135,7 @@ int Player::GetHealth() const {
 }
 
 const bool Player::Hit(int _damage) {
-  return false;
+  // return false;
 
   if (this->IsPassthrough() || invincibilityCooldown > 0) return false;
 

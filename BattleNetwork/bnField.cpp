@@ -2,6 +2,7 @@
 #include "bnMemory.h"
 
 Field::Field(void) {
+  isBattleActive = false;
 }
 
 Field::Field(int _width, int _height)
@@ -18,6 +19,8 @@ Field::Field(int _width, int _height)
     }
     tiles.push_back(row);
   }
+
+  isBattleActive = false;
 }
 
 Field::~Field(void) {
@@ -123,6 +126,12 @@ void Field::Update(float _elapsed) {
     for (int x = 0; x < width; x++) {
       tiles[y][x]->Update(_elapsed);
       entityCount += (int)tiles[y][x]->entities.size();
+      tiles[y][x]->SetBattleActive(isBattleActive);
     }
   }
+}
+
+void Field::SetBattleActive(bool state)
+{
+  isBattleActive = state;
 }

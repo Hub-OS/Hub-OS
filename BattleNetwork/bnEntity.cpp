@@ -11,13 +11,14 @@ Entity::Entity()
   previousDirection(Direction::NONE),
   direction(Direction::NONE),
   team(Team::UNKNOWN),
+  isBattleActive(false),
   deleted(false),
   passthrough(false),
   ownedByField(false),
   isSliding(false),
   element(Element::NONE),
   tileOffset(sf::Vector2f(0,0)) {
-  slideTime = sf::milliseconds(250);
+  slideTime = sf::milliseconds(200);
   elapsedSlideTime = 0;
 }
 
@@ -271,4 +272,9 @@ void Entity::AdoptNextTile()
   }
 
   moveCount++;
+}
+
+void Entity::SetBattleActive(bool state)
+{
+  isBattleActive = state;
 }

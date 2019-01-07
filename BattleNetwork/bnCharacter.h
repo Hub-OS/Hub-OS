@@ -22,7 +22,7 @@ public:
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
 
-  virtual const bool Hit(int damage, bool recoil = true);
+  virtual const bool Hit(int damage);
   virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
   virtual vector<Drawable*> GetMiscComponents();
@@ -50,4 +50,6 @@ protected:
   std::string name;
   double stunCooldown;
   Character::Rank rank;
+  sf::Time burnCycle; // how long until a tile burns an entity
+  double elapsedBurnTime; // in seconds
 };

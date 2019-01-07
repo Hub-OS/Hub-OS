@@ -58,7 +58,11 @@ void Engine::Draw(LayeredDrawable* _drawable) {
   if (shader && shader->Get()) {
     const sf::Texture* original = context->getTexture();
     shader->ApplyUniforms();
-    surface->draw(*context, shader->Get()); // bake
+
+    sf::RenderStates newState = state;
+    newState.shader = shader->Get();
+
+    surface->draw(*context, newState); // bake
     shader->ResetUniforms();
   } else {
     Draw(context, true);
@@ -100,7 +104,12 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
     SmartShader& shader = context->GetShader();
     if (shader.Get() != nullptr) {
       shader.ApplyUniforms();
-      surface->draw(*context, shader.Get()); // bake
+
+      sf::RenderStates newState = state;
+      newState.shader = shader.Get();
+
+      surface->draw(*context, newState); // bake
+
       shader.ResetUniforms();
     } else {
       Draw(context, true);

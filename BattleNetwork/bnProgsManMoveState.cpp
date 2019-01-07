@@ -53,7 +53,7 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
 
   // otherwise aimlessly move around 
   int randDirection = rand() % 4;
-  nextDirection = static_cast<Direction>(randDirection);
+  nextDirection = static_cast<Direction>(randDirection+1);
 
   if (nextDirection == Direction::UP) {
     if (progs.tile->GetY() - 1 > 0) {
