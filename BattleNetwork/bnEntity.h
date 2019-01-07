@@ -65,6 +65,7 @@ protected:
   Battle::Tile* tile;
   Battle::Tile* previous;
   sf::Vector2f tileOffset;
+  sf::Vector2f slideStartPosition;
   Field* field;
   Team team;
   Element element;
@@ -73,6 +74,8 @@ protected:
   bool isSliding; // If sliding/gliding to a tile
   bool deleted;
   int moveCount;
+  sf::Time slideTime; // how long slide behavior lasts
+  double elapsedSlideTime; // in seconds
   Direction direction;
   Direction previousDirection;
 };

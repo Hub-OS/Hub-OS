@@ -1,7 +1,7 @@
 #include "bnEntity.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "Swoosh\Game.h"
+#include "Swoosh\Ease.h"
 
 Entity::Entity()
   : tile(nullptr),
@@ -17,6 +17,8 @@ Entity::Entity()
   isSliding(false),
   element(Element::NONE),
   tileOffset(sf::Vector2f(0,0)) {
+  slideTime = sf::milliseconds(250);
+  elapsedSlideTime = 0;
 }
 
 Entity::~Entity() {
@@ -27,26 +29,21 @@ void Entity::Update(float _elapsed) {
     return;
 
   if (isSliding && this->next) {
-    
-    sf::Vector2f pos = this->getPosition() + this->tileOffset;
+    elapsedSlideTime += _elapsed;
+
+    sf::Vector2f pos = this->slideStartPosition;
     sf::Vector2f tar = this->next->getPosition();
     tar = sf::Vector2f(tar.x + (tile->GetWidth() / 2.0f), tar.y  + (tile->GetHeight() / 2.0f));
 
-    sf::Vector2f delta = swoosh::game::directionTo<float>(tar, pos);
-    delta.x = delta.x * 200.0 * _elapsed;
-    delta.y = delta.y * 200.0 *_elapsed;
+    float delta = swoosh::ease::linear((float)elapsedSlideTime, slideTime.asSeconds(), 1.0f);
+    auto interpol = tar * delta + (pos*(1.0f - delta));
+    this->tileOffset = interpol - pos;
 
-    this->tileOffset += delta;
+    
 
-    auto x = tar.x - pos.x;
-    auto y = tar.y - pos.y;
-
-    x *= x; y *= y;
-
-    std::cout << "delta.x, delta.y" << x << ", " << y << std::endl;
-
-    if (x + y  < 10.0f)
+    if(delta == 1.0f)
     {
+      elapsedSlideTime = 0;
       Battle::Tile* prevTile = this->GetTile();
       this->tileOffset = sf::Vector2f(0, 0);
 
@@ -265,6 +262,10 @@ void Entity::AdoptNextTile()
   if (this->isSliding) {
     std::cout << "direction: " << (int)this->GetPreviousDirection() << std::endl;
     this->Move(this->GetPreviousDirection());
+
+    // calculate our new entity's position in world coordinates based on next tile
+    // It's the same in the update loop, but we need the value right at this moment
+    slideStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x + (tile->GetWidth() / 2.0f), tileOffset.y + tile->getPosition().y + (tile->GetHeight() / 2.0f));
 
     if (!next) this->SlideToTile(false);
   }

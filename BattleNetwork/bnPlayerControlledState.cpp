@@ -91,7 +91,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     direction = Direction::NONE;
   }
 
-  if (direction != Direction::NONE && player.state != PLAYER_SHOOTING /*&& !player.isSliding*/) {
+  if (direction != Direction::NONE && player.state != PLAYER_SHOOTING && !player.isSliding) {
     bool moved = player.Move(direction);
 
     if (moved) {

@@ -2,6 +2,7 @@
 using std::to_string;
 
 #include "bnPlayer.h"
+#include "bnTile.h"
 #include "bnPlayerHealthUI.h"
 #include "bnTextureResourceManager.h"
 
@@ -67,7 +68,15 @@ void PlayerHealthUI::Update() {
     text.setPosition(80.0f, -1.f);
     text.setScale(0.8f, 0.8f);
 
-    if (currHP > player->GetHealth()) {
+    bool isBurning = false;
+    
+    if (player->GetTile()) {
+      isBurning = player->GetTile()->GetState() == TileState::LAVA;
+      isBurning = isBurning && player->GetElement() != Element::FIRE;
+      isBurning = isBurning && !player->HasFloatShoe();
+    }
+
+    if (currHP > player->GetHealth() || isBurning) {
       text.setFillColor(sf::Color(255, 165, 0));
     } else if (currHP < player->GetHealth()) {
       text.setFillColor(sf::Color(0, 255, 80));
