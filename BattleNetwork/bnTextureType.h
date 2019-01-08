@@ -58,6 +58,7 @@ enum TextureType {
   CHIP_ICONS,
   CHIP_NODATA,
   CHIP_SENDDATA,
+  CHIP_LOCK,
 
   // In-battle signs
   PROGRAM_ADVANCE,

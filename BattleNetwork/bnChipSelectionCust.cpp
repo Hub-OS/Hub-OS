@@ -35,8 +35,13 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) :
 
   cursorBig = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CURSOR_BIG));
   cursorBig.setScale(sf::Vector2f(2.f, 2.f));
-  cursorBig.setPosition(sf::Vector2f(2.f*92.f, 2.f*111.f));
 
+  // never moves
+  cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*122.f));
+
+  chipLock = sf::Sprite(LOAD_TEXTURE(CHIP_LOCK));
+  chipLock.setScale(sf::Vector2f(2.f, 2.f));
+  
   sf::Texture* card = TEXTURES.GetTexture(TextureType::CHIP_CARDS);
   chipCard.setTexture(*card);
   chipCard.setScale(2.f, 2.f);
@@ -59,6 +64,16 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) :
   smCodeLabel.setFont(*codeFont);
   smCodeLabel.setCharacterSize(12);
   smCodeLabel.setFillColor(sf::Color::Yellow);
+
+  cursorSmallAnimator = Animation("resources/ui/cursor_small.animation");
+  cursorSmallAnimator.Load();
+  cursorSmallAnimator.SetAnimation("BLINK");
+  cursorSmallAnimator << Animate::Mode(Animate::Mode::Loop);
+
+  cursorBigAnimator = Animation("resources/ui/cursor_big.animation");
+  cursorBigAnimator.Load();
+  cursorBigAnimator.SetAnimation("BLINK");
+  cursorBigAnimator << Animate::Mode(Animate::Mode::Loop);
 }
 
 
@@ -268,7 +283,7 @@ void ChipSelectionCust::Draw() {
   ENGINE.Draw(custSprite, false);
 
   if (IsInView()) {
-    cursorSmall.setPosition(2.f*(7.0f + (cursorPos*16.0f)), 2.f*(103.f + (cursorRow*24.f))); // TODO: Make this relative to cust instead of screen
+    cursorSmall.setPosition(2.f*(16.0f + (cursorPos*16.0f)), 2.f*(113.f + (cursorRow*24.f))); // TODO: Make this relative to cust instead of screen
 
     int row = 0;
     for (int i = 0; i < chipCount; i++) {
@@ -306,6 +321,9 @@ void ChipSelectionCust::Draw() {
       icon.setPosition(2 * 97.f, 2.f*(25.0f + (i*16.0f)));
       sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID((*selectQueue[i]).data->GetIconID());
       icon.setTextureRect(iconSubFrame);
+
+      chipLock.setPosition(2 * 93.f, 2.f*(23.0f + (i*16.0f)));
+      ENGINE.Draw(chipLock, false);
       ENGINE.Draw(icon, false);
     }
 
@@ -362,6 +380,12 @@ void ChipSelectionCust::Draw() {
       ENGINE.Draw(cursorBig, false);
     }
   }
+}
+
+void ChipSelectionCust::Update(float elapsed)
+{
+  cursorSmallAnimator.Update(elapsed, &cursorSmall);
+  cursorBigAnimator.Update(elapsed, &cursorBig);
 }
 
 Chip** ChipSelectionCust::GetChips() {

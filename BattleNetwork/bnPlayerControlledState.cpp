@@ -54,7 +54,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     return;
 
   static Direction direction = Direction::NONE;
-  if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN) {
+  if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN && player.IsBattleActive()) {
     if (inputManager->has(PRESSED_UP)) {
       direction = Direction::UP;
     }

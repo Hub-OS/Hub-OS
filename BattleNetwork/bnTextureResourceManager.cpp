@@ -139,6 +139,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/chip_icons.png");
   paths.push_back("resources/ui/chip_nodata.png");
   paths.push_back("resources/ui/chip_senddata.png");
+  paths.push_back("resources/ui/chip_lock.png");
 
   // In battle signs
   paths.push_back("resources/ui/program_advance.png");

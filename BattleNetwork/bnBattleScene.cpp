@@ -271,7 +271,7 @@ void BattleScene::onUpdate(double elapsed) {
   }
 
   // update the cust if not paused nor in chip select nor in mob intro nor battle results
-  if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle)) {
+  if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle)) {  
     customProgress += elapsed;
 
     field->SetBattleActive(true);
@@ -290,6 +290,8 @@ void BattleScene::onUpdate(double elapsed) {
     battleTimer.pause();
     field->SetBattleActive(false);
   }
+
+  chipCustGUI.Update(elapsed);
 }
 
 void BattleScene::onDraw(sf::RenderTexture& surface) {

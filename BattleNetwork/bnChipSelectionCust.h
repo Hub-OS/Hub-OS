@@ -5,6 +5,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnChipFolder.h"
 #include "bnEngine.h"
+#include "bnAnimation.h"
 
 class ChipSelectionCust {
 public:
@@ -15,8 +16,11 @@ public:
 
 private:
   sf::Sprite custSprite;
-  sf::Sprite cursorSmall; // TODO: make these two animate
-  sf::Sprite cursorBig;
+  sf::Sprite cursorSmall; // animated
+  sf::Sprite cursorBig;   // animated
+  sf::Sprite chipLock;
+  Animation cursorSmallAnimator;
+  Animation cursorBigAnimator;
   LayeredDrawable icon;
   LayeredDrawable chipCard;
   LayeredDrawable chipNoData;
@@ -54,6 +58,7 @@ public:
   void Move(sf::Vector2f delta);
   const sf::Vector2f GetOffset() const { return custSprite.getPosition() - sf::Vector2f(-custSprite.getTextureRect().width*2.f, 0.f); } // TODO: Get rid. See BattleScene.cpp line 241
   void Draw();
+  void Update(float elapsed);
 
   // Chip ops
   void GetNextChips();
