@@ -45,5 +45,5 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
 
   tile = 0;
 
-  progs.ChangeState<ProgsManIdleState>();
+  this->ChangeState<ProgsManIdleState>();
 }

@@ -38,13 +38,15 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
       else {
         if (target->GetTile()->GetX() == progs.GetTile()->GetX() - 1) {
           // Punch
-          return progs.ChangeState<ProgsManPunchState>();
+          this->ChangeState<ProgsManPunchState>();
+          return;
         }
         else {
           // Try shooting. 
 
           // Throw bombs.
-          return progs.ChangeState<ProgsManThrowState>();
+          this->ChangeState<ProgsManThrowState>();
+          return;
         }
       }
     }
@@ -128,12 +130,12 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
   if (next) {
     progs.tile->AddEntity((Entity*)&progs);
     temp->RemoveEntity((Entity*)&progs);
-    auto onFinish = [&progs]() { progs.ChangeState<ProgsManIdleState>(); };
+    auto onFinish = [&progs, this]() { this->ChangeState<ProgsManIdleState>(); };
     progs.SetAnimation(MOB_MOVING, onFinish);
     isMoving = true;
   }
   else {
-    progs.ChangeState<ProgsManIdleState>();
+    this->ChangeState<ProgsManIdleState>();
   }
 }
 

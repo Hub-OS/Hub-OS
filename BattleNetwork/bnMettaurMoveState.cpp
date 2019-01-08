@@ -45,65 +45,11 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
     }
   }
 
-  if (nextDirection == Direction::UP) {
-    if (met.tile->GetY() - 1 > 0) {
-      next = met.field->GetAt(met.tile->GetX(), met.tile->GetY() - 1);
-      if (met.Teammate(next->GetTeam()) && next->IsWalkable())
-        if (!next->ContainsEntityType<Character>()) {
-          met.SetTile(next);
-        }
-        else {
-          next = nullptr;
-          nextDirection = Direction::DOWN;
-        }
-      else
-        next = nullptr;
-    }
-    else {
-      nextDirection = Direction::DOWN;
-    }
-  }
-  else if (nextDirection == Direction::LEFT) {
-    if (met.tile->GetX() - 1 > 0) {
-      next = met.field->GetAt(met.tile->GetX() - 1, met.tile->GetY());
-      if (met.Teammate(next->GetTeam()) && next->IsWalkable())
-        met.SetTile(next);
-      else
-        next = nullptr;
-    }
-  }
-  else if (nextDirection == Direction::DOWN) {
-    if (met.tile->GetY() + 1 <= (int)met.field->GetHeight()) {
-      next = met.field->GetAt(met.tile->GetX(), met.tile->GetY() + 1);
-      if (met.Teammate(next->GetTeam()) && next->IsWalkable())
-        if (!next->ContainsEntityType<Character>()) {
-          met.SetTile(next);
-        }
-        else {
-          next = nullptr;
-          nextDirection = Direction::UP;
-        }
-      else
-        next = nullptr;
-    }
-    else {
-      nextDirection = Direction::UP;
-    }
-  }
-  else if (nextDirection == Direction::RIGHT) {
-    if (met.tile->GetX() + 1 <= (int)met.field->GetWidth()) {
-      next = met.field->GetAt(met.tile->GetX() + 1, met.tile->GetY());
-      if (met.Teammate(next->GetTeam()) && next->IsWalkable())
-        met.SetTile(next);
-      else
-        next = nullptr;
-    }
-  }
-
-
-  if (next) {
-    met.tile->AddEntity((Entity*)&met);
-    temp->RemoveEntity((Entity*)&met);
+  bool moved = met.Move(nextDirection);
+  std::cout << "moved: " << moved << std::endl;
+  
+  if (moved) {
+    met.AdoptNextTile();
     auto onFinish = [&]() { this->ChangeState<MettaurIdleState>(); };
     met.SetAnimation(MOB_MOVING, onFinish);
     isMoving = true;

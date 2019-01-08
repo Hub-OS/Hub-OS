@@ -177,6 +177,8 @@ void Mettaur::RefreshTexture() {
     setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 25.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 45.0f);
     hitHeight = getLocalBounds().height;
   }
+
+  setPosition(getPosition() + tileOffset);
 }
 
 vector<Drawable*> Mettaur::GetMiscComponents() {

@@ -10,7 +10,7 @@ private:
   AIState<T>* nextState;
 
 public:
-  AIState() { ; }
+  AIState() { nextState = nullptr; }
   AIState(const AIState<T>& rhs) = default;
   AIState(AIState<T>&& ref) = default;
 
