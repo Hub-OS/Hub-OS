@@ -101,7 +101,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
 
   // Load glowing pad animation (never changes/always plays)
   glowpadAnimator = Animation("resources/backgrounds/select/glow_pad.animation");
-  glowpadAnimator.Load();
+  glowpadAnimator.Reload();
   glowpadAnimator.SetAnimation("GLOW");
   glowpadAnimator << Animate::Mode(Animate::Mode::Loop);
 
@@ -274,13 +274,13 @@ void SelectNaviScene::onEnd()
 void SelectNaviScene::onUpdate(double elapsed) {
   this->elapsed = elapsed;
 
-  camera.Update(elapsed);
-  textbox.Update(elapsed);
+  camera.Update((float)elapsed);
+  textbox.Update((float)elapsed);
 
-  glowpadAnimator.Update(elapsed, &glowpad);
+  glowpadAnimator.Update((float)elapsed, &glowpad);
 
-  naviAnimator.Update(elapsed, &navi);
-  bg->Update(elapsed);
+  naviAnimator.Update((float)elapsed, &navi);
+  bg->Update((float)elapsed);
 
   SelectedNavi prevSelect = naviSelectionIndex;
 
@@ -338,7 +338,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
     factor = 125;
 
     naviAnimator = Animation(NAVIS.At(naviSelectionIndex).GetBattleAnimationPath());
-    naviAnimator.Load();
+    naviAnimator.Reload();
     naviAnimator.SetAnimation("PLAYER_IDLE");
     naviAnimator << Animate::Mode(Animate::Mode::Loop);
 

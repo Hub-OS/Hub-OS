@@ -35,7 +35,7 @@ Player::Player(void)
   chargeComponent.load();
 
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
 
   textureType = TextureType::NAVI_MEGAMAN_ATLAS;
   setTexture(*TEXTURES.GetTexture(textureType));

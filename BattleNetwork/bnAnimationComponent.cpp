@@ -25,9 +25,9 @@ void AnimationComponent::Setup(string _path)
   path = _path;
 }
 
-void AnimationComponent::Load() {
+void AnimationComponent::Reload() {
   animation = Animation(path);
-  animation.Load();
+  animation.Reload();
   this->Update(0);
 }
 

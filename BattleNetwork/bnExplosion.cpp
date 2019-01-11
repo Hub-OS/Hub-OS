@@ -17,7 +17,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
   animationComponent.Setup("resources/mobs/mob_explosion.animation");
-  animationComponent.Load();
+  animationComponent.Reload();
 
   int randNegX = 1;
   int randNegY = 1;
@@ -61,7 +61,7 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
   animationComponent.Setup("resources/mobs/mob_explosion.animation");
-  animationComponent.Load();
+  animationComponent.Reload();
 
   int randNegX = 1;
   int randNegY = 1;

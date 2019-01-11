@@ -31,7 +31,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   ui = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_UI));
   ui.setScale(2.f, 2.f);
   uiAnimator = Animation("resources/ui/main_menu_ui.animation");
-  uiAnimator.Load();
+  uiAnimator.Reload();
 
   // Keep track of selected navi
   currentNavi = 0;
@@ -40,7 +40,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   owNavi.setScale(2.f, 2.f);
   owNavi.setPosition(0, 0.f);
   naviAnimator = Animation("resources/navis/megaman/megaman.animation");
-  naviAnimator.Load();
+  naviAnimator.Reload();
   naviAnimator.SetAnimation("PLAYER_OW_RD");
   naviAnimator << Animate::Mode(Animate::Mode::Loop);
 
@@ -167,7 +167,7 @@ void MainMenuScene::onEnter()
   // If coming back from navi select, the navi has changed, update it
   owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
   naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
-  naviAnimator.Load();
+  naviAnimator.Reload();
   naviAnimator.SetAnimation("PLAYER_OW_RD");
   naviAnimator << Animate::Mode(Animate::Mode::Loop);
 }

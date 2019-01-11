@@ -13,16 +13,17 @@ Animation::Animation() : animator(), path("") {
 }
 
 Animation::Animation(const char* _path) : animator(), path(std::string(_path)) {
-    
+  Reload();
 }
 
 Animation::Animation(string _path) : animator(), path(_path) {
+  Reload();
 }
 
 Animation::~Animation() {
 }
 
-void Animation::Load() {
+void Animation::Reload() {
   int frameAnimationIndex = -1;
   vector<FrameList> frameLists;
   string currentState = "";
@@ -145,6 +146,11 @@ void Animation::SetAnimation(string state) {
      //throw std::runtime_error(std::string("No animation found in file for " + currAnimation));
      std::cout << "No animation found in file for " + currAnimation << std::endl;
    }
+}
+
+std::string Animation::GetAnimationString()
+{
+  return currAnimation;
 }
 
 FrameList & Animation::GetFrameList(std::string animation)

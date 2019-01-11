@@ -42,7 +42,7 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
 
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
   animationComponent.SetAnimation("ROLL_IDLE", [this] { 
     this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
 

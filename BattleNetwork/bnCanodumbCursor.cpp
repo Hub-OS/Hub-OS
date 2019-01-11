@@ -28,7 +28,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : a
 
   //Components setup and load
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
   animationComponent.SetAnimation(MOB_CANODUMB_CURSOR);
   animationComponent.Update(0);
 

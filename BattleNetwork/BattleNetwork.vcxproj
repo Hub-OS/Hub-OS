@@ -259,6 +259,7 @@
     <ClCompile Include="bnAgent.h" />
     <ClCompile Include="bnCanodumbCursor.cpp" />
     <ClCompile Include="bnNaviRegistration.cpp" />
+    <ClCompile Include="bnChipDescriptionTextbox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnAnimate.h" />
@@ -369,8 +370,9 @@
     <ClInclude Include="bnCanonSmoke.h" />
     <ClInclude Include="bnNaviRegistration.h" />
     <ClInclude Include="bnQueueNaviRegistration.h" />
-    <ClInclude Include="bnFramedTextBox.h" />
+    <ClInclude Include="bnAnimatedTextBox.h" />
     <ClInclude Include="bnChipSummonHandler.h" />
+    <ClInclude Include="bnChipDescriptionTextbox.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />

@@ -166,6 +166,10 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/backgrounds/select/info_box.png");
   paths.push_back("resources/backgrounds/select/symbol_slots.png");
 
+  // Mugshots
+  paths.push_back("resources/ui/navigator.png");
+  paths.push_back("resources/ui/textbox.png");
+
   // Background/foreground
   paths.push_back("resources/backgrounds/title/bg_blue.png");
   paths.push_back("resources/backgrounds/title/prog-pulse.png");

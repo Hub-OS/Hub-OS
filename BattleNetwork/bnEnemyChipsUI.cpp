@@ -69,7 +69,7 @@ void EnemyChipsUI::OnDraw()
 
 void EnemyChipsUI::LoadChips(std::vector<Chip> incoming) {
   selectedChips = incoming;
-  chipCount = incoming.size();
+  chipCount = (int)incoming.size();
   curr = 0;
 }
 

@@ -1,6 +1,7 @@
 #include "bnChipSelectionCust.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
+#include "bnInputManager.h"
 
 #define WILDCARD '='
 #define VOIDED 0
@@ -8,7 +9,8 @@
 #define QUEUED 2
 
 ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) : 
-  greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE))
+  greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
+  chipDescriptionTextbox(sf::Vector2f(4, 305), sf::IntRect(90, -100, 280, 100))
 {
   folder = _folder;
   cap = std::min(cap, 8);
@@ -66,12 +68,12 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) :
   smCodeLabel.setFillColor(sf::Color::Yellow);
 
   cursorSmallAnimator = Animation("resources/ui/cursor_small.animation");
-  cursorSmallAnimator.Load();
+  cursorSmallAnimator.Reload();
   cursorSmallAnimator.SetAnimation("BLINK");
   cursorSmallAnimator << Animate::Mode(Animate::Mode::Loop);
 
   cursorBigAnimator = Animation("resources/ui/cursor_big.animation");
-  cursorBigAnimator.Load();
+  cursorBigAnimator.Reload();
   cursorBigAnimator.SetAnimation("BLINK");
   cursorBigAnimator << Animate::Mode(Animate::Mode::Loop);
 }
@@ -196,9 +198,7 @@ bool ChipSelectionCust::CursorCancel() {
     return false;// nothing happened
   }
 
-  selectQueue[selectCount-1]->state = STAGED;
-
-  selectCount--;
+  selectQueue[--selectCount]->state = STAGED;
 
   if (selectCount == 0) {
     // Everything is selectable again
@@ -258,14 +258,44 @@ bool ChipSelectionCust::IsInView() {
   return (custSprite.getPosition().x == bounds);
 }
 
+bool ChipSelectionCust::IsChipDescriptionTextBoxOpen()
+{
+  return chipDescriptionTextbox.IsOpen();
+}
+
 void ChipSelectionCust::Move(sf::Vector2f delta) {
   custSprite.setPosition(custSprite.getPosition() + delta);
+}
+
+bool ChipSelectionCust::OpenChipDescription()
+{
+  int index = cursorPos + (5 * cursorRow);
+
+  if (!IsInView() || chipDescriptionTextbox.IsOpen() || 
+    (cursorPos == 5 && cursorRow == 0) || (index >= chipCount)) return false;
+ 
+  std::cout << "index: " << index << std::endl;
+
+  chipDescriptionTextbox.DescribeChip(queue[index].data);
+
+  return true;
+}
+
+bool ChipSelectionCust::CloseChipDescription() {
+  if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
+
+  chipDescriptionTextbox.Close();
+
+  return true;
 }
 
 void ChipSelectionCust::GetNextChips() {
   int perTurn = 3; // Limit how many new chips we get per turn
   for (int i = chipCount; i < chipCap; i++) {
     queue[i].data = folder->Next();
+
+    std::cout << "next chip description: " << queue[i].data->GetDescription() << std::endl;
+
     queue[i].state = STAGED;
 
     if (!queue[i].data) {
@@ -380,12 +410,29 @@ void ChipSelectionCust::Draw() {
       ENGINE.Draw(cursorBig, false);
     }
   }
+
+  ENGINE.Draw(chipDescriptionTextbox);
 }
 
 void ChipSelectionCust::Update(float elapsed)
 {
   cursorSmallAnimator.Update(elapsed, &cursorSmall);
   cursorBigAnimator.Update(elapsed, &cursorBig);
+
+  static bool A_HELD = false;
+
+  if (INPUT.has(PRESSED_A)) {
+    A_HELD = true;
+  }
+  else if (INPUT.has(RELEASED_A)) {
+    A_HELD = false;
+  }
+
+  if (A_HELD) {
+    elapsed *= 3.0;
+  } 
+  
+  chipDescriptionTextbox.Update(elapsed);
 }
 
 Chip** ChipSelectionCust::GetChips() {

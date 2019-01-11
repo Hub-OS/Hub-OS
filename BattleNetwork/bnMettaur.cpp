@@ -57,7 +57,7 @@ Mettaur::Mettaur(Rank _rank)
 
   //Components setup and load
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);

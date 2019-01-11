@@ -28,10 +28,10 @@ namespace Overworld {
     animator << Animate::Mode(Animate::Mode::Loop);
 
     progAnimations = Animation("resources/backgrounds/main_menu/prog.animation");
-    progAnimations.Load();
+    progAnimations.Reload();
 
     numbermanAnimations = Animation("resources/backgrounds/main_menu/numberman.animation");
-    numbermanAnimations.Load();
+    numbermanAnimations.Reload();
   }
 
   InfiniteMap::~InfiniteMap()

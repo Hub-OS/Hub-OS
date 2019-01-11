@@ -19,10 +19,12 @@ public:
   Animation(string _path);
   ~Animation();
 
-  void Load();
+  void Reload();
   void Update(float _elapsed, sf::Sprite* target, double playbackSpeed = 1.0);
   void SetFrame(int frame, sf::Sprite* target);
   void SetAnimation(string state);
+
+  std::string GetAnimationString();
 
   FrameList& GetFrameList(std::string animation);
 

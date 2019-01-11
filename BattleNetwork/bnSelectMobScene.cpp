@@ -3,7 +3,7 @@
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi) : 
   camera(ENGINE.GetDefaultView()),
-  textbox(280, 100),
+  textbox(320, 100, 30, "resources/fonts/mmbnthin_regular.ttf"),
   swoosh::Activity(controller)
 {
   selectedNavi = navi;
@@ -13,6 +13,15 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   menuLabel = new sf::Text("BATTLE SELECT", *font);
   menuLabel->setCharacterSize(15);
   menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+
+  navigator = sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR));
+  navigator.setScale(2.0f, 2.0f);
+  navigator.setPosition(10.0f, 208.0f);
+
+  navigatorAnimator = Animation("resources/ui/navigator.animation");
+  navigatorAnimator.Reload();
+  navigatorAnimator.SetAnimation("TALK");
+  navigatorAnimator << Animate::Mode::Loop;
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
@@ -100,6 +109,8 @@ void SelectMobScene::onResume() {
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
+  navigatorAnimator.Update(elapsed, &navigator);
+
   camera.Update(elapsed);
   textbox.Update(elapsed);
 
@@ -223,7 +234,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       mobSpr.setPosition(100.f, 130.f);
 
       mobAnimator = Animation("resources/mobs/canodumb/canodumb.animation");
-      mobAnimator.Load();
+      mobAnimator.Reload();
       mobAnimator.SetAnimation(MOB_CANODUMB_IDLE_1);
       mobAnimator.SetFrame(1, &mobSpr);
 
@@ -283,6 +294,17 @@ void SelectMobScene::onUpdate(double elapsed) {
 
     using segue = swoosh::intent::segue<CrossZoom>::to<BattleScene>;
     getController().push<segue>(player, mob);
+  }
+
+  bool isEqual = textbox.GetCurrentCharacter() == '\0';
+
+  if (isEqual && navigatorAnimator.GetAnimationString() != "IDLE") {
+    navigatorAnimator.SetAnimation("IDLE");
+    navigatorAnimator << Animate::Mode(Animate::Mode::Loop);
+  }
+  else if(!isEqual && navigatorAnimator.GetAnimationString() != "TALK") {
+    navigatorAnimator.SetAnimation("TALK");
+    navigatorAnimator << Animate::Mode(Animate::Mode::Loop);
   }
 }
 
@@ -345,6 +367,7 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   }
 
   ENGINE.Draw(textbox);
+  ENGINE.Draw(navigator);
 }
 
 void SelectMobScene::onStart() {

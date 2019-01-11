@@ -85,6 +85,10 @@ enum TextureType {
   CHAR_INFO_BOX,
   SYMBOL_SLOTS,
 
+  // Navigator and textbox
+  MUG_NAVIGATOR,
+  ANIMATED_TEXT_BOX,
+
   //Background/Foreground
   BACKGROUND_BLUE,
   TITLE_ANIM_CHAR,

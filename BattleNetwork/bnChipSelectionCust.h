@@ -6,6 +6,7 @@
 #include "bnChipFolder.h"
 #include "bnEngine.h"
 #include "bnAnimation.h"
+#include "bnChipDescriptionTextbox.h"
 
 class ChipSelectionCust {
 public:
@@ -41,11 +42,15 @@ private:
   Chip** selectedChips;
   Bucket* queue;
   Bucket** selectQueue;
+  ChipDescriptionTextbox chipDescriptionTextbox;
+
 public:
   ChipSelectionCust(ChipFolder* _folder, int);
   ~ChipSelectionCust();
 
   // GUI ops
+  bool OpenChipDescription();
+  bool CloseChipDescription();
   bool CursorUp();
   bool CursorDown();
   bool CursorRight();
@@ -55,6 +60,7 @@ public:
 
   bool IsOutOfView();
   bool IsInView();
+  bool IsChipDescriptionTextBoxOpen();
   void Move(sf::Vector2f delta);
   const sf::Vector2f GetOffset() const { return custSprite.getPosition() - sf::Vector2f(-custSprite.getTextureRect().width*2.f, 0.f); } // TODO: Get rid. See BattleScene.cpp line 241
   void Draw();

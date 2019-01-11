@@ -78,6 +78,9 @@ private:
   // Animator for mobs
   Animation mobAnimator;
 
+  sf::Sprite navigator;
+  Animation navigatorAnimator;
+
   bool gotoNextScene;
 
   SmartShader shader;

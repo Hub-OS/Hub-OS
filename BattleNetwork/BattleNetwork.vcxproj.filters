@@ -284,6 +284,9 @@
     <Filter Include="Activities\Battle\Content\Components\ChipUsePublisher\UI\Any">
       <UniqueIdentifier>{a9b3e791-0104-4027-a099-7c4207f47ea1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Cust\UI">
+      <UniqueIdentifier>{36e8f1dc-b46a-4384-b735-c0cfab8a122e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -528,6 +531,9 @@
     </ClCompile>
     <ClCompile Include="bnChipUsePublisher.cpp">
       <Filter>Activities\Battle\Content\Components\ChipUsePublisher</Filter>
+    </ClCompile>
+    <ClCompile Include="bnChipDescriptionTextbox.cpp">
+      <Filter>Activities\Battle\Content\Chips\Cust\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -808,9 +814,6 @@
     <ClInclude Include="bnBackground.h">
       <Filter>Prefabs\Background</Filter>
     </ClInclude>
-    <ClInclude Include="bnFramedTextBox.h">
-      <Filter>Prefabs\TextBox\Framed</Filter>
-    </ClInclude>
     <ClInclude Include="bnGridBackground.h">
       <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
@@ -897,6 +900,12 @@
     </ClInclude>
     <ClInclude Include="bnEnemyChipUseListener.h">
       <Filter>Activities\Battle\Content\Chips\ChipUseListener\Any</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipDescriptionTextbox.h">
+      <Filter>Activities\Battle\Content\Chips\Cust\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAnimatedTextBox.h">
+      <Filter>Prefabs\TextBox\Framed</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -20,7 +20,7 @@ CanonSmoke::CanonSmoke(Field* _field, Team _team) : animationComponent(this)
   //Components setup and load
   auto onFinish = [&]() { this->Delete();  };
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
   animationComponent.SetAnimation(MOB_CANODUMB_SMOKE, onFinish);
   animationComponent.Update(0);
 

@@ -21,8 +21,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   folder(new ChipFolder()),
   chipCustGUI(folder, 8),
   camera(*ENGINE.GetCamera()),
-  chipUI(player)
-{
+  chipUI(player) {
   if (mob->GetMobCount() == 0) {
     Logger::Log(std::string("Warning: Mob was empty when battle started. Mob Type: ") + typeid(mob).name());
   }
@@ -166,6 +165,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   distortionMap.setRepeated(true);
   distortionMap.setSmooth(true);
 
+  textureSize = getController().getInitialWindowSize();
+
   heatShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
   heatShader.setUniform("distortionMapTexture", distortionMap);
   heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2(textureSize.x, textureSize.y));
@@ -173,7 +174,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   iceShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2(textureSize.x, textureSize.y));
-  iceShader.setUniform("shine", 0.3f);
+  iceShader.setUniform("shine", 0.2f);
 }
 
 BattleScene::~BattleScene()
@@ -336,9 +337,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     static float totalTime = 0;
     totalTime += elapsed;
 
-    heatShader.setUniform("time", totalTime);
+    heatShader.setUniform("time", totalTime*0.02f);
     heatShader.setUniform("distortionFactor", 0.01f);
-    heatShader.setUniform("riseFactor", 0.02f);
+    heatShader.setUniform("riseFactor", 0.1f);
 
     heatShader.setUniform("w", tile->GetWidth() - 8.f);
     heatShader.setUniform("h", tile->GetHeight()*1.5f);
@@ -367,6 +368,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       sf::Sprite distortionPost;
       distortionPost.setTexture(postprocessing);
 
+      surface.clear();
+
       LayeredDrawable* bake = new LayeredDrawable(distortionPost);
       bake->SetShader(&heatShader);
 
@@ -384,6 +387,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
       sf::Sprite reflectionPost;
       reflectionPost.setTexture(postprocessing);
+
+      surface.clear();
 
       LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
       bake->SetShader(&iceShader);
@@ -516,7 +521,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
   else if (INPUT.has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle) {
-    chipUI.UseNextChip();
+     chipUI.UseNextChip();
   }
   else if ((!isMobFinished && mob->IsSpawningDone()) || 
     (
@@ -562,59 +567,72 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   }
   else if (isInChipSelect && chipCustGUI.IsInView()) {
-    if (INPUT.has(PRESSED_LEFT)) {
-      chipSelectInputCooldown -= elapsed;
+    if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
 
-      if (chipSelectInputCooldown <= 0) {
-        chipCustGUI.CursorLeft() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-        chipSelectInputCooldown = maxChipSelectInputCooldown;
-      }
-    }
-    else if (INPUT.has(PRESSED_RIGHT)) {
-      chipSelectInputCooldown -= elapsed;
+      if (INPUT.has(PRESSED_B)) {
+        std::cout << "B PRESSED" << std::endl;
 
-      if (chipSelectInputCooldown <= 0) {
-        chipCustGUI.CursorRight() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-        chipSelectInputCooldown = maxChipSelectInputCooldown;
-      }
-    }
-    else if (INPUT.has(PRESSED_UP)) {
-      chipSelectInputCooldown -= elapsed;
-
-      if (chipSelectInputCooldown <= 0) {
-        chipCustGUI.CursorUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-        chipSelectInputCooldown = maxChipSelectInputCooldown;
-      }
-    }
-    else if (INPUT.has(PRESSED_DOWN)) {
-      chipSelectInputCooldown -= elapsed;
-
-      if (chipSelectInputCooldown <= 0) {
-        chipCustGUI.CursorDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-        chipSelectInputCooldown = maxChipSelectInputCooldown;
-      }
+        chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
+      } 
     }
     else {
-      chipSelectInputCooldown = 0;
-    }
+      if (INPUT.has(PRESSED_LEFT)) {
+        chipSelectInputCooldown -= elapsed;
 
-    if (INPUT.has(PRESSED_A)) {
-      bool performed = chipCustGUI.CursorAction();
-
-      if (chipCustGUI.AreChipsReady()) {
-        AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOWEST);
-        customProgress = 0; // NOTE: Hack. Need one more state boolean
-        //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f)); 
+        if (chipSelectInputCooldown <= 0) {
+          chipCustGUI.CursorLeft() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          chipSelectInputCooldown = maxChipSelectInputCooldown;
+        }
       }
-      else if (performed) {
-        AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::LOWEST);
+      else if (INPUT.has(PRESSED_RIGHT)) {
+        chipSelectInputCooldown -= elapsed;
+
+        if (chipSelectInputCooldown <= 0) {
+          chipCustGUI.CursorRight() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          chipSelectInputCooldown = maxChipSelectInputCooldown;
+        }
+      }
+      else if (INPUT.has(PRESSED_UP)) {
+        chipSelectInputCooldown -= elapsed;
+
+        if (chipSelectInputCooldown <= 0) {
+          chipCustGUI.CursorUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          chipSelectInputCooldown = maxChipSelectInputCooldown;
+        }
+      }
+      else if (INPUT.has(PRESSED_DOWN)) {
+        chipSelectInputCooldown -= elapsed;
+
+        if (chipSelectInputCooldown <= 0) {
+          chipCustGUI.CursorDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          chipSelectInputCooldown = maxChipSelectInputCooldown;
+        }
       }
       else {
-        AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
+        chipSelectInputCooldown = 0;
       }
-    }
-    else if (INPUT.has(PRESSED_B)) {
-      chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::LOWEST) : 1;
+
+      if (INPUT.has(PRESSED_A)) {
+        bool performed = chipCustGUI.CursorAction();
+
+        if (chipCustGUI.AreChipsReady()) {
+          AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOWEST);
+          customProgress = 0; // NOTE: Hack. Need one more state boolean
+          //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f)); 
+        }
+        else if (performed) {
+          AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::LOWEST);
+        }
+        else {
+          AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
+        }
+      }
+      else if (INPUT.has(PRESSED_B)) {
+        chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::LOWEST) : 1;
+      }
+      else if (INPUT.has(PRESSED_PAUSE)) {
+        chipCustGUI.OpenChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;
+      }
     }
   }
 
@@ -742,11 +760,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             nextLabelHeight += stepLabel.getLocalBounds().height;
           }
 
-          increment += elapsed * 5.f;
+          increment += (float)elapsed * 5.f;
         }
 
         if (listStepCounter > 0.f) {
-          listStepCounter -= elapsed;
+          listStepCounter -= (float)elapsed;
         }
         else {
           // +2 = 1 step for showing PA label and 1 step for showing merged chip
@@ -827,7 +845,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       battleResults->Draw();
 
       if (!battleResults->IsInView()) {
-        float amount = 600.f * elapsed;
+        float amount = 600.f * (float)elapsed;
         battleResults->Move(sf::Vector2f(amount, 0));
       }
       else {

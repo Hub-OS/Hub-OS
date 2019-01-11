@@ -169,7 +169,11 @@ public:
     Play(false);
   }
 
-  void Update(const double elapsed) {
+  char GetCurrentCharacter() {
+    return message[charIndex];
+  }
+
+  virtual void Update(const double elapsed) {
     if (!play || message.empty()) return;
 
     double charIndexIter = 0;
@@ -209,6 +213,10 @@ public:
       else 
         text.setString(message.substr(begin, len));
     }
+  }
+
+  const bool EndOfMessage() const { 
+    return (charIndex >= message.length()); 
   }
 
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const
