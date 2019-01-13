@@ -56,7 +56,7 @@ void Wave::Update(float _elapsed) {
 
   setTexture(*texture);
   setScale(2.f, 2.f);
-  setPosition(tile->getPosition().x + 5.f, tile->getPosition().y - 50.0f);
+  setPosition(tile->getPosition().x, tile->getPosition().y-this->getLocalBounds().height);
   progress += 3 * _elapsed;
   
   animator(progress*(float)speed, *this, animation);

@@ -101,13 +101,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/mobs/mob_move.png");
   paths.push_back("resources/mobs/mob_explosion.png");
   //Mettaur
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_move.png");
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_hit.png");
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_attack.png");
-
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_move_blue.png");
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_hit_blue.png");
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_attack_blue.png");
+  paths.push_back("resources/mobs/mettaur/mettaur.png");
 
   // ProgsMan
   paths.push_back("resources/mobs/progsman/mob_progsman_idle.png");
@@ -139,6 +133,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/chip_icons.png");
   paths.push_back("resources/ui/chip_nodata.png");
   paths.push_back("resources/ui/chip_senddata.png");
+  paths.push_back("resources/ui/chip_missing.png");
   paths.push_back("resources/ui/chip_lock.png");
 
   // In battle signs

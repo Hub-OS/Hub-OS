@@ -185,18 +185,18 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
 
   // Update UI slide in
   if (!gotoNextScene) {
-    factor -= elapsed * 180.f;
+    factor -= (float)elapsed * 180.f;
 
     if (factor <= 0.f) {
       factor = 0.f;
     }
 
     if (UI_RIGHT_POS > UI_RIGHT_POS_MAX) {
-      UI_RIGHT_POS -= elapsed * 500;
+      UI_RIGHT_POS -= (float)elapsed * 500;
     }
     else {
       UI_RIGHT_POS = UI_RIGHT_POS_MAX;
-      UI_TOP_POS -= elapsed * 500;
+      UI_TOP_POS -= (float)elapsed * 500;
 
       if (UI_TOP_POS < UI_TOP_POS_MAX) {
         UI_TOP_POS = UI_TOP_POS_MAX;
@@ -214,27 +214,27 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
 
     if (UI_LEFT_POS < UI_LEFT_POS_MAX) {
-      UI_LEFT_POS += elapsed * 500;
+      UI_LEFT_POS += (float)elapsed * 500;
     }
     else {
       UI_LEFT_POS = UI_LEFT_POS_MAX;
     }
   }
   else {
-    factor += elapsed * 180.f;
+    factor += (float)elapsed * 180.f;
 
     if (factor >= MAX_PIXEL_FACTOR) {
       factor = MAX_PIXEL_FACTOR;
     }
 
     if (UI_TOP_POS < UI_TOP_POS_START) {
-      UI_TOP_POS += elapsed * 500;
+      UI_TOP_POS += (float)elapsed * 500;
     }
     else {
-      UI_RIGHT_POS += elapsed * 500;
+      UI_RIGHT_POS += (float)elapsed * 500;
 
       if (UI_RIGHT_POS > UI_RIGHT_POS_START / 2) // Be quicker at leave than startup
-        UI_LEFT_POS -= elapsed * 500;
+        UI_LEFT_POS -= (float)elapsed * 500;
     }
   }
 
@@ -357,7 +357,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   hpLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetHPString()));
 
   if (numberCooldown > 0) {
-    numberCooldown -= elapsed;
+    numberCooldown -= (float)elapsed;
     std::string newstr;
 
     for (int i = 0; i < naviLabel->getString().getSize(); i++) {

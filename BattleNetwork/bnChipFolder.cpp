@@ -4,8 +4,9 @@
 #include <algorithm>
 
 ChipFolder::ChipFolder() {
-  folderSize = initialSize = ChipLibrary::GetInstance().GetSize();
-  folderList = new Chip*[folderSize];
+  folderSize = initialSize = 0;
+
+  /*folderSize = initialSize = ChipLibrary::GetInstance().GetSize();
 
   for (int i = 0; i < folderSize; i++) {
     int random = rand() % ChipLibrary::GetInstance().GetSize();
@@ -17,17 +18,30 @@ ChipFolder::ChipFolder() {
       iter++;
     }
 
-    folderList[i] = new Chip(*(iter));
+    folderList.push_back(new Chip(*(iter)));
+  }*/
+}
+
+ChipFolder::ChipFolder(const ChipFolder& rhs)
+{
+  folderSize = initialSize = rhs.folderSize;
+  folderList = rhs.folderList;
+}
+
+ChipFolder::~ChipFolder() {
+  for (int i = (int)folderList.size()-1; i >= 0; i--) {
+    delete folderList[i];
   }
 }
 
+void ChipFolder::Shuffle()
+{
+}
 
-ChipFolder::~ChipFolder() {
-  for (int i = folderSize-1; i >= 0; i--) {
-    delete folderList[i];
-  }
-
-  delete[] folderList;
+void ChipFolder::AddChip(Chip copy)
+{
+  folderList.push_back(new Chip(copy));
+  folderSize = (int)folderList.size();
 }
 
 Chip* ChipFolder::Next() {

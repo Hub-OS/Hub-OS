@@ -45,8 +45,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   programAdvanceSprite = sf::Sprite(LOAD_TEXTURE(PROGRAM_ADVANCE));
   programAdvanceSprite.setScale(2.f, 2.f);
-  programAdvanceSprite.setOrigin(0, 0);
-  programAdvanceSprite.setPosition(40.0f, 50.f);
+  programAdvanceSprite.setOrigin(0, programAdvanceSprite.getLocalBounds().height/2.0f);
+  programAdvanceSprite.setPosition(40.0f, 58.f);
 
   camera = Camera(ENGINE.GetDefaultView());
   ENGINE.SetCamera(camera);
@@ -142,6 +142,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   isPreBattle = false;
   preBattleLength = 1; // in seconds
+  PAStartLength = 0.15; // in seconds
 
   showSummonText = false;
   summonTextLength = 1; // in seconds
@@ -356,10 +357,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       }
     }
 
-    if (tile->GetState() == TileState::LAVA) {
-      heatShader.setUniform("x", tile->getPosition().x + 4.f);
+    /*if (tile->GetState() == TileState::LAVA) {
+      heatShader.setUniform("x", tile->getPosition().x);
 
-      float repos = (float)(tile->getPosition().y - 4.f) - (tile->GetHeight() / 1.5f);
+      float repos = (float)(tile->getPosition().y);
       heatShader.setUniform("y", repos);
 
       surface.display();
@@ -371,15 +372,15 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       surface.clear();
 
       LayeredDrawable* bake = new LayeredDrawable(distortionPost);
-      bake->SetShader(&heatShader);
+      // bake->SetShader(&heatShader);
 
       ENGINE.Draw(bake);
       delete bake;
     }
     else if (tile->GetState() == TileState::ICE) {
-      iceShader.setUniform("x", tile->getPosition().x + 4.f);
+      iceShader.setUniform("x", tile->getPosition().x);
 
-      float repos = (float)(tile->getPosition().y - 4.f);
+      float repos = (float)(tile->getPosition().y);
       iceShader.setUniform("y", repos);
 
       surface.display();
@@ -391,11 +392,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       surface.clear();
 
       LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
-      bake->SetShader(&iceShader);
+      //bake->SetShader(&iceShader);
 
       ENGINE.Draw(bake);
       delete bake;
-    }
+    }*/
   }
 
   /*Draw misc sprites*/
@@ -569,9 +570,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   else if (isInChipSelect && chipCustGUI.IsInView()) {
     if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
 
-      if (INPUT.has(PRESSED_B)) {
-        std::cout << "B PRESSED" << std::endl;
-
+      if (INPUT.has(RELEASED_PAUSE)) {
         chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
       } 
     }
@@ -665,6 +664,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
         if (hasPA > -1) {
           paSteps = programAdvance.GetMatchingSteps();
+          PAStartTimer.reset();
         }
 
         isPAComplete = true;
@@ -672,9 +672,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       else if (hasPA > -1) {
         static bool advanceSoundPlay = false;
         static float increment = 0;
-
+        
         float nextLabelHeight = 0;
 
+        double PAStartSecs = PAStartTimer.getElapsed().asSeconds();
+        double scale = swoosh::ease::linear(PAStartSecs, PAStartLength, 1.0);
+        programAdvanceSprite.setScale(2.f, (float)scale*2.f);
         ENGINE.Draw(programAdvanceSprite, false);
 
         if (paStepIndex <= chipCount + 1) {

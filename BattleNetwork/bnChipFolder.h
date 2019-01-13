@@ -1,19 +1,21 @@
 #pragma once
 #include "bnChip.h"
 #include "bnChipLibrary.h"
-#include <list>
-
-using std::list;
+#include <vector>
+#include <algorithm>
 
 class ChipFolder {
 private:
-  Chip** folderList;
+  std::vector<Chip*> folderList;
   int folderSize;
   int initialSize;
 
 public:
   ChipFolder();
+  ChipFolder(const ChipFolder& rhs);
   ~ChipFolder();
+  void Shuffle();
+  void AddChip(Chip copy);
   Chip* Next();
 };
 

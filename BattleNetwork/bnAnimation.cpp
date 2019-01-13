@@ -142,13 +142,14 @@ void Animation::SetAnimation(string state) {
 
    auto pos = animations.find(currAnimation);
 
+
    if (pos == animations.end()) {
      //throw std::runtime_error(std::string("No animation found in file for " + currAnimation));
-     std::cout << "No animation found in file for " + currAnimation << std::endl;
+     Logger::Log("No animation found in file for " + currAnimation);
    }
 }
 
-std::string Animation::GetAnimationString()
+const std::string Animation::GetAnimationString() const
 {
   return currAnimation;
 }

@@ -10,7 +10,7 @@
 
 ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) : 
   greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
-  chipDescriptionTextbox(sf::Vector2f(4, 305), sf::IntRect(90, -100, 280, 100))
+  chipDescriptionTextbox(sf::Vector2f(4, 255), sf::IntRect(90, -50, 280, 100))
 {
   folder = _folder;
   cap = std::min(cap, 8);

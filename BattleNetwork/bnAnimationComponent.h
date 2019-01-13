@@ -21,6 +21,7 @@ public:
   void Update(float _elapsed);
   void Setup(string _path);
   void Reload();
+  const std::string GetAnimationString() const;
   void SetPlaybackSpeed(const double playbackSpeed);
   void SetAnimation(string state, std::function<void()> onFinish = nullptr);
   void SetAnimation(string state, Animate::Mode playbackMode, std::function<void()> onFinish = std::function<void()>());

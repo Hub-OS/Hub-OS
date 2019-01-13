@@ -68,7 +68,7 @@ void main()
     vec4 color = gl_Color * texel;
   
     float alpha = 1.0 - remap.r;
-    color = color * vec4(1.0, 0.9, 0.9, 1.0) + vec4(0.54, 0.0, 0.0, alpha);
+    color = color * vec4(1.0, 0.9, 0.9, 1.0);
    
     gl_FragColor = color;
   }

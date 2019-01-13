@@ -82,7 +82,7 @@ void FolderScene::onStart() {
 }
 
 void FolderScene::onUpdate(double elapsed) {
-  camera.Update(elapsed);
+  camera.Update((float)elapsed);
 
   // Scene keyboard controls
   if (!gotoNextScene) {

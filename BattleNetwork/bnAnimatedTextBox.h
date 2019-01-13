@@ -56,7 +56,7 @@ public:
       this->isPaused = true;
     };
 
-    animator << Animate::On(2, callback, true);
+    animator << Animate::On(3, callback, true);
   }
 
   void Open() {
@@ -67,6 +67,7 @@ public:
     animator.SetAnimation("OPEN");
 
     auto callback = [this]() {
+      this->isClosing = false;
       this->isPaused = false;
       this->isOpening = false;
       this->isReady = true;
@@ -166,7 +167,7 @@ public:
       // restore it when we draw
       // Prime example where scene nodes would come in handy.
 
-      pos += sf::Vector2f(6.0f, -sprite.getGlobalBounds().height-4.0f);
+      pos += sf::Vector2f(6.0f, 2.0f-sprite.getGlobalBounds().height/2.0);
 
       sprite.setPosition(pos);
 

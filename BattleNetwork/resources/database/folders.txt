@@ -1,0 +1,6 @@
+Folder title="Default"
+	Chip name="Cannon" code="A"
+	Chip name="Cannon" code="B"
+	Chip name="Cannon" code="C"
+        Chip name="LongSwrd" code="J"
+        Chip name="Recov1" code="A"

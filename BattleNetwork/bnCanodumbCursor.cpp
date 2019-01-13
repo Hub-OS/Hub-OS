@@ -50,7 +50,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : a
 void CanodumbCursor::Update(float _elapsed) {
   animationComponent.Update(_elapsed);
 
-  setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 15.0f);
+  setPosition(tile->getPosition().x, tile->getPosition().y);
 
   movecooldown -= _elapsed;
 

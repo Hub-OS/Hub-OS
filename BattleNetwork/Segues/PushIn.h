@@ -33,7 +33,7 @@ public:
     if (direction == 2) ud = -1;
     if (direction == 3) ud = 1;
 
-    left.setPosition(lr * alpha * left.getTexture()->getSize().x, ud * alpha * left.getTexture()->getSize().y);
+    left.setPosition((float)(lr * alpha * left.getTexture()->getSize().x), (float)(ud * alpha * left.getTexture()->getSize().y));
 
     surface.clear();
 
@@ -42,7 +42,7 @@ public:
     surface.display(); // flip and ready the buffer
     sf::Sprite right(surface.getTexture());
 
-    right.setPosition(-lr * (1-alpha) * right.getTexture()->getSize().x, -ud * (1-alpha) * right.getTexture()->getSize().y);
+    right.setPosition((float)(-lr * (1-alpha) * right.getTexture()->getSize().x), (float)(-ud * (1-alpha) * right.getTexture()->getSize().y));
 
     sf::RenderWindow& window = getController().getWindow();
     window.draw(left);

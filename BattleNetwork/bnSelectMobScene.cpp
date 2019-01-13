@@ -54,10 +54,15 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   bg.setScale(2.f, 2.f);
 
   // Current mob graphic
-  mobSpr = sf::Sprite(LOAD_TEXTURE(MOB_METTAUR_IDLE));
+  mobSpr = sf::Sprite(LOAD_TEXTURE(MOB_METTAUR));
   mobSpr.setScale(2.f, 2.f);
   mobSpr.setOrigin(mobSpr.getLocalBounds().width / 2.f, mobSpr.getLocalBounds().height / 2.f);
   mobSpr.setPosition(110.f, 130.f);
+
+  mobAnimator = Animation("resources/mobs/mettaur/mettaur.animation");
+  mobAnimator.Reload();
+  mobAnimator.SetAnimation("IDLE");
+  mobAnimator.SetFrame(1, &mobSpr);
 
   gotoNextScene = true; 
   doOnce = false; // wait until the scene starts or resumes
@@ -218,8 +223,13 @@ void SelectMobScene::onUpdate(double elapsed) {
     factor = 125;
 
     if (mobSelectionIndex == 0) {
-      mobSpr.setTexture(*TEXTURES.GetTexture(TextureType::MOB_METTAUR_IDLE), true);
+      mobSpr.setTexture(*TEXTURES.GetTexture(TextureType::MOB_METTAUR), true);
       mobSpr.setPosition(110.f, 130.f);
+
+      mobAnimator = Animation("resources/mobs/mettaur/mettaur.animation");
+      mobAnimator.Reload();
+      mobAnimator.SetAnimation("IDLE");
+      mobAnimator.SetFrame(1, &mobSpr);
 
       textbox.SetMessage("Tutorial ranked Mettaurs. You got this!");
     }

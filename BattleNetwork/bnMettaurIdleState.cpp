@@ -7,7 +7,12 @@ MettaurIdleState::MettaurIdleState() : cooldown(1), AIState<Mettaur>() { ; }
 MettaurIdleState::~MettaurIdleState() { ; }
 
 void MettaurIdleState::OnEnter(Mettaur& met) {
-  met.SetAnimation(MOB_IDLE);
+  if (met.GetRank() == Mettaur::Rank::SP) {
+    met.SetAnimation("SP_IDLE");
+  }
+  else {
+    met.SetAnimation("IDLE");
+  }
 
   if (met.GetRank() == Mettaur::Rank::SP) {
     cooldown = 0.5;

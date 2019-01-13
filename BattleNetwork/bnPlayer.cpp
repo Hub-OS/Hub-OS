@@ -64,7 +64,7 @@ void Player::Update(float _elapsed) {
     return;
 
   if (tile != nullptr) {
-    setPosition(tileOffset.x + tile->getPosition().x + (tile->GetWidth() / 2.0f), tileOffset.y + tile->getPosition().y + (tile->GetHeight() / 2.0f));
+    setPosition(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
   }
 
   // Explode if health depleted

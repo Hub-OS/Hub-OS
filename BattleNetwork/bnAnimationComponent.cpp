@@ -31,6 +31,11 @@ void AnimationComponent::Reload() {
   this->Update(0);
 }
 
+const std::string AnimationComponent::GetAnimationString() const
+{
+  return animation.GetAnimationString();
+}
+
 void AnimationComponent::SetPlaybackSpeed(const double playbackSpeed)
 {
   speed = playbackSpeed;

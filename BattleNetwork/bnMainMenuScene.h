@@ -16,6 +16,7 @@
 #include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
+#include "bnChipFolderCollection.h"
 #include <SFML/Graphics.hpp>
 #include <time.h>
 
@@ -46,6 +47,7 @@ private:
 
   bool gotoNextScene;
 
+  ChipFolderCollection data; // TODO: this will be replaced with all saved data
 public:
   MainMenuScene(swoosh::ActivityController&);
   virtual void onUpdate(double elapsed);

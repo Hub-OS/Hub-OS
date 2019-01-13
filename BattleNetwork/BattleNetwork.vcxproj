@@ -373,6 +373,7 @@
     <ClInclude Include="bnAnimatedTextBox.h" />
     <ClInclude Include="bnChipSummonHandler.h" />
     <ClInclude Include="bnChipDescriptionTextbox.h" />
+    <ClInclude Include="bnChipFolderCollection.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />

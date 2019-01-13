@@ -71,7 +71,7 @@ void Canodumb::Update(float _elapsed) {
 
   if (_elapsed <= 0) return;
 
-  setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 1.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 10.0f);
+  setPosition(tile->getPosition().x, tile->getPosition().y);
   hitHeight = (int)getLocalBounds().height;
 
 
@@ -123,5 +123,5 @@ const bool Canodumb::Hit(int _damage) {
 }
 
 const float Canodumb::GetHitHeight() const {
-  return (float)hitHeight;
+  return hitHeight;
 }

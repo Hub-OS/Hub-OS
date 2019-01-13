@@ -10,7 +10,14 @@ MettaurAttackState::~MettaurAttackState() { ; }
 
 void MettaurAttackState::OnEnter(Mettaur& met) {
   auto onFinish = [this, &met]() {this->DoAttack(met); };
-  met.SetAnimation(MOB_ATTACKING, onFinish);
+
+  if (met.GetRank() == Mettaur::Rank::SP) {
+    met.SetAnimation("SP_ATTACK", onFinish);
+  }
+  else {
+    met.SetAnimation("ATTACK", onFinish);
+  }
+
   met.SetCounterFrame(4);
 }
 

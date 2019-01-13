@@ -19,13 +19,14 @@ public:
   static const  Element GetElementFromStr(std::string);
 
   void AddChip(Chip chip);
+  const bool IsChipValid(const Chip& chip);
+  const Chip FindChip(const std::string name, const char code);
 
 protected:
   void LoadLibrary();
 
 private:
   list<Chip> library;
-  string valueOf(string _key, string _line);
 };
 
 #define CHIPLIB ChipLibrary::GetInstance()

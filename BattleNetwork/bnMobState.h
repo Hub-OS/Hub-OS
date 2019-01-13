@@ -1,11 +1,11 @@
 #pragma once
 #include <string>
 
-#define MOB_MOVING    std::string("MOB_MOVING")
-#define MOB_IDLE      std::string("MOB_IDLE")
-#define MOB_HIT       std::string("MOB_HIT")
-#define MOB_ATTACKING std::string("MOB_ATTACKING")
-#define MOB_THROW     std::string("MOB_THROW")
+#define MOB_MOVING    std::string("MOVING")
+#define MOB_IDLE      std::string("IDLE")
+#define MOB_HIT       std::string("HIT")
+#define MOB_ATTACKING std::string("ATTACK")
+#define MOB_THROW     std::string("THROW")
 
 #define MOB_CANODUMB_IDLE_1 std::string("IDLE1")
 #define MOB_CANODUMB_SHOOT_1 std::string("SHOOT1")

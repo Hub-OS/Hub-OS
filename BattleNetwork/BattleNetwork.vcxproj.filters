@@ -185,15 +185,6 @@
     <Filter Include="Activities\Battle\Content\Chips\Cust">
       <UniqueIdentifier>{f9e71ed1-58d0-4f77-937f-5656dd5f63e4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\Database">
-      <UniqueIdentifier>{96b71ad6-be68-4e35-bd67-349eeadc6ac8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\PA">
-      <UniqueIdentifier>{ba8c8562-8161-4545-9648-95c6f34e2bcd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\Folder">
-      <UniqueIdentifier>{bef66beb-f219-4d07-8d52-25a90241ac54}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Chips\ChipUseListener">
       <UniqueIdentifier>{635d6105-57c6-40d2-be0b-a016ed816e8c}</UniqueIdentifier>
     </Filter>
@@ -287,6 +278,15 @@
     <Filter Include="Activities\Battle\Content\Chips\Cust\UI">
       <UniqueIdentifier>{36e8f1dc-b46a-4384-b735-c0cfab8a122e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Database">
+      <UniqueIdentifier>{96b71ad6-be68-4e35-bd67-349eeadc6ac8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Database\PA">
+      <UniqueIdentifier>{ba8c8562-8161-4545-9648-95c6f34e2bcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Database\Folder">
+      <UniqueIdentifier>{bef66beb-f219-4d07-8d52-25a90241ac54}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -332,10 +332,10 @@
       <Filter>Activities\Battle\Content\Chips\Cust</Filter>
     </ClCompile>
     <ClCompile Include="bnChipLibrary.cpp">
-      <Filter>Activities\Battle\Content\Chips\Database</Filter>
+      <Filter>Database</Filter>
     </ClCompile>
     <ClCompile Include="bnChip.cpp">
-      <Filter>Activities\Battle\Content\Chips\Database</Filter>
+      <Filter>Database</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimationComponent.cpp">
       <Filter>Activities\Battle\Content\Components\Animation</Filter>
@@ -392,7 +392,7 @@
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
     </ClCompile>
     <ClCompile Include="bnPA.cpp">
-      <Filter>Activities\Battle\Content\Chips\PA</Filter>
+      <Filter>Database\PA</Filter>
     </ClCompile>
     <ClCompile Include="bnCannon.cpp">
       <Filter>Activities\Battle\Content\Entity\Spell\Cannon</Filter>
@@ -467,7 +467,7 @@
       <Filter>Activities\Battle\Content\Entity\Artifact\Cannon</Filter>
     </ClCompile>
     <ClCompile Include="bnChipFolder.cpp">
-      <Filter>Activities\Battle\Content\Chips\Folder</Filter>
+      <Filter>Database\Folder</Filter>
     </ClCompile>
     <ClCompile Include="bnFolderScene.cpp">
       <Filter>Activities\Folder</Filter>
@@ -610,10 +610,10 @@
       <Filter>Activities\Battle\Content\Chips\Cust</Filter>
     </ClInclude>
     <ClInclude Include="bnChipLibrary.h">
-      <Filter>Activities\Battle\Content\Chips\Database</Filter>
+      <Filter>Database</Filter>
     </ClInclude>
     <ClInclude Include="bnChip.h">
-      <Filter>Activities\Battle\Content\Chips\Database</Filter>
+      <Filter>Database</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimationComponent.h">
       <Filter>Activities\Battle\Content\Components\Animation</Filter>
@@ -689,7 +689,7 @@
       <Filter>Engine\Resources\ShaderResource</Filter>
     </ClInclude>
     <ClInclude Include="bnPA.h">
-      <Filter>Activities\Battle\Content\Chips\PA</Filter>
+      <Filter>Database\PA</Filter>
     </ClInclude>
     <ClInclude Include="bnCannon.h">
       <Filter>Activities\Battle\Content\Entity\Spell\Cannon</Filter>
@@ -770,7 +770,7 @@
       <Filter>Activities\Battle\Content\Entity\Artifact\Cannon</Filter>
     </ClInclude>
     <ClInclude Include="bnChipFolder.h">
-      <Filter>Activities\Battle\Content\Chips\Folder</Filter>
+      <Filter>Database\Folder</Filter>
     </ClInclude>
     <ClInclude Include="bnElements.h">
       <Filter>Activities\Battle\Content\Enumerations</Filter>
@@ -906,6 +906,9 @@
     </ClInclude>
     <ClInclude Include="bnAnimatedTextBox.h">
       <Filter>Prefabs\TextBox\Framed</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipFolderCollection.h">
+      <Filter>Database\Folder</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

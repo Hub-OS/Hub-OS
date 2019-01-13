@@ -98,7 +98,7 @@ void Explosion::Update(float _elapsed) {
   }
 
   animationComponent.Update(_elapsed);
-  setPosition((tile->getPosition().x + tile->GetWidth() / 2.0f) + offset.x, (tile->getPosition().y + tile->GetHeight() / 2.0f) + offset.y - 10.0f);
+  setPosition((tile->getPosition().x + offset.x), (tile->getPosition().y + offset.y));
   Entity::Update(_elapsed);
 }
 

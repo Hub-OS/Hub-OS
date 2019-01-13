@@ -89,6 +89,8 @@ private:
   Battle results pointer */
   BattleResults* battleResults;
   swoosh::Timer battleTimer;
+  swoosh::Timer PAStartTimer;
+  double PAStartLength;
 
   /*
   Set Scene*/

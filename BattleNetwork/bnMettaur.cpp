@@ -32,18 +32,25 @@ vector<int> Mettaur::metIDs = vector<int>();
 int Mettaur::currMetIndex = 0;
 
 Mettaur::Mettaur(Rank _rank)
-  : animationComponent(this), AI<Mettaur>(this), Character(_rank) {
+  :  AI<Mettaur>(this), AnimatedCharacter(_rank) {
   //this->ChangeState<MettaurIdleState>();
   name = "Mettaur";
   Entity::team = Team::BLUE;
 
   health = 40;
-  textureType = TextureType::MOB_METTAUR_IDLE;
+  textureType = TextureType::MOB_METTAUR;
 
-  if (rank == Rank::SP) {
+  animationComponent.Setup(RESOURCE_PATH);
+  animationComponent.Reload();
+
+  if (GetRank() == Rank::SP) {
     health = 100;
-    textureType = TextureType::MOB_METTAUR_IDLE_BLUE;
     animationComponent.SetPlaybackSpeed(1.2);
+    animationComponent.SetAnimation("SP_IDLE");
+  }
+  else {
+    //Components setup and load
+    animationComponent.SetAnimation("IDLE");
   }
 
   hitHeight = 0;
@@ -54,10 +61,6 @@ Mettaur::Mettaur(Rank _rank)
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
-
-  //Components setup and load
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);
@@ -76,18 +79,7 @@ int* Mettaur::GetAnimOffset() {
   Mettaur* mob = this;
 
   int* res = new int[2];
-  res[0] = 45;  res[1] = 55;
-
-  if (state == MOB_IDLE) {
-    res[0] = 35;
-    res[1] = 35;
-  } else if (state == MOB_ATTACKING) {
-    res[0] = 65;
-    res[1] = 95;
-  } else {
-    res[0] = 45;
-    res[1] = 55;
-  } 
+  res[0] = 10;  res[1] = 0;
 
   return res;
 }
@@ -114,10 +106,6 @@ void Mettaur::Update(float _elapsed) {
       return;
     }
   }
-
-  healthUI->Update();
-
-  if (_elapsed <= 0) return;
 
   this->AI<Mettaur>::Update(_elapsed);
 
@@ -148,35 +136,7 @@ void Mettaur::Update(float _elapsed) {
 }
 
 void Mettaur::RefreshTexture() {
-  if (state == MOB_IDLE) {
-    if (rank == Rank::SP) {
-      textureType = TextureType::MOB_METTAUR_IDLE_BLUE;
-    }
-    else {
-      textureType = TextureType::MOB_METTAUR_IDLE;
-    }
-  } else if (state == MOB_MOVING) {
-      textureType = TextureType::MOB_MOVE;
-  } else if (state == MOB_ATTACKING) {
-    if (rank == Rank::SP) {
-      textureType = TextureType::MOB_METTAUR_ATTACK_BLUE;
-    }
-    else {
-      textureType = TextureType::MOB_METTAUR_ATTACK;
-    }
-  }
-  setTexture(*TEXTURES.GetTexture(textureType));
-
-  if (state == MOB_MOVING) {
-    setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 35.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 60.0f);
-  } else if (state == MOB_ATTACKING) {
-    setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 55.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 105.0f);
-    hitHeight = getLocalBounds().height;
-  }
-  else {
-    setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 25.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 45.0f);
-    hitHeight = getLocalBounds().height;
-  }
+  setPosition(tile->getPosition().x, tile->getPosition().y);
 
   setPosition(getPosition() + tileOffset);
 }
@@ -188,7 +148,7 @@ vector<Drawable*> Mettaur::GetMiscComponents() {
   return drawables;
 }
 
-void Mettaur::SetAnimation(string _state, std::function<void()> onFinish) {
+/*void Mettaur::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
   animationComponent.SetAnimation(_state, onFinish);
   animationComponent.Update(0);
@@ -199,7 +159,7 @@ void Mettaur::SetCounterFrame(int frame)
   auto onFinish = [&]() { this->ToggleCounter(); };
   auto onNext = [&]() { this->ToggleCounter(false); };
   animationComponent.AddCallback(frame, onFinish, onNext);
-}
+}*/
 
 TextureType Mettaur::GetTextureType() const {
   return textureType;

@@ -1,6 +1,7 @@
 #include <Swoosh\ActivityController.h>
 
 #include "bnMainMenuScene.h"
+#include "bnChipFolderCollection.h"
 
 #include "Segues\PushIn.h"
 #include "Segues\Checkerboard.h"
@@ -16,6 +17,8 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetDefaultView()),
   swoosh::Activity(controller)
 {
+  data = ChipFolderCollection::ReadFromFile("resources/database/folders.txt");
+
   bg = new LanBackground();
 
   map = new Overworld::InfiniteMap(10, 20, 47, 24);
@@ -64,18 +67,18 @@ void MainMenuScene::onStart() {
 
 void MainMenuScene::onUpdate(double elapsed) {
   // std::cout << "elapsed: " << elapsed << std::endl;
-  map->Update(elapsed);
+  map->Update((float)elapsed);
 
-  camera.Update(elapsed);
-  bg->Update(elapsed);
+  camera.Update((float)elapsed);
+  bg->Update((float)elapsed);
 
   // Draw navi moving
-  naviAnimator.Update(elapsed, &owNavi);
+  naviAnimator.Update((float)elapsed, &owNavi);
 
   int lastMenuSelectionIndex = menuSelectionIndex;
 
   // Move the navi down
-  owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*elapsed, 0));
+  owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*(float)elapsed, 0));
 
   // TODO: fix this broken camera system
   sf::Vector2f camOffset = camera.GetView().getSize();

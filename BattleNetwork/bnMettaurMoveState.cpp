@@ -46,7 +46,6 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
   }
 
   bool moved = met.Move(nextDirection);
-  std::cout << "moved: " << moved << std::endl;
   
   if (moved) {
     met.AdoptNextTile();

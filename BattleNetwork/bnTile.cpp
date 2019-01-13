@@ -31,7 +31,8 @@ namespace Battle {
     setScale(2.f, 2.f);
     width = getTextureRect().width * getScale().x;
     height = getTextureRect().height * getScale().y;
-    setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
+    setOrigin(getTextureRect().width / 2.0f, getTextureRect().height / 2.0f);
+    setPosition((width/2.0) + ((x - 1) * width) + START_X, (height/2.0) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = false;
     isBattleActive = false;
   }

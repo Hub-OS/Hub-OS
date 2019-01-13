@@ -81,6 +81,22 @@ void ChipLibrary::AddChip(Chip chip)
   library.push_back(chip);
 }
 
+/*const bool ChipLibrary::IsChipValid(const Chip chip)
+{
+  return (FindChip(chip.GetShortName(), chip.GetCode()).GetID() >= 0);
+}*/
+
+const Chip ChipLibrary::FindChip(const std::string name, const char code)
+{
+  for (auto i = Begin(); i != End(); i++) {
+    if (i->GetShortName() == name && i->GetCode() == code) {
+      return (*i);
+    }
+  }
+
+  return Chip(-1, 0, code, 0, Element::NONE, name, "missing data", 1);
+}
+
 // Used as the folder in battle
 void ChipLibrary::LoadLibrary() {
   // TODO: put this utility in an input stream class and inhert from that
@@ -104,14 +120,14 @@ void ChipLibrary::LoadLibrary() {
     }
 
     if (line.find("Chip") != string::npos) {
-      string cardID = valueOf("cardIndex", line);
-      string iconID = valueOf("iconIndex", line);
-      string name   = valueOf("name", line);
-      string damage = valueOf("damage", line);
-      string type = valueOf("type", line);
-      string codes = valueOf("codes", line);
-      string description = valueOf("desc", line);
-      string rarity = valueOf("rarity", line);
+      string cardID = FileUtil::ValueOf("cardIndex", line);
+      string iconID = FileUtil::ValueOf("iconIndex", line);
+      string name   = FileUtil::ValueOf("name", line);
+      string damage = FileUtil::ValueOf("damage", line);
+      string type = FileUtil::ValueOf("type", line);
+      string codes = FileUtil::ValueOf("codes", line);
+      string description = FileUtil::ValueOf("desc", line);
+      string rarity = FileUtil::ValueOf("rarity", line);
 
       // Trime white space
       codes.erase(remove_if(codes.begin(), codes.end(), isspace), codes.end());
@@ -138,11 +154,4 @@ void ChipLibrary::LoadLibrary() {
 
     data = data.substr(endline + 1);
   } while (endline > -1);
-}
-
-string ChipLibrary::valueOf(string _key, string _line) {
-  int keyIndex = (int)_line.find(_key);
-  assert(keyIndex > -1 && "Key was not found in library file.");
-  string s = _line.substr(keyIndex + _key.size() + 2);
-  return s.substr(0, s.find("\""));
 }
