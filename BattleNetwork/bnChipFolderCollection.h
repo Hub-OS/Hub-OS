@@ -27,8 +27,6 @@ public:
 
     folder = collection[name];
 
-    std::cout << "folder addr " << &folder << std::endl;
-
     return true;
   }
 
@@ -83,7 +81,7 @@ public:
 
         if(currFolder != nullptr) {
           // Query the library for this chip data and push into the folder.
-          currFolder->AddChip(CHIPLIB.FindChip(name, code[0]));
+          currFolder->AddChip(CHIPLIB.GetChipEntry(name, code[0]));
         }
         else {
           Logger::Log("Failed to add chip (" + name + ", " + code[0] + "), no folder in build scope!");

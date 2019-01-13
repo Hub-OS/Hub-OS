@@ -76,7 +76,6 @@ private:
 
   /*
   Chips + Chip select setup*/
-  ChipFolder* folder;
   ChipSelectionCust chipCustGUI;
   Chip** chips;
   int chipCount;
@@ -183,7 +182,7 @@ public:
   virtual void onEnter();
   virtual void onResume();
   virtual void onEnd();
-  BattleScene(swoosh::ActivityController&, Player*, Mob*);
+  BattleScene(swoosh::ActivityController&, Player*, Mob*, ChipFolder* folder);
   virtual ~BattleScene();
 
   // External component injection into the battle system

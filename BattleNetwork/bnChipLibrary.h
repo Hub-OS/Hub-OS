@@ -19,8 +19,8 @@ public:
   static const  Element GetElementFromStr(std::string);
 
   void AddChip(Chip chip);
-  const bool IsChipValid(const Chip& chip);
-  const Chip FindChip(const std::string name, const char code);
+  bool IsChipValid(Chip& chip);
+  Chip GetChipEntry(const std::string name, const char code);
 
 protected:
   void LoadLibrary();

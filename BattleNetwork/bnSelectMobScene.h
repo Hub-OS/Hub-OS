@@ -39,6 +39,7 @@ private:
   SelectedNavi selectedNavi;
 
   Camera camera;
+  ChipFolder& selectedFolder;
 
   MobFactory* factory;
   Mob* mob;
@@ -93,7 +94,7 @@ private:
   TextBox textbox;
 
 public:
-  SelectMobScene(swoosh::ActivityController&, SelectedNavi);
+  SelectMobScene(swoosh::ActivityController&, SelectedNavi, ChipFolder& selectedFolder);
   ~SelectMobScene();
 
   virtual void onResume();

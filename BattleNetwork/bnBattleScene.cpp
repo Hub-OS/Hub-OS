@@ -5,7 +5,7 @@
 #include "Segues\WhiteWashFade.h"
 #include "Segues\PixelateBlackwashFade.h"
 
-BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob) :
+BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, ChipFolder* folder) :
   swoosh::Activity(controller), 
   player(player),
   mob(mob),
@@ -18,7 +18,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
   summons(player),
   chipListener(player),
-  folder(new ChipFolder()),
   chipCustGUI(folder, 8),
   camera(*ENGINE.GetCamera()),
   chipUI(player) {

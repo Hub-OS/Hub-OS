@@ -5,21 +5,6 @@
 
 ChipFolder::ChipFolder() {
   folderSize = initialSize = 0;
-
-  /*folderSize = initialSize = ChipLibrary::GetInstance().GetSize();
-
-  for (int i = 0; i < folderSize; i++) {
-    int random = rand() % ChipLibrary::GetInstance().GetSize();
-
-    // For now, the folder contains random parts from the entire library
-    ChipLibrary::Iter iter = ChipLibrary::GetInstance().Begin();
-
-    while (random-- > 0) {
-      iter++;
-    }
-
-    folderList.push_back(new Chip(*(iter)));
-  }*/
 }
 
 ChipFolder::ChipFolder(const ChipFolder& rhs)
@@ -36,6 +21,17 @@ ChipFolder::~ChipFolder() {
 
 void ChipFolder::Shuffle()
 {
+  std::random_shuffle(folderList.begin(), folderList.end());
+}
+
+ChipFolder* ChipFolder::Clone() {
+  ChipFolder* clone = new ChipFolder();
+
+  for (int i = 0; i < folderList.size(); i++) {
+    clone->AddChip(*folderList[i]);
+  }
+
+  return clone;
 }
 
 void ChipFolder::AddChip(Chip copy)

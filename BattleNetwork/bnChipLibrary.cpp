@@ -81,12 +81,18 @@ void ChipLibrary::AddChip(Chip chip)
   library.push_back(chip);
 }
 
-/*const bool ChipLibrary::IsChipValid(const Chip chip)
+bool ChipLibrary::IsChipValid(Chip& chip)
 {
-  return (FindChip(chip.GetShortName(), chip.GetCode()).GetID() >= 0);
-}*/
+  for (auto i = Begin(); i != End(); i++) {
+    if (i->GetShortName() == chip.GetShortName() && i->GetCode() == chip.GetCode()) {
+      return true;
+    }
+  }
 
-const Chip ChipLibrary::FindChip(const std::string name, const char code)
+  return false;
+}
+
+Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
 {
   for (auto i = Begin(); i != End(); i++) {
     if (i->GetShortName() == name && i->GetCode() == code) {

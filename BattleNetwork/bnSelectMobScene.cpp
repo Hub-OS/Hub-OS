@@ -1,9 +1,10 @@
 #include <Swoosh\ActivityController.h>
 #include "bnSelectMobScene.h"
 
-SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi) : 
+SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, ChipFolder& selectedFolder) :
   camera(ENGINE.GetDefaultView()),
   textbox(320, 100, 30, "resources/fonts/mmbnthin_regular.ttf"),
+  selectedFolder(selectedFolder),
   swoosh::Activity(controller)
 {
   selectedNavi = navi;
@@ -114,10 +115,10 @@ void SelectMobScene::onResume() {
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
-  navigatorAnimator.Update(elapsed, &navigator);
+  navigatorAnimator.Update((float)elapsed, &navigator);
 
-  camera.Update(elapsed);
-  textbox.Update(elapsed);
+  camera.Update((float)elapsed);
+  textbox.Update((float)elapsed);
 
   int prevSelect = mobSelectionIndex;
 
@@ -300,10 +301,15 @@ void SelectMobScene::onUpdate(double elapsed) {
 
     mob = factory->Build();
 
+
     Player* player = NAVIS.At(selectedNavi).GetNavi();
+    
+    // Folder is owned and deleted by the chip cust
+    ChipFolder* folder = selectedFolder.Clone();
+    folder->Shuffle();
 
     using segue = swoosh::intent::segue<CrossZoom>::to<BattleScene>;
-    getController().push<segue>(player, mob);
+    getController().push<segue>(player, mob, folder);
   }
 
   bool isEqual = textbox.GetCurrentCharacter() == '\0';

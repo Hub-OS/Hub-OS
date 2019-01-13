@@ -2,6 +2,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnInputManager.h"
+#include "bnChipLibrary.h"
 
 #define WILDCARD '='
 #define VOIDED 0
@@ -96,6 +97,7 @@ ChipSelectionCust::~ChipSelectionCust() {
 
   delete labelFont;
   delete codeFont;
+  delete folder;
 }
 
 bool ChipSelectionCust::CursorUp() {
@@ -273,8 +275,6 @@ bool ChipSelectionCust::OpenChipDescription()
 
   if (!IsInView() || chipDescriptionTextbox.IsOpen() || 
     (cursorPos == 5 && cursorRow == 0) || (index >= chipCount)) return false;
- 
-  std::cout << "index: " << index << std::endl;
 
   chipDescriptionTextbox.DescribeChip(queue[index].data);
 
@@ -292,16 +292,19 @@ bool ChipSelectionCust::CloseChipDescription() {
 void ChipSelectionCust::GetNextChips() {
   int perTurn = 3; // Limit how many new chips we get per turn
   for (int i = chipCount; i < chipCap; i++) {
-    queue[i].data = folder->Next();
+    do {
+      queue[i].data = folder->Next();
+
+      if (!queue[i].data) {
+        // nullptr is end of list
+        return;
+      }
+    } while (!CHIPLIB.IsChipValid(*queue[i].data)); // Only chips parsed successfully should be used in combat
 
     std::cout << "next chip description: " << queue[i].data->GetDescription() << std::endl;
 
     queue[i].state = STAGED;
 
-    if (!queue[i].data) {
-      // nullptr is end of list
-      return;
-    }
     chipCount++;
     perTurn--;
 

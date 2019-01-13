@@ -113,9 +113,18 @@ void MainMenuScene::onUpdate(double elapsed) {
       // Mob select
       if (menuSelectionIndex == 3) {
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
-        using segue = swoosh::intent::segue<WhiteWashFade>::to<SelectMobScene>;
-        this->getController().push<segue>(currentNavi);
+
+        ChipFolder* folder = nullptr;
+
+        if (data.GetFolder("Default", folder)) {
+          AUDIO.Play(AudioType::CHIP_DESC);
+          using segue = swoosh::intent::segue<WhiteWashFade>::to<SelectMobScene>;
+          this->getController().push<segue>(currentNavi, *folder);
+        }
+        else {
+          AUDIO.Play(AudioType::CHIP_ERROR); 
+          Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
+        }
       }
     }
 
