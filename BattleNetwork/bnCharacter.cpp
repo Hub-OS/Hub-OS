@@ -1,6 +1,7 @@
 #include "bnCharacter.h"
 #include "bnTile.h"
 #include "bnField.h"
+#include "bnExplosion.h"
 
 Character::Character(Rank _rank) :
   health(0),
@@ -22,15 +23,25 @@ const Character::Rank Character::GetRank() const {
 void Character::Update(float _elapsed) {
   elapsedBurnTime -= _elapsed;
 
-  if (this->IsBattleActive()) {
-    if (this->GetTile() && this->GetTile()->GetState() == TileState::LAVA) {
-      if (elapsedBurnTime <= 0 && this->GetElement() != Element::FIRE) {
-        elapsedBurnTime = burnCycle.asSeconds();
-        this->SetHealth(this->GetHealth() - 1);
+  if (this->IsBattleActive() && !this->HasFloatShoe()) {
+    if (this->GetTile()) {
+      if (this->GetTile()->GetState() == TileState::POISON) {
+        if (elapsedBurnTime <= 0) {
+          elapsedBurnTime = burnCycle.asSeconds();
+          this->SetHealth(this->GetHealth() - 1);
+        }
       }
-    }
-    else {
-      elapsedBurnTime = 0;
+      else {
+        elapsedBurnTime = 0;
+      }
+
+      if (this->GetTile()->GetState() == TileState::LAVA) {
+        Field* field = GetField();
+        Entity* explosion = new Explosion(field, this->GetTeam(), 1);
+        field->OwnEntity(explosion, tile->GetX(), tile->GetY());
+        this->Hit(50);
+        this->GetTile()->SetState(TileState::NORMAL);
+      }
     }
   }
 

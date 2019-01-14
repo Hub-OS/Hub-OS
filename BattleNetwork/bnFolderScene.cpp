@@ -27,7 +27,7 @@ using sf::Font;
 
 std::string FolderScene::FormatChipDesc(const std::string && desc)
 {
-  // Chip docks can only fit 8-9 characters per line, 3 lines total
+  // Chip docks can only fit 8 characters per line, 3 lines total
   std::string output = desc;
 
   int index = 0;
@@ -42,7 +42,7 @@ std::string FolderScene::FormatChipDesc(const std::string && desc)
       wordIndex = -1;
     }
 
-    if (perLine > 0 && perLine % 9 == 0) {
+    if (perLine > 0 && perLine % 8 == 0) {
       if (wordIndex > -1) {
         // Line break at the last word
         while (desc[index] == ' ') { index++; }
@@ -74,6 +74,85 @@ std::string FolderScene::FormatChipDesc(const std::string && desc)
 
   return output;
 }
+
+FolderScene::FolderScene(swoosh::ActivityController &controller) :
+  camera(ENGINE.GetDefaultView()),
+  swoosh::Activity(controller)
+{
+
+  // Menu name font
+  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
+  menuLabel = new sf::Text("Library", *font);
+  menuLabel->setCharacterSize(15);
+  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+
+  // Selection input delays
+  maxSelectInputCooldown = 0.5; // half of a second
+  selectInputCooldown = maxSelectInputCooldown;
+
+  // Chip UI font
+  chipFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+  chipLabel = new sf::Text("", *chipFont);
+  chipLabel->setPosition(275.f, 15.f);
+
+  numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
+  numberLabel = new sf::Text("", *numberFont);
+  numberLabel->setOutlineColor(sf::Color(48, 56, 80));
+  numberLabel->setOutlineThickness(2.f);
+  numberLabel->setScale(0.8f, 0.8f);
+  numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
+  numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
+
+  // Chip description font
+  chipDescFont = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
+  chipDesc = new sf::Text("", *chipDescFont);
+  chipDesc->setCharacterSize(24);
+  chipDesc->setPosition(sf::Vector2f(20.f, 185.0f));
+  //chipDesc->setLineSpacing(5);
+  chipDesc->setFillColor(sf::Color::Black);
+
+  // folder menu graphic
+  bg = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_VIEW_BG));
+  bg.setScale(2.f, 2.f);
+
+  folderDock = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_DOCK));
+  folderDock.setScale(2.f, 2.f);
+  folderDock.setPosition(2.f, 30.f);
+
+  scrollbar = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_SCROLLBAR));
+  scrollbar.setScale(2.f, 2.f);
+  scrollbar.setPosition(410.f, 60.f);
+
+  stars = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_RARITY));
+  stars.setScale(2.f, 2.f);
+
+  chipHolder = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_CHIP_HOLDER));
+  chipHolder.setScale(2.f, 2.f);
+  chipHolder.setPosition(4.f, 35.f);
+
+  element = sf::Sprite(*TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
+  element.setScale(2.f, 2.f);
+  element.setPosition(2.f*25.f, 146.f);
+
+  // Current chip graphic
+  chip = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CARDS));
+  cardSubFrame = sf::IntRect(TEXTURES.GetCardRectFromID(0));
+  chip.setTextureRect(cardSubFrame);
+  chip.setScale(2.f, 2.f);
+  chip.setPosition(83.f, 93.f);
+  chip.setOrigin(chip.getLocalBounds().width / 2.0f, chip.getLocalBounds().height / 2.0f);
+
+  chipIcon = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_ICONS));
+  chipIcon.setScale(2.f, 2.f);
+
+  chipRevealTimer.start();
+
+  maxChipsOnScreen = 7;
+  currChipIndex = 0;
+  numOfChips = CHIPLIB.GetSize();
+}
+
+FolderScene::~FolderScene() { ; }
 
 void FolderScene::onStart() {
   ENGINE.SetCamera(camera);
@@ -245,82 +324,3 @@ void FolderScene::onEnd() {
   delete numberLabel;
   delete chipDesc;
 }
-
-FolderScene::FolderScene(swoosh::ActivityController &controller) :
-  camera(ENGINE.GetDefaultView()),
-  swoosh::Activity(controller)
-{
-
-  // Menu name font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  menuLabel = new sf::Text("Library", *font);
-  menuLabel->setCharacterSize(15);
-  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
-
-  // Selection input delays
-  maxSelectInputCooldown = 0.5; // half of a second
-  selectInputCooldown = maxSelectInputCooldown;
-
-  // Chip UI font
-  chipFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  chipLabel = new sf::Text("", *chipFont);
-  chipLabel->setPosition(275.f, 15.f);
-
-  numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
-  numberLabel = new sf::Text("", *numberFont);
-  numberLabel->setOutlineColor(sf::Color(48, 56, 80));
-  numberLabel->setOutlineThickness(2.f);
-  numberLabel->setScale(0.8f, 0.8f);
-  numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
-  numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
-
-  // Chip description font
-  chipDescFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
-  chipDesc = new sf::Text("", *chipDescFont);
-  chipDesc->setCharacterSize(30);
-  chipDesc->setPosition(sf::Vector2f(20.f, 185.0f));
-  //chipDesc->setLineSpacing(5);
-  chipDesc->setFillColor(sf::Color::Black);
-
-  // folder menu graphic
-  bg = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_VIEW_BG));
-  bg.setScale(2.f, 2.f);
-
-  folderDock = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_DOCK));
-  folderDock.setScale(2.f, 2.f);
-  folderDock.setPosition(2.f, 30.f);
-
-  scrollbar = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_SCROLLBAR));
-  scrollbar.setScale(2.f, 2.f);
-  scrollbar.setPosition(410.f, 60.f);
-
-  stars = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_RARITY));
-  stars.setScale(2.f, 2.f);
-
-  chipHolder = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_CHIP_HOLDER));
-  chipHolder.setScale(2.f, 2.f);
-  chipHolder.setPosition(4.f, 35.f);
-
-  element = sf::Sprite(*TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
-  element.setScale(2.f, 2.f);
-  element.setPosition(2.f*25.f, 146.f);
-
-  // Current chip graphic
-  chip = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CARDS));
-  cardSubFrame = sf::IntRect(TEXTURES.GetCardRectFromID(0));
-  chip.setTextureRect(cardSubFrame);
-  chip.setScale(2.f, 2.f);
-  chip.setPosition(83.f, 93.f);
-  chip.setOrigin(chip.getLocalBounds().width / 2.0f, chip.getLocalBounds().height / 2.0f);
-
-  chipIcon = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_ICONS));
-  chipIcon.setScale(2.f, 2.f);
-
-  chipRevealTimer.start();
-
-  maxChipsOnScreen = 7;
-  currChipIndex = 0;
-  numOfChips = CHIPLIB.GetSize();
-}
-
-FolderScene::~FolderScene() { ; }

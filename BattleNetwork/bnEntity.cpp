@@ -34,7 +34,7 @@ void Entity::Update(float _elapsed) {
 
     sf::Vector2f pos = this->slideStartPosition;
     sf::Vector2f tar = this->next->getPosition();
-    tar = sf::Vector2f(tar.x + (tile->GetWidth() / 2.0f), tar.y  + (tile->GetHeight() / 2.0f));
+    tar = sf::Vector2f(tar.x, tar.y);
 
     float delta = swoosh::ease::linear((float)elapsedSlideTime, slideTime.asSeconds(), 1.0f);
     auto interpol = tar * delta + (pos*(1.0f - delta));
@@ -139,6 +139,10 @@ bool Entity::Move(Direction _direction) {
 
     moved = true;
   }
+  else {
+    isSliding = false;
+  }
+
   return moved;
 }
 
@@ -181,6 +185,9 @@ Battle::Tile* Entity::GetTile() const {
 void Entity::SlideToTile(bool enabled)
 {
   isSliding = enabled;
+
+  // capture potential slide starting position
+  this->UpdateSlideStartPosition();
 }
 
 void Entity::SetField(Field* _field) {
@@ -250,13 +257,13 @@ void Entity::AdoptNextTile()
     this->SlideToTile(true);
   }
 
-  SetTile(next);
-  tile->AddEntity(this);
-
   if (previous != nullptr) {
     previous->RemoveEntity(this);
     previous = nullptr;
   }
+
+  SetTile(next);
+  tile->AddEntity(this);
 
   next = nullptr;
 
@@ -266,7 +273,7 @@ void Entity::AdoptNextTile()
 
     // calculate our new entity's position in world coordinates based on next tile
     // It's the same in the update loop, but we need the value right at this moment
-    slideStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x + (tile->GetWidth() / 2.0f), tileOffset.y + tile->getPosition().y + (tile->GetHeight() / 2.0f));
+    this->UpdateSlideStartPosition();
 
     if (!next) this->SlideToTile(false);
   }
@@ -277,4 +284,9 @@ void Entity::AdoptNextTile()
 void Entity::SetBattleActive(bool state)
 {
   isBattleActive = state;
+}
+
+void Entity::UpdateSlideStartPosition()
+{
+  slideStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
 }

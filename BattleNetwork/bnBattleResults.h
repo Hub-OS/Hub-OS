@@ -17,6 +17,7 @@ private:
 
   bool isHidden;
   bool isRevealed;
+  bool rewardIsChip;
 
   BattleItem* item;
   int score; // 1-10 or 11+ as S rank

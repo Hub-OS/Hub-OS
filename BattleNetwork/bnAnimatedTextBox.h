@@ -19,8 +19,8 @@ private:
   TextBox textBox;
 
 public:
-  AnimatedTextBox(sf::Vector2f pos, sf::IntRect textArea, int characterSize = 30, 
-                  std::string fontPath = "resources/fonts/mmbnthin_regular.ttf") 
+  AnimatedTextBox(sf::Vector2f pos, sf::IntRect textArea, int characterSize = 24, 
+                  std::string fontPath = "resources/fonts/NETNAVI_4-6_V3.ttf") 
     : textArea(textArea), textBox(textArea.width, textArea.height, characterSize, fontPath) {
     frame = sf::Sprite(LOAD_TEXTURE(ANIMATED_TEXT_BOX));
     this->setPosition(pos);

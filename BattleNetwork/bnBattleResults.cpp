@@ -95,6 +95,8 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
     rewardCard.setTextureRect(rect);
 
     if (item->IsChip()) {
+      rewardIsChip = true;
+
       chipCode.setFont(*font);
       chipCode.setPosition(2.f*114.f, 209.f);
       chipCode.setString(std::string() + item->GetChipCode());
@@ -240,7 +242,7 @@ void BattleResults::Draw() {
       ENGINE.Draw(rewardCard, false);
       ENGINE.Draw(reward, false);
       
-      if (item && item->IsChip()) {
+      if (rewardIsChip) {
         ENGINE.Draw(chipCode, false);
       }
     }
@@ -254,5 +256,8 @@ bool BattleResults::IsFinished() {
 
 BattleItem* BattleResults::GetReward()
 {
-  return item;
+  // pass ownership off
+  BattleItem* reward = item;
+  item = nullptr;
+  return reward;
 }

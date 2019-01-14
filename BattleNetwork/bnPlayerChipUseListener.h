@@ -4,6 +4,7 @@
 #include "bnChipUseListener.h"
 #include "bnPlayer.h"
 #include "bnTile.h"
+#include "bnAirShot.h"
 #include "bnCannon.h"
 #include "bnBasicSword.h"
 
@@ -120,6 +121,18 @@ public:
       if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1)) {
         player->GetField()->OwnEntity(sword2, player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1);
       }
+    }
+    else if (name == "AirShot1") {
+      auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
+
+      player->SetAnimation(PLAYER_SHOOTING, onFinish);
+
+      AUDIO.Play(AudioType::SPREADER);
+
+      AirShot* airshot = new AirShot(player->GetField(), player->GetTeam(), chip.GetDamage());
+      airshot->SetDirection(Direction::RIGHT);
+
+      player->GetField()->OwnEntity(airshot, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
   }
 };

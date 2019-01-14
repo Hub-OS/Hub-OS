@@ -287,6 +287,9 @@
     <Filter Include="Database\Folder">
       <UniqueIdentifier>{bef66beb-f219-4d07-8d52-25a90241ac54}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Spell\AirShot">
+      <UniqueIdentifier>{637ca2c1-8a5e-4141-b610-9dc7186f1954}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -534,6 +537,9 @@
     </ClCompile>
     <ClCompile Include="bnChipDescriptionTextbox.cpp">
       <Filter>Activities\Battle\Content\Chips\Cust\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAirShot.cpp">
+      <Filter>Activities\Battle\Content\Entity\Spell\AirShot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -909,6 +915,9 @@
     </ClInclude>
     <ClInclude Include="bnChipFolderCollection.h">
       <Filter>Database\Folder</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAirShot.h">
+      <Filter>Activities\Battle\Content\Entity\Spell\AirShot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

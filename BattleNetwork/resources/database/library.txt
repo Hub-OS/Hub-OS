@@ -1,12 +1,56 @@
 # Lines beginning with pound '#' are comments and are ignored
-# Types are Normal (or None), Fire, Aqua, Wood, Elec, Wind, Sword, Break, Cursor, Plus, and Summon
 
-Chip name="Cannon"  cardIndex="0" iconIndex="0" damage="20" type="Normal" codes="A,A,A,A,A,B,B,B,C,C,C,B,C,C" desc="Cannon attack to 1 enemy" rarity="1"
+Chip name="Cannon"  cardIndex="0" iconIndex="0" damage="40" type="Normal" codes="A,A,B,B,C,C" desc="Cannon attack to 1 enemy" rarity="1" 
+# Chip name="HiCannon" cardIndex="1" iconIndex="1" damage="60" type="Normal" codes="E" desc="Cannon attack to 1 enemy " 
+# Chip name="M-Cannon" cardIndex="2" iconIndex="2" damage="120" type="Normal" codes="H,I,J" desc="Cannon attack to 1 enemy "
 
-#Chip name="Roll3" cardIndex="134" iconIndex="232" damage="60" type="Normal" codes="R" desc="Attacks enmy, then heals you" rarity="5"
+Chip name="Shotgun" cardIndex="3" iconIndex="10" damage="20" type="Normal" codes="J" desc="Explodes 1 square behind" rarity="1" 
+Chip name="V-Gun" cardIndex="4" iconIndex="11" damage="20" type="Normal" codes="D" desc="Explodes 2 diag. squares" rarity="1" 
+Chip name="SideGun" cardIndex="5" iconIndex="12" damage="20" type="Normal" codes="S" desc="Explodes up, down on hit" rarity="1" 
 
-# Chip name="Swrd"     cardIndex="15" iconIndex="30" damage="20" type="Sword" codes="L" desc="Cuts enmy in front! Range: 1" rarity="1" 
-# Chip name="WideSwrd" cardIndex="16" iconIndex="31" damage="30" type="Sword" codes="L" desc="Cuts enmy in front! Range: 3" # rarity="1" 
+Chip name="AirShot1" cardIndex="126" iconIndex="3" damage="20" type="Wind" codes="L" desc="Knocks enemy back 1" rarity="1" 
+
+# Chip name="SprdSht1" cardIndex="5" iconIndex="10" damage="20" type="Cursor" codes="Q,R,S"
+# Chip name="SprdSht2" cardIndex="4" iconIndex="11" damage="30" type="Cursor" codes="T,U,V"
+
+Chip name="HeatSht1" cardIndex="6" iconIndex="6" damage="20" type="Fire" codes="M,U,A" desc="burns" rarity="1" 
+# Chip name="HeatSht2" cardIndex="7" iconIndex="7" damage="40" type="Fire" codes="N,T,B"
+# Chip name="HeatSht3" cardIndex="8" iconIndex="8" damage="60" type="Fire" codes="O,V,C"
+
+# Chip name="Bubble1" cardIndex="9" iconIndex="15" damage="20" type="Aqua" codes="R"
+# Chip name="Bubble2" cardIndex="10" iconIndex="16" damage="40" type="Aqua" codes="F"
+
+Chip name="Bomb" cardIndex="11" iconIndex="20" damage="30" type="Normal" codes="B,S" desc="Throws a bomb 3 squares" rarity="1" 
+
+# 11, 12, 13
+
+Chip name="Swrd"     cardIndex="15" iconIndex="30" damage="20" type="Sword" codes="L" desc="Cuts enmy in front! Range: 1" rarity="1" 
+Chip name="WideSwrd" cardIndex="16" iconIndex="31" damage="30" type="Sword" codes="L" desc="Cuts enmy in front! Range: 3" rarity="1" 
 Chip name="LongSwrd" cardIndex="17" iconIndex="32" damage="40" type="Sword" codes="J" desc="Cuts enmy in front! Range: 2" rarity="2" 
 
-Chip name="Recov1" cardIndex="74" iconIndex="146" damage="10" type="Normal" codes="A,*" desc="he needs some milk" rarity="5"
+# 17 - 19
+
+Chip name="FireSwrd" cardIndex="21" iconIndex="33" damage="70" type="Fire" codes="F" desc="Fire: Cuts fwd 3 squares" rarity="3" 
+
+# 21 - 74
+
+Chip name="Recov10" cardIndex="74" iconIndex="146" damage="10" type="Normal" codes="A,L,*" desc="Recovers 10HP" rarity="1" 
+# Chip name="Recov20" cardIndex="75" iconIndex="147" damage="30" type="Normal" codes="R"
+# Chip name="Recov30" cardIndex="76" iconIndex="148" damage="50" type="Normal" codes="T"
+# Chip name="Recov40" cardIndex="77" iconIndex="149" damage="80" type="Normal" codes="K,L,M"
+# Chip name="Recov50" cardIndex="78" iconIndex="150" damage="120" type="Normal" codes="B"
+# Chip name="Recov60" cardIndex="79" iconIndex="151" damage="150" type="Normal" codes="G,H"
+# Chip name="Recov70" cardIndex="80" iconIndex="152" damage="200" type="Normal" codes="D,E,F"
+# Chip name="Recov80" cardIndex="81" iconIndex="153" damage="300" type="Normal" codes="Z"
+
+# 83 - 115
+
+Chip name="Invis" cardIndex="115" iconIndex="162" damage="0" type="Invis" codes="A,Y,*" desc="Invisible for a while" rarity="2" 
+
+# 117 - 119
+
+Chip name="Barrier" cardIndex="120" iconIndex="168" damage="0" type="Summon" codes="B,*" desc="Nullifies 10HP of damage!" rarity="1" 
+# Chip name="Barr100" cardIndex="121" iconIndex="169" damage="0" type="Normal" codes="U,S"
+# Chip name="Barr200" cardIndex="121" iconIndex="170" damage="0" type="Normal" codes="X"
+
+Chip name="Atk+10" cardIndex="124" iconIndex="194" damage="0" type="Normal" codes="*" desc="+10 for selected atk chip" rarity="1" 

@@ -16,7 +16,8 @@ public:
 
   static std::string ValueOf(std::string key, std::string line) {
       int keyIndex = (int)line.find(key);
-      assert(keyIndex > -1 && "Key was not found in file.");
+      std::string error("Key '" + key + "' was not found in line '" + line + "'");
+      assert(keyIndex > -1 && error.c_str());
       std::string s = line.substr(keyIndex + key.size() + 2);
       return s.substr(0, s.find("\""));
   }

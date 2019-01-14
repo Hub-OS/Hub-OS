@@ -3,7 +3,7 @@
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, ChipFolder& selectedFolder) :
   camera(ENGINE.GetDefaultView()),
-  textbox(320, 100, 30, "resources/fonts/mmbnthin_regular.ttf"),
+  textbox(320, 100, 24, "resources/fonts/NETNAVI_4-6_V3.ttf"),
   selectedFolder(selectedFolder),
   swoosh::Activity(controller)
 {
@@ -274,7 +274,8 @@ void SelectMobScene::onUpdate(double elapsed) {
   mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 
   // Make a selection
-  if (INPUT.has(PRESSED_A)&& !gotoNextScene) {
+  if (INPUT.has(PRESSED_A) && !gotoNextScene && mobSelectionIndex != 1) {
+
     gotoNextScene = true;
 
     AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOWEST);

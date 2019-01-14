@@ -60,6 +60,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   battleStart.setPosition(battleStartPos);
   battleStart.setScale(2.f, 2.f);
 
+  battleEnd = battleStart;
+  battleEnd.setTexture(LOAD_TEXTURE(ENEMY_DELETED));
+
   /*
   Chips + Chip select setup*/
   chips = nullptr;
@@ -140,7 +143,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   initFadeOut = false;
 
   isPreBattle = false;
+  isPostBattle = false;
   preBattleLength = 1; // in seconds
+  postBattleLength = 1;
   PAStartLength = 0.15; // in seconds
 
   showSummonText = false;
@@ -207,8 +212,8 @@ void BattleScene::onUpdate(double elapsed) {
 
   float FPS = 0.f;
 
-  if (elapsed > 0.f) {
-    FPS = 1.0f / elapsed;
+  if ((float)elapsed > 0.f) {
+    FPS = 1.0f / (float)elapsed;
     std::string fpsStr = std::to_string(FPS);
     fpsStr.resize(4);
     ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
@@ -229,12 +234,21 @@ void BattleScene::onUpdate(double elapsed) {
 
   // Check if entire mob is deleted
   if (mob->IsCleared()) {
-    isMobDeleted = true; // Hack. Just to trigger fade out and spawn a new mob
+    if (!isPostBattle && battleEndTimer.getElapsed().asSeconds() < postBattleLength) {
+      // Show Enemy Deleted 
+      isPostBattle = true;
+      battleEndTimer.reset();
+      AUDIO.StopStream();
+      AUDIO.Stream("resources/loops/enemy_deleted.ogg");
+    }
+    else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
+      isMobDeleted = true;
+    }
   }
 
-  camera.Update(elapsed);
+  camera.Update((float)elapsed);
 
-  background->Update(elapsed);
+  background->Update((float)elapsed);
 
   if (!showSummonText) {
     summons.Update(elapsed);
@@ -268,18 +282,18 @@ void BattleScene::onUpdate(double elapsed) {
 
   // Do not update when: paused or in chip select, during a summon sequence, showing Battle Start sign
   if (!(isPaused || isInChipSelect) && summons.IsSummonOver() && !isPreBattle) {
-    field->Update(elapsed);
+    field->Update((float)elapsed);
   }
 
-  // update the cust if not paused nor in chip select nor in mob intro nor battle results
-  if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle)) {  
+  // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
+  if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle || isPostBattle)) {  
     customProgress += elapsed;
 
     field->SetBattleActive(true);
 
     // Update components
     for (auto c : components) {
-      c->Update(elapsed);
+      c->Update((float)elapsed);
     }
 
     if (battleTimer.isPaused()) {
@@ -292,7 +306,7 @@ void BattleScene::onUpdate(double elapsed) {
     field->SetBattleActive(false);
   }
 
-  chipCustGUI.Update(elapsed);
+  chipCustGUI.Update((float)elapsed);
 }
 
 void BattleScene::onDraw(sf::RenderTexture& surface) {
@@ -345,7 +359,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     heatShader.setUniform("h", tile->GetHeight()*1.5f);
 
     iceShader.setUniform("w", tile->GetWidth() - 8.f);
-    iceShader.setUniform("h", tile->GetHeight()*0.9f);
+    iceShader.setUniform("h", tile->GetHeight()*0.8f);
 
     Entity* entity = nullptr;
 
@@ -356,10 +370,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       }
     }
 
-    /*if (tile->GetState() == TileState::LAVA) {
-      heatShader.setUniform("x", tile->getPosition().x);
+    if (tile->GetState() == TileState::LAVA) {
+      heatShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x + 3.0f);
 
-      float repos = (float)(tile->getPosition().y);
+      float repos = (float)(tile->getPosition().y - (tile->getTexture()->getSize().y*2.5f));
       heatShader.setUniform("y", repos);
 
       surface.display();
@@ -371,15 +385,15 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       surface.clear();
 
       LayeredDrawable* bake = new LayeredDrawable(distortionPost);
-      // bake->SetShader(&heatShader);
+      bake->SetShader(&heatShader);
 
       ENGINE.Draw(bake);
       delete bake;
     }
     else if (tile->GetState() == TileState::ICE) {
-      iceShader.setUniform("x", tile->getPosition().x);
+      iceShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x);
 
-      float repos = (float)(tile->getPosition().y);
+      float repos = (float)(tile->getPosition().y - tile->getTexture()->getSize().y);
       iceShader.setUniform("y", repos);
 
       surface.display();
@@ -391,11 +405,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       surface.clear();
 
       LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
-      //bake->SetShader(&iceShader);
+      bake->SetShader(&iceShader);
 
       ENGINE.Draw(bake);
       delete bake;
-    }*/
+    }
   }
 
   /*Draw misc sprites*/
@@ -498,6 +512,23 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
+  if (isPostBattle && !isBattleRoundOver) {
+    if (postBattleLength <= 0) {
+      isPostBattle = false;
+    }
+    else {
+      double battleEndSecs = battleEndTimer.getElapsed().asSeconds();
+      double scale = swoosh::ease::wideParabola(battleEndSecs, postBattleLength, 2.0);
+      battleEnd.setScale(2.f, (float)scale*2.f);
+
+      if (battleEndSecs >= postBattleLength) {
+        isPostBattle = false;
+      }
+
+      ENGINE.Draw(battleEnd);
+    }
+  }
+
   if (isPaused) {
     // render on top 
     ENGINE.Draw(pauseLabel, false);
@@ -510,7 +541,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   chipCustGUI.Draw();
 
   // Scene keyboard controls
-  if (INPUT.has(PRESSED_PAUSE) && !isInChipSelect && !isBattleRoundOver && !isPreBattle) {
+  if (INPUT.has(PRESSED_PAUSE) && !isInChipSelect && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
     isPaused = !isPaused;
 
     if (!isPaused) {
@@ -520,13 +551,13 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       AUDIO.Play(AudioType::PAUSE);
     }
   }
-  else if (INPUT.has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle) {
+  else if (INPUT.has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
      chipUI.UseNextChip();
   }
   else if ((!isMobFinished && mob->IsSpawningDone()) || 
     (
       INPUT.has(PRESSED_START) && customProgress >= customDuration && !isInChipSelect && !isPaused && 
-      !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle
+      !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle
     )) {
     // enemy intro finished
     if (!isMobFinished) {
@@ -831,7 +862,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  if (isBattleRoundOver && !isPlayerDeleted && player->GetHealth() > 0) {
+  if (isBattleRoundOver && !isPostBattle && !isPlayerDeleted && player->GetHealth() > 0) {
     if (!battleResults) {
       sf::Time totalBattleTime = battleTimer.getElapsed();
 
@@ -839,9 +870,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       //       GetDoubleDelete()
       //       GetTripleDelete()
       battleResults = new BattleResults(totalBattleTime, player->GetMoveCount(), player->GetHitCount(), 0, false, false, mob);
-
-      AUDIO.StopStream();
-      AUDIO.Stream("resources/loops/enemy_deleted.ogg");
     }
     else {
       battleResults->Draw();
@@ -862,7 +890,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 // persistent session storage
                 CHIPLIB.AddChip(reward->GetChip());
                 delete reward;
-                reward = nullptr;
               }
             }
 

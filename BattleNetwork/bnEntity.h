@@ -83,4 +83,7 @@ protected:
   double elapsedSlideTime; // in seconds
   Direction direction;
   Direction previousDirection;
+
+private:
+  void UpdateSlideStartPosition();
 };

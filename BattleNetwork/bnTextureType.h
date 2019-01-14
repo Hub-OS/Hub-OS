@@ -11,6 +11,7 @@ enum TextureType {
   TILE_BLUE_ICE,
   TILE_BLUE_GRASS,
   TILE_BLUE_PURPLE,
+  TILE_BLUE_LAVA,
   TILE_BLUE_EMPTY,
   TILE_RED_NORMAL,
   TILE_RED_CRACKED,
@@ -18,6 +19,7 @@ enum TextureType {
   TILE_RED_ICE,
   TILE_RED_GRASS,
   TILE_RED_PURPLE,
+  TILE_RED_LAVA,
   TILE_RED_EMPTY,
 
   //Navis
@@ -59,6 +61,7 @@ enum TextureType {
   // In-battle signs
   PROGRAM_ADVANCE,
   BATTLE_START,
+  ENEMY_DELETED, 
 
   // Battle Result
   BATTLE_RESULTS_FRAME,

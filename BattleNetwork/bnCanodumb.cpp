@@ -123,5 +123,5 @@ const bool Canodumb::Hit(int _damage) {
 }
 
 const float Canodumb::GetHitHeight() const {
-  return hitHeight;
+  return (float)hitHeight;
 }

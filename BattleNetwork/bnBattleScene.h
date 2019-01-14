@@ -71,8 +71,10 @@ private:
   */
 
   sf::Sprite battleStart;
+  sf::Sprite battleEnd;
   sf::Vector2f battleStartPos;
   swoosh::Timer battleStartTimer;
+  swoosh::Timer battleEndTimer;
 
   /*
   Chips + Chip select setup*/
@@ -143,7 +145,9 @@ private:
   bool initFadeOut;
 
   bool isPreBattle;
+  bool isPostBattle;
   double preBattleLength; 
+  double postBattleLength;
 
   swoosh::Timer summonTimer;
   bool showSummonText;

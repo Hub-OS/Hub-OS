@@ -77,6 +77,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/tiles/img_blue_ice.png");
   paths.push_back("resources/tiles/img_blue_grass.png");
   paths.push_back("resources/tiles/img_blue_purple.png");
+  paths.push_back("resources/tiles/img_blue_lava.png");
   paths.push_back("resources/tiles/img_blue_empty.png");
   //Red tile
   paths.push_back("resources/tiles/img_red_normal.png");
@@ -85,6 +86,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/tiles/img_red_ice.png");
   paths.push_back("resources/tiles/img_red_grass.png");
   paths.push_back("resources/tiles/img_red_purple.png");
+  paths.push_back("resources/tiles/img_red_lava.png");
   paths.push_back("resources/tiles/img_red_empty.png");
 
   //-Navis-
@@ -139,6 +141,7 @@ TextureResourceManager::TextureResourceManager(void) {
   // In battle signs
   paths.push_back("resources/ui/program_advance.png");
   paths.push_back("resources/ui/battle_start.png");
+  paths.push_back("resources/ui/enemy_deleted.png");
 
   // Battle Results Frame
   paths.push_back("resources/ui/battle_results.png");

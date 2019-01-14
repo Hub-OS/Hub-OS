@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
   logoSprite.setPosition(logoPos);
 
   // Log output text
-  sf::Font* font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
+  sf::Font* font = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
   sf::Text* logLabel = new sf::Text("...", *font);
   logLabel->setCharacterSize(10);
   logLabel->setOrigin(0.f, logLabel->getLocalBounds().height);

@@ -132,6 +132,8 @@ void Mettaur::Update(float _elapsed) {
     animationComponent.Update(_elapsed);
   }
 
+  healthUI->Update();
+
   Character::Update(_elapsed);
 }
 

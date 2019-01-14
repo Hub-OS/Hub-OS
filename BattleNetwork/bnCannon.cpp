@@ -47,7 +47,7 @@ void Cannon::Update(float _elapsed) {
   if (hit) {
     if (progress == 0.0f) {
       setTexture(*texture);
-      setPosition(tile->getPosition().x + tile->GetWidth() / 2.f + random, tile->getPosition().y + tile->GetHeight() / 2.f - hitHeight);
+      setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
     }
     progress += 3 * _elapsed;
     animator(fmin(progress, 1.0f), *this, animation);

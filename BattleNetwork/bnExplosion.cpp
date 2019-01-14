@@ -32,13 +32,13 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
 
   offset = sf::Vector2f((float)randX, (float)randY);
 
-  AUDIO.Play(AudioType::EXPLODE);
+  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOWEST);
 
-  animationComponent.SetAnimation("EXPLODE", [this]() { this->setColor(sf::Color(255, 255, 255, 0)); });
+  animationComponent.SetAnimation("EXPLODE", [this]() { root->IncrementExplosionCount(); /*this->setColor(sf::Color(255, 255, 255, 0));*/ });
   animationComponent.SetPlaybackSpeed(playbackSpeed);
-  animationComponent.Update(0.1f);
+  animationComponent.Update(0.0f);
 
-  if (_numOfExplosions > 0) {
+  if (_numOfExplosions > 1) {
     animationComponent.AddCallback(9, [this, _field, _team, _numOfExplosions]() {
       this->GetField()->OwnEntity(new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
     }, std::function<void()>(), true);
@@ -80,7 +80,7 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 
   animationComponent.SetAnimation("EXPLODE", [this]() { this->Delete(); root->IncrementExplosionCount(); });
   animationComponent.SetPlaybackSpeed(playbackSpeed);
-  animationComponent.Update(0.1f);
+  animationComponent.Update(0.0f);
 
   if (numOfExplosions > 1) {
     animationComponent.AddCallback(9, [this]() {
@@ -91,7 +91,7 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 
 void Explosion::Update(float _elapsed) {
   if (this == root) {
-    if (count == numOfExplosions - 1) {
+    if (count == numOfExplosions) {
       Delete();
       return;
     }

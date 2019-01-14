@@ -69,14 +69,16 @@ void PlayerHealthUI::Update() {
     text.setScale(0.8f, 0.8f);
 
     bool isBurning = false;
-    
+    bool isPoisoned = false;
+
     if (player->GetTile()) {
       isBurning = player->GetTile()->GetState() == TileState::LAVA;
       isBurning = isBurning && player->GetElement() != Element::FIRE;
       isBurning = isBurning && !player->HasFloatShoe();
+      isPoisoned = player->GetTile()->GetState() == TileState::POISON;
     }
 
-    if (currHP > player->GetHealth() || isBurning) {
+    if (currHP > player->GetHealth() || isBurning || isPoisoned) {
       text.setFillColor(sf::Color(255, 165, 0));
     } else if (currHP < player->GetHealth()) {
       text.setFillColor(sf::Color(0, 255, 80));
