@@ -4,14 +4,14 @@
 #include "bnInputManager.h"
 #include "bnChipLibrary.h"
 
-#define WILDCARD '='
+#define WILDCARD '*'
 #define VOIDED 0
 #define STAGED  1
 #define QUEUED 2
 
 ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) : 
   greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
-  chipDescriptionTextbox(sf::Vector2f(4, 255), sf::IntRect(90, -40, 280, 100))
+  chipDescriptionTextbox(sf::Vector2f(4, 255))
 {
   folder = _folder;
   cap = std::min(cap, 8);
@@ -281,6 +281,22 @@ bool ChipSelectionCust::OpenChipDescription()
   return true;
 }
 
+bool ChipSelectionCust::ContinueChipDescription() {
+  if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
+
+  chipDescriptionTextbox.Continue();
+
+  return true;
+}
+
+bool ChipSelectionCust::FastForwardChipDescription(double factor) {
+  if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
+
+  chipDescriptionTextbox.SetTextSpeed(factor);
+
+  return true;
+}
+
 bool ChipSelectionCust::CloseChipDescription() {
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
@@ -424,17 +440,6 @@ void ChipSelectionCust::Update(float elapsed)
 
   static bool A_HELD = false;
 
-  if (INPUT.has(PRESSED_A)) {
-    A_HELD = true;
-  }
-  else if (INPUT.has(RELEASED_A)) {
-    A_HELD = false;
-  }
-
-  if (A_HELD) {
-    elapsed *= 3.0;
-  } 
-  
   chipDescriptionTextbox.Update(elapsed);
 }
 

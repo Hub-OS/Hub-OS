@@ -50,6 +50,8 @@ public:
 
   // GUI ops
   bool OpenChipDescription();
+  bool ContinueChipDescription();
+  bool FastForwardChipDescription(double factor);
   bool CloseChipDescription();
   bool CursorUp();
   bool CursorDown();

@@ -140,11 +140,12 @@ const int PA::FindPA(Chip ** input, unsigned size)
     while (index <= (int)size - (int)iter->steps.size()) {
       char code = input[index]->GetCode();
 
-      if (iter->steps[0].code == code && iter->steps[0].chipShortName == input[0]->GetShortName()) {
+      //std::cout << "iter->steps[0].code == " << iter->steps[0].code << " | iter->steps[0].chipShortName == " << iter->steps[0].chipShortName << std::endl;
+      //std::cout << "code == " << code << " | input[index]->GetShortName() == " << input[index]->GetShortName() << std::endl;
+
+      if (iter->steps[0].code == code && iter->steps[0].chipShortName == input[index]->GetShortName()) {
         for (unsigned i = 0; i < iter->steps.size(); i++) {
           char code = input[i + index]->GetCode();
-
-          if (code == '=') { code = '*'; } // Transform back from compatible font char
 
           if (iter->steps[i].code == code && iter->steps[i].chipShortName == input[i + index]->GetShortName()) {
             match = true;

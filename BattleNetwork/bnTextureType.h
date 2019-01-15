@@ -86,7 +86,9 @@ enum TextureType {
 
   // Navigator and textbox
   MUG_NAVIGATOR,
+  MUG_PROG,
   ANIMATED_TEXT_BOX,
+  TEXT_BOX_NEXT_CURSOR,
 
   //Background/Foreground
   BACKGROUND_BLUE,

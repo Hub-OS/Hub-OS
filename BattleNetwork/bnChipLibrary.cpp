@@ -147,11 +147,6 @@ void ChipLibrary::LoadLibrary() {
         if (code.empty())
           continue;
 
-        if (code == "*") {
-          // transform it into the font-compatible ascii char
-          code = '=';
-        }
-
         Element elemType = GetElementFromStr(type);
 
         library.push_back(Chip(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, atoi(rarity.c_str())));

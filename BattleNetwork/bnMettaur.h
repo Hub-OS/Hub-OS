@@ -24,7 +24,7 @@ public:
 
   void SetHealth(int _health);
   virtual int* GetAnimOffset();
-  virtual const bool Hit(int _damage);
+  virtual const bool Hit(int _damage, HitProperties props = Entity::DefaultHitProperties);
   virtual const float GetHitHeight() const;
 
 private:

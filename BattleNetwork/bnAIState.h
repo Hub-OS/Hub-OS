@@ -16,7 +16,7 @@ public:
 
   template<class U, typename ...Args>
   void ChangeState(Args... args) {
-    _DerivedFrom<U, AIState<T>>();
+    //_DerivedFrom<U, AIState<T>>();
 
     if (nextState) { delete nextState; }
 
@@ -25,7 +25,7 @@ public:
 
   template<class U>
   void ChangeState() {
-    _DerivedFrom<U, AIState<T>>();
+    //_DerivedFrom<U, AIState<T>>();
 
     if (nextState) { delete nextState; }
 

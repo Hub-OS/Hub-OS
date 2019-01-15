@@ -61,6 +61,6 @@ void main()
     distortionPositionOffset *= percentage2;
     
     vec2 distortedTextureCoordinate = gl_TexCoord[0].st + distortionPositionOffset;
-    gl_FragColor = gl_Color * texture2D(currentTexture, distortedTextureCoordinate) + (vec4(0.5,0.0,0.0,1.0)*percentage2);
+    gl_FragColor = gl_Color * texture2D(currentTexture, distortedTextureCoordinate) + (vec4(0.7,0.0,0.0,1.0)*percentage2);
   }
 }

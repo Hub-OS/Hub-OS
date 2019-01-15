@@ -32,7 +32,7 @@ namespace Battle {
     width = getTextureRect().width * getScale().x;
     height = getTextureRect().height * getScale().y;
     setOrigin(getTextureRect().width / 2.0f, getTextureRect().height / 2.0f);
-    setPosition((width/2.0) + ((x - 1) * width) + START_X, (height/2.0) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
+    setPosition((width/2.0f) + ((x - 1) * width) + START_X, (height/2.0f) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = false;
     isBattleActive = false;
   }
@@ -248,12 +248,15 @@ namespace Battle {
       }
     }
 
-    for (auto it = entities.begin(); it != entities.end(); ++it) {
-      if (*it == nullptr || *it == caller)
-        continue;
+    // Spells dont cause damage anymore
+    if (this->isBattleActive) {
+      for (auto it = entities.begin(); it != entities.end(); ++it) {
+        if (*it == nullptr || *it == caller)
+          continue;
 
-      if (!(*it)->IsPassthrough() && dynamic_cast<Spell*>(*it) == 0) {
-        caller->Attack(*it);
+        if (!(*it)->IsPassthrough() && dynamic_cast<Spell*>(*it) == 0) {
+          caller->Attack(*it);
+        }
       }
     }
   }

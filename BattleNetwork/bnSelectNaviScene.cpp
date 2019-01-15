@@ -118,7 +118,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   glowbottom.setPosition(40, 200);
 
   // Text box 
-  textbox.SetSpeed(15);
+  textbox.SetCharactersPerSecond(15);
   textbox.setPosition(UI_RIGHT_POS_MAX + 10, 205);
   textbox.Stop();
 

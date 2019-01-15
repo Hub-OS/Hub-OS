@@ -8,7 +8,7 @@ class TextBox : public sf::Drawable, public sf::Transformable {
 private:
   sf::Font* font;
   mutable sf::Text text;
-  double speed; // characters per second (default is 10)
+  double charsPerSecond; // default is 10 cps
   double progress;
   int areaWidth, areaHeight;
   std::string message;
@@ -28,7 +28,7 @@ public:
     message = "";
     areaWidth = width;
     areaHeight = height;
-    speed = 10;
+    charsPerSecond = 10;
     charIndex = 0;
     play = true;
     mute = false;
@@ -117,11 +117,11 @@ public:
 
     numberOfFittingLines = line;
 
-    // std::cout << "num of fitting lines: " << numberOfFittingLines << std::endl;
-    // std::cout << "lines found: " << lines.size() << std::endl;
+    //std::cout << "num of fitting lines: " << numberOfFittingLines << std::endl;
+    //std::cout << "lines found: " << lines.size() << std::endl;
   }
 
-  bool HasMore() {
+  const bool HasMore() const {
     if (lineIndex + numberOfFittingLines < lines.size())
       if (charIndex > lines[lineIndex + numberOfFittingLines])
         return true;
@@ -129,7 +129,7 @@ public:
     return false;
   }
 
-  bool HasLess() {
+  const bool HasLess() const {
     return lineIndex > 0;
   }
 
@@ -147,8 +147,8 @@ public:
       lineIndex = 0;
   }
 
-  void SetSpeed(const double speed) {
-    this->speed = speed;
+  void SetCharactersPerSecond(const double cps) {
+    this->charsPerSecond = cps;
   }
 
   void SetMessage(const std::string message) {
@@ -169,19 +169,29 @@ public:
     Play(false);
   }
 
-  char GetCurrentCharacter() {
+  const char GetCurrentCharacter() const {
     return message[charIndex];
+  }
+
+  const int GetNumberOfFittingLines() const {
+    return numberOfFittingLines;
+  }
+
+  const int GetCharsPerSecond() const {
+    return charsPerSecond;
   }
 
   virtual void Update(const double elapsed) {
     if (!play || message.empty()) return;
 
+    bool playOnce = true;
+
     double charIndexIter = 0;
     progress += elapsed;
 
     double simulate = progress;
-    while (simulate > 0 && speed > 0) {
-      simulate -= 1.0/speed;
+    while (simulate > 0 && charsPerSecond > 0) {
+      simulate -= 1.0/ charsPerSecond;
 
       if (charIndexIter++ > charIndex && charIndex < message.size()) {
         charIndex++;
@@ -190,7 +200,10 @@ public:
           charIndex++;
 
         if (!mute && message[charIndex] != ' ') {
-          AUDIO.Play(AudioType::TEXT);
+          if (playOnce) {
+            AUDIO.Play(AudioType::TEXT);
+            playOnce = false;
+          }
         }
       }
       

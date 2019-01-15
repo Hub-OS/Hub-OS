@@ -27,8 +27,9 @@ void Character::Update(float _elapsed) {
     if (this->GetTile()) {
       if (this->GetTile()->GetState() == TileState::POISON) {
         if (elapsedBurnTime <= 0) {
-          elapsedBurnTime = burnCycle.asSeconds();
-          this->SetHealth(this->GetHealth() - 1);
+          if (this->Hit(1, Entity::HitProperties({ false, false, false, true, 0 }))) {
+            elapsedBurnTime = burnCycle.asSeconds();
+          }
         }
       }
       else {
@@ -36,11 +37,12 @@ void Character::Update(float _elapsed) {
       }
 
       if (this->GetTile()->GetState() == TileState::LAVA) {
-        Field* field = GetField();
-        Entity* explosion = new Explosion(field, this->GetTeam(), 1);
-        field->OwnEntity(explosion, tile->GetX(), tile->GetY());
-        this->Hit(50);
-        this->GetTile()->SetState(TileState::NORMAL);
+        if (this->Hit(50)) {
+          Field* field = GetField();
+          Entity* explosion = new Explosion(field, this->GetTeam(), 1);
+          field->OwnEntity(explosion, tile->GetX(), tile->GetY());
+          this->GetTile()->SetState(TileState::NORMAL);
+        }
       }
     }
   }
@@ -85,7 +87,7 @@ const float Character::GetHitHeight() const {
   return 0;
 }
 
-const bool Character::Hit(int damage) {
+const bool Character::Hit(int damage, HitProperties props) {
   this->SetHealth(this->GetHealth() - damage);
 
   if (this->GetHealth() < 0) {

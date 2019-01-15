@@ -22,7 +22,7 @@ public:
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
 
-  virtual const bool Hit(int damage);
+  virtual const bool Hit(int damage, HitProperties props = Entity::DefaultHitProperties);
   virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
   virtual bool CanMoveTo(Battle::Tile* next);

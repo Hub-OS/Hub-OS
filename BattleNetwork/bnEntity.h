@@ -20,10 +20,20 @@ class Entity : public LayeredDrawable {
   friend class Field;
 
 public:
+  struct HitProperties {
+    bool recoil;
+    bool shake;
+    bool stun;
+    bool pierce;
+    double secs;
+  };
+
+  const static HitProperties DefaultHitProperties;
+
   Entity();
   virtual ~Entity();
 
-  virtual const bool Hit(int damage);
+  virtual const bool Hit(int damage, HitProperties props=Entity::DefaultHitProperties);
   virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);

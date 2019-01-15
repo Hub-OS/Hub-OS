@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <sstream>
 #include <algorithm>
+#include <random>
 
 ChipFolder::ChipFolder() {
   folderSize = initialSize = 0;
@@ -21,7 +22,11 @@ ChipFolder::~ChipFolder() {
 
 void ChipFolder::Shuffle()
 {
-  std::random_shuffle(folderList.begin(), folderList.end());
+  std::random_device rng;
+  std::mt19937 urng(rng());
+  std::shuffle(folderList.begin(), folderList.end(), urng);
+
+  // std::random_shuffle(folderList.begin(), folderList.end()); // Depricated in C__14 and removed after
 }
 
 ChipFolder* ChipFolder::Clone() {

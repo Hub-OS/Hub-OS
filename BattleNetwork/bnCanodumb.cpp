@@ -71,7 +71,7 @@ void Canodumb::Update(float _elapsed) {
 
   if (_elapsed <= 0) return;
 
-  setPosition(tile->getPosition().x, tile->getPosition().y);
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
   hitHeight = (int)getLocalBounds().height;
 
 
@@ -115,7 +115,7 @@ vector<Drawable*> Canodumb::GetMiscComponents() {
   return drawables;
 }
 
-const bool Canodumb::Hit(int _damage) {
+const bool Canodumb::Hit(int _damage, HitProperties props) {
   (health - _damage < 0) ? health = 0 : health -= _damage;
   SetShader(whiteout);
 

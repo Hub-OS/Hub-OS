@@ -79,7 +79,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   textbox.Stop();
   textbox.setPosition(100, 210);
   textbox.SetTextColor(sf::Color::Black);
-  textbox.SetSpeed(20);
+  textbox.SetCharactersPerSecond(25);
 }
 
 SelectMobScene::~SelectMobScene() {

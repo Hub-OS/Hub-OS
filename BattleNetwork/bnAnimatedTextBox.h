@@ -5,6 +5,8 @@
 class AnimatedTextBox : public sf::Drawable, public sf::Transformable {
 private:
   mutable sf::Sprite frame; // Size is inherited from this object 
+  mutable sf::Sprite nextCursor; 
+  mutable Animation mugAnimator;
   bool isPaused;
   bool isReady;
   bool isOpening;
@@ -13,20 +15,23 @@ private:
   std::vector<std::string> animPaths;
   std::vector<std::string> messages;
   Animation animator;
-  mutable Animation mugAnimator;
 
   sf::IntRect textArea;
   TextBox textBox;
 
+  double totalTime;
+  double textSpeed;
 public:
-  AnimatedTextBox(sf::Vector2f pos, sf::IntRect textArea, int characterSize = 24, 
-                  std::string fontPath = "resources/fonts/NETNAVI_4-6_V3.ttf") 
-    : textArea(textArea), textBox(textArea.width, textArea.height, characterSize, fontPath) {
+  AnimatedTextBox(sf::Vector2f pos) 
+    : textArea(textArea), totalTime(0), textBox(280, 40, 24, "resources/fonts/NETNAVI_4-6_V3.ttf") {
     frame = sf::Sprite(LOAD_TEXTURE(ANIMATED_TEXT_BOX));
+    nextCursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_NEXT_CURSOR));
+
+    // set the textbox positions
+    textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0, this->getPosition().y - 40.0));
     this->setPosition(pos);
 
-    // set the textbox position
-    textBox.setPosition(sf::Vector2f(this->getPosition().x + textArea.left, this->getPosition().y + textArea.top));
+    textSpeed = 1.0;
 
     // Load the textbox animation
     animator = Animation("resources/ui/textbox.animation");
@@ -99,6 +104,8 @@ public:
   }
 
   virtual void Update(float elapsed) {
+    totalTime += elapsed;
+
     if (isReady && messages.size() > 0) {
       if (!isPaused) {
         if (mugAnimator.GetAnimationString() != "TALK") {
@@ -106,9 +113,9 @@ public:
           mugAnimator << Animate::Mode(Animate::Mode::Loop);
         }
 
-        textBox.Update(elapsed);
+        textBox.Update(elapsed*(float)textSpeed);
 
-        if (textBox.EndOfMessage()) {
+        if (textBox.EndOfMessage() || textBox.HasMore()) {
           isPaused = true;
         }
       }
@@ -119,25 +126,44 @@ public:
         }
       }
 
-      mugAnimator.Update(elapsed, &mugshots.front());
+      mugAnimator.Update(elapsed*(float)textSpeed, &mugshots.front());
     }
+
+    textBox.Play(!isPaused);
+
+    // set the textbox position
+    textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0, this->getPosition().y - 40.0));
 
     animator.Update(elapsed, &frame);
   }
 
+  void SetTextSpeed(double factor) {
+    if (textSpeed >= 1.0) {
+      textSpeed = factor;
+    }
+  }
+
   void Continue() {
+    if (!this->isPaused) return;
+
     if (!textBox.HasMore()) {
       if (messages.size() > 1) {
         messages.erase(messages.begin());
+        animPaths.erase(animPaths.begin());
+        mugshots.erase(mugshots.begin());
+
         mugAnimator = Animation(animPaths[0]);
         mugAnimator.SetAnimation("TALK");
+        mugAnimator << Animate::Mode(Animate::Mode::Loop);
         textBox.SetMessage(messages[0]);
         isPaused = false;
       }
     }
     else {
-      textBox.ShowNextLine();
-      textBox.ShowNextLine();
+      for (int i = 0; i < textBox.GetNumberOfFittingLines(); i++) {
+        textBox.ShowNextLine();
+      }
+
       isPaused = false;
     }
   }
@@ -147,6 +173,13 @@ public:
     frame.setScale(this->getScale()*2.0f);
     frame.setPosition(this->getPosition());
     frame.setRotation(this->getRotation());
+
+    nextCursor.setScale(this->getScale()*2.0f);
+
+    auto bounce = std::sinf((float)totalTime*10.0f)*5.0f;
+
+    nextCursor.setPosition(sf::Vector2f(this->getPosition().x + frame.getGlobalBounds().width - 30.0f, this->getPosition().y + 30.0f + bounce));
+    nextCursor.setRotation(this->getRotation());
 
     if (isOpening || isReady || isClosing) {
       target.draw(frame);
@@ -167,7 +200,7 @@ public:
       // restore it when we draw
       // Prime example where scene nodes would come in handy.
 
-      pos += sf::Vector2f(6.0f, 2.0f-sprite.getGlobalBounds().height/2.0);
+      pos += sf::Vector2f(6.0f, 2.0f-sprite.getGlobalBounds().height/2.0f);
 
       sprite.setPosition(pos);
 
@@ -178,6 +211,10 @@ public:
 
       // Draw the animated text
       textBox.draw(target, states);
+
+      if (this->isPaused && (textBox.HasMore() || this->messages.size() > 1)) {
+        target.draw(nextCursor);
+      }
     }
   }
 };

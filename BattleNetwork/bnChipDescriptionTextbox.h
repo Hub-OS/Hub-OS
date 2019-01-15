@@ -5,6 +5,6 @@
 
 class ChipDescriptionTextbox : public AnimatedTextBox {
 public:
-  ChipDescriptionTextbox(sf::Vector2f pos, sf::IntRect textArea);
+  ChipDescriptionTextbox(sf::Vector2f pos);
   void DescribeChip(Chip* chip);
 };

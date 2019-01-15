@@ -145,7 +145,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   isPreBattle = false;
   isPostBattle = false;
   preBattleLength = 1; // in seconds
-  postBattleLength = 1;
+  postBattleLength = 1.4; // in seconds
   PAStartLength = 0.15; // in seconds
 
   showSummonText = false;
@@ -349,7 +349,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   while (field->GetNextTile(tile)) {
 
     static float totalTime = 0;
-    totalTime += elapsed;
+    totalTime += (float)elapsed;
 
     heatShader.setUniform("time", totalTime*0.02f);
     heatShader.setUniform("distortionFactor", 0.01f);
@@ -436,7 +436,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }*/
 
   // NOTE: Although HUD, it fades dark when on chip cust screen and paused.
-  if (!isBattleRoundOver && !isInChipSelect)
+  if (!(isInChipSelect || isPostBattle || mob->IsCleared()))
     ENGINE.Draw(&customBarSprite);
 
   if (isPaused || isInChipSelect) {
@@ -488,7 +488,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
 
   if (!isPlayerDeleted) {
-    chipUI.Update(elapsed); // DRAW 
+    chipUI.Update((float)elapsed); // DRAW 
 
     Drawable* component;
     while (chipUI.GetNextComponent(component)) {
@@ -598,11 +598,28 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   }
   else if (isInChipSelect && chipCustGUI.IsInView()) {
-    if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
+    static bool A_HELD = false;
 
+    if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
       if (INPUT.has(RELEASED_PAUSE)) {
         chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
-      } 
+      }
+      else if (INPUT.has(RELEASED_A) ){
+        chipCustGUI.ContinueChipDescription();
+ 
+        A_HELD = false;
+      }
+      
+      if (INPUT.has(PRESSED_A)) {
+        A_HELD = true;
+      }
+
+      if (A_HELD) {
+        chipCustGUI.FastForwardChipDescription(3.0);
+      }
+      else {
+        chipCustGUI.FastForwardChipDescription(1.0);
+      }
     }
     else {
       if (INPUT.has(PRESSED_LEFT)) {
@@ -667,12 +684,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   if (isInChipSelect && customProgress > 0.f) {
     if (!chipCustGUI.IsInView()) {
-      chipCustGUI.Move(sf::Vector2f(600.f * elapsed, 0));
+      chipCustGUI.Move(sf::Vector2f(600.f * (float)elapsed, 0));
     }
   }
   else {
     if (!chipCustGUI.IsOutOfView()) {
-      chipCustGUI.Move(sf::Vector2f(-600.f * elapsed, 0));
+      chipCustGUI.Move(sf::Vector2f(-600.f * (float)elapsed, 0));
     }
     else if (isInChipSelect) { // we're leaving a state
    // Start Program Advance checks

@@ -134,10 +134,10 @@ int Player::GetHealth() const {
   return health;
 }
 
-const bool Player::Hit(int _damage) {
+const bool Player::Hit(int _damage, HitProperties props) {
   // return false;
 
-  if (this->IsPassthrough() || invincibilityCooldown > 0) return false;
+  if ((this->IsPassthrough() && !props.pierce) || invincibilityCooldown > 0) return false;
 
   bool result = true;
 
@@ -147,7 +147,10 @@ const bool Player::Hit(int _damage) {
   else {
     health -= _damage;
     hitCount++;
-    this->ChangeState<PlayerHitState, float>({ 600.0f });
+
+    if (props.recoil) {
+      this->ChangeState<PlayerHitState, float>({ (float)props.secs });
+    }
   }
 
   return result;

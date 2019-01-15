@@ -160,7 +160,7 @@ void ProgsMan::SetHealth(int _health) {
   health = _health;
 }
 
-const bool ProgsMan::Hit(int _damage) {
+const bool ProgsMan::Hit(int _damage, HitProperties props) {
   (health - _damage < 0) ? health = 0 : health -= _damage;
   SetShader(whiteout);
 

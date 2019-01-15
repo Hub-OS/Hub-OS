@@ -18,7 +18,7 @@ public:
   virtual void Update(float _elapsed);
   virtual vector<Drawable*> GetMiscComponents();
   int* GetAnimOffset();
-  virtual const bool Hit(int _damage);
+  virtual const bool Hit(int _damage, HitProperties props = Entity::DefaultHitProperties);
   virtual const float GetHitHeight() const;
 
 private:
