@@ -153,6 +153,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/folder_dock.png");
   paths.push_back("resources/ui/folder_rarity.png");
   paths.push_back("resources/ui/scrollbar.png");
+  paths.push_back("resources/ui/select_cursor.png");
 
   // Navi Select View
   paths.push_back("resources/backgrounds/select/glow_sheet.png");

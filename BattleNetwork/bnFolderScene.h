@@ -50,6 +50,7 @@ private:
   sf::Sprite stars;
   sf::Sprite chipHolder;
   sf::Sprite element;
+  sf::Sprite cursor;
 
   // Current chip graphic
   sf::Sprite chip;
@@ -57,11 +58,16 @@ private:
 
   sf::Sprite chipIcon;
   swoosh::Timer chipRevealTimer;
+  swoosh::Timer easeInTimer;
 
   int maxChipsOnScreen;
   int currChipIndex;
+  int lastChipOnScreen; // index
+  int prevIndex; // for effect
   int numOfChips;
 
+  double totalTimeElapsed;
+  double frameElapsed;
   bool gotoNextScene;
 
 public:

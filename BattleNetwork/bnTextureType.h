@@ -73,6 +73,7 @@ enum TextureType {
   FOLDER_DOCK,
   FOLDER_RARITY,
   FOLDER_SCROLLBAR,
+  FOLDER_CURSOR,
 
   // Navi Select View
   GLOWING_PAD_ATLAS,

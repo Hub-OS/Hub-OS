@@ -112,43 +112,48 @@ FolderScene::FolderScene(swoosh::ActivityController &controller) :
   chipDesc->setFillColor(sf::Color::Black);
 
   // folder menu graphic
-  bg = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_VIEW_BG));
+  bg = sf::Sprite(LOAD_TEXTURE(FOLDER_VIEW_BG));
   bg.setScale(2.f, 2.f);
 
-  folderDock = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_DOCK));
+  folderDock = sf::Sprite(LOAD_TEXTURE(FOLDER_DOCK));
   folderDock.setScale(2.f, 2.f);
   folderDock.setPosition(2.f, 30.f);
 
-  scrollbar = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_SCROLLBAR));
+  scrollbar = sf::Sprite(LOAD_TEXTURE(FOLDER_SCROLLBAR));
   scrollbar.setScale(2.f, 2.f);
   scrollbar.setPosition(410.f, 60.f);
 
-  stars = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_RARITY));
+  cursor = sf::Sprite(LOAD_TEXTURE(FOLDER_CURSOR));
+  cursor.setScale(2.f, 2.f);
+  cursor.setPosition((2.f*90.f), 64.0f);
+
+  stars = sf::Sprite(LOAD_TEXTURE(FOLDER_RARITY));
   stars.setScale(2.f, 2.f);
 
-  chipHolder = sf::Sprite(*TEXTURES.GetTexture(TextureType::FOLDER_CHIP_HOLDER));
+  chipHolder = sf::Sprite(LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
   chipHolder.setScale(2.f, 2.f);
   chipHolder.setPosition(4.f, 35.f);
 
-  element = sf::Sprite(*TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
+  element = sf::Sprite(LOAD_TEXTURE(ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
   // Current chip graphic
-  chip = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CARDS));
+  chip = sf::Sprite(LOAD_TEXTURE(CHIP_CARDS));
   cardSubFrame = sf::IntRect(TEXTURES.GetCardRectFromID(0));
   chip.setTextureRect(cardSubFrame);
   chip.setScale(2.f, 2.f);
   chip.setPosition(83.f, 93.f);
   chip.setOrigin(chip.getLocalBounds().width / 2.0f, chip.getLocalBounds().height / 2.0f);
 
-  chipIcon = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_ICONS));
+  chipIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
   chipIcon.setScale(2.f, 2.f);
 
   chipRevealTimer.start();
+  easeInTimer.start();
 
   maxChipsOnScreen = 7;
-  currChipIndex = 0;
+  currChipIndex = lastChipOnScreen = prevIndex = totalTimeElapsed = frameElapsed = 0;
   numOfChips = CHIPLIB.GetSize();
 }
 
@@ -161,6 +166,9 @@ void FolderScene::onStart() {
 }
 
 void FolderScene::onUpdate(double elapsed) {
+  frameElapsed = elapsed;
+  totalTimeElapsed += elapsed;
+
   camera.Update((float)elapsed);
 
   // Scene keyboard controls
@@ -168,11 +176,16 @@ void FolderScene::onUpdate(double elapsed) {
     if (INPUT.has(PRESSED_UP)) {
       selectInputCooldown -= elapsed;
 
+        prevIndex = currChipIndex;
+
       if (selectInputCooldown <= 0) {
-        // Go to previous mob 
         selectInputCooldown = maxSelectInputCooldown;
         currChipIndex--;
         AUDIO.Play(AudioType::CHIP_SELECT);
+
+        if (currChipIndex < lastChipOnScreen) {
+          --lastChipOnScreen;
+        }
 
         chipRevealTimer.reset();
       }
@@ -180,11 +193,16 @@ void FolderScene::onUpdate(double elapsed) {
     else if (INPUT.has(PRESSED_DOWN)) {
       selectInputCooldown -= elapsed;
 
+        prevIndex = currChipIndex;
+
       if (selectInputCooldown <= 0) {
-        // Go to next mob 
         selectInputCooldown = maxSelectInputCooldown;
         currChipIndex++;
         AUDIO.Play(AudioType::CHIP_SELECT);
+
+        if (currChipIndex > lastChipOnScreen + maxChipsOnScreen - 1) {
+          ++lastChipOnScreen;
+        }
 
         chipRevealTimer.reset();
       }
@@ -195,6 +213,9 @@ void FolderScene::onUpdate(double elapsed) {
 
     currChipIndex = std::max(0, currChipIndex);
     currChipIndex = std::min(numOfChips - 1, currChipIndex);
+
+    lastChipOnScreen = std::max(0, lastChipOnScreen);
+    lastChipOnScreen = std::min(numOfChips - 1, lastChipOnScreen);
 
     if (INPUT.has(PRESSED_B)) {
       gotoNextScene = true;
@@ -238,7 +259,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
   float top = 50.0f; float bottom = 230.0f;
-  float depth = ((float)currChipIndex / (float)numOfChips)*bottom;
+  float depth = ((float)lastChipOnScreen / (float)numOfChips)*bottom;
   scrollbar.setPosition(452.f, top + depth);
 
   ENGINE.Draw(scrollbar);
@@ -246,72 +267,78 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   // Move the chip library iterator to the current highlighted chip
   ChipLibrary::Iter iter = CHIPLIB.Begin();
 
-  for (int j = 0; j < currChipIndex; j++) {
+  for (int j = 0; j < lastChipOnScreen; j++) {
     iter++;
   }
 
-  sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(iter->GetID());
-  chip.setTextureRect(cardSubFrame);
-  chip.setScale((float)swoosh::ease::linear(chipRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
-  ENGINE.Draw(chip, false);
-
-  // This draws the currently highlighted chip
-  if (iter->GetDamage() > 0) {
-    chipLabel->setFillColor(sf::Color::White);
-    chipLabel->setString(std::to_string(iter->GetDamage()));
-    chipLabel->setOrigin(chipLabel->getLocalBounds().width + chipLabel->getLocalBounds().left, 0);
-    chipLabel->setPosition(2.f*(70.f), 135.f);
-
-    ENGINE.Draw(chipLabel, false);
-  }
-
-  chipLabel->setOrigin(0, 0);
-  chipLabel->setFillColor(sf::Color::Yellow);
-  chipLabel->setPosition(2.f*14.f, 135.f);
-  chipLabel->setString(std::string() + iter->GetCode());
-  ENGINE.Draw(chipLabel, false);
-
-  std::string formatted = FormatChipDesc(iter->GetDescription());
-  chipDesc->setString(formatted);
-  ENGINE.Draw(chipDesc, false);
-
-  int offset = (int)(iter->GetElement());
-  element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-  element.setPosition(2.f*25.f, 142.f);
-  ENGINE.Draw(element, false);
-
   // Now that we are at the viewing range, draw each chip in the list
-  for (int i = 0; i < maxChipsOnScreen; i++) {
+  for (int i = 0; i < maxChipsOnScreen && lastChipOnScreen + i < numOfChips; i++) {
+    chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(iter->GetIconID()));
+    chipIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
+    ENGINE.Draw(chipIcon, false);
 
-    if (currChipIndex + i < numOfChips) {
-      chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(iter->GetIconID()));
-      chipIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
-      ENGINE.Draw(chipIcon, false);
-
-      chipLabel->setFillColor(sf::Color::White);
-      chipLabel->setPosition(2.f*120.f, 60.0f + (32.f*i));
-      chipLabel->setString(iter->GetShortName());
-      ENGINE.Draw(chipLabel, false);
+    chipLabel->setFillColor(sf::Color::White);
+    chipLabel->setPosition(2.f*120.f, 60.0f + (32.f*i));
+    chipLabel->setString(iter->GetShortName());
+    ENGINE.Draw(chipLabel, false);
 
 
-      int offset = (int)(iter->GetElement());
-      element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-      element.setPosition(2.f*173.f, 65.0f + (32.f*i));
-      ENGINE.Draw(element, false);
+    int offset = (int)(iter->GetElement());
+    element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+    element.setPosition(2.f*173.f, 65.0f + (32.f*i));
+    ENGINE.Draw(element, false);
+
+    chipLabel->setOrigin(0, 0);
+    chipLabel->setPosition(2.f*190.f, 60.0f + (32.f*i));
+    chipLabel->setString(std::string() + iter->GetCode());
+    ENGINE.Draw(chipLabel, false);
+
+    //Draw rating
+    unsigned rarity = iter->GetRarity() - 1;
+    stars.setTextureRect(sf::IntRect(0, 15 * rarity, 22, 14));
+    stars.setPosition(2.f*199.f, 74.0f + (32.f*i));
+    ENGINE.Draw(stars, false);
+
+    // Draw cursor
+    if (lastChipOnScreen + i == currChipIndex) {
+      auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));
+      auto bounce = std::sinf(totalTimeElapsed*10.0f)*5.0f;
+
+      cursor.setPosition((2.f*90.f) + bounce, y);
+      ENGINE.Draw(cursor);
+
+      sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(iter->GetID());
+      chip.setTextureRect(cardSubFrame);
+      chip.setScale((float)swoosh::ease::linear(chipRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
+      ENGINE.Draw(chip, false);
+
+      // This draws the currently highlighted chip
+      if (iter->GetDamage() > 0) {
+        chipLabel->setFillColor(sf::Color::White);
+        chipLabel->setString(std::to_string(iter->GetDamage()));
+        chipLabel->setOrigin(chipLabel->getLocalBounds().width + chipLabel->getLocalBounds().left, 0);
+        chipLabel->setPosition(2.f*(70.f), 135.f);
+
+        ENGINE.Draw(chipLabel, false);
+      }
 
       chipLabel->setOrigin(0, 0);
-      chipLabel->setPosition(2.f*190.f, 60.0f + (32.f*i));
+      chipLabel->setFillColor(sf::Color::Yellow);
+      chipLabel->setPosition(2.f*14.f, 135.f);
       chipLabel->setString(std::string() + iter->GetCode());
       ENGINE.Draw(chipLabel, false);
 
-      //Draw rating
-      unsigned rarity = iter->GetRarity() - 1;
-      stars.setTextureRect(sf::IntRect(0, 15 * rarity, 22, 14));
-      stars.setPosition(2.f*199.f, 74.0f + (32.f*i));
-      ENGINE.Draw(stars, false);
+      std::string formatted = FormatChipDesc(iter->GetDescription());
+      chipDesc->setString(formatted);
+      ENGINE.Draw(chipDesc, false);
 
-      iter++;
+      int offset = (int)(iter->GetElement());
+      element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+      element.setPosition(2.f*25.f, 142.f);
+      ENGINE.Draw(element, false);
     }
+
+    iter++;
   }
 }
 
