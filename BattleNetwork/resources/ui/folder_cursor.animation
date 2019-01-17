@@ -4,6 +4,6 @@ VERSION="2.0"
 imagePath="C:\Users\Bountyhunter\Code\mmbn\BattleNetwork\resources\ui\folder_cursor.png"
 
 animation state="BLINK"
-frame duration="0.1" x="0" y="0" w="72" h="25" originx="38" originy="13"
-frame duration="0.1" x="72" y="0" w="70" h="25" originx="39" originy="12"
+frame duration="0.6" x="0" y="0" w="72" h="25" originx="38" originy="13"
+frame duration="0.1" x="72" y="0" w="70" h="25" originx="38" originy="13"
 

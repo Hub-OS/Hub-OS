@@ -69,6 +69,9 @@ public:
           }
         }
         else {
+          // 10 chars fit on the box 
+          title = title.substr(0, 10);
+
           std::cout << "making folder " << title << std::endl;
           std::cout << "folder status: " << (int)(collection.MakeFolder(title)) << std::endl;;
           std::cout << "retrieved folder: " << (int)collection.GetFolder(title, currFolder) << std::endl;

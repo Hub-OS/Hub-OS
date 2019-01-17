@@ -96,6 +96,7 @@ enum TextureType {
   MUG_PROG,
   ANIMATED_TEXT_BOX,
   TEXT_BOX_NEXT_CURSOR,
+  TEXT_BOX_CURSOR,
 
   //Background/Foreground
   BACKGROUND_BLUE,

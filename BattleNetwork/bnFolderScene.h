@@ -57,7 +57,13 @@ private:
 
   double totalTimeElapsed;
   double frameElapsed;
+
+  double folderOffsetX;
+
   bool gotoNextScene;
+
+  int optionIndex;
+  bool promptOptions;
 
 public:
   virtual void onStart();

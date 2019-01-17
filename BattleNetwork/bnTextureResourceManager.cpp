@@ -176,6 +176,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/prog.png");
   paths.push_back("resources/ui/textbox.png");
   paths.push_back("resources/ui/textbox_next.png");
+  paths.push_back("resources/ui/textbox_cursor.png");
 
   // Background/foreground
   paths.push_back("resources/backgrounds/title/bg_blue.png");
