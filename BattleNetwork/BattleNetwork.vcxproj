@@ -192,6 +192,7 @@
     <ClCompile Include="bnChipUsePublisher.cpp" />
     <ClCompile Include="bnEnemyChipsUI.cpp" />
     <ClCompile Include="bnFakeScene.cpp" />
+    <ClCompile Include="bnFolderEditScene.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />
     <ClCompile Include="bnGameOverScene.cpp" />
     <ClCompile Include="bnGraveyardBackground.cpp" />
@@ -212,6 +213,7 @@
     <ClCompile Include="bnEntity.cpp" />
     <ClCompile Include="bnField.cpp" />
     <ClCompile Include="bnBattleScene.cpp" />
+    <ClCompile Include="bnLibraryScene.cpp" />
     <ClCompile Include="bnLogger.cpp" />
     <ClCompile Include="bnMainMenuScene.cpp" />
     <ClCompile Include="bnMettaurAttackState.cpp" />
@@ -286,7 +288,9 @@
     <ClInclude Include="bnComponent.h" />
     <ClInclude Include="bnEnemyChipsUI.h" />
     <ClInclude Include="bnFakeScene.h" />
+    <ClInclude Include="bnFolderEditScene.h" />
     <ClInclude Include="bnGameOverScene.h" />
+    <ClInclude Include="bnLibraryScene.h" />
     <ClInclude Include="bnProgsManThrowState.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />

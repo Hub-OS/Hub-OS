@@ -2,27 +2,22 @@
 #include "Swoosh/Ease.h"
 #include "Swoosh/Activity.h"
 
-#include "bnFolderScene.h"
-#include "bnOverworldMap.h"
-#include "bnInfiniteMap.h"
-#include "bnSelectNaviScene.h"
-#include "bnSelectMobScene.h"
-#include "bnMemory.h"
 #include "bnCamera.h"
+#include "bnChipFolderCollection.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnNaviRegistration.h"
 #include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
-#include <SFML/Graphics.hpp>
-#include <time.h>
 
 class FolderScene : public swoosh::Activity {
 private:
   Camera camera;
+  ChipFolderCollection& collection;
+  ChipFolder* folder;
+  std::vector<std::string> folderNames;
 
   // Menu name font
   sf::Font* font;
@@ -39,31 +34,25 @@ private:
   sf::Font *numberFont;
   sf::Text *numberLabel;
 
-  // Chip description font
-  sf::Font *chipDescFont;
-  sf::Text* chipDesc;
-
   // folder menu graphic
   sf::Sprite bg;
-  sf::Sprite folderDock;
+  sf::Sprite folderBox;
+  sf::Sprite folderCursor;
   sf::Sprite scrollbar;
-  sf::Sprite stars;
-  sf::Sprite chipHolder;
+  sf::Sprite folderOptions;
   sf::Sprite element;
   sf::Sprite cursor;
-
-  // Current chip graphic
-  sf::Sprite chip;
-  sf::IntRect cardSubFrame;
-
+  sf::Sprite folderEquip;
   sf::Sprite chipIcon;
-  swoosh::Timer chipRevealTimer;
-  swoosh::Timer easeInTimer;
+
+  Animation equipAnimation;
+  Animation folderCursorAnimation;
+
+  int currFolderIndex;
+  int selectedFolderIndex;
 
   int maxChipsOnScreen;
   int currChipIndex;
-  int lastChipOnScreen; // index
-  int prevIndex; // for effect
   int numOfChips;
 
   double totalTimeElapsed;
@@ -71,8 +60,6 @@ private:
   bool gotoNextScene;
 
 public:
-  std::string FormatChipDesc(const std::string&& desc);
-
   virtual void onStart();
   virtual void onUpdate(double elapsed);
   virtual void onLeave();
@@ -82,6 +69,6 @@ public:
   virtual void onDraw(sf::RenderTexture& surface);
   virtual void onEnd();
 
-  FolderScene(swoosh::ActivityController&);
+  FolderScene(swoosh::ActivityController&, ChipFolderCollection&);
   virtual ~FolderScene();
 };

@@ -6,6 +6,8 @@
 #include "bnInfiniteMap.h"
 #include "bnSelectNaviScene.h"
 #include "bnSelectMobScene.h"
+#include "bnLibraryScene.h"
+#include "bnFolderScene.h"
 #include "bnMemory.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"

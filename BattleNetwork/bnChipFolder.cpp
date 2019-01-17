@@ -52,3 +52,18 @@ Chip* ChipFolder::Next() {
 
   return folderList[folderSize];
 }
+
+const int ChipFolder::GetSize() const
+{
+  return this->folderSize;
+}
+
+ChipFolder::Iter ChipFolder::Begin()
+{
+  return folderList.begin();
+}
+
+ChipFolder::Iter ChipFolder::End()
+{
+  return folderList.end();
+}

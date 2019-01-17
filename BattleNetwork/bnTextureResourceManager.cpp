@@ -154,6 +154,12 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/folder_rarity.png");
   paths.push_back("resources/ui/scrollbar.png");
   paths.push_back("resources/ui/select_cursor.png");
+  paths.push_back("resources/ui/folder_equip.png");
+  paths.push_back("resources/ui/folder_name.png");
+  paths.push_back("resources/ui/folder_cursor.png");
+  paths.push_back("resources/ui/folder_options.png");
+  paths.push_back("resources/ui/folder_size.png");
+  paths.push_back("resources/ui/folder_textbox.png");
 
   // Navi Select View
   paths.push_back("resources/backgrounds/select/glow_sheet.png");
@@ -181,6 +187,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/backgrounds/main_menu/ow2.png");
   paths.push_back("resources/backgrounds/main_menu/arrow.png");
   paths.push_back("resources/backgrounds/folder/bg.png");
+  paths.push_back("resources/backgrounds/folder/folder_info.png");
   paths.push_back("resources/backgrounds/select/bg.png");
 
   // Overworld

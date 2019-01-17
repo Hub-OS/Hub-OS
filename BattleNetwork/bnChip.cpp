@@ -36,37 +36,37 @@ Chip::~Chip() {
   }
 }
 
-const string Chip::GetDescription() {
+const string Chip::GetDescription() const {
   return description;
 }
 
-const string Chip::GetShortName() {
+const string Chip::GetShortName() const {
   return shortname;
 }
 
-const char Chip::GetCode() {
+const char Chip::GetCode() const {
   return code;
 }
 
-const unsigned Chip::GetDamage() {
+const unsigned Chip::GetDamage() const {
   return damage;
 }
 
-const unsigned Chip::GetIconID()
+const unsigned Chip::GetIconID() const
 {
   return icon;
 }
 
-const unsigned Chip::GetID() {
+const unsigned Chip::GetID() const {
   return ID;
 }
 
-const Element Chip::GetElement()
+const Element Chip::GetElement() const
 {
   return element;
 }
 
-const unsigned Chip::GetRarity()
+const unsigned Chip::GetRarity() const
 {
   return rarity;
 }

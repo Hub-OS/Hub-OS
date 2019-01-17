@@ -20,13 +20,15 @@ public:
 
   void AddChip(Chip chip);
   bool IsChipValid(Chip& chip);
+
+  list<char> GetChipCodes(const Chip& chip);
   Chip GetChipEntry(const std::string name, const char code);
 
 protected:
   void LoadLibrary();
 
 private:
-  list<Chip> library;
+  mutable list<Chip> library;
 };
 
 #define CHIPLIB ChipLibrary::GetInstance()

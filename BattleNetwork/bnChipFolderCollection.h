@@ -4,6 +4,8 @@
 #include <vector>
 #include "bnChipFolder.h"
 #include "bnFileUtil.h"
+#include <iostream>
+#include "bnLogger.h"
 
 class ChipFolderCollection {
 private:

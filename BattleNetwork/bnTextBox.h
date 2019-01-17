@@ -177,7 +177,7 @@ public:
     return numberOfFittingLines;
   }
 
-  const int GetCharsPerSecond() const {
+  const double GetCharsPerSecond() const {
     return charsPerSecond;
   }
 

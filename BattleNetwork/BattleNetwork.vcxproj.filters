@@ -290,6 +290,12 @@
     <Filter Include="Activities\Battle\Content\Entity\Spell\AirShot">
       <UniqueIdentifier>{637ca2c1-8a5e-4141-b610-9dc7186f1954}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Library">
+      <UniqueIdentifier>{ea048849-1ab7-42bd-b03a-dcfdc529c6c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Folder\Edit">
+      <UniqueIdentifier>{dd2f8f2c-329f-4a6f-90a8-936a258811fa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -540,6 +546,12 @@
     </ClCompile>
     <ClCompile Include="bnAirShot.cpp">
       <Filter>Activities\Battle\Content\Entity\Spell\AirShot</Filter>
+    </ClCompile>
+    <ClCompile Include="bnLibraryScene.cpp">
+      <Filter>Activities\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="bnFolderEditScene.cpp">
+      <Filter>Activities\Folder\Edit</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -918,6 +930,12 @@
     </ClInclude>
     <ClInclude Include="bnAirShot.h">
       <Filter>Activities\Battle\Content\Entity\Spell\AirShot</Filter>
+    </ClInclude>
+    <ClInclude Include="bnLibraryScene.h">
+      <Filter>Activities\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFolderEditScene.h">
+      <Filter>Activities\Folder\Edit</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -11,6 +11,8 @@ private:
   int initialSize;
 
 public:
+  typedef std::vector<Chip*>::const_iterator Iter;
+
   ChipFolder();
   ChipFolder(const ChipFolder& rhs);
   ~ChipFolder();
@@ -18,6 +20,9 @@ public:
   ChipFolder * Clone();
   void AddChip(Chip copy);
   Chip* Next();
+  const int GetSize() const;
+  Iter Begin();
+  Iter End();
 
   // Make a completely random and valid chip folder (tests)
   static ChipFolder MakeRandomFolder() {

@@ -13,14 +13,14 @@ public:
   Chip(const Chip& copy);
   Chip();
   ~Chip();
-  const string GetDescription();
-  const string GetShortName();
-  const char GetCode();
-  const unsigned GetDamage();
-  const unsigned GetIconID();
-  const unsigned GetID();
-  const Element GetElement();
-  const unsigned GetRarity();
+  const string GetDescription() const;
+  const string GetShortName() const;
+  const char GetCode() const;
+  const unsigned GetDamage() const;
+  const unsigned GetIconID() const;
+  const unsigned GetID() const;
+  const Element GetElement() const;
+  const unsigned GetRarity() const;
 private:
   unsigned ID;
   unsigned icon;

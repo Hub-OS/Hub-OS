@@ -92,13 +92,23 @@ void MainMenuScene::onUpdate(double elapsed) {
     if (INPUT.has(PRESSED_A)) {
 
       // Folder Select
-      if (menuSelectionIndex == 1) {
+      if (menuSelectionIndex == 0) {
         gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::left>>;
-        this->getController().push<segue::to<FolderScene>>();
+        this->getController().push<segue::to<FolderScene>>(data);
+      }
+
+      // Library Select
+      if (menuSelectionIndex == 1) {
+        gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
+
+        using swoosh::intent::direction;
+        using segue = swoosh::intent::segue<PushIn<direction::right>>;
+        this->getController().push<segue::to<LibraryScene>>();
       }
 
       // Navi select

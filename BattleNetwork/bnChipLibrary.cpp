@@ -92,6 +92,19 @@ bool ChipLibrary::IsChipValid(Chip& chip)
   return false;
 }
 
+std::list<char> ChipLibrary::GetChipCodes(const Chip& chip)
+{
+  std::list<char> codes;
+
+  for (auto i = Begin(); i != End(); i++) {
+    if (i->GetShortName() == chip.GetShortName()) {
+      codes.insert(codes.begin(), i->GetCode());
+    }
+  }
+
+  return codes;
+}
+
 Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
 {
   for (auto i = Begin(); i != End(); i++) {
@@ -100,7 +113,7 @@ Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
     }
   }
 
-  return Chip(-1, 0, code, 0, Element::NONE, name, "missing data", 1);
+  return Chip(0, 0, code, 0, Element::NONE, name, "missing data", 1);
 }
 
 // Used as the folder in battle
@@ -149,10 +162,29 @@ void ChipLibrary::LoadLibrary() {
 
         Element elemType = GetElementFromStr(type);
 
-        library.push_back(Chip(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, atoi(rarity.c_str())));
+        Chip chip = Chip(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, atoi(rarity.c_str()));
+        std::list<char> codes = this->GetChipCodes(chip);
+
+        // Avoid code duplicates
+        if (codes.size() > 0) {
+          bool found = (std::find(codes.begin(), codes.end(), chip.GetCode()) != codes.end());
+
+          // Not a duplicate code, make sure information is correct
+          if (!found) {
+            // Simply update an existing chip entry by changing the code 
+            Chip first = GetChipEntry(chip.GetShortName(), *codes.begin());
+            chip = Chip(first.GetID(), first.GetIconID(), chip.GetCode(), first.GetDamage(), first.GetElement(), first.GetShortName(), first.GetDescription(), first.GetRarity());
+            library.push_back(chip);
+          }
+        }
+        else { // first entry
+          library.push_back(chip);
+        }
       }
     }
 
     data = data.substr(endline + 1);
   } while (endline > -1);
+
+  std::cout << "library size: " << this->GetSize() << std::endl;;
 }
