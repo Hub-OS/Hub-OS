@@ -2,17 +2,17 @@
 #include <iostream>
 #include <algorithm>
 
-Chip::Chip(unsigned id, unsigned icon, char code, unsigned damage, Element element, string sname, string desc, unsigned rarity) :
+Chip::Chip(unsigned id, unsigned icon, char code, unsigned damage, Element element, string sname, string desc, string verboseDesc, unsigned rarity) :
   ID(id), icon(icon), code(code), damage(damage), element(element) {
   this->shortname.assign(sname);
   this->description.assign(desc);
+  this->verboseDescription.assign(verboseDesc);
   this->rarity = std::max(1, (int)rarity);
   this->rarity = std::min((int)rarity, 5);
 }
 
 Chip::Chip() {
-  description = "";
-  shortname = "";
+
 }
 
 Chip::Chip(const Chip & copy) {
@@ -22,6 +22,7 @@ Chip::Chip(const Chip & copy) {
   damage = copy.damage;
   shortname = copy.shortname;
   description = copy.description;
+  verboseDescription = copy.verboseDescription;
   element = copy.element;
   rarity = copy.rarity;
 }
@@ -34,6 +35,10 @@ Chip::~Chip() {
   if (!shortname.empty()) {
     shortname.clear();
   }
+}
+
+const string Chip::GetVerboseDescription() const {
+  return verboseDescription;
 }
 
 const string Chip::GetDescription() const {

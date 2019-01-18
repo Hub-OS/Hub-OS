@@ -191,7 +191,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   }
 
   if (numberCooldown > 0) {
-    numberCooldown -= elapsed;
+    numberCooldown -= (float)elapsed;
     std::string newstr;
 
     for (int i = 0; i < mobLabel->getString().getSize(); i++) {
@@ -258,7 +258,7 @@ void SelectMobScene::onUpdate(double elapsed) {
     }
   }
 
-  factor -= elapsed * 180.f;
+  factor -= (float)elapsed * 180.f;
 
   if (factor <= 0.f) {
     factor = 0.f;

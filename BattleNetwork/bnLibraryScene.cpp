@@ -68,6 +68,7 @@ std::string LibraryScene::FormatChipDesc(const std::string && desc)
 
 LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
   camera(ENGINE.GetDefaultView()),
+  textbox(sf::Vector2f(4, 255)),
   swoosh::Activity(controller)
 {
 
@@ -144,7 +145,8 @@ LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
   easeInTimer.start();
 
   maxChipsOnScreen = 7;
-  currChipIndex = lastChipOnScreen = prevIndex = totalTimeElapsed = frameElapsed = 0;
+  currChipIndex = lastChipOnScreen = prevIndex = 0;
+  totalTimeElapsed = frameElapsed = 0.0;
 
   this->MakeUniqueChipsFromPack();
 }
@@ -165,7 +167,7 @@ void LibraryScene::MakeUniqueChipsFromPack()
 
   this->uniqueChips.unique(pred);
 
-  numOfChips = uniqueChips.size();
+  numOfChips = (int)uniqueChips.size();
 }
 
 void LibraryScene::onStart() {
@@ -179,6 +181,7 @@ void LibraryScene::onUpdate(double elapsed) {
   totalTimeElapsed += elapsed;
 
   camera.Update((float)elapsed);
+  textbox.Update((float)elapsed);
 
   // Scene keyboard controls
   if (!gotoNextScene) {
@@ -220,13 +223,40 @@ void LibraryScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
+    if (INPUT.has(PRESSED_A) && textbox.IsClosed()) {
+      auto iter = uniqueChips.begin();
+      int i = 0;
+
+      while (i < currChipIndex) {
+        i++;
+        iter++;
+      }
+
+      textbox.DequeMessage(); // make sure textbox is empty
+      textbox.EnqueMessage(sf::Sprite(), "", iter->GetVerboseDescription());
+      textbox.Open();
+      AUDIO.Play(AudioType::CHIP_DESC);
+    }
+    else if (INPUT.has(RELEASED_B) && textbox.IsOpen()) {
+      textbox.Close();
+      textbox.SetTextSpeed(1.0);
+      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+    }
+    else if (INPUT.has(PRESSED_A) && textbox.IsOpen()) {
+      textbox.SetTextSpeed(3.0);
+    }
+    else if (INPUT.has(RELEASED_A) && textbox.IsOpen()) {
+      textbox.SetTextSpeed(1.0);
+      textbox.Continue();
+    }
+
     currChipIndex = std::max(0, currChipIndex);
     currChipIndex = std::min(numOfChips - 1, currChipIndex);
 
     lastChipOnScreen = std::max(0, lastChipOnScreen);
     lastChipOnScreen = std::min(numOfChips - 1, lastChipOnScreen);
 
-    if (INPUT.has(PRESSED_B)) {
+    if (INPUT.has(PRESSED_B) && textbox.IsClosed()) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
@@ -301,7 +331,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
     // Draw cursor
     if (lastChipOnScreen + i == currChipIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));
-      auto bounce = std::sinf(totalTimeElapsed*10.0f)*5.0f;
+      auto bounce = std::sinf((float)totalTimeElapsed*10.0f)*5.0f;
 
       cursor.setPosition((2.f*90.f) + bounce, y);
       ENGINE.Draw(cursor);
@@ -333,6 +363,8 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 
     iter++;
   }
+
+  ENGINE.Draw(textbox);
 }
 
 void LibraryScene::onEnd() {

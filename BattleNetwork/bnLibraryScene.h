@@ -10,10 +10,12 @@
 #include "bnEngine.h"
 #include "bnChip.h"
 #include "bnAnimation.h"
+#include "bnAnimatedTextbox.h"
 
 class LibraryScene : public swoosh::Activity {
 private:
   Camera camera;
+  AnimatedTextBox textbox;
 
   // Menu name font
   sf::Font* font;

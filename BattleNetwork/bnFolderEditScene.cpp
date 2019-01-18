@@ -146,7 +146,8 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller) :
   easeInTimer.start();
 
   maxChipsOnScreen = 7;
-  currChipIndex = lastChipOnScreen = prevIndex = totalTimeElapsed = frameElapsed = 0;
+  currChipIndex = lastChipOnScreen = prevIndex = 0;
+  totalTimeElapsed = frameElapsed = 0.0;
   numOfChips = CHIPLIB.GetSize();
 }
 
@@ -297,7 +298,7 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
     // Draw cursor
     if (lastChipOnScreen + i == currChipIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));
-      auto bounce = std::sinf(totalTimeElapsed*10.0f)*5.0f;
+      auto bounce = std::sinf((float)totalTimeElapsed*10.0f)*5.0f;
 
       cursor.setPosition((2.f*90.f) + bounce, y);
       ENGINE.Draw(cursor);

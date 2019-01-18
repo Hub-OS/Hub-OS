@@ -113,7 +113,7 @@ Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
     }
   }
 
-  return Chip(0, 0, code, 0, Element::NONE, name, "missing data", 1);
+  return Chip(0, 0, code, 0, Element::NONE, name, "missing data", "This chip data could not be interpreted. It may come from another library and has not been configured properly to be used.", 1);
 }
 
 // Used as the folder in battle
@@ -148,6 +148,15 @@ void ChipLibrary::LoadLibrary() {
       string description = FileUtil::ValueOf("desc", line);
       string rarity = FileUtil::ValueOf("rarity", line);
 
+      string longDescription;
+
+      try {
+        longDescription = FileUtil::ValueOf("verbose", line);
+      }
+      catch (std::runtime_error& e) {
+        longDescription = "This chip does not have extra information.";
+      }
+
       // Trime white space
       codes.erase(remove_if(codes.begin(), codes.end(), isspace), codes.end());
 
@@ -162,7 +171,7 @@ void ChipLibrary::LoadLibrary() {
 
         Element elemType = GetElementFromStr(type);
 
-        Chip chip = Chip(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, atoi(rarity.c_str()));
+        Chip chip = Chip(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, longDescription, atoi(rarity.c_str()));
         std::list<char> codes = this->GetChipCodes(chip);
 
         // Avoid code duplicates
@@ -173,7 +182,7 @@ void ChipLibrary::LoadLibrary() {
           if (!found) {
             // Simply update an existing chip entry by changing the code 
             Chip first = GetChipEntry(chip.GetShortName(), *codes.begin());
-            chip = Chip(first.GetID(), first.GetIconID(), chip.GetCode(), first.GetDamage(), first.GetElement(), first.GetShortName(), first.GetDescription(), first.GetRarity());
+            chip = Chip(first.GetID(), first.GetIconID(), chip.GetCode(), first.GetDamage(), first.GetElement(), first.GetShortName(), first.GetDescription(), first.GetVerboseDescription(), first.GetRarity());
             library.push_back(chip);
           }
         }

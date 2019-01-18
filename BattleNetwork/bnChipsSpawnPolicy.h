@@ -16,10 +16,10 @@ public:
     int random = rand() % 2;
 
     if (random == 0) {
-      chips.push_back(Chip(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", 2));
+      chips.push_back(Chip(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "", 2));
     }
     else {
-      chips.push_back(Chip(74, 146, '*', 10, Element::NONE, "Recov1", "Heals you", 2));
+      chips.push_back(Chip(74, 146, '*', 10, Element::NONE, "Recov1", "Heals you", "", 2));
     }
   }
 

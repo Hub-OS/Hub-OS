@@ -21,6 +21,16 @@ private:
   int charSize;
   sf::Color fillColor;
   sf::Color outlineColor;
+
+  std::string replace(std::string str, const std::string& from, const std::string& to) {
+    size_t start_pos = 0;
+    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+      str.replace(start_pos, from.length(), to);
+      start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+    }
+    return str;
+  }
+
 public:
   TextBox(int width, int height, int characterSize = 15, std::string fontPath = "resources/fonts/dr_cain_terminal.ttf") {
     font = TEXTURES.LoadFontFromFile(fontPath);
@@ -69,6 +79,8 @@ public:
     if (message.empty())
       return;
 
+    message = replace(message, "\\n", "\n"); // replace all ascii "\n" to carriage return char '\n'
+
     lines.push_back(0); // All text begins at pos 0
  
     text = sf::Text(message, *font);
@@ -87,7 +99,7 @@ public:
       if (message[index] != ' ' && message[index] != '\n' && wordIndex == -1) {
         wordIndex = index;
       }
-      else if (message[index] == ' ' || message[index] == '\n') {
+      else if (message[index] == ' ') {
         wordIndex = -1;
       }
 
@@ -96,7 +108,18 @@ public:
       double width  = text.getGlobalBounds().width;
       double height = text.getGlobalBounds().height;
 
-      if (width > areaWidth && wordIndex != -1 && wordIndex > 0 && index > 0) {
+      if (message[index] == '\n' && wordIndex != -1) {
+        lastRow = wordIndex+1;
+        lines.push_back(index+1);
+
+        if (fitHeight < areaHeight) {
+          line++;
+          fitHeight += height;
+        }
+
+        wordIndex = -1;
+
+      } else if (width > areaWidth && wordIndex != -1 && wordIndex > 0 && index > 0) {
         // Line break at the next word
         message.insert(wordIndex, "\n");
         lastRow = wordIndex+1;
@@ -117,8 +140,8 @@ public:
 
     numberOfFittingLines = line;
 
-    //std::cout << "num of fitting lines: " << numberOfFittingLines << std::endl;
-    //std::cout << "lines found: " << lines.size() << std::endl;
+    std::cout << "num of fitting lines: " << numberOfFittingLines << std::endl;
+    std::cout << "lines found: " << lines.size() << std::endl;
   }
 
   const bool HasMore() const {
