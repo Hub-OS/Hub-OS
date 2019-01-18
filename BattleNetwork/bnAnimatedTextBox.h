@@ -28,7 +28,7 @@ public:
     nextCursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_NEXT_CURSOR));
 
     // set the textbox positions
-    textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0, this->getPosition().y - 40.0));
+    textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0f, this->getPosition().y - 40.0f));
     this->setPosition(pos);
 
     textSpeed = 1.0;
@@ -132,7 +132,7 @@ public:
     textBox.Play(!isPaused);
 
     // set the textbox position
-    textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0, this->getPosition().y - 40.0));
+    textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0f, this->getPosition().y - 40.0f));
 
     animator.Update(elapsed, &frame);
   }

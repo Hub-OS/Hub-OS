@@ -18,49 +18,65 @@ using sf::Font;
 
 std::string LibraryScene::FormatChipDesc(const std::string && desc)
 {
-  // Chip docks can only fit 8 characters per line, 3 lines total
   std::string output = desc;
+
+  auto bothAreSpaces = [](char lhs, char rhs) -> bool { return (lhs == rhs) && (lhs == ' '); };
+
+  std::string::iterator new_end = std::unique(output.begin(), output.end(), bothAreSpaces);
+  output.erase(new_end, output.end());
 
   int index = 0;
   int perLine = 0;
   int line = 0;
-  int wordIndex = -1; // If we are breaking on a word
-  while (index != desc.size()) {
-    if (desc[index] != ' ' && wordIndex == -1) {
+  int wordIndex = 0; // If we are breaking on a word
+
+  bool finished = false;
+
+  while (index != output.size() && !finished) {
+    if (output[index] != ' ' && wordIndex == -1) {
       wordIndex = index;
     }
-    else if (desc[index] == ' ' && wordIndex > -1) {
+    else if (output[index] == ' ' && wordIndex > -1) {
       wordIndex = -1;
     }
 
-    if (perLine > 0 && perLine % 8 == 0) {
+    if (perLine > 0 && perLine % 9 == 0) {
       if (wordIndex > -1) {
+        if (index == wordIndex + 9) {
+          wordIndex = index; // We have no choice but to cut off part of this lengthy word
+        }
         // Line break at the last word
-        while (desc[index] == ' ') { index++; }
+        //while (desc[index] == ' ') { index++; }
         output.insert(wordIndex, "\n");
         index = wordIndex; // Start counting from here
-        while (desc[index] == ' ') { index++; }
+        while (output[index] == ' ') { output.erase(index); }
       }
       else {
         // Line break at the next word
-        while (desc[index] == ' ') { index++; }
-        output.insert(index, "\n");
-        while (desc[index] == ' ') { index++; }
+        while (output[index] == ' ') { index++; }
+        output.insert(index, "\n"); index++;
+        while (output[index] == ' ') { output.erase(index); }
       }
       line++;
+
+      if (line == 3) {
+        output = output.substr(0, index+1);
+        output[output.size() - 1] = ';'; // font glyph will show an elipses
+        finished = true;
+      }
+
       perLine = 0;
       wordIndex = -1;
     }
-
-    //if (line == 3) {
-    //  break;
-   // }
-
-    if (desc[index] != ' ') {
-      perLine++;
-    }
-
+    
+    perLine++;
     index++;
+  }
+
+  // Chip docks can only fit 9 characters per line, 3 lines total
+  if (output.size() > 3 * 9) {
+    output = output.substr(0, 3 * 9);
+    output[output.size() - 1] = ';'; // font glyph will show an elipses
   }
 
   return output;
