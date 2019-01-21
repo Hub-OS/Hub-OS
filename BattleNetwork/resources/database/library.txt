@@ -1,6 +1,6 @@
 # Lines beginning with pound '#' are comments and are ignored
 
-Chip name="Cannon"  cardIndex="0" iconIndex="0" damage="40" type="Normal" codes="A,A,B,B,C,C" desc="Cannon attack to 1 enemy" verbose="Cannon (ABCDE)\n40 Damage. 1 Hit.\nElement: NULL\nFire a shot down the same row hitting the closest enemy.\n6 frame startup\nInstant travel time\n6 frame endlag" rarity="1" 
+Chip name="Cannon"  cardIndex="0" iconIndex="0" damage="40" type="Normal" codes="A,A,B,B,C,C" desc="Cannon attack to 1 enemy" verbose="Cannon (ABCDE)\n40 Damage. 1 Hit.\nElement: NULL\nFire a shot down the same row hitting the closest enemy.\n6 frame startup\nInstant travel time\n6 frame endlag" rarity="0" 
 Chip name="HiCannon" cardIndex="1" iconIndex="1" damage="60" type="Normal" codes="E" desc="Cannon attack to 1 enemy" rarity="1"
 Chip name="M-Cannon" cardIndex="2" iconIndex="2" damage="120" type="Normal" codes="H,I,J" desc="Cannon attack to 1 enemy" rarity="1"
 
@@ -8,7 +8,7 @@ Chip name="Shotgun" cardIndex="3" iconIndex="10" damage="20" type="Normal" codes
 Chip name="V-Gun" cardIndex="4" iconIndex="11" damage="20" type="Normal" codes="D" desc="Explodes 2 diag. squares" rarity="1" 
 Chip name="SideGun" cardIndex="5" iconIndex="12" damage="20" type="Normal" codes="S" desc="Explodes up, down on hit" rarity="1" 
 
-Chip name="AirShot1" cardIndex="126" iconIndex="3" damage="20" type="Wind" codes="L,*" desc="Knocks enemy back 1" rarity="1" 
+Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="Wind" codes="L,*" desc="Knocks enemy back 1" rarity="1" 
 
 Chip name="SprdSht1" cardIndex="5" iconIndex="10" damage="20" type="Cursor" codes="Q,R,S" desc="spreadshot" rarity="1" 
 Chip name="SprdSht2" cardIndex="4" iconIndex="11" damage="30" type="Cursor" codes="T,U,V" desc="spreadshot v2" rarity="1" 

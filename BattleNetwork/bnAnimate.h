@@ -41,6 +41,7 @@ class Animate {
 private:
   std::map<int, std::function<void()>> callbacks;
   std::map<int, std::function<void()>> onetimeCallbacks;
+  std::map<int, std::function<void()>> nextLoopCallbacks; // used to move over already called callbacks
 
   std::function<void()> onFinish;
   char playbackMode;

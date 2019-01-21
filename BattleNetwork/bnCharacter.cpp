@@ -3,12 +3,13 @@
 #include "bnField.h"
 #include "bnExplosion.h"
 
-Character::Character(Rank _rank) :
+Character::Character(Rank _rank) : 
   health(0),
   counterable(false),
   stunCooldown(0),
   name("unnamed"),
-  rank(_rank) {
+  rank(_rank),
+  CounterHitPublisher() {
   burnCycle = sf::milliseconds(150);
   elapsedBurnTime = burnCycle.asSeconds();
 }
@@ -27,7 +28,7 @@ void Character::Update(float _elapsed) {
     if (this->GetTile()) {
       if (this->GetTile()->GetState() == TileState::POISON) {
         if (elapsedBurnTime <= 0) {
-          if (this->Hit(1, Entity::HitProperties({ false, false, false, true, 0 }))) {
+          if (this->Hit(1, Entity::HitProperties({ false, false, false, true, 0, nullptr }))) {
             elapsedBurnTime = burnCycle.asSeconds();
           }
         }
@@ -37,7 +38,7 @@ void Character::Update(float _elapsed) {
       }
 
       if (this->GetTile()->GetState() == TileState::LAVA) {
-        if (this->Hit(50)) {
+        if (this->Hit(50, Entity::HitProperties({ true, false, false, false, 0, nullptr }))) {
           Field* field = GetField();
           Entity* explosion = new Explosion(field, this->GetTeam(), 1);
           field->OwnEntity(explosion, tile->GetX(), tile->GetY());
@@ -88,13 +89,23 @@ const float Character::GetHitHeight() const {
 }
 
 const bool Character::Hit(int damage, HitProperties props) {
-  this->SetHealth(this->GetHealth() - damage);
+  int previousHealth = health;
 
-  if (this->GetHealth() < 0) {
-    this->SetHealth(0);
+  (health - damage < 0) ? this->SetHealth(0) : this->SetHealth(health - damage);
+   
+
+  if (this->IsCountered() && props.recoil) {
+    this->Stun(3.0);
+
+    if (this->GetHealth() == 0) {
+      // Slide entity back a few pixels
+      this->tileOffset = sf::Vector2f(50.f, 0.0f);
+    }
+
+    this->Broadcast(*this, *props.aggressor);
   }
 
-  return true;
+  return (health != previousHealth);
 }
 
 int* Character::GetAnimOffset() {

@@ -9,10 +9,14 @@ Animate::Animate() {
 Animate::Animate(Animate& rhs) {
   this->onFinish = rhs.onFinish;
   this->callbacks = rhs.callbacks;
+  this->onetimeCallbacks = rhs.onetimeCallbacks;
+  this->nextLoopCallbacks = rhs.nextLoopCallbacks;
 }
 
 Animate::~Animate() {
   this->callbacks.clear();
+  this->onetimeCallbacks.clear();
+  this->nextLoopCallbacks.clear();
   this->onFinish = nullptr;
 }
 
@@ -42,7 +46,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
   int index = 0;
   std::vector<Frame>::const_iterator iter = copy.begin();
 
-  while(iter != copy.end()) {
+  while (iter != copy.end()) {
     index++;
     progress -= (*iter).duration;
 
@@ -59,6 +63,9 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
           iter = copy.begin();
         }
 
+        this->callbacks.merge(nextLoopCallbacks);
+        this->nextLoopCallbacks.clear();
+
         continue; // Start loop again
       }
 
@@ -68,6 +75,9 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
       if (callbackIter != this->callbacks.end()) {
         if(callbackIter->second)
           callbackIter->second();
+
+        nextLoopCallbacks.insert(*callbackIter);
+        callbacks.erase(callbackIter);
       }
 
       if (onetimeCallbackIter != this->onetimeCallbacks.end()) {

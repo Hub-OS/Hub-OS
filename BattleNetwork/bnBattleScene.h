@@ -27,6 +27,7 @@
 #include "bnSelectedChipsUI.h"
 #include "bnPlayerChipUseListener.h"
 #include "bnEnemyChipUseListener.h"
+#include "bnCounterHitListener.h"
 #include "bnChipSummonHandler.h"
 #include "bnMemory.h"
 
@@ -43,7 +44,7 @@ using sf::Font;
 class Mob;
 class Player;
 
-class BattleScene : public swoosh::Activity {
+class BattleScene : public swoosh::Activity, public CounterHitListener {
 private:
   /*
   Program Advance + labels
@@ -72,7 +73,13 @@ private:
 
   sf::Sprite battleStart;
   sf::Sprite battleEnd;
+  sf::Sprite doubleDelete;
+  sf::Sprite tripleDelete;
+  // sf::Sprite criticalHit;
+  sf::Sprite comboInfo; // double delete and triple delete placeholder. Only one appears at a time!
+  sf::Vector2f comboInfoPos;
   sf::Vector2f battleStartPos;
+  swoosh::Timer comboInfoTimer;
   swoosh::Timer battleStartTimer;
   swoosh::Timer battleEndTimer;
 
@@ -143,11 +150,16 @@ private:
   double customProgress;
   double customDuration;
   bool initFadeOut;
+  bool didDoubleDelete;
+  bool didTripleDelete;
 
   bool isPreBattle;
   bool isPostBattle;
   double preBattleLength; 
   double postBattleLength;
+
+  int lastMobSize; // used to determine double/triple deletes with frame accuracy
+  int totalCounterMoves; 
 
   swoosh::Timer summonTimer;
   bool showSummonText;
@@ -176,6 +188,12 @@ private:
 
   // for time-based graphics effects
   double elapsed;
+
+  const int GetCounterCount() const {
+    return totalCounterMoves;
+  }
+
+  virtual void OnCounter(Character& victim, Character& aggressor);
 
 public:
   virtual void onUpdate(double elapsed);

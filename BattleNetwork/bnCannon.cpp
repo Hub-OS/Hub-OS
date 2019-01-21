@@ -125,12 +125,7 @@ void Cannon::Attack(Entity* _entity) {
 
     if (isCharacter && isCharacter->IsCountered()) {
       AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
-      isCharacter->Stun(1);
-
-      if (isCharacter->GetHealth() == 0) {
-        // Slide entity back a few pixels
-        isCharacter->setPosition(isCharacter->getPosition().x + 50.f, isCharacter->getPosition().y);
-      }
+      isCharacter->Stun(1000);
     }
   }
 }

@@ -1,10 +1,11 @@
 #pragma once
 #include "bnEntity.h"
+#include "bnCounterHitPublisher.h"
 
 #include <string>
 using std::string;
 
-class Character : public Entity {
+class Character : public Entity, public CounterHitPublisher {
   friend class Field;
 
 public:

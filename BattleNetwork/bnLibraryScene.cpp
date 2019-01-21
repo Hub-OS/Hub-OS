@@ -74,8 +74,8 @@ std::string LibraryScene::FormatChipDesc(const std::string && desc)
   }
 
   // Chip docks can only fit 9 characters per line, 3 lines total
-  if (output.size() > 3 * 9) {
-    output = output.substr(0, 3 * 9);
+  if (output.size() > 3 * 10) {
+    output = output.substr(0, (3 * 10));
     output[output.size() - 1] = ';'; // font glyph will show an elipses
   }
 
@@ -319,6 +319,8 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.Draw(scrollbar);
 
+  if (uniqueChips.size() == 0) return;
+
   // Move the chip library iterator to the current highlighted chip
   ChipLibrary::Iter iter = uniqueChips.begin();
 
@@ -340,8 +342,8 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 
     //Draw rating
     unsigned rarity = iter->GetRarity() - 1;
-    stars.setTextureRect(sf::IntRect(0, 15 * rarity, 22, 14));
-    stars.setPosition(2.f*199.f, 74.0f + (32.f*i));
+    stars.setTextureRect(sf::IntRect(0, 16 * rarity, 22, 16));
+    stars.setPosition(2.f*199.f, 74.0f + (32.f*(float)i));
     ENGINE.Draw(stars, false);
 
     // Draw cursor

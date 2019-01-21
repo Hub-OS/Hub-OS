@@ -9,6 +9,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   swoosh::Activity(controller), 
   player(player),
   mob(mob),
+  lastMobSize(mob->GetMobCount()),
+  didDoubleDelete(false),
+  didTripleDelete(false),
   pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
   whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
   yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
@@ -55,13 +58,22 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   */
 
   battleStart = sf::Sprite(LOAD_TEXTURE(BATTLE_START));
-  battleStart.setOrigin(battleStart.getLocalBounds().width / 2, battleStart.getLocalBounds().height / 2);
+  battleStart.setOrigin(battleStart.getLocalBounds().width / 2.0f, battleStart.getLocalBounds().height / 2.0f);
   battleStartPos = sf::Vector2f(240.f, 140.f);
   battleStart.setPosition(battleStartPos);
   battleStart.setScale(2.f, 2.f);
 
   battleEnd = battleStart;
   battleEnd.setTexture(LOAD_TEXTURE(ENEMY_DELETED));
+
+  doubleDelete = sf::Sprite(LOAD_TEXTURE(DOUBLE_DELETE));
+  doubleDelete.setOrigin(doubleDelete.getLocalBounds().width / 2.0f, doubleDelete.getLocalBounds().height / 2.0f);
+  comboInfoPos = sf::Vector2f(240.0f, 50.f);
+  doubleDelete.setPosition(comboInfoPos);
+  doubleDelete.setScale(2.f, 2.f);
+
+  tripleDelete = doubleDelete;
+  tripleDelete.setTexture(LOAD_TEXTURE(TRIPLE_DELETE));
 
   /*
   Chips + Chip select setup*/
@@ -174,11 +186,11 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   heatShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
   heatShader.setUniform("distortionMapTexture", distortionMap);
-  heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2(textureSize.x, textureSize.y));
+  heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
 
   iceShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
-  iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2(textureSize.x, textureSize.y));
+  iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
   iceShader.setUniform("shine", 0.2f);
 }
 
@@ -194,6 +206,16 @@ void BattleScene::Inject(ChipUsePublisher& pub)
   this->enemyChipListener.Subscribe(pub);
   SceneNode* node = dynamic_cast<SceneNode*>(&pub);
   this->scenenodes.push_back(node);
+}
+
+void BattleScene::OnCounter(Character & victim, Character & aggressor)
+{
+  AUDIO.Play(AudioType::COUNTER, AudioPriority::HIGH);
+
+  if (&aggressor == this->player) {
+    std::cout << "player countered" << std::endl;
+    totalCounterMoves++;
+  }
 }
 
 void BattleScene::onUpdate(double elapsed) {
@@ -230,6 +252,9 @@ void BattleScene::onUpdate(double elapsed) {
 
     field->AddEntity(data->mob, data->tileX, data->tileY);
     mobNames.push_back(data->mob->GetName());
+
+    // Listen for counters
+    this->Subscribe(*data->mob);
   }
 
   // Check if entire mob is deleted
@@ -290,6 +315,23 @@ void BattleScene::onUpdate(double elapsed) {
     customProgress += elapsed;
 
     field->SetBattleActive(true);
+
+    int newMobSize = mob->GetRemainingMobCount();
+
+    if (lastMobSize != newMobSize) {
+      if (lastMobSize - newMobSize == 2) {
+        didDoubleDelete = true;
+        comboInfo = doubleDelete;
+        comboInfoTimer.reset();
+      }
+      else if (lastMobSize - newMobSize > 2) {
+        didTripleDelete = true;
+        comboInfo = tripleDelete;
+        comboInfoTimer.reset();
+      }
+
+      lastMobSize = newMobSize;
+    }
 
     // Update components
     for (auto c : components) {
@@ -527,6 +569,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
       ENGINE.Draw(battleEnd);
     }
+  }
+
+  if (comboInfoTimer.getElapsed().asSeconds() <= 1.0f) {
+    ENGINE.Draw(comboInfo);
   }
 
   if (isPaused) {
@@ -883,10 +929,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     if (!battleResults) {
       sf::Time totalBattleTime = battleTimer.getElapsed();
 
-      // TODO: GetCounterCount()
-      //       GetDoubleDelete()
-      //       GetTripleDelete()
-      battleResults = new BattleResults(totalBattleTime, player->GetMoveCount(), player->GetHitCount(), 0, false, false, mob);
+      battleResults = new BattleResults(totalBattleTime, player->GetMoveCount(), player->GetHitCount(), GetCounterCount(), didDoubleDelete, didTripleDelete, mob);
     }
     else {
       battleResults->Draw();

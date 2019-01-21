@@ -142,6 +142,8 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/program_advance.png");
   paths.push_back("resources/ui/battle_start.png");
   paths.push_back("resources/ui/enemy_deleted.png");
+  paths.push_back("resources/ui/double_delete.png");
+  paths.push_back("resources/ui/triple_delete.png");
 
   // Battle Results Frame
   paths.push_back("resources/ui/battle_results.png");

@@ -34,9 +34,14 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
 
   AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOWEST);
 
-  animationComponent.SetAnimation("EXPLODE", [this]() { root->IncrementExplosionCount(); /*this->setColor(sf::Color(255, 255, 255, 0));*/ });
+  animationComponent.SetAnimation("EXPLODE");
   animationComponent.SetPlaybackSpeed(playbackSpeed);
   animationComponent.Update(0.0f);
+
+  animationComponent.AddCallback(11, [this]() {
+    this->root->IncrementExplosionCount();
+    this->setColor(sf::Color(0, 0, 0, 0));
+  }, std::function<void()>(), true);
 
   if (_numOfExplosions > 1) {
     animationComponent.AddCallback(9, [this, _field, _team, _numOfExplosions]() {
@@ -47,10 +52,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
 
 Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 {
-  if (copy.root == &copy)
-    root = &const_cast<Explosion&>(copy);
-  else
-    root = copy.root;
+  root = copy.root;
 
   count = 0; // uneeded for this copy
   SetLayer(1);
@@ -78,9 +80,13 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 
   AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
 
-  animationComponent.SetAnimation("EXPLODE", [this]() { this->Delete(); root->IncrementExplosionCount(); });
+  animationComponent.SetAnimation("EXPLODE");
   animationComponent.SetPlaybackSpeed(playbackSpeed);
   animationComponent.Update(0.0f);
+
+  animationComponent.AddCallback(11, [this]() {
+    this->Delete(); this->root->IncrementExplosionCount();
+  }, std::function<void()>(), true);
 
   if (numOfExplosions > 1) {
     animationComponent.AddCallback(9, [this]() {

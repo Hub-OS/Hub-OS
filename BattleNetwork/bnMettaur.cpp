@@ -13,21 +13,6 @@
 #define RESOURCE_NAME "mettaur"
 #define RESOURCE_PATH "resources/mobs/mettaur/mettaur.animation"
 
-#define MOVING_ANIMATION_SPRITES 2
-#define MOVING_ANIMATION_WIDTH 32
-#define MOVING_ANIMATION_HEIGHT 41
-
-#define IDLE_ANIMATION_WIDTH 54
-#define IDLE_ANIMATION_HEIGHT 56
-
-#define HIT_ANIMATION_SPRITES 3
-#define HIT_ANIMATION_WIDTH 34
-#define HIT_ANIMATION_HEIGHT 31
-
-#define ATTACK_ANIMATION_SPRITES 9
-#define ATTACK_ANIMATION_WIDTH 53
-#define ATTACK_ANIMATION_HEIGHT 56
-
 vector<int> Mettaur::metIDs = vector<int>();
 int Mettaur::currMetIndex = 0;
 
@@ -176,13 +161,12 @@ void Mettaur::SetHealth(int _health) {
 }
 
 const bool Mettaur::Hit(int _damage, HitProperties props) {
+  if (Character::Hit(_damage, props)) {
+    SetShader(whiteout);
+    return true;
+  }
 
-  int previousHealth = health;
-
-  (health - _damage < 0) ? health = 0 : health -= _damage;
-  SetShader(whiteout);
-
-  return (health != previousHealth);
+  return false;
 }
 
 const float Mettaur::GetHitHeight() const {

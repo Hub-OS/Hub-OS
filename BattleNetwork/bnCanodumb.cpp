@@ -116,10 +116,12 @@ vector<Drawable*> Canodumb::GetMiscComponents() {
 }
 
 const bool Canodumb::Hit(int _damage, HitProperties props) {
-  (health - _damage < 0) ? health = 0 : health -= _damage;
-  SetShader(whiteout);
+  if (Character::Hit(_damage, props)) {
+    SetShader(whiteout);
+    return true;
+  }
 
-  return health;
+  return false;
 }
 
 const float Canodumb::GetHitHeight() const {

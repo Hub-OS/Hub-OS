@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Swoosh/Ease.h"
+
 #include <SFML/Graphics.hpp>
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
@@ -43,6 +45,8 @@ private:
   Bucket* queue;
   Bucket** selectQueue;
   ChipDescriptionTextbox chipDescriptionTextbox;
+
+  double frameElapsed;
 
 public:
   ChipSelectionCust(ChipFolder* _folder, int);

@@ -13,6 +13,8 @@ public:
   virtual vector<Drawable*> GetMiscComponents();
 private:
   int damage;
+  float cooldown;
+  float damageCooldown;
   Animate animator;
   FrameList animation;
 };

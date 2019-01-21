@@ -13,6 +13,7 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) :
   greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
   chipDescriptionTextbox(sf::Vector2f(4, 255))
 {
+  frameElapsed = 1;
   folder = _folder;
   cap = std::min(cap, 8);
   chipCap = cap;
@@ -317,8 +318,6 @@ void ChipSelectionCust::GetNextChips() {
       }
     } while (!CHIPLIB.IsChipValid(*queue[i].data)); // Only chips parsed successfully should be used in combat
 
-    std::cout << "next chip description: " << queue[i].data->GetDescription() << std::endl;
-
     queue[i].state = STAGED;
 
     chipCount++;
@@ -332,7 +331,10 @@ void ChipSelectionCust::Draw() {
   ENGINE.Draw(custSprite, false);
 
   if (IsInView()) {
-    cursorSmall.setPosition(2.f*(16.0f + (cursorPos*16.0f)), 2.f*(113.f + (cursorRow*24.f))); // TODO: Make this relative to cust instead of screen
+    auto x = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(16.0f + (cursorPos*16.0f))), (double)cursorSmall.getPosition().x);
+    auto y = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(113.f + (cursorRow*24.f))), (double)cursorSmall.getPosition().y);
+
+    cursorSmall.setPosition((float)x, (float)y); // TODO: Make this relative to cust instead of screen. hint: scene nodes
 
     int row = 0;
     for (int i = 0; i < chipCount; i++) {
@@ -435,10 +437,10 @@ void ChipSelectionCust::Draw() {
 
 void ChipSelectionCust::Update(float elapsed)
 {
+  frameElapsed = (double)elapsed;
+
   cursorSmallAnimator.Update(elapsed, &cursorSmall);
   cursorBigAnimator.Update(elapsed, &cursorBig);
-
-  static bool A_HELD = false;
 
   chipDescriptionTextbox.Update(elapsed);
 }

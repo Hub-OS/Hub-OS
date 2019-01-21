@@ -15,6 +15,7 @@ namespace Battle {
 }
 
 class Field;
+class Character; // forward decl
 
 class Entity : public LayeredDrawable {
   friend class Field;
@@ -26,6 +27,7 @@ public:
     bool stun;
     bool pierce;
     double secs;
+    Character* aggressor;
   };
 
   const static HitProperties DefaultHitProperties;

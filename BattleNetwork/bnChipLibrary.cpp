@@ -153,7 +153,7 @@ void ChipLibrary::LoadLibrary() {
       try {
         longDescription = FileUtil::ValueOf("verbose", line);
       }
-      catch (std::runtime_error& e) {
+      catch (...) {
         longDescription = "This chip does not have extra information.";
       }
 
@@ -194,6 +194,8 @@ void ChipLibrary::LoadLibrary() {
 
     data = data.substr(endline + 1);
   } while (endline > -1);
+
+  std::reverse(library.begin(), library.end());
 
   std::cout << "library size: " << this->GetSize() << std::endl;;
 }

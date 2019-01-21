@@ -10,6 +10,8 @@ private:
   float velY;
   float arcDuration;
   float arcProgress;
+  float cooldown;
+  float damageCooldown;
 public:
   ProgBomb(Field* _field, Team _team, Battle::Tile* _target, float _duration);
   virtual ~ProgBomb(void);

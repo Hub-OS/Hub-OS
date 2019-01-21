@@ -190,6 +190,8 @@
     <ClCompile Include="bnChipFolder.cpp" />
     <ClCompile Include="bnChipUseListener.cpp" />
     <ClCompile Include="bnChipUsePublisher.cpp" />
+    <ClCompile Include="bnCounterHitListener.cpp" />
+    <ClCompile Include="bnCounterHitPublisher.cpp" />
     <ClCompile Include="bnEnemyChipsUI.cpp" />
     <ClCompile Include="bnFakeScene.cpp" />
     <ClCompile Include="bnFolderEditScene.cpp" />
@@ -269,6 +271,8 @@
     <ClInclude Include="bnAnimate.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
+    <ClInclude Include="bnCounterHitListener.h" />
+    <ClInclude Include="bnCounterHitPublisher.h" />
     <ClInclude Include="bnEnemyChipUseListener.h" />
     <ClInclude Include="bnBackground.h" />
     <ClInclude Include="bnBasicSword.h" />

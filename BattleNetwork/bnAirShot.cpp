@@ -29,6 +29,7 @@ AirShot::AirShot(Field* _field, Team _team, int _damage) {
   hitHeight = 10.0f;
   srand((unsigned int)time(nullptr));
   random = rand() % 20 - 20;
+  cooldown = 0.0f;
 
   damage = _damage;
   //TODO: make new sprite animation for charged bullet
@@ -124,20 +125,6 @@ void AirShot::Attack(Entity* _entity) {
       if (_entity->Move(direction)) {
         std::cout << "shouldn't be called" << std::endl;
         _entity->AdoptNextTile();
-      }
-    }
-
-    Character* isCharacter = dynamic_cast<Character*>(_entity);
-
-    if (isCharacter) {
-      if (isCharacter->IsCountered()) {
-        AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
-        isCharacter->Stun(1);
-
-        if (isCharacter->GetHealth() == 0) {
-          // Slide entity back a few pixels
-          isCharacter->setPosition(isCharacter->getPosition().x + 50.f, isCharacter->getPosition().y);
-        }
       }
     }
   }

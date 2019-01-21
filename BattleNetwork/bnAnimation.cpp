@@ -30,7 +30,7 @@ void Animation::Reload() {
   float currentAnimationDuration = 0.0f;
   int currentWidth = 0;
   int currentHeight = 0;
-  bool legacySupport = true;
+  bool legacySupport = false;
 
   string data = FileUtil::Read(path);
   int endline = 0;
@@ -41,7 +41,7 @@ void Animation::Reload() {
     // NOTE: Support older animation files until we upgrade completely...
     if (line.find("VERSION") != string::npos) {
       string version = ValueOf("VERSION", line);
-      if (version != "1.0") legacySupport = false;
+      if (version == "1.0") legacySupport = true;
 
     }
     else if (line.find("animation") != string::npos) {
@@ -128,6 +128,11 @@ void Animation::Update(float elapsed, sf::Sprite* target, double playbackSpeed) 
   progress += elapsed * (float)std::fabs(playbackSpeed);
 
   animator(progress, *target, animations[currAnimation]);
+
+  const float duration = animations[currAnimation].GetTotalDuration();
+  if (progress > duration) {
+    progress -= duration;
+  }
 }
 
 void Animation::SetFrame(int frame, sf::Sprite * target)

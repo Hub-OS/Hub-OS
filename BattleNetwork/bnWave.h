@@ -1,10 +1,9 @@
 #pragma once
 #include "bnSpell.h"
-#include "bnAnimate.h"
+#include "bnAnimation.h"
 class Wave : public Spell {
 protected:
-  Animate animator;
-  FrameList animation;
+  Animation animation;
   double speed;
 public:
   Wave(Field* _field, Team _team, double speed = 1.0);

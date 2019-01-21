@@ -33,6 +33,7 @@ void PlayerControlledState::OnEnter(Player& player) {
 }
 
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
+  if (!player.IsBattleActive()) return;
 
   // Action controls take priority over movement
   if (inputManager->has(RELEASED_A)) {
@@ -43,6 +44,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       attackKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};
       player.SetAnimation(PLAYER_SHOOTING, onFinish);
+      AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::HIGH);
     }
     else {
       isChargeHeld = false;

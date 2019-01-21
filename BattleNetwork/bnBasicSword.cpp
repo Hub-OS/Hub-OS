@@ -61,11 +61,6 @@ void BasicSword::Attack(Entity* _entity) {
     if (isCharacter && isCharacter->IsCountered()) {
       AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
       isCharacter->Stun(1000);
-
-      if (isCharacter->GetHealth() == 0) {
-        // Slide character back a few pixels
-        isCharacter->setPosition(_entity->getPosition().x + 50.f, _entity->getPosition().y);
-      }
     }
   }
 

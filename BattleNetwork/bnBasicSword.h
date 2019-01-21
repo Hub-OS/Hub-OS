@@ -13,4 +13,5 @@ public:
 
 private:
   int damage;
+  float cooldown;
 };

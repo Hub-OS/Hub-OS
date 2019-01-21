@@ -46,6 +46,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::APPEAR, "resources/sfx/appear.ogg"); status++;
   LoadSource(AudioType::AREA_GRAB, "resources/sfx/area_grab.ogg"); status++;
   LoadSource(AudioType::AREA_GRAB_TOUCHDOWN, "resources/sfx/area_grab_touchdown.ogg"); status++;
+  LoadSource(AudioType::BUSTER_PEA, "resources/sfx/pew.ogg"); status++;
   LoadSource(AudioType::BUSTER_CHARGED, "resources/sfx/buster_charged.ogg"); status++;
   LoadSource(AudioType::BUSTER_CHARGING, "resources/sfx/buster_charging.ogg"); status++;
   LoadSource(AudioType::CANNON, "resources/sfx/cannon.ogg"); status++;

@@ -31,9 +31,6 @@ Player::Player(void)
 
   healthUI = new PlayerHealthUI(this);
 
-  //Components setup and load
-  chargeComponent.load();
-
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
 
@@ -98,7 +95,7 @@ void Player::Update(float _elapsed) {
   AI<Player>::Update(_elapsed);
 
   //Components updates
-  chargeComponent.update(_elapsed);
+  chargeComponent.Update(_elapsed);
 
   Character::Update(_elapsed);
 }

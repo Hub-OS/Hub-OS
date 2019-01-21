@@ -26,8 +26,6 @@ protected:
   bool hit;
   bool markTile;
   int random;
-  float cooldown;
-  float damageCooldown;
   float progress;
   float hitHeight;
   Texture* texture;

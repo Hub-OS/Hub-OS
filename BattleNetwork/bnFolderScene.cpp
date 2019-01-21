@@ -354,11 +354,11 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
 
   if (promptOptions) {
-   scale = swoosh::ease::interpolate((float)frameElapsed*6.0f, 2.0f, folderOptions.getScale().y);
+   scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
    ENGINE.Draw(cursor);
   }
   else {
-    scale = swoosh::ease::interpolate((float)frameElapsed*6.0f, 0.0f, folderOptions.getScale().y);
+    scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
   }
 
   folderOptions.setScale(2.0f, scale);

@@ -109,6 +109,18 @@ public:
     return (int)spawn.size();
   }
 
+  const int GetRemainingMobCount() {
+    int remaining = (int)spawn.size();
+
+    for (int i = 0; i < (int)spawn.size(); i++) {
+      if (spawn[i]->mob->GetHealth() <= 0) {
+        remaining--;
+      }
+    }
+
+    return remaining;
+  }
+
   void ToggleBossFlag() {
     isBoss = !isBoss;
   }
@@ -133,7 +145,7 @@ public:
   }
 
   const bool IsCleared() {
-    for (int i = 0; i < spawn.size(); i++) {
+    for (int i = 0; i < (int)spawn.size(); i++) {
       if (!spawn[i]->mob->IsDeleted()) {
         return false;
       }
@@ -147,7 +159,7 @@ public:
   }
 
   void DefaultState() {
-    for (int i = 0; i < defaultStateInvokers.size(); i++) {
+    for (int i = 0; i < (int)defaultStateInvokers.size(); i++) {
       defaultStateInvokers[i](spawn[i]->mob);
     }
 

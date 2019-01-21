@@ -14,6 +14,7 @@ public:
 
 private:
   int damage;
+  float cooldown;
   FrameList animation;
   Animate animator;
 };

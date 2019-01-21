@@ -6,14 +6,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-#define WAVE_ANIMATION_SPRITES 5
-#define WAVE_ANIMATION_WIDTH 41
-#define WAVE_ANIMATION_HEIGHT 46
-
 Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
   SetLayer(0);
-  cooldown = 0;
-  damageCooldown = 0;
   field = _field;
   team = _team;
   direction = Direction::NONE;
@@ -21,23 +15,16 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
   hit = false;
   texture = TEXTURES.GetTexture(TextureType::SPELL_WAVE);
   this->speed = speed;
-  for (int x = 0; x < WAVE_ANIMATION_SPRITES; x++) {
-    animation.Add(0.3f, IntRect(WAVE_ANIMATION_WIDTH*x, 0, WAVE_ANIMATION_WIDTH, WAVE_ANIMATION_HEIGHT));
-  }
 
   //Components setup and load
   auto onFinish = [this]() {
     Move(direction);
     AUDIO.Play(AudioType::WAVE);
-    cooldown = 0;
-    progress = 0.0f; 
   };
 
-  animator << onFinish;
-
-  progress = 0.0f;
-  hitHeight = 0.0f;
-  random = 0;
+  animation = Animation("resources/spells/spell_wave.animation");
+  animation.SetAnimation("DEFAULT");
+  animation << Animate::Mode(Animate::Mode::Loop) << Animate::On(5, onFinish);
 
   AUDIO.Play(AudioType::WAVE);
 
@@ -56,10 +43,9 @@ void Wave::Update(float _elapsed) {
 
   setTexture(*texture);
   setScale(2.f, 2.f);
-  setPosition(tile->getPosition().x-(this->getLocalBounds().width*0.8f), tile->getPosition().y-this->getLocalBounds().height*1.7f);
-  progress += 3 * _elapsed;
+  setPosition(tile->getPosition().x, tile->getPosition().y);
   
-  animator(progress*(float)speed, *this, animation);
+  animation.Update(_elapsed, this);
 
   tile->AffectEntities(this);
 

@@ -14,8 +14,6 @@ Spell::Spell(void) : animationComponent(this), Entity() {
   hit = false;
   srand((unsigned int)time(nullptr));
   random = rand() % 20 - 20;
-  cooldown = 0.0f;
-  damageCooldown = 0.0f;
   progress = 0.0f;
   hitHeight = 0.0f;
   direction = Direction::NONE;

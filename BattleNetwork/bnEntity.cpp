@@ -3,7 +3,7 @@
 #include "bnField.h"
 #include "Swoosh\Ease.h"
 
-const Entity::HitProperties Entity::DefaultHitProperties{ true, false, false,false, 600.0 };
+const Entity::HitProperties Entity::DefaultHitProperties{ true, false, false,false, 600.0, nullptr };
 
 Entity::Entity()
   : tile(nullptr),

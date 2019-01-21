@@ -197,21 +197,6 @@
     <Filter Include="Activities\Battle\Content\AI">
       <UniqueIdentifier>{b0e97f40-0be3-48ff-a3c0-924576c7938e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Mob">
-      <UniqueIdentifier>{1cf38e39-dbdc-4910-ad71-868672316374}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Mob\Random">
-      <UniqueIdentifier>{0e4e830d-27bf-4942-a2b1-f80cf9b05101}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Mob\Easy">
-      <UniqueIdentifier>{b20f104e-955c-40ee-88f5-0246628bbff6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Mob\Boss">
-      <UniqueIdentifier>{e66292ed-1af5-4333-930f-cd53c65a9e48}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Mob\Boss\ProgsMan">
-      <UniqueIdentifier>{a79cf10e-8091-4ad4-a760-c6bf708c83cb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Results">
       <UniqueIdentifier>{5ab083d3-308d-4225-a245-928fbb4b9ce8}</UniqueIdentifier>
     </Filter>
@@ -245,12 +230,6 @@
     <Filter Include="Activities\Fake">
       <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Mob\SpawnPolicies">
-      <UniqueIdentifier>{81d9d5d5-0eae-40eb-bcf8-b901b9638cec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Mob\SpawnPolicies\ChipSpawnPolicies">
-      <UniqueIdentifier>{818f9f46-08a6-49c1-917e-8f8dbd065e02}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Graphics">
       <UniqueIdentifier>{fe12002d-65c0-4184-bb5f-72f816483120}</UniqueIdentifier>
     </Filter>
@@ -262,18 +241,6 @@
     </Filter>
     <Filter Include="Activities\Battle\Content\Components\UI">
       <UniqueIdentifier>{a8e9ac2a-8f91-4965-9108-64886a52dd16}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Components\ChipUsePublisher">
-      <UniqueIdentifier>{0be851a6-6c86-4ffb-a4f9-0f230a542869}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Components\ChipUsePublisher\UI">
-      <UniqueIdentifier>{2ffdbd56-f900-4230-b51b-8239abe620b8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Components\ChipUsePublisher\UI\Player">
-      <UniqueIdentifier>{9a26a8e6-989b-4317-874a-6c1699773fb3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Components\ChipUsePublisher\UI\Any">
-      <UniqueIdentifier>{a9b3e791-0104-4027-a099-7c4207f47ea1}</UniqueIdentifier>
     </Filter>
     <Filter Include="Activities\Battle\Content\Chips\Cust\UI">
       <UniqueIdentifier>{36e8f1dc-b46a-4384-b735-c0cfab8a122e}</UniqueIdentifier>
@@ -295,6 +262,42 @@
     </Filter>
     <Filter Include="Activities\Folder\Edit">
       <UniqueIdentifier>{dd2f8f2c-329f-4a6f-90a8-936a258811fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub">
+      <UniqueIdentifier>{370b33dc-db40-4e8a-befe-8c281a66f20b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse">
+      <UniqueIdentifier>{5eceddc7-4c13-4e3d-b1f8-6b8aac860d58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\CounterHit">
+      <UniqueIdentifier>{7a269b8a-ed64-4a66-9792-3ad6025626bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\UI\Player">
+      <UniqueIdentifier>{9a26a8e6-989b-4317-874a-6c1699773fb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\UI\Any">
+      <UniqueIdentifier>{a9b3e791-0104-4027-a099-7c4207f47ea1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\MobFactories">
+      <UniqueIdentifier>{1cf38e39-dbdc-4910-ad71-868672316374}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\MobFactories\Random">
+      <UniqueIdentifier>{0e4e830d-27bf-4942-a2b1-f80cf9b05101}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\MobFactories\Easy">
+      <UniqueIdentifier>{b20f104e-955c-40ee-88f5-0246628bbff6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\MobFactories\Boss">
+      <UniqueIdentifier>{e66292ed-1af5-4333-930f-cd53c65a9e48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\MobFactories\Boss\ProgsMan">
+      <UniqueIdentifier>{a79cf10e-8091-4ad4-a760-c6bf708c83cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\MobFactories\SpawnPolicies">
+      <UniqueIdentifier>{81d9d5d5-0eae-40eb-bcf8-b901b9638cec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\MobFactories\SpawnPolicies\ChipSpawnPolicies">
+      <UniqueIdentifier>{818f9f46-08a6-49c1-917e-8f8dbd065e02}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -380,10 +383,10 @@
       <Filter>Activities\Battle\Content\Entity\Character\Player\Megaman\States</Filter>
     </ClCompile>
     <ClCompile Include="bnRandomMettaurMob.cpp">
-      <Filter>Activities\Battle\Content\Mob\Random</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\Random</Filter>
     </ClCompile>
     <ClCompile Include="bnTwoMettaurMob.cpp">
-      <Filter>Activities\Battle\Content\Mob\Easy</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\Easy</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManIdleState.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
@@ -428,7 +431,7 @@
       <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManBossFight.cpp">
-      <Filter>Activities\Battle\Content\Mob\Boss\ProgsMan</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\Boss\ProgsMan</Filter>
     </ClCompile>
     <ClCompile Include="bnAgent.h">
       <Filter>Activities\Battle\Content\AI</Filter>
@@ -464,7 +467,7 @@
       <Filter>Activities\Battle\Content\Entity\Character\Canodumb</Filter>
     </ClCompile>
     <ClCompile Include="bnCanodumbMob.cpp">
-      <Filter>Activities\Battle\Content\Mob\Easy</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\Easy</Filter>
     </ClCompile>
     <ClCompile Include="bnCanodumbCursor.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\Canodumb\Misc</Filter>
@@ -483,9 +486,6 @@
     </ClCompile>
     <ClCompile Include="bnAnimatedCharacter.cpp">
       <Filter>Activities\Battle\Content\Entity\Character</Filter>
-    </ClCompile>
-    <ClCompile Include="bnChipUseListener.cpp">
-      <Filter>Activities\Battle\Content\Chips\ChipUseListener</Filter>
     </ClCompile>
     <ClCompile Include="bnStarman.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\Player\Starman</Filter>
@@ -521,25 +521,16 @@
       <Filter>Activities\Fake</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectedChipsUI.cpp">
-      <Filter>Activities\Battle\Content\Components\ChipUsePublisher\UI\Player</Filter>
+      <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
     </ClCompile>
     <ClCompile Include="bnEnemyChipsUI.cpp">
-      <Filter>Activities\Battle\Content\Components\ChipUsePublisher\UI\Any</Filter>
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimate.cpp">
       <Filter>Engine\Graphics\Animate</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimation.cpp">
       <Filter>Engine\Graphics\Animate</Filter>
-    </ClCompile>
-    <ClCompile Include="bnMobHealthUI.cpp">
-      <Filter>Activities\Battle\Content\Components\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="bnPlayerHealthUI.cpp">
-      <Filter>Activities\Battle\Content\Components\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="bnChipUsePublisher.cpp">
-      <Filter>Activities\Battle\Content\Components\ChipUsePublisher</Filter>
     </ClCompile>
     <ClCompile Include="bnChipDescriptionTextbox.cpp">
       <Filter>Activities\Battle\Content\Chips\Cust\UI</Filter>
@@ -552,6 +543,24 @@
     </ClCompile>
     <ClCompile Include="bnFolderEditScene.cpp">
       <Filter>Activities\Folder\Edit</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCounterHitPublisher.cpp">
+      <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
+    </ClCompile>
+    <ClCompile Include="bnChipUsePublisher.cpp">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMobHealthUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
+    </ClCompile>
+    <ClCompile Include="bnPlayerHealthUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="bnChipUseListener.cpp">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCounterHitListener.cpp">
+      <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -676,17 +685,17 @@
       <Filter>Activities\Battle\Content\Entity\Character\Player\Megaman\States</Filter>
     </ClInclude>
     <ClInclude Include="bnMob.h">
-      <Filter>Activities\Battle\Content\Mob</Filter>
+      <Filter>Activities\Battle\Content\MobFactories</Filter>
     </ClInclude>
     <ClInclude Include="bnMobFactory.h">
-      <Filter>Activities\Battle\Content\Mob</Filter>
+      <Filter>Activities\Battle\Content\MobFactories</Filter>
     </ClInclude>
     <ClInclude Include="bnRandomMettaurMob.h">
-      <Filter>Activities\Battle\Content\Mob\Random</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\Random</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnTwoMettaurMob.h">
-      <Filter>Activities\Battle\Content\Mob\Easy</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\Easy</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManIdleState.h">
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
@@ -743,7 +752,7 @@
       <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManBossFight.h">
-      <Filter>Activities\Battle\Content\Mob\Boss\ProgsMan</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\Boss\ProgsMan</Filter>
     </ClInclude>
     <ClInclude Include="bnBattleScene.h">
       <Filter>Activities\Battle</Filter>
@@ -776,7 +785,7 @@
       <Filter>Activities\Battle\Content\Entity\Character\Canodumb</Filter>
     </ClInclude>
     <ClInclude Include="bnCanodumbMob.h">
-      <Filter>Activities\Battle\Content\Mob\Easy</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\Easy</Filter>
     </ClInclude>
     <ClInclude Include="bnCanodumbCursor.h">
       <Filter>Activities\Battle\Content\Entity\Character\Canodumb\Misc</Filter>
@@ -801,12 +810,6 @@
     </ClInclude>
     <ClInclude Include="bnNoState.h">
       <Filter>Activities\Battle\Content\Entity\Character\Any\States</Filter>
-    </ClInclude>
-    <ClInclude Include="bnChipUseListener.h">
-      <Filter>Activities\Battle\Content\Chips\ChipUseListener</Filter>
-    </ClInclude>
-    <ClInclude Include="bnChipUsePublisher.h">
-      <Filter>Activities\Battle\Content\Components\ChipUsePublisher</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerChipUseListener.h">
       <Filter>Activities\Battle\Content\Chips\ChipUseListener\Player</Filter>
@@ -890,16 +893,16 @@
       <Filter>Segues</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectedChipsUI.h">
-      <Filter>Activities\Battle\Content\Components\ChipUsePublisher\UI\Player</Filter>
+      <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
     </ClInclude>
     <ClInclude Include="bnEnemyChipsUI.h">
-      <Filter>Activities\Battle\Content\Components\ChipUsePublisher\UI\Any</Filter>
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
     </ClInclude>
     <ClInclude Include="bnSpawnPolicy.h">
-      <Filter>Activities\Battle\Content\Mob\SpawnPolicies</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\SpawnPolicies</Filter>
     </ClInclude>
     <ClInclude Include="bnChipsSpawnPolicy.h">
-      <Filter>Activities\Battle\Content\Mob\SpawnPolicies\ChipSpawnPolicies</Filter>
+      <Filter>Activities\Battle\Content\MobFactories\SpawnPolicies\ChipSpawnPolicies</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimate.h">
       <Filter>Engine\Graphics\Animate</Filter>
@@ -909,12 +912,6 @@
     </ClInclude>
     <ClInclude Include="bnSceneNode.h">
       <Filter>Engine\Graphics\SceneNodes</Filter>
-    </ClInclude>
-    <ClInclude Include="bnMobHealthUI.h">
-      <Filter>Activities\Battle\Content\Components\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="bnPlayerHealthUI.h">
-      <Filter>Activities\Battle\Content\Components\UI</Filter>
     </ClInclude>
     <ClInclude Include="bnEnemyChipUseListener.h">
       <Filter>Activities\Battle\Content\Chips\ChipUseListener\Any</Filter>
@@ -936,6 +933,24 @@
     </ClInclude>
     <ClInclude Include="bnFolderEditScene.h">
       <Filter>Activities\Folder\Edit</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCounterHitPublisher.h">
+      <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipUsePublisher.h">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMobHealthUI.h">
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
+    </ClInclude>
+    <ClInclude Include="bnPlayerHealthUI.h">
+      <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipUseListener.h">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCounterHitListener.h">
+      <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

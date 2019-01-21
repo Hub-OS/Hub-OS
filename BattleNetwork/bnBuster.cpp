@@ -112,7 +112,10 @@ void Buster::Attack(Entity* _entity) {
   if (hit || deleted) return;
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(damage);
+    auto props = Entity::DefaultHitProperties;
+    props.recoil = false;
+
+    _entity->Hit(damage, props);
     hitHeight = _entity->GetHitHeight();
 
     if (!_entity->IsPassthrough()) {

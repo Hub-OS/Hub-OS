@@ -7,8 +7,8 @@ Chip::Chip(unsigned id, unsigned icon, char code, unsigned damage, Element eleme
   this->shortname.assign(sname);
   this->description.assign(desc);
   this->verboseDescription.assign(verboseDesc);
-  this->rarity = std::max(1, (int)rarity);
-  this->rarity = std::min((int)rarity, 5);
+  this->rarity = std::max((unsigned)1, rarity);
+  this->rarity = std::min(this->rarity, (unsigned)5);
 }
 
 Chip::Chip() {
