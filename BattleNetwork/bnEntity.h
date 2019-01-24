@@ -17,25 +17,31 @@ namespace Battle {
 class Field;
 class Character; // forward decl
 
+namespace Hit {
+  const char none   = 0x00;
+  const char recoil = 0x01;
+  const char shake  = 0x02;
+  const char stun   = 0x03;
+  const char pierce = 0x04;
+  
+  struct Properties {
+    char flags;
+    Element element;
+    double secs; // used by both recoil and stun
+    Character* aggressor;
+  };
+}
+
 class Entity : public LayeredDrawable {
   friend class Field;
 
 public:
-  struct HitProperties {
-    bool recoil;
-    bool shake;
-    bool stun;
-    bool pierce;
-    double secs;
-    Character* aggressor;
-  };
-
-  const static HitProperties DefaultHitProperties;
+  const static Hit::Properties DefaultHitProperties;
 
   Entity();
   virtual ~Entity();
 
-  virtual const bool Hit(int damage, HitProperties props=Entity::DefaultHitProperties);
+  virtual const bool Hit(int damage, Hit::Properties props=Entity::DefaultHitProperties);
   virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);

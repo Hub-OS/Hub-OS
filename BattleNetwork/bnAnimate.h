@@ -65,9 +65,9 @@ public:
 
     friend class Animate;
 
-    static const int Loop = 0x1;
-    static const int Bounce = 0x1 << 1;
-    static const int Reverse = 0x1 << 2;
+    static const char Loop = 0x01;
+    static const char Bounce = 0x02;
+    static const char Reverse = 0x03;
 
     Mode(int playback) {
       this->playback = playback;
@@ -80,11 +80,12 @@ public:
   Animate(Animate& rhs);
   ~Animate();
 
+  char GetMode() { return playbackMode;  }
   void Clear() { callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; }
 
   void operator() (float progress, sf::Sprite& target, FrameList& sequence);
   Animate& operator << (On rhs);
-  Animate& operator << (Mode rhs);
+  Animate& operator << (char rhs);
   void operator << (std::function<void()> finishNotifier);
 
   void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence) const;

@@ -113,7 +113,7 @@ void Buster::Attack(Entity* _entity) {
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     auto props = Entity::DefaultHitProperties;
-    props.recoil = false;
+    props.flags = props.flags & ~Hit::recoil;
 
     _entity->Hit(damage, props);
     hitHeight = _entity->GetHitHeight();

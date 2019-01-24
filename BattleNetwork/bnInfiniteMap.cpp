@@ -25,7 +25,7 @@ namespace Overworld {
 
     // Load NPC animations
     animator = Animate();
-    animator << Animate::Mode(Animate::Mode::Loop);
+    animator << Animate::Mode::Loop;
 
     progAnimations = Animation("resources/backgrounds/main_menu/prog.animation");
     progAnimations.Reload();

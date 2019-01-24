@@ -130,7 +130,8 @@ void Animation::Update(float elapsed, sf::Sprite* target, double playbackSpeed) 
   animator(progress, *target, animations[currAnimation]);
 
   const float duration = animations[currAnimation].GetTotalDuration();
-  if (progress > duration) {
+
+  if (progress > duration && (animator.GetMode() & Animate::Mode::Loop) == Animate::Mode::Loop) {
     progress -= duration;
   }
 }
@@ -170,7 +171,7 @@ Animation & Animation::operator<<(Animate::On rhs)
   return *this;
 }
 
-Animation & Animation::operator<<(Animate::Mode rhs)
+Animation & Animation::operator<<(char rhs)
 {
   animator << rhs;
   return *this;

@@ -29,7 +29,7 @@ public:
   virtual TextureType GetTextureType() const;
 
   void SetHealth(int _health);
-  virtual const bool Hit(int _damage, HitProperties props = Entity::DefaultHitProperties);
+  virtual const bool Hit(int _damage, Hit::Properties props = Entity::DefaultHitProperties);
 
   virtual const float GetHitHeight() const;
   virtual int* GetAnimOffset();

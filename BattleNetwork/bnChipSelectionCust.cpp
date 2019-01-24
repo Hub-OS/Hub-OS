@@ -72,12 +72,12 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) :
   cursorSmallAnimator = Animation("resources/ui/cursor_small.animation");
   cursorSmallAnimator.Reload();
   cursorSmallAnimator.SetAnimation("BLINK");
-  cursorSmallAnimator << Animate::Mode(Animate::Mode::Loop);
+  cursorSmallAnimator << Animate::Mode::Loop;
 
   cursorBigAnimator = Animation("resources/ui/cursor_big.animation");
   cursorBigAnimator.Reload();
   cursorBigAnimator.SetAnimation("BLINK");
-  cursorBigAnimator << Animate::Mode(Animate::Mode::Loop);
+  cursorBigAnimator << Animate::Mode::Loop;
 }
 
 
@@ -304,6 +304,25 @@ bool ChipSelectionCust::CloseChipDescription() {
   chipDescriptionTextbox.Close();
 
   return true;
+}
+
+bool ChipSelectionCust::ChipDescriptionYes() {
+  if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
+
+  return chipDescriptionTextbox.SelectYes();
+}
+
+bool ChipSelectionCust::ChipDescriptionNo() {
+  if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
+
+  return chipDescriptionTextbox.SelectNo();
+}
+
+
+bool ChipSelectionCust::ChipDescriptionConfirmQuestion() {
+  if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
+
+  return chipDescriptionTextbox.ConfirmSelection();
 }
 
 void ChipSelectionCust::GetNextChips() {

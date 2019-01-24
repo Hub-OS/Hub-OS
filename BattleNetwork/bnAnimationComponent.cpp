@@ -47,7 +47,7 @@ void AnimationComponent::SetAnimation(string state, std::function<void()> onFini
   animation << onFinish;
 }
 
-void AnimationComponent::SetAnimation(string state, Animate::Mode playbackMode, std::function<void()> onFinish)
+void AnimationComponent::SetAnimation(string state, char playbackMode, std::function<void()> onFinish)
 {
   animation.SetAnimation(state);
   animation << playbackMode << onFinish;

@@ -29,7 +29,7 @@ public:
   FrameList& GetFrameList(std::string animation);
 
   Animation& operator<<(Animate::On rhs);
-  Animation& operator<<(Animate::Mode rhs);
+  Animation& operator<<(char rhs);
   void operator<<(std::function<void()> onFinish);
 
 private:

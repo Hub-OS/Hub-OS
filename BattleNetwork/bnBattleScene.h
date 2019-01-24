@@ -160,6 +160,7 @@ private:
 
   int lastMobSize; // used to determine double/triple deletes with frame accuracy
   int totalCounterMoves; 
+  int totalCounterDeletions; // used for ranking
 
   swoosh::Timer summonTimer;
   bool showSummonText;

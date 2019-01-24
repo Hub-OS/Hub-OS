@@ -249,7 +249,7 @@ void LibraryScene::onUpdate(double elapsed) {
       }
 
       textbox.DequeMessage(); // make sure textbox is empty
-      textbox.EnqueMessage(sf::Sprite(), "", iter->GetVerboseDescription());
+      textbox.EnqueMessage(sf::Sprite(), "", new AnimatedTextBox::Message(iter->GetVerboseDescription()));
       textbox.Open();
       AUDIO.Play(AudioType::CHIP_DESC);
     }

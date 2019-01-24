@@ -14,13 +14,18 @@ private:
   sf::Text reward;
   sf::Text chipCode;
   sf::Sprite rewardCard;
+  sf::Sprite pressA;
+  sf::Shader* chipReveal;
 
   bool isHidden;
   bool isRevealed;
+  bool playSoundOnce;
   bool rewardIsChip;
 
   BattleItem* item;
   int score; // 1-10 or 11+ as S rank
+
+  double totalElapsed; // for things like animation
 
   // utilities 
   std::string FormatString(sf::Time time);
@@ -35,6 +40,7 @@ public:
   bool IsOutOfView();
   bool IsInView();
   void Move(sf::Vector2f delta);
+  void Update(double elapsed);
   void Draw();
   bool IsFinished();
 

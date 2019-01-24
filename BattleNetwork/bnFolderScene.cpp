@@ -84,11 +84,11 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
 
   equipAnimation = Animation("resources/ui/folder_equip.animation");
   equipAnimation.SetAnimation("BLINK");
-  equipAnimation << Animate::Mode(Animate::Mode::Loop);
+  equipAnimation << Animate::Mode::Loop;
 
   folderCursorAnimation = Animation("resources/ui/folder_cursor.animation");
   folderCursorAnimation.SetAnimation("BLINK");
-  folderCursorAnimation << Animate::Mode(Animate::Mode::Loop);
+  folderCursorAnimation << Animate::Mode::Loop;
 
   maxChipsOnScreen = 5;
   currChipIndex = 0;

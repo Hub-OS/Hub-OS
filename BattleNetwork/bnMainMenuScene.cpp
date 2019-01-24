@@ -45,7 +45,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   naviAnimator = Animation("resources/navis/megaman/megaman.animation");
   naviAnimator.Reload();
   naviAnimator.SetAnimation("PLAYER_OW_RD");
-  naviAnimator << Animate::Mode(Animate::Mode::Loop);
+  naviAnimator << Animate::Mode::Loop;
 
   map->AddSprite(&owNavi);
 
@@ -191,7 +191,7 @@ void MainMenuScene::onEnter()
   naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
   naviAnimator.Reload();
   naviAnimator.SetAnimation("PLAYER_OW_RD");
-  naviAnimator << Animate::Mode(Animate::Mode::Loop);
+  naviAnimator << Animate::Mode::Loop;
 }
 
 void MainMenuScene::onResume() {

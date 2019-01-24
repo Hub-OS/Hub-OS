@@ -317,11 +317,11 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   if (isEqual && navigatorAnimator.GetAnimationString() != "IDLE") {
     navigatorAnimator.SetAnimation("IDLE");
-    navigatorAnimator << Animate::Mode(Animate::Mode::Loop);
+    navigatorAnimator << Animate::Mode::Loop;
   }
   else if(!isEqual && navigatorAnimator.GetAnimationString() != "TALK") {
     navigatorAnimator.SetAnimation("TALK");
-    navigatorAnimator << Animate::Mode(Animate::Mode::Loop);
+    navigatorAnimator << Animate::Mode::Loop;
   }
 }
 

@@ -32,7 +32,7 @@ void ChargeComponent::Update(float _elapsed) {
         // We're switching states
         AUDIO.Play(AudioType::BUSTER_CHARGED);
         animation.SetAnimation("CHARGED");
-        animation << Animate::Mode(Animate::Mode::Loop);
+        animation << Animate::Mode::Loop;
       }
 
       isCharged = true;      
@@ -41,7 +41,7 @@ void ChargeComponent::Update(float _elapsed) {
         // Switching states
         AUDIO.Play(AudioType::BUSTER_CHARGING);
         animation.SetAnimation("CHARGING");
-        animation << Animate::Mode(Animate::Mode::Loop);
+        animation << Animate::Mode::Loop;
       }
 
       isPartiallyCharged = true;

@@ -28,7 +28,7 @@ void Character::Update(float _elapsed) {
     if (this->GetTile()) {
       if (this->GetTile()->GetState() == TileState::POISON) {
         if (elapsedBurnTime <= 0) {
-          if (this->Hit(1, Entity::HitProperties({ false, false, false, true, 0, nullptr }))) {
+          if (this->Hit(1, Hit::Properties({ 0x00, Element::NONE, 0, nullptr }))) {
             elapsedBurnTime = burnCycle.asSeconds();
           }
         }
@@ -38,7 +38,7 @@ void Character::Update(float _elapsed) {
       }
 
       if (this->GetTile()->GetState() == TileState::LAVA) {
-        if (this->Hit(50, Entity::HitProperties({ true, false, false, false, 0, nullptr }))) {
+        if (this->Hit(50, Hit::Properties({ Hit::pierce, Element::FIRE, 0, nullptr }))) {
           Field* field = GetField();
           Entity* explosion = new Explosion(field, this->GetTeam(), 1);
           field->OwnEntity(explosion, tile->GetX(), tile->GetY());
@@ -88,13 +88,13 @@ const float Character::GetHitHeight() const {
   return 0;
 }
 
-const bool Character::Hit(int damage, HitProperties props) {
+const bool Character::Hit(int damage, Hit::Properties props) {
   int previousHealth = health;
 
   (health - damage < 0) ? this->SetHealth(0) : this->SetHealth(health - damage);
    
 
-  if (this->IsCountered() && props.recoil) {
+  if (this->IsCountered() && (props.flags & Hit::recoil) == Hit::recoil) {
     this->Stun(3.0);
 
     if (this->GetHealth() == 0) {

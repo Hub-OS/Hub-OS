@@ -3,7 +3,7 @@
 #include "bnField.h"
 #include "Swoosh\Ease.h"
 
-const Entity::HitProperties Entity::DefaultHitProperties{ true, false, false,false, 600.0, nullptr };
+const Hit::Properties Entity::DefaultHitProperties{ Hit::recoil, Element::NONE, 3.0, nullptr };
 
 Entity::Entity()
   : tile(nullptr),
@@ -163,7 +163,7 @@ const float Entity::GetHitHeight() const {
   return 0;
 }
 
-const bool Entity::Hit(int damage, HitProperties props) {
+const bool Entity::Hit(int damage, Hit::Properties props) {
   return false;
 }
 

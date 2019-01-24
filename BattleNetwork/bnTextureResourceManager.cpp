@@ -137,6 +137,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/chip_senddata.png");
   paths.push_back("resources/ui/chip_missing.png");
   paths.push_back("resources/ui/chip_lock.png");
+  paths.push_back("resources/ui/cust_badge.png");
 
   // In battle signs
   paths.push_back("resources/ui/program_advance.png");
@@ -149,6 +150,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/battle_results.png");
   paths.push_back("resources/ui/zenny.png");
   paths.push_back("resources/ui/nodata.png");
+  paths.push_back("resources/ui/press_a.png");
 
   // folder view
   paths.push_back("resources/ui/folder_chip.png");

@@ -176,6 +176,7 @@
     <ClCompile Include="bnAirShot.cpp" />
     <ClCompile Include="bnAnimate.cpp" />
     <ClCompile Include="bnAnimatedCharacter.cpp" />
+    <ClCompile Include="bnAnimatedTextBox.cpp" />
     <ClCompile Include="bnAnimation.cpp" />
     <ClCompile Include="bnBasicSword.cpp" />
     <ClCompile Include="bnBattleResults.h">

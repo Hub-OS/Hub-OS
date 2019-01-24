@@ -112,9 +112,9 @@ Animate & Animate::operator<<(On rhs)
   return *this;
 }
 
-Animate & Animate::operator<<(Mode rhs)
+Animate & Animate::operator<<(char rhs)
 {
-  this->playbackMode = rhs.playback;
+  this->playbackMode = rhs;
 
   return *this;
 }

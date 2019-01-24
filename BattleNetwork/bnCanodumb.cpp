@@ -115,7 +115,7 @@ vector<Drawable*> Canodumb::GetMiscComponents() {
   return drawables;
 }
 
-const bool Canodumb::Hit(int _damage, HitProperties props) {
+const bool Canodumb::Hit(int _damage, Hit::Properties props) {
   if (Character::Hit(_damage, props)) {
     SetShader(whiteout);
     return true;

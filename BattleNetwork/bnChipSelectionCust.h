@@ -57,6 +57,8 @@ public:
   bool ContinueChipDescription();
   bool FastForwardChipDescription(double factor);
   bool CloseChipDescription();
+  bool ChipDescriptionYes();
+  bool ChipDescriptionNo();
   bool CursorUp();
   bool CursorDown();
   bool CursorRight();
@@ -71,6 +73,8 @@ public:
   const sf::Vector2f GetOffset() const { return custSprite.getPosition() - sf::Vector2f(-custSprite.getTextureRect().width*2.f, 0.f); } // TODO: Get rid. See BattleScene.cpp line 241
   void Draw();
   void Update(float elapsed);
+
+  bool ChipDescriptionConfirmQuestion();
 
   // Chip ops
   void GetNextChips();

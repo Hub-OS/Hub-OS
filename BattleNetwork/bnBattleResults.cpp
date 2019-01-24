@@ -1,10 +1,14 @@
 #include "bnBattleResults.h"
+#include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
+#include "bnShaderResourceManager.h"
 #include "bnEngine.h"
 #include "bnMob.h"
 #include "bnBattleItem.h"
 
 BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount, int counterCount, bool doubleDelete, bool tripleDelete, Mob *mob) {
+  totalElapsed = 0;
+
   /*
   Calculate score and rank
   Calculations are based off http ://megaman.wikia.com/wiki/Virus_Busting
@@ -86,6 +90,10 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   resultsSprite.setScale(2.f, 2.f);
   resultsSprite.setPosition(-resultsSprite.getTextureRect().width*2.f, 20.f);
 
+  pressA = sf::Sprite(LOAD_TEXTURE(BATTLE_RESULTS_PRESS_A));
+  pressA.setScale(2.f, 2.f);
+  pressA.setPosition(2.f*42.f, 249.f);
+
   sf::Font *font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   if (item) {
@@ -135,6 +143,14 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   }
 
   rank.setOrigin(rank.getLocalBounds().width, 0);
+
+  chipReveal = ShaderResourceManager::GetInstance().GetShader(ShaderType::CHIP_REVEAL);
+  chipReveal->setUniform("progress", 0.0f);
+  chipReveal->setUniform("cols", 7);
+  chipReveal->setUniform("rows", 7);
+  chipReveal->setUniform("texture", sf::Shader::CurrentTexture);
+
+  playSoundOnce = false;
 }
 
 BattleResults::~BattleResults() {
@@ -173,6 +189,7 @@ bool BattleResults::CursorAction() {
   bool prevStatus = isRevealed;
 
   isRevealed = true;
+  totalElapsed = 0;
 
   return prevStatus;
 }
@@ -201,8 +218,36 @@ void BattleResults::Move(sf::Vector2f delta) {
   resultsSprite.setPosition(resultsSprite.getPosition() + delta);
 }
 
+void BattleResults::Update(double elapsed)
+{
+  totalElapsed += elapsed;
+
+  if ((int)totalElapsed % 3 == 0) {
+    pressA.setScale(0, 0);
+  }
+  else {
+    pressA.setScale(2.f, 2.f);
+  }
+
+  if (isRevealed) {
+    if (totalElapsed > 1.0 && !playSoundOnce) {
+      playSoundOnce = true;
+      AUDIO.Play(AudioType::ITEM_GET);
+    }
+
+    chipReveal->setUniform("progress", (float)totalElapsed / 1.0f);
+
+    if (!playSoundOnce) {
+      AUDIO.Play(AudioType::TEXT, AudioPriority::LOWEST);
+    }
+  }
+}
+
 void BattleResults::Draw() {
   ENGINE.Draw(resultsSprite, false);
+
+  if(!isRevealed)
+    ENGINE.Draw(pressA, false);
 
   if (IsInView()) {
     // Draw shadow
@@ -239,7 +284,10 @@ void BattleResults::Draw() {
     ENGINE.Draw(time, false);
 
     if (isRevealed) {
-      ENGINE.Draw(rewardCard, false);
+      sf::RenderStates states = sf::RenderStates::Default;
+      states.shader = chipReveal;
+      ENGINE.GetRenderSurface().draw(rewardCard, states);
+
       ENGINE.Draw(reward, false);
       
       if (rewardIsChip) {

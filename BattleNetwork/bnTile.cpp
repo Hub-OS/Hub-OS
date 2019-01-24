@@ -248,7 +248,7 @@ namespace Battle {
       }
     }
 
-    // Spells dont cause damage anymore
+    // Spells dont cause damage when the battle is over
     if (this->isBattleActive) {
       for (auto it = entities.begin(); it != entities.end(); ++it) {
         if (*it == nullptr || *it == caller)

@@ -131,10 +131,10 @@ int Player::GetHealth() const {
   return health;
 }
 
-const bool Player::Hit(int _damage, HitProperties props) {
+const bool Player::Hit(int _damage, Hit::Properties props) {
   // return false;
 
-  if ((this->IsPassthrough() && !props.pierce) || invincibilityCooldown > 0) return false;
+  if ((this->IsPassthrough() && (props.flags & Hit::pierce) != Hit::pierce) || invincibilityCooldown > 0) return false;
 
   bool result = true;
 
@@ -145,7 +145,7 @@ const bool Player::Hit(int _damage, HitProperties props) {
     health -= _damage;
     hitCount++;
 
-    if (props.recoil) {
+    if ((props.flags & Hit::recoil) != Hit::recoil) {
       this->ChangeState<PlayerHitState, float>({ (float)props.secs });
     }
   }
@@ -195,7 +195,7 @@ void Player::SetAnimation(string _state, std::function<void()> onFinish) {
 
   if (state == PLAYER_IDLE) {
     int playback = Animate::Mode::Loop;
-    animationComponent.SetAnimation(_state, Animate::Mode(playback), onFinish);
+    animationComponent.SetAnimation(_state, playback, onFinish);
   }
   else {
     animationComponent.SetAnimation(_state, onFinish);

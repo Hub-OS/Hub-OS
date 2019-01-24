@@ -24,7 +24,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
 
   animation = Animation("resources/spells/spell_wave.animation");
   animation.SetAnimation("DEFAULT");
-  animation << Animate::Mode(Animate::Mode::Loop) << Animate::On(5, onFinish);
+  animation << Animate::Mode::Loop << Animate::On(5, onFinish);
 
   AUDIO.Play(AudioType::WAVE);
 

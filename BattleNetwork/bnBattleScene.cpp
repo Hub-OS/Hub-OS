@@ -34,6 +34,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
     c->Inject(*this);
   }
 
+  // SCORE
+  totalCounterDeletions = totalCounterMoves = 0;
+
   /*
   Program Advance + labels
   */
@@ -142,6 +145,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
     AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
   }
  
+  // STATE FLAGS AND TIMERS
   isPaused = false;
   isInChipSelect = false;
   isChipSelectReady = false;
@@ -163,6 +167,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   showSummonText = false;
   summonTextLength = 1; // in seconds
 
+  // SHADERS
   // TODO: Load shaders if supported 
   shaderCooldown = 0;
 
@@ -215,11 +220,19 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
   if (&aggressor == this->player) {
     std::cout << "player countered" << std::endl;
     totalCounterMoves++;
+
+    if (victim.IsDeleted()) {
+      totalCounterDeletions++;
+    }
   }
 }
 
 void BattleScene::onUpdate(double elapsed) {
   this->elapsed = elapsed;
+
+  if (battleResults) {
+    battleResults->Update(elapsed);
+  }
 
   // check every frame 
   if (!isPlayerDeleted) {
@@ -651,8 +664,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
       }
       else if (INPUT.has(RELEASED_A) ){
+
+        chipCustGUI.ChipDescriptionConfirmQuestion()? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
         chipCustGUI.ContinueChipDescription();
- 
+
         A_HELD = false;
       }
       
@@ -665,6 +680,13 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       }
       else {
         chipCustGUI.FastForwardChipDescription(1.0);
+      }
+
+      if (INPUT.has(PRESSED_LEFT)) {
+        chipCustGUI.ChipDescriptionYes() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+      }
+      else if (INPUT.has(PRESSED_RIGHT)) {
+        chipCustGUI.ChipDescriptionNo() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
       }
     }
     else {
@@ -957,7 +979,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             getController().queuePop<segue>();
           }
           else {
-            AUDIO.Play(AudioType::ITEM_GET);
             battleResults->CursorAction();
           }
         }

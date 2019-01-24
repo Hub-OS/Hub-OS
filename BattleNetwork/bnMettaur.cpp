@@ -160,7 +160,7 @@ void Mettaur::SetHealth(int _health) {
   health = _health;
 }
 
-const bool Mettaur::Hit(int _damage, HitProperties props) {
+const bool Mettaur::Hit(int _damage, Hit::Properties props) {
   if (Character::Hit(_damage, props)) {
     SetShader(whiteout);
     return true;

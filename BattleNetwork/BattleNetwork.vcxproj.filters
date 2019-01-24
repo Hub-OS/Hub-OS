@@ -227,9 +227,6 @@
     <Filter Include="Activities\Main Menu\Overworld\Map\Dynamic">
       <UniqueIdentifier>{18a112b3-8ba5-4851-82b8-4d75444b101c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Fake">
-      <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Graphics">
       <UniqueIdentifier>{fe12002d-65c0-4184-bb5f-72f816483120}</UniqueIdentifier>
     </Filter>
@@ -298,6 +295,9 @@
     </Filter>
     <Filter Include="Activities\Battle\Content\MobFactories\SpawnPolicies\ChipSpawnPolicies">
       <UniqueIdentifier>{818f9f46-08a6-49c1-917e-8f8dbd065e02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\FakeTitle">
+      <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -518,7 +518,7 @@
       <Filter>Activities\GameOver</Filter>
     </ClCompile>
     <ClCompile Include="bnFakeScene.cpp">
-      <Filter>Activities\Fake</Filter>
+      <Filter>Activities\FakeTitle</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectedChipsUI.cpp">
       <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
@@ -561,6 +561,9 @@
     </ClCompile>
     <ClCompile Include="bnCounterHitListener.cpp">
       <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAnimatedTextBox.cpp">
+      <Filter>Prefabs\TextBox\Framed</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -881,7 +884,7 @@
       <Filter>Segues</Filter>
     </ClInclude>
     <ClInclude Include="bnFakeScene.h">
-      <Filter>Activities\Fake</Filter>
+      <Filter>Activities\FakeTitle</Filter>
     </ClInclude>
     <ClInclude Include="Segues\ZoomFadeIn.h">
       <Filter>Segues</Filter>
