@@ -8,6 +8,8 @@
 #include "bnField.h"
 #include "bnTile.h"
 #include "bnSpawnPolicy.h"
+#include "bnMysteryData.h"
+#include "bnBattleOverTrigger.h"
 
 RandomMettaurMob::RandomMettaurMob(Field* field) : MobFactory(field)
 {
@@ -37,7 +39,16 @@ Mob* RandomMettaurMob::Build() {
       if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE) {
         if (rand() % 50 > 30) {
           if (rand() % 10 > 5) {
-            mob->Spawn<RankSP<Mettaur, MettaurIdleState>>(i + 1, j + 1);
+            MysteryData* mystery = new MysteryData(mob->GetField(), Team::UNKNOWN);
+            field->OwnEntity(mystery, tile->GetX(), tile->GetY());
+
+            auto callback = [](BattleScene& b, MysteryData& m) {
+              m.RewardPlayer();
+            };
+
+            Component* c = new BattleOverTrigger<MysteryData>(mystery, callback);
+
+            mob->AddComponent(c);
           }
           else if(rand() % 10 > 5) {
             mob->Spawn<Rank1<Mettaur, MettaurIdleState>>(i + 1, j + 1);
@@ -64,7 +75,7 @@ Mob* RandomMettaurMob::Build() {
     mob->Spawn<Rank1<Mettaur, MettaurIdleState>>(x, y);
 
     Battle::Tile* tile = field->GetAt(x, y);
-    if (!tile->IsWalkable()) { tile->SetState(TileState::NORMAL); }
+    if (!tile->IsWalkable() && !tile->ContainsEntityType<Character>()) { tile->SetState(TileState::NORMAL); }
   }
 
   return mob;

@@ -210,4 +210,8 @@ public:
 
   // External component injection into the battle system
   void Inject(ChipUsePublisher& pub);
+
+  const bool IsCleared() {
+    return isPostBattle;
+  }
 };

@@ -40,6 +40,9 @@ enum TextureType {
   MOB_CANODUMB_ATLAS,
   MOB_ANYTHING_GOES,
 
+  // Battle Misc
+  MISC_MYSTERY_DATA,
+
   //Spells
   SPELL_BULLET_HIT,
   SPELL_BUSTER_CHARGE,

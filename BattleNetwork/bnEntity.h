@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 using std::string;
 
 #include "bnAnimation.h"
@@ -16,6 +17,7 @@ namespace Battle {
 
 class Field;
 class Character; // forward decl
+class Component; // forward decl
 
 namespace Hit {
   const char none   = 0x00;
@@ -34,6 +36,7 @@ namespace Hit {
 
 class Entity : public LayeredDrawable {
   friend class Field;
+  friend class Component;
 
 public:
   const static Hit::Properties DefaultHitProperties;
@@ -101,6 +104,11 @@ protected:
   double elapsedSlideTime; // in seconds
   Direction direction;
   Direction previousDirection;
+
+  std::vector<Component*> shared;
+
+  void FreeComponents();
+  void RegisterComponent(Component* c);
 
 private:
   void UpdateSlideStartPosition();

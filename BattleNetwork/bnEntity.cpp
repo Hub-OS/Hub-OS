@@ -1,4 +1,5 @@
 #include "bnEntity.h"
+#include "bnComponent.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "Swoosh\Ease.h"
@@ -286,6 +287,17 @@ void Entity::AdoptNextTile()
 void Entity::SetBattleActive(bool state)
 {
   isBattleActive = state;
+}
+
+void Entity::FreeComponents()
+{
+  for (int i = 0; i < shared.size(); i++) {
+    shared[i]->FreeOwner();
+  }
+}
+
+void Entity::RegisterComponent(Component* c) {
+  shared.push_back(c);
 }
 
 void Entity::UpdateSlideStartPosition()

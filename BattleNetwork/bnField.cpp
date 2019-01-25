@@ -75,6 +75,7 @@ void Field::RemoveEntity(Entity* _entity) {
 
     Entity* ptr = *it;
     if (ptr->ownedByField) {
+      ptr->FreeComponents();
       delete ptr;
       ptr = 0;
     }

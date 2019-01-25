@@ -288,10 +288,12 @@ void BattleResults::Draw() {
       states.shader = chipReveal;
       ENGINE.GetRenderSurface().draw(rewardCard, states);
 
-      ENGINE.Draw(reward, false);
-      
-      if (rewardIsChip) {
-        ENGINE.Draw(chipCode, false);
+      if (totalElapsed > 1.0) {
+        ENGINE.Draw(reward, false);
+
+        if (rewardIsChip) {
+          ENGINE.Draw(chipCode, false);
+        }
       }
     }
   }

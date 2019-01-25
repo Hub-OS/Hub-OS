@@ -119,6 +119,9 @@ TextureResourceManager::TextureResourceManager(void) {
   // Select screen "Anything Goes"
   paths.push_back("resources/mobs/select/random.png");
 
+  // Battle misc / Artifacts
+  paths.push_back("resources/mobs/mystery_data/mystery_data.png");
+
   //-Spells-
   //Bullet
   paths.push_back("resources/spells/spell_bullet_hit.png");

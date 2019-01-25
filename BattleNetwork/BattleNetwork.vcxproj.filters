@@ -299,6 +299,12 @@
     <Filter Include="Activities\FakeTitle">
       <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Components\Other">
+      <UniqueIdentifier>{ade66c70-d29e-4fda-9c7d-868a596b794f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Character\Mystery">
+      <UniqueIdentifier>{38dc9ec9-8504-4788-baf9-525eafa3f596}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -564,6 +570,9 @@
     </ClCompile>
     <ClCompile Include="bnAnimatedTextBox.cpp">
       <Filter>Prefabs\TextBox\Framed</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMysteryData.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\Mystery</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -954,6 +963,12 @@
     </ClInclude>
     <ClInclude Include="bnCounterHitListener.h">
       <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBattleOverTrigger.h">
+      <Filter>Activities\Battle\Content\Components\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMysteryData.h">
+      <Filter>Activities\Battle\Content\Entity\Character\Mystery</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

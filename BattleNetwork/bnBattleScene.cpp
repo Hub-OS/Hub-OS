@@ -230,6 +230,11 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 void BattleScene::onUpdate(double elapsed) {
   this->elapsed = elapsed;
 
+  // Update components
+  for (auto c : components) {
+    c->Update((float)elapsed);
+  }
+
   if (battleResults) {
     battleResults->Update(elapsed);
   }
@@ -344,11 +349,6 @@ void BattleScene::onUpdate(double elapsed) {
       }
 
       lastMobSize = newMobSize;
-    }
-
-    // Update components
-    for (auto c : components) {
-      c->Update((float)elapsed);
     }
 
     if (battleTimer.isPaused()) {

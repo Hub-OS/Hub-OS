@@ -223,6 +223,7 @@
     <ClCompile Include="bnMettaurIdleState.cpp" />
     <ClCompile Include="bnMettaurMoveState.cpp" />
     <ClCompile Include="bnMobHealthUI.cpp" />
+    <ClCompile Include="bnMysteryData.cpp" />
     <ClCompile Include="bnOverworldLight.cpp" />
     <ClCompile Include="bnOverworldMap.cpp" />
     <ClCompile Include="bnPA.cpp" />
@@ -272,6 +273,7 @@
     <ClInclude Include="bnAnimate.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
+    <ClInclude Include="bnBattleOverTrigger.h" />
     <ClInclude Include="bnCounterHitListener.h" />
     <ClInclude Include="bnCounterHitPublisher.h" />
     <ClInclude Include="bnEnemyChipUseListener.h" />
@@ -296,6 +298,7 @@
     <ClInclude Include="bnFolderEditScene.h" />
     <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnLibraryScene.h" />
+    <ClInclude Include="bnMysteryData.h" />
     <ClInclude Include="bnProgsManThrowState.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />

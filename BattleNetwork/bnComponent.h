@@ -1,6 +1,7 @@
 #pragma once
 
-class Entity;
+#include "bnEntity.h"
+
 class BattleScene;
 
 /* 
@@ -12,13 +13,16 @@ private:
   Entity* owner;
 
 public:
-  Component(Entity* owner) { this->owner = owner; };
+  Component() = delete;
+  Component(Entity* owner) { this->owner = owner; owner->RegisterComponent(this); };
   ~Component() { ; }
 
   Component(Component&& rhs) = delete;
   Component(const Component& rhs) = delete;
 
   Entity* GetOwner() { return owner;  }
+  void FreeOwner() { owner = nullptr; }
+
   virtual void Update(float _elapsed) = 0;
   virtual void Inject(BattleScene&) = 0;
 };
