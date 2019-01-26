@@ -24,6 +24,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   swoosh::Activity(controller)
 {
   promptOptions = false;
+  enterText = false;
   gotoNextScene = true;
 
   // Menu name font
@@ -130,7 +131,26 @@ void FolderScene::onUpdate(double elapsed) {
   equipAnimation.Update((float)elapsed, &folderEquip);
 
   // Scene keyboard controls
-  if (!gotoNextScene) {
+  if (enterText) {
+    if (INPUT.has(RELEASED_B)) {
+      this->enterText = false;
+      bool changed = collection.SetFolderName(folderNames[currFolderIndex], folder);
+
+      if (!changed) {
+        folderNames[currFolderIndex] = collection.GetFolderNames()[currFolderIndex];
+      }
+
+      INPUT.EndCaptureInputBuffer();
+    }
+    else {
+      std::string buffer = INPUT.GetInputBuffer();
+
+      buffer = buffer.substr(0, 10);
+      folderNames[currFolderIndex] = buffer;
+
+      INPUT.SetInputBuffer(buffer); // shrink
+    }
+  } else if (!gotoNextScene) {
       if (INPUT.has(PRESSED_UP)) {
         selectInputCooldown -= elapsed;
 
@@ -219,10 +239,10 @@ void FolderScene::onUpdate(double elapsed) {
           getController().queuePop<segue>();
         }
       } else if (INPUT.has(RELEASED_B)) {
-        if (promptOptions) {
-          promptOptions = false;
-          AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-        }
+          if (promptOptions) {
+            promptOptions = false;
+            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+          }
       } else if (INPUT.has(RELEASED_A)) {
         if (!promptOptions) {
           promptOptions = true;
@@ -231,6 +251,9 @@ void FolderScene::onUpdate(double elapsed) {
         else {
           switch (optionIndex) {
           case 0: // EDIT
+            this->enterText = true;
+            INPUT.BeginCaptureInputBuffer();
+            INPUT.SetInputBuffer(*(folderNames.begin() + currFolderIndex));
             break;
           case 1: // EQUIP
             selectedFolderIndex = currFolderIndex;

@@ -41,6 +41,24 @@ public:
     return v;
   }
 
+  bool SetFolderName(std::string name, ChipFolder* folder) {
+    if (!folder) return false;
+
+    if (this->HasFolder(name)) {
+      return false;
+    }
+
+    for (std::map<std::string, ChipFolder*>::iterator it = collection.begin(); it != collection.end(); ++it) {
+      if (it->second == folder) {
+        collection[name] = it->second;
+        collection.erase(it);
+        break;
+      }
+    }
+
+    return true;
+  }
+
   static ChipFolderCollection ReadFromFile(std::string path) {
     // TODO: put this utility in an input stream class and inhert from that
     string data = FileUtil::Read("resources/database/folders.txt");

@@ -154,6 +154,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/zenny.png");
   paths.push_back("resources/ui/nodata.png");
   paths.push_back("resources/ui/press_a.png");
+  paths.push_back("resources/ui/counter_star.png");
 
   // folder view
   paths.push_back("resources/ui/folder_chip.png");

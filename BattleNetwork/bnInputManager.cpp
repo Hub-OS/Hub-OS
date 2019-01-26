@@ -51,6 +51,10 @@ void InputManager::update() {
       ENGINE.GetWindow()->close();
     }
 
+    if (event.type == sf::Event::TextEntered && this->captureInputBuffer) {
+      this->HandleInputBuffer(event);
+    }
+
     if (config && config->IsOK() && sf::Joystick::isConnected(GAMEPAD_1)) {
       for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++)
       {
@@ -299,4 +303,35 @@ bool InputManager::empty() {
 bool InputManager::HasChronoXGamepadSupport()
 {
   return config && (config->IsOK() && sf::Joystick::isConnected(GAMEPAD_1));
+}
+
+void InputManager::BeginCaptureInputBuffer()
+{
+  captureInputBuffer = true;
+}
+
+void InputManager::EndCaptureInputBuffer()
+{
+  inputBuffer.clear();
+  captureInputBuffer = false;
+}
+
+const std::string InputManager::GetInputBuffer()
+{
+  return inputBuffer;
+}
+
+void InputManager::HandleInputBuffer(sf::Event e) {
+  if (e.KeyPressed == sf::Keyboard::BackSpace || (e.text.unicode == 8) && inputBuffer.size() != 0) {
+    inputBuffer.pop_back();
+  }
+  else if (e.text.unicode < 128 && e.text.unicode != 8) {
+    //std::cout << e.text.unicode << std::endl;
+    inputBuffer.push_back((char)e.text.unicode);
+  }
+}
+
+void InputManager::SetInputBuffer(std::string buff)
+{
+  inputBuffer = buff;
 }

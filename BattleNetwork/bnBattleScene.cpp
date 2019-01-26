@@ -217,14 +217,15 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 {
   AUDIO.Play(AudioType::COUNTER, AudioPriority::HIGH);
 
-  if (&aggressor == this->player) {
+  // TODO: this is ready to be used but spells don't know who cast them, add that
+  //if (&aggressor == this->player) {
     std::cout << "player countered" << std::endl;
     totalCounterMoves++;
 
     if (victim.IsDeleted()) {
       totalCounterDeletions++;
     }
-  }
+ // }
 }
 
 void BattleScene::onUpdate(double elapsed) {

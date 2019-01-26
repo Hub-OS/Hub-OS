@@ -64,6 +64,7 @@ private:
 
   int optionIndex;
   bool promptOptions;
+  bool enterText;
 
 public:
   virtual void onStart();

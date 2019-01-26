@@ -15,6 +15,7 @@ private:
   sf::Text chipCode;
   sf::Sprite rewardCard;
   sf::Sprite pressA;
+  sf::Sprite star;
   sf::Shader* chipReveal;
 
   bool isHidden;
@@ -24,6 +25,7 @@ private:
 
   BattleItem* item;
   int score; // 1-10 or 11+ as S rank
+  int counterCount;
 
   double totalElapsed; // for things like animation
 

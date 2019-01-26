@@ -16,8 +16,15 @@ public:
   bool empty();
   void SupportChronoXGamepad(ChronoXConfigReader& config);
   bool HasChronoXGamepadSupport();
-
+  void BeginCaptureInputBuffer();
+  void EndCaptureInputBuffer();
+  const std::string GetInputBuffer();
+  void HandleInputBuffer(sf::Event);
+  void SetInputBuffer(std::string buff);
 private:
+  bool captureInputBuffer;
+  std::string inputBuffer;
+
   InputManager();
   vector<InputEvent> events;
   map<std::string, bool> gamepadPressed;

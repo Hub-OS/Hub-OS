@@ -4,6 +4,7 @@
 #include "bnAI.h"
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
+#include "bnCounterHitPublisher.h"
 
 class Canodumb : public AnimatedCharacter, public AI<Canodumb> {
   friend class CanodumbIdleState;

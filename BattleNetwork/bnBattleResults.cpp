@@ -48,6 +48,8 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
     */
   score = 0;
 
+  this->counterCount = std::min(3, counterCount);
+
   if(!mob->IsBoss()) {
     if (battleLength.asSeconds() > 36.1) score += 4;
     else if (battleLength.asSeconds() > 12.01) score += 5;
@@ -76,7 +78,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   if (doubleDelete) score += 2;
   if (tripleDelete) score += 4;
 
-  score += std::max(counterCount, 3);
+  score += this->counterCount;
 
   // No score of zero or below. Min score of 1
   score = std::max(1, score);
@@ -94,6 +96,9 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   pressA.setScale(2.f, 2.f);
   pressA.setPosition(2.f*42.f, 249.f);
 
+  star = sf::Sprite(LOAD_TEXTURE(BATTLE_RESULTS_STAR));
+  star.setScale(2.f, 2.f);
+  
   sf::Font *font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   if (item) {
@@ -222,7 +227,7 @@ void BattleResults::Update(double elapsed)
 {
   totalElapsed += elapsed;
 
-  if ((int)totalElapsed % 3 == 0) {
+  if ((int)totalElapsed % 2 == 0) {
     pressA.setScale(0, 0);
   }
   else {
@@ -249,9 +254,13 @@ void BattleResults::Draw() {
   if(!isRevealed)
     ENGINE.Draw(pressA, false);
 
+  // moves over when there's counter stars
+  auto starSpacing = [](int index) -> float { return (19.f*index); };
+  auto rankPos = sf::Vector2f((2.f*191.f) - starSpacing(this->counterCount), 110.f);
+
   if (IsInView()) {
     // Draw shadow
-    rank.setPosition(2.f*192.f, 112.f);
+    rank.setPosition(rankPos.x+1.f, rankPos.y+2.f);
 
     if (score > 10) {
       rank.setFillColor(sf::Color(56, 92, 25));
@@ -263,7 +272,7 @@ void BattleResults::Draw() {
     ENGINE.Draw(rank, false);
 
     // Draw overlay
-    rank.setPosition(2.f*191.f, 110.f);
+    rank.setPosition(rankPos);
 
     if (score > 10) {
       rank.setFillColor(sf::Color(176, 228, 24));
@@ -295,6 +304,11 @@ void BattleResults::Draw() {
           ENGINE.Draw(chipCode, false);
         }
       }
+    }
+
+    for (int i = 0; i < counterCount; i++) {
+      star.setPosition(rankPos.x + starSpacing(i) + (starSpacing(1) / 2.0f), rankPos.y + 16.0f);
+      ENGINE.Draw(star, false);
     }
   }
 }

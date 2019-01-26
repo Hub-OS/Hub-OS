@@ -77,9 +77,8 @@ bool Wave::Move(Direction _direction) {
 }
 
 void Wave::Attack(Entity* _entity) {
-  Player* isPlayer = dynamic_cast<Player*>(_entity);
-  if (isPlayer) {
-    bool hit = isPlayer->Hit(10);
+  if (_entity && _entity->GetTeam() != this->GetTeam()) {
+    _entity->Hit(10);
   }
 }
 
