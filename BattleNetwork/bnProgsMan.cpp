@@ -55,7 +55,7 @@ void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::fu
 }
 
 void ProgsMan::Update(float _elapsed) {
-  healthUI->Update();
+  healthUI->Update(_elapsed);
   this->SetShader(nullptr);
   this->RefreshTexture();
 
@@ -65,7 +65,7 @@ void ProgsMan::Update(float _elapsed) {
 
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
-    healthUI->Update();
+    healthUI->Update(_elapsed);
     Character::Update(_elapsed);
 
     if (stunCooldown <= 0) {

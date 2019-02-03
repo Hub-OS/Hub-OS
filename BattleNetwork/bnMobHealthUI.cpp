@@ -7,28 +7,24 @@ using std::to_string;
 
 #include "bnLogger.h"
 
-MobHealthUI::MobHealthUI(void)
-  : mob(nullptr),
-  font(nullptr) {
-  healthCounter = 0;
-}
-
 MobHealthUI::MobHealthUI(Character* _mob)
   : mob(_mob) {
   font = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
   setFont(*font);
   setOutlineColor(sf::Color(48,56,80));
   setOutlineThickness(2.f);
-  setScale(0.8f, 0.8f);
+  setScale(1.f, 0.7f);
+  setLetterSpacing(3.0f);
   healthCounter = mob->GetHealth();
   loaded = false;
+  cooldown = 0;
 }
 
 MobHealthUI::~MobHealthUI(void) {
   delete font;
 }
 
-void MobHealthUI::Update() {
+void MobHealthUI::Update(float elapsed) {
   if (mob) {
     if (!loaded) {
       healthCounter = mob->GetHealth();
@@ -42,15 +38,18 @@ void MobHealthUI::Update() {
       return;
     }
 
+    if (cooldown <= 0) { cooldown = 0; }
+    else { cooldown -= elapsed; }
+
+    /* NOTE: Chronox doesn't do this
     // Only delay damage display if 80 or more HP in the red
     if (healthCounter > mob->GetHealth() &&  healthCounter - mob->GetHealth() < 80) {
       healthCounter = mob->GetHealth();
-    }
-
+    }*/
+   
     if (healthCounter > mob->GetHealth()) {
       healthCounter--;
-      setFillColor(sf::Color(255, 165, 0));
-
+      cooldown = 1; //seconds
     }
     else if (healthCounter < mob->GetHealth()) {
       healthCounter++;
@@ -58,6 +57,10 @@ void MobHealthUI::Update() {
     }
     else {
       setFillColor(sf::Color::White);
+    }
+
+    if (cooldown > 0) {
+      setFillColor(sf::Color(255, 165, 0));
     }
 
     setString(to_string(healthCounter));

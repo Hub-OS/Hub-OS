@@ -131,10 +131,10 @@ void Buster::Attack(Entity* _entity) {
         random = _entity->getLocalBounds().width / 2.0f;
         random *= rand() % 2 == 0 ? -1.0f : 1.0f;
 
-        hitHeight = (int)(std::floor(_entity->GetHitHeight()));
+        hitHeight = (float)(std::floor(_entity->GetHitHeight()));
 
         if (hitHeight > 0) {
-          hitHeight = rand() % (int)hitHeight;
+          hitHeight = (float)(rand() % (int)hitHeight);
         }
       }
     }

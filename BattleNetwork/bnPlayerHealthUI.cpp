@@ -6,13 +6,6 @@ using std::to_string;
 #include "bnPlayerHealthUI.h"
 #include "bnTextureResourceManager.h"
 
-PlayerHealthUI::PlayerHealthUI(Entity* _entity)
-  : player(nullptr),
-  font(nullptr),
-  texture(nullptr) {
-  PlayerHealthUI(dynamic_cast<Player*>(_entity));
-}
-
 PlayerHealthUI::PlayerHealthUI(Player* _player)
   : player(_player) {
   font = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
@@ -23,7 +16,10 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
 
   lastHP = currHP = _player->GetHealth();
   text = Text(to_string(currHP), *font);
+  text.setLetterSpacing(4.0f);
   loaded = false;
+  cooldown = 0;
+  this->Update(0);
 }
 
 PlayerHealthUI::~PlayerHealthUI(void) {
@@ -45,7 +41,7 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
   target.draw(text);
 }
 
-void PlayerHealthUI::Update() {
+void PlayerHealthUI::Update(float elapsed) {
   if (player) {
     if (!loaded) {
       lastHP = currHP = player->GetHealth();
@@ -55,6 +51,7 @@ void PlayerHealthUI::Update() {
     if (lastHP != player->GetHealth()) {
       if (currHP > player->GetHealth()) {
         currHP -= 1;
+        cooldown = 1; // 1 second
       } else if (currHP < player->GetHealth()) {
         currHP += 1;
       } else {
@@ -62,11 +59,14 @@ void PlayerHealthUI::Update() {
       }
     }
 
+    if (cooldown <= 0) { cooldown = 0; }
+    else { cooldown -= elapsed; }
+
     text.setFillColor(sf::Color::White);
     text.setString(to_string(currHP));
     text.setOrigin(text.getLocalBounds().width, 0);
-    text.setPosition(80.0f, -1.f);
-    text.setScale(0.8f, 0.8f);
+    text.setPosition(75.0f, -4.f);
+    //text.setScale(0.8f, 0.8f);
 
     bool isBurning = false;
     bool isPoisoned = false;
@@ -78,7 +78,7 @@ void PlayerHealthUI::Update() {
       isPoisoned = player->GetTile()->GetState() == TileState::POISON;
     }
 
-    if (currHP > player->GetHealth() || isBurning || isPoisoned) {
+    if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0) {
       text.setFillColor(sf::Color(255, 165, 0));
     } else if (currHP < player->GetHealth()) {
       text.setFillColor(sf::Color(0, 255, 80));
@@ -91,6 +91,6 @@ void PlayerHealthUI::Update() {
 
 void PlayerHealthUI::OffsetPosition(const sf::Vector2f offset)
 {
-  text.setPosition(offset + sf::Vector2f(80.f, -1.f));
+  text.setPosition(offset + sf::Vector2f(75.0f, -4.f));
   sprite.setPosition(offset + sf::Vector2f(3.f, 0.0f));
 }

@@ -6,15 +6,16 @@ class Character;
 
 class MobHealthUI : public Text {
 public:
-  MobHealthUI(void);
+  MobHealthUI(void) = delete;
   MobHealthUI(Character* _mob);
   ~MobHealthUI(void);
 
-  void Update();
+  void Update(float elapsed);
 
 private:
   Character * mob;
   Font* font;
   int healthCounter;
+  double cooldown;
   bool loaded;
 };

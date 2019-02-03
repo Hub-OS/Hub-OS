@@ -66,7 +66,7 @@ int* Canodumb::GetAnimOffset() {
 }
 
 void Canodumb::Update(float _elapsed) {
-  healthUI->Update();
+  healthUI->Update(_elapsed);
   this->SetShader(nullptr);
 
   if (_elapsed <= 0) return;
@@ -77,7 +77,7 @@ void Canodumb::Update(float _elapsed) {
 
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
-    healthUI->Update();
+    healthUI->Update(_elapsed);
     Character::Update(_elapsed);
 
     if (stunCooldown <= 0) {

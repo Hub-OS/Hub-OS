@@ -10,7 +10,7 @@
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
 Player::Player(void)
-  : health(150),
+  : health(1500),
   state(PLAYER_IDLE),
   chargeComponent(this),
   animationComponent(this),
@@ -53,7 +53,7 @@ Player::~Player(void) {
 
 void Player::Update(float _elapsed) {
   //Update UI of player's health (top left corner)
-  healthUI->Update();
+  healthUI->Update(_elapsed);
 
   animationComponent.Update(_elapsed);
 
@@ -123,8 +123,6 @@ void Player::SetHealth(int _health) {
   health = _health;
 
   if (health < 0) health = 0;
-
-  healthUI->Update();
 }
 
 int Player::GetHealth() const {

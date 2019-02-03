@@ -1,5 +1,6 @@
 #include "bnEngine.h"
 #include <time.h>       /* time */
+#include <SFML\Window\ContextSettings.hpp>
 
 #include "mmbn.ico.c"
 
@@ -13,7 +14,10 @@ void Engine::Initialize() {
   original = view; // never changes 
   cam = new Camera(view);
 
-  window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition");
+  sf::ContextSettings ctx;
+  ctx.antialiasingLevel = 8;
+
+  window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition", 7U, ctx);
   window->setFramerateLimit(60);
   //window->setMouseCursorVisible(false); // Hide cursor
 
