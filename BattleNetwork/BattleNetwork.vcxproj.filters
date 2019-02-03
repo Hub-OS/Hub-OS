@@ -574,6 +574,9 @@
     <ClCompile Include="bnMysteryData.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\Mystery</Filter>
     </ClCompile>
+    <ClCompile Include="bnProgsManHitState.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -969,6 +972,9 @@
     </ClInclude>
     <ClInclude Include="bnMysteryData.h">
       <Filter>Activities\Battle\Content\Entity\Character\Mystery</Filter>
+    </ClInclude>
+    <ClInclude Include="bnProgsmanHitState.h">
+      <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -21,7 +21,7 @@ Entity::Entity()
   isSliding(false),
   element(Element::NONE),
   tileOffset(sf::Vector2f(0,0)) {
-  slideTime = sf::milliseconds(200);
+  slideTime = sf::milliseconds(100);
   elapsedSlideTime = 0;
 }
 

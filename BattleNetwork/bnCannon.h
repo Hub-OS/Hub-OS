@@ -14,6 +14,7 @@ public:
 
 private:
   int damage;
+  int random;
   float cooldown;
   FrameList animation;
   Animate animator;

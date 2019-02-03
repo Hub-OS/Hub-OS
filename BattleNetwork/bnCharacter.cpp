@@ -48,6 +48,10 @@ void Character::Update(float _elapsed) {
     }
   }
 
+  if (this->GetHealth() <= 0 && this->isSliding) {
+    this->isSliding = false;
+  }
+
   Entity::Update(_elapsed);
 }
 

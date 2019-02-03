@@ -7,6 +7,7 @@ using sf::IntRect;
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
 #include "bnProgsManIdleState.h"
+#include "bnProgsmanHitState.h"
 #include "bnAnimationComponent.h"
 #include "bnAI.h"
 

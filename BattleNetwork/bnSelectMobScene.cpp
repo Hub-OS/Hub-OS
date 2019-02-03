@@ -235,8 +235,13 @@ void SelectMobScene::onUpdate(double elapsed) {
       textbox.SetMessage("Tutorial ranked Mettaurs. You got this!");
     }
     else if (mobSelectionIndex == 1) {
-      mobSpr.setTexture(*TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_IDLE), true);
+      mobSpr.setTexture(*TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_ATLAS), true);
       mobSpr.setPosition(100.f, 110.f);
+
+      mobAnimator = Animation("resources/mobs/progsman/progsman.animation");
+      mobAnimator.Reload();
+      mobAnimator.SetAnimation(MOB_IDLE);
+      mobAnimator.SetFrame(1, &mobSpr);
 
       textbox.SetMessage("A rogue Mr. Prog that became too strong to control.");
     }
@@ -274,7 +279,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 
   // Make a selection
-  if (INPUT.has(PRESSED_A) && !gotoNextScene && mobSelectionIndex != 1) {
+  if (INPUT.has(PRESSED_A) && !gotoNextScene) {
 
     gotoNextScene = true;
 

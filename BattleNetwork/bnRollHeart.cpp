@@ -28,8 +28,6 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, Player* _player, int _heal) : 
   hit = false;
   progress = 0.0f;
   hitHeight = 0.0f;
-  srand((unsigned int)time(nullptr));
-  random = rand() % 20 - 20;
 
   Battle::Tile* _tile = player->GetTile();
 

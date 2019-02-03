@@ -9,8 +9,8 @@ public:
   ProgsManThrowState();
   ~ProgsManThrowState();
 
-  void OnEnter(ProgsMan& progs);
-  void OnUpdate(float _elapsed, ProgsMan& progs);
-  void OnLeave(ProgsMan& progs);
+  void OnEnter(ProgsMan& p);
+  void OnUpdate(float _elapsed, ProgsMan& p);
+  void OnLeave(ProgsMan& p);
 };
 

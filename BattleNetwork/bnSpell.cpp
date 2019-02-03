@@ -13,7 +13,6 @@ Spell::Spell(void) : animationComponent(this), Entity() {
   SetLayer(1);
   hit = false;
   srand((unsigned int)time(nullptr));
-  random = rand() % 20 - 20;
   progress = 0.0f;
   hitHeight = 0.0f;
   direction = Direction::NONE;
@@ -38,5 +37,5 @@ Direction Spell::GetDirection() const {
 
 void Spell::EnableTileHighlight(bool enable)
 {
-  markTile = true;
+  markTile = enable;
 }

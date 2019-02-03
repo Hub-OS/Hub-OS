@@ -11,38 +11,45 @@
 #include "bnAudioResourceManager.h"
 
 #define COOLDOWN 40.0f/1000.0f
-#define DAMAGE_COOLDOWN 50.0f/1000.0f
 
-#define BULLET_ANIMATION_SPRITES 3
-#define BULLET_ANIMATION_WIDTH 30
-#define BULLET_ANIMATION_HEIGHT 27
-
-Buster::Buster(Field* _field, Team _team, bool _charged) {
+Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), Spell() {
   SetPassthrough(true);
+  SetLayer(0);
 
   cooldown = 0;
-  damageCooldown = 0;
   field = _field;
   team = _team;
   direction = Direction::NONE;
   deleted = false;
   hit = false;
   progress = 0.0f;
-  hitHeight = 0.0f;
+
+  if (isCharged) {
+    hitHeight = 20.0f;
+  }
+  else {
+    hitHeight = 0.0f;
+  }
+
   srand((unsigned int)time(nullptr));
-  random = rand() % 20 - 20;
+  random = 0;
+
   if (_charged) {
     damage = 10;
     //TODO: make new sprite animation for charged bullet
-    texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
+    texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
+    animationComponent.Setup("resources/spells/spell_charged_bullet_hit.animation");
+    animationComponent.Reload();
+    animationComponent.SetAnimation("HIT");
   } else {
     damage = 1;
     texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
+    animationComponent.Setup("resources/spells/spell_bullet_hit.animation");
+    animationComponent.Reload();
+    animationComponent.SetAnimation("HIT");
   }
   setScale(2.f, 2.f);
-  for (int x = 0; x < BULLET_ANIMATION_SPRITES; x++) {
-    animation.Add(0.3f, IntRect(BULLET_ANIMATION_WIDTH*x, 0, BULLET_ANIMATION_WIDTH, BULLET_ANIMATION_HEIGHT));
-  }
+
 }
 
 Buster::~Buster(void) {
@@ -51,11 +58,11 @@ Buster::~Buster(void) {
 void Buster::Update(float _elapsed) {
   if (hit) {
     if (progress == 0.0f) {
-      setTexture(*texture);
       setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
     }
     progress += 5 * _elapsed;
-    animator(fmin(progress, 1.0f), *this, animation);
+    this->setTexture(*texture);
+    animationComponent.Update(_elapsed);
     if (progress >= 1.f) {
       deleted = true;
       Entity::Update(_elapsed);
@@ -116,10 +123,20 @@ void Buster::Attack(Entity* _entity) {
     props.flags = props.flags & ~Hit::recoil;
 
     _entity->Hit(damage, props);
-    hitHeight = _entity->GetHitHeight();
 
     if (!_entity->IsPassthrough()) {
-      hit = true;
+      hit = true;  
+
+      if (!isCharged) {
+        random = _entity->getLocalBounds().width / 2.0f;
+        random *= rand() % 2 == 0 ? -1.0f : 1.0f;
+
+        hitHeight = (int)(std::floor(_entity->GetHitHeight()));
+
+        if (hitHeight > 0) {
+          hitHeight = rand() % (int)hitHeight;
+        }
+      }
     }
   }
 

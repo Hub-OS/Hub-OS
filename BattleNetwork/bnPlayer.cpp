@@ -145,7 +145,7 @@ const bool Player::Hit(int _damage, Hit::Properties props) {
     health -= _damage;
     hitCount++;
 
-    if ((props.flags & Hit::recoil) != Hit::recoil) {
+    if ((props.flags & Hit::recoil) == Hit::recoil) {
       this->ChangeState<PlayerHitState, float>({ (float)props.secs });
     }
   }

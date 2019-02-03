@@ -29,6 +29,12 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
     Entity* target = progs.GetTarget();
 
     if (target && target->GetTile()) {
+      if (rand() % 50) {
+        // Throw bombs.
+        this->ChangeState<ProgsManThrowState>();
+        return;
+      }
+
       if (target->GetTile()->GetY() < progs.GetTile()->GetY()) {
         nextDirection = Direction::UP;
       }
@@ -43,15 +49,11 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
         }
         else {
           // Try shooting. 
-
-          // Throw bombs.
-          this->ChangeState<ProgsManThrowState>();
-          return;
+          // this->ChangeState<ProgsManShootState>();
         }
       }
     }
   }
-
 
   // otherwise aimlessly move around 
   int randDirection = rand() % 4;

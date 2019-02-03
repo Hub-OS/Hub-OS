@@ -13,11 +13,10 @@ ProgsManThrowState::~ProgsManThrowState()
 
 void ProgsManThrowState::OnEnter(ProgsMan& progs) {
   auto spawnBomb = [this, &progs]() { 
-    ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), progs.GetTarget()->GetTile(), 1);
-    bomb->SetTile(progs.GetTile());
-    bomb->PrepareThrowPath();
+    ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), progs.GetTile()->getPosition(), 1);
+    bomb->SetTile(progs.GetTarget()->GetTile());
 
-    progs.GetField()->OwnEntity(bomb, progs.GetTile()->GetX(), progs.GetTile()->GetY()); 
+    progs.GetField()->OwnEntity(bomb, progs.GetTarget()->GetTile()->GetX(), progs.GetTarget()->GetTile()->GetY());
   };
 
   auto onFinish  = [this, &progs]() { this->ChangeState<ProgsManIdleState>(); };

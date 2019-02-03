@@ -1,5 +1,3 @@
-#include <Swoosh/ActivityController.h>
-
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
@@ -12,10 +10,14 @@
 #include "bnAnimate.h"
 #include "bnChronoXConfigReader.h"
 #include "SFML/System.hpp"
+
 #include <time.h>
 #include <queue>
 #include <atomic>
 #include <cmath>
+#include <Swoosh/ActivityController.h>
+
+// #define BN_REGION_JAPAN 1
 
 // Engine addons
 #include "bnQueueNaviRegistration.h"
@@ -102,7 +104,13 @@ int main(int argc, char** argv) {
   alertSprite.setPosition(sf::Vector2f(100.f, alertPos.y));
 
   // Title screen logo
+
+  #ifdef BN_REGION_JAPAN
+  sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile.png");
+  #else
   sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");
+  #endif BN_REGION_JAPAN
+
   LayeredDrawable logoSprite;
   logoSprite.setTexture(*logo);
   logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);

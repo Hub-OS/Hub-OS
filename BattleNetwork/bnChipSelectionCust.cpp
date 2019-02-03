@@ -9,7 +9,8 @@
 #define STAGED  1
 #define QUEUED 2
 
-ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap) : 
+ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) :
+  perTurn(perTurn),
   greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
   chipDescriptionTextbox(sf::Vector2f(4, 255))
 {
@@ -326,7 +327,6 @@ bool ChipSelectionCust::ChipDescriptionConfirmQuestion() {
 }
 
 void ChipSelectionCust::GetNextChips() {
-  int perTurn = 3; // Limit how many new chips we get per turn
   for (int i = chipCount; i < chipCap; i++) {
     do {
       queue[i].data = folder->Next();

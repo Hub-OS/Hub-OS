@@ -40,6 +40,7 @@ private:
   int cursorPos;
   int cursorRow;
   bool areChipsReady;
+  int perTurn;
   ChipFolder* folder;
   Chip** selectedChips;
   Bucket* queue;
@@ -49,7 +50,7 @@ private:
   double frameElapsed;
 
 public:
-  ChipSelectionCust(ChipFolder* _folder, int);
+  ChipSelectionCust(ChipFolder* _folder, int, int perTurn = 5);
   ~ChipSelectionCust();
 
   // GUI ops

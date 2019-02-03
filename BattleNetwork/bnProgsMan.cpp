@@ -12,11 +12,6 @@
 #define RESOURCE_NAME "progsman"
 #define RESOURCE_PATH "resources/mobs/progsman/progsman.animation"
 
-#define PROGS_COOLDOWN 1000.0f
-#define PROGS_ATTACK_COOLDOWN 2222.f
-#define PROGS_WAIT_COOLDOWN 100.0f
-#define PROGS_ATTACK_DELAY 500.0f
-
 ProgsMan::ProgsMan(Rank _rank)
   : animationComponent(this),
     AI<ProgsMan>(this), Character(_rank) {
@@ -25,7 +20,7 @@ ProgsMan::ProgsMan(Rank _rank)
   health = 300;
   hitHeight = 64;
   state = MOB_IDLE;
-  textureType = TextureType::MOB_PROGSMAN_IDLE;
+  textureType = TextureType::MOB_PROGSMAN_ATLAS;
   healthUI = new MobHealthUI(this);
 
   this->ChangeState<ProgsManIdleState>();
@@ -47,23 +42,10 @@ ProgsMan::~ProgsMan(void) {
 }
 
 int* ProgsMan::GetAnimOffset() {
-  ProgsMan* mob = this;
-
   int* res = new int[2];
 
-  if (mob->GetTextureType() == TextureType::MOB_PROGSMAN_IDLE) {
-    res[0] = 75;
-    res[1] = 115;
-  } else if (mob->GetTextureType() == TextureType::MOB_PROGSMAN_PUNCH) {
-    res[0] = 125;
-    res[1] = 125;
-  } else if (mob->GetTextureType() == TextureType::MOB_PROGSMAN_MOVE) {
-    res[0] = 75;
-    res[1] = 115;
-  } else if (mob->GetTextureType() == TextureType::MOB_PROGSMAN_THROW) {
-    res[0] = 145;
-    res[1] = 115;
-  }
+  res[0] = 10;
+  res[1] = 6;
 
   return res;
 }
@@ -104,7 +86,8 @@ void ProgsMan::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->ChangeState<ExplodeState<ProgsMan>>(12, 0.75);
+    this->ChangeState<ProgsManHitState>(); // change animation briefly
+    this->ChangeState<ExplodeState<ProgsMan>>(12, 0.75); // freezes animation
     this->LockState();
   }
   else {
@@ -115,30 +98,7 @@ void ProgsMan::Update(float _elapsed) {
 }
 
 void ProgsMan::RefreshTexture() {
-  if (state == MOB_IDLE) {
-    textureType = TextureType::MOB_PROGSMAN_IDLE;
-  } else if (state == MOB_MOVING) {
-    textureType = TextureType::MOB_PROGSMAN_MOVE;
-  } else if (state == MOB_ATTACKING) {
-    textureType = TextureType::MOB_PROGSMAN_PUNCH;
-  } else if (state == MOB_THROW) {
-    textureType = TextureType::MOB_PROGSMAN_THROW;
-  }
-
-  setTexture(*TEXTURES.GetTexture(textureType));
-
-  if (textureType == TextureType::MOB_PROGSMAN_IDLE) {
-    setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 65.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 115.0f);
-    hitHeight = getLocalBounds().height;
-  } else if (textureType == TextureType::MOB_PROGSMAN_MOVE) {
-    setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 65.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 125.0f);
-  } else if (textureType == TextureType::MOB_PROGSMAN_PUNCH) {
-    setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 115.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 125.0f);
-    hitHeight = getLocalBounds().height;
-  } else if (textureType == TextureType::MOB_PROGSMAN_THROW) {
-    setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 115.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 125.0f);
-    hitHeight = getLocalBounds().height;
-  }
+  setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 }
 
 vector<Drawable*> ProgsMan::GetMiscComponents() {
@@ -163,6 +123,10 @@ void ProgsMan::SetHealth(int _health) {
 const bool ProgsMan::Hit(int _damage, Hit::Properties props) {
   (health - _damage < 0) ? health = 0 : health -= _damage;
   SetShader(whiteout);
+
+  if ((props.flags & Hit::recoil) == Hit::recoil) {
+    this->ChangeState<ProgsManHitState>();
+  }
 
   return health;
 }

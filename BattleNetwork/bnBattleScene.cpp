@@ -45,7 +45,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   hasPA = -1;
   paStepIndex = 0;
 
-  listStepCooldown = 0.5f;
+  listStepCooldown = 0.2f;
   listStepCounter = listStepCooldown;
 
   programAdvanceSprite = sf::Sprite(LOAD_TEXTURE(PROGRAM_ADVANCE));
@@ -331,10 +331,6 @@ void BattleScene::onUpdate(double elapsed) {
 
   // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
   if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle || isPostBattle)) {  
-    customProgress += elapsed;
-
-    field->SetBattleActive(true);
-
     int newMobSize = mob->GetRemainingMobCount();
 
     if (lastMobSize != newMobSize) {
@@ -352,9 +348,21 @@ void BattleScene::onUpdate(double elapsed) {
       lastMobSize = newMobSize;
     }
 
-    if (battleTimer.isPaused()) {
-      // start counting seconds again 
-      battleTimer.start();
+    if (newMobSize == 0) {
+      if (!battleTimer.isPaused()) {
+        battleTimer.pause();
+        AUDIO.StopStream();
+      }
+    }
+    else {
+      if (battleTimer.isPaused()) {
+        // start counting seconds again 
+        battleTimer.start();
+      }
+
+      customProgress += elapsed;
+
+      field->SetBattleActive(true);
     }
   }
   else {

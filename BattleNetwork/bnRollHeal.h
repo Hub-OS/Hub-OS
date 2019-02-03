@@ -16,5 +16,6 @@ public:
 
 private:
   int heal;
+  int random;
   ChipSummonHandler* summons;
 };

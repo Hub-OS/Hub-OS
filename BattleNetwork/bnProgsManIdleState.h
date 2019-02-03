@@ -11,8 +11,8 @@ public:
   ProgsManIdleState();
   ~ProgsManIdleState();
 
-  void OnEnter(ProgsMan& player);
-  void OnUpdate(float _elapsed, ProgsMan& player);
-  void OnLeave(ProgsMan& player);
+  void OnEnter(ProgsMan& p);
+  void OnUpdate(float _elapsed, ProgsMan& p);
+  void OnLeave(ProgsMan& p);
 };
 

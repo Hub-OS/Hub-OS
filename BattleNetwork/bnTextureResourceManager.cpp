@@ -106,12 +106,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/mobs/mettaur/mettaur.png");
 
   // ProgsMan
-  paths.push_back("resources/mobs/progsman/mob_progsman_idle.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_move.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_shoot.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_hit.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_punch.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_throw.png");
+  paths.push_back("resources/mobs/progsman/mob_progsman_atlas.png");
 
   // canodumbs
   paths.push_back("resources/mobs/canodumb/canodumb_atlas.png");
@@ -126,7 +121,7 @@ TextureResourceManager::TextureResourceManager(void) {
   //Bullet
   paths.push_back("resources/spells/spell_bullet_hit.png");
   paths.push_back("resources/spells/spell_buster_charge.png");
-  //paths.push_back("resources/spells/spell_charged_bullet_hit.png");
+  paths.push_back("resources/spells/spell_charged_bullet_hit.png");
   paths.push_back("resources/spells/spell_wave.png");
   paths.push_back("resources/spells/spell_prog_bomb.png");
 

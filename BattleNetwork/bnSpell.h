@@ -25,7 +25,6 @@ public:
 protected:
   bool hit;
   bool markTile;
-  int random;
   float progress;
   float hitHeight;
   Texture* texture;
