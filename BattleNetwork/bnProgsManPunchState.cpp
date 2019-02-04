@@ -14,6 +14,8 @@ void ProgsManPunchState::OnEnter(ProgsMan& progs) {
   auto onFinish = [this, &progs]() { this->Attack(progs); };
   progs.SetAnimation(MOB_ATTACKING, onFinish);
   progs.SetCounterFrame(1);
+  progs.SetCounterFrame(2);
+  progs.SetCounterFrame(3);
 }
 
 void ProgsManPunchState::OnLeave(ProgsMan& progs) {
@@ -35,10 +37,11 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
     while (next->GetNextEntity(entity)) {
       Player* isPlayer = dynamic_cast<Player*>(entity);
 
-      if (isPlayer && !isPlayer->IsPassthrough()) {
-        isPlayer->Move(Direction::LEFT);
-        isPlayer->AdoptNextTile();
-        isPlayer->Hit(20);
+      if (isPlayer) {
+        if (isPlayer->Hit(20)) {
+          isPlayer->SlideToTile(true);
+          isPlayer->Move(Direction::LEFT);
+        }
       }
     }
   }

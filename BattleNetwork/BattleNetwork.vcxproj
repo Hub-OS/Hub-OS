@@ -236,6 +236,7 @@
     <ClCompile Include="bnProgsManBossFight.cpp" />
     <ClCompile Include="bnProgsManHitState.cpp" />
     <ClCompile Include="bnProgsManIdleState.cpp" />
+    <ClCompile Include="bnProgsManShootState.cpp" />
     <ClCompile Include="bnProgsManThrowState.cpp" />
     <ClCompile Include="bnRandomMettaurMob.cpp" />
     <ClCompile Include="bnRoll.cpp" />
@@ -303,6 +304,7 @@
     <ClInclude Include="bnLibraryScene.h" />
     <ClInclude Include="bnMysteryData.h" />
     <ClInclude Include="bnProgsmanHitState.h" />
+    <ClInclude Include="bnProgsManShootState.h" />
     <ClInclude Include="bnProgsManThrowState.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />

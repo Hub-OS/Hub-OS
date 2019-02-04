@@ -22,7 +22,7 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
   auto onFinish  = [this, &progs]() { this->ChangeState<ProgsManIdleState>(); };
 
   progs.SetAnimation(MOB_THROW, onFinish);
-  progs.SetCounterFrame(2);
+  progs.SetCounterFrame(3);
   progs.OnFrameCallback(4, spawnBomb, std::function<void()>(), true);
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML\Graphics.hpp>
-#include <vector>
+#include <deque>
+#include <algorithm>
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 
@@ -12,7 +13,6 @@ private:
   mutable sf::Shader* wireShader;
 
   struct WireEffect {
-    int direction = 1; // 0 means reverse
     double progress;
     int index;
     sf::Color color;
@@ -20,11 +20,12 @@ private:
 
   int numWires;
 
-  std::vector<WireEffect> effects;
+  std::deque<WireEffect> coming;
+  std::deque<WireEffect> leaving;
 
 public:
   CustEmblem() {
-    numWires = 9;
+    numWires = 12;
     wireShader = &LOAD_SHADER(BADGE_WIRE);
     wireShader->setUniform("texture", sf::Shader::CurrentTexture);
     wireShader->setUniform("numOfWires", numWires);
@@ -41,58 +42,42 @@ public:
 
     WireEffect w;
     w.color = sf::Color::White; // todo make random
-    w.direction = 1;
     w.index = rand() % numWires;
     w.progress = 0;
 
-    effects.push_back(w);
+    coming.push_front(w);
+
+    std::cout << "index is: " << w.index << std::endl;
   }
 
   void UndoWireEffect() {
     bool found = false;
 
-    sf::Color red = sf::Color::White;
+    sf::Color red = sf::Color(123, 239, 178, 255);
 
-    if (effects.size() > 0) {
+    if (coming.size() > 0) {
       // find a wire going forward and reverse it
-      auto iter = effects.begin();
-      while (iter != effects.end()) {
-        if (iter->direction == 1) {
-          iter->color = red;
-          iter->direction = 0;
-          found = true;
-          break;
-        }
-        iter++;
-      }
-    }
-    
-    if(!found){
-      WireEffect w;
-      w.color = red; // todo make random
-      w.direction = 0;
-      w.index = rand() % numWires;
-      w.progress = 1.0;
+      auto top = coming.front();
+      coming.pop_front();
 
-      effects.push_back(w);
+      top.color = red;
+      top.progress = 1.0; 
+      
+      leaving.push_front(top);
     }
   }
 
   void Update(double elapsed) {
-    for (auto iter = effects.begin(); iter != effects.end();) {
-      if (iter->progress > 1.0) {
-        iter = effects.erase(iter);
-        continue;
-      } else if (iter->progress < 0.0) {
-        iter = effects.erase(iter);
-        continue;
-      }
+    for (auto iter = coming.begin(); iter != coming.end(); iter++) {
+      iter->progress += elapsed * 2.0;
+    }
 
-      if (iter->direction) {
-        iter->progress += elapsed*2.0;
-      }
-      else {
-        iter->progress -= elapsed*2.0;
+    for (auto iter = leaving.begin(); iter != leaving.end();) {
+      iter->progress -= elapsed * 2.0;
+
+      if (iter->progress < 0.0) {
+        iter = leaving.erase(iter);
+        continue;
       }
 
       iter++;
@@ -105,11 +90,18 @@ public:
 
     states.shader = wireShader;
 
+    std::deque<WireEffect> effects;
+    effects.resize(coming.size() + leaving.size());
+    effects.insert(effects.begin(), coming.begin(), coming.end());
+    effects.insert(effects.begin(), leaving.begin(), leaving.end());
+ 
     for (auto& e : effects) {
-      wireShader->setUniform("progress", (float)e.progress);
-      wireShader->setUniform("index", e.index);
-      wireShader->setUniform("inColor", sf::Glsl::Vec4(e.color));
-      target.draw(emblemWireMask, states);
+      if (e.progress <= 1.0f) {
+        wireShader->setUniform("progress", (float)e.progress);
+        wireShader->setUniform("index", e.index);
+        wireShader->setUniform("inColor", sf::Glsl::Vec4(e.color));
+        target.draw(emblemWireMask, states);
+      }
     }
   }
 };

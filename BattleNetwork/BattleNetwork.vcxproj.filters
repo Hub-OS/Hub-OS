@@ -580,6 +580,9 @@
     <ClCompile Include="bnCustEmblem.cpp">
       <Filter>Activities\Battle\Content\Chips\Cust</Filter>
     </ClCompile>
+    <ClCompile Include="bnProgsManShootState.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -981,6 +984,9 @@
     </ClInclude>
     <ClInclude Include="bnCustEmblem.h">
       <Filter>Activities\Battle\Content\Chips\Cust</Filter>
+    </ClInclude>
+    <ClInclude Include="bnProgsManShootState.h">
+      <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -50,6 +50,7 @@ Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), 
   }
   setScale(2.f, 2.f);
 
+  AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::HIGH);
 }
 
 Buster::~Buster(void) {

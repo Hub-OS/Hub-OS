@@ -44,7 +44,6 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       attackKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};
       player.SetAnimation(PLAYER_SHOOTING, onFinish);
-      AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::HIGH);
     }
     else {
       isChargeHeld = false;
