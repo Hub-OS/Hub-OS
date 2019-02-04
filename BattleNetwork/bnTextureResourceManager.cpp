@@ -136,6 +136,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/chip_missing.png");
   paths.push_back("resources/ui/chip_lock.png");
   paths.push_back("resources/ui/cust_badge.png");
+  paths.push_back("resources/ui/cust_badge_mask.png");
 
   // In battle signs
   paths.push_back("resources/ui/program_advance.png");

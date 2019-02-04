@@ -577,6 +577,9 @@
     <ClCompile Include="bnProgsManHitState.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
     </ClCompile>
+    <ClCompile Include="bnCustEmblem.cpp">
+      <Filter>Activities\Battle\Content\Chips\Cust</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -975,6 +978,9 @@
     </ClInclude>
     <ClInclude Include="bnProgsmanHitState.h">
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCustEmblem.h">
+      <Filter>Activities\Battle\Content\Chips\Cust</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

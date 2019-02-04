@@ -23,6 +23,9 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) 
 
   chipCount = selectCount = cursorPos = cursorRow = 0;
 
+  emblem.setScale(2.f, 2.f);
+  emblem.setPosition(194.0f, 14.0f);
+
   custSprite = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_SELECT_MENU));
   custSprite.setScale(2.f, 2.f);
   custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
@@ -172,6 +175,7 @@ bool ChipSelectionCust::CursorAction() {
             queue[i].state = VOIDED;
           }
 
+          emblem.CreateWireEffect();
           return true;
         }
         else {
@@ -187,6 +191,7 @@ bool ChipSelectionCust::CursorAction() {
             else { queue[i].state = VOIDED; }
           }
 
+          emblem.CreateWireEffect();
           return true;
         }
       }
@@ -210,6 +215,7 @@ bool ChipSelectionCust::CursorCancel() {
       queue[i].state = STAGED;
     }
 
+    emblem.UndoWireEffect();
     return true;
   }
 
@@ -239,6 +245,7 @@ bool ChipSelectionCust::CursorCancel() {
     }
   }
 
+  emblem.UndoWireEffect();
   return true;
 }
 
@@ -350,6 +357,8 @@ void ChipSelectionCust::Draw() {
   ENGINE.Draw(custSprite, false);
 
   if (IsInView()) {
+    ENGINE.Draw(emblem, false);
+
     auto x = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(16.0f + (cursorPos*16.0f))), (double)cursorSmall.getPosition().x);
     auto y = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(113.f + (cursorRow*24.f))), (double)cursorSmall.getPosition().y);
 
@@ -462,6 +471,8 @@ void ChipSelectionCust::Update(float elapsed)
   cursorBigAnimator.Update(elapsed, &cursorBig);
 
   chipDescriptionTextbox.Update(elapsed);
+
+  emblem.Update(elapsed);
 }
 
 Chip** ChipSelectionCust::GetChips() {

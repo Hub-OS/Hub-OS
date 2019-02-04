@@ -56,6 +56,7 @@ enum TextureType {
   CHIP_MISSINGDATA,
   CHIP_LOCK,
   CUST_BADGE, 
+  CUST_BADGE_MASK,
 
   // In-battle signs
   PROGRAM_ADVANCE,

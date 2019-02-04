@@ -9,6 +9,7 @@
 #include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnChipDescriptionTextbox.h"
+#include "bnCustEmblem.h"
 
 class ChipSelectionCust {
 public:
@@ -34,6 +35,8 @@ private:
   sf::Font* codeFont;
   sf::Text smCodeLabel;
   sf::Text label;
+  CustEmblem emblem;
+
   int chipCount;
   int selectCount;
   int chipCap;

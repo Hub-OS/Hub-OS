@@ -63,6 +63,7 @@ ShaderResourceManager::ShaderResourceManager(void) {
   paths.push_back("resources/shaders/spot_reflection.frag.txt");
   paths.push_back("resources/shaders/transition.frag.txt");
   paths.push_back("resources/shaders/chip_reveal.frag.txt");
+  paths.push_back("resources/shaders/wire.frag.txt");
 }
 
 ShaderResourceManager::~ShaderResourceManager(void) {
