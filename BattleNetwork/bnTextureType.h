@@ -37,6 +37,7 @@ enum TextureType {
 
   // Battle Misc
   MISC_MYSTERY_DATA,
+  MISC_CUBE,
 
   //Spells
   SPELL_BULLET_HIT,

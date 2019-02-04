@@ -193,6 +193,7 @@
     <ClCompile Include="bnChipUsePublisher.cpp" />
     <ClCompile Include="bnCounterHitListener.cpp" />
     <ClCompile Include="bnCounterHitPublisher.cpp" />
+    <ClCompile Include="bnCube.cpp" />
     <ClCompile Include="bnCustEmblem.cpp" />
     <ClCompile Include="bnEnemyChipsUI.cpp" />
     <ClCompile Include="bnFakeScene.cpp" />
@@ -239,6 +240,7 @@
     <ClCompile Include="bnProgsManShootState.cpp" />
     <ClCompile Include="bnProgsManThrowState.cpp" />
     <ClCompile Include="bnRandomMettaurMob.cpp" />
+    <ClCompile Include="bnRockDebris.cpp" />
     <ClCompile Include="bnRoll.cpp" />
     <ClCompile Include="bnRollHeal.cpp" />
     <ClCompile Include="bnRollHeart.cpp" />
@@ -279,6 +281,7 @@
     <ClInclude Include="bnBattleOverTrigger.h" />
     <ClInclude Include="bnCounterHitListener.h" />
     <ClInclude Include="bnCounterHitPublisher.h" />
+    <ClInclude Include="bnCube.h" />
     <ClInclude Include="bnCustEmblem.h" />
     <ClInclude Include="bnEnemyChipUseListener.h" />
     <ClInclude Include="bnBackground.h" />
@@ -398,6 +401,7 @@
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />
     <ClInclude Include="bnSceneNode.h" />
+    <ClInclude Include="bnRockDebris.h" />
     <ClInclude Include="Segues\BlackWashFade.h" />
     <ClInclude Include="Segues\Checkerboard.h" />
     <ClInclude Include="Segues\CrossZoom.h" />

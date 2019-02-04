@@ -6,7 +6,9 @@
 #include "bnPlayer.h"
 #include "bnField.h"
 #include "bnTile.h"
-#include "Swoosh\Timer.h"
+#include "bnCube.h"
+
+#include <Swoosh\Timer.h>
 
 class ChipSummonHandler : public ChipUseListener {
 private:
@@ -15,7 +17,15 @@ private:
   sf::Time duration;
   std::string summon;
   Chip copy;
-  std::vector<Entity*> summonedItems; // We must handle our own summoned entites
+
+  struct SummonBucket {
+    Entity* entity;
+    bool persist;
+
+    SummonBucket(Entity* e, bool p) { entity = e; persist = p; }
+  };
+
+  std::vector<SummonBucket> summonedItems; // We must handle our own summoned entites
 
 public:
   ChipSummonHandler(Player* _player) : ChipUseListener() { player = _player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string();  }
@@ -35,18 +45,18 @@ public:
     return player;
   }
 
-  void SummonEntity(Entity* _new) {
-    summonedItems.push_back(_new);
+  void SummonEntity(Entity* _new, bool persist=false)  {
+    summonedItems.push_back(SummonBucket(_new, persist));
   }
 
   void RemoveEntity(Entity* _entity) {
     for (auto items = summonedItems.begin(); items != summonedItems.end(); items++) {
-      if (*items == _entity) {
-        if ((*items)->GetTile()) {
-          (*items)->GetTile()->RemoveEntity(*items);
+      if (items->entity == _entity) {
+        if (items->entity->GetTile()) {
+          items->entity->GetTile()->RemoveEntity(items->entity);
         }
 
-        delete *items;
+        delete items->entity;
         summonedItems.erase(items);
         return;
       }
@@ -62,8 +72,19 @@ public:
 
     timeInSecs += _elapsed;
 
+
+    for (auto iter = summonedItems.begin(); iter != summonedItems.end();) {
+      if (iter->entity->IsDeleted()) {
+        iter->entity->GetField()->RemoveEntity(iter->entity);
+        iter = summonedItems.erase(iter);
+        continue;
+      }
+      
+      iter++;
+    }
+
     for (auto items : summonedItems) {
-      items->Update((float)_elapsed);
+        items.entity->Update((float)_elapsed);
     }
   }
 
@@ -74,13 +95,30 @@ public:
       Entity* roll = new RollHeal(this, copy.GetDamage());
       SummonEntity(roll);
     }
+    else if (summon == "Cube") {
+      Entity* cube = new Cube(this->GetPlayer()->GetField(), Team::UNKNOWN);
+
+      Battle::Tile* tile = this->GetPlayer()->GetTile();
+      tile = this->GetPlayer()->GetField()->GetAt(tile->GetX()+1, tile->GetY());
+
+      if (tile) {
+        this->GetPlayer()->GetField()->OwnEntity(cube, tile->GetX(), tile->GetY());
+
+        AUDIO.Play(AudioType::APPEAR);
+
+        // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
+        SummonEntity(cube, true);
+      }
+    }
   }
 
   void OnLeave() { 
     player->SetAlpha(255);  
 
     for (auto items : summonedItems) {
-      delete items;
+      if (!items.persist) {
+        player->GetField()->RemoveEntity(items.entity);
+      }
     }
 
     summonedItems.clear();
@@ -98,6 +136,10 @@ public:
       summon = "Roll";
       timeInSecs = 0;
       duration = sf::seconds(4);
+    } else if (name.substr(0, 4) == "Cube") {
+      summon = "Cube";
+      timeInSecs = 0;
+      duration = sf::seconds(1);
     }
   }
 };

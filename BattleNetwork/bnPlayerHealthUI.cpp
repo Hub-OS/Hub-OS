@@ -51,7 +51,7 @@ void PlayerHealthUI::Update(float elapsed) {
     if (lastHP != player->GetHealth()) {
       if (currHP > player->GetHealth()) {
         currHP -= 1;
-        cooldown = 1; // 1 second
+        cooldown = 0.5; // seconds
       } else if (currHP < player->GetHealth()) {
         currHP += 1;
       } else {

@@ -16,7 +16,7 @@ ProgsMan::ProgsMan(Rank _rank)
   : animationComponent(this),
     AI<ProgsMan>(this), Character(_rank) {
   name = "ProgsMan";
-  Entity::team = Team::BLUE;
+  this->team = Team::BLUE;
   health = 300;
   hitHeight = 64;
   state = MOB_IDLE;
@@ -36,6 +36,8 @@ ProgsMan::ProgsMan(Rank _rank)
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);
+
+  animationComponent.Update(0);
 }
 
 ProgsMan::~ProgsMan(void) {

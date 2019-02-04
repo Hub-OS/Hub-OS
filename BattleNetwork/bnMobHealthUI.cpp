@@ -13,7 +13,7 @@ MobHealthUI::MobHealthUI(Character* _mob)
   setFont(*font);
   setOutlineColor(sf::Color(48,56,80));
   setOutlineThickness(2.f);
-  setScale(1.f, 0.7f);
+  setScale(1.f, 0.8f);
   setLetterSpacing(3.0f);
   healthCounter = mob->GetHealth();
   loaded = false;
@@ -31,7 +31,7 @@ void MobHealthUI::Update(float elapsed) {
       loaded = true;
     }
 
-    setOrigin(getLocalBounds().width, 0);
+    setOrigin(getLocalBounds().width/2.0f, 0);
 
     if (mob->GetHealth() <= 0) {
       setString("");
@@ -49,7 +49,7 @@ void MobHealthUI::Update(float elapsed) {
    
     if (healthCounter > mob->GetHealth()) {
       healthCounter--;
-      cooldown = 1; //seconds
+      cooldown = 0.5; //seconds
     }
     else if (healthCounter < mob->GetHealth()) {
       healthCounter++;

@@ -305,6 +305,12 @@
     <Filter Include="Activities\Battle\Content\Entity\Character\Mystery">
       <UniqueIdentifier>{38dc9ec9-8504-4788-baf9-525eafa3f596}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Character\Cube">
+      <UniqueIdentifier>{ff64002f-276a-4bda-9969-a191c1e00185}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\RockDebris">
+      <UniqueIdentifier>{6bfb8d2c-72ad-453b-8e56-39c4b92632f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -582,6 +588,12 @@
     </ClCompile>
     <ClCompile Include="bnProgsManShootState.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCube.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\Cube</Filter>
+    </ClCompile>
+    <ClCompile Include="bnRockDebris.cpp">
+      <Filter>Activities\Battle\Content\Entity\Artifact\RockDebris</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -987,6 +999,12 @@
     </ClInclude>
     <ClInclude Include="bnProgsManShootState.h">
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCube.h">
+      <Filter>Activities\Battle\Content\Entity\Character\Cube</Filter>
+    </ClInclude>
+    <ClInclude Include="bnRockDebris.h">
+      <Filter>Activities\Battle\Content\Entity\Artifact\RockDebris</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

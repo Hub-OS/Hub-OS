@@ -35,12 +35,12 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
     Entity* entity = 0;
 
     while (next->GetNextEntity(entity)) {
-      Player* isPlayer = dynamic_cast<Player*>(entity);
+      Character* isCharacter = dynamic_cast<Character*>(entity);
 
-      if (isPlayer) {
-        if (isPlayer->Hit(20)) {
-          isPlayer->SlideToTile(true);
-          isPlayer->Move(Direction::LEFT);
+      if (isCharacter && isCharacter->GetTeam() != progs.GetTeam()) {
+        if (isCharacter->Hit(20)) {
+          isCharacter->SlideToTile(true);
+          isCharacter->Move(Direction::LEFT);
         }
       }
     }

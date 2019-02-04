@@ -43,7 +43,6 @@ void Entity::Update(float _elapsed) {
     auto interpol = tar * delta + (pos*(1.0f - delta));
     this->tileOffset = interpol - pos;
 
-    
 
     if(delta == 1.0f)
     {
@@ -54,7 +53,7 @@ void Entity::Update(float _elapsed) {
       this->AdoptNextTile();
 
       if (isSliding) {
-        std::cout << "we are sliding" << std::endl;;
+        // std::cout << "we are sliding" << std::endl;;
 
         if(this->GetTile()->GetX() < prevTile->GetX()) {
           this->next = this->GetField()->GetAt(this->GetTile()->GetX() - 1, this->GetTile()->GetY());
@@ -69,9 +68,9 @@ void Entity::Update(float _elapsed) {
           this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() - 1);
         }
 
-        if (!(this->next && this->next->GetTeam() == this->GetTeam() && this->next->GetState() == TileState::ICE)) {
+        if (!(this->next && Teammate(this->next->GetTeam()) && this->next->GetState() == TileState::ICE)) {
           // Conditions not met
-          std::cout << "Conditions not met" << std::endl;
+          //std::cout << "Conditions not met" << std::endl;
           isSliding = false;
           this->next = nullptr;
         }
@@ -174,7 +173,7 @@ TextureType Entity::GetTextureType() {
 }
 
 bool Entity::Teammate(Team _team) {
-  return team == _team;
+  return (team == Team::UNKNOWN) || (team == _team);
 }
 
 void Entity::SetTile(Battle::Tile* _tile) {

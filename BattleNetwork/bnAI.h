@@ -77,7 +77,7 @@ template<typename U, typename ...Args>
       AIState<T>* nextState = stateMachine->Update(_elapsed, *ref);
 
       if (nextState != nullptr) {
-        std::cout << "nextState is " << nextState << std::endl;
+        //std::cout << "nextState is " << nextState << std::endl;
 
         stateMachine->OnLeave(*ref);
 
