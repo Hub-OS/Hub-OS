@@ -226,6 +226,7 @@
     <ClCompile Include="bnMettaurMoveState.cpp" />
     <ClCompile Include="bnMobHealthUI.cpp" />
     <ClCompile Include="bnMysteryData.cpp" />
+    <ClCompile Include="bnObstacle.cpp" />
     <ClCompile Include="bnOverworldLight.cpp" />
     <ClCompile Include="bnOverworldMap.cpp" />
     <ClCompile Include="bnPA.cpp" />
@@ -306,6 +307,7 @@
     <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnLibraryScene.h" />
     <ClInclude Include="bnMysteryData.h" />
+    <ClInclude Include="bnObstacle.h" />
     <ClInclude Include="bnProgsmanHitState.h" />
     <ClInclude Include="bnProgsManShootState.h" />
     <ClInclude Include="bnProgsManThrowState.h" />

@@ -3,6 +3,7 @@
 #include "bnProgsMan.h"
 #include "bnTile.h"
 #include "bnField.h"
+#include "bnObstacle.h"
 #include "bnProgsManIdleState.h"
 #include "bnProgsManPunchState.h"
 #include "bnProgsManThrowState.h"
@@ -29,7 +30,7 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
   // Always punch obstacles
   Battle::Tile* tile = progs.GetField()->GetAt(progs.GetTile()->GetX() - 1, progs.GetTile()->GetY());
 
-  if (tile->ContainsEntityType<Character>()) {
+  if (tile->ContainsEntityType<Obstacle>()) {
     this->ChangeState<ProgsManPunchState>();
     return;
   } else if (random > 15) {

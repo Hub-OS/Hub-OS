@@ -5,7 +5,7 @@
 
 using sf::Texture;
 
-class Spell : public Entity {
+class Spell : public virtual Entity {
 public:
   Spell(void);
   virtual ~Spell(void);
@@ -13,7 +13,6 @@ public:
   const bool IsTileHighlightEnabled() const;
 
   virtual void Update(float _elapsed) = 0;
-  virtual bool Move(Direction _direction) = 0;
   virtual void Attack(Entity* _entity) = 0;
   virtual vector<Drawable*> GetMiscComponents() = 0;
 

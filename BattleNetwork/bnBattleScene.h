@@ -75,7 +75,7 @@ private:
   sf::Sprite battleEnd;
   sf::Sprite doubleDelete;
   sf::Sprite tripleDelete;
-  // sf::Sprite criticalHit;
+  sf::Sprite counterHit;
   sf::Sprite comboInfo; // double delete and triple delete placeholder. Only one appears at a time!
   sf::Vector2f comboInfoPos;
   sf::Vector2f battleStartPos;

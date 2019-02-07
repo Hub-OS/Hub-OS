@@ -73,6 +73,8 @@ namespace Battle {
     float cooldownLength;
     bool hasSpell;
     bool isBattleActive;
+
+    std::vector<long> taggedSpells;
   };
 
 

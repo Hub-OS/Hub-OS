@@ -87,11 +87,6 @@ int Character::GetHealth() const {
   return health;
 }
 
-const float Character::GetHitHeight() const {
-  //assert(false && "GetHitHeight shouldn't be called directly from Entity");
-  return 0;
-}
-
 const bool Character::Hit(int damage, Hit::Properties props) {
   int previousHealth = health;
 

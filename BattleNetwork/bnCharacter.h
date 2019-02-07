@@ -5,7 +5,7 @@
 #include <string>
 using std::string;
 
-class Character : public Entity, public CounterHitPublisher {
+class Character : public virtual Entity, public CounterHitPublisher {
   friend class Field;
 
 public:
@@ -24,7 +24,6 @@ public:
   virtual ~Character();
 
   virtual const bool Hit(int damage, Hit::Properties props = Entity::DefaultHitProperties);
-  virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
   virtual bool CanMoveTo(Battle::Tile* next);
   virtual vector<Drawable*> GetMiscComponents();

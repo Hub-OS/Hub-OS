@@ -25,7 +25,8 @@ namespace Hit {
   const char shake  = 0x02;
   const char stun   = 0x03;
   const char pierce = 0x04;
-  
+  const char flinch = 0x05;
+
   struct Properties {
     char flags;
     Element element;
@@ -37,6 +38,10 @@ namespace Hit {
 class Entity : public LayeredDrawable {
   friend class Field;
   friend class Component;
+
+private:
+  long ID; // used for tagging and later, in scripting
+  static long numOfIDs;
 
 public:
   const static Hit::Properties DefaultHitProperties;
@@ -51,6 +56,8 @@ public:
   virtual bool CanMoveTo(Battle::Tile* next);
   virtual vector<Drawable*> GetMiscComponents();
   virtual TextureType GetTextureType();
+
+  const long GetID() const;
 
   bool Teammate(Team _team);
 
@@ -101,6 +108,7 @@ protected:
   bool deleted;
   int moveCount;
   sf::Time slideTime; // how long slide behavior lasts
+  sf::Time defaultSlideTime;
   double elapsedSlideTime; // in seconds
   Direction direction;
   Direction previousDirection;

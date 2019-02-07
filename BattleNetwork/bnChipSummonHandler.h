@@ -95,14 +95,14 @@ public:
       Entity* roll = new RollHeal(this, copy.GetDamage());
       SummonEntity(roll);
     }
-    else if (summon == "Cube") {
+    else if (summon == "RockCube") {
       Entity* cube = new Cube(this->GetPlayer()->GetField(), Team::UNKNOWN);
 
       Battle::Tile* tile = this->GetPlayer()->GetTile();
       tile = this->GetPlayer()->GetField()->GetAt(tile->GetX()+1, tile->GetY());
 
       if (tile) {
-        this->GetPlayer()->GetField()->OwnEntity(cube, tile->GetX(), tile->GetY());
+        this->GetPlayer()->GetField()->AddEntity(cube, tile->GetX(), tile->GetY());
 
         AUDIO.Play(AudioType::APPEAR);
 
@@ -116,7 +116,12 @@ public:
     player->SetAlpha(255);  
 
     for (auto items : summonedItems) {
-      if (!items.persist) {
+      if (items.persist) {
+        Battle::Tile* tile = items.entity->GetTile();
+        player->GetField()->RemoveEntity(items.entity);
+        player->GetField()->OwnEntity(items.entity,tile->GetX(), tile->GetY());
+      }
+      else {
         player->GetField()->RemoveEntity(items.entity);
       }
     }
@@ -136,8 +141,8 @@ public:
       summon = "Roll";
       timeInSecs = 0;
       duration = sf::seconds(4);
-    } else if (name.substr(0, 4) == "Cube") {
-      summon = "Cube";
+    } else if (name.substr(0, 8) == "RockCube") {
+      summon = "RockCube";
       timeInSecs = 0;
       duration = sf::seconds(1);
     }

@@ -305,11 +305,14 @@
     <Filter Include="Activities\Battle\Content\Entity\Character\Mystery">
       <UniqueIdentifier>{38dc9ec9-8504-4788-baf9-525eafa3f596}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Entity\Character\Cube">
-      <UniqueIdentifier>{ff64002f-276a-4bda-9969-a191c1e00185}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Entity\Artifact\RockDebris">
       <UniqueIdentifier>{6bfb8d2c-72ad-453b-8e56-39c4b92632f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Obstacle">
+      <UniqueIdentifier>{0779085e-86f9-423c-a6a2-a073a9cea774}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Obstacle\Cube">
+      <UniqueIdentifier>{ff64002f-276a-4bda-9969-a191c1e00185}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -590,10 +593,13 @@
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
     </ClCompile>
     <ClCompile Include="bnCube.cpp">
-      <Filter>Activities\Battle\Content\Entity\Character\Cube</Filter>
+      <Filter>Activities\Battle\Content\Entity\Obstacle\Cube</Filter>
     </ClCompile>
     <ClCompile Include="bnRockDebris.cpp">
       <Filter>Activities\Battle\Content\Entity\Artifact\RockDebris</Filter>
+    </ClCompile>
+    <ClCompile Include="bnObstacle.cpp">
+      <Filter>Activities\Battle\Content\Entity\Obstacle</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1001,10 +1007,13 @@
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
     </ClInclude>
     <ClInclude Include="bnCube.h">
-      <Filter>Activities\Battle\Content\Entity\Character\Cube</Filter>
+      <Filter>Activities\Battle\Content\Entity\Obstacle\Cube</Filter>
     </ClInclude>
     <ClInclude Include="bnRockDebris.h">
       <Filter>Activities\Battle\Content\Entity\Artifact\RockDebris</Filter>
+    </ClInclude>
+    <ClInclude Include="bnObstacle.h">
+      <Filter>Activities\Battle\Content\Entity\Obstacle</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

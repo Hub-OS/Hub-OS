@@ -25,7 +25,7 @@ Mob* RandomMettaurMob::Build() {
   mob->RegisterRankedReward(1, BattleItem(Chip(72, 0, '*', 0, Element::NONE, "Reflct", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
   mob->RegisterRankedReward(5, BattleItem(Chip(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "Cracks the tiles in the column immediately in front", 2)));
 
-  bool AllIce = (rand() % 10 > 5);
+  bool AllIce = true; // (rand() % 10 > 5);
   for (int i = 0; i < field->GetWidth(); i++) {
     for (int j = 0; j < field->GetHeight(); j++) {
       Battle::Tile* tile = field->GetAt(i + 1, j + 1);
@@ -63,6 +63,9 @@ Mob* RandomMettaurMob::Build() {
             else {
               mob->Spawn<Rank3<Canodumb, CanodumbIdleState>>(i + 1, j + 1);
             }
+          }
+          else if (rand() % 10 > 1) {
+            mob->Spawn<Rank1<ProgsMan, ProgsManIdleState>>(i + 1, j + 1);
           }
         }
       }

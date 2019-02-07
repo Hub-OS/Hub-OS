@@ -19,9 +19,17 @@ RockDebris::RockDebris(RockDebris::Type type, double intensity) : type(type), in
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
   animation.Reload();
-  animation.SetAnimation("DEBRIS");
 
-  animation.SetFrame((int)type, this);
+  if (type == RockDebris::Type::LEFT_ICE || type == RockDebris::Type::RIGHT_ICE) {
+    animation.SetAnimation("ICE_DEBRIS");
+
+    animation.SetFrame((int)type-2, this);
+  }
+  else {
+    animation.SetAnimation("DEBRIS");
+
+    animation.SetFrame((int)type, this);
+  }
 }
 
 void RockDebris::Update(float _elapsed) {
@@ -30,21 +38,26 @@ void RockDebris::Update(float _elapsed) {
   double alpha = swoosh::ease::wideParabola(progress, duration, 1.0);
   double beta = swoosh::ease::linear(progress, duration, 1.0);
 
-  double posX = (beta * (tile->getPosition().x-(5.0*intensity))) + ((1.0 - beta)*tile->getPosition().x);
+  double posX = (beta * (tile->getPosition().x-(10.0*intensity))) + ((1.0 - beta)*tile->getPosition().x);
   double height = -(alpha * 60.0 * intensity);
   double posY = height + (beta * tile->getPosition().y) + ((1.0f - beta)*tile->getPosition().y);
 
-  if (type == RockDebris::Type::LEFT) {
+  if (type == RockDebris::Type::LEFT || type == RockDebris::Type::LEFT_ICE) {
     this->setPosition((float)posX, (float)posY);
   }
 
-  posX = (beta * (tile->getPosition().x + (5.0*intensity))) + ((1.0 - beta)*tile->getPosition().x);
+  posX = (beta * (tile->getPosition().x + (10.0*intensity))) + ((1.0 - beta)*tile->getPosition().x);
 
-  if (type == RockDebris::Type::RIGHT) {
+  if (type == RockDebris::Type::RIGHT || type == RockDebris::Type::RIGHT_ICE) {
     this->setPosition((float)posX, (float)posY);
   }
 
-  setRotation((-std::min(1.0,(progress / duration))*90.0f * intensity)*(((int)type)-2));
+
+  setRotation((float)(-std::min(1.0,(progress / duration))*90.0 * intensity));
+
+  if (type == RockDebris::Type::RIGHT || type == RockDebris::Type::RIGHT_ICE) {
+    setRotation(getRotation()*-1.0f);
+  }
 
   // std::cout << "beta: " << beta << std::endl;
 

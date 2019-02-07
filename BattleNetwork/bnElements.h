@@ -6,6 +6,7 @@
 enum class Element : int {
   FIRE,
   AQUA,
+  ICE,
   ELEC,
   WOOD,
   SWORD,

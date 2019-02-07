@@ -7,7 +7,9 @@ class RockDebris : public Artifact
 public:
   enum class Type : int {
     LEFT = 1,
-    RIGHT
+    RIGHT,
+    LEFT_ICE,
+    RIGHT_ICE
   };
 
 private:

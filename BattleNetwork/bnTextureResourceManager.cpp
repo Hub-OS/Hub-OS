@@ -132,6 +132,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/chip_cursor_big.png");
   paths.push_back("resources/ui/chip_cards.png");
   paths.push_back("resources/ui/chip_icons.png");
+  paths.push_back("resources/ui/chip_nosupport.png");
   paths.push_back("resources/ui/chip_nodata.png");
   paths.push_back("resources/ui/chip_senddata.png");
   paths.push_back("resources/ui/chip_missing.png");
@@ -145,6 +146,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/enemy_deleted.png");
   paths.push_back("resources/ui/double_delete.png");
   paths.push_back("resources/ui/triple_delete.png");
+  paths.push_back("resources/ui/counter_hit.png");
 
   // Battle Results Frame
   paths.push_back("resources/ui/battle_results.png");

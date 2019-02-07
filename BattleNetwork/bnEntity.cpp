@@ -4,6 +4,8 @@
 #include "bnField.h"
 #include "Swoosh\Ease.h"
 
+long Entity::numOfIDs = 0;
+
 const Hit::Properties Entity::DefaultHitProperties{ Hit::recoil, Element::NONE, 3.0, nullptr };
 
 Entity::Entity()
@@ -22,7 +24,9 @@ Entity::Entity()
   element(Element::NONE),
   tileOffset(sf::Vector2f(0,0)) {
   slideTime = sf::milliseconds(100);
+  defaultSlideTime = slideTime;
   elapsedSlideTime = 0;
+  this->ID = ++Entity::numOfIDs;
 }
 
 Entity::~Entity() {
@@ -86,6 +90,9 @@ void Entity::Update(float _elapsed) {
 bool Entity::Move(Direction _direction) {
   bool moved = false;
 
+  //Direction testDirection = this->direction;
+  this->direction = _direction;
+
   Battle::Tile* temp = tile;
   if (_direction == Direction::UP) {
     if (tile->GetY() - 1 > 0) {
@@ -142,6 +149,7 @@ bool Entity::Move(Direction _direction) {
     moved = true;
   }
   else {
+    this->direction = Direction::NONE;
     isSliding = false;
   }
 
@@ -170,6 +178,11 @@ const bool Entity::Hit(int damage, Hit::Properties props) {
 TextureType Entity::GetTextureType() {
   assert(false && "GetGetTextureType shouldn't be called directly from Entity");
   return (TextureType)0;
+}
+
+const long Entity::GetID() const
+{
+  return this->ID;
 }
 
 bool Entity::Teammate(Team _team) {

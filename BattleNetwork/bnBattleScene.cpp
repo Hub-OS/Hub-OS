@@ -78,6 +78,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   tripleDelete = doubleDelete;
   tripleDelete.setTexture(LOAD_TEXTURE(TRIPLE_DELETE));
 
+  counterHit = doubleDelete;
+  counterHit.setTexture(LOAD_TEXTURE(COUNTER_HIT));
+
   /*
   Chips + Chip select setup*/
   chips = nullptr;
@@ -225,6 +228,9 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
     if (victim.IsDeleted()) {
       totalCounterDeletions++;
     }
+
+    comboInfo = counterHit;
+    comboInfoTimer.reset();
  // }
 }
 
@@ -330,7 +336,7 @@ void BattleScene::onUpdate(double elapsed) {
   }
 
   // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
-  if (!(isBattleRoundOver || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle || isPostBattle)) {  
+  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle || isPostBattle)) {  
     int newMobSize = mob->GetRemainingMobCount();
 
     if (lastMobSize != newMobSize) {
@@ -503,7 +509,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   if (!(isInChipSelect || isPostBattle || mob->IsCleared()))
     ENGINE.Draw(&customBarSprite);
 
-  if (isPaused || isInChipSelect) {
+  if (isPaused) {
     // apply shader on draw calls below
     ENGINE.SetShader(&pauseShader);
   }
@@ -514,14 +520,14 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
 
     double summonSecs = summonTimer.getElapsed().asSeconds();
-    double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 1.0);
+    double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
 
-    summonsLabel.setPosition(40.0f, 40.f);
+    summonsLabel.setPosition(40.0f, 80.f);
     summonsLabel.setScale(1.0f, (float)scale);
     summonsLabel.setOutlineColor(sf::Color::Black);
     summonsLabel.setFillColor(sf::Color::White);
     summonsLabel.setOutlineThickness(2.f);
-    summonsLabel.setOrigin(summonsLabel.getGlobalBounds().width / 2.0f, summonsLabel.getGlobalBounds().height / 2.0f);
+    summonsLabel.setOrigin(0, (summonsLabel.getLocalBounds().height * 2.0f) / 2.0f);
     ENGINE.Draw(summonsLabel, false);
 
     if (summonSecs >= summonTextLength) {
@@ -551,7 +557,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
 
-  if (!isPlayerDeleted) {
+  if (!isPlayerDeleted && !summons.IsSummonsActive()) {
     chipUI.Update((float)elapsed); // DRAW 
 
     Drawable* component;
@@ -642,7 +648,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     if (isInChipSelect == false && !isBattleRoundOver) {
       player->SetCharging(false);
 
-      AUDIO.Play(AudioType::CHIP_SELECT);
+      AUDIO.Play(AudioType::CUSTOM_SCREEN_OPEN);
       // slide up the screen a hair
       //camera.MoveCamera(sf::Vector2f(240.f, 140.f), sf::seconds(0.5f));
       isInChipSelect = true;

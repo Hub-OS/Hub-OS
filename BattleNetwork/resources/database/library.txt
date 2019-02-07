@@ -1,6 +1,6 @@
 # Lines beginning with pound '#' are comments and are ignored
 
-Chip index="140" name="Cube" damage="0" desc="Places cube in front" cardIndex="108" iconIndex="139" type="Normal" codes="A,C,E,H,R" memory="9" power="Normal" rarity="0" dark="0"
+Chip index="140" name="RockCube" damage="0" desc="Places cube in front" cardIndex="108" iconIndex="139" type="Normal" codes="A,C,E,H,R" memory="9" power="Normal" rarity="0" dark="0"
 
 Chip name="Cannon"  cardIndex="0" iconIndex="0" damage="40" type="Normal" codes="A,A,B,B,C,C" desc="Cannon attack to 1 enemy" verbose="Cannon (ABCDE)\n40 Damage. 1 Hit.\nElement: NULL\nFire a shot down the same row hitting the closest enemy.\n6 frame startup\nInstant travel time\n6 frame endlag" rarity="0" 
 Chip name="HiCannon" cardIndex="1" iconIndex="1" damage="60" type="Normal" codes="E" desc="Cannon attack to 1 enemy" rarity="1"

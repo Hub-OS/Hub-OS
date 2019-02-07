@@ -1,5 +1,6 @@
 #include "bnTile.h"
 #include "bnEntity.h"
+#include "bnCharacter.h"
 #include "bnSpell.h"
 #include "bnPlayer.h"
 #include "bnAudioResourceManager.h"
@@ -231,6 +232,11 @@ namespace Battle {
         state = TileState::BROKEN;
         AUDIO.Play(AudioType::PANEL_CRACK);
       }
+      auto tagged = std::find_if(taggedSpells.begin(), taggedSpells.end(), [&_entity](int ID) { return ID == _entity->GetID(); });
+      if (tagged != taggedSpells.end()) {
+        taggedSpells.erase(tagged);
+      }
+
       entities.erase(it);
     }
   }
@@ -241,6 +247,9 @@ namespace Battle {
   }
 
   void Tile::AffectEntities(Spell* caller) {
+    if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
+      return;
+
     for (auto it = entities.begin(); it != entities.end(); ++it) {
       if (*it == nullptr) {
         it = entities.erase(it);
@@ -254,11 +263,13 @@ namespace Battle {
         if (*it == nullptr || *it == caller)
           continue;
 
-        if (!(*it)->IsPassthrough() && dynamic_cast<Spell*>(*it) == 0) {
+        if (!(*it)->IsPassthrough() && dynamic_cast<Character*>(*it)) {
           caller->Attack(*it);
         }
       }
     }
+
+    taggedSpells.push_back(caller->GetID());
   }
 
   bool Tile::GetNextEntity(Entity*& out) const {
