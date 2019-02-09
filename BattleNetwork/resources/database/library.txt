@@ -36,6 +36,8 @@ Chip name="FireSwrd" cardIndex="21" iconIndex="33" damage="70" type="Fire" codes
 
 # 21 - 74
 
+Chip name="Thunder" cardIndex="52" iconIndex="106" damage="40" type-"Electric" codes="B,R,*" desc="Paralyze Enmy" rarity="3"
+
 Chip name="Recov10" cardIndex="74" iconIndex="146" damage="10" type="Normal" codes="A,L,*" desc="Recovers 10HP" rarity="1" 
 Chip name="Recov20" cardIndex="75" iconIndex="147" damage="30" type="Normal" codes="R" desc="Recovers 20HP" rarity="1"
 Chip name="Recov30" cardIndex="76" iconIndex="148" damage="50" type="Normal" codes="T" desc="Recovers 30HP" rarity="2"

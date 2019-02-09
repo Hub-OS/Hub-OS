@@ -131,10 +131,29 @@ void MetalMan::SetHealth(int _health) {
 }
 
 const bool MetalMan::Hit(int _damage, Hit::Properties props) {
-  (health - _damage < 0) ? health = 0 : health -= _damage;
+  /*(health - _damage < 0) ? health = 0 : health -= _damage;
   SetShader(whiteout);
 
-  return health;
+  return health;*/
+
+  bool result = true;
+
+  if (health - _damage < 0) {
+    health = 0;
+  }
+  else {
+    health -= _damage;
+
+    if ((props.flags & Hit::stun) == Hit::stun) {
+      SetShader(stun);
+      this->stunCooldown = props.secs;
+    }
+    else {
+      SetShader(whiteout);
+    }
+  }
+
+  return result;
 }
 
 const float MetalMan::GetHitHeight() const {

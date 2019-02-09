@@ -47,7 +47,7 @@ void MetalBlade::Update(float _elapsed) {
           this->SetDirection(Direction::RIGHT);
         }
       }
-      else {
+      else if(this->tile->GetY() == 3){
         if (this->GetDirection() == Direction::LEFT) {
           this->SetDirection(Direction::UP);
         }

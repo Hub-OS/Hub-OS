@@ -96,6 +96,26 @@ Battle::Tile* Field::FindEntity(Entity* _entity) const {
   return nullptr;
 }
 
+std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
+{
+  std::vector<Entity*> res;
+
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      Entity* next = nullptr;
+      while (tile->GetNextEntity(next)) {
+        if (query(next)) {
+          res.push_back(next);
+        }
+      }
+    }
+  }
+
+  return res;
+}
+
 bool Field::GetNextEntity(Entity*& out, int _depth) const {
   static int i = 0;
   for (i; i < (int)entities.size(); i++) {

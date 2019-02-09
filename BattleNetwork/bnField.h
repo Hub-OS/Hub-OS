@@ -24,7 +24,12 @@ public:
   void AddEntity(Entity* _entity, int x, int y);
   void OwnEntity(Entity* _entity, int x, int y);
   void RemoveEntity(Entity* _entity);
+
+  // TODO: do we need this anymore?
   Battle::Tile* FindEntity(Entity* _entity) const;
+
+  std::vector<Entity*> FindEntities(std::function<bool(Entity* e)> query);
+
   bool GetNextEntity(Entity*& out, int _depth) const;
 
   void SetAt(int _x, int _y, Team _team);

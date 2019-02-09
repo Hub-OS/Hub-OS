@@ -75,6 +75,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::SWORD_SWING, "resources/sfx/sword_swing.ogg"); status++;
   LoadSource(AudioType::TOSS_ITEM, "resources/sfx/toss_item.ogg"); status++;
   LoadSource(AudioType::WAVE, "resources/sfx/wave.ogg"); status++;
+  LoadSource(AudioType::THUNDER, "resources/sfx/thunder.ogg"); status++;
   LoadSource(AudioType::INVISIBLE, "resources/sfx/invisible.ogg"); status++;
   LoadSource(AudioType::PA_ADVANCE, "resources/sfx/pa_advance.ogg"); status++;
   LoadSource(AudioType::POINT, "resources/sfx/point.ogg"); status++;

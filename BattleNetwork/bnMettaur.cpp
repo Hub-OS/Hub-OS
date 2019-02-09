@@ -161,12 +161,31 @@ void Mettaur::SetHealth(int _health) {
 }
 
 const bool Mettaur::Hit(int _damage, Hit::Properties props) {
-  if (Character::Hit(_damage, props)) {
+  /*if (Character::Hit(_damage, props)) {
     SetShader(whiteout);
     return true;
   }
 
-  return false;
+  return false;*/
+
+  bool result = true;
+
+  if (health - _damage < 0) {
+    health = 0;
+  }
+  else {
+    health -= _damage;
+
+    if ((props.flags & Hit::stun) == Hit::stun) {
+      SetShader(stun);
+      this->stunCooldown = props.secs;
+    }
+    else {
+      SetShader(whiteout);
+    }
+  }
+
+  return result;
 }
 
 const float Mettaur::GetHitHeight() const {

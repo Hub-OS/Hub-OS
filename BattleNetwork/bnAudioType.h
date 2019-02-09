@@ -37,6 +37,7 @@ enum AudioType {
   SWORD_SWING,
   TOSS_ITEM,
   WAVE,
+  THUNDER,
   INVISIBLE,
   PA_ADVANCE,
   POINT,

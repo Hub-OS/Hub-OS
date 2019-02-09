@@ -7,6 +7,7 @@
 #include "bnAirShot.h"
 #include "bnCannon.h"
 #include "bnBasicSword.h"
+#include "bnThunder.h"
 
 class PlayerChipUseListener : public ChipUseListener {
 private:
@@ -133,6 +134,16 @@ public:
       airshot->SetDirection(Direction::RIGHT);
 
       player->GetField()->OwnEntity(airshot, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+    }
+    else if (name == "Thunder") {
+      auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
+
+      player->SetAnimation(PLAYER_SHOOTING, onFinish);
+
+      //AUDIO.Play(AudioType::);
+
+      Thunder* thunder = new Thunder(player->GetField(), player->GetTeam());
+      player->GetField()->OwnEntity(thunder, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
   }
 };

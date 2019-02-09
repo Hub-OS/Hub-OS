@@ -162,7 +162,7 @@ public:
       timeInSecs = 0;
       duration = sf::seconds(1);
     }
-    else if (name.substr(0, 8) == "Barrier") {
+    else if (name.substr(0, 7) == "Barrier") {
       summon = "Barrier";
       timeInSecs = 0;
       duration = sf::seconds(1);

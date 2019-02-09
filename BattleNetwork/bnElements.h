@@ -6,7 +6,6 @@
 enum class Element : int {
   FIRE,
   AQUA,
-  ICE,
   ELEC,
   WOOD,
   SWORD,
@@ -16,5 +15,6 @@ enum class Element : int {
   PLUS,
   BREAK,
   NONE,
+  ICE = NONE,
   SIZE
 };

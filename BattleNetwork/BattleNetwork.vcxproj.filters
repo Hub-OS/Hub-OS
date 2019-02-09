@@ -176,9 +176,6 @@
     <Filter Include="Activities\Battle\Content\Entity\Summons\Roll">
       <UniqueIdentifier>{541f9cd8-4857-4700-bb63-5aa7ce04599b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Enumerations">
-      <UniqueIdentifier>{5c9d2cbc-eb6d-4112-b2aa-bafcdf47830a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Chips">
       <UniqueIdentifier>{6552fc8f-0f57-4735-8abf-96a54c1fec10}</UniqueIdentifier>
     </Filter>
@@ -331,6 +328,12 @@
     </Filter>
     <Filter Include="Activities\Battle\Content\Entity\Artifact\Auras">
       <UniqueIdentifier>{2482e1b7-393a-4a43-ba4f-36770ee44c88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Spell\Thunder">
+      <UniqueIdentifier>{8bcaba3f-b78e-487d-87ae-4eef532e7546}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enumerations">
+      <UniqueIdentifier>{5c9d2cbc-eb6d-4112-b2aa-bafcdf47830a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -643,6 +646,9 @@
     <ClCompile Include="bnAura.cpp">
       <Filter>Activities\Battle\Content\Entity\Artifact\Auras</Filter>
     </ClCompile>
+    <ClCompile Include="bnThunder.cpp">
+      <Filter>Activities\Battle\Content\Entity\Spell\Thunder</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -679,19 +685,19 @@
       <Filter>Activities\Battle\Content\Components\Animation\Charge</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerState.h">
-      <Filter>Activities\Battle\Content\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnMobState.h">
-      <Filter>Activities\Battle\Content\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnTileState.h">
-      <Filter>Activities\Battle\Content\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnTeam.h">
-      <Filter>Activities\Battle\Content\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnDirection.h">
-      <Filter>Activities\Battle\Content\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnEngine.h">
       <Filter>Engine</Filter>
@@ -881,7 +887,7 @@
       <Filter>Database\Folder</Filter>
     </ClInclude>
     <ClInclude Include="bnElements.h">
-      <Filter>Activities\Battle\Content\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnFolderScene.h">
       <Filter>Activities\Folder</Filter>
@@ -1080,6 +1086,9 @@
     </ClInclude>
     <ClInclude Include="bnAura.h">
       <Filter>Activities\Battle\Content\Entity\Artifact\Auras</Filter>
+    </ClInclude>
+    <ClInclude Include="bnThunder.h">
+      <Filter>Activities\Battle\Content\Entity\Spell\Thunder</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

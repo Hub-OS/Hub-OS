@@ -129,6 +129,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/spell_wave.png");
   paths.push_back("resources/spells/spell_prog_bomb.png");
   paths.push_back("resources/spells/auras.png");
+  paths.push_back("resources/spells/thunder.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");

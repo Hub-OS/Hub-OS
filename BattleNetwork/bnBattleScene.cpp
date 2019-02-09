@@ -175,7 +175,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   shaderCooldown = 0;
 
   pauseShader.setUniform("texture", sf::Shader::CurrentTexture);
-  pauseShader.setUniform("opacity", 0.5f);
+  pauseShader.setUniform("opacity", 0.25f);
 
   whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
   whiteShader.setUniform("opacity", 0.5f);
