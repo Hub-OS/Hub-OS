@@ -109,13 +109,13 @@ bool AirShot::Move(Direction _direction) {
   return true;
 }
 
-void AirShot::Attack(Entity* _entity) {
+void AirShot::Attack(Character* _entity) {
   if (hit || deleted) {
     return;
   }
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    auto props = Entity::DefaultHitProperties;
+    auto props = Character::DefaultHitProperties;
     _entity->Hit(damage, props);
     hitHeight = _entity->GetHitHeight();
 

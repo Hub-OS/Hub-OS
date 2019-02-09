@@ -3,12 +3,17 @@
 #include "bnField.h"
 #include "bnExplosion.h"
 
+const Hit::Properties Character::DefaultHitProperties{ Hit::recoil, Element::NONE, 3.0, nullptr };
+
 Character::Character(Rank _rank) : 
   health(0),
   counterable(false),
   stunCooldown(0),
   name("unnamed"),
   rank(_rank),
+  frameDamageTaken(0),
+  frameElementalModifier(false),
+  invokeDeletion(false),
   CounterHitPublisher() {
   burnCycle = sf::milliseconds(150);
   elapsedBurnTime = burnCycle.asSeconds();
@@ -88,12 +93,19 @@ int Character::GetHealth() const {
 }
 
 const bool Character::Hit(int damage, Hit::Properties props) {
-  int previousHealth = health;
+  this->frameHitProps |= props.flags;
+  this->frameDamageTaken += damage;
 
-  (health - damage < 0) ? this->SetHealth(0) : this->SetHealth(health - damage);
-   
+  return (health != 0);
+}
 
-  if (this->IsCountered() && (props.flags & Hit::recoil) == Hit::recoil) {
+void Character::ResolveFrameBattleDamage()
+{
+  (health - this->frameDamageTaken < 0) ? this->SetHealth(0) : this->SetHealth(health - this->frameDamageTaken);
+
+  this->FilterFrameHitsAndApplyGuards(this->frameHitProps);
+
+  if (this->IsCountered() && (this->frameHitProps & Hit::recoil) == Hit::recoil) {
     this->Stun(3.0);
 
     if (this->GetHealth() == 0) {
@@ -101,10 +113,13 @@ const bool Character::Hit(int damage, Hit::Properties props) {
       this->tileOffset = sf::Vector2f(50.f, 0.0f);
     }
 
-    this->Broadcast(*this, *props.aggressor);
+    //this->Broadcast(*this, *props.aggressor);
   }
 
-  return (health != previousHealth);
+  if (this->GetHealth() == 0 && !this->invokeDeletion) {
+    this->OnDelete();
+    this->invokeDeletion = true;
+  }
 }
 
 int* Character::GetAnimOffset() {

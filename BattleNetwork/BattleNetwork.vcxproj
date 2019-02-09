@@ -178,6 +178,7 @@
     <ClCompile Include="bnAnimatedCharacter.cpp" />
     <ClCompile Include="bnAnimatedTextBox.cpp" />
     <ClCompile Include="bnAnimation.cpp" />
+    <ClCompile Include="bnAura.cpp" />
     <ClCompile Include="bnBasicSword.cpp" />
     <ClCompile Include="bnBattleResults.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -200,6 +201,7 @@
     <ClCompile Include="bnFolderEditScene.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />
     <ClCompile Include="bnGameOverScene.cpp" />
+    <ClCompile Include="bnGear.cpp" />
     <ClCompile Include="bnGraveyardBackground.cpp" />
     <ClCompile Include="bnGridBackground.cpp" />
     <ClCompile Include="bnInfiniteMap.cpp" />
@@ -221,6 +223,12 @@
     <ClCompile Include="bnLibraryScene.cpp" />
     <ClCompile Include="bnLogger.cpp" />
     <ClCompile Include="bnMainMenuScene.cpp" />
+    <ClCompile Include="bnMetalBlade.cpp" />
+    <ClCompile Include="bnMetalMan.cpp" />
+    <ClCompile Include="bnMetalManIdleState.cpp" />
+    <ClCompile Include="bnMetalManMoveState.cpp" />
+    <ClCompile Include="bnMetalManPunchState.cpp" />
+    <ClCompile Include="bnMetalManThrowState.cpp" />
     <ClCompile Include="bnMettaurAttackState.cpp" />
     <ClCompile Include="bnMettaurIdleState.cpp" />
     <ClCompile Include="bnMettaurMoveState.cpp" />
@@ -279,6 +287,7 @@
     <ClInclude Include="bnAnimate.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
+    <ClInclude Include="bnAura.h" />
     <ClInclude Include="bnBattleOverTrigger.h" />
     <ClInclude Include="bnCounterHitListener.h" />
     <ClInclude Include="bnCounterHitPublisher.h" />
@@ -305,7 +314,14 @@
     <ClInclude Include="bnFakeScene.h" />
     <ClInclude Include="bnFolderEditScene.h" />
     <ClInclude Include="bnGameOverScene.h" />
+    <ClInclude Include="bnGear.h" />
     <ClInclude Include="bnLibraryScene.h" />
+    <ClInclude Include="bnMetalBlade.h" />
+    <ClInclude Include="bnMetalMan.h" />
+    <ClInclude Include="bnMetalManIdleState.h" />
+    <ClInclude Include="bnMetalManMoveState.h" />
+    <ClInclude Include="bnMetalManPunchState.h" />
+    <ClInclude Include="bnMetalManThrowState.h" />
     <ClInclude Include="bnMysteryData.h" />
     <ClInclude Include="bnObstacle.h" />
     <ClInclude Include="bnProgsmanHitState.h" />

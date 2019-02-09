@@ -6,6 +6,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 #include "bnLogger.h"
+#include "bnAura.h"
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
@@ -133,6 +134,13 @@ const bool Player::Hit(int _damage, Hit::Properties props) {
   // return false;
 
   if ((this->IsPassthrough() && (props.flags & Hit::pierce) != Hit::pierce) || invincibilityCooldown > 0) return false;
+
+  // JUST AS AN AURA PROOF OF CONCEPT
+  Aura* a = this->GetComponent<Aura>();
+
+  if (a && a->GetAuraType() == Aura::Type::_100) {
+    return false;
+  }
 
   bool result = true;
 

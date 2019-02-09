@@ -5,8 +5,32 @@
 #include <string>
 using std::string;
 
+namespace Hit {
+  typedef char Flags;
+
+  const Flags none = 0x00;
+  const Flags recoil = 0x01;
+  const Flags shake = 0x02;
+  const Flags stun = 0x03;
+  const Flags pierce = 0x04;
+  const Flags flinch = 0x05;
+
+  struct Properties {
+    Flags flags;
+    Element element;
+    double secs; // used by both recoil and stun
+    Character* aggressor;
+  };
+}
+
 class Character : public virtual Entity, public CounterHitPublisher {
   friend class Field;
+
+private:
+  int frameDamageTaken;          // accumulation of final damage on frame
+  bool frameElementalModifier;   // whether or not the final damage calculated was weak against 
+  bool invokeDeletion;
+  Hit::Flags frameHitProps; // accumulation of final hit props on frame
 
 public:
   enum class Rank : const int {
@@ -20,10 +44,16 @@ public:
     SIZE
   };
 
+  const static Hit::Properties DefaultHitProperties;
+
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
 
-  virtual const bool Hit(int damage, Hit::Properties props = Entity::DefaultHitProperties);
+  virtual const bool Hit(int damage, Hit::Properties props = Character::DefaultHitProperties);
+  virtual void ResolveFrameBattleDamage();
+  virtual void FilterFrameHitsAndApplyGuards(Hit::Flags flags) {} // TODO: make abstract
+  virtual const float GetHitHeight() const { return 10.f;  } // TODO: make abstract
+  virtual void OnDelete() {} // TODO: make abstract
   virtual void Update(float _elapsed);
   virtual bool CanMoveTo(Battle::Tile* next);
   virtual vector<Drawable*> GetMiscComponents();

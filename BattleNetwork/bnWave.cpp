@@ -76,7 +76,7 @@ bool Wave::Move(Direction _direction) {
   return true;
 }
 
-void Wave::Attack(Entity* _entity) {
+void Wave::Attack(Character* _entity) {
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     _entity->Hit(10);
   }

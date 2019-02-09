@@ -54,18 +54,28 @@ bool Cube::CanMoveTo(Battle::Tile * next)
     if (next->ContainsEntityType<Obstacle>()) {
       Entity* other = nullptr;
 
+      bool stop = false;
+
       while (next->GetNextEntity(other)) {
         Cube* isCube = dynamic_cast<Cube*>(other);
 
         if (isCube && isCube->GetElement() == Element::ICE && this->GetElement() == Element::ICE) {
           isCube->SlideToTile(true);
-          isCube->Move(this->GetPreviousDirection());
+          Direction dir = this->direction;
+          std::cout << "Direction: " << (int)dir << std::endl;
+          isCube->Move(dir);
+          stop = true;
+        }
+        else if (isCube) {
+          stop = true;
         }
       }
 
-      this->SetDirection(Direction::NONE);
-      this->previousDirection = Direction::NONE;
-      return false;
+      if (stop) {
+        this->SetDirection(Direction::NONE);
+        this->previousDirection = Direction::NONE;
+        return false;
+      }
     }
 
     return true;
@@ -97,21 +107,21 @@ void Cube::Update(float _elapsed) {
   animation.Update(_elapsed);
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
-  if (this->GetHealth() == 0) {
-    double intensity = (double)(rand() % 2) + 1.0;
-
-    auto left  = (this->GetElement() != Element::ICE) ? RockDebris::Type::LEFT  : RockDebris::Type::LEFT_ICE;
-    auto right = (this->GetElement() != Element::ICE) ? RockDebris::Type::RIGHT : RockDebris::Type::RIGHT_ICE;
-
-    this->GetField()->OwnEntity(new RockDebris(left, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
-    this->GetField()->OwnEntity(new RockDebris(right, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
-    this->Delete();
-    AUDIO.Play(AudioType::PANEL_CRACK);
-  }
-
   Character::Update(_elapsed);
 
   timer -= _elapsed;
+}
+
+void Cube::OnDelete() {
+  double intensity = (double)(rand() % 2) + 1.0;
+
+  auto left = (this->GetElement() != Element::ICE) ? RockDebris::Type::LEFT : RockDebris::Type::LEFT_ICE;
+  auto right = (this->GetElement() != Element::ICE) ? RockDebris::Type::RIGHT : RockDebris::Type::RIGHT_ICE;
+
+  this->GetField()->OwnEntity(new RockDebris(left, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
+  this->GetField()->OwnEntity(new RockDebris(right, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
+  this->Delete();
+  AUDIO.Play(AudioType::PANEL_CRACK);
 }
 
 const bool Cube::Hit(int damage, Hit::Properties props) {
@@ -130,10 +140,12 @@ const bool Cube::Hit(int damage, Hit::Properties props) {
   return health;
 }
 
-void Cube::Attack(Entity* other) {
+void Cube::Attack(Character* other) {
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 
   if (isObstacle) {
+    isObstacle->Hit(200);
+    this->hit = true;
     return;
   }
 

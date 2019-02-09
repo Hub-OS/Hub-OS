@@ -76,7 +76,7 @@ bool ProgBomb::Move(Direction _direction) {
   return true;
 }
 
-void ProgBomb::Attack(Entity* _entity) {
+void ProgBomb::Attack(Character* _entity) {
   Player* isPlayer = dynamic_cast<Player*>(_entity);
   if (isPlayer) {
     isPlayer->Hit(20);

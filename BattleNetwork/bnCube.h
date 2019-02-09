@@ -18,10 +18,11 @@ public:
   virtual ~Cube(void);
 
   virtual void Update(float _elapsed);
-  virtual const bool Hit(int damage, Hit::Properties props = Entity::DefaultHitProperties);
+  virtual const bool Hit(int damage, Hit::Properties props = Character::DefaultHitProperties);
+  virtual void OnDelete();
   virtual void SetAnimation(std::string animation);
   virtual bool CanMoveTo(Battle::Tile * next);
-  virtual void Attack(Entity* e);
+  virtual void Attack(Character* e);
   vector<Drawable*> GetMiscComponents() { return vector<Drawable*>(); }
   double timer;
 

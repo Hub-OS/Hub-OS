@@ -19,22 +19,6 @@ class Field;
 class Character; // forward decl
 class Component; // forward decl
 
-namespace Hit {
-  const char none   = 0x00;
-  const char recoil = 0x01;
-  const char shake  = 0x02;
-  const char stun   = 0x03;
-  const char pierce = 0x04;
-  const char flinch = 0x05;
-
-  struct Properties {
-    char flags;
-    Element element;
-    double secs; // used by both recoil and stun
-    Character* aggressor;
-  };
-}
-
 class Entity : public LayeredDrawable {
   friend class Field;
   friend class Component;
@@ -44,15 +28,12 @@ private:
   static long numOfIDs;
 
 public:
-  const static Hit::Properties DefaultHitProperties;
-
   Entity();
   virtual ~Entity();
 
-  virtual const bool Hit(int damage, Hit::Properties props=Entity::DefaultHitProperties);
-  virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);
+  virtual bool Teleport(int x, int y);
   virtual bool CanMoveTo(Battle::Tile* next);
   virtual vector<Drawable*> GetMiscComponents();
   virtual TextureType GetTextureType();
@@ -77,6 +58,9 @@ public:
 
   void SetFloatShoe(bool state);
   bool HasFloatShoe();
+
+  void SetDirection(Direction direction);
+  Direction GetDirection();
   Direction GetPreviousDirection();
 
   void Delete();
@@ -88,6 +72,9 @@ public:
   void AdoptNextTile();
   void SetBattleActive(bool state);
   const bool IsBattleActive() { return isBattleActive; }
+
+  template<typename Type>
+  Type* GetComponent();
 
 protected:
   // used to toggle some effects inbetween paused scene moments
@@ -115,9 +102,25 @@ protected:
 
   std::vector<Component*> shared;
 
-  void FreeComponents();
+  void FreeAllComponents();
+  void FreeComponent(Component& c);
   void RegisterComponent(Component* c);
 
 private:
   void UpdateSlideStartPosition();
 };
+
+template<typename Type>
+inline Type* Entity::GetComponent()
+{
+  for (vector<Component*>::iterator it = shared.begin(); it != shared.end(); ++it) {
+    Type* to_type = dynamic_cast<Type*>(*it);
+
+    if (to_type != nullptr) {
+      return to_type;
+    }
+  }
+
+  return nullptr;
+}
+

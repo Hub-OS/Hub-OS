@@ -116,11 +116,11 @@ bool Buster::Move(Direction _direction) {
   return true;
 }
 
-void Buster::Attack(Entity* _entity) {
+void Buster::Attack(Character* _entity) {
   if (hit || deleted) return;
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    auto props = Entity::DefaultHitProperties;
+    auto props = Character::DefaultHitProperties;
     props.flags = props.flags & ~Hit::recoil;
 
     _entity->Hit(damage, props);

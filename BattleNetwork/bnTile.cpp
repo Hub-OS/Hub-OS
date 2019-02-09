@@ -259,17 +259,25 @@ namespace Battle {
 
     // Spells dont cause damage when the battle is over
     if (this->isBattleActive) {
+      bool tag = false;
       for (auto it = entities.begin(); it != entities.end(); ++it) {
         if (*it == nullptr || *it == caller)
           continue;
 
-        if (!(*it)->IsPassthrough() && dynamic_cast<Character*>(*it)) {
-          caller->Attack(*it);
+        Character* c = dynamic_cast<Character*>(*it);
+
+        if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam())) {
+          caller->Attack(c);
+          tag = true;
         }
       }
-    }
 
-    taggedSpells.push_back(caller->GetID());
+      // only ignore spells that have already hit something on a tile
+      // this is similar to the hitbox being removed in mmbn mechanics
+      if (tag) {
+        taggedSpells.push_back(caller->GetID());
+      }
+    }
   }
 
   bool Tile::GetNextEntity(Entity*& out) const {

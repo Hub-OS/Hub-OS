@@ -2,11 +2,9 @@
 #include "bnComponent.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "Swoosh\Ease.h"
+#include <Swoosh\Ease.h>
 
 long Entity::numOfIDs = 0;
-
-const Hit::Properties Entity::DefaultHitProperties{ Hit::recoil, Element::NONE, 3.0, nullptr };
 
 Entity::Entity()
   : tile(nullptr),
@@ -22,10 +20,11 @@ Entity::Entity()
   ownedByField(false),
   isSliding(false),
   element(Element::NONE),
-  tileOffset(sf::Vector2f(0,0)) {
-  slideTime = sf::milliseconds(100);
-  defaultSlideTime = slideTime;
-  elapsedSlideTime = 0;
+  tileOffset(sf::Vector2f(0,0)),
+  slideTime(sf::milliseconds(100)),
+  defaultSlideTime(slideTime),
+  elapsedSlideTime(0)
+{
   this->ID = ++Entity::numOfIDs;
 }
 
@@ -39,14 +38,25 @@ void Entity::Update(float _elapsed) {
   if (isSliding && this->next) {
     elapsedSlideTime += _elapsed;
 
+    float delta = swoosh::ease::linear((float)elapsedSlideTime, slideTime.asSeconds(), 1.0f);
+
     sf::Vector2f pos = this->slideStartPosition;
     sf::Vector2f tar = this->next->getPosition();
-    tar = sf::Vector2f(tar.x, tar.y);
 
-    float delta = swoosh::ease::linear((float)elapsedSlideTime, slideTime.asSeconds(), 1.0f);
     auto interpol = tar * delta + (pos*(1.0f - delta));
     this->tileOffset = interpol - pos;
 
+    if (delta >= 0.5f) {
+      if (tile != next) {
+        previous->RemoveEntity(this);
+        previous = tile;
+
+        SetTile(next);
+        tile->AddEntity(this);
+      }
+
+      this->tileOffset = -tar+pos+tileOffset;
+    } 
 
     if(delta == 1.0f)
     {
@@ -54,29 +64,35 @@ void Entity::Update(float _elapsed) {
       Battle::Tile* prevTile = this->GetTile();
       this->tileOffset = sf::Vector2f(0, 0);
 
-      this->AdoptNextTile();
-
       if (isSliding) {
         // std::cout << "we are sliding" << std::endl;;
 
-        if(this->GetTile()->GetX() < prevTile->GetX()) {
+        //std::cout << "direction: " << (int)this->GetPreviousDirection() << std::endl;
+        this->Move(this->GetPreviousDirection());
+
+        // calculate our new entity's position in world coordinates based on next tile
+        // It's the same in the update loop, but we need the value right at this moment
+        this->UpdateSlideStartPosition();
+
+        if(this->previous->GetX() < prevTile->GetX()) {
           this->next = this->GetField()->GetAt(this->GetTile()->GetX() - 1, this->GetTile()->GetY());
         }
-        else if (this->GetTile()->GetX() > prevTile->GetX()) {
+        else if (this->previous->GetX() > prevTile->GetX()) {
           this->next = this->GetField()->GetAt(this->GetTile()->GetX() + 1, this->GetTile()->GetY());
         }
-        else if (this->GetTile()->GetY() > prevTile->GetY()) {
+        else if (this->previous->GetY() > prevTile->GetY()) {
           this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() + 1);
         }
-        else if (this->GetTile()->GetY() < prevTile->GetY()) {
+        else if (this->previous->GetY() < prevTile->GetY()) {
           this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() - 1);
         }
 
-        if (!(this->next && Teammate(this->next->GetTeam()) && this->next->GetState() == TileState::ICE)) {
+        if (!(this->next && Teammate(this->next->GetTeam()) && this->tile->GetState() == TileState::ICE)) {
           // Conditions not met
           //std::cout << "Conditions not met" << std::endl;
           isSliding = false;
           this->next = nullptr;
+
         }
       }
     }
@@ -97,7 +113,7 @@ bool Entity::Move(Direction _direction) {
   if (_direction == Direction::UP) {
     if (tile->GetY() - 1 > 0) {
       next = field->GetAt(tile->GetX(), tile->GetY() - 1);
-      if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+      if (CanMoveTo(next)) {
         ;
       }
       else {
@@ -108,7 +124,7 @@ bool Entity::Move(Direction _direction) {
   else if (_direction == Direction::LEFT) {
     if (tile->GetX() - 1 > 0) {
       next = field->GetAt(tile->GetX() - 1, tile->GetY());
-      if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+      if (CanMoveTo(next)) {
         ;
       }
       else {
@@ -119,7 +135,7 @@ bool Entity::Move(Direction _direction) {
   else if (_direction == Direction::DOWN) {
     if (tile->GetY() + 1 <= (int)field->GetHeight()) {
       next = field->GetAt(tile->GetX(), tile->GetY() + 1);
-      if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+      if (CanMoveTo(next)) {
         ;
       }
       else {
@@ -130,7 +146,7 @@ bool Entity::Move(Direction _direction) {
   else if (_direction == Direction::RIGHT) {
     if (tile->GetX() + 1 <= static_cast<int>(field->GetWidth())) {
       next = field->GetAt(tile->GetX() + 1, tile->GetY());
-      if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+      if (CanMoveTo(next)) {
         ;
       }
       else {
@@ -156,23 +172,46 @@ bool Entity::Move(Direction _direction) {
   return moved;
 }
 
+bool Entity::Teleport(int col, int row) {
+  bool moved = false;
+
+  //Direction testDirection = this->direction;
+  Battle::Tile* temp = tile;
+
+  this->direction = Direction::NONE;
+
+
+  next = field->GetAt(col, row);
+
+  if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+    ;
+  }
+  else {
+    next = nullptr;
+  }
+
+  if (next) {
+    this->previousDirection = Direction::NONE;
+
+    previous = temp;
+
+    moved = true;
+  }
+
+  isSliding = false;
+
+  return moved;
+}
+
 bool Entity::CanMoveTo(Battle::Tile * next)
 {
-  return next? (this->HasFloatShoe()? true : next->IsWalkable()) : false;
+  bool valid = next? (this->HasFloatShoe()? true : next->IsWalkable()) : false;
+  return valid && Teammate(next->GetTeam());
 }
 
 vector<Drawable*> Entity::GetMiscComponents() {
   assert(false && "GetMiscComponents shouldn't be called directly from Entity");
   return vector<Drawable*>();
-}
-
-const float Entity::GetHitHeight() const {
-  //assert(false && "GetHitHeight shouldn't be called directly from Entity");
-  return 0;
-}
-
-const bool Entity::Hit(int damage, Hit::Properties props) {
-  return false;
 }
 
 TextureType Entity::GetTextureType() {
@@ -240,6 +279,15 @@ bool Entity::HasFloatShoe()
   return floatShoe;
 }
 
+void Entity::SetDirection(Direction dir) {
+  this->direction = dir;
+}
+
+Direction Entity::GetDirection()
+{
+  return direction;
+}
+
 Direction Entity::GetPreviousDirection()
 {
   return previousDirection;
@@ -282,17 +330,6 @@ void Entity::AdoptNextTile()
 
   next = nullptr;
 
-  if (this->isSliding) {
-    std::cout << "direction: " << (int)this->GetPreviousDirection() << std::endl;
-    this->Move(this->GetPreviousDirection());
-
-    // calculate our new entity's position in world coordinates based on next tile
-    // It's the same in the update loop, but we need the value right at this moment
-    this->UpdateSlideStartPosition();
-
-    if (!next) this->SlideToTile(false);
-  }
-
   moveCount++;
 }
 
@@ -301,10 +338,20 @@ void Entity::SetBattleActive(bool state)
   isBattleActive = state;
 }
 
-void Entity::FreeComponents()
+void Entity::FreeAllComponents()
 {
   for (int i = 0; i < shared.size(); i++) {
     shared[i]->FreeOwner();
+  }
+}
+
+void Entity::FreeComponent(Component& c) {
+  for (int i = 0; i < shared.size(); i++) {
+    if (shared[i] == &c) {
+      shared[i]->FreeOwner();
+      shared.erase(shared.begin() + i);
+      return;
+    }
   }
 }
 

@@ -314,6 +314,24 @@
     <Filter Include="Activities\Battle\Content\Entity\Obstacle\Cube">
       <UniqueIdentifier>{ff64002f-276a-4bda-9969-a191c1e00185}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\MobFactories\Boss\MetalMan">
+      <UniqueIdentifier>{bf0078df-2b66-4101-88ac-eba5e87d190a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Obstacle\MetalGear">
+      <UniqueIdentifier>{2eecd12e-2612-414a-a92b-4c4a842114f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Character\MetalMan">
+      <UniqueIdentifier>{d21c05da-2efc-4a4e-9e2a-dd81b3fd411e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Character\MetalMan\States">
+      <UniqueIdentifier>{6363f3d7-a9e8-415d-b236-9e97d811d211}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Spell\MetalBlade">
+      <UniqueIdentifier>{91aa49bc-7d50-4019-ada5-31019db9dd2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\Auras">
+      <UniqueIdentifier>{2482e1b7-393a-4a43-ba4f-36770ee44c88}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -600,6 +618,30 @@
     </ClCompile>
     <ClCompile Include="bnObstacle.cpp">
       <Filter>Activities\Battle\Content\Entity\Obstacle</Filter>
+    </ClCompile>
+    <ClCompile Include="bnGear.cpp">
+      <Filter>Activities\Battle\Content\Entity\Obstacle\MetalGear</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalMan.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManIdleState.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManMoveState.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManPunchState.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalBlade.cpp">
+      <Filter>Activities\Battle\Content\Entity\Spell\MetalBlade</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManThrowState.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAura.cpp">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Auras</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1014,6 +1056,30 @@
     </ClInclude>
     <ClInclude Include="bnObstacle.h">
       <Filter>Activities\Battle\Content\Entity\Obstacle</Filter>
+    </ClInclude>
+    <ClInclude Include="bnGear.h">
+      <Filter>Activities\Battle\Content\Entity\Obstacle\MetalGear</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalMan.h">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManIdleState.h">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManMoveState.h">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManPunchState.h">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalBlade.h">
+      <Filter>Activities\Battle\Content\Entity\Spell\MetalBlade</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManThrowState.h">
+      <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAura.h">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Auras</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -108,7 +108,7 @@ bool Cannon::Move(Direction _direction) {
   return true;
 }
 
-void Cannon::Attack(Entity* _entity) {
+void Cannon::Attack(Character* _entity) {
   if (hit || deleted) {
     return;
   }

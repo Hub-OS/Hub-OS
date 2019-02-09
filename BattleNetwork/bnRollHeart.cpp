@@ -73,7 +73,7 @@ bool RollHeart::Move(Direction _direction) {
   return true;
 }
 
-void RollHeart::Attack(Entity* _entity) {
+void RollHeart::Attack(Character* _entity) {
 }
 
 vector<Drawable*> RollHeart::GetMiscComponents() {

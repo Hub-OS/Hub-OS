@@ -49,7 +49,7 @@ bool BasicSword::Move(Direction _direction) {
   return false;
 }
 
-void BasicSword::Attack(Entity* _entity) {
+void BasicSword::Attack(Character* _entity) {
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     _entity->Hit(damage);

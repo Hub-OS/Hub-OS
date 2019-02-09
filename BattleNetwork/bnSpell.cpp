@@ -27,14 +27,6 @@ const bool Spell::IsTileHighlightEnabled() const {
   return markTile;
 }
 
-void Spell::SetDirection(Direction _direction) {
-  direction = _direction;
-}
-
-Direction Spell::GetDirection() const {
-  return direction;
-}
-
 void Spell::EnableTileHighlight(bool enable)
 {
   markTile = enable;

@@ -108,7 +108,7 @@ bool RollHeal::Move(Direction _direction) {
   return true;
 }
 
-void RollHeal::Attack(Entity* _entity) {
+void RollHeal::Attack(Character* _entity) {
   if (hit || deleted) {
     return;
   }

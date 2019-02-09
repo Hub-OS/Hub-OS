@@ -111,6 +111,9 @@ TextureResourceManager::TextureResourceManager(void) {
   // canodumbs
   paths.push_back("resources/mobs/canodumb/canodumb_atlas.png");
 
+  // MetalMan
+  paths.push_back("resources/mobs/metalman/metalman_atlas.png");
+
   // Select screen "Anything Goes"
   paths.push_back("resources/mobs/select/random.png");
 
@@ -125,6 +128,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/spell_charged_bullet_hit.png");
   paths.push_back("resources/spells/spell_wave.png");
   paths.push_back("resources/spells/spell_prog_bomb.png");
+  paths.push_back("resources/spells/auras.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");
@@ -137,6 +141,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/chip_senddata.png");
   paths.push_back("resources/ui/chip_missing.png");
   paths.push_back("resources/ui/chip_lock.png");
+  paths.push_back("resources/ui/chip_frame.png");
   paths.push_back("resources/ui/cust_badge.png");
   paths.push_back("resources/ui/cust_badge_mask.png");
 

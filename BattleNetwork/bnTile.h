@@ -57,7 +57,10 @@ namespace Battle {
 
     void SetBattleActive(bool state);
 
+    //vector<Spell*> spells;
+    //vector<Character*> characters;
     vector<Entity*> entities;
+
   private:
     int x;
     int y;

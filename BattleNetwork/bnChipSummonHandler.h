@@ -7,6 +7,7 @@
 #include "bnField.h"
 #include "bnTile.h"
 #include "bnCube.h"
+#include "bnAura.h"
 
 #include <Swoosh\Timer.h>
 
@@ -110,6 +111,20 @@ public:
         SummonEntity(cube, true);
       }
     }
+    else if (summon == "Barrier") {
+      Entity* aura = new Aura(Aura::Type::_100, this->GetPlayer());
+
+      AUDIO.Play(AudioType::APPEAR);
+
+      Battle::Tile* tile = this->GetPlayer()->GetTile();
+
+      if (tile) {
+        this->GetPlayer()->GetField()->AddEntity(aura, tile->GetX(), tile->GetY());
+      }
+
+      // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
+      SummonEntity(aura, true);
+    }
   }
 
   void OnLeave() { 
@@ -118,8 +133,9 @@ public:
     for (auto items : summonedItems) {
       if (items.persist) {
         Battle::Tile* tile = items.entity->GetTile();
+  
         player->GetField()->RemoveEntity(items.entity);
-        player->GetField()->OwnEntity(items.entity,tile->GetX(), tile->GetY());
+        player->GetField()->OwnEntity(items.entity, tile->GetX(), tile->GetY());
       }
       else {
         player->GetField()->RemoveEntity(items.entity);
@@ -143,6 +159,11 @@ public:
       duration = sf::seconds(4);
     } else if (name.substr(0, 8) == "RockCube") {
       summon = "RockCube";
+      timeInSecs = 0;
+      duration = sf::seconds(1);
+    }
+    else if (name.substr(0, 8) == "Barrier") {
+      summon = "Barrier";
       timeInSecs = 0;
       duration = sf::seconds(1);
     }

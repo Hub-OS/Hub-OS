@@ -31,10 +31,14 @@ private:
   Chip** selectedChips;
   int chipCount;
   int curr;
+  double interpolTimeFlat;
+  double interpolTimeDest;
+  bool spread;
+  sf::Time interpolDur;
   Player* player;
   Font* font;
   Text text;
   Text dmg;
-  sf::Sprite icon;
+  sf::Sprite icon, frame;
   vector<Drawable*> components;
 };

@@ -9,8 +9,11 @@ using std::to_string;
 #include "bnSelectedChipsUI.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnInputManager.h"
 #include "bnChip.h"
 #include "bnEngine.h"
+
+#include <Swoosh\Ease.h>
 
 SelectedChipsUI::SelectedChipsUI(Player* _player) : ChipUsePublisher(), Component(_player)
   , player(_player) {
@@ -18,9 +21,17 @@ SelectedChipsUI::SelectedChipsUI(Player* _player) : ChipUsePublisher(), Componen
   icon = sf::Sprite(*TEXTURES.GetTexture(CHIP_ICONS));
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
+  frame = sf::Sprite(*TEXTURES.GetTexture(CHIP_FRAME));
+  frame.setScale(sf::Vector2f(2.f, 2.f));
+
   font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
   components.push_back(&text);
   components.push_back(&dmg);
+
+  interpolTimeFlat = interpolTimeDest = 0;
+  interpolDur = sf::seconds(0.2f);
+
+  spread = false;
 }
 
 SelectedChipsUI::~SelectedChipsUI(void) {
@@ -38,13 +49,44 @@ bool SelectedChipsUI::GetNextComponent(Drawable*& out) {
 }
 
 void SelectedChipsUI::Update(float _elapsed) {
+  if (INPUT.has(InputEvent::PRESSED_START)) {
+    spread = true;
+  }
+  else if (INPUT.has(InputEvent::RELEASED_START)) {
+    spread = false;
+  }
+
   if (player) {
- 
-    // TODO: Move draw out of update. Utilize components.
+  
+
+    // TODO: Move draw out of update. Utilize new component system.
     int chipOrder = 0;
     for (int i = curr; i < chipCount; i++) {
-      icon.setPosition(player->getPosition() + sf::Vector2f(((i - curr) * 2.0f) - 4.f, - 58.0f - 63.f - (i - curr) * -2.0f));
-      sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(selectedChips[curr]->GetIconID());
+      int drawOrderIndex = chipCount - i + curr - 1;
+
+      if (spread) {
+        sf::Vector2f flat = player->getPosition() + sf::Vector2f(((drawOrderIndex - curr) * 32.0f) - 4.f, -58.0f - 63.f);
+        double alpha = swoosh::ease::linear(interpolTimeFlat, (double)interpolDur.asSeconds(), 1.0);
+        icon.setPosition(((float)alpha*flat) + ((float)(1.0-alpha)*icon.getPosition()));
+
+        interpolTimeDest = 0;
+        interpolTimeFlat += _elapsed;
+
+      }
+      else {
+        sf::Vector2f dest = player->getPosition() + sf::Vector2f(((i - curr) * 4.0f) - 4.f, -58.0f - 63.f - (i - curr) * -4.0f);
+        double alpha = swoosh::ease::linear(interpolTimeDest, (double)interpolDur.asSeconds(), 1.0);
+        icon.setPosition(((float)alpha*dest) + ((float)(1.0 - alpha)*icon.getPosition()));
+
+        interpolTimeDest += _elapsed;
+        interpolTimeFlat = 0;
+      }
+
+      frame.setPosition(icon.getPosition());
+      frame.setPosition(frame.getPosition() - sf::Vector2f(2.f, 2.f));
+      ENGINE.Draw(frame);
+
+      sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(selectedChips[drawOrderIndex]->GetIconID());
       icon.setTextureRect(iconSubFrame);
       ENGINE.Draw(icon);
     }

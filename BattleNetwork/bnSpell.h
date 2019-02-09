@@ -13,11 +13,8 @@ public:
   const bool IsTileHighlightEnabled() const;
 
   virtual void Update(float _elapsed) = 0;
-  virtual void Attack(Entity* _entity) = 0;
+  virtual void Attack(Character* _entity) = 0;
   virtual vector<Drawable*> GetMiscComponents() = 0;
-
-  void SetDirection(Direction _direction);
-  Direction GetDirection() const;
 
   void EnableTileHighlight(bool enable);
 
@@ -27,6 +24,5 @@ protected:
   float progress;
   float hitHeight;
   Texture* texture;
-  Direction direction;
   AnimationComponent animationComponent;
 };
