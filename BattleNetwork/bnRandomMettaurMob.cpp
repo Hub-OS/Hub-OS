@@ -28,10 +28,12 @@ Mob* RandomMettaurMob::Build() {
   mob->RegisterRankedReward(5, BattleItem(Chip(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "Cracks the tiles in the column immediately in front", 2)));
 
 
-  field->OwnEntity(new Gear(field, Team::RED, Direction::LEFT), 3, 2);
+  field->OwnEntity(new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
   field->OwnEntity(new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);
 
   mob->Spawn<Rank1<MetalMan, MetalManIdleState>>(6, 2);
+
+  mob->ToggleBossFlag();
 
   bool AllIce = (rand() % 10 > 5);
   for (int i = 0; i < field->GetWidth(); i++) {

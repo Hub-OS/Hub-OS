@@ -204,6 +204,7 @@
     <ClCompile Include="bnGear.cpp" />
     <ClCompile Include="bnGraveyardBackground.cpp" />
     <ClCompile Include="bnGridBackground.cpp" />
+    <ClCompile Include="bnGuardHit.cpp" />
     <ClCompile Include="bnInfiniteMap.cpp" />
     <ClCompile Include="bnLanBackground.cpp" />
     <ClCompile Include="bnBattleResults.cpp">
@@ -255,6 +256,7 @@
     <ClCompile Include="bnRollHeart.cpp" />
     <ClCompile Include="bnSelectNaviScene.cpp" />
     <ClCompile Include="bnShaderResourceManager.cpp" />
+    <ClCompile Include="bnShineExplosion.cpp" />
     <ClCompile Include="bnStarman.cpp" />
     <ClCompile Include="bnThunder.cpp" />
     <ClCompile Include="bnTile.cpp" />
@@ -317,6 +319,7 @@
     <ClInclude Include="bnFolderEditScene.h" />
     <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnGear.h" />
+    <ClInclude Include="bnGuardHit.h" />
     <ClInclude Include="bnLibraryScene.h" />
     <ClInclude Include="bnMetalBlade.h" />
     <ClInclude Include="bnMetalMan.h" />
@@ -331,6 +334,7 @@
     <ClInclude Include="bnProgsManThrowState.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />
+    <ClInclude Include="bnShineExplosion.h" />
     <ClInclude Include="bnThunder.h" />
     <ClInclude Include="bnTileBehavior.h" />
     <ClInclude Include="bnElements.h" />
@@ -418,6 +422,7 @@
     <ClInclude Include="bnChipSummonHandler.h" />
     <ClInclude Include="bnChipDescriptionTextbox.h" />
     <ClInclude Include="bnChipFolderCollection.h" />
+    <ClInclude Include="bnNaviExplodeState.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />

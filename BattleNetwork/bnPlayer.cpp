@@ -1,5 +1,5 @@
 #include "bnPlayer.h"
-#include "bnExplodeState.h"
+#include "bnNaviExplodeState.h"
 #include "bnField.h"
 #include "bnBuster.h"
 #include "bnTextureResourceManager.h"
@@ -67,7 +67,7 @@ void Player::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->ChangeState<ExplodeState<Player>>(10, 0.65);
+    this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
     AI<Player>::Update(_elapsed);
     return;
   }

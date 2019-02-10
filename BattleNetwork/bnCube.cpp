@@ -62,7 +62,6 @@ bool Cube::CanMoveTo(Battle::Tile * next)
         if (isCube && isCube->GetElement() == Element::ICE && this->GetElement() == Element::ICE) {
           isCube->SlideToTile(true);
           Direction dir = this->direction;
-          std::cout << "Direction: " << (int)dir << std::endl;
           isCube->Move(dir);
           stop = true;
         }
@@ -87,6 +86,8 @@ bool Cube::CanMoveTo(Battle::Tile * next)
 }
 
 void Cube::Update(float _elapsed) {
+  if (IsDeleted()) return;
+
   SetShader(nullptr);
 
   // May have just finished sliding
@@ -110,17 +111,22 @@ void Cube::Update(float _elapsed) {
   Character::Update(_elapsed);
 
   timer -= _elapsed;
+
+  if (GetHealth() <= 0) {
+    this->OnDelete(); // TODO: make this automatic callback from field cleanup
+  }
 }
 
 void Cube::OnDelete() {
   double intensity = (double)(rand() % 2) + 1.0;
 
-  auto left = (this->GetElement() != Element::ICE) ? RockDebris::Type::LEFT : RockDebris::Type::LEFT_ICE;
-  auto right = (this->GetElement() != Element::ICE) ? RockDebris::Type::RIGHT : RockDebris::Type::RIGHT_ICE;
+  auto left = (this->GetElement() == Element::ICE) ? RockDebris::Type::LEFT_ICE : RockDebris::Type::LEFT;
+  auto right = (this->GetElement() == Element::ICE) ? RockDebris::Type::RIGHT_ICE : RockDebris::Type::RIGHT;
 
   this->GetField()->OwnEntity(new RockDebris(left, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
   this->GetField()->OwnEntity(new RockDebris(right, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
   this->Delete();
+  tile->RemoveEntity(this);
   AUDIO.Play(AudioType::PANEL_CRACK);
 }
 

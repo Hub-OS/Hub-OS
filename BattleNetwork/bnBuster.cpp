@@ -10,6 +10,10 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
+// TODO: TAKE THIS OUT AFTER HIT PROPERTIES AND RESOLVES ARE IMPLEMENTED. THIS IS FOR POC ONLY.
+#include "bnGuardHit.h"
+#include "bnGear.h" 
+
 #define COOLDOWN 40.0f/1000.0f
 
 Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), Spell() {
@@ -36,7 +40,6 @@ Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), 
 
   if (_charged) {
     damage = 10;
-    //TODO: make new sprite animation for charged bullet
     texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
     animationComponent.Setup("resources/spells/spell_charged_bullet_hit.animation");
     animationComponent.Reload();
@@ -51,12 +54,23 @@ Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), 
   setScale(2.f, 2.f);
 
   AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::HIGH);
+
+  // TODO: take these out of POC
+  contact = nullptr;
+  spawnGuard = false;
 }
 
 Buster::~Buster(void) {
 }
 
 void Buster::Update(float _elapsed) {
+  if (spawnGuard) {
+    field->OwnEntity(new GuardHit(field, contact), this->tile->GetX(), this->tile->GetY());
+    spawnGuard = false;
+    this->Delete();
+    return;
+  }
+
   if (hit) {
     if (progress == 0.0f) {
       setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
@@ -118,6 +132,13 @@ bool Buster::Move(Direction _direction) {
 
 void Buster::Attack(Character* _entity) {
   if (hit || deleted) return;
+
+  if (dynamic_cast<Gear*>(_entity)) {
+    spawnGuard = true;
+    contact = _entity;
+    std::cout << "spawning guard" << std::endl;
+    return;
+  }
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     auto props = Character::DefaultHitProperties;

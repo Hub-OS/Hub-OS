@@ -183,7 +183,7 @@ bool Entity::Teleport(int col, int row) {
 
   next = field->GetAt(col, row);
 
-  if (Teammate(next->GetTeam()) && CanMoveTo(next)) {
+  if (CanMoveTo(next)) {
     ;
   }
   else {

@@ -146,7 +146,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
     AUDIO.Stream("resources/loops/loop_battle.ogg", true);
   }
   else {
-    AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
+    AUDIO.Stream("resources/loops/loop_boss_battle2.ogg", true);
   }
  
   // STATE FLAGS AND TIMERS

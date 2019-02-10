@@ -155,12 +155,6 @@
     <Filter Include="Activities\Battle\Content\Entity\Character\ProgsMan\States">
       <UniqueIdentifier>{6844292c-bee3-4395-b0a0-5d735bad7510}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Entity\Character\Any">
-      <UniqueIdentifier>{7e781496-123e-40b5-af0b-4f433296b3ee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Entity\Character\Any\States">
-      <UniqueIdentifier>{c05712c6-7f52-4d6d-a5ce-4d887bc75117}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Entity\Character\Canodumb">
       <UniqueIdentifier>{9613c3d8-ce86-4941-9b80-353a5108787a}</UniqueIdentifier>
     </Filter>
@@ -334,6 +328,27 @@
     </Filter>
     <Filter Include="Enumerations">
       <UniqueIdentifier>{5c9d2cbc-eb6d-4112-b2aa-bafcdf47830a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\AI\Any">
+      <UniqueIdentifier>{7e781496-123e-40b5-af0b-4f433296b3ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\AI\Any\States">
+      <UniqueIdentifier>{c05712c6-7f52-4d6d-a5ce-4d887bc75117}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\Explosion\Basic">
+      <UniqueIdentifier>{ce16928b-ae94-41f1-ade6-70a553ef4874}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\Explosion\Projectile">
+      <UniqueIdentifier>{5b575b1c-744c-4485-b16e-9d326c04ed10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\Explosion\Boss">
+      <UniqueIdentifier>{db93d211-1a1a-4eb3-9b32-71aab8dfc689}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\Hits">
+      <UniqueIdentifier>{fc5931dc-2556-40aa-8f4b-96fc899f5707}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\Hits\Guard">
+      <UniqueIdentifier>{7dc38b81-9350-486a-a312-cd7d05ae0f3a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -544,9 +559,6 @@
     <ClCompile Include="bnRollHeart.cpp">
       <Filter>Activities\Battle\Content\Entity\Summons\Roll</Filter>
     </ClCompile>
-    <ClCompile Include="bnExplosion.cpp">
-      <Filter>Activities\Battle\Content\Entity\Artifact\Explosion</Filter>
-    </ClCompile>
     <ClCompile Include="bnProgsManThrowState.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
     </ClCompile>
@@ -652,6 +664,15 @@
     <ClCompile Include="bnUndernetBackground.cpp">
       <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClCompile>
+    <ClCompile Include="bnExplosion.cpp">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Explosion\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="bnShineExplosion.cpp">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Explosion\Boss</Filter>
+    </ClCompile>
+    <ClCompile Include="bnGuardHit.cpp">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Hits\Guard</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -751,7 +772,7 @@
       <Filter>Activities\Battle\Content\Entity\Character\Mettaur\States</Filter>
     </ClInclude>
     <ClInclude Include="bnExplodeState.h">
-      <Filter>Activities\Battle\Content\Entity\Character\Any\States</Filter>
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerControlledState.h">
       <Filter>Activities\Battle\Content\Entity\Character\Player\Megaman\States</Filter>
@@ -769,7 +790,7 @@
       <Filter>Engine\Camera</Filter>
     </ClInclude>
     <ClInclude Include="bnPixelInState.h">
-      <Filter>Activities\Battle\Content\Entity\Character\Any\States</Filter>
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerIdleState.h">
       <Filter>Activities\Battle\Content\Entity\Character\Player\Megaman\States</Filter>
@@ -896,7 +917,7 @@
       <Filter>Activities\Battle\Content\Entity\Character</Filter>
     </ClInclude>
     <ClInclude Include="bnNoState.h">
-      <Filter>Activities\Battle\Content\Entity\Character\Any\States</Filter>
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerChipUseListener.h">
       <Filter>Activities\Battle\Content\Chips\ChipUseListener\Player</Filter>
@@ -939,9 +960,6 @@
     </ClInclude>
     <ClInclude Include="bnRollHeart.h">
       <Filter>Activities\Battle\Content\Entity\Summons\Roll</Filter>
-    </ClInclude>
-    <ClInclude Include="bnExplosion.h">
-      <Filter>Activities\Battle\Content\Entity\Artifact\Explosion</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManThrowState.h">
       <Filter>Activities\Battle\Content\Entity\Character\ProgsMan\States</Filter>
@@ -1095,6 +1113,18 @@
     </ClInclude>
     <ClInclude Include="bnUndernetBackground.h">
       <Filter>Activities\Battle\Content\Backgrounds</Filter>
+    </ClInclude>
+    <ClInclude Include="bnNaviExplodeState.h">
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnExplosion.h">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Explosion\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="bnShineExplosion.h">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Explosion\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="bnGuardHit.h">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Hits\Guard</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -7,7 +7,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnEngine.h"
-#include "bnExplodeState.h"
+#include "bnNaviExplodeState.h"
 
 #define RESOURCE_NAME "progsman"
 #define RESOURCE_PATH "resources/mobs/progsman/progsman.animation"
@@ -90,7 +90,7 @@ void ProgsMan::Update(float _elapsed) {
   // Explode if health depleted
   if (GetHealth() <= 0) {
     this->ChangeState<ProgsManHitState>(); // change animation briefly
-    this->ChangeState<ExplodeState<ProgsMan>>(12, 0.75); // freezes animation
+    this->ChangeState<NaviExplodeState<ProgsMan>>(7, 1.0); // freezes animation
     this->LockState();
   }
   else {

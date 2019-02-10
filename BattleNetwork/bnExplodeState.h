@@ -19,7 +19,7 @@
 template<typename Any>
 class ExplodeState : public AIState<Any>
 {
-private:
+protected:
   Entity* explosion;
   sf::Shader* whiteout;
   double elapsed;
@@ -28,7 +28,7 @@ private:
 public:
 
   ExplodeState(int _numOfExplosions=2, double _playbackSpeed=0.55);
-  ~ExplodeState();
+  virtual ~ExplodeState();
 
   void OnEnter(Any& e);
   void OnUpdate(float _elapsed, Any& e);

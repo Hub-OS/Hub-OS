@@ -30,7 +30,9 @@ Gear::~Gear() {
 
 bool Gear::CanMoveTo(Battle::Tile * next)
 {
-  if (Entity::CanMoveTo(next)) {
+  bool valid = next ? next->IsWalkable() : false;
+
+  if (valid) {
     if (next->ContainsEntityType<Gear>()) {
       if (this->GetDirection() == Direction::LEFT) {
         this->SetDirection(Direction::RIGHT);

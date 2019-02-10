@@ -21,7 +21,7 @@ RockDebris::RockDebris(RockDebris::Type type, double intensity) : type(type), in
   animation.Reload();
 
   if (type == RockDebris::Type::LEFT_ICE || type == RockDebris::Type::RIGHT_ICE) {
-    animation.SetAnimation("ICE_DEBRIS");
+    animation.SetAnimation("DEBRIS");
 
     animation.SetFrame((int)type-2, this);
   }

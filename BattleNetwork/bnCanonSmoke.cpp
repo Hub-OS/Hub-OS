@@ -27,7 +27,7 @@ CanonSmoke::CanonSmoke(Field* _field, Team _team) : animationComponent(this)
 }
 
 void CanonSmoke::Update(float _elapsed) {
-  setPosition(tile->getPosition().x + (tile->GetWidth() / 2.0f) + 35.0f, tile->getPosition().y + (tile->GetHeight() / 2.0f) - 65.0f);
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 65.0f);
   animationComponent.Update(_elapsed);
   Entity::Update(_elapsed);
 }

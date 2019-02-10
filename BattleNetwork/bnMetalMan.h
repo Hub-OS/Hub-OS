@@ -47,4 +47,6 @@ private:
   sf::Shader* whiteout;
   sf::Shader* stun;
 
+  bool movedByStun;
+
 };

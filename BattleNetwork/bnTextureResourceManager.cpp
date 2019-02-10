@@ -102,6 +102,8 @@ TextureResourceManager::TextureResourceManager(void) {
   //-Mobs-
   paths.push_back("resources/mobs/mob_move.png");
   paths.push_back("resources/mobs/mob_explosion.png");
+  paths.push_back("resources/mobs/boss_shine.png");
+
   //Mettaur
   paths.push_back("resources/mobs/mettaur/mettaur.png");
 
@@ -126,6 +128,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/spell_bullet_hit.png");
   paths.push_back("resources/spells/spell_buster_charge.png");
   paths.push_back("resources/spells/spell_charged_bullet_hit.png");
+  paths.push_back("resources/spells/guard_hit.png");
   paths.push_back("resources/spells/spell_wave.png");
   paths.push_back("resources/spells/spell_prog_bomb.png");
   paths.push_back("resources/spells/auras.png");

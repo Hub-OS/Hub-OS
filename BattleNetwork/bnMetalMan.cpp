@@ -5,7 +5,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnEngine.h"
-#include "bnExplodeState.h"
+#include "bnNaviExplodeState.h"
 #include "bnObstacle.h"
 
 #define RESOURCE_PATH "resources/mobs/metalman/metalman.animation"
@@ -15,7 +15,7 @@ MetalMan::MetalMan(Rank _rank)
   AI<MetalMan>(this), Character(_rank) {
   name = "MetalMan";
   this->team = Team::BLUE;
-  health = 2000;
+  health = 800;
   hitHeight = 64;
   state = MOB_IDLE;
   textureType = TextureType::MOB_METALMAN_ATLAS;
@@ -38,6 +38,8 @@ MetalMan::MetalMan(Rank _rank)
   stun = SHADERS.GetShader(ShaderType::YELLOW);
 
   animationComponent.Update(0);
+
+  movedByStun = false;
 }
 
 MetalMan::~MetalMan(void) {
@@ -58,14 +60,17 @@ void MetalMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::fu
 
 bool MetalMan::CanMoveTo(Battle::Tile * next)
 {
-  if (Entity::CanMoveTo(next)) {
-    return !next->ContainsEntityType<Obstacle>();
+  if (!next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>()) {
+    return true;
   }
 
   return false;
 }
 
 void MetalMan::Update(float _elapsed) {
+  // TODO: turn all tile altering functions to a queue
+  if (movedByStun) { this->AdoptNextTile(); movedByStun = false; }
+
   healthUI->Update(_elapsed);
   this->SetShader(nullptr);
   this->RefreshTexture();
@@ -97,7 +102,7 @@ void MetalMan::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->ChangeState<ExplodeState<MetalMan>>(5, 0.75); // freezes animation
+    this->ChangeState<NaviExplodeState<MetalMan>>(9, 0.75); // freezes animation
     this->LockState();
   }
   else {
@@ -147,6 +152,10 @@ const bool MetalMan::Hit(int _damage, Hit::Properties props) {
     if ((props.flags & Hit::stun) == Hit::stun) {
       SetShader(stun);
       this->stunCooldown = props.secs;
+
+      if (!Teammate(this->GetTile()->GetTeam())) {
+        movedByStun = this->Teleport((rand() % 3) + 4, (rand() % 3) + 1);
+      }
     }
     else {
       SetShader(whiteout);

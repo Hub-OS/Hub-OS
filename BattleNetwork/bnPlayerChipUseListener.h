@@ -62,9 +62,9 @@ public:
       xtreme2->SetDirection(Direction::RIGHT);
       xtreme3->SetDirection(Direction::RIGHT);
 
-      player->GetField()->OwnEntity(xtreme1, 4, 1);
-      player->GetField()->OwnEntity(xtreme2, 4, 2);
-      player->GetField()->OwnEntity(xtreme3, 4, 3);
+      player->GetField()->OwnEntity(xtreme1, player->GetTile()->GetX(), 1);
+      player->GetField()->OwnEntity(xtreme2, player->GetTile()->GetX(), 2);
+      player->GetField()->OwnEntity(xtreme3, player->GetTile()->GetX(), 3);
     }
     else if (name == "Cannon") {
       Cannon* cannon = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());

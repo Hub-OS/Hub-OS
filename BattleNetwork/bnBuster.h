@@ -13,6 +13,8 @@ public:
   virtual vector<Drawable*> GetMiscComponents();
 private:
   bool isCharged;
+  bool spawnGuard;
+  Character* contact;
   int damage;
   float cooldown;
   float random; // offset
