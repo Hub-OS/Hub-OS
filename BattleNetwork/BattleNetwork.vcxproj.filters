@@ -817,9 +817,6 @@
     <ClInclude Include="bnInputManager.h">
       <Filter>Engine\Input</Filter>
     </ClInclude>
-    <ClInclude Include="bnInputEvent.h">
-      <Filter>Engine\Input</Filter>
-    </ClInclude>
     <ClInclude Include="bnBasicSword.h">
       <Filter>Activities\Battle\Content\Entity\Spell\Sword\Basic</Filter>
     </ClInclude>
@@ -1089,6 +1086,9 @@
     </ClInclude>
     <ClInclude Include="bnThunder.h">
       <Filter>Activities\Battle\Content\Entity\Spell\Thunder</Filter>
+    </ClInclude>
+    <ClInclude Include="bnInputEvent.h">
+      <Filter>Enumerations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

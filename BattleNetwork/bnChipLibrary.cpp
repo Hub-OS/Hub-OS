@@ -48,7 +48,7 @@ const Element ChipLibrary::GetElementFromStr(std::string type)
   else if (type == "WOOD") {
     elemType = Element::WOOD;
   }
-  else if (type == "ELEC") {
+  else if (type == "ELEC" || type == "ELECTRIC" ) {
     elemType = Element::ELEC;
   }
   else if (type == "WIND") {

@@ -27,6 +27,8 @@ private:
 
   InputManager();
   vector<InputEvent> events;
+  vector<InputEvent> eventsLastFrame;
+
   map<std::string, bool> gamepadPressed;
 
   // Support for ChronoX config.ini files

@@ -1,5 +1,6 @@
 #pragma once
 enum InputEvent{
+  NONE,
   PRESSED_UP,
   PRESSED_DOWN,
   PRESSED_LEFT,
@@ -8,6 +9,14 @@ enum InputEvent{
   PRESSED_B,
   PRESSED_START,
   PRESSED_PAUSE,
+  HELD_UP,
+  HELD_DOWN,
+  HELD_LEFT,
+  HELD_RIGHT,
+  HELD_A,
+  HELD_B,
+  HELD_START,
+  HELD_PAUSE,
   RELEASED_UP,
   RELEASED_DOWN,
   RELEASED_LEFT,

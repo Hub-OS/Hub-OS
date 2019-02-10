@@ -675,22 +675,17 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     static bool A_HELD = false;
 
     if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
-      if (INPUT.has(RELEASED_PAUSE)) {
+      if (!INPUT.has(HELD_PAUSE)) {
         chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
       }
-      else if (INPUT.has(RELEASED_A) ){
+      else if (INPUT.has(PRESSED_A) ){
 
         chipCustGUI.ChipDescriptionConfirmQuestion()? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
         chipCustGUI.ContinueChipDescription();
-
-        A_HELD = false;
       }
       
-      if (INPUT.has(PRESSED_A)) {
-        A_HELD = true;
-      }
 
-      if (A_HELD) {
+      if (INPUT.has(HELD_A)) {
         chipCustGUI.FastForwardChipDescription(3.0);
       }
       else {
