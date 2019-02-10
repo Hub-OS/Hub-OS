@@ -264,6 +264,7 @@
     <ClCompile Include="bnPlayerHealthUI.cpp" />
     <ClCompile Include="bnBuster.cpp" />
     <ClCompile Include="bnTwoMettaurMob.cpp" />
+    <ClCompile Include="bnUndernetBackground.cpp" />
     <ClCompile Include="bnWave.cpp" />
     <ClCompile Include="bnMettaur.cpp" />
     <ClCompile Include="bnEngine.cpp" />
@@ -431,6 +432,7 @@
     <ClInclude Include="Segues\SlideIn.h" />
     <ClInclude Include="Segues\WhiteWashFade.h" />
     <ClInclude Include="Segues\ZoomFadeIn.h" />
+    <ClInclude Include="bnUndernetBackground.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BattleNetwork.rc" />

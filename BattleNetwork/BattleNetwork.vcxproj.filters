@@ -649,6 +649,9 @@
     <ClCompile Include="bnThunder.cpp">
       <Filter>Activities\Battle\Content\Entity\Spell\Thunder</Filter>
     </ClCompile>
+    <ClCompile Include="bnUndernetBackground.cpp">
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -1089,6 +1092,9 @@
     </ClInclude>
     <ClInclude Include="bnInputEvent.h">
       <Filter>Enumerations</Filter>
+    </ClInclude>
+    <ClInclude Include="bnUndernetBackground.h">
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,7 @@
 #include <Swoosh\ActivityController.h>
 #include "bnBattleScene.h"
 #include "bnGameOverScene.h"
+#include "bnUndernetBackground.h"
 
 #include "Segues\WhiteWashFade.h"
 #include "Segues\PixelateBlackwashFade.h"
@@ -105,9 +106,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   /*
   Background for scene*/
-  background = nullptr;
+  background = new UndernetBackground();;
 
-  int randBG = rand() % 3;
+  /*int randBG = rand() % 3;
 
   if (randBG == 0) {
     background = new LanBackground();
@@ -117,7 +118,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   }
   else if (randBG == 2) {
     background = new VirusBackground();
-  }
+  }*/
 
   // PAUSE
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");

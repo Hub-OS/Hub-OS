@@ -101,6 +101,13 @@ public:
     target.draw(vertices, states);
   }
 
+  void setColor(sf::Color color) {
+    for (int i = 0; i < vertices.getVertexCount(); i++) {
+      vertices[i].color = color;
+    }
+  }
+
+protected:
   sf::VertexArray vertices;
   sf::Texture& texture;
   sf::IntRect textureRect;
