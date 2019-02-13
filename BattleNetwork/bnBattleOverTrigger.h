@@ -1,8 +1,10 @@
 #pragma once
-#include "bnBattleScene.h"
 #include "bnComponent.h"
+#include "bnBattleScene.h"
 
 #include <functional>
+
+
 // T must be type of Entity
 template<typename T>
 class BattleOverTrigger : public Component {

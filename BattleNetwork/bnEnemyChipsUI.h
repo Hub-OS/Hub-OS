@@ -23,9 +23,8 @@ public:
   EnemyChipsUI(Character* owner);
   virtual ~EnemyChipsUI();
 
-  bool GetNextComponent(Drawable*& out);
   void Update(float _elapsed);
-  void OnDraw();
+  void OnDraw(sf::RenderTexture& surface);
   void LoadChips(std::vector<Chip> incoming);
   void UseNextChip();
   void Inject(BattleScene&);
@@ -35,5 +34,4 @@ private:
   int curr;
   Character* owner;
   sf::Sprite icon;
-  vector<Drawable*> components;
 };

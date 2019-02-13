@@ -10,7 +10,6 @@
 #include "bnLanBackground.h"
 #include "bnGraveyardBackground.h"
 #include "bnVirusBackground.h"
-#include "bnPlayerHealthUI.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnChipSelectionCust.h"
@@ -43,6 +42,7 @@ using sf::Font;
 
 class Mob;
 class Player;
+class PlayerHealthUI;
 
 class BattleScene : public swoosh::Activity, public CounterHitListener {
 private:
@@ -105,7 +105,7 @@ private:
   Field* field;
 
   Player* player;
-  PlayerHealthUI* playerHealthUI;
+  //PlayerHealthUI* playerHealthUI;
 
   // Chip UI for player
   SelectedChipsUI chipUI;

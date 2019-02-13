@@ -23,17 +23,6 @@ EnemyChipsUI::EnemyChipsUI(Character* _owner) : ChipUsePublisher(), Component(_o
 EnemyChipsUI::~EnemyChipsUI() {
 }
 
-bool EnemyChipsUI::GetNextComponent(Drawable*& out) {
-  static int i = 0;
-  while (i < (int)components.size()) {
-    out = components.at(i);
-    i++;
-    return true;
-  }
-  i = 0;
-  return false;
-}
-
 void EnemyChipsUI::Update(float _elapsed) {
   if (owner && owner->GetHealth() > 0) {
     Agent* agent = dynamic_cast<Agent*>(owner);
@@ -48,10 +37,9 @@ void EnemyChipsUI::Update(float _elapsed) {
   }
 }
 
-void EnemyChipsUI::OnDraw()
+void EnemyChipsUI::OnDraw(sf::RenderTexture& surface)
 {
   if (owner && owner->GetHealth() > 0) {
-    // TODO: Move draw out of update. Utilize components.
     int chipOrder = 0;
     for (int i = curr; i < chipCount; i++) {
       sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(selectedChips[curr].GetIconID());

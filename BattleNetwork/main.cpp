@@ -103,6 +103,14 @@ int main(int argc, char** argv) {
   sf::Vector2f alertPos = (sf::Vector2f)((sf::Vector2i)ENGINE.GetWindow()->getSize() / 2);
   alertSprite.setPosition(sf::Vector2f(100.f, alertPos.y));
 
+  sf::Texture* mouseTexture = TEXTURES.LoadTextureFromFile("resources/ui/mouse.png");
+  sf::Sprite mouse(*mouseTexture);
+  mouse.setScale(2.f, 2.f);
+  Animation mouseAnimation = Animation("resources/ui/mouse.animation");
+  mouseAnimation.Reload();
+  mouseAnimation.SetAnimation("DEFAULT");
+  mouseAnimation << Animate::Mode::Loop;
+
   // Title screen logo
 
   #ifdef BN_REGION_JAPAN
@@ -236,6 +244,10 @@ int main(int argc, char** argv) {
     ENGINE.GetWindow()->setTitle(sf::String(std::string("Loading: ") + percentageStr + "%"));
 
     INPUT.update();
+
+    sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+    mouse.setPosition(mousepos);
+    mouseAnimation.Update(elapsed/1000.0, &mouse);
 
     /*
       Get next logs. One at a time for effect.
@@ -388,6 +400,9 @@ int main(int argc, char** argv) {
     sf::Sprite postprocess(loadSurface.getTexture());
 
     ENGINE.GetWindow()->draw(postprocess);
+
+    ENGINE.GetWindow()->draw(mouse);
+
     ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
@@ -422,6 +437,10 @@ int main(int argc, char** argv) {
 
     INPUT.update();
 
+    sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+    mouse.setPosition(mousepos);
+    mouseAnimation.Update(elapsed, &mouse);
+
     // Use the activity controller to update and draw scenes
     app.update(elapsed);
 
@@ -432,10 +451,14 @@ int main(int argc, char** argv) {
 
     app.draw();
 
+    ENGINE.GetWindow()->draw(mouse);
+
     ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
   }
+
+  delete mouseTexture;
 
   return EXIT_SUCCESS;
 }

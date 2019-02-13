@@ -30,8 +30,6 @@ Player::Player(void)
   animationProgress = 0.0f;
   setScale(2.0f, 2.0f);
 
-  healthUI = new PlayerHealthUI(this);
-
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
 
@@ -49,13 +47,9 @@ Player::Player(void)
 }
 
 Player::~Player(void) {
-  delete healthUI;
 }
 
 void Player::Update(float _elapsed) {
-  //Update UI of player's health (top left corner)
-  healthUI->Update(_elapsed);
-
   animationComponent.Update(_elapsed);
 
   if (_elapsed <= 0)
@@ -111,10 +105,7 @@ void Player::Attack(float _charge) {
 
 vector<Drawable*> Player::GetMiscComponents() {
   vector<Drawable*> drawables = vector<Drawable*>();
-  Drawable* component;
-  while (healthUI->GetNextComponent(component)) {
-    drawables.push_back(component);
-  }
+
   drawables.push_back(&chargeComponent.GetSprite());
 
   return drawables;
@@ -167,10 +158,6 @@ int Player::GetMoveCount() const
 int Player::GetHitCount() const
 {
   return hitCount;
-}
-
-PlayerHealthUI* Player::GetHealthUI() const {
-  return healthUI;
 }
 
 AnimationComponent& Player::GetAnimationComponent() {

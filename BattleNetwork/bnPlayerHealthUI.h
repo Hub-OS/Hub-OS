@@ -1,28 +1,32 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <sstream>
+#include <vector>
+
+#include "bnBattleOverTrigger.h"
+#include "bnPlayer.h"
+#include "bnSceneNode.h"
+
+class Entity;
+class Player;
+
 using sf::Font;
 using sf::Text;
 using sf::Sprite;
 using sf::Texture;
 using sf::Drawable;
-#include <sstream>
-using std::ostringstream;
-#include <vector>
 using std::vector;
+using std::ostringstream;
 
-class Entity;
-class Player;
-
-class PlayerHealthUI : public sf::Drawable{
+class PlayerHealthUI : public SceneNode, public BattleOverTrigger<Player> {
 public:
   PlayerHealthUI(Player* _player);
-  ~PlayerHealthUI(void);
+  ~PlayerHealthUI();
 
-  bool GetNextComponent(Drawable*& out);
   void Update(float elapsed);
   void OffsetPosition(const sf::Vector2f offset); // Get rid of this eventually. See BattleScene.cpp line 241
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
+  virtual void OnDraw(sf::RenderTexture& surface);
 private:
   int lastHP;
   int currHP;
@@ -32,7 +36,7 @@ private:
   Text text;
   Sprite sprite;
   Texture* texture;
-  vector<Drawable*> components;
   bool loaded;
+  bool isBattleOver;
   double cooldown;
 };

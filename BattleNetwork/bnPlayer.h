@@ -3,7 +3,6 @@
 #include "bnCharacter.h"
 #include "bnPlayerState.h"
 #include "bnTextureType.h"
-#include "bnPlayerHealthUI.h"
 #include "bnChargeComponent.h"
 #include "bnAnimationComponent.h"
 #include "bnAI.h"
@@ -32,7 +31,6 @@ public:
   int GetMoveCount() const;
   int GetHitCount() const;
 
-  PlayerHealthUI* GetHealthUI() const;
   AnimationComponent& GetAnimationComponent();
 
   void SetCharging(bool state);
@@ -54,7 +52,6 @@ protected:
 
   TextureType textureType;
   string state;
-  PlayerHealthUI* healthUI;
 
   //-Animation-
   float animationProgress;

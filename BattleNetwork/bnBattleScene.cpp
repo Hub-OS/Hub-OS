@@ -2,6 +2,7 @@
 #include "bnBattleScene.h"
 #include "bnGameOverScene.h"
 #include "bnUndernetBackground.h"
+#include "bnPlayerHealthUI.h"
 
 #include "Segues\WhiteWashFade.h"
 #include "Segues\PixelateBlackwashFade.h"
@@ -30,6 +31,11 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   }
 
   components = mob->GetComponents();
+
+  PlayerHealthUI* healthUI = new PlayerHealthUI(player);
+  player->RegisterComponent(healthUI);
+  components.push_back(healthUI);
+  scenenodes.push_back(dynamic_cast<SceneNode*>(healthUI));
 
   for (auto c : components) {
     c->Inject(*this);
@@ -97,8 +103,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   player->ChangeState<PlayerIdleState>();
   field->AddEntity(player, 2, 2);
-
-  playerHealthUI = player->GetHealthUI();
 
   // Chip UI for player
   chipListener.Subscribe(chipUI);
@@ -305,9 +309,8 @@ void BattleScene::onUpdate(double elapsed) {
     summons.Update(elapsed);
   }
 
-  // TODO: Refactor. Health UI should be a fetchable component (not a dedicated function)
-  // Positions and offsets would make more sense if these components were also of type SceneNode
-  // So they would always gaurantee to have translation functions
+  // TODO: Refactor. 
+  // add player health component as a scene node child of cust gui
   // e.g.
   /*
     // Somewhere in the scene's INIT routine...
@@ -317,7 +320,7 @@ void BattleScene::onUpdate(double elapsed) {
       chipCustGUI.AddSceneNode(healthUI); // healthUI will now offset in chipcustGUI local space
     }
   */
-  player->GetHealthUI()->OffsetPosition(chipCustGUI.GetOffset());
+  player->GetComponent<PlayerHealthUI>()->OffsetPosition(chipCustGUI.GetOffset());
 
   // compare the summon state after we used a chip...
   if (summons.IsSummonsActive() && prevSummonState == false) {
@@ -490,11 +493,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   // Draw scene nodes
   for (auto node : scenenodes) {
-    node->OnDraw();
+    node->OnDraw(surface);
   }
-
-
-  ENGINE.Draw(playerHealthUI, false);
 
   /*for (int d = 1; d <= field->GetHeight(); d++) {
     Entity* entity = nullptr;

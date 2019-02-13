@@ -1,14 +1,15 @@
 #include <string>
 using std::to_string;
 
-#include "bnPlayer.h"
 #include "bnTile.h"
 #include "bnPlayerHealthUI.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
 PlayerHealthUI::PlayerHealthUI(Player* _player)
-  : player(_player) {
+  : player(_player), 
+    SceneNode(),
+    BattleOverTrigger<Player>(_player, [this](BattleScene& scene, Player& player) { this->isBattleOver = true; }) {
   font = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
   texture = TEXTURES.LoadTextureFromFile("resources/ui/img_health.png");
   sprite.setTexture(*texture);
@@ -20,29 +21,21 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
   text.setLetterSpacing(4.0f);
   loaded = false;
   cooldown = 0;
-  this->Update(0);
+
+  isBattleOver = false;
 }
 
-PlayerHealthUI::~PlayerHealthUI(void) {
+PlayerHealthUI::~PlayerHealthUI() {
 }
 
-bool PlayerHealthUI::GetNextComponent(Drawable*& out) {
-  static int i = 0;
-  while (i < (int)components.size()) {
-    out = components.at(i);
-    i++;
-    return true;
-  }
-  i = 0;
-  return false;
-}
-
-void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void PlayerHealthUI::OnDraw(sf::RenderTexture& target) {
   target.draw(sprite);
   target.draw(text);
 }
 
 void PlayerHealthUI::Update(float elapsed) {
+  this->BattleOverTrigger<Player>::Update(elapsed);
+
   if (player) {
     if (!loaded) {
       lastHP = currHP = player->GetHealth();
@@ -82,7 +75,7 @@ void PlayerHealthUI::Update(float elapsed) {
     if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0 || player->GetHealth() <= startHP * 0.5) {
       text.setFillColor(sf::Color(255, 165, 0));
 
-      if (player->GetHealth() <= startHP * 0.5 && player->IsBattleActive()) {
+      if (player->GetHealth() <= startHP * 0.5 && !isBattleOver) {
         AUDIO.Play(AudioType::LOW_HP, AudioPriority::HIGH);
       }
     } else if (currHP < player->GetHealth()) {

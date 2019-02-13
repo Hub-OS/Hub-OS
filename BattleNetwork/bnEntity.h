@@ -73,8 +73,11 @@ public:
   void SetBattleActive(bool state);
   const bool IsBattleActive() { return isBattleActive; }
 
+  // TODO: GetComponents<>() and GetFirstComponent<>()
   template<typename Type>
   Type* GetComponent();
+
+  Component* RegisterComponent(Component* c);
 
 protected:
   // used to toggle some effects inbetween paused scene moments
@@ -104,7 +107,6 @@ protected:
 
   void FreeAllComponents();
   void FreeComponent(Component& c);
-  void RegisterComponent(Component* c);
 
 private:
   void UpdateSlideStartPosition();

@@ -355,8 +355,9 @@ void Entity::FreeComponent(Component& c) {
   }
 }
 
-void Entity::RegisterComponent(Component* c) {
+Component* Entity::RegisterComponent(Component* c) {
   shared.push_back(c);
+  return c;
 }
 
 void Entity::UpdateSlideStartPosition()
