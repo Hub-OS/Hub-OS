@@ -350,6 +350,9 @@
     <Filter Include="Activities\Battle\Content\Entity\Artifact\Hits\Guard">
       <UniqueIdentifier>{7dc38b81-9350-486a-a312-cd7d05ae0f3a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy">
+      <UniqueIdentifier>{8deab339-cfc6-43e6-b86c-2cb7f139d585}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1125,6 +1128,9 @@
     </ClInclude>
     <ClInclude Include="bnGuardHit.h">
       <Filter>Activities\Battle\Content\Entity\Artifact\Hits\Guard</Filter>
+    </ClInclude>
+    <ClInclude Include="AlphaBossSpawnPolicy.h">
+      <Filter>Activities\Battle\Content\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -11,7 +11,7 @@
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
 Player::Player(void)
-  : health(1500),
+  : health(500),
   state(PLAYER_IDLE),
   chargeComponent(this),
   animationComponent(this),

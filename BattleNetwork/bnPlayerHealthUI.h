@@ -26,6 +26,7 @@ public:
 private:
   int lastHP;
   int currHP;
+  int startHP;
   Player* player;
   Font* font;
   Text text;

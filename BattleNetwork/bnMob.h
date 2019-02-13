@@ -28,6 +28,8 @@ private:
   bool nextReady;
   Field* field;
   bool isBoss;
+  // std::string music;
+  // Background* background;
 public:
   Mob(Field* _field) {
     nextReady = true;
@@ -48,7 +50,6 @@ public:
     rewards.insert(std::make_pair(rank, item));
   }
 
-  // TODO: Off chance that there's no item
   BattleItem* GetRankedReward(int score) {
     if (rewards.empty()) {
       return nullptr;

@@ -5,6 +5,7 @@ using std::to_string;
 #include "bnTile.h"
 #include "bnPlayerHealthUI.h"
 #include "bnTextureResourceManager.h"
+#include "bnAudioResourceManager.h"
 
 PlayerHealthUI::PlayerHealthUI(Player* _player)
   : player(_player) {
@@ -14,7 +15,7 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
   sprite.setPosition(3.f, 0.0f);
   sprite.setScale(2.f, 2.f);
 
-  lastHP = currHP = _player->GetHealth();
+  lastHP = currHP = startHP = _player->GetHealth();
   text = Text(to_string(currHP), *font);
   text.setLetterSpacing(4.0f);
   loaded = false;
@@ -78,8 +79,12 @@ void PlayerHealthUI::Update(float elapsed) {
       isPoisoned = player->GetTile()->GetState() == TileState::POISON;
     }
 
-    if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0) {
+    if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0 || player->GetHealth() <= startHP * 0.5) {
       text.setFillColor(sf::Color(255, 165, 0));
+
+      if (player->GetHealth() <= startHP * 0.5 && player->IsBattleActive()) {
+        AUDIO.Play(AudioType::LOW_HP, AudioPriority::HIGH);
+      }
     } else if (currHP < player->GetHealth()) {
       text.setFillColor(sf::Color(0, 255, 80));
     }

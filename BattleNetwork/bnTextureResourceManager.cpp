@@ -116,6 +116,9 @@ TextureResourceManager::TextureResourceManager(void) {
   // MetalMan
   paths.push_back("resources/mobs/metalman/metalman_atlas.png");
 
+  // Alpha
+  paths.push_back("resources/mobs/alpha/alpha.png");
+
   // Select screen "Anything Goes"
   paths.push_back("resources/mobs/select/random.png");
 

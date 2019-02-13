@@ -741,19 +741,19 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         bool performed = chipCustGUI.CursorAction();
 
         if (chipCustGUI.AreChipsReady()) {
-          AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOWEST);
+          AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
           customProgress = 0; // NOTE: Hack. Need one more state boolean
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f)); 
         }
         else if (performed) {
-          AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::LOWEST);
+          AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGH);
         }
         else {
           AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
         }
       }
       else if (INPUT.has(PRESSED_B)) {
-        chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::LOWEST) : 1;
+        chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGH) : 1;
       }
       else if (INPUT.has(PRESSED_PAUSE)) {
         chipCustGUI.OpenChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;

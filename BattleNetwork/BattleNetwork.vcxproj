@@ -287,6 +287,7 @@
     <ClCompile Include="bnChipDescriptionTextbox.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AlphaBossSpawnPolicy.h" />
     <ClInclude Include="bnAirShot.h" />
     <ClInclude Include="bnAnimate.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
