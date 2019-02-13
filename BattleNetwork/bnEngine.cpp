@@ -220,6 +220,15 @@ void Engine::RevokeShader() {
   SetShader(nullptr);
 }
 
+const bool Engine::IsMouseHovering(sf::Sprite & sprite) const
+{
+  sf::Vector2i mousei = sf::Mouse::getPosition(*window);
+  sf::Vector2f mouse = window->mapPixelToCoords(mousei);
+  sf::FloatRect bounds = sprite.getGlobalBounds();
+
+  return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
+}
+
 const sf::View Engine::GetDefaultView() {
   return original;
 }

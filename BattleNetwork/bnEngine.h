@@ -36,6 +36,8 @@ public:
   void SetShader(sf::Shader* _shader);
   void RevokeShader();
 
+  const bool IsMouseHovering(sf::Sprite& sprite) const;
+
   //void SetView(sf::View camera);
   void SetCamera(Camera& camera);
 

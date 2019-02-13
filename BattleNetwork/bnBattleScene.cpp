@@ -752,7 +752,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
         }
       }
-      else if (INPUT.has(PRESSED_B)) {
+      else if (INPUT.has(PRESSED_B) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
         chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGH) : 1;
       }
       else if (INPUT.has(PRESSED_PAUSE)) {

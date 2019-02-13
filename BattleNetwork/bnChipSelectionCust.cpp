@@ -382,6 +382,12 @@ void ChipSelectionCust::Draw() {
         ENGINE.Draw(icon, false);
       }
 
+      if (ENGINE.IsMouseHovering(icon) && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && queue[i].state != 0) {
+        cursorRow = row;
+        cursorPos = i%5;
+        CursorAction();
+      }
+
       smCodeLabel.setPosition(2.f*(14.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
 
       char code = queue[i].data->GetCode();
