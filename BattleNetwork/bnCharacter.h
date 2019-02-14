@@ -18,9 +18,13 @@ namespace Hit {
   struct Properties {
     Flags flags;
     Element element;
+    bool impact;
     double secs; // used by both recoil and stun
     Character* aggressor;
   };
+
+  const Hit::Properties DefaultProperties{ Hit::recoil, Element::NONE, true, 3.0, nullptr };
+
 }
 
 class Character : public virtual Entity, public CounterHitPublisher {
@@ -30,6 +34,7 @@ private:
   int frameDamageTaken;          // accumulation of final damage on frame
   bool frameElementalModifier;   // whether or not the final damage calculated was weak against 
   bool invokeDeletion;
+
   Hit::Flags frameHitProps; // accumulation of final hit props on frame
 
 public:
@@ -44,12 +49,10 @@ public:
     SIZE
   };
 
-  const static Hit::Properties DefaultHitProperties;
-
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
 
-  virtual const bool Hit(int damage, Hit::Properties props = Character::DefaultHitProperties);
+  virtual const bool Hit(int damage, Hit::Properties props = Hit::DefaultProperties);
   virtual void ResolveFrameBattleDamage();
   virtual void FilterFrameHitsAndApplyGuards(Hit::Flags flags) {} // TODO: make abstract
   virtual const float GetHitHeight() const { return 10.f;  } // TODO: make abstract
@@ -71,6 +74,7 @@ public:
   void Stun(double maxCooldown);
   bool IsCountered();
   const Rank GetRank() const;
+
   // For mob UI
   void SetName(std::string name);
   const std::string GetName() const;

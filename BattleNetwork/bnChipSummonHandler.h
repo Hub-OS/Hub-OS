@@ -91,7 +91,7 @@ public:
 
   void OnEnter() { 
     if (summon == "Roll") {
-      player->SetAlpha(0);
+      player->Hide();
 
       Entity* roll = new RollHeal(this, copy.GetDamage());
       SummonEntity(roll);
@@ -128,7 +128,7 @@ public:
   }
 
   void OnLeave() { 
-    player->SetAlpha(255);  
+    player->Reveal();
 
     for (auto items : summonedItems) {
       if (items.persist) {

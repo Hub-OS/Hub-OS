@@ -115,7 +115,7 @@ void AirShot::Attack(Character* _entity) {
   }
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    auto props = Character::DefaultHitProperties;
+    auto props = Hit::DefaultProperties;
     _entity->Hit(damage, props);
     hitHeight = _entity->GetHitHeight();
 

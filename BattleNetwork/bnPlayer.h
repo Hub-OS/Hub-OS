@@ -27,27 +27,20 @@ public:
 
   virtual int GetHealth() const;
   virtual void SetHealth(int _health);
-  virtual const bool Hit(int _damage, Hit::Properties props = Character::DefaultHitProperties);
+  virtual const bool Hit(int _damage, Hit::Properties props = Hit::DefaultProperties);
   int GetMoveCount() const;
   int GetHitCount() const;
 
   AnimationComponent& GetAnimationComponent();
 
   void SetCharging(bool state);
-  void SetAlpha(int value); // TODO: Get rid of this
-  void SetCloakTimer(int seconds); // TODO: Get rid
+
   virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
 
 protected:
-
-  // TODO: get rid of this
-  sf::Clock cloakTimer;
-  int cloakTimeSecs;
-
   int health;
   int hitCount;
 
-  int alpha;
   double invincibilityCooldown;
 
   TextureType textureType;

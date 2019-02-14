@@ -26,12 +26,23 @@ Entity::Entity()
   elapsedSlideTime(0)
 {
   this->ID = ++Entity::numOfIDs;
+  alpha = 255;
 }
 
 Entity::~Entity() {
+  for (int i = 0; i < shared.size(); i++) {
+    delete shared[i];
+  }
+
+  shared.clear();
 }
 
 void Entity::Update(float _elapsed) {
+  for (int i = 0; i < shared.size(); i++) {
+    shared[i]->Update(_elapsed);
+  }
+
+
   if (_elapsed <= 0)
     return;
 
@@ -102,6 +113,16 @@ void Entity::Update(float _elapsed) {
     field->RemoveEntity(this);
   }
 }
+
+void Entity::SetAlpha(int value)
+{
+  alpha = value;
+  sf::Color c = this->getColor();
+  c.a = alpha;
+
+  this->setColor(c);
+}
+
 
 bool Entity::Move(Direction _direction) {
   bool moved = false;
@@ -242,6 +263,22 @@ void Entity::SlideToTile(bool enabled)
 
   // capture potential slide starting position
   this->UpdateSlideStartPosition();
+}
+
+void Entity::Hide()
+{
+  sf::Color c = getColor();
+  c.a = 0;
+
+  this->setColor(c);
+}
+
+void Entity::Reveal()
+{
+  sf::Color c = getColor();
+  c.a = 255;
+
+  this->setColor(c);
 }
 
 void Entity::SetField(Field* _field) {

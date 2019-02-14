@@ -26,6 +26,7 @@ class Entity : public LayeredDrawable {
 private:
   long ID; // used for tagging and later, in scripting
   static long numOfIDs;
+  int alpha;
 
 public:
   Entity();
@@ -46,6 +47,9 @@ public:
   Battle::Tile* GetTile() const;
   void SlideToTile(bool );
 
+  void Hide();
+  void Reveal();
+
   void SetField(Field* _field);
 
   Field* GetField() const;
@@ -55,6 +59,8 @@ public:
 
   void SetPassthrough(bool state);
   bool IsPassthrough();
+
+  void SetAlpha(int value);
 
   void SetFloatShoe(bool state);
   bool HasFloatShoe();
@@ -78,6 +84,9 @@ public:
   Type* GetComponent();
 
   Component* RegisterComponent(Component* c);
+
+  void FreeAllComponents();
+  void FreeComponent(Component& c);
 
 protected:
   // used to toggle some effects inbetween paused scene moments
@@ -104,9 +113,6 @@ protected:
   Direction previousDirection;
 
   std::vector<Component*> shared;
-
-  void FreeAllComponents();
-  void FreeComponent(Component& c);
 
 private:
   void UpdateSlideStartPosition();

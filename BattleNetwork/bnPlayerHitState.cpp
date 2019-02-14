@@ -22,6 +22,5 @@ void PlayerHitState::OnUpdate(float _elapsed, Player& player) {
 }
 
 void PlayerHitState::OnLeave(Player& player) {
-  // Disable previous ailments... e.g. confusion, barrier, soul-cross if damage was bad enough
-  player.invincibilityCooldown = 2.0f; // 2 seconds
+  player.invincibilityCooldown = 2.0; // 2 seconds
 }

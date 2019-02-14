@@ -493,7 +493,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   // Draw scene nodes
   for (auto node : scenenodes) {
-    node->OnDraw(surface);
+    surface.draw(*node);
   }
 
   /*for (int d = 1; d <= field->GetHeight(); d++) {

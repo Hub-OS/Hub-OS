@@ -196,6 +196,7 @@
     <ClCompile Include="bnCounterHitPublisher.cpp" />
     <ClCompile Include="bnCube.cpp" />
     <ClCompile Include="bnCustEmblem.cpp" />
+    <ClCompile Include="bnDefenseResponsibility.cpp" />
     <ClCompile Include="bnEnemyChipsUI.cpp" />
     <ClCompile Include="bnFakeScene.cpp" />
     <ClCompile Include="bnFolderEditScene.cpp" />
@@ -275,6 +276,7 @@
     <ClCompile Include="bnPlayerControlledState.cpp" />
     <ClCompile Include="bnCamera.cpp" />
     <ClCompile Include="bnCanonSmoke.cpp" />
+    <ClCompile Include="bnInvis.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="bnProgsManMoveState.cpp" />
     <ClCompile Include="bnProgsManPunchState.cpp" />
@@ -321,6 +323,7 @@
     <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnGear.h" />
     <ClInclude Include="bnGuardHit.h" />
+    <ClInclude Include="bnInvis.h" />
     <ClInclude Include="bnLibraryScene.h" />
     <ClInclude Include="bnMetalBlade.h" />
     <ClInclude Include="bnMetalMan.h" />
@@ -424,6 +427,7 @@
     <ClInclude Include="bnChipDescriptionTextbox.h" />
     <ClInclude Include="bnChipFolderCollection.h" />
     <ClInclude Include="bnNaviExplodeState.h" />
+    <ClInclude Include="bnDefenseResponsibility.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />

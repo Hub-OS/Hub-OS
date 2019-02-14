@@ -141,7 +141,7 @@ void Buster::Attack(Character* _entity) {
   }
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    auto props = Character::DefaultHitProperties;
+    auto props = Hit::DefaultProperties;
     props.flags = props.flags & ~Hit::recoil;
 
     _entity->Hit(damage, props);

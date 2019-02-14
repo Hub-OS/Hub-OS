@@ -176,15 +176,6 @@
     <Filter Include="Activities\Battle\Content\Chips\Cust">
       <UniqueIdentifier>{f9e71ed1-58d0-4f77-937f-5656dd5f63e4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\ChipUseListener">
-      <UniqueIdentifier>{635d6105-57c6-40d2-be0b-a016ed816e8c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\ChipUseListener\Player">
-      <UniqueIdentifier>{1130e585-ede8-4349-b692-28fef5025bb2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Chips\ChipUseListener\Any">
-      <UniqueIdentifier>{66d9858f-2c9d-4e25-9578-5c0dd84e32b6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\AI">
       <UniqueIdentifier>{b0e97f40-0be3-48ff-a3c0-924576c7938e}</UniqueIdentifier>
     </Filter>
@@ -290,9 +281,6 @@
     <Filter Include="Activities\FakeTitle">
       <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Components\Other">
-      <UniqueIdentifier>{ade66c70-d29e-4fda-9c7d-868a596b794f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Entity\Character\Mystery">
       <UniqueIdentifier>{38dc9ec9-8504-4788-baf9-525eafa3f596}</UniqueIdentifier>
     </Filter>
@@ -352,6 +340,36 @@
     </Filter>
     <Filter Include="Activities\Battle\Content\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy">
       <UniqueIdentifier>{8deab339-cfc6-43e6-b86c-2cb7f139d585}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse\ChipUseListener">
+      <UniqueIdentifier>{635d6105-57c6-40d2-be0b-a016ed816e8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Player">
+      <UniqueIdentifier>{1130e585-ede8-4349-b692-28fef5025bb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Any">
+      <UniqueIdentifier>{66d9858f-2c9d-4e25-9578-5c0dd84e32b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\States">
+      <UniqueIdentifier>{ade66c70-d29e-4fda-9c7d-868a596b794f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers">
+      <UniqueIdentifier>{6de280b9-d0b4-4877-8dcd-0b09b1cc3b70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\Guard">
+      <UniqueIdentifier>{4b06344c-bbd5-4842-b21b-2ebee0f22e66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\Invincible">
+      <UniqueIdentifier>{161379cd-e67d-4358-bbb8-ff371c2b37da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\Mole">
+      <UniqueIdentifier>{f8825da0-d583-45d1-864f-806dda8b6c4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\AntiSword">
+      <UniqueIdentifier>{b67cfdf6-6272-4298-825f-63997a670e23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse\ChipUsePublisher">
+      <UniqueIdentifier>{f2d09726-b6c3-4add-a95c-207a1383c559}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -574,9 +592,6 @@
     <ClCompile Include="bnSelectedChipsUI.cpp">
       <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
     </ClCompile>
-    <ClCompile Include="bnEnemyChipsUI.cpp">
-      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
-    </ClCompile>
     <ClCompile Include="bnAnimate.cpp">
       <Filter>Engine\Graphics\Animate</Filter>
     </ClCompile>
@@ -675,6 +690,15 @@
     </ClCompile>
     <ClCompile Include="bnGuardHit.cpp">
       <Filter>Activities\Battle\Content\Entity\Artifact\Hits\Guard</Filter>
+    </ClCompile>
+    <ClCompile Include="bnInvis.cpp">
+      <Filter>Activities\Battle\Content\Components\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseResponsibility.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="bnEnemyChipsUI.cpp">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUsePublisher</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -923,7 +947,7 @@
       <Filter>Activities\Battle\Content\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerChipUseListener.h">
-      <Filter>Activities\Battle\Content\Chips\ChipUseListener\Player</Filter>
+      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Player</Filter>
     </ClInclude>
     <ClInclude Include="bnComponent.h">
       <Filter>Activities\Battle\Content\Components</Filter>
@@ -956,7 +980,7 @@
       <Filter>Activities\Battle\Content\Entity\Character\Player\Roll</Filter>
     </ClInclude>
     <ClInclude Include="bnChipSummonHandler.h">
-      <Filter>Activities\Battle\Content\Chips\ChipUseListener\Any</Filter>
+      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Any</Filter>
     </ClInclude>
     <ClInclude Include="bnRollHeal.h">
       <Filter>Activities\Battle\Content\Entity\Summons\Roll</Filter>
@@ -1003,9 +1027,6 @@
     <ClInclude Include="bnSelectedChipsUI.h">
       <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
     </ClInclude>
-    <ClInclude Include="bnEnemyChipsUI.h">
-      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
-    </ClInclude>
     <ClInclude Include="bnSpawnPolicy.h">
       <Filter>Activities\Battle\Content\MobFactories\SpawnPolicies</Filter>
     </ClInclude>
@@ -1022,7 +1043,7 @@
       <Filter>Engine\Graphics\SceneNodes</Filter>
     </ClInclude>
     <ClInclude Include="bnEnemyChipUseListener.h">
-      <Filter>Activities\Battle\Content\Chips\ChipUseListener\Any</Filter>
+      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Any</Filter>
     </ClInclude>
     <ClInclude Include="bnChipDescriptionTextbox.h">
       <Filter>Activities\Battle\Content\Chips\Cust\UI</Filter>
@@ -1061,7 +1082,7 @@
       <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
     </ClInclude>
     <ClInclude Include="bnBattleOverTrigger.h">
-      <Filter>Activities\Battle\Content\Components\Other</Filter>
+      <Filter>Activities\Battle\Content\Components\States</Filter>
     </ClInclude>
     <ClInclude Include="bnMysteryData.h">
       <Filter>Activities\Battle\Content\Entity\Character\Mystery</Filter>
@@ -1131,6 +1152,15 @@
     </ClInclude>
     <ClInclude Include="AlphaBossSpawnPolicy.h">
       <Filter>Activities\Battle\Content\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy</Filter>
+    </ClInclude>
+    <ClInclude Include="bnInvis.h">
+      <Filter>Activities\Battle\Content\Components\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseResponsibility.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="bnEnemyChipsUI.h">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUsePublisher</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

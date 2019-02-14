@@ -41,9 +41,6 @@ Player::Player(void)
   moveCount = 0;
 
   invincibilityCooldown = 0;
-  alpha = 255;
-
-  cloakTimeSecs = 0;
 }
 
 Player::~Player(void) {
@@ -66,25 +63,18 @@ void Player::Update(float _elapsed) {
     return;
   }
 
-  // TODO: Get rid of this. Put this type of behavior in a component
-  if (cloakTimer.getElapsedTime() > sf::seconds((float)cloakTimeSecs) && cloakTimeSecs != 0) {
-    this->SetPassthrough(false);
-    this->SetAlpha(255);
-    cloakTimeSecs = 0;
-  }
-
   if (invincibilityCooldown > 0) {
     if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
-      this->setColor(sf::Color(255,255,255,0));
+      this->Hide();
     }
     else {
-          this->setColor(sf::Color(255, 255, 255, alpha));
+      this->Reveal();
     }
 
     invincibilityCooldown -= _elapsed;
   }
   else {
-    this->setColor(sf::Color(255, 255, 255, alpha));
+    this->Reveal();
   }
 
   AI<Player>::Update(_elapsed);
@@ -167,20 +157,6 @@ AnimationComponent& Player::GetAnimationComponent() {
 void Player::SetCharging(bool state)
 {
   chargeComponent.SetCharging(state);
-}
-
-void Player::SetAlpha(int value)
-{
-  alpha = value;
-  this->setColor(sf::Color(255, 255, 255, alpha));
-}
-
-void Player::SetCloakTimer(int seconds)
-{
-  SetPassthrough(true);
-  SetAlpha(255 / 2);
-  cloakTimer.restart();
-  cloakTimeSecs = seconds;
 }
 
 void Player::SetAnimation(string _state, std::function<void()> onFinish) {

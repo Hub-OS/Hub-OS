@@ -8,6 +8,7 @@
 #include "bnCannon.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
+#include "bnInvis.h"
 
 class PlayerChipUseListener : public ChipUseListener {
 private:
@@ -43,8 +44,7 @@ public:
       AUDIO.Play(AudioType::PANEL_CRACK);
     }
     else if (name == "Invis") {
-      AUDIO.Play(AudioType::INVISIBLE);
-      player->SetCloakTimer(20); // TODO: make this a time-based component
+      Component* dangling = new Invis(player);
     }
     else if (name == "XtrmeCnnon") {
       Cannon* xtreme1 = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());

@@ -26,7 +26,6 @@ public:
   void Update(float elapsed);
   void OffsetPosition(const sf::Vector2f offset); // Get rid of this eventually. See BattleScene.cpp line 241
 
-  virtual void OnDraw(sf::RenderTexture& surface);
 private:
   int lastHP;
   int currHP;

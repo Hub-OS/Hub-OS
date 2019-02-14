@@ -3,8 +3,6 @@
 #include "bnField.h"
 #include "bnExplosion.h"
 
-const Hit::Properties Character::DefaultHitProperties{ Hit::recoil, Element::NONE, 3.0, nullptr };
-
 Character::Character(Rank _rank) : 
   health(0),
   counterable(false),
@@ -33,7 +31,7 @@ void Character::Update(float _elapsed) {
     if (this->GetTile()) {
       if (this->GetTile()->GetState() == TileState::POISON) {
         if (elapsedBurnTime <= 0) {
-          if (this->Hit(1, Hit::Properties({ 0x00, Element::NONE, 0, nullptr }))) {
+          if (this->Hit(1, Hit::Properties({ 0x00, Element::NONE, false, 0, nullptr }))) {
             elapsedBurnTime = burnCycle.asSeconds();
           }
         }
@@ -43,7 +41,7 @@ void Character::Update(float _elapsed) {
       }
 
       if (this->GetTile()->GetState() == TileState::LAVA) {
-        if (this->Hit(50, Hit::Properties({ Hit::pierce, Element::FIRE, 0, nullptr }))) {
+        if (this->Hit(50, Hit::Properties({ Hit::pierce, Element::FIRE, false, 0, nullptr }))) {
           Field* field = GetField();
           Entity* explosion = new Explosion(field, this->GetTeam(), 1);
           field->OwnEntity(explosion, tile->GetX(), tile->GetY());

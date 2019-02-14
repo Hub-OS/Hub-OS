@@ -28,11 +28,6 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
 PlayerHealthUI::~PlayerHealthUI() {
 }
 
-void PlayerHealthUI::OnDraw(sf::RenderTexture& target) {
-  target.draw(sprite);
-  target.draw(text);
-}
-
 void PlayerHealthUI::Update(float elapsed) {
   this->BattleOverTrigger<Player>::Update(elapsed);
 

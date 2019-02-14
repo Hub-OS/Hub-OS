@@ -18,7 +18,7 @@ public:
   virtual ~Obstacle(void);
 
   virtual void Update(float _elapsed);
-  virtual const bool Hit(int damage, Hit::Properties props = Character::DefaultHitProperties) = 0;
+  virtual const bool Hit(int damage, Hit::Properties props = Hit::DefaultProperties) = 0;
   virtual void SetAnimation(std::string animation);
   virtual bool CanMoveTo(Battle::Tile * next);
   virtual void Attack(Character* _entity) = 0;
