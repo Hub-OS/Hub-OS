@@ -57,13 +57,17 @@ public:
   Team GetTeam() const;
   void SetTeam(Team _team);
 
+  // TODO: migrate into DefenseRules
   void SetPassthrough(bool state);
   bool IsPassthrough();
 
   void SetAlpha(int value);
 
   void SetFloatShoe(bool state);
+  void SetAirShoe(bool state);
   bool HasFloatShoe();
+
+  bool HasAirShoe();
 
   void SetDirection(Direction direction);
   Direction GetDirection();
@@ -77,14 +81,13 @@ public:
 
   void AdoptNextTile();
   void SetBattleActive(bool state);
-  const bool IsBattleActive() { return isBattleActive; }
+  const bool IsBattleActive();
 
   // TODO: GetComponents<>() and GetFirstComponent<>()
   template<typename Type>
   Type* GetComponent();
 
   Component* RegisterComponent(Component* c);
-
   void FreeAllComponents();
   void FreeComponent(Component& c);
 
@@ -103,6 +106,7 @@ protected:
   Element element;
   bool passthrough;
   bool floatShoe;
+  bool airShoe;
   bool isSliding; // If sliding/gliding to a tile
   bool deleted;
   int moveCount;

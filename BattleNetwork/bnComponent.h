@@ -14,13 +14,17 @@ private:
 
 public:
   Component() = delete;
-  Component(Entity* owner) { this->owner = owner; owner->RegisterComponent(this); };
+  Component(Entity* owner) { this->owner = owner; };
   ~Component() { ; }
 
   Component(Component&& rhs) = delete;
   Component(const Component& rhs) = delete;
 
   Entity* GetOwner() { return owner;  }
+
+  template<typename T>
+  T* GetOwnerAs() { return dynamic_cast<T*>(owner); }
+
   void FreeOwner() { owner = nullptr; }
 
   virtual void Update(float _elapsed) = 0;

@@ -1,4 +1,6 @@
 #include "bnCharacter.h"
+#include "bnDefenseRule.h"
+#include "bnSpell.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnExplosion.h"
@@ -31,7 +33,7 @@ void Character::Update(float _elapsed) {
     if (this->GetTile()) {
       if (this->GetTile()->GetState() == TileState::POISON) {
         if (elapsedBurnTime <= 0) {
-          if (this->Hit(1, Hit::Properties({ 0x00, Element::NONE, false, 0, nullptr }))) {
+          if (this->Hit(1, Hit::Properties({ 0x00, Element::NONE, false, 0 }))) {
             elapsedBurnTime = burnCycle.asSeconds();
           }
         }
@@ -41,7 +43,7 @@ void Character::Update(float _elapsed) {
       }
 
       if (this->GetTile()->GetState() == TileState::LAVA) {
-        if (this->Hit(50, Hit::Properties({ Hit::pierce, Element::FIRE, false, 0, nullptr }))) {
+        if (this->Hit(50, Hit::Properties({ Hit::pierce, Element::FIRE, false, 0 }))) {
           Field* field = GetField();
           Entity* explosion = new Explosion(field, this->GetTeam(), 1);
           field->OwnEntity(explosion, tile->GetX(), tile->GetY());
@@ -157,4 +159,34 @@ void Character::SetName(std::string name)
 const std::string Character::GetName() const
 {
   return name;
+}
+
+void Character::AddDefenseRule(DefenseRule * rule)
+{
+  if (rule) {
+    defenses.push_back(rule);
+    std::sort(defenses.begin(), defenses.end(), [](DefenseRule* first, DefenseRule* second) { return first->GetPriorityLevel() < second->GetPriorityLevel(); });
+  }
+}
+
+void Character::RemoveDefenseRule(DefenseRule * rule)
+{
+  std::cout << "# of defenses: " << defenses.size() << std::endl;
+
+  auto iter = std::remove_if(defenses.begin(), defenses.end(), [&rule](DefenseRule * in) { return in == rule; });
+
+  if (iter != defenses.end()) {
+    defenses.erase(iter);
+  }
+}
+
+const bool Character::CheckDefenses(Spell* in)
+{
+  for (int i = 0; i < defenses.size(); i++) {
+    if (defenses[i]->Check(in, this)) {
+      return true;
+    }
+  }
+
+  return false;
 }

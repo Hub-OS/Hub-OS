@@ -33,9 +33,11 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   components = mob->GetComponents();
 
   PlayerHealthUI* healthUI = new PlayerHealthUI(player);
-  player->RegisterComponent(healthUI);
-  components.push_back(healthUI);
-  scenenodes.push_back(dynamic_cast<SceneNode*>(healthUI));
+
+  chipCustGUI.AddNode(*healthUI);
+
+  // components.push_back(healthUI);
+  // scenenodes.push_back(dynamic_cast<SceneNode*>(healthUI));
 
   for (auto c : components) {
     c->Inject(*this);
@@ -308,19 +310,6 @@ void BattleScene::onUpdate(double elapsed) {
   if (!showSummonText) {
     summons.Update(elapsed);
   }
-
-  // TODO: Refactor. 
-  // add player health component as a scene node child of cust gui
-  // e.g.
-  /*
-    // Somewhere in the scene's INIT routine...
-    Component* component = player->GetComponent<PlayerHealthUI>();
-    SceneNode* healthUI = dynamic_cast<SceneNode*>(component); // is of both types
-    if(healthUI) {
-      chipCustGUI.AddSceneNode(healthUI); // healthUI will now offset in chipcustGUI local space
-    }
-  */
-  player->GetComponent<PlayerHealthUI>()->OffsetPosition(chipCustGUI.GetOffset());
 
   // compare the summon state after we used a chip...
   if (summons.IsSummonsActive() && prevSummonState == false) {
@@ -613,7 +602,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   prevSummonState = summons.IsSummonsActive();
 
   // Draw cust GUI on top of scene. No shaders affecting.
-  chipCustGUI.Draw();
+  ENGINE.Draw(chipCustGUI);
 
   // Scene keyboard controls
   if (INPUT.has(PRESSED_PAUSE) && !isInChipSelect && !isBattleRoundOver && !isPreBattle && !isPostBattle) {

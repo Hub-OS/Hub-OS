@@ -9,6 +9,7 @@
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
+#include "bnReflectShield.h"
 
 class PlayerChipUseListener : public ChipUseListener {
 private:
@@ -44,7 +45,20 @@ public:
       AUDIO.Play(AudioType::PANEL_CRACK);
     }
     else if (name == "Invis") {
-      Component* dangling = new Invis(player);
+      Component* invis = new Invis(player);
+      player->RegisterComponent(invis);
+    }
+    else if (name == "Reflct") {
+      ReflectShield* reflect = new ReflectShield(player);
+      player->RegisterComponent(reflect);
+
+      AUDIO.Play(AudioType::APPEAR);
+
+      Battle::Tile* tile = player->GetTile();
+
+      if (tile) {
+        this->player->GetField()->AddEntity(reflect, tile->GetX(), tile->GetY());
+      }
     }
     else if (name == "XtrmeCnnon") {
       Cannon* xtreme1 = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());

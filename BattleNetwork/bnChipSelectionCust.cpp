@@ -12,7 +12,8 @@
 ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) :
   perTurn(perTurn),
   greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
-  chipDescriptionTextbox(sf::Vector2f(4, 255))
+  chipDescriptionTextbox(sf::Vector2f(4, 255)),
+  isInView(false)
 {
   frameElapsed = 1;
   folder = _folder;
@@ -252,21 +253,23 @@ bool ChipSelectionCust::CursorCancel() {
 bool ChipSelectionCust::IsOutOfView() {
   float bounds = -custSprite.getTextureRect().width*2.f;
 
-  if (custSprite.getPosition().x <= bounds) {
-    custSprite.setPosition(bounds, custSprite.getPosition().y);
+  if (this->getPosition().x <= bounds) {
+    this->setPosition(bounds, this->getPosition().y);
   }
 
-  return (custSprite.getPosition().x == bounds);
+  return (this->getPosition().x == bounds);
 }
 
-bool ChipSelectionCust::IsInView() {
+const bool ChipSelectionCust::IsInView() {
   float bounds = 0;
 
-  if (custSprite.getPosition().x >= bounds) {
-    custSprite.setPosition(bounds, custSprite.getPosition().y);
+  std::cout << "this->getPosition().x: " << this->getPosition().x << std::endl;
+
+  if (this->getPosition().x >= bounds) {
+    this->setPosition(bounds, this->getPosition().y);
   }
 
-  return (custSprite.getPosition().x == bounds);
+  return (this->getPosition().x == bounds);
 }
 
 bool ChipSelectionCust::IsChipDescriptionTextBoxOpen()
@@ -275,7 +278,7 @@ bool ChipSelectionCust::IsChipDescriptionTextBoxOpen()
 }
 
 void ChipSelectionCust::Move(sf::Vector2f delta) {
-  custSprite.setPosition(custSprite.getPosition() + delta);
+  this->setPosition(this->getPosition() + delta);
 }
 
 bool ChipSelectionCust::OpenChipDescription()
@@ -353,11 +356,16 @@ void ChipSelectionCust::GetNextChips() {
   }
 }
 
-void ChipSelectionCust::Draw() {
-  ENGINE.Draw(custSprite, false);
+void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states) const {
+  // combine the parent transform with the node's one
+  sf::Transform combinedTransform = this->getTransform();
 
-  if (IsInView()) {
-    ENGINE.Draw(emblem, false);
+  states.transform *= combinedTransform;
+
+  target.draw(custSprite, states);
+
+  if (isInView) {
+    target.draw(emblem, states);
 
     auto x = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(16.0f + (cursorPos*16.0f))), (double)cursorSmall.getPosition().x);
     auto y = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(113.f + (cursorRow*24.f))), (double)cursorSmall.getPosition().y);
@@ -377,15 +385,9 @@ void ChipSelectionCust::Draw() {
 
       if (queue[i].state == 0) {
         icon.SetShader(&greyscale);
-        ENGINE.Draw(&icon);
+        target.draw(icon,states);
       } else if (queue[i].state == 1) {
-        ENGINE.Draw(icon, false);
-      }
-
-      if (ENGINE.IsMouseHovering(icon) && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && queue[i].state != 0) {
-        cursorRow = row;
-        cursorPos = i%5;
-        CursorAction();
+        target.draw(icon, states);
       }
 
       smCodeLabel.setPosition(2.f*(14.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
@@ -397,7 +399,7 @@ void ChipSelectionCust::Draw() {
       }
 
       smCodeLabel.setString(code);
-      ENGINE.Draw(smCodeLabel, false);
+      target.draw(smCodeLabel, states);
     }
 
     icon.SetShader(nullptr);
@@ -408,8 +410,8 @@ void ChipSelectionCust::Draw() {
       icon.setTextureRect(iconSubFrame);
 
       chipLock.setPosition(2 * 93.f, 2.f*(23.0f + (i*16.0f)));
-      ENGINE.Draw(chipLock, false);
-      ENGINE.Draw(icon, false);
+      target.draw(chipLock, states);
+      target.draw(icon, states);
     }
 
 
@@ -426,48 +428,51 @@ void ChipSelectionCust::Draw() {
 
         if (!queue[cursorPos + (5 * cursorRow)].state) {
           chipCard.SetShader(&greyscale);
-          ENGINE.Draw((LayeredDrawable*)&chipCard);
+          target.draw(chipCard, states);
         } else {
-          ENGINE.Draw(chipCard, false);
+          target.draw(chipCard, states);
         }
 
         label.setPosition(2.f*16.f, 16.f);
         label.setString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
-        ENGINE.Draw(label, false);
+        target.draw(label, states);
 
         // the order here is very important:
         if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
           label.setString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
           label.setOrigin(label.getLocalBounds().width+label.getLocalBounds().left, 0);
           label.setPosition(2.f*(70.f), 143.f);
-          ENGINE.Draw(label, false);
+          target.draw(label, states);
         }
 
         label.setOrigin(0, 0);
         label.setPosition(2.f*16.f, 143.f);
         label.setString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
         label.setFillColor(sf::Color(225, 180, 0));
-        ENGINE.Draw(label, false);
+        target.draw(label, states);
 
         int offset = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
         element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-        ENGINE.Draw(element, false);
+        target.draw(element, states);
       }
       else {
-        ENGINE.Draw(chipNoData, false);
+        target.draw(chipNoData, states);
       }
 
       // Draw the small cursor
-      ENGINE.Draw(cursorSmall, false);
+      target.draw(cursorSmall, states);
     }
     else {
-      ENGINE.Draw(chipSendData, false);
-      ENGINE.Draw(cursorBig, false);
+      target.draw(chipSendData, states);
+      target.draw(cursorBig, states);
     }
   }
 
-  ENGINE.Draw(chipDescriptionTextbox);
+  target.draw(chipDescriptionTextbox, states);
+
+  SceneNode::draw(target, states);
 }
+
 
 void ChipSelectionCust::Update(float elapsed)
 {
@@ -479,6 +484,16 @@ void ChipSelectionCust::Update(float elapsed)
   chipDescriptionTextbox.Update(elapsed);
 
   emblem.Update(elapsed);
+
+  /*if (IsInView()) {
+    if (ENGINE.IsMouseHovering(icon) && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && queue[i].state != 0) {
+      cursorRow = row;
+      cursorPos = i % 5;
+      CursorAction();
+    }
+  }*/
+
+  this->isInView = IsInView();
 }
 
 Chip** ChipSelectionCust::GetChips() {

@@ -42,7 +42,10 @@ void Wave::Update(float _elapsed) {
   }
 
   setTexture(*texture);
-  setScale(2.f, 2.f);
+
+  int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
+  setScale(2.f*(float)lr, 2.f);
+
   setPosition(tile->getPosition().x, tile->getPosition().y);
   
   animation.Update(_elapsed, this);

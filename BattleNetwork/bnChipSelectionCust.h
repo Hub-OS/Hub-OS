@@ -10,8 +10,9 @@
 #include "bnAnimation.h"
 #include "bnChipDescriptionTextbox.h"
 #include "bnCustEmblem.h"
+#include "bnSceneNode.h"
 
-class ChipSelectionCust {
+class ChipSelectionCust : public SceneNode {
 public:
   struct Bucket {
     Chip* data;
@@ -19,30 +20,32 @@ public:
   };
 
 private:
-  sf::Sprite custSprite;
-  sf::Sprite cursorSmall; // animated
-  sf::Sprite cursorBig;   // animated
-  sf::Sprite chipLock;
+  // TODO: take mutable attr out
+  mutable sf::Sprite custSprite;
+  mutable sf::Sprite cursorSmall; // animated
+  mutable sf::Sprite cursorBig;   // animated
+  mutable sf::Sprite chipLock;
   Animation cursorSmallAnimator;
   Animation cursorBigAnimator;
-  LayeredDrawable icon;
-  LayeredDrawable chipCard;
+  mutable LayeredDrawable icon;
+  mutable LayeredDrawable chipCard;
   LayeredDrawable chipNoData;
   LayeredDrawable chipSendData;
-  LayeredDrawable element;
+  mutable LayeredDrawable element;
   sf::Shader& greyscale;
   sf::Font* labelFont;
   sf::Font* codeFont;
-  sf::Text smCodeLabel;
-  sf::Text label;
-  CustEmblem emblem;
+  mutable sf::Text smCodeLabel;
+  mutable sf::Text label;
+  mutable CustEmblem emblem;
 
   int chipCount;
   int selectCount;
   int chipCap;
-  int cursorPos;
-  int cursorRow;
+  mutable int cursorPos;
+  mutable int cursorRow;
   bool areChipsReady;
+  bool isInView;
   int perTurn;
   ChipFolder* folder;
   Chip** selectedChips;
@@ -71,11 +74,12 @@ public:
   bool CursorCancel();
 
   bool IsOutOfView();
-  bool IsInView();
+  const bool IsInView();
   bool IsChipDescriptionTextBoxOpen();
   void Move(sf::Vector2f delta);
   const sf::Vector2f GetOffset() const { return custSprite.getPosition() - sf::Vector2f(-custSprite.getTextureRect().width*2.f, 0.f); } // TODO: Get rid. See BattleScene.cpp line 241
-  void Draw();
+  
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const;
   void Update(float elapsed);
 
   bool ChipDescriptionConfirmQuestion();

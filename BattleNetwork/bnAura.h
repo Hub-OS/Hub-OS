@@ -17,7 +17,7 @@ private:
   sf::Sprite aura;
   Type type;
 public:
-  Aura(Type type, Entity* owner);
+  Aura(Type type, Character* owner);
   ~Aura();
 
   virtual void Inject(BattleScene&);

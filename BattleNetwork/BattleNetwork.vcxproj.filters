@@ -371,6 +371,9 @@
     <Filter Include="Activities\Battle\Content\PubSub\ChipUse\ChipUsePublisher">
       <UniqueIdentifier>{f2d09726-b6c3-4add-a95c-207a1383c559}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\Guard">
+      <UniqueIdentifier>{2a39016a-5677-4ad3-b2b4-0a9f1a6d6b4c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -694,11 +697,17 @@
     <ClCompile Include="bnInvis.cpp">
       <Filter>Activities\Battle\Content\Components\Animation</Filter>
     </ClCompile>
-    <ClCompile Include="bnDefenseResponsibility.cpp">
-      <Filter>Activities\Battle\Content\BattleStepModifiers</Filter>
-    </ClCompile>
     <ClCompile Include="bnEnemyChipsUI.cpp">
       <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUsePublisher</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseGuard.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\Guard</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseRule.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="bnReflectShield.cpp">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Guard</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1156,11 +1165,17 @@
     <ClInclude Include="bnInvis.h">
       <Filter>Activities\Battle\Content\Components\Animation</Filter>
     </ClInclude>
-    <ClInclude Include="bnDefenseResponsibility.h">
-      <Filter>Activities\Battle\Content\BattleStepModifiers</Filter>
-    </ClInclude>
     <ClInclude Include="bnEnemyChipsUI.h">
       <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUsePublisher</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseGuard.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\Guard</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseRule.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="bnReflectShield.h">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Guard</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

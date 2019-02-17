@@ -51,6 +51,7 @@ enum TextureType {
   SPELL_PROG_BOMB,
   SPELL_AURA,
   SPELL_THUNDER,
+  SPELL_REFLECT_SHIELD,
 
   //Chip Select 
   CHIP_SELECT_MENU,

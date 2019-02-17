@@ -23,6 +23,8 @@ public:
   PlayerHealthUI(Player* _player);
   ~PlayerHealthUI();
 
+  virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const;
+
   void Update(float elapsed);
   void OffsetPosition(const sf::Vector2f offset); // Get rid of this eventually. See BattleScene.cpp line 241
 

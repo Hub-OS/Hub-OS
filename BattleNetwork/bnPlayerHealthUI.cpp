@@ -28,6 +28,12 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
 PlayerHealthUI::~PlayerHealthUI() {
 }
 
+void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  target.draw(sprite, states);
+  target.draw(text, states);
+  SceneNode::draw(target, states);
+}
+
 void PlayerHealthUI::Update(float elapsed) {
   this->BattleOverTrigger<Player>::Update(elapsed);
 
@@ -84,6 +90,6 @@ void PlayerHealthUI::Update(float elapsed) {
 
 void PlayerHealthUI::OffsetPosition(const sf::Vector2f offset)
 {
-  text.setPosition(offset + sf::Vector2f(75.0f, -4.f));
-  sprite.setPosition(offset + sf::Vector2f(3.f, 0.0f));
+  //text.setPosition(offset + sf::Vector2f(75.0f, -4.f));
+  //sprite.setPosition(offset + sf::Vector2f(3.f, 0.0f));
 }

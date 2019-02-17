@@ -20,12 +20,14 @@ namespace Hit {
     Element element;
     bool impact;
     double secs; // used by both recoil and stun
-    Character* aggressor;
   };
 
-  const Hit::Properties DefaultProperties{ Hit::recoil, Element::NONE, true, 3.0, nullptr };
+  const Hit::Properties DefaultProperties{ Hit::recoil, Element::NONE, true, 3.0 };
 
 }
+
+class DefenseRule;
+class Spell;
 
 class Character : public virtual Entity, public CounterHitPublisher {
   friend class Field;
@@ -36,6 +38,8 @@ private:
   bool invokeDeletion;
 
   Hit::Flags frameHitProps; // accumulation of final hit props on frame
+
+  std::vector<DefenseRule*> defenses;
 
 public:
   enum class Rank : const int {
@@ -78,6 +82,12 @@ public:
   // For mob UI
   void SetName(std::string name);
   const std::string GetName() const;
+
+  // For defense rules
+  void AddDefenseRule(DefenseRule* rule);
+  void RemoveDefenseRule(DefenseRule* rule);
+
+  const bool CheckDefenses(Spell* in);
 
 protected:
   int health;

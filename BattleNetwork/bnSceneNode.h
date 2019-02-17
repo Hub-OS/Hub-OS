@@ -9,7 +9,7 @@ private:
   SceneNode* parent;
 
 public:
-  void draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
     // combine the parent transform with the node's one
     sf::Transform combinedTransform =this->getTransform();
     

@@ -112,7 +112,8 @@ public:
       }
     }
     else if (summon == "Barrier") {
-      Entity* aura = new Aura(Aura::Type::_100, this->GetPlayer());
+      Aura* aura = new Aura(Aura::Type::_100, this->GetPlayer());
+      this->GetPlayer()->RegisterComponent(aura);
 
       AUDIO.Play(AudioType::APPEAR);
 

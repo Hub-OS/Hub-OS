@@ -262,17 +262,21 @@ namespace Battle {
       }
     }
 
+    auto entities_copy = entities; // may be modified after hitboxes are resolved
+
     // Spells dont cause damage when the battle is over
     if (this->isBattleActive) {
       bool tag = false;
-      for (auto it = entities.begin(); it != entities.end(); ++it) {
+      for (auto it = entities_copy.begin(); it != entities_copy.end(); ++it) {
         if (*it == nullptr || *it == caller)
           continue;
 
         Character* c = dynamic_cast<Character*>(*it);
 
         if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam())) {
-          caller->Attack(c);
+          if (!c->CheckDefenses(caller)) {
+            caller->Attack(c);
+          }
           tag = true;
         }
       }

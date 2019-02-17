@@ -7,7 +7,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/auras.animation"
 
-Aura::Aura(Aura::Type type, Entity* owner) : type(type), Artifact(), Component(owner)
+Aura::Aura(Aura::Type type, Character* owner) : type(type), Artifact(), Component(owner)
 {
   SetLayer(1);
   this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));

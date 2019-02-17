@@ -311,9 +311,17 @@ void Entity::SetFloatShoe(bool state)
   floatShoe = state;
 }
 
+void Entity::SetAirShoe(bool state) {
+  airShoe = state;
+}
+
 bool Entity::HasFloatShoe()
 {
   return floatShoe;
+}
+
+bool Entity::HasAirShoe() {
+  return airShoe;
 }
 
 void Entity::SetDirection(Direction dir) {
@@ -373,6 +381,11 @@ void Entity::AdoptNextTile()
 void Entity::SetBattleActive(bool state)
 {
   isBattleActive = state;
+}
+
+const bool Entity::IsBattleActive()
+{
+  return isBattleActive;
 }
 
 void Entity::FreeAllComponents()
