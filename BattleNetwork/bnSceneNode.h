@@ -6,6 +6,7 @@
 class SceneNode : public sf::Transformable, public sf::Drawable {
 private:
   std::vector<SceneNode*> childNodes;
+  std::vector<sf::Sprite*> sprites;
   SceneNode* parent;
 
 public:
@@ -19,7 +20,12 @@ public:
 
     states.transform *= combinedTransform;
 
-      // draw its children
+    // Draw sprites
+    for (std::size_t i = 0; i < sprites.size(); ++i) {
+     target.draw(*sprites[i], states);
+    }
+
+    // draw its children
     for (std::size_t i = 0; i < childNodes.size(); ++i) {
       childNodes[i]->draw(target, states);
     }
@@ -31,5 +37,12 @@ public:
     (*iter)->parent = nullptr;
     
     childNodes.erase(iter, childNodes.end());
+  }
+
+  void AddSprite(sf::Sprite& sprite) { sprites.push_back(&sprite); }
+  void REmoveSprite(sf::Sprite& find) {
+    auto iter = std::remove_if(sprites.begin(), sprites.end(), [&find](sf::Sprite *in) { return in == &find; });
+
+    sprites.erase(iter, sprites.end());
   }
 };

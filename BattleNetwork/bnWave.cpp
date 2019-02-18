@@ -84,7 +84,3 @@ void Wave::Attack(Character* _entity) {
     _entity->Hit(10);
   }
 }
-
-vector<Drawable*> Wave::GetMiscComponents() {
-  return vector<Drawable*>();
-}

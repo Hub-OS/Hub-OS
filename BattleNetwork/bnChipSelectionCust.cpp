@@ -31,6 +31,8 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) 
   custSprite.setScale(2.f, 2.f);
   custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
 
+  this->AddSprite(custSprite);
+
   icon.setTexture(*TEXTURES.GetTexture(CHIP_ICONS));
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
@@ -362,7 +364,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   states.transform *= combinedTransform;
 
-  target.draw(custSprite, states);
+  //target.draw(custSprite, states);
 
   if (isInView) {
     target.draw(emblem, states);

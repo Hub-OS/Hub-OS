@@ -1,8 +1,9 @@
 Folder title="Default"
-	Chip name="Reflct" code="*"
-	Chip name="Reflct" code="*"
-	Chip name="Reflct" code="*"
-	Chip name="Reflct" code="*"
+	Chip name="Rflector" code="*"
+	Chip name="Rflector" code="*"
+	Chip name="Rflector" code="*"
+	Chip name="Rflector" code="*"
+        Chip name="Barrier" code="*"
 
 Folder title="OLD"
 	Chip name="Cannon" code="A"

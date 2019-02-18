@@ -230,16 +230,6 @@ bool Entity::CanMoveTo(Battle::Tile * next)
   return valid && Teammate(next->GetTeam());
 }
 
-vector<Drawable*> Entity::GetMiscComponents() {
-  assert(false && "GetMiscComponents shouldn't be called directly from Entity");
-  return vector<Drawable*>();
-}
-
-TextureType Entity::GetTextureType() {
-  assert(false && "GetGetTextureType shouldn't be called directly from Entity");
-  return (TextureType)0;
-}
-
 const long Entity::GetID() const
 {
   return this->ID;

@@ -1,21 +1,28 @@
 #pragma once
-#include "bnArtifact.h"
+#include "bnCharacter.h"
 #include "bnComponent.h"
 #include "bnField.h"
 
-class Aura : virtual public Artifact, virtual public Component
+class DefenseAura;
+
+class Aura : virtual public Character, virtual public Component
 {
 public:
   enum class Type : int {
-    _100,
-    _200,
-    _1000,
+    AURA_100,
+    AURA_200,
+    AURA_1000,
+    BARRIER_100,
+    BARRIER_200,
+    BARRIER_500
   };
 
 private:
   Animation animation;
   sf::Sprite aura;
   Type type;
+  DefenseAura* defense;
+
 public:
   Aura(Type type, Character* owner);
   ~Aura();
@@ -24,7 +31,8 @@ public:
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction) { return false; }
   const Type GetAuraType();
-  vector<Drawable*> GetMiscComponents();
+  virtual const bool Hit(int _damage, Hit::Properties props = Hit::DefaultProperties);
+
 
 };
 

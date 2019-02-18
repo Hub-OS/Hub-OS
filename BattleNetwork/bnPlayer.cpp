@@ -112,18 +112,7 @@ int Player::GetHealth() const {
 }
 
 const bool Player::Hit(int _damage, Hit::Properties props) {
-  // return false;
-
   if ((this->IsPassthrough() && (props.flags & Hit::pierce) != Hit::pierce) || invincibilityCooldown > 0) return false;
-
-  // JUST AS AN AURA PROOF OF CONCEPT
-  Aura* a = this->GetComponent<Aura>();
-
-  if (a && a->GetAuraType() == Aura::Type::_100) {
-    return false;
-  }
-
-  bool result = true;
 
   if (health - _damage < 0) {
     health = 0;
@@ -137,7 +126,7 @@ const bool Player::Hit(int _damage, Hit::Properties props) {
     }
   }
 
-  return result;
+  return true;
 }
 
 int Player::GetMoveCount() const

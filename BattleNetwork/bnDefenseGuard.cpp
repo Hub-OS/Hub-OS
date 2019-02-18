@@ -2,9 +2,9 @@
 #include "bnEntity.h"
 #include "bnField.h"
 #include "bnSpell.h"
-#include "bnWave.h"
+#include "bnGuardHit.h"
 
-DefenseGuard::DefenseGuard() : DefenseRule(Priority(0))
+DefenseGuard::DefenseGuard(DefenseGuard::Callback callback) : callback(callback), DefenseRule(Priority(1))
 {
 }
 
@@ -14,25 +14,11 @@ DefenseGuard::~DefenseGuard()
 
 const bool DefenseGuard::Check(Spell * in, Character* owner)
 {
-  Direction direction = Direction::NONE;
-
-  if (in->GetDirection() == Direction::LEFT) {
-    direction = Direction::RIGHT;
-  }
-  else if (in->GetDirection() == Direction::RIGHT) {
-    direction = Direction::LEFT;
-  }
-
-  Field* field = owner->GetField();
-
-  Spell* wave = new Wave(field, owner->GetTeam(), 8.0);
-  wave->SetDirection(direction);
-
-  field->OwnEntity(wave, owner->GetTile()->GetX(), owner->GetTile()->GetY());
+  this->callback(in, owner);
 
   in->Delete();
 
-  // TODO: play sound
+  owner->GetField()->OwnEntity(new GuardHit(owner->GetField(), owner, true), owner->GetTile()->GetX(), owner->GetTile()->GetY());
 
   return true; // Guard never allows an attack to passthrough
 }

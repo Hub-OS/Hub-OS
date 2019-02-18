@@ -308,9 +308,6 @@
     <Filter Include="Activities\Battle\Content\Entity\Spell\MetalBlade">
       <UniqueIdentifier>{91aa49bc-7d50-4019-ada5-31019db9dd2b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Entity\Artifact\Auras">
-      <UniqueIdentifier>{2482e1b7-393a-4a43-ba4f-36770ee44c88}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Entity\Spell\Thunder">
       <UniqueIdentifier>{8bcaba3f-b78e-487d-87ae-4eef532e7546}</UniqueIdentifier>
     </Filter>
@@ -373,6 +370,18 @@
     </Filter>
     <Filter Include="Activities\Battle\Content\Entity\Artifact\Guard">
       <UniqueIdentifier>{2a39016a-5677-4ad3-b2b4-0a9f1a6d6b4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\Hits\Buster">
+      <UniqueIdentifier>{44f2b70e-d5ac-4e3b-a080-41299189d811}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Spell\RowHit">
+      <UniqueIdentifier>{a540c9b8-5a8d-4d43-b201-696941acf792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Character\Auras">
+      <UniqueIdentifier>{2482e1b7-393a-4a43-ba4f-36770ee44c88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\Aura">
+      <UniqueIdentifier>{2a924a57-8ec8-4d18-b184-6a41f10b7d45}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -677,7 +686,7 @@
       <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
     </ClCompile>
     <ClCompile Include="bnAura.cpp">
-      <Filter>Activities\Battle\Content\Entity\Artifact\Auras</Filter>
+      <Filter>Activities\Battle\Content\Entity\Character\Auras</Filter>
     </ClCompile>
     <ClCompile Include="bnThunder.cpp">
       <Filter>Activities\Battle\Content\Entity\Spell\Thunder</Filter>
@@ -708,6 +717,15 @@
     </ClCompile>
     <ClCompile Include="bnReflectShield.cpp">
       <Filter>Activities\Battle\Content\Entity\Artifact\Guard</Filter>
+    </ClCompile>
+    <ClCompile Include="bnChargedBusterHit.cpp">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Hits\Buster</Filter>
+    </ClCompile>
+    <ClCompile Include="bnRowHit.cpp">
+      <Filter>Activities\Battle\Content\Entity\Spell\RowHit</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseAura.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\Aura</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1136,7 +1154,7 @@
       <Filter>Activities\Battle\Content\Entity\Character\MetalMan\States</Filter>
     </ClInclude>
     <ClInclude Include="bnAura.h">
-      <Filter>Activities\Battle\Content\Entity\Artifact\Auras</Filter>
+      <Filter>Activities\Battle\Content\Entity\Character\Auras</Filter>
     </ClInclude>
     <ClInclude Include="bnThunder.h">
       <Filter>Activities\Battle\Content\Entity\Spell\Thunder</Filter>
@@ -1176,6 +1194,15 @@
     </ClInclude>
     <ClInclude Include="bnReflectShield.h">
       <Filter>Activities\Battle\Content\Entity\Artifact\Guard</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChargedBusterHit.h">
+      <Filter>Activities\Battle\Content\Entity\Artifact\Hits\Buster</Filter>
+    </ClInclude>
+    <ClInclude Include="bnRowHit.h">
+      <Filter>Activities\Battle\Content\Entity\Spell\RowHit</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseAura.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\Aura</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

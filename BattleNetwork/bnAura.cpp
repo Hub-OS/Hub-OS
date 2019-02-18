@@ -2,12 +2,13 @@
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
 #include "bnAura.h"
+#include "bnDefenseAura.h"
 
 using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/auras.animation"
 
-Aura::Aura(Aura::Type type, Character* owner) : type(type), Artifact(), Component(owner)
+Aura::Aura(Aura::Type type, Character* owner) : type(type), Character(), Component(owner)
 {
   SetLayer(1);
   this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
@@ -18,11 +19,21 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Artifact(), Componen
   animation = Animation(RESOURCE_PATH);
   animation.Reload();
 
-  if (type == Aura::Type::_100) {
-    animation.SetAnimation("100");
-    animation << Animate::Mode::Loop;
+  switch (type) {
+  case Aura::Type::AURA_100:
+    animation.SetAnimation("AURA_100");
+    this->SetHealth(100);
+    break;
+  case Aura::Type::BARRIER_100:
+    animation.SetAnimation("BARRIER_100");
+    this->SetHealth(100);
+    break;
   }
 
+  this->defense = new DefenseAura();
+  owner->AddDefenseRule(defense);
+
+  animation << Animate::Mode::Loop;
   animation.Update(0, this);
 }
 
@@ -48,12 +59,25 @@ const Aura::Type Aura::GetAuraType()
   return type;
 }
 
-vector<Drawable*> Aura::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
+const bool Aura::Hit(int _damage, Hit::Properties props)
+{
+  int health = this->GetHealth();
 
-  return drawables;
+  if (type == Aura::Type::BARRIER_100) {
+   health = health - _damage;
+  }
+
+
+  if (health < 0) { health = 0; this->TryDelete(); /*this->GetOwner()->FreeComponent(*this);*/ }
+
+  this->SetHealth(health);
+
+  return health != this->GetHealth();
 }
 
 Aura::~Aura()
 {
+  this->GetOwnerAs<Character>()->RemoveDefenseRule(this->defense);
+
+  delete this->defense;
 }

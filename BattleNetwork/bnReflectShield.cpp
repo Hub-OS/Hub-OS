@@ -1,6 +1,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
+#include "bnRowHit.h"
 #include "bnReflectShield.h"
 #include "bnDefenseGuard.h"
 
@@ -21,7 +22,25 @@ ReflectShield::ReflectShield(Character* owner) : Artifact(), Component(owner)
 
   animation.SetAnimation("DEFAULT");
 
-  this->guard = new DefenseGuard();
+  DefenseGuard::Callback callback = [](Spell* in, Character* owner) {
+    Direction direction = Direction::NONE;
+
+    if (in->GetDirection() == Direction::LEFT) {
+      direction = Direction::RIGHT;
+    }
+    else if (in->GetDirection() == Direction::RIGHT) {
+      direction = Direction::LEFT;
+    }
+
+    Field* field = owner->GetField();
+
+    Spell* rowhit = new RowHit(field, owner->GetTeam(), 60);
+    rowhit->SetDirection(direction);
+
+    field->OwnEntity(rowhit, owner->GetTile()->GetX()+1, owner->GetTile()->GetY());
+  };
+
+  this->guard = new DefenseGuard(callback);
 
   auto onEnd = [this]() {
     this->GetOwnerAs<Character>()->RemoveDefenseRule(this->guard);

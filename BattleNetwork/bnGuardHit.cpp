@@ -7,21 +7,28 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/guard_hit.animation"
 
-GuardHit::GuardHit(Field* _field, Character* hit) : animationComponent(this)
+GuardHit::GuardHit(Field* _field, Character* hit, bool center) : animationComponent(this)
 {
+  this->center = center;
   SetLayer(0);
   field = _field;
   team = Team::UNKNOWN;
 
-  float random = hit->getLocalBounds().width / 2.0f;
-  random *= rand() % 2 == 0 ? -1.0f : 1.0f;
+  if (!center) {
+    float random = hit->getLocalBounds().width / 2.0f;
+    random *= rand() % 2 == 0 ? -1.0f : 1.0f;
 
-  w = (float)random;
+    w = (float)random;
 
-  h = (float)(std::floor(hit->GetHitHeight()));
+    h = (float)(std::floor(hit->GetHitHeight()));
 
-  if (h > 0) {
-    h = (float)(rand() % (int)h);
+    if (h > 0) {
+      h = (float)(rand() % (int)h);
+    }
+  }
+  else {
+    w = 0;
+    h = (float)(std::floor(hit->GetHitHeight()/2.0f));
   }
 
   setTexture(*TEXTURES.GetTexture(TextureType::SPELL_GUARD_HIT));
@@ -41,12 +48,6 @@ void GuardHit::Update(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x + w, tile->getPosition().y + tileOffset.y - h);
   animationComponent.Update(_elapsed);
   Entity::Update(_elapsed);
-}
-
-vector<Drawable*> GuardHit::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-
-  return drawables;
 }
 
 GuardHit::~GuardHit()

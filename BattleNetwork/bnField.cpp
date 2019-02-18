@@ -58,7 +58,12 @@ bool Field::GetNextTile(Battle::Tile*& out) {
 void Field::AddEntity(Entity* _entity, int x, int y) {
   entities.push_back(_entity);
   _entity->SetField(this);
-  GetAt(x, y)->AddEntity(_entity);
+
+  Battle::Tile* tile = GetAt(x, y);
+
+  if (tile) {
+    tile->AddEntity(_entity);
+  }
 }
 
 void Field::OwnEntity(Entity* _entity, int x, int y) {

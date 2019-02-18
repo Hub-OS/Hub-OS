@@ -36,8 +36,6 @@ public:
   virtual bool Move(Direction _direction);
   virtual bool Teleport(int x, int y);
   virtual bool CanMoveTo(Battle::Tile* next);
-  virtual vector<Drawable*> GetMiscComponents();
-  virtual TextureType GetTextureType();
 
   const long GetID() const;
 
@@ -66,7 +64,6 @@ public:
   void SetFloatShoe(bool state);
   void SetAirShoe(bool state);
   bool HasFloatShoe();
-
   bool HasAirShoe();
 
   void SetDirection(Direction direction);

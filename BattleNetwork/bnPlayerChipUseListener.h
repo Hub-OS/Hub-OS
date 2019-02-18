@@ -48,7 +48,7 @@ public:
       Component* invis = new Invis(player);
       player->RegisterComponent(invis);
     }
-    else if (name == "Reflct") {
+    else if (name == "Rflector") {
       ReflectShield* reflect = new ReflectShield(player);
       player->RegisterComponent(reflect);
 

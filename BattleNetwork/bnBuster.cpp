@@ -133,10 +133,10 @@ bool Buster::Move(Direction _direction) {
 void Buster::Attack(Character* _entity) {
   if (hit || deleted) return;
 
+  // TODO: Add guard component to gear and take out this entirely
   if (dynamic_cast<Gear*>(_entity)) {
     spawnGuard = true;
     contact = _entity;
-    std::cout << "spawning guard" << std::endl;
     return;
   }
 

@@ -14,7 +14,6 @@ public:
 
   virtual void Update(float _elapsed) = 0;
   virtual void Attack(Character* _entity) = 0;
-  virtual vector<Drawable*> GetMiscComponents() = 0;
 
   void EnableTileHighlight(bool enable);
 

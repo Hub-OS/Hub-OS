@@ -429,7 +429,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     while (tile->GetNextEntity(entity)) {
       if (!entity->IsDeleted()) {
         ENGINE.Draw(entity);
-        miscComponents.push_back(entity->GetMiscComponents());
       }
     }
 
