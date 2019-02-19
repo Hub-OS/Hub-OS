@@ -59,11 +59,10 @@ void Entity::Update(float _elapsed) {
 
     if (delta >= 0.5f) {
       if (tile != next) {
-        previous->RemoveEntity(this);
+        previous->RemoveEntityByID(this->GetID());
         previous = tile;
 
-        SetTile(next);
-        tile->AddEntity(this);
+        this->AdoptTile(next);
       }
 
       this->tileOffset = -tar+pos+tileOffset;
@@ -110,7 +109,11 @@ void Entity::Update(float _elapsed) {
   }
 
   if (IsDeleted()) {
-    field->RemoveEntity(this);
+    if (tile) {
+      tile->RemoveEntityByID(this->GetID());
+    }
+
+    //delete this;
   }
 }
 
@@ -356,12 +359,11 @@ void Entity::AdoptNextTile()
   }
 
   if (previous != nullptr) {
-    previous->RemoveEntity(this);
+    previous->RemoveEntityByID(this->GetID());
     previous = nullptr;
   }
 
-  SetTile(next);
-  tile->AddEntity(this);
+  this->AdoptTile(next);
 
   next = nullptr;
 

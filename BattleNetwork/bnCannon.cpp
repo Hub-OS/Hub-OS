@@ -70,7 +70,7 @@ void Cannon::Update(float _elapsed) {
 }
 
 bool Cannon::Move(Direction _direction) {
-  tile->RemoveEntity(this);
+  tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
   if (_direction == Direction::UP) {
     if (tile->GetY() - 1 > 0) {
@@ -104,7 +104,7 @@ bool Cannon::Move(Direction _direction) {
       return false;
     }
   }
-  tile->AddEntity(this);
+  tile->AddEntity(*this);
   return true;
 }
 
@@ -130,6 +130,3 @@ void Cannon::Attack(Character* _entity) {
   }
 }
 
-vector<Drawable*> Cannon::GetMiscComponents() {
-  return vector<Drawable*>();
-}

@@ -45,8 +45,8 @@ void Character::Update(float _elapsed) {
       if (this->GetTile()->GetState() == TileState::LAVA) {
         if (this->Hit(50, Hit::Properties({ Hit::pierce, Element::FIRE, false, 0 }))) {
           Field* field = GetField();
-          Entity* explosion = new Explosion(field, this->GetTeam(), 1);
-          field->OwnEntity(explosion, tile->GetX(), tile->GetY());
+          Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
+          field->AddEntity(*explosion, tile->GetX(), tile->GetY());
           this->GetTile()->SetState(TileState::NORMAL);
         }
       }
@@ -63,11 +63,6 @@ void Character::Update(float _elapsed) {
 bool Character::CanMoveTo(Battle::Tile * next)
 {
   return (Entity::CanMoveTo(next) && !next->ContainsEntityType<Character>());
-}
-
-vector<Drawable*> Character::GetMiscComponents() {
-  assert(false && "GetMiscComponents shouldn't be called directly from Character");
-  return vector<Drawable*>();
 }
 
 void Character::AddAnimation(string _state, FrameList _frameList, float _duration) {
@@ -132,6 +127,15 @@ void Character::SetHealth(const int _health) {
 
 }
 
+void Character::AdoptTile(Battle::Tile * tile)
+{
+  tile->AddEntity(*this);
+
+  if (!isSliding) {
+    this->setPosition(tile->getPosition());
+  }
+}
+
 void Character::TryDelete() {
   deleted = (health <= 0);
 }
@@ -171,8 +175,6 @@ void Character::AddDefenseRule(DefenseRule * rule)
 
 void Character::RemoveDefenseRule(DefenseRule * rule)
 {
-  std::cout << "# of defenses: " << defenses.size() << std::endl;
-
   auto iter = std::remove_if(defenses.begin(), defenses.end(), [&rule](DefenseRule * in) { return in == rule; });
 
   if (iter != defenses.end()) {

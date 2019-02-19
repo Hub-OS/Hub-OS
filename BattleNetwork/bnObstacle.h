@@ -23,6 +23,8 @@ public:
   virtual bool CanMoveTo(Battle::Tile * next);
   virtual void Attack(Character* _entity) = 0;
 
+  virtual void AdoptTile(Battle::Tile* tile) final;
+
   vector<Drawable*> GetMiscComponents() { return vector<Drawable*>(); }
   double timer;
 

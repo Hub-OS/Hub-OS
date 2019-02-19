@@ -42,14 +42,14 @@ public:
 
       cannon->SetDirection(Direction::LEFT);
 
-      user.GetField()->OwnEntity(cannon, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+      user.GetField()->AddEntity(*cannon, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
     }
     else if (name == "Swrd") {
       BasicSword* sword = new BasicSword(user.GetField(), user.GetTeam(), chip.GetDamage());
 
       AUDIO.Play(AudioType::SWORD_SWING);
 
-      user.GetField()->OwnEntity(sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+      user.GetField()->AddEntity(*sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
     }
     else if (name == "LongSwrd") {
       BasicSword* sword = new BasicSword(user.GetField(), user.GetTeam(), chip.GetDamage());
@@ -58,11 +58,11 @@ public:
       AUDIO.Play(AudioType::SWORD_SWING);
 
       if (user.GetField()->GetAt(user.GetTile()->GetX() + 1, user.GetTile()->GetY())) {
-        user.GetField()->OwnEntity(sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+        user.GetField()->AddEntity(*sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
       }
 
       if (user.GetField()->GetAt(user.GetTile()->GetX() + 2, user.GetTile()->GetY())) {
-        user.GetField()->OwnEntity(sword2, user.GetTile()->GetX() + 2, user.GetTile()->GetY());
+        user.GetField()->AddEntity(*sword2, user.GetTile()->GetX() + 2, user.GetTile()->GetY());
       }
     }
     else if (name == "WideSwrd") {
@@ -72,11 +72,11 @@ public:
       AUDIO.Play(AudioType::SWORD_SWING);
 
       if (user.GetField()->GetAt(user.GetTile()->GetX() + 1, user.GetTile()->GetY())) {
-        user.GetField()->OwnEntity(sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+        user.GetField()->AddEntity(*sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
       }
 
       if (user.GetField()->GetAt(user.GetTile()->GetX() + 1, user.GetTile()->GetY() + 1)) {
-        user.GetField()->OwnEntity(sword2, user.GetTile()->GetX() + 1, user.GetTile()->GetY() + 1);
+        user.GetField()->AddEntity(*sword2, user.GetTile()->GetX() + 1, user.GetTile()->GetY() + 1);
       }
     }
   }

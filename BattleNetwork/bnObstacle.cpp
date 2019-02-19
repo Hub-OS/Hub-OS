@@ -15,6 +15,11 @@ bool Obstacle::CanMoveTo(Battle::Tile * next)
   return (Entity::CanMoveTo(next));
 }
 
+void Obstacle::AdoptTile(Battle::Tile * tile)
+{
+  this->Spell::AdoptTile(tile); // favor spell grouping
+}
+
 void Obstacle::Update(float _elapsed) {
   Character::Update(_elapsed);
 }

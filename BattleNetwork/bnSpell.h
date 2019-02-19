@@ -14,8 +14,12 @@ public:
 
   virtual void Update(float _elapsed) = 0;
   virtual void Attack(Character* _entity) = 0;
+  virtual void AdoptTile(Battle::Tile* tile);
 
   void EnableTileHighlight(bool enable);
+
+  void SetHitboxFlags(Hit::Flags flags);
+  const Hit::Flags GetHitboxFlags() const;
 
 protected:
   bool hit;
@@ -24,4 +28,5 @@ protected:
   float hitHeight;
   Texture* texture;
   AnimationComponent animationComponent;
+  Hit::Flags hitboxFlags;
 };

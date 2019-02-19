@@ -22,13 +22,13 @@ protected:
       // AlphaCore* core = new AlphaCore(); // register with mob how?
       //
       // AlphaHead* head = new AlphaHead();
-      // field.OwnEntity(head, 5, 2);
+      // field.AddEntity(*head, 5, 2);
       // 
       // AlphaLeftClaw* left = new AlphaLeftClaw();
-      // field.OwnEntity(left, 4, 1);
+      // field.AddEntity(*left, 4, 1);
       // 
       // AlphaRightClaw* right = new AlphaRightClaw();
-      // field.OwnEntity(right, 5, 3);
+      // field.AddEntity(*right, 5, 3);
       //
       // core->SetHead(head);
       // core->SetLeftClaw(left);

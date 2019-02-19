@@ -54,7 +54,7 @@ public:
     for (auto items = summonedItems.begin(); items != summonedItems.end(); items++) {
       if (items->entity == _entity) {
         if (items->entity->GetTile()) {
-          items->entity->GetTile()->RemoveEntity(items->entity);
+          items->entity->GetTile()->RemoveEntityByID(items->entity->GetID());
         }
 
         delete items->entity;
@@ -76,7 +76,6 @@ public:
 
     for (auto iter = summonedItems.begin(); iter != summonedItems.end();) {
       if (iter->entity->IsDeleted()) {
-        iter->entity->GetField()->RemoveEntity(iter->entity);
         iter = summonedItems.erase(iter);
         continue;
       }
@@ -97,13 +96,13 @@ public:
       SummonEntity(roll);
     }
     else if (summon == "RockCube") {
-      Entity* cube = new Cube(this->GetPlayer()->GetField(), Team::UNKNOWN);
+      Obstacle* cube = new Cube(this->GetPlayer()->GetField(), Team::UNKNOWN);
 
       Battle::Tile* tile = this->GetPlayer()->GetTile();
       tile = this->GetPlayer()->GetField()->GetAt(tile->GetX()+1, tile->GetY());
 
       if (tile) {
-        this->GetPlayer()->GetField()->AddEntity(cube, tile->GetX(), tile->GetY());
+        this->GetPlayer()->GetField()->AddEntity(*cube, tile->GetX(), tile->GetY());
 
         AUDIO.Play(AudioType::APPEAR);
 
@@ -120,7 +119,7 @@ public:
       Battle::Tile* tile = this->GetPlayer()->GetTile();
 
       if (tile) {
-        this->GetPlayer()->GetField()->AddEntity(aura, tile->GetX(), tile->GetY());
+        this->GetPlayer()->GetField()->AddEntity(*aura, tile->GetX(), tile->GetY());
       }
 
       // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
@@ -132,14 +131,8 @@ public:
     player->Reveal();
 
     for (auto items : summonedItems) {
-      if (items.persist) {
-        Battle::Tile* tile = items.entity->GetTile();
-  
-        player->GetField()->RemoveEntity(items.entity);
-        player->GetField()->OwnEntity(items.entity, tile->GetX(), tile->GetY());
-      }
-      else {
-        player->GetField()->RemoveEntity(items.entity);
+      if (!items.persist) {
+        items.entity->Delete();
       }
     }
 

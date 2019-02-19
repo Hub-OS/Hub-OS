@@ -10,6 +10,10 @@ using std::find;
 #include "bnTeam.h"
 class Entity;
 class Spell;
+class Character;
+class Obstacle;
+class Artifact;
+
 class Field;
 #include "bnMemory.h"
 #include "bnTextureType.h"
@@ -18,6 +22,8 @@ class Field;
 namespace Battle {
   class Tile : public Sprite {
   public:
+    friend class Entity;
+
     Tile(void);
     Tile(int _x, int _y);
     ~Tile(void);
@@ -46,19 +52,26 @@ namespace Battle {
 
     bool IsHighlighted() const;
 
-    void AddEntity(Entity* _entity);
-    void RemoveEntity(Entity* _entity);
+    void AddEntity(Spell& _entity);
+    void AddEntity(Character& _entity);
+    void AddEntity(Obstacle& _entity);
+    void AddEntity(Artifact& _entity);
+
+    void RemoveEntityByID(int ID);
     bool ContainsEntity(Entity* _entity) const;
+
     template<class Type> bool ContainsEntityType();
     void AffectEntities(Spell* caller);
+
     bool GetNextEntity(Entity*& out) const;
 
     void Update(float _elapsed);
 
     void SetBattleActive(bool state);
 
-    //vector<Spell*> spells;
-    //vector<Character*> characters;
+    vector<Artifact*> artifacts;
+    vector<Spell*> spells;
+    vector<Character*> characters;
     vector<Entity*> entities;
 
   private:
@@ -78,6 +91,9 @@ namespace Battle {
     bool isBattleActive;
 
     std::vector<long> taggedSpells;
+
+    // Aux
+    void AddEntity(Entity* _entity);
   };
 
 

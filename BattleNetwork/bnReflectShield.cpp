@@ -37,7 +37,7 @@ ReflectShield::ReflectShield(Character* owner) : Artifact(), Component(owner)
     Spell* rowhit = new RowHit(field, owner->GetTeam(), 60);
     rowhit->SetDirection(direction);
 
-    field->OwnEntity(rowhit, owner->GetTile()->GetX()+1, owner->GetTile()->GetY());
+    field->AddEntity(*rowhit, owner->GetTile()->GetX()+1, owner->GetTile()->GetY());
   };
 
   this->guard = new DefenseGuard(callback);

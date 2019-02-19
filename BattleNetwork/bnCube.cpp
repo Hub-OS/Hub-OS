@@ -123,10 +123,10 @@ void Cube::OnDelete() {
   auto left = (this->GetElement() == Element::ICE) ? RockDebris::Type::LEFT_ICE : RockDebris::Type::LEFT;
   auto right = (this->GetElement() == Element::ICE) ? RockDebris::Type::RIGHT_ICE : RockDebris::Type::RIGHT;
 
-  this->GetField()->OwnEntity(new RockDebris(left, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
-  this->GetField()->OwnEntity(new RockDebris(right, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
+  this->GetField()->AddEntity(*new RockDebris(left, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
+  this->GetField()->AddEntity(*new RockDebris(right, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
   this->Delete();
-  tile->RemoveEntity(this);
+  tile->RemoveEntityByID(this->GetID());
   AUDIO.Play(AudioType::PANEL_CRACK);
 }
 

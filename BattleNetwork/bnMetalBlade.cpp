@@ -78,7 +78,3 @@ void MetalBlade::Attack(Character* _entity) {
     _entity->Hit(40);
   }
 }
-
-vector<Drawable*> MetalBlade::GetMiscComponents() {
-  return vector<Drawable*>();
-}

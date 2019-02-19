@@ -1,5 +1,7 @@
 #include "bnField.h"
 #include "bnMemory.h"
+#include "bnObstacle.h"
+#include "bnArtifact.h"
 
 Field::Field(void) {
   isBattleActive = false;
@@ -8,8 +10,8 @@ Field::Field(void) {
 Field::Field(int _width, int _height)
   : width(_width),
   height(_height),
-  tiles(vector<vector<Battle::Tile*>>()),
-  entities(vector<Entity*>()) {
+  tiles(vector<vector<Battle::Tile*>>())
+  {
   for (int y = 0; y < _height; y++) {
     vector<Battle::Tile*> row = vector<Battle::Tile*>();
     for (int x = 0; x < _width; x++) {
@@ -55,51 +57,54 @@ bool Field::GetNextTile(Battle::Tile*& out) {
   return false;
 }
 
-void Field::AddEntity(Entity* _entity, int x, int y) {
-  entities.push_back(_entity);
-  _entity->SetField(this);
+void Field::AddEntity(Character & character, int x, int y)
+{
+  character.SetField(this);
 
   Battle::Tile* tile = GetAt(x, y);
 
   if (tile) {
-    tile->AddEntity(_entity);
+    character.AdoptTile(tile);
   }
 }
 
-void Field::OwnEntity(Entity* _entity, int x, int y) {
-  this->AddEntity(_entity, x, y);
-  _entity->ownedByField = true;
-}
 
-void Field::RemoveEntity(Entity* _entity) {
-  auto it = find(entities.begin(), entities.end(), _entity);
-  if (it != entities.end()) {
-    if (_entity->GetTile()) {
-      _entity->GetTile()->RemoveEntity(_entity);
-    }
+void Field::AddEntity(Spell & spell, int x, int y)
+{
+  spell.SetField(this);
 
-    Entity* ptr = *it;
-    if (ptr->ownedByField) {
-      ptr->FreeAllComponents();
-      delete ptr;
-      ptr = 0;
-    }
+  Battle::Tile* tile = GetAt(x, y);
 
-    entities.erase(it);
+  if (tile) {
+    spell.AdoptTile(tile);
   }
 }
 
-Battle::Tile* Field::FindEntity(Entity* _entity) const {
-  for (int y = 1; y <= height; y++) {
-    for (int x = 1; x <= width; x++) {
-      Battle::Tile* tile = GetAt(x, y);
-      if (tile->ContainsEntity(_entity)) {
-        return tile;
-      }
-    }
+void Field::AddEntity(Obstacle & obst, int x, int y)
+{
+  obst.SetField(this);
+
+  Battle::Tile* tile = GetAt(x, y);
+
+  if (tile) {
+    obst.AdoptTile(tile);
   }
-  return nullptr;
 }
+
+void Field::AddEntity(Artifact & art, int x, int y)
+{
+  art.SetField(this);
+
+  Battle::Tile* tile = GetAt(x, y);
+
+  if (tile) {
+    art.AdoptTile(tile);
+  }
+}
+
+/*void Field::RemoveEntityByID(int ID)
+{
+}*/
 
 std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
 {
@@ -121,7 +126,7 @@ std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
   return res;
 }
 
-bool Field::GetNextEntity(Entity*& out, int _depth) const {
+/*bool Field::GetNextEntity(Entity*& out, int _depth) const {
   static int i = 0;
   for (i; i < (int)entities.size(); i++) {
     if (entities.at(i)->GetTile()->GetY() == _depth) {
@@ -132,7 +137,7 @@ bool Field::GetNextEntity(Entity*& out, int _depth) const {
   i = 0;
 
   return false;
-}
+}*/
 
 void Field::SetAt(int _x, int _y, Team _team) {
   tiles[_y - 1][_x - 1]->SetTeam(_team);

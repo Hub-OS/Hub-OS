@@ -48,7 +48,7 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
   shine = new ShineExplosion(field, e.GetTeam());
-  field->OwnEntity(shine, tile->GetX(), tile->GetY());
+  field->AddEntity(*shine, tile->GetX(), tile->GetY());
 }
 
 template<typename Any>

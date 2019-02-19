@@ -66,8 +66,8 @@ void ProgBomb::Update(float _elapsed) {
   if (arcProgress >= arcDuration) {
     // update tile to target tile 
     tile->AffectEntities(this);
-    Entity* explosion = new Explosion(this->GetField(), this->GetTeam());
-    this->GetField()->OwnEntity(explosion, this->tile->GetX(), this->tile->GetY());
+    Artifact* explosion = new Explosion(this->GetField(), this->GetTeam());
+    this->GetField()->AddEntity(*explosion, this->tile->GetX(), this->tile->GetY());
     deleted = true;
   }
 }
@@ -83,8 +83,4 @@ void ProgBomb::Attack(Character* _entity) {
     deleted = true;
     return;
   }
-}
-
-vector<Drawable*> ProgBomb::GetMiscComponents() {
-  return vector<Drawable*>();
 }

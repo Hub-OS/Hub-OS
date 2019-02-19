@@ -34,6 +34,8 @@ using swoosh::ActivityController;
 #define TITLE_ANIM_CHAR_HEIGHT 221
 #define SHADER_FRAG_WHITE_PATH "resources/shaders/white_fade.frag.txt"
 
+#define FIXED_TIME_STEP 1.0/60.0
+
 void RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
 
@@ -155,7 +157,7 @@ int main(int argc, char** argv) {
 
   Clock clock;
   float elapsed = 0.0f;
-  float messageCooldown = 3000; 
+  float messageCooldown = 3; 
 
   sf::RenderTexture loadSurface;
   //loadSurface.create(480, 320);
@@ -178,7 +180,7 @@ int main(int argc, char** argv) {
       messageCooldown = 0;
     }
 
-    float alpha = std::min((messageCooldown/1000.f)*255.f, 255.f);
+    float alpha = std::min((messageCooldown)*255.f, 255.f);
     alertSprite.setColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
     message->setFillColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
     messageCooldown -= elapsed;
@@ -193,7 +195,7 @@ int main(int argc, char** argv) {
     ENGINE.GetWindow()->draw(postprocess);
     ENGINE.GetWindow()->display();
 
-    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
   }
 
   // Cleanup
@@ -431,6 +433,9 @@ int main(int argc, char** argv) {
   // and segue into the previous scene on the stack: MainMenuScene
   app.push<FakeScene>(loadingScreenSnapshot);
 
+  double remainder = 0;
+  elapsed = 0;
+
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
     clock.restart();
@@ -442,7 +447,12 @@ int main(int argc, char** argv) {
     mouseAnimation.Update(elapsed, &mouse);
 
     // Use the activity controller to update and draw scenes
-    app.update(elapsed);
+    while(elapsed >= FIXED_TIME_STEP) {
+      app.update((float)FIXED_TIME_STEP);
+      elapsed -= static_cast<float>(FIXED_TIME_STEP);
+    }
+
+    remainder = elapsed;
 
     ENGINE.Clear();
     ENGINE.DrawUnderlay();
@@ -455,7 +465,9 @@ int main(int argc, char** argv) {
 
     ENGINE.GetWindow()->display();
 
-    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
+    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds()) + static_cast<float>(remainder);
+
+    remainder = 0;
   }
 
   delete mouseTexture;

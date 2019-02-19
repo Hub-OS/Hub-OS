@@ -1,7 +1,10 @@
 #include "bnTile.h"
 #include "bnEntity.h"
 #include "bnCharacter.h"
+#include "bnObstacle.h"
 #include "bnSpell.h"
+#include "bnArtifact.h"
+
 #include "bnPlayer.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -219,30 +222,79 @@ namespace Battle {
     return hasSpell;
   }
 
-  void Tile::AddEntity(Entity* _entity) {
-    if (!ContainsEntity(_entity)) {
-      _entity->SetTile(this);
-      entities.push_back(_entity);
-
-      // Sort by layer (draw order)
-      // e.g. layer 0 draws first so it must be last in the draw list
-      std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
+  void Tile::AddEntity(Spell & _entity)
+  {
+    if (!ContainsEntity(&_entity)) {
+      spells.push_back(&_entity);
+      this->AddEntity(&_entity);
     }
   }
 
-  void Tile::RemoveEntity(Entity* _entity) {
-    auto it = find(entities.begin(), entities.end(), _entity);
-    if (it != entities.end()) {
-      if (IsCracked() && !(*it)->HasFloatShoe()) {
+  void Tile::AddEntity(Character & _entity)
+  {
+    if (!ContainsEntity(&_entity)) {
+      characters.push_back(&_entity);
+      this->AddEntity(&_entity);
+    }
+  }
+
+  void Tile::AddEntity(Obstacle & _entity)
+  {
+    if (!ContainsEntity((Obstacle*)&_entity)) {
+      spells.push_back(&_entity);
+      this->AddEntity(&_entity);
+    }
+  }
+
+  void Tile::AddEntity(Artifact & _entity)
+  {
+    if (!ContainsEntity((Artifact*)&_entity)) {
+      artifacts.push_back(&_entity);
+      this->AddEntity(&_entity);
+    }
+  }
+
+  // Aux function
+  void Tile::AddEntity(Entity* _entity) {
+    _entity->SetTile(this);
+    entities.push_back(_entity);
+
+    // Sort by layer (draw order)
+    // e.g. layer 0 draws first so it must be last in the draw list
+    std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
+  }
+
+  void Tile::RemoveEntityByID(int ID)
+  {
+    auto itEnt   = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+    auto itSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+    auto itChar  = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+    auto itArt   = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+
+    if (itEnt != entities.end()) {
+      // TODO: HasFloatShoe and HasAirShoe should be a component and use the component system
+      if (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe())) {
         state = TileState::BROKEN;
         AUDIO.Play(AudioType::PANEL_CRACK);
       }
-      auto tagged = std::find_if(taggedSpells.begin(), taggedSpells.end(), [&_entity](int ID) { return ID == _entity->GetID(); });
+      auto tagged = std::find_if(taggedSpells.begin(), taggedSpells.end(), [&ID](int in) { return ID == in; });
       if (tagged != taggedSpells.end()) {
         taggedSpells.erase(tagged);
       }
 
-      entities.erase(it);
+      entities.erase(itEnt);
+    }
+
+    if (itSpell != spells.end()) {
+      spells.erase(itSpell);
+    }
+
+    if (itChar != characters.end()) {
+      characters.erase(itChar);
+    }
+
+    if (itArt != artifacts.end()) {
+      artifacts.erase(itArt);
     }
   }
 
@@ -300,21 +352,39 @@ namespace Battle {
     return false;
   }
 
+  /*
+  
+  */
   void Tile::Update(float _elapsed) {
     hasSpell = false;
 
-    vector<Entity*> copies = entities;
-    for (vector<Entity*>::iterator entity = copies.begin(); entity != copies.end(); entity++) {
+    vector<Artifact*> artifacts_copy = artifacts;
+    for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
 
       if ((*entity) == nullptr || (*entity)->IsDeleted())
         continue;
 
-      if (!hasSpell) {
-        Spell* isSpell = dynamic_cast<Spell*>(*entity);
+      (*entity)->SetBattleActive(isBattleActive);
+      (*entity)->Update(_elapsed);
+    }
 
-        if (isSpell)
-          hasSpell = isSpell->IsTileHighlightEnabled();
-      }
+    vector<Spell*> spells_copy = spells;
+    for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
+
+      if ((*entity) == nullptr || (*entity)->IsDeleted())
+        continue;
+
+        hasSpell = (*entity)->IsTileHighlightEnabled();
+
+      (*entity)->SetBattleActive(isBattleActive);
+      (*entity)->Update(_elapsed);
+    }
+
+    vector<Character*> characters_copy = characters;
+    for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
+
+      if ((*entity) == nullptr || (*entity)->IsDeleted())
+        continue;
 
       (*entity)->SetBattleActive(isBattleActive);
       (*entity)->Update(_elapsed);

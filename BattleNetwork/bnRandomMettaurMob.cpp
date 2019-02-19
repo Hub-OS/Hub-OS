@@ -28,8 +28,8 @@ Mob* RandomMettaurMob::Build() {
   mob->RegisterRankedReward(5, BattleItem(Chip(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "Cracks the tiles in the column immediately in front", 2)));
 
 
-  field->OwnEntity(new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
-  field->OwnEntity(new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);
+  field->AddEntity(*new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
+  field->AddEntity(*new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);
 
   mob->Spawn<Rank1<MetalMan, MetalManIdleState>>(6, 2);
 
@@ -50,7 +50,7 @@ Mob* RandomMettaurMob::Build() {
         if (rand() % 50 > 30) {
           if (rand() % 10 > 5) {
             MysteryData* mystery = new MysteryData(mob->GetField(), Team::UNKNOWN);
-            field->OwnEntity(mystery, tile->GetX(), tile->GetY());
+            field->AddEntity(*mystery, tile->GetX(), tile->GetY());
 
             auto callback = [](BattleScene& b, MysteryData& m) {
               m.RewardPlayer();

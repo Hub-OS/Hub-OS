@@ -57,7 +57,7 @@ public:
       Battle::Tile* tile = player->GetTile();
 
       if (tile) {
-        this->player->GetField()->AddEntity(reflect, tile->GetX(), tile->GetY());
+        this->player->GetField()->AddEntity(*reflect, tile->GetX(), tile->GetY());
       }
     }
     else if (name == "XtrmeCnnon") {
@@ -76,9 +76,9 @@ public:
       xtreme2->SetDirection(Direction::RIGHT);
       xtreme3->SetDirection(Direction::RIGHT);
 
-      player->GetField()->OwnEntity(xtreme1, player->GetTile()->GetX(), 1);
-      player->GetField()->OwnEntity(xtreme2, player->GetTile()->GetX(), 2);
-      player->GetField()->OwnEntity(xtreme3, player->GetTile()->GetX(), 3);
+      player->GetField()->AddEntity(*xtreme1, player->GetTile()->GetX(), 1);
+      player->GetField()->AddEntity(*xtreme2, player->GetTile()->GetX(), 2);
+      player->GetField()->AddEntity(*xtreme3, player->GetTile()->GetX(), 3);
     }
     else if (name == "Cannon") {
       Cannon* cannon = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());
@@ -88,7 +88,7 @@ public:
 
       cannon->SetDirection(Direction::RIGHT);
 
-      player->GetField()->OwnEntity(cannon, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+      player->GetField()->AddEntity(*cannon, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
     else if (name == "Swrd") {
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
@@ -99,7 +99,7 @@ public:
 
       AUDIO.Play(AudioType::SWORD_SWING);
 
-      player->GetField()->OwnEntity(sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+      player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
     else if (name == "LongSwrd") {
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
@@ -112,11 +112,11 @@ public:
       AUDIO.Play(AudioType::SWORD_SWING);
 
       if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY())) {
-        player->GetField()->OwnEntity(sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+        player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
       }
 
       if (player->GetField()->GetAt(player->GetTile()->GetX() + 2, player->GetTile()->GetY())) {
-        player->GetField()->OwnEntity(sword2, player->GetTile()->GetX() + 2, player->GetTile()->GetY());
+        player->GetField()->AddEntity(*sword2, player->GetTile()->GetX() + 2, player->GetTile()->GetY());
       }
     }
     else if (name == "WideSwrd") {
@@ -130,11 +130,11 @@ public:
       AUDIO.Play(AudioType::SWORD_SWING);
 
       if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY())) {
-        player->GetField()->OwnEntity(sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+        player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
       }
 
       if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1)) {
-        player->GetField()->OwnEntity(sword2, player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1);
+        player->GetField()->AddEntity(*sword2, player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1);
       }
     }
     else if (name == "AirShot1") {
@@ -147,7 +147,7 @@ public:
       AirShot* airshot = new AirShot(player->GetField(), player->GetTeam(), chip.GetDamage());
       airshot->SetDirection(Direction::RIGHT);
 
-      player->GetField()->OwnEntity(airshot, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+      player->GetField()->AddEntity(*airshot, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
     else if (name == "Thunder") {
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
@@ -157,7 +157,7 @@ public:
       //AUDIO.Play(AudioType::);
 
       Thunder* thunder = new Thunder(player->GetField(), player->GetTeam());
-      player->GetField()->OwnEntity(thunder, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+      player->GetField()->AddEntity(*thunder, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
   }
 };

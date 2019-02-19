@@ -22,8 +22,6 @@ public:
   virtual void SetAnimation(std::string animation);
   virtual bool CanMoveTo(Battle::Tile * next);
   virtual void Attack(Character* e);
-  vector<Drawable*> GetMiscComponents() { return vector<Drawable*>(); }
-
 protected:
   Texture* texture;
   AnimationComponent animation;

@@ -23,6 +23,10 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : animation(this), Obs
   animation.Update(0);
 
   this->slideTime = sf::seconds(2.0f); // crawl
+
+  Hit::Flags flags;
+  flags = Hit::recoil | Hit::breaking;
+  this->SetHitboxFlags(flags);
 }
 
 Gear::~Gear() {

@@ -31,7 +31,7 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, Player* _player, int _heal) : 
 
   Battle::Tile* _tile = player->GetTile();
 
-  this->field->AddEntity(this, _tile->GetX(), _tile->GetY());
+  this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
   animationComponent.Setup(RESOURCE_PATH);

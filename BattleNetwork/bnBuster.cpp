@@ -65,7 +65,7 @@ Buster::~Buster(void) {
 
 void Buster::Update(float _elapsed) {
   if (spawnGuard) {
-    field->OwnEntity(new GuardHit(field, contact), this->tile->GetX(), this->tile->GetY());
+    field->AddEntity(*new GuardHit(field, contact), this->tile->GetX(), this->tile->GetY());
     spawnGuard = false;
     this->Delete();
     return;
@@ -97,7 +97,7 @@ void Buster::Update(float _elapsed) {
 }
 
 bool Buster::Move(Direction _direction) {
-  tile->RemoveEntity(this);
+  tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
   if (_direction == Direction::UP) {
     if (tile->GetY() - 1 > 0) {
@@ -126,7 +126,7 @@ bool Buster::Move(Direction _direction) {
       return false;
     }
   }
-  tile->AddEntity(this);
+  tile->AddEntity(*this);
   return true;
 }
 
@@ -165,8 +165,4 @@ void Buster::Attack(Character* _entity) {
   if (hit) {
     AUDIO.Play(AudioType::HURT);
   }
-}
-
-vector<Drawable*> Buster::GetMiscComponents() {
-  return vector<Drawable*>();
 }

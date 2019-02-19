@@ -48,5 +48,6 @@ private:
   sf::Shader* stun;
 
   bool movedByStun;
+  bool hit;
 
 };

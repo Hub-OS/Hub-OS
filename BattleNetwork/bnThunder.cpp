@@ -122,7 +122,3 @@ void Thunder::Attack(Character* _entity) {
     }
   }
 }
-
-vector<Drawable*> Thunder::GetMiscComponents() {
-  return vector<Drawable*>();
-}

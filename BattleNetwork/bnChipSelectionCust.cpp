@@ -265,7 +265,7 @@ bool ChipSelectionCust::IsOutOfView() {
 const bool ChipSelectionCust::IsInView() {
   float bounds = 0;
 
-  std::cout << "this->getPosition().x: " << this->getPosition().x << std::endl;
+  // std::cout << "this->getPosition().x: " << this->getPosition().x << std::endl;
 
   if (this->getPosition().x >= bounds) {
     this->setPosition(bounds, this->getPosition().y);
@@ -362,9 +362,9 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   // combine the parent transform with the node's one
   sf::Transform combinedTransform = this->getTransform();
 
-  states.transform *= combinedTransform;
+  states.transform = combinedTransform;
 
-  //target.draw(custSprite, states);
+  target.draw(custSprite, states);
 
   if (isInView) {
     target.draw(emblem, states);

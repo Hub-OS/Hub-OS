@@ -14,11 +14,15 @@ DefenseGuard::~DefenseGuard()
 
 const bool DefenseGuard::Check(Spell * in, Character* owner)
 {
-  this->callback(in, owner);
+  Hit::Flags flags = in->GetHitboxFlags();
 
-  in->Delete();
+  if ((flags & Hit::breaking) != Hit::breaking) {
+    this->callback(in, owner);
 
-  owner->GetField()->OwnEntity(new GuardHit(owner->GetField(), owner, true), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+    owner->GetField()->AddEntity(*new GuardHit(owner->GetField(), owner, true), owner->GetTile()->GetX(), owner->GetTile()->GetY());
 
-  return true; // Guard never allows an attack to passthrough
+    return true; // Guard never allows an attack to passthrough
+  }
+
+  return false;
 }

@@ -36,7 +36,7 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
 
   Battle::Tile* _tile = summons->GetPlayer()->GetTile();
 
-  this->field->AddEntity(this, _tile->GetX(), _tile->GetY());
+  this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   AUDIO.Play(AudioType::APPEAR);
 
@@ -53,10 +53,10 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
       while(field->GetNextTile(next)) {
         if (!found) {
           if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
-            this->GetTile()->RemoveEntity(this);
+            this->GetTile()->RemoveEntityByID(this->GetID());
 
             Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
-            prev->AddEntity(this);
+            prev->AddEntity(*this);
 
             attack = next;
 

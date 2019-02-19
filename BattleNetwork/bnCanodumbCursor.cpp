@@ -67,8 +67,8 @@ void CanodumbCursor::Update(float _elapsed) {
       Battle::Tile* t = f->GetAt(this->GetTile()->GetX() - 1, this->GetTile()->GetY());
 
       if (t != nullptr) {
-        this->GetTile()->RemoveEntity(this);
-        t->AddEntity(this);
+        this->GetTile()->RemoveEntityByID(this->GetID());
+        t->AddEntity(*this);
       }
       else {
         deleted = true;

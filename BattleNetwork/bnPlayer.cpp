@@ -89,7 +89,7 @@ void Player::Attack(float _charge) {
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
     Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged());
     spell->SetDirection(Direction::RIGHT);
-    field->AddEntity(spell, tile->GetX(), tile->GetY());
+    field->AddEntity(*spell, tile->GetX(), tile->GetY());
   }
 }
 

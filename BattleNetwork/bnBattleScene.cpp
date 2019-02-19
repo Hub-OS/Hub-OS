@@ -104,7 +104,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   field = mob->GetField();
 
   player->ChangeState<PlayerIdleState>();
-  field->AddEntity(player, 2, 2);
+  field->AddEntity(*player, 2, 2);
 
   // Chip UI for player
   chipListener.Subscribe(chipUI);
@@ -282,7 +282,7 @@ void BattleScene::onUpdate(double elapsed) {
       cast->SetTarget(player);
     }
 
-    field->AddEntity(data->mob, data->tileX, data->tileY);
+    field->AddEntity(*data->mob, data->tileX, data->tileY);
     mobNames.push_back(data->mob->GetName());
 
     // Listen for counters

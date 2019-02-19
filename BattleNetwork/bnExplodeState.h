@@ -66,7 +66,7 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
   explosion = new Explosion(field, e.GetTeam(), this->numOfExplosions, this->playbackSpeed);
-  field->OwnEntity(explosion, tile->GetX(), tile->GetY());
+  field->AddEntity(*(Artifact*)explosion, tile->GetX(), tile->GetY());
 }
 
 template<typename Any>

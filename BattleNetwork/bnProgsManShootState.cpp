@@ -17,7 +17,7 @@ void ProgsManShootState::OnEnter(ProgsMan& progs) {
     buster->SetDirection(Direction::LEFT);
     buster->SetTile(progs.GetTarget()->GetTile());
 
-    progs.GetField()->OwnEntity(buster, progs.GetTile()->GetX(), progs.GetTile()->GetY());
+    progs.GetField()->AddEntity(*buster, progs.GetTile()->GetX(), progs.GetTile()->GetY());
   };
 
   auto onFinish = [this, &progs]() { this->ChangeState<ProgsManIdleState>(); };

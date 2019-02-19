@@ -30,9 +30,9 @@ void MetalManThrowState::OnUpdate(float _elapsed, MetalMan& metal) {
 }
 
 void MetalManThrowState::Attack(MetalMan& metal) {
-  Entity* blade = new MetalBlade(metal.GetField(), metal.GetTeam(), 1.0);
+  Spell* blade = new MetalBlade(metal.GetField(), metal.GetTeam(), 1.0);
   blade->SetDirection(Direction::LEFT);
 
-  metal.GetField()->OwnEntity(blade, metal.GetTile()->GetX()-1, metal.GetTile()->GetY());
+  metal.GetField()->AddEntity(*blade, metal.GetTile()->GetX()-1, metal.GetTile()->GetY());
   AUDIO.Play(AudioType::SWORD_SWING);
 }

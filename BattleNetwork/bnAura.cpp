@@ -45,9 +45,9 @@ void Aura::Update(float _elapsed) {
  this->setPosition(this->GetOwner()->getPosition());
  
  if (this->tile != this->GetOwner()->GetTile()) {
-   this->tile->RemoveEntity(this);
+   this->tile->RemoveEntityByID(this->GetID());
    this->SetTile(this->GetOwner()->GetTile());
-   this->tile->AddEntity(this);
+   this->tile->AddEntity(*this);
  }
 
  animation.Update(_elapsed, this);

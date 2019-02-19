@@ -68,7 +68,3 @@ void BasicSword::Attack(Character* _entity) {
    //  AUDIO.Play(AudioType::HURT, 0);
   }
 }
-
-vector<Drawable*> BasicSword::GetMiscComponents() {
-  return vector<Drawable*>();
-}

@@ -40,6 +40,8 @@ MetalMan::MetalMan(Rank _rank)
   animationComponent.Update(0);
 
   movedByStun = false;
+
+  hit = false;
 }
 
 MetalMan::~MetalMan(void) {
@@ -72,7 +74,11 @@ void MetalMan::Update(float _elapsed) {
   if (movedByStun) { this->AdoptNextTile(); movedByStun = false; }
 
   healthUI->Update(_elapsed);
-  this->SetShader(nullptr);
+
+  if (!hit) {
+    this->SetShader(nullptr);
+  }
+
   this->RefreshTexture();
 
   if (_elapsed <= 0) return;
@@ -110,6 +116,8 @@ void MetalMan::Update(float _elapsed) {
   }
 
   Character::Update(_elapsed);
+
+  hit = false;
 }
 
 void MetalMan::RefreshTexture() {
@@ -161,6 +169,8 @@ const bool MetalMan::Hit(int _damage, Hit::Properties props) {
       SetShader(whiteout);
     }
   }
+
+  hit = result;
 
   return result;
 }

@@ -14,6 +14,7 @@ namespace Hit {
   const Flags stun = 0x03;
   const Flags pierce = 0x04;
   const Flags flinch = 0x05;
+  const Flags breaking = 0x06;
 
   struct Properties {
     Flags flags;
@@ -63,7 +64,6 @@ public:
   virtual void OnDelete() {} // TODO: make abstract
   virtual void Update(float _elapsed);
   virtual bool CanMoveTo(Battle::Tile* next);
-  virtual vector<Drawable*> GetMiscComponents();
   virtual void AddAnimation(string _state, FrameList _frameList, float _duration);
   virtual void SetAnimation(string _state);
   virtual void SetCounterFrame(int frame);
@@ -72,6 +72,8 @@ public:
 
   virtual int GetHealth() const;
   virtual void SetHealth(int _health);
+
+  virtual void AdoptTile(Battle::Tile* tile);
 
   void TryDelete();
   void ToggleCounter(bool on = true);

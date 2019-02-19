@@ -28,7 +28,7 @@ void CanodumbIdleState::OnUpdate(float _elapsed, Canodumb& can) {
     // Spawn tracking cursor object
     if (cursor == nullptr || cursor->IsDeleted()) {
       cursor = new CanodumbCursor(can.GetField(), can.GetTeam(), &can);
-      can.GetField()->OwnEntity(cursor, can.GetTile()->GetX() - 1, can.GetTile()->GetY());
+      can.GetField()->AddEntity(*cursor, can.GetTile()->GetX() - 1, can.GetTile()->GetY());
     }
   }
 }

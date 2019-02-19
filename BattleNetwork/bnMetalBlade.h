@@ -12,5 +12,4 @@ public:
   virtual bool CanMoveTo(Battle::Tile* tile);
   virtual void Update(float _elapsed);
   virtual void Attack(Character* _entity);
-  virtual vector<Drawable*> GetMiscComponents();
 };

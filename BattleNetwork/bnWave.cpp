@@ -56,7 +56,7 @@ void Wave::Update(float _elapsed) {
 }
 
 bool Wave::Move(Direction _direction) {
-  tile->RemoveEntity(this);
+  tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
   if (_direction == Direction::LEFT) {
     if (tile->GetX() - 1 > 0) {
@@ -75,7 +75,7 @@ bool Wave::Move(Direction _direction) {
       return false;
     }
   }
-  tile->AddEntity(this);
+  tile->AddEntity(*this);
   return true;
 }
 

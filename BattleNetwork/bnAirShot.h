@@ -10,8 +10,6 @@ public:
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);
   virtual void Attack(Character* _entity);
-  virtual vector<Drawable*> GetMiscComponents();
-
 private:
   int damage;
   float cooldown;

@@ -19,12 +19,13 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell() 
   };
 
   auto onFrameTwo = [this]() {
-    field->OwnEntity(new RowHit(field, this->GetTeam(), this->damage), this->tile->GetX() + 1, this->tile->GetY());
+    field->AddEntity(*new RowHit(field, this->GetTeam(), this->damage), this->tile->GetX() + 1, this->tile->GetY());
   };
 
   animation = Animation("resources/spells/spell_charged_bullet_hit.animation");
   animation.SetAnimation("HIT");
-  animation << Animate::On(2, onFrameTwo) << onFinish;
+  animation << Animate::On(3, onFrameTwo, true) << onFinish;
+  animation.Update(0, this);
 
   EnableTileHighlight(false);
 }

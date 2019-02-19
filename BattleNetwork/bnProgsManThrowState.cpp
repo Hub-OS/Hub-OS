@@ -16,7 +16,7 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
     ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), progs.GetTile()->getPosition(), 1);
     bomb->SetTile(progs.GetTarget()->GetTile());
 
-    progs.GetField()->OwnEntity(bomb, progs.GetTarget()->GetTile()->GetX(), progs.GetTarget()->GetTile()->GetY());
+    progs.GetField()->AddEntity(*bomb, progs.GetTarget()->GetTile()->GetX(), progs.GetTarget()->GetTile()->GetY());
   };
 
   auto onFinish  = [this, &progs]() { this->ChangeState<ProgsManIdleState>(); };

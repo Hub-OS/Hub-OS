@@ -77,6 +77,8 @@ public:
   const Element GetElement() const;
 
   void AdoptNextTile();
+  virtual void AdoptTile(Battle::Tile* tile) = 0;
+
   void SetBattleActive(bool state);
   const bool IsBattleActive();
 

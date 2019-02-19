@@ -18,7 +18,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
 
   auto spawnSmoke   = [&can]() { 
     CanonSmoke* smoke = new CanonSmoke(can.GetField(), can.GetTeam());
-    can.GetField()->OwnEntity(smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
+    can.GetField()->AddEntity(*smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
   };
 
   switch (can.GetRank()) {
@@ -45,7 +45,7 @@ void CanodumbAttackState::OnLeave(Canodumb& can) {
   if (can.GetField()->GetAt(can.tile->GetX() - 1, can.tile->GetY())) {
     Spell* spell = new Cannon(can.field, can.team, 10);
     spell->SetDirection(Direction::LEFT);
-    can.field->OwnEntity(spell, can.tile->GetX() - 1, can.tile->GetY());
+    can.field->AddEntity(*spell, can.tile->GetX() - 1, can.tile->GetY());
 
     AUDIO.Play(AudioType::CANNON);
   }

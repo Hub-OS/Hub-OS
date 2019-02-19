@@ -71,7 +71,7 @@ void AirShot::Update(float _elapsed) {
 }
 
 bool AirShot::Move(Direction _direction) {
-  tile->RemoveEntity(this);
+  tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
   if (_direction == Direction::UP) {
     if (tile->GetY() - 1 > 0) {
@@ -105,7 +105,7 @@ bool AirShot::Move(Direction _direction) {
       return false;
     }
   }
-  tile->AddEntity(this);
+  tile->AddEntity(*this);
   return true;
 }
 
@@ -129,8 +129,4 @@ void AirShot::Attack(Character* _entity) {
       }
     }
   }
-}
-
-vector<Drawable*> AirShot::GetMiscComponents() {
-  return vector<Drawable*>();
 }
