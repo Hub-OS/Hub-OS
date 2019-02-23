@@ -13,6 +13,8 @@
 #include "bnGear.h"
 #include "bnBattleOverTrigger.h"
 
+#include "bnUndernetBackground.h"
+
 RandomMettaurMob::RandomMettaurMob(Field* field) : MobFactory(field)
 {
 }
@@ -24,6 +26,9 @@ RandomMettaurMob::~RandomMettaurMob()
 
 Mob* RandomMettaurMob::Build() {
   Mob* mob = new Mob(field);
+  mob->SetBackground(new UndernetBackground());
+  mob->StreamCustomMusic("resources/loops/loop_boss_battle2.ogg");
+
   mob->RegisterRankedReward(1, BattleItem(Chip(72, 0, '*', 0, Element::NONE, "Reflct", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
   mob->RegisterRankedReward(5, BattleItem(Chip(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "Cracks the tiles in the column immediately in front", 2)));
 

@@ -61,7 +61,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
 void MainMenuScene::onStart() {
   AUDIO.StopStream();
-  AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
+  AUDIO.Stream("resources/loops/loop_overworld.ogg", true);
   ENGINE.SetCamera(camera);
 }
 

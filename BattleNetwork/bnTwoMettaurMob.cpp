@@ -16,6 +16,9 @@ Mob* TwoMettaurMob::Build() {
   Mob* mob = new Mob(field);
   int count = 2;
 
+  // place a hole somewhere
+  field->GetAt( 3 + (rand() % 4), rand() % 4)->SetState(TileState::EMPTY);
+
   while (count > 0) {
     for (int i = 0; i < field->GetWidth(); i++) {
       for (int j = 0; j < field->GetHeight(); j++) {

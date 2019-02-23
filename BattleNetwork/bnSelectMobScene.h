@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bnMobRegistration.h"
 #include "bnNaviRegistration.h"
 #include "bnTextBox.h"
 #include "bnTile.h"
@@ -41,9 +42,7 @@ private:
   Camera camera;
   ChipFolder& selectedFolder;
 
-  MobFactory* factory;
   Mob* mob;
-  Field* field;
 
   // Menu name font
   sf::Font* font;
@@ -52,16 +51,13 @@ private:
   // Selection input delays
   double maxSelectInputCooldown;
   double selectInputCooldown;
+  double elapsed; // time
 
   // MOB UI font
   sf::Font *mobFont;
   sf::Text *mobLabel;
-
   sf::Text *attackLabel;
-
   sf::Text *speedLabel;
-
-  sf::Font *hpFont;
   sf::Text *hpLabel;
 
   float maxNumberCooldown;
@@ -76,8 +72,8 @@ private:
   // Current mob graphic
   sf::Sprite mobSpr;
 
-  // Animator for mobs
-  Animation mobAnimator;
+  // bobbing cursors
+  sf::Sprite cursor;
 
   sf::Sprite navigator;
   Animation navigatorAnimator;

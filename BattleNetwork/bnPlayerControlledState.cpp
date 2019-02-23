@@ -71,7 +71,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   }
  
 
-  if (inputManager->has(PRESSED_A) && isChargeHeld == false) {
+  if (inputManager->has(HELD_A) && isChargeHeld == false) {
     isChargeHeld = true;
     attackKeyPressCooldown = 0.0f;
 

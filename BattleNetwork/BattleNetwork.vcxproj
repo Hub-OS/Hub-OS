@@ -238,6 +238,7 @@
     <ClCompile Include="bnMettaurIdleState.cpp" />
     <ClCompile Include="bnMettaurMoveState.cpp" />
     <ClCompile Include="bnMobHealthUI.cpp" />
+    <ClCompile Include="bnMobRegistration.cpp" />
     <ClCompile Include="bnMysteryData.cpp" />
     <ClCompile Include="bnObstacle.cpp" />
     <ClCompile Include="bnOverworldLight.cpp" />
@@ -339,11 +340,13 @@
     <ClInclude Include="bnMetalManMoveState.h" />
     <ClInclude Include="bnMetalManPunchState.h" />
     <ClInclude Include="bnMetalManThrowState.h" />
+    <ClInclude Include="bnMobRegistration.h" />
     <ClInclude Include="bnMysteryData.h" />
     <ClInclude Include="bnObstacle.h" />
     <ClInclude Include="bnProgsmanHitState.h" />
     <ClInclude Include="bnProgsManShootState.h" />
     <ClInclude Include="bnProgsManThrowState.h" />
+    <ClInclude Include="bnQueueMobRegistration.h" />
     <ClInclude Include="bnReflectShield.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />

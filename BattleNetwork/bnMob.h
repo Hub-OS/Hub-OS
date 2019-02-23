@@ -3,6 +3,7 @@
 #include "bnCharacter.h"
 #include "bnMeta.h"
 #include "bnBattleItem.h"
+#include "bnBackground.h"
 #include "bnField.h"
 #include <vector>
 #include <map>
@@ -28,8 +29,8 @@ private:
   bool nextReady;
   Field* field;
   bool isBoss;
-  // std::string music;
-  // Background* background;
+  std::string music;
+  Background* background;
 public:
   Mob(Field* _field) {
     nextReady = true;
@@ -54,7 +55,7 @@ public:
     if (rewards.empty()) {
       return nullptr;
     }
-    
+
     // Collect only the items we can be rewarded with...
     std::vector<BattleItem> possible;
 
@@ -77,7 +78,7 @@ public:
 
     std::vector<BattleItem>::iterator possibleIter;
     possibleIter = possible.begin();
-      
+
     while (random > 0) {
       --random;
       possibleIter++;
@@ -128,6 +129,26 @@ public:
 
   bool IsBoss() {
     return isBoss;
+  }
+
+  void SetBackground(Background* background) {
+    this->background = background;
+  }
+
+  Background* GetBackground() {
+    return this->background;
+  }
+
+  void StreamCustomMusic(const std::string path) {
+    this->music = path;
+  }
+
+  bool HasCustomMusicPath() {
+    return this->music.length() > 0;
+  }
+
+  const std::string GetCustomMusicPath() const {
+    return this->music;
   }
 
   const Character& GetMobAt(int index) {

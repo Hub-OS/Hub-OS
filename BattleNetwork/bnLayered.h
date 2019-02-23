@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include "bnSmartShader.h"
+#include "bnSceneNode.h"
 using sf::Drawable;
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -8,7 +9,7 @@ using sf::Sprite;
 #include <vector>
 using std::vector;
 
-class LayeredDrawable : public Sprite {
+class LayeredDrawable : public sf::Sprite {
 private:
   int layer;
   int depth;

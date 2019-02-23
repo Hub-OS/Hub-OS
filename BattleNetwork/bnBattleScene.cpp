@@ -112,19 +112,21 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   /*
   Background for scene*/
-  background = new UndernetBackground();;
+  background = mob->GetBackground();
 
-  /*int randBG = rand() % 3;
+  if (!background) {
+    int randBG = rand() % 3;
 
-  if (randBG == 0) {
-    background = new LanBackground();
+    if (randBG == 0) {
+      background = new LanBackground();
+    }
+    else if (randBG == 1) {
+      background = new GraveyardBackground();
+    }
+    else if (randBG == 2) {
+      background = new VirusBackground();
+    }
   }
-  else if (randBG == 1) {
-    background = new GraveyardBackground();
-  }
-  else if (randBG == 2) {
-    background = new VirusBackground();
-  }*/
 
   // PAUSE
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
@@ -148,11 +150,16 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   mobFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   // Stream battle music 
-  if (!mob->IsBoss()) {
-    AUDIO.Stream("resources/loops/loop_battle.ogg", true);
+  if (mob->HasCustomMusicPath()) {
+    AUDIO.Stream(mob->GetCustomMusicPath(), true);
   }
   else {
-    AUDIO.Stream("resources/loops/loop_boss_battle2.ogg", true);
+    if (!mob->IsBoss()) {
+      AUDIO.Stream("resources/loops/loop_battle.ogg", true);
+    }
+    else {
+      AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
+    }
   }
  
   // STATE FLAGS AND TIMERS

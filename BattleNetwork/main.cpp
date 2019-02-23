@@ -21,6 +21,7 @@
 
 // Engine addons
 #include "bnQueueNaviRegistration.h"
+#include "bnQueueMobRegistration.h"
 
 // Timer
 using sf::Clock;
@@ -45,6 +46,17 @@ void RunNaviInit(std::atomic<int>* progress) {
   Logger::Logf("Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
   Logger::GetMutex()->unlock();
 }
+
+void RunMobInit(std::atomic<int>* progress) {
+  clock_t begin_time = clock();
+
+  MOBS.LoadAllMobs(*progress);
+
+  Logger::GetMutex()->lock();
+  Logger::Logf("Loaded registered mobs: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::GetMutex()->unlock();
+}
+
 
 void RunGraphicsInit(std::atomic<int> * progress) {
   clock_t begin_time = clock();
@@ -84,6 +96,7 @@ int main(int argc, char** argv) {
   SHADERS;
   AUDIO;
   QueuNaviRegistration(); // Queues navis to be loaded later
+  QueueMobRegistration(); // Queues mobs to be loaded later
 
   // State flags
   bool inConfigMessageState = true;
@@ -146,6 +159,10 @@ int main(int argc, char** argv) {
   navisLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
   navisLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
 
+  sf::Text* mobLoadedLabel = new sf::Text("Loading Mob Data...", *startFont);
+  mobLoadedLabel->setCharacterSize(24);
+  mobLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+  mobLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
   /* 
   Give a message to the player before loading 
   */
@@ -214,12 +231,14 @@ int main(int argc, char** argv) {
   int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE + (unsigned)ShaderType::SHADER_TYPE_SIZE;
   std::atomic<int> progress{0};
   std::atomic<int> navisLoaded{0};
+  std::atomic<int> mobsLoaded{0};
 
   sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
   sf::Thread audioLoad(&RunAudioInit, &progress);
 
   // We must deffer the thread until graphics and audio are finished
   sf::Thread navisLoad(&RunNaviInit, &navisLoaded);
+  sf::Thread mobsLoad(&RunMobInit, &mobsLoaded);
 
   graphicsLoad.launch();
   audioLoad.launch();
@@ -231,6 +250,7 @@ int main(int argc, char** argv) {
   // Draw some stats while we wait 
   bool inLoadState = true;
   bool ready = false;
+  bool loadMobs = false;
 
   double shaderCooldown = 2000; // 2 seconds
   double logFadeOutTimer = 4000;
@@ -387,7 +407,23 @@ int main(int argc, char** argv) {
         ENGINE.Draw(navisLoadedLabel);
       }
       else {
-        ENGINE.Draw(startLabel);
+        if (mobsLoaded < (int)MOBS.Size()) {
+          if (!loadMobs) {
+            loadMobs = true;
+            mobsLoad.launch();
+          }
+          else {
+            mobLoadedLabel->setString(std::string("Loading Mob Data ") + std::to_string(mobsLoaded) + " / " + std::to_string(MOBS.Size()));
+            sf::FloatRect bounds = mobLoadedLabel->getLocalBounds();
+            sf::Vector2f origin = { bounds.width / 2.0f, bounds.height / 2.0f };
+            mobLoadedLabel->setOrigin(origin);
+            ENGINE.Draw(mobLoadedLabel);
+          }
+        }
+        else {
+          // Finally everything is loaded
+          ENGINE.Draw(startLabel);
+        }
       }
     }
 
@@ -415,6 +451,8 @@ int main(int argc, char** argv) {
   // Cleanup
   ENGINE.RevokeShader();
   ENGINE.Clear();
+  delete mobLoadedLabel;
+  delete navisLoadedLabel;
   delete logLabel;
   delete font;
   delete logo;
