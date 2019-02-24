@@ -24,11 +24,6 @@ void ShineExplosion::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-vector<Drawable*> ShineExplosion::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  return drawables;
-}
-
 ShineExplosion::~ShineExplosion()
 {
 }

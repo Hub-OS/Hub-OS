@@ -43,7 +43,7 @@ void Thunder::Update(float _elapsed) {
   setScale(2.f, 2.f);
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 30.0f);
 
-  animation.Update(_elapsed, this);
+  animation.Update(_elapsed, *this);
 
   // Find target
   if (!target) {

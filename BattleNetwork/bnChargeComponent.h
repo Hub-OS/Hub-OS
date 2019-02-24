@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "bnAnimation.h"
+#include "bnLayered.h"
 
 using sf::CircleShape;
 using sf::Sprite;
@@ -13,9 +14,9 @@ class Entity;
 #define CHARGE_COUNTER_MAX 2.4f
 
 /*!
- * @brief For player only right now
+ * TODO: use component system
 */
-class ChargeComponent {
+class ChargeComponent : public LayeredDrawable {
 public:
   ChargeComponent(Entity* _entity);
   ~ChargeComponent();
@@ -24,7 +25,6 @@ public:
   void SetCharging(bool _charging);
   float GetChargeCounter() const;
   const bool IsFullyCharged() const;
-  Sprite& GetSprite();
 
 private:
   Entity * entity;
@@ -32,6 +32,5 @@ private:
   bool isCharged;
   bool isPartiallyCharged;
   float chargeCounter;
-  Sprite chargeSprite;
   Animation animation;
 };

@@ -12,11 +12,6 @@ void AnimatedCharacter::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-vector<Drawable*> AnimatedCharacter::GetMiscComponents() {
-  assert(false && "GetMiscComponents shouldn't be called directly from AnimatedCharacter");
-  return vector<Drawable*>();
-}
-
 void AnimatedCharacter::AddAnimation(string _state, FrameList _frameList, float _duration) {
 }
 

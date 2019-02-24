@@ -90,7 +90,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   attackLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetAttackString().c_str()));
   hpLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetHPString().c_str()));
 
-  naviAnimator.SetFrame(1, &navi);
+  naviAnimator.SetFrame(1, navi);
 
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
@@ -277,9 +277,9 @@ void SelectNaviScene::onUpdate(double elapsed) {
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
 
-  glowpadAnimator.Update((float)elapsed, &glowpad);
+  glowpadAnimator.Update((float)elapsed, glowpad);
 
-  naviAnimator.Update((float)elapsed, &navi);
+  naviAnimator.Update((float)elapsed, navi);
   bg->Update((float)elapsed);
 
   SelectedNavi prevSelect = naviSelectionIndex;

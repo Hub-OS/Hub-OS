@@ -31,7 +31,7 @@ void MetalBlade::Update(float _elapsed) {
   setScale(2.f, 2.f);
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
-  animation.Update(_elapsed*(float)this->speed, this);
+  animation.Update(_elapsed*(float)this->speed, *this);
 
   // Keep moving
   if (!this->isSliding) {

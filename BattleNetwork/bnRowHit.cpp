@@ -25,7 +25,7 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell() 
   animation = Animation("resources/spells/spell_charged_bullet_hit.animation");
   animation.SetAnimation("HIT");
   animation << Animate::On(3, onFrameTwo, true) << onFinish;
-  animation.Update(0, this);
+  animation.Update(0, *this);
 
   EnableTileHighlight(false);
 }
@@ -39,7 +39,7 @@ void RowHit::Update(float _elapsed) {
 
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
-  animation.Update(_elapsed, this);
+  animation.Update(_elapsed, *this);
 
   tile->AffectEntities(this);
 

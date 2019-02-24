@@ -48,7 +48,7 @@ ReflectShield::ReflectShield(Character* owner) : Artifact(), Component(owner)
 
   animation << Animate::On(5, onEnd, true) << [this]() { this->Delete(); this->GetOwner()->FreeComponent(*this); };
 
-  animation.Update(0, this);
+  animation.Update(0, *this);
 
   owner->AddDefenseRule(guard);
 }
@@ -60,14 +60,8 @@ void ReflectShield::Inject(BattleScene& bs) {
 void ReflectShield::Update(float _elapsed) {
   this->setPosition(this->tile->getPosition());
 
-  animation.Update(_elapsed, this);
+  animation.Update(_elapsed, *this);
   Entity::Update(_elapsed);
-}
-
-vector<Drawable*> ReflectShield::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-
-  return drawables;
 }
 
 ReflectShield::~ReflectShield()

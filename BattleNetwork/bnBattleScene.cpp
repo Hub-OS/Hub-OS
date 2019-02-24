@@ -34,7 +34,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   PlayerHealthUI* healthUI = new PlayerHealthUI(player);
 
-  chipCustGUI.AddNode(*healthUI);
+  chipCustGUI.AddNode(healthUI);
 
   // components.push_back(healthUI);
   // scenenodes.push_back(dynamic_cast<SceneNode*>(healthUI));
@@ -490,16 +490,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   for (auto node : scenenodes) {
     surface.draw(*node);
   }
-
-  /*for (int d = 1; d <= field->GetHeight(); d++) {
-    Entity* entity = nullptr;
-    while (field->GetNextEntity(entity, d)) {
-      if (!entity->IsDeleted()) {
-        ENGINE.Push(entity);
-        ENGINE.Lay(entity->GetMiscComponents());
-      }
-    }
-  }*/
 
   // NOTE: Although HUD, it fades dark when on chip cust screen and paused.
   if (!(isInChipSelect || isPostBattle || mob->IsCleared()))

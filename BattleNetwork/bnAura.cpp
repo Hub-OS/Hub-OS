@@ -34,7 +34,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Character(), Compone
   owner->AddDefenseRule(defense);
 
   animation << Animate::Mode::Loop;
-  animation.Update(0, this);
+  animation.Update(0, *this);
 }
 
 void Aura::Inject(BattleScene& bs) {
@@ -53,7 +53,7 @@ void Aura::Update(float _elapsed) {
    this->tile->AddEntity(*this);
  }
 
- animation.Update(_elapsed, this);
+ animation.Update(_elapsed, *this);
  Entity::Update(_elapsed);
 
  if (IsDeleted()) {

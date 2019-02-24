@@ -160,7 +160,7 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
       }
     }
 
-    mugAnimator.Update(elapsed*(float)textSpeed, &mugshots.front());
+    mugAnimator.Update(elapsed*(float)textSpeed, mugshots.front());
   }
 
   textBox.Play(!isPaused);
@@ -168,7 +168,7 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
   // set the textbox position
   textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0f, this->getPosition().y - 40.0f));
 
-  animator.Update(elapsed, &frame);
+  animator.Update(elapsed, frame);
 }
 
 void AnimatedTextBox::SetTextSpeed(double factor) {
@@ -232,7 +232,7 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
 
     sprite.setPosition(pos);
 
-    mugAnimator.Update(0, &sprite);
+    mugAnimator.Update(0, sprite);
 
     target.draw(sprite);
     sprite.setPosition(oldpos);

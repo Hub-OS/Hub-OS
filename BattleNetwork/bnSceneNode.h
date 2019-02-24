@@ -31,16 +31,19 @@ public:
     }
   }
 
-  void AddNode(SceneNode& child) { child.parent = this; childNodes.push_back(&child); }
-  void RemoveNode(SceneNode& find) {
-    auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [&find](SceneNode *in) { return in == &find; });
+  void AddNode(SceneNode* child) { if (child == nullptr) return;  child->parent = this; childNodes.push_back(child); }
+  void RemoveNode(SceneNode* find) {
+    if (find == nullptr) return;
+
+    auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [&find](SceneNode *in) { return in == find; });
     (*iter)->parent = nullptr;
     
     childNodes.erase(iter, childNodes.end());
   }
 
   void AddSprite(sf::Sprite& sprite) { sprites.push_back(&sprite); }
-  void REmoveSprite(sf::Sprite& find) {
+
+  void RemoveSprite(sf::Sprite& find) {
     auto iter = std::remove_if(sprites.begin(), sprites.end(), [&find](sf::Sprite *in) { return in == &find; });
 
     sprites.erase(iter, sprites.end());

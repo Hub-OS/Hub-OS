@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-MobRegistration::MobInfo::MobInfo() : placeholderTexture()
+MobRegistration::MobInfo::MobInfo() : placeholderTexture(nullptr)
 {
   mobFactory = nullptr;
   name = "Unknown";

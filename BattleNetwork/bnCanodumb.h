@@ -17,7 +17,6 @@ public:
   virtual ~Canodumb(void);
 
   virtual void Update(float _elapsed);
-  virtual vector<Drawable*> GetMiscComponents();
   int* GetAnimOffset();
   virtual const bool Hit(int _damage, Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;

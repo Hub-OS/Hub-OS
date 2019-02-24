@@ -16,6 +16,4 @@ public:
   virtual void Inject(BattleScene&);
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction) { return false; }
-  vector<Drawable*> GetMiscComponents();
-
 };

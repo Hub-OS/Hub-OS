@@ -23,7 +23,6 @@ public:
 
   virtual void Update(float _elapsed);
   void Attack(float _charge);
-  virtual vector<Drawable*> GetMiscComponents();
 
   virtual int GetHealth() const;
   virtual void SetHealth(int _health);

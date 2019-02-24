@@ -19,6 +19,7 @@ Player::Player(void)
   Character(Rank::_1)
 {
   this->ChangeState<PlayerIdleState>();
+  this->AddNode(&chargeComponent);
 
   name = "Megaman";
   SetLayer(0);
@@ -91,14 +92,6 @@ void Player::Attack(float _charge) {
     spell->SetDirection(Direction::RIGHT);
     field->AddEntity(*spell, tile->GetX(), tile->GetY());
   }
-}
-
-vector<Drawable*> Player::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-
-  drawables.push_back(&chargeComponent.GetSprite());
-
-  return drawables;
 }
 
 void Player::SetHealth(int _health) {

@@ -16,7 +16,6 @@ public:
 
   virtual void Update(float _elapsed);
   virtual void RefreshTexture();
-  virtual vector<Drawable*> GetMiscComponents();
   //virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
   //virtual void SetCounterFrame(int frame);
   virtual int GetHealth() const;

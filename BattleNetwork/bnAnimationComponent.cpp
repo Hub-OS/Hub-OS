@@ -17,7 +17,7 @@ AnimationComponent::~AnimationComponent() {
 
 void AnimationComponent::Update(float _elapsed)
 {
-  animation.Update(_elapsed, entity, speed);
+  animation.Update(_elapsed, *entity, speed);
 }
 
 void AnimationComponent::Setup(string _path)

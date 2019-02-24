@@ -79,11 +79,6 @@ void CanodumbCursor::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-vector<Drawable*> CanodumbCursor::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  return drawables;
-}
-
 CanodumbCursor::~CanodumbCursor()
 {
 }

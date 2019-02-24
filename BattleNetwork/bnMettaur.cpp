@@ -128,13 +128,6 @@ void Mettaur::RefreshTexture() {
   setPosition(getPosition() + tileOffset);
 }
 
-vector<Drawable*> Mettaur::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  drawables.push_back(healthUI);
-
-  return drawables;
-}
-
 /*void Mettaur::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
   animationComponent.SetAnimation(_state, onFinish);

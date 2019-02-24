@@ -17,7 +17,6 @@ public:
   void RewardPlayer();
 
   virtual bool Move(Direction _direction) { return false; }
-  vector<Drawable*> GetMiscComponents() { return vector<Drawable*>(); }
 
 protected:
   Texture* texture;

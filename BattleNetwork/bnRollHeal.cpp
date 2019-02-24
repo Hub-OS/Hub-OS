@@ -132,7 +132,3 @@ void RollHeal::Attack(Character* _entity) {
     }
   }
 }
-
-vector<Drawable*> RollHeal::GetMiscComponents() {
-  return vector<Drawable*>();
-}

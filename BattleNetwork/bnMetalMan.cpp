@@ -124,13 +124,6 @@ void MetalMan::RefreshTexture() {
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 }
 
-vector<Drawable*> MetalMan::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  drawables.push_back(healthUI);
-
-  return drawables;
-}
-
 TextureType MetalMan::GetTextureType() const {
   return textureType;
 }

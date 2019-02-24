@@ -108,13 +108,6 @@ void Canodumb::Update(float _elapsed) {
   Character::Update(_elapsed);
 }
 
-vector<Drawable*> Canodumb::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  drawables.push_back(healthUI);
-
-  return drawables;
-}
-
 const bool Canodumb::Hit(int _damage, Hit::Properties props) {
   if (Character::Hit(_damage, props)) {
     SetShader(whiteout);

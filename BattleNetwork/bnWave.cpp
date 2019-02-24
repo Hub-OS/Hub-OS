@@ -48,7 +48,7 @@ void Wave::Update(float _elapsed) {
 
   setPosition(tile->getPosition().x, tile->getPosition().y);
   
-  animation.Update(_elapsed, this);
+  animation.Update(_elapsed, *this);
 
   tile->AffectEntities(this);
 

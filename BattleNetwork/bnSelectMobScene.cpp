@@ -105,7 +105,7 @@ void SelectMobScene::onResume() {
 void SelectMobScene::onUpdate(double elapsed) {
   this->elapsed += elapsed;
 
-  navigatorAnimator.Update((float)elapsed, &navigator);
+  navigatorAnimator.Update((float)elapsed, navigator);
 
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);

@@ -23,12 +23,12 @@ RockDebris::RockDebris(RockDebris::Type type, double intensity) : type(type), in
   if (type == RockDebris::Type::LEFT_ICE || type == RockDebris::Type::RIGHT_ICE) {
     animation.SetAnimation("DEBRIS");
 
-    animation.SetFrame((int)type-2, this);
+    animation.SetFrame((int)type-2, *this);
   }
   else {
     animation.SetAnimation("DEBRIS");
 
-    animation.SetFrame((int)type, this);
+    animation.SetFrame((int)type, *this);
   }
 }
 
@@ -70,12 +70,6 @@ void RockDebris::Update(float _elapsed) {
   } 
 
   Entity::Update(_elapsed);
-}
-
-vector<Drawable*> RockDebris::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-
-  return drawables;
 }
 
 RockDebris::~RockDebris()

@@ -124,10 +124,10 @@ string Animation::ValueOf(string _key, string _line) {
   return s.substr(0, s.find("\""));
 }
 
-void Animation::Update(float elapsed, sf::Sprite* target, double playbackSpeed) {
+void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) {
   progress += elapsed * (float)std::fabs(playbackSpeed);
 
-  animator(progress, *target, animations[currAnimation]);
+  animator(progress, target, animations[currAnimation]);
 
   const float duration = animations[currAnimation].GetTotalDuration();
 
@@ -136,9 +136,9 @@ void Animation::Update(float elapsed, sf::Sprite* target, double playbackSpeed) 
   }
 }
 
-void Animation::SetFrame(int frame, sf::Sprite * target)
+void Animation::SetFrame(int frame, sf::Sprite& target)
 {
-  animator.SetFrame(frame, *target, animations[currAnimation]);
+  animator.SetFrame(frame, target, animations[currAnimation]);
 }
 
 void Animation::SetAnimation(string state) {

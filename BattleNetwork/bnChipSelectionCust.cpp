@@ -85,6 +85,8 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) 
   cursorBigAnimator.Reload();
   cursorBigAnimator.SetAnimation("BLINK");
   cursorBigAnimator << Animate::Mode::Loop;
+
+  this->setScale(0.5f, 0.5); // testing transforms
 }
 
 
@@ -481,8 +483,8 @@ void ChipSelectionCust::Update(float elapsed)
 {
   frameElapsed = (double)elapsed;
 
-  cursorSmallAnimator.Update(elapsed, &cursorSmall);
-  cursorBigAnimator.Update(elapsed, &cursorBig);
+  cursorSmallAnimator.Update(elapsed, cursorSmall);
+  cursorBigAnimator.Update(elapsed, cursorBig);
 
   chipDescriptionTextbox.Update(elapsed);
 

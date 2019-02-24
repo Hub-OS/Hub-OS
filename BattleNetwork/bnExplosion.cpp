@@ -108,11 +108,6 @@ void Explosion::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-vector<Drawable*> Explosion::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  return drawables;
-}
-
 void Explosion::IncrementExplosionCount() {
   count++;
 }

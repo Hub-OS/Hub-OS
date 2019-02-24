@@ -20,8 +20,8 @@ public:
   ~Animation();
 
   void Reload();
-  void Update(float _elapsed, sf::Sprite* target, double playbackSpeed = 1.0);
-  void SetFrame(int frame, sf::Sprite* target);
+  void Update(float _elapsed, sf::Sprite& target, double playbackSpeed = 1.0);
+  void SetFrame(int frame, sf::Sprite& target);
   void SetAnimation(string state);
 
   const std::string GetAnimationString() const;

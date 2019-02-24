@@ -25,7 +25,6 @@ public:
 
   virtual void AdoptTile(Battle::Tile* tile) final;
 
-  vector<Drawable*> GetMiscComponents() { return vector<Drawable*>(); }
   double timer;
 
 protected:

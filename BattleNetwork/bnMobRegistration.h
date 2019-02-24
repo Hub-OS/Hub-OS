@@ -91,13 +91,11 @@ inline MobRegistration::MobInfo & MobRegistration::MobInfo::SetMobClass()
       mobFactory = nullptr;
     }
 
-    if (placeholderTexture) {
-      delete placeholderTexture;
-      placeholderTexture = nullptr;
-    }
-
     this->mobFactory = new T(new Field(6, 3));
-    this->placeholderTexture = TEXTURES.LoadTextureFromFile(this->GetPlaceholderTexturePath());
+
+    if (!this->placeholderTexture) {
+      this->placeholderTexture = TEXTURES.LoadTextureFromFile(this->GetPlaceholderTexturePath());
+    }
   };
 
 

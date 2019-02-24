@@ -32,12 +32,6 @@ void CanonSmoke::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-vector<Drawable*> CanonSmoke::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-
-  return drawables;
-}
-
 CanonSmoke::~CanonSmoke()
 {
 }

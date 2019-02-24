@@ -127,8 +127,8 @@ void FolderScene::onUpdate(double elapsed) {
   totalTimeElapsed += elapsed;
 
   camera.Update((float)elapsed);
-  folderCursorAnimation.Update((float)elapsed, &folderCursor);
-  equipAnimation.Update((float)elapsed, &folderEquip);
+  folderCursorAnimation.Update((float)elapsed, folderCursor);
+  equipAnimation.Update((float)elapsed, folderEquip);
 
   // Scene keyboard controls
   if (enterText) {

@@ -269,7 +269,7 @@ int main(int argc, char** argv) {
 
     sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
     mouse.setPosition(mousepos);
-    mouseAnimation.Update(elapsed/1000.0f, &mouse);
+    mouseAnimation.Update(elapsed/1000.0f, mouse);
 
     /*
       Get next logs. One at a time for effect.
@@ -482,7 +482,7 @@ int main(int argc, char** argv) {
 
     sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
     mouse.setPosition(mousepos);
-    mouseAnimation.Update(elapsed, &mouse);
+    mouseAnimation.Update(elapsed, mouse);
 
     // Use the activity controller to update and draw scenes
     while(elapsed >= FIXED_TIME_STEP) {

@@ -104,13 +104,6 @@ void ProgsMan::RefreshTexture() {
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 }
 
-vector<Drawable*> ProgsMan::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  drawables.push_back(healthUI);
-
-  return drawables;
-}
-
 TextureType ProgsMan::GetTextureType() const {
   return textureType;
 }
