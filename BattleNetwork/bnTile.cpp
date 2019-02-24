@@ -42,7 +42,18 @@ namespace Battle {
   }
 
   Tile::~Tile(void) {
+    // Free memory 
+    auto iter = entities.begin();
+
+    while (iter != entities.end()) {
+      delete (*iter);
+      iter++;
+    }
+
     entities.clear();
+    spells.clear();
+    artifacts.clear();
+    characters.clear();
   }
 
   void Tile::SetField(Field* _field) {
@@ -273,7 +284,7 @@ namespace Battle {
 
     if (itEnt != entities.end()) {
       // TODO: HasFloatShoe and HasAirShoe should be a component and use the component system
-      if (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe())) {
+      if(dynamic_cast<Artifact*>(*itEnt) != nullptr && (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe()))) {
         state = TileState::BROKEN;
         AUDIO.Play(AudioType::PANEL_CRACK);
       }
@@ -358,10 +369,51 @@ namespace Battle {
   void Tile::Update(float _elapsed) {
     hasSpell = false;
 
+    /*
+    // NOTE: There has got to be some opportunity for optimization around here
+    */
+
+    auto itEnt = entities.begin();
+    auto itSpell = spells.begin();
+    auto itChar = characters.begin();
+    auto itArt = artifacts.begin();
+
+    while (itEnt != entities.end()) {
+      if ((*itEnt)->IsDeleted() || *itEnt == nullptr) {
+        if ((*itEnt)->IsDeleted()) {
+          long ID = (*itEnt)->GetID();
+
+          auto fitEnt = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+          auto fitSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+          auto fitChar = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+          auto fitArt = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+
+          if (fitSpell != spells.end()) {
+            spells.erase(fitSpell);
+          }
+
+          if (fitChar != characters.end()) {
+            characters.erase(fitChar);
+          }
+
+          if (fitArt != artifacts.end()) {
+            artifacts.erase(fitArt);
+          }
+
+          delete *itEnt;
+        }
+
+        itEnt = entities.erase(itEnt);
+      }
+      else {
+        itEnt++;
+      }
+    }
+
     vector<Artifact*> artifacts_copy = artifacts;
     for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
 
-      if ((*entity) == nullptr || (*entity)->IsDeleted())
+      if ((*entity)->IsDeleted() || (*entity) == nullptr)
         continue;
 
       (*entity)->SetBattleActive(isBattleActive);
@@ -371,7 +423,7 @@ namespace Battle {
     vector<Spell*> spells_copy = spells;
     for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
 
-      if ((*entity) == nullptr || (*entity)->IsDeleted())
+      if ((*entity)->IsDeleted() || (*entity) == nullptr)
         continue;
 
         hasSpell = (*entity)->IsTileHighlightEnabled();
@@ -383,7 +435,7 @@ namespace Battle {
     vector<Character*> characters_copy = characters;
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
 
-      if ((*entity) == nullptr || (*entity)->IsDeleted())
+      if ((*entity)->IsDeleted() || (*entity) == nullptr)
         continue;
 
       (*entity)->SetBattleActive(isBattleActive);

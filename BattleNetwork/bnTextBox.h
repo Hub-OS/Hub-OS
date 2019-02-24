@@ -215,7 +215,7 @@ public:
   }
 
   virtual void Update(const double elapsed) {
-    if (!play || message.empty()) return;
+    if (!play || message.empty() || charIndex >= message.length()) return;
 
     bool playOnce = true;
 

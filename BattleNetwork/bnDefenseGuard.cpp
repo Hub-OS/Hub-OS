@@ -21,7 +21,7 @@ const bool DefenseGuard::Check(Spell * in, Character* owner)
 
     owner->GetField()->AddEntity(*new GuardHit(owner->GetField(), owner, true), owner->GetTile()->GetX(), owner->GetTile()->GetY());
 
-    return true; // Guard never allows an attack to passthrough
+    return true; // Guard disallows an attack to passthrough
   }
 
   return false;

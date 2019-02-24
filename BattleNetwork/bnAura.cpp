@@ -45,13 +45,20 @@ void Aura::Update(float _elapsed) {
  this->setPosition(this->GetOwner()->getPosition());
  
  if (this->tile != this->GetOwner()->GetTile()) {
-   this->tile->RemoveEntityByID(this->GetID());
+   if (this->tile) {
+     this->tile->RemoveEntityByID(this->GetID());
+   }
+
    this->SetTile(this->GetOwner()->GetTile());
    this->tile->AddEntity(*this);
  }
 
  animation.Update(_elapsed, this);
  Entity::Update(_elapsed);
+
+ if (IsDeleted()) {
+   delete this;
+ }
 }
 
 const Aura::Type Aura::GetAuraType()
@@ -77,6 +84,7 @@ const bool Aura::Hit(int _damage, Hit::Properties props)
 
 Aura::~Aura()
 {
+  std::cout << "Aura deleted" << std::endl;
   this->GetOwnerAs<Character>()->RemoveDefenseRule(this->defense);
 
   delete this->defense;

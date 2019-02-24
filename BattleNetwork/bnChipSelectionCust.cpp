@@ -362,8 +362,9 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   // combine the parent transform with the node's one
   sf::Transform combinedTransform = this->getTransform();
 
-  states.transform = combinedTransform;
+  states.transform *= combinedTransform;
 
+  //custSprite.setPosition(this->getPosition());
   target.draw(custSprite, states);
 
   if (isInView) {
