@@ -54,6 +54,7 @@ enum TextureType {
   SPELL_THUNDER,
   SPELL_REFLECT_SHIELD,
   SPELL_BUBBLE,
+  SPELL_BUBBLE_TRAP,
 
   //Chip Select 
   CHIP_SELECT_MENU,

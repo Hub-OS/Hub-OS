@@ -404,6 +404,12 @@
     <Filter Include="Activities\Battle\Content\Entity\Spell\HitBox">
       <UniqueIdentifier>{fe504cb6-8871-4913-ad55-6cb742f26b28}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Artifact\BubbleTrap">
+      <UniqueIdentifier>{065d1d09-79c9-4d17-b919-bec7210804a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\BubbleWrap">
+      <UniqueIdentifier>{0bbb6b60-7056-41ab-a844-a547b03f2030}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -768,6 +774,12 @@
     </ClCompile>
     <ClCompile Include="bnHitBox.cpp">
       <Filter>Activities\Battle\Content\Entity\Spell\HitBox</Filter>
+    </ClCompile>
+    <ClCompile Include="bnBubbleTrap.cpp">
+      <Filter>Activities\Battle\Content\Entity\Artifact\BubbleTrap</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseBubbleWrap.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\BubbleWrap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1269,6 +1281,15 @@
     </ClInclude>
     <ClInclude Include="bnHitBox.h">
       <Filter>Activities\Battle\Content\Entity\Spell\HitBox</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBubbleState.h">
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBubbleTrap.h">
+      <Filter>Activities\Battle\Content\Entity\Artifact\BubbleTrap</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseBubbleWrap.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\BubbleWrap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -13,6 +13,8 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Character(), Compone
   SetLayer(1);
   this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
   this->setScale(2.f, 2.f);
+  this->SetTeam(owner->GetTeam());
+
   aura = (sf::Sprite)*this;
 
   //Components setup and load

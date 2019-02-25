@@ -4,6 +4,18 @@
 
 Obstacle::Obstacle(Field* _field, Team _team) {
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
+  this->field = _field;
+  this->team = _team;
+
+  SetFloatShoe(true);
+  SetLayer(1);
+  hit = false;
+  progress = 0.0f;
+  hitHeight = 0.0f;
+  direction = Direction::NONE;
+  texture = nullptr;
+  markTile = false;
+  hitboxFlags = Hit::none;
 }
 
 Obstacle::~Obstacle() {

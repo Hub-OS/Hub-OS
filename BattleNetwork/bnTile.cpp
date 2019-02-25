@@ -336,9 +336,9 @@ namespace Battle {
 
         // TODO: use group buckets to poll by ID instead of dy casting
         Character* c = dynamic_cast<Character*>(*it);
-        Obstacle*  o = dynamic_cast<Obstacle*>(*it);
+        //Obstacle*  o = dynamic_cast<Obstacle*>(*it);
 
-        if (!(*it)->IsPassthrough() && c && ((o) || c->GetTeam() != caller->GetTeam())) {
+        if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() || (c->GetTeam() == Team::UNKNOWN && caller->GetTeam() == Team::UNKNOWN))) {
           if (!c->CheckDefenses(caller)) {
             caller->Attack(c);
           }
@@ -459,4 +459,20 @@ namespace Battle {
   {
     isBattleActive = state;
   }
+
+  std::vector<Entity*> Tile::FindEntities(std::function<bool(Entity* e)> query)
+  {
+    std::vector<Entity*> res;
+
+    Entity* next = nullptr;
+    while (this->GetNextEntity(next)) {
+      if (query(next)) {
+        res.push_back(next);
+      }
+    }
+
+    return res;
+  }
+
 }
+

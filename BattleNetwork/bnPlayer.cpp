@@ -8,6 +8,9 @@
 #include "bnLogger.h"
 #include "bnAura.h"
 
+#include "bnBubbleTrap.h"
+#include "bnBubbleState.h"
+
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
 Player::Player(void)
@@ -52,6 +55,11 @@ void Player::Update(float _elapsed) {
 
   if (_elapsed <= 0)
     return;
+
+  Component* c = GetComponent<BubbleTrap>();
+  if (c) {
+    this->ChangeState<BubbleState<Player, PlayerControlledState>>();
+  }
 
   if (tile != nullptr) {
     setPosition(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
@@ -105,7 +113,7 @@ int Player::GetHealth() const {
 }
 
 const bool Player::Hit(int _damage, Hit::Properties props) {
-  if ((this->IsPassthrough() && (props.flags & Hit::pierce) != Hit::pierce) || invincibilityCooldown > 0) return false;
+  if (invincibilityCooldown > 0) return false;
 
   if (health - _damage < 0) {
     health = 0;

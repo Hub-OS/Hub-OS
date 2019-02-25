@@ -141,6 +141,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/thunder.png");
   paths.push_back("resources/spells/reflect_shield.png");
   paths.push_back("resources/spells/bubble.png");
+  paths.push_back("resources/spells/bubble_trap.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");

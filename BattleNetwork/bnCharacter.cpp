@@ -62,7 +62,11 @@ void Character::Update(float _elapsed) {
 
 bool Character::CanMoveTo(Battle::Tile * next)
 {
-  return (Entity::CanMoveTo(next) && !next->ContainsEntityType<Character>());
+  auto passthrough = [](Entity* in) {
+    return !in->IsPassthrough() && dynamic_cast<Character*>(in);
+  };
+
+  return (Entity::CanMoveTo(next) && next->FindEntities(passthrough).size() == 0);
 }
 
 void Character::AddAnimation(string _state, FrameList _frameList, float _duration) {

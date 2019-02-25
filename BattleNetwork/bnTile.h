@@ -1,20 +1,21 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include <algorithm>
+#include <functional>
 using sf::RectangleShape;
 using sf::Sprite;
-#include <vector>
 using std::vector;
-#include <algorithm>
 using std::find;
 
-#include "bnTeam.h"
 class Entity;
 class Spell;
 class Character;
 class Obstacle;
 class Artifact;
-
 class Field;
+
+#include "bnTeam.h"
 #include "bnMemory.h"
 #include "bnTextureType.h"
 #include "bnTileState.h"
@@ -68,6 +69,8 @@ namespace Battle {
     void Update(float _elapsed);
 
     void SetBattleActive(bool state);
+
+    std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
     vector<Artifact*> artifacts;
     vector<Spell*> spells;

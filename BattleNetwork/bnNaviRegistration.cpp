@@ -146,11 +146,16 @@ const std::string NaviRegistration::NaviInfo::GetSpecialDescriptionString() cons
   return special;
 }
 
-Player * NaviRegistration::NaviInfo::GetNavi() const
+Player * NaviRegistration::NaviInfo::GetNavi()
 {
-  delete navi;
+  if (navi) {
+    delete navi;
+  }
+
   loadNaviClass(); // Reload navi and restore HP 
-  return navi;
+  Player* out = navi;
+  navi = nullptr;
+  return out;
 }
 
 NaviRegistration & NaviRegistration::GetInstance()
@@ -167,12 +172,12 @@ NaviRegistration::~NaviRegistration()
   roster.clear();
 }
 
-void NaviRegistration::Register(const NaviInfo * info)
+void NaviRegistration::Register(NaviInfo * info)
 {
   roster.push_back(info);
 }
 
-const NaviRegistration::NaviInfo & NaviRegistration::At(int index)
+NaviRegistration::NaviInfo & NaviRegistration::At(int index)
 {
   if (index < 0 || index >= (int)Size())
     throw std::runtime_error("Roster index out of bounds");

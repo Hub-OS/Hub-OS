@@ -9,15 +9,19 @@ StarfishAttackState::StarfishAttackState(int maxBubbleCount) : bubbleCount(maxBu
 StarfishAttackState::~StarfishAttackState() { ; }
 
 void StarfishAttackState::OnEnter(Starfish& star) {
-  auto onFinish = [this, &star]() {this->DoAttack(star); };
+  auto onPreAttack = [this, &star]() { 
+    auto onFinish = [this, &star]() {this->DoAttack(star); };
 
-  star.SetAnimation("ATTACK");
+    star.animationComponent.SetAnimation("ATTACK", Animate::Mode::Loop);
+    star.animationComponent.AddCallback(5, onFinish, std::function<void()>(), false);
 
-  star.animationComponent.AddCallback(13, onFinish, std::function<void()>(), true);
+  };
 
-  star.SetCounterFrame(10);
-  star.SetCounterFrame(11);
-  star.SetCounterFrame(12);
+
+  star.SetAnimation("PREATTACK", onPreAttack);
+
+  star.SetCounterFrame(1);
+  star.SetCounterFrame(2);
 }
 
 void StarfishAttackState::OnUpdate(float _elapsed, Starfish& star) {
@@ -35,7 +39,7 @@ void StarfishAttackState::DoAttack(Starfish& star) {
   }
 
   if (--bubbleCount > 0) {
-    this->ChangeState<StarfishAttackState>(bubbleCount);
+    //this->ChangeState<StarfishAttackState>(bubbleCount);
   }
   else {
     this->ChangeState<StarfishIdleState>();

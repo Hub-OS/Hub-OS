@@ -1,10 +1,11 @@
 #include "bnBubble.h"
+#include "bnBubbleTrap.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, Team::UNKNOWN) {
+Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   SetLayer(1);
   field = _field;
   direction = Direction::NONE;
@@ -14,7 +15,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, Team::
   texture = TEXTURES.GetTexture(TextureType::SPELL_BUBBLE);
   this->speed = speed;
 
-  this->slideTime = sf::seconds(0.6f / (float)speed);
+  this->slideTime = sf::seconds(0.5f / (float)speed);
 
   animation = Animation("resources/spells/bubble.animation");
   
@@ -90,10 +91,19 @@ const bool Bubble::Hit(int damage, Hit::Properties props) {
 
 void Bubble::Attack(Character* _entity) {
   if (!hit) {
-    _entity->Hit(40);
-    hit = true;
+    hit = _entity->Hit(40);
+    if (hit) {
 
-    auto onFinish = [this]() { this->Delete(); };
-    animation << "POP" << onFinish;
+      Obstacle* other = dynamic_cast<Obstacle*>(_entity);
+
+      if (!other && _entity->GetComponent<BubbleTrap>() == nullptr) {
+        BubbleTrap* trap = new BubbleTrap(_entity);
+        _entity->RegisterComponent(trap);
+        GetField()->AddEntity(*trap, GetTile()->GetX(), GetTile()->GetY());
+      }
+
+      auto onFinish = [this]() { this->Delete(); };
+      animation << "POP" << onFinish;
+    }
   }
 }

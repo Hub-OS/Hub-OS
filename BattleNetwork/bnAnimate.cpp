@@ -25,6 +25,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
   if (sequence.frames.empty()) {
     if (onFinish != nullptr) {
       onFinish();
+      onFinish = nullptr;
     }
     return;
   }

@@ -186,6 +186,8 @@
     <ClCompile Include="bnArtifact.cpp" />
     <ClCompile Include="bnAudioResourceManager.cpp" />
     <ClCompile Include="bnBubble.cpp" />
+    <ClCompile Include="bnBubbleTrap.cpp" />
+    <ClCompile Include="bnDefenseBubbleWrap.cpp" />
     <ClCompile Include="bnCanodumb.cpp" />
     <ClCompile Include="bnCanodumbAttackState.cpp" />
     <ClCompile Include="bnCanodumbIdleState.cpp" />
@@ -309,6 +311,9 @@
     <ClInclude Include="bnAura.h" />
     <ClInclude Include="bnBattleOverTrigger.h" />
     <ClInclude Include="bnBubble.h" />
+    <ClInclude Include="bnBubbleState.h" />
+    <ClInclude Include="bnBubbleTrap.h" />
+    <ClInclude Include="bnDefenseBubbleWrap.h" />
     <ClInclude Include="bnChargedBusterHit.h" />
     <ClInclude Include="bnCounterHitListener.h" />
     <ClInclude Include="bnCounterHitPublisher.h" />
