@@ -30,6 +30,8 @@ public:
 
   Animation& operator<<(Animate::On rhs);
   Animation& operator<<(char rhs);
+  Animation& operator<<(std::string state);
+
   void operator<<(std::function<void()> onFinish);
 
 private:

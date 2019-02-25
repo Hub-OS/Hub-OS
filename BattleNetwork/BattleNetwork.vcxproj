@@ -185,6 +185,7 @@
     </ClCompile>
     <ClCompile Include="bnArtifact.cpp" />
     <ClCompile Include="bnAudioResourceManager.cpp" />
+    <ClCompile Include="bnBubble.cpp" />
     <ClCompile Include="bnCanodumb.cpp" />
     <ClCompile Include="bnCanodumbAttackState.cpp" />
     <ClCompile Include="bnCanodumbIdleState.cpp" />
@@ -209,6 +210,7 @@
     <ClCompile Include="bnGraveyardBackground.cpp" />
     <ClCompile Include="bnGridBackground.cpp" />
     <ClCompile Include="bnGuardHit.cpp" />
+    <ClCompile Include="bnHitBox.cpp" />
     <ClCompile Include="bnInfiniteMap.cpp" />
     <ClCompile Include="bnLanBackground.cpp" />
     <ClCompile Include="bnBattleResults.cpp">
@@ -264,6 +266,10 @@
     <ClCompile Include="bnSelectNaviScene.cpp" />
     <ClCompile Include="bnShaderResourceManager.cpp" />
     <ClCompile Include="bnShineExplosion.cpp" />
+    <ClCompile Include="bnStarfish.cpp" />
+    <ClCompile Include="bnStarfishAttackState.cpp" />
+    <ClCompile Include="bnStarfishIdleState.cpp" />
+    <ClCompile Include="bnStarfishMob.cpp" />
     <ClCompile Include="bnStarman.cpp" />
     <ClCompile Include="bnThunder.cpp" />
     <ClCompile Include="bnTile.cpp" />
@@ -302,6 +308,7 @@
     <ClInclude Include="bnAnimation.h" />
     <ClInclude Include="bnAura.h" />
     <ClInclude Include="bnBattleOverTrigger.h" />
+    <ClInclude Include="bnBubble.h" />
     <ClInclude Include="bnChargedBusterHit.h" />
     <ClInclude Include="bnCounterHitListener.h" />
     <ClInclude Include="bnCounterHitPublisher.h" />
@@ -332,6 +339,7 @@
     <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnGear.h" />
     <ClInclude Include="bnGuardHit.h" />
+    <ClInclude Include="bnHitBox.h" />
     <ClInclude Include="bnInvis.h" />
     <ClInclude Include="bnLibraryScene.h" />
     <ClInclude Include="bnMetalBlade.h" />
@@ -352,6 +360,10 @@
     <ClInclude Include="bnRollHeart.h" />
     <ClInclude Include="bnRowHit.h" />
     <ClInclude Include="bnShineExplosion.h" />
+    <ClInclude Include="bnStarfish.h" />
+    <ClInclude Include="bnStarfishAttackState.h" />
+    <ClInclude Include="bnStarfishIdleState.h" />
+    <ClInclude Include="bnStarfishMob.h" />
     <ClInclude Include="bnThunder.h" />
     <ClInclude Include="bnTileBehavior.h" />
     <ClInclude Include="bnElements.h" />

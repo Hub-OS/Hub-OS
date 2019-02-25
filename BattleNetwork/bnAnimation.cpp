@@ -177,6 +177,11 @@ Animation & Animation::operator<<(char rhs)
   return *this;
 }
 
+Animation& Animation::operator<<(std::string state) {
+  this->SetAnimation(state);
+  return *this;
+}
+
 void Animation::operator<<(std::function<void()> onFinish)
 {
   animator << onFinish;

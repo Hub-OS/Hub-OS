@@ -258,6 +258,11 @@ void Entity::SlideToTile(bool enabled)
   this->UpdateSlideStartPosition();
 }
 
+const bool Entity::IsSliding() const
+{
+  return isSliding && this->next;
+}
+
 void Entity::Hide()
 {
   sf::Color c = getColor();

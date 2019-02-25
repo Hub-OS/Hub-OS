@@ -44,6 +44,7 @@ public:
   void SetTile(Battle::Tile* _tile);
   Battle::Tile* GetTile() const;
   void SlideToTile(bool );
+  const bool IsSliding() const;
 
   void Hide();
   void Reveal();

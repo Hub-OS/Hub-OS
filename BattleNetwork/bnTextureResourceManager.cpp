@@ -119,6 +119,9 @@ TextureResourceManager::TextureResourceManager(void) {
   // Alpha
   paths.push_back("resources/mobs/alpha/alpha.png");
 
+  // Starfish
+  paths.push_back("resources/mobs/starfish/starfish_atlas.png");
+
   // Select screen "Anything Goes"
   paths.push_back("resources/mobs/select/random.png");
 
@@ -137,6 +140,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/auras.png");
   paths.push_back("resources/spells/thunder.png");
   paths.push_back("resources/spells/reflect_shield.png");
+  paths.push_back("resources/spells/bubble.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");

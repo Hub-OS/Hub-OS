@@ -4,6 +4,7 @@
 // Register these mobs
 #include "bnTwoMettaurMob.h"
 #include "bnCanodumbMob.h"
+#include "bnStarfishMob.h"
 #include "bnRandomMettaurMob.h"
 
 /***********************************************************************
@@ -19,9 +20,17 @@ void QueueMobRegistration() {
   info->SetAttack(10);
   info->SetHP(80);
 
+  info = MOBS.AddClass<StarfishMob>();  // Create and register mob info object
+  info->SetDescription("Starfish can trap you in bubbles"); // Set property
+  info->SetName("Bubble Battle");
+  info->SetPlaceholderTexturePath("resources/mobs/starfish/preview.png");
+  info->SetSpeed(0);
+  info->SetAttack(20);
+  info->SetHP(100);
+
   info = MOBS.AddClass<CanodumbMob>();  // Create and register mob info object
   info->SetDescription("Family of cannon virii - Watch out!"); // Set property
-  info->SetName("Canodumb Triplets");
+  info->SetName("Triple Trouble");
   info->SetPlaceholderTexturePath("resources/mobs/canodumb/preview.png");
   info->SetSpeed(0);
   info->SetAttack(20);

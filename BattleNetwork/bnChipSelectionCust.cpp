@@ -31,7 +31,7 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) 
   custSprite.setScale(2.f, 2.f);
   custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
 
-  this->AddSprite(custSprite);
+  //this->AddSprite(custSprite);
 
   icon.setTexture(*TEXTURES.GetTexture(CHIP_ICONS));
   icon.setScale(sf::Vector2f(2.f, 2.f));
@@ -86,7 +86,7 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) 
   cursorBigAnimator.SetAnimation("BLINK");
   cursorBigAnimator << Animate::Mode::Loop;
 
-  this->setScale(0.5f, 0.5); // testing transforms
+  //this->setScale(0.5f, 0.5); // testing transforms
 }
 
 
@@ -366,7 +366,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   states.transform *= combinedTransform;
 
-  //custSprite.setPosition(this->getPosition());
+  custSprite.setPosition(this->getPosition());
   target.draw(custSprite, states);
 
   if (isInView) {
@@ -475,7 +475,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   target.draw(chipDescriptionTextbox, states);
 
-  SceneNode::draw(target, states);
+  // SceneNode::draw(target, states);
 }
 
 

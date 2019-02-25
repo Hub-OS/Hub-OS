@@ -389,6 +389,21 @@
     <Filter Include="Engine\Addons\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy">
       <UniqueIdentifier>{8deab339-cfc6-43e6-b86c-2cb7f139d585}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\Challenging">
+      <UniqueIdentifier>{9886141e-88bf-4f26-8d5d-8d3f1dab66a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Character\Starfish">
+      <UniqueIdentifier>{a5f52f1e-01f1-4474-a82d-aae890335ab7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Character\Starfish\States">
+      <UniqueIdentifier>{fa691605-5043-47f8-bed4-ef5129cb03a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Obstacle\Bubble">
+      <UniqueIdentifier>{c23e59ca-5dff-43ba-91b9-2c679d0b5748}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entity\Spell\HitBox">
+      <UniqueIdentifier>{fe504cb6-8871-4913-ad55-6cb742f26b28}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -555,9 +570,6 @@
     </ClCompile>
     <ClCompile Include="bnCanodumb.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\Canodumb</Filter>
-    </ClCompile>
-    <ClCompile Include="bnCanodumbMob.cpp">
-      <Filter>Engine\Addons\MobRegistration\MobFactories\Easy</Filter>
     </ClCompile>
     <ClCompile Include="bnCanodumbCursor.cpp">
       <Filter>Activities\Battle\Content\Entity\Character\Canodumb\Misc</Filter>
@@ -735,6 +747,27 @@
     </ClCompile>
     <ClCompile Include="bnMobRegistration.cpp">
       <Filter>Engine\Addons\MobRegistration</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCanodumbMob.cpp">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Challenging</Filter>
+    </ClCompile>
+    <ClCompile Include="bnStarfishMob.cpp">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Easy</Filter>
+    </ClCompile>
+    <ClCompile Include="bnStarfish.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\Starfish</Filter>
+    </ClCompile>
+    <ClCompile Include="bnStarfishAttackState.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\Starfish\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnStarfishIdleState.cpp">
+      <Filter>Activities\Battle\Content\Entity\Character\Starfish\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnBubble.cpp">
+      <Filter>Activities\Battle\Content\Entity\Obstacle\Bubble</Filter>
+    </ClCompile>
+    <ClCompile Include="bnHitBox.cpp">
+      <Filter>Activities\Battle\Content\Entity\Spell\HitBox</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -954,9 +987,6 @@
     </ClInclude>
     <ClInclude Include="bnCanodumb.h">
       <Filter>Activities\Battle\Content\Entity\Character\Canodumb</Filter>
-    </ClInclude>
-    <ClInclude Include="bnCanodumbMob.h">
-      <Filter>Engine\Addons\MobRegistration\MobFactories\Easy</Filter>
     </ClInclude>
     <ClInclude Include="bnCanodumbCursor.h">
       <Filter>Activities\Battle\Content\Entity\Character\Canodumb\Misc</Filter>
@@ -1218,6 +1248,27 @@
     </ClInclude>
     <ClInclude Include="bnQueueMobRegistration.h">
       <Filter>Engine\Addons</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCanodumbMob.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Challenging</Filter>
+    </ClInclude>
+    <ClInclude Include="bnStarfishMob.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Easy</Filter>
+    </ClInclude>
+    <ClInclude Include="bnStarfish.h">
+      <Filter>Activities\Battle\Content\Entity\Character\Starfish</Filter>
+    </ClInclude>
+    <ClInclude Include="bnStarfishIdleState.h">
+      <Filter>Activities\Battle\Content\Entity\Character\Starfish\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnStarfishAttackState.h">
+      <Filter>Activities\Battle\Content\Entity\Character\Starfish\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBubble.h">
+      <Filter>Activities\Battle\Content\Entity\Obstacle\Bubble</Filter>
+    </ClInclude>
+    <ClInclude Include="bnHitBox.h">
+      <Filter>Activities\Battle\Content\Entity\Spell\HitBox</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -36,6 +36,7 @@ enum TextureType {
   MOB_CANODUMB_ATLAS,
   MOB_METALMAN_ATLAS,
   MOB_ALPHA_ATLAS,
+  MOB_STARFISH_ATLAS,
   MOB_ANYTHING_GOES,
 
   // Battle Misc
@@ -52,6 +53,7 @@ enum TextureType {
   SPELL_AURA,
   SPELL_THUNDER,
   SPELL_REFLECT_SHIELD,
+  SPELL_BUBBLE,
 
   //Chip Select 
   CHIP_SELECT_MENU,
