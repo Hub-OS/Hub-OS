@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <iostream>
 
 #include "bnSmartShader.h"
 #include "bnSceneNode.h"
@@ -25,20 +26,20 @@ public:
   LayeredDrawable(void)
     : layer(0),
     depth(0) {
-    this->AddSprite(sprite);
+    this->AddSprite(&sprite);
   }
 
   LayeredDrawable(const sf::Sprite& rhs) : sprite(rhs) {
     layer = 0;
     depth = 0;
-    this->AddSprite(sprite);
+    this->AddSprite(&sprite);
 
   }
 
   LayeredDrawable(int _layer)
     : layer(_layer),
     depth(0){
-    this->AddSprite(sprite);
+    this->AddSprite(&sprite);
   }
 
   void operator=(const sf::Sprite& rhs) {
@@ -117,6 +118,12 @@ public:
 
   int GetDepth() const {
     return depth;
+  }
+
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
+    states.transform *= this->getTransform();
+
+    SceneNode::draw(target, states);
   }
 };
 

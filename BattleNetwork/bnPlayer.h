@@ -26,7 +26,7 @@ public:
 
   virtual int GetHealth() const;
   virtual void SetHealth(int _health);
-  virtual const bool Hit(int _damage, Hit::Properties props = Hit::DefaultProperties);
+  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   int GetMoveCount() const;
   int GetHitCount() const;
 

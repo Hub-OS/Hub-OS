@@ -23,7 +23,7 @@ public:
 
   void SetHealth(int _health);
   virtual int* GetAnimOffset();
-  virtual const bool Hit(int _damage, Hit::Properties props = Hit::DefaultProperties);
+  virtual const bool Hit(Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;
 
 private:
@@ -42,5 +42,4 @@ private:
 
   float hitHeight;
   TextureType textureType;
-  MobHealthUI* healthUI;
 };

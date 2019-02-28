@@ -125,6 +125,8 @@ int main(int argc, char** argv) {
   mouseAnimation.Reload();
   mouseAnimation.SetAnimation("DEFAULT");
   mouseAnimation << Animate::Mode::Loop;
+  sf::Vector2f lastMousepos;
+  double mouseAlpha = 1.0;
 
   // Title screen logo
 
@@ -245,7 +247,7 @@ int main(int argc, char** argv) {
 
   // play some music while we wait
   AUDIO.SetStreamVolume(10);
-  AUDIO.Stream("resources/loops/loop_theme.ogg", true);
+  AUDIO.Stream("resources/loops/loop_theme.ogg");
 
   // Draw some stats while we wait 
   bool inLoadState = true;
@@ -267,8 +269,18 @@ int main(int argc, char** argv) {
 
     INPUT.update();
 
+
     sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+    mouseAlpha -= elapsed/1000.0f;
+    mouseAlpha = std::max(0.0, mouseAlpha);
+
+    if (mousepos != lastMousepos) {
+      lastMousepos = mousepos;
+      mouseAlpha = 1.0;
+    }
+
     mouse.setPosition(mousepos);
+    mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
     mouseAnimation.Update(elapsed/1000.0f, mouse);
 
     /*
@@ -481,11 +493,21 @@ int main(int argc, char** argv) {
     INPUT.update();
 
     sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+    mouseAlpha -= elapsed;
+    mouseAlpha = std::max(0.0, mouseAlpha);
+
+    if (mousepos != lastMousepos) {
+      lastMousepos = mousepos;
+      mouseAlpha = 1.0;
+    }
+
     mouse.setPosition(mousepos);
+    mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
     mouseAnimation.Update(elapsed, mouse);
 
-    // Use the activity controller to update and draw scenes
+    // Simulate a frame update to capture a full 60 FPS
     while(elapsed >= FIXED_TIME_STEP) {
+      // Use the activity controller to update and draw scenes
       app.update((float)FIXED_TIME_STEP);
       elapsed -= static_cast<float>(FIXED_TIME_STEP);
     }

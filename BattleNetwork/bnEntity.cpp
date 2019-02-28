@@ -23,7 +23,8 @@ Entity::Entity()
   tileOffset(sf::Vector2f(0,0)),
   slideTime(sf::milliseconds(100)),
   defaultSlideTime(slideTime),
-  elapsedSlideTime(0)
+  elapsedSlideTime(0),
+  lastComponentID(0)
 {
   this->ID = ++Entity::numOfIDs;
   alpha = 255;
@@ -43,7 +44,7 @@ void Entity::Update(float _elapsed) {
   }
 
 
-  if (_elapsed <= 0)
+  if (_elapsed <= 0 || !tile)
     return;
 
   if (isSliding && this->next) {
@@ -58,14 +59,23 @@ void Entity::Update(float _elapsed) {
     this->tileOffset = interpol - pos;
 
     if (delta >= 0.5f) {
-      if (tile != next) {
-        previous->RemoveEntityByID(this->GetID());
-        previous = tile;
+      // conditions may change, ensure by the time we switch
+      if (this->CanMoveTo(next)) {
+        if (tile != next) {
+          previous->RemoveEntityByID(this->GetID());
+          previous = tile;
 
-        this->AdoptTile(next);
+          this->AdoptTile(next);
+        }
+
+        this->tileOffset = -tar + pos + tileOffset;
       }
-
-      this->tileOffset = -tar+pos+tileOffset;
+      else {
+        this->next = this->tile;
+        //this->elapsedSlideTime = 0;
+        //this->tileOffset = -tar + pos + tileOffset;
+        //return; // end prematurely
+      }
     } 
 
     if(delta == 1.0f)
@@ -74,38 +84,47 @@ void Entity::Update(float _elapsed) {
       Battle::Tile* prevTile = this->GetTile();
       this->tileOffset = sf::Vector2f(0, 0);
 
-      if (isSliding) {
+      //if (isSliding) {
         // std::cout << "we are sliding" << std::endl;;
 
         //std::cout << "direction: " << (int)this->GetPreviousDirection() << std::endl;
-        this->Move(this->GetPreviousDirection());
+        if (this->tile->GetState() == TileState::ICE && !this->HasFloatShoe()) {
+          this->Move(this->GetPreviousDirection());
 
-        // calculate our new entity's position in world coordinates based on next tile
-        // It's the same in the update loop, but we need the value right at this moment
-        this->UpdateSlideStartPosition();
 
-        if(this->previous->GetX() < prevTile->GetX()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX() - 1, this->GetTile()->GetY());
-        }
-        else if (this->previous->GetX() > prevTile->GetX()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX() + 1, this->GetTile()->GetY());
-        }
-        else if (this->previous->GetY() > prevTile->GetY()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() + 1);
-        }
-        else if (this->previous->GetY() < prevTile->GetY()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() - 1);
-        }
+          // calculate our new entity's position in world coordinates based on next tile
+          // It's the same in the update loop, but we need the value right at this moment
+          this->UpdateSlideStartPosition();
 
-        if (!(this->next && Teammate(this->next->GetTeam()) && this->tile->GetState() == TileState::ICE)) {
-          // Conditions not met
-          //std::cout << "Conditions not met" << std::endl;
-          isSliding = false;
+          if (this->previous->GetX() > prevTile->GetX()) {
+            this->next = this->GetField()->GetAt(this->GetTile()->GetX() - 1, this->GetTile()->GetY());
+          }
+          else if (this->previous->GetX() < prevTile->GetX()) {
+            this->next = this->GetField()->GetAt(this->GetTile()->GetX() + 1, this->GetTile()->GetY());
+          }
+          else if (this->previous->GetY() < prevTile->GetY()) {
+            this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() + 1);
+          }
+          else if (this->previous->GetY() > prevTile->GetY()) {
+            this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() - 1);
+          }
+
+          if (((this->next && this->tile->GetState() != TileState::ICE) || !this->CanMoveTo(next))) {
+            // Conditions not met
+            //std::cout << "Conditions not met" << std::endl;
+            isSliding = false;
+            //this->AdoptNextTile();
+          }
+        }
+        else {
           this->next = nullptr;
-
         }
-      }
+      //}
     }
+  }
+  else {
+    this->tileOffset = sf::Vector2f(0, 0);
+    isSliding = false;
   }
 
   if (IsDeleted()) {
@@ -179,7 +198,7 @@ bool Entity::Move(Direction _direction) {
     }
   }
 
-  if (next) {
+  if (next && next != tile) {
     this->previousDirection = _direction;
 
     previous = temp;
@@ -260,7 +279,7 @@ void Entity::SlideToTile(bool enabled)
 
 const bool Entity::IsSliding() const
 {
-  return isSliding && this->next;
+  return isSliding;
 }
 
 void Entity::Hide()
@@ -357,20 +376,22 @@ const Element Entity::GetElement() const
 
 void Entity::AdoptNextTile()
 {
-  if (next == nullptr) return;
+  if (next == nullptr) {
+    return;
+  }
+
+  if (previous != nullptr) {
+    previous->RemoveEntityByID(this->GetID());
+    //previous = nullptr;
+  }
+
+  this->AdoptTile(next);
 
   if (next->GetState() == TileState::ICE && !this->HasFloatShoe()) {
     this->SlideToTile(true);
   }
 
-  if (previous != nullptr) {
-    previous->RemoveEntityByID(this->GetID());
-    previous = nullptr;
-  }
-
-  this->AdoptTile(next);
-
-  next = nullptr;
+  //next = nullptr;
 
   moveCount++;
 }
@@ -390,11 +411,13 @@ void Entity::FreeAllComponents()
   for (int i = 0; i < shared.size(); i++) {
     shared[i]->FreeOwner();
   }
+
+  shared.clear();
 }
 
-void Entity::FreeComponent(Component& c) {
+void Entity::FreeComponentByID(long ID) {
   for (int i = 0; i < shared.size(); i++) {
-    if (shared[i] == &c) {
+    if (shared[i]->GetID() == ID) {
       shared[i]->FreeOwner();
       shared.erase(shared.begin() + i);
       return;
@@ -404,6 +427,10 @@ void Entity::FreeComponent(Component& c) {
 
 Component* Entity::RegisterComponent(Component* c) {
   shared.push_back(c);
+
+  // Newest components appear first in the list for easy referencing
+  std::sort(shared.begin(), shared.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
+
   return c;
 }
 

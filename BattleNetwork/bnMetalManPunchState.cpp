@@ -1,8 +1,8 @@
 #include "bnMetalManPunchState.h"
 #include "bnMetalMan.h"
+#include "bnHitBox.h"
+#include "bnObstacle.h"
 #include "bnAudioResourceManager.h"
-
-#include "bnCube.h" // TODO: TAKE OUT AFTER POC
 
 MetalManPunchState::MetalManPunchState() : AIState<MetalMan>()
 {
@@ -37,18 +37,12 @@ void MetalManPunchState::Attack(MetalMan& metal) {
   if (tile) {
     Entity* next = nullptr;
 
-    while (tile->GetNextEntity(next)) {
-      Character* c = dynamic_cast<Character*>(next);
-      if (c) {
-        c->Hit(100);
-      }
+    HitBox* hitbox = new HitBox(metal.field, metal.GetTeam(), 100);
+    auto props = hitbox->GetHitboxProperties();
+    props.aggressor = &metal;
+    hitbox->SetHitboxProperties(props);
 
-      c = dynamic_cast<Cube*>(next);
-      if (c) {
-        c->Hit(999);
-      }
-    }
-
+    metal.field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
 
     if (tile->GetState() != TileState::EMPTY && tile->GetState() != TileState::BROKEN) {
       ENGINE.GetCamera()->ShakeCamera(5.0, sf::seconds(2));

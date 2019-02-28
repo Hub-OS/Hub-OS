@@ -18,7 +18,7 @@ public:
 
   virtual void Update(float _elapsed);
   int* GetAnimOffset();
-  virtual const bool Hit(int _damage, Hit::Properties props = Hit::DefaultProperties);
+  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;
 
 private:

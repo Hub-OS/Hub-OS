@@ -11,10 +11,12 @@ Components need to be genric enough to be used by all in-battle entities
 class Component {
 private: 
   Entity* owner;
+  static long numOfComponents;
+  long ID;
 
 public:
   Component() = delete;
-  Component(Entity* owner) { this->owner = owner; };
+  Component(Entity* owner) { this->owner = owner; ID = ++numOfComponents;  };
   ~Component() { ; }
 
   Component(Component&& rhs) = delete;
@@ -26,6 +28,8 @@ public:
   T* GetOwnerAs() { return dynamic_cast<T*>(owner); }
 
   void FreeOwner() { owner = nullptr; }
+
+  const long GetID() const { return ID; }
 
   virtual void Update(float _elapsed) = 0;
   virtual void Inject(BattleScene&) = 0;

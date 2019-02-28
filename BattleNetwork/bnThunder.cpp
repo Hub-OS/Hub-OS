@@ -116,8 +116,9 @@ void Thunder::Attack(Character* _entity) {
     props.flags = Hit::recoil | Hit::stun;
     props.element = Element::ELEC;
     props.secs = 3;
+    props.damage = 40;
 
-    if (_entity->Hit(40, props)) {
+    if (_entity->Hit(props)) {
       this->Delete();
     }
   }

@@ -115,7 +115,9 @@ void RollHeal::Attack(Character* _entity) {
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     if (!_entity->IsPassthrough()) {
-      _entity->Hit(heal);
+      auto props = Hit::DefaultProperties;
+      props.damage = heal;
+      _entity->Hit(props);
       _entity->Update(0);
 
       int i = 1;

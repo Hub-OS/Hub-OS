@@ -14,6 +14,11 @@ ProgsManThrowState::~ProgsManThrowState()
 void ProgsManThrowState::OnEnter(ProgsMan& progs) {
   auto spawnBomb = [this, &progs]() { 
     ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), progs.GetTile()->getPosition(), 1);
+
+    auto props = bomb->GetHitboxProperties();
+    props.aggressor = &progs;
+    bomb->SetHitboxProperties(props);
+
     bomb->SetTile(progs.GetTarget()->GetTile());
 
     progs.GetField()->AddEntity(*bomb, progs.GetTarget()->GetTile()->GetX(), progs.GetTarget()->GetTile()->GetY());

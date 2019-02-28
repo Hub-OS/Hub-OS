@@ -40,8 +40,6 @@ Mettaur::Mettaur(Rank _rank)
 
   hitHeight = 0;
 
-  healthUI = new MobHealthUI(this);
-
   setTexture(*TEXTURES.GetTexture(textureType));
   setScale(2.f, 2.f);
 
@@ -75,7 +73,6 @@ void Mettaur::Update(float _elapsed) {
 
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
-    healthUI->Update(_elapsed);
     Character::Update(_elapsed);
 
     if (stunCooldown <= 0) {
@@ -117,8 +114,6 @@ void Mettaur::Update(float _elapsed) {
     animationComponent.Update(_elapsed);
   }
 
-  healthUI->Update(_elapsed);
-
   Character::Update(_elapsed);
 }
 
@@ -153,7 +148,7 @@ void Mettaur::SetHealth(int _health) {
   health = _health;
 }
 
-const bool Mettaur::Hit(int _damage, Hit::Properties props) {
+const bool Mettaur::Hit(Hit::Properties props) {
   /*if (Character::Hit(_damage, props)) {
     SetShader(whiteout);
     return true;
@@ -163,11 +158,11 @@ const bool Mettaur::Hit(int _damage, Hit::Properties props) {
 
   bool result = true;
 
-  if (health - _damage < 0) {
+  if (health - props.damage < 0) {
     health = 0;
   }
   else {
-    health -= _damage;
+    health -= props.damage;
 
     if ((props.flags & Hit::stun) == Hit::stun) {
       SetShader(stun);

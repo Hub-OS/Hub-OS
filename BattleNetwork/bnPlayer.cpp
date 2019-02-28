@@ -23,6 +23,7 @@ Player::Player(void)
 {
   this->ChangeState<PlayerIdleState>();
   this->AddNode(&chargeComponent);
+  chargeComponent.setPosition(0, -20.0f); // translate up -20
 
   name = "Megaman";
   SetLayer(0);
@@ -95,6 +96,8 @@ void Player::Update(float _elapsed) {
 }
 
 void Player::Attack(float _charge) {
+  if (!tile) return;
+
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
     Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged());
     spell->SetDirection(Direction::RIGHT);
@@ -112,14 +115,14 @@ int Player::GetHealth() const {
   return health;
 }
 
-const bool Player::Hit(int _damage, Hit::Properties props) {
+const bool Player::Hit(Hit::Properties props) {
   if (invincibilityCooldown > 0) return false;
 
-  if (health - _damage < 0) {
+  if (health - props.damage < 0) {
     health = 0;
   }
   else {
-    health -= _damage;
+    health -= props.damage;
     hitCount++;
 
     if ((props.flags & Hit::recoil) == Hit::recoil) {

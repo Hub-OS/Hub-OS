@@ -52,6 +52,8 @@ bool RowHit::Move(Direction _direction) {
 
 void RowHit::Attack(Character* _entity) {
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(damage);
+    auto props = Hit::DefaultProperties;
+    props.damage = damage;
+    _entity->Hit(props);
   }
 }

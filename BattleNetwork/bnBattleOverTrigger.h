@@ -22,7 +22,7 @@ public:
   }
 
   void Update(float _elapsed) {
-    if (callback && this->GetOwner()) {
+    if (callback && this->GetOwner() && scene) {
       if (this->scene->IsCleared()) {
         callback(*this->scene, *(dynamic_cast<T*>(this->GetOwner())));
         callback = nullptr;

@@ -56,16 +56,16 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   static Direction direction = Direction::NONE;
   if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN && player.IsBattleActive()) {
-    if (inputManager->has(PRESSED_UP)) {
+    if (inputManager->has(PRESSED_UP) || inputManager->has(HELD_UP)) {
       direction = Direction::UP;
     }
-    else if (inputManager->has(PRESSED_LEFT)) {
+    else if (inputManager->has(PRESSED_LEFT) || inputManager->has(HELD_LEFT)) {
       direction = Direction::LEFT;
     }
-    else if (inputManager->has(PRESSED_DOWN)) {
+    else if (inputManager->has(PRESSED_DOWN) || inputManager->has(HELD_DOWN)) {
       direction = Direction::DOWN;
     }
-    else if (inputManager->has(PRESSED_RIGHT)) {
+    else if (inputManager->has(PRESSED_RIGHT) || inputManager->has(HELD_RIGHT)) {
       direction = Direction::RIGHT;
     }
   }
@@ -92,6 +92,8 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     direction = Direction::NONE;
   }
 
+  //std::cout << "Is player slideing: " << player.isSliding << std::endl;
+
   if (direction != Direction::NONE && player.state != PLAYER_SHOOTING && !player.isSliding) {
     bool moved = player.Move(direction);
 
@@ -99,9 +101,9 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       moveKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {
         //Cooldown until player's movement catches up to actual position (avoid walking through spells)
-        if (player.previous) {
+       //if (moved) {
           player.AdoptNextTile();
-        }
+        //}
         player.SetAnimation(PLAYER_IDLE);
         direction = Direction::NONE;
       }; // end lambda

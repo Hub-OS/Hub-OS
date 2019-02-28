@@ -15,9 +15,11 @@ DefenseGuard::~DefenseGuard()
 
 const bool DefenseGuard::Check(Spell * in, Character* owner)
 {
-  Hit::Flags flags = in->GetHitboxFlags();
+  auto props = in->GetHitboxProperties();
 
-  if ((flags & Hit::breaking) != Hit::breaking) {
+  std::cout << "props.flags & Hit::breaking = " << (props.flags & Hit::breaking) << std::endl;
+
+  if ((props.flags & Hit::breaking) == 0) {
     this->callback(in, owner);
 
     owner->GetField()->AddEntity(*new GuardHit(owner->GetField(), owner, true), owner->GetTile()->GetX(), owner->GetTile()->GetY());

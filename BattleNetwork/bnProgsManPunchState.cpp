@@ -1,5 +1,6 @@
 #include "bnProgsManPunchState.h"
 #include "bnProgsMan.h"
+#include "bnHitBox.h"
 
 ProgsManPunchState::ProgsManPunchState() : AIState<ProgsMan>()
 {
@@ -34,13 +35,27 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
 
     Entity* entity = 0;
 
-    while (next->GetNextEntity(entity)) {
-      Character* isCharacter = dynamic_cast<Character*>(entity);
+    if (next) {
+      auto characters = next->FindEntities([](Entity* in) { return dynamic_cast<Character*>(in); });
 
-      if (isCharacter && isCharacter->GetTeam() != progs.GetTeam()) {
-        if (isCharacter->Hit(20)) {
-          isCharacter->SlideToTile(true);
-          isCharacter->Move(Direction::LEFT);
+      for (int i = 0; i < characters.size(); i++) {
+        if (characters[i]->GetTeam() != progs.GetTeam()) {
+          HitBox* hitbox = new HitBox(progs.GetField(), progs.GetTeam(), 20);
+          auto props = hitbox->GetHitboxProperties();
+          props.flags = props.flags | Hit::breaking;
+          props.aggressor = &progs;
+          hitbox->SetHitboxProperties(props);
+
+          progs.GetField()->AddEntity(*hitbox, next->GetX(), next->GetY());
+
+          props.flags = Hit::none;
+          props.damage = 0;
+
+          // use for testing
+          if ((dynamic_cast<Character*>(characters[i]))->Hit(props)) {
+            characters[i]->SlideToTile(true);
+            characters[i]->Move(Direction::LEFT);
+          }
         }
       }
     }

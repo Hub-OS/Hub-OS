@@ -49,6 +49,8 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::BUSTER_PEA, "resources/sfx/pew.ogg"); status++;
   LoadSource(AudioType::BUSTER_CHARGED, "resources/sfx/buster_charged.ogg"); status++;
   LoadSource(AudioType::BUSTER_CHARGING, "resources/sfx/buster_charging.ogg"); status++;
+  LoadSource(AudioType::BUBBLE_POP, "resources/sfx/bubble_pop.ogg"); status++;
+  LoadSource(AudioType::BUBBLE_SPAWN, "resources/sfx/bubble_spawn.ogg"); status++;
   LoadSource(AudioType::GUARD_HIT, "resources/sfx/guard_hit.ogg"); status++;
   LoadSource(AudioType::CANNON, "resources/sfx/cannon.ogg"); status++;
   LoadSource(AudioType::COUNTER, "resources/sfx/counter.ogg"); status++;
@@ -74,8 +76,10 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::SPREADER, "resources/sfx/spreader.ogg"); status++;
   LoadSource(AudioType::SWORD_SWING, "resources/sfx/sword_swing.ogg"); status++;
   LoadSource(AudioType::TOSS_ITEM, "resources/sfx/toss_item.ogg"); status++;
+  LoadSource(AudioType::TOSS_ITEM_LITE, "resources/sfx/toss_item_lite.ogg"); status++;
   LoadSource(AudioType::WAVE, "resources/sfx/wave.ogg"); status++;
   LoadSource(AudioType::THUNDER, "resources/sfx/thunder.ogg"); status++;
+  LoadSource(AudioType::ELECPULSE, "resources/sfx/elecpulse.ogg"); status++;
   LoadSource(AudioType::INVISIBLE, "resources/sfx/invisible.ogg"); status++;
   LoadSource(AudioType::PA_ADVANCE, "resources/sfx/pa_advance.ogg"); status++;
   LoadSource(AudioType::LOW_HP, "resources/sfx/low_hp.ogg"); status++;

@@ -5,7 +5,7 @@
 #include "bnGuardHit.h"
 #include "bnHitBox.h"
 
-DefenseAura::DefenseAura() : DefenseRule(Priority(100))
+DefenseAura::DefenseAura() : DefenseRule(Priority(4))
 {
 }
 

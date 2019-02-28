@@ -4,6 +4,7 @@
 #include "bnField.h"
 
 class DefenseAura;
+class AuraHealthUI;
 
 class Aura : virtual public Character, virtual public Component
 {
@@ -22,6 +23,7 @@ private:
   sf::Sprite aura;
   Type type;
   DefenseAura* defense;
+  AuraHealthUI* healthUI;
 
 public:
   Aura(Type type, Character* owner);
@@ -31,7 +33,7 @@ public:
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction) { return false; }
   const Type GetAuraType();
-  virtual const bool Hit(int _damage, Hit::Properties props = Hit::DefaultProperties);
+  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
 
 
 };

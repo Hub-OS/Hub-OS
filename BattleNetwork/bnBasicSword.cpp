@@ -52,7 +52,9 @@ bool BasicSword::Move(Direction _direction) {
 void BasicSword::Attack(Character* _entity) {
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(damage);
+    auto props = Hit::DefaultProperties;
+    props.damage = damage;
+    _entity->Hit(props);
     hitHeight = _entity->GetHitHeight();
     hit = true;
 

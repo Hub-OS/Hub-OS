@@ -101,6 +101,8 @@ class Rank1 : public RankedSpawnPolicy<T, DefaultState> {
 public:
   Rank1(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
     this->Spawn(new T(T::Rank::_1));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -110,6 +112,8 @@ class Rank2 : public RankedSpawnPolicy<T, DefaultState> {
 
   Rank2(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
     this->Spawn(new T(T::Rank::_2));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -119,6 +123,8 @@ class Rank3 : public RankedSpawnPolicy<T, DefaultState> {
 
   Rank3(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
     this->Spawn(new T(T::Rank::_3));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -129,6 +135,8 @@ public:
   RankSP(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
     this->Spawn(new T(T::Rank::SP));
     this->GetSpawned()->SetName(SP(this->GetSpawned()->GetName()));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -139,5 +147,7 @@ public:
   RankEX(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
     this->Spawn(new T(T::Rank::EX));
     this->GetSpawned()->SetName(EX(this->GetSpawned()->GetName()));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };

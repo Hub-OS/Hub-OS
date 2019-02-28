@@ -2,6 +2,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
 #include "bnAura.h"
+#include "bnAuraHealthUI.h"
 #include "bnDefenseAura.h"
 
 using sf::IntRect;
@@ -15,6 +16,10 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Character(), Compone
   this->setScale(2.f, 2.f);
   this->SetTeam(owner->GetTeam());
 
+  healthUI = new AuraHealthUI(this);
+  this->RegisterComponent(healthUI);
+  //this->AddNode(healthUI);
+ 
   aura = (sf::Sprite)*this;
 
   //Components setup and load
@@ -44,15 +49,39 @@ void Aura::Inject(BattleScene& bs) {
 }
 
 void Aura::Update(float _elapsed) {
- this->setPosition(this->GetOwner()->getPosition());
+  if (GetHealth() == 0) {
+    this->TryDelete();
+    this->GetOwnerAs<Character>()->RemoveDefenseRule(this->defense);
+    this->GetOwner()->FreeComponentByID(this->Component::GetID());
+    this->FreeAllComponents();
+
+    return;
+  }
+
+ // TODO: who updates this component??
+ if (this->GetOwner()->GetTile() == nullptr) {
+   this->setScale(0.f, 0.f);
+   healthUI->setScale(0.f, 0.f);
+   return;
+ }
+ else {
+   // TODO: add Hide and Reveal at SceneNode level
+   this->setScale(2.f, 2.f);
+   healthUI->setScale(1.f, 1.f);
+
+   this->setPosition(this->tile->getPosition());
+ }
  
  if (this->tile != this->GetOwner()->GetTile()) {
    if (this->tile) {
-     this->tile->RemoveEntityByID(this->GetID());
+     this->tile->RemoveEntityByID(this->Entity::GetID());
    }
 
    this->SetTile(this->GetOwner()->GetTile());
-   this->tile->AddEntity(*this);
+
+   if (tile) {
+     this->tile->AddEntity(*this);
+   }
  }
 
  animation.Update(_elapsed, *this);
@@ -68,26 +97,28 @@ const Aura::Type Aura::GetAuraType()
   return type;
 }
 
-const bool Aura::Hit(int _damage, Hit::Properties props)
+const bool Aura::Hit(Hit::Properties props)
 {
+  std::cout << "aura team: " << (int)this->GetTeam() << std::endl;
+
   int health = this->GetHealth();
 
   if (type == Aura::Type::BARRIER_100) {
-   health = health - _damage;
+   health = health - props.damage;
   }
 
-
-  if (health < 0) { health = 0; this->TryDelete(); /*this->GetOwner()->FreeComponent(*this);*/ }
+  if (health <= 0) {
+    health = 0;
+  }
 
   this->SetHealth(health);
 
-  return health != this->GetHealth();
+  return true;
 }
 
 Aura::~Aura()
 {
   std::cout << "Aura deleted" << std::endl;
-  this->GetOwnerAs<Character>()->RemoveDefenseRule(this->defense);
-
+  delete healthUI;
   delete this->defense;
 }

@@ -112,6 +112,9 @@ private:
   PlayerChipUseListener chipListener;
   EnemyChipUseListener enemyChipListener;
 
+  // TODO: replace with persistent storage object?
+  ChipFolder* persistentFolder;
+
   // Other components
   std::vector<Component*> components;
 
@@ -180,12 +183,8 @@ private:
   sf::Texture& distortionMap;
   sf::Vector2u textureSize; 
 
-
-  // TODO: replace misc components with SceneNodes completely
-  // e.g. this->AddSceneNodes(nodes);
+  //graphics that appear onscreen
   std::vector<SceneNode*> scenenodes;
-
-  std::vector<std::vector<Drawable*>> miscComponents;
 
   // for time-based graphics effects
   double elapsed;
@@ -210,6 +209,10 @@ public:
 
   // External component injection into the battle system
   void Inject(ChipUsePublisher& pub);
+  void Inject(Component* other);
+  void Eject(Component* other);
+
+  void ProcessNewestComponents();
 
   const bool IsCleared() {
     return isPostBattle;

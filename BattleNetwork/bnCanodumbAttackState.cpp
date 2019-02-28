@@ -45,6 +45,10 @@ void CanodumbAttackState::OnLeave(Canodumb& can) {
   if (can.GetField()->GetAt(can.tile->GetX() - 1, can.tile->GetY())) {
     Spell* spell = new Cannon(can.field, can.team, 10);
     spell->SetDirection(Direction::LEFT);
+    auto props = spell->GetHitboxProperties();
+    props.aggressor = &can;
+    spell->SetHitboxProperties(props);
+
     can.field->AddEntity(*spell, can.tile->GetX() - 1, can.tile->GetY());
 
     AUDIO.Play(AudioType::CANNON);

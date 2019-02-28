@@ -25,7 +25,9 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   hitHeight = 0.0f;
   random = 0;
 
-  //animation.addFrame(0.3f, IntRect(0, 0, 19, 41));
+  auto props = Hit::DefaultProperties;
+  props.damage = 40;
+  this->SetHitboxProperties(props);
 
   arcDuration = _duration;
   arcProgress = 0;
@@ -77,10 +79,7 @@ bool ProgBomb::Move(Direction _direction) {
 }
 
 void ProgBomb::Attack(Character* _entity) {
-  Player* isPlayer = dynamic_cast<Player*>(_entity);
-  if (isPlayer) {
-    isPlayer->Hit(20);
-    deleted = true;
-    return;
-  }
+  _entity->Hit(GetHitboxProperties());
+  deleted = true;
+  return;
 }

@@ -130,7 +130,6 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/mobs/cube/cube.png");
 
   //-Spells-
-  //Bullet
   paths.push_back("resources/spells/spell_bullet_hit.png");
   paths.push_back("resources/spells/spell_buster_charge.png");
   paths.push_back("resources/spells/spell_charged_bullet_hit.png");
@@ -142,6 +141,10 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/reflect_shield.png");
   paths.push_back("resources/spells/bubble.png");
   paths.push_back("resources/spells/bubble_trap.png");
+  paths.push_back("resources/spells/elecpulse.png");
+  paths.push_back("resources/spells/ninja_star.png");
+  paths.push_back("resources/spells/poof.png");
+  paths.push_back("resources/spells/areagrab.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");
@@ -165,6 +168,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/double_delete.png");
   paths.push_back("resources/ui/triple_delete.png");
   paths.push_back("resources/ui/counter_hit.png");
+  paths.push_back("resources/ui/alert.png");
 
   // Battle Results Frame
   paths.push_back("resources/ui/battle_results.png");
@@ -220,7 +224,8 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/backgrounds/main_menu/mr_prog_ow.png");
   paths.push_back("resources/backgrounds/main_menu/numberman_ow.png");
 
-  // other icons
+  // other ui / icons
+  paths.push_back("resources/ui/aura_numset.png");
   paths.push_back("resources/ui/gamepad_support_icon.png");
   paths.push_back("resources/ui/main_menu_ui.png");
   paths.push_back("resources/ui/elements.png");

@@ -19,7 +19,7 @@ public:
   AnimatedCharacter(Rank _rank = Rank::_1);
   virtual ~AnimatedCharacter();
 
-  virtual const bool Hit(int damage, Hit::Properties props = Hit::DefaultProperties);
+  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;
   virtual void Update(float _elapsed);
   virtual void AddAnimation(string _state, FrameList _frameList, float _duration);

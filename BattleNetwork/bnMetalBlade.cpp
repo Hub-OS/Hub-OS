@@ -5,6 +5,8 @@
 #include "bnAudioResourceManager.h"
 
 MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
+  this->SetFloatShoe(true);
+
   SetLayer(0);
   field = _field;
   team = _team;
@@ -19,6 +21,10 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
   animation = Animation("resources/mobs/metalman/metalman.animation");
   animation.SetAnimation("BLADE");
   animation << Animate::Mode::Loop;
+
+  auto props = Hit::DefaultProperties;
+  props.damage = 40;
+  this->SetHitboxProperties(props);
 
   EnableTileHighlight(false);
 }
@@ -74,7 +80,5 @@ bool MetalBlade::CanMoveTo(Battle::Tile* tile) {
 }
 
 void MetalBlade::Attack(Character* _entity) {
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(40);
-  }
+   _entity->Hit(GetHitboxProperties());
 }

@@ -23,11 +23,42 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
   summons(player),
   chipListener(player),
-  chipCustGUI(folder, 8),
+  chipCustGUI(folder->Clone(), 8),
   camera(*ENGINE.GetCamera()),
-  chipUI(player) {
+  chipUI(player),
+  persistentFolder(folder) {
+
   if (mob->GetMobCount() == 0) {
     Logger::Log(std::string("Warning: Mob was empty when battle started. Mob Type: ") + typeid(mob).name());
+  }
+
+  /*
+  Set Scene*/
+  field = mob->GetField();
+
+  player->ChangeState<PlayerIdleState>();
+  field->AddEntity(*player, 2, 2);
+
+  // Chip UI for player
+  chipListener.Subscribe(chipUI);
+  summons.Subscribe(chipUI); // Let the scene's chip listener know about summon chips
+
+  /*
+  Background for scene*/
+  background = mob->GetBackground();
+
+  if (!background) {
+    int randBG = rand() % 3;
+
+    if (randBG == 0) {
+      background = new LanBackground();
+    }
+    else if (randBG == 1) {
+      background = new GraveyardBackground();
+    }
+    else if (randBG == 2) {
+      background = new VirusBackground();
+    }
   }
 
   components = mob->GetComponents();
@@ -36,12 +67,15 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   chipCustGUI.AddNode(healthUI);
 
-  // components.push_back(healthUI);
+  components.push_back((UIComponent*)healthUI);
+
   // scenenodes.push_back(dynamic_cast<SceneNode*>(healthUI));
 
   for (auto c : components) {
     c->Inject(*this);
   }
+
+  ProcessNewestComponents();
 
   // SCORE
   totalCounterDeletions = totalCounterMoves = 0;
@@ -98,35 +132,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   /*
   Battle results pointer */
   battleResults = nullptr;
-
-  /*
-  Set Scene*/
-  field = mob->GetField();
-
-  player->ChangeState<PlayerIdleState>();
-  field->AddEntity(*player, 2, 2);
-
-  // Chip UI for player
-  chipListener.Subscribe(chipUI);
-  summons.Subscribe(chipUI); // Let the scene's chip listener know about summon chips
-
-  /*
-  Background for scene*/
-  background = mob->GetBackground();
-
-  if (!background) {
-    int randBG = rand() % 3;
-
-    if (randBG == 0) {
-      background = new LanBackground();
-    }
-    else if (randBG == 1) {
-      background = new GraveyardBackground();
-    }
-    else if (randBG == 2) {
-      background = new VirusBackground();
-    }
-  }
 
   // PAUSE
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
@@ -230,6 +235,41 @@ void BattleScene::Inject(ChipUsePublisher& pub)
   this->scenenodes.push_back(node);
 }
 
+void BattleScene::Inject(Component * other)
+{
+  components.push_back(other);
+}
+
+void BattleScene::Eject(Component * other)
+{
+  auto iter = std::find(components.begin(), components.end(), other);
+
+  if (iter != components.end()) {
+    components.erase(iter);
+  }
+}
+
+void BattleScene::ProcessNewestComponents()
+{
+  // effectively returns all of them
+  auto entities = field->FindEntities([](Entity* e) { return true; });
+
+  for (auto e : entities) {
+    if (e->shared.size() > 0) {
+      //std::cout << "lastCompID: " << e->lastComponentID << " - latest: " << e->shared[0]->GetID() << std::endl;
+
+      if (e->lastComponentID < e->shared[0]->GetID()) {
+        // Process the newst components
+        for (auto c : e->shared) {
+          c->Inject(*this);
+        }
+        // update the ledger 
+        e->lastComponentID = e->shared[0]->GetID();
+      }
+    }
+  }
+}
+
 void BattleScene::OnCounter(Character & victim, Character & aggressor)
 {
   AUDIO.Play(AudioType::COUNTER, AudioPriority::HIGH);
@@ -250,6 +290,8 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 
 void BattleScene::onUpdate(double elapsed) {
   this->elapsed = elapsed;
+
+  ProcessNewestComponents();
 
   // Update components
   for (auto c : components) {
@@ -387,6 +429,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(background);
 
   sf::Vector2f cameraAntiOffset = -ENGINE.GetViewOffset();
+  auto ui = std::vector<UIComponent*>();
 
   // First tile pass: draw the tiles
   Battle::Tile* tile = nullptr;
@@ -412,8 +455,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  miscComponents.clear();
-
   // Second tile pass: draw the entities and shaders per row
   tile = nullptr;
   while (field->GetNextTile(tile)) {
@@ -435,6 +476,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
     while (tile->GetNextEntity(entity)) {
       if (!entity->IsDeleted()) {
+        auto uic = entity->GetComponent<UIComponent>();
+        if (uic) {
+          ui.push_back(uic);
+        }
+
         ENGINE.Draw(entity);
       }
     }
@@ -481,15 +527,18 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  /*Draw misc sprites*/
-  for (auto list : miscComponents) {
-    ENGINE.Draw(list);
-  }
-
   // Draw scene nodes
   for (auto node : scenenodes) {
     surface.draw(*node);
   }
+
+  // Draw ui
+  //std::cout << "ui size: " << ui.size() << std::endl;
+
+  for (auto node : ui) {
+    surface.draw(*node);
+  }
+
 
   // NOTE: Although HUD, it fades dark when on chip cust screen and paused.
   if (!(isInChipSelect || isPostBattle || mob->IsCleared()))
@@ -612,7 +661,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
   else if (INPUT.has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
-     chipUI.UseNextChip();
+    // TODO: Big ol hack here. Should be in player controller step
+    if (player && player->GetTile() && player->GetAnimationComponent().GetAnimationString() == "PLAYER_IDLE") {
+      chipUI.UseNextChip();
+    }
   }
   else if ((!isMobFinished && mob->IsSpawningDone()) || 
     (
@@ -967,6 +1019,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 // TODO: sent the battle item off to the player's 
                 // persistent session storage
                 CHIPLIB.AddChip(reward->GetChip());
+                Chip filtered = CHIPLIB.GetChipEntry(reward->GetChip().GetShortName(), reward->GetChip().GetCode());
+                persistentFolder->AddChip(filtered);
                 delete reward;
               }
             }
@@ -989,11 +1043,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  // Write contents to screen (always last step)
-  // ENGINE.Display();
-
-  // TODO: make camera effects apply only to individual scenes that request them
-  // This will avoid this hack here to move elements around on screen
   tile = nullptr;
   while (field->GetNextTile(tile)) {
     tile->move(cameraAntiOffset);

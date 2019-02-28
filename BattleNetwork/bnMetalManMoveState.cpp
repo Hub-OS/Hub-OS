@@ -1,5 +1,6 @@
 #pragma once
 #include "bnMetalMan.h"
+#include "bnHitBox.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnMetalManIdleState.h"
@@ -14,7 +15,7 @@ void MetalManMoveState::OnEnter(MetalMan& metal) {
 }
 
 void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
-  if (isMoving) return; // We're already moving (animations take time)
+  if (isMoving || !metal.GetTarget() || !metal.GetTarget()->GetTile()) return; // We're already moving (animations take time)
 
   nextDirection = Direction::NONE;
 
@@ -42,14 +43,19 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
     metal.AdoptNextTile();
 
     auto onFinish = [this, &metal]() { 
-      int targetY = metal.GetTarget()->GetTile()->GetY();
-      int targetX = metal.GetTarget()->GetTile()->GetX();
+      if (metal.GetTarget()->GetTile()) {
+        int targetY = metal.GetTarget()->GetTile()->GetY();
+        int targetX = metal.GetTarget()->GetTile()->GetX();
 
-      if ((targetX == 1 || targetY != 2) && (rand()%4) == 0) {
-        this->ChangeState<MetalManThrowState>();
+        if ((targetX == 1 || targetY != 2) && (rand() % 4) == 0) {
+          this->ChangeState<MetalManThrowState>();
+        }
+        else {
+          this->ChangeState<MetalManIdleState>();
+        }
       }
       else {
-        this->ChangeState<MetalManIdleState>();
+        this->ChangeState<MetalManMoveState>();
       }
     };
 

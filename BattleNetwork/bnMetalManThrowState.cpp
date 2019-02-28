@@ -31,6 +31,10 @@ void MetalManThrowState::OnUpdate(float _elapsed, MetalMan& metal) {
 
 void MetalManThrowState::Attack(MetalMan& metal) {
   Spell* blade = new MetalBlade(metal.GetField(), metal.GetTeam(), 1.0);
+  auto props = blade->GetHitboxProperties();
+  props.aggressor = &metal;
+  blade->SetHitboxProperties(props);
+
   blade->SetDirection(Direction::LEFT);
 
   metal.GetField()->AddEntity(*blade, metal.GetTile()->GetX()-1, metal.GetTile()->GetY());

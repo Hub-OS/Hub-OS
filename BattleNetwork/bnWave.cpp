@@ -26,6 +26,10 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
   animation.SetAnimation("DEFAULT");
   animation << Animate::Mode::Loop << Animate::On(5, onFinish);
 
+  auto props = Hit::DefaultProperties;
+  props.damage = 10;
+  this->SetHitboxProperties(props);
+
   AUDIO.Play(AudioType::WAVE);
 
   EnableTileHighlight(true);
@@ -81,6 +85,6 @@ bool Wave::Move(Direction _direction) {
 
 void Wave::Attack(Character* _entity) {
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(10);
+    _entity->Hit(GetHitboxProperties());
   }
 }

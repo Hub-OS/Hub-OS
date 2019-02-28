@@ -45,7 +45,7 @@ BubbleState<Any, NextState>::~BubbleState() {
 
 template<typename Any, typename NextState>
 void BubbleState<Any, NextState>::OnEnter(Any& e) {
-  std::cout << "entered bubblestate" << std::endl;
+  //std::cout << "entered bubblestate" << std::endl;
 
   e.LockState(); // Lock AI state. We cannot be forced out of this.
   //trap = new BubbleTrap(e);
@@ -68,7 +68,7 @@ void BubbleState<Any, NextState>::OnUpdate(float _elapsed, Any& e) {
 
 template<typename Any, typename NextState>
 void BubbleState<Any, NextState>::OnLeave(Any& e) { 
-  std::cout << "left bubblestate" << std::endl;
+  //std::cout << "left bubblestate" << std::endl;
 
-  //trap->Pop();
+  AUDIO.Play(AudioType::BUBBLE_POP);
 }

@@ -26,32 +26,15 @@ RandomMettaurMob::~RandomMettaurMob()
 
 Mob* RandomMettaurMob::Build() {
   Mob* mob = new Mob(field);
-  mob->SetBackground(new UndernetBackground());
-  mob->StreamCustomMusic("resources/loops/loop_boss_battle2.ogg");
 
-  mob->RegisterRankedReward(1, BattleItem(Chip(72, 0, '*', 0, Element::NONE, "Reflct", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
-  mob->RegisterRankedReward(5, BattleItem(Chip(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "Cracks the tiles in the column immediately in front", 2)));
-
-
-  field->AddEntity(*new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
-  field->AddEntity(*new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);
-
-  mob->Spawn<Rank1<MetalMan, MetalManIdleState>>(6, 2);
-
-  mob->ToggleBossFlag();
+  mob->RegisterRankedReward(3, BattleItem(Chip(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
 
   bool AllIce = (rand() % 10 > 5);
   for (int i = 0; i < field->GetWidth(); i++) {
     for (int j = 0; j < field->GetHeight(); j++) {
       Battle::Tile* tile = field->GetAt(i + 1, j + 1);
 
-      /*tile->SetState((TileState)(rand() % (int)TileState::EMPTY)); // Make it random excluding an empty tile
-
-      if (AllIce) {
-        tile->SetState(TileState::ICE);
-      }*/
-
-      /*if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE && !tile->ContainsEntityType<Character>()) {
+      if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE && !tile->ContainsEntityType<Character>()) {
         if (rand() % 50 > 30) {
           if (rand() % 10 > 5) {
             MysteryData* mystery = new MysteryData(mob->GetField(), Team::UNKNOWN);
@@ -63,7 +46,7 @@ Mob* RandomMettaurMob::Build() {
 
             Component* c = new BattleOverTrigger<MysteryData>(mystery, callback);
 
-            mob->AddComponent(c);
+            mob->DelegateComponent(c);
           }
           else if(rand() % 10 > 5) {
             mob->Spawn<Rank1<Mettaur, MettaurIdleState>>(i + 1, j + 1);
@@ -79,11 +62,14 @@ Mob* RandomMettaurMob::Build() {
               mob->Spawn<Rank3<Canodumb, CanodumbIdleState>>(i + 1, j + 1);
             }
           }
-          else if (rand() % 10 > 1) {
+          else if (rand() % 100 < 10) {
             mob->Spawn<Rank1<ProgsMan, ProgsManIdleState>>(i + 1, j + 1);
           }
+          else if (rand() % 100 < 1) {
+            mob->Spawn<RankEX<MetalMan, MetalManIdleState>>(i + 1, j + 1);
+          }
         }
-      }*/
+      }
     }
   }
 

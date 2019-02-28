@@ -15,7 +15,7 @@ Obstacle::Obstacle(Field* _field, Team _team) {
   direction = Direction::NONE;
   texture = nullptr;
   markTile = false;
-  hitboxFlags = Hit::none;
+  hitboxProperties.flags = Hit::none;
 }
 
 Obstacle::~Obstacle() {

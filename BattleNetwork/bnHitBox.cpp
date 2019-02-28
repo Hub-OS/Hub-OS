@@ -17,6 +17,10 @@ HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell() {
   cooldown = 0;
   damage = _damage;
 
+  auto props = Hit::DefaultProperties;
+  props.damage = _damage;
+  this->SetHitboxProperties(props);
+
   EnableTileHighlight(false);
 }
 
@@ -33,8 +37,5 @@ bool HitBox::Move(Direction _direction) {
 }
 
 void HitBox::Attack(Character* _entity) {
-
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(damage);
-  }
+  _entity->Hit(GetHitboxProperties());
 }

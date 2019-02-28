@@ -16,17 +16,20 @@ namespace Battle {
 }
 
 class Field;
-class Character; // forward decl
-class Component; // forward decl
+class Character;   // forward decl
+class Component;   // forward decl
+class BattleScene; // forward decl
 
 class Entity : public LayeredDrawable {
   friend class Field;
   friend class Component;
+  friend class BattleScene;
 
 private:
   long ID; // used for tagging and later, in scripting
   static long numOfIDs;
   int alpha;
+  long lastComponentID; // To run through scene injection later
 
 public:
   Entity();
@@ -89,7 +92,7 @@ public:
 
   Component* RegisterComponent(Component* c);
   void FreeAllComponents();
-  void FreeComponent(Component& c);
+  void FreeComponentByID(long ID);
 
 protected:
   // used to toggle some effects inbetween paused scene moments

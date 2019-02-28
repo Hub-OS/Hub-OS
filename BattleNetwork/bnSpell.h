@@ -18,8 +18,8 @@ public:
 
   void EnableTileHighlight(bool enable);
 
-  void SetHitboxFlags(Hit::Flags flags);
-  const Hit::Flags GetHitboxFlags() const;
+  void SetHitboxProperties(Hit::Properties props);
+  const Hit::Properties GetHitboxProperties() const;
 
 protected:
   bool hit;
@@ -28,5 +28,5 @@ protected:
   float hitHeight;
   Texture* texture;
   AnimationComponent animationComponent;
-  Hit::Flags hitboxFlags;
+  Hit::Properties hitboxProperties;
 };

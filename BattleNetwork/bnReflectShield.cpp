@@ -46,7 +46,7 @@ ReflectShield::ReflectShield(Character* owner) : Artifact(), Component(owner)
     this->GetOwnerAs<Character>()->RemoveDefenseRule(this->guard);
   };
 
-  animation << Animate::On(5, onEnd, true) << [this]() { this->Delete(); this->GetOwner()->FreeComponent(*this); };
+  animation << Animate::On(5, onEnd, true) << [this]() { this->Delete(); this->GetOwner()->FreeComponentByID(this->Component::GetID()); };
 
   animation.Update(0, *this);
 

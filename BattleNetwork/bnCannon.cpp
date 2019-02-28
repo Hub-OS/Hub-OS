@@ -113,20 +113,20 @@ void Cannon::Attack(Character* _entity) {
     return;
   }
 
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(damage);
-    hitHeight = _entity->GetHitHeight();
+  auto props = Hit::DefaultProperties;
+  props.damage = damage;
+  _entity->Hit(props);
+  hitHeight = _entity->GetHitHeight();
 
-    if (!_entity->IsPassthrough()) {
-      hit = true;
-    }
+  if (!_entity->IsPassthrough()) {
+    hit = true;
+  }
 
-    Character* isCharacter = dynamic_cast<Character*>(_entity);
+  Character* isCharacter = dynamic_cast<Character*>(_entity);
 
-    if (isCharacter && isCharacter->IsCountered()) {
-      AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
-      isCharacter->Stun(1000);
-    }
+  if (isCharacter && isCharacter->IsCountered()) {
+    AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
+    isCharacter->Stun(1000);
   }
 }
 

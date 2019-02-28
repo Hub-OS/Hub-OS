@@ -116,7 +116,8 @@ void AirShot::Attack(Character* _entity) {
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     auto props = Hit::DefaultProperties;
-    _entity->Hit(damage, props);
+    props.damage = damage;
+    _entity->Hit(props);
     hitHeight = _entity->GetHitHeight();
 
     if (!_entity->IsPassthrough()) {

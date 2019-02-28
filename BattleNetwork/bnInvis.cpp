@@ -12,7 +12,7 @@ void Invis::Update(float _elapsed) {
   if (elapsed >= duration.asSeconds()) {
     this->GetOwner()->SetAlpha(255);
     this->GetOwner()->SetPassthrough(false); 
-    this->GetOwner()->FreeComponent(*this);
+    this->GetOwner()->FreeComponentByID(this->GetID());
     delete this; 
   }
   else {

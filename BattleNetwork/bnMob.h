@@ -188,7 +188,8 @@ public:
     defaultStateInvokers.clear();
   }
 
-  void AddComponent(Component* component) {
+  // todo: take out
+  void DelegateComponent(Component* component) {
     components.push_back(component);
   }
 

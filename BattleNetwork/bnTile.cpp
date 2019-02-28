@@ -73,7 +73,17 @@ namespace Battle {
   }
 
   void Tile::SetTeam(Team _team) {
-    team = _team;
+    // Check if no characters on the opposing team are on this tile
+    if (this->GetTeam() == Team::UNKNOWN || this->GetTeam() != _team) {
+      size_t size = this->FindEntities([this](Entity* in) {
+        return in->GetTeam() == this->GetTeam();
+      }).size();
+
+      if (size == 0) {
+        team = _team;
+        this->RefreshTexture();
+      }
+    }
   }
 
   float Tile::GetWidth() const {
@@ -134,7 +144,7 @@ namespace Battle {
 
   void Tile::SetState(TileState _state) {
     // todo: artifacts and spells don't count, only characters and obstacles
-    if (_state == TileState::BROKEN && this->entities.size() > 0) {
+    if (_state == TileState::BROKEN && this->characters.size() > 0) {
       return;
     }
 
@@ -284,7 +294,7 @@ namespace Battle {
 
     if (itEnt != entities.end()) {
       // TODO: HasFloatShoe and HasAirShoe should be a component and use the component system
-      if(dynamic_cast<Artifact*>(*itEnt) != nullptr && (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe()))) {
+      if(dynamic_cast<Character*>(*itEnt) != nullptr && (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe()))) {
         state = TileState::BROKEN;
         AUDIO.Play(AudioType::PANEL_CRACK);
       }

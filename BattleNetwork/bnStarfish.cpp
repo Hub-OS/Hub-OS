@@ -2,6 +2,7 @@
 #include "bnStarfishIdleState.h"
 #include "bnStarfishAttackState.h"
 #include "bnExplodeState.h"
+#include "bnElementalDamage.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnWave.h"
@@ -34,6 +35,7 @@ Starfish::Starfish(Rank _rank)
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
+  this->SetFloatShoe(true);
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);
@@ -77,6 +79,9 @@ void Starfish::Update(float _elapsed) {
     if ((((int)(stunCooldown * 15))) % 2 == 0) {
       this->SetShader(stun);
     }
+    else {
+      this->SetShader(nullptr);
+    }
 
     if (GetHealth() > 0) {
       return;
@@ -115,7 +120,7 @@ void Starfish::SetHealth(int _health) {
   health = _health;
 }
 
-const bool Starfish::Hit(int _damage, Hit::Properties props) {
+const bool Starfish::Hit(Hit::Properties props) {
   /*if (Character::Hit(_damage, props)) {
     SetShader(whiteout);
     return true;
@@ -125,11 +130,17 @@ const bool Starfish::Hit(int _damage, Hit::Properties props) {
 
   bool result = true;
 
-  if (health - _damage < 0) {
+  if (health - props.damage < 0) {
     health = 0;
   }
   else {
-    health -= _damage;
+    health -= props.damage;
+
+    // TODO: use resolve system and propagate state information to frame vars
+    if (props.element == Element::ELEC) {
+      health -= props.damage;
+      field->AddEntity(*(new ElementalDamage(field, GetTeam())), tile->GetX(), tile->GetY());
+    }
 
     if ((props.flags & Hit::stun) == Hit::stun) {
       SetShader(stun);

@@ -18,7 +18,7 @@ Spell::Spell(void) : animationComponent(this), Entity() {
   direction = Direction::NONE;
   texture = nullptr;
   markTile = false;
-  hitboxFlags = Hit::none;
+  hitboxProperties.flags = Hit::none;
 }
 
 Spell::~Spell(void) {
@@ -42,12 +42,12 @@ void Spell::EnableTileHighlight(bool enable)
   markTile = enable;
 }
 
-void Spell::SetHitboxFlags(Hit::Flags flags)
+void Spell::SetHitboxProperties(Hit::Properties props)
 {
-  hitboxFlags = flags;
+  hitboxProperties = props;
 }
 
-const Hit::Flags Spell::GetHitboxFlags() const
+const Hit::Properties Spell::GetHitboxProperties() const
 {
-  return this->hitboxFlags;
+  return this->hitboxProperties;
 }

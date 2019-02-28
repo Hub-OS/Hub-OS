@@ -50,7 +50,7 @@ Cube::~Cube(void) {
 
 bool Cube::CanMoveTo(Battle::Tile * next)
 {
-  if (Entity::CanMoveTo(next)) {
+  if (next && next->IsWalkable() && next != tile) {
     if (next->ContainsEntityType<Obstacle>()) {
       Entity* other = nullptr;
 
@@ -80,6 +80,8 @@ bool Cube::CanMoveTo(Battle::Tile * next)
     return true;
   }
 
+  if (next == tile) { return true; }
+
   this->SetDirection(Direction::NONE);
   this->previousDirection = Direction::NONE;
   return false;
@@ -94,11 +96,9 @@ void Cube::Update(float _elapsed) {
   this->tile->AffectEntities(this);
 
   // Keep momentum
-  if (this->next == nullptr && this->GetPreviousDirection() != Direction::NONE) {
-    if (!hit) {
+  if (!isSliding) {
       this->SlideToTile(true);
-      this->Move(this->GetPreviousDirection());
-    }
+      this->Move(this->GetDirection());
   }
 
   if (timer <= 0) {
@@ -109,6 +109,10 @@ void Cube::Update(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
   Character::Update(_elapsed);
+
+  if (!isSliding) {
+    this->previousDirection = Direction::NONE;
+  }
 
   timer -= _elapsed;
 
@@ -130,11 +134,11 @@ void Cube::OnDelete() {
   AUDIO.Play(AudioType::PANEL_CRACK);
 }
 
-const bool Cube::Hit(int damage, Hit::Properties props) {
+const bool Cube::Hit(Hit::Properties props) {
   if (this->animation.GetAnimationString() == "APPEAR")
     return false;
 
-  int health = this->GetHealth() - damage;
+  int health = this->GetHealth() - props.damage;
   if (health <= 0) health = 0;
 
   this->SetHealth(health);
@@ -150,7 +154,9 @@ void Cube::Attack(Character* other) {
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 
   if (isObstacle) {
-    isObstacle->Hit(200);
+    auto props = Hit::DefaultProperties;
+    props.damage = 200;
+    isObstacle->Hit(props);
     this->hit = true;
     return;
   }
@@ -159,7 +165,10 @@ void Cube::Attack(Character* other) {
 
   if (isCharacter && isCharacter != this) {
     this->SetHealth(0);
-    isCharacter->Hit(200);
+
+    auto props = Hit::DefaultProperties;
+    props.damage = 200;
+    isCharacter->Hit(props);
     this->hit = true;
   }
 }

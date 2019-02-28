@@ -3,14 +3,21 @@
 #include "bnAudioResourceManager.h"
 #include "bnChipUseListener.h"
 #include "bnRollHeal.h"
+#include "bnNinjaAntiDamage.h"
 #include "bnPlayer.h"
 #include "bnField.h"
 #include "bnTile.h"
 #include "bnCube.h"
 #include "bnAura.h"
+#include "bnPanelGrab.h"
 
 #include <Swoosh\Timer.h>
 
+/*
+TODO: use action lists where possible
+      Allow any entity to be used by the chip summon handler
+      Refactor this horrible design
+*/
 class ChipSummonHandler : public ChipUseListener {
 private:
   Player * player;
@@ -110,6 +117,71 @@ public:
         SummonEntity(cube, true);
       }
     }
+    else if (summon == "AreaGrab") {
+      PanelGrab** grab = new PanelGrab*[3];
+      
+      for (int i = 0; i < 3; i++) {
+        grab[i] = new PanelGrab(this->GetPlayer()->GetField(), this->GetPlayer()->GetTeam(), 0.5);
+      }
+
+      Battle::Tile** tile = new Battle::Tile*[3];
+
+      Field* f = this->GetPlayer()->GetField();
+      
+      // Read team grab scans from left to right
+      if (GetPlayer()->GetTeam() == Team::RED) {
+        for (int i = 0; i < f->GetHeight(); i++) {
+          int index = 1;
+          while (f->GetAt(index, i+1) && f->GetAt(index, 1)->GetTeam() == Team::RED) {
+            index++;
+          }
+
+          tile[i] = f->GetAt(index, i+1);
+
+          if (tile[i]) {
+            this->GetPlayer()->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
+
+            // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
+            SummonEntity(grab[i], true);
+          }
+          else {
+            delete grab[i];
+          }
+        }
+      } else if (GetPlayer()->GetTeam() == Team::RED) {
+        // Blue team grab scans from right to left
+
+        for (int i = 0; i < f->GetHeight(); i++) {
+          int index = f->GetWidth();
+          while (f->GetAt(index, 1+1) && f->GetAt(index, 1)->GetTeam() == Team::RED) {
+            index--;
+          }
+
+          tile[i] = f->GetAt(index, 1+1);
+
+          if (tile[i]) {
+            this->GetPlayer()->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
+
+            // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
+            SummonEntity(grab[i], true);
+          }
+          else {
+            delete grab[i];
+          }
+        }
+      }
+
+      // cleanup buckets
+      delete[] tile;
+      delete[] grab;
+    }
+
+    else if (summon == "Antidamg") {
+      NinjaAntiDamage* antidamage = new NinjaAntiDamage(player);
+      player->RegisterComponent(antidamage);
+
+      AUDIO.Play(AudioType::APPEAR);
+    }
     else if (summon == "Barrier") {
       Aura* aura = new Aura(Aura::Type::BARRIER_100, this->GetPlayer());
       //this->GetPlayer()->RegisterComponent(aura);
@@ -158,6 +230,16 @@ public:
     }
     else if (name.substr(0, 7) == "Barrier") {
       summon = "Barrier";
+      timeInSecs = 0;
+      duration = sf::seconds(1);
+    }
+    else if (name == "Antidamg") {
+      summon = "Antidamg";
+      timeInSecs = 0;
+      duration = sf::seconds(1);
+    }
+    else if (name == "AreaGrab") {
+      summon = name;
       timeInSecs = 0;
       duration = sf::seconds(1);
     }

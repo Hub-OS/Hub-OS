@@ -12,7 +12,7 @@ public:
   virtual ~MysteryData(void);
 
   virtual void Update(float _elapsed);
-  virtual const bool Hit(int damage, Hit::Properties props = Hit::DefaultProperties);
+  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
 
   void RewardPlayer();
 

@@ -259,12 +259,10 @@ void SelectMobScene::onUpdate(double elapsed) {
 
       Player* player = NAVIS.At(selectedNavi).GetNavi();
 
-      // Folder is owned and deleted by the chip cust
-      ChipFolder* folder = selectedFolder.Clone();
-      folder->Shuffle();
+      selectedFolder.Shuffle();
 
       using segue = swoosh::intent::segue<CrossZoom>::to<BattleScene>;
-      getController().push<segue>(player, mob, folder);
+      getController().push<segue>(player, mob, &selectedFolder);
     }
   }
 

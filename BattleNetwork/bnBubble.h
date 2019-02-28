@@ -13,5 +13,5 @@ public:
   virtual bool CanMoveTo(Battle::Tile* tile);
   virtual void Update(float _elapsed);
   virtual void Attack(Character* _entity);
-  virtual const bool Hit(int damage, Hit::Properties props);
+  virtual const bool Hit( Hit::Properties props);
 };

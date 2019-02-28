@@ -67,10 +67,11 @@ void Engine::Draw(LayeredDrawable* _drawable) {
     sf::RenderStates newState = state;
     newState.shader = shader->Get();
 
-    surface->draw(*context, newState); // bake
+    context->draw(*surface, newState);
+    // surface->draw(*context, newState); // bake
     shader->ResetUniforms();
   } else {
-    Draw(context, true);
+    context->draw(*surface, state);
   }
 }
 void Engine::Draw(vector<LayeredDrawable*> _drawable) {
@@ -113,11 +114,13 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
       sf::RenderStates newState = state;
       newState.shader = shader.Get();
 
-      surface->draw(*context, newState); // bake
+      context->draw(*surface, newState);
+
+      //surface->draw(*context, newState); // bake
 
       shader.ResetUniforms();
     } else {
-      Draw(context, true);
+      context->draw(*surface, state);
     }
   }
 }

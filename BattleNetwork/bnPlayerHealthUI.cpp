@@ -7,8 +7,7 @@ using std::to_string;
 #include "bnAudioResourceManager.h"
 
 PlayerHealthUI::PlayerHealthUI(Player* _player)
-  : player(_player), 
-    SceneNode(),
+  : player(_player), UIComponent(_player),
     BattleOverTrigger<Player>(_player, [this](BattleScene& scene, Player& player) { this->isBattleOver = true; }) {
   font = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
   texture = TEXTURES.LoadTextureFromFile("resources/ui/img_health.png");
@@ -33,13 +32,18 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
 
   target.draw(sprite, states);
   target.draw(text, states);
-  SceneNode::draw(target, states);
+  UIComponent::draw(target, states);
 }
 
 void PlayerHealthUI::Update(float elapsed) {
   this->BattleOverTrigger<Player>::Update(elapsed);
 
   if (player) {
+    if (player->IsDeleted()) {
+      player = nullptr;
+      return;
+    }
+
     if (!loaded) {
       lastHP = currHP = player->GetHealth();
       loaded = true;
@@ -88,10 +92,4 @@ void PlayerHealthUI::Update(float elapsed) {
     text.setOutlineColor(sf::Color(48, 56, 80));
     text.setOutlineThickness(2.f);
   }
-}
-
-void PlayerHealthUI::OffsetPosition(const sf::Vector2f offset)
-{
-  //text.setPosition(offset + sf::Vector2f(75.0f, -4.f));
-  //sprite.setPosition(offset + sf::Vector2f(3.f, 0.0f));
 }

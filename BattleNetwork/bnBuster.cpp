@@ -143,8 +143,9 @@ void Buster::Attack(Character* _entity) {
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     auto props = Hit::DefaultProperties;
     props.flags = props.flags & ~Hit::recoil;
+    props.damage = damage;
 
-    _entity->Hit(damage, props);
+    _entity->Hit(props);
 
     if (!_entity->IsPassthrough()) {
       hit = true;  

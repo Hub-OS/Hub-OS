@@ -1,5 +1,6 @@
 #include "bnBubble.h"
 #include "bnBubbleTrap.h"
+#include "bnAura.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
@@ -23,7 +24,10 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
 
   animation << "INIT" << onFinish;
 
+  AUDIO.Play(AudioType::BUBBLE_SPAWN, AudioPriority::LOWEST);
+
   EnableTileHighlight(false);
+  ShareTileSpace(true);
 }
 
 Bubble::~Bubble(void) {
@@ -77,12 +81,14 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 }
 
 
-const bool Bubble::Hit(int damage, Hit::Properties props) {
+const bool Bubble::Hit(Hit::Properties props) {
   if (!hit) {
     hit = true;
 
     auto onFinish = [this]() { this->Delete(); };
     animation << "POP" << onFinish;
+    AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::LOWEST);
+
     return true;
   }
 
@@ -91,12 +97,18 @@ const bool Bubble::Hit(int damage, Hit::Properties props) {
 
 void Bubble::Attack(Character* _entity) {
   if (!hit) {
-    hit = _entity->Hit(40);
+
+    Obstacle* other = dynamic_cast<Obstacle*>(_entity);
+
+    if (other) {
+      if (other->GetHitboxProperties().aggressor != this->GetHitboxProperties().aggressor) {
+        hit = _entity->Hit(this->GetHitboxProperties());
+      }
+    }
+
     if (hit) {
-
-      Obstacle* other = dynamic_cast<Obstacle*>(_entity);
-
-      if (!other && _entity->GetComponent<BubbleTrap>() == nullptr) {
+      // TODO: take out aura condition?
+      if (_entity->GetComponent<BubbleTrap>() == nullptr && dynamic_cast<Aura*>(_entity) == nullptr && dynamic_cast<Bubble*>(_entity) == nullptr) {
         BubbleTrap* trap = new BubbleTrap(_entity);
         _entity->RegisterComponent(trap);
         GetField()->AddEntity(*trap, GetTile()->GetX(), GetTile()->GetY());
@@ -104,6 +116,7 @@ void Bubble::Attack(Character* _entity) {
 
       auto onFinish = [this]() { this->Delete(); };
       animation << "POP" << onFinish;
+      AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::LOWEST);
     }
   }
 }

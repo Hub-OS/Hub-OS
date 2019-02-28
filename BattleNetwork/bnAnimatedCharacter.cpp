@@ -37,7 +37,7 @@ const float AnimatedCharacter::GetHitHeight() const {
   return 0;
 }
 
-const bool AnimatedCharacter::Hit(int damage, Hit::Properties props) {
+const bool AnimatedCharacter::Hit(Hit::Properties props) {
   //assert(false && "Hit shouldn't be called directly from Entity");
   return false;
 }

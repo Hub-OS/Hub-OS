@@ -116,8 +116,8 @@ void ProgsMan::SetHealth(int _health) {
   health = _health;
 }
 
-const bool ProgsMan::Hit(int _damage, Hit::Properties props) {
-  (health - _damage < 0) ? health = 0 : health -= _damage;
+const bool ProgsMan::Hit(Hit::Properties props) {
+  (health - props.damage < 0) ? health = 0 : health -= props.damage;
   SetShader(whiteout);
 
   if ((props.flags & Hit::recoil) == Hit::recoil) {

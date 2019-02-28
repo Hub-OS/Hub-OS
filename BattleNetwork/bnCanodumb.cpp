@@ -108,13 +108,36 @@ void Canodumb::Update(float _elapsed) {
   Character::Update(_elapsed);
 }
 
-const bool Canodumb::Hit(int _damage, Hit::Properties props) {
-  if (Character::Hit(_damage, props)) {
+const bool Canodumb::Hit(Hit::Properties props) {
+
+  // TODO: USE THIS
+  /*
+  if (Character::Hit(props)) {
     SetShader(whiteout);
     return true;
   }
 
-  return false;
+  return false;*/
+
+
+  bool result = true;
+
+  if (health - props.damage < 0) {
+    health = 0;
+  }
+  else {
+    health -= props.damage;
+
+    if ((props.flags & Hit::stun) == Hit::stun) {
+      SetShader(stun);
+      this->stunCooldown = props.secs;
+    }
+    else {
+      SetShader(whiteout);
+    }
+  }
+
+  return result;
 }
 
 const float Canodumb::GetHitHeight() const {

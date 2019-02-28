@@ -4,7 +4,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Gear::Gear(Field* _field, Team _team, Direction startDir) : animation(this), Obstacle(field, team) {
+Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), animation(this), Obstacle(field, team) {
   this->setTexture(LOAD_TEXTURE(MOB_METALMAN_ATLAS));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);
@@ -24,9 +24,11 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : animation(this), Obs
 
   this->slideTime = sf::seconds(2.0f); // crawl
 
-  Hit::Flags flags;
-  flags = Hit::recoil | Hit::breaking;
-  this->SetHitboxFlags(flags);
+  Hit::Properties props = Hit::DefaultProperties;
+  props.flags = Hit::recoil | Hit::breaking;
+  this->SetHitboxProperties(props);
+
+  tileStartTeam = Team::UNKNOWN;
 }
 
 Gear::~Gear() {
@@ -34,7 +36,9 @@ Gear::~Gear() {
 
 bool Gear::CanMoveTo(Battle::Tile * next)
 {
-  bool valid = next ? next->IsWalkable() : false;
+  bool valid = next ? (next->IsWalkable() && (next->GetTeam() == tileStartTeam)) : false;
+  
+  if (next == tile) return true;
 
   if (valid) {
     if (next->ContainsEntityType<Gear>()) {
@@ -44,6 +48,7 @@ bool Gear::CanMoveTo(Battle::Tile * next)
       else if(this->GetDirection() == Direction::RIGHT) {
         this->SetDirection(Direction::LEFT);
       }
+      return false;
     }
 
     return true;
@@ -60,6 +65,10 @@ bool Gear::CanMoveTo(Battle::Tile * next)
 }
 
 void Gear::Update(float _elapsed) {
+  if (tileStartTeam == Team::UNKNOWN && tile) {
+    tileStartTeam = tile->GetTeam();
+  }
+
   animation.Update(_elapsed);
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
@@ -81,6 +90,9 @@ void Gear::Update(float _elapsed) {
     else if (this->GetPreviousDirection() == Direction::RIGHT) {
       this->SetDirection(Direction::LEFT);
     }
+    else if (this->GetPreviousDirection() == Direction::NONE) {
+      this->SetDirection(startDir); // Todo: should slide mechanism remove previous direction info? This works but not necessary
+    }
 
     // Now try to move
     this->SlideToTile(true);
@@ -94,7 +106,7 @@ void Gear::OnDelete() {
 
 }
 
-const bool Gear::Hit(int damage, Hit::Properties props) {
+const bool Gear::Hit(Hit::Properties props) {
   // TODO: spawn hit or something
   return true;
 }
@@ -103,7 +115,9 @@ void Gear::Attack(Character* other) {
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 
   if (isObstacle) {
-    isObstacle->Hit(9999);
+    auto props = Hit::DefaultProperties;
+    props.damage = 9999;
+    isObstacle->Hit(props);
     this->hit = true;
     return;
   }
@@ -111,7 +125,9 @@ void Gear::Attack(Character* other) {
   Character* isCharacter = dynamic_cast<Character*>(other);
 
   if (isCharacter && isCharacter != this) {
-    isCharacter->Hit(20);
+    auto props = Hit::DefaultProperties;
+    props.damage = 20;
+    isCharacter->Hit(props);
   }
 }
 

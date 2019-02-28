@@ -15,7 +15,7 @@ BubbleTrap::BubbleTrap(Character* owner) : Artifact(), Component(owner)
 
   if (owner->IsDeleted()) {
     this->Delete();
-    this->GetOwner()->FreeComponent(*this);
+    this->GetOwner()->FreeComponentByID(this->Component::GetID());
     this->FreeOwner();
     this->defense = nullptr;
   }
@@ -61,7 +61,7 @@ void BubbleTrap::Pop()
   auto onFinish = [this]() {
     if (this->GetOwner()) {
       this->GetOwnerAs<Character>()->RemoveDefenseRule(defense);
-      this->GetOwner()->FreeComponent(*this);
+      this->GetOwner()->FreeComponentByID(this->Component::GetID());
     }
 
     this->Delete();

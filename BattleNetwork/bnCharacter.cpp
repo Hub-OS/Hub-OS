@@ -8,6 +8,7 @@
 Character::Character(Rank _rank) : 
   health(0),
   counterable(false),
+  canShareTile(false),
   stunCooldown(0),
   name("unnamed"),
   rank(_rank),
@@ -26,6 +27,16 @@ const Character::Rank Character::GetRank() const {
   return rank;
 }
 
+void Character::ShareTileSpace(bool enabled)
+{
+  canShareTile = enabled;
+}
+
+const bool Character::CanShareTileSpace() const
+{
+  return this->canShareTile;
+}
+
 void Character::Update(float _elapsed) {
   elapsedBurnTime -= _elapsed;
 
@@ -33,7 +44,7 @@ void Character::Update(float _elapsed) {
     if (this->GetTile()) {
       if (this->GetTile()->GetState() == TileState::POISON) {
         if (elapsedBurnTime <= 0) {
-          if (this->Hit(1, Hit::Properties({ 0x00, Element::NONE, false, 0 }))) {
+          if (this->Hit(Hit::Properties({ 1, 0x00, Element::NONE, 0, nullptr }))) {
             elapsedBurnTime = burnCycle.asSeconds();
           }
         }
@@ -43,7 +54,7 @@ void Character::Update(float _elapsed) {
       }
 
       if (this->GetTile()->GetState() == TileState::LAVA) {
-        if (this->Hit(50, Hit::Properties({ Hit::pierce, Element::FIRE, false, 0 }))) {
+        if (this->Hit(Hit::Properties({ 50, Hit::pierce, Element::FIRE, 0, nullptr }))) {
           Field* field = GetField();
           Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
           field->AddEntity(*explosion, tile->GetX(), tile->GetY());
@@ -62,11 +73,13 @@ void Character::Update(float _elapsed) {
 
 bool Character::CanMoveTo(Battle::Tile * next)
 {
-  auto passthrough = [](Entity* in) {
-    return !in->IsPassthrough() && dynamic_cast<Character*>(in);
+  auto occupied = [this](Entity* in) {
+    Character* c = dynamic_cast<Character*>(in);
+
+    return c && c != this && !c->CanShareTileSpace();
   };
 
-  return (Entity::CanMoveTo(next) && next->FindEntities(passthrough).size() == 0);
+  return (Entity::CanMoveTo(next) && next->FindEntities(occupied).size() == 0);
 }
 
 void Character::AddAnimation(string _state, FrameList _frameList, float _duration) {
@@ -91,9 +104,9 @@ int Character::GetHealth() const {
   return health;
 }
 
-const bool Character::Hit(int damage, Hit::Properties props) {
+const bool Character::Hit(Hit::Properties props) {
   this->frameHitProps |= props.flags;
-  this->frameDamageTaken += damage;
+  this->frameDamageTaken += props.damage;
 
   return (health != 0);
 }
@@ -101,8 +114,6 @@ const bool Character::Hit(int damage, Hit::Properties props) {
 void Character::ResolveFrameBattleDamage()
 {
   (health - this->frameDamageTaken < 0) ? this->SetHealth(0) : this->SetHealth(health - this->frameDamageTaken);
-
-  this->FilterFrameHitsAndApplyGuards(this->frameHitProps);
 
   if (this->IsCountered() && (this->frameHitProps & Hit::recoil) == Hit::recoil) {
     this->Stun(3.0);
@@ -119,6 +130,9 @@ void Character::ResolveFrameBattleDamage()
     this->OnDelete();
     this->invokeDeletion = true;
   }
+
+  this->frameDamageTaken = 0;
+  this->frameHitProps = Hit::none;
 }
 
 int* Character::GetAnimOffset() {

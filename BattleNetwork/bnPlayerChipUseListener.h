@@ -3,13 +3,16 @@
 #include "bnAudioResourceManager.h"
 #include "bnChipUseListener.h"
 #include "bnPlayer.h"
+#include "bnFishy.h"
 #include "bnTile.h"
 #include "bnAirShot.h"
 #include "bnCannon.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
+#include "bnElecPulse.h"
 #include "bnReflectShield.h"
+#include "bnHideUntil.h"
 
 class PlayerChipUseListener : public ChipUseListener {
 private:
@@ -60,6 +63,19 @@ public:
         this->player->GetField()->AddEntity(*reflect, tile->GetX(), tile->GetY());
       }
     }
+    else if (name == "Fishy") {
+      Fishy* fishy = new Fishy(player->GetField(), player->GetTeam(), 1.0);
+      fishy->SetDirection(Direction::RIGHT);
+      HideUntil::Callback until = [fishy]() { return fishy->IsDeleted(); };
+      HideUntil* fishyStatus = new HideUntil(player, until);
+      player->RegisterComponent(fishyStatus);
+
+      Battle::Tile* tile = player->GetTile();
+
+      if (tile) {
+        this->player->GetField()->AddEntity(*fishy, tile->GetX(), tile->GetY());
+      }
+    }
     else if (name == "XtrmeCnnon") {
       Cannon* xtreme1 = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());
       Cannon* xtreme2 = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());
@@ -100,6 +116,21 @@ public:
       AUDIO.Play(AudioType::SWORD_SWING);
 
       player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+    }
+    else if (name == "Elecplse") {
+      auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
+
+      player->SetAnimation(PLAYER_SHOOTING, onFinish);
+
+      Elecpulse* pulse = new Elecpulse(player->GetField(), player->GetTeam(), chip.GetDamage());
+      Elecpulse* pulse2 = new Elecpulse(player->GetField(), player->GetTeam(), chip.GetDamage());
+      pulse2->setScale(0, 0);
+
+      AUDIO.Play(AudioType::ELECPULSE);
+
+      player->GetField()->AddEntity(*pulse, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+      player->GetField()->AddEntity(*pulse2, player->GetTile()->GetX() + 2, player->GetTile()->GetY());
+
     }
     else if (name == "LongSwrd") {
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };

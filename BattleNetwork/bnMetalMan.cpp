@@ -7,6 +7,7 @@
 #include "bnEngine.h"
 #include "bnNaviExplodeState.h"
 #include "bnObstacle.h"
+#include "bnHitBox.h"
 
 #define RESOURCE_PATH "resources/mobs/metalman/metalman.animation"
 
@@ -71,7 +72,11 @@ bool MetalMan::CanMoveTo(Battle::Tile * next)
 
 void MetalMan::Update(float _elapsed) {
   // TODO: turn all tile altering functions to a queue
-  if (movedByStun) { this->AdoptNextTile(); movedByStun = false; }
+  if (movedByStun) { 
+    this->Teleport((rand() % 3) + 4, (rand() % 3) + 1); 
+    this->AdoptNextTile(); 
+    movedByStun = false; 
+  }
 
   healthUI->Update(_elapsed);
 
@@ -98,6 +103,9 @@ void MetalMan::Update(float _elapsed) {
     if ((((int)(stunCooldown * 15))) % 2 == 0) {
       this->SetShader(stun);
     }
+    else {
+      this->SetShader(nullptr);
+    }
 
     if (GetHealth() > 0) {
       return;
@@ -112,6 +120,13 @@ void MetalMan::Update(float _elapsed) {
     this->LockState();
   }
   else {
+    HitBox* hitbox = new HitBox(field, GetTeam(), 40);
+    auto props = hitbox->GetHitboxProperties();
+    props.flags |= Hit::impact;
+    hitbox->SetHitboxProperties(props);
+
+    field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
+
     animationComponent.Update(_elapsed);
   }
 
@@ -136,7 +151,7 @@ void MetalMan::SetHealth(int _health) {
   health = _health;
 }
 
-const bool MetalMan::Hit(int _damage, Hit::Properties props) {
+const bool MetalMan::Hit(Hit::Properties props) {
   /*(health - _damage < 0) ? health = 0 : health -= _damage;
   SetShader(whiteout);
 
@@ -144,18 +159,18 @@ const bool MetalMan::Hit(int _damage, Hit::Properties props) {
 
   bool result = true;
 
-  if (health - _damage < 0) {
+  if (health - props.damage < 0) {
     health = 0;
   }
   else {
-    health -= _damage;
+    health -= props.damage;
 
     if ((props.flags & Hit::stun) == Hit::stun) {
       SetShader(stun);
       this->stunCooldown = props.secs;
 
       if (!Teammate(this->GetTile()->GetTeam())) {
-        movedByStun = this->Teleport((rand() % 3) + 4, (rand() % 3) + 1);
+        movedByStun = true;
       }
     }
     else {
