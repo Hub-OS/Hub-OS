@@ -8,9 +8,30 @@ private:
   std::vector<SceneNode*> childNodes;
   std::vector<sf::Drawable*> sprites;
   SceneNode* parent;
+  bool show;
 
 public:
+  SceneNode() {
+    show = true;
+  }
+
+  virtual ~SceneNode() {
+
+  }
+
+  void Hide()
+  {
+    show = false;
+  }
+
+  void Reveal()
+  {
+    show = true;
+  }
+
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
+    if (!show) return;
+
     // combine the parent transform with the node's one
     //sf::Transform combinedTransform =this->getTransform();
     

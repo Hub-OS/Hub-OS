@@ -11,7 +11,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
-CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : animationComponent(this), Artifact(_field, _team) {
+CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : animationComponent(this), Artifact(_field, Team::UNKNOWN) {
   SetFloatShoe(true);
   
   parent = _parent;
@@ -19,7 +19,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : a
 
   SetLayer(0);
   field = _field;
-  team = _team;
+  team = Team::UNKNOWN;
 
   direction = Direction::LEFT;
 

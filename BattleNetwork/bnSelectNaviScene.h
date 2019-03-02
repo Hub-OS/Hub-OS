@@ -40,21 +40,17 @@ private:
 
   Camera camera;
 
-  sf::Font* font;
-  sf::Text* menuLabel;
-
   // Selection input delays
   double maxSelectInputCooldown; // half of a second
   double selectInputCooldown;
 
   // NAVI UI font
+  sf::Font* font;
   sf::Font *naviFont;
+  sf::Text* menuLabel;
   sf::Text *naviLabel;
-
   sf::Text *attackLabel;
-
   sf::Text *speedLabel;
-
   sf::Text *hpLabel;
 
   float maxNumberCooldown;
@@ -69,20 +65,15 @@ private:
   float UI_TOP_POS;
 
   sf::Sprite charName;
-
   sf::Sprite charElement;
-
   sf::Sprite charStat;
-
   sf::Sprite charInfo;
-
   sf::Sprite element;
 
   // Current navi graphic
   bool loadNavi;
 
   sf::Sprite navi;
-
   // Animator for navi
   Animation naviAnimator;
 
@@ -97,11 +88,8 @@ private:
 
   // Load glowing pad animation (never changes/always plays)
   Animation glowpadAnimator;
-
   sf::Sprite glowpad;
-
   sf::Sprite glowbase;
-
   sf::Sprite glowbottom;
 
   // Text box 

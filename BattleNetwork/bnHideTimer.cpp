@@ -20,6 +20,10 @@ void HideTimer::Update(float _elapsed) {
     delete this;
   }
 
+  if (temp->GetState() == TileState::BROKEN) {
+    temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
+  }
+
   elapsed += _elapsed;
 }
 

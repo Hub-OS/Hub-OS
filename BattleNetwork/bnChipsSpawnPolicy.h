@@ -13,13 +13,18 @@ public:
 
   ChipSpawnPolicyChipset() {
     // Test chip
-    int random = rand() % 2;
+    int random = rand() % 3;
 
     if (random == 0) {
+      chips.push_back(Chip(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2));
       chips.push_back(Chip(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "", 2));
     }
+    else if(random == 2) {
+      chips.push_back(Chip(75, 147, 'R', 30, Element::NONE, "Recov30", "Recover 30HP", "", 1));
+      chips.push_back(Chip(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2));
+    }
     else {
-      chips.push_back(Chip(74, 146, '*', 10, Element::NONE, "Recov1", "Heals you", "", 2));
+      chips.push_back(Chip(120, 168, '*', 0, Element::NONE, "Barrier", "Nullifies 100HP of damage!", "", 1));
     }
   }
 
@@ -54,18 +59,23 @@ protected:
       if (agent) { agent->template ChangeState<DefaultState>(); }
     };
 
-    this->intro = pixelStateInvoker;
-    this->ready = defaultStateInvoker;
+    this->SetIntroCallback(pixelStateInvoker);
+    this->SetReadyCallback(defaultStateInvoker);
   }
 
 public:
   ChipsSpawnPolicy(Mob& mob) : SpawnPolicy<T>(mob) {
     PrepareCallbacks(mob);
 
-    this->generate = new T(T::Rank::_1);
+    this->Spawn(new T(T::Rank::_1));
 
-    EnemyChipsUI* ui = new EnemyChipsUI(this->generate);
+    EnemyChipsUI* ui = new EnemyChipsUI(this->GetSpawned());
+    GetSpawned()->RegisterComponent(ui);
+
     ui->LoadChips(ChipSpawnPolicyChipset().chips);
-    mob.AddComponent(ui);
+    mob.DelegateComponent(ui);
+
+    Component* healthui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(healthui);
   }
 };

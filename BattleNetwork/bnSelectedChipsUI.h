@@ -17,6 +17,7 @@ class Player;
 class Chip;
 class BattleScene;
 
+// TODO: USE new UIComponent
 class SelectedChipsUI : public ChipUsePublisher, public Component {
 public:
   SelectedChipsUI(Player* _player);

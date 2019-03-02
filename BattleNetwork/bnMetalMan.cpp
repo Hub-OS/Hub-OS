@@ -16,7 +16,14 @@ MetalMan::MetalMan(Rank _rank)
   AI<MetalMan>(this), Character(_rank) {
   name = "MetalMan";
   this->team = Team::BLUE;
-  health = 800;
+
+  if (rank == Rank::EX) {
+    health = 1300;
+  }
+  else {
+    health = 1000;
+  }
+
   hitHeight = 64;
   state = MOB_IDLE;
   textureType = TextureType::MOB_METALMAN_ATLAS;

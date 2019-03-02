@@ -24,7 +24,7 @@ public:
   virtual ~EnemyChipsUI();
 
   void Update(float _elapsed);
-  void OnDraw(sf::RenderTexture& surface);
+  virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const;
   void LoadChips(std::vector<Chip> incoming);
   void UseNextChip();
   void Inject(BattleScene&);
@@ -32,6 +32,6 @@ private:
   std::vector<Chip> selectedChips;
   int chipCount;
   int curr;
-  Character* owner;
-  sf::Sprite icon;
+  Character* character;
+  mutable sf::Sprite icon;
 };

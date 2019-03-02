@@ -13,46 +13,51 @@ using std::to_string;
 #include "bnChip.h"
 #include "bnEngine.h"
 
-EnemyChipsUI::EnemyChipsUI(Character* _owner) : ChipUsePublisher(), Component(_owner)
-, owner(_owner) {
+EnemyChipsUI::EnemyChipsUI(Character* _owner) : ChipUsePublisher(), Component(_owner) {
   chipCount = curr = 0;
   icon = sf::Sprite(*TEXTURES.GetTexture(CHIP_ICONS));
   icon.setScale(sf::Vector2f(2.f, 2.f));
+  this->character = _owner;
 }
 
 EnemyChipsUI::~EnemyChipsUI() {
 }
 
 void EnemyChipsUI::Update(float _elapsed) {
-  if (owner && owner->GetHealth() > 0) {
-    Agent* agent = dynamic_cast<Agent*>(owner);
+  if (GetOwner() && GetOwnerAs<Character>() && GetOwnerAs<Character>()->GetHealth() > 0 && GetOwner()->IsBattleActive()) {
+    Agent* agent = GetOwnerAs<Agent>();
 
-    if (agent && agent->GetTarget()) {
-      if (agent->GetTarget()->GetTile()->GetY() == owner->GetTile()->GetY()) {
-        if (rand() % 100 == 99) {
+    if (agent && agent->GetTarget() && agent->GetTarget()->GetTile()) {
+      if (agent->GetTarget()->GetTile()->GetY() == GetOwner()->GetTile()->GetY()) {
+        if (rand() % 1000 == 899) {
           this->UseNextChip();
         }
       }
     }
   }
+  else if (GetOwner() && GetOwner()->IsDeleted()) {
+    GetOwner()->FreeComponentByID(this->GetID());
+    this->FreeOwner();
+  }
 }
 
-void EnemyChipsUI::OnDraw(sf::RenderTexture& surface)
+void EnemyChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
-  if (owner && owner->GetHealth() > 0) {
+  sf::RenderStates this_states = states.transform * this->getTransform();
+  if (character && character->GetHealth() > 0) {
     int chipOrder = 0;
     for (int i = curr; i < chipCount; i++) {
       sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(selectedChips[curr].GetIconID());
       icon.setTextureRect(iconSubFrame);
 
-      sf::Vector2f offset =
-        sf::Vector2f(owner->getPosition().x + owner->GetAnimOffset()[0],
-          owner->getPosition().y + owner->GetAnimOffset()[1]);
+      sf::Vector2f offset = character->getPosition();
       icon.setPosition(offset + sf::Vector2f(((i - curr) * 2.0f) - 4.f, -58.0f - 63.f - (i - curr) * -2.0f));
 
       ENGINE.Draw(icon);
     }
   }
+
+  SceneNode::draw(target, states);
 }
 
 void EnemyChipsUI::LoadChips(std::vector<Chip> incoming) {
@@ -66,7 +71,7 @@ void EnemyChipsUI::UseNextChip() {
     return;
   }
 
-  this->Broadcast(selectedChips[curr], *owner);
+  this->Broadcast(selectedChips[curr], *this->character);
 
   curr++;
 }

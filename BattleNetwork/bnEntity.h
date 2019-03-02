@@ -49,9 +49,6 @@ public:
   void SlideToTile(bool );
   const bool IsSliding() const;
 
-  void Hide();
-  void Reveal();
-
   void SetField(Field* _field);
 
   Field* GetField() const;
@@ -59,7 +56,6 @@ public:
   Team GetTeam() const;
   void SetTeam(Team _team);
 
-  // TODO: migrate into DefenseRules
   void SetPassthrough(bool state);
   bool IsPassthrough();
 
@@ -125,6 +121,7 @@ private:
   void UpdateSlideStartPosition();
 };
 
+// todo use typid for exact types
 template<typename Type>
 inline Type* Entity::GetComponent()
 {

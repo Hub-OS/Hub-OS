@@ -29,8 +29,8 @@ private:
   Animation cursorBigAnimator;
   mutable LayeredDrawable icon;
   mutable LayeredDrawable chipCard;
-  LayeredDrawable chipNoData;
-  LayeredDrawable chipSendData;
+  mutable LayeredDrawable chipNoData;
+  mutable LayeredDrawable chipSendData;
   mutable LayeredDrawable element;
   sf::Shader& greyscale;
   sf::Font* labelFont;

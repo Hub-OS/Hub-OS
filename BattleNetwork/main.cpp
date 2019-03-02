@@ -506,7 +506,16 @@ int main(int argc, char** argv) {
     mouseAnimation.Update(elapsed, mouse);
 
     // Simulate a frame update to capture a full 60 FPS
-    while(elapsed >= FIXED_TIME_STEP) {
+    /*while(elapsed >= FIXED_TIME_STEP) {
+      // Use the activity controller to update and draw scenes
+      app.update((float)FIXED_TIME_STEP);
+      elapsed -= static_cast<float>(FIXED_TIME_STEP);
+    }
+
+    remainder = elapsed;*/
+
+    // Non-simulation
+    if(elapsed >= FIXED_TIME_STEP) {
       // Use the activity controller to update and draw scenes
       app.update((float)FIXED_TIME_STEP);
       elapsed -= static_cast<float>(FIXED_TIME_STEP);

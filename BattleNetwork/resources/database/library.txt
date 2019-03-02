@@ -62,7 +62,7 @@ Chip name="Rflector" cardIndex="72" iconIndex="132" damage="60" type="Normal" co
 
 # 117 - 119
 
-Chip name="Barrier" cardIndex="120" iconIndex="168" damage="0" type="Summon" codes="B,*" desc="Nullifies 10HP of damage!" rarity="1" 
+Chip name="Barrier" cardIndex="120" iconIndex="168" damage="0" type="Summon" codes="B,*" desc="Nullifies 100HP of damage!" rarity="1" 
 # Chip name="Barr100" cardIndex="121" iconIndex="169" damage="0" type="Normal" codes="U,S"
 # Chip name="Barr200" cardIndex="121" iconIndex="170" damage="0" type="Normal" codes="X"
 

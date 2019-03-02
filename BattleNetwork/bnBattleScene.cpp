@@ -64,9 +64,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   components = mob->GetComponents();
 
   PlayerHealthUI* healthUI = new PlayerHealthUI(player);
-
   chipCustGUI.AddNode(healthUI);
-
   components.push_back((UIComponent*)healthUI);
 
   // scenenodes.push_back(dynamic_cast<SceneNode*>(healthUI));
@@ -231,6 +229,8 @@ BattleScene::~BattleScene()
 void BattleScene::Inject(ChipUsePublisher& pub)
 {
   this->enemyChipListener.Subscribe(pub);
+  this->summons.Subscribe(pub);
+
   SceneNode* node = dynamic_cast<SceneNode*>(&pub);
   this->scenenodes.push_back(node);
 }

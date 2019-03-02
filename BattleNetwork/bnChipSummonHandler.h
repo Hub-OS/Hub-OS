@@ -21,6 +21,7 @@ TODO: use action lists where possible
 class ChipSummonHandler : public ChipUseListener {
 private:
   Player * player;
+  Character * other;
   double timeInSecs;
   sf::Time duration;
   std::string summon;
@@ -75,8 +76,14 @@ public:
     if (summon.empty())
       return;
 
-    player->Update(0);
-    player->GetAnimationComponent().Update((float)_elapsed);
+    if (!other) {
+      player->Update(0);
+      player->GetAnimationComponent().Update((float)_elapsed);
+    }
+    else {
+      other->Update(0);
+      //other->GetAnimationComponent().Update((float)_elapsed);
+    }
 
     timeInSecs += _elapsed;
 
@@ -96,20 +103,32 @@ public:
   }
 
   void OnEnter() { 
+    Character* summonedBy = player;
+
+    if (other) {
+      summonedBy = other;
+    }
+
     if (summon == "Roll") {
-      player->Hide();
+      summonedBy->Hide();
 
       Entity* roll = new RollHeal(this, copy.GetDamage());
       SummonEntity(roll);
     }
     else if (summon == "RockCube") {
-      Obstacle* cube = new Cube(this->GetPlayer()->GetField(), Team::UNKNOWN);
+      Obstacle* cube = new Cube(summonedBy->GetField(), Team::UNKNOWN);
 
-      Battle::Tile* tile = this->GetPlayer()->GetTile();
-      tile = this->GetPlayer()->GetField()->GetAt(tile->GetX()+1, tile->GetY());
+      Battle::Tile* tile = summonedBy->GetTile();
+
+      if (summonedBy->GetTeam() == Team::RED) {
+        tile = summonedBy->GetField()->GetAt(tile->GetX() + 1, tile->GetY());
+      }
+      else {
+        tile = summonedBy->GetField()->GetAt(tile->GetX() - 1, tile->GetY());
+      }
 
       if (tile) {
-        this->GetPlayer()->GetField()->AddEntity(*cube, tile->GetX(), tile->GetY());
+        summonedBy->GetField()->AddEntity(*cube, tile->GetX(), tile->GetY());
 
         AUDIO.Play(AudioType::APPEAR);
 
@@ -121,25 +140,25 @@ public:
       PanelGrab** grab = new PanelGrab*[3];
       
       for (int i = 0; i < 3; i++) {
-        grab[i] = new PanelGrab(this->GetPlayer()->GetField(), this->GetPlayer()->GetTeam(), 0.5);
+        grab[i] = new PanelGrab(summonedBy->GetField(), summonedBy->GetTeam(), 0.5);
       }
 
       Battle::Tile** tile = new Battle::Tile*[3];
 
-      Field* f = this->GetPlayer()->GetField();
+      Field* f = summonedBy->GetField();
       
       // Read team grab scans from left to right
-      if (GetPlayer()->GetTeam() == Team::RED) {
+      if (summonedBy->GetTeam() == Team::RED) {
         for (int i = 0; i < f->GetHeight(); i++) {
           int index = 1;
-          while (f->GetAt(index, i+1) && f->GetAt(index, 1)->GetTeam() == Team::RED) {
+          while (f->GetAt(index, i+1) && f->GetAt(index, i+1)->GetTeam() == Team::RED) {
             index++;
           }
 
           tile[i] = f->GetAt(index, i+1);
 
           if (tile[i]) {
-            this->GetPlayer()->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
+            summonedBy->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
 
             // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
             SummonEntity(grab[i], true);
@@ -148,19 +167,19 @@ public:
             delete grab[i];
           }
         }
-      } else if (GetPlayer()->GetTeam() == Team::RED) {
+      } else if (summonedBy->GetTeam() == Team::BLUE) {
         // Blue team grab scans from right to left
 
         for (int i = 0; i < f->GetHeight(); i++) {
           int index = f->GetWidth();
-          while (f->GetAt(index, 1+1) && f->GetAt(index, 1)->GetTeam() == Team::RED) {
+          while (f->GetAt(index, i+1) && f->GetAt(index, i+1)->GetTeam() == Team::BLUE) {
             index--;
           }
 
-          tile[i] = f->GetAt(index, 1+1);
+          tile[i] = f->GetAt(index, i+1);
 
           if (tile[i]) {
-            this->GetPlayer()->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
+            summonedBy->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
 
             // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
             SummonEntity(grab[i], true);
@@ -177,30 +196,36 @@ public:
     }
 
     else if (summon == "Antidamg") {
-      NinjaAntiDamage* antidamage = new NinjaAntiDamage(player);
-      player->RegisterComponent(antidamage);
+      NinjaAntiDamage* antidamage = new NinjaAntiDamage(summonedBy);
+      summonedBy->RegisterComponent(antidamage);
 
       AUDIO.Play(AudioType::APPEAR);
     }
     else if (summon == "Barrier") {
-      Aura* aura = new Aura(Aura::Type::BARRIER_100, this->GetPlayer());
+      Aura* aura = new Aura(Aura::Type::BARRIER_100, summonedBy);
       //this->GetPlayer()->RegisterComponent(aura);
 
       AUDIO.Play(AudioType::APPEAR);
 
-      Battle::Tile* tile = this->GetPlayer()->GetTile();
+      Battle::Tile* tile = summonedBy->GetTile();
 
       if (tile) {
-        this->GetPlayer()->GetField()->AddEntity(*aura, tile->GetX(), tile->GetY());
+        summonedBy->GetField()->AddEntity(*aura, tile->GetX(), tile->GetY());
       }
 
       // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
       SummonEntity(aura, true);
     }
+
+    other = nullptr;
   }
 
   void OnLeave() { 
     player->Reveal();
+
+    if (other) {
+      other->Reveal();
+    }
 
     for (auto items : summonedItems) {
       if (!items.persist) {
@@ -214,7 +239,12 @@ public:
   }
 
   void OnChipUse(Chip& chip, Character& character) {
-    player->SetCharging(false);
+    if (dynamic_cast<Character*>(player) == &character) {
+      player->SetCharging(false);
+    }
+    else {
+      other = &character;
+    }
 
     std::string name = chip.GetShortName();
     copy = chip;

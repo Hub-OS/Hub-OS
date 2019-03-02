@@ -8,7 +8,6 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   camera(ENGINE.GetDefaultView()),
   textbox(135, 15),
   swoosh::Activity(controller) {
-
   // Menu name font
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
   menuLabel = new sf::Text("BATTLE SELECT", *font);

@@ -282,22 +282,6 @@ const bool Entity::IsSliding() const
   return isSliding;
 }
 
-void Entity::Hide()
-{
-  sf::Color c = getColor();
-  c.a = 0;
-
-  this->setColor(c);
-}
-
-void Entity::Reveal()
-{
-  sf::Color c = getColor();
-  c.a = 255;
-
-  this->setColor(c);
-}
-
 void Entity::SetField(Field* _field) {
   field = _field;
 }

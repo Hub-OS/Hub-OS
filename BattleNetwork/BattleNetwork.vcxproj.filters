@@ -766,9 +766,6 @@
     <ClCompile Include="bnGuardHit.cpp">
       <Filter>Activities\Battle\Content\Field\Entity\Artifact\Hits\Guard</Filter>
     </ClCompile>
-    <ClCompile Include="bnEnemyChipsUI.cpp">
-      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUsePublisher</Filter>
-    </ClCompile>
     <ClCompile Include="bnDefenseGuard.cpp">
       <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard</Filter>
     </ClCompile>
@@ -861,6 +858,9 @@
     </ClCompile>
     <ClCompile Include="bnMetalManBossFight2.cpp">
       <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+    </ClCompile>
+    <ClCompile Include="bnEnemyChipsUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1309,9 +1309,6 @@
     <ClInclude Include="AlphaBossSpawnPolicy.h">
       <Filter>Engine\Addons\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy</Filter>
     </ClInclude>
-    <ClInclude Include="bnEnemyChipsUI.h">
-      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUsePublisher</Filter>
-    </ClInclude>
     <ClInclude Include="bnDefenseGuard.h">
       <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard</Filter>
     </ClInclude>
@@ -1413,6 +1410,9 @@
     </ClInclude>
     <ClInclude Include="bnMetalManBossFight2.h">
       <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+    </ClInclude>
+    <ClInclude Include="bnEnemyChipsUI.h">
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

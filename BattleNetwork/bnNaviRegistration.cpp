@@ -148,13 +148,15 @@ const std::string NaviRegistration::NaviInfo::GetSpecialDescriptionString() cons
 
 Player * NaviRegistration::NaviInfo::GetNavi()
 {
-  if (navi) {
-    delete navi;
-  }
+  /*if (!navi) {
+    loadNaviClass(); // Reload navi and restore HP 
+  }*/
 
-  loadNaviClass(); // Reload navi and restore HP 
   Player* out = navi;
   navi = nullptr;
+
+  loadNaviClass(); // Reload navi and restore HP 
+
   return out;
 }
 

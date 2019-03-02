@@ -42,7 +42,7 @@ void AuraHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const
       int col = 8 * (number % 5);
 
       font.setTextureRect(sf::IntRect(col, rowstart, 8, 15));
-      font.setPosition(sf::Vector2f(offsetx, 0) + owner->getPosition());
+      font.setPosition(sf::Vector2f(offsetx, -100.0f) + owner->getPosition());
 
       target.draw(font, this_states);
       //ENGINE.Draw(font);

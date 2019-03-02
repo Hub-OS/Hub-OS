@@ -56,7 +56,7 @@ void QueueMobRegistration() {
 
   info = MOBS.AddClass<RandomMettaurMob>();  // Create and register mob info object
   info->SetDescription("Randomly generated battle. Anything goes."); // Set property
-  info->SetName("???");
+  info->SetName("Random");
   info->SetPlaceholderTexturePath("resources/mobs/select/random.png");
   info->SetSpeed(999);
   info->SetAttack(999);

@@ -29,6 +29,7 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   this->SetHitboxProperties(props);
 
   EnableTileHighlight(false);
+  this->SetFloatShoe(true);
 }
 
 Fishy::~Fishy(void) {

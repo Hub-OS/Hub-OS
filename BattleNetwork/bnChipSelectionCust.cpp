@@ -255,7 +255,7 @@ bool ChipSelectionCust::CursorCancel() {
 }
 
 bool ChipSelectionCust::IsOutOfView() {
-  float bounds = -custSprite.getTextureRect().width*2.f;
+  float bounds = 0;
 
   if (this->getPosition().x <= bounds) {
     this->setPosition(bounds, this->getPosition().y);
@@ -265,7 +265,7 @@ bool ChipSelectionCust::IsOutOfView() {
 }
 
 const bool ChipSelectionCust::IsInView() {
-  float bounds = 0;
+  float bounds = custSprite.getTextureRect().width*2.f;
 
   // std::cout << "this->getPosition().x: " << this->getPosition().x << std::endl;
 
@@ -364,15 +364,20 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   // combine the parent transform with the node's one
   sf::Transform combinedTransform = this->getTransform();
 
-  states.transform *= combinedTransform;
+  states.transform = combinedTransform;
 
-  custSprite.setPosition(this->getPosition());
+  auto offset = -custSprite.getTextureRect().width*2.f; // this will be uneccessary once we use this->AddSprite() for all rendered items below
+  custSprite.setPosition(-sf::Vector2f(custSprite.getTextureRect().width*2.f, 0));
   target.draw(custSprite, states);
 
-  if (isInView) {
-    target.draw(emblem, states);
 
-    auto x = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(16.0f + (cursorPos*16.0f))), (double)cursorSmall.getPosition().x);
+  //if (isInView) {
+    auto lastEmblemPos = emblem.getPosition();
+    emblem.setPosition(emblem.getPosition() + sf::Vector2f(offset, 0));
+    target.draw(emblem, states);
+    emblem.setPosition(lastEmblemPos);
+
+    auto x = swoosh::ease::interpolate(frameElapsed*25, offset + (double)(2.f*(16.0f + (cursorPos*16.0f))), (double)cursorSmall.getPosition().x);
     auto y = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(113.f + (cursorRow*24.f))), (double)cursorSmall.getPosition().y);
 
     cursorSmall.setPosition((float)x, (float)y); // TODO: Make this relative to cust instead of screen. hint: scene nodes
@@ -383,7 +388,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
         row = 1;
       }
 
-      icon.setPosition(2.f*(9.0f + ((i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
+      icon.setPosition(offset + 2.f*(9.0f + ((i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
       sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(queue[i].data->GetIconID());
       icon.setTextureRect(iconSubFrame);
       icon.SetShader(nullptr);
@@ -395,7 +400,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
         target.draw(icon, states);
       }
 
-      smCodeLabel.setPosition(2.f*(14.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
+      smCodeLabel.setPosition(offset + 2.f*(14.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
 
       char code = queue[i].data->GetCode();
 
@@ -410,11 +415,11 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     icon.SetShader(nullptr);
 
     for (int i = 0; i < selectCount; i++) {
-      icon.setPosition(2 * 97.f, 2.f*(25.0f + (i*16.0f)));
+      icon.setPosition(offset + 2 * 97.f, 2.f*(25.0f + (i*16.0f)));
       sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID((*selectQueue[i]).data->GetIconID());
       icon.setTextureRect(iconSubFrame);
 
-      chipLock.setPosition(2 * 93.f, 2.f*(23.0f + (i*16.0f)));
+      chipLock.setPosition(offset + 2 * 93.f, 2.f*(23.0f + (i*16.0f)));
       target.draw(chipLock, states);
       target.draw(icon, states);
     }
@@ -427,6 +432,9 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       if (cursorPos + (5 * cursorRow) < chipCount) {
         // Draw the selected chip card
         sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(queue[cursorPos+(5*cursorRow)].data->GetID());
+
+        auto lastPos = chipCard.getPosition();
+        chipCard.setPosition(sf::Vector2f(offset, 0) + chipCard.getPosition());
         chipCard.setTextureRect(cardSubFrame);
 
         chipCard.SetShader(nullptr);
@@ -438,7 +446,9 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
           target.draw(chipCard, states);
         }
 
-        label.setPosition(2.f*16.f, 16.f);
+        chipCard.setPosition(lastPos);
+
+        label.setPosition(offset + 2.f*16.f, 16.f);
         label.setString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
         target.draw(label, states);
 
@@ -446,36 +456,52 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
         if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
           label.setString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
           label.setOrigin(label.getLocalBounds().width+label.getLocalBounds().left, 0);
-          label.setPosition(2.f*(70.f), 143.f);
+          label.setPosition(offset + 2.f*(70.f), 143.f);
           target.draw(label, states);
         }
 
         label.setOrigin(0, 0);
-        label.setPosition(2.f*16.f, 143.f);
+        label.setPosition(offset + 2.f*16.f, 143.f);
         label.setString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
         label.setFillColor(sf::Color(225, 180, 0));
         target.draw(label, states);
 
-        int offset = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
-        element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+        int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
+        element.setTextureRect(sf::IntRect(14 * elementID, 0, 14, 14));
+
+        auto elementLastPos = element.getPosition();
+        element.setPosition(element.getPosition() + sf::Vector2f(offset, 0));
+
         target.draw(element, states);
+
+        element.setPosition(elementLastPos);
       }
       else {
+        auto chipNoDataLastPos = chipNoData.getPosition();
+        chipNoData.setPosition(chipNoData.getPosition() + sf::Vector2f(offset, 0));
         target.draw(chipNoData, states);
+        chipNoData.setPosition(chipNoDataLastPos);
       }
 
       // Draw the small cursor
       target.draw(cursorSmall, states);
     }
     else {
+      auto chipSendDataLastPos = chipSendData.getPosition();
+      chipSendData.setPosition(chipSendData.getPosition() + sf::Vector2f(offset, 0));
       target.draw(chipSendData, states);
+      chipSendData.setPosition(chipSendDataLastPos);
+
+      auto cursorBigLastPos = cursorBig.getPosition();
+      cursorBig.setPosition(cursorBig.getPosition() + sf::Vector2f(offset, 0));
       target.draw(cursorBig, states);
+      cursorBig.setPosition(cursorBigLastPos);
     }
-  }
+  //}
 
   target.draw(chipDescriptionTextbox, states);
 
-  // SceneNode::draw(target, states);
+  SceneNode::draw(target, states);
 }
 
 

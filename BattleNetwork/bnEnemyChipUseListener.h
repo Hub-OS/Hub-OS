@@ -57,12 +57,12 @@ public:
 
       AUDIO.Play(AudioType::SWORD_SWING);
 
-      if (user.GetField()->GetAt(user.GetTile()->GetX() + 1, user.GetTile()->GetY())) {
-        user.GetField()->AddEntity(*sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+      if (user.GetField()->GetAt(user.GetTile()->GetX() - 1, user.GetTile()->GetY())) {
+        user.GetField()->AddEntity(*sword, user.GetTile()->GetX() - 1, user.GetTile()->GetY());
       }
 
-      if (user.GetField()->GetAt(user.GetTile()->GetX() + 2, user.GetTile()->GetY())) {
-        user.GetField()->AddEntity(*sword2, user.GetTile()->GetX() + 2, user.GetTile()->GetY());
+      if (user.GetField()->GetAt(user.GetTile()->GetX() - 2, user.GetTile()->GetY())) {
+        user.GetField()->AddEntity(*sword2, user.GetTile()->GetX() - 2, user.GetTile()->GetY());
       }
     }
     else if (name == "WideSwrd") {
