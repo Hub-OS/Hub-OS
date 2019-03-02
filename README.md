@@ -2,7 +2,7 @@
 # Author TheMaverickProgrammer
 
 ## Update 3/2/2019
-[![Boss Battle](https://media.giphy.com/media/1eEv6U6IzFpFFfncDT/giphy.gif)](https://youtu.be/8EIgjohRZ_c?t=375)]
+[![Boss Battle](https://media.giphy.com/media/1eEv6U6IzFpFFfncDT/giphy.gif)](https://youtu.be/8EIgjohRZ_c?t=375)
 
 (Click the gif to see a video)
 
@@ -12,11 +12,11 @@ Lots of updates: A full fledged scene node system, defense checks, an aggregate 
 #### Branch: master
 Click the thumbnail to watch on youtube. 
 
-[![Video of engine 3/2/2019](http://i3.ytimg.com/vi/8EIgjohRZ_c/maxresdefault.jpg)](https://youtu.be/8EIgjohRZ_c) 
+[![Video of engine 3/2/2019](http://i3.ytimg.com/vi/8EIgjohRZ_c/hqdefault.jpg)](https://youtu.be/8EIgjohRZ_c)
 
 # Screenshots
 
-[progsbattle.png](http://i3.ytimg.com/vi/8EIgjohRZ_c/maxresdefault.jpg)
+
 
 [![starman.png](https://s8.postimg.cc/qjbob7h2d/starman.png)](https://postimg.cc/image/3umhbmzoh/)
 
