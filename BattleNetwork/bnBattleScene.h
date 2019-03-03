@@ -165,7 +165,7 @@ private:
   int totalCounterMoves; 
   int totalCounterDeletions; // used for ranking
 
-  swoosh::Timer summonTimer;
+  double summonTimer;
   bool showSummonText;
   double summonTextLength; // in seconds
 

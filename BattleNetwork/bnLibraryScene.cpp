@@ -201,7 +201,7 @@ void LibraryScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUT.has(PRESSED_UP)) {
+    if (INPUT.Has(PRESSED_UP)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currChipIndex;
@@ -218,7 +218,7 @@ void LibraryScene::onUpdate(double elapsed) {
         chipRevealTimer.reset();
       }
     }
-    else if (INPUT.has(PRESSED_DOWN)) {
+    else if (INPUT.Has(PRESSED_DOWN)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currChipIndex;
@@ -239,7 +239,7 @@ void LibraryScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.has(PRESSED_A) && textbox.IsClosed()) {
+    if (INPUT.Has(PRESSED_A) && textbox.IsClosed()) {
       auto iter = uniqueChips.begin();
       int i = 0;
 
@@ -253,15 +253,15 @@ void LibraryScene::onUpdate(double elapsed) {
       textbox.Open();
       AUDIO.Play(AudioType::CHIP_DESC);
     }
-    else if (INPUT.has(RELEASED_B) && textbox.IsOpen()) {
+    else if (INPUT.Has(RELEASED_B) && textbox.IsOpen()) {
       textbox.Close();
       textbox.SetTextSpeed(1.0);
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
     }
-    else if (INPUT.has(PRESSED_A) && textbox.IsOpen()) {
+    else if (INPUT.Has(PRESSED_A) && textbox.IsOpen()) {
       textbox.SetTextSpeed(3.0);
     }
-    else if (INPUT.has(RELEASED_A) && textbox.IsOpen()) {
+    else if (INPUT.Has(RELEASED_A) && textbox.IsOpen()) {
       textbox.SetTextSpeed(1.0);
       textbox.Continue();
     }
@@ -272,7 +272,7 @@ void LibraryScene::onUpdate(double elapsed) {
     lastChipOnScreen = std::max(0, lastChipOnScreen);
     lastChipOnScreen = std::min(numOfChips - 1, lastChipOnScreen);
 
-    if (INPUT.has(PRESSED_B) && textbox.IsClosed()) {
+    if (INPUT.Has(PRESSED_B) && textbox.IsClosed()) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 

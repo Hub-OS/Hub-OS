@@ -11,9 +11,9 @@ class InputManager {
 public:
   static InputManager& GetInstance();
   ~InputManager();
-  void update();
-  bool has(InputEvent _event);
-  bool empty();
+  void Update();
+  bool Has(InputEvent _event);
+  bool Empty();
   void SupportChronoXGamepad(ChronoXConfigReader& config);
   bool HasChronoXGamepadSupport();
   void BeginCaptureInputBuffer();
@@ -21,6 +21,7 @@ public:
   const std::string GetInputBuffer();
   void HandleInputBuffer(sf::Event);
   void SetInputBuffer(std::string buff);
+
 private:
   bool captureInputBuffer;
   std::string inputBuffer;

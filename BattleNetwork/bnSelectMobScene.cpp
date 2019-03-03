@@ -114,7 +114,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUT.has(PRESSED_LEFT)) {
+    if (INPUT.Has(PRESSED_LEFT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -126,7 +126,7 @@ void SelectMobScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUT.has(PRESSED_RIGHT)) {
+    else if (INPUT.Has(PRESSED_RIGHT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -142,7 +142,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.has(PRESSED_B)) {
+    if (INPUT.Has(PRESSED_B)) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
@@ -236,7 +236,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 
   // Make a selection
-  if (INPUT.has(PRESSED_A) && !gotoNextScene) {
+  if (INPUT.Has(PRESSED_A) && !gotoNextScene) {
     Mob* mob = nullptr;
     
     if (MOBS.Size() != 0) {

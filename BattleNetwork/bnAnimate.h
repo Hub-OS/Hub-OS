@@ -67,7 +67,7 @@ public:
 
     static const char Loop = 0x01;
     static const char Bounce = 0x02;
-    static const char Reverse = 0x03;
+    static const char Reverse = 0x04;
 
     Mode(int playback) {
       this->playback = playback;

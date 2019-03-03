@@ -36,7 +36,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (!player.IsBattleActive()) return;
 
   // Action controls take priority over movement
-  if (inputManager->has(RELEASED_A)) {
+  if (inputManager->Has(RELEASED_A)) {
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
       player.chargeComponent.SetCharging(false);
@@ -56,22 +56,22 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   static Direction direction = Direction::NONE;
   if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN && player.IsBattleActive()) {
-    if (inputManager->has(PRESSED_UP) || inputManager->has(HELD_UP)) {
+    if (inputManager->Has(PRESSED_UP) || inputManager->Has(HELD_UP)) {
       direction = Direction::UP;
     }
-    else if (inputManager->has(PRESSED_LEFT) || inputManager->has(HELD_LEFT)) {
+    else if (inputManager->Has(PRESSED_LEFT) || inputManager->Has(HELD_LEFT)) {
       direction = Direction::LEFT;
     }
-    else if (inputManager->has(PRESSED_DOWN) || inputManager->has(HELD_DOWN)) {
+    else if (inputManager->Has(PRESSED_DOWN) || inputManager->Has(HELD_DOWN)) {
       direction = Direction::DOWN;
     }
-    else if (inputManager->has(PRESSED_RIGHT) || inputManager->has(HELD_RIGHT)) {
+    else if (inputManager->Has(PRESSED_RIGHT) || inputManager->Has(HELD_RIGHT)) {
       direction = Direction::RIGHT;
     }
   }
  
 
-  if (inputManager->has(HELD_A) && isChargeHeld == false) {
+  if (inputManager->Has(HELD_A) && isChargeHeld == false) {
     isChargeHeld = true;
     attackKeyPressCooldown = 0.0f;
 
@@ -79,16 +79,16 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; 
   }
 
-  if (inputManager->has(RELEASED_UP)) {
+  if (inputManager->Has(RELEASED_UP)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->has(RELEASED_LEFT)) {
+  else if (inputManager->Has(RELEASED_LEFT)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->has(RELEASED_DOWN)) {
+  else if (inputManager->Has(RELEASED_DOWN)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->has(RELEASED_RIGHT)) {
+  else if (inputManager->Has(RELEASED_RIGHT)) {
     direction = Direction::NONE;
   }
 
@@ -100,11 +100,8 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     if (moved) {
       moveKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {
-        //Cooldown until player's movement catches up to actual position (avoid walking through spells)
-       //if (moved) {
-          player.AdoptNextTile();
-        //}
-        player.SetAnimation(PLAYER_IDLE);
+        player.AdoptNextTile();
+        player.SetAnimation("PLAYER_MOVED", [&player]() {player.SetAnimation(PLAYER_IDLE); });
         direction = Direction::NONE;
       }; // end lambda
       player.SetAnimation(PLAYER_MOVING, onFinish);

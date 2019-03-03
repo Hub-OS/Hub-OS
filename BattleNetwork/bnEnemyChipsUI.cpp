@@ -18,18 +18,19 @@ EnemyChipsUI::EnemyChipsUI(Character* _owner) : ChipUsePublisher(), Component(_o
   icon = sf::Sprite(*TEXTURES.GetTexture(CHIP_ICONS));
   icon.setScale(sf::Vector2f(2.f, 2.f));
   this->character = _owner;
+  srand(time(0));
 }
 
 EnemyChipsUI::~EnemyChipsUI() {
 }
 
 void EnemyChipsUI::Update(float _elapsed) {
-  if (GetOwner() && GetOwnerAs<Character>() && GetOwnerAs<Character>()->GetHealth() > 0 && GetOwner()->IsBattleActive()) {
+  if (GetOwner() && GetOwner()->GetTile() && !GetOwner()->IsDeleted() && GetOwner()->IsBattleActive()) {
     Agent* agent = GetOwnerAs<Agent>();
 
     if (agent && agent->GetTarget() && agent->GetTarget()->GetTile()) {
       if (agent->GetTarget()->GetTile()->GetY() == GetOwner()->GetTile()->GetY()) {
-        if (rand() % 1000 == 899) {
+        if (rand() % 500 > 299) {
           this->UseNextChip();
         }
       }
@@ -38,6 +39,7 @@ void EnemyChipsUI::Update(float _elapsed) {
   else if (GetOwner() && GetOwner()->IsDeleted()) {
     GetOwner()->FreeComponentByID(this->GetID());
     this->FreeOwner();
+    std::cout << "owner is free" << std::endl;
   }
 }
 

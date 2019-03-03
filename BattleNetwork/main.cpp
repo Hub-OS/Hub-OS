@@ -186,7 +186,7 @@ int main(int argc, char** argv) {
   while (inConfigMessageState && ENGINE.Running()) {
     clock.restart();
 
-    INPUT.update();
+    INPUT.Update();
 
     // Prepare for next draw calls
     ENGINE.Clear();
@@ -266,9 +266,6 @@ int main(int argc, char** argv) {
     float percentage = (float)progress / (float)totalObjects;
     std::string percentageStr = std::to_string((int)(percentage*100));
     ENGINE.GetWindow()->setTitle(sf::String(std::string("Loading: ") + percentageStr + "%"));
-
-    INPUT.update();
-
 
     sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
     mouseAlpha -= elapsed/1000.0f;
@@ -375,7 +372,7 @@ int main(int argc, char** argv) {
         whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
       }
 
-      if (INPUT.has(PRESSED_START) && navisLoaded == NAVIS.Size()) {
+      if (INPUT.Has(PRESSED_START) && navisLoaded == NAVIS.Size()) {
         inLoadState = false;
       }
     }
@@ -434,6 +431,7 @@ int main(int argc, char** argv) {
         }
         else {
           // Finally everything is loaded
+          INPUT.Update();
           ENGINE.Draw(startLabel);
         }
       }
@@ -488,12 +486,24 @@ int main(int argc, char** argv) {
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
-    clock.restart();
+    // Non-simulation
+    elapsed = static_cast<float>(clock.restart().asSeconds()) + static_cast<float>(remainder);
 
-    INPUT.update();
+    INPUT.Update();
+
+    float FPS = 0.f;
+
+    FPS = (1.0 / (float)elapsed);
+    std::string fpsStr = std::to_string(FPS);
+    fpsStr.resize(4);
+    ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
+
+
+    // Use the activity controller to update and draw scenes
+    app.update((float)FIXED_TIME_STEP);
 
     sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
-    mouseAlpha -= elapsed;
+    mouseAlpha -= FIXED_TIME_STEP;
     mouseAlpha = std::max(0.0, mouseAlpha);
 
     if (mousepos != lastMousepos) {
@@ -503,25 +513,7 @@ int main(int argc, char** argv) {
 
     mouse.setPosition(mousepos);
     mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
-    mouseAnimation.Update(elapsed, mouse);
-
-    // Simulate a frame update to capture a full 60 FPS
-    /*while(elapsed >= FIXED_TIME_STEP) {
-      // Use the activity controller to update and draw scenes
-      app.update((float)FIXED_TIME_STEP);
-      elapsed -= static_cast<float>(FIXED_TIME_STEP);
-    }
-
-    remainder = elapsed;*/
-
-    // Non-simulation
-    if(elapsed >= FIXED_TIME_STEP) {
-      // Use the activity controller to update and draw scenes
-      app.update((float)FIXED_TIME_STEP);
-      elapsed -= static_cast<float>(FIXED_TIME_STEP);
-    }
-
-    remainder = elapsed;
+    mouseAnimation.Update((double)FIXED_TIME_STEP, mouse);
 
     ENGINE.Clear();
     ENGINE.DrawUnderlay();
@@ -533,10 +525,6 @@ int main(int argc, char** argv) {
     ENGINE.GetWindow()->draw(mouse);
 
     ENGINE.GetWindow()->display();
-
-    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds()) + static_cast<float>(remainder);
-
-    remainder = 0;
   }
 
   delete mouseTexture;

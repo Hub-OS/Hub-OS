@@ -56,12 +56,12 @@ Mob* RandomMettaurMob::Build() {
 
               mysterycount++;
             }
-            else if (rand() % 10 > 5) {
+            else if (rand() % 10 > 0) {
               if (rand() % 10 > 5) {
-                mob->Spawn<Rank1<Mettaur, MettaurIdleState>>(i + 1, j + 1);
+                mob->Spawn<Rank1<MetalMan, MetalManIdleState>>(i + 1, j + 1);
               }
               else {
-                mob->Spawn<ChipsSpawnPolicy<Mettaur, MettaurIdleState>>(i + 1, j + 1);
+                mob->Spawn<ChipsSpawnPolicy<MetalMan, MetalManIdleState>>(i + 1, j + 1);
               }
             }
             else if (rand() % 10 > 3) {

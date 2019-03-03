@@ -160,6 +160,6 @@ void Player::SetAnimation(string _state, std::function<void()> onFinish) {
     animationComponent.SetAnimation(_state, playback, onFinish);
   }
   else {
-    animationComponent.SetAnimation(_state, onFinish);
+    animationComponent.SetAnimation(_state, 0, onFinish);
   }
 }

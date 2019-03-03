@@ -13,18 +13,18 @@ HideTimer::HideTimer(Character* owner, double secs) : Component(owner) {
 }
 
 void HideTimer::Update(float _elapsed) {
+  if (temp->GetState() == TileState::BROKEN) {
+    temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
+  }
+
+  elapsed += _elapsed;
+
   if (elapsed >= duration.asSeconds()) {
     temp->AddEntity(*this->owner);
     this->GetOwner()->FreeComponentByID(this->GetID());
     this->scene->Eject(this);
     delete this;
   }
-
-  if (temp->GetState() == TileState::BROKEN) {
-    temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
-  }
-
-  elapsed += _elapsed;
 }
 
 void HideTimer::Inject(BattleScene& scene) {

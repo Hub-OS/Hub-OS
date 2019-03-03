@@ -167,7 +167,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUT.has(PRESSED_UP)) {
+    if (INPUT.Has(PRESSED_UP)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currChipIndex;
@@ -184,7 +184,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         chipRevealTimer.reset();
       }
     }
-    else if (INPUT.has(PRESSED_DOWN)) {
+    else if (INPUT.Has(PRESSED_DOWN)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currChipIndex;
@@ -211,7 +211,7 @@ void FolderEditScene::onUpdate(double elapsed) {
     lastChipOnScreen = std::max(0, lastChipOnScreen);
     lastChipOnScreen = std::min(numOfChips - 1, lastChipOnScreen);
 
-    if (INPUT.has(PRESSED_B)) {
+    if (INPUT.Has(PRESSED_B)) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 

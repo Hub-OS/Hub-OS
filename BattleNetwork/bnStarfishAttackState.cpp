@@ -10,10 +10,13 @@ StarfishAttackState::~StarfishAttackState() { ; }
 
 void StarfishAttackState::OnEnter(Starfish& star) {
   auto onPreAttack = [this, &star]() { 
-    auto onFinish = [this, &star]() {this->DoAttack(star); };
 
-    star.animationComponent.SetAnimation("ATTACK", Animate::Mode::Loop);
-    star.animationComponent.AddCallback(1, onFinish, std::function<void()>(), false);
+    auto onFinish = [this, &star]() {
+      this->DoAttack(star); 
+    };
+
+    star.animationComponent.SetAnimation("ATTACK",Animate::Mode::Loop);
+    star.animationComponent.AddCallback(5, onFinish, std::function<void()>(), false);
 
   };
 
@@ -40,10 +43,9 @@ void StarfishAttackState::DoAttack(Starfish& star) {
   }
 
   if (--bubbleCount > 0) {
-    //this->ChangeState<StarfishAttackState>(bubbleCount);
+
   }
   else {
-    star.animationComponent.SetAnimation("IDLE"); // TODO: take this out. why does it crash? Anim callback on old state, anim should have been changed
     this->ChangeState<StarfishIdleState>();
   }
 }

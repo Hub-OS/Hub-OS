@@ -40,7 +40,7 @@ void InputManager::SupportChronoXGamepad(ChronoXConfigReader& config) {
   this->config = &config;
 }
 
-void InputManager::update() {
+void InputManager::Update() {
   this->eventsLastFrame = this->events;
   this->events.clear();
 
@@ -433,11 +433,11 @@ void InputManager::update() {
   // std::cout << "events size: " << events.size() << std::endl;
 }
 
-bool InputManager::has(InputEvent _event) {
+bool InputManager::Has(InputEvent _event) {
   return events.end() != find(events.begin(), events.end(), _event);
 }
 
-bool InputManager::empty() {
+bool InputManager::Empty() {
   return events.empty();
 }
 

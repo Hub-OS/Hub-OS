@@ -449,6 +449,9 @@
     <Filter Include="Activities\Battle\Content\Field\Entity\Spell\PanelGrab">
       <UniqueIdentifier>{07a4e1a7-126f-4c83-82b5-5352df405add}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\Addons\Scripting">
+      <UniqueIdentifier>{29a2789a-5953-4284-bd8c-b873ebd82bc4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">

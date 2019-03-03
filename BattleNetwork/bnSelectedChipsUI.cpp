@@ -49,10 +49,10 @@ bool SelectedChipsUI::GetNextComponent(Drawable*& out) {
 }
 
 void SelectedChipsUI::Update(float _elapsed) {
-  if (INPUT.has(InputEvent::PRESSED_START)) {
+  if (INPUT.Has(InputEvent::PRESSED_START)) {
     spread = true;
   }
-  else if (INPUT.has(InputEvent::RELEASED_START)) {
+  else if (INPUT.Has(InputEvent::RELEASED_START)) {
     spread = false;
   }
 

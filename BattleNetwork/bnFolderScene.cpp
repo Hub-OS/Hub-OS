@@ -132,7 +132,7 @@ void FolderScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (enterText) {
-    if (INPUT.has(RELEASED_B)) {
+    if (INPUT.Has(RELEASED_B)) {
       this->enterText = false;
       bool changed = collection.SetFolderName(folderNames[currFolderIndex], folder);
 
@@ -151,7 +151,7 @@ void FolderScene::onUpdate(double elapsed) {
       INPUT.SetInputBuffer(buffer); // shrink
     }
   } else if (!gotoNextScene) {
-      if (INPUT.has(PRESSED_UP)) {
+      if (INPUT.Has(PRESSED_UP)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -167,7 +167,7 @@ void FolderScene::onUpdate(double elapsed) {
           AUDIO.Play(AudioType::CHIP_SELECT);
         }
       }
-      else if (INPUT.has(PRESSED_DOWN)) {
+      else if (INPUT.Has(PRESSED_DOWN)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -183,7 +183,7 @@ void FolderScene::onUpdate(double elapsed) {
           AUDIO.Play(AudioType::CHIP_SELECT);
         }
       }
-      else if (INPUT.has(PRESSED_RIGHT)) {
+      else if (INPUT.Has(PRESSED_RIGHT)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -196,7 +196,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUT.has(PRESSED_LEFT)) {
+      else if (INPUT.Has(PRESSED_LEFT)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -229,7 +229,7 @@ void FolderScene::onUpdate(double elapsed) {
         }
       }
 
-      if (INPUT.has(PRESSED_B)) {
+      if (INPUT.Has(PRESSED_B)) {
         if (!promptOptions) {
           gotoNextScene = true;
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
@@ -238,12 +238,12 @@ void FolderScene::onUpdate(double elapsed) {
           using segue = swoosh::intent::segue<PushIn<direction::right>>;
           getController().queuePop<segue>();
         }
-      } else if (INPUT.has(RELEASED_B)) {
+      } else if (INPUT.Has(RELEASED_B)) {
           if (promptOptions) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
           }
-      } else if (INPUT.has(RELEASED_A)) {
+      } else if (INPUT.Has(RELEASED_A)) {
         if (!promptOptions) {
           promptOptions = true;
           AUDIO.Play(AudioType::CHIP_DESC);

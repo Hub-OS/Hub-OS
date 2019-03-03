@@ -315,7 +315,7 @@ void BattleResults::Draw() {
 
 // Chip ops
 bool BattleResults::IsFinished() {
-  return isRevealed;
+  return isRevealed && totalElapsed > 1.0;
 }
 
 BattleItem* BattleResults::GetReward()

@@ -89,7 +89,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
 
   if (!gotoNextScene) {
-    if (INPUT.has(PRESSED_A)) {
+    if (INPUT.Has(PRESSED_A)) {
 
       // Folder Select
       if (menuSelectionIndex == 0) {
@@ -138,7 +138,7 @@ void MainMenuScene::onUpdate(double elapsed) {
       }
     }
 
-    if (INPUT.has(PRESSED_UP)) {
+    if (INPUT.Has(PRESSED_UP)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -147,7 +147,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         menuSelectionIndex--;
       }
     }
-    else if (INPUT.has(PRESSED_DOWN)) {
+    else if (INPUT.Has(PRESSED_DOWN)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -161,7 +161,7 @@ void MainMenuScene::onUpdate(double elapsed) {
     }
   }
 
-  /*if (INPUT.has(PRESSED_PAUSE)) {
+  /*if (INPUT.Has(PRESSED_PAUSE)) {
     static bool toggle = false;
     toggle = !toggle;
     showHUD = false;

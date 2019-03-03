@@ -26,6 +26,7 @@ private:
   sf::Time duration;
   std::string summon;
   Chip copy;
+  Team callerTeam;
 
   struct SummonBucket {
     Entity* entity;
@@ -49,6 +50,14 @@ public:
   }
 
   const std::string GetSummonLabel() { return copy.GetShortName(); }
+
+  const Team GetCallerTeam() const {
+    if (other) {
+      return other->GetTeam();
+    }
+
+    return player->GetTeam();
+  }
 
   Player* GetPlayer() {
     return player;
@@ -75,6 +84,8 @@ public:
   void Update(double _elapsed) {
     if (summon.empty())
       return;
+
+    std::cout << "in summons update" << std::endl;
 
     if (!other) {
       player->Update(0);
@@ -103,6 +114,8 @@ public:
   }
 
   void OnEnter() { 
+    std::cout << "on summons enter" << std::endl;
+
     Character* summonedBy = player;
 
     if (other) {
@@ -221,6 +234,8 @@ public:
   }
 
   void OnLeave() { 
+    std::cout << "on summons leave" << std::endl;
+
     player->Reveal();
 
     if (other) {
@@ -239,8 +254,11 @@ public:
   }
 
   void OnChipUse(Chip& chip, Character& character) {
+    std::cout << "on chips use " << chip.GetShortName() << " by " << character.GetName() << std::endl;
+
     if (dynamic_cast<Character*>(player) == &character) {
       player->SetCharging(false);
+      other = nullptr;
     }
     else {
       other = &character;
@@ -272,6 +290,11 @@ public:
       summon = name;
       timeInSecs = 0;
       duration = sf::seconds(1);
+    }
+    else {
+      summon.clear();
+      timeInSecs = duration.asSeconds() + 1;
+      other = nullptr;
     }
   }
 };

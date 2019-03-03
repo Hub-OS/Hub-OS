@@ -26,7 +26,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
   if ((rand() % 30 > 23)) {
     next = metal.GetTarget()->GetTile();
 
-    if(metal.Teleport(next->GetX()+1, next->GetY())) {
+    if(next && metal.Teleport(next->GetX()+1, next->GetY())) {
       metal.AdoptNextTile();
 
       auto onFinish = [this, &metal]() {
@@ -43,7 +43,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
     metal.AdoptNextTile();
 
     auto onFinish = [this, &metal]() { 
-      if (metal.GetTarget()->GetTile()) {
+      if (metal.GetTarget() && metal.GetTarget()->GetTile()) {
         int targetY = metal.GetTarget()->GetTile()->GetY();
         int targetX = metal.GetTarget()->GetTile()->GetX();
 

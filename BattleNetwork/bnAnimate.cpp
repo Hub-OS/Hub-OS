@@ -35,6 +35,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
   if (applyCallback) {
     if (onFinish != nullptr) {
       onFinish();
+      return;
     }
   }
 

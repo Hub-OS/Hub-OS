@@ -420,5 +420,7 @@ Component* Entity::RegisterComponent(Component* c) {
 
 void Entity::UpdateSlideStartPosition()
 {
-  slideStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
+  if (tile) {
+    slideStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
+  }
 }
