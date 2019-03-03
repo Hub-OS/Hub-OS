@@ -22,10 +22,10 @@ namespace Hit {
     Flags flags;
     Element element;
     double secs; // used by both recoil and stun
-    Entity* aggressor = nullptr;
+    Entity* aggressor;
   };
 
-  const Hit::Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0 };
+  const Hit::Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0, nullptr };
 
 }
 

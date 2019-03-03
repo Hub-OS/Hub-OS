@@ -10,7 +10,7 @@
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
-#include "bnElecPulse.h"
+#include "bnElecpulse.h"
 #include "bnReflectShield.h"
 #include "bnHideUntil.h"
 

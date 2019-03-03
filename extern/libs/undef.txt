@@ -1,0 +1,229 @@
+                 U abort
+                 U close
+                 U __cxa_atexit
+                 U __cxa_begin_catch
+                 U __cxa_end_catch
+                 w __cxa_finalize
+                 U __cxa_guard_abort
+                 U __cxa_guard_acquire
+                 U __cxa_guard_release
+                 U __cxa_pure_virtual
+                 U __cxa_rethrow
+                 U __errno_location
+                 U __fdelt_chk
+                 U getpid
+                 U glEnable
+                 U glGetError
+                 U glGetIntegerv
+                 U glGetString
+                 U glIsEnabled
+                 U glXChooseFBConfig
+                 U glXCreateContext
+                 U glXCreatePbuffer
+                 U glXDestroyContext
+                 U glXDestroyPbuffer
+                 U glXGetConfig
+                 U glXGetCurrentContext
+                 U glXGetProcAddressARB
+                 U glXGetVisualFromFBConfig
+                 U glXMakeContextCurrent
+                 U glXMakeCurrent
+                 U glXQueryDrawable
+                 U glXQueryExtensionsString
+                 U glXQueryVersion
+                 U glXSwapBuffers
+                 w __gmon_start__
+                 U __gxx_personality_v0
+                 U ioctl
+                 w _ITM_deregisterTMCloneTable
+                 w _ITM_registerTMCloneTable
+                 U malloc
+                 U memcmp
+                 U memcpy
+                 U memmove
+                 U memset
+                 U open
+                 w __pthread_key_create
+                 U read
+                 U select
+                 U __stack_chk_fail
+                 U strcmp
+                 U strlen
+                 U strstr
+                 U strtoul
+                 U udev_device_get_action
+                 U udev_device_get_devnode
+                 U udev_device_get_parent_with_subsystem_devtype
+                 U udev_device_get_property_value
+                 U udev_device_get_sysattr_value
+                 U udev_device_get_syspath
+                 U udev_device_new_from_syspath
+                 U udev_device_unref
+                 U udev_enumerate_add_match_subsystem
+                 U udev_enumerate_get_list_entry
+                 U udev_enumerate_new
+                 U udev_enumerate_scan_devices
+                 U udev_enumerate_unref
+                 U udev_list_entry_get_name
+                 U udev_list_entry_get_next
+                 U udev_monitor_enable_receiving
+                 U udev_monitor_filter_add_match_subsystem_devtype
+                 U udev_monitor_get_fd
+                 U udev_monitor_new_from_netlink
+                 U udev_monitor_receive_device
+                 U udev_monitor_unref
+                 U udev_new
+                 U udev_unref
+                 U _Unwind_Resume
+                 U XAllocClassHint
+                 U XAllocSizeHints
+                 U XAllocWMHints
+                 U XChangeProperty
+                 U XChangeWindowAttributes
+                 U XCheckIfEvent
+                 U XCloseDisplay
+                 U XCloseIM
+                 U XConvertSelection
+                 U XCreateBitmapFromData
+                 U XCreateColormap
+                 U XCreateFontCursor
+                 U XCreateGC
+                 U XCreateIC
+                 U XCreateImage
+                 U XCreatePixmap
+                 U XCreatePixmapCursor
+                 U XCreatePixmapFromBitmapData
+                 U XCreateSimpleWindow
+                 U XCreateWindow
+                 U XDefaultRootWindow
+                 U XDefineCursor
+                 U XDeleteProperty
+                 U XDestroyIC
+                 U XDestroyWindow
+                 U XDrawPoint
+                 U XFilterEvent
+                 U XFlush
+                 U XFree
+                 U XFreeCursor
+                 U XFreeGC
+                 U XFreePixmap
+                 U XGetGeometry
+                 U XGetInputFocus
+                 U XGetSelectionOwner
+                 U XGetVisualInfo
+                 U XGetWindowAttributes
+                 U XGetWindowProperty
+                 U XGetWMHints
+                 U XGetWMNormalHints
+                 U XGrabPointer
+                 U XInternAtom
+                 U XKeysymToKeycode
+                 U XListDepths
+                 U XLookupKeysym
+                 U XLookupString
+                 U XMapWindow
+                 U XMoveWindow
+                 U XOpenDisplay
+                 U XOpenIM
+                 U __xpg_basename
+                 U XPutImage
+                 U XQueryExtension
+                 U XQueryKeymap
+                 U XQueryPointer
+                 U XQueryTree
+                 U XRaiseWindow
+                 U XResizeWindow
+                 U XRRConfigCurrentConfiguration
+                 U XRRConfigRotations
+                 U XRRConfigSizes
+                 U XRRFreeCrtcInfo
+                 U XRRFreeOutputInfo
+                 U XRRFreeScreenConfigInfo
+                 U XRRFreeScreenResources
+                 U XRRGetCrtcInfo
+                 U XRRGetOutputInfo
+                 U XRRGetOutputPrimary
+                 U XRRGetScreenInfo
+                 U XRRGetScreenResources
+                 U XRRQueryVersion
+                 U XRRSetCrtcConfig
+                 U XSelectInput
+                 U XSendEvent
+                 U XSetClassHint
+                 U XSetErrorHandler
+                 U XSetICFocus
+                 U XSetInputFocus
+                 U XSetSelectionOwner
+                 U XSetWMHints
+                 U XSetWMNormalHints
+                 U XSync
+                 U XTranslateCoordinates
+                 U XUngrabPointer
+                 U XUnmapWindow
+                 U XUnsetICFocus
+                 U Xutf8LookupString
+                 U Xutf8SetWMProperties
+                 U XVisualIDFromVisual
+                 U XWarpPointer
+                 U operator delete(void*)
+                 U sf::ThreadLocal::setValue(void*)
+                 U sf::ThreadLocal::ThreadLocal(void*)
+                 U sf::ThreadLocal::~ThreadLocal()
+                 U sf::milliseconds(int)
+                 U sf::err()
+                 U sf::Lock::Lock(sf::Mutex&)
+                 U sf::Lock::~Lock()
+                 U sf::Time::Zero
+                 U sf::Clock::restart()
+                 U sf::Clock::Clock()
+                 U sf::Mutex::Mutex()
+                 U sf::Mutex::~Mutex()
+                 U sf::sleep(sf::Time)
+                 U sf::String::clear()
+                 U sf::String::operator=(sf::String const&)
+                 U sf::String::String(char const*, std::locale const&)
+                 U sf::String::String(sf::String const&)
+                 U sf::String::String(std::string const&, std::locale const&)
+                 U sf::String::String()
+                 U sf::seconds(float)
+                 U sf::operator==(sf::String const&, sf::String const&)
+                 U sf::operator-(sf::Time, sf::Time)
+                 U sf::operator!=(sf::Time, sf::Time)
+                 U sf::ThreadLocal::getValue() const
+                 U sf::Time::asMilliseconds() const
+                 U sf::Clock::getElapsedTime() const
+                 U sf::String::toAnsiString(std::locale const&) const
+                 U sf::String::end() const
+                 U sf::String::begin() const
+                 U sf::String::toUtf8() const
+                 U std::string::compare(char const*) const
+                 U std::ctype<char>::_M_widen_init() const
+                 U std::ostream::put(char)
+                 U std::ostream::flush()
+                 U std::ostream& std::ostream::_M_insert<bool>(bool)
+                 U std::ostream& std::ostream::_M_insert<unsigned long>(unsigned long)
+                 U std::ostream::operator<<(int)
+                 U std::string::_M_leak_hard()
+                 U std::string::_Rep::_M_destroy(std::allocator<char> const&)
+                 U std::string::_Rep::_S_empty_rep_storage
+                 U std::string::_Rep::_S_create(unsigned long, unsigned long, std::allocator<char> const&)
+                 U std::string::assign(char const*, unsigned long)
+                 U std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(char const*, std::allocator<char> const&)
+                 U std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string(std::string const&)
+                 U std::locale::locale()
+                 U std::locale::~locale()
+                 U operator new(unsigned long)
+                 U std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long)
+                 U std::__throw_bad_cast()
+                 U std::__throw_bad_alloc()
+                 U std::_Rb_tree_decrement(std::_Rb_tree_node_base*)
+                 U std::_Rb_tree_increment(std::_Rb_tree_node_base const*)
+                 U std::_Rb_tree_increment(std::_Rb_tree_node_base*)
+                 U std::__throw_logic_error(char const*)
+                 U std::__throw_length_error(char const*)
+                 U std::_Rb_tree_insert_and_rebalance(bool, std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+                 U std::basic_ostream<char, std::char_traits<char> >& std::endl<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&)
+                 U std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*)
+                 U vtable for __cxxabiv1::__class_type_info
+                 U vtable for __cxxabiv1::__si_class_type_info
+                 U vtable for __cxxabiv1::__vmi_class_type_info

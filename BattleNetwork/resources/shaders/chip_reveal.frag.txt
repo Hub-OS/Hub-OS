@@ -10,7 +10,7 @@ float rand(vec2 co) {
 void main() {
     vec2 p = gl_TexCoord[0].xy;
     vec2 size = vec2(cols, rows);
-vec4 color = texture2D(texture, p.xy);
+    vec4 color = texture2D(texture, p.xy);
     float r = rand(floor(vec2(size) * color.xy));
     float m = smoothstep(0.0, 0.0, r - (progress * (1.0)));
     gl_FragColor = mix(color, vec4(0.0,0.0,0.0,1.0), m);

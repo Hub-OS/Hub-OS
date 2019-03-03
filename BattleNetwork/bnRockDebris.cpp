@@ -3,7 +3,7 @@
 #include "bnField.h"
 #include "bnRockDebris.h"
 
-#include <Swoosh\Ease.h>
+#include <Swoosh/Ease.h>
 
 using sf::IntRect;
 

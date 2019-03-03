@@ -1,6 +1,6 @@
 #pragma once
-#include "Swoosh/Ease.h"
-#include "Swoosh/Activity.h"
+#include <Swoosh/Ease.h>
+#include <Swoosh/Activity.h>
 
 #include "bnCamera.h"
 #include "bnInputManager.h"
@@ -10,7 +10,9 @@
 #include "bnEngine.h"
 #include "bnChip.h"
 #include "bnAnimation.h"
-#include "bnAnimatedTextbox.h"
+#include "bnAnimatedTextBox.h"
+
+#include <list>
 
 class LibraryScene : public swoosh::Activity {
 private:

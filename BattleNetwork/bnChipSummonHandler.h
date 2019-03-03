@@ -11,7 +11,7 @@
 #include "bnAura.h"
 #include "bnPanelGrab.h"
 
-#include <Swoosh\Timer.h>
+#include <Swoosh/Timer.h>
 
 /*
 TODO: use action lists where possible

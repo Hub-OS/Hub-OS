@@ -1,5 +1,5 @@
 #pragma once
-#include "Swoosh/Activity.h"
+#include <Swoosh/Activity.h>
 
 #include "bnFolderScene.h"
 #include "bnOverworldMap.h"

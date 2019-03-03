@@ -2,8 +2,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
-#include <Swoosh\Ease.h>
-#include <Swoosh\Game.h>
+#include <Swoosh/Ease.h>
+#include <Swoosh/Game.h>
 
 using sf::IntRect;
 

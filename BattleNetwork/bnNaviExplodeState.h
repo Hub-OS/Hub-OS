@@ -32,7 +32,7 @@ public:
 
 template<typename Any>
 NaviExplodeState<Any>::NaviExplodeState(int _numOfExplosions, double _playbackSpeed)
-  : ExplodeState(_numOfExplosions, _playbackSpeed) {
+  : ExplodeState<Any>(_numOfExplosions, _playbackSpeed) {
 }
 
 template<typename Any>

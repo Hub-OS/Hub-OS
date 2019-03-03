@@ -8,17 +8,20 @@ void main()
 {
     vec4 pixel = texture2D(texture, vec2(gl_TexCoord[0].x, gl_TexCoord[0].y));
     vec4 color = gl_Color * pixel;
+    
+    float numOfWiresf = float(numOfWires);
+    float indexf = float(index);
 
-    float wireBIndex = floor(255.0/(float)numOfWires)/255.0;
-    wireBIndex = wireBIndex*(float)index;
+    float wireBIndex = floor(255.0/numOfWiresf)/255.0;
+    wireBIndex = wireBIndex*indexf;
 
-    progress = min(1.0, progress);
+    float progressClamp = min(1.0, progress);
 
     vec4 transp = vec4(1.0, 1.0,1.0, 0.0);
 
     if(color != vec4(0.0,0.0,0.0,1.0) ){
        if(wireBIndex >= color.b-0.1 && wireBIndex <= color.b+0.1) { 
-            if(progress >= color.a-0.1 && progress <= color.a+0.1) {
+            if(progressClamp >= color.a-0.1 && progressClamp <= color.a+0.1) {
                color = inColor;
                color.a = 0.8;
             } else {

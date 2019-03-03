@@ -16,12 +16,12 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
-#include "Segues\PushIn.h"
+#include "Segues/PushIn.h"
 
 FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderCollection& collection) :
   collection(collection),
   camera(ENGINE.GetDefaultView()),
-  swoosh::Activity(controller)
+  swoosh::Activity(&controller)
 {
   promptOptions = false;
   enterText = false;

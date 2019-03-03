@@ -2,7 +2,7 @@
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
 #include "bnEngine.h"
-#include <Swoosh\Ease.h>
+#include <Swoosh/Ease.h>
 
 #define X_OFFSET 0
 #define Y_OFFSET 0

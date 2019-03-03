@@ -1,4 +1,5 @@
 #include <time.h>
+#include <cmath>
 
 #include <Swoosh/Activity.h>
 #include <Swoosh/ActivityController.h>
@@ -16,7 +17,7 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
-#include "Segues\PushIn.h"
+#include "Segues/PushIn.h"
 
 std::string FolderEditScene::FormatChipDesc(const std::string && desc)
 {
@@ -70,7 +71,7 @@ std::string FolderEditScene::FormatChipDesc(const std::string && desc)
 
 FolderEditScene::FolderEditScene(swoosh::ActivityController &controller) :
   camera(ENGINE.GetDefaultView()),
-  swoosh::Activity(controller)
+  swoosh::Activity(&controller)
 {
 
   // Menu name font
@@ -298,7 +299,7 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
     // Draw cursor
     if (lastChipOnScreen + i == currChipIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));
-      auto bounce = std::sinf((float)totalTimeElapsed*10.0f)*5.0f;
+      auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
 
       cursor.setPosition((2.f*90.f) + bounce, y);
       ENGINE.Draw(cursor);

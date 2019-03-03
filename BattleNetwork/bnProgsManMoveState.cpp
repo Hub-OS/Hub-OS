@@ -1,4 +1,3 @@
-#pragma once
 #include "bnProgsManMoveState.h"
 #include "bnProgsMan.h"
 #include "bnTile.h"

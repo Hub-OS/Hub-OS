@@ -42,7 +42,7 @@ public:
       stateMachine = new NoState<T>();
     }
 
-    stateMachine->ChangeState<U>();
+    stateMachine->template ChangeState<U>();
     
     // TODO: this call makes AI states crash when using `entity.ChangeState()` 
     this->Update(0);
@@ -68,7 +68,7 @@ template<typename U, typename ...Args>
       stateMachine = new NoState<T>();
     }
 
-    stateMachine->ChangeState<U>(args...);
+    stateMachine->template ChangeState<U>(args...);
     this->Update(0);
   }
 

@@ -1,7 +1,7 @@
 #include "bnGameOverScene.h"
-#include "Swoosh\ActivityController.h"
+#include <Swoosh/ActivityController.h>
 
-GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(controller) {
+GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(&controller) {
   fadeInCooldown = 2.0f;
 
   gameOver.setTexture(*TEXTURES.GetTexture(TextureType::GAME_OVER));

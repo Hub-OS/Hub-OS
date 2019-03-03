@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="BattleNetwork" Version="10.0.0" InternalType="">
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="Segues">
+    <File Name="Segues/SlideIn.h"/>
+    <File Name="Segues/WhiteWashFade.h"/>
+    <File Name="Segues/BlackWashFade.h"/>
+    <File Name="Segues/ZoomFadeIn.h"/>
+    <File Name="Segues/DiamondTileSwipe.h"/>
+    <File Name="Segues/CrossZoom.h"/>
+    <File Name="Segues/Checkerboard.h"/>
+    <File Name="Segues/PixelateBlackWashFade.h"/>
+    <File Name="Segues/PushIn.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="BattleNetwork">
+    <File Name="bnMob.h"/>
+    <File Name="bnChargeComponent.h"/>
+    <File Name="bnMobFactory.h"/>
+    <File Name="bnInputEvent.h"/>
+    <File Name="bnMobState.h"/>
+    <File Name="bnProgsManIdleState.h"/>
+    <File Name="bnObstacle.cpp"/>
+    <File Name="bnHitBox.cpp"/>
+    <File Name="bnComponent.h"/>
+    <File Name="bnProgsManBossFight.h"/>
+    <File Name="bnMobRegistration.h"/>
+    <File Name="bnCanodumb.cpp"/>
+    <File Name="bnInfiniteMap.h"/>
+    <File Name="bnGear.cpp"/>
+    <File Name="bnAuraHealthUI.cpp"/>
+    <File Name="bnMysteryData.h"/>
+    <File Name="main.cpp"/>
+    <File Name="bnDefenseAntiDamage.h"/>
+    <File Name="bnPlayerIdleState.h"/>
+    <File Name="bnRollHeart.cpp"/>
+    <File Name="bnLanBackground.cpp"/>
+    <File Name="bnTextureResourceManager.h"/>
+    <File Name="bnEnemyChipUseListener.h"/>
+    <File Name="bnDefenseAura.h"/>
+    <File Name="bnChipDescriptionTextbox.cpp"/>
+    <File Name="bnOverworldMap.cpp"/>
+    <File Name="bnStarman.cpp"/>
+    <File Name="bnCanodumbMob.h"/>
+    <File Name="bnCamera.cpp"/>
+    <File Name="bnAudioResourceManager.cpp"/>
+    <File Name="bnHideTimer.h"/>
+    <File Name="bnChipsSpawnPolicy.h"/>
+    <File Name="bnTile.h"/>
+    <File Name="bnExplosion.cpp"/>
+    <File Name="bnMetalBlade.h"/>
+    <File Name="bnRollHeal.cpp"/>
+    <File Name="bnLogger.h"/>
+    <File Name="bnMettaurMoveState.h"/>
+    <File Name="bnStarfishIdleState.cpp"/>
+    <File Name="bnMetalManBossFight.h"/>
+    <File Name="bnPA.h"/>
+    <File Name="bnExplodeState.h"/>
+    <File Name="bnElements.h"/>
+    <File Name="bnAI.h"/>
+    <File Name="bnNaviExplodeState.h"/>
+    <File Name="bnStarfishMob.h"/>
+    <File Name="bnNaviRegistration.h"/>
+    <File Name="bnSelectMobScene.h"/>
+    <File Name="bnAnimate.h"/>
+    <File Name="bnMetalManBossFight2.cpp"/>
+    <File Name="bnElecpulse.cpp"/>
+    <File Name="bnFakeScene.cpp"/>
+    <File Name="bnStarfishAttackState.cpp"/>
+    <File Name="bnRowHit.cpp"/>
+    <File Name="bnVirusBackground.h"/>
+    <File Name="bnCharacter.h"/>
+    <File Name="bnMettaurIdleState.cpp"/>
+    <File Name="bnProgsManShootState.h"/>
+    <File Name="bnSelectMobScene.cpp"/>
+    <File Name="bnMainMenuScene.cpp"/>
+    <File Name="bnInvis.h"/>
+    <File Name="bnCounterHitListener.cpp"/>
+    <File Name="bnCounterHitPublisher.cpp"/>
+    <File Name="bnBattleItem.h"/>
+    <File Name="bnGuardHit.cpp"/>
+    <File Name="bnCharacter.cpp"/>
+    <File Name="bnMettaurAttackState.cpp"/>
+    <File Name="bnCustEmblem.h"/>
+    <File Name="bnAnimatedTextBox.h"/>
+    <File Name="bnThunder.cpp"/>
+    <File Name="bnMetalMan.cpp"/>
+    <File Name="bnElementalDamage.cpp"/>
+    <File Name="bnMetalManIdleState.h"/>
+    <File Name="bnTextureResourceManager.cpp"/>
+    <File Name="bnAirShot.h"/>
+    <File Name="bnProgsManThrowState.h"/>
+    <File Name="bnChipSummonHandler.h"/>
+    <File Name="bnCanodumbIdleState.h"/>
+    <File Name="bnPlayer.cpp"/>
+    <File Name="bnMettaur.cpp"/>
+    <File Name="bnCannon.cpp"/>
+    <File Name="bnQueueNaviRegistration.h"/>
+    <File Name="bnCanodumbAttackState.cpp"/>
+    <File Name="bnChargedBusterHit.cpp"/>
+    <File Name="bnComponent.cpp"/>
+    <File Name="bnAura.h"/>
+    <File Name="resource.h"/>
+    <File Name="bnReflectShield.h"/>
+    <File Name="bnFakeScene.h"/>
+    <File Name="bnStarfish.h"/>
+    <File Name="bnEnemyChipsUI.cpp"/>
+    <File Name="bnMobHealthUI.h"/>
+    <File Name="bnField.h"/>
+    <File Name="bnInfiniteMap.cpp"/>
+    <File Name="bnStringEncoder.h"/>
+    <File Name="bnLibraryScene.cpp"/>
+    <File Name="bnPanelGrab.cpp"/>
+    <File Name="bnChargedBusterHit.h"/>
+    <File Name="bnFolderEditScene.cpp"/>
+    <File Name="bnDefenseAura.cpp"/>
+    <File Name="bnAudioResourceManager.h"/>
+    <File Name="bnChipDescriptionTextbox.h"/>
+    <File Name="bnParticlePoof.cpp"/>
+    <File Name="bnMobHealthUI.cpp"/>
+    <File Name="bnMainMenuScene.h"/>
+    <File Name="bnTwoMettaurMob.h"/>
+    <File Name="bnWave.cpp"/>
+    <File Name="bnUndernetBackground.h"/>
+    <File Name="bnAuraHealthUI.h"/>
+    <File Name="bnDefenseGuard.cpp"/>
+    <File Name="bnTileBehavior.h"/>
+    <File Name="bnCanodumbMob.cpp"/>
+    <File Name="bnBubbleTrap.h"/>
+    <File Name="bnBubble.h"/>
+    <File Name="bnStarfishIdleState.h"/>
+    <File Name="bnEnemyChipsUI.h"/>
+    <File Name="bnCanonSmoke.h"/>
+    <File Name="bnProgsManIdleState.cpp"/>
+    <File Name="bnCanodumb.h"/>
+    <File Name="bnMetalManPunchState.cpp"/>
+    <File Name="bnAnimationComponent.h"/>
+    <File Name="bnPlayerState.h"/>
+    <File Name="bnGraveyardBackground.h"/>
+    <File Name="bnProgsMan.cpp"/>
+    <File Name="bnStarfishMob.cpp"/>
+    <File Name="bnGameOverScene.cpp"/>
+    <File Name="bnNinjaStar.cpp"/>
+    <File Name="bnUndernetBackground.cpp"/>
+    <File Name="bnMetalManBossFight2.h"/>
+    <File Name="bnArtifact.cpp"/>
+    <File Name="bnCounterHitListener.h"/>
+    <File Name="bnHideUntil.cpp"/>
+    <File Name="bnRollHeart.h"/>
+    <File Name="bnMetalManThrowState.h"/>
+    <File Name="bnEntity.cpp"/>
+    <File Name="bnShineExplosion.cpp"/>
+    <File Name="bnGraveyardBackground.cpp"/>
+    <File Name="bnPlayerHitState.cpp"/>
+    <File Name="bnMysteryData.cpp"/>
+    <File Name="bnMettaurMoveState.cpp"/>
+    <File Name="bnFileUtil.h"/>
+    <File Name="bnChipSelectionCust.cpp"/>
+    <File Name="bnBuster.cpp"/>
+    <File Name="bnChipFolder.h"/>
+    <File Name="bnPlayerHealthUI.cpp"/>
+    <File Name="bnInputManager.cpp"/>
+    <File Name="bnWave.h"/>
+    <File Name="bnElecPulse.h"/>
+    <File Name="bnRoll.cpp"/>
+    <File Name="bnChipUseListener.cpp"/>
+    <File Name="bnSmartShader.cpp"/>
+    <File Name="bnCanonSmoke.cpp"/>
+    <File Name="bnFolderEditScene.h"/>
+    <File Name="bnGameOverScene.h"/>
+    <File Name="bnChipFolderCollection.h"/>
+    <File Name="bnGuardHit.h"/>
+    <File Name="bnAnimationComponent.cpp"/>
+    <File Name="bnLanBackground.h"/>
+    <File Name="bnPixelInState.h"/>
+    <File Name="bnSpell.h"/>
+    <File Name="bnTileState.h"/>
+    <File Name="bnRowHit.h"/>
+    <File Name="bnOverworldLight.cpp"/>
+    <File Name="bnCanodumbAttackState.h"/>
+    <File Name="bnDefenseAntiDamage.cpp"/>
+    <File Name="bnAgent.h"/>
+    <File Name="bnHideTimer.cpp"/>
+    <File Name="bnChronoXConfigReader.h"/>
+    <File Name="bnProgsManPunchState.cpp"/>
+    <File Name="bnBuster.h"/>
+    <File Name="bnBubble.cpp"/>
+    <File Name="bnCube.h"/>
+    <File Name="bnChipLibrary.cpp"/>
+    <File Name="bnChipUsePublisher.cpp"/>
+    <File Name="bnStarfish.cpp"/>
+    <File Name="bnSmartShader.h"/>
+    <File Name="bnBasicSword.cpp"/>
+    <File Name="bnProgsmanHitState.h"/>
+    <File Name="bnElementalDamage.h"/>
+    <File Name="bnMetalManMoveState.h"/>
+    <File Name="bnRandomMettaurMob.cpp"/>
+    <File Name="bnSelectedChipsUI.h"/>
+    <File Name="bnProgsManShootState.cpp"/>
+    <File Name="bnTextBox.h"/>
+    <File Name="bnAirShot.cpp"/>
+    <File Name="bnSceneNode.h"/>
+    <File Name="bnRollHeal.h"/>
+    <File Name="bnOverworldMap.h"/>
+    <File Name="bnChipUseListener.h"/>
+    <File Name="bnDirection.h"/>
+    <File Name="bnMetalManMoveState.cpp"/>
+    <File Name="bnMettaurAttackState.h"/>
+    <File Name="bnVirusBackground.cpp"/>
+    <File Name="bnEntity.h"/>
+    <File Name="bnAIState.h"/>
+    <File Name="bnProgsManBossFight.cpp"/>
+    <File Name="bnChip.h"/>
+    <File Name="bnNoState.h"/>
+    <File Name="bnBattleScene.h"/>
+    <File Name="bnAnimatedCharacter.h"/>
+    <File Name="bnProgBomb.cpp"/>
+    <File Name="bnTwoMettaurMob.cpp"/>
+    <File Name="bnGear.h"/>
+    <File Name="bnCanodumbCursor.h"/>
+    <File Name="bnMetalManIdleState.cpp"/>
+    <File Name="bnThunder.h"/>
+    <File Name="AlphaBossSpawnPolicy.h"/>
+    <File Name="bnSelectedChipsUI.cpp"/>
+    <File Name="bnSelectNaviScene.h"/>
+    <File Name="bnRandomMettaurMob.h"/>
+    <File Name="bnLayered.h"/>
+    <File Name="bnNaviRegistration.cpp"/>
+    <File Name="bnCamera.h"/>
+    <File Name="bnChipFolder.cpp"/>
+    <File Name="bnTextureType.h"/>
+    <File Name="bnChipUsePublisher.h"/>
+    <File Name="bnStarfishAttackState.h"/>
+    <File Name="bnArtifact.h"/>
+    <File Name="bnBasicSword.h"/>
+    <File Name="bnParticlePoof.h"/>
+    <File Name="bnCustEmblem.cpp"/>
+    <File Name="bnMetalMan.h"/>
+    <File Name="bnLibraryScene.h"/>
+    <File Name="bnShaderResourceManager.cpp"/>
+    <File Name="bnMettaurIdleState.h"/>
+    <File Name="bnPlayerHitState.h"/>
+    <File Name="bnProgsMan.h"/>
+    <File Name="bnDefenseBubbleWrap.cpp"/>
+    <File Name="bnPanelGrab.h"/>
+    <File Name="bnChip.cpp"/>
+    <File Name="bnAura.cpp"/>
+    <File Name="bnProgsManThrowState.cpp"/>
+    <File Name="bnBackground.h"/>
+    <File Name="bnInputManager.h"/>
+    <File Name="bnDefenseBubbleWrap.h"/>
+    <File Name="bnField.cpp"/>
+    <File Name="bnRockDebris.h"/>
+    <File Name="bnPlayerControlledState.cpp"/>
+    <File Name="bnHitBox.h"/>
+    <File Name="bnDefenseGuard.h"/>
+    <File Name="bnNinjaAntiDamage.h"/>
+    <File Name="bnPlayerChipUseListener.h"/>
+    <File Name="bnFishy.cpp"/>
+    <File Name="bnCannon.h"/>
+    <File Name="bnSpawnPolicy.h"/>
+    <File Name="bnPlayerHealthUI.h"/>
+    <File Name="bnOverworldLight.h"/>
+    <File Name="bnChargeComponent.cpp"/>
+    <File Name="bnGridBackground.cpp"/>
+    <File Name="bnMetalManBossFight.cpp"/>
+    <File Name="bnProgsManHitState.cpp"/>
+    <File Name="bnMeta.h"/>
+    <File Name="bnStarman.h"/>
+    <File Name="bnAnimatedCharacter.cpp"/>
+    <File Name="bnDefenseRule.h"/>
+    <File Name="bnAnimate.cpp"/>
+    <File Name="bnShaderType.h"/>
+    <File Name="bnObstacle.h"/>
+    <File Name="bnAudioType.h"/>
+    <File Name="bnEngine.cpp"/>
+    <File Name="bnSpell.cpp"/>
+    <File Name="bnSelectNaviScene.cpp"/>
+    <File Name="bnFolderScene.cpp"/>
+    <File Name="bnBattleOverTrigger.h"/>
+    <File Name="bnFishy.h"/>
+    <File Name="bnMetalBlade.cpp"/>
+    <File Name="bnTeam.h"/>
+    <File Name="bnQueueMobRegistration.h"/>
+    <File Name="bnEngine.h"/>
+    <File Name="bnProgBomb.h"/>
+    <File Name="bnExplosion.h"/>
+    <File Name="bnBattleScene.cpp"/>
+    <File Name="bnCube.cpp"/>
+    <File Name="bnPlayerIdleState.cpp"/>
+    <File Name="bnShineExplosion.h"/>
+    <File Name="bnReflectShield.cpp"/>
+    <File Name="bnAnimation.h"/>
+    <File Name="bnChipLibrary.h"/>
+    <File Name="bnNinjaStar.h"/>
+    <File Name="bnDefenseRule.cpp"/>
+    <File Name="bnProgsManMoveState.h"/>
+    <File Name="bnAnimation.cpp"/>
+    <File Name="bnCanodumbCursor.cpp"/>
+    <File Name="bnMemory.h"/>
+    <File Name="bnPlayerControlledState.h"/>
+    <File Name="bnRockDebris.cpp"/>
+    <File Name="bnUIComponent.h"/>
+    <File Name="bnFolderScene.h"/>
+    <File Name="bnBubbleTrap.cpp"/>
+    <File Name="bnAnimatedTextBox.cpp"/>
+    <File Name="bnProgsManPunchState.h"/>
+    <File Name="bnRoll.h"/>
+    <File Name="bnMetalManThrowState.cpp"/>
+    <File Name="bnMetalManPunchState.h"/>
+    <File Name="bnLogger.cpp"/>
+    <File Name="bnCounterHitPublisher.h"/>
+    <File Name="bnHideUntil.h"/>
+    <File Name="bnShaderResourceManager.h"/>
+    <File Name="bnCanodumbIdleState.cpp"/>
+    <File Name="mmbn.ico.c"/>
+    <File Name="bnTile.cpp"/>
+    <File Name="bnNinjaAntiDamage.cpp"/>
+    <File Name="bnInvis.cpp"/>
+    <File Name="bnProgsManMoveState.cpp"/>
+    <File Name="bnBattleResults.h"/>
+    <File Name="bnBubbleState.h"/>
+    <File Name="bnBattleResults.cpp"/>
+    <File Name="bnPerlinNoise.h"/>
+    <File Name="bnGridBackground.h"/>
+    <File Name="bnPA.cpp"/>
+    <File Name="bnMobRegistration.cpp"/>
+    <File Name="bnMettaur.h"/>
+    <File Name="bnChipSelectionCust.h"/>
+    <File Name="bnPlayer.h"/>
+  </VirtualDirectory>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="Cross GCC ( x86_64-linux-gnu )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g -Wall -std=c++17" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+        <IncludePath Value="../../extern/includes"/>
+      </Compiler>
+      <Linker Options="-O0" Required="yes">
+        <LibraryPath Value="."/>
+        <LibraryPath Value="Debug"/>
+      </Linker>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="./Debug" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

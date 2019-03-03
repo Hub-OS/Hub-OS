@@ -1,19 +1,20 @@
 #pragma once
+#include <cmath>
 
 namespace swoosh {
   namespace ease {
-    static constexpr double pi = 3.14159265358979323846;
+    static double pi = 3.14159265358979323846;
     
     template<typename T>
-    static constexpr T radians(T degrees) { return (degrees * pi) / (T)180.0;  }
+    static T radians(T degrees) { return (degrees * pi) / (T)180.0;  }
 
     template<typename T>
-    static constexpr T interpolate(T factor, T a, T b) {
+    static T interpolate(T factor, T a, T b) {
       return a + ((b - a) * factor);
     }
 
     template<typename T>
-    static constexpr T linear(T delta, T length, T power) {
+    static T linear(T delta, T length, T power) {
       T normal = (T)(1.0 / (double)length);
 
       T x = delta * normal;
@@ -39,7 +40,7 @@ namespace swoosh {
     sharp back and forth, no easing
     */
     template<typename T>
-    static constexpr T inOut(T delta, T length) {
+    static T inOut(T delta, T length) {
       T normal = (T)(1.0 / (double)length);
 
       T x = delta * normal;
@@ -53,7 +54,7 @@ namespace swoosh {
     }
 
     template<typename T>
-    static constexpr T wideParabola(T delta, T length, T power) {
+    static T wideParabola(T delta, T length, T power) {
       T normal = (T)(2.0 / (double)length);
 
       // Convert seconds elapsed to x values of 0 -> 2
@@ -84,7 +85,7 @@ namespace swoosh {
       overshoot destination and slide back at the end
     */
     template<typename T>
-    static constexpr T bezierPopIn(T delta, T length) {
+    static T bezierPopIn(T delta, T length) {
       T normal = (T)(1.0 / (double)length);
 
       T x = delta * normal;
@@ -108,7 +109,7 @@ namespace swoosh {
     pop out and then slide out
   */
     template<typename T>
-    static constexpr T bezierPopOut(T delta, T length) {
+    static T bezierPopOut(T delta, T length) {
       T normal = (T)(1.0 / (double)length);
 
       T x = delta * normal;

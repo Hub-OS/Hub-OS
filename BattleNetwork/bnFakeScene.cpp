@@ -1,9 +1,9 @@
 #include "bnFakeScene.h"
-#include "Swoosh\ActivityController.h"
+#include <Swoosh/ActivityController.h>
 
-#include "Segues\DiamondTileSwipe.h"
+#include "Segues/DiamondTileSwipe.h"
 
-FakeScene::FakeScene(swoosh::ActivityController& controller, sf::Texture& snapshot) : swoosh::Activity(controller) {
+FakeScene::FakeScene(swoosh::ActivityController& controller, sf::Texture& snapshot) : swoosh::Activity(&controller) {
   this->snapshot = sf::Sprite(snapshot);
   triggered = false;
 

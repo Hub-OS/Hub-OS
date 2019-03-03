@@ -30,9 +30,9 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
-#include "Swoosh\Activity.h"
-#include "Segues\CrossZoom.h"
-#include "Segues\BlackWashFade.h"
+#include <Swoosh/Activity.h>
+#include "Segues/CrossZoom.h"
+#include "Segues/BlackWashFade.h"
 
 class SelectMobScene : public swoosh::Activity
 {

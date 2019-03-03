@@ -1,4 +1,5 @@
 #include "bnAnimatedTextBox.h"
+#include <cmath>
 
 AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos)
     : textArea(textArea), totalTime(0), textBox(280, 40, 24, "resources/fonts/NETNAVI_4-6_V3.ttf") {
@@ -204,7 +205,7 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
   nextCursor.setScale(this->getScale()*2.0f);
   selectCursor.setScale(this->getScale()*2.0f);
 
-  auto bounce = std::sinf((float)totalTime*10.0f)*5.0f;
+  auto bounce = std::sin((float)totalTime*10.0f)*5.0f;
 
   nextCursor.setPosition(sf::Vector2f(this->getPosition().x + frame.getGlobalBounds().width - 30.0f, this->getPosition().y + 30.0f + bounce));
   nextCursor.setRotation(this->getRotation());

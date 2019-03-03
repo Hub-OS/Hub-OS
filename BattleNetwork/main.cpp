@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
   sf::Texture* mouseTexture = TEXTURES.LoadTextureFromFile("resources/ui/mouse.png");
   sf::Sprite mouse(*mouseTexture);
   mouse.setScale(2.f, 2.f);
-  Animation mouseAnimation = Animation("resources/ui/mouse.animation");
+  Animation mouseAnimation("resources/ui/mouse.animation");
   mouseAnimation.Reload();
   mouseAnimation.SetAnimation("DEFAULT");
   mouseAnimation << Animate::Mode::Loop;

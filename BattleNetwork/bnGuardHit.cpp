@@ -2,6 +2,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
+#include <cmath>
 
 using sf::IntRect;
 

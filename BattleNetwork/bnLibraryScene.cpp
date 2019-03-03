@@ -8,13 +8,15 @@
 #include "bnChipFolder.h"
 
 #include <SFML/Graphics.hpp>
+#include <cmath>
+
 using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 using sf::Font;
 
-#include "Segues\PushIn.h"
+#include "Segues/PushIn.h"
 
 std::string LibraryScene::FormatChipDesc(const std::string && desc)
 {
@@ -85,7 +87,7 @@ std::string LibraryScene::FormatChipDesc(const std::string && desc)
 LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
   camera(ENGINE.GetDefaultView()),
   textbox(sf::Vector2f(4, 255)),
-  swoosh::Activity(controller)
+  swoosh::Activity(&controller)
 {
 
   // Menu name font
@@ -349,7 +351,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
     // Draw cursor
     if (lastChipOnScreen + i == currChipIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));
-      auto bounce = std::sinf((float)totalTimeElapsed*10.0f)*5.0f;
+      auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
 
       cursor.setPosition((2.f*90.f) + bounce, y);
       ENGINE.Draw(cursor);
