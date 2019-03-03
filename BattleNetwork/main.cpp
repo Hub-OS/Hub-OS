@@ -267,9 +267,6 @@ int main(int argc, char** argv) {
     std::string percentageStr = std::to_string((int)(percentage*100));
     ENGINE.GetWindow()->setTitle(sf::String(std::string("Loading: ") + percentageStr + "%"));
 
-    INPUT.update();
-
-
     sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
     mouseAlpha -= elapsed/1000.0f;
     mouseAlpha = std::max(0.0, mouseAlpha);
@@ -434,6 +431,7 @@ int main(int argc, char** argv) {
         }
         else {
           // Finally everything is loaded
+          INPUT.update();
           ENGINE.Draw(startLabel);
         }
       }
@@ -489,54 +487,35 @@ int main(int argc, char** argv) {
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
     clock.restart();
+ 
+	INPUT.update();
 
-    INPUT.update();
+	sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+	mouseAlpha -= FIXED_TIME_STEP;
+	mouseAlpha = std::max(0.0, mouseAlpha);
 
-    sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
-    mouseAlpha -= elapsed;
-    mouseAlpha = std::max(0.0, mouseAlpha);
+	if (mousepos != lastMousepos) {
+	  lastMousepos = mousepos;
+	  mouseAlpha = 1.0;
+	}
 
-    if (mousepos != lastMousepos) {
-      lastMousepos = mousepos;
-      mouseAlpha = 1.0;
-    }
+	mouse.setPosition(mousepos);
+	mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
+	mouseAnimation.Update(elapsed, mouse);
 
-    mouse.setPosition(mousepos);
-    mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
-    mouseAnimation.Update(elapsed, mouse);
+	// Use the activity controller to update and draw scenes
+	app.update((float)FIXED_TIME_STEP);
+	
+	ENGINE.Clear();
+	ENGINE.DrawUnderlay();
+	ENGINE.DrawLayers();
+	ENGINE.DrawOverlay();
 
-    // Simulate a frame update to capture a full 60 FPS
-    /*while(elapsed >= FIXED_TIME_STEP) {
-      // Use the activity controller to update and draw scenes
-      app.update((float)FIXED_TIME_STEP);
-      elapsed -= static_cast<float>(FIXED_TIME_STEP);
-    }
+	app.draw();
 
-    remainder = elapsed;*/
+	ENGINE.GetWindow()->draw(mouse);
 
-    // Non-simulation
-    if(elapsed >= FIXED_TIME_STEP) {
-      // Use the activity controller to update and draw scenes
-      app.update((float)FIXED_TIME_STEP);
-      elapsed -= static_cast<float>(FIXED_TIME_STEP);
-    }
-
-    remainder = elapsed;
-
-    ENGINE.Clear();
-    ENGINE.DrawUnderlay();
-    ENGINE.DrawLayers();
-    ENGINE.DrawOverlay();
-
-    app.draw();
-
-    ENGINE.GetWindow()->draw(mouse);
-
-    ENGINE.GetWindow()->display();
-
-    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds()) + static_cast<float>(remainder);
-
-    remainder = 0;
+	ENGINE.GetWindow()->display();
   }
 
   delete mouseTexture;

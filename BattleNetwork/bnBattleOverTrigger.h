@@ -15,6 +15,7 @@ private:
 public:
   BattleOverTrigger(T* owner, std::function<void(BattleScene&, T&)> callback) : Component(owner) {
     this->callback = callback;
+    this->scene = nullptr;
   }
 
   virtual ~BattleOverTrigger() {

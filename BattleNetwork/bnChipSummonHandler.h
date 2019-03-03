@@ -37,8 +37,8 @@ private:
   std::vector<SummonBucket> summonedItems; // We must handle our own summoned entites
 
 public:
-  ChipSummonHandler(Player* _player) : ChipUseListener() { player = _player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string();  }
-  ChipSummonHandler(Player& _player) : ChipUseListener() { player = &_player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string(); }
+  ChipSummonHandler(Player* _player) : ChipUseListener() { other = nullptr; player = _player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string();  }
+  ChipSummonHandler(Player& _player) : ChipUseListener() { other = nullptr; player = &_player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string(); }
 
   const bool IsSummonOver() {
     return timeInSecs >= duration.asSeconds() || summon.empty();
@@ -241,6 +241,7 @@ public:
   void OnChipUse(Chip& chip, Character& character) {
     if (dynamic_cast<Character*>(player) == &character) {
       player->SetCharging(false);
+      other = nullptr;
     }
     else {
       other = &character;

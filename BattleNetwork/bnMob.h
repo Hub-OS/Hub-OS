@@ -89,7 +89,7 @@ public:
 
   void Cleanup() {
     for (int i = 0; i < spawn.size(); i++) {
-      delete spawn[i]->mob;
+      //delete spawn[i]->mob;
       delete spawn[i];
     }
 
