@@ -1,18 +1,19 @@
 #pragma once
-#include <SFML\Graphics.hpp>
+#include <SFML/Graphics.hpp>
 
 namespace swoosh {
+  class ActivityController; /* forward decl */
+
   class Activity {
-    friend class Segue;
     friend class ActivityController;
 
-  private:
-    ActivityController& controller;
+  protected:
+    ActivityController* controller;
     sf::View view;
 
   public:
     Activity() = delete;
-    Activity(ActivityController& controller) : controller(controller) { ; }
+    Activity(ActivityController* controller) : controller(controller) { ; }
     virtual void onStart() = 0;
     virtual void onUpdate(double elapsed) = 0;
     virtual void onLeave() = 0;
@@ -24,6 +25,6 @@ namespace swoosh {
     virtual ~Activity() { ; }
     void setView(sf::View view) { this->view = view; }
     const sf::View getView() const { return this->view;  }
-    ActivityController& getController() { return controller; }
+    ActivityController& getController() { return *controller; }
   };
 }

@@ -1,4 +1,4 @@
-#include <Swoosh\ActivityController.h>
+#include <Swoosh/ActivityController.h>
 #include "bnSelectMobScene.h"
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, ChipFolder& selectedFolder) :
@@ -6,7 +6,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   camera(ENGINE.GetDefaultView()),
   textbox(320, 100, 24, "resources/fonts/NETNAVI_4-6_V3.ttf"),
   selectedFolder(selectedFolder),
-  swoosh::Activity(controller)
+  swoosh::Activity(&controller)
 {
   selectedNavi = navi;
 

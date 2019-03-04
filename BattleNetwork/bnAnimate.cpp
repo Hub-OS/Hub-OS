@@ -65,7 +65,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
           iter = copy.begin();
         }
 
-        this->callbacks.merge(nextLoopCallbacks);
+        this->callbacks.insert(nextLoopCallbacks.begin(), nextLoopCallbacks.end());
         this->nextLoopCallbacks.clear();
 
         continue; // Start loop again

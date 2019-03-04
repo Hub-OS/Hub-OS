@@ -11,7 +11,7 @@
 #include "bnAura.h"
 #include "bnPanelGrab.h"
 
-#include <Swoosh\Timer.h>
+#include <Swoosh/Timer.h>
 
 /*
 TODO: use action lists where possible
@@ -38,8 +38,8 @@ private:
   std::vector<SummonBucket> summonedItems; // We must handle our own summoned entites
 
 public:
-  ChipSummonHandler(Player* _player) : ChipUseListener() { player = _player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string();  }
-  ChipSummonHandler(Player& _player) : ChipUseListener() { player = &_player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string(); }
+  ChipSummonHandler(Player* _player) : ChipUseListener() { other = nullptr; player = _player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string();  }
+  ChipSummonHandler(Player& _player) : ChipUseListener() { other = nullptr; player = &_player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string(); }
 
   const bool IsSummonOver() {
     return timeInSecs >= duration.asSeconds() || summon.empty();

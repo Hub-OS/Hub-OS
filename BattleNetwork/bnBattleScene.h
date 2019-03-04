@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Swoosh/Activity.h"
-#include "Swoosh/Ease.h"
-#include "Swoosh/Timer.h"
+#include <Swoosh/Activity.h>
+#include <Swoosh/Ease.h>
+#include <Swoosh/Timer.h>
 
 #include "bnMettaur.h"
 #include "bnProgsMan.h"

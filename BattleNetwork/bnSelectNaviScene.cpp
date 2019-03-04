@@ -1,13 +1,13 @@
 #include "bnSelectNaviScene.h"
-#include "Swoosh\ActivityController.h"
+#include <Swoosh/ActivityController.h>
 
-#include "Segues\Checkerboard.h"
+#include "Segues/Checkerboard.h"
 
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
   naviSelectionIndex(currentNavi),
   camera(ENGINE.GetDefaultView()),
   textbox(135, 15),
-  swoosh::Activity(controller) {
+  swoosh::Activity(&controller) {
   // Menu name font
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
   menuLabel = new sf::Text("BATTLE SELECT", *font);

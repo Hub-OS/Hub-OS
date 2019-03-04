@@ -70,7 +70,7 @@ public:
     this->Spawn(new T(T::Rank::_1));
 
     EnemyChipsUI* ui = new EnemyChipsUI(this->GetSpawned());
-    GetSpawned()->RegisterComponent(ui);
+    this->GetSpawned()->RegisterComponent(ui);
 
     ui->LoadChips(ChipSpawnPolicyChipset().chips);
     mob.DelegateComponent(ui);

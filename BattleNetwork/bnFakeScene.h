@@ -3,7 +3,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
-#include "Swoosh/Activity.h"
+#include <Swoosh/Activity.h>
 
 /*
 This scene takes in a texture input. The texture is the last scene's screen snapshot.

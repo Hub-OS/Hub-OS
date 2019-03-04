@@ -467,7 +467,9 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
         target.draw(label, states);
 
         int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
-        element.setTextureRect(sf::IntRect(14 * elementID, 0, 14, 14));
+        
+        auto elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
+        element.setTextureRect(elementRect);
 
         auto elementLastPos = element.getPosition();
         element.setPosition(element.getPosition() + sf::Vector2f(offset, 0));

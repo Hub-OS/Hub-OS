@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
   sf::Texture* mouseTexture = TEXTURES.LoadTextureFromFile("resources/ui/mouse.png");
   sf::Sprite mouse(*mouseTexture);
   mouse.setScale(2.f, 2.f);
-  Animation mouseAnimation = Animation("resources/ui/mouse.animation");
+  Animation mouseAnimation("resources/ui/mouse.animation");
   mouseAnimation.Reload();
   mouseAnimation.SetAnimation("DEFAULT");
   mouseAnimation << Animate::Mode::Loop;
@@ -486,6 +486,7 @@ int main(int argc, char** argv) {
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
+<<<<<<< HEAD
     // Non-simulation
     elapsed = static_cast<float>(clock.restart().asSeconds()) + static_cast<float>(remainder);
 
@@ -506,26 +507,25 @@ int main(int argc, char** argv) {
     mouseAlpha -= FIXED_TIME_STEP;
     mouseAlpha = std::max(0.0, mouseAlpha);
 
-    if (mousepos != lastMousepos) {
-      lastMousepos = mousepos;
-      mouseAlpha = 1.0;
-    }
+	if (mousepos != lastMousepos) {
+	  lastMousepos = mousepos;
+	  mouseAlpha = 1.0;
+	}
 
     mouse.setPosition(mousepos);
     mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
     mouseAnimation.Update((double)FIXED_TIME_STEP, mouse);
 
-    ENGINE.Clear();
-    ENGINE.DrawUnderlay();
-    ENGINE.DrawLayers();
-    ENGINE.DrawOverlay();
+	ENGINE.Clear();
+	ENGINE.DrawUnderlay();
+	ENGINE.DrawLayers();
+	ENGINE.DrawOverlay();
 
-    app.draw();
+	app.draw();
 
-    ENGINE.GetWindow()->draw(mouse);
+	ENGINE.GetWindow()->draw(mouse);
 
-    ENGINE.GetWindow()->display();
-  }
+	ENGINE.GetWindow()->display();  }
 
   delete mouseTexture;
 

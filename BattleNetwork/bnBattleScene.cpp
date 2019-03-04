@@ -1,14 +1,14 @@
-#include <Swoosh\ActivityController.h>
+#include <Swoosh/ActivityController.h>
 #include "bnBattleScene.h"
 #include "bnGameOverScene.h"
 #include "bnUndernetBackground.h"
 #include "bnPlayerHealthUI.h"
 
-#include "Segues\WhiteWashFade.h"
-#include "Segues\PixelateBlackwashFade.h"
+#include "Segues/WhiteWashFade.h"
+#include "Segues/PixelateBlackWashFade.h"
 
 BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, ChipFolder* folder) :
-  swoosh::Activity(controller), 
+  swoosh::Activity(&controller), 
   player(player),
   mob(mob),
   lastMobSize(mob->GetMobCount()),

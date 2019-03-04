@@ -3,7 +3,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
-#include "Swoosh/Activity.h"
+#include <Swoosh/Activity.h>
 
 class GameOverScene : public swoosh::Activity {
 private:

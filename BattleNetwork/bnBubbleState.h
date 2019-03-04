@@ -4,6 +4,7 @@
 #include "bnAIState.h"
 #include "bnBubbleTrap.h"
 #include "bnShaderResourceManager.h"
+#include <cmath>
 
 /*
   This state can be used by any Entity in the engine.
@@ -54,12 +55,12 @@ void BubbleState<Any, NextState>::OnEnter(Any& e) {
 
 template<typename Any, typename NextState>
 void BubbleState<Any, NextState>::OnUpdate(float _elapsed, Any& e) {
-  if (e.GetComponent<BubbleTrap>() == nullptr) {
+  if (e.template GetComponent<BubbleTrap>() == nullptr) {
     e.UnlockState();
-    this->ChangeState<NextState>();
+    this->template ChangeState<NextState>();
   }
 
-  sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sinf((float)progress * 10.0f));
+  sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));
   e.setPosition(e.getPosition() - offset);
   e.SetAnimation("PLAYER_HIT"); // playing over and over from the start creates a freeze frame effect
 

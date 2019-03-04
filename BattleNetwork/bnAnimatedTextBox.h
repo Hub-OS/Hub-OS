@@ -1,7 +1,7 @@
 #pragma once
 #include "bnTextBox.h"
 #include "bnAnimation.h"
-#include <Swoosh\Ease.h>
+#include <Swoosh/Ease.h>
 
 class AnimatedTextBox : public sf::Drawable, public sf::Transformable {
 public:

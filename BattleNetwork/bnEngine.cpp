@@ -1,6 +1,6 @@
 #include "bnEngine.h"
 #include <time.h>       /* time */
-#include <SFML\Window\ContextSettings.hpp>
+#include <SFML/Window/ContextSettings.hpp>
 
 #include "mmbn.ico.c"
 

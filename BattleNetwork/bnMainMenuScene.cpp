@@ -1,11 +1,11 @@
-#include <Swoosh\ActivityController.h>
+#include <Swoosh/ActivityController.h>
 
 #include "bnMainMenuScene.h"
 #include "bnChipFolderCollection.h"
 
-#include "Segues\PushIn.h"
-#include "Segues\Checkerboard.h"
-#include "Segues\WhiteWashFade.h"
+#include "Segues/PushIn.h"
+#include "Segues/Checkerboard.h"
+#include "Segues/WhiteWashFade.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -15,7 +15,7 @@ using sf::Font;
 
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetDefaultView()),
-  swoosh::Activity(controller)
+  swoosh::Activity(&controller)
 {
   data = ChipFolderCollection::ReadFromFile("resources/database/folders.txt");
 

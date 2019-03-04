@@ -1,6 +1,6 @@
 #pragma once
-#include "Swoosh/Ease.h"
-#include "Swoosh/Activity.h"
+#include <Swoosh/Ease.h>
+#include <Swoosh/Activity.h>
 
 #include "bnCamera.h"
 #include "bnInputManager.h"

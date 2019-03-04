@@ -13,7 +13,7 @@ using std::to_string;
 #include "bnChip.h"
 #include "bnEngine.h"
 
-#include <Swoosh\Ease.h>
+#include <Swoosh/Ease.h>
 
 SelectedChipsUI::SelectedChipsUI(Player* _player) : ChipUsePublisher(), Component(_player)
   , player(_player) {

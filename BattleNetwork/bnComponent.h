@@ -17,7 +17,7 @@ private:
 public:
   Component() = delete;
   Component(Entity* owner) { this->owner = owner; ID = ++numOfComponents;  };
-  ~Component() { ; }
+  virtual ~Component() { ; }
 
   Component(Component&& rhs) = delete;
   Component(const Component& rhs) = delete;
