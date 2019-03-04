@@ -18,7 +18,7 @@ EnemyChipsUI::EnemyChipsUI(Character* _owner) : ChipUsePublisher(), Component(_o
   icon = sf::Sprite(*TEXTURES.GetTexture(CHIP_ICONS));
   icon.setScale(sf::Vector2f(2.f, 2.f));
   this->character = _owner;
-  srand(time(0));
+  srand(time((time_t)0));
 }
 
 EnemyChipsUI::~EnemyChipsUI() {

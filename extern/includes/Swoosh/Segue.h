@@ -14,7 +14,7 @@ namespace swoosh {
     Activity* next;
     sf::Time duration;
     Timer timer;
-    
+
     // Hack to make this lib header-only
     void (ActivityController::*setActivityViewFunc)(sf::RenderTexture& surface, swoosh::Activity* activity);
     void (ActivityController::*resetViewFunc)(sf::RenderTexture& surface);

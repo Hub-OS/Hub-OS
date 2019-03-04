@@ -24,7 +24,7 @@ namespace swoosh {
     virtual void onEnd() = 0;
     virtual ~Activity() { ; }
     void setView(sf::View view) { this->view = view; }
-    const sf::View getView() const { return this->view;  }
+    const sf::View getView() const { return this->view; }
     ActivityController& getController() { return *controller; }
   };
 }

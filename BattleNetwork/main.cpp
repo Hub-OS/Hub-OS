@@ -486,7 +486,6 @@ int main(int argc, char** argv) {
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
-<<<<<<< HEAD
     // Non-simulation
     elapsed = static_cast<float>(clock.restart().asSeconds()) + static_cast<float>(remainder);
 
@@ -494,7 +493,7 @@ int main(int argc, char** argv) {
 
     float FPS = 0.f;
 
-    FPS = (1.0 / (float)elapsed);
+    FPS = (float)(1.0 / (float)elapsed);
     std::string fpsStr = std::to_string(FPS);
     fpsStr.resize(4);
     ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
@@ -514,7 +513,7 @@ int main(int argc, char** argv) {
 
     mouse.setPosition(mousepos);
     mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
-    mouseAnimation.Update((double)FIXED_TIME_STEP, mouse);
+    mouseAnimation.Update((float)FIXED_TIME_STEP, mouse);
 
 	ENGINE.Clear();
 	ENGINE.DrawUnderlay();

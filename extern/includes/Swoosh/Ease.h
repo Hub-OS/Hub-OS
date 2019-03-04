@@ -4,9 +4,9 @@
 namespace swoosh {
   namespace ease {
     static double pi = 3.14159265358979323846;
-    
+
     template<typename T>
-    static T radians(T degrees) { return (degrees * pi) / (T)180.0;  }
+    static T radians(T degrees) { return (degrees * pi) / (T)180.0; }
 
     template<typename T>
     static T interpolate(T factor, T a, T b) {
@@ -33,7 +33,7 @@ namespace swoosh {
 
       return y;
     }
-    
+
     /*
     y = (1 - abs(2-x*4) + 1)/2
 
@@ -94,7 +94,7 @@ namespace swoosh {
         x = 1;
       }
 
-    
+
       T part1 = 3.0 * x * x;
       T part2 = 2.0 * x * x * x * x;
 
