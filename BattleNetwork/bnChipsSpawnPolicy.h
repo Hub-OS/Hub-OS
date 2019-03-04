@@ -73,9 +73,10 @@ public:
     this->GetSpawned()->RegisterComponent(ui);
 
     ui->LoadChips(ChipSpawnPolicyChipset().chips);
-    mob.DelegateComponent(ui);
+    //mob.DelegateComponent(ui);
 
     Component* healthui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(healthui);
+    //mob.DelegateComponent(healthui);
   }
 };

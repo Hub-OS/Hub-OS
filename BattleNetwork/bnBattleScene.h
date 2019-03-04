@@ -209,6 +209,7 @@ public:
 
   // External component injection into the battle system
   void Inject(ChipUsePublisher& pub);
+  void Inject(MobHealthUI & other);
   void Inject(Component* other);
   void Eject(Component* other);
 

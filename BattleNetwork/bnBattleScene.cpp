@@ -67,8 +67,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   chipCustGUI.AddNode(healthUI);
   components.push_back((UIComponent*)healthUI);
 
-  // scenenodes.push_back(dynamic_cast<SceneNode*>(healthUI));
-
   for (auto c : components) {
     c->Inject(*this);
   }
@@ -228,6 +226,7 @@ BattleScene::~BattleScene()
 // What to do if we inject a chip publisher, subscribe it to the main listener
 void BattleScene::Inject(ChipUsePublisher& pub)
 {
+  std::cout << "a chip use listener added" << std::endl;
   this->enemyChipListener.Subscribe(pub);
   this->summons.Subscribe(pub);
 
@@ -235,8 +234,20 @@ void BattleScene::Inject(ChipUsePublisher& pub)
   this->scenenodes.push_back(node);
 }
 
+// what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
+void BattleScene::Inject(MobHealthUI& other)
+{
+  SceneNode* node = dynamic_cast<SceneNode*>(&other);
+  this->scenenodes.push_back(node);
+  components.push_back(&other);
+}
+
+
+// Default case: no special injection found for the type, just add it to our update loop
 void BattleScene::Inject(Component * other)
 {
+  if (!other) return;
+
   components.push_back(other);
 }
 
@@ -261,10 +272,12 @@ void BattleScene::ProcessNewestComponents()
       if (e->lastComponentID < e->shared[0]->GetID()) {
         // Process the newst components
         for (auto c : e->shared) {
+          // update the ledger 
+          e->lastComponentID = e->shared[0]->GetID();
+
+          // Inject usually removes the owner so this step proceeds the lastComponentID update
           c->Inject(*this);
         }
-        // update the ledger 
-        e->lastComponentID = e->shared[0]->GetID();
       }
     }
   }
@@ -318,6 +331,7 @@ void BattleScene::onUpdate(double elapsed) {
 
     Agent* cast = dynamic_cast<Agent*>(data->mob);
 
+    // Some entities have AI and need targets
     if (cast) {
       cast->SetTarget(player);
     }
@@ -347,47 +361,37 @@ void BattleScene::onUpdate(double elapsed) {
 
   background->Update((float)elapsed);
 
-  // compare the summon state after we used a chip...
-  if (summons.IsSummonsActive() && prevSummonState == false) {
-    // We are switching over to a new state this frame
-    summonTimer = 0;
-    showSummonText = true;
-  }
-  else if (summons.IsSummonOver() && prevSummonState == true) {
-    // We are leaving the summons state this frame
-    summons.OnLeave();
-    prevSummonState = false;
-  }
-
-  if (!showSummonText && summons.IsSummonsActive()) {
-    summons.Update(elapsed);
-  }
-
-
   // Do not update when: paused or in chip select, during a summon sequence, showing Battle Start sign
   if (!(isPaused || isInChipSelect) && summons.IsSummonOver() && !isPreBattle) {
+    // kill switch for testing:
+    if (INPUT.Has(InputEvent::HELD_A) && INPUT.Has(InputEvent::HELD_B) && INPUT.Has(InputEvent::HELD_LEFT) && INPUT.Has(InputEvent::HELD_RIGHT)) {
+      mob->KillSwitch();
+    }
+
     field->Update((float)elapsed);
+  }
+
+  int newMobSize = mob->GetRemainingMobCount();
+
+  if (lastMobSize != newMobSize) {
+    if (lastMobSize - newMobSize == 2) {
+      didDoubleDelete = true;
+      comboInfo = doubleDelete;
+      comboInfoTimer.reset();
+    }
+    else if (lastMobSize - newMobSize > 2) {
+      didTripleDelete = true;
+      comboInfo = tripleDelete;
+      comboInfoTimer.reset();
+    }
+
+    lastMobSize = newMobSize;
   }
 
   // todo: we need states
   // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
-  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonsActive() || isPreBattle || isPostBattle)) {  
+  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonActive() || isPreBattle || isPostBattle)) {  
     int newMobSize = mob->GetRemainingMobCount();
-
-    if (lastMobSize != newMobSize) {
-      if (lastMobSize - newMobSize == 2) {
-        didDoubleDelete = true;
-        comboInfo = doubleDelete;
-        comboInfoTimer.reset();
-      }
-      else if (lastMobSize - newMobSize > 2) {
-        didTripleDelete = true;
-        comboInfo = tripleDelete;
-        comboInfoTimer.reset();
-      }
-
-      lastMobSize = newMobSize;
-    }
 
     if (newMobSize == 0) {
       if (!battleTimer.isPaused()) {
@@ -430,7 +434,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   while (field->GetNextTile(tile)) {
     tile->move(ENGINE.GetViewOffset());
 
-    if (summons.IsSummonsActive()) {
+    if (summons.IsSummonActive()) {
       LayeredDrawable* coloredTile = new LayeredDrawable(*(sf::Sprite*)tile);
       coloredTile->SetShader(&pauseShader);
       ENGINE.Draw(coloredTile);
@@ -545,7 +549,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.DrawOverlay();
 
-  if (summons.IsSummonsActive() && showSummonText) {
+  if (/*summons.IsSummonsActive() &&*/ showSummonText) {
     sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
 
     double summonSecs = summonTimer;
@@ -555,7 +559,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       summonsLabel.setPosition(40.0f, 80.f);
     }
     else {
-      summonsLabel.setPosition(340.0f, 80.0f);
+      summonsLabel.setPosition(470.0f, 80.0f);
     }
 
     summonsLabel.setScale(1.0f, (float)scale);
@@ -600,9 +604,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
 
-  if (!isPlayerDeleted && !summons.IsSummonsActive()) {
+  if (!isPlayerDeleted && !summons.IsSummonActive()) {
     chipUI.Update((float)elapsed); // DRAW 
 
+    // TODO: we have a real component system now, refactor this
     Drawable* component;
     while (chipUI.GetNextComponent(component)) {
       ENGINE.Draw(component);
@@ -651,13 +656,43 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(pauseLabel, false);
   }
 
-  // Track is a summon chip was used before key events below
-  prevSummonState = summons.IsSummonsActive();
+  // compare the summon state after we used a chip...
+  if (!showSummonText) {
+    /*if (summons.IsSummonActive() && prevSummonState == false) {
+      // We are switching over to a new state this frame
+      summonTimer = 0;
+      showSummonText = true;
+      std::cout << "summon text showing" << std::endl;
+    }
+    else */ if (summons.IsSummonOver() && prevSummonState == true) {
+      // We are leaving the summons state this frame
+      summons.OnLeave();
+      prevSummonState = false;
+    }
+    else   // When these conditions are met, the chip name has shown and we're ready to follow through with the summon
+      if (summons.IsSummonActive() && prevSummonState == true) {
+        summons.Update(elapsed);
+      }
+
+    // Track if a summon chip was used on this frame
+    if (!prevSummonState) {
+      prevSummonState = summons.IsSummonActive() || summons.HasMoreInQueue();
+
+      if (prevSummonState) {
+        summonTimer = 0;
+        showSummonText = true;
+        std::cout << "prevSummonState flagged" << std::endl;
+      }
+    }
+  }
+
 
   // Draw cust GUI on top of scene. No shaders affecting.
   ENGINE.Draw(chipCustGUI);
 
   // Scene keyboard controls
+  // TODO: really belongs in Update() but also handles a lot of conditional draws
+  //       refactoring battle scene into battle states should reduce this complexity
   if (INPUT.Has(PRESSED_PAUSE) && !isInChipSelect && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
     isPaused = !isPaused;
 
@@ -714,12 +749,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
 
     // NOTE: Need a battle scene state manager to handle going to and from one controll scheme to another. 
-    // Plus would make more sense to revoke shaders once complete transition 
+    // Plus would make more sense to revoke screen effects and labels once complete transition 
 
   }
   else if (isInChipSelect && chipCustGUI.IsInView()) {
-    static bool A_HELD = false;
-
     if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
       if (!INPUT.Has(HELD_PAUSE)) {
         chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
@@ -787,7 +820,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
         if (chipCustGUI.AreChipsReady()) {
           AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
-          customProgress = 0; // NOTE: Hack. Need one more state boolean
+          customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f)); 
         }
         else if (performed) {
@@ -985,7 +1018,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           }
           else {
             if (paStepIndex == chipCount + 1) {
-              listStepCounter = listStepCooldown * 2.0f; // Linger on the screen when merged
+              listStepCounter = listStepCooldown * 2.0f; // Linger on the screen when showing the final PA
             }
             else {
               listStepCounter = listStepCooldown * 0.7f; // Quicker about non-PA chips
@@ -1024,8 +1057,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             
             if (reward != nullptr) {
               if (reward->IsChip()) {
-                // TODO: sent the battle item off to the player's 
-                // persistent session storage
+                // TODO: send the battle item off to the player's 
+                // persistent session storage (aka a save file or cloud database)
                 CHIPLIB.AddChip(reward->GetChip());
                 Chip filtered = CHIPLIB.GetChipEntry(reward->GetChip().GetShortName(), reward->GetChip().GetCode());
                 persistentFolder->AddChip(filtered);

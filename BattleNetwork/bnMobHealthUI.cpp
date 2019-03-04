@@ -2,6 +2,7 @@
 using std::to_string;
 
 #include <Swoosh/Game.h>
+#include "bnBattleScene.h"
 #include "bnMobHealthUI.h"
 #include "bnCharacter.h"
 #include "bnTextureResourceManager.h"
@@ -40,12 +41,6 @@ void MobHealthUI::Update(float elapsed) {
 
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
-
-    /* NOTE: Chronox doesn't do this
-    // Only delay damage display if 80 or more HP in the red
-    if (healthCounter > mob->GetHealth() &&  healthCounter - mob->GetHealth() < 80) {
-      healthCounter = mob->GetHealth();
-    }*/
    
     if (healthCounter > mob->GetHealth()) {
       healthCounter--;
@@ -66,15 +61,15 @@ void MobHealthUI::Update(float elapsed) {
     text.setString(to_string(healthCounter));
     swoosh::game::setOrigin(text, 0.0f, 0.0f);
 
-    int* res = mob->GetAnimOffset();
-
-   // if (res != nullptr) {
-    //  setPosition(mob->getPosition().x + res[0], mob->getPosition().y + res[1]);
-    //  delete[] res;
-    //} else {
     setPosition(mob->getPosition().x, mob->getPosition().y);
-    //}
   }
+}
+
+void MobHealthUI::Inject(BattleScene & scene)
+{
+  // Todo: add freedome to inject step? It's manadatory. No sense repeating this every time
+  GetOwner()->FreeComponentByID(this->GetID()); // We are owned by the scene now 
+  scene.Inject(*this);
 }
 
 void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const

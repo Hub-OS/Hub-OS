@@ -1,12 +1,14 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <functional>
 using sf::RectangleShape;
 using sf::Sprite;
 using std::vector;
 using std::find;
+using std::set;
 
 class Entity;
 class Spell;
@@ -46,6 +48,7 @@ namespace Battle {
     float GetHeight() const;
 
     void SetState(TileState _state);
+
     void RefreshTexture();
 
     bool IsWalkable() const;
@@ -61,6 +64,8 @@ namespace Battle {
     void RemoveEntityByID(int ID);
     bool ContainsEntity(Entity* _entity) const;
 
+    void ReserveEntityByID(int ID);
+
     template<class Type> bool ContainsEntityType();
     void AffectEntities(Spell* caller);
 
@@ -72,11 +77,13 @@ namespace Battle {
 
     std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
+    // Todo: use sets to avoid duplicate entries
     vector<Artifact*> artifacts;
     vector<Spell*> spells;
     vector<Character*> characters;
     vector<Entity*> entities;
 
+    set<int> reserved;
   private:
     int x;
     int y;

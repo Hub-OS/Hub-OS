@@ -15,7 +15,7 @@ MetalManPunchState::~MetalManPunchState()
 
 void MetalManPunchState::OnEnter(MetalMan& metal) {
   auto onFinish = [this]() {   this->ChangeState<MetalManIdleState>(); };
-  auto onGroundHit = [this, &metal]() {   this->Attack(metal); };
+  auto onGroundHit = [this, m = &metal]() {   this->Attack(*m); };
 
   metal.SetAnimation("PUNCH", onFinish);
   metal.SetCounterFrame(1);

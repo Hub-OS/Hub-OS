@@ -91,11 +91,18 @@ bool Camera::IsInView(sf::Sprite& sprite) {
 
 void Camera::ShakeCamera(double stress, sf::Time duration)
 {
-  init = focus;
-  this->stress = stress;
-  shakeDur = duration;
-  shakeProgress = 0;
-  isShaking = true;
+  std::cout << "camera shake request" << std::endl;
+
+  if (!isShaking) {
+    init = focus;
+    this->stress = stress;
+    shakeDur = duration;
+    shakeProgress = 0;
+    isShaking = true;
+  }
+  else {
+    std::cout << "camera already shaking" << std::endl;
+  }
 }
 
 const sf::View Camera::GetView() const

@@ -7,7 +7,9 @@
 
 Character::Character(Rank _rank) : 
   health(0),
+  maxHealth(0),
   counterable(false),
+  draggable(true),
   canShareTile(false),
   stunCooldown(0),
   name("unnamed"),
@@ -35,6 +37,11 @@ void Character::ShareTileSpace(bool enabled)
 const bool Character::CanShareTileSpace() const
 {
   return this->canShareTile;
+}
+
+void Character::SetDraggable(bool enabled)
+{
+  this->draggable = enabled;
 }
 
 void Character::Update(float _elapsed) {
@@ -104,6 +111,11 @@ int Character::GetHealth() const {
   return health;
 }
 
+const int Character::GetMaxHealth() const
+{
+  return this->maxHealth;
+}
+
 const bool Character::Hit(Hit::Properties props) {
   this->frameHitProps |= props.flags;
   this->frameDamageTaken += props.damage;
@@ -141,8 +153,13 @@ int* Character::GetAnimOffset() {
 
 void Character::SetHealth(const int _health) {
   health = _health;
-  if (health < 0) health = 0;
 
+  if (maxHealth == 0) {
+    maxHealth = health;
+  }
+
+  if (health < 0) health = 0;
+  if (health > maxHealth) health = maxHealth;
 }
 
 void Character::AdoptTile(Battle::Tile * tile)

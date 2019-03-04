@@ -19,7 +19,12 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
 
   nextDirection = Direction::NONE;
 
-  bool moved = metal.Teleport((rand()%3) + 4, (rand()%3)+1);
+  bool moved = false;
+  
+  do {
+    // Find a new spot that is on our team
+    moved = metal.Teleport((rand() % 6) + 1, (rand() % 3) + 1);
+  } while (!moved || metal.GetNextTile()->GetTeam() != metal.GetTeam());
 
   Battle::Tile* next = nullptr;
 
@@ -29,7 +34,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
     if(next && metal.Teleport(next->GetX()+1, next->GetY())) {
       metal.AdoptNextTile();
 
-      auto onFinish = [this, &metal]() {
+      auto onFinish = [this]() {
         this->ChangeState<MetalManPunchState>();
       };
 
@@ -42,10 +47,10 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
   } else if (moved) {
     metal.AdoptNextTile();
 
-    auto onFinish = [this, &metal]() { 
-      if (metal.GetTarget() && metal.GetTarget()->GetTile()) {
-        int targetY = metal.GetTarget()->GetTile()->GetY();
-        int targetX = metal.GetTarget()->GetTile()->GetX();
+    auto onFinish = [this, m = &metal]() { 
+      if (m->GetTarget() && m->GetTarget()->GetTile()) {
+        int targetY = m->GetTarget()->GetTile()->GetY();
+        int targetX = m->GetTarget()->GetTile()->GetX();
 
         if ((targetX == 1 || targetY != 2) && (rand() % 4) == 0) {
           this->ChangeState<MetalManThrowState>();
@@ -55,7 +60,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
         }
       }
       else {
-        this->ChangeState<MetalManMoveState>();
+        this->ChangeState<MetalManIdleState>();
       }
     };
 

@@ -19,8 +19,8 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
   SetPassthrough(true);
   EnableTileHighlight(false); // Do not highlight where we move
 
-  field = summons->GetPlayer()->GetField();
-  team = summons->GetPlayer()->GetTeam();
+  field = summons->GetCaller()->GetField();
+  team = summons->GetCaller()->GetTeam();
 
   direction = Direction::NONE;
   deleted = false;
@@ -32,9 +32,10 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
 
   heal = _heal;
 
-  setScale(2.0f, 2.0f);
+  int lr = (team == Team::RED) ? 1 : -1;
+  setScale(2.0f*lr, 2.0f);
 
-  Battle::Tile* _tile = summons->GetPlayer()->GetTile();
+  Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
   this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
@@ -68,7 +69,7 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
       if (found) {
         this->animationComponent.SetAnimation("ROLL_ATTACKING", [this] {
           this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
-            this->summons->SummonEntity(new RollHeart(this->summons, this->summons->GetPlayer(), this->heal));
+            this->summons->SummonEntity(new RollHeart(this->summons, this->heal));
             this->summons->RemoveEntity(this);
           });
         });
@@ -81,7 +82,7 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
       }
       else {
         this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
-          this->summons->SummonEntity(new RollHeart(this->summons, this->summons->GetPlayer(), this->heal));
+          this->summons->SummonEntity(new RollHeart(this->summons, this->heal));
           this->summons->RemoveEntity(this);
         });
       }

@@ -16,6 +16,7 @@ namespace Hit {
   const Flags flinch = 0x10;
   const Flags breaking = 0x20;
   const Flags impact = 0x40;
+  const Flags pushing = 0x80;
 
   struct Properties {
     int damage;
@@ -73,7 +74,9 @@ public:
   virtual int* GetAnimOffset();
 
   virtual int GetHealth() const;
-  virtual void SetHealth(int _health);
+  const int GetMaxHealth() const;
+
+  void SetHealth(int _health);
 
   virtual void AdoptTile(Battle::Tile* tile);
 
@@ -86,6 +89,7 @@ public:
   // Some characters allow others to move ontop of them
   void ShareTileSpace(bool enabled);
   const bool CanShareTileSpace() const;
+  void SetDraggable(bool enabled);
 
   // For mob UI
   void SetName(std::string name);
@@ -97,9 +101,13 @@ public:
 
   const bool CheckDefenses(Spell* in);
 
+private:
+  int maxHealth;
+
 protected:
   int health;
   bool counterable;
+  bool draggable; // used by Hit::pushing
   std::string name;
   double stunCooldown;
   Character::Rank rank;

@@ -24,6 +24,8 @@ public:
   void SetFrame(int frame, sf::Sprite& target);
   void SetAnimation(string state);
 
+  void RemoveCallbacks();
+
   const std::string GetAnimationString() const;
 
   FrameList& GetFrameList(std::string animation);

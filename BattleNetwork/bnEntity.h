@@ -46,6 +46,7 @@ public:
 
   void SetTile(Battle::Tile* _tile);
   Battle::Tile* GetTile() const;
+  const Battle::Tile * GetNextTile() const;
   void SlideToTile(bool );
   const bool IsSliding() const;
 

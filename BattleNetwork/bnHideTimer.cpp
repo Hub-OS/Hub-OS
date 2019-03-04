@@ -13,10 +13,6 @@ HideTimer::HideTimer(Character* owner, double secs) : Component(owner) {
 }
 
 void HideTimer::Update(float _elapsed) {
-  if (temp->GetState() == TileState::BROKEN) {
-    temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
-  }
-
   elapsed += _elapsed;
 
   if (elapsed >= duration.asSeconds()) {
@@ -34,5 +30,12 @@ void HideTimer::Inject(BattleScene& scene) {
   // it is safe now to temporarily remove from character from play
   // the component is now injected into the scene's update loop
   temp->RemoveEntityByID(owner->GetID());
+
+  temp->ReserveEntityByID(owner->GetID());
+
+  if (temp->GetState() == TileState::BROKEN) {
+    temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
+  }
+
   owner->SetTile(nullptr);
 }

@@ -85,6 +85,11 @@ void MetalMan::Update(float _elapsed) {
     movedByStun = false; 
   }
 
+  // todo: add this in Agent::Update() for ALL agent
+  if (this->GetTarget() && this->GetTarget()->IsDeleted()) {
+    this->SetTarget(nullptr);
+  }
+
   healthUI->Update(_elapsed);
 
   if (!hit) {

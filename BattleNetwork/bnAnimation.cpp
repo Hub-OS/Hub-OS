@@ -155,6 +155,11 @@ void Animation::SetAnimation(string state) {
    }
 }
 
+void Animation::RemoveCallbacks()
+{
+  animator.Clear();
+}
+
 const std::string Animation::GetAnimationString() const
 {
   return currAnimation;

@@ -269,6 +269,10 @@ Battle::Tile* Entity::GetTile() const {
   return tile;
 }
 
+const Battle::Tile* Entity::GetNextTile() const {
+  return next;
+}
+
 void Entity::SlideToTile(bool enabled)
 {
   isSliding = enabled;

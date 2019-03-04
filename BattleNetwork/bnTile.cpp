@@ -144,7 +144,7 @@ namespace Battle {
 
   void Tile::SetState(TileState _state) {
     // todo: artifacts and spells don't count, only characters and obstacles
-    if (_state == TileState::BROKEN && this->characters.size() > 0) {
+    if (_state == TileState::BROKEN && (this->characters.size() || this->reserved.size())) {
       return;
     }
 
@@ -278,6 +278,8 @@ namespace Battle {
   // Aux function
   void Tile::AddEntity(Entity* _entity) {
     _entity->SetTile(this);
+    auto reservedIter = reserved.find(_entity->GetID());
+    if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
     entities.push_back(_entity);
 
     // Sort by layer (draw order)
@@ -324,6 +326,11 @@ namespace Battle {
     return find(copy.begin(), copy.end(), _entity) != copy.end();
   }
 
+  void Tile::ReserveEntityByID(int ID)
+  {
+    reserved.insert(ID);
+  }
+
   void Tile::AffectEntities(Spell* caller) {
     if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
       return;
@@ -364,6 +371,7 @@ namespace Battle {
     }
   }
 
+  // todo: redundant now that we have queries
   bool Tile::GetNextEntity(Entity*& out) const {
     static int x = 0;
     while (x < (int)this->entities.size()) {
@@ -391,30 +399,30 @@ namespace Battle {
     auto itArt = artifacts.begin();
 
     while (itEnt != entities.end()) {
-      if ((*itEnt)->IsDeleted() || *itEnt == nullptr) {
-        if ((*itEnt)->IsDeleted()) {
-          long ID = (*itEnt)->GetID();
+      if ((*itEnt)->IsDeleted()) {
+        long ID = (*itEnt)->GetID();
+        
+        auto reservedIter = reserved.find(ID);
+        if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
-          auto fitEnt = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
-          auto fitSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
-          auto fitChar = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
-          auto fitArt = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+        auto fitEnt = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+        auto fitSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+        auto fitChar = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+        auto fitArt = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
 
-          if (fitSpell != spells.end()) {
-            spells.erase(fitSpell);
-          }
-
-          if (fitChar != characters.end()) {
-            characters.erase(fitChar);
-          }
-
-          if (fitArt != artifacts.end()) {
-            artifacts.erase(fitArt);
-          }
-
-          delete *itEnt;
+        if (fitSpell != spells.end()) {
+          spells.erase(fitSpell);
         }
 
+        if (fitChar != characters.end()) {
+          characters.erase(fitChar);
+        }
+
+        if (fitArt != artifacts.end()) {
+          artifacts.erase(fitArt);
+        }
+
+        delete *itEnt;
         itEnt = entities.erase(itEnt);
       }
       else {
@@ -438,7 +446,7 @@ namespace Battle {
       if ((*entity)->IsDeleted() || (*entity) == nullptr)
         continue;
 
-        hasSpell = (*entity)->IsTileHighlightEnabled();
+        hasSpell = hasSpell || (*entity)->IsTileHighlightEnabled();
 
       (*entity)->SetBattleActive(isBattleActive);
       (*entity)->Update(_elapsed);

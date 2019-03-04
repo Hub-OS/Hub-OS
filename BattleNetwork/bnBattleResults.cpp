@@ -193,8 +193,15 @@ std::string BattleResults::FormatString(sf::Time time)
 bool BattleResults::CursorAction() {
   bool prevStatus = isRevealed;
 
-  isRevealed = true;
-  totalElapsed = 0;
+  if (!isRevealed) {
+    isRevealed = true;
+    totalElapsed = 0;
+  } /*
+    else if(extraItems.size() > 0) {
+        item = extraItems.top(); extraItems.pop();
+        totalElapsed =  0;
+    }
+    */
 
   return prevStatus;
 }

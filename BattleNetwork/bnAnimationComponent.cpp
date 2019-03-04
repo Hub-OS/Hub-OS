@@ -56,3 +56,8 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, std::func
 void AnimationComponent::AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame, bool doOnce) {
   animation << Animate::On(frame, onFrame, doOnce) << Animate::On(frame+1, outFrame, doOnce);
 }
+
+void AnimationComponent::CancelCallbacks()
+{
+  animation.RemoveCallbacks();
+}

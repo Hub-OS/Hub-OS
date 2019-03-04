@@ -28,7 +28,7 @@ void EnemyChipsUI::Update(float _elapsed) {
   if (GetOwner() && GetOwner()->GetTile() && !GetOwner()->IsDeleted() && GetOwner()->IsBattleActive()) {
     Agent* agent = GetOwnerAs<Agent>();
 
-    if (agent && agent->GetTarget() && agent->GetTarget()->GetTile()) {
+    if (agent && agent->GetTarget() && !agent->GetTarget()->IsDeleted() && agent->GetTarget()->GetTile()) {
       if (agent->GetTarget()->GetTile()->GetY() == GetOwner()->GetTile()->GetY()) {
         if (rand() % 500 > 299) {
           this->UseNextChip();
@@ -73,6 +73,7 @@ void EnemyChipsUI::UseNextChip() {
     return;
   }
 
+  std::cout << "selected chip " << selectedChips[curr].GetShortName() << " is broadcasted by enemy UI" << std::endl;
   this->Broadcast(selectedChips[curr], *this->character);
 
   curr++;

@@ -12,7 +12,7 @@ public:
   ~MobHealthUI(void);
 
   virtual void Update(float elapsed);
-  virtual void Inject(BattleScene& scene) { ; }
+  virtual void Inject(BattleScene& scene);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
 private:

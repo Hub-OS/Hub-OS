@@ -3,11 +3,9 @@
 #include "bnSpell.h"
 #include "bnChipSummonHandler.h"
 
-class Player;
-
 class RollHeart : public Spell {
 public:
-  RollHeart(ChipSummonHandler* _summons, Player* _player, int _heal);
+  RollHeart(ChipSummonHandler* _summons, int _heal);
   virtual ~RollHeart(void);
 
   virtual void Update(float _elapsed);
@@ -17,7 +15,7 @@ public:
 private:
   int heal;
   float height = 200;
-  Player* player;
+  Character* caller;
   ChipSummonHandler* summons;
   bool doOnce;
 }; 

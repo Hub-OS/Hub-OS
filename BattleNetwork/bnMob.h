@@ -103,6 +103,12 @@ public:
     components.clear();
   }
 
+  void KillSwitch() {
+    for (int i = 0; i < spawn.size(); i++) {
+      spawn[i]->mob->SetHealth(0);
+    }
+  }
+
   Field* GetField() {
     return field;
   }

@@ -68,6 +68,7 @@ void Player::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
+    this->animationComponent.CancelCallbacks();
     this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
     AI<Player>::Update(_elapsed);
     return;

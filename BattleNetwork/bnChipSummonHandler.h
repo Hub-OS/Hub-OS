@@ -12,6 +12,7 @@
 #include "bnPanelGrab.h"
 
 #include <Swoosh/Timer.h>
+#include <queue>
 
 /*
 TODO: use action lists where possible
@@ -20,13 +21,45 @@ TODO: use action lists where possible
 */
 class ChipSummonHandler : public ChipUseListener {
 private:
-  Player * player;
-  Character * other;
-  double timeInSecs;
-  sf::Time duration;
-  std::string summon;
-  Chip copy;
-  Team callerTeam;
+  struct ChipSummonQueue {
+    std::queue<Character*> callers;
+    std::queue<Chip> chips;
+    std::queue<sf::Time> durations;
+
+    const size_t Size() const {
+      return callers.size();
+    }
+
+    void Add(Chip chip, Character& caller, sf::Time duration) {
+      callers.push(&caller);
+      chips.push(chip);
+      durations.push(duration);
+    }
+
+    void Pop() {
+      if (Size() > 0) {
+        callers.pop();
+        chips.pop();
+        durations.pop();
+      }
+    }
+
+    Character* GetCaller() {
+      return callers.front();
+    }
+
+    Chip GetChip() {
+      return chips.front();
+    }
+
+    double GetDuration() const {
+      if (Size() > 0) {
+        return durations.front().asSeconds();
+      }
+
+      return 0;
+    }
+  };
 
   struct SummonBucket {
     Entity* entity;
@@ -35,32 +68,45 @@ private:
     SummonBucket(Entity* e, bool p) { entity = e; persist = p; }
   };
 
+  Player * player;
+  Character * other;
+  double timeInSecs;
+  sf::Time duration;
+  std::string summon;
+  Chip copy;
+  Team callerTeam;
+
+  ChipSummonQueue queue;
   std::vector<SummonBucket> summonedItems; // We must handle our own summoned entites
 
 public:
-  ChipSummonHandler(Player* _player) : ChipUseListener() { other = nullptr; player = _player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string();  }
-  ChipSummonHandler(Player& _player) : ChipUseListener() { other = nullptr; player = &_player; duration = sf::seconds(3); timeInSecs = 0; summon = std::string(); }
+  ChipSummonHandler(Player* _player) : ChipUseListener() { other = nullptr; player = _player; duration = sf::seconds(0); timeInSecs = 0; summon = std::string();  }
+  ChipSummonHandler(Player& _player) : ChipUseListener() { other = nullptr; player = &_player; duration = sf::seconds(0); timeInSecs = 0; summon = std::string(); }
 
-  const bool IsSummonOver() {
-    return timeInSecs >= duration.asSeconds() || summon.empty();
+  const bool IsSummonOver() const {
+    return ((timeInSecs >= queue.GetDuration()));
   }
 
-  const bool IsSummonsActive() {
+  const bool HasMoreInQueue() const {
+    return queue.Size() > 0;
+  }
+
+  const bool IsSummonActive() const {
     return !IsSummonOver();
   }
 
-  const std::string GetSummonLabel() { return copy.GetShortName(); }
+  const std::string GetSummonLabel() { return queue.GetChip().GetShortName(); }
 
   const Team GetCallerTeam() const {
-    if (other) {
-      return other->GetTeam();
+    if (HasMoreInQueue()) {
+      return queue.callers.front()->GetTeam();
     }
 
-    return player->GetTeam();
+    return Team::UNKNOWN;
   }
 
-  Player* GetPlayer() {
-    return player;
+  Character* GetCaller() {
+    return queue.GetCaller();
   }
 
   void SummonEntity(Entity* _new, bool persist=false)  {
@@ -82,19 +128,9 @@ public:
   }
 
   void Update(double _elapsed) {
-    if (summon.empty())
-      return;
-
     std::cout << "in summons update" << std::endl;
 
-    if (!other) {
-      player->Update(0);
-      player->GetAnimationComponent().Update((float)_elapsed);
-    }
-    else {
-      other->Update(0);
-      //other->GetAnimationComponent().Update((float)_elapsed);
-    }
+    // queue.GetCaller()->Update(0);
 
     timeInSecs += _elapsed;
 
@@ -114,14 +150,36 @@ public:
   }
 
   void OnEnter() { 
-    std::cout << "on summons enter" << std::endl;
+    std::cout << "Summons onEnter ";
 
-    Character* summonedBy = player;
+    Character* summonedBy = queue.GetCaller();
 
-    if (other) {
-      summonedBy = other;
+    std::cout << "[" << summonedBy->GetName() << ", " << queue.GetChip().GetShortName() << ", " << queue.GetDuration() << "sec]" << std::endl;
+
+    std::string name = queue.GetChip().GetShortName();
+
+    if (name.substr(0, 4) == "Roll") {
+      summon = "Roll";
+
+    }
+    else if (name.substr(0, 8) == "RockCube") {
+      summon = "RockCube";
+
+    }
+    else if (name.substr(0, 7) == "Barrier") {
+      summon = "Barrier";
+
+    }
+    else if (name == "Antidamg") {
+      summon = "Antidamg";
+
+    }
+    else if (name == "AreaGrab") {
+      summon = name;
+
     }
 
+    // TODO: Don't use summon, use queue.GetChip();
     if (summon == "Roll") {
       summonedBy->Hide();
 
@@ -229,18 +287,12 @@ public:
       // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
       SummonEntity(aura, true);
     }
-
-    other = nullptr;
   }
 
   void OnLeave() { 
-    std::cout << "on summons leave" << std::endl;
+    queue.Pop();
 
-    player->Reveal();
-
-    if (other) {
-      other->Reveal();
-    }
+    std::cout << "Summon onLeave [queue size is " << queue.Size() << "]" << std::endl;
 
     for (auto items : summonedItems) {
       if (!items.persist) {
@@ -251,27 +303,24 @@ public:
     summonedItems.clear();
 
     summon = std::string();
+
+    if (HasMoreInQueue()) {
+      timeInSecs = 0;
+    }
   }
 
   void OnChipUse(Chip& chip, Character& character) {
     std::cout << "on chips use " << chip.GetShortName() << " by " << character.GetName() << std::endl;
-
-    if (dynamic_cast<Character*>(player) == &character) {
-      player->SetCharging(false);
-      other = nullptr;
-    }
-    else {
-      other = &character;
-    }
-
     std::string name = chip.GetShortName();
-    copy = chip;
 
-    if (name.substr(0,4) == "Roll") {
+    bool add = true;
+
+    if (name.substr(0, 4) == "Roll") {
       summon = "Roll";
       timeInSecs = 0;
       duration = sf::seconds(4);
-    } else if (name.substr(0, 8) == "RockCube") {
+    }
+    else if (name.substr(0, 8) == "RockCube") {
       summon = "RockCube";
       timeInSecs = 0;
       duration = sf::seconds(1);
@@ -294,7 +343,13 @@ public:
     else {
       summon.clear();
       timeInSecs = duration.asSeconds() + 1;
-      other = nullptr;
+      copy = Chip();
+      add = false;
+    }
+
+    if (add) {
+      std::cout << "[Summon queued]" << std::endl;
+      queue.Add(chip, character, duration);
     }
   }
 };

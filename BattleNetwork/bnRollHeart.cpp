@@ -10,18 +10,17 @@
 
 #define RESOURCE_PATH "resources/spells/spell_heart.animation"
 
-RollHeart::RollHeart(ChipSummonHandler* _summons, Player* _player, int _heal) : heal(_heal), Spell()
+RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spell()
 {
-  player = _player;
   summons = _summons;
 
-  player->SetAlpha(255);
+  summons->GetCaller()->Reveal();
 
   SetPassthrough(true);
   EnableTileHighlight(true);
 
-  field = player->GetField();
-  team = player->GetTeam();
+  field = summons->GetCaller()->GetField();
+  team = summons->GetCallerTeam();
 
   direction = Direction::NONE;
   deleted = false;
@@ -29,7 +28,7 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, Player* _player, int _heal) : 
   progress = 0.0f;
   hitHeight = 0.0f;
 
-  Battle::Tile* _tile = player->GetTile();
+  Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
   this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
@@ -60,12 +59,13 @@ void RollHeart::Update(float _elapsed) {
     AUDIO.Play(AudioType::RECOVER);
     doOnce = false;
     this->setColor(sf::Color(255, 255, 255, 0)); // hidden
-    player->SetHealth(player->GetHealth() + heal);
-    player->SetAnimation("PLAYER_HEAL", [this]() {
+    caller->SetHealth(caller->GetHealth() + heal);
+    
+    /*player->SetAnimation("PLAYER_HEAL", [this]() {
       player->SetAnimation("PLAYER_IDLE", [this]() {
         summons->RemoveEntity(this);
       });
-    });
+    });*/
   }
 }
 
