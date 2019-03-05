@@ -6,7 +6,7 @@
 using std::string;
 
 namespace Hit {
-  typedef char Flags;
+  typedef unsigned char Flags;
 
   const Flags none = 0x00;
   const Flags recoil = 0x01;
