@@ -70,6 +70,8 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   textbox.setPosition(100, 210);
   textbox.SetTextColor(sf::Color::Black);
   textbox.SetCharactersPerSecond(25);
+  
+  mob = nullptr;
 }
 
 SelectMobScene::~SelectMobScene() {
@@ -88,7 +90,10 @@ SelectMobScene::~SelectMobScene() {
 }
 
 void SelectMobScene::onResume() {
-  if(mob) delete mob;
+  if(mob) {
+	  delete mob;
+	  mob = nullptr;
+  }
 
   // Fix camera if offset from battle
   ENGINE.SetCamera(camera);
@@ -99,7 +104,6 @@ void SelectMobScene::onResume() {
   gotoNextScene = false;
   doOnce = true;
   showMob = true;
-  textbox.Play();
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
@@ -173,7 +177,8 @@ void SelectMobScene::onUpdate(double elapsed) {
     mobSpr.setPosition(110.f, 130.f);
 
     textbox.SetMessage(mobinfo.GetDescriptionString());
-
+	textbox.Stop();
+	
     prevSelect = mobSelectionIndex;
   }
 
@@ -198,9 +203,8 @@ void SelectMobScene::onUpdate(double elapsed) {
       }
     }
 
-    int randAttack = rand() % 10;
-    int randSpeed = rand() % 10;
-
+    int randAttack = 0;
+    int randSpeed = 0;
     int randHP = 0;
 
     int count = (int)mobinfo.GetHPString().size() - 1;
@@ -210,6 +214,28 @@ void SelectMobScene::onUpdate(double elapsed) {
       index *= (rand() % 9) + 1;
 
       randHP += index;
+
+      count--;
+    }
+    
+    count = (int)mobinfo.GetAttackString().size() - 1;
+
+    while (count >= 0) {
+      int index = (int)std::pow(10.0, (double)count);
+      index *= (rand() % 9) + 1;
+
+      randAttack += index;
+
+      count--;
+    }
+    
+    count = (int)mobinfo.GetSpeedString().size() - 1;
+
+    while (count >= 0) {
+      int index = (int)std::pow(10.0, (double)count);
+      index *= (rand() % 9) + 1;
+
+      randSpeed += index;
 
       count--;
     }
@@ -228,7 +254,13 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   float progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
 
-  if (progress > 1.f) progress = 1.f;
+  if (progress > 1.f) { 
+	  progress = 1.f; 
+  
+	if(!gotoNextScene) {
+      textbox.Play();
+    }
+  }
 
   mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255.0*progress)));
 
@@ -237,10 +269,9 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   // Make a selection
   if (INPUT.Has(PRESSED_A) && !gotoNextScene) {
-    Mob* mob = nullptr;
     
     if (MOBS.Size() != 0) {
-      mob = MOBS.At(mobSelectionIndex).GetMob();
+      this->mob = MOBS.At(mobSelectionIndex).GetMob();
     }
 
     if (!mob) {
@@ -262,11 +293,13 @@ void SelectMobScene::onUpdate(double elapsed) {
       selectedFolder.Shuffle();
 
       using segue = swoosh::intent::segue<CrossZoom>::to<BattleScene>;
-      getController().push<segue>(player, mob, &selectedFolder);
+      getController().push<segue>(player, this->mob, &selectedFolder);
     }
   }
 
-  bool isEqual = textbox.GetCurrentCharacter() == '\0';
+  // Close mouth when there's a space.
+  // Overload boolean logic to close mouth whenever the text box is also paused
+  bool isEqual = !textbox.IsPlaying() || textbox.GetCurrentCharacter() == '\0';
 
   if (isEqual && navigatorAnimator.GetAnimationString() != "IDLE") {
     navigatorAnimator.SetAnimation("IDLE");

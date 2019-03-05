@@ -88,6 +88,7 @@ public:
   const bool ConfirmSelection();
   void Continue();
 
+  const bool IsPlaying() const;
   const bool IsOpen() const;
   const bool IsClosed() const;
   const bool HasMessage();

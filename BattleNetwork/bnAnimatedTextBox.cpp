@@ -86,6 +86,7 @@ void AnimatedTextBox::Open() {
   animator << Animate::On(2, callback, true);
 }
 
+const bool AnimatedTextBox::IsPlaying() const { return !isPaused; }
 const bool AnimatedTextBox::IsOpen() const { return isReady; }
 const bool AnimatedTextBox::IsClosed() const { return !isReady; }
 

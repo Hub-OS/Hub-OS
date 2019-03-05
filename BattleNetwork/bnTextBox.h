@@ -213,6 +213,10 @@ public:
   const double GetCharsPerSecond() const {
     return charsPerSecond;
   }
+  
+  const bool IsPlaying() const {
+	  return play;
+  }
 
   virtual void Update(const double elapsed) {
     if (!play || message.empty() || charIndex >= message.length()) return;
