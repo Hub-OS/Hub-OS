@@ -37,6 +37,7 @@ public:
     field = _field;
     isBoss = false;
     iter = spawn.end();
+    background = nullptr;
   }
 
   ~Mob() {

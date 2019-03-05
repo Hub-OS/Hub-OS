@@ -51,7 +51,7 @@ LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch). $(LibraryP
 AR       := /usr/bin/x86_64-linux-gnu-ar rcu
 CXX      := g++
 CC       := gcc
-CXXFLAGS := -fPIC -shared -g -Wall -Wno-sign-compare -Wno-unused-variable -Wno-unused-value -Wno-unused-function -Wno-reorder -Wno-switch -std=c++11 $(Preprocessors) -D_GLIBCXX_USE_CXX11_ABI=0
+CXXFLAGS := -fPIC -shared -g -Wall -Wno-sign-compare -Wno-unused-variable -Wno-unused-value -Wno-unused-function -Wno-reorder -Wno-switch -std=c++14 $(Preprocessors) -D_GLIBCXX_USE_CXX14_ABI=0
 CFLAGS   :=   $(Preprocessors)
 ASFLAGS  := 
 AS       := /usr/bin/x86_64-linux-gnu-as
@@ -435,7 +435,7 @@ $(IntermediateDirectory)/bnEnemyChipsUI.cpp$(PreprocessSuffix): bnEnemyChipsUI.c
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnEnemyChipsUI.cpp$(PreprocessSuffix) bnEnemyChipsUI.cpp
 
 $(IntermediateDirectory)/bnInfiniteMap.cpp$(ObjectSuffix): bnInfiniteMap.cpp $(IntermediateDirectory)/bnInfiniteMap.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnInfiniteMap.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnInfiniteMap.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnInfiniteMap.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnInfiniteMap.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnInfiniteMap.cpp$(DependSuffix): bnInfiniteMap.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnInfiniteMap.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnInfiniteMap.cpp$(DependSuffix) -MM bnInfiniteMap.cpp
 
@@ -443,7 +443,7 @@ $(IntermediateDirectory)/bnInfiniteMap.cpp$(PreprocessSuffix): bnInfiniteMap.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnInfiniteMap.cpp$(PreprocessSuffix) bnInfiniteMap.cpp
 
 $(IntermediateDirectory)/bnLibraryScene.cpp$(ObjectSuffix): bnLibraryScene.cpp $(IntermediateDirectory)/bnLibraryScene.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnLibraryScene.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnLibraryScene.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnLibraryScene.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnLibraryScene.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnLibraryScene.cpp$(DependSuffix): bnLibraryScene.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnLibraryScene.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnLibraryScene.cpp$(DependSuffix) -MM bnLibraryScene.cpp
 
@@ -451,7 +451,7 @@ $(IntermediateDirectory)/bnLibraryScene.cpp$(PreprocessSuffix): bnLibraryScene.c
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnLibraryScene.cpp$(PreprocessSuffix) bnLibraryScene.cpp
 
 $(IntermediateDirectory)/bnPanelGrab.cpp$(ObjectSuffix): bnPanelGrab.cpp $(IntermediateDirectory)/bnPanelGrab.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnPanelGrab.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnPanelGrab.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnPanelGrab.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnPanelGrab.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnPanelGrab.cpp$(DependSuffix): bnPanelGrab.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnPanelGrab.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnPanelGrab.cpp$(DependSuffix) -MM bnPanelGrab.cpp
 
@@ -459,7 +459,7 @@ $(IntermediateDirectory)/bnPanelGrab.cpp$(PreprocessSuffix): bnPanelGrab.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnPanelGrab.cpp$(PreprocessSuffix) bnPanelGrab.cpp
 
 $(IntermediateDirectory)/bnFolderEditScene.cpp$(ObjectSuffix): bnFolderEditScene.cpp $(IntermediateDirectory)/bnFolderEditScene.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnFolderEditScene.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnFolderEditScene.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnFolderEditScene.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnFolderEditScene.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnFolderEditScene.cpp$(DependSuffix): bnFolderEditScene.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnFolderEditScene.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnFolderEditScene.cpp$(DependSuffix) -MM bnFolderEditScene.cpp
 
@@ -467,7 +467,7 @@ $(IntermediateDirectory)/bnFolderEditScene.cpp$(PreprocessSuffix): bnFolderEditS
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnFolderEditScene.cpp$(PreprocessSuffix) bnFolderEditScene.cpp
 
 $(IntermediateDirectory)/bnDefenseAura.cpp$(ObjectSuffix): bnDefenseAura.cpp $(IntermediateDirectory)/bnDefenseAura.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnDefenseAura.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnDefenseAura.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnDefenseAura.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnDefenseAura.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnDefenseAura.cpp$(DependSuffix): bnDefenseAura.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnDefenseAura.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnDefenseAura.cpp$(DependSuffix) -MM bnDefenseAura.cpp
 
@@ -475,7 +475,7 @@ $(IntermediateDirectory)/bnDefenseAura.cpp$(PreprocessSuffix): bnDefenseAura.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnDefenseAura.cpp$(PreprocessSuffix) bnDefenseAura.cpp
 
 $(IntermediateDirectory)/bnParticlePoof.cpp$(ObjectSuffix): bnParticlePoof.cpp $(IntermediateDirectory)/bnParticlePoof.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnParticlePoof.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnParticlePoof.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnParticlePoof.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnParticlePoof.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnParticlePoof.cpp$(DependSuffix): bnParticlePoof.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnParticlePoof.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnParticlePoof.cpp$(DependSuffix) -MM bnParticlePoof.cpp
 
@@ -483,7 +483,7 @@ $(IntermediateDirectory)/bnParticlePoof.cpp$(PreprocessSuffix): bnParticlePoof.c
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnParticlePoof.cpp$(PreprocessSuffix) bnParticlePoof.cpp
 
 $(IntermediateDirectory)/bnMobHealthUI.cpp$(ObjectSuffix): bnMobHealthUI.cpp $(IntermediateDirectory)/bnMobHealthUI.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnMobHealthUI.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnMobHealthUI.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnMobHealthUI.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnMobHealthUI.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnMobHealthUI.cpp$(DependSuffix): bnMobHealthUI.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnMobHealthUI.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnMobHealthUI.cpp$(DependSuffix) -MM bnMobHealthUI.cpp
 
@@ -491,7 +491,7 @@ $(IntermediateDirectory)/bnMobHealthUI.cpp$(PreprocessSuffix): bnMobHealthUI.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnMobHealthUI.cpp$(PreprocessSuffix) bnMobHealthUI.cpp
 
 $(IntermediateDirectory)/bnWave.cpp$(ObjectSuffix): bnWave.cpp $(IntermediateDirectory)/bnWave.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnWave.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnWave.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnWave.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnWave.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnWave.cpp$(DependSuffix): bnWave.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnWave.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnWave.cpp$(DependSuffix) -MM bnWave.cpp
 
@@ -499,7 +499,7 @@ $(IntermediateDirectory)/bnWave.cpp$(PreprocessSuffix): bnWave.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnWave.cpp$(PreprocessSuffix) bnWave.cpp
 
 $(IntermediateDirectory)/bnDefenseGuard.cpp$(ObjectSuffix): bnDefenseGuard.cpp $(IntermediateDirectory)/bnDefenseGuard.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnDefenseGuard.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnDefenseGuard.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnDefenseGuard.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnDefenseGuard.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnDefenseGuard.cpp$(DependSuffix): bnDefenseGuard.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnDefenseGuard.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnDefenseGuard.cpp$(DependSuffix) -MM bnDefenseGuard.cpp
 
@@ -507,7 +507,7 @@ $(IntermediateDirectory)/bnDefenseGuard.cpp$(PreprocessSuffix): bnDefenseGuard.c
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnDefenseGuard.cpp$(PreprocessSuffix) bnDefenseGuard.cpp
 
 $(IntermediateDirectory)/bnCanodumbMob.cpp$(ObjectSuffix): bnCanodumbMob.cpp $(IntermediateDirectory)/bnCanodumbMob.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnCanodumbMob.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnCanodumbMob.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnCanodumbMob.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnCanodumbMob.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnCanodumbMob.cpp$(DependSuffix): bnCanodumbMob.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnCanodumbMob.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnCanodumbMob.cpp$(DependSuffix) -MM bnCanodumbMob.cpp
 
@@ -515,7 +515,7 @@ $(IntermediateDirectory)/bnCanodumbMob.cpp$(PreprocessSuffix): bnCanodumbMob.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnCanodumbMob.cpp$(PreprocessSuffix) bnCanodumbMob.cpp
 
 $(IntermediateDirectory)/bnProgsManIdleState.cpp$(ObjectSuffix): bnProgsManIdleState.cpp $(IntermediateDirectory)/bnProgsManIdleState.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnProgsManIdleState.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnProgsManIdleState.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnProgsManIdleState.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnProgsManIdleState.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnProgsManIdleState.cpp$(DependSuffix): bnProgsManIdleState.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnProgsManIdleState.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnProgsManIdleState.cpp$(DependSuffix) -MM bnProgsManIdleState.cpp
 
@@ -523,7 +523,7 @@ $(IntermediateDirectory)/bnProgsManIdleState.cpp$(PreprocessSuffix): bnProgsManI
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnProgsManIdleState.cpp$(PreprocessSuffix) bnProgsManIdleState.cpp
 
 $(IntermediateDirectory)/bnMetalManPunchState.cpp$(ObjectSuffix): bnMetalManPunchState.cpp $(IntermediateDirectory)/bnMetalManPunchState.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnMetalManPunchState.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnMetalManPunchState.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnMetalManPunchState.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnMetalManPunchState.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnMetalManPunchState.cpp$(DependSuffix): bnMetalManPunchState.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnMetalManPunchState.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnMetalManPunchState.cpp$(DependSuffix) -MM bnMetalManPunchState.cpp
 
@@ -531,7 +531,7 @@ $(IntermediateDirectory)/bnMetalManPunchState.cpp$(PreprocessSuffix): bnMetalMan
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnMetalManPunchState.cpp$(PreprocessSuffix) bnMetalManPunchState.cpp
 
 $(IntermediateDirectory)/bnProgsMan.cpp$(ObjectSuffix): bnProgsMan.cpp $(IntermediateDirectory)/bnProgsMan.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnProgsMan.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnProgsMan.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnProgsMan.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnProgsMan.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnProgsMan.cpp$(DependSuffix): bnProgsMan.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnProgsMan.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnProgsMan.cpp$(DependSuffix) -MM bnProgsMan.cpp
 
@@ -539,7 +539,7 @@ $(IntermediateDirectory)/bnProgsMan.cpp$(PreprocessSuffix): bnProgsMan.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnProgsMan.cpp$(PreprocessSuffix) bnProgsMan.cpp
 
 $(IntermediateDirectory)/bnStarfishMob.cpp$(ObjectSuffix): bnStarfishMob.cpp $(IntermediateDirectory)/bnStarfishMob.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnStarfishMob.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnStarfishMob.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnStarfishMob.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnStarfishMob.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnStarfishMob.cpp$(DependSuffix): bnStarfishMob.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnStarfishMob.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnStarfishMob.cpp$(DependSuffix) -MM bnStarfishMob.cpp
 
@@ -547,7 +547,7 @@ $(IntermediateDirectory)/bnStarfishMob.cpp$(PreprocessSuffix): bnStarfishMob.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnStarfishMob.cpp$(PreprocessSuffix) bnStarfishMob.cpp
 
 $(IntermediateDirectory)/bnGameOverScene.cpp$(ObjectSuffix): bnGameOverScene.cpp $(IntermediateDirectory)/bnGameOverScene.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnGameOverScene.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnGameOverScene.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnGameOverScene.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnGameOverScene.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnGameOverScene.cpp$(DependSuffix): bnGameOverScene.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnGameOverScene.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnGameOverScene.cpp$(DependSuffix) -MM bnGameOverScene.cpp
 
@@ -555,7 +555,7 @@ $(IntermediateDirectory)/bnGameOverScene.cpp$(PreprocessSuffix): bnGameOverScene
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnGameOverScene.cpp$(PreprocessSuffix) bnGameOverScene.cpp
 
 $(IntermediateDirectory)/bnNinjaStar.cpp$(ObjectSuffix): bnNinjaStar.cpp $(IntermediateDirectory)/bnNinjaStar.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnNinjaStar.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnNinjaStar.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnNinjaStar.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnNinjaStar.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnNinjaStar.cpp$(DependSuffix): bnNinjaStar.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnNinjaStar.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnNinjaStar.cpp$(DependSuffix) -MM bnNinjaStar.cpp
 
@@ -563,7 +563,7 @@ $(IntermediateDirectory)/bnNinjaStar.cpp$(PreprocessSuffix): bnNinjaStar.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnNinjaStar.cpp$(PreprocessSuffix) bnNinjaStar.cpp
 
 $(IntermediateDirectory)/bnUndernetBackground.cpp$(ObjectSuffix): bnUndernetBackground.cpp $(IntermediateDirectory)/bnUndernetBackground.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnUndernetBackground.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnUndernetBackground.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnUndernetBackground.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnUndernetBackground.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnUndernetBackground.cpp$(DependSuffix): bnUndernetBackground.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnUndernetBackground.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnUndernetBackground.cpp$(DependSuffix) -MM bnUndernetBackground.cpp
 
@@ -571,7 +571,7 @@ $(IntermediateDirectory)/bnUndernetBackground.cpp$(PreprocessSuffix): bnUndernet
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnUndernetBackground.cpp$(PreprocessSuffix) bnUndernetBackground.cpp
 
 $(IntermediateDirectory)/bnArtifact.cpp$(ObjectSuffix): bnArtifact.cpp $(IntermediateDirectory)/bnArtifact.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnArtifact.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnArtifact.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnArtifact.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnArtifact.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnArtifact.cpp$(DependSuffix): bnArtifact.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnArtifact.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnArtifact.cpp$(DependSuffix) -MM bnArtifact.cpp
 
@@ -579,7 +579,7 @@ $(IntermediateDirectory)/bnArtifact.cpp$(PreprocessSuffix): bnArtifact.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnArtifact.cpp$(PreprocessSuffix) bnArtifact.cpp
 
 $(IntermediateDirectory)/bnHideUntil.cpp$(ObjectSuffix): bnHideUntil.cpp $(IntermediateDirectory)/bnHideUntil.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnHideUntil.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnHideUntil.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnHideUntil.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnHideUntil.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnHideUntil.cpp$(DependSuffix): bnHideUntil.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnHideUntil.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnHideUntil.cpp$(DependSuffix) -MM bnHideUntil.cpp
 
@@ -587,7 +587,7 @@ $(IntermediateDirectory)/bnHideUntil.cpp$(PreprocessSuffix): bnHideUntil.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnHideUntil.cpp$(PreprocessSuffix) bnHideUntil.cpp
 
 $(IntermediateDirectory)/bnEntity.cpp$(ObjectSuffix): bnEntity.cpp $(IntermediateDirectory)/bnEntity.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnEntity.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnEntity.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnEntity.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnEntity.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnEntity.cpp$(DependSuffix): bnEntity.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnEntity.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnEntity.cpp$(DependSuffix) -MM bnEntity.cpp
 
@@ -595,7 +595,7 @@ $(IntermediateDirectory)/bnEntity.cpp$(PreprocessSuffix): bnEntity.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnEntity.cpp$(PreprocessSuffix) bnEntity.cpp
 
 $(IntermediateDirectory)/bnShineExplosion.cpp$(ObjectSuffix): bnShineExplosion.cpp $(IntermediateDirectory)/bnShineExplosion.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnShineExplosion.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnShineExplosion.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnShineExplosion.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnShineExplosion.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnShineExplosion.cpp$(DependSuffix): bnShineExplosion.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnShineExplosion.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnShineExplosion.cpp$(DependSuffix) -MM bnShineExplosion.cpp
 
@@ -603,7 +603,7 @@ $(IntermediateDirectory)/bnShineExplosion.cpp$(PreprocessSuffix): bnShineExplosi
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnShineExplosion.cpp$(PreprocessSuffix) bnShineExplosion.cpp
 
 $(IntermediateDirectory)/bnGraveyardBackground.cpp$(ObjectSuffix): bnGraveyardBackground.cpp $(IntermediateDirectory)/bnGraveyardBackground.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnGraveyardBackground.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnGraveyardBackground.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnGraveyardBackground.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnGraveyardBackground.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnGraveyardBackground.cpp$(DependSuffix): bnGraveyardBackground.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnGraveyardBackground.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnGraveyardBackground.cpp$(DependSuffix) -MM bnGraveyardBackground.cpp
 
@@ -611,7 +611,7 @@ $(IntermediateDirectory)/bnGraveyardBackground.cpp$(PreprocessSuffix): bnGraveya
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnGraveyardBackground.cpp$(PreprocessSuffix) bnGraveyardBackground.cpp
 
 $(IntermediateDirectory)/bnPlayerHitState.cpp$(ObjectSuffix): bnPlayerHitState.cpp $(IntermediateDirectory)/bnPlayerHitState.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnPlayerHitState.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnPlayerHitState.cpp$(ObjectSuffix) $(IncludePath)
+	$(CXX) $(IncludePCH) $(SourceSwitch) $(ProjectPath)/bnPlayerHitState.cpp $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bnPlayerHitState.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/bnPlayerHitState.cpp$(DependSuffix): bnPlayerHitState.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/bnPlayerHitState.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/bnPlayerHitState.cpp$(DependSuffix) -MM bnPlayerHitState.cpp
 
@@ -1139,7 +1139,7 @@ $(IntermediateDirectory)/bnCanodumbIdleState.cpp$(PreprocessSuffix): bnCanodumbI
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bnCanodumbIdleState.cpp$(PreprocessSuffix) bnCanodumbIdleState.cpp
 
 $(IntermediateDirectory)/mmbn.ico.c$(ObjectSuffix): mmbn.ico.c $(IntermediateDirectory)/mmbn.ico.c$(DependSuffix)
-	$(CC) $(SourceSwitch) $(ProjectPath)/mmbn.ico.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/mmbn.ico.c$(ObjectSuffix) $(IncludePath)
+	$(CC) $(SourceSwitch) $(ProjectPath)/mmbn.ico.c $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/mmbn.ico.c$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/mmbn.ico.c$(DependSuffix): mmbn.ico.c
 	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/mmbn.ico.c$(ObjectSuffix) -MF$(IntermediateDirectory)/mmbn.ico.c$(DependSuffix) -MM mmbn.ico.c
 

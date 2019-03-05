@@ -284,7 +284,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   SelectedNavi prevSelect = naviSelectionIndex;
 
   // Scene keyboard controls
-  if (!gotoNextScene && transitionProgress == 0.f) {
+  if (!gotoNextScene) {
     if (INPUT.Has(PRESSED_LEFT)) {
       selectInputCooldown -= elapsed;
 
