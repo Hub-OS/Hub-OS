@@ -17,7 +17,7 @@ ProgsMan::ProgsMan(Rank _rank)
     AI<ProgsMan>(this), Character(_rank) {
   name = "ProgsMan";
   this->team = Team::BLUE;
-  health = 300;
+  SetHealth(300);
   hitHeight = 64;
   state = MOB_IDLE;
   textureType = TextureType::MOB_PROGSMAN_ATLAS;

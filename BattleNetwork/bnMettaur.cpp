@@ -22,18 +22,18 @@ Mettaur::Mettaur(Rank _rank)
   name = "Mettaur";
   Entity::team = Team::BLUE;
 
-  health = 40;
   textureType = TextureType::MOB_METTAUR;
 
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
 
   if (GetRank() == Rank::SP) {
-    health = 100;
+    SetHealth(100);
     animationComponent.SetPlaybackSpeed(1.2);
     animationComponent.SetAnimation("SP_IDLE");
   }
   else {
+	  SetHealth(40);
     //Components setup and load
     animationComponent.SetAnimation("IDLE");
   }

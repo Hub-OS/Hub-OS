@@ -18,10 +18,10 @@ MetalMan::MetalMan(Rank _rank)
   this->team = Team::BLUE;
 
   if (rank == Rank::EX) {
-    health = 1300;
+    SetHealth(1300);
   }
   else {
-    health = 1000;
+    SetHealth(1000);
   }
 
   hitHeight = 64;
