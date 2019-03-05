@@ -81,7 +81,7 @@ public:
   ~Animate();
 
   char GetMode() { return playbackMode;  }
-  void Clear() { callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; }
+  void Clear() { nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; }
 
   void operator() (float progress, sf::Sprite& target, FrameList& sequence);
   Animate& operator << (On rhs);

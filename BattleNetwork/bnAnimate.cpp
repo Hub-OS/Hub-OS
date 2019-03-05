@@ -35,6 +35,11 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
   if (applyCallback) {
     if (onFinish != nullptr) {
       onFinish();
+      
+      if((playbackMode & Mode::Loop) == 0) {
+		  onFinish = nullptr;
+	  }
+	  
       return;
     }
   }
@@ -65,28 +70,34 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
           iter = copy.begin();
         }
 
-        this->callbacks.insert(nextLoopCallbacks.begin(), nextLoopCallbacks.end());
+		this->callbacks.clear();
+        this->callbacks = nextLoopCallbacks;
         this->nextLoopCallbacks.clear();
 
         continue; // Start loop again
       }
 
-      std::map<int, std::function<void()>>::const_iterator callbackIter = this->callbacks.find(index - 1);
+      std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = this->callbacks.find(index - 1);
       std::map<int, std::function<void()>>::iterator onetimeCallbackIter = this->onetimeCallbacks.find(index - 1);
 
-      if (callbackIter != this->callbacks.end()) {
-        if(callbackIter->second)
+	  callbackIter = callbacks.begin();
+	  
+      while (callbackIter != callbackFind && callbackFind != this->callbacks.end()) {
+        if(callbackIter->second) {
           callbackIter->second();
-
+	    }
+        
         nextLoopCallbacks.insert(*callbackIter);
-        callbacks.erase(callbackIter);
+        callbackIter = callbacks.erase(callbackIter);
+        callbackFind = this->callbacks.find(index - 1);
       }
 
       if (onetimeCallbackIter != this->onetimeCallbacks.end()) {
-        if(onetimeCallbackIter->second)
+        if(onetimeCallbackIter->second) {
           onetimeCallbackIter->second();
-
-        onetimeCallbacks.erase(onetimeCallbackIter);
+	    }
+	    
+	    onetimeCallbacks.erase(onetimeCallbackIter);
       }
 
 

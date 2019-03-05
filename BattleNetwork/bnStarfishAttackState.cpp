@@ -1,4 +1,3 @@
-#pragma once
 #include "bnStarfishIdleState.h"
 #include "bnBubble.h"
 #include "bnTile.h"
@@ -9,15 +8,14 @@ StarfishAttackState::StarfishAttackState(int maxBubbleCount) : bubbleCount(maxBu
 StarfishAttackState::~StarfishAttackState() { ; }
 
 void StarfishAttackState::OnEnter(Starfish& star) {
-  auto onPreAttack = [this, &star]() { 
+  auto onPreAttack = [this, s = &star]() { 
 
-    auto onFinish = [this, &star]() {
-      this->DoAttack(star); 
+    auto onFinish = [this, s]() {
+      this->DoAttack(*s); 
     };
 
-    star.animationComponent.SetAnimation("ATTACK",Animate::Mode::Loop);
-    star.animationComponent.AddCallback(5, onFinish, std::function<void()>(), false);
-
+    s->animationComponent.SetAnimation("ATTACK", Animate::Mode::Loop, onFinish);
+    s->animationComponent.AddCallback(5, onFinish, std::function<void()>(), false);
   };
 
 
@@ -35,17 +33,17 @@ void StarfishAttackState::OnLeave(Starfish& star) {
 }
 
 void StarfishAttackState::DoAttack(Starfish& star) {
-  if (star.GetField()->GetAt(star.GetTile()->GetX() - 1, star.GetTile()->GetY())->IsWalkable()) {
+  if (star.GetField()->GetAt(star.GetTile()->GetX() - 1, star.GetTile()->GetY())) {
     Spell* spell = new Bubble(star.field, star.team, (star.GetRank() == Starfish::Rank::SP) ? 1.5 : 1.0);
     spell->SetHitboxProperties({ 40, static_cast<Hit::Flags>(spell->GetHitboxProperties().flags | Hit::impact), Element::AQUA, 3.0, &star });
     spell->SetDirection(Direction::LEFT);
     star.field->AddEntity(*spell, star.tile->GetX() - 1, star.tile->GetY());
   }
+  
+  std::cout << "bubble count: " << bubbleCount << std::endl;
 
-  if (--bubbleCount > 0) {
-
-  }
-  else {
+  if (--bubbleCount == 0) {
+	star.animationComponent.CancelCallbacks();
     this->ChangeState<StarfishIdleState>();
   }
 }

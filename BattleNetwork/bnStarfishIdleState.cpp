@@ -1,4 +1,3 @@
-#pragma once
 #include "bnStarfishIdleState.h"
 #include "bnWave.h"
 #include "bnTile.h"
@@ -14,7 +13,7 @@ void StarfishIdleState::OnEnter(Starfish& star) {
 
 void StarfishIdleState::OnUpdate(float _elapsed, Starfish& star) {
   if (cooldown < 0) {
-    this->ChangeState<StarfishAttackState>(3);
+    this->ChangeState<StarfishAttackState>(7);
   }
 
   cooldown -= _elapsed;
