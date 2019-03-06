@@ -21,5 +21,5 @@ file(GLOB bnFiles
         )
 
 include_directories(extern/includes)
-add_executable(BattleNetworkExe BattleNetwork/main.cpp ${bnFiles})
-target_link_libraries(BattleNetworkExe sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
+add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles})
+target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
