@@ -21,7 +21,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
   bg = new LanBackground();
 
-  map = new Overworld::InfiniteMap(10, 20, 47, 24);
+  map = new Overworld::InfiniteMap(3, 10, 47, 24);
   map->SetCamera(&camera);
 
   showHUD = true;
@@ -61,7 +61,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
 void MainMenuScene::onStart() {
   AUDIO.StopStream();
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", true);
+  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
   ENGINE.SetCamera(camera);
 }
 
