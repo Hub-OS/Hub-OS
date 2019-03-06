@@ -36,8 +36,8 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
     if (onFinish != nullptr) {
       onFinish();
       
-      if((playbackMode & Mode::Loop) == 0) {
-		  onFinish = nullptr;
+      if((playbackMode & Mode::Loop) != Mode::Loop) {
+		 onFinish = nullptr;
 	  }
 	  
       return;

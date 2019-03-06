@@ -100,8 +100,11 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     if (moved) {
       moveKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {
+		std::cout << "player animation is MOVED" << std::endl;
         player.AdoptNextTile();
-        player.SetAnimation("PLAYER_MOVED", [&player]() {player.SetAnimation(PLAYER_IDLE); });
+        player.SetAnimation("PLAYER_MOVED", [p = &player]() {
+			std::cout << "player animation is IDLE" << std::endl;
+			p->SetAnimation(PLAYER_IDLE); });
         direction = Direction::NONE;
       }; // end lambda
       player.SetAnimation(PLAYER_MOVING, onFinish);

@@ -43,14 +43,12 @@ void AnimationComponent::SetPlaybackSpeed(const double playbackSpeed)
 
 void AnimationComponent::SetAnimation(string state, std::function<void()> onFinish)
 {
-  CancelCallbacks();
   animation.SetAnimation(state);
-  animation << onFinish;
+  animation << 0 << onFinish;
 }
 
 void AnimationComponent::SetAnimation(string state, char playbackMode, std::function<void()> onFinish)
 {
-  CancelCallbacks();
   animation.SetAnimation(state);
   animation << playbackMode << onFinish;
 }

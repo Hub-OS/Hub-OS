@@ -68,6 +68,7 @@ void Player::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
+	chargeComponent.Hide();
     this->animationComponent.CancelCallbacks();
     this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
     AI<Player>::Update(_elapsed);
@@ -157,8 +158,8 @@ void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
 
   if (state == PLAYER_IDLE) {
-    int playback = Animate::Mode::Loop;
-    animationComponent.SetAnimation(_state, playback, onFinish);
+    auto playback = Animate::Mode::Loop;
+    animationComponent.SetAnimation(_state, playback);
   }
   else {
     animationComponent.SetAnimation(_state, 0, onFinish);

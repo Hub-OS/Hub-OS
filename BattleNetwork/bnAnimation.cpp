@@ -142,12 +142,11 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
 }
 
 void Animation::SetAnimation(string state) {
-   animator.Clear();
+   RemoveCallbacks();
    progress = 0.0f;
    currAnimation = state;
 
    auto pos = animations.find(currAnimation);
-
 
    if (pos == animations.end()) {
      //throw std::runtime_error(std::string("No animation found in file for " + currAnimation));
