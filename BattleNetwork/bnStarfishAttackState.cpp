@@ -14,8 +14,8 @@ void StarfishAttackState::OnEnter(Starfish& star) {
       this->DoAttack(*s); 
     };
 
-    s->SetAnimation("ATTACK", Animate::Mode::Loop);
-    s->AddCallback(10, onAttack, std::function<void()>(), false);
+    s->animationComponent.SetAnimation("ATTACK", Animate::Mode::Loop);
+    s->OnFrameCallback(10, onAttack, std::function<void()>(), false);
   };
 
 
