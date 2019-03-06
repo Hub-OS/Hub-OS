@@ -43,9 +43,6 @@ public:
     }
 
     stateMachine->template ChangeState<U>();
-    
-    // TODO: this call makes AI states crash when using `entity.ChangeState()` 
-    this->Update(0);
   }
 
   /*
@@ -64,12 +61,10 @@ template<typename U, typename ...Args>
     }
 
     if (!stateMachine) {
-      std::cout << "changing AI state to NoState" << std::endl;
       stateMachine = new NoState<T>();
     }
 
     stateMachine->template ChangeState<U>(args...);
-    this->Update(0);
   }
 
   void Update(float _elapsed) {
@@ -77,7 +72,6 @@ template<typename U, typename ...Args>
       AIState<T>* nextState = stateMachine->Update(_elapsed, *ref);
 
       if (nextState != nullptr) {
-        //std::cout << "nextState is " << nextState << std::endl;
 
         stateMachine->OnLeave(*ref);
 

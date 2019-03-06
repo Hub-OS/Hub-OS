@@ -16,8 +16,6 @@ public:
 
   template<class U, typename ...Args>
   void ChangeState(Args... args) {
-    //_DerivedFrom<U, AIState<T>>();
-
     if (nextState) { delete nextState; }
 
     nextState = new U(args...);
@@ -25,16 +23,12 @@ public:
 
   template<class U>
   void ChangeState() {
-    //_DerivedFrom<U, AIState<T>>();
-
     if (nextState) { delete nextState; }
 
     nextState = new U();
   }
 
   AIState<T>* Update(float _elapsed, T& context) {
-    // if (nextState) { nextState = nullptr; }
-
     // nextState could be non-null after update
     OnUpdate(_elapsed, context);
 

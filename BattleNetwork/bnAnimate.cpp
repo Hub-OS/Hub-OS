@@ -6,6 +6,7 @@ Animate::Animate() {
   onFinish = nullptr;
   queuedOnFinish = nullptr;
   isUpdating = false;
+  callbacksAreValid = true;
 }
 
 Animate::Animate(Animate& rhs) {
@@ -17,6 +18,7 @@ Animate::Animate(Animate& rhs) {
   this->queuedOnetimeCallbacks = rhs.queuedOnetimeCallbacks;
   this->queuedOnFinish = rhs.queuedOnFinish;
   this->isUpdating = rhs.isUpdating;
+  this->callbacksAreValid = rhs.callbacksAreValid;
 }
 
 Animate::~Animate() {
@@ -33,6 +35,9 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
 {
   float startProgress = progress;
   
+  // Callbacks are only invalide during clears in the update loop
+  if(!callbacksAreValid) callbacksAreValid = true;
+  
   isUpdating = true;
   // std::cout << "callbacks size: " << this->callbacks.size() << " for " << sequence.frames.size() << " frames " << std::endl;
 
@@ -43,6 +48,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
     }
     
     isUpdating = false;
+    callbacksAreValid = true;
     callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
     queuedCallbacks.clear();
     
@@ -68,6 +74,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
 	  }
 	  
 	  isUpdating = false; 
+	  callbacksAreValid = true;
 	  callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
       queuedCallbacks.clear();
       
@@ -103,6 +110,49 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
     // If it did not start at zero, we know we came across the end of the animation
     if ((progress <= 0.f || &(*iter) == &copy.back()) && startProgress != 0.f)
     {
+      std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = this->callbacks.find(index - 1);
+      std::map<int, std::function<void()>>::iterator onetimeCallbackIter = this->onetimeCallbacks.find(index - 1);
+
+	  callbackIter = callbacks.begin();
+	  
+      while (callbacksAreValid && callbackIter != callbackFind && callbackFind != this->callbacks.end()) {
+        if(callbackIter->second) {
+		  //std::cout << "functor callback invoked" << std::endl;
+          callbackIter->second();
+          //std::cout << "post functor callback invocation" << std::endl;
+	    } else {
+		  //std::cout << "callback iter functor was null" << std::endl;
+		}
+		
+		if(!callbacksAreValid) break;
+        
+        nextLoopCallbacks.insert(*callbackIter);
+        callbackIter = callbacks.erase(callbackIter);
+        callbackFind = callbacks.find(index - 1);
+      }
+      
+      if(callbacksAreValid && callbackIter == callbackFind && callbackFind != this->callbacks.end()) 
+      {
+        if(callbackIter->second) {
+          callbackIter->second();
+	    }
+        
+        if(callbacksAreValid) {
+          nextLoopCallbacks.insert(*callbackIter);
+          callbackIter = callbacks.erase(callbackIter);	  
+	    } 
+	  }
+
+      if (callbacksAreValid && onetimeCallbackIter != this->onetimeCallbacks.end()) {
+        if(onetimeCallbackIter->second) {
+          onetimeCallbackIter->second();
+	    }
+	    
+	    if(callbacksAreValid) {
+	      onetimeCallbacks.erase(onetimeCallbackIter);
+	    }
+      }
+
       if ((playbackMode & Mode::Loop) == Mode::Loop && progress > 0.f && &(*iter) == &copy.back()) {
         if ((playbackMode & Mode::Bounce) == Mode::Bounce) {
           reverse(copy.begin(), copy.end());
@@ -117,48 +167,12 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
 		this->callbacks.clear();
         this->callbacks = nextLoopCallbacks;
         this->nextLoopCallbacks.clear();
+        
+        callbacksAreValid = true;
 
         continue; // Start loop again
       }
-
-      std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = this->callbacks.find(index - 1);
-      std::map<int, std::function<void()>>::iterator onetimeCallbackIter = this->onetimeCallbacks.find(index - 1);
-
-	  callbackIter = callbacks.begin();
-	  
-      while (callbackIter != callbackFind && callbackFind != this->callbacks.end()) {
-        if(callbackIter->second) {
-		  //std::cout << "functor callback invoked" << std::endl;
-          callbackIter->second();
-          //std::cout << "post functor callback invocation" << std::endl;
-	    } else {
-		  //std::cout << "callback iter functor was null" << std::endl;
-		}
-        
-        nextLoopCallbacks.insert(*callbackIter);
-        callbackIter = callbacks.erase(callbackIter);
-        callbackFind = callbacks.find(index - 1);
-      }
       
-      if(callbackIter == callbackFind && callbackFind != this->callbacks.end()) 
-      {
-        if(callbackIter->second) {
-          callbackIter->second();
-	    }
-        
-        nextLoopCallbacks.insert(*callbackIter);
-        callbackIter = callbacks.erase(callbackIter);	  
-	  }
-
-      if (onetimeCallbackIter != this->onetimeCallbacks.end()) {
-        if(onetimeCallbackIter->second) {
-          onetimeCallbackIter->second();
-	    }
-	    
-	    onetimeCallbacks.erase(onetimeCallbackIter);
-      }
-
-
       target.setTextureRect((*iter).subregion);
       if ((*iter).applyOrigin) {
         target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
@@ -171,6 +185,10 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
   }
   
   isUpdating = false;
+  callbacksAreValid = true;
+  //std::cout << "callbacks size before merge with queued: " << callbacks.size() << std::endl;
+  //std::cout << "queued size: " << queuedCallbacks.size() << std::endl;
+
   callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
   queuedCallbacks.clear();
   
@@ -182,7 +200,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
     queuedOnFinish = nullptr;
   }
 
-  std::cout << "callbacks size after merge with queued: " << callbacks.size() << std::endl;
+  //std::cout << "callbacks size after merge with queued: " << callbacks.size() << std::endl;
 }
 
 Animate & Animate::operator<<(On rhs)

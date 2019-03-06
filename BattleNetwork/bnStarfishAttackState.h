@@ -5,7 +5,8 @@
 class StarfishAttackState : public AIState<Starfish>
 {
   int bubbleCount;
-
+  bool leaveState;
+  
 public:
   StarfishAttackState(int maxBubbleCount);
   ~StarfishAttackState();

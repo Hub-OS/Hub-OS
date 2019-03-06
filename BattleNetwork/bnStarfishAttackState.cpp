@@ -4,7 +4,10 @@
 #include "bnField.h"
 #include "bnStarfishAttackState.h"
 
-StarfishAttackState::StarfishAttackState(int maxBubbleCount) : bubbleCount(maxBubbleCount), AIState<Starfish>() { ; }
+StarfishAttackState::StarfishAttackState(int maxBubbleCount) : bubbleCount(maxBubbleCount), AIState<Starfish>() { 
+	leaveState = false; 
+}
+
 StarfishAttackState::~StarfishAttackState() { ; }
 
 void StarfishAttackState::OnEnter(Starfish& star) {
@@ -15,18 +18,20 @@ void StarfishAttackState::OnEnter(Starfish& star) {
     };
 	
     s->animationComponent.SetAnimation("ATTACK", Animate::Mode::Loop);
-    s->OnFrameCallback(2, onAttack, std::function<void()>(), false);
+    s->OnFrameCallback(1, onAttack, std::function<void()>(), false);
   };
 
 
   star.SetAnimation("PREATTACK", onPreAttack);
 
-  //star.SetCounterFrame(1);
-  //star.SetCounterFrame(2);
+  star.SetCounterFrame(1);
+  star.SetCounterFrame(2);
 }
 
 void StarfishAttackState::OnUpdate(float _elapsed, Starfish& star) {
-  /* Nothing, just wait the animation out*/
+   /*if(this->leaveState) {
+    	this->ChangeState<StarfishIdleState>();
+   }*/
 }
 
 void StarfishAttackState::OnLeave(Starfish& star) {
@@ -40,14 +45,13 @@ void StarfishAttackState::DoAttack(Starfish& star) {
     star.field->AddEntity(*spell, star.tile->GetX() - 1, star.tile->GetY());
   }
   
-  std::cout << "bubble count: " << bubbleCount << std::endl;
-
   if (--bubbleCount == 0) {
+	star.animationComponent.SetPlaybackMode(Animate::Mode::NoEffect);
 	star.animationComponent.CancelCallbacks();
 	
 	// On animation end, go back to idle
-	star.animationComponent.AddCallback(10, [this]() {
+	star.animationComponent.AddCallback(9, [this](){
 		this->ChangeState<StarfishIdleState>();
-	}, std::function<void()>());
+	}, std::function<void()>(), false);
   }
 }

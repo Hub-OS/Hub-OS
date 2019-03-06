@@ -52,6 +52,7 @@ private:
   char playbackMode;
   
   bool isUpdating;
+  bool callbacksAreValid;
   
 public:
   class On {
@@ -66,7 +67,7 @@ public:
     }
     
     On(const On& rhs) {
-		std::cout << "in cpy constructor" << std::endl;
+		//std::cout << "in cpy constructor" << std::endl;
 		this->id = rhs.id;
 		this->callback = rhs.callback;
 		this->doOnce = rhs.doOnce;
@@ -98,6 +99,7 @@ public:
 
   char GetMode() { return playbackMode;  }
   void Clear() { 
+	  callbacksAreValid = false;
 	  queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
 	  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; 
   }

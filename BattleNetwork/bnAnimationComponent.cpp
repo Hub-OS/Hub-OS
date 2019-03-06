@@ -53,14 +53,16 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, std::func
   animation << playbackMode << onFinish;
 }
 
+void AnimationComponent::SetPlaybackMode(char playbackMode) 
+{
+	animation << playbackMode;
+}
+
 void AnimationComponent::AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame, bool doOnce) {
-  std::cout << "Add Callback on frame " << frame << std::endl;
   animation << Animate::On(frame, onFrame, doOnce) << Animate::On(frame+1, outFrame, doOnce);
-  std::cout << "After insert" << std::endl;
 }
 
 void AnimationComponent::CancelCallbacks()
 {
-  std::cout << "Callbacks cancelled" << std::endl;
   animation.RemoveCallbacks();
 }

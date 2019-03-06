@@ -17,7 +17,6 @@ void AnimatedCharacter::AddAnimation(string _state, FrameList _frameList, float 
 
 void AnimatedCharacter::SetAnimation(string _state, std::function<void()> onFinish) {
   animationComponent.SetAnimation(_state, onFinish);
-  animationComponent.Update(0);
 }
 
 void AnimatedCharacter::SetCounterFrame(int frame)
