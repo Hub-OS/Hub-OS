@@ -127,7 +127,15 @@ string Animation::ValueOf(string _key, string _line) {
 void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) {
   progress += elapsed * (float)std::fabs(playbackSpeed);
 
+  std::string stateNow = currAnimation;
   animator(progress, target, animations[currAnimation]);
+  
+  if(currAnimation != stateNow) {
+	  // it was changed during a callback
+	  // apply new state to target on same frame
+	  animator(0, target, animations[currAnimation]);
+	  progress = 0;
+  }
 
   const float duration = animations[currAnimation].GetTotalDuration();
 

@@ -18,7 +18,7 @@ Mob* StarfishMob::Build() {
   mob->RegisterRankedReward(11, BattleItem(Chip(81, 153, 'R', 300, Element::NONE, "Recov300", "Recover 300HP", "", 5)));
 
   mob->Spawn<Rank1<Starfish, StarfishIdleState>>(4 + (rand() % 3), 1);
-  mob->Spawn<Rank1<Starfish, StarfishIdleState>>(4 + (rand() % 3), 3);
+  //mob->Spawn<Rank1<Starfish, StarfishIdleState>>(4 + (rand() % 3), 3);
 
   return mob;
 }

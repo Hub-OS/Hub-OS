@@ -4,6 +4,7 @@
 #include <map>
 #include <functional>
 #include <assert.h>
+#include <iostream>
 
 struct Frame {
   float duration;
@@ -42,9 +43,16 @@ private:
   std::map<int, std::function<void()>> callbacks;
   std::map<int, std::function<void()>> onetimeCallbacks;
   std::map<int, std::function<void()>> nextLoopCallbacks; // used to move over already called callbacks
-
+  std::map<int, std::function<void()>> queuedCallbacks; // used for adding new callbacks while updating
+  std::map<int, std::function<void()>> queuedOnetimeCallbacks; 
+  
   std::function<void()> onFinish;
+  std::function<void()> queuedOnFinish;
+  
   char playbackMode;
+  
+  bool isUpdating;
+  
 public:
   class On {
     int id;
@@ -56,6 +64,13 @@ public:
     On(int id, std::function<void()> callback, bool doOnce = false) : id(id), callback(callback), doOnce(doOnce) {
       ;
     }
+    
+    On(const On& rhs) {
+		std::cout << "in cpy constructor" << std::endl;
+		this->id = rhs.id;
+		this->callback = rhs.callback;
+		this->doOnce = rhs.doOnce;
+	}
   };
 
   class Mode {
@@ -65,6 +80,7 @@ public:
 
     friend class Animate;
 
+    static const char NoEffect = 0x00;
     static const char Loop = 0x01;
     static const char Bounce = 0x02;
     static const char Reverse = 0x04;
@@ -81,7 +97,10 @@ public:
   ~Animate();
 
   char GetMode() { return playbackMode;  }
-  void Clear() { nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; }
+  void Clear() { 
+	  queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
+	  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; 
+  }
 
   void operator() (float progress, sf::Sprite& target, FrameList& sequence);
   Animate& operator << (On rhs);

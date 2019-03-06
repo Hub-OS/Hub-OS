@@ -39,9 +39,9 @@ frame duration="0.01666" x="40" y="56" w="35" h="62" originx="18" originy="44"
 frame duration="0.01666" x="78" y="53" w="35" h="59" originx="18" originy="46"
 
 animation state="PLAYER_MOVED"
-frame duration="0.01666" x="117" y="54" w="35" h="62" originx="14" originy="46"
-frame duration="0.01666" x="78" y="53" w="35" h="59" originx="18" originy="46"
-frame duration="0.01666" x="40" y="56" w="35" h="62" originx="18" originy="44"
+frame duration="0.0166667" x="117" y="54" w="35" h="62" originx="14" originy="46"
+frame duration="0.0166667" x="78" y="53" w="35" h="59" originx="18" originy="46"
+frame duration="0.0166667" x="40" y="56" w="35" h="62" originx="18" originy="44"
 frame duration="0.05" x="2" y="59" w="37" h="50" originx="18" originy="41"
 
 animation state="PLAYER_HIT"

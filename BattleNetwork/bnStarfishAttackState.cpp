@@ -15,14 +15,14 @@ void StarfishAttackState::OnEnter(Starfish& star) {
     };
 	
     s->animationComponent.SetAnimation("ATTACK", Animate::Mode::Loop);
-    s->OnFrameCallback(10, onAttack, std::function<void()>(), false);
+    s->OnFrameCallback(2, onAttack, std::function<void()>(), false);
   };
 
 
   star.SetAnimation("PREATTACK", onPreAttack);
 
-  star.SetCounterFrame(1);
-  star.SetCounterFrame(2);
+  //star.SetCounterFrame(1);
+  //star.SetCounterFrame(2);
 }
 
 void StarfishAttackState::OnUpdate(float _elapsed, Starfish& star) {
@@ -40,7 +40,7 @@ void StarfishAttackState::DoAttack(Starfish& star) {
     star.field->AddEntity(*spell, star.tile->GetX() - 1, star.tile->GetY());
   }
   
-  //std::cout << "bubble count: " << bubbleCount << std::endl;
+  std::cout << "bubble count: " << bubbleCount << std::endl;
 
   if (--bubbleCount == 0) {
 	star.animationComponent.CancelCallbacks();
