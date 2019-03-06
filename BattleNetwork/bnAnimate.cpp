@@ -182,7 +182,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
     queuedOnFinish = nullptr;
   }
 
-  //std::cout << "callbacks size after merge with queued: " << callbacks.size() << std::endl;
+  std::cout << "callbacks size after merge with queued: " << callbacks.size() << std::endl;
 }
 
 Animate & Animate::operator<<(On rhs)

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
+set (CMAKE_CXX_STANDARD 14)
 
 project(BattleNetwork-Engine)
 
@@ -16,8 +17,9 @@ file(GLOB bnFiles
         "BattleNetwork/AlphaBossSpawnPolicy.h"
         "BattleNetwork/mmbn.ico.c"
         "BattleNetwork/resource.h"
+        "BattleNetwork/Segues/*.h"
         )
 
 include_directories(extern/includes)
-add_executable(BattleNetworkExe BattleNetwork/main.cpp ${bnFiles})
-target_link_libraries(BattleNetworkExe sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
+add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles})
+target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
