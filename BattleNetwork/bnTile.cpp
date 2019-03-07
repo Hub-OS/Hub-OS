@@ -143,7 +143,6 @@ namespace Battle {
   }
 
   void Tile::SetState(TileState _state) {
-    // todo: artifacts and spells don't count, only characters and obstacles
     if (_state == TileState::BROKEN && (this->characters.size() || this->reserved.size())) {
       return;
     }

@@ -33,6 +33,7 @@ Animate::~Animate() {
 
 void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequence)
 {
+  // std::cout << "progress: " << progress << ", frames: " << sequence.frames.size() << ", totalDur: " << sequence.totalDuration << std::endl;
   float startProgress = progress;
   
   // Callbacks are only invalide during clears in the update loop
@@ -63,7 +64,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
     return;
   }
 
-  bool applyCallback = (progress > sequence.totalDuration);
+  bool applyCallback = (sequence.totalDuration == 0 || (startProgress > sequence.totalDuration && startProgress > 0.f));
 
   if (applyCallback) {
     if (onFinish != nullptr) {
@@ -100,7 +101,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
   std::vector<Frame>::const_iterator iter = copy.begin();
 
 
-  while (iter != copy.end()) {
+  while (iter != copy.end() && startProgress != 0.f) {
     index++;
     progress -= (*iter).duration;
 
@@ -163,7 +164,6 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
           iter = copy.begin();
         }
 
-		// std::cout << "requeueing callbacks" << std::endl;
 		this->callbacks.clear();
         this->callbacks = nextLoopCallbacks;
         this->nextLoopCallbacks.clear();
@@ -172,16 +172,23 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
 
         continue; // Start loop again
       }
-      
-      target.setTextureRect((*iter).subregion);
-      if ((*iter).applyOrigin) {
-        target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-      }
 
+	  target.setTextureRect((*iter).subregion);
+	  if ((*iter).applyOrigin) {
+		target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
+	  }
+	  
       break;
     }
 
     iter++;
+  }
+  
+  if(iter != copy.end()) {
+    target.setTextureRect((*iter).subregion);
+    if ((*iter).applyOrigin) {
+	  target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
+    }
   }
   
   isUpdating = false;

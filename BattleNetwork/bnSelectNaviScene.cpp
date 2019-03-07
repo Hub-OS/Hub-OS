@@ -89,8 +89,11 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   attackLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetAttackString().c_str()));
   hpLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetHPString().c_str()));
 
-  naviAnimator.SetFrame(1, navi);
-
+  naviAnimator = Animation(NAVIS.At(naviSelectionIndex).GetBattleAnimationPath());
+  naviAnimator.Reload();
+  naviAnimator.SetAnimation("PLAYER_IDLE");
+  naviAnimator << Animate::Mode::Loop;
+   
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
 

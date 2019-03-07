@@ -283,7 +283,7 @@ void SelectMobScene::onUpdate(double elapsed) {
     else {
       gotoNextScene = true;
 
-      AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOWEST);
+      AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::HIGH);
 
       // Stop music and go to battle screen 
       AUDIO.StopStream();
@@ -292,7 +292,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 
       selectedFolder.Shuffle();
 
-      using segue = swoosh::intent::segue<CrossZoom>::to<BattleScene>;
+      using segue = swoosh::intent::segue<WhiteWashFade>::to<BattleScene>;
       getController().push<segue>(player, this->mob, &selectedFolder);
     }
   }
@@ -415,11 +415,10 @@ void SelectMobScene::onLeave() {
 }
 
 void SelectMobScene::onExit() {
-
+  textbox.SetMessage("");
 }
 
 void SelectMobScene::onEnter() {
-
 }
 
 void SelectMobScene::onEnd() {

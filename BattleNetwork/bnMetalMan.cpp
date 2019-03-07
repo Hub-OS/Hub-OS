@@ -24,6 +24,8 @@ MetalMan::MetalMan(Rank _rank)
     SetHealth(1000);
   }
 
+  this->ShareTileSpace(true); // mega can walk into him on red tiles
+  
   hitHeight = 64;
   state = MOB_IDLE;
   textureType = TextureType::MOB_METALMAN_ATLAS;

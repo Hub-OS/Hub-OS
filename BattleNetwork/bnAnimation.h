@@ -21,6 +21,7 @@ public:
 
   void Reload();
   void Update(float _elapsed, sf::Sprite& target, double playbackSpeed = 1.0);
+  void Refresh(sf::Sprite& target);
   void SetFrame(int frame, sf::Sprite& target);
   void SetAnimation(string state);
 

@@ -14,7 +14,7 @@
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
 Player::Player(void)
-  : health(500),
+  :
   state(PLAYER_IDLE),
   chargeComponent(this),
   animationComponent(this),
@@ -25,6 +25,8 @@ Player::Player(void)
   this->AddNode(&chargeComponent);
   chargeComponent.setPosition(0, -20.0f); // translate up -20
 
+  SetHealth(500);
+  
   name = "Megaman";
   SetLayer(0);
   team = Team::RED;
@@ -70,6 +72,7 @@ void Player::Update(float _elapsed) {
   if (GetHealth() <= 0) {
 	chargeComponent.Hide();
     this->animationComponent.CancelCallbacks();
+    this->animationComponent.SetAnimation(PLAYER_HIT);
     this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
     AI<Player>::Update(_elapsed);
     return;

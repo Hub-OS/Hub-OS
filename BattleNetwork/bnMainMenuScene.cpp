@@ -5,7 +5,7 @@
 
 #include "Segues/PushIn.h"
 #include "Segues/Checkerboard.h"
-#include "Segues/WhiteWashFade.h"
+#include "Segues/PixelateBlackWashFade.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -128,7 +128,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 
         if (data.GetFolder("Default", folder)) {
           AUDIO.Play(AudioType::CHIP_DESC);
-          using segue = swoosh::intent::segue<WhiteWashFade>::to<SelectMobScene>;
+          using segue = swoosh::intent::segue<PixelateBlackWashFade>::to<SelectMobScene>;
           this->getController().push<segue>(currentNavi, *folder);
         }
         else {

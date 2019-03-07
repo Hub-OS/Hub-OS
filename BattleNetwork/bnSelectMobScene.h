@@ -31,7 +31,8 @@ using sf::Event;
 using sf::Font;
 
 #include <Swoosh/Activity.h>
-#include "Segues/CrossZoom.h"
+#include "Segues/CrossZoom.h" // <-- GPU intensive and runs slowly on old hardware
+#include "Segues/WhiteWashFade.h"
 #include "Segues/BlackWashFade.h"
 
 class SelectMobScene : public swoosh::Activity

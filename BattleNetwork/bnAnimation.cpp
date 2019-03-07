@@ -124,6 +124,11 @@ string Animation::ValueOf(string _key, string _line) {
   return s.substr(0, s.find("\""));
 }
 
+void Animation::Refresh(sf::Sprite& target) {
+	animator(0, target, animations[currAnimation]);
+	progress = 0;
+}
+
 void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) {
   progress += elapsed * (float)std::fabs(playbackSpeed);
 

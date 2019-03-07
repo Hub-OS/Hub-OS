@@ -149,6 +149,7 @@ private:
   bool isMobDeleted;
   bool isBattleRoundOver;
   bool isMobFinished;
+  bool isSceneInFocus;
   bool prevSummonState;
   double customProgress;
   double customDuration;

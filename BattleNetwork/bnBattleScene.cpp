@@ -149,19 +149,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   // MOB UI
   mobFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-
-  // Stream battle music 
-  if (mob->HasCustomMusicPath()) {
-    AUDIO.Stream(mob->GetCustomMusicPath(), true);
-  }
-  else {
-    if (!mob->IsBoss()) {
-      AUDIO.Stream("resources/loops/loop_battle.ogg", true);
-    }
-    else {
-      AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
-    }
-  }
  
   // STATE FLAGS AND TIMERS
   isPaused = false;
@@ -215,6 +202,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
   iceShader.setUniform("shine", 0.2f);
+  
+  isSceneInFocus = false;
 }
 
 BattleScene::~BattleScene()
@@ -326,7 +315,7 @@ void BattleScene::onUpdate(double elapsed) {
 
   isBattleRoundOver = (isPlayerDeleted || isMobDeleted);
 
-  if (mob->NextMobReady()) {
+  if (mob->NextMobReady() && isSceneInFocus) {
     Mob::MobData* data = mob->GetNextMob();
 
     Agent* cast = dynamic_cast<Agent*>(data->mob);
@@ -1103,7 +1092,20 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 }
 
 void BattleScene::onStart() {
-
+  isSceneInFocus = true;
+	
+  // Stream battle music 
+  if (mob->HasCustomMusicPath()) {
+    AUDIO.Stream(mob->GetCustomMusicPath(), true);
+  }
+  else {
+    if (!mob->IsBoss()) {
+      AUDIO.Stream("resources/loops/loop_battle.ogg", true);
+    }
+    else {
+      AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
+    }
+  }
 }
 
 void BattleScene::onLeave() {
