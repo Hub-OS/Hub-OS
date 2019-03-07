@@ -151,6 +151,8 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
 
 void Animation::SetFrame(int frame, sf::Sprite& target)
 {
+  if(path.empty() || animations.empty() || animations.find(currAnimation) == animations.end()) return;
+  
   animator.SetFrame(frame, target, animations[currAnimation]);
 }
 
