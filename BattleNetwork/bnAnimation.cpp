@@ -134,7 +134,7 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
 
   std::string stateNow = currAnimation;
   animator(progress, target, animations[currAnimation]);
-  
+
   if(currAnimation != stateNow) {
 	  // it was changed during a callback
 	  // apply new state to target on same frame
@@ -144,6 +144,8 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
 
   const float duration = animations[currAnimation].GetTotalDuration();
 
+  if(duration == 0.f) return;
+  
   while (progress > duration && (animator.GetMode() & Animate::Mode::Loop) == Animate::Mode::Loop) {
     progress -= duration;
   }
@@ -152,7 +154,7 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
 void Animation::SetFrame(int frame, sf::Sprite& target)
 {
   if(path.empty() || animations.empty() || animations.find(currAnimation) == animations.end()) return;
-  
+
   animator.SetFrame(frame, target, animations[currAnimation]);
 }
 

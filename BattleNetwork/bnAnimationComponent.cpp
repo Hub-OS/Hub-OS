@@ -28,7 +28,6 @@ void AnimationComponent::Setup(string _path)
 void AnimationComponent::Reload() {
   animation = Animation(path);
   animation.Reload();
-  this->Update(0);
 }
 
 const std::string AnimationComponent::GetAnimationString() const
@@ -45,7 +44,7 @@ void AnimationComponent::SetAnimation(string state, std::function<void()> onFini
 {
   animation.SetAnimation(state);
   animation << onFinish;
-  
+
   // Todo: this should apply the new rects immediately on set but it
   //       removes callbacks for some reason
   // animation.Refresh(*entity);
@@ -55,12 +54,12 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, std::func
 {
   animation.SetAnimation(state);
   animation << playbackMode << onFinish;
-  
+
   // See line 49
   // animation.Refresh(*entity);
 }
 
-void AnimationComponent::SetPlaybackMode(char playbackMode) 
+void AnimationComponent::SetPlaybackMode(char playbackMode)
 {
 	animation << playbackMode;
 }

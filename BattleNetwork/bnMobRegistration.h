@@ -8,12 +8,11 @@
 
 #include "bnTextureResourceManager.h"
 #include "bnField.h"
-
+#include "bnMobFactory.h"
 /*
   Use this singleton to register custom mobs  and have them automatically appear on the mob select screen and battle them!
 */
 
-class MobFactory; // forward decl
 class Mob;
 
 typedef int SelectedMob;

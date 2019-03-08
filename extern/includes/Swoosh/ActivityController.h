@@ -184,7 +184,7 @@ namespace swoosh {
     struct ResolvePushSegueIntent
     {
       ResolvePushSegueIntent(ActivityController& owner) {
-        static_assert("Swoosh could not handle the segue intent");
+        //static_assert("Swoosh could not handle the segue intent");
       }
     };
 
@@ -252,7 +252,7 @@ namespace swoosh {
     struct ResolveRewindSegueIntent
     {
       ResolveRewindSegueIntent(ActivityController& owner) {
-        static_assert("Swoosh could not handle the segue intent");
+        //static_assert("Swoosh could not handle the segue intent");
       }
 
       bool RewindSuccessful;
@@ -290,14 +290,14 @@ namespace swoosh {
 
         while (dynamic_cast<T*>(next) == 0 && owner.activities.size() > 1) {
           original.push(next);
-          activities.pop();
+          owner.activities.pop();
           next = owner.activities.top();
         }
 
-        if (activities.empty()) {
+        if (owner.activities.empty()) {
           // We did not find it, push the states back on the list and return false
           while (original.size() > 0) {
-            activities.push(original.top());
+            owner.activities.push(original.top());
             original.pop();
           }
 
