@@ -35,7 +35,7 @@ using swoosh::ActivityController;
 #define TITLE_ANIM_CHAR_HEIGHT 221
 #define SHADER_FRAG_WHITE_PATH "resources/shaders/white_fade.frag.txt"
 
-#define FIXED_TIME_STEP 1.0/60.0
+#define FIXED_TIME_STEP 1.0f/60.0f
 
 void RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
