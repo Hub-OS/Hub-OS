@@ -12,6 +12,7 @@
 
 # Mac binaries
 *.app
+*.app/*
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
