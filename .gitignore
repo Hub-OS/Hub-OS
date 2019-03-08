@@ -24,6 +24,7 @@
 x64/
 x86/
 build/
+build/*
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
