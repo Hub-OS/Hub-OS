@@ -67,6 +67,8 @@ public:
     states.shader = &shader;
 
     surface.draw(sprite, states);
+
+    delete temp2;
   }
 
   CheckerboardCustom(sf::Time duration, Activity* last, Activity* next) : Segue(duration, last, next) {
