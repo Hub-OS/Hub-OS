@@ -1,0 +1,23 @@
+PA name="XtrmeCnnon" iconIndex="232" damage="600" type="Normal"
+	Chip name="Cannon" code="A"
+	Chip name="Cannon" code="B"
+	Chip name="Cannon" code="C"
+
+PA name="LifeSwrd" iconIndex="232" damage="700" type="Normal"
+	Chip name="Swrd" code="H"
+	Chip name="WideSwrd" code="I"
+	Chip name="LongSwrd" code="J"
+
+PA name="Crzy Combo" iconIndex="232" damage="1000" type="Normal"
+	Chip name="Barr200" code="X"
+	Chip name="Invsble" code="Y"
+	Chip name="Recov8" code="Z"
+
+# Just for fun
+PA name="Weaaaak" iconIndex="232" damage="1" type="Normal"
+	Chip name="FireSwrd" code="*"
+	Chip name="Bubble1" code="R"
+
+# This will fail 
+PA name="No Entry" iconIndex="232" damage="1" type="Normal"
+	Chip name="Cannon1" code="A"

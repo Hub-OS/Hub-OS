@@ -1,0 +1,33 @@
+uniform sampler2D currentTexture; // Our render texture
+uniform sampler2D sceneTexture; // Our reflection
+
+uniform float x;
+uniform float y;
+uniform float w;
+uniform float h;
+uniform vec2 textureSizeIn;
+uniform float shine; // 1.0 = completely reflective. 0 = no reflection
+
+void main()
+{
+    gl_FragColor = gl_Color * texture2D(currentTexture, gl_TexCoord[0].st);
+
+    vec2 size = textureSizeIn;
+    vec2 screenCoord = vec2(gl_TexCoord[0].s, (gl_TexCoord[0].t)) * size;
+
+    if(screenCoord.x >= x && screenCoord.x <= x + w && screenCoord.y >= y && screenCoord.y <= y + h) {
+      // vec2 distortionMapCoordinate = gl_TexCoord[0].st; NOTE: Bump mapping?
+
+      vec2 reflectionMapCoordinate = gl_TexCoord[0].st;
+      reflectionMapCoordinate.y = 1.0 - reflectionMapCoordinate.y; // flip
+      reflectionMapCoordinate.y += 0.11; // offset reflection
+
+      vec4 color1 = texture2D(currentTexture, gl_TexCoord[0].st);
+
+      if(color1.r < 224.0/255.0 && color1.g >= 200.0/255.0 && color1.b >= 184.0/255.0) {
+        vec4 color2 = texture2D(sceneTexture, reflectionMapCoordinate);
+
+        gl_FragColor = ( 1.0 - shine) * color1 + shine * color2;
+      }
+    }
+}

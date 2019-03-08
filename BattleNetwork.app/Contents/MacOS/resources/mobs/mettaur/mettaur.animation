@@ -1,0 +1,24 @@
+entity name="Mettaur"
+
+animation state="MOB_MOVING" width="32" height="41"
+frame duration="0.05" startx="0" starty="0"
+frame duration="0.05" startx="32" starty="0"
+
+animation state="MOB_IDLE" width="54" height="56"
+frame duration="0.01" startx="0" starty="0"
+
+animation state="MOB_HIT" width="34" height="31"
+frame duration="0.1" startx="0" starty="0"
+frame duration="0.1" startx="34" starty="0"
+frame duration="0.1" startx="68" starty="0"
+
+animation state="MOB_ATTACKING" width="53" height="56"
+frame duration="0.06153846" startx="0" starty="0"
+frame duration="0.06153846" startx="53" starty="0"
+frame duration="0.06153846" startx="106" starty="0"
+frame duration="0.3076923"  startx="159" starty="0"
+frame duration="0.06153846" startx="212" starty="0"
+frame duration="0.06153846" startx="265" starty="0"
+frame duration="0.06153846" startx="318" starty="0"
+frame duration="0.06153846" startx="371" starty="0"
+frame duration="0.06153846" startx="424" starty="0"
