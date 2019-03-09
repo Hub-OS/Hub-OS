@@ -36,7 +36,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (!player.IsBattleActive()) return;
 
   // Action controls take priority over movement
-  if (inputManager->Has(RELEASED_A)) {
+  if (!inputManager->Has(HELD_A)) {
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
       player.chargeComponent.SetCharging(false);

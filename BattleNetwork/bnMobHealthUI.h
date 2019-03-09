@@ -17,8 +17,8 @@ public:
 
 private:
   Character * mob;
-  Font* font;
-  Text text;
+  sf::Color color;
+  mutable sf::Sprite glyphs;
   int healthCounter;
   double cooldown;
   bool loaded;

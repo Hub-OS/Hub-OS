@@ -33,8 +33,8 @@ private:
   int currHP;
   int startHP;
   Player* player;
-  Font* font;
-  Text text;
+  mutable Sprite glyphs;
+  sf::Color color;
   Sprite sprite;
   Texture* texture;
   bool loaded;

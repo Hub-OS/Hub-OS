@@ -226,6 +226,8 @@ TextureResourceManager::TextureResourceManager(void) {
 
   // other ui / icons
   paths.push_back("resources/ui/aura_numset.png");
+  paths.push_back("resources/ui/hp_numset.png");
+  paths.push_back("resources/ui/player_numset.png");
   paths.push_back("resources/ui/gamepad_support_icon.png");
   paths.push_back("resources/ui/main_menu_ui.png");
   paths.push_back("resources/ui/elements.png");

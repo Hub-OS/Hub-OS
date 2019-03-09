@@ -12,6 +12,7 @@ using sf::IntRect;
 Aura::Aura(Aura::Type type, Character* owner) : type(type), Character(), Component(owner)
 {
   SetLayer(1);
+  this->timer = 50; // seconds
   this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
   this->setScale(2.f, 2.f);
   this->SetTeam(owner->GetTeam());
@@ -20,8 +21,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Character(), Compone
 
   healthUI = new AuraHealthUI(this);
   this->RegisterComponent(healthUI);
-  //this->AddNode(healthUI);
- 
+
   aura = (sf::Sprite)*this;
 
   //Components setup and load
@@ -67,13 +67,16 @@ void Aura::Inject(BattleScene& bs) {
 }
 
 void Aura::Update(float _elapsed) {
+  timer -= _elapsed;
+
   this->SlideToTile(false);
 
-  if (GetHealth() == 0) {
+  if (GetHealth() == 0 || timer <= 0.0) {
     this->TryDelete();
     this->GetOwnerAs<Character>()->RemoveDefenseRule(this->defense);
     this->GetOwner()->FreeComponentByID(this->Component::GetID());
     this->FreeAllComponents();
+    Entity::Update(_elapsed);
 
     return;
   }

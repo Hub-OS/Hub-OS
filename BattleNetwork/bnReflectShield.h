@@ -9,6 +9,8 @@ private:
   DefenseRule* guard;
   Animation animation;
   sf::Sprite shield;
+  bool activated;
+
 public:
   ReflectShield(Character* owner);
   ~ReflectShield();
@@ -16,4 +18,6 @@ public:
   virtual void Inject(BattleScene&);
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction) { return false; }
+
+  void DoReflect(Spell* in, Character* owner);
 };

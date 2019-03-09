@@ -15,6 +15,7 @@ ReflectShield::ReflectShield(Character* owner) : Artifact(), Component(owner)
   this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
   this->setScale(2.f, 2.f);
   shield = (sf::Sprite)*this;
+  activated = false;
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -22,22 +23,8 @@ ReflectShield::ReflectShield(Character* owner) : Artifact(), Component(owner)
 
   animation.SetAnimation("DEFAULT");
 
-  DefenseGuard::Callback callback = [](Spell* in, Character* owner) {
-    Direction direction = Direction::NONE;
-
-    if (in->GetDirection() == Direction::LEFT) {
-      direction = Direction::RIGHT;
-    }
-    else if (in->GetDirection() == Direction::RIGHT) {
-      direction = Direction::LEFT;
-    }
-
-    Field* field = owner->GetField();
-
-    Spell* rowhit = new RowHit(field, owner->GetTeam(), 60);
-    rowhit->SetDirection(direction);
-
-    field->AddEntity(*rowhit, owner->GetTile()->GetX()+1, owner->GetTile()->GetY());
+  DefenseGuard::Callback callback = [this](Spell* in, Character* owner) {
+    this->DoReflect(in, owner);
   };
 
   this->guard = new DefenseGuard(callback);
@@ -62,6 +49,29 @@ void ReflectShield::Update(float _elapsed) {
 
   animation.Update(_elapsed, *this);
   Entity::Update(_elapsed);
+}
+
+void ReflectShield::DoReflect(Spell* in, Character* owner)
+{
+  if (!this->activated) {
+    Direction direction = Direction::NONE;
+
+    if (in->GetDirection() == Direction::LEFT) {
+      direction = Direction::RIGHT;
+    }
+    else if (in->GetDirection() == Direction::RIGHT) {
+      direction = Direction::LEFT;
+    }
+
+    Field* field = owner->GetField();
+
+    Spell* rowhit = new RowHit(field, owner->GetTeam(), 60);
+    rowhit->SetDirection(direction);
+
+    field->AddEntity(*rowhit, owner->GetTile()->GetX() + 1, owner->GetTile()->GetY());
+
+    this->activated = true;
+  }
 }
 
 ReflectShield::~ReflectShield()

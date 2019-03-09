@@ -186,8 +186,6 @@ int main(int argc, char** argv) {
   while (inConfigMessageState && ENGINE.Running()) {
     clock.restart();
 
-    INPUT.Update();
-
     // Prepare for next draw calls
     ENGINE.Clear();
 
@@ -483,6 +481,8 @@ int main(int argc, char** argv) {
 
   double remainder = 0;
   elapsed = 0;
+
+  srand((unsigned int)time(nullptr));
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {

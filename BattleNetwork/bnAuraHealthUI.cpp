@@ -28,7 +28,7 @@ void AuraHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const
   if (currHP > 0) {
     int size = (int)(std::to_string(currHP).size());
     int hp = currHP;
-    float offsetx = -(((size)*12.0f) / 2.0f)*this->getScale().x;
+    float offsetx = -(((size)*8.0f) / 2.0f)*font.getScale().x;
     int index = 0;
     while (index < size) {
       const char c = std::to_string(currHP)[index];
@@ -47,7 +47,7 @@ void AuraHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const
       target.draw(font, this_states);
       //ENGINE.Draw(font);
 
-      offsetx += 12.0f*this->getScale().x;
+      offsetx += 8.0f*font.getScale().x;
       index++;
     }
   }
