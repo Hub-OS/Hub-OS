@@ -192,7 +192,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   distortionMap.setRepeated(true);
   distortionMap.setSmooth(true);
 
-  textureSize = getController().getInitialWindowSize();
+  textureSize = getController().getVirtualWindowSize();
 
   heatShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
   heatShader.setUniform("distortionMapTexture", distortionMap);
