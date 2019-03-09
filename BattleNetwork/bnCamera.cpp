@@ -1,5 +1,6 @@
 #include "bnCamera.h"
 #include <iostream>
+#include <cmath>
 
 Camera::Camera(const sf::View& view) : focus(view)
 {
@@ -47,7 +48,7 @@ void Camera::Update(float elapsed) {
       int randomAngle = shakeProgress * (rand() % 360);
       randomAngle += (150 + (rand() % 60));
 
-      auto offset = sf::Vector2f(std::sinf((float)randomAngle) * currStress, std::cosf((float)randomAngle) * currStress);
+      auto offset = sf::Vector2f(std::sin((float)randomAngle) * currStress, std::cos((float)randomAngle) * currStress);
 
       focus.setCenter(init.getCenter() + offset);
     }
