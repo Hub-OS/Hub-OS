@@ -23,7 +23,7 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
 
   isBattleOver = false;
 
-  color = sf::Color::White;
+  color = Color::NORMAL;
 }
 
 PlayerHealthUI::~PlayerHealthUI() {
@@ -46,10 +46,17 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
     int number = std::atoi(&c);
 
     int col = number*8;
+    int row = 0;
 
-    glyphs.setTextureRect(sf::IntRect(col, 0, 8, 10));
+    if (color == Color::ORANGE) {
+      row = 10;
+    }
+    else if (color == Color::GREEN) {
+      row = 20;
+    }
+
+    glyphs.setTextureRect(sf::IntRect(col, row, 8, 10));
     glyphs.setPosition(sf::Vector2f(offsetx-8.f, 6.0f) + sf::Vector2f(sprite.getLocalBounds().width*sprite.getScale().x, 0.f));
-    glyphs.setColor(this->color);
 
     target.draw(glyphs, this_states);
     //ENGINE.Draw(font);
@@ -122,7 +129,7 @@ void PlayerHealthUI::Update(float elapsed) {
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
 
-    color = sf::Color::White;
+    color = Color::NORMAL;
 
     bool isBurning = false;
     bool isPoisoned = false;
@@ -135,13 +142,13 @@ void PlayerHealthUI::Update(float elapsed) {
     }
 
     if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0 || player->GetHealth() <= startHP * 0.5) {
-      color = sf::Color(255, 165, 0);
+      color = Color::ORANGE;
 
       if (player->GetHealth() <= startHP * 0.5 && !isBattleOver) {
         AUDIO.Play(AudioType::LOW_HP, AudioPriority::HIGH);
       }
     } else if (currHP < player->GetHealth()) {
-      color = sf::Color(0, 255, 80);
+      color = Color::GREEN;
     }
   }
 }

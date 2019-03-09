@@ -34,9 +34,15 @@ private:
   int startHP;
   Player* player;
   mutable Sprite glyphs;
-  sf::Color color;
   Sprite sprite;
   Texture* texture;
+
+  enum class Color : int {
+    NORMAL,
+    ORANGE,
+    GREEN
+  } color;
+
   bool loaded;
   bool isBattleOver;
   double cooldown;
