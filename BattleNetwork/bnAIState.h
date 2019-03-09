@@ -3,11 +3,24 @@
 #include "bnEntity.h"
 #include "bnMeta.h"
 
+template<typename T>
+class AI;
+
 template<class T>
 class AIState
 {
+  friend class AI<T>;
+
 private:
   AIState<T>* nextState;
+
+  /* Transfer ownership */
+  AIState<T>* GetNextState() {
+    AIState<T>* out = nextState;
+    nextState = nullptr;
+    return out;
+  }
+
 
 public:
   AIState() { nextState = nullptr; }

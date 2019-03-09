@@ -33,8 +33,9 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
   auto this_states = states;
   this_states.transform *= this->getTransform();
 
-  // Glyphs are 8x10
+  // Glyphs are 8x11
   // First glyph is 0 the last is 9
+  // 1px space between colors
   target.draw(sprite, this_states);
 
   int size = (int)(std::to_string(currHP).size());
@@ -49,13 +50,13 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
     int row = 0;
 
     if (color == Color::ORANGE) {
-      row = 10;
+      row = 11;
     }
     else if (color == Color::GREEN) {
-      row = 20;
+      row = 22;
     }
 
-    glyphs.setTextureRect(sf::IntRect(col, row, 8, 10));
+    glyphs.setTextureRect(sf::IntRect(col, row, 8, 11));
     glyphs.setPosition(sf::Vector2f(offsetx-8.f, 6.0f) + sf::Vector2f(sprite.getLocalBounds().width*sprite.getScale().x, 0.f));
 
     target.draw(glyphs, this_states);

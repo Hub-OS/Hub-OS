@@ -43,6 +43,19 @@ public:
     }
 
     stateMachine->template ChangeState<U>();
+
+    AIState<T>* nextState = stateMachine->GetNextState();
+
+    if (nextState != nullptr) {
+
+      stateMachine->OnLeave(*ref);
+
+      AIState<T>* oldState = stateMachine;
+      stateMachine = nextState;
+      stateMachine->OnEnter(*ref);
+      delete oldState;
+      oldState = nullptr;
+    }
   }
 
   /*
@@ -65,6 +78,19 @@ template<typename U, typename ...Args>
     }
 
     stateMachine->template ChangeState<U>(args...);
+
+    AIState<T>* nextState = stateMachine->GetNextState();
+
+    if (nextState != nullptr) {
+
+      stateMachine->OnLeave(*ref);
+
+      AIState<T>* oldState = stateMachine;
+      stateMachine = nextState;
+      stateMachine->OnEnter(*ref);
+      delete oldState;
+      oldState = nullptr;
+    }
   }
 
   void Update(float _elapsed) {

@@ -62,9 +62,9 @@ void MobHealthUI::Update(float elapsed) {
     if (cooldown > 0) {
       color = sf::Color(255, 165, 0);
     }
-  }
 
-  if (healthCounter < 0) { healthCounter = 0; }
+    if (healthCounter < 0 || mob->GetHealth() <= 0) { healthCounter = 0; }
+  }
 }
 
 void MobHealthUI::Inject(BattleScene & scene)
