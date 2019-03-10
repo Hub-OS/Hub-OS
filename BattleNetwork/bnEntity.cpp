@@ -346,6 +346,7 @@ Direction Entity::GetPreviousDirection()
 void Entity::Delete()
 {
   deleted = true;
+  this->FreeAllComponents();
 }
 
 bool Entity::IsDeleted() const {

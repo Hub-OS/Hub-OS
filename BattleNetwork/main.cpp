@@ -186,6 +186,8 @@ int main(int argc, char** argv) {
   while (inConfigMessageState && ENGINE.Running()) {
     clock.restart();
 
+    INPUT.Update();
+    
     // Prepare for next draw calls
     ENGINE.Clear();
 
@@ -260,6 +262,8 @@ int main(int argc, char** argv) {
 
   while(inLoadState && ENGINE.Running()) {
     clock.restart();
+    
+    INPUT.Update();
 
     float percentage = (float)progress / (float)totalObjects;
     std::string percentageStr = std::to_string((int)(percentage*100));

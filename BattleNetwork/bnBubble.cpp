@@ -5,6 +5,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnSharedHitBox.h"
 
 Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   SetLayer(1);
@@ -67,6 +68,10 @@ void Bubble::Update(float _elapsed) {
       this->Delete();
     }
 
+	// Drop a shared hitbox when moving
+	SharedHitBox* shb = new SharedHitBox(this, 2.0f);
+	GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
+  
     this->SlideToTile(true);
     this->Move(this->GetDirection());
   }

@@ -7,8 +7,6 @@ MettaurIdleState::MettaurIdleState() : cooldown(1), AIState<Mettaur>() { ; }
 MettaurIdleState::~MettaurIdleState() { ; }
 
 void MettaurIdleState::OnEnter(Mettaur& met) {
-  std::cout << "entering mettaur idle state" << std::endl;
-
   if (met.GetRank() == Mettaur::Rank::SP) {
     met.SetAnimation("SP_IDLE");
   }
