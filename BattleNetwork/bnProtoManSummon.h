@@ -4,17 +4,19 @@
 
 class ChipSummonHandler;
 
-class RollHeal : public Spell {
+class ProtoManSummon : public Spell {
 public:
-  RollHeal(ChipSummonHandler* _summons, int heal);
-  virtual ~RollHeal();
+  ProtoManSummon(ChipSummonHandler* _summons);
+  virtual ~ProtoManSummon();
 
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);
   virtual void Attack(Character* _entity);
+  
+  void DoAttackStep();
 
 private:
-  int heal;
+  std::vector<Battle::Tile*> targets;
   int random;
   ChipSummonHandler* summons;
 };

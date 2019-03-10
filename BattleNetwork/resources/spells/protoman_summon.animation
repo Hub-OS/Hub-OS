@@ -5,7 +5,7 @@ imagePath="C:\Users\Bountyhunter\Code\mmbn\BattleNetwork\resources\spells/protom
 animation state="APPEAR"
 frame duration="0.01666" x="191" y="0" w="46" h="65" originx="22" originy="58"
 frame duration="0.01666" x="145" y="6" w="45" h="58" originx="17" originy="51"
-frame duration="0.1" x="89" y="10" w="54" h="56" originx="20" originy="47"
+frame duration="0.5" x="89" y="10" w="54" h="56" originx="20" originy="47"
 
 animation state="MOVE"
 frame duration="0.01666" x="89" y="10" w="54" h="56" originx="20" originy="47"
@@ -14,7 +14,7 @@ frame duration="0.01666" x="191" y="0" w="46" h="65" originx="22" originy="58"
 
 
 animation state="ATTACK"
-frame duration="0.0166" x="238" y="11" w="50" h="53" originx="18" originy="47"
+frame duration="0.5" x="238" y="11" w="50" h="53" originx="18" originy="47"
 frame duration="0.0333" x="11" y="88" w="46" h="52" originx="22" originy="45"
 frame duration="0.0166" x="58" y="86" w="72" h="60" originx="16" originy="47"
 frame duration="0.01666" x="135" y="89" w="67" h="53" originx="18" originy="44"
