@@ -6,6 +6,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnSwordEffect.h"
 
 #include "bnChipSummonHandler.h"
 
@@ -46,7 +47,7 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
 		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
 
 		auto characters = prev->FindEntities([](Entity* in) {
-			return dynamic_cast<Character*>(in);
+			return (dynamic_cast<Character*>(in) && in->GetTeam() != Team::UNKNOWN);
 		});
 	
 	    bool blocked = (characters.size() > 0) || !prev->IsWalkable();
@@ -90,19 +91,21 @@ void ProtoManSummon::DoAttackStep() {
   }
   else {
 	this->animationComponent.SetAnimation("MOVE", [this] {
+	// TODO: queue for removal by next update, dont delete immediately
+	// esp during anim callbacks...
 	  this->summons->RemoveEntity(this);
 	});
   }
 }
 
 void ProtoManSummon::Update(float _elapsed) {
-  animationComponent.Update(_elapsed);
-
   if (tile != nullptr) {
     setPosition(tile->getPosition());
   }
 
   Entity::Update(_elapsed);
+  
+  animationComponent.Update(_elapsed);
 }
 
 bool ProtoManSummon::Move(Direction _direction) {
@@ -110,18 +113,14 @@ bool ProtoManSummon::Move(Direction _direction) {
 }
 
 void ProtoManSummon::Attack(Character* _entity) {
-  if (hit || deleted) {
-    return;
-  }
+  SwordEffect* effect = new SwordEffect(GetField());
+  GetField()->AddEntity(*effect, _entity->GetTile()->GetX(), _entity->GetTile()->GetY());
+  this->summons->SummonEntity(effect, false);
+  
+  auto props = Hit::DefaultProperties;
+  props.damage = 120;
+  props.flags |= Hit::recoil;
+  _entity->Hit(props);
 
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    if (!_entity->IsPassthrough()) {
-      auto props = Hit::DefaultProperties;
-      props.damage = 120;
-      props.flags |= Hit::recoil;
-      _entity->Hit(props);
-
-      AUDIO.Play(AudioType::SWORD_SWING);
-    }
-  }
+  AUDIO.Play(AudioType::SWORD_SWING);
 }

@@ -145,7 +145,8 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/ninja_star.png");
   paths.push_back("resources/spells/poof.png");
   paths.push_back("resources/spells/areagrab.png");
-
+  paths.push_back("resources/spells/sword_effect.png");
+  
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");
   paths.push_back("resources/ui/chip_cursor_small.png");

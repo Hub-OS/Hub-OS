@@ -59,6 +59,7 @@ enum TextureType {
   SPELL_NINJA_STAR,
   SPELL_POOF,
   SPELL_AREAGRAB,
+  SPELL_SWORD,
 
   //Chip Select 
   CHIP_SELECT_MENU,

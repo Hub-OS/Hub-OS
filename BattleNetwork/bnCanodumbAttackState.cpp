@@ -1,4 +1,3 @@
-#pragma once
 #include "bnCanodumbIdleState.h"
 #include "bnCanodumbAttackState.h"
 #include "bnCanodumb.h"
