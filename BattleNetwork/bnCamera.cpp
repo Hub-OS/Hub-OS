@@ -67,7 +67,7 @@ void Camera::MoveCamera(sf::Vector2f destination, sf::Time duration) {
   dur = duration;
 }
 
-void Camera::PlaceCamera(sf::Vector2f pos) { 
+void Camera::PlaceCamera(sf::Vector2f pos) {
   focus.setCenter(pos);
   dest = focus.getCenter();
 }
@@ -93,6 +93,8 @@ bool Camera::IsInView(sf::Sprite& sprite) {
 
 void Camera::ShakeCamera(double stress, sf::Time duration)
 {
+  if(isShaking) return;
+  
   init = focus;
   this->stress = stress;
   shakeDur = duration;

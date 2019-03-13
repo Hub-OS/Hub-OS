@@ -40,30 +40,30 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
-	
+
   Battle::Tile* next = nullptr;
   while(field->GetNextTile(next)) {
 	  if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
 		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
 
-		auto characters = prev->FindEntities([](Entity* in) {
-			return (dynamic_cast<Character*>(in) && in->GetTeam() != Team::UNKNOWN);
+		auto characters = prev->FindEntities([_summons](Entity* in) {
+			return _summons->GetCaller() != in && (dynamic_cast<Character*>(in) && in->GetTeam() != Team::UNKNOWN);
 		});
-	
+
 	    bool blocked = (characters.size() > 0) || !prev->IsWalkable();
-	    
+
 	    if(!blocked) {
 			targets.push_back(next);
 	    }
 	  }
   }
-    
+
   // TODO: noodely callbacks desgin might be best abstracted by ActionLists
-  animationComponent.SetAnimation("APPEAR", [this] { 
+  animationComponent.SetAnimation("APPEAR", [this] {
 	auto handleAttack = [this] () {
 	    this->DoAttackStep();
     };
-    
+
     this->animationComponent.SetAnimation("MOVE", handleAttack);
   });
 }
@@ -76,24 +76,25 @@ void ProtoManSummon::DoAttackStep() {
 	Battle::Tile* prev = field->GetAt(targets[0]->GetX() - 1, targets[0]->GetY());
     this->GetTile()->RemoveEntityByID(this->GetID());
     prev->AddEntity(*this);
-		
+
 	this->animationComponent.SetAnimation("ATTACK", [this, prev] {
 	  this->animationComponent.SetAnimation("MOVE", [this, prev] {
 		this->DoAttackStep();
 	  });
 	});
 
-	this->animationComponent.AddCallback(4,  [this]() { 
-		this->targets[0]->AffectEntities(this); 
-		this->targets.erase(targets.begin()); 
+	this->animationComponent.AddCallback(4,  [this]() {
+		this->targets[0]->AffectEntities(this);
+		this->targets.erase(targets.begin());
 	}, std::function<void()>(), true);
-	
+
   }
   else {
 	this->animationComponent.SetAnimation("MOVE", [this] {
 	// TODO: queue for removal by next update, dont delete immediately
 	// esp during anim callbacks...
-	  this->summons->RemoveEntity(this);
+	  //this->summons->RemoveEntity(this);
+    this->Delete();
 	});
   }
 }
@@ -104,7 +105,7 @@ void ProtoManSummon::Update(float _elapsed) {
   }
 
   Entity::Update(_elapsed);
-  
+
   animationComponent.Update(_elapsed);
 }
 
@@ -116,7 +117,7 @@ void ProtoManSummon::Attack(Character* _entity) {
   SwordEffect* effect = new SwordEffect(GetField());
   GetField()->AddEntity(*effect, _entity->GetTile()->GetX(), _entity->GetTile()->GetY());
   this->summons->SummonEntity(effect, false);
-  
+
   auto props = Hit::DefaultProperties;
   props.damage = 120;
   props.flags |= Hit::recoil;

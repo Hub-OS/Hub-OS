@@ -20,7 +20,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   this->slideTime = sf::seconds(0.5f / (float)speed);
 
   animation = Animation("resources/spells/bubble.animation");
-  
+
   auto onFinish = [this]() { animation << "FLOAT" << Animate::Mode::Loop; };
 
   animation << "INIT" << onFinish;
@@ -69,9 +69,9 @@ void Bubble::Update(float _elapsed) {
     }
 
 	// Drop a shared hitbox when moving
-	SharedHitBox* shb = new SharedHitBox(this, 2.0f);
-	GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
-  
+	/*SharedHitBox* shb = new SharedHitBox(this, 2.0f);
+	GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());*/
+
     this->SlideToTile(true);
     this->Move(this->GetDirection());
   }
