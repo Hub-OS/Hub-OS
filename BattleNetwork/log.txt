@@ -1,12 +1,11 @@
-StartTime 1552267267
-Engine initialized: 0.090905 secs
+StartTime 1552435980
+Engine initialized: 0.098699 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded audio: resources/sfx/appear.ogg
-Loaded audio: resources/sfx/area_grab.ogg
 Loaded texture: resources/tiles/img_blue_normal.png
 Loaded texture: resources/tiles/img_blue_cracked.png
 Loaded texture: resources/tiles/img_blue_broken.png
@@ -21,9 +20,10 @@ Loaded texture: resources/tiles/img_red_broken.png
 Loaded texture: resources/tiles/img_red_ice.png
 Loaded texture: resources/tiles/img_red_grass.png
 Loaded texture: resources/tiles/img_red_purple.png
-Loaded audio: resources/sfx/area_grab_touchdown.ogg
 Loaded texture: resources/tiles/img_red_lava.png
 Loaded texture: resources/tiles/img_red_empty.png
+Loaded audio: resources/sfx/area_grab.ogg
+Loaded audio: resources/sfx/area_grab_touchdown.ogg
 Loaded audio: resources/sfx/pew.ogg
 Loaded audio: resources/sfx/buster_charged.ogg
 Loaded audio: resources/sfx/buster_charging.ogg
@@ -39,24 +39,24 @@ Loaded audio: resources/sfx/chip_confirm.ogg
 Loaded texture: resources/navis/starman/navi_starman_atlas.png
 Loaded texture: resources/navis/roll/navi_roll_atlas.png
 Loaded texture: resources/mobs/mob_move.png
-Loaded audio: resources/sfx/chip_desc.ogg
 Loaded texture: resources/mobs/mob_explosion.png
+Loaded audio: resources/sfx/chip_desc.ogg
 Loaded texture: resources/mobs/boss_shine.png
-Loaded audio: resources/sfx/chip_desc_close.ogg
 Loaded texture: resources/mobs/mettaur/mettaur.png
+Loaded audio: resources/sfx/chip_desc_close.ogg
 Loaded texture: resources/mobs/progsman/mob_progsman_atlas.png
 Loaded texture: resources/mobs/canodumb/canodumb_atlas.png
 Loaded audio: resources/sfx/chip_select.ogg
 Loaded texture: resources/mobs/metalman/metalman_atlas.png
 Loaded audio: resources/sfx/chip_error.ogg
-Loaded audio: resources/sfx/custom_bar_full.ogg
 Loaded texture: resources/mobs/alpha/alpha.png
+Loaded audio: resources/sfx/custom_bar_full.ogg
 Loaded texture: resources/mobs/starfish/starfish_atlas.png
 Loaded texture: resources/mobs/select/random.png
 Loaded texture: resources/mobs/mystery_data/mystery_data.png
 Loaded texture: resources/mobs/cube/cube.png
-Loaded audio: resources/sfx/chip_screen_open.ogg
 Loaded texture: resources/spells/spell_bullet_hit.png
+Loaded audio: resources/sfx/chip_screen_open.ogg
 Loaded texture: resources/spells/spell_buster_charge.png
 Loaded texture: resources/spells/spell_charged_bullet_hit.png
 Loaded texture: resources/spells/guard_hit.png
@@ -64,9 +64,9 @@ Loaded texture: resources/spells/spell_wave.png
 Loaded texture: resources/spells/spell_prog_bomb.png
 Loaded texture: resources/spells/auras.png
 Loaded texture: resources/spells/thunder.png
-Loaded audio: resources/sfx/item_get.ogg
 Loaded texture: resources/spells/reflect_shield.png
 Loaded texture: resources/spells/bubble.png
+Loaded audio: resources/sfx/item_get.ogg
 Loaded texture: resources/spells/bubble_trap.png
 Loaded texture: resources/spells/elecpulse.png
 Loaded texture: resources/spells/ninja_star.png
@@ -84,7 +84,6 @@ Loaded texture: resources/ui/chip_icons.png
 Loaded texture: resources/ui/chip_nosupport.png
 Loaded texture: resources/ui/chip_nodata.png
 Loaded texture: resources/ui/chip_senddata.png
-Loaded audio: resources/sfx/hurt.ogg
 Loaded texture: resources/ui/chip_missing.png
 Loaded texture: resources/ui/chip_lock.png
 Loaded texture: resources/ui/chip_frame.png
@@ -103,6 +102,7 @@ Loaded texture: resources/ui/nodata.png
 Loaded texture: resources/ui/press_a.png
 Loaded texture: resources/ui/counter_star.png
 Loaded texture: resources/ui/folder_chip.png
+Loaded audio: resources/sfx/hurt.ogg
 Loaded texture: resources/ui/folder_dock.png
 Loaded texture: resources/ui/folder_rarity.png
 Loaded texture: resources/ui/scrollbar.png
@@ -118,7 +118,6 @@ Loaded texture: resources/backgrounds/select/pad_base.png
 Loaded texture: resources/backgrounds/select/pad_bottom.png
 Loaded texture: resources/backgrounds/select/char_name.png
 Loaded texture: resources/backgrounds/select/stat.png
-Loaded audio: resources/sfx/panel_crack.ogg
 Loaded texture: resources/backgrounds/select/element.png
 Loaded texture: resources/backgrounds/select/info_box.png
 Loaded texture: resources/backgrounds/select/symbol_slots.png
@@ -128,10 +127,11 @@ Loaded texture: resources/ui/textbox.png
 Loaded texture: resources/ui/textbox_next.png
 Loaded texture: resources/ui/textbox_cursor.png
 Loaded texture: resources/backgrounds/title/bg_blue.png
-Loaded audio: resources/sfx/panel_return.ogg
+Loaded audio: resources/sfx/panel_crack.ogg
 Loaded texture: resources/backgrounds/title/prog-pulse.png
 Loaded texture: resources/backgrounds/game_over/game_over.png
 Loaded texture: resources/backgrounds/select/battle_select.png
+Loaded audio: resources/sfx/panel_return.ogg
 Loaded texture: resources/backgrounds/main_menu/overlay.png
 Loaded texture: resources/backgrounds/main_menu/ow.png
 Loaded texture: resources/backgrounds/main_menu/ow2.png
@@ -141,20 +141,23 @@ Loaded texture: resources/backgrounds/folder/folder_info.png
 Loaded audio: resources/sfx/pause.ogg
 Loaded texture: resources/backgrounds/select/bg.png
 Loaded texture: resources/backgrounds/main_menu/mr_prog_ow.png
+Loaded audio: resources/sfx/pre_battle.ogg
 Loaded texture: resources/backgrounds/main_menu/numberman_ow.png
 Loaded texture: resources/ui/aura_numset.png
 Loaded texture: resources/ui/hp_numset.png
 Loaded texture: resources/ui/player_numset.png
 Loaded texture: resources/ui/gamepad_support_icon.png
 Loaded texture: resources/ui/main_menu_ui.png
+Loaded audio: resources/sfx/recover.ogg
 Loaded texture: resources/ui/elements.png
 Loaded texture: resources/shaders/textures/distortion.png
-Loaded audio: resources/sfx/pre_battle.ogg
+Loaded audio: resources/sfx/spreader.ogg
+Loaded audio: resources/sfx/sword_swing.ogg
 Loaded texture: resources/shaders/textures/heat.png
 Loaded texture: resources/shaders/textures/noise.png
 Loaded texture: resources/shaders/textures/noise_invert.png
 Loaded texture: resources/ui/light.png
-Loaded textures: 0.684406 secs
+Loaded textures: 0.717812 secs
 Loaded shader: resources/shaders/black_fade.frag.txt
 Loaded shader: resources/shaders/custom_bar.frag.txt
 Loaded shader: resources/shaders/greyscale.frag.txt
@@ -162,6 +165,7 @@ Loaded shader: resources/shaders/outline.frag.txt
 Loaded shader: resources/shaders/pixel_blur.frag.txt
 Loaded shader: resources/shaders/texel_pixel_blur.frag.txt
 Loaded shader: resources/shaders/texel_texture_wrap.frag.txt
+Loaded audio: resources/sfx/toss_item.ogg
 Loaded shader: resources/shaders/white.frag.txt
 Loaded shader: resources/shaders/white_fade.frag.txt
 Loaded shader: resources/shaders/yellow.frag.txt
@@ -171,11 +175,7 @@ Loaded shader: resources/shaders/spot_reflection.frag.txt
 Loaded shader: resources/shaders/transition.frag.txt
 Loaded shader: resources/shaders/chip_reveal.frag.txt
 Loaded shader: resources/shaders/wire.frag.txt
-Loaded shaders: 0.004559 secs
-Loaded audio: resources/sfx/recover.ogg
-Loaded audio: resources/sfx/spreader.ogg
-Loaded audio: resources/sfx/sword_swing.ogg
-Loaded audio: resources/sfx/toss_item.ogg
+Loaded shaders: 0.016256 secs
 Loaded audio: resources/sfx/toss_item_lite.ogg
 Loaded audio: resources/sfx/wave.ogg
 Loaded audio: resources/sfx/thunder.ogg
@@ -186,7 +186,7 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.840622 secs
+Loaded audio sources: 0.844860 secs
 No animation found in file for PLAYER_IDLE
 Loaded navi: Megaman
 No animation found in file for PLAYER_IDLE
@@ -195,7 +195,7 @@ No animation found in file for PLAYER_IDLE
 Loaded navi: Roll
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
-Loaded registered navis: 0.239318 secs
+Loaded registered navis: 0.232274 secs
 Loaded texture: resources/mobs/starfish/preview.png
 Loaded mob: Bubble Battle
 Loaded texture: resources/mobs/canodumb/preview.png
@@ -208,7 +208,7 @@ Loaded texture: resources/mobs/select/random.png
 Loaded mob: Random
 Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
-Loaded registered mobs: 0.782220 secs
+Loaded registered mobs: 0.776329 secs
 Key 'verbose' was not found in line 'Chip name="ProtoMan" cardIndex="139" iconIndex="232" damage="120" type="Normal" codes="*,P" desc="Slices all enmy on field" "ProtoMan appears, stops time,\nand teleports to each open enemy striking once." rarity="5"'
 Key 'verbose' was not found in line 'Chip name="AreaGrab" cardIndex="82" iconIndex="154" damage="10" type="Normal" codes="*" desc="Grab enemy tiles" rarity="1"'
 Key 'verbose' was not found in line 'Chip name="RockCube" damage="0" desc="Places cube in front" cardIndex="108" iconIndex="139" type="Normal" codes="A,C,E,H,R" memory="9" power="Normal" rarity="0" dark="0"'
@@ -249,9 +249,18 @@ Loaded texture: resources/backgrounds/lan/bg.png
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-No animation found in file for IDLE
-No animation found in file for IDLE
-No animation found in file for IDLE
+No animation found in file for PLAYER_IDLE
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
 No animation found in file for PLAYER_IDLE
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
@@ -263,34 +272,29 @@ Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or m
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded texture: resources/ui/custom.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/spells/protoman_summon.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+No animation found in file for PLAYER_IDLE
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded texture: resources/spells/fishy_temp.png
-Loaded texture: resources/spells/protoman_summon.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-No animation found in file for IDLE
 No animation found in file for PLAYER_IDLE
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/backgrounds/grave/fg.png
 Loaded texture: resources/ui/img_health.png
 Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded texture: resources/ui/custom.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/spells/protoman_summon.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-No animation found in file for IDLE
-No animation found in file for IDLE
-No animation found in file for PLAYER_IDLE
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/lan/bg.png
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/spells/protoman_summon.png

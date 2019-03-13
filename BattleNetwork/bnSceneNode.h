@@ -2,21 +2,31 @@
 #include <vector>
 #include <algorithm>
 #include <SFML/Graphics.hpp>
+#include "bnLayered.h"
 
 class SceneNode : public sf::Transformable, public sf::Drawable {
-private:
-  std::vector<SceneNode*> childNodes;
-  std::vector<sf::Drawable*> sprites;
+protected:
+  mutable std::vector<const SceneNode*> childNodes;
   SceneNode* parent;
   bool show;
-
+  int layer;
+  
 public:
   SceneNode() {
     show = true;
+    layer = 0;
   }
 
   virtual ~SceneNode() {
 
+  }
+  
+  void SetLayer(int layer) {
+    this->layer = layer;
+  }
+  
+  const int GetLayer() const {
+	  return this->layer;
   }
 
   void Hide()
@@ -41,10 +51,7 @@ public:
 
     //states.transform *= combinedTransform;
 
-    // Draw sprites
-    for (std::size_t i = 0; i < sprites.size(); i++) {
-     target.draw(*sprites[i], states);
-    }
+    std::sort(childNodes.begin(), childNodes.end(), [](SceneNode* a, SceneNode* b) { a->GetLayer() > b->GetLayer(); });
 
     // draw its children
     for (std::size_t i = 0; i < childNodes.size(); i++) {
@@ -52,7 +59,10 @@ public:
     }
   }
 
-  void AddNode(SceneNode* child) { if (child == nullptr) return;  child->parent = this; childNodes.push_back(child); }
+  void AddNode(SceneNode* child) { 
+	  if (child == nullptr) return;  child->parent = this; childNodes.push_back(child); 
+  }
+  
   void RemoveNode(SceneNode* find) {
     if (find == nullptr) return;
 
@@ -60,13 +70,5 @@ public:
     (*iter)->parent = nullptr;
     
     childNodes.erase(iter, childNodes.end());
-  }
-
-  void AddSprite(sf::Drawable* sprite) { sprites.push_back(sprite); }
-
-  void RemoveSprite(sf::Drawable* find) {
-    auto iter = std::remove_if(sprites.begin(), sprites.end(), [&find](sf::Drawable *in) { return in == find; });
-
-    sprites.erase(iter, sprites.end());
   }
 };

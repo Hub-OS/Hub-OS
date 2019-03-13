@@ -281,18 +281,9 @@ public:
     }
     else if (summon == "Barrier") {
       Aura* aura = new Aura(Aura::Type::BARRIER_100, summonedBy);
-      //this->GetPlayer()->RegisterComponent(aura);
+      summonedBy->RegisterComponent(aura);
 
       AUDIO.Play(AudioType::APPEAR);
-
-      Battle::Tile* tile = summonedBy->GetTile();
-
-      if (tile) {
-        summonedBy->GetField()->AddEntity(*aura, tile->GetX(), tile->GetY());
-      }
-
-      // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
-      SummonEntity(aura, true);
     }
   }
 

@@ -433,7 +433,6 @@ int main(int argc, char** argv) {
         }
         else {
           // Finally everything is loaded
-          INPUT.Update();
           ENGINE.Draw(startLabel);
         }
       }

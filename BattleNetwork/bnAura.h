@@ -1,14 +1,11 @@
 #pragma once
-#include "bnCharacter.h"
+#include "bnSceneNode.h"
 #include "bnComponent.h"
 #include "bnField.h"
 
 class DefenseAura;
-class AuraHealthUI;
 
-// TODO: no longer a character. Let hp be deducted from the defense rule
-// Draw as a child node of the owner
-class Aura : virtual public Character, virtual public Component
+class Aura : virtual public SceneNode, virtual public Component
 {
 public:
   enum class Type : int {
@@ -22,11 +19,17 @@ public:
 
 private:
   Animation animation;
-  sf::Sprite aura;
+  SpriteSceneNode* aura;
   Type type;
   DefenseAura* defense;
-  AuraHealthUI* healthUI;
   double timer;
+  int health;
+  bool persist;
+  
+  int lastHP;
+  int currHP;
+  int startHP;
+  mutable Sprite font;
 
 public:
   Aura(Type type, Character* owner);
@@ -34,10 +37,11 @@ public:
 
   virtual void Inject(BattleScene&);
   virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction) { return false; }
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
   const Type GetAuraType();
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-
-
+  void TakeDamage(int damage);
+  const int GetHealth() const;
+  void Persist(bool enable);
+  const bool IsPersistent() const;
 };
 
