@@ -192,7 +192,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   distortionMap.setRepeated(true);
   distortionMap.setSmooth(true);
 
-  textureSize = getController().getInitialWindowSize();
+  textureSize = getController().getVirtualWindowSize();
 
   heatShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
   heatShader.setUniform("distortionMapTexture", distortionMap);
@@ -340,6 +340,7 @@ void BattleScene::onUpdate(double elapsed) {
       battleEndTimer.reset();
       AUDIO.StopStream();
       AUDIO.Stream("resources/loops/enemy_deleted.ogg");
+      player->ChangeState<PlayerIdleState>();
     }
     else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
       isMobDeleted = true;
@@ -353,7 +354,7 @@ void BattleScene::onUpdate(double elapsed) {
   // Do not update when: paused or in chip select, during a summon sequence, showing Battle Start sign
   if (!(isPaused || isInChipSelect) && summons.IsSummonOver() && !isPreBattle) {
     // kill switch for testing:
-    if (INPUT.Has(InputEvent::HELD_A) && INPUT.Has(InputEvent::HELD_B) && INPUT.Has(InputEvent::HELD_LEFT) && INPUT.Has(InputEvent::HELD_RIGHT)) {
+    if (INPUT.Has(InputEvent::PRESSED_A) && INPUT.Has(InputEvent::PRESSED_B) && INPUT.Has(InputEvent::PRESSED_LEFT) /*&& INPUT.Has(InputEvent::PRESSED_RIGHT)*/) {
       mob->KillSwitch();
     }
 
@@ -406,6 +407,13 @@ void BattleScene::onUpdate(double elapsed) {
   }
 
   chipCustGUI.Update((float)elapsed);
+
+  // other player controls
+  if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
+    if (player && player->GetTile() && player->GetAnimationComponent().GetAnimationString() == "PLAYER_IDLE") {
+      chipUI.UseNextChip();
+    }
+  }
 }
 
 void BattleScene::onDraw(sf::RenderTexture& surface) {
@@ -692,12 +700,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       AUDIO.Play(AudioType::PAUSE);
     }
   }
-  else if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
-    // TODO: Big ol hack here. Should be in player controller step
+  /*else if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
     if (player && player->GetTile() && player->GetAnimationComponent().GetAnimationString() == "PLAYER_IDLE") {
       chipUI.UseNextChip();
     }
-  }
+  }*/
   else if ((!isMobFinished && mob->IsSpawningDone()) || 
     (
       INPUT.Has(PRESSED_START) && customProgress >= customDuration && !isInChipSelect && !isPaused && 

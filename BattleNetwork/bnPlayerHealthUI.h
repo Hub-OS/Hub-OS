@@ -33,10 +33,16 @@ private:
   int currHP;
   int startHP;
   Player* player;
-  Font* font;
-  Text text;
+  mutable Sprite glyphs;
   Sprite sprite;
   Texture* texture;
+
+  enum class Color : int {
+    NORMAL,
+    ORANGE,
+    GREEN
+  } color;
+
   bool loaded;
   bool isBattleOver;
   double cooldown;

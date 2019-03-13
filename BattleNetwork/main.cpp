@@ -35,7 +35,7 @@ using swoosh::ActivityController;
 #define TITLE_ANIM_CHAR_HEIGHT 221
 #define SHADER_FRAG_WHITE_PATH "resources/shaders/white_fade.frag.txt"
 
-#define FIXED_TIME_STEP 1.0/60.0
+#define FIXED_TIME_STEP 1.0f/60.0f
 
 void RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
     clock.restart();
 
     INPUT.Update();
-
+    
     // Prepare for next draw calls
     ENGINE.Clear();
 
@@ -262,6 +262,8 @@ int main(int argc, char** argv) {
 
   while(inLoadState && ENGINE.Running()) {
     clock.restart();
+    
+    INPUT.Update();
 
     float percentage = (float)progress / (float)totalObjects;
     std::string percentageStr = std::to_string((int)(percentage*100));
@@ -483,6 +485,8 @@ int main(int argc, char** argv) {
 
   double remainder = 0;
   elapsed = 0;
+
+  srand((unsigned int)time(nullptr));
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {

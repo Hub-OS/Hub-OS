@@ -10,6 +10,10 @@
 *.userosscache
 *.sln.docstates
 
+# Mac binaries
+*.app
+*.app/*
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -20,6 +24,8 @@
 [Rr]eleases/
 x64/
 x86/
+build/
+build/*
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/

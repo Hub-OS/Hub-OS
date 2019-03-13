@@ -88,18 +88,16 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
       }
     });
   });
-
-  this->Update(0);
 }
 
-RollHeal::~RollHeal(void) {
+RollHeal::~RollHeal() {
 }
 
 void RollHeal::Update(float _elapsed) {
   animationComponent.Update(_elapsed);
 
   if (tile != nullptr) {
-    setPosition(tile->getPosition().x + (tile->GetWidth() / 2.0f), tile->getPosition().y + (tile->GetHeight() / 2.0f));
+    setPosition(tile->getPosition());
   }
 
   Entity::Update(_elapsed);
@@ -119,7 +117,6 @@ void RollHeal::Attack(Character* _entity) {
       auto props = Hit::DefaultProperties;
       props.damage = heal;
       _entity->Hit(props);
-      _entity->Update(0);
 
       int i = 1;
 

@@ -3,6 +3,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnChipUseListener.h"
 #include "bnRollHeal.h"
+#include "bnProtoManSummon.h"
 #include "bnNinjaAntiDamage.h"
 #include "bnPlayer.h"
 #include "bnField.h"
@@ -177,7 +178,9 @@ public:
     else if (name == "AreaGrab") {
       summon = name;
 
-    }
+    } else if(name == "ProtoMan") {
+		summon = name; 
+	}
 
     // TODO: Don't use summon, use queue.GetChip();
     if (summon == "Roll") {
@@ -185,7 +188,11 @@ public:
 
       Entity* roll = new RollHeal(this, copy.GetDamage());
       SummonEntity(roll);
-    }
+    } else if(summon == "ProtoMan") {
+		summonedBy->Hide();
+		Entity* proto = new ProtoManSummon(this);
+		SummonEntity(proto);
+	}
     else if (summon == "RockCube") {
       Obstacle* cube = new Cube(summonedBy->GetField(), Team::UNKNOWN);
 
@@ -320,6 +327,11 @@ public:
       timeInSecs = 0;
       duration = sf::seconds(4);
     }
+    else if(name == "ProtoMan") {
+		summon = "ProtoMan";
+		timeInSecs = 0;
+		duration = sf::seconds(3);
+	}
     else if (name.substr(0, 8) == "RockCube") {
       summon = "RockCube";
       timeInSecs = 0;

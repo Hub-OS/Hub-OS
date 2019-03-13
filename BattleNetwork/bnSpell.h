@@ -7,8 +7,8 @@ using sf::Texture;
 
 class Spell : public virtual Entity {
 public:
-  Spell(void);
-  virtual ~Spell(void);
+  Spell();
+  virtual ~Spell();
 
   const bool IsTileHighlightEnabled() const;
 

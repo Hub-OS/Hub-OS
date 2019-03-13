@@ -6,6 +6,8 @@
 class DefenseAura;
 class AuraHealthUI;
 
+// TODO: no longer a character. Let hp be deducted from the defense rule
+// Draw as a child node of the owner
 class Aura : virtual public Character, virtual public Component
 {
 public:
@@ -24,6 +26,7 @@ private:
   Type type;
   DefenseAura* defense;
   AuraHealthUI* healthUI;
+  double timer;
 
 public:
   Aura(Type type, Character* owner);

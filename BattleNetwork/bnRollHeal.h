@@ -7,7 +7,7 @@ class ChipSummonHandler;
 class RollHeal : public Spell {
 public:
   RollHeal(ChipSummonHandler* _summons, int heal);
-  virtual ~RollHeal(void);
+  virtual ~RollHeal();
 
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);

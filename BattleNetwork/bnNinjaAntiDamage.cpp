@@ -6,6 +6,7 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnCharacter.h"
+#include "bnParticlePoof.h"
 #include "bnSpell.h"
 
 NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
@@ -16,6 +17,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
     if (user) {
       tile = user->GetTile();
       owner->RegisterComponent(new HideTimer(owner, 1.0));
+      owner->GetField()->AddEntity(*new ParticlePoof(owner->GetField()), owner->GetTile()->GetX(), owner->GetTile()->GetY());
     }
 
     if (tile) {

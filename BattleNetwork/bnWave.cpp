@@ -1,8 +1,7 @@
 #include "bnWave.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnPlayer.h"
-#include "bnMettaur.h"
+#include "bnSharedHitBox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
@@ -57,6 +56,10 @@ void Wave::Update(float _elapsed) {
 }
 
 bool Wave::Move(Direction _direction) {
+  // Drop a shared hitbox when moving
+  SharedHitBox* shb = new SharedHitBox(this, 1.0f/60.0f);
+  GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
+  
   tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
 
@@ -72,6 +75,7 @@ bool Wave::Move(Direction _direction) {
 
   if (next && next->IsWalkable()) {
     next->AddEntity(*this);
+    
     return true;
   }
 

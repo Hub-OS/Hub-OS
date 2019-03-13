@@ -226,7 +226,7 @@ bool Entity::Teleport(int col, int row) {
 
   next = field->GetAt(col, row);
 
-  if (CanMoveTo(next)) {
+  if (next && CanMoveTo(next)) {
     ;
   }
   else {
@@ -346,6 +346,7 @@ Direction Entity::GetPreviousDirection()
 void Entity::Delete()
 {
   deleted = true;
+  this->FreeAllComponents();
 }
 
 bool Entity::IsDeleted() const {

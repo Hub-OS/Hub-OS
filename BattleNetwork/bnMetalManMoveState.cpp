@@ -21,10 +21,12 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
 
   bool moved = false;
   
+  int tries = 6;
   do {
     // Find a new spot that is on our team
     moved = metal.Teleport((rand() % 6) + 1, (rand() % 3) + 1);
-  } while (!moved || metal.GetNextTile()->GetTeam() != metal.GetTeam());
+    tries--;
+  } while ((!moved || metal.GetNextTile()->GetTeam() != metal.GetTeam()) && tries > 0);
 
   Battle::Tile* next = nullptr;
 
@@ -33,7 +35,6 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
 
     if(next && metal.Teleport(next->GetX()+1, next->GetY())) {
       metal.AdoptNextTile();
-
       auto onFinish = [this]() {
         this->ChangeState<MetalManPunchState>();
       };

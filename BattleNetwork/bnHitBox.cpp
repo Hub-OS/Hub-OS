@@ -13,7 +13,6 @@ HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell() {
   direction = Direction::NONE;
   deleted = false;
   hit = false;
-  srand((unsigned int)time(nullptr));
   cooldown = 0;
   damage = _damage;
 

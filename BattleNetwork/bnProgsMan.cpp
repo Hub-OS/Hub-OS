@@ -124,6 +124,11 @@ const bool ProgsMan::Hit(Hit::Properties props) {
     this->ChangeState<ProgsManHitState>();
   }
 
+  if ((props.flags & Hit::stun) == Hit::stun) {
+    SetShader(stun);
+    this->stunCooldown = props.secs;
+  }
+
   return health;
 }
 

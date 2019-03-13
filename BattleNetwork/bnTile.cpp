@@ -79,7 +79,7 @@ namespace Battle {
         return in->GetTeam() == this->GetTeam();
       }).size();
 
-      if (size == 0) {
+      if (size == 0 && this->reserved.size() == 0) {
         team = _team;
         this->RefreshTexture();
       }
@@ -112,6 +112,11 @@ namespace Battle {
     height = getTextureRect().height * getScale().y;
     setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = other.hasSpell;
+    reserved = other.reserved;
+    characters = other.characters;
+    spells = other.spells;
+    entities = other.entities;
+    isBattleActive = other.isBattleActive;
 
     return *this;
   }
@@ -136,6 +141,10 @@ namespace Battle {
     setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = other.hasSpell;
     isBattleActive = other.isBattleActive;
+    reserved = other.reserved;
+    characters = other.characters;
+    spells = other.spells;
+    entities = other.entities;
   }
 
   const TileState Tile::GetState() const {
@@ -295,7 +304,7 @@ namespace Battle {
 
     if (itEnt != entities.end()) {
       // TODO: HasFloatShoe and HasAirShoe should be a component and use the component system
-      if(dynamic_cast<Character*>(*itEnt) != nullptr && (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe()))) {
+      if(reserved.size() == 0 && dynamic_cast<Character*>(*itEnt) != nullptr && (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe()))) {
         state = TileState::BROKEN;
         AUDIO.Play(AudioType::PANEL_CRACK);
       }

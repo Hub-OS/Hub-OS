@@ -25,7 +25,7 @@ Player::Player(void)
   this->AddNode(&chargeComponent);
   chargeComponent.setPosition(0, -20.0f); // translate up -20
 
-  SetHealth(500);
+  SetHealth(1000);
   
   name = "Megaman";
   SetLayer(0);

@@ -145,7 +145,8 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/ninja_star.png");
   paths.push_back("resources/spells/poof.png");
   paths.push_back("resources/spells/areagrab.png");
-
+  paths.push_back("resources/spells/sword_effect.png");
+  
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");
   paths.push_back("resources/ui/chip_cursor_small.png");
@@ -226,6 +227,8 @@ TextureResourceManager::TextureResourceManager(void) {
 
   // other ui / icons
   paths.push_back("resources/ui/aura_numset.png");
+  paths.push_back("resources/ui/hp_numset.png");
+  paths.push_back("resources/ui/player_numset.png");
   paths.push_back("resources/ui/gamepad_support_icon.png");
   paths.push_back("resources/ui/main_menu_ui.png");
   paths.push_back("resources/ui/elements.png");
