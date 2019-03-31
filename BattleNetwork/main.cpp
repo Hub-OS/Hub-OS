@@ -85,7 +85,7 @@ void RunAudioInit(std::atomic<int> * progress) {
 
 int main(int argc, char** argv) {
   // Render context must:
-  //                    1) always run from main thread and 
+  //                    1) always run from main thread and
   //                    2) load before we do any loading screen rendering
   const clock_t begin_time = clock();
   ENGINE.Initialize();
@@ -165,8 +165,8 @@ int main(int argc, char** argv) {
   mobLoadedLabel->setCharacterSize(24);
   mobLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
   mobLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
-  /* 
-  Give a message to the player before loading 
+  /*
+  Give a message to the player before loading
   */
 
   sf::Text* message = new sf::Text("Your Chrono X config settings\nhave been imported", *startFont);
@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
 
   Clock clock;
   float elapsed = 0.0f;
-  float messageCooldown = 3; 
+  float messageCooldown = 3;
 
   sf::RenderTexture loadSurface;
   //loadSurface.create(480, 320);
@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
     clock.restart();
 
     INPUT.Update();
-    
+
     // Prepare for next draw calls
     ENGINE.Clear();
 
@@ -249,7 +249,7 @@ int main(int argc, char** argv) {
   AUDIO.SetStreamVolume(10);
   AUDIO.Stream("resources/loops/loop_theme.ogg");
 
-  // Draw some stats while we wait 
+  // Draw some stats while we wait
   bool inLoadState = true;
   bool ready = false;
   bool loadMobs = false;
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
 
   while(inLoadState && ENGINE.Running()) {
     clock.restart();
-    
+
     INPUT.Update();
 
     float percentage = (float)progress / (float)totalObjects;
@@ -370,7 +370,7 @@ int main(int argc, char** argv) {
           progAnimProgress = 0.f;
         }
 
-        // update shader 
+        // update shader
         whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
       }
 
@@ -384,7 +384,7 @@ int main(int argc, char** argv) {
 
     // if background is ready and loaded from threads...
     if (ready) {
-      // show it 
+      // show it
       ENGINE.Draw(&bgSprite);
 
       if (INPUT.HasChronoXGamepadSupport()) {
@@ -398,7 +398,7 @@ int main(int argc, char** argv) {
     // Draw logs on top of bg
     for (int i = 0; i < logs.size(); i++) {
       // fade from newest to oldest
-      // newest at bottom full opacity 
+      // newest at bottom full opacity
       // oldest at the top (at most 30 on screen) at full transparency
       logLabel->setString(logs[i]);
       logLabel->setPosition(0.f, 320 - (i * 10.f) - 15.f);
@@ -468,17 +468,17 @@ int main(int argc, char** argv) {
   delete font;
   delete logo;
 
-  // Stop music and go to menu screen 
+  // Stop music and go to menu screen
   AUDIO.StopStream();
 
-  // Create an activity controller 
+  // Create an activity controller
   // Behaves like a state machine using stacks
   sf::Vector2u virtualWindowSize(480, 320);
   ActivityController app(*ENGINE.GetWindow(), virtualWindowSize);
   app.push<GameOverScene>();
   app.push<MainMenuScene>();
 
-  // This scene will immediately pop off the stack 
+  // This scene will immediately pop off the stack
   // and segue into the previous scene on the stack: MainMenuScene
   app.push<FakeScene>(loadingScreenSnapshot);
 
@@ -527,7 +527,9 @@ int main(int argc, char** argv) {
 
 	ENGINE.GetWindow()->draw(mouse);
 
-	ENGINE.GetWindow()->display();  }
+	ENGINE.GetWindow()->display();  
+	
+  }
 
   delete mouseTexture;
 

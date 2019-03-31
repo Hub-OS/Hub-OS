@@ -69,7 +69,7 @@ void Camera::MoveCamera(sf::Vector2f destination, sf::Time duration) {
   dur = duration;
 }
 
-void Camera::PlaceCamera(sf::Vector2f pos) { 
+void Camera::PlaceCamera(sf::Vector2f pos) {
   focus.setCenter(pos);
   init = focus;
   dest = focus.getCenter();
@@ -103,6 +103,14 @@ void Camera::ShakeCamera(double stress, sf::Time duration)
       shakeProgress = 0;
      isShaking = true;
   }
+
+/*if(isShaking) return;
+  
+  init = focus;
+  this->stress = stress;
+  shakeDur = duration;
+  shakeProgress = 0;
+  isShaking = true;*/
 }
 
 const sf::View Camera::GetView() const
