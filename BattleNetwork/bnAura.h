@@ -20,6 +20,7 @@ public:
 private:
   Animation animation;
   SpriteSceneNode* aura;
+  sf::Sprite auraSprite;
   Type type;
   DefenseAura* defense;
   double timer;

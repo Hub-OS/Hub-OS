@@ -16,7 +16,7 @@ class Entity;
 /*!
  * TODO: use component system
 */
-class ChargeComponent : public LayeredDrawable {
+class ChargeComponent : public SpriteSceneNode {
 public:
   ChargeComponent(Entity* _entity);
   ~ChargeComponent();

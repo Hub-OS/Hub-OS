@@ -27,11 +27,11 @@ private:
   mutable sf::Sprite chipLock;
   Animation cursorSmallAnimator;
   Animation cursorBigAnimator;
-  mutable LayeredDrawable icon;
-  mutable LayeredDrawable chipCard;
-  mutable LayeredDrawable chipNoData;
-  mutable LayeredDrawable chipSendData;
-  mutable LayeredDrawable element;
+  mutable SpriteSceneNode icon;
+  mutable SpriteSceneNode chipCard;
+  mutable SpriteSceneNode chipNoData;
+  mutable SpriteSceneNode chipSendData;
+  mutable SpriteSceneNode element;
   sf::Shader& greyscale;
   sf::Font* labelFont;
   sf::Font* codeFont;

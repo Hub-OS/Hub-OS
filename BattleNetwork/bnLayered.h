@@ -19,18 +19,18 @@ public:
   int min;
   int max;
 
-  void Insert(SpriteSceneNode* _layeredDrawable) {
-    if (SpriteSceneNode->GetLayer() > max) {
-      max = _layeredDrawable->GetLayer();
-    } else if (_layeredDrawable->GetLayer() < min) {
-      min = _layeredDrawable->GetLayer();
+  void Insert(SpriteSceneNode* node) {
+    if (node->GetLayer() > max) {
+      max = node->GetLayer();
+    } else if (node->GetLayer() < min) {
+      min = node->GetLayer();
     }
 
-    push_back(_layeredDrawable);
+    push_back(node);
   }
 
   vector<SpriteSceneNode*> At(int _layer) {
-    vector<SpriteSceneNode*> layer = vector<LayeredDrawable*>();
+    vector<SpriteSceneNode*> layer = vector<SpriteSceneNode*>();
     auto it = begin();
     for (it; it != end(); ++it) {
       if ((*it)->GetLayer() == _layer) {

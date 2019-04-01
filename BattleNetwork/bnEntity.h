@@ -20,7 +20,7 @@ class Character;   // forward decl
 class Component;   // forward decl
 class BattleScene; // forward decl
 
-class Entity : public LayeredDrawable {
+class Entity : public SpriteSceneNode {
   friend class Field;
   friend class Component;
   friend class BattleScene;

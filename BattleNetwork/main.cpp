@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
   sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");
   #endif BN_REGION_JAPAN
 
-  LayeredDrawable logoSprite;
+  SpriteSceneNode logoSprite;
   logoSprite.setTexture(*logo);
   logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);
   sf::Vector2f logoPos = (sf::Vector2f)((sf::Vector2i)ENGINE.GetWindow()->getSize() / 2);
@@ -227,8 +227,8 @@ int main(int argc, char** argv) {
   FrameList progAnim;
   Animate animator;
   float progAnimProgress = 0.f;
-  LayeredDrawable bgSprite;
-  LayeredDrawable progSprite;
+  SpriteSceneNode bgSprite;
+  SpriteSceneNode progSprite;
 
   int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE + (unsigned)ShaderType::SHADER_TYPE_SIZE;
   std::atomic<int> progress{0};

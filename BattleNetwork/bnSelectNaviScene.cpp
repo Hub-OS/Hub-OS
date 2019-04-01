@@ -240,7 +240,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  LayeredDrawable* bake = new LayeredDrawable(sf::Sprite(navi));
+  SpriteSceneNode* bake = new SpriteSceneNode(navi);
   bake->SetShader(pixelated);
 
   ENGINE.Draw(bake);

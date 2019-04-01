@@ -432,14 +432,14 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     tile->move(ENGINE.GetViewOffset());
 
     if (summons.IsSummonActive()) {
-      LayeredDrawable* coloredTile = new LayeredDrawable(*(sf::Sprite*)tile);
+      SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
       coloredTile->SetShader(&pauseShader);
       ENGINE.Draw(coloredTile);
       delete coloredTile;
     }
     else {
       if (tile->IsHighlighted()) {
-        LayeredDrawable* coloredTile = new LayeredDrawable(*(sf::Sprite*)tile);
+        SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
         coloredTile->SetShader(&yellowShader);
         ENGINE.Draw(coloredTile);
         delete coloredTile;
@@ -494,7 +494,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
       surface.clear();
 
-      LayeredDrawable* bake = new LayeredDrawable(distortionPost);
+      SpriteSceneNode* bake = new SpriteSceneNode(distortionPost);
       bake->SetShader(&heatShader);
 
       ENGINE.Draw(bake);
@@ -514,7 +514,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
       surface.clear();
 
-      LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
+      SpriteSceneNode* bake = new SpriteSceneNode(reflectionPost);
       bake->SetShader(&iceShader);
 
       ENGINE.Draw(bake);

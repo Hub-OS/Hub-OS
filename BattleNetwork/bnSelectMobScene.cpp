@@ -366,7 +366,7 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
     // Refresh mob graphic origin every frame as it may change
     mobSpr.setOrigin(mobSpr.getTextureRect().width / 2.f, mobSpr.getTextureRect().height / 2.f);
 
-    LayeredDrawable* bake = new LayeredDrawable(sf::Sprite(mobSpr));
+    SpriteSceneNode* bake = new SpriteSceneNode(mobSpr);
     bake->SetShader(shader);
 
     if (showMob) {

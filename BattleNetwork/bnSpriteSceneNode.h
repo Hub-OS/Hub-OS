@@ -4,35 +4,38 @@ class SpriteSceneNode : public SceneNode {
 private:
   int layer;
   int depth;
+  bool allocatedSprite;
   SmartShader shader;
-  sf::Sprite sprite;
+  sf::Sprite* sprite;
 
 public:
-  SpriteSceneNode()
-    : layer(0),
-    depth(0) {
-    this->AddSprite(&sprite);
-  }
-
-  SpriteSceneNode(const sf::Sprite& rhs) : sprite(rhs) {
+  SpriteSceneNode() {
+    sprite = new sf::Sprite();
+    allocatedSprite = true;
     layer = 0;
     depth = 0;
-    this->AddSprite(&sprite);
-
   }
-
-  SpriteSceneNode(int _layer)
-    : layer(_layer),
-    depth(0){
-    this->AddSprite(&sprite);
+  SpriteSceneNode(sf::Sprite& rhs) {
+    allocatedSprite = false;
+    layer = 0;
+    depth = 0;
+    sprite = &rhs;
   }
-
-  void operator=(const sf::Sprite& rhs) {
-    sprite = rhs;
+  
+  virtual ~SpriteSceneNode() {
+      if(allocatedSprite) delete this->sprite;
+  }
+  
+  void operator=(sf::Sprite& rhs) {
+      if(allocatedSprite) delete this->sprite;
+      
+      sprite = &rhs;
+      
+      allocatedSprite = false;
   }
 
   operator sf::Sprite&() {
-    return sprite;
+    return *sprite;
   }
 
   /*operator sf::Sprite() {
@@ -40,31 +43,31 @@ public:
   }*/
 
   const sf::Texture* getTexture() const {
-    return sprite.getTexture();
+    return sprite->getTexture();
   }
 
   void setColor(sf::Color color) {
-    sprite.setColor(color);
+    sprite->setColor(color);
   }
 
   const sf::Color& getColor() const {
-    return sprite.getColor();
+    return sprite->getColor();
   }
 
   const sf::IntRect& getTextureRect() {
-    return sprite.getTextureRect();
+    return sprite->getTextureRect();
   }
 
   void setTextureRect(sf::IntRect& rect) {
-    sprite.setTextureRect(rect);
+    sprite->setTextureRect(rect);
   }
 
   sf::FloatRect getLocalBounds() {
-    return sprite.getLocalBounds();
+    return sprite->getLocalBounds();
   }
 
   void setTexture(const sf::Texture& texture, bool resetRect = false) {
-    sprite.setTexture(texture, resetRect);
+    sprite->setTexture(texture, resetRect);
   }
 
   void SetLayer(int _layer) {
@@ -109,15 +112,17 @@ public:
     if (!show) return;
 
     // combine the parent transform with the node's one
-    //sf::Transform combinedTransform =this->getTransform();
+    sf::Transform combinedTransform =this->getTransform();
     
-    //states.transform *= combinedTransform;
+    states.transform *= combinedTransform;
 
-    std::sort(childNodes.begin(), childNodes.end(), [](SceneNode* a, SceneNode* b) { a->GetLayer() > b->GetLayer(); });
+    std::sort(childNodes.begin(), childNodes.end(), [](SceneNode* a, SceneNode* b) { return (a->GetLayer() > b->GetLayer()); });
 
     // draw its children
     for (std::size_t i = 0; i < childNodes.size(); i++) {
       childNodes[i]->draw(target, states);
     }
+    
+    target.draw(*sprite, states);
   }
 };

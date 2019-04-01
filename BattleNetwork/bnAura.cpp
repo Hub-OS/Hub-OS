@@ -14,10 +14,10 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
 {
   this->timer = 50; // seconds
   
-  sf::Sprite auraSprite = sf::Sprite();
   auraSprite.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
   aura = new SpriteSceneNode(auraSprite);
   
+  // owner draws -> aura component draws -> aura sprite anim draws
   owner->AddNode(this);
   this->AddNode(aura);
   
@@ -65,7 +65,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   owner->AddDefenseRule(defense);
 
   animation << Animate::Mode::Loop;
-  animation.Update(0, aura);
+  animation.Update(0, *aura);
   
   persist = false;
 }
@@ -99,7 +99,7 @@ void Aura::Update(float _elapsed) {
    //aura.setPosition(this->getPosition());
  }
 
- animation.Update(_elapsed, aura);
+ animation.Update(_elapsed, *aura);
 
  if (health <= 0) {
    delete this;
@@ -178,6 +178,6 @@ void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 
 Aura::~Aura()
 {
-	delete this->aura;
+  delete this->aura;
   delete this->defense;
 }

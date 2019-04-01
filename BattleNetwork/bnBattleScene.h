@@ -130,7 +130,7 @@ private:
 
   // CHIP CUST GRAPHICS
   sf::Texture* customBarTexture;
-  LayeredDrawable customBarSprite;
+  SpriteSceneNode customBarSprite;
   sf::Vector2f customBarPos;
 
   // Selection input delays

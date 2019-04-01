@@ -51,13 +51,13 @@ void Engine::Draw(Drawable* _drawable, bool applyShaders) {
   }
 }
 
-void Engine::Draw(LayeredDrawable* _drawable) {
+void Engine::Draw(SpriteSceneNode* _drawable) {
   if (!HasRenderSurface()) return;
 
   // For now, support at most one shader.
   // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
-  LayeredDrawable* context = _drawable;
+  SpriteSceneNode* context = _drawable;
   SmartShader* shader = &context->GetShader();
 
   if (shader && shader->Get()) {
@@ -74,7 +74,7 @@ void Engine::Draw(LayeredDrawable* _drawable) {
     context->draw(*surface, state);
   }
 }
-void Engine::Draw(vector<LayeredDrawable*> _drawable) {
+void Engine::Draw(vector<SpriteSceneNode*> _drawable) {
   if (!HasRenderSurface()) return;
 
   auto it = _drawable.begin();
@@ -106,7 +106,7 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
     // For now, support at most one shader.
     // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
-    LayeredDrawable* context = *it;
+    SpriteSceneNode* context = *it;
     SmartShader& shader = context->GetShader();
     if (shader.Get() != nullptr) {
       shader.ApplyUniforms();
@@ -169,13 +169,13 @@ const sf::Vector2f Engine::GetViewOffset() {
   return GetDefaultView().getCenter() - cam->GetView().getCenter();
 }
 
-void Engine::Push(LayeredDrawable* _drawable) {
+void Engine::Push(SpriteSceneNode* _drawable) {
   if (_drawable) {
     layers.Insert(_drawable);
   }
 }
 
-void Engine::Lay(LayeredDrawable* _drawable) {
+void Engine::Lay(SpriteSceneNode* _drawable) {
   if (_drawable) {
     overlay.Push(_drawable);
   }

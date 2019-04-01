@@ -6,7 +6,7 @@
 
 class SceneNode : public sf::Transformable, public sf::Drawable {
 protected:
-  mutable std::vector<const SceneNode*> childNodes;
+  mutable std::vector<SceneNode*> childNodes;
   SceneNode* parent;
   bool show;
   int layer;
@@ -51,7 +51,7 @@ public:
 
     //states.transform *= combinedTransform;
 
-    std::sort(childNodes.begin(), childNodes.end(), [](SceneNode* a, SceneNode* b) { a->GetLayer() > b->GetLayer(); });
+    std::sort(childNodes.begin(), childNodes.end(), [](SceneNode* a, SceneNode* b) { return (a->GetLayer() > b->GetLayer()); });
 
     // draw its children
     for (std::size_t i = 0; i < childNodes.size(); i++) {
