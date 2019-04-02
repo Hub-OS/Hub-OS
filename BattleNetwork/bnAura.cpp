@@ -21,7 +21,6 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   owner->AddNode(this);
   this->AddNode(aura);
   
-  currHP = owner->GetHealth();
   font.setTexture(LOAD_TEXTURE(AURA_NUMSET));
   font.setScale(1.f, 1.f);
 
@@ -55,6 +54,8 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
     this->health = 500;
     break;
   }
+  
+  currHP = owner->GetHealth();
 
   DefenseAura::Callback onHit = [this](Spell* in, Character* owner) {
 	  this->TakeDamage(in->GetHitboxProperties().damage);

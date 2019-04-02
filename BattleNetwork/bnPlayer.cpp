@@ -22,6 +22,7 @@ Player::Player(void)
   Character(Rank::_1)
 {
   this->ChangeState<PlayerIdleState>();
+  chargeComponent.SetLayer(-1);
   this->AddNode(&chargeComponent);
   chargeComponent.setPosition(0, -20.0f); // translate up -20
 
