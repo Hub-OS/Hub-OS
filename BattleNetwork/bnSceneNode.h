@@ -4,6 +4,8 @@
 #include <SFML/Graphics.hpp>
 #include "bnLayered.h"
 
+#include <iostream>
+
 class SceneNode : public sf::Transformable, public sf::Drawable {
 protected:
   mutable std::vector<SceneNode*> childNodes;
@@ -65,10 +67,9 @@ public:
   
   void RemoveNode(SceneNode* find) {
     if (find == nullptr) return;
-
-    auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [&find](SceneNode *in) { return in == find; });
-    (*iter)->parent = nullptr;
     
+    auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [find](SceneNode *in) { return in == find; });
+
     childNodes.erase(iter, childNodes.end());
   }
 };

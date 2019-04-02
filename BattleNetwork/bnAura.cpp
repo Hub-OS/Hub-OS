@@ -83,9 +83,10 @@ void Aura::Update(float _elapsed) {
 
   if (health == 0 || timer <= 0.0) {
     this->GetOwnerAs<Character>()->RemoveDefenseRule(this->defense);
-    this->GetOwner()->FreeComponentByID(this->Component::GetID());
-    this->GetOwner()->RemoveNode(this);
     this->RemoveNode(aura);
+    this->GetOwner()->RemoveNode(this);
+    this->GetOwner()->FreeComponentByID(this->Component::GetID());
+    delete this;
     return;
   }
 
@@ -100,10 +101,6 @@ void Aura::Update(float _elapsed) {
  }
 
  animation.Update(_elapsed, *aura);
-
- if (health <= 0) {
-   delete this;
- }
 }
 
 const Aura::Type Aura::GetAuraType()
