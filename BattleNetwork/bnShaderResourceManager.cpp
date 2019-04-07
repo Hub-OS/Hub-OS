@@ -12,7 +12,7 @@ ShaderResourceManager& ShaderResourceManager::GetInstance() {
 
 void ShaderResourceManager::LoadAllShaders(std::atomic<int> &status) {
   ShaderType shaderType = static_cast<ShaderType>(0);
-  while (shaderType != SHADER_TYPE_SIZE) {
+  while (shaderType != ShaderType::SHADER_TYPE_SIZE) {
     status++;
 
     // TODO: Catch failed resources and try again
@@ -34,7 +34,8 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path) {
 //    exit(EXIT_FAILURE);
     return nullptr;
   }
-  //shader->setUniform("texture", sf::Shader::CurrentTexture);
+
+  shader->setUniform("texture", sf::Shader::CurrentTexture);
 
   Logger::GetMutex()->lock();
   Logger::Log("Loaded shader: " + _path);
@@ -44,7 +45,11 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path) {
 }
 
 sf::Shader* ShaderResourceManager::GetShader(ShaderType _stype) {
-  return shaders.at(_stype);
+    return shaders.at(_stype);
+}
+
+const int ShaderResourceManager::GetSize() {
+    return shaders.size();
 }
 
 ShaderResourceManager::ShaderResourceManager(void) {

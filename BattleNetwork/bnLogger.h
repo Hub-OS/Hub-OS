@@ -9,6 +9,11 @@ using std::to_string;
 #include <queue>
 #include <mutex>
 #include <fstream>
+
+#ifdef SFML_SYSTEM_ANDROID
+#include <android/log.h>
+#endif
+
 class Logger {
 private:
   static std::mutex m;
@@ -37,6 +42,10 @@ public:
       file.open("log.txt");
       file << "StartTime " << time(0) << endl;
     }
+
+#ifdef SFML_SYSTEM_ANDROID
+    __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",_message.c_str());
+#endif
 
     //cerr << _message << endl;
     logs.push(_message);
@@ -68,6 +77,10 @@ public:
     }
 
     file << ret << endl;
+
+#ifdef SFML_SYSTEM_ANDROID
+    __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",ret.c_str());
+#endif
   }
 
   static string ToString(float _number) {

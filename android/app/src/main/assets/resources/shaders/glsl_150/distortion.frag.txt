@@ -45,5 +45,5 @@ void main()
     
     vec2 distortedTextureCoordinate = vTexCoord.st + distortionPositionOffset;
 
-    gl_FragColor = texture2D(currentTexture, distortedTextureCoordinate);
-}
+    // gl_FragColor = texture2D(currentTexture, distortedTextureCoordinate);
+ }

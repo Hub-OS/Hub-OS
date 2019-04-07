@@ -356,7 +356,7 @@ int SelectMobScene::Run(SelectedNavi navi)
     delete bake;
 
     // Make a selection
-    if (INPUT.has(PRESSED_A)) {
+    if (INPUT.has(PRESSED_A)  || sf::Touch::isDown(0)) {
       AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOWEST);
 
       // Stop music and go to battle screen 
@@ -365,7 +365,7 @@ int SelectMobScene::Run(SelectedNavi navi)
       Field* field(new Field(6, 3));
       MobFactory* factory = nullptr;
 
-      if (mobSelectionIndex == 0) {
+      if (mobSelectionIndex == 0 || sf::Touch::isDown(0)) {
         // see how the random mob works around holes
         field->GetAt((rand()) % 3 + 4, (rand() % 3) + 1)->SetState(TileState::EMPTY);
         factory = new TwoMettaurMob(field);

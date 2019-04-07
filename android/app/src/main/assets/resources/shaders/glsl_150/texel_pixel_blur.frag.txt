@@ -30,5 +30,5 @@ void main()
     // Convert back to texture atlas coordinates
     texCoord = (texCoord * size) + origin;
 
-    gl_FragColor = texture2D(texture, texCoord);
+    // gl_FragColor = texture2D(texture, texCoord);
 }

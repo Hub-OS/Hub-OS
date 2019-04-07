@@ -32,5 +32,5 @@ void main()
       }
     }
 
-    gl_FragColor = pixel;
+    // gl_FragColor = pixel;
 }

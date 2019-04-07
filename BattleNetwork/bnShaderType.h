@@ -5,8 +5,8 @@
 */
 
 #ifdef SFML_SYSTEM_ANDROID
-    enum ShaderType {
-      BLACK_FADE,
+    enum class ShaderType : int {
+      BLACK_FADE = 0,
       CUSTOM_BAR,
       GREYSCALE,
       OUTLINE,
@@ -25,8 +25,8 @@
       SHADER_TYPE_SIZE
     };
 #else
-    enum ShaderType {
-      BLACK_FADE,
+    enum class ShaderType : int {
+      BLACK_FADE = 0,
       CUSTOM_BAR,
       GREYSCALE,
       OUTLINE,

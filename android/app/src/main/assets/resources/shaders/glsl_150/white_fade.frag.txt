@@ -7,5 +7,5 @@ void main()
     vec4 pixel = texture2D(texture, vTexCoord.xy);
     vec4 color = pixel;
     color = vec4(1.0, 1.0, 1.0, color.a)*opacity + (1.0-opacity)*color;
-    gl_FragColor = color;
+    // gl_FragColor = color;
 }

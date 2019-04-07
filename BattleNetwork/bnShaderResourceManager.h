@@ -21,6 +21,7 @@ public:
   void LoadAllShaders (std::atomic<int> &status);
   sf::Shader* LoadShaderFromFile(string _path);
   sf::Shader* GetShader(ShaderType _ttype);
+  const int GetSize();
 
 private:
   ShaderResourceManager(void);

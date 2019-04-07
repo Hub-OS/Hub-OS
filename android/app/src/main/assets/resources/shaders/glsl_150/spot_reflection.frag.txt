@@ -29,7 +29,7 @@ void main()
       if(color1.r < 224.0/255.0 && color1.g >= 200.0/255.0 && color1.b >= 184.0/255.0) {
         vec4 color2 = texture2D(sceneTexture, reflectionMapCoordinate);
 
-        gl_FragColor = ( 1.0 - shine) * color1 + shine * color2;
+        // gl_FragColor = ( 1.0 - shine) * color1 + shine * color2;
       }
     }
 }

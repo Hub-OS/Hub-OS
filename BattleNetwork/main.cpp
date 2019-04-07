@@ -49,6 +49,7 @@ void RunGraphicsInit(std::atomic<int> * progress) {
 
   Logger::GetMutex()->lock();
   Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf("Shader size is %i", ShaderResourceManager::GetInstance().GetSize());
   Logger::GetMutex()->unlock();
 }
 
@@ -178,10 +179,10 @@ int main(int argc, char** argv) {
   LayeredDrawable progSprite;
 
   int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE  + (unsigned)ShaderType::SHADER_TYPE_SIZE;
-  std::atomic<int> progress{0};
-  std::atomic<int> navisLoaded{0};
+  std::atomic<int> progress(0);
+  std::atomic<int> navisLoaded(0);
 
-  // MASSIVE HACK
+  // Mav Note: Currently do not have the default frag and vertex shaders
   totalObjects -= 2;
 
   sf::Thread graphicsLoad(&RunGraphicsInit, &progress);

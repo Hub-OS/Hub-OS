@@ -6,6 +6,6 @@ varying vec2 vTexCoord;
  
 void main()
 {
-    gl_Position = projMatrix * viewMatrix * position ;
+    // gl_Position = projMatrix * viewMatrix * position ;
     vTexCoord = texCoord;
 }
