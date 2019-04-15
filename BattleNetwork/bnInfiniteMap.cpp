@@ -155,7 +155,7 @@ namespace Overworld {
 
     std::sort(map.begin(), map.end(), InfiniteMap::TileComparitor(this));
 
-    if (std::max((int)(map.size()-branchDepth), 0) < cols*50) {
+    if (std::max((int)(map.size()-branchDepth), 0) < cols*5) {
 
       Overworld::Tile* tile = new Tile(sf::Vector2f(head->GetPos().x + this->GetTileSize().x, head->GetPos().y));
       map.push_back(tile);

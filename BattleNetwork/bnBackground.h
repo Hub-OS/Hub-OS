@@ -52,9 +52,9 @@ protected:
 
         // define its 4 texture coordinates
         quad[0].texCoords = sf::Vector2f(0, 0);
-        quad[1].texCoords = sf::Vector2f(0, (float)textureSize.y);
-        quad[2].texCoords = sf::Vector2f((float)textureSize.x, 0);
-        quad[3].texCoords = sf::Vector2f((float)textureSize.x, (float)textureSize.y);
+        quad[1].texCoords = sf::Vector2f((float)textureSize.x, 0);
+        quad[2].texCoords = sf::Vector2f((float)textureSize.x, (float)textureSize.y);
+        quad[3].texCoords = sf::Vector2f(0, (float)textureSize.y);
       }
 
       textureRect = sf::IntRect(0, 0, textureSize.x, textureSize.y);
