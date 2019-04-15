@@ -1,4 +1,6 @@
-// Pixel blur inside of active texture coordinates 
+#version 120
+
+// Pixel blur inside of active texture coordinates
 
 uniform sampler2D texture;
 uniform float pixel_threshold;

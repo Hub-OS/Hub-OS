@@ -1,3 +1,4 @@
+#version 120
 
 uniform sampler2D currentTexture; // Our render texture
 uniform sampler2D distortionMapTexture; // Our heat distortion map texture

@@ -1,3 +1,5 @@
+#version 120
+
 // Wrap a subrect in a texture to preserve the image
 
 uniform sampler2D texture;

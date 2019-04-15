@@ -17,8 +17,8 @@ void ShaderResourceManager::LoadAllShaders(std::atomic<int> &status) {
 
     // TODO: Catch failed resources and try again
     sf::Shader* shader = nullptr;
-    shader = LoadShaderFromFile(paths[static_cast<int>(shaderType)]);
-    if (shader) shaders.insert(pair<ShaderType, sf::Shader*>(shaderType, shader));
+    shader = new sf::Shader(); // LoadShaderFromFile(paths[static_cast<int>(shaderType)]);
+    /*if (shader)*/ shaders.insert(pair<ShaderType, sf::Shader*>(shaderType, shader));
     shaderType = (ShaderType)(static_cast<int>(shaderType) + 1);
   }
 }
@@ -56,7 +56,7 @@ ShaderResourceManager::ShaderResourceManager(void) {
   std::string version = "glsl_110";
 
   #ifdef SFML_SYSTEM_ANDROID
-    version = "glsl_150";
+  //  version = "glsl_150";
   #endif
 
   paths.push_back(std::string() + "resources/shaders/" + version + "/black_fade.frag.txt");
@@ -76,10 +76,10 @@ ShaderResourceManager::ShaderResourceManager(void) {
 
   #ifdef SFML_SYSTEM_ANDROID
     // ShaderType::ES2_DEFAULT_FRAG
-    paths.push_back(std::string() + "resources/shaders/" + version + "/default.frag.txt");
+    //paths.push_back(std::string() + "resources/shaders/" + version + "/default.frag.txt");
 
     // ShaderType::ES2_DEFAULT_VERT
-    paths.push_back(std::string() + "resources/shaders/" + version + "/default.vert.txt");
+    //paths.push_back(std::string() + "resources/shaders/" + version + "/default.vert.txt");
   #endif
 }
 
