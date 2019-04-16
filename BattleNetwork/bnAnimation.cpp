@@ -32,6 +32,10 @@ void Animation::Load() {
   bool legacySupport = true;
 
   string data = FileUtil::Read(path);
+
+  //Logger::Log("anim: path is: " + path);
+  //Logger::Log("anim: data is: " + data);
+
   int endline = 0;
   do {
     endline = (int)data.find("\n");

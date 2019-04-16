@@ -14,7 +14,7 @@ void Engine::Initialize() {
   cam = new Camera(view);
 
   window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition");
-  window->setFramerateLimit(60);
+  window->setFramerateLimit(120);
 
   window->setIcon(sfml_icon.width, sfml_icon.height, sfml_icon.pixel_data);
 
@@ -60,7 +60,7 @@ void Engine::Draw(LayeredDrawable* _drawable) {
     postprocessing.draw(*context, shader->Get()); // bake
     shader->ResetUniforms();
   } else {
-    Draw(context, true);
+    Draw(context, false);
   }
 }
 void Engine::Draw(vector<LayeredDrawable*> _drawable) {
@@ -100,7 +100,7 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
       postprocessing.draw(*context, shader.Get()); // bake
       shader.ResetUniforms();
     } else {
-      Draw(context, true);
+      Draw(context, false);
     }
   }
 }
@@ -108,7 +108,7 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
 void Engine::Draw(vector<Drawable*> _drawable, bool applyShaders) {
   auto it = _drawable.begin();
   for (it; it != _drawable.end(); ++it) {
-    Draw(*it, applyShaders);
+    Draw(*it, false);
   }
 }
 
