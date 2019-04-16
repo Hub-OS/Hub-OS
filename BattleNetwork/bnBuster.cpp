@@ -10,52 +10,74 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
+// TODO: TAKE THIS OUT AFTER HIT PROPERTIES AND RESOLVES ARE IMPLEMENTED. THIS IS FOR POC ONLY.
+#include "bnGuardHit.h"
+#include "bnGear.h" 
+
 #define COOLDOWN 40.0f/1000.0f
-#define DAMAGE_COOLDOWN 50.0f/1000.0f
 
-#define BULLET_ANIMATION_SPRITES 3
-#define BULLET_ANIMATION_WIDTH 30
-#define BULLET_ANIMATION_HEIGHT 27
-
-Buster::Buster(Field* _field, Team _team, bool _charged) {
+Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), Spell() {
   SetPassthrough(true);
+  SetLayer(0);
 
   cooldown = 0;
-  damageCooldown = 0;
   field = _field;
   team = _team;
   direction = Direction::NONE;
   deleted = false;
   hit = false;
   progress = 0.0f;
-  hitHeight = 0.0f;
+
+  if (isCharged) {
+    hitHeight = 20.0f;
+  }
+  else {
+    hitHeight = 0.0f;
+  }
+
   srand((unsigned int)time(nullptr));
-  random = rand() % 20 - 20;
+  random = 0;
+
   if (_charged) {
     damage = 10;
-    //TODO: make new sprite animation for charged bullet
-    texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
+    texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
+    animationComponent.Setup("resources/spells/spell_charged_bullet_hit.animation");
+    animationComponent.Reload();
+    animationComponent.SetAnimation("HIT");
   } else {
     damage = 1;
     texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
+    animationComponent.Setup("resources/spells/spell_bullet_hit.animation");
+    animationComponent.Reload();
+    animationComponent.SetAnimation("HIT");
   }
   setScale(2.f, 2.f);
-  for (int x = 0; x < BULLET_ANIMATION_SPRITES; x++) {
-    animation.Add(0.3f, IntRect(BULLET_ANIMATION_WIDTH*x, 0, BULLET_ANIMATION_WIDTH, BULLET_ANIMATION_HEIGHT));
-  }
+
+  AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::HIGH);
+
+  // TODO: take these out of POC
+  contact = nullptr;
+  spawnGuard = false;
 }
 
 Buster::~Buster(void) {
 }
 
 void Buster::Update(float _elapsed) {
+  if (spawnGuard) {
+    field->AddEntity(*new GuardHit(field, contact), this->tile->GetX(), this->tile->GetY());
+    spawnGuard = false;
+    this->Delete();
+    return;
+  }
+
   if (hit) {
     if (progress == 0.0f) {
-      setTexture(*texture);
-      setPosition(tile->getPosition().x + tile->GetWidth() / 2.f + random, tile->getPosition().y + tile->GetHeight() / 2.f - hitHeight);
+      setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
     }
     progress += 5 * _elapsed;
-    animator(fmin(progress, 1.0f), *this, animation);
+    this->setTexture(*texture);
+    animationComponent.Update(_elapsed);
     if (progress >= 1.f) {
       deleted = true;
       Entity::Update(_elapsed);
@@ -75,7 +97,7 @@ void Buster::Update(float _elapsed) {
 }
 
 bool Buster::Move(Direction _direction) {
-  tile->RemoveEntity(this);
+  tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
   if (_direction == Direction::UP) {
     if (tile->GetY() - 1 > 0) {
@@ -104,27 +126,44 @@ bool Buster::Move(Direction _direction) {
       return false;
     }
   }
-  tile->AddEntity(this);
+  tile->AddEntity(*this);
   return true;
 }
 
-void Buster::Attack(Entity* _entity) {
+void Buster::Attack(Character* _entity) {
   if (hit || deleted) return;
 
+  // TODO: Add guard component to gear and take out this entirely
+  if (dynamic_cast<Gear*>(_entity)) {
+    spawnGuard = true;
+    contact = _entity;
+    return;
+  }
+
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(damage);
-    hitHeight = _entity->GetHitHeight();
+    auto props = Hit::DefaultProperties;
+    props.flags = props.flags & ~Hit::recoil;
+    props.damage = damage;
+
+    _entity->Hit(props);
 
     if (!_entity->IsPassthrough()) {
-      hit = true;
+      hit = true;  
+
+      if (!isCharged) {
+        random = _entity->getLocalBounds().width / 2.0f;
+        random *= rand() % 2 == 0 ? -1.0f : 1.0f;
+
+        hitHeight = (float)(std::floor(_entity->GetHitHeight()));
+
+        if (hitHeight > 0) {
+          hitHeight = (float)(rand() % (int)hitHeight);
+        }
+      }
     }
   }
 
   if (hit) {
     AUDIO.Play(AudioType::HURT);
   }
-}
-
-vector<Drawable*> Buster::GetMiscComponents() {
-  return vector<Drawable*>();
 }

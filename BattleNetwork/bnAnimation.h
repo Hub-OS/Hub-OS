@@ -19,15 +19,22 @@ public:
   Animation(string _path);
   ~Animation();
 
-  void Load();
-  void Update(float _elapsed, sf::Sprite* target, double playbackSpeed = 1.0);
-  void SetFrame(int frame, sf::Sprite* target);
+  void Reload();
+  void Update(float _elapsed, sf::Sprite& target, double playbackSpeed = 1.0);
+  void Refresh(sf::Sprite& target);
+  void SetFrame(int frame, sf::Sprite& target);
   void SetAnimation(string state);
+
+  void RemoveCallbacks();
+
+  const std::string GetAnimationString() const;
 
   FrameList& GetFrameList(std::string animation);
 
   Animation& operator<<(Animate::On rhs);
-  Animation& operator<<(Animate::Mode rhs);
+  Animation& operator<<(char rhs);
+  Animation& operator<<(std::string state);
+
   void operator<<(std::function<void()> onFinish);
 
 private:

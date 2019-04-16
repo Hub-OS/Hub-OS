@@ -49,10 +49,12 @@ bool BasicSword::Move(Direction _direction) {
   return false;
 }
 
-void BasicSword::Attack(Entity* _entity) {
+void BasicSword::Attack(Character* _entity) {
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(damage);
+    auto props = Hit::DefaultProperties;
+    props.damage = damage;
+    _entity->Hit(props);
     hitHeight = _entity->GetHitHeight();
     hit = true;
 
@@ -61,19 +63,10 @@ void BasicSword::Attack(Entity* _entity) {
     if (isCharacter && isCharacter->IsCountered()) {
       AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
       isCharacter->Stun(1000);
-
-      if (isCharacter->GetHealth() == 0) {
-        // Slide character back a few pixels
-        isCharacter->setPosition(_entity->getPosition().x + 50.f, _entity->getPosition().y);
-      }
     }
   }
 
   if (hit) {
    //  AUDIO.Play(AudioType::HURT, 0);
   }
-}
-
-vector<Drawable*> BasicSword::GetMiscComponents() {
-  return vector<Drawable*>();
 }

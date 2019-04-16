@@ -21,3 +21,12 @@ Artifact::Artifact(void) {
 
 Artifact::~Artifact(void) {
 }
+
+void Artifact::AdoptTile(Battle::Tile * tile)
+{
+  tile->AddEntity(*this);
+
+  if (!isSliding) {
+    this->setPosition(tile->getPosition());
+  }
+}

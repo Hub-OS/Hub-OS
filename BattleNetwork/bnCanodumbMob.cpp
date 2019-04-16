@@ -2,6 +2,7 @@
 #include "bnField.h"
 #include "bnTile.h"
 #include "bnSpawnPolicy.h"
+#include "bnChipsSpawnPolicy.h"
 
 CanodumbMob::CanodumbMob(Field* field) : MobFactory(field)
 {

@@ -2,32 +2,47 @@
 #include <assert.h>
 #include <sstream>
 #include <algorithm>
+#include <random>
 
 ChipFolder::ChipFolder() {
-  folderSize = initialSize = ChipLibrary::GetInstance().GetSize();
-  folderList = new Chip*[folderSize];
+  folderSize = initialSize = 0;
+}
 
-  for (int i = 0; i < folderSize; i++) {
-    int random = rand() % ChipLibrary::GetInstance().GetSize();
+ChipFolder::ChipFolder(const ChipFolder& rhs)
+{
+  folderSize = initialSize = rhs.folderSize;
+  folderList = rhs.folderList;
+}
 
-    // For now, the folder contains random parts from the entire library
-    ChipLibrary::Iter iter = ChipLibrary::GetInstance().Begin();
-
-    while (random-- > 0) {
-      iter++;
-    }
-
-    folderList[i] = new Chip(*(iter));
+ChipFolder::~ChipFolder() {
+  for (int i = (int)folderList.size()-1; i >= 0; i--) {
+    delete folderList[i];
   }
 }
 
+void ChipFolder::Shuffle()
+{
+  std::random_device rng;
+  std::mt19937 urng(rng());
+  std::shuffle(folderList.begin(), folderList.end(), urng);
 
-ChipFolder::~ChipFolder() {
-  for (int i = folderSize-1; i >= 0; i--) {
-    delete folderList[i];
+  // std::random_shuffle(folderList.begin(), folderList.end()); // Depricated in C__14 and removed after
+}
+
+ChipFolder* ChipFolder::Clone() {
+  ChipFolder* clone = new ChipFolder();
+
+  for (int i = 0; i < folderList.size(); i++) {
+    clone->AddChip(*folderList[i]);
   }
 
-  delete[] folderList;
+  return clone;
+}
+
+void ChipFolder::AddChip(Chip copy)
+{
+  folderList.push_back(new Chip(copy));
+  folderSize = (int)folderList.size();
 }
 
 Chip* ChipFolder::Next() {
@@ -36,4 +51,19 @@ Chip* ChipFolder::Next() {
   }
 
   return folderList[folderSize];
+}
+
+const int ChipFolder::GetSize() const
+{
+  return this->folderSize;
+}
+
+ChipFolder::Iter ChipFolder::Begin()
+{
+  return folderList.begin();
+}
+
+ChipFolder::Iter ChipFolder::End()
+{
+  return folderList.end();
 }

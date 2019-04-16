@@ -12,16 +12,6 @@ void AnimatedCharacter::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-bool AnimatedCharacter::Move(Direction _direction) {
-  assert(false && "Move shouldn't be called directly from AnimatedCharacter");
-  return false;
-}
-
-vector<Drawable*> AnimatedCharacter::GetMiscComponents() {
-  assert(false && "GetMiscComponents shouldn't be called directly from AnimatedCharacter");
-  return vector<Drawable*>();
-}
-
 void AnimatedCharacter::AddAnimation(string _state, FrameList _frameList, float _duration) {
 }
 
@@ -46,7 +36,7 @@ const float AnimatedCharacter::GetHitHeight() const {
   return 0;
 }
 
-const bool AnimatedCharacter::Hit(int damage) {
+const bool AnimatedCharacter::Hit(Hit::Properties props) {
   //assert(false && "Hit shouldn't be called directly from Entity");
   return false;
 }

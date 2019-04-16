@@ -11,18 +11,34 @@
 This class handles the semantics of spawning a special character type.
 For custom spawning, inherit from this class.
 
-Examples: Boss spawner (Alpa's core already present) or ChipSpawner (enemy equiped with a chip and ChipUIComponent at start)
+Examples: Boss spawner (Alpha has many pieces that need to know about eachother) or 
+          ChipSpawner (enemy equiped with a chip and ChipUIComponent at start)
 */
 template<class T>
 class SpawnPolicy {
-protected:
-  std::function<void(Character*)> intro;
-  std::function<void(Character*)> ready;
+  typedef std::function<void(Character*)> SpawnStateCallback;
+
+private:
+  SpawnStateCallback intro;
+  SpawnStateCallback ready;
   T* generate;
 
+protected:
   virtual void EnforceConstraints() {
-   // _DerivedFrom<T, Character>();
-   // _DerivedFrom<T, AI<T>>();
+   _DerivedFrom<T, Character>();
+   _DerivedFrom<T, AI<T>>();
+  }
+
+  void Spawn(T* generated) {
+    this->generate = generated;
+  }
+
+  void SetIntroCallback(SpawnStateCallback intro) {
+    this->intro = intro;
+  }
+
+  void SetReadyCallback(SpawnStateCallback ready) {
+    this->ready = ready;
   }
 
 public:
@@ -31,8 +47,8 @@ public:
   
   virtual T* GetSpawned() { return generate; }
 
-  virtual std::function<void(Character*)>& GetIntroCallback() { return intro; }
-  virtual std::function<void(Character*)>& GetReadyCallback() { return ready; }
+  virtual SpawnStateCallback& GetIntroCallback() { return intro; }
+  virtual SpawnStateCallback& GetReadyCallback() { return ready; }
 };
 
 /*
@@ -56,18 +72,18 @@ class RankedSpawnPolicy : public SpawnPolicy<T> {
         T* agent = dynamic_cast<T*>(character);
 
         if (agent) {
-          agent->template StateChange<PixelInState<T>>(onFinish);
+          agent->template ChangeState<PixelInState<T>>(onFinish);
         }
       };
 
       auto defaultStateInvoker = [](Character* character) { 
         T* agent = dynamic_cast<T*>(character); 
         
-        if (agent) { agent->template StateChange<DefaultState>(); }
+        if (agent) { agent->template ChangeState<DefaultState>(); }
       };
 
-      this->intro = pixelStateInvoker;
-      this->ready = defaultStateInvoker;
+      this->SetIntroCallback(pixelStateInvoker);
+      this->SetReadyCallback(defaultStateInvoker);
     }
 
   public:
@@ -84,7 +100,9 @@ template<class T, class DefaultState = NoState<T>>
 class Rank1 : public RankedSpawnPolicy<T, DefaultState> {
 public:
   Rank1(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    this->generate = new T(T::Rank::_1);
+    this->Spawn(new T(T::Rank::_1));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -93,7 +111,9 @@ class Rank2 : public RankedSpawnPolicy<T, DefaultState> {
   public:
 
   Rank2(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    this->generate = new T(T::Rank::_2);
+    this->Spawn(new T(T::Rank::_2));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -102,7 +122,9 @@ class Rank3 : public RankedSpawnPolicy<T, DefaultState> {
   public:
 
   Rank3(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    this->generate = new T(T::Rank::_3);
+    this->Spawn(new T(T::Rank::_3));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -111,8 +133,10 @@ class RankSP : public RankedSpawnPolicy<T, DefaultState> {
 public:
 
   RankSP(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    this->generate = new T(T::Rank::SP);
-    this->generate->SetName(SP(this->generate->GetName()));
+    this->Spawn(new T(T::Rank::SP));
+    this->GetSpawned()->SetName(SP(this->GetSpawned()->GetName()));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -121,7 +145,9 @@ class RankEX : public RankedSpawnPolicy<T, DefaultState> {
 public:
 
   RankEX(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
-    this->generate = new T(T::Rank::EX);
-    this->generate->SetName(EX(this->generate->GetName()));
+    this->Spawn(new T(T::Rank::EX));
+    this->GetSpawned()->SetName(EX(this->GetSpawned()->GetName()));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };

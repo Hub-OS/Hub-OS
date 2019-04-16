@@ -9,9 +9,9 @@ public:
   ProgsManPunchState();
   ~ProgsManPunchState();
 
-  void OnEnter(ProgsMan& progs);
-  void OnUpdate(float _elapsed, ProgsMan& progs);
-  void OnLeave(ProgsMan& progs);
-  void Attack(ProgsMan& progs);
+  void OnEnter(ProgsMan& p);
+  void OnUpdate(float _elapsed, ProgsMan& p);
+  void OnLeave(ProgsMan& p);
+  void Attack(ProgsMan& p);
 };
 

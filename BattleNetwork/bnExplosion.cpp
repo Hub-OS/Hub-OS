@@ -17,7 +17,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
   animationComponent.Setup("resources/mobs/mob_explosion.animation");
-  animationComponent.Load();
+  animationComponent.Reload();
 
   int randNegX = 1;
   int randNegY = 1;
@@ -32,25 +32,27 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
 
   offset = sf::Vector2f((float)randX, (float)randY);
 
-  AUDIO.Play(AudioType::EXPLODE);
+  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOWEST);
 
-  animationComponent.SetAnimation("EXPLODE", [this]() { this->setColor(sf::Color(255, 255, 255, 0)); });
+  animationComponent.SetAnimation("EXPLODE");
   animationComponent.SetPlaybackSpeed(playbackSpeed);
-  animationComponent.Update(0.1);
+  animationComponent.Update(0.0f);
 
-  if (_numOfExplosions > 0) {
+  animationComponent.AddCallback(11, [this]() {
+    this->root->IncrementExplosionCount();
+    this->setColor(sf::Color(0, 0, 0, 0));
+  }, std::function<void()>(), true);
+
+  if (_numOfExplosions > 1) {
     animationComponent.AddCallback(9, [this, _field, _team, _numOfExplosions]() {
-      this->GetField()->OwnEntity(new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
+      this->GetField()->AddEntity(*new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
     }, std::function<void()>(), true);
   }
 }
 
 Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 {
-  if (copy.root == &copy)
-    root = &const_cast<Explosion&>(copy);
-  else
-    root = copy.root;
+  root = copy.root;
 
   count = 0; // uneeded for this copy
   SetLayer(1);
@@ -61,7 +63,7 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
   animationComponent.Setup("resources/mobs/mob_explosion.animation");
-  animationComponent.Load();
+  animationComponent.Reload();
 
   int randNegX = 1;
   int randNegY = 1;
@@ -78,31 +80,32 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 
   AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
 
-  animationComponent.SetAnimation("EXPLODE", [this]() { this->Delete(); root->IncrementExplosionCount(); });
+  animationComponent.SetAnimation("EXPLODE");
   animationComponent.SetPlaybackSpeed(playbackSpeed);
-  animationComponent.Update(0.1);
+  animationComponent.Update(0.0f);
+
+  animationComponent.AddCallback(11, [this]() {
+    this->Delete(); this->root->IncrementExplosionCount();
+  }, std::function<void()>(), true);
 
   if (numOfExplosions > 1) {
     animationComponent.AddCallback(9, [this]() {
-      this->GetField()->OwnEntity(new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
+      this->GetField()->AddEntity(*new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
     }, std::function<void()>(), true);
   }
 }
 
 void Explosion::Update(float _elapsed) {
   if (this == root) {
-    if (count == numOfExplosions-1)
+    if (count == numOfExplosions) {
       Delete();
+      return;
+    }
   }
 
   animationComponent.Update(_elapsed);
-  setPosition((tile->getPosition().x + tile->GetWidth() / 2.0f) + offset.x, (tile->getPosition().y + tile->GetHeight() / 2.0f) + offset.y - 10.0f);
+  setPosition((tile->getPosition().x + offset.x), (tile->getPosition().y + offset.y));
   Entity::Update(_elapsed);
-}
-
-vector<Drawable*> Explosion::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  return drawables;
 }
 
 void Explosion::IncrementExplosionCount() {

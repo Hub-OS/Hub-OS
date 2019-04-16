@@ -6,11 +6,11 @@
 
 namespace Overworld {
   enum class NPCType :int {
-    MR_PROG_UP,
-    MR_PROG_DOWN,
-    MR_PROG_LEFT,
-    MR_PROG_RIGHT,
-    MR_PROG_FIRE,
+    MR_PROG_UP = 0,
+    MR_PROG_DOWN = 1,
+    MR_PROG_LEFT = 2,
+    MR_PROG_RIGHT = 3,
+    MR_PROG_FIRE = 4,
     NUMBERMAN_DOWN,
     NUMBERMAN_DANCE
   };

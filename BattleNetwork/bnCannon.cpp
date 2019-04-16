@@ -47,7 +47,7 @@ void Cannon::Update(float _elapsed) {
   if (hit) {
     if (progress == 0.0f) {
       setTexture(*texture);
-      setPosition(tile->getPosition().x + tile->GetWidth() / 2.f + random, tile->getPosition().y + tile->GetHeight() / 2.f - hitHeight);
+      setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
     }
     progress += 3 * _elapsed;
     animator(fmin(progress, 1.0f), *this, animation);
@@ -70,7 +70,7 @@ void Cannon::Update(float _elapsed) {
 }
 
 bool Cannon::Move(Direction _direction) {
-  tile->RemoveEntity(this);
+  tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
   if (_direction == Direction::UP) {
     if (tile->GetY() - 1 > 0) {
@@ -104,37 +104,29 @@ bool Cannon::Move(Direction _direction) {
       return false;
     }
   }
-  tile->AddEntity(this);
+  tile->AddEntity(*this);
   return true;
 }
 
-void Cannon::Attack(Entity* _entity) {
+void Cannon::Attack(Character* _entity) {
   if (hit || deleted) {
     return;
   }
 
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    _entity->Hit(damage);
-    hitHeight = _entity->GetHitHeight();
+  auto props = Hit::DefaultProperties;
+  props.damage = damage;
+  _entity->Hit(props);
+  hitHeight = _entity->GetHitHeight();
 
-    if (!_entity->IsPassthrough()) {
-      hit = true;
-    }
+  if (!_entity->IsPassthrough()) {
+    hit = true;
+  }
 
-    Character* isCharacter = dynamic_cast<Character*>(_entity);
+  Character* isCharacter = dynamic_cast<Character*>(_entity);
 
-    if (isCharacter && isCharacter->IsCountered()) {
-      AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
-      isCharacter->Stun(1);
-
-      if (isCharacter->GetHealth() == 0) {
-        // Slide entity back a few pixels
-        isCharacter->setPosition(isCharacter->getPosition().x + 50.f, isCharacter->getPosition().y);
-      }
-    }
+  if (isCharacter && isCharacter->IsCountered()) {
+    AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
+    isCharacter->Stun(1000);
   }
 }
 
-vector<Drawable*> Cannon::GetMiscComponents() {
-  return vector<Drawable*>();
-}

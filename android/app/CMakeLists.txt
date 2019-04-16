@@ -29,7 +29,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../extern/SFML ./sfml-build)
 
 file(GLOB BATTLENETWORK_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork/*.cpp)
 
-include_directories(native-lib ${CMAKE_CURRENT_SOURCE_DIR}/../../extern/includes)
+include_directories(native-lib ${CMAKE_CURRENT_SOURCE_DIR}/../../extern/Swoosh/src)
 include_directories(native-lib ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork)
 
 add_library( # Sets the name of the library.

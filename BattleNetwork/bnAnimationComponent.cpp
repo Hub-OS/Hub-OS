@@ -17,7 +17,7 @@ AnimationComponent::~AnimationComponent() {
 
 void AnimationComponent::Update(float _elapsed)
 {
-  animation.Update(_elapsed, entity, speed);
+  animation.Update(_elapsed, *entity, speed);
 }
 
 void AnimationComponent::Setup(string _path)
@@ -25,10 +25,14 @@ void AnimationComponent::Setup(string _path)
   path = _path;
 }
 
-void AnimationComponent::Load() {
+void AnimationComponent::Reload() {
   animation = Animation(path);
-  animation.Load();
-  this->Update(0);
+  animation.Reload();
+}
+
+const std::string AnimationComponent::GetAnimationString() const
+{
+  return animation.GetAnimationString();
 }
 
 void AnimationComponent::SetPlaybackSpeed(const double playbackSpeed)
@@ -40,14 +44,31 @@ void AnimationComponent::SetAnimation(string state, std::function<void()> onFini
 {
   animation.SetAnimation(state);
   animation << onFinish;
+
+  // Todo: this should apply the new rects immediately on set but it
+  //       removes callbacks for some reason
+  // animation.Refresh(*entity);
 }
 
-void AnimationComponent::SetAnimation(string state, Animate::Mode playbackMode, std::function<void()> onFinish)
+void AnimationComponent::SetAnimation(string state, char playbackMode, std::function<void()> onFinish)
 {
   animation.SetAnimation(state);
   animation << playbackMode << onFinish;
+
+  // See line 49
+  // animation.Refresh(*entity);
+}
+
+void AnimationComponent::SetPlaybackMode(char playbackMode)
+{
+	animation << playbackMode;
 }
 
 void AnimationComponent::AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame, bool doOnce) {
   animation << Animate::On(frame, onFrame, doOnce) << Animate::On(frame+1, outFrame, doOnce);
+}
+
+void AnimationComponent::CancelCallbacks()
+{
+  animation.RemoveCallbacks();
 }

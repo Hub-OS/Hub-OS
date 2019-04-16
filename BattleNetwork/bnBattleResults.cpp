@@ -1,10 +1,14 @@
 #include "bnBattleResults.h"
+#include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
+#include "bnShaderResourceManager.h"
 #include "bnEngine.h"
 #include "bnMob.h"
 #include "bnBattleItem.h"
 
 BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount, int counterCount, bool doubleDelete, bool tripleDelete, Mob *mob) {
+  totalElapsed = 0;
+
   /*
   Calculate score and rank
   Calculations are based off http ://megaman.wikia.com/wiki/Virus_Busting
@@ -44,6 +48,8 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
     */
   score = 0;
 
+  this->counterCount = std::min(3, counterCount);
+
   if(!mob->IsBoss()) {
     if (battleLength.asSeconds() > 36.1) score += 4;
     else if (battleLength.asSeconds() > 12.01) score += 5;
@@ -72,7 +78,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   if (doubleDelete) score += 2;
   if (tripleDelete) score += 4;
 
-  score += std::max(counterCount, 3);
+  score += this->counterCount;
 
   // No score of zero or below. Min score of 1
   score = std::max(1, score);
@@ -86,6 +92,13 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   resultsSprite.setScale(2.f, 2.f);
   resultsSprite.setPosition(-resultsSprite.getTextureRect().width*2.f, 20.f);
 
+  pressA = sf::Sprite(LOAD_TEXTURE(BATTLE_RESULTS_PRESS_A));
+  pressA.setScale(2.f, 2.f);
+  pressA.setPosition(2.f*42.f, 249.f);
+
+  star = sf::Sprite(LOAD_TEXTURE(BATTLE_RESULTS_STAR));
+  star.setScale(2.f, 2.f);
+  
   sf::Font *font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   if (item) {
@@ -95,6 +108,8 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
     rewardCard.setTextureRect(rect);
 
     if (item->IsChip()) {
+      rewardIsChip = true;
+
       chipCode.setFont(*font);
       chipCode.setPosition(2.f*114.f, 209.f);
       chipCode.setString(std::string() + item->GetChipCode());
@@ -133,6 +148,14 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   }
 
   rank.setOrigin(rank.getLocalBounds().width, 0);
+
+  chipReveal = ShaderResourceManager::GetInstance().GetShader(ShaderType::CHIP_REVEAL);
+  chipReveal->setUniform("progress", 0.0f);
+  chipReveal->setUniform("cols", 7);
+  chipReveal->setUniform("rows", 7);
+  chipReveal->setUniform("texture", sf::Shader::CurrentTexture);
+
+  playSoundOnce = false;
 }
 
 BattleResults::~BattleResults() {
@@ -170,7 +193,15 @@ std::string BattleResults::FormatString(sf::Time time)
 bool BattleResults::CursorAction() {
   bool prevStatus = isRevealed;
 
-  isRevealed = true;
+  if (!isRevealed) {
+    isRevealed = true;
+    totalElapsed = 0;
+  } /*
+    else if(extraItems.size() > 0) {
+        item = extraItems.top(); extraItems.pop();
+        totalElapsed =  0;
+    }
+    */
 
   return prevStatus;
 }
@@ -199,12 +230,44 @@ void BattleResults::Move(sf::Vector2f delta) {
   resultsSprite.setPosition(resultsSprite.getPosition() + delta);
 }
 
+void BattleResults::Update(double elapsed)
+{
+  totalElapsed += elapsed;
+
+  if ((int)totalElapsed % 2 == 0) {
+    pressA.setScale(0, 0);
+  }
+  else {
+    pressA.setScale(2.f, 2.f);
+  }
+
+  if (isRevealed) {
+    if (totalElapsed > 1.0 && !playSoundOnce) {
+      playSoundOnce = true;
+      AUDIO.Play(AudioType::ITEM_GET);
+    }
+
+    chipReveal->setUniform("progress", (float)totalElapsed / 1.0f);
+
+    if (!playSoundOnce) {
+      AUDIO.Play(AudioType::TEXT, AudioPriority::LOWEST);
+    }
+  }
+}
+
 void BattleResults::Draw() {
   ENGINE.Draw(resultsSprite, false);
 
+  if(!isRevealed)
+    ENGINE.Draw(pressA, false);
+
+  // moves over when there's counter stars
+  auto starSpacing = [](int index) -> float { return (19.f*index); };
+  auto rankPos = sf::Vector2f((2.f*191.f) - starSpacing(this->counterCount), 110.f);
+
   if (IsInView()) {
     // Draw shadow
-    rank.setPosition(2.f*192.f, 112.f);
+    rank.setPosition(rankPos.x+1.f, rankPos.y+2.f);
 
     if (score > 10) {
       rank.setFillColor(sf::Color(56, 92, 25));
@@ -216,7 +279,7 @@ void BattleResults::Draw() {
     ENGINE.Draw(rank, false);
 
     // Draw overlay
-    rank.setPosition(2.f*191.f, 110.f);
+    rank.setPosition(rankPos);
 
     if (score > 10) {
       rank.setFillColor(sf::Color(176, 228, 24));
@@ -237,22 +300,35 @@ void BattleResults::Draw() {
     ENGINE.Draw(time, false);
 
     if (isRevealed) {
-      ENGINE.Draw(rewardCard, false);
-      ENGINE.Draw(reward, false);
-      
-      if (item && item->IsChip()) {
-        ENGINE.Draw(chipCode, false);
+      sf::RenderStates states = sf::RenderStates::Default;
+      states.shader = chipReveal;
+      ENGINE.GetRenderSurface().draw(rewardCard, states);
+
+      if (totalElapsed > 1.0) {
+        ENGINE.Draw(reward, false);
+
+        if (rewardIsChip) {
+          ENGINE.Draw(chipCode, false);
+        }
       }
+    }
+
+    for (int i = 0; i < counterCount; i++) {
+      star.setPosition(rankPos.x + starSpacing(i) + (starSpacing(1) / 2.0f), rankPos.y + 16.0f);
+      ENGINE.Draw(star, false);
     }
   }
 }
 
 // Chip ops
 bool BattleResults::IsFinished() {
-  return isRevealed;
+  return isRevealed && totalElapsed > 1.0;
 }
 
 BattleItem* BattleResults::GetReward()
 {
-  return item;
+  // pass ownership off
+  BattleItem* reward = item;
+  item = nullptr;
+  return reward;
 }

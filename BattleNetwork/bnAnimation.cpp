@@ -13,29 +13,26 @@ Animation::Animation() : animator(), path("") {
 }
 
 Animation::Animation(const char* _path) : animator(), path(std::string(_path)) {
-    
+  Reload();
 }
 
 Animation::Animation(string _path) : animator(), path(_path) {
+  Reload();
 }
 
 Animation::~Animation() {
 }
 
-void Animation::Load() {
+void Animation::Reload() {
   int frameAnimationIndex = -1;
   vector<FrameList> frameLists;
   string currentState = "";
   float currentAnimationDuration = 0.0f;
   int currentWidth = 0;
   int currentHeight = 0;
-  bool legacySupport = true;
+  bool legacySupport = false;
 
   string data = FileUtil::Read(path);
-
-  //Logger::Log("anim: path is: " + path);
-  //Logger::Log("anim: data is: " + data);
-
   int endline = 0;
   do {
     endline = (int)data.find("\n");
@@ -44,7 +41,7 @@ void Animation::Load() {
     // NOTE: Support older animation files until we upgrade completely...
     if (line.find("VERSION") != string::npos) {
       string version = ValueOf("VERSION", line);
-      if (version != "1.0") legacySupport = false;
+      if (version == "1.0") legacySupport = true;
 
     }
     else if (line.find("animation") != string::npos) {
@@ -127,19 +124,42 @@ string Animation::ValueOf(string _key, string _line) {
   return s.substr(0, s.find("\""));
 }
 
-void Animation::Update(float elapsed, sf::Sprite* target, double playbackSpeed) {
-  progress += elapsed * (float)std::fabs(playbackSpeed);
-
-  animator(progress, *target, animations[currAnimation]);
+void Animation::Refresh(sf::Sprite& target) {
+	animator(0, target, animations[currAnimation]);
+	progress = 0;
 }
 
-void Animation::SetFrame(int frame, sf::Sprite * target)
+void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) {
+  progress += elapsed * (float)std::fabs(playbackSpeed);
+
+  std::string stateNow = currAnimation;
+  animator(progress, target, animations[currAnimation]);
+
+  if(currAnimation != stateNow) {
+	  // it was changed during a callback
+	  // apply new state to target on same frame
+	  animator(0, target, animations[currAnimation]);
+	  progress = 0;
+  }
+
+  const float duration = animations[currAnimation].GetTotalDuration();
+
+  if(duration == 0.f) return;
+  
+  while (progress > duration && (animator.GetMode() & Animate::Mode::Loop) == Animate::Mode::Loop) {
+    progress -= duration;
+  }
+}
+
+void Animation::SetFrame(int frame, sf::Sprite& target)
 {
-  animator.SetFrame(frame, *target, animations[currAnimation]);
+  if(path.empty() || animations.empty() || animations.find(currAnimation) == animations.end()) return;
+
+  animator.SetFrame(frame, target, animations[currAnimation]);
 }
 
 void Animation::SetAnimation(string state) {
-   animator.Clear();
+   RemoveCallbacks();
    progress = 0.0f;
    currAnimation = state;
 
@@ -147,8 +167,18 @@ void Animation::SetAnimation(string state) {
 
    if (pos == animations.end()) {
      //throw std::runtime_error(std::string("No animation found in file for " + currAnimation));
-     std::cout << "No animation found in file for " + currAnimation << std::endl;
+     Logger::Log("No animation found in file for " + currAnimation);
    }
+}
+
+void Animation::RemoveCallbacks()
+{
+  animator.Clear();
+}
+
+const std::string Animation::GetAnimationString() const
+{
+  return currAnimation;
 }
 
 FrameList & Animation::GetFrameList(std::string animation)
@@ -162,9 +192,14 @@ Animation & Animation::operator<<(Animate::On rhs)
   return *this;
 }
 
-Animation & Animation::operator<<(Animate::Mode rhs)
+Animation & Animation::operator<<(char rhs)
 {
   animator << rhs;
+  return *this;
+}
+
+Animation& Animation::operator<<(std::string state) {
+  this->SetAnimation(state);
   return *this;
 }
 

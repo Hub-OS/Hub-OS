@@ -1,6 +1,6 @@
 #pragma once
 #include "bnSpell.h"
-#include "bnAnimate.h"
+#include "bnAnimationComponent.h"
 
 class Buster : public Spell {
 public:
@@ -9,10 +9,12 @@ public:
 
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);
-  virtual void Attack(Entity* _entity);
-  virtual vector<Drawable*> GetMiscComponents();
+  virtual void Attack(Character* _entity);
 private:
+  bool isCharged;
+  bool spawnGuard;
+  Character* contact;
   int damage;
-  Animate animator;
-  FrameList animation;
+  float cooldown;
+  float random; // offset
 };

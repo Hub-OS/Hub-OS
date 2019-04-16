@@ -13,7 +13,5 @@ public:
 
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction) { return false; }
-  vector<Drawable*> GetMiscComponents();
-
 };
 

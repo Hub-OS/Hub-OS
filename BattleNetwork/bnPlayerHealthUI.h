@@ -1,37 +1,49 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <sstream>
+#include <vector>
+
+#include "bnBattleOverTrigger.h"
+#include "bnPlayer.h"
+#include "bnUIComponent.h"
+
+class Entity;
+class Player;
+
 using sf::Font;
 using sf::Text;
 using sf::Sprite;
 using sf::Texture;
 using sf::Drawable;
-#include <sstream>
-using std::ostringstream;
-#include <vector>
 using std::vector;
+using std::ostringstream;
 
-class Entity;
-class Player;
-
-class PlayerHealthUI : public sf::Drawable{
+class PlayerHealthUI : virtual public UIComponent, virtual public BattleOverTrigger<Player> {
 public:
-  PlayerHealthUI(Entity* _entity);
   PlayerHealthUI(Player* _player);
-  ~PlayerHealthUI(void);
+  ~PlayerHealthUI();
 
-  bool GetNextComponent(Drawable*& out);
-  void Update();
-  void OffsetPosition(const sf::Vector2f offset); // Get rid of this eventually. See BattleScene.cpp line 241
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+  virtual void Inject(BattleScene& scene) { ; }
+
+  virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const;
+  void Update(float elapsed);
 
 private:
   int lastHP;
   int currHP;
+  int startHP;
   Player* player;
-  Font* font;
-  Text text;
+  mutable Sprite glyphs;
   Sprite sprite;
   Texture* texture;
-  vector<Drawable*> components;
+
+  enum class Color : int {
+    NORMAL,
+    ORANGE,
+    GREEN
+  } color;
+
   bool loaded;
+  bool isBattleOver;
+  double cooldown;
 };

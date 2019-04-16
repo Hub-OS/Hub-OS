@@ -1,19 +1,12 @@
 #include "bnWave.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnPlayer.h"
-#include "bnMettaur.h"
+#include "bnSharedHitBox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-#define WAVE_ANIMATION_SPRITES 5
-#define WAVE_ANIMATION_WIDTH 41
-#define WAVE_ANIMATION_HEIGHT 46
-
 Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
   SetLayer(0);
-  cooldown = 0;
-  damageCooldown = 0;
   field = _field;
   team = _team;
   direction = Direction::NONE;
@@ -21,23 +14,21 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
   hit = false;
   texture = TEXTURES.GetTexture(TextureType::SPELL_WAVE);
   this->speed = speed;
-  for (int x = 0; x < WAVE_ANIMATION_SPRITES; x++) {
-    animation.Add(0.3f, IntRect(WAVE_ANIMATION_WIDTH*x, 0, WAVE_ANIMATION_WIDTH, WAVE_ANIMATION_HEIGHT));
-  }
 
   //Components setup and load
   auto onFinish = [this]() {
-    Move(direction);
-    AUDIO.Play(AudioType::WAVE);
-    cooldown = 0;
-    progress = 0.0f; 
+    if (Move(direction)) {
+      AUDIO.Play(AudioType::WAVE);
+    }
   };
 
-  animator << onFinish;
+  animation = Animation("resources/spells/spell_wave.animation");
+  animation.SetAnimation("DEFAULT");
+  animation << Animate::Mode::Loop << onFinish;
 
-  progress = 0.0f;
-  hitHeight = 0.0f;
-  random = 0;
+  auto props = Hit::DefaultProperties;
+  props.damage = 10;
+  this->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::WAVE);
 
@@ -48,55 +39,51 @@ Wave::~Wave(void) {
 }
 
 void Wave::Update(float _elapsed) {
-  if (!tile->IsWalkable()) {
-    deleted = true;
-    Entity::Update(_elapsed);
-    return;
-  }
-
   setTexture(*texture);
-  setScale(2.f, 2.f);
-  setPosition(tile->getPosition().x + 5.f, tile->getPosition().y - 50.0f);
-  progress += 3 * _elapsed;
-  
-  animator(progress*(float)speed, *this, animation);
 
-  tile->AffectEntities(this);
+  int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
+  setScale(2.f*(float)lr, 2.f);
+
+  setPosition(tile->getPosition().x, tile->getPosition().y);
+
+  animation.Update(_elapsed, *this);
+
+  if (!this->IsDeleted()) {
+    tile->AffectEntities(this);
+  }
 
   Entity::Update(_elapsed);
 }
 
 bool Wave::Move(Direction _direction) {
-  tile->RemoveEntity(this);
+  // Drop a shared hitbox when moving
+  SharedHitBox* shb = new SharedHitBox(this, 1.0f/60.0f);
+  GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
+  
+  tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
+
   if (_direction == Direction::LEFT) {
     if (tile->GetX() - 1 > 0) {
       next = field->GetAt(tile->GetX() - 1, tile->GetY());
-      SetTile(next);
-    } else {
-      deleted = true;
-      return false;
     }
   } else if (_direction == Direction::RIGHT) {
     if (tile->GetX() + 1 <= (int)field->GetWidth()) {
       next = field->GetAt(tile->GetX() + 1, tile->GetY());
-      SetTile(next);
-    } else {
-      deleted = true;
-      return false;
     }
   }
-  tile->AddEntity(this);
-  return true;
-}
 
-void Wave::Attack(Entity* _entity) {
-  Player* isPlayer = dynamic_cast<Player*>(_entity);
-  if (isPlayer) {
-    bool hit = isPlayer->Hit(10);
+  if (next && next->IsWalkable()) {
+    next->AddEntity(*this);
+    
+    return true;
   }
+
+  tile->RemoveEntityByID(this->GetID());
+  this->Delete();
+  return false;
 }
 
-vector<Drawable*> Wave::GetMiscComponents() {
-  return vector<Drawable*>();
+void Wave::Attack(Character* _entity) {
+  _entity->Hit(GetHitboxProperties());
 }

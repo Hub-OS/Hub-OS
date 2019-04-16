@@ -10,7 +10,14 @@ MettaurAttackState::~MettaurAttackState() { ; }
 
 void MettaurAttackState::OnEnter(Mettaur& met) {
   auto onFinish = [this, &met]() {this->DoAttack(met); };
-  met.SetAnimation(MOB_ATTACKING, onFinish);
+
+  if (met.GetRank() == Mettaur::Rank::SP) {
+    met.SetAnimation("SP_ATTACK", onFinish);
+  }
+  else {
+    met.SetAnimation("ATTACK", onFinish);
+  }
+
   met.SetCounterFrame(4);
 }
 
@@ -25,9 +32,13 @@ void MettaurAttackState::OnLeave(Mettaur& met) {
 void MettaurAttackState::DoAttack(Mettaur& met) {
   if (met.GetField()->GetAt(met.tile->GetX() - 1, met.tile->GetY())->IsWalkable()) {
     Spell* spell = new Wave(met.field, met.team, (met.GetRank() == Mettaur::Rank::SP)? 1.5 : 1.0);
+    auto props = spell->GetHitboxProperties();
+    props.aggressor = &met;
+    spell->SetHitboxProperties(props);
+
     spell->SetDirection(Direction::LEFT);
-    met.field->OwnEntity(spell, met.tile->GetX() - 1, met.tile->GetY());
+    met.field->AddEntity(*spell, met.tile->GetX() - 1, met.tile->GetY());
   }
 
-  met.StateChange<MettaurIdleState>();
+  this->ChangeState<MettaurIdleState>();
 }

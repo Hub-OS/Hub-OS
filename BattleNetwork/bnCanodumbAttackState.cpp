@@ -1,4 +1,3 @@
-#pragma once
 #include "bnCanodumbIdleState.h"
 #include "bnCanodumbAttackState.h"
 #include "bnCanodumb.h"
@@ -14,11 +13,11 @@ CanodumbAttackState::CanodumbAttackState() : AIState<Canodumb>() { ; }
 CanodumbAttackState::~CanodumbAttackState() { ; }
 
 void CanodumbAttackState::OnEnter(Canodumb& can) {
-  auto onFinish = [&can]() { can.StateChange<CanodumbIdleState>(); };
+  auto onFinish = [&can]() { can.ChangeState<CanodumbIdleState>(); };
 
   auto spawnSmoke   = [&can]() { 
     CanonSmoke* smoke = new CanonSmoke(can.GetField(), can.GetTeam());
-    can.GetField()->OwnEntity(smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
+    can.GetField()->AddEntity(*smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
   };
 
   switch (can.GetRank()) {
@@ -45,7 +44,11 @@ void CanodumbAttackState::OnLeave(Canodumb& can) {
   if (can.GetField()->GetAt(can.tile->GetX() - 1, can.tile->GetY())) {
     Spell* spell = new Cannon(can.field, can.team, 10);
     spell->SetDirection(Direction::LEFT);
-    can.field->OwnEntity(spell, can.tile->GetX() - 1, can.tile->GetY());
+    auto props = spell->GetHitboxProperties();
+    props.aggressor = &can;
+    spell->SetHitboxProperties(props);
+
+    can.field->AddEntity(*spell, can.tile->GetX() - 1, can.tile->GetY());
 
     AUDIO.Play(AudioType::CANNON);
   }

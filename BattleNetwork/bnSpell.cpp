@@ -13,14 +13,12 @@ Spell::Spell(void) : animationComponent(this), Entity() {
   SetLayer(1);
   hit = false;
   srand((unsigned int)time(nullptr));
-  random = rand() % 20 - 20;
-  cooldown = 0.0f;
-  damageCooldown = 0.0f;
   progress = 0.0f;
   hitHeight = 0.0f;
   direction = Direction::NONE;
   texture = nullptr;
   markTile = false;
+  hitboxProperties.flags = Hit::none;
 }
 
 Spell::~Spell(void) {
@@ -30,15 +28,26 @@ const bool Spell::IsTileHighlightEnabled() const {
   return markTile;
 }
 
-void Spell::SetDirection(Direction _direction) {
-  direction = _direction;
-}
+void Spell::AdoptTile(Battle::Tile * tile)
+{
+  tile->AddEntity(*this);
 
-Direction Spell::GetDirection() const {
-  return direction;
+  if (!isSliding) {
+    this->setPosition(tile->getPosition());
+  }
 }
 
 void Spell::EnableTileHighlight(bool enable)
 {
-  markTile = true;
+  markTile = enable;
+}
+
+void Spell::SetHitboxProperties(Hit::Properties props)
+{
+  hitboxProperties = props;
+}
+
+const Hit::Properties Spell::GetHitboxProperties() const
+{
+  return this->hitboxProperties;
 }

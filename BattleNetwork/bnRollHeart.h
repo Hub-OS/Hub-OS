@@ -3,22 +3,19 @@
 #include "bnSpell.h"
 #include "bnChipSummonHandler.h"
 
-class Player;
-
 class RollHeart : public Spell {
 public:
-  RollHeart(ChipSummonHandler* _summons, Player* _player, int _heal);
+  RollHeart(ChipSummonHandler* _summons, int _heal);
   virtual ~RollHeart(void);
 
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);
-  virtual void Attack(Entity* _entity);
-  virtual vector<Drawable*> GetMiscComponents();
+  virtual void Attack(Character* _entity);
 
 private:
   int heal;
   float height = 200;
-  Player* player;
+  Character* caller;
   ChipSummonHandler* summons;
   bool doOnce;
 }; 

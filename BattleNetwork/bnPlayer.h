@@ -3,7 +3,6 @@
 #include "bnCharacter.h"
 #include "bnPlayerState.h"
 #include "bnTextureType.h"
-#include "bnPlayerHealthUI.h"
 #include "bnChargeComponent.h"
 #include "bnAnimationComponent.h"
 #include "bnAI.h"
@@ -23,41 +22,28 @@ public:
   virtual ~Player(void);
 
   virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction);
-  void AdoptNextTile();
   void Attack(float _charge);
-  virtual vector<Drawable*> GetMiscComponents();
 
-  int GetHealth() const;
-  void SetHealth(int _health);
-  virtual const bool Hit(int _damage);
+  virtual int GetHealth() const;
+  virtual void SetHealth(int _health);
+  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   int GetMoveCount() const;
   int GetHitCount() const;
 
-  PlayerHealthUI* GetHealthUI() const;
   AnimationComponent& GetAnimationComponent();
 
   void SetCharging(bool state);
-  void SetAlpha(int value); // TODO: Get rid of this
-  void SetCloakTimer(int seconds); // TODO: Get rid
+
   virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
 
 protected:
-
-  // TODO: get rid of this
-  sf::Clock cloakTimer;
-  int cloakTimeSecs;
-
   int health;
-  int moveCount;
   int hitCount;
 
-  int alpha;
   double invincibilityCooldown;
 
   TextureType textureType;
   string state;
-  PlayerHealthUI* healthUI;
 
   //-Animation-
   float animationProgress;

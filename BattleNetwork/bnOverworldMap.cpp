@@ -7,9 +7,9 @@ namespace Overworld {
 
     // We must have one for the origin
     sf::Uint8 lighten = 255;
-    lights.push_back(new Light(sf::Vector2f(0, 0), sf::Color(lighten, lighten, lighten, 255), 100));
+    //lights.push_back(new Light(sf::Vector2f(0, 0), sf::Color(lighten, lighten, lighten, 255), 100));
 
-    enableLighting = true;
+    enableLighting = false;
 
     std::cout << "num of lights: " << lights.size() << "\n";
 
@@ -68,13 +68,14 @@ namespace Overworld {
 
   void Map::Update(double elapsed)
   {
-    for (int i = 0; i < map.size(); i++) {
-      if (map[i]->ShouldRemove()) {
-        delete map[i];
-        map.erase(map.begin() + i);
-        i--;
-      }
-    }
+	for(auto iter = map.begin(); iter != map.end(); ) {
+		if((*iter)->ShouldRemove()) {
+			delete *iter;
+			iter = map.erase(iter);
+		} else {
+			iter++;
+		}
+	}
 
     std::sort(sprites.begin(), sprites.end(), [](const sf::Sprite* sprite, const sf::Sprite* other) { return sprite->getPosition().y < other->getPosition().y; });
 
@@ -157,13 +158,13 @@ namespace Overworld {
         tileSprite.setPosition(pos);
 
         if (cam->IsInView(tileSprite)) {
-          target.draw(tileSprite); // target.draw(tileSprite, states);
+          target.draw(tileSprite, states);
         }
       }
       else {
         tileSprite.setPosition(pos);
 
-        target.draw(tileSprite); // target.draw(tileSprite, states);
+        target.draw(tileSprite, states);
       }
     }
 

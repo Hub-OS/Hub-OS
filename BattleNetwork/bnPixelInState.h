@@ -73,8 +73,7 @@ void PixelInState<Any>::OnUpdate(float _elapsed, Any& e) {
     if (callback) { callback(); callback = nullptr; /* do once */ }
   }
 
-  // TODO: Replace elapse ratios with accurate sf::Time %
-  // That way we can control the precise speed on faster/slower hardware
+
   float range = (125.f - factor) / 125.f;
   e.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 

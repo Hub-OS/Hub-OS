@@ -9,18 +9,19 @@ using std::string;
 // Loaded chips from chip select GUI pipes into this component
 class Chip {
 public:
-  Chip(unsigned id, unsigned icon, char code, unsigned damage, Element element, string sname, string desc, unsigned rarity);
+  Chip(unsigned id, unsigned icon, char code, unsigned damage, Element element, string sname, string desc, string verboseDesc, unsigned rarity);
   Chip(const Chip& copy);
   Chip();
   ~Chip();
-  const string GetDescription();
-  const string GetShortName();
-  const char GetCode();
-  const unsigned GetDamage();
-  const unsigned GetIconID();
-  const unsigned GetID();
-  const Element GetElement();
-  const unsigned GetRarity();
+  const string GetVerboseDescription() const;
+  const string GetDescription() const;
+  const string GetShortName() const;
+  const char GetCode() const;
+  const unsigned GetDamage() const;
+  const unsigned GetIconID() const;
+  const unsigned GetID() const;
+  const Element GetElement() const;
+  const unsigned GetRarity() const;
 private:
   unsigned ID;
   unsigned icon;
@@ -29,6 +30,7 @@ private:
   char code;
   string shortname;
   string description;
+  string verboseDescription;
   Element element;
 };
 

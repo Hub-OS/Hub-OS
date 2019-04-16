@@ -1,16 +1,23 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <functional>
 using sf::RectangleShape;
 using sf::Sprite;
-#include <vector>
 using std::vector;
-#include <algorithm>
 using std::find;
+using std::set;
 
-#include "bnTeam.h"
 class Entity;
 class Spell;
+class Character;
+class Obstacle;
+class Artifact;
 class Field;
+
+#include "bnTeam.h"
 #include "bnMemory.h"
 #include "bnTextureType.h"
 #include "bnTileState.h"
@@ -18,6 +25,8 @@ class Field;
 namespace Battle {
   class Tile : public Sprite {
   public:
+    friend class Entity;
+
     Tile(void);
     Tile(int _x, int _y);
     ~Tile(void);
@@ -39,6 +48,7 @@ namespace Battle {
     float GetHeight() const;
 
     void SetState(TileState _state);
+
     void RefreshTexture();
 
     bool IsWalkable() const;
@@ -46,16 +56,34 @@ namespace Battle {
 
     bool IsHighlighted() const;
 
-    void AddEntity(Entity* _entity);
-    void RemoveEntity(Entity* _entity);
+    void AddEntity(Spell& _entity);
+    void AddEntity(Character& _entity);
+    void AddEntity(Obstacle& _entity);
+    void AddEntity(Artifact& _entity);
+
+    void RemoveEntityByID(int ID);
     bool ContainsEntity(Entity* _entity) const;
+
+    void ReserveEntityByID(int ID);
+
     template<class Type> bool ContainsEntityType();
     void AffectEntities(Spell* caller);
+
     bool GetNextEntity(Entity*& out) const;
 
     void Update(float _elapsed);
 
+    void SetBattleActive(bool state);
+
+    std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
+
+    // Todo: use sets to avoid duplicate entries
+    vector<Artifact*> artifacts;
+    vector<Spell*> spells;
+    vector<Character*> characters;
     vector<Entity*> entities;
+
+    set<int> reserved;
   private:
     int x;
     int y;
@@ -70,6 +98,12 @@ namespace Battle {
     float cooldown;
     float cooldownLength;
     bool hasSpell;
+    bool isBattleActive;
+
+    std::vector<long> taggedSpells;
+
+    // Aux
+    void AddEntity(Entity* _entity);
   };
 
 

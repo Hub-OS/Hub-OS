@@ -13,7 +13,7 @@ PlayerHitState::~PlayerHitState()
 }
 
 void PlayerHitState::OnEnter(Player& player) {
-  auto onFinished = [&player]() { player.StateChange<PlayerControlledState>(); };
+  auto onFinished = [&player]() { player.ChangeState<PlayerControlledState>(); };
   player.SetAnimation(PLAYER_HIT,onFinished);
   AUDIO.Play(AudioType::HURT, AudioPriority::LOWEST);
 }
@@ -22,6 +22,5 @@ void PlayerHitState::OnUpdate(float _elapsed, Player& player) {
 }
 
 void PlayerHitState::OnLeave(Player& player) {
-  // Disable previous ailments... e.g. confusion, barrier, soul-cross if damage was bad enough
-  player.invincibilityCooldown = 2.0f; // 2 seconds
+  player.invincibilityCooldown = 2.0; // 2 seconds
 }

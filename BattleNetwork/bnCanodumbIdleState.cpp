@@ -1,4 +1,3 @@
-#pragma once
 #include "bnCanodumbIdleState.h"
 #include "bnCanodumbAttackState.h"
 #include "bnTile.h"
@@ -24,11 +23,13 @@ void CanodumbIdleState::OnEnter(Canodumb& can) {
 }
 
 void CanodumbIdleState::OnUpdate(float _elapsed, Canodumb& can) {
-  if (can.GetTarget()->GetTile()->GetY() == can.GetTile()->GetY() && !can.GetTarget()->IsPassthrough()) {
-    // Spawn tracking cursor object
-    if (cursor == nullptr || cursor->IsDeleted()) {
-      cursor = new CanodumbCursor(can.GetField(), can.GetTeam(), &can);
-      can.GetField()->OwnEntity(cursor, can.GetTile()->GetX() - 1, can.GetTile()->GetY());
+  if (can.GetTarget() && can.GetTarget()->GetTile()) {
+    if (can.GetTarget()->GetTile()->GetY() == can.GetTile()->GetY() && !can.GetTarget()->IsPassthrough()) {
+      // Spawn tracking cursor object
+      if (cursor == nullptr || cursor->IsDeleted()) {
+        cursor = new CanodumbCursor(can.GetField(), can.GetTeam(), &can);
+        can.GetField()->AddEntity(*cursor, can.GetTile()->GetX() - 1, can.GetTile()->GetY());
+      }
     }
   }
 }

@@ -1,30 +1,32 @@
 #include "bnPlayer.h"
-#include "bnExplodeState.h"
+#include "bnNaviExplodeState.h"
 #include "bnField.h"
 #include "bnBuster.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 #include "bnLogger.h"
+#include "bnAura.h"
+
+#include "bnBubbleTrap.h"
+#include "bnBubbleState.h"
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
-#define MOVE_ANIMATION_SPRITES 4
-#define MOVE_ANIMATION_WIDTH 38
-#define MOVE_ANIMATION_HEIGHT 58
-
-#define SHOOT_ANIMATION_SPRITES 5
-#define SHOOT_ANIMATION_WIDTH 75
-#define SHOOT_ANIMATION_HEIGHT 58
-
 Player::Player(void)
-  : health(100),
+  :
   state(PLAYER_IDLE),
   chargeComponent(this),
   animationComponent(this),
   AI<Player>(this),
   Character(Rank::_1)
 {
+  this->ChangeState<PlayerIdleState>();
+  this->AddNode(&chargeComponent);
+  chargeComponent.setPosition(0, -20.0f); // translate up -20
+
+  SetHealth(1000);
+  
   name = "Megaman";
   SetLayer(0);
   team = Team::RED;
@@ -35,13 +37,8 @@ Player::Player(void)
   animationProgress = 0.0f;
   setScale(2.0f, 2.0f);
 
-  healthUI = new PlayerHealthUI(this);
-
-  //Components setup and load
-  chargeComponent.load();
-
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
 
   textureType = TextureType::NAVI_MEGAMAN_ATLAS;
   setTexture(*TEXTURES.GetTexture(textureType));
@@ -51,165 +48,94 @@ Player::Player(void)
   moveCount = 0;
 
   invincibilityCooldown = 0;
-  alpha = 255;
-
-  cloakTimeSecs = 0;
 }
 
 Player::~Player(void) {
-  delete healthUI;
 }
 
 void Player::Update(float _elapsed) {
-  //Update UI of player's health (top left corner)
-  healthUI->Update();
-
   animationComponent.Update(_elapsed);
 
   if (_elapsed <= 0)
     return;
 
+  Component* c = GetComponent<BubbleTrap>();
+  if (c) {
+    this->ChangeState<BubbleState<Player, PlayerControlledState>>();
+  }
+
   if (tile != nullptr) {
-    setPosition(tile->getPosition().x + (tile->GetWidth() / 2.0f), tile->getPosition().y + (tile->GetHeight() / 2.0f));
+    setPosition(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
   }
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<Player>>(10, 0.65);
-    this->StateUpdate(_elapsed);
+	chargeComponent.Hide();
+    this->animationComponent.CancelCallbacks();
+    this->animationComponent.SetAnimation(PLAYER_HIT);
+    this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
+    AI<Player>::Update(_elapsed);
     return;
-  }
-
-  // TODO: Get rid of this. Put this type of behavior in a component
-  if (cloakTimer.getElapsedTime() > sf::seconds((float)cloakTimeSecs) && cloakTimeSecs != 0) {
-    this->SetPassthrough(false);
-    this->SetAlpha(255);
-    cloakTimeSecs = 0;
   }
 
   if (invincibilityCooldown > 0) {
     if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
-      this->setColor(sf::Color(255,255,255,0));
+      this->Hide();
     }
     else {
-          this->setColor(sf::Color(255, 255, 255, alpha));
+      this->Reveal();
     }
 
     invincibilityCooldown -= _elapsed;
   }
   else {
-    this->setColor(sf::Color(255, 255, 255, alpha));
+    this->Reveal();
   }
 
-  this->StateUpdate(_elapsed);
+  AI<Player>::Update(_elapsed);
 
   //Components updates
-  chargeComponent.update(_elapsed);
+  chargeComponent.Update(_elapsed);
 
-  Entity::Update(_elapsed);
-}
-
-bool Player::Move(Direction _direction) {
-  bool moved = false;
-  Battle::Tile* temp = tile;
-  if (_direction == Direction::UP) {
-    if (tile->GetY() - 1 > 0) {
-      next = field->GetAt(tile->GetX(), tile->GetY() - 1);
-      if (Teammate(next->GetTeam()) && next->IsWalkable()) {
-        ;
-      } else {
-        next = nullptr;
-      }
-    }
-  } else if (_direction == Direction::LEFT) {
-    if (tile->GetX() - 1 > 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY());
-      if (Teammate(next->GetTeam()) && next->IsWalkable()) {
-        ;
-      } else {
-        next = nullptr;
-      }
-    }
-  } else if (_direction == Direction::DOWN) {
-    if (tile->GetY() + 1 <= (int)field->GetHeight()) {
-      next = field->GetAt(tile->GetX(), tile->GetY() + 1);
-      if (Teammate(next->GetTeam()) && next->IsWalkable()) {
-        ;
-      } else {
-        next = nullptr;
-      }
-    }
-  } else if (_direction == Direction::RIGHT) {
-    if (tile->GetX() + 1 <= static_cast<int>(field->GetWidth())) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY());
-      if (Teammate(next->GetTeam()) && next->IsWalkable()) {
-        ;
-      }
- else {
-   next = nullptr;
- }
-    }
-  }
-
-  if (next) {
-    previous = temp;
-    moved = true;
-  }
-  return moved;
-}
-
-void Player::AdoptNextTile() {
-  SetTile(next);
-  tile->AddEntity(this);
-  previous->RemoveEntity(this);
-  previous = nullptr;
-  next = nullptr;
-  moveCount++;
+  Character::Update(_elapsed);
 }
 
 void Player::Attack(float _charge) {
+  if (!tile) return;
+
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
     Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged());
     spell->SetDirection(Direction::RIGHT);
-    field->AddEntity(spell, tile->GetX(), tile->GetY());
+    field->AddEntity(*spell, tile->GetX(), tile->GetY());
   }
-}
-
-vector<Drawable*> Player::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  Drawable* component;
-  while (healthUI->GetNextComponent(component)) {
-    drawables.push_back(component);
-  }
-  drawables.push_back(&chargeComponent.GetSprite());
-
-  return drawables;
 }
 
 void Player::SetHealth(int _health) {
   health = _health;
-  healthUI->Update();
+
+  if (health < 0) health = 0;
 }
 
 int Player::GetHealth() const {
   return health;
 }
 
-const bool Player::Hit(int _damage) {
-  if (this->IsPassthrough() || invincibilityCooldown > 0) return false;
+const bool Player::Hit(Hit::Properties props) {
+  if (invincibilityCooldown > 0) return false;
 
-  bool result = true;
-
-  if (health - _damage < 0) {
+  if (health - props.damage < 0) {
     health = 0;
   }
   else {
-    health -= _damage;
+    health -= props.damage;
     hitCount++;
-    this->StateChange<PlayerHitState, float>({ 600.0f });
+
+    if ((props.flags & Hit::recoil) == Hit::recoil) {
+      this->ChangeState<PlayerHitState, float>({ (float)props.secs });
+    }
   }
 
-  return result;
+  return true;
 }
 
 int Player::GetMoveCount() const
@@ -222,10 +148,6 @@ int Player::GetHitCount() const
   return hitCount;
 }
 
-PlayerHealthUI* Player::GetHealthUI() const {
-  return healthUI;
-}
-
 AnimationComponent& Player::GetAnimationComponent() {
   return animationComponent;
 }
@@ -235,28 +157,14 @@ void Player::SetCharging(bool state)
   chargeComponent.SetCharging(state);
 }
 
-void Player::SetAlpha(int value)
-{
-  alpha = value;
-  this->setColor(sf::Color(255, 255, 255, alpha));
-}
-
-void Player::SetCloakTimer(int seconds)
-{
-  SetPassthrough(true);
-  SetAlpha(255 / 2);
-  cloakTimer.restart();
-  cloakTimeSecs = seconds;
-}
-
 void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
 
   if (state == PLAYER_IDLE) {
-    int playback = Animate::Mode::Loop;
-    animationComponent.SetAnimation(_state, Animate::Mode(playback), onFinish);
+    auto playback = Animate::Mode::Loop;
+    animationComponent.SetAnimation(_state, playback);
   }
   else {
-    animationComponent.SetAnimation(_state, onFinish);
+    animationComponent.SetAnimation(_state, 0, onFinish);
   }
 }

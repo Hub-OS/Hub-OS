@@ -4,6 +4,7 @@
 #include "bnAI.h"
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
+#include "bnCounterHitPublisher.h"
 
 class Canodumb : public AnimatedCharacter, public AI<Canodumb> {
   friend class CanodumbIdleState;
@@ -16,9 +17,8 @@ public:
   virtual ~Canodumb(void);
 
   virtual void Update(float _elapsed);
-  virtual vector<Drawable*> GetMiscComponents();
   int* GetAnimOffset();
-  virtual const bool Hit(int _damage);
+  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;
 
 private:

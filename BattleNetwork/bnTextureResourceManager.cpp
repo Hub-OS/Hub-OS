@@ -77,6 +77,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/tiles/img_blue_ice.png");
   paths.push_back("resources/tiles/img_blue_grass.png");
   paths.push_back("resources/tiles/img_blue_purple.png");
+  paths.push_back("resources/tiles/img_blue_lava.png");
   paths.push_back("resources/tiles/img_blue_empty.png");
   //Red tile
   paths.push_back("resources/tiles/img_red_normal.png");
@@ -85,6 +86,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/tiles/img_red_ice.png");
   paths.push_back("resources/tiles/img_red_grass.png");
   paths.push_back("resources/tiles/img_red_purple.png");
+  paths.push_back("resources/tiles/img_red_lava.png");
   paths.push_back("resources/tiles/img_red_empty.png");
 
   //-Navis-
@@ -100,60 +102,94 @@ TextureResourceManager::TextureResourceManager(void) {
   //-Mobs-
   paths.push_back("resources/mobs/mob_move.png");
   paths.push_back("resources/mobs/mob_explosion.png");
-  //Mettaur
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_move.png");
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_hit.png");
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_attack.png");
+  paths.push_back("resources/mobs/boss_shine.png");
 
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_move_blue.png");
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_hit_blue.png");
-  paths.push_back("resources/mobs/mettaur/mob_mettaur_attack_blue.png");
+  //Mettaur
+  paths.push_back("resources/mobs/mettaur/mettaur.png");
 
   // ProgsMan
-  paths.push_back("resources/mobs/progsman/mob_progsman_idle.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_move.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_shoot.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_hit.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_punch.png");
-  paths.push_back("resources/mobs/progsman/mob_progsman_throw.png");
+  paths.push_back("resources/mobs/progsman/mob_progsman_atlas.png");
 
   // canodumbs
   paths.push_back("resources/mobs/canodumb/canodumb_atlas.png");
 
+  // MetalMan
+  paths.push_back("resources/mobs/metalman/metalman_atlas.png");
+
+  // Alpha
+  paths.push_back("resources/mobs/alpha/alpha.png");
+
+  // Starfish
+  paths.push_back("resources/mobs/starfish/starfish_atlas.png");
+
   // Select screen "Anything Goes"
   paths.push_back("resources/mobs/select/random.png");
 
+  // Battle misc / Artifacts
+  paths.push_back("resources/mobs/mystery_data/mystery_data.png");
+  paths.push_back("resources/mobs/cube/cube.png");
+
   //-Spells-
-  //Bullet
   paths.push_back("resources/spells/spell_bullet_hit.png");
   paths.push_back("resources/spells/spell_buster_charge.png");
-  //paths.push_back("resources/spells/spell_charged_bullet_hit.png");
+  paths.push_back("resources/spells/spell_charged_bullet_hit.png");
+  paths.push_back("resources/spells/guard_hit.png");
   paths.push_back("resources/spells/spell_wave.png");
   paths.push_back("resources/spells/spell_prog_bomb.png");
-
+  paths.push_back("resources/spells/auras.png");
+  paths.push_back("resources/spells/thunder.png");
+  paths.push_back("resources/spells/reflect_shield.png");
+  paths.push_back("resources/spells/bubble.png");
+  paths.push_back("resources/spells/bubble_trap.png");
+  paths.push_back("resources/spells/elecpulse.png");
+  paths.push_back("resources/spells/ninja_star.png");
+  paths.push_back("resources/spells/poof.png");
+  paths.push_back("resources/spells/areagrab.png");
+  paths.push_back("resources/spells/sword_effect.png");
+  
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");
   paths.push_back("resources/ui/chip_cursor_small.png");
   paths.push_back("resources/ui/chip_cursor_big.png");
   paths.push_back("resources/ui/chip_cards.png");
   paths.push_back("resources/ui/chip_icons.png");
+  paths.push_back("resources/ui/chip_nosupport.png");
   paths.push_back("resources/ui/chip_nodata.png");
   paths.push_back("resources/ui/chip_senddata.png");
+  paths.push_back("resources/ui/chip_missing.png");
+  paths.push_back("resources/ui/chip_lock.png");
+  paths.push_back("resources/ui/chip_frame.png");
+  paths.push_back("resources/ui/cust_badge.png");
+  paths.push_back("resources/ui/cust_badge_mask.png");
 
   // In battle signs
   paths.push_back("resources/ui/program_advance.png");
   paths.push_back("resources/ui/battle_start.png");
+  paths.push_back("resources/ui/enemy_deleted.png");
+  paths.push_back("resources/ui/double_delete.png");
+  paths.push_back("resources/ui/triple_delete.png");
+  paths.push_back("resources/ui/counter_hit.png");
+  paths.push_back("resources/ui/alert.png");
 
   // Battle Results Frame
   paths.push_back("resources/ui/battle_results.png");
   paths.push_back("resources/ui/zenny.png");
   paths.push_back("resources/ui/nodata.png");
+  paths.push_back("resources/ui/press_a.png");
+  paths.push_back("resources/ui/counter_star.png");
 
   // folder view
   paths.push_back("resources/ui/folder_chip.png");
   paths.push_back("resources/ui/folder_dock.png");
   paths.push_back("resources/ui/folder_rarity.png");
   paths.push_back("resources/ui/scrollbar.png");
+  paths.push_back("resources/ui/select_cursor.png");
+  paths.push_back("resources/ui/folder_equip.png");
+  paths.push_back("resources/ui/folder_name.png");
+  paths.push_back("resources/ui/folder_cursor.png");
+  paths.push_back("resources/ui/folder_options.png");
+  paths.push_back("resources/ui/folder_size.png");
+  paths.push_back("resources/ui/folder_textbox.png");
 
   // Navi Select View
   paths.push_back("resources/backgrounds/select/glow_sheet.png");
@@ -165,6 +201,13 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/backgrounds/select/info_box.png");
   paths.push_back("resources/backgrounds/select/symbol_slots.png");
 
+  // Mugshots
+  paths.push_back("resources/ui/navigator.png");
+  paths.push_back("resources/ui/prog.png");
+  paths.push_back("resources/ui/textbox.png");
+  paths.push_back("resources/ui/textbox_next.png");
+  paths.push_back("resources/ui/textbox_cursor.png");
+
   // Background/foreground
   paths.push_back("resources/backgrounds/title/bg_blue.png");
   paths.push_back("resources/backgrounds/title/prog-pulse.png");
@@ -175,13 +218,17 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/backgrounds/main_menu/ow2.png");
   paths.push_back("resources/backgrounds/main_menu/arrow.png");
   paths.push_back("resources/backgrounds/folder/bg.png");
+  paths.push_back("resources/backgrounds/folder/folder_info.png");
   paths.push_back("resources/backgrounds/select/bg.png");
 
   // Overworld
   paths.push_back("resources/backgrounds/main_menu/mr_prog_ow.png");
   paths.push_back("resources/backgrounds/main_menu/numberman_ow.png");
 
-  // other icons
+  // other ui / icons
+  paths.push_back("resources/ui/aura_numset.png");
+  paths.push_back("resources/ui/hp_numset.png");
+  paths.push_back("resources/ui/player_numset.png");
   paths.push_back("resources/ui/gamepad_support_icon.png");
   paths.push_back("resources/ui/main_menu_ui.png");
   paths.push_back("resources/ui/elements.png");

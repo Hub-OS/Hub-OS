@@ -2,6 +2,7 @@
 #include "bnChip.h"
 
 class ChipUsePublisher;
+class Character;
 
 class ChipUseListener {
 public:
@@ -11,6 +12,6 @@ public:
   ChipUseListener(const ChipUseListener& rhs) = delete;
   ChipUseListener(ChipUseListener&& rhs) = delete;
 
-  virtual void OnChipUse(Chip& chip) = 0;
+  virtual void OnChipUse(Chip& chip, Character& user) = 0;
   void Subscribe(ChipUsePublisher& publisher);
 };

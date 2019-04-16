@@ -4,6 +4,7 @@
 #include <map>
 #include <functional>
 #include <assert.h>
+#include <iostream>
 
 struct Frame {
   float duration;
@@ -41,9 +42,18 @@ class Animate {
 private:
   std::map<int, std::function<void()>> callbacks;
   std::map<int, std::function<void()>> onetimeCallbacks;
-
+  std::map<int, std::function<void()>> nextLoopCallbacks; // used to move over already called callbacks
+  std::map<int, std::function<void()>> queuedCallbacks; // used for adding new callbacks while updating
+  std::map<int, std::function<void()>> queuedOnetimeCallbacks; 
+  
   std::function<void()> onFinish;
+  std::function<void()> queuedOnFinish;
+  
   char playbackMode;
+  
+  bool isUpdating;
+  bool callbacksAreValid;
+  
 public:
   class On {
     int id;
@@ -55,6 +65,13 @@ public:
     On(int id, std::function<void()> callback, bool doOnce = false) : id(id), callback(callback), doOnce(doOnce) {
       ;
     }
+    
+    On(const On& rhs) {
+		//std::cout << "in cpy constructor" << std::endl;
+		this->id = rhs.id;
+		this->callback = rhs.callback;
+		this->doOnce = rhs.doOnce;
+	}
   };
 
   class Mode {
@@ -64,9 +81,10 @@ public:
 
     friend class Animate;
 
-    static const int Loop = 0x1;
-    static const int Bounce = 0x1 << 1;
-    static const int Reverse = 0x1 << 2;
+    static const char NoEffect = 0x00;
+    static const char Loop = 0x01;
+    static const char Bounce = 0x02;
+    static const char Reverse = 0x04;
 
     Mode(int playback) {
       this->playback = playback;
@@ -79,11 +97,16 @@ public:
   Animate(Animate& rhs);
   ~Animate();
 
-  void Clear() { callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; }
+  char GetMode() { return playbackMode;  }
+  void Clear() { 
+	  callbacksAreValid = false;
+	  queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
+	  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; 
+  }
 
   void operator() (float progress, sf::Sprite& target, FrameList& sequence);
   Animate& operator << (On rhs);
-  Animate& operator << (Mode rhs);
+  Animate& operator << (char rhs);
   void operator << (std::function<void()> finishNotifier);
 
   void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence) const;

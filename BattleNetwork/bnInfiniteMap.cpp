@@ -25,13 +25,13 @@ namespace Overworld {
 
     // Load NPC animations
     animator = Animate();
-    animator << Animate::Mode(Animate::Mode::Loop);
+    animator << Animate::Mode::Loop;
 
     progAnimations = Animation("resources/backgrounds/main_menu/prog.animation");
-    progAnimations.Load();
+    progAnimations.Reload();
 
     numbermanAnimations = Animation("resources/backgrounds/main_menu/numberman.animation");
-    numbermanAnimations.Load();
+    numbermanAnimations.Reload();
   }
 
   InfiniteMap::~InfiniteMap()
@@ -101,7 +101,7 @@ namespace Overworld {
 
     for (auto npc : npcs) {
       if (!npc)
-        break;
+        continue;
 
       switch (npc->type) {
       case NPCType::MR_PROG_DOWN:
@@ -109,7 +109,6 @@ namespace Overworld {
         animator(total, npc->sprite, progAnimations.GetFrameList("PROG_DR"));
 
         sf::Vector2f newPos = npc->sprite.getPosition();
-        newPos.x += 1 * (float)elapsed;
         npc->sprite.setPosition(newPos);
       }
       break;
@@ -121,7 +120,8 @@ namespace Overworld {
       case NPCType::MR_PROG_RIGHT:
       {
         animator(total, npc->sprite, progAnimations.GetFrameList("PROG_DR"));
-
+        npc->sprite.setScale(-1.0f, 1.0f);
+        
         // sf::Vector2f newPos = npc->sprite.getPosition();
         // newPos.x += 10 * elapsed;
         // npc->sprite.setPosition(newPos);
@@ -164,96 +164,95 @@ namespace Overworld {
 
       std::sort(map.begin(), map.end(), InfiniteMap::TileComparitor(this));
 
-      int randBranch = rand() % 100;
-
       int depth = 0;
 
-      if (randBranch < 100) {
-        Overworld::Tile* offroad = head;
+	  Overworld::Tile* offroad = head;
 
-        int lastDirection = -1;
-        int distFromPath = 0;
+      int lastDirection = -1;
+	  int distFromPath = 0;
 
-        while (depth < branchDepth) {
-          int randDirection = rand() % 3;
-          int randSpawnNPC = rand() % 10;
+	  while (depth < branchDepth) {
+	    int randDirection = rand() % 3;
+		int randSpawnNPC = rand() % 70;
 
-          if (randDirection == 0 && lastDirection == 1)
-            continue;
+	    if (randDirection == 0 && lastDirection == 1)
+	      continue;
 
-          if (randDirection == 1 && lastDirection == 0)
-            continue;
+		if (randDirection == 1 && lastDirection == 0)
+		  continue;
 
-          if (randDirection == 0) {
-            offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y + this->GetTileSize().y));
-            map.push_back(offroad);
+		if (randDirection == 0) {
+	      distFromPath--;
 
-            depth++;
-          }
-          else if (randDirection == 1) {
-            offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y - this->GetTileSize().y));
-            map.push_back(offroad);
+			offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y + this->GetTileSize().y));
+			map.push_back(offroad);
+				
+			if (randSpawnNPC == 0 && distFromPath != 0) {
+			  auto randType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
+			  npcs.push_back(new NPC { sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), randType });
 
-            if (randSpawnNPC == 0 && distFromPath != 0) {
+			  sf::Vector2f pos = offroad->GetPos();
+			  pos += sf::Vector2f(45, 0);
 
-              if (rand() % 10 > 3) {
-                npcs.push_back(new NPC{ sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), NPCType::MR_PROG_UP });
-              }
+			  npcs.back()->sprite.setPosition(pos);
+			  this->AddSprite(&npcs.back()->sprite);
+		    }
+			
+			depth++;
+		  }
+		  else if (randDirection == 1) {
+			distFromPath++;
 
-              sf::Vector2f pos = offroad->GetPos();
-              pos += sf::Vector2f(45, 0);
+			offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y - this->GetTileSize().y));
+			map.push_back(offroad);
 
-              npcs.back()->sprite.setPosition(pos);
-              this->AddSprite(&npcs.back()->sprite);
-            }
+			if (randSpawnNPC == 0 && distFromPath != 0) {
+			  auto randType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
+		      npcs.push_back(new NPC { sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), randType });
 
-            depth++;
-          }
-          else if (depth > 1) {
-            offroad = new Tile(sf::Vector2f(offroad->GetPos().x + this->GetTileSize().x, offroad->GetPos().y));
-            map.push_back(offroad);
+			  sf::Vector2f pos = offroad->GetPos();
+			  pos += sf::Vector2f(45, 0);
 
-            if (randSpawnNPC == 0 && distFromPath != 0) {
-              npcs.push_back(new NPC { sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), NPCType::MR_PROG_RIGHT });
+			  npcs.back()->sprite.setPosition(pos);
+			  this->AddSprite(&npcs.back()->sprite);
+			}
 
-              sf::Vector2f pos = offroad->GetPos();
-              pos += sf::Vector2f(45, 0);
+			depth++;
+		  }
+		  else if (depth > 1) {
+			offroad = new Tile(sf::Vector2f(offroad->GetPos().x + this->GetTileSize().x, offroad->GetPos().y));
+			map.push_back(offroad);
 
-              npcs.back()->sprite.setPosition(pos);
-              this->AddSprite(&npcs.back()->sprite);
-            }
+			depth++;
+		  }
 
-            depth++;
-          }
+		  /*int randLight = rand() % 100;
 
-          /*int randLight = rand() % 100;
+		  sf::Vector2f pos = offroad->GetPos();
+		  pos += sf::Vector2f(45, 0);
 
-          sf::Vector2f pos = offroad->GetPos();
-          pos += sf::Vector2f(45, 0);
+		  if (randLight < 10) {
+			sf::Uint8 lighten = 180;
+			sf::Uint8 r = rand() % (256 - lighten);
+			sf::Uint8 g = rand() % (256 - lighten);
+			sf::Uint8 b = rand() % (256 - lighten);
+			double radius = (double)(rand() % 120);
 
-          if (randLight < 10) {
-            sf::Uint8 lighten = 180;
-            sf::Uint8 r = rand() % (256 - lighten);
-            sf::Uint8 g = rand() % (256 - lighten);
-            sf::Uint8 b = rand() % (256 - lighten);
-            double radius = (double)(rand() % 120);
+			if(randLight < 3)
+			  this->AddLight(new Light(pos, sf::Color(r + lighten, 0, r + lighten, 255), radius));
+			else if (randLight < 6)
+			  this->AddLight(new Light(pos, sf::Color(0, g + lighten, b + lighten, 255), radius));
+			else
+			  this->AddLight(new Light(pos, sf::Color(0, 0, b + lighten, 255), radius));
+		  }
 
-            if(randLight < 3)
-              this->AddLight(new Light(pos, sf::Color(r + lighten, 0, r + lighten, 255), radius));
-            else if (randLight < 6)
-              this->AddLight(new Light(pos, sf::Color(0, g + lighten, b + lighten, 255), radius));
-            else
-              this->AddLight(new Light(pos, sf::Color(0, 0, b + lighten, 255), radius));
-          }
+		  if (randDirection != 2) {
+			distFromPath = distFromPath + (randDirection ? -randDirection : 1);
+		  }*/
 
-          if (randDirection != 2) {
-            distFromPath = distFromPath + (randDirection ? -randDirection : 1);
-          }*/
+		  lastDirection = randDirection;
 
-          lastDirection = randDirection;
-
-          std::sort(map.begin(), map.end(), InfiniteMap::TileComparitor(this));
-        }
+		  std::sort(map.begin(), map.end(), InfiniteMap::TileComparitor(this));
       }
     }
   }

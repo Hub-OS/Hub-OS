@@ -10,7 +10,7 @@ public:
   virtual ~Artifact(void);
 
   virtual void Update(float _elapsed) = 0;
-
+  virtual void AdoptTile(Battle::Tile* tile) final;
 protected:
   Texture* texture;
 };

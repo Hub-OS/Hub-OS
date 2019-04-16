@@ -3,9 +3,16 @@
 #include "bnAudioResourceManager.h"
 #include "bnChipUseListener.h"
 #include "bnPlayer.h"
+#include "bnFishy.h"
 #include "bnTile.h"
+#include "bnAirShot.h"
 #include "bnCannon.h"
 #include "bnBasicSword.h"
+#include "bnThunder.h"
+#include "bnInvis.h"
+#include "bnElecpulse.h"
+#include "bnReflectShield.h"
+#include "bnHideUntil.h"
 
 class PlayerChipUseListener : public ChipUseListener {
 private:
@@ -15,7 +22,7 @@ public:
   PlayerChipUseListener(Player* _player) : ChipUseListener() { player = _player; }
   PlayerChipUseListener(Player& _player) : ChipUseListener() { player = &_player;  }
 
-  void OnChipUse(Chip& chip) {
+  void OnChipUse(Chip& chip, Character& character) {
     player->SetCharging(false);
 
     std::string name = chip.GetShortName();
@@ -41,8 +48,33 @@ public:
       AUDIO.Play(AudioType::PANEL_CRACK);
     }
     else if (name == "Invis") {
-      AUDIO.Play(AudioType::INVISIBLE);
-      player->SetCloakTimer(20); // TODO: make this a time-based component
+      Component* invis = new Invis(player);
+      player->RegisterComponent(invis);
+    }
+    else if (name == "Rflector") {
+      ReflectShield* reflect = new ReflectShield(player);
+      player->RegisterComponent(reflect);
+
+      AUDIO.Play(AudioType::APPEAR);
+
+      Battle::Tile* tile = player->GetTile();
+
+      if (tile) {
+        this->player->GetField()->AddEntity(*reflect, tile->GetX(), tile->GetY());
+      }
+    }
+    else if (name == "Fishy") {
+      Fishy* fishy = new Fishy(player->GetField(), player->GetTeam(), 1.0);
+      fishy->SetDirection(Direction::RIGHT);
+      HideUntil::Callback until = [fishy]() { return fishy->IsDeleted(); };
+      HideUntil* fishyStatus = new HideUntil(player, until);
+      player->RegisterComponent(fishyStatus);
+
+      Battle::Tile* tile = player->GetTile();
+
+      if (tile) {
+        this->player->GetField()->AddEntity(*fishy, tile->GetX(), tile->GetY());
+      }
     }
     else if (name == "XtrmeCnnon") {
       Cannon* xtreme1 = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());
@@ -60,9 +92,9 @@ public:
       xtreme2->SetDirection(Direction::RIGHT);
       xtreme3->SetDirection(Direction::RIGHT);
 
-      player->GetField()->OwnEntity(xtreme1, 4, 1);
-      player->GetField()->OwnEntity(xtreme2, 4, 2);
-      player->GetField()->OwnEntity(xtreme3, 4, 3);
+      player->GetField()->AddEntity(*xtreme1, player->GetTile()->GetX(), 1);
+      player->GetField()->AddEntity(*xtreme2, player->GetTile()->GetX(), 2);
+      player->GetField()->AddEntity(*xtreme3, player->GetTile()->GetX(), 3);
     }
     else if (name == "Cannon") {
       Cannon* cannon = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());
@@ -72,7 +104,7 @@ public:
 
       cannon->SetDirection(Direction::RIGHT);
 
-      player->GetField()->OwnEntity(cannon, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+      player->GetField()->AddEntity(*cannon, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
     else if (name == "Swrd") {
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
@@ -83,7 +115,22 @@ public:
 
       AUDIO.Play(AudioType::SWORD_SWING);
 
-      player->GetField()->OwnEntity(sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+      player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+    }
+    else if (name == "Elecplse") {
+      auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
+
+      player->SetAnimation(PLAYER_SHOOTING, onFinish);
+
+      Elecpulse* pulse = new Elecpulse(player->GetField(), player->GetTeam(), chip.GetDamage());
+      Elecpulse* pulse2 = new Elecpulse(player->GetField(), player->GetTeam(), chip.GetDamage());
+      pulse2->setScale(0, 0);
+
+      AUDIO.Play(AudioType::ELECPULSE);
+
+      player->GetField()->AddEntity(*pulse, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+      player->GetField()->AddEntity(*pulse2, player->GetTile()->GetX() + 2, player->GetTile()->GetY());
+
     }
     else if (name == "LongSwrd") {
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
@@ -96,11 +143,11 @@ public:
       AUDIO.Play(AudioType::SWORD_SWING);
 
       if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY())) {
-        player->GetField()->OwnEntity(sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+        player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
       }
 
       if (player->GetField()->GetAt(player->GetTile()->GetX() + 2, player->GetTile()->GetY())) {
-        player->GetField()->OwnEntity(sword2, player->GetTile()->GetX() + 2, player->GetTile()->GetY());
+        player->GetField()->AddEntity(*sword2, player->GetTile()->GetX() + 2, player->GetTile()->GetY());
       }
     }
     else if (name == "WideSwrd") {
@@ -114,12 +161,34 @@ public:
       AUDIO.Play(AudioType::SWORD_SWING);
 
       if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY())) {
-        player->GetField()->OwnEntity(sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+        player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
       }
 
       if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1)) {
-        player->GetField()->OwnEntity(sword2, player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1);
+        player->GetField()->AddEntity(*sword2, player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1);
       }
+    }
+    else if (name == "AirShot1") {
+      auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
+
+      player->SetAnimation(PLAYER_SHOOTING, onFinish);
+
+      AUDIO.Play(AudioType::SPREADER);
+
+      AirShot* airshot = new AirShot(player->GetField(), player->GetTeam(), chip.GetDamage());
+      airshot->SetDirection(Direction::RIGHT);
+
+      player->GetField()->AddEntity(*airshot, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+    }
+    else if (name == "Thunder") {
+      auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
+
+      player->SetAnimation(PLAYER_SHOOTING, onFinish);
+
+      //AUDIO.Play(AudioType::);
+
+      Thunder* thunder = new Thunder(player->GetField(), player->GetTeam());
+      player->GetField()->AddEntity(*thunder, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
   }
 };

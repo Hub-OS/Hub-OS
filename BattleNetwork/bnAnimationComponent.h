@@ -20,11 +20,14 @@ public:
 
   void Update(float _elapsed);
   void Setup(string _path);
-  void Load();
+  void Reload();
+  const std::string GetAnimationString() const;
   void SetPlaybackSpeed(const double playbackSpeed);
+  void SetPlaybackMode(char playbackMode);
   void SetAnimation(string state, std::function<void()> onFinish = nullptr);
-  void SetAnimation(string state, Animate::Mode playbackMode, std::function<void()> onFinish = std::function<void()>());
+  void SetAnimation(string state, char playbackMode, std::function<void()> onFinish = std::function<void()>());
   void AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame = std::function<void()>(), bool doOnce = false);
+  void CancelCallbacks();
 private:
   Entity* entity;
   string entityName;

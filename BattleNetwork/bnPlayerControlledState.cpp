@@ -33,9 +33,10 @@ void PlayerControlledState::OnEnter(Player& player) {
 }
 
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
+  if (!player.IsBattleActive()) return;
 
   // Action controls take priority over movement
-  if (inputManager->has(RELEASED_A) || !sf::Touch::isDown(0)) {
+  if (!inputManager->Has(HELD_A)) {
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
       player.chargeComponent.SetCharging(false);
@@ -54,86 +55,54 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     return;
 
   static Direction direction = Direction::NONE;
-  if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN) {
-    if (inputManager->has(PRESSED_UP)) {
+  if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN && player.IsBattleActive()) {
+    if (inputManager->Has(PRESSED_UP) || inputManager->Has(HELD_UP)) {
       direction = Direction::UP;
     }
-    else if (inputManager->has(PRESSED_LEFT)) {
+    else if (inputManager->Has(PRESSED_LEFT) || inputManager->Has(HELD_LEFT)) {
       direction = Direction::LEFT;
     }
-    else if (inputManager->has(PRESSED_DOWN)) {
+    else if (inputManager->Has(PRESSED_DOWN) || inputManager->Has(HELD_DOWN)) {
       direction = Direction::DOWN;
     }
-    else if (inputManager->has(PRESSED_RIGHT)) {
+    else if (inputManager->Has(PRESSED_RIGHT) || inputManager->Has(HELD_RIGHT)) {
       direction = Direction::RIGHT;
     }
   }
  
 
-  if ((inputManager->has(PRESSED_A) || sf::Touch::isDown(0)) && isChargeHeld == false) {
-    player.Attack(player.chargeComponent.GetChargeCounter());
+  if (inputManager->Has(HELD_A) && isChargeHeld == false) {
     isChargeHeld = true;
-
     attackKeyPressCooldown = 0.0f;
-    auto onFinish = [&]() { 
 
-      if (this->isChargeHeld) {
-        player.chargeComponent.SetCharging(true);
-      }
-
-      player.SetAnimation(PLAYER_IDLE); 
-      this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; 
-    };
-    player.SetAnimation(PLAYER_SHOOTING, onFinish);
+    player.chargeComponent.SetCharging(true);
+    this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; 
   }
 
-  if (inputManager->has(RELEASED_UP)) {
+  if (inputManager->Has(RELEASED_UP)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->has(RELEASED_LEFT)) {
+  else if (inputManager->Has(RELEASED_LEFT)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->has(RELEASED_DOWN)) {
+  else if (inputManager->Has(RELEASED_DOWN)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->has(RELEASED_RIGHT)) {
+  else if (inputManager->Has(RELEASED_RIGHT)) {
     direction = Direction::NONE;
   }
 
-  if (!player.HasFloatShoe()) {
-    if (player.GetTile()->GetState() == TileState::ICE) {
-      if (previousDirection != Direction::NONE) {
-        bool moved = player.Move(previousDirection);
+  //std::cout << "Is player slideing: " << player.isSliding << std::endl;
 
-        if (moved) {
-          player.AdoptNextTile();
-        }
-        else {
-          previousDirection = Direction::NONE;
-        }
-      }
-    }
-    else if (player.GetTile()->GetState() == TileState::LAVA) {
-      // player.SetHealth(player.GetHealth() - 1);
-    }
-    else {
-      previousDirection = Direction::NONE;
-    }
-  }
-
-  if (direction != Direction::NONE && player.state != PLAYER_SHOOTING) {
+  if (direction != Direction::NONE && player.state != PLAYER_SHOOTING && !player.isSliding) {
     bool moved = player.Move(direction);
-
-    previousDirection = direction;
 
     if (moved) {
       moveKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {
-        //Cooldown until player's movement catches up to actual position (avoid walking through spells)
-        if (player.previous) {
-          player.AdoptNextTile();
-        }
-        player.SetAnimation(PLAYER_IDLE);
+        player.SetAnimation("PLAYER_MOVED", [p = &player]() {
+			p->SetAnimation(PLAYER_IDLE); });
+		player.AdoptNextTile();
         direction = Direction::NONE;
       }; // end lambda
       player.SetAnimation(PLAYER_MOVING, onFinish);

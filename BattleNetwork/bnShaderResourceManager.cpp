@@ -12,13 +12,13 @@ ShaderResourceManager& ShaderResourceManager::GetInstance() {
 
 void ShaderResourceManager::LoadAllShaders(std::atomic<int> &status) {
   ShaderType shaderType = static_cast<ShaderType>(0);
-  while (shaderType != ShaderType::SHADER_TYPE_SIZE) {
+  while (shaderType != SHADER_TYPE_SIZE) {
     status++;
 
     // TODO: Catch failed resources and try again
     sf::Shader* shader = nullptr;
-    shader = new sf::Shader(); // LoadShaderFromFile(paths[static_cast<int>(shaderType)]);
-    /*if (shader)*/ shaders.insert(pair<ShaderType, sf::Shader*>(shaderType, shader));
+    shader = LoadShaderFromFile(paths[static_cast<int>(shaderType)]);
+    if (shader) shaders.insert(pair<ShaderType, sf::Shader*>(shaderType, shader));
     shaderType = (ShaderType)(static_cast<int>(shaderType) + 1);
   }
 }
@@ -31,11 +31,10 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path) {
     Logger::Log("Error loading shader: " + _path);
     Logger::GetMutex()->unlock();
 
-//    exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
     return nullptr;
   }
-
-  shader->setUniform("texture", sf::Shader::CurrentTexture);
+  //shader->setUniform("texture", sf::Shader::CurrentTexture);
 
   Logger::GetMutex()->lock();
   Logger::Log("Loaded shader: " + _path);
@@ -45,42 +44,26 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path) {
 }
 
 sf::Shader* ShaderResourceManager::GetShader(ShaderType _stype) {
-    return shaders.at(_stype);
-}
-
-const int ShaderResourceManager::GetSize() {
-    return shaders.size();
+  return shaders.at(_stype);
 }
 
 ShaderResourceManager::ShaderResourceManager(void) {
-  std::string version = "glsl_110";
-
-  #ifdef SFML_SYSTEM_ANDROID
-  //  version = "glsl_150";
-  #endif
-
-  paths.push_back(std::string() + "resources/shaders/" + version + "/black_fade.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/custom_bar.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/greyscale.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/outline.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/pixel_blur.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/texel_pixel_blur.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/texel_texture_wrap.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/white.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/white_fade.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/yellow.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/distortion.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/spot_distortion.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/spot_reflection.frag.txt");
-  paths.push_back(std::string() + "resources/shaders/" + version + "/transition.frag.txt");
-
-  #ifdef SFML_SYSTEM_ANDROID
-    // ShaderType::ES2_DEFAULT_FRAG
-    //paths.push_back(std::string() + "resources/shaders/" + version + "/default.frag.txt");
-
-    // ShaderType::ES2_DEFAULT_VERT
-    //paths.push_back(std::string() + "resources/shaders/" + version + "/default.vert.txt");
-  #endif
+  paths.push_back("resources/shaders/black_fade.frag.txt");
+  paths.push_back("resources/shaders/custom_bar.frag.txt");
+  paths.push_back("resources/shaders/greyscale.frag.txt");
+  paths.push_back("resources/shaders/outline.frag.txt");
+  paths.push_back("resources/shaders/pixel_blur.frag.txt");
+  paths.push_back("resources/shaders/texel_pixel_blur.frag.txt");
+  paths.push_back("resources/shaders/texel_texture_wrap.frag.txt");
+  paths.push_back("resources/shaders/white.frag.txt");
+  paths.push_back("resources/shaders/white_fade.frag.txt");
+  paths.push_back("resources/shaders/yellow.frag.txt");
+  paths.push_back("resources/shaders/distortion.frag.txt");
+  paths.push_back("resources/shaders/spot_distortion.frag.txt");
+  paths.push_back("resources/shaders/spot_reflection.frag.txt");
+  paths.push_back("resources/shaders/transition.frag.txt");
+  paths.push_back("resources/shaders/chip_reveal.frag.txt");
+  paths.push_back("resources/shaders/wire.frag.txt");
 }
 
 ShaderResourceManager::~ShaderResourceManager(void) {

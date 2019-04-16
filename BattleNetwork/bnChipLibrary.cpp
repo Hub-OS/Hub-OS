@@ -48,7 +48,7 @@ const Element ChipLibrary::GetElementFromStr(std::string type)
   else if (type == "WOOD") {
     elemType = Element::WOOD;
   }
-  else if (type == "ELEC") {
+  else if (type == "ELEC" || type == "ELECTRIC" ) {
     elemType = Element::ELEC;
   }
   else if (type == "WIND") {
@@ -76,6 +76,46 @@ const Element ChipLibrary::GetElementFromStr(std::string type)
   return elemType;
 }
 
+void ChipLibrary::AddChip(Chip chip)
+{
+  library.push_back(chip);
+}
+
+bool ChipLibrary::IsChipValid(Chip& chip)
+{
+  for (auto i = Begin(); i != End(); i++) {
+    if (i->GetShortName() == chip.GetShortName() && i->GetCode() == chip.GetCode()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+std::list<char> ChipLibrary::GetChipCodes(const Chip& chip)
+{
+  std::list<char> codes;
+
+  for (auto i = Begin(); i != End(); i++) {
+    if (i->GetShortName() == chip.GetShortName()) {
+      codes.insert(codes.begin(), i->GetCode());
+    }
+  }
+
+  return codes;
+}
+
+Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
+{
+  for (auto i = Begin(); i != End(); i++) {
+    if (i->GetShortName() == name && i->GetCode() == code) {
+      return (*i);
+    }
+  }
+
+  return Chip(0, 0, code, 0, Element::NONE, name, "missing data", "This chip data could not be interpreted. It may come from another library and has not been configured properly to be used.", 1);
+}
+
 // Used as the folder in battle
 void ChipLibrary::LoadLibrary() {
   // TODO: put this utility in an input stream class and inhert from that
@@ -99,14 +139,23 @@ void ChipLibrary::LoadLibrary() {
     }
 
     if (line.find("Chip") != string::npos) {
-      string cardID = valueOf("cardIndex", line);
-      string iconID = valueOf("iconIndex", line);
-      string name   = valueOf("name", line);
-      string damage = valueOf("damage", line);
-      string type = valueOf("type", line);
-      string codes = valueOf("codes", line);
-      string description = valueOf("desc", line);
-      string rarity = valueOf("rarity", line);
+      string cardID = FileUtil::ValueOf("cardIndex", line);
+      string iconID = FileUtil::ValueOf("iconIndex", line);
+      string name   = FileUtil::ValueOf("name", line);
+      string damage = FileUtil::ValueOf("damage", line);
+      string type = FileUtil::ValueOf("type", line);
+      string codes = FileUtil::ValueOf("codes", line);
+      string description = FileUtil::ValueOf("desc", line);
+      string rarity = FileUtil::ValueOf("rarity", line);
+
+      string longDescription;
+
+      try {
+        longDescription = FileUtil::ValueOf("verbose", line);
+      }
+      catch (...) {
+        longDescription = "This chip does not have extra information.";
+      }
 
       // Trime white space
       codes.erase(remove_if(codes.begin(), codes.end(), isspace), codes.end());
@@ -120,24 +169,33 @@ void ChipLibrary::LoadLibrary() {
         if (code.empty())
           continue;
 
-        if (code == "*") {
-          // transform it into the font-compatible ascii char
-          code = '=';
-        }
-
         Element elemType = GetElementFromStr(type);
 
-        library.push_back(Chip(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, atoi(rarity.c_str())));
+        Chip chip = Chip(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, longDescription, atoi(rarity.c_str()));
+        std::list<char> codes = this->GetChipCodes(chip);
+
+        // Avoid code duplicates
+        if (codes.size() > 0) {
+          bool found = (std::find(codes.begin(), codes.end(), chip.GetCode()) != codes.end());
+
+          // Not a duplicate code, make sure information is correct
+          if (!found) {
+            // Simply update an existing chip entry by changing the code 
+            Chip first = GetChipEntry(chip.GetShortName(), *codes.begin());
+            chip = Chip(first.GetID(), first.GetIconID(), chip.GetCode(), first.GetDamage(), first.GetElement(), first.GetShortName(), first.GetDescription(), first.GetVerboseDescription(), first.GetRarity());
+            library.push_back(chip);
+          }
+        }
+        else { // first entry
+          library.push_back(chip);
+        }
       }
     }
 
     data = data.substr(endline + 1);
   } while (endline > -1);
-}
 
-string ChipLibrary::valueOf(string _key, string _line) {
-  int keyIndex = (int)_line.find(_key);
-  assert(keyIndex > -1 && "Key was not found in library file.");
-  string s = _line.substr(keyIndex + _key.size() + 2);
-  return s.substr(0, s.find("\""));
+  std::reverse(library.begin(), library.end());
+
+  std::cout << "library size: " << this->GetSize() << std::endl;;
 }

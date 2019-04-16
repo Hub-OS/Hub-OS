@@ -1,5 +1,6 @@
 #include "bnEngine.h"
 #include <time.h>       /* time */
+#include <SFML/Window/ContextSettings.hpp>
 
 #include "mmbn.ico.c"
 
@@ -14,56 +15,68 @@ void Engine::Initialize() {
   cam = new Camera(view);
 
   window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition");
-  window->setFramerateLimit(120);
+  window->setFramerateLimit(60);
+  window->setMouseCursorVisible(false); // Hide cursor
 
   window->setIcon(sfml_icon.width, sfml_icon.height, sfml_icon.pixel_data);
-
-  postprocessing.create((unsigned int)view.getSize().x, (unsigned int)view.getSize().y); // Same as display
 
   // See the random generator with current time
   srand((unsigned int)time(0));
 }
 
 void Engine::Draw(Drawable& _drawable, bool applyShaders) {
-  applyShaders = false; // TODO: take out when SFML supports OpenGL ES 2.0
+  applyShaders = false;
+
+  if (!HasRenderSurface()) return;
+
   if (applyShaders) {
-    postprocessing.draw(_drawable, state);
+    surface->draw(_drawable, state);
   } else {
-    postprocessing.draw(_drawable);
+    surface->draw(_drawable);
   }
 }
 
 void Engine::Draw(Drawable* _drawable, bool applyShaders) {
-  applyShaders = false; // TODO: take out when SFML supports OpenGL ES 2.0
+  applyShaders = false;
+  if (!HasRenderSurface()) return;
 
   if (!_drawable) {
     return;
   }
 
   if (applyShaders) {
-    postprocessing.draw(*_drawable, state);
+    surface->draw(*_drawable, state);
   } else {
-    postprocessing.draw(*_drawable);
+    surface->draw(*_drawable);
   }
 }
 
 void Engine::Draw(LayeredDrawable* _drawable) {
+  if (!HasRenderSurface()) return;
+
   // For now, support at most one shader.
   // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
   LayeredDrawable* context = _drawable;
   SmartShader* shader = &context->GetShader();
 
-  if (false && shader && shader->Get()) {
+  if (shader && shader->Get()) {
     const sf::Texture* original = context->getTexture();
     shader->ApplyUniforms();
-    postprocessing.draw(*context, shader->Get()); // bake
+
+    sf::RenderStates newState = state;
+    newState.shader = shader->Get();
+
+    context->draw(*surface, newState);
+    // surface->draw(*context, newState); // bake
     shader->ResetUniforms();
   } else {
-    Draw(context, false);
+    context->draw(*surface, state);
   }
 }
 void Engine::Draw(vector<LayeredDrawable*> _drawable) {
+  if (!HasRenderSurface()) return;
+
   auto it = _drawable.begin();
   for (it; it != _drawable.end(); ++it) {
     /*
@@ -95,38 +108,32 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
 
     LayeredDrawable* context = *it;
     SmartShader& shader = context->GetShader();
-    if (false && shader.Get() != nullptr) {
+    if (shader.Get() != nullptr) {
       shader.ApplyUniforms();
-      postprocessing.draw(*context, shader.Get()); // bake
+
+      sf::RenderStates newState = state;
+      newState.shader = shader.Get();
+
+      context->draw(*surface, newState);
+
+      //surface->draw(*context, newState); // bake
+
       shader.ResetUniforms();
     } else {
-      Draw(context, false);
+      context->draw(*surface, state);
     }
   }
 }
 
 void Engine::Draw(vector<Drawable*> _drawable, bool applyShaders) {
+  applyShaders = false;
+
+  if (!HasRenderSurface()) return;
+
   auto it = _drawable.begin();
   for (it; it != _drawable.end(); ++it) {
-    Draw(*it, false);
+    Draw(*it, applyShaders);
   }
-}
-
-void Engine::Display() {
-
-  //view = cam->GetView();
-  //window->setView(view);
-
-  // flip and ready buffer
-  postprocessing.display();
-  // Capture buffer in a drawable context
-  sf::Sprite postFX(postprocessing.getTexture());
-  // drawbuffer on top of the scene
-  window->draw(postFX);
-  // show final result
-  window->display();
-  // Prepare buffer for next cycle
-  postprocessing.clear(sf::Color::Transparent);
 }
 
 bool Engine::Running() {
@@ -134,6 +141,10 @@ bool Engine::Running() {
 }
 
 void Engine::Clear() {
+  if (HasRenderSurface()) {
+    surface->clear();
+  }
+
   underlay.Clear();
   layers.Clear();
   overlay.Clear();
@@ -203,15 +214,24 @@ void Engine::DrawUnderlay() {
 
 void Engine::SetShader(sf::Shader* shader) {
 
-  //if (shader == nullptr) {
+  if (shader == nullptr) {
     state = sf::RenderStates::Default;
-  //} else {
-  //  state.shader = shader;
- // }
+  } else {
+    state.shader = shader;
+  }
 }
 
 void Engine::RevokeShader() {
   SetShader(nullptr);
+}
+
+const bool Engine::IsMouseHovering(sf::Sprite & sprite) const
+{
+  sf::Vector2i mousei = sf::Mouse::getPosition(*window);
+  sf::Vector2f mouse = window->mapPixelToCoords(mousei);
+  sf::FloatRect bounds = sprite.getGlobalBounds();
+
+  return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }
 
 const sf::View Engine::GetDefaultView() {

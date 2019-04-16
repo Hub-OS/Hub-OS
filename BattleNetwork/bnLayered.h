@@ -1,34 +1,85 @@
+#pragma once
+
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include <iostream>
+
 #include "bnSmartShader.h"
+#include "bnSceneNode.h"
+
 using sf::Drawable;
 using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Event;
 using sf::Sprite;
-#include <vector>
 using std::vector;
 
-class LayeredDrawable : public Sprite {
+// TODO: rename to SpriteNode and move to own file
+class LayeredDrawable : public SceneNode {
 private:
   int layer;
   int depth;
   SmartShader shader;
+  sf::Sprite sprite;
 
 public:
   LayeredDrawable(void)
     : layer(0),
     depth(0) {
+    this->AddSprite(&sprite);
   }
 
-  LayeredDrawable(const sf::Sprite& rhs) {
-    *((sf::Sprite*)this) = rhs;
+  LayeredDrawable(const sf::Sprite& rhs) : sprite(rhs) {
     layer = 0;
     depth = 0;
+    this->AddSprite(&sprite);
+
   }
 
   LayeredDrawable(int _layer)
     : layer(_layer),
     depth(0){
+    this->AddSprite(&sprite);
+  }
+
+  void operator=(const sf::Sprite& rhs) {
+    sprite = rhs;
+  }
+
+  operator sf::Sprite&() {
+    return sprite;
+  }
+
+  /*operator sf::Sprite() {
+    return sprite;
+  }*/
+
+  const sf::Texture* getTexture() const {
+    return sprite.getTexture();
+  }
+
+  void setColor(sf::Color color) {
+    sprite.setColor(color);
+  }
+
+  const sf::Color& getColor() const {
+    return sprite.getColor();
+  }
+
+  const sf::IntRect& getTextureRect() {
+    return sprite.getTextureRect();
+  }
+
+  void setTextureRect(sf::IntRect& rect) {
+    sprite.setTextureRect(rect);
+  }
+
+  sf::FloatRect getLocalBounds() {
+    return sprite.getLocalBounds();
+  }
+
+  void setTexture(const sf::Texture& texture, bool resetRect = false) {
+    sprite.setTexture(texture, resetRect);
   }
 
   void SetLayer(int _layer) {
@@ -67,6 +118,12 @@ public:
 
   int GetDepth() const {
     return depth;
+  }
+
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
+    states.transform *= this->getTransform();
+
+    SceneNode::draw(target, states);
   }
 };
 

@@ -13,17 +13,21 @@ ProgsManThrowState::~ProgsManThrowState()
 
 void ProgsManThrowState::OnEnter(ProgsMan& progs) {
   auto spawnBomb = [this, &progs]() { 
-    ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), progs.GetTarget()->GetTile(), 1);
-    bomb->SetTile(progs.GetTile());
-    bomb->PrepareThrowPath();
+    ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), progs.GetTile()->getPosition(), 1);
 
-    progs.GetField()->OwnEntity(bomb, progs.GetTile()->GetX(), progs.GetTile()->GetY()); 
+    auto props = bomb->GetHitboxProperties();
+    props.aggressor = &progs;
+    bomb->SetHitboxProperties(props);
+
+    bomb->SetTile(progs.GetTarget()->GetTile());
+
+    progs.GetField()->AddEntity(*bomb, progs.GetTarget()->GetTile()->GetX(), progs.GetTarget()->GetTile()->GetY());
   };
 
-  auto onFinish  = [this, &progs]() { progs.StateChange<ProgsManIdleState>(); };
+  auto onFinish  = [this, &progs]() { this->ChangeState<ProgsManIdleState>(); };
 
   progs.SetAnimation(MOB_THROW, onFinish);
-  progs.SetCounterFrame(2);
+  progs.SetCounterFrame(3);
   progs.OnFrameCallback(4, spawnBomb, std::function<void()>(), true);
 }
 

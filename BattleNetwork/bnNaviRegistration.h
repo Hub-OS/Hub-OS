@@ -63,11 +63,11 @@ public:
     const std::string GetSpecialDescriptionString() const;
     const Element GetElement() const;
 
-    Player* GetNavi() const;
+    Player* GetNavi();
   };
 
 private:
-  std::vector<const NaviInfo*> roster;
+  std::vector<NaviInfo*> roster;
 
 public:
   static NaviRegistration &GetInstance();
@@ -82,8 +82,8 @@ public:
     return info;
   }
 
-  void Register(const NaviInfo* info);
-  const NaviInfo& At(int index);
+  void Register(NaviInfo* info);
+  NaviInfo& At(int index);
   const unsigned Size();
   void LoadAllNavis(std::atomic<int>& progress);
   

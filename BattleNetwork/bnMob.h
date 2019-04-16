@@ -1,7 +1,9 @@
 #pragma once
+#include "bnComponent.h"
 #include "bnCharacter.h"
 #include "bnMeta.h"
 #include "bnBattleItem.h"
+#include "bnBackground.h"
 #include "bnField.h"
 #include <vector>
 #include <map>
@@ -18,6 +20,7 @@ public:
   };
 
 private:
+  std::vector<Component*> components;
   std::vector<MobData*> spawn;
   std::vector<MobData*>::iterator iter;
   std::vector<std::function<void(Character*)>> defaultStateInvokers;
@@ -26,12 +29,15 @@ private:
   bool nextReady;
   Field* field;
   bool isBoss;
+  std::string music;
+  Background* background;
 public:
   Mob(Field* _field) {
     nextReady = true;
     field = _field;
     isBoss = false;
     iter = spawn.end();
+    background = nullptr;
   }
 
   ~Mob() {
@@ -46,12 +52,11 @@ public:
     rewards.insert(std::make_pair(rank, item));
   }
 
-  // TODO: Off chance that there's no item
   BattleItem* GetRankedReward(int score) {
     if (rewards.empty()) {
       return nullptr;
     }
-    
+
     // Collect only the items we can be rewarded with...
     std::vector<BattleItem> possible;
 
@@ -74,7 +79,7 @@ public:
 
     std::vector<BattleItem>::iterator possibleIter;
     possibleIter = possible.begin();
-      
+
     while (random > 0) {
       --random;
       possibleIter++;
@@ -85,11 +90,24 @@ public:
 
   void Cleanup() {
     for (int i = 0; i < spawn.size(); i++) {
-      delete spawn[i]->mob;
+      //delete spawn[i]->mob;
       delete spawn[i];
     }
+
     field = nullptr;
     spawn.clear();
+
+    for (Component* c : components) {
+      delete c;
+    }
+
+    components.clear();
+  }
+
+  void KillSwitch() {
+    for (int i = 0; i < spawn.size(); i++) {
+      spawn[i]->mob->SetHealth(0);
+    }
   }
 
   Field* GetField() {
@@ -100,12 +118,44 @@ public:
     return (int)spawn.size();
   }
 
+  const int GetRemainingMobCount() {
+    int remaining = (int)spawn.size();
+
+    for (int i = 0; i < (int)spawn.size(); i++) {
+      if (spawn[i]->mob->GetHealth() <= 0) {
+        remaining--;
+      }
+    }
+
+    return remaining;
+  }
+
   void ToggleBossFlag() {
     isBoss = !isBoss;
   }
 
   bool IsBoss() {
     return isBoss;
+  }
+
+  void SetBackground(Background* background) {
+    this->background = background;
+  }
+
+  Background* GetBackground() {
+    return this->background;
+  }
+
+  void StreamCustomMusic(const std::string path) {
+    this->music = path;
+  }
+
+  bool HasCustomMusicPath() {
+    return this->music.length() > 0;
+  }
+
+  const std::string GetCustomMusicPath() const {
+    return this->music;
   }
 
   const Character& GetMobAt(int index) {
@@ -124,7 +174,7 @@ public:
   }
 
   const bool IsCleared() {
-    for (int i = 0; i < spawn.size(); i++) {
+    for (int i = 0; i < (int)spawn.size(); i++) {
       if (!spawn[i]->mob->IsDeleted()) {
         return false;
       }
@@ -138,12 +188,19 @@ public:
   }
 
   void DefaultState() {
-    for (int i = 0; i < defaultStateInvokers.size(); i++) {
+    for (int i = 0; i < (int)defaultStateInvokers.size(); i++) {
       defaultStateInvokers[i](spawn[i]->mob);
     }
 
     defaultStateInvokers.clear();
   }
+
+  // todo: take out
+  void DelegateComponent(Component* component) {
+    components.push_back(component);
+  }
+
+  std::vector<Component*> GetComponents() { return components; }
 
   MobData* GetNextMob() {
     this->nextReady = false;

@@ -19,8 +19,8 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
   SetPassthrough(true);
   EnableTileHighlight(false); // Do not highlight where we move
 
-  field = summons->GetPlayer()->GetField();
-  team = summons->GetPlayer()->GetTeam();
+  field = summons->GetCaller()->GetField();
+  team = summons->GetCaller()->GetTeam();
 
   direction = Direction::NONE;
   deleted = false;
@@ -32,17 +32,18 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
 
   heal = _heal;
 
-  setScale(2.0f, 2.0f);
+  int lr = (team == Team::RED) ? 1 : -1;
+  setScale(2.0f*lr, 2.0f);
 
-  Battle::Tile* _tile = summons->GetPlayer()->GetTile();
+  Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
-  this->field->AddEntity(this, _tile->GetX(), _tile->GetY());
+  this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   AUDIO.Play(AudioType::APPEAR);
 
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
   animationComponent.SetAnimation("ROLL_IDLE", [this] { 
     this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
 
@@ -53,10 +54,10 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
       while(field->GetNextTile(next)) {
         if (!found) {
           if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
-            this->GetTile()->RemoveEntity(this);
+            this->GetTile()->RemoveEntityByID(this->GetID());
 
             Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
-            prev->AddEntity(this);
+            prev->AddEntity(*this);
 
             attack = next;
 
@@ -68,7 +69,7 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
       if (found) {
         this->animationComponent.SetAnimation("ROLL_ATTACKING", [this] {
           this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
-            this->summons->SummonEntity(new RollHeart(this->summons, this->summons->GetPlayer(), this->heal));
+            this->summons->SummonEntity(new RollHeart(this->summons, this->heal));
             this->summons->RemoveEntity(this);
           });
         });
@@ -81,24 +82,22 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
       }
       else {
         this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
-          this->summons->SummonEntity(new RollHeart(this->summons, this->summons->GetPlayer(), this->heal));
+          this->summons->SummonEntity(new RollHeart(this->summons, this->heal));
           this->summons->RemoveEntity(this);
         });
       }
     });
   });
-
-  this->Update(0);
 }
 
-RollHeal::~RollHeal(void) {
+RollHeal::~RollHeal() {
 }
 
 void RollHeal::Update(float _elapsed) {
   animationComponent.Update(_elapsed);
 
   if (tile != nullptr) {
-    setPosition(tile->getPosition().x + (tile->GetWidth() / 2.0f), tile->getPosition().y + (tile->GetHeight() / 2.0f));
+    setPosition(tile->getPosition());
   }
 
   Entity::Update(_elapsed);
@@ -108,15 +107,16 @@ bool RollHeal::Move(Direction _direction) {
   return true;
 }
 
-void RollHeal::Attack(Entity* _entity) {
+void RollHeal::Attack(Character* _entity) {
   if (hit || deleted) {
     return;
   }
 
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     if (!_entity->IsPassthrough()) {
-      _entity->Hit(heal);
-      _entity->Update(0);
+      auto props = Hit::DefaultProperties;
+      props.damage = heal;
+      _entity->Hit(props);
 
       int i = 1;
 
@@ -131,8 +131,4 @@ void RollHeal::Attack(Entity* _entity) {
       AUDIO.Play(AudioType::HURT);
     }
   }
-}
-
-vector<Drawable*> RollHeal::GetMiscComponents() {
-  return vector<Drawable*>();
 }

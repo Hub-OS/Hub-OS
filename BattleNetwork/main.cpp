@@ -4,27 +4,38 @@
 #include "bnNaviRegistration.h"
 #include "bnInputManager.h"
 #include "bnEngine.h"
+#include "bnGameOverScene.h"
 #include "bnMainMenuScene.h"
+#include "bnFakeScene.h"
 #include "bnAnimate.h"
 #include "bnChronoXConfigReader.h"
 #include "SFML/System.hpp"
-#include "SFML/Window/Touch.hpp"
+
 #include <time.h>
 #include <queue>
 #include <atomic>
 #include <cmath>
+#include <Swoosh/ActivityController.h>
+
+// #define BN_REGION_JAPAN 1
 
 // Engine addons
 #include "bnQueueNaviRegistration.h"
+#include "bnQueueMobRegistration.h"
 
 // Timer
 using sf::Clock;
+
+// Swoosh activity management
+using swoosh::ActivityController;
 
 // Title card character
 #define TITLE_ANIM_CHAR_SPRITES 14
 #define TITLE_ANIM_CHAR_WIDTH 128
 #define TITLE_ANIM_CHAR_HEIGHT 221
 #define SHADER_FRAG_WHITE_PATH "resources/shaders/white_fade.frag.txt"
+
+#define FIXED_TIME_STEP 1.0f/60.0f
 
 void RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
@@ -35,6 +46,17 @@ void RunNaviInit(std::atomic<int>* progress) {
   Logger::Logf("Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
   Logger::GetMutex()->unlock();
 }
+
+void RunMobInit(std::atomic<int>* progress) {
+  clock_t begin_time = clock();
+
+  MOBS.LoadAllMobs(*progress);
+
+  Logger::GetMutex()->lock();
+  Logger::Logf("Loaded registered mobs: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::GetMutex()->unlock();
+}
+
 
 void RunGraphicsInit(std::atomic<int> * progress) {
   clock_t begin_time = clock();
@@ -49,7 +71,6 @@ void RunGraphicsInit(std::atomic<int> * progress) {
 
   Logger::GetMutex()->lock();
   Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
-  Logger::Logf("Shader size is %i", ShaderResourceManager::GetInstance().GetSize());
   Logger::GetMutex()->unlock();
 }
 
@@ -63,9 +84,7 @@ void RunAudioInit(std::atomic<int> * progress) {
 }
 
 int main(int argc, char** argv) {
-  sf::Keyboard::setVirtualKeyboardVisible(true);
-
-    // Render context must:
+  // Render context must:
   //                    1) always run from main thread and 
   //                    2) load before we do any loading screen rendering
   const clock_t begin_time = clock();
@@ -77,8 +96,9 @@ int main(int argc, char** argv) {
   SHADERS;
   AUDIO;
   QueuNaviRegistration(); // Queues navis to be loaded later
+  QueueMobRegistration(); // Queues mobs to be loaded later
 
-    // State flags
+  // State flags
   bool inConfigMessageState = true;
 
   ChronoXConfigReader config("options.ini");
@@ -98,8 +118,24 @@ int main(int argc, char** argv) {
   sf::Vector2f alertPos = (sf::Vector2f)((sf::Vector2i)ENGINE.GetWindow()->getSize() / 2);
   alertSprite.setPosition(sf::Vector2f(100.f, alertPos.y));
 
+  sf::Texture* mouseTexture = TEXTURES.LoadTextureFromFile("resources/ui/mouse.png");
+  sf::Sprite mouse(*mouseTexture);
+  mouse.setScale(2.f, 2.f);
+  Animation mouseAnimation("resources/ui/mouse.animation");
+  mouseAnimation.Reload();
+  mouseAnimation.SetAnimation("DEFAULT");
+  mouseAnimation << Animate::Mode::Loop;
+  sf::Vector2f lastMousepos;
+  double mouseAlpha = 1.0;
+
   // Title screen logo
+
+  #ifdef BN_REGION_JAPAN
+  sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile.png");
+  #else
   sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");
+  #endif BN_REGION_JAPAN
+
   LayeredDrawable logoSprite;
   logoSprite.setTexture(*logo);
   logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);
@@ -107,7 +143,7 @@ int main(int argc, char** argv) {
   logoSprite.setPosition(logoPos);
 
   // Log output text
-  sf::Font* font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
+  sf::Font* font = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
   sf::Text* logLabel = new sf::Text("...", *font);
   logLabel->setCharacterSize(10);
   logLabel->setOrigin(0.f, logLabel->getLocalBounds().height);
@@ -125,6 +161,10 @@ int main(int argc, char** argv) {
   navisLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
   navisLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
 
+  sf::Text* mobLoadedLabel = new sf::Text("Loading Mob Data...", *startFont);
+  mobLoadedLabel->setCharacterSize(24);
+  mobLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+  mobLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
   /* 
   Give a message to the player before loading 
   */
@@ -136,25 +176,30 @@ int main(int argc, char** argv) {
 
   Clock clock;
   float elapsed = 0.0f;
-  float messageCooldown = 3000; 
+  float messageCooldown = 3; 
+
+  sf::RenderTexture loadSurface;
+  //loadSurface.create(480, 320);
+  loadSurface.create(ENGINE.GetWindow()->getSize().x, ENGINE.GetWindow()->getSize().y, ENGINE.GetWindow()->getSettings());
+  ENGINE.SetRenderSurface(loadSurface);
 
   while (inConfigMessageState && ENGINE.Running()) {
     clock.restart();
 
-    INPUT.update();
-
+    INPUT.Update();
+    
     // Prepare for next draw calls
     ENGINE.Clear();
 
     // Write contents to screen
-    ENGINE.Display();
+    // ENGINE.Display();
 
     if (messageCooldown <= 0) {
       inConfigMessageState = false;
       messageCooldown = 0;
     }
 
-    float alpha = std::min((messageCooldown/1000.f)*255.f, 255.f);
+    float alpha = std::min((messageCooldown)*255.f, 255.f);
     alertSprite.setColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
     message->setFillColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
     messageCooldown -= elapsed;
@@ -162,7 +207,14 @@ int main(int argc, char** argv) {
     ENGINE.Draw(alertSprite);
     ENGINE.Draw(message);
 
-    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+    loadSurface.display();
+
+    sf::Sprite postprocess(loadSurface.getTexture());
+
+    ENGINE.GetWindow()->draw(postprocess);
+    ENGINE.GetWindow()->display();
+
+    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
   }
 
   // Cleanup
@@ -178,29 +230,29 @@ int main(int argc, char** argv) {
   LayeredDrawable bgSprite;
   LayeredDrawable progSprite;
 
-  int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE  + (unsigned)ShaderType::SHADER_TYPE_SIZE;
-  std::atomic<int> progress(0);
-  std::atomic<int> navisLoaded(0);
-
-  // Mav Note: Currently do not have the default frag and vertex shaders
-  totalObjects -= 2;
+  int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE + (unsigned)AudioType::AUDIO_TYPE_SIZE + (unsigned)ShaderType::SHADER_TYPE_SIZE;
+  std::atomic<int> progress{0};
+  std::atomic<int> navisLoaded{0};
+  std::atomic<int> mobsLoaded{0};
 
   sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
   sf::Thread audioLoad(&RunAudioInit, &progress);
 
   // We must deffer the thread until graphics and audio are finished
   sf::Thread navisLoad(&RunNaviInit, &navisLoaded);
+  sf::Thread mobsLoad(&RunMobInit, &mobsLoaded);
 
   graphicsLoad.launch();
   audioLoad.launch();
 
   // play some music while we wait
   AUDIO.SetStreamVolume(10);
-  AUDIO.Stream("resources/loops/loop_theme.ogg", true);
+  AUDIO.Stream("resources/loops/loop_theme.ogg");
 
   // Draw some stats while we wait 
   bool inLoadState = true;
   bool ready = false;
+  bool loadMobs = false;
 
   double shaderCooldown = 2000; // 2 seconds
   double logFadeOutTimer = 4000;
@@ -210,12 +262,25 @@ int main(int argc, char** argv) {
 
   while(inLoadState && ENGINE.Running()) {
     clock.restart();
+    
+    INPUT.Update();
 
     float percentage = (float)progress / (float)totalObjects;
     std::string percentageStr = std::to_string((int)(percentage*100));
     ENGINE.GetWindow()->setTitle(sf::String(std::string("Loading: ") + percentageStr + "%"));
 
-    INPUT.update();
+    sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+    mouseAlpha -= elapsed/1000.0f;
+    mouseAlpha = std::max(0.0, mouseAlpha);
+
+    if (mousepos != lastMousepos) {
+      lastMousepos = mousepos;
+      mouseAlpha = 1.0;
+    }
+
+    mouse.setPosition(mousepos);
+    mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
+    mouseAnimation.Update(elapsed/1000.0f, mouse);
 
     /*
       Get next logs. One at a time for effect.
@@ -271,9 +336,9 @@ int main(int argc, char** argv) {
 
         if (!whiteShader) {
           try {
-            //whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
-            //whiteShader->setUniform("opacity", 0.0f);
-            //ENGINE.SetShader(whiteShader);
+            whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
+            whiteShader->setUniform("opacity", 0.0f);
+            ENGINE.SetShader(whiteShader);
           }
           catch (std::exception e) {
             // didnt catchup? debug
@@ -306,10 +371,10 @@ int main(int argc, char** argv) {
         }
 
         // update shader 
-        //whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
+        whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
       }
 
-      if ((sf::Touch::isDown(0) || INPUT.has(PRESSED_START)) && navisLoaded == NAVIS.Size()) {
+      if (INPUT.Has(PRESSED_START) && navisLoaded == NAVIS.Size()) {
         inLoadState = false;
       }
     }
@@ -353,7 +418,24 @@ int main(int argc, char** argv) {
         ENGINE.Draw(navisLoadedLabel);
       }
       else {
-        ENGINE.Draw(startLabel);
+        if (mobsLoaded < (int)MOBS.Size()) {
+          if (!loadMobs) {
+            loadMobs = true;
+            mobsLoad.launch();
+          }
+          else {
+            mobLoadedLabel->setString(std::string("Loading Mob Data ") + std::to_string(mobsLoaded) + " / " + std::to_string(MOBS.Size()));
+            sf::FloatRect bounds = mobLoadedLabel->getLocalBounds();
+            sf::Vector2f origin = { bounds.width / 2.0f, bounds.height / 2.0f };
+            mobLoadedLabel->setOrigin(origin);
+            ENGINE.Draw(mobLoadedLabel);
+          }
+        }
+        else {
+          // Finally everything is loaded
+          INPUT.Update();
+          ENGINE.Draw(startLabel);
+        }
       }
     }
 
@@ -363,70 +445,92 @@ int main(int argc, char** argv) {
     ENGINE.DrawLayers();
     ENGINE.DrawOverlay();
 
-    // Write contents to screen
-    ENGINE.Display();
+    loadSurface.display();
+
+    sf::Sprite postprocess(loadSurface.getTexture());
+
+    ENGINE.GetWindow()->draw(postprocess);
+
+    ENGINE.GetWindow()->draw(mouse);
+
+    ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
   }
+
+  sf::Texture loadingScreenSnapshot = ENGINE.GetRenderSurface().getTexture();
 
   // Cleanup
   ENGINE.RevokeShader();
   ENGINE.Clear();
+  delete mobLoadedLabel;
+  delete navisLoadedLabel;
   delete logLabel;
   delete font;
   delete logo;
 
-  // Stop music and go to select screen 
+  // Stop music and go to menu screen 
   AUDIO.StopStream();
+
+  // Create an activity controller 
+  // Behaves like a state machine using stacks
+  sf::Vector2u virtualWindowSize(480, 320);
+  ActivityController app(*ENGINE.GetWindow(), virtualWindowSize);
+  app.push<GameOverScene>();
+  app.push<MainMenuScene>();
+
+  // This scene will immediately pop off the stack 
+  // and segue into the previous scene on the stack: MainMenuScene
+  app.push<FakeScene>(loadingScreenSnapshot);
+
+  double remainder = 0;
+  elapsed = 0;
+
+  srand((unsigned int)time(nullptr));
 
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
-    int win = MainMenuScene::Run(); // MainMenuScene::Run();
+    // Non-simulation
+    elapsed = static_cast<float>(clock.restart().asSeconds()) + static_cast<float>(remainder);
 
-    if (win != 1) {
-      // Start the game over music
-      AUDIO.Stream("resources/loops/game_over.ogg");
-      ENGINE.Clear();
-      break;
-    }
-  }
+    INPUT.Update();
 
-  sf::Sprite gameOver;
-  gameOver.setTexture(*TEXTURES.GetTexture(TextureType::GAME_OVER));
-  gameOver.setScale(2.f, 2.f);
-  gameOver.setOrigin(gameOver.getLocalBounds().width / 2, gameOver.getLocalBounds().height / 2);
-  gameOver.setPosition(logoPos);
-  float fadeInCooldown = 500.0f; // half a second
+    float FPS = 0.f;
 
-  // Show gameover screen
-  while (ENGINE.Running()) {
-    clock.restart();
+    FPS = (float)(1.0 / (float)elapsed);
+    std::string fpsStr = std::to_string(FPS);
+    fpsStr.resize(4);
+    ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
 
-    INPUT.update();
 
-    fadeInCooldown -= elapsed;
+    // Use the activity controller to update and draw scenes
+    app.update((float)FIXED_TIME_STEP);
 
-    if (fadeInCooldown < 0) {
-      fadeInCooldown = 0;
-    }
+    sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+    mouseAlpha -= FIXED_TIME_STEP;
+    mouseAlpha = std::max(0.0, mouseAlpha);
 
-    gameOver.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255 - (255 * (fadeInCooldown / 500.f)))));
-    ENGINE.Draw(gameOver);
+	if (mousepos != lastMousepos) {
+	  lastMousepos = mousepos;
+	  mouseAlpha = 1.0;
+	}
 
-    // Draw loop
-    ENGINE.DrawUnderlay();
-    ENGINE.DrawLayers();
-    ENGINE.DrawOverlay();
+    mouse.setPosition(mousepos);
+    mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
+    mouseAnimation.Update((float)FIXED_TIME_STEP, mouse);
 
-    // Write contents to screen
-    ENGINE.Display();
+	ENGINE.Clear();
+	ENGINE.DrawUnderlay();
+	ENGINE.DrawLayers();
+	ENGINE.DrawOverlay();
 
-    // Prepare for next render 
-    ENGINE.Clear();
+	app.draw();
 
-    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+	ENGINE.GetWindow()->draw(mouse);
 
-  }
-  
+	ENGINE.GetWindow()->display();  }
+
+  delete mouseTexture;
+
   return EXIT_SUCCESS;
 }

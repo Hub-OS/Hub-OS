@@ -1,5 +1,6 @@
 #include "bnCamera.h"
 #include <iostream>
+#include <cmath>
 
 Camera::Camera(const sf::View& view) : focus(view)
 {
@@ -40,13 +41,14 @@ void Camera::Update(float elapsed) {
   }
 
   if (isShaking) {
-    if (sf::Time(sf::milliseconds((sf::Int32)shakeProgress)) < shakeDur) {
+    if (sf::Time(sf::milliseconds((sf::Int32)shakeProgress)) <= shakeDur) {
       // Drop off to zero by end of shake
-      double currStress = stress * (1 - (shakeProgress / shakeDur.asMilliseconds()));
+      double currStress = stress *(1 - (shakeProgress / shakeDur.asMilliseconds()));
 
-      double factor = (-currStress) + (double)((double)(currStress - (-currStress)) * (rand() / (RAND_MAX + 1.0)));
-      double factor2 = (-currStress) + (double)((double)(currStress - (-currStress)) * (rand() / (RAND_MAX + 1.0)));
-      sf::Vector2f offset = sf::Vector2f((float)factor, (float)factor2);
+      int randomAngle = shakeProgress * (rand() % 360);
+      randomAngle += (150 + (rand() % 60));
+
+      auto offset = sf::Vector2f(std::sin((float)randomAngle) * currStress, std::cos((float)randomAngle) * currStress);
 
       focus.setCenter(init.getCenter() + offset);
     }

@@ -9,11 +9,12 @@ public:
 
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);
-  virtual void Attack(Entity* _entity);
-  virtual vector<Drawable*> GetMiscComponents();
+  virtual void Attack(Character* _entity);
 
 private:
   int damage;
+  int random;
+  float cooldown;
   FrameList animation;
   Animate animator;
 };

@@ -10,34 +10,31 @@
 
 #define RESOURCE_PATH "resources/spells/spell_heart.animation"
 
-RollHeart::RollHeart(ChipSummonHandler* _summons, Player* _player, int _heal) : heal(_heal), Spell()
+RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spell()
 {
-  player = _player;
   summons = _summons;
 
-  player->SetAlpha(255);
+  summons->GetCaller()->Reveal();
 
   SetPassthrough(true);
   EnableTileHighlight(true);
 
-  field = player->GetField();
-  team = player->GetTeam();
+  field = summons->GetCaller()->GetField();
+  team = summons->GetCallerTeam();
 
   direction = Direction::NONE;
   deleted = false;
   hit = false;
   progress = 0.0f;
   hitHeight = 0.0f;
-  srand((unsigned int)time(nullptr));
-  random = rand() % 20 - 20;
 
-  Battle::Tile* _tile = player->GetTile();
+  Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
-  this->field->AddEntity(this, _tile->GetX(), _tile->GetY());
+  this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
   animationComponent.SetAnimation("HEART");
   this->Update(0);
 
@@ -62,12 +59,13 @@ void RollHeart::Update(float _elapsed) {
     AUDIO.Play(AudioType::RECOVER);
     doOnce = false;
     this->setColor(sf::Color(255, 255, 255, 0)); // hidden
-    player->SetHealth(player->GetHealth() + heal);
-    player->SetAnimation("PLAYER_HEAL", [this]() {
+    caller->SetHealth(caller->GetHealth() + heal);
+    
+    /*player->SetAnimation("PLAYER_HEAL", [this]() {
       player->SetAnimation("PLAYER_IDLE", [this]() {
         summons->RemoveEntity(this);
       });
-    });
+    });*/
   }
 }
 
@@ -75,9 +73,5 @@ bool RollHeart::Move(Direction _direction) {
   return true;
 }
 
-void RollHeart::Attack(Entity* _entity) {
-}
-
-vector<Drawable*> RollHeart::GetMiscComponents() {
-  return vector<Drawable*>();
+void RollHeart::Attack(Character* _entity) {
 }

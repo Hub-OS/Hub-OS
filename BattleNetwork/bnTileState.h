@@ -6,5 +6,6 @@ enum class TileState : const int {
   ICE,
   GRASS,
   LAVA,
+  POISON,
   EMPTY
 };

@@ -99,16 +99,17 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\extern\includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)extern\Swoosh\src;$(SolutionDir)extern\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)\extern\libs</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)extern\SFML\extlibs\libs-msvc\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>freetype.lib;glew.lib;jpeg.lib;openal32.lib;sndfile.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-audio-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -146,8 +147,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\extern\includes;C:\Program Files (x86)\Windows Kits\10\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)extern\Swoosh\src;$(SolutionDir)extern\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <EnablePREfast>false</EnablePREfast>
       <DebugInformationFormat>None</DebugInformationFormat>
@@ -156,12 +157,13 @@
       <MinimalRebuild>false</MinimalRebuild>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)\extern\libs;C:\Program Files (x86)\Windows Kits\10\Lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)extern\SFML\extlibs\libs-msvc\x64</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew.lib;jpeg.lib;openal32.lib;sndfile.lib;freetype.lib;Winmm.lib;OpenGL32.lib;sfml-system-s.lib;sfml-window-s.lib;sfml-graphics-s.lib;sfml-audio.lib;sfml-main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -171,25 +173,54 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bnAirShot.cpp" />
     <ClCompile Include="bnAnimate.cpp" />
     <ClCompile Include="bnAnimatedCharacter.cpp" />
+    <ClCompile Include="bnAnimatedTextBox.cpp" />
     <ClCompile Include="bnAnimation.cpp" />
+    <ClCompile Include="bnAura.cpp" />
+    <ClCompile Include="bnAuraHealthUI.cpp" />
     <ClCompile Include="bnBasicSword.cpp" />
     <ClCompile Include="bnBattleResults.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="bnArtifact.cpp" />
     <ClCompile Include="bnAudioResourceManager.cpp" />
+    <ClCompile Include="bnBubble.cpp" />
+    <ClCompile Include="bnBubbleTrap.cpp" />
+    <ClCompile Include="bnComponent.cpp" />
+    <ClCompile Include="bnDefenseAntiDamage.cpp" />
+    <ClCompile Include="bnDefenseBubbleWrap.cpp" />
     <ClCompile Include="bnCanodumb.cpp" />
     <ClCompile Include="bnCanodumbAttackState.cpp" />
     <ClCompile Include="bnCanodumbIdleState.cpp" />
     <ClCompile Include="bnCharacter.cpp" />
+    <ClCompile Include="bnChargedBusterHit.cpp" />
     <ClCompile Include="bnChipFolder.cpp" />
     <ClCompile Include="bnChipUseListener.cpp" />
-    <ClCompile Include="bnEaseFunctions.cpp" />
+    <ClCompile Include="bnChipUsePublisher.cpp" />
+    <ClCompile Include="bnCounterHitListener.cpp" />
+    <ClCompile Include="bnCounterHitPublisher.cpp" />
+    <ClCompile Include="bnCube.cpp" />
+    <ClCompile Include="bnCustEmblem.cpp" />
+    <ClCompile Include="bnDefenseAura.cpp" />
+    <ClCompile Include="bnDefenseGuard.cpp" />
+    <ClCompile Include="bnDefenseRule.cpp" />
+    <ClCompile Include="bnElecpulse.cpp" />
+    <ClCompile Include="bnElementalDamage.cpp" />
+    <ClCompile Include="bnEnemyChipsUI.cpp" />
+    <ClCompile Include="bnFakeScene.cpp" />
+    <ClCompile Include="bnFishy.cpp" />
+    <ClCompile Include="bnFolderEditScene.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />
+    <ClCompile Include="bnGameOverScene.cpp" />
+    <ClCompile Include="bnGear.cpp" />
     <ClCompile Include="bnGraveyardBackground.cpp" />
     <ClCompile Include="bnGridBackground.cpp" />
+    <ClCompile Include="bnGuardHit.cpp" />
+    <ClCompile Include="bnHideTimer.cpp" />
+    <ClCompile Include="bnHideUntil.cpp" />
+    <ClCompile Include="bnHitBox.cpp" />
     <ClCompile Include="bnInfiniteMap.cpp" />
     <ClCompile Include="bnLanBackground.cpp" />
     <ClCompile Include="bnBattleResults.cpp">
@@ -206,30 +237,57 @@
     <ClCompile Include="bnEntity.cpp" />
     <ClCompile Include="bnField.cpp" />
     <ClCompile Include="bnBattleScene.cpp" />
+    <ClCompile Include="bnLibraryScene.cpp" />
     <ClCompile Include="bnLogger.cpp" />
     <ClCompile Include="bnMainMenuScene.cpp" />
+    <ClCompile Include="bnMetalBlade.cpp" />
+    <ClCompile Include="bnMetalMan.cpp" />
+    <ClCompile Include="bnMetalManBossFight.cpp" />
+    <ClCompile Include="bnMetalManBossFight2.cpp" />
+    <ClCompile Include="bnMetalManIdleState.cpp" />
+    <ClCompile Include="bnMetalManMoveState.cpp" />
+    <ClCompile Include="bnMetalManPunchState.cpp" />
+    <ClCompile Include="bnMetalManThrowState.cpp" />
     <ClCompile Include="bnMettaurAttackState.cpp" />
     <ClCompile Include="bnMettaurIdleState.cpp" />
     <ClCompile Include="bnMettaurMoveState.cpp" />
     <ClCompile Include="bnMobHealthUI.cpp" />
+    <ClCompile Include="bnMobRegistration.cpp" />
+    <ClCompile Include="bnMysteryData.cpp" />
+    <ClCompile Include="bnNinjaAntiDamage.cpp" />
+    <ClCompile Include="bnNinjaStar.cpp" />
+    <ClCompile Include="bnObstacle.cpp" />
     <ClCompile Include="bnOverworldLight.cpp" />
     <ClCompile Include="bnOverworldMap.cpp" />
     <ClCompile Include="bnPA.cpp" />
+    <ClCompile Include="bnPanelGrab.cpp" />
+    <ClCompile Include="bnParticlePoof.cpp" />
     <ClCompile Include="bnPlayerHitState.cpp" />
     <ClCompile Include="bnPlayerIdleState.cpp" />
     <ClCompile Include="bnProgBomb.cpp" />
     <ClCompile Include="bnProgsMan.cpp" />
     <ClCompile Include="bnAnimationComponent.cpp" />
     <ClCompile Include="bnProgsManBossFight.cpp" />
+    <ClCompile Include="bnProgsManHitState.cpp" />
     <ClCompile Include="bnProgsManIdleState.cpp" />
+    <ClCompile Include="bnProgsManShootState.cpp" />
     <ClCompile Include="bnProgsManThrowState.cpp" />
     <ClCompile Include="bnRandomMettaurMob.cpp" />
+    <ClCompile Include="bnReflectShield.cpp" />
+    <ClCompile Include="bnRockDebris.cpp" />
     <ClCompile Include="bnRoll.cpp" />
     <ClCompile Include="bnRollHeal.cpp" />
     <ClCompile Include="bnRollHeart.cpp" />
+    <ClCompile Include="bnRowHit.cpp" />
     <ClCompile Include="bnSelectNaviScene.cpp" />
     <ClCompile Include="bnShaderResourceManager.cpp" />
+    <ClCompile Include="bnShineExplosion.cpp" />
+    <ClCompile Include="bnStarfish.cpp" />
+    <ClCompile Include="bnStarfishAttackState.cpp" />
+    <ClCompile Include="bnStarfishIdleState.cpp" />
+    <ClCompile Include="bnStarfishMob.cpp" />
     <ClCompile Include="bnStarman.cpp" />
+    <ClCompile Include="bnThunder.cpp" />
     <ClCompile Include="bnTile.cpp" />
     <ClCompile Include="bnPlayer.cpp" />
     <ClCompile Include="bnSpell.cpp" />
@@ -237,6 +295,7 @@
     <ClCompile Include="bnPlayerHealthUI.cpp" />
     <ClCompile Include="bnBuster.cpp" />
     <ClCompile Include="bnTwoMettaurMob.cpp" />
+    <ClCompile Include="bnUndernetBackground.cpp" />
     <ClCompile Include="bnWave.cpp" />
     <ClCompile Include="bnMettaur.cpp" />
     <ClCompile Include="bnEngine.cpp" />
@@ -245,6 +304,7 @@
     <ClCompile Include="bnPlayerControlledState.cpp" />
     <ClCompile Include="bnCamera.cpp" />
     <ClCompile Include="bnCanonSmoke.cpp" />
+    <ClCompile Include="bnInvis.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="bnProgsManMoveState.cpp" />
     <ClCompile Include="bnProgsManPunchState.cpp" />
@@ -254,11 +314,32 @@
     <ClCompile Include="bnAgent.h" />
     <ClCompile Include="bnCanodumbCursor.cpp" />
     <ClCompile Include="bnNaviRegistration.cpp" />
+    <ClCompile Include="bnChipDescriptionTextbox.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AlphaBossSpawnPolicy.h" />
+    <ClInclude Include="bnAirShot.h" />
     <ClInclude Include="bnAnimate.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
+    <ClInclude Include="bnAura.h" />
+    <ClInclude Include="bnAuraHealthUI.h" />
+    <ClInclude Include="bnBattleOverTrigger.h" />
+    <ClInclude Include="bnBubble.h" />
+    <ClInclude Include="bnBubbleState.h" />
+    <ClInclude Include="bnBubbleTrap.h" />
+    <ClInclude Include="bnDefenseAntiDamage.h" />
+    <ClInclude Include="bnDefenseBubbleWrap.h" />
+    <ClInclude Include="bnChargedBusterHit.h" />
+    <ClInclude Include="bnCounterHitListener.h" />
+    <ClInclude Include="bnCounterHitPublisher.h" />
+    <ClInclude Include="bnCube.h" />
+    <ClInclude Include="bnCustEmblem.h" />
+    <ClInclude Include="bnDefenseAura.h" />
+    <ClInclude Include="bnDefenseGuard.h" />
+    <ClInclude Include="bnElecPulse.h" />
+    <ClInclude Include="bnElementalDamage.h" />
+    <ClInclude Include="bnEnemyChipUseListener.h" />
     <ClInclude Include="bnBackground.h" />
     <ClInclude Include="bnBasicSword.h" />
     <ClInclude Include="bnBattleItem.h" />
@@ -271,13 +352,51 @@
     <ClInclude Include="bnCanodumbIdleState.h" />
     <ClInclude Include="bnCharacter.h" />
     <ClInclude Include="bnChipFolder.h" />
+    <ClInclude Include="bnChipsSpawnPolicy.h" />
     <ClInclude Include="bnChipUseListener.h" />
     <ClInclude Include="bnChipUsePublisher.h" />
     <ClInclude Include="bnComponent.h" />
-    <ClInclude Include="bnEaseFunctions.h" />
+    <ClInclude Include="bnEnemyChipsUI.h" />
+    <ClInclude Include="bnFakeScene.h" />
+    <ClInclude Include="bnFishy.h" />
+    <ClInclude Include="bnFolderEditScene.h" />
+    <ClInclude Include="bnGameOverScene.h" />
+    <ClInclude Include="bnGear.h" />
+    <ClInclude Include="bnGuardHit.h" />
+    <ClInclude Include="bnHideTimer.h" />
+    <ClInclude Include="bnHideUntil.h" />
+    <ClInclude Include="bnHitBox.h" />
+    <ClInclude Include="bnInvis.h" />
+    <ClInclude Include="bnLibraryScene.h" />
+    <ClInclude Include="bnMetalBlade.h" />
+    <ClInclude Include="bnMetalMan.h" />
+    <ClInclude Include="bnMetalManBossFight.h" />
+    <ClInclude Include="bnMetalManBossFight2.h" />
+    <ClInclude Include="bnMetalManIdleState.h" />
+    <ClInclude Include="bnMetalManMoveState.h" />
+    <ClInclude Include="bnMetalManPunchState.h" />
+    <ClInclude Include="bnMetalManThrowState.h" />
+    <ClInclude Include="bnMobRegistration.h" />
+    <ClInclude Include="bnMysteryData.h" />
+    <ClInclude Include="bnNinjaAntiDamage.h" />
+    <ClInclude Include="bnNinjaStar.h" />
+    <ClInclude Include="bnObstacle.h" />
+    <ClInclude Include="bnPanelGrab.h" />
+    <ClInclude Include="bnParticlePoof.h" />
+    <ClInclude Include="bnProgsmanHitState.h" />
+    <ClInclude Include="bnProgsManShootState.h" />
     <ClInclude Include="bnProgsManThrowState.h" />
+    <ClInclude Include="bnQueueMobRegistration.h" />
+    <ClInclude Include="bnReflectShield.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />
+    <ClInclude Include="bnRowHit.h" />
+    <ClInclude Include="bnShineExplosion.h" />
+    <ClInclude Include="bnStarfish.h" />
+    <ClInclude Include="bnStarfishAttackState.h" />
+    <ClInclude Include="bnStarfishIdleState.h" />
+    <ClInclude Include="bnStarfishMob.h" />
+    <ClInclude Include="bnThunder.h" />
     <ClInclude Include="bnTileBehavior.h" />
     <ClInclude Include="bnElements.h" />
     <ClInclude Include="bnFolderScene.h" />
@@ -349,6 +468,7 @@
     <ClInclude Include="bnPlayerHealthUI.h" />
     <ClInclude Include="bnBuster.h" />
     <ClInclude Include="bnTwoMettaurMob.h" />
+    <ClInclude Include="bnUIComponent.h" />
     <ClInclude Include="bnVirusBackground.h" />
     <ClInclude Include="bnWave.h" />
     <ClInclude Include="bnMettaur.h" />
@@ -356,16 +476,31 @@
     <ClInclude Include="bnSelectedChipsUI.h" />
     <ClInclude Include="bnMettaurAttackState.h" />
     <ClInclude Include="bnMeta.h" />
-    <ClInclude Include="bnTimer.h" />
     <ClInclude Include="bnFileUtil.h" />
     <ClInclude Include="bnCanonSmoke.h" />
     <ClInclude Include="bnNaviRegistration.h" />
     <ClInclude Include="bnQueueNaviRegistration.h" />
-    <ClInclude Include="bnFramedTextBox.h" />
+    <ClInclude Include="bnAnimatedTextBox.h" />
     <ClInclude Include="bnChipSummonHandler.h" />
+    <ClInclude Include="bnChipDescriptionTextbox.h" />
+    <ClInclude Include="bnChipFolderCollection.h" />
+    <ClInclude Include="bnNaviExplodeState.h" />
+    <ClInclude Include="bnDefenseRule.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />
+    <ClInclude Include="bnSceneNode.h" />
+    <ClInclude Include="bnRockDebris.h" />
+    <ClInclude Include="Segues\BlackWashFade.h" />
+    <ClInclude Include="Segues\Checkerboard.h" />
+    <ClInclude Include="Segues\CrossZoom.h" />
+    <ClInclude Include="Segues\DiamondTileSwipe.h" />
+    <ClInclude Include="Segues\PixelateBlackWashFade.h" />
+    <ClInclude Include="Segues\PushIn.h" />
+    <ClInclude Include="Segues\SlideIn.h" />
+    <ClInclude Include="Segues\WhiteWashFade.h" />
+    <ClInclude Include="Segues\ZoomFadeIn.h" />
+    <ClInclude Include="bnUndernetBackground.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BattleNetwork.rc" />

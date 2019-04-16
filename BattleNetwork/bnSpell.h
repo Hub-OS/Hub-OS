@@ -5,32 +5,28 @@
 
 using sf::Texture;
 
-class Spell : public Entity {
+class Spell : public virtual Entity {
 public:
-  Spell(void);
-  virtual ~Spell(void);
+  Spell();
+  virtual ~Spell();
 
   const bool IsTileHighlightEnabled() const;
 
   virtual void Update(float _elapsed) = 0;
-  virtual bool Move(Direction _direction) = 0;
-  virtual void Attack(Entity* _entity) = 0;
-  virtual vector<Drawable*> GetMiscComponents() = 0;
-
-  void SetDirection(Direction _direction);
-  Direction GetDirection() const;
+  virtual void Attack(Character* _entity) = 0;
+  virtual void AdoptTile(Battle::Tile* tile);
 
   void EnableTileHighlight(bool enable);
+
+  void SetHitboxProperties(Hit::Properties props);
+  const Hit::Properties GetHitboxProperties() const;
 
 protected:
   bool hit;
   bool markTile;
-  int random;
-  float cooldown;
-  float damageCooldown;
   float progress;
   float hitHeight;
   Texture* texture;
-  Direction direction;
   AnimationComponent animationComponent;
+  Hit::Properties hitboxProperties;
 };

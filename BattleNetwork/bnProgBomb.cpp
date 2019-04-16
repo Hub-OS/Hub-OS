@@ -4,11 +4,11 @@
 #include "bnPlayer.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnExplosion.h"
 #include <cmath>
+#include <Swoosh/Ease.h>
 
-#define GRAVITY 9.81f
-
-ProgBomb::ProgBomb(Field* _field, Team _team, Battle::Tile* _target, float _duration) {
+ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration) {
   SetLayer(0);
   cooldown = 0;
   damageCooldown = 0;
@@ -25,11 +25,15 @@ ProgBomb::ProgBomb(Field* _field, Team _team, Battle::Tile* _target, float _dura
   hitHeight = 0.0f;
   random = 0;
 
-  //animation.addFrame(0.3f, IntRect(0, 0, 19, 41));
+  auto props = Hit::DefaultProperties;
+  props.damage = 40;
+  this->SetHitboxProperties(props);
 
-  arcDuration = _duration*1000.0f;
+  arcDuration = _duration;
   arcProgress = 0;
-  target = _target;
+
+  start = startPos;
+  
 
   setOrigin(sf::Vector2f(19, 24) / 2.f);
   AUDIO.Play(AudioType::TOSS_ITEM);
@@ -38,40 +42,34 @@ ProgBomb::ProgBomb(Field* _field, Team _team, Battle::Tile* _target, float _dura
 ProgBomb::~ProgBomb(void) {
 }
 
-void ProgBomb::PrepareThrowPath() {
-  velX = velY = 0;
-  posX = tile->getPosition().x;
-  posY = tile->getPosition().y;
-
-  // Calculate projectile variables on init 
-  velX = (target->getPosition().x - posX) / (arcDuration/1000.0f);
-  velY = -1.0f * ((float) fabs(target->getPosition().y + 0.5f * (GRAVITY * (arcDuration/1000.0f) * (arcDuration/1000.0f)) - posY)) / (arcDuration / 1000.0f);
-  arcProgress = 0;
-}
-
 void ProgBomb::Update(float _elapsed) {
-  arcProgress += _elapsed * 1000.0f; // convert from s to ms
+  arcProgress += _elapsed;
 
-  setPosition(tile->getPosition().x + 5.f, tile->getPosition().y);
-  setRotation(-(arcProgress / arcDuration)*45.0f);
+  int flash = (int)(arcProgress * 15);
 
-  /* Have a target tile in mind
-  calculate the time to the tile
-  follow arc path to the tile from start height over time
-  at time x (where x is the end of the arc), attack tile
-  explode
-  */
-  sf::Vector2f pos(getPosition());
+  if (flash % 2 == 0) {
+    this->EnableTileHighlight(true);
+  }
+  else {
+    this->EnableTileHighlight(false);
+  }
 
-  pos.x = (velX * (arcProgress/1000.0f)) + pos.x;
-  pos.y += 0.5f * GRAVITY * ((arcProgress / 1000.0f) * (arcProgress / 1000.0f)) + (velY * (arcProgress / 1000.0f));
+  double alpha = swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0f);
+  double beta  = swoosh::ease::linear(arcProgress, arcDuration, 1.0f);
 
-  setPosition(pos);
+  double posX = (beta * tile->getPosition().x) + ((1.0f - beta)*start.x);
+  double height = -(alpha * 120.0);
+  double posY = height + (beta * tile->getPosition().y) + ((1.0f - beta)*start.y);
+
+  setPosition((float)posX, (float)posY);
+  setRotation(-(arcProgress / arcDuration)*90.0f);
 
   // When at the end of the arc
   if (arcProgress >= arcDuration) {
     // update tile to target tile 
-    target->AffectEntities(this);
+    tile->AffectEntities(this);
+    Artifact* explosion = new Explosion(this->GetField(), this->GetTeam());
+    this->GetField()->AddEntity(*explosion, this->tile->GetX(), this->tile->GetY());
     deleted = true;
   }
 }
@@ -80,15 +78,8 @@ bool ProgBomb::Move(Direction _direction) {
   return true;
 }
 
-void ProgBomb::Attack(Entity* _entity) {
-  Player* isPlayer = dynamic_cast<Player*>(_entity);
-  if (isPlayer) {
-    isPlayer->Hit(20);
-    deleted = true;
-    return;
-  }
-}
-
-vector<Drawable*> ProgBomb::GetMiscComponents() {
-  return vector<Drawable*>();
+void ProgBomb::Attack(Character* _entity) {
+  _entity->Hit(GetHitboxProperties());
+  deleted = true;
+  return;
 }

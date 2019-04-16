@@ -11,7 +11,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
-CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : animationComponent(this), Artifact(_field, _team) {
+CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : animationComponent(this), Artifact(_field, Team::UNKNOWN) {
   SetFloatShoe(true);
   
   parent = _parent;
@@ -19,7 +19,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : a
 
   SetLayer(0);
   field = _field;
-  team = _team;
+  team = Team::UNKNOWN;
 
   direction = Direction::LEFT;
 
@@ -28,7 +28,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : a
 
   //Components setup and load
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
   animationComponent.SetAnimation(MOB_CANODUMB_CURSOR);
   animationComponent.Update(0);
 
@@ -50,7 +50,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : a
 void CanodumbCursor::Update(float _elapsed) {
   animationComponent.Update(_elapsed);
 
-  setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 15.0f);
+  setPosition(tile->getPosition().x, tile->getPosition().y);
 
   movecooldown -= _elapsed;
 
@@ -58,7 +58,7 @@ void CanodumbCursor::Update(float _elapsed) {
     if (this->GetTile() == target->GetTile() && !target->IsPassthrough()) {
       deleted = true;
 
-      parent->StateChange<CanodumbAttackState>();
+      parent->ChangeState<CanodumbAttackState>();
     }
     else {
       movecooldown = maxcooldown;
@@ -67,8 +67,8 @@ void CanodumbCursor::Update(float _elapsed) {
       Battle::Tile* t = f->GetAt(this->GetTile()->GetX() - 1, this->GetTile()->GetY());
 
       if (t != nullptr) {
-        this->GetTile()->RemoveEntity(this);
-        t->AddEntity(this);
+        this->GetTile()->RemoveEntityByID(this->GetID());
+        t->AddEntity(*this);
       }
       else {
         deleted = true;
@@ -77,11 +77,6 @@ void CanodumbCursor::Update(float _elapsed) {
   }
 
   Entity::Update(_elapsed);
-}
-
-vector<Drawable*> CanodumbCursor::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  return drawables;
 }
 
 CanodumbCursor::~CanodumbCursor()

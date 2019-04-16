@@ -7,6 +7,7 @@ using sf::IntRect;
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
 #include "bnProgsManIdleState.h"
+#include "bnProgsManHitState.h"
 #include "bnAnimationComponent.h"
 #include "bnAI.h"
 
@@ -21,14 +22,14 @@ public:
 
   virtual void Update(float _elapsed);
   virtual void RefreshTexture();
-  virtual vector<Drawable*> GetMiscComponents();
   virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
+  virtual void SetCounterFrame(int frame);
   virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
   virtual int GetHealth() const;
   virtual TextureType GetTextureType() const;
 
   void SetHealth(int _health);
-  virtual const bool Hit(int _damage);
+  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
 
   virtual const float GetHitHeight() const;
   virtual int* GetAnimOffset();

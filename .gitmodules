@@ -1,3 +1,6 @@
 [submodule "extern/SFML"]
 	path = extern/SFML
 	url = https://github.com/SFML/SFML
+[submodule "extern\\Swoosh"]
+	path = extern\\Swoosh
+	url = https://github.com/TheMaverickProgrammer/Swoosh.git

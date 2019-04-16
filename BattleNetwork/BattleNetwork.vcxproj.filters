@@ -1,51 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Battle">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Battle\Field">
-      <UniqueIdentifier>{3e0be7ae-d786-4657-8650-cfd3bf250541}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity">
-      <UniqueIdentifier>{2f7945d0-72a3-4a3f-aa64-466703264ef3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Spell">
-      <UniqueIdentifier>{8744243d-c514-4f2e-b8c3-ff0cd15fef0a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Spell\Wave">
-      <UniqueIdentifier>{357d9067-4a1f-4abd-836b-20c9aab639c6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Spell\Buster">
-      <UniqueIdentifier>{a5b0fd9b-980a-4240-9250-0d06444c60a4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Enumerations">
-      <UniqueIdentifier>{5c9d2cbc-eb6d-4112-b2aa-bafcdf47830a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine">
       <UniqueIdentifier>{b2d44660-3edc-4851-bcad-91fd074e9eef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Spell\ProgBomb">
-      <UniqueIdentifier>{433914da-e0ef-48b6-9930-a32468a26484}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips">
-      <UniqueIdentifier>{6552fc8f-0f57-4735-8abf-96a54c1fec10}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips\Cust">
-      <UniqueIdentifier>{f9e71ed1-58d0-4f77-937f-5656dd5f63e4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips\Database">
-      <UniqueIdentifier>{96b71ad6-be68-4e35-bd67-349eeadc6ac8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\AI">
-      <UniqueIdentifier>{b0e97f40-0be3-48ff-a3c0-924576c7938e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Artifact">
-      <UniqueIdentifier>{9be22663-7ffb-4d72-afb7-0ae8f6b0b8d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Artifact\Explosion">
-      <UniqueIdentifier>{586087ad-200c-42d9-a4d9-72203f62831f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Entry">
       <UniqueIdentifier>{99da17ce-caae-4583-a7c2-d4d60a27fba6}</UniqueIdentifier>
@@ -53,65 +10,8 @@
     <Filter Include="Engine\Camera">
       <UniqueIdentifier>{073bf066-0047-4316-9fe1-39c36c5d136a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Battle\Mob">
-      <UniqueIdentifier>{1cf38e39-dbdc-4910-ad71-868672316374}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Mob\Random">
-      <UniqueIdentifier>{0e4e830d-27bf-4942-a2b1-f80cf9b05101}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Mob\Easy">
-      <UniqueIdentifier>{b20f104e-955c-40ee-88f5-0246628bbff6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character">
-      <UniqueIdentifier>{e565b472-5297-4f4a-bb4e-f93b6d2d9345}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Mettaur">
-      <UniqueIdentifier>{16b3fe77-dae3-4ab7-a685-3797a65c1775}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Mettaur\States">
-      <UniqueIdentifier>{0edefaae-8923-437f-9711-2ae3d410892b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Player">
-      <UniqueIdentifier>{10c1c4d0-3a84-4a71-bef9-04835d2185da}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\ProgsMan">
-      <UniqueIdentifier>{5d15a7de-9f57-48f4-8d8a-3dcff2b9cefc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Any">
-      <UniqueIdentifier>{7e781496-123e-40b5-af0b-4f433296b3ee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Any\States">
-      <UniqueIdentifier>{c05712c6-7f52-4d6d-a5ce-4d887bc75117}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\ProgsMan\States">
-      <UniqueIdentifier>{6844292c-bee3-4395-b0a0-5d735bad7510}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips\PA">
-      <UniqueIdentifier>{ba8c8562-8161-4545-9648-95c6f34e2bcd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Spell\Cannon">
-      <UniqueIdentifier>{6e2416ad-ce8f-493f-84d7-f1e6f16a2ed5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Results">
-      <UniqueIdentifier>{5ab083d3-308d-4225-a245-928fbb4b9ce8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Results\ItemGet">
-      <UniqueIdentifier>{a5846164-84ed-4646-b020-9b4afabffdf5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Input">
       <UniqueIdentifier>{4a441b30-9e2f-4ff8-921a-60ef383f26d9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Animate">
-      <UniqueIdentifier>{fe12002d-65c0-4184-bb5f-72f816483120}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Spell\Sword">
-      <UniqueIdentifier>{7004a356-eed2-4c93-945f-5cfc693fe3c2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Spell\Sword\Basic">
-      <UniqueIdentifier>{cdf7b239-fbfe-4c6b-ad6f-451306bed072}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Field\Tile">
-      <UniqueIdentifier>{8bd2fb17-906f-4def-ade7-710283fde6b2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine\Resources">
       <UniqueIdentifier>{0e5b07ae-1ba2-404d-a462-579ab664eac6}</UniqueIdentifier>
@@ -125,101 +25,11 @@
     <Filter Include="Engine\Resources\ShaderResource">
       <UniqueIdentifier>{49b19f7e-5aec-46e0-967f-2e0f585adcef}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Battle\Backgrounds">
-      <UniqueIdentifier>{dc29490c-a264-4350-a55e-b02202ddc325}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Mob\Boss">
-      <UniqueIdentifier>{e66292ed-1af5-4333-930f-cd53c65a9e48}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Mob\Boss\ProgsMan">
-      <UniqueIdentifier>{a79cf10e-8091-4ad4-a760-c6bf708c83cb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Resources\FontResource">
       <UniqueIdentifier>{439edcdf-bce0-4360-b0e4-4fe0e780bf66}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Battle\Components">
-      <UniqueIdentifier>{dfa2cbcd-8575-45f2-93b6-c5d98a64e469}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Components\Animation">
-      <UniqueIdentifier>{32f5b123-7c10-4d87-abfc-a9326380e103}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Components\Animation\Charge">
-      <UniqueIdentifier>{ab250ee0-5fc9-498e-97e9-3b1f28a188c7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes">
-      <UniqueIdentifier>{2c22d20c-e987-4431-9a4b-554d71926008}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes\Battle">
-      <UniqueIdentifier>{10976369-a638-4250-b08c-f835a7bbfe7d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes\Main Menu">
-      <UniqueIdentifier>{d2dc3e83-cab6-4455-9e10-e5295c5f8d2d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes\Select Mob">
-      <UniqueIdentifier>{82986475-2577-4085-b6c9-d114b769337c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Player\Megaman">
-      <UniqueIdentifier>{8cbbf029-e0d4-4f36-96ba-f9d11ea106df}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Player\Megaman\States">
-      <UniqueIdentifier>{ce04f5a8-3636-4a36-8ba1-192b3f0785eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Player\Starman">
-      <UniqueIdentifier>{96b1d867-02b9-449d-89c5-42ddcc67c189}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Player\Starman\States">
-      <UniqueIdentifier>{b7b66854-d776-4a16-ac13-be8464927b6c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Overworld">
-      <UniqueIdentifier>{380f4ec8-7bec-4707-ac1e-38788c83c4b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Overworld\Map">
-      <UniqueIdentifier>{835dd9d2-1448-4cee-9144-0efdeac68187}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Overworld\Map\Lights">
-      <UniqueIdentifier>{fae5d589-c746-4a71-893a-9cfea9ad596c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Overworld\Map\Dynamic">
-      <UniqueIdentifier>{18a112b3-8ba5-4851-82b8-4d75444b101c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Artifact\Cannon">
-      <UniqueIdentifier>{24bc03bc-251a-4156-a2c4-318d0d5f4bfb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Canodumb">
-      <UniqueIdentifier>{9613c3d8-ce86-4941-9b80-353a5108787a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Canodumb\States">
-      <UniqueIdentifier>{3d0d6159-bd37-4923-8112-d6facaa68b3c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Entity\Character\Canodumb\Misc">
-      <UniqueIdentifier>{ba685902-7150-4751-9f50-780a74f3ff76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips\Folder">
-      <UniqueIdentifier>{bef66beb-f219-4d07-8d52-25a90241ac54}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes\Folder">
-      <UniqueIdentifier>{4207b872-406d-4138-948a-a0d7c9fbdfa1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utilities">
       <UniqueIdentifier>{8c50a11b-c013-4ca0-a58e-cfc37e58a64f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips\ChipUseListener">
-      <UniqueIdentifier>{635d6105-57c6-40d2-be0b-a016ed816e8c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips\ChipUseListener\Player">
-      <UniqueIdentifier>{1130e585-ede8-4349-b692-28fef5025bb2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips\ChipUseListener\Any">
-      <UniqueIdentifier>{66d9858f-2c9d-4e25-9578-5c0dd84e32b6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips\ChipUsePublisher">
-      <UniqueIdentifier>{0be851a6-6c86-4ffb-a4f9-0f230a542869}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Battle\Chips\ChipUsePublisher\UI">
-      <UniqueIdentifier>{2ffdbd56-f900-4230-b51b-8239abe620b8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes\Select Navi">
-      <UniqueIdentifier>{9d3a1388-2568-497b-8e9d-9c02c4cc066e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine\Addons">
       <UniqueIdentifier>{1f5b033a-23dc-49c3-851a-b980cd582e04}</UniqueIdentifier>
@@ -239,55 +49,440 @@
     <Filter Include="Prefabs\Background">
       <UniqueIdentifier>{f518437e-3c00-47c0-88d0-0c62e29c64ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Battle\Entity\Character\Player\Protoman">
+    <Filter Include="Activities">
+      <UniqueIdentifier>{2c22d20c-e987-4431-9a4b-554d71926008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle">
+      <UniqueIdentifier>{10976369-a638-4250-b08c-f835a7bbfe7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Main Menu">
+      <UniqueIdentifier>{d2dc3e83-cab6-4455-9e10-e5295c5f8d2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Select Mob">
+      <UniqueIdentifier>{82986475-2577-4085-b6c9-d114b769337c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Folder">
+      <UniqueIdentifier>{4207b872-406d-4138-948a-a0d7c9fbdfa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Select Navi">
+      <UniqueIdentifier>{9d3a1388-2568-497b-8e9d-9c02c4cc066e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\GameOver">
+      <UniqueIdentifier>{d6f2acf8-b44a-4ccc-89c5-4f76f2f39c29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Segues">
+      <UniqueIdentifier>{342cc4ce-391b-400f-85a2-a564949a77c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Field">
+      <UniqueIdentifier>{3e0be7ae-d786-4657-8650-cfd3bf250541}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Field\Tile">
+      <UniqueIdentifier>{8bd2fb17-906f-4def-ade7-710283fde6b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips">
+      <UniqueIdentifier>{6552fc8f-0f57-4735-8abf-96a54c1fec10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Cust">
+      <UniqueIdentifier>{f9e71ed1-58d0-4f77-937f-5656dd5f63e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\AI">
+      <UniqueIdentifier>{b0e97f40-0be3-48ff-a3c0-924576c7938e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Results">
+      <UniqueIdentifier>{5ab083d3-308d-4225-a245-928fbb4b9ce8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Results\ItemGet">
+      <UniqueIdentifier>{a5846164-84ed-4646-b020-9b4afabffdf5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Backgrounds">
+      <UniqueIdentifier>{dc29490c-a264-4350-a55e-b02202ddc325}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components">
+      <UniqueIdentifier>{dfa2cbcd-8575-45f2-93b6-c5d98a64e469}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\Animation">
+      <UniqueIdentifier>{32f5b123-7c10-4d87-abfc-a9326380e103}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\Animation\Charge">
+      <UniqueIdentifier>{ab250ee0-5fc9-498e-97e9-3b1f28a188c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Main Menu\Overworld">
+      <UniqueIdentifier>{380f4ec8-7bec-4707-ac1e-38788c83c4b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Main Menu\Overworld\Map">
+      <UniqueIdentifier>{835dd9d2-1448-4cee-9144-0efdeac68187}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Main Menu\Overworld\Map\Lights">
+      <UniqueIdentifier>{fae5d589-c746-4a71-893a-9cfea9ad596c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Main Menu\Overworld\Map\Dynamic">
+      <UniqueIdentifier>{18a112b3-8ba5-4851-82b8-4d75444b101c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Graphics">
+      <UniqueIdentifier>{fe12002d-65c0-4184-bb5f-72f816483120}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Graphics\Animate">
+      <UniqueIdentifier>{f7b3b6ba-319e-41c2-9861-e349a23173bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Graphics\SceneNodes">
+      <UniqueIdentifier>{a3ca0f30-7208-4c3d-afd4-401fdaf8c61d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\UI">
+      <UniqueIdentifier>{a8e9ac2a-8f91-4965-9108-64886a52dd16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Cust\UI">
+      <UniqueIdentifier>{36e8f1dc-b46a-4384-b735-c0cfab8a122e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Database">
+      <UniqueIdentifier>{96b71ad6-be68-4e35-bd67-349eeadc6ac8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Database\PA">
+      <UniqueIdentifier>{ba8c8562-8161-4545-9648-95c6f34e2bcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Database\Folder">
+      <UniqueIdentifier>{bef66beb-f219-4d07-8d52-25a90241ac54}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Library">
+      <UniqueIdentifier>{ea048849-1ab7-42bd-b03a-dcfdc529c6c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Folder\Edit">
+      <UniqueIdentifier>{dd2f8f2c-329f-4a6f-90a8-936a258811fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub">
+      <UniqueIdentifier>{370b33dc-db40-4e8a-befe-8c281a66f20b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse">
+      <UniqueIdentifier>{5eceddc7-4c13-4e3d-b1f8-6b8aac860d58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\CounterHit">
+      <UniqueIdentifier>{7a269b8a-ed64-4a66-9792-3ad6025626bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\UI\Player">
+      <UniqueIdentifier>{9a26a8e6-989b-4317-874a-6c1699773fb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\UI\Any">
+      <UniqueIdentifier>{a9b3e791-0104-4027-a099-7c4207f47ea1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\FakeTitle">
+      <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Enumerations">
+      <UniqueIdentifier>{5c9d2cbc-eb6d-4112-b2aa-bafcdf47830a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\AI\Any">
+      <UniqueIdentifier>{7e781496-123e-40b5-af0b-4f433296b3ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\AI\Any\States">
+      <UniqueIdentifier>{c05712c6-7f52-4d6d-a5ce-4d887bc75117}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse\ChipUseListener">
+      <UniqueIdentifier>{635d6105-57c6-40d2-be0b-a016ed816e8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Player">
+      <UniqueIdentifier>{1130e585-ede8-4349-b692-28fef5025bb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Any">
+      <UniqueIdentifier>{66d9858f-2c9d-4e25-9578-5c0dd84e32b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers">
+      <UniqueIdentifier>{6de280b9-d0b4-4877-8dcd-0b09b1cc3b70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\PubSub\ChipUse\ChipUsePublisher">
+      <UniqueIdentifier>{f2d09726-b6c3-4add-a95c-207a1383c559}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration">
+      <UniqueIdentifier>{5c8b3f8e-1cbb-4f3c-9b38-04f0153d1e1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\Triggers">
+      <UniqueIdentifier>{ade66c70-d29e-4fda-9c7d-868a596b794f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules">
+      <UniqueIdentifier>{fc757fbd-50b1-4d0f-be45-890288e6eab0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\Invincible">
+      <UniqueIdentifier>{161379cd-e67d-4358-bbb8-ff371c2b37da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\Mole">
+      <UniqueIdentifier>{f8825da0-d583-45d1-864f-806dda8b6c4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard">
+      <UniqueIdentifier>{4b06344c-bbd5-4842-b21b-2ebee0f22e66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\Aura">
+      <UniqueIdentifier>{2a924a57-8ec8-4d18-b184-6a41f10b7d45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\AntiSword">
+      <UniqueIdentifier>{b67cfdf6-6272-4298-825f-63997a670e23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories">
+      <UniqueIdentifier>{1cf38e39-dbdc-4910-ad71-868672316374}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\Random">
+      <UniqueIdentifier>{0e4e830d-27bf-4942-a2b1-f80cf9b05101}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\Easy">
+      <UniqueIdentifier>{b20f104e-955c-40ee-88f5-0246628bbff6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\Boss">
+      <UniqueIdentifier>{e66292ed-1af5-4333-930f-cd53c65a9e48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\Boss\ProgsMan">
+      <UniqueIdentifier>{a79cf10e-8091-4ad4-a760-c6bf708c83cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\Boss\MetalMan">
+      <UniqueIdentifier>{bf0078df-2b66-4101-88ac-eba5e87d190a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\SpawnPolicies">
+      <UniqueIdentifier>{81d9d5d5-0eae-40eb-bcf8-b901b9638cec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\SpawnPolicies\ChipSpawnPolicies">
+      <UniqueIdentifier>{818f9f46-08a6-49c1-917e-8f8dbd065e02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy">
+      <UniqueIdentifier>{8deab339-cfc6-43e6-b86c-2cb7f139d585}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\Challenging">
+      <UniqueIdentifier>{9886141e-88bf-4f26-8d5d-8d3f1dab66a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\BubbleWrap">
+      <UniqueIdentifier>{0bbb6b60-7056-41ab-a844-a547b03f2030}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\AntiDamage">
+      <UniqueIdentifier>{fded6a4a-52b5-4231-8128-9eca9acec438}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\BattleComponents">
+      <UniqueIdentifier>{6e768827-1330-4aa5-bce1-de9bb37dfc88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\BattleComponents\Invis">
+      <UniqueIdentifier>{f82e613f-e5a1-49ed-a1d2-14789012c602}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\BattleComponents\NinjaAntiDamage">
+      <UniqueIdentifier>{271ebbdf-139e-4f83-955a-5c0051ce680e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\UI\Aura">
+      <UniqueIdentifier>{dcfd71cf-1eb5-44de-ad52-086d2567410b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\BattleComponents\Hide">
+      <UniqueIdentifier>{9dd2b6f9-38bc-4fb3-af03-b4775edf30bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Addons\Scripting">
+      <UniqueIdentifier>{29a2789a-5953-4284-bd8c-b873ebd82bc4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities">
+      <UniqueIdentifier>{2f7945d0-72a3-4a3f-aa64-466703264ef3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell">
+      <UniqueIdentifier>{8744243d-c514-4f2e-b8c3-ff0cd15fef0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Wave">
+      <UniqueIdentifier>{357d9067-4a1f-4abd-836b-20c9aab639c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Buster">
+      <UniqueIdentifier>{a5b0fd9b-980a-4240-9250-0d06444c60a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\ProgBomb">
+      <UniqueIdentifier>{433914da-e0ef-48b6-9930-a32468a26484}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Cannon">
+      <UniqueIdentifier>{6e2416ad-ce8f-493f-84d7-f1e6f16a2ed5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Sword">
+      <UniqueIdentifier>{7004a356-eed2-4c93-945f-5cfc693fe3c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Sword\Basic">
+      <UniqueIdentifier>{cdf7b239-fbfe-4c6b-ad6f-451306bed072}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\AirShot">
+      <UniqueIdentifier>{637ca2c1-8a5e-4141-b610-9dc7186f1954}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\MetalBlade">
+      <UniqueIdentifier>{91aa49bc-7d50-4019-ada5-31019db9dd2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Thunder">
+      <UniqueIdentifier>{8bcaba3f-b78e-487d-87ae-4eef532e7546}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\RowHit">
+      <UniqueIdentifier>{a540c9b8-5a8d-4d43-b201-696941acf792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\HitBox">
+      <UniqueIdentifier>{fe504cb6-8871-4913-ad55-6cb742f26b28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Elecpulse">
+      <UniqueIdentifier>{f9e4081c-a440-47cf-a7bf-002d2861872e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\NinjaStar">
+      <UniqueIdentifier>{2c9baefe-6d37-4372-a31b-6cfbdba3ccde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\PanelGrab">
+      <UniqueIdentifier>{07a4e1a7-126f-4c83-82b5-5352df405add}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact">
+      <UniqueIdentifier>{9be22663-7ffb-4d72-afb7-0ae8f6b0b8d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Explosion">
+      <UniqueIdentifier>{586087ad-200c-42d9-a4d9-72203f62831f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Explosion\Basic">
+      <UniqueIdentifier>{ce16928b-ae94-41f1-ade6-70a553ef4874}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Explosion\Projectile">
+      <UniqueIdentifier>{5b575b1c-744c-4485-b16e-9d326c04ed10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Explosion\Boss">
+      <UniqueIdentifier>{db93d211-1a1a-4eb3-9b32-71aab8dfc689}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Cannon">
+      <UniqueIdentifier>{24bc03bc-251a-4156-a2c4-318d0d5f4bfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Hits">
+      <UniqueIdentifier>{fc5931dc-2556-40aa-8f4b-96fc899f5707}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Hits\Guard">
+      <UniqueIdentifier>{7dc38b81-9350-486a-a312-cd7d05ae0f3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Hits\Buster">
+      <UniqueIdentifier>{44f2b70e-d5ac-4e3b-a080-41299189d811}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Guard">
+      <UniqueIdentifier>{2a39016a-5677-4ad3-b2b4-0a9f1a6d6b4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\BubbleTrap">
+      <UniqueIdentifier>{065d1d09-79c9-4d17-b919-bec7210804a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\ElementalDamage">
+      <UniqueIdentifier>{94103bd2-e9e6-4fe4-b3a3-8a97743d00a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Particles">
+      <UniqueIdentifier>{0dbb0cf9-2cb3-4566-8687-825795e88f88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Particles\Poof">
+      <UniqueIdentifier>{2b90c5c8-59f3-4bf4-9c06-872f5c173f6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Particles\RockDebris">
+      <UniqueIdentifier>{6bfb8d2c-72ad-453b-8e56-39c4b92632f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character">
+      <UniqueIdentifier>{e565b472-5297-4f4a-bb4e-f93b6d2d9345}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Mettaur">
+      <UniqueIdentifier>{16b3fe77-dae3-4ab7-a685-3797a65c1775}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Mettaur\States">
+      <UniqueIdentifier>{0edefaae-8923-437f-9711-2ae3d410892b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Player">
+      <UniqueIdentifier>{10c1c4d0-3a84-4a71-bef9-04835d2185da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Player\Megaman">
+      <UniqueIdentifier>{8cbbf029-e0d4-4f36-96ba-f9d11ea106df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Player\Megaman\States">
+      <UniqueIdentifier>{ce04f5a8-3636-4a36-8ba1-192b3f0785eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Player\Starman">
+      <UniqueIdentifier>{96b1d867-02b9-449d-89c5-42ddcc67c189}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Player\Starman\States">
+      <UniqueIdentifier>{b7b66854-d776-4a16-ac13-be8464927b6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Player\Protoman">
       <UniqueIdentifier>{6a4a149c-363c-4995-beeb-0fe217611da6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Battle\Entity\Character\Player\Roll">
+    <Filter Include="Activities\Battle\Content\Entities\Character\Player\Roll">
       <UniqueIdentifier>{34dd93df-6037-4d84-ba75-91be8baca2fa}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Battle\Entity\Character\Player\Roll\States">
+    <Filter Include="Activities\Battle\Content\Entities\Character\Player\Roll\States">
       <UniqueIdentifier>{a85c89af-631a-4657-9c6c-3f47c2e18ea7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Battle\Entity\Summons">
+    <Filter Include="Activities\Battle\Content\Entities\Character\ProgsMan">
+      <UniqueIdentifier>{5d15a7de-9f57-48f4-8d8a-3dcff2b9cefc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\ProgsMan\States">
+      <UniqueIdentifier>{6844292c-bee3-4395-b0a0-5d735bad7510}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Canodumb">
+      <UniqueIdentifier>{9613c3d8-ce86-4941-9b80-353a5108787a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Canodumb\States">
+      <UniqueIdentifier>{3d0d6159-bd37-4923-8112-d6facaa68b3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Canodumb\Misc">
+      <UniqueIdentifier>{ba685902-7150-4751-9f50-780a74f3ff76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Mystery">
+      <UniqueIdentifier>{38dc9ec9-8504-4788-baf9-525eafa3f596}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\MetalMan">
+      <UniqueIdentifier>{d21c05da-2efc-4a4e-9e2a-dd81b3fd411e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\MetalMan\States">
+      <UniqueIdentifier>{6363f3d7-a9e8-415d-b236-9e97d811d211}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Auras">
+      <UniqueIdentifier>{2482e1b7-393a-4a43-ba4f-36770ee44c88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Starfish">
+      <UniqueIdentifier>{a5f52f1e-01f1-4474-a82d-aae890335ab7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Starfish\States">
+      <UniqueIdentifier>{fa691605-5043-47f8-bed4-ef5129cb03a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Summons">
       <UniqueIdentifier>{fbaa3fbf-d796-4026-82d6-ddf7c391ef31}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Battle\Entity\Summons\Roll">
+    <Filter Include="Activities\Battle\Content\Entities\Summons\Roll">
       <UniqueIdentifier>{541f9cd8-4857-4700-bb63-5aa7ce04599b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utilities\EaseIns">
-      <UniqueIdentifier>{4c3c2b6a-708e-484b-b3df-2e0e0deaa39d}</UniqueIdentifier>
+    <Filter Include="Activities\Battle\Content\Entities\Obstacle">
+      <UniqueIdentifier>{0779085e-86f9-423c-a6a2-a073a9cea774}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Obstacle\Cube">
+      <UniqueIdentifier>{ff64002f-276a-4bda-9969-a191c1e00185}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Obstacle\MetalGear">
+      <UniqueIdentifier>{2eecd12e-2612-414a-a92b-4c4a842114f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Obstacle\Bubble">
+      <UniqueIdentifier>{c23e59ca-5dff-43ba-91b9-2c679d0b5748}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Obstacle\Fishy">
+      <UniqueIdentifier>{8bea6c2f-52ce-4aa9-beeb-01d59ee9a3fb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
-      <Filter>Battle\Field</Filter>
+      <Filter>Activities\Battle\Content\Field</Filter>
     </ClCompile>
     <ClCompile Include="bnTile.cpp">
-      <Filter>Battle\Field\Tile</Filter>
+      <Filter>Activities\Battle\Content\Field\Tile</Filter>
     </ClCompile>
     <ClCompile Include="bnSpell.cpp">
-      <Filter>Battle\Entity\Spell</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell</Filter>
     </ClCompile>
     <ClCompile Include="bnWave.cpp">
-      <Filter>Battle\Entity\Spell\Wave</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\Wave</Filter>
     </ClCompile>
     <ClCompile Include="bnBuster.cpp">
-      <Filter>Battle\Entity\Spell\Buster</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\Buster</Filter>
     </ClCompile>
     <ClCompile Include="bnMettaur.cpp">
-      <Filter>Battle\Entity\Character\Mettaur</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Mettaur</Filter>
     </ClCompile>
     <ClCompile Include="bnChargeComponent.cpp">
-      <Filter>Battle\Components\Animation\Charge</Filter>
+      <Filter>Activities\Battle\Content\Components\Animation\Charge</Filter>
     </ClCompile>
     <ClCompile Include="bnEntity.cpp">
-      <Filter>Battle\Entity</Filter>
+      <Filter>Activities\Battle\Content\Entities</Filter>
     </ClCompile>
     <ClCompile Include="bnEngine.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsMan.cpp">
-      <Filter>Battle\Entity\Character\ProgsMan</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan</Filter>
     </ClCompile>
     <ClCompile Include="bnAudioResourceManager.cpp">
       <Filter>Engine\Resources\AudioResource</Filter>
@@ -296,37 +491,37 @@
       <Filter>Engine\Resources\TextureResource</Filter>
     </ClCompile>
     <ClCompile Include="bnProgBomb.cpp">
-      <Filter>Battle\Entity\Spell\ProgBomb</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\ProgBomb</Filter>
     </ClCompile>
     <ClCompile Include="bnChipSelectionCust.cpp">
-      <Filter>Battle\Chips\Cust</Filter>
+      <Filter>Activities\Battle\Content\Chips\Cust</Filter>
     </ClCompile>
     <ClCompile Include="bnChipLibrary.cpp">
-      <Filter>Battle\Chips\Database</Filter>
+      <Filter>Database</Filter>
     </ClCompile>
     <ClCompile Include="bnChip.cpp">
-      <Filter>Battle\Chips\Database</Filter>
+      <Filter>Database</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimationComponent.cpp">
-      <Filter>Battle\Components\Animation</Filter>
+      <Filter>Activities\Battle\Content\Components\Animation</Filter>
     </ClCompile>
     <ClCompile Include="bnMettaurIdleState.cpp">
-      <Filter>Battle\Entity\Character\Mettaur\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Mettaur\States</Filter>
     </ClCompile>
     <ClCompile Include="bnMettaurAttackState.cpp">
-      <Filter>Battle\Entity\Character\Mettaur\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Mettaur\States</Filter>
     </ClCompile>
     <ClCompile Include="bnMettaurMoveState.cpp">
-      <Filter>Battle\Entity\Character\Mettaur\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Mettaur\States</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayerControlledState.cpp">
-      <Filter>Battle\Entity\Character\Player\Megaman\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayerHitState.cpp">
-      <Filter>Battle\Entity\Character\Player\Megaman\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
     </ClCompile>
     <ClCompile Include="bnArtifact.cpp">
-      <Filter>Battle\Entity\Artifact</Filter>
+      <Filter>Activities\Battle\Content\Entities\Artifact</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Entry</Filter>
@@ -338,19 +533,19 @@
       <Filter>Engine\Camera</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayerIdleState.cpp">
-      <Filter>Battle\Entity\Character\Player\Megaman\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
     </ClCompile>
     <ClCompile Include="bnRandomMettaurMob.cpp">
-      <Filter>Battle\Mob\Random</Filter>
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Random</Filter>
     </ClCompile>
     <ClCompile Include="bnTwoMettaurMob.cpp">
-      <Filter>Battle\Mob\Easy</Filter>
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Easy</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManIdleState.cpp">
-      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManMoveState.cpp">
-      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
     </ClCompile>
     <ClCompile Include="bnShaderResourceManager.cpp">
       <Filter>Engine\Resources\ShaderResource</Filter>
@@ -359,195 +554,369 @@
       <Filter>Engine\Resources\ShaderResource</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManPunchState.cpp">
-      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
     </ClCompile>
     <ClCompile Include="bnPA.cpp">
-      <Filter>Battle\Chips\PA</Filter>
+      <Filter>Database\PA</Filter>
     </ClCompile>
     <ClCompile Include="bnCannon.cpp">
-      <Filter>Battle\Entity\Spell\Cannon</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\Cannon</Filter>
     </ClCompile>
     <ClCompile Include="bnBattleResults.cpp">
-      <Filter>Battle\Results</Filter>
+      <Filter>Activities\Battle\Content\Results</Filter>
     </ClCompile>
     <ClCompile Include="bnBattleResults.h">
-      <Filter>Battle\Results</Filter>
+      <Filter>Activities\Battle\Content\Results</Filter>
     </ClCompile>
     <ClCompile Include="bnInputManager.cpp">
       <Filter>Engine\Input</Filter>
     </ClCompile>
     <ClCompile Include="bnBasicSword.cpp">
-      <Filter>Battle\Entity\Spell\Sword\Basic</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\Sword\Basic</Filter>
     </ClCompile>
     <ClCompile Include="bnLanBackground.cpp">
-      <Filter>Battle\Backgrounds</Filter>
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClCompile>
     <ClCompile Include="bnGraveyardBackground.cpp">
-      <Filter>Battle\Backgrounds</Filter>
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClCompile>
     <ClCompile Include="bnVirusBackground.cpp">
-      <Filter>Battle\Backgrounds</Filter>
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManBossFight.cpp">
-      <Filter>Battle\Mob\Boss\ProgsMan</Filter>
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\ProgsMan</Filter>
     </ClCompile>
     <ClCompile Include="bnAgent.h">
-      <Filter>Battle\AI</Filter>
-    </ClCompile>
-    <ClCompile Include="bnAnimate.cpp">
-      <Filter>Engine\Animate</Filter>
+      <Filter>Activities\Battle\Content\AI</Filter>
     </ClCompile>
     <ClCompile Include="bnBattleScene.cpp">
-      <Filter>Scenes\Battle</Filter>
+      <Filter>Activities\Battle</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectMobScene.cpp">
-      <Filter>Scenes\Select Mob</Filter>
+      <Filter>Activities\Select Mob</Filter>
     </ClCompile>
     <ClCompile Include="bnMainMenuScene.cpp">
-      <Filter>Scenes\Main Menu</Filter>
-    </ClCompile>
-    <ClCompile Include="bnAnimation.cpp">
-      <Filter>Engine\Animate</Filter>
+      <Filter>Activities\Main Menu</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayer.cpp">
-      <Filter>Battle\Entity\Character\Player\Megaman</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Megaman</Filter>
     </ClCompile>
     <ClCompile Include="bnOverworldMap.cpp">
-      <Filter>Overworld\Map</Filter>
+      <Filter>Activities\Main Menu\Overworld\Map</Filter>
     </ClCompile>
     <ClCompile Include="bnOverworldLight.cpp">
-      <Filter>Overworld\Map\Lights</Filter>
+      <Filter>Activities\Main Menu\Overworld\Map\Lights</Filter>
     </ClCompile>
     <ClCompile Include="bnInfiniteMap.cpp">
-      <Filter>Overworld\Map\Dynamic</Filter>
+      <Filter>Activities\Main Menu\Overworld\Map\Dynamic</Filter>
     </ClCompile>
     <ClCompile Include="bnCanodumbAttackState.cpp">
-      <Filter>Battle\Entity\Character\Canodumb\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Canodumb\States</Filter>
     </ClCompile>
     <ClCompile Include="bnCanodumbIdleState.cpp">
-      <Filter>Battle\Entity\Character\Canodumb\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Canodumb\States</Filter>
     </ClCompile>
     <ClCompile Include="bnCanodumb.cpp">
-      <Filter>Battle\Entity\Character\Canodumb</Filter>
-    </ClCompile>
-    <ClCompile Include="bnCanodumbMob.cpp">
-      <Filter>Battle\Mob\Easy</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Canodumb</Filter>
     </ClCompile>
     <ClCompile Include="bnCanodumbCursor.cpp">
-      <Filter>Battle\Entity\Character\Canodumb\Misc</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Canodumb\Misc</Filter>
     </ClCompile>
     <ClCompile Include="bnCharacter.cpp">
-      <Filter>Battle\Entity\Character</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character</Filter>
     </ClCompile>
     <ClCompile Include="bnCanonSmoke.cpp">
-      <Filter>Battle\Entity\Artifact\Cannon</Filter>
+      <Filter>Activities\Battle\Content\Entities\Artifact\Cannon</Filter>
     </ClCompile>
     <ClCompile Include="bnChipFolder.cpp">
-      <Filter>Battle\Chips\Folder</Filter>
+      <Filter>Database\Folder</Filter>
     </ClCompile>
     <ClCompile Include="bnFolderScene.cpp">
-      <Filter>Scenes\Folder</Filter>
+      <Filter>Activities\Folder</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimatedCharacter.cpp">
-      <Filter>Battle\Entity\Character</Filter>
-    </ClCompile>
-    <ClCompile Include="bnSelectedChipsUI.cpp">
-      <Filter>Battle\Chips\ChipUsePublisher\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="bnChipUseListener.cpp">
-      <Filter>Battle\Chips\ChipUseListener</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character</Filter>
     </ClCompile>
     <ClCompile Include="bnStarman.cpp">
-      <Filter>Battle\Entity\Character\Player\Starman</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Starman</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectNaviScene.cpp">
-      <Filter>Scenes\Select Navi</Filter>
+      <Filter>Activities\Select Navi</Filter>
     </ClCompile>
     <ClCompile Include="bnNaviRegistration.cpp">
       <Filter>Engine\Addons\NaviRegistration</Filter>
     </ClCompile>
     <ClCompile Include="bnGridBackground.cpp">
-      <Filter>Battle\Backgrounds</Filter>
-    </ClCompile>
-    <ClCompile Include="bnMobHealthUI.cpp">
-      <Filter>Battle\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="bnPlayerHealthUI.cpp">
-      <Filter>Battle\Components</Filter>
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClCompile>
     <ClCompile Include="bnRoll.cpp">
-      <Filter>Battle\Entity\Character\Player\Roll</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Roll</Filter>
     </ClCompile>
     <ClCompile Include="bnRollHeal.cpp">
-      <Filter>Battle\Entity\Summons\Roll</Filter>
+      <Filter>Activities\Battle\Content\Entities\Summons\Roll</Filter>
     </ClCompile>
     <ClCompile Include="bnRollHeart.cpp">
-      <Filter>Battle\Entity\Summons\Roll</Filter>
-    </ClCompile>
-    <ClCompile Include="bnEaseFunctions.cpp">
-      <Filter>Utilities\EaseIns</Filter>
-    </ClCompile>
-    <ClCompile Include="bnExplosion.cpp">
-      <Filter>Battle\Entity\Artifact\Explosion</Filter>
+      <Filter>Activities\Battle\Content\Entities\Summons\Roll</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManThrowState.cpp">
-      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnGameOverScene.cpp">
+      <Filter>Activities\GameOver</Filter>
+    </ClCompile>
+    <ClCompile Include="bnFakeScene.cpp">
+      <Filter>Activities\FakeTitle</Filter>
+    </ClCompile>
+    <ClCompile Include="bnSelectedChipsUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAnimate.cpp">
+      <Filter>Engine\Graphics\Animate</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAnimation.cpp">
+      <Filter>Engine\Graphics\Animate</Filter>
+    </ClCompile>
+    <ClCompile Include="bnChipDescriptionTextbox.cpp">
+      <Filter>Activities\Battle\Content\Chips\Cust\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAirShot.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\AirShot</Filter>
+    </ClCompile>
+    <ClCompile Include="bnLibraryScene.cpp">
+      <Filter>Activities\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="bnFolderEditScene.cpp">
+      <Filter>Activities\Folder\Edit</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCounterHitPublisher.cpp">
+      <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
+    </ClCompile>
+    <ClCompile Include="bnChipUsePublisher.cpp">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMobHealthUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
+    </ClCompile>
+    <ClCompile Include="bnPlayerHealthUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="bnChipUseListener.cpp">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCounterHitListener.cpp">
+      <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAnimatedTextBox.cpp">
+      <Filter>Prefabs\TextBox\Framed</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMysteryData.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Mystery</Filter>
+    </ClCompile>
+    <ClCompile Include="bnProgsManHitState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCustEmblem.cpp">
+      <Filter>Activities\Battle\Content\Chips\Cust</Filter>
+    </ClCompile>
+    <ClCompile Include="bnProgsManShootState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCube.cpp">
+      <Filter>Activities\Battle\Content\Entities\Obstacle\Cube</Filter>
+    </ClCompile>
+    <ClCompile Include="bnRockDebris.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Particles\RockDebris</Filter>
+    </ClCompile>
+    <ClCompile Include="bnObstacle.cpp">
+      <Filter>Activities\Battle\Content\Entities\Obstacle</Filter>
+    </ClCompile>
+    <ClCompile Include="bnGear.cpp">
+      <Filter>Activities\Battle\Content\Entities\Obstacle\MetalGear</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalMan.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManIdleState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManMoveState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManPunchState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalBlade.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\MetalBlade</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManThrowState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAura.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Auras</Filter>
+    </ClCompile>
+    <ClCompile Include="bnThunder.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\Thunder</Filter>
+    </ClCompile>
+    <ClCompile Include="bnUndernetBackground.cpp">
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
+    </ClCompile>
+    <ClCompile Include="bnExplosion.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Explosion\Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="bnShineExplosion.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Explosion\Boss</Filter>
+    </ClCompile>
+    <ClCompile Include="bnGuardHit.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Hits\Guard</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseGuard.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard</Filter>
+    </ClCompile>
+    <ClCompile Include="bnReflectShield.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Guard</Filter>
+    </ClCompile>
+    <ClCompile Include="bnChargedBusterHit.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Hits\Buster</Filter>
+    </ClCompile>
+    <ClCompile Include="bnRowHit.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\RowHit</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseAura.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Aura</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseRule.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMobRegistration.cpp">
+      <Filter>Engine\Addons\MobRegistration</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCanodumbMob.cpp">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Challenging</Filter>
+    </ClCompile>
+    <ClCompile Include="bnStarfishMob.cpp">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Easy</Filter>
+    </ClCompile>
+    <ClCompile Include="bnStarfish.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Starfish</Filter>
+    </ClCompile>
+    <ClCompile Include="bnStarfishAttackState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Starfish\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnStarfishIdleState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Starfish\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnBubble.cpp">
+      <Filter>Activities\Battle\Content\Entities\Obstacle\Bubble</Filter>
+    </ClCompile>
+    <ClCompile Include="bnHitBox.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\HitBox</Filter>
+    </ClCompile>
+    <ClCompile Include="bnBubbleTrap.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\BubbleTrap</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseBubbleWrap.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\BubbleWrap</Filter>
+    </ClCompile>
+    <ClCompile Include="bnElecpulse.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\Elecpulse</Filter>
+    </ClCompile>
+    <ClCompile Include="bnElementalDamage.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\ElementalDamage</Filter>
+    </ClCompile>
+    <ClCompile Include="bnParticlePoof.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Particles\Poof</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseAntiDamage.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\AntiDamage</Filter>
+    </ClCompile>
+    <ClCompile Include="bnNinjaStar.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\NinjaStar</Filter>
+    </ClCompile>
+    <ClCompile Include="bnInvis.cpp">
+      <Filter>Activities\Battle\Content\Components\BattleComponents\Invis</Filter>
+    </ClCompile>
+    <ClCompile Include="bnNinjaAntiDamage.cpp">
+      <Filter>Activities\Battle\Content\Components\BattleComponents\NinjaAntiDamage</Filter>
+    </ClCompile>
+    <ClCompile Include="bnHideTimer.cpp">
+      <Filter>Activities\Battle\Content\Components\BattleComponents\Hide</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAuraHealthUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI\Aura</Filter>
+    </ClCompile>
+    <ClCompile Include="bnComponent.cpp">
+      <Filter>Activities\Battle\Content\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="bnHideUntil.cpp">
+      <Filter>Activities\Battle\Content\Components\BattleComponents\Hide</Filter>
+    </ClCompile>
+    <ClCompile Include="bnFishy.cpp">
+      <Filter>Activities\Battle\Content\Entities\Obstacle\Fishy</Filter>
+    </ClCompile>
+    <ClCompile Include="bnPanelGrab.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\PanelGrab</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManBossFight.cpp">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetalManBossFight2.cpp">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+    </ClCompile>
+    <ClCompile Include="bnEnemyChipsUI.cpp">
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
-      <Filter>Battle\Field</Filter>
+      <Filter>Activities\Battle\Content\Field</Filter>
     </ClInclude>
     <ClInclude Include="bnTile.h">
-      <Filter>Battle\Field\Tile</Filter>
+      <Filter>Activities\Battle\Content\Field\Tile</Filter>
     </ClInclude>
     <ClInclude Include="bnEntity.h">
-      <Filter>Battle\Entity</Filter>
+      <Filter>Activities\Battle\Content\Entities</Filter>
     </ClInclude>
     <ClInclude Include="bnMemory.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="bnSpell.h">
-      <Filter>Battle\Entity\Spell</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell</Filter>
     </ClInclude>
     <ClInclude Include="bnLogger.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="bnWave.h">
-      <Filter>Battle\Entity\Spell\Wave</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\Wave</Filter>
     </ClInclude>
     <ClInclude Include="bnBuster.h">
-      <Filter>Battle\Entity\Spell\Buster</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\Buster</Filter>
     </ClInclude>
     <ClInclude Include="bnMettaur.h">
-      <Filter>Battle\Entity\Character\Mettaur</Filter>
-    </ClInclude>
-    <ClInclude Include="bnLayered.h">
-      <Filter>Engine</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Mettaur</Filter>
     </ClInclude>
     <ClInclude Include="bnChargeComponent.h">
-      <Filter>Battle\Components\Animation\Charge</Filter>
+      <Filter>Activities\Battle\Content\Components\Animation\Charge</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerState.h">
-      <Filter>Battle\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnMobState.h">
-      <Filter>Battle\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnTileState.h">
-      <Filter>Battle\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnTeam.h">
-      <Filter>Battle\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnDirection.h">
-      <Filter>Battle\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnEngine.h">
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsMan.h">
-      <Filter>Battle\Entity\Character\ProgsMan</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan</Filter>
     </ClInclude>
     <ClInclude Include="bnTextureType.h">
       <Filter>Engine\Resources\TextureResource</Filter>
@@ -562,80 +931,80 @@
       <Filter>Engine\Resources\TextureResource</Filter>
     </ClInclude>
     <ClInclude Include="bnProgBomb.h">
-      <Filter>Battle\Entity\Spell\ProgBomb</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\ProgBomb</Filter>
     </ClInclude>
     <ClInclude Include="bnChipSelectionCust.h">
-      <Filter>Battle\Chips\Cust</Filter>
+      <Filter>Activities\Battle\Content\Chips\Cust</Filter>
     </ClInclude>
     <ClInclude Include="bnChipLibrary.h">
-      <Filter>Battle\Chips\Database</Filter>
+      <Filter>Database</Filter>
     </ClInclude>
     <ClInclude Include="bnChip.h">
-      <Filter>Battle\Chips\Database</Filter>
+      <Filter>Database</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimationComponent.h">
-      <Filter>Battle\Components\Animation</Filter>
+      <Filter>Activities\Battle\Content\Components\Animation</Filter>
     </ClInclude>
     <ClInclude Include="bnAIState.h">
-      <Filter>Battle\AI</Filter>
+      <Filter>Activities\Battle\Content\AI</Filter>
     </ClInclude>
     <ClInclude Include="bnAI.h">
-      <Filter>Battle\AI</Filter>
+      <Filter>Activities\Battle\Content\AI</Filter>
     </ClInclude>
     <ClInclude Include="bnMettaurAttackState.h">
-      <Filter>Battle\Entity\Character\Mettaur\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Mettaur\States</Filter>
     </ClInclude>
     <ClInclude Include="bnMettaurIdleState.h">
-      <Filter>Battle\Entity\Character\Mettaur\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Mettaur\States</Filter>
     </ClInclude>
     <ClInclude Include="bnMettaurMoveState.h">
-      <Filter>Battle\Entity\Character\Mettaur\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Mettaur\States</Filter>
     </ClInclude>
     <ClInclude Include="bnExplodeState.h">
-      <Filter>Battle\Entity\Character\Any\States</Filter>
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerControlledState.h">
-      <Filter>Battle\Entity\Character\Player\Megaman\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerHitState.h">
-      <Filter>Battle\Entity\Character\Player\Megaman\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
     </ClInclude>
     <ClInclude Include="bnMeta.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="bnArtifact.h">
-      <Filter>Battle\Entity\Artifact</Filter>
+      <Filter>Activities\Battle\Content\Entities\Artifact</Filter>
     </ClInclude>
     <ClInclude Include="bnCamera.h">
       <Filter>Engine\Camera</Filter>
     </ClInclude>
     <ClInclude Include="bnPixelInState.h">
-      <Filter>Battle\Entity\Character\Any\States</Filter>
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerIdleState.h">
-      <Filter>Battle\Entity\Character\Player\Megaman\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
     </ClInclude>
     <ClInclude Include="bnMob.h">
-      <Filter>Battle\Mob</Filter>
+      <Filter>Engine\Addons\MobRegistration\MobFactories</Filter>
     </ClInclude>
     <ClInclude Include="bnMobFactory.h">
-      <Filter>Battle\Mob</Filter>
+      <Filter>Engine\Addons\MobRegistration\MobFactories</Filter>
     </ClInclude>
     <ClInclude Include="bnRandomMettaurMob.h">
-      <Filter>Battle\Mob\Random</Filter>
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Random</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnTwoMettaurMob.h">
-      <Filter>Battle\Mob\Easy</Filter>
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Easy</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManIdleState.h">
-      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManMoveState.h">
-      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManPunchState.h">
-      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
     </ClInclude>
     <ClInclude Include="bnShaderResourceManager.h">
       <Filter>Engine\Resources\ShaderResource</Filter>
@@ -647,16 +1016,13 @@
       <Filter>Engine\Resources\ShaderResource</Filter>
     </ClInclude>
     <ClInclude Include="bnPA.h">
-      <Filter>Battle\Chips\PA</Filter>
+      <Filter>Database\PA</Filter>
     </ClInclude>
     <ClInclude Include="bnCannon.h">
-      <Filter>Battle\Entity\Spell\Cannon</Filter>
-    </ClInclude>
-    <ClInclude Include="bnTimer.h">
-      <Filter>Utilities</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\Cannon</Filter>
     </ClInclude>
     <ClInclude Include="bnBattleItem.h">
-      <Filter>Battle\Results\ItemGet</Filter>
+      <Filter>Activities\Battle\Content\Results\ItemGet</Filter>
     </ClInclude>
     <ClInclude Include="bnStringEncoder.h">
       <Filter>Utilities</Filter>
@@ -664,14 +1030,8 @@
     <ClInclude Include="bnInputManager.h">
       <Filter>Engine\Input</Filter>
     </ClInclude>
-    <ClInclude Include="bnInputEvent.h">
-      <Filter>Engine\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="bnAnimate.h">
-      <Filter>Engine\Animate</Filter>
-    </ClInclude>
     <ClInclude Include="bnBasicSword.h">
-      <Filter>Battle\Entity\Spell\Sword\Basic</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\Sword\Basic</Filter>
     </ClInclude>
     <ClInclude Include="bnFileUtil.h">
       <Filter>Utilities</Filter>
@@ -680,100 +1040,82 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="bnLanBackground.h">
-      <Filter>Battle\Backgrounds</Filter>
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
     <ClInclude Include="bnGraveyardBackground.h">
-      <Filter>Battle\Backgrounds</Filter>
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
     <ClInclude Include="bnVirusBackground.h">
-      <Filter>Battle\Backgrounds</Filter>
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManBossFight.h">
-      <Filter>Battle\Mob\Boss\ProgsMan</Filter>
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\ProgsMan</Filter>
     </ClInclude>
     <ClInclude Include="bnBattleScene.h">
-      <Filter>Scenes\Battle</Filter>
+      <Filter>Activities\Battle</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectMobScene.h">
-      <Filter>Scenes\Select Mob</Filter>
+      <Filter>Activities\Select Mob</Filter>
     </ClInclude>
     <ClInclude Include="bnMainMenuScene.h">
-      <Filter>Scenes\Main Menu</Filter>
-    </ClInclude>
-    <ClInclude Include="bnAnimation.h">
-      <Filter>Engine\Animate</Filter>
+      <Filter>Activities\Main Menu</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayer.h">
-      <Filter>Battle\Entity\Character\Player\Megaman</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Megaman</Filter>
     </ClInclude>
     <ClInclude Include="bnOverworldMap.h">
-      <Filter>Overworld\Map</Filter>
+      <Filter>Activities\Main Menu\Overworld\Map</Filter>
     </ClInclude>
     <ClInclude Include="bnOverworldLight.h">
-      <Filter>Overworld\Map\Lights</Filter>
+      <Filter>Activities\Main Menu\Overworld\Map\Lights</Filter>
     </ClInclude>
     <ClInclude Include="bnInfiniteMap.h">
-      <Filter>Overworld\Map\Dynamic</Filter>
+      <Filter>Activities\Main Menu\Overworld\Map\Dynamic</Filter>
     </ClInclude>
     <ClInclude Include="bnCanodumbAttackState.h">
-      <Filter>Battle\Entity\Character\Canodumb\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Canodumb\States</Filter>
     </ClInclude>
     <ClInclude Include="bnCanodumbIdleState.h">
-      <Filter>Battle\Entity\Character\Canodumb\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Canodumb\States</Filter>
     </ClInclude>
     <ClInclude Include="bnCanodumb.h">
-      <Filter>Battle\Entity\Character\Canodumb</Filter>
-    </ClInclude>
-    <ClInclude Include="bnCanodumbMob.h">
-      <Filter>Battle\Mob\Easy</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Canodumb</Filter>
     </ClInclude>
     <ClInclude Include="bnCanodumbCursor.h">
-      <Filter>Battle\Entity\Character\Canodumb\Misc</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Canodumb\Misc</Filter>
     </ClInclude>
     <ClInclude Include="bnCharacter.h">
-      <Filter>Battle\Entity\Character</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character</Filter>
     </ClInclude>
     <ClInclude Include="bnCanonSmoke.h">
-      <Filter>Battle\Entity\Artifact\Cannon</Filter>
+      <Filter>Activities\Battle\Content\Entities\Artifact\Cannon</Filter>
     </ClInclude>
     <ClInclude Include="bnChipFolder.h">
-      <Filter>Battle\Chips\Folder</Filter>
+      <Filter>Database\Folder</Filter>
     </ClInclude>
     <ClInclude Include="bnElements.h">
-      <Filter>Battle\Enumerations</Filter>
+      <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnFolderScene.h">
-      <Filter>Scenes\Folder</Filter>
-    </ClInclude>
-    <ClInclude Include="bnSpawnPolicy.h">
-      <Filter>Battle\Mob</Filter>
+      <Filter>Activities\Folder</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimatedCharacter.h">
-      <Filter>Battle\Entity\Character</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character</Filter>
     </ClInclude>
     <ClInclude Include="bnNoState.h">
-      <Filter>Battle\Entity\Character\Any\States</Filter>
-    </ClInclude>
-    <ClInclude Include="bnChipUseListener.h">
-      <Filter>Battle\Chips\ChipUseListener</Filter>
-    </ClInclude>
-    <ClInclude Include="bnChipUsePublisher.h">
-      <Filter>Battle\Chips\ChipUsePublisher</Filter>
-    </ClInclude>
-    <ClInclude Include="bnSelectedChipsUI.h">
-      <Filter>Battle\Chips\ChipUsePublisher\UI</Filter>
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerChipUseListener.h">
-      <Filter>Battle\Chips\ChipUseListener\Player</Filter>
+      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Player</Filter>
     </ClInclude>
     <ClInclude Include="bnComponent.h">
-      <Filter>Battle\Components</Filter>
+      <Filter>Activities\Battle\Content\Components</Filter>
     </ClInclude>
     <ClInclude Include="bnStarman.h">
-      <Filter>Battle\Entity\Character\Player\Starman</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Starman</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectNaviScene.h">
-      <Filter>Scenes\Select Navi</Filter>
+      <Filter>Activities\Select Navi</Filter>
     </ClInclude>
     <ClInclude Include="bnNaviRegistration.h">
       <Filter>Engine\Addons\NaviRegistration</Filter>
@@ -787,41 +1129,293 @@
     <ClInclude Include="bnBackground.h">
       <Filter>Prefabs\Background</Filter>
     </ClInclude>
-    <ClInclude Include="bnFramedTextBox.h">
-      <Filter>Prefabs\TextBox\Framed</Filter>
-    </ClInclude>
     <ClInclude Include="bnGridBackground.h">
-      <Filter>Battle\Backgrounds</Filter>
-    </ClInclude>
-    <ClInclude Include="bnMobHealthUI.h">
-      <Filter>Battle\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="bnPlayerHealthUI.h">
-      <Filter>Battle\Components</Filter>
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
     <ClInclude Include="bnTileBehavior.h">
-      <Filter>Battle\AI</Filter>
+      <Filter>Activities\Battle\Content\AI</Filter>
     </ClInclude>
     <ClInclude Include="bnRoll.h">
-      <Filter>Battle\Entity\Character\Player\Roll</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\Player\Roll</Filter>
     </ClInclude>
     <ClInclude Include="bnChipSummonHandler.h">
-      <Filter>Battle\Chips\ChipUseListener\Any</Filter>
+      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Any</Filter>
     </ClInclude>
     <ClInclude Include="bnRollHeal.h">
-      <Filter>Battle\Entity\Summons\Roll</Filter>
+      <Filter>Activities\Battle\Content\Entities\Summons\Roll</Filter>
     </ClInclude>
     <ClInclude Include="bnRollHeart.h">
-      <Filter>Battle\Entity\Summons\Roll</Filter>
-    </ClInclude>
-    <ClInclude Include="bnEaseFunctions.h">
-      <Filter>Utilities\EaseIns</Filter>
-    </ClInclude>
-    <ClInclude Include="bnExplosion.h">
-      <Filter>Battle\Entity\Artifact\Explosion</Filter>
+      <Filter>Activities\Battle\Content\Entities\Summons\Roll</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManThrowState.h">
-      <Filter>Battle\Entity\Character\ProgsMan\States</Filter>
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnGameOverScene.h">
+      <Filter>Activities\GameOver</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\Checkerboard.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\CrossZoom.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\PixelateBlackWashFade.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\WhiteWashFade.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\SlideIn.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\PushIn.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFakeScene.h">
+      <Filter>Activities\FakeTitle</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\ZoomFadeIn.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\DiamondTileSwipe.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="Segues\BlackWashFade.h">
+      <Filter>Segues</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSelectedChipsUI.h">
+      <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSpawnPolicy.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\SpawnPolicies</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipsSpawnPolicy.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\SpawnPolicies\ChipSpawnPolicies</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAnimate.h">
+      <Filter>Engine\Graphics\Animate</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAnimation.h">
+      <Filter>Engine\Graphics\Animate</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSceneNode.h">
+      <Filter>Engine\Graphics\SceneNodes</Filter>
+    </ClInclude>
+    <ClInclude Include="bnEnemyChipUseListener.h">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Any</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipDescriptionTextbox.h">
+      <Filter>Activities\Battle\Content\Chips\Cust\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAnimatedTextBox.h">
+      <Filter>Prefabs\TextBox\Framed</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipFolderCollection.h">
+      <Filter>Database\Folder</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAirShot.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\AirShot</Filter>
+    </ClInclude>
+    <ClInclude Include="bnLibraryScene.h">
+      <Filter>Activities\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFolderEditScene.h">
+      <Filter>Activities\Folder\Edit</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCounterHitPublisher.h">
+      <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipUsePublisher.h">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMobHealthUI.h">
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
+    </ClInclude>
+    <ClInclude Include="bnPlayerHealthUI.h">
+      <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipUseListener.h">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCounterHitListener.h">
+      <Filter>Activities\Battle\Content\PubSub\CounterHit</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBattleOverTrigger.h">
+      <Filter>Activities\Battle\Content\Components\Triggers</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMysteryData.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Mystery</Filter>
+    </ClInclude>
+    <ClInclude Include="bnProgsmanHitState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCustEmblem.h">
+      <Filter>Activities\Battle\Content\Chips\Cust</Filter>
+    </ClInclude>
+    <ClInclude Include="bnProgsManShootState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCube.h">
+      <Filter>Activities\Battle\Content\Entities\Obstacle\Cube</Filter>
+    </ClInclude>
+    <ClInclude Include="bnRockDebris.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Particles\RockDebris</Filter>
+    </ClInclude>
+    <ClInclude Include="bnObstacle.h">
+      <Filter>Activities\Battle\Content\Entities\Obstacle</Filter>
+    </ClInclude>
+    <ClInclude Include="bnGear.h">
+      <Filter>Activities\Battle\Content\Entities\Obstacle\MetalGear</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalMan.h">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManIdleState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManMoveState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManPunchState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalBlade.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\MetalBlade</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManThrowState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAura.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Auras</Filter>
+    </ClInclude>
+    <ClInclude Include="bnThunder.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\Thunder</Filter>
+    </ClInclude>
+    <ClInclude Include="bnInputEvent.h">
+      <Filter>Enumerations</Filter>
+    </ClInclude>
+    <ClInclude Include="bnUndernetBackground.h">
+      <Filter>Activities\Battle\Content\Backgrounds</Filter>
+    </ClInclude>
+    <ClInclude Include="bnNaviExplodeState.h">
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnExplosion.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Explosion\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="bnShineExplosion.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Explosion\Boss</Filter>
+    </ClInclude>
+    <ClInclude Include="bnGuardHit.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Hits\Guard</Filter>
+    </ClInclude>
+    <ClInclude Include="AlphaBossSpawnPolicy.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseGuard.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard</Filter>
+    </ClInclude>
+    <ClInclude Include="bnReflectShield.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Guard</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChargedBusterHit.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Hits\Buster</Filter>
+    </ClInclude>
+    <ClInclude Include="bnRowHit.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\RowHit</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseAura.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Aura</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseRule.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMobRegistration.h">
+      <Filter>Engine\Addons\MobRegistration</Filter>
+    </ClInclude>
+    <ClInclude Include="bnQueueMobRegistration.h">
+      <Filter>Engine\Addons</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCanodumbMob.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Challenging</Filter>
+    </ClInclude>
+    <ClInclude Include="bnStarfishMob.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Easy</Filter>
+    </ClInclude>
+    <ClInclude Include="bnStarfish.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Starfish</Filter>
+    </ClInclude>
+    <ClInclude Include="bnStarfishIdleState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Starfish\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnStarfishAttackState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Starfish\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBubble.h">
+      <Filter>Activities\Battle\Content\Entities\Obstacle\Bubble</Filter>
+    </ClInclude>
+    <ClInclude Include="bnHitBox.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\HitBox</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBubbleState.h">
+      <Filter>Activities\Battle\Content\AI\Any\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBubbleTrap.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\BubbleTrap</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseBubbleWrap.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\BubbleWrap</Filter>
+    </ClInclude>
+    <ClInclude Include="bnElecPulse.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\Elecpulse</Filter>
+    </ClInclude>
+    <ClInclude Include="bnElementalDamage.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\ElementalDamage</Filter>
+    </ClInclude>
+    <ClInclude Include="bnParticlePoof.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Particles\Poof</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseAntiDamage.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\AntiDamage</Filter>
+    </ClInclude>
+    <ClInclude Include="bnNinjaStar.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\NinjaStar</Filter>
+    </ClInclude>
+    <ClInclude Include="bnInvis.h">
+      <Filter>Activities\Battle\Content\Components\BattleComponents\Invis</Filter>
+    </ClInclude>
+    <ClInclude Include="bnNinjaAntiDamage.h">
+      <Filter>Activities\Battle\Content\Components\BattleComponents\NinjaAntiDamage</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAuraHealthUI.h">
+      <Filter>Activities\Battle\Content\Components\UI\Aura</Filter>
+    </ClInclude>
+    <ClInclude Include="bnUIComponent.h">
+      <Filter>Activities\Battle\Content\Components\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="bnLayered.h">
+      <Filter>Engine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="bnHideTimer.h">
+      <Filter>Activities\Battle\Content\Components\BattleComponents\Hide</Filter>
+    </ClInclude>
+    <ClInclude Include="bnHideUntil.h">
+      <Filter>Activities\Battle\Content\Components\BattleComponents\Hide</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFishy.h">
+      <Filter>Activities\Battle\Content\Entities\Obstacle\Fishy</Filter>
+    </ClInclude>
+    <ClInclude Include="bnPanelGrab.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\PanelGrab</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManBossFight.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetalManBossFight2.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+    </ClInclude>
+    <ClInclude Include="bnEnemyChipsUI.h">
+      <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

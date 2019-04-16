@@ -12,7 +12,8 @@
 enum class AudioPriority : int {
   LOWEST,
   LOW,
-  HIGH
+  HIGH,
+  HIGHEST
 };
 
 class AudioResourceManager {
@@ -32,7 +33,12 @@ public:
   ~AudioResourceManager();
 
 private:
-  sf::Sound* channels;
+  struct Channel {
+    sf::Sound buffer;
+    AudioPriority priority;
+  };
+
+  Channel* channels;
   sf::SoundBuffer* sources;
   sf::Music stream;
   int channelVolume;

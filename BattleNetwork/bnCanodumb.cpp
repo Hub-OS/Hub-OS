@@ -14,9 +14,9 @@
 
 Canodumb::Canodumb(Rank _rank)
   :  AI<Canodumb>(this), AnimatedCharacter(_rank) {
-  this->StateChange<CanodumbIdleState>();
+  // this->StateChange<CanodumbIdleState>();
   Entity::team = Team::BLUE;
-  hitHeight = 50;
+  hitHeight = 25;
   healthUI = new MobHealthUI(this);
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
@@ -26,7 +26,7 @@ Canodumb::Canodumb(Rank _rank)
 
   //Components setup and load
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
 
   switch (GetRank()) {
   case Rank::_1:
@@ -48,6 +48,8 @@ Canodumb::Canodumb(Rank _rank)
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);
+
+  animationComponent.Update(0);
 }
 
 Canodumb::~Canodumb(void) {
@@ -64,19 +66,19 @@ int* Canodumb::GetAnimOffset() {
 }
 
 void Canodumb::Update(float _elapsed) {
-  healthUI->Update();
+  healthUI->Update(_elapsed);
   this->SetShader(nullptr);
 
   if (_elapsed <= 0) return;
 
-  setPosition(tile->getPosition().x + tile->GetWidth() / 2.0f - 1.0f, tile->getPosition().y + tile->GetHeight() / 2.0f - 10.0f);
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
   hitHeight = (int)getLocalBounds().height;
 
 
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
-    healthUI->Update();
-    Entity::Update(_elapsed);
+    healthUI->Update(_elapsed);
+    Character::Update(_elapsed);
 
     if (stunCooldown <= 0) {
       stunCooldown = 0;
@@ -92,32 +94,50 @@ void Canodumb::Update(float _elapsed) {
     }
   }
 
-  this->StateUpdate(_elapsed);
+  this->AI<Canodumb>::Update(_elapsed);
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<Canodumb>>(3,0.55);
+    this->ChangeState<ExplodeState<Canodumb>>(3,0.55);
     this->LockState();
   }
   else {
     animationComponent.Update(_elapsed);
   }
 
-  Entity::Update(_elapsed);
+  Character::Update(_elapsed);
 }
 
-vector<Drawable*> Canodumb::GetMiscComponents() {
-  vector<Drawable*> drawables = vector<Drawable*>();
-  drawables.push_back(healthUI);
+const bool Canodumb::Hit(Hit::Properties props) {
 
-  return drawables;
-}
+  // TODO: USE THIS
+  /*
+  if (Character::Hit(props)) {
+    SetShader(whiteout);
+    return true;
+  }
 
-const bool Canodumb::Hit(int _damage) {
-  (health - _damage < 0) ? health = 0 : health -= _damage;
-  SetShader(whiteout);
+  return false;*/
 
-  return health;
+
+  bool result = true;
+
+  if (health - props.damage < 0) {
+    health = 0;
+  }
+  else {
+    health -= props.damage;
+
+    if ((props.flags & Hit::stun) == Hit::stun) {
+      SetShader(stun);
+      this->stunCooldown = props.secs;
+    }
+    else {
+      SetShader(whiteout);
+    }
+  }
+
+  return result;
 }
 
 const float Canodumb::GetHitHeight() const {

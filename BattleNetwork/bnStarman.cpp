@@ -25,7 +25,7 @@ Starman::Starman(void) : Player()
   this->SetElement(Element::CURSOR);
 
   animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Load();
+  animationComponent.Reload();
 
   textureType = TextureType::NAVI_STARMAN_ATLAS;
   setTexture(*TEXTURES.GetTexture(textureType));

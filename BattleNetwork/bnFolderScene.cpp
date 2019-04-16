@@ -1,15 +1,13 @@
 #include <time.h>
+
+#include <Swoosh/Activity.h>
+#include <Swoosh/ActivityController.h>
+#include <Swoosh/Ease.h>
+#include <Swoosh/Timer.h>
+
 #include "bnFolderScene.h"
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
-#include "bnMemory.h"
-#include "bnCamera.h"
-#include "bnInputManager.h"
-#include "bnShaderResourceManager.h"
-#include "bnAudioResourceManager.h"
-#include "bnTextureResourceManager.h"
-#include "bnTimer.h"
-#include "bnEngine.h"
 
 #include <SFML/Graphics.hpp>
 using sf::RenderWindow;
@@ -18,229 +16,197 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
-int FolderScene::Run()
-{
-  Camera camera(ENGINE.GetDefaultView());
+#include "Segues/PushIn.h"
 
-  ENGINE.SetCamera(camera);
+FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderCollection& collection) :
+  collection(collection),
+  camera(ENGINE.GetDefaultView()),
+  swoosh::Activity(&controller)
+{
+  promptOptions = false;
+  enterText = false;
+  gotoNextScene = true;
 
   // Menu name font
-  sf::Font* font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  sf::Text* menuLabel = new sf::Text("Library", *font);
+  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
+  menuLabel = new sf::Text("Folders", *font);
   menuLabel->setCharacterSize(15);
   menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
 
   // Selection input delays
-  double maxSelectInputCooldown = 0.5; // half of a second
-  double selectInputCooldown = maxSelectInputCooldown;
+  maxSelectInputCooldown = 0.5; // half of a second
+  selectInputCooldown = maxSelectInputCooldown;
 
   // Chip UI font
-  sf::Font *chipFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  sf::Text *chipLabel = new sf::Text("", *chipFont);
+  chipFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+  chipLabel = new sf::Text("", *chipFont);
   chipLabel->setPosition(275.f, 15.f);
 
-  sf::Font *numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
-  sf::Text *numberLabel = new sf::Text("", *numberFont);
+  numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
+  numberLabel = new sf::Text("", *numberFont);
   numberLabel->setOutlineColor(sf::Color(48, 56, 80));
   numberLabel->setOutlineThickness(2.f);
   numberLabel->setScale(0.8f, 0.8f);
   numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
   numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
 
-  // Chip description font
-  sf::Font *chipDescFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
-  sf::Text* chipDesc = new sf::Text("", *chipDescFont);
-  chipDesc->setCharacterSize(30);
-  chipDesc->setPosition(sf::Vector2f(20.f, 185.0f));
-  //chipDesc->setLineSpacing(5);
-  chipDesc->setFillColor(sf::Color::Black);
-
   // folder menu graphic
-  sf::Sprite bg(*TEXTURES.GetTexture(TextureType::FOLDER_VIEW_BG));
+  bg = sf::Sprite(LOAD_TEXTURE(FOLDER_INFO_BG));
   bg.setScale(2.f, 2.f);
 
-  sf::Sprite folderDock(*TEXTURES.GetTexture(TextureType::FOLDER_DOCK));
-  folderDock.setScale(2.f, 2.f);
-  folderDock.setPosition(2.f, 30.f);
-
-  sf::Sprite scrollbar(*TEXTURES.GetTexture(TextureType::FOLDER_SCROLLBAR));
+  scrollbar = sf::Sprite(LOAD_TEXTURE(FOLDER_SCROLLBAR));
   scrollbar.setScale(2.f, 2.f);
   scrollbar.setPosition(410.f, 60.f);
 
-  sf::Sprite stars(*TEXTURES.GetTexture(TextureType::FOLDER_RARITY));
-  stars.setScale(2.f, 2.f);
+  folderBox = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX));
+  folderBox.setScale(2.f, 2.f);
 
-  sf::Sprite chipHolder(*TEXTURES.GetTexture(TextureType::FOLDER_CHIP_HOLDER));
-  chipHolder.setScale(2.f, 2.f);
-  chipHolder.setPosition(4.f, 35.f);
+  folderOptions = sf::Sprite(LOAD_TEXTURE(FOLDER_OPTIONS));
+  folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
+  folderOptions.setPosition(98.0f, 210.0f);
+  folderOptions.setScale(2.f, 2.f);
 
-  sf::Sprite element(*TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
+  folderCursor = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX_CURSOR));
+  folderCursor.setScale(2.f, 2.f);
+
+  folderEquip = sf::Sprite(LOAD_TEXTURE(FOLDER_EQUIP));
+  folderEquip.setScale(2.f, 2.f);
+
+  cursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  cursor.setScale(2.f, 2.f);
+  cursor.setPosition(2.0, 155.0f);
+
+  element = sf::Sprite(LOAD_TEXTURE(ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
-  // Current chip graphic
-  sf::Sprite chip(*TEXTURES.GetTexture(TextureType::CHIP_CARDS));
-  sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(0);
-  chip.setTextureRect(cardSubFrame);
-  chip.setScale(2.f, 2.f);
-  chip.setPosition(83.f, 93.f);
-  chip.setOrigin(chip.getLocalBounds().width/2.0f, chip.getLocalBounds().height/2.0f);
-
-  sf::Sprite chipIcon(*TEXTURES.GetTexture(TextureType::CHIP_ICONS));
+  chipIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
   chipIcon.setScale(2.f, 2.f);
 
-  Timer chipRevealTimer;
-  chipRevealTimer.Start();
+  equipAnimation = Animation("resources/ui/folder_equip.animation");
+  equipAnimation.SetAnimation("BLINK");
+  equipAnimation << Animate::Mode::Loop;
 
-  // Transition
-  sf::Shader& transition = *SHADERS.GetShader(ShaderType::TRANSITION);
-  transition.setUniform("texture", sf::Shader::CurrentTexture);
-  transition.setUniform("map", *TEXTURES.GetTexture(TextureType::NOISE_TEXTURE));
-  transition.setUniform("progress", 0.f);
-  float transitionProgress = 0.9f;
-  ENGINE.RevokeShader();
+  folderCursorAnimation = Animation("resources/ui/folder_cursor.animation");
+  folderCursorAnimation.SetAnimation("BLINK");
+  folderCursorAnimation << Animate::Mode::Loop;
 
-  int maxChipsOnScreen = 7;
-  int currChipIndex = 0;
-  int numOfChips = CHIPLIB.GetSize();
+  maxChipsOnScreen = 5;
+  currChipIndex = 0;
+  currFolderIndex = 0;
+  selectedFolderIndex = optionIndex = 0;
 
-  bool gotoNextScene = false;
+  totalTimeElapsed = frameElapsed = folderOffsetX = 0.0;
 
-  Clock clock;
-  float elapsed = 0.0f;
-  float totalTime = 0.f;
-  while (ENGINE.Running()) {
+  folder = nullptr;
 
-    float elapsedSeconds = clock.restart().asSeconds();
-    totalTime += elapsedSeconds;
+  folderNames = collection.GetFolderNames();
 
-    float FPS = 0.f;
+  if (collection.GetFolderNames().size() > 0) {
+    collection.GetFolder(*folderNames.begin(), folder);
 
-    if (elapsedSeconds > 0.f) {
-      FPS = 1.0f / elapsedSeconds;
-      std::string fpsStr = std::to_string(FPS);
-      fpsStr.resize(4);
-      ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
-    }
+    numOfChips = folder->GetSize();
+  }
+  else {
+    numOfChips = 0;
+  }
+}
 
-    INPUT.update();
+FolderScene::~FolderScene() { ; }
 
-    ENGINE.Clear();
+void FolderScene::onStart() {
+  ENGINE.SetCamera(camera);
 
-    camera.Update(elapsed);
+  gotoNextScene = false;
+}
 
-    ENGINE.Draw(bg);
-    ENGINE.Draw(menuLabel);
+void FolderScene::onUpdate(double elapsed) {
+  bool folderSwitch = false;
 
-    ENGINE.DrawUnderlay();
-    ENGINE.DrawLayers();
-    ENGINE.DrawOverlay();
+  frameElapsed = elapsed;
+  totalTimeElapsed += elapsed;
 
-    ENGINE.Draw(folderDock);
-    ENGINE.Draw(chipHolder);
+  camera.Update((float)elapsed);
+  folderCursorAnimation.Update((float)elapsed, folderCursor);
+  equipAnimation.Update((float)elapsed, folderEquip);
 
-    // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
-    float top = 50.0f; float bottom = 230.0f;
-    float depth = ((float)currChipIndex / (float)numOfChips)*bottom;
-    scrollbar.setPosition(452.f, top + depth);
+  // Scene keyboard controls
+  if (enterText) {
+    if (INPUT.Has(RELEASED_B)) {
+      this->enterText = false;
+      bool changed = collection.SetFolderName(folderNames[currFolderIndex], folder);
 
-    ENGINE.Draw(scrollbar);
-  
-    // Move the chip library iterator to the current highlighted chip
-    ChipLibrary::Iter iter = CHIPLIB.Begin();
-
-    for (int j = 0; j < currChipIndex; j++) {
-      iter++;
-    }
-
-    sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(iter->GetID());
-    chip.setTextureRect(cardSubFrame);
-    chip.setScale((float)Ease::Linear(chipRevealTimer.GetElapsed() / 1000.0, 0.25)*2.0f, 2.0f);
-    ENGINE.Draw(chip, false);
-
-    // This draws the currently highlighted chip
-    if (iter->GetDamage() > 0) {
-      chipLabel->setFillColor(sf::Color::White);
-      chipLabel->setString(std::to_string(iter->GetDamage()));
-      chipLabel->setOrigin(chipLabel->getLocalBounds().width+chipLabel->getLocalBounds().left, 0);
-      chipLabel->setPosition(2.f*(70.f), 135.f);
-
-      ENGINE.Draw(chipLabel, false);
-    }
-
-    chipLabel->setOrigin(0, 0);
-    chipLabel->setFillColor(sf::Color::Yellow);
-    chipLabel->setPosition(2.f*14.f, 135.f);
-    chipLabel->setString(std::string() + iter->GetCode());
-    ENGINE.Draw(chipLabel, false);
-
-    std::string formatted = FormatChipDesc(iter->GetDescription());
-    chipDesc->setString(formatted);
-    ENGINE.Draw(chipDesc, false);
-
-    int offset = (int)(iter->GetElement());
-    element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-    element.setPosition(2.f*25.f, 142.f);
-    ENGINE.Draw(element, false);
-
-    // Now that we are at the viewing range, draw each chip in the list
-    for (int i = 0; i < maxChipsOnScreen; i++) {
-
-      if (currChipIndex + i < numOfChips) {
-        chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(iter->GetIconID()));
-        chipIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
-        ENGINE.Draw(chipIcon, false);
-
-        chipLabel->setFillColor(sf::Color::White);
-        chipLabel->setPosition(2.f*120.f, 60.0f + (32.f*i));
-        chipLabel->setString(iter->GetShortName());
-        ENGINE.Draw(chipLabel, false);
-
-
-        int offset = (int)(iter->GetElement());
-        element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-        element.setPosition(2.f*173.f, 65.0f + (32.f*i));
-        ENGINE.Draw(element, false);
-
-        chipLabel->setOrigin(0, 0);
-        chipLabel->setPosition(2.f*190.f, 60.0f + (32.f*i));
-        chipLabel->setString(std::string() + iter->GetCode());
-        ENGINE.Draw(chipLabel, false);
-
-        //Draw rating
-        unsigned rarity = iter->GetRarity()-1;
-        stars.setTextureRect(sf::IntRect(0, 15*rarity, 22, 14));
-        stars.setPosition(2.f*199.f, 74.0f + (32.f*i));
-        ENGINE.Draw(stars, false);
-
-        iter++;
+      if (!changed) {
+        folderNames[currFolderIndex] = collection.GetFolderNames()[currFolderIndex];
       }
-    }
 
-    // Scene keyboard controls
-    if (!gotoNextScene && transitionProgress == 0.f) {
-      if (INPUT.has(PRESSED_UP)) {
+      INPUT.EndCaptureInputBuffer();
+    }
+    else {
+      std::string buffer = INPUT.GetInputBuffer();
+
+      buffer = buffer.substr(0, 10);
+      folderNames[currFolderIndex] = buffer;
+
+      INPUT.SetInputBuffer(buffer); // shrink
+    }
+  } else if (!gotoNextScene) {
+      if (INPUT.Has(PRESSED_UP)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
-          // Go to previous mob 
           selectInputCooldown = maxSelectInputCooldown;
-          currChipIndex--;
-          AUDIO.Play(AudioType::CHIP_SELECT);
 
-          chipRevealTimer.Reset();
+          if (!promptOptions) {
+            currChipIndex--;
+          }
+          else {
+            optionIndex--;
+          }
+
+          AUDIO.Play(AudioType::CHIP_SELECT);
         }
       }
-      else if (INPUT.has(PRESSED_DOWN)) {
+      else if (INPUT.Has(PRESSED_DOWN)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
-          // Go to next mob 
           selectInputCooldown = maxSelectInputCooldown;
-          currChipIndex++;
-          AUDIO.Play(AudioType::CHIP_SELECT);
 
-          chipRevealTimer.Reset();
+          if (!promptOptions) {
+            currChipIndex++;
+          }
+          else {
+            optionIndex++;
+          }
+
+          AUDIO.Play(AudioType::CHIP_SELECT);
+        }
+      }
+      else if (INPUT.Has(PRESSED_RIGHT)) {
+        selectInputCooldown -= elapsed;
+
+        if (selectInputCooldown <= 0) {
+          selectInputCooldown = maxSelectInputCooldown;
+
+          if (!promptOptions) {
+            currFolderIndex++;
+            folderSwitch = true;
+            AUDIO.Play(AudioType::CHIP_SELECT);
+          }
+        }
+      }
+      else if (INPUT.Has(PRESSED_LEFT)) {
+        selectInputCooldown -= elapsed;
+
+        if (selectInputCooldown <= 0) {
+          selectInputCooldown = maxSelectInputCooldown;
+
+          if (!promptOptions) {
+            currFolderIndex--;
+            folderSwitch = true;
+            AUDIO.Play(AudioType::CHIP_SELECT);
+          }
         }
       }
       else {
@@ -248,108 +214,183 @@ int FolderScene::Run()
       }
 
       currChipIndex = std::max(0, currChipIndex);
-      currChipIndex = std::min(numOfChips-1, currChipIndex);
+      currChipIndex = std::min(numOfChips - 1, currChipIndex);
+      currFolderIndex = std::max(0, currFolderIndex);
+      currFolderIndex = std::min((int)folderNames.size() - 1, currFolderIndex);
+      optionIndex = std::max(0, optionIndex);
+      optionIndex = std::min(2, optionIndex);
 
-      if (INPUT.has(PRESSED_B)) {
-        gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      if (folderSwitch) {
+        if (collection.GetFolderNames().size() > 0) {
+          collection.GetFolder(*(folderNames.begin() + currFolderIndex), folder);
+
+          numOfChips = folder->GetSize();
+          currChipIndex = 0;
+        }
       }
-    }
 
-    if (elapsed > 0) {
-      if (gotoNextScene) {
-        transitionProgress += 1 * elapsed;
+      if (INPUT.Has(PRESSED_B)) {
+        if (!promptOptions) {
+          gotoNextScene = true;
+          AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+
+          using swoosh::intent::direction;
+          using segue = swoosh::intent::segue<PushIn<direction::right>>;
+          getController().queuePop<segue>();
+        }
+      } else if (INPUT.Has(RELEASED_B)) {
+          if (promptOptions) {
+            promptOptions = false;
+            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+          }
+      } else if (INPUT.Has(RELEASED_A)) {
+        if (!promptOptions) {
+          promptOptions = true;
+          AUDIO.Play(AudioType::CHIP_DESC);
+        }
+        else {
+          switch (optionIndex) {
+          case 0: // EDIT
+            this->enterText = true;
+            INPUT.BeginCaptureInputBuffer();
+            INPUT.SetInputBuffer(*(folderNames.begin() + currFolderIndex));
+            break;
+          case 1: // EQUIP
+            selectedFolderIndex = currFolderIndex;
+            AUDIO.Play(AudioType::PA_ADVANCE);
+            break;
+          case 2: // CHANGE NAME
+            break;
+          }
+        }
       }
-      else {
-        transitionProgress -= 1 * elapsed;
-      }
-    }
 
-    transitionProgress = std::max(0.f, transitionProgress);
-    transitionProgress = std::min(1.f, transitionProgress);
-
-    if (transitionProgress >= 1.f) {
-      return 2;
-
-      gotoNextScene = false;
-    }
-
-    sf::Texture postprocessing = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
-    sf::Sprite transitionPost;
-    transitionPost.setTexture(postprocessing);
-
-    transition.setUniform("progress", transitionProgress);
-
-    LayeredDrawable* bake = new LayeredDrawable(transitionPost);
-    bake->SetShader(&transition);
-
-    ENGINE.Draw(bake);
-    delete bake;
-
-    // Write contents to screen (always last step)
-    ENGINE.Display();
-
-    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
   }
+}
+
+void FolderScene::onLeave() {
+
+}
+
+void FolderScene::onExit()
+{
+}
+
+void FolderScene::onEnter()
+{
+}
+
+void FolderScene::onResume() {
+
+}
+
+void FolderScene::onDraw(sf::RenderTexture& surface) {
+  ENGINE.SetRenderSurface(surface);
+
+  ENGINE.Draw(bg);
+  ENGINE.Draw(menuLabel);
+
+  ENGINE.DrawUnderlay();
+  ENGINE.DrawLayers();
+  ENGINE.DrawOverlay();
+
+  if (folderNames.size() > 0) {
+    for (int i = 0; i < folderNames.size(); i++) {
+      folderBox.setPosition(26.0f + (i*144.0f) - (float)folderOffsetX, 34.0f);
+      ENGINE.Draw(folderBox);
+
+      chipLabel->setFillColor(sf::Color::White);
+      chipLabel->setString(folderNames[i]);
+      chipLabel->setOrigin(chipLabel->getGlobalBounds().width / 2.0f, chipLabel->getGlobalBounds().height / 2.0f);
+      chipLabel->setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
+      ENGINE.Draw(chipLabel, false);
+
+      if (i == selectedFolderIndex) {
+        folderEquip.setPosition(25.0f + (i*144.0f) - (float)folderOffsetX, 30.0f);
+        ENGINE.Draw(folderEquip, false);
+      }
+
+    }
+
+    auto x = swoosh::ease::interpolate((float)frameElapsed*7.f, folderCursor.getPosition().x, 98.0f + (std::min(2,currFolderIndex)*144.0f));
+    folderCursor.setPosition(x, 68.0f);
+
+    if(currFolderIndex > 2) {
+      folderOffsetX = swoosh::ease::interpolate(frameElapsed*7.0, folderOffsetX, (double)(((currFolderIndex-2)*144.0f)));
+    }
+    else {
+      folderOffsetX = swoosh::ease::interpolate(frameElapsed*7.0, folderOffsetX, 0.0);
+    }
+
+    ENGINE.Draw(folderCursor, false);
+  }
+
+  // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
+  float top = 120.0f; float bottom = 170.0f;
+  float depth = ((float)(currChipIndex) / (float)numOfChips)*bottom;
+  scrollbar.setPosition(436.f, top + depth);
+
+  ENGINE.Draw(scrollbar);
+
+  if (!folder) return;
+  if (folder && folder->GetSize() == 0) return;
+
+  // Move the chip library iterator to the current highlighted chip
+  ChipFolder::Iter iter = folder->Begin();
+
+  for (int j = 0; j < currChipIndex; j++) {
+    iter++;
+  }
+
+  // Now that we are at the viewing range, draw each chip in the list
+  for (int i = 0; i < maxChipsOnScreen && currChipIndex + i < numOfChips; i++) {
+    chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(((*iter)->GetIconID())));
+    chipIcon.setPosition(2.f*104.f, 133.0f + (32.f*i));
+    ENGINE.Draw(chipIcon, false);
+
+    chipLabel->setOrigin(0.0f, 0.0f);
+    chipLabel->setFillColor(sf::Color::White);
+    chipLabel->setPosition(2.f*120.f, 128.0f + (32.f*i));
+    chipLabel->setString((*iter)->GetShortName());
+    ENGINE.Draw(chipLabel, false);
+
+
+    int offset = (int)((*iter)->GetElement());
+    element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+    element.setPosition(2.f*173.f, 133.0f + (32.f*i));
+    ENGINE.Draw(element, false);
+
+    chipLabel->setOrigin(0, 0);
+    chipLabel->setPosition(2.f*190.f, 128.0f + (32.f*i));
+    chipLabel->setString(std::string() + (*iter)->GetCode());
+    ENGINE.Draw(chipLabel, false);
+
+    iter++;
+  }
+
+  auto y = swoosh::ease::interpolate((float)frameElapsed*7.0f, cursor.getPosition().y, 170.0f + ((optionIndex)*32.0f));
+  cursor.setPosition(2.0, y);
+
+  float scale = 0.0f;
+
+  ENGINE.Draw(folderOptions);
+
+
+  if (promptOptions) {
+   scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
+   ENGINE.Draw(cursor);
+  }
+  else {
+    scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
+  }
+
+  folderOptions.setScale(2.0f, scale);
+}
+
+void FolderScene::onEnd() {
   delete font;
   delete chipFont;
-  delete chipDescFont;
   delete numberFont;
   delete menuLabel;
   delete numberLabel;
-  delete chipDesc;
-
-  ENGINE.RevokeShader();
-
-  return 1; // signal OK to the last scene
-}
-
-std::string FolderScene::FormatChipDesc(const std::string && desc)
-{
-  // Chip docks can only fit 8-9 characters per line, 3 lines total
-  std::string output = desc;
-
-  int index = 0;
-  int perLine = 0;
-  int line  = 0;
-  int wordIndex = -1; // If we are breaking on a word
-  while (index != desc.size()) {
-    if (desc[index] != ' ' && wordIndex == -1) {
-      wordIndex = index;
-    }
-    else if (desc[index] == ' ' && wordIndex > -1) {
-      wordIndex = -1;
-    }
-
-    if (perLine > 0 && perLine % 9 == 0) {
-      if (wordIndex > -1) {
-        // Line break at the last word
-        while (desc[index] == ' ') { index++; }
-        output.insert(wordIndex, "\n");
-        index = wordIndex; // Start counting from here
-        while (desc[index] == ' ') { index++; }
-      }
-      else {
-        // Line break at the next word
-        while (desc[index] == ' ') { index++; }
-        output.insert(index, "\n");
-        while (desc[index] == ' ') { index++; }
-      }
-      line++;
-      perLine = 0;
-      wordIndex = -1;
-    }
-
-    //if (line == 3) {
-    //  break;
-   // }
-
-    if (desc[index] != ' ') {
-      perLine++;
-    }
-
-    index++;
-  }
-
-  return output;
 }

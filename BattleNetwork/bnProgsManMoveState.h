@@ -11,8 +11,8 @@ public:
   ProgsManMoveState();
   ~ProgsManMoveState();
 
-  void OnEnter(ProgsMan& met);
-  void OnUpdate(float _elapsed, ProgsMan& met);
-  void OnLeave(ProgsMan& met);
+  void OnEnter(ProgsMan& p);
+  void OnUpdate(float _elapsed, ProgsMan& p);
+  void OnLeave(ProgsMan& p);
 };
 
