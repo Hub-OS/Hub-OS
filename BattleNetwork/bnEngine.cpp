@@ -14,7 +14,7 @@ void Engine::Initialize() {
   original = view; // never changes 
   cam = new Camera(view);
 
-  window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition");
+  window = new RenderWindow(sf::VideoMode::getDesktopMode(), "Battle Network: Progs Edition");
   window->setFramerateLimit(60);
   window->setMouseCursorVisible(false); // Hide cursor
 

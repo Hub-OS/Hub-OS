@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
   sf::RenderTexture loadSurface;
   //loadSurface.create(480, 320);
   loadSurface.create(ENGINE.GetWindow()->getSize().x, ENGINE.GetWindow()->getSize().y, ENGINE.GetWindow()->getSettings());
-  ENGINE.SetRenderSurface(loadSurface);
+  //ENGINE.SetRenderSurface(loadSurface);
 
   while (inConfigMessageState && ENGINE.Running()) {
     clock.restart();
@@ -458,7 +458,7 @@ int main(int argc, char** argv) {
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
   }
 
-  sf::Texture loadingScreenSnapshot = ENGINE.GetRenderSurface().getTexture();
+  sf::Texture loadingScreenSnapshot;; // = ENGINE.GetRenderSurface().getTexture();
 
   // Cleanup
   ENGINE.RevokeShader();
