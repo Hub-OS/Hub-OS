@@ -28,7 +28,7 @@ ProgsMan::ProgsMan(Rank _rank)
   textureType = TextureType::MOB_PROGSMAN_IDLE;
   healthUI = new MobHealthUI(this);
 
-  this->StateChange<ProgsManIdleState>();
+  this->ChangeState<ProgsManIdleState>();
 
   setTexture(*TEXTURES.GetTexture(textureType));
   setScale(2.f, 2.f);
@@ -100,11 +100,11 @@ void ProgsMan::Update(float _elapsed) {
     }
   }
 
-  this->StateUpdate(_elapsed);
+  this->AI::Update(_elapsed);
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<ProgsMan>>(12, 0.75);
+    this->ChangeState<ExplodeState<ProgsMan>>(12, 0.75);
     this->LockState();
   }
   else {

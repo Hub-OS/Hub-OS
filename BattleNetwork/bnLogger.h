@@ -10,7 +10,7 @@ using std::to_string;
 #include <mutex>
 #include <fstream>
 
-#ifdef SFML_SYSTEM_ANDROID
+#if defined(__ANDROID__)
 #include <android/log.h>
 #endif
 
@@ -43,7 +43,7 @@ public:
       file << "StartTime " << time(0) << endl;
     }
 
-#ifdef SFML_SYSTEM_ANDROID
+#if defined(__ANDROID__)
     __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",_message.c_str());
 #endif
 
@@ -78,7 +78,7 @@ public:
 
     file << ret << endl;
 
-#ifdef SFML_SYSTEM_ANDROID
+#if defined(__ANDROID__)
     __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",ret.c_str());
 #endif
   }

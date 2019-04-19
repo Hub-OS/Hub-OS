@@ -1,4 +1,3 @@
-#pragma once
 #include "bnMettaurIdleState.h"
 #include "bnMettaurMoveState.h"
 #include <iostream>
@@ -21,7 +20,7 @@ void MettaurIdleState::OnUpdate(float _elapsed, Mettaur& met) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {
-    //met.StateChange<MettaurMoveState>();
+    this->ChangeState<MettaurMoveState>();
   }
 }
 

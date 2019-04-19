@@ -7,6 +7,7 @@
 #include "bnMainMenuScene.h"
 #include "bnAnimate.h"
 #include "bnChronoXConfigReader.h"
+#include "Android/bnTouchArea.h"
 #include "SFML/System.hpp"
 #include "SFML/Window/Touch.hpp"
 #include <time.h>
@@ -115,7 +116,13 @@ int main(int argc, char** argv) {
 
   // Press Start text
   sf::Font* startFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+
+#if defined(__ANDROID__)
+  sf::Text* startLabel = new sf::Text("TAP SCREEN", *startFont);
+#else
   sf::Text* startLabel = new sf::Text("PRESS START", *startFont);
+#endif
+
   startLabel->setCharacterSize(24);
   startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
   startLabel->setPosition(sf::Vector2f(180.0f, 240.f));
@@ -379,6 +386,80 @@ int main(int argc, char** argv) {
   // Stop music and go to select screen 
   AUDIO.StopStream();
 
+#ifdef __ANDROID__
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 280));
+  rightSide.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      Logger::Log("Virtual A press");
+  });
+  rightSide.onRelease([](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+      Logger::Log("Virtual A release");
+
+  });
+
+  TouchArea& chipUse = TouchArea::create(sf::IntRect(240, 280, 240, 40));
+  chipUse.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+      Logger::Log("Virtual B press");
+  });
+  chipUse.onRelease([](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+      Logger::Log("Virtual B release");
+
+  });
+
+  TouchArea& leftPad = TouchArea::create(sf::IntRect(0, 100, 120, 100));
+  leftPad.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_LEFT);
+      Logger::Log("Virtual Left press");
+
+  });
+  leftPad.onRelease([](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_LEFT);
+      Logger::Log("Virtual Left release");
+
+  });
+
+  TouchArea& rightPad = TouchArea::create(sf::IntRect(120, 100, 120, 100));
+  rightPad.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_RIGHT);
+  });
+  rightPad.onRelease([](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_RIGHT);
+  });
+
+  TouchArea& upPad = TouchArea::create(sf::IntRect(0, 0, 240, 100));
+  upPad.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_UP);
+  });
+  upPad.onRelease([](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_UP);
+  });
+
+  TouchArea& downPad = TouchArea::create(sf::IntRect(0, 220, 240, 100));
+  downPad.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_DOWN);
+  });
+  downPad.onRelease([](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_DOWN);
+  });
+
+  TouchArea& custSelectButton = TouchArea::create(sf::IntRect(0, 0, 480, 100));
+  custSelectButton.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_START);
+      Logger::Log("Virtual Start press");
+
+  });
+  custSelectButton.onRelease([](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_START);
+      Logger::Log("Virtual Start release");
+
+  });
+#endif
+
+
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
     int win = MainMenuScene::Run(); // MainMenuScene::Run();
@@ -427,6 +508,10 @@ int main(int argc, char** argv) {
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
 
   }
-  
+
+#if defined(__ANDROID__)
+TouchArea::free();
+#endif
+
   return EXIT_SUCCESS;
 }

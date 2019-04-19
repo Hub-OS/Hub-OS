@@ -7,35 +7,43 @@ template<class T>
 class AIState
 {
 private:
-  AIState<T>* nextState;
+    AIState<T>* nextState;
 
 public:
-  AIState() { ; }
-  AIState(const AIState<T>& rhs) = default;
-  AIState(AIState<T>&& ref) = default;
+    AIState() { nextState = nullptr; }
+    AIState(const AIState<T>& rhs) = default;
+    AIState(AIState<T>&& ref) = default;
 
-  template<class U>
-  void ChangeState() {
-    _DerivedFrom<U, AIState<T>>();
+    template<class U, typename ...Args>
+    void ChangeState(Args... args) {
+      //_DerivedFrom<U, AIState<T>>();
 
-    nextState = new U();
-  }
+      if (nextState) { delete nextState; }
 
-  AIState<T>* Update(float _elapsed, T& context) {
-    nextState = nullptr;
+      nextState = new U(args...);
+    }
 
-    OnUpdate(_elapsed, context);
-    if (nextState) {
+    template<class U>
+    void ChangeState() {
+      //_DerivedFrom<U, AIState<T>>();
+
+      if (nextState) { delete nextState; }
+
+      nextState = new U();
+    }
+
+    AIState<T>* Update(float _elapsed, T& context) {
+      // if (nextState) { nextState = nullptr; }
+
+      // nextState could be non-null after update
+      OnUpdate(_elapsed, context);
+
       return nextState;
     }
 
-    return nullptr;
-  }
+    virtual ~AIState() { ; }
 
-  virtual ~AIState() { ; }
-
-  virtual void OnEnter(T& context) = 0;
-  virtual void OnUpdate(float _elapsed, T& context) = 0;
-  virtual void OnLeave(T& context) = 0;
+    virtual void OnEnter(T& context) = 0;
+    virtual void OnUpdate(float _elapsed, T& context) = 0;
+    virtual void OnLeave(T& context) = 0;
 };
-

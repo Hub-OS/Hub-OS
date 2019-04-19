@@ -75,8 +75,8 @@ void Player::Update(float _elapsed) {
 
   // Explode if health depleted
   if (GetHealth() <= 0) {
-    this->StateChange<ExplodeState<Player>>(10, 0.65);
-    this->StateUpdate(_elapsed);
+    this->ChangeState<ExplodeState<Player>>(10, 0.65);
+    this->AI::Update(_elapsed);
     return;
   }
 
@@ -101,7 +101,7 @@ void Player::Update(float _elapsed) {
     this->setColor(sf::Color(255, 255, 255, alpha));
   }
 
-  this->StateUpdate(_elapsed);
+  this->AI::Update(_elapsed);
 
   //Components updates
   chargeComponent.update(_elapsed);
@@ -206,7 +206,7 @@ const bool Player::Hit(int _damage) {
   else {
     health -= _damage;
     hitCount++;
-    this->StateChange<PlayerHitState, float>({ 600.0f });
+    this->ChangeState<PlayerHitState, float>({ 600.0f });
   }
 
   return result;

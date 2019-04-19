@@ -35,7 +35,7 @@ void PlayerControlledState::OnEnter(Player& player) {
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   // Action controls take priority over movement
-  if (inputManager->has(RELEASED_A) || !sf::Touch::isDown(0)) {
+  if (inputManager->has(RELEASED_A)) {
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
       player.chargeComponent.SetCharging(false);
@@ -70,7 +70,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   }
  
 
-  if ((inputManager->has(PRESSED_A) || sf::Touch::isDown(0)) && isChargeHeld == false) {
+  if ((inputManager->has(PRESSED_A)) && isChargeHeld == false) {
     player.Attack(player.chargeComponent.GetChargeCounter());
     isChargeHeld = true;
 

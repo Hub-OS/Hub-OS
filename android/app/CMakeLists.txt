@@ -26,8 +26,7 @@ add_definitions(-DSFML_OPENGL_ES2)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../extern/SFML ./sfml-build)
 
-
-file(GLOB BATTLENETWORK_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork/*.cpp)
+file(GLOB BATTLENETWORK_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork/Android/*.cpp)
 
 include_directories(native-lib ${CMAKE_CURRENT_SOURCE_DIR}/../../extern/includes)
 include_directories(native-lib ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork)

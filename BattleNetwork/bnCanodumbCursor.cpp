@@ -58,7 +58,7 @@ void CanodumbCursor::Update(float _elapsed) {
     if (this->GetTile() == target->GetTile() && !target->IsPassthrough()) {
       deleted = true;
 
-      parent->StateChange<CanodumbAttackState>();
+      parent->ChangeState<CanodumbAttackState>();
     }
     else {
       movecooldown = maxcooldown;

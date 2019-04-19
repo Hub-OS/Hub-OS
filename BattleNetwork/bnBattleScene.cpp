@@ -93,7 +93,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
   Set Scene*/
   Field* field = mob->GetField();
 
-  player->StateChange<PlayerIdleState>();
+  player->ChangeState<PlayerIdleState>();
   field->AddEntity(player, 2, 2);
 
   PlayerHealthUI* playerHealthUI = player->GetHealthUI();
@@ -509,7 +509,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
         // toggle the flag
         isMobFinished = true; 
         // allow the player to be controlled by keys
-        player->StateChange<PlayerControlledState>(); 
+        player->ChangeState<PlayerControlledState>();
         // Move mob out of the PixelInState 
         mob->DefaultState();
         // show the chip select screen
@@ -575,10 +575,10 @@ int BattleScene::Run(Player* player, Mob* mob) {
         chipSelectInputCooldown = 0;
       }
       
-      if (INPUT.has(PRESSED_A) || sf::Touch::isDown(0)) {
+      if (INPUT.has(PRESSED_A)) {
         bool performed = chipCustGUI.CursorAction();
 
-        if (chipCustGUI.AreChipsReady() || sf::Touch::isDown(0)) {
+        if (chipCustGUI.AreChipsReady()) {
           AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOWEST);
           customProgress = 0; // NOTE: Hack. Need one more state boolean
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f)); 

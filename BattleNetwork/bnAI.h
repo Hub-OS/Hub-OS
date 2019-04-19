@@ -3,84 +3,90 @@
 #include "bnAIState.h"
 #include "bnEntity.h"
 #include "bnAgent.h"
+#include "bnNoState.h"
 
 template<typename T>
 class AI : public Agent {
 private:
-  AIState<T>* stateMachine;
-  T* ref;
-  int lock;
+    AIState<T>* stateMachine;
+    T* ref;
+    int lock;
 
 protected:
-  enum StateLock {
-    Locked,
-    Unlocked
-   };
+    enum StateLock {
+        Locked,
+        Unlocked
+    };
 
 public:
-  void LockState() {
-    lock = AI<T>::StateLock::Locked;
-  }
-
-  void UnlockState() {
-    lock = AI<T>::StateLock::Unlocked;
-  }
-
-  AI(T* _ref) : Agent() { stateMachine = nullptr; ref = _ref; lock = AI<T>::StateLock::Unlocked; }
-  ~AI() { if (stateMachine) { delete stateMachine; ref = nullptr; this->FreeTarget(); } }
-
-  template<typename U>
-  void StateChange() {
-    //_DerivedFrom<U, AIState<T>>();
-
-    if (lock == AI<T>::StateLock::Locked) {
-      return;
+    void LockState() {
+      lock = AI<T>::StateLock::Locked;
     }
 
-    if (stateMachine) {
-      stateMachine->OnLeave(*ref);
-      delete stateMachine;
+    void UnlockState() {
+      lock = AI<T>::StateLock::Unlocked;
     }
 
-    stateMachine = new U();
-    stateMachine->OnEnter(*ref);
-  }
+    AI(T* _ref) : Agent() { stateMachine = nullptr; ref = _ref; lock = AI<T>::StateLock::Unlocked; }
+    ~AI() { if (stateMachine) { delete stateMachine; ref = nullptr; this->FreeTarget(); } }
 
-  /*
-    For states that require arguments, pass the arguments
-    e.g. 
+    template<typename U>
+    void ChangeState() {
+      _DerivedFrom<U, AIState<T>>();
 
-    this->StateChange<PlayerThrowBombState>(200.f, 300, true);
-  */
-  template<typename U, typename ...Args>
-  void StateChange(Args... args) {
-    //_DerivedFrom<U, AIState<T>>();
+      if (lock == AI<T>::StateLock::Locked) {
+        return;
+      }
 
-    if (lock == AI<T>::StateLock::Locked) {
-      return;
+      if (!stateMachine) {
+        stateMachine = new NoState<T>();
+      }
+
+      stateMachine->template ChangeState<U>();
+
+      // TODO: this call makes AI states crash when using `entity.ChangeState()`
+      this->Update(0);
     }
 
-    if (stateMachine) {
-      stateMachine->OnLeave(*ref);
-      delete stateMachine;
+    /*
+      For states that require arguments, pass the arguments
+      e.g.
+
+      this->ChangeState<PlayerThrowBombState>(200.f, 300, true);
+    */
+
+    template<typename U, typename ...Args>
+    void ChangeState(Args... args) {
+      _DerivedFrom<U, AIState<T>>();
+
+      if (lock == AI<T>::StateLock::Locked) {
+        return;
+      }
+
+      if (!stateMachine) {
+        std::cout << "changing AI state to NoState" << std::endl;
+        stateMachine = new NoState<T>();
+      }
+
+      stateMachine->template ChangeState<U>(args...);
+      this->Update(0);
     }
 
-    stateMachine = new U(args...);
-    stateMachine->OnEnter(*ref);
-  }
+    void Update(float _elapsed) {
+      if (stateMachine != nullptr) {
+        AIState<T>* nextState = stateMachine->Update(_elapsed, *ref);
 
-  void StateUpdate(float _elapsed) {
-    if (stateMachine != nullptr) {
-      AIState<T>* nextState = stateMachine->Update(_elapsed, *ref);
+        if (nextState != nullptr) {
+          //std::cout << "nextState is " << nextState << std::endl;
 
-      if (nextState != nullptr) {
-        stateMachine->OnLeave(*ref);
-        delete stateMachine;
+          stateMachine->OnLeave(*ref);
 
-        stateMachine = nextState;
-        stateMachine->OnEnter(*ref);
+          AIState<T>* oldState = stateMachine;
+          stateMachine = nextState;
+          stateMachine->OnEnter(*ref);
+          delete oldState;
+          oldState = nullptr;
+        }
       }
     }
-  }
 };
-

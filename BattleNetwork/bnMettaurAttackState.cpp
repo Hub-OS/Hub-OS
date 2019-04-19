@@ -1,4 +1,3 @@
-#pragma once
 #include "bnMettaurAttackState.h"
 #include "bnWave.h"
 #include "bnTile.h"
@@ -29,5 +28,5 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
     met.field->OwnEntity(spell, met.tile->GetX() - 1, met.tile->GetY());
   }
 
-  met.StateChange<MettaurIdleState>();
+  this->ChangeState<MettaurIdleState>();
 }

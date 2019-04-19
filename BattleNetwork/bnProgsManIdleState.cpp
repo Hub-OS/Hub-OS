@@ -22,7 +22,7 @@ void ProgsManIdleState::OnUpdate(float _elapsed, ProgsMan& progs) {
   printf("cooldown: %f", cooldown);
 
   if (cooldown < 0) {
-    progs.StateChange<ProgsManMoveState>();
+    progs.ChangeState<ProgsManMoveState>();
   }
 }
 

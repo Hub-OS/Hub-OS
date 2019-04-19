@@ -145,7 +145,7 @@ int MainMenuScene::Run()
         selectInputCooldown = 0;
       }
       
-      if (INPUT.has(PRESSED_A) || sf::Touch::isDown(0)) {
+      if (INPUT.has(PRESSED_A)) {
 
         // Folder Select
         if (menuSelectionIndex == 1) {
@@ -160,7 +160,7 @@ int MainMenuScene::Run()
         }
 
         // Mob select
-        if (menuSelectionIndex == 3 || sf::Touch::isDown(0)) {
+        if (menuSelectionIndex == 3) {
           gotoNextScene = true;
           menuSelectionIndex = 3;
           AUDIO.Play(AudioType::CHIP_DESC);

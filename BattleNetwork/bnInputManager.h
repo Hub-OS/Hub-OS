@@ -16,7 +16,7 @@ public:
   bool empty();
   void SupportChronoXGamepad(ChronoXConfigReader& config);
   bool HasChronoXGamepadSupport();
-
+  void VirtualKeyEvent(InputEvent event);
 private:
   InputManager();
   vector<InputEvent> events;
