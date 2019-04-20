@@ -15,6 +15,7 @@ public:
     enum State : int {
         DEFAULT,
         TOUCHED,
+        DRAGGING,
         RELEASED
     };
 
@@ -32,6 +33,7 @@ private:
 
     std::function<void(sf::Vector2i)> m_onReleaseCallback;
     std::function<void()> m_onTouchCallback;
+    std::function<void(sf::Vector2i)> m_onDragCallback;
     std::function<void()> m_onDefaultCallback;
 
     explicit TouchArea(const sf::IntRect&& source);
@@ -48,6 +50,7 @@ public:
     void enableExtendedRelease(bool enable=true);
     void onRelease(std::function<void(sf::Vector2i)> callback);
     void onTouch(std::function<void()> callback);
+    void onDrag(std::function<void(sf::Vector2i)> callback);
     void onDefault(std::function<void()> callback);
 
     static TouchArea& create(const sf::IntRect&& source);

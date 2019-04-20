@@ -388,74 +388,61 @@ int main(int argc, char** argv) {
 
 #ifdef __ANDROID__
   /* Android touch areas*/
-  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 280));
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  rightSide.enableExtendedRelease(true);
+  bool releasedB = false;
+
   rightSide.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
-      Logger::Log("Virtual A press");
-  });
-  rightSide.onRelease([](sf::Vector2i delta) {
       INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
-      Logger::Log("Virtual A release");
+  });
+
+  rightSide.onRelease([&releasedB](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      releasedB = false;
 
   });
 
-  TouchArea& chipUse = TouchArea::create(sf::IntRect(240, 280, 240, 40));
-  chipUse.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
-      Logger::Log("Virtual B press");
-  });
-  chipUse.onRelease([](sf::Vector2i delta) {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
-      Logger::Log("Virtual B release");
-
+  rightSide.onDrag([&releasedB](sf::Vector2i delta){
+      if(delta.x < -40 && !releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        releasedB = true;
+      }
   });
 
-  TouchArea& leftPad = TouchArea::create(sf::IntRect(0, 100, 120, 100));
-  leftPad.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_LEFT);
-      Logger::Log("Virtual Left press");
-
-  });
-  leftPad.onRelease([](sf::Vector2i delta) {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_LEFT);
-      Logger::Log("Virtual Left release");
-
-  });
-
-  TouchArea& rightPad = TouchArea::create(sf::IntRect(120, 100, 120, 100));
-  rightPad.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_RIGHT);
-  });
-  rightPad.onRelease([](sf::Vector2i delta) {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_RIGHT);
-  });
-
-  TouchArea& upPad = TouchArea::create(sf::IntRect(0, 0, 240, 100));
-  upPad.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_UP);
-  });
-  upPad.onRelease([](sf::Vector2i delta) {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_UP);
-  });
-
-  TouchArea& downPad = TouchArea::create(sf::IntRect(0, 220, 240, 100));
-  downPad.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_DOWN);
-  });
-  downPad.onRelease([](sf::Vector2i delta) {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_DOWN);
+  rightSide.onDefault([&releasedB]() {
+      releasedB = false;
   });
 
   TouchArea& custSelectButton = TouchArea::create(sf::IntRect(0, 0, 480, 100));
   custSelectButton.onTouch([]() {
       INPUT.VirtualKeyEvent(InputEvent::PRESSED_START);
-      Logger::Log("Virtual Start press");
-
   });
   custSelectButton.onRelease([](sf::Vector2i delta) {
       INPUT.VirtualKeyEvent(InputEvent::RELEASED_START);
-      Logger::Log("Virtual Start release");
+  });
 
+  TouchArea& dpad = TouchArea::create(sf::IntRect(0, 0, 240, 320));
+  dpad.enableExtendedRelease(true);
+  dpad.onDrag([](sf::Vector2i delta) {
+      Logger::Log("dpad delta: " + std::to_string(delta.x) + ", " + std::to_string(delta.y));
+
+    if(delta.x > 40) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_RIGHT);
+    }
+
+    if(delta.x < -40) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_LEFT);
+    }
+
+    if(delta.y > 40) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_DOWN);
+    }
+
+    if(delta.y < -40) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_UP);
+    }
   });
 #endif
 

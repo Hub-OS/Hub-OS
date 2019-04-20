@@ -12,10 +12,11 @@ TouchArea::TouchArea(const sf::IntRect&& source) {
     m_area = std::move(source);
     m_touchIndex = 0;
     m_state = TouchArea::State::RELEASED;
-    m_allowExtendedRelease = true;
+    m_allowExtendedRelease = false;
 
     // Set callbacks to empty functors
     m_onReleaseCallback = [](sf::Vector2i){};
+    m_onDragCallback = [](sf::Vector2i){};
     m_onTouchCallback = [](){};
     m_onDefaultCallback = [](){};
 
@@ -58,7 +59,7 @@ void TouchArea::privPoll() {
                 m_onTouchCallback();
             }
         }
-    } else if(m_state == TouchArea::State::TOUCHED) {
+    } else if(m_state == TouchArea::State::TOUCHED || m_state == TouchArea::DRAGGING) {
         if(sf::Touch::isDown(m_touchIndex)) {
             // Check to see if we are still within the rectangle
             sf::Vector2i touchPosition = sf::Touch::getPosition(m_touchIndex, *ENGINE.GetWindow());
@@ -68,8 +69,20 @@ void TouchArea::privPoll() {
 
             // If we are outside rectangle and have extended enabled, continue tracking
             if (m_area.contains(touchPosition) || m_allowExtendedRelease) {
-                // Update end pos
-                m_touchEnd = touchPosition;
+                sf::Vector2i delta = (m_touchEnd - m_touchStart);
+
+                if(m_state == TouchArea::State::TOUCHED) {
+                    if (delta.x != 0 || delta.y != 0) {
+                        // Set state to dragging and fire first callback
+                        m_touchEnd = touchPosition;
+                        m_onDragCallback(m_touchEnd - m_touchStart);
+                        m_state = TouchArea::State::DRAGGING;
+                    }
+                } else {
+                    // Update end pos
+                    m_touchEnd = touchPosition;
+                    m_onDragCallback(m_touchEnd - m_touchStart);
+                }
             } else {
                 // We are outside rectangle and have not released, toggle default callback
                 reset();
@@ -109,6 +122,11 @@ const int TouchArea::getTouchIndex() const {
 void TouchArea::onRelease(std::function<void(sf::Vector2i)> callback) {
     m_onReleaseCallback = callback;
 }
+
+void TouchArea::onDrag(std::function<void(sf::Vector2i)> callback) {
+    m_onDragCallback = callback;
+}
+
 
 void TouchArea::onTouch(std::function<void()> callback) {
     m_onTouchCallback = callback;
