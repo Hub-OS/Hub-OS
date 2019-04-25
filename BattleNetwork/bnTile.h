@@ -45,81 +45,223 @@ namespace Battle {
   public:
     friend class Entity;
 
+    /**
+    * \brief Base 1. Creates a tile at column x and row y.
+    * 
+    * If the tile column is <= 3, the tile's team is
+    * automatically RED. Otherwise it is BLUE.
+    */
     Tile(int _x, int _y);
     ~Tile();
 
     Tile(const Tile& rhs);
     Tile& operator=(const Tile& other);
 
+    /**
+     * @brief Query the current state of the tile
+     * @return TileState
+     */
     const TileState GetState() const;
 
+    /**
+     * @brief Assigns the tile's field pointer
+     * @param _field
+     */
     void SetField(Field* _field);
 
-    int GetX() const;
-    int GetY() const;
+    /**
+     * @brief Base 1. Returns the column of the tile.
+     * @return Column number
+     */
+    const int GetX() const;
+    
+    /**
+     * @brief Base 1. Returns the row of the tile.
+     * @return Row number
+     */
+    const int GetY() const;
 
-    Team GetTeam() const;
+    /**
+     * @brief Query the tile's team
+     * @return Team
+     */
+    const Team GetTeam() const;
+    
+    /**
+     * @brief Change the tile's team if unoccupied
+     * This will also change the color of the tile. 
+     * If the tile has characters of another team on it,
+     * it will not change. 
+     * @param _team Team to change to
+     */
     void SetTeam(Team _team);
 
+    /**
+     * @brief Get the width of the tile sprite
+     * @return width in pixels
+     */
     float GetWidth() const;
+    
+    /**
+     * @brief Get the height of the tile sprite
+     * @return height in pixels
+     */
     float GetHeight() const;
 
+    /**
+     * @brief Change the tile's state if unoccupied or not broken nor empty
+     * SetState tries to abide by the game's original rules
+     * You cannot use a chip to change the state of the tile if it's in a state
+     * that cannot be modified such as being TileState::Empty
+     * @param _state
+     */
     void SetState(TileState _state);
 
+    /**
+     * @brief Texture updates to reflect the tile's current state
+     */
     void RefreshTexture();
 
+    /**
+     * @brief Query if the tile is walkable e.g. not Broken nor Empty
+     * @return true if walkable, false otherwise
+     */
     bool IsWalkable() const;
+    
+    /**
+     * @brief Query if the tile is cracked
+     * @return true if state == TileState::CRACKED 
+     */
     bool IsCracked() const;
 
+    /**
+     * @brief Query if the tile should be highlighted in battle
+     * Some spells don't highlight tiles they occupy
+     * The boolean is toggled in the Tile's Update() loop 
+     * In the battle scene, if a tile is highlighted, it will use the
+     * yellow luminocity shader to highlight the tile.
+     * @return true if tile should be highlighted
+     */
     bool IsHighlighted() const;
 
+    /**
+     * @brief Adds a spell to the spell bucket if it doesn't already exist
+     * @param _entity
+     */
     void AddEntity(Spell& _entity);
+    
+    /**
+     * @brief Adds a character to the character bucket if it doesn't already exist
+     * @param _entity
+     */
     void AddEntity(Character& _entity);
+    
+    /**
+     * @brief Adds an obstacle to the obstacle bucket if it doesn't already exist
+     * @param _entity
+     */
     void AddEntity(Obstacle& _entity);
+    
+    /**
+     * @brief Adds an artifact to the artifact bucket if it doesn't already exist
+     * @param _entity
+     */
     void AddEntity(Artifact& _entity);
 
+    /**
+     * @brief If found, remove the entity from all buckets with the same ID
+     * @param ID
+     */
     void RemoveEntityByID(int ID);
+    
+    /**
+     * @brief Query if the given entity already occupies this tile
+     * @param _entity to check
+     * @return true if the entity is already in one of the buckets
+     */
     bool ContainsEntity(Entity* _entity) const;
 
+    /**
+     * @brief Reserve this tile for an entity with ID 
+     * An entity may be temporarily removed from play but will be back
+     * later. This mechanic is seen with AntiDamage chip. While
+     * the entity is removed, the tile it was on must not be modified
+     * by state changes and should be treated as occupied for all other checks.
+     * When the entity is added again with AddEntity(), the reserve will be removed.
+     * @param ID
+     */
     void ReserveEntityByID(int ID);
 
+    /**
+     * @brief Query the tile for an entity type
+     * @return true if the tile contains entity of type Type, false if no matches
+     */
     template<class Type> bool ContainsEntityType();
+    
+    /**
+     * @brief Attack all entities occupying this tile with spell 
+     * @param caller must be valid non-null spell
+     */
     void AffectEntities(Spell* caller);
 
+    /**
+     * @brief OLD LEGACY CODE NEEDS TO BE REMOVED
+     * This was in the early version of Pheelbert's engine and needs to be removed
+     * @param out
+     * @return true if has another entity, false if list has been traveled
+     */
     bool GetNextEntity(Entity*& out) const;
 
+    /**
+     * @brief Updates all entities occupying this tile
+     * @param _elapsed in seconds
+     */
     void Update(float _elapsed);
 
+    /**
+     * @brief Notifies all entities that the battle is active
+     * @param state
+     */
     void SetBattleActive(bool state);
 
+    /**
+     * @brief Query for multiple entities using a functor
+     * This is useful for movement as well as chip attacks 
+     * to find specific enemy types under specific conditions
+     * @param e Functor that takes in an entity and returns a boolean
+     * @return returns a list of entities that returned true in the functor `e` 
+     */
     std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
-    // Todo: use sets to avoid duplicate entries
-    vector<Artifact*> artifacts;
-    vector<Spell*> spells;
-    vector<Character*> characters;
-    vector<Entity*> entities;
-
-    set<int> reserved;
   private:
-    int x;
-    int y;
+    int x; /**< Column number*/
+    int y; /**< Row number*/
     Team team;
     TileState state;
-    TextureType textureType;
-    float elapsed;
+    TextureType textureType; /**< Texture reflects the tile's state */
+    float elapsed; /**< Internal counter for non-permanent states e.g. TileState::Cracked */
 
     float width;
     float height;
     Field* field;
     float cooldown;
     float cooldownLength;
-    bool hasSpell;
+    bool hasSpell; /**< Highlights when there is a spell occupied in this tile */
     bool isBattleActive;
 
-    std::vector<long> taggedSpells;
+    // Todo: use sets to avoid duplicate entries
+    vector<Artifact*> artifacts; /**< Entity bucket for type Artifacts */
+    vector<Spell*> spells; /**< Entity bucket for type Spells */
+    vector<Character*> characters; /**< Entity bucket for type Characters */
+    vector<Entity*> entities; /**< Entity bucket for looping over all entities **/
 
-    // Aux
+    set<int> reserved; /**< IDs of entities reserving this tile*/
+    vector<long> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
+
+    /**
+     * @brief Auxillary function used by all other overloads of AddEntity
+     * @param _entity
+     */
     void AddEntity(Entity* _entity);
   };
 

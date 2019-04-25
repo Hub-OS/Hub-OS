@@ -1,3 +1,7 @@
+/*! \brief Virus background uses Background class to animate and scroll
+ *  \class VirusBackground
+ */
+ 
 #pragma once
 #include <SFML/Graphics.hpp>
 using sf::Texture;

@@ -60,15 +60,15 @@ namespace Battle {
     field = _field;
   }
 
-  int Tile::GetX() const {
+  const int Tile::GetX() const {
     return x;
   }
 
-  int Tile::GetY() const {
+  const int Tile::GetY() const {
     return y;
   }
 
-  Team Tile::GetTeam() const {
+  const Team Tile::GetTeam() const {
     return team;
   }
 
@@ -168,7 +168,6 @@ namespace Battle {
   }
 
   void Tile::RefreshTexture() {
-    sf::Vector2f test = getPosition();
     if (state == TileState::NORMAL) {
       if (team == Team::BLUE) {
         textureType = TextureType::TILE_BLUE_NORMAL;
@@ -186,6 +185,7 @@ namespace Battle {
       }
     }
     else if (state == TileState::BROKEN) {
+      // Broken tiles flicker when they regen
       if (team == Team::BLUE) {
         textureType = ((int)(cooldown * 100) % 2 == 0 && cooldown <= FLICKER) ? TextureType::TILE_BLUE_NORMAL : TextureType::TILE_BLUE_BROKEN;
       }
@@ -304,6 +304,7 @@ namespace Battle {
 
     if (itEnt != entities.end()) {
       // TODO: HasFloatShoe and HasAirShoe should be a component and use the component system
+      // If removing an entity and the tile was broken, crack the tile
       if(reserved.size() == 0 && dynamic_cast<Character*>(*itEnt) != nullptr && (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe()))) {
         state = TileState::BROKEN;
         AUDIO.Play(AudioType::PANEL_CRACK);
@@ -339,10 +340,14 @@ namespace Battle {
     reserved.insert(ID);
   }
 
-  void Tile::AffectEntities(Spell* caller) {
+  void Tile::AffectEntities(Spell* caller) 
+    // If the spell has already been tagged for this tile, ignore it
     if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
       return;
 
+    // Cleanup before main loop just in case
+    // NOTE: this loop has been modified since earlier builds that needed this
+    //       possibly can remove 
     for (auto it = entities.begin(); it != entities.end(); ++it) {
       if (*it == nullptr) {
         it = entities.erase(it);
@@ -350,23 +355,26 @@ namespace Battle {
       }
     }
 
-    auto entities_copy = entities; // may be modified after hitboxes are resolved
+    auto entities_copy = entities; // list may be modified after hitboxes are resolved
 
     // Spells dont cause damage when the battle is over
     if (this->isBattleActive) {
       bool tag = false;
       for (auto it = entities_copy.begin(); it != entities_copy.end(); ++it) {
-        if (*it == nullptr || *it == caller)
+        if (*it == caller)
           continue;
 
         // TODO: use group buckets to poll by ID instead of dy casting
         Character* c = dynamic_cast<Character*>(*it);
-        //Obstacle*  o = dynamic_cast<Obstacle*>(*it);
 
+        // If the entity is tangible, the entity is a character (can be hit), and the team isn't the same
+        // we call attack
         if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() || (c->GetTeam() == Team::UNKNOWN && caller->GetTeam() == Team::UNKNOWN))) {
           if (!c->CheckDefenses(caller)) {
             caller->Attack(c);
           }
+          
+          // Tag the spell
           tag = true;
         }
       }
@@ -379,7 +387,8 @@ namespace Battle {
     }
   }
 
-  // todo: redundant now that we have queries
+  // todo: redundant now that we have queries. 
+  //       this is legacy code and should be removed
   bool Tile::GetNextEntity(Entity*& out) const {
     static int x = 0;
     while (x < (int)this->entities.size()) {
@@ -391,9 +400,6 @@ namespace Battle {
     return false;
   }
 
-  /*
-  
-  */
   void Tile::Update(float _elapsed) {
     hasSpell = false;
 
@@ -406,18 +412,24 @@ namespace Battle {
     auto itChar = characters.begin();
     auto itArt = artifacts.begin();
 
+    // Step through the entity bucket (all entity types)
     while (itEnt != entities.end()) {
+      // If the entity is marked for deletion
       if ((*itEnt)->IsDeleted()) {
         long ID = (*itEnt)->GetID();
         
+        // If the entity was in the reserved list, remove it
         auto reservedIter = reserved.find(ID);
         if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
+        // Find other buckets this belongs to
         auto fitEnt = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitChar = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitArt = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
 
+        // Remove them from the tile's bucket
+        
         if (fitSpell != spells.end()) {
           spells.erase(fitSpell);
         }
@@ -430,13 +442,18 @@ namespace Battle {
           artifacts.erase(fitArt);
         }
 
+        // free memory
         delete *itEnt;
+        
+        // update the iterator
         itEnt = entities.erase(itEnt);
       }
       else {
         itEnt++;
       }
     }
+    
+    // Update every type bucket
 
     vector<Artifact*> artifacts_copy = artifacts;
     for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {

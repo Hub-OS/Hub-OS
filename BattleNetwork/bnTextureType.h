@@ -1,5 +1,8 @@
 #pragma once
-/**
+/** @brief All hard-coded resources used in game
+ * 
+ * To get the count of all textures use TextureType::SIZE
+ * 
  * @warning These have to be in order.
  * @see TextureResourceManager
 */

@@ -1,3 +1,7 @@
+/*! \brief Undernet background uses Background class to animate and scroll
+ *  \class UndernetBackground
+ */
+
 #pragma once
 #include <SFML/Graphics.hpp>
 using sf::Texture;
@@ -19,8 +23,8 @@ public:
 
 private:
   float progress;
-  int colorIndex;
-  std::vector<sf::Color> colors;
+  int colorIndex; /** The current color to flash */
+  std::vector<sf::Color> colors; /**< In the game, the undernet flashes colors */
   float colorProgress;
-  sf::Time colorDuration;
+  sf::Time colorDuration; /**< Duration inbetween color clashes */
 };

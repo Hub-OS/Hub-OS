@@ -79,6 +79,8 @@ bool Wave::Move(Direction _direction) {
     return true;
   }
 
+  // If our next tile pointer is invalide, we cannot move
+  // and must mark ourselves for deletion
   tile->RemoveEntityByID(this->GetID());
   this->Delete();
   return false;

@@ -13,8 +13,10 @@ TwoMettaurMob::~TwoMettaurMob()
 }
 
 Mob* TwoMettaurMob::Build() {
+  // Construct a new mob 
   Mob* mob = new Mob(field);
 
+  // Assign rewards based on rank
   mob->RegisterRankedReward(1, BattleItem(Chip(72, 0, '*', 0, Element::NONE, "Rflector", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
   mob->RegisterRankedReward(3, BattleItem(Chip(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "Cracks the tiles in the column immediately in front", 2)));
 
