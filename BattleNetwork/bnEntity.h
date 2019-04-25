@@ -272,7 +272,8 @@ public:
   void AdoptNextTile();
   
   /**
-   * @brief Pure virtual. Must be defined by super classes of Entity. @see Character @see Spell @see Obstacle
+   * @brief Pure virtual. Must be defined by super classes of Entity.
+   * 
    * This is a visitor design pattern with double distpatching
    * The super class must call tile->AddEntity(*this) to force the overloaded type
    * in the Tile class so that the entity is added to the correct type bucket @see Tile

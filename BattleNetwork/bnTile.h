@@ -1,3 +1,21 @@
+/*! \brief Tiles represent where entities can move around on.
+ * 
+ *  \class Tile
+ * 
+ * Without a tile, an entity cannot exist in the battle field.
+ * Tiles have states such as LAVA, ICE, GRASS, NORMAL, CRACKED, BROKEN, and EMPTY.
+ * Each state may affect an entity that lands on it or prevent other entities 
+ * from occupying them.
+ * 
+ * The tiles are responsible for updating everything that exists on it. To achieve this
+ * each type of entity has divided into different buckets: artifacts, spells, characters, 
+ * and obstacles. Spells can affect characters and obstacles can affect both spells and 
+ * other characters while artifacts are seen as purely visual and don't affect others.
+ * 
+ * When entities move they adopt new tiles and should remove themselves from their
+ * previous tile. The tile will remove the entity from its appropriate bucket.
+ */
+
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
@@ -27,9 +45,8 @@ namespace Battle {
   public:
     friend class Entity;
 
-    Tile(void);
     Tile(int _x, int _y);
-    ~Tile(void);
+    ~Tile();
 
     Tile(const Tile& rhs);
     Tile& operator=(const Tile& other);

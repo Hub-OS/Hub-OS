@@ -41,7 +41,7 @@ namespace Battle {
     isBattleActive = false;
   }
 
-  Tile::~Tile(void) {
+  Tile::~Tile() {
     // Free memory 
     auto iter = entities.begin();
 
