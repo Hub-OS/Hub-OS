@@ -481,6 +481,7 @@ namespace Battle {
     }
 
   }
+  
   void Tile::SetBattleActive(bool state)
   {
     isBattleActive = state;

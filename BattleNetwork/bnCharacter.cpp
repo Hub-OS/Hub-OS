@@ -9,7 +9,7 @@ Character::Character(Rank _rank) :
   health(0),
   maxHealth(0),
   counterable(false),
-  draggable(true),
+  pushable(true),
   canShareTile(false),
   stunCooldown(0),
   name("unnamed"),
@@ -39,9 +39,9 @@ const bool Character::CanShareTileSpace() const
   return this->canShareTile;
 }
 
-void Character::SetDraggable(bool enabled)
+void Character::SetPushable(bool enabled)
 {
-  this->draggable = enabled;
+  this->pushable = enabled;
 }
 
 void Character::Update(float _elapsed) {
@@ -71,9 +71,9 @@ void Character::Update(float _elapsed) {
     }
   }
 
-  if (this->GetHealth() <= 0 && this->isSliding) {
-    this->isSliding = false;
-  }
+  //if (this->GetHealth() <= 0 && this->isSliding) {
+  //  this->isSliding = false;
+  //}
 
   Entity::Update(_elapsed);
 }
@@ -117,14 +117,41 @@ const int Character::GetMaxHealth() const
 }
 
 const bool Character::Hit(Hit::Properties props) {
-  this->frameHitProps |= props.flags;
-  this->frameDamageTaken += props.damage;
+  if(props.element == Element::FIRE 
+  && GetTile()->GetState() == TileState::GRASS 
+  && !(this->HasAirShoe() || this->HasFloatShoe())) {
+    props.damage *= 2.0;
+    this->frameElementalModifier = true;
+  }
+  
+  if(props.element == Element::ELEC 
+  && GetTile()->GetState() == TileState::ICE 
+  && !(this->HasAirShoe() || this->HasFloatShoe())) {
+    props.damage *= 2.0;
+    this->frameElementalModifier = true;
+  }
+    
+  if(IsSuperEffective(props.element)) {
+      props.damage *= 2.0;
+  }
+  
+  this->statusQueue.push(props);
 
-  return (health != 0);
+  return this->OnHit(props);
 }
 
 void Character::ResolveFrameBattleDamage()
 {
+  if(this->statusQueue.empty()) return;
+  
+  Hit::Properties& props = this->statusQueue.front();
+  
+  while(props.flags == Hit::None) {
+    this->statusQueue.pop();
+    if(this->statusQueue.empty()) return;
+    props = this->statusQueue.front();
+  }
+
   (health - this->frameDamageTaken < 0) ? this->SetHealth(0) : this->SetHealth(health - this->frameDamageTaken);
 
   if (this->IsCountered() && (this->frameHitProps & Hit::recoil) == Hit::recoil) {
@@ -135,7 +162,9 @@ void Character::ResolveFrameBattleDamage()
       this->tileOffset = sf::Vector2f(50.f, 0.0f);
     }
 
-    //this->Broadcast(*this, *props.aggressor);
+    if(props.aggressor) {
+      this->Broadcast(*this, *props.aggressor);
+    }
   }
 
   if (this->GetHealth() == 0 && !this->invokeDeletion) {

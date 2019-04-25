@@ -3,6 +3,8 @@
 #include "bnCounterHitPublisher.h"
 
 #include <string>
+#include <queue>
+
 using std::string;
 
 namespace Hit {
@@ -45,7 +47,13 @@ private:
   Hit::Flags frameHitProps; // accumulation of final hit props on frame
 
   std::vector<DefenseRule*> defenses;
-
+  
+  // Statuses are resolved one property at a time
+  // until the entire Flag object is equal to 0x00 None
+  // Then we process the next status
+  // This continues until all statuses are processed
+  std::queue<Hit::Properties> statusQueue;
+  
 public:
   enum class Rank : const int {
     _1,
@@ -61,18 +69,19 @@ public:
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
 
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
+  virtual void OnDelete() = 0;
+  virtual const bool OnHit(const Hit::Properties props) = 0;
+  virtual const float GetHitHeight() const = 0;
+
+  const bool Hit final( const Hit::Properties props = Hit::DefaultProperties);
   virtual void ResolveFrameBattleDamage();
-  virtual const float GetHitHeight() const { return 10.f;  } // TODO: make abstract
-  virtual void OnDelete() {} // TODO: make abstract
   virtual void Update(float _elapsed);
   virtual bool CanMoveTo(Battle::Tile* next);
   virtual void AddAnimation(string _state, FrameList _frameList, float _duration);
   virtual void SetAnimation(string _state);
   virtual void SetCounterFrame(int frame);
   virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
-  virtual int* GetAnimOffset();
-
+  
   virtual int GetHealth() const;
   const int GetMaxHealth() const;
 
@@ -89,7 +98,7 @@ public:
   // Some characters allow others to move ontop of them
   void ShareTileSpace(bool enabled);
   const bool CanShareTileSpace() const;
-  void SetDraggable(bool enabled);
+  void SetPushable(bool enabled);
 
   // For mob UI
   void SetName(std::string name);
@@ -107,7 +116,7 @@ private:
 protected:
   int health;
   bool counterable;
-  bool draggable; // used by Hit::pushing
+  bool pushable; // used by Hit::pushing
   std::string name;
   double stunCooldown;
   Character::Rank rank;

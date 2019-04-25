@@ -19,6 +19,7 @@ Animate::Animate(Animate& rhs) {
   this->queuedOnFinish = rhs.queuedOnFinish;
   this->isUpdating = rhs.isUpdating;
   this->callbacksAreValid = rhs.callbacksAreValid;
+  this->currentPoints = rhs.currentPoints;
 }
 
 Animate::~Animate() {
@@ -29,6 +30,10 @@ Animate::~Animate() {
   this->nextLoopCallbacks.clear();
   this->onFinish = nullptr;
   this->queuedOnFinish = nullptr;
+}
+
+void Animate::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
+  currentPoints = sequence.frames[frameIndex].points;
 }
 
 void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequence)
@@ -177,6 +182,8 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
 	  if ((*iter).applyOrigin) {
 		target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
 	  }
+      
+      UpdateCurrentPoints(index, sequence);
 	  
       break;
     }
@@ -189,6 +196,8 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
     if ((*iter).applyOrigin) {
 	  target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
     }
+    
+    UpdateCurrentPoints(index, sequence);
   }
   
   isUpdating = false;
@@ -261,6 +270,8 @@ void Animate::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)
       if (frame.applyOrigin) {
         target.setOrigin((float)frame.origin.x, (float)frame.origin.y);
       }
+      
+      UpdateCurrentPoints(frameIndex, sequence);
 
       return;
     }

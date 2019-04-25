@@ -11,6 +11,8 @@ struct Frame {
   sf::IntRect subregion;
   bool applyOrigin;
   sf::Vector2f origin;
+  
+  std::map<std::string, sf::Vector2f> points;
 };
 
 class FrameList {
@@ -46,6 +48,9 @@ private:
   std::map<int, std::function<void()>> queuedCallbacks; // used for adding new callbacks while updating
   std::map<int, std::function<void()>> queuedOnetimeCallbacks; 
   
+  // Whichever frame list we're using, these are the available points
+  std::map<std::string, sf::Vector2f> currentPoints;
+  
   std::function<void()> onFinish;
   std::function<void()> queuedOnFinish;
   
@@ -53,6 +58,8 @@ private:
   
   bool isUpdating;
   bool callbacksAreValid;
+  
+  void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
   
 public:
   class On {
@@ -77,6 +84,7 @@ public:
   class Mode {
   private:
     int playback;
+    
   public:
 
     friend class Animate;
@@ -98,6 +106,15 @@ public:
   ~Animate();
 
   char GetMode() { return playbackMode;  }
+  
+  const sf::Vector2f GetPoint(const std::string label) {
+      if(currentPoints.find(label) == currentPoints.end()) {
+          Logger::Log("Could not find point in current sequence named " + label);
+          return sf::Vector2f();
+      }
+      return currentPoints[label];
+  }
+  
   void Clear() { 
 	  callbacksAreValid = false;
 	  queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
