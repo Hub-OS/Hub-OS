@@ -15,7 +15,12 @@ Thunder::Thunder(Field* _field, Team _team) : Spell() {
   texture = TEXTURES.GetTexture(TextureType::SPELL_THUNDER);
   this->elapsed = 0;
 
-  this->slideTime = sf::seconds(1.0f);
+  // Thunder moves from tile to tile in exactly 60 frames
+  // The app is clocked at 60 frames a second
+  // Therefore thunder slide duration is 1 second
+  this->slideTime = sf::seconds(1.0f); 
+  
+  // Thunder is removed in roughly 7 seconds
   this->timeout = sf::seconds(20.f / 3.f);
 
   animation = Animation("resources/spells/thunder.animation");
@@ -41,12 +46,16 @@ void Thunder::Update(float _elapsed) {
 
   setTexture(*texture);
   setScale(2.f, 2.f);
+  
+  // The origin is the center of the sprite. Raise thunder upwards 15 pixels 
+  // (keep in mind scale is 2, e.g. 15 * 2 = 30)
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 30.0f);
 
   animation.Update(_elapsed, *this);
 
-  // Find target
+  // Find target if we don't have one
   if (!target) {
+    // Find all characters that are not on our team and not an obstacle
     auto query = [&](Entity* e) {
         return (e->GetTeam() != team && dynamic_cast<Character*>(e) && !dynamic_cast<Obstacle*>(e));
     };
@@ -56,6 +65,7 @@ void Thunder::Update(float _elapsed) {
     for (auto l : list) {
       if (!target) { target = l; }
       else {
+        // If the distance to one enemy is shorter than the other, target the shortest enemy path
         int currentDist = abs(tile->GetX() - l->GetTile()->GetX()) + abs(tile->GetY() - l->GetTile()->GetY());
         int targetDist = abs(tile->GetX() - target->GetTile()->GetX()) + abs(tile->GetY() - target->GetTile()->GetY());
 
@@ -66,8 +76,8 @@ void Thunder::Update(float _elapsed) {
     }
   }
 
-  // Keep moving
-  if (!this->isSliding) {
+  // If sliding is flagged to false, we know we've ended a move 
+  if (!this->IsSliding()) {
     if (target) {
       if (target->GetTile()) {
         if (target->GetTile()->GetX() < tile->GetX()) {
@@ -83,12 +93,15 @@ void Thunder::Update(float _elapsed) {
           direction = Direction::DOWN;
         }
 
+        // Poll if target is flagged for deletion, remove our mark
         if (target->IsDeleted()) {
           target = nullptr;
         }
       }
     }
     else {
+      // If there are no targets, aimlessly move right or left
+      // depending on the team
       if (GetTeam() == Team::RED) {
         direction = Direction::RIGHT;
       }
@@ -97,12 +110,15 @@ void Thunder::Update(float _elapsed) {
       }
     }
 
+    // Always slide to the tile we're moving to
     this->SlideToTile(true);
     this->Move(this->GetDirection());
   }
 
+  // Always affect the tile we're occupying
   tile->AffectEntities(this);
 
+  // Must call super class to behave correctly
   Entity::Update(_elapsed);
 }
 
@@ -111,14 +127,25 @@ bool Thunder::CanMoveTo(Battle::Tile* tile) {
 }
 
 void Thunder::Attack(Character* _entity) {
+  // Only attack entities on this tile that are not on our team
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     Hit::Properties props;
+    
+    // Thunder stuns and recoils
     props.flags = Hit::recoil | Hit::stun;
+    
+    // Thunder has electric properties
     props.element = Element::ELEC;
+    
+    // Stun and recoil last for 3 seconds
     props.secs = 3;
+    
+    // Attack does 40 units of damage
     props.damage = 40;
 
+    // If entity was successfully hit
     if (_entity->Hit(props)) {
+      // Mark us for deletion
       this->Delete();
     }
   }

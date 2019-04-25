@@ -1,3 +1,5 @@
+/*! \brief Draws a normal sword swipe animation across a tile */
+
 #pragma once
 #include "bnArtifact.h"
 #include "bnComponent.h"

@@ -1,7 +1,5 @@
 /*! \brief Tiles represent where entities can move around on.
  * 
- *  \class Tile
- * 
  * Without a tile, an entity cannot exist in the battle field.
  * Tiles have states such as LAVA, ICE, GRASS, NORMAL, CRACKED, BROKEN, and EMPTY.
  * Each state may affect an entity that lands on it or prevent other entities 

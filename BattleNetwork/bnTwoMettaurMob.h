@@ -1,5 +1,4 @@
 /*! \brief Spawns two mettaurs on the field
- *  \class TwoMettaurMob
  * 
  * May optionally spawn an empty tile for challenge
  */

@@ -1,5 +1,4 @@
 /*! \brief Wave attacks move from one side of the screen to the other
- *  \class Wave
  * 
  * Wave will not delete on hit like most attacks but will continue to move
  * If the wave spawns with the team BLUE, it moves with Direction::LEFT

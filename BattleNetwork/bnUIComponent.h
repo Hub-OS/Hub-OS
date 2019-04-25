@@ -1,11 +1,10 @@
 /*! \brief UIComponent is composed of a SceneNode and a Component class
- *  \class UIComponent
  * 
  * UIComponents are injected into the battle scene and are drawn 
  * on top of everything else.
  * 
  * These components usually draw the health points of the entity
- * they are attached to.
+ * they are attached to but can be used to display other data.
  */ 
 
 #pragma once
