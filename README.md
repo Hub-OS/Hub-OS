@@ -27,7 +27,7 @@ Click the thumbnail to watch on youtube.
 [![menu.png](https://s15.postimg.cc/k819ndp6z/Untitled.png)](https://postimg.cc/image/hdy49xn0n/)
 
 # Wiki
-How to [compile](https://github.com/TheMaverickProgrammer/battlenetwork/Begin-Here)
+How to [compile](https://github.com/TheMaverickProgrammer/battlenetwork/wiki/Begin-Here)
 
 Care to [contribute](https://github.com/TheMaverickProgrammer/battlenetwork/wiki)? 
 
