@@ -7,62 +7,99 @@
 #include "bnNoState.h"
 #include "bnMob.h"
 
-/*
-This class handles the semantics of spawning a special character type.
-For custom spawning, inherit from this class.
-
-Examples: Boss spawner (Alpha has many pieces that need to know about eachother) or 
-          ChipSpawner (enemy equiped with a chip and ChipUIComponent at start)
-*/
+/*! \brief This class handles the semantics of spawning a special character type.
+ * 
+ * \class SpawnPolicy<T>
+ * 
+ * For custom spawning, inherit from this class.
+ *
+ * Examples: Boss spawner (Alpha has many pieces that need to know about eachother) or 
+ *           ChipSpawner (enemy equiped with a chip and ChipUIComponent at start)
+ */
 template<class T>
 class SpawnPolicy {
-  typedef std::function<void(Character*)> SpawnStateCallback;
+  typedef std::function<void(Character*)> SpawnStateCallback; /*!< Callback functor */
 
 private:
-  SpawnStateCallback intro;
-  SpawnStateCallback ready;
-  T* generate;
+  SpawnStateCallback intro; /*!< Callback after spawning the character */
+  SpawnStateCallback ready; /*!< Callback after battle begins */
+  T* generate; /*!< The entity spawned */
 
 protected:
-  virtual void EnforceConstraints() {
-   _DerivedFrom<T, Character>();
-   _DerivedFrom<T, AI<T>>();
-  }
-
+  /**
+   * @brief Spawns an entity and assigns it to the generate member pointer */
+   * @param generated
+   */
   void Spawn(T* generated) {
     this->generate = generated;
   }
 
+  /**
+   * @brief Assigns the intro callback functor
+   * @param intro Callback functor
+   * 
+   * Describes how the entity should behave during the intro animation
+   */
   void SetIntroCallback(SpawnStateCallback intro) {
     this->intro = intro;
   }
 
+  /**
+   * @brief Assigns the pre-battle callback functor
+   * @param ready Callback functor
+   * 
+   * Describes how the entity should behave after all entities are spawned */
+   */
   void SetReadyCallback(SpawnStateCallback ready) {
     this->ready = ready;
   }
 
 public:
-  SpawnPolicy(Mob& mob) { EnforceConstraints(); }
+  /**
+   * @brief Effectively does nothing
+   * @param mob reference used by inheriting classes
+   */
+  SpawnPolicy(Mob& mob) { ; }
   virtual ~SpawnPolicy() { ; }
   
+  /**
+   * @brief Returns the spawned entity
+   * @return T*
+   */
   virtual T* GetSpawned() { return generate; }
 
+  /**
+   * @brief Get the intro functor
+   * @return intro functor
+   */
   virtual SpawnStateCallback& GetIntroCallback() { return intro; }
+  
+  /**
+   * @brief Get the ready functor
+   * @return ready functor
+   */
   virtual SpawnStateCallback& GetReadyCallback() { return ready; }
 };
 
-/*
-Spawn a character with a supplied rank 
-It also registers two callbacks in the battle intro: 1) PixelInState and 2) DefaultState
-For this state, the character will pixelate in. 
-And when the battle begins (cue chip select), all character will revert to their DefaultState
-
-Ranking affect enemy names and allows the programmer to change other aspects such as appearance
-e.g. Mettaur, Mettaur2, CanodumbRare1, ProgsmanEX, etc...
+/*! \brief Spawn a character with a rank 
+ *  
+ *  \cass RankedSpawnPolicty<T, DefaultState>
+ * 
+ * It also registers two specific callbacks in the battle intro: 
+ * 1) PixelInState and 2) DefaultState
+ * For this state, the character will pixelate in. 
+ * And when the battle begins (cue chip select), all character will revert to their DefaultState
+ * 
+ * Ranking affect enemy names and allows the programmer to change other aspects such as appearance
+ * e.g. Mettaur, Mettaur2, CanodumbRare1, ProgsmanEX, etc...
 */
 template<class T, class DefaultState = NoState<T>>
 class RankedSpawnPolicy : public SpawnPolicy<T> {
-  protected:
+protected:
+    /**
+     * @brief Registers pixelate intro and DefaultState ready callbacks
+     * @param mob must flag the intro over with FlagNextReady()
+     */
     virtual void PrepareCallbacks(Mob &mob) {
       // This retains the current entity type and stores it in a function. We do this to transform the 
       // unknown type back later and can call the proper state change
@@ -92,8 +129,12 @@ class RankedSpawnPolicy : public SpawnPolicy<T> {
     }
 };
 
-/*
-Special implementations of RankedSpawnPolicy
+/*! \brief Special implementations of RankedSpawnPolicy
+ * 
+ *  \cass Rank1<T, DefaultState>
+ * 
+ * Automatically constructs an entity with Rank1
+ * Adds UI component
 */
 
 template<class T, class DefaultState = NoState<T>>
@@ -106,6 +147,14 @@ public:
   }
 };
 
+/*! \brief Special implementations of RankedSpawnPolicy
+ * 
+ *  \cass Rank2<T, DefaultState>
+ * 
+ * Automatically constructs an entity with Rank2
+ * Adds UI component
+*/
+
 template<class T, class DefaultState = NoState<T>>
 class Rank2 : public RankedSpawnPolicy<T, DefaultState> {
   public:
@@ -116,6 +165,14 @@ class Rank2 : public RankedSpawnPolicy<T, DefaultState> {
     this->GetSpawned()->RegisterComponent(ui);
   }
 };
+
+/*! \brief Special implementations of RankedSpawnPolicy
+ * 
+ *  \cass Rank3<T, DefaultState>
+ * 
+ * Automatically constructs an entity with Rank3
+ * Adds UI component
+*/
 
 template<class T, class DefaultState = NoState<T>>
 class Rank3 : public RankedSpawnPolicy<T, DefaultState> {
@@ -128,6 +185,14 @@ class Rank3 : public RankedSpawnPolicy<T, DefaultState> {
   }
 };
 
+/*! \brief Special implementations of RankedSpawnPolicy
+ * 
+ *  \cass RankSP<T, DefaultState>
+ * 
+ * Automatically constructs an entity with RankSP
+ * Adds UI component
+*/
+
 template<class T, class DefaultState = NoState<T>>
 class RankSP : public RankedSpawnPolicy<T, DefaultState> {
 public:
@@ -139,6 +204,14 @@ public:
     this->GetSpawned()->RegisterComponent(ui);
   }
 };
+
+/*! \brief Special implementations of RankedSpawnPolicy
+ * 
+ *  \cass RankEX<T, DefaultState>
+ * 
+ * Automatically constructs an entity with RankEX
+ * Adds UI component
+*/
 
 template<class T, class DefaultState = NoState<T>>
 class RankEX : public RankedSpawnPolicy<T, DefaultState> {

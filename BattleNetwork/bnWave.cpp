@@ -12,7 +12,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
   direction = Direction::NONE;
   deleted = false;
   hit = false;
-  texture = TEXTURES.GetTexture(TextureType::SPELL_WAVE);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_WAVE));
   this->speed = speed;
 
   //Components setup and load
@@ -39,8 +39,6 @@ Wave::~Wave(void) {
 }
 
 void Wave::Update(float _elapsed) {
-  setTexture(*texture);
-
   int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
