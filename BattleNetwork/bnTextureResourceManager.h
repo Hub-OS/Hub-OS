@@ -92,5 +92,5 @@ private:
 /*! \brief Shorthand to get instance of the manager */
 #define TEXTURES TextureResourceManager::GetInstance()
 
-/*! \brief Shorthand to get a hard-coded texture */
+/*! \brief Shorthand to get a preloaded texture */
 #define LOAD_TEXTURE(x) *TEXTURES.GetTexture(TextureType::x)

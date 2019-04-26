@@ -8,11 +8,8 @@
 #include "bnAudioResourceManager.h"
 
 SharedHitBox::SharedHitBox(Spell* owner, float duration) : owner(owner), Obstacle(owner->GetField(), owner->GetTeam()) {
-  //field = owner->GetField();
-  //team = owner->GetTeam();
   direction = Direction::NONE;
   deleted = false;
-  hit = false;
   cooldown = duration;
   SetHealth(1);
   EnableTileHighlight(false);
@@ -31,8 +28,8 @@ void SharedHitBox::Update(float _elapsed) {
   if(cooldown <= 0.f || this->owner->IsDeleted()) {
     this->Delete();
   } else {
-	tile->RemoveEntityByID(this->GetID());
-	tile->AddEntity(*this);
+	//tile->RemoveEntityByID(this->GetID());
+	//tile->AddEntity(*this);
   }
   
   Obstacle::Update(_elapsed);
@@ -49,6 +46,7 @@ const bool SharedHitBox::Hit(Hit::Properties props) {
 	return c->Hit(props); 
   }
   
+  // Passthrough if owner is not an obstacle
   return false;
 }
 
@@ -59,5 +57,6 @@ void SharedHitBox::Attack(Character* _entity) {
     owner->Attack(_entity);
   }
 
+  // Remove after first registered hit
   this->Delete();
 }

@@ -75,17 +75,18 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 }
 
 SelectMobScene::~SelectMobScene() {
-  /*delete font;
+  delete font;
   delete mobFont;
   delete hpFont;
   delete mobLabel;
   delete attackLabel;
   delete speedLabel;
   delete menuLabel;
-  delete hpLabel;*/
+  delete hpLabel;
 
-  /*if (mob) delete mob;
-  if (factory) delete factory;
+  if (mob) delete mob;
+  
+  /*if (factory) delete factory;
   if (field) delete field;*/
 }
 
@@ -147,18 +148,19 @@ void SelectMobScene::onUpdate(double elapsed) {
     }
 
     if (INPUT.Has(PRESSED_B)) {
+      // Fade out black and go back to the menu
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-
       using segue = swoosh::intent::segue<BlackWashFade>;
-
       getController().queuePop<segue>();
     }
   }
 
+  // Keep our mob index in range
   mobSelectionIndex = std::max(0, mobSelectionIndex);
   mobSelectionIndex = std::min((int)MOBS.Size()-1, mobSelectionIndex);
 
+  // Grab the mob info object from this index
   auto& mobinfo = MOBS.At(mobSelectionIndex);
 
   mobLabel->setString(mobinfo.GetName());
@@ -182,6 +184,14 @@ void SelectMobScene::onUpdate(double elapsed) {
     prevSelect = mobSelectionIndex;
   }
 
+  /**
+   * The following code just scrambles the name, health, speed, and attack data
+   * Each line does the same thing
+   * If it's a number, choose random numbers
+   * If it's alphabetical, choose random capital letters
+   * The scramble index moves towards the end of the string over time
+   * Eventually the original data is unmodified and the effect ends
+   */
   if (numberCooldown > 0) {
     numberCooldown -= (float)elapsed;
     std::string newstr;
@@ -245,6 +255,10 @@ void SelectMobScene::onUpdate(double elapsed) {
     hpLabel->setString(std::to_string(randHP));
     mobLabel->setString(sf::String(newstr));
   }
+  
+  /**
+   * End scramble effect 
+   */
 
   factor -= (float)elapsed * 180.f;
 
@@ -252,6 +266,7 @@ void SelectMobScene::onUpdate(double elapsed) {
     factor = 0.f;
   }
 
+  // Progress for data scramble effect
   float progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
 
   if (progress > 1.f) { 
@@ -262,8 +277,7 @@ void SelectMobScene::onUpdate(double elapsed) {
     }
   }
 
-  mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255.0*progress)));
-
+  // Mob fades in
   float range = (125.f - factor) / 125.f;
   mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 
@@ -275,23 +289,29 @@ void SelectMobScene::onUpdate(double elapsed) {
     }
 
     if (!mob) {
+      // Play error buzzer if the mob index is out of range or
+      // data is invalid
       gotoNextScene = false;
 
       AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
-
     }
     else {
       gotoNextScene = true;
 
+      // Play the pre battle rumble sound
       AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::HIGH);
 
       // Stop music and go to battle screen 
       AUDIO.StopStream();
 
+      // Get the navi we selected
       Player* player = NAVIS.At(selectedNavi).GetNavi();
 
+      // Shuffle our folder
       selectedFolder.Shuffle();
 
+      // Queue screen transition to Battle Scene with a white fade effect
+      // just like the game
       using segue = swoosh::intent::segue<WhiteWashFade>::to<BattleScene>;
       getController().push<segue>(player, this->mob, &selectedFolder);
     }
@@ -353,6 +373,7 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   ENGINE.DrawLayers();
   ENGINE.DrawOverlay();
 
+  // Pixelate the mob texture
   if (mobSpr.getTexture()) {
     sf::IntRect t = mobSpr.getTextureRect();
     sf::Vector2u size = mobSpr.getTexture()->getSize();
@@ -362,10 +383,10 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
     shader.SetUniform("h", (float)t.height / (float)size.y);
     shader.SetUniform("pixel_threshold", (float)(factor / 400.f));
 
-
     // Refresh mob graphic origin every frame as it may change
     mobSpr.setOrigin(mobSpr.getTextureRect().width / 2.f, mobSpr.getTextureRect().height / 2.f);
 
+    // Sprites need to be a SpriteSceneNode to attach shaders to
     SpriteSceneNode* bake = new SpriteSceneNode(mobSpr);
     bake->SetShader(shader);
 
@@ -378,27 +399,45 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   ENGINE.Draw(textbox);
   ENGINE.Draw(navigator);
 
+  // Draw the LEFT cursor
   if (mobSelectionIndex > 0) {
     cursor.setColor(sf::Color::White);
   }
   else {
+    // If there are no more items to the left, fade the cursor
     cursor.setColor(sf::Color(255, 255, 255, 100));
   }
-
+     
+  // Add sine offset to create a bob effect
   auto offset = std::sin(this->elapsed*10.0) * 5;
+  
+  // Put the left cursor on the left of the mob
   cursor.setPosition(23.0f + (float)offset, 130.0f);
+  
+  // Flip the x axis
   cursor.setScale(-2.f, 2.f);
+  
+  // Draw left cursor
   ENGINE.Draw(cursor);
 
+  // Draw the RIGHT cursor
   if (mobSelectionIndex < (int)(MOBS.Size() - 1)) {
     cursor.setColor(sf::Color::White);
   } else {
+    // If there are no more items to the right, fade the cursor
     cursor.setColor(sf::Color(255, 255, 255, 100));
   }
 
+  // Add sine offset to create a bob effect
   offset = -std::sin(this->elapsed*10.0) * 5;
+  
+  // Put the right cursor on the right of the mob
   cursor.setPosition(200.0f + (float)offset, 130.0f);
+  
+  // Flip the x axis
   cursor.setScale(2.f, 2.f);
+  
+  // Draw the right cursor
   ENGINE.Draw(cursor);
 }
 

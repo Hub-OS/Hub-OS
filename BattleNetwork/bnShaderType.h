@@ -1,5 +1,9 @@
 #pragma once
 /**
+* \brief List of all shaders used in game
+* 
+* To request the size of the list used ShaderType::SHADER_TYPE_SIZE
+* 
 * @warning These have to be in order.
 * @see ShaderResourceManager
 */

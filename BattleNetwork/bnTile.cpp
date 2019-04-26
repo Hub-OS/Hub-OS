@@ -167,6 +167,7 @@ namespace Battle {
     state = _state;
   }
 
+  // Set the right texture based on the team color and state
   void Tile::RefreshTexture() {
     if (state == TileState::NORMAL) {
       if (team == Team::BLUE) {
@@ -346,8 +347,8 @@ namespace Battle {
       return;
 
     // Cleanup before main loop just in case
-    // NOTE: this loop has been modified since earlier builds that needed this
-    //       possibly can remove 
+    // NOTE: this fuction has been modified since earlier builds that needed this
+    //       possibly can remove the following lines
     for (auto it = entities.begin(); it != entities.end(); ++it) {
       if (*it == nullptr) {
         it = entities.erase(it);

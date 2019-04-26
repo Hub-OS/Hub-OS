@@ -1,6 +1,6 @@
-#include "bnSelectNaviScene.h"
 #include <Swoosh/ActivityController.h>
 
+#include "bnSelectNaviScene.h"
 #include "Segues/Checkerboard.h"
 
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
@@ -8,6 +8,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   camera(ENGINE.GetDefaultView()),
   textbox(135, 15),
   swoosh::Activity(&controller) {
+      
   // Menu name font
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
   menuLabel = new sf::Text("BATTLE SELECT", *font);
@@ -358,6 +359,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   attackLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetAttackString()));
   hpLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetHPString()));
 
+  // This just scrambles the letters
   if (numberCooldown > 0) {
     numberCooldown -= (float)elapsed;
     std::string newstr;
@@ -367,10 +369,14 @@ void SelectNaviScene::onUpdate(double elapsed) {
       double index = progress * naviLabel->getString().getSize();
 
       if (i < (int)index) {
+        // Choose the unscrambled character from the original string
         newstr += naviLabel->getString()[i];
       }
       else {
+        // If the character in the string isn't a space...
         if (naviLabel->getString()[i] != ' ') {
+            
+          // Choose a random, capital ASCII character
           newstr += (char)(((rand() % (90 - 65)) + 65) + 1);
         }
         else {
@@ -391,10 +397,12 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
   if (progress > 1.f) progress = 1.f;
 
+  // Darken the unselected navis
   if (prevChosen != naviSelectionIndex) {
     navi.setColor(sf::Color(200, 200, 200, 128));
   }
   else {
+    // Make selected navis full color
     navi.setColor(sf::Color(255, 255, 255, 255));
   }
 
