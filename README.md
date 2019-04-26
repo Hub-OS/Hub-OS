@@ -28,6 +28,7 @@ Click the thumbnail to watch on youtube.
 
 # Wiki
 How to [compile](https://github.com/TheMaverickProgrammer/battlenetwork/Begin-Here)
+
 Care to [contribute](https://github.com/TheMaverickProgrammer/battlenetwork/wiki)? 
 
 # Features
