@@ -29,9 +29,6 @@ void StarfishAttackState::OnEnter(Starfish& star) {
 }
 
 void StarfishAttackState::OnUpdate(float _elapsed, Starfish& star) {
-   /*if(this->leaveState) {
-    	this->ChangeState<StarfishIdleState>();
-   }*/
 }
 
 void StarfishAttackState::OnLeave(Starfish& star) {

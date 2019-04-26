@@ -90,6 +90,7 @@ void SpriteSceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
 
   // draw its children
   for (std::size_t i = 0; i < copies.size(); i++) {
+    // If it's time to draw our scene node, we draw the proxy sprite
     if(copies[i] == this) {
       target.draw(*sprite, states);
     } else {

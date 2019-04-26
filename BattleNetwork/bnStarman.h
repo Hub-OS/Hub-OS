@@ -1,3 +1,6 @@
+/*! \brief Custom Navi example: Starman. Extends Player class.
+ */
+
 #pragma once
 
 #include "bnPlayer.h"
@@ -19,6 +22,5 @@ public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;
 
-  Starman(void);
-
+  Starman();
 };

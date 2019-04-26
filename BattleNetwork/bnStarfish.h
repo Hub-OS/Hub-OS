@@ -1,3 +1,5 @@
+/*! \brief Starfish is Aqua type and spawns bubbles */
+
 #pragma once
 #include "bnAnimatedCharacter.h"
 #include "bnMobState.h"
@@ -13,23 +15,24 @@ public:
   Starfish(Rank _rank = Rank::_1);
   virtual ~Starfish(void);
 
+  /**
+   * @brief Updates health ui, AI, and super classes
+   * @param _elapsed in seconds
+   */
   virtual void Update(float _elapsed);
-  virtual void RefreshTexture();
-  //virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
-  //virtual void SetCounterFrame(int frame);
-  virtual int GetHealth() const;
-
-  void SetHealth(int _health);
-  virtual int* GetAnimOffset();
+  
+  // TODO: remove this
   virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
+  
+  /**
+   * @brief Set the hit height for projectiles to play effects at the correct position
+   * @return Y offset
+   */
   virtual const float GetHitHeight() const;
 
 private:
   sf::Shader* whiteout;
   sf::Shader* stun;
-
-  string state;
-
   float hitHeight;
   bool hit;
   TextureType textureType;

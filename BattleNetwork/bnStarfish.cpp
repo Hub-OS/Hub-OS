@@ -47,15 +47,6 @@ Starfish::~Starfish(void) {
 
 }
 
-int* Starfish::GetAnimOffset() {
-  Starfish* mob = this;
-
-  int* res = new int[2];
-  res[0] = 10;  res[1] = 0;
-
-  return res;
-}
-
 void Starfish::Update(float _elapsed) {
   if (!hit) {
     this->SetShader(nullptr);
@@ -64,7 +55,7 @@ void Starfish::Update(float _elapsed) {
     SetShader(whiteout);
   }
 
-  this->RefreshTexture();
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
@@ -104,20 +95,6 @@ void Starfish::Update(float _elapsed) {
   Character::Update(_elapsed);
 
   hit = false;
-}
-
-void Starfish::RefreshTexture() {
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-
-  setPosition(getPosition() + tileOffset);
-}
-
-int Starfish::GetHealth() const {
-  return health;
-}
-
-void Starfish::SetHealth(int _health) {
-  health = _health;
 }
 
 const bool Starfish::Hit(Hit::Properties props) {
