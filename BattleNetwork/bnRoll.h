@@ -1,3 +1,8 @@
+/*! \brief Roll playable net navi
+ * 
+ * Sets health to 400, name to "Roll", and enables Float Shoe
+ */
+
 #pragma once
 
 #include "bnPlayer.h"
@@ -19,5 +24,5 @@ public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;
 
-  Roll(void);
+  Roll();
 };

@@ -23,9 +23,7 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
 
   direction = Direction::NONE;
   deleted = false;
-  hit = false;
   progress = 0.0f;
-  hitHeight = 0.0f;
   random = rand() % 20 - 20;
 
   int lr = (team == Team::RED) ? 1 : -1;
@@ -110,7 +108,7 @@ void ProtoManSummon::Update(float _elapsed) {
 }
 
 bool ProtoManSummon::Move(Direction _direction) {
-  return true;
+  return false;
 }
 
 void ProtoManSummon::Attack(Character* _entity) {

@@ -1,3 +1,5 @@
+/*! \brief Progsman sets his animation to throw and spawns a bomb */
+
 #pragma once
 #include "bnTile.h"
 #include "bnField.h"

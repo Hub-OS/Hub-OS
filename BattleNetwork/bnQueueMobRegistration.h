@@ -1,3 +1,11 @@
+/*! \file bnQueueMobRegistration.h*/
+
+/*! \brief This hooks into the loading phase and loads extra content
+ * 
+ * This info adds mobs to the Mob Select screen to select 
+ * Descriptions should be short as user cannot continue long
+ * paragraphs */
+
 #pragma once
 #include "bnMobRegistration.h"
 
@@ -8,10 +16,6 @@
 #include "bnMetalManBossFight.h"
 #include "bnMetalManBossFight2.h"
 #include "bnRandomMettaurMob.h"
-
-/***********************************************************************
-************    Register your custom mobs here    *********************
-************************************************************************/
 
 void QueueMobRegistration() {
   auto info = MOBS.AddClass<TwoMettaurMob>();  // Create and register mob info object

@@ -7,7 +7,7 @@
 #include "bnEngine.h"
 #include "bnLogger.h"
 
-#define RESOURCE_PATH "resources/navis/roll/roll.animation"
+constexpr std::string RESOURCE_PATH = "resources/navis/roll/roll.animation";
 
 Roll::Roll(void) : Player()
 {
