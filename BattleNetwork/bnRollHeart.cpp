@@ -24,7 +24,8 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spel
 
   direction = Direction::NONE;
   deleted = false;
-  hit = false;
+
+  height = 200;
   progress = 0.0f;
   hitHeight = 0.0f;
 
@@ -41,7 +42,7 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spel
   doOnce = true;
 }
 
-RollHeart::~RollHeart(void) {
+RollHeart::~RollHeart() {
 }
 
 void RollHeart::Update(float _elapsed) {
@@ -58,7 +59,7 @@ void RollHeart::Update(float _elapsed) {
   if (height == 0 && doOnce) {
     AUDIO.Play(AudioType::RECOVER);
     doOnce = false;
-    this->setColor(sf::Color(255, 255, 255, 0)); // hidden
+    this->setColor(sf::Color(255, 255, 255, 0)); // hide
     caller->SetHealth(caller->GetHealth() + heal);
     
     /*player->SetAnimation("PLAYER_HEAL", [this]() {
@@ -70,7 +71,7 @@ void RollHeart::Update(float _elapsed) {
 }
 
 bool RollHeart::Move(Direction _direction) {
-  return true;
+  return false;
 }
 
 void RollHeart::Attack(Character* _entity) {

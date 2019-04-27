@@ -10,27 +10,28 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell() 
   team = _team;
   direction = Direction::NONE;
   deleted = false;
-  hit = false;
   texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
 
-  //Components setup and load
+  //When the animation ends, delete this
   auto onFinish = [this]() {
     this->Delete();
   };
 
-  auto onFrameTwo = [this]() {
+  // On the 3rd frame, spawn another RowHit
+  auto onFrameThree = [this]() {
     field->AddEntity(*new RowHit(field, this->GetTeam(), this->damage), this->tile->GetX() + 1, this->tile->GetY());
   };
 
   animation = Animation("resources/spells/spell_charged_bullet_hit.animation");
   animation.SetAnimation("HIT");
-  animation << Animate::On(3, onFrameTwo, true) << onFinish;
+  animation << Animate::On(3, onFrameThree, true) << onFinish;
+  
   animation.Update(0, *this);
 
   EnableTileHighlight(false);
 }
 
-RowHit::~RowHit(void) {
+RowHit::~RowHit() {
 }
 
 void RowHit::Update(float _elapsed) {

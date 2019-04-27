@@ -24,7 +24,6 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
 
   direction = Direction::NONE;
   deleted = false;
-  hit = false;
   progress = 0.0f;
   hitHeight = 0.0f;
   srand((unsigned int)time(nullptr));
@@ -44,6 +43,26 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
+  
+  /**
+   * This is very convoluted and will change with the chip summon refactored
+   * Essentially we nest callbacks
+   * 
+   * First Roll is IDLE. when the animation ends, we set the animation to MOVE
+   * 
+   * While roll is moving, we find the first enemy in the field.
+   * We set our target named `attack`
+   * 
+   * After MOVE is over, we set the animation to ATTACKING
+   * 
+   * If we found a target, we add 3 callbacks to frames 4, 12, and 20 
+   * to deal damage to the enemy
+   * 
+   * At the animation end, we set the final animation to MOVE
+   * 
+   * At the end of the last MOVE animation, we spawn a heart
+   * and request the summon system to remove this entity
+   */
   animationComponent.SetAnimation("ROLL_IDLE", [this] { 
     this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
 
@@ -104,14 +123,10 @@ void RollHeal::Update(float _elapsed) {
 }
 
 bool RollHeal::Move(Direction _direction) {
-  return true;
+  return false;
 }
 
 void RollHeal::Attack(Character* _entity) {
-  if (hit || deleted) {
-    return;
-  }
-
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     if (!_entity->IsPassthrough()) {
       auto props = Hit::DefaultProperties;
