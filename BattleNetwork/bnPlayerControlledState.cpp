@@ -6,26 +6,14 @@
 
 #include <iostream>
 
-#define MOVE_KEY_PRESS_COOLDOWN 200.0f
-#define MOVE_LAG_COOLDOWN 40.0f
-#define ATTACK_KEY_PRESS_COOLDOWN 300.0f
-#define ATTACK_TO_IDLE_COOLDOWN 150.0f
-#define HIT_COOLDOWN 300.0f
-
-PlayerControlledState::PlayerControlledState() : inputManager(&InputManager::GetInstance()), AIState<Player>()
+PlayerControlledState::PlayerControlledState() : AIState<Player>()
 {
-  //Cooldowns. TODO: Take these out. We base actions on animation speed now.
-  moveKeyPressCooldown = MOVE_KEY_PRESS_COOLDOWN;
-  attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN;
-  attackToIdleCooldown = 0.0f;
-  previousDirection = Direction::NONE;
   isChargeHeld = false;
 }
 
 
 PlayerControlledState::~PlayerControlledState()
 {
-  inputManager = nullptr;
 }
 
 void PlayerControlledState::OnEnter(Player& player) {
@@ -36,12 +24,11 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (!player.IsBattleActive()) return;
 
   // Action controls take priority over movement
-  if (!inputManager->Has(HELD_A)) {
+  if (!INPUT.Has(HELD_A)) {
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
       player.chargeComponent.SetCharging(false);
       isChargeHeld = false;
-      attackKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};
       player.SetAnimation(PLAYER_SHOOTING, onFinish);
     }
@@ -54,51 +41,50 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (player.state != PLAYER_IDLE)
     return;
 
-  static Direction direction = Direction::NONE;
-  if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN && player.IsBattleActive()) {
-    if (inputManager->Has(PRESSED_UP) || inputManager->Has(HELD_UP)) {
+  Direction direction = Direction::NONE;
+  
+  if (player.IsBattleActive()) {
+    if (INPUT.Has(PRESSED_UP) || INPUT.Has(HELD_UP)) {
       direction = Direction::UP;
     }
-    else if (inputManager->Has(PRESSED_LEFT) || inputManager->Has(HELD_LEFT)) {
+    else if (INPUT.Has(PRESSED_LEFT) || INPUT.Has(HELD_LEFT)) {
       direction = Direction::LEFT;
     }
-    else if (inputManager->Has(PRESSED_DOWN) || inputManager->Has(HELD_DOWN)) {
+    else if (INPUT.Has(PRESSED_DOWN) || INPUT.Has(HELD_DOWN)) {
       direction = Direction::DOWN;
     }
-    else if (inputManager->Has(PRESSED_RIGHT) || inputManager->Has(HELD_RIGHT)) {
+    else if (INPUT.Has(PRESSED_RIGHT) || INPUT.Has(HELD_RIGHT)) {
       direction = Direction::RIGHT;
     }
   }
  
 
-  if (inputManager->Has(HELD_A) && isChargeHeld == false) {
+  if (INPUT.Has(HELD_A) && isChargeHeld == false) {
     isChargeHeld = true;
-    attackKeyPressCooldown = 0.0f;
-
+    
+    // TODO: player.GetComponent<ChargeComponent>()->SetCharging(true);
     player.chargeComponent.SetCharging(true);
-    this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; 
   }
 
-  if (inputManager->Has(RELEASED_UP)) {
+  if (INPUT.Has(RELEASED_UP)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->Has(RELEASED_LEFT)) {
+  else if (INPUT.Has(RELEASED_LEFT)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->Has(RELEASED_DOWN)) {
+  else if (INPUT.Has(RELEASED_DOWN)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->Has(RELEASED_RIGHT)) {
+  else if (INPUT.Has(RELEASED_RIGHT)) {
     direction = Direction::NONE;
   }
 
   //std::cout << "Is player slideing: " << player.isSliding << std::endl;
 
-  if (direction != Direction::NONE && player.state != PLAYER_SHOOTING && !player.isSliding) {
+  if (direction != Direction::NONE && player.state == PLAYER_IDLE && !player.isSliding) {
     bool moved = player.Move(direction);
 
     if (moved) {
-      moveKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {
         player.SetAnimation("PLAYER_MOVED", [p = &player]() {
 			p->SetAnimation(PLAYER_IDLE); });
@@ -110,7 +96,6 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     else {
       player.SetAnimation(PLAYER_IDLE);
     }
-    moveKeyPressCooldown = MOVE_KEY_PRESS_COOLDOWN;
   }
 }
 

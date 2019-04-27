@@ -3,7 +3,7 @@
 #include "bnPlayer.h"
 #include "bnAudioResourceManager.h"
 
-PlayerHitState::PlayerHitState(float _cooldown) : cooldown(_cooldown), AIState<Player>()
+PlayerHitState::PlayerHitState() : AIState<Player>()
 {
 }
 
