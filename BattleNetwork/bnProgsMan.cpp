@@ -9,7 +9,6 @@
 #include "bnEngine.h"
 #include "bnNaviExplodeState.h"
 
-#define RESOURCE_NAME "progsman"
 #define RESOURCE_PATH "resources/mobs/progsman/progsman.animation"
 
 ProgsMan::ProgsMan(Rank _rank)
@@ -21,7 +20,6 @@ ProgsMan::ProgsMan(Rank _rank)
   hitHeight = 64;
   state = MOB_IDLE;
   textureType = TextureType::MOB_PROGSMAN_ATLAS;
-  healthUI = new MobHealthUI(this);
 
   this->ChangeState<ProgsManIdleState>();
 
@@ -41,16 +39,7 @@ ProgsMan::ProgsMan(Rank _rank)
   animationComponent.Update(0);
 }
 
-ProgsMan::~ProgsMan(void) {
-}
-
-int* ProgsMan::GetAnimOffset() {
-  int* res = new int[2];
-
-  res[0] = 10;
-  res[1] = 6;
-
-  return res;
+ProgsMan::~ProgsMan() {
 }
 
 void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
@@ -58,9 +47,9 @@ void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::fu
 }
 
 void ProgsMan::Update(float _elapsed) {
-  healthUI->Update(_elapsed);
   this->SetShader(nullptr);
-  this->RefreshTexture();
+
+  setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
   if (_elapsed <= 0) return;
 
@@ -68,7 +57,6 @@ void ProgsMan::Update(float _elapsed) {
 
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
-    healthUI->Update(_elapsed);
     Character::Update(_elapsed);
 
     if (stunCooldown <= 0) {
@@ -97,23 +85,8 @@ void ProgsMan::Update(float _elapsed) {
     animationComponent.Update(_elapsed);
   }
 
+  // Must call this
   Character::Update(_elapsed);
-}
-
-void ProgsMan::RefreshTexture() {
-  setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
-}
-
-TextureType ProgsMan::GetTextureType() const {
-  return textureType;
-}
-
-int ProgsMan::GetHealth() const {
-  return health;
-}
-
-void ProgsMan::SetHealth(int _health) {
-  health = _health;
 }
 
 const bool ProgsMan::Hit(Hit::Properties props) {

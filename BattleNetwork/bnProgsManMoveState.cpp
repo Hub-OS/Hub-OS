@@ -8,8 +8,6 @@
 #include "bnProgsManThrowState.h"
 #include "bnProgsManShootState.h"
 
-#include "bnMettaur.h"
-
 ProgsManMoveState::ProgsManMoveState() : isMoving(false), AIState<ProgsMan>() { ; }
 ProgsManMoveState::~ProgsManMoveState() { ; }
 
@@ -91,6 +89,7 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
     isMoving = true;
   }
   else {
+    // If we can't move, go back to idle state
     this->ChangeState<ProgsManIdleState>();
   }
 }

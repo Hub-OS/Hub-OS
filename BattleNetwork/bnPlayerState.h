@@ -1,10 +1,14 @@
+/*! \file bnPlayerState.h */
+
+/*! \brief expected animation values in .animation files */
+
 #pragma once
 #include <string>
 
-#define PLAYER_IDLE     std::string("PLAYER_IDLE")
-#define PLAYER_MOVING   std::string("PLAYER_MOVING")
-#define PLAYER_HIT      std::string("PLAYER_HIT")
-#define PLAYER_SHOOTING std::string("PLAYER_SHOOTING")
-#define PLAYER_SWORD    std::string("PLAYER_SWORD")
-#define PLAYER_HEAL     std::string("PLAYER_HEAL")
-#define PLAYER_CANNON   std::string("PLAYER_CANNON")
+constexpr std::string PLAYER_IDLE = ("PLAYER_IDLE");
+constexpr std::string PLAYER_MOVING = ("PLAYER_MOVING");
+constexpr std::string PLAYER_HIT = ("PLAYER_HIT");
+constexpr std::string PLAYER_SHOOTING = ("PLAYER_SHOOTING");
+constexpr std::string PLAYER_SWORD = ("PLAYER_SWORD");
+constexpr std::string PLAYER_HEAL = ("PLAYER_HEAL");
+constexpr std::string PLAYER_CANNON = ("PLAYER_CANNON");
