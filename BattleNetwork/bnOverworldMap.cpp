@@ -11,7 +11,7 @@ namespace Overworld {
 
     enableLighting = false;
 
-    std::cout << "num of lights: " << lights.size() << "\n";
+    // std::cout << "num of lights: " << lights.size() << "\n";
 
     cam = nullptr;
   }

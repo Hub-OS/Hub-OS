@@ -20,6 +20,7 @@ ParticlePoof::ParticlePoof(Field* field) : Artifact(field, Team::UNKNOWN)
 
   animation.SetAnimation("DEFAULT");
 
+  // When animation ends, delete
   auto onEnd = [this]() {
     this->Delete();
   };

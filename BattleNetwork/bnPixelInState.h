@@ -1,20 +1,19 @@
+/*! \brief Pixlate intro effect used in the battle intro
+ * 
+ * This state can be used by any Entity in the engine.
+ * It uses constraints to ensure the type passed in Any
+ * is a subclass of Entity.
+ *
+ * This state locks the entity until it comes into focus
+ * when pixel shader's factor is equal to 1
+ */
+
 #pragma once
-#include "bnMeta.h"
 #include "bnEntity.h"
 #include "bnAIState.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include <iostream>
-
-/*
-This state can be used by any Entity in the engine.
-It uses constraints to ensure the type passed in Any
-is a subclass of Entity.
-
-This state locks the entity until it comes into focus
-when pixel shader's factor is equal to 1
-*/
-
 
 typedef std::function<void()> FinishNotifier;
 
@@ -22,16 +21,38 @@ template<typename Any>
 class PixelInState : public AIState<Any>
 {
 private:
-  SmartShader pixelated;
-  float factor;
-  FinishNotifier callback;
-  bool playedFX;
+  SmartShader pixelated; /*!< Shader to pixelate effect */
+  float factor; /*!< Strength of the pixelate effect. Set to 125 */
+  FinishNotifier callback; /*!< Callback when intro effect finished */
 public:
+
+  /**
+   * \brief sets the finish callback and loads shader
+   */
   PixelInState(FinishNotifier onFinish);
+  
+  /**
+   * @brief deconstructor
+   */
   ~PixelInState();
 
+  /**
+   * @brief Plays intro swoosh sound
+   * @param e entity
+   */
   void OnEnter(Any& e);
+  
+  /**
+   * @brief When the pixelate effect finishes, invokes the callback
+   * @param _elapsed in seconds
+   * @param e entity
+   */
   void OnUpdate(float _elapsed, Any& e);
+  
+  /**
+   * @brief Revokes the pixelate shader from the entity
+   * @param e entity
+   */
   void OnLeave(Any& e);
 };
 
@@ -40,9 +61,6 @@ public:
 
 template<typename Any>
 PixelInState<Any>::PixelInState(FinishNotifier onFinish) : AIState<Any>() {
-  // Enforce template constraints on class
-  _DerivedFrom<Any, Entity>();
-
   callback = onFinish;
   factor = 125.f;
 
