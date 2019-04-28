@@ -69,7 +69,7 @@ void MobHealthUI::Update(float elapsed) {
 
 void MobHealthUI::Inject(BattleScene & scene)
 {
-  // Todo: add this free step to inject step? It's manadatory. No sense repeating this every time
+  // TODO: add this free step to inject step? It's manadatory. No sense repeating this every time
   GetOwner()->FreeComponentByID(this->GetID()); // We are owned by the scene now 
   scene.Inject(*this);
 }
