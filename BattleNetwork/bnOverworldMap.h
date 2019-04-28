@@ -7,6 +7,7 @@
 #include "bnTile.h"
 
 namespace Overworld {
+  /*! \brief Structure to hold tile data */
   class Tile {
     sf::Texture* texture;
     sf::Vector2f pos;
@@ -50,7 +51,9 @@ namespace Overworld {
 /*! \brief Incredibly hackey overworld class. Read more.
  * 
  * This generates a WxH isometric map. 
+ * 
  * It sorts all sprites by Y and gives illusion of depth
+ * 
  * If something it outside of the camera view, it is not drawn
  * Tiles randomly choose texture
  * 

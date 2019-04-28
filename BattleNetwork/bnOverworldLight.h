@@ -1,9 +1,8 @@
-/*! \brief Lightweight object that stores light properties */
-
 #pragma once
 #include <SFML/Graphics.hpp>
 
 namespace Overworld {
+  /*! \brief Lightweight object that stores light properties */
   class Light {
     sf::Vector2f pos; /*!< position of the light */
     sf::Color diffuse; /*!< diffuse color of the light */
