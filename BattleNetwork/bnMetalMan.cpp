@@ -28,12 +28,11 @@ MetalMan::MetalMan(Rank _rank)
   
   hitHeight = 64;
   state = MOB_IDLE;
-  textureType = TextureType::MOB_METALMAN_ATLAS;
   healthUI = new MobHealthUI(this);
 
   this->ChangeState<MetalManIdleState>();
 
-  setTexture(*TEXTURES.GetTexture(textureType));
+  setTexture(*TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
@@ -54,16 +53,7 @@ MetalMan::MetalMan(Rank _rank)
   hit = false;
 }
 
-MetalMan::~MetalMan(void) {
-}
-
-int* MetalMan::GetAnimOffset() {
-  int* res = new int[2];
-
-  res[0] = 10;
-  res[1] = 6;
-
-  return res;
+MetalMan::~MetalMan() {
 }
 
 void MetalMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
@@ -98,11 +88,9 @@ void MetalMan::Update(float _elapsed) {
     this->SetShader(nullptr);
   }
 
-  this->RefreshTexture();
+  setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
   if (_elapsed <= 0) return;
-
-  hitHeight = getLocalBounds().height;
 
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
@@ -147,22 +135,6 @@ void MetalMan::Update(float _elapsed) {
   Character::Update(_elapsed);
 
   hit = false;
-}
-
-void MetalMan::RefreshTexture() {
-  setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
-}
-
-TextureType MetalMan::GetTextureType() const {
-  return textureType;
-}
-
-int MetalMan::GetHealth() const {
-  return health;
-}
-
-void MetalMan::SetHealth(int _health) {
-  health = _health;
 }
 
 const bool MetalMan::Hit(Hit::Properties props) {

@@ -13,7 +13,6 @@ HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell() {
   direction = Direction::NONE;
   deleted = false;
   hit = false;
-  cooldown = 0;
   damage = _damage;
 
   auto props = Hit::DefaultProperties;
@@ -23,7 +22,7 @@ HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell() {
   EnableTileHighlight(false);
 }
 
-HitBox::~HitBox(void) {
+HitBox::~HitBox() {
 }
 
 void HitBox::Update(float _elapsed) {

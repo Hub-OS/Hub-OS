@@ -14,6 +14,7 @@
 
 #include <list>
 
+/*! \brief Library scene shows a list of unique chip data collected by the player */
 class LibraryScene : public swoosh::Activity {
 private:
   Camera camera;

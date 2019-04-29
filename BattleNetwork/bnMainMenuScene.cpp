@@ -17,13 +17,21 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetDefaultView()),
   swoosh::Activity(&controller)
 {
+  // When we reach the menu scene we need to load the player information
+  // before proceeding to next sub menus
   data = ChipFolderCollection::ReadFromFile("resources/database/folders.txt");
 
+  // Draws the scrolling background
   bg = new LanBackground();
 
+  // Generate an infinite map with a branch depth of 3, column size of 10
+  // and tile dimensions 47x24
   map = new Overworld::InfiniteMap(3, 10, 47, 24);
+  
+  // Share the camera
   map->SetCamera(&camera);
 
+  // Show the HUD
   showHUD = true;
 
   // Selection input delays
@@ -47,6 +55,8 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   naviAnimator.SetAnimation("PLAYER_OW_RD");
   naviAnimator << Animate::Mode::Loop;
 
+  // Share the navi sprite
+  // Map will transform navi's ortho position into isometric position
   map->AddSprite(&owNavi);
 
   overlay = sf::Sprite(LOAD_TEXTURE(MAIN_MENU));
@@ -60,16 +70,22 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 }
 
 void MainMenuScene::onStart() {
+  // Stop any music already playing
   AUDIO.StopStream();
   AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+  
+  // Set the camera back to ours
   ENGINE.SetCamera(camera);
 }
 
 void MainMenuScene::onUpdate(double elapsed) {
-  // std::cout << "elapsed: " << elapsed << std::endl;
+  // Update the map
   map->Update((float)elapsed);
 
+  // Update the camera
   camera.Update((float)elapsed);
+  
+  // Loop the bg
   bg->Update((float)elapsed);
 
   // Draw navi moving
@@ -168,6 +184,7 @@ void MainMenuScene::onUpdate(double elapsed) {
     map->ToggleLighting(toggle);
   }*/
 
+  // Keep menu selection in range
   menuSelectionIndex = std::max(0, menuSelectionIndex);
   menuSelectionIndex = std::min(3, menuSelectionIndex);
 

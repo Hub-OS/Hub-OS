@@ -14,6 +14,12 @@ using sf::Event;
 using sf::Sprite;
 using std::vector;
 
+/*! \warning Legacy code that can and should be removed from the engine.
+ *  \brief Originally the battle scene was split into layers before using scene nodes
+ * 
+ * Bottom layer was tiles, mid layer was sprites, and top layer was UI.
+ * This is no longer used but lingers in the code base. Remove asap.
+ */
 class Layers : vector<SpriteSceneNode*> {
 public:
   int min;

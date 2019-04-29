@@ -1,24 +1,32 @@
 #pragma once
 #include <iostream>
-using std::cerr;
-using std::endl;
 #include <string>
-using std::string;
-using std::to_string;
 #include <cstdarg>
 #include <queue>
 #include <mutex>
 #include <fstream>
+
+using std::string;
+using std::to_string;
+using std::cerr;
+using std::endl;
+
+/*! \brief Thread safe logging utility logs directly to a file */
 class Logger {
 private:
   static std::mutex m;
-  static std::queue<std::string> logs;
-  static std::ofstream file;
+  static std::queue<std::string> logs; /*!< get the log stream in order */
+  static std::ofstream file; /*!< The file to write to */
 public:
   static std::mutex* GetMutex() {
     return &m;
   }
 
+  /**
+   * @brief Gets the next log and stores it in the input string
+   * @param next input string to store result into
+   * @return true if there's more text. False if there's no text to input.
+   */
   static const bool GetNextLog(std::string &next) {
     if (logs.size() == 0)
       return false;
@@ -29,6 +37,10 @@ public:
     return (logs.size()+1 > 0);
   }
 
+  /**
+   * @brief If first time opening, timestamps file and pushes message to file
+   * @param _message
+   */
   static void Log(string _message) {
     if (_message.empty())
       return;
@@ -42,7 +54,12 @@ public:
     logs.push(_message);
     file << _message << endl;
   }
-
+  
+  /**
+   * @brief Uses varadic args to print any string format
+   * @param fmt string format
+   * @param ... input to match the format 
+   */
   static void Logf(const char* fmt, ...) {
     int size = 512;
     char* buffer = 0;
@@ -76,5 +93,9 @@ public:
 
 private:
   Logger() { ; }
+  
+  /**
+   * @brief Dumps queue and closes file
+   */
   ~Logger() { file.close(); while (!logs.empty()) { logs.pop(); }  }
 };

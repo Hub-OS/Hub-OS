@@ -16,8 +16,10 @@ void HideTimer::Update(float _elapsed) {
   elapsed += _elapsed;
 
   if (elapsed >= duration.asSeconds() && temp) {
+    // Adds entity back to original tile and erases the reserve flag
     temp->AddEntity(*this->owner);
-    this->GetOwner()->FreeComponentByID(this->GetID());
+    
+    // Eject from scene's update loop
     this->scene->Eject(this);
     delete this;
   }
@@ -30,14 +32,16 @@ void HideTimer::Inject(BattleScene& scene) {
   // it is safe now to temporarily remove from character from play
   // the component is now injected into the scene's update loop
 
+  this->GetOwner()->FreeComponentByID(this->GetID());
+
   if (temp) {
+    // Reserve the tile state for this entity
     temp->ReserveEntityByID(owner->GetID());
+    
+    // Remove the entity from the tile
     temp->RemoveEntityByID(owner->GetID());
 
-    if (temp->GetState() == TileState::BROKEN) {
-      temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
-    }
-
+    // Effectively removes entity from play
     owner->SetTile(nullptr);
   }
 }
