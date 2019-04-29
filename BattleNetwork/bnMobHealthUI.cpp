@@ -11,14 +11,13 @@ using std::to_string;
 MobHealthUI::MobHealthUI(Character* _mob)
   : mob(_mob), UIComponent(_mob) {
   healthCounter = mob->GetHealth();
-  loaded = false;
   cooldown = 0;
   color = sf::Color::White;
   glyphs.setTexture(LOAD_TEXTURE(ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 }
 
-MobHealthUI::~MobHealthUI(void) {
+MobHealthUI::~MobHealthUI() {
 }
 
 /*

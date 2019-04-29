@@ -10,19 +10,16 @@
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 
-#define RESOURCE_NAME "mettaur"
-#define RESOURCE_PATH "resources/mobs/mettaur/mettaur.animation"
+constexpr std::string RESOURCE_PATH = "resources/mobs/mettaur/mettaur.animation";
 
-vector<int> Mettaur::metIDs = vector<int>();
-int Mettaur::currMetIndex = 0;
+vector<int> Mettaur::metIDs = vector<int>(); 
+int Mettaur::currMetIndex = 0; 
 
 Mettaur::Mettaur(Rank _rank)
   :  AI<Mettaur>(this), AnimatedCharacter(_rank) {
   //this->ChangeState<MettaurIdleState>();
   name = "Mettaur";
   Entity::team = Team::BLUE;
-
-  textureType = TextureType::MOB_METTAUR;
 
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
@@ -40,7 +37,7 @@ Mettaur::Mettaur(Rank _rank)
 
   hitHeight = 0;
 
-  setTexture(*TEXTURES.GetTexture(textureType));
+  setTexture(*TEXTURES.GetTexture(TextureType::MOB_METTAUR));
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
@@ -54,23 +51,16 @@ Mettaur::Mettaur(Rank _rank)
   animationComponent.Update(0);
 }
 
-Mettaur::~Mettaur(void) {
+Mettaur::~Mettaur() {
 
-}
-
-int* Mettaur::GetAnimOffset() {
-  Mettaur* mob = this;
-
-  int* res = new int[2];
-  res[0] = 10;  res[1] = 0;
-
-  return res;
 }
 
 void Mettaur::Update(float _elapsed) {
   this->SetShader(nullptr);
-  this->RefreshTexture();
-
+  
+  setPosition(tile->getPosition().x, tile->getPosition().y);
+  setPosition(getPosition() + tileOffset);
+  
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
     Character::Update(_elapsed);
@@ -115,37 +105,6 @@ void Mettaur::Update(float _elapsed) {
   }
 
   Character::Update(_elapsed);
-}
-
-void Mettaur::RefreshTexture() {
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-
-  setPosition(getPosition() + tileOffset);
-}
-
-/*void Mettaur::SetAnimation(string _state, std::function<void()> onFinish) {
-  state = _state;
-  animationComponent.SetAnimation(_state, onFinish);
-  animationComponent.Update(0);
-}
-
-void Mettaur::SetCounterFrame(int frame)
-{
-  auto onFinish = [&]() { this->ToggleCounter(); };
-  auto onNext = [&]() { this->ToggleCounter(false); };
-  animationComponent.AddCallback(frame, onFinish, onNext);
-}*/
-
-TextureType Mettaur::GetTextureType() const {
-  return textureType;
-}
-
-int Mettaur::GetHealth() const {
-  return health;
-}
-
-void Mettaur::SetHealth(int _health) {
-  health = _health;
 }
 
 const bool Mettaur::Hit(Hit::Properties props) {

@@ -1,3 +1,5 @@
+/*! \brief All of the virtual input events to map to joysticks and keyboard commands */
+
 #pragma once
 enum InputEvent{
   NONE,
