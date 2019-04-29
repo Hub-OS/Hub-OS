@@ -22,6 +22,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
   bool moved = false;
   
   int tries = 6;
+  // TODO: query tiles like we do with entities
   do {
     // Find a new spot that is on our team
     moved = metal.Teleport((rand() % 6) + 1, (rand() % 3) + 1);
@@ -36,6 +37,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
     if(next && metal.Teleport(next->GetX()+1, next->GetY())) {
       metal.AdoptNextTile();
       auto onFinish = [this]() {
+        // TODO: Reserve next tile to move to after punching and pass it to state
         this->ChangeState<MetalManPunchState>();
       };
 
