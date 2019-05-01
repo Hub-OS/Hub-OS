@@ -348,7 +348,7 @@ int MainMenuScene::Run()
     LayeredDrawable* bake = new LayeredDrawable(transitionPost);
     bake->SetShader(&transition);
 
-    ENGINE.Draw(bake);
+    //ENGINE.Draw(bake);
     delete bake;
 
     // Write contents to screen (always last step)

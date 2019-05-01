@@ -448,7 +448,7 @@ SelectedNavi SelectNaviScene::Run(SelectedNavi currentNavi) {
     LayeredDrawable* bake = new LayeredDrawable(sf::Sprite(navi));
     bake->SetShader(pixelated);
 
-    ENGINE.Draw(bake);
+    //ENGINE.Draw(bake);
     delete bake;
 
     // Make a selection
@@ -468,7 +468,7 @@ SelectedNavi SelectNaviScene::Run(SelectedNavi currentNavi) {
     bake = new LayeredDrawable(transitionPost);
     bake->SetShader(&transition);
 
-    ENGINE.Draw(bake);
+    //ENGINE.Draw(bake);
     delete bake;
 
     // Write contents to screen (always last step)

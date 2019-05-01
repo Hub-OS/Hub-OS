@@ -32,7 +32,9 @@ void TouchArea::reset() {
 }
 
 void TouchArea::releaseTouch() {
-    TouchArea::m_touches.erase(std::remove(TouchArea::m_touches.begin(), TouchArea::m_touches.end(), m_touchIndex), TouchArea::m_touches.end());
+    //TouchArea::m_touches.erase(std::remove(TouchArea::m_touches.begin(), TouchArea::m_touches.end(), m_touchIndex), TouchArea::m_touches.end());
+    //m_touchIndex = m_touches.size() > 0 ? *m_touches.rbegin() : 0;
+    m_touches.clear();
     m_touchIndex = 0;
 }
 
@@ -85,6 +87,7 @@ void TouchArea::privPoll() {
                 }
             } else {
                 // We are outside rectangle and have not released, toggle default callback
+                releaseTouch();
                 reset();
                 m_onDefaultCallback();
                 m_state = TouchArea::State::DEFAULT;
@@ -95,7 +98,6 @@ void TouchArea::privPoll() {
                 // The touch has been released, toggle release callback based on last known position
                 m_onReleaseCallback(m_touchEnd - m_touchStart);
                 reset();
-                releaseTouch();
                 m_state = TouchArea::State::RELEASED;
             } else {
                 // We are outside rectangle and have released, toggle default callback
@@ -103,6 +105,7 @@ void TouchArea::privPoll() {
                 m_onDefaultCallback();
                 m_state = TouchArea::State::DEFAULT;
             }
+            releaseTouch();
         }
     }
 }

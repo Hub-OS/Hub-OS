@@ -364,7 +364,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
         LayeredDrawable* bake = new LayeredDrawable(distortionPost);
         bake->SetShader(&heatShader);
 
-        ENGINE.Draw(bake);
+        //ENGINE.Draw(bake);
         delete bake;
       }
       else if (tile->GetState() == TileState::ICE) {
@@ -381,7 +381,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
         LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
         bake->SetShader(&iceShader);
 
-        ENGINE.Draw(bake);
+        //ENGINE.Draw(bake);
         delete bake;
       }
     }
