@@ -25,7 +25,6 @@ using sf::Clock;
 #define TITLE_ANIM_CHAR_SPRITES 14
 #define TITLE_ANIM_CHAR_WIDTH 128
 #define TITLE_ANIM_CHAR_HEIGHT 221
-#define SHADER_FRAG_WHITE_PATH "resources/shaders/white_fade.frag.txt"
 
 void RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
@@ -192,13 +191,15 @@ int main(int argc, char** argv) {
   // Mav Note: Currently do not have the default frag and vertex shaders
   totalObjects -= 2;
 
-  sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
+  RunGraphicsInit(&progress);
+  ENGINE.SetShader(nullptr);
+  //sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
   sf::Thread audioLoad(&RunAudioInit, &progress);
 
   // We must deffer the thread until graphics and audio are finished
   sf::Thread navisLoad(&RunNaviInit, &navisLoaded);
 
-  graphicsLoad.launch();
+  //graphicsLoad.launch();
   audioLoad.launch();
 
   // play some music while we wait

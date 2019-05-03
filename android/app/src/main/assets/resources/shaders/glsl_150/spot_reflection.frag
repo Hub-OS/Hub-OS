@@ -1,3 +1,6 @@
+precision lowp float;
+precision lowp int;
+
 varying vec2 vTexCoord;
 
 uniform sampler2D currentTexture; // Our render texture

@@ -1,4 +1,7 @@
-// Pixel blur inside of active texture coordinates 
+precision lowp float;
+precision lowp int;
+
+// Pixel blur inside of active texture coordinates
 
 varying vec2 vTexCoord;
 uniform sampler2D texture;
