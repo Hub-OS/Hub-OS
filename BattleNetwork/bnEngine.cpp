@@ -30,7 +30,12 @@ void Engine::Draw(Drawable& _drawable, bool applyShaders) {
     applyShaders = true;
 
   if (applyShaders) {
-    postprocessing.draw(_drawable, state);
+    auto stateCopy = state;
+    if(!stateCopy.shader) {
+      stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    }
+
+    postprocessing.draw(_drawable, stateCopy);
   } else {
     postprocessing.draw(_drawable);
   }
@@ -43,7 +48,12 @@ void Engine::Draw(Drawable* _drawable, bool applyShaders) {
   }
 
   if (applyShaders) {
-    postprocessing.draw(*_drawable, state);
+    auto stateCopy = state;
+    if(!stateCopy.shader) {
+      stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    }
+
+    postprocessing.draw(*_drawable, stateCopy);
   } else {
     postprocessing.draw(*_drawable);
   }
