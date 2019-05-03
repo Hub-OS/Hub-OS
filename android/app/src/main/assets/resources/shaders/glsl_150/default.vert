@@ -1,6 +1,3 @@
-precision lowp float;
-precision lowp int;
-
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
  

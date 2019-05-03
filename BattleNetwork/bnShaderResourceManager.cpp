@@ -46,6 +46,8 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
     {
         Logger::GetMutex()->lock();
         Logger::Log("Error loading shader: " + _path);
+
+
         Logger::GetMutex()->unlock();
 
         return nullptr;

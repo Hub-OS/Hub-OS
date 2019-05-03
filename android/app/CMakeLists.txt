@@ -48,7 +48,8 @@ add_library( # Sets the name of the library.
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
-target_link_libraries( # Specifies the target library.
+target_link_libraries(
+        # Specifies the target library.
 
         native-lib
 
@@ -57,6 +58,7 @@ target_link_libraries( # Specifies the target library.
 
         log
         android
+
         EGL
         GLESv2
         

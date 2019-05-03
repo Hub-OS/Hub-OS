@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
   std::atomic<int> navisLoaded(0);
 
   // Mav Note: Currently do not have the default frag and vertex shaders
-  totalObjects -= 2;
+  //totalObjects -= 2;
 
   RunGraphicsInit(&progress);
   ENGINE.SetShader(nullptr);
