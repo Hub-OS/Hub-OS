@@ -13,7 +13,9 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   health = 1;
   texture = TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png");
 
-  // why do we need this??
+  // why do we need to do this??
+  // The super constructor is failing to set this value
+  // TODO: find out why
   this->team = _team;
 
   this->speed = speed;
@@ -32,7 +34,7 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   this->SetFloatShoe(true);
 }
 
-Fishy::~Fishy(void) {
+Fishy::~Fishy() {
 }
 
 void Fishy::Update(float _elapsed) {

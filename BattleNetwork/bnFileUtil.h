@@ -5,12 +5,16 @@
 #include <assert.h>
 #include "bnLogger.h"
 
-/*
-Ammature file utility that reads in a file as a string dump.
-
-Has function that finds a key and attempts to parse the value wrapped in quotes
-Much can be improved here
-*/
+/**
+ * @class FileUtil
+ * @author mav
+ * @date 04/05/19
+ * @file bnFileUtil.h
+ * @brief Ammature file utility that reads in a file as a string dump.
+ * 
+ * Has function that finds a key and attempts to parse the value wrapped in quotes.
+ * Much can be improved here as this was originally legacy code.
+ */
 class FileUtil {
 public:
   static std::string Read(std::string _path) {
