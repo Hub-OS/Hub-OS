@@ -365,11 +365,11 @@ int main(int argc, char** argv) {
       }
     }
 
-    ENGINE.Draw(&logoSprite);
-
-    ENGINE.DrawUnderlay();
-    ENGINE.DrawLayers();
-    ENGINE.DrawOverlay();
+    // TODO BC: uncomment
+    //ENGINE.Draw(&logoSprite);
+    //ENGINE.DrawUnderlay();
+    //ENGINE.DrawLayers();
+    //ENGINE.DrawOverlay();
 
     // Write contents to screen
     ENGINE.Display();

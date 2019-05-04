@@ -219,6 +219,7 @@ void Engine::SetShader(sf::Shader* shader) {
   if (shader == nullptr) {
     state = sf::RenderStates::Default;
     state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    postprocessing.setDefaultShader(SHADERS.GetShader(ShaderType::DEFAULT));
   } else {
     state.shader = shader;
   }
