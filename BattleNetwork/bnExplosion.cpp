@@ -38,6 +38,12 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   animationComponent.SetPlaybackSpeed(playbackSpeed);
   animationComponent.Update(0.0f);
 
+  /*
+   * On the 11th frame, increment the explosion count, and turn the first 
+   * explosion transpatent.
+   * 
+   * If there are more explosions expected, spawn a copy on frame 9
+   */
   animationComponent.AddCallback(11, [this]() {
     this->root->IncrementExplosionCount();
     this->setColor(sf::Color(0, 0, 0, 0));
@@ -84,6 +90,12 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
   animationComponent.SetPlaybackSpeed(playbackSpeed);
   animationComponent.Update(0.0f);
 
+  /**
+   * Tell root to increment explosion count on frame 11
+   * 
+   * Similar to the root constructor, if there are more explosions
+   * Spawn a copy on frame 9
+   */
   animationComponent.AddCallback(11, [this]() {
     this->Delete(); this->root->IncrementExplosionCount();
   }, std::function<void()>(), true);
@@ -96,6 +108,10 @@ Explosion::Explosion(const Explosion & copy) : animationComponent(this)
 }
 
 void Explosion::Update(float _elapsed) {
+
+  /*
+   * Keep root alive until all explosions are completed, then delete root
+   */
   if (this == root) {
     if (count == numOfExplosions) {
       Delete();

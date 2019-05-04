@@ -3,7 +3,7 @@
 #include "bnObstacle.h"
 #include "bnArtifact.h"
 
-Field::Field(void) {
+Field::Field() {
   isBattleActive = false;
 }
 
@@ -25,7 +25,7 @@ Field::Field(int _width, int _height)
   isBattleActive = false;
 }
 
-Field::~Field(void) {
+Field::~Field() {
   for (size_t i = 0; i < tiles.size(); i++) {
     FreeClear(tiles[i]);
     tiles[i].clear();

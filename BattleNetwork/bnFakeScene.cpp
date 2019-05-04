@@ -6,9 +6,6 @@
 FakeScene::FakeScene(swoosh::ActivityController& controller, sf::Texture& snapshot) : swoosh::Activity(&controller) {
   this->snapshot = sf::Sprite(snapshot);
   triggered = false;
-
-  //this->snapshot.scale((float)this->snapshot.getTexture()->getSize().x / rect.width,
-  //                    (float)this->snapshot.getTexture()->getSize().y / rect.height);
 }
 
 FakeScene::~FakeScene() {
@@ -22,6 +19,10 @@ void FakeScene::onResume() {
 
 }
 
+/**
+ * @brief Immediately pop the activity with a pattern effect
+ * @param elapsed in seconds
+ */
 void FakeScene::onUpdate(double elapsed) {
   if (!triggered) {
     triggered = true;

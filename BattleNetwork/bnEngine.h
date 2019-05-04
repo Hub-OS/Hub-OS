@@ -1,15 +1,27 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <vector>
+
 using sf::Drawable;
 using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Event;
-#include <vector>
 using std::vector;
 
 #include "bnCamera.h"
 #include "bnLayered.h"
 
+/**
+ * @class Engine
+ * @author mav
+ * @date 04/05/19
+ * @file bnEngine.h
+ * @brief Wrapper around SFML window and draw call API
+ * 
+ * Creates the window for the game
+ * Uses Draw call across entire game to inject custom render states
+ * and other effects into SFML draw calls
+ */
 class Engine {
 public:
   friend class ActivityManager;

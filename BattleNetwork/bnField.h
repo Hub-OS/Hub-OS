@@ -1,7 +1,8 @@
 #pragma once
 #include <vector>
-using std::vector;
 #include <iostream>
+
+using std::vector;
 using std::cout;
 using std::endl;
 
@@ -17,9 +18,9 @@ class Artifact;
 
 class Field {
 public:
-  Field(void);
+  Field();
   Field(int _width, int _height);
-  ~Field(void);
+  ~Field();
 
   int GetWidth() const;
   int GetHeight() const;

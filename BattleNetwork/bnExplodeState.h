@@ -6,16 +6,26 @@
 #include "bnShaderResourceManager.h"
 
 /*
-  This state can be used by any Entity in the engine. 
-  It uses constraints to ensure the type passed in Any 
-  is a subclass of Entity. 
 
-  This state spawns an explosion and flickers the 
-  entity at it's current animation. Once the explosion
-  is finished, the entity is tried for deletion. Since 
-  this state is used when health < 0, the deletion will
-  succeed.
 */
+
+/**
+ * @class ExplodeState
+ * @author mav
+ * @date 04/05/19
+ * @file bnExplodeState.h
+ * @brief Locks an entity into this state and spawns explosions
+ * 
+ * This state can be used by any Entity in the engine. 
+ * It uses constraints to ensure the type passed in Any 
+ * is a subclass of Entity. 
+ *
+ * This state spawns an explosion and flickers the 
+ * entity at it's current animation. Once the explosion
+ * is finished, the entity is tried for deletion. Since 
+ * this state is used when health < 0, the deletion will
+ * succeed.
+ */
 template<typename Any>
 class ExplodeState : public AIState<Any>
 {

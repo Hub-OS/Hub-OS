@@ -1,18 +1,20 @@
 #pragma once
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <sstream>
+#include <vector>
+
+#include "bnChipUsePublisher.h"
+#include "bnSceneNode.h"
+
 using sf::Font;
 using sf::Text;
 using sf::Sprite;
 using sf::Texture;
 using sf::Drawable;
-#include <sstream>
-using std::ostringstream;
-#include <vector>
-using std::vector;
 
-#include "bnChipUsePublisher.h"
-#include "bnSceneNode.h"
+using std::vector;
+using std::ostringstream;
 
 class Character;
 class Player;
