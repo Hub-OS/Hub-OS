@@ -2,6 +2,7 @@ precision lowp float;
 precision lowp int;
 
 varying vec2 vTexCoord;
+varying vec4 vColor;
 
 uniform sampler2D currentTexture; // Our render texture
 uniform sampler2D distortionMapTexture; // Our heat distortion map texture
@@ -48,5 +49,5 @@ void main()
     
     vec2 distortedTextureCoordinate = vTexCoord.st + distortionPositionOffset;
 
-    // gl_FragColor = texture2D(currentTexture, distortedTextureCoordinate);
+    gl_FragColor = texture2D(currentTexture, distortedTextureCoordinate) * vColor;
  }

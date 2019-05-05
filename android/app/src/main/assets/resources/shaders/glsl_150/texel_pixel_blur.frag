@@ -4,6 +4,7 @@ precision lowp int;
 // Pixel blur inside of active texture coordinates
 
 varying vec2 vTexCoord;
+varying vec4 vColor;
 uniform sampler2D texture;
 uniform float pixel_threshold;
 
@@ -33,5 +34,5 @@ void main()
     // Convert back to texture atlas coordinates
     texCoord = (texCoord * size) + origin;
 
-    // gl_FragColor = texture2D(texture, texCoord);
+    gl_FragColor = texture2D(texture, texCoord) * vColor;
 }
