@@ -20,6 +20,10 @@ public:
   ElementalDamage(Field* field, Team team);
   ~ElementalDamage();
 
+  /**
+   * @brief Grow and shrink quickly. Appear over the sprite.
+   * @param _elapsed
+   */
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction) { return false; }
 

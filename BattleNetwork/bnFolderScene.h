@@ -37,8 +37,8 @@ private:
   std::vector<std::string> folderNames; /*!< List of all folder names at start */
 
   // Menu name font
-  sf::Font* font;
-  sf::Text* menuLabel;
+  sf::Font* font; /*!< Font of the  menu name label*/
+  sf::Text* menuLabel; /*!< "Folder" text on top-left */
 
   // Selection input delays
   double maxSelectInputCooldown; /*!< Set to half of a second */

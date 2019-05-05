@@ -26,36 +26,103 @@ class Engine {
 public:
   friend class ActivityManager;
 
+  /**
+   * @brief If this is the first call, creates the Engine singleton resource
+   * @return Engine&
+   */
   static Engine& GetInstance();
+  
+  /**
+   * @brief Creates an SFML window and sets the icon
+   */
   void Initialize();
+  
+  /**
+   * @brief Draw an sf::Drawable through the engine pipeline
+   * @param _drawable
+   * @param applyShaders if true, applies a shader
+   */
   void Draw(Drawable& _drawable, bool applyShaders = true);
   void Draw(Drawable* _drawable, bool applyShaders = true);
+  
+  /**
+   * @brief Draws a batch of sf::Drawable through the engine pipeline
+   * @param _drawable vector
+   * @param applyShaders if true, applies a shader
+   */
   void Draw(vector<Drawable*> _drawable, bool applyShaders = true);
+  
+  /**
+   * @brief Draws a SpriteSceneNode through the engine pipeline
+   * @param _drawable SpriteSceneNode*
+   */
   void Draw(SpriteSceneNode * _drawable);
+  
+  /**
+   * @brief Draws a batch of SpriteSceneNodes through the engine pipeline
+   * @param _drawable vector of SpriteSceneNode*
+   */
   void Draw(vector<SpriteSceneNode*> _drawable);
+  
+  /**
+   * @brief Returns true if the window is open
+   * @return true if window is open, false otherwise
+   */
   bool Running();
+  
+  /**
+   * @brief Dump the contents of the render window for a fresh redraw next frame
+   */
   void Clear();
+  
+  /**
+   * @brief Get the RenderWindow used by the app
+   * @return RenderWindow*
+   */
   RenderWindow* GetWindow() const;
 
-  void Push(SpriteSceneNode* _drawable);
-  void Lay(SpriteSceneNode* _drawable);
-  void Lay(vector<sf::Drawable*> _drawable);
-  void LayUnder(sf::Drawable* _drawable);
-  void DrawLayers();
-  void DrawOverlay();
-  void DrawUnderlay();
-
+  /**
+   * @brief Sets a post processing effect to be used on the screen
+   * @param _shader
+   */
   void SetShader(sf::Shader* _shader);
+  
+  /**
+   * @brief Removes post processing effect 
+   */
   void RevokeShader();
 
+  /**
+   * @brief Query if mouse is hovering over a sprite
+   * @param sprite
+   * @return true if the mouse is within the local bounds of the sprite
+   */
   const bool IsMouseHovering(sf::Sprite& sprite) const;
 
-  //void SetView(sf::View camera);
+  /**
+   * @brief Creates a camera for the scene
+   * @param camera
+   * 
+   * Camera's view offsets the screen drawing 
+   */
   void SetCamera(Camera& camera);
 
+  /**
+   * @brief Get the initial state of the view when the app was first created
+   * @return const sf::View
+   */
   const sf::View GetDefaultView();
+  
+  /**
+   * @brief Get the camera object
+   * @return Camera*
+   */
   Camera* GetCamera();
 
+  /**
+   * @brief Sets the external render texture buffer to draw to
+   * @param _surface
+   */
   void SetRenderSurface(sf::RenderTexture& _surface) {
     surface = &_surface;
   }
@@ -64,10 +131,18 @@ public:
     surface = _surface;
   }
 
+  /**
+   * @brief Query if the engine has a buffer to draw to
+   * @return true if surface is non null, false otherwise
+   */
   const bool HasRenderSurface() {
     return (surface != nullptr);
   }
 
+  /**
+   * @brief Fetch the buffer the engine uses to draw to
+   * @return sf::RenderTexture&
+   */
   sf::RenderTexture& GetRenderSurface() {
     return *surface;
   }
@@ -75,19 +150,25 @@ public:
   // TODO: make this private again
   const sf::Vector2f GetViewOffset(); // for drawing 
 private:
-  Engine(void);
-  ~Engine(void);
+  /**
+   * @brief sets camera to nullptr
+   */
+  Engine();
+  
+  /**
+    * @brief deletes the window */
+  ~Engine();
 
-  RenderWindow* window;
-  sf::View view;
-  sf::View original;
-  Underlay underlay;
-  Layers layers;
-  Overlay overlay;
-  sf::RenderStates state;
-  sf::RenderTexture* surface;
-  Camera* cam;
+  RenderWindow* window; /*!< Window created when app launches */
+  sf::View view; /*!< Default view created when window launches */
+  sf::View original; /*!< Default view created when window launches */
+  sf::RenderStates state; /*!< Global GL context information used when drawing*/
+  sf::RenderTexture* surface; /*!< The external buffer to draw to */
+  Camera* cam; /*!< Camera object */
 
 };
 
+/**
+ * @brief Shorter to type. Fetches instance of singleton.
+ */
 #define ENGINE Engine::GetInstance()

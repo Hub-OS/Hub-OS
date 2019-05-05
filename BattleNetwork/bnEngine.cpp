@@ -153,61 +153,18 @@ RenderWindow* Engine::GetWindow() const {
   return window;
 }
 
-Engine::Engine(void)
-  : layers(Layers()),
-  overlay(Overlay()),
-  underlay(Underlay()) {
+Engine::Engine()
+{
 
   cam = new Camera(view);
 }
 
-Engine::~Engine(void) {
+Engine::~Engine() {
   delete window;
 }
 
 const sf::Vector2f Engine::GetViewOffset() {
   return GetDefaultView().getCenter() - cam->GetView().getCenter();
-}
-
-void Engine::Push(SpriteSceneNode* _drawable) {
-  if (_drawable) {
-    layers.Insert(_drawable);
-  }
-}
-
-void Engine::Lay(SpriteSceneNode* _drawable) {
-  if (_drawable) {
-    overlay.Push(_drawable);
-  }
-}
-
-void Engine::Lay(vector<sf::Drawable*> _drawable) {
-  auto it = _drawable.begin();
-  for (it; it != _drawable.end(); ++it) {
-    if (*it) {
-      overlay.Push(*it);
-    }
-  }
-}
-
-void Engine::LayUnder(sf::Drawable* _drawable) {
-  if (_drawable) {
-    underlay.Push(_drawable);
-  }
-}
-
-void Engine::DrawLayers() {
-  for (int i = layers.min; i <= layers.max; i++) {
-    Draw(layers.At(i));
-  }
-}
-
-void Engine::DrawOverlay() {
-  Draw(overlay, false);
-}
-
-void Engine::DrawUnderlay() {
-  Draw(underlay);
 }
 
 void Engine::SetShader(sf::Shader* shader) {

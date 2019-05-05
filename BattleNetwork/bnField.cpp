@@ -41,20 +41,19 @@ int Field::GetHeight() const {
   return height;
 }
 
-bool Field::GetNextTile(Battle::Tile*& out) {
-  static int y = 0;
-  while (y < height) {
-    static int x = width-1;
-    while (x >= 0) {
-      out = tiles[y][x];
-      x--;
-      return true;
+std::vector<Tile*> Field::FindTiles(std::function<bool(Tile* t)> query)
+{
+  std::vector<Tile*> res;
+  
+  for(int i = 0; i < tiles.size(); i++) {
+    for(int j = 0; j < tiles[i].size(); j++) {
+      if(query(tiles[i][j])) {
+          res.push_back(tiles[i][j]);
+      }
     }
-    y++;
-    x = width-1;
   }
-  y = 0;
-  return false;
+    
+  return res;
 }
 
 void Field::AddEntity(Character & character, int x, int y)
@@ -102,10 +101,6 @@ void Field::AddEntity(Artifact & art, int x, int y)
   }
 }
 
-/*void Field::RemoveEntityByID(int ID)
-{
-}*/
-
 std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
 {
   std::vector<Entity*> res;
@@ -113,31 +108,19 @@ std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
   for (int y = 1; y <= height; y++) {
     for (int x = 1; x <= width; x++) {
       Battle::Tile* tile = GetAt(x, y);
-
-      Entity* next = nullptr;
-      while (tile->GetNextEntity(next)) {
-        if (query(next)) {
-          res.push_back(next);
-        }
-      }
+      
+      std::vector<Entity*> found = tile->FindEntities(query);
+      std::vector<Entity*> merged = res;
+      merged.reserve(res.size() + found.size()); // preallocate memory
+      merged.insert(merged.end(), res.begin(), res.end());
+      merged.insert(merged.end(), found.begin(), found.end());
+    
+      res = merged;
     }
   }
 
   return res;
 }
-
-/*bool Field::GetNextEntity(Entity*& out, int _depth) const {
-  static int i = 0;
-  for (i; i < (int)entities.size(); i++) {
-    if (entities.at(i)->GetTile()->GetY() == _depth) {
-      out = entities.at(i++);
-      return true;
-    }
-  }
-  i = 0;
-
-  return false;
-}*/
 
 void Field::SetAt(int _x, int _y, Team _team) {
   tiles[_y - 1][_x - 1]->SetTeam(_team);

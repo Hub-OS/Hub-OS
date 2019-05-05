@@ -5,10 +5,6 @@
 #include "bnExplosion.h"
 #include "bnShaderResourceManager.h"
 
-/*
-
-*/
-
 /**
  * @class ExplodeState
  * @author mav
@@ -30,11 +26,11 @@ template<typename Any>
 class ExplodeState : public AIState<Any>
 {
 protected:
-  Entity* explosion;
-  sf::Shader* whiteout;
+  Entity* explosion; /*!< The root explosion object */
+  sf::Shader* whiteout; /*!< Flash the dying entity white */
   double elapsed;
-  int numOfExplosions;
-  double playbackSpeed;
+  int numOfExplosions; /*!< Number of explosions to spawn */
+  double playbackSpeed; /*!< how fast the animation should be */
 public:
 
   ExplodeState(int _numOfExplosions=2, double _playbackSpeed=0.55);
@@ -51,10 +47,7 @@ public:
 template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
-  // Enforce template constraints on class
-  _DerivedFrom<Any, Entity>();
-
-  // If we make it here, we are the proper type
+ 
   explosion = nullptr;
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);

@@ -20,15 +20,47 @@ class Character;
 class Player;
 class Chip;
 
+/**
+ * @class EnemyChipsUI
+ * @author mav
+ * @date 05/05/19
+ * @file bnEnemyChipsUI.h
+ * @brief Similar to PlayerChipsUI, display chips over head of enemy
+ * 
+ * Uses AI to randomly use chip
+ */
 class EnemyChipsUI : public ChipUsePublisher, public Component, public SceneNode {
 public:
   EnemyChipsUI(Character* owner);
   virtual ~EnemyChipsUI();
 
+  /**
+   * @brief Randomly uses a chip if the scene is active
+   * @param _elapsed
+   */
   void Update(float _elapsed);
+  
+  /**
+   * @brief Draws chips stacked
+   * @param target
+   * @param states
+   */
   virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const;
+  
+  /**
+   * @brief Loads the next chips
+   * @param incoming
+   */
   void LoadChips(std::vector<Chip> incoming);
+  
+  /**
+   * @brief Broadcasts the used chip
+   */
   void UseNextChip();
+  
+  /**
+   * @brief Injects itself as a chip publisher into the scene
+   */
   void Inject(BattleScene&);
 private:
   std::vector<Chip> selectedChips;
