@@ -1,5 +1,6 @@
-precision lowp float;
-precision lowp int;
+precision highp float;
+precision highp int;
+precision highp sampler2D;
 
 // Pixel blur inside of active texture coordinates
 
@@ -29,7 +30,7 @@ void main()
     texCoord = floor(texCoord * factor + 0.5) / factor;
 
     // Apply the wrapping
-    texCoord = fract(texCoord);
+    //texCoord = fract(texCoord);
 
     // Convert back to texture atlas coordinates
     texCoord = (texCoord * size) + origin;
