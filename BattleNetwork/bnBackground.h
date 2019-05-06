@@ -101,7 +101,7 @@ public:
     textureWrap->setUniform("offsetx", (float)(offset.x));
     textureWrap->setUniform("offsety", (float)(offset.y));
 
-    //states.shader = textureWrap;
+    states.shader = textureWrap;
 
     // draw the vertex array
     target.draw(vertices, states);
