@@ -1,8 +1,10 @@
 #pragma once
 #include <vector>
-using std::vector;
 #include <map>
+#include <SFML/Window/Event.hpp>
+
 using std::map;
+using std::vector;
 
 #include "bnInputEvent.h"
 #include "bnChronoXConfigReader.h"
@@ -20,7 +22,7 @@ public:
   void BeginCaptureInputBuffer();
   void EndCaptureInputBuffer();
   const std::string GetInputBuffer();
-  void HandleInputBuffer(sf::Event);
+  void HandleInputBuffer(sf::Event e);
   void SetInputBuffer(std::string buff);
 
 

@@ -30,7 +30,11 @@ void Engine::Draw(Drawable& _drawable, bool applyShaders) {
   if (!HasRenderSurface()) return;
 
   if (applyShaders) {
-    surface->draw(_drawable, state);
+    auto stateCopy = state;
+    if(!stateCopy.shader) {
+      stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    }
+    surface->draw(_drawable, stateCopy);
 
   } else {
     surface->draw(_drawable);
@@ -45,7 +49,11 @@ void Engine::Draw(Drawable* _drawable, bool applyShaders) {
   }
 
   if (applyShaders) {
-    surface->draw(*_drawable, state);
+    auto stateCopy = state;
+    if(!stateCopy.shader) {
+      stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    }
+    surface->draw(*_drawable, stateCopy);
   } else {
     surface->draw(*_drawable);
   }

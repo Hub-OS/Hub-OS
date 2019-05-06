@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
   sf::RenderTexture loadSurface;
   //loadSurface.create(480, 320);
   loadSurface.create(ENGINE.GetWindow()->getSize().x, ENGINE.GetWindow()->getSize().y, ENGINE.GetWindow()->getSettings());
-  //ENGINE.SetRenderSurface(loadSurface);
+  ENGINE.SetRenderSurface(loadSurface);
 
   while (inConfigMessageState && ENGINE.Running()) {
     clock.restart();
@@ -382,7 +382,12 @@ int main(int argc, char** argv) {
         whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
       }
 
-      if (INPUT.Has(PRESSED_START) && navisLoaded == NAVIS.Size()) {
+      bool shouldStart = INPUT.Has(PRESSED_START);
+
+#ifdef __ANDROID__
+        shouldStart = sf::Touch::isDown(0);
+#endif
+        if (shouldStart && navisLoaded == NAVIS.Size()) {
         inLoadState = false;
       }
     }
@@ -457,10 +462,11 @@ int main(int argc, char** argv) {
 
     sf::Sprite postprocess(loadSurface.getTexture());
 
-    ENGINE.GetWindow()->draw(postprocess);
+    auto state = sf::RenderStates::Default;
+    state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
 
-    ENGINE.GetWindow()->draw(mouse);
-
+    ENGINE.GetWindow()->draw(postprocess, state);
+    ENGINE.GetWindow()->draw(mouse, state);
     ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
@@ -593,9 +599,12 @@ int main(int argc, char** argv) {
       ENGINE.DrawLayers();
       ENGINE.DrawOverlay();
 
+      auto state = sf::RenderStates::Default;
+      state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+
       app.draw();
 
-      ENGINE.GetWindow()->draw(mouse);
+      ENGINE.GetWindow()->draw(mouse, states);
 
       ENGINE.GetWindow()->display();
 
