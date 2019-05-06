@@ -117,9 +117,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   tripleDelete = doubleDelete;
   tripleDelete.setTexture(LOAD_TEXTURE(TRIPLE_DELETE));
 
+
   counterHit = doubleDelete;
   counterHit.setTexture(LOAD_TEXTURE(COUNTER_HIT));
-
   /*
   Chips + Chip select setup*/
   chips = nullptr;
@@ -194,11 +194,12 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   textureSize = getController().getVirtualWindowSize();
 
-  heatShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
+  heatShader.setUniform("texture", sf::Shader::CurrentTexture);
   heatShader.setUniform("distortionMapTexture", distortionMap);
   heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
 
-  iceShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
+
+  iceShader.setUniform("texture", sf::Shader::CurrentTexture);
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
   iceShader.setUniform("shine", 0.2f);

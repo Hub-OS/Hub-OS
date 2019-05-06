@@ -69,7 +69,6 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       direction = Direction::RIGHT;
     }
   }
- 
 
   if (inputManager->Has(HELD_A) && isChargeHeld == false) {
     isChargeHeld = true;

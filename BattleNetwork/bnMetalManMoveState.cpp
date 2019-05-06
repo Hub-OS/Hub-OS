@@ -1,4 +1,3 @@
-#pragma once
 #include "bnMetalMan.h"
 #include "bnHitBox.h"
 #include "bnTile.h"

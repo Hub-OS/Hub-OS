@@ -3,6 +3,8 @@
 #include <SFML/Window/ContextSettings.hpp>
 
 #include "mmbn.ico.c"
+#include "bnShaderType.h"
+#include "bnShaderResourceManager.h"
 
 Engine& Engine::GetInstance() {
   static Engine instance;
@@ -25,19 +27,17 @@ void Engine::Initialize() {
 }
 
 void Engine::Draw(Drawable& _drawable, bool applyShaders) {
-  applyShaders = false;
-
   if (!HasRenderSurface()) return;
 
   if (applyShaders) {
     surface->draw(_drawable, state);
+
   } else {
     surface->draw(_drawable);
   }
 }
 
 void Engine::Draw(Drawable* _drawable, bool applyShaders) {
-  applyShaders = false;
   if (!HasRenderSurface()) return;
 
   if (!_drawable) {
@@ -126,8 +126,6 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
 }
 
 void Engine::Draw(vector<Drawable*> _drawable, bool applyShaders) {
-  applyShaders = false;
-
   if (!HasRenderSurface()) return;
 
   auto it = _drawable.begin();
@@ -215,7 +213,11 @@ void Engine::DrawUnderlay() {
 void Engine::SetShader(sf::Shader* shader) {
 
   if (shader == nullptr) {
-    state = sf::RenderStates::Default;
+    state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+
+    if(HasRenderSurface()) {
+      surface->setDefaultShader(SHADERS.GetShader(ShaderType::DEFAULT));
+    }
   } else {
     state.shader = shader;
   }

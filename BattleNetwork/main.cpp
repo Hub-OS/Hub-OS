@@ -9,6 +9,7 @@
 #include "bnFakeScene.h"
 #include "bnAnimate.h"
 #include "bnChronoXConfigReader.h"
+#include "Android/bnTouchArea.h"
 #include "SFML/System.hpp"
 
 #include <time.h>
@@ -33,7 +34,6 @@ using swoosh::ActivityController;
 #define TITLE_ANIM_CHAR_SPRITES 14
 #define TITLE_ANIM_CHAR_WIDTH 128
 #define TITLE_ANIM_CHAR_HEIGHT 221
-#define SHADER_FRAG_WHITE_PATH "resources/shaders/white_fade.frag.txt"
 
 #define FIXED_TIME_STEP 1.0f/60.0f
 
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
   sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile.png");
   #else
   sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");
-  #endif BN_REGION_JAPAN
+  #endif
 
   LayeredDrawable logoSprite;
   logoSprite.setTexture(*logo);
@@ -151,7 +151,13 @@ int main(int argc, char** argv) {
 
   // Press Start text
   sf::Font* startFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+
+#if defined(__ANDROID__)
+  sf::Text* startLabel = new sf::Text("TAP SCREEN", *startFont);
+#else
   sf::Text* startLabel = new sf::Text("PRESS START", *startFont);
+#endif
+
   startLabel->setCharacterSize(24);
   startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
   startLabel->setPosition(sf::Vector2f(180.0f, 240.f));
@@ -235,14 +241,16 @@ int main(int argc, char** argv) {
   std::atomic<int> navisLoaded{0};
   std::atomic<int> mobsLoaded{0};
 
-  sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
+  RunGraphicsInit(&progress);
+  ENGINE.SetShader(nullptr);
+  //sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
   sf::Thread audioLoad(&RunAudioInit, &progress);
 
   // We must deffer the thread until graphics and audio are finished
   sf::Thread navisLoad(&RunNaviInit, &navisLoaded);
   sf::Thread mobsLoad(&RunMobInit, &mobsLoaded);
 
-  graphicsLoad.launch();
+  //graphicsLoad.launch();
   audioLoad.launch();
 
   // play some music while we wait
@@ -439,11 +447,11 @@ int main(int argc, char** argv) {
       }
     }
 
-    ENGINE.Draw(&logoSprite);
-
-    ENGINE.DrawUnderlay();
-    ENGINE.DrawLayers();
-    ENGINE.DrawOverlay();
+    // TODO BC: uncomment
+    //ENGINE.Draw(&logoSprite);
+    //ENGINE.DrawUnderlay();
+    //ENGINE.DrawLayers();
+    //ENGINE.DrawOverlay();
 
     loadSurface.display();
 
@@ -488,49 +496,115 @@ int main(int argc, char** argv) {
 
   srand((unsigned int)time(nullptr));
 
+#ifdef __ANDROID__
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  rightSide.enableExtendedRelease(true);
+  bool releasedB = false;
+
+  rightSide.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+  });
+
+  rightSide.onRelease([&releasedB](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      releasedB = false;
+
+  });
+
+  rightSide.onDrag([&releasedB](sf::Vector2i delta){
+      if(delta.x < -40 && !releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        releasedB = true;
+      }
+  });
+
+  rightSide.onDefault([&releasedB]() {
+      releasedB = false;
+  });
+
+  TouchArea& custSelectButton = TouchArea::create(sf::IntRect(0, 0, 480, 100));
+  custSelectButton.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_START);
+  });
+  custSelectButton.onRelease([](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_START);
+  });
+
+  TouchArea& dpad = TouchArea::create(sf::IntRect(0, 0, 240, 320));
+  dpad.enableExtendedRelease(true);
+  dpad.onDrag([](sf::Vector2i delta) {
+      Logger::Log("dpad delta: " + std::to_string(delta.x) + ", " + std::to_string(delta.y));
+
+    if(delta.x > 40) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_RIGHT);
+    }
+
+    if(delta.x < -40) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_LEFT);
+    }
+
+    if(delta.y > 40) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_DOWN);
+    }
+
+    if(delta.y < -40) {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_UP);
+    }
+  });
+#endif
+
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
-    // Non-simulation
-    elapsed = static_cast<float>(clock.restart().asSeconds()) + static_cast<float>(remainder);
+      // Non-simulation
+      elapsed = static_cast<float>(clock.restart().asSeconds()) + static_cast<float>(remainder);
 
-    INPUT.Update();
+      INPUT.Update();
 
-    float FPS = 0.f;
+      float FPS = 0.f;
 
-    FPS = (float)(1.0 / (float)elapsed);
-    std::string fpsStr = std::to_string(FPS);
-    fpsStr.resize(4);
-    ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
+      FPS = (float) (1.0 / (float) elapsed);
+      std::string fpsStr = std::to_string(FPS);
+      fpsStr.resize(4);
+      ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
 
 
-    // Use the activity controller to update and draw scenes
-    app.update((float)FIXED_TIME_STEP);
+      // Use the activity controller to update and draw scenes
+      app.update((float) FIXED_TIME_STEP);
 
-    sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
-    mouseAlpha -= FIXED_TIME_STEP;
-    mouseAlpha = std::max(0.0, mouseAlpha);
+      sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(
+              sf::Mouse::getPosition(*ENGINE.GetWindow()));
+      mouseAlpha -= FIXED_TIME_STEP;
+      mouseAlpha = std::max(0.0, mouseAlpha);
 
-	if (mousepos != lastMousepos) {
-	  lastMousepos = mousepos;
-	  mouseAlpha = 1.0;
-	}
+      if (mousepos != lastMousepos) {
+          lastMousepos = mousepos;
+          mouseAlpha = 1.0;
+      }
 
-    mouse.setPosition(mousepos);
-    mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
-    mouseAnimation.Update((float)FIXED_TIME_STEP, mouse);
+      mouse.setPosition(mousepos);
+      mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8) (255 * mouseAlpha)));
+      mouseAnimation.Update((float) FIXED_TIME_STEP, mouse);
 
-	ENGINE.Clear();
-	ENGINE.DrawUnderlay();
-	ENGINE.DrawLayers();
-	ENGINE.DrawOverlay();
+      ENGINE.Clear();
+      ENGINE.DrawUnderlay();
+      ENGINE.DrawLayers();
+      ENGINE.DrawOverlay();
 
-	app.draw();
+      app.draw();
 
-	ENGINE.GetWindow()->draw(mouse);
+      ENGINE.GetWindow()->draw(mouse);
 
-	ENGINE.GetWindow()->display();  }
+      ENGINE.GetWindow()->display();
 
+  }
   delete mouseTexture;
+
+#if defined(__ANDROID__)
+TouchArea::free();
+#endif
 
   return EXIT_SUCCESS;
 }

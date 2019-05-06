@@ -1,4 +1,3 @@
-#pragma once
 #include "bnMettaurIdleState.h"
 #include "bnMettaurMoveState.h"
 #include <iostream>

@@ -19,7 +19,8 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags "-std=c++11"
+                version "3.14.2"
+                cppFlags "-std=c++14"
                 arguments "-DANDROID_TOOLCHAIN=clang",
                         "-DANDROID_STL=c++_static"
             }
@@ -41,6 +42,7 @@ android {
     }
     externalNativeBuild {
         cmake {
+            version "3.14.2"
             path "CMakeLists.txt"
         }
     }

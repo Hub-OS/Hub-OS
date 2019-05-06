@@ -1,4 +1,10 @@
+precision lowp float;
+precision lowp int;
+
+varying vec4 vColor;
+varying vec2 vTexCoord;
 uniform sampler2D texture;
+
 uniform float progress;
 uniform int cols;
 uniform int rows;
@@ -8,7 +14,7 @@ float rand(vec2 co) {
 }
 
 void main() {
-    vec2 p = gl_TexCoord[0].xy;
+    vec2 p = vTexCoord.xy;
     vec2 size = vec2(cols, rows);
     vec4 color = texture2D(texture, p.xy);
     float r = rand(floor(vec2(size) * color.xy));

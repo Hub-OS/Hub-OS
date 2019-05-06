@@ -1,3 +1,7 @@
+precision lowp float;
+precision lowp int;
+
+varying vec4 vColor;
 varying vec2 vTexCoord;
 uniform sampler2D texture;
 uniform float factor;
@@ -32,5 +36,5 @@ void main()
       }
     }
 
-    // gl_FragColor = pixel;
+    gl_FragColor = pixel;
 }

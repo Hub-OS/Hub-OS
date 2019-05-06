@@ -75,6 +75,7 @@ void Player::Update(float _elapsed) {
     this->animationComponent.SetAnimation(PLAYER_HIT);
     this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
     AI<Player>::Update(_elapsed);
+
     return;
   }
 

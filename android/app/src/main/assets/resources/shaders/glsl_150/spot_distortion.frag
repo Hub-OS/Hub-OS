@@ -1,17 +1,33 @@
+precision lowp float;
+precision lowp int;
+
 varying vec2 vTexCoord;
 
-uniform sampler2D currentTexture; // Our render texture
+uniform sampler2D texture; // Our render texture
 uniform sampler2D distortionMapTexture; // Our heat distortion map texture
 
 uniform float time; // Time used to scroll the distortion map
 uniform float distortionFactor; // Factor used to control severity of the effect
 uniform float riseFactor; // Factor used to control how fast air rises
 
+uniform float x;
+uniform float y;
+uniform float w;
+uniform float h;
+
+uniform vec2 textureSizeIn;
+
 void main()
 {
-    vec4 alpha = vec4(0.0,0.0,0.0,0.0);
+    gl_FragColor = texture2D(texture, vTexCoord.st);
 
     vec2 distortionMapCoordinate = vTexCoord.st;
+    //distortionMapCoordinate.y = 1.0 - distortionMapCoordinate.y;
+
+    vec2 size = textureSizeIn;
+    vec2 screenCoord = vec2(vTexCoord.s, (vTexCoord.t)) * size;
+
+    if(screenCoord.x >= x && screenCoord.x <= x + w && screenCoord.y >= y && screenCoord.y <= y + h) {
     
     // We use the time value to scroll our distortion texture upwards
     // Since we enabled texture repeating, OpenGL takes care of
@@ -41,9 +57,15 @@ void main()
     // We use the t (a.k.a. y) texture coordinate of the original texture
     // to tell us how "high up" we are and damp accordingly
     // Remember, OpenGL 0 is at the bottom
-    distortionPositionOffset *= (vTexCoord.t);
+
+    float percentage = 1.0 - (((y+h)-screenCoord.y )/ h);
+
+    float percentage2 = 1.0 - (((y+(h*2.0))-screenCoord.y )/ (h*2.0));
+
+    distortionPositionOffset *= percentage;
     
     vec2 distortedTextureCoordinate = vTexCoord.st + distortionPositionOffset;
 
-    // gl_FragColor = texture2D(currentTexture, distortedTextureCoordinate);
- }
+    gl_FragColor = texture2D(texture, distortedTextureCoordinate) + (vec4(0.5,0.0,0.0,1.0)*percentage2);
+  }
+}

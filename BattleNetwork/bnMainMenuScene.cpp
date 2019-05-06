@@ -134,6 +134,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         else {
           AUDIO.Play(AudioType::CHIP_ERROR); 
           Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
+          gotoNextScene = false;
         }
       }
     }

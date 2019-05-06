@@ -3,7 +3,7 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.14.0)
 
 set(SFML_REPO ${CMAKE_CURRENT_SOURCE_DIR}/../../extern/SFML)
 
@@ -26,8 +26,7 @@ add_definitions(-DSFML_OPENGL_ES2)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../extern/SFML ./sfml-build)
 
-
-file(GLOB BATTLENETWORK_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork/*.cpp)
+file(GLOB BATTLENETWORK_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork/Android/*.cpp)
 
 include_directories(native-lib ${CMAKE_CURRENT_SOURCE_DIR}/../../extern/Swoosh/src)
 include_directories(native-lib ${CMAKE_CURRENT_SOURCE_DIR}/../../BattleNetwork)
@@ -49,7 +48,8 @@ add_library( # Sets the name of the library.
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
-target_link_libraries( # Specifies the target library.
+target_link_libraries(
+        # Specifies the target library.
 
         native-lib
 
@@ -58,6 +58,7 @@ target_link_libraries( # Specifies the target library.
 
         log
         android
+
         EGL
         GLESv2
         

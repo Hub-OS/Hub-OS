@@ -1,29 +1,21 @@
+precision lowp float;
+precision lowp int;
 
-uniform sampler2D currentTexture; // Our render texture
+varying vec2 vTexCoord;
+varying vec4 vColor;
+
+uniform sampler2D texture; // Our render texture
 uniform sampler2D distortionMapTexture; // Our heat distortion map texture
 
 uniform float time; // Time used to scroll the distortion map
 uniform float distortionFactor; // Factor used to control severity of the effect
 uniform float riseFactor; // Factor used to control how fast air rises
 
-uniform float x;
-uniform float y;
-uniform float w;
-uniform float h;
-
-uniform vec2 textureSizeIn;
-
 void main()
 {
-    gl_FragColor = gl_Color * texture2D(currentTexture, gl_TexCoord[0].st);
+    vec4 alpha = vec4(0.0,0.0,0.0,0.0);
 
-    vec2 distortionMapCoordinate = gl_TexCoord[0].st;
-    //distortionMapCoordinate.y = 1.0 - distortionMapCoordinate.y;
-
-    vec2 size = textureSizeIn;
-    vec2 screenCoord = vec2(gl_TexCoord[0].s, (gl_TexCoord[0].t)) * size;
-
-    if(screenCoord.x >= x && screenCoord.x <= x + w && screenCoord.y >= y && screenCoord.y <= y + h) {
+    vec2 distortionMapCoordinate = vTexCoord.st;
     
     // We use the time value to scroll our distortion texture upwards
     // Since we enabled texture repeating, OpenGL takes care of
@@ -53,14 +45,9 @@ void main()
     // We use the t (a.k.a. y) texture coordinate of the original texture
     // to tell us how "high up" we are and damp accordingly
     // Remember, OpenGL 0 is at the bottom
-
-    float percentage = 1.0 - (((y+h)-screenCoord.y )/ h);
-
-    float percentage2 = 1.0 - (((y+(h*2.0))-screenCoord.y )/ (h*2.0));
-
-    distortionPositionOffset *= percentage2;
+    distortionPositionOffset *= (vTexCoord.t);
     
-    vec2 distortedTextureCoordinate = gl_TexCoord[0].st + distortionPositionOffset;
-    gl_FragColor = gl_Color * texture2D(currentTexture, distortedTextureCoordinate) + (vec4(0.7,0.0,0.0,1.0)*percentage2);
-  }
-}
+    vec2 distortedTextureCoordinate = vTexCoord.st + distortionPositionOffset;
+
+    gl_FragColor = texture2D(texture, distortedTextureCoordinate) * vColor;
+ }

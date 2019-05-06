@@ -18,7 +18,6 @@ int Mettaur::currMetIndex = 0;
 
 Mettaur::Mettaur(Rank _rank)
   :  AI<Mettaur>(this), AnimatedCharacter(_rank) {
-  //this->ChangeState<MettaurIdleState>();
   name = "Mettaur";
   Entity::team = Team::BLUE;
 
@@ -54,7 +53,7 @@ Mettaur::Mettaur(Rank _rank)
   animationComponent.Update(0);
 }
 
-Mettaur::~Mettaur(void) {
+Mettaur::~Mettaur() {
 
 }
 

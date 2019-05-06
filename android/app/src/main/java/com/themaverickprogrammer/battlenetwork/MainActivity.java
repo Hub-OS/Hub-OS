@@ -1,10 +1,11 @@
 package com.themaverickprogrammer.battlenetwork;
 
 import android.app.NativeActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.util.Log;
+import android.view.View;
 
 public class MainActivity extends NativeActivity {
 

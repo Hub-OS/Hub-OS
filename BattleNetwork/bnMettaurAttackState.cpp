@@ -1,4 +1,3 @@
-#pragma once
 #include "bnMettaurAttackState.h"
 #include "bnWave.h"
 #include "bnTile.h"

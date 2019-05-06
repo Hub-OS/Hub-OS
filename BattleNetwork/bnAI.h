@@ -8,105 +8,83 @@
 template<typename T>
 class AI : public Agent {
 private:
-  AIState<T>* stateMachine;
-  T* ref;
-  int lock;
+    AIState<T>* stateMachine;
+    T* ref;
+    int lock;
 
 protected:
-  enum StateLock {
-    Locked,
-    Unlocked
-   };
+    enum StateLock {
+        Locked,
+        Unlocked
+    };
 
 public:
-  void LockState() {
-    lock = AI<T>::StateLock::Locked;
-  }
-
-  void UnlockState() {
-    lock = AI<T>::StateLock::Unlocked;
-  }
-
-  AI(T* _ref) : Agent() { stateMachine = nullptr; ref = _ref; lock = AI<T>::StateLock::Unlocked; }
-  ~AI() { if (stateMachine) { delete stateMachine; ref = nullptr; this->FreeTarget(); } }
-
-  template<typename U>
-  void ChangeState() {
-    _DerivedFrom<U, AIState<T>>();
-
-    if (lock == AI<T>::StateLock::Locked) {
-      return;
+    void LockState() {
+        lock = AI<T>::StateLock::Locked;
     }
 
-    if (!stateMachine) {
-      stateMachine = new NoState<T>();
+    void UnlockState() {
+        lock = AI<T>::StateLock::Unlocked;
     }
 
-    stateMachine->template ChangeState<U>();
+    AI(T* _ref) : Agent() { stateMachine = nullptr; ref = _ref; lock = AI<T>::StateLock::Unlocked; }
+    ~AI() { if (stateMachine) { delete stateMachine; ref = nullptr; this->FreeTarget(); } }
 
-    AIState<T>* nextState = stateMachine->GetNextState();
+    template<typename U>
+    void ChangeState() {
+        if (lock == AI<T>::StateLock::Locked) {
+            return;
+        }
 
-    if (nextState != nullptr) {
+        if (!stateMachine) {
+            stateMachine = new NoState<T>();
+        }
 
-      stateMachine->OnLeave(*ref);
+        stateMachine->template ChangeState<U>();
 
-      AIState<T>* oldState = stateMachine;
-      stateMachine = nextState;
-      stateMachine->OnEnter(*ref);
-      delete oldState;
-      oldState = nullptr;
-    }
-  }
-
-  /*
-    For states that require arguments, pass the arguments
-    e.g. 
-
-    this->ChangeState<PlayerThrowBombState>(200.f, 300, true);
-  */
-  
-template<typename U, typename ...Args>
-  void ChangeState(Args... args) {
-    _DerivedFrom<U, AIState<T>>();
-
-    if (lock == AI<T>::StateLock::Locked) {
-      return;
+        // TODO: this call makes AI states crash when using `entity.ChangeState()`
+        this->Update(0);
     }
 
-    if (!stateMachine) {
-      stateMachine = new NoState<T>();
+    /*
+      For states that require arguments, pass the arguments
+      e.g.
+
+      this->ChangeState<PlayerThrowBombState>(200.f, 300, true);
+    */
+
+    template<typename U, typename ...Args>
+    void ChangeState(Args... args) {
+        _DerivedFrom<U, AIState<T>>();
+
+        if (lock == AI<T>::StateLock::Locked) {
+            return;
+        }
+
+        if (!stateMachine) {
+            std::cout << "changing AI state to NoState" << std::endl;
+            stateMachine = new NoState<T>();
+        }
+
+        stateMachine->template ChangeState<U>(args...);
+        this->Update(0);
     }
 
-    stateMachine->template ChangeState<U>(args...);
+    void Update(float _elapsed) {
+        if (stateMachine != nullptr) {
+            AIState<T>* nextState = stateMachine->Update(_elapsed, *ref);
 
-    AIState<T>* nextState = stateMachine->GetNextState();
+            if (nextState != nullptr) {
+                //std::cout << "nextState is " << nextState << std::endl;
 
-    if (nextState != nullptr) {
+                stateMachine->OnLeave(*ref);
 
-      stateMachine->OnLeave(*ref);
-
-      AIState<T>* oldState = stateMachine;
-      stateMachine = nextState;
-      stateMachine->OnEnter(*ref);
-      delete oldState;
-      oldState = nullptr;
+                AIState<T>* oldState = stateMachine;
+                stateMachine = nextState;
+                stateMachine->OnEnter(*ref);
+                delete oldState;
+                oldState = nullptr;
+            }
+        }
     }
-  }
-
-  void Update(float _elapsed) {
-    if (stateMachine != nullptr) {
-      AIState<T>* nextState = stateMachine->Update(_elapsed, *ref);
-
-      if (nextState != nullptr) {
-
-        stateMachine->OnLeave(*ref);
-
-        AIState<T>* oldState = stateMachine;
-        stateMachine = nextState;
-        stateMachine->OnEnter(*ref);
-        delete oldState;
-        oldState = nullptr;
-      }
-    }
-  }
 };

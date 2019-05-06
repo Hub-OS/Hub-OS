@@ -5,6 +5,10 @@ using sf::Keyboard;
 #include "bnInputManager.h"
 #include "bnDirection.h"
 
+#if defined(__ANDROID__)
+#include "Android/bnTouchArea.h"
+#endif
+
 // #include <iostream>
 
 #define GAMEPAD_1 0
@@ -431,10 +435,19 @@ void InputManager::Update() {
   eventsLastFrame.clear();
 
   // std::cout << "events size: " << events.size() << std::endl;
+
+#if defined(__ANDROID__)
+TouchArea::poll();
+#endif
+
 }
 
 bool InputManager::Has(InputEvent _event) {
   return events.end() != find(events.begin(), events.end(), _event);
+}
+
+void InputManager::VirtualKeyEvent(InputEvent event) {
+  events.push_back(event);
 }
 
 bool InputManager::Empty() {

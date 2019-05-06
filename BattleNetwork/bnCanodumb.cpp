@@ -14,7 +14,6 @@
 
 Canodumb::Canodumb(Rank _rank)
   :  AI<Canodumb>(this), AnimatedCharacter(_rank) {
-  // this->StateChange<CanodumbIdleState>();
   Entity::team = Team::BLUE;
   hitHeight = 25;
   healthUI = new MobHealthUI(this);

@@ -91,6 +91,7 @@ void ProgsMan::Update(float _elapsed) {
   if (GetHealth() <= 0) {
     this->ChangeState<ProgsManHitState>(); // change animation briefly
     this->ChangeState<NaviExplodeState<ProgsMan>>(7, 1.0); // freezes animation
+
     this->LockState();
   }
   else {

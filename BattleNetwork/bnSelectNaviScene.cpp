@@ -378,7 +378,6 @@ void SelectNaviScene::onUpdate(double elapsed) {
         }
       }
     }
-
     int randAttack = rand() % 10;
     int randSpeed = rand() % 10;
 
