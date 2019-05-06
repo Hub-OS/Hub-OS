@@ -1,5 +1,6 @@
-precision lowp float;
-precision lowp int;
+precision highp float;
+precision highp int;
+precision highp sampler2D;
 
 // Wrap a subrect in a texture to preserve the image
 varying vec2 vTexCoord;

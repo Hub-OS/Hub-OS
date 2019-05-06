@@ -408,7 +408,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
     if (!isBattleRoundOver && !isInChipSelect)
       ENGINE.Draw(&customBarSprite);
 
-    if (isPaused || isInChipSelect) {
+    if (isPaused) {
       // apply shader on draw calls below
       ENGINE.SetShader(&pauseShader);
     } 
