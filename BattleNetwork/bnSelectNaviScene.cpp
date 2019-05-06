@@ -460,6 +460,7 @@ SelectedNavi SelectNaviScene::Run(SelectedNavi currentNavi) {
     } 
 
     sf::Texture postprocessing = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+    postprocessing.flip(true);
     sf::Sprite transitionPost;
     transitionPost.setTexture(postprocessing);
 

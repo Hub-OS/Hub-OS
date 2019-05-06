@@ -78,23 +78,25 @@ ShaderResourceManager::ShaderResourceManager(void) {
     std::string version = "glsl_110";
 #endif
 
+    paths.resize((size_t)ShaderType::SHADER_TYPE_SIZE);
+
 #ifdef SFML_SYSTEM_ANDROID
-    paths.push_back(std::string() + "resources/shaders/" + version + "/default");
+    paths[(int)ShaderType::DEFAULT] = std::string() + "resources/shaders/" + version + "/default";
 #endif
-    paths.push_back(std::string() + "resources/shaders/" + version + "/black_fade");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/custom_bar");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/greyscale");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/outline");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/pixel_blur");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/texel_pixel_blur");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/texel_texture_wrap");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/white");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/white_fade");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/yellow");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/distortion");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/spot_distortion");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/spot_reflection");
-    paths.push_back(std::string() + "resources/shaders/" + version + "/transition");
+    paths[(int)ShaderType::BLACK_FADE] = std::string() + "resources/shaders/" + version + "/black_fade";
+    paths[(int)ShaderType::CUSTOM_BAR] = std::string() + "resources/shaders/" + version + "/custom_bar";
+    paths[(int)ShaderType::GREYSCALE] = std::string() + "resources/shaders/" + version + "/greyscale";
+    paths[(int)ShaderType::OUTLINE] = std::string() + "resources/shaders/" + version + "/outline";
+    paths[(int)ShaderType::PIXEL_BLUR] = std::string() + "resources/shaders/" + version + "/pixel_blur";
+    paths[(int)ShaderType::TEXEL_PIXEL_BLUR] = std::string() + "resources/shaders/" + version + "/texel_pixel_blur";
+    paths[(int)ShaderType::TEXEL_TEXTURE_WRAP] = std::string() + "resources/shaders/" + version + "/texel_texture_wrap";
+    paths[(int)ShaderType::WHITE] = std::string() + "resources/shaders/" + version + "/white";
+    paths[(int)ShaderType::WHITE_FADE] = std::string() + "resources/shaders/" + version + "/white_fade";
+    paths[(int)ShaderType::YELLOW] = std::string() + "resources/shaders/" + version + "/yellow";
+    paths[(int)ShaderType::DISTORTION] = std::string() + "resources/shaders/" + version + "/distortion";
+    paths[(int)ShaderType::SPOT_DISTORTION] = std::string() + "resources/shaders/" + version + "/spot_distortion";
+    paths[(int)ShaderType::SPOT_REFLECTION] = std::string() + "resources/shaders/" + version + "/spot_reflection";
+    paths[(int)ShaderType::TRANSITION] = std::string() + "resources/shaders/" + version + "/transition";
 }
 
 ShaderResourceManager::~ShaderResourceManager(void) {

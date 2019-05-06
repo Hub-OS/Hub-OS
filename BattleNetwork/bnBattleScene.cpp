@@ -198,12 +198,12 @@ int BattleScene::Run(Player* player, Mob* mob) {
   sf::Vector2u textureSize = ENGINE.GetPostProcessingBuffer().getSize();
 
   sf::Shader& heatShader = *SHADERS.GetShader(ShaderType::SPOT_DISTORTION);
-  heatShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
+  heatShader.setUniform("texture", sf::Shader::CurrentTexture);
   heatShader.setUniform("distortionMapTexture", distortionMap);
   heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2(textureSize.x, textureSize.y));
 
   sf::Shader& iceShader = *SHADERS.GetShader(ShaderType::SPOT_REFLECTION);
-  iceShader.setUniform("currentTexture", sf::Shader::CurrentTexture);
+  iceShader.setUniform("texture", sf::Shader::CurrentTexture);
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2(textureSize.x, textureSize.y));
   iceShader.setUniform("shine", 0.3f);
@@ -330,7 +330,6 @@ int BattleScene::Run(Player* player, Mob* mob) {
     // Second tile pass: draw the entities and shaders per row
     tile = nullptr;
     while (field->GetNextTile(tile)) {
-
       heatShader.setUniform("time", totalTime);
       heatShader.setUniform("distortionFactor", 0.01f);
       heatShader.setUniform("riseFactor", 0.02f);
@@ -357,6 +356,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
         heatShader.setUniform("y", repos);
 
         sf::Texture postprocessing = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+        //postprocessing.flip(true);
 
         sf::Sprite distortionPost;
         distortionPost.setTexture(postprocessing);
@@ -364,7 +364,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
         LayeredDrawable* bake = new LayeredDrawable(distortionPost);
         bake->SetShader(&heatShader);
 
-        //ENGINE.Draw(bake);
+        ENGINE.Draw(bake);
         delete bake;
       }
       else if (tile->GetState() == TileState::ICE) {
@@ -374,6 +374,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
         iceShader.setUniform("y", repos);
 
         sf::Texture postprocessing = ENGINE.GetPostProcessingBuffer().getTexture(); // Make a copy
+        //postprocessing.flip(true);
 
         sf::Sprite reflectionPost;
         reflectionPost.setTexture(postprocessing);
@@ -381,7 +382,7 @@ int BattleScene::Run(Player* player, Mob* mob) {
         LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
         bake->SetShader(&iceShader);
 
-        //ENGINE.Draw(bake);
+        ENGINE.Draw(bake);
         delete bake;
       }
     }

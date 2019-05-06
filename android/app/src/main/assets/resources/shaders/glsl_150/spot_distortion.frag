@@ -3,7 +3,7 @@ precision lowp int;
 
 varying vec2 vTexCoord;
 
-uniform sampler2D currentTexture; // Our render texture
+uniform sampler2D texture; // Our render texture
 uniform sampler2D distortionMapTexture; // Our heat distortion map texture
 
 uniform float time; // Time used to scroll the distortion map
@@ -19,7 +19,7 @@ uniform vec2 textureSizeIn;
 
 void main()
 {
-    gl_FragColor = texture2D(currentTexture, vTexCoord.st);
+    gl_FragColor = texture2D(texture, vTexCoord.st);
 
     vec2 distortionMapCoordinate = vTexCoord.st;
     //distortionMapCoordinate.y = 1.0 - distortionMapCoordinate.y;
@@ -66,6 +66,6 @@ void main()
     
     vec2 distortedTextureCoordinate = vTexCoord.st + distortionPositionOffset;
 
-    // gl_FragColor = texture2D(currentTexture, distortedTextureCoordinate) + (vec4(0.5,0.0,0.0,1.0)*percentage2);
+    gl_FragColor = texture2D(texture, distortedTextureCoordinate) + (vec4(0.5,0.0,0.0,1.0)*percentage2);
   }
 }
