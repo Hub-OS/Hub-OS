@@ -13,13 +13,13 @@ Artifact::Artifact(Field* _field, Team _team) {
   this->SetPassthrough(true);
 }
 
-Artifact::Artifact(void) {
+Artifact::Artifact() {
   SetLayer(0);
   texture = nullptr;
   this->SetPassthrough(true);
 }
 
-Artifact::~Artifact(void) {
+Artifact::~Artifact() {
 }
 
 void Artifact::AdoptTile(Battle::Tile * tile)

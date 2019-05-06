@@ -518,20 +518,24 @@ void ChipSelectionCust::Update(float elapsed)
 
   emblem.Update(elapsed);
 
-  /*if (IsInView()) {
+#ifdef __ANDROID__
+  if (IsInView()) {
     if (ENGINE.IsMouseHovering(icon) && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && queue[i].state != 0) {
       cursorRow = row;
       cursorPos = i % 5;
       CursorAction();
     }
-  }*/
+  }
+#endif
 
   this->isInView = IsInView();
 }
 
 Chip** ChipSelectionCust::GetChips() {
+  // Allocate selected chips list
   selectedChips = (Chip**)malloc(sizeof(Chip*)*selectCount);
 
+  // Point to selected queue
   for (int i = 0; i < selectCount; i++) {
     selectedChips[i] = (*(selectQueue[i])).data;
   }
@@ -543,16 +547,18 @@ void ChipSelectionCust::ClearChips() {
   if (areChipsReady) {
     for (int i = 0; i < selectCount; i++) {
       selectedChips[i] = nullptr; // point away
-      //delete (*(selectQueue[i])).data;
       (*(selectQueue[i])).data = nullptr;
     }
-
+  
+    // Deleted the selected chips array
     if (selectCount > 0) {
       delete[] selectedChips;
     }
   }
 
   // Restructure queue
+  // Line up all non-null buckets consequtively
+  // Reset bucket state to STAGED
   for (int i = 0; i < chipCount; i++) {
     queue[i].state = STAGED;
     int next = i;

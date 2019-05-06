@@ -1,5 +1,12 @@
 class Entity;
 
+/**
+ * @class Agent
+ * @author mav
+ * @date 06/05/19
+ * @file bnAgent.h
+ * @brief Agents pursue a target
+ */
 class Agent {
 private:
   Entity * target;
