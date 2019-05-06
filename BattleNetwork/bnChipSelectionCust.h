@@ -12,8 +12,24 @@
 #include "bnCustEmblem.h"
 #include "bnSceneNode.h"
 
+/**
+ * @class ChipSelectionCust
+ * @author mav
+ * @date 05/05/19
+ * @file bnChipSelectionCust.h
+ * @brief Chipcust GUI used in battle. Can be interacted through public API.
+ */
 class ChipSelectionCust : public SceneNode {
 public:
+  /**
+   * @class Bucket
+   * @author mav
+   * @date 05/05/19
+   * @file bnChipSelectionCust.h
+   * @brief Chip state bucket
+   * 
+   * A chip may be SELECTED, QUEUED, AVAILABLE
+   */
   struct Bucket {
     Chip* data;
     short state;
@@ -39,21 +55,21 @@ private:
   mutable sf::Text label;
   mutable CustEmblem emblem;
 
-  int chipCount;
-  int selectCount;
-  int chipCap;
-  mutable int cursorPos;
-  mutable int cursorRow;
-  bool areChipsReady;
-  bool isInView;
-  int perTurn;
-  ChipFolder* folder;
-  Chip** selectedChips;
+  int chipCount; /*!< How many chips are listed in the GUI */
+  int selectCount; /*!< How many chips the user has selected */
+  int chipCap; /*!< Chips user can get */
+  mutable int cursorPos; /*!< Colum of the cursor */
+  mutable int cursorRow; /*!< Row of the cursor */
+  bool areChipsReady; /*!< If chips have been OKd by user */
+  bool isInView; /*!< If the chip cust is all the way in the player's screen */
+  int perTurn; /*!< How many chips the player can get per turn */
+  ChipFolder* folder; /*!< The loaded chip folder. @warning Will consume and delete this resource */
+  Chip** selectedChips; /*!< Pointer to a list of selected chips */
   Bucket* queue;
   Bucket** selectQueue;
-  ChipDescriptionTextbox chipDescriptionTextbox;
+  ChipDescriptionTextbox chipDescriptionTextbox; /*!< Popups chip descriptions */
 
-  double frameElapsed;
+  double frameElapsed; /*!< delta seconds since last frame */
 
 public:
   ChipSelectionCust(ChipFolder* _folder, int, int perTurn = 5);

@@ -6,13 +6,17 @@
 #include "bnShaderResourceManager.h"
 #include <cmath>
 
-/*
-  This state can be used by any Entity in the engine.
-  It uses constraints to ensure the type passed in Any
-  is a subclass of Entity.
-
-  This state traps an entity in a bubble for a duration of time
-*/
+/**
+ * @class BubbleState
+ * @author mav
+ * @date 05/05/19
+ * @file bnBubbleState.h
+ * @brief This state traps an entity in a bubble for a duration of time
+ * 
+ * This state can be used by any Entity in the engine.
+ * It uses constraints to ensure the type passed in Any
+ * is a subclass of Entity.
+ */
 template<typename Any, typename NextState>
 class BubbleState : public AIState<Any>
 {
@@ -35,26 +39,23 @@ public:
 template<typename Any, typename NextState>
 BubbleState<Any, NextState>::BubbleState()
   : progress(0), AIState<Any>() {
-  // Enforce template constraints on class
-  _DerivedFrom<Any, Entity>();
 }
 
 template<typename Any, typename NextState>
 BubbleState<Any, NextState>::~BubbleState() {
-  /* explosion artifact is deleted by field */
+  /* artifact is deleted by field */
 }
 
 template<typename Any, typename NextState>
 void BubbleState<Any, NextState>::OnEnter(Any& e) {
-  //std::cout << "entered bubblestate" << std::endl;
-
   e.LockState(); // Lock AI state. We cannot be forced out of this.
-  //trap = new BubbleTrap(e);
-  //e.GetField()->AddEntity(trap, e.GetTile().GetX(), e.GetTile().GetY());
+
 }
 
 template<typename Any, typename NextState>
 void BubbleState<Any, NextState>::OnUpdate(float _elapsed, Any& e) {
+    
+  // Check if bubbletrap is removed from entity
   if (e.template GetComponent<BubbleTrap>() == nullptr) {
     e.UnlockState();
     this->template ChangeState<NextState>();

@@ -6,7 +6,7 @@
 
 #define WILDCARD '*'
 #define VOIDED 0
-#define STAGED  1
+#define STAGED 1
 #define QUEUED 2
 
 ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) :

@@ -23,15 +23,18 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
 
   auto onFinish = [this]() { animation << "FLOAT" << Animate::Mode::Loop; };
 
+  // Spawn animation and then turns into "FLOAT" which loops forever
   animation << "INIT" << onFinish;
 
   AUDIO.Play(AudioType::BUBBLE_SPAWN, AudioPriority::LOWEST);
 
   EnableTileHighlight(false);
+  
+  // Bubbles can overlap eachother partially
   ShareTileSpace(true);
 }
 
-Bubble::~Bubble(void) {
+Bubble::~Bubble() {
 }
 
 void Bubble::Update(float _elapsed) {
@@ -68,7 +71,7 @@ void Bubble::Update(float _elapsed) {
       this->Delete();
     }
 
-	// Drop a shared hitbox when moving
+	// Drop a shared hitbox when moving to prevent player from hopping through
 	/*SharedHitBox* shb = new SharedHitBox(this, 2.0f);
 	GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());*/
 

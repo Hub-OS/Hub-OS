@@ -3,6 +3,13 @@
 #include "bnComponent.h"
 #include "bnField.h"
 
+/**
+ * @class BubbleTrap
+ * @author mav
+ * @date 05/05/19
+ * @file bnBubbleTrap.h
+ * @brief Visual artifact (bubble animates) that can be attached to an entity
+ */
 class BubbleTrap : virtual public Artifact, virtual public Component
 {
 private:
