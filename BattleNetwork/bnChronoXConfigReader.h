@@ -42,6 +42,16 @@ Right="32784"
 Up="32781"
 */
 
+/**
+ * @class ChronoXConfigReader
+ * @author mav
+ * @date 05/05/19
+ * @file bnChronoXConfigReader.h
+ * @brief Loads ChronoX config .ini files
+ * 
+ * As a fan of the ChronoX game and having no way to map controller inputs at this time,
+ * re-use the ini file for this game's controlls
+ */
 class ChronoXConfigReader {
 public:
   enum Gamepad { };
@@ -49,14 +59,17 @@ public:
 private:
   // Config values
   // Map keys to actions
-  std::map<sf::Keyboard::Key, std::string> keyboard;
-  std::map<Gamepad, std::string> gamepad;
-  bool isAudioEnabled;
+  std::map<sf::Keyboard::Key, std::string> keyboard; /*!< Keyboard key to event */
+  std::map<Gamepad, std::string> gamepad; /*!< Gamepad button to event */
+  bool isAudioEnabled; /*!< Mute audio if flagged */
 
   // State flags
-  bool isOK;
+  bool isOK; /*!< true if the file was ok */
 
-  // Aux functions
+  /**
+   * @brief Aux function. Trim leading and trailing whitespaces
+   * @param line string to modifiy
+   */
   void Trim(std::string& line) {
     while (line.compare(0, 1, " ") == 0)
       line.erase(line.begin()); // remove leading whitespaces
@@ -64,12 +77,23 @@ private:
       line.erase(line.end() - 1); // remove trailing whitespaces
   }
 
+  /**
+   * @brief Aux function. Given a key in a line, find the value.
+   * @param _key
+   * @param _line
+   * @return value
+   */
   std::string ValueOf(std::string _key, std::string _line) {
     int keyIndex = (int)_line.find(_key);
     std::string s = _line.substr(keyIndex + _key.size() + 2);
     return s.substr(0, s.find("\""));
   }
 
+  /**
+   * @brief Each vendor has different gamepad settings, make adjustments
+   * @param key
+   * @return Gamepad button
+   */
   Gamepad GetGamepadCode(int key) {
     unsigned int vendor = sf::Joystick::getIdentification(0).vendorId;
     unsigned int product = sf::Joystick::getIdentification(0).productId;
@@ -85,6 +109,11 @@ private:
     return (Gamepad)key;
   }
 
+  /**
+   * @brief Transform ascii values to SFML events
+   * @param ascii code
+   * @return sf::Keyboard::Key
+   */
   sf::Keyboard::Key GetKeyCodeFromAscii(int ascii) {
     switch (ascii) {
     case 49:
@@ -215,10 +244,22 @@ private:
 
   // Parsing
   
+  /**
+   * @brief Parse entire file contents
+   * @param buffer file contents
+   * @return true if entire file is good
+   */
   const bool Parse(std::string buffer) {
     return ParseDiscord(buffer);
   }
 
+  /**
+   * @brief File begins with [Discord] and settings
+   * @param buffer file contents
+   * @return true if rest of contents are good, false if malformed
+   * 
+   * Expects [Audio] to be next
+   */
   const bool ParseDiscord(std::string buffer) {
     int endline = 0;
 
@@ -241,6 +282,13 @@ private:
     return false;
   }
 
+  /**
+   * @brief Parse [Audio] 
+   * @param buffer file contents
+   * @return true if file is good, false if malformed
+   * 
+   * expects [Net] to be next
+   */
   const bool ParseAudio(std::string buffer) {
     int endline = 0;
 
@@ -265,6 +313,13 @@ private:
     return false;
   }
 
+  /**
+   * @brief Parse [Net] and settings
+   * @param buffer file contents
+   * @return true if file is good, false if malformed
+   * 
+   * Expects [Video] to be next
+   */
   const bool ParseNet(std::string buffer) {
     int endline = 0;
 
@@ -287,6 +342,13 @@ private:
     return false;
   }
 
+  /**
+   * @brief Parses [Video] and settings
+   * @param buffer file contents
+   * @return true if good, false if malformed
+   * 
+   * expects [Keyboard] to be next
+   */
   const bool ParseVideo(std::string buffer) {
     int endline = 0;
 
@@ -309,6 +371,13 @@ private:
     return false;
   }
 
+  /**
+   * @brief Parse [Keyboard] and settings
+   * @param buffer file contents
+   * @return true if the file is ok, false otherwise
+   * 
+   * expects [Gamepad] next
+   */
   const bool ParseKeyboard(std::string buffer) {
     int endline = 0;
 
@@ -379,6 +448,11 @@ private:
     return false;
   }
 
+  /**
+   * @brief Parses [Gamepad] and settings
+   * @param buffer file contents
+   * @return true and denotes end of file
+   */
   const bool ParseGamepad(std::string buffer) {
     int endline = 0;
 
@@ -448,14 +522,33 @@ private:
 
 public:
 
+  /**
+   * @brief Parses config ini file at filepath
+   * @param filepath path to ini file
+   */
   ChronoXConfigReader(std::string filepath) : isOK(false) {
     isOK = Parse(FileUtil::Read(filepath));
   }
 
+  /**
+   * @brief If config file is ok
+   * @return true if wellformed, false otherwise
+   */
   const bool IsOK() { return isOK; }
 
+  /**
+   * @brief Check if audio is on or off based on ini file
+   * @return true if on, false otherwise
+   */
   const bool IsAudioEnabled() { return isAudioEnabled;  }
 
+  /**
+   * @brief For a keyboard event, return the action string
+   * @param event sfml keyboard key
+   * @return the mapped input event
+   * 
+   * TODO: use InputType instead of strings
+   */
   const std::string GetPairedAction(sf::Keyboard::Key event) {
     std::map<sf::Keyboard::Key, std::string>::iterator iter = keyboard.find(event);
 
@@ -466,6 +559,13 @@ public:
     return "";
   }
 
+  /**
+   * @brief For a gamepad event, return the action string
+   * @param Gamepad button
+   * @return the mapped input event
+   * 
+   * TODO: use InputType instead of strings
+   */
   const std::string GetPairedAction(Gamepad event) {
     std::map<Gamepad, std::string>::iterator iter = gamepad.find(event);
 

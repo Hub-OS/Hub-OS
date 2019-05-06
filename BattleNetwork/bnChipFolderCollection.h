@@ -7,15 +7,35 @@
 #include <iostream>
 #include "bnLogger.h"
 
+/**
+ * @class ChipFolderCollection
+ * @author mav
+ * @date 05/05/19
+ * @file bnChipFolderCollection.h
+ * @brief Provides utilities to create, edit, copy, and read a player's folders
+ * 
+ * Folders are read from a text file with chip names and codes
+ */
 class ChipFolderCollection {
 private:
-  std::map<std::string, ChipFolder*> collection;
+  std::map<std::string, ChipFolder*> collection; /*!< All folders by name */
 
 public:
+
+  /**
+   * @brief Query if a folder with the given name exists
+   * @param name of the folder
+   * @return true of found, false otherwise
+   */
   bool HasFolder(std::string name) {
     return (collection.find(name) != collection.end());
   }
 
+  /**
+   * @brief Creates a folder with the give name
+   * @param name of the new folder
+   * @return true if created, false if folder already exists
+   */
   bool MakeFolder(std::string name) {
     if (this->HasFolder(name)) return false;
 
@@ -24,6 +44,12 @@ public:
     return true;
   }
 
+  /**
+   * @brief Get the folder by name
+   * @param name of the folder to get
+   * @param folder handle to the folder 
+   * @return true if loaded, false if the folder was not found
+   */
   bool GetFolder(std::string name, ChipFolder*& folder) {
     if (!this->HasFolder(name)) return false;
 
@@ -31,7 +57,11 @@ public:
 
     return true;
   }
-
+ 
+  /**
+   * @brief Get a list of the possible folder names
+   * @return std::vector<std::string>
+   */
   std::vector<std::string> GetFolderNames() {
     std::vector<std::string> v;
     for (std::map<std::string, ChipFolder*>::iterator it = collection.begin(); it != collection.end(); ++it) {
@@ -41,6 +71,12 @@ public:
     return v;
   }
 
+  /**
+   * @brief Changes a folder name 
+   * @param name new name
+   * @param folder folder to change name of
+   * @return false if the name already exists or folder is null, true if succeeded
+   */
   bool SetFolderName(std::string name, ChipFolder* folder) {
     if (!folder) return false;
 
@@ -59,8 +95,14 @@ public:
     return true;
   }
 
+  /**
+   * @brief Loads all folders and loads chip data if data is valid
+   * @param path to folder
+   * @return ChipFolderCollection
+   * 
+   * If a chip is malformed, it will show erroneous info on the menus and won't be used in battle
+   */
   static ChipFolderCollection ReadFromFile(std::string path) {
-    // TODO: put this utility in an input stream class and inhert from that
     string data = FileUtil::Read("resources/database/folders.txt");
 
     int endline = 0;

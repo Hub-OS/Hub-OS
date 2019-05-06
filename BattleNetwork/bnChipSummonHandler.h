@@ -15,11 +15,28 @@
 #include <Swoosh/Timer.h>
 #include <queue>
 
-/*
-TODO: use action lists where possible
-      Allow any entity to be used by the chip summon handler
-      Refactor this horrible design
-*/
+/**
+ * @class ChipSummonHandler
+ * @author mav
+ * @date 05/05/19
+ * @file bnChipSummonHandler.h
+ * @brief Summon system freezes time and plays out before resuming battle
+ * @warning This code was written as a proof of concept and needs to be redesigned entirely
+ * 
+ * TODO: use action lists where possible
+ * Allow any entity to be used by the chip summon handler
+ * Refactor this horrible design
+ * 
+ * I'm not going to spend a lot of time explaining how this works because it's crap.
+ * Essentially matching chips in the listener OnUse() queues the caller, chip, and freeze time information
+ * 
+ * when the handler is updated, the loop dequeues the info and calls OnEnter()
+ * This may summon entities and puts them in their own update bucket separate from the field's.
+ * After the update ends it calls OnLeave() and it'll flag whether or not it has more in the queue.
+ * 
+ * This repeats until the queue is empty. Then the IsSummonOver() will return true.
+ * 
+ */
 class ChipSummonHandler : public ChipUseListener {
 private:
   struct ChipSummonQueue {
