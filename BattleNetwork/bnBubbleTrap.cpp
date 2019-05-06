@@ -11,6 +11,7 @@ using sf::IntRect;
 
 BubbleTrap::BubbleTrap(Character* owner) : Artifact(), Component(owner)
 {
+  // Bubbles have to pop when hit
   defense = new DefenseBubbleWrap();
 
   if (owner->IsDeleted()) {

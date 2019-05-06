@@ -29,13 +29,16 @@ Camera::~Camera()
 }
 
 void Camera::Update(float elapsed) {
+  // Compare as milliseconds
   progress += elapsed*1000;
   shakeProgress += elapsed*1000;
 
+  // If progress is over, update position to the dest
   if (sf::Time(sf::milliseconds((sf::Int32)progress)) >= dur) {
     PlaceCamera(dest);
   }
-  else {
+  else {  
+    // Otherwise calculate the delta
     sf::Vector2f delta = (dest - origin) * (progress / dur.asMilliseconds()) + origin;
     PlaceCamera(delta);
   }
@@ -96,21 +99,13 @@ bool Camera::IsInView(sf::Sprite& sprite) {
 
 void Camera::ShakeCamera(double stress, sf::Time duration)
 {
-  this->stress += stress;
-  shakeDur += duration;
-  
-  if(!isShaking) {
-      shakeProgress = 0;
-     isShaking = true;
-  }
-
-/*if(isShaking) return;
+  if(isShaking) return;
   
   init = focus;
   this->stress = stress;
   shakeDur = duration;
   shakeProgress = 0;
-  isShaking = true;*/
+  isShaking = true;
 }
 
 const sf::View Camera::GetView() const

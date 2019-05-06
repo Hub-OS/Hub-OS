@@ -40,7 +40,7 @@ Cannon::Cannon(Field* _field, Team _team, int _damage) {
   }
 }
 
-Cannon::~Cannon(void) {
+Cannon::~Cannon() {
 }
 
 void Cannon::Update(float _elapsed) {
@@ -120,13 +120,6 @@ void Cannon::Attack(Character* _entity) {
 
   if (!_entity->IsPassthrough()) {
     hit = true;
-  }
-
-  Character* isCharacter = dynamic_cast<Character*>(_entity);
-
-  if (isCharacter && isCharacter->IsCountered()) {
-    AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
-    isCharacter->Stun(1000);
   }
 }
 

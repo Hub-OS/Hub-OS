@@ -52,17 +52,8 @@ Canodumb::Canodumb(Rank _rank)
   animationComponent.Update(0);
 }
 
-Canodumb::~Canodumb(void) {
+Canodumb::~Canodumb() {
 
-}
-
-int* Canodumb::GetAnimOffset() {
-  int* res = new int[2];
-
-  res[0] = 15;
-  res[1] = 0;
-
-  return res;
 }
 
 void Canodumb::Update(float _elapsed) {
@@ -109,17 +100,6 @@ void Canodumb::Update(float _elapsed) {
 }
 
 const bool Canodumb::Hit(Hit::Properties props) {
-
-  // TODO: USE THIS
-  /*
-  if (Character::Hit(props)) {
-    SetShader(whiteout);
-    return true;
-  }
-
-  return false;*/
-
-
   bool result = true;
 
   if (health - props.damage < 0) {
