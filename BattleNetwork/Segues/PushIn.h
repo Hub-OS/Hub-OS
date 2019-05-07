@@ -6,59 +6,59 @@ using namespace swoosh;
 
 template<int direction>
 class PushIn : public Segue {
-private:
-  sf::Texture* temp;
-
 public:
 
-  virtual void onDraw(sf::RenderTexture& surface) {
-    double elapsed = getElapsed().asMilliseconds();
-    double duration = getDuration().asMilliseconds();
-    double alpha = ease::linear(elapsed, duration, 1.0);
+    virtual void onDraw(sf::RenderTexture& surface) {
+        double elapsed = getElapsed().asMilliseconds();
+        double duration = getDuration().asMilliseconds();
+        double alpha = ease::linear(elapsed, duration, 1.0);
 
-    this->drawLastActivity(surface);
+        surface.clear(this->getLastActivityBGColor());
+        this->drawLastActivity(surface);
 
-    surface.display(); // flip and ready the buffer
+        surface.display(); // flip and ready the buffer
 
-    if (temp) delete temp;
-    temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
+        sf::Texture temp(surface.getTexture()); // Make a copy of the source texture
 
-    sf::Sprite left(*temp);
+#ifdef __ANDROID__
+temp.flip(true);
+#endif
 
-    int lr = 0;
-    int ud = 0;
+        sf::Sprite left(temp);
 
-    if (direction == 0) lr = -1;
-    if (direction == 1) lr = 1;
-    if (direction == 2) ud = -1;
-    if (direction == 3) ud = 1;
+        int lr = 0;
+        int ud = 0;
 
-    left.setPosition((float)(lr * alpha * left.getTexture()->getSize().x), (float)(ud * alpha * left.getTexture()->getSize().y));
+        if (direction == 0) lr = -1;
+        if (direction == 1) lr = 1;
+        if (direction == 2) ud = -1;
+        if (direction == 3) ud = 1;
 
-    surface.clear(sf::Color::Transparent);
+        left.setPosition((float)(lr * alpha * left.getTexture()->getSize().x), (float)(ud * alpha * left.getTexture()->getSize().y));
 
-    this->drawNextActivity(surface);
+        surface.clear(this->getNextActivityBGColor());
 
-    surface.display(); // flip and ready the buffer
+        this->drawNextActivity(surface);
 
-    auto temp2 = new sf::Texture(surface.getTexture());
-    sf::Sprite right(*temp2);
+        surface.display(); // flip and ready the buffer
 
-    right.setPosition((float)(-lr * (1.0-alpha) * right.getTexture()->getSize().x), (float)(-ud * (1.0-alpha) * right.getTexture()->getSize().y));
+        sf::Texture temp2(surface.getTexture());
 
-    sf::RenderWindow& window = getController().getWindow();
-    window.draw(left);
-    window.draw(right);
+#ifdef __ANDROID__
+        temp2.flip(true);
+#endif
 
-    surface.clear(sf::Color::Transparent);
+        sf::Sprite right(temp2);
 
-    delete temp2;
-  }
+        right.setPosition((float)(-lr * (1.0-alpha) * right.getTexture()->getSize().x), (float)(-ud * (1.0-alpha) * right.getTexture()->getSize().y));
 
-  PushIn(sf::Time duration, Activity* last, Activity* next) : Segue(duration, last, next) {
-    /* ... */
-    temp = nullptr;
-  }
+        surface.draw(left);
+        surface.draw(right);
+    }
 
-  virtual ~PushIn() { if(temp) delete temp; }
+    PushIn(sf::Time duration, Activity* last, Activity* next) : Segue(duration, last, next) {
+        /* ... */
+    }
+
+    virtual ~PushIn() { }
 };

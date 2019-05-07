@@ -36,7 +36,11 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (!player.IsBattleActive()) return;
 
   // Action controls take priority over movement
+#ifndef __ANDROID__
   if (!inputManager->Has(HELD_A)) {
+#else
+    if(inputManager->Has(RELEASED_A)) {
+#endif
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
       player.chargeComponent.SetCharging(false);
@@ -70,7 +74,13 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
   }
 
-  if (inputManager->Has(HELD_A) && isChargeHeld == false) {
+  bool shouldShoot = inputManager->Has(HELD_A);
+
+#ifdef __ANDROID__
+  shouldShoot = inputManager->Has(PRESSED_A);
+#endif
+
+  if (shouldShoot && isChargeHeld == false) {
     isChargeHeld = true;
     attackKeyPressCooldown = 0.0f;
 

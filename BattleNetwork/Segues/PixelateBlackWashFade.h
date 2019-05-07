@@ -39,6 +39,11 @@ public:
 
     surface.display();
     sf::Texture* temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
+
+#ifdef __ANDROID__
+temp->flip(true);
+#endif
+
     sf::Sprite sprite(*temp);
 
     shader.setUniform("texture", *temp);

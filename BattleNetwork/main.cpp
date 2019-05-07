@@ -187,6 +187,7 @@ int main(int argc, char** argv) {
   sf::RenderTexture loadSurface;
   //loadSurface.create(480, 320);
   loadSurface.create(ENGINE.GetWindow()->getSize().x, ENGINE.GetWindow()->getSize().y, ENGINE.GetWindow()->getSettings());
+
   ENGINE.SetRenderSurface(loadSurface);
 
   while (inConfigMessageState && ENGINE.Running()) {
@@ -243,7 +244,9 @@ int main(int argc, char** argv) {
 
   RunGraphicsInit(&progress);
   ENGINE.SetShader(nullptr);
-  //sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
+  loadSurface.setDefaultShader(&LOAD_SHADER(DEFAULT));
+
+    //sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
   sf::Thread audioLoad(&RunAudioInit, &progress);
 
   // We must deffer the thread until graphics and audio are finished
@@ -452,21 +455,21 @@ int main(int argc, char** argv) {
       }
     }
 
-    // TODO BC: uncomment
-    //ENGINE.Draw(&logoSprite);
-    //ENGINE.DrawUnderlay();
-    //ENGINE.DrawLayers();
-    //ENGINE.DrawOverlay();
-
     loadSurface.display();
 
     sf::Sprite postprocess(loadSurface.getTexture());
 
-    auto state = sf::RenderStates::Default;
-    state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    auto states = sf::RenderStates::Default;
+    states.transform.scale(4.f,4.f);
 
-    ENGINE.GetWindow()->draw(postprocess, state);
-    ENGINE.GetWindow()->draw(mouse, state);
+    states.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+
+    ENGINE.GetWindow()->draw(postprocess, states);
+
+#ifndef __ANDROID__
+    ENGINE.GetWindow()->draw(mouse, states);
+#endif
+
     ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
@@ -599,12 +602,19 @@ int main(int argc, char** argv) {
       ENGINE.DrawLayers();
       ENGINE.DrawOverlay();
 
-      auto state = sf::RenderStates::Default;
-      state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+      auto states = sf::RenderStates::Default;
+      states.transform.scale(4.f,4.f);
+      states.shader = SHADERS.GetShader(ShaderType::DEFAULT);
 
-      app.draw();
+      app.draw(loadSurface);
+      loadSurface.display();
 
+      sf::Sprite toScreen(loadSurface.getTexture());
+      ENGINE.GetWindow()->draw(toScreen, states);
+
+#ifndef __ANDROID__
       ENGINE.GetWindow()->draw(mouse, states);
+#endif
 
       ENGINE.GetWindow()->display();
 

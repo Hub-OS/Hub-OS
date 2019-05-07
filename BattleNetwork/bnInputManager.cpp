@@ -434,10 +434,9 @@ void InputManager::Update() {
 
   eventsLastFrame.clear();
 
-  // std::cout << "events size: " << events.size() << std::endl;
-
 #if defined(__ANDROID__)
-TouchArea::poll();
+    events.clear(); // TODO: what inputs get stuck in the event list?
+    TouchArea::poll();
 #endif
 
 }
@@ -476,7 +475,7 @@ const std::string InputManager::GetInputBuffer()
 }
 
 void InputManager::HandleInputBuffer(sf::Event e) {
-  if (e.KeyPressed == sf::Keyboard::BackSpace || (e.text.unicode == 8) && inputBuffer.size() != 0) {
+  if ((e.KeyPressed && e.key.code == sf::Keyboard::BackSpace) || (e.text.unicode == 8) && inputBuffer.size() != 0) {
     inputBuffer.pop_back();
   }
   else if (e.text.unicode < 128 && e.text.unicode != 8) {

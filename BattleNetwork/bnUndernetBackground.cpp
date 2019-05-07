@@ -56,5 +56,9 @@ void UndernetBackground::Update(float _elapsed) {
 
   int frame = (int)(progress * COMPONENT_FRAME_COUNT);
 
+#ifdef __ANDROID__
+  frame = 0;
+#endif
+
   TextureOffset(sf::Vector2f((float)(frame*COMPONENT_WIDTH), 0));
 }
