@@ -16,7 +16,12 @@ void Engine::Initialize() {
   original = view; // never changes 
   cam = new Camera(view);
 
+#ifdef __ANDROID__
+  window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition");
+#else
   window = new RenderWindow(sf::VideoMode::getDesktopMode(), "Battle Network: Progs Edition");
+#endif
+
   window->setFramerateLimit(60);
   window->setMouseCursorVisible(false); // Hide cursor
 

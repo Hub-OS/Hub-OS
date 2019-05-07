@@ -185,7 +185,7 @@ int main(int argc, char** argv) {
   float messageCooldown = 3; 
 
   sf::RenderTexture loadSurface;
-  //loadSurface.create(480, 320);
+  //loadSurface.create(480, 320, ENGINE.GetWindow()->getSettings());
   loadSurface.create(ENGINE.GetWindow()->getSize().x, ENGINE.GetWindow()->getSize().y, ENGINE.GetWindow()->getSettings());
 
   ENGINE.SetRenderSurface(loadSurface);
@@ -460,7 +460,7 @@ int main(int argc, char** argv) {
     sf::Sprite postprocess(loadSurface.getTexture());
 
     auto states = sf::RenderStates::Default;
-    states.transform.scale(4.f,4.f);
+    //states.transform.scale(4.f,4.f);
 
     states.shader = SHADERS.GetShader(ShaderType::DEFAULT);
 
@@ -603,7 +603,7 @@ int main(int argc, char** argv) {
       ENGINE.DrawOverlay();
 
       auto states = sf::RenderStates::Default;
-      states.transform.scale(4.f,4.f);
+      //states.transform.scale(4.f,4.f);
       states.shader = SHADERS.GetShader(ShaderType::DEFAULT);
 
       app.draw(loadSurface);
