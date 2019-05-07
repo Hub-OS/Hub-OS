@@ -8,15 +8,21 @@ using namespace swoosh;
 namespace {
   auto PIXELATE_SHADER = GLSL
   (
-    110,
-    uniform sampler2D texture;
+    100,
+    precision lowp float;
+    precision lowp int;
+
+    varying vec2 vTexCoord;
+    varying vec4 vColor;
+
+    uniform sampler2D texture; // Our render texture
     uniform float pixel_threshold;
 
     void main()
     {
       float factor = 1.0 / (pixel_threshold + 0.001);
-      vec2 pos = floor(gl_TexCoord[0].xy * factor + 0.5) / factor;
-      gl_FragColor = texture2D(texture, pos) * gl_Color;
+      vec2 pos = floor(vTexCoord.xy * factor + 0.5) / factor;
+      gl_FragColor = texture2D(texture, pos) * vColor;
     }
   );
 }
@@ -67,7 +73,23 @@ temp->flip(true);
   }
 
   PixelateBlackWashFade(sf::Time duration, Activity* last, Activity* next) : Segue(duration, last, next) {
-    shader.loadFromMemory(::PIXELATE_SHADER, sf::Shader::Fragment);
+    shader.loadFromMemory("uniform mat4 viewMatrix;\n"
+                         "uniform mat4 projMatrix;\n"
+                         "uniform mat4 textMatrix;\n"
+                         " \n"
+                         "attribute vec2 position;\n"
+                         "attribute vec4 color;\n"
+                         "attribute vec2 texCoord;\n"
+                         "\n"
+                         "varying vec4 vColor;\n"
+                         "varying vec2 vTexCoord;\n"
+                         " \n"
+                         "void main()\n"
+                         "{\n"
+                         "    gl_Position = projMatrix * viewMatrix * vec4(position, 0.0, 1.0);\n"
+                         "    vColor = color;\n"
+                         "    vTexCoord = (textMatrix * vec4(texCoord.xy, 0.0, 1.0)).xy;\n"
+                         "}",::PIXELATE_SHADER);
   }
 
   virtual ~PixelateBlackWashFade() { ; }

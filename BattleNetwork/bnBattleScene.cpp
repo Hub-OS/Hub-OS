@@ -458,15 +458,15 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     static float totalTime = 0;
     totalTime += (float)elapsed;
 
-    heatShader.setUniform("time", totalTime*0.02f);
-    heatShader.setUniform("distortionFactor", 0.01f);
-    heatShader.setUniform("riseFactor", 0.1f);
+    //heatShader.setUniform("time", totalTime*0.02f);
+    //heatShader.setUniform("distortionFactor", 0.01f);
+    //heatShader.setUniform("riseFactor", 0.1f);
 
-    heatShader.setUniform("w", tile->GetWidth() - 8.f);
-    heatShader.setUniform("h", tile->GetHeight()*1.5f);
+    //heatShader.setUniform("w", tile->GetWidth() - 8.f);
+    //heatShader.setUniform("h", tile->GetHeight()*1.5f);
 
-    iceShader.setUniform("w", tile->GetWidth() - 8.f);
-    iceShader.setUniform("h", tile->GetHeight()*0.8f);
+    //iceShader.setUniform("w", tile->GetWidth() - 8.f);
+    //iceShader.setUniform("h", tile->GetHeight()*0.8f);
 
     Entity* entity = nullptr;
 
@@ -481,7 +481,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       }
     }
 
-    if (tile->GetState() == TileState::LAVA) {
+    /*if (tile->GetState() == TileState::LAVA) {
       heatShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x + 3.0f);
 
       float repos = (float)(tile->getPosition().y - (tile->getTexture()->getSize().y*2.5f));
@@ -520,7 +520,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
       ENGINE.Draw(bake);
       delete bake;
-    }
+    }*/
   }
 
   // Draw scene nodes

@@ -8,7 +8,14 @@ using namespace swoosh;
 namespace {
   auto CHECKERBOARD_FRAG_SHADER = GLSL
   (
-    110,
+    100,
+    precision highp float;
+    precision highp int;
+    precision highp sampler2D;
+
+    varying vec2 vTexCoord;
+    varying vec4 vColor;
+
     uniform sampler2D texture;
     uniform sampler2D texture2;
     uniform float progress;
@@ -21,7 +28,7 @@ namespace {
     }
 
     void main() {
-      vec2 p = gl_TexCoord[0].xy;
+      vec2 p = vTexCoord.xy;
       vec2 size = vec2(cols, rows);
       float r = rand(floor(vec2(size) * p));
       float m = smoothstep(0.0, -smoothness, r - (progress * (1.0 + smoothness)));
@@ -50,6 +57,8 @@ public:
     if (temp) delete temp;
     temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
 
+        temp->flip(true);
+
     sf::Sprite sprite(*temp);
 
     surface.clear(sf::Color::Transparent);
@@ -58,6 +67,8 @@ public:
     surface.display(); // flip and ready the buffer
 
     sf::Texture* temp2 = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
+
+        temp2->flip(true);
 
     shader.setUniform("progress", (float)alpha);
     shader.setUniform("texture2", *temp2);
@@ -75,7 +86,23 @@ public:
     /* ... */
     temp = nullptr;
 
-    shader.loadFromMemory(::CHECKERBOARD_FRAG_SHADER, sf::Shader::Fragment);
+    shader.loadFromMemory("uniform mat4 viewMatrix;\n"
+                          "uniform mat4 projMatrix;\n"
+                          "uniform mat4 textMatrix;\n"
+                          " \n"
+                          "attribute vec2 position;\n"
+                          "attribute vec4 color;\n"
+                          "attribute vec2 texCoord;\n"
+                          "\n"
+                          "varying vec4 vColor;\n"
+                          "varying vec2 vTexCoord;\n"
+                          " \n"
+                          "void main()\n"
+                          "{\n"
+                          "    gl_Position = projMatrix * viewMatrix * vec4(position, 0.0, 1.0);\n"
+                          "    vColor = color;\n"
+                          "    vTexCoord = (textMatrix * vec4(texCoord.xy, 0.0, 1.0)).xy;\n"
+                          "}", ::CHECKERBOARD_FRAG_SHADER );
     shader.setUniform("cols", cols);
     shader.setUniform("rows", rows);
     shader.setUniform("smoothness", 0.09f);

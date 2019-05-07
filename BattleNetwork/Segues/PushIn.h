@@ -18,7 +18,7 @@ public:
 
         surface.display(); // flip and ready the buffer
 
-        sf::Texture temp(surface.getTexture()); // Make a copy of the source texture
+        static sf::Texture temp(surface.getTexture()); // Make a copy of the source texture
 
 #ifdef __ANDROID__
 temp.flip(true);
@@ -42,10 +42,10 @@ temp.flip(true);
 
         surface.display(); // flip and ready the buffer
 
-        sf::Texture temp2(surface.getTexture());
+        static sf::Texture temp2(surface.getTexture());
 
 #ifdef __ANDROID__
-        temp2.flip(true);
+       temp2.flip(true);
 #endif
 
         sf::Sprite right(temp2);

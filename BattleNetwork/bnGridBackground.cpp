@@ -22,7 +22,11 @@ void GridBackground::Update(float _elapsed) {
   progress += 1.0f * _elapsed;
   if (progress >= 1.f) progress = 0.0f;
 
+#ifndef __ANDROID__
   int frame = (int)(progress * COMPONENT_FRAME_COUNT);
+#else
+  int frame = 0;
+#endif
 
   TextureOffset(sf::Vector2f((float)(frame*COMPONENT_WIDTH), 0));
 

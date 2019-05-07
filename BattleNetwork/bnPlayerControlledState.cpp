@@ -74,13 +74,13 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
   }
 
-  bool shouldShoot = inputManager->Has(HELD_A);
+  bool shouldShoot = inputManager->Has(HELD_A) && isChargeHeld == false;
 
 #ifdef __ANDROID__
   shouldShoot = inputManager->Has(PRESSED_A);
 #endif
 
-  if (shouldShoot && isChargeHeld == false) {
+  if (shouldShoot) {
     isChargeHeld = true;
     attackKeyPressCooldown = 0.0f;
 

@@ -98,6 +98,11 @@ LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
+
+#ifdef __ANDROID__
+maxSelectInputCooldown = 0.1;
+#endif
+
   selectInputCooldown = maxSelectInputCooldown;
 
   // Chip UI font

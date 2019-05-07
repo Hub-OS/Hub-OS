@@ -89,7 +89,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
 
   if (!gotoNextScene) {
-    if (INPUT.Has(PRESSED_A)) {
+    if (INPUT.Has(PRESSED_A) && !INPUT.Has(PRESSED_B)) {
 
       // Folder Select
       if (menuSelectionIndex == 0) {

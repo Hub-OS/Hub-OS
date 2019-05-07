@@ -517,13 +517,16 @@ int main(int argc, char** argv) {
   });
 
   rightSide.onRelease([&releasedB](sf::Vector2i delta) {
+    if(!releasedB) {
       INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
-      releasedB = false;
+    }
+
+    releasedB = false;
 
   });
 
   rightSide.onDrag([&releasedB](sf::Vector2i delta){
-      if(delta.x < -40 && !releasedB) {
+      if(delta.x < -25 && !releasedB) {
         INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
         INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
         releasedB = true;
@@ -547,19 +550,19 @@ int main(int argc, char** argv) {
   dpad.onDrag([](sf::Vector2i delta) {
       Logger::Log("dpad delta: " + std::to_string(delta.x) + ", " + std::to_string(delta.y));
 
-    if(delta.x > 40) {
+    if(delta.x > 30) {
       INPUT.VirtualKeyEvent(InputEvent::PRESSED_RIGHT);
     }
 
-    if(delta.x < -40) {
+    if(delta.x < -30) {
       INPUT.VirtualKeyEvent(InputEvent::PRESSED_LEFT);
     }
 
-    if(delta.y > 40) {
+    if(delta.y > 30) {
       INPUT.VirtualKeyEvent(InputEvent::PRESSED_DOWN);
     }
 
-    if(delta.y < -40) {
+    if(delta.y < -30) {
       INPUT.VirtualKeyEvent(InputEvent::PRESSED_UP);
     }
   });
