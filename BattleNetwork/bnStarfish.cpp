@@ -15,7 +15,7 @@
 Starfish::Starfish(Rank _rank)
   : AI<Starfish>(this), AnimatedCharacter(_rank) {
   name = "Starfish";
-  Entity::team = Team::BLUE;
+  this->team = Team::BLUE;
 
   health = 100;
   hit = false;

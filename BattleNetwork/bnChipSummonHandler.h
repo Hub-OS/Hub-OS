@@ -224,16 +224,22 @@ public:
       Battle::Tile** tile = new Battle::Tile*[3];
 
       Field* f = summonedBy->GetField();
-      
+
       // Read team grab scans from left to right
       if (summonedBy->GetTeam() == Team::RED) {
+        int minIndex = 6;
+
         for (int i = 0; i < f->GetHeight(); i++) {
           int index = 1;
-          while (f->GetAt(index, i+1) && f->GetAt(index, i+1)->GetTeam() == Team::RED) {
+          while (f->GetAt(index, i + 1) && f->GetAt(index, i + 1)->GetTeam() == Team::RED) {
             index++;
           }
 
-          tile[i] = f->GetAt(index, i+1);
+          minIndex = std::min(minIndex, index);
+        }
+
+        for (int i = 0; i < f->GetHeight(); i++) {
+          tile[i] = f->GetAt(minIndex, i + 1);
 
           if (tile[i]) {
             summonedBy->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
@@ -248,13 +254,19 @@ public:
       } else if (summonedBy->GetTeam() == Team::BLUE) {
         // Blue team grab scans from right to left
 
+        int maxIndex = 1;
+
         for (int i = 0; i < f->GetHeight(); i++) {
           int index = f->GetWidth();
-          while (f->GetAt(index, i+1) && f->GetAt(index, i+1)->GetTeam() == Team::BLUE) {
+          while (f->GetAt(index, i + 1) && f->GetAt(index, i + 1)->GetTeam() == Team::BLUE) {
             index--;
           }
 
-          tile[i] = f->GetAt(index, i+1);
+          maxIndex = std::max(maxIndex, index);
+        }
+
+        for (int i = 0; i < f->GetHeight(); i++) {
+          tile[i] = f->GetAt(maxIndex, i+1);
 
           if (tile[i]) {
             summonedBy->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());

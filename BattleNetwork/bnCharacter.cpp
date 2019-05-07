@@ -20,6 +20,14 @@ Character::Character(Rank _rank) :
   CounterHitPublisher() {
   burnCycle = sf::milliseconds(150);
   elapsedBurnTime = burnCycle.asSeconds();
+  team = Team::UNKNOWN;
+  isBattleActive = false;
+  deleted = false;
+  passthrough = false;
+  ownedByField = false;
+  isSliding = false;
+  floatShoe = false;
+  airShoe = false;
 }
 
 Character::~Character() {
@@ -212,9 +220,9 @@ void Character::RemoveDefenseRule(DefenseRule * rule)
 {
   auto iter = std::remove_if(defenses.begin(), defenses.end(), [&rule](DefenseRule * in) { return in == rule; });
 
-  if (iter != defenses.end()) {
+  //if (iter != defenses.end()) {
     defenses.erase(iter);
-  }
+  //}
 }
 
 const bool Character::CheckDefenses(Spell* in)

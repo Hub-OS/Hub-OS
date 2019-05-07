@@ -27,7 +27,7 @@ Mettaur::Mettaur(Rank _rank)
   animationComponent.Reload();
 
   if (GetRank() == Rank::SP) {
-    SetHealth(100);
+    SetHealth(200);
     animationComponent.SetPlaybackSpeed(1.2);
     animationComponent.SetAnimation("SP_IDLE");
   }

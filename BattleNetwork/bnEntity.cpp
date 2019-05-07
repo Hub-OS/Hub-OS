@@ -24,7 +24,9 @@ Entity::Entity()
   slideTime(sf::milliseconds(100)),
   defaultSlideTime(slideTime),
   elapsedSlideTime(0),
-  lastComponentID(0)
+  lastComponentID(0),
+  floatShoe(false),
+  airShoe(false)
 {
   this->ID = ++Entity::numOfIDs;
   alpha = 255;

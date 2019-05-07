@@ -16,6 +16,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   health = 1;
   texture = TEXTURES.GetTexture(TextureType::SPELL_BUBBLE);
   this->speed = speed;
+  this->SetTeam(team);
 
   this->slideTime = sf::seconds(0.5f / (float)speed);
 
@@ -69,8 +70,8 @@ void Bubble::Update(float _elapsed) {
     }
 
 	// Drop a shared hitbox when moving
-	SharedHitBox* shb = new SharedHitBox(this, 2.0f);
-	GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
+	//SharedHitBox* shb = new SharedHitBox(this, 2.0f);
+	//GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
   
     this->SlideToTile(true);
     this->Move(this->GetDirection());
@@ -87,6 +88,9 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 
 
 const bool Bubble::Hit(Hit::Properties props) {
+    // TODO: Hack. Bubbles keep attacking team mates. Why?
+    if(props.aggressor && props.aggressor->GetTeam() == Team::BLUE) return false;
+
   if (!hit) {
     hit = true;
 
@@ -101,6 +105,9 @@ const bool Bubble::Hit(Hit::Properties props) {
 }
 
 void Bubble::Attack(Character* _entity) {
+    // TODO: Hack. Bubbles keep attacking team mates. Why?
+    if(_entity->GetTeam() == Team::BLUE) return;
+
   if (!hit) {
 
     Obstacle* other = dynamic_cast<Obstacle*>(_entity);

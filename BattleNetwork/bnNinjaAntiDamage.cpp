@@ -24,7 +24,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
       owner->GetField()->AddEntity(*new NinjaStar(owner->GetField(), owner->GetTeam(), 0.2f), tile->GetX(), tile->GetY());
     }
 
-    owner->RemoveDefenseRule(defense);
+    owner->RemoveDefenseRule(this->defense);
     owner->FreeComponentByID(this->GetID());
     delete this;
   };

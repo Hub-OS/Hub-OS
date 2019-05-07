@@ -72,10 +72,10 @@ void Aura::Update(float _elapsed) {
   this->SlideToTile(false);
 
   if (GetHealth() == 0 || timer <= 0.0) {
-    this->TryDelete();
     this->GetOwnerAs<Character>()->RemoveDefenseRule(this->defense);
     this->GetOwner()->FreeComponentByID(this->Component::GetID());
     this->FreeAllComponents();
+    this->TryDelete();
     Entity::Update(_elapsed);
 
     return;

@@ -39,7 +39,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 #ifndef __ANDROID__
   if (!inputManager->Has(HELD_A)) {
 #else
-    if(inputManager->Has(RELEASED_A)) {
+    if(inputManager->Has(PRESSED_A) && !inputManager->Has(RELEASED_B)) {
 #endif
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack(player.chargeComponent.GetChargeCounter());
@@ -51,6 +51,10 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
     else {
       isChargeHeld = false;
+
+#ifdef __ANDROID__
+      player.chargeComponent.SetCharging(false);
+#endif
     }
   }
 

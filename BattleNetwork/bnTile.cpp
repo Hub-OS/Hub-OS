@@ -363,7 +363,7 @@ namespace Battle {
         Character* c = dynamic_cast<Character*>(*it);
         //Obstacle*  o = dynamic_cast<Obstacle*>(*it);
 
-        if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() || (c->GetTeam() == Team::UNKNOWN && caller->GetTeam() == Team::UNKNOWN))) {
+        if (!(*it)->IsPassthrough() && c && ((c->GetTeam() != caller->GetTeam() || (c->GetTeam() == Team::UNKNOWN && caller->GetTeam() == Team::UNKNOWN)))) {
           if (!c->CheckDefenses(caller)) {
             caller->Attack(c);
           }

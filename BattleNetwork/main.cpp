@@ -537,7 +537,7 @@ int main(int argc, char** argv) {
       releasedB = false;
   });
 
-  TouchArea& custSelectButton = TouchArea::create(sf::IntRect(0, 0, 480, 100));
+  TouchArea& custSelectButton = TouchArea::create(sf::IntRect(100, 0, 380, 100));
   custSelectButton.onTouch([]() {
       INPUT.VirtualKeyEvent(InputEvent::PRESSED_START);
   });

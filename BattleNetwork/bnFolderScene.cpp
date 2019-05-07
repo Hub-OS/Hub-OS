@@ -132,7 +132,13 @@ void FolderScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (enterText) {
-    if (INPUT.Has(RELEASED_B)) {
+    InputEvent  cancelButton = RELEASED_B;
+
+#ifdef __ANDROID__
+    cancelButton = PRESSED_B;
+#endif
+
+    if (INPUT.Has(cancelButton)) {
       this->enterText = false;
       bool changed = collection.SetFolderName(folderNames[currFolderIndex], folder);
 
@@ -229,6 +235,9 @@ void FolderScene::onUpdate(double elapsed) {
         }
       }
 
+    InputEvent  cancelButton = RELEASED_B;
+
+
       if (INPUT.Has(PRESSED_B)) {
         if (!promptOptions) {
           gotoNextScene = true;
@@ -237,13 +246,16 @@ void FolderScene::onUpdate(double elapsed) {
           using swoosh::intent::direction;
           using segue = swoosh::intent::segue<PushIn<direction::right>>;
           getController().queuePop<segue>();
+        } else {
+            promptOptions = false;
+            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         }
       } else if (INPUT.Has(RELEASED_B)) {
           if (promptOptions) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
           }
-      } else if (INPUT.Has(RELEASED_A)) {
+      } else if (INPUT.Has(PRESSED_A)) {
         if (!promptOptions) {
           promptOptions = true;
           AUDIO.Play(AudioType::CHIP_DESC);

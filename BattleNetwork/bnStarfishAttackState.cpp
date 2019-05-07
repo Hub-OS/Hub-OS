@@ -39,7 +39,7 @@ void StarfishAttackState::OnLeave(Starfish& star) {
 
 void StarfishAttackState::DoAttack(Starfish& star) {
   if (star.GetField()->GetAt(star.GetTile()->GetX() - 1, star.GetTile()->GetY())) {
-    Spell* spell = new Bubble(star.field, star.team, (star.GetRank() == Starfish::Rank::SP) ? 1.5 : 1.0);
+    Spell* spell = new Bubble(star.field, star.GetTeam(), (star.GetRank() == Starfish::Rank::SP) ? 1.5 : 1.0);
     spell->SetHitboxProperties({ 40, static_cast<Hit::Flags>(spell->GetHitboxProperties().flags | Hit::impact), Element::AQUA, 3.0, &star });
     spell->SetDirection(Direction::LEFT);
     star.field->AddEntity(*spell, star.tile->GetX() - 1, star.tile->GetY());
