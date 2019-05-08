@@ -750,6 +750,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   }
   else if (isInChipSelect && chipCustGUI.IsInView()) {
+#ifndef __ANDROID__
     if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
       if (!INPUT.Has(HELD_PAUSE)) {
         chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
@@ -834,6 +835,13 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         chipCustGUI.OpenChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;
       }
     }
+
+#else
+    if (chipCustGUI.AreChipsReady()) {
+          AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
+          customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
+    }
+#endif
   }
 
   if (isInChipSelect && customProgress > 0.f) {

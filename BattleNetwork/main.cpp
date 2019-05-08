@@ -419,12 +419,13 @@ int main(int argc, char** argv) {
       logLabel->setString(logs[i]);
       logLabel->setPosition(0.f, 320 - (i * 10.f) - 15.f);
       logLabel->setFillColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*std::fmax(0, 255 - (255 / 30)*i))));
-      ENGINE.Draw(logLabel);
+      //ENGINE.Draw(logLabel);
     }
 
     if (progs) {
       animator(progAnimProgress, progSprite, progAnim);
       ENGINE.Draw(&progSprite);
+      ENGINE.Draw(&logoSprite);
 
       if (navisLoaded < (int)NAVIS.Size()) {
         navisLoadedLabel->setString(std::string("Loading Navi Data ") + std::to_string(navisLoaded) + " / " + std::to_string(NAVIS.Size()));
@@ -482,8 +483,8 @@ int main(int argc, char** argv) {
   ENGINE.Clear();
   delete mobLoadedLabel;
   delete navisLoadedLabel;
-  delete logLabel;
-  delete font;
+  //delete logLabel;
+  //delete font;
   delete logo;
 
   // Stop music and go to menu screen 
@@ -504,6 +505,10 @@ int main(int argc, char** argv) {
   elapsed = 0;
 
   srand((unsigned int)time(nullptr));
+
+  logLabel->setFillColor(sf::Color::Red);
+  logLabel->setPosition(296,18);
+  logLabel->setStyle(sf::Text::Style::Bold);
 
 #ifdef __ANDROID__
   /* Android touch areas*/
@@ -582,6 +587,7 @@ int main(int argc, char** argv) {
       fpsStr.resize(4);
       ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
 
+      logLabel->setString(sf::String(std::string("FPS: ") + fpsStr));
 
       // Use the activity controller to update and draw scenes
       app.update((float) FIXED_TIME_STEP);
@@ -617,12 +623,16 @@ int main(int argc, char** argv) {
 
 #ifndef __ANDROID__
       ENGINE.GetWindow()->draw(mouse, states);
+#else
+      ENGINE.GetWindow()->draw(*logLabel, states);
 #endif
 
       ENGINE.GetWindow()->display();
 
   }
   delete mouseTexture;
+  delete logLabel;
+  delete font;
 
 #if defined(__ANDROID__)
 TouchArea::free();

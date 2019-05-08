@@ -395,7 +395,11 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
       if (queue[i].state == 0) {
         icon.SetShader(&greyscale);
-        target.draw(icon,states);
+
+        auto statesCopy = states;
+          statesCopy.shader = &greyscale;
+
+        target.draw(icon,statesCopy);
       } else if (queue[i].state == 1) {
         target.draw(icon, states);
       }
@@ -441,7 +445,11 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
         if (!queue[cursorPos + (5 * cursorRow)].state) {
           chipCard.SetShader(&greyscale);
-          target.draw(chipCard, states);
+
+          auto statesCopy = states;
+          statesCopy.shader = &greyscale;
+
+          target.draw(chipCard, statesCopy);
         } else {
           target.draw(chipCard, states);
         }
@@ -518,13 +526,70 @@ void ChipSelectionCust::Update(float elapsed)
 
   emblem.Update(elapsed);
 
-  /*if (IsInView()) {
-    if (ENGINE.IsMouseHovering(icon) && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && queue[i].state != 0) {
-      cursorRow = row;
-      cursorPos = i % 5;
-      CursorAction();
+
+#ifdef __ANDROID__
+  sf::Vector2i touchPosition = sf::Touch::getPosition(0, *ENGINE.GetWindow());
+  sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetDefaultView());
+  sf::Vector2i iCoords = sf::Vector2i((int)coords.x, (int)coords.y);
+  touchPosition = iCoords;
+
+  int row = 0;
+  for (int i = 0; i < chipCount; i++) {
+    if (i > 4) {
+      row = 1;
     }
-  }*/
+    if (IsInView()) {
+        float offset = 0;//-custSprite.getTextureRect().width*2.f; // this will be uneccessary once we use this->AddSprite() for all rendered items below
+
+        icon.setPosition(offset + 2.f*(9.0f + ((float)(i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
+
+        sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(queue[i].data->GetIconID());
+        icon.setTextureRect(iconSubFrame);
+
+        sf::FloatRect bounds = sf::FloatRect(icon.getPosition().x, icon.getPosition().y-1, 18, 18);
+
+        bool touched = (touchPosition.x >= bounds.left && touchPosition.x <= bounds.left + bounds.width && touchPosition.y >= bounds.top && touchPosition.y <= bounds.top + bounds.height);
+
+        if (touched && sf::Touch::isDown(0) && queue[i].state != 0) {
+        cursorRow = row;
+        cursorPos = i % 5;
+        CursorAction();
+      }
+    }
+  }
+
+  sf::FloatRect deselect = sf::FloatRect();
+  deselect.left = 2 * 97.f;
+  deselect.top = 2.f*25.0f;
+  deselect.width = 16;
+  deselect.height = 2.f*(25.0f + (selectCount*8.0f));
+
+  bool touched = (touchPosition.x >= deselect.left && touchPosition.x <= deselect.left + deselect.width && touchPosition.y >= deselect.top && touchPosition.y <= deselect.top + deselect.height);
+
+  static bool tap = false;
+
+  if(touched && sf::Touch::isDown(0) && !tap) {
+      CursorCancel();
+      tap = true;
+  }
+
+  if(!sf::Touch::isDown(0)) {
+      tap = false;
+  }
+
+  cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*110.f));
+  sf::FloatRect OK = sf::FloatRect(cursorBig.getPosition().x-20.0f, cursorBig.getPosition().y-5.0f, cursorBig.getGlobalBounds().width, cursorBig.getGlobalBounds().height);
+  touched = (touchPosition.x >= OK.left && touchPosition.x <= OK.left + OK.width && touchPosition.y >= OK.top && touchPosition.y <= OK.top + OK.height);
+
+  if(touched && sf::Touch::isDown(0) && !tap) {
+    cursorRow = 0;
+    cursorPos = 5;
+
+    areChipsReady = true;
+    tap = true;
+ }
+
+#endif
 
   this->isInView = IsInView();
 }
