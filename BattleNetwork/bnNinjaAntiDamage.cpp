@@ -9,6 +9,9 @@
 #include "bnParticlePoof.h"
 #include "bnSpell.h"
 
+// Take out
+#include "bnPlayer.h
+
 NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
   DefenseAntiDamage::Callback onHit = [this](Spell* in, Character* owner) {
     Entity* user = in->GetHitboxProperties().aggressor;
@@ -16,6 +19,13 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
 
     if (user) {
       tile = user->GetTile();
+
+      // TODO: owner->GetComponent<Animation>()->SetState("IDLE");
+      Player* p = GetOwnerAs<Player>();
+
+      if(p) {
+          p->SetAnimation("PLAYER_IDLE");
+      }
       owner->RegisterComponent(new HideTimer(owner, 1.0));
       owner->GetField()->AddEntity(*new ParticlePoof(owner->GetField()), owner->GetTile()->GetX(), owner->GetTile()->GetY());
     }

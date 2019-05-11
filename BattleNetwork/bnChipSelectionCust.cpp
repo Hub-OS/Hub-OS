@@ -361,6 +361,8 @@ void ChipSelectionCust::GetNextChips() {
 }
 
 void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states) const {
+  if(this->IsHidden()) return;
+
   // combine the parent transform with the node's one
   sf::Transform combinedTransform = this->getTransform();
 
@@ -517,6 +519,8 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
 void ChipSelectionCust::Update(float elapsed)
 {
+  if(this->IsHidden()) return;
+
   frameElapsed = (double)elapsed;
 
   cursorSmallAnimator.Update(elapsed, cursorSmall);

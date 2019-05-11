@@ -571,6 +571,12 @@ int main(int argc, char** argv) {
       INPUT.VirtualKeyEvent(InputEvent::PRESSED_UP);
     }
   });
+
+  dpad.onRelease([](sf::Vector2i delta) {
+      if(delta.x < -30) {
+          INPUT.VirtualKeyEvent(InputEvent::RELEASED_LEFT);
+      }
+  });
 #endif
 
   // Make sure we didn't quit the loop prematurely

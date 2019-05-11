@@ -2,24 +2,22 @@ package com.themaverickprogrammer.battlenetwork;
 
 import android.app.NativeActivity;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
-import android.util.Log;
+import android.os.Handler;
 import android.view.View;
 
 public class MainActivity extends NativeActivity {
-    View decorView;
+    private View decorView;
 
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
     }
 
-    private void hideSystemUI(View mDecorView) {
+    public void hideSystemUI() {
         // Set the IMMERSIVE flag.
         // Set the content to appear under the system bars so that the content
         // doesn't resize when the system bars hide and show.
-        mDecorView.setSystemUiVisibility(
+        decorView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -32,20 +30,29 @@ public class MainActivity extends NativeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         decorView = getWindow().getDecorView();
 
+        final MainActivity activityPtr = this;
+
         decorView.setOnSystemUiVisibilityChangeListener(
+
                 new View.OnSystemUiVisibilityChangeListener() {
-                    @Override
-                    public void onSystemUiVisibilityChange(int i) {
-                        hideSystemUI(decorView);
-                    }
+                        @Override
+                        public void onSystemUiVisibilityChange(int visibility) {
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    hideSystemUI();
+                                }
+                            }, 5000);
+                        }
                 });
+
 
         super.onCreate(savedInstanceState);
     }
 
     @Override
     protected void onResume() {
-        hideSystemUI(decorView);
+        hideSystemUI();
 
         super.onResume();
     }

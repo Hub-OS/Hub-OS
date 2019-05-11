@@ -57,8 +57,8 @@ void Wave::Update(float _elapsed) {
 
 bool Wave::Move(Direction _direction) {
   // Drop a shared hitbox when moving
-  SharedHitBox* shb = new SharedHitBox(this, 1.0f/60.0f);
-  GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
+  //SharedHitBox* shb = new SharedHitBox(this, 1.0f/60.0f);
+  //GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
   
   tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;

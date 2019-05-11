@@ -760,7 +760,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         chipCustGUI.ChipDescriptionConfirmQuestion()? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
         chipCustGUI.ContinueChipDescription();
       }
-      
 
       if (INPUT.Has(HELD_A)) {
         chipCustGUI.FastForwardChipDescription(3.0);
@@ -837,7 +836,19 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
 
 #else
-    if (chipCustGUI.AreChipsReady()) {
+    static bool isHidden = false;
+
+    if(INPUT.Has(InputEvent::RELEASED_LEFT)) {
+        if(!isHidden) {
+            chipCustGUI.Hide();
+            isHidden = true;
+        } else {
+            chipCustGUI.Reveal();
+            isHidden = false;
+        }
+    }
+
+    if (chipCustGUI.AreChipsReady() && !isHidden) {
           AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
           customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
     }

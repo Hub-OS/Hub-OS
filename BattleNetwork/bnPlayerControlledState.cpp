@@ -114,7 +114,9 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       moveKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {
         player.SetAnimation("PLAYER_MOVED", [p = &player]() {
-			p->SetAnimation(PLAYER_IDLE); });
+			p->SetAnimation(PLAYER_IDLE);
+        });
+
 		player.AdoptNextTile();
         direction = Direction::NONE;
       }; // end lambda

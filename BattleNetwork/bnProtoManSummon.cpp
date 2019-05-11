@@ -1,5 +1,6 @@
 #include <random>
 #include <time.h>
+#include <algorithm>
 
 #include "bnProtoManSummon.h"
 #include "bnTile.h"
@@ -42,21 +43,28 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
   animationComponent.Reload();
 	
   Battle::Tile* next = nullptr;
+  int max = 3;
   while(field->GetNextTile(next)) {
 	  if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
 		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
+        Battle::Tile* below = field->GetAt(next->GetX(), next->GetY() + 1);
 
 		auto characters = prev->FindEntities([](Entity* in) {
-			return (dynamic_cast<Character*>(in) && in->GetTeam() != Team::UNKNOWN);
+			return (dynamic_cast<Character*>(in) && !dynamic_cast<Obstacle*>(in) && in->GetTeam() != Team::UNKNOWN);
 		});
 	
 	    bool blocked = (characters.size() > 0) || !prev->IsWalkable();
 	    
-	    if(!blocked) {
+	    if(!blocked && max > 0) {
+	        max--;
 			targets.push_back(next);
+			//targets.push_back(below);
 	    }
 	  }
   }
+
+  // Protoman attacks from left-to-right
+  std::sort(targets.begin(), targets.end(), [](Battle::Tile* a, Battle::Tile* b) { return a->GetX() < b->GetX(); });
     
   // TODO: noodely callbacks desgin might be best abstracted by ActionLists
   animationComponent.SetAnimation("APPEAR", [this] { 
@@ -83,10 +91,22 @@ void ProtoManSummon::DoAttackStep() {
 	  });
 	});
 
-	this->animationComponent.AddCallback(4,  [this]() { 
-		this->targets[0]->AffectEntities(this); 
-		this->targets.erase(targets.begin()); 
-	}, std::function<void()>(), true);
+	this->animationComponent.AddCallback(4,  [this]() {
+        SwordEffect* effect = new SwordEffect(GetField());
+        GetField()->AddEntity(*effect, targets[0]->GetX(), targets[0]->GetY());
+        this->summons->SummonEntity(effect, false);
+        AUDIO.Play(AudioType::SWORD_SWING);
+
+		this->targets[0]->AffectEntities(this);
+
+		// The tile below... this really should use Wide Sword behavior...
+		//if(	this->targets[1]) {
+        //    this->targets[1]->AffectEntities(this);
+        //}
+
+		this->targets.erase(targets.begin());
+        //this->targets.erase(targets.begin());
+    }, std::function<void()>(), true);
 	
   }
   else {
@@ -113,14 +133,9 @@ bool ProtoManSummon::Move(Direction _direction) {
 }
 
 void ProtoManSummon::Attack(Character* _entity) {
-  SwordEffect* effect = new SwordEffect(GetField());
-  GetField()->AddEntity(*effect, _entity->GetTile()->GetX(), _entity->GetTile()->GetY());
-  this->summons->SummonEntity(effect, false);
-  
   auto props = Hit::DefaultProperties;
   props.damage = 120;
   props.flags |= Hit::recoil;
   _entity->Hit(props);
 
-  AUDIO.Play(AudioType::SWORD_SWING);
 }

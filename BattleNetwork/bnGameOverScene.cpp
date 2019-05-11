@@ -1,4 +1,5 @@
 #include "bnGameOverScene.h"
+#include "bnMainMenuScene.h"
 #include <Swoosh/ActivityController.h>
 
 GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(&controller) {
@@ -7,6 +8,8 @@ GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::A
   gameOver.setTexture(*TEXTURES.GetTexture(TextureType::GAME_OVER));
   gameOver.setScale(2.f, 2.f);
   gameOver.setOrigin(gameOver.getLocalBounds().width / 2, gameOver.getLocalBounds().height / 2);
+
+  leave = false;
 }
 
 GameOverScene::~GameOverScene() {
@@ -22,10 +25,25 @@ void GameOverScene::onResume() {
 }
 
 void GameOverScene::onUpdate(double elapsed) {
-  fadeInCooldown -= (float)elapsed;
+  if(!leave) {
+    fadeInCooldown -= (float) elapsed;
 
-  if (fadeInCooldown < 0) {
-    fadeInCooldown = 0;
+    if (fadeInCooldown < 0) {
+      fadeInCooldown = 0;
+    }
+
+    if (fadeInCooldown == 0 && sf::Touch::isDown(0)) {
+      leave = true;
+    }
+  } else {
+    fadeInCooldown += (float) elapsed;
+
+    if (fadeInCooldown > 2.0f) {
+      fadeInCooldown = 2.0f;
+
+      leave = false;
+      getController().push<MainMenuScene>();
+    }
   }
 }
 

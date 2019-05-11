@@ -69,4 +69,12 @@ public:
 
     sprites.erase(iter, sprites.end());
   }
+
+  const bool IsHidden() const {
+    return !show;
+  }
+
+  const bool IsRevealed() const {
+    return show;
+  }
 };

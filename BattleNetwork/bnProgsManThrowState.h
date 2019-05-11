@@ -5,6 +5,9 @@ class ProgsMan;
 
 class ProgsManThrowState : public AIState<ProgsMan>
 {
+private:
+    Battle::Tile* lastTargetPos;
+
 public:
   ProgsManThrowState();
   ~ProgsManThrowState();

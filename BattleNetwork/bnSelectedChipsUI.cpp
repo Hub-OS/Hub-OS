@@ -107,6 +107,8 @@ void SelectedChipsUI::Update(float _elapsed) {
         dmg.setFillColor(sf::Color(225, 140, 0));
         dmg.setOutlineThickness(2.f);
         dmg.setOutlineColor(sf::Color(48, 56, 80));
+      } else {
+        dmg.setString("");
       }
     } else {
       text.setString("");

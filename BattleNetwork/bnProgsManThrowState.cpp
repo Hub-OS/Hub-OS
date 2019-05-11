@@ -4,6 +4,7 @@
 
 ProgsManThrowState::ProgsManThrowState() : AIState<ProgsMan>()
 {
+  lastTargetPos = nullptr;
 }
 
 
@@ -12,16 +13,18 @@ ProgsManThrowState::~ProgsManThrowState()
 }
 
 void ProgsManThrowState::OnEnter(ProgsMan& progs) {
-  auto spawnBomb = [this, &progs]() { 
-    ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), progs.GetTile()->getPosition(), 1);
+  auto spawnBomb = [this, &progs]() {
+    if(lastTargetPos) {
+      ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), progs.GetTile()->getPosition(), 1);
 
-    auto props = bomb->GetHitboxProperties();
-    props.aggressor = &progs;
-    bomb->SetHitboxProperties(props);
+      auto props = bomb->GetHitboxProperties();
+      props.aggressor = &progs;
+      bomb->SetHitboxProperties(props);
 
-    bomb->SetTile(progs.GetTarget()->GetTile());
+      bomb->SetTile(lastTargetPos);
 
-    progs.GetField()->AddEntity(*bomb, progs.GetTarget()->GetTile()->GetX(), progs.GetTarget()->GetTile()->GetY());
+      progs.GetField()->AddEntity(*bomb, lastTargetPos->GetX(), lastTargetPos->GetY());
+    }
   };
 
   auto onFinish  = [this, &progs]() { this->ChangeState<ProgsManIdleState>(); };
@@ -36,5 +39,7 @@ void ProgsManThrowState::OnLeave(ProgsMan& progs) {
 }
 
 void ProgsManThrowState::OnUpdate(float _elapsed, ProgsMan& progs) {
-
+  if(progs.GetTarget() && progs.GetTarget()->GetTile()) {
+    lastTargetPos = progs.GetTarget()->GetTile();
+  }
 }
