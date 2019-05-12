@@ -15,6 +15,7 @@ public:
   friend class MetalManIdleState;
   friend class MetalManMoveState;
   friend class MetalManPunchState;
+  friend class MetalManMissileState;
 
   MetalMan(Rank _rank);
   virtual ~MetalMan();

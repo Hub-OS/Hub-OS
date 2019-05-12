@@ -2,17 +2,18 @@
 #include "bnAIState.h"
 class MetalMan;
 
-class MetalManIdleState : public AIState<MetalMan>
+class MetalManMissileState : public AIState<MetalMan>
 {
 private:
   float cooldown;
+  float lastMissileTimestamp;
+  int missiles;
+
 public:
-  MetalManIdleState(float cooldown = 0.8f);
-  ~MetalManIdleState();
+    MetalManMissileState(int missiles = 0);
+  ~MetalManMissileState();
 
   void OnEnter(MetalMan& p);
   void OnUpdate(float _elapsed, MetalMan& p);
   void OnLeave(MetalMan& p);
 };
-
-#pragma once

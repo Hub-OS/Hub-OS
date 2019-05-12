@@ -4,13 +4,17 @@
 #include "bnField.h"
 #include "bnMetalManIdleState.h"
 #include "bnMetalManMoveState.h"
+#include "bnMetalManMissileState.h"
 #include "bnMetalManPunchState.h"
 #include "bnMetalManThrowState.h"
 
-MetalManMoveState::MetalManMoveState() : isMoving(false), AIState<MetalMan>() { ; }
+MetalManMoveState::MetalManMoveState() : isMoving(false), AIState<MetalMan>() {
+}
+
 MetalManMoveState::~MetalManMoveState() { ; }
 
 void MetalManMoveState::OnEnter(MetalMan& metal) {
+    mustMove = metal.GetTile()->GetTeam() != metal.GetTeam();
 }
 
 void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
@@ -19,17 +23,32 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
   nextDirection = Direction::NONE;
 
   bool moved = false;
-  
-  int tries = 6;
+
+  auto oldTile = metal.GetTile();
+
+  int tries = 50;
   do {
     // Find a new spot that is on our team
     moved = metal.Teleport((rand() % 6) + 1, (rand() % 3) + 1);
     tries--;
   } while ((!moved || metal.GetNextTile()->GetTeam() != metal.GetTeam()) && tries > 0);
 
+  if(tries == 0) {
+      oldTile->ReserveEntityByID(metal.GetID());
+      moved = metal.Teleport(oldTile->GetX(), oldTile->GetY());
+  }
+
   Battle::Tile* next = nullptr;
 
-  if ((rand() % 30 > 23)) {
+  bool shouldPunch = false;
+
+  if(metal.GetHealth() > 300) {
+      shouldPunch = (rand() % 30 > 23);
+  } else {
+      shouldPunch = (rand() % 30 > 16);
+  }
+
+  if (shouldPunch && !mustMove) {
     next = metal.GetTarget()->GetTile();
 
     if(next && metal.Teleport(next->GetX()+1, next->GetY())) {
@@ -56,7 +75,11 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
           this->ChangeState<MetalManThrowState>();
         }
         else {
-          this->ChangeState<MetalManIdleState>();
+            if(rand() % 20 > 15) {
+                this->ChangeState<MetalManMissileState>((m->GetHealth() <= 300)? 10 : 5);
+            } else {
+                this->ChangeState<MetalManIdleState>();
+            }
         }
       }
       else {

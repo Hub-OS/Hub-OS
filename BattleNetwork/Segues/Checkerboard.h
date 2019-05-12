@@ -41,8 +41,9 @@ namespace {
 template<int cols, int rows>
 class CheckerboardCustom : public Segue {
 private:
-  sf::Texture* temp;
+  sf::Texture* temp, * temp2;
   sf::Shader shader;
+  bool loaded;
 
 public:
   virtual void onDraw(sf::RenderTexture& surface) {
@@ -54,10 +55,15 @@ public:
 
     surface.display(); // flip and ready the buffer
 
-    if (temp) delete temp;
-    temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
-
+#ifdef __ANDROID__
+    if (!loaded) {
+        temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
         temp->flip(true);
+    }
+#else
+    if(temp) delete temp;
+    temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
+#endif
 
     sf::Sprite sprite(*temp);
 
@@ -66,9 +72,16 @@ public:
 
     surface.display(); // flip and ready the buffer
 
-    sf::Texture* temp2 = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
-
-        temp2->flip(true);
+#ifdef __ANDROID__
+if(!loaded) {
+    temp2 = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
+    temp2->flip(true);
+    loaded = true;
+}
+#else
+    if(temp2) delete temp2;
+    temp2 = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
+#endif
 
     shader.setUniform("progress", (float)alpha);
     shader.setUniform("texture2", *temp2);
@@ -78,13 +91,12 @@ public:
     states.shader = &shader;
 
     surface.draw(sprite, states);
-
-    delete temp2;
   }
 
   CheckerboardCustom(sf::Time duration, Activity* last, Activity* next) : Segue(duration, last, next) {
     /* ... */
     temp = nullptr;
+    loaded = false;
 
     shader.loadFromMemory("uniform mat4 viewMatrix;\n"
                           "uniform mat4 projMatrix;\n"
@@ -108,7 +120,10 @@ public:
     shader.setUniform("smoothness", 0.09f);
   }
 
-  virtual ~CheckerboardCustom() { ; }
+  virtual ~CheckerboardCustom() {
+      if(temp) delete temp;
+      if(temp2) delete temp2;
+  }
 };
 
 using Checkerboard = CheckerboardCustom<10, 10>;

@@ -50,7 +50,7 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
         Battle::Tile* below = field->GetAt(next->GetX(), next->GetY() + 1);
 
 		auto characters = prev->FindEntities([](Entity* in) {
-			return (dynamic_cast<Character*>(in) && !dynamic_cast<Obstacle*>(in) && in->GetTeam() != Team::UNKNOWN);
+			return (dynamic_cast<Character*>(in) && in->GetTeam() != Team::UNKNOWN);
 		});
 	
 	    bool blocked = (characters.size() > 0) || !prev->IsWalkable();

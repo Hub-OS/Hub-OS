@@ -10,7 +10,7 @@
 #include "bnSpell.h"
 
 // Take out
-#include "bnPlayer.h
+#include "bnPlayer.h"
 
 NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
   DefenseAntiDamage::Callback onHit = [this](Spell* in, Character* owner) {

@@ -8,6 +8,7 @@ class MetalManMoveState : public AIState<MetalMan>
 private:
   Direction nextDirection;
   bool isMoving;
+  bool mustMove;
 public:
   MetalManMoveState();
   ~MetalManMoveState();

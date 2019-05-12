@@ -31,7 +31,10 @@ class PixelateBlackWashFade : public Segue {
 private:
   sf::Shader shader;
   float factor;
+  bool loaded;
+  bool nextScreen;
 
+  sf::Texture* temp;
 public:
   virtual void onDraw(sf::RenderTexture& surface) {
     double elapsed = getElapsed().asMilliseconds();
@@ -40,14 +43,25 @@ public:
 
     if (elapsed <= duration * 0.5)
       this->drawLastActivity(surface);
-    else
-      this->drawNextActivity(surface);
+    else {
+        if(loaded && !nextScreen) {
+            loaded = false;
+            nextScreen = true;
+        }
+
+        this->drawNextActivity(surface);
+    }
 
     surface.display();
-    sf::Texture* temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
 
 #ifdef __ANDROID__
-temp->flip(true);
+    if(!loaded) {
+        temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
+        temp->flip(true);
+        loaded = true;
+    }
+#else
+      temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
 #endif
 
     sf::Sprite sprite(*temp);
@@ -73,6 +87,8 @@ temp->flip(true);
   }
 
   PixelateBlackWashFade(sf::Time duration, Activity* last, Activity* next) : Segue(duration, last, next) {
+      loaded = nextScreen = false;
+
     shader.loadFromMemory("uniform mat4 viewMatrix;\n"
                          "uniform mat4 projMatrix;\n"
                          "uniform mat4 textMatrix;\n"
@@ -92,5 +108,11 @@ temp->flip(true);
                          "}",::PIXELATE_SHADER);
   }
 
-  virtual ~PixelateBlackWashFade() { ; }
+  virtual ~PixelateBlackWashFade() {
+#ifdef __ANDROID__
+      if(temp) {
+          delete temp;
+      }
+#endif
+  }
 };

@@ -6,6 +6,10 @@ using namespace swoosh;
 
 template<int direction>
 class PushIn : public Segue {
+private:
+    sf::Texture temp, temp2;
+    bool loaded;
+
 public:
 
     virtual void onDraw(sf::RenderTexture& surface) {
@@ -18,10 +22,13 @@ public:
 
         surface.display(); // flip and ready the buffer
 
-        static sf::Texture temp(surface.getTexture()); // Make a copy of the source texture
-
 #ifdef __ANDROID__
-temp.flip(true);
+        if(!loaded) {
+                temp = sf::Texture(surface.getTexture()); // Make a copy of the source texture
+                temp.flip(true);
+        }
+#else
+        temp = sf::Texture(surface.getTexture()); // Make a copy of the source texture
 #endif
 
         sf::Sprite left(temp);
@@ -42,10 +49,15 @@ temp.flip(true);
 
         surface.display(); // flip and ready the buffer
 
-        static sf::Texture temp2(surface.getTexture());
 
 #ifdef __ANDROID__
-       temp2.flip(true);
+        if(!loaded) {
+                temp2 = sf::Texture(surface.getTexture());
+                temp2.flip(true);
+                loaded = true; // both textures are loaded by now
+        }
+#else
+       temp2 = sf::Texture(surface.getTexture());
 #endif
 
         sf::Sprite right(temp2);
@@ -58,6 +70,7 @@ temp.flip(true);
 
     PushIn(sf::Time duration, Activity* last, Activity* next) : Segue(duration, last, next) {
         /* ... */
+        loaded = false;
     }
 
     virtual ~PushIn() { }

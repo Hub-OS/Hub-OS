@@ -32,7 +32,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
 
   offset = sf::Vector2f((float)randX, (float)randY);
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOWEST);
+  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
 
   animationComponent.SetAnimation("EXPLODE");
   animationComponent.SetPlaybackSpeed(playbackSpeed);
@@ -104,7 +104,13 @@ void Explosion::Update(float _elapsed) {
   }
 
   animationComponent.Update(_elapsed);
-  setPosition((tile->getPosition().x + offset.x), (tile->getPosition().y + offset.y));
+
+  if(this->numOfExplosions != 1) {
+    setPosition((tile->getPosition().x + offset.x), (tile->getPosition().y + offset.y));
+  } else {
+    setPosition((tile->getPosition().x), (tile->getPosition().y));
+  }
+
   Entity::Update(_elapsed);
 }
 

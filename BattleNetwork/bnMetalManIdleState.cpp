@@ -1,8 +1,8 @@
 #include "bnMetalManMoveState.h"
 #include "bnMetalMan.h"
+#include "bnMissile.h"
 
-
-MetalManIdleState::MetalManIdleState() : cooldown(0.8f), AIState<MetalMan>()
+MetalManIdleState::MetalManIdleState(float cooldown) : cooldown(cooldown), AIState<MetalMan>()
 {
 }
 
@@ -18,10 +18,8 @@ void MetalManIdleState::OnEnter(MetalMan& metal) {
 void MetalManIdleState::OnUpdate(float _elapsed, MetalMan& metal) {
   cooldown -= _elapsed;
 
-  // printf("cooldown: %f", cooldown);
-
   if (cooldown < 0) {
-    this->ChangeState<MetalManMoveState>();
+      this->ChangeState<MetalManMoveState>();
   }
 }
 
