@@ -57,16 +57,5 @@ void BasicSword::Attack(Character* _entity) {
     _entity->Hit(props);
     hitHeight = _entity->GetHitHeight();
     hit = true;
-
-    Character* isCharacter = dynamic_cast<Character*>(_entity);
-
-    if (isCharacter && isCharacter->IsCountered()) {
-      AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
-      isCharacter->Stun(1000);
-    }
-  }
-
-  if (hit) {
-   //  AUDIO.Play(AudioType::HURT, 0);
   }
 }

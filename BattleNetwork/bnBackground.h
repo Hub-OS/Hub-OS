@@ -5,15 +5,25 @@
 #include "bnSmartShader.h"
 
 #include <cmath>
-/*
-Backgrounds must fill the entire screen by repeating the texture
-Some are animated and need to support texture offsets while filling
-the screen
-*/
+
+/**
+ * @class Background
+ * @author mav
+ * @date 13/05/19
+ * @file bnBackground.h
+ * @brief Backgrounds must fill the entire screen by repeating the texture
+ * 
+ * Some are animated and need to support texture offsets while filling
+ * the screen
+ */
 
 class Background : public sf::Drawable, public sf::Transformable
 {
 protected:
+  /**
+   * @brief Wraps the texture area seemlessly to simulate scrolling
+   * @param _amount in normalized values [0,1]
+   */
   void Wrap(sf::Vector2f _amount) {
     offset = _amount;
 
@@ -21,12 +31,20 @@ protected:
     offset.y = std::fmod(offset.y, 1.f);
 
   }
-
+ 
+  /**
+   * @brief Offsets the texture area to do animated backgrounds from spritesheets
+   * @param _offset in pixels [0, textureSize]
+   */
   void TextureOffset(sf::Vector2f _offset) {
     textureRect.left = (int)_offset.x;
     textureRect.top  = (int)_offset.y;
   }
 
+  /**
+   * @brief Given the single texture's size creates geometry to fill the screen
+   * @param textureSize size of the texture you want to fill the screen with
+   */
   void FillScreen(sf::Vector2u textureSize) {
     // How many times can the texture fit in (width,height)?
     unsigned occuranceX = (unsigned)std::ceil(((float)width / (float)textureSize.x));
@@ -62,6 +80,12 @@ protected:
   }
 
 public:
+  /**
+   * @brief Constructs background with screen width and height. Fills the screen.
+   * @param ref texture to fill
+   * @param width of screen
+   * @param height of screen
+   */
   Background(sf::Texture& ref, int width, int height) : offset(0,0), textureRect(0, 0, width, height), width(width), height(height), texture(ref) {
       texture = ref;
       texture.setRepeated(true);
@@ -75,9 +99,18 @@ public:
   }
 
   ~Background() { ;  }
-
+  
+  /**
+   * @brief Implement for custom animated backgrounds
+   * @param _elapsed in seconds
+   */
   virtual void Update(float _elapsed) = 0;
 
+  /**
+   * @brief Draw the animated background with applied values
+   * @param target
+   * @param states
+   */
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const
   {
     // apply the transform
@@ -101,6 +134,11 @@ public:
     target.draw(vertices, states);
   }
 
+  /**
+   * @brief Apply color values to the background
+   * @see bnUndernetBackground.h
+   * @param color
+   */
   void setColor(sf::Color color) {
     for (int i = 0; i < vertices.getVertexCount(); i++) {
       vertices[i].color = color;
@@ -108,11 +146,11 @@ public:
   }
 
 protected:
-  sf::VertexArray vertices;
-  sf::Texture& texture;
-  sf::IntRect textureRect;
-  sf::Vector2f offset;
-  int width, height;
-  sf::Shader* textureWrap;
+  sf::VertexArray vertices; /*!< Geometry */
+  sf::Texture& texture; /*!< Texture aka spritesheet if animated */
+  sf::IntRect textureRect; /*!< Frame of the animation if applicable */
+  sf::Vector2f offset; /*!< Offset of the frame in pixels */
+  int width, height; /*!< Dimensions of screen in pixels */
+  sf::Shader* textureWrap; /*!< Scroll background values in normalized coord [0.0f, 1.0f] */
 };
 
