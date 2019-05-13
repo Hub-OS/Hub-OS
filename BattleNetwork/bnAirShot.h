@@ -2,10 +2,17 @@
 #include "bnSpell.h"
 #include "bnAnimate.h"
 
+/**
+ * @class AirShot
+ * @author mav
+ * @date 13/05/19
+ * @file bnAirShot.h
+ * @brief Attack that pushes opponent back one tile
+ */
 class AirShot : public Spell {
 public:
   AirShot(Field* _field, Team _team, int damage);
-  virtual ~AirShot(void);
+  virtual ~AirShot();
 
   virtual void Update(float _elapsed);
   virtual bool Move(Direction _direction);
@@ -14,6 +21,5 @@ private:
   int damage;
   float cooldown;
   int random;
-  FrameList animation;
-  Animate animator;
+
 }; 

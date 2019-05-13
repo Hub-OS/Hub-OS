@@ -1,15 +1,18 @@
 #pragma once
 #include "bnSpawnPolicy.h"
 
-/*
-Spawn Alpha
-*/
-
 class Alpha;
 
 template<typename T>
 class GlowInState;
 
+/**
+ * @class AlphaBossSpawnPolicy
+ * @author mav
+ * @date 13/05/19
+ * @file bnAlphaBossSpawnPolicy.h
+ * @brief A custom spawn policy that loads each body piece at a time just like the game
+ */
 class AlphaBossSpawnPolicy : public SpawnPolicy<Alpha> {
 protected:
   virtual void PrepareCallbacks(Mob &mob) {
