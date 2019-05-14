@@ -44,6 +44,36 @@ class Mob;
 class Player;
 class PlayerHealthUI;
 
+/**
+ * @class BattleScene
+ * @author mav
+ * @date 14/05/19
+ * @file bnBattleScene.h
+ * @brief BattleScene features player against mobs and has many states and widgets
+ * 
+ * @warning This BattleScene desperately needs to be refactored into smaller states BatteSceneState.
+ * 
+ * This is a massive scene. It has many interactive modals and manages all the incoming and outgoing data
+ * about the scene to the mobs and widgets on the screen. 
+ * 
+ * Currently it handles the various states with boolean flags.
+ * At the beginning it loads the mob and then sets the state to chip select. 
+ * After the pre-battle begin state shows before the player and mobs are free to move around.
+ * The ChipSummonHandler has its own separate state system since summoned entities can update during TFC.
+ * 
+ * The scene also handles the keyboard interaction and uses the modal APIs to interact with.
+ * 
+ * This scene should be broken down into pieces such as:
+ * BattleSceneLoseState
+ * BattleSceneWinState
+ * BattleScenePauseState
+ * BattleSceneChipSelectState
+ * BattleSceneIntroState
+ * BattleSceneBeginState -> can then be reused to make BattleSceneTurnBegin<3> for 3rd turn
+ * 
+ * This will drastically clean the code up and allow for new custom states. 
+ * Custom scenes could include beast-out mode state, dialog state for talking, damage counter state, etc.
+ */
 class BattleScene : public swoosh::Activity, public CounterHitListener {
 private:
   /*

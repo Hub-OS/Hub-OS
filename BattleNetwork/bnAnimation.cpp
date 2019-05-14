@@ -146,6 +146,7 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
 
   if(duration == 0.f) return;
   
+  // Since we are manually keeping track of the progress, we must account for the animator's loop mode
   while (progress > duration && (animator.GetMode() & Animate::Mode::Loop) == Animate::Mode::Loop) {
     progress -= duration;
   }
