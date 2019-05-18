@@ -57,8 +57,9 @@ class PlayerHealthUI;
  * about the scene to the mobs and widgets on the screen. 
  * 
  * Currently it handles the various states with boolean flags.
+ * 
  * At the beginning it loads the mob and then sets the state to chip select. 
- * After the pre-battle begin state shows before the player and mobs are free to move around.
+ * After, the pre-battle begin state shows before the player and mobs are free to move around.
  * The ChipSummonHandler has its own separate state system since summoned entities can update during TFC.
  * 
  * The scene also handles the keyboard interaction and uses the modal APIs to interact with.

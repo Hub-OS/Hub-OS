@@ -28,6 +28,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   chipUI(player),
   persistentFolder(folder) {
 
+  // Since mob sizes can be dynamic, it's currently possible to spawn no enemies
+  // TODO: Is there a way to prevent this?
   if (mob->GetMobCount() == 0) {
     Logger::Log(std::string("Warning: Mob was empty when battle started. Mob Type: ") + typeid(mob).name());
   }
@@ -36,6 +38,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   Set Scene*/
   field = mob->GetField();
 
+  // Have the player animate correctly, prevent keyboard input
   player->ChangeState<PlayerIdleState>();
   field->AddEntity(*player, 2, 2);
 
@@ -64,16 +67,22 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   components = mob->GetComponents();
 
   PlayerHealthUI* healthUI = new PlayerHealthUI(player);
+  
+  // Add the health UI to the chipcust GUI so when it slides out, so does the health
   chipCustGUI.AddNode(healthUI);
+  
+  // The component needs to be updated every loop
   components.push_back((UIComponent*)healthUI);
 
+  // Handle special components
   for (auto c : components) {
     c->Inject(*this);
   }
 
+  // Process components from entity creation
   ProcessNewestComponents();
 
-  // SCORE
+  // Scoring defaults
   totalCounterDeletions = totalCounterMoves = 0;
 
   /*
@@ -84,7 +93,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   hasPA = -1;
   paStepIndex = 0;
 
-  listStepCooldown = 0.2f;
+  listStepCooldown = 0.2f; // in seconds
   listStepCounter = listStepCooldown;
 
   programAdvanceSprite = sf::Sprite(LOAD_TEXTURE(PROGRAM_ADVANCE));
@@ -251,15 +260,14 @@ void BattleScene::Eject(Component * other)
 
 void BattleScene::ProcessNewestComponents()
 {
-  // effectively returns all of them
+  // effectively returns all entities
   auto entities = field->FindEntities([](Entity* e) { return true; });
 
   for (auto e : entities) {
     if (e->shared.size() > 0) {
-      //std::cout << "lastCompID: " << e->lastComponentID << " - latest: " << e->shared[0]->GetID() << std::endl;
-
+      // If the last component updated by scene is old
       if (e->lastComponentID < e->shared[0]->GetID()) {
-        // Process the newst components
+        // Process the newest components
         for (auto c : e->shared) {
           // update the ledger 
           e->lastComponentID = e->shared[0]->GetID();
@@ -272,12 +280,12 @@ void BattleScene::ProcessNewestComponents()
   }
 }
 
+// When an enemy gets countered by the player, play sound and show the text
 void BattleScene::OnCounter(Character & victim, Character & aggressor)
 {
   AUDIO.Play(AudioType::COUNTER, AudioPriority::HIGH);
 
   if (&aggressor == this->player) {
-    std::cout << "player countered" << std::endl;
     totalCounterMoves++;
 
     if (victim.IsDeleted()) {
@@ -291,20 +299,24 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 
 void BattleScene::onUpdate(double elapsed) {
   this->elapsed = elapsed;
+  
+  // TFC system has its own timer separate from main scene
   this->summonTimer += elapsed;
 
+  // Process any newer components
   ProcessNewestComponents();
 
-  // Update components
+  // Update components first
   for (auto c : components) {
     c->Update((float)elapsed);
   }
 
+  // If battleResults is created, update it
   if (battleResults) {
     battleResults->Update(elapsed);
   }
 
-  // check every frame 
+  // check every frame if player is deleted
   if (!isPlayerDeleted) {
     isPlayerDeleted = player->IsDeleted();
 
@@ -313,8 +325,12 @@ void BattleScene::onUpdate(double elapsed) {
     }
   }
 
+  // Battle is over if the player or the mob is deleted
   isBattleRoundOver = (isPlayerDeleted || isMobDeleted);
 
+  /**
+   * If the mob is spawning, NextMobReady() is true
+   */
   if (mob->NextMobReady() && isSceneInFocus) {
     Mob::MobData* data = mob->GetNextMob();
 
@@ -325,6 +341,7 @@ void BattleScene::onUpdate(double elapsed) {
       cast->SetTarget(player);
     }
 
+    // Add to the field
     field->AddEntity(*data->mob, data->tileX, data->tileY);
     mobNames.push_back(data->mob->GetName());
 
@@ -334,35 +351,45 @@ void BattleScene::onUpdate(double elapsed) {
 
   // Check if entire mob is deleted
   if (mob->IsCleared()) {
+    // If the Enemy Deleted battle sign hasn't shown yet and the post battle timer isn't over
     if (!isPostBattle && battleEndTimer.getElapsed().asSeconds() < postBattleLength) {
-      // Show Enemy Deleted 
+      // Show Enemy Deleted sign
       isPostBattle = true;
       battleEndTimer.reset();
       AUDIO.StopStream();
       AUDIO.Stream("resources/loops/enemy_deleted.ogg");
+      
+      // Prevent keyboard input
       player->ChangeState<PlayerIdleState>();
     }
     else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
+      // When the Enemy Deleted Sign time has completed move onto the BattleRewards State
       isMobDeleted = true;
     }
   }
 
   camera.Update((float)elapsed);
 
+  // Animate background
   background->Update((float)elapsed);
 
   // Do not update when: paused or in chip select, during a summon sequence, showing Battle Start sign
+  // NOTE: IF THIS WAS A SEPERATE STATE THIS WOULD BE MINIMIZED
   if (!(isPaused || isInChipSelect) && summons.IsSummonOver() && !isPreBattle) {
     // kill switch for testing:
     if (INPUT.Has(InputEvent::PRESSED_A) && INPUT.Has(InputEvent::PRESSED_B) && INPUT.Has(InputEvent::PRESSED_LEFT) /*&& INPUT.Has(InputEvent::PRESSED_RIGHT)*/) {
-      mob->KillSwitch();
+        // Kills everything
+        mob->KillSwitch();
     }
 
+    // Update the field and all entities on it
     field->Update((float)elapsed);
   }
 
+  // Check the mob size. Was it different last frame?
   int newMobSize = mob->GetRemainingMobCount();
 
+  // Yes, enemies were deleted, double delete or triple delete?
   if (lastMobSize != newMobSize) {
     if (lastMobSize - newMobSize == 2) {
       didDoubleDelete = true;
@@ -384,24 +411,31 @@ void BattleScene::onUpdate(double elapsed) {
     int newMobSize = mob->GetRemainingMobCount();
 
     if (newMobSize == 0) {
+      // If the battle active state is the current state and the mob size is 0
+      // Pause the battle duration timer and stop the audio. 
+      // We will be moving to a new state
       if (!battleTimer.isPaused()) {
         battleTimer.pause();
         AUDIO.StopStream();
       }
     }
     else {
+      // If we have remaining enemies and the timer is paused (pauses during chip cust)
       if (battleTimer.isPaused()) {
         // start counting seconds again 
         battleTimer.start();
       }
 
+      // Increase the cust gauge
       customProgress += elapsed;
 
-      // this may be a redundant flag now that nodes and components can be updated by injection
+      // Tell the field and all entities that the battle is active
       field->SetBattleActive(true);
     }
   }
   else {
+    // Otherwise we might be in chip cust or PA
+    // Pause the battle timer and tell the field that the battle is inactive
     battleTimer.pause();
     field->SetBattleActive(false);
   }
@@ -409,6 +443,9 @@ void BattleScene::onUpdate(double elapsed) {
   chipCustGUI.Update((float)elapsed);
 
   // other player controls
+  // Really hackey chip solution atm, if the player is IDLE
+  // Then we can use the next chip
+  // TODO: Use chip action to inform us when we need to allow chip use
   if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
     if (player && player->GetTile() && player->GetAnimationComponent().GetAnimationString() == "PLAYER_IDLE") {
       chipUI.UseNextChip();
@@ -417,13 +454,20 @@ void BattleScene::onUpdate(double elapsed) {
 }
 
 void BattleScene::onDraw(sf::RenderTexture& surface) {
+  // Use the external surface as our ENGINE's surface
   ENGINE.SetRenderSurface(surface);
 
+  // Clear the surface
   ENGINE.Clear();
 
+  // Draw the background first
   ENGINE.Draw(background);
 
+  // The camera applies offset, we need to cancel that offset out
+  // At the end of the frame
   sf::Vector2f cameraAntiOffset = -ENGINE.GetViewOffset();
+  
+  // Collect the UI components from the entities and draw them last
   auto ui = std::vector<UIComponent*>();
 
   // First tile pass: draw the tiles
@@ -431,6 +475,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   while (field->GetNextTile(tile)) {
     tile->move(ENGINE.GetViewOffset());
 
+    // Dim the tiles only
     if (summons.IsSummonActive()) {
       SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
       coloredTile->SetShader(&pauseShader);
@@ -438,6 +483,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       delete coloredTile;
     }
     else {
+      // Turn tiles yellow
       if (tile->IsHighlighted()) {
         SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
         coloredTile->SetShader(&yellowShader);
@@ -445,6 +491,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         delete coloredTile;
       }
       else {
+        // Otherwise draw normally
         ENGINE.Draw(tile);
       }
     }
@@ -473,6 +520,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       if (!entity->IsDeleted()) {
         auto uic = entity->GetComponent<UIComponent>();
         if (uic) {
+          // Grab UI components and add them to the last draw list
           ui.push_back(uic);
         }
 
@@ -530,12 +578,13 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   // Draw ui
   //std::cout << "ui size: " << ui.size() << std::endl;
 
+  // Draw scene nodes
   for (auto node : ui) {
     surface.draw(*node);
   }
 
 
-  // cust dissapears when not in battle
+  // cust guage dissapears when not in battle
   if (!(isInChipSelect || isPostBattle || mob->IsCleared()))
     ENGINE.Draw(&customBarSprite);
 
@@ -546,7 +595,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.DrawOverlay();
 
-  if (/*summons.IsSummonsActive() &&*/ showSummonText) {
+  // State: TFC triggered by chip
+  if (showSummonText) {
     sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
 
     double summonSecs = summonTimer;
@@ -574,6 +624,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(summonsLabel, false);
 
     if (summonSecs >= summonTextLength) {
+      // Enter TFC
       summons.OnEnter();
       prevSummonState = true;
       showSummonText = false;
@@ -581,6 +632,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   float nextLabelHeight = 0;
+  
+  // When spawning show enemy names in a listed order
+  // Also show names when in chip select GUI
   if (!mob->IsSpawningDone() || isInChipSelect) {
     for (int i = 0; i < mob->GetMobCount(); i++) {
       if (mob->GetMobAt(i).IsDeleted())
@@ -600,7 +654,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-
+  // Show player chip UI if player is still alive 
+  // Do not show chips in TFC
   if (!isPlayerDeleted && !summons.IsSummonActive()) {
     chipUI.Update((float)elapsed); // DRAW 
 
@@ -611,11 +666,13 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
+  // Pre/Post Battle "Battle Begin" and "Enemy Deleted" signs that appear for a few frames
   if (isPreBattle) {
     if (preBattleLength <= 0) {
       isPreBattle = false;
     }
     else {
+      // Shrink the sign at end and beginning
       double battleStartSecs = battleStartTimer.getElapsed().asSeconds();
       double scale = swoosh::ease::wideParabola(battleStartSecs, preBattleLength, 2.0);
       battleStart.setScale(2.f, (float)scale*2.f);
@@ -632,6 +689,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       isPostBattle = false;
     }
     else {
+      // Shrink the sign at end and beginning        
       double battleEndSecs = battleEndTimer.getElapsed().asSeconds();
       double scale = swoosh::ease::wideParabola(battleEndSecs, postBattleLength, 2.0);
       battleEnd.setScale(2.f, (float)scale*2.f);
@@ -644,10 +702,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
+  // Show DoubleDelete or TripleDelete if activated
   if (comboInfoTimer.getElapsed().asSeconds() <= 1.0f) {
     ENGINE.Draw(comboInfo);
   }
 
+  // State: show paused label if activated
   if (isPaused) {
     // render on top 
     ENGINE.Draw(pauseLabel, false);
@@ -655,13 +715,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   // compare the summon state after we used a chip...
   if (!showSummonText) {
-    /*if (summons.IsSummonActive() && prevSummonState == false) {
-      // We are switching over to a new state this frame
-      summonTimer = 0;
-      showSummonText = true;
-      std::cout << "summon text showing" << std::endl;
-    }
-    else */ if (summons.IsSummonOver() && prevSummonState == true) {
+    if (summons.IsSummonOver() && prevSummonState == true) {
       // We are leaving the summons state this frame
       summons.OnLeave();
       prevSummonState = false;
@@ -688,8 +742,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(chipCustGUI);
 
   // Scene keyboard controls
-  // TODO: really belongs in Update() but also handles a lot of conditional draws
-  //       refactoring battle scene into battle states should reduce this complexity
+  /** @important TODO: really belongs in Update() but also handles a lot of conditional draws
+    * refactoring battle scene into battle states should reduce this complexity
+    **/
   if (INPUT.Has(PRESSED_PAUSE) && !isInChipSelect && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
     isPaused = !isPaused;
 
@@ -699,13 +754,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     else {
       AUDIO.Play(AudioType::PAUSE);
     }
-  }
-  /*else if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
-    if (player && player->GetTile() && player->GetAnimationComponent().GetAnimationString() == "PLAYER_IDLE") {
-      chipUI.UseNextChip();
-    }
-  }*/
-  else if ((!isMobFinished && mob->IsSpawningDone()) || 
+  } else if ((!isMobFinished && mob->IsSpawningDone()) || 
     (
       INPUT.Has(PRESSED_START) && customProgress >= customDuration && !isInChipSelect && !isPaused && 
       !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle
@@ -748,7 +797,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     // Plus would make more sense to revoke screen effects and labels once complete transition 
 
   }
-  else if (isInChipSelect && chipCustGUI.IsInView()) {
+  else if (isInChipSelect && chipCustGUI.IsInView()) 
+      
+    // Interact with the Chip Cust GUI's textbox
+    // GUI provides API we must check that each action was a success
+    
     if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
       if (!INPUT.Has(HELD_PAUSE)) {
         chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
@@ -775,6 +828,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       }
     }
     else {
+        
+      // Interact with the Chipcust GUI 
+      // Select left/right/up/down 
+      // Select OK
+      
       if (INPUT.Has(PRESSED_LEFT)) {
         chipSelectInputCooldown -= elapsed;
 
@@ -812,6 +870,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       }
 
       if (INPUT.Has(PRESSED_A)) {
+        
+        // If chipcust GUI OK is selected, query that the chips are ready and then set the state over
         bool performed = chipCustGUI.CursorAction();
 
         if (chipCustGUI.AreChipsReady()) {
@@ -835,18 +895,21 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
+  // State: InChipSelect but the GUI is not in view, move it in view
   if (isInChipSelect && customProgress > 0.f) {
     if (!chipCustGUI.IsInView()) {
-      chipCustGUI.Move(sf::Vector2f(600.f * (float)elapsed, 0));
+      chipCustGUI.Move(sf::Vector2f(1200.f * (float)elapsed, 0));
     }
   }
   else {
+    // Otherwise move out of view
     if (!chipCustGUI.IsOutOfView()) {
-      chipCustGUI.Move(sf::Vector2f(-600.f * (float)elapsed, 0));
+      chipCustGUI.Move(sf::Vector2f(-1200.f * (float)elapsed, 0));
     }
     else if (isInChipSelect) { // we're leaving a state
    // Start Program Advance checks
       if (isPAComplete && hasPA == -1) {
+        // State: PA Check end
         // Return to game
         isInChipSelect = false;
         chipUI.LoadChips(chips, chipCount);
@@ -857,19 +920,27 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         battleStartTimer.reset();
       }
       else if (!isPAComplete) {
+          
+        // State: PA check begin
         chips = chipCustGUI.GetChips();
         chipCount = chipCustGUI.GetChipCount();
 
+        // Check for PA
         hasPA = programAdvance.FindPA(chips, chipCount);
 
+        // If hasPA > -1, we have a PA
+        // Get steps and start the timer
         if (hasPA > -1) {
           paSteps = programAdvance.GetMatchingSteps();
           PAStartTimer.reset();
         }
 
+        // Exit this state
         isPAComplete = true;
       }
       else if (hasPA > -1) {
+        // State: Has PA
+        
         static bool advanceSoundPlay = false;
         static float increment = 0;
         
@@ -880,6 +951,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         programAdvanceSprite.setScale(2.f, (float)scale*2.f);
         ENGINE.Draw(programAdvanceSprite, false);
 
+        // List, color, and format the chips selected from chip cust
         if (paStepIndex <= chipCount + 1) {
           for (int i = 0; i < paStepIndex && i < chipCount; i++) {
             std::string formatted = chips[i]->GetShortName();
@@ -888,16 +960,20 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
             sf::Text stepLabel = sf::Text(formatted, *mobFont);
 
+            // Non PA chips are white
             stepLabel.setOrigin(0, 0);
             stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight*2.f));
             stepLabel.setScale(1.0f, 1.0f);
-
+ 
+            // If we're listing a chip in the PA
             if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
+              // If we've already shown the PA step, make it green
               if (i < paStepIndex - 1) {
                 stepLabel.setOutlineColor(sf::Color(0, 0, 0));
                 stepLabel.setFillColor(sf::Color(128, 248, 80));
               }
               else {
+                // If the current step counter is on a PA chip, make it orange
                 stepLabel.setOutlineColor(sf::Color(0, 0, 0));
                 stepLabel.setFillColor(sf::Color(247, 188, 27));
               }
@@ -916,11 +992,14 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           nextLabelHeight = 0;
         }
         else {
+          // State: PA merged
           if (!advanceSoundPlay) {
             AUDIO.Play(AudioType::PA_ADVANCE);
             advanceSoundPlay = true;
           }
 
+          // Create a blank space for the chips that were removed during the merge
+          // Color all the other chips white
           for (int i = 0; i < chipCount; i++) {
             std::string formatted = chips[i]->GetShortName();
             formatted.resize(9, ' ');
@@ -935,6 +1014,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             stepLabel.setOutlineThickness(2.f);
 
             if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
+              // If the current list step is on the start of the PA
+              // This chip is now the PA chip
+              // Show the name and make it flash
               if (i == hasPA) {
                 Chip* paChip = programAdvance.GetAdvanceChip();
 
@@ -956,6 +1038,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
             }
             else {
+              // Otherwise draw non PA chip white
               ENGINE.Draw(stepLabel, false);
             }
 
@@ -966,15 +1049,18 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           increment += (float)elapsed * 5.f;
         }
 
+        // Wait a few frames before listing the next chip
         if (listStepCounter > 0.f) {
           listStepCounter -= (float)elapsed;
         }
         else {
-          // +2 = 1 step for showing PA label and 1 step for showing merged chip
-          // That's the chips we want to show + 1 + 1 = chipCount + 2
+          // Why +2? B/c 1 step for showing PA label and 1 step for showing merged chip
+          // That is equal to the # chips we want to show + 1 + 1 = chipCount + 2
           if (paStepIndex == chipCount + 2) {
             advanceSoundPlay = false;
 
+            // State: Ending the list state
+            // Get the PA chip from the progamAdvance module
             Chip* paChip = programAdvance.GetAdvanceChip();
 
             // Only remove the chips involved in the program advance. Replace them with the new PA chip.
@@ -1013,6 +1099,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             hasPA = -1; // state over 
           }
           else {
+            // listStepCounter <= 0.0f
+            // State: listing state
+            
+            // If we're listing a non PA chip, move over them faster
+            // PA chips linger on the screen for a bit
+            
             if (paStepIndex == chipCount + 1) {
               listStepCounter = listStepCooldown * 2.0f; // Linger on the screen when showing the final PA
             }
@@ -1032,7 +1124,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
+  // State: Player Win
   if (isBattleRoundOver && !isPostBattle && !isPlayerDeleted && player->GetHealth() > 0) {
+    // Create the results object
     if (!battleResults) {
       sf::Time totalBattleTime = battleTimer.getElapsed();
 
@@ -1042,12 +1136,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       battleResults->Draw();
 
       if (!battleResults->IsInView()) {
-        float amount = 600.f * (float)elapsed;
+        float amount = 1200.f * (float)elapsed;
         battleResults->Move(sf::Vector2f(amount, 0));
       }
       else {
         if (INPUT.Has(PRESSED_A)) {
-          // Have to hit twice
+          // Have to hit twice, once to reveal item, second to end scene
           if (battleResults->IsFinished()) {
             BattleItem* reward = battleResults->GetReward();
             
@@ -1062,10 +1156,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
               }
             }
 
+            // Tell the scene controller to pixelate out of this scene to the previous one
             using segue = swoosh::intent::segue<PixelateBlackWashFade>;
             getController().queuePop<segue>();
           }
           else {
+            // Interact with the GUI api
             battleResults->CursorAction();
           }
         }
@@ -1073,18 +1169,23 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
   else if (isBattleRoundOver && isPlayerDeleted) {
+    // State: Player Deleted
     if (!initFadeOut) {
       initFadeOut = true;
+      
+      // Unwind the scene stack to the game over scene (first scene on stack)
       using segue = swoosh::intent::segue<WhiteWashFade>::to<GameOverScene>;
       getController().queueRewind<segue>();
     }
   }
 
   tile = nullptr;
+  // Move the tile back to the original state before cameraAntiOffset was applied
   while (field->GetNextTile(tile)) {
     tile->move(cameraAntiOffset);
   }
 
+  // If cust is full, play sound, tell chip select GUI we can open it
   if (customProgress / customDuration >= 1.0) {
     if (isChipSelectReady == false) {
       AUDIO.Play(AudioType::CUSTOM_BAR_FULL);
@@ -1099,6 +1200,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 }
 
 void BattleScene::onStart() {
+  // Scene can start intro state
   isSceneInFocus = true;
 	
   // Stream battle music 
