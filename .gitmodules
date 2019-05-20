@@ -10,3 +10,6 @@
 [submodule "extern/SFML"]
 	path = extern/SFML
 	url = https://github.com/SFML/SFML.git
+[submodule "breathe"]
+	path = breathe
+	url = https://github.com/michaeljones/breathe.git
