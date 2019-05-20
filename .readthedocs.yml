@@ -3,4 +3,8 @@ version: 2
 sphinx:
         configuration: docs/source/conf.py
 
+python:
+        install:
+                requirements: docs/requirements.txt
+                method: pip
 formats: all
