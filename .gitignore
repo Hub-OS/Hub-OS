@@ -4,7 +4,9 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # Hide doxygen output from repo 
-docs/
+docs/build/
+docs/latex/
+docs/source/xml/
 
 # Hide extern
 extern/
