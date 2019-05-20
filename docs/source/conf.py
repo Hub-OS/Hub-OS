@@ -12,6 +12,9 @@
 #
 # import os 
 import sys
+import subprocess
+subprocess.call('cd ../.. ; doxygen doxygenfile', shell=True)
+
 # sys.path.insert(0, os.path.abspath('.'))
 
 
