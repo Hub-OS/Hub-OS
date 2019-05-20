@@ -56,5 +56,5 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 # -- Breathe setup -----------------------------------------------------------
-breathe_projects = { "C++ MMBN Project": "source/xml" }
+breathe_projects = { "C++ MMBN Project": "xml" }
 breathe_default_project = "C++ MMBN Project"
