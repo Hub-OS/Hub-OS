@@ -77,7 +77,9 @@ highlight_language = 'cpp'
 # on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
-if True:
+html_theme = 'bootstrap'
+
+if not on_rtd:
     import sphinx_bootstrap_theme
     html_theme = 'bootstrap'
     html_theme_path = [sphinx_bootstrap_theme.get_html_theme_path()]
