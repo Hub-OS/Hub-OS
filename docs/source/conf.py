@@ -65,7 +65,7 @@ exhale_args = {
         "doxygenStripFromPath": "..",
         "createTreeView":    True,
         "exhaleExecutesDoxygen": True,
-        "exhaleDoxygenStdin": "INPUT = ../../BattleNetwork",
+        # "exhaleDoxygenStdin": "INPUT = ../../BattleNetwork",
         "exhaleUseDoxyfile": True,
 
         }
