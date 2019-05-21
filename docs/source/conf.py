@@ -69,7 +69,7 @@ exhale_args = {
         "rootFileTitle":     "Open MMBN Battle Engine",
         "doxygenStripFromPath": "..",
         "createTreeView":    True,
-        "exhaleExecuteDoxygen": True,
+        "exhaleExecutesDoxygen": True,
         "exhaleDoxygenStdin": "INPUT = ../../BattleNetwork"
         }
 
