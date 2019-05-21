@@ -10,7 +10,8 @@ Welcome to C++ MMBN Engine's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. doxygenindex::
+   about
+   api/library_root
 
 Indices and tables
 ==================

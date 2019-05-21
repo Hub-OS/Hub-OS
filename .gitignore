@@ -7,6 +7,8 @@
 docs/build/
 docs/latex/
 docs/source/xml/
+docs/doxyoutput
+docs/api
 
 # Hide extern
 extern/

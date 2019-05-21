@@ -34,7 +34,7 @@ sys.path.append("../breathe")
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['breathe'
+extensions = ['breathe', 'exhale'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -61,3 +61,27 @@ html_static_path = ['_static']
 # -- Breathe setup -----------------------------------------------------------
 breathe_projects = { "C++ MMBN Project": "xml" }
 breathe_default_project = "C++ MMBN Project"
+
+# -- Exhale setup ------------------------------------------------------------
+exhale_args = {
+        "containmentFolder": "./api",
+        "rootFileName":      "library_root.rst",
+        "rootFileTitle":     "Open MMBN Battle Engine",
+        "doxygenStripFromPath": "..",
+        "createTreeView":    True,
+        "exhaleExecuteDoxygen": True,
+        "exhaleDoxygenStdin": "INPUT = ../../BattleNetwork"
+        }
+
+primary_domain = 'cpp'
+
+highlight_language = 'cpp'
+
+# on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if not on_rtd:  # only import and set the theme if we're building docs locally
+    import sphinx_rtd_theme
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
