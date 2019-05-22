@@ -61,7 +61,7 @@ breathe_default_project = "C++ MMBN Project"
 exhale_args = {
         "containmentFolder": "./api",
         "rootFileName":      "library_root.rst",
-        "rootFileTitle":     "Open MMBN Battle Engine",
+        "rootFileTitle":     "Code",
         "doxygenStripFromPath": "..",
         "createTreeView":    True,
         "exhaleExecutesDoxygen": True,
@@ -77,7 +77,21 @@ highlight_language = 'cpp'
 # on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
+html_favicon = 'favicon.gif'
+
 html_theme = 'bootstrap'
+html_theme_options = {
+        'navbar_site_name': "Open MMBN",
+        'navbar_links': [
+            ("Contributing", "https://github.com/TheMaverickProgrammer/battlenetwork/wiki/Contributing", True)
+            ],
+
+        'navbar_class': "navbar navbar-inverse",
+
+        'navbar_fixed_top': "true",
+
+        'bootstrap_version': "3",
+        }
 
 if not on_rtd:
     import sphinx_bootstrap_theme
