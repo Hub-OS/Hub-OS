@@ -78,17 +78,21 @@ highlight_language = 'cpp'
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 html_favicon = 'favicon.gif'
-
-html_theme = 'bootstrap'
+html_logo    = 'favicon.gif'
+html_theme   = 'bootstrap'
 html_theme_options = {
         'navbar_site_name': "Open MMBN",
         'navbar_links': [
             ("Contributing", "https://github.com/TheMaverickProgrammer/battlenetwork/wiki/Contributing", True)
             ],
 
+        'source_link_position': "exclude",
+
         'navbar_class': "navbar navbar-inverse",
 
         'navbar_fixed_top': "true",
+
+        'bootswatch_theme': "sandstone",
 
         'bootstrap_version': "3",
         }
