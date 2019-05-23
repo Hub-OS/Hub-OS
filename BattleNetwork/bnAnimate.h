@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <iostream>
 
+#include "bnLogger.h"
+
 /**
  * @class Frame
  * @author mav
@@ -124,11 +126,11 @@ public:
     }
     
     On(const On& rhs) {
-		//std::cout << "in cpy constructor" << std::endl;
-		this->id = rhs.id;
-		this->callback = rhs.callback;
-		this->doOnce = rhs.doOnce;
-	}
+		  //std::cout << "in cpy constructor" << std::endl;
+		  this->id = rhs.id;
+		  this->callback = rhs.callback;
+		  this->doOnce = rhs.doOnce;
+	  }
   };
 
   /**
@@ -144,6 +146,7 @@ public:
     
     friend class Animate;
 
+  public:
     static const char NoEffect = 0x00; /*!< Play once and stop */
     static const char Loop = 0x01; /*!< When it reaches the end, restarts animation and resumes */
     static const char Bounce = 0x02; /*!< When it reaches the end, reverse the animation and resume */
@@ -196,20 +199,20 @@ public:
    * @param rhs On struct
    * @return Animate& for chaining 
    */
-  Animate& operator << (On rhs);
+  Animate& operator<< (On rhs);
   
   /**
    * @brief Applies a playback mode
    * @param rhs byte mode
    * @return Animate& for chaining
    */
-  Animate& operator << (char rhs);
+  Animate& operator<< (char rhs);
   
   /**
    * @brief Sets an onFinish callback. 
    * @important Does not chain. This must come at the end.
    */
-  void operator << (std::function<void()> finishNotifier);
+  void operator<< (std::function<void()> finishNotifier);
 
   /**
    * @brief Manually applies the frame at index
@@ -217,6 +220,6 @@ public:
    * @param target sprite to apply frame to
    * @param sequence frame is pulled from list using index
    */
-  void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence) const;
+  void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence);
 
 };

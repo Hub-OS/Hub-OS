@@ -22,7 +22,6 @@ using std::string;
 #include "bnAnimation.h"
 #include "bnDirection.h"
 #include "bnTeam.h"
-#include "bnMemory.h"
 #include "bnEngine.h"
 #include "bnTextureType.h"
 #include "bnElements.h"

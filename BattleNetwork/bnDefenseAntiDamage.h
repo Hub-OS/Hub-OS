@@ -25,7 +25,8 @@ private:
 public:
   /**
    * @brief sets callback
-   * @param callback 
+   * @param callback
+   */
   DefenseAntiDamage(Callback callback);
 
   virtual ~DefenseAntiDamage();

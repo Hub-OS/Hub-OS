@@ -19,7 +19,7 @@ public:
   virtual void Attack(Character* _entity);
 private:
   int damage;
-  float cooldown;
+  float cooldown, progress, hitHeight;
   int random;
-
+  bool hit;
 }; 

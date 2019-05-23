@@ -89,24 +89,6 @@ bool Character::CanMoveTo(Battle::Tile * next)
   return (Entity::CanMoveTo(next) && next->FindEntities(occupied).size() == 0);
 }
 
-void Character::AddAnimation(string _state, FrameList _frameList, float _duration) {
-  assert(false && "AddAnimation shouldn't be called directly from Character");
-}
-
-void Character::SetAnimation(string _state) {
-  assert(false && "SetAnimation shouldn't be called directly from Character");
-}
-
-void Character::SetCounterFrame(int frame)
-{
-  assert(false && "SetCounterFrame shouldn't be called directly from Character");
-}
-
-void Character::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce)
-{
-  assert(false && "OnFrameCallback shouldn't be called directly from Character");
-}
-
 int Character::GetHealth() const {
   return health;
 }
@@ -116,37 +98,13 @@ const int Character::GetMaxHealth() const
   return this->maxHealth;
 }
 
-const bool Character::Hit(Hit::Properties props) {
-  if(props.element == Element::FIRE 
-  && GetTile()->GetState() == TileState::GRASS 
-  && !(this->HasAirShoe() || this->HasFloatShoe())) {
-    props.damage *= 2.0;
-    this->frameElementalModifier = true;
-  }
-  
-  if(props.element == Element::ELEC 
-  && GetTile()->GetState() == TileState::ICE 
-  && !(this->HasAirShoe() || this->HasFloatShoe())) {
-    props.damage *= 2.0;
-    this->frameElementalModifier = true;
-  }
-    
-  if(IsSuperEffective(props.element)) {
-      props.damage *= 2.0;
-  }
-  
-  this->statusQueue.push(props);
-
-  return this->OnHit(props);
-}
-
 void Character::ResolveFrameBattleDamage()
 {
   if(this->statusQueue.empty()) return;
   
   Hit::Properties& props = this->statusQueue.front();
   
-  while(props.flags == Hit::None) {
+  while(props.flags == Hit::none) {
     this->statusQueue.pop();
     if(this->statusQueue.empty()) return;
     props = this->statusQueue.front();
@@ -174,10 +132,6 @@ void Character::ResolveFrameBattleDamage()
 
   this->frameDamageTaken = 0;
   this->frameHitProps = Hit::none;
-}
-
-int* Character::GetAnimOffset() {
-  return nullptr;
 }
 
 void Character::SetHealth(const int _health) {

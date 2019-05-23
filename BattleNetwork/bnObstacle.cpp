@@ -9,11 +9,8 @@ Obstacle::Obstacle(Field* _field, Team _team) {
 
   SetFloatShoe(true);
   SetLayer(1);
-  hit = false;
-  progress = 0.0f;
-  hitHeight = 0.0f;
+
   direction = Direction::NONE;
-  texture = nullptr;
   markTile = false;
   hitboxProperties.flags = Hit::none;
 }

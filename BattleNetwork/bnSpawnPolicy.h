@@ -27,7 +27,7 @@ private:
 
 protected:
   /**
-   * @brief Spawns an entity and assigns it to the generate member pointer */
+   * @brief Spawns an entity and assigns it to the generate member pointer
    * @param generated
    */
   void Spawn(T* generated) {
@@ -48,7 +48,7 @@ protected:
    * @brief Assigns the pre-battle callback functor
    * @param ready Callback functor
    * 
-   * Describes how the entity should behave after all entities are spawned */
+   * Describes how the entity should behave after all entities are spawned
    */
   void SetReadyCallback(SpawnStateCallback ready) {
     this->ready = ready;

@@ -341,7 +341,7 @@ namespace Battle {
     reserved.insert(ID);
   }
 
-  void Tile::AffectEntities(Spell* caller) 
+  void Tile::AffectEntities(Spell* caller) {
     // If the spell has already been tagged for this tile, ignore it
     if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
       return;

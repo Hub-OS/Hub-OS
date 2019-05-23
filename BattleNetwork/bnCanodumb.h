@@ -33,7 +33,9 @@ public:
   virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;
 
-private:
+  virtual const bool OnHit(Hit::Properties props) { return false; }
+  virtual void OnDelete() { ; }
+
   sf::Shader* whiteout;
   sf::Shader* stun;
 

@@ -34,7 +34,6 @@ class Artifact;
 class Field;
 
 #include "bnTeam.h"
-#include "bnMemory.h"
 #include "bnTextureType.h"
 #include "bnTileState.h"
 
@@ -99,6 +98,12 @@ namespace Battle {
      * @return width in pixels
      */
     float GetWidth() const;
+
+    /**
+     * @brief Get the number of entities occupying this tile
+     * Size
+     */
+    const size_t GetEntityCount() const { return this->entities.size(); }
     
     /**
      * @brief Get the height of the tile sprite

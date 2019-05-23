@@ -58,4 +58,5 @@ private:
   Team tileStartTeam; // only move around on the origin team's area
   Texture* texture;
   AnimationComponent animation;
+  bool hit;
 };

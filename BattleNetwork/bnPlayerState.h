@@ -5,10 +5,10 @@
 #pragma once
 #include <string>
 
-constexpr std::string PLAYER_IDLE = ("PLAYER_IDLE");
-constexpr std::string PLAYER_MOVING = ("PLAYER_MOVING");
-constexpr std::string PLAYER_HIT = ("PLAYER_HIT");
-constexpr std::string PLAYER_SHOOTING = ("PLAYER_SHOOTING");
-constexpr std::string PLAYER_SWORD = ("PLAYER_SWORD");
-constexpr std::string PLAYER_HEAL = ("PLAYER_HEAL");
-constexpr std::string PLAYER_CANNON = ("PLAYER_CANNON");
+static const std::string PLAYER_IDLE = ("PLAYER_IDLE");
+static const std::string PLAYER_MOVING = ("PLAYER_MOVING");
+static const std::string PLAYER_HIT = ("PLAYER_HIT");
+static const std::string PLAYER_SHOOTING = ("PLAYER_SHOOTING");
+static const std::string PLAYER_SWORD = ("PLAYER_SWORD");
+static const std::string PLAYER_HEAL = ("PLAYER_HEAL");
+static const std::string PLAYER_CANNON = ("PLAYER_CANNON");

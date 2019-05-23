@@ -130,8 +130,3 @@ void Gear::Attack(Character* other) {
     isCharacter->Hit(props);
   }
 }
-
-void Gear::SetAnimation(std::string animation)
-{
-  this->animation.SetAnimation(animation);
-}

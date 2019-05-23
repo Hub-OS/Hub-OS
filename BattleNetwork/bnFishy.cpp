@@ -11,8 +11,10 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   deleted = false;
   hit = false;
   health = 1;
-  texture = TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png");
-
+  
+  auto texture = TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png");
+  setTexture(*texture);
+  setScale(2.f, 2.f);
   // why do we need to do this??
   // The super constructor is failing to set this value
   // TODO: find out why
@@ -38,8 +40,7 @@ Fishy::~Fishy() {
 }
 
 void Fishy::Update(float _elapsed) {
-  setTexture(*texture);
-  setScale(2.f, 2.f);
+
   setPosition(tile->getPosition().x + tileOffset.x - 40.0f, tile->getPosition().y + tileOffset.y - 120.0f);
 
   if (this->GetTile()->GetX() == 6) {

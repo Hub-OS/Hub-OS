@@ -1,7 +1,6 @@
 #pragma once
 #include "bnComponent.h"
 #include "bnCharacter.h"
-#include "bnMeta.h"
 #include "bnBattleItem.h"
 #include "bnBackground.h"
 #include "bnField.h"

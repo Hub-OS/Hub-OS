@@ -28,7 +28,6 @@
 #include "bnEnemyChipUseListener.h"
 #include "bnCounterHitListener.h"
 #include "bnChipSummonHandler.h"
-#include "bnMemory.h"
 
 #include <time.h>
 #include <typeinfo>

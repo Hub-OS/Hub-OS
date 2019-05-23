@@ -263,9 +263,6 @@
     <Filter Include="Activities\Battle\Content\Components\BattleComponents\NinjaAntiDamage">
       <UniqueIdentifier>{271ebbdf-139e-4f83-955a-5c0051ce680e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Components\UI\Aura">
-      <UniqueIdentifier>{dcfd71cf-1eb5-44de-ad52-086d2567410b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Components\BattleComponents\Hide">
       <UniqueIdentifier>{9dd2b6f9-38bc-4fb3-af03-b4775edf30bf}</UniqueIdentifier>
     </Filter>
@@ -841,9 +838,6 @@
     <ClCompile Include="bnHideTimer.cpp">
       <Filter>Activities\Battle\Content\Components\BattleComponents\Hide</Filter>
     </ClCompile>
-    <ClCompile Include="bnAuraHealthUI.cpp">
-      <Filter>Activities\Battle\Content\Components\UI\Aura</Filter>
-    </ClCompile>
     <ClCompile Include="bnComponent.cpp">
       <Filter>Activities\Battle\Content\Components</Filter>
     </ClCompile>
@@ -1386,9 +1380,6 @@
     </ClInclude>
     <ClInclude Include="bnNinjaAntiDamage.h">
       <Filter>Activities\Battle\Content\Components\BattleComponents\NinjaAntiDamage</Filter>
-    </ClInclude>
-    <ClInclude Include="bnAuraHealthUI.h">
-      <Filter>Activities\Battle\Content\Components\UI\Aura</Filter>
     </ClInclude>
     <ClInclude Include="bnUIComponent.h">
       <Filter>Activities\Battle\Content\Components\UI</Filter>

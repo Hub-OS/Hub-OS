@@ -45,4 +45,14 @@ public:
    * @return true
    */
   virtual const bool Hit(Hit::Properties props);
+
+  /**
+ * @brief At this time, fishy absorbs all attacks
+ * @param props hitbox information
+ * @return true
+ */
+  virtual const bool OnHit(Hit::Properties props) { return true; } 
+
+  virtual void OnDelete() { ; }
+  virtual const float GetHitHeight() const { return 0; }
 };

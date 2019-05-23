@@ -22,7 +22,9 @@ public:
 private:
   int damage;
   int random;
-  float cooldown;
+  float cooldown, progress, hitHeight;
   FrameList animation;
   Animate animator;
+  bool hit;
+  sf::Texture* texture;
 };

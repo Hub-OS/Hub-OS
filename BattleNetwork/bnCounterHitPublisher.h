@@ -20,7 +20,7 @@ private:
   std::list<CounterHitListener*> listeners; /*!< List of subscriptions */
 
   /**
-   * @brief Add a listener to subscriptions */
+   * @brief Add a listener to subscriptions
    * @param listener
    */
   void AddListener(CounterHitListener* listener) {

@@ -14,7 +14,6 @@
 
 #pragma once
 #include "bnTextureType.h"
-#include "bnMemory.h"
 #include "bnLogger.h"
 
 #include <SFML/Graphics.hpp>

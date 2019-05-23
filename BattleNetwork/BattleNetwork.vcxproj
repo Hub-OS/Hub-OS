@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FB93F4F7-06CB-4793-B163-47A6BBC7E7CD}</ProjectGuid>
     <RootNamespace>BattleNetwork</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -179,7 +179,6 @@
     <ClCompile Include="bnAnimatedTextBox.cpp" />
     <ClCompile Include="bnAnimation.cpp" />
     <ClCompile Include="bnAura.cpp" />
-    <ClCompile Include="bnAuraHealthUI.cpp" />
     <ClCompile Include="bnBasicSword.cpp" />
     <ClCompile Include="bnBattleResults.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -323,7 +322,6 @@
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
     <ClInclude Include="bnAura.h" />
-    <ClInclude Include="bnAuraHealthUI.h" />
     <ClInclude Include="bnBattleOverTrigger.h" />
     <ClInclude Include="bnBubble.h" />
     <ClInclude Include="bnBubbleState.h" />

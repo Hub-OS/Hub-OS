@@ -77,7 +77,7 @@ public:
     return nextState;
   }
 
-  virtual ~AIState() { if(nextState) { delete nextState}; }
+  virtual ~AIState() { if (nextState) { delete nextState;  } }
 
   /**
    * @brief Initialize the reference object when this state is created

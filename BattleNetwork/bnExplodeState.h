@@ -1,5 +1,4 @@
 #pragma once
-#include "bnMeta.h"
 #include "bnEntity.h"
 #include "bnAIState.h"
 #include "bnExplosion.h"

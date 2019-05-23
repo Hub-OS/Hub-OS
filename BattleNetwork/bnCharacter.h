@@ -1,6 +1,7 @@
 #pragma once
 #include "bnEntity.h"
 #include "bnCounterHitPublisher.h"
+#include "bnTile.h"
 
 #include <string>
 #include <queue>
@@ -32,7 +33,7 @@ namespace Hit {
     Flags flags;
     Element element;
     double secs; /*!< used by both recoil and stun */
-    Entity* aggressor;
+    Character* aggressor;
   };
 
   const Hit::Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0, nullptr };
@@ -103,7 +104,30 @@ public:
    */
   virtual const float GetHitHeight() const = 0;
 
-  const bool Hit final( const Hit::Properties props = Hit::DefaultProperties);
+  const bool Hit(Hit::Properties props = Hit::DefaultProperties) {
+    if (props.element == Element::FIRE
+      && GetTile()->GetState() == TileState::GRASS
+      && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      props.damage *= 2;
+      this->frameElementalModifier = true;
+    }
+
+    if (props.element == Element::ELEC
+      && GetTile()->GetState() == TileState::ICE
+      && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      props.damage *= 2;
+      this->frameElementalModifier = true;
+    }
+
+    if (IsSuperEffective(props.element)) {
+      props.damage *= 2;
+    }
+
+    this->statusQueue.push(props);
+
+    return this->OnHit(props);
+  }
+
   virtual void ResolveFrameBattleDamage();
   virtual void Update(float _elapsed);
   

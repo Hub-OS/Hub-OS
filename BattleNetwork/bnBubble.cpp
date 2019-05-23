@@ -14,7 +14,12 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   deleted = false;
   hit = false;
   health = 1;
-  texture = TEXTURES.GetTexture(TextureType::SPELL_BUBBLE);
+  
+  auto texture = TEXTURES.GetTexture(TextureType::SPELL_BUBBLE);
+  
+  setTexture(*texture);
+  setScale(2.f, 2.f);
+
   this->speed = speed;
 
   this->slideTime = sf::seconds(0.5f / (float)speed);
@@ -38,8 +43,7 @@ Bubble::~Bubble() {
 }
 
 void Bubble::Update(float _elapsed) {
-  setTexture(*texture);
-  setScale(2.f, 2.f);
+
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
   animation.Update(_elapsed*(float)this->speed, *this);

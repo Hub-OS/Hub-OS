@@ -593,8 +593,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.SetShader(&pauseShader);
   }
 
-  ENGINE.DrawOverlay();
-
   // State: TFC triggered by chip
   if (showSummonText) {
     sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);

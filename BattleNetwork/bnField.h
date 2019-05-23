@@ -9,8 +9,6 @@ using std::endl;
 #include "bnTile.h"
 #include "bnEntity.h"
 #include "bnPlayer.h"
-#include "bnMemory.h"
-
 class Character;
 class Spell;
 class Obstacle;
@@ -50,7 +48,7 @@ public:
    * @param query input function, returns true or false based on conditions
    * @return vector of Tile* passing the input
    */
-  std::vector<Battle::Tile*> FindTiles(std::function<bool(Tile* t)> query)
+  std::vector<Battle::Tile*> FindTiles(std::function<bool(Battle::Tile* t)> query);
 
   /**
    * @brief Adds a character using the character's AdoptTile() routine

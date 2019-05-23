@@ -41,4 +41,5 @@ public:
   virtual void Attack(Character* _entity);
 private:
   int damage; /*!< how many units of damage to deal */
+  bool hit; /*!< Flag if hit last frame */
 };

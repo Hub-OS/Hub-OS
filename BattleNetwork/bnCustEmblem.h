@@ -10,7 +10,7 @@
  * @author mav
  * @date 05/05/19
  * @file bnCustEmblem.h
- * @brief Replaces symbol in chip select menu. Creates electricity that moves through wires for effect */
+ * @brief Replaces symbol in chip select menu. Creates electricity that moves through wires for effect
  */
 class CustEmblem : public sf::Drawable, public sf::Transformable {
 private:

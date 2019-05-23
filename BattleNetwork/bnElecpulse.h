@@ -21,6 +21,6 @@ public:
 private:
   int damage;
   int random;
-  float cooldown;
+  float cooldown, progress;
   AnimationComponent animation;
 };

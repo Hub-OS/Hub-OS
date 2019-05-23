@@ -1,5 +1,4 @@
 #pragma once
-#include "bnMeta.h"
 #include "bnAIState.h"
 #include "bnEntity.h"
 #include "bnAgent.h"

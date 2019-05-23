@@ -1,5 +1,4 @@
 #include "bnField.h"
-#include "bnMemory.h"
 #include "bnObstacle.h"
 #include "bnArtifact.h"
 
@@ -27,7 +26,9 @@ Field::Field(int _width, int _height)
 
 Field::~Field() {
   for (size_t i = 0; i < tiles.size(); i++) {
-    FreeClear(tiles[i]);
+    for (size_t j = 0; j < tiles[i].size(); j++) {
+      delete tiles[i][j];
+    }
     tiles[i].clear();
   }
   tiles.clear();
@@ -41,9 +42,9 @@ int Field::GetHeight() const {
   return height;
 }
 
-std::vector<Tile*> Field::FindTiles(std::function<bool(Tile* t)> query)
+std::vector<Battle::Tile*> Field::FindTiles(std::function<bool(Battle::Tile* t)> query)
 {
-  std::vector<Tile*> res;
+  std::vector<Battle::Tile*> res;
   
   for(int i = 0; i < tiles.size(); i++) {
     for(int j = 0; j < tiles[i].size(); j++) {
@@ -139,7 +140,7 @@ void Field::Update(float _elapsed) {
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       tiles[y][x]->Update(_elapsed);
-      entityCount += (int)tiles[y][x]->entities.size();
+      entityCount += (int)tiles[y][x]->GetEntityCount();
       tiles[y][x]->SetBattleActive(isBattleActive);
     }
   }

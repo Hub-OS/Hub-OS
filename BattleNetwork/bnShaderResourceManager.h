@@ -10,7 +10,6 @@
 
 #pragma once
 #include "bnShaderType.h"
-#include "bnMemory.h"
 #include "bnLogger.h"
 
 #include <SFML/Graphics.hpp>

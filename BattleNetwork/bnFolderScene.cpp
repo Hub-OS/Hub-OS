@@ -290,10 +290,6 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(bg);
   ENGINE.Draw(menuLabel);
 
-  ENGINE.DrawUnderlay();
-  ENGINE.DrawLayers();
-  ENGINE.DrawOverlay();
-
   if (folderNames.size() > 0) {
     for (int i = 0; i < folderNames.size(); i++) {
       folderBox.setPosition(26.0f + (i*144.0f) - (float)folderOffsetX, 34.0f);

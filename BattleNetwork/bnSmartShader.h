@@ -65,7 +65,7 @@ public:
    * @brief Assignment ops assigns ref to a shader object rhs
    * @param rhs
    */
-  SmartShader& operator=(const sf::Shader* rhs
+  SmartShader& operator=(const sf::Shader* rhs);
   
   /**
    * @brief Set a float uniform value
