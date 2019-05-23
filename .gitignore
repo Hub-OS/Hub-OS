@@ -4,7 +4,14 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # Hide doxygen output from repo 
-BattleNetwork/Documentation
+docs/build/
+docs/latex/
+docs/source/xml/
+docs/doxyoutput
+docs/api
+
+# Hide extern
+extern/
 
 # User-specific files
 *.rsuser
