@@ -73,6 +73,10 @@ public:
    */
   virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
 
+  virtual const bool OnHit(Hit::Properties props) { return true; }
+
+  virtual void OnDelete() { ; }
+
   /**
    * @brief Returns progsman's height 
    * @return const float

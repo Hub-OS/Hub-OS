@@ -9,7 +9,6 @@ class DefenseAura;
  * @class Aura
  * @author mav
  * @date 14/05/19
- * @file bnAura.h
  * @brief Aura is a scene node and a Component that protects entity from an amount of damage
  * 
  * Aura adds a DefenseRule to the entities damage resolution steps. When the total damage recieved

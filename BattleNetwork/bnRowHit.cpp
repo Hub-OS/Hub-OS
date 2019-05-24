@@ -10,7 +10,10 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell() 
   team = _team;
   direction = Direction::NONE;
   deleted = false;
-  texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
+  
+  auto texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
+  setTexture(*texture);
+  setScale(2.f, 2.f);
 
   //When the animation ends, delete this
   auto onFinish = [this]() {
@@ -35,9 +38,6 @@ RowHit::~RowHit() {
 }
 
 void RowHit::Update(float _elapsed) {
-  setTexture(*texture);
-  setScale(2.f, 2.f);
-
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
   animation.Update(_elapsed, *this);

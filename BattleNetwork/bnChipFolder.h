@@ -8,7 +8,6 @@
  * @class ChipFolder
  * @author mav
  * @date 05/05/19
- * @file bnChipFolder.h
  * @brief Reference of chip folder used by ChipFolderCollection
  * 
  * Provides utilities to list the chips in the folder, provide the next chip,

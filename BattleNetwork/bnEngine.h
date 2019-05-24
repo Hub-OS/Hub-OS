@@ -15,7 +15,6 @@ using std::vector;
  * @class Engine
  * @author mav
  * @date 04/05/19
- * @file bnEngine.h
  * @brief Wrapper around SFML window and draw call API
  * 
  * Creates the window for the game

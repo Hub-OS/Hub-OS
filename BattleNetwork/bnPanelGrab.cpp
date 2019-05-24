@@ -10,7 +10,8 @@ PanelGrab::PanelGrab(Field* _field, Team _team, float _duration) : duration(_dur
   field = _field;
   team = _team;
   direction = Direction::NONE;
-  texture = TEXTURES.GetTexture(TextureType::SPELL_AREAGRAB);
+  
+  auto texture = TEXTURES.GetTexture(TextureType::SPELL_AREAGRAB);
   setTexture(*texture);
   setScale(2.f, 2.f);
 

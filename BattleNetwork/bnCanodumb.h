@@ -10,7 +10,6 @@
  * @class Canodumb
  * @author mav
  * @date 05/05/19
- * @file bnCanodumb.h
  * @brief Classic cannon enemy waits for opponent to be in view.
  * @warning Legacy code. Should update code.
  */

@@ -13,7 +13,6 @@ using std::vector;
  * @class GraveyardBackground
  * @author mav
  * @date 01/05/19
- * @file bnGraveyardBackground.h
  * @brief spooky cloud background that animates and moves
  */
 class GraveyardBackground : public Background

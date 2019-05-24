@@ -12,7 +12,6 @@ class Character;
  * @class ChipUsePublisher
  * @author mav
  * @date 05/05/19
- * @file bnChipUsePublisher.h
  * @brief Emits chip use information to all subscribers
  * @see CounterHitPublisher
  */

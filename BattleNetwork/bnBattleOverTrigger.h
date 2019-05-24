@@ -9,7 +9,6 @@
  * @class BattleOverTrigger
  * @author mav
  * @date 13/05/19
- * @file bnBattleOverTrigger.h
  * @brief If an entity uses this component, will trigger callback when the battle is over
  * 
  * @warning T must be an entity
@@ -21,13 +20,13 @@ class BattleOverTrigger : public Component {
 private:
   BattleScene* scene; /*!< Pointer to the battle scene */
   std::function<void(BattleScene&, T&)> callback; /*!< Triggers when battle is over */
-
+  T* owner;
 public:
   /**
    * @brief Sets the component owner and callback
    * @param owner
    */
-  BattleOverTrigger(T* owner, std::function<void(BattleScene&, T&)> callback) : Component(owner) {
+  BattleOverTrigger(T* owner, std::function<void(BattleScene&, T&)> callback) : owner(owner), Component(owner) {
     this->callback = callback;
     this->scene = nullptr;
   }
@@ -44,7 +43,7 @@ public:
     if (callback && this->GetOwner() && scene) {
       if (this->scene->IsCleared()) {
         // Cast back to type T
-        callback(*this->scene, *(static_cast<T*>(this->GetOwner())));
+        callback(*this->scene, *this->owner);
         callback = nullptr;
       }
     }

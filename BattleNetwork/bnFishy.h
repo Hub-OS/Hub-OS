@@ -6,7 +6,6 @@
  * @class Fishy
  * @author mav
  * @date 04/05/19
- * @file bnFishy.h
  * @brief Fishy attack flies across the screen, dealing damage along the way
  * 
  * Fishy can take damage and delegate the attack to the user of the attack

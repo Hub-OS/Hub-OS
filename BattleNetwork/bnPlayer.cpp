@@ -44,7 +44,7 @@ Player::Player(void)
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
 
-  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS;));
+  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
   previous = nullptr;
 
@@ -131,7 +131,8 @@ const bool Player::Hit(Hit::Properties props) {
 
     // Respond to the recoil bit state
     if ((props.flags & Hit::recoil) == Hit::recoil) {
-      this->ChangeState<PlayerHitState, float>({ (float)props.secs });
+      // this->ChangeState<PlayerHitState>((float)props.secs );
+      this->ChangeState<PlayerHitState>();
     }
   }
 

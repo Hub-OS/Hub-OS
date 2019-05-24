@@ -16,7 +16,6 @@ using std::to_string;
  * @class Animation
  * @author mav
  * @date 14/05/19
- * @file bnAnimation.h
  * @see bnAnimate.h
  * @brief Loads a FrameList from an animation file format and animates a sprite
  * 

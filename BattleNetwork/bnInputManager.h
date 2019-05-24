@@ -12,7 +12,6 @@ using std::vector;
  * @class InputManager
  * @author mav
  * @date 01/05/19
- * @file bnInputManager.h
  * @brief Handles SFML event polling, checks for valid controller configurations, and manages event states
  */
 class InputManager {

@@ -7,7 +7,6 @@
  * @class Explosion
  * @author mav
  * @date 04/05/19
- * @file bnExplosion.h
  * @brief Explosion spawns as many explosions over time if the count is > 1
  * 
  * First explosion is always centered on the tile and on the top-most layer

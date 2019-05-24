@@ -8,7 +8,6 @@ class BattleScene;
  * @class Component
  * @author mav
  * @date 05/05/19
- * @file bnComponent.h
  * @brief Components need to be genric enough to be used by all in-battle entities
  *
  * Components can be attached to (and owned by) any Entity in the game

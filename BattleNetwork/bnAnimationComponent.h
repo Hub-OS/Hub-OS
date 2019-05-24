@@ -16,7 +16,6 @@ class Entity;
  * @class AnimationComponent
  * @author mav
  * @date 14/05/19
- * @file bnAnimationComponent.h
  * @brief Legacy code. A component to add to entities to provide animations.
  * 
  * @todo Make this a Component 

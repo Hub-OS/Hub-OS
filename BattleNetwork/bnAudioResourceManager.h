@@ -29,7 +29,6 @@ enum class AudioPriority : int {
  * @class AudioResourceManager
  * @author mav
  * @date 06/05/19
- * @file bnAudioResourceManager.h
  * @brief Singleton loads audio samples
  */
 class AudioResourceManager {

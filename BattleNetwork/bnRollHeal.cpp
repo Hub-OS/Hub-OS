@@ -24,9 +24,7 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
 
   direction = Direction::NONE;
   deleted = false;
-  progress = 0.0f;
-  hitHeight = 0.0f;
-  srand((unsigned int)time(nullptr));
+
   random = rand() % 20 - 20;
 
   heal = _heal;
@@ -70,7 +68,13 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
 
       Battle::Tile* next = nullptr;
       Battle::Tile* attack = nullptr;
-      while(field->GetNextTile(next)) {
+
+      auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
+      auto iter = allTiles.begin();
+
+      while (iter != allTiles.end()) {
+        Battle::Tile* tile = (*iter);
+
         if (!found) {
           if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
             this->GetTile()->RemoveEntityByID(this->GetID());
@@ -139,8 +143,6 @@ void RollHeal::Attack(Character* _entity) {
 
       if (_entity) {
         _entity->setPosition(_entity->getPosition().x + (i*(rand() % 4)), _entity->getPosition().y + (i*(rand() % 4)));
-
-        hitHeight = _entity->GetHitHeight();
       }
 
       AUDIO.Play(AudioType::HURT);

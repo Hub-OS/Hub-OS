@@ -1,5 +1,4 @@
 #pragma once
-#include "bnMeta.h"
 #include "bnEntity.h"
 #include "bnAIState.h"
 #include "bnBubbleTrap.h"
@@ -10,7 +9,6 @@
  * @class BubbleState
  * @author mav
  * @date 05/05/19
- * @file bnBubbleState.h
  * @brief This state traps an entity in a bubble for a duration of time
  * 
  * This state can be used by any Entity in the engine.

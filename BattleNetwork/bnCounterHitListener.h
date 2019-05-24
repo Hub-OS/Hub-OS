@@ -6,7 +6,6 @@ class CounterHitPublisher;
  * @class CounterHitListener
  * @author mav
  * @date 05/05/19
- * @file bnCounterHitListener.h
  * @brief Respond to a counter hit
  * 
  * Some attacks, enemies, or scene logic respond to counter hits from Characters

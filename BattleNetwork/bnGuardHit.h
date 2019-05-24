@@ -7,7 +7,6 @@
  * @class GuardHit
  * @author mav
  * @date 01/05/19
- * @file bnGuardHit.h
  * @brief Green _dink_ effect when guard is active
  */
 class GuardHit : public Artifact

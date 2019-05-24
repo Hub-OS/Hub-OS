@@ -7,7 +7,6 @@
  * @class BubbleTrap
  * @author mav
  * @date 05/05/19
- * @file bnBubbleTrap.h
  * @brief Visual artifact (bubble animates) that can be attached to an entity
  * 
  * Creates a defense rule to absord first damage and forces this bubble to pop

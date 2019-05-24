@@ -8,7 +8,6 @@
 #include "bnSelectMobScene.h"
 #include "bnLibraryScene.h"
 #include "bnFolderScene.h"
-#include "bnMemory.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"

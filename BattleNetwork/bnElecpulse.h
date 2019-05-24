@@ -6,7 +6,6 @@
  * @class Elecpulse
  * @author mav
  * @date 04/05/19
- * @file bnElecpulse.h
  * @brief 2 tile-wide attack that stuns and pulls opponents in 1 tile
  */
 class Elecpulse : public Spell {

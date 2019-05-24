@@ -6,7 +6,6 @@
  * @class DefenseAntiDamage
  * @author mav
  * @date 05/05/19
- * @file bnDefenseAntiDamage.h
  * @brief AntiDamage is a rule that blocks certain attacks in the attack resolution step
  * @see NinjaAntiDamage.h
  * 

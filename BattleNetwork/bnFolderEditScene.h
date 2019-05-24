@@ -15,7 +15,6 @@
  * @class FolderEditScene
  * @author mav
  * @date 04/05/19
- * @file bnFolderEditScene.h
  * @brief Edit folder contents and select from chip pool
  * @important the games, the chip pool chip count is not shared by folders
  * 

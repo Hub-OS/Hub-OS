@@ -6,7 +6,6 @@
  * @class DefenseBubbleWrap
  * @author mav
  * @date 05/05/19
- * @file bnDefenseBubbleWrap.h
  * @brief Used by BubbleComponent to spawn hitboxes when bubble is hit
  * 
  * Allows all attacks to hit and passthrough

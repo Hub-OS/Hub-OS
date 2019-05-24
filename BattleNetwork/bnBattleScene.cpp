@@ -471,8 +471,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   auto ui = std::vector<UIComponent*>();
 
   // First tile pass: draw the tiles
-  Battle::Tile* tile = nullptr;
-  while (field->GetNextTile(tile)) {
+  // Second tile pass: draw the entities and shaders per row
+  auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
+  auto iter = allTiles.begin();
+
+  while (iter != allTiles.end()) {
+    auto tile = *iter;
     tile->move(ENGINE.GetViewOffset());
 
     // Dim the tiles only
@@ -498,8 +502,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   // Second tile pass: draw the entities and shaders per row
-  tile = nullptr;
-  while (field->GetNextTile(tile)) {
+  iter = allTiles.begin();
+
+  while (iter != allTiles.end()) {
+    Battle::Tile* tile = (*iter);
 
     static float totalTime = 0;
     totalTime += (float)elapsed;
@@ -656,12 +662,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   // Do not show chips in TFC
   if (!isPlayerDeleted && !summons.IsSummonActive()) {
     chipUI.Update((float)elapsed); // DRAW 
-
-    // TODO: we have a real component system now, refactor this
-    Drawable* component;
-    while (chipUI.GetNextComponent(component)) {
-      ENGINE.Draw(component);
-    }
   }
 
   // Pre/Post Battle "Battle Begin" and "Enemy Deleted" signs that appear for a few frames
@@ -795,7 +795,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     // Plus would make more sense to revoke screen effects and labels once complete transition 
 
   }
-  else if (isInChipSelect && chipCustGUI.IsInView()) 
+  else if (isInChipSelect && chipCustGUI.IsInView()) {
       
     // Interact with the Chip Cust GUI's textbox
     // GUI provides API we must check that each action was a success
@@ -1177,9 +1177,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  tile = nullptr;
   // Move the tile back to the original state before cameraAntiOffset was applied
-  while (field->GetNextTile(tile)) {
+  iter = allTiles.begin();
+  while (iter != allTiles.end()) {
+    auto tile = (*iter);
     tile->move(cameraAntiOffset);
   }
 

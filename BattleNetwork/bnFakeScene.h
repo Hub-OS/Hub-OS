@@ -9,7 +9,6 @@
  * @class FakeScene
  * @author mav
  * @date 04/05/19
- * @file bnFakeScene.h
  * @brief Take a texture input and make into a swoosh-compatible activity for segue effects
  * 
  * This scene takes in a texture input. The texture is the last scene's screen snapshot.

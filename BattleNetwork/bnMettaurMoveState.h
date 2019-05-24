@@ -8,7 +8,6 @@
  * @class MettaurMoveState
  * @author mav
  * @date 28/04/19
- * @file bnMettaurMoveState.h
  * @brief Moves mettaur and decides to attack or pass
  */
 class MettaurMoveState : public AIState<Mettaur>

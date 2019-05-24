@@ -6,7 +6,6 @@
  * @class AirShot
  * @author mav
  * @date 13/05/19
- * @file bnAirShot.h
  * @brief Attack that pushes opponent back one tile
  */
 class AirShot : public Spell {

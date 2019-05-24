@@ -16,7 +16,6 @@
 #include "bnSelectMobScene.h"
 #include "bnNaviRegistration.h"
 #include "bnGridBackground.h"
-#include "bnMemory.h"
 #include "bnCamera.h"
 #include "bnAnimation.h"
 #include "bnInputManager.h"
@@ -38,6 +37,7 @@ constexpr float UI_SPACING = 55.f; /*!< Spacing between status bars */
 constexpr float UI_LEFT_POS_START = -300.f; /*!< Left ui begins here */
 constexpr float UI_RIGHT_POS_START = 640.f; /*!< Right ui begins here */
 constexpr float UI_TOP_POS_START = 250.f; /*!< ui begins at top pos here */
+constexpr float UI_TOP_POS_MAX = 0.0f; /*!< ui ends here */
 constexpr float MAX_PIXEL_FACTOR = 125.f;
 
 class SelectNaviScene : public swoosh::Activity
@@ -90,7 +90,7 @@ private:
 
   Animation glowpadAnimator; /*!< Animator for the glowing pad */
   sf::Sprite glowpad; /*!< Glow pad ring piece */
-  sf::Sprite glowbase /*!< G;ow pad base */
+  sf::Sprite glowbase; /*!< G;ow pad base */
   sf::Sprite glowbottom; /*!< Glow pad bottom piece */
 
   TextBox textbox; /*!< Displays extra navi info. Use UP/DOWN to read more */

@@ -6,7 +6,6 @@
  * @class Bubble
  * @author mav
  * @date 05/05/19
- * @file bnBubble.h
  * @brief Bubbles move to the other side of the field, entrapping characters that makes contact with them
  * 
  * Can be popped by any amount of impact damage
@@ -45,4 +44,8 @@ public:
    * @return true
    */
   virtual const bool Hit( Hit::Properties props);
+
+  virtual const bool OnHit(Hit::Properties props) { return true; }
+  virtual void OnDelete() { ; }
+  virtual const float GetHitHeight() const { return  0; }
 };

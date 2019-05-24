@@ -16,7 +16,6 @@
  * @class FolderScene
  * @author mav
  * @date 04/05/19
- * @file bnFolderScene.h
  * @brief Display folders at top and contents in the center. Player may add, edit, or remove folders.
  * 
  * Use input keys LEFT/RIGHT to navigate through infinite list of folders

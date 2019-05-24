@@ -10,7 +10,6 @@
  * @class CanodumbCursor
  * @author mav
  * @date 05/05/19
- * @file bnCanodumbCursor.h
  * @brief Spawned by ConodumbAttackState. Collides with player and makes cannon attack.
  * @warning Legacy code. Some code should be updated and utlize new behavior methods.
  */

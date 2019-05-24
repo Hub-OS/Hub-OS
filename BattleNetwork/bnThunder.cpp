@@ -11,8 +11,11 @@ Thunder::Thunder(Field* _field, Team _team) : Spell() {
   team = _team;
   direction = Direction::NONE;
   deleted = false;
-  hit = false;
-  texture = TEXTURES.GetTexture(TextureType::SPELL_THUNDER);
+  
+  auto texture = TEXTURES.GetTexture(TextureType::SPELL_THUNDER);
+  setTexture(*texture);
+  setScale(2.f, 2.f);
+
   this->elapsed = 0;
 
   // Thunder moves from tile to tile in exactly 60 frames
@@ -43,9 +46,6 @@ void Thunder::Update(float _elapsed) {
   }
 
   elapsed += _elapsed;
-
-  setTexture(*texture);
-  setScale(2.f, 2.f);
   
   // The origin is the center of the sprite. Raise thunder upwards 15 pixels 
   // (keep in mind scale is 2, e.g. 15 * 2 = 30)

@@ -10,7 +10,6 @@ class BattleItem;
  * @class BattleResults
  * @author mav
  * @date 13/05/19
- * @file bnBattleResults.h
  * @brief BattleResults modal that appears at the end of the BattleScene when Player wins
  * 
  * Exposes an API to interact with the modal

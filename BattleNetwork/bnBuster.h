@@ -6,7 +6,6 @@
  * @class Buster
  * @author mav
  * @date 05/05/19
- * @file bnBuster.h
  * @brief Classic buster attack 
  * 
  * NOTE: This comes from legacy code and could be improved
@@ -36,8 +35,12 @@ public:
 private:
   bool isCharged;
   bool spawnGuard;
+  bool hit;
   Character* contact;
   int damage;
   float cooldown;
   float random; // offset
+  float hitHeight;
+  sf::Texture* texture;
+  float progress;
 };

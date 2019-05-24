@@ -10,7 +10,6 @@ class AI;
  * @class AIState
  * @author mav
  * @date 13/05/19
- * @file bnAIState.h
  * @brief The state of an AI. AI logic goes here.
  * 
  * To prevent UB, delays a state change by storing it in an object.

@@ -9,7 +9,6 @@
  * @class GameOverScene
  * @author mav
  * @date 04/05/19
- * @file bnGameOverScene.h
  * @brief Very simple scene shows GAME OVER graphic.
  * 
  * This is the first scene on the stack and resumed when players lose

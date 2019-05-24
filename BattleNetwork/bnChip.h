@@ -9,7 +9,6 @@ using std::string;
  * @class Chip
  * @author mav
  * @date 05/05/19
- * @file bnChip.h
  * @brief Describes chip record entry in database of loaded chips
  * 
  * This will be expanded to load the corresponding script information

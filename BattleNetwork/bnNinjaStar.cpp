@@ -11,7 +11,8 @@ NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_dur
   team = _team;
   direction = Direction::NONE;
   deleted = false;
-  texture = TEXTURES.GetTexture(TextureType::SPELL_NINJA_STAR);
+  
+  auto texture = TEXTURES.GetTexture(TextureType::SPELL_NINJA_STAR);
   setTexture(*texture);
   
   // Swoosh util sets the texture origin to 50% x and 80% y

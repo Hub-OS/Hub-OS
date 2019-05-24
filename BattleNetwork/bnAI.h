@@ -8,7 +8,6 @@
  * @class AI
  * @author mav
  * @date 13/05/19
- * @file bnAI.h
  * @brief AI is a state machine for Agents
  * 
  * AI uses state machines to change states to appear intelligent. 

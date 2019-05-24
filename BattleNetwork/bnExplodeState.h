@@ -8,7 +8,6 @@
  * @class ExplodeState
  * @author mav
  * @date 04/05/19
- * @file bnExplodeState.h
  * @brief Locks an entity into this state and spawns explosions
  * 
  * This state can be used by any Entity in the engine. 

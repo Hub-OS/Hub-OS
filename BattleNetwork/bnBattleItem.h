@@ -7,7 +7,6 @@
  * @class BattleItem
  * @author mav
  * @date 13/05/19
- * @file bnBattleItem.h
  * @brief BattleItem is a container for the awarded object type and can be money, a chip, or extra life.
  * 
  * @warning Must be refactored to support scripted chip types

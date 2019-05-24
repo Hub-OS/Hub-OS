@@ -6,7 +6,6 @@
  * @class DefenseGuard
  * @author mav
  * @date 05/05/19
- * @file bnDefenseGuard.h
  * @brief If an attack does not have a breaking hit property, fires a callback
  * 
  */

@@ -307,10 +307,6 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(bg);
   ENGINE.Draw(menuLabel);
 
-  ENGINE.DrawUnderlay();
-  ENGINE.DrawLayers();
-  ENGINE.DrawOverlay();
-
   ENGINE.Draw(folderDock);
   ENGINE.Draw(chipHolder);
 

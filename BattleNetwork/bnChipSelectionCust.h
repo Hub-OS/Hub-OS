@@ -16,16 +16,14 @@
  * @class ChipSelectionCust
  * @author mav
  * @date 05/05/19
- * @file bnChipSelectionCust.h
  * @brief Chipcust GUI used in battle. Can be interacted through public API.
  */
 class ChipSelectionCust : public SceneNode {
 public:
   /**
-   * @class Bucket
+   * @struct Bucket
    * @author mav
    * @date 05/05/19
-   * @file bnChipSelectionCust.h
    * @brief Chip state bucket
    * 
    * A chip may be SELECTED, QUEUED, AVAILABLE

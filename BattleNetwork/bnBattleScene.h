@@ -47,7 +47,6 @@ class PlayerHealthUI;
  * @class BattleScene
  * @author mav
  * @date 14/05/19
- * @file bnBattleScene.h
  * @brief BattleScene features player against mobs and has many states and widgets
  * 
  * @warning This BattleScene desperately needs to be refactored into smaller states BatteSceneState.

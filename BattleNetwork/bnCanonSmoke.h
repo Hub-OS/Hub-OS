@@ -6,7 +6,6 @@
  * @class CanonSmoke
  * @author mav
  * @date 05/05/19
- * @file bnCanonSmoke.h
  * @brief Animates smoke and deletes after
  */
 class CanonSmoke : public Artifact

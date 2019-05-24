@@ -22,10 +22,9 @@ namespace Hit {
   const Flags pushing = 0x80;
 
   /**
-   * @class Properties
+   * @struct Properties
    * @author mav
    * @date 05/05/19
-   * @file bnCharacter.h
    * @brief Hit box information
    */
   struct Properties {
@@ -47,7 +46,6 @@ class Spell;
  * @class Character
  * @author mav
  * @date 05/05/19
- * @file bnCharacter.h
  * @brief Characters are mobs, enemies, and players. They have health and can take hits.
  */
 class Character : public virtual Entity, public CounterHitPublisher {

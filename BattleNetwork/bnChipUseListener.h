@@ -8,7 +8,6 @@ class Character;
  * @class ChipUseListener
  * @author mav
  * @date 05/05/19
- * @file bnChipUseListener.h
  * @brief Listens for chip use events emitted by ChipUsePublishers
  */
 class ChipUseListener {

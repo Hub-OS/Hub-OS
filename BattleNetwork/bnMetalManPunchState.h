@@ -14,7 +14,7 @@ public:
    * @brief Sets animation to punch, adds counterframes, calls Attack() on frame 4
    * @param m metalman
    */
-  void OnEnter(MetalMan& m
+  void OnEnter(MetalMan& m);
   
   /**
    * @brief does nothing

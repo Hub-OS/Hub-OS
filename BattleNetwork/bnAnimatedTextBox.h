@@ -7,7 +7,6 @@
  * @class AnimatedTextBox
  * @author mav
  * @date 13/05/19
- * @file bnAnimatedTextBox.h
  * @brief Animates a mmbn textbox with a mugshot that animates with text
  * 
  * @warning WIP utilities to ask questions but is not working as expected
@@ -26,7 +25,6 @@ public:
    * @class Message
    * @author mav
    * @date 13/05/19
-   * @file bnAnimatedTextBox.h
    * @brief Message object takes a string.
    * 
    * Intended to be expanded upon to handle multiple choice questions 
@@ -75,7 +73,6 @@ public:
    * @class Question
    * @author mav
    * @date 13/05/19
-   * @file bnAnimatedTextBox.h
    * @brief Initializes yes/no message objects
    * 
    * @warning honestly this design could be changed to do without the hackery and should see changes

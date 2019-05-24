@@ -9,7 +9,6 @@ typedef int Priority;
  * @class DefenseRule
  * @author mav
  * @date 05/05/19
- * @file bnDefenseRule.h
  * @brief This class is used specifically for checks in the attack step
  * 
  * Build custom defense rules for special chips using this class

@@ -10,7 +10,6 @@
  * @class Background
  * @author mav
  * @date 13/05/19
- * @file bnBackground.h
  * @brief Backgrounds must fill the entire screen by repeating the texture
  * 
  * Some are animated and need to support texture offsets while filling

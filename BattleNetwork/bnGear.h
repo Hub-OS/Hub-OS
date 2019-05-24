@@ -8,7 +8,6 @@ using sf::Texture;
  * @class Gear
  * @author mav
  * @date 04/05/19
- * @file bnGear.h
  * @brief Gear slides left and right slowly
  * 
  * Gear cannot collide with other obstacles
@@ -35,6 +34,7 @@ public:
    */
   virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   
+  virtual const bool OnHit(Hit::Properties props) { return true;  }
   /**
    * @brief No special behavior occur when deleted
    */
@@ -52,6 +52,8 @@ public:
    * @param e
    */
   virtual void Attack(Character* e);
+
+  virtual const float GetHitHeight() const { return 0; }
 
 private:
   Direction startDir;

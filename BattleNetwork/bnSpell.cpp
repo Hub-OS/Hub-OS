@@ -11,7 +11,6 @@
 Spell::Spell() : animationComponent(this), Entity() {
   SetFloatShoe(true);
   SetLayer(1);
-  hitHeight = 0.0f;
   direction = Direction::NONE;
   markTile = false;
   hitboxProperties.flags = Hit::none;

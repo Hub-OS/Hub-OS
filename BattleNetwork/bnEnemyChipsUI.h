@@ -24,7 +24,6 @@ class Chip;
  * @class EnemyChipsUI
  * @author mav
  * @date 05/05/19
- * @file bnEnemyChipsUI.h
  * @brief Similar to PlayerChipsUI, display chips over head of enemy
  * 
  * Uses AI to randomly use chip

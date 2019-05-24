@@ -7,7 +7,6 @@
  * @class ChipSpawnPolicyChipset
  * @author mav
  * @date 05/05/19
- * @file bnChipsSpawnPolicy.h
  * @brief Spawn a character with hard-coded chip values
  */
 class ChipSpawnPolicyChipset {
@@ -41,7 +40,6 @@ protected:
  * @class ChipsSpawnPolicy
  * @author mav
  * @date 05/05/19
- * @file bnChipsSpawnPolicy.h
  * @brief Spawn an entity with chips
  */
 template<class T, class DefaultState = NoState<T>, class ChipSet = ChipSpawnPolicyChipset>

@@ -21,8 +21,7 @@ Starman::Starman() : Player()
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
 
-  textureType = TextureType::NAVI_STARMAN_ATLAS;
-  setTexture(*TEXTURES.GetTexture(textureType));
+  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_STARMAN_ATLAS));
 
   // Starman has FloatShoe enabled
   SetFloatShoe(true);

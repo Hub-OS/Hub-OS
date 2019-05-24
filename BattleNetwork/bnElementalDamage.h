@@ -7,7 +7,6 @@
  * @class ElementalDamage
  * @author mav
  * @date 04/05/19
- * @file bnElementalDamage.h
  * @brief <!> symbol that appears on field when elemental damage occurs
  */
 class ElementalDamage : public Artifact

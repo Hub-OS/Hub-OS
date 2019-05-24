@@ -18,7 +18,6 @@
 #include "bnPlayer.h"
 #include "bnStarman.h"
 #include "bnMob.h"
-#include "bnMemory.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"

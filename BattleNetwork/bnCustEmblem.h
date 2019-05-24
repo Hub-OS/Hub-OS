@@ -9,7 +9,6 @@
  * @class CustEmblem
  * @author mav
  * @date 05/05/19
- * @file bnCustEmblem.h
  * @brief Replaces symbol in chip select menu. Creates electricity that moves through wires for effect
  */
 class CustEmblem : public sf::Drawable, public sf::Transformable {
@@ -23,7 +22,6 @@ private:
    * @class WireEffect
    * @author mav
    * @date 05/05/19
-   * @file bnCustEmblem.h
    * @brief Tracks wire states for immersion
    * 
    * If a wire moves forward and a chip is cancelled, the same wire is reversed

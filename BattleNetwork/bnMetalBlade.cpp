@@ -13,7 +13,10 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
   team = _team;
   direction = Direction::NONE;
   
-  texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
+  auto texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
+  setTexture(*texture);
+  setScale(2.f, 2.f);
+
   this->speed = speed;
 
   // Blades move from tile to tile in 25 frames
@@ -35,8 +38,6 @@ MetalBlade::~MetalBlade() {
 }
 
 void MetalBlade::Update(float _elapsed) {
-  setTexture(*texture);
-  setScale(2.f, 2.f);
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
   // Animate based on speed factor

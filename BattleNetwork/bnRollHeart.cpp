@@ -26,8 +26,6 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spel
   deleted = false;
 
   height = 200;
-  progress = 0.0f;
-  hitHeight = 0.0f;
 
   Battle::Tile* _tile = summons->GetCaller()->GetTile();
 

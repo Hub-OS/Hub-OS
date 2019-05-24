@@ -8,7 +8,6 @@ class CanodumbCursor;
  * @class CanodumbIdleState
  * @author mav
  * @date 05/05/19
- * @file bnCanodumbIdleState.h
  * @brief Spawns a cursor and waits until cursor finds an enemy
  */
 class CanodumbIdleState : public AIState<Canodumb>

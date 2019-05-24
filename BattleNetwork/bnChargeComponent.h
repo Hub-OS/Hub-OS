@@ -21,7 +21,6 @@ class Entity;
  * @class ChargeComponent
  * @author mav
  * @date 05/05/19
- * @file bnChargeComponent.h
  * @brief Draws on top of attached entity
  */
 class ChargeComponent : public SpriteSceneNode {

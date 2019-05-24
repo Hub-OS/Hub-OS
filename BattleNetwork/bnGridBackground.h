@@ -13,7 +13,6 @@ using std::vector;
  * @class GridBackground
  * @author mav
  * @date 01/05/19
- * @file bnGridBackground.h
  * @brief Simple wire background that animates and doesn't move
  */
 class GridBackground : public Background

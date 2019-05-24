@@ -7,7 +7,6 @@
  * @class CanodumbMob
  * @author mav
  * @date 05/05/19
- * @file bnCanodumbMob.h
  * @brief Spawns 3 canodumbs with Rank 1, 2, and 3 respectively
  */
 class CanodumbMob :

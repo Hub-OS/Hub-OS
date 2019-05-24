@@ -46,7 +46,6 @@ Up="32781"
  * @class ChronoXConfigReader
  * @author mav
  * @date 05/05/19
- * @file bnChronoXConfigReader.h
  * @brief Loads ChronoX config .ini files
  * 
  * As a fan of the ChronoX game and having no way to map controller inputs at this time,

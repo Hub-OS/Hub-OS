@@ -11,7 +11,6 @@
  * @class ChipFolderCollection
  * @author mav
  * @date 05/05/19
- * @file bnChipFolderCollection.h
  * @brief Provides utilities to create, edit, copy, and read a player's folders
  * 
  * Folders are read from a text file with chip names and codes

@@ -23,6 +23,10 @@ public:
   
   // TODO: remove this
   virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
+
+  virtual const bool OnHit(Hit::Properties props) { return true;  }
+
+  virtual void OnDelete() { ; }
   
   /**
    * @brief Set the hit height for projectiles to play effects at the correct position

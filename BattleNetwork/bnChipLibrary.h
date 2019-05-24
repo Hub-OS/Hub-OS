@@ -8,7 +8,6 @@ using std::list;
  * @class ChipLibrary
  * @author mav
  * @date 05/05/19
- * @file bnChipLibrary.h
  * @brief Loads all chips from the database and adds new chips from in-game
  * 
  * @important will send chips to be parsed before storing them in the list

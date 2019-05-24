@@ -9,10 +9,9 @@
 #include "bnLogger.h"
 
 /**
- * @class Frame
+ * @struct Frame
  * @author mav
  * @date 13/05/19
- * @file bnAnimate.h
  * @brief Lightweight frame is just an integer rect, duration (in seconds), an origin, and points
  */
 struct Frame {
@@ -28,7 +27,6 @@ struct Frame {
  * @class FrameList
  * @author mav
  * @date 13/05/19
- * @file bnAnimate.h
  * @brief List of frames
  */
 class FrameList {
@@ -79,7 +77,6 @@ public:
  * @class Animate
  * @author mav
  * @date 13/05/19
- * @file bnAnimate.h
  * @brief Robust animator class that handles callbacks of many kinds
  * 
  * Animator updates a frame list independantly and can be used on multiple frame lists
@@ -109,10 +106,9 @@ private:
   
 public:
   /**
-   * @class On
+   * @struct On
    * @author mav
    * @date 13/05/19
-   * @file bnAnimate.h
    * @brief Struct to add new callbacks with. Uses base 1 frame indeces.
    */
   struct On {
@@ -134,10 +130,9 @@ public:
   };
 
   /**
-   * @class Mode
+   * @struct Mode
    * @author mav
    * @date 13/05/19
-   * @file bnAnimate.h
    * @brief Defines playback bytes
    */
   struct Mode {

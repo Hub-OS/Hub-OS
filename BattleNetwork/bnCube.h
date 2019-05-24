@@ -8,7 +8,6 @@ using sf::Texture;
  * @class Cube
  * @author mav
  * @date 05/05/19
- * @file bnCube.h
  * @brief A cube that, when pushed, slides across hitting everything in its path
  * 
  *  Cube has a timer of 100 seconds until it self destructs

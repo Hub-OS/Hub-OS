@@ -5,7 +5,6 @@
  * @class Camera
  * @author mav
  * @date 05/05/19
- * @file bnCamera.h
  * @brief Camera can move over time and shake
  */
 class Camera

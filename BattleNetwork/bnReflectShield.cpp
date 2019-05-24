@@ -7,7 +7,7 @@
 
 using sf::IntRect;
 
-constexpr std::string RESOURCE_PATH = "resources/spells/reflect_shield.animation";
+const std::string RESOURCE_PATH = "resources/spells/reflect_shield.animation";
 
 ReflectShield::ReflectShield(Character* owner) : Artifact(), Component(owner)
 {

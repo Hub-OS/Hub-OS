@@ -19,7 +19,6 @@
  * @class ChipSummonHandler
  * @author mav
  * @date 05/05/19
- * @file bnChipSummonHandler.h
  * @brief Summon system freezes time and plays out before resuming battle
  * @warning This code was written as a proof of concept and needs to be redesigned entirely
  * 

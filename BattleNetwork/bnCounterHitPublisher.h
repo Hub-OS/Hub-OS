@@ -10,7 +10,6 @@ class Character;
  * @class CounterHitPublisher
  * @author mav
  * @date 05/05/19
- * @file bnCounterHitPublisher.h
  * @brief Emit a counter event. Primarily used by Characters during battle.
  */
 class CounterHitPublisher {
