@@ -62,12 +62,12 @@ exhale_args = {
         "containmentFolder": "./api",
         "rootFileName":      "library_root.rst",
         "rootFileTitle":     "Code",
-        "doxygenStripFromPath": "..",
+        "doxygenStripFromPath": "../../BattleNetwork",
         "createTreeView":    True,
         "exhaleExecutesDoxygen": True,
         # "exhaleDoxygenStdin": "INPUT = ../../BattleNetwork",
         "exhaleUseDoxyfile": True,
-        # "unabridgedOrphanKinds": {"dir", "file" }
+        "unabridgedOrphanKinds": {"dir", "file" }
         }
 
 primary_domain = 'cpp'
