@@ -67,7 +67,7 @@ exhale_args = {
         "exhaleExecutesDoxygen": True,
         # "exhaleDoxygenStdin": "INPUT = ../../BattleNetwork",
         "exhaleUseDoxyfile": True,
-
+        "unabridgedOrphanKinds": {"dir", "file" }
         }
 
 primary_domain = 'cpp'
@@ -102,3 +102,16 @@ if not on_rtd:
     html_theme = 'bootstrap'
     html_theme_path = [sphinx_bootstrap_theme.get_html_theme_path()]
 
+def source_read(app, docname, source):
+    lines = []
+    for ln in source[0].splitlines():
+        if not ln.startswith("- Defined in :ref:`"):
+            lines.append(ln)
+
+    source[0] = "\n".join(lines)
+
+# -- Custom rst mods -----------------------------------------------------------------------------------
+# called for you by sphinx
+def setup(app):
+    # tell sphinx to call that function for that event
+    app.connect("source-read", source_read)
