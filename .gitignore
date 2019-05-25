@@ -5,10 +5,8 @@
 
 # Hide doxygen output from repo 
 docs/build/
-docs/latex/
-docs/source/xml/
-docs/doxyoutput
-docs/api
+docs/source/_doxygen
+docs/source/api
 
 # Hide extern
 extern/
