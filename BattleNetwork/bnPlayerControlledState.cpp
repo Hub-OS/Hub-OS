@@ -26,7 +26,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   // Action controls take priority over movement
   if (!INPUT.Has(HELD_A)) {
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
-      player.Attack(player.chargeComponent.GetChargeCounter());
+      player.Attack();
       player.chargeComponent.SetCharging(false);
       isChargeHeld = false;
       auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};

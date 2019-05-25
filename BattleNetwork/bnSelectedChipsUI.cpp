@@ -61,7 +61,7 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           icon.setPosition(((float)alpha*flat) + ((float)(1.0-alpha)*icon.getPosition()));
 
           interpolTimeDest = 0;
-          interpolTimeFlat += _elapsed;
+          interpolTimeFlat += this->elapsed;
         }
         else {
           // If stacked, the algorithm makes a jagged pattern that goes up and to the left:
@@ -75,7 +75,7 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           // interpolate
           icon.setPosition(((float)alpha*dest) + ((float)(1.0 - alpha)*icon.getPosition()));
 
-          interpolTimeDest += _elapsed;
+          interpolTimeDest += this->elapsed;
           interpolTimeFlat = 0;
         }
 
@@ -118,7 +118,7 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       }
     }
 
-    SceneNode::draw(target, states);
+    UIComponent::draw(target, states);
 };
 
 void SelectedChipsUI::Update(float _elapsed) {
@@ -128,6 +128,8 @@ void SelectedChipsUI::Update(float _elapsed) {
   else if (INPUT.Has(InputEvent::RELEASED_START)) {
     spread = false;
   }
+
+  this->elapsed = _elapsed;
 }
 
 void SelectedChipsUI::LoadChips(Chip ** incoming, int size) {

@@ -34,6 +34,10 @@ public:
    * @return true if hit, false if missed
    */
   virtual const bool Hit(Hit::Properties props = Hit::DefaultProperties);
+
+  virtual const bool OnHit(Hit::Properties props) { return true; }
+
+  virtual void OnDelete() { ;  }
   
   /**
    * @brief Get the hit height of this entity

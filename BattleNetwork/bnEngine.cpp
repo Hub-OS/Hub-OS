@@ -143,9 +143,6 @@ void Engine::Clear() {
     surface->clear();
   }
 
-  underlay.Clear();
-  layers.Clear();
-  overlay.Clear();
   window->clear();
 }
 

@@ -51,6 +51,10 @@ public:
    * @return true if the owner was hit, false otherwise
    */
   virtual const bool Hit(Hit::Properties props);
+  virtual const bool OnHit(Hit::Properties props) { return true; }
+  virtual void OnDelete() { ; }
+
+  virtual const float GetHitHeight() const { return 0;  }
   
 private:
   float cooldown; /*< When cooldown reaches zero, this hitbox removes */

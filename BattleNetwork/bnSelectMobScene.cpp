@@ -77,7 +77,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 SelectMobScene::~SelectMobScene() {
   delete font;
   delete mobFont;
-  delete hpFont;
+  //delete hpFont;
   delete mobLabel;
   delete attackLabel;
   delete speedLabel;
@@ -369,9 +369,6 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   hpLabel->setFillColor(sf::Color::White);
   ENGINE.Draw(hpLabel);
 
-  ENGINE.DrawUnderlay();
-  ENGINE.DrawLayers();
-  ENGINE.DrawOverlay();
 
   // Pixelate the mob texture
   if (mobSpr.getTexture()) {

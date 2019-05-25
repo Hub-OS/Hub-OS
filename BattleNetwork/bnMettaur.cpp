@@ -10,7 +10,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 
-constexpr std::string RESOURCE_PATH = "resources/mobs/mettaur/mettaur.animation";
+const std::string RESOURCE_PATH = "resources/mobs/mettaur/mettaur.animation";
 
 vector<int> Mettaur::metIDs = vector<int>(); 
 int Mettaur::currMetIndex = 0; 

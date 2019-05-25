@@ -35,6 +35,8 @@ public:
    */
   ~SelectedChipsUI();
 
+  void draw(sf::RenderTarget & target, sf::RenderStates states) const;
+
   /**
    * @brief Hold START to spread the chips out
    * @param _elapsed in seconds
@@ -58,6 +60,7 @@ public:
    */
   void Inject(BattleScene&);
 private:
+  float elapsed; /*!< Used by draw function, delta time since last update frame */
   Chip** selectedChips; /*!< Current list of chips. */
   int chipCount; /*!< Size of list */
   int curr; /*!< Chip cursor index */

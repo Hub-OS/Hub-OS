@@ -54,6 +54,11 @@ public:
    */
   virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   
+  virtual const bool OnHit(Hit::Properties props) { return true;  }
+
+  virtual void OnDelete() { ; }
+
+  virtual const float GetHitHeight() const { return 0; }
   /**
    * @brief Get how many times the player has moved across the grid
    * @return int

@@ -558,10 +558,6 @@ int main(int argc, char** argv) {
 
     ENGINE.Draw(&logoSprite);
 
-    ENGINE.DrawUnderlay();
-    ENGINE.DrawLayers();
-    ENGINE.DrawOverlay();
-
     // Ready the render surface for display
     loadSurface.display();
 
@@ -664,10 +660,6 @@ int main(int argc, char** argv) {
     // Engine draw calls share the same surface
     // as the activity controller 'app'
     // and will draw layers directly onto it
-	ENGINE.DrawUnderlay();
-	ENGINE.DrawLayers();
-	ENGINE.DrawOverlay();
-
     // Make a call to draw all contents in the current scene
 	app.draw();
 
