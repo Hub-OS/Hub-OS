@@ -25,7 +25,8 @@ using std::to_string;
  * 
  * VERSION="1.0"
  * imagePath=C:\User\Bob\Desktop\player.png
- * 
+ *
+ * ```
  * animation state="PLAYER_SHOOTING"
  * frame duration="0.05" x="0" y="10" w="70" h="47" originx="21" originy="40"
  * point label="Buster" x="42" y="15"
@@ -40,7 +41,8 @@ using std::to_string;
  * 
  * animation state="PLAYER_MOVING"
  * ...
- * 
+ * ```
+ *
  * etc.
  */
 class Animation {
@@ -62,19 +64,6 @@ public:
    */
   Animation(string path);
   ~Animation();
-
-<<<<<<< HEAD
-  void Reload();
-  void Update(float _elapsed, sf::Sprite& target, double playbackSpeed = 1.0);
-  void Refresh(sf::Sprite& target);
-  void SetFrame(int frame, sf::Sprite& target);
-  void SetAnimation(string state);
-
-  void RemoveCallbacks();
-
-  const std::string GetAnimationString() const;
-
-=======
   /**
    * @brief Reads file at path set by constructor, parses lines, and populates FrameList with data
    */
@@ -126,7 +115,6 @@ public:
    * @return FrameList&
    * @warning Make sure this animation exists otherwise could return an empty frame list or throw
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   FrameList& GetFrameList(std::string animation);
 
   /**
@@ -135,11 +123,6 @@ public:
    * @return Animation& to chain
    */
   Animation& operator<<(Animate::On rhs);
-<<<<<<< HEAD
-  Animation& operator<<(char rhs);
-  Animation& operator<<(std::string state);
-
-=======
   
   /**
    * @brief Set the animator mode
@@ -159,7 +142,6 @@ public:
    * @param onFinish the function to call when the animation finishes
    * @warning does not return object. This must be the end of the chain.
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void operator<<(std::function<void()> onFinish);
 
 private:
@@ -171,19 +153,9 @@ private:
    */
   string ValueOf(string _key, string _line);
 protected:
-<<<<<<< HEAD
-  Animate animator;
-
-  string path;
-  string currAnimation;
-  float progress;
-  std::map<int, sf::Sprite> textures;
-  std::map<string, FrameList> animations;
-=======
   Animate animator; /*!< Internal animator to delegate most of the work to */
   string path; /*!< Path to the animation file */
   string currAnimation; /*!< Name of the current animation state */
   float progress; /*!< Current progress of animation */
   std::map<string, FrameList> animations; /*!< Dictionary of FrameLists read from file */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };
