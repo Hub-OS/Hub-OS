@@ -86,21 +86,6 @@ public:
  */
 class Animate {
 private:
-<<<<<<< HEAD
-  std::map<int, std::function<void()>> callbacks;
-  std::map<int, std::function<void()>> onetimeCallbacks;
-  std::map<int, std::function<void()>> nextLoopCallbacks; // used to move over already called callbacks
-  std::map<int, std::function<void()>> queuedCallbacks; // used for adding new callbacks while updating
-  std::map<int, std::function<void()>> queuedOnetimeCallbacks; 
-  
-  std::function<void()> onFinish;
-  std::function<void()> queuedOnFinish;
-  
-  char playbackMode;
-  
-  bool isUpdating;
-  bool callbacksAreValid;
-=======
   std::map<int, std::function<void()>> callbacks; /*!< Called every time on frame */
   std::map<int, std::function<void()>> onetimeCallbacks; /*!< Called once on frame then discarded */
   std::map<int, std::function<void()>> nextLoopCallbacks; /*!< used to queue already called callbacks */
@@ -118,8 +103,7 @@ private:
   bool callbacksAreValid; /*!< Flag for queues. If false, all added callbacks are discarded. */
   
   void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
-  
+
 public:
   /**
    * @struct On
@@ -138,19 +122,11 @@ public:
     }
     
     On(const On& rhs) {
-<<<<<<< HEAD
-		//std::cout << "in cpy constructor" << std::endl;
-		this->id = rhs.id;
-		this->callback = rhs.callback;
-		this->doOnce = rhs.doOnce;
-	}
-=======
 		  //std::cout << "in cpy constructor" << std::endl;
 		  this->id = rhs.id;
 		  this->callback = rhs.callback;
 		  this->doOnce = rhs.doOnce;
 	  }
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   };
 
   /**
@@ -164,19 +140,11 @@ public:
     int playback;
     
     friend class Animate;
-
-<<<<<<< HEAD
-    static const char NoEffect = 0x00;
-    static const char Loop = 0x01;
-    static const char Bounce = 0x02;
-    static const char Reverse = 0x04;
-=======
   public:
     static const char NoEffect = 0x00; /*!< Play once and stop */
     static const char Loop = 0x01; /*!< When it reaches the end, restarts animation and resumes */
     static const char Bounce = 0x02; /*!< When it reaches the end, reverse the animation and resume */
     static const char Reverse = 0x04; /*!< Reverse the animation */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
     Mode(int playback) {
       this->playback = playback;
@@ -189,9 +157,6 @@ public:
   Animate(Animate& rhs);
   ~Animate();
 
-<<<<<<< HEAD
-  char GetMode() { return playbackMode;  }
-=======
   /**
    * @brief Get the current playback mode
    * @return char
@@ -209,8 +174,7 @@ public:
   /**
    * @brief Clears all callback functors
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
-  void Clear() { 
+  void Clear() {
 	  callbacksAreValid = false;
 	  queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
 	  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; 
@@ -223,14 +187,6 @@ public:
    * @param sequence list of frames
    */
   void operator() (float progress, sf::Sprite& target, FrameList& sequence);
-<<<<<<< HEAD
-  Animate& operator << (On rhs);
-  Animate& operator << (char rhs);
-  void operator << (std::function<void()> finishNotifier);
-
-  void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence) const;
-
-=======
   
   /**
    * @brief Applies a callback
@@ -259,6 +215,4 @@ public:
    * @param sequence frame is pulled from list using index
    */
   void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence);
-
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };
