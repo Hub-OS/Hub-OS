@@ -45,12 +45,12 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
   Battle::Tile* next = nullptr;
   int max = 3;
   while(field->GetNextTile(next)) {
-	  if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
+	  if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != this->GetTeam()) {
 		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
         Battle::Tile* below = field->GetAt(next->GetX(), next->GetY() + 1);
 
 		auto characters = prev->FindEntities([](Entity* in) {
-			return (dynamic_cast<Character*>(in) && in->GetTeam() != Team::UNKNOWN);
+		    return (dynamic_cast<Character*>(in) && in->GetTeam() != Team::UNKNOWN);
 		});
 	
 	    bool blocked = (characters.size() > 0) || !prev->IsWalkable();
