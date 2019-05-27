@@ -18,7 +18,13 @@ ProgsManBossFight::~ProgsManBossFight()
 
 Mob* ProgsManBossFight::Build() {
   Mob* mob = new Mob(field);
+  
+  // Changes music and ranking algorithm
   mob->ToggleBossFlag();
+<<<<<<< HEAD
+=======
+  
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   mob->RegisterRankedReward(1, BattleItem(Chip(135, 0, 'P', 300, Element::BREAK, "ProgsMan", "Throws ProgBomb", "Throws a projectile at the nearest enemy.", 5)));
   mob->RegisterRankedReward(11, BattleItem(Chip(136, 0, 'P', 300, Element::BREAK, EX("ProgsMan"), "Throws ProgBomb", "Throws 3 projectiles at the nearest enemy in successsion.", 5)));
 

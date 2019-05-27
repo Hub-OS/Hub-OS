@@ -7,6 +7,7 @@
 ChipFolder::ChipFolder() {
   folderSize = initialSize = 0;
 }
+<<<<<<< HEAD
 
 ChipFolder::ChipFolder(const ChipFolder& rhs)
 {
@@ -32,6 +33,31 @@ void ChipFolder::Shuffle()
 ChipFolder* ChipFolder::Clone() {
   ChipFolder* clone = new ChipFolder();
 
+=======
+
+ChipFolder::ChipFolder(const ChipFolder& rhs)
+{
+  folderSize = initialSize = rhs.folderSize;
+  folderList = rhs.folderList;
+}
+
+ChipFolder::~ChipFolder() {
+  for (int i = (int)folderList.size()-1; i >= 0; i--) {
+    delete folderList[i];
+  }
+}
+
+void ChipFolder::Shuffle()
+{
+  std::random_device rng;
+  std::mt19937 urng(rng());
+  std::shuffle(folderList.begin(), folderList.end(), urng);
+}
+
+ChipFolder* ChipFolder::Clone() {
+  ChipFolder* clone = new ChipFolder();
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   for (int i = 0; i < folderList.size(); i++) {
     clone->AddChip(*folderList[i]);
   }

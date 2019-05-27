@@ -7,7 +7,7 @@
 #include "bnEngine.h"
 #include "bnLogger.h"
 
-#define RESOURCE_PATH "resources/navis/roll/roll.animation"
+const std::string RESOURCE_PATH = "resources/navis/roll/roll.animation";
 
 Roll::Roll(void) : Player()
 {
@@ -19,8 +19,7 @@ Roll::Roll(void) : Player()
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
 
-  textureType = TextureType::NAVI_ROLL_ATLAS;
-  setTexture(*TEXTURES.GetTexture(textureType));
+  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_ROLL_ATLAS));
 
   this->SetHealth(400);
 

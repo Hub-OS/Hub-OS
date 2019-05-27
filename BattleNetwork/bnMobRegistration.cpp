@@ -32,9 +32,15 @@ MobRegistration::MobInfo& MobRegistration::MobInfo::SetPlaceholderTexturePath(st
   return *this;
 }
 
+<<<<<<< HEAD
 MobRegistration::MobInfo& MobRegistration::MobInfo::SetDescription(const std::string & description)
 {
   this->description = description;
+=======
+MobRegistration::MobInfo& MobRegistration::MobInfo::SetDescription(const std::string & message)
+{
+  this->description = message;
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   return *this;
 }
 

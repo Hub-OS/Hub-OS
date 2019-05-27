@@ -15,7 +15,11 @@
 Starfish::Starfish(Rank _rank)
   : AI<Starfish>(this), AnimatedCharacter(_rank) {
   name = "Starfish";
+<<<<<<< HEAD
   this->team = Team::BLUE;
+=======
+  Entity::team = Team::BLUE;
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   health = 100;
   hit = false;
@@ -47,6 +51,7 @@ Starfish::~Starfish(void) {
 
 }
 
+<<<<<<< HEAD
 int* Starfish::GetAnimOffset() {
   Starfish* mob = this;
 
@@ -56,6 +61,8 @@ int* Starfish::GetAnimOffset() {
   return res;
 }
 
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 void Starfish::Update(float _elapsed) {
   if (!hit) {
     this->SetShader(nullptr);
@@ -64,7 +71,11 @@ void Starfish::Update(float _elapsed) {
     SetShader(whiteout);
   }
 
+<<<<<<< HEAD
   this->RefreshTexture();
+=======
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
@@ -106,6 +117,7 @@ void Starfish::Update(float _elapsed) {
   hit = false;
 }
 
+<<<<<<< HEAD
 void Starfish::RefreshTexture() {
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
@@ -120,6 +132,8 @@ void Starfish::SetHealth(int _health) {
   health = _health;
 }
 
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 const bool Starfish::Hit(Hit::Properties props) {
   /*if (Character::Hit(_damage, props)) {
     SetShader(whiteout);

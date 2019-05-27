@@ -26,7 +26,6 @@ void PA::LoadPA()
 {
   advances.clear();
 
-  // TODO: put this utility in an input stream class and inhert from that
   string data = FileUtil::Read("resources/database/PA.txt");
 
   int endline = 0;
@@ -121,8 +120,6 @@ Chip * PA::GetAdvanceChip()
 const int PA::FindPA(Chip ** input, unsigned size)
 {
   int startIndex = -1;
-
-  std::cout << "size: " << size << "\n";
 
   if (size == 0) {
     return startIndex;

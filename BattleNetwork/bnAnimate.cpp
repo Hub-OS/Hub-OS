@@ -19,6 +19,7 @@ Animate::Animate(Animate& rhs) {
   this->queuedOnFinish = rhs.queuedOnFinish;
   this->isUpdating = rhs.isUpdating;
   this->callbacksAreValid = rhs.callbacksAreValid;
+  this->currentPoints = rhs.currentPoints;
 }
 
 Animate::~Animate() {
@@ -31,185 +32,241 @@ Animate::~Animate() {
   this->queuedOnFinish = nullptr;
 }
 
-void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequence)
-{
-  // std::cout << "progress: " << progress << ", frames: " << sequence.frames.size() << ", totalDur: " << sequence.totalDuration << std::endl;
+void Animate::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
+  if (sequence.frames.size() <= frameIndex) return;
+
+  currentPoints = sequence.frames[frameIndex].points;
+}
+
+void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequence) {
   float startProgress = progress;
-  
+
   // Callbacks are only invalide during clears in the update loop
-  if(!callbacksAreValid) callbacksAreValid = true;
-  
+  if (!callbacksAreValid) callbacksAreValid = true;
+
+  // Set our flag to let callback additions go to the right queue  
   isUpdating = true;
-  // std::cout << "callbacks size: " << this->callbacks.size() << " for " << sequence.frames.size() << " frames " << std::endl;
 
   if (sequence.frames.empty()) {
     if (onFinish != nullptr) {
+      // Fire the onFinish callback if available
       onFinish();
       onFinish = nullptr;
     }
-    
+
+    // We've ended the update loop
     isUpdating = false;
+
+    // All callbacks are in a valid state
     callbacksAreValid = true;
+
+    // Insert any queued callbacks into the callback list
     callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
     queuedCallbacks.clear();
-    
+
+    // Insert any queued one-time callbacks into the one-time callback list
     onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
     queuedOnetimeCallbacks.clear();
-    
-    if(queuedOnFinish) {
-		onFinish = queuedOnFinish;
-		queuedOnFinish = nullptr;
-	}
-	
+
+    // Insert any queued onFinish callback into the onFinish callback
+    if (queuedOnFinish) {
+      onFinish = queuedOnFinish;
+      queuedOnFinish = nullptr;
+    }
+
+    // End
     return;
   }
 
+  // Determine if the progress has completed the animation
   bool applyCallback = (sequence.totalDuration == 0 || (startProgress > sequence.totalDuration && startProgress > 0.f));
 
   if (applyCallback) {
     if (onFinish != nullptr) {
+      // If applicable, fire the onFinish callback
       onFinish();
-      
-      if((playbackMode & Mode::Loop) != Mode::Loop) {
-		 onFinish = nullptr;
-	  }
-	  
-	  isUpdating = false; 
-	  callbacksAreValid = true;
-	  callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
+
+      // If we do not loop the animation, empty the onFinish notifier. Otherwise this fires infinitely.
+      if ((playbackMode & Mode::Loop) != Mode::Loop) {
+        onFinish = nullptr;
+      }
+
+      // We've ended the loop
+      isUpdating = false;
+
+      // Callbacks are valid
+      callbacksAreValid = true;
+
+      // Insert any queued callbacks
+      callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
       queuedCallbacks.clear();
-      
+
+      // Insert any queued one-time callbacks
       onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
       queuedOnetimeCallbacks.clear();
-      
-      if(queuedOnFinish) {
+
+      // If any onFinish notifiers...
+      if (queuedOnFinish) {
+        // Add it
         onFinish = queuedOnFinish;
         queuedOnFinish = nullptr;
-	  }
-	  
+      }
+
+      // End
       return;
     }
   }
 
+  // We may modify the frame order, make a copy
   std::vector<Frame> copy = sequence.frames;
 
+  // If the playback mode is reverse, flip the frames
   if ((playbackMode & Mode::Reverse) == Mode::Reverse) {
     reverse(copy.begin(), copy.end());
   }
 
+  // frame index
   int index = 0;
+
+  // Iterator to the frame itself
   std::vector<Frame>::const_iterator iter = copy.begin();
 
-
+  // While there is time left in the progress loop
   while (iter != copy.end() && startProgress != 0.f) {
+    // Increase the index
     index++;
+
+    // Subtract from the progress
     progress -= (*iter).duration;
 
     // Must be <= and not <, to handle case (progress == frame.duration) correctly
     // We assume progress hits zero because we use it as a decrementing counter
     // We add a check to ensure the start progress wasn't also 0
     // If it did not start at zero, we know we came across the end of the animation
-    if ((progress <= 0.f || &(*iter) == &copy.back()) && startProgress != 0.f)
-    {
+    if ((progress <= 0.f || &(*iter) == &copy.back()) && startProgress != 0.f) {
       std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = this->callbacks.find(index - 1);
       std::map<int, std::function<void()>>::iterator onetimeCallbackIter = this->onetimeCallbacks.find(index - 1);
 
-	  callbackIter = callbacks.begin();
-	  
+      callbackIter = callbacks.begin();
+
       while (callbacksAreValid && callbackIter != callbackFind && callbackFind != this->callbacks.end()) {
-        if(callbackIter->second) {
-		  //std::cout << "functor callback invoked" << std::endl;
+        if (callbackIter->second) {
           callbackIter->second();
-          //std::cout << "post functor callback invocation" << std::endl;
-	    } else {
-		  //std::cout << "callback iter functor was null" << std::endl;
-		}
-		
-		if(!callbacksAreValid) break;
-        
+        }
+
+        // If the callback modified the first callbacks list, break
+        if (!callbacksAreValid) break;
+
+        // Otherwise add the callback into the next loop queue
         nextLoopCallbacks.insert(*callbackIter);
+
+        // Erase the callback so we don't fire again
         callbackIter = callbacks.erase(callbackIter);
+
+        // Find the callback at the given index
         callbackFind = callbacks.find(index - 1);
       }
-      
-      if(callbacksAreValid && callbackIter == callbackFind && callbackFind != this->callbacks.end()) 
-      {
-        if(callbackIter->second) {
-          callbackIter->second();
-	    }
-        
-        if(callbacksAreValid) {
-          nextLoopCallbacks.insert(*callbackIter);
-          callbackIter = callbacks.erase(callbackIter);	  
-	    } 
-	  }
 
-      if (callbacksAreValid && onetimeCallbackIter != this->onetimeCallbacks.end()) {
-        if(onetimeCallbackIter->second) {
-          onetimeCallbackIter->second();
-	    }
-	    
-	    if(callbacksAreValid) {
-	      onetimeCallbacks.erase(onetimeCallbackIter);
-	    }
-      }
+        // If callbacks are ok and the interator matches the expected position
+        if (callbacksAreValid && callbackIter == callbackFind && callbackFind != this->callbacks.end()) {
+          if (callbackIter->second) {
+            callbackIter->second();
+          }
 
-      if ((playbackMode & Mode::Loop) == Mode::Loop && progress > 0.f && &(*iter) == &copy.back()) {
-        if ((playbackMode & Mode::Bounce) == Mode::Bounce) {
-          reverse(copy.begin(), copy.end());
-          iter = copy.begin();
-          iter++;
-        }
-        else {
-          iter = copy.begin();
+          if (callbacksAreValid) {
+            nextLoopCallbacks.insert(*callbackIter);
+            callbackIter = callbacks.erase(callbackIter);
+          }
         }
 
-		this->callbacks.clear();
-        this->callbacks = nextLoopCallbacks;
-        this->nextLoopCallbacks.clear();
-        
-        callbacksAreValid = true;
+        if (callbacksAreValid && onetimeCallbackIter != this->onetimeCallbacks.end()) {
+          if (onetimeCallbackIter->second) {
+            onetimeCallbackIter->second();
+          }
 
-        continue; // Start loop again
+          if (callbacksAreValid) {
+            onetimeCallbacks.erase(onetimeCallbackIter);
+          }
+        }
+
+        // If the playback mode ws set to loop...
+        if ((playbackMode & Mode::Loop) == Mode::Loop && progress > 0.f && &(*iter) == &copy.back()) {
+          // But it was also set to bounce, reverse the list and start over
+          if ((playbackMode & Mode::Bounce) == Mode::Bounce) {
+            reverse(copy.begin(), copy.end());
+            iter = copy.begin();
+            iter++;
+          }
+          else {
+            // It was set only to loop, start from the beginning
+            iter = copy.begin();
+          }
+
+          // Clear any remaining callbacks
+          this->callbacks.clear();
+
+          // Enqueue the callbacks for the next go around
+          this->callbacks = nextLoopCallbacks;
+          this->nextLoopCallbacks.clear();
+
+          callbacksAreValid = true;
+
+          continue; // Start loop again
+        }
+
+        // Apply the frame to the sprite object
+        target.setTextureRect((*iter).subregion);
+
+        // If applicable, apply the origin too
+        if ((*iter).applyOrigin) {
+          target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
+        }
+
+        UpdateCurrentPoints(index, sequence);
+
+        break;
       }
 
-	  target.setTextureRect((*iter).subregion);
-	  if ((*iter).applyOrigin) {
-		target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-	  }
-	  
-      break;
+      // If not finish, go to next frame
+      iter++;
     }
 
-    iter++;
-  }
-  
-  if(iter != copy.end()) {
-    target.setTextureRect((*iter).subregion);
-    if ((*iter).applyOrigin) {
-	  target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
+    // If we prematurely ended the loop, update the sprite
+    if (iter != copy.end()) {
+      target.setTextureRect((*iter).subregion);
+
+      // If applicable, update the origin
+      if ((*iter).applyOrigin) {
+        target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
+      }
+
+      UpdateCurrentPoints(index, sequence);
     }
-  }
-  
-  isUpdating = false;
-  callbacksAreValid = true;
-  //std::cout << "callbacks size before merge with queued: " << callbacks.size() << std::endl;
-  //std::cout << "queued size: " << queuedCallbacks.size() << std::endl;
 
-  callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
-  queuedCallbacks.clear();
-  
-  onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
-  queuedOnetimeCallbacks.clear();
-  
-  if(queuedOnFinish) {
-    onFinish = queuedOnFinish;
-    queuedOnFinish = nullptr;
-  }
+    // End updating flag
+    isUpdating = false;
+    callbacksAreValid = true;
 
-  //std::cout << "callbacks size after merge with queued: " << callbacks.size() << std::endl;
+    // Merge queued callbacks
+    callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
+    queuedCallbacks.clear();
+
+    onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
+    queuedOnetimeCallbacks.clear();
+
+    if (queuedOnFinish) {
+      onFinish = queuedOnFinish;
+      queuedOnFinish = nullptr;
+    }
 }
 
+/**
+ * @brief Add a callback 
+ * @param rhs On struct
+ * @return Animate& to chain
+ * 
+ * If in the middle of an update loop, add to the queue otherwise add directly to callback list
+ */
 Animate & Animate::operator<<(On rhs)
 {
   if(!rhs.callback) return *this;
@@ -250,7 +307,7 @@ void Animate::operator<<(std::function<void()> finishNotifier)
   }
 }
 
-void Animate::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence) const
+void Animate::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)
 {
   int index = 0;
   for (Frame& frame : sequence.frames) {
@@ -261,6 +318,8 @@ void Animate::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)
       if (frame.applyOrigin) {
         target.setOrigin((float)frame.origin.x, (float)frame.origin.y);
       }
+      
+      UpdateCurrentPoints(frameIndex, sequence);
 
       return;
     }

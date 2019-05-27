@@ -9,7 +9,6 @@
 #include "bnEngine.h"
 #include "bnNaviExplodeState.h"
 
-#define RESOURCE_NAME "progsman"
 #define RESOURCE_PATH "resources/mobs/progsman/progsman.animation"
 
 ProgsMan::ProgsMan(Rank _rank)
@@ -21,7 +20,10 @@ ProgsMan::ProgsMan(Rank _rank)
   hitHeight = 64;
   state = MOB_IDLE;
   textureType = TextureType::MOB_PROGSMAN_ATLAS;
+<<<<<<< HEAD
   healthUI = new MobHealthUI(this);
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   this->ChangeState<ProgsManIdleState>();
 
@@ -37,13 +39,17 @@ ProgsMan::ProgsMan(Rank _rank)
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);
+<<<<<<< HEAD
+
+  animationComponent.Update(0);
+}
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   animationComponent.Update(0);
 }
 
-ProgsMan::~ProgsMan(void) {
-}
-
+<<<<<<< HEAD
 int* ProgsMan::GetAnimOffset() {
   int* res = new int[2];
 
@@ -51,6 +57,9 @@ int* ProgsMan::GetAnimOffset() {
   res[1] = 6;
 
   return res;
+=======
+ProgsMan::~ProgsMan() {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
@@ -58,9 +67,13 @@ void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::fu
 }
 
 void ProgsMan::Update(float _elapsed) {
+<<<<<<< HEAD
   healthUI->Update(_elapsed);
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   this->SetShader(nullptr);
-  this->RefreshTexture();
+
+  setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
   if (_elapsed <= 0) return;
 
@@ -68,7 +81,10 @@ void ProgsMan::Update(float _elapsed) {
 
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
+<<<<<<< HEAD
     healthUI->Update(_elapsed);
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
     Character::Update(_elapsed);
 
     if (stunCooldown <= 0) {
@@ -91,13 +107,17 @@ void ProgsMan::Update(float _elapsed) {
   if (GetHealth() <= 0) {
     this->ChangeState<ProgsManHitState>(); // change animation briefly
     this->ChangeState<NaviExplodeState<ProgsMan>>(7, 1.0); // freezes animation
+<<<<<<< HEAD
 
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
     this->LockState();
   }
   else {
     animationComponent.Update(_elapsed);
   }
 
+<<<<<<< HEAD
   Character::Update(_elapsed);
 }
 
@@ -120,6 +140,24 @@ void ProgsMan::SetHealth(int _health) {
 const bool ProgsMan::Hit(Hit::Properties props) {
   (health - props.damage < 0) ? health = 0 : health -= props.damage;
   SetShader(whiteout);
+=======
+  // Must call this
+  Character::Update(_elapsed);
+}
+
+const bool ProgsMan::Hit(Hit::Properties props) {
+  (health - props.damage < 0) ? health = 0 : health -= props.damage;
+  SetShader(whiteout);
+
+  if ((props.flags & Hit::recoil) == Hit::recoil) {
+    this->ChangeState<ProgsManHitState>();
+  }
+
+  if ((props.flags & Hit::stun) == Hit::stun) {
+    SetShader(stun);
+    this->stunCooldown = props.secs;
+  }
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   if ((props.flags & Hit::recoil) == Hit::recoil) {
     this->ChangeState<ProgsManHitState>();

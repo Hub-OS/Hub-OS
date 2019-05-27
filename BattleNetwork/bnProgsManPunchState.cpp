@@ -36,6 +36,7 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
     Entity* entity = 0;
 
     if (next) {
+<<<<<<< HEAD
       auto characters = next->FindEntities([](Entity* in) { return dynamic_cast<Character*>(in); });
 
       for (int i = 0; i < characters.size(); i++) {
@@ -46,12 +47,30 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
           props.aggressor = &progs;
           hitbox->SetHitboxProperties(props);
 
+=======
+      // Get all the characters on the tile
+      auto characters = next->FindEntities([](Entity* in) { return dynamic_cast<Character*>(in); });
+ 
+      // Spawn a hurt box 
+      for (int i = 0; i < characters.size(); i++) {
+        if (characters[i]->GetTeam() != progs.GetTeam()) {
+          HitBox* hitbox = new HitBox(progs.GetField(), progs.GetTeam(), 20);
+          auto props = hitbox->GetHitboxProperties();
+          props.flags = props.flags | Hit::breaking;
+          props.aggressor = &progs;
+          hitbox->SetHitboxProperties(props);
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
           progs.GetField()->AddEntity(*hitbox, next->GetX(), next->GetY());
 
           props.flags = Hit::none;
           props.damage = 0;
 
+<<<<<<< HEAD
           // use for testing
+=======
+          // push every single character 
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
           if ((dynamic_cast<Character*>(characters[i]))->Hit(props)) {
             characters[i]->SlideToTile(true);
             characters[i]->Move(Direction::LEFT);

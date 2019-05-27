@@ -12,7 +12,10 @@ HideUntil::HideUntil(Character* owner, HideUntil::Callback callback) : callback(
 void HideUntil::Update(float _elapsed) {
   if ((callback && callback()) && temp) {
     temp->AddEntity(*this->owner);
+<<<<<<< HEAD
     this->GetOwner()->FreeComponentByID(this->GetID());
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
     this->scene->Eject(this);
     delete this;
   }
@@ -24,6 +27,12 @@ void HideUntil::Inject(BattleScene& scene) {
 
   // it is safe now to temporarily remove from character from play
   // the component is now injected into the scene's update loop
+<<<<<<< HEAD
+=======
+  
+  this->GetOwner()->FreeComponentByID(this->GetID());
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (temp) {
     temp->ReserveEntityByID(owner->GetID());
     temp->RemoveEntityByID(owner->GetID());

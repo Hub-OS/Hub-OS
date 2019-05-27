@@ -19,14 +19,25 @@ SwordEffect::SwordEffect(Field* field) : Artifact(field, Team::UNKNOWN)
 
   animation.SetAnimation("DEFAULT");
 
+<<<<<<< HEAD
+=======
+  // Create a callback
+  // When animation ends
+  // delete this effect
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   auto onEnd = [this]() {
     this->Delete();
   };
 
   animation << onEnd;
 
+<<<<<<< HEAD
   animation.Update(0, *this);
 
+=======
+  // Use the first rect in the frame list
+  animation.Update(0, *this);
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 void SwordEffect::Update(float _elapsed) {

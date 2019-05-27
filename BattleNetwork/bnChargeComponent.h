@@ -16,14 +16,38 @@ class Entity;
 /*!
  * TODO: use component system
 */
+<<<<<<< HEAD
 class ChargeComponent : public LayeredDrawable {
+=======
+
+/**
+ * @class ChargeComponent
+ * @author mav
+ * @date 05/05/19
+ * @brief Draws on top of attached entity
+ */
+class ChargeComponent : public SpriteSceneNode {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 public:
   ChargeComponent(Entity* _entity);
   ~ChargeComponent();
 
   void Update(float _elapsed);
+<<<<<<< HEAD
+=======
+  
+  /**
+   * @brief If true, the component begins to charge. Otherwise, cancels charge
+   * @param _charging
+   */
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void SetCharging(bool _charging);
   float GetChargeCounter() const;
+  
+  /**
+   * @brief Check full charge time
+   * @return true if the charge component is at peak charge time
+   */
   const bool IsFullyCharged() const;
 
 private:

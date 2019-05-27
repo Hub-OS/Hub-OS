@@ -6,6 +6,13 @@
 #include "bnMobHealthUI.h"
 #include "bnCounterHitPublisher.h"
 
+/**
+ * @class Canodumb
+ * @author mav
+ * @date 05/05/19
+ * @brief Classic cannon enemy waits for opponent to be in view.
+ * @warning Legacy code. Should update code.
+ */
 class Canodumb : public AnimatedCharacter, public AI<Canodumb> {
   friend class CanodumbIdleState;
   friend class CanodumbMoveState;
@@ -14,14 +21,24 @@ class Canodumb : public AnimatedCharacter, public AI<Canodumb> {
 
 public:
   Canodumb(Rank _rank = Character::Rank::_1);
-  virtual ~Canodumb(void);
+  virtual ~Canodumb();
 
+  /**
+   * @brief When health is low, deletes. Updates AI
+   * @param _elapsed
+   */
   virtual void Update(float _elapsed);
+<<<<<<< HEAD
   int* GetAnimOffset();
+=======
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;
 
-private:
+  virtual const bool OnHit(Hit::Properties props) { return false; }
+  virtual void OnDelete() { ; }
+
   sf::Shader* whiteout;
   sf::Shader* stun;
 

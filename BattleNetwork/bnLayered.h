@@ -5,7 +5,11 @@
 #include <iostream>
 
 #include "bnSmartShader.h"
+<<<<<<< HEAD
 #include "bnSceneNode.h"
+=======
+#include "bnSpriteSceneNode.h"
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 using sf::Drawable;
 using sf::RenderWindow;
@@ -14,6 +18,7 @@ using sf::Event;
 using sf::Sprite;
 using std::vector;
 
+<<<<<<< HEAD
 // TODO: rename to SpriteNode and move to own file
 class LayeredDrawable : public SceneNode {
 private:
@@ -128,22 +133,31 @@ public:
 };
 
 class Layers : vector<LayeredDrawable*> {
+=======
+/*! \warning Legacy code that can and should be removed from the engine.
+ *  \brief Originally the battle scene was split into layers before using scene nodes
+ * 
+ * Bottom layer was tiles, mid layer was sprites, and top layer was UI.
+ * This is no longer used but lingers in the code base. Remove asap.
+ */
+class Layers : vector<SpriteSceneNode*> {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 public:
   int min;
   int max;
 
-  void Insert(LayeredDrawable* _layeredDrawable) {
-    if (_layeredDrawable->GetLayer() > max) {
-      max = _layeredDrawable->GetLayer();
-    } else if (_layeredDrawable->GetLayer() < min) {
-      min = _layeredDrawable->GetLayer();
+  void Insert(SpriteSceneNode* node) {
+    if (node->GetLayer() > max) {
+      max = node->GetLayer();
+    } else if (node->GetLayer() < min) {
+      min = node->GetLayer();
     }
 
-    push_back(_layeredDrawable);
+    push_back(node);
   }
 
-  vector<LayeredDrawable*> At(int _layer) {
-    vector<LayeredDrawable*> layer = vector<LayeredDrawable*>();
+  vector<SpriteSceneNode*> At(int _layer) {
+    vector<SpriteSceneNode*> layer = vector<SpriteSceneNode*>();
     auto it = begin();
     for (it; it != end(); ++it) {
       if ((*it)->GetLayer() == _layer) {

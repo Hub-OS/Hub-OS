@@ -24,9 +24,7 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
 
   direction = Direction::NONE;
   deleted = false;
-  hit = false;
-  progress = 0.0f;
-  hitHeight = 0.0f;
+
   random = rand() % 20 - 20;
 
   int lr = (team == Team::RED) ? 1 : -1;
@@ -41,37 +39,37 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
-	
-  Battle::Tile* next = nullptr;
-  int max = 3;
-  while(field->GetNextTile(next)) {
-	  if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != this->GetTeam()) {
-		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
-        Battle::Tile* below = field->GetAt(next->GetX(), next->GetY() + 1);
 
-		auto characters = prev->FindEntities([](Entity* in) {
-		    return (dynamic_cast<Character*>(in) && in->GetTeam() != Team::UNKNOWN);
+  Battle::Tile* next = nullptr;
+
+  auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
+  auto iter = allTiles.begin();
+
+  while (iter != allTiles.end()) {
+    next = (*iter);
+
+	  if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
+		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
+
+		auto characters = prev->FindEntities([_summons](Entity* in) {
+			return _summons->GetCaller() != in && (dynamic_cast<Character*>(in) && in->GetTeam() != Team::UNKNOWN);
 		});
-	
+
 	    bool blocked = (characters.size() > 0) || !prev->IsWalkable();
-	    
-	    if(!blocked && max > 0) {
-	        max--;
+
+	    if(!blocked) {
 			targets.push_back(next);
-			//targets.push_back(below);
 	    }
 	  }
+
+    iter++;
   }
 
-  // Protoman attacks from left-to-right
-  std::sort(targets.begin(), targets.end(), [](Battle::Tile* a, Battle::Tile* b) { return a->GetX() < b->GetX(); });
-    
   // TODO: noodely callbacks desgin might be best abstracted by ActionLists
-  animationComponent.SetAnimation("APPEAR", [this] { 
+  animationComponent.SetAnimation("APPEAR", [this] {
 	auto handleAttack = [this] () {
 	    this->DoAttackStep();
     };
-    
     this->animationComponent.SetAnimation("MOVE", handleAttack);
   });
 }
@@ -84,7 +82,7 @@ void ProtoManSummon::DoAttackStep() {
 	Battle::Tile* prev = field->GetAt(targets[0]->GetX() - 1, targets[0]->GetY());
     this->GetTile()->RemoveEntityByID(this->GetID());
     prev->AddEntity(*this);
-		
+
 	this->animationComponent.SetAnimation("ATTACK", [this, prev] {
 	  this->animationComponent.SetAnimation("MOVE", [this, prev] {
 		this->DoAttackStep();
@@ -92,28 +90,15 @@ void ProtoManSummon::DoAttackStep() {
 	});
 
 	this->animationComponent.AddCallback(4,  [this]() {
-        SwordEffect* effect = new SwordEffect(GetField());
-        GetField()->AddEntity(*effect, targets[0]->GetX(), targets[0]->GetY());
-        this->summons->SummonEntity(effect, false);
-        AUDIO.Play(AudioType::SWORD_SWING);
-
 		this->targets[0]->AffectEntities(this);
-
-		// The tile below... this really should use Wide Sword behavior...
-		//if(	this->targets[1]) {
-        //    this->targets[1]->AffectEntities(this);
-        //}
-
 		this->targets.erase(targets.begin());
-        //this->targets.erase(targets.begin());
-    }, std::function<void()>(), true);
-	
+	}, std::function<void()>(), true);
   }
   else {
 	this->animationComponent.SetAnimation("MOVE", [this] {
 	// TODO: queue for removal by next update, dont delete immediately
 	// esp during anim callbacks...
-	  this->summons->RemoveEntity(this);
+    this->Delete();
 	});
   }
 }
@@ -124,18 +109,23 @@ void ProtoManSummon::Update(float _elapsed) {
   }
 
   Entity::Update(_elapsed);
-  
   animationComponent.Update(_elapsed);
 }
 
 bool ProtoManSummon::Move(Direction _direction) {
-  return true;
+  return false;
 }
 
 void ProtoManSummon::Attack(Character* _entity) {
+  SwordEffect* effect = new SwordEffect(GetField());
+  GetField()->AddEntity(*effect, _entity->GetTile()->GetX(), _entity->GetTile()->GetY());
+  this->summons->SummonEntity(effect, false);
+
   auto props = Hit::DefaultProperties;
   props.damage = 120;
   props.flags |= Hit::recoil;
   _entity->Hit(props);
 
+
+  AUDIO.Play(AudioType::SWORD_SWING);
 }

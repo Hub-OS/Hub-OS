@@ -1,3 +1,10 @@
+/*! \file bnQueueNaviRegistration.h */
+
+/*! \brief This function hooks into the loading phase and loads extra content
+ * 
+ * This will soon be replaced by a script parser to load extra content without 
+ * needing to recompile */
+
 #pragma once
 
 // Register these navis
@@ -5,9 +12,6 @@
 #include "bnStarman.h"
 #include "bnRoll.h"
 
-/***********************************************************************
-************    Register your custom navis here    *********************
-************************************************************************/
 
 void QueuNaviRegistration() {
   /*********************************************************************

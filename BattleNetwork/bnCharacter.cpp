@@ -9,7 +9,11 @@ Character::Character(Rank _rank) :
   health(0),
   maxHealth(0),
   counterable(false),
+<<<<<<< HEAD
   draggable(true),
+=======
+  pushable(true),
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   canShareTile(false),
   stunCooldown(0),
   name("unnamed"),
@@ -20,6 +24,7 @@ Character::Character(Rank _rank) :
   CounterHitPublisher() {
   burnCycle = sf::milliseconds(150);
   elapsedBurnTime = burnCycle.asSeconds();
+<<<<<<< HEAD
   team = Team::UNKNOWN;
   isBattleActive = false;
   deleted = false;
@@ -28,6 +33,8 @@ Character::Character(Rank _rank) :
   isSliding = false;
   floatShoe = false;
   airShoe = false;
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 Character::~Character() {
@@ -40,6 +47,7 @@ const Character::Rank Character::GetRank() const {
 void Character::ShareTileSpace(bool enabled)
 {
   canShareTile = enabled;
+<<<<<<< HEAD
 }
 
 const bool Character::CanShareTileSpace() const
@@ -95,24 +103,63 @@ bool Character::CanMoveTo(Battle::Tile * next)
   };
 
   return (Entity::CanMoveTo(next) && next->FindEntities(occupied).size() == 0);
+=======
 }
 
-void Character::AddAnimation(string _state, FrameList _frameList, float _duration) {
-  assert(false && "AddAnimation shouldn't be called directly from Character");
-}
-
-void Character::SetAnimation(string _state) {
-  assert(false && "SetAnimation shouldn't be called directly from Character");
-}
-
-void Character::SetCounterFrame(int frame)
+const bool Character::CanShareTileSpace() const
 {
-  assert(false && "SetCounterFrame shouldn't be called directly from Character");
+  return this->canShareTile;
 }
 
-void Character::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce)
+void Character::SetPushable(bool enabled)
 {
-  assert(false && "OnFrameCallback shouldn't be called directly from Character");
+  this->pushable = enabled;
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
+}
+
+void Character::Update(float _elapsed) {
+  elapsedBurnTime -= _elapsed;
+
+  if (this->IsBattleActive() && !this->HasFloatShoe()) {
+    if (this->GetTile()) {
+      if (this->GetTile()->GetState() == TileState::POISON) {
+        if (elapsedBurnTime <= 0) {
+          if (this->Hit(Hit::Properties({ 1, 0x00, Element::NONE, 0, nullptr }))) {
+            elapsedBurnTime = burnCycle.asSeconds();
+          }
+        }
+      }
+      else {
+        elapsedBurnTime = 0;
+      }
+
+      if (this->GetTile()->GetState() == TileState::LAVA) {
+        if (this->Hit(Hit::Properties({ 50, Hit::pierce, Element::FIRE, 0, nullptr }))) {
+          Field* field = GetField();
+          Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
+          field->AddEntity(*explosion, tile->GetX(), tile->GetY());
+          this->GetTile()->SetState(TileState::NORMAL);
+        }
+      }
+    }
+  }
+
+  //if (this->GetHealth() <= 0 && this->isSliding) {
+  //  this->isSliding = false;
+  //}
+
+  Entity::Update(_elapsed);
+}
+
+bool Character::CanMoveTo(Battle::Tile * next)
+{
+  auto occupied = [this](Entity* in) {
+    Character* c = dynamic_cast<Character*>(in);
+
+    return c && c != this && !c->CanShareTileSpace();
+  };
+
+  return (Entity::CanMoveTo(next) && next->FindEntities(occupied).size() == 0);
 }
 
 int Character::GetHealth() const {
@@ -124,6 +171,7 @@ const int Character::GetMaxHealth() const
   return this->maxHealth;
 }
 
+<<<<<<< HEAD
 const bool Character::Hit(Hit::Properties props) {
   this->frameHitProps |= props.flags;
   this->frameDamageTaken += props.damage;
@@ -133,6 +181,20 @@ const bool Character::Hit(Hit::Properties props) {
 
 void Character::ResolveFrameBattleDamage()
 {
+=======
+void Character::ResolveFrameBattleDamage()
+{
+  if(this->statusQueue.empty()) return;
+  
+  Hit::Properties& props = this->statusQueue.front();
+  
+  while(props.flags == Hit::none) {
+    this->statusQueue.pop();
+    if(this->statusQueue.empty()) return;
+    props = this->statusQueue.front();
+  }
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   (health - this->frameDamageTaken < 0) ? this->SetHealth(0) : this->SetHealth(health - this->frameDamageTaken);
 
   if (this->IsCountered() && (this->frameHitProps & Hit::recoil) == Hit::recoil) {
@@ -142,6 +204,7 @@ void Character::ResolveFrameBattleDamage()
       // Slide entity back a few pixels
       this->tileOffset = sf::Vector2f(50.f, 0.0f);
     }
+<<<<<<< HEAD
 
     //this->Broadcast(*this, *props.aggressor);
   }
@@ -154,9 +217,21 @@ void Character::ResolveFrameBattleDamage()
   this->frameDamageTaken = 0;
   this->frameHitProps = Hit::none;
 }
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
-int* Character::GetAnimOffset() {
-  return nullptr;
+    if(props.aggressor) {
+      this->Broadcast(*this, *props.aggressor);
+    }
+  }
+
+  if (this->GetHealth() == 0 && !this->invokeDeletion) {
+    this->OnDelete();
+    this->invokeDeletion = true;
+  }
+
+  this->frameDamageTaken = 0;
+  this->frameHitProps = Hit::none;
 }
 
 void Character::SetHealth(const int _health) {
@@ -219,10 +294,14 @@ void Character::AddDefenseRule(DefenseRule * rule)
 void Character::RemoveDefenseRule(DefenseRule * rule)
 {
   auto iter = std::remove_if(defenses.begin(), defenses.end(), [&rule](DefenseRule * in) { return in == rule; });
+<<<<<<< HEAD
 
   //if (iter != defenses.end()) {
     defenses.erase(iter);
   //}
+=======
+  defenses.erase(iter);
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 const bool Character::CheckDefenses(Spell* in)

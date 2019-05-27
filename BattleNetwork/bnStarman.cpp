@@ -9,16 +9,10 @@
 
 #define RESOURCE_PATH "resources/navis/starman/starman.animation"
 
-#define MOVE_ANIMATION_SPRITES 4
-#define MOVE_ANIMATION_WIDTH 38
-#define MOVE_ANIMATION_HEIGHT 58
-
-#define SHOOT_ANIMATION_SPRITES 5
-#define SHOOT_ANIMATION_WIDTH 75
-#define SHOOT_ANIMATION_HEIGHT 58
-
-Starman::Starman(void) : Player()
+Starman::Starman() : Player()
 {
+  // Most of this is pretty redundant
+  // But left as example
   name = "Starman";
   SetLayer(0);
   team = Team::RED;
@@ -27,8 +21,8 @@ Starman::Starman(void) : Player()
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
 
-  textureType = TextureType::NAVI_STARMAN_ATLAS;
-  setTexture(*TEXTURES.GetTexture(textureType));
+  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_STARMAN_ATLAS));
 
+  // Starman has FloatShoe enabled
   SetFloatShoe(true);
 }

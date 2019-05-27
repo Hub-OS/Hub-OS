@@ -8,8 +8,19 @@ frame duration="0.1" x="96" y="201" w="59" h="56" originx="28" originy="45"
 frame duration="0.1" x="155" y="201" w="59" h="56" originx="28" originy="45"
 
 animation state="BARRIER_100"
+<<<<<<< HEAD
 frame duration="0.1" x="0" y="3" w="59" h="58" originx="30" originy="42"
 frame duration="0.1" x="59" y="2" w="64" h="64" originx="33" originy="43"
 frame duration="0.1" x="123" y="1" w="67" h="67" originx="32" originy="44"
 frame duration="0.1" x="189" y="1" w="70" h="65" originx="31" originy="44"
+=======
+frame duration="0.05" x="0" y="3" w="59" h="58" originx="30" originy="42"
+frame duration="0.0166" x="0" y="3" w="0" h="0" originx="30" originy="42"
+frame duration="0.05" x="59" y="2" w="64" h="64" originx="33" originy="43"
+frame duration="0.0166" x="0" y="3" w="0" h="0" originx="30" originy="42"
+frame duration="0.05" x="123" y="1" w="67" h="67" originx="32" originy="44"
+frame duration="0.0166" x="0" y="3" w="0" h="0" originx="30" originy="42"
+frame duration="0.05" x="189" y="1" w="70" h="65" originx="31" originy="44"
+frame duration="0.0166" x="0" y="3" w="0" h="0" originx="30" originy="42"
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 

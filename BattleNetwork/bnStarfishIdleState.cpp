@@ -13,6 +13,10 @@ void StarfishIdleState::OnEnter(Starfish& star) {
 
 void StarfishIdleState::OnUpdate(float _elapsed, Starfish& star) {
   if (cooldown < 0) {
+<<<<<<< HEAD
+=======
+    // Attack 3 times
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
     this->ChangeState<StarfishAttackState>(3);
   }
 

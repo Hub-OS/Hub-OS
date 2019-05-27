@@ -1,30 +1,39 @@
 #pragma once
-#include "bnMeta.h"
 #include "bnEntity.h"
 #include "bnAIState.h"
 #include "bnExplosion.h"
 #include "bnShaderResourceManager.h"
 
-/*
-  This state can be used by any Entity in the engine. 
-  It uses constraints to ensure the type passed in Any 
-  is a subclass of Entity. 
-
-  This state spawns an explosion and flickers the 
-  entity at it's current animation. Once the explosion
-  is finished, the entity is tried for deletion. Since 
-  this state is used when health < 0, the deletion will
-  succeed.
-*/
+/**
+ * @class ExplodeState
+ * @author mav
+ * @date 04/05/19
+ * @brief Locks an entity into this state and spawns explosions
+ * 
+ * This state can be used by any Entity in the engine. 
+ * It uses constraints to ensure the type passed in Any 
+ * is a subclass of Entity. 
+ *
+ * This state spawns an explosion and flickers the 
+ * entity at it's current animation. Once the explosion
+ * is finished, the entity is tried for deletion. Since 
+ * this state is used when health < 0, the deletion will
+ * succeed.
+ */
 template<typename Any>
 class ExplodeState : public AIState<Any>
 {
 protected:
+<<<<<<< HEAD
   Entity* explosion;
   sf::Shader* whiteout;
+=======
+  Entity* explosion; /*!< The root explosion object */
+  sf::Shader* whiteout; /*!< Flash the dying entity white */
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   double elapsed;
-  int numOfExplosions;
-  double playbackSpeed;
+  int numOfExplosions; /*!< Number of explosions to spawn */
+  double playbackSpeed; /*!< how fast the animation should be */
 public:
 
   ExplodeState(int _numOfExplosions=2, double _playbackSpeed=0.55);
@@ -41,10 +50,14 @@ public:
 template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
+<<<<<<< HEAD
   // Enforce template constraints on class
   _DerivedFrom<Any, Entity>();
 
   // If we make it here, we are the proper type
+=======
+ 
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   explosion = nullptr;
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);

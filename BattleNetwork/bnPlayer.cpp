@@ -22,6 +22,15 @@ Player::Player(void)
   Character(Rank::_1)
 {
   this->ChangeState<PlayerIdleState>();
+<<<<<<< HEAD
+=======
+  
+  // The charge component is also a scene node
+  // Make sure the charge is in front of this node
+  // Otherwise children scene nodes are drawn behind 
+  // their parents
+  chargeComponent.SetLayer(-1);
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   this->AddNode(&chargeComponent);
   chargeComponent.setPosition(0, -20.0f); // translate up -20
 
@@ -33,15 +42,12 @@ Player::Player(void)
 
   moveCount = hitCount = 0;
 
-  //Animation
-  animationProgress = 0.0f;
   setScale(2.0f, 2.0f);
 
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
 
-  textureType = TextureType::NAVI_MEGAMAN_ATLAS;
-  setTexture(*TEXTURES.GetTexture(textureType));
+  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
   previous = nullptr;
 
@@ -50,7 +56,11 @@ Player::Player(void)
   invincibilityCooldown = 0;
 }
 
+<<<<<<< HEAD
 Player::~Player(void) {
+=======
+Player::~Player() {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 void Player::Update(float _elapsed) {
@@ -58,6 +68,15 @@ void Player::Update(float _elapsed) {
 
   if (_elapsed <= 0)
     return;
+  
+  // Bubble traps are imposed on other entities
+  // It's up to the entities to handle custom states
+  // Intercept the BubbleTrap component
+  // And then change the state to the special BubbleState<> implementation
+  Component* c = GetComponent<BubbleTrap>();
+  if (c) {
+    this->ChangeState<BubbleState<Player, PlayerControlledState>>();
+  }
 
   Component* c = GetComponent<BubbleTrap>();
   if (c) {
@@ -75,11 +94,18 @@ void Player::Update(float _elapsed) {
     this->animationComponent.SetAnimation(PLAYER_HIT);
     this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
     AI<Player>::Update(_elapsed);
+<<<<<<< HEAD
 
     return;
   }
 
+=======
+    return;
+  }
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (invincibilityCooldown > 0) {
+    // This just blinks every 15 frames
     if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
       this->Hide();
     }
@@ -100,10 +126,17 @@ void Player::Update(float _elapsed) {
 
   Character::Update(_elapsed);
 }
+<<<<<<< HEAD
 
 void Player::Attack(float _charge) {
   if (!tile) return;
 
+=======
+
+void Player::Attack() {
+  if (!tile) return;
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
     Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged());
     spell->SetDirection(Direction::RIGHT);
@@ -111,6 +144,7 @@ void Player::Attack(float _charge) {
   }
 }
 
+<<<<<<< HEAD
 void Player::SetHealth(int _health) {
   health = _health;
 
@@ -122,6 +156,10 @@ int Player::GetHealth() const {
 }
 
 const bool Player::Hit(Hit::Properties props) {
+=======
+const bool Player::Hit(Hit::Properties props) {
+  // Don't take damage while blinking
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (invincibilityCooldown > 0) return false;
 
   if (health - props.damage < 0) {
@@ -131,8 +169,15 @@ const bool Player::Hit(Hit::Properties props) {
     health -= props.damage;
     hitCount++;
 
+<<<<<<< HEAD
     if ((props.flags & Hit::recoil) == Hit::recoil) {
       this->ChangeState<PlayerHitState, float>({ (float)props.secs });
+=======
+    // Respond to the recoil bit state
+    if ((props.flags & Hit::recoil) == Hit::recoil) {
+      // this->ChangeState<PlayerHitState>((float)props.secs );
+      this->ChangeState<PlayerHitState>();
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
     }
   }
 

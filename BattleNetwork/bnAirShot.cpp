@@ -32,30 +32,15 @@ AirShot::AirShot(Field* _field, Team _team, int _damage) {
   cooldown = 0.0f;
 
   damage = _damage;
-  //TODO: make new sprite animation for charged bullet
-  texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
-
-  setScale(2.f, 2.f);
-  for (int x = 0; x < BULLET_ANIMATION_SPRITES; x++) {
-    animation.Add(0.3f, IntRect(BULLET_ANIMATION_WIDTH*x, 0, BULLET_ANIMATION_WIDTH, BULLET_ANIMATION_HEIGHT));
-  }
 }
 
-AirShot::~AirShot(void) {
+AirShot::~AirShot() {
 }
 
 void AirShot::Update(float _elapsed) {
   if (hit) {
-    if (progress == 0.0f) {
-      setTexture(*texture);
-      setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
-    }
-    progress += 3 * _elapsed;
-    animator(fmin(progress, 1.0f), *this, animation);
-    if (progress >= 1.f) {
       deleted = true;
       Entity::Update(_elapsed);
-    }
     return;
   }
 
@@ -124,10 +109,7 @@ void AirShot::Attack(Character* _entity) {
       hit = true;
 
       _entity->SlideToTile(true);
-      if (_entity->Move(direction)) {
-        std::cout << "shouldn't be called" << std::endl;
-        _entity->AdoptNextTile();
-      }
+      _entity->Move(direction);
     }
   }
 }

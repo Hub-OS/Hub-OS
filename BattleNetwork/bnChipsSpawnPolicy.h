@@ -3,10 +3,19 @@
 #include "bnEnemyChipsUI.h"
 #include "bnChip.h"
 
+<<<<<<< HEAD
 /*
 Spawn a character with chips
 */
 
+=======
+/**
+ * @class ChipSpawnPolicyChipset
+ * @author mav
+ * @date 05/05/19
+ * @brief Spawn a character with hard-coded chip values
+ */
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class ChipSpawnPolicyChipset {
 public:
   std::vector<Chip> chips;
@@ -34,6 +43,15 @@ protected:
   }
 };
 
+<<<<<<< HEAD
+=======
+/**
+ * @class ChipsSpawnPolicy
+ * @author mav
+ * @date 05/05/19
+ * @brief Spawn an entity with chips
+ */
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 template<class T, class DefaultState = NoState<T>, class ChipSet = ChipSpawnPolicyChipset>
 class ChipsSpawnPolicy : public SpawnPolicy<T> {
 private:

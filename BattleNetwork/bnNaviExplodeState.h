@@ -1,8 +1,22 @@
+<<<<<<< HEAD
+=======
+/*! \brief This state can be used by any Entity in the engine.
+ *
+ *
+ * This state spawns an explosion and flickers the
+ * entity at it's current animation frame. Once the explosion
+ * is finished, the entity is tried for deletion. Since
+ * this state is used when health < 0, the deletion will
+ * succeed.
+ */
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnExplodeState.h"
 #include "bnShineExplosion.h"
 #include "bnTextureResourceManager.h"
 
+<<<<<<< HEAD
 /*
   This state can be used by any Entity in the engine.
   It uses constraints to ensure the type passed in Any
@@ -14,10 +28,13 @@
   this state is used when health < 0, the deletion will
   succeed.
 */
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 template<typename Any>
 class NaviExplodeState : public ExplodeState<Any>
 {
 protected:
+<<<<<<< HEAD
   ShineExplosion* shine;
 
 public:
@@ -27,6 +44,45 @@ public:
 
   void OnEnter(Any& e);
   void OnUpdate(float _elapsed, Any& e);
+=======
+  ShineExplosion* shine; /*!< Shine X that appears over navi ranked enemies */
+
+public:
+
+  /**
+   * @brief Constructor
+   * @param _numOfExplosions
+   * @param _playbackSpeed
+   * 
+   * Calls super ExplodeState<Any>(_numOfExplosions, _playbackSpeed)
+   */
+  NaviExplodeState(int _numOfExplosions = 2, double _playbackSpeed = 0.55);
+  
+  /**
+   * @brief deconstructor
+   */
+  virtual ~NaviExplodeState();
+
+  /**
+   * @brief Calls ExplodeState<Any>::OnEnter(e)
+   * @param e entity
+   * 
+   * Adds shine effect on field
+   */
+  void OnEnter(Any& e);
+  
+  /**
+   * @brief Calls ExplodeState<Any>::Update() and if e is deleted, removes the shine from the field
+   * @param _elapsed in seconds
+   * @param e entity
+   */
+  void OnUpdate(float _elapsed, Any& e);
+  
+  /**
+   * @brief Calls ExplodeState<Any>::OnLeave(e)
+   * @param e entity
+   */
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void OnLeave(Any& e);
 };
 

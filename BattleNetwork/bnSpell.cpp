@@ -8,20 +8,22 @@
 #include "bnTextureResourceManager.h"
 
 
-Spell::Spell(void) : animationComponent(this), Entity() {
+Spell::Spell() : animationComponent(this), Entity() {
   SetFloatShoe(true);
   SetLayer(1);
+<<<<<<< HEAD
   hit = false;
   srand((unsigned int)time(nullptr));
   progress = 0.0f;
   hitHeight = 0.0f;
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   direction = Direction::NONE;
-  texture = nullptr;
   markTile = false;
   hitboxProperties.flags = Hit::none;
 }
 
-Spell::~Spell(void) {
+Spell::~Spell() {
 }
 
 const bool Spell::IsTileHighlightEnabled() const {

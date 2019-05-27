@@ -11,14 +11,21 @@ using std::to_string;
 MobHealthUI::MobHealthUI(Character* _mob)
   : mob(_mob), UIComponent(_mob) {
   healthCounter = mob->GetHealth();
+<<<<<<< HEAD
   loaded = false;
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   cooldown = 0;
   color = sf::Color::White;
   glyphs.setTexture(LOAD_TEXTURE(ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 }
 
+<<<<<<< HEAD
 MobHealthUI::~MobHealthUI(void) {
+=======
+MobHealthUI::~MobHealthUI() {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 /*
@@ -69,7 +76,11 @@ void MobHealthUI::Update(float elapsed) {
 
 void MobHealthUI::Inject(BattleScene & scene)
 {
+<<<<<<< HEAD
   // Todo: add this free step to inject step? It's manadatory. No sense repeating this every time
+=======
+  // TODO: add this free step to inject step? It's manadatory. No sense repeating this every time
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   GetOwner()->FreeComponentByID(this->GetID()); // We are owned by the scene now 
   scene.Inject(*this);
 }

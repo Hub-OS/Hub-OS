@@ -16,13 +16,11 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   team = _team;
   direction = Direction::NONE;
   deleted = false;
-  hit = false;
-  texture = TEXTURES.GetTexture(TextureType::SPELL_PROG_BOMB);
+  
+  auto texture = TEXTURES.GetTexture(TextureType::SPELL_PROG_BOMB);
   setTexture(*texture);
   setScale(2.f, 2.f);
 
-  progress = 0.0f;
-  hitHeight = 0.0f;
   random = 0;
 
   auto props = Hit::DefaultProperties;

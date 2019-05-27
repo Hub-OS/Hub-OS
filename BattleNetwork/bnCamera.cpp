@@ -9,7 +9,7 @@ Camera::Camera(const sf::View& view) : focus(view)
   dur = sf::milliseconds((sf::Int32)progress);
   shakeProgress = 1.f;
   shakeDur = dur;
-  init = view;
+  init = focus = view;
   isShaking = false;
 }
 
@@ -29,13 +29,16 @@ Camera::~Camera()
 }
 
 void Camera::Update(float elapsed) {
+  // Compare as milliseconds
   progress += elapsed*1000;
   shakeProgress += elapsed*1000;
 
+  // If progress is over, update position to the dest
   if (sf::Time(sf::milliseconds((sf::Int32)progress)) >= dur) {
     PlaceCamera(dest);
   }
-  else {
+  else {  
+    // Otherwise calculate the delta
     sf::Vector2f delta = (dest - origin) * (progress / dur.asMilliseconds()) + origin;
     PlaceCamera(delta);
   }
@@ -45,6 +48,10 @@ void Camera::Update(float elapsed) {
       // Drop off to zero by end of shake
       double currStress = stress *(1 - (shakeProgress / shakeDur.asMilliseconds()));
 
+<<<<<<< HEAD
+=======
+      // TODO:use perlin noise
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
       int randomAngle = shakeProgress * (rand() % 360);
       randomAngle += (150 + (rand() % 60));
 
@@ -56,6 +63,7 @@ void Camera::Update(float elapsed) {
       focus = init;
       dest = focus.getCenter();
       isShaking = false;
+      stress = 0;
     }
   }
 }
@@ -67,8 +75,9 @@ void Camera::MoveCamera(sf::Vector2f destination, sf::Time duration) {
   dur = duration;
 }
 
-void Camera::PlaceCamera(sf::Vector2f pos) { 
+void Camera::PlaceCamera(sf::Vector2f pos) {
   focus.setCenter(pos);
+  init = focus;
   dest = focus.getCenter();
 }
 
@@ -93,6 +102,8 @@ bool Camera::IsInView(sf::Sprite& sprite) {
 
 void Camera::ShakeCamera(double stress, sf::Time duration)
 {
+  if(isShaking) return;
+  
   init = focus;
   this->stress = stress;
   shakeDur = duration;

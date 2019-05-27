@@ -6,7 +6,7 @@
 
 #define WILDCARD '*'
 #define VOIDED 0
-#define STAGED  1
+#define STAGED 1
 #define QUEUED 2
 
 ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) :
@@ -397,11 +397,11 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
       if (queue[i].state == 0) {
         icon.SetShader(&greyscale);
-
         auto statesCopy = states;
           statesCopy.shader = &greyscale;
 
         target.draw(icon,statesCopy);
+
       } else if (queue[i].state == 1) {
         target.draw(icon, states);
       }
@@ -452,6 +452,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
           statesCopy.shader = &greyscale;
 
           target.draw(chipCard, statesCopy);
+
         } else {
           target.draw(chipCard, states);
         }
@@ -530,7 +531,6 @@ void ChipSelectionCust::Update(float elapsed)
 
   emblem.Update(elapsed);
 
-
 #ifdef __ANDROID__
   sf::Vector2i touchPosition = sf::Touch::getPosition(0, *ENGINE.GetWindow());
   sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetDefaultView());
@@ -599,8 +599,10 @@ void ChipSelectionCust::Update(float elapsed)
 }
 
 Chip** ChipSelectionCust::GetChips() {
+  // Allocate selected chips list
   selectedChips = (Chip**)malloc(sizeof(Chip*)*selectCount);
 
+  // Point to selected queue
   for (int i = 0; i < selectCount; i++) {
     selectedChips[i] = (*(selectQueue[i])).data;
   }
@@ -612,16 +614,18 @@ void ChipSelectionCust::ClearChips() {
   if (areChipsReady) {
     for (int i = 0; i < selectCount; i++) {
       selectedChips[i] = nullptr; // point away
-      //delete (*(selectQueue[i])).data;
       (*(selectQueue[i])).data = nullptr;
     }
-
+  
+    // Deleted the selected chips array
     if (selectCount > 0) {
       delete[] selectedChips;
     }
   }
 
   // Restructure queue
+  // Line up all non-null buckets consequtively
+  // Reset bucket state to STAGED
   for (int i = 0; i < chipCount; i++) {
     queue[i].state = STAGED;
     int next = i;

@@ -60,6 +60,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
 
   folderBox = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX));
   folderBox.setScale(2.f, 2.f);
+<<<<<<< HEAD
 
   folderOptions = sf::Sprite(LOAD_TEXTURE(FOLDER_OPTIONS));
   folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
@@ -69,6 +70,17 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   folderCursor = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX_CURSOR));
   folderCursor.setScale(2.f, 2.f);
 
+=======
+
+  folderOptions = sf::Sprite(LOAD_TEXTURE(FOLDER_OPTIONS));
+  folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
+  folderOptions.setPosition(98.0f, 210.0f);
+  folderOptions.setScale(2.f, 2.f);
+
+  folderCursor = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX_CURSOR));
+  folderCursor.setScale(2.f, 2.f);
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   folderEquip = sf::Sprite(LOAD_TEXTURE(FOLDER_EQUIP));
   folderEquip.setScale(2.f, 2.f);
 
@@ -111,6 +123,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
     numOfChips = 0;
   }
 }
+<<<<<<< HEAD
 
 FolderScene::~FolderScene() { ; }
 
@@ -160,6 +173,51 @@ void FolderScene::onUpdate(double elapsed) {
       if (INPUT.Has(PRESSED_UP)) {
         selectInputCooldown -= elapsed;
 
+=======
+
+FolderScene::~FolderScene() { ; }
+
+void FolderScene::onStart() {
+  ENGINE.SetCamera(camera);
+
+  gotoNextScene = false;
+}
+
+void FolderScene::onUpdate(double elapsed) {
+  bool folderSwitch = false;
+
+  frameElapsed = elapsed;
+  totalTimeElapsed += elapsed;
+
+  camera.Update((float)elapsed);
+  folderCursorAnimation.Update((float)elapsed, folderCursor);
+  equipAnimation.Update((float)elapsed, folderEquip);
+
+  // Scene keyboard controls
+  if (enterText) {
+    if (INPUT.Has(RELEASED_B)) {
+      this->enterText = false;
+      bool changed = collection.SetFolderName(folderNames[currFolderIndex], folder);
+
+      if (!changed) {
+        folderNames[currFolderIndex] = collection.GetFolderNames()[currFolderIndex];
+      }
+
+      INPUT.EndCaptureInputBuffer();
+    }
+    else {
+      std::string buffer = INPUT.GetInputBuffer();
+
+      buffer = buffer.substr(0, 10);
+      folderNames[currFolderIndex] = buffer;
+
+      INPUT.SetInputBuffer(buffer); // shrink
+    }
+  } else if (!gotoNextScene) {
+      if (INPUT.Has(PRESSED_UP)) {
+        selectInputCooldown -= elapsed;
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
         if (selectInputCooldown <= 0) {
           selectInputCooldown = maxSelectInputCooldown;
 
@@ -235,9 +293,12 @@ void FolderScene::onUpdate(double elapsed) {
         }
       }
 
+<<<<<<< HEAD
     InputEvent  cancelButton = RELEASED_B;
 
 
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
       if (INPUT.Has(PRESSED_B)) {
         if (!promptOptions) {
           gotoNextScene = true;
@@ -246,16 +307,23 @@ void FolderScene::onUpdate(double elapsed) {
           using swoosh::intent::direction;
           using segue = swoosh::intent::segue<PushIn<direction::right>>;
           getController().queuePop<segue>();
+<<<<<<< HEAD
         } else {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
         }
       } else if (INPUT.Has(RELEASED_B)) {
           if (promptOptions) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
           }
+<<<<<<< HEAD
       } else if (INPUT.Has(PRESSED_A)) {
+=======
+      } else if (INPUT.Has(RELEASED_A)) {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
         if (!promptOptions) {
           promptOptions = true;
           AUDIO.Play(AudioType::CHIP_DESC);
@@ -275,6 +343,7 @@ void FolderScene::onUpdate(double elapsed) {
             break;
           }
         }
+<<<<<<< HEAD
       }
 
   }
@@ -396,6 +465,125 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
   }
 
+=======
+      }
+
+  }
+}
+
+void FolderScene::onLeave() {
+
+}
+
+void FolderScene::onExit()
+{
+}
+
+void FolderScene::onEnter()
+{
+}
+
+void FolderScene::onResume() {
+
+}
+
+void FolderScene::onDraw(sf::RenderTexture& surface) {
+  ENGINE.SetRenderSurface(surface);
+
+  ENGINE.Draw(bg);
+  ENGINE.Draw(menuLabel);
+
+  if (folderNames.size() > 0) {
+    for (int i = 0; i < folderNames.size(); i++) {
+      folderBox.setPosition(26.0f + (i*144.0f) - (float)folderOffsetX, 34.0f);
+      ENGINE.Draw(folderBox);
+
+      chipLabel->setFillColor(sf::Color::White);
+      chipLabel->setString(folderNames[i]);
+      chipLabel->setOrigin(chipLabel->getGlobalBounds().width / 2.0f, chipLabel->getGlobalBounds().height / 2.0f);
+      chipLabel->setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
+      ENGINE.Draw(chipLabel, false);
+
+      if (i == selectedFolderIndex) {
+        folderEquip.setPosition(25.0f + (i*144.0f) - (float)folderOffsetX, 30.0f);
+        ENGINE.Draw(folderEquip, false);
+      }
+
+    }
+
+    auto x = swoosh::ease::interpolate((float)frameElapsed*7.f, folderCursor.getPosition().x, 98.0f + (std::min(2,currFolderIndex)*144.0f));
+    folderCursor.setPosition(x, 68.0f);
+
+    if(currFolderIndex > 2) {
+      folderOffsetX = swoosh::ease::interpolate(frameElapsed*7.0, folderOffsetX, (double)(((currFolderIndex-2)*144.0f)));
+    }
+    else {
+      folderOffsetX = swoosh::ease::interpolate(frameElapsed*7.0, folderOffsetX, 0.0);
+    }
+
+    ENGINE.Draw(folderCursor, false);
+  }
+
+  // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
+  float top = 120.0f; float bottom = 170.0f;
+  float depth = ((float)(currChipIndex) / (float)numOfChips)*bottom;
+  scrollbar.setPosition(436.f, top + depth);
+
+  ENGINE.Draw(scrollbar);
+
+  if (!folder) return;
+  if (folder && folder->GetSize() == 0) return;
+
+  // Move the chip library iterator to the current highlighted chip
+  ChipFolder::Iter iter = folder->Begin();
+
+  for (int j = 0; j < currChipIndex; j++) {
+    iter++;
+  }
+
+  // Now that we are at the viewing range, draw each chip in the list
+  for (int i = 0; i < maxChipsOnScreen && currChipIndex + i < numOfChips; i++) {
+    chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(((*iter)->GetIconID())));
+    chipIcon.setPosition(2.f*104.f, 133.0f + (32.f*i));
+    ENGINE.Draw(chipIcon, false);
+
+    chipLabel->setOrigin(0.0f, 0.0f);
+    chipLabel->setFillColor(sf::Color::White);
+    chipLabel->setPosition(2.f*120.f, 128.0f + (32.f*i));
+    chipLabel->setString((*iter)->GetShortName());
+    ENGINE.Draw(chipLabel, false);
+
+
+    int offset = (int)((*iter)->GetElement());
+    element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+    element.setPosition(2.f*173.f, 133.0f + (32.f*i));
+    ENGINE.Draw(element, false);
+
+    chipLabel->setOrigin(0, 0);
+    chipLabel->setPosition(2.f*190.f, 128.0f + (32.f*i));
+    chipLabel->setString(std::string() + (*iter)->GetCode());
+    ENGINE.Draw(chipLabel, false);
+
+    iter++;
+  }
+
+  auto y = swoosh::ease::interpolate((float)frameElapsed*7.0f, cursor.getPosition().y, 170.0f + ((optionIndex)*32.0f));
+  cursor.setPosition(2.0, y);
+
+  float scale = 0.0f;
+
+  ENGINE.Draw(folderOptions);
+
+
+  if (promptOptions) {
+   scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
+   ENGINE.Draw(cursor);
+  }
+  else {
+    scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
+  }
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   folderOptions.setScale(2.0f, scale);
 }
 

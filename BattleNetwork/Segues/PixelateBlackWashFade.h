@@ -8,6 +8,7 @@ using namespace swoosh;
 namespace {
   auto PIXELATE_SHADER = GLSL
   (
+<<<<<<< HEAD
     100,
     precision lowp float;
     precision lowp int;
@@ -16,13 +17,22 @@ namespace {
     varying vec4 vColor;
 
     uniform sampler2D texture; // Our render texture
+=======
+    110,
+    uniform sampler2D texture;
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
     uniform float pixel_threshold;
 
     void main()
     {
       float factor = 1.0 / (pixel_threshold + 0.001);
+<<<<<<< HEAD
       vec2 pos = floor(vTexCoord.xy * factor + 0.5) / factor;
       gl_FragColor = texture2D(texture, pos) * vColor;
+=======
+      vec2 pos = floor(gl_TexCoord[0].xy * factor + 0.5) / factor;
+      gl_FragColor = texture2D(texture, pos) * gl_Color;
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
     }
   );
 }
@@ -31,10 +41,14 @@ class PixelateBlackWashFade : public Segue {
 private:
   sf::Shader shader;
   float factor;
+<<<<<<< HEAD
   bool loaded;
   bool nextScreen;
 
   sf::Texture* temp;
+=======
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 public:
   virtual void onDraw(sf::RenderTexture& surface) {
     double elapsed = getElapsed().asMilliseconds();
@@ -43,6 +57,7 @@ public:
 
     if (elapsed <= duration * 0.5)
       this->drawLastActivity(surface);
+<<<<<<< HEAD
     else {
         if(loaded && !nextScreen) {
             loaded = false;
@@ -64,6 +79,13 @@ public:
       temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
 #endif
 
+=======
+    else
+      this->drawNextActivity(surface);
+
+    surface.display();
+    sf::Texture* temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
     sf::Sprite sprite(*temp);
 
     shader.setUniform("texture", *temp);
@@ -87,6 +109,7 @@ public:
   }
 
   PixelateBlackWashFade(sf::Time duration, Activity* last, Activity* next) : Segue(duration, last, next) {
+<<<<<<< HEAD
       loaded = nextScreen = false;
 
     shader.loadFromMemory("uniform mat4 viewMatrix;\n"
@@ -115,4 +138,10 @@ public:
       }
 #endif
   }
+=======
+    shader.loadFromMemory(::PIXELATE_SHADER, sf::Shader::Fragment);
+  }
+
+  virtual ~PixelateBlackWashFade() { ; }
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

@@ -26,7 +26,6 @@ Cannon::Cannon(Field* _field, Team _team, int _damage) {
   deleted = false;
   hit = false;
   progress = 0.0f;
-  hitHeight = 10.0f;
   srand((unsigned int)time(nullptr));
   random = rand() % 20 - 20;
 
@@ -40,7 +39,7 @@ Cannon::Cannon(Field* _field, Team _team, int _damage) {
   }
 }
 
-Cannon::~Cannon(void) {
+Cannon::~Cannon() {
 }
 
 void Cannon::Update(float _elapsed) {
@@ -120,6 +119,7 @@ void Cannon::Attack(Character* _entity) {
 
   if (!_entity->IsPassthrough()) {
     hit = true;
+<<<<<<< HEAD
   }
 
   Character* isCharacter = dynamic_cast<Character*>(_entity);
@@ -127,6 +127,8 @@ void Cannon::Attack(Character* _entity) {
   if (isCharacter && isCharacter->IsCountered()) {
     AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
     isCharacter->Stun(1000);
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   }
 }
 

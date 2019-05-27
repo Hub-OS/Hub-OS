@@ -14,6 +14,10 @@
 
 Canodumb::Canodumb(Rank _rank)
   :  AI<Canodumb>(this), AnimatedCharacter(_rank) {
+<<<<<<< HEAD
+=======
+  // this->StateChange<CanodumbIdleState>();
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   Entity::team = Team::BLUE;
   hitHeight = 25;
   healthUI = new MobHealthUI(this);
@@ -47,21 +51,20 @@ Canodumb::Canodumb(Rank _rank)
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);
+<<<<<<< HEAD
 
   animationComponent.Update(0);
 }
 
 Canodumb::~Canodumb(void) {
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
+  animationComponent.Update(0);
 }
 
-int* Canodumb::GetAnimOffset() {
-  int* res = new int[2];
+Canodumb::~Canodumb() {
 
-  res[0] = 15;
-  res[1] = 0;
-
-  return res;
 }
 
 void Canodumb::Update(float _elapsed) {
@@ -108,6 +111,7 @@ void Canodumb::Update(float _elapsed) {
 }
 
 const bool Canodumb::Hit(Hit::Properties props) {
+<<<<<<< HEAD
 
   // TODO: USE THIS
   /*
@@ -127,6 +131,16 @@ const bool Canodumb::Hit(Hit::Properties props) {
   else {
     health -= props.damage;
 
+=======
+  bool result = true;
+
+  if (health - props.damage < 0) {
+    health = 0;
+  }
+  else {
+    health -= props.damage;
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
     if ((props.flags & Hit::stun) == Hit::stun) {
       SetShader(stun);
       this->stunCooldown = props.secs;

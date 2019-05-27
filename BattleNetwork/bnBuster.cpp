@@ -10,7 +10,10 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
+<<<<<<< HEAD
 // TODO: TAKE THIS OUT AFTER HIT PROPERTIES AND RESOLVES ARE IMPLEMENTED. THIS IS FOR POC ONLY.
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #include "bnGuardHit.h"
 #include "bnGear.h" 
 
@@ -55,12 +58,15 @@ Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), 
 
   AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::HIGH);
 
+<<<<<<< HEAD
   // TODO: take these out of POC
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   contact = nullptr;
   spawnGuard = false;
 }
 
-Buster::~Buster(void) {
+Buster::~Buster() {
 }
 
 void Buster::Update(float _elapsed) {
@@ -133,7 +139,10 @@ bool Buster::Move(Direction _direction) {
 void Buster::Attack(Character* _entity) {
   if (hit || deleted) return;
 
+<<<<<<< HEAD
   // TODO: Add guard component to gear and take out this entirely
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (dynamic_cast<Gear*>(_entity)) {
     spawnGuard = true;
     contact = _entity;

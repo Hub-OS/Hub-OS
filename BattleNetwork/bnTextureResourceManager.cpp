@@ -1,11 +1,11 @@
+#include "bnTextureResourceManager.h"
+
 #include <stdlib.h>
 #include <atomic>
 #include <sstream>
-using std::stringstream;
 #include <fstream>
 using std::ifstream;
-
-#include "bnTextureResourceManager.h"
+using std::stringstream;
 
 TextureResourceManager& TextureResourceManager::GetInstance() {
   static TextureResourceManager instance;
@@ -53,8 +53,6 @@ sf::IntRect TextureResourceManager::GetCardRectFromID(unsigned ID) {
 
 sf::IntRect TextureResourceManager::GetIconRectFromID(unsigned ID) {
   sf::IntRect result  = sf::IntRect(1+((ID % 20) * 16), 1+((ID / 20) * 16), 14, 14);
-
-  // Start mapping icons to cards
   return result;
 }
 

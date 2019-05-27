@@ -13,7 +13,11 @@ MysteryData::MysteryData(Field* _field, Team _team) : animation(this), Character
   this->SetHealth(1);
 }
 
+<<<<<<< HEAD
 MysteryData::~MysteryData(void) {
+=======
+MysteryData::~MysteryData() {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 }
 
@@ -32,9 +36,18 @@ void MysteryData::Update(float _elapsed) {
 }
 
 const bool MysteryData::Hit(Hit::Properties props) {
+<<<<<<< HEAD
   this->SetHealth(0);
   
   return true;
+=======
+  if((props.flags & Hit::impact) == Hit::impact) {
+    this->SetHealth(0);
+    return true;
+  }
+  
+  return false;
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 void MysteryData::RewardPlayer()

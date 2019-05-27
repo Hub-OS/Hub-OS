@@ -11,9 +11,19 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   deleted = false;
   hit = false;
   health = 1;
+<<<<<<< HEAD
   texture = TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png");
 
   // why do we need this??
+=======
+  
+  auto texture = TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png");
+  setTexture(*texture);
+  setScale(2.f, 2.f);
+  // why do we need to do this??
+  // The super constructor is failing to set this value
+  // TODO: find out why
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   this->team = _team;
 
   this->speed = speed;
@@ -32,12 +42,20 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   this->SetFloatShoe(true);
 }
 
+<<<<<<< HEAD
 Fishy::~Fishy(void) {
 }
 
 void Fishy::Update(float _elapsed) {
   setTexture(*texture);
   setScale(2.f, 2.f);
+=======
+Fishy::~Fishy() {
+}
+
+void Fishy::Update(float _elapsed) {
+
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   setPosition(tile->getPosition().x + tileOffset.x - 40.0f, tile->getPosition().y + tileOffset.y - 120.0f);
 
   if (this->GetTile()->GetX() == 6) {

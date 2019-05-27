@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FB93F4F7-06CB-4793-B163-47A6BBC7E7CD}</ProjectGuid>
     <RootNamespace>BattleNetwork</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -75,10 +75,12 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(VC_LibraryPath_x64)\extern\SFML\lib;$(VC_LibraryPath_x64)\extern\SFML\extlibs\libs-msvc-universal\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <EnableManagedIncrementalBuild>false</EnableManagedIncrementalBuild>
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(VC_LibraryPath_x64)\extern\SFML\lib;$(VC_LibraryPath_x64)\extern\SFML\extlibs\libs-msvc-universal\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -105,12 +107,13 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)extern\SFML\extlibs\libs-msvc\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>freetype.lib;glew.lib;jpeg.lib;openal32.lib;sndfile.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-audio-d.lib;sfml-main-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)extern\SFML\extlibs\libs-msvc-universal\x64;$(SolutionDir)extern\SFML\lib\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>openal32.lib;freetype.lib;Winmm.lib;OpenGL32.lib;sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-graphics-s-d.lib;sfml-audio-s-d.lib;sfml-main-d.lib;flac.lib;ogg.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -148,7 +151,7 @@
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)extern\Swoosh\src;$(SolutionDir)extern\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <EnablePREfast>false</EnablePREfast>
       <DebugInformationFormat>None</DebugInformationFormat>
@@ -158,13 +161,14 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)extern\SFML\extlibs\libs-msvc\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew.lib;jpeg.lib;openal32.lib;sndfile.lib;freetype.lib;Winmm.lib;OpenGL32.lib;sfml-system-s.lib;sfml-window-s.lib;sfml-graphics-s.lib;sfml-audio.lib;sfml-main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)extern\SFML\extlibs\libs-msvc-universal\x64;$(SolutionDir)extern\SFML\lib\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>openal32.lib;freetype.lib;Winmm.lib;OpenGL32.lib;sfml-system-s.lib;sfml-window-s.lib;sfml-graphics-s.lib;sfml-audio-s.lib;sfml-main.lib;flac.lib;ogg.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
@@ -179,7 +183,6 @@
     <ClCompile Include="bnAnimatedTextBox.cpp" />
     <ClCompile Include="bnAnimation.cpp" />
     <ClCompile Include="bnAura.cpp" />
-    <ClCompile Include="bnAuraHealthUI.cpp" />
     <ClCompile Include="bnBasicSword.cpp" />
     <ClCompile Include="bnBattleResults.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -272,6 +275,7 @@
     <ClCompile Include="bnProgsManIdleState.cpp" />
     <ClCompile Include="bnProgsManShootState.cpp" />
     <ClCompile Include="bnProgsManThrowState.cpp" />
+    <ClCompile Include="bnProtoManSummon.cpp" />
     <ClCompile Include="bnRandomMettaurMob.cpp" />
     <ClCompile Include="bnReflectShield.cpp" />
     <ClCompile Include="bnRockDebris.cpp" />
@@ -279,14 +283,18 @@
     <ClCompile Include="bnRollHeal.cpp" />
     <ClCompile Include="bnRollHeart.cpp" />
     <ClCompile Include="bnRowHit.cpp" />
+    <ClCompile Include="bnSceneNode.cpp" />
     <ClCompile Include="bnSelectNaviScene.cpp" />
     <ClCompile Include="bnShaderResourceManager.cpp" />
+    <ClCompile Include="bnSharedHitBox.cpp" />
     <ClCompile Include="bnShineExplosion.cpp" />
+    <ClCompile Include="bnSpriteSceneNode.cpp" />
     <ClCompile Include="bnStarfish.cpp" />
     <ClCompile Include="bnStarfishAttackState.cpp" />
     <ClCompile Include="bnStarfishIdleState.cpp" />
     <ClCompile Include="bnStarfishMob.cpp" />
     <ClCompile Include="bnStarman.cpp" />
+    <ClCompile Include="bnSwordEffect.cpp" />
     <ClCompile Include="bnThunder.cpp" />
     <ClCompile Include="bnTile.cpp" />
     <ClCompile Include="bnPlayer.cpp" />
@@ -305,7 +313,9 @@
     <ClCompile Include="bnCamera.cpp" />
     <ClCompile Include="bnCanonSmoke.cpp" />
     <ClCompile Include="bnInvis.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main.cpp">
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp17</LanguageStandard>
+    </ClCompile>
     <ClCompile Include="bnProgsManMoveState.cpp" />
     <ClCompile Include="bnProgsManPunchState.cpp" />
     <ClCompile Include="bnSmartShader.cpp" />
@@ -323,7 +333,6 @@
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
     <ClInclude Include="bnAura.h" />
-    <ClInclude Include="bnAuraHealthUI.h" />
     <ClInclude Include="bnBattleOverTrigger.h" />
     <ClInclude Include="bnBubble.h" />
     <ClInclude Include="bnBubbleState.h" />
@@ -386,16 +395,20 @@
     <ClInclude Include="bnProgsmanHitState.h" />
     <ClInclude Include="bnProgsManShootState.h" />
     <ClInclude Include="bnProgsManThrowState.h" />
+    <ClInclude Include="bnProtoManSummon.h" />
     <ClInclude Include="bnQueueMobRegistration.h" />
     <ClInclude Include="bnReflectShield.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />
     <ClInclude Include="bnRowHit.h" />
+    <ClInclude Include="bnSharedHitBox.h" />
     <ClInclude Include="bnShineExplosion.h" />
+    <ClInclude Include="bnSpriteSceneNode.h" />
     <ClInclude Include="bnStarfish.h" />
     <ClInclude Include="bnStarfishAttackState.h" />
     <ClInclude Include="bnStarfishIdleState.h" />
     <ClInclude Include="bnStarfishMob.h" />
+    <ClInclude Include="bnSwordEffect.h" />
     <ClInclude Include="bnThunder.h" />
     <ClInclude Include="bnTileBehavior.h" />
     <ClInclude Include="bnElements.h" />

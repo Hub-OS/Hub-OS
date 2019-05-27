@@ -16,12 +16,19 @@ void Engine::Initialize() {
   original = view; // never changes 
   cam = new Camera(view);
 
+<<<<<<< HEAD
 #ifdef __ANDROID__
   window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition");
 #else
   window = new RenderWindow(sf::VideoMode::getDesktopMode(), "Battle Network: Progs Edition");
 #endif
 
+=======
+  sf::ContextSettings ctx;
+  ctx.antialiasingLevel = 8;
+
+  window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition", 7U, ctx);
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   window->setFramerateLimit(60);
   window->setMouseCursorVisible(false); // Hide cursor
 
@@ -35,12 +42,16 @@ void Engine::Draw(Drawable& _drawable, bool applyShaders) {
   if (!HasRenderSurface()) return;
 
   if (applyShaders) {
+<<<<<<< HEAD
     auto stateCopy = state;
     if(!stateCopy.shader) {
       stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
     }
     surface->draw(_drawable, stateCopy);
 
+=======
+    surface->draw(_drawable, state);
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   } else {
     surface->draw(_drawable);
   }
@@ -54,23 +65,31 @@ void Engine::Draw(Drawable* _drawable, bool applyShaders) {
   }
 
   if (applyShaders) {
+<<<<<<< HEAD
     auto stateCopy = state;
     if(!stateCopy.shader) {
       stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
     }
     surface->draw(*_drawable, stateCopy);
+=======
+    surface->draw(*_drawable, state);
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   } else {
     surface->draw(*_drawable);
   }
 }
 
+<<<<<<< HEAD
 void Engine::Draw(LayeredDrawable* _drawable) {
+=======
+void Engine::Draw(SpriteSceneNode* _drawable) {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (!HasRenderSurface()) return;
 
   // For now, support at most one shader.
   // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
-  LayeredDrawable* context = _drawable;
+  SpriteSceneNode* context = _drawable;
   SmartShader* shader = &context->GetShader();
 
   if (shader && shader->Get()) {
@@ -87,7 +106,11 @@ void Engine::Draw(LayeredDrawable* _drawable) {
     context->draw(*surface, state);
   }
 }
+<<<<<<< HEAD
 void Engine::Draw(vector<LayeredDrawable*> _drawable) {
+=======
+void Engine::Draw(vector<SpriteSceneNode*> _drawable) {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (!HasRenderSurface()) return;
 
   auto it = _drawable.begin();
@@ -119,7 +142,7 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
     // For now, support at most one shader.
     // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
-    LayeredDrawable* context = *it;
+    SpriteSceneNode* context = *it;
     SmartShader& shader = context->GetShader();
     if (shader.Get() != nullptr) {
       shader.ApplyUniforms();
@@ -156,9 +179,12 @@ void Engine::Clear() {
     surface->clear();
   }
 
+<<<<<<< HEAD
   underlay.Clear();
   layers.Clear();
   overlay.Clear();
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   window->clear();
 }
 
@@ -166,61 +192,18 @@ RenderWindow* Engine::GetWindow() const {
   return window;
 }
 
-Engine::Engine(void)
-  : layers(Layers()),
-  overlay(Overlay()),
-  underlay(Underlay()) {
+Engine::Engine()
+{
 
   cam = new Camera(view);
 }
 
-Engine::~Engine(void) {
+Engine::~Engine() {
   delete window;
 }
 
 const sf::Vector2f Engine::GetViewOffset() {
   return GetDefaultView().getCenter() - cam->GetView().getCenter();
-}
-
-void Engine::Push(LayeredDrawable* _drawable) {
-  if (_drawable) {
-    layers.Insert(_drawable);
-  }
-}
-
-void Engine::Lay(LayeredDrawable* _drawable) {
-  if (_drawable) {
-    overlay.Push(_drawable);
-  }
-}
-
-void Engine::Lay(vector<sf::Drawable*> _drawable) {
-  auto it = _drawable.begin();
-  for (it; it != _drawable.end(); ++it) {
-    if (*it) {
-      overlay.Push(*it);
-    }
-  }
-}
-
-void Engine::LayUnder(sf::Drawable* _drawable) {
-  if (_drawable) {
-    underlay.Push(_drawable);
-  }
-}
-
-void Engine::DrawLayers() {
-  for (int i = layers.min; i <= layers.max; i++) {
-    Draw(layers.At(i));
-  }
-}
-
-void Engine::DrawOverlay() {
-  Draw(overlay, false);
-}
-
-void Engine::DrawUnderlay() {
-  Draw(underlay);
 }
 
 void Engine::SetShader(sf::Shader* shader) {

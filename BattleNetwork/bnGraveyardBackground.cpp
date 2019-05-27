@@ -28,8 +28,12 @@ void GraveyardBackground::Update(float _elapsed) {
   if (x > 1) x = 0;
   if (y > 1) y = 0;
 
+  // Progress goes from 0 to 1. Therefore frame goes from 0 to 8.
   int frame = (int)(progress * COMPONENT_FRAME_COUNT);
 
+  // Wrap by x,y movement
   Wrap(sf::Vector2f(x, y));
+  
+  // Animate by offsetting the texture sample by the frame count
   TextureOffset(sf::Vector2f((float)(frame*COMPONENT_WIDTH), 0));
 }

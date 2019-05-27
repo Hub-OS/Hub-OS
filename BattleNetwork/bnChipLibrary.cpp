@@ -118,7 +118,6 @@ Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
 
 // Used as the folder in battle
 void ChipLibrary::LoadLibrary() {
-  // TODO: put this utility in an input stream class and inhert from that
   string data = FileUtil::Read("resources/database/library.txt");
 
   int endline = 0;

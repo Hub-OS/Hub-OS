@@ -16,7 +16,11 @@ const bool DefenseAntiDamage::Check(Spell * in, Character* owner)
 {
   auto props = in->GetHitboxProperties();
 
+<<<<<<< HEAD
   if ((props.flags & Hit::impact) == Hit::impact && props.damage >= 10) {
+=======
+  if ((props.flags & Hit::impact) == Hit::impact && props.damage > 10) {
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
     owner->GetField()->AddEntity(*new HitBox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
 

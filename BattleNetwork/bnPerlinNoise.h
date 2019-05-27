@@ -1,3 +1,5 @@
+/*! \brief perlin noise generator for better random values */
+
 #pragma once
 #include <vector>
 #include <cmath>

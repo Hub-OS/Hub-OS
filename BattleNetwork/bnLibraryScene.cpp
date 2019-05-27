@@ -98,11 +98,14 @@ LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
+<<<<<<< HEAD
 
 #ifdef __ANDROID__
 maxSelectInputCooldown = 0.1;
 #endif
 
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   selectInputCooldown = maxSelectInputCooldown;
 
   // Chip UI font
@@ -312,10 +315,13 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(bg);
   ENGINE.Draw(menuLabel);
 
+<<<<<<< HEAD
   ENGINE.DrawUnderlay();
   ENGINE.DrawLayers();
   ENGINE.DrawOverlay();
 
+=======
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
   ENGINE.Draw(folderDock);
   ENGINE.Draw(chipHolder);
 

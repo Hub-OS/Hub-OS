@@ -11,6 +11,22 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 
+<<<<<<< HEAD
+=======
+/**
+ * @class FolderEditScene
+ * @author mav
+ * @date 04/05/19
+ * @brief Edit folder contents and select from chip pool
+ * @important the games, the chip pool chip count is not shared by folders
+ * 
+ * User can select chip and switch to the chip pool on the right side of the scene to select chips
+ * to swap out for. 
+ * 
+ * Before leaving the user is prompted to save changes
+ */
+ 
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class FolderEditScene : public swoosh::Activity {
 private:
   Camera camera;
