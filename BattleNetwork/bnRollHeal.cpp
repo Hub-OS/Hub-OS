@@ -87,6 +87,8 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
             found = true;
           }
         }
+
+        iter++;
       }
 
       if (found) {

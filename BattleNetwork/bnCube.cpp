@@ -56,7 +56,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
 
       bool stop = false;
 
-      while (next->GetNextEntity(other)) {
+      auto allEntities = next->FindEntities([&stop, &other, this](Entity* e) -> bool { 
         Cube* isCube = dynamic_cast<Cube*>(other);
 
         if (isCube && isCube->GetElement() == Element::ICE && this->GetElement() == Element::ICE) {
@@ -68,7 +68,9 @@ bool Cube::CanMoveTo(Battle::Tile * next)
         else if (isCube) {
           stop = true;
         }
-      }
+
+        return false;
+      });
 
       if (stop) {
         this->SetDirection(Direction::NONE);

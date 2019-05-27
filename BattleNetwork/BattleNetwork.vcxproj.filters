@@ -449,6 +449,21 @@
     <Filter Include="Activities\Battle\Content\Entities\Obstacle\Fishy">
       <UniqueIdentifier>{8bea6c2f-52ce-4aa9-beeb-01d59ee9a3fb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\Graphics\SceneNodes\Sprites">
+      <UniqueIdentifier>{4f57f2cc-2325-4004-b156-95f580a09792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Summons\Protoman">
+      <UniqueIdentifier>{17a8525c-da31-4531-a1f7-f5d397b3e7fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\HitBox\SharedHitBox">
+      <UniqueIdentifier>{445f22e8-8c11-4df2-916a-61302a2f333f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Sword">
+      <UniqueIdentifier>{6f5254a4-970e-4e23-b3ee-a601c77a9b68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Sword\WideSword">
+      <UniqueIdentifier>{59a47cd0-7db6-490e-83e9-44c52783111c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -858,6 +873,21 @@
     </ClCompile>
     <ClCompile Include="bnEnemyChipsUI.cpp">
       <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
+    </ClCompile>
+    <ClCompile Include="bnSpriteSceneNode.cpp">
+      <Filter>Engine\Graphics\SceneNodes\Sprites</Filter>
+    </ClCompile>
+    <ClCompile Include="bnSceneNode.cpp">
+      <Filter>Engine\Graphics\SceneNodes</Filter>
+    </ClCompile>
+    <ClCompile Include="bnProtoManSummon.cpp">
+      <Filter>Activities\Battle\Content\Entities\Summons\Protoman</Filter>
+    </ClCompile>
+    <ClCompile Include="bnSharedHitBox.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\HitBox\SharedHitBox</Filter>
+    </ClCompile>
+    <ClCompile Include="bnSwordEffect.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Sword\WideSword</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1407,6 +1437,18 @@
     </ClInclude>
     <ClInclude Include="bnEnemyChipsUI.h">
       <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSpriteSceneNode.h">
+      <Filter>Engine\Graphics\SceneNodes\Sprites</Filter>
+    </ClInclude>
+    <ClInclude Include="bnProtoManSummon.h">
+      <Filter>Activities\Battle\Content\Entities\Summons\Protoman</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSharedHitBox.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\HitBox\SharedHitBox</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSwordEffect.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Sword\WideSword</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

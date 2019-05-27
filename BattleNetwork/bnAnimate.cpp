@@ -33,6 +33,8 @@ Animate::~Animate() {
 }
 
 void Animate::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
+  if (sequence.frames.size() <= frameIndex) return;
+
   currentPoints = sequence.frames[frameIndex].points;
 }
 
@@ -150,19 +152,20 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
       while (callbacksAreValid && callbackIter != callbackFind && callbackFind != this->callbacks.end()) {
         if (callbackIter->second) {
           callbackIter->second();
-
-          // If the callback modified the first callbacks list, break
-          if (!callbacksAreValid) break;
-
-          // Otherwise add the callback into the next loop queue
-          nextLoopCallbacks.insert(*callbackIter);
-
-          // Erase the callback so we don't fire again
-          callbackIter = callbacks.erase(callbackIter);
-
-          // Find the callback at the given index
-          callbackFind = callbacks.find(index - 1);
         }
+
+        // If the callback modified the first callbacks list, break
+        if (!callbacksAreValid) break;
+
+        // Otherwise add the callback into the next loop queue
+        nextLoopCallbacks.insert(*callbackIter);
+
+        // Erase the callback so we don't fire again
+        callbackIter = callbacks.erase(callbackIter);
+
+        // Find the callback at the given index
+        callbackFind = callbacks.find(index - 1);
+      }
 
         // If callbacks are ok and the interator matches the expected position
         if (callbacksAreValid && callbackIter == callbackFind && callbackFind != this->callbacks.end()) {
@@ -184,48 +187,48 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
           if (callbacksAreValid) {
             onetimeCallbacks.erase(onetimeCallbackIter);
           }
-
-          // If the playback mode ws set to loop...
-          if ((playbackMode & Mode::Loop) == Mode::Loop && progress > 0.f && &(*iter) == &copy.back()) {
-            // But it was also set to bounce, reverse the list and start over
-            if ((playbackMode & Mode::Bounce) == Mode::Bounce) {
-              reverse(copy.begin(), copy.end());
-              iter = copy.begin();
-              iter++;
-            }
-            else {
-              // It was set only to loop, start from the beginning
-              iter = copy.begin();
-            }
-
-            // Clear any remaining callbacks
-            this->callbacks.clear();
-
-            // Enqueue the callbacks for the next go around
-            this->callbacks = nextLoopCallbacks;
-            this->nextLoopCallbacks.clear();
-
-            callbacksAreValid = true;
-
-            continue; // Start loop again
-          }
-
-          // Apply the frame to the sprite object
-          target.setTextureRect((*iter).subregion);
-
-          // If applicable, apply the origin too
-          if ((*iter).applyOrigin) {
-            target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-          }
-
-          UpdateCurrentPoints(index, sequence);
-
-          break;
         }
 
-        // If not finish, go to next frame
-        iter++;
+        // If the playback mode ws set to loop...
+        if ((playbackMode & Mode::Loop) == Mode::Loop && progress > 0.f && &(*iter) == &copy.back()) {
+          // But it was also set to bounce, reverse the list and start over
+          if ((playbackMode & Mode::Bounce) == Mode::Bounce) {
+            reverse(copy.begin(), copy.end());
+            iter = copy.begin();
+            iter++;
+          }
+          else {
+            // It was set only to loop, start from the beginning
+            iter = copy.begin();
+          }
+
+          // Clear any remaining callbacks
+          this->callbacks.clear();
+
+          // Enqueue the callbacks for the next go around
+          this->callbacks = nextLoopCallbacks;
+          this->nextLoopCallbacks.clear();
+
+          callbacksAreValid = true;
+
+          continue; // Start loop again
+        }
+
+        // Apply the frame to the sprite object
+        target.setTextureRect((*iter).subregion);
+
+        // If applicable, apply the origin too
+        if ((*iter).applyOrigin) {
+          target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
+        }
+
+        UpdateCurrentPoints(index, sequence);
+
+        break;
       }
+
+      // If not finish, go to next frame
+      iter++;
     }
 
     // If we prematurely ended the loop, update the sprite
@@ -255,8 +258,6 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
       onFinish = queuedOnFinish;
       queuedOnFinish = nullptr;
     }
-  }
-
 }
 
 /**

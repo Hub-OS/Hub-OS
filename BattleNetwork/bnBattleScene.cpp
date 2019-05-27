@@ -499,6 +499,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         ENGINE.Draw(tile);
       }
     }
+
+    iter++;
   }
 
   // Second tile pass: draw the entities and shaders per row
@@ -522,7 +524,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
     Entity* entity = nullptr;
 
-    while (tile->GetNextEntity(entity)) {
+    auto allEntities = tile->FindEntities([](Entity* e) { return true;  });
+    auto entIter = allEntities.begin();
+
+    while(entIter != allEntities.end()) {
+      entity = (*entIter);
+
       if (!entity->IsDeleted()) {
         auto uic = entity->GetComponent<UIComponent>();
         if (uic) {
@@ -532,6 +539,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
         ENGINE.Draw(entity);
       }
+
+      entIter++;
     }
 
     if (tile->GetState() == TileState::LAVA) {
@@ -574,6 +583,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       ENGINE.Draw(bake);
       delete bake;
     }
+
+    iter++;
   }
 
   // Draw scene nodes
@@ -1182,6 +1193,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   while (iter != allTiles.end()) {
     auto tile = (*iter);
     tile->move(cameraAntiOffset);
+    iter++;
   }
 
   // If cust is full, play sound, tell chip select GUI we can open it

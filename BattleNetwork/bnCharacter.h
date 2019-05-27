@@ -140,14 +140,9 @@ public:
    * @brief Sets which frame to make counterable
    * @param frame base 1, frame index to toggle counter flag
    */
-  virtual void SetCounterFrame(int frame);
-  
-  /**
-   * @brief Adds a callback on a character's frame onEnter and onLeave
-   * @param frame base 1, frame index of the animation
-   * @param doOnce whether or not to fire these callbacks every time the frame is reached
-   */
-  virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
+  virtual void SetCounterFrame(int frame) {
+    ;
+  }
   
   /**
    * @brief Get the character's current health

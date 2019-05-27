@@ -23,7 +23,6 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
 
   direction = Direction::NONE;
   deleted = false;
-  progress = 0.0f;
   random = rand() % 20 - 20;
 
   int lr = (team == Team::RED) ? 1 : -1;
@@ -40,7 +39,13 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
   animationComponent.Reload();
 
   Battle::Tile* next = nullptr;
-  while(field->GetNextTile(next)) {
+
+  auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
+  auto iter = allTiles.begin();
+
+  while (iter != allTiles.end()) {
+    next = (*iter);
+
 	  if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
 		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
 
@@ -54,6 +59,8 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
 			targets.push_back(next);
 	    }
 	  }
+
+    iter++;
   }
 
   // TODO: noodely callbacks desgin might be best abstracted by ActionLists

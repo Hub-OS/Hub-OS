@@ -208,14 +208,6 @@ namespace Battle {
     void AffectEntities(Spell* caller);
 
     /**
-     * @brief OLD LEGACY CODE NEEDS TO BE REMOVED
-     * This was in the early version of Pheelbert's engine and needs to be removed
-     * @param out
-     * @return true if has another entity, false if list has been traveled
-     */
-    bool GetNextEntity(Entity*& out) const;
-
-    /**
      * @brief Updates all entities occupying this tile
      * @param _elapsed in seconds
      */

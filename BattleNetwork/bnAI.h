@@ -77,23 +77,7 @@ public:
     // Change to U
     stateMachine->template ChangeState<U>();
 
-    // Get the U state object created by the above template call
-    AIState<T>* nextState = stateMachine->GetNextState();
-
-    //TODO: verify, this should always be non null...
-    if (nextState != nullptr) {
-      // Leave last state
-      stateMachine->OnLeave(*ref);
-
-      // Set the next state and preserve the ptr of old
-      AIState<T>* oldState = stateMachine;
-      stateMachine = nextState;
-      stateMachine->OnEnter(*ref);
-      
-      // Cleanup old
-      delete oldState;
-      oldState = nullptr;
-    }
+    stateMachine->OnEnter(*ref);
   }
 
 /**
@@ -113,18 +97,7 @@ template<typename U, typename ...Args>
 
     stateMachine->template ChangeState<U>(args...);
 
-    AIState<T>* nextState = stateMachine->GetNextState();
-
-    if (nextState != nullptr) {
-
-      stateMachine->OnLeave(*ref);
-
-      AIState<T>* oldState = stateMachine;
-      stateMachine = nextState;
-      stateMachine->OnEnter(*ref);
-      delete oldState;
-      oldState = nullptr;
-    }
+    stateMachine->OnEnter(*ref);
   }
 
 /**

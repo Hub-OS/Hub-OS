@@ -388,19 +388,6 @@ namespace Battle {
     }
   }
 
-  // todo: redundant now that we have queries. 
-  //       this is legacy code and should be removed
-  bool Tile::GetNextEntity(Entity*& out) const {
-    static int x = 0;
-    while (x < (int)this->entities.size()) {
-      out = this->entities.at(x);
-      x++;
-      return true;
-    }
-    x = 0;
-    return false;
-  }
-
   void Tile::Update(float _elapsed) {
     hasSpell = false;
 
@@ -508,11 +495,10 @@ namespace Battle {
   std::vector<Entity*> Tile::FindEntities(std::function<bool(Entity* e)> query)
   {
     std::vector<Entity*> res;
-
-    Entity* next = nullptr;
-    while (this->GetNextEntity(next)) {
-      if (query(next)) {
-        res.push_back(next);
+    
+    for(auto iter = this->entities.begin(); iter != this->entities.end(); iter++ ) {
+      if (query(*iter)) {
+        res.push_back(*iter);
       }
     }
 
