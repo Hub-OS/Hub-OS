@@ -3,10 +3,6 @@
 #include "bnAnimation.h"
 #include <Swoosh/Ease.h>
 
-<<<<<<< HEAD
-class AnimatedTextBox : public sf::Drawable, public sf::Transformable {
-public:
-=======
 /**
  * @class AnimatedTextBox
  * @author mav
@@ -34,20 +30,13 @@ public:
    * Intended to be expanded upon to handle multiple choice questions 
    * and even input.
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   class Message {
   protected:
     std::string message;
     bool isQuestion;
-<<<<<<< HEAD
-    bool yes;
-    std::function<void()> onYes;
-    std::function<void()> onNo;
-=======
     bool yes; /*!< Flag for if yes was selected */
     std::function<void()> onYes; /*!< Callback when user presses yes */
     std::function<void()> onNo; /*!< Callback when user presses no */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   public:
     const std::string GetMessage() { return message; }
@@ -80,9 +69,6 @@ public:
     virtual ~Message() { ;  }
   };
 
-<<<<<<< HEAD
-=======
-  /**
    * @class Question
    * @author mav
    * @date 13/05/19
@@ -90,7 +76,6 @@ public:
    * 
    * @warning honestly this design could be changed to do without the hackery and should see changes
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   class Question : public Message {
   public:
     Question(std::string message, std::function<void()> onYes = std::function<void()>(), std::function<void()> onNo = std::function<void()>()) : Message(message) {
@@ -102,48 +87,6 @@ public:
   };
 
 private:
-<<<<<<< HEAD
-  mutable sf::Sprite frame; // Size is inherited from this object 
-  mutable sf::Sprite nextCursor; 
-  mutable sf::Sprite selectCursor;
-
-  mutable Animation mugAnimator;
-  bool isPaused;
-  bool isReady;
-  bool isOpening;
-  bool isClosing;
-  mutable std::vector<sf::Sprite> mugshots;
-  std::vector<std::string> animPaths;
-  std::vector<Message*> messages;
-  Animation animator;
-
-  sf::IntRect textArea;
-  TextBox textBox;
-
-  double totalTime;
-  double textSpeed;
-public:
-  AnimatedTextBox(sf::Vector2f pos);
-  virtual ~AnimatedTextBox();
-
-  void DequeMessage();
-  void EnqueMessage(sf::Sprite speaker, std::string animationPath, Message* message);
-  void Close();
-  void Open();
-
-  const bool SelectYes() const;
-  const bool SelectNo() const;
-  const bool ConfirmSelection();
-  void Continue();
-
-  const bool IsPlaying() const;
-  const bool IsOpen() const;
-  const bool IsClosed() const;
-  const bool HasMessage();
-
-  virtual void Update(float elapsed);
-  void SetTextSpeed(double factor);
-=======
   mutable sf::Sprite frame; /*!< Size is calculated from the frame sprite */ 
   mutable sf::Sprite nextCursor; /*!< Green cursor at bottom-right */
   mutable sf::Sprite selectCursor; /*!< Used for making selections */
@@ -260,6 +203,5 @@ public:
    * @param target
    * @param states
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };
