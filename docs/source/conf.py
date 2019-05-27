@@ -90,7 +90,7 @@ exhale_args = {
     "createTreeView": False,  # See source_read, they get pruned.
     "exhaleExecutesDoxygen": True,
     "exhaleUseDoxyfile": True,
-    "unabridgedOrphanKinds": {"dir"}
+    "unabridgedOrphanKinds": {"dir", "file"}
 }
 
 primary_domain = 'cpp'
