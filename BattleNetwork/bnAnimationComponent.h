@@ -39,22 +39,6 @@ public:
    * @param _path to animation file
    */
   void Setup(string _path);
-<<<<<<< HEAD
-  void Reload();
-  const std::string GetAnimationString() const;
-  void SetPlaybackSpeed(const double playbackSpeed);
-  void SetPlaybackMode(char playbackMode);
-  void SetAnimation(string state, std::function<void()> onFinish = nullptr);
-  void SetAnimation(string state, char playbackMode, std::function<void()> onFinish = std::function<void()>());
-  void AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame = std::function<void()>(), bool doOnce = false);
-  void CancelCallbacks();
-private:
-  Entity* entity;
-  string entityName;
-  string path;
-  Animation animation;
-  double speed;
-=======
   
   /**
    * @brief Reload the animation object
@@ -111,5 +95,4 @@ private:
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
   double speed; /*!< Playback speed */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

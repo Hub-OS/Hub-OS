@@ -19,11 +19,7 @@ Artifact::Artifact() {
   this->SetPassthrough(true);
 }
 
-<<<<<<< HEAD
-Artifact::~Artifact(void) {
-=======
 Artifact::~Artifact() {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 void Artifact::AdoptTile(Battle::Tile * tile)

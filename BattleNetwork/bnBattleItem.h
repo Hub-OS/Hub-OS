@@ -21,14 +21,10 @@ private:
   bool isHP; /*!< Flag if HP */
   Chip chip; /*!< Chip data */
 public:
-<<<<<<< HEAD
-  BattleItem(std::string name, int id) : name(name), cardID(id), chip(0, 0, 0, 0, Element::NONE, "null", "null", "", 0) { isChip = isZenny = isHP = false; }
-=======
   /**
    * @brief Constructs a battle item with chip data 
    * @param chip the chip to copy and reward player with
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   BattleItem(Chip chip) : chip(chip), name(chip.GetShortName()), cardID(chip.GetID()) { isChip = true; isZenny = isHP = false; }
   BattleItem(const BattleItem& rhs) : chip(rhs.chip) { isChip = rhs.isChip; isZenny = rhs.isZenny; isHP = rhs.isHP; cardID = rhs.cardID; name = rhs.name; }
   
@@ -49,9 +45,6 @@ public:
    * @return true if battle item is a chip and contains chip data
    */
   bool IsChip() { return isChip; }
-<<<<<<< HEAD
-  Chip GetChip() { return chip; }
-=======
   
   /**
    * @brief Get chip data
@@ -63,7 +56,6 @@ public:
    * @brief Get chip code 
    * @return char
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   char GetChipCode() {
     return chip.GetCode();
   }

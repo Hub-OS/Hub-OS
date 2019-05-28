@@ -19,10 +19,6 @@ public:
   virtual void Attack(Character* _entity);
 private:
   int damage;
-<<<<<<< HEAD
-  float cooldown;
-=======
   float cooldown, hitHeight;
   bool hit;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

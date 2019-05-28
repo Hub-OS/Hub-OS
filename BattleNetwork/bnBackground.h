@@ -140,14 +140,11 @@ public:
     target.draw(vertices, states);
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Apply color values to the background
    * @see bnUndernetBackground.h
    * @param color
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void setColor(sf::Color color) {
     for (int i = 0; i < vertices.getVertexCount(); i++) {
       vertices[i].color = color;
@@ -155,20 +152,11 @@ public:
   }
 
 protected:
-<<<<<<< HEAD
-  sf::VertexArray vertices;
-  sf::Texture& texture;
-  sf::IntRect textureRect;
-  sf::Vector2f offset;
-  int width, height;
-  sf::Shader* textureWrap;
-=======
   sf::VertexArray vertices; /*!< Geometry */
   sf::Texture& texture; /*!< Texture aka spritesheet if animated */
   sf::IntRect textureRect; /*!< Frame of the animation if applicable */
   sf::Vector2f offset; /*!< Offset of the frame in pixels */
   int width, height; /*!< Dimensions of screen in pixels */
   sf::Shader* textureWrap; /*!< Scroll background values in normalized coord [0.0f, 1.0f] */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };
 
