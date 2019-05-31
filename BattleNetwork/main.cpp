@@ -84,8 +84,6 @@ void RunNaviInit(std::atomic<int>* progress) {
   Logger::GetMutex()->unlock();
 }
 
-<<<<<<< HEAD
-=======
 /*! \brief This thread tnitializes all mobs
  * 
  * @see RunNaviInit()
@@ -96,7 +94,6 @@ void RunNaviInit(std::atomic<int>* progress) {
  * screen and can be chosen to battle 
  * against.
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 void RunMobInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
 
@@ -107,15 +104,11 @@ void RunMobInit(std::atomic<int>* progress) {
   Logger::GetMutex()->unlock();
 }
 
-<<<<<<< HEAD
-
-=======
 /*! \brief This thread loads textures and shaders
  * 
  * Uses and std::atomic<int> pointer to keep
  * count of successfully loaded objects
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 void RunGraphicsInit(std::atomic<int> * progress) {
   clock_t begin_time = clock();
   TEXTURES.LoadAllTextures(*progress);
@@ -202,17 +195,6 @@ int main(int argc, char** argv) {
   sf::Vector2f lastMousepos;
   double mouseAlpha = 1.0;
 
-<<<<<<< HEAD
-  // Title screen logo
-
-  #ifdef BN_REGION_JAPAN
-  sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile.png");
-  #else
-  sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");
-  #endif
-
-  LayeredDrawable logoSprite;
-=======
   // Title screen logo based on region
 #ifdef BN_REGION_JAPAN
   sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile.png");
@@ -221,7 +203,7 @@ int main(int argc, char** argv) {
 #endif BN_REGION_JAPAN
 
   SpriteSceneNode logoSprite;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
+
   logoSprite.setTexture(*logo);
   logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);
   sf::Vector2f logoPos = (sf::Vector2f)((sf::Vector2i)ENGINE.GetWindow()->getSize() / 2);
@@ -253,23 +235,14 @@ int main(int argc, char** argv) {
   navisLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
   navisLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
 
-<<<<<<< HEAD
-=======
+
   // Loaded mobs label text
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   sf::Text* mobLoadedLabel = new sf::Text("Loading Mob Data...", *startFont);
   mobLoadedLabel->setCharacterSize(24);
   mobLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
   mobLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
-<<<<<<< HEAD
-  /* 
-  Give a message to the player before loading 
-  */
-
-=======
  
   // If using chrono x config file, deliver a message to them
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   sf::Text* message = new sf::Text("Your Chrono X config settings\nhave been imported", *startFont);
   message->setCharacterSize(24);
   message->setOrigin(message->getLocalBounds().width/2.f, message->getLocalBounds().height*2);
@@ -277,21 +250,11 @@ int main(int argc, char** argv) {
 
   Clock clock;
   float elapsed = 0.0f;
-<<<<<<< HEAD
-  float messageCooldown = 3; 
-
-  sf::RenderTexture loadSurface;
-  //loadSurface.create(480, 320, ENGINE.GetWindow()->getSettings());
-  loadSurface.create(ENGINE.GetWindow()->getSize().x, ENGINE.GetWindow()->getSize().y, ENGINE.GetWindow()->getSettings());
-
-  ENGINE.SetRenderSurface(loadSurface);
-=======
   float messageCooldown = 3;
 
   // We need a render surface to draw to so Swoosh ActivityController
   // can add screen transition effects from the title screen
   sf::RenderTexture loadSurface;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -304,16 +267,6 @@ int main(int argc, char** argv) {
   while (inConfigMessageState && ENGINE.Running()) {
     clock.restart();
 
-<<<<<<< HEAD
-    INPUT.Update();
-    
-    // Prepare for next draw calls
-    ENGINE.Clear();
-
-    // Write contents to screen
-    // ENGINE.Display();
-
-=======
     // Poll input
     INPUT.Update();
 
@@ -321,16 +274,12 @@ int main(int argc, char** argv) {
     ENGINE.Clear();
 
     // If 3 seconds is over, exit this loop
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     if (messageCooldown <= 0) {
       inConfigMessageState = false;
       messageCooldown = 0;
     }
 
-<<<<<<< HEAD
-=======
     // Fade out 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     float alpha = std::min((messageCooldown)*255.f, 255.f);
     alertSprite.setColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
     message->setFillColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
@@ -340,13 +289,6 @@ int main(int argc, char** argv) {
     ENGINE.Draw(alertSprite);
     ENGINE.Draw(message);
 
-<<<<<<< HEAD
-    loadSurface.display();
-
-    sf::Sprite postprocess(loadSurface.getTexture());
-
-    ENGINE.GetWindow()->draw(postprocess);
-=======
     // Flip the buffer 
     loadSurface.display();
 
@@ -357,7 +299,6 @@ int main(int argc, char** argv) {
     ENGINE.GetWindow()->draw(postprocess);
     
     // Show the screen
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
@@ -390,30 +331,20 @@ int main(int argc, char** argv) {
   std::atomic<int> navisLoaded{0};
   std::atomic<int> mobsLoaded{0};
 
-<<<<<<< HEAD
   RunGraphicsInit(&progress);
   ENGINE.SetShader(nullptr);
+
+#ifdef __ANDROID__
   loadSurface.setDefaultShader(&LOAD_SHADER(DEFAULT));
+#endif
 
     //sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
-=======
-  // Start a new thread to load graphics
-  sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
-  
-  // Start a new thread to load auduio
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   sf::Thread audioLoad(&RunAudioInit, &progress);
 
   // We must deffer these threads until graphics and audio are finished
   sf::Thread navisLoad(&RunNaviInit, &navisLoaded);
   sf::Thread mobsLoad(&RunMobInit, &mobsLoaded);
 
-<<<<<<< HEAD
-  //graphicsLoad.launch();
-=======
-  // Load graphics and audio
-  graphicsLoad.launch();
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   audioLoad.launch();
 
   // stream some music while we wait
@@ -447,12 +378,6 @@ int main(int argc, char** argv) {
     std::string percentageStr = std::to_string((int)(percentage*100));
     ENGINE.GetWindow()->setTitle(sf::String(std::string("Loading: ") + percentageStr + "%"));
 
-<<<<<<< HEAD
-    sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
-    mouseAlpha -= elapsed/1000.0f;
-    mouseAlpha = std::max(0.0, mouseAlpha);
-
-=======
     // Show the mouse to the user
     sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
     
@@ -461,7 +386,6 @@ int main(int argc, char** argv) {
     mouseAlpha = std::max(0.0, mouseAlpha);
 
     // Mouse shows up when touched
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     if (mousepos != lastMousepos) {
       lastMousepos = mousepos;
       mouseAlpha = 1.0;
@@ -469,11 +393,8 @@ int main(int argc, char** argv) {
 
     mouse.setPosition(mousepos);
     mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
-<<<<<<< HEAD
-=======
     
     // Mouse blinks
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     mouseAnimation.Update(elapsed/1000.0f, mouse);
 
     /*
@@ -576,18 +497,12 @@ int main(int argc, char** argv) {
         whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
       }
 
-<<<<<<< HEAD
       bool shouldStart = INPUT.Has(PRESSED_START);
 
 #ifdef __ANDROID__
         shouldStart = sf::Touch::isDown(0);
 #endif
         if (shouldStart && navisLoaded == NAVIS.Size()) {
-=======
-      // Check to see if the navis are loaded and if the user pressed start
-      // Quit this state if true
-      if (INPUT.Has(PRESSED_START) && navisLoaded == NAVIS.Size()) {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
         inLoadState = false;
       }
     }
@@ -638,10 +553,7 @@ int main(int argc, char** argv) {
         ENGINE.Draw(navisLoadedLabel);
       }
       else {
-<<<<<<< HEAD
-=======
         // Else, navis are loaded, launch next thread and display mob %
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
         if (mobsLoaded < (int)MOBS.Size()) {
           if (!loadMobs) {
             loadMobs = true;
@@ -656,12 +568,9 @@ int main(int argc, char** argv) {
           }
         }
         else {
-<<<<<<< HEAD
           // Finally everything is loaded
           INPUT.Update();
-=======
           // Finally everything is loaded, show "Press Start"
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
           ENGINE.Draw(startLabel);
         }
       }
@@ -669,7 +578,6 @@ int main(int argc, char** argv) {
 
     loadSurface.display();
 
-<<<<<<< HEAD
     sf::Sprite postprocess(loadSurface.getTexture());
 
     auto states = sf::RenderStates::Default;
@@ -683,59 +591,49 @@ int main(int argc, char** argv) {
     ENGINE.GetWindow()->draw(mouse, states);
 #endif
 
-=======
-    // Ready the render surface for display
-    loadSurface.display();
-
-    // Make an sf::Drawable out of the texture data
-    sf::Sprite postprocess(loadSurface.getTexture());
-
-    // Draw screen
-    ENGINE.GetWindow()->draw(postprocess);
-
-    // Draw mouse on top of screen
-    ENGINE.GetWindow()->draw(mouse);
-
-    // Show contents on window
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
+    // Finally, everything is drawn to window buffer, display it to screen
     ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
   }
 
-<<<<<<< HEAD
+    // Do not clear the Engine's render surface
+    // Instead grab a copy of it first
+    // So we can use it in screen transitions
+    // provided by Swoosh Activity Controller
   sf::Texture loadingScreenSnapshot;; // = ENGINE.GetRenderSurface().getTexture();
-=======
-  // Do not clear the Engine's render surface
-  // Instead grab a copy of it first 
-  // So we can use it in screen transitions
-  // provided by Swoosh Activity Controller
-  sf::Texture loadingScreenSnapshot = ENGINE.GetRenderSurface().getTexture();
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   // Cleanup
   ENGINE.RevokeShader();
   ENGINE.Clear();
   delete mobLoadedLabel;
   delete navisLoadedLabel;
-<<<<<<< HEAD
+
   //delete logLabel;
   //delete font;
   delete logo;
 
-  // Stop music and go to menu screen 
-  AUDIO.StopStream();
+    // Stop music and go to menu screen
+    AUDIO.StopStream();
 
-  // Create an activity controller 
-  // Behaves like a state machine using stacks
-  sf::Vector2u virtualWindowSize(480, 320);
-  ActivityController app(*ENGINE.GetWindow(), virtualWindowSize);
-  app.push<GameOverScene>();
-  app.push<MainMenuScene>();
+    // Create an activity controller
+    // Behaves like a state machine using stacks
+    // The activity controller uses a virtual window
+    // To draw screen transitions onto
+    sf::Vector2u virtualWindowSize(480, 320);
+    ActivityController app(*ENGINE.GetWindow(), virtualWindowSize);
 
-  // This scene will immediately pop off the stack 
-  // and segue into the previous scene on the stack: MainMenuScene
-  app.push<FakeScene>(loadingScreenSnapshot);
+    // The last screen the player will see is the game over screen
+    app.push<GameOverScene>();
+
+    // We want the next screen to be the main menu screen
+    app.push<MainMenuScene>();
+
+    // This scene is designed to immediately pop off the stack
+    // and segue into the previous scene on the stack: MainMenuScene
+    // It takes a snapshot of the loading/title screen
+    // And draws it with supported transition effects
+    app.push<FakeScene>(loadingScreenSnapshot);
 
   double remainder = 0;
   elapsed = 0;
@@ -834,8 +732,7 @@ int main(int argc, char** argv) {
       // Use the activity controller to update and draw scenes
       app.update((float) FIXED_TIME_STEP);
 
-      sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(
-              sf::Mouse::getPosition(*ENGINE.GetWindow()));
+      sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
       mouseAlpha -= FIXED_TIME_STEP;
       mouseAlpha = std::max(0.0, mouseAlpha);
 
@@ -849,9 +746,6 @@ int main(int argc, char** argv) {
       mouseAnimation.Update((float) FIXED_TIME_STEP, mouse);
 
       ENGINE.Clear();
-      ENGINE.DrawUnderlay();
-      ENGINE.DrawLayers();
-      ENGINE.DrawOverlay();
 
       auto states = sf::RenderStates::Default;
       //states.transform.scale(4.f,4.f);
@@ -880,95 +774,5 @@ int main(int argc, char** argv) {
 TouchArea::free();
 #endif
 
-=======
-  delete logLabel;
-  delete font;
-  delete logo;
-
-  // Stop music and go to menu screen
-  AUDIO.StopStream();
-
-  // Create an activity controller
-  // Behaves like a state machine using stacks
-  // The activity controller uses a virtual window
-  // To draw screen transitions onto
-  sf::Vector2u virtualWindowSize(480, 320);
-  ActivityController app(*ENGINE.GetWindow(), virtualWindowSize);
-  
-  // The last screen the player will see is the game over screen
-  app.push<GameOverScene>();
-  
-  // We want the next screen to be the main menu screen
-  app.push<MainMenuScene>();
-
-  // This scene is designed to immediately pop off the stack
-  // and segue into the previous scene on the stack: MainMenuScene
-  // It takes a snapshot of the loading/title screen
-  // And draws it with supported transition effects
-  app.push<FakeScene>(loadingScreenSnapshot);
-
-  double remainder = 0;
-  elapsed = 0;
-
-  srand((unsigned int)time(nullptr));
-
-  // Make sure we didn't quit the loop prematurely
-  while (ENGINE.Running()) {
-    // Non-simulation
-    elapsed = static_cast<float>(clock.restart().asSeconds()) + static_cast<float>(remainder);
-
-    // Poll input
-    INPUT.Update();
-
-    float FPS = 0.f;
-
-    // Show FPS
-    FPS = (float)(1.0 / (float)elapsed);
-    std::string fpsStr = std::to_string(FPS);
-    fpsStr.resize(4);
-    ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
-
-    // Use the activity controller to update and draw scenes
-    app.update((float)FIXED_TIME_STEP);
-
-    // Update mouse position
-    sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
-    
-    // Fade out mouse if not touched
-    mouseAlpha -= FIXED_TIME_STEP;
-    mouseAlpha = std::max(0.0, mouseAlpha);
-
-    // If mouse has been moved, show it
-	if (mousepos != lastMousepos) {
-	  lastMousepos = mousepos;
-	  mouseAlpha = 1.0;
-	}
-
-    mouse.setPosition(mousepos);
-    mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
-    mouseAnimation.Update((float)FIXED_TIME_STEP, mouse);
-
-    // Clear engine for next draw calls
-	ENGINE.Clear();
-    
-    // Engine draw calls share the same surface
-    // as the activity controller 'app'
-    // and will draw layers directly onto it
-    // Make a call to draw all contents in the current scene
-	app.draw();
-
-    // Draw the mouse on top of the surface
-	ENGINE.GetWindow()->draw(mouse);
-
-    // Display the screen
-	ENGINE.GetWindow()->display();  
-	
-  }
-
-  // Cleanup
-  delete mouseTexture;
-
-  // Done
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   return EXIT_SUCCESS;
 }
