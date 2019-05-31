@@ -41,25 +41,16 @@ class Entity : public SpriteSceneNode {
   friend class BattleScene;
 
 private:
-<<<<<<< HEAD
-  long ID; // used for tagging and later, in scripting
-  static long numOfIDs;
-  int alpha;
-  long lastComponentID; // To run through scene injection later
-=======
   long ID;              /**< IDs are used for tagging during battle & to identify entities in scripting. */
   static long numOfIDs; /**< Interal counter to identify the next entity with. */
   int alpha;            /**< Control the transparency of an entity. */
   long lastComponentID; /**< Entities keep track of new components to run through scene injection later. */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 public:
 
   Entity();
   virtual ~Entity();
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Virtual. Update an entity. Used by Character class. @see Character::Update()
    * This must be used by Character base class to perform correctly. All entities slide.
@@ -78,7 +69,6 @@ public:
    * 
    * @param _elapsed Amount of time elapsed since last frame in seconds.
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void Update(float _elapsed);
   
   /**
@@ -87,12 +77,6 @@ public:
    * @return true if the next tile pointer was able to move, false if obstructed.
    */
   virtual bool Move(Direction _direction);
-<<<<<<< HEAD
-  virtual bool Teleport(int x, int y);
-  virtual bool CanMoveTo(Battle::Tile* next);
-
-  const long GetID() const;
-=======
   
   /**
    * @brief Virtual. Move to any tile on the field given it's column and row number.
@@ -113,7 +97,6 @@ public:
    * @return true if the entity can move to the tile, false if not permitted.
    */
   virtual bool CanMoveTo(Battle::Tile* next);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   /**
    * @brief Entity's ID
@@ -142,10 +125,6 @@ public:
    * @return Tile pointer
    */
   Battle::Tile* GetTile() const;
-<<<<<<< HEAD
-  const Battle::Tile * GetNextTile() const;
-  void SlideToTile(bool );
-=======
   
   /**
    * @brief Get the next tile pointer
@@ -163,7 +142,6 @@ public:
    * @brief Checks if entity is sliding
    * @return true if sliding, false if no longer sliding
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const bool IsSliding() const;
 
   /**
@@ -172,14 +150,11 @@ public:
    */
   void SetField(Field* _field);
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Gets the field pointer
    * Useful to check field state such as IsBattleActive()
    * @return Field pointer
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   Field* GetField() const;
 
   /**
@@ -206,17 +181,6 @@ public:
    */
   bool IsPassthrough();
 
-<<<<<<< HEAD
-  void SetAlpha(int value);
-
-  void SetFloatShoe(bool state);
-  void SetAirShoe(bool state);
-  bool HasFloatShoe();
-  bool HasAirShoe();
-
-  void SetDirection(Direction direction);
-  Direction GetDirection();
-=======
   /**
    * @brief Sets the opacity level of this entity
    * @param value range from 0-255 
@@ -267,7 +231,6 @@ public:
    * @see Gear::Update()
    * @return The entity's previous direction
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   Direction GetPreviousDirection();
 
   /**
@@ -372,17 +335,6 @@ public:
   void FreeComponentByID(long ID);
 
 protected:
-<<<<<<< HEAD
-  // used to toggle some effects inbetween paused scene moments
-  bool isBattleActive; 
-
-  bool ownedByField;
-  Battle::Tile* next;
-  Battle::Tile* tile;
-  Battle::Tile* previous;
-  sf::Vector2f tileOffset;
-  sf::Vector2f slideStartPosition;
-=======
   bool isBattleActive; 
   bool ownedByField; /**< Must delete the entity manual if not owned by the field. */
   Battle::Tile* next; /**< Pointer to the next tile */
@@ -390,31 +342,12 @@ protected:
   Battle::Tile* previous; /**< Entities retain a previous pointer in case they need to be moved back */
   sf::Vector2f tileOffset; /**< All entities draw at the center of the tile + tileOffset*/
   sf::Vector2f slideStartPosition; /**< Used interally when sliding*/
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   Field* field;
   Team team;
   Element element;
   bool passthrough;
   bool floatShoe;
   bool airShoe;
-<<<<<<< HEAD
-  bool isSliding; // If sliding/gliding to a tile
-  bool deleted;
-  int moveCount;
-  sf::Time slideTime; // how long slide behavior lasts
-  sf::Time defaultSlideTime;
-  double elapsedSlideTime; // in seconds
-  Direction direction;
-  Direction previousDirection;
-
-  std::vector<Component*> shared;
-
-private:
-  void UpdateSlideStartPosition();
-};
-
-// todo use typid for exact types
-=======
   bool isSliding; /**< If sliding/gliding to a tile */
   bool deleted;
   int moveCount; /**< Used by battle results */
@@ -434,7 +367,6 @@ private:
   void UpdateSlideStartPosition();
 };
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 template<typename Type>
 inline Type* Entity::GetComponent()
 {

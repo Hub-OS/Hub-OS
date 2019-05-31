@@ -24,13 +24,8 @@ template<typename Any>
 class ExplodeState : public AIState<Any>
 {
 protected:
-<<<<<<< HEAD
-  Entity* explosion;
-  sf::Shader* whiteout;
-=======
   Entity* explosion; /*!< The root explosion object */
   sf::Shader* whiteout; /*!< Flash the dying entity white */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   double elapsed;
   int numOfExplosions; /*!< Number of explosions to spawn */
   double playbackSpeed; /*!< how fast the animation should be */
@@ -50,14 +45,6 @@ public:
 template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
-<<<<<<< HEAD
-  // Enforce template constraints on class
-  _DerivedFrom<Any, Entity>();
-
-  // If we make it here, we are the proper type
-=======
- 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   explosion = nullptr;
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
