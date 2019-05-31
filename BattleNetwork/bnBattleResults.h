@@ -16,28 +16,6 @@ class BattleItem;
  */
 class BattleResults {
 private:
-<<<<<<< HEAD
-  sf::Sprite resultsSprite;
-  sf::Text time;
-  sf::Text rank;
-  sf::Text reward;
-  sf::Text chipCode;
-  sf::Sprite rewardCard;
-  sf::Sprite pressA;
-  sf::Sprite star;
-  sf::Shader* chipReveal;
-
-  bool isHidden;
-  bool isRevealed;
-  bool playSoundOnce;
-  bool rewardIsChip;
-
-  BattleItem* item;
-  int score; // 1-10 or 11+ as S rank
-  int counterCount;
-
-  double totalElapsed; // for things like animation
-=======
   sf::Sprite resultsSprite; /*!< This modals graphic */
   sf::Text time; /*!< Formatted time label */
   sf::Text rank; /*!< Battle scored rank */
@@ -56,7 +34,6 @@ private:
   BattleItem* item; /*!< The item stored in this modal */
   int score; /*!< 1-10 or 11+ as S rank */
   int counterCount; /*!< How many times player countered */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   double totalElapsed; /*!< delta time this frame */
     
@@ -104,9 +81,6 @@ public:
    * @param delta
    */
   void Move(sf::Vector2f delta);
-<<<<<<< HEAD
-  void Update(double elapsed);
-=======
   
   /**
    * @brief Update modal and animations
@@ -117,7 +91,6 @@ public:
   /**
    * @brief Perform draw steps
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void Draw();
   
   /**

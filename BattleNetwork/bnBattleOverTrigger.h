@@ -4,18 +4,6 @@
 
 #include <functional>
 
-
-<<<<<<< HEAD
-// T must be type of Entity
-template<typename T>
-class BattleOverTrigger : public Component {
-private:
-  BattleScene* scene;
-  std::function<void(BattleScene&, T&)> callback;
-
-public:
-  BattleOverTrigger(T* owner, std::function<void(BattleScene&, T&)> callback) : Component(owner) {
-=======
 /**
  * @class BattleOverTrigger
  * @author mav
@@ -38,7 +26,6 @@ public:
    * @param owner
    */
   BattleOverTrigger(T* owner, std::function<void(BattleScene&, T&)> callback) : owner(owner), Component(owner) {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     this->callback = callback;
     this->scene = nullptr;
   }
@@ -47,12 +34,6 @@ public:
 
   }
 
-<<<<<<< HEAD
-  void Update(float _elapsed) {
-    if (callback && this->GetOwner() && scene) {
-      if (this->scene->IsCleared()) {
-        callback(*this->scene, *(dynamic_cast<T*>(this->GetOwner())));
-=======
   /**
    * @brief Polls until the scene is clear and then triggers once.
    * @param _elapsed
@@ -62,20 +43,16 @@ public:
       if (this->scene->IsCleared()) {
         // Cast back to type T
         callback(*this->scene, *this->owner);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
         callback = nullptr;
       }
     }
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Stores the scene object ptr
    * @param scene BattleScene ref
    * @warning This component is not owned by the battle scene and must be removed manually
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void Inject(BattleScene& scene) {
     this->scene = &scene;
   }

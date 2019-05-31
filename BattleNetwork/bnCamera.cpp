@@ -48,10 +48,7 @@ void Camera::Update(float elapsed) {
       // Drop off to zero by end of shake
       double currStress = stress *(1 - (shakeProgress / shakeDur.asMilliseconds()));
 
-<<<<<<< HEAD
-=======
       // TODO:use perlin noise
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
       int randomAngle = shakeProgress * (rand() % 360);
       randomAngle += (150 + (rand() % 60));
 

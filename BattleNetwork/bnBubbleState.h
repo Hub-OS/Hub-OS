@@ -1,23 +1,11 @@
 #pragma once
-<<<<<<< HEAD
-#include "bnMeta.h"
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
+
 #include "bnEntity.h"
 #include "bnAIState.h"
 #include "bnBubbleTrap.h"
 #include "bnShaderResourceManager.h"
 #include <cmath>
 
-<<<<<<< HEAD
-/*
-  This state can be used by any Entity in the engine.
-  It uses constraints to ensure the type passed in Any
-  is a subclass of Entity.
-
-  This state traps an entity in a bubble for a duration of time
-*/
-=======
 /**
  * @class BubbleState
  * @author mav
@@ -28,7 +16,6 @@
  * It uses constraints to ensure the type passed in Any
  * is a subclass of Entity.
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 template<typename Any, typename NextState>
 class BubbleState : public AIState<Any>
 {
@@ -51,43 +38,21 @@ public:
 template<typename Any, typename NextState>
 BubbleState<Any, NextState>::BubbleState()
   : progress(0), AIState<Any>() {
-<<<<<<< HEAD
-  // Enforce template constraints on class
-  _DerivedFrom<Any, Entity>();
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 template<typename Any, typename NextState>
 BubbleState<Any, NextState>::~BubbleState() {
-<<<<<<< HEAD
-  /* explosion artifact is deleted by field */
-=======
   /* artifact is deleted by field */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 template<typename Any, typename NextState>
 void BubbleState<Any, NextState>::OnEnter(Any& e) {
-<<<<<<< HEAD
-  //std::cout << "entered bubblestate" << std::endl;
-
   e.LockState(); // Lock AI state. We cannot be forced out of this.
-  //trap = new BubbleTrap(e);
-  //e.GetField()->AddEntity(trap, e.GetTile().GetX(), e.GetTile().GetY());
-=======
-  e.LockState(); // Lock AI state. We cannot be forced out of this.
-
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 template<typename Any, typename NextState>
 void BubbleState<Any, NextState>::OnUpdate(float _elapsed, Any& e) {
-<<<<<<< HEAD
-=======
-    
   // Check if bubbletrap is removed from entity
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (e.template GetComponent<BubbleTrap>() == nullptr) {
     e.UnlockState();
     this->template ChangeState<NextState>();

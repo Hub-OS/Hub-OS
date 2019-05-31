@@ -119,16 +119,6 @@ void Cannon::Attack(Character* _entity) {
 
   if (!_entity->IsPassthrough()) {
     hit = true;
-<<<<<<< HEAD
-  }
-
-  Character* isCharacter = dynamic_cast<Character*>(_entity);
-
-  if (isCharacter && isCharacter->IsCountered()) {
-    AUDIO.Play(AudioType::COUNTER, AudioPriority::LOWEST);
-    isCharacter->Stun(1000);
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   }
 }
 

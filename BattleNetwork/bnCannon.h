@@ -21,11 +21,7 @@ public:
 private:
   int damage;
   int random;
-<<<<<<< HEAD
-  float cooldown;
-=======
   float cooldown, progress, hitHeight;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   FrameList animation;
   Animate animator;
   bool hit;

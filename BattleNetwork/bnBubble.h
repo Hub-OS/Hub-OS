@@ -2,8 +2,6 @@
 #include "bnObstacle.h"
 #include "bnAnimation.h"
 
-<<<<<<< HEAD
-=======
 /**
  * @class Bubble
  * @author mav
@@ -12,7 +10,6 @@
  * 
  * Can be popped by any amount of impact damage
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class Bubble : public Obstacle {
 protected:
   Animation animation;
@@ -20,13 +17,7 @@ protected:
   bool hit;
 public:
   Bubble(Field* _field, Team _team, double speed = 1.0);
-<<<<<<< HEAD
-  virtual ~Bubble(void);
-  virtual bool CanMoveTo(Battle::Tile* tile);
-  virtual void Update(float _elapsed);
-  virtual void Attack(Character* _entity);
-  virtual const bool Hit( Hit::Properties props);
-=======
+
   virtual ~Bubble();
   
   /**
@@ -58,5 +49,4 @@ public:
   virtual const bool OnHit(Hit::Properties props) { return true; }
   virtual void OnDelete() { ; }
   virtual const float GetHitHeight() const { return  0; }
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

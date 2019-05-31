@@ -28,11 +28,7 @@ public:
    * @param _elapsed
    */
   virtual void Update(float _elapsed);
-<<<<<<< HEAD
-  int* GetAnimOffset();
-=======
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;
 

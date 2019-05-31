@@ -3,8 +3,6 @@
 #include "bnComponent.h"
 #include "bnField.h"
 
-<<<<<<< HEAD
-=======
 /**
  * @class BubbleTrap
  * @author mav
@@ -14,24 +12,11 @@
  * Creates a defense rule to absord first damage and forces this bubble to pop
  * On pop, frees owner and deletes self
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class BubbleTrap : virtual public Artifact, virtual public Component
 {
 private:
   Animation animation;
   sf::Sprite bubble;
-<<<<<<< HEAD
-  double duration;
-  DefenseRule* defense;
-public:
-  BubbleTrap(Character* owner);
-  ~BubbleTrap();
-
-  virtual void Inject(BattleScene&);
-  virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction) { return false; }
-
-=======
   double duration; /*!< when this reaches zero, pops */
   DefenseRule* defense; /*!< Add BubbleWrapTrap defense rule */
 public:
@@ -63,6 +48,5 @@ public:
   /**
    * @brief Sets the pop animation and deletes self when over
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void Pop();
 };

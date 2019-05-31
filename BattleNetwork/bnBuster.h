@@ -26,30 +26,21 @@ public:
    * @return true if tile exists
    */
   virtual bool Move(Direction _direction);
-<<<<<<< HEAD
-=======
   
   /**
    * @brief Deal impact damage
    * @param _entity
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void Attack(Character* _entity);
 private:
   bool isCharged;
   bool spawnGuard;
-<<<<<<< HEAD
-=======
   bool hit;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   Character* contact;
   int damage;
   float cooldown;
   float random; // offset
-<<<<<<< HEAD
-=======
   float hitHeight;
   sf::Texture* texture;
   float progress;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

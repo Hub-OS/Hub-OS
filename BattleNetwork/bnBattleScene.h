@@ -28,10 +28,6 @@
 #include "bnEnemyChipUseListener.h"
 #include "bnCounterHitListener.h"
 #include "bnChipSummonHandler.h"
-<<<<<<< HEAD
-#include "bnMemory.h"
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 #include <time.h>
 #include <typeinfo>
@@ -47,8 +43,6 @@ class Mob;
 class Player;
 class PlayerHealthUI;
 
-<<<<<<< HEAD
-=======
 /**
  * @class BattleScene
  * @author mav
@@ -79,31 +73,11 @@ class PlayerHealthUI;
  * This will drastically clean the code up and allow for new custom states. 
  * Custom scenes could include beast-out mode state, dialog state for talking, damage counter state, etc.
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class BattleScene : public swoosh::Activity, public CounterHitListener {
 private:
   /*
   Program Advance + labels
   */
-<<<<<<< HEAD
-
-  PA programAdvance;
-  PASteps paSteps;
-  bool isPAComplete;
-  int hasPA;
-  int paStepIndex;
-
-  float listStepCooldown;
-  float listStepCounter;
-
-  sf::Sprite programAdvanceSprite;
-
-  /*
-  Mob labels*/
-  std::vector<std::string> mobNames;
-
-  Camera camera;
-=======
   PA programAdvance; /*!< PA object loads PA database and returns matching PA chip from input */
   PASteps paSteps; /*!< Matching steps in a PA */
   bool isPAComplete; /*!< Flag if PA state is complete */
@@ -120,112 +94,11 @@ private:
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
 
   Camera camera; /*!< Camera object - will shake screen */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   /*
   Other battle labels
   */
 
-<<<<<<< HEAD
-  sf::Sprite battleStart;
-  sf::Sprite battleEnd;
-  sf::Sprite doubleDelete;
-  sf::Sprite tripleDelete;
-  sf::Sprite counterHit;
-  sf::Sprite comboInfo; // double delete and triple delete placeholder. Only one appears at a time!
-  sf::Vector2f comboInfoPos;
-  sf::Vector2f battleStartPos;
-  swoosh::Timer comboInfoTimer;
-  swoosh::Timer battleStartTimer;
-  swoosh::Timer battleEndTimer;
-
-  /*
-  Chips + Chip select setup*/
-  ChipSelectionCust chipCustGUI;
-  Chip** chips;
-  int chipCount;
-
-  /*
-  Chip Summons*/
-  ChipSummonHandler summons;
-
-  /*
-  Battle results pointer */
-  BattleResults* battleResults;
-  swoosh::Timer battleTimer;
-  swoosh::Timer PAStartTimer;
-  double PAStartLength;
-
-  /*
-  Set Scene*/
-  Field* field;
-
-  Player* player;
-  //PlayerHealthUI* playerHealthUI;
-
-  // Chip UI for player
-  SelectedChipsUI chipUI;
-  PlayerChipUseListener chipListener;
-  EnemyChipUseListener enemyChipListener;
-
-  // TODO: replace with persistent storage object?
-  ChipFolder* persistentFolder;
-
-  // Other components
-  std::vector<Component*> components;
-
-  /*
-  Background for scene*/
-  Background* background;
-
-  int randBG;
-
-  // PAUSE
-  sf::Font* font;
-  sf::Text* pauseLabel;
-
-  // CHIP CUST GRAPHICS
-  sf::Texture* customBarTexture;
-  LayeredDrawable customBarSprite;
-  sf::Vector2f customBarPos;
-
-  // Selection input delays
-  double maxChipSelectInputCooldown;
-  double chipSelectInputCooldown;
-
-  // MOB
-  sf::Font *mobFont;
-  Mob* mob;
-
-  // States. TODO: Abstract this further into battle state classes
-  bool isPaused;
-  bool isInChipSelect;
-  bool isChipSelectReady;
-  bool isPlayerDeleted;
-  bool isMobDeleted;
-  bool isBattleRoundOver;
-  bool isMobFinished;
-  bool isSceneInFocus;
-  bool prevSummonState;
-  double customProgress;
-  double customDuration;
-  bool initFadeOut;
-  bool didDoubleDelete;
-  bool didTripleDelete;
-
-  bool isPreBattle;
-  bool isPostBattle;
-  double preBattleLength; 
-  double postBattleLength;
-
-  int lastMobSize; // used to determine double/triple deletes with frame accuracy
-  int totalCounterMoves; 
-  int totalCounterDeletions; // used for ranking
-
-  double summonTimer;
-  bool showSummonText;
-  double summonTextLength; // in seconds
-=======
   sf::Sprite battleStart; /*!< "Battle Start" graphic */
   sf::Sprite battleEnd;   /*!< "Enemy Deleted" graphic */
   sf::Sprite doubleDelete; /*!< "Double Delete" graphic */
@@ -323,30 +196,9 @@ private:
   double summonTimer; /*!< Timer for TFC label to appear at top */
   bool showSummonText; /*!< Whether or not TFC label should appear */
   double summonTextLength; /*!< How long TFC label should stay on screen */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
-
   // Special: Load shaders if supported 
   double shaderCooldown;
 
-<<<<<<< HEAD
-  sf::Shader& pauseShader;
-  sf::Shader& whiteShader;
-  sf::Shader& yellowShader;
-  sf::Shader& customBarShader;
-  sf::Shader& heatShader;
-  sf::Shader& iceShader;
-
-  // Heat distortion effect
-  sf::Texture& distortionMap;
-  sf::Vector2u textureSize; 
-
-  //graphics that appear onscreen
-  std::vector<SceneNode*> scenenodes;
-
-  // for time-based graphics effects
-  double elapsed;
-
-=======
   sf::Shader& pauseShader; /*!< Dim screen */
   sf::Shader& whiteShader; /*!< Fade out white */
   sf::Shader& yellowShader; /*!< Turn tiles yellow */
@@ -368,35 +220,10 @@ private:
    * @brief Get the total number of counter moves
    * @return const int
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const int GetCounterCount() const {
     return totalCounterMoves;
   }
 
-<<<<<<< HEAD
-  virtual void OnCounter(Character& victim, Character& aggressor);
-
-public:
-  virtual void onUpdate(double elapsed);
-  virtual void onDraw(sf::RenderTexture& surface);
-  virtual void onStart();
-  virtual void onLeave();
-  virtual void onExit();
-  virtual void onEnter();
-  virtual void onResume();
-  virtual void onEnd();
-  BattleScene(swoosh::ActivityController&, Player*, Mob*, ChipFolder* folder);
-  virtual ~BattleScene();
-
-  // External component injection into the battle system
-  void Inject(ChipUsePublisher& pub);
-  void Inject(MobHealthUI & other);
-  void Inject(Component* other);
-  void Eject(Component* other);
-
-  void ProcessNewestComponents();
-
-=======
   /**
    * @brief The scene is registered as a counter subscriber to listen for counter events
    * @param victim who was countered
@@ -493,7 +320,6 @@ public:
    * @brief State boolean for BattleScene. Query if the battle is over.
    * @return true if isPostBattle is true, otherwise false
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const bool IsCleared() {
     return isPostBattle;
   }

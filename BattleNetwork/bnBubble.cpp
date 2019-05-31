@@ -14,11 +14,6 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   deleted = false;
   hit = false;
   health = 1;
-<<<<<<< HEAD
-  texture = TEXTURES.GetTexture(TextureType::SPELL_BUBBLE);
-  this->speed = speed;
-  this->SetTeam(team);
-=======
   
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_BUBBLE);
   
@@ -26,37 +21,19 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   setScale(2.f, 2.f);
 
   this->speed = speed;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   this->slideTime = sf::seconds(0.5f / (float)speed);
 
   animation = Animation("resources/spells/bubble.animation");
-<<<<<<< HEAD
-  
-  auto onFinish = [this]() { animation << "FLOAT" << Animate::Mode::Loop; };
-
-=======
 
   auto onFinish = [this]() { animation << "FLOAT" << Animate::Mode::Loop; };
 
   // Spawn animation and then turns into "FLOAT" which loops forever
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   animation << "INIT" << onFinish;
 
   AUDIO.Play(AudioType::BUBBLE_SPAWN, AudioPriority::LOWEST);
 
   EnableTileHighlight(false);
-<<<<<<< HEAD
-  ShareTileSpace(true);
-}
-
-Bubble::~Bubble(void) {
-}
-
-void Bubble::Update(float _elapsed) {
-  setTexture(*texture);
-  setScale(2.f, 2.f);
-=======
   
   // Bubbles can overlap eachother partially
   ShareTileSpace(true);
@@ -66,8 +43,6 @@ Bubble::~Bubble() {
 }
 
 void Bubble::Update(float _elapsed) {
-
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
   animation.Update(_elapsed*(float)this->speed, *this);
@@ -99,17 +74,10 @@ void Bubble::Update(float _elapsed) {
       this->Delete();
     }
 
-<<<<<<< HEAD
-	// Drop a shared hitbox when moving
-	//SharedHitBox* shb = new SharedHitBox(this, 2.0f);
-	//GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
-  
-=======
 	// Drop a shared hitbox when moving to prevent player from hopping through
 	/*SharedHitBox* shb = new SharedHitBox(this, 2.0f);
 	GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());*/
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     this->SlideToTile(true);
     this->Move(this->GetDirection());
   }
@@ -125,12 +93,9 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 
 
 const bool Bubble::Hit(Hit::Properties props) {
-<<<<<<< HEAD
     // TODO: Hack. Bubbles keep attacking team mates. Why?
     if(props.aggressor && props.aggressor->GetTeam() == Team::BLUE) return false;
 
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (!hit) {
     hit = true;
 
@@ -145,12 +110,9 @@ const bool Bubble::Hit(Hit::Properties props) {
 }
 
 void Bubble::Attack(Character* _entity) {
-<<<<<<< HEAD
-    // TODO: Hack. Bubbles keep attacking team mates. Why?
-    if(_entity->GetTeam() == Team::BLUE) return;
+  // TODO: Hack. Bubbles keep attacking team mates. Why?
+  if(_entity->GetTeam() == Team::BLUE) return;
 
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (!hit) {
 
     Obstacle* other = dynamic_cast<Obstacle*>(_entity);
