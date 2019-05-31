@@ -38,17 +38,6 @@ Wave::~Wave(void) {
 }
 
 void Wave::Update(float _elapsed) {
-<<<<<<< HEAD
-  setTexture(*texture);
-
-  int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
-  setScale(2.f*(float)lr, 2.f);
-
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-
-  animation.Update(_elapsed*this->speed, *this);
-
-=======
   int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
@@ -56,7 +45,6 @@ void Wave::Update(float _elapsed) {
 
   animation.Update(_elapsed, *this);
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (!this->IsDeleted()) {
     tile->AffectEntities(this);
   }
@@ -66,13 +54,9 @@ void Wave::Update(float _elapsed) {
 
 bool Wave::Move(Direction _direction) {
   // Drop a shared hitbox when moving
-<<<<<<< HEAD
+
   //SharedHitBox* shb = new SharedHitBox(this, 1.0f/60.0f);
   //GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
-=======
-  SharedHitBox* shb = new SharedHitBox(this, 1.0f/60.0f);
-  GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   
   tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
@@ -93,11 +77,8 @@ bool Wave::Move(Direction _direction) {
     return true;
   }
 
-<<<<<<< HEAD
-=======
-  // If our next tile pointer is invalide, we cannot move
+  // If our next tile pointer is invalid, we cannot move
   // and must mark ourselves for deletion
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   tile->RemoveEntityByID(this->GetID());
   this->Delete();
   return false;
