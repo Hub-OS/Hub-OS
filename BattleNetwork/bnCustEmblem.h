@@ -5,35 +5,6 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 
-<<<<<<< HEAD
-class CustEmblem : public sf::Drawable, public sf::Transformable {
-private:
-  sf::Sprite emblem;
-  sf::Sprite emblemWireMask;
-
-  mutable sf::Shader* wireShader;
-
-  struct WireEffect {
-    double progress;
-    int index;
-    sf::Color color;
-  };
-
-  int numWires;
-
-  std::deque<WireEffect> coming;
-  std::deque<WireEffect> leaving;
-
-public:
-  CustEmblem();
-
-  void CreateWireEffect();
-
-  void UndoWireEffect();
-
-  void Update(double elapsed);
-  
-=======
 /**
  * @class CustEmblem
  * @author mav
@@ -94,6 +65,5 @@ public:
    * @param target
    * @param states
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 };

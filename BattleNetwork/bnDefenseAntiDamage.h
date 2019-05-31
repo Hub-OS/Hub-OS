@@ -2,8 +2,6 @@
 #include <functional>
 #include "bnDefenseRule.h"
 
-<<<<<<< HEAD
-=======
 /**
  * @class DefenseAntiDamage
  * @author mav
@@ -16,17 +14,11 @@
  * 
  * You can create more anti damage chips using this rule
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class DefenseAntiDamage : public DefenseRule {
 public:
   typedef std::function<void(Spell* in, Character* owner)> Callback;
 
 private:
-<<<<<<< HEAD
-  Callback callback;
-
-public:
-=======
   Callback callback; /*!< Runs when the antidefense is triggered */
 
 public:
@@ -34,19 +26,15 @@ public:
    * @brief sets callback
    * @param callback
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   DefenseAntiDamage(Callback callback);
 
   virtual ~DefenseAntiDamage();
 
-<<<<<<< HEAD
-=======
   /**
    * @brief If the attack does > 10 units of impact damage, triggers the callback
    * @param in attack spell
    * @param owner the character with antidamage defense (this) added 
    * @return true if triggered, false, if not
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual const bool Check(Spell* in, Character* owner);
 };

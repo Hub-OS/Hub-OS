@@ -15,13 +15,6 @@
 #include <Swoosh/Timer.h>
 #include <queue>
 
-<<<<<<< HEAD
-/*
-TODO: use action lists where possible
-      Allow any entity to be used by the chip summon handler
-      Refactor this horrible design
-*/
-=======
 /**
  * @class ChipSummonHandler
  * @author mav
@@ -43,7 +36,6 @@ TODO: use action lists where possible
  * This repeats until the queue is empty. Then the IsSummonOver() will return true.
  * 
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class ChipSummonHandler : public ChipUseListener {
 private:
   struct ChipSummonQueue {
@@ -248,8 +240,6 @@ public:
       Battle::Tile** tile = new Battle::Tile*[3];
 
       Field* f = summonedBy->GetField();
-<<<<<<< HEAD
-
       // Read team grab scans from left to right
       if (summonedBy->GetTeam() == Team::RED) {
         int minIndex = 6;
@@ -265,18 +255,6 @@ public:
 
         for (int i = 0; i < f->GetHeight(); i++) {
           tile[i] = f->GetAt(minIndex, i + 1);
-=======
-      
-      // Read team grab scans from left to right
-      if (summonedBy->GetTeam() == Team::RED) {
-        for (int i = 0; i < f->GetHeight(); i++) {
-          int index = 1;
-          while (f->GetAt(index, i+1) && f->GetAt(index, i+1)->GetTeam() == Team::RED) {
-            index++;
-          }
-
-          tile[i] = f->GetAt(index, i+1);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
           if (tile[i]) {
             summonedBy->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
@@ -291,7 +269,6 @@ public:
       } else if (summonedBy->GetTeam() == Team::BLUE) {
         // Blue team grab scans from right to left
 
-<<<<<<< HEAD
         int maxIndex = 1;
 
         for (int i = 0; i < f->GetHeight(); i++) {
@@ -305,15 +282,6 @@ public:
 
         for (int i = 0; i < f->GetHeight(); i++) {
           tile[i] = f->GetAt(maxIndex, i+1);
-=======
-        for (int i = 0; i < f->GetHeight(); i++) {
-          int index = f->GetWidth();
-          while (f->GetAt(index, i+1) && f->GetAt(index, i+1)->GetTeam() == Team::BLUE) {
-            index--;
-          }
-
-          tile[i] = f->GetAt(index, i+1);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
           if (tile[i]) {
             summonedBy->GetField()->AddEntity(*grab[i], tile[i]->GetX(), tile[i]->GetY());
@@ -340,24 +308,7 @@ public:
     }
     else if (summon == "Barrier") {
       Aura* aura = new Aura(Aura::Type::BARRIER_100, summonedBy);
-<<<<<<< HEAD
-      //this->GetPlayer()->RegisterComponent(aura);
-
       AUDIO.Play(AudioType::APPEAR);
-
-      Battle::Tile* tile = summonedBy->GetTile();
-
-      if (tile) {
-        summonedBy->GetField()->AddEntity(*aura, tile->GetX(), tile->GetY());
-      }
-
-      // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
-      SummonEntity(aura, true);
-=======
-      summonedBy->RegisterComponent(aura);
-
-      AUDIO.Play(AudioType::APPEAR);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     }
   }
 

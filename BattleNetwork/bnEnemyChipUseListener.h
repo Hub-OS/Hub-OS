@@ -7,8 +7,6 @@
 #include "bnCannon.h"
 #include "bnBasicSword.h"
 
-<<<<<<< HEAD
-=======
 /**
  * @class EnemyChipUseListener
  * @author mav
@@ -20,7 +18,6 @@
  * No comments because it is a carbon copy of PlayerChipUseListener
  * and needs to be removed from the engine.
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class EnemyChipUseListener : public ChipUseListener {
 private:
  

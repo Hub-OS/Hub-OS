@@ -2,14 +2,6 @@
 #include <functional>
 #include "bnDefenseRule.h"
 
-<<<<<<< HEAD
-class DefenseAura : public DefenseRule {
-public:
-  DefenseAura();
-
-  virtual ~DefenseAura();
-
-=======
 /**
  * @class DefenseAura
  * @author mav
@@ -38,6 +30,5 @@ public:
    * @param owner the character the rule is attached to (this)
    * @return true
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual const bool Check(Spell* in, Character* owner);
 };

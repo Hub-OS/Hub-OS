@@ -16,19 +16,12 @@ void Engine::Initialize() {
   original = view; // never changes 
   cam = new Camera(view);
 
-<<<<<<< HEAD
 #ifdef __ANDROID__
   window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition");
 #else
   window = new RenderWindow(sf::VideoMode::getDesktopMode(), "Battle Network: Progs Edition");
 #endif
 
-=======
-  sf::ContextSettings ctx;
-  ctx.antialiasingLevel = 8;
-
-  window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition", 7U, ctx);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   window->setFramerateLimit(60);
   window->setMouseCursorVisible(false); // Hide cursor
 
@@ -42,16 +35,11 @@ void Engine::Draw(Drawable& _drawable, bool applyShaders) {
   if (!HasRenderSurface()) return;
 
   if (applyShaders) {
-<<<<<<< HEAD
     auto stateCopy = state;
     if(!stateCopy.shader) {
       stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
     }
     surface->draw(_drawable, stateCopy);
-
-=======
-    surface->draw(_drawable, state);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   } else {
     surface->draw(_drawable);
   }
@@ -65,25 +53,17 @@ void Engine::Draw(Drawable* _drawable, bool applyShaders) {
   }
 
   if (applyShaders) {
-<<<<<<< HEAD
     auto stateCopy = state;
     if(!stateCopy.shader) {
       stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
     }
     surface->draw(*_drawable, stateCopy);
-=======
-    surface->draw(*_drawable, state);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   } else {
     surface->draw(*_drawable);
   }
 }
 
-<<<<<<< HEAD
-void Engine::Draw(LayeredDrawable* _drawable) {
-=======
 void Engine::Draw(SpriteSceneNode* _drawable) {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (!HasRenderSurface()) return;
 
   // For now, support at most one shader.
@@ -106,11 +86,7 @@ void Engine::Draw(SpriteSceneNode* _drawable) {
     context->draw(*surface, state);
   }
 }
-<<<<<<< HEAD
-void Engine::Draw(vector<LayeredDrawable*> _drawable) {
-=======
 void Engine::Draw(vector<SpriteSceneNode*> _drawable) {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (!HasRenderSurface()) return;
 
   auto it = _drawable.begin();
@@ -179,12 +155,6 @@ void Engine::Clear() {
     surface->clear();
   }
 
-<<<<<<< HEAD
-  underlay.Clear();
-  layers.Clear();
-  overlay.Clear();
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   window->clear();
 }
 

@@ -25,13 +25,10 @@ class Engine {
 public:
   friend class ActivityManager;
 
-<<<<<<< HEAD
-=======
   /**
    * @brief If this is the first call, creates the Engine singleton resource
    * @return Engine&
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   static Engine& GetInstance();
   
   /**
@@ -53,10 +50,6 @@ public:
    * @param applyShaders if true, applies a shader
    */
   void Draw(vector<Drawable*> _drawable, bool applyShaders = true);
-<<<<<<< HEAD
-  void Draw(LayeredDrawable * _drawable);
-  void Draw(vector<LayeredDrawable*> _drawable);
-=======
   
   /**
    * @brief Draws a SpriteSceneNode through the engine pipeline
@@ -74,7 +67,6 @@ public:
    * @brief Returns true if the window is open
    * @return true if window is open, false otherwise
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   bool Running();
   
   /**
@@ -99,11 +91,6 @@ public:
    */
   void RevokeShader();
 
-<<<<<<< HEAD
-  const bool IsMouseHovering(sf::Sprite& sprite) const;
-
-  //void SetView(sf::View camera);
-=======
   /**
    * @brief Query if mouse is hovering over a sprite
    * @param sprite
@@ -117,7 +104,6 @@ public:
    * 
    * Camera's view offsets the screen drawing 
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void SetCamera(Camera& camera);
 
   /**
@@ -132,13 +118,10 @@ public:
    */
   Camera* GetCamera();
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Sets the external render texture buffer to draw to
    * @param _surface
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void SetRenderSurface(sf::RenderTexture& _surface) {
     surface = &_surface;
   }
@@ -147,24 +130,18 @@ public:
     surface = _surface;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Query if the engine has a buffer to draw to
    * @return true if surface is non null, false otherwise
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const bool HasRenderSurface() {
     return (surface != nullptr);
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Fetch the buffer the engine uses to draw to
    * @return sf::RenderTexture&
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   sf::RenderTexture& GetRenderSurface() {
     return *surface;
   }
@@ -172,20 +149,6 @@ public:
   // TODO: make this private again
   const sf::Vector2f GetViewOffset(); // for drawing 
 private:
-<<<<<<< HEAD
-  Engine(void);
-  ~Engine(void);
-
-  RenderWindow* window;
-  sf::View view;
-  sf::View original;
-  Underlay underlay;
-  Layers layers;
-  Overlay overlay;
-  sf::RenderStates state;
-  sf::RenderTexture* surface;
-  Camera* cam;
-=======
   /**
    * @brief sets camera to nullptr
    */
@@ -201,7 +164,6 @@ private:
   sf::RenderStates state; /*!< Global GL context information used when drawing*/
   sf::RenderTexture* surface; /*!< The external buffer to draw to */
   Camera* cam; /*!< Camera object */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 };
 

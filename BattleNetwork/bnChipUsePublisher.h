@@ -8,8 +8,6 @@
 
 class Character;
 
-<<<<<<< HEAD
-=======
 /**
  * @class ChipUsePublisher
  * @author mav
@@ -17,7 +15,6 @@ class Character;
  * @brief Emits chip use information to all subscribers
  * @see CounterHitPublisher
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class ChipUsePublisher {
 private:
   friend class ChipUseListener;
@@ -31,10 +28,6 @@ private:
 
 public:
   virtual ~ChipUsePublisher();
-<<<<<<< HEAD
-  virtual void UseNextChip() = 0;
-
-=======
   
   /**
    * @brief Must implement
@@ -46,7 +39,6 @@ public:
   * @param chip being used
   * @param user using the chip
   */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void Broadcast(Chip& chip, Character& user) {
     std::list<ChipUseListener*>::iterator iter = listeners.begin();
 
