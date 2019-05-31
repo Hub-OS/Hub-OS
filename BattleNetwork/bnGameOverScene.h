@@ -5,13 +5,6 @@
 
 #include <Swoosh/Activity.h>
 
-<<<<<<< HEAD
-class GameOverScene : public swoosh::Activity {
-private:
-  float fadeInCooldown;
-  sf::Sprite gameOver;
-  bool leave;
-=======
 /**
  * @class GameOverScene
  * @author mav
@@ -24,21 +17,12 @@ class GameOverScene : public swoosh::Activity {
 private:
   float fadeInCooldown; /*!< Fade in time */
   sf::Sprite gameOver; /*!< GAME OVER */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 public:
   GameOverScene(swoosh::ActivityController&);
   ~GameOverScene();
 
   void onStart();
-<<<<<<< HEAD
-  void onUpdate(double elapsed);
-  void onLeave() { ; }
-  void onExit() { ; }
-  void onEnter() { ; }
-  void onResume();
-  void onDraw(sf::RenderTexture& surface);
-=======
   
   /**
    * @brief Fades in graphic
@@ -61,6 +45,5 @@ public:
    */
   void onDraw(sf::RenderTexture& surface);
   
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void onEnd() { ; }
 };

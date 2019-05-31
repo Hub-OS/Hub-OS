@@ -3,20 +3,6 @@
 #include "bnArtifact.h"
 #include "bnField.h"
 
-<<<<<<< HEAD
-class GuardHit : public Artifact
-{
-private:
-  AnimationComponent animationComponent;
-  float w; float h;
-  bool center;
-
-public:
-  GuardHit(Field* _field, Character* hit, bool center = false);
-  ~GuardHit();
-
-  virtual void Update(float _elapsed);
-=======
 /**
  * @class GuardHit
  * @author mav
@@ -48,7 +34,6 @@ public:
    * @param _direction ignored
    * @return false
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual bool Move(Direction _direction) { return false; }
 
 };

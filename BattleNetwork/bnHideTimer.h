@@ -3,23 +3,6 @@
 #include "bnComponent.h"
 #include <SFML/System.hpp>
 
-<<<<<<< HEAD
-/* REmoves any entity from the field for a duration of time
-   Once the timer runs down, it removes itself from play
-*/
-
-class HideTimer : public Component {
-private:
-  sf::Time duration;
-  float elapsed;
-  Battle::Tile* temp;
-  Character* owner;
-  BattleScene* scene;
-public:
-  HideTimer(Character* owner, double secs);
-
-  virtual void Update(float _elapsed);
-=======
 /*! \brief Removes any entity from the field for a duration of time
  * 
  * This component injects itself into the battle scene loop directly
@@ -48,6 +31,5 @@ public:
   /**
    * @brief Remove ownership from character to the battle scene and remove entity from play
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void Inject(BattleScene&);
 }; 

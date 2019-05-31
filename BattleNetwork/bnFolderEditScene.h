@@ -11,8 +11,6 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 
-<<<<<<< HEAD
-=======
 /**
  * @class FolderEditScene
  * @author mav
@@ -26,7 +24,6 @@
  * Before leaving the user is prompted to save changes
  */
  
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class FolderEditScene : public swoosh::Activity {
 private:
   Camera camera;

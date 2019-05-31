@@ -12,22 +12,6 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 
-<<<<<<< HEAD
-class FolderScene : public swoosh::Activity {
-private:
-  Camera camera;
-  ChipFolderCollection& collection;
-  ChipFolder* folder;
-  std::vector<std::string> folderNames;
-
-  // Menu name font
-  sf::Font* font;
-  sf::Text* menuLabel;
-
-  // Selection input delays
-  double maxSelectInputCooldown; // half of a second
-  double selectInputCooldown;
-=======
 /**
  * @class FolderScene
  * @author mav
@@ -58,7 +42,6 @@ private:
   // Selection input delays
   double maxSelectInputCooldown; /*!< Set to half of a second */
   double selectInputCooldown; /*!< The delay between reading user input */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   // Chip UI font
   sf::Font *chipFont;
@@ -67,11 +50,7 @@ private:
   sf::Font *numberFont;
   sf::Text *numberLabel;
 
-<<<<<<< HEAD
-  // folder menu graphic
-=======
   // folder menu graphics
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   sf::Sprite bg;
   sf::Sprite folderBox;
   sf::Sprite folderCursor;
@@ -82,42 +61,21 @@ private:
   sf::Sprite folderEquip;
   sf::Sprite chipIcon;
 
-<<<<<<< HEAD
-  Animation equipAnimation;
-  Animation folderCursorAnimation;
-=======
   Animation equipAnimation; /*!< Flashes */
   Animation folderCursorAnimation; /*!< Flashes */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   int currFolderIndex;
   int selectedFolderIndex;
 
-<<<<<<< HEAD
-  int maxChipsOnScreen;
-  int currChipIndex;
-  int numOfChips;
-=======
   int maxChipsOnScreen; /*!< The number of chips to display max in box area */
   int currChipIndex; /*!< Current index in current folder */
   int numOfChips; /*!< Number of chips in current folder */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   double totalTimeElapsed;
   double frameElapsed;
 
   double folderOffsetX;
 
-<<<<<<< HEAD
-  bool gotoNextScene;
-
-  int optionIndex;
-  bool promptOptions;
-  bool enterText;
-
-public:
-  virtual void onStart();
-=======
   bool gotoNextScene; /*!< If true, user cannot interact */
 
   int optionIndex; /*!< Index for menu state options when at the prompt menu */
@@ -131,18 +89,11 @@ public:
    * @brief Responds to user input and menu states
    * @param elapsed in seconds
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void onUpdate(double elapsed);
   virtual void onLeave();
   virtual void onExit();
   virtual void onEnter();
   virtual void onResume();
-<<<<<<< HEAD
-  virtual void onDraw(sf::RenderTexture& surface);
-  virtual void onEnd();
-
-  FolderScene(swoosh::ActivityController&, ChipFolderCollection&);
-=======
   
   /**
    * @brief Interpolate folder positions and draws
@@ -165,6 +116,5 @@ public:
   /**
    * @brief deconstructor
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual ~FolderScene();
 };
