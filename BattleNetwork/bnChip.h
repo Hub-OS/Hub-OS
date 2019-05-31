@@ -18,20 +18,6 @@ using std::string;
  */
 class Chip {
 public:
-<<<<<<< HEAD
-  Chip(unsigned id, unsigned icon, char code, unsigned damage, Element element, string sname, string desc, string verboseDesc, unsigned rarity);
-  Chip(const Chip& copy);
-  Chip();
-  ~Chip();
-  const string GetVerboseDescription() const;
-  const string GetDescription() const;
-  const string GetShortName() const;
-  const char GetCode() const;
-  const unsigned GetDamage() const;
-  const unsigned GetIconID() const;
-  const unsigned GetID() const;
-  const Element GetElement() const;
-=======
   /**
    * @brief Chips are not designed to have default or partial data. Must provide all at once.
    */
@@ -97,7 +83,6 @@ public:
    * @return 0-5
    * @warning may be removed as rarity won't be used in the future
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const unsigned GetRarity() const;
 private:
   unsigned ID;

@@ -13,13 +13,6 @@ class Entity;
 #define CHARGE_COUNTER_MIN .40f
 #define CHARGE_COUNTER_MAX 2.4f
 
-/*!
- * TODO: use component system
-*/
-<<<<<<< HEAD
-class ChargeComponent : public LayeredDrawable {
-=======
-
 /**
  * @class ChargeComponent
  * @author mav
@@ -27,20 +20,16 @@ class ChargeComponent : public LayeredDrawable {
  * @brief Draws on top of attached entity
  */
 class ChargeComponent : public SpriteSceneNode {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 public:
   ChargeComponent(Entity* _entity);
   ~ChargeComponent();
 
   void Update(float _elapsed);
-<<<<<<< HEAD
-=======
   
   /**
    * @brief If true, the component begins to charge. Otherwise, cancels charge
    * @param _charging
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void SetCharging(bool _charging);
   float GetChargeCounter() const;
   

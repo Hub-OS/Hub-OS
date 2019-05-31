@@ -12,15 +12,12 @@
 #include "bnCustEmblem.h"
 #include "bnSceneNode.h"
 
-<<<<<<< HEAD
-=======
 /**
  * @class ChipSelectionCust
  * @author mav
  * @date 05/05/19
  * @brief Chipcust GUI used in battle. Can be interacted through public API.
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class ChipSelectionCust : public SceneNode {
 public:
   /**
@@ -44,19 +41,11 @@ private:
   mutable sf::Sprite chipLock;
   Animation cursorSmallAnimator;
   Animation cursorBigAnimator;
-<<<<<<< HEAD
-  mutable LayeredDrawable icon;
-  mutable LayeredDrawable chipCard;
-  mutable LayeredDrawable chipNoData;
-  mutable LayeredDrawable chipSendData;
-  mutable LayeredDrawable element;
-=======
   mutable SpriteSceneNode icon;
   mutable SpriteSceneNode chipCard;
   mutable SpriteSceneNode chipNoData;
   mutable SpriteSceneNode chipSendData;
   mutable SpriteSceneNode element;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   sf::Shader& greyscale;
   sf::Font* labelFont;
   sf::Font* codeFont;
@@ -64,35 +53,6 @@ private:
   mutable sf::Text label;
   mutable CustEmblem emblem;
 
-<<<<<<< HEAD
-  int chipCount;
-  int selectCount;
-  int chipCap;
-  mutable int cursorPos;
-  mutable int cursorRow;
-  bool areChipsReady;
-  bool isInView;
-  int perTurn;
-  ChipFolder* folder;
-  Chip** selectedChips;
-  Bucket* queue;
-  Bucket** selectQueue;
-  ChipDescriptionTextbox chipDescriptionTextbox;
-
-  double frameElapsed;
-
-public:
-  ChipSelectionCust(ChipFolder* _folder, int, int perTurn = 5);
-  ~ChipSelectionCust();
-
-  // GUI ops
-  bool OpenChipDescription();
-  bool ContinueChipDescription();
-  bool FastForwardChipDescription(double factor);
-  bool CloseChipDescription();
-  bool ChipDescriptionYes();
-  bool ChipDescriptionNo();
-=======
   int chipCount; /*!< How many chips are listed in the GUI */
   int selectCount; /*!< How many chips the user has selected */
   int chipCap; /*!< Chips user can get */
@@ -166,7 +126,6 @@ public:
    * @brief Moves chip cursor up
    * @return true if successful. False otherwise.
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   bool CursorUp();
   
   /**
@@ -204,10 +163,6 @@ public:
    * @return true if in its final position offscreen
    */
   bool IsOutOfView();
-<<<<<<< HEAD
-  const bool IsInView();
-  bool IsChipDescriptionTextBoxOpen();
-=======
   
   /**
    * @brief Check if GUI is completely in view for the player
@@ -225,7 +180,6 @@ public:
    * @brief Moves GUI by delta in screen pixels
    * @param delta offset from current position
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void Move(sf::Vector2f delta);
   
   /**
@@ -233,12 +187,7 @@ public:
    * @return 
    */
   const sf::Vector2f GetOffset() const { return custSprite.getPosition() - sf::Vector2f(-custSprite.getTextureRect().width*2.f, 0.f); } // TODO: Get rid. See BattleScene.cpp line 241
-  
-<<<<<<< HEAD
-  void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-  void Update(float elapsed);
 
-=======
   /**
    * @brief Draws GUI and all child graphics on it
    * @param target
@@ -256,7 +205,6 @@ public:
    * @brief Confirm question selection for textbox 
    * @return true if operation was successful, false otherwise
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   bool ChipDescriptionConfirmQuestion();
 
   // Chip ops

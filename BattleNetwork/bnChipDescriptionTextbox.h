@@ -3,11 +3,6 @@
 #include "bnChipUseListener.h"
 #include "bnAnimatedTextBox.h"
 
-<<<<<<< HEAD
-class ChipDescriptionTextbox : public AnimatedTextBox {
-public:
-  ChipDescriptionTextbox(sf::Vector2f pos);
-=======
 /**
  * @class ChipDescriptionTextbox
  * @author mav
@@ -29,6 +24,5 @@ public:
    * If there's any messages left in the queue, dequeus them
    * before adding new information
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void DescribeChip(Chip* chip);
 };

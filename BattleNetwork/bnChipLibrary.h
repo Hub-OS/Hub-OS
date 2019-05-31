@@ -103,11 +103,7 @@ protected:
   void LoadLibrary();
 
 private:
-<<<<<<< HEAD
-  mutable list<Chip> library;
-=======
   mutable list<Chip> library; /*!< the chip pool used by all chip resources */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };
 
 #define CHIPLIB ChipLibrary::GetInstance()

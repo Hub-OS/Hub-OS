@@ -17,33 +17,13 @@
  */
 class ChipFolder {
 private:
-<<<<<<< HEAD
-  std::vector<Chip*> folderList;
-  int folderSize;
-  int initialSize;
-=======
   std::vector<Chip*> folderList; /*!< Chips */
   int folderSize; /*!< Size of the folder */
   int initialSize; /*!< Start of the folder size */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 public:
   typedef std::vector<Chip*>::const_iterator Iter;
 
-<<<<<<< HEAD
-  ChipFolder();
-  ChipFolder(const ChipFolder& rhs);
-  ~ChipFolder();
-  void Shuffle();
-  ChipFolder * Clone();
-  void AddChip(Chip copy);
-  Chip* Next();
-  const int GetSize() const;
-  Iter Begin();
-  Iter End();
-
-  // Make a completely random and valid chip folder (tests)
-=======
   /** 
    * @brief Empty folder
    */
@@ -110,7 +90,6 @@ public:
    * 
    * Used for testing
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   static ChipFolder MakeRandomFolder() {
     ChipFolder folder;
     folder.folderSize = folder.initialSize = ChipLibrary::GetInstance().GetSize();
