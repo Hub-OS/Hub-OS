@@ -1,16 +1,9 @@
 #include "bnField.h"
-<<<<<<< HEAD
-#include "bnMemory.h"
-#include "bnObstacle.h"
-#include "bnArtifact.h"
 
-Field::Field(void) {
-=======
 #include "bnObstacle.h"
 #include "bnArtifact.h"
 
 Field::Field() {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   isBattleActive = false;
 }
 
@@ -107,41 +100,6 @@ void Field::AddEntity(Artifact & art, int x, int y)
 
   if (tile) {
     art.AdoptTile(tile);
-<<<<<<< HEAD
-  }
-}
-
-/*void Field::RemoveEntityByID(int ID)
-{
-}*/
-
-std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
-{
-  std::vector<Entity*> res;
-
-  for (int y = 1; y <= height; y++) {
-    for (int x = 1; x <= width; x++) {
-      Battle::Tile* tile = GetAt(x, y);
-
-      Entity* next = nullptr;
-      while (tile->GetNextEntity(next)) {
-        if (query(next)) {
-          res.push_back(next);
-        }
-      }
-    }
-  }
-
-  return res;
-}
-
-/*bool Field::GetNextEntity(Entity*& out, int _depth) const {
-  static int i = 0;
-  for (i; i < (int)entities.size(); i++) {
-    if (entities.at(i)->GetTile()->GetY() == _depth) {
-      out = entities.at(i++);
-      return true;
-=======
   }
 }
 
@@ -160,17 +118,11 @@ std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
       merged.insert(merged.end(), found.begin(), found.end());
     
       res = merged;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     }
   }
 
-<<<<<<< HEAD
-  return false;
-}*/
-=======
   return res;
 }
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 void Field::SetAt(int _x, int _y, Team _team) {
   tiles[_y - 1][_x - 1]->SetTeam(_team);
@@ -189,11 +141,8 @@ void Field::Update(float _elapsed) {
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
       tiles[y][x]->Update(_elapsed);
-<<<<<<< HEAD
-      entityCount += (int)tiles[y][x]->entities.size();
-=======
+
       entityCount += (int)tiles[y][x]->GetEntityCount();
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
       tiles[y][x]->SetBattleActive(isBattleActive);
     }
   }

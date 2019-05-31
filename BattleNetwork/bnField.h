@@ -87,28 +87,12 @@ public:
    */
   void AddEntity(Artifact& art, int x, int y);
 
-<<<<<<< HEAD
-  void AddEntity(Character& character, int x, int y);
-  void AddEntity(Spell& spell, int x, int y);
-  void AddEntity(Obstacle& obst, int x, int y);
-  void AddEntity(Artifact& art, int x, int y);
-
-  //void RemoveEntityByID(int ID);
-
-  // TODO: do we need this anymore?
-  //Battle::Tile* FindEntity(Entity* _entity) const;
-
-  std::vector<Entity*> FindEntities(std::function<bool(Entity* e)> query);
-
-  // bool GetNextEntity(Entity*& out, int _depth) const;
-=======
   /**
    * @brief Query for entities on the entire field
    * @param e the query input function
    * @return list of Entity* that passed the input function's conditions
    */
   std::vector<Entity*> FindEntities(std::function<bool(Entity* e)> query);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   /**
    * @brief Set the tile at (x,y) team to _team
@@ -141,16 +125,8 @@ public:
   void SetBattleActive(bool state);
 
 private:
-<<<<<<< HEAD
-  bool isBattleActive;
-  int width;
-  int height;
-  vector<vector<Battle::Tile*>> tiles;
-  //vector<Entity*> entities;
-=======
   bool isBattleActive; /*!< State flag if battle is over */
   int width; /*!< col */
   int height; /*!< rows */
   vector<vector<Battle::Tile*>> tiles; /*!< Nested vector to make calls via tiles[x][y] */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

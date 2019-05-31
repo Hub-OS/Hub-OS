@@ -5,13 +5,6 @@
 
 #include <Swoosh/Activity.h>
 
-<<<<<<< HEAD
-/*
-This scene takes in a texture input. The texture is the last scene's screen snapshot.
-This serves as a way to turn the "scene" drawn during loading, into a swoosh-compatible 
-activity.
-*/
-=======
 /**
  * @class FakeScene
  * @author mav
@@ -22,7 +15,6 @@ activity.
  * This serves as a way to turn the screen during loading, into a swoosh-compatible 
  * activity.
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class FakeScene : public swoosh::Activity {
 private:
   sf::Sprite snapshot;

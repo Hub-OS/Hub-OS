@@ -1,16 +1,5 @@
 #pragma once
 #include <string>
-<<<<<<< HEAD
-#include <SFML/System/FileInputStream.hpp>
-#include "bnLogger.h"
-
-/*
-Ammature file utility that reads in a file as a string dump.
-
-Has function that finds a key and attempts to parse the value wrapped in quotes
-Much can be improved here
-*/
-=======
 #include <sstream>
 #include <fstream>
 #include <assert.h>
@@ -25,7 +14,6 @@ Much can be improved here
  * Has function that finds a key and attempts to parse the value wrapped in quotes.
  * Much can be improved here as this was originally legacy code.
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class FileUtil {
 public:
   static std::string Read(std::string _path) {

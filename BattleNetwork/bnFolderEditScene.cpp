@@ -245,13 +245,6 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(bg);
   ENGINE.Draw(menuLabel);
 
-<<<<<<< HEAD
-  ENGINE.DrawUnderlay();
-  ENGINE.DrawLayers();
-  ENGINE.DrawOverlay();
-
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   ENGINE.Draw(folderDock);
   ENGINE.Draw(chipHolder);
 

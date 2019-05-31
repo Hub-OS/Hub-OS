@@ -2,8 +2,6 @@
 #include "bnObstacle.h"
 #include "bnAnimation.h"
 
-<<<<<<< HEAD
-=======
 /**
  * @class Fishy
  * @author mav
@@ -12,7 +10,6 @@
  * 
  * Fishy can take damage and delegate the attack to the user of the attack
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class Fishy : public Obstacle {
 protected:
   sf::Sprite fishy;
@@ -20,13 +17,7 @@ protected:
   bool hit;
 public:
   Fishy(Field* _field, Team _team, double speed = 1.0);
-<<<<<<< HEAD
-  virtual ~Fishy(void);
-  virtual bool CanMoveTo(Battle::Tile* tile);
-  virtual void Update(float _elapsed);
-  virtual void Attack(Character* _entity);
-  virtual const bool Hit(Hit::Properties props);
-=======
+
   virtual ~Fishy();
   
   /**
@@ -64,5 +55,4 @@ public:
 
   virtual void OnDelete() { ; }
   virtual const float GetHitHeight() const { return 0; }
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };
