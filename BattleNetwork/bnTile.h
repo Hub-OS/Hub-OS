@@ -34,10 +34,6 @@ class Artifact;
 class Field;
 
 #include "bnTeam.h"
-<<<<<<< HEAD
-#include "bnMemory.h"
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #include "bnTextureType.h"
 #include "bnTileState.h"
 
@@ -46,16 +42,12 @@ namespace Battle {
   public:
     friend class Entity;
 
-<<<<<<< HEAD
-    Tile(void);
-=======
     /**
     * \brief Base 1. Creates a tile at column x and row y.
     * 
     * If the tile column is <= 3, the tile's team is
     * automatically RED. Otherwise it is BLUE.
     */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     Tile(int _x, int _y);
     ~Tile();
 
@@ -128,12 +120,9 @@ namespace Battle {
      */
     void SetState(TileState _state);
 
-<<<<<<< HEAD
-=======
     /**
      * @brief Texture updates to reflect the tile's current state
      */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     void RefreshTexture();
 
     /**
@@ -158,18 +147,6 @@ namespace Battle {
      */
     bool IsHighlighted() const;
 
-<<<<<<< HEAD
-    void AddEntity(Spell& _entity);
-    void AddEntity(Character& _entity);
-    void AddEntity(Obstacle& _entity);
-    void AddEntity(Artifact& _entity);
-
-    void RemoveEntityByID(int ID);
-    bool ContainsEntity(Entity* _entity) const;
-
-    void ReserveEntityByID(int ID);
-
-=======
     /**
      * @brief Adds a spell to the spell bucket if it doesn't already exist
      * @param _entity
@@ -222,7 +199,6 @@ namespace Battle {
      * @brief Query the tile for an entity type
      * @return true if the tile contains entity of type Type, false if no matches
      */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     template<class Type> bool ContainsEntityType();
     
     /**
@@ -230,11 +206,6 @@ namespace Battle {
      * @param caller must be valid non-null spell
      */
     void AffectEntities(Spell* caller);
-<<<<<<< HEAD
-
-    bool GetNextEntity(Entity*& out) const;
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
     /**
      * @brief Updates all entities occupying this tile
@@ -242,19 +213,6 @@ namespace Battle {
      */
     void Update(float _elapsed);
 
-<<<<<<< HEAD
-    void SetBattleActive(bool state);
-
-    std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
-
-    // Todo: use sets to avoid duplicate entries
-    vector<Artifact*> artifacts;
-    vector<Spell*> spells;
-    vector<Character*> characters;
-    vector<Entity*> entities;
-
-    set<int> reserved;
-=======
     /**
      * @brief Notifies all entities that the battle is active
      * @param state
@@ -270,7 +228,6 @@ namespace Battle {
      */
     std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   private:
     int x; /**< Column number*/
     int y; /**< Row number*/
@@ -284,14 +241,6 @@ namespace Battle {
     Field* field;
     float cooldown;
     float cooldownLength;
-<<<<<<< HEAD
-    bool hasSpell;
-    bool isBattleActive;
-
-    std::vector<long> taggedSpells;
-
-    // Aux
-=======
     bool hasSpell; /**< Highlights when there is a spell occupied in this tile */
     bool isBattleActive;
 
@@ -308,7 +257,6 @@ namespace Battle {
      * @brief Auxillary function used by all other overloads of AddEntity
      * @param _entity
      */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     void AddEntity(Entity* _entity);
   };
 
