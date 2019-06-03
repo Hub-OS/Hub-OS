@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+
 /*! \brief External hit boxes that delegate hits to their owners
  * 
  * Some spells and characters drop lagging hit boxes @see Wave 
@@ -13,12 +12,10 @@
  * player
  */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnObstacle.h"
 #include "bnComponent.h"
 
-<<<<<<< HEAD
 // Hit boxes can attack and be attacked: obstacle traits
 class SharedHitBox : public Obstacle {
 public:
@@ -34,7 +31,6 @@ public:
 private:
   float cooldown;
   Spell* owner;
-=======
 class SharedHitBox : public Obstacle {
 public:
 	
@@ -79,5 +75,4 @@ public:
 private:
   float cooldown; /*< When cooldown reaches zero, this hitbox removes */
   Spell* owner; /*!< When this hitbox is hit, the owner is hit */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

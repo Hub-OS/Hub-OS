@@ -65,7 +65,6 @@ sf::Shader* ShaderResourceManager::GetShader(ShaderType _stype) {
 }
 
 ShaderResourceManager::ShaderResourceManager(void) {
-<<<<<<< HEAD
 
 #ifdef SFML_SYSTEM_ANDROID
     std::string version = "glsl_150";
@@ -94,24 +93,6 @@ ShaderResourceManager::ShaderResourceManager(void) {
     paths[(int)ShaderType::CHIP_REVEAL] = std::string() + "resources/shaders/" + version + "/chip_reveal";
     paths[(int)ShaderType::BADGE_WIRE] = std::string() + "resources/shaders/" + version + "/wire";
     paths[(int)ShaderType::TRANSITION] = std::string() + "resources/shaders/" + version + "/transition";
-=======
-  paths.push_back("resources/shaders/black_fade.frag.txt");
-  paths.push_back("resources/shaders/custom_bar.frag.txt");
-  paths.push_back("resources/shaders/greyscale.frag.txt");
-  paths.push_back("resources/shaders/outline.frag.txt");
-  paths.push_back("resources/shaders/pixel_blur.frag.txt");
-  paths.push_back("resources/shaders/texel_pixel_blur.frag.txt");
-  paths.push_back("resources/shaders/texel_texture_wrap.frag.txt");
-  paths.push_back("resources/shaders/white.frag.txt");
-  paths.push_back("resources/shaders/white_fade.frag.txt");
-  paths.push_back("resources/shaders/yellow.frag.txt");
-  paths.push_back("resources/shaders/distortion.frag.txt");
-  paths.push_back("resources/shaders/spot_distortion.frag.txt");
-  paths.push_back("resources/shaders/spot_reflection.frag.txt");
-  paths.push_back("resources/shaders/transition.frag.txt");
-  paths.push_back("resources/shaders/chip_reveal.frag.txt");
-  paths.push_back("resources/shaders/wire.frag.txt");
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 ShaderResourceManager::~ShaderResourceManager(void) {

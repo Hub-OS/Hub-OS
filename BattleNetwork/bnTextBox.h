@@ -11,23 +11,6 @@ class TextBox : public sf::Drawable, public sf::Transformable {
 private:
   sf::Font* font;
   mutable sf::Text text;
-<<<<<<< HEAD
-  double charsPerSecond; // default is 10 cps
-  double progress;
-  int areaWidth, areaHeight;
-  std::string message;
-  std::vector<int> lines;
-  int lineIndex;
-  int numberOfFittingLines;
-  int charIndex;
-  bool play;
-  bool mute;
-  int charSize;
-  sf::Color fillColor;
-  sf::Color outlineColor;
-
-
-=======
   double charsPerSecond; /**< default is 10 cps */
   double progress; /**< Total elapsed time */
   int areaWidth, areaHeight;
@@ -45,7 +28,6 @@ private:
   /**
    * @brief Takes the input message and finds where the text breaks to form new lines
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void FormatToFit() {
     if (message.empty())
       return;
@@ -129,63 +111,6 @@ private:
     return str;
   }
 
-<<<<<<< HEAD
-    std::cout << "num of fitting lines: " << numberOfFittingLines << std::endl;
-    std::cout << "lines found: " << lines.size() << std::endl;
-  }
-
-  std::string replace(std::string str, const std::string& from, const std::string& to) {
-    size_t start_pos = 0;
-    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-      str.replace(start_pos, from.length(), to);
-      start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
-    }
-    return str;
-  }
-
-public:
-  TextBox(int width, int height, int characterSize = 15, std::string fontPath = "resources/fonts/dr_cain_terminal.ttf") {
-    font = TEXTURES.LoadFontFromFile(fontPath);
-    text = sf::Text();
-    message = "";
-    areaWidth = width;
-    areaHeight = height;
-    charsPerSecond = 10;
-    charIndex = 0;
-    play = true;
-    mute = false;
-    progress = 0;
-    charSize = characterSize;
-    fillColor = sf::Color::White;
-    outlineColor = sf::Color::White;
-    lineIndex = 0;
-    numberOfFittingLines = 1;
-  }
-
-  ~TextBox() {
-    delete font;
-  }
-
-  const sf::Text& GetText() const { return this->text; }
-
-  void SetTextFillColor(sf::Color color) {
-    fillColor = color;
-  }
-
-  void SetTextOutlineColor(sf::Color color) {
-    outlineColor = color;
-  }
-
-  void SetTextColor(sf::Color color) {
-    SetTextFillColor(color);
-    SetTextOutlineColor(color);
-  }
-
-  void Mute(bool enabled = true) {
-    mute = enabled;
-  }
-
-=======
 public:
   /**
    * @brief Creates a textbox area of width x height, default font size 15, and hard-coded font path
@@ -258,19 +183,13 @@ public:
   /**
    * @brief Enables audio
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void Unmute() {
     Mute(false);
   }
-
-<<<<<<< HEAD
-
-=======
   /**
    * @brief Query if there's more text to show
    * @return true if there's more text to show, false if all visible text is printed
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const bool HasMore() const {
     if (lineIndex + numberOfFittingLines < lines.size())
       if (charIndex > lines[lineIndex + numberOfFittingLines])
@@ -279,13 +198,10 @@ public:
     return false;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Query if there's text behind what is currently shown
    * @return true if lineIndex > 0
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const bool HasLess() const {
     return lineIndex > 0;
   }
@@ -298,12 +214,6 @@ public:
 
     if (lineIndex >= lines.size())
       lineIndex = (int)lines.size()-1;
-<<<<<<< HEAD
-
-  }
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
-
   }
   
   /**
@@ -316,13 +226,10 @@ public:
       lineIndex = 0;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Change how many characters are printed per second
    * @param cps
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void SetCharactersPerSecond(const double cps) {
     this->charsPerSecond = cps;
   }
@@ -356,31 +263,6 @@ public:
     Play(false);
   }
 
-<<<<<<< HEAD
-  const char GetCurrentCharacter() const {
-    return message[charIndex];
-  }
-
-  const int GetNumberOfFittingLines() const {
-    return numberOfFittingLines;
-  }
-
-  const int GetNumberOfLines() const {
-    return (int)lines.size();
-  }
-
-  const double GetCharsPerSecond() const {
-    return charsPerSecond;
-  }
-  
-  const bool IsPlaying() const {
-	  return play;
-  }
-
-  virtual void Update(const double elapsed) {
-    if (!play || message.empty() || charIndex >= message.length()) return;
-
-=======
   /**
    * @brief Returns the current character printed
    * @return char
@@ -428,7 +310,6 @@ public:
     if (!play || message.empty() || charIndex >= message.length()) return;
 
     // Without this, the audio would play numerous times per frame and sounds bad
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     bool playOnce = true;
 
     int charIndexIter = 0;
@@ -436,12 +317,6 @@ public:
 
     // Work backwards, printing what we can show at this frame in respect to the CPS
     double simulate = progress;
-<<<<<<< HEAD
-    while (simulate > 0 && charsPerSecond > 0) {
-      simulate -= 1.0/ charsPerSecond;
-
-=======
-    
     // Start at elapsed time `progress` and simulate until it his zero
     // That is our new state
     while (simulate > 0 && charsPerSecond > 0) {
@@ -449,18 +324,10 @@ public:
       simulate -= 1.0/ charsPerSecond;
  
       // Skip over line breaks and empty spaces
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
       while (charIndexIter < message.size() && message[charIndexIter] == ' ' && message[charIndex] != '\n') {
         charIndexIter++;
       }
 
-<<<<<<< HEAD
-      charIndexIter++;
-
-      if (charIndexIter > charIndex && charIndex < message.size()) {
-        charIndex = charIndexIter;
-
-=======
       // Try the next character
       charIndexIter++;
 
@@ -471,18 +338,11 @@ public:
         charIndex = charIndexIter;
 
         // We may overshoot, adjust
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
         if (charIndexIter >= message.size()) {
           charIndex--;
         }
         else {
-<<<<<<< HEAD
-
-          std::cout << message[charIndex];
-
-=======
           // Play a sound if we are able and the character is a letter
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
           if (!mute && message[charIndex] != ' ' && message[charIndex] != '\n') {
             if (playOnce) {
               AUDIO.Play(AudioType::TEXT);
@@ -522,19 +382,14 @@ public:
     }
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Query if the textbox has reached the end of the message
    * @return charIndex >= message.length()
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
-  const bool EndOfMessage() const { 
+  const bool EndOfMessage() const {
     return (charIndex >= message.length()); 
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Draws the textbox with correct transformations
    * 
@@ -543,7 +398,6 @@ public:
    * @param target
    * @param states
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const
   {
     if (message.empty())

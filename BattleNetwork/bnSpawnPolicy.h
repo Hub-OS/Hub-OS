@@ -7,34 +7,6 @@
 #include "bnNoState.h"
 #include "bnMob.h"
 
-<<<<<<< HEAD
-/*
-This class handles the semantics of spawning a special character type.
-For custom spawning, inherit from this class.
-
-Examples: Boss spawner (Alpha has many pieces that need to know about eachother) or 
-          ChipSpawner (enemy equiped with a chip and ChipUIComponent at start)
-*/
-template<class T>
-class SpawnPolicy {
-  typedef std::function<void(Character*)> SpawnStateCallback;
-
-private:
-  SpawnStateCallback intro;
-  SpawnStateCallback ready;
-  T* generate;
-
-protected:
-  virtual void EnforceConstraints() {
-   _DerivedFrom<T, Character>();
-   _DerivedFrom<T, AI<T>>();
-  }
-
-  void Spawn(T* generated) {
-    this->generate = generated;
-  }
-
-=======
 /*! \brief This class handles the semantics of spawning a special character type.
  * 
  * \class SpawnPolicy<T>
@@ -68,20 +40,16 @@ protected:
    * 
    * Describes how the entity should behave during the intro animation
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void SetIntroCallback(SpawnStateCallback intro) {
     this->intro = intro;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Assigns the pre-battle callback functor
    * @param ready Callback functor
    * 
    * Describes how the entity should behave after all entities are spawned
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void SetReadyCallback(SpawnStateCallback ready) {
     this->ready = ready;
   }
@@ -100,9 +68,6 @@ public:
    */
   virtual T* GetSpawned() { return generate; }
 
-<<<<<<< HEAD
-  virtual SpawnStateCallback& GetIntroCallback() { return intro; }
-=======
   /**
    * @brief Get the intro functor
    * @return intro functor
@@ -113,7 +78,6 @@ public:
    * @brief Get the ready functor
    * @return ready functor
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual SpawnStateCallback& GetReadyCallback() { return ready; }
 };
 

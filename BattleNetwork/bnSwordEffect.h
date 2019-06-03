@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-=======
 /*! \brief Draws a normal sword swipe animation across a tile */
-
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnArtifact.h"
 #include "bnComponent.h"
@@ -10,14 +6,6 @@
 
 class SwordEffect : public Artifact {
 private:
-<<<<<<< HEAD
-  Animation animation;
-public:
-  SwordEffect(Field* field);
-  ~SwordEffect();
-
-  virtual void Update(float _elapsed);
-=======
   Animation animation; /*!< Animation of the effect */
 public:
   /**
@@ -37,6 +25,5 @@ public:
    * @param _direction dismissed
    * @return false
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual bool Move(Direction _direction) { return false; }
 };
