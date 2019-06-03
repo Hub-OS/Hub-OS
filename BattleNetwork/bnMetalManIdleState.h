@@ -2,22 +2,6 @@
 #include "bnAIState.h"
 class MetalMan;
 
-<<<<<<< HEAD
-class MetalManIdleState : public AIState<MetalMan>
-{
-private:
-  float cooldown;
-public:
-  MetalManIdleState(float cooldown = 0.8f);
-  ~MetalManIdleState();
-
-  void OnEnter(MetalMan& p);
-  void OnUpdate(float _elapsed, MetalMan& p);
-  void OnLeave(MetalMan& p);
-};
-
-#pragma once
-=======
 /*! \brief Metalman's idle state waits before moving */
 class MetalManIdleState : public AIState<MetalMan>
 {
@@ -54,4 +38,3 @@ public:
    */
   void OnLeave(MetalMan& m);
 };
->>>>>>> b486e21e11627262088deae73097eaa7af56791c

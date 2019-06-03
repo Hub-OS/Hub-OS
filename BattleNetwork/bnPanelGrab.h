@@ -1,26 +1,12 @@
-<<<<<<< HEAD
-=======
+
 /*! \brief Orb drops down and changes tile team */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnSpell.h"
 #include "bnTile.h"
 
 class PanelGrab : public Spell {
 private:
-<<<<<<< HEAD
-  sf::Vector2f start;
-  double progress;
-  double duration;
-
-public:
-  PanelGrab(Field* _field, Team _team, float _duration);
-  virtual ~PanelGrab(void);
-
-  virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction);
-=======
   sf::Vector2f start; /*!< Where the orb starts */
   double progress;    /*!< Progress from the start to the tile */
   double duration;    /*!< How long the animation should last in seconds */
@@ -56,6 +42,5 @@ public:
    * @brief Deals 10 damage
    * @param _entity to hit
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void Attack(Character* _entity);
 };

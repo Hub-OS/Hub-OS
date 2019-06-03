@@ -148,13 +148,6 @@ const std::string NaviRegistration::NaviInfo::GetSpecialDescriptionString() cons
 
 Player * NaviRegistration::NaviInfo::GetNavi()
 {
-<<<<<<< HEAD
-  /*if (!navi) {
-    loadNaviClass(); // Reload navi and restore HP 
-  }*/
-
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   Player* out = navi;
   navi = nullptr;
 

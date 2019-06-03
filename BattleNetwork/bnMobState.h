@@ -3,19 +3,11 @@
 #pragma once
 #include <string>
 
-<<<<<<< HEAD
-#define MOB_MOVING    std::string("MOVING")
-#define MOB_IDLE      std::string("IDLE")
-#define MOB_HIT       std::string("HIT")
-#define MOB_ATTACKING std::string("ATTACK")
-#define MOB_THROW     std::string("THROW")
-=======
 static const auto MOB_MOVING    = std::string("MOVING");
 static const auto  MOB_IDLE      = std::string("IDLE");
 static const auto  MOB_HIT       = std::string("HIT");
 static const auto  MOB_ATTACKING = std::string("ATTACK");
 static const auto  MOB_THROW     = std::string("THROW");
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 static const auto  MOB_CANODUMB_IDLE_1  = std::string("IDLE1");
 static const auto  MOB_CANODUMB_SHOOT_1 = std::string("SHOOT1");

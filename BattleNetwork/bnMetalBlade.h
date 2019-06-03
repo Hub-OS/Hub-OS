@@ -2,17 +2,6 @@
 #include "bnSpell.h"
 #include "bnAnimation.h"
 
-<<<<<<< HEAD
-class MetalBlade : public Spell {
-protected:
-  Animation animation;
-  double speed;
-public:
-  MetalBlade(Field* _field, Team _team, double speed = 1.0);
-  virtual ~MetalBlade(void);
-  virtual bool CanMoveTo(Battle::Tile* tile);
-  virtual void Update(float _elapsed);
-=======
 /*! \brief metal blade attack U-turns at end of field */
 class MetalBlade : public Spell {
 protected:
@@ -50,6 +39,5 @@ public:
    * @brief Deals hitbox damage
    * @param _entity
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void Attack(Character* _entity);
 };

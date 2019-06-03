@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+
 /*! \brief This state can be used by any Entity in the engine.
  *
  *
@@ -10,41 +9,15 @@
  * succeed.
  */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnExplodeState.h"
 #include "bnShineExplosion.h"
 #include "bnTextureResourceManager.h"
 
-<<<<<<< HEAD
-/*
-  This state can be used by any Entity in the engine.
-  It uses constraints to ensure the type passed in Any
-  is a subclass of Entity.
-
-  This state spawns an explosion and flickers the
-  entity at it's current animation. Once the explosion
-  is finished, the entity is tried for deletion. Since
-  this state is used when health < 0, the deletion will
-  succeed.
-*/
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 template<typename Any>
 class NaviExplodeState : public ExplodeState<Any>
 {
 protected:
-<<<<<<< HEAD
-  ShineExplosion* shine;
-
-public:
-
-  NaviExplodeState(int _numOfExplosions = 2, double _playbackSpeed = 0.55);
-  virtual ~NaviExplodeState();
-
-  void OnEnter(Any& e);
-  void OnUpdate(float _elapsed, Any& e);
-=======
   ShineExplosion* shine; /*!< Shine X that appears over navi ranked enemies */
 
 public:
@@ -82,7 +55,6 @@ public:
    * @brief Calls ExplodeState<Any>::OnLeave(e)
    * @param e entity
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void OnLeave(Any& e);
 };
 

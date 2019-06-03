@@ -23,10 +23,6 @@ public:
    */
   ~ProgsManMoveState();
 
-<<<<<<< HEAD
-  void OnEnter(ProgsMan& p);
-  void OnUpdate(float _elapsed, ProgsMan& p);
-=======
   /**
    * @brief does nothing
    * @param p progsman entity
@@ -53,7 +49,6 @@ public:
    * @brief does nothing
    * @param p progsman entity
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void OnLeave(ProgsMan& p);
 };
 

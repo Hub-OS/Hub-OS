@@ -20,10 +20,6 @@ public:
    */
   ~ProgsManIdleState();
 
-<<<<<<< HEAD
-  void OnEnter(ProgsMan& p);
-  void OnUpdate(float _elapsed, ProgsMan& p);
-=======
   /**
    * @brief Set the animation to IDLE
    * @param p progsman entity
@@ -41,7 +37,6 @@ public:
    * @brief Does nothing
    * @param p progsman entity
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void OnLeave(ProgsMan& p);
 };
 

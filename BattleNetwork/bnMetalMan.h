@@ -10,51 +10,12 @@ using sf::IntRect;
 #include "bnAnimationComponent.h"
 #include "bnAI.h"
 
-<<<<<<< HEAD
-=======
 /*! \brief Metalman is a boss that throws blades, fires rockets, and punches the ground */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class MetalMan : public Character, public AI<MetalMan> {
 public:
   friend class MetalManIdleState;
   friend class MetalManMoveState;
   friend class MetalManPunchState;
-<<<<<<< HEAD
-  friend class MetalManMissileState;
-
-  MetalMan(Rank _rank);
-  virtual ~MetalMan();
-
-  virtual void Update(float _elapsed);
-  virtual void RefreshTexture();
-  virtual bool CanMoveTo(Battle::Tile * next);
-  virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
-  virtual void SetCounterFrame(int frame);
-  virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
-  virtual int GetHealth() const;
-  virtual TextureType GetTextureType() const;
-
-  void SetHealth(int _health);
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-
-  virtual const float GetHitHeight() const;
-  virtual int* GetAnimOffset();
-
-private:
-  sf::Clock clock;
-
-  AnimationComponent animationComponent;
-
-  float hitHeight;
-  string state;
-  TextureType textureType;
-  MobHealthUI* healthUI;
-  sf::Shader* whiteout;
-  sf::Shader* stun;
-
-  bool movedByStun;
-  bool hit;
-=======
 
   MetalMan(Rank _rank);
   
@@ -130,6 +91,5 @@ private:
 
   bool movedByStun; /*!< If metalman was stunned outside of this area, move him back to his space */
   bool hit; /*!< Flash white if his this frame */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 };

@@ -1,37 +1,16 @@
-<<<<<<< HEAD
-=======
+
 /*! \brief Mystery data sits on the field and explodes if hit by anything 
  * 
  * Must tie  together with BattleOverTrigger to turn into "GET" sprite 
  * and generate a new reward
  */
  
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnCharacter.h"
 #include "bnAnimationComponent.h"
 
 using sf::Texture;
 
-<<<<<<< HEAD
-/* Mystery data sits on the field and explodes if hit by anything */
-/* Note: Must tie  together with BattleOverTrigger to turn into "GET" sprite*/
-class MysteryData : public Character {
-public:
-  MysteryData(Field* _field, Team _team);
-  virtual ~MysteryData(void);
-
-  virtual void Update(float _elapsed);
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-
-  void RewardPlayer();
-
-  virtual bool Move(Direction _direction) { return false; }
-
-protected:
-  Texture* texture;
-  AnimationComponent animation;
-=======
 class MysteryData : public Character {
 public:
   /**
@@ -77,5 +56,4 @@ public:
 
 protected:
   AnimationComponent animation; /*!< Animation component for mystery data */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

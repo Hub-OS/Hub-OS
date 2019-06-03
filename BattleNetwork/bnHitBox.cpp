@@ -13,10 +13,6 @@ HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell() {
   direction = Direction::NONE;
   deleted = false;
   hit = false;
-<<<<<<< HEAD
-  cooldown = 0;
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   damage = _damage;
 
   auto props = Hit::DefaultProperties;
@@ -26,11 +22,7 @@ HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell() {
   EnableTileHighlight(false);
 }
 
-<<<<<<< HEAD
-HitBox::~HitBox(void) {
-=======
 HitBox::~HitBox() {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 void HitBox::Update(float _elapsed) {

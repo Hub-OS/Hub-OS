@@ -11,11 +11,6 @@ public:
   ProgsManPunchState();
   ~ProgsManPunchState();
 
-<<<<<<< HEAD
-  void OnEnter(ProgsMan& p);
-  void OnUpdate(float _elapsed, ProgsMan& p);
-  void OnLeave(ProgsMan& p);
-=======
   /**
    * @brief Set animation. On end frame calls Attack()
    * @param p progsman entity
@@ -41,7 +36,6 @@ public:
    * 
    * Sets the next state to ProgsmanIdleState
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void Attack(ProgsMan& p);
 };
 

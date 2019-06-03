@@ -1,19 +1,6 @@
 #pragma once
 #include "bnSpell.h"
 
-<<<<<<< HEAD
-class HitBox : public Spell {
-public:
-  HitBox(Field* _field, Team _team, int damage);
-  virtual ~HitBox(void);
-
-  virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction);
-  virtual void Attack(Character* _entity);
-private:
-  int damage;
-  float cooldown;
-=======
 /*! \brief Hitbox is an invisible spell used for more complex attack behaviors or used as body hitboxes
  * 
  * Because some attacks have lagging behavior, dropping a hitbox is more effective design
@@ -55,5 +42,4 @@ public:
 private:
   int damage; /*!< how many units of damage to deal */
   bool hit; /*!< Flag if hit last frame */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

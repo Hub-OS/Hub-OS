@@ -1,8 +1,6 @@
-<<<<<<< HEAD
-=======
+
 /*! \brief Poof effect that plays when some chips fail */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnArtifact.h"
 #include "bnComponent.h"
@@ -13,12 +11,6 @@ private:
   Animation animation;
   sf::Sprite poof;
 public:
-<<<<<<< HEAD
-  ParticlePoof(Field* field);
-  ~ParticlePoof();
-
-  virtual void Update(float _elapsed);
-=======
   /**
    * \brief sets the animation 
    */
@@ -40,6 +32,5 @@ public:
    * @param _direction ignored
    * @return false
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual bool Move(Direction _direction) { return false; }
 };

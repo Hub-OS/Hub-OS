@@ -1,27 +1,12 @@
-<<<<<<< HEAD
-=======
 /*! \brief Ninja star strikes from above dealing 100 units of impact damage
  */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnSpell.h"
 #include "bnTile.h"
 
 class NinjaStar : public Spell {
 private:
-<<<<<<< HEAD
-  sf::Vector2f start;
-  double progress;
-  double duration;
-
-public:
-  NinjaStar(Field* _field, Team _team, float _duration);
-  virtual ~NinjaStar(void);
-
-  virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction);
-=======
   sf::Vector2f start; /*!< Start position to interpolate from */
   double progress; /*!< Progress of the animation */
   double duration; /*!< How quickly the animation plays */
@@ -57,6 +42,5 @@ public:
    * @brief Attacks entity
    * @param _entity to deal hitbox damage to
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void Attack(Character* _entity);
 }; 
