@@ -41,9 +41,7 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
   animationComponent.Setup(RESOURCE_PATH);
   animationComponent.Reload();
-<<<<<<< HEAD
-=======
-  
+
   /**
    * This is very convoluted and will change with the chip summon refactored
    * Essentially we nest callbacks
@@ -63,8 +61,7 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
    * At the end of the last MOVE animation, we spawn a heart
    * and request the summon system to remove this entity
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
-  animationComponent.SetAnimation("ROLL_IDLE", [this] { 
+  animationComponent.SetAnimation("ROLL_IDLE", [this] {
     this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
 
       bool found = false;
@@ -136,13 +133,6 @@ bool RollHeal::Move(Direction _direction) {
 }
 
 void RollHeal::Attack(Character* _entity) {
-<<<<<<< HEAD
-  if (hit || deleted) {
-    return;
-  }
-
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     if (!_entity->IsPassthrough()) {
       auto props = Hit::DefaultProperties;

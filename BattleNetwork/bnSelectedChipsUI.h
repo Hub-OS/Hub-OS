@@ -22,12 +22,7 @@ class Player;
 class Chip;
 class BattleScene;
 
-<<<<<<< HEAD
-// TODO: USE new UIComponent
-class SelectedChipsUI : public ChipUsePublisher, public Component {
-=======
 class SelectedChipsUI : public ChipUsePublisher, public UIComponent {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 public:
   /**
    * \brief Loads the graphics and sets spread duration to .2 seconds
@@ -42,10 +37,6 @@ public:
 
   void draw(sf::RenderTarget & target, sf::RenderStates states) const;
 
-<<<<<<< HEAD
-  bool GetNextComponent(Drawable*& out);
-  void Update(float _elapsed);
-=======
   /**
    * @brief Hold START to spread the chips out
    * @param _elapsed in seconds
@@ -57,30 +48,12 @@ public:
    * @param incoming List of Chip pointers
    * @param size Size of List
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void LoadChips(Chip** incoming, int size);
   
   /**
    * @brief Broadcasts the chip at the cursor curr. Increases curr.
    */
   void UseNextChip();
-<<<<<<< HEAD
-  void Inject(BattleScene&);
-private:
-  Chip** selectedChips;
-  int chipCount;
-  int curr;
-  double interpolTimeFlat;
-  double interpolTimeDest;
-  bool spread;
-  sf::Time interpolDur;
-  Player* player;
-  Font* font;
-  Text text;
-  Text dmg;
-  sf::Sprite icon, frame;
-  vector<Drawable*> components;
-=======
   
   /**
    * @brief nothing
@@ -100,5 +73,4 @@ private:
   mutable Text text; /*!< Text displays chip name */
   mutable Text dmg; /*!< Text displays chip damage */
   mutable sf::Sprite icon, frame; /*!< Sprite for the chip icon and the black border */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

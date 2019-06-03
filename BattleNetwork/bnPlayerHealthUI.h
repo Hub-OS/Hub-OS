@@ -33,25 +33,6 @@ using std::ostringstream;
 
 class PlayerHealthUI : virtual public UIComponent, virtual public BattleOverTrigger<Player> {
 public:
-<<<<<<< HEAD
-  PlayerHealthUI(Player* _player);
-  ~PlayerHealthUI();
-
-  virtual void Inject(BattleScene& scene) { ; }
-
-  virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const;
-  void Update(float elapsed);
-
-private:
-  int lastHP;
-  int currHP;
-  int startHP;
-  Player* player;
-  mutable Sprite glyphs;
-  Sprite sprite;
-  Texture* texture;
-
-=======
   /**
    * \brief Sets the player owner. Sets hp tracker to current health.
    */
@@ -94,21 +75,12 @@ private:
    * @class Color
    * @brief strong type for glyph colors
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   enum class Color : int {
     NORMAL,
     ORANGE,
     GREEN
-<<<<<<< HEAD
-  } color;
-
-  bool loaded;
-  bool isBattleOver;
-  double cooldown;
-=======
   } color; /*!< color of the glyphs */
 
   bool isBattleOver; /*!< flag when battle scene ends to stop beeping */
   double cooldown; /*!< timer to colorize the health. Set to 0.5 seconds */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

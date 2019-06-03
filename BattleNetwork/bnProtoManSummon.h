@@ -1,33 +1,16 @@
-<<<<<<< HEAD
-=======
 /*! \brief Protoman appears and attacks every enemy he can reach
  * 
  * NOTE: The chip summon system is going under major refactoring and this
  * code will not be the same
  */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
-
 #include "bnSpell.h"
 
 class ChipSummonHandler;
 
 class ProtoManSummon : public Spell {
 public:
-<<<<<<< HEAD
-  ProtoManSummon(ChipSummonHandler* _summons);
-  virtual ~ProtoManSummon();
-
-  virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction);
-  virtual void Attack(Character* _entity);
-  
-  void DoAttackStep();
-
-private:
-  std::vector<Battle::Tile*> targets;
-=======
   
   /**
    * \brief Scans for enemies. Checks to see if protoman can
@@ -73,7 +56,6 @@ private:
 
 private:
   std::vector<Battle::Tile*> targets; /*!< List of every tile ProtoMan must visit */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   int random;
   ChipSummonHandler* summons;
 };

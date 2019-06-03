@@ -1,8 +1,6 @@
-<<<<<<< HEAD
-=======
+
 /*! \brief Spawns a bullet and goes to ProgsManIdleState */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnTile.h"
 #include "bnField.h"
@@ -11,13 +9,6 @@ class ProgsMan;
 class ProgsManShootState : public AIState<ProgsMan>
 {
 public:
-<<<<<<< HEAD
-  ProgsManShootState();
-  ~ProgsManShootState();
-
-  void OnEnter(ProgsMan& p);
-  void OnUpdate(float _elapsed, ProgsMan& p);
-=======
   /**
    * @brief Constructor. Does nothing else.
    */
@@ -45,7 +36,6 @@ public:
    * @brief does nothing
    * @param p progsman entity
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void OnLeave(ProgsMan& p);
 };
 

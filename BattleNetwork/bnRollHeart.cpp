@@ -24,20 +24,11 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spel
 
   direction = Direction::NONE;
   deleted = false;
-<<<<<<< HEAD
-  hit = false;
-  progress = 0.0f;
-  hitHeight = 0.0f;
-
-  Battle::Tile* _tile = summons->GetCaller()->GetTile();
-
-=======
 
   height = 200;
 
   Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
@@ -66,11 +57,8 @@ void RollHeart::Update(float _elapsed) {
   if (height == 0 && doOnce) {
     AUDIO.Play(AudioType::RECOVER);
     doOnce = false;
-<<<<<<< HEAD
-    this->setColor(sf::Color(255, 255, 255, 0)); // hidden
-=======
+
     this->setColor(sf::Color(255, 255, 255, 0)); // hide
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     caller->SetHealth(caller->GetHealth() + heal);
     
     /*player->SetAnimation("PLAYER_HEAL", [this]() {
@@ -82,11 +70,7 @@ void RollHeart::Update(float _elapsed) {
 }
 
 bool RollHeart::Move(Direction _direction) {
-<<<<<<< HEAD
-  return true;
-=======
   return false;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 void RollHeart::Attack(Character* _entity) {

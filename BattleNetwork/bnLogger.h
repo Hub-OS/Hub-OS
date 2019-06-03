@@ -6,19 +6,16 @@
 #include <mutex>
 #include <fstream>
 
-<<<<<<< HEAD
 #if defined(__ANDROID__)
 #include <android/log.h>
 #endif
 
-=======
 using std::string;
 using std::to_string;
 using std::cerr;
 using std::endl;
 
 /*! \brief Thread safe logging utility logs directly to a file */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class Logger {
 private:
   static std::mutex m;
@@ -57,16 +54,12 @@ public:
       file << "StartTime " << time(0) << endl;
     }
 
-<<<<<<< HEAD
 #if defined(__ANDROID__)
     __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",_message.c_str());
 #else
     cerr << _message << endl;
 #endif
 
-=======
-    cerr << _message << endl;
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     logs.push(_message);
     file << _message << endl;
   }

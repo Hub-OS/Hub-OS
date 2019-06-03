@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+
 /*! \brief Component that protects an entity from all contact damage
  * 
  * The shield is just an animation but it adds a defense rule 
@@ -13,7 +12,6 @@
  * This callback will spawn a RowHit spell object to deal damage
  */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnArtifact.h"
 #include "bnComponent.h"
@@ -22,21 +20,6 @@
 class ReflectShield : virtual public Artifact, virtual public Component
 {
 private:
-<<<<<<< HEAD
-  DefenseRule* guard;
-  Animation animation;
-  sf::Sprite shield;
-  bool activated;
-
-public:
-  ReflectShield(Character* owner);
-  ~ReflectShield();
-
-  virtual void Inject(BattleScene&);
-  virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction) { return false; }
-
-=======
   DefenseRule* guard; /*!< Adds defense rule to attached entity */
   Animation animation; /*!< Shield animation */
   sf::Sprite shield; /*!< Shield graphic */
@@ -82,6 +65,5 @@ public:
    * @param in the attack we are reflecting
    * @param owner the owner of the attack
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void DoReflect(Spell* in, Character* owner);
 };

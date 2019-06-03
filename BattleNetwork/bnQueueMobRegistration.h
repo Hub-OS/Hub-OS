@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-=======
+
 /*! \file bnQueueMobRegistration.h*/
 
 /*! \brief This hooks into the loading phase and loads extra content
@@ -8,7 +7,6 @@
  * Descriptions should be short as user cannot continue long
  * paragraphs */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 #include "bnMobRegistration.h"
 
@@ -20,13 +18,10 @@
 #include "bnMetalManBossFight2.h"
 #include "bnRandomMettaurMob.h"
 
-<<<<<<< HEAD
 /***********************************************************************
 ************    Register your custom mobs here    *********************
 ************************************************************************/
 
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 void QueueMobRegistration() {
   auto info = MOBS.AddClass<TwoMettaurMob>();  // Create and register mob info object
   info->SetDescription("Tutorial ranked mettaurs, you got this!"); // Set property

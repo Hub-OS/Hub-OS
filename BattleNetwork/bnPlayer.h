@@ -41,13 +41,6 @@ public:
    * @param _elapsed for secs
    */
   virtual void Update(float _elapsed);
-<<<<<<< HEAD
-  void Attack(float _charge);
-
-  virtual int GetHealth() const;
-  virtual void SetHealth(int _health);
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-=======
   
   /**
    * @brief Fires a buster
@@ -70,7 +63,6 @@ public:
    * @brief Get how many times the player has moved across the grid
    * @return int
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   int GetMoveCount() const;
   
   /**
@@ -79,13 +71,10 @@ public:
    */
   int GetHitCount() const;
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Get the animation component used by the player
    * @return AnimationComponent&
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   AnimationComponent& GetAnimationComponent();
 
   /**
@@ -95,24 +84,6 @@ public:
    */
   void SetCharging(bool state);
 
-<<<<<<< HEAD
-  virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
-
-protected:
-  int health;
-  int hitCount;
-
-  double invincibilityCooldown;
-
-  TextureType textureType;
-  string state;
-
-  //-Animation-
-  float animationProgress;
-
-  ChargeComponent chargeComponent;
-  AnimationComponent animationComponent;
-=======
   /**
    * @brief Set the animation and on finish callback
    * @param _state name of the animation
@@ -126,5 +97,4 @@ protected:
 
   ChargeComponent chargeComponent; /*!< Handles charge effect */
   AnimationComponent animationComponent; /*!< Animates the character */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };
