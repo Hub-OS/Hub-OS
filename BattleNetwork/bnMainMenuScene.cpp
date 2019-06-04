@@ -17,15 +17,6 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetDefaultView()),
   swoosh::Activity(&controller)
 {
-<<<<<<< HEAD
-  data = ChipFolderCollection::ReadFromFile("resources/database/folders.txt");
-
-  bg = new LanBackground();
-
-  map = new Overworld::InfiniteMap(3, 10, 47, 24);
-  map->SetCamera(&camera);
-
-=======
   // When we reach the menu scene we need to load the player information
   // before proceeding to next sub menus
   data = ChipFolderCollection::ReadFromFile("resources/database/folders.txt");
@@ -41,7 +32,6 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   map->SetCamera(&camera);
 
   // Show the HUD
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   showHUD = true;
 
   // Selection input delays
@@ -80,26 +70,15 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 }
 
 void MainMenuScene::onStart() {
-<<<<<<< HEAD
-  AUDIO.StopStream();
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
-=======
   // Stop any music already playing
   AUDIO.StopStream();
   AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
   
   // Set the camera back to ours
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   ENGINE.SetCamera(camera);
 }
 
 void MainMenuScene::onUpdate(double elapsed) {
-<<<<<<< HEAD
-  // std::cout << "elapsed: " << elapsed << std::endl;
-  map->Update((float)elapsed);
-
-  camera.Update((float)elapsed);
-=======
   // Update the map
   map->Update((float)elapsed);
 
@@ -107,7 +86,6 @@ void MainMenuScene::onUpdate(double elapsed) {
   camera.Update((float)elapsed);
   
   // Loop the bg
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   bg->Update((float)elapsed);
 
   // Draw navi moving
@@ -127,11 +105,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
 
   if (!gotoNextScene) {
-<<<<<<< HEAD
     if (INPUT.Has(PRESSED_A) && !INPUT.Has(PRESSED_B)) {
-=======
-    if (INPUT.Has(PRESSED_A)) {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
       // Folder Select
       if (menuSelectionIndex == 0) {
@@ -176,10 +150,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         else {
           AUDIO.Play(AudioType::CHIP_ERROR); 
           Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
-<<<<<<< HEAD
           gotoNextScene = false;
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
         }
       }
     }
@@ -214,10 +185,7 @@ void MainMenuScene::onUpdate(double elapsed) {
     map->ToggleLighting(toggle);
   }*/
 
-<<<<<<< HEAD
-=======
   // Keep menu selection in range
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   menuSelectionIndex = std::max(0, menuSelectionIndex);
   menuSelectionIndex = std::min(3, menuSelectionIndex);
 

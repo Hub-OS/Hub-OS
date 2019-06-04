@@ -1,13 +1,10 @@
 #pragma once
 #include <vector>
 #include <map>
-<<<<<<< HEAD
 #include <SFML/Window/Event.hpp>
 
 using std::map;
 using std::vector;
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 #include "bnInputEvent.h"
 #include "bnChronoXConfigReader.h"
@@ -33,11 +30,6 @@ public:
    * @brief Frees config pointer
    */
   ~InputManager();
-<<<<<<< HEAD
-  void Update();
-  bool Has(InputEvent _event);
-  bool Empty();
-=======
   
   /**
    * @brief Polls SFML's event queue used by windows and input devices
@@ -69,7 +61,6 @@ public:
    * @brief Creates a reference to the config reader object
    * @param config
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void SupportChronoXGamepad(ChronoXConfigReader& config);
   
   /**
@@ -123,16 +114,6 @@ public:
   void VirtualKeyEvent(InputEvent event);
 
 private:
-<<<<<<< HEAD
-  bool captureInputBuffer;
-  std::string inputBuffer;
-
-  InputManager();
-  vector<InputEvent> events;
-  vector<InputEvent> eventsLastFrame;
-
-  map<std::string, bool> gamepadPressed;
-=======
   bool captureInputBuffer; /*!< Flags input buffer capture state */
   std::string inputBuffer; /*!< The internal input buffer data */
 
@@ -147,7 +128,6 @@ private:
   map<std::string, bool> gamepadPressed; /*!< Maps controller events*/
 
   ChronoXConfigReader* config;   /*!< Support for ChronoX config.ini files */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 };
 

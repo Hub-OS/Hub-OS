@@ -5,24 +5,13 @@
 #include "bnAudioResourceManager.h"
 
 MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
-<<<<<<< HEAD
-=======
   // Blades float over tiles 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   this->SetFloatShoe(true);
 
   SetLayer(0);
   field = _field;
   team = _team;
   direction = Direction::NONE;
-<<<<<<< HEAD
-  deleted = false;
-  hit = false;
-  texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
-  this->speed = speed;
-
-=======
-  
   auto texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
   setTexture(*texture);
   setScale(2.f, 2.f);
@@ -31,7 +20,6 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
 
   // Blades move from tile to tile in 25 frames
   // Adjust by speed factor
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   this->slideTime = sf::seconds(0.25f / (float)speed);
 
   animation = Animation("resources/mobs/metalman/metalman.animation");
@@ -45,46 +33,6 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
   EnableTileHighlight(false);
 }
 
-<<<<<<< HEAD
-MetalBlade::~MetalBlade(void) {
-}
-
-void MetalBlade::Update(float _elapsed) {
-  setTexture(*texture);
-  setScale(2.f, 2.f);
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
-
-  animation.Update(_elapsed*(float)this->speed, *this);
-
-  // Keep moving
-  if (!this->isSliding) {
-    if (this->tile->GetX() == 1) {
-      if (this->tile->GetY() == 2 && this->GetDirection() == Direction::LEFT) {
-        this->Delete();
-      }
-      else if (this->tile->GetY() == 1) {
-        if (this->GetDirection() == Direction::LEFT) {
-          this->SetDirection(Direction::DOWN);
-        }
-        else {
-          this->SetDirection(Direction::RIGHT);
-        }
-      }
-      else if(this->tile->GetY() == 3){
-        if (this->GetDirection() == Direction::LEFT) {
-          this->SetDirection(Direction::UP);
-        }
-        else {
-          this->SetDirection(Direction::RIGHT);
-        }
-      }
-    }
-    else if (this->tile->GetX() == 6) {
-      this->Delete();
-    }
-
-    this->SlideToTile(true);
-=======
 MetalBlade::~MetalBlade() {
 }
 
@@ -166,7 +114,6 @@ void MetalBlade::Update(float _elapsed) {
     this->SlideToTile(true);
     
     // Keep moving
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     this->Move(this->GetDirection());
   }
 
@@ -175,10 +122,7 @@ void MetalBlade::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-<<<<<<< HEAD
-=======
 // Nothing prevents blade from cutting through
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 bool MetalBlade::CanMoveTo(Battle::Tile* tile) {
   return true;
 }

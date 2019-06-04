@@ -21,19 +21,6 @@ public:
   };
 
 private:
-<<<<<<< HEAD
-  std::vector<Component*> components;
-  std::vector<MobData*> spawn;
-  std::vector<MobData*>::iterator iter;
-  std::vector<std::function<void(Character*)>> defaultStateInvokers;
-  std::vector<std::function<void(Character*)>> pixelStateInvokers;
-  std::multimap<int, BattleItem> rewards;
-  bool nextReady;
-  Field* field;
-  bool isBoss;
-  std::string music;
-  Background* background;
-=======
   std::vector<Component*> components; /*!< Components to inject into the battle scene */
   std::vector<MobData*> spawn; /*!< The enemies to spawn and manage */
   std::vector<MobData*>::iterator iter; /*!< Mobdata iterator */
@@ -45,7 +32,6 @@ private:
   bool isBoss; /*!< Flag to change rank and music */
   std::string music; /*!< Override with custom music */
   Background* background; /*!< Override with custom background */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 public:
 
   /**
@@ -78,14 +64,11 @@ public:
     rewards.insert(std::make_pair(rank, item));
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Find all possible rewards based on this score
    * @param score generated from BattleRewards class 
    * @return Randomly chooses possible ranked reward or nullptr if none 
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   BattleItem* GetRankedReward(int score) {
     if (rewards.empty()) {
       return nullptr;
@@ -139,15 +122,6 @@ public:
     }
 
     components.clear();
-<<<<<<< HEAD
-  }
-
-  void KillSwitch() {
-    for (int i = 0; i < spawn.size(); i++) {
-      spawn[i]->mob->SetHealth(0);
-    }
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   }
 
   /**
@@ -175,8 +149,6 @@ public:
     return (int)spawn.size();
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Get the count of remaining enemies in battle
    * 
@@ -184,7 +156,6 @@ public:
    * 
    * @return const int 
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const int GetRemainingMobCount() {
     int remaining = (int)spawn.size();
 
@@ -197,12 +168,9 @@ public:
     return remaining;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Toggle boss flag. Changes scoring system and music.
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void ToggleBossFlag() {
     isBoss = !isBoss;
   }
@@ -215,70 +183,52 @@ public:
     return isBoss;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Set a custom background
    * @param background
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void SetBackground(Background* background) {
     this->background = background;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Get the background object
    * @return Background*
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   Background* GetBackground() {
     return this->background;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief The battle scene will load this custom music
    * @param path path relative to the app 
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void StreamCustomMusic(const std::string path) {
     this->music = path;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Checks if custom music path was set
    * @return true if music string length is > 0
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   bool HasCustomMusicPath() {
     return this->music.length() > 0;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Gets the custom music path
    * @return const std::string
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const std::string GetCustomMusicPath() const {
     return this->music;
   }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Gets the mob at spawn index
    * @param index spawn index
    * @return const Character& 
    * @throws std::runtime_error if index is not in range
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const Character& GetMobAt(int index) {
     if (index < 0 || index >= spawn.size()) {
       throw new std::runtime_error(std::string("Invalid index range for Mob::GetMobAt()"));
@@ -344,15 +294,12 @@ public:
 
   std::vector<Component*> GetComponents() { return components; }
 
-<<<<<<< HEAD
-=======
   /**
    * @brief Get the next unspawned enemy
    * 
    * Spawns the mob and changes its state to PixelInState<>
    * @return MobData*
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   MobData* GetNextMob() {
     this->nextReady = false;
     MobData* data = *(iter);

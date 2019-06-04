@@ -28,19 +28,12 @@ MetalMan::MetalMan(Rank _rank)
   
   hitHeight = 64;
   state = MOB_IDLE;
-<<<<<<< HEAD
-  textureType = TextureType::MOB_METALMAN_ATLAS;
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   healthUI = new MobHealthUI(this);
 
   this->ChangeState<MetalManIdleState>();
 
-<<<<<<< HEAD
-  setTexture(*TEXTURES.GetTexture(textureType));
-=======
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
+
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
@@ -61,20 +54,7 @@ MetalMan::MetalMan(Rank _rank)
   hit = false;
 }
 
-<<<<<<< HEAD
-MetalMan::~MetalMan(void) {
-}
-
-int* MetalMan::GetAnimOffset() {
-  int* res = new int[2];
-
-  res[0] = 10;
-  res[1] = 6;
-
-  return res;
-=======
 MetalMan::~MetalMan() {
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 }
 
 void MetalMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
@@ -109,19 +89,10 @@ void MetalMan::Update(float _elapsed) {
     this->SetShader(nullptr);
   }
 
-<<<<<<< HEAD
-  this->RefreshTexture();
-
-  if (_elapsed <= 0) return;
-
-  hitHeight = getLocalBounds().height;
-
-=======
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
   if (_elapsed <= 0) return;
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (stunCooldown > 0) {
     stunCooldown -= _elapsed;
     healthUI->Update(_elapsed);
@@ -167,25 +138,6 @@ void MetalMan::Update(float _elapsed) {
   hit = false;
 }
 
-<<<<<<< HEAD
-void MetalMan::RefreshTexture() {
-  setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
-}
-
-TextureType MetalMan::GetTextureType() const {
-  return textureType;
-}
-
-int MetalMan::GetHealth() const {
-  return health;
-}
-
-void MetalMan::SetHealth(int _health) {
-  health = _health;
-}
-
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 const bool MetalMan::Hit(Hit::Properties props) {
   /*(health - _damage < 0) ? health = 0 : health -= _damage;
   SetShader(whiteout);
