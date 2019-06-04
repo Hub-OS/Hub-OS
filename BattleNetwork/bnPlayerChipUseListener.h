@@ -35,9 +35,6 @@ public:
   PlayerChipUseListener(Player* _player) : ChipUseListener() { player = _player; }
   PlayerChipUseListener(Player& _player) : ChipUseListener() { player = &_player;  }
 
-<<<<<<< HEAD
-  void OnChipUse(Chip& chip, Character& character) {
-=======
   /**
    * @brief What happens when a chip is used
    * @param chip Chip used
@@ -45,7 +42,6 @@ public:
    */
   void OnChipUse(Chip& chip, Character& character) {
     // Player charging is cancelled
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     player->SetCharging(false);
 
     // Identify the chip by the name
@@ -78,17 +74,6 @@ public:
       AUDIO.Play(AudioType::PANEL_CRACK);
     }
     else if (name == "Invis") {
-<<<<<<< HEAD
-      Component* invis = new Invis(player);
-      player->RegisterComponent(invis);
-    }
-    else if (name == "Rflector") {
-      ReflectShield* reflect = new ReflectShield(player);
-      player->RegisterComponent(reflect);
-
-      AUDIO.Play(AudioType::APPEAR);
-
-=======
       // Create an invisible component. This handles the logic for timed invis
       Component* invis = new Invis(player);
       
@@ -106,7 +91,6 @@ public:
       AUDIO.Play(AudioType::APPEAR);
 
       // Add shield artifact on the same layer as player
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
       Battle::Tile* tile = player->GetTile();
 
       if (tile) {
@@ -114,11 +98,6 @@ public:
       }
     }
     else if (name == "Fishy") {
-<<<<<<< HEAD
-      Fishy* fishy = new Fishy(player->GetField(), player->GetTeam(), 1.0);
-      fishy->SetDirection(Direction::RIGHT);
-      HideUntil::Callback until = [fishy]() { return fishy->IsDeleted(); };
-=======
       /**
         * Fishy is two pieces: the Fishy attack and a HideUntil component 
         * 
@@ -144,7 +123,6 @@ public:
       
       // First argument is the entity to hide
       // Second argument is the query functor
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
       HideUntil* fishyStatus = new HideUntil(player, until);
       player->RegisterComponent(fishyStatus);
 
@@ -199,30 +177,16 @@ public:
       player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
     else if (name == "Elecplse") {
-<<<<<<< HEAD
-=======
       // Spawn an elecpulse attack
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
 
       player->SetAnimation(PLAYER_SHOOTING, onFinish);
 
       Elecpulse* pulse = new Elecpulse(player->GetField(), player->GetTeam(), chip.GetDamage());
-<<<<<<< HEAD
-      Elecpulse* pulse2 = new Elecpulse(player->GetField(), player->GetTeam(), chip.GetDamage());
-      pulse2->setScale(0, 0);
-
-      AUDIO.Play(AudioType::ELECPULSE);
-
-      player->GetField()->AddEntity(*pulse, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
-      player->GetField()->AddEntity(*pulse2, player->GetTile()->GetX() + 2, player->GetTile()->GetY());
-
-=======
     
       AUDIO.Play(AudioType::ELECPULSE);
 
       player->GetField()->AddEntity(*pulse, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     }
     else if (name == "LongSwrd") {
         
@@ -270,10 +234,7 @@ public:
       }
     }
     else if (name == "AirShot1") {
-<<<<<<< HEAD
-=======
       // Spawn an airshot spell
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
 
       player->SetAnimation(PLAYER_SHOOTING, onFinish);
@@ -286,19 +247,12 @@ public:
       player->GetField()->AddEntity(*airshot, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
     else if (name == "Thunder") {
-<<<<<<< HEAD
-=======
+
       // Spawn the thunder spell to track enemies
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
 
       player->SetAnimation(PLAYER_SHOOTING, onFinish);
 
-<<<<<<< HEAD
-      //AUDIO.Play(AudioType::);
-
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
       Thunder* thunder = new Thunder(player->GetField(), player->GetTeam());
       player->GetField()->AddEntity(*thunder, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }

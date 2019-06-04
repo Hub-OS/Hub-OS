@@ -1,12 +1,7 @@
-<<<<<<< HEAD
-#include "bnSelectNaviScene.h"
-#include <Swoosh/ActivityController.h>
 
-=======
 #include <Swoosh/ActivityController.h>
 
 #include "bnSelectNaviScene.h"
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #include "Segues/Checkerboard.h"
 
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
@@ -14,10 +9,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   camera(ENGINE.GetDefaultView()),
   textbox(135, 15),
   swoosh::Activity(&controller) {
-<<<<<<< HEAD
-=======
-      
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
+
   // Menu name font
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
   menuLabel = new sf::Text("BATTLE SELECT", *font);
@@ -148,7 +140,6 @@ SelectNaviScene::~SelectNaviScene()
   delete hpLabel;
   delete bg;
 }
-<<<<<<< HEAD
 
 void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
@@ -200,59 +191,6 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   if (!gotoNextScene) {
     factor -= (float)elapsed * 180.f;
 
-=======
-
-void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-
-  ENGINE.Draw(bg);
-  ENGINE.Draw(glowbottom);
-  ENGINE.Draw(glowbase);
-
-  charName.setPosition(UI_LEFT_POS, charName.getPosition().y);
-  ENGINE.Draw(charName);
-
-  charElement.setPosition(UI_LEFT_POS, charElement.getPosition().y);
-  ENGINE.Draw(charElement);
-
-  // Draw stat box three times for three diff. properties
-  float charStat1Max = 10;
-
-  if (UI_TOP_POS < charStat1Max)
-    charStat.setPosition(UI_RIGHT_POS, charStat1Max);
-  else
-    charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
-  ENGINE.Draw(charStat);
-
-  // 2nd stat box
-  float charStat2Max = 10 + UI_SPACING;
-
-  if (UI_TOP_POS < charStat2Max)
-    charStat.setPosition(UI_RIGHT_POS, charStat2Max);
-  else
-    charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
-  ENGINE.Draw(charStat);
-
-  // 3rd stat box
-  float charStat3Max = 10 + (UI_SPACING * 2);
-
-  if (UI_TOP_POS < charStat3Max)
-    charStat.setPosition(UI_RIGHT_POS, charStat3Max);
-  else
-    charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
-  ENGINE.Draw(charStat);
-
-  // SP. Info box
-  charInfo.setPosition(UI_RIGHT_POS, charInfo.getPosition().y);
-  ENGINE.Draw(charInfo);
-
-  ENGINE.Draw(glowpad);
-
-  // Update UI slide in
-  if (!gotoNextScene) {
-    factor -= (float)elapsed * 180.f;
-
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     if (factor <= 0.f) {
       factor = 0.f;
     }
@@ -304,11 +242,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-<<<<<<< HEAD
-  LayeredDrawable* bake = new LayeredDrawable(sf::Sprite(navi));
-=======
   SpriteSceneNode* bake = new SpriteSceneNode(navi);
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   bake->SetShader(pixelated);
 
   ENGINE.Draw(bake);
@@ -419,38 +353,6 @@ void SelectNaviScene::onUpdate(double elapsed) {
     textbox.SetMessage(NAVIS.At(naviSelectionIndex).GetSpecialDescriptionString());
     loadNavi = true;
   }
-<<<<<<< HEAD
-
-  // This goes here because the jumbling effect may finish and we need to see proper values
-  naviLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetName()));
-  speedLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetSpeedString()));
-  attackLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetAttackString()));
-  hpLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetHPString()));
-
-  if (numberCooldown > 0) {
-    numberCooldown -= (float)elapsed;
-    std::string newstr;
-
-    for (int i = 0; i < naviLabel->getString().getSize(); i++) {
-      double progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
-      double index = progress * naviLabel->getString().getSize();
-
-      if (i < (int)index) {
-        newstr += naviLabel->getString()[i];
-      }
-      else {
-        if (naviLabel->getString()[i] != ' ') {
-          newstr += (char)(((rand() % (90 - 65)) + 65) + 1);
-        }
-        else {
-          newstr += ' ';
-        }
-      }
-    }
-    int randAttack = rand() % 10;
-    int randSpeed = rand() % 10;
-
-=======
 
   // This goes here because the jumbling effect may finish and we need to see proper values
   naviLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetName()));
@@ -487,7 +389,6 @@ void SelectNaviScene::onUpdate(double elapsed) {
     int randAttack = rand() % 10;
     int randSpeed = rand() % 10;
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     //attackLabel->setString(std::to_string(randAttack));
     //speedLabel->setString(std::to_string(randSpeed));
     naviLabel->setString(sf::String(newstr));
@@ -497,18 +398,13 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
   if (progress > 1.f) progress = 1.f;
 
-<<<<<<< HEAD
-=======
   // Darken the unselected navis
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   if (prevChosen != naviSelectionIndex) {
     navi.setColor(sf::Color(200, 200, 200, 128));
   }
   else {
-<<<<<<< HEAD
-=======
+
     // Make selected navis full color
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     navi.setColor(sf::Color(255, 255, 255, 255));
   }
 

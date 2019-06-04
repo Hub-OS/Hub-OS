@@ -1,8 +1,6 @@
-<<<<<<< HEAD
-=======
+
 /*! \file bnMobRegistration.h */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 
 #include <map>
@@ -14,54 +12,11 @@
 #include "bnTextureResourceManager.h"
 #include "bnField.h"
 #include "bnMobFactory.h"
-<<<<<<< HEAD
-/*
-  Use this singleton to register custom mobs  and have them automatically appear on the mob select screen and battle them!
-*/
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 class Mob;
 
 typedef int SelectedMob;
 
-<<<<<<< HEAD
-class MobRegistration {
-public:
-  class MobInfo {
-    friend class MobRegistration;
-
-    MobFactory* mobFactory;
-    sf::Sprite placeholder;
-    std::string name;
-    std::string description;
-    std::string placeholderPath;
-    sf::Texture* placeholderTexture;
-    int atk;
-    double speed;
-    int hp;
-
-    std::function<void()> loadMobClass;
-  public:
-    MobInfo();
-    ~MobInfo();
-
-    template<class T> MobInfo& SetMobClass();
-    MobInfo& SetPlaceholderTexturePath(std::string path);
-    MobInfo& SetDescription(const std::string& special);
-    MobInfo& SetAttack(const int atk);
-    MobInfo& SetSpeed(const double speed);
-    MobInfo& SetHP(const int HP);
-    MobInfo& SetName(const std::string& name);
-    const sf::Texture* GetPlaceholderTexture() const;
-    const std::string GetPlaceholderTexturePath() const;
-    const std::string GetName() const;
-    const std::string GetHPString() const;
-    const std::string GetSpeedString() const;
-    const std::string GetAttackString() const;
-    const std::string GetDescriptionString() const;
-
-=======
 /*! \brief Use this singleton to register custom mobs and have them automatically appear on the mob select screen and battle them!
 */
 class MobRegistration {
@@ -186,19 +141,10 @@ public:
      * @brief Uses deferred loader to load MobFactory and build the mob
      * @return Mob* to send to BattleScene
      */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     Mob* GetMob() const;
   };
 
 private:
-<<<<<<< HEAD
-  std::vector<const MobInfo*> roster;
-
-public:
-  static MobRegistration &GetInstance();
-  ~MobRegistration();
-
-=======
   std::vector<const MobInfo*> roster; /*!< List of all mobs registered */
 
   void Register(const MobInfo* info);
@@ -218,7 +164,6 @@ public:
    * @brief Creates a roster entry object, sets the deferred class type, and registers
    * @return MobInfo* to chain
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   template<class T>
   MobInfo* AddClass() {
     MobRegistration::MobInfo* info = new MobRegistration::MobInfo();
@@ -228,11 +173,6 @@ public:
     return info;
   }
 
-<<<<<<< HEAD
-  void Register(const MobInfo* info);
-  const MobInfo& At(int index);
-  const unsigned Size();
-=======
   /**
    * @brief Gets the roster entry object at index
    * @param index position of the roster entry object
@@ -250,16 +190,10 @@ public:
    * @brief Used to register all mob and preview data
    * @param progress atomic thread safe counter for the successfully loaded assets
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   void LoadAllMobs(std::atomic<int>& progress);
 
 };
 
-<<<<<<< HEAD
-#define MOBS MobRegistration::GetInstance()
-
-// Deffered loading design pattern
-=======
 /*! \brief Less typing */
 #define MOBS MobRegistration::GetInstance()
 
@@ -267,7 +201,6 @@ public:
  * @brief Sets the deferred mob loader
  * @return MobInfo& to chain
  */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 template<class T>
 inline MobRegistration::MobInfo & MobRegistration::MobInfo::SetMobClass()
 {
