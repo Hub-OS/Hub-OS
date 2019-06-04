@@ -41,11 +41,6 @@ public:
    * When health is zero, changes to NaviExplosion state
    */
   virtual void Update(float _elapsed);
-<<<<<<< HEAD
-  virtual void RefreshTexture();
-  virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
-  virtual void SetCounterFrame(int frame);
-=======
 
   /**
    * @brief Delegates animation commands to animationComponent
@@ -69,7 +64,6 @@ public:
    * @param onLeave callbacks fire when leaving this frame
    * @param doOnce If true, the callbacks will fire and never fire again
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
   
   /**
@@ -79,12 +73,7 @@ public:
    */
   virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
 
-<<<<<<< HEAD
-  void SetHealth(int _health);
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-=======
   virtual const bool OnHit(Hit::Properties props) { return true; }
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
   virtual void OnDelete() { ; }
 
@@ -94,19 +83,6 @@ public:
    */
   virtual const float GetHitHeight() const;
 private:
-<<<<<<< HEAD
-  sf::Clock clock;
- 
-  AnimationComponent animationComponent;
-
-  float hitHeight;
-  string state;
-  TextureType textureType;
-  MobHealthUI* healthUI;
-  sf::Shader* whiteout;
-  sf::Shader* stun;
-
-=======
   AnimationComponent animationComponent; /*!< component animates entities*/
 
   float hitHeight; /*!< The height for progsman for any given frame */
@@ -115,5 +91,4 @@ private:
 
   sf::Shader* whiteout; /*!< whiteout effect for basics hits */
   sf::Shader* stun; /*!< Stun yellow effect */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 };

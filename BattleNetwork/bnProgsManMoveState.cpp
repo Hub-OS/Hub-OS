@@ -7,11 +7,6 @@
 #include "bnProgsManPunchState.h"
 #include "bnProgsManThrowState.h"
 #include "bnProgsManShootState.h"
-<<<<<<< HEAD
-
-#include "bnMettaur.h"
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 
 ProgsManMoveState::ProgsManMoveState() : isMoving(false), AIState<ProgsMan>() { ; }
 ProgsManMoveState::~ProgsManMoveState() { ; }
@@ -86,26 +81,15 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
   }
 
   bool moved = progs.Move(nextDirection);
-<<<<<<< HEAD
 
   if (moved) {
     progs.AdoptNextTile();
     auto onFinish = [&]() { this->ChangeState<ProgsManIdleState>(); };
-
-=======
-
-  if (moved) {
-    progs.AdoptNextTile();
-    auto onFinish = [&]() { this->ChangeState<ProgsManIdleState>(); };
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     progs.SetAnimation(MOB_MOVING, onFinish);
     isMoving = true;
   }
   else {
-<<<<<<< HEAD
-=======
     // If we can't move, go back to idle state
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     this->ChangeState<ProgsManIdleState>();
   }
 }

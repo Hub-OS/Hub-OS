@@ -1,36 +1,18 @@
-<<<<<<< HEAD
-=======
+
 /*! \brief Adds and removes defense rule for antidamage checks.
  *         Spawns ninja stars in retaliation
  */
 
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 #pragma once
 
 #include "bnComponent.h"
 #include <SFML/System.hpp>
 
-<<<<<<< HEAD
-/* 
-   Adds and removes defense rule for antidamage checks.
-   Spawns ninja stars in retaliation
-*/
 
-=======
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 class DefenseRule;
 
 class NinjaAntiDamage : public Component {
 private:
-<<<<<<< HEAD
-  DefenseRule* defense;
-
-public:
-  NinjaAntiDamage(Entity* owner);
-  ~NinjaAntiDamage();
-
-  virtual void Update(float _elapsed);
-=======
   DefenseRule* defense; /*!< Adds defense rule to the owner */
 
 public:
@@ -53,6 +35,5 @@ public:
   /**
    * @brief Not injected into battle scene
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   virtual void Inject(BattleScene&);
 };

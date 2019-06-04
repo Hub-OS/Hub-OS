@@ -190,21 +190,14 @@ public:
      */
     const Element GetElement() const;
 
-<<<<<<< HEAD
-=======
     /**
      * @brief If not constructed, builds the navi using the deffered loader
      * @return Player*
      */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
     Player* GetNavi();
   };
 
 private:
-<<<<<<< HEAD
-  std::vector<NaviInfo*> roster;
-
-=======
   std::vector<NaviInfo*> roster; /*!< Complete roster of net navis to load */
  
   /**
@@ -213,7 +206,6 @@ private:
    */
   void Register(NaviInfo* info);
   
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
 public:
   /**
    * @brief If first call, inits the singleton. Returns the resource.
@@ -239,10 +231,6 @@ public:
     return info;
   }
 
-<<<<<<< HEAD
-  void Register(NaviInfo* info);
-  NaviInfo& At(int index);
-=======
   /**
    * @brief Get the navi info entry at roster index 
    * @param index roster index
@@ -255,7 +243,6 @@ public:
    * @brief Get the size of the navi roster
    * @return const unsigned size
    */
->>>>>>> b486e21e11627262088deae73097eaa7af56791c
   const unsigned Size();
   
   /**
