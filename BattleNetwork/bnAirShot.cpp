@@ -55,45 +55,6 @@ void AirShot::Update(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
-bool AirShot::Move(Direction _direction) {
-  tile->RemoveEntityByID(this->GetID());
-  Battle::Tile* next = nullptr;
-  if (_direction == Direction::UP) {
-    if (tile->GetY() - 1 > 0) {
-      next = field->GetAt(tile->GetX(), tile->GetY() - 1);
-      SetTile(next);
-    }
-  }
-  else if (_direction == Direction::LEFT) {
-    if (tile->GetX() - 1 > 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY());
-      SetTile(next);
-    }
-    else {
-      deleted = true;
-      return false;
-    }
-  }
-  else if (_direction == Direction::DOWN) {
-    if (tile->GetY() + 1 <= (int)field->GetHeight()) {
-      next = field->GetAt(tile->GetX(), tile->GetY() + 1);
-      SetTile(next);
-    }
-  }
-  else if (_direction == Direction::RIGHT) {
-    if (tile->GetX() < (int)field->GetWidth()) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY());
-      SetTile(next);
-    }
-    else {
-      deleted = true;
-      return false;
-    }
-  }
-  tile->AddEntity(*this);
-  return true;
-}
-
 void AirShot::Attack(Character* _entity) {
   if (hit || deleted) {
     return;

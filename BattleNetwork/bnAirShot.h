@@ -13,7 +13,6 @@ public:
   AirShot(Field* _field, Team _team, int damage);
   virtual ~AirShot();
   virtual void Update(float _elapsed);
-  virtual bool Move(Direction _direction);
   virtual void Attack(Character* _entity);
 private:
   int damage;

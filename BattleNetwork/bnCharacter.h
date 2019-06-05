@@ -33,9 +33,6 @@ namespace Hit {
     Flags flags;
     Element element;
     double secs; // used by both recoil and stun
-    Entity* aggressor;
-
-    double secs; /*!< used by both recoil and stun */
     Character* aggressor;
   };
 

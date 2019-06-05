@@ -320,20 +320,6 @@ public:
    */
   void FreeComponentByID(long ID);
 
-  void AdoptNextTile();
-  virtual void AdoptTile(Battle::Tile* tile) = 0;
-
-  void SetBattleActive(bool state);
-  const bool IsBattleActive();
-
-  // TODO: GetComponents<>() and GetFirstComponent<>()
-  template<typename Type>
-  Type* GetComponent();
-
-  Component* RegisterComponent(Component* c);
-  void FreeAllComponents();
-  void FreeComponentByID(long ID);
-
 protected:
   bool isBattleActive; 
   bool ownedByField; /**< Must delete the entity manual if not owned by the field. */
