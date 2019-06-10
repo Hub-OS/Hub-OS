@@ -429,18 +429,23 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   // First tile pass: draw the tiles
   Battle::Tile* tile = nullptr;
-  while (field->GetNextTile(tile)) {
+
+  auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
+  auto tilesIter = allTiles.begin();
+
+  while (tilesIter != allTiles.end()) {
+      tile = (*tilesIter);
     tile->move(ENGINE.GetViewOffset());
 
     if (summons.IsSummonActive()) {
-      LayeredDrawable* coloredTile = new LayeredDrawable(*(sf::Sprite*)tile);
+        SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
       coloredTile->SetShader(&pauseShader);
       ENGINE.Draw(coloredTile);
       delete coloredTile;
     }
     else {
       if (tile->IsHighlighted()) {
-        LayeredDrawable* coloredTile = new LayeredDrawable(*(sf::Sprite*)tile);
+          SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
         coloredTile->SetShader(&yellowShader);
         ENGINE.Draw(coloredTile);
         delete coloredTile;
@@ -449,12 +454,16 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         ENGINE.Draw(tile);
       }
     }
+
+    tilesIter++;
   }
 
   // Second tile pass: draw the entities and shaders per row
   tile = nullptr;
-  while (field->GetNextTile(tile)) {
+  tilesIter = allTiles.begin();
 
+    while (tilesIter != allTiles.end()) {
+        tile = (*tilesIter);
     static float totalTime = 0;
     totalTime += (float)elapsed;
 
@@ -470,7 +479,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
     Entity* entity = nullptr;
 
-    while (tile->GetNextEntity(entity)) {
+    auto allEntities = tile->FindEntities([](Entity* e) { return true; });
+    auto entitiesIter = allEntities.begin();
+
+    while (entitiesIter != allEntities.end()) {
+        entity = (*entitiesIter);
       if (!entity->IsDeleted()) {
         auto uic = entity->GetComponent<UIComponent>();
         if (uic) {
@@ -479,6 +492,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
         ENGINE.Draw(entity);
       }
+
+        entitiesIter++;
     }
 
     /*if (tile->GetState() == TileState::LAVA) {
@@ -521,7 +536,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       ENGINE.Draw(bake);
       delete bake;
     }*/
-  }
+        tilesIter++;
+    }
 
   // Draw scene nodes
   for (auto node : scenenodes) {
@@ -545,7 +561,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.SetShader(&pauseShader);
   }
 
-  ENGINE.DrawOverlay();
 
   if (/*summons.IsSummonsActive() &&*/ showSummonText) {
     sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
@@ -606,10 +621,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     chipUI.Update((float)elapsed); // DRAW
 
     // TODO: we have a real component system now, refactor this
-    Drawable* component;
-    while (chipUI.GetNextComponent(component)) {
-      ENGINE.Draw(component);
-    }
+    //Drawable* component;
+    //while (chipUI.GetNextComponent(component)) {
+    //  ENGINE.Draw(component);
+    //}
   }
 
   if (isPreBattle) {
@@ -1101,8 +1116,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   tile = nullptr;
-  while (field->GetNextTile(tile)) {
+  tilesIter = allTiles.begin();
+  while (tilesIter != allTiles.end()) {
+      tile = (*tilesIter);
     tile->move(cameraAntiOffset);
+    tilesIter++;
   }
 
   if (customProgress / customDuration >= 1.0) {

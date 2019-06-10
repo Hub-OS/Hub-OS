@@ -14,8 +14,7 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
     direction = Direction::NONE;
     deleted = false;
     goingUp = true;
-    hit = false;
-    texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
+    auto texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
     setTexture(*texture);
 
     anim.Setup("resources/mobs/metalman/metalman.animation");
@@ -25,7 +24,6 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
     setScale(0.f, 0.f);
 
     progress = 0.0f;
-    hitHeight = 0.0f;
 
     // Which direction to come down from
     if (GetTeam() == Team::BLUE) {

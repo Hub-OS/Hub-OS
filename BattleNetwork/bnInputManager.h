@@ -104,13 +104,12 @@ public:
    */
   void SetInputBuffer(std::string buff);
 
-  void BeginCaptureInputBuffer();
-  void EndCaptureInputBuffer();
-  const std::string GetInputBuffer();
-  void HandleInputBuffer(sf::Event e);
-  void SetInputBuffer(std::string buff);
-
-
+  /**
+   * @brief fires a key press manually
+   * @param event key event to fire
+   *
+   * Used best on android where the virtual touch pad areas must map to keys
+   */
   void VirtualKeyEvent(InputEvent event);
 
 private:

@@ -17,6 +17,7 @@ class GameOverScene : public swoosh::Activity {
 private:
   float fadeInCooldown; /*!< Fade in time */
   sf::Sprite gameOver; /*!< GAME OVER */
+  bool leave; /*!< Scene state coming/going flag */
 
 public:
   GameOverScene(swoosh::ActivityController&);

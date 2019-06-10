@@ -27,7 +27,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 #ifndef __ANDROID__
   if (!inputManager->Has(HELD_A)) {
 #else
-    if(inputManager->Has(PRESSED_A) && !inputManager->Has(RELEASED_B)) {
+    if(INPUT.Has(PRESSED_A) && !INPUT.Has(RELEASED_B)) {
 #endif
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack();
@@ -50,51 +50,47 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     return;
 
   static Direction direction = Direction::NONE;
-  if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN && player.IsBattleActive()) {
-    if (inputManager->Has(PRESSED_UP) || inputManager->Has(HELD_UP)) {
+  if (player.IsBattleActive()) {
+    if (INPUT.Has(PRESSED_UP) ||INPUT.Has(HELD_UP)) {
       direction = Direction::UP;
     }
-    else if (inputManager->Has(PRESSED_LEFT) || inputManager->Has(HELD_LEFT)) {
+    else if (INPUT.Has(PRESSED_LEFT) || INPUT.Has(HELD_LEFT)) {
       direction = Direction::LEFT;
     }
-    else if (inputManager->Has(PRESSED_DOWN) || inputManager->Has(HELD_DOWN)) {
+    else if (INPUT.Has(PRESSED_DOWN) || INPUT.Has(HELD_DOWN)) {
       direction = Direction::DOWN;
     }
-    else if (inputManager->Has(PRESSED_RIGHT) || inputManager->Has(HELD_RIGHT)) {
+    else if (INPUT.Has(PRESSED_RIGHT) || INPUT.Has(HELD_RIGHT)) {
       direction = Direction::RIGHT;
     }
   }
 
-  bool shouldShoot = inputManager->Has(HELD_A) && isChargeHeld == false;
+  bool shouldShoot = INPUT.Has(HELD_A) && isChargeHeld == false;
 
 #ifdef __ANDROID__
-  shouldShoot = inputManager->Has(PRESSED_A);
+  shouldShoot = INPUT.Has(PRESSED_A);
 #endif
 
   if (shouldShoot) {
     isChargeHeld = true;
-    attackKeyPressCooldown = 0.0f;
 
     player.chargeComponent.SetCharging(true);
-    this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; 
   }
 
-  if (inputManager->Has(RELEASED_UP)) {
+  if (INPUT.Has(RELEASED_UP)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->Has(RELEASED_LEFT)) {
+  else if (INPUT.Has(RELEASED_LEFT)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->Has(RELEASED_DOWN)) {
+  else if (INPUT.Has(RELEASED_DOWN)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->Has(RELEASED_RIGHT)) {
+  else if (INPUT.Has(RELEASED_RIGHT)) {
     direction = Direction::NONE;
   }
 
-  //std::cout << "Is player slideing: " << player.isSliding << std::endl;
-
-  if (direction != Direction::NONE && player.state == PLAYER_IDLE && !player.isSliding) {
+  if (direction != Direction::NONE && player.state == PLAYER_IDLE && !player.IsSliding()) {
     bool moved = player.Move(direction);
 
     if (moved) {
@@ -103,7 +99,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 			p->SetAnimation(PLAYER_IDLE); });
 		player.AdoptNextTile();
         direction = Direction::NONE;
-      }); // end lambda
+      }; // end lambda
       player.SetAnimation(PLAYER_MOVING, onFinish);
     }
     else {

@@ -61,7 +61,8 @@ const bool Entity::IsSuperEffective(Element _other) const {
 }
 
 void Entity::Update(float _elapsed) {
-  // Update all componentsfor (int i = 0; i < shared.size(); i++) {
+  // Update all components
+  for (int i = 0; i < shared.size(); i++) {
     shared[i]->Update(_elapsed);
   }
 

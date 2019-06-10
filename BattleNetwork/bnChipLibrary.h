@@ -85,12 +85,6 @@ public:
    */
   Chip GetChipEntry(const std::string name, const char code);
 
-  void AddChip(Chip chip);
-  bool IsChipValid(Chip& chip);
-
-  list<char> GetChipCodes(const Chip& chip);
-  Chip GetChipEntry(const std::string name, const char code);
-
 protected:
  /**
   * @brief Reads in libary file and parses chip data

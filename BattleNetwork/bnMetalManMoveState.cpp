@@ -1,5 +1,3 @@
-
-#pragma once
 #include "bnMetalMan.h"
 #include "bnHitBox.h"
 #include "bnTile.h"
@@ -8,6 +6,7 @@
 #include "bnMetalManMoveState.h"
 #include "bnMetalManPunchState.h"
 #include "bnMetalManThrowState.h"
+#include "bnMetalManMissileState.h"
 
 MetalManMoveState::MetalManMoveState() : isMoving(false), AIState<MetalMan>() { ; }
 MetalManMoveState::~MetalManMoveState() { ; }
@@ -47,7 +46,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
       shouldPunch = (rand() % 30 > 16);
   }
 
-  if (shouldPunch && !mustMove) {
+  if (shouldPunch) {
 
     next = metal.GetTarget()->GetTile();
 

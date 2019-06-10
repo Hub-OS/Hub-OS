@@ -431,7 +431,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     }
 
 
-    if (cursorPos < 5 && cursorRow == 0 || cursorPos < 3 && cursorRow == 1) {
+    if ((cursorPos < 5 && cursorRow == 0) || (cursorPos < 3 && cursorRow == 1)) {
       // Draw the selected chip info
       label.setFillColor(sf::Color::White);
 

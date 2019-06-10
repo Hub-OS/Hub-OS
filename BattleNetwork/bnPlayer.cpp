@@ -67,11 +67,7 @@ void Player::Update(float _elapsed) {
   // Intercept the BubbleTrap component
   // And then change the state to the special BubbleState<> implementation
   Component* c = GetComponent<BubbleTrap>();
-  if (c) {
-    this->ChangeState<BubbleState<Player, PlayerControlledState>>();
-  }
 
-  Component* c = GetComponent<BubbleTrap>();
   if (c) {
     this->ChangeState<BubbleState<Player, PlayerControlledState>>();
   }

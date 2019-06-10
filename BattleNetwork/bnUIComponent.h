@@ -39,7 +39,6 @@ public:
     SceneNode::draw(target, states);
   };
 
-  virtual void Update(float _elapsed) = 0;
   /**
    * @brief To be implemented: what happens on update
    * @param _elapsed in seconds

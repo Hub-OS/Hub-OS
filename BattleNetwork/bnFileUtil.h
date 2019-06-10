@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
 #include <sstream>
-#include <fstream>
 #include <assert.h>
+#include <SFML/System.hpp>
+
+
 #include "bnLogger.h"
 
 /**
@@ -33,18 +35,6 @@ public:
     }
 
     return std::string("");
-  }
-
-  static std::string ValueOf(std::string key, std::string line) {
-      int keyIndex = (int)line.find(key);
-      std::string error("Key '" + key + "' was not found in line '" + line + "'");
-      if (keyIndex == -1) {
-        Logger::Log(error);
-        throw std::runtime_error(error);
-      }
-
-      std::string s = line.substr(keyIndex + key.size() + 2);
-      return s.substr(0, s.find("\""));
   }
 
   static std::string ValueOf(std::string key, std::string line) {

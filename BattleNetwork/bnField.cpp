@@ -3,10 +3,6 @@
 #include "bnObstacle.h"
 #include "bnArtifact.h"
 
-Field::Field() {
-  isBattleActive = false;
-}
-
 Field::Field(int _width, int _height)
   : width(_width),
   height(_height),

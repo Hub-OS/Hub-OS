@@ -69,7 +69,8 @@ public:
     virtual ~Message() { ;  }
   };
 
-   * @class Question
+   /**
+    * @class Question
    * @author mav
    * @date 13/05/19
    * @brief Initializes yes/no message objects

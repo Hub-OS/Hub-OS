@@ -21,10 +21,6 @@ class Artifact;
 
 class Field {
 public:
-  /**
-   * @brief Sets isBattleActive to false. Does not create any tiles.
-   */
-  Field();
   
   /**
    * @brief Creates a field _wdith x _height tiles. Sets isBattleActive to false
@@ -120,8 +116,6 @@ public:
    * @brief Propagates the state to all tiles for specific behavior
    * @param state whether or not the battle is ongoing
    */
-  void SetBattleActive(bool state);
-
   void SetBattleActive(bool state);
 
 private:
