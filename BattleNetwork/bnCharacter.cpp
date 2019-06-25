@@ -10,7 +10,8 @@ Character::Character(Rank _rank) :
   health(0),
   maxHealth(0),
   counterable(false),
-  pushable(true),
+  canTilePush(true),
+  slideFromDrag(false),
   canShareTile(false),
   stunCooldown(0),
   name("unnamed"),
@@ -39,9 +40,13 @@ const bool Character::CanShareTileSpace() const
   return this->canShareTile;
 }
 
-void Character::SetPushable(bool enabled)
+void Character::ToggleTilePush(bool enabled)
 {
-  this->pushable = enabled;
+  this->canTilePush = enabled;
+}
+
+const bool Character::CanTilePush() const {
+  return this->canTilePush;
 }
 
 void Character::Update(float _elapsed) {
@@ -69,6 +74,12 @@ void Character::Update(float _elapsed) {
         }
       }
     }
+  }
+
+  if(this->stunCooldown > 0) {
+    this->stunCooldown--;
+  } else {
+    this->OnUpdate(_elapsed);
   }
 
   //if (this->GetHealth() <= 0 && this->isSliding) {
@@ -113,6 +124,9 @@ void Character::ResolveFrameBattleDamage()
 
   Character* frameCounterAggressor = nullptr;
   bool frameElementalDmg = false;
+  bool frameSlideCancel = false;
+  bool frameStunCancel = false;
+  Direction postDragDir = Direction::NONE;
 
   Hit::Properties& props = this->statusQueue.front();
   
@@ -163,13 +177,52 @@ void Character::ResolveFrameBattleDamage()
           frameCounterAggressor = props.aggressor;
         }
       }
+
+      if(this->IsSliding() && (props.flags & Hit::impact) == Hit::impact && !this->slideFromDrag) {
+        frameSlideCancel = true;
+      }
+
+      // Requeue drag if already sliding by drag
+      if((props.flags & Hit::drag) == Hit::drag) {
+        if(this->slideFromDrag) {
+          this->statusQueue.push({0, Hit::drag, Element::NONE, 0.0, nullptr, props.drag});
+        } else {
+          // Apply directional slide later
+          postDragDir = props.drag;
+        }
+      }
+
+      // Stun can be canceled by non-stun hits or queued if dragging
+      if((props.flags & Hit::stun) == Hit::stun) {
+        if(postDragDir != Direction::NONE) {
+          this->statusQueue.push({0, Hit::stun, Element::NONE, props.secs});
+        } else {
+          this->stunCooldown = props.secs;
+        }
+      } else if(this->stunCooldown > 0) {
+        // cancel
+        this->stunCooldown = 0;
+      }
     }
 
     this->SetHealth(health - props.damage);
+  }
 
-    if((props.flags & Hit::pushing) == Hit::pushing && this->IsSliding()) {
+  if(frameSlideCancel) {
+    this->AdoptNextTile();
+    this->SlideToTile(false); // override ICE check in AdoptNextTile routine
+  }
 
+  if(postDragDir != Direction::NONE) {
+    // enemies and objects on opposing side of field are granted immunity from drag
+    if(Teammate(this->GetTile()->GetTeam())) {
+      this->SlideToTile(true);
+      this->slideFromDrag = true;
+      this->Move(postDragDir);
     }
+  } else if(this->slideFromDrag){
+    // No dragging status in this frame, no sliding
+    this->slideFromDrag = false;
   }
 
   if(frameCounterAggressor) {

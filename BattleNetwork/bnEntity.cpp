@@ -404,11 +404,11 @@ void Entity::AdoptNextTile()
   // Slide if the tile we are moving to is ICE
   if (next->GetState() == TileState::ICE && !this->HasFloatShoe()) {
     this->SlideToTile(true);
+  } else {
+    // Adopting a tile is the last step in the move procedure
+    // Increase the move count
+    moveCount++;
   }
-
-  // Adopting a tile is the last step in the move procedure
-  // Increase the move count
-  moveCount++;
 }
 
 void Entity::SetBattleActive(bool state)

@@ -20,7 +20,7 @@ namespace Hit {
   const Flags flinch = 0x10;
   const Flags breaking = 0x20;
   const Flags impact = 0x40;
-  const Flags pushing = 0x80;
+  const Flags drag = 0x80;
 
   /**
    * @struct Properties
@@ -34,9 +34,10 @@ namespace Hit {
     Element element;
     double secs; // used by both recoil and stun
     Character* aggressor;
+    Direction drag; // Used by dragging payload
   };
 
-  const Hit::Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0, nullptr };
+  const Hit::Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0, nullptr, Direction::NONE };
 
 }
 
@@ -55,6 +56,7 @@ class Character : public virtual Entity, public CounterHitPublisher {
 private:
   bool invokeDeletion; /*!< One-time flag to call OnDelete() if character has custom Delete() behavior */
   bool canShareTile; /*!< Some characters can share tiles with others */
+  bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
 
   std::vector<DefenseRule*> defenses;
   
@@ -108,8 +110,10 @@ public:
 
   virtual void ResolveFrameBattleDamage();
 
+  virtual void OnUpdate(float elapsed) = 0;
+
   // TODO: move tile behavior out of update loop and into its own rule system for customization
-  virtual void Update(float _elapsed);
+  void Update(float elapsed) final;
   
   /**
    * @brief Default characters cannot move onto occupied, broken, or empty tiles
@@ -198,12 +202,18 @@ public:
    * @return true if shareTilespace is enabled, false otherwise
    */
   const bool CanShareTileSpace() const;
-  
+
+    /**
+   * @brief Query if entity is pushable by tiles
+   * @return true if canTilePush is enabled, false otherwise
+   */
+    const bool CanTilePush() const;
+
   /**
-   * @brief Some characters can be moved around on the field by external events
+   * @brief Some characters can be moved around on the field by tiles
    * @param enabled
    */
-  void SetPushable(bool enabled);
+  void ToggleTilePush(bool enabled);
 
   /**
    * @brief Characters can have names
@@ -242,7 +252,7 @@ private:
 protected:
   int health;
   bool counterable;
-  bool pushable; // used by Hit::pushing
+  bool canTilePush;
   std::string name;
   double stunCooldown; /*!< Timer until stun is over */
   Character::Rank rank;
