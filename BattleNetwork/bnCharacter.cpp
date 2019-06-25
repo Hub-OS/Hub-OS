@@ -4,6 +4,7 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnExplosion.h"
+#include "bnElementalDamage.h"
 
 Character::Character(Rank _rank) : 
   health(0),
@@ -14,8 +15,6 @@ Character::Character(Rank _rank) :
   stunCooldown(0),
   name("unnamed"),
   rank(_rank),
-  frameDamageTaken(0),
-  frameElementalModifier(false),
   invokeDeletion(false),
   CounterHitPublisher() {
   burnCycle = sf::milliseconds(150);
@@ -90,6 +89,15 @@ bool Character::CanMoveTo(Battle::Tile * next)
   return (Entity::CanMoveTo(next) && next->FindEntities(occupied).size() == 0);
 }
 
+const bool Character::Hit(Hit::Properties props) {
+  if(this->IsPassthrough()) return false;
+
+  // Add to status queue for state resolution
+  this->statusQueue.push(props);
+
+  return true;
+}
+
 int Character::GetHealth() const {
   return health;
 }
@@ -102,37 +110,88 @@ const int Character::GetMaxHealth() const
 void Character::ResolveFrameBattleDamage()
 {
   if(this->statusQueue.empty()) return;
-  
+
+  Character* frameCounterAggressor = nullptr;
+  bool frameElementalDmg = false;
+
   Hit::Properties& props = this->statusQueue.front();
   
   while(props.flags == Hit::none) {
     this->statusQueue.pop();
-    if(this->statusQueue.empty()) return;
+    if (this->statusQueue.empty()) return;
+
     props = this->statusQueue.front();
+
+    double tileDamage = 0;
+
+    // Calculate elemental damage if the tile the character is on is super effective to it
+    if (props.element == Element::FIRE
+        && GetTile()->GetState() == TileState::GRASS
+        && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      tileDamage = props.damage;
+    } else if (props.element == Element::ELEC
+               && GetTile()->GetState() == TileState::ICE
+               && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      tileDamage = props.damage;
+    }
+
+    // If the character itself is also super-effective,
+    // double the damage independently from tile damage
+    bool isSuperEffective = IsSuperEffective(props.element);
+
+    // Show ! super effective symbol on the field
+    if (isSuperEffective || tileDamage) {
+      // Additional damage bonus if super effective against the attack too
+      if (isSuperEffective) {
+        props.damage *= 2;
+      }
+
+      frameElementalDmg = true;
+    }
+
+    props.damage += tileDamage; // append tile damage
+
+    // Pass on hit properties to the user-defined handler
+    if (this->OnHit(props)) {
+      // Only register counter if:
+      // 1. Hit type is impact
+      // 2. The character is on a counter frame
+      // 3. Hit properties has an aggressor
+      // This will set the counter aggressor to be the first non-impact hit and not check again this frame
+      if (this->IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
+        if (props.aggressor) {
+          frameCounterAggressor = props.aggressor;
+        }
+      }
+    }
+
+    this->SetHealth(health - props.damage);
+
+    if((props.flags & Hit::pushing) == Hit::pushing && this->IsSliding()) {
+
+    }
   }
 
-  (health - this->frameDamageTaken < 0) ? this->SetHealth(0) : this->SetHealth(health - this->frameDamageTaken);
-
-  if (this->IsCountered() && (this->frameHitProps & Hit::recoil) == Hit::recoil) {
+  if(frameCounterAggressor) {
+    this->Broadcast(*this, *frameCounterAggressor);
+    this->ToggleCounter(false);
     this->Stun(3.0);
+  }
 
-    if (this->GetHealth() == 0) {
-      // Slide entity back a few pixels
-      this->tileOffset = sf::Vector2f(50.f, 0.0f);
-    }
-
-    if(props.aggressor) {
-      this->Broadcast(*this, *props.aggressor);
-    }
+  if(frameElementalDmg) {
+    Artifact *seSymbol = new ElementalDamage(field);
+    field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());
   }
 
   if (this->GetHealth() == 0 && !this->invokeDeletion) {
     this->OnDelete();
     this->invokeDeletion = true;
-  }
 
-  this->frameDamageTaken = 0;
-  this->frameHitProps = Hit::none;
+    if(frameCounterAggressor) {
+      // Slide entity back a few pixels
+      this->tileOffset = sf::Vector2f(50.f, 0.0f);
+    }
+  }
 }
 
 void Character::SetHealth(const int _health) {

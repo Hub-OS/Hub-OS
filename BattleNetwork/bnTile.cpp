@@ -350,12 +350,12 @@ namespace Battle {
     // Cleanup before main loop just in case
     // NOTE: this fuction has been modified since earlier builds that needed this
     //       possibly can remove the following lines
-    for (auto it = entities.begin(); it != entities.end(); ++it) {
+    /*for (auto it = entities.begin(); it != entities.end(); ++it) {
       if (*it == nullptr) {
         it = entities.erase(it);
         continue;
       }
-    }
+    }*/
 
     auto entities_copy = entities; // may be modified after hitboxes are resolved
     // Spells dont cause damage when the battle is over
@@ -366,26 +366,26 @@ namespace Battle {
           continue;
 
         // TODO: use group buckets to poll by ID instead of dy casting
-        Character* c = dynamic_cast<Character*>(*it);
+        Character *c = dynamic_cast<Character *>(*it);
+
+        // If the entity is tangible, the entity is a character (can be hit), and the team isn't the same
+        // we call attack
+        if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() ||
+                                             (c->GetTeam() == Team::UNKNOWN &&
+                                              caller->GetTeam() == Team::UNKNOWN))) {
+          if (!c->CheckDefenses(caller)) {
+            caller->Attack(c);
+          }
+
+          // Tag the spell
+          tag = true;
+        }
+      }
 
       // only ignore spells that have already hit something on a tile
       // this is similar to the hitbox being removed in mmbn mechanics
       if (tag) {
           taggedSpells.push_back(caller->GetID());
-
-          // If the entity is tangible, the entity is a character (can be hit), and the team isn't the same
-          // we call attack
-          if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() ||
-                                               (c->GetTeam() == Team::UNKNOWN &&
-                                                caller->GetTeam() == Team::UNKNOWN))) {
-              if (!c->CheckDefenses(caller)) {
-                  caller->Attack(c);
-              }
-
-              // Tag the spell
-              tag = true;
-          }
-      }
       }
     }
   }

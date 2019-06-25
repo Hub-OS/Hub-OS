@@ -8,7 +8,7 @@ using sf::Texture;
 class Artifact : public Entity {
 public:
   Artifact();
-  Artifact(Field* _field, Team _team);
+  Artifact(Field* _field);
   virtual ~Artifact();
 
   virtual void Update(float _elapsed) = 0;

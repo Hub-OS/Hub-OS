@@ -5,7 +5,7 @@
 #include "bnAudioResourceManager.h"
 
 HideTimer::HideTimer(Character* owner, double secs) : Component(owner) {
-  duration = sf::seconds((float)secs);
+  duration = secs;
   elapsed = 0;
 
   this->owner = owner;
@@ -15,7 +15,7 @@ HideTimer::HideTimer(Character* owner, double secs) : Component(owner) {
 void HideTimer::Update(float _elapsed) {
   elapsed += _elapsed;
 
-  if (elapsed >= duration.asSeconds() && temp) {
+  if (elapsed >= duration && temp) {
     temp->AddEntity(*this->owner);
     this->GetOwner()->FreeComponentByID(this->GetID());
 

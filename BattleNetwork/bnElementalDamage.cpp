@@ -7,7 +7,7 @@
 
 using sf::IntRect;
 
-ElementalDamage::ElementalDamage(Field* field, Team team) : Artifact(field, team), animationComponent(this)
+ElementalDamage::ElementalDamage(Field* field) : Artifact(field), animationComponent(this)
 {
   SetLayer(0);
   setTexture(LOAD_TEXTURE(ELEMENT_ALERT));

@@ -11,14 +11,14 @@
 */
 class HideTimer : public Component {
 private:
-  sf::Time duration; /*!< How long to hide a character for */
+  double duration; /*!< How long to hide a character for */
   float elapsed; /*!< time elapsed in seconds */
   Battle::Tile* temp; /*!< The tile to return the character to */
   Character* owner; /*!< The entity as type character */
   BattleScene* scene; /*!< The battle scene referene */
 public:
   /**
-   * @brief Registers the owner and sets the time
+   * @brief Registers the owner and sets the time in seconds
    */
   HideTimer(Character* owner, double secs);
 

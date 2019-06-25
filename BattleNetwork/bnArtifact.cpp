@@ -7,9 +7,9 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 
-Artifact::Artifact(Field* _field, Team _team) {
+Artifact::Artifact(Field* _field) {
   this->SetField(_field);
-  this->SetTeam(_team);
+  this->SetTeam(Team::UNKNOWN);
   this->SetPassthrough(true);
 }
 

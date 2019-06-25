@@ -16,7 +16,7 @@ private:
   float progress;
 
 public:
-  ElementalDamage(Field* field, Team team);
+  ElementalDamage(Field* field);
   ~ElementalDamage();
 
   /**

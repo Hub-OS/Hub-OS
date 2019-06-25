@@ -53,12 +53,8 @@ class Character : public virtual Entity, public CounterHitPublisher {
   friend class Field;
 
 private:
-  int frameDamageTaken;          /*!< accumulation of final damage on frame */
-  bool frameElementalModifier;   /*!< whether or not the final damage calculated was weak against */
-  bool invokeDeletion;
+  bool invokeDeletion; /*!< One-time flag to call OnDelete() if character has custom Delete() behavior */
   bool canShareTile; /*!< Some characters can share tiles with others */
-
-  Hit::Flags frameHitProps; /*!< accumulation of final hit props on frame */
 
   std::vector<DefenseRule*> defenses;
   
@@ -102,31 +98,17 @@ public:
    */
   virtual const float GetHitHeight() const = 0;
 
-  const bool Hit(Hit::Properties props = Hit::DefaultProperties) {
-    if (props.element == Element::FIRE
-      && GetTile()->GetState() == TileState::GRASS
-      && !(this->HasAirShoe() || this->HasFloatShoe())) {
-      props.damage *= 2;
-      this->frameElementalModifier = true;
-    }
-
-    if (props.element == Element::ELEC
-      && GetTile()->GetState() == TileState::ICE
-      && !(this->HasAirShoe() || this->HasFloatShoe())) {
-      props.damage *= 2;
-      this->frameElementalModifier = true;
-    }
-
-    if (IsSuperEffective(props.element)) {
-      props.damage *= 2;
-    }
-
-    this->statusQueue.push(props);
-
-    return this->OnHit(props);
-  }
+  /**
+   * The hit routine that happens for every character. Queues status properties and damage
+   * to resolve at the end of the battle step
+   * @param props
+   * @return true if user-defined OnHit() is also true. Will return false if IsPassthrough() is true (i-frames)
+   */
+  const bool Hit(Hit::Properties props = Hit::DefaultProperties);
 
   virtual void ResolveFrameBattleDamage();
+
+  // TODO: move tile behavior out of update loop and into its own rule system for customization
   virtual void Update(float _elapsed);
   
   /**
