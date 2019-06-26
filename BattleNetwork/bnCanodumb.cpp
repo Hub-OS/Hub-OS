@@ -97,7 +97,7 @@ void Canodumb::Update(float _elapsed) {
   Character::Update(_elapsed);
 }
 
-const bool Canodumb::Hit(Hit::Properties props) {
+const bool Canodumb::OnHit(const Hit::Properties props) {
   bool result = true;
 
   if (health - props.damage < 0) {

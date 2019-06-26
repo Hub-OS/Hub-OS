@@ -14,6 +14,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
         lastMobSize(mob->GetMobCount()),
         didDoubleDelete(false),
         didTripleDelete(false),
+        comboDeleteCounter(0),
         pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
         whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
         yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
@@ -354,29 +355,40 @@ void BattleScene::onUpdate(double elapsed) {
 
   // Do not update when: paused or in chip select, during a summon sequence, showing Battle Start sign
   if (!(isPaused || isInChipSelect) && summons.IsSummonOver() && !isPreBattle) {
+    if(multiDeleteTimer.isPaused()) {
+      multiDeleteTimer.start();
+    }
+
     // kill switch for testing:
     if (INPUT.Has(InputEvent::PRESSED_A) && INPUT.Has(InputEvent::PRESSED_B) && INPUT.Has(InputEvent::PRESSED_LEFT) /*&& INPUT.Has(InputEvent::PRESSED_RIGHT)*/) {
       mob->KillSwitch();
     }
 
     field->Update((float)elapsed);
+  } else {
+    multiDeleteTimer.pause();
   }
 
   int newMobSize = mob->GetRemainingMobCount();
 
   if (lastMobSize != newMobSize) {
-    if (lastMobSize - newMobSize == 2) {
+    multiDeleteTimer.reset();
+    lastMobSize = newMobSize;
+  }
+
+  if(multiDeleteTimer.getElapsed() < sf::seconds(12.0f/60.0f)) {
+    if (lastMobSize != newMobSize) { comboDeleteCounter++; }
+    if (comboDeleteCounter == 2) {
       didDoubleDelete = true;
       comboInfo = doubleDelete;
       comboInfoTimer.reset();
-    }
-    else if (lastMobSize - newMobSize > 2) {
+    } else if (comboDeleteCounter > 2) {
       didTripleDelete = true;
       comboInfo = tripleDelete;
       comboInfoTimer.reset();
     }
-
-    lastMobSize = newMobSize;
+  } else {
+    comboDeleteCounter = 0;
   }
 
   // todo: we need states

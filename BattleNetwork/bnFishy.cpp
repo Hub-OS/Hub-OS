@@ -62,7 +62,7 @@ bool Fishy::CanMoveTo(Battle::Tile* tile) {
 }
 
 
-const bool Fishy::Hit(Hit::Properties props) {
+const bool Fishy::OnHit(const Hit::Properties props) {
   return true; // fishy blocks everything
 }
 

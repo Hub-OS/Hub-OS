@@ -89,8 +89,7 @@ void ProgsMan::Update(float _elapsed) {
   Character::Update(_elapsed);
 }
 
-const bool ProgsMan::Hit(Hit::Properties props) {
-  (health - props.damage < 0) ? health = 0 : health -= props.damage;
+const bool ProgsMan::OnHit(const Hit::Properties props) {
   SetShader(whiteout);
 
   if ((props.flags & Hit::recoil) == Hit::recoil) {

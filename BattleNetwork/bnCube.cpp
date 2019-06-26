@@ -44,7 +44,7 @@ Cube::Cube(Field* _field, Team _team) : animation(this), Obstacle(field, team) {
   hit = false;
 }
 
-Cube::~Cube(void) {
+Cube::~Cube() {
   ++cubesRemovedCount;
 }
 
@@ -136,7 +136,25 @@ void Cube::OnDelete() {
   AUDIO.Play(AudioType::PANEL_CRACK);
 }
 
-const bool Cube::Hit(Hit::Properties props) {
+const bool Cube::OnHit(const Hit::Properties props) {
+  // Teams cannot accidentally pull cube into their side
+  if(props.aggressor && (props.flags & Hit::drag) == Hit::drag){
+    if(props.aggressor->GetTeam() == Team::RED) {
+      if(props.drag == Direction::LEFT) {
+        // take damage anyway
+        this->SetHealth(this->GetHealth() - props.damage);
+
+        // Do not resolve battle step damage or extra status information
+        return false;
+      }
+    } else if(props.aggressor->GetTeam() == Team::BLUE) {
+      if(props.drag == Direction::RIGHT) {
+        this->SetHealth(this->GetHealth() - props.damage);
+        return false;
+      }
+    }
+  }
+
   if (this->animation.GetAnimationString() == "APPEAR")
     return false;
 
@@ -149,7 +167,7 @@ const bool Cube::Hit(Hit::Properties props) {
 
   AUDIO.Play(AudioType::HURT);
   
-  return health;
+  return true;
 }
 
 void Cube::Attack(Character* other) {

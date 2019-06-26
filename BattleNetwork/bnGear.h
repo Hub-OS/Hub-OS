@@ -32,9 +32,7 @@ public:
    * @param props ignored
    * @return true
    */
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-  
-  virtual const bool OnHit(Hit::Properties props) { return true;  }
+  virtual const bool OnHit(const Hit::Properties props);
   /**
    * @brief No special behavior occur when deleted
    */

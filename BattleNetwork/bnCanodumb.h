@@ -28,11 +28,9 @@ public:
    * @param _elapsed
    */
   virtual void Update(float _elapsed);
-
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;
 
-  virtual const bool OnHit(Hit::Properties props) { return false; }
+  virtual const bool OnHit(const Hit::Properties props);
   virtual void OnDelete() { ; }
 
   sf::Shader* whiteout;

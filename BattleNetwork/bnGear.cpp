@@ -106,8 +106,7 @@ void Gear::OnDelete() {
 
 }
 
-const bool Gear::Hit(Hit::Properties props) {
-  // TODO: spawn hit or something
+const bool Gear::OnHit(const Hit::Properties props) {
   return true;
 }
 

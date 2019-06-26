@@ -107,7 +107,7 @@ void Mettaur::Update(float _elapsed) {
   Character::Update(_elapsed);
 }
 
-const bool Mettaur::Hit(Hit::Properties props) {
+const bool Mettaur::OnHit(const Hit::Properties props) {
   /*if (Character::Hit(_damage, props)) {
     SetShader(whiteout);
     return true;

@@ -97,7 +97,7 @@ void Starfish::Update(float _elapsed) {
   hit = false;
 }
 
-const bool Starfish::Hit(Hit::Properties props) {
+const bool Starfish::OnHit(const Hit::Properties props) {
   /*if (Character::Hit(_damage, props)) {
     SetShader(whiteout);
     return true;

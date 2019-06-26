@@ -52,9 +52,7 @@ public:
    * @param props the hit props
    * @return true if the player got hit, false if missed
    */
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-  
-  virtual const bool OnHit(Hit::Properties props) { return true;  }
+  virtual const bool OnHit(const Hit::Properties props);
 
   virtual void OnDelete() { ; }
 

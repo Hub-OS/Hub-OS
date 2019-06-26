@@ -39,7 +39,7 @@ bool SharedHitBox::Move(Direction _direction) {
   return false;
 }
 
-const bool SharedHitBox::Hit(Hit::Properties props) {	
+const bool SharedHitBox::OnHit(const Hit::Properties props) {
   Character* c = dynamic_cast<Character*>(owner);
 	
   if(c) {

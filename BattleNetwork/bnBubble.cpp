@@ -92,9 +92,9 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 }
 
 
-const bool Bubble::Hit(Hit::Properties props) {
-    // TODO: Hack. Bubbles keep attacking team mates. Why?
-    if(props.aggressor && props.aggressor->GetTeam() == Team::BLUE) return false;
+const bool Bubble::OnHit(const Hit::Properties props) {
+  // TODO: Hack. Bubbles keep attacking team mates. Why?
+  // if(props.aggressor && props.aggressor->GetTeam() == Team::BLUE) return false;
 
   if (!hit) {
     hit = true;

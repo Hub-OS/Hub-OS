@@ -51,11 +51,10 @@ public:
    * @param props the hit properties of the aggressor
    * @return true if the owner was hit, false otherwise
    */
-  virtual const bool Hit(Hit::Properties props);
-  virtual const bool OnHit(Hit::Properties props) { return true; }
+  virtual const bool OnHit(const Hit::Properties props);
   virtual void OnDelete() { ; }
 
-  virtual const float GetHitHeight() const { return 0;  }
+  virtual const float GetHitHeight() const { if(Character* c = dynamic_cast<Character*>(owner)) { c->GetHitHeight(); } else return 0;  }
   
 private:
   float cooldown; /*< When cooldown reaches zero, this hitbox removes */

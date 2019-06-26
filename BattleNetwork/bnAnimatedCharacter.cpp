@@ -30,13 +30,3 @@ void AnimatedCharacter::OnFrameCallback(int frame, std::function<void()> onEnter
 {
   animationComponent.AddCallback(frame, onEnter, onLeave, doOnce);
 }
-
-const float AnimatedCharacter::GetHitHeight() const {
-  //assert(false && "GetHitHeight shouldn't be called directly from Entity");
-  return 0;
-}
-
-const bool AnimatedCharacter::Hit(Hit::Properties props) {
-  //assert(false && "Hit shouldn't be called directly from Entity");
-  return false;
-}

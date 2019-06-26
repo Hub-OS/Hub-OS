@@ -138,12 +138,7 @@ void MetalMan::Update(float _elapsed) {
   hit = false;
 }
 
-const bool MetalMan::Hit(Hit::Properties props) {
-  /*(health - _damage < 0) ? health = 0 : health -= _damage;
-  SetShader(whiteout);
-
-  return health;*/
-
+const bool MetalMan::OnHit(const Hit::Properties props) {
   bool result = true;
 
   if (health - props.damage < 0) {

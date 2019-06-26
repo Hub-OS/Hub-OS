@@ -120,7 +120,7 @@ void Player::Attack() {
   }
 }
 
-const bool Player::Hit(Hit::Properties props) {
+const bool Player::OnHit(const Hit::Properties props) {
   // Don't take damage while blinking
   if (invincibilityCooldown > 0) return false;
 

@@ -31,7 +31,7 @@ void MysteryData::Update(float _elapsed) {
   Character::Update(_elapsed);
 }
 
-const bool MysteryData::Hit(Hit::Properties props) {
+const bool MysteryData::OnHit(const Hit::Properties props) {
   if((props.flags & Hit::impact) == Hit::impact) {
     this->SetHealth(0);
     return true;
