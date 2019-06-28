@@ -25,7 +25,6 @@ public:
   virtual ~Obstacle(void);
 
   virtual void Update(float _elapsed);
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties) = 0;
   virtual void SetAnimation(std::string animation);
   
   /**

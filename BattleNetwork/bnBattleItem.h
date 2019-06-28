@@ -2,12 +2,14 @@
 
 #include <string>
 #include "bnChip.h"
+// #include "bnHealthItem.h"
+// #include "bnZennyItem.h"
 
 /**
  * @class BattleItem
  * @author mav
  * @date 13/05/19
- * @brief BattleItem is a container for the awarded object type and can be money, a chip, or extra life.
+ * @brief BattleItem is a container for the awarded object type and can be money, a chip, or hp gain.
  * 
  * @warning Must be refactored to support scripted chip types
  * @important Like a union struct, can be any type. You must check IsChip(), IsHP(), or IsZenny() respectively.
@@ -17,9 +19,11 @@ private:
   int cardID; /*!< The ID for the chip card */
   std::string name; /*!< Name of the item or chip */
   bool isChip; /*!< Flag if chip */
-  bool isZenny; /*!< Flag if money */
+  bool isZenny; /*!< Flag if zenny */
   bool isHP; /*!< Flag if HP */
   Chip chip; /*!< Chip data */
+  // HealthItem hpGain; // +10, +50, +100, +200 HP gained post battle
+  // ZennyItem zennyGain; // stores arbitrary zenny amount
 public:
   /**
    * @brief Constructs a battle item with chip data 

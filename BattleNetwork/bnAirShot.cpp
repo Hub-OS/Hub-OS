@@ -38,12 +38,6 @@ AirShot::~AirShot() {
 }
 
 void AirShot::Update(float _elapsed) {
-  if (hit) {
-      deleted = true;
-      Entity::Update(_elapsed);
-    return;
-  }
-
   tile->AffectEntities(this);
 
   cooldown += _elapsed;
@@ -56,21 +50,16 @@ void AirShot::Update(float _elapsed) {
 }
 
 void AirShot::Attack(Character* _entity) {
-  if (hit || deleted) {
-    return;
-  }
-
   if (_entity && _entity->GetTeam() != this->GetTeam()) {
     auto props = Hit::DefaultProperties;
     props.damage = damage;
-    _entity->Hit(props);
-    hitHeight = _entity->GetHitHeight();
+    props.flags |= Hit::drag;
+    props.drag = direction;
 
-    if (!_entity->IsPassthrough()) {
-      hit = true;
-
-      _entity->SlideToTile(true);
-      _entity->Move(direction);
+    if(_entity->Hit(props)) {
+      this->Delete();
     }
+
+    hitHeight = _entity->GetHitHeight();
   }
 }

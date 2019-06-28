@@ -18,6 +18,9 @@ class Canodumb : public AnimatedCharacter, public AI<Canodumb> {
   friend class CanodumbMoveState;
   friend class CanodumbAttackState;
   friend class CanodumbCursor;
+  using DefaultState = CanodumbIdleState;
+
+  float hitHeight;
 
 public:
   Canodumb(Rank _rank = Character::Rank::_1);
@@ -31,10 +34,5 @@ public:
   virtual const float GetHitHeight() const;
 
   virtual const bool OnHit(const Hit::Properties props);
-  virtual void OnDelete() { ; }
-
-  sf::Shader* whiteout;
-  sf::Shader* stun;
-
-  MobHealthUI* healthUI;
+  virtual void OnDelete();
 };

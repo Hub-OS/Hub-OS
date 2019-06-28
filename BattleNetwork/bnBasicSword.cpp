@@ -35,7 +35,7 @@ BasicSword::~BasicSword(void) {
 
 void BasicSword::Update(float _elapsed) {
   if (cooldown >= COOLDOWN || hit) {
-    deleted = true;
+    this->Delete();
     Entity::Update(_elapsed);
     return;
   }
@@ -50,11 +50,8 @@ bool BasicSword::Move(Direction _direction) {
 }
 
 void BasicSword::Attack(Character* _entity) {
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    auto props = Hit::DefaultProperties;
-    props.damage = damage;
-    _entity->Hit(props);
-    hitHeight = _entity->GetHitHeight();
-    hit = true;
-  }
+  auto props = Hit::DefaultProperties;
+  props.damage = damage;
+  hit = hit || _entity->Hit(props);
+  hitHeight = _entity->GetHitHeight();
 }

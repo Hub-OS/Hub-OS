@@ -23,7 +23,7 @@ private:
   Direction direction; /*!< Direction to move */
 
   // Frame select through animation system
-  AnimationComponent animationComponent;
+  AnimationComponent* animationComponent;
 public:
   CanodumbCursor(Field* _field, Team _team, Canodumb* _parent);
   ~CanodumbCursor();
@@ -41,5 +41,3 @@ public:
    */
   virtual bool Move(Direction _direction) { return false; }
 };
-
-

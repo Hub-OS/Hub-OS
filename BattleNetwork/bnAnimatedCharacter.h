@@ -11,18 +11,15 @@ class AnimatedCharacter : public Character {
   friend class Field;
 
 protected:
-  AnimationComponent animationComponent;
-  int hitHeight;
+  AnimationComponent* animationComponent;
 
 public:
 
   AnimatedCharacter(Rank _rank = Rank::_1);
   virtual ~AnimatedCharacter();
 
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-  virtual const float GetHitHeight() const;
-  virtual void Update(float _elapsed);
-  virtual void AddAnimation(string _state, FrameList _frameList, float _duration);
+  virtual const float GetHitHeight() const =0;
+  virtual void Update(float _elapsed)= 0;
   virtual void SetAnimation(string _state, std::function<void()> onFinish = std::function<void()>());
   virtual void SetCounterFrame(int frame);
   virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);

@@ -40,7 +40,7 @@ class Field;
 namespace Battle {
   class Tile : public Sprite {
   public:
-    friend class Entity;
+    friend class Field;
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.
@@ -90,8 +90,9 @@ namespace Battle {
      * If the tile has characters of another team on it,
      * it will not change. 
      * @param _team Team to change to
+     * @param useFlicker if true, will change state & will flicker for flickerTeamCooldownLength milliseconds
      */
-    void SetTeam(Team _team);
+    void SetTeam(Team _team, bool useFlicker = false);
 
     /**
      * @brief Get the width of the tile sprite
@@ -239,8 +240,12 @@ namespace Battle {
     float width;
     float height;
     Field* field;
-    float cooldown;
-    float cooldownLength;
+    float teamCooldown;
+    static float teamCooldownLength;
+    float brokenCooldown;
+    static float brokenCooldownLength;
+    float flickerTeamCooldown;
+    static float flickerTeamCooldownLength;
     bool hasSpell; /**< Highlights when there is a spell occupied in this tile */
     bool isBattleActive;
 

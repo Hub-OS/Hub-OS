@@ -21,11 +21,12 @@
 using sf::IntRect;
 
 class Player : public Character, public AI<Player> {
-public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;
   friend class PlayerHitState;
+  using DefaultState = PlayerControlledState;
 
+public:
   /**
    * @brief Loads graphics and adds a charge component
    */
@@ -54,7 +55,10 @@ public:
    */
   virtual const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete() { ; }
+  /**
+   * @brief when player is deleted, changes state to delete state and hide charge component
+   */
+  virtual void OnDelete();
 
   virtual const float GetHitHeight() const { return 0; }
   /**
@@ -68,12 +72,6 @@ public:
    * @return int
    */
   int GetHitCount() const;
-
-  /**
-   * @brief Get the animation component used by the player
-   * @return AnimationComponent&
-   */
-  AnimationComponent& GetAnimationComponent();
 
   /**
    * @brief Toggles the charge component
@@ -94,5 +92,4 @@ protected:
   string state; /*!< Animation state name */
 
   ChargeComponent chargeComponent; /*!< Handles charge effect */
-  AnimationComponent animationComponent; /*!< Animates the character */
 };

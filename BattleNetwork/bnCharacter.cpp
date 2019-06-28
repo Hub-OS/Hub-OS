@@ -5,6 +5,7 @@
 #include "bnField.h"
 #include "bnExplosion.h"
 #include "bnElementalDamage.h"
+#include "bnShaderResourceManager.h
 
 Character::Character(Rank _rank) : 
   health(0),
@@ -17,9 +18,13 @@ Character::Character(Rank _rank) :
   name("unnamed"),
   rank(_rank),
   invokeDeletion(false),
+  hit(false),
   CounterHitPublisher() {
+
   burnCycle = sf::milliseconds(150);
   elapsedBurnTime = burnCycle.asSeconds();
+  whiteout = SHADERS.GetShader(ShaderType::WHITE);
+  stun = SHADERS.GetShader(ShaderType::YELLOW);
 }
 
 Character::~Character() {
@@ -50,6 +55,20 @@ const bool Character::CanTilePush() const {
 }
 
 void Character::Update(float _elapsed) {
+  if (!hit) {
+    this->SetShader(nullptr);
+  }
+  else {
+    SetShader(whiteout);
+  }
+
+  if ((((int)(stunCooldown * 15))) % 2 == 0) {
+    this->SetShader(stun);
+  }
+  else {
+    this->SetShader(nullptr);
+  }
+
   elapsedBurnTime -= _elapsed;
 
   if (this->IsBattleActive() && !this->HasFloatShoe()) {

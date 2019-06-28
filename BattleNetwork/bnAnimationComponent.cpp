@@ -7,8 +7,7 @@ using sf::IntRect;
 #include "bnLogger.h"
 #include "bnEntity.h"
 
-AnimationComponent::AnimationComponent(Entity* _entity) {
-  entity = _entity;
+AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
   speed = 1.0;
 }
 
@@ -17,12 +16,16 @@ AnimationComponent::~AnimationComponent() {
 
 void AnimationComponent::Update(float _elapsed)
 {
-  animation.Update(_elapsed, *entity, speed);
+  animation.Update(_elapsed, *GetOwner(), speed);
 }
 
 void AnimationComponent::Setup(string _path)
 {
   path = _path;
+}
+
+void AnimationComponent::Load() {
+  this->Reload();
 }
 
 void AnimationComponent::Reload() {

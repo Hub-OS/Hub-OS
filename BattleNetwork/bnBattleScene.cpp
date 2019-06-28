@@ -497,9 +497,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     while (entitiesIter != allEntities.end()) {
         entity = (*entitiesIter);
       if (!entity->IsDeleted()) {
-        auto uic = entity->GetComponent<UIComponent>();
-        if (uic) {
-          ui.push_back(uic);
+        auto uic = entity->GetComponents<UIComponent>();
+        if (!uic.empty()) {
+          ui.insert(ui.begin(), ui.end(), uic.begin());
         }
 
         ENGINE.Draw(entity);

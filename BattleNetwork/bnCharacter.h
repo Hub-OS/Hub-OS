@@ -58,13 +58,17 @@ private:
   bool canShareTile; /*!< Some characters can share tiles with others */
   bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
 
-  std::vector<DefenseRule*> defenses;
+  std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
   
   // Statuses are resolved one property at a time
   // until the entire Flag object is equal to 0x00 None
   // Then we process the next status
   // This continues until all statuses are processed
   std::queue<Hit::Properties> statusQueue;
+
+  sf::Shader* whiteout; /*!< Flash white when hit */
+  sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
+  bool hit; /*!< Was hit this frame */
 public:
 
   /**
@@ -102,9 +106,9 @@ public:
 
   /**
    * The hit routine that happens for every character. Queues status properties and damage
-   * to resolve at the end of the battle step
+   * to resolve at the end of the battle step.
    * @param props
-   * @return true if user-defined OnHit() is also true. Will return false if IsPassthrough() is true (i-frames)
+   * @return Returns false  if IsPassthrough() is true (i-frames), otherwise true
    */
   const bool Hit(Hit::Properties props = Hit::DefaultProperties);
 

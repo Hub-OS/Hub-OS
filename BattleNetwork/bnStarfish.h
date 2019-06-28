@@ -10,6 +10,7 @@
 class Starfish : public AnimatedCharacter, public AI<Starfish> {
   friend class StarfishIdleState;
   friend class StarfishAttackState;
+  using DefaultState = StarfishIdleState;
 
 public:
   Starfish(Rank _rank = Rank::_1);
@@ -23,7 +24,7 @@ public:
 
   virtual const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete() { ; }
+  virtual void OnDelete();
   
   /**
    * @brief Set the hit height for projectiles to play effects at the correct position
@@ -32,11 +33,7 @@ public:
   virtual const float GetHitHeight() const;
 
 private:
-  sf::Shader* whiteout;
-  sf::Shader* stun;
-
   float hitHeight;
-  bool hit;
   TextureType textureType;
   MobHealthUI* healthUI;
 };

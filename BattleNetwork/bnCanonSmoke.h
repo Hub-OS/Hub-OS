@@ -11,10 +11,10 @@
 class CanonSmoke : public Artifact
 {
 private:
-  AnimationComponent animationComponent;
+  AnimationComponent* animationComponent;
 
 public:
-  CanonSmoke(Field* _field, Team _team);
+  CanonSmoke(Field* _field);
   ~CanonSmoke();
 
   /**

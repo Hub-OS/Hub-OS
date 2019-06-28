@@ -8,28 +8,28 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
-CanonSmoke::CanonSmoke(Field* _field, Team _team) : animationComponent(this)
+CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
 {
   SetLayer(0);
-  field = _field;
-  team = _team;
+
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
 
   //Components setup and load
   auto onFinish = [&]() { this->Delete();  };
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation(MOB_CANODUMB_SMOKE, onFinish);
-  animationComponent.Update(0);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Load();
+  animationComponent->SetAnimation(MOB_CANODUMB_SMOKE, onFinish);
+  animationComponent->Update(0);
 
 }
 
 void CanonSmoke::Update(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 65.0f);
-  animationComponent.Update(_elapsed);
-  Entity::Update(_elapsed);
+  Artifact::Update(_elapsed);
 }
 
 CanonSmoke::~CanonSmoke()

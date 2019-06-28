@@ -10,6 +10,7 @@ class Mettaur : public AnimatedCharacter, public AI<Mettaur> {
   friend class MettaurIdleState;
   friend class MettaurMoveState;
   friend class MettaurAttackState;
+  using DefaultState = MettaurIdleState;
 
 public:
   /**

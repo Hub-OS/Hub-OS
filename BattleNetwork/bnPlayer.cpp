@@ -17,7 +17,6 @@ Player::Player(void)
   :
   state(PLAYER_IDLE),
   chargeComponent(this),
-  animationComponent(this),
   AI<Player>(this),
   Character(Rank::_1)
 {
@@ -41,8 +40,10 @@ Player::Player(void)
 
   setScale(2.0f, 2.0f);
 
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+  AnimationComponent* animationComponent = new AnimationComponent(this);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
+  this->RegisterComponent(animationComponent);
 
   setTexture(*TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
@@ -57,34 +58,8 @@ Player::~Player() {
 }
 
 void Player::Update(float _elapsed) {
-  animationComponent.Update(_elapsed);
-
-  if (_elapsed <= 0)
-    return;
-  
-  // Bubble traps are imposed on other entities
-  // It's up to the entities to handle custom states
-  // Intercept the BubbleTrap component
-  // And then change the state to the special BubbleState<> implementation
-  Component* c = GetComponent<BubbleTrap>();
-
-  if (c) {
-    this->ChangeState<BubbleState<Player, PlayerControlledState>>();
-  }
-
   if (tile != nullptr) {
     setPosition(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
-  }
-
-  // Explode if health depleted
-  if (GetHealth() <= 0) {
-	chargeComponent.Hide();
-    this->animationComponent.CancelCallbacks();
-    this->animationComponent.SetAnimation(PLAYER_HIT);
-    this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
-    AI<Player>::Update(_elapsed);
-
-    return;
   }
 
   if (invincibilityCooldown > 0) {
@@ -111,8 +86,6 @@ void Player::Update(float _elapsed) {
 }
 
 void Player::Attack() {
-  if (!tile) return;
-
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
     Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged());
     spell->SetDirection(Direction::RIGHT);
@@ -120,22 +93,24 @@ void Player::Attack() {
   }
 }
 
+void Player::OnDelete() {
+  chargeComponent.Hide();
+  auto animationComponent = this->GetFirstComponent<AnimationComponent>();
+  animationComponent->CancelCallbacks();
+  animationComponent->SetAnimation(PLAYER_HIT);
+  this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
+}
+
 const bool Player::OnHit(const Hit::Properties props) {
   // Don't take damage while blinking
   if (invincibilityCooldown > 0) return false;
 
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-    hitCount++;
+  hitCount++;
 
-    // Respond to the recoil bit state
-    if ((props.flags & Hit::recoil) == Hit::recoil) {
-      // this->ChangeState<PlayerHitState>((float)props.secs );
-      this->ChangeState<PlayerHitState>();
-    }
+  // Respond to the recoil bit state
+  if ((props.flags & Hit::recoil) == Hit::recoil) {
+    // this->ChangeState<PlayerHitState>((float)props.secs );
+    this->ChangeState<PlayerHitState>();
   }
 
   return true;
@@ -149,10 +124,6 @@ int Player::GetMoveCount() const
 int Player::GetHitCount() const
 {
   return hitCount;
-}
-
-AnimationComponent& Player::GetAnimationComponent() {
-  return animationComponent;
 }
 
 void Player::SetCharging(bool state)

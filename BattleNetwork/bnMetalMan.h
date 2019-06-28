@@ -12,12 +12,13 @@ using sf::IntRect;
 
 /*! \brief Metalman is a boss that throws blades, fires rockets, and punches the ground */
 class MetalMan : public Character, public AI<MetalMan> {
-public:
   friend class MetalManIdleState;
   friend class MetalManMoveState;
   friend class MetalManPunchState;
   friend class MetalManMissileState;
+  using DefaultState = MetalManIdleState;
 
+public:
   MetalMan(Rank _rank);
   
   /**

@@ -23,6 +23,7 @@ public:
   friend class ProgsManIdleState;
   friend class ProgsManMoveState;
   friend class ProgsManAttackState;
+  using DefaultState = ProgsManIdleState;
 
   /**
    * \brief Loads resources and sets health

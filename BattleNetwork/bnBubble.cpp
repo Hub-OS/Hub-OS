@@ -132,7 +132,7 @@ void Bubble::Attack(Character* _entity) {
     }
 
     if (hit) {
-      if (_entity->GetComponent<BubbleTrap>() == nullptr && !comp) {
+      if (_entity->GetFirstComponent<BubbleTrap>() == nullptr && !comp) {
         BubbleTrap* trap = new BubbleTrap(_entity);
         _entity->RegisterComponent(trap);
         GetField()->AddEntity(*trap, GetTile()->GetX(), GetTile()->GetY());

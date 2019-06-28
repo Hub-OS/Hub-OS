@@ -15,18 +15,21 @@ Artifact::Artifact(Field* _field) {
 
 Artifact::Artifact() {
   SetLayer(0);
-  texture = nullptr;
   this->SetPassthrough(true);
 }
 
 Artifact::~Artifact() {
 }
 
+void Artifact::Update(float elapsed) {
+  Entity::Update(elapsed);
+}
+
 void Artifact::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!isSliding) {
+  if (!IsSliding()) {
     this->setPosition(tile->getPosition());
   }
 }

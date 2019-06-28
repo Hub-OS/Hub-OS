@@ -11,8 +11,6 @@ public:
   Artifact(Field* _field);
   virtual ~Artifact();
 
-  virtual void Update(float _elapsed) = 0;
+  virtual void Update(float _elapsed);
   virtual void AdoptTile(Battle::Tile* tile) final;
-protected:
-  Texture* texture;
 };

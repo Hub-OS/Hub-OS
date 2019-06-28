@@ -11,15 +11,17 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
-CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : animationComponent(this), Artifact(_field, Team::UNKNOWN) {
+CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : Artifact(_field) {
   SetFloatShoe(true);
-  
+
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+
   parent = _parent;
   target = parent->GetTarget();
 
   SetLayer(0);
   field = _field;
-  team = Team::UNKNOWN;
 
   direction = Direction::LEFT;
 
@@ -27,10 +29,10 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : a
   setScale(2.f, 2.f);
 
   //Components setup and load
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation(MOB_CANODUMB_CURSOR);
-  animationComponent.Update(0);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Load();
+  animationComponent->SetAnimation(MOB_CANODUMB_CURSOR);
+  animationComponent->Update(0);
 
   switch (parent->GetRank()) {
   case Canodumb::Rank::_1:
@@ -48,8 +50,6 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : a
 }
 
 void CanodumbCursor::Update(float _elapsed) {
-  animationComponent.Update(_elapsed);
-
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
   movecooldown -= _elapsed;
@@ -71,7 +71,7 @@ void CanodumbCursor::Update(float _elapsed) {
         t->AddEntity(*this);
       }
       else {
-        deleted = true;
+        this->Delete();
       }
     }
   }
