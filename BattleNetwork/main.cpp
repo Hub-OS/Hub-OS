@@ -57,8 +57,6 @@ using swoosh::ActivityController;
 #define TITLE_ANIM_CHAR_WIDTH 128
 #define TITLE_ANIM_CHAR_HEIGHT 221
 
-#define FIXED_TIME_STEP 1.0f/60.0f
-
 // GBA draws 60 frames in one seconds
 #define FIXED_TIME_STEP 1.0f/60.0f
 

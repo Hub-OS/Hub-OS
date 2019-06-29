@@ -4,8 +4,13 @@
 #include <assert.h>
 #include <SFML/System.hpp>
 
-
 #include "bnLogger.h"
+
+#ifdef __ANDROID_NDK__
+#include <android/asset_manager.h>
+#include <SFML/System/Android/Activity.hpp>
+#include <SFML/System/Lock.hpp>
+#endif
 
 /**
  * @class FileUtil
@@ -18,7 +23,62 @@
  */
 class FileUtil {
 public:
-  static std::string Read(std::string _path) {
+    class WriteStream {
+    private:
+#ifdef __ANDROID_NDK__
+        AAsset* m_file; ///< The asset file to read
+#else
+        std::FILE* m_file; ///< stdio file stream
+#endif
+
+    bool isOK;
+
+    public:
+        WriteStream(const std::string& path) {
+            isOK = true;
+#ifdef __ANDROID_NDK__
+            ActivityStates* states = getActivity(NULL);
+            Lock(states->mutex);
+            m_file = 0;
+#else
+            m_file = std::fopen(path.c_str(), "w");
+            if(!m_file) {
+                isOK = false;
+            }
+#endif
+        }
+
+        ~WriteStream() {
+#ifdef __ANDROID_NDK__
+            if (m_file)
+            {
+                AAsset_close(m_file);
+            }
+#else
+            if(m_file) {
+                std::fclose(m_file);
+            }
+#endif
+        }
+
+        const char endl() const {
+            return '\n';
+        }
+
+        WriteStream& operator<<(const char* buffer) {
+            m_file << buffer;
+
+            return *this;
+        }
+
+        WriteStream& operator<<(std::string buffer) {
+            m_file << buffer.c_str();
+
+            return *this;
+        }
+    };
+
+  static std::string Read(const std::string& _path) {
     sf::FileInputStream in;
 
     if (in.open(_path) && in.getSize() > 0) {
