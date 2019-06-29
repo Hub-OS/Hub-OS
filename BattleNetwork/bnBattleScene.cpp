@@ -7,6 +7,11 @@
 #include "Segues/WhiteWashFade.h"
 #include "Segues/PixelateBlackWashFade.h"
 
+// modals like chip cust and battle reward slide in 12px per frame for 10 frames. 60 frames = 1 sec
+// modal slide moves 120px in 1/6th of a second
+// Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
+#define MODAL_SLIDE_PX_PER_SEC 720.0f
+
 BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, ChipFolder* folder) :
         swoosh::Activity(&controller),
         player(player),
@@ -170,6 +175,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   postBattleLength = 1.4; // in seconds
   PAStartLength = 0.15; // in seconds
 
+  showSummonBackdrop = false;
+  showSummonBackdropLength = 15.0/60.0; //15 frame fade
+  showSummonBackdropTimer = 0; // No state is active
   showSummonText = false;
   summonTextLength = 1; // in seconds
 
@@ -257,18 +265,23 @@ void BattleScene::ProcessNewestComponents()
   auto entities = field->FindEntities([](Entity* e) { return true; });
 
   for (auto e : entities) {
-    if (e->shared.size() > 0) {
+    if (e->components.size() > 0) {
       //std::cout << "lastCompID: " << e->lastComponentID << " - latest: " << e->shared[0]->GetID() << std::endl;
 
-      if (e->lastComponentID < e->shared[0]->GetID()) {
-        // Process the newst components
-        for (auto c : e->shared) {
-          // update the ledger
-          e->lastComponentID = e->shared[0]->GetID();
+      if (e->lastComponentID < e->components[0]->GetID()) {
+        // Process the newest components
 
-          // Inject usually removes the owner so this step proceeds the lastComponentID update
+        std::vector<Component*> newest;
+
+        for (auto c : e->components) {
+          if(c->GetID() <= e->lastComponentID) break; // Older components are last in order
+
           c->Inject(*this);
         }
+
+        // update the ledger
+        // Injects usually removes the owner so this step proceeds the lastComponentID update
+        e->lastComponentID = e->components[0]->GetID();
       }
     }
   }
@@ -293,7 +306,21 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 
 void BattleScene::onUpdate(double elapsed) {
   this->elapsed = elapsed;
-  this->summonTimer += elapsed;
+
+  if(!isPaused) {
+    this->summonTimer += elapsed;
+
+    if(showSummonBackdropTimer < showSummonBackdropLength && summons.IsSummonActive() && showSummonBackdrop) {
+      showSummonBackdropTimer += elapsed;
+    }else if(showSummonBackdropTimer >= showSummonBackdropLength && summons.IsSummonActive() && showSummonBackdrop) {
+      showSummonText = true;
+    } else if(showSummonBackdropTimer > 0 && summons.IsSummonOver()) {
+      showSummonBackdropTimer -= elapsed;
+    } else if(showSummonBackdropTimer <= 0 && summons.IsSummonOver()) {
+      showSummonBackdropTimer = 0;
+      showSummonBackdrop = false;
+    }
+  }
 
   ProcessNewestComponents();
 
@@ -423,7 +450,7 @@ void BattleScene::onUpdate(double elapsed) {
 
   // other player controls
   if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
-    if (player && player->GetTile() && player->GetAnimationComponent().GetAnimationString() == "PLAYER_IDLE") {
+    if (player && player->GetTile() && player->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE") {
       chipUI.UseNextChip();
     }
   }
@@ -446,18 +473,18 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   auto tilesIter = allTiles.begin();
 
   while (tilesIter != allTiles.end()) {
-      tile = (*tilesIter);
+    tile = (*tilesIter);
     tile->move(ENGINE.GetViewOffset());
 
     if (summons.IsSummonActive()) {
-        SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
+      SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
       coloredTile->SetShader(&pauseShader);
       ENGINE.Draw(coloredTile);
       delete coloredTile;
     }
     else {
       if (tile->IsHighlighted()) {
-          SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
+        SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
         coloredTile->SetShader(&yellowShader);
         ENGINE.Draw(coloredTile);
         delete coloredTile;
@@ -571,6 +598,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   if (isPaused) {
     // apply shader on draw calls below
     ENGINE.SetShader(&pauseShader);
+    pauseShader.setUniform("opacity", 0.25f);
+  } else if(showSummonBackdrop) {
+    pauseShader.setUniform("opacity",0.25f*float(std::min(0.0, (showSummonBackdropTimer/showSummonBackdropLength))));
   }
 
 
@@ -632,11 +662,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   if (!isPlayerDeleted && !summons.IsSummonActive()) {
     chipUI.Update((float)elapsed); // DRAW
 
-    // TODO: we have a real component system now, refactor this
-    //Drawable* component;
-    //while (chipUI.GetNextComponent(component)) {
-    //  ENGINE.Draw(component);
-    //}
+    ENGINE.Draw(chipUI);
   }
 
   if (isPreBattle) {
@@ -683,13 +709,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   // compare the summon state after we used a chip...
   if (!showSummonText) {
-    /*if (summons.IsSummonActive() && prevSummonState == false) {
-      // We are switching over to a new state this frame
-      summonTimer = 0;
-      showSummonText = true;
-      std::cout << "summon text showing" << std::endl;
-    }
-    else */ if (summons.IsSummonOver() && prevSummonState == true) {
+    if (summons.IsSummonOver() && prevSummonState == true) {
       // We are leaving the summons state this frame
       summons.OnLeave();
       prevSummonState = false;
@@ -705,7 +725,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
       if (prevSummonState) {
         summonTimer = 0;
-        showSummonText = true;
+        showSummonBackdrop = true;
+        showSummonBackdropTimer = 0;
         std::cout << "prevSummonState flagged" << std::endl;
       }
     }
@@ -884,12 +905,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   if (isInChipSelect && customProgress > 0.f) {
     if (!chipCustGUI.IsInView()) {
-      chipCustGUI.Move(sf::Vector2f(600.f * (float)elapsed, 0));
+      chipCustGUI.Move(sf::Vector2f(MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
     }
   }
   else {
     if (!chipCustGUI.IsOutOfView()) {
-      chipCustGUI.Move(sf::Vector2f(-600.f * (float)elapsed, 0));
+      chipCustGUI.Move(sf::Vector2f(-MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
     }
     else if (isInChipSelect) { // we're leaving a state
       // Start Program Advance checks
@@ -1089,7 +1110,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       battleResults->Draw();
 
       if (!battleResults->IsInView()) {
-        float amount = 600.f * (float)elapsed;
+        float amount = MODAL_SLIDE_PX_PER_SEC * (float)elapsed;
         battleResults->Move(sf::Vector2f(amount, 0));
       }
       else {

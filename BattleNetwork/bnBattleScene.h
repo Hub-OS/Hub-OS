@@ -198,7 +198,10 @@ private:
   double summonTimer; /*!< Timer for TFC label to appear at top */
   bool showSummonText; /*!< Whether or not TFC label should appear */
   double summonTextLength; /*!< How long TFC label should stay on screen */
-  // Special: Load shaders if supported 
+  bool showSummonBackdrop; /*!< Dim screen and show new backdrop if applicable */
+  double showSummonBackdropLength; /*!< How long the dim should last */
+  double showSummonBackdropTimer; /*!< If > 0, the state is in effect else change state */
+    // Special: Load shaders if supported
   double shaderCooldown;
 
   sf::Shader& pauseShader; /*!< Dim screen */
