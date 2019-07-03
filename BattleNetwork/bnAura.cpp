@@ -74,7 +74,7 @@ void Aura::Inject(BattleScene& bs) {
 
 }
 
-void Aura::Update(float _elapsed) {
+void Aura::OnUpdate(float _elapsed) {
   currHP = health;
   
   if(!persist) {

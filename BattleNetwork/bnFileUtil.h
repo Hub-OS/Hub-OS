@@ -8,7 +8,7 @@
 
 #ifdef __ANDROID_NDK__
 #include <android/asset_manager.h>
-#include <SFML/System/Android/Activity.hpp>
+//#include <SFML/System/Android/Activity.hpp>
 #include <SFML/System/Lock.hpp>
 #endif
 
@@ -26,9 +26,9 @@ public:
     class WriteStream {
     private:
 #ifdef __ANDROID_NDK__
-        AAsset* m_file; ///< The asset file to read
+    std::FILE* m_file; //!< The asset file to read
 #else
-        std::FILE* m_file; ///< stdio file stream
+        std::FILE* m_file; //!< stdio file stream
 #endif
 
     bool isOK;
@@ -37,9 +37,10 @@ public:
         WriteStream(const std::string& path) {
             isOK = true;
 #ifdef __ANDROID_NDK__
-            ActivityStates* states = getActivity(NULL);
-            Lock(states->mutex);
-            m_file = 0;
+            m_file = std::fopen(path.c_str(), "w");
+            if(!m_file) {
+                isOK = false;
+            }
 #else
             m_file = std::fopen(path.c_str(), "w");
             if(!m_file) {
@@ -52,7 +53,7 @@ public:
 #ifdef __ANDROID_NDK__
             if (m_file)
             {
-                AAsset_close(m_file);
+                std::fclose(m_file);
             }
 #else
             if(m_file) {
@@ -66,13 +67,21 @@ public:
         }
 
         WriteStream& operator<<(const char* buffer) {
-            m_file << buffer;
+            std::fwrite(buffer, sizeof(char), strlen(buffer), m_file);
+
+            return *this;
+        }
+
+        WriteStream& operator<<(char bit) {
+            char* ptr = &bit;
+            std::fwrite(ptr, sizeof(char), 1, m_file);
+            ptr = nullptr;
 
             return *this;
         }
 
         WriteStream& operator<<(std::string buffer) {
-            m_file << buffer.c_str();
+            std::fwrite(buffer.c_str(), sizeof(char), buffer.size(), m_file);
 
             return *this;
         }

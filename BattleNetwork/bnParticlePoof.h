@@ -25,7 +25,7 @@ public:
    * @brief plays the animation and deletes when finished 
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief particle poof effect doesn't move

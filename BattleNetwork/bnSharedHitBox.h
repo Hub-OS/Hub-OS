@@ -31,7 +31,7 @@ public:
    * @brief Removes itself if time is up or the original source is deleted
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move
@@ -54,7 +54,7 @@ public:
   virtual const bool OnHit(const Hit::Properties props);
   virtual void OnDelete() { ; }
 
-  virtual const float GetHitHeight() const { if(Character* c = dynamic_cast<Character*>(owner)) { c->GetHitHeight(); } else return 0;  }
+  virtual const float GetHitHeight() const;
   
 private:
   float cooldown; /*< When cooldown reaches zero, this hitbox removes */

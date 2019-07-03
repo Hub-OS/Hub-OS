@@ -4,13 +4,10 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
+Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team), Spell(_field, _team) {
   SetLayer(0);
   field = _field;
-  direction = Direction::NONE;
-  deleted = false;
   hit = false;
-  health = 1;
   
   auto texture = TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png");
   setTexture(*texture);
@@ -22,7 +19,8 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
 
   this->speed = speed;
 
-  this->slideTime = sf::seconds(0.1f);
+  this->SetSlideTime(sf::seconds(0.1f));
+  this->SetHealth(1);
 
   AUDIO.Play(AudioType::TOSS_ITEM_LITE, AudioPriority::LOWEST);
 
@@ -39,7 +37,7 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
 Fishy::~Fishy() {
 }
 
-void Fishy::Update(float _elapsed) {
+void Fishy::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x - 40.0f, tile->getPosition().y + tileOffset.y - 120.0f);
 
   if (this->GetTile()->GetX() == 6) {
@@ -47,7 +45,7 @@ void Fishy::Update(float _elapsed) {
   }
 
   // Keep moving
-  if (!this->isSliding) {
+  if (!this->IsSliding()) {
     this->SlideToTile(true);
     this->Move(this->GetDirection());
   }

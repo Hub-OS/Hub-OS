@@ -6,20 +6,20 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duration) : anim(this), duration(_duration), Spell() {
+Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duration) : duration(_duration), Spell(_field, _team) {
     this->target = target;
     SetLayer(1);
-    field = _field;
-    team = _team;
-    direction = Direction::NONE;
-    deleted = false;
+
+
     goingUp = true;
     auto texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
     setTexture(*texture);
 
-    anim.Setup("resources/mobs/metalman/metalman.animation");
-    anim.Reload();
-    anim.SetAnimation("MISSILE_UP", Animate::Mode::Loop);
+    anim = new AnimationComponent(this);
+    this->RegisterComponent(anim);
+    anim->Setup("resources/mobs/metalman/metalman.animation");
+    anim->Load();
+    anim->SetAnimation("MISSILE_UP", Animate::Mode::Loop);
 
     setScale(0.f, 0.f);
 
@@ -43,18 +43,14 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
     props.flags |= Hit::impact;
     this->SetHitboxProperties(props);
 
-    anim.Update(0);
+    anim->OnUpdate(0);
 }
 
 Missile::~Missile() {
 }
 
-void Missile::Update(float _elapsed) {
+void Missile::OnUpdate(float _elapsed) {
     setScale(2.f, 2.f);
-
-    if(this->IsDeleted()) return;
-
-    anim.Update(_elapsed);
 
     if(!goingUp) {
         if(progress > 1.0f) {
@@ -96,7 +92,7 @@ void Missile::Update(float _elapsed) {
             // update to come down
             goingUp = false;
             progress = 0;
-            anim.SetAnimation("MISSILE_DOWN", Animate::Mode::Loop);
+            anim->SetAnimation("MISSILE_DOWN", Animate::Mode::Loop);
 
             if(this->GetTile() != target) {
                 auto pos = this->getPosition();

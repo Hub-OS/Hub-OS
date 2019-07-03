@@ -326,7 +326,7 @@ void BattleScene::onUpdate(double elapsed) {
 
   // Update components
   for (auto c : components) {
-    c->Update((float)elapsed);
+    c->OnUpdate((float)elapsed);
   }
 
   if (battleResults) {
@@ -660,7 +660,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
 
   if (!isPlayerDeleted && !summons.IsSummonActive()) {
-    chipUI.Update((float)elapsed); // DRAW
+    chipUI.OnUpdate((float)elapsed); // DRAW
 
     ENGINE.Draw(chipUI);
   }

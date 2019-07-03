@@ -51,7 +51,7 @@ public:
    * @brief Updates animation
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief This artifact does not move across the grid

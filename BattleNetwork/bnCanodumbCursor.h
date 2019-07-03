@@ -32,7 +32,7 @@ public:
    * @brief If tile is same as target, tells cannon to attack. Otherwise tries to move
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Legacy code. The cursor should be using this...

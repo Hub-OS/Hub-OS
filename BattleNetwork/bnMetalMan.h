@@ -16,10 +16,11 @@ class MetalMan : public Character, public AI<MetalMan> {
   friend class MetalManMoveState;
   friend class MetalManPunchState;
   friend class MetalManMissileState;
-  using DefaultState = MetalManIdleState;
 
 public:
-  MetalMan(Rank _rank);
+    using DefaultState = MetalManIdleState;
+
+    MetalMan(Rank _rank);
   
   /**
    * @brief deconstructor
@@ -30,7 +31,7 @@ public:
    * @brief Forces a move on metalman if he was stunned. Updates AI. Explodes when health is zero.
    * @param _elapsed in seconds
     */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief If the next tile does not contain obstacles or characters, Metalman can move to it
@@ -70,7 +71,7 @@ public:
    */
   virtual const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete() { ; }
+  virtual void OnDelete();
   
   /**
    * @brief Get the hit height for metalman
@@ -81,7 +82,7 @@ public:
   virtual const float GetHitHeight() const;
 
 private:
-  AnimationComponent animationComponent; /*!< animates this sprite scene node */
+  AnimationComponent* animationComponent; /*!< animates this sprite scene node */
 
   float hitHeight; /*!< Hit height of metalman */
   string state; /*!< current animation name */

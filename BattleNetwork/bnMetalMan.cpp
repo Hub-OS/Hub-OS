@@ -12,7 +12,7 @@
 #define RESOURCE_PATH "resources/mobs/metalman/metalman.animation"
 
 MetalMan::MetalMan(Rank _rank)
-  : animationComponent(this),
+  :
   AI<MetalMan>(this), Character(_rank) {
   name = "MetalMan";
   this->team = Team::BLUE;
@@ -40,14 +40,16 @@ MetalMan::MetalMan(Rank _rank)
   this->SetFloatShoe(true);
 
   //Components setup and load
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation(MOB_IDLE);
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
+  animationComponent->SetAnimation(MOB_IDLE);
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);
 
-  animationComponent.Update(0);
+  animationComponent->OnUpdate(0);
 
   movedByStun = false;
 
@@ -58,7 +60,7 @@ MetalMan::~MetalMan() {
 }
 
 void MetalMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
-  animationComponent.AddCallback(frame, onEnter, onLeave, doOnce);
+  animationComponent->AddCallback(frame, onEnter, onLeave, doOnce);
 }
 
 bool MetalMan::CanMoveTo(Battle::Tile * next)
@@ -70,8 +72,8 @@ bool MetalMan::CanMoveTo(Battle::Tile * next)
   return false;
 }
 
-void MetalMan::Update(float _elapsed) {
-  // TODO: turn all tile altering functions to a queue
+void MetalMan::OnUpdate(float _elapsed) {
+  // TODO: use StuntDoubles to circumvent teleportaton
   if (movedByStun) { 
     this->Teleport((rand() % 3) + 4, (rand() % 3) + 1); 
     this->AdoptNextTile(); 
@@ -83,57 +85,22 @@ void MetalMan::Update(float _elapsed) {
     this->SetTarget(nullptr);
   }
 
-  healthUI->Update(_elapsed);
-
   if (!hit) {
     this->SetShader(nullptr);
   }
 
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
-  if (_elapsed <= 0) return;
-
-  if (stunCooldown > 0) {
-    stunCooldown -= _elapsed;
-    healthUI->Update(_elapsed);
-    Character::Update(_elapsed);
-
-    if (stunCooldown <= 0) {
-      stunCooldown = 0;
-      animationComponent.Update(_elapsed);
-    }
-
-    if ((((int)(stunCooldown * 15))) % 2 == 0) {
-      this->SetShader(stun);
-    }
-    else {
-      this->SetShader(nullptr);
-    }
-
-    if (GetHealth() > 0) {
-      return;
-    }
-  }
-
   this->AI<MetalMan>::Update(_elapsed);
 
   // Explode if health depleted
-  if (GetHealth() <= 0) {
-    this->ChangeState<NaviExplodeState<MetalMan>>(9, 0.75); // freezes animation
-    this->LockState();
-  }
-  else {
-    HitBox* hitbox = new HitBox(field, GetTeam(), 40);
-    auto props = hitbox->GetHitboxProperties();
-    props.flags |= Hit::impact;
-    hitbox->SetHitboxProperties(props);
 
-    field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
+  HitBox* hitbox = new HitBox(GetField(), GetTeam(), 40);
+  auto props = hitbox->GetHitboxProperties();
+  props.flags |= Hit::impact;
+  hitbox->SetHitboxProperties(props);
 
-    animationComponent.Update(_elapsed);
-  }
-
-  Character::Update(_elapsed);
+  field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
 
   hit = false;
 }
@@ -173,11 +140,16 @@ void MetalMan::SetCounterFrame(int frame)
 {
   auto onFinish = [&]() { this->ToggleCounter(); };
   auto onNext = [&]() { this->ToggleCounter(false); };
-  animationComponent.AddCallback(frame, onFinish, onNext);
+  animationComponent->AddCallback(frame, onFinish, onNext);
 }
 
 void MetalMan::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
-  animationComponent.SetAnimation(_state, onFinish);
-  animationComponent.Update(0);
+  animationComponent->SetAnimation(_state, onFinish);
+  animationComponent->OnUpdate(0);
+}
+
+void MetalMan::OnDelete() {
+  this->ChangeState<NaviExplodeState<MetalMan>>(9, 0.75); // freezes animation
+  this->LockState();
 }

@@ -4,12 +4,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell() {
+RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_field, _team) {
   SetLayer(0);
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
 
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
   setTexture(*texture);
@@ -35,14 +31,12 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell() 
 RowHit::~RowHit() {
 }
 
-void RowHit::Update(float _elapsed) {
+void RowHit::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
   animation.Update(_elapsed, *this);
 
   tile->AffectEntities(this);
-
-  Entity::Update(_elapsed);
 }
 
 bool RowHit::Move(Direction _direction) {

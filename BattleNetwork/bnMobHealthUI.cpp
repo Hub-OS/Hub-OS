@@ -26,7 +26,7 @@ HP drop is not 1 unit per frame. It is:
 ~5 per frame if difference is 99-40 range
 -3 per frame for anything lower
 */
-void MobHealthUI::Update(float elapsed) {
+void MobHealthUI::OnUpdate(float elapsed) {
   if (mob) {
 
     if (cooldown <= 0) { cooldown = 0; }

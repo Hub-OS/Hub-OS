@@ -21,8 +21,6 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : A
   target = parent->GetTarget();
 
   SetLayer(0);
-  field = _field;
-
   direction = Direction::LEFT;
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
@@ -32,7 +30,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : A
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Load();
   animationComponent->SetAnimation(MOB_CANODUMB_CURSOR);
-  animationComponent->Update(0);
+  animationComponent->OnUpdate(0);
 
   switch (parent->GetRank()) {
   case Canodumb::Rank::_1:
@@ -49,14 +47,14 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : A
   movecooldown = maxcooldown;
 }
 
-void CanodumbCursor::Update(float _elapsed) {
+void CanodumbCursor::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
   movecooldown -= _elapsed;
 
   if (movecooldown <= 0) {
     if (this->GetTile() == target->GetTile() && !target->IsPassthrough()) {
-      deleted = true;
+      this->Delete();
 
       parent->ChangeState<CanodumbAttackState>();
     }
@@ -75,8 +73,6 @@ void CanodumbCursor::Update(float _elapsed) {
       }
     }
   }
-
-  Entity::Update(_elapsed);
 }
 
 CanodumbCursor::~CanodumbCursor()

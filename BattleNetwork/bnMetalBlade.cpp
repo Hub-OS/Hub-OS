@@ -4,14 +4,12 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
+MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   // Blades float over tiles 
   this->SetFloatShoe(true);
 
   SetLayer(0);
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
+
   auto texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
   setTexture(*texture);
   setScale(2.f, 2.f);
@@ -20,11 +18,13 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
 
   // Blades move from tile to tile in 25 frames
   // Adjust by speed factor
-  this->slideTime = sf::seconds(0.25f / (float)speed);
+  this->SetSlideTime(sf::seconds(0.25f / (float)speed));
 
-  animation = Animation("resources/mobs/metalman/metalman.animation");
-  animation.SetAnimation("BLADE");
-  animation << Animate::Mode::Loop;
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+  animation->Setup("resources/mobs/metalman/metalman.animation");
+  animation->Load();
+  animation->SetAnimation("BLADE",Animate::Mode::Loop);
 
   auto props = Hit::DefaultProperties;
   props.damage = 40;
@@ -36,14 +36,13 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
 MetalBlade::~MetalBlade() {
 }
 
-void MetalBlade::Update(float _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
+void MetalBlade::OnUpdate(float _elapsed) {
+  setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
-  // Animate based on speed factor
-  animation.Update(_elapsed*(float)this->speed, *this);
+  animation->SetPlaybackSpeed(this->speed);
 
   // Keep moving. When we reach the end, go up or down the column, and U-turn
-  if (!this->isSliding) {
+  if (!this->IsSliding()) {
     if(this->GetTeam() == Team::BLUE) {
         // Are we on the first column on the field?
         if (this->tile->GetX() == 1) {
@@ -118,8 +117,6 @@ void MetalBlade::Update(float _elapsed) {
   }
 
   tile->AffectEntities(this);
-
-  Entity::Update(_elapsed);
 }
 
 // Nothing prevents blade from cutting through

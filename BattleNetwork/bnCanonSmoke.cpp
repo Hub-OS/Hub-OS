@@ -10,7 +10,7 @@ using sf::IntRect;
 
 CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
 {
-  SetLayer(0);
+  this->SetLayer(0);
 
   animationComponent = new AnimationComponent(this);
   this->RegisterComponent(animationComponent);
@@ -23,13 +23,12 @@ CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Load();
   animationComponent->SetAnimation(MOB_CANODUMB_SMOKE, onFinish);
-  animationComponent->Update(0);
+  animationComponent->OnUpdate(0);
 
 }
 
-void CanonSmoke::Update(float _elapsed) {
+void CanonSmoke::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 65.0f);
-  Artifact::Update(_elapsed);
 }
 
 CanonSmoke::~CanonSmoke()

@@ -5,13 +5,9 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Thunder::Thunder(Field* _field, Team _team) : Spell() {
+Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
   SetLayer(0);
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
-  
+
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_THUNDER);
   setTexture(*texture);
   setScale(2.f, 2.f);
@@ -21,7 +17,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell() {
   // Thunder moves from tile to tile in exactly 60 frames
   // The app is clocked at 60 frames a second
   // Therefore thunder slide duration is 1 second
-  this->slideTime = sf::seconds(1.0f); 
+  this->SetSlideTime(sf::seconds(1.0f));
   
   // Thunder is removed in roughly 7 seconds
   this->timeout = sf::seconds(20.f / 3.f);
@@ -39,7 +35,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell() {
 Thunder::~Thunder(void) {
 }
 
-void Thunder::Update(float _elapsed) {
+void Thunder::OnUpdate(float _elapsed) {
 
   if (elapsed > timeout.asSeconds()) {
     this->Delete();
@@ -76,7 +72,8 @@ void Thunder::Update(float _elapsed) {
     }
   }
 
-  // If sliding is flagged to false, we know we've ended a move 
+  // If sliding is flagged to false, we know we've ended a move
+  auto direction = GetDirection();
   if (!this->IsSliding()) {
     if (target) {
       if (target->GetTile()) {
@@ -110,6 +107,10 @@ void Thunder::Update(float _elapsed) {
       }
     }
 
+    if(direction != this->GetDirection()) {
+      this->SetDirection(direction);
+    }
+
     // Always slide to the tile we're moving to
     this->SlideToTile(true);
     this->Move(this->GetDirection());
@@ -117,9 +118,6 @@ void Thunder::Update(float _elapsed) {
 
   // Always affect the tile we're occupying
   tile->AffectEntities(this);
-
-  // Must call super class to behave correctly
-  Entity::Update(_elapsed);
 }
 
 bool Thunder::CanMoveTo(Battle::Tile* tile) {

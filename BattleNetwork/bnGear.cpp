@@ -4,7 +4,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), animation(this), Obstacle(field, team) {
+Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), Obstacle(field, team), Spell(field, team) {
   this->setTexture(LOAD_TEXTURE(MOB_METALMAN_ATLAS));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);
@@ -13,16 +13,18 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), 
   this->SetDirection(startDir);
   this->EnableTileHighlight(true);
 
-  animation.Setup("resources/mobs/metalman/metalman.animation");
-  animation.Reload();
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+  animation->Setup("resources/mobs/metalman/metalman.animation");
+  animation->Reload();
 
-  animation.SetAnimation("GEAR", Animate::Mode::Loop);
+  animation->SetAnimation("GEAR", Animate::Mode::Loop);
 
   this->SetHealth(999);
 
-  animation.Update(0);
+  animation->OnUpdate(0);
 
-  this->slideTime = sf::seconds(2.0f); // crawl
+  this->SetSlideTime(sf::seconds(2.0f)); // crawl
 
   Hit::Properties props = Hit::DefaultProperties;
   props.flags = Hit::recoil | Hit::breaking;
@@ -64,12 +66,11 @@ bool Gear::CanMoveTo(Battle::Tile * next)
   return false;
 }
 
-void Gear::Update(float _elapsed) {
+void Gear::OnUpdate(float _elapsed) {
   if (tileStartTeam == Team::UNKNOWN && tile) {
     tileStartTeam = tile->GetTeam();
   }
 
-  animation.Update(_elapsed);
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
   if (!this->IsBattleActive()) return;
@@ -78,7 +79,7 @@ void Gear::Update(float _elapsed) {
   this->tile->AffectEntities(this);
 
   // Keep moving
-  if (!this->isSliding) {
+  if (!this->IsSliding()) {
     this->SlideToTile(true);
     this->Move(this->GetDirection());
   }
@@ -99,7 +100,6 @@ void Gear::Update(float _elapsed) {
     this->Move(this->GetDirection());
   }
 
-  Character::Update(_elapsed);
 }
 
 void Gear::OnDelete() {

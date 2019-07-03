@@ -63,7 +63,7 @@ const bool Entity::IsSuperEffective(Element _other) const {
 void Entity::Update(float _elapsed) {
   // Update all components
   for (int i = 0; i < components.size(); i++) {
-    components[i]->Update(_elapsed);
+    components[i]->OnUpdate(_elapsed);
   }
 
   // Do not upate if the entity's current tile pointer is null
@@ -454,4 +454,8 @@ void Entity::UpdateSlideStartPosition()
   if (tile) {
     slideStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
   }
+}
+
+void Entity::SetSlideTime(sf::Time time) {
+  this->slideTime = time;
 }

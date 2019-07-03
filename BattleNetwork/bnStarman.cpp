@@ -18,8 +18,8 @@ Starman::Starman() : Player()
   team = Team::RED;
   this->SetElement(Element::CURSOR);
 
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
 
   setTexture(*TEXTURES.GetTexture(TextureType::NAVI_STARMAN_ATLAS));
 

@@ -25,14 +25,13 @@ using std::string;
 #include "bnEngine.h"
 #include "bnTextureType.h"
 #include "bnElements.h"
+#include "bnComponent.h"
 
 namespace Battle {
   class Tile;
 }
 
 class Field;
-class Character;   // forward decl
-class Component;   // forward decl
 class BattleScene; // forward decl
 
 class Entity : public SpriteSceneNode {
@@ -42,7 +41,7 @@ class Entity : public SpriteSceneNode {
 
 private:
   long ID;              /**< IDs are used for tagging during battle & to identify entities in scripting. */
-  static long numOfIDs; /**< Interal counter to identify the next entity with. */
+  static long numOfIDs; /**< Internal counter to identify the next entity with. */
   int alpha;            /**< Control the transparency of an entity. */
   long lastComponentID; /**< Entities keep track of new components to run through scene injection later. */
 
@@ -337,8 +336,13 @@ protected:
   Team team;
   Element element;
 
-
   std::vector<Component*> components; /**< List of all components attached to this entity*/
+
+  void SetSlideTime(sf::Time time);
+
+  const int GetMoveCount() const {
+      return this->moveCount;
+  }
 
 private:
   bool isBattleActive;
@@ -378,7 +382,7 @@ inline std::vector<Type*> Entity::GetComponents()
 {
   auto res = std::vector<Type*>();
 
-  for (vector<Component*>::iterator it components shared.begin(); it != components.end(); ++it) {
+  for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
     if (typeid(*(*it)) == typeid(Type)) {
       res.push_back(dynamic_cast<Type*>(*it));
     }

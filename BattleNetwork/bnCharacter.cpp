@@ -5,7 +5,7 @@
 #include "bnField.h"
 #include "bnExplosion.h"
 #include "bnElementalDamage.h"
-#include "bnShaderResourceManager.h
+#include "bnShaderResourceManager.h"
 
 Character::Character(Rank _rank) : 
   health(0),
@@ -281,13 +281,16 @@ void Character::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!isSliding) {
+  if (!IsSliding()) {
     this->setPosition(tile->getPosition());
   }
 }
 
 void Character::TryDelete() {
-  deleted = (health <= 0);
+    if (this->GetHealth() == 0 && !this->invokeDeletion) {
+        this->OnDelete();
+        this->invokeDeletion = true;
+    }
 }
 
 void Character::ToggleCounter(bool on)

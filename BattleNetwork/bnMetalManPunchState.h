@@ -1,6 +1,8 @@
 #pragma once
 #include "bnTile.h"
 #include "bnField.h"
+#include "bnAIState.h"
+
 class MetalMan;
 
 /*! \brief Metalman punches a tile, cracking or breaking it, and damages all entities on tile */

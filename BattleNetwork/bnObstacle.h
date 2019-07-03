@@ -19,14 +19,13 @@ using sf::Texture;
     to entities occupying the same tile.
 */
 
-class Obstacle : public Character, public  Spell {
+class Obstacle : virtual public Character, virtual public  Spell {
 public:
   Obstacle(Field* _field, Team _team);
-  virtual ~Obstacle(void);
+  virtual ~Obstacle();
 
-  virtual void Update(float _elapsed);
-  virtual void SetAnimation(std::string animation);
-  
+  virtual void OnUpdate(float _elapsed);
+
   /**
    * @brief Uses the Character::CanMoveTo() default function to follow typical character movement rules
    * @param next
@@ -40,6 +39,4 @@ public:
    * @param tile
    */
   virtual void AdoptTile(Battle::Tile* tile) final;
-protected:
-  sf::Shader* whiteout;
 };

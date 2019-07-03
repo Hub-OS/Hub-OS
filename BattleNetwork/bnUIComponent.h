@@ -43,7 +43,7 @@ public:
    * @brief To be implemented: what happens on update
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed) = 0;
+  virtual void OnUpdate(float _elapsed) = 0;
   
   /**
    * @brief To be implemented: what happens when the Battlescene requests injection

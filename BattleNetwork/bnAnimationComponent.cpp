@@ -14,7 +14,7 @@ AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
 AnimationComponent::~AnimationComponent() {
 }
 
-void AnimationComponent::Update(float _elapsed)
+void AnimationComponent::OnUpdate(float _elapsed)
 {
   animation.Update(_elapsed, *GetOwner(), speed);
 }

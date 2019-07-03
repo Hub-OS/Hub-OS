@@ -13,12 +13,12 @@ private:
 
     bool goingUp;
 
-    AnimationComponent anim;
+    AnimationComponent* anim;
 public:
     Missile(Field* _field, Team _team, Battle::Tile* target, float _duration);
     virtual ~Missile();
 
-    virtual void Update(float _elapsed);
+    virtual void OnUpdate(float _elapsed);
     virtual bool Move(Direction _direction);
     virtual void Attack(Character* _entity);
 }; 

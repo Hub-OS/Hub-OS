@@ -172,7 +172,7 @@ public:
 
           auto writableFolder = curr->second;
           for (auto iter = writableFolder->Begin(); iter != writableFolder->End(); iter++) {
-            ws << "   Chip name=\"" << iter->GetShortName() << " code=\"" << iter->GetCode()
+            ws << "   Chip name=\"" << (*iter)->GetShortName() << " code=\"" << (*iter)->GetCode()
                << ws.endl();
           }
 

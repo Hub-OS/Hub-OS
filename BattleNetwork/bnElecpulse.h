@@ -11,9 +11,9 @@
 class Elecpulse : public Spell {
 public:
   Elecpulse(Field* _field, Team _team, int damage);
-  virtual ~Elecpulse(void);
+  virtual ~Elecpulse();
 
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   virtual bool Move(Direction _direction);
   virtual void Attack(Character* _entity);
 
@@ -21,5 +21,5 @@ private:
   int damage;
   int random;
   float cooldown, progress;
-  AnimationComponent animation;
+  AnimationComponent* animation;
 };

@@ -7,16 +7,16 @@
 
 #pragma once
 #include "bnSpell.h"
-#include "bnAnimation.h"
+#include "bnAnimationComponent.h"
 class Wave : public Spell {
 protected:
-  Animation animation;
+  AnimationComponent* animation;
   double speed;
 public:
   Wave(Field* _field, Team _team, double speed = 1.0);
-  virtual ~Wave(void);
+  virtual ~Wave();
 
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   virtual bool Move(Direction _direction);
   virtual void Attack(Character* _entity);
 };

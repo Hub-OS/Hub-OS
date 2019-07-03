@@ -31,7 +31,7 @@ public:
    * @brief Slides across screen attacking tiles. At end of field, deletes.
    * @param _elapsed in second
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Deal flinch and recoil damage

@@ -27,7 +27,7 @@ public:
    * @brief When health is zero, spawn an explosion effect and delete
    * @param _elapsed in seconds 
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Any impact damage instantly destroys the mystery data
@@ -53,5 +53,5 @@ public:
   virtual bool Move(Direction _direction) { return false; }
 
 protected:
-  AnimationComponent animation; /*!< Animation component for mystery data */
+  AnimationComponent* animation; /*!< Animation component for mystery data */
 };

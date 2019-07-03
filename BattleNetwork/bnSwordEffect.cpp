@@ -1,13 +1,14 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
+#include "bnTile.h"
 #include "bnSwordEffect.h"
 
 using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/sword_effect.animation"
 
-SwordEffect::SwordEffect(Field* field) : Artifact(field, Team::UNKNOWN)
+SwordEffect::SwordEffect(Field* field) : Artifact(field)
 {
   SetLayer(0);
   this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_SWORD));
@@ -32,11 +33,10 @@ SwordEffect::SwordEffect(Field* field) : Artifact(field, Team::UNKNOWN)
   animation.Update(0, *this);
 }
 
-void SwordEffect::Update(float _elapsed) {
-  this->setPosition(this->tile->getPosition());
+void SwordEffect::OnUpdate(float _elapsed) {
+  this->setPosition(this->GetTile()->getPosition());
 
   animation.Update(_elapsed, *this);
-  Entity::Update(_elapsed);
 }
 
 SwordEffect::~SwordEffect()

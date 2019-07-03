@@ -13,7 +13,7 @@
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
-Player::Player(void)
+Player::Player()
   :
   state(PLAYER_IDLE),
   chargeComponent(this),
@@ -32,15 +32,15 @@ Player::Player(void)
 
   SetHealth(1000);
   
-  name = "Megaman";
+  SetName("Megaman");
   SetLayer(0);
   team = Team::RED;
 
-  moveCount = hitCount = 0;
+  hitCount = 0;
 
   setScale(2.0f, 2.0f);
 
-  AnimationComponent* animationComponent = new AnimationComponent(this);
+  animationComponent = new AnimationComponent(this);
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Reload();
   this->RegisterComponent(animationComponent);
@@ -49,17 +49,15 @@ Player::Player(void)
 
   previous = nullptr;
 
-  moveCount = 0;
-
   invincibilityCooldown = 0;
 }
 
 Player::~Player() {
 }
 
-void Player::Update(float _elapsed) {
-  if (tile != nullptr) {
-    setPosition(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
+void Player::OnUpdate(float _elapsed) {
+  if (GetTile() != nullptr) {
+    setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
   }
 
   if (invincibilityCooldown > 0) {
@@ -81,8 +79,6 @@ void Player::Update(float _elapsed) {
 
   //Components updates
   chargeComponent.Update(_elapsed);
-
-  Character::Update(_elapsed);
 }
 
 void Player::Attack() {
@@ -118,7 +114,7 @@ const bool Player::OnHit(const Hit::Properties props) {
 
 int Player::GetMoveCount() const
 {
-  return moveCount;
+  return Entity::GetMoveCount();
 }
 
 int Player::GetHitCount() const
@@ -136,9 +132,9 @@ void Player::SetAnimation(string _state, std::function<void()> onFinish) {
 
   if (state == PLAYER_IDLE) {
     auto playback = Animate::Mode::Loop;
-    animationComponent.SetAnimation(_state, playback);
+    animationComponent->SetAnimation(_state, playback);
   }
   else {
-    animationComponent.SetAnimation(_state, 0, onFinish);
+    animationComponent->SetAnimation(_state, 0, onFinish);
   }
 }

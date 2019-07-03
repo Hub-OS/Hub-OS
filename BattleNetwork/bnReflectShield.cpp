@@ -9,7 +9,7 @@ using sf::IntRect;
 
 const std::string RESOURCE_PATH = "resources/spells/reflect_shield.animation";
 
-ReflectShield::ReflectShield(Character* owner) : Artifact(), Component(owner)
+ReflectShield::ReflectShield(Character* owner) : Artifact(nullptr), Component(owner)
 {
   SetLayer(0);
   this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
@@ -50,11 +50,10 @@ void ReflectShield::Inject(BattleScene& bs) {
 
 }
 
-void ReflectShield::Update(float _elapsed) {
+void ReflectShield::OnUpdate(float _elapsed) {
   this->setPosition(this->tile->getPosition());
 
   animation.Update(_elapsed, *this);
-  Entity::Update(_elapsed);
 }
 
 void ReflectShield::DoReflect(Spell* in, Character* owner)

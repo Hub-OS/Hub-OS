@@ -33,8 +33,6 @@ protected:
    };
 
 public:
-    using DefaultState = typename CharacterT::DefaultState;
-
   /**
    * @brief Prevents the AI state to be changed. Must be unlocked to use again.
    */
@@ -59,6 +57,12 @@ public:
    * @brief Deletes the state machine object and Frees target
    */
   ~AI() { if (stateMachine) { delete stateMachine; } ref = nullptr; this->FreeTarget(); }
+
+  void InvokeDefaultState() {
+    using DefaultState = typename CharacterT::DefaultState;
+
+    this->ChangeState<DefaultState>();
+  }
 
   /**
    * @brief Change to state U. No arguments.

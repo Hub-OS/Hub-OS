@@ -6,6 +6,7 @@
 
 #pragma once
 #include "bnSpell.h"
+#include "bnAnimationComponent.h"
 
 class ChipSummonHandler;
 
@@ -27,7 +28,7 @@ public:
    * @brief Updates position and animation
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Protoman teleports and doesn't use this
@@ -58,4 +59,5 @@ private:
   std::vector<Battle::Tile*> targets; /*!< List of every tile ProtoMan must visit */
   int random;
   ChipSummonHandler* summons;
+  AnimationComponent* animationComponent;
 };

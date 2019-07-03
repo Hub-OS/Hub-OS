@@ -1,6 +1,7 @@
 #pragma once
 #include "bnAnimatedCharacter.h"
 #include "bnMobState.h"
+#include "bnMettaurIdleState.h"
 #include "bnAI.h"
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
@@ -27,7 +28,7 @@ public:
    * @brief Uses AI state to move around. Deletes when health is below zero.
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Takes damage and flashes white
@@ -36,7 +37,7 @@ public:
    */
   virtual const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete() { ;  }
+  virtual void OnDelete();
   
   /**
    * @brief Get the hit height of this entity

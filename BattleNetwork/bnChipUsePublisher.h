@@ -23,7 +23,6 @@ private:
 
   void AddListener(ChipUseListener* listener) {
     listeners.push_back(listener);
-    std::cout << "listeners: " << listeners.size() << std::endl;
   }
 
 public:

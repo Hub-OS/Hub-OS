@@ -17,19 +17,16 @@
 #define BULLET_ANIMATION_WIDTH 30
 #define BULLET_ANIMATION_HEIGHT 27
 
-AirShot::AirShot(Field* _field, Team _team, int _damage) {
-  SetPassthrough(true);
+AirShot::AirShot(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
+  this->SetPassthrough(true);
 
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
   hit = false;
   progress = 0.0f;
   hitHeight = 10.0f;
-  srand((unsigned int)time(nullptr));
   random = rand() % 20 - 20;
   cooldown = 0.0f;
+
+  SetDirection(Direction::RIGHT);
 
   damage = _damage;
 }
@@ -37,16 +34,15 @@ AirShot::AirShot(Field* _field, Team _team, int _damage) {
 AirShot::~AirShot() {
 }
 
-void AirShot::Update(float _elapsed) {
-  tile->AffectEntities(this);
+void AirShot::OnUpdate(float _elapsed) {
+  GetTile()->AffectEntities(this);
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    Move(direction);
+    Move(GetDirection());
     cooldown = 0;
   }
 
-  Entity::Update(_elapsed);
 }
 
 void AirShot::Attack(Character* _entity) {
@@ -54,7 +50,7 @@ void AirShot::Attack(Character* _entity) {
     auto props = Hit::DefaultProperties;
     props.damage = damage;
     props.flags |= Hit::drag;
-    props.drag = direction;
+    props.drag = GetDirection();
 
     if(_entity->Hit(props)) {
       this->Delete();

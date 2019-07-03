@@ -31,7 +31,7 @@ public:
    * @brief Delegates work to animation object
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
 
   /**
    * @brief Does not inject into scene. Used by the owner.

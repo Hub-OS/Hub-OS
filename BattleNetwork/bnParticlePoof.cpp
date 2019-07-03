@@ -1,13 +1,14 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
+#include "bnTile.h"
 #include "bnParticlePoof.h"
 
 using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/poof.animation"
 
-ParticlePoof::ParticlePoof(Field* field) : Artifact(field, Team::UNKNOWN)
+ParticlePoof::ParticlePoof(Field* field) : Artifact(field)
 {
   SetLayer(0);
   this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_POOF));
@@ -30,8 +31,8 @@ ParticlePoof::ParticlePoof(Field* field) : Artifact(field, Team::UNKNOWN)
 
 }
 
-void ParticlePoof::Update(float _elapsed) {
-  this->setPosition(this->tile->getPosition());
+void ParticlePoof::OnUpdate(float _elapsed) {
+  this->setPosition(this->GetTile()->getPosition());
 
   animation.Update(_elapsed, *this);
   Entity::Update(_elapsed);

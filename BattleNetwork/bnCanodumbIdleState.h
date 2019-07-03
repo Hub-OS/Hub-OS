@@ -1,8 +1,8 @@
 #pragma once
 #include "bnAIState.h"
-#include "bnCanodumb.h"
 
 class CanodumbCursor;
+class Canodumb;
 
 /**
  * @class CanodumbIdleState

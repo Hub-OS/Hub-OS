@@ -19,7 +19,7 @@ public:
   /**
    * @brief Sets the layer to 1 (underneath characters, layer = 0) and enables FloatShoe
    */
-  Spell();
+  Spell(Field* field, Team team);
   virtual ~Spell();
 
   /**
@@ -29,10 +29,10 @@ public:
   const bool IsTileHighlightEnabled() const;
 
   /**
-   * @brief Implementatio of Update needs to call Entity::Update()
+   * @brief Implementatio of OnUpdate needs to call Entity::Update()
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed) = 0;
+  virtual void OnUpdate(float _elapsed) = 0;
 
   /**
    * @brief Describes how the spell attacks characters
@@ -73,6 +73,5 @@ public:
 
 protected:
   bool markTile; /*!< Highlight occupying tile */
-  AnimationComponent animationComponent;
   Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
 };

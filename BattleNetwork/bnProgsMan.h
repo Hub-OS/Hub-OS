@@ -41,7 +41,7 @@ public:
    * 
    * When health is zero, changes to NaviExplosion state
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
 
   /**
    * @brief Delegates animation commands to animationComponent
@@ -74,7 +74,7 @@ public:
    */
   virtual const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete() { ; }
+  virtual void OnDelete();
 
   /**
    * @brief Returns progsman's height 
@@ -82,12 +82,9 @@ public:
    */
   virtual const float GetHitHeight() const;
 private:
-  AnimationComponent animationComponent; /*!< component animates entities*/
+  AnimationComponent* animationComponent; /*!< component animates entities*/
 
   float hitHeight; /*!< The height for progsman for any given frame */
   string state; /*!< Animation name */
   TextureType textureType; /*!< Progsman's texture */
-
-  sf::Shader* whiteout; /*!< whiteout effect for basics hits */
-  sf::Shader* stun; /*!< Stun yellow effect */
 };

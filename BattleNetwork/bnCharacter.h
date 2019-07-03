@@ -37,7 +37,7 @@ namespace Hit {
     Direction drag; // Used by dragging payload
   };
 
-  const Hit::Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0, nullptr, Direction::NONE };
+  const Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0, nullptr, Direction::NONE };
 
 }
 

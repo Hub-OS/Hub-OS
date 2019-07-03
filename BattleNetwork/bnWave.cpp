@@ -5,25 +5,26 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
+Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   SetLayer(0);
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
+
+
   setTexture(*TEXTURES.GetTexture(TextureType::SPELL_WAVE));
   this->speed = speed;
 
   //Components setup and load
   auto onFinish = [this]() {
-    if (Move(direction)) {
+    if (Move(GetDirection())) {
       AUDIO.Play(AudioType::WAVE);
     }
   };
 
-  animation = Animation("resources/spells/spell_wave.animation");
-  animation.SetAnimation("DEFAULT");
-  animation << Animate::Mode::Loop << onFinish;
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+
+  animation->Setup("resources/spells/spell_wave.animation");
+  animation->Load();
+  animation->SetAnimation("DEFAULT", Animate::Mode::Loop, onFinish);
 
   auto props = Hit::DefaultProperties;
   props.damage = 10;
@@ -34,22 +35,18 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
   EnableTileHighlight(true);
 }
 
-Wave::~Wave(void) {
+Wave::~Wave() {
 }
 
-void Wave::Update(float _elapsed) {
+void Wave::OnUpdate(float _elapsed) {
   int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
-  animation.Update(_elapsed, *this);
-
   if (!this->IsDeleted()) {
     tile->AffectEntities(this);
   }
-
-  Entity::Update(_elapsed);
 }
 
 bool Wave::Move(Direction _direction) {

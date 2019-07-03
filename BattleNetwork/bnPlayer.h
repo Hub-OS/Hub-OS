@@ -24,10 +24,10 @@ class Player : public Character, public AI<Player> {
   friend class PlayerControlledState;
   friend class PlayerIdleState;
   friend class PlayerHitState;
-  using DefaultState = PlayerControlledState;
-
 public:
-  /**
+  using DefaultState = PlayerIdleState;
+
+    /**
    * @brief Loads graphics and adds a charge component
    */
   Player();
@@ -41,7 +41,7 @@ public:
    * @brief Polls for interrupted states and fires delete state when deleted
    * @param _elapsed for secs
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Fires a buster
@@ -91,5 +91,6 @@ protected:
   double invincibilityCooldown; /*!< The blinking timer */
   string state; /*!< Animation state name */
 
+  AnimationComponent* animationComponent;
   ChargeComponent chargeComponent; /*!< Handles charge effect */
 };

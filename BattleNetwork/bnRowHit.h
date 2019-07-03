@@ -24,7 +24,7 @@ public:
    * @brief Attack the tile and animate
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move

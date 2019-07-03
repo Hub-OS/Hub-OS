@@ -25,7 +25,7 @@ public:
    * @brief Keep sliding if moving in previous frame
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
 
   virtual const bool OnHit(const Hit::Properties props);
 
@@ -50,7 +50,7 @@ public:
 
 protected:
   Texture* texture;
-  AnimationComponent animation;
+  AnimationComponent* animation;
   sf::Shader* whiteout;
 
   static int currCubeIndex; 
@@ -59,4 +59,5 @@ protected:
   int cubeIndex;
   bool hit;
   double timer;
+  Direction previousDirection;
 };

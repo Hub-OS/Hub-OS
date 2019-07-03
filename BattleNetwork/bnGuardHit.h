@@ -2,6 +2,7 @@
 #pragma once
 #include "bnArtifact.h"
 #include "bnField.h"
+#include "bnAnimationComponent.h"
 
 /**
  * @class GuardHit
@@ -12,7 +13,7 @@
 class GuardHit : public Artifact
 {
 private:
-  AnimationComponent animationComponent; /*!< Animate the effect */
+  AnimationComponent* animationComponent; /*!< Animate the effect */
   float w; float h; /*!< Area to appear in */
   bool center; /*!< If true, dink will appear in center of area instead of random */
 
@@ -27,7 +28,7 @@ public:
    * @brief When the animation ends, it deletes itself
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move

@@ -6,18 +6,16 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-#include "bnTile.h"
 #include "bnEntity.h"
-#include "bnPlayer.h"
-class Character;
-class Spell;
-class Obstacle;
-class Artifact;
 
 class Character;
 class Spell;
 class Obstacle;
 class Artifact;
+
+namespace Battle {
+    class Tile;
+}
 
 class Field {
 public:

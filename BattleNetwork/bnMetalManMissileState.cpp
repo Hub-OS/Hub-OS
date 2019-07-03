@@ -19,7 +19,7 @@ MetalManMissileState::~MetalManMissileState()
 }
 
 void MetalManMissileState::OnEnter(MetalMan& metal) {
-  metal.animationComponent.SetAnimation(MOB_IDLE, Animate::Mode::Loop);
+  metal.GetFirstComponent<AnimationComponent>()->SetAnimation(MOB_IDLE, Animate::Mode::Loop);
 }
 
 void MetalManMissileState::OnUpdate(float _elapsed, MetalMan& metal) {

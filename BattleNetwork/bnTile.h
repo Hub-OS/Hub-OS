@@ -31,16 +31,16 @@ class Spell;
 class Character;
 class Obstacle;
 class Artifact;
-class Field;
 
 #include "bnTeam.h"
 #include "bnTextureType.h"
 #include "bnTileState.h"
+#include "bnField.h"
 
 namespace Battle {
   class Tile : public Sprite {
   public:
-    friend class Field;
+      friend void Field::Update(float _elapsed);
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.

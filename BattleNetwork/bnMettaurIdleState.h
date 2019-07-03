@@ -1,6 +1,7 @@
 #pragma once
 #include "bnAIState.h"
-#include "bnMettaur.h"
+
+class Mettaur;
 
 class MettaurIdleState : public AIState<Mettaur>
 {

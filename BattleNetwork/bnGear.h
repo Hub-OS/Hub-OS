@@ -25,7 +25,7 @@ public:
    * 
    * if battle is not activive, does not move
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Returns true always
@@ -57,6 +57,6 @@ private:
   Direction startDir;
   Team tileStartTeam; // only move around on the origin team's area
   Texture* texture;
-  AnimationComponent animation;
+  AnimationComponent* animation;
   bool hit;
 };

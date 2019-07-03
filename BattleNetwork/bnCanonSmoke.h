@@ -1,6 +1,7 @@
 #pragma once
 #include "bnArtifact.h"
 #include "bnField.h"
+#include "bnAnimationComponent.h"
 
 /**
  * @class CanonSmoke
@@ -21,7 +22,7 @@ public:
    * @brief animates smoke
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move

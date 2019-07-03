@@ -50,34 +50,15 @@ Canodumb::~Canodumb() {
 
 }
 
-void Canodumb::Update(float _elapsed) {
+void Canodumb::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
   hitHeight = (int)getLocalBounds().height;
 
   this->AI<Canodumb>::Update(_elapsed);
-
-  Character::Update(_elapsed);
 }
 
 const bool Canodumb::OnHit(const Hit::Properties props) {
-  bool result = true;
-
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-
-    if ((props.flags & Hit::stun) == Hit::stun) {
-      SetShader(stun);
-      this->stunCooldown = props.secs;
-    }
-    else {
-      SetShader(whiteout);
-    }
-  }
-
-  return result;
+  return true;
 }
 
 const float Canodumb::GetHitHeight() const {

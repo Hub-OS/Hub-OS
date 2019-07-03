@@ -240,9 +240,9 @@ const bool ChipLibrary::SaveLibrary(const std::string& path) {
 
       ws << "\" ";
 
-      ws << "desc=\"" << ws << chip.GetDescription() << "\" ";
-      ws << "verbose=\"" << ws << chip.GetVerboseDescription() << "\" ";
-      ws << "rarity=\"" << ws << std::to_string(chip.GetRarity()) << "\" ";
+      ws << "desc=\"" << chip.GetDescription() << "\" ";
+      ws << "verbose=\""<< chip.GetVerboseDescription() << "\" ";
+      ws << "rarity=\"" << std::to_string(chip.GetRarity()) << "\" ";
 
       ws << ws.endl();
     }

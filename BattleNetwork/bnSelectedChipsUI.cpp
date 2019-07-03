@@ -121,7 +121,7 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     UIComponent::draw(target, states);
 };
 
-void SelectedChipsUI::Update(float _elapsed) {
+void SelectedChipsUI::OnUpdate(float _elapsed) {
   if (INPUT.Has(InputEvent::PRESSED_START)) {
     spread = true;
   }

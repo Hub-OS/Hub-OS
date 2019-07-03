@@ -15,15 +15,12 @@
 
 #define COOLDOWN 40.0f/1000.0f
 
-Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), Spell() {
+Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), Spell(_field, _team) {
   SetPassthrough(true);
   SetLayer(0);
 
   cooldown = 0;
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
+
   hit = false;
   progress = 0.0f;
 
@@ -34,21 +31,23 @@ Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), 
     hitHeight = 0.0f;
   }
 
-  srand((unsigned int)time(nullptr));
   random = 0;
+
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
 
   if (_charged) {
     damage = 10;
     texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
-    animationComponent.Setup("resources/spells/spell_charged_bullet_hit.animation");
-    animationComponent.Reload();
-    animationComponent.SetAnimation("HIT");
+    animationComponent->Setup("resources/spells/spell_charged_bullet_hit.animation");
+    animationComponent->Reload();
+    animationComponent->SetAnimation("HIT");
   } else {
     damage = 1;
     texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
-    animationComponent.Setup("resources/spells/spell_bullet_hit.animation");
-    animationComponent.Reload();
-    animationComponent.SetAnimation("HIT");
+    animationComponent->Setup("resources/spells/spell_bullet_hit.animation");
+    animationComponent->Reload();
+    animationComponent->SetAnimation("HIT");
   }
   setScale(2.f, 2.f);
 
@@ -61,7 +60,7 @@ Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), 
 Buster::~Buster() {
 }
 
-void Buster::Update(float _elapsed) {
+void Buster::OnUpdate(float _elapsed) {
   if (spawnGuard) {
     field->AddEntity(*new GuardHit(field, contact), this->tile->GetX(), this->tile->GetY());
     spawnGuard = false;
@@ -75,23 +74,20 @@ void Buster::Update(float _elapsed) {
     }
     progress += 5 * _elapsed;
     this->setTexture(*texture);
-    animationComponent.Update(_elapsed);
     if (progress >= 1.f) {
-      deleted = true;
-      Entity::Update(_elapsed);
+      this->Delete();
     }
     return;
   }
 
-  tile->AffectEntities(this);
+  GetTile()->AffectEntities(this);
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    Move(direction);
+    Move(GetDirection());
     cooldown = 0;
   }
 
-  Entity::Update(_elapsed);
 }
 
 bool Buster::Move(Direction _direction) {
@@ -107,7 +103,7 @@ bool Buster::Move(Direction _direction) {
       next = field->GetAt(tile->GetX() - 1, tile->GetY());
       SetTile(next);
     } else {
-      deleted = true;
+      this->Delete();
       return false;
     }
   } else if (_direction == Direction::DOWN) {
@@ -120,7 +116,7 @@ bool Buster::Move(Direction _direction) {
       next = field->GetAt(tile->GetX() + 1, tile->GetY());
       SetTile(next);
     } else {
-      deleted = true;
+      this->Delete();
       return false;
     }
   }
@@ -129,7 +125,7 @@ bool Buster::Move(Direction _direction) {
 }
 
 void Buster::Attack(Character* _entity) {
-  if (hit || deleted) return;
+  if (hit) return;
 
   if (dynamic_cast<Gear*>(_entity)) {
     spawnGuard = true;

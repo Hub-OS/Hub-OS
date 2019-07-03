@@ -8,14 +8,10 @@
 #include <cmath>
 #include <Swoosh/Ease.h>
 
-ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration) {
+ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration) : Spell(_field, _team) {
   SetLayer(0);
   cooldown = 0;
   damageCooldown = 0;
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
   
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_PROG_BOMB);
   setTexture(*texture);
@@ -40,7 +36,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
 ProgBomb::~ProgBomb(void) {
 }
 
-void ProgBomb::Update(float _elapsed) {
+void ProgBomb::OnUpdate(float _elapsed) {
   arcProgress += _elapsed;
 
   int flash = (int)(arcProgress * 15);
@@ -68,7 +64,7 @@ void ProgBomb::Update(float _elapsed) {
     tile->AffectEntities(this);
     Artifact* explosion = new Explosion(this->GetField(), this->GetTeam());
     this->GetField()->AddEntity(*explosion, this->tile->GetX(), this->tile->GetY());
-    deleted = true;
+    this->Delete();
   }
 }
 
@@ -78,6 +74,5 @@ bool ProgBomb::Move(Direction _direction) {
 
 void ProgBomb::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
-  deleted = true;
-  return;
+  this->Delete();
 }

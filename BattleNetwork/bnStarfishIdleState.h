@@ -6,7 +6,8 @@
  */
 #pragma once
 #include "bnAIState.h"
-#include "bnStarfish.h"
+
+class Starfish;
 
 class StarfishIdleState : public AIState<Starfish>
 {

@@ -38,7 +38,7 @@ public:
    * @brief Randomly uses a chip if the scene is active
    * @param _elapsed
    */
-  void Update(float _elapsed);
+  void OnUpdate(float _elapsed);
   
   /**
    * @brief Draws chips stacked

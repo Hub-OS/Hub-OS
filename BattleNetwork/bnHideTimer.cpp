@@ -12,7 +12,7 @@ HideTimer::HideTimer(Character* owner, double secs) : Component(owner) {
   temp = owner->GetTile();
 }
 
-void HideTimer::Update(float _elapsed) {
+void HideTimer::OnUpdate(float _elapsed) {
   elapsed += _elapsed;
 
   if (elapsed >= duration && temp) {

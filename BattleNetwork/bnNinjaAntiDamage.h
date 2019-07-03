@@ -30,7 +30,7 @@ public:
    * @brief Does nothing
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Not injected into battle scene

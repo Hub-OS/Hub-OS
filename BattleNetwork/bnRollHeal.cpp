@@ -13,17 +13,11 @@
 
 #define RESOURCE_PATH "resources/spells/spell_roll.animation"
 
-RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
+RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell(_summons->GetCaller()->GetField(), _summons->GetCaller()->GetTeam())
 {
   summons = _summons;
   SetPassthrough(true);
   EnableTileHighlight(false); // Do not highlight where we move
-
-  field = summons->GetCaller()->GetField();
-  team = summons->GetCaller()->GetTeam();
-
-  direction = Direction::NONE;
-  deleted = false;
 
   random = rand() % 20 - 20;
 
@@ -39,8 +33,11 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
   AUDIO.Play(AudioType::APPEAR);
 
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
 
   /**
    * This is very convoluted and will change with the chip summon refactored
@@ -61,8 +58,8 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
    * At the end of the last MOVE animation, we spawn a heart
    * and request the summon system to remove this entity
    */
-  animationComponent.SetAnimation("ROLL_IDLE", [this] {
-    this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
+  animationComponent->SetAnimation("ROLL_IDLE", [this] {
+    this->animationComponent->SetAnimation("ROLL_MOVE", [this] {
 
       bool found = false;
 
@@ -92,21 +89,21 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
       }
 
       if (found) {
-        this->animationComponent.SetAnimation("ROLL_ATTACKING", [this] {
-          this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
+        this->animationComponent->SetAnimation("ROLL_ATTACKING", [this] {
+          this->animationComponent->SetAnimation("ROLL_MOVE", [this] {
             this->summons->SummonEntity(new RollHeart(this->summons, this->heal));
             this->summons->RemoveEntity(this);
           });
         });
 
         if (attack) {
-          this->animationComponent.AddCallback(4,  [this, attack]() { attack->AffectEntities(this); }, std::function<void()>(), true);
-          this->animationComponent.AddCallback(12, [this, attack]() { attack->AffectEntities(this); }, std::function<void()>(), true);
-          this->animationComponent.AddCallback(20, [this, attack]() { attack->AffectEntities(this); }, std::function<void()>(), true);
+          this->animationComponent->AddCallback(4,  [this, attack]() { attack->AffectEntities(this); }, std::function<void()>(), true);
+          this->animationComponent->AddCallback(12, [this, attack]() { attack->AffectEntities(this); }, std::function<void()>(), true);
+          this->animationComponent->AddCallback(20, [this, attack]() { attack->AffectEntities(this); }, std::function<void()>(), true);
         }
       }
       else {
-        this->animationComponent.SetAnimation("ROLL_MOVE", [this] {
+        this->animationComponent->SetAnimation("ROLL_MOVE", [this] {
           this->summons->SummonEntity(new RollHeart(this->summons, this->heal));
           this->summons->RemoveEntity(this);
         });
@@ -118,14 +115,10 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell()
 RollHeal::~RollHeal() {
 }
 
-void RollHeal::Update(float _elapsed) {
-  animationComponent.Update(_elapsed);
-
+void RollHeal::OnUpdate(float _elapsed) {
   if (tile != nullptr) {
     setPosition(tile->getPosition());
   }
-
-  Entity::Update(_elapsed);
 }
 
 bool RollHeal::Move(Direction _direction) {

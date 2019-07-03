@@ -6,6 +6,7 @@
 #include "bnStringEncoder.h"
 #include "bnNoState.h"
 #include "bnMob.h"
+#include "bnMobHealthUI.h"
 
 /*! \brief This class handles the semantics of spawning a special character type.
  * 

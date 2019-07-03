@@ -53,7 +53,7 @@ void BubbleState<Any>::OnUpdate(float _elapsed, Any& e) {
   // Check if bubbletrap is removed from entity
   if (e.template GetFirstComponent<BubbleTrap>() == nullptr) {
     e.UnlockState();
-    this->template ChangeState<e::DefaultState>();
+    this->template ChangeState<Any::DefaultState>();
   }
 
   sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));

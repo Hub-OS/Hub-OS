@@ -1,7 +1,6 @@
 #pragma once
 
-#include "bnEntity.h"
-
+class Entity;
 class BattleScene;
 
 /**
@@ -63,7 +62,7 @@ public:
    * @brief Update must be implemented by child class
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed) = 0;
+  virtual void OnUpdate(float _elapsed) = 0;
   
   /**
    * @brief Some components can be injected into the battle routine for custom behavior

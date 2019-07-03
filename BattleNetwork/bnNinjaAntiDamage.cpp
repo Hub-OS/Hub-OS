@@ -57,7 +57,7 @@ NinjaAntiDamage::~NinjaAntiDamage() {
   delete defense;
 }
 
-void NinjaAntiDamage::Update(float _elapsed) {
+void NinjaAntiDamage::OnUpdate(float _elapsed) {
   // Does nothing
 }
 

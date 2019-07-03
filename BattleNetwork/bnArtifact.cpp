@@ -13,11 +13,6 @@ Artifact::Artifact(Field* _field) {
   this->SetPassthrough(true);
 }
 
-Artifact::Artifact() {
-  SetLayer(0);
-  this->SetPassthrough(true);
-}
-
 Artifact::~Artifact() {
 }
 
@@ -33,3 +28,4 @@ void Artifact::AdoptTile(Battle::Tile * tile)
     this->setPosition(tile->getPosition());
   }
 }
+

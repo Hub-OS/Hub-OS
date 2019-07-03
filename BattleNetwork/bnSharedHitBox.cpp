@@ -7,9 +7,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-SharedHitBox::SharedHitBox(Spell* owner, float duration) : owner(owner), Obstacle(owner->GetField(), owner->GetTeam()) {
-  direction = Direction::NONE;
-  deleted = false;
+SharedHitBox::SharedHitBox(Spell* owner, float duration) : owner(owner), Obstacle(owner->GetField(), owner->GetTeam()), Spell(owner->GetField(), owner->GetTeam()) {
   cooldown = duration;
   SetHealth(1);
   EnableTileHighlight(false);
@@ -20,7 +18,7 @@ SharedHitBox::SharedHitBox(Spell* owner, float duration) : owner(owner), Obstacl
 SharedHitBox::~SharedHitBox() {
 }
 
-void SharedHitBox::Update(float _elapsed) {
+void SharedHitBox::OnUpdate(float _elapsed) {
   cooldown -= _elapsed;
   
   tile->AffectEntities(this);
@@ -59,4 +57,9 @@ void SharedHitBox::Attack(Character* _entity) {
 
   // Remove after first registered hit
   this->Delete();
+}
+
+const float SharedHitBox::GetHitHeight() const {
+    if(Character* c = dynamic_cast<Character*>(owner)) { return c->GetHitHeight(); }
+    else { return 0; }
 }

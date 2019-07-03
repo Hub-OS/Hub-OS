@@ -12,7 +12,7 @@
 #define RESOURCE_PATH "resources/mobs/progsman/progsman.animation"
 
 ProgsMan::ProgsMan(Rank _rank)
-  : animationComponent(this),
+  :
     AI<ProgsMan>(this), Character(_rank) {
   name = "ProgsMan";
   this->team = Team::BLUE;
@@ -29,88 +29,41 @@ ProgsMan::ProgsMan(Rank _rank)
   this->SetHealth(health);
 
   //Components setup and load
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation(MOB_IDLE);
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
+  animationComponent->SetAnimation(MOB_IDLE);
 
-  animationComponent.Update(0);
+  animationComponent->OnUpdate(0);
 }
 
 ProgsMan::~ProgsMan() {
 }
 
 void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
-  animationComponent.AddCallback(frame, onEnter, onLeave, doOnce);
+  animationComponent->AddCallback(frame, onEnter, onLeave, doOnce);
 }
 
-void ProgsMan::Update(float _elapsed) {
-  this->SetShader(nullptr);
-
+void ProgsMan::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
-  if (_elapsed <= 0) return;
-
   hitHeight = getLocalBounds().height;
+}
 
-  if (stunCooldown > 0) {
-    stunCooldown -= _elapsed;
-    Character::Update(_elapsed);
-
-    if (stunCooldown <= 0) {
-      stunCooldown = 0;
-      animationComponent.Update(_elapsed);
-    }
-
-    if ((((int)(stunCooldown * 15))) % 2 == 0) {
-      this->SetShader(stun);
-    }
-
-    if (GetHealth() > 0) {
-      return;
-    }
-  }
-
-  this->AI<ProgsMan>::Update(_elapsed);
-
-  // Explode if health depleted
-  if (GetHealth() <= 0) {
-    this->ChangeState<ProgsManHitState>(); // change animation briefly
-    this->ChangeState<NaviExplodeState<ProgsMan>>(7, 1.0); // freezes animation
-    this->LockState();
-  }
-  else {
-    animationComponent.Update(_elapsed);
-  }
-
-  // Must call this
-  Character::Update(_elapsed);
+void ProgsMan::OnDelete() {
+  this->ChangeState<ProgsManHitState>(); // change animation briefly
+  this->ChangeState<NaviExplodeState<ProgsMan>>(7, 1.0); // freezes animation
+  this->LockState();
 }
 
 const bool ProgsMan::OnHit(const Hit::Properties props) {
-  SetShader(whiteout);
-
   if ((props.flags & Hit::recoil) == Hit::recoil) {
     this->ChangeState<ProgsManHitState>();
   }
 
-  if ((props.flags & Hit::stun) == Hit::stun) {
-    SetShader(stun);
-    this->stunCooldown = props.secs;
-  }
-
-  if ((props.flags & Hit::recoil) == Hit::recoil) {
-    this->ChangeState<ProgsManHitState>();
-  }
-
-  if ((props.flags & Hit::stun) == Hit::stun) {
-    SetShader(stun);
-    this->stunCooldown = props.secs;
-  }
-
-  return health;
+  return true;
 }
 
 const float ProgsMan::GetHitHeight() const {
@@ -121,11 +74,11 @@ void ProgsMan::SetCounterFrame(int frame)
 {
   auto onFinish = [&]() { this->ToggleCounter(); };
   auto onNext = [&]() { this->ToggleCounter(false); };
-  animationComponent.AddCallback(frame, onFinish, onNext);
+  animationComponent->AddCallback(frame, onFinish, onNext);
 }
 
 void ProgsMan::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
-  animationComponent.SetAnimation(_state, onFinish);
-  animationComponent.Update(0);
+  animationComponent->SetAnimation(_state, onFinish);
+  animationComponent->OnUpdate(0);
 }

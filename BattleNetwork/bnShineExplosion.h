@@ -7,7 +7,7 @@
 class ShineExplosion : public Artifact
 {
 private:
-  AnimationComponent animationComponent;
+  AnimationComponent* animationComponent;
 
 public:
   /**
@@ -20,7 +20,7 @@ public:
    * @brief Loops animations
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief the shine effect does not move

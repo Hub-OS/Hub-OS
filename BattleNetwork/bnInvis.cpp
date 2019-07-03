@@ -1,4 +1,5 @@
 #include "bnInvis.h"
+#include "bnEntity.h"
 #include "bnAudioResourceManager.h"
 
 Invis::Invis(Entity* owner) : Component(owner) {
@@ -8,7 +9,7 @@ Invis::Invis(Entity* owner) : Component(owner) {
 
 }
 
-void Invis::Update(float _elapsed) {
+void Invis::OnUpdate(float _elapsed) {
   if (elapsed >= duration.asSeconds()) {
     this->GetOwner()->SetAlpha(255);
     this->GetOwner()->SetPassthrough(false); 

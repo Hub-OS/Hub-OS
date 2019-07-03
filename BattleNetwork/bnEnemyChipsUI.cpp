@@ -23,7 +23,7 @@ EnemyChipsUI::EnemyChipsUI(Character* _owner) : ChipUsePublisher(), Component(_o
 EnemyChipsUI::~EnemyChipsUI() {
 }
 
-void EnemyChipsUI::Update(float _elapsed) {
+void EnemyChipsUI::OnUpdate(float _elapsed) {
   if (GetOwner() && GetOwner()->GetTile() && !GetOwner()->IsDeleted() && GetOwner()->IsBattleActive()) {
     Agent* agent = GetOwnerAs<Agent>();
 
