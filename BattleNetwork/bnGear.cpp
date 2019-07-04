@@ -4,7 +4,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), Obstacle(field, team), Spell(field, team) {
+Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), Obstacle(field, team) {
   this->setTexture(LOAD_TEXTURE(MOB_METALMAN_ATLAS));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);

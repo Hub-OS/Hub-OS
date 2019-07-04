@@ -58,7 +58,7 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, std::func
   animation.SetAnimation(state);
   animation << playbackMode << onFinish;
 
-  // See line 49
+  // See line 49 in this file
   // animation.Refresh(*entity);
 }
 

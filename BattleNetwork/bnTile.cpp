@@ -389,9 +389,9 @@ namespace Battle {
         if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() ||
                                              (c->GetTeam() == Team::UNKNOWN &&
                                               caller->GetTeam() == Team::UNKNOWN))) {
-          if (!c->CheckDefenses(caller)) {
+          //if (!c->CheckDefenses(caller)) {
             caller->Attack(c);
-          }
+          //}
 
           // Tag the spell
           tag = true;
@@ -456,6 +456,7 @@ namespace Battle {
         itEnt = entities.erase(itEnt);
       }
       else {
+        (*itEnt)->SetBattleActive(this->isBattleActive);
         itEnt++;
       }
     }
@@ -465,8 +466,6 @@ namespace Battle {
 
       if ((*entity)->IsDeleted() || (*entity) == nullptr)
         continue;
-
-      (*entity)->SetBattleActive(isBattleActive);
       (*entity)->Update(_elapsed);
     }
 
@@ -478,19 +477,18 @@ namespace Battle {
 
       hasSpell = hasSpell || (*entity)->IsTileHighlightEnabled();
 
-      (*entity)->SetBattleActive(isBattleActive);
       (*entity)->Update(_elapsed);
     }
 
     vector<Character*> characters_copy = characters;
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
 
-      if ((*entity)->IsDeleted() || (*entity) == nullptr)
-        continue;
+      if ((*entity)->IsDeleted() || (*entity) == nullptr) {
+          continue;
+      }
 
-      (*entity)->SetBattleActive(isBattleActive);
-      (*entity)->Update(_elapsed);
       (*entity)->ResolveFrameBattleDamage();
+      (*entity)->Update(_elapsed);
     }
 
     this->RefreshTexture();

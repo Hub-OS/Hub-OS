@@ -7,7 +7,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnSharedHitBox.h"
 
-Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team), Spell(field, team) {
+Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   SetLayer(1);
   field = _field;
 

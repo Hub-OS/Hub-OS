@@ -4,7 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team), Spell(_field, _team) {
+Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   SetLayer(0);
   field = _field;
   hit = false;
@@ -51,8 +51,6 @@ void Fishy::OnUpdate(float _elapsed) {
   }
 
   tile->AffectEntities(this);
-
-  Entity::Update(_elapsed);
 }
 
 bool Fishy::CanMoveTo(Battle::Tile* tile) {

@@ -340,6 +340,10 @@ protected:
 
   void SetSlideTime(sf::Time time);
 
+  void CancelSlide() {
+      cancelSlide = true;
+  }
+
   const int GetMoveCount() const {
       return this->moveCount;
   }
@@ -350,8 +354,9 @@ private:
   bool passthrough;
   bool floatShoe;
   bool airShoe;
-  bool isSliding; /**< If sliding/gliding to a tile */
+  bool isSliding; /*!< If sliding/gliding to a tile */
   bool deleted;
+  bool cancelSlide; /*!< If should cancel slide this frame */
   int moveCount; /**< Used by battle results */
   sf::Time slideTime; /**< how long slide behavior lasts */
   sf::Time defaultSlideTime; /**< If slidetime is modified by outside source, the slide to return back to */

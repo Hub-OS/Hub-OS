@@ -55,20 +55,6 @@ const bool Character::CanTilePush() const {
 }
 
 void Character::Update(float _elapsed) {
-  if (!hit) {
-    this->SetShader(nullptr);
-  }
-  else {
-    SetShader(whiteout);
-  }
-
-  if ((((int)(stunCooldown * 15))) % 2 == 0) {
-    this->SetShader(stun);
-  }
-  else {
-    this->SetShader(nullptr);
-  }
-
   elapsedBurnTime -= _elapsed;
 
   if (this->IsBattleActive() && !this->HasFloatShoe()) {
@@ -96,8 +82,9 @@ void Character::Update(float _elapsed) {
   }
 
   if(this->stunCooldown > 0) {
-    this->stunCooldown--;
+    this->stunCooldown-=_elapsed;
   } else {
+    this->stunCooldown = 0;
     this->OnUpdate(_elapsed);
   }
 
@@ -106,6 +93,21 @@ void Character::Update(float _elapsed) {
   //}
 
   Entity::Update(_elapsed);
+
+  if (!hit) {
+      if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
+          this->SetShader(stun);
+      }
+      else {
+          this->SetShader(nullptr);
+      }
+  }
+  else {
+      this->CancelSlide();
+      SetShader(whiteout);
+  }
+
+  hit = false;
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)
@@ -120,10 +122,12 @@ bool Character::CanMoveTo(Battle::Tile * next)
 }
 
 const bool Character::Hit(Hit::Properties props) {
-  if(this->IsPassthrough()) return false;
+  //if(this->IsPassthrough()) return false;
 
   // Add to status queue for state resolution
   this->statusQueue.push(props);
+
+  Logger::Log("pushing states");
 
   return true;
 }
@@ -143,17 +147,14 @@ void Character::ResolveFrameBattleDamage()
 
   Character* frameCounterAggressor = nullptr;
   bool frameElementalDmg = false;
-  bool frameSlideCancel = false;
   bool frameStunCancel = false;
   Direction postDragDir = Direction::NONE;
 
-  Hit::Properties& props = this->statusQueue.front();
-  
-  while(props.flags == Hit::none) {
-    this->statusQueue.pop();
-    if (this->statusQueue.empty()) return;
+  std::queue<Hit::Properties> append;
 
-    props = this->statusQueue.front();
+  while(!this->statusQueue.empty()) {
+      Hit::Properties& props = this->statusQueue.front();
+    this->statusQueue.pop();
 
     double tileDamage = 0;
 
@@ -198,13 +199,13 @@ void Character::ResolveFrameBattleDamage()
       }
 
       if(this->IsSliding() && (props.flags & Hit::impact) == Hit::impact && !this->slideFromDrag) {
-        frameSlideCancel = true;
+        this->CancelSlide();
       }
 
       // Requeue drag if already sliding by drag
       if((props.flags & Hit::drag) == Hit::drag) {
         if(this->slideFromDrag) {
-          this->statusQueue.push({0, Hit::drag, Element::NONE, 0.0, nullptr, props.drag});
+          append.push({0, Hit::drag, Element::NONE, 0.0, nullptr, props.drag});
         } else {
           // Apply directional slide later
           postDragDir = props.drag;
@@ -214,7 +215,7 @@ void Character::ResolveFrameBattleDamage()
       // Stun can be canceled by non-stun hits or queued if dragging
       if((props.flags & Hit::stun) == Hit::stun) {
         if(postDragDir != Direction::NONE) {
-          this->statusQueue.push({0, Hit::stun, Element::NONE, props.secs});
+          append.push({0, Hit::stun, Element::NONE, props.secs});
         } else {
           this->stunCooldown = props.secs;
         }
@@ -222,14 +223,15 @@ void Character::ResolveFrameBattleDamage()
         // cancel
         this->stunCooldown = 0;
       }
+
+      hit = hit || true;
     }
 
     this->SetHealth(health - props.damage);
   }
 
-  if(frameSlideCancel) {
-    this->AdoptNextTile();
-    this->SlideToTile(false); // override ICE check in AdoptNextTile routine
+  if(!append.empty()) {
+      this->statusQueue = append;
   }
 
   if(postDragDir != Direction::NONE) {

@@ -9,7 +9,7 @@ const int Cube::numOfAllowedCubesOnField = 2;
 int Cube::currCubeIndex = 0;
 int Cube::cubesRemovedCount = 0;
 
-Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), Spell(field, team) {
+Cube::Cube(Field* _field, Team _team) : Obstacle(field, team) {
   this->setTexture(LOAD_TEXTURE(MISC_CUBE));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);

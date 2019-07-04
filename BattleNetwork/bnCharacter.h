@@ -112,12 +112,12 @@ public:
    */
   const bool Hit(Hit::Properties props = Hit::DefaultProperties);
 
-  virtual void ResolveFrameBattleDamage();
+  void ResolveFrameBattleDamage();
 
   virtual void OnUpdate(float elapsed) = 0;
 
   // TODO: move tile behavior out of update loop and into its own rule system for customization
-  void Update(float elapsed) final;
+  void Update(float elapsed);
   
   /**
    * @brief Default characters cannot move onto occupied, broken, or empty tiles

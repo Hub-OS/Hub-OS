@@ -50,6 +50,8 @@ void ProgsMan::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
   hitHeight = getLocalBounds().height;
+
+  this->AI<ProgsMan>::Update(_elapsed);
 }
 
 void ProgsMan::OnDelete() {

@@ -29,10 +29,12 @@ public:
   const bool IsTileHighlightEnabled() const;
 
   /**
-   * @brief Implementatio of OnUpdate needs to call Entity::Update()
+   * @brief Implement OnUpdate required
    * @param _elapsed in seconds
    */
   virtual void OnUpdate(float _elapsed) = 0;
+
+  void Update(float _elapsed);
 
   /**
    * @brief Describes how the spell attacks characters

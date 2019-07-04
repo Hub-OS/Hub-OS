@@ -11,10 +11,11 @@ class Mettaur : public AnimatedCharacter, public AI<Mettaur> {
   friend class MettaurIdleState;
   friend class MettaurMoveState;
   friend class MettaurAttackState;
-  using DefaultState = MettaurIdleState;
 
 public:
-  /**
+    using DefaultState = MettaurIdleState;
+
+    /**
    * @brief Loads animations and gives itself a turn ID 
    */
   Mettaur(Rank _rank = Rank::_1);
@@ -56,9 +57,6 @@ private:
    * @brief Passes control to the next mettaur
    */
   void NextMettaurTurn();
-
-  sf::Shader* whiteout;
-  sf::Shader* stun;
 
   static vector<int> metIDs; /*!< list of mettaurs spawned to take turns */
   static int currMetIndex; /*!< current active mettaur ID */

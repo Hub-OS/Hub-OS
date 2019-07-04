@@ -2,7 +2,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 
-Obstacle::Obstacle(Field* _field, Team _team) : Spell(_field, _team)  {
+Obstacle::Obstacle(Field* _field, Team _team) : Spell(_field, _team), Character()  {
   this->field = _field;
   this->team = _team;
 
@@ -24,8 +24,5 @@ bool Obstacle::CanMoveTo(Battle::Tile * next)
 void Obstacle::AdoptTile(Battle::Tile * tile)
 {
   this->Spell::AdoptTile(tile); // favor spell grouping
-}
-
-void Obstacle::OnUpdate(float _elapsed) {
 }
 

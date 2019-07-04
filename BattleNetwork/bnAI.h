@@ -81,7 +81,7 @@ public:
     // Change to U
     stateMachine->template ChangeState<U>();
 
-    stateMachine->OnEnter(*ref);
+    //stateMachine->OnEnter(*ref);
   }
 
 /**
@@ -101,7 +101,7 @@ template<typename U, typename ...Args>
 
     stateMachine->template ChangeState<U>(args...);
 
-    stateMachine->OnEnter(*ref);
+    //stateMachine->OnEnter(*ref);
   }
 
 /**

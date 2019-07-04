@@ -19,7 +19,7 @@ Mettaur::Mettaur(Rank _rank)
   :  AI<Mettaur>(this), AnimatedCharacter(_rank) {
   //this->ChangeState<MettaurIdleState>();
   name = "Mettaur";
-  Entity::team = Team::BLUE;
+  SetTeam(Team::BLUE);
 
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Reload();
@@ -42,9 +42,6 @@ Mettaur::Mettaur(Rank _rank)
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
-
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
 
   metID = (int)Mettaur::metIDs.size();
   Mettaur::metIDs.push_back((int)Mettaur::metIDs.size());
@@ -83,31 +80,9 @@ void Mettaur::OnUpdate(float _elapsed) {
 }
 
 const bool Mettaur::OnHit(const Hit::Properties props) {
-  /*if (Character::Hit(_damage, props)) {
-    SetShader(whiteout);
-    return true;
-  }
+    Logger::Log("Mettaur OnHit");
 
-  return false;*/
-
-  bool result = true;
-
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-
-    if ((props.flags & Hit::stun) == Hit::stun) {
-      SetShader(stun);
-      this->stunCooldown = props.secs;
-    }
-    else {
-      SetShader(whiteout);
-    }
-  }
-
-  return result;
+  return true;
 }
 
 const float Mettaur::GetHitHeight() const {

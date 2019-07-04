@@ -8,7 +8,6 @@
 Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   SetLayer(0);
 
-
   setTexture(*TEXTURES.GetTexture(TextureType::SPELL_WAVE));
   this->speed = speed;
 
@@ -25,6 +24,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   animation->Setup("resources/spells/spell_wave.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT", Animate::Mode::Loop, onFinish);
+  animation->SetPlaybackSpeed(speed);
 
   auto props = Hit::DefaultProperties;
   props.damage = 10;
@@ -39,23 +39,17 @@ Wave::~Wave() {
 }
 
 void Wave::OnUpdate(float _elapsed) {
+Logger::Log(std::string("wave team: ") + std::to_string((int)GetTeam()));
+
   int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
-  setPosition(tile->getPosition().x, tile->getPosition().y);
+  setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
 
-  if (!this->IsDeleted()) {
-    tile->AffectEntities(this);
-  }
+  tile->AffectEntities(this);
 }
 
 bool Wave::Move(Direction _direction) {
-  // Drop a shared hitbox when moving
-
-  //SharedHitBox* shb = new SharedHitBox(this, 1.0f/60.0f);
-  //GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
-  
-  tile->RemoveEntityByID(this->GetID());
   Battle::Tile* next = nullptr;
 
   if (_direction == Direction::LEFT) {
@@ -68,7 +62,9 @@ bool Wave::Move(Direction _direction) {
     }
   }
 
-  if (next && next->IsWalkable()) {
+    tile->RemoveEntityByID(this->GetID());
+
+    if (next && next->IsWalkable()) {
     next->AddEntity(*this);
     
     return true;
@@ -76,11 +72,12 @@ bool Wave::Move(Direction _direction) {
 
   // If our next tile pointer is invalid, we cannot move
   // and must mark ourselves for deletion
-  tile->RemoveEntityByID(this->GetID());
   this->Delete();
   return false;
 }
 
 void Wave::Attack(Character* _entity) {
+  Logger::Log("wave attack");
+
   _entity->Hit(GetHitboxProperties());
 }

@@ -7,7 +7,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-SharedHitBox::SharedHitBox(Spell* owner, float duration) : owner(owner), Obstacle(owner->GetField(), owner->GetTeam()), Spell(owner->GetField(), owner->GetTeam()) {
+SharedHitBox::SharedHitBox(Spell* owner, float duration) : owner(owner), Obstacle(owner->GetField(), owner->GetTeam()) {
   cooldown = duration;
   SetHealth(1);
   EnableTileHighlight(false);

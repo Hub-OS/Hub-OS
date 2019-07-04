@@ -71,20 +71,20 @@ Mob* RandomMettaurMob::Build() {
             }
             else if (rand() % 10 > 2) {
               if (rand() % 10 > 5) {
-                mob->Spawn<RankSP<Mettaur, MettaurIdleState>>(i + 1, j + 1);
+                mob->Spawn<RankSP<Mettaur>>(i + 1, j + 1);
               }
               else {
-                mob->Spawn<ChipsSpawnPolicy<Mettaur, MettaurIdleState>>(i + 1, j + 1);
+                mob->Spawn<ChipsSpawnPolicy<Mettaur>>(i + 1, j + 1);
               }
 
               spawnedGroundEnemy = true;
             }
             else if (rand() % 10 > 3) {
               if (rand() % 10 > 0) {
-                mob->Spawn<Rank1<Starfish, StarfishIdleState>>(i + 1, j + 1);
+                mob->Spawn<Rank1<Starfish>>(i + 1, j + 1);
               }
               else if (rand() % 10 > 4) {
-                mob->Spawn<Rank3<Canodumb, CanodumbIdleState>>(i + 1, j + 1);
+                mob->Spawn<Rank3<Canodumb>>(i + 1, j + 1);
               }
 
               spawnedGroundEnemy = true;
@@ -92,17 +92,17 @@ Mob* RandomMettaurMob::Build() {
             }
             else if (rand() % 100 < 10) {
               if (rand() % 10 > 5) {
-                mob->Spawn<Rank1<ProgsMan, ProgsManIdleState>>(i + 1, j + 1);
+                mob->Spawn<Rank1<ProgsMan>>(i + 1, j + 1);
               }
               else {
-                mob->Spawn<ChipsSpawnPolicy<ProgsMan, ProgsManIdleState>>(i + 1, j + 1);
+                mob->Spawn<ChipsSpawnPolicy<ProgsMan>>(i + 1, j + 1);
               }
 
               spawnedGroundEnemy = true;
 
             }
             else if (rand() % 10 > 3) {
-              mob->Spawn<ChipsSpawnPolicy<MetalMan, MetalManIdleState>>(i + 1, j + 1);
+              mob->Spawn<ChipsSpawnPolicy<MetalMan>>(i + 1, j + 1);
             }
           }
         }

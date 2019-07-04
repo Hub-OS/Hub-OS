@@ -110,7 +110,7 @@ void Entity::Update(float _elapsed) {
     } 
 
     // When delta is 1.0, the slide duration is complete
-    if(delta == 1.0f)
+    if(delta == 1.0f || this->cancelSlide)
     {
       elapsedSlideTime = 0;
       Battle::Tile* prevTile = this->GetTile();

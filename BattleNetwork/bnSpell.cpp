@@ -20,6 +20,11 @@ Spell::Spell(Field* field, Team team) : Entity() {
 Spell::~Spell() {
 }
 
+void Spell::Update(float _elapsed) {
+  Entity::Update(_elapsed);
+
+  this->OnUpdate(_elapsed);
+}
 const bool Spell::IsTileHighlightEnabled() const {
   return markTile;
 }

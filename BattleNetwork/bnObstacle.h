@@ -19,24 +19,26 @@ using sf::Texture;
     to entities occupying the same tile.
 */
 
-class Obstacle : virtual public Character, virtual public  Spell {
+class Obstacle : public Character, public  Spell {
 public:
   Obstacle(Field* _field, Team _team);
   virtual ~Obstacle();
 
-  virtual void OnUpdate(float _elapsed);
+  virtual void Update(float _elapsed) final override {
+      Spell::Update(_elapsed);
+      Character::Update(_elapsed);
+  }
 
   /**
    * @brief Uses the Character::CanMoveTo() default function to follow typical character movement rules
    * @param next
    * @return 
    */
-  virtual bool CanMoveTo(Battle::Tile * next);
-  virtual void Attack(Character* _entity) = 0;
+  virtual bool CanMoveTo(Battle::Tile * next) override;
 
   /**
    * @brief Uses the Spell::AdoptTile() function to be put into the Tile's spell bucket
    * @param tile
    */
-  virtual void AdoptTile(Battle::Tile* tile) final;
+  virtual void AdoptTile(Battle::Tile* tile) final override;
 };
