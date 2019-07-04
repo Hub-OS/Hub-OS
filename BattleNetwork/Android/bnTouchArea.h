@@ -37,6 +37,7 @@ private:
     std::function<void()> m_onDefaultCallback;
 
     explicit TouchArea(const sf::IntRect&& source);
+    explicit TouchArea(const sf::IntRect&  source);
 
     void reset();
     void releaseTouch();
@@ -53,6 +54,7 @@ public:
     void onDrag(std::function<void(sf::Vector2i)> callback);
     void onDefault(std::function<void()> callback);
 
+    static TouchArea& create(const sf::IntRect&  source);
     static TouchArea& create(const sf::IntRect&& source);
     static void free();
     static void poll();

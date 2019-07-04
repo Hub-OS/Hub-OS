@@ -3,6 +3,7 @@
 #include "bnGameOverScene.h"
 #include "bnUndernetBackground.h"
 #include "bnPlayerHealthUI.h"
+#include "Android/bnTouchArea.h"
 
 #include "Segues/WhiteWashFade.h"
 #include "Segues/PixelateBlackWashFade.h"
@@ -1178,7 +1179,11 @@ void BattleScene::onStart() {
   }
   else {
     if (!mob->IsBoss()) {
-      AUDIO.Stream("resources/loops/loop_battle.ogg", true);
+      sf::Music::TimeSpan span;
+      span.offset = sf::microseconds(84.0f);
+      span.length = sf::seconds(60.0f * 1.20668f);
+
+      AUDIO.Stream("resources/loops/loop_battle.ogg", true, span);
     }
     else {
       AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
@@ -1187,21 +1192,107 @@ void BattleScene::onStart() {
 }
 
 void BattleScene::onLeave() {
-
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
 
 void BattleScene::onExit() {
-  ENGINE.RevokeShader();
+ // ENGINE.RevokeShader(); // Legacy?
+
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
 
 void BattleScene::onEnter() {
-
+#ifdef __ANDROID__
+  this->SetupTouchControls();
+#endif
 }
 
 void BattleScene::onResume() {
-
+#ifdef __ANDROID__
+  this->SetupTouchControls();
+#endif
 }
 
 void BattleScene::onEnd() {
 
 }
+
+#ifdef __ANDROID__
+void BattleScene::SetupTouchControls() {
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  rightSide.enableExtendedRelease(true);
+  this->releasedB = false;
+
+  rightSide.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+  });
+
+  rightSide.onRelease([this](sf::Vector2i delta) {
+      if(!this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      }
+
+      this->releasedB = false;
+
+  });
+
+  rightSide.onDrag([this](sf::Vector2i delta){
+      if(delta.x < -25 && !this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        this->releasedB = true;
+      }
+  });
+
+  rightSide.onDefault([this]() {
+      this->releasedB = false;
+  });
+
+  TouchArea& custSelectButton = TouchArea::create(sf::IntRect(100, 0, 380, 100));
+  custSelectButton.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::PRESSED_START);
+  });
+  custSelectButton.onRelease([](sf::Vector2i delta) {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_START);
+  });
+
+  TouchArea& dpad = TouchArea::create(sf::IntRect(0, 0, 240, 320));
+  dpad.enableExtendedRelease(true);
+  dpad.onDrag([](sf::Vector2i delta) {
+      Logger::Log("dpad delta: " + std::to_string(delta.x) + ", " + std::to_string(delta.y));
+
+      if(delta.x > 30) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_RIGHT);
+      }
+
+      if(delta.x < -30) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_LEFT);
+      }
+
+      if(delta.y > 30) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_DOWN);
+      }
+
+      if(delta.y < -30) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_UP);
+      }
+  });
+
+  dpad.onRelease([](sf::Vector2i delta) {
+      if(delta.x < -30) {
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_LEFT);
+      }
+  });
+}
+
+void BattleScene::ShutdownTouchControls() {
+  TouchArea::free();
+}
+
+#endif

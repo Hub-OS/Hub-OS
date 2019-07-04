@@ -236,6 +236,13 @@ private:
    */
   virtual void OnCounter(Character& victim, Character& aggressor);
 
+#ifdef __ANDROID__
+  void SetupTouchControls();
+  void ShutdownTouchControls();
+
+  bool releasedB;
+#endif
+
 public:
 
   /**

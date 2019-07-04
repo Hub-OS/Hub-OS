@@ -1,4 +1,5 @@
 #include <Swoosh/ActivityController.h>
+#include "Android/bnTouchArea.h"
 
 #include "bnMainMenuScene.h"
 #include "bnChipFolderCollection.h"
@@ -76,6 +77,11 @@ void MainMenuScene::onStart() {
   
   // Set the camera back to ours
   ENGINE.SetCamera(camera);
+
+#ifdef __ANDROID__
+  StartupTouchControls();
+#endif
+
 }
 
 void MainMenuScene::onUpdate(double elapsed) {
@@ -195,11 +201,14 @@ void MainMenuScene::onUpdate(double elapsed) {
 }
 
 void MainMenuScene::onLeave() {
-
+#ifdef __ANDROID__
+  ShutdownTouchControls();
+#endif
 }
 
 void MainMenuScene::onExit()
 {
+
 }
 
 void MainMenuScene::onEnter()
@@ -210,12 +219,21 @@ void MainMenuScene::onEnter()
   naviAnimator.Reload();
   naviAnimator.SetAnimation("PLAYER_OW_RD");
   naviAnimator << Animate::Mode::Loop;
+
+#ifdef __ANDROID__
+  StartupTouchControls();
+#endif
 }
 
 void MainMenuScene::onResume() {
   gotoNextScene = false;
 
   ENGINE.SetCamera(camera);
+
+
+#ifdef __ANDROID__
+  StartupTouchControls();
+#endif
 }
 
 void MainMenuScene::onDraw(sf::RenderTexture& surface) {
@@ -326,4 +344,91 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
 void MainMenuScene::onEnd() {
   AUDIO.StopStream();
   ENGINE.RevokeShader();
+
+#ifdef __ANDROID__
+  ShutdownTouchControls();
+#endif
 }
+
+#ifdef __ANDROID__
+void MainMenuScene::StartupTouchControls() {
+    uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
+    uiAnimator.SetFrame(1, ui);
+    ui.setPosition(100.f, 50.f);
+
+    auto bounds = ui.getLocalBounds();
+    auto rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
+    auto& folderBtn = TouchArea::create(rect);
+
+    folderBtn.onRelease([this](sf::Vector2i delta) {
+        this->gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
+
+        using swoosh::intent::direction;
+        using segue = swoosh::intent::segue<PushIn<direction::left>>;
+        this->getController().push<segue::to<FolderScene>>(this->data);
+    });
+
+    uiAnimator.SetAnimation("LIBRARY_LABEL");
+    uiAnimator.SetFrame(1, ui);
+    ui.setPosition(100.f, 120.f);
+
+    bounds = ui.getLocalBounds();
+    rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
+    auto& libraryBtn = TouchArea::create(rect);
+
+    libraryBtn.onRelease([this](sf::Vector2i delta) {
+        this->gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
+
+        using swoosh::intent::direction;
+        using segue = swoosh::intent::segue<PushIn<direction::right>>;
+        this->getController().push<segue::to<LibraryScene>>();
+    });
+
+    uiAnimator.SetAnimation("NAVI_LABEL");
+    uiAnimator.SetFrame(1, ui);
+    ui.setPosition(100.f, 190.f);
+
+    bounds = ui.getLocalBounds();
+    rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
+    auto& naviBtn = TouchArea::create(rect);
+
+    naviBtn.onRelease([this](sf::Vector2i delta) {
+        this->gotoNextScene = true;
+        AUDIO.Play(AudioType::CHIP_DESC);
+        using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>;
+        using intent = segue::to<SelectNaviScene>;
+        this->getController().push<intent>(this->currentNavi);
+    });
+
+    uiAnimator.SetAnimation("MOB_SELECT_LABEL");
+    uiAnimator.SetFrame(1, ui);
+    ui.setPosition(20.f, 260.f);
+
+    bounds = ui.getLocalBounds();
+    rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
+    auto& mobBtn = TouchArea::create(rect);
+
+    mobBtn.onRelease([this](sf::Vector2i delta) {
+        this->gotoNextScene = true;
+
+        ChipFolder* folder = nullptr;
+
+        if (this->data.GetFolder("Default", folder)) {
+          AUDIO.Play(AudioType::CHIP_DESC);
+          using segue = swoosh::intent::segue<PixelateBlackWashFade>::to<SelectMobScene>;
+          this->getController().push<segue>(this->currentNavi, *folder);
+        }
+        else {
+          AUDIO.Play(AudioType::CHIP_ERROR);
+          Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
+          this->gotoNextScene = false;
+        }
+    });
+}
+
+void MainMenuScene::ShutdownTouchControls() {
+  TouchArea::free();
+}
+#endif

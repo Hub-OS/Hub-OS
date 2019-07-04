@@ -73,7 +73,15 @@ private:
   float numberCooldown; /*!< Remaining time for scramble effect */
 
   bool doOnce; /*!< Flag to trigger pixelate and scramble effects */
-  bool showMob; 
+  bool showMob;
+
+#ifdef __ANDROID__
+  bool canSwipe;
+  bool touchStart;
+
+  int touchPosX;
+  int touchPosStartX;
+#endif
 
   sf::Sprite bg; /*!< Background sprite */
 

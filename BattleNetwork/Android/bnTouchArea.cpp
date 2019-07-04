@@ -23,6 +23,21 @@ TouchArea::TouchArea(const sf::IntRect&& source) {
     reset();
 }
 
+TouchArea::TouchArea(const sf::IntRect& source) {
+    m_area = sf::IntRect(source); // copy
+    m_touchIndex = 0;
+    m_state = TouchArea::State::RELEASED;
+    m_allowExtendedRelease = false;
+
+    // Set callbacks to empty functors
+    m_onReleaseCallback = [](sf::Vector2i){};
+    m_onDragCallback = [](sf::Vector2i){};
+    m_onTouchCallback = [](){};
+    m_onDefaultCallback = [](){};
+
+    reset();
+}
+
 TouchArea::~TouchArea() {
     releaseTouch();
 }
@@ -141,6 +156,12 @@ void TouchArea::onDefault(std::function<void()> callback) {
 
 TouchArea& TouchArea::create(const sf::IntRect&& source) {
     TouchArea* instance = new TouchArea(std::move(source));
+    TouchArea::m_instances.push_back(instance);
+    return *instance;
+}
+
+TouchArea& TouchArea::create(const sf::IntRect& source) {
+    TouchArea* instance = new TouchArea(source);
     TouchArea::m_instances.push_back(instance);
     return *instance;
 }

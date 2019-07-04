@@ -49,6 +49,12 @@ private:
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
 
   ChipFolderCollection data; /*!< TODO: this will be replaced with all saved data */
+
+#ifdef __ANDROID__
+void StartupTouchControls();
+void ShutdownTouchControls();
+#endif
+
 public:
 
   /**

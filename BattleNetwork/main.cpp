@@ -27,7 +27,6 @@
 #include "bnFakeScene.h"
 #include "bnAnimate.h"
 #include "bnChronoXConfigReader.h"
-#include "Android/bnTouchArea.h"
 #include "SFML/System.hpp"
 
 #include <time.h>
@@ -500,7 +499,7 @@ int main(int argc, char** argv) {
 #ifdef __ANDROID__
         shouldStart = sf::Touch::isDown(0);
 #endif
-        if (shouldStart && navisLoaded == NAVIS.Size()) {
+        if (shouldStart && mobsLoaded == MOBS.Size()) {
         inLoadState = false;
       }
     }
@@ -642,75 +641,6 @@ int main(int argc, char** argv) {
   logLabel->setPosition(296,18);
   logLabel->setStyle(sf::Text::Style::Bold);
 
-#ifdef __ANDROID__
-  /* Android touch areas*/
-  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
-
-  rightSide.enableExtendedRelease(true);
-  bool releasedB = false;
-
-  rightSide.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
-  });
-
-  rightSide.onRelease([&releasedB](sf::Vector2i delta) {
-    if(!releasedB) {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
-    }
-
-    releasedB = false;
-
-  });
-
-  rightSide.onDrag([&releasedB](sf::Vector2i delta){
-      if(delta.x < -25 && !releasedB) {
-        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
-        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
-        releasedB = true;
-      }
-  });
-
-  rightSide.onDefault([&releasedB]() {
-      releasedB = false;
-  });
-
-  TouchArea& custSelectButton = TouchArea::create(sf::IntRect(100, 0, 380, 100));
-  custSelectButton.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_START);
-  });
-  custSelectButton.onRelease([](sf::Vector2i delta) {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_START);
-  });
-
-  TouchArea& dpad = TouchArea::create(sf::IntRect(0, 0, 240, 320));
-  dpad.enableExtendedRelease(true);
-  dpad.onDrag([](sf::Vector2i delta) {
-      Logger::Log("dpad delta: " + std::to_string(delta.x) + ", " + std::to_string(delta.y));
-
-    if(delta.x > 30) {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_RIGHT);
-    }
-
-    if(delta.x < -30) {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_LEFT);
-    }
-
-    if(delta.y > 30) {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_DOWN);
-    }
-
-    if(delta.y < -30) {
-      INPUT.VirtualKeyEvent(InputEvent::PRESSED_UP);
-    }
-  });
-
-  dpad.onRelease([](sf::Vector2i delta) {
-      if(delta.x < -30) {
-          INPUT.VirtualKeyEvent(InputEvent::RELEASED_LEFT);
-      }
-  });
-#endif
-
   // Make sure we didn't quit the loop prematurely
   while (ENGINE.Running()) {
       // Non-simulation
@@ -767,10 +697,6 @@ int main(int argc, char** argv) {
   delete mouseTexture;
   delete logLabel;
   delete font;
-
-#if defined(__ANDROID__)
-TouchArea::free();
-#endif
 
   return EXIT_SUCCESS;
 }

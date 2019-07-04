@@ -7,6 +7,8 @@ using sf::Keyboard;
 
 #if defined(__ANDROID__)
 #include "Android/bnTouchArea.h"
+#include "bnAudioResourceManager.h"
+
 #endif
 
 // #include <iostream>
@@ -52,6 +54,12 @@ void InputManager::Update() {
   while (ENGINE.GetWindow()->pollEvent(event)) {
     if (event.type == Event::Closed) {
       ENGINE.GetWindow()->close();
+    }
+
+    if(event.type == Event::LostFocus) {
+      AUDIO.EnableAudio(false);
+    } else if(event.type == Event::GainedFocus) {
+      AUDIO.EnableAudio(true);
     }
 
     if (event.type == sf::Event::TextEntered && this->captureInputBuffer) {
@@ -435,7 +443,7 @@ void InputManager::Update() {
   eventsLastFrame.clear();
 
 #if defined(__ANDROID__)
-    events.clear(); // TODO: what inputs get stuck in the event list?
+    events.clear(); // TODO: what inputs get stuck in the event list on droid?
     TouchArea::poll();
 #endif
 }
