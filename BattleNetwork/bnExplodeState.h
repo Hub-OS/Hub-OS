@@ -83,7 +83,7 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
 
   /* If explosion is over, delete the entity*/
   if (explosion->IsDeleted()) {
-    e.TryDelete();
+    e.Delete();
   }
 }
 

@@ -76,12 +76,14 @@ void PixelInState<Any>::OnEnter(Any& e) {
   // play swoosh
   AUDIO.Play(AudioType::APPEAR);
 
-  /* freeze frame */
-  e.SetShader(pixelated);
+  e.setColor(sf::Color(255, 255, 255, 0));
 }
 
 template<typename Any>
 void PixelInState<Any>::OnUpdate(float _elapsed, Any& e) {
+    /* freeze frame */
+    e.SetShader(pixelated);
+
   /* If progress is 1, pop state and move onto original state*/
   factor -= _elapsed * 180.f;
 

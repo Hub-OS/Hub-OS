@@ -18,6 +18,7 @@ Artifact::~Artifact() {
 
 void Artifact::Update(float elapsed) {
   Entity::Update(elapsed);
+  this->OnUpdate(elapsed);
 }
 
 void Artifact::AdoptTile(Battle::Tile * tile)

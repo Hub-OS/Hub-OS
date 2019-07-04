@@ -13,8 +13,12 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
 
   //Components setup and load
   auto onFinish = [this]() {
-    if (Move(GetDirection())) {
-      AUDIO.Play(AudioType::WAVE);
+    this->Delete();
+    if(this->GetTile()->GetX() > 1) {
+        auto* wave = new Wave(this->GetField(), this->GetTeam(), this->speed);
+        wave->SetDirection(this->GetDirection());
+
+        this->GetField()->AddEntity(*wave, GetTile()->GetX()-1, GetTile()->GetY());
     }
   };
 
@@ -25,6 +29,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   animation->Load();
   animation->SetAnimation("DEFAULT", Animate::Mode::Loop, onFinish);
   animation->SetPlaybackSpeed(speed);
+  animation->OnUpdate(0);
 
   auto props = Hit::DefaultProperties;
   props.damage = 10;
@@ -50,29 +55,6 @@ Logger::Log(std::string("wave team: ") + std::to_string((int)GetTeam()));
 }
 
 bool Wave::Move(Direction _direction) {
-  Battle::Tile* next = nullptr;
-
-  if (_direction == Direction::LEFT) {
-    if (tile->GetX() - 1 > 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY());
-    }
-  } else if (_direction == Direction::RIGHT) {
-    if (tile->GetX() + 1 <= (int)field->GetWidth()) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY());
-    }
-  }
-
-    tile->RemoveEntityByID(this->GetID());
-
-    if (next && next->IsWalkable()) {
-    next->AddEntity(*this);
-    
-    return true;
-  }
-
-  // If our next tile pointer is invalid, we cannot move
-  // and must mark ourselves for deletion
-  this->Delete();
   return false;
 }
 

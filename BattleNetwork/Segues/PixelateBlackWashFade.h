@@ -5,7 +5,7 @@
 
 using namespace swoosh;
 
-#ifdef __ANDROID__
+#ifndef __ANDROID__
 namespace {
   auto PIXELATE_SHADER = GLSL
   (

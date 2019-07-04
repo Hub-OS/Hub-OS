@@ -25,6 +25,11 @@ Cannon::Cannon(Field* _field, Team _team, int _damage) : Spell(_field, _team){
 
   random = rand() % 20 - 20;
 
+  if(_team == Team::RED) {
+    SetDirection(Direction::RIGHT);
+  } else {
+    SetDirection(Direction::LEFT);
+  }
   damage = _damage;
   //TODO: make new sprite animation for charged bullet
   texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
