@@ -35,6 +35,7 @@ private:
   Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
 
   int menuSelectionIndex;; /*!< Current selection */
+  int lastMenuSelectionIndex;
 
   sf::Sprite overlay; /*!< PET */
   sf::Sprite ow; 

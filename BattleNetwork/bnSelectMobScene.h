@@ -81,6 +81,11 @@ private:
 
   int touchPosX;
   int touchPosStartX;
+
+  bool releasedB;
+
+  void StartupTouchControls();
+  void ShutdownTouchControls();
 #endif
 
   sf::Sprite bg; /*!< Background sprite */

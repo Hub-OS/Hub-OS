@@ -1189,6 +1189,10 @@ void BattleScene::onStart() {
       AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
     }
   }
+
+#ifdef __ANDROID__
+  this->SetupTouchControls();
+#endif
 }
 
 void BattleScene::onLeave() {
@@ -1199,16 +1203,9 @@ void BattleScene::onLeave() {
 
 void BattleScene::onExit() {
  // ENGINE.RevokeShader(); // Legacy?
-
-#ifdef __ANDROID__
-  this->ShutdownTouchControls();
-#endif
 }
 
 void BattleScene::onEnter() {
-#ifdef __ANDROID__
-  this->SetupTouchControls();
-#endif
 }
 
 void BattleScene::onResume() {
@@ -1218,7 +1215,9 @@ void BattleScene::onResume() {
 }
 
 void BattleScene::onEnd() {
-
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
 
 #ifdef __ANDROID__

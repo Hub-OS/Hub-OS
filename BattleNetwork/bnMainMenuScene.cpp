@@ -68,6 +68,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
   gotoNextScene = false;
 
+  menuSelectionIndex = lastMenuSelectionIndex = 0;
 }
 
 void MainMenuScene::onStart() {
@@ -81,6 +82,8 @@ void MainMenuScene::onStart() {
 #ifdef __ANDROID__
   StartupTouchControls();
 #endif
+
+  Logger::Log("main menu onStart");
 
 }
 
@@ -96,8 +99,6 @@ void MainMenuScene::onUpdate(double elapsed) {
 
   // Draw navi moving
   naviAnimator.Update((float)elapsed, owNavi);
-
-  int lastMenuSelectionIndex = menuSelectionIndex;
 
   // Move the navi down
   owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*(float)elapsed, 0));
@@ -198,6 +199,8 @@ void MainMenuScene::onUpdate(double elapsed) {
   if (menuSelectionIndex != lastMenuSelectionIndex) {
     AUDIO.Play(AudioType::CHIP_SELECT);
   }
+
+  lastMenuSelectionIndex = menuSelectionIndex;
 }
 
 void MainMenuScene::onLeave() {
@@ -219,10 +222,6 @@ void MainMenuScene::onEnter()
   naviAnimator.Reload();
   naviAnimator.SetAnimation("PLAYER_OW_RD");
   naviAnimator << Animate::Mode::Loop;
-
-#ifdef __ANDROID__
-  StartupTouchControls();
-#endif
 }
 
 void MainMenuScene::onResume() {
@@ -234,6 +233,8 @@ void MainMenuScene::onResume() {
 #ifdef __ANDROID__
   StartupTouchControls();
 #endif
+
+  Logger::Log("main menu onResume");
 }
 
 void MainMenuScene::onDraw(sf::RenderTexture& surface) {
@@ -352,15 +353,19 @@ void MainMenuScene::onEnd() {
 
 #ifdef __ANDROID__
 void MainMenuScene::StartupTouchControls() {
+    ui.setScale(2.f,2.f);
+
     uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
     uiAnimator.SetFrame(1, ui);
     ui.setPosition(100.f, 50.f);
 
-    auto bounds = ui.getLocalBounds();
+    auto bounds = ui.getGlobalBounds();
     auto rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
     auto& folderBtn = TouchArea::create(rect);
 
     folderBtn.onRelease([this](sf::Vector2i delta) {
+        Logger::Log("folder released");
+
         this->gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
 
@@ -369,15 +374,24 @@ void MainMenuScene::StartupTouchControls() {
         this->getController().push<segue::to<FolderScene>>(this->data);
     });
 
+    folderBtn.onTouch([this]() {
+        menuSelectionIndex = 0;
+    });
+
     uiAnimator.SetAnimation("LIBRARY_LABEL");
     uiAnimator.SetFrame(1, ui);
     ui.setPosition(100.f, 120.f);
 
-    bounds = ui.getLocalBounds();
+    bounds = ui.getGlobalBounds();
     rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
+
+    Logger::Log(std::string("rect: ") + std::to_string(rect.left) + ", " + std::to_string(rect.top) + ", " + std::to_string(rect.width) + ", " + std::to_string(rect.height));
+
     auto& libraryBtn = TouchArea::create(rect);
 
     libraryBtn.onRelease([this](sf::Vector2i delta) {
+        Logger::Log("library released");
+
         this->gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
 
@@ -386,11 +400,16 @@ void MainMenuScene::StartupTouchControls() {
         this->getController().push<segue::to<LibraryScene>>();
     });
 
+    libraryBtn.onTouch([this]() {
+        menuSelectionIndex = 1;
+    });
+
+
     uiAnimator.SetAnimation("NAVI_LABEL");
     uiAnimator.SetFrame(1, ui);
     ui.setPosition(100.f, 190.f);
 
-    bounds = ui.getLocalBounds();
+    bounds = ui.getGlobalBounds();
     rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
     auto& naviBtn = TouchArea::create(rect);
 
@@ -402,11 +421,15 @@ void MainMenuScene::StartupTouchControls() {
         this->getController().push<intent>(this->currentNavi);
     });
 
+    naviBtn.onTouch([this]() {
+        menuSelectionIndex = 2;
+    });
+
     uiAnimator.SetAnimation("MOB_SELECT_LABEL");
     uiAnimator.SetFrame(1, ui);
-    ui.setPosition(20.f, 260.f);
+    ui.setPosition(100.f, 260.f);
 
-    bounds = ui.getLocalBounds();
+    bounds = ui.getGlobalBounds();
     rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
     auto& mobBtn = TouchArea::create(rect);
 
@@ -425,6 +448,10 @@ void MainMenuScene::StartupTouchControls() {
           Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
           this->gotoNextScene = false;
         }
+    });
+
+    mobBtn.onTouch([this]() {
+        menuSelectionIndex = 3;
     });
 }
 

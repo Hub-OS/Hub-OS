@@ -1,5 +1,6 @@
 #include <Swoosh/ActivityController.h>
 #include "bnSelectMobScene.h"
+#include "Android/bnTouchArea.h"
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, ChipFolder& selectedFolder) :
   elapsed(0),
@@ -110,6 +111,10 @@ void SelectMobScene::onResume() {
   gotoNextScene = false;
   doOnce = true;
   showMob = true;
+
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
@@ -216,17 +221,20 @@ void SelectMobScene::onUpdate(double elapsed) {
           sf::Vector2i iCoords = sf::Vector2i((int) coords.x, (int) coords.y);
           touchPosition = iCoords;
 
-          if(!touchStart) {
+          canSwipe = false;
+
+          if(touchPosition.y < 400 && touchPosition.x < 290) {
+            if (!touchStart) {
               touchStart = true;
               touchPosStartX = touchPosition.x;
+            }
+
+            touchPosX = touchPosition.x;
           }
 
-          touchPosX = touchPosition.x;
-
           if(touchPosition.x <= 320) {
-              mobSpr.setPosition(110.0f - (touchPosStartX - touchPosX), 130.f);
-          } else {
-              canSwipe = false;
+            mobSpr.setPosition(110.0f - (touchPosStartX - touchPosX), 130.f);
+            canSwipe = true;
           }
       } else {
           canSwipe = false;
@@ -524,10 +532,18 @@ void SelectMobScene::onStart() {
   doOnce = true;
   showMob = true;
   gotoNextScene = false;
+
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
 }
 
 void SelectMobScene::onLeave() {
   textbox.Stop();
+
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
 
 void SelectMobScene::onExit() {
@@ -538,5 +554,40 @@ void SelectMobScene::onEnter() {
 }
 
 void SelectMobScene::onEnd() {
-
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
+
+#ifdef __ANDROID__
+void SelectMobScene::StartupTouchControls() {
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  this->releasedB = false;
+
+  rightSide.enableExtendedRelease(true);
+
+  rightSide.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+  });
+
+  rightSide.onRelease([this](sf::Vector2i delta) {
+      if(!this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      }
+  });
+
+  rightSide.onDrag([this](sf::Vector2i delta){
+      if(delta.x < -25 && !this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        this->releasedB = true;
+      }
+  });
+}
+
+void SelectMobScene::ShutdownTouchControls() {
+  TouchArea::free();
+}
+#endif

@@ -201,10 +201,13 @@ void AudioResourceManager::StopStream() {
 
 void AudioResourceManager::SetStreamVolume(float volume) {
   stream.setVolume(volume);
+  streamVolume = volume;
 }
 
 void AudioResourceManager::SetChannelVolume(float volume) {
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     channels[i].buffer.setVolume(volume);
   }
+
+  channelVolume = volume;
 }
