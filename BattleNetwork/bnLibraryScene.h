@@ -69,6 +69,19 @@ private:
    */
   void MakeUniqueChipsFromPack();
 
+#ifdef __ANDROID__
+    bool canSwipe;
+    bool touchStart;
+
+    int touchPosX;
+    int touchPosStartX;
+
+    bool releasedB;
+
+    void StartupTouchControls();
+    void ShutdownTouchControls();
+#endif
+
 public:
   /**
    * @brief Forces chip desc to fit the chipHolder area

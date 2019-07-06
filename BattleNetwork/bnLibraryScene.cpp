@@ -6,6 +6,7 @@
 #include "bnLibraryScene.h"
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
+#include "Android/bnTouchArea.h"
 
 #include <SFML/Graphics.hpp>
 #include <cmath>
@@ -101,6 +102,10 @@ LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
 
 #ifdef __ANDROID__
 maxSelectInputCooldown = 0.1;
+canSwipe = false;
+releasedB = false;
+touchStart = false;
+touchPosX = touchPosStartX = -1;
 #endif
 
   selectInputCooldown = maxSelectInputCooldown;
@@ -197,9 +202,18 @@ void LibraryScene::onStart() {
   ENGINE.SetCamera(camera);
 
   gotoNextScene = false;
+
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
 }
 
 void LibraryScene::onUpdate(double elapsed) {
+#ifdef __ANDROID__
+  if(gotoNextScene)
+    return; // keep the screen looking the same when we come into
+#endif
+
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
@@ -288,10 +302,13 @@ void LibraryScene::onUpdate(double elapsed) {
       getController().queuePop<segue>();
     }
   }
+
 }
 
 void LibraryScene::onLeave() {
-
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
 
 void LibraryScene::onExit()
@@ -303,7 +320,9 @@ void LibraryScene::onEnter()
 }
 
 void LibraryScene::onResume() {
-
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
 }
 
 void LibraryScene::onDraw(sf::RenderTexture& surface) {
@@ -396,4 +415,40 @@ void LibraryScene::onEnd() {
   delete menuLabel;
   delete numberLabel;
   delete chipDesc;
+
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
+
+
+#ifdef __ANDROID__
+void LibraryScene::StartupTouchControls() {
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  rightSide.enableExtendedRelease(true);
+
+  rightSide.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+  });
+
+  rightSide.onRelease([this](sf::Vector2i delta) {
+      if(!this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      }
+  });
+
+  rightSide.onDrag([this](sf::Vector2i delta){
+      if(delta.x < -25 && !this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        this->releasedB = true;
+      }
+  });
+}
+
+void LibraryScene::ShutdownTouchControls() {
+  TouchArea::free();
+}
+#endif

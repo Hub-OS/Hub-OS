@@ -183,7 +183,7 @@ namespace Battle {
     // Hack to toggle between team color without rewriting redundant code
     auto currTeam = team;
     auto otherTeam = (team == Team::UNKNOWN)? Team::UNKNOWN : (team == Team::RED)? Team::BLUE : Team::RED;
-    ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown < flickerTeamCooldownLength) ? currTeam = otherTeam : currTeam;
+    //((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown < flickerTeamCooldownLength) ? currTeam = otherTeam : currTeam;
 
     if (state == TileState::NORMAL) {
       if (currTeam == Team::BLUE) {

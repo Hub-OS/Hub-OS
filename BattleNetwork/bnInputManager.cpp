@@ -482,12 +482,21 @@ const std::string InputManager::GetInputBuffer()
 }
 
 void InputManager::HandleInputBuffer(sf::Event e) {
+  Logger::Log(std::string("e.KeyPressed: ") + std::to_string(e.KeyPressed) + " e.key.code: " + std::to_string(e.key.code));
+
   if ((e.KeyPressed && e.key.code == sf::Keyboard::BackSpace) || (e.text.unicode == 8 && inputBuffer.size() != 0)) {
     inputBuffer.pop_back();
-  }
-  else if (e.text.unicode < 128 && e.text.unicode != 8) {
-    //std::cout << e.text.unicode << std::endl;
-    inputBuffer.push_back((char)e.text.unicode);
+  } else if(e.text.unicode < 128 && e.text.unicode != 8) {
+      //std::cout << e.text.unicode << std::endl;
+
+#ifdef __ANDROID__
+      if(e.text.unicode == 10) {
+        VirtualKeyEvent(InputEvent::RELEASED_B);
+        return;
+      }
+#endif
+
+      inputBuffer.push_back((char)e.text.unicode);
   }
 }
 

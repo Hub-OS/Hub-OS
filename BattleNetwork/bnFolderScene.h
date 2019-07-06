@@ -66,6 +66,7 @@ private:
 
   int currFolderIndex;
   int selectedFolderIndex;
+  int lastFolderIndex;
 
   int maxChipsOnScreen; /*!< The number of chips to display max in box area */
   int currChipIndex; /*!< Current index in current folder */
@@ -81,6 +82,19 @@ private:
   int optionIndex; /*!< Index for menu state options when at the prompt menu */
   bool promptOptions; /*!< Flag for menu state when selecting a folder to edit */
   bool enterText; /*!< Flag for user state when editting folders */
+
+#ifdef __ANDROID__
+    bool canSwipe;
+    bool touchStart;
+
+    int touchPosX;
+    int touchPosStartX;
+
+    bool releasedB;
+
+    void StartupTouchControls();
+    void ShutdownTouchControls();
+#endif
 
 public:
   virtual void onStart();

@@ -81,8 +81,6 @@ void Bubble::OnUpdate(float _elapsed) {
   }
 
   GetTile()->AffectEntities(this);
-
-  Entity::Update(_elapsed);
 }
 
 bool Bubble::CanMoveTo(Battle::Tile* tile) {

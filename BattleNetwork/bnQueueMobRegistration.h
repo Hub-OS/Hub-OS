@@ -31,6 +31,14 @@ void QueueMobRegistration() {
   info->SetAttack(10);
   info->SetHP(80);
 
+  info = MOBS.AddClass<TwoMettaurMob>();  // Create and register mob info object
+  info->SetDescription("Alpha is absorbing the net again!"); // Set property
+  info->SetPlaceholderTexturePath("resources/mobs/alpha/preview.png");
+  info->SetName("Alpha");
+  info->SetSpeed(0);
+  info->SetAttack(80);
+  info->SetHP(1000);
+
   info = MOBS.AddClass<StarfishMob>();  // Create and register mob info object
   info->SetDescription("Starfish can trap you in bubbles"); // Set property
   info->SetName("Bubble Battle");

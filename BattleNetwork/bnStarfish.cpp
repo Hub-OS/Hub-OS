@@ -21,6 +21,7 @@ Starfish::Starfish(Rank _rank)
   textureType = TextureType::MOB_STARFISH_ATLAS;
 
   animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Load();
   animationComponent->SetAnimation("IDLE");
 
   hitHeight = 0;

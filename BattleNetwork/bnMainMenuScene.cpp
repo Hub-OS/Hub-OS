@@ -88,6 +88,11 @@ void MainMenuScene::onStart() {
 }
 
 void MainMenuScene::onUpdate(double elapsed) {
+#ifdef __ANDROID__
+  if(gotoNextScene)
+    return; // keep the screen looking the same when we come back
+#endif
+
   // Update the map
   map->Update((float)elapsed);
 

@@ -661,9 +661,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
 
   if (!isPlayerDeleted && !summons.IsSummonActive()) {
-    chipUI.OnUpdate((float)elapsed); // DRAW
+    //chipUI.OnUpdate((float)elapsed); // DRAW
 
-    ENGINE.Draw(chipUI);
+    //ENGINE.Draw(chipUI);
   }
 
   if (isPreBattle) {

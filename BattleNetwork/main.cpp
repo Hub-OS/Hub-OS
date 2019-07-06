@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
 
   logoSprite.setTexture(*logo);
   logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);
-  sf::Vector2f logoPos = (sf::Vector2f)((sf::Vector2i)ENGINE.GetWindow()->getSize() / 2);
+  sf::Vector2f logoPos = sf::Vector2f(240.f, 160.f);
   logoSprite.setPosition(logoPos);
 
   // Log output text
@@ -598,7 +598,11 @@ int main(int argc, char** argv) {
     // Instead grab a copy of it first
     // So we can use it in screen transitions
     // provided by Swoosh Activity Controller
-  sf::Texture loadingScreenSnapshot;; // = ENGINE.GetRenderSurface().getTexture();
+  sf::Texture loadingScreenSnapshot = ENGINE.GetRenderSurface().getTexture();
+
+#ifdef __ANDROID__
+    loadingScreenSnapshot.flip(true);
+#endif
 
   // Cleanup
   ENGINE.RevokeShader();

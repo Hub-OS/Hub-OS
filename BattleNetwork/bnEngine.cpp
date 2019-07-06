@@ -13,14 +13,50 @@ Engine& Engine::GetInstance() {
 
 void Engine::Initialize() {
   view = sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320));
-  original = view; // never changes 
   cam = new Camera(view);
 
 #ifdef __ANDROID__
-  window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition");
+  auto videoMode = VideoMode::getFullscreenModes().front();
 #else
-  window = new RenderWindow(sf::VideoMode::getDesktopMode(), "Battle Network: Progs Edition");
+  auto videoMode = VideoMode::getDesktopMode();
 #endif
+
+  float windowRatio = videoMode.width / (float) videoMode.height;
+  float viewRatio = view.getSize().x / (float) view.getSize().y;
+  float sizeX = 1;
+  float sizeY = 1;
+  float posX = 0;
+  float posY = 0;
+
+  bool horizontalSpacing = true;
+  if (windowRatio < viewRatio) {
+      horizontalSpacing = false;
+  }
+
+  // If horizontalSpacing is true, the black bars will appear on the left and right side.
+  // Otherwise, the black bars will appear on the top and bottom.
+
+  if (horizontalSpacing) {
+      sizeX = viewRatio / windowRatio;
+      posX = (1 - sizeX) / 2.f;
+
+  } else {
+      sizeY = windowRatio / viewRatio;
+      posY = (1 - sizeY) / 2.f;
+  }
+
+  // Now that we have the ratios for the device, we request the smallest screen we can
+  videoMode.width = view.getSize().x;
+  videoMode.height = view.getSize().y;
+
+  view.setViewport( sf::FloatRect(posX, posY, sizeX, sizeY) );
+
+  // Logger::Log("first video mode was w: " + std::to_string(videoMode.width) + ", " + std::to_string(videoMode.height));
+
+  window = new RenderWindow(videoMode, "Battle Network: Progs Edition");
+  window->setView(view);
+
+  original = view; // never changes even when stretched. TODO: is this true?
 
   window->setFramerateLimit(60);
   window->setMouseCursorVisible(false); // Hide cursor
