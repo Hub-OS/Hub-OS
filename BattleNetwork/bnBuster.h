@@ -18,7 +18,7 @@ public:
   Buster(Field* _field, Team _team, bool _charged);
   virtual ~Buster();
 
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Moves across tiles in direction
@@ -43,4 +43,5 @@ private:
   float hitHeight;
   sf::Texture* texture;
   float progress;
+  AnimationComponent* animationComponent;
 };

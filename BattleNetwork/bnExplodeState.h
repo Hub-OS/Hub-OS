@@ -45,7 +45,6 @@ public:
 template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
- 
   explosion = nullptr;
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
@@ -84,7 +83,7 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
 
   /* If explosion is over, delete the entity*/
   if (explosion->IsDeleted()) {
-    e.TryDelete();
+    e.Delete();
   }
 }
 

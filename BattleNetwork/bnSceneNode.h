@@ -1,3 +1,4 @@
+
 /*! \brief SceneNodes are used for visually connected assets like aura's attached to entities 
  * 
  * Nodes attached are not handled by the parent node.
@@ -48,6 +49,18 @@ public:
    * @brief Show this node and all children nodes
    */
   void Reveal();
+
+  /**
+   * Query if node is hidden
+   * @return true if hidden, false otherwise
+   */
+  const bool IsHidden() const;
+
+  /**
+   * Query is node is visible
+   * @return false if hidden, true otherwise
+   */
+  const bool IsVisible() const;
 
   /**
    * @brief Sort the nodes by Ascending Z Order and draw the nodes

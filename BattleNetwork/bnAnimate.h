@@ -103,7 +103,7 @@ private:
   bool callbacksAreValid; /*!< Flag for queues. If false, all added callbacks are discarded. */
   
   void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
-  
+
 public:
   /**
    * @struct On
@@ -140,7 +140,6 @@ public:
     int playback;
     
     friend class Animate;
-
   public:
     static const char NoEffect = 0x00; /*!< Play once and stop */
     static const char Loop = 0x01; /*!< When it reaches the end, restarts animation and resumes */
@@ -175,7 +174,7 @@ public:
   /**
    * @brief Clears all callback functors
    */
-  void Clear() { 
+  void Clear() {
 	  callbacksAreValid = false;
 	  queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
 	  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; 
@@ -216,5 +215,4 @@ public:
    * @param sequence frame is pulled from list using index
    */
   void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence);
-
 };

@@ -16,8 +16,8 @@ Roll::Roll(void) : Player()
   team = Team::RED;
   this->SetElement(Element::BREAK);
 
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
 
   setTexture(*TEXTURES.GetTexture(TextureType::NAVI_ROLL_ATLAS));
 

@@ -1,7 +1,8 @@
 #pragma once
 #include "bnArtifact.h"
-#include "bnField.h"
 #include "bnAnimationComponent.h"
+
+class Field;
 
 /**
  * @class ElementalDamage
@@ -16,14 +17,14 @@ private:
   float progress;
 
 public:
-  ElementalDamage(Field* field, Team team);
+  ElementalDamage(Field* field);
   ~ElementalDamage();
 
   /**
    * @brief Grow and shrink quickly. Appear over the sprite.
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   virtual bool Move(Direction _direction) { return false; }
 
 };

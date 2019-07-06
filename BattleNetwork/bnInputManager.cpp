@@ -5,6 +5,12 @@ using sf::Keyboard;
 #include "bnInputManager.h"
 #include "bnDirection.h"
 
+#if defined(__ANDROID__)
+#include "Android/bnTouchArea.h"
+#include "bnAudioResourceManager.h"
+
+#endif
+
 // #include <iostream>
 
 #define GAMEPAD_1 0
@@ -48,6 +54,12 @@ void InputManager::Update() {
   while (ENGINE.GetWindow()->pollEvent(event)) {
     if (event.type == Event::Closed) {
       ENGINE.GetWindow()->close();
+    }
+
+    if(event.type == Event::LostFocus) {
+      AUDIO.EnableAudio(false);
+    } else if(event.type == Event::GainedFocus) {
+      AUDIO.EnableAudio(true);
     }
 
     if (event.type == sf::Event::TextEntered && this->captureInputBuffer) {
@@ -430,11 +442,18 @@ void InputManager::Update() {
 
   eventsLastFrame.clear();
 
-  // std::cout << "events size: " << events.size() << std::endl;
+#if defined(__ANDROID__)
+    events.clear(); // TODO: what inputs get stuck in the event list on droid?
+    TouchArea::poll();
+#endif
 }
 
 bool InputManager::Has(InputEvent _event) {
   return events.end() != find(events.begin(), events.end(), _event);
+}
+
+void InputManager::VirtualKeyEvent(InputEvent event) {
+  events.push_back(event);
 }
 
 bool InputManager::Empty() {
@@ -463,12 +482,21 @@ const std::string InputManager::GetInputBuffer()
 }
 
 void InputManager::HandleInputBuffer(sf::Event e) {
-  if (e.KeyPressed == sf::Keyboard::BackSpace || (e.text.unicode == 8) && inputBuffer.size() != 0) {
+  Logger::Log(std::string("e.KeyPressed: ") + std::to_string(e.KeyPressed) + " e.key.code: " + std::to_string(e.key.code));
+
+  if ((e.KeyPressed && e.key.code == sf::Keyboard::BackSpace) || (e.text.unicode == 8 && inputBuffer.size() != 0)) {
     inputBuffer.pop_back();
-  }
-  else if (e.text.unicode < 128 && e.text.unicode != 8) {
-    //std::cout << e.text.unicode << std::endl;
-    inputBuffer.push_back((char)e.text.unicode);
+  } else if(e.text.unicode < 128 && e.text.unicode != 8) {
+      //std::cout << e.text.unicode << std::endl;
+
+#ifdef __ANDROID__
+      if(e.text.unicode == 10) {
+        VirtualKeyEvent(InputEvent::RELEASED_B);
+        return;
+      }
+#endif
+
+      inputBuffer.push_back((char)e.text.unicode);
   }
 }
 

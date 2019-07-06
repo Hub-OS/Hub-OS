@@ -23,7 +23,7 @@ private:
   Direction direction; /*!< Direction to move */
 
   // Frame select through animation system
-  AnimationComponent animationComponent;
+  AnimationComponent* animationComponent;
 public:
   CanodumbCursor(Field* _field, Team _team, Canodumb* _parent);
   ~CanodumbCursor();
@@ -32,7 +32,7 @@ public:
    * @brief If tile is same as target, tells cannon to attack. Otherwise tries to move
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Legacy code. The cursor should be using this...
@@ -41,5 +41,3 @@ public:
    */
   virtual bool Move(Direction _direction) { return false; }
 };
-
-

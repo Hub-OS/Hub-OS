@@ -1,6 +1,10 @@
 #pragma once
 #include <vector>
 #include <map>
+#include <SFML/Window/Event.hpp>
+
+using std::map;
+using std::vector;
 
 #include "bnInputEvent.h"
 #include "bnChronoXConfigReader.h"
@@ -99,6 +103,14 @@ public:
    * After being set, the buffer can be deleted with backspace or modified by typing
    */
   void SetInputBuffer(std::string buff);
+
+  /**
+   * @brief fires a key press manually
+   * @param event key event to fire
+   *
+   * Used best on android where the virtual touch pad areas must map to keys
+   */
+  void VirtualKeyEvent(InputEvent event);
 
 private:
   bool captureInputBuffer; /*!< Flags input buffer capture state */

@@ -4,7 +4,6 @@
 
 #include <functional>
 
-
 /**
  * @class BattleOverTrigger
  * @author mav
@@ -39,7 +38,7 @@ public:
    * @brief Polls until the scene is clear and then triggers once.
    * @param _elapsed
    */
-  void Update(float _elapsed) {
+  void OnUpdate(float _elapsed) {
     if (callback && this->GetOwner() && scene) {
       if (this->scene->IsCleared()) {
         // Cast back to type T

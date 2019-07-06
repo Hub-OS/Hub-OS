@@ -1,16 +1,14 @@
 #include "bnNinjaStar.h"
+#include "bnTile.h"
+
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include <cmath>
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_duration), Spell() {
-  SetLayer(0);
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
+NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_duration), Spell(_field, _team) {
+  SetLayer(0);;
   
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_NINJA_STAR);
   setTexture(*texture);
@@ -48,7 +46,7 @@ NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_dur
 NinjaStar::~NinjaStar() {
 }
 
-void NinjaStar::Update(float _elapsed) {
+void NinjaStar::OnUpdate(float _elapsed) {
   double beta = swoosh::ease::linear(progress, duration, 1.0);
 
   // interpolate from top of screen to the target tile spot

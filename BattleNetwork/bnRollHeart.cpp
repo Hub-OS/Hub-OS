@@ -10,7 +10,7 @@
 
 #define RESOURCE_PATH "resources/spells/spell_heart.animation"
 
-RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spell()
+RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spell(_summons->GetCaller()->GetField(), _summons->GetCallerTeam())
 {
   summons = _summons;
 
@@ -19,12 +19,6 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spel
   SetPassthrough(true);
   EnableTileHighlight(true);
 
-  field = summons->GetCaller()->GetField();
-  team = summons->GetCallerTeam();
-
-  direction = Direction::NONE;
-  deleted = false;
-
   height = 200;
 
   Battle::Tile* _tile = summons->GetCaller()->GetTile();
@@ -32,9 +26,11 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spel
   this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation("HEART");
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
+  animationComponent->SetAnimation("HEART");
   this->Update(0);
 
   doOnce = true;
@@ -43,8 +39,7 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spel
 RollHeart::~RollHeart() {
 }
 
-void RollHeart::Update(float _elapsed) {
-  animationComponent.Update(_elapsed);
+void RollHeart::OnUpdate(float _elapsed) {
 
   if (tile != nullptr) {
     setPosition(tile->getPosition().x + (tile->GetWidth() / 2.0f), tile->getPosition().y - height + (tile->GetHeight() / 2.0f));
@@ -57,6 +52,7 @@ void RollHeart::Update(float _elapsed) {
   if (height == 0 && doOnce) {
     AUDIO.Play(AudioType::RECOVER);
     doOnce = false;
+
     this->setColor(sf::Color(255, 255, 255, 0)); // hide
     caller->SetHealth(caller->GetHealth() + heal);
     

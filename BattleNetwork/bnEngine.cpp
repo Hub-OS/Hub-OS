@@ -3,6 +3,8 @@
 #include <SFML/Window/ContextSettings.hpp>
 
 #include "mmbn.ico.c"
+#include "bnShaderType.h"
+#include "bnShaderResourceManager.h"
 
 Engine& Engine::GetInstance() {
   static Engine instance;
@@ -11,13 +13,51 @@ Engine& Engine::GetInstance() {
 
 void Engine::Initialize() {
   view = sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320));
-  original = view; // never changes 
   cam = new Camera(view);
 
-  sf::ContextSettings ctx;
-  ctx.antialiasingLevel = 8;
+#ifdef __ANDROID__
+  auto videoMode = VideoMode::getFullscreenModes().front();
+#else
+  auto videoMode = VideoMode::getDesktopMode();
+#endif
 
-  window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition", 7U, ctx);
+  float windowRatio = videoMode.width / (float) videoMode.height;
+  float viewRatio = view.getSize().x / (float) view.getSize().y;
+  float sizeX = 1;
+  float sizeY = 1;
+  float posX = 0;
+  float posY = 0;
+
+  bool horizontalSpacing = true;
+  if (windowRatio < viewRatio) {
+      horizontalSpacing = false;
+  }
+
+  // If horizontalSpacing is true, the black bars will appear on the left and right side.
+  // Otherwise, the black bars will appear on the top and bottom.
+
+  if (horizontalSpacing) {
+      sizeX = viewRatio / windowRatio;
+      posX = (1 - sizeX) / 2.f;
+
+  } else {
+      sizeY = windowRatio / viewRatio;
+      posY = (1 - sizeY) / 2.f;
+  }
+
+  // Now that we have the ratios for the device, we request the smallest screen we can
+  videoMode.width = view.getSize().x;
+  videoMode.height = view.getSize().y;
+
+  view.setViewport( sf::FloatRect(posX, posY, sizeX, sizeY) );
+
+  // Logger::Log("first video mode was w: " + std::to_string(videoMode.width) + ", " + std::to_string(videoMode.height));
+
+  window = new RenderWindow(videoMode, "Battle Network: Progs Edition");
+  window->setView(view);
+
+  original = view; // never changes even when stretched. TODO: is this true?
+
   window->setFramerateLimit(60);
   window->setMouseCursorVisible(false); // Hide cursor
 
@@ -31,7 +71,11 @@ void Engine::Draw(Drawable& _drawable, bool applyShaders) {
   if (!HasRenderSurface()) return;
 
   if (applyShaders) {
-    surface->draw(_drawable, state);
+    auto stateCopy = state;
+    if(!stateCopy.shader) {
+      stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    }
+    surface->draw(_drawable, stateCopy);
   } else {
     surface->draw(_drawable);
   }
@@ -45,7 +89,11 @@ void Engine::Draw(Drawable* _drawable, bool applyShaders) {
   }
 
   if (applyShaders) {
-    surface->draw(*_drawable, state);
+    auto stateCopy = state;
+    if(!stateCopy.shader) {
+      stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    }
+    surface->draw(*_drawable, stateCopy);
   } else {
     surface->draw(*_drawable);
   }
@@ -167,7 +215,11 @@ const sf::Vector2f Engine::GetViewOffset() {
 void Engine::SetShader(sf::Shader* shader) {
 
   if (shader == nullptr) {
-    state = sf::RenderStates::Default;
+    state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+
+    if(HasRenderSurface()) {
+      surface->setDefaultShader(SHADERS.GetShader(ShaderType::DEFAULT));
+    }
   } else {
     state.shader = shader;
   }

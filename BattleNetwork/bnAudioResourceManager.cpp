@@ -40,6 +40,14 @@ AudioResourceManager::~AudioResourceManager() {
 
 void AudioResourceManager::EnableAudio(bool status) {
   isEnabled = status;
+
+  if(isEnabled) {
+    this->SetStreamVolume(this->streamVolume);
+    this->SetChannelVolume(this->channelVolume);
+  } else {
+    this->SetStreamVolume(0);
+    this->SetChannelVolume(0);
+  }
 }
 
 void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
@@ -168,7 +176,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   return -1;
 }
 
-int AudioResourceManager::Stream(std::string path, bool loop) {
+int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpan span) {
   if (!isEnabled) { return -1; }
 
   // stop previous stream if any 
@@ -180,6 +188,10 @@ int AudioResourceManager::Stream(std::string path, bool loop) {
   stream.play();
   stream.setLoop(loop);
 
+  if(loop) {
+    stream.setLoopPoints(span);
+  }
+
   return 0;
 }
 
@@ -189,10 +201,13 @@ void AudioResourceManager::StopStream() {
 
 void AudioResourceManager::SetStreamVolume(float volume) {
   stream.setVolume(volume);
+  streamVolume = volume;
 }
 
 void AudioResourceManager::SetChannelVolume(float volume) {
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     channels[i].buffer.setVolume(volume);
   }
+
+  channelVolume = volume;
 }

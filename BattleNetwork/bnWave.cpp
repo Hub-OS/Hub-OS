@@ -5,25 +5,31 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
+Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   SetLayer(0);
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
+
   setTexture(*TEXTURES.GetTexture(TextureType::SPELL_WAVE));
   this->speed = speed;
 
   //Components setup and load
   auto onFinish = [this]() {
-    if (Move(direction)) {
-      AUDIO.Play(AudioType::WAVE);
+    this->Delete();
+    if(this->GetTile()->GetX() > 1) {
+        auto* wave = new Wave(this->GetField(), this->GetTeam(), this->speed);
+        wave->SetDirection(this->GetDirection());
+
+        this->GetField()->AddEntity(*wave, GetTile()->GetX()-1, GetTile()->GetY());
     }
   };
 
-  animation = Animation("resources/spells/spell_wave.animation");
-  animation.SetAnimation("DEFAULT");
-  animation << Animate::Mode::Loop << onFinish;
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+
+  animation->Setup("resources/spells/spell_wave.animation");
+  animation->Load();
+  animation->SetAnimation("DEFAULT", Animate::Mode::Loop, onFinish);
+  animation->SetPlaybackSpeed(speed);
+  animation->OnUpdate(0);
 
   auto props = Hit::DefaultProperties;
   props.damage = 10;
@@ -34,55 +40,26 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
   EnableTileHighlight(true);
 }
 
-Wave::~Wave(void) {
+Wave::~Wave() {
 }
 
-void Wave::Update(float _elapsed) {
+void Wave::OnUpdate(float _elapsed) {
+Logger::Log(std::string("wave team: ") + std::to_string((int)GetTeam()));
+
   int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
-  setPosition(tile->getPosition().x, tile->getPosition().y);
+  setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
 
-  animation.Update(_elapsed, *this);
-
-  if (!this->IsDeleted()) {
-    tile->AffectEntities(this);
-  }
-
-  Entity::Update(_elapsed);
+  tile->AffectEntities(this);
 }
 
 bool Wave::Move(Direction _direction) {
-  // Drop a shared hitbox when moving
-  SharedHitBox* shb = new SharedHitBox(this, 1.0f/60.0f);
-  GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());
-  
-  tile->RemoveEntityByID(this->GetID());
-  Battle::Tile* next = nullptr;
-
-  if (_direction == Direction::LEFT) {
-    if (tile->GetX() - 1 > 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY());
-    }
-  } else if (_direction == Direction::RIGHT) {
-    if (tile->GetX() + 1 <= (int)field->GetWidth()) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY());
-    }
-  }
-
-  if (next && next->IsWalkable()) {
-    next->AddEntity(*this);
-    
-    return true;
-  }
-
-  // If our next tile pointer is invalide, we cannot move
-  // and must mark ourselves for deletion
-  tile->RemoveEntityByID(this->GetID());
-  this->Delete();
   return false;
 }
 
 void Wave::Attack(Character* _entity) {
+  Logger::Log("wave attack");
+
   _entity->Hit(GetHitboxProperties());
 }

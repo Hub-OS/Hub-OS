@@ -7,22 +7,25 @@ using sf::IntRect;
 #include "bnLogger.h"
 #include "bnEntity.h"
 
-AnimationComponent::AnimationComponent(Entity* _entity) {
-  entity = _entity;
+AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
   speed = 1.0;
 }
 
 AnimationComponent::~AnimationComponent() {
 }
 
-void AnimationComponent::Update(float _elapsed)
+void AnimationComponent::OnUpdate(float _elapsed)
 {
-  animation.Update(_elapsed, *entity, speed);
+  animation.Update(_elapsed, *GetOwner(), speed);
 }
 
 void AnimationComponent::Setup(string _path)
 {
   path = _path;
+}
+
+void AnimationComponent::Load() {
+  this->Reload();
 }
 
 void AnimationComponent::Reload() {
@@ -55,7 +58,7 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, std::func
   animation.SetAnimation(state);
   animation << playbackMode << onFinish;
 
-  // See line 49
+  // See line 49 in this file
   // animation.Refresh(*entity);
 }
 

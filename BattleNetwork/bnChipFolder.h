@@ -106,6 +106,8 @@ public:
 
       folder.folderList.push_back(new Chip(*(iter)));
     }
+
+    return folder;
   }
 };
 

@@ -187,7 +187,7 @@ public:
    * @return 
    */
   const sf::Vector2f GetOffset() const { return custSprite.getPosition() - sf::Vector2f(-custSprite.getTextureRect().width*2.f, 0.f); } // TODO: Get rid. See BattleScene.cpp line 241
-  
+
   /**
    * @brief Draws GUI and all child graphics on it
    * @param target

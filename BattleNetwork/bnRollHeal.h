@@ -7,6 +7,7 @@
 #pragma once
 
 #include "bnSpell.h"
+#include "bnAnimationComponent.h"
 
 class ChipSummonHandler;
 
@@ -30,7 +31,7 @@ public:
    * @brief Updates the animation
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move
@@ -38,7 +39,7 @@ public:
    * @return false
    */
   virtual bool Move(Direction _direction);
-  
+
   /**
    * @brief Deals damage to enemy
    * @param _entity
@@ -49,4 +50,5 @@ private:
   int heal;
   int random;
   ChipSummonHandler* summons;
+  AnimationComponent* animationComponent;
 };

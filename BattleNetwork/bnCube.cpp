@@ -9,15 +9,17 @@ const int Cube::numOfAllowedCubesOnField = 2;
 int Cube::currCubeIndex = 0;
 int Cube::cubesRemovedCount = 0;
 
-Cube::Cube(Field* _field, Team _team) : animation(this), Obstacle(field, team) {
+Cube::Cube(Field* _field, Team _team) : Obstacle(field, team) {
   this->setTexture(LOAD_TEXTURE(MISC_CUBE));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);
   this->SetName("Cube");
   this->SetTeam(_team);
 
-  animation.Setup("resources/mobs/cube/cube.animation");
-  animation.Reload();
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+  animation->Setup("resources/mobs/cube/cube.animation");
+  animation->Reload();
 
   auto onfinish = [this]() { 
     if (this->GetTile()->GetState() == TileState::ICE) { 
@@ -28,23 +30,25 @@ Cube::Cube(Field* _field, Team _team) : animation(this), Obstacle(field, team) {
     { this->SetAnimation("NORMAL");  } 
   };
 
-  animation.SetAnimation("APPEAR", 0, onfinish);
+  animation->SetAnimation("APPEAR", 0, onfinish);
 
   this->SetHealth(200);
   this->timer = 100;
 
-  animation.Update(0);
+  animation->OnUpdate(0);
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
 
-  this->slideTime = sf::seconds(1.0f/15.0f);
+  this->SetSlideTime(sf::seconds(1.0f/15.0f));
 
   cubeIndex = ++currCubeIndex;
 
   hit = false;
+
+  this->previousDirection = Direction::NONE;
 }
 
-Cube::~Cube(void) {
+Cube::~Cube() {
   ++cubesRemovedCount;
 }
 
@@ -61,7 +65,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
 
         if (isCube && isCube->GetElement() == Element::ICE && this->GetElement() == Element::ICE) {
           isCube->SlideToTile(true);
-          Direction dir = this->direction;
+          Direction dir = this->GetDirection();
           isCube->Move(dir);
           stop = true;
         }
@@ -89,16 +93,16 @@ bool Cube::CanMoveTo(Battle::Tile * next)
   return false;
 }
 
-void Cube::Update(float _elapsed) {
-  if (IsDeleted()) return;
-
-  SetShader(nullptr);
+void Cube::OnUpdate(float _elapsed) {
+  if (!!IsSliding()) {
+    this->previousDirection = Direction::NONE;
+  }
 
   // May have just finished sliding
   this->tile->AffectEntities(this);
 
   // Keep momentum
-  if (!isSliding) {
+  if (!IsSliding()) {
       this->SlideToTile(true);
       this->Move(this->GetDirection());
   }
@@ -107,20 +111,8 @@ void Cube::Update(float _elapsed) {
     this->SetHealth(0);
   }
 
-  animation.Update(_elapsed);
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
-
-  Character::Update(_elapsed);
-
-  if (!isSliding) {
-    this->previousDirection = Direction::NONE;
-  }
-
   timer -= _elapsed;
-
-  if (GetHealth() <= 0) {
-    this->OnDelete(); // TODO: make this automatic callback from field cleanup
-  }
 }
 
 void Cube::OnDelete() {
@@ -136,20 +128,34 @@ void Cube::OnDelete() {
   AUDIO.Play(AudioType::PANEL_CRACK);
 }
 
-const bool Cube::Hit(Hit::Properties props) {
-  if (this->animation.GetAnimationString() == "APPEAR")
+const bool Cube::OnHit(const Hit::Properties props) {
+  // Teams cannot accidentally pull cube into their side
+  if(props.aggressor && (props.flags & Hit::drag) == Hit::drag){
+    if(props.aggressor->GetTeam() == Team::RED) {
+      if(props.drag == Direction::LEFT) {
+        // take damage anyway, skipping the Character::ResolveBattleStatus() step
+        this->SetHealth(this->GetHealth() - props.damage);
+
+        // Do not resolve battle step damage or extra status information
+        return false;
+      }
+    } else if(props.aggressor->GetTeam() == Team::BLUE) {
+      if(props.drag == Direction::RIGHT) {
+        // take damage anyway, skipping the Character::ResolveBattleStatus() step
+        this->SetHealth(this->GetHealth() - props.damage);
+
+        // Do not resolve battle step damage or extra status information
+        return false;
+      }
+    }
+  }
+
+  if (this->animation->GetAnimationString() == "APPEAR")
     return false;
-
-  int health = this->GetHealth() - props.damage;
-  if (health <= 0) health = 0;
-
-  this->SetHealth(health);
-
-  SetShader(whiteout);
 
   AUDIO.Play(AudioType::HURT);
   
-  return health;
+  return true;
 }
 
 void Cube::Attack(Character* other) {
@@ -177,5 +183,5 @@ void Cube::Attack(Character* other) {
 
 void Cube::SetAnimation(std::string animation)
 {
-  this->animation.SetAnimation(animation);
+  this->animation->SetAnimation(animation);
 }

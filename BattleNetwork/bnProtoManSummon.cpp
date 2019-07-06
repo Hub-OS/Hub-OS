@@ -1,5 +1,6 @@
 #include <random>
 #include <time.h>
+#include <algorithm>
 
 #include "bnProtoManSummon.h"
 #include "bnTile.h"
@@ -12,17 +13,11 @@
 
 #define RESOURCE_PATH "resources/spells/protoman_summon.animation"
 
-ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
+ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell(_summons->GetCaller()->GetField(), _summons->GetCaller()->GetTeam())
 {
   summons = _summons;
   SetPassthrough(true);
   EnableTileHighlight(false); // Do not highlight where we move
-
-  field = summons->GetCaller()->GetField();
-  team = summons->GetCaller()->GetTeam();
-
-  direction = Direction::NONE;
-  deleted = false;
   random = rand() % 20 - 20;
 
   int lr = (team == Team::RED) ? 1 : -1;
@@ -35,8 +30,11 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
   AUDIO.Play(AudioType::APPEAR);
 
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Load();
 
   Battle::Tile* next = nullptr;
 
@@ -64,12 +62,11 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell()
   }
 
   // TODO: noodely callbacks desgin might be best abstracted by ActionLists
-  animationComponent.SetAnimation("APPEAR", [this] {
+  animationComponent->SetAnimation("APPEAR", [this] {
 	auto handleAttack = [this] () {
 	    this->DoAttackStep();
     };
-
-    this->animationComponent.SetAnimation("MOVE", handleAttack);
+    this->animationComponent->SetAnimation("MOVE", handleAttack);
   });
 }
 
@@ -82,36 +79,30 @@ void ProtoManSummon::DoAttackStep() {
     this->GetTile()->RemoveEntityByID(this->GetID());
     prev->AddEntity(*this);
 
-	this->animationComponent.SetAnimation("ATTACK", [this, prev] {
-	  this->animationComponent.SetAnimation("MOVE", [this, prev] {
+	this->animationComponent->SetAnimation("ATTACK", [this, prev] {
+	  this->animationComponent->SetAnimation("MOVE", [this, prev] {
 		this->DoAttackStep();
 	  });
 	});
 
-	this->animationComponent.AddCallback(4,  [this]() {
+	this->animationComponent->AddCallback(4,  [this]() {
 		this->targets[0]->AffectEntities(this);
 		this->targets.erase(targets.begin());
 	}, std::function<void()>(), true);
-
   }
   else {
-	this->animationComponent.SetAnimation("MOVE", [this] {
+	this->animationComponent->SetAnimation("MOVE", [this] {
 	// TODO: queue for removal by next update, dont delete immediately
 	// esp during anim callbacks...
-	  //this->summons->RemoveEntity(this);
     this->Delete();
 	});
   }
 }
 
-void ProtoManSummon::Update(float _elapsed) {
+void ProtoManSummon::OnUpdate(float _elapsed) {
   if (tile != nullptr) {
     setPosition(tile->getPosition());
   }
-
-  Entity::Update(_elapsed);
-
-  animationComponent.Update(_elapsed);
 }
 
 bool ProtoManSummon::Move(Direction _direction) {
@@ -127,6 +118,7 @@ void ProtoManSummon::Attack(Character* _entity) {
   props.damage = 120;
   props.flags |= Hit::recoil;
   _entity->Hit(props);
+
 
   AUDIO.Play(AudioType::SWORD_SWING);
 }

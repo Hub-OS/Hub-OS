@@ -110,6 +110,7 @@ private:
   swoosh::Timer comboInfoTimer; /*!< How long the info should stay on screen */
   swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
   swoosh::Timer battleEndTimer; /*!< How long the end graphic should stay on screen */
+  swoosh::Timer multiDeleteTimer; /*!< Deletions start a 12 frame timer to count towards combos */
 
   /*
   Chips + Chip select setup*/
@@ -192,12 +193,15 @@ private:
   int lastMobSize; /*!< used to determine double/triple deletes with frame accuracy */
   int totalCounterMoves; /*!< Track player's counters. Used for ranking. */
   int totalCounterDeletions; /*!< Track player's counter-deletions. Used for ranking. */
+  int comboDeleteCounter; /*!< Deletions within 12 frames triggers double or triple deletes. */
 
   double summonTimer; /*!< Timer for TFC label to appear at top */
   bool showSummonText; /*!< Whether or not TFC label should appear */
   double summonTextLength; /*!< How long TFC label should stay on screen */
-
-  // Special: Load shaders if supported 
+  bool showSummonBackdrop; /*!< Dim screen and show new backdrop if applicable */
+  double showSummonBackdropLength; /*!< How long the dim should last */
+  double showSummonBackdropTimer; /*!< If > 0, the state is in effect else change state */
+    // Special: Load shaders if supported
   double shaderCooldown;
 
   sf::Shader& pauseShader; /*!< Dim screen */
@@ -231,6 +235,13 @@ private:
    * @param aggressor who caused the counter
    */
   virtual void OnCounter(Character& victim, Character& aggressor);
+
+#ifdef __ANDROID__
+  void SetupTouchControls();
+  void ShutdownTouchControls();
+
+  bool releasedB;
+#endif
 
 public:
 

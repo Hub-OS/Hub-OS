@@ -1,8 +1,9 @@
+
 /*! \brief Spawns a bullet and goes to ProgsManIdleState */
 
 #pragma once
-#include "bnTile.h"
-#include "bnField.h"
+#include "bnAIState.h"
+
 class ProgsMan;
 
 class ProgsManShootState : public AIState<ProgsMan>

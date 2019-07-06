@@ -2,7 +2,7 @@
 #include <cmath>
 
 AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos)
-    : textArea(textArea), totalTime(0), textBox(280, 40, 24, "resources/fonts/NETNAVI_4-6_V3.ttf") {
+    : textArea(), totalTime(0), textBox(280, 40, 24, "resources/fonts/NETNAVI_4-6_V3.ttf") {
     frame = sf::Sprite(LOAD_TEXTURE(ANIMATED_TEXT_BOX));
     nextCursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_NEXT_CURSOR));
     selectCursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_CURSOR));

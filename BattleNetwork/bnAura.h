@@ -80,7 +80,7 @@ public:
    * If the player is off of the field, toggle Hide
    * If the plaer is back on the field, Show
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Draws health using glyphs with correct margins

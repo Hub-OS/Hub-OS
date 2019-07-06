@@ -6,6 +6,7 @@
 #include "bnStringEncoder.h"
 #include "bnNoState.h"
 #include "bnMob.h"
+#include "bnMobHealthUI.h"
 
 /*! \brief This class handles the semantics of spawning a special character type.
  * 
@@ -83,7 +84,7 @@ public:
 
 /*! \brief Spawn a character with a rank 
  *  
- *  \cass RankedSpawnPolicty<T, DefaultState>
+ *  \cass RankedSpawnPolicty<T>
  * 
  * It also registers two specific callbacks in the battle intro: 
  * 1) PixelInState and 2) DefaultState
@@ -93,7 +94,7 @@ public:
  * Ranking affect enemy names and allows the programmer to change other aspects such as appearance
  * e.g. Mettaur, Mettaur2, CanodumbRare1, ProgsmanEX, etc...
 */
-template<class T, class DefaultState = NoState<T>>
+template<class T>
 class RankedSpawnPolicy : public SpawnPolicy<T> {
 protected:
     /**
@@ -115,7 +116,8 @@ protected:
 
       auto defaultStateInvoker = [](Character* character) { 
         T* agent = dynamic_cast<T*>(character); 
-        
+        using DefaultState = typename T::DefaultState;
+
         if (agent) { agent->template ChangeState<DefaultState>(); }
       };
 
@@ -131,16 +133,16 @@ protected:
 
 /*! \brief Special implementations of RankedSpawnPolicy
  * 
- *  \cass Rank1<T, DefaultState>
+ *  \cass Rank1<T>
  * 
  * Automatically constructs an entity with Rank1
  * Adds UI component
 */
 
-template<class T, class DefaultState = NoState<T>>
-class Rank1 : public RankedSpawnPolicy<T, DefaultState> {
+template<class T>
+class Rank1 : public RankedSpawnPolicy<T> {
 public:
-  Rank1(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
+  Rank1(Mob& mob) : RankedSpawnPolicy<T>(mob) {
     this->Spawn(new T(T::Rank::_1));
     Component* ui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);
@@ -149,17 +151,17 @@ public:
 
 /*! \brief Special implementations of RankedSpawnPolicy
  * 
- *  \cass Rank2<T, DefaultState>
+ *  \cass Rank2<T>
  * 
  * Automatically constructs an entity with Rank2
  * Adds UI component
 */
 
-template<class T, class DefaultState = NoState<T>>
-class Rank2 : public RankedSpawnPolicy<T, DefaultState> {
+template<class T>
+class Rank2 : public RankedSpawnPolicy<T> {
   public:
 
-  Rank2(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
+  Rank2(Mob& mob) : RankedSpawnPolicy<T>(mob) {
     this->Spawn(new T(T::Rank::_2));
     Component* ui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);
@@ -168,17 +170,16 @@ class Rank2 : public RankedSpawnPolicy<T, DefaultState> {
 
 /*! \brief Special implementations of RankedSpawnPolicy
  * 
- *  \cass Rank3<T, DefaultState>
+ *  \cass Rank3<T>
  * 
  * Automatically constructs an entity with Rank3
  * Adds UI component
 */
-
-template<class T, class DefaultState = NoState<T>>
-class Rank3 : public RankedSpawnPolicy<T, DefaultState> {
+template<class T>
+class Rank3 : public RankedSpawnPolicy<T> {
   public:
 
-  Rank3(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
+  Rank3(Mob& mob) : RankedSpawnPolicy<T>(mob) {
     this->Spawn(new T(T::Rank::_3));
     Component* ui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);
@@ -187,17 +188,17 @@ class Rank3 : public RankedSpawnPolicy<T, DefaultState> {
 
 /*! \brief Special implementations of RankedSpawnPolicy
  * 
- *  \cass RankSP<T, DefaultState>
+ *  \cass RankSP<T>
  * 
  * Automatically constructs an entity with RankSP
  * Adds UI component
 */
 
-template<class T, class DefaultState = NoState<T>>
-class RankSP : public RankedSpawnPolicy<T, DefaultState> {
+template<class T>
+class RankSP : public RankedSpawnPolicy<T> {
 public:
 
-  RankSP(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
+  RankSP(Mob& mob) : RankedSpawnPolicy<T>(mob) {
     this->Spawn(new T(T::Rank::SP));
     this->GetSpawned()->SetName(SP(this->GetSpawned()->GetName()));
     Component* ui = new MobHealthUI(this->GetSpawned());
@@ -207,17 +208,17 @@ public:
 
 /*! \brief Special implementations of RankedSpawnPolicy
  * 
- *  \cass RankEX<T, DefaultState>
+ *  \cass RankEX<T>
  * 
  * Automatically constructs an entity with RankEX
  * Adds UI component
 */
 
-template<class T, class DefaultState = NoState<T>>
-class RankEX : public RankedSpawnPolicy<T, DefaultState> {
+template<class T>
+class RankEX : public RankedSpawnPolicy<T> {
 public:
 
-  RankEX(Mob& mob) : RankedSpawnPolicy<T, DefaultState>(mob) {
+  RankEX(Mob& mob) : RankedSpawnPolicy<T>(mob) {
     this->Spawn(new T(T::Rank::EX));
     this->GetSpawned()->SetName(EX(this->GetSpawned()->GetName()));
     Component* ui = new MobHealthUI(this->GetSpawned());

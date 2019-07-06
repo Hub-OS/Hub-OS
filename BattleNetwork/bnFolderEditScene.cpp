@@ -9,6 +9,7 @@
 #include "bnFolderEditScene.h"
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
+#include "Android/bnTouchArea.h"
 
 #include <SFML/Graphics.hpp>
 using sf::RenderWindow;
@@ -344,3 +345,35 @@ void FolderEditScene::onEnd() {
   delete numberLabel;
   delete chipDesc;
 }
+
+
+#ifdef __ANDROID__
+void FolderEditScene::StartupTouchControls() {
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  rightSide.enableExtendedRelease(true);
+
+  rightSide.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+  });
+
+  rightSide.onRelease([this](sf::Vector2i delta) {
+      if(!this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      }
+  });
+
+  rightSide.onDrag([this](sf::Vector2i delta){
+      if(delta.x < -25 && !this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        this->releasedB = true;
+      }
+  });
+}
+
+void FolderEditScene::ShutdownTouchControls() {
+  TouchArea::free();
+}
+#endif

@@ -59,8 +59,7 @@ public:
   template<class U>
   void ChangeState() {
     if (nextState) { delete nextState; }
-
-    nextState = new U();
+        nextState = new U();
   }
 
   /**

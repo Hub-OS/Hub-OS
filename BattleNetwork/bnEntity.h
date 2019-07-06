@@ -25,14 +25,13 @@ using std::string;
 #include "bnEngine.h"
 #include "bnTextureType.h"
 #include "bnElements.h"
+#include "bnComponent.h"
 
 namespace Battle {
   class Tile;
 }
 
 class Field;
-class Character;   // forward decl
-class Component;   // forward decl
 class BattleScene; // forward decl
 
 class Entity : public SpriteSceneNode {
@@ -42,7 +41,7 @@ class Entity : public SpriteSceneNode {
 
 private:
   long ID;              /**< IDs are used for tagging during battle & to identify entities in scripting. */
-  static long numOfIDs; /**< Interal counter to identify the next entity with. */
+  static long numOfIDs; /**< Internal counter to identify the next entity with. */
   int alpha;            /**< Control the transparency of an entity. */
   long lastComponentID; /**< Entities keep track of new components to run through scene injection later. */
 
@@ -295,11 +294,18 @@ public:
   const bool IsBattleActive();
 
   /**
-   * @brief Get a component that matches the Type
+   * @brief Get the first component that matches the exact Type
    * @return null if no component is found, otherwise returns the component
    */
   template<typename Type>
-  Type* GetComponent();   // TODO: GetComponents<>() and GetFirstComponent<>()
+  Type* GetFirstComponent();
+
+    /**
+   * @brief Get all components that matches the exact Type
+   * @return vector of specified components
+   */
+  template<typename Type>
+  std::vector<Type*> GetComponents();
 
   /**
    * @brief Attaches a component to an entity
@@ -321,21 +327,36 @@ public:
   void FreeComponentByID(long ID);
 
 protected:
-  bool isBattleActive; 
-  bool ownedByField; /**< Must delete the entity manual if not owned by the field. */
   Battle::Tile* next; /**< Pointer to the next tile */
   Battle::Tile* tile; /**< Current tile pointer */
   Battle::Tile* previous; /**< Entities retain a previous pointer in case they need to be moved back */
   sf::Vector2f tileOffset; /**< All entities draw at the center of the tile + tileOffset*/
-  sf::Vector2f slideStartPosition; /**< Used interally when sliding*/
+  sf::Vector2f slideStartPosition; /**< Used internally when sliding*/
   Field* field;
   Team team;
   Element element;
+
+  std::vector<Component*> components; /**< List of all components attached to this entity*/
+
+  void SetSlideTime(sf::Time time);
+
+  void CancelSlide() {
+      cancelSlide = true;
+  }
+
+  const int GetMoveCount() const {
+      return this->moveCount;
+  }
+
+private:
+  bool isBattleActive;
+  bool ownedByField; /**< Must delete the entity manual if not owned by the field. */
   bool passthrough;
   bool floatShoe;
   bool airShoe;
-  bool isSliding; /**< If sliding/gliding to a tile */
+  bool isSliding; /*!< If sliding/gliding to a tile */
   bool deleted;
+  bool cancelSlide; /*!< If should cancel slide this frame */
   int moveCount; /**< Used by battle results */
   sf::Time slideTime; /**< how long slide behavior lasts */
   sf::Time defaultSlideTime; /**< If slidetime is modified by outside source, the slide to return back to */
@@ -343,27 +364,34 @@ protected:
   Direction direction;
   Direction previousDirection;
 
-  std::vector<Component*> shared; /**< List of all components attached to this entity*/
-
-private:
-
-  /**
+    /**
    * @brief Used internally before moving and updates the start position vector used in the sliding motion
    */
   void UpdateSlideStartPosition();
 };
 
 template<typename Type>
-inline Type* Entity::GetComponent()
+inline Type* Entity::GetFirstComponent()
 {
-  for (vector<Component*>::iterator it = shared.begin(); it != shared.end(); ++it) {
-    Type* to_type = dynamic_cast<Type*>(*it);
-
-    if (to_type != nullptr) {
-      return to_type;
+  for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
+    if (typeid(*(*it)) == typeid(Type)) {
+      return dynamic_cast<Type*>(*it);
     }
   }
 
   return nullptr;
 }
 
+template<typename Type>
+inline std::vector<Type*> Entity::GetComponents()
+{
+  auto res = std::vector<Type*>();
+
+  for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
+    if (typeid(*(*it)) == typeid(Type)) {
+      res.push_back(dynamic_cast<Type*>(*it));
+    }
+  }
+
+  return res;
+}

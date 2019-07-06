@@ -23,7 +23,6 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   
   font.setTexture(LOAD_TEXTURE(AURA_NUMSET));
   font.setScale(1.f, 1.f);
-
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
   animation.Reload();
@@ -75,7 +74,7 @@ void Aura::Inject(BattleScene& bs) {
 
 }
 
-void Aura::Update(float _elapsed) {
+void Aura::OnUpdate(float _elapsed) {
   currHP = health;
   
   if(!persist) {

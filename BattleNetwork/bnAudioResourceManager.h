@@ -40,7 +40,7 @@ public:
   static AudioResourceManager& GetInstance();
 
   /**
-   * @brief If true, plays audio. If false, mute all audio
+   * @brief If true, plays audio. If false, does not play audio
    * @param status
    */
   void EnableAudio(bool status);
@@ -65,7 +65,7 @@ public:
    * @return -1 if could not play, otherwise 0
    */
   int Play(AudioType type, AudioPriority priority = AudioPriority::LOW);
-  int Stream(std::string path, bool loop = false);
+  int Stream(std::string path, bool loop = false, sf::Music::TimeSpan span = sf::Music::TimeSpan());
   void StopStream();
   void SetStreamVolume(float volume);
   void SetChannelVolume(float volume);

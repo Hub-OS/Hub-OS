@@ -1,8 +1,8 @@
 /*! \brief Progsman punches and pushes anything in front of him */
 
 #pragma once
-#include "bnTile.h"
-#include "bnField.h"
+#include "bnAIState.h"
+
 class ProgsMan;
 
 class ProgsManPunchState : public AIState<ProgsMan>

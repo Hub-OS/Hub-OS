@@ -17,18 +17,19 @@
 #define BULLET_ANIMATION_WIDTH 30
 #define BULLET_ANIMATION_HEIGHT 27
 
-Cannon::Cannon(Field* _field, Team _team, int _damage) {
+Cannon::Cannon(Field* _field, Team _team, int _damage) : Spell(_field, _team){
   SetPassthrough(true);
 
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
   hit = false;
   progress = 0.0f;
-  srand((unsigned int)time(nullptr));
+
   random = rand() % 20 - 20;
 
+  if(_team == Team::RED) {
+    SetDirection(Direction::RIGHT);
+  } else {
+    SetDirection(Direction::LEFT);
+  }
   damage = _damage;
   //TODO: make new sprite animation for charged bullet
   texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
@@ -42,7 +43,7 @@ Cannon::Cannon(Field* _field, Team _team, int _damage) {
 Cannon::~Cannon() {
 }
 
-void Cannon::Update(float _elapsed) {
+void Cannon::OnUpdate(float _elapsed) {
   if (hit) {
     if (progress == 0.0f) {
       setTexture(*texture);
@@ -51,8 +52,7 @@ void Cannon::Update(float _elapsed) {
     progress += 3 * _elapsed;
     animator(fmin(progress, 1.0f), *this, animation);
     if (progress >= 1.f) {
-      deleted = true;
-      Entity::Update(_elapsed);
+      this->Delete();
     }
     return;
   }
@@ -61,11 +61,9 @@ void Cannon::Update(float _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    Move(direction);
+    Move(GetDirection());
     cooldown = 0;
   }
-
-  Entity::Update(_elapsed);
 }
 
 bool Cannon::Move(Direction _direction) {
@@ -83,7 +81,7 @@ bool Cannon::Move(Direction _direction) {
       SetTile(next);
     }
     else {
-      deleted = true;
+      this->Delete();
       return false;
     }
   }
@@ -99,7 +97,7 @@ bool Cannon::Move(Direction _direction) {
       SetTile(next);
     }
     else {
-      deleted = true;
+      this->Delete();
       return false;
     }
   }
@@ -108,7 +106,7 @@ bool Cannon::Move(Direction _direction) {
 }
 
 void Cannon::Attack(Character* _entity) {
-  if (hit || deleted) {
+  if (hit) {
     return;
   }
 

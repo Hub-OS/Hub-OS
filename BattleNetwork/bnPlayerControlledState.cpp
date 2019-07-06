@@ -24,7 +24,11 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (!player.IsBattleActive()) return;
 
   // Action controls take priority over movement
-  if (!INPUT.Has(HELD_A)) {
+#ifndef __ANDROID__
+  if (!inputManager->Has(HELD_A)) {
+#else
+    if(INPUT.Has(PRESSED_A) && !INPUT.Has(RELEASED_B)) {
+#endif
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack();
       player.chargeComponent.SetCharging(false);
@@ -34,6 +38,10 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
     else {
       isChargeHeld = false;
+
+#ifdef __ANDROID__
+      player.chargeComponent.SetCharging(false);
+#endif
     }
   }
 
@@ -41,10 +49,9 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (player.state != PLAYER_IDLE)
     return;
 
-  Direction direction = Direction::NONE;
-  
+  static Direction direction = Direction::NONE;
   if (player.IsBattleActive()) {
-    if (INPUT.Has(PRESSED_UP) || INPUT.Has(HELD_UP)) {
+    if (INPUT.Has(PRESSED_UP) ||INPUT.Has(HELD_UP)) {
       direction = Direction::UP;
     }
     else if (INPUT.Has(PRESSED_LEFT) || INPUT.Has(HELD_LEFT)) {
@@ -57,12 +64,16 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       direction = Direction::RIGHT;
     }
   }
- 
 
-  if (INPUT.Has(HELD_A) && isChargeHeld == false) {
+  bool shouldShoot = INPUT.Has(HELD_A) && isChargeHeld == false;
+
+#ifdef __ANDROID__
+  shouldShoot = INPUT.Has(PRESSED_A);
+#endif
+
+  if (shouldShoot) {
     isChargeHeld = true;
-    
-    // TODO: player.GetComponent<ChargeComponent>()->SetCharging(true);
+
     player.chargeComponent.SetCharging(true);
   }
 
@@ -79,9 +90,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     direction = Direction::NONE;
   }
 
-  //std::cout << "Is player slideing: " << player.isSliding << std::endl;
-
-  if (direction != Direction::NONE && player.state == PLAYER_IDLE && !player.isSliding) {
+  if (direction != Direction::NONE && player.state == PLAYER_IDLE && !player.IsSliding()) {
     bool moved = player.Move(direction);
 
     if (moved) {

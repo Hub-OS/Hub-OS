@@ -1,4 +1,3 @@
-#pragma once
 #include "bnMetalMan.h"
 #include "bnHitBox.h"
 #include "bnTile.h"
@@ -7,6 +6,7 @@
 #include "bnMetalManMoveState.h"
 #include "bnMetalManPunchState.h"
 #include "bnMetalManThrowState.h"
+#include "bnMetalManMissileState.h"
 
 MetalManMoveState::MetalManMoveState() : isMoving(false), AIState<MetalMan>() { ; }
 MetalManMoveState::~MetalManMoveState() { ; }
@@ -20,24 +20,39 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
   nextDirection = Direction::NONE;
 
   bool moved = false;
-  
-  int tries = 6;
-  // TODO: query tiles like we do with entities
+
+  auto oldTile = metal.GetTile();
+
+  int tries = 50;
+
   do {
     // Find a new spot that is on our team
     moved = metal.Teleport((rand() % 6) + 1, (rand() % 3) + 1);
     tries--;
   } while ((!moved || metal.GetNextTile()->GetTeam() != metal.GetTeam()) && tries > 0);
 
+  if(tries == 0) {
+      oldTile->ReserveEntityByID(metal.GetID());
+      moved = metal.Teleport(oldTile->GetX(), oldTile->GetY());
+  }
+
   Battle::Tile* next = nullptr;
 
-  if ((rand() % 30 > 23)) {
+  bool shouldPunch = false;
+
+  if(metal.GetHealth() > 300) {
+      shouldPunch = (rand() % 30 > 23);
+  } else {
+      shouldPunch = (rand() % 30 > 16);
+  }
+
+  if (shouldPunch) {
+
     next = metal.GetTarget()->GetTile();
 
     if(next && metal.Teleport(next->GetX()+1, next->GetY())) {
       metal.AdoptNextTile();
       auto onFinish = [this]() {
-        // TODO: Reserve next tile to move to after punching and pass it to state
         this->ChangeState<MetalManPunchState>();
       };
 
@@ -59,7 +74,11 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
           this->ChangeState<MetalManThrowState>();
         }
         else {
-          this->ChangeState<MetalManIdleState>();
+            if(rand() % 20 > 15) {
+                this->ChangeState<MetalManMissileState>((m->GetHealth() <= 300)? 10 : 5);
+            } else {
+                this->ChangeState<MetalManIdleState>();
+            }
         }
       }
       else {

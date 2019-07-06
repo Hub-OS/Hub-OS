@@ -5,13 +5,15 @@
 #include "bnMobState.h"
 #include "bnAI.h"
 #include "bnTextureType.h"
-#include "bnMobHealthUI.h"
+#include "bnStarfishIdleState.h"
 
 class Starfish : public AnimatedCharacter, public AI<Starfish> {
   friend class StarfishIdleState;
   friend class StarfishAttackState;
 
 public:
+  using DefaultState = StarfishIdleState;
+
   Starfish(Rank _rank = Rank::_1);
   virtual ~Starfish(void);
 
@@ -19,14 +21,11 @@ public:
    * @brief Updates health ui, AI, and super classes
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
-  
-  // TODO: remove this
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
+  virtual void OnUpdate(float _elapsed);
 
-  virtual const bool OnHit(Hit::Properties props) { return true;  }
+  virtual const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete() { ; }
+  virtual void OnDelete();
   
   /**
    * @brief Set the hit height for projectiles to play effects at the correct position
@@ -35,10 +34,6 @@ public:
   virtual const float GetHitHeight() const;
 
 private:
-  sf::Shader* whiteout;
-  sf::Shader* stun;
   float hitHeight;
-  bool hit;
   TextureType textureType;
-  MobHealthUI* healthUI;
 };

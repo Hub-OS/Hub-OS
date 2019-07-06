@@ -25,16 +25,14 @@ public:
    * 
    * if battle is not activive, does not move
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Returns true always
    * @param props ignored
    * @return true
    */
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-  
-  virtual const bool OnHit(Hit::Properties props) { return true;  }
+  virtual const bool OnHit(const Hit::Properties props);
   /**
    * @brief No special behavior occur when deleted
    */
@@ -59,6 +57,6 @@ private:
   Direction startDir;
   Team tileStartTeam; // only move around on the origin team's area
   Texture* texture;
-  AnimationComponent animation;
+  AnimationComponent* animation;
   bool hit;
 };

@@ -4,22 +4,27 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnExplosion.h"
+#include "bnElementalDamage.h"
+#include "bnShaderResourceManager.h"
 
 Character::Character(Rank _rank) : 
   health(0),
   maxHealth(0),
   counterable(false),
-  pushable(true),
+  canTilePush(true),
+  slideFromDrag(false),
   canShareTile(false),
   stunCooldown(0),
   name("unnamed"),
   rank(_rank),
-  frameDamageTaken(0),
-  frameElementalModifier(false),
   invokeDeletion(false),
+  hit(false),
   CounterHitPublisher() {
+
   burnCycle = sf::milliseconds(150);
   elapsedBurnTime = burnCycle.asSeconds();
+  whiteout = SHADERS.GetShader(ShaderType::WHITE);
+  stun = SHADERS.GetShader(ShaderType::YELLOW);
 }
 
 Character::~Character() {
@@ -32,6 +37,7 @@ const Character::Rank Character::GetRank() const {
 void Character::ShareTileSpace(bool enabled)
 {
   canShareTile = enabled;
+
 }
 
 const bool Character::CanShareTileSpace() const
@@ -39,9 +45,13 @@ const bool Character::CanShareTileSpace() const
   return this->canShareTile;
 }
 
-void Character::SetPushable(bool enabled)
+void Character::ToggleTilePush(bool enabled)
 {
-  this->pushable = enabled;
+  this->canTilePush = enabled;
+}
+
+const bool Character::CanTilePush() const {
+  return this->canTilePush;
 }
 
 void Character::Update(float _elapsed) {
@@ -71,11 +81,33 @@ void Character::Update(float _elapsed) {
     }
   }
 
+  if(this->stunCooldown > 0) {
+    this->stunCooldown-=_elapsed;
+  } else {
+    this->stunCooldown = 0;
+    this->OnUpdate(_elapsed);
+  }
+
   //if (this->GetHealth() <= 0 && this->isSliding) {
   //  this->isSliding = false;
   //}
 
   Entity::Update(_elapsed);
+
+  if (!hit) {
+      if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
+          this->SetShader(stun);
+      }
+      else {
+          this->SetShader(nullptr);
+      }
+  }
+  else {
+      this->CancelSlide();
+      SetShader(whiteout);
+  }
+
+  hit = false;
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)
@@ -87,6 +119,17 @@ bool Character::CanMoveTo(Battle::Tile * next)
   };
 
   return (Entity::CanMoveTo(next) && next->FindEntities(occupied).size() == 0);
+}
+
+const bool Character::Hit(Hit::Properties props) {
+  //if(this->IsPassthrough()) return false;
+
+  // Add to status queue for state resolution
+  this->statusQueue.push(props);
+
+  Logger::Log("pushing states");
+
+  return true;
 }
 
 int Character::GetHealth() const {
@@ -101,37 +144,128 @@ const int Character::GetMaxHealth() const
 void Character::ResolveFrameBattleDamage()
 {
   if(this->statusQueue.empty()) return;
-  
-  Hit::Properties& props = this->statusQueue.front();
-  
-  while(props.flags == Hit::none) {
+
+  Character* frameCounterAggressor = nullptr;
+  bool frameElementalDmg = false;
+  bool frameStunCancel = false;
+  Direction postDragDir = Direction::NONE;
+
+  std::queue<Hit::Properties> append;
+
+  while(!this->statusQueue.empty()) {
+      Hit::Properties& props = this->statusQueue.front();
     this->statusQueue.pop();
-    if(this->statusQueue.empty()) return;
-    props = this->statusQueue.front();
+
+    double tileDamage = 0;
+
+    // Calculate elemental damage if the tile the character is on is super effective to it
+    if (props.element == Element::FIRE
+        && GetTile()->GetState() == TileState::GRASS
+        && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      tileDamage = props.damage;
+    } else if (props.element == Element::ELEC
+               && GetTile()->GetState() == TileState::ICE
+               && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      tileDamage = props.damage;
+    }
+
+    // If the character itself is also super-effective,
+    // double the damage independently from tile damage
+    bool isSuperEffective = IsSuperEffective(props.element);
+
+    // Show ! super effective symbol on the field
+    if (isSuperEffective || tileDamage) {
+      // Additional damage bonus if super effective against the attack too
+      if (isSuperEffective) {
+        props.damage *= 2;
+      }
+
+      frameElementalDmg = true;
+    }
+
+    props.damage += tileDamage; // append tile damage
+
+    // Pass on hit properties to the user-defined handler
+    if (this->OnHit(props)) {
+      // Only register counter if:
+      // 1. Hit type is impact
+      // 2. The character is on a counter frame
+      // 3. Hit properties has an aggressor
+      // This will set the counter aggressor to be the first non-impact hit and not check again this frame
+      if (this->IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
+        if (props.aggressor) {
+          frameCounterAggressor = props.aggressor;
+        }
+      }
+
+      if(this->IsSliding() && (props.flags & Hit::impact) == Hit::impact && !this->slideFromDrag) {
+        this->CancelSlide();
+      }
+
+      // Requeue drag if already sliding by drag
+      if((props.flags & Hit::drag) == Hit::drag) {
+        if(this->slideFromDrag) {
+          append.push({0, Hit::drag, Element::NONE, 0.0, nullptr, props.drag});
+        } else {
+          // Apply directional slide later
+          postDragDir = props.drag;
+        }
+      }
+
+      // Stun can be canceled by non-stun hits or queued if dragging
+      if((props.flags & Hit::stun) == Hit::stun) {
+        if(postDragDir != Direction::NONE) {
+          append.push({0, Hit::stun, Element::NONE, props.secs});
+        } else {
+          this->stunCooldown = props.secs;
+        }
+      } else if(this->stunCooldown > 0) {
+        // cancel
+        this->stunCooldown = 0;
+      }
+
+      hit = hit || true;
+    }
+
+    this->SetHealth(health - props.damage);
   }
 
-  (health - this->frameDamageTaken < 0) ? this->SetHealth(0) : this->SetHealth(health - this->frameDamageTaken);
+  if(!append.empty()) {
+      this->statusQueue = append;
+  }
 
-  if (this->IsCountered() && (this->frameHitProps & Hit::recoil) == Hit::recoil) {
+  if(postDragDir != Direction::NONE) {
+    // enemies and objects on opposing side of field are granted immunity from drag
+    if(Teammate(this->GetTile()->GetTeam())) {
+      this->SlideToTile(true);
+      this->slideFromDrag = true;
+      this->Move(postDragDir);
+    }
+  } else if(this->slideFromDrag){
+    // No dragging status in this frame, no sliding
+    this->slideFromDrag = false;
+  }
+
+  if(frameCounterAggressor) {
+    this->Broadcast(*this, *frameCounterAggressor);
+    this->ToggleCounter(false);
     this->Stun(3.0);
+  }
 
-    if (this->GetHealth() == 0) {
-      // Slide entity back a few pixels
-      this->tileOffset = sf::Vector2f(50.f, 0.0f);
-    }
-
-    if(props.aggressor) {
-      this->Broadcast(*this, *props.aggressor);
-    }
+  if(frameElementalDmg) {
+    Artifact *seSymbol = new ElementalDamage(field);
+    field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());
   }
 
   if (this->GetHealth() == 0 && !this->invokeDeletion) {
     this->OnDelete();
     this->invokeDeletion = true;
-  }
 
-  this->frameDamageTaken = 0;
-  this->frameHitProps = Hit::none;
+    if(frameCounterAggressor) {
+      // Slide entity back a few pixels
+      this->tileOffset = sf::Vector2f(50.f, 0.0f);
+    }
+  }
 }
 
 void Character::SetHealth(const int _health) {
@@ -149,13 +283,16 @@ void Character::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!isSliding) {
+  if (!IsSliding()) {
     this->setPosition(tile->getPosition());
   }
 }
 
 void Character::TryDelete() {
-  deleted = (health <= 0);
+    if (this->GetHealth() == 0 && !this->invokeDeletion) {
+        this->OnDelete();
+        this->invokeDeletion = true;
+    }
 }
 
 void Character::ToggleCounter(bool on)

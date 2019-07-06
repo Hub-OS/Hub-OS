@@ -8,6 +8,7 @@
 #include "bnFolderScene.h"
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
+#include "Android/bnTouchArea.h"
 
 #include <SFML/Graphics.hpp>
 using sf::RenderWindow;
@@ -64,7 +65,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   folderOptions = sf::Sprite(LOAD_TEXTURE(FOLDER_OPTIONS));
   folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
   folderOptions.setPosition(98.0f, 210.0f);
-  folderOptions.setScale(2.f, 2.f);
+  folderOptions.setScale(2.f, 0.f); // hide on start
 
   folderCursor = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX_CURSOR));
   folderCursor.setScale(2.f, 2.f);
@@ -91,9 +92,13 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   folderCursorAnimation.SetAnimation("BLINK");
   folderCursorAnimation << Animate::Mode::Loop;
 
+  equipAnimation.Update(0,folderEquip);
+  folderCursorAnimation.Update(0, folderCursor);
+
+
   maxChipsOnScreen = 5;
   currChipIndex = 0;
-  currFolderIndex = 0;
+  currFolderIndex = lastFolderIndex = 0;
   selectedFolderIndex = optionIndex = 0;
 
   totalTimeElapsed = frameElapsed = folderOffsetX = 0.0;
@@ -110,6 +115,13 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   else {
     numOfChips = 0;
   }
+
+#ifdef __ANDROID__
+  canSwipe = true;
+  touchStart = false;
+  touchPosX = touchPosStartX = 0;
+  releasedB = false;
+#endif
 }
 
 FolderScene::~FolderScene() { ; }
@@ -118,6 +130,10 @@ void FolderScene::onStart() {
   ENGINE.SetCamera(camera);
 
   gotoNextScene = false;
+
+#ifdef __ANDROID__
+    this->StartupTouchControls();
+#endif
 }
 
 void FolderScene::onUpdate(double elapsed) {
@@ -132,7 +148,16 @@ void FolderScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (enterText) {
-    if (INPUT.Has(RELEASED_B)) {
+    InputEvent  cancelButton = RELEASED_B;
+
+#ifdef __ANDROID__
+    cancelButton = PRESSED_B;
+#endif
+
+    if (INPUT.Has(cancelButton)) {
+#ifdef __ANDROID__
+        sf::Keyboard::setVirtualKeyboardVisible(false);
+#endif
       this->enterText = false;
       bool changed = collection.SetFolderName(folderNames[currFolderIndex], folder);
 
@@ -149,6 +174,10 @@ void FolderScene::onUpdate(double elapsed) {
       folderNames[currFolderIndex] = buffer;
 
       INPUT.SetInputBuffer(buffer); // shrink
+
+#ifdef __ANDROID__
+        sf::Keyboard::setVirtualKeyboardVisible(true);
+#endif
     }
   } else if (!gotoNextScene) {
       if (INPUT.Has(PRESSED_UP)) {
@@ -220,6 +249,12 @@ void FolderScene::onUpdate(double elapsed) {
       optionIndex = std::max(0, optionIndex);
       optionIndex = std::min(2, optionIndex);
 
+#ifdef __ANDROID__
+      if(lastFolderIndex != currFolderIndex) {
+          folderSwitch = true;
+      }
+#endif
+
       if (folderSwitch) {
         if (collection.GetFolderNames().size() > 0) {
           collection.GetFolder(*(folderNames.begin() + currFolderIndex), folder);
@@ -229,6 +264,8 @@ void FolderScene::onUpdate(double elapsed) {
         }
       }
 
+      InputEvent  cancelButton = RELEASED_B;
+
       if (INPUT.Has(PRESSED_B)) {
         if (!promptOptions) {
           gotoNextScene = true;
@@ -237,13 +274,16 @@ void FolderScene::onUpdate(double elapsed) {
           using swoosh::intent::direction;
           using segue = swoosh::intent::segue<PushIn<direction::right>>;
           getController().queuePop<segue>();
+        } else {
+            promptOptions = false;
+            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         }
       } else if (INPUT.Has(RELEASED_B)) {
           if (promptOptions) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
           }
-      } else if (INPUT.Has(RELEASED_A)) {
+      } else if (INPUT.Has(PRESSED_A)) {
         if (!promptOptions) {
           promptOptions = true;
           AUDIO.Play(AudioType::CHIP_DESC);
@@ -264,12 +304,52 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-
   }
+
+#ifdef __ANDROID__
+  if(canSwipe) {
+      Logger::Log("touch is down");
+
+      if (sf::Touch::isDown(0)) {
+
+      sf::Vector2i touchPosition = sf::Touch::getPosition(0, *ENGINE.GetWindow());
+      sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition,
+                                                                 ENGINE.GetDefaultView());
+      sf::Vector2i iCoords = sf::Vector2i((int) coords.x, (int) coords.y);
+      touchPosition = iCoords;
+
+      canSwipe = false;
+
+      if(touchPosition.y < 100) {
+          if (!touchStart) {
+              touchStart = true;
+              touchPosStartX = touchPosition.x;
+          }
+
+          touchPosX = touchPosition.x;
+          folderOffsetX = (touchPosStartX - touchPosX);
+          Logger::Log("folderOffsetX: " + std::to_string(folderOffsetX));
+
+          canSwipe = true;
+      } else if(folderOffsetX > 100){
+          currFolderIndex++;
+          canSwipe = true;
+      } else if(folderOffsetX < -100) {
+          currFolderIndex--;
+          canSwipe = true;
+      }
+    } else {
+      canSwipe = true;
+      touchStart = false;
+    }
+  }
+#endif
 }
 
 void FolderScene::onLeave() {
-
+#ifdef __ANDROID__
+    this->ShutdownTouchControls();
+#endif
 }
 
 void FolderScene::onExit()
@@ -281,7 +361,9 @@ void FolderScene::onEnter()
 }
 
 void FolderScene::onResume() {
-
+#ifdef __ANDROID__
+    this->StartupTouchControls();
+#endif
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
@@ -308,14 +390,29 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
     }
 
-    auto x = swoosh::ease::interpolate((float)frameElapsed*7.f, folderCursor.getPosition().x, 98.0f + (std::min(2,currFolderIndex)*144.0f));
-    folderCursor.setPosition(x, 68.0f);
+    if(!canSwipe) {
+      auto x = swoosh::ease::interpolate((float) frameElapsed * 7.f, folderCursor.getPosition().x,
+                                         98.0f + (std::min(2, currFolderIndex) * 144.0f));
+      folderCursor.setPosition(x, 68.0f);
 
-    if(currFolderIndex > 2) {
-      folderOffsetX = swoosh::ease::interpolate(frameElapsed*7.0, folderOffsetX, (double)(((currFolderIndex-2)*144.0f)));
-    }
-    else {
-      folderOffsetX = swoosh::ease::interpolate(frameElapsed*7.0, folderOffsetX, 0.0);
+      if (currFolderIndex > 2) {
+          auto before = folderOffsetX;
+        folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX,
+                                                  (double) (((currFolderIndex - 2) * 144.0f)));
+
+        if(int(before) == int(folderOffsetX)) {
+            canSwipe = true;
+            touchStart = false;
+        }
+      } else {
+          auto before = folderOffsetX;
+        folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, 0.0);
+
+          if(int(before) == int(folderOffsetX)) {
+              canSwipe = true;
+              touchStart = false;
+          }
+      }
     }
 
     ENGINE.Draw(folderCursor, false);
@@ -389,4 +486,41 @@ void FolderScene::onEnd() {
   delete numberFont;
   delete menuLabel;
   delete numberLabel;
+
+#ifdef __ANDROID__
+    this->ShutdownTouchControls();
+#endif
 }
+
+#ifdef __ANDROID__
+void FolderScene::StartupTouchControls() {
+    /* Android touch areas*/
+    TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+    rightSide.enableExtendedRelease(true);
+
+    rightSide.onTouch([]() {
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+    });
+
+    rightSide.onRelease([this](sf::Vector2i delta) {
+        if(!this->releasedB) {
+            INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+        }
+
+        this->releasedB = false;
+    });
+
+    rightSide.onDrag([this](sf::Vector2i delta){
+        if(delta.x < -25 && !this->releasedB && !touchStart) {
+            INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+            INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+            this->releasedB = true;
+        }
+    });
+}
+
+void FolderScene::ShutdownTouchControls() {
+    TouchArea::free();
+}
+#endif

@@ -1,5 +1,4 @@
 /*! \brief Draws a normal sword swipe animation across a tile */
-
 #pragma once
 #include "bnArtifact.h"
 #include "bnComponent.h"
@@ -19,7 +18,7 @@ public:
    * @brief Update the effect animation
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Effect doesnt move across tiles

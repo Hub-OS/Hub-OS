@@ -14,7 +14,7 @@ UndernetBackground::UndernetBackground(void)
   : progress(0.0f), Background(*TEXTURES.LoadTextureFromFile("resources/backgrounds/undernet/bg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
   colorIndex = 0;
-  
+
   // Primary colors to flash
   colors.push_back(sf::Color::Red);
   colors.push_back(sf::Color::Blue);
@@ -64,9 +64,11 @@ void UndernetBackground::Update(float _elapsed) {
     }
   }
 
-  // Animte the noise sprite sheet
   int frame = (int)(progress * COMPONENT_FRAME_COUNT);
 
-  // TextureOffset is the same as showing the next frame in the animation
+#ifdef __ANDROID__
+  frame = 0; // Texture is too large to wrap on mobile and breaks. Make static on android.
+#endif
+
   TextureOffset(sf::Vector2f((float)(frame*COMPONENT_WIDTH), 0));
 }

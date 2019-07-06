@@ -5,6 +5,7 @@
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
 #include "bnCounterHitPublisher.h"
+#include "bnCanodumbIdleState.h"
 
 /**
  * @class Canodumb
@@ -15,28 +16,26 @@
  */
 class Canodumb : public AnimatedCharacter, public AI<Canodumb> {
   friend class CanodumbIdleState;
-  friend class CanodumbMoveState;
   friend class CanodumbAttackState;
   friend class CanodumbCursor;
 
+  float hitHeight;
+
 public:
+  using DefaultState = CanodumbIdleState;
+
   Canodumb(Rank _rank = Character::Rank::_1);
+
   virtual ~Canodumb();
 
   /**
    * @brief When health is low, deletes. Updates AI
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
 
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
   virtual const float GetHitHeight() const;
 
-  virtual const bool OnHit(Hit::Properties props) { return false; }
-  virtual void OnDelete() { ; }
-
-  sf::Shader* whiteout;
-  sf::Shader* stun;
-
-  MobHealthUI* healthUI;
+  virtual const bool OnHit(const Hit::Properties props);
+  virtual void OnDelete();
 };

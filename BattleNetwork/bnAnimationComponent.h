@@ -3,8 +3,7 @@
 #include <assert.h>
 #include <functional>
 
-#include <iostream>
-
+#include "bnComponent.h"
 #include "bnAnimation.h"
 
 using std::string;
@@ -16,32 +15,43 @@ class Entity;
  * @class AnimationComponent
  * @author mav
  * @date 14/05/19
- * @brief Legacy code. A component to add to entities to provide animations.
- * 
- * @todo Make this a Component 
+ *
+ * A component to add to entities to provide animations.
+ *
  */
-class AnimationComponent {
+class AnimationComponent : public Component {
 public:
   /**
    @param _entity Owner of this component
     */
   AnimationComponent(Entity* _entity);
-  ~AnimationComponent();
+  virtual ~AnimationComponent();
 
   /**
    * @brief Delegates work to animation object
    * @param _elapsed in seconds
    */
-  void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
+
+  /**
+   * @brief Does not inject into scene. Used by the owner.
+   * @param BattleScene& unused
+   */
+  virtual void Inject(BattleScene&) { ; }
   
   /**
    * @brief Reconstructs the animation object
    * @param _path to animation file
    */
   void Setup(string _path);
-  
+
   /**
-   * @brief Reload the animation object
+   * @brief Loads the animation object
+   */
+  void Load();
+
+  /**
+   * @brief Reload the animation object. Same as Load()
    */
   void Reload();
   
@@ -91,7 +101,6 @@ public:
   void CancelCallbacks();
   
 private:
-  Entity* entity; /*!< Owner of component */
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
   double speed; /*!< Playback speed */

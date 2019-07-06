@@ -55,6 +55,7 @@ private:
   sf::Font* font;
   sf::Font *naviFont;
   sf::Text* menuLabel;
+
   sf::Text *naviLabel; /*!< navi name text */
   sf::Text *attackLabel; /*!< attack text */
   sf::Text *speedLabel; /*!< speed text */

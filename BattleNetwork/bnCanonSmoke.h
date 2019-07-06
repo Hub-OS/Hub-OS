@@ -1,6 +1,7 @@
 #pragma once
 #include "bnArtifact.h"
 #include "bnField.h"
+#include "bnAnimationComponent.h"
 
 /**
  * @class CanonSmoke
@@ -11,17 +12,17 @@
 class CanonSmoke : public Artifact
 {
 private:
-  AnimationComponent animationComponent;
+  AnimationComponent* animationComponent;
 
 public:
-  CanonSmoke(Field* _field, Team _team);
+  CanonSmoke(Field* _field);
   ~CanonSmoke();
 
   /**
    * @brief animates smoke
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move

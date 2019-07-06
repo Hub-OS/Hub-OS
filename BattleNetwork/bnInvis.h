@@ -23,7 +23,7 @@ public:
    * @brief When under time, set opacity to 50% and pasthrough. Otherwise, restore character.
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief does not inject

@@ -9,7 +9,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : Artifact(), Component(owner)
+BubbleTrap::BubbleTrap(Character* owner) : Artifact(nullptr), Component(owner)
 {
   // Bubbles have to pop when hit
   defense = new DefenseBubbleWrap();
@@ -44,7 +44,7 @@ void BubbleTrap::Inject(BattleScene& bs) {
 
 }
 
-void BubbleTrap::Update(float _elapsed) {
+void BubbleTrap::OnUpdate(float _elapsed) {
   if (duration <= 0 &&  animation.GetAnimationString() != "POP" ) {
     this->Pop();
   }

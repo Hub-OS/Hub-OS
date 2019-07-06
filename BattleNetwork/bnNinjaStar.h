@@ -29,7 +29,7 @@ public:
    * @brief Interpol. from start to tile attacking entites on the tile when anim finishes
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move across tiles

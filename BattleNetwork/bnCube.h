@@ -25,11 +25,9 @@ public:
    * @brief Keep sliding if moving in previous frame
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
-  
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-  
-  virtual const bool OnHit(Hit::Properties props) { return true; }
+  virtual void OnUpdate(float _elapsed);
+
+  virtual const bool OnHit(const Hit::Properties props);
 
   virtual void OnDelete();
   
@@ -52,12 +50,14 @@ public:
 
 protected:
   Texture* texture;
-  AnimationComponent animation;
+  AnimationComponent* animation;
   sf::Shader* whiteout;
+
   static int currCubeIndex; 
   static int cubesRemovedCount; 
   static const int numOfAllowedCubesOnField;
   int cubeIndex;
   bool hit;
   double timer;
+  Direction previousDirection;
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include "bnEntity.h"
 #include "bnCounterHitPublisher.h"
+
 #include "bnTile.h"
 
 #include <string>
@@ -19,7 +20,7 @@ namespace Hit {
   const Flags flinch = 0x10;
   const Flags breaking = 0x20;
   const Flags impact = 0x40;
-  const Flags pushing = 0x80;
+  const Flags drag = 0x80;
 
   /**
    * @struct Properties
@@ -31,11 +32,12 @@ namespace Hit {
     int damage;
     Flags flags;
     Element element;
-    double secs; /*!< used by both recoil and stun */
+    double secs; // used by both recoil and stun
     Character* aggressor;
+    Direction drag; // Used by dragging payload
   };
 
-  const Hit::Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0, nullptr };
+  const Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0, nullptr, Direction::NONE };
 
 }
 
@@ -52,21 +54,21 @@ class Character : public virtual Entity, public CounterHitPublisher {
   friend class Field;
 
 private:
-  int frameDamageTaken;          /*!< accumulation of final damage on frame */
-  bool frameElementalModifier;   /*!< whether or not the final damage calculated was weak against */
-  bool invokeDeletion;
+  bool invokeDeletion; /*!< One-time flag to call OnDelete() if character has custom Delete() behavior */
   bool canShareTile; /*!< Some characters can share tiles with others */
+  bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
 
-  Hit::Flags frameHitProps; /*!< accumulation of final hit props on frame */
-
-  std::vector<DefenseRule*> defenses;
+  std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
   
   // Statuses are resolved one property at a time
   // until the entire Flag object is equal to 0x00 None
   // Then we process the next status
   // This continues until all statuses are processed
   std::queue<Hit::Properties> statusQueue;
-  
+
+  sf::Shader* whiteout; /*!< Flash white when hit */
+  sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
+  bool hit; /*!< Was hit this frame */
 public:
 
   /**
@@ -102,32 +104,20 @@ public:
    */
   virtual const float GetHitHeight() const = 0;
 
-  const bool Hit(Hit::Properties props = Hit::DefaultProperties) {
-    if (props.element == Element::FIRE
-      && GetTile()->GetState() == TileState::GRASS
-      && !(this->HasAirShoe() || this->HasFloatShoe())) {
-      props.damage *= 2;
-      this->frameElementalModifier = true;
-    }
+  /**
+   * The hit routine that happens for every character. Queues status properties and damage
+   * to resolve at the end of the battle step.
+   * @param props
+   * @return Returns false  if IsPassthrough() is true (i-frames), otherwise true
+   */
+  const bool Hit(Hit::Properties props = Hit::DefaultProperties);
 
-    if (props.element == Element::ELEC
-      && GetTile()->GetState() == TileState::ICE
-      && !(this->HasAirShoe() || this->HasFloatShoe())) {
-      props.damage *= 2;
-      this->frameElementalModifier = true;
-    }
+  void ResolveFrameBattleDamage();
 
-    if (IsSuperEffective(props.element)) {
-      props.damage *= 2;
-    }
+  virtual void OnUpdate(float elapsed) = 0;
 
-    this->statusQueue.push(props);
-
-    return this->OnHit(props);
-  }
-
-  virtual void ResolveFrameBattleDamage();
-  virtual void Update(float _elapsed);
+  // TODO: move tile behavior out of update loop and into its own rule system for customization
+  void Update(float elapsed);
   
   /**
    * @brief Default characters cannot move onto occupied, broken, or empty tiles
@@ -216,12 +206,18 @@ public:
    * @return true if shareTilespace is enabled, false otherwise
    */
   const bool CanShareTileSpace() const;
-  
+
+    /**
+   * @brief Query if entity is pushable by tiles
+   * @return true if canTilePush is enabled, false otherwise
+   */
+    const bool CanTilePush() const;
+
   /**
-   * @brief Some characters can be moved around on the field by external events
+   * @brief Some characters can be moved around on the field by tiles
    * @param enabled
    */
-  void SetPushable(bool enabled);
+  void ToggleTilePush(bool enabled);
 
   /**
    * @brief Characters can have names
@@ -260,7 +256,7 @@ private:
 protected:
   int health;
   bool counterable;
-  bool pushable; // used by Hit::pushing
+  bool canTilePush;
   std::string name;
   double stunCooldown; /*!< Timer until stun is over */
   Character::Rank rank;

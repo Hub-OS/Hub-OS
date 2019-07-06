@@ -15,10 +15,11 @@ using sf::Texture;
 
 class Spell : public virtual Entity {
 public:
+
   /**
    * @brief Sets the layer to 1 (underneath characters, layer = 0) and enables FloatShoe
    */
-  Spell();
+  Spell(Field* field, Team team);
   virtual ~Spell();
 
   /**
@@ -28,11 +29,13 @@ public:
   const bool IsTileHighlightEnabled() const;
 
   /**
-   * @brief Implementatio of Update needs to call Entity::Update()
+   * @brief Implement OnUpdate required
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed) = 0;
-  
+  virtual void OnUpdate(float _elapsed) = 0;
+
+  void Update(float _elapsed);
+
   /**
    * @brief Describes how the spell attacks characters
    * @param _entity
@@ -72,6 +75,5 @@ public:
 
 protected:
   bool markTile; /*!< Highlight occupying tile */
-  AnimationComponent animationComponent;
   Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
 };

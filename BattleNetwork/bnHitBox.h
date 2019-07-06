@@ -25,7 +25,7 @@ public:
    * @brief Attacks tile and deletes itself
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move

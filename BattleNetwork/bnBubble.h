@@ -17,6 +17,7 @@ protected:
   bool hit;
 public:
   Bubble(Field* _field, Team _team, double speed = 1.0);
+
   virtual ~Bubble();
   
   /**
@@ -30,22 +31,16 @@ public:
    * @brief Continues to slide until it reaches the end of its path
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief If an obstacle, deals damage and pops. If character, tries adding a bubble trap component and pops.
    * @param _entity
    */
   virtual void Attack(Character* _entity);
-  
-  /**
-   * @brief Always gets hit by impact, pops bubble, and plays effect
-   * @param props
-   * @return true
-   */
-  virtual const bool Hit( Hit::Properties props);
 
-  virtual const bool OnHit(Hit::Properties props) { return true; }
+  virtual const bool OnHit(const Hit::Properties props);
+
   virtual void OnDelete() { ; }
   virtual const float GetHitHeight() const { return  0; }
 };

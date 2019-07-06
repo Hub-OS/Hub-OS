@@ -2,14 +2,16 @@
 #include "bnExplosion.h"
 #include "bnTextureResourceManager.h"
 
-MysteryData::MysteryData(Field* _field, Team _team) : animation(this), Character() {
+MysteryData::MysteryData(Field* _field, Team _team) : Character() {
   this->setTexture(LOAD_TEXTURE(MISC_MYSTERY_DATA));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(true);
 
-  animation.Setup("resources/mobs/mystery_data/mystery_data.animation");
-  animation.Reload();
-  animation.SetAnimation("SPIN", Animate::Mode::Loop);
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+  animation->Setup("resources/mobs/mystery_data/mystery_data.animation");
+  animation->Reload();
+  animation->SetAnimation("SPIN", Animate::Mode::Loop);
   this->SetHealth(1);
 }
 
@@ -17,7 +19,7 @@ MysteryData::~MysteryData() {
 
 }
 
-void MysteryData::Update(float _elapsed) {
+void MysteryData::OnUpdate(float _elapsed) {
   if (tile == nullptr) return;
 
   if (this->GetHealth() == 0) {
@@ -25,13 +27,10 @@ void MysteryData::Update(float _elapsed) {
     this->field->AddEntity(*new Explosion(this->field, this->team), this->GetTile()->GetX(), this->GetTile()->GetY());
   }
 
-  animation.Update(_elapsed);
   setPosition(tile->getPosition().x, tile->getPosition().y);
-
-  Character::Update(_elapsed);
 }
 
-const bool MysteryData::Hit(Hit::Properties props) {
+const bool MysteryData::OnHit(const Hit::Properties props) {
   if((props.flags & Hit::impact) == Hit::impact) {
     this->SetHealth(0);
     return true;
@@ -42,5 +41,5 @@ const bool MysteryData::Hit(Hit::Properties props) {
 
 void MysteryData::RewardPlayer()
 {
-  animation.SetAnimation("GET");
+  animation->SetAnimation("GET");
 }

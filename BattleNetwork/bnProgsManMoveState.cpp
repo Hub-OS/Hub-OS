@@ -19,7 +19,7 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
 
   nextDirection = Direction::NONE;
 
-  Battle::Tile* temp = progs.tile;
+  Battle::Tile* temp = progs.GetTile();
   Battle::Tile* next = nullptr;
 
   int random = rand() % 50;

@@ -13,10 +13,6 @@ class Entity;
 #define CHARGE_COUNTER_MIN .40f
 #define CHARGE_COUNTER_MAX 2.4f
 
-/*!
- * TODO: use component system
-*/
-
 /**
  * @class ChargeComponent
  * @author mav

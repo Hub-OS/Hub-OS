@@ -1,3 +1,4 @@
+
 /*! \brief Component that protects an entity from all contact damage
  * 
  * The shield is just an animation but it adds a defense rule 
@@ -50,7 +51,7 @@ public:
    * @brief Updates animation
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief This artifact does not move across the grid

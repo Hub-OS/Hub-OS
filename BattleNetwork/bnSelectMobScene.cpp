@@ -1,5 +1,6 @@
 #include <Swoosh/ActivityController.h>
 #include "bnSelectMobScene.h"
+#include "Android/bnTouchArea.h"
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, ChipFolder& selectedFolder) :
   elapsed(0),
@@ -70,7 +71,12 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   textbox.setPosition(100, 210);
   textbox.SetTextColor(sf::Color::Black);
   textbox.SetCharactersPerSecond(25);
-  
+
+#ifdef __ANDROID__
+  touchPosX = 0;
+  canSwipe = false;
+#endif
+
   mob = nullptr;
 }
 
@@ -105,6 +111,10 @@ void SelectMobScene::onResume() {
   gotoNextScene = false;
   doOnce = true;
   showMob = true;
+
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
@@ -117,6 +127,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   int prevSelect = mobSelectionIndex;
 
+#ifndef __ANDROID__
   // Scene keyboard controls
   if (!gotoNextScene) {
     if (INPUT.Has(PRESSED_LEFT)) {
@@ -155,6 +166,39 @@ void SelectMobScene::onUpdate(double elapsed) {
       getController().queuePop<segue>();
     }
   }
+#else
+    // Scene keyboard controls
+    if (!gotoNextScene) {
+        if ((touchPosX - touchPosStartX) < -100 && canSwipe) {
+            canSwipe = false;
+
+            // Go to previous mob
+            selectInputCooldown = maxSelectInputCooldown;
+            mobSelectionIndex++;
+
+            // Number scramble effect
+            numberCooldown = maxNumberCooldown;
+        }
+        else if ((touchPosStartX - touchPosX) < -100 && canSwipe) {
+            canSwipe = false;
+
+            // Go to next mob
+            selectInputCooldown = maxSelectInputCooldown;
+            mobSelectionIndex--;
+
+            // Number scramble effect
+            numberCooldown = maxNumberCooldown;
+        }
+
+        if (INPUT.Has(PRESSED_B)) {
+            // Fade out black and go back to the menu
+            gotoNextScene = true;
+            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            using segue = swoosh::intent::segue<BlackWashFade>;
+            getController().queuePop<segue>();
+        }
+    }
+#endif
 
   // Keep our mob index in range
   mobSelectionIndex = std::max(0, mobSelectionIndex);
@@ -168,6 +212,51 @@ void SelectMobScene::onUpdate(double elapsed) {
   speedLabel->setString(mobinfo.GetSpeedString());
   attackLabel->setString(mobinfo.GetAttackString());
 
+#ifdef __ANDROID__
+  if(canSwipe) {
+      if (sf::Touch::isDown(0)) {
+          sf::Vector2i touchPosition = sf::Touch::getPosition(0, *ENGINE.GetWindow());
+          sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition,
+                                                                     ENGINE.GetDefaultView());
+          sf::Vector2i iCoords = sf::Vector2i((int) coords.x, (int) coords.y);
+          touchPosition = iCoords;
+
+          canSwipe = false;
+
+          if(touchPosition.y < 400 && touchPosition.x < 290) {
+            if (!touchStart) {
+              touchStart = true;
+              touchPosStartX = touchPosition.x;
+            }
+
+            touchPosX = touchPosition.x;
+          }
+
+          if(touchPosition.x <= 320) {
+            mobSpr.setPosition(110.0f - (touchPosStartX - touchPosX), 130.f);
+            canSwipe = true;
+          }
+      } else {
+          canSwipe = false;
+          touchStart = false;
+      }
+  } else {
+      if(prevSelect == mobSelectionIndex) {
+          auto x = swoosh::ease::interpolate(0.5f, mobSpr.getPosition().x, 110.f);
+          auto y = swoosh::ease::interpolate(0.5f, mobSpr.getPosition().y, 130.f);
+          mobSpr.setPosition(x, y);
+
+          if (int(x) == 110 && int(y) == 130) {
+              mobSpr.setPosition(110.f, 130.f);
+              touchPosX = 50; // somewhere in the middle that wont trigger a swipe
+              touchPosStartX = 50;
+              touchStart = false;
+              canSwipe = true;
+          }
+      }
+  }
+#endif
+
   if (prevSelect != mobSelectionIndex || doOnce) {
     doOnce = false;
     factor = 125;
@@ -176,7 +265,6 @@ void SelectMobScene::onUpdate(double elapsed) {
     mobSpr = sf::Sprite(*mobinfo.GetPlaceholderTexture());
     mobSpr.setScale(2.f, 2.f);
     mobSpr.setOrigin(mobSpr.getLocalBounds().width / 2.f, mobSpr.getLocalBounds().height / 2.f);
-    mobSpr.setPosition(110.f, 130.f);
 
     textbox.SetMessage(mobinfo.GetDescriptionString());
 	textbox.Stop();
@@ -218,7 +306,6 @@ void SelectMobScene::onUpdate(double elapsed) {
     int randHP = 0;
 
     int count = (int)mobinfo.GetHPString().size() - 1;
-
     while (count >= 0) {
       int index = (int)std::pow(10.0, (double)count);
       index *= (rand() % 9) + 1;
@@ -255,6 +342,7 @@ void SelectMobScene::onUpdate(double elapsed) {
     hpLabel->setString(std::to_string(randHP));
     mobLabel->setString(sf::String(newstr));
   }
+
   
   /**
    * End scramble effect 
@@ -444,10 +532,18 @@ void SelectMobScene::onStart() {
   doOnce = true;
   showMob = true;
   gotoNextScene = false;
+
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
 }
 
 void SelectMobScene::onLeave() {
   textbox.Stop();
+
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
 
 void SelectMobScene::onExit() {
@@ -458,5 +554,40 @@ void SelectMobScene::onEnter() {
 }
 
 void SelectMobScene::onEnd() {
-
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
+
+#ifdef __ANDROID__
+void SelectMobScene::StartupTouchControls() {
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  this->releasedB = false;
+
+  rightSide.enableExtendedRelease(true);
+
+  rightSide.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+  });
+
+  rightSide.onRelease([this](sf::Vector2i delta) {
+      if(!this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      }
+  });
+
+  rightSide.onDrag([this](sf::Vector2i delta){
+      if(delta.x < -25 && !this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        this->releasedB = true;
+      }
+  });
+}
+
+void SelectMobScene::ShutdownTouchControls() {
+  TouchArea::free();
+}
+#endif

@@ -2,13 +2,15 @@
  */
 
 #pragma once
-enum class TileState : const int {
+
+enum class TileState : int {
   NORMAL = 0,
-  CRACKED,
-  BROKEN,
-  ICE,
-  GRASS,
-  LAVA,
-  POISON,
-  EMPTY
+  CRACKED = 1,
+  BROKEN = 2,
+  ICE = 3,
+  GRASS = 4,
+  LAVA = 5,
+  POISON = 6,
+  EMPTY = 7,
+  SIZE = 8
 };

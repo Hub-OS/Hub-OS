@@ -101,8 +101,8 @@ public:
    * 
    * If a chip is malformed, it will show erroneous info on the menus and won't be used in battle
    */
-  static ChipFolderCollection ReadFromFile(std::string path) {
-    string data = FileUtil::Read("resources/database/folders.txt");
+  static ChipFolderCollection ReadFromFile(const std::string& path) {
+    string data = FileUtil::Read(path);
 
     int endline = 0;
 
@@ -157,4 +157,32 @@ public:
 
     return collection;
   }
+
+    /**
+   * @brief Writes all in-game folders to a file and overwrites if a file with the same path exists
+   * @param path to folder
+   * @return true if written successfully, false otherwise
+   */
+    bool WriteToFile(const std::string& path) {
+      try {
+        FileUtil::WriteStream ws(path);
+
+        for (auto curr = this->collection.begin(); curr != this->collection.end(); curr++) {
+          ws << "Folder title=\"" << curr->first << "\"" << ws.endl();
+
+          auto writableFolder = curr->second;
+          for (auto iter = writableFolder->Begin(); iter != writableFolder->End(); iter++) {
+            ws << "   Chip name=\"" << (*iter)->GetShortName() << " code=\"" << (*iter)->GetCode()
+               << ws.endl();
+          }
+
+          ws << ws.endl(); // space between folders
+        }
+      }catch(std::exception& e) {
+        Logger::Log(std::string("Writing chip folder collection failed: ") + e.what());
+        return false;
+      }
+
+      return true;
+    }
 };

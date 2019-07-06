@@ -247,6 +247,7 @@ public:
       player->GetField()->AddEntity(*airshot, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
     }
     else if (name == "Thunder") {
+
       // Spawn the thunder spell to track enemies
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
 

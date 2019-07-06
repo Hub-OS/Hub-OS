@@ -21,12 +21,13 @@
 using sf::IntRect;
 
 class Player : public Character, public AI<Player> {
-public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;
   friend class PlayerHitState;
+public:
+  using DefaultState = PlayerIdleState;
 
-  /**
+    /**
    * @brief Loads graphics and adds a charge component
    */
   Player();
@@ -40,7 +41,7 @@ public:
    * @brief Polls for interrupted states and fires delete state when deleted
    * @param _elapsed for secs
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Fires a buster
@@ -52,11 +53,12 @@ public:
    * @param props the hit props
    * @return true if the player got hit, false if missed
    */
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-  
-  virtual const bool OnHit(Hit::Properties props) { return true;  }
+  virtual const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete() { ; }
+  /**
+   * @brief when player is deleted, changes state to delete state and hide charge component
+   */
+  virtual void OnDelete();
 
   virtual const float GetHitHeight() const { return 0; }
   /**
@@ -70,12 +72,6 @@ public:
    * @return int
    */
   int GetHitCount() const;
-
-  /**
-   * @brief Get the animation component used by the player
-   * @return AnimationComponent&
-   */
-  AnimationComponent& GetAnimationComponent();
 
   /**
    * @brief Toggles the charge component
@@ -95,6 +91,6 @@ protected:
   double invincibilityCooldown; /*!< The blinking timer */
   string state; /*!< Animation state name */
 
+  AnimationComponent* animationComponent;
   ChargeComponent chargeComponent; /*!< Handles charge effect */
-  AnimationComponent animationComponent; /*!< Animates the character */
 };

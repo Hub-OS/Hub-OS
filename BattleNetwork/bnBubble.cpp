@@ -10,9 +10,7 @@
 Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   SetLayer(1);
   field = _field;
-  direction = Direction::NONE;
-  deleted = false;
-  hit = false;
+
   health = 1;
   
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_BUBBLE);
@@ -22,7 +20,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
 
   this->speed = speed;
 
-  this->slideTime = sf::seconds(0.5f / (float)speed);
+  this->SetSlideTime(sf::seconds(0.5f / (float)speed));
 
   animation = Animation("resources/spells/bubble.animation");
 
@@ -42,19 +40,18 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
 Bubble::~Bubble() {
 }
 
-void Bubble::Update(float _elapsed) {
-
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
+void Bubble::OnUpdate(float _elapsed) {
+  setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   animation.Update(_elapsed*(float)this->speed, *this);
 
   // Keep moving
-  if (!this->isSliding && animation.GetAnimationString() == "FLOAT") {
-    if (this->tile->GetX() == 1) {
-      if (this->tile->GetY() == 2 && this->GetDirection() == Direction::LEFT) {
+  if (!this->IsSliding() && animation.GetAnimationString() == "FLOAT") {
+    if (this->GetTile()->GetX() == 1) {
+      if (this->GetTile()->GetY() == 2 && this->GetDirection() == Direction::LEFT) {
         this->Delete();
       }
-      else if (this->tile->GetY() == 1) {
+      else if (this->GetTile()->GetY() == 1) {
         if (this->GetDirection() == Direction::LEFT) {
           this->SetDirection(Direction::DOWN);
         }
@@ -62,7 +59,7 @@ void Bubble::Update(float _elapsed) {
           this->Delete();
         }
       }
-      else if (this->tile->GetY() == 3) {
+      else if (this->GetTile()->GetY() == 3) {
         if (this->GetDirection() == Direction::LEFT) {
           this->SetDirection(Direction::UP);
         }
@@ -71,7 +68,7 @@ void Bubble::Update(float _elapsed) {
         }
       }
     }
-    else if (this->tile->GetX() == 6) {
+    else if (this->GetTile()->GetX() == 6) {
       this->Delete();
     }
 
@@ -83,9 +80,7 @@ void Bubble::Update(float _elapsed) {
     this->Move(this->GetDirection());
   }
 
-  tile->AffectEntities(this);
-
-  Entity::Update(_elapsed);
+  GetTile()->AffectEntities(this);
 }
 
 bool Bubble::CanMoveTo(Battle::Tile* tile) {
@@ -93,7 +88,10 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 }
 
 
-const bool Bubble::Hit(Hit::Properties props) {
+const bool Bubble::OnHit(const Hit::Properties props) {
+  // TODO: Hack. Bubbles keep attacking team mates. Why?
+  // if(props.aggressor && props.aggressor->GetTeam() == Team::BLUE) return false;
+
   if (!hit) {
     hit = true;
 
@@ -108,6 +106,9 @@ const bool Bubble::Hit(Hit::Properties props) {
 }
 
 void Bubble::Attack(Character* _entity) {
+  // TODO: Hack. Bubbles keep attacking team mates. Why?
+  if(_entity->GetTeam() == Team::BLUE) return;
+
   if (!hit) {
 
     Obstacle* other = dynamic_cast<Obstacle*>(_entity);
@@ -127,7 +128,7 @@ void Bubble::Attack(Character* _entity) {
     }
 
     if (hit) {
-      if (_entity->GetComponent<BubbleTrap>() == nullptr && !comp) {
+      if (_entity->GetFirstComponent<BubbleTrap>() == nullptr && !comp) {
         BubbleTrap* trap = new BubbleTrap(_entity);
         _entity->RegisterComponent(trap);
         GetField()->AddEntity(*trap, GetTile()->GetX(), GetTile()->GetY());

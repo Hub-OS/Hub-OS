@@ -17,11 +17,7 @@
 #define BULLET_ANIMATION_WIDTH 30
 #define BULLET_ANIMATION_HEIGHT 27
 
-BasicSword::BasicSword(Field* _field, Team _team, int _damage) {
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
+BasicSword::BasicSword(Field* _field, Team _team, int _damage) : Spell(_field, _team){
   hit = false;
   srand((unsigned int)time(nullptr));
   cooldown = 0;
@@ -33,10 +29,9 @@ BasicSword::BasicSword(Field* _field, Team _team, int _damage) {
 BasicSword::~BasicSword(void) {
 }
 
-void BasicSword::Update(float _elapsed) {
+void BasicSword::OnUpdate(float _elapsed) {
   if (cooldown >= COOLDOWN || hit) {
-    deleted = true;
-    Entity::Update(_elapsed);
+    this->Delete();
     return;
   }
 
@@ -50,12 +45,8 @@ bool BasicSword::Move(Direction _direction) {
 }
 
 void BasicSword::Attack(Character* _entity) {
-
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    auto props = Hit::DefaultProperties;
-    props.damage = damage;
-    _entity->Hit(props);
-    hitHeight = _entity->GetHitHeight();
-    hit = true;
-  }
+  auto props = Hit::DefaultProperties;
+  props.damage = damage;
+  hit = hit || _entity->Hit(props);
+  hitHeight = _entity->GetHitHeight();
 }

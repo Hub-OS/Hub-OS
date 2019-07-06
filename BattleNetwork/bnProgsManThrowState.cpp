@@ -4,6 +4,7 @@
 
 ProgsManThrowState::ProgsManThrowState() : AIState<ProgsMan>()
 {
+  lastTargetPos = nullptr;
 }
 
 
@@ -45,5 +46,7 @@ void ProgsManThrowState::OnLeave(ProgsMan& progs) {
 }
 
 void ProgsManThrowState::OnUpdate(float _elapsed, ProgsMan& progs) {
-
+  if(progs.GetTarget() && progs.GetTarget()->GetTile()) {
+    lastTargetPos = progs.GetTarget()->GetTile();
+  }
 }

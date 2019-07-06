@@ -10,6 +10,8 @@
 
 #include "bnSpell.h"
 #include "bnChipSummonHandler.h"
+#include "bnAnimationComponent.h"
+
 
 class RollHeart : public Spell {
 public:
@@ -20,7 +22,7 @@ public:
    * @brief Descend and then heal the player
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief does not move
@@ -40,5 +42,6 @@ private:
   float height; /*!< The start height of the heart */
   Character* caller; /*!< The character that used the chip */
   ChipSummonHandler* summons; /*!< The chip summon system */
+  AnimationComponent* animationComponent;
   bool doOnce; /*!< Flag to restore health once */
-}; 
+};

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "bnEntity.h"
-
+class Entity;
 class BattleScene;
 
 /**
@@ -14,7 +13,7 @@ class BattleScene;
  * This allows for custom behavior on pre-existing effects, characters, and attacks
  */
 class Component {
-private: 
+private:
   Entity* owner; /*!< Who the component is attached to */
   static long numOfComponents; /*!< Resource counter to generate new IDs */
   long ID; /*!< ID for quick lookups, resource management, and scripting */
@@ -63,7 +62,7 @@ public:
    * @brief Update must be implemented by child class
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed) = 0;
+  virtual void OnUpdate(float _elapsed) = 0;
   
   /**
    * @brief Some components can be injected into the battle routine for custom behavior

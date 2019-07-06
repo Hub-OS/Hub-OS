@@ -55,7 +55,13 @@ public:
    * @brief Given input string, returns Element enum equivalent
    * @return Element::NONE if non matching, otherwise returns enum of same name
    */
-  static const Element GetElementFromStr(std::string);
+  static const Element GetElementFromStr(const std::string);
+
+  /**
+   * @brief Given input enum element, returns string equivalent
+   * @return "None" if non matching, otherwise returns string of enum name
+   */
+  static const std::string GetStrFromElement(const Element);
 
   /**
    * @brief Adds a chip directly into the library
@@ -89,12 +95,25 @@ protected:
  /**
   * @brief Reads in libary file and parses chip data
   * @important Will also parse chip scripts in the future before adding
-  * 
+  * @param path to library database
+  *
+  * If no chip data is found or if no data is successfully read, library will be empty
+  *
   * Reads chip entry data and tries to add chips. It avoids duplicate entries. Chips
   * with the same name but different code do not count as duplicates. This allows the pool
   * to recognize and expect chips with particular chip codes.
   */
-  void LoadLibrary();
+  void LoadLibrary(const std::string& path);
+
+  /**
+  * @brief Writes library to disc
+  * @param path path to output file.
+  * @warning will overwrite if path is already existing!
+  * @return true if successful, false otherwise
+  *
+  * Writes the library as-is at the time of writing
+  */
+  const bool SaveLibrary(const std::string& path);
 
 private:
   mutable list<Chip> library; /*!< the chip pool used by all chip resources */

@@ -26,7 +26,7 @@ HP drop is not 1 unit per frame. It is:
 ~5 per frame if difference is 99-40 range
 -3 per frame for anything lower
 */
-void MobHealthUI::Update(float elapsed) {
+void MobHealthUI::OnUpdate(float elapsed) {
   if (mob) {
 
     if (cooldown <= 0) { cooldown = 0; }
@@ -69,7 +69,7 @@ void MobHealthUI::Update(float elapsed) {
 void MobHealthUI::Inject(BattleScene & scene)
 {
   // TODO: add this free step to inject step? It's manadatory. No sense repeating this every time
-  GetOwner()->FreeComponentByID(this->GetID()); // We are owned by the scene now 
+  GetOwner()->FreeComponentByID(this->GetID()); // We are owned by the scene now
   scene.Inject(*this);
 }
 

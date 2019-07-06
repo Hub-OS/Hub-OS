@@ -34,11 +34,11 @@ Entity::Entity()
 // Entity's own the components still attached
 // Use FreeComponent() to preserve a component upon entity's deletion
 Entity::~Entity() {
-  for (int i = 0; i < shared.size(); i++) {
-    delete shared[i];
+  for (int i = 0; i < components.size(); i++) {
+    delete components[i];
   }
 
-  shared.clear();
+  components.clear();
 }
 
 const bool Entity::IsSuperEffective(Element _other) const {
@@ -62,8 +62,8 @@ const bool Entity::IsSuperEffective(Element _other) const {
 
 void Entity::Update(float _elapsed) {
   // Update all components
-  for (int i = 0; i < shared.size(); i++) {
-    shared[i]->Update(_elapsed);
+  for (int i = 0; i < components.size(); i++) {
+    components[i]->OnUpdate(_elapsed);
   }
 
   // Do not upate if the entity's current tile pointer is null
@@ -110,7 +110,7 @@ void Entity::Update(float _elapsed) {
     } 
 
     // When delta is 1.0, the slide duration is complete
-    if(delta == 1.0f)
+    if(delta == 1.0f || this->cancelSlide)
     {
       elapsedSlideTime = 0;
       Battle::Tile* prevTile = this->GetTile();
@@ -404,11 +404,11 @@ void Entity::AdoptNextTile()
   // Slide if the tile we are moving to is ICE
   if (next->GetState() == TileState::ICE && !this->HasFloatShoe()) {
     this->SlideToTile(true);
+  } else {
+    // Adopting a tile is the last step in the move procedure
+    // Increase the move count
+    moveCount++;
   }
-
-  // Adopting a tile is the last step in the move procedure
-  // Increase the move count
-  moveCount++;
 }
 
 void Entity::SetBattleActive(bool state)
@@ -423,28 +423,28 @@ const bool Entity::IsBattleActive()
 
 void Entity::FreeAllComponents()
 {
-  for (int i = 0; i < shared.size(); i++) {
-    shared[i]->FreeOwner();
+  for (int i = 0; i < components.size(); i++) {
+    components[i]->FreeOwner();
   }
 
-  shared.clear();
+  components.clear();
 }
 
 void Entity::FreeComponentByID(long ID) {
-  for (int i = 0; i < shared.size(); i++) {
-    if (shared[i]->GetID() == ID) {
-      shared[i]->FreeOwner();
-      shared.erase(shared.begin() + i);
+  for (int i = 0; i < components.size(); i++) {
+    if (components[i]->GetID() == ID) {
+      components[i]->FreeOwner();
+      components.erase(components.begin() + i);
       return;
     }
   }
 }
 
 Component* Entity::RegisterComponent(Component* c) {
-  shared.push_back(c);
+  components.push_back(c);
 
   // Newest components appear first in the list for easy referencing
-  std::sort(shared.begin(), shared.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
+  std::sort(components.begin(), components.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
 
   return c;
 }
@@ -454,4 +454,8 @@ void Entity::UpdateSlideStartPosition()
   if (tile) {
     slideStartPosition = sf::Vector2f(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
   }
+}
+
+void Entity::SetSlideTime(sf::Time time) {
+  this->slideTime = time;
 }

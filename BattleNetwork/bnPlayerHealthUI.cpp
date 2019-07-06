@@ -21,10 +21,10 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
   glyphs.setScale(2.f, 2.f);
 
   lastHP = currHP = startHP = _player->GetHealth();
+
   cooldown = 0;
 
   isBattleOver = false;
-
   color = Color::NORMAL;
 }
 
@@ -79,8 +79,8 @@ HP drop is not 1 unit per frame. It is:
 ~5 per frame if difference is 99-40 range
 -3 per frame for anything lower
 */
-void PlayerHealthUI::Update(float elapsed) {
-  this->BattleOverTrigger<Player>::Update(elapsed);
+void PlayerHealthUI::OnUpdate(float elapsed) {
+  this->BattleOverTrigger<Player>::OnUpdate(elapsed);
 
   if (player) {
     if (player->IsDeleted()) {

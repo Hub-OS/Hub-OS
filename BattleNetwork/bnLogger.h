@@ -6,6 +6,10 @@
 #include <mutex>
 #include <fstream>
 
+#if defined(__ANDROID__)
+#include <android/log.h>
+#endif
+
 using std::string;
 using std::to_string;
 using std::cerr;
@@ -50,7 +54,12 @@ public:
       file << "StartTime " << time(0) << endl;
     }
 
+#if defined(__ANDROID__)
+    __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",_message.c_str());
+#else
     cerr << _message << endl;
+#endif
+
     logs.push(_message);
     file << _message << endl;
   }
@@ -79,12 +88,16 @@ public:
     cerr << ret << endl;
     logs.push(ret);
 
+#if defined(__ANDROID__)
+    __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",ret.c_str());
+#else
     if (!file.is_open()) {
       file.open("log.txt");
       file << "StartTime " << time(0) << endl;
     }
 
     file << ret << endl;
+#endif
   }
 
   static string ToString(float _number) {

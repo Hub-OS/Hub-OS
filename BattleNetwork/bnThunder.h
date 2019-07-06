@@ -1,3 +1,4 @@
+
 /*! \brief Thunder crawls slowly in the field until it hits the nearest enemy
  * 
  * Thunder will apply stun damage on the enemy it hits. Every update loop,
@@ -30,7 +31,7 @@ public:
    * @brief If target is null, query the field for all character enemies and track the closest one
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Attacks enemy entities. If succesful, thunder is deleted.

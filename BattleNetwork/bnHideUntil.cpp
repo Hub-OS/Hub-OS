@@ -9,7 +9,7 @@ HideUntil::HideUntil(Character* owner, HideUntil::Callback callback) : callback(
   temp = owner->GetTile();
 }
 
-void HideUntil::Update(float _elapsed) {
+void HideUntil::OnUpdate(float _elapsed) {
   if ((callback && callback()) && temp) {
     temp->AddEntity(*this->owner);
     this->scene->Eject(this);

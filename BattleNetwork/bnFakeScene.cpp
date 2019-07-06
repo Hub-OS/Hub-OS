@@ -1,7 +1,7 @@
 #include "bnFakeScene.h"
 #include <Swoosh/ActivityController.h>
 
-#include "Segues/DiamondTileSwipe.h"
+#include "Segues/BlackWashFade.h"
 
 FakeScene::FakeScene(swoosh::ActivityController& controller, sf::Texture& snapshot) : swoosh::Activity(&controller) {
   this->snapshot = sf::Sprite(snapshot);
@@ -27,7 +27,7 @@ void FakeScene::onUpdate(double elapsed) {
   if (!triggered) {
     triggered = true;
 
-    using pattern = DiamondTileSwipe<swoosh::intent::direction::right>;
+    using pattern = BlackWashFade;
     using segue = swoosh::intent::segue<pattern, swoosh::intent::sec<1>>;
     getController().queuePop<segue>();
   }

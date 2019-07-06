@@ -17,6 +17,10 @@
 #define Y_OFFSET 10.0f
 
 namespace Battle {
+  float Tile::brokenCooldownLength = COOLDOWN;
+  float Tile::teamCooldownLength = COOLDOWN;
+  float Tile::flickerTeamCooldownLength = FLICKER;
+
   Tile::Tile(int _x, int _y) {
     x = _x;
     y = _y;
@@ -26,8 +30,7 @@ namespace Battle {
     else {
       team = Team::BLUE;
     }
-    cooldown = 0.0f;
-    cooldownLength = COOLDOWN;
+
     state = TileState::NORMAL;
     RefreshTexture();
     elapsed = 0;
@@ -39,10 +42,65 @@ namespace Battle {
     setPosition((width/2.0f) + ((x - 1) * width) + START_X, (height/2.0f) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = false;
     isBattleActive = false;
+    brokenCooldown = 0;
+    flickerTeamCooldown = 0;
+  }
+
+  Tile& Tile::operator=(const Tile & other)
+  {
+    x = other.x;
+    y = other.y;
+
+    team = other.team;
+    state = other.state;
+    RefreshTexture();
+    elapsed = other.elapsed;
+    entities = other.entities;
+    setScale(2.f, 2.f);
+    width = getTextureRect().width * getScale().x;
+    height = getTextureRect().height * getScale().y;
+    setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
+    hasSpell = other.hasSpell;
+    reserved = other.reserved;
+    characters = other.characters;
+    spells = other.spells;
+    entities = other.entities;
+    isBattleActive = other.isBattleActive;
+    brokenCooldown = other.brokenCooldown;
+    teamCooldown = other.teamCooldown;
+    flickerTeamCooldown = other.flickerTeamCooldown;
+
+    return *this;
+  }
+
+
+  Tile::Tile(const Tile & other)
+  {
+    x = other.x;
+    y = other.y;
+
+    team = other.team;
+    state = other.state;
+    RefreshTexture();
+    elapsed = other.elapsed;
+    entities = other.entities;
+    setScale(2.f, 2.f);
+    width = getTextureRect().width * getScale().x;
+    height = getTextureRect().height * getScale().y;
+    setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
+    hasSpell = other.hasSpell;
+    isBattleActive = other.isBattleActive;
+    reserved = other.reserved;
+    characters = other.characters;
+    spells = other.spells;
+    entities = other.entities;
+    brokenCooldown = other.brokenCooldown;
+    teamCooldown = other.teamCooldown;
+    flickerTeamCooldown = other.flickerTeamCooldown;
   }
 
   Tile::~Tile() {
-    // Free memory 
+    // Free memory
     auto iter = entities.begin();
 
     while (iter != entities.end()) {
@@ -72,7 +130,7 @@ namespace Battle {
     return team;
   }
 
-  void Tile::SetTeam(Team _team) {
+  void Tile::SetTeam(Team _team, bool useFlicker) {
     // Check if no characters on the opposing team are on this tile
     if (this->GetTeam() == Team::UNKNOWN || this->GetTeam() != _team) {
       size_t size = this->FindEntities([this](Entity* in) {
@@ -81,6 +139,12 @@ namespace Battle {
 
       if (size == 0 && this->reserved.size() == 0) {
         team = _team;
+        this->brokenCooldown = this->brokenCooldownLength;
+
+        if(useFlicker) {
+          this->flickerTeamCooldown = this->flickerTeamCooldownLength;
+        }
+
         this->RefreshTexture();
       }
     }
@@ -94,74 +158,21 @@ namespace Battle {
     return height;
   }
 
-  Tile& Tile::operator=(const Tile & other)
-  {
-    x = other.x;
-    y = other.y;
-    
-    team = other.team;
-
-    cooldown = other.cooldown;
-    cooldownLength = COOLDOWN;
-    state = other.state;
-    RefreshTexture();
-    elapsed = other.elapsed;
-    entities = other.entities;
-    setScale(2.f, 2.f);
-    width = getTextureRect().width * getScale().x;
-    height = getTextureRect().height * getScale().y;
-    setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
-    hasSpell = other.hasSpell;
-    reserved = other.reserved;
-    characters = other.characters;
-    spells = other.spells;
-    entities = other.entities;
-    isBattleActive = other.isBattleActive;
-
-    return *this;
-  }
-
-
-  Tile::Tile(const Tile & other)
-  {
-    x = other.x;
-    y = other.y;
-
-    team = other.team;
-
-    cooldown = other.cooldown;
-    cooldownLength = COOLDOWN;
-    state = other.state;
-    RefreshTexture();
-    elapsed = other.elapsed;
-    entities = other.entities;
-    setScale(2.f, 2.f);
-    width = getTextureRect().width * getScale().x;
-    height = getTextureRect().height * getScale().y;
-    setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
-    hasSpell = other.hasSpell;
-    isBattleActive = other.isBattleActive;
-    reserved = other.reserved;
-    characters = other.characters;
-    spells = other.spells;
-    entities = other.entities;
-  }
-
   const TileState Tile::GetState() const {
     return state;
   }
 
   void Tile::SetState(TileState _state) {
-    if (_state == TileState::BROKEN && (this->characters.size() || this->reserved.size())) {
-      return;
+    if (_state == TileState::BROKEN) {
+      if(this->characters.size() || this->reserved.size()) {
+        return;
+      } else {
+        brokenCooldown = brokenCooldownLength;
+      }
     }
 
     if (_state == TileState::CRACKED && (state == TileState::EMPTY || state == TileState::BROKEN)) {
       return;
-    }
-
-    if (_state == TileState::CRACKED) {
-      cooldown = cooldownLength;
     }
 
     state = _state;
@@ -169,8 +180,13 @@ namespace Battle {
 
   // Set the right texture based on the team color and state
   void Tile::RefreshTexture() {
+    // Hack to toggle between team color without rewriting redundant code
+    auto currTeam = team;
+    auto otherTeam = (team == Team::UNKNOWN)? Team::UNKNOWN : (team == Team::RED)? Team::BLUE : Team::RED;
+    //((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown < flickerTeamCooldownLength) ? currTeam = otherTeam : currTeam;
+
     if (state == TileState::NORMAL) {
-      if (team == Team::BLUE) {
+      if (currTeam == Team::BLUE) {
         textureType = TextureType::TILE_BLUE_NORMAL;
       }
       else {
@@ -178,7 +194,7 @@ namespace Battle {
       }
     }
     else if (state == TileState::CRACKED) {
-      if (team == Team::BLUE) {
+      if (currTeam == Team::BLUE) {
         textureType = TextureType::TILE_BLUE_CRACKED;
       }
       else {
@@ -187,15 +203,15 @@ namespace Battle {
     }
     else if (state == TileState::BROKEN) {
       // Broken tiles flicker when they regen
-      if (team == Team::BLUE) {
-        textureType = ((int)(cooldown * 100) % 2 == 0 && cooldown <= FLICKER) ? TextureType::TILE_BLUE_NORMAL : TextureType::TILE_BLUE_BROKEN;
+      if (currTeam == Team::BLUE) {
+        textureType = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? TextureType::TILE_BLUE_NORMAL : TextureType::TILE_BLUE_BROKEN;
       }
       else {
-        textureType = ((int)(cooldown * 100) % 2 == 0 && cooldown <= FLICKER) ? TextureType::TILE_RED_NORMAL : TextureType::TILE_RED_BROKEN;
+        textureType = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? TextureType::TILE_RED_NORMAL : TextureType::TILE_RED_BROKEN;
       }
     }
     else if (state == TileState::EMPTY) {
-      if (team == Team::BLUE) {
+      if (currTeam == Team::BLUE) {
         textureType = TextureType::TILE_BLUE_EMPTY;
       }
       else {
@@ -203,7 +219,7 @@ namespace Battle {
       }
     }
     else if (state == TileState::ICE) {
-      if (team == Team::BLUE) {
+      if (currTeam == Team::BLUE) {
         textureType = TextureType::TILE_BLUE_ICE;
       }
       else {
@@ -211,7 +227,7 @@ namespace Battle {
       }
     }
     else if (state == TileState::GRASS) {
-      if (team == Team::BLUE) {
+      if (currTeam == Team::BLUE) {
         textureType = TextureType::TILE_BLUE_GRASS;
       }
       else {
@@ -219,7 +235,7 @@ namespace Battle {
       }
     }
     else if (state == TileState::POISON) {
-      if (team == Team::BLUE) {
+      if (currTeam == Team::BLUE) {
         textureType = TextureType::TILE_BLUE_PURPLE;
       }
       else {
@@ -227,7 +243,7 @@ namespace Battle {
       }
     }
     else if (state == TileState::LAVA) {
-      if (team == Team::BLUE) {
+      if (currTeam == Team::BLUE) {
         textureType = TextureType::TILE_BLUE_LAVA;
       }
       else {
@@ -305,6 +321,7 @@ namespace Battle {
 
     if (itEnt != entities.end()) {
       // TODO: HasFloatShoe and HasAirShoe should be a component and use the component system
+
       // If removing an entity and the tile was broken, crack the tile
       if(reserved.size() == 0 && dynamic_cast<Character*>(*itEnt) != nullptr && (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe()))) {
         state = TileState::BROKEN;
@@ -342,39 +359,40 @@ namespace Battle {
   }
 
   void Tile::AffectEntities(Spell* caller) {
-    // If the spell has already been tagged for this tile, ignore it
     if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
       return;
+
 
     // Cleanup before main loop just in case
     // NOTE: this fuction has been modified since earlier builds that needed this
     //       possibly can remove the following lines
-    for (auto it = entities.begin(); it != entities.end(); ++it) {
+    /*for (auto it = entities.begin(); it != entities.end(); ++it) {
       if (*it == nullptr) {
         it = entities.erase(it);
         continue;
       }
-    }
+    }*/
 
-    auto entities_copy = entities; // list may be modified after hitboxes are resolved
-
+    auto entities_copy = entities; // may be modified after hitboxes are resolved
     // Spells dont cause damage when the battle is over
     if (this->isBattleActive) {
       bool tag = false;
       for (auto it = entities_copy.begin(); it != entities_copy.end(); ++it) {
-        if (*it == caller)
+        if (*it == caller || caller->IsDeleted())
           continue;
 
         // TODO: use group buckets to poll by ID instead of dy casting
-        Character* c = dynamic_cast<Character*>(*it);
+        Character *c = dynamic_cast<Character *>(*it);
 
         // If the entity is tangible, the entity is a character (can be hit), and the team isn't the same
         // we call attack
-        if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() || (c->GetTeam() == Team::UNKNOWN && caller->GetTeam() == Team::UNKNOWN))) {
-          if (!c->CheckDefenses(caller)) {
+        if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() ||
+                                             (c->GetTeam() == Team::UNKNOWN &&
+                                              caller->GetTeam() == Team::UNKNOWN))) {
+          //if (!c->CheckDefenses(caller)) {
             caller->Attack(c);
-          }
-          
+          //}
+
           // Tag the spell
           tag = true;
         }
@@ -383,11 +401,14 @@ namespace Battle {
       // only ignore spells that have already hit something on a tile
       // this is similar to the hitbox being removed in mmbn mechanics
       if (tag) {
-        taggedSpells.push_back(caller->GetID());
+          taggedSpells.push_back(caller->GetID());
       }
     }
   }
 
+  /*
+
+  */
   void Tile::Update(float _elapsed) {
     hasSpell = false;
 
@@ -405,19 +426,17 @@ namespace Battle {
       // If the entity is marked for deletion
       if ((*itEnt)->IsDeleted()) {
         long ID = (*itEnt)->GetID();
-        
+
         // If the entity was in the reserved list, remove it
         auto reservedIter = reserved.find(ID);
         if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
-        // Find other buckets this belongs to
         auto fitEnt = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitChar = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitArt = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
 
         // Remove them from the tile's bucket
-        
         if (fitSpell != spells.end()) {
           spells.erase(fitSpell);
         }
@@ -432,24 +451,21 @@ namespace Battle {
 
         // free memory
         delete *itEnt;
-        
+
         // update the iterator
         itEnt = entities.erase(itEnt);
       }
       else {
+        (*itEnt)->SetBattleActive(this->isBattleActive);
         itEnt++;
       }
     }
-    
-    // Update every type bucket
 
     vector<Artifact*> artifacts_copy = artifacts;
     for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
 
       if ((*entity)->IsDeleted() || (*entity) == nullptr)
         continue;
-
-      (*entity)->SetBattleActive(isBattleActive);
       (*entity)->Update(_elapsed);
     }
 
@@ -459,34 +475,41 @@ namespace Battle {
       if ((*entity)->IsDeleted() || (*entity) == nullptr)
         continue;
 
-        hasSpell = hasSpell || (*entity)->IsTileHighlightEnabled();
+      hasSpell = hasSpell || (*entity)->IsTileHighlightEnabled();
 
-      (*entity)->SetBattleActive(isBattleActive);
       (*entity)->Update(_elapsed);
     }
 
     vector<Character*> characters_copy = characters;
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
 
-      if ((*entity)->IsDeleted() || (*entity) == nullptr)
-        continue;
+      if ((*entity)->IsDeleted() || (*entity) == nullptr) {
+          continue;
+      }
 
-      (*entity)->SetBattleActive(isBattleActive);
+      (*entity)->ResolveFrameBattleDamage();
       (*entity)->Update(_elapsed);
     }
 
     this->RefreshTexture();
+
+    if(teamCooldown > 0) {
+      teamCooldown -= 1 * _elapsed;
+    }
     
-    if (state == TileState::BROKEN) {
-      cooldown -= 1 * _elapsed;
+    if(flickerTeamCooldown > 0) {
+      flickerTeamCooldown -= 1 * _elapsed;
     }
 
-    if (cooldown <= 0.0f && state == TileState::BROKEN) {
+    if (state == TileState::BROKEN) {
+      brokenCooldown -= 1 * _elapsed;
+    }
+
+    if (brokenCooldown <= 0.0f && state == TileState::BROKEN) {
       state = TileState::NORMAL;
     }
-
   }
-  
+
   void Tile::SetBattleActive(bool state)
   {
     isBattleActive = state;
@@ -495,7 +518,7 @@ namespace Battle {
   std::vector<Entity*> Tile::FindEntities(std::function<bool(Entity* e)> query)
   {
     std::vector<Entity*> res;
-    
+
     for(auto iter = this->entities.begin(); iter != this->entities.end(); iter++ ) {
       if (query(*iter)) {
         res.push_back(*iter);
@@ -506,4 +529,3 @@ namespace Battle {
   }
 
 }
-

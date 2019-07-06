@@ -25,7 +25,8 @@ using std::to_string;
  * 
  * VERSION="1.0"
  * imagePath=C:\User\Bob\Desktop\player.png
- * 
+ *
+ * ```
  * animation state="PLAYER_SHOOTING"
  * frame duration="0.05" x="0" y="10" w="70" h="47" originx="21" originy="40"
  * point label="Buster" x="42" y="15"
@@ -40,7 +41,8 @@ using std::to_string;
  * 
  * animation state="PLAYER_MOVING"
  * ...
- * 
+ * ```
+ *
  * etc.
  */
 class Animation {
@@ -62,7 +64,6 @@ public:
    */
   Animation(string path);
   ~Animation();
-
   /**
    * @brief Reads file at path set by constructor, parses lines, and populates FrameList with data
    */

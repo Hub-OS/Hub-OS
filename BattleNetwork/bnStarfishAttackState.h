@@ -3,7 +3,6 @@
  * Spawns `maxBubbleCount` bubbles and then goes back to
  * StarfishIdleState
  */
-
 #pragma once
 #include "bnAIState.h"
 #include "bnStarfish.h"
@@ -12,7 +11,7 @@ class StarfishAttackState : public AIState<Starfish>
 {
   int bubbleCount; /*!< Bubbles left to spawn */
   bool leaveState; /*!< Flag to switch to next state */
-  
+
 public:
   StarfishAttackState(int maxBubbleCount);
   ~StarfishAttackState();

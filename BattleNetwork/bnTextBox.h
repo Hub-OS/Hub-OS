@@ -186,7 +186,6 @@ public:
   void Unmute() {
     Mute(false);
   }
-
   /**
    * @brief Query if there's more text to show
    * @return true if there's more text to show, false if all visible text is printed
@@ -215,7 +214,6 @@ public:
 
     if (lineIndex >= lines.size())
       lineIndex = (int)lines.size()-1;
-
   }
   
   /**
@@ -319,7 +317,6 @@ public:
 
     // Work backwards, printing what we can show at this frame in respect to the CPS
     double simulate = progress;
-    
     // Start at elapsed time `progress` and simulate until it his zero
     // That is our new state
     while (simulate > 0 && charsPerSecond > 0) {
@@ -389,7 +386,7 @@ public:
    * @brief Query if the textbox has reached the end of the message
    * @return charIndex >= message.length()
    */
-  const bool EndOfMessage() const { 
+  const bool EndOfMessage() const {
     return (charIndex >= message.length()); 
   }
 

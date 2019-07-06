@@ -1,3 +1,4 @@
+
 #include <Swoosh/ActivityController.h>
 
 #include "bnSelectNaviScene.h"
@@ -8,7 +9,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   camera(ENGINE.GetDefaultView()),
   textbox(135, 15),
   swoosh::Activity(&controller) {
-      
+
   // Menu name font
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
   menuLabel = new sf::Text("BATTLE SELECT", *font);
@@ -402,6 +403,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
     navi.setColor(sf::Color(200, 200, 200, 128));
   }
   else {
+
     // Make selected navis full color
     navi.setColor(sf::Color(255, 255, 255, 255));
   }

@@ -1,5 +1,3 @@
-/*! \file bnRockDebris.h */
-
 /*! \brief When Cubes break, two rock pieces emit for effect */
 #pragma once
 #include "bnArtifact.h"
@@ -44,7 +42,7 @@ public:
    * @brief Uses separate x and y interpolation to look like there's force and gravity
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move along the grid

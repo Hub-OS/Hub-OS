@@ -1,3 +1,4 @@
+
 /*! \brief Idle state for Starfish AI
  * 
  * Animates in place until the timer runs down 
@@ -5,10 +6,12 @@
  */
 #pragma once
 #include "bnAIState.h"
-#include "bnStarfish.h"
+
+class Starfish;
 
 class StarfishIdleState : public AIState<Starfish>
 {
+
   float cooldown; /*!< Seconds before moving to next state */
 public:
   StarfishIdleState();

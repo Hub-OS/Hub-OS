@@ -60,7 +60,7 @@ public:
    * @brief Quickly depletes health based on game rules and beeps if health is low
    * @param elapsed in seconds
    */
-  void Update(float elapsed);
+  void OnUpdate(float elapsed);
 
 private:
   int lastHP; /*!< HP of target last frame */

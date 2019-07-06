@@ -3,7 +3,6 @@
 #include "bnEntity.h"
 #include "bnAgent.h"
 #include "bnNoState.h"
-
 /**
  * @class AI
  * @author mav
@@ -18,11 +17,11 @@
  * 
  * @warning It is not safe to call Update() in any AI state
  */
-template<typename T>
+template<typename CharacterT>
 class AI : public Agent {
 private:
-  AIState<T>* stateMachine; /*!< State machine responsible for state management */
-  T* ref; /*!< AI of this instance */
+  AIState<CharacterT>* stateMachine; /*!< State machine responsible for state management */
+  CharacterT* ref; /*!< AI of this instance */
   int lock; /*!< Whether or not a state is locked */
 
 protected:
@@ -34,50 +33,55 @@ protected:
    };
 
 public:
-
   /**
    * @brief Prevents the AI state to be changed. Must be unlocked to use again.
    */
   void LockState() {
-    lock = AI<T>::StateLock::Locked;
+    lock = AI<CharacterT>::StateLock::Locked;
   }
 
   /**
    * @brief Allows the AI state to be changed.
    */
   void UnlockState() {
-    lock = AI<T>::StateLock::Unlocked;
+    lock = AI<CharacterT>::StateLock::Unlocked;
   }
  
   /**
    * @brief Construct an AI with the object ref
    * @param _ref object to pass around the state
    */
-  AI(T* _ref) : Agent() { stateMachine = nullptr; ref = _ref; lock = AI<T>::StateLock::Unlocked; }
+  AI(CharacterT* _ref) : Agent() { stateMachine = nullptr; ref = _ref; lock = AI<CharacterT>::StateLock::Unlocked; }
   
   /**
    * @brief Deletes the state machine object and Frees target
    */
   ~AI() { if (stateMachine) { delete stateMachine; } ref = nullptr; this->FreeTarget(); }
 
+  void InvokeDefaultState() {
+    using DefaultState = typename CharacterT::DefaultState;
+
+    this->ChangeState<DefaultState>();
+  }
+
   /**
    * @brief Change to state U. No arguments.
    */
   template<typename U>
   void ChangeState() {
-    if (lock == AI<T>::StateLock::Locked) {
+    if (lock == AI<CharacterT>::StateLock::Locked) {
       return;
     }
 
     // For easy checks below, provide a null state to leave from
     if (!stateMachine) {
-      stateMachine = new NoState<T>();
+      stateMachine = new NoState<CharacterT>();
     }
 
     // Change to U
     stateMachine->template ChangeState<U>();
 
-    stateMachine->OnEnter(*ref);
+    //stateMachine->OnEnter(*ref);
   }
 
 /**
@@ -87,17 +91,17 @@ public:
  */
 template<typename U, typename ...Args>
   void ChangeState(Args... args) {
-    if (lock == AI<T>::StateLock::Locked) {
+    if (lock == AI<CharacterT>::StateLock::Locked) {
       return;
     }
 
     if (!stateMachine) {
-      stateMachine = new NoState<T>();
+      stateMachine = new NoState<CharacterT>();
     }
 
     stateMachine->template ChangeState<U>(args...);
 
-    stateMachine->OnEnter(*ref);
+    //stateMachine->OnEnter(*ref);
   }
 
 /**
@@ -108,13 +112,13 @@ template<typename U, typename ...Args>
  */
   void Update(float _elapsed) {
     if (stateMachine != nullptr) {
-      AIState<T>* nextState = stateMachine->Update(_elapsed, *ref);
+      AIState<CharacterT>* nextState = stateMachine->Update(_elapsed, *ref);
 
       if (nextState != nullptr) {
 
         stateMachine->OnLeave(*ref);
 
-        AIState<T>* oldState = stateMachine;
+        AIState<CharacterT>* oldState = stateMachine;
         stateMachine = nextState;
         stateMachine->OnEnter(*ref);
         delete oldState;

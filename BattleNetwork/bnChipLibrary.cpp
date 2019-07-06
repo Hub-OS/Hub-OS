@@ -6,7 +6,7 @@
 #include <algorithm>
 
 ChipLibrary::ChipLibrary() {
-  LoadLibrary();
+  LoadLibrary("resources/database/library.txt");
 }
 
 
@@ -76,6 +76,16 @@ const Element ChipLibrary::GetElementFromStr(std::string type)
   return elemType;
 }
 
+const std::string ChipLibrary::GetStrFromElement(const Element type) {
+  std::string res = "NONE";
+
+  switch (type) {
+
+  }
+
+  return res;
+}
+
 void ChipLibrary::AddChip(Chip chip)
 {
   library.push_back(chip);
@@ -116,9 +126,8 @@ Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
   return Chip(0, 0, code, 0, Element::NONE, name, "missing data", "This chip data could not be interpreted. It may come from another library and has not been configured properly to be used.", 1);
 }
 
-// Used as the folder in battle
-void ChipLibrary::LoadLibrary() {
-  string data = FileUtil::Read("resources/database/library.txt");
+void ChipLibrary::LoadLibrary(const std::string& path) {
+  string data = FileUtil::Read(path);
 
   int endline = 0;
 
@@ -196,5 +205,54 @@ void ChipLibrary::LoadLibrary() {
 
   std::reverse(library.begin(), library.end());
 
-  std::cout << "library size: " << this->GetSize() << std::endl;;
+  Logger::Log(std::string("library size: ") + std::to_string(this->GetSize()));
+}
+
+const bool ChipLibrary::SaveLibrary(const std::string& path) {
+  /**
+   * Each chip has a particular format
+   * Lines beginning with pound '#' are comments and are ignored
+   * Chip name="ProtoMan" cardIndex="139" iconIndex="232" damage="120" type="Normal" codes="*,P" desc="Slices all enmy on field" "ProtoMan appears, stops time,\nand teleports to each open enemy striking once." rarity="5"
+   */
+
+  try {
+    FileUtil::WriteStream ws(path);
+    ws << "Saved on " << "timestamp here" << ws.endl();
+
+    for (auto chip : library) {
+      ws << "Chip name=\"" << chip.GetShortName() << "\" cardIndex=\""
+         << std::to_string(chip.GetID()) << "\" ";
+      ws << "iconIndex=\"" << std::to_string(chip.GetIconID()) << "\" damage=\""
+         << std::to_string(chip.GetDamage()) << "\" ";
+      ws << "type=\"" << ChipLibrary::GetStrFromElement(chip.GetElement()) << "\" ";
+
+      auto codes = ChipLibrary::GetChipCodes(chip);
+
+      ws << "codes=\"";
+
+      unsigned i = 0;
+      for (auto code : codes) {
+        ws << code << ",";
+        i++;
+
+        if (i != codes.size() - 1) ws << ",";
+      }
+
+      ws << "\" ";
+
+      ws << "desc=\"" << chip.GetDescription() << "\" ";
+      ws << "verbose=\""<< chip.GetVerboseDescription() << "\" ";
+      ws << "rarity=\"" << std::to_string(chip.GetRarity()) << "\" ";
+
+      ws << ws.endl();
+    }
+
+    Logger::Log(std::string("library saved successfully. Number of chips saved: ") +
+                std::to_string(this->GetSize()));
+    return true;
+  } catch(std::exception& e) {
+    Logger::Log(std::string("library save failed. Reason: ") + e.what());
+  }
+
+  return false;
 }

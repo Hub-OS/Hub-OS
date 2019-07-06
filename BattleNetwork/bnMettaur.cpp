@@ -19,120 +19,70 @@ Mettaur::Mettaur(Rank _rank)
   :  AI<Mettaur>(this), AnimatedCharacter(_rank) {
   //this->ChangeState<MettaurIdleState>();
   name = "Mettaur";
-  Entity::team = Team::BLUE;
+  SetTeam(Team::BLUE);
 
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
 
   if (GetRank() == Rank::SP) {
-    SetHealth(100);
-    animationComponent.SetPlaybackSpeed(1.2);
-    animationComponent.SetAnimation("SP_IDLE");
+    SetHealth(200);
+    animationComponent->SetPlaybackSpeed(1.2);
+    animationComponent->SetAnimation("SP_IDLE");
   }
   else {
 	  SetHealth(40);
     //Components setup and load
-    animationComponent.SetAnimation("IDLE");
+    animationComponent->SetAnimation("IDLE");
   }
 
   hitHeight = 0;
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_METTAUR));
+
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
-
   metID = (int)Mettaur::metIDs.size();
   Mettaur::metIDs.push_back((int)Mettaur::metIDs.size());
 
-  animationComponent.Update(0);
+  animationComponent->OnUpdate(0);
 }
 
 Mettaur::~Mettaur() {
-
 }
 
-void Mettaur::Update(float _elapsed) {
-  this->SetShader(nullptr);
-  
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-  setPosition(getPosition() + tileOffset);
-  
-  if (stunCooldown > 0) {
-    stunCooldown -= _elapsed;
-    Character::Update(_elapsed);
-
-    if (stunCooldown <= 0) {
-      stunCooldown = 0;
-      animationComponent.Update(_elapsed);
-    }
-
-    if ((((int)(stunCooldown * 15))) % 2 == 0) {
-      this->SetShader(stun);
-    }
-
-    if (GetHealth() > 0) {
-      return;
-    }
-  }
-
-  this->AI<Mettaur>::Update(_elapsed);
-
-  // Explode if health depleted
-  if (GetHealth() <= 0) {
+void Mettaur::OnDelete() {
     this->ChangeState<ExplodeState<Mettaur>>();
-    
+
     if (Mettaur::metIDs.size() > 0) {
-      vector<int>::iterator it = find(Mettaur::metIDs.begin(), Mettaur::metIDs.end(), metID);
+        vector<int>::iterator it = find(Mettaur::metIDs.begin(), Mettaur::metIDs.end(), metID);
 
-      if (it != Mettaur::metIDs.end()) {
-        // Remove this mettaur out of rotation...
-        Mettaur::currMetIndex++;
+        if (it != Mettaur::metIDs.end()) {
+            // Remove this mettaur out of rotation...
+            Mettaur::currMetIndex++;
 
-        Mettaur::metIDs.erase(it);
-        if (Mettaur::currMetIndex >= Mettaur::metIDs.size()) {
-          Mettaur::currMetIndex = 0;
+            Mettaur::metIDs.erase(it);
+            if (Mettaur::currMetIndex >= Mettaur::metIDs.size()) {
+                Mettaur::currMetIndex = 0;
+            }
         }
-      }
     }
 
     this->LockState();
-  } else {
-    animationComponent.Update(_elapsed);
-  }
-
-  Character::Update(_elapsed);
 }
 
-const bool Mettaur::Hit(Hit::Properties props) {
-  /*if (Character::Hit(_damage, props)) {
-    SetShader(whiteout);
-    return true;
-  }
+void Mettaur::OnUpdate(float _elapsed) {
+  setPosition(tile->getPosition().x, tile->getPosition().y);
+  setPosition(getPosition() + tileOffset);
 
-  return false;*/
+  this->AI<Mettaur>::Update(_elapsed);
+}
 
-  bool result = true;
+const bool Mettaur::OnHit(const Hit::Properties props) {
+    Logger::Log("Mettaur OnHit");
 
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-
-    if ((props.flags & Hit::stun) == Hit::stun) {
-      SetShader(stun);
-      this->stunCooldown = props.secs;
-    }
-    else {
-      SetShader(whiteout);
-    }
-  }
-
-  return result;
+  return true;
 }
 
 const float Mettaur::GetHitHeight() const {

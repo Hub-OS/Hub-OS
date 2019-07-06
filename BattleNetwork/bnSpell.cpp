@@ -8,10 +8,11 @@
 #include "bnTextureResourceManager.h"
 
 
-Spell::Spell() : animationComponent(this), Entity() {
+Spell::Spell(Field* field, Team team) : Entity() {
   SetFloatShoe(true);
   SetLayer(1);
-  direction = Direction::NONE;
+  SetTeam(team);
+  SetField(field);
   markTile = false;
   hitboxProperties.flags = Hit::none;
 }
@@ -19,6 +20,11 @@ Spell::Spell() : animationComponent(this), Entity() {
 Spell::~Spell() {
 }
 
+void Spell::Update(float _elapsed) {
+  Entity::Update(_elapsed);
+
+  this->OnUpdate(_elapsed);
+}
 const bool Spell::IsTileHighlightEnabled() const {
   return markTile;
 }
@@ -27,7 +33,7 @@ void Spell::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!isSliding) {
+  if (!IsSliding()) {
     this->setPosition(tile->getPosition());
   }
 }

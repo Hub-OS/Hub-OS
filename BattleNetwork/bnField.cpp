@@ -1,10 +1,7 @@
 #include "bnField.h"
+
 #include "bnObstacle.h"
 #include "bnArtifact.h"
-
-Field::Field() {
-  isBattleActive = false;
-}
 
 Field::Field(int _width, int _height)
   : width(_width),
@@ -137,13 +134,68 @@ Battle::Tile* Field::GetAt(int _x, int _y) const {
 void Field::Update(float _elapsed) {
   int entityCount = 0;
 
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
+  int redTeamFarCol = 0; // greater than is further for red
+  int blueTeamFarCol = 5; // less is further for blue
+
+  // tile cols to check to restore team state
+  std::map<int, bool> backToRed;
+  std::map<int, bool> backToBlue;
+
+  for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
       tiles[y][x]->Update(_elapsed);
+
+      auto t = tiles[y][x];
+
+      for(auto it = t->characters.begin(); it != t->characters.end(); it++) {
+        if((*it)->GetTeam() == Team::RED && redTeamFarCol <= x) { redTeamFarCol = x; }
+        else if((*it)->GetTeam() == Team::BLUE && blueTeamFarCol >= x) { blueTeamFarCol = x; }
+      }
+
+      if(x <= 2) {
+        // tiles should be red
+        if(t->GetTeam() == Team::BLUE) {
+          if(t->teamCooldown <= 0) {
+            backToRed.insert(std::make_pair(x, true));
+          }
+        }
+      } else {
+        if(t->GetTeam() == Team::RED) {
+          if(t->teamCooldown <= 0) {
+            backToBlue.insert(std::make_pair(x, true));
+          }
+        }
+      }
+
       entityCount += (int)tiles[y][x]->GetEntityCount();
       tiles[y][x]->SetBattleActive(isBattleActive);
     }
   }
+
+  // Restore whole col team states
+  // col must be ahead of the furthest character of the same team
+  // e.g. red team characters must be behind the col row
+  //      blue team characters must be ahead the col row
+  // otherwise we risk trapping characters in a striped battle field
+  for(auto p : backToBlue) {
+    if(p.first >= blueTeamFarCol) continue;
+
+    for(int i = 0; i < 3; i++) {
+      tiles[p.first][i]->SetTeam(Team::BLUE, true);
+    }
+  }
+
+  backToBlue.clear();
+
+  for(auto p : backToRed) {
+    if(p.first <= redTeamFarCol) continue;
+
+    for(int i = 0; i < 3; i++) {
+      tiles[p.first][i]->SetTeam(Team::RED, true);
+    }
+  }
+
+  backToRed.clear();
 }
 
 void Field::SetBattleActive(bool state)

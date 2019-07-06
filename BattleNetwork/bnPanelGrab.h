@@ -1,15 +1,17 @@
+
 /*! \brief Orb drops down and changes tile team */
 
 #pragma once
 #include "bnSpell.h"
 #include "bnTile.h"
+#include "bnAnimationComponent.h"
 
 class PanelGrab : public Spell {
 private:
   sf::Vector2f start; /*!< Where the orb starts */
   double progress;    /*!< Progress from the start to the tile */
   double duration;    /*!< How long the animation should last in seconds */
-
+  AnimationComponent* animationComponent;
 public:
   /**
    * @brief sets the team it will change the tile to and duration of animation 
@@ -28,7 +30,7 @@ public:
    * @brief Interpolate from start pos to tile and changes tile team
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief PanelGrab does not move across field

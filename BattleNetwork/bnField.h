@@ -6,20 +6,19 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-#include "bnTile.h"
 #include "bnEntity.h"
-#include "bnPlayer.h"
+
 class Character;
 class Spell;
 class Obstacle;
 class Artifact;
 
+namespace Battle {
+    class Tile;
+}
+
 class Field {
 public:
-  /**
-   * @brief Sets isBattleActive to false. Does not create any tiles.
-   */
-  Field();
   
   /**
    * @brief Creates a field _wdith x _height tiles. Sets isBattleActive to false

@@ -24,7 +24,7 @@ public:
    * @brief Dials health to the mob's current health and colorizes
    * @param elapsed
    */
-  virtual void Update(float elapsed);
+  virtual void OnUpdate(float elapsed);
   
   /**
    * @brief UI is drawn lest and must be injected into the battle scene

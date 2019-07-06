@@ -1,4 +1,3 @@
-#pragma once
 #include "bnMettaurMoveState.h"
 #include "bnMettaur.h"
 #include "bnTile.h"

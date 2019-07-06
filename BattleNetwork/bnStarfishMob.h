@@ -1,7 +1,6 @@
 /*! \brief Spawns one or two Starfish enemies on the field
  * 
  */
-
 #pragma once
 #include "bnMobFactory.h"
 #include "bnStarfish.h"

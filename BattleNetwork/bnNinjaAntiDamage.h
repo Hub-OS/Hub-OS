@@ -1,3 +1,4 @@
+
 /*! \brief Adds and removes defense rule for antidamage checks.
  *         Spawns ninja stars in retaliation
  */
@@ -6,6 +7,7 @@
 
 #include "bnComponent.h"
 #include <SFML/System.hpp>
+
 
 class DefenseRule;
 
@@ -28,7 +30,7 @@ public:
    * @brief Does nothing
    * @param _elapsed
    */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief Not injected into battle scene

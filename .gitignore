@@ -357,6 +357,12 @@ ASALocalRun/
 # BeatPulse healthcheck temp database 
 healthchecksdb
 
+<<<<<<< HEAD
+# Visual studio created files 
+.vs/
+
+.idea/
+=======
 #CMake
 CMakeLists.txt.user
 CMakeCache.txt
@@ -369,3 +375,4 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c

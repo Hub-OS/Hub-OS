@@ -14,7 +14,7 @@ ProgsManShootState::~ProgsManShootState()
 void ProgsManShootState::OnEnter(ProgsMan& progs) {
   auto spawnBuster = [this, &progs]() {
     Buster* buster = new Buster(progs.GetField(), progs.GetTeam(), false);
-    
+
     // Spawn a buster aiming down the field
     Direction dir = (progs.GetTeam() == Team::BLUE)? Direction::LEFT : Direction::RIGHT;
     buster->SetDirection(dir);

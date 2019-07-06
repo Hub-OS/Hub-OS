@@ -74,6 +74,19 @@ private:
   double frameElapsed;
   bool gotoNextScene;
 
+#ifdef __ANDROID__
+  bool canSwipe;
+  bool touchStart;
+
+  int touchPosX;
+  int touchPosStartX;
+
+  bool releasedB;
+
+  void StartupTouchControls();
+  void ShutdownTouchControls();
+#endif
+
 public:
   std::string FormatChipDesc(const std::string&& desc);
 

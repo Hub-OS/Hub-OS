@@ -12,12 +12,15 @@ using sf::IntRect;
 
 /*! \brief Metalman is a boss that throws blades, fires rockets, and punches the ground */
 class MetalMan : public Character, public AI<MetalMan> {
-public:
   friend class MetalManIdleState;
   friend class MetalManMoveState;
   friend class MetalManPunchState;
+  friend class MetalManMissileState;
 
-  MetalMan(Rank _rank);
+public:
+    using DefaultState = MetalManIdleState;
+
+    MetalMan(Rank _rank);
   
   /**
    * @brief deconstructor
@@ -28,7 +31,7 @@ public:
    * @brief Forces a move on metalman if he was stunned. Updates AI. Explodes when health is zero.
    * @param _elapsed in seconds
     */
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   
   /**
    * @brief If the next tile does not contain obstacles or characters, Metalman can move to it
@@ -66,11 +69,9 @@ public:
    * @param props hit properties
    * @return true if hit, false if missed
    */
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
+  virtual const bool OnHit(const Hit::Properties props);
 
-  virtual const bool OnHit(Hit::Properties props) { return true; }
-
-  virtual void OnDelete() { ; }
+  virtual void OnDelete();
   
   /**
    * @brief Get the hit height for metalman
@@ -81,7 +82,7 @@ public:
   virtual const float GetHitHeight() const;
 
 private:
-  AnimationComponent animationComponent; /*!< animates this sprite scene node */
+  AnimationComponent* animationComponent; /*!< animates this sprite scene node */
 
   float hitHeight; /*!< Hit height of metalman */
   string state; /*!< current animation name */

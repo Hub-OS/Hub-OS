@@ -21,6 +21,7 @@ DefenseAura::~DefenseAura()
 const bool DefenseAura::Check(Spell * in, Character* owner)
 {
   owner->GetField()->AddEntity(*new HitBox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+
   if(callback) { callback(in, owner); }
   
   return true; // barrier never lets attacks passthrough

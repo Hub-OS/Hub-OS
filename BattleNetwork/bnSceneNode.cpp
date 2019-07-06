@@ -25,6 +25,14 @@ void SceneNode::Reveal() {
   show = true;
 }
 
+const bool SceneNode::IsHidden() const {
+  return !show;
+}
+
+const bool SceneNode::IsVisible() const {
+  return show;
+}
+
 void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   if (!show) return;
 

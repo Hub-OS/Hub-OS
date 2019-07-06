@@ -41,7 +41,7 @@ public:
    * @brief Hold START to spread the chips out
    * @param _elapsed in seconds
    */
-  void Update(float _elapsed);
+  void OnUpdate(float _elapsed);
   
   /**
    * @brief Set the chips array and size. Updates chip cursor to 0.

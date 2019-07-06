@@ -1,6 +1,8 @@
 #pragma once
 #include "bnTile.h"
 #include "bnField.h"
+#include "bnMetalMan.h"
+
 class MetalMan;
 
 /*! \brief Moves metalman and decides his next state based on target 

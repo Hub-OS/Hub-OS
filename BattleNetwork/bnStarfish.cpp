@@ -14,22 +14,17 @@
 
 Starfish::Starfish(Rank _rank)
   : AI<Starfish>(this), AnimatedCharacter(_rank) {
-  name = "Starfish";
-  Entity::team = Team::BLUE;
+  this->SetName("Starfish");
+  this->team = Team::BLUE;
 
-  health = 100;
-  hit = false;
+  this->SetHealth(100);
   textureType = TextureType::MOB_STARFISH_ATLAS;
 
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-
-  //Components setup and load
-  animationComponent.SetAnimation("IDLE");
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Load();
+  animationComponent->SetAnimation("IDLE");
 
   hitHeight = 0;
-
-  healthUI = new MobHealthUI(this);
 
   setTexture(*TEXTURES.GetTexture(textureType));
   setScale(2.f, 2.f);
@@ -37,99 +32,28 @@ Starfish::Starfish(Rank _rank)
   this->SetHealth(health);
   this->SetFloatShoe(true);
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
-
-  animationComponent.Update(0);
+  animationComponent->OnUpdate(0);
 }
 
-Starfish::~Starfish(void) {
+Starfish::~Starfish() {
 
 }
 
-void Starfish::Update(float _elapsed) {
-  if (!hit) {
-    this->SetShader(nullptr);
-  }
-  else {
-    SetShader(whiteout);
-  }
-
+void Starfish::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
-
-  if (stunCooldown > 0) {
-    stunCooldown -= _elapsed;
-    healthUI->Update(_elapsed);
-    Character::Update(_elapsed);
-
-    if (stunCooldown <= 0) {
-      stunCooldown = 0;
-      animationComponent.Update(_elapsed);
-    }
-
-    if ((((int)(stunCooldown * 15))) % 2 == 0) {
-      this->SetShader(stun);
-    }
-    else {
-      this->SetShader(nullptr);
-    }
-
-    if (GetHealth() > 0) {
-      return;
-    }
-  }
-
   this->AI<Starfish>::Update(_elapsed);
-
-  // Explode if health depleted
-  if (GetHealth() <= 0) {
-    this->ChangeState<ExplodeState<Starfish>>();
-    this->LockState();
-  }
-  else {
-    animationComponent.Update(_elapsed);
-  }
-
-  healthUI->Update(_elapsed);
-
-  Character::Update(_elapsed);
-
-  hit = false;
 }
 
-const bool Starfish::Hit(Hit::Properties props) {
-  /*if (Character::Hit(_damage, props)) {
-    SetShader(whiteout);
-    return true;
-  }
-
-  return false;*/
-
-  bool result = true;
-
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-
-    // TODO: use resolve system and propagate state information to frame vars
-    if (props.element == Element::ELEC) {
-      health -= props.damage;
-      field->AddEntity(*(new ElementalDamage(field, GetTeam())), tile->GetX(), tile->GetY());
-    }
-
-    if ((props.flags & Hit::stun) == Hit::stun) {
-      SetShader(stun);
-      this->stunCooldown = props.secs;
-    }
-  }
-
-  hit = result;
-
-  return result;
+const bool Starfish::OnHit(const Hit::Properties props) {
+  //  There's no special checks for starfish
+  return true;
 }
 
 const float Starfish::GetHitHeight() const {
   return hitHeight;
+}
+
+void Starfish::OnDelete() {
+  this->ChangeState<ExplodeState<Starfish>>();
+  this->LockState();
 }

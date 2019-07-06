@@ -1,6 +1,6 @@
 #pragma once
-#include "bnTile.h"
-#include "bnField.h"
+#include "bnAIState.h"
+
 class MetalMan;
 
 /*! \brief Metalman throws a MetalBlade */
