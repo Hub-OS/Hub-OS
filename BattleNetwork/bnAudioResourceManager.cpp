@@ -45,8 +45,12 @@ void AudioResourceManager::EnableAudio(bool status) {
     this->SetStreamVolume(this->streamVolume);
     this->SetChannelVolume(this->channelVolume);
   } else {
+    auto streamBefore = this->streamVolume;
+    auto channelBefore = this->channelVolume;
     this->SetStreamVolume(0);
     this->SetChannelVolume(0);
+    this->streamVolume = streamBefore;
+    this->channelVolume = channelBefore;
   }
 }
 

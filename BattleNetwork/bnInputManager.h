@@ -112,6 +112,24 @@ public:
    */
   void VirtualKeyEvent(InputEvent event);
 
+  /**
+  * @brief binds function to invoke when regain focus event is fired 
+  * @param callback the function to invoke
+  */
+  void BindRegainFocusEvent(std::function<void()> callback);
+
+  /**
+* @brief binds function to invoke when resized focus event is fired
+* @param callback the function to invoke
+*/
+  void BindResizedEvent(std::function<void(int, int)> callback);
+
+  /**
+  * @brief binds function to invoke when regain lost focus event is fired
+  * @param callback the function to invoke
+  */
+  void BindLoseFocusEvent(std::function<void()> callback);
+
 private:
   bool captureInputBuffer; /*!< Flags input buffer capture state */
   std::string inputBuffer; /*!< The internal input buffer data */
@@ -127,6 +145,10 @@ private:
   map<std::string, bool> gamepadPressed; /*!< Maps controller events*/
 
   ChronoXConfigReader* config;   /*!< Support for ChronoX config.ini files */
+
+  std::function<void()> onRegainFocus; /*!< How the application should respond to regaining focus */
+  std::function<void()> onLoseFocus; /*!< How the application should respond to losing focus */
+  std::function<void(int, int)> onResized; /*!< How the application should respond to resized */
 
 };
 

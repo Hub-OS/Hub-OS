@@ -12,51 +12,22 @@ Engine& Engine::GetInstance() {
 }
 
 void Engine::Initialize() {
+  // center, size
   view = sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320));
   cam = new Camera(view);
+  window = nullptr;
 
 #ifdef __ANDROID__
-  auto videoMode = VideoMode::getFullscreenModes().front();
+  // TODO: does the engine need to find the smallest or does this ratio work
+  // auto videoMode = VideoMode::getFullscreenModes().front();
+  videoMode.width = unsigned int(480.0f);
+  videoMode.height = unsigned int(320.0f);
 #else
-  auto videoMode = VideoMode::getDesktopMode();
+  auto videoMode = VideoMode(480, 320);
 #endif
-
-  float windowRatio = videoMode.width / (float) videoMode.height;
-  float viewRatio = view.getSize().x / (float) view.getSize().y;
-  float sizeX = 1;
-  float sizeY = 1;
-  float posX = 0;
-  float posY = 0;
-
-  bool horizontalSpacing = true;
-  if (windowRatio < viewRatio) {
-      horizontalSpacing = false;
-  }
-
-  // If horizontalSpacing is true, the black bars will appear on the left and right side.
-  // Otherwise, the black bars will appear on the top and bottom.
-
-  if (horizontalSpacing) {
-      sizeX = viewRatio / windowRatio;
-      posX = (1 - sizeX) / 2.f;
-
-  } else {
-      sizeY = windowRatio / viewRatio;
-      posY = (1 - sizeY) / 2.f;
-  }
-
-  // Now that we have the ratios for the device, we request the smallest screen we can
-  videoMode.width = unsigned int(view.getSize().x);
-  videoMode.height = unsigned int(view.getSize().y);
-
-  view.setViewport( sf::FloatRect(posX, posY, sizeX, sizeY) );
-
-  // Logger::Log("first video mode was w: " + std::to_string(videoMode.width) + ", " + std::to_string(videoMode.height));
-
   window = new RenderWindow(videoMode, "Battle Network: Progs Edition");
-  window->setView(view);
 
-  original = view; // never changes even when stretched. TODO: is this true?
+  this->Resize(view.getSize().x, view.getSize().y);
 
   window->setFramerateLimit(60);
   window->setMouseCursorVisible(false); // Hide cursor
@@ -247,6 +218,44 @@ const bool Engine::IsMouseHovering(sf::Sprite & sprite) const
   sf::FloatRect bounds = sprite.getGlobalBounds();
 
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
+}
+
+void Engine::RegainFocus()
+{
+
+}
+
+void Engine::Resize(int newWidth, int newHeight)
+{
+  float windowRatio = (float)newWidth / (float)newHeight;
+
+  float viewRatio = view.getSize().x / view.getSize().y;
+  float sizeX = 1;
+  float sizeY = 1;
+  float posX = 0;
+  float posY = 0;
+
+  bool horizontalSpacing = true;
+  if (windowRatio < viewRatio) {
+    horizontalSpacing = false;
+  }
+
+  // If horizontalSpacing is true, the black bars will appear on the left and right side.
+  // Otherwise, the black bars will appear on the top and bottom.
+
+  if (horizontalSpacing) {
+    sizeX = viewRatio / windowRatio;
+    posX = (1 - sizeX) / 2.f;
+
+  }
+  else {
+    sizeY = windowRatio / viewRatio;
+    posY = (1 - sizeY) / 2.f;
+  }
+
+  view.setViewport(sf::FloatRect(posX, posY, sizeX, sizeY));
+
+  window->setView(view);
 }
 
 const sf::View Engine::GetDefaultView() {

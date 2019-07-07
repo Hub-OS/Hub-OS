@@ -58,11 +58,12 @@ void InputManager::Update() {
     }
 
     if(event.type == Event::LostFocus) {
-      // Dev Note: I really don't want this here. This needs more abstraction for this loop somehow.
-      AUDIO.EnableAudio(false);
+      this->onLoseFocus();
     } else if(event.type == Event::GainedFocus) {
-      // Dev Note: I really don't want this here. This needs more abstraction for this loop somehow.
-      AUDIO.EnableAudio(true);
+      this->onRegainFocus();
+    }
+    else if (event.type == Event::Resized) {
+      this->onResized(event.size.width, event.size.height);
     }
 
     if (event.type == sf::Event::TextEntered && this->captureInputBuffer) {
@@ -445,7 +446,7 @@ void InputManager::Update() {
 
   eventsLastFrame.clear();
 
-#if defined(__ANDROID__)
+#ifdef __ANDROID__
     events.clear(); // TODO: what inputs get stuck in the event list on droid?
     TouchArea::poll();
 #endif
@@ -457,6 +458,21 @@ bool InputManager::Has(InputEvent _event) {
 
 void InputManager::VirtualKeyEvent(InputEvent event) {
   events.push_back(event);
+}
+
+void InputManager::BindRegainFocusEvent(std::function<void()> callback)
+{
+  this->onRegainFocus = callback;
+}
+
+void InputManager::BindResizedEvent(std::function<void(int, int)> callback)
+{
+  this->onResized = callback;
+}
+
+void InputManager::BindLoseFocusEvent(std::function<void()> callback)
+{
+  this->onLoseFocus = callback;;
 }
 
 bool InputManager::Empty() {

@@ -99,6 +99,18 @@ public:
   const bool IsMouseHovering(sf::Sprite& sprite) const;
 
   /**
+  * @brief Describes how the engine should regain focus on diff hardware
+  * 
+  * Callback assigned to the InputManager */
+  void RegainFocus();
+
+  /**
+  * @brief Describes how the engine should resize screen on diff hardware
+  *
+  * Callback assigned to the InputManager */
+  void Resize(int newWidth, int newHeight);
+
+  /**
    * @brief Creates a camera for the scene
    * @param camera
    * 

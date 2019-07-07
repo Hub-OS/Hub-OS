@@ -136,6 +136,37 @@ void RunAudioInit(std::atomic<int> * progress) {
   Logger::GetMutex()->unlock();
 }
 
+/*! \brief This function describes how the app behaves on focus regain
+ *  
+ * Refresh the graphics context and enable audio again 
+ */
+void AppRegainFocus() {
+  ENGINE.RegainFocus();
+  AUDIO.EnableAudio(true);
+
+#ifdef __ANDROID__
+  // TODO: Reload all graphics and somehow reassign all gl IDs to all allocated sfml graphics structures
+  // TEXTURES.RecoverLostGLContext();
+  // ENGINE.RecoverLostGLContext(); // <- does the window need recreation too?
+#endif
+}
+/*! \brief This function describes how the app behaves on window resize
+ *
+ * Refresh the viewport
+ */
+
+void AppResize(int newWidth, int newHeight) {
+  ENGINE.Resize(newWidth, newHeight);
+}
+
+/*! \brief This function describes how the app behaves on focus lost
+ * 
+ * Mute the audio 
+ */
+void AppLoseFocus() {
+  AUDIO.EnableAudio(false);
+}
+
 int main(int argc, char** argv) {
   // Initialize the engine and log the startup time
   const clock_t begin_time = clock();
@@ -152,6 +183,11 @@ int main(int argc, char** argv) {
   AUDIO;
   QueuNaviRegistration(); // Queues navis to be loaded later
   QueueMobRegistration(); // Queues mobs to be loaded later
+
+  // Tell the input event loop how to behave when the app loses and regains focus
+  INPUT.BindLoseFocusEvent(AppLoseFocus);
+  INPUT.BindRegainFocusEvent(AppRegainFocus);
+  INPUT.BindResizedEvent(AppResize);
 
   // State flags
   bool inConfigMessageState = true;
