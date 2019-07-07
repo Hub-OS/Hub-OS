@@ -1,9 +1,9 @@
 //
 // Created by Bountyhunter on 4/18/2019.
 //
-
-#include <bnLogger.h>
 #include "bnTouchArea.h"
+#include "../bnLogger.h"
+#include "../bnEngine.h"
 
 std::vector<int> TouchArea::m_touches; // We want to be aware of what touches are already owned
 std::vector<TouchArea*> TouchArea::m_instances;
@@ -60,7 +60,7 @@ void TouchArea::privPoll() {
     }
 
     if(m_state == TouchArea::State::DEFAULT) {
-        unsigned int nextFinger = m_touches.size();
+        unsigned int nextFinger = unsigned int(m_touches.size());
         if(sf::Touch::isDown(nextFinger)) {
             // Check to see if in rectangle
             sf::Vector2i touchPosition = sf::Touch::getPosition(nextFinger, *ENGINE.GetWindow());

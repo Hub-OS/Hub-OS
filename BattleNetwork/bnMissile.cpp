@@ -2,6 +2,8 @@
 #include "bnExplosion.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnField.h"
+#include "bnTile.h"
 #include <cmath>
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>

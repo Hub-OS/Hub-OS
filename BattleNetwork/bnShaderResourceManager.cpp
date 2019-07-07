@@ -30,6 +30,7 @@ void ShaderResourceManager::LoadAllShaders(std::atomic<int> &status) {
 
 sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
 {
+#ifdef __ANDROID__
     sf::Shader* shader = new sf::Shader();
     bool result = false;
 
@@ -50,6 +51,18 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
 
         return nullptr;
     }
+#else 
+    sf::Shader* shader = new sf::Shader();
+    if (!shader->loadFromFile(_path + ".frag", sf::Shader::Fragment)) {
+
+      Logger::GetMutex()->lock();
+      Logger::Log("Error loading shader: " + _path + ".frag");
+      Logger::GetMutex()->unlock();
+
+      exit(EXIT_FAILURE);
+      return nullptr;
+    }
+#endif
 
     //shader->setUniform("texture", sf::Shader::CurrentTexture);
 

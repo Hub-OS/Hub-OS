@@ -367,9 +367,6 @@ int main(int argc, char** argv) {
     
     INPUT.Update();
 
-    // Poll input
-    INPUT.Update();
-
     // Set title bar to loading %
     float percentage = (float)progress / (float)totalObjects;
     std::string percentageStr = std::to_string((int)(percentage*100));
@@ -580,7 +577,9 @@ int main(int argc, char** argv) {
     auto states = sf::RenderStates::Default;
     //states.transform.scale(4.f,4.f);
 
+#ifdef __ANDROID__
     states.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+#endif
 
     ENGINE.GetWindow()->draw(postprocess, states);
 
@@ -681,7 +680,10 @@ int main(int argc, char** argv) {
 
       auto states = sf::RenderStates::Default;
       //states.transform.scale(4.f,4.f);
+
+#ifdef __ANDROID__
       states.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+#endif 
 
       app.draw(loadSurface);
       loadSurface.display();
@@ -689,10 +691,10 @@ int main(int argc, char** argv) {
       sf::Sprite toScreen(loadSurface.getTexture());
       ENGINE.GetWindow()->draw(toScreen, states);
 
-#ifndef __ANDROID__
-      ENGINE.GetWindow()->draw(mouse, states);
-#else
+#ifdef __ANDROID__
       ENGINE.GetWindow()->draw(*logLabel, states);
+#else
+      ENGINE.GetWindow()->draw(mouse, states);
 #endif
 
       ENGINE.GetWindow()->display();

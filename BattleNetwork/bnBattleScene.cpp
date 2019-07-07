@@ -1180,7 +1180,7 @@ void BattleScene::onStart() {
   else {
     if (!mob->IsBoss()) {
       sf::Music::TimeSpan span;
-      span.offset = sf::microseconds(84.0f);
+      span.offset = sf::microseconds(84);
       span.length = sf::seconds(60.0f * 1.20668f);
 
       AUDIO.Stream("resources/loops/loop_battle.ogg", true, span);

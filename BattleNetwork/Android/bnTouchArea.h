@@ -8,7 +8,6 @@
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <vector>
-#include "bnEngine.h"
 
 class TouchArea {
 public:

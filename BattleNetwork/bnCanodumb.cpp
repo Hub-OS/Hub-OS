@@ -52,7 +52,7 @@ Canodumb::~Canodumb() {
 
 void Canodumb::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
-  hitHeight = (int)getLocalBounds().height;
+  hitHeight = getLocalBounds().height;
 
   this->AI<Canodumb>::Update(_elapsed);
 }

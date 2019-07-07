@@ -2,6 +2,7 @@
 
 #include "bnComponent.h"
 #include <SFML/System.hpp>
+#include <functional>
 
 class Character;
 

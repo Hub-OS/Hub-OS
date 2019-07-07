@@ -390,6 +390,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
     }
 
+#ifdef __ANDROID__
     if(!canSwipe) {
       auto x = swoosh::ease::interpolate((float) frameElapsed * 7.f, folderCursor.getPosition().x,
                                          98.0f + (std::min(2, currFolderIndex) * 144.0f));
@@ -414,6 +415,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
           }
       }
     }
+#endif
 
     ENGINE.Draw(folderCursor, false);
   }

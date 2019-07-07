@@ -46,8 +46,8 @@ void Engine::Initialize() {
   }
 
   // Now that we have the ratios for the device, we request the smallest screen we can
-  videoMode.width = view.getSize().x;
-  videoMode.height = view.getSize().y;
+  videoMode.width = unsigned int(view.getSize().x);
+  videoMode.height = unsigned int(view.getSize().y);
 
   view.setViewport( sf::FloatRect(posX, posY, sizeX, sizeY) );
 
@@ -72,9 +72,13 @@ void Engine::Draw(Drawable& _drawable, bool applyShaders) {
 
   if (applyShaders) {
     auto stateCopy = state;
+
+#ifdef __ANDROID__
     if(!stateCopy.shader) {
       stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
     }
+#endif 
+
     surface->draw(_drawable, stateCopy);
   } else {
     surface->draw(_drawable);
@@ -90,9 +94,13 @@ void Engine::Draw(Drawable* _drawable, bool applyShaders) {
 
   if (applyShaders) {
     auto stateCopy = state;
+
+#ifdef __ANDROID__
     if(!stateCopy.shader) {
       stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
     }
+#endif
+
     surface->draw(*_drawable, stateCopy);
   } else {
     surface->draw(*_drawable);
@@ -213,7 +221,7 @@ const sf::Vector2f Engine::GetViewOffset() {
 }
 
 void Engine::SetShader(sf::Shader* shader) {
-
+#ifdef __ANDROID__
   if (shader == nullptr) {
     state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
 
@@ -223,6 +231,9 @@ void Engine::SetShader(sf::Shader* shader) {
   } else {
     state.shader = shader;
   }
+#else 
+  state.shader = shader;
+#endif
 }
 
 void Engine::RevokeShader() {

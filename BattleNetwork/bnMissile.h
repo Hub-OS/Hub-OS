@@ -1,7 +1,10 @@
 #pragma once
 #include "bnSpell.h"
-#include "bnTile.h"
 #include "bnAnimationComponent.h"
+
+namespace Battle {
+  class Tile;
+};
 
 class Missile : public Spell {
 private:

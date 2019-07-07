@@ -3,6 +3,7 @@ using sf::Event;
 using sf::Keyboard;
 #include "bnEngine.h"
 #include "bnInputManager.h"
+#include "bnAudioResourceManager.h"
 #include "bnDirection.h"
 
 #if defined(__ANDROID__)
@@ -57,8 +58,10 @@ void InputManager::Update() {
     }
 
     if(event.type == Event::LostFocus) {
+      // Dev Note: I really don't want this here. This needs more abstraction for this loop somehow.
       AUDIO.EnableAudio(false);
     } else if(event.type == Event::GainedFocus) {
+      // Dev Note: I really don't want this here. This needs more abstraction for this loop somehow.
       AUDIO.EnableAudio(true);
     }
 

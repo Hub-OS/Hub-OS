@@ -82,8 +82,8 @@ private:
   Channel* channels;
   sf::SoundBuffer* sources;
   sf::Music stream;
-  int channelVolume;
-  int streamVolume;
+  float channelVolume;
+  float streamVolume;
   bool isEnabled;
 };
 

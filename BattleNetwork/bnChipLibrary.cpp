@@ -80,7 +80,44 @@ const std::string ChipLibrary::GetStrFromElement(const Element type) {
   std::string res = "NONE";
 
   switch (type) {
-
+  case Element::AQUA:
+    res = "AQUA";
+    break;
+  case Element::BREAK:
+    res = "BREAK";
+    break;
+  case Element::CURSOR:
+    res = "CURSOR";
+    break;
+  case Element::ELEC:
+    res = "ELEC";
+    break;
+  case Element::FIRE:
+    res = "FIRE";
+    break;
+  case Element::ICE:
+    res = "ICE";
+    break;
+  case Element::NONE:
+    res = "NONE";
+    break;
+  case Element::PLUS:
+    res = "PLUS";
+    break;
+  case Element::SUMMON:
+    res = "SUMMON";
+    break;
+  case Element::SWORD:
+    res = "SWORD";
+    break;
+  case Element::WIND:
+    res = "WIND";
+    break;
+  case Element::WOOD:
+    res = "WOOD";
+    break;
+  default:
+    res = "NONE";
   }
 
   return res;

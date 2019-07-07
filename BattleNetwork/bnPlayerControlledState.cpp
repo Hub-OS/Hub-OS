@@ -25,7 +25,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   // Action controls take priority over movement
 #ifndef __ANDROID__
-  if (!inputManager->Has(HELD_A)) {
+  if (!INPUT.Has(HELD_A)) {
 #else
     if(INPUT.Has(PRESSED_A) && !INPUT.Has(RELEASED_B)) {
 #endif

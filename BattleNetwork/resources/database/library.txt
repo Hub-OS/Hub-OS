@@ -1,7 +1,7 @@
 # Lines beginning with pound '#' are comments and are ignored
 Chip name="ProtoMan" cardIndex="139" iconIndex="232" damage="120" type="Normal" codes="*,P" desc="Slices all enmy on field" "ProtoMan appears, stops time,\nand teleports to each open enemy striking once." rarity="5"
 
-Chip name="AreaGrab" cardIndex="82" iconIndex="154" damage="10" type="Normal" codes="*" desc="Grab enemy tiles" rarity="1" 
+Chip name="AreaGrab" cardIndex="82" iconIndex="154" damage="0" type="Normal" codes="*" desc="Grab enemy tiles" rarity="1"
 Chip name="RockCube" damage="0" desc="Places cube in front" cardIndex="108" iconIndex="139" type="Normal" codes="A,C,E,H,R" memory="9" power="Normal" rarity="0" dark="0"
 
 Chip name="Fishy" cardIndex="38" iconIndex="53" damage="80" type="Normal" codes="*" desc="Dash into enmy" rarity="1"

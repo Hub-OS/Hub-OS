@@ -17,6 +17,6 @@ enum class Element : int {
   PLUS,
   BREAK,
   NONE,
-  ICE = NONE,
+  ICE,
   SIZE
 };

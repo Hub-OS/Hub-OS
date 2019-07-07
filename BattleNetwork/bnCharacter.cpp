@@ -156,7 +156,7 @@ void Character::ResolveFrameBattleDamage()
       Hit::Properties& props = this->statusQueue.front();
     this->statusQueue.pop();
 
-    double tileDamage = 0;
+    int tileDamage = 0;
 
     // Calculate elemental damage if the tile the character is on is super effective to it
     if (props.element == Element::FIRE

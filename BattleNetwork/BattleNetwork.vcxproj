@@ -109,6 +109,7 @@
       <ObjectFileName>$(IntDir)%(Filename)%(Extension).obj</ObjectFileName>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -177,6 +178,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Android\bnTouchArea.cpp" />
     <ClCompile Include="bnAirShot.cpp" />
     <ClCompile Include="bnAnimate.cpp" />
     <ClCompile Include="bnAnimatedCharacter.cpp" />
@@ -248,12 +250,14 @@
     <ClCompile Include="bnMetalManBossFight.cpp" />
     <ClCompile Include="bnMetalManBossFight2.cpp" />
     <ClCompile Include="bnMetalManIdleState.cpp" />
+    <ClCompile Include="bnMetalManMissileState.cpp" />
     <ClCompile Include="bnMetalManMoveState.cpp" />
     <ClCompile Include="bnMetalManPunchState.cpp" />
     <ClCompile Include="bnMetalManThrowState.cpp" />
     <ClCompile Include="bnMettaurAttackState.cpp" />
     <ClCompile Include="bnMettaurIdleState.cpp" />
     <ClCompile Include="bnMettaurMoveState.cpp" />
+    <ClCompile Include="bnMissile.cpp" />
     <ClCompile Include="bnMobHealthUI.cpp" />
     <ClCompile Include="bnMobRegistration.cpp" />
     <ClCompile Include="bnMysteryData.cpp" />
@@ -328,6 +332,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
+    <ClInclude Include="Android\bnTouchArea.h" />
     <ClInclude Include="bnAirShot.h" />
     <ClInclude Include="bnAnimate.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
@@ -382,9 +387,11 @@
     <ClInclude Include="bnMetalManBossFight.h" />
     <ClInclude Include="bnMetalManBossFight2.h" />
     <ClInclude Include="bnMetalManIdleState.h" />
+    <ClInclude Include="bnMetalManMissileState.h" />
     <ClInclude Include="bnMetalManMoveState.h" />
     <ClInclude Include="bnMetalManPunchState.h" />
     <ClInclude Include="bnMetalManThrowState.h" />
+    <ClInclude Include="bnMissile.h" />
     <ClInclude Include="bnMobRegistration.h" />
     <ClInclude Include="bnMysteryData.h" />
     <ClInclude Include="bnNinjaAntiDamage.h" />
