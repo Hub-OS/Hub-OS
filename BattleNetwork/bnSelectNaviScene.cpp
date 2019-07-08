@@ -6,7 +6,7 @@
 
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
   naviSelectionIndex(currentNavi),
-  camera(ENGINE.GetDefaultView()),
+  camera(ENGINE.GetView()),
   textbox(135, 15),
   swoosh::Activity(&controller) {
 

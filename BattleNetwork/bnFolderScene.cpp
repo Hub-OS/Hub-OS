@@ -21,7 +21,7 @@ using sf::Font;
 
 FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderCollection& collection) :
   collection(collection),
-  camera(ENGINE.GetDefaultView()),
+  camera(ENGINE.GetView()),
   swoosh::Activity(&controller)
 {
   promptOptions = false;

@@ -2,6 +2,7 @@
 #include "bnEntity.h"
 #include "bnAIState.h"
 #include "bnExplosion.h"
+#include "bnAnimationComponent.h"
 #include "bnShaderResourceManager.h"
 
 /**
@@ -67,6 +68,13 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   Field* field = e.GetField();
   explosion = new Explosion(field, e.GetTeam(), this->numOfExplosions, this->playbackSpeed);
   field->AddEntity(*(Artifact*)explosion, tile->GetX(), tile->GetY());
+
+  auto animation = e.GetFirstComponent<AnimationComponent>();
+
+  if (animation) {
+    animation->SetPlaybackSpeed(0);
+    animation->CancelCallbacks();
+  }
 }
 
 template<typename Any>

@@ -18,6 +18,8 @@ void HideUntil::OnUpdate(float _elapsed) {
 }
 
 void HideUntil::Inject(BattleScene& scene) {
+  std::cout << "scene is " << &scene << std::endl;
+
   scene.Inject(this);
   this->scene = &scene;
 

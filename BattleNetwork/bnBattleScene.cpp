@@ -30,7 +30,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
         distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
         summons(player),
         chipListener(player),
-        chipCustGUI(folder->Clone(), 8),
+        // cap of 8 chips, 8 chips drawn per turn
+        chipCustGUI(folder->Clone(), 8, 8), 
         camera(*ENGINE.GetCamera()),
         chipUI(player),
         persistentFolder(folder) {
@@ -99,7 +100,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   programAdvanceSprite.setOrigin(0, programAdvanceSprite.getLocalBounds().height/2.0f);
   programAdvanceSprite.setPosition(40.0f, 58.f);
 
-  camera = Camera(ENGINE.GetDefaultView());
+  camera = Camera(ENGINE.GetView());
   ENGINE.SetCamera(camera);
 
   /*
@@ -267,22 +268,24 @@ void BattleScene::ProcessNewestComponents()
 
   for (auto e : entities) {
     if (e->components.size() > 0) {
-      //std::cout << "lastCompID: " << e->lastComponentID << " - latest: " << e->shared[0]->GetID() << std::endl;
+      // update the ledger
+      // Injects usually removes the owner so this step proceeds the lastComponentID update
+      auto latestID = e->components[0]->GetID();
 
       if (e->lastComponentID < e->components[0]->GetID()) {
-        // Process the newest components
+        std::cout << "latestID: " << latestID << " lastComponentID: " << e->lastComponentID << "\n";
 
+        // Process the newest components
         std::vector<Component*> newest;
 
         for (auto c : e->components) {
-          if(c->GetID() <= e->lastComponentID) break; // Older components are last in order
+          if (c->GetID() <= e->lastComponentID) break; // Older components are last in order, we're done
 
+          // Otherwise inject into scene
           c->Inject(*this);
         }
 
-        // update the ledger
-        // Injects usually removes the owner so this step proceeds the lastComponentID update
-        e->lastComponentID = e->components[0]->GetID();
+        e->lastComponentID = latestID;
       }
     }
   }
@@ -388,7 +391,7 @@ void BattleScene::onUpdate(double elapsed) {
     }
 
     // kill switch for testing:
-    if (INPUT.Has(InputEvent::PRESSED_A) && INPUT.Has(InputEvent::PRESSED_B) && INPUT.Has(InputEvent::PRESSED_LEFT) /*&& INPUT.Has(InputEvent::PRESSED_RIGHT)*/) {
+    if (INPUT.Has(InputEvent::PRESSED_A) && INPUT.Has(InputEvent::PRESSED_B) && INPUT.Has(InputEvent::PRESSED_LEFT) && INPUT.Has(InputEvent::PRESSED_RIGHT)) {
       mob->KillSwitch();
     }
 
@@ -419,7 +422,7 @@ void BattleScene::onUpdate(double elapsed) {
     comboDeleteCounter = 0;
   }
 
-  // todo: we need states
+  // todo: we desperately need states
   // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
   if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonActive() || isPreBattle || isPostBattle)) {
     int newMobSize = mob->GetRemainingMobCount();
@@ -451,6 +454,7 @@ void BattleScene::onUpdate(double elapsed) {
 
   // other player controls
   if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
+    // Todo: replace PLAYER_IDLE check for a chip lock status
     if (player && player->GetTile() && player->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE") {
       chipUI.UseNextChip();
     }
@@ -601,6 +605,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.SetShader(&pauseShader);
     pauseShader.setUniform("opacity", 0.25f);
   } else if(showSummonBackdrop) {
+    ENGINE.SetShader(&pauseShader);
     pauseShader.setUniform("opacity",0.25f*float(std::min(0.0, (showSummonBackdropTimer/showSummonBackdropLength))));
   }
 
@@ -1202,7 +1207,7 @@ void BattleScene::onLeave() {
 }
 
 void BattleScene::onExit() {
- // ENGINE.RevokeShader(); // Legacy?
+ // ENGINE.RevokeShader(); // Legacy code or necessary?
 }
 
 void BattleScene::onEnter() {

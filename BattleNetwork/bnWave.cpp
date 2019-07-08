@@ -12,8 +12,8 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   this->speed = speed;
 
   //Components setup and load
-  auto onFinish = [this]() {
-    this->Delete();
+  auto spawnNext = [this]() {
+    this->EnableTileHighlight(false);
     if(this->GetTile()->GetX() > 1) {
         auto* wave = new Wave(this->GetField(), this->GetTeam(), this->speed);
         wave->SetDirection(this->GetDirection());
@@ -27,7 +27,8 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
 
   animation->Setup("resources/spells/spell_wave.animation");
   animation->Load();
-  animation->SetAnimation("DEFAULT", Animate::Mode::Loop, onFinish);
+  animation->SetAnimation("DEFAULT", Animate::Mode::NoEffect, [this]() { this->Delete(); });
+  animation->AddCallback(4, spawnNext);
   animation->SetPlaybackSpeed(speed);
   animation->OnUpdate(0);
 
@@ -44,8 +45,6 @@ Wave::~Wave() {
 }
 
 void Wave::OnUpdate(float _elapsed) {
-Logger::Log(std::string("wave team: ") + std::to_string((int)GetTeam()));
-
   int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
@@ -59,7 +58,5 @@ bool Wave::Move(Direction _direction) {
 }
 
 void Wave::Attack(Character* _entity) {
-  Logger::Log("wave attack");
-
   _entity->Hit(GetHitboxProperties());
 }

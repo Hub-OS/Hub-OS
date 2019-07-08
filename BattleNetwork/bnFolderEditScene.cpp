@@ -71,7 +71,7 @@ std::string FolderEditScene::FormatChipDesc(const std::string && desc)
 }
 
 FolderEditScene::FolderEditScene(swoosh::ActivityController &controller) :
-  camera(ENGINE.GetDefaultView()),
+  camera(ENGINE.GetView()),
   swoosh::Activity(&controller)
 {
 

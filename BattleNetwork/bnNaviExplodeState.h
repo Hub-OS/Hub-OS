@@ -77,6 +77,13 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
   Field* field = e.GetField();
   shine = new ShineExplosion(field, e.GetTeam());
   field->AddEntity(*shine, tile->GetX(), tile->GetY());
+
+  auto animation = e.GetFirstComponent<AnimationComponent>();
+
+  if (animation) {
+    animation->SetPlaybackSpeed(0);
+    animation->CancelCallbacks();
+  }
 }
 
 template<typename Any>

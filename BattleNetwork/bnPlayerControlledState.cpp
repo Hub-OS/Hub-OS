@@ -21,8 +21,6 @@ void PlayerControlledState::OnEnter(Player& player) {
 }
 
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
-  if (!player.IsBattleActive()) return;
-
   // Action controls take priority over movement
 #ifndef __ANDROID__
   if (!INPUT.Has(HELD_A)) {
@@ -45,7 +43,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
   }
 
-  // Movement increments are restricted based on anim speed
+  // Movement increments are restricted based on anim speed at this time
   if (player.state != PLAYER_IDLE)
     return;
 
@@ -109,6 +107,6 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 }
 
 void PlayerControlledState::OnLeave(Player& player) {
-  /* Mega loses charge when we release control */
+  /* Mega loses charge when we leave this state */
   player.chargeComponent.SetCharging(false);
 }

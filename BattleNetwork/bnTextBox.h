@@ -306,8 +306,25 @@ public:
   virtual void Update(const double elapsed) {
     // If we're paused don't update
     // If the message is empty don't update
-    // If we're at the end of the message, don't update
-    if (!play || message.empty() || charIndex >= message.length()) return;
+    if (!play || message.empty()) return;
+
+    // If we're at the end of the message, don't update 
+    // unless scrolling through lines via the API
+    if (charIndex >= message.length()) {
+      int begin = lines[lineIndex];
+      int lastIndex = std::min((int)lines.size()-1, lineIndex+numberOfFittingLines);
+      int last = lines[lastIndex];
+
+      if (lastIndex == lines.size()-1) {
+        last = int(message.size() - 1);
+      }
+
+      int len = last - begin;
+      text.setString(message.substr(begin, len));
+
+     // We don't need to fill box
+     return;
+    }
 
     // Without this, the audio would play numerous times per frame and sounds bad
     bool playOnce = true;

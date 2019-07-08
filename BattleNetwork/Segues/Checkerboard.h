@@ -90,7 +90,6 @@ public:
         temp->flip(true);
     }
 #else
-    if(temp) delete temp;
     temp = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
 #endif
 
@@ -108,7 +107,6 @@ if(!loaded) {
     loaded = true;
 }
 #else
-    if(temp2) delete temp2;
     temp2 = new sf::Texture(surface.getTexture()); // Make a copy of the source texture
 #endif
 
@@ -121,12 +119,18 @@ if(!loaded) {
 
     surface.draw(sprite, states);
 
+#ifndef __ANDROID__
+    delete temp;
     delete temp2;
+#endif
   }
 
   CheckerboardCustom(sf::Time duration, Activity* last, Activity* next) : Segue(duration, last, next) {
     /* ... */
     temp = nullptr;
+    temp2 = nullptr;
+
+    // only used on mobile hardware
     loaded = false;
 
 #ifdef __ANDROID__
@@ -158,8 +162,10 @@ if(!loaded) {
   }
 
   virtual ~CheckerboardCustom() {
+#ifdef __ANDROID__
       if(temp) delete temp;
       if(temp2) delete temp2;
+#endif
   }
 };
 

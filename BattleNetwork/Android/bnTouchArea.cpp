@@ -64,7 +64,7 @@ void TouchArea::privPoll() {
         if(sf::Touch::isDown(nextFinger)) {
             // Check to see if in rectangle
             sf::Vector2i touchPosition = sf::Touch::getPosition(nextFinger, *ENGINE.GetWindow());
-            sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetDefaultView());
+            sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetView());
             sf::Vector2i iCoords = sf::Vector2i((int)coords.x, (int)coords.y);
             touchPosition = iCoords;
 
@@ -80,7 +80,7 @@ void TouchArea::privPoll() {
         if(sf::Touch::isDown(m_touchIndex)) {
             // Check to see if we are still within the rectangle
             sf::Vector2i touchPosition = sf::Touch::getPosition(m_touchIndex, *ENGINE.GetWindow());
-            sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetDefaultView());
+            sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetView());
             sf::Vector2i iCoords = sf::Vector2i((int)coords.x, (int)coords.y);
             touchPosition = iCoords;
 

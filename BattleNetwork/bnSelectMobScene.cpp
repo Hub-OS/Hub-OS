@@ -4,7 +4,7 @@
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, ChipFolder& selectedFolder) :
   elapsed(0),
-  camera(ENGINE.GetDefaultView()),
+  camera(ENGINE.GetView()),
   textbox(320, 100, 24, "resources/fonts/NETNAVI_4-6_V3.ttf"),
   selectedFolder(selectedFolder),
   swoosh::Activity(&controller)
@@ -91,9 +91,6 @@ SelectMobScene::~SelectMobScene() {
   delete hpLabel;
 
   if (mob) delete mob;
-  
-  /*if (factory) delete factory;
-  if (field) delete field;*/
 }
 
 void SelectMobScene::onResume() {
@@ -255,6 +252,8 @@ void SelectMobScene::onUpdate(double elapsed) {
           }
       }
   }
+#else
+  mobSpr.setPosition(110.0f, 130.f);
 #endif
 
   if (prevSelect != mobSelectionIndex || doOnce) {

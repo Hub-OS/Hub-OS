@@ -649,27 +649,27 @@ int main(int argc, char** argv) {
   //delete font;
   delete logo;
 
-    // Stop music and go to menu screen
-    AUDIO.StopStream();
+  // Stop music and go to menu screen
+  AUDIO.StopStream();
 
-    // Create an activity controller
-    // Behaves like a state machine using stacks
-    // The activity controller uses a virtual window
-    // To draw screen transitions onto
-    sf::Vector2u virtualWindowSize(480, 320);
-    ActivityController app(*ENGINE.GetWindow(), virtualWindowSize);
+  // Create an activity controller
+  // Behaves like a state machine using stacks
+  // The activity controller uses a virtual window
+  // To draw screen transitions onto
+  sf::Vector2u virtualWindowSize(480, 320);
+  ActivityController app(*ENGINE.GetWindow(), virtualWindowSize);
 
-    // The last screen the player will see is the game over screen
-    app.push<GameOverScene>();
+  // The last screen the player will see is the game over screen
+  app.push<GameOverScene>();
 
-    // We want the next screen to be the main menu screen
-    app.push<MainMenuScene>();
+  // We want the next screen to be the main menu screen
+  app.push<MainMenuScene>();
 
-    // This scene is designed to immediately pop off the stack
-    // and segue into the previous scene on the stack: MainMenuScene
-    // It takes a snapshot of the loading/title screen
-    // And draws it with supported transition effects
-    app.push<FakeScene>(loadingScreenSnapshot);
+  // This scene is designed to immediately pop off the stack
+  // and segue into the previous scene on the stack: MainMenuScene
+  // It takes a snapshot of the loading/title screen
+  // And draws it with supported transition effects
+  app.push<FakeScene>(loadingScreenSnapshot);
 
   double remainder = 0;
   elapsed = 0;

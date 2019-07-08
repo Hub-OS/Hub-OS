@@ -3,13 +3,9 @@ using sf::Event;
 using sf::Keyboard;
 #include "bnEngine.h"
 #include "bnInputManager.h"
-#include "bnAudioResourceManager.h"
-#include "bnDirection.h"
 
 #if defined(__ANDROID__)
 #include "Android/bnTouchArea.h"
-#include "bnAudioResourceManager.h"
-
 #endif
 
 // #include <iostream>
@@ -54,6 +50,7 @@ void InputManager::Update() {
   Event event;
   while (ENGINE.GetWindow()->pollEvent(event)) {
     if (event.type == Event::Closed) {
+      this->onLoseFocus();
       ENGINE.GetWindow()->close();
     }
 
@@ -190,7 +187,7 @@ void InputManager::Update() {
           events.push_back(PRESSED_B); // use chip 
         }
         else if (Keyboard::Space == event.key.code) {
-          events.push_back(PRESSED_START); // chip select
+          events.push_back(PRESSED_START); 
         }
         else if (Keyboard::P == event.key.code) {
           events.push_back(PRESSED_PAUSE);
@@ -239,13 +236,13 @@ void InputManager::Update() {
         else if (Keyboard::Right == event.key.code) {
           events.push_back(RELEASED_RIGHT);
         }
-        else if (Keyboard::Space == event.key.code) {
+        else if (Keyboard::X == event.key.code) {
           events.push_back(RELEASED_A);
         }
-        else if (Keyboard::RControl == event.key.code) {
+        else if (Keyboard::Z == event.key.code) {
           events.push_back(RELEASED_B);
         }
-        else if (Keyboard::Return == event.key.code) {
+        else if (Keyboard::Space == event.key.code) {
           events.push_back(RELEASED_START);
         }
         else if (Keyboard::P == event.key.code) {

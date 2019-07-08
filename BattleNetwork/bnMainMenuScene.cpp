@@ -15,7 +15,7 @@ using sf::Event;
 using sf::Font;
 
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
-  camera(ENGINE.GetDefaultView()),
+  camera(ENGINE.GetView()),
   swoosh::Activity(&controller)
 {
   // When we reach the menu scene we need to load the player information

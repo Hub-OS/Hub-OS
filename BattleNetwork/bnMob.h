@@ -301,6 +301,8 @@ public:
    * @return MobData*
    */
   MobData* GetNextMob() {
+    if (iter == spawn.end()) return nullptr;
+
     this->nextReady = false;
     MobData* data = *(iter);
     iter++;

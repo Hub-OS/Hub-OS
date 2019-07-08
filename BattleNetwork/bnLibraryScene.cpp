@@ -86,7 +86,7 @@ std::string LibraryScene::FormatChipDesc(const std::string && desc)
 }
 
 LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
-  camera(ENGINE.GetDefaultView()),
+  camera(ENGINE.GetView()),
   textbox(sf::Vector2f(4, 255)),
   swoosh::Activity(&controller)
 {

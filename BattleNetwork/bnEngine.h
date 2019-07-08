@@ -119,10 +119,12 @@ public:
   void SetCamera(Camera& camera);
 
   /**
-   * @brief Get the initial state of the view when the app was first created
+   * @brief Make a copy of the current window view
+   * 
+   * useful for cameras to be exact size of window
    * @return const sf::View
    */
-  const sf::View GetDefaultView();
+  const sf::View GetView();
   
   /**
    * @brief Get the camera object

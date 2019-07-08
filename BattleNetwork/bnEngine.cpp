@@ -27,7 +27,7 @@ void Engine::Initialize() {
 #endif
   window = new RenderWindow(videoMode, "Battle Network: Progs Edition");
 
-  this->Resize(view.getSize().x, view.getSize().y);
+  this->Resize((int)view.getSize().x, (int)view.getSize().y);
 
   window->setFramerateLimit(60);
   window->setMouseCursorVisible(false); // Hide cursor
@@ -188,7 +188,7 @@ Engine::~Engine() {
 }
 
 const sf::Vector2f Engine::GetViewOffset() {
-  return GetDefaultView().getCenter() - cam->GetView().getCenter();
+  return GetView().getCenter() - cam->GetView().getCenter();
 }
 
 void Engine::SetShader(sf::Shader* shader) {
@@ -258,8 +258,8 @@ void Engine::Resize(int newWidth, int newHeight)
   window->setView(view);
 }
 
-const sf::View Engine::GetDefaultView() {
-  return original;
+const sf::View Engine::GetView() {
+  return view;
 }
 
 Camera* Engine::GetCamera()
