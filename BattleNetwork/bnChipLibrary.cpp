@@ -254,7 +254,7 @@ const bool ChipLibrary::SaveLibrary(const std::string& path) {
 
   try {
     FileUtil::WriteStream ws(path);
-    ws << "Saved on " << "timestamp here" << ws.endl();
+    ws << "# Saved on " << "[timestamp here]" << ws.endl();
 
     for (auto chip : library) {
       ws << "Chip name=\"" << chip.GetShortName() << "\" cardIndex=\""

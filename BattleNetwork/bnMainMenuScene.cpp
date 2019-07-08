@@ -234,6 +234,7 @@ void MainMenuScene::onResume() {
 
   ENGINE.SetCamera(camera);
 
+  data.WriteToFile("test_folders.txt");
 
 #ifdef __ANDROID__
   StartupTouchControls();

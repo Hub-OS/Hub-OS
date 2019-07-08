@@ -470,6 +470,9 @@
     <Filter Include="Activities\Battle\Content\Entities\Spell\Missile">
       <UniqueIdentifier>{90463eb0-53b7-4252-b832-e63b2e56c9cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Folder\All">
+      <UniqueIdentifier>{22ba24c7-1960-48d4-9ac2-f02b5e550ea4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -648,9 +651,6 @@
     </ClCompile>
     <ClCompile Include="bnChipFolder.cpp">
       <Filter>Database\Folder</Filter>
-    </ClCompile>
-    <ClCompile Include="bnFolderScene.cpp">
-      <Filter>Activities\Folder</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimatedCharacter.cpp">
       <Filter>Activities\Battle\Content\Entities\Character</Filter>
@@ -904,6 +904,9 @@
     <ClCompile Include="bnMissile.cpp">
       <Filter>Activities\Battle\Content\Entities\Spell\Missile</Filter>
     </ClCompile>
+    <ClCompile Include="bnFolderScene.cpp">
+      <Filter>Activities\Folder\All</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -1134,9 +1137,6 @@
     </ClInclude>
     <ClInclude Include="bnElements.h">
       <Filter>Enumerations</Filter>
-    </ClInclude>
-    <ClInclude Include="bnFolderScene.h">
-      <Filter>Activities\Folder</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimatedCharacter.h">
       <Filter>Activities\Battle\Content\Entities\Character</Filter>
@@ -1473,6 +1473,9 @@
     </ClInclude>
     <ClInclude Include="bnMissile.h">
       <Filter>Activities\Battle\Content\Entities\Spell\Missile</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFolderScene.h">
+      <Filter>Activities\Folder\All</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -91,6 +91,16 @@ public:
    */
   Chip GetChipEntry(const std::string name, const char code);
 
+  /**
+  * @brief Writes library to disc
+  * @param path path to output file.
+  * @warning will overwrite if path is already existing!
+  * @return true if successful, false otherwise
+  *
+  * Writes the library as-is at the time of writing
+  */
+  const bool SaveLibrary(const std::string& path);
+
 protected:
  /**
   * @brief Reads in libary file and parses chip data
@@ -104,16 +114,6 @@ protected:
   * to recognize and expect chips with particular chip codes.
   */
   void LoadLibrary(const std::string& path);
-
-  /**
-  * @brief Writes library to disc
-  * @param path path to output file.
-  * @warning will overwrite if path is already existing!
-  * @return true if successful, false otherwise
-  *
-  * Writes the library as-is at the time of writing
-  */
-  const bool SaveLibrary(const std::string& path);
 
 private:
   mutable list<Chip> library; /*!< the chip pool used by all chip resources */

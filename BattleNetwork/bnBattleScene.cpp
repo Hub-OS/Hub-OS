@@ -1,5 +1,6 @@
 #include <Swoosh/ActivityController.h>
 #include "bnBattleScene.h"
+#include "bnChipLibrary.h"
 #include "bnGameOverScene.h"
 #include "bnUndernetBackground.h"
 #include "bnPlayerHealthUI.h"
@@ -1220,6 +1221,8 @@ void BattleScene::onResume() {
 }
 
 void BattleScene::onEnd() {
+  CHIPLIB.SaveLibrary("test_lib.txt");
+  
 #ifdef __ANDROID__
   this->ShutdownTouchControls();
 #endif
