@@ -308,6 +308,7 @@
     <ClCompile Include="bnBuster.cpp" />
     <ClCompile Include="bnTwoMettaurMob.cpp" />
     <ClCompile Include="bnUndernetBackground.cpp" />
+    <ClCompile Include="bnUserSession.cpp" />
     <ClCompile Include="bnWave.cpp" />
     <ClCompile Include="bnMettaur.cpp" />
     <ClCompile Include="bnEngine.cpp" />
@@ -489,6 +490,7 @@
     <ClInclude Include="bnBuster.h" />
     <ClInclude Include="bnTwoMettaurMob.h" />
     <ClInclude Include="bnUIComponent.h" />
+    <ClInclude Include="bnUserSession.h" />
     <ClInclude Include="bnVirusBackground.h" />
     <ClInclude Include="bnWave.h" />
     <ClInclude Include="bnMettaur.h" />

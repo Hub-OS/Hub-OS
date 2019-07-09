@@ -6,6 +6,8 @@
 #include <Swoosh/Timer.h>
 
 #include "bnFolderScene.h"
+#include "bnFolderEditScene.h"
+#include "Segues\BlackWashFade.h"
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
 #include "Android/bnTouchArea.h"
@@ -291,15 +293,24 @@ void FolderScene::onUpdate(double elapsed) {
         else {
           switch (optionIndex) {
           case 0: // EDIT
-            this->enterText = true;
-            INPUT.BeginCaptureInputBuffer();
-            INPUT.SetInputBuffer(*(folderNames.begin() + currFolderIndex));
+            if (folder) {
+              using namespace intent;
+              using next = segue<BlackWashFade>::to<FolderEditScene>;
+              getController().push<next>(*folder);
+              AUDIO.Play(AudioType::CHIP_CONFIRM);
+            }
+            else {
+              AUDIO.Play(AudioType::CHIP_ERROR);
+            }
             break;
           case 1: // EQUIP
             selectedFolderIndex = currFolderIndex;
             AUDIO.Play(AudioType::PA_ADVANCE);
             break;
           case 2: // CHANGE NAME
+            this->enterText = true;
+            INPUT.BeginCaptureInputBuffer();
+            INPUT.SetInputBuffer(*(folderNames.begin() + currFolderIndex));
             break;
           }
         }
@@ -414,6 +425,20 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
               touchStart = false;
           }
       }
+    }
+#else 
+    auto x = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().x,
+      98.0f + (std::min(2, currFolderIndex) * 144.0f));
+    folderCursor.setPosition(x, 68.0f);
+
+    if (currFolderIndex > 2) {
+      auto before = folderOffsetX;
+      folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX,
+        (double)(((currFolderIndex - 2) * 144.0f)));
+    }
+    else {
+      auto before = folderOffsetX;
+      folderOffsetX = swoosh::ease::interpolate(frameElapsed * 7.0, folderOffsetX, 0.0);
     }
 #endif
 

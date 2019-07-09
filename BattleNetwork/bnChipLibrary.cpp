@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <sstream>
 #include <algorithm>
+#include <ctime>
+#include <iomanip>
 
 ChipLibrary::ChipLibrary() {
   LoadLibrary("resources/database/library.txt");
@@ -254,7 +256,14 @@ const bool ChipLibrary::SaveLibrary(const std::string& path) {
 
   try {
     FileUtil::WriteStream ws(path);
-    ws << "# Saved on " << "[timestamp here]" << ws.endl();
+    auto time = std::time(nullptr);
+    auto timestamp = std::put_time(std::localtime(&time), "%y-%m-%d %OH:%OM:%OS");
+
+    std::stringstream ss;
+    ss << timestamp;
+    std::string timestampStr = ss.str();
+
+    ws << "# Saved on " << timestampStr << ws.endl();
 
     for (auto chip : library) {
       ws << "Chip name=\"" << chip.GetShortName() << "\" cardIndex=\""

@@ -10,7 +10,7 @@
 #include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
-
+#include "bnChipFolder.h"
 /**
  * @class FolderEditScene
  * @author mav
@@ -27,6 +27,7 @@
 class FolderEditScene : public swoosh::Activity {
 private:
   Camera camera;
+  ChipFolder& folder;
 
   // Menu name font
   sf::Font* font;
@@ -99,6 +100,6 @@ public:
   virtual void onDraw(sf::RenderTexture& surface);
   virtual void onEnd();
 
-  FolderEditScene(swoosh::ActivityController&);
+  FolderEditScene(swoosh::ActivityController&, ChipFolder& folder);
   virtual ~FolderEditScene();
 };
