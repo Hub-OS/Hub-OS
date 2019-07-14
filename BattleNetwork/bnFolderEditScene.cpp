@@ -126,6 +126,11 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
 
   folderDock = sf::Sprite(LOAD_TEXTURE(FOLDER_DOCK));
   folderDock.setScale(2.f, 2.f);
+  folderDock.setPosition(2.f, 30.f);
+
+  packDock = sf::Sprite(LOAD_TEXTURE(PACK_DOCK));
+  packDock.setScale(2.f, 2.f);
+  packDock.setPosition(480.f, 30.f);
 
   scrollbar = sf::Sprite(LOAD_TEXTURE(FOLDER_SCROLLBAR));
   scrollbar.setScale(2.f, 2.f);
@@ -247,10 +252,12 @@ void FolderEditScene::onUpdate(double elapsed) {
     if (INPUT.Has(PRESSED_RIGHT) && currViewMode == ViewMode::FOLDER) {
       currViewMode = ViewMode::PACK;
       canInteract = false;
+      AUDIO.Play(AudioType::CHIP_DESC);
     }
     else if (INPUT.Has(PRESSED_LEFT) && currViewMode == ViewMode::PACK) {
       currViewMode = ViewMode::FOLDER;
       canInteract = false;
+      AUDIO.Play(AudioType::CHIP_DESC);
     }
 
     view->currChipIndex = std::max(0, view->currChipIndex);
@@ -272,7 +279,7 @@ void FolderEditScene::onUpdate(double elapsed) {
     if (prevViewMode != currViewMode) {
       if (currViewMode == ViewMode::FOLDER) {
         if (camera.GetView().getCenter().x > 240) {
-          camera.OffsetCamera(sf::Vector2f(-480.0f * elapsed, 0));
+          camera.OffsetCamera(sf::Vector2f(-960.0f * 2.0f * elapsed, 0));
         }
         else {
           prevViewMode = currViewMode;
@@ -281,7 +288,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       }
       else if (currViewMode == ViewMode::PACK) {
         if (camera.GetView().getCenter().x < 720) {
-          camera.OffsetCamera(sf::Vector2f(480.0f * elapsed, 0));
+          camera.OffsetCamera(sf::Vector2f(960.0f * 2.0f * elapsed, 0));
         }
         else {
           prevViewMode = currViewMode;
@@ -324,13 +331,10 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
 
 void FolderEditScene::DrawFolder() {
   chipDesc->setPosition(sf::Vector2f(20.f, 185.0f));
-  folderDock.setPosition(2.f, 30.f);
   scrollbar.setPosition(410.f, 60.f);
   chipHolder.setPosition(4.f, 35.f);
   element.setPosition(2.f*25.f, 146.f);
   chip.setPosition(83.f, 93.f);
-
-  folderDock.setScale(2.0f, 2.0f);
 
   ENGINE.Draw(folderDock);
   ENGINE.Draw(chipHolder);
@@ -341,9 +345,6 @@ void FolderEditScene::DrawFolder() {
   scrollbar.setPosition(452.f, top + depth);
 
   ENGINE.Draw(scrollbar);
-
-  Logger::Log(std::string("folder view: ") + std::to_string(folderView.numOfChips));
-  Logger::Log(std::string("folder: ") + std::to_string(folder.GetSize()));
 
   if (folder.GetSize() == 0) return;
 
@@ -426,22 +427,19 @@ void FolderEditScene::DrawFolder() {
 }
 
 void FolderEditScene::DrawLibrary() {
-  chipDesc->setPosition(sf::Vector2f(20.f + 480.f, 185.0f));
-  folderDock.setScale(-2.0f, 2.0f);
+  chipDesc->setPosition(sf::Vector2f(320.f + 480.f, 185.0f));
+  scrollbar.setPosition(310.f + 480.f, 60.f);
+  chipHolder.setPosition(300.f + 480.f, 35.f);
+  element.setPosition(300.f + 2.f*25.f + 480.f, 146.f);
+  chip.setPosition(373.f + 480.f, 93.f);
 
-  folderDock.setPosition((2.f + 480.f)*1.5f, 30.f);
-  scrollbar.setPosition(410.f + 480.f, 60.f);
-  chipHolder.setPosition(4.f + 480.f, 35.f);
-  element.setPosition(2.f*25.f + 480.f, 146.f);
-  chip.setPosition(83.f + 480.f, 93.f);
-
-  ENGINE.Draw(folderDock);
+  ENGINE.Draw(packDock);
   ENGINE.Draw(chipHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
   float top = 50.0f; float bottom = 230.0f;
   float depth = ((float)packView.lastChipOnScreen / (float)packView.numOfChips)*bottom;
-  scrollbar.setPosition(452.f + 480.f, top + depth);
+  scrollbar.setPosition(152.f + 480.f, top + depth);
 
   ENGINE.Draw(scrollbar);
 
@@ -457,37 +455,33 @@ void FolderEditScene::DrawLibrary() {
   // Now that we are at the viewing range, draw each chip in the list
   for (int i = 0; i < packView.maxChipsOnScreen && packView.lastChipOnScreen + i < packView.numOfChips; i++) {
     chipIcon.setTextureRect(TEXTURES.GetIconRectFromID((*iter).GetIconID()));
-    chipIcon.setPosition(2.f*104.f + 480.f, 65.0f + (32.f*i));
+    chipIcon.setPosition(19.f + 480.f, 65.0f + (32.f*i));
     ENGINE.Draw(chipIcon, false);
 
     chipLabel->setFillColor(sf::Color::White);
-    chipLabel->setPosition(2.f*120.f + 480.f, 60.0f + (32.f*i));
+    chipLabel->setPosition(50.f + 480.f, 60.0f + (32.f*i));
     chipLabel->setString((*iter).GetShortName());
     ENGINE.Draw(chipLabel, false);
 
 
     int offset = (int)((*iter). GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-    element.setPosition(2.f*173.f + 480.f, 65.0f + (32.f*i));
+    element.setPosition(166.0f + 480.f, 65.0f + (32.f*i));
     ENGINE.Draw(element, false);
 
     chipLabel->setOrigin(0, 0);
-    chipLabel->setPosition(2.f*190.f + 480.f, 60.0f + (32.f*i));
+    chipLabel->setPosition(196.f + 480.f, 60.0f + (32.f*i));
     chipLabel->setString(std::string() + (*iter).GetCode());
     ENGINE.Draw(chipLabel, false);
 
-    //Draw rating
-    unsigned rarity = (*iter).GetRarity() - 1;
-    stars.setTextureRect(sf::IntRect(0, 15 * rarity, 22, 14));
-    stars.setPosition(2.f*199.f + 480.f, 74.0f + (32.f*i));
-    ENGINE.Draw(stars, false);
+    //Draw number of copies
 
     // Draw cursor
     if (packView.lastChipOnScreen + i == packView.currChipIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, packCursor.getPosition().y, 64.0f + (32.f*i));
-      auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
+      auto bounce = std::sin((float)totalTimeElapsed*10.0f)*2.0f;
 
-      packCursor.setPosition((2.f*90.f) + bounce + 480.f, y);
+      packCursor.setPosition(bounce + 480.f + 2.f, y);
       ENGINE.Draw(packCursor);
 
       sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID((*iter).GetID());
@@ -500,7 +494,7 @@ void FolderEditScene::DrawLibrary() {
         chipLabel->setFillColor(sf::Color::White);
         chipLabel->setString(std::to_string((*iter).GetDamage()));
         chipLabel->setOrigin(chipLabel->getLocalBounds().width + chipLabel->getLocalBounds().left, 0);
-        chipLabel->setPosition(2.f*(70.f) + 480.f, 135.f);
+        chipLabel->setPosition(2.f*(90.f) + 480.f, 135.f);
 
         ENGINE.Draw(chipLabel, false);
       }
@@ -517,7 +511,7 @@ void FolderEditScene::DrawLibrary() {
 
       int offset = (int)((*iter).GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-      element.setPosition(2.f*25.f + 480.f, 142.f);
+      element.setPosition(2.f*90.f + 480.f, 142.f);
       ENGINE.Draw(element, false);
     }
 

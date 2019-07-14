@@ -179,6 +179,7 @@ TextureResourceManager::TextureResourceManager(void) {
   // folder view
   paths.push_back("resources/ui/folder_chip.png");
   paths.push_back("resources/ui/folder_dock.png");
+  paths.push_back("resources/ui/pack_dock.png");
   paths.push_back("resources/ui/folder_rarity.png");
   paths.push_back("resources/ui/scrollbar.png");
   paths.push_back("resources/ui/select_cursor.png");

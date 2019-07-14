@@ -56,7 +56,7 @@ private:
 
   // folder menu graphic
   sf::Sprite bg;
-  sf::Sprite folderDock;
+  sf::Sprite folderDock, packDock;
   sf::Sprite scrollbar;
   sf::Sprite stars;
   sf::Sprite chipHolder;

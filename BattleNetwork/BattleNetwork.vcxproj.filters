@@ -7,12 +7,6 @@
     <Filter Include="Entry">
       <UniqueIdentifier>{99da17ce-caae-4583-a7c2-d4d60a27fba6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Camera">
-      <UniqueIdentifier>{073bf066-0047-4316-9fe1-39c36c5d136a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Input">
-      <UniqueIdentifier>{4a441b30-9e2f-4ff8-921a-60ef383f26d9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Resources">
       <UniqueIdentifier>{0e5b07ae-1ba2-404d-a462-579ab664eac6}</UniqueIdentifier>
     </Filter>
@@ -121,15 +115,6 @@
     </Filter>
     <Filter Include="Activities\Main Menu\Overworld\Map\Dynamic">
       <UniqueIdentifier>{18a112b3-8ba5-4851-82b8-4d75444b101c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Graphics">
-      <UniqueIdentifier>{fe12002d-65c0-4184-bb5f-72f816483120}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Graphics\Animate">
-      <UniqueIdentifier>{f7b3b6ba-319e-41c2-9861-e349a23173bc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Graphics\SceneNodes">
-      <UniqueIdentifier>{a3ca0f30-7208-4c3d-afd4-401fdaf8c61d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Activities\Battle\Content\Components\UI">
       <UniqueIdentifier>{a8e9ac2a-8f91-4965-9108-64886a52dd16}</UniqueIdentifier>
@@ -449,9 +434,6 @@
     <Filter Include="Activities\Battle\Content\Entities\Obstacle\Fishy">
       <UniqueIdentifier>{8bea6c2f-52ce-4aa9-beeb-01d59ee9a3fb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Graphics\SceneNodes\Sprites">
-      <UniqueIdentifier>{4f57f2cc-2325-4004-b156-95f580a09792}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Entities\Summons\Protoman">
       <UniqueIdentifier>{17a8525c-da31-4531-a1f7-f5d397b3e7fb}</UniqueIdentifier>
     </Filter>
@@ -464,9 +446,6 @@
     <Filter Include="Activities\Battle\Content\Entities\Artifact\Sword\WideSword">
       <UniqueIdentifier>{59a47cd0-7db6-490e-83e9-44c52783111c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Input\TouchArea">
-      <UniqueIdentifier>{cc087848-8242-499f-99f3-0119e81f0e45}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Entities\Spell\Missile">
       <UniqueIdentifier>{90463eb0-53b7-4252-b832-e63b2e56c9cd}</UniqueIdentifier>
     </Filter>
@@ -475,6 +454,30 @@
     </Filter>
     <Filter Include="Database\Session">
       <UniqueIdentifier>{f86c28bf-b3b2-4d72-9129-fcc5920cd2f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Modules">
+      <UniqueIdentifier>{74269354-ca5c-4b44-bc31-449819aa7828}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Modules\Graphics">
+      <UniqueIdentifier>{fe12002d-65c0-4184-bb5f-72f816483120}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Modules\Graphics\Animate">
+      <UniqueIdentifier>{f7b3b6ba-319e-41c2-9861-e349a23173bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Modules\Graphics\SceneNodes">
+      <UniqueIdentifier>{a3ca0f30-7208-4c3d-afd4-401fdaf8c61d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Modules\Graphics\SceneNodes\Sprites">
+      <UniqueIdentifier>{4f57f2cc-2325-4004-b156-95f580a09792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Modules\Input">
+      <UniqueIdentifier>{4a441b30-9e2f-4ff8-921a-60ef383f26d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Modules\Input\TouchArea">
+      <UniqueIdentifier>{cc087848-8242-499f-99f3-0119e81f0e45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Modules\Camera">
+      <UniqueIdentifier>{073bf066-0047-4316-9fe1-39c36c5d136a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -554,7 +557,7 @@
       <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="bnCamera.cpp">
-      <Filter>Engine\Camera</Filter>
+      <Filter>Engine\Modules\Camera</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayerIdleState.cpp">
       <Filter>Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
@@ -593,7 +596,7 @@
       <Filter>Activities\Battle\Content\Results</Filter>
     </ClCompile>
     <ClCompile Include="bnInputManager.cpp">
-      <Filter>Engine\Input</Filter>
+      <Filter>Engine\Modules\Input</Filter>
     </ClCompile>
     <ClCompile Include="bnBasicSword.cpp">
       <Filter>Activities\Battle\Content\Entities\Spell\Sword\Basic</Filter>
@@ -692,10 +695,10 @@
       <Filter>Activities\Battle\Content\Components\UI\Player</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimate.cpp">
-      <Filter>Engine\Graphics\Animate</Filter>
+      <Filter>Engine\Modules\Graphics\Animate</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimation.cpp">
-      <Filter>Engine\Graphics\Animate</Filter>
+      <Filter>Engine\Modules\Graphics\Animate</Filter>
     </ClCompile>
     <ClCompile Include="bnChipDescriptionTextbox.cpp">
       <Filter>Activities\Battle\Content\Chips\Cust\UI</Filter>
@@ -884,10 +887,10 @@
       <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
     </ClCompile>
     <ClCompile Include="bnSpriteSceneNode.cpp">
-      <Filter>Engine\Graphics\SceneNodes\Sprites</Filter>
+      <Filter>Engine\Modules\Graphics\SceneNodes\Sprites</Filter>
     </ClCompile>
     <ClCompile Include="bnSceneNode.cpp">
-      <Filter>Engine\Graphics\SceneNodes</Filter>
+      <Filter>Engine\Modules\Graphics\SceneNodes</Filter>
     </ClCompile>
     <ClCompile Include="bnProtoManSummon.cpp">
       <Filter>Activities\Battle\Content\Entities\Summons\Protoman</Filter>
@@ -902,7 +905,7 @@
       <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
     </ClCompile>
     <ClCompile Include="Android\bnTouchArea.cpp">
-      <Filter>Engine\Input\TouchArea</Filter>
+      <Filter>Engine\Modules\Input\TouchArea</Filter>
     </ClCompile>
     <ClCompile Include="bnMissile.cpp">
       <Filter>Activities\Battle\Content\Entities\Spell\Missile</Filter>
@@ -1024,7 +1027,7 @@
       <Filter>Activities\Battle\Content\Entities\Artifact</Filter>
     </ClInclude>
     <ClInclude Include="bnCamera.h">
-      <Filter>Engine\Camera</Filter>
+      <Filter>Engine\Modules\Camera</Filter>
     </ClInclude>
     <ClInclude Include="bnPixelInState.h">
       <Filter>Activities\Battle\Content\AI\Any\States</Filter>
@@ -1076,7 +1079,7 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="bnInputManager.h">
-      <Filter>Engine\Input</Filter>
+      <Filter>Engine\Modules\Input</Filter>
     </ClInclude>
     <ClInclude Include="bnBasicSword.h">
       <Filter>Activities\Battle\Content\Entities\Spell\Sword\Basic</Filter>
@@ -1238,13 +1241,13 @@
       <Filter>Engine\Addons\MobRegistration\MobFactories\SpawnPolicies\ChipSpawnPolicies</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimate.h">
-      <Filter>Engine\Graphics\Animate</Filter>
+      <Filter>Engine\Modules\Graphics\Animate</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimation.h">
-      <Filter>Engine\Graphics\Animate</Filter>
+      <Filter>Engine\Modules\Graphics\Animate</Filter>
     </ClInclude>
     <ClInclude Include="bnSceneNode.h">
-      <Filter>Engine\Graphics\SceneNodes</Filter>
+      <Filter>Engine\Modules\Graphics\SceneNodes</Filter>
     </ClInclude>
     <ClInclude Include="bnEnemyChipUseListener.h">
       <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Any</Filter>
@@ -1436,7 +1439,7 @@
       <Filter>Activities\Battle\Content\Components\UI</Filter>
     </ClInclude>
     <ClInclude Include="bnLayered.h">
-      <Filter>Engine\Graphics</Filter>
+      <Filter>Engine\Modules\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="bnHideTimer.h">
       <Filter>Activities\Battle\Content\Components\BattleComponents\Hide</Filter>
@@ -1460,7 +1463,7 @@
       <Filter>Activities\Battle\Content\Components\UI\Any</Filter>
     </ClInclude>
     <ClInclude Include="bnSpriteSceneNode.h">
-      <Filter>Engine\Graphics\SceneNodes\Sprites</Filter>
+      <Filter>Engine\Modules\Graphics\SceneNodes\Sprites</Filter>
     </ClInclude>
     <ClInclude Include="bnProtoManSummon.h">
       <Filter>Activities\Battle\Content\Entities\Summons\Protoman</Filter>
@@ -1475,7 +1478,7 @@
       <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
     </ClInclude>
     <ClInclude Include="Android\bnTouchArea.h">
-      <Filter>Engine\Input\TouchArea</Filter>
+      <Filter>Engine\Modules\Input\TouchArea</Filter>
     </ClInclude>
     <ClInclude Include="bnMissile.h">
       <Filter>Activities\Battle\Content\Entities\Spell\Missile</Filter>
