@@ -1,4 +1,4 @@
-Saved on timestamp here
+# Saved on 19-07-13 23:09:11
 Chip name="Atk+10" cardIndex="124" iconIndex="194" damage="0" type="NONE" codes="*,," desc="+10 for selected atk chip" verbose="This chip does not have extra information." rarity="1" 
 Chip name="Barrier" cardIndex="120" iconIndex="168" damage="0" type="SUMMON" codes="B,*,," desc="Nullifies 100HP of damage!" verbose="This chip does not have extra information." rarity="1" 
 Chip name="Barrier" cardIndex="120" iconIndex="168" damage="0" type="SUMMON" codes="B,*,," desc="Nullifies 100HP of damage!" verbose="This chip does not have extra information." rarity="1" 

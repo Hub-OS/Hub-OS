@@ -25,6 +25,12 @@
  */
  
 class FolderEditScene : public swoosh::Activity {
+public:
+  enum class ViewMode : int {
+    FOLDER,
+    PACK
+  };
+
 private:
   Camera camera;
   ChipFolder& folder;
@@ -55,7 +61,8 @@ private:
   sf::Sprite stars;
   sf::Sprite chipHolder;
   sf::Sprite element;
-  sf::Sprite cursor;
+  sf::Sprite folderCursor;
+  sf::Sprite packCursor;
 
   // Current chip graphic
   sf::Sprite chip;
@@ -65,15 +72,21 @@ private:
   swoosh::Timer chipRevealTimer;
   swoosh::Timer easeInTimer;
 
-  int maxChipsOnScreen;
-  int currChipIndex;
-  int lastChipOnScreen; // index
-  int prevIndex; // for effect
-  int numOfChips;
+  struct ChipView {
+    int maxChipsOnScreen;
+    int currChipIndex;
+    int lastChipOnScreen; // index
+    int prevIndex; // for effect
+    int numOfChips;
+  } folderView, packView;
+
+  ViewMode currViewMode;
+  ViewMode prevViewMode;
 
   double totalTimeElapsed;
   double frameElapsed;
-  bool gotoNextScene;
+ 
+  bool canInteract;
 
 #ifdef __ANDROID__
   bool canSwipe;
@@ -87,6 +100,9 @@ private:
   void StartupTouchControls();
   void ShutdownTouchControls();
 #endif
+
+  void DrawFolder();
+  void DrawLibrary();
 
 public:
   std::string FormatChipDesc(const std::string&& desc);

@@ -86,7 +86,7 @@ std::string FolderEditScene::FormatChipDesc(const std::string && desc)
 }
 
 FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFolder& folder) :
-  camera(ENGINE.GetView()), folder(folder),
+  camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))), folder(folder),
   swoosh::Activity(&controller)
 {
 
@@ -117,7 +117,6 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
   chipDescFont = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
   chipDesc = new sf::Text("", *chipDescFont);
   chipDesc->setCharacterSize(24);
-  chipDesc->setPosition(sf::Vector2f(20.f, 185.0f));
   //chipDesc->setLineSpacing(5);
   chipDesc->setFillColor(sf::Color::Black);
 
@@ -127,33 +126,31 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
 
   folderDock = sf::Sprite(LOAD_TEXTURE(FOLDER_DOCK));
   folderDock.setScale(2.f, 2.f);
-  folderDock.setPosition(2.f, 30.f);
 
   scrollbar = sf::Sprite(LOAD_TEXTURE(FOLDER_SCROLLBAR));
   scrollbar.setScale(2.f, 2.f);
-  scrollbar.setPosition(410.f, 60.f);
 
-  cursor = sf::Sprite(LOAD_TEXTURE(FOLDER_CURSOR));
-  cursor.setScale(2.f, 2.f);
-  cursor.setPosition((2.f*90.f), 64.0f);
+  folderCursor = sf::Sprite(LOAD_TEXTURE(FOLDER_CURSOR));
+  folderCursor.setScale(2.f, 2.f);
+  folderCursor.setPosition((2.f*90.f), 64.0f);
+
+  packCursor = folderCursor;
+  packCursor.setPosition((2.f*90.f) + 480.0f, 64.0f);
 
   stars = sf::Sprite(LOAD_TEXTURE(FOLDER_RARITY));
   stars.setScale(2.f, 2.f);
 
   chipHolder = sf::Sprite(LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
   chipHolder.setScale(2.f, 2.f);
-  chipHolder.setPosition(4.f, 35.f);
 
   element = sf::Sprite(LOAD_TEXTURE(ELEMENT_ICON));
   element.setScale(2.f, 2.f);
-  element.setPosition(2.f*25.f, 146.f);
 
   // Current chip graphic
   chip = sf::Sprite(LOAD_TEXTURE(CHIP_CARDS));
   cardSubFrame = sf::IntRect(TEXTURES.GetCardRectFromID(0));
   chip.setTextureRect(cardSubFrame);
   chip.setScale(2.f, 2.f);
-  chip.setPosition(83.f, 93.f);
   chip.setOrigin(chip.getLocalBounds().width / 2.0f, chip.getLocalBounds().height / 2.0f);
 
   chipIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
@@ -162,10 +159,21 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
   chipRevealTimer.start();
   easeInTimer.start();
 
-  maxChipsOnScreen = 7;
-  currChipIndex = lastChipOnScreen = prevIndex = 0;
+  /* foldet view */
+  folderView.maxChipsOnScreen = 7;
+  folderView.currChipIndex = folderView.lastChipOnScreen = folderView.prevIndex = 0;
+  folderView.numOfChips = folder.GetSize();
+
+  /* library view */
+  packView.maxChipsOnScreen = 7;
+  packView.currChipIndex = packView.lastChipOnScreen = packView.prevIndex = 0;
+  packView.numOfChips = CHIPLIB.GetSize();
+
+  prevViewMode = currViewMode = ViewMode::FOLDER;
+
   totalTimeElapsed = frameElapsed = 0.0;
-  numOfChips = folder.GetSize();
+
+  canInteract = false;
 }
 
 FolderEditScene::~FolderEditScene() { ; }
@@ -173,29 +181,43 @@ FolderEditScene::~FolderEditScene() { ; }
 void FolderEditScene::onStart() {
   ENGINE.SetCamera(camera);
 
-  gotoNextScene = false;
+  canInteract = true;
 }
 
 void FolderEditScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
+  auto offset = camera.GetView().getCenter().x - 240;
+  bg.setPosition(offset, 0.f);
+  menuLabel->setPosition(offset + 20.0f, 5.f);
+
   camera.Update((float)elapsed);
+  this->setView(camera.GetView());
 
   // Scene keyboard controls
-  if (!gotoNextScene) {
+  if (canInteract) {
+    ChipView* view = nullptr;
+
+    if (currViewMode == ViewMode::FOLDER) {
+      view = &folderView;
+    }
+    else if (currViewMode == ViewMode::PACK) {
+      view = &packView;
+    }
+
     if (INPUT.Has(PRESSED_UP)) {
       selectInputCooldown -= elapsed;
 
-      prevIndex = currChipIndex;
+      view->prevIndex = view->currChipIndex;
 
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
-        currChipIndex--;
+        view->currChipIndex--;
         AUDIO.Play(AudioType::CHIP_SELECT);
 
-        if (currChipIndex < lastChipOnScreen) {
-          --lastChipOnScreen;
+        if (view->currChipIndex < view->lastChipOnScreen) {
+          --view->lastChipOnScreen;
         }
 
         chipRevealTimer.reset();
@@ -204,15 +226,15 @@ void FolderEditScene::onUpdate(double elapsed) {
     else if (INPUT.Has(PRESSED_DOWN)) {
       selectInputCooldown -= elapsed;
 
-      prevIndex = currChipIndex;
+      view->prevIndex = view->currChipIndex;
 
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
-        currChipIndex++;
+        view->currChipIndex++;
         AUDIO.Play(AudioType::CHIP_SELECT);
 
-        if (currChipIndex > lastChipOnScreen + maxChipsOnScreen - 1) {
-          ++lastChipOnScreen;
+        if (view->currChipIndex > view->lastChipOnScreen + view->maxChipsOnScreen - 1) {
+          ++view->lastChipOnScreen;
         }
 
         chipRevealTimer.reset();
@@ -222,19 +244,54 @@ void FolderEditScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    currChipIndex = std::max(0, currChipIndex);
-    currChipIndex = std::min(numOfChips - 1, currChipIndex);
+    if (INPUT.Has(PRESSED_RIGHT) && currViewMode == ViewMode::FOLDER) {
+      currViewMode = ViewMode::PACK;
+      canInteract = false;
+    }
+    else if (INPUT.Has(PRESSED_LEFT) && currViewMode == ViewMode::PACK) {
+      currViewMode = ViewMode::FOLDER;
+      canInteract = false;
+    }
 
-    lastChipOnScreen = std::max(0, lastChipOnScreen);
-    lastChipOnScreen = std::min(numOfChips - 1, lastChipOnScreen);
+    view->currChipIndex = std::max(0, view->currChipIndex);
+    view->currChipIndex = std::min(view->numOfChips - 1, view->currChipIndex);
 
-    if (INPUT.Has(PRESSED_B) && !gotoNextScene) {
-      gotoNextScene = true;
+    view->lastChipOnScreen = std::max(0, view->lastChipOnScreen);
+    view->lastChipOnScreen = std::min(view->numOfChips - 1, view->lastChipOnScreen);
+
+    if (INPUT.Has(PRESSED_B) && canInteract) {
+      canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
       using swoosh::intent::direction;
       using segue = swoosh::intent::segue<BlackWashFade>;
       getController().queuePop<segue>();
+    }
+  }
+  else {
+    if (prevViewMode != currViewMode) {
+      if (currViewMode == ViewMode::FOLDER) {
+        if (camera.GetView().getCenter().x > 240) {
+          camera.OffsetCamera(sf::Vector2f(-480.0f * elapsed, 0));
+        }
+        else {
+          prevViewMode = currViewMode;
+          canInteract = true;
+        }
+      }
+      else if (currViewMode == ViewMode::PACK) {
+        if (camera.GetView().getCenter().x < 720) {
+          camera.OffsetCamera(sf::Vector2f(480.0f * elapsed, 0));
+        }
+        else {
+          prevViewMode = currViewMode;
+          canInteract = true;
+        }
+      }
+      else {
+        prevViewMode = currViewMode;
+        canInteract = true;
+      }
     }
   }
 }
@@ -261,27 +318,44 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(bg);
   ENGINE.Draw(menuLabel);
 
+  DrawFolder();
+  DrawLibrary();
+}
+
+void FolderEditScene::DrawFolder() {
+  chipDesc->setPosition(sf::Vector2f(20.f, 185.0f));
+  folderDock.setPosition(2.f, 30.f);
+  scrollbar.setPosition(410.f, 60.f);
+  chipHolder.setPosition(4.f, 35.f);
+  element.setPosition(2.f*25.f, 146.f);
+  chip.setPosition(83.f, 93.f);
+
+  folderDock.setScale(2.0f, 2.0f);
+
   ENGINE.Draw(folderDock);
   ENGINE.Draw(chipHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
   float top = 50.0f; float bottom = 230.0f;
-  float depth = ((float)lastChipOnScreen / (float)numOfChips)*bottom;
+  float depth = ((float)folderView.lastChipOnScreen / (float)folderView.numOfChips)*bottom;
   scrollbar.setPosition(452.f, top + depth);
 
   ENGINE.Draw(scrollbar);
+
+  Logger::Log(std::string("folder view: ") + std::to_string(folderView.numOfChips));
+  Logger::Log(std::string("folder: ") + std::to_string(folder.GetSize()));
 
   if (folder.GetSize() == 0) return;
 
   // Move the chip library iterator to the current highlighted chip
   ChipFolder::Iter iter = folder.Begin();
 
-  for (int j = 0; j < lastChipOnScreen; j++) {
+  for (int j = 0; j < folderView.lastChipOnScreen; j++) {
     iter++;
   }
 
   // Now that we are at the viewing range, draw each chip in the list
-  for (int i = 0; i < maxChipsOnScreen && lastChipOnScreen + i < numOfChips; i++) {
+  for (int i = 0; i < folderView.maxChipsOnScreen && folderView.lastChipOnScreen + i < folderView.numOfChips; i++) {
     chipIcon.setTextureRect(TEXTURES.GetIconRectFromID((*iter)->GetIconID()));
     chipIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
     ENGINE.Draw(chipIcon, false);
@@ -309,12 +383,12 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(stars, false);
 
     // Draw cursor
-    if (lastChipOnScreen + i == currChipIndex) {
-      auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));
+    if (folderView.lastChipOnScreen + i == folderView.currChipIndex) {
+      auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, folderCursor.getPosition().y, 64.0f + (32.f*i));
       auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
 
-      cursor.setPosition((2.f*90.f) + bounce, y);
-      ENGINE.Draw(cursor);
+      folderCursor.setPosition((2.f*90.f) + bounce, y);
+      ENGINE.Draw(folderCursor);
 
       sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID((*iter)->GetID());
       chip.setTextureRect(cardSubFrame);
@@ -344,6 +418,106 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
       int offset = (int)((*iter)->GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f*25.f, 142.f);
+      ENGINE.Draw(element, false);
+    }
+
+    iter++;
+  }
+}
+
+void FolderEditScene::DrawLibrary() {
+  chipDesc->setPosition(sf::Vector2f(20.f + 480.f, 185.0f));
+  folderDock.setScale(-2.0f, 2.0f);
+
+  folderDock.setPosition((2.f + 480.f)*1.5f, 30.f);
+  scrollbar.setPosition(410.f + 480.f, 60.f);
+  chipHolder.setPosition(4.f + 480.f, 35.f);
+  element.setPosition(2.f*25.f + 480.f, 146.f);
+  chip.setPosition(83.f + 480.f, 93.f);
+
+  ENGINE.Draw(folderDock);
+  ENGINE.Draw(chipHolder);
+
+  // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
+  float top = 50.0f; float bottom = 230.0f;
+  float depth = ((float)packView.lastChipOnScreen / (float)packView.numOfChips)*bottom;
+  scrollbar.setPosition(452.f + 480.f, top + depth);
+
+  ENGINE.Draw(scrollbar);
+
+  if (CHIPLIB.GetSize() == 0) return;
+
+  // Move the chip library iterator to the current highlighted chip
+  ChipLibrary::Iter iter = CHIPLIB.Begin();
+
+  for (int j = 0; j < packView.lastChipOnScreen; j++) {
+    iter++;
+  }
+
+  // Now that we are at the viewing range, draw each chip in the list
+  for (int i = 0; i < packView.maxChipsOnScreen && packView.lastChipOnScreen + i < packView.numOfChips; i++) {
+    chipIcon.setTextureRect(TEXTURES.GetIconRectFromID((*iter).GetIconID()));
+    chipIcon.setPosition(2.f*104.f + 480.f, 65.0f + (32.f*i));
+    ENGINE.Draw(chipIcon, false);
+
+    chipLabel->setFillColor(sf::Color::White);
+    chipLabel->setPosition(2.f*120.f + 480.f, 60.0f + (32.f*i));
+    chipLabel->setString((*iter).GetShortName());
+    ENGINE.Draw(chipLabel, false);
+
+
+    int offset = (int)((*iter). GetElement());
+    element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+    element.setPosition(2.f*173.f + 480.f, 65.0f + (32.f*i));
+    ENGINE.Draw(element, false);
+
+    chipLabel->setOrigin(0, 0);
+    chipLabel->setPosition(2.f*190.f + 480.f, 60.0f + (32.f*i));
+    chipLabel->setString(std::string() + (*iter).GetCode());
+    ENGINE.Draw(chipLabel, false);
+
+    //Draw rating
+    unsigned rarity = (*iter).GetRarity() - 1;
+    stars.setTextureRect(sf::IntRect(0, 15 * rarity, 22, 14));
+    stars.setPosition(2.f*199.f + 480.f, 74.0f + (32.f*i));
+    ENGINE.Draw(stars, false);
+
+    // Draw cursor
+    if (packView.lastChipOnScreen + i == packView.currChipIndex) {
+      auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, packCursor.getPosition().y, 64.0f + (32.f*i));
+      auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
+
+      packCursor.setPosition((2.f*90.f) + bounce + 480.f, y);
+      ENGINE.Draw(packCursor);
+
+      sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID((*iter).GetID());
+      chip.setTextureRect(cardSubFrame);
+      chip.setScale((float)swoosh::ease::linear(chipRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
+      ENGINE.Draw(chip, false);
+
+      // This draws the currently highlighted chip
+      if ((*iter).GetDamage() > 0) {
+        chipLabel->setFillColor(sf::Color::White);
+        chipLabel->setString(std::to_string((*iter).GetDamage()));
+        chipLabel->setOrigin(chipLabel->getLocalBounds().width + chipLabel->getLocalBounds().left, 0);
+        chipLabel->setPosition(2.f*(70.f) + 480.f, 135.f);
+
+        ENGINE.Draw(chipLabel, false);
+      }
+
+      chipLabel->setOrigin(0, 0);
+      chipLabel->setFillColor(sf::Color::Yellow);
+      chipLabel->setPosition(2.f*14.f + 480.f, 135.f);
+      chipLabel->setString(std::string() + (*iter).GetCode());
+      ENGINE.Draw(chipLabel, false);
+
+      std::string formatted = FormatChipDesc((*iter).GetDescription());
+      chipDesc->setString(formatted);
+      ENGINE.Draw(chipDesc, false);
+
+      int offset = (int)((*iter).GetElement());
+      element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+      element.setPosition(2.f*25.f + 480.f, 142.f);
       ENGINE.Draw(element, false);
     }
 

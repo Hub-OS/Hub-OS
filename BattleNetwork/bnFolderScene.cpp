@@ -298,6 +298,7 @@ void FolderScene::onUpdate(double elapsed) {
               using next = segue<BlackWashFade>::to<FolderEditScene>;
               getController().push<next>(*folder);
               AUDIO.Play(AudioType::CHIP_CONFIRM);
+              gotoNextScene = true;
             }
             else {
               AUDIO.Play(AudioType::CHIP_ERROR);
@@ -375,6 +376,8 @@ void FolderScene::onResume() {
 #ifdef __ANDROID__
     this->StartupTouchControls();
 #endif
+
+    gotoNextScene = false;
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
