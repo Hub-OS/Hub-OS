@@ -167,11 +167,13 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
   /* foldet view */
   folderView.maxChipsOnScreen = 7;
   folderView.currChipIndex = folderView.lastChipOnScreen = folderView.prevIndex = 0;
+  folderView.swapChipIndex = -1;
   folderView.numOfChips = folder.GetSize();
 
   /* library view */
   packView.maxChipsOnScreen = 7;
   packView.currChipIndex = packView.lastChipOnScreen = packView.prevIndex = 0;
+  packView.swapChipIndex = -1;
   packView.numOfChips = CHIPLIB.GetSize();
 
   prevViewMode = currViewMode = ViewMode::FOLDER;
@@ -249,7 +251,76 @@ void FolderEditScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.Has(PRESSED_RIGHT) && currViewMode == ViewMode::FOLDER) {
+    if (INPUT.Has(PRESSED_A)) {
+      if (currViewMode == ViewMode::FOLDER) {
+        if (folderView.swapChipIndex != -1) {
+          if (folderView.swapChipIndex == folderView.currChipIndex) {
+            // Unselect the chip
+            folderView.swapChipIndex = -1;
+            AUDIO.Play(AudioType::CHIP_CANCEL);
+
+          }
+          else {
+            // swap the chip
+            folderView.swapChipIndex = -1;
+          }
+        }
+        else {
+          // See if we're swapping from a pack
+          if (packView.swapChipIndex != -1) {
+            // Swap the chip with the one from the pack
+            auto iter = CHIPLIB.Begin();
+            while (packView.swapChipIndex > 0) {
+              iter++;
+              packView.swapChipIndex--;
+            }
+            folder.AddChip(*iter);
+
+            AUDIO.Play(AudioType::CHIP_CONFIRM);
+          }
+          else {
+            // select the chip
+            folderView.swapChipIndex = folderView.currChipIndex;
+            AUDIO.Play(AudioType::CHIP_CHOOSE);
+
+          }
+        }
+      }
+      else if (currViewMode == ViewMode::PACK) {
+        if (packView.swapChipIndex != -1) {
+          if (packView.swapChipIndex == packView.currChipIndex) {
+            // Unselect the chip
+            packView.swapChipIndex = -1;
+            AUDIO.Play(AudioType::CHIP_CANCEL);
+
+          }
+          else {
+            // swap the chip
+            packView.swapChipIndex = -1;
+          }
+        }
+        else {
+          // See if we're swapping from our folder
+          if (folderView.swapChipIndex != -1) {
+            // Swap the chip with the one from the folder
+            auto iter = folder.Begin();
+            while (folderView.swapChipIndex > 0) {
+              iter++;
+              folderView.swapChipIndex--;
+            }
+            CHIPLIB.AddChip(Chip(*(*iter)));
+            AUDIO.Play(AudioType::CHIP_CONFIRM);
+
+          }
+          else {
+            // select the chip
+            packView.swapChipIndex = packView.currChipIndex;
+            AUDIO.Play(AudioType::CHIP_CHOOSE);
+
+          }
+        }
+      }
+    }else if (INPUT.Has(PRESSED_RIGHT) && currViewMode == ViewMode::FOLDER) {
       currViewMode = ViewMode::PACK;
       canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC);
@@ -421,6 +492,14 @@ void FolderEditScene::DrawFolder() {
       element.setPosition(2.f*25.f, 142.f);
       ENGINE.Draw(element, false);
     }
+    else if (folderView.lastChipOnScreen + i == folderView.swapChipIndex) {
+      auto y =  64.0f + (32.f*i);
+
+      folderCursor.setPosition((2.f*90.f) + 2.0f, y);
+      folderCursor.setColor(sf::Color(255, 255, 255, 100));
+      ENGINE.Draw(folderCursor);
+      folderCursor.setColor(sf::Color::White);
+    }
 
     iter++;
   }
@@ -513,6 +592,14 @@ void FolderEditScene::DrawLibrary() {
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f*90.f + 480.f, 142.f);
       ENGINE.Draw(element, false);
+    }
+    else if (packView.lastChipOnScreen + i == packView.swapChipIndex) {
+      auto y =  64.0f + (32.f*i);
+
+      packCursor.setPosition(480.f + 2.f + 2.f, y);
+      folderCursor.setColor(sf::Color(255, 255, 255, 100));
+      ENGINE.Draw(folderCursor);
+      folderCursor.setColor(sf::Color::White);
     }
 
     iter++;

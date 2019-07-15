@@ -78,6 +78,7 @@ private:
     int lastChipOnScreen; // index
     int prevIndex; // for effect
     int numOfChips;
+    int swapChipIndex; // -1 for unselected, otherwise ID
   } folderView, packView;
 
   ViewMode currViewMode;
