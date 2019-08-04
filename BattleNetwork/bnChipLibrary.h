@@ -1,8 +1,9 @@
 #pragma once
 #include "bnChip.h"
+#include <set>
 #include <list>
 
-using std::list;
+using std::multiset;
 
 /**
  * @class ChipLibrary
@@ -19,7 +20,7 @@ using std::list;
  */
 class ChipLibrary {
 public:
-  typedef list<Chip>::iterator Iter;
+  typedef multiset<Chip, Chip::Compare>::iterator Iter;
 
   /**
    * @brief Invokes LoadLibrary()
@@ -81,7 +82,13 @@ public:
    * @param chip to compare
    * @return list<char> codes
    */
-  list<char> GetChipCodes(const Chip& chip);
+  std::list<char> GetChipCodes(const Chip& chip);
+
+  /**
+   * @brief Returns number of copies in this data pool
+   * @return integer number of copies or zero if not found
+   */
+  const int GetCountOf(const Chip& chip);
   
   /**
    * @brief Given a name and code, return the chip from the database
@@ -116,7 +123,7 @@ protected:
   void LoadLibrary(const std::string& path);
 
 private:
-  mutable list<Chip> library; /*!< the chip pool used by all chip resources */
+  mutable multiset<Chip, Chip::Compare> library; /*!< the chip pool used by all chip resources */
 };
 
 #define CHIPLIB ChipLibrary::GetInstance()

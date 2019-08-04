@@ -344,7 +344,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
   if (uniqueChips.size() == 0) return;
 
   // Move the chip library iterator to the current highlighted chip
-  ChipLibrary::Iter iter = uniqueChips.begin();
+  auto iter = uniqueChips.begin();
 
   for (int j = 0; j < lastChipOnScreen; j++) {
     iter++;

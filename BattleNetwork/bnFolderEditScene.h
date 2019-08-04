@@ -25,13 +25,74 @@
  */
  
 class FolderEditScene : public swoosh::Activity {
-public:
+private:
   enum class ViewMode : int {
     FOLDER,
     PACK
   };
 
+  /**
+  * @class PackBucket
+  * @brief Chips in a pack avoid listing duplicates by bundling them in a counted bucket 
+  * 
+  * Users can select up to all of the chips in a bucket. The bucket will remain in the list but at 0. 
+  */
+  class PackBucket {
+  private:
+    unsigned size;
+    unsigned maxSize;
+    Chip info;
+
+  public:
+    PackBucket(unsigned size, Chip info) : size(size), maxSize(size), info(info) { }
+    ~PackBucket() { }
+
+    const bool IsEmpty() const { return size == 0; }
+    const bool GetChip(Chip& copy) { if (IsEmpty()) return false; else copy = Chip(info); size--;  return true; }
+    void AddChip() { size++; size = std::min(size, maxSize);  }
+    const Chip& ViewChip() const { return info; }
+    const unsigned GetCount() const { return size; }
+  };
+
+  /**
+  * @class FolderSlot
+  * @brief A selectable row in the folder to place new chips. When removing chips, an empty slot is left behind
+  */
+  class FolderSlot {
+  private:
+    bool occupied;
+    Chip info;
+  public:
+    void AddChip(Chip other) {
+      info = other;
+      occupied = true;
+    }
+
+    const bool GetChip(Chip& copy) {
+      if (!occupied) return false;
+
+      copy = Chip(info);
+      occupied = false;
+
+      return true;
+    }
+
+    const bool IsEmpty() const {
+      return !occupied;
+    }
+
+    const Chip& ViewChip() {
+      return info;
+    }
+  };
+
+  void PlaceFolderDataIntoChipSlots();
+  void PlaceLibraryDataIntoBuckets();
+
 private:
+  std::vector<FolderSlot> folderChipSlots; /*!< Rows in the folder that can be inserted with chips or replaced */
+  std::vector<PackBucket> packChipBuckets; /*!< Rows in the pack that represent how many of a chip are left */
+
   Camera camera;
   ChipFolder& folder;
 
@@ -61,8 +122,8 @@ private:
   sf::Sprite stars;
   sf::Sprite chipHolder;
   sf::Sprite element;
-  sf::Sprite folderCursor;
-  sf::Sprite packCursor;
+  sf::Sprite folderCursor, folderSwapCursor;
+  sf::Sprite packCursor, packSwapCursor;
 
   // Current chip graphic
   sf::Sprite chip;

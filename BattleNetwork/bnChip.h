@@ -84,6 +84,14 @@ public:
    * @warning may be removed as rarity won't be used in the future
    */
   const unsigned GetRarity() const;
+
+  struct Compare
+  {
+    bool operator()(const Chip& lhs, const Chip& rhs) const noexcept { return lhs.shortname < rhs.shortname; }
+  };
+
+  friend struct Compare;
+
 private:
   unsigned ID;
   unsigned icon;
@@ -95,4 +103,3 @@ private:
   string verboseDescription;
   Element element;
 };
-

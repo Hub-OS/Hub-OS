@@ -127,7 +127,7 @@ const std::string ChipLibrary::GetStrFromElement(const Element type) {
 
 void ChipLibrary::AddChip(Chip chip)
 {
-  library.push_back(chip);
+  library.insert(chip);
 }
 
 bool ChipLibrary::IsChipValid(Chip& chip)
@@ -152,6 +152,11 @@ std::list<char> ChipLibrary::GetChipCodes(const Chip& chip)
   }
 
   return codes;
+}
+
+const int ChipLibrary::GetCountOf(const Chip & chip)
+{
+  return int(library.count(chip));
 }
 
 Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
@@ -230,19 +235,17 @@ void ChipLibrary::LoadLibrary(const std::string& path) {
             // Simply update an existing chip entry by changing the code 
             Chip first = GetChipEntry(chip.GetShortName(), *codes.begin());
             chip = Chip(first.GetID(), first.GetIconID(), chip.GetCode(), first.GetDamage(), first.GetElement(), first.GetShortName(), first.GetDescription(), first.GetVerboseDescription(), first.GetRarity());
-            library.push_back(chip);
+            library.insert(chip);
           }
         }
         else { // first entry
-          library.push_back(chip);
+          library.insert(chip);
         }
       }
     }
 
     data = data.substr(endline + 1);
   } while (endline > -1);
-
-  std::reverse(library.begin(), library.end());
 
   Logger::Log(std::string("library size: ") + std::to_string(this->GetSize()));
 }
