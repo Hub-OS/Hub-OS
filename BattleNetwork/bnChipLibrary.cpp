@@ -239,7 +239,7 @@ void ChipLibrary::LoadLibrary(const std::string& path) {
           }
         }
         else { // first entry
-          library.insert(chip);
+           library.insert(chip);
         }
       }
     }

@@ -11,6 +11,8 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 #include "bnChipFolder.h"
+#include "bnAnimatedTextBox.h"
+
 /**
  * @class FolderEditScene
  * @author mav
@@ -86,15 +88,18 @@ private:
     }
   };
 
+  void ExcludeFolderDataFromPack();
   void PlaceFolderDataIntoChipSlots();
   void PlaceLibraryDataIntoBuckets();
+  void WriteNewFolderData();
 
 private:
   std::vector<FolderSlot> folderChipSlots; /*!< Rows in the folder that can be inserted with chips or replaced */
   std::vector<PackBucket> packChipBuckets; /*!< Rows in the pack that represent how many of a chip are left */
-
+  bool hasFolderChanged; /*!< Flag if folder needs to be saved before quitting screen */
   Camera camera;
   ChipFolder& folder;
+  AnimatedTextBox textbox;
 
   // Menu name font
   sf::Font* font;

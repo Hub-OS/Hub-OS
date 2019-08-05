@@ -24,6 +24,7 @@ using sf::Font;
 FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderCollection& collection) :
   collection(collection),
   camera(ENGINE.GetView()),
+  folderSwitch(true),
   swoosh::Activity(&controller)
 {
   promptOptions = false;
@@ -110,7 +111,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   folderNames = collection.GetFolderNames();
 
   if (collection.GetFolderNames().size() > 0) {
-    collection.GetFolder(*folderNames.begin(), folder);
+    collection.GetFolder(0, folder);
 
     numOfChips = folder->GetSize();
   }
@@ -139,8 +140,6 @@ void FolderScene::onStart() {
 }
 
 void FolderScene::onUpdate(double elapsed) {
-  bool folderSwitch = false;
-
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
@@ -264,6 +263,8 @@ void FolderScene::onUpdate(double elapsed) {
           numOfChips = folder->GetSize();
           currChipIndex = 0;
         }
+
+        folderSwitch = false;
       }
 
       InputEvent  cancelButton = RELEASED_B;
@@ -306,6 +307,7 @@ void FolderScene::onUpdate(double elapsed) {
             break;
           case 1: // EQUIP
             selectedFolderIndex = currFolderIndex;
+            collection.SwapOrder(0, selectedFolderIndex);
             AUDIO.Play(AudioType::PA_ADVANCE);
             break;
           case 2: // CHANGE NAME
@@ -378,6 +380,10 @@ void FolderScene::onResume() {
 #endif
 
     gotoNextScene = false;
+
+    // Save any edits
+    folderSwitch = true;
+    collection.WriteToFile("resources/database/folders.txt");
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {

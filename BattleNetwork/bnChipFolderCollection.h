@@ -18,7 +18,7 @@
 class ChipFolderCollection {
 private:
   std::map<std::string, ChipFolder*> collection; /*!< All folders by name */
-
+  std::vector<std::string> order; /*!< Cheaply use index 0 as the saved default folder */
 public:
 
   /**
@@ -40,6 +40,8 @@ public:
 
     collection[name] = new ChipFolder();
 
+    order.push_back(name);
+
     return true;
   }
 
@@ -56,15 +58,30 @@ public:
 
     return true;
   }
+
+  /**
+ * @brief Get the folder by index
+ * @param index of the folder to get
+ * @param folder handle to the folder
+ * @return true if loaded, false if the folder was not found
+ */
+  bool GetFolder(int index, ChipFolder*& folder) {
+    if (!this->HasFolder(order[index])) return false;
+
+    folder = collection[order[index]];
+
+    return true;
+  }
  
   /**
-   * @brief Get a list of the possible folder names
+   * @brief Get a list of the folder names in order
    * @return std::vector<std::string>
    */
   std::vector<std::string> GetFolderNames() {
     std::vector<std::string> v;
-    for (std::map<std::string, ChipFolder*>::iterator it = collection.begin(); it != collection.end(); ++it) {
-      v.push_back(it->first);
+    for (int i = 0; i < order.size(); i++) {
+      auto iter = collection.find(order[i]);
+      v.push_back(iter->first);
     }
 
     return v;
@@ -92,6 +109,16 @@ public:
     }
 
     return true;
+  }
+
+  /**
+ * @brief Swaps position with a folder
+ * @param from the index of the folder to swap
+ * @param with the index of the folder to swap with
+ */
+  void SwapOrder(int from, int with) {
+    if (!(from >= 0 && from < order.size() && with >= 0 && with < order.size())) return;
+    std::iter_swap(order.begin()+from, order.begin()+with);
   }
 
   /**
@@ -167,10 +194,11 @@ public:
       try {
         FileUtil::WriteStream ws(path);
 
-        for (auto curr = this->collection.begin(); curr != this->collection.end(); curr++) {
-          ws << "Folder title=\"" << curr->first << "\"" << ws.endl();
+        for (int i = 0; i < order.size(); i++) {
+          auto curr = collection[order[i]];
+          ws << "Folder title=\"" << order[i] << "\"" << ws.endl();
 
-          auto writableFolder = curr->second;
+          auto writableFolder = curr;
           for (auto iter = writableFolder->Begin(); iter != writableFolder->End(); iter++) {
             ws << "   Chip name=\"" << (*iter)->GetShortName() << "\" code=\"" << (*iter)->GetCode() << "\""
                << ws.endl();

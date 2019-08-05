@@ -87,7 +87,7 @@ public:
 
   struct Compare
   {
-    bool operator()(const Chip& lhs, const Chip& rhs) const noexcept { return lhs.shortname < rhs.shortname; }
+    bool operator()(const Chip& lhs, const Chip& rhs) const noexcept;
   };
 
   friend struct Compare;

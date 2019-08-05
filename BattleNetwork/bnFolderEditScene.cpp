@@ -86,12 +86,15 @@ std::string FolderEditScene::FormatChipDesc(const std::string && desc)
 }
 
 FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFolder& folder) :
-  camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))), folder(folder),
+  camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))), folder(folder), textbox(sf::Vector2f(4, 255)), hasFolderChanged(false),
   swoosh::Activity(&controller)
 {
   // Move chip data into their appropriate containers for easier management
   PlaceFolderDataIntoChipSlots();
   PlaceLibraryDataIntoBuckets();
+
+  // We must account for existing chip data to accurately represent what's left from our pool
+  ExcludeFolderDataFromPack();
 
   // Menu name font
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
@@ -173,13 +176,13 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
   folderView.maxChipsOnScreen = 7;
   folderView.currChipIndex = folderView.lastChipOnScreen = folderView.prevIndex = 0;
   folderView.swapChipIndex = -1;
-  folderView.numOfChips = folderChipSlots.size();
+  folderView.numOfChips = int(folderChipSlots.size());
 
   /* library view */
   packView.maxChipsOnScreen = 7;
   packView.currChipIndex = packView.lastChipOnScreen = packView.prevIndex = 0;
   packView.swapChipIndex = -1;
-  packView.numOfChips = packChipBuckets.size();
+  packView.numOfChips = int(packChipBuckets.size());
 
   prevViewMode = currViewMode = ViewMode::FOLDER;
 
@@ -199,6 +202,8 @@ void FolderEditScene::onStart() {
 void FolderEditScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
+
+  textbox.Update((float)elapsed);
 
   auto offset = camera.GetView().getCenter().x - 240;
   bg.setPosition(offset, 0.f);
@@ -300,6 +305,8 @@ void FolderEditScene::onUpdate(double elapsed) {
                 }
               }
 
+              hasFolderChanged = true;
+
               packView.swapChipIndex = -1;
               folderView.swapChipIndex = -1;
 
@@ -362,6 +369,8 @@ void FolderEditScene::onUpdate(double elapsed) {
               packView.swapChipIndex = -1;
               folderView.swapChipIndex = -1;
 
+              hasFolderChanged = true;
+
               AUDIO.Play(AudioType::CHIP_CONFIRM);
             }
             else {
@@ -392,7 +401,33 @@ void FolderEditScene::onUpdate(double elapsed) {
     view->lastChipOnScreen = std::max(0, view->lastChipOnScreen);
     view->lastChipOnScreen = std::min(view->numOfChips - 1, view->lastChipOnScreen);
 
+    bool gotoLastScene = false;
+
     if (INPUT.Has(PRESSED_B) && canInteract) {
+      if (packView.swapChipIndex != -1 || folderView.swapChipIndex != -1) {
+        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+        packView.swapChipIndex = folderView.swapChipIndex = -1;
+      }
+      else if (hasFolderChanged && !textbox.IsOpen()) {
+        textbox.DequeMessage(); // make sure textbox is empty
+        textbox.EnqueMessage(sf::Sprite(), "", new AnimatedTextBox::Message("Save your changes to this folder?"));
+        textbox.Open();
+        AUDIO.Play(AudioType::CHIP_DESC);
+      }
+      else if (!hasFolderChanged) {
+        gotoLastScene = true;
+      }
+      else if (textbox.IsOpen()) {
+        // TODO: Check if save...
+        WriteNewFolderData();
+
+        textbox.Close();
+        textbox.SetTextSpeed(1.0);
+        gotoLastScene = true;
+      }
+    }
+
+    if (gotoLastScene) {
       canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
@@ -400,7 +435,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       using segue = swoosh::intent::segue<BlackWashFade>;
       getController().queuePop<segue>();
     }
-  }
+  } // end if(gotoLastScene)
   else {
     if (prevViewMode != currViewMode) {
       if (currViewMode == ViewMode::FOLDER) {
@@ -453,6 +488,8 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
 
   DrawFolder();
   DrawLibrary();
+
+  ENGINE.Draw(textbox);
 }
 
 void FolderEditScene::DrawFolder() {
@@ -685,6 +722,10 @@ void FolderEditScene::onEnd() {
   delete chipDesc;
 }
 
+void FolderEditScene::ExcludeFolderDataFromPack()
+{
+}
+
 void FolderEditScene::PlaceFolderDataIntoChipSlots()
 {
   ChipFolder::Iter iter = folder.Begin();
@@ -717,6 +758,17 @@ void FolderEditScene::PlaceLibraryDataIntoBuckets()
     auto bucket = PackBucket(count, Chip(*iter));
     packChipBuckets.push_back(bucket);
     iter++;
+  }
+}
+
+void FolderEditScene::WriteNewFolderData()
+{
+  folder = ChipFolder();
+
+  for (auto iter = folderChipSlots.begin(); iter != folderChipSlots.end(); iter++) {
+    if ((*iter).IsEmpty()) continue; 
+
+    folder.AddChip((*iter).ViewChip());
   }
 }
 

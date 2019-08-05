@@ -79,6 +79,8 @@ private:
 
   bool gotoNextScene; /*!< If true, user cannot interact */
 
+  bool folderSwitch; /*!< If a folder at currIndex was changed or index was changed*/
+
   int optionIndex; /*!< Index for menu state options when at the prompt menu */
   bool promptOptions; /*!< Flag for menu state when selecting a folder to edit */
   bool enterText; /*!< Flag for user state when editting folders */

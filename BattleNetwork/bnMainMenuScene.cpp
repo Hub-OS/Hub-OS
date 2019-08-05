@@ -154,7 +154,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 
         ChipFolder* folder = nullptr;
 
-        if (data.GetFolder("Default", folder)) {
+        if (data.GetFolder(0, folder)) {
           AUDIO.Play(AudioType::CHIP_DESC);
           using segue = swoosh::intent::segue<PixelateBlackWashFade>::to<SelectMobScene>;
           this->getController().push<segue>(currentNavi, *folder);
@@ -234,7 +234,7 @@ void MainMenuScene::onResume() {
 
   ENGINE.SetCamera(camera);
 
-  data.WriteToFile("test_folders.txt");
+  data.WriteToFile("resources/database/folders.txt");
 
 #ifdef __ANDROID__
   StartupTouchControls();

@@ -1,8 +1,0 @@
-StartTime 1551859793
-Engine initialized: 0.094797 secs
-Failed loading texture: resources/ui/alert.png
-Failed loading texture: resources/ui/mouse.png
-No animation found in file for DEFAULT
-Failed loading texture: resources/backgrounds/title/tile_en.png
-Failed loading font: resources/fonts/NETNAVI_4-6_V3.ttf
-Failed loading font: resources/fonts/mmbnthick_regular.ttf

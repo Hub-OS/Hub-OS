@@ -1,6 +1,7 @@
 #include "bnChip.h"
 #include <iostream>
 #include <algorithm>
+#include <tuple>
 
 Chip::Chip(unsigned id, unsigned icon, char code, unsigned damage, Element element, string sname, string desc, string verboseDesc, unsigned rarity) :
   ID(id), icon(icon), code(code), damage(damage), element(element) {
@@ -74,4 +75,9 @@ const Element Chip::GetElement() const
 const unsigned Chip::GetRarity() const
 {
   return rarity;
+}
+
+bool Chip::Compare::operator()(const Chip & lhs, const Chip & rhs) const noexcept
+{
+  return std::tie(lhs.shortname, lhs.code) < std::tie(rhs.shortname, rhs.code);
 }
