@@ -287,7 +287,16 @@ void FolderEditScene::onUpdate(double elapsed) {
             // The chip from the pack is copied and added to the slot
             // The slot chip needs to find its corresponding bucket and increment it
             Chip copy;
-            if (packChipBuckets[packView.swapChipIndex].GetChip(copy)) {
+
+            bool gotChip = false;
+
+            // If the pack pointed to is the same as the chip in our folder, add the chip back into folder
+            if (packChipBuckets[packView.swapChipIndex].ViewChip() == folderChipSlots[folderView.currChipIndex].ViewChip()) {
+              packChipBuckets[packView.swapChipIndex].AddChip();
+              folderChipSlots[folderView.currChipIndex].GetChip(copy);
+
+              gotChip = true;
+            } else if (packChipBuckets[packView.swapChipIndex].GetChip(copy)) {
               Chip prev;
 
               bool findBucket = folderChipSlots[folderView.currChipIndex].GetChip(prev);
@@ -305,14 +314,17 @@ void FolderEditScene::onUpdate(double elapsed) {
                 }
               }
 
+              gotChip = true;
+            }
+
+            if (gotChip) {
               hasFolderChanged = true;
 
               packView.swapChipIndex = -1;
               folderView.swapChipIndex = -1;
 
               AUDIO.Play(AudioType::CHIP_CONFIRM);
-            }
-            else {
+            } else {
               AUDIO.Play(AudioType::CHIP_ERROR);
             }
           }
@@ -348,7 +360,17 @@ void FolderEditScene::onUpdate(double elapsed) {
             // The chip from the pack is copied and added to the slot
             // The slot chip needs to find its corresponding bucket and increment it
             Chip copy;
-            if (packChipBuckets[packView.currChipIndex].GetChip(copy)) {
+
+            bool gotChip = false;
+
+            // If the pack pointed to is the same as the chip in our folder, add the chip back into folder
+            if (packChipBuckets[packView.currChipIndex].ViewChip() == folderChipSlots[folderView.swapChipIndex].ViewChip()) {
+              packChipBuckets[packView.currChipIndex].AddChip();
+              folderChipSlots[folderView.swapChipIndex].GetChip(copy);
+
+              gotChip = true;
+            }
+            else if (packChipBuckets[packView.currChipIndex].GetChip(copy)) {
               Chip prev;
 
               bool findBucket = folderChipSlots[folderView.swapChipIndex].GetChip(prev);
@@ -366,6 +388,10 @@ void FolderEditScene::onUpdate(double elapsed) {
                 }
               }
 
+              gotChip = true;
+            }
+
+            if(gotChip) {
               packView.swapChipIndex = -1;
               folderView.swapChipIndex = -1;
 
@@ -605,10 +631,10 @@ void FolderEditScene::DrawFolder() {
 }
 
 void FolderEditScene::DrawLibrary() {
-  chipDesc->setPosition(sf::Vector2f(320.f + 480.f, 185.0f));
+  chipDesc->setPosition(sf::Vector2f(350.f + 480.f, 185.0f));
   chipHolder.setPosition(310.f + 480.f, 35.f);
   element.setPosition(400.f + 2.f*25.f + 480.f, 146.f);
-  chip.setPosition(373.f + 480.f, 93.f);
+  chip.setPosition(383.f + 480.f, 93.f);
 
   ENGINE.Draw(packDock);
   ENGINE.Draw(chipHolder);
@@ -678,14 +704,14 @@ void FolderEditScene::DrawLibrary() {
         chipLabel->setFillColor(sf::Color::White);
         chipLabel->setString(std::to_string(copy.GetDamage()));
         chipLabel->setOrigin(chipLabel->getLocalBounds().width + chipLabel->getLocalBounds().left, 0);
-        chipLabel->setPosition(2.f*(100.f) + 480.f, 135.f);
+        chipLabel->setPosition(2.f*(230.f) + 480.f, 135.f);
 
         ENGINE.Draw(chipLabel, false);
       }
 
       chipLabel->setOrigin(0, 0);
       chipLabel->setFillColor(sf::Color::Yellow);
-      chipLabel->setPosition(2.f*214.f + 480.f, 135.f);
+      chipLabel->setPosition(2.f*160.f + 480.f, 135.f);
       chipLabel->setString(std::string() + copy.GetCode());
       ENGINE.Draw(chipLabel, false);
 
@@ -695,7 +721,7 @@ void FolderEditScene::DrawLibrary() {
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-      element.setPosition(2.f*290.f + 480.f, 142.f);
+      element.setPosition(2.f*180.f + 480.f, 142.f);
       ENGINE.Draw(element, false);
     }
     
@@ -724,6 +750,13 @@ void FolderEditScene::onEnd() {
 
 void FolderEditScene::ExcludeFolderDataFromPack()
 {
+  Chip mock; // will not be used
+  for (auto& f : folderChipSlots) {
+    auto iter = std::find_if(packChipBuckets.begin(), packChipBuckets.end(), [&f](PackBucket& pack) { return pack.ViewChip() == f.ViewChip(); });
+    if (iter != packChipBuckets.end()) {
+      iter->GetChip(mock);
+    }
+  }
 }
 
 void FolderEditScene::PlaceFolderDataIntoChipSlots()

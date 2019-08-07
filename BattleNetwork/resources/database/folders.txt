@@ -50,7 +50,7 @@ Folder title="FOLDERS!!!"
    Chip name="Cannon" code="B"
    Chip name="Cannon" code="C"
    Chip name="LongSwrd" code="J"
-   Chip name="Recov1" code="A"
+   Chip name="RockCube" code="A"
 
 Folder title="BEAST MODE"
    Chip name="FireSwrd" code="F"

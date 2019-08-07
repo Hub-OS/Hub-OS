@@ -79,5 +79,5 @@ const unsigned Chip::GetRarity() const
 
 bool Chip::Compare::operator()(const Chip & lhs, const Chip & rhs) const noexcept
 {
-  return std::tie(lhs.shortname, lhs.code) < std::tie(rhs.shortname, rhs.code);
+  return lhs < rhs;;
 }

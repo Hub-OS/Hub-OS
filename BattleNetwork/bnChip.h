@@ -85,10 +85,27 @@ public:
    */
   const unsigned GetRarity() const;
 
+  /**
+   * @brief Comparator for std map
+   */
   struct Compare
   {
     bool operator()(const Chip& lhs, const Chip& rhs) const noexcept;
   };
+
+  /**
+   * @brief determine if chips are equal (by name and code) 
+   */
+  const bool operator==(const Chip& rhs) const noexcept {
+    return std::tie(shortname, code) == std::tie(rhs.shortname, rhs.code);
+  }
+
+  /**
+ * @brief determine if this chip is less than another (by name and code)
+ */
+  const bool operator<(const Chip& rhs) const noexcept {
+    return std::tie(shortname, code) < std::tie(rhs.shortname, rhs.code);
+  }
 
   friend struct Compare;
 

@@ -1,5 +1,5 @@
-StartTime 1564984384
-Engine initialized: 0.528000 secs
+StartTime 1565181783
+Engine initialized: 0.550000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -126,7 +126,7 @@ Loaded texture: resources/shaders/textures/heat.png
 Loaded texture: resources/shaders/textures/noise.png
 Loaded texture: resources/shaders/textures/noise_invert.png
 Loaded texture: resources/ui/light.png
-Loaded textures: 0.265000 secs
+Loaded textures: 0.263000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -143,7 +143,7 @@ Loaded shader: resources/shaders/glsl_110/spot_reflection
 Loaded shader: resources/shaders/glsl_110/transition
 Loaded shader: resources/shaders/glsl_110/chip_reveal
 Loaded shader: resources/shaders/glsl_110/wire
-Loaded shaders: 0.008000 secs
+Loaded shaders: 0.007000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -187,13 +187,13 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.183000 secs
+Loaded audio sources: 0.173000 secs
 Loaded navi: Megaman
 Loaded navi: Starman
 Loaded navi: Roll
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
-Loaded registered navis: 0.683000 secs
+Loaded registered navis: 0.685000 secs
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
 Loaded texture: resources/mobs/starfish/preview.png
@@ -208,7 +208,7 @@ Loaded texture: resources/mobs/select/random.png
 Loaded mob: Random
 Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
-Loaded registered mobs: 1.726000 secs
+Loaded registered mobs: 1.712000 secs
 Key 'verbose' was not found in line 'Chip name="AreaGrab" cardIndex="82" iconIndex="154" damage="0" type="Normal" codes="*" desc="Grab enemy tiles" rarity="1"'
 Key 'verbose' was not found in line 'Chip name="RockCube" damage="0" desc="Places cube in front" cardIndex="108" iconIndex="139" type="Normal" codes="A,C,E,H,R" memory="9" power="Normal" rarity="0" dark="0"'
 Key 'verbose' was not found in line 'Chip name="Fishy" cardIndex="38" iconIndex="53" damage="80" type="Normal" codes="*" desc="Dash into enmy" rarity="1"'
@@ -256,109 +256,3 @@ Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-main menu onResume
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-main menu onResume
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-main menu onResume
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-main menu onResume
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-main menu onResume
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/virus/fg.png
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-pushing states
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-pushing states
-pushing states
-Mettaur OnHit
-pushing states
-pushing states
-pushing states
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-pushing states
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-pushing states
-pushing states
-Mettaur OnHit
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-library saved successfully. Number of chips saved: 74
-main menu onResume
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/undernet/bg.png
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
