@@ -43,7 +43,7 @@ namespace Battle {
     hasSpell = false;
     isBattleActive = false;
     brokenCooldown = 0;
-    flickerTeamCooldown = 0;
+    flickerTeamCooldown = teamCooldown = 0;
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -139,10 +139,12 @@ namespace Battle {
 
       if (size == 0 && this->reserved.size() == 0) {
         team = _team;
-        this->brokenCooldown = this->brokenCooldownLength;
-
+        
         if(useFlicker) {
           this->flickerTeamCooldown = this->flickerTeamCooldownLength;
+        }
+        else {
+          this->teamCooldown = this->teamCooldownLength;
         }
 
         this->RefreshTexture();
@@ -183,7 +185,7 @@ namespace Battle {
     // Hack to toggle between team color without rewriting redundant code
     auto currTeam = team;
     auto otherTeam = (team == Team::UNKNOWN)? Team::UNKNOWN : (team == Team::RED)? Team::BLUE : Team::RED;
-    //((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown < flickerTeamCooldownLength) ? currTeam = otherTeam : currTeam;
+    ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
 
     if (state == TileState::NORMAL) {
       if (currTeam == Team::BLUE) {
@@ -378,7 +380,7 @@ namespace Battle {
     if (this->isBattleActive) {
       bool tag = false;
       for (auto it = entities_copy.begin(); it != entities_copy.end(); ++it) {
-        if (*it == caller || caller->IsDeleted())
+        if (*it == caller)
           continue;
 
         // TODO: use group buckets to poll by ID instead of dy casting
@@ -389,9 +391,9 @@ namespace Battle {
         if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() ||
                                              (c->GetTeam() == Team::UNKNOWN &&
                                               caller->GetTeam() == Team::UNKNOWN))) {
-          //if (!c->CheckDefenses(caller)) {
+          if (!c->CheckDefenses(caller)) {
             caller->Attack(c);
-          //}
+          }
 
           // Tag the spell
           tag = true;
@@ -484,30 +486,31 @@ namespace Battle {
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
 
       if ((*entity)->IsDeleted() || (*entity) == nullptr) {
-          continue;
+        continue;
       }
 
       (*entity)->ResolveFrameBattleDamage();
       (*entity)->Update(_elapsed);
     }
 
+    if (this->isBattleActive) {
+      if (teamCooldown > 0) {
+        teamCooldown -= 1 * _elapsed;
+        if (teamCooldown < 0) teamCooldown = 0;
+      }
+
+      if (flickerTeamCooldown > 0) {
+        flickerTeamCooldown -= 1 * _elapsed;
+        if (flickerTeamCooldown < 0) flickerTeamCooldown = 0;
+      }
+
+      if (state == TileState::BROKEN) {
+        brokenCooldown -= 1 * _elapsed;
+        if (brokenCooldown < 0) { brokenCooldown = 0; state = TileState::NORMAL; }
+      }
+    }
+
     this->RefreshTexture();
-
-    if(teamCooldown > 0) {
-      teamCooldown -= 1 * _elapsed;
-    }
-    
-    if(flickerTeamCooldown > 0) {
-      flickerTeamCooldown -= 1 * _elapsed;
-    }
-
-    if (state == TileState::BROKEN) {
-      brokenCooldown -= 1 * _elapsed;
-    }
-
-    if (brokenCooldown <= 0.0f && state == TileState::BROKEN) {
-      state = TileState::NORMAL;
-    }
   }
 
   void Tile::SetBattleActive(bool state)

@@ -228,6 +228,10 @@ void Character::ResolveFrameBattleDamage()
     }
 
     this->SetHealth(health - props.damage);
+
+    if (this->GetHealth() == 0) {
+      this->stunCooldown = 0;
+    }
   }
 
   if(!append.empty()) {

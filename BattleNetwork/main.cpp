@@ -357,6 +357,7 @@ int main(int argc, char** argv) {
   SpriteSceneNode bgSprite;
   SpriteSceneNode progSprite;
   SpriteSceneNode cursorSprite;
+  float totalElapsed = 0.f;
 
   // When progress is equal to the totalObject count, we are 100% ready
   int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE 
@@ -495,7 +496,7 @@ int main(int argc, char** argv) {
             cursor = TEXTURES.GetTexture(TextureType::TEXT_BOX_CURSOR);
 
             cursorSprite.setTexture(*cursor);
-            cursorSprite.setPosition(sf::Vector2f(150.0f, 225.f));
+            cursorSprite.setPosition(sf::Vector2f(160.0f, 225.f));
             cursorSprite.setScale(2.f, 2.f);
           }
           catch (std::exception e) {
@@ -634,17 +635,19 @@ int main(int argc, char** argv) {
             progSprite.setColor(darken);
             logoSprite.setColor(darken);
 
+            auto offset = std::abs((std::sin(totalElapsed/100.0f)*4.f));
+            cursorSprite.setPosition(sf::Vector2f(163.0f + offset, 227.f));
             ENGINE.Draw(cursorSprite);
 
             // Show continue or settings options
             startLabel->setString("CONTINUE");
             startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-            startLabel->setPosition(sf::Vector2f(180.0f, 240.f));
+            startLabel->setPosition(sf::Vector2f(200.0f, 240.f));
             ENGINE.Draw(startLabel);
 
             startLabel->setString("CONFIGURE");
             startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-            startLabel->setPosition(sf::Vector2f(180.0f, 270.f));
+            startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
             ENGINE.Draw(startLabel);
 
             bool shouldStart = INPUT.Has(RELEASED_START);
@@ -682,6 +685,7 @@ int main(int argc, char** argv) {
     ENGINE.GetWindow()->display();
 
     elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+    totalElapsed += elapsed;
   }
 
     // Do not clear the Engine's render surface

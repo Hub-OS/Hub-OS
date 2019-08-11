@@ -49,10 +49,10 @@ void Camera::Update(float elapsed) {
       double currStress = stress *(1 - (shakeProgress / shakeDur.asMilliseconds()));
 
       // TODO:use perlin noise
-      int randomAngle = shakeProgress * (rand() % 360);
+      int randomAngle = int(shakeProgress) * (rand() % 360);
       randomAngle += (150 + (rand() % 60));
 
-      auto offset = sf::Vector2f(std::sin((float)randomAngle) * currStress, std::cos((float)randomAngle) * currStress);
+      auto offset = sf::Vector2f(std::sin((float)randomAngle) * float(currStress), std::cos((float)randomAngle) * float(currStress));
 
       focus.setCenter(init.getCenter() + offset);
     }

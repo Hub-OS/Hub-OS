@@ -134,12 +134,15 @@ Battle::Tile* Field::GetAt(int _x, int _y) const {
 void Field::Update(float _elapsed) {
   int entityCount = 0;
 
-  int redTeamFarCol = 0; // greater than is further for red
-  int blueTeamFarCol = 5; // less is further for blue
+  int redTeamFarCol = 0; // from red's perspective, 5 is the farthest - begin at the first (0 col) index and increment
+  int blueTeamFarCol = 5; // from blue's perspective, 0  is the farthest - begin at the first (5th col) index and increment
 
   // tile cols to check to restore team state
   std::map<int, bool> backToRed;
   std::map<int, bool> backToBlue;
+
+  float syncBlueTeamCooldown = 0;
+  float syncRedTeamCooldown = 0;
 
   for (int x = 0; x < width; x++) {
     for (int y = 0; y < height; y++) {
@@ -153,13 +156,19 @@ void Field::Update(float _elapsed) {
       }
 
       if(x <= 2) {
+        // sync stolen red tiles together
+        syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->flickerTeamCooldown);
+
         // tiles should be red
         if(t->GetTeam() == Team::BLUE) {
           if(t->teamCooldown <= 0) {
             backToRed.insert(std::make_pair(x, true));
           }
         }
-      } else {
+      } else{
+        // sync stolen blue tiles together
+        syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, t->flickerTeamCooldown);
+
         if(t->GetTeam() == Team::RED) {
           if(t->teamCooldown <= 0) {
             backToBlue.insert(std::make_pair(x, true));
@@ -172,26 +181,40 @@ void Field::Update(float _elapsed) {
     }
   }
 
-  // Restore whole col team states
+  /*if (syncRedTeamCooldown != 0.f && syncBlueTeamCooldown != 0.f) {
+    for (int x = 0; x < width; x++) {
+      for (int y = 0; y < height; y++) {
+        auto t = tiles[y][x];
+        if (x <= 2) {
+          t->flickerTeamCooldown = syncRedTeamCooldown;
+        }
+        else {
+          t->flickerTeamCooldown = syncBlueTeamCooldown;
+        }
+      }
+    }
+  }*/
+
+  // Restore **whole** col team states not just a single tile...
   // col must be ahead of the furthest character of the same team
   // e.g. red team characters must be behind the col row
   //      blue team characters must be ahead the col row
   // otherwise we risk trapping characters in a striped battle field
   for(auto p : backToBlue) {
-    if(p.first >= blueTeamFarCol) continue;
+    if (p.first <= redTeamFarCol) continue;
 
     for(int i = 0; i < 3; i++) {
-      tiles[p.first][i]->SetTeam(Team::BLUE, true);
+      tiles[i][p.first]->SetTeam(Team::BLUE, true);
     }
   }
 
   backToBlue.clear();
 
   for(auto p : backToRed) {
-    if(p.first <= redTeamFarCol) continue;
+    if (p.first >= blueTeamFarCol) continue;
 
     for(int i = 0; i < 3; i++) {
-      tiles[p.first][i]->SetTeam(Team::RED, true);
+      tiles[i][p.first]->SetTeam(Team::RED, true);
     }
   }
 

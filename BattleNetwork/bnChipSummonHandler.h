@@ -109,7 +109,7 @@ public:
   }
 
   const bool IsSummonActive() const {
-    return !IsSummonOver();
+    return !IsSummonOver() && !summon.empty();
   }
 
   const std::string GetSummonLabel() { return queue.GetChip().GetShortName(); }
@@ -374,6 +374,8 @@ public:
       copy = Chip();
       add = false;
     }
+
+    summon.clear();
 
     if (add) {
       std::cout << "[Summon queued]" << std::endl;

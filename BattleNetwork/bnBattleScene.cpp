@@ -315,12 +315,19 @@ void BattleScene::onUpdate(double elapsed) {
   if(!isPaused) {
     this->summonTimer += elapsed;
 
-    if(showSummonBackdropTimer < showSummonBackdropLength && summons.IsSummonActive() && showSummonBackdrop) {
+    if(showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
       showSummonBackdropTimer += elapsed;
-    }else if(showSummonBackdropTimer >= showSummonBackdropLength && summons.IsSummonActive() && showSummonBackdrop) {
-      showSummonText = true;
+      Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " showSummonBackdropLength: " + std::to_string(showSummonBackdropLength));
+    }else if(showSummonBackdropTimer >= showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && !showSummonText && prevSummonState) {
+      if (summons.HasMoreInQueue()) {
+        showSummonText = true;
+        Logger::Log("showSummonText: " + (showSummonText ? std::string("true") : std::string("false")));
+      }
     } else if(showSummonBackdropTimer > 0 && summons.IsSummonOver()) {
       showSummonBackdropTimer -= elapsed;
+      showSummonText = prevSummonState = false;
+      Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " going to 0");
+
     } else if(showSummonBackdropTimer <= 0 && summons.IsSummonOver()) {
       showSummonBackdropTimer = 0;
       showSummonBackdrop = false;
@@ -425,7 +432,7 @@ void BattleScene::onUpdate(double elapsed) {
 
   // todo: we desperately need states
   // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
-  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || summons.IsSummonActive() || isPreBattle || isPostBattle)) {
+  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle)) {
     int newMobSize = mob->GetRemainingMobCount();
 
     if (newMobSize == 0) {
@@ -482,9 +489,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     tile = (*tilesIter);
     tile->move(ENGINE.GetViewOffset());
 
-    if (summons.IsSummonActive()) {
+    if (summons.IsSummonActive() || showSummonBackdrop) {
       SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
       coloredTile->SetShader(&pauseShader);
+      pauseShader.setUniform("opacity", 0.25f*float(std::max(0.0, (showSummonBackdropTimer / showSummonBackdropLength))));
       ENGINE.Draw(coloredTile);
       delete coloredTile;
     }
@@ -605,13 +613,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     // apply shader on draw calls below
     ENGINE.SetShader(&pauseShader);
     pauseShader.setUniform("opacity", 0.25f);
-  } else if(showSummonBackdrop) {
-    ENGINE.SetShader(&pauseShader);
-    pauseShader.setUniform("opacity",0.25f*float(std::min(0.0, (showSummonBackdropTimer/showSummonBackdropLength))));
   }
 
-
-  if (/*summons.IsSummonsActive() &&*/ showSummonText) {
+  if (!summons.IsSummonActive() && showSummonText) {
     sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
 
     double summonSecs = summonTimer;
@@ -640,7 +644,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
     if (summonSecs >= summonTextLength) {
       summons.OnEnter();
-      prevSummonState = true;
       showSummonText = false;
     }
   }
@@ -722,13 +725,13 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       prevSummonState = false;
     }
     else   // When these conditions are met, the chip name has shown and we're ready to follow through with the summon
-    if (summons.IsSummonActive() && prevSummonState == true) {
+    if (summons.IsSummonActive() && showSummonBackdrop) {
       summons.Update(elapsed);
     }
 
     // Track if a summon chip was used on this frame
     if (!prevSummonState) {
-      prevSummonState = summons.IsSummonActive() || summons.HasMoreInQueue();
+      prevSummonState = summons.HasMoreInQueue();
 
       if (prevSummonState) {
         summonTimer = 0;
@@ -1131,8 +1134,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 // TODO: send the battle item off to the player's
                 // persistent session storage (aka a save file or cloud database)
                 CHIPLIB.AddChip(reward->GetChip());
-                Chip filtered = CHIPLIB.GetChipEntry(reward->GetChip().GetShortName(), reward->GetChip().GetCode());
-                persistentFolder->AddChip(filtered);
+                //Chip filtered = CHIPLIB.GetChipEntry(reward->GetChip().GetShortName(), reward->GetChip().GetCode());
+                //persistentFolder->AddChip(filtered);
                 delete reward;
               }
             }
@@ -1187,7 +1190,7 @@ void BattleScene::onStart() {
     if (!mob->IsBoss()) {
       sf::Music::TimeSpan span;
       span.offset = sf::microseconds(84);
-      span.length = sf::seconds(60.0f * 1.20668f);
+      span.length = sf::seconds(120.0f * 1.20668f);
 
       AUDIO.Stream("resources/loops/loop_battle.ogg", true, span);
     }

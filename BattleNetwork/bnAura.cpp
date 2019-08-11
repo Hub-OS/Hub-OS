@@ -18,6 +18,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   aura = new SpriteSceneNode(auraSprite);
   
   // owner draws -> aura component draws -> aura sprite anim draws
+  owner->RegisterComponent(this);
   owner->AddNode(this);
   this->AddNode(aura);
   
@@ -54,7 +55,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
     break;
   }
   
-  currHP = owner->GetHealth();
+  currHP = health;
 
   DefenseAura::Callback onHit = [this](Spell* in, Character* owner) {
 	  this->TakeDamage(in->GetHitboxProperties().damage);

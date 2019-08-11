@@ -226,7 +226,7 @@ void ChipLibrary::LoadLibrary(const std::string& path) {
         Chip chip = Chip(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, longDescription, atoi(rarity.c_str()));
         std::list<char> codes = this->GetChipCodes(chip);
 
-        // Avoid code duplicates
+        /* Avoid code duplicates
         if (codes.size() > 0) {
           bool found = (std::find(codes.begin(), codes.end(), chip.GetCode()) != codes.end());
 
@@ -240,7 +240,8 @@ void ChipLibrary::LoadLibrary(const std::string& path) {
         }
         else { // first entry
            library.insert(chip);
-        }
+        }*/
+        library.insert(chip);
       }
     }
 
