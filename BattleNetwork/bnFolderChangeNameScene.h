@@ -6,45 +6,41 @@
 #include <Swoosh/Activity.h>
 
 /**
- * @class GameOverScene
+ * @class FolderChangeNameScene
  * @author mav
- * @date 04/05/19
- * @brief Very simple scene shows GAME OVER graphic.
- * 
- * This is the first scene on the stack and resumed when players lose
+ * @date 08/10/19
+ * @brief Use controller to select letter from the table to spell out a folder name
+ *
+ * Modifies target folder in the input collection
  */
-class GameOverScene : public swoosh::Activity {
+class FolderChangeNameScene : public swoosh::Activity {
 private:
-  float fadeInCooldown; /*!< Fade in time */
-  sf::Sprite gameOver; /*!< GAME OVER */
+  sf::Sprite bg; /*!< Most of the elements on the screen are static */
   bool leave; /*!< Scene state coming/going flag */
 
 public:
-  GameOverScene(swoosh::ActivityController&);
-  ~GameOverScene();
+  FolderChangeNameScene(swoosh::ActivityController&);
+  ~FolderChangeNameScene();
+
+  void onStart();
 
   /**
- * @brief Play game over stream
- */
-  void onStart();
-  
-  /**
-   * @brief Fades in graphic
+   * @brief Poll for user input and edit folder name
    * @param elapsed in seconds
    */
   void onUpdate(double elapsed);
-  
+
   void onLeave() { ; }
   void onExit() { ; }
   void onEnter() { ; }
-  
-  void onResume();
-  
+
+  void onResume() { ; }
+
   /**
    * @brief Draws graphic
    * @param surface
    */
   void onDraw(sf::RenderTexture& surface);
-  
+
   void onEnd() { ; }
 };

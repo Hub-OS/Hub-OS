@@ -216,6 +216,7 @@
     <ClCompile Include="bnEnemyChipsUI.cpp" />
     <ClCompile Include="bnFakeScene.cpp" />
     <ClCompile Include="bnFishy.cpp" />
+    <ClCompile Include="bnFolderChangeNameScene.cpp" />
     <ClCompile Include="bnFolderEditScene.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />
     <ClCompile Include="bnGameOverScene.cpp" />
@@ -374,6 +375,7 @@
     <ClInclude Include="bnEnemyChipsUI.h" />
     <ClInclude Include="bnFakeScene.h" />
     <ClInclude Include="bnFishy.h" />
+    <ClInclude Include="bnFolderChangeNameScene.h" />
     <ClInclude Include="bnFolderEditScene.h" />
     <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnGear.h" />

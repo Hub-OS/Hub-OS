@@ -189,6 +189,9 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/folder_options.png");
   paths.push_back("resources/ui/folder_size.png");
   paths.push_back("resources/ui/folder_textbox.png");
+  paths.push_back("resources/ui/mb_placeholder.png");
+  paths.push_back("resources/ui/folder_edit_next.png");
+  paths.push_back("resources/ui/folder_sort.png");
 
   // Navi Select View
   paths.push_back("resources/backgrounds/select/glow_sheet.png");
@@ -218,6 +221,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/backgrounds/main_menu/arrow.png");
   paths.push_back("resources/backgrounds/folder/bg.png");
   paths.push_back("resources/backgrounds/folder/folder_info.png");
+  paths.push_back("resources/backgrounds/folder/folder_name.png");
   paths.push_back("resources/backgrounds/select/bg.png");
 
   // Overworld

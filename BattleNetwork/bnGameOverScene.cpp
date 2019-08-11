@@ -17,11 +17,12 @@ GameOverScene::~GameOverScene() {
 }
 
 void GameOverScene::onStart() {
+  AUDIO.StopStream();
+  AUDIO.Stream("resources/loops/game_over.ogg");
 }
 
 void GameOverScene::onResume() {
-  AUDIO.StopStream();
-  AUDIO.Stream("resources/loops/game_over.ogg");
+
 }
 
 void GameOverScene::onUpdate(double elapsed) {

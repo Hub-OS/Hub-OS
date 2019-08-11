@@ -34,6 +34,7 @@
 #include <atomic>
 #include <cmath>
 #include <Swoosh/ActivityController.h>
+#include <Swoosh/Ease.h>
 
 // #define BN_REGION_JAPAN 1
 
@@ -344,7 +345,8 @@ int main(int argc, char** argv) {
   // This will be loaded from the resource manager AFTER it's ready
   sf::Texture* bg = nullptr;
   sf::Texture* progs = nullptr;
-  
+  sf::Texture* cursor = nullptr;
+
   // List of frames
   FrameList progAnim;
   
@@ -354,6 +356,7 @@ int main(int argc, char** argv) {
   
   SpriteSceneNode bgSprite;
   SpriteSceneNode progSprite;
+  SpriteSceneNode cursorSprite;
 
   // When progress is equal to the totalObject count, we are 100% ready
   int totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE 
@@ -388,6 +391,7 @@ int main(int argc, char** argv) {
   bool inLoadState = true;
   bool ready = false;
   bool loadMobs = false;
+  bool pressedStart = false;
 
   // When resources are loaded, flash the screen white
   double shaderCooldown = 2000;  // 2 seconds
@@ -485,6 +489,20 @@ int main(int argc, char** argv) {
           }
         }
 
+        if (!cursor) {
+          // Load resources from internal storage
+          try {
+            cursor = TEXTURES.GetTexture(TextureType::TEXT_BOX_CURSOR);
+
+            cursorSprite.setTexture(*cursor);
+            cursorSprite.setPosition(sf::Vector2f(150.0f, 225.f));
+            cursorSprite.setScale(2.f, 2.f);
+          }
+          catch (std::exception e) {
+            // didnt catchup? debug
+          }
+        }
+
         if (!whiteShader) {
           try {
             whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
@@ -525,15 +543,6 @@ int main(int argc, char** argv) {
 
         // update white flash
         whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
-      }
-
-      bool shouldStart = INPUT.Has(PRESSED_START);
-
-#ifdef __ANDROID__
-        shouldStart = sf::Touch::isDown(0);
-#endif
-        if (shouldStart && mobsLoaded == MOBS.Size()) {
-        inLoadState = false;
       }
     }
 
@@ -599,9 +608,55 @@ int main(int argc, char** argv) {
         }
         else {
           // Finally everything is loaded
-          INPUT.Update();
-          // Finally everything is loaded, show "Press Start"
-          ENGINE.Draw(startLabel);
+
+          if (!pressedStart) {
+            // Finally everything is loaded, show "Press Start"
+            ENGINE.Draw(startLabel);
+
+            bool shouldStart = INPUT.Has(RELEASED_START);
+
+#ifdef __ANDROID__
+            shouldStart = sf::Touch::isDown(0);
+#endif
+            if (shouldStart) {
+              pressedStart = true;
+              AUDIO.Play(AudioType::CHIP_CHOOSE);
+
+            }
+          }
+          else {
+            // darken bg and title card like the game
+            auto interpol = int(swoosh::ease::interpolate((elapsed/1000.0f)*3.0f, float(bgSprite.getColor().r), 105.f));
+            interpol = std::max(105, interpol);
+
+            sf::Color darken = sf::Color(interpol, interpol, interpol);
+            bgSprite.setColor(darken);
+            progSprite.setColor(darken);
+            logoSprite.setColor(darken);
+
+            ENGINE.Draw(cursorSprite);
+
+            // Show continue or settings options
+            startLabel->setString("CONTINUE");
+            startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+            startLabel->setPosition(sf::Vector2f(180.0f, 240.f));
+            ENGINE.Draw(startLabel);
+
+            startLabel->setString("CONFIGURE");
+            startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+            startLabel->setPosition(sf::Vector2f(180.0f, 270.f));
+            ENGINE.Draw(startLabel);
+
+            bool shouldStart = INPUT.Has(RELEASED_START);
+
+#ifdef __ANDROID__
+            shouldStart = sf::Touch::isDown(0);
+#endif
+            if (shouldStart) {
+              inLoadState = false;
+              AUDIO.Play(AudioType::NEW_GAME);
+            }
+          }
         }
       }
     }

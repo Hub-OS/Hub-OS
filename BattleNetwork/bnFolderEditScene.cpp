@@ -79,14 +79,14 @@ std::string FolderEditScene::FormatChipDesc(const std::string && desc)
   // Chip docks can only fit 9 characters per line, 3 lines total
   if (output.size() > 3 * 10) {
     output = output.substr(0, (3 * 10));
-    output[output.size() - 1] = ';'; // font glyph will show an elipses
+    output[output.size()] = ';'; // font glyph will show an elipses
   }
 
   return output;
 }
 
 FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFolder& folder) :
-  camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))), folder(folder), textbox(sf::Vector2f(4, 255)), hasFolderChanged(false),
+  camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))), folder(folder), hasFolderChanged(false),
   swoosh::Activity(&controller)
 {
   // Move chip data into their appropriate containers for easier management
@@ -123,7 +123,6 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
   chipDescFont = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
   chipDesc = new sf::Text("", *chipDescFont);
   chipDesc->setCharacterSize(24);
-  //chipDesc->setLineSpacing(5);
   chipDesc->setFillColor(sf::Color::Black);
 
   // folder menu graphic
@@ -150,8 +149,19 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
   packCursor.setPosition((2.f*90.f) + 480.0f, 64.0f);
   packSwapCursor = packCursor;
 
-  stars = sf::Sprite(LOAD_TEXTURE(FOLDER_RARITY));
-  stars.setScale(2.f, 2.f);
+  mbPlaceholder = sf::Sprite(LOAD_TEXTURE(FOLDER_MB));
+  mbPlaceholder.setScale(2.f, 2.f);
+
+  folderNextArrow = sf::Sprite(LOAD_TEXTURE(FOLDER_NEXT_ARROW));
+  folderNextArrow.setScale(2.f, 2.f);
+
+  packNextArrow = folderNextArrow;
+  packNextArrow.setScale(-2.f, 2.f);
+
+  folderChipCountBox = sf::Sprite(LOAD_TEXTURE(FOLDER_SIZE));
+  folderChipCountBox.setPosition(sf::Vector2f(425.f, 10.f + folderChipCountBox.getLocalBounds().height));
+  folderChipCountBox.setScale(2.f, 2.f);
+  folderChipCountBox.setOrigin(folderChipCountBox.getLocalBounds().width / 2.0f, folderChipCountBox.getLocalBounds().height / 2.0f);
 
   chipHolder = sf::Sprite(LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
   chipHolder.setScale(2.f, 2.f);
@@ -202,8 +212,6 @@ void FolderEditScene::onStart() {
 void FolderEditScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
-
-  textbox.Update((float)elapsed);
 
   auto offset = camera.GetView().getCenter().x - 240;
   bg.setPosition(offset, 0.f);
@@ -256,6 +264,44 @@ void FolderEditScene::onUpdate(double elapsed) {
 
         chipRevealTimer.reset();
       }
+    }else if (INPUT.Has(PRESSED_LPAD)) {
+      selectInputCooldown -= elapsed;
+
+      view->prevIndex = view->currChipIndex;
+
+      if (selectInputCooldown <= 0) {
+        selectInputCooldown = maxSelectInputCooldown;
+        view->currChipIndex -= view->maxChipsOnScreen;
+
+        view->currChipIndex = std::max(view->currChipIndex, 0);
+
+        AUDIO.Play(AudioType::CHIP_SELECT);
+
+        while (view->currChipIndex < view->lastChipOnScreen) {
+          --view->lastChipOnScreen;
+        }
+
+        chipRevealTimer.reset();
+      }
+    }
+    else if (INPUT.Has(PRESSED_RPAD)) {
+      selectInputCooldown -= elapsed;
+
+      view->prevIndex = view->currChipIndex;
+
+      if (selectInputCooldown <= 0) {
+        selectInputCooldown = maxSelectInputCooldown;
+        view->currChipIndex += view->maxChipsOnScreen;
+        AUDIO.Play(AudioType::CHIP_SELECT);
+
+        view->currChipIndex = std::min(view->currChipIndex, view->numOfChips-1);
+
+        while (view->currChipIndex > view->lastChipOnScreen + view->maxChipsOnScreen - 1) {
+          ++view->lastChipOnScreen;
+        }
+
+        chipRevealTimer.reset();
+      }
     }
     else {
       selectInputCooldown = 0;
@@ -296,7 +342,8 @@ void FolderEditScene::onUpdate(double elapsed) {
               folderChipSlots[folderView.currChipIndex].GetChip(copy);
 
               gotChip = true;
-            } else if (packChipBuckets[packView.swapChipIndex].GetChip(copy)) {
+            }
+            else if (packChipBuckets[packView.swapChipIndex].GetChip(copy)) {
               Chip prev;
 
               bool findBucket = folderChipSlots[folderView.currChipIndex].GetChip(prev);
@@ -305,7 +352,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
               // If the chip slot had a chip, find the corresponding bucket to add it back into
               if (findBucket) {
-                auto iter = std::find_if(packChipBuckets.begin(), packChipBuckets.end(), 
+                auto iter = std::find_if(packChipBuckets.begin(), packChipBuckets.end(),
                   [&prev](const PackBucket& in) { return prev.GetShortName() == in.ViewChip().GetShortName(); }
                 );
 
@@ -324,7 +371,8 @@ void FolderEditScene::onUpdate(double elapsed) {
               folderView.swapChipIndex = -1;
 
               AUDIO.Play(AudioType::CHIP_CONFIRM);
-            } else {
+            }
+            else {
               AUDIO.Play(AudioType::CHIP_ERROR);
             }
           }
@@ -391,7 +439,7 @@ void FolderEditScene::onUpdate(double elapsed) {
               gotChip = true;
             }
 
-            if(gotChip) {
+            if (gotChip) {
               packView.swapChipIndex = -1;
               folderView.swapChipIndex = -1;
 
@@ -410,7 +458,8 @@ void FolderEditScene::onUpdate(double elapsed) {
           }
         }
       }
-    }else if (INPUT.Has(PRESSED_RIGHT) && currViewMode == ViewMode::FOLDER) {
+    }
+    else if (INPUT.Has(PRESSED_RIGHT) && currViewMode == ViewMode::FOLDER) {
       currViewMode = ViewMode::PACK;
       canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC);
@@ -434,29 +483,18 @@ void FolderEditScene::onUpdate(double elapsed) {
         AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         packView.swapChipIndex = folderView.swapChipIndex = -1;
       }
-      else if (hasFolderChanged && !textbox.IsOpen()) {
-        textbox.DequeMessage(); // make sure textbox is empty
-        textbox.EnqueMessage(sf::Sprite(), "", new AnimatedTextBox::Message("Save your changes to this folder?"));
-        textbox.Open();
-        AUDIO.Play(AudioType::CHIP_DESC);
-      }
-      else if (!hasFolderChanged) {
-        gotoLastScene = true;
-      }
-      else if (textbox.IsOpen()) {
-        // TODO: Check if save...
+      else  {
         WriteNewFolderData();
 
-        textbox.Close();
-        textbox.SetTextSpeed(1.0);
         gotoLastScene = true;
+        canInteract = false;        
+        
+        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       }
     }
 
     if (gotoLastScene) {
       canInteract = false;
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-
       using swoosh::intent::direction;
       using segue = swoosh::intent::segue<BlackWashFade>;
       getController().queuePop<segue>();
@@ -512,10 +550,56 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(bg);
   ENGINE.Draw(menuLabel);
 
+  float scale = 0.0f;
+
+  ENGINE.Draw(folderChipCountBox);
+
+  if(int(0.5+folderChipCountBox.getScale().y) == 2) {
+    auto nonempty = (decltype(folderChipSlots))(folderChipSlots.size());
+    auto iter = std::copy_if(folderChipSlots.begin(), folderChipSlots.end(), nonempty.begin(), [](auto in) { return !in.IsEmpty(); });
+    nonempty.resize(std::distance(nonempty.begin(), iter));  // shrink container to new size
+
+    std::string str = std::to_string(nonempty.size());
+    // Draw number of chips in this folder
+    chipLabel->setString(str);
+    chipLabel->setOrigin(chipLabel->getLocalBounds().width, 0);
+    chipLabel->setPosition(410.f, 1.f);
+
+    if (nonempty.size() == 30) {
+      chipLabel->setFillColor(sf::Color::Green);
+    }
+    else {
+      chipLabel->setFillColor(sf::Color::White);
+    }
+
+    ENGINE.Draw(chipLabel, false);
+
+    // Draw max
+    chipLabel->setString(std::string("/ 30"));
+    chipLabel->setOrigin(0, 0);;
+    chipLabel->setPosition(415.f, 1.f);
+
+    ENGINE.Draw(chipLabel, false);
+
+    // reset, we use this label everywhere in this scene...
+    chipLabel->setFillColor(sf::Color::White);
+
+  }
+
+  // folder chip count opens on FOLDER view mode only
+  if (currViewMode == ViewMode::FOLDER) {
+    if (prevViewMode == currViewMode) { // camera pan finished
+      scale = swoosh::ease::interpolate((float)frameElapsed*8.f, 2.0f, folderChipCountBox.getScale().y);
+    }
+  }
+  else {
+    scale = swoosh::ease::interpolate((float)frameElapsed*8.f, 0.0f, folderChipCountBox.getScale().y);
+  }
+
+  folderChipCountBox.setScale(2.0f, scale);
+
   DrawFolder();
   DrawLibrary();
-
-  ENGINE.Draw(textbox);
 }
 
 void FolderEditScene::DrawFolder() {
@@ -560,19 +644,17 @@ void FolderEditScene::DrawFolder() {
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-      element.setPosition(2.f*173.f, 65.0f + (32.f*i));
+      element.setPosition(2.f*183.f, 65.0f + (32.f*i));
       ENGINE.Draw(element, false);
 
       chipLabel->setOrigin(0, 0);
-      chipLabel->setPosition(2.f*190.f, 60.0f + (32.f*i));
+      chipLabel->setPosition(2.f*200.f, 60.0f + (32.f*i));
       chipLabel->setString(std::string() + copy.GetCode());
       ENGINE.Draw(chipLabel, false);
 
-      //Draw rating
-      unsigned rarity = copy.GetRarity() - 1;
-      stars.setTextureRect(sf::IntRect(0, 15 * rarity, 22, 14));
-      stars.setPosition(2.f*199.f, 74.0f + (32.f*i));
-      ENGINE.Draw(stars, false);
+      //Draw MB
+      mbPlaceholder.setPosition(2.f*210.f, 67.0f + (32.f*i));
+      ENGINE.Draw(mbPlaceholder, false);
     }
 
     // Draw cursor
@@ -631,10 +713,10 @@ void FolderEditScene::DrawFolder() {
 }
 
 void FolderEditScene::DrawLibrary() {
-  chipDesc->setPosition(sf::Vector2f(350.f + 480.f, 185.0f));
+  chipDesc->setPosition(sf::Vector2f(326.f + 480.f, 185.0f));
   chipHolder.setPosition(310.f + 480.f, 35.f);
-  element.setPosition(400.f + 2.f*25.f + 480.f, 146.f);
-  chip.setPosition(383.f + 480.f, 93.f);
+  element.setPosition(400.f + 2.f*20.f + 480.f, 146.f);
+  chip.setPosition(389.f + 480.f, 93.f);
 
   ENGINE.Draw(packDock);
   ENGINE.Draw(chipHolder);
@@ -672,7 +754,7 @@ void FolderEditScene::DrawLibrary() {
 
     int offset = (int)(copy.GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-    element.setPosition(166.0f + 480.f, 65.0f + (32.f*i));
+    element.setPosition(163.0f + 480.f, 65.0f + (32.f*i));
     ENGINE.Draw(element, false);
 
     chipLabel->setOrigin(0, 0);
@@ -682,9 +764,13 @@ void FolderEditScene::DrawLibrary() {
 
     // Draw count in pack
     chipLabel->setOrigin(0, 0);
-    chipLabel->setPosition(220.f + 480.f, 60.0f + (32.f*i));
+    chipLabel->setPosition(275.f + 480.f, 60.0f + (32.f*i));
     chipLabel->setString(std::to_string(count));
     ENGINE.Draw(chipLabel, false);
+
+    //Draw MB
+    mbPlaceholder.setPosition(220.f + 480.f, 67.0f + (32.f*i));
+    ENGINE.Draw(mbPlaceholder, false);
 
     // Draw cursor
     if (packView.lastChipOnScreen + i == packView.currChipIndex) {
@@ -704,14 +790,14 @@ void FolderEditScene::DrawLibrary() {
         chipLabel->setFillColor(sf::Color::White);
         chipLabel->setString(std::to_string(copy.GetDamage()));
         chipLabel->setOrigin(chipLabel->getLocalBounds().width + chipLabel->getLocalBounds().left, 0);
-        chipLabel->setPosition(2.f*(230.f) + 480.f, 135.f);
+        chipLabel->setPosition(2.f*(223.f) + 480.f, 135.f);
 
         ENGINE.Draw(chipLabel, false);
       }
 
       chipLabel->setOrigin(0, 0);
       chipLabel->setFillColor(sf::Color::Yellow);
-      chipLabel->setPosition(2.f*160.f + 480.f, 135.f);
+      chipLabel->setPosition(2.f*167.f + 480.f, 135.f);
       chipLabel->setString(std::string() + copy.GetCode());
       ENGINE.Draw(chipLabel, false);
 
@@ -721,7 +807,7 @@ void FolderEditScene::DrawLibrary() {
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-      element.setPosition(2.f*180.f + 480.f, 142.f);
+      element.setPosition(2.f*179.f + 480.f, 142.f);
       ENGINE.Draw(element, false);
     }
     
@@ -763,7 +849,7 @@ void FolderEditScene::PlaceFolderDataIntoChipSlots()
 {
   ChipFolder::Iter iter = folder.Begin();
   
-  while (iter != folder.End()) {
+  while (iter != folder.End() && folderChipSlots.size() < 30) {
     auto slot = FolderSlot();
     slot.AddChip(Chip(**iter));
     folderChipSlots.push_back(slot);

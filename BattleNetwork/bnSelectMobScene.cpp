@@ -109,6 +109,8 @@ void SelectMobScene::onResume() {
   doOnce = true;
   showMob = true;
 
+  Logger::Log("SelectMobScene::onResume()");
+
 #ifdef __ANDROID__
   this->StartupTouchControls();
 #endif
@@ -535,6 +537,8 @@ void SelectMobScene::onStart() {
 #ifdef __ANDROID__
   this->StartupTouchControls();
 #endif
+
+  Logger::Log("SelectMobScene::onStart()");
 }
 
 void SelectMobScene::onLeave() {
@@ -543,19 +547,29 @@ void SelectMobScene::onLeave() {
 #ifdef __ANDROID__
   this->ShutdownTouchControls();
 #endif
+
+  Logger::Log("SelectMobScene::onLeave()");
+
 }
 
 void SelectMobScene::onExit() {
   textbox.SetMessage("");
+
+  Logger::Log("SelectMobScene::onExit()");
+
 }
 
 void SelectMobScene::onEnter() {
+  Logger::Log("SelectMobScene::onEnter()");
+
 }
 
 void SelectMobScene::onEnd() {
 #ifdef __ANDROID__
   this->ShutdownTouchControls();
 #endif
+  Logger::Log("SelectMobScene::onEnd()");
+
 }
 
 #ifdef __ANDROID__

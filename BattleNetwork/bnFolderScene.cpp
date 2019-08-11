@@ -7,6 +7,7 @@
 
 #include "bnFolderScene.h"
 #include "bnFolderEditScene.h"
+#include "bnFolderChangeNameScene.h"
 #include "Segues\BlackWashFade.h"
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
@@ -87,6 +88,9 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   chipIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
   chipIcon.setScale(2.f, 2.f);
 
+  mbPlaceholder = sf::Sprite(LOAD_TEXTURE(FOLDER_MB));
+  mbPlaceholder.setScale(2.f, 2.f);
+
   equipAnimation = Animation("resources/ui/folder_equip.animation");
   equipAnimation.SetAnimation("BLINK");
   equipAnimation << Animate::Mode::Loop;
@@ -97,7 +101,6 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
 
   equipAnimation.Update(0,folderEquip);
   folderCursorAnimation.Update(0, folderCursor);
-
 
   maxChipsOnScreen = 5;
   currChipIndex = 0;
@@ -311,9 +314,11 @@ void FolderScene::onUpdate(double elapsed) {
             AUDIO.Play(AudioType::PA_ADVANCE);
             break;
           case 2: // CHANGE NAME
-            this->enterText = true;
-            INPUT.BeginCaptureInputBuffer();
-            INPUT.SetInputBuffer(*(folderNames.begin() + currFolderIndex));
+            using namespace intent;
+            using next = segue<BlackWashFade>::to<FolderChangeNameScene>;
+            getController().push<next>();
+            AUDIO.Play(AudioType::CHIP_CONFIRM);
+            gotoNextScene = true;
             break;
           }
         }
@@ -462,7 +467,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(scrollbar);
 
   if (!folder) return;
-  if (folder && folder->GetSize() == 0) return;
+  if (folder->GetSize() == 0) return;
 
   // Move the chip library iterator to the current highlighted chip
   ChipFolder::Iter iter = folder->Begin();
@@ -471,15 +476,22 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     iter++;
   }
 
+
+  chipLabel->setFillColor(sf::Color::White);
+  chipLabel->setString(folderNames[currFolderIndex]);
+  chipLabel->setOrigin(0.f, chipLabel->getGlobalBounds().height / 2.0f);
+  chipLabel->setPosition(195.0f, 100.0f);
+  ENGINE.Draw(chipLabel, false);
+
   // Now that we are at the viewing range, draw each chip in the list
   for (int i = 0; i < maxChipsOnScreen && currChipIndex + i < numOfChips; i++) {
     chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(((*iter)->GetIconID())));
-    chipIcon.setPosition(2.f*104.f, 133.0f + (32.f*i));
+    chipIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
     ENGINE.Draw(chipIcon, false);
 
     chipLabel->setOrigin(0.0f, 0.0f);
     chipLabel->setFillColor(sf::Color::White);
-    chipLabel->setPosition(2.f*120.f, 128.0f + (32.f*i));
+    chipLabel->setPosition(2.f*115.f, 128.0f + (32.f*i));
     chipLabel->setString((*iter)->GetShortName());
     ENGINE.Draw(chipLabel, false);
 
@@ -494,6 +506,8 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     chipLabel->setString(std::string() + (*iter)->GetCode());
     ENGINE.Draw(chipLabel, false);
 
+    mbPlaceholder.setPosition(2.f*200.f, 134.0f + (32.f*i));
+    ENGINE.Draw(mbPlaceholder, false);
     iter++;
   }
 

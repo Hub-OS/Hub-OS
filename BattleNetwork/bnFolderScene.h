@@ -60,6 +60,7 @@ private:
   sf::Sprite cursor;
   sf::Sprite folderEquip;
   sf::Sprite chipIcon;
+  sf::Sprite mbPlaceholder;
 
   Animation equipAnimation; /*!< Flashes */
   Animation folderCursorAnimation; /*!< Flashes */

@@ -106,6 +106,12 @@ void InputManager::Update() {
             else if (action == "B") {
               events.push_back(PRESSED_B);
             }
+            else if (action == "LPAD") {
+              events.push_back(PRESSED_LPAD);
+            }
+            else if (action == "RPAD") {
+              events.push_back(PRESSED_RPAD);
+            }
           }
         } else {
           action = config->GetPairedAction((ChronoXConfigReader::Gamepad)i);
@@ -141,6 +147,12 @@ void InputManager::Update() {
             else if (action == "B") {
               events.push_back(RELEASED_B);
             }
+            else if (action == "LPAD") {
+              events.push_back(RELEASED_LPAD);
+            }
+            else if (action == "RPAD") {
+              events.push_back(RELEASED_RPAD);
+            }
           }
         }
       }
@@ -166,7 +178,12 @@ void InputManager::Update() {
           events.push_back(PRESSED_A);
         } else if (action == "B") {
           events.push_back(PRESSED_B);
-        } 
+        } else if (action == "LPAD") {
+          events.push_back(PRESSED_LPAD);
+        }
+        else if (action == "RPAD") {
+          events.push_back(PRESSED_RPAD);
+        }
       } else {
         if (Keyboard::Up == event.key.code) {
           events.push_back(PRESSED_UP);
@@ -191,6 +208,12 @@ void InputManager::Update() {
         }
         else if (Keyboard::P == event.key.code) {
           events.push_back(PRESSED_PAUSE);
+        }
+        else if (Keyboard::A == event.key.code) {
+          events.push_back(PRESSED_LPAD);
+        }
+        else if (Keyboard::S == event.key.code) {
+          events.push_back(PRESSED_RPAD);
         }
       }
     } else if (Event::KeyReleased == event.type) {
@@ -222,6 +245,12 @@ void InputManager::Update() {
         else if (action == "B") {
           events.push_back(RELEASED_B);
         }
+        else if (action == "LPAD") {
+          events.push_back(RELEASED_LPAD);
+        }
+        else if (action == "RPAD") {
+          events.push_back(RELEASED_RPAD);
+        }
       }
       else {
         if (Keyboard::Up == event.key.code) {
@@ -247,6 +276,12 @@ void InputManager::Update() {
         }
         else if (Keyboard::P == event.key.code) {
           events.push_back(RELEASED_PAUSE);
+        }
+        else if (Keyboard::A == event.key.code) {
+          events.push_back(RELEASED_LPAD);
+        }
+        else if (Keyboard::S == event.key.code) {
+          events.push_back(RELEASED_RPAD);
         }
       }
     }
@@ -342,6 +377,14 @@ void InputManager::Update() {
       find1 = InputEvent::HELD_DOWN;
       find2 = InputEvent::PRESSED_DOWN;
       break;
+    case InputEvent::RELEASED_LPAD:
+      find1 = InputEvent::HELD_LPAD;
+      find2 = InputEvent::PRESSED_LPAD;
+      break;
+    case InputEvent::RELEASED_RPAD:
+      find1 = InputEvent::HELD_RPAD;
+      find2 = InputEvent::PRESSED_RPAD;
+      break;
     }
 
     auto trunc = std::remove(eventsLastFrame.begin(), eventsLastFrame.end(), find1);
@@ -397,6 +440,14 @@ void InputManager::Update() {
       insert = e;
       erase = PRESSED_DOWN;
       break;
+    case InputEvent::HELD_LPAD:
+      insert = e;
+      erase = PRESSED_LPAD;
+      break;
+    case InputEvent::HELD_RPAD:
+      insert = e;
+      erase = PRESSED_RPAD;
+      break;
 
       // Search for press keys that have been held and transform them
     case InputEvent::PRESSED_A:
@@ -429,6 +480,14 @@ void InputManager::Update() {
       break;
     case InputEvent::PRESSED_PAUSE:
       insert = InputEvent::HELD_PAUSE;
+      erase = e;
+      break;
+    case InputEvent::PRESSED_LPAD:
+      insert = InputEvent::HELD_LPAD;
+      erase = e;
+      break;
+    case InputEvent::PRESSED_RPAD:
+      insert = InputEvent::HELD_RPAD;
       erase = e;
       break;
     };

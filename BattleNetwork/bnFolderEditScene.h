@@ -11,7 +11,6 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 #include "bnChipFolder.h"
-#include "bnAnimatedTextBox.h"
 
 /**
  * @class FolderEditScene
@@ -76,6 +75,8 @@ private:
       copy = Chip(info);
       occupied = false;
 
+      info = Chip(); // null chip
+
       return true;
     }
 
@@ -99,7 +100,6 @@ private:
   bool hasFolderChanged; /*!< Flag if folder needs to be saved before quitting screen */
   Camera camera;
   ChipFolder& folder;
-  AnimatedTextBox textbox;
 
   // Menu name font
   sf::Font* font;
@@ -124,16 +124,18 @@ private:
   sf::Sprite bg;
   sf::Sprite folderDock, packDock;
   sf::Sprite scrollbar;
-  sf::Sprite stars;
   sf::Sprite chipHolder;
   sf::Sprite element;
   sf::Sprite folderCursor, folderSwapCursor;
   sf::Sprite packCursor, packSwapCursor;
+  sf::Sprite folderNextArrow;
+  sf::Sprite packNextArrow;
+  sf::Sprite folderChipCountBox;
+  sf::Sprite mbPlaceholder;
 
-  // Current chip graphic
+  // Current chip graphic data
   sf::Sprite chip;
   sf::IntRect cardSubFrame;
-
   sf::Sprite chipIcon;
   swoosh::Timer chipRevealTimer;
   swoosh::Timer easeInTimer;
