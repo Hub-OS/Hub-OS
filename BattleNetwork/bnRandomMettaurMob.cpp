@@ -3,6 +3,7 @@
 #include "bnMetalMan.h"
 #include "bnStarfish.h"
 #include "bnCanodumb.h"
+#include "bnMegalian.h"
 #include "bnCanodumbIdleState.h"
 #include "bnBattleItem.h"
 #include "bnStringEncoder.h"
@@ -39,6 +40,16 @@ Mob* RandomMettaurMob::Build() {
   int mysterycount = 0;
 
   while (mob->GetMobCount() == 0) {
+    for (int i = 0; i < field->GetWidth(); i++) {
+      for (int j = 0; j < field->GetHeight(); j++) {
+        Battle::Tile* tile = field->GetAt(i + 1, j + 1);
+
+        if (tile->GetTeam() == Team::BLUE && !tile->ContainsEntityType<Character>() && rand() % 10 == 0) {
+          mob->Spawn<Rank1<Megalian>>(i + 1, j + 1);
+        }
+      }
+    }
+    /*
     for (int i = 0; i < field->GetWidth(); i++) {
       for (int j = 0; j < field->GetHeight(); j++) {
         spawnedGroundEnemy = false;
@@ -111,7 +122,7 @@ Mob* RandomMettaurMob::Build() {
           tile->SetState(TileState::NORMAL);
         }
       }
-    }
+    }*/
   }
 
   return mob;

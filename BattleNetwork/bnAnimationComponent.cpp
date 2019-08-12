@@ -38,6 +38,11 @@ const std::string AnimationComponent::GetAnimationString() const
   return animation.GetAnimationString();
 }
 
+const std::string& AnimationComponent::GetFilePath() const
+{
+  return path;
+}
+
 void AnimationComponent::SetPlaybackSpeed(const double playbackSpeed)
 {
   speed = playbackSpeed;
@@ -74,4 +79,9 @@ void AnimationComponent::AddCallback(int frame, std::function<void()> onFrame, s
 void AnimationComponent::CancelCallbacks()
 {
   animation.RemoveCallbacks();
+}
+
+sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
+{
+  return animation.GetPoint(pointName);
 }

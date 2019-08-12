@@ -48,8 +48,8 @@ void ProgBomb::OnUpdate(float _elapsed) {
     this->EnableTileHighlight(false);
   }
 
-  double alpha = swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0f);
-  double beta  = swoosh::ease::linear(arcProgress, arcDuration, 1.0f);
+  double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0f));
+  double beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0f));
 
   double posX = (beta * tile->getPosition().x) + ((1.0f - beta)*start.x);
   double height = -(alpha * 120.0);

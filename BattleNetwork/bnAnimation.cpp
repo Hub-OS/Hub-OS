@@ -107,6 +107,16 @@ void Animation::Reload() {
         frameLists.at(frameAnimationIndex).Add(currentFrameDuration, IntRect(currentStartx, currentStarty, currentWidth, currentHeight), sf::Vector2f(originX, originY));
       }
     }
+    else if (line.find("point") != string::npos) {
+      string pointName = ValueOf("label", line);
+      string xStr = ValueOf("x", line);
+      string yStr = ValueOf("y", line);
+
+      int x = atoi(xStr.c_str());
+      int y = atoi(yStr.c_str());
+
+      frameLists[frameAnimationIndex].SetPoint(pointName, x, y);
+    }
 
     data = data.substr(endline + 1);
   } while (endline > -1);
@@ -207,4 +217,9 @@ Animation& Animation::operator<<(std::string state) {
 void Animation::operator<<(std::function<void()> onFinish)
 {
   animator << onFinish;
+}
+
+sf::Vector2f Animation::GetPoint(const std::string & pointName)
+{
+  return animator.GetPoint(pointName);
 }

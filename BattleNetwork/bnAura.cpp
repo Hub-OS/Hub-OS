@@ -21,7 +21,9 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   owner->RegisterComponent(this);
   owner->AddNode(this);
   this->AddNode(aura);
-  
+
+  persist = false;
+
   font.setTexture(LOAD_TEXTURE(AURA_NUMSET));
   font.setScale(1.f, 1.f);
   //Components setup and load
@@ -39,7 +41,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
     break;
   case Aura::Type::AURA_1000:
     animation.SetAnimation("AURA_1000");
-    this->health = 1000;
+    this->health = 1000;;
     break;
   case Aura::Type::BARRIER_100:
     animation.SetAnimation("BARRIER_100");
@@ -67,8 +69,6 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
 
   animation << Animate::Mode::Loop;
   animation.Update(0, *aura);
-  
-  persist = false;
 }
 
 void Aura::Inject(BattleScene& bs) {
@@ -97,8 +97,6 @@ void Aura::OnUpdate(float _elapsed) {
  }
  else {
    this->Reveal();
-   //this->setPosition(GetOwner()->getPosition());
-   //aura.setPosition(this->getPosition());
  }
 
  animation.Update(_elapsed, *aura);

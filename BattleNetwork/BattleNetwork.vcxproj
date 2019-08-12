@@ -246,6 +246,8 @@
     <ClCompile Include="bnLibraryScene.cpp" />
     <ClCompile Include="bnLogger.cpp" />
     <ClCompile Include="bnMainMenuScene.cpp" />
+    <ClCompile Include="bnMegalian.cpp" />
+    <ClCompile Include="bnMegalianIdleState.cpp" />
     <ClCompile Include="bnMetalBlade.cpp" />
     <ClCompile Include="bnMetalMan.cpp" />
     <ClCompile Include="bnMetalManBossFight.cpp" />
@@ -385,6 +387,8 @@
     <ClInclude Include="bnHitBox.h" />
     <ClInclude Include="bnInvis.h" />
     <ClInclude Include="bnLibraryScene.h" />
+    <ClInclude Include="bnMegalian.h" />
+    <ClInclude Include="bnMegalianIdleState.h" />
     <ClInclude Include="bnMetalBlade.h" />
     <ClInclude Include="bnMetalMan.h" />
     <ClInclude Include="bnMetalManBossFight.h" />

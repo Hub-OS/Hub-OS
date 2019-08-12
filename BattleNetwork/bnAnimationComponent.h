@@ -62,6 +62,12 @@ public:
   const std::string GetAnimationString() const;
   
   /**
+   * @brief Get animation object's file path used to setup the animation
+   * @returnpath of animation file or empty string if no file was loaded
+   */
+  const std::string& GetFilePath() const;
+
+  /**
    * @brief Set the animation playback speed
    * @param playbackSpeed factor of 100 e.g. 2 is 200%, 0.5 is 50%
    */
@@ -99,6 +105,8 @@ public:
    * @brief Clears callbacks
    */
   void CancelCallbacks();
+
+  sf::Vector2f GetPoint(const std::string& pointName);
   
 private:
   string path; /*!< Path to animation */

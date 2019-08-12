@@ -120,6 +120,9 @@ TextureResourceManager::TextureResourceManager(void) {
   // Starfish
   paths.push_back("resources/mobs/starfish/starfish_atlas.png");
 
+  // Megalian
+  paths.push_back("resources/mobs/megalian/megalian_atlas.png");
+
   // Select screen "Anything Goes"
   paths.push_back("resources/mobs/select/random.png");
 

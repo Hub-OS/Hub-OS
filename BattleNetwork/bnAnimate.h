@@ -60,6 +60,10 @@ public:
     totalDuration += dur;
   }
 
+  void SetPoint(const std::string& name, int x, int y) {
+    frames[frames.size() - 1].points[name] = sf::Vector2f(float(x), float(y));
+  }
+
   /**
    * @brief Get the total duration for the list of frames
    * @return const float
@@ -163,12 +167,12 @@ public:
    */
   char GetMode() { return playbackMode;  }
   
-  const sf::Vector2f GetPoint(const std::string label) {
-      if(currentPoints.find(label) == currentPoints.end()) {
-          Logger::Log("Could not find point in current sequence named " + label);
+  const sf::Vector2f GetPoint(const std::string& pointName) {
+      if(currentPoints.find(pointName) == currentPoints.end()) {
+          Logger::Log("Could not find point in current sequence named " + pointName);
           return sf::Vector2f();
       }
-      return currentPoints[label];
+      return currentPoints[pointName];
   }
   
   /**

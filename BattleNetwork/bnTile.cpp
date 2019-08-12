@@ -144,6 +144,7 @@ namespace Battle {
           this->flickerTeamCooldown = this->flickerTeamCooldownLength;
         }
         else {
+          this->flickerTeamCooldown = 0; // cancel 
           this->teamCooldown = this->teamCooldownLength;
         }
 

@@ -144,6 +144,8 @@ public:
    */
   void operator<<(std::function<void()> onFinish);
 
+  sf::Vector2f GetPoint(const std::string& pointName);
+
 private:
   /**
    * @brief Strips the key-value from a file format

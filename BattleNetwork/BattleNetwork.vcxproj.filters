@@ -404,9 +404,6 @@
     <Filter Include="Activities\Battle\Content\Entities\Character\MetalMan\States">
       <UniqueIdentifier>{6363f3d7-a9e8-415d-b236-9e97d811d211}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Entities\Character\Auras">
-      <UniqueIdentifier>{2482e1b7-393a-4a43-ba4f-36770ee44c88}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Entities\Character\Starfish">
       <UniqueIdentifier>{a5f52f1e-01f1-4474-a82d-aae890335ab7}</UniqueIdentifier>
     </Filter>
@@ -481,6 +478,15 @@
     </Filter>
     <Filter Include="Activities\Folder\List">
       <UniqueIdentifier>{22ba24c7-1960-48d4-9ac2-f02b5e550ea4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Components\BattleComponents\Auras">
+      <UniqueIdentifier>{2482e1b7-393a-4a43-ba4f-36770ee44c88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Megalian">
+      <UniqueIdentifier>{641ecf4f-1af7-428f-83c7-4d78ef3d1167}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Megalian\States">
+      <UniqueIdentifier>{1067055a-de25-4f1d-94b3-79cf0efe37c2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -779,7 +785,7 @@
       <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
     </ClCompile>
     <ClCompile Include="bnAura.cpp">
-      <Filter>Activities\Battle\Content\Entities\Character\Auras</Filter>
+      <Filter>Activities\Battle\Content\Components\BattleComponents\Auras</Filter>
     </ClCompile>
     <ClCompile Include="bnThunder.cpp">
       <Filter>Activities\Battle\Content\Entities\Spell\Thunder</Filter>
@@ -921,6 +927,12 @@
     </ClCompile>
     <ClCompile Include="bnFolderChangeNameScene.cpp">
       <Filter>Activities\Folder\ChangeName</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMegalian.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Megalian</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMegalianIdleState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Megalian\States</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1340,7 +1352,7 @@
       <Filter>Activities\Battle\Content\Entities\Character\MetalMan\States</Filter>
     </ClInclude>
     <ClInclude Include="bnAura.h">
-      <Filter>Activities\Battle\Content\Entities\Character\Auras</Filter>
+      <Filter>Activities\Battle\Content\Components\BattleComponents\Auras</Filter>
     </ClInclude>
     <ClInclude Include="bnThunder.h">
       <Filter>Activities\Battle\Content\Entities\Spell\Thunder</Filter>
@@ -1497,6 +1509,12 @@
     </ClInclude>
     <ClInclude Include="bnFolderChangeNameScene.h">
       <Filter>Activities\Folder\ChangeName</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMegalian.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Megalian</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMegalianIdleState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Megalian\States</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

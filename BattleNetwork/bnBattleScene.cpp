@@ -319,7 +319,7 @@ void BattleScene::onUpdate(double elapsed) {
       showSummonBackdropTimer += elapsed;
       Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " showSummonBackdropLength: " + std::to_string(showSummonBackdropLength));
     }else if(showSummonBackdropTimer >= showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && !showSummonText && prevSummonState) {
-      if (summons.HasMoreInQueue()) {
+      if (!summons.IsSummonOver()) {
         showSummonText = true;
         Logger::Log("showSummonText: " + (showSummonText ? std::string("true") : std::string("false")));
       }
