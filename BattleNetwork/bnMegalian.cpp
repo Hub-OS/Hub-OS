@@ -13,7 +13,7 @@ const std::string RESOURCE_PATH = "resources/mobs/megalian/megalian.animation";
 
 Megalian::Megalian(Rank _rank)
   : AI<Megalian>(this), Character(_rank) {
-  //this->ChangeState<MettaurIdleState>();
+  //this->ChangeState<MegalianIdleState>();
   name = "Megalian";
   SetTeam(Team::BLUE);
 
@@ -23,7 +23,6 @@ Megalian::Megalian(Rank _rank)
   this->RegisterComponent(animationComponent);
 
   auto aura = new Aura(Aura::Type::AURA_100, this);
-  this->RegisterComponent(aura);
   aura->Persist(true);
 
   SetHealth(100);

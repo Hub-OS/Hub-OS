@@ -441,6 +441,10 @@ void Entity::FreeComponentByID(long ID) {
 }
 
 Component* Entity::RegisterComponent(Component* c) {
+  auto iter = std::find(components.begin(), components.end(), c);
+  if (iter != components.end())
+    return *iter;
+
   components.push_back(c);
 
   // Newest components appear first in the list for easy referencing
