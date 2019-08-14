@@ -98,6 +98,14 @@ public:
   virtual bool CanMoveTo(Battle::Tile* next);
 
   /**
+  * @brief enable/disable slide-canceling
+  * @param enabled true/false will enable/disable slide-canceling respectively
+  * Default: true
+  * Use for enemies and their states that can never be intterupted e.g. Megalian, boomerang, Bass's shadow
+  */
+  void EnableMovementIntterupt(bool enabled);
+
+  /**
    * @brief Entity's ID
    * @return ID 
    */
@@ -356,6 +364,7 @@ private:
   bool airShoe;
   bool isSliding; /*!< If sliding/gliding to a tile */
   bool deleted;
+  bool movementInterruptable; /*!< If this is set to false, no slide-canceling will occur. Default: true */
   bool cancelSlide; /*!< If should cancel slide this frame */
   int moveCount; /**< Used by battle results */
   sf::Time slideTime; /**< how long slide behavior lasts */

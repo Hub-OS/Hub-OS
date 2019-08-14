@@ -324,4 +324,7 @@ void Animate::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)
       return;
     }
   }
+
+  Logger::Log("finished without applying frame. Frame sizes: " + std::to_string(sequence.frames.size()));
+
 }

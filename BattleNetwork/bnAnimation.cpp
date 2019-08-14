@@ -166,7 +166,19 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
 {
   if(path.empty() || animations.empty() || animations.find(currAnimation) == animations.end()) return;
 
-  animator.SetFrame(frame, target, animations[currAnimation]);
+  if (frame <= 0 || frame > animations[currAnimation].GetFrameCount()) {
+    progress = 0.0f;
+    animator.SetFrame(1, target, animations[currAnimation]);
+
+  }
+  else {
+    animator.SetFrame(frame, target, animations[currAnimation]);
+    progress = 0.0f;
+
+    while (frame) {
+      progress += animations[currAnimation].GetFrame(--frame).duration;
+    }
+  }
 }
 
 void Animation::SetAnimation(string state) {

@@ -1,5 +1,5 @@
-StartTime 1565670212
-Engine initialized: 0.503000 secs
+StartTime 1565749412
+Engine initialized: 0.567000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -131,7 +131,7 @@ Loaded texture: resources/shaders/textures/heat.png
 Loaded texture: resources/shaders/textures/noise.png
 Loaded texture: resources/shaders/textures/noise_invert.png
 Loaded texture: resources/ui/light.png
-Loaded textures: 0.257000 secs
+Loaded textures: 0.283000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -148,7 +148,7 @@ Loaded shader: resources/shaders/glsl_110/spot_reflection
 Loaded shader: resources/shaders/glsl_110/transition
 Loaded shader: resources/shaders/glsl_110/chip_reveal
 Loaded shader: resources/shaders/glsl_110/wire
-Loaded shaders: 0.006000 secs
+Loaded shaders: 0.009000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -192,13 +192,13 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.176000 secs
+Loaded audio sources: 0.180000 secs
 Loaded navi: Megaman
 Loaded navi: Starman
 Loaded navi: Roll
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
-Loaded registered navis: 0.650000 secs
+Loaded registered navis: 0.643000 secs
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
 Loaded texture: resources/mobs/starfish/preview.png
@@ -213,7 +213,7 @@ Loaded texture: resources/mobs/select/random.png
 Loaded mob: Random
 Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
-Loaded registered mobs: 1.693000 secs
+Loaded registered mobs: 1.724000 secs
 Key 'verbose' was not found in line 'Chip name="AreaGrab" cardIndex="82" iconIndex="154" damage="0" type="Normal" codes="*" desc="Grab enemy tiles" rarity="1"'
 Key 'verbose' was not found in line 'Chip name="RockCube" damage="0" desc="Places cube in front" cardIndex="108" iconIndex="139" type="Normal" codes="A,C,E,H,R" memory="9" power="Normal" rarity="0" dark="0"'
 Key 'verbose' was not found in line 'Chip name="Fishy" cardIndex="38" iconIndex="53" damage="80" type="Normal" codes="*" desc="Dash into enmy" rarity="1"'
@@ -257,6 +257,36 @@ Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onEnter()
 SelectMobScene::onStart()
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+SelectMobScene::onEnd()
+main menu onResume
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onStart()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Loaded texture: resources/spells/fishy_temp.png
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+library saved successfully. Number of chips saved: 77
+SelectMobScene::onResume()
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
@@ -269,14 +299,99 @@ Loaded texture: resources/ui/custom.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onLeave()
 SelectMobScene::onExit()
+Taking damage: 0 with type: 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+timer: 0.116667 adjusted: 0 SetSlideTime: 250
+timer: 0.133334 adjusted: 0 SetSlideTime: 250
+timer: 0.150000 adjusted: 0 SetSlideTime: 250
+timer: 0.166667 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
 pushing states
 pushing states
 pushing states
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+Taking damage: 0 with type: 0
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
 pushing states
 pushing states
 pushing states
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+Taking damage: 0 with type: 0
+tele1: 1 tele2: 1
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
 pushing states
 pushing states
+pushing states
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+pushing states
+pushing states
+pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+Taking damage: 0 with type: 0
+tele1: 1 tele2: 1
 showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
 showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
 showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
@@ -308,16 +423,102 @@ showSummonBackdropTimer: 0.050000 going to 0
 showSummonBackdropTimer: 0.033333 going to 0
 showSummonBackdropTimer: 0.016667 going to 0
 showSummonBackdropTimer: 0.000000 going to 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+Taking damage: 30 with type: 3
+pushing states
+pushing states
+pushing states
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+Taking damage: 30 with type: 3
+pushing states
+pushing states
+pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+Taking damage: 30 with type: 3
 pushing states
 pushing states
 pushing states
 pushing states
 pushing states
 pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+tele1: 1 tele2: 1
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+Taking damage: 30 with type: 3
 pushing states
 pushing states
 pushing states
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
 pushing states
+pushing states
+pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+pushing states
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+Taking damage: 0 with type: 0
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+Taking damage: 0 with type: 0
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+Taking damage: 0 with type: 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
 showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
 showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
 showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
@@ -335,7 +536,7 @@ showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
 showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
 showSummonText: true
 Loaded texture: resources/spells/protoman_summon.png
-pushing states
+Taking damage: 0 with type: 0
 showSummonBackdropTimer: 0.233333 going to 0
 showSummonBackdropTimer: 0.216667 going to 0
 showSummonBackdropTimer: 0.200000 going to 0
@@ -351,8 +552,236 @@ showSummonBackdropTimer: 0.050000 going to 0
 showSummonBackdropTimer: 0.033333 going to 0
 showSummonBackdropTimer: 0.016667 going to 0
 showSummonBackdropTimer: 0.000000 going to 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
+showSummonText: true
 pushing states
 pushing states
 pushing states
+showSummonBackdropTimer: 0.233333 going to 0
+showSummonBackdropTimer: 0.216667 going to 0
+showSummonBackdropTimer: 0.200000 going to 0
+showSummonBackdropTimer: 0.183333 going to 0
+showSummonBackdropTimer: 0.166667 going to 0
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+showSummonBackdropTimer: 0.150000 going to 0
+showSummonBackdropTimer: 0.133333 going to 0
+showSummonBackdropTimer: 0.116667 going to 0
+showSummonBackdropTimer: 0.100000 going to 0
+showSummonBackdropTimer: 0.083333 going to 0
+showSummonBackdropTimer: 0.066667 going to 0
+showSummonBackdropTimer: 0.050000 going to 0
+showSummonBackdropTimer: 0.033333 going to 0
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+showSummonBackdropTimer: 0.016667 going to 0
+showSummonBackdropTimer: 0.000000 going to 0
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+Taking damage: 0 with type: 0
+tele1: 1 tele2: 1
+Taking damage: 0 with type: 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
+showSummonText: true
+showSummonBackdropTimer: 0.233333 going to 0
+showSummonBackdropTimer: 0.216667 going to 0
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+showSummonBackdropTimer: 0.200000 going to 0
+showSummonBackdropTimer: 0.183333 going to 0
+showSummonBackdropTimer: 0.166667 going to 0
+showSummonBackdropTimer: 0.150000 going to 0
+showSummonBackdropTimer: 0.133333 going to 0
+showSummonBackdropTimer: 0.116667 going to 0
+showSummonBackdropTimer: 0.100000 going to 0
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+showSummonBackdropTimer: 0.083333 going to 0
+showSummonBackdropTimer: 0.066667 going to 0
+showSummonBackdropTimer: 0.050000 going to 0
+showSummonBackdropTimer: 0.033333 going to 0
+showSummonBackdropTimer: 0.016667 going to 0
+showSummonBackdropTimer: 0.000000 going to 0
+Taking damage: 0 with type: 0
+tele1: 1 tele2: 1
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+Taking damage: 0 with type: 0
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
 pushing states
 pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+pushing states
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+Taking damage: 0 with type: 0
+Taking damage: 0 with type: 0
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+pushing states
+pushing states
+pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+Taking damage: 100 with type: 0
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+pushing states
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+pushing states
+pushing states
+pushing states
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+pushing states
+tele1: 1 tele2: 1
+showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
+showSummonText: true
+showSummonBackdropTimer: 0.233333 going to 0
+showSummonBackdropTimer: 0.216667 going to 0
+showSummonBackdropTimer: 0.200000 going to 0
+showSummonBackdropTimer: 0.183333 going to 0
+showSummonBackdropTimer: 0.166667 going to 0
+showSummonBackdropTimer: 0.150000 going to 0
+showSummonBackdropTimer: 0.133333 going to 0
+showSummonBackdropTimer: 0.116667 going to 0
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+showSummonBackdropTimer: 0.100000 going to 0
+showSummonBackdropTimer: 0.083333 going to 0
+showSummonBackdropTimer: 0.066667 going to 0
+showSummonBackdropTimer: 0.050000 going to 0
+showSummonBackdropTimer: 0.033333 going to 0
+showSummonBackdropTimer: 0.016667 going to 0
+showSummonBackdropTimer: 0.000000 going to 0
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+Taking damage: 30 with type: 3
+pushing states
+pushing states
+pushing states
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+pushing states
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+Taking damage: 30 with type: 3
+pushing states
+pushing states
+pushing states
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+Taking damage: 30 with type: 3
+pushing states
+pushing states
+pushing states
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+Taking damage: 30 with type: 3
+pushing states
+pushing states
+pushing states
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+pushing states
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+pushing states
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+timer: 0.050000 adjusted: 0 SetSlideTime: 250
+timer: 0.066667 adjusted: 0 SetSlideTime: 250
+timer: 0.083334 adjusted: 0 SetSlideTime: 250
+timer: 0.100000 adjusted: 0 SetSlideTime: 250
+tele1: 1 tele2: 1
+timer: 0.000000 adjusted: 0 SetSlideTime: 250
+timer: 0.016667 adjusted: 0 SetSlideTime: 250
+timer: 0.033334 adjusted: 0 SetSlideTime: 250
+pushing states
+pushing states
+Loaded font: resources/fonts/mmbnthick_regular.ttf

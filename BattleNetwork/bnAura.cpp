@@ -121,6 +121,7 @@ const int Aura::GetHealth() const {
 
 void Aura::TakeDamage(int damage)
 {
+  Logger::Log("Taking damage: " + std::to_string(damage) + " with type: " + std::to_string((int)type));
 
   if (type >= Aura::Type::BARRIER_100) {
     health = health - damage;

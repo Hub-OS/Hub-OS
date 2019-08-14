@@ -68,8 +68,6 @@ void Mettaur::OnDelete() {
             }
         }
     }
-
-    this->LockState();
 }
 
 void Mettaur::OnUpdate(float _elapsed) {

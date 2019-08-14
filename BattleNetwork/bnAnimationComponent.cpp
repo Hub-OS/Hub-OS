@@ -85,3 +85,8 @@ sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
 {
   return animation.GetPoint(pointName);
 }
+
+void AnimationComponent::SetFrame(const int index)
+{
+  animation.SetFrame(index, *GetOwner());
+}

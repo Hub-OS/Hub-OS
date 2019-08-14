@@ -60,9 +60,29 @@ public:
     totalDuration += dur;
   }
 
+  /**
+  * @brief sets the (x,y) location for a point and assigns a name
+  * @param name of the new point 
+  * @param x of the vector
+  * @param y of the vector
+  * Will overwrite any other point with the same name in the frame - unique names only
+  */
   void SetPoint(const std::string& name, int x, int y) {
     frames[frames.size() - 1].points[name] = sf::Vector2f(float(x), float(y));
   }
+
+  /**
+ * @brief Get the total number of frames in this list
+ * @return const unsigned int
+ */
+  const size_t GetFrameCount() { return this->frames.size(); }
+
+  /**
+  * @brief Get the frame data at the given index
+  * @param index of the frame in the list (base 0)
+  * @return const Frame immutable
+  */
+  const Frame& GetFrame(const int index) { return this->frames[index]; }
 
   /**
    * @brief Get the total duration for the list of frames

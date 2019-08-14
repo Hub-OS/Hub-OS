@@ -116,7 +116,6 @@ void ProtoManSummon::Attack(Character* _entity) {
 
   auto props = Hit::DefaultProperties;
   props.damage = 120;
-  props.flags |= Hit::recoil;
   _entity->Hit(props);
 
 

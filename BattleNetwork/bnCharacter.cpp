@@ -45,7 +45,7 @@ const bool Character::CanShareTileSpace() const
   return this->canShareTile;
 }
 
-void Character::ToggleTilePush(bool enabled)
+void Character::EnableTilePush(bool enabled)
 {
   this->canTilePush = enabled;
 }
@@ -55,6 +55,8 @@ const bool Character::CanTilePush() const {
 }
 
 void Character::Update(float _elapsed) {
+  this->ResolveFrameBattleDamage();
+
   elapsedBurnTime -= _elapsed;
 
   if (this->IsBattleActive() && !this->HasFloatShoe()) {
@@ -98,12 +100,11 @@ void Character::Update(float _elapsed) {
       if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
           this->SetShader(stun);
       }
-      else {
+      else if(!this->IsDeleted()) {
           this->SetShader(nullptr);
       }
   }
   else {
-      this->CancelSlide();
       SetShader(whiteout);
   }
 
@@ -122,7 +123,31 @@ bool Character::CanMoveTo(Battle::Tile * next)
 }
 
 const bool Character::Hit(Hit::Properties props) {
-  //if(this->IsPassthrough()) return false;
+  // If the character itself is also super-effective,
+  // double the damage independently from tile damage
+  bool isSuperEffective = IsSuperEffective(props.element);
+
+  // Show ! super effective symbol on the field
+  if (isSuperEffective) {
+    // Additional damage bonus if super effective against the attack too
+    if (isSuperEffective) {
+      props.damage *= 2;
+    }
+
+    Artifact *seSymbol = new ElementalDamage(field);
+    field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());
+  }
+
+  if (!this->IsPassthrough()) {
+    this->SetHealth(GetHealth() - props.damage);
+
+    for (auto c : shareHit) {
+      c->Hit(props);
+    }
+  }
+  else {
+    return false;
+  }
 
   // Add to status queue for state resolution
   this->statusQueue.push(props);
@@ -160,30 +185,15 @@ void Character::ResolveFrameBattleDamage()
 
     // Calculate elemental damage if the tile the character is on is super effective to it
     if (props.element == Element::FIRE
-        && GetTile()->GetState() == TileState::GRASS
-        && !(this->HasAirShoe() || this->HasFloatShoe())) {
-      tileDamage = props.damage;
-    } else if (props.element == Element::ELEC
-               && GetTile()->GetState() == TileState::ICE
-               && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      && GetTile()->GetState() == TileState::GRASS
+      && !(this->HasAirShoe() || this->HasFloatShoe())) {
       tileDamage = props.damage;
     }
-
-    // If the character itself is also super-effective,
-    // double the damage independently from tile damage
-    bool isSuperEffective = IsSuperEffective(props.element);
-
-    // Show ! super effective symbol on the field
-    if (isSuperEffective || tileDamage) {
-      // Additional damage bonus if super effective against the attack too
-      if (isSuperEffective) {
-        props.damage *= 2;
-      }
-
-      frameElementalDmg = true;
+    else if (props.element == Element::ELEC
+      && GetTile()->GetState() == TileState::ICE
+      && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      tileDamage = props.damage;
     }
-
-    props.damage += tileDamage; // append tile damage
 
     // Pass on hit properties to the user-defined handler
     if (this->OnHit(props)) {
@@ -227,10 +237,10 @@ void Character::ResolveFrameBattleDamage()
       hit = hit || true;
     }
 
-    this->SetHealth(health - props.damage);
-
-    if (this->GetHealth() == 0) {
-      this->stunCooldown = 0;
+    if (hit) {
+      if (this->GetHealth() == 0) {
+        this->stunCooldown = 0;
+      }
     }
   }
 
@@ -254,11 +264,6 @@ void Character::ResolveFrameBattleDamage()
     this->Broadcast(*this, *frameCounterAggressor);
     this->ToggleCounter(false);
     this->Stun(3.0);
-  }
-
-  if(frameElementalDmg) {
-    Artifact *seSymbol = new ElementalDamage(field);
-    field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());
   }
 
   if (this->GetHealth() == 0 && !this->invokeDeletion) {
@@ -326,7 +331,9 @@ const std::string Character::GetName() const
 
 void Character::AddDefenseRule(DefenseRule * rule)
 {
-  if (rule) {
+  auto iter = std::find(defenses.begin(), defenses.end(), rule);
+
+  if (rule && iter == defenses.end()) {
     defenses.push_back(rule);
     std::sort(defenses.begin(), defenses.end(), [](DefenseRule* first, DefenseRule* second) { return first->GetPriorityLevel() < second->GetPriorityLevel(); });
   }
@@ -335,7 +342,9 @@ void Character::AddDefenseRule(DefenseRule * rule)
 void Character::RemoveDefenseRule(DefenseRule * rule)
 {
   auto iter = std::remove_if(defenses.begin(), defenses.end(), [&rule](DefenseRule * in) { return in == rule; });
-  defenses.erase(iter);
+
+  if(iter != defenses.end())
+    defenses.erase(iter);
 }
 
 const bool Character::CheckDefenses(Spell* in)
@@ -347,4 +356,21 @@ const bool Character::CheckDefenses(Spell* in)
   }
 
   return false;
+}
+
+void Character::ShareHitboxDamage(Character * to)
+{
+  auto iter = std::find(shareHit.begin(), shareHit.end(), to);
+
+  if (to && iter == shareHit.end()) {
+    shareHit.push_back(to);
+  }
+}
+
+void Character::CancelShareHitboxDamage(Character * to)
+{
+  auto iter = std::remove_if(shareHit.begin(), shareHit.end(), [&to](Character * in) { return in == to; });
+
+  if(iter != shareHit.end())
+    shareHit.erase(iter);
 }

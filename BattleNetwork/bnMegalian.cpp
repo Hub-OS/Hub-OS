@@ -13,7 +13,6 @@ const std::string RESOURCE_PATH = "resources/mobs/megalian/megalian.animation";
 
 Megalian::Megalian(Rank _rank)
   : AI<Megalian>(this), Character(_rank) {
-  //this->ChangeState<MegalianIdleState>();
   name = "Megalian";
   SetTeam(Team::BLUE);
 
@@ -38,16 +37,15 @@ Megalian::Megalian(Rank _rank)
   animationComponent->OnUpdate(0);
 
   head = nullptr;
+
+  this->EnableTilePush(false);
 }
 
 Megalian::~Megalian() {
 }
 
 void Megalian::OnDelete() {
-  head->Delete();
-  head = nullptr;
   this->ChangeState<ExplodeState<Megalian>>();
-  this->LockState();
 }
 
 void Megalian::OnUpdate(float _elapsed) {
@@ -63,11 +61,19 @@ void Megalian::OnUpdate(float _elapsed) {
 }
 
 const bool Megalian::OnHit(const Hit::Properties props) {
-  Logger::Log("Megalian OnHit");
-
   return true;
 }
 
 const float Megalian::GetHitHeight() const {
   return hitHeight;
+}
+
+const bool Megalian::HasAura()
+{
+  return this->GetFirstComponent<Aura>();
+}
+
+bool Megalian::CanMoveTo(Battle::Tile * next)
+{
+  return true;
 }

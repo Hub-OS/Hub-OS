@@ -106,8 +106,19 @@ public:
    */
   void CancelCallbacks();
 
+  /**
+   * @brief Get the (x,y) coordinate of a point from the current frame
+   * @param pointName the name of the point in the animation file 
+   * @return (x,y) vector of point or (0,0) if no point found
+   */
   sf::Vector2f GetPoint(const std::string& pointName);
   
+  /**
+   * @brief Force the animation to jump to this frame index 
+   * @param index index of the frame
+   * If the index is out of range, sets frame to 0
+   */
+  void SetFrame(const int index);
 private:
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */

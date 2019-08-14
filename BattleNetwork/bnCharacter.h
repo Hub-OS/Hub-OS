@@ -35,6 +35,10 @@ namespace Hit {
     double secs; // used by both recoil and stun
     Character* aggressor;
     Direction drag; // Used by dragging payload
+
+    Properties() = default;
+    Properties(const Properties& rhs) = default;
+    ~Properties() = default;
   };
 
   const Properties DefaultProperties{ 0, Hit::recoil | Hit::impact, Element::NONE, 3.0, nullptr, Direction::NONE };
@@ -57,9 +61,8 @@ private:
   bool invokeDeletion; /*!< One-time flag to call OnDelete() if character has custom Delete() behavior */
   bool canShareTile; /*!< Some characters can share tiles with others */
   bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
-
   std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
-  
+  std::vector<Character*> shareHit; /*!< All characters to share hit damage. Useful for enemies that share hit boxes like stunt doubles */
   // Statuses are resolved one property at a time
   // until the entire Flag object is equal to 0x00 None
   // Then we process the next status
@@ -217,7 +220,7 @@ public:
    * @brief Some characters can be moved around on the field by tiles
    * @param enabled
    */
-  void ToggleTilePush(bool enabled);
+  void EnableTilePush(bool enabled);
 
   /**
    * @brief Characters can have names
@@ -249,6 +252,9 @@ public:
    * @return true if passes all defenses
    */
   const bool CheckDefenses(Spell* in);
+
+  void ShareHitboxDamage(Character* to);
+  void CancelShareHitboxDamage(Character* to);
 
 private:
   int maxHealth;

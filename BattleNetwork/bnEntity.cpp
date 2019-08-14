@@ -20,6 +20,8 @@ Entity::Entity()
   passthrough(false),
   ownedByField(false),
   isSliding(false),
+  movementInterruptable(true),
+  cancelSlide(false),
   element(Element::NONE),
   tileOffset(sf::Vector2f(0,0)),
   slideTime(sf::milliseconds(100)),
@@ -110,8 +112,9 @@ void Entity::Update(float _elapsed) {
     } 
 
     // When delta is 1.0, the slide duration is complete
-    if(delta == 1.0f || this->cancelSlide)
+    if(delta == 1.0f || (this->movementInterruptable && this->cancelSlide))
     {
+      this->cancelSlide = false;
       elapsedSlideTime = 0;
       Battle::Tile* prevTile = this->GetTile();
       this->tileOffset = sf::Vector2f(0, 0);
@@ -275,6 +278,11 @@ bool Entity::CanMoveTo(Battle::Tile * next)
 {
   bool valid = next? (this->HasFloatShoe()? true : next->IsWalkable()) : false;
   return valid && Teammate(next->GetTeam());
+}
+
+void Entity::EnableMovementIntterupt(bool enabled)
+{
+  this->movementInterruptable = enabled;
 }
 
 const long Entity::GetID() const

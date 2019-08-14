@@ -182,7 +182,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   showSummonBackdropLength = 15.0/60.0; //15 frame fade
   showSummonBackdropTimer = 0; // No state is active
   showSummonText = false;
-  summonTextLength = 1; // in seconds
+  summonTextLength = 1.25; // in seconds
 
   // SHADERS
   // TODO: Load shaders if supported
@@ -618,7 +618,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   if (!summons.IsSummonActive() && showSummonText) {
     sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
 
-    double summonSecs = summonTimer;
+    double summonSecs = summonTimer - showSummonBackdropLength;
     double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
 
     if (summons.GetCallerTeam() == Team::RED) {

@@ -387,9 +387,10 @@ namespace Battle {
         // TODO: use group buckets to poll by ID instead of dy casting
         Character *c = dynamic_cast<Character *>(*it);
 
-        // If the entity is tangible, the entity is a character (can be hit), and the team isn't the same
-        // we call attack
-        if (!(*it)->IsPassthrough() && c && (c->GetTeam() != caller->GetTeam() ||
+        // the entity is a character (can be hit) and the team isn't the same
+        // we see if it passes defense checks, then call attack
+
+        if( c && (c->GetTeam() != caller->GetTeam() ||
                                              (c->GetTeam() == Team::UNKNOWN &&
                                               caller->GetTeam() == Team::UNKNOWN))) {
           if (!c->CheckDefenses(caller)) {
@@ -490,7 +491,6 @@ namespace Battle {
         continue;
       }
 
-      (*entity)->ResolveFrameBattleDamage();
       (*entity)->Update(_elapsed);
     }
 
