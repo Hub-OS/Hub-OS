@@ -53,6 +53,11 @@ Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), 
 
   AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::HIGH);
 
+  auto props = Hit::DefaultProperties;
+  props.flags = props.flags & ~Hit::recoil;
+  props.damage = damage;
+  this->SetHitboxProperties(props);
+
   contact = nullptr;
   spawnGuard = false;
 }
@@ -125,31 +130,23 @@ bool Buster::Move(Direction _direction) {
 }
 
 void Buster::Attack(Character* _entity) {
-  if (hit) return;
-
   if (dynamic_cast<Gear*>(_entity)) {
     spawnGuard = true;
     contact = _entity;
     return;
   }
 
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    auto props = Hit::DefaultProperties;
-    props.flags = props.flags & ~Hit::recoil;
-    props.damage = damage;
+  if (_entity->Hit(this->GetHitboxProperties())) {
+    hit = true;  
 
-    if (_entity->Hit(props)) {
-      hit = true;  
+    if (!isCharged) {
+      random = _entity->getLocalBounds().width / 2.0f;
+      random *= rand() % 2 == 0 ? -1.0f : 1.0f;
 
-      if (!isCharged) {
-        random = _entity->getLocalBounds().width / 2.0f;
-        random *= rand() % 2 == 0 ? -1.0f : 1.0f;
+      hitHeight = (float)(std::floor(_entity->GetHitHeight()));
 
-        hitHeight = (float)(std::floor(_entity->GetHitHeight()));
-
-        if (hitHeight > 0) {
-          hitHeight = (float)(rand() % (int)hitHeight);
-        }
+      if (hitHeight > 0) {
+        hitHeight = (float)(rand() % (int)hitHeight);
       }
     }
   }

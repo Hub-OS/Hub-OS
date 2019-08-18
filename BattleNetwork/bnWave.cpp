@@ -16,11 +16,23 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   //Components setup and load
   auto spawnNext = [this]() {
     this->EnableTileHighlight(false);
-    if(this->GetTile()->GetX() > 1) {
-        auto* wave = new Wave(this->GetField(), this->GetTeam(), this->speed);
-        wave->SetDirection(this->GetDirection());
+    Battle::Tile* nextTile = nullptr;
+    Direction dir = Direction::NONE;
 
-        this->GetField()->AddEntity(*wave, GetTile()->GetX()-1, GetTile()->GetY());
+    if (this->GetTeam() == Team::BLUE) {
+      nextTile = this->GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
+      dir = Direction::LEFT;
+    } 
+    else {
+      nextTile = this->GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
+      dir = Direction::RIGHT;
+    }
+
+    if(nextTile && nextTile->IsWalkable()) {
+        auto* wave = new Wave(this->GetField(), this->GetTeam(), this->speed);
+        wave->SetDirection(dir);
+
+        this->GetField()->AddEntity(*wave, nextTile->GetX(), nextTile->GetY());
     }
   };
 

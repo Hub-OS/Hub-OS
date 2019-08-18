@@ -153,7 +153,7 @@ public:
       player->GetField()->AddEntity(*xtreme2, player->GetTile()->GetX(), 2);
       player->GetField()->AddEntity(*xtreme3, player->GetTile()->GetX(), 3);
     }
-    else if (name.size() > 6 && name.substr(6) == "Cannon") {
+    else if (name.size() >= 6 && name.substr(0, 6) == "Cannon") {
       // Spawn a single cannon instance on the tile in front of the player
       Cannon* cannon = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());
       auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };

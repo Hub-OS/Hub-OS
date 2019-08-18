@@ -34,10 +34,10 @@ SelectedChipsUI::SelectedChipsUI(Player* _player) : ChipUsePublisher(), UICompon
 SelectedChipsUI::~SelectedChipsUI() {
 }
 
-void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {
-    target.draw(text);
-    target.draw(dmg);
-    
+void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {    
+  text.setString("");
+  dmg.setString("");
+
     if (player) {
       int chipOrder = 0;
       
@@ -83,12 +83,12 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         // 1px * 2 (scale) = 2px
         frame.setPosition(icon.getPosition());
         frame.setPosition(frame.getPosition() - sf::Vector2f(2.f, 2.f));
-        ENGINE.Draw(frame);
+        target.draw(frame, states);
 
         // Grab the ID of the chip and draw that icon from the spritesheet
         sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(selectedChips[drawOrderIndex]->GetIconID());
         icon.setTextureRect(iconSubFrame);
-        ENGINE.Draw(icon);
+        target.draw(icon, states);
       }
 
       // If we have a valid chip, update and draw the data
@@ -111,21 +111,20 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           dmg.setOutlineThickness(2.f);
           dmg.setOutlineColor(sf::Color(48, 56, 80));
         }
-      } else {
-        // Otherwise draw nothing
-        text.setString("");
-        dmg.setString("");
       }
     }
+
+    target.draw(text);
+    target.draw(dmg);
 
     UIComponent::draw(target, states);
 };
 
 void SelectedChipsUI::OnUpdate(float _elapsed) {
-  if (INPUT.Has(InputEvent::PRESSED_START)) {
+  if (INPUT.Has(InputEvent::PRESSED_LPAD) || INPUT.Has(InputEvent::PRESSED_RPAD)) {
     spread = true;
   }
-  else if (INPUT.Has(InputEvent::RELEASED_START)) {
+  else {
     spread = false;
   }
 
