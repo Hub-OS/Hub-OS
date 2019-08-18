@@ -138,9 +138,7 @@ void Buster::Attack(Character* _entity) {
     props.flags = props.flags & ~Hit::recoil;
     props.damage = damage;
 
-    _entity->Hit(props);
-
-    if (!_entity->IsPassthrough()) {
+    if (_entity->Hit(props)) {
       hit = true;  
 
       if (!isCharged) {

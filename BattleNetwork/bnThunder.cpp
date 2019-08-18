@@ -30,6 +30,8 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
   EnableTileHighlight(false);
 
   AUDIO.Play(AudioType::THUNDER);
+
+  animation.Update(0, *this);
 }
 
 Thunder::~Thunder(void) {

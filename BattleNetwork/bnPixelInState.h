@@ -91,6 +91,9 @@ void PixelInState<Any>::OnUpdate(float _elapsed, Any& e) {
     factor = 0.f;
 
     if (callback) { callback(); callback = nullptr; /* do once */ }
+
+    // TODO: why do we have to set this here??
+    e.SetShader(nullptr);
   }
 
 
@@ -108,5 +111,5 @@ void PixelInState<Any>::OnUpdate(float _elapsed, Any& e) {
 
 template<typename Any>
 void PixelInState<Any>::OnLeave(Any& e) {
-  //e.SetShader(nullptr);
+  e.SetShader(nullptr);
 }

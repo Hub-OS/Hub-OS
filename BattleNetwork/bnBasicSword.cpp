@@ -47,6 +47,7 @@ bool BasicSword::Move(Direction _direction) {
 void BasicSword::Attack(Character* _entity) {
   auto props = Hit::DefaultProperties;
   props.damage = damage;
+  props.flags |= Hit::flinch;
   hit = hit || _entity->Hit(props);
   hitHeight = _entity->GetHitHeight();
 }

@@ -269,7 +269,7 @@ const bool ChipLibrary::SaveLibrary(const std::string& path) {
 
     ws << "# Saved on " << timestampStr << ws.endl();
 
-    for (auto chip : library) {
+    for (auto& chip : library) {
       ws << "Chip name=\"" << chip.GetShortName() << "\" cardIndex=\""
          << std::to_string(chip.GetID()) << "\" ";
       ws << "iconIndex=\"" << std::to_string(chip.GetIconID()) << "\" damage=\""
@@ -280,13 +280,15 @@ const bool ChipLibrary::SaveLibrary(const std::string& path) {
 
       ws << "codes=\"";
 
-      unsigned i = 0;
+      ws << chip.GetCode();
+
+      /*unsigned i = 0;
       for (auto code : codes) {
-        ws << code << ",";
+        ws << code;
         i++;
 
         if (i != codes.size() - 1) ws << ",";
-      }
+      }*/
 
       ws << "\" ";
 

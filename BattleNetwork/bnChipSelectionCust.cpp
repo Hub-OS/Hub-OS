@@ -283,6 +283,7 @@ bool ChipSelectionCust::IsChipDescriptionTextBoxOpen()
 
 void ChipSelectionCust::Move(sf::Vector2f delta) {
   this->setPosition(this->getPosition() + delta);
+  this->IsInView();
 }
 
 bool ChipSelectionCust::OpenChipDescription()

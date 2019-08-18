@@ -234,7 +234,14 @@ void MainMenuScene::onResume() {
 
   ENGINE.SetCamera(camera);
 
-  data.WriteToFile("resources/database/folders.txt");
+  std::string folderPath("resources/database/folders.txt");
+  std::string libraryPath("resources/database/library.txt");
+
+  if (data.GetFolderNames().size() > 0) {
+    data.WriteToFile(folderPath);
+  }
+
+  CHIPLIB.SaveLibrary(libraryPath);
 
 #ifdef __ANDROID__
   StartupTouchControls();

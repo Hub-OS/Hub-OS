@@ -86,7 +86,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
       // If applicable, fire the onFinish callback
       onFinish();
 
-      // If we do not loop the animation, empty the onFinish notifier. Otherwise this fires infinitely.
+      // If we do not loop the animation, empty the onFinish notifier. If we don't empty the notifier, this fires infinitely...
       if ((playbackMode & Mode::Loop) != Mode::Loop) {
         onFinish = nullptr;
       }
@@ -105,7 +105,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
       onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
       queuedOnetimeCallbacks.clear();
 
-      // If any onFinish notifiers...
+      // If any queued onFinish notifiers...
       if (queuedOnFinish) {
         // Add it
         onFinish = queuedOnFinish;

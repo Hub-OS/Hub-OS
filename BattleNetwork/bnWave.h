@@ -16,6 +16,8 @@ public:
   Wave(Field* _field, Team _team, double speed = 1.0);
   virtual ~Wave();
 
+  static int numOf;
+
   virtual void OnUpdate(float _elapsed);
   virtual bool Move(Direction _direction);
   virtual void Attack(Character* _entity);

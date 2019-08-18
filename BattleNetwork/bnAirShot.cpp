@@ -19,6 +19,7 @@
 
 AirShot::AirShot(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
   this->SetPassthrough(true);
+  this->SetFloatShoe(true);
 
   hit = false;
   progress = 0.0f;
@@ -39,23 +40,29 @@ void AirShot::OnUpdate(float _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    Move(GetDirection());
+    if (Move(Direction::RIGHT)) {
+      this->AdoptNextTile();
+    }
+
     cooldown = 0;
   }
 
 }
 
 void AirShot::Attack(Character* _entity) {
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    auto props = Hit::DefaultProperties;
-    props.damage = damage;
-    props.flags |= Hit::drag;
-    props.drag = GetDirection();
+  auto props = Hit::DefaultProperties;
+  props.damage = damage;
+  props.flags |= Hit::drag;
+  props.drag = Direction::RIGHT;
 
-    if(_entity->Hit(props)) {
-      this->Delete();
-    }
-
-    hitHeight = _entity->GetHitHeight();
+  if(_entity->Hit(props)) {
+    this->Delete();
   }
+
+  hitHeight = _entity->GetHitHeight();
+}
+
+bool AirShot::CanMoveTo(Battle::Tile * next)
+{
+  return true;
 }

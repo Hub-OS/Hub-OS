@@ -48,8 +48,6 @@ Player::Player()
   setTexture(*TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
   previous = nullptr;
-
-  invincibilityCooldown = 0;
 }
 
 Player::~Player() {
@@ -58,21 +56,6 @@ Player::~Player() {
 void Player::OnUpdate(float _elapsed) {
   if (GetTile() != nullptr) {
     setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
-  }
-
-  if (invincibilityCooldown > 0) {
-    // This just blinks every 15 frames
-    if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
-      this->Hide();
-    }
-    else {
-      this->Reveal();
-    }
-
-    invincibilityCooldown -= _elapsed;
-  }
-  else {
-    this->Reveal();
   }
 
   AI<Player>::Update(_elapsed);
@@ -98,9 +81,6 @@ void Player::OnDelete() {
 }
 
 const bool Player::OnHit(const Hit::Properties props) {
-  // Don't take damage while blinking
-  if (invincibilityCooldown > 0) return false;
-
   hitCount++;
 
   // Respond to the recoil bit state
@@ -108,6 +88,9 @@ const bool Player::OnHit(const Hit::Properties props) {
     // this->ChangeState<PlayerHitState>((float)props.secs );
     this->ChangeState<PlayerHitState>();
   }
+
+  if ((props.flags & Hit::flinch) == Hit::flinch) { Logger::Log("should be flinching"); }
+
 
   return true;
 }

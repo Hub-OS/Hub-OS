@@ -17,10 +17,13 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   setTexture(*texture);
   setScale(2.f, 2.f);
 
+  SetLayer(-1);
+
   random = 0;
 
   auto props = Hit::DefaultProperties;
   props.damage = 40;
+  props.flags |= Hit::flinch;
   this->SetHitboxProperties(props);
 
   arcDuration = _duration;
@@ -31,6 +34,10 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
 
   setOrigin(sf::Vector2f(19, 24) / 2.f);
   AUDIO.Play(AudioType::TOSS_ITEM);
+
+  // Quick fix for newly added entities not adjusting to tile on draw
+  // TODO: only have newly added entities draw who have been updated 
+  this->Hide();
 }
 
 ProgBomb::~ProgBomb(void) {
@@ -57,6 +64,7 @@ void ProgBomb::OnUpdate(float _elapsed) {
 
   setPosition((float)posX, (float)posY);
   setRotation(-(arcProgress / arcDuration)*90.0f);
+  this->Reveal();
 
   // When at the end of the arc
   if (arcProgress >= arcDuration) {

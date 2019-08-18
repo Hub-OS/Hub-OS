@@ -62,6 +62,7 @@ void Cannon::OnUpdate(float _elapsed) {
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
     Move(GetDirection());
+    this->AdoptNextTile();
     cooldown = 0;
   }
 }
@@ -112,6 +113,7 @@ void Cannon::Attack(Character* _entity) {
 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
+  props.flags |= Hit::flinch;
   _entity->Hit(props);
   hitHeight = _entity->GetHitHeight();
 

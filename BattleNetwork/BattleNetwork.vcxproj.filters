@@ -488,6 +488,15 @@
     <Filter Include="Activities\Battle\Content\Entities\Character\Megalian\States">
       <UniqueIdentifier>{1067055a-de25-4f1d-94b3-79cf0efe37c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Summons\Progman">
+      <UniqueIdentifier>{daf1a71d-f85f-48af-9661-af016861bed8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\HitProperties">
+      <UniqueIdentifier>{86c534e0-09dd-42a5-b54a-e93a2015c5cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\VirusBody">
+      <UniqueIdentifier>{8faefec4-1c27-429c-8d11-471af16dd3bc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -933,6 +942,9 @@
     </ClCompile>
     <ClCompile Include="bnMegalianIdleState.cpp">
       <Filter>Activities\Battle\Content\Entities\Character\Megalian\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseVirusBody.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\VirusBody</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1515,6 +1527,12 @@
     </ClInclude>
     <ClInclude Include="bnMegalianIdleState.h">
       <Filter>Activities\Battle\Content\Entities\Character\Megalian\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnHitProperties.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\HitProperties</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseVirusBody.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\VirusBody</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

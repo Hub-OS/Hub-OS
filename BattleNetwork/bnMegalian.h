@@ -52,7 +52,6 @@ private:
       props.flags = Hit::impact | Hit::breaking | Hit::recoil | Hit::flinch;
       props.aggressor = base;
       this->SetHitboxProperties(props);
-      this->EnableMovementIntterupt(false);
       this->SetName("M. Head");
       lastTile = nullptr;
 
@@ -174,6 +173,8 @@ private:
     }
 
     const bool OnHit(const Hit::Properties props) {
+      auto baseProps = props.flags & ~Hit::drag;
+
       base->Hit(props);
       
       return true;

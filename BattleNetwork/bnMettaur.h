@@ -64,4 +64,6 @@ private:
 
   float hitHeight; /*!< hit height of this mettaur */
   TextureType textureType;
+
+  DefenseRule* virusBody;
 };

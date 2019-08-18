@@ -88,7 +88,6 @@ public:
 
 protected:
   int hitCount; /*!< How many times the player has been hit. Used by score board. */
-  double invincibilityCooldown; /*!< The blinking timer */
   string state; /*!< Animation state name */
 
   AnimationComponent* animationComponent;

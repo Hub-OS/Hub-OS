@@ -294,10 +294,11 @@ void BattleScene::ProcessNewestComponents()
 
 void BattleScene::OnCounter(Character & victim, Character & aggressor)
 {
-  AUDIO.Play(AudioType::COUNTER, AudioPriority::HIGH);
+  AUDIO.Play(AudioType::COUNTER, AudioPriority::HIGHEST);
+
+  Logger::Log("OnCounter");
 
   if (&aggressor == this->player) {
-    std::cout << "player countered" << std::endl;
     totalCounterMoves++;
 
     if (victim.IsDeleted()) {
@@ -476,7 +477,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.Draw(background);
 
-  sf::Vector2f cameraAntiOffset = -ENGINE.GetViewOffset();
   auto ui = std::vector<UIComponent*>();
 
   // First tile pass: draw the tiles
@@ -505,6 +505,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       }
       else {
         ENGINE.Draw(tile);
+        tile->move(-ENGINE.GetViewOffset());
+
       }
     }
 
@@ -538,12 +540,20 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     while (entitiesIter != allEntities.end()) {
         entity = (*entitiesIter);
       if (!entity->IsDeleted()) {
-        auto uic = entity->GetComponents<UIComponent>();
+        auto uic = entity->GetComponentsDerivedFrom<UIComponent>();
+
+        //Logger::Log("uic size is: " + std::to_string(uic.size()));
+
         if (!uic.empty()) {
-          ui.insert(ui.begin(), ui.end(), uic.begin());
+          ui.insert(ui.begin(), uic.begin(), uic.end());
         }
 
+        entity->move(ENGINE.GetViewOffset());
+
         ENGINE.Draw(entity);
+
+        entity->move(-ENGINE.GetViewOffset());
+
       }
 
         entitiesIter++;
@@ -671,8 +681,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   if (!isPlayerDeleted && !summons.IsSummonActive()) {
     //chipUI.OnUpdate((float)elapsed); // DRAW
-
-    //ENGINE.Draw(chipUI);
+    ENGINE.Draw(chipUI);
   }
 
   if (isPreBattle) {
@@ -759,11 +768,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       AUDIO.Play(AudioType::PAUSE);
     }
   }
-    /*else if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
-      if (player && player->GetTile() && player->GetAnimationComponent().GetAnimationString() == "PLAYER_IDLE") {
-        chipUI.UseNextChip();
-      }
-    }*/
   else if ((!isMobFinished && mob->IsSpawningDone()) ||
            (
                    INPUT.Has(PRESSED_START) && customProgress >= customDuration && !isInChipSelect && !isPaused &&
@@ -1134,8 +1138,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 // TODO: send the battle item off to the player's
                 // persistent session storage (aka a save file or cloud database)
                 CHIPLIB.AddChip(reward->GetChip());
-                //Chip filtered = CHIPLIB.GetChipEntry(reward->GetChip().GetShortName(), reward->GetChip().GetCode());
-                //persistentFolder->AddChip(filtered);
                 delete reward;
               }
             }
@@ -1156,14 +1158,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       using segue = swoosh::intent::segue<WhiteWashFade>::to<GameOverScene>;
       getController().queueRewind<segue>();
     }
-  }
-
-  tile = nullptr;
-  tilesIter = allTiles.begin();
-  while (tilesIter != allTiles.end()) {
-      tile = (*tilesIter);
-    tile->move(cameraAntiOffset);
-    tilesIter++;
   }
 
   if (customProgress / customDuration >= 1.0) {
@@ -1224,7 +1218,6 @@ void BattleScene::onResume() {
 }
 
 void BattleScene::onEnd() {
-  CHIPLIB.SaveLibrary("test_lib.txt");
   
 #ifdef __ANDROID__
   this->ShutdownTouchControls();

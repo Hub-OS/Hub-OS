@@ -8,6 +8,7 @@
 #include "bnWave.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnDefenseVirusBody.h"
 #include "bnEngine.h"
 
 const std::string RESOURCE_PATH = "resources/mobs/mettaur/mettaur.animation";
@@ -47,27 +48,33 @@ Mettaur::Mettaur(Rank _rank)
   Mettaur::metIDs.push_back((int)Mettaur::metIDs.size());
 
   animationComponent->OnUpdate(0);
+
+  virusBody = new DefenseVirusBody();
+  this->AddDefenseRule(virusBody);
 }
 
 Mettaur::~Mettaur() {
 }
 
 void Mettaur::OnDelete() {
-    this->ChangeState<ExplodeState<Mettaur>>();
+  this->RemoveDefenseRule(virusBody);
+  delete virusBody;
 
-    if (Mettaur::metIDs.size() > 0) {
-        vector<int>::iterator it = find(Mettaur::metIDs.begin(), Mettaur::metIDs.end(), metID);
+  this->ChangeState<ExplodeState<Mettaur>>();
 
-        if (it != Mettaur::metIDs.end()) {
-            // Remove this mettaur out of rotation...
-            Mettaur::currMetIndex++;
+  if (Mettaur::metIDs.size() > 0) {
+      vector<int>::iterator it = find(Mettaur::metIDs.begin(), Mettaur::metIDs.end(), metID);
 
-            Mettaur::metIDs.erase(it);
-            if (Mettaur::currMetIndex >= Mettaur::metIDs.size()) {
-                Mettaur::currMetIndex = 0;
-            }
-        }
-    }
+      if (it != Mettaur::metIDs.end()) {
+          // Remove this mettaur out of rotation...
+          Mettaur::currMetIndex++;
+
+          Mettaur::metIDs.erase(it);
+          if (Mettaur::currMetIndex >= Mettaur::metIDs.size()) {
+              Mettaur::currMetIndex = 0;
+          }
+      }
+  }
 }
 
 void Mettaur::OnUpdate(float _elapsed) {

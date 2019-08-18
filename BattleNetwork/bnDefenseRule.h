@@ -1,4 +1,5 @@
 #pragma once
+#include "bnHitProperties.h"
 
 class Spell;
 class Character;
@@ -25,6 +26,12 @@ public:
 
   virtual ~DefenseRule();
 
+  /**
+   * @brief Filters status effects before applying them to character. e.g. SuperArmor
+   * @return reference to modified input statuses
+   */
+  virtual Hit::Properties& FilterStatuses(Hit::Properties& statuses);
+  
   /**
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */

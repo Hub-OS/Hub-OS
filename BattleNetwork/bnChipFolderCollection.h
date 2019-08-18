@@ -66,6 +66,8 @@ public:
  * @return true if loaded, false if the folder was not found
  */
   bool GetFolder(int index, ChipFolder*& folder) {
+    if (index >= order.size() || index < 0) return false;
+
     if (!this->HasFolder(order[index])) return false;
 
     folder = collection[order[index]];

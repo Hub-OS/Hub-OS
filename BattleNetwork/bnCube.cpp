@@ -1,6 +1,7 @@
 #include "bnCube.h"
 #include "bnRockDebris.h"
 #include "bnTile.h"
+#include "bnDefenseVirusBody.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
@@ -39,13 +40,16 @@ Cube::Cube(Field* _field, Team _team) : Obstacle(field, team) {
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
 
-  this->SetSlideTime(sf::seconds(1.0f/15.0f));
+  this->SetSlideTime(sf::seconds(1.0f/5.0f)); // was 1/15 
 
   cubeIndex = ++currCubeIndex;
 
   hit = false;
 
   this->previousDirection = Direction::NONE;
+
+  virusBody = new DefenseVirusBody();
+  this->AddDefenseRule(virusBody);
 }
 
 Cube::~Cube() {
@@ -116,6 +120,9 @@ void Cube::OnUpdate(float _elapsed) {
 }
 
 void Cube::OnDelete() {
+  this->RemoveDefenseRule(virusBody);
+  delete virusBody;
+
   double intensity = (double)(rand() % 2) + 1.0;
 
   auto left = (this->GetElement() == Element::ICE) ? RockDebris::Type::LEFT_ICE : RockDebris::Type::LEFT;
@@ -123,7 +130,7 @@ void Cube::OnDelete() {
 
   this->GetField()->AddEntity(*new RockDebris(left, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
   this->GetField()->AddEntity(*new RockDebris(right, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
-  this->Delete();
+
   tile->RemoveEntityByID(this->GetID());
   AUDIO.Play(AudioType::PANEL_CRACK);
 }

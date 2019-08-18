@@ -1,5 +1,5 @@
-StartTime 1565749412
-Engine initialized: 0.567000 secs
+StartTime 1566104510
+Engine initialized: 0.526000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -131,7 +131,7 @@ Loaded texture: resources/shaders/textures/heat.png
 Loaded texture: resources/shaders/textures/noise.png
 Loaded texture: resources/shaders/textures/noise_invert.png
 Loaded texture: resources/ui/light.png
-Loaded textures: 0.283000 secs
+Loaded textures: 0.276000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -192,13 +192,13 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.180000 secs
+Loaded audio sources: 0.188000 secs
 Loaded navi: Megaman
 Loaded navi: Starman
 Loaded navi: Roll
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
-Loaded registered navis: 0.643000 secs
+Loaded registered navis: 0.638000 secs
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
 Loaded texture: resources/mobs/starfish/preview.png
@@ -213,80 +213,24 @@ Loaded texture: resources/mobs/select/random.png
 Loaded mob: Random
 Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
-Loaded registered mobs: 1.724000 secs
-Key 'verbose' was not found in line 'Chip name="AreaGrab" cardIndex="82" iconIndex="154" damage="0" type="Normal" codes="*" desc="Grab enemy tiles" rarity="1"'
-Key 'verbose' was not found in line 'Chip name="RockCube" damage="0" desc="Places cube in front" cardIndex="108" iconIndex="139" type="Normal" codes="A,C,E,H,R" memory="9" power="Normal" rarity="0" dark="0"'
-Key 'verbose' was not found in line 'Chip name="Fishy" cardIndex="38" iconIndex="53" damage="80" type="Normal" codes="*" desc="Dash into enmy" rarity="1"'
-Key 'verbose' was not found in line 'Chip name="HiCannon" cardIndex="1" iconIndex="1" damage="60" type="Normal" codes="E" desc="Cannon attack to 1 enemy" rarity="1"'
-Key 'verbose' was not found in line 'Chip name="M-Cannon" cardIndex="2" iconIndex="2" damage="120" type="Normal" codes="H,I,J" desc="Cannon attack to 1 enemy" rarity="1"'
-Key 'verbose' was not found in line 'Chip name="Shotgun" cardIndex="3" iconIndex="10" damage="20" type="Normal" codes="J" desc="Explodes 1 square behind" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="V-Gun" cardIndex="4" iconIndex="11" damage="20" type="Normal" codes="D" desc="Explodes 2 diag. squares" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="SideGun" cardIndex="5" iconIndex="12" damage="20" type="Normal" codes="S" desc="Explodes up, down on hit" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="Wind" codes="L,*" desc="Knocks enemy back 1" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="SprdSht1" cardIndex="5" iconIndex="10" damage="20" type="Cursor" codes="Q,R,S" desc="spreadshot" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="SprdSht2" cardIndex="4" iconIndex="11" damage="30" type="Cursor" codes="T,U,V" desc="spreadshot v2" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="HeatSht1" cardIndex="6" iconIndex="6" damage="20" type="Fire" codes="M,U,A" desc="burns" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="HeatSht2" cardIndex="7" iconIndex="7" damage="40" type="Fire" codes="N,T,B" desc="burns v2" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="HeatSht3" cardIndex="8" iconIndex="8" damage="60" type="Fire" codes="O,V,C" desc="burns v3" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="Bubble1" cardIndex="9" iconIndex="15" damage="20" type="Aqua" codes="R" desc="blub" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="Bubble2" cardIndex="10" iconIndex="16" damage="40" type="Aqua" codes="F" desc="blub blub" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="Bomb" cardIndex="11" iconIndex="20" damage="30" type="Normal" codes="B,S" desc="Throws a bomb 3 squares" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="Swrd"     cardIndex="15" iconIndex="30" damage="20" type="Sword" codes="L" desc="Cuts enmy in front! Range: 1" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="WideSwrd" cardIndex="16" iconIndex="31" damage="30" type="Sword" codes="L" desc="Cuts enmy in front! Range: 3" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="LongSwrd" cardIndex="17" iconIndex="32" damage="40" type="Sword" codes="J" desc="Cuts enmy in front! Range: 2" rarity="2" '
-Key 'verbose' was not found in line 'Chip name="FireSwrd" cardIndex="21" iconIndex="33" damage="70" type="Fire" codes="F" desc="Fire: Cuts fwd 3 squares" rarity="3" '
-Key 'verbose' was not found in line 'Chip name="Thunder" cardIndex="52" iconIndex="106" damage="40" type="Electric" codes="B,R,*" desc="Paralyze enmy" rarity="3"'
-Key 'verbose' was not found in line 'Chip name="Elecplse" cardIndex="53" iconIndex="107" damage="40" type="Electric" codes="B,R,*" desc="Paralyze and pull enmy " rarity="3"'
-Key 'verbose' was not found in line 'Chip name="Antidamg" cardIndex="88" iconIndex="111" damage="0" type="NORMAL" codes="*" desc="Protect and attack" rarity="3"'
-Key 'verbose' was not found in line 'Chip name="Recov10" cardIndex="74" iconIndex="146" damage="10" type="Normal" codes="A,L,*" desc="Recovers 10HP" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="Recov30" cardIndex="75" iconIndex="147" damage="30" type="Normal" codes="R" desc="Recovers 30HP" rarity="1"'
-Key 'verbose' was not found in line 'Chip name="Recov50" cardIndex="76" iconIndex="148" damage="50" type="Normal" codes="T" desc="Recovers 50HP" rarity="2"'
-Key 'verbose' was not found in line 'Chip name="Recov80" cardIndex="77" iconIndex="149" damage="80" type="Normal" codes="K,L,M" desc="Recovers 80HP" rarity="2"'
-Key 'verbose' was not found in line 'Chip name="Recov120" cardIndex="78" iconIndex="150" damage="120" type="Normal" codes="B" desc="Recovers 120HP" rarity="3"'
-Key 'verbose' was not found in line 'Chip name="Recov150" cardIndex="79" iconIndex="151" damage="150" type="Normal" codes="G,H" desc="Recovers 150HP" rarity="4"'
-Key 'verbose' was not found in line 'Chip name="Recov200" cardIndex="80" iconIndex="152" damage="200" type="Normal" codes="D,E,F" desc="Recovers 200HP" rarity="4"'
-Key 'verbose' was not found in line 'Chip name="Recov300" cardIndex="81" iconIndex="153" damage="300" type="Normal" codes="Z" desc="Recovers 300HP" rarity="5"'
-Key 'verbose' was not found in line 'Chip name="Invis" cardIndex="115" iconIndex="162" damage="0" type="Normal" codes="A,Y,*" desc="Invisible for a while" rarity="2" '
-Key 'verbose' was not found in line 'Chip name="Barrier" cardIndex="120" iconIndex="168" damage="0" type="Summon" codes="B,*" desc="Nullifies 100HP of damage!" rarity="1" '
-Key 'verbose' was not found in line 'Chip name="Atk+10" cardIndex="124" iconIndex="194" damage="0" type="Normal" codes="*" desc="+10 for selected atk chip" rarity="1" '
-library size: 76
+Loaded registered mobs: 1.681000 secs
+library size: 73
 Loaded texture: resources/backgrounds/lan/bg.png
 main menu onStart
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onStart()
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-SelectMobScene::onEnd()
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+library saved successfully. Number of chips saved: 73
 main menu onResume
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onEnter()
 SelectMobScene::onStart()
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/virus/fg.png
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-Loaded texture: resources/spells/fishy_temp.png
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-library saved successfully. Number of chips saved: 77
-SelectMobScene::onResume()
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
@@ -299,99 +243,6 @@ Loaded texture: resources/ui/custom.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onLeave()
 SelectMobScene::onExit()
-Taking damage: 0 with type: 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-timer: 0.116667 adjusted: 0 SetSlideTime: 250
-timer: 0.133334 adjusted: 0 SetSlideTime: 250
-timer: 0.150000 adjusted: 0 SetSlideTime: 250
-timer: 0.166667 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-pushing states
-pushing states
-pushing states
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-Taking damage: 0 with type: 0
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-pushing states
-pushing states
-pushing states
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-Taking damage: 0 with type: 0
-tele1: 1 tele2: 1
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-pushing states
-pushing states
-pushing states
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-pushing states
-pushing states
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-Taking damage: 0 with type: 0
-tele1: 1 tele2: 1
 showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
 showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
 showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
@@ -423,365 +274,278 @@ showSummonBackdropTimer: 0.050000 going to 0
 showSummonBackdropTimer: 0.033333 going to 0
 showSummonBackdropTimer: 0.016667 going to 0
 showSummonBackdropTimer: 0.000000 going to 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-Taking damage: 30 with type: 3
+Num of waves is: 1
+Taking damage: 10 with type: 3
+spell removed
+Num of waves is: 2
+Num of waves is: 3
 pushing states
+Mettaur OnHit
+spell removed
+Num of waves is: 4
+Num of waves is: 5
+Taking damage: 10 with type: 3
+spell removed
+Num of waves is: 6
 pushing states
+Mettaur OnHit
+spell removed
 pushing states
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-Taking damage: 30 with type: 3
+Mettaur OnHit
+spell removed
+spell removed
 pushing states
-pushing states
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-Taking damage: 30 with type: 3
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-tele1: 1 tele2: 1
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-Taking damage: 30 with type: 3
-pushing states
-pushing states
-pushing states
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-pushing states
-pushing states
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-pushing states
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-Taking damage: 0 with type: 0
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-Taking damage: 0 with type: 0
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-Taking damage: 0 with type: 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
-showSummonText: true
-Loaded texture: resources/spells/protoman_summon.png
-Taking damage: 0 with type: 0
-showSummonBackdropTimer: 0.233333 going to 0
-showSummonBackdropTimer: 0.216667 going to 0
-showSummonBackdropTimer: 0.200000 going to 0
-showSummonBackdropTimer: 0.183333 going to 0
-showSummonBackdropTimer: 0.166667 going to 0
-showSummonBackdropTimer: 0.150000 going to 0
-showSummonBackdropTimer: 0.133333 going to 0
-showSummonBackdropTimer: 0.116667 going to 0
-showSummonBackdropTimer: 0.100000 going to 0
-showSummonBackdropTimer: 0.083333 going to 0
-showSummonBackdropTimer: 0.066667 going to 0
-showSummonBackdropTimer: 0.050000 going to 0
-showSummonBackdropTimer: 0.033333 going to 0
-showSummonBackdropTimer: 0.016667 going to 0
-showSummonBackdropTimer: 0.000000 going to 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
-showSummonText: true
-pushing states
-pushing states
-pushing states
-showSummonBackdropTimer: 0.233333 going to 0
-showSummonBackdropTimer: 0.216667 going to 0
-showSummonBackdropTimer: 0.200000 going to 0
-showSummonBackdropTimer: 0.183333 going to 0
-showSummonBackdropTimer: 0.166667 going to 0
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-showSummonBackdropTimer: 0.150000 going to 0
-showSummonBackdropTimer: 0.133333 going to 0
-showSummonBackdropTimer: 0.116667 going to 0
-showSummonBackdropTimer: 0.100000 going to 0
-showSummonBackdropTimer: 0.083333 going to 0
-showSummonBackdropTimer: 0.066667 going to 0
-showSummonBackdropTimer: 0.050000 going to 0
-showSummonBackdropTimer: 0.033333 going to 0
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-showSummonBackdropTimer: 0.016667 going to 0
-showSummonBackdropTimer: 0.000000 going to 0
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-Taking damage: 0 with type: 0
-tele1: 1 tele2: 1
-Taking damage: 0 with type: 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
-showSummonText: true
-showSummonBackdropTimer: 0.233333 going to 0
-showSummonBackdropTimer: 0.216667 going to 0
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-showSummonBackdropTimer: 0.200000 going to 0
-showSummonBackdropTimer: 0.183333 going to 0
-showSummonBackdropTimer: 0.166667 going to 0
-showSummonBackdropTimer: 0.150000 going to 0
-showSummonBackdropTimer: 0.133333 going to 0
-showSummonBackdropTimer: 0.116667 going to 0
-showSummonBackdropTimer: 0.100000 going to 0
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-showSummonBackdropTimer: 0.083333 going to 0
-showSummonBackdropTimer: 0.066667 going to 0
-showSummonBackdropTimer: 0.050000 going to 0
-showSummonBackdropTimer: 0.033333 going to 0
-showSummonBackdropTimer: 0.016667 going to 0
-showSummonBackdropTimer: 0.000000 going to 0
-Taking damage: 0 with type: 0
-tele1: 1 tele2: 1
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-Taking damage: 0 with type: 0
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-pushing states
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-pushing states
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-Taking damage: 0 with type: 0
-Taking damage: 0 with type: 0
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-pushing states
-pushing states
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-Taking damage: 100 with type: 0
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-pushing states
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-pushing states
-pushing states
-pushing states
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-pushing states
-tele1: 1 tele2: 1
-showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
-showSummonText: true
-showSummonBackdropTimer: 0.233333 going to 0
-showSummonBackdropTimer: 0.216667 going to 0
-showSummonBackdropTimer: 0.200000 going to 0
-showSummonBackdropTimer: 0.183333 going to 0
-showSummonBackdropTimer: 0.166667 going to 0
-showSummonBackdropTimer: 0.150000 going to 0
-showSummonBackdropTimer: 0.133333 going to 0
-showSummonBackdropTimer: 0.116667 going to 0
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-showSummonBackdropTimer: 0.100000 going to 0
-showSummonBackdropTimer: 0.083333 going to 0
-showSummonBackdropTimer: 0.066667 going to 0
-showSummonBackdropTimer: 0.050000 going to 0
-showSummonBackdropTimer: 0.033333 going to 0
-showSummonBackdropTimer: 0.016667 going to 0
-showSummonBackdropTimer: 0.000000 going to 0
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-Taking damage: 30 with type: 3
-pushing states
-pushing states
-pushing states
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-pushing states
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-Taking damage: 30 with type: 3
-pushing states
-pushing states
-pushing states
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-Taking damage: 30 with type: 3
-pushing states
-pushing states
-pushing states
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-Taking damage: 30 with type: 3
-pushing states
-pushing states
-pushing states
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-pushing states
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-pushing states
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-timer: 0.050000 adjusted: 0 SetSlideTime: 250
-timer: 0.066667 adjusted: 0 SetSlideTime: 250
-timer: 0.083334 adjusted: 0 SetSlideTime: 250
-timer: 0.100000 adjusted: 0 SetSlideTime: 250
-tele1: 1 tele2: 1
-timer: 0.000000 adjusted: 0 SetSlideTime: 250
-timer: 0.016667 adjusted: 0 SetSlideTime: 250
-timer: 0.033334 adjusted: 0 SetSlideTime: 250
-pushing states
-pushing states
+Mettaur OnHit
+spell removed
+spell removed
 Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+pushing states
+should be flinching
+should be flinching
+spell removed
+pushing states
+spell removed
+spell removed
+pushing states
+should be flinching
+should be flinching
+spell removed
+spell removed
+pushing states
+spell removed
+spell removed
+pushing states
+spell removed
+spell removed
+pushing states
+spell removed
+pushing states
+spell removed
+pushing states
+pushing states
+should be flinching
+should be flinching
+spell removed
+should be flinching
+should be flinching
+spell removed
+pushing states
+spell removed
+showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
+showSummonText: true
+showSummonBackdropTimer: 0.233333 going to 0
+showSummonBackdropTimer: 0.216667 going to 0
+showSummonBackdropTimer: 0.200000 going to 0
+showSummonBackdropTimer: 0.183333 going to 0
+showSummonBackdropTimer: 0.166667 going to 0
+showSummonBackdropTimer: 0.150000 going to 0
+showSummonBackdropTimer: 0.133333 going to 0
+showSummonBackdropTimer: 0.116667 going to 0
+showSummonBackdropTimer: 0.100000 going to 0
+showSummonBackdropTimer: 0.083333 going to 0
+showSummonBackdropTimer: 0.066667 going to 0
+showSummonBackdropTimer: 0.050000 going to 0
+showSummonBackdropTimer: 0.033333 going to 0
+showSummonBackdropTimer: 0.016667 going to 0
+showSummonBackdropTimer: 0.000000 going to 0
+spell removed
+spell removed
+pushing states
+spell removed
+spell removed
+spell removed
+pushing states
+spell removed
+pushing states
+spell removed
+spell removed
+showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
+showSummonText: true
+showSummonBackdropTimer: 0.233333 going to 0
+showSummonBackdropTimer: 0.216667 going to 0
+showSummonBackdropTimer: 0.200000 going to 0
+showSummonBackdropTimer: 0.183333 going to 0
+showSummonBackdropTimer: 0.166667 going to 0
+showSummonBackdropTimer: 0.150000 going to 0
+showSummonBackdropTimer: 0.133333 going to 0
+showSummonBackdropTimer: 0.116667 going to 0
+showSummonBackdropTimer: 0.100000 going to 0
+showSummonBackdropTimer: 0.083333 going to 0
+showSummonBackdropTimer: 0.066667 going to 0
+showSummonBackdropTimer: 0.050000 going to 0
+showSummonBackdropTimer: 0.033333 going to 0
+showSummonBackdropTimer: 0.016667 going to 0
+showSummonBackdropTimer: 0.000000 going to 0
+pushing states
+spell removed
+pushing states
+spell removed
+pushing states
+spell removed
+pushing states
+spell removed
+pushing states
+spell removed
+pushing states
+spell removed
+spell removed
+spell removed
+pushing states
+spell removed
+spell removed
+showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
+showSummonText: true
+showSummonBackdropTimer: 0.233333 going to 0
+showSummonBackdropTimer: 0.216667 going to 0
+showSummonBackdropTimer: 0.200000 going to 0
+showSummonBackdropTimer: 0.183333 going to 0
+showSummonBackdropTimer: 0.166667 going to 0
+showSummonBackdropTimer: 0.150000 going to 0
+showSummonBackdropTimer: 0.133333 going to 0
+showSummonBackdropTimer: 0.116667 going to 0
+showSummonBackdropTimer: 0.100000 going to 0
+showSummonBackdropTimer: 0.083333 going to 0
+showSummonBackdropTimer: 0.066667 going to 0
+showSummonBackdropTimer: 0.050000 going to 0
+showSummonBackdropTimer: 0.033333 going to 0
+showSummonBackdropTimer: 0.016667 going to 0
+showSummonBackdropTimer: 0.000000 going to 0
+Taking damage: 0 with type: 3
+spell removed
+pushing states
+spell removed
+spell removed
+Taking damage: 0 with type: 3
+spell removed
+pushing states
+spell removed
+spell removed
+spell removed
+spell removed
+pushing states
+spell removed
+spell removed
+pushing states
+spell removed
+spell removed
+Taking damage: 40 with type: 3
+spell removed
+spell removed
+Taking damage: 0 with type: 3
+spell removed
+pushing states
+Taking damage: 40 with type: 3
+spell removed
+spell removed
+spell removed
+spell removed
+spell removed
+spell removed
+spell removed
+Taking damage: 40 with type: 3
+spell removed
+spell removed
+pushing states
+spell removed
+spell removed
+pushing states
+should be flinching
+spell removed
+spell removed
+spell removed
+pushing states
+should be flinching
+should be flinching
+spell removed
+pushing states
+spell removed
+pushing states
+spell removed
+pushing states
+pushing states
+should be flinching
+should be flinching
+spell removed
+spell removed
+pushing states
+spell removed
+spell removed
+spell removed
+pushing states
+spell removed
+spell removed
+spell removed
+spell removed
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+pushing states
+spell removed

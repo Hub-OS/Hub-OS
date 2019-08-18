@@ -15,6 +15,7 @@ Character::Character(Rank _rank) :
   slideFromDrag(false),
   canShareTile(false),
   stunCooldown(0),
+  invincibilityCooldown(0),
   name("unnamed"),
   rank(_rank),
   invokeDeletion(false),
@@ -55,11 +56,14 @@ const bool Character::CanTilePush() const {
 }
 
 void Character::Update(float _elapsed) {
+
+  double prevThisFrameStun = this->stunCooldown;
+
   this->ResolveFrameBattleDamage();
 
   elapsedBurnTime -= _elapsed;
 
-  if (this->IsBattleActive() && !this->HasFloatShoe()) {
+    if(!this->HasFloatShoe()) {
     if (this->GetTile()) {
       if (this->GetTile()->GetState() == TileState::POISON) {
         if (elapsedBurnTime <= 0) {
@@ -83,19 +87,6 @@ void Character::Update(float _elapsed) {
     }
   }
 
-  if(this->stunCooldown > 0) {
-    this->stunCooldown-=_elapsed;
-  } else {
-    this->stunCooldown = 0;
-    this->OnUpdate(_elapsed);
-  }
-
-  //if (this->GetHealth() <= 0 && this->isSliding) {
-  //  this->isSliding = false;
-  //}
-
-  Entity::Update(_elapsed);
-
   if (!hit) {
       if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
           this->SetShader(stun);
@@ -103,12 +94,45 @@ void Character::Update(float _elapsed) {
       else if(!this->IsDeleted()) {
           this->SetShader(nullptr);
       }
+
+      if (this->invincibilityCooldown > 0) {
+          // This just blinks every 15 frames
+          if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
+            this->Hide();
+          }
+          else {
+            this->Reveal();
+          }
+
+          invincibilityCooldown -= _elapsed;
+
+          if (this->invincibilityCooldown <= 0) {
+            this->Reveal();
+          }
+      }
   }
   else {
       SetShader(whiteout);
   }
 
+  if (prevThisFrameStun <= 0.0) {
+    // HACKY: If we are stunned this frame, let AI update step once
+    // to turn into their respective hit state animations
+    this->OnUpdate(_elapsed);
+  }
+  else if (this->stunCooldown > 0.0) {
+    this->stunCooldown -= _elapsed;
+
+    if (this->stunCooldown <= 0.0) {
+      this->stunCooldown = 0.0;
+    }
+  }
+
+  Entity::Update(_elapsed);
+
   hit = false;
+
+  TryDelete();
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)
@@ -123,6 +147,18 @@ bool Character::CanMoveTo(Battle::Tile * next)
 }
 
 const bool Character::Hit(Hit::Properties props) {
+  if (this->invincibilityCooldown > 0 || this->IsPassthrough()) return false;
+
+  this->SetHealth(GetHealth() - props.damage);
+  
+  for (auto& defense : defenses) {
+    props = defense->FilterStatuses(props);
+  }
+
+  for (auto c : shareHit) {
+    c->Hit(props);
+  }
+
   // If the character itself is also super-effective,
   // double the damage independently from tile damage
   bool isSuperEffective = IsSuperEffective(props.element);
@@ -136,17 +172,6 @@ const bool Character::Hit(Hit::Properties props) {
 
     Artifact *seSymbol = new ElementalDamage(field);
     field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());
-  }
-
-  if (!this->IsPassthrough()) {
-    this->SetHealth(GetHealth() - props.damage);
-
-    for (auto c : shareHit) {
-      c->Hit(props);
-    }
-  }
-  else {
-    return false;
   }
 
   // Add to status queue for state resolution
@@ -171,14 +196,13 @@ void Character::ResolveFrameBattleDamage()
   if(this->statusQueue.empty()) return;
 
   Character* frameCounterAggressor = nullptr;
-  bool frameElementalDmg = false;
   bool frameStunCancel = false;
   Direction postDragDir = Direction::NONE;
 
   std::queue<Hit::Properties> append;
 
-  while(!this->statusQueue.empty()) {
-      Hit::Properties& props = this->statusQueue.front();
+  while(!this->statusQueue.empty() && !IsSliding()) {
+     Hit::Properties& props = this->statusQueue.front();
     this->statusQueue.pop();
 
     int tileDamage = 0;
@@ -208,10 +232,6 @@ void Character::ResolveFrameBattleDamage()
         }
       }
 
-      if(this->IsSliding() && (props.flags & Hit::impact) == Hit::impact && !this->slideFromDrag) {
-        this->CancelSlide();
-      }
-
       // Requeue drag if already sliding by drag
       if((props.flags & Hit::drag) == Hit::drag) {
         if(this->slideFromDrag) {
@@ -220,12 +240,16 @@ void Character::ResolveFrameBattleDamage()
           // Apply directional slide later
           postDragDir = props.drag;
         }
+
+        // exclude this from the next processing step
+        props.drag = Direction::NONE;
+        props.flags &= ~Hit::drag;
       }
 
       // Stun can be canceled by non-stun hits or queued if dragging
       if((props.flags & Hit::stun) == Hit::stun) {
         if(postDragDir != Direction::NONE) {
-          append.push({0, Hit::stun, Element::NONE, props.secs});
+          append.push({0, props.flags, Element::NONE, props.secs});
         } else {
           this->stunCooldown = props.secs;
         }
@@ -234,12 +258,30 @@ void Character::ResolveFrameBattleDamage()
         this->stunCooldown = 0;
       }
 
+      // exclude this from the next processing step
+      props.flags &= ~Hit::stun;
+
+      // Flinch is ignored if already flinching
+      // and can be queued if dragging this frame
+      if ((props.flags & Hit::flinch) == Hit::flinch) {
+        Logger::Log("should be flinching");
+        if (postDragDir != Direction::NONE) {
+          append.push({ 0, props.flags, Element::NONE, props.secs });
+        }
+        else {
+          if (this->invincibilityCooldown <= 0.0) {
+            this->invincibilityCooldown = props.secs;
+          }
+        }
+      }
+
       hit = hit || true;
     }
 
     if (hit) {
       if (this->GetHealth() == 0) {
         this->stunCooldown = 0;
+        postDragDir = Direction::NONE; // Cancel slide post-status if blowing up
       }
     }
   }
@@ -252,12 +294,12 @@ void Character::ResolveFrameBattleDamage()
     // enemies and objects on opposing side of field are granted immunity from drag
     if(Teammate(this->GetTile()->GetTeam())) {
       this->SlideToTile(true);
-      this->slideFromDrag = true;
+      //this->slideFromDrag = true;
       this->Move(postDragDir);
     }
   } else if(this->slideFromDrag){
     // No dragging status in this frame, no sliding
-    this->slideFromDrag = false;
+    //this->slideFromDrag = false;
   }
 
   if(frameCounterAggressor) {
@@ -269,6 +311,8 @@ void Character::ResolveFrameBattleDamage()
   if (this->GetHealth() == 0 && !this->invokeDeletion) {
     this->OnDelete();
     this->invokeDeletion = true;
+    this->stunCooldown = 0;
+    this->invincibilityCooldown = 0;
 
     if(frameCounterAggressor) {
       // Slide entity back a few pixels
@@ -301,6 +345,7 @@ void Character::TryDelete() {
     if (this->GetHealth() == 0 && !this->invokeDeletion) {
         this->OnDelete();
         this->invokeDeletion = true;
+        this->SlideToTile(false);
     }
 }
 

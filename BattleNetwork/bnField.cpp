@@ -106,14 +106,10 @@ std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
   for (int y = 1; y <= height; y++) {
     for (int x = 1; x <= width; x++) {
       Battle::Tile* tile = GetAt(x, y);
-      
+
       std::vector<Entity*> found = tile->FindEntities(query);
-      std::vector<Entity*> merged = res;
-      merged.reserve(res.size() + found.size()); // preallocate memory
-      merged.insert(merged.end(), res.begin(), res.end());
-      merged.insert(merged.end(), found.begin(), found.end());
-    
-      res = merged;
+      res.reserve(res.size() + found.size()); // preallocate memory
+      res.insert(res.end(), found.begin(), found.end());
     }
   }
 

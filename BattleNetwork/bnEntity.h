@@ -98,14 +98,6 @@ public:
   virtual bool CanMoveTo(Battle::Tile* next);
 
   /**
-  * @brief enable/disable slide-canceling
-  * @param enabled true/false will enable/disable slide-canceling respectively
-  * Default: true
-  * Use for enemies and their states that can never be intterupted e.g. Megalian, boomerang, Bass's shadow
-  */
-  void EnableMovementIntterupt(bool enabled);
-
-  /**
    * @brief Entity's ID
    * @return ID 
    */
@@ -308,12 +300,27 @@ public:
   template<typename Type>
   Type* GetFirstComponent();
 
-    /**
+   /**
    * @brief Get all components that matches the exact Type
    * @return vector of specified components
    */
   template<typename Type>
   std::vector<Type*> GetComponents();
+
+  /**
+* @brief Get all components that inherit BaseType
+* @return vector of related components
+*/
+  template<typename BaseType>
+  std::vector<BaseType*> GetComponentsDerivedFrom();
+
+  /**
+  * @brief Check if entity is a specialized type
+  * @return true if entity could be dynamically casted to Type
+  * @warning dynamic casts are costly! Avoid if possible!
+  */
+  template<typename Type>
+  bool IsA();
 
   /**
    * @brief Attaches a component to an entity
@@ -348,10 +355,6 @@ protected:
 
   void SetSlideTime(sf::Time time);
 
-  void CancelSlide() {
-      cancelSlide = true;
-  }
-
   const int GetMoveCount() const {
       return this->moveCount;
   }
@@ -364,8 +367,6 @@ private:
   bool airShoe;
   bool isSliding; /*!< If sliding/gliding to a tile */
   bool deleted;
-  bool movementInterruptable; /*!< If this is set to false, no slide-canceling will occur. Default: true */
-  bool cancelSlide; /*!< If should cancel slide this frame */
   int moveCount; /**< Used by battle results */
   sf::Time slideTime; /**< how long slide behavior lasts */
   sf::Time defaultSlideTime; /**< If slidetime is modified by outside source, the slide to return back to */
@@ -403,4 +404,26 @@ inline std::vector<Type*> Entity::GetComponents()
   }
 
   return res;
+}
+
+
+template<typename BaseType>
+inline std::vector<BaseType*> Entity::GetComponentsDerivedFrom()
+{
+  auto res = std::vector<BaseType*>();
+
+  for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
+    BaseType* cast = dynamic_cast<BaseType*>(*it);
+
+    if (cast) {
+      res.push_back(cast);
+    }
+  }
+
+  return res;
+}
+
+template<typename Type>
+inline bool Entity::IsA() {
+  return (dynamic_cast<Type*>(this) != nullptr);
 }

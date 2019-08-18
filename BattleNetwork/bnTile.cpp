@@ -330,16 +330,17 @@ namespace Battle {
         state = TileState::BROKEN;
         AUDIO.Play(AudioType::PANEL_CRACK);
       }
-      auto tagged = std::find_if(taggedSpells.begin(), taggedSpells.end(), [&ID](int in) { return ID == in; });
-      if (tagged != taggedSpells.end()) {
-        taggedSpells.erase(tagged);
-      }
 
       entities.erase(itEnt);
     }
 
     if (itSpell != spells.end()) {
       spells.erase(itSpell);
+
+      auto tagged = std::find_if(taggedSpells.begin(), taggedSpells.end(), [&ID](int in) { return ID == in; });
+      if (tagged != taggedSpells.end()) {
+        taggedSpells.erase(tagged);
+      }
     }
 
     if (itChar != characters.end()) {
@@ -421,9 +422,6 @@ namespace Battle {
     */
 
     auto itEnt = entities.begin();
-    auto itSpell = spells.begin();
-    auto itChar = characters.begin();
-    auto itArt = artifacts.begin();
 
     // Step through the entity bucket (all entity types)
     while (itEnt != entities.end()) {
@@ -435,13 +433,13 @@ namespace Battle {
         auto reservedIter = reserved.find(ID);
         if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
-        auto fitEnt = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitChar = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitArt = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
 
         // Remove them from the tile's bucket
         if (fitSpell != spells.end()) {
+          Logger::Log("spell removed");
           spells.erase(fitSpell);
         }
 
@@ -454,7 +452,7 @@ namespace Battle {
         }
 
         // free memory
-        delete *itEnt;
+        delete (*itEnt);
 
         // update the iterator
         itEnt = entities.erase(itEnt);

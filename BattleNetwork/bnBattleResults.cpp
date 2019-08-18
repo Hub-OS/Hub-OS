@@ -228,6 +228,7 @@ bool BattleResults::IsInView() {
 
 void BattleResults::Move(sf::Vector2f delta) {
   resultsSprite.setPosition(resultsSprite.getPosition() + delta);
+  this->IsInView();
 }
 
 void BattleResults::Update(double elapsed)

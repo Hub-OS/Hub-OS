@@ -55,6 +55,8 @@ void SpriteSceneNode::setTexture(const sf::Texture& texture, bool resetRect) {
 }
 
 void SpriteSceneNode::SetShader(sf::Shader* _shader) {
+  if (shader.Get() == _shader && _shader != nullptr) return;
+
   RevokeShader();
 
   if (_shader) {

@@ -211,6 +211,7 @@
     <ClCompile Include="bnDefenseAura.cpp" />
     <ClCompile Include="bnDefenseGuard.cpp" />
     <ClCompile Include="bnDefenseRule.cpp" />
+    <ClCompile Include="bnDefenseVirusBody.cpp" />
     <ClCompile Include="bnElecpulse.cpp" />
     <ClCompile Include="bnElementalDamage.cpp" />
     <ClCompile Include="bnEnemyChipsUI.cpp" />
@@ -355,6 +356,7 @@
     <ClInclude Include="bnCustEmblem.h" />
     <ClInclude Include="bnDefenseAura.h" />
     <ClInclude Include="bnDefenseGuard.h" />
+    <ClInclude Include="bnDefenseVirusBody.h" />
     <ClInclude Include="bnElecPulse.h" />
     <ClInclude Include="bnElementalDamage.h" />
     <ClInclude Include="bnEnemyChipUseListener.h" />
@@ -385,6 +387,7 @@
     <ClInclude Include="bnHideTimer.h" />
     <ClInclude Include="bnHideUntil.h" />
     <ClInclude Include="bnHitBox.h" />
+    <ClInclude Include="bnHitProperties.h" />
     <ClInclude Include="bnInvis.h" />
     <ClInclude Include="bnLibraryScene.h" />
     <ClInclude Include="bnMegalian.h" />

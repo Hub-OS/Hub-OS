@@ -60,4 +60,6 @@ protected:
   bool hit;
   double timer;
   Direction previousDirection;
+
+  DefenseRule* virusBody;
 };

@@ -5,6 +5,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
+int Wave::numOf = 0;
+
 Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   SetLayer(0);
 
@@ -34,14 +36,22 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
 
   auto props = Hit::DefaultProperties;
   props.damage = 10;
+  props.flags |= Hit::flinch;
+  props.secs = 0.2;
   this->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::WAVE);
 
   EnableTileHighlight(true);
+
+  Logger::Log("Num of waves is: " + std::to_string(++Wave::numOf));
 }
 
 Wave::~Wave() {
+  {
+    Logger::Log("Wave dtor called");
+    Wave::numOf = Wave::numOf - 1;
+  }
 }
 
 void Wave::OnUpdate(float _elapsed) {
@@ -50,7 +60,9 @@ void Wave::OnUpdate(float _elapsed) {
 
   setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
 
-  tile->AffectEntities(this);
+  if (!this->IsDeleted()) {
+    GetTile()->AffectEntities(this);
+  }
 }
 
 bool Wave::Move(Direction _direction) {

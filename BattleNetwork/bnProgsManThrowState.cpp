@@ -15,7 +15,9 @@ ProgsManThrowState::~ProgsManThrowState()
 void ProgsManThrowState::OnEnter(ProgsMan& progs) {
   auto spawnBomb = [this, &progs]() { 
     // Spawn the bomb with the sprite position where Progsman is
-    ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), progs.GetTile()->getPosition(), 1);
+    auto startPos = progs.GetTile()->getPosition();
+    startPos.y -= 60.0f;
+    ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), startPos, 1);
 
     // Assign progsman as the owner of this spell
     auto props = bomb->GetHitboxProperties();
@@ -34,11 +36,12 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
 
   progs.SetAnimation(MOB_THROW, onFinish);
   
-  // Counter on frame 3
-  progs.SetCounterFrame(3);
+  // Counter on frame [1,2]
+  progs.SetCounterFrame(1);
+  progs.SetCounterFrame(2);
   
-  // Spawn the bomb on frame 4
-  progs.OnFrameCallback(4, spawnBomb, std::function<void()>(), true);
+  // Spawn the bomb on frame 3
+  progs.OnFrameCallback(3, spawnBomb, std::function<void()>(), true);
 }
 
 void ProgsManThrowState::OnLeave(ProgsMan& progs) {
