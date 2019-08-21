@@ -49,7 +49,6 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   auto props = Hit::DefaultProperties;
   props.damage = 10;
   props.flags |= Hit::flinch;
-  props.secs = 0.2;
   this->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::WAVE);

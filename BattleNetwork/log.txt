@@ -1,5 +1,5 @@
-StartTime 1566163264
-Engine initialized: 0.486000 secs
+StartTime 1566425247
+Engine initialized: 0.534000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -131,7 +131,7 @@ Loaded texture: resources/shaders/textures/heat.png
 Loaded texture: resources/shaders/textures/noise.png
 Loaded texture: resources/shaders/textures/noise_invert.png
 Loaded texture: resources/ui/light.png
-Loaded textures: 0.278000 secs
+Loaded textures: 0.285000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -192,13 +192,13 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.170000 secs
+Loaded audio sources: 0.176000 secs
 Loaded navi: Megaman
 Loaded navi: Starman
 Loaded navi: Roll
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
-Loaded registered navis: 0.674000 secs
+Loaded registered navis: 0.660000 secs
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
 Loaded texture: resources/mobs/starfish/preview.png
@@ -213,8 +213,8 @@ Loaded texture: resources/mobs/select/random.png
 Loaded mob: Random
 Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
-Loaded registered mobs: 1.703000 secs
-library size: 76
+Loaded registered mobs: 1.712000 secs
+library size: 78
 Loaded texture: resources/backgrounds/lan/bg.png
 main menu onStart
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
@@ -226,7 +226,7 @@ Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/backgrounds/grave/fg.png
 Loaded texture: resources/ui/img_health.png
 Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
 Loaded font: resources/fonts/dr_cain_terminal.ttf
@@ -237,49 +237,57 @@ SelectMobScene::onExit()
 pushing states
 Mettaur OnHit
 spell removed
-spell removed
 Num of waves is: 1
 Num of waves is: 2
 Num of waves is: 3
+pushing states
+Mettaur OnHit
+spell removed
+showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
+showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
+showSummonText: true
+pushing states
+Mettaur OnHit
+showSummonBackdropTimer: 0.233333 going to 0
+spell removed
+spell removed
+spell removed
+showSummonBackdropTimer: 0.216667 going to 0
+showSummonBackdropTimer: 0.200000 going to 0
+showSummonBackdropTimer: 0.183333 going to 0
+showSummonBackdropTimer: 0.166667 going to 0
+showSummonBackdropTimer: 0.150000 going to 0
+showSummonBackdropTimer: 0.133333 going to 0
+showSummonBackdropTimer: 0.116667 going to 0
+showSummonBackdropTimer: 0.100000 going to 0
+showSummonBackdropTimer: 0.083333 going to 0
+showSummonBackdropTimer: 0.066667 going to 0
+showSummonBackdropTimer: 0.050000 going to 0
+showSummonBackdropTimer: 0.033333 going to 0
+showSummonBackdropTimer: 0.016667 going to 0
+showSummonBackdropTimer: 0.000000 going to 0
 Num of waves is: 4
 Num of waves is: 5
 Num of waves is: 6
 Num of waves is: 7
-pushing states
-Mettaur OnHit
-spell removed
 Num of waves is: 8
 Num of waves is: 9
 pushing states
-should be flinching
-should be flinching
-Num of waves is: 10
-Num of waves is: 11
-Num of waves is: 12
-Num of waves is: 13
-Num of waves is: 14
-Num of waves is: 15
-pushing states
 Mettaur OnHit
 spell removed
-Num of waves is: 16
-Num of waves is: 17
-Num of waves is: 18
-Num of waves is: 19
-pushing states
-Mettaur OnHit
-spell removed
-Num of waves is: 20
-Num of waves is: 21
-Num of waves is: 22
-Num of waves is: 23
-pushing states
-Mettaur OnHit
-Num of waves is: 24
-spell removed
-Num of waves is: 25
-Num of waves is: 26
-Num of waves is: 27
 pushing states
 Mettaur OnHit
 spell removed
@@ -298,6 +306,9 @@ Loaded texture: resources/ui/custom.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onLeave()
 SelectMobScene::onExit()
+Num of waves is: 10
+Num of waves is: 11
+Num of waves is: 12
 showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
 showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
 showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
@@ -329,188 +340,46 @@ showSummonBackdropTimer: 0.050000 going to 0
 showSummonBackdropTimer: 0.033333 going to 0
 showSummonBackdropTimer: 0.016667 going to 0
 showSummonBackdropTimer: 0.000000 going to 0
-Taking damage: 1 with type: 3
-spell removed
-Taking damage: 1 with type: 3
-spell removed
-Taking damage: 1 with type: 3
-spell removed
-spell removed
 pushing states
+Mettaur OnHit
 spell removed
-pushing states
-Taking damage: 1 with type: 3
-spell removed
-spell removed
-pushing states
-spell removed
-Taking damage: 1 with type: 3
-spell removed
-pushing states
-spell removed
-pushing states
-Taking damage: 1 with type: 3
-spell removed
-spell removed
-pushing states
-spell removed
-pushing states
-spell removed
-pushing states
-spell removed
-Taking damage: 1 with type: 3
-spell removed
-spell removed
-Taking damage: 1 with type: 3
-spell removed
-pushing states
-spell removed
-pushing states
-spell removed
-pushing states
-spell removed
-pushing states
-Taking damage: 1 with type: 3
-spell removed
-spell removed
-showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
-showSummonText: true
-showSummonBackdropTimer: 0.233333 going to 0
-showSummonBackdropTimer: 0.216667 going to 0
-showSummonBackdropTimer: 0.200000 going to 0
-showSummonBackdropTimer: 0.183333 going to 0
-showSummonBackdropTimer: 0.166667 going to 0
-showSummonBackdropTimer: 0.150000 going to 0
-showSummonBackdropTimer: 0.133333 going to 0
-showSummonBackdropTimer: 0.116667 going to 0
-showSummonBackdropTimer: 0.100000 going to 0
-showSummonBackdropTimer: 0.083333 going to 0
-showSummonBackdropTimer: 0.066667 going to 0
-showSummonBackdropTimer: 0.050000 going to 0
-showSummonBackdropTimer: 0.033333 going to 0
-showSummonBackdropTimer: 0.016667 going to 0
-showSummonBackdropTimer: 0.000000 going to 0
-Taking damage: 1 with type: 3
-spell removed
-Taking damage: 1 with type: 3
-spell removed
-Taking damage: 1 with type: 3
-spell removed
-Taking damage: 40 with type: 3
-spell removed
-spell removed
-Taking damage: 40 with type: 3
-spell removed
-spell removed
-pushing states
-Taking damage: 1 with type: 3
-spell removed
-spell removed
-spell removed
-spell removed
-pushing states
-spell removed
-spell removed
-showSummonBackdropTimer: 0.016667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.033333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.050000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.066667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.083333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.100000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.116667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.133333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.150000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.166667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.183333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.200000 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.216667 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.233333 showSummonBackdropLength: 0.250000
-showSummonBackdropTimer: 0.250000 showSummonBackdropLength: 0.250000
-showSummonText: true
-showSummonBackdropTimer: 0.233333 going to 0
-spell removed
-spell removed
-spell removed
-showSummonBackdropTimer: 0.216667 going to 0
-showSummonBackdropTimer: 0.200000 going to 0
-showSummonBackdropTimer: 0.183333 going to 0
-showSummonBackdropTimer: 0.166667 going to 0
-showSummonBackdropTimer: 0.150000 going to 0
-showSummonBackdropTimer: 0.133333 going to 0
-showSummonBackdropTimer: 0.116667 going to 0
-showSummonBackdropTimer: 0.100000 going to 0
-showSummonBackdropTimer: 0.083333 going to 0
-showSummonBackdropTimer: 0.066667 going to 0
-showSummonBackdropTimer: 0.050000 going to 0
-showSummonBackdropTimer: 0.033333 going to 0
-showSummonBackdropTimer: 0.016667 going to 0
-showSummonBackdropTimer: 0.000000 going to 0
-Taking damage: 1 with type: 3
+Num of waves is: 13
+Num of waves is: 14
+Num of waves is: 15
+Num of waves is: 16
 spell removed
 pushing states
 should be flinching
+should be flinching
+Num of waves is: 17
+Num of waves is: 18
+Num of waves is: 19
+pushing states
+Mettaur OnHit
+Num of waves is: 20
 spell removed
-spell removed
-spell removed
-spell removed
-spell removed
-spell removed
-Taking damage: 20 with type: 3
-spell removed
+Num of waves is: 21
+Num of waves is: 22
+pushing states
+should be flinching
+should be flinching
+Num of waves is: 23
+Num of waves is: 24
+Num of waves is: 25
+Num of waves is: 26
+Num of waves is: 27
+Num of waves is: 28
+Num of waves is: 29
+Num of waves is: 30
+pushing states
+Mettaur OnHit
 spell removed
 pushing states
-spell removed
-spell removed
-spell removed
-pushing states
-spell removed
+Mettaur OnHit
 spell removed
 pushing states
+Mettaur OnHit
 spell removed
-spell removed
-spell removed
-spell removed
-spell removed
-pushing states
-spell removed
-spell removed
-pushing states
-spell removed
-pushing states
-spell removed
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onResume()
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-SelectMobScene::onEnd()
-library saved successfully. Number of chips saved: 78
-main menu onResume
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-library saved successfully. Number of chips saved: 78
-main menu onResume
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Num of waves is: 31
+Num of waves is: 32
+Num of waves is: 33

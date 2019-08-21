@@ -5,6 +5,9 @@
 
 using std::string;
 
+class BattleScene;
+class SelectedChipsUI;
+
 /**
  * @class Chip
  * @author mav
@@ -18,6 +21,10 @@ using std::string;
  */
 class Chip {
 public:
+  // TODO: take out from Atk+10 quick hack
+  friend class BattleScene;
+  friend class SelectedChipsUI;
+
   /**
    * @brief Chips are not designed to have default or partial data. Must provide all at once.
    */
@@ -112,7 +119,7 @@ public:
 private:
   unsigned ID;
   unsigned icon;
-  unsigned damage;
+  unsigned damage, unmodDamage;
   unsigned rarity;
   char code;
   string shortname;

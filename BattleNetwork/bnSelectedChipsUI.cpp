@@ -28,6 +28,7 @@ SelectedChipsUI::SelectedChipsUI(Player* _player) : ChipUsePublisher(), UICompon
   interpolTimeFlat = interpolTimeDest = 0;
   interpolDur = sf::seconds(0.2f);
 
+  firstFrame = true; // first time drawn, update positions
   spread = false;
 }
 
@@ -35,10 +36,16 @@ SelectedChipsUI::~SelectedChipsUI() {
 }
 
 void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {    
-  text.setString("");
-  dmg.setString("");
+    text.setString("");
+    dmg.setString("");
 
     if (player) {
+      if (firstFrame) {
+        sf::Vector2f dest = player->getPosition() + sf::Vector2f(- 4.f, -121.f);
+        icon.setPosition(dest);
+        firstFrame = false;
+      }
+
       int chipOrder = 0;
       
       // i = curr so we only see the chips that are left
@@ -76,6 +83,7 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           icon.setPosition(((float)alpha*dest) + ((float)(1.0 - alpha)*icon.getPosition()));
 
           interpolTimeDest += this->elapsed;
+
           interpolTimeFlat = 0;
         }
 
@@ -83,12 +91,12 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         // 1px * 2 (scale) = 2px
         frame.setPosition(icon.getPosition());
         frame.setPosition(frame.getPosition() - sf::Vector2f(2.f, 2.f));
-        target.draw(frame, states);
+        target.draw(frame);
 
         // Grab the ID of the chip and draw that icon from the spritesheet
         sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(selectedChips[drawOrderIndex]->GetIconID());
         icon.setTextureRect(iconSubFrame);
-        target.draw(icon, states);
+        target.draw(icon);
       }
 
       // If we have a valid chip, update and draw the data
@@ -102,8 +110,17 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         text.setOutlineThickness(2.f);
         text.setOutlineColor(sf::Color(48, 56, 80));
 
-        if (selectedChips[curr]->GetDamage() > 0) {
-          dmg = Text(to_string(selectedChips[curr]->GetDamage()), *font);
+        // Text sits at the bottom-left of the screen
+        sf::String dmgText = std::to_string(selectedChips[curr]->unmodDamage);
+        int delta = selectedChips[curr]->damage - selectedChips[curr]->unmodDamage;
+
+        if (selectedChips[curr]->unmodDamage != selectedChips[curr]->damage) {
+          dmgText = dmgText + sf::String(" + ") + sf::String(std::to_string(delta));
+        }
+
+        // attacks that normally show no damage will show if the modifer adds damage
+        if (delta != 0) {
+          dmg = Text(dmgText, *font);
           dmg.setOrigin(0, 0);
           dmg.setScale(0.8f, 0.8f);
           dmg.setPosition((text.getLocalBounds().width*text.getScale().x) + 13.f, 290.f);
@@ -121,7 +138,7 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
 };
 
 void SelectedChipsUI::OnUpdate(float _elapsed) {
-  if (INPUT.Has(InputEvent::PRESSED_LPAD) || INPUT.Has(InputEvent::PRESSED_RPAD)) {
+  if (INPUT.Has(InputEvent::HELD_LPAD) || INPUT.Has(InputEvent::HELD_RPAD)) {
     spread = true;
   }
   else {

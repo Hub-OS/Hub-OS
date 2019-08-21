@@ -40,16 +40,20 @@ Cube::Cube(Field* _field, Team _team) : Obstacle(field, team) {
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
 
-  this->SetSlideTime(sf::seconds(1.0f/5.0f)); // was 1/15 
+this->SetSlideTime(sf::seconds(1.0f / 5.0f)); // was 1/15 
 
-  cubeIndex = ++currCubeIndex;
+cubeIndex = ++currCubeIndex;
 
-  hit = false;
+hit = false;
 
-  this->previousDirection = Direction::NONE;
+this->previousDirection = Direction::NONE;
 
-  virusBody = new DefenseVirusBody();
-  this->AddDefenseRule(virusBody);
+virusBody = new DefenseVirusBody();
+this->AddDefenseRule(virusBody);
+
+auto props = GetHitboxProperties();
+props.damage = 200;
+this->SetHitboxProperties(props);
 }
 
 Cube::~Cube() {
@@ -64,7 +68,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
 
       bool stop = false;
 
-      auto allEntities = next->FindEntities([&stop, &other, this](Entity* e) -> bool { 
+      auto allEntities = next->FindEntities([&stop, &other, this](Entity* e) -> bool {
         Cube* isCube = dynamic_cast<Cube*>(other);
 
         if (isCube && isCube->GetElement() == Element::ICE && this->GetElement() == Element::ICE) {
@@ -107,8 +111,8 @@ void Cube::OnUpdate(float _elapsed) {
 
   // Keep momentum
   if (!IsSliding()) {
-      this->SlideToTile(true);
-      this->Move(this->GetDirection());
+    this->SlideToTile(true);
+    this->Move(this->GetDirection());
   }
 
   if (timer <= 0) {
@@ -169,9 +173,13 @@ void Cube::Attack(Character* other) {
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 
   if (isObstacle) {
-    auto props = Hit::DefaultProperties;
-    props.damage = 200;
-    isObstacle->Hit(props);
+    // breaking prop is insta-kill
+    auto props = isObstacle->GetHitboxProperties();
+    if ((props.flags & Hit::breaking) == Hit::breaking) {
+      return;
+    }
+
+    isObstacle->Hit(GetHitboxProperties());
     this->hit = true;
     return;
   }
@@ -180,10 +188,7 @@ void Cube::Attack(Character* other) {
 
   if (isCharacter && isCharacter != this) {
     this->SetHealth(0);
-
-    auto props = Hit::DefaultProperties;
-    props.damage = 200;
-    isCharacter->Hit(props);
+    isCharacter->Hit(GetHitboxProperties());
     this->hit = true;
   }
 }

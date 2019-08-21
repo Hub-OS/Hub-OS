@@ -68,6 +68,11 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell(_summons->Ge
     };
     this->animationComponent->SetAnimation("MOVE", handleAttack);
   });
+
+  auto props = GetHitboxProperties();
+  props.damage = 120;
+  props.aggressor = _summons->GetCaller();
+  SetHitboxProperties(props);
 }
 
 ProtoManSummon::~ProtoManSummon() {
@@ -114,8 +119,7 @@ void ProtoManSummon::Attack(Character* _entity) {
   GetField()->AddEntity(*effect, _entity->GetTile()->GetX(), _entity->GetTile()->GetY());
   this->summons->SummonEntity(effect, false);
 
-  auto props = Hit::DefaultProperties;
-  props.damage = 120;
+  auto props = GetHitboxProperties();
   _entity->Hit(props);
 
 

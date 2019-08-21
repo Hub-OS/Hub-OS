@@ -4,7 +4,7 @@
 #include <tuple>
 
 Chip::Chip(unsigned id, unsigned icon, char code, unsigned damage, Element element, string sname, string desc, string verboseDesc, unsigned rarity) :
-  ID(id), icon(icon), code(code), damage(damage), element(element) {
+  ID(id), icon(icon), code(code), damage(damage), unmodDamage(damage), element(element) {
   this->shortname.assign(sname);
   this->description.assign(desc);
   this->verboseDescription.assign(verboseDesc);
@@ -21,6 +21,7 @@ Chip::Chip(const Chip & copy) {
   icon = copy.icon;
   code = copy.code;
   damage = copy.damage;
+  unmodDamage = copy.unmodDamage;
   shortname = copy.shortname;
   description = copy.description;
   verboseDescription = copy.verboseDescription;

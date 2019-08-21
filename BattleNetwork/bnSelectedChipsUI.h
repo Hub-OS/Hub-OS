@@ -67,6 +67,7 @@ private:
   mutable double interpolTimeFlat; /*!< Interpolation time for spread chips */
   mutable double interpolTimeDest; /*!< Interpolation time for default chip stack */
   bool spread; /*!< If true, spread the chips, otherwise stack like the game */
+  mutable bool firstFrame; /*!< If true, this UI graphic is being drawn for the first time*/
   sf::Time interpolDur; /*!< Max duration for interpolation 0.2 seconds */
   Player* player; /*!< Player this component is attached to */
   Font* font; /*!< Chip name font */

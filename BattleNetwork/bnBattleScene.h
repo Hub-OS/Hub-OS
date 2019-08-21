@@ -335,4 +335,13 @@ public:
   const bool IsCleared() {
     return isPostBattle;
   }
+
+  /**
+ * @brief Query if the battle update loop is ticking.
+ * @return true if the field is not paused
+ */
+  const bool IsBattleActive();
+
+  // NOTE: just for demo until chip api is compete...
+  void TEMPFilterAtkChips(Chip** chips, int chipCount);
 };

@@ -292,6 +292,53 @@ void BattleScene::ProcessNewestComponents()
   }
 }
 
+const bool BattleScene::IsBattleActive()
+{
+  return !(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle);
+}
+
+void BattleScene::TEMPFilterAtkChips(Chip ** chips, int chipCount)
+{
+  // Only remove the ATK chips in the queue. Increase the previous chip damage by +10
+  int newChipCount = chipCount;
+  Chip* nonSupport = nullptr;
+
+  // Create a temp chip list
+  Chip** newChipList = new Chip*[chipCount];
+
+  int j = 0;
+  for (int i = 0; i < chipCount; ) {
+    if (chips[i]->GetShortName() == "Atk+10") {
+      if (nonSupport) {
+        nonSupport->damage += 10;
+      }
+
+      i++;
+      continue;
+    }
+
+    newChipList[j] = chips[i];
+    nonSupport = chips[i];
+
+    i++;
+    j++;
+  }
+
+  newChipCount = j;
+
+  // Set the new chips
+  for (int i = 0; i < newChipCount; i++) {
+    chips[i] = *(newChipList + i);
+  }
+
+  // Delete the temp list space
+  // NOTE: We are _not_ deleting the pointers in them
+  delete[] newChipList;
+
+  this->chips = chips;
+  this->chipCount = newChipCount;
+}
+
 void BattleScene::OnCounter(Character & victim, Character & aggressor)
 {
   AUDIO.Play(AudioType::COUNTER, AudioPriority::HIGHEST);
@@ -341,6 +388,8 @@ void BattleScene::onUpdate(double elapsed) {
   for (auto c : components) {
     c->OnUpdate((float)elapsed);
   }
+
+  chipUI.OnUpdate((float)elapsed);
 
   if (battleResults) {
     battleResults->Update(elapsed);
@@ -679,8 +728,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
 
-  if (!isPlayerDeleted && !summons.IsSummonActive()) {
-    //chipUI.OnUpdate((float)elapsed); // DRAW
+  if (!isPlayerDeleted && !showSummonBackdrop && !summons.IsSummonActive()) {
     ENGINE.Draw(chipUI);
   }
 
@@ -892,7 +940,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       else if (INPUT.Has(PRESSED_B) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
         chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGH) : 1;
       }
-      else if (INPUT.Has(PRESSED_PAUSE)) {
+      else if (INPUT.Has(PRESSED_RPAD)) {
         chipCustGUI.OpenChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;
       }
     }
@@ -929,6 +977,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     else if (isInChipSelect) { // we're leaving a state
       // Start Program Advance checks
       if (isPAComplete && hasPA == -1) {
+        // Filter and apply support chips
+        TEMPFilterAtkChips(chips, chipCount);
+
         // Return to game
         isInChipSelect = false;
         chipUI.LoadChips(chips, chipCount);
