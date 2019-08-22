@@ -317,6 +317,8 @@ namespace Battle {
 
   void Tile::RemoveEntityByID(int ID)
   {
+    bool doBreakState = false;
+
     auto itEnt   = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
     auto itSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
     auto itChar  = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
@@ -327,8 +329,7 @@ namespace Battle {
 
       // If removing an entity and the tile was broken, crack the tile
       if(reserved.size() == 0 && dynamic_cast<Character*>(*itEnt) != nullptr && (IsCracked() && !((*itEnt)->HasFloatShoe() || (*itEnt)->HasAirShoe()))) {
-        state = TileState::BROKEN;
-        AUDIO.Play(AudioType::PANEL_CRACK);
+        doBreakState = true;
       }
 
       entities.erase(itEnt);
@@ -349,6 +350,11 @@ namespace Battle {
 
     if (itArt != artifacts.end()) {
       artifacts.erase(itArt);
+    }
+
+    if (doBreakState) {
+      SetState(TileState::BROKEN);
+      AUDIO.Play(AudioType::PANEL_CRACK);
     }
   }
 
@@ -439,7 +445,6 @@ namespace Battle {
 
         // Remove them from the tile's bucket
         if (fitSpell != spells.end()) {
-          Logger::Log("spell removed");
           spells.erase(fitSpell);
         }
 
@@ -492,19 +497,21 @@ namespace Battle {
       (*entity)->Update(_elapsed);
     }
 
+
     if (this->isBattleActive) {
       if (teamCooldown > 0) {
-        teamCooldown -= 1 * _elapsed;
+        teamCooldown -= 1.0f * _elapsed;
         if (teamCooldown < 0) teamCooldown = 0;
       }
 
       if (flickerTeamCooldown > 0) {
-        flickerTeamCooldown -= 1 * _elapsed;
+        flickerTeamCooldown -= 1.0f * _elapsed;
         if (flickerTeamCooldown < 0) flickerTeamCooldown = 0;
       }
 
       if (state == TileState::BROKEN) {
-        brokenCooldown -= 1 * _elapsed;
+        brokenCooldown -= 1.0f * _elapsed;
+
         if (brokenCooldown < 0) { brokenCooldown = 0; state = TileState::NORMAL; }
       }
     }

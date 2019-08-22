@@ -132,13 +132,10 @@ void Thunder::Attack(Character* _entity) {
     Hit::Properties props;
     
     // Thunder stuns and recoils
-    props.flags = Hit::recoil | Hit::stun;
+    props.flags |= Hit::recoil | Hit::stun;
     
     // Thunder has electric properties
     props.element = Element::ELEC;
-    
-    // Stun and recoil last for 3 seconds
-    props.secs = 3;
     
     // Attack does 40 units of damage
     props.damage = 40;

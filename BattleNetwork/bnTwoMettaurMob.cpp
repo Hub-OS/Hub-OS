@@ -33,9 +33,10 @@ Mob* TwoMettaurMob::Build() {
     for (int i = 0; i < field->GetWidth(); i++) {
       for (int j = 0; j < field->GetHeight(); j++) {
         Battle::Tile* tile = field->GetAt(i + 1, j + 1);
-        //tile->SetState(TileState::ICE);
+        
+        tile->SetState(TileState::CRACKED);
 
-        if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE) {
+        if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE && tile->GetEntityCount() == 0) {
           if (rand() % 50 > 25 && count-- > 0)
             mob->Spawn<Rank1<Mettaur>>(i + 1, j + 1);
         }

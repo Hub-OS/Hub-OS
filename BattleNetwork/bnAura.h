@@ -41,12 +41,13 @@ private:
   double timer; /*!< Some aura types delete over time in seconds */
   int health; /*!< HP of aura */
   bool persist; /*!< Flag is Barrier goes away over time or if it lingers */
-  
+  bool isOver; /*!< Flag if the aura is fading out */
   int lastHP; /*!< HP last frame */
   int currHP; /*!< HP this frame */
   int startHP; /*!< HP at creation */
   mutable Sprite font; /*!< Aura HP glyphs */
-
+  Character* privOwner; /*!< We wish to track the original owner */
+  BattleScene* bs; /*!< pointer to the battle scene*/
 public:
   /**
    * @brief Create an aura with type and a Character owner

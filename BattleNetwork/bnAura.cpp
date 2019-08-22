@@ -5,12 +5,13 @@
 #include "bnAura.h"
 #include "bnLayered.h"
 #include "bnDefenseAura.h"
+#include "bnBattleScene.h"
 
 using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/auras.animation"
 
-Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Component(owner)
+Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Component(owner), privOwner(owner)
 {
   this->timer = 50; // seconds
   
@@ -29,6 +30,8 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
   animation.Reload();
+
+  isOver = false;
 
   switch (type) {
   case Aura::Type::AURA_100:
@@ -72,31 +75,49 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
 }
 
 void Aura::Inject(BattleScene& bs) {
-
+  this->bs = &bs;
+  this->bs->Inject((Component*)this);
+  GetOwner()->FreeComponentByID(this->GetID());
+ 
 }
 
 void Aura::OnUpdate(float _elapsed) {
   currHP = health;
   
-  if(!persist) {
+  if(this->bs->IsBattleActive() && (!persist || isOver)) {
     timer -= _elapsed;
   }
 
-  if (health == 0 || timer <= 0.0) {
-    this->GetOwnerAs<Character>()->RemoveDefenseRule(this->defense);
+  if (!isOver) {
+    if (health == 0 || timer <= 0.0) {
+      isOver = true;
+      timer = 2;
+      this->auraSprite.setColor(sf::Color(255, 255, 255, 230));
+    }
+
+    this->Reveal(); // always show regardless of owner
+  }
+  else if (timer <= 0.0) {
+    this->privOwner->RemoveDefenseRule(this->defense);
     this->RemoveNode(aura);
-    this->GetOwner()->RemoveNode(this);
-    this->GetOwner()->FreeComponentByID(this->Component::GetID());
+    this->privOwner->RemoveNode(this);
+    this->bs->Eject(this);
     delete this;
     return;
   }
+  else {
+    // flicker
+    if (int(timer*15000) % 2 == 0) {
+      this->Hide();
+    }
+    else {
+      this->Reveal();
+    }
+  }
 
- if (this->GetOwner()->GetTile() == nullptr) {
+ if (this->privOwner->GetTile() == nullptr) {
    this->Hide();
    return;
- }
- else {
-   this->Reveal();
  }
 
  animation.Update(_elapsed, *aura);
@@ -138,7 +159,7 @@ void Aura::TakeDamage(int damage)
 void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {  
   auto this_states = states;
   this_states.transform *= this->getTransform();
-
+  this_states.shader = nullptr; // we don't want to apply effects from the owner to this component
   SceneNode::draw(target, this_states);
 
   // 0 - 5 are on first row

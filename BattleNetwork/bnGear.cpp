@@ -27,7 +27,7 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), 
   this->SetSlideTime(sf::seconds(2.0f)); // crawl
 
   Hit::Properties props = Hit::DefaultProperties;
-  props.flags = Hit::recoil | Hit::breaking;
+  props.flags |= Hit::recoil | Hit::breaking;
   this->SetHitboxProperties(props);
 
   tileStartTeam = Team::UNKNOWN;

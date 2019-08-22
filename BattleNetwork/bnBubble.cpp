@@ -35,6 +35,8 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   
   // Bubbles can overlap eachother partially
   ShareTileSpace(true);
+
+  animation.Update(0, *this);
 }
 
 Bubble::~Bubble() {

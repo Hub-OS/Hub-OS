@@ -44,7 +44,6 @@ void Elecpulse::Attack(Character* _entity) {
   Hit::Properties props;
   props.element = this->GetElement();
   props.flags = Hit::recoil | Hit::stun;
-  props.secs = 3;
   props.damage = damage;
 
    _entity->Hit(props);

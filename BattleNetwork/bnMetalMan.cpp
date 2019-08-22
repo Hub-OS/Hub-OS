@@ -46,9 +46,6 @@ MetalMan::MetalMan(Rank _rank)
   animationComponent->Reload();
   animationComponent->SetAnimation(MOB_IDLE);
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
-
   animationComponent->OnUpdate(0);
 
   movedByStun = false;
@@ -108,22 +105,9 @@ void MetalMan::OnUpdate(float _elapsed) {
 const bool MetalMan::OnHit(const Hit::Properties props) {
   bool result = true;
 
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-
-    if ((props.flags & Hit::stun) == Hit::stun) {
-      SetShader(stun);
-      this->stunCooldown = props.secs;
-
-      if (!Teammate(this->GetTile()->GetTeam())) {
-        movedByStun = true;
-      }
-    }
-    else {
-      SetShader(whiteout);
+  if ((props.flags & Hit::stun) == Hit::stun) {
+    if (!Teammate(this->GetTile()->GetTeam())) {
+      movedByStun = true;
     }
   }
 
@@ -151,5 +135,4 @@ void MetalMan::SetAnimation(string _state, std::function<void()> onFinish) {
 
 void MetalMan::OnDelete() {
   this->ChangeState<NaviExplodeState<MetalMan>>(9, 0.75); // freezes animation
-  this->LockState();
 }

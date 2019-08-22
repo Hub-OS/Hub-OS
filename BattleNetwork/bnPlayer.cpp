@@ -85,7 +85,6 @@ const bool Player::OnHit(const Hit::Properties props) {
 
   // Respond to the recoil bit state
   if ((props.flags & Hit::recoil) == Hit::recoil) {
-    // this->ChangeState<PlayerHitState>((float)props.secs );
     this->ChangeState<PlayerHitState>();
   }
 

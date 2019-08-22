@@ -274,7 +274,7 @@ void BattleScene::ProcessNewestComponents()
       auto latestID = e->components[0]->GetID();
 
       if (e->lastComponentID < e->components[0]->GetID()) {
-        std::cout << "latestID: " << latestID << " lastComponentID: " << e->lastComponentID << "\n";
+        //std::cout << "latestID: " << latestID << " lastComponentID: " << e->lastComponentID << "\n";
 
         // Process the newest components
         std::vector<Component*> newest;
@@ -310,7 +310,10 @@ void BattleScene::TEMPFilterAtkChips(Chip ** chips, int chipCount)
   for (int i = 0; i < chipCount; ) {
     if (chips[i]->GetShortName() == "Atk+10") {
       if (nonSupport) {
-        nonSupport->damage += 10;
+        auto supportChips = { "Barrier", "Invis", "Recov80" };
+        if (std::find(supportChips.begin(), supportChips.end(), nonSupport->GetShortName()) ==  supportChips.end()) {
+          nonSupport->damage += 10;
+        }
       }
 
       i++;
@@ -365,16 +368,16 @@ void BattleScene::onUpdate(double elapsed) {
 
     if(showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
       showSummonBackdropTimer += elapsed;
-      Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " showSummonBackdropLength: " + std::to_string(showSummonBackdropLength));
+      //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " showSummonBackdropLength: " + std::to_string(showSummonBackdropLength));
     }else if(showSummonBackdropTimer >= showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && !showSummonText && prevSummonState) {
       if (!summons.IsSummonOver()) {
         showSummonText = true;
-        Logger::Log("showSummonText: " + (showSummonText ? std::string("true") : std::string("false")));
+        //Logger::Log("showSummonText: " + (showSummonText ? std::string("true") : std::string("false")));
       }
     } else if(showSummonBackdropTimer > 0 && summons.IsSummonOver()) {
       showSummonBackdropTimer -= elapsed;
       showSummonText = prevSummonState = false;
-      Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " going to 0");
+      //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " going to 0");
 
     } else if(showSummonBackdropTimer <= 0 && summons.IsSummonOver()) {
       showSummonBackdropTimer = 0;
@@ -499,7 +502,7 @@ void BattleScene::onUpdate(double elapsed) {
 
       customProgress += elapsed;
 
-      // this may be a redundant flag now that nodes and components can be updated by injection
+      // NOTE: this may be a redundant flag now that nodes and components can be updated by injection
       field->SetBattleActive(true);
     }
   }
@@ -554,11 +557,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       }
       else {
         ENGINE.Draw(tile);
-        tile->move(-ENGINE.GetViewOffset());
-
       }
     }
 
+    tile->move(-ENGINE.GetViewOffset());
     tilesIter++;
   }
 
@@ -818,7 +820,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
   else if ((!isMobFinished && mob->IsSpawningDone()) ||
            (
-                   INPUT.Has(PRESSED_START) && customProgress >= customDuration && !isInChipSelect && !isPaused &&
+                    (INPUT.Has(PRESSED_LPAD) || INPUT.Has(PRESSED_RPAD)) && customProgress >= customDuration && !isInChipSelect && !isPaused &&
                    !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle
            )) {
     // enemy intro finished

@@ -67,7 +67,7 @@ void Character::Update(float _elapsed) {
     if (this->GetTile()) {
       if (this->GetTile()->GetState() == TileState::POISON) {
         if (elapsedBurnTime <= 0) {
-          if (this->Hit(Hit::Properties({ 1, 0x00, Element::NONE, 0, nullptr, Direction::NONE }))) {
+          if (this->Hit(Hit::Properties({ 1, 0x00, Element::NONE, nullptr, Direction::NONE }))) {
             elapsedBurnTime = burnCycle.asSeconds();
           }
         }
@@ -77,7 +77,7 @@ void Character::Update(float _elapsed) {
       }
 
       if (this->GetTile()->GetState() == TileState::LAVA) {
-        if (this->Hit(Hit::Properties({ 50, Hit::pierce, Element::FIRE, 0, nullptr, Direction::NONE }))) {
+        if (this->Hit(Hit::Properties({ 50, Hit::pierce, Element::FIRE, nullptr, Direction::NONE }))) {
           Field* field = GetField();
           Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
           field->AddEntity(*explosion, tile->GetX(), tile->GetY());
@@ -235,7 +235,7 @@ void Character::ResolveFrameBattleDamage()
       // Requeue drag if already sliding by drag
       if((props.flags & Hit::drag) == Hit::drag) {
         if(this->slideFromDrag) {
-          append.push({0, Hit::drag, Element::NONE, 0.0, nullptr, props.drag});
+          append.push({0, Hit::drag, Element::NONE, nullptr, props.drag});
         } else {
           // Apply directional slide later
           postDragDir = props.drag;
@@ -249,9 +249,9 @@ void Character::ResolveFrameBattleDamage()
       // Stun can be canceled by non-stun hits or queued if dragging
       if((props.flags & Hit::stun) == Hit::stun) {
         if(postDragDir != Direction::NONE) {
-          append.push({0, props.flags, Element::NONE, props.secs, nullptr, Direction::NONE});
+          append.push({0, props.flags, Element::NONE, nullptr, Direction::NONE});
         } else {
-          this->stunCooldown = props.secs;
+          this->stunCooldown = 3.0;
         }
       } else if(this->stunCooldown > 0) {
         // cancel
@@ -264,13 +264,12 @@ void Character::ResolveFrameBattleDamage()
       // Flinch is ignored if already flinching
       // and can be queued if dragging this frame
       if ((props.flags & Hit::flinch) == Hit::flinch) {
-        Logger::Log("should be flinching");
         if (postDragDir != Direction::NONE) {
-          append.push({ 0, props.flags, Element::NONE, props.secs, nullptr, Direction::NONE });
+          append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
         }
         else {
           if (this->invincibilityCooldown <= 0.0) {
-            this->invincibilityCooldown = props.secs;
+            this->invincibilityCooldown = 3.0;
           }
         }
       }
@@ -303,6 +302,7 @@ void Character::ResolveFrameBattleDamage()
   }
 
   if(frameCounterAggressor) {
+    Logger::Log("counter broadcasted!");
     this->Broadcast(*this, *frameCounterAggressor);
     this->ToggleCounter(false);
     this->Stun(3.0);

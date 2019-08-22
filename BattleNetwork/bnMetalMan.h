@@ -87,8 +87,6 @@ private:
   float hitHeight; /*!< Hit height of metalman */
   string state; /*!< current animation name */
   MobHealthUI* healthUI; /*!< Health ui component */
-  sf::Shader* whiteout; /*!< white shader */
-  sf::Shader* stun; /*!< yellow shader */
 
   bool movedByStun; /*!< If metalman was stunned outside of this area, move him back to his space */
   bool hit; /*!< Flash white if his this frame */

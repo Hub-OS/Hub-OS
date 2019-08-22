@@ -7,21 +7,6 @@
     <Filter Include="Entry">
       <UniqueIdentifier>{99da17ce-caae-4583-a7c2-d4d60a27fba6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Resources">
-      <UniqueIdentifier>{0e5b07ae-1ba2-404d-a462-579ab664eac6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Resources\TextureResource">
-      <UniqueIdentifier>{04b25a7a-f471-420f-8ea0-6794994adb3c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Resources\AudioResource">
-      <UniqueIdentifier>{584d74c6-24b9-4e0b-b8cb-06f4e0b8a9c8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Resources\ShaderResource">
-      <UniqueIdentifier>{49b19f7e-5aec-46e0-967f-2e0f585adcef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\Resources\FontResource">
-      <UniqueIdentifier>{439edcdf-bce0-4360-b0e4-4fe0e780bf66}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utilities">
       <UniqueIdentifier>{8c50a11b-c013-4ca0-a58e-cfc37e58a64f}</UniqueIdentifier>
     </Filter>
@@ -497,6 +482,21 @@
     <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\VirusBody">
       <UniqueIdentifier>{8faefec4-1c27-429c-8d11-471af16dd3bc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\ResourceManagers">
+      <UniqueIdentifier>{0e5b07ae-1ba2-404d-a462-579ab664eac6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\ResourceManagers\TextureResource">
+      <UniqueIdentifier>{04b25a7a-f471-420f-8ea0-6794994adb3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\ResourceManagers\AudioResource">
+      <UniqueIdentifier>{584d74c6-24b9-4e0b-b8cb-06f4e0b8a9c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\ResourceManagers\ShaderResource">
+      <UniqueIdentifier>{49b19f7e-5aec-46e0-967f-2e0f585adcef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\ResourceManagers\FontResource">
+      <UniqueIdentifier>{439edcdf-bce0-4360-b0e4-4fe0e780bf66}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -530,10 +530,10 @@
       <Filter>Activities\Battle\Content\Entities\Character\ProgsMan</Filter>
     </ClCompile>
     <ClCompile Include="bnAudioResourceManager.cpp">
-      <Filter>Engine\Resources\AudioResource</Filter>
+      <Filter>Engine\ResourceManagers\AudioResource</Filter>
     </ClCompile>
     <ClCompile Include="bnTextureResourceManager.cpp">
-      <Filter>Engine\Resources\TextureResource</Filter>
+      <Filter>Engine\ResourceManagers\TextureResource</Filter>
     </ClCompile>
     <ClCompile Include="bnProgBomb.cpp">
       <Filter>Activities\Battle\Content\Entities\Spell\ProgBomb</Filter>
@@ -593,10 +593,10 @@
       <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
     </ClCompile>
     <ClCompile Include="bnShaderResourceManager.cpp">
-      <Filter>Engine\Resources\ShaderResource</Filter>
+      <Filter>Engine\ResourceManagers\ShaderResource</Filter>
     </ClCompile>
     <ClCompile Include="bnSmartShader.cpp">
-      <Filter>Engine\Resources\ShaderResource</Filter>
+      <Filter>Engine\ResourceManagers\ShaderResource</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManPunchState.cpp">
       <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
@@ -1000,16 +1000,16 @@
       <Filter>Activities\Battle\Content\Entities\Character\ProgsMan</Filter>
     </ClInclude>
     <ClInclude Include="bnTextureType.h">
-      <Filter>Engine\Resources\TextureResource</Filter>
+      <Filter>Engine\ResourceManagers\TextureResource</Filter>
     </ClInclude>
     <ClInclude Include="bnAudioType.h">
-      <Filter>Engine\Resources\AudioResource</Filter>
+      <Filter>Engine\ResourceManagers\AudioResource</Filter>
     </ClInclude>
     <ClInclude Include="bnAudioResourceManager.h">
-      <Filter>Engine\Resources\AudioResource</Filter>
+      <Filter>Engine\ResourceManagers\AudioResource</Filter>
     </ClInclude>
     <ClInclude Include="bnTextureResourceManager.h">
-      <Filter>Engine\Resources\TextureResource</Filter>
+      <Filter>Engine\ResourceManagers\TextureResource</Filter>
     </ClInclude>
     <ClInclude Include="bnProgBomb.h">
       <Filter>Activities\Battle\Content\Entities\Spell\ProgBomb</Filter>
@@ -1088,13 +1088,13 @@
       <Filter>Activities\Battle\Content\Entities\Character\ProgsMan\States</Filter>
     </ClInclude>
     <ClInclude Include="bnShaderResourceManager.h">
-      <Filter>Engine\Resources\ShaderResource</Filter>
+      <Filter>Engine\ResourceManagers\ShaderResource</Filter>
     </ClInclude>
     <ClInclude Include="bnShaderType.h">
-      <Filter>Engine\Resources\ShaderResource</Filter>
+      <Filter>Engine\ResourceManagers\ShaderResource</Filter>
     </ClInclude>
     <ClInclude Include="bnSmartShader.h">
-      <Filter>Engine\Resources\ShaderResource</Filter>
+      <Filter>Engine\ResourceManagers\ShaderResource</Filter>
     </ClInclude>
     <ClInclude Include="bnPA.h">
       <Filter>Database\PA</Filter>
