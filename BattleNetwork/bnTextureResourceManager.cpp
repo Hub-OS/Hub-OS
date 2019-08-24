@@ -69,23 +69,11 @@ Font* TextureResourceManager::LoadFontFromFile(string _path) {
 TextureResourceManager::TextureResourceManager(void) {
   //-Tiles-
   //Blue tile
-  paths.push_back("resources/tiles/img_blue_normal.png");
-  paths.push_back("resources/tiles/img_blue_cracked.png");
-  paths.push_back("resources/tiles/img_blue_broken.png");
-  paths.push_back("resources/tiles/img_blue_ice.png");
-  paths.push_back("resources/tiles/img_blue_grass.png");
-  paths.push_back("resources/tiles/img_blue_purple.png");
-  paths.push_back("resources/tiles/img_blue_lava.png");
-  paths.push_back("resources/tiles/img_blue_empty.png");
+  paths.push_back("resources/tiles/tile_atlas_blue.png");
+
   //Red tile
-  paths.push_back("resources/tiles/img_red_normal.png");
-  paths.push_back("resources/tiles/img_red_cracked.png");
-  paths.push_back("resources/tiles/img_red_broken.png");
-  paths.push_back("resources/tiles/img_red_ice.png");
-  paths.push_back("resources/tiles/img_red_grass.png");
-  paths.push_back("resources/tiles/img_red_purple.png");
-  paths.push_back("resources/tiles/img_red_lava.png");
-  paths.push_back("resources/tiles/img_red_empty.png");
+  paths.push_back("resources/tiles/tile_atlas_red.png");
+
 
   //-Navis-
   //Megaman

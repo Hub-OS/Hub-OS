@@ -119,7 +119,7 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         }
 
         // attacks that normally show no damage will show if the modifer adds damage
-        if (delta != 0) {
+        if (delta != 0 || selectedChips[curr]->unmodDamage != 0) {
           dmg = Text(dmgText, *font);
           dmg.setOrigin(0, 0);
           dmg.setScale(0.8f, 0.8f);

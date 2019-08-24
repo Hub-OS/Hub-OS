@@ -9,7 +9,7 @@ using sf::IntRect;
 #include <cmath>
 
 Animation::Animation() : animator(), path("") {
-  ;
+  progress = 0;
 }
 
 Animation::Animation(const char* _path) : animator(), path(std::string(_path)) {
@@ -18,6 +18,20 @@ Animation::Animation(const char* _path) : animator(), path(std::string(_path)) {
 
 Animation::Animation(string _path) : animator(), path(_path) {
   Reload();
+}
+
+Animation::Animation(const Animation& rhs) {
+  *this = rhs;
+}
+
+Animation & Animation::operator=(const Animation & rhs)
+{
+  this->animations = rhs.animations;
+  this->animator = rhs.animator;
+  this->currAnimation = rhs.currAnimation;
+  this->path = rhs.path;
+  this->progress = rhs.progress;
+  return *this;
 }
 
 Animation::~Animation() {
@@ -31,7 +45,7 @@ void Animation::Reload() {
   int currentWidth = 0;
   int currentHeight = 0;
   bool legacySupport = false;
-
+  progress = 0;
   string data = FileUtil::Read(path);
   int endline = 0;
   do {
@@ -154,7 +168,7 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
 
   const float duration = animations[currAnimation].GetTotalDuration();
 
-  if(duration == 0.f) return;
+  if(duration <= 0.f) return;
 
   // Since we are manually keeping track of the progress, we must account for the animator's loop mode
   while (progress > duration && (animator.GetMode() & Animate::Mode::Loop) == Animate::Mode::Loop) {

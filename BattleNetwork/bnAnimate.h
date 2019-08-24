@@ -178,7 +178,8 @@ public:
   };
 
   Animate();
-  Animate(Animate& rhs);
+  Animate(const Animate& rhs);
+  Animate& operator=(const Animate& rhs);
   ~Animate();
 
   /**

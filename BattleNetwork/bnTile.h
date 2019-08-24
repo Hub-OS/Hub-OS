@@ -35,11 +35,13 @@ class Artifact;
 #include "bnTeam.h"
 #include "bnTextureType.h"
 #include "bnTileState.h"
+#include "bnAnimation.h"
 #include "bnField.h"
 
 namespace Battle {
   class Tile : public Sprite {
   public:
+      friend Field::Field(int _width, int _height);
       friend void Field::Update(float _elapsed);
 
     /**
@@ -230,17 +232,23 @@ namespace Battle {
     std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
   private:
+    std::string GetAnimState(const TileState state);
+
     int x; /**< Column number*/
     int y; /**< Row number*/
     Team team;
     TileState state;
-    TextureType textureType; /**< Texture reflects the tile's state */
+    std::string animState; /**< reflects the tile's state - lookup animation from animation file */
     float elapsed; /**< Internal counter for non-permanent states e.g. TileState::Cracked */
 
     float width;
     float height;
     Field* field;
     float teamCooldown;
+
+    sf::Texture* red_team_atlas;
+    sf::Texture* blue_team_atlas;
+
     static float teamCooldownLength;
     float brokenCooldown;
     static float brokenCooldownLength;
@@ -257,6 +265,8 @@ namespace Battle {
 
     set<int> reserved; /**< IDs of entities reserving this tile*/
     vector<long> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
+
+    Animation animation;
 
     /**
      * @brief Auxillary function used by all other overloads of AddEntity

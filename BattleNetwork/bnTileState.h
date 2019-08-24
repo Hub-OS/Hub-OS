@@ -12,5 +12,11 @@ enum class TileState : int {
   LAVA = 5,
   POISON = 6,
   EMPTY = 7,
+  HOLY = 9,
+  DIRECTION_LEFT = 10,
+  DIRECTION_RIGHT = 11,
+  DIRECTION_UP = 12,
+  DIRECTION_DOWN = 13,
+  VOLCANO = 14,
   SIZE = 8
 };

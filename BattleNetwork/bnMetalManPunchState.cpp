@@ -39,6 +39,7 @@ void MetalManPunchState::Attack(MetalMan& metal) {
 
     HitBox* hitbox = new HitBox(metal.field, metal.GetTeam(), 100);
     auto props = hitbox->GetHitboxProperties();
+    props.flags |= Hit::flinch;
     props.aggressor = &metal;
     hitbox->SetHitboxProperties(props);
 

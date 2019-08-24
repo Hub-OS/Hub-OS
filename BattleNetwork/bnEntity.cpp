@@ -407,6 +407,7 @@ void Entity::AdoptNextTile()
   } else {
     // Adopting a tile is the last step in the move procedure
     // Increase the move count
+    next = nullptr;
     moveCount++;
   }
 }

@@ -34,7 +34,8 @@ Mob* TwoMettaurMob::Build() {
       for (int j = 0; j < field->GetHeight(); j++) {
         Battle::Tile* tile = field->GetAt(i + 1, j + 1);
         
-        tile->SetState(TileState::CRACKED);
+        if(tile->GetTeam() == Team::RED && j == 1)
+          tile->SetState(TileState::DIRECTION_RIGHT);
 
         if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE && tile->GetEntityCount() == 0) {
           if (rand() % 50 > 25 && count-- > 0)

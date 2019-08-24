@@ -2,17 +2,31 @@
 
 #include "bnObstacle.h"
 #include "bnArtifact.h"
+#include "bnTextureResourceManager.h"
+
+constexpr auto TILE_ANIMATION_PATH = "resources/tiles/tiles.animation";
 
 Field::Field(int _width, int _height)
   : width(_width),
   height(_height),
   tiles(vector<vector<Battle::Tile*>>())
   {
+  // Moved tile resource acquisition to field so we only them once for all tiles
+  Animation a(TILE_ANIMATION_PATH);
+  a.Reload();
+  a << Animate::Mode::Loop;
+
+  auto t_a_b = TEXTURES.GetTexture(TextureType::TILE_ATLAS_BLUE);
+  auto t_a_r = TEXTURES.GetTexture(TextureType::TILE_ATLAS_RED);
+
   for (int y = 0; y < _height; y++) {
     vector<Battle::Tile*> row = vector<Battle::Tile*>();
     for (int x = 0; x < _width; x++) {
       Battle::Tile* tile = new Battle::Tile(x + 1, y + 1);
       tile->SetField(this);
+      tile->animation = a;
+      tile->blue_team_atlas = t_a_b;
+      tile->red_team_atlas = t_a_r;
       row.push_back(tile);
     }
     tiles.push_back(row);

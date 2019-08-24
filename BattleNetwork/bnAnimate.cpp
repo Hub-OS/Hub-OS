@@ -7,9 +7,15 @@ Animate::Animate() {
   queuedOnFinish = nullptr;
   isUpdating = false;
   callbacksAreValid = true;
+  playbackMode = 0x00;
 }
 
-Animate::Animate(Animate& rhs) {
+Animate::Animate(const Animate& rhs) {
+  *this = rhs;
+}
+
+Animate & Animate::operator=(const Animate & rhs)
+{
   this->onFinish = rhs.onFinish;
   this->callbacks = rhs.callbacks;
   this->onetimeCallbacks = rhs.onetimeCallbacks;
@@ -20,6 +26,9 @@ Animate::Animate(Animate& rhs) {
   this->isUpdating = rhs.isUpdating;
   this->callbacksAreValid = rhs.callbacksAreValid;
   this->currentPoints = rhs.currentPoints;
+  this->playbackMode = rhs.playbackMode;
+
+  return *this;
 }
 
 Animate::~Animate() {

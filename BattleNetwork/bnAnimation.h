@@ -48,6 +48,10 @@ using std::to_string;
 class Animation {
 public:
 
+  auto GetMode() {
+    return animator.GetMode();
+  }
+
   /**
    * @brief No frame list is loaded*/
   Animation();
@@ -63,6 +67,11 @@ public:
    * @param path relative path from application to file
    */
   Animation(string path);
+
+  Animation(const Animation& rhs);
+
+  Animation& operator=(const Animation& rhs);
+
   ~Animation();
   /**
    * @brief Reads file at path set by constructor, parses lines, and populates FrameList with data

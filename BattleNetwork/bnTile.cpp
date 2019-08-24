@@ -10,6 +10,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnField.h"
 
+#define TILE_WIDTH 40.0f
+#define TILE_HEIGHT 30.0f
 #define START_X 0.0f
 #define START_Y 144.f
 #define COOLDOWN 10.f
@@ -21,7 +23,7 @@ namespace Battle {
   float Tile::teamCooldownLength = COOLDOWN;
   float Tile::flickerTeamCooldownLength = FLICKER;
 
-  Tile::Tile(int _x, int _y) {
+  Tile::Tile(int _x, int _y) : animation() {
     x = _x;
     y = _y;
     if (x <= 3) {
@@ -32,18 +34,18 @@ namespace Battle {
     }
 
     state = TileState::NORMAL;
-    RefreshTexture();
     elapsed = 0;
     entities = vector<Entity*>();
     setScale(2.f, 2.f);
-    width = getTextureRect().width * getScale().x;
-    height = getTextureRect().height * getScale().y;
-    setOrigin(getTextureRect().width / 2.0f, getTextureRect().height / 2.0f);
+    width = TILE_WIDTH * getScale().x;
+    height = TILE_HEIGHT * getScale().y;
+    setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
     setPosition((width/2.0f) + ((x - 1) * width) + START_X, (height/2.0f) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = false;
     isBattleActive = false;
     brokenCooldown = 0;
     flickerTeamCooldown = teamCooldown = 0;
+    red_team_atlas = blue_team_atlas = nullptr; // Set by field
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -57,8 +59,9 @@ namespace Battle {
     elapsed = other.elapsed;
     entities = other.entities;
     setScale(2.f, 2.f);
-    width = getTextureRect().width * getScale().x;
-    height = getTextureRect().height * getScale().y;
+    width = other.width;
+    height = other.height;
+    animState = other.animState;
     setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = other.hasSpell;
     reserved = other.reserved;
@@ -69,6 +72,9 @@ namespace Battle {
     brokenCooldown = other.brokenCooldown;
     teamCooldown = other.teamCooldown;
     flickerTeamCooldown = other.flickerTeamCooldown;
+    red_team_atlas = other.red_team_atlas;
+    blue_team_atlas = other.blue_team_atlas;
+    animation = other.animation;
 
     return *this;
   }
@@ -85,8 +91,9 @@ namespace Battle {
     elapsed = other.elapsed;
     entities = other.entities;
     setScale(2.f, 2.f);
-    width = getTextureRect().width * getScale().x;
-    height = getTextureRect().height * getScale().y;
+    width = other.width;
+    height = other.height;
+    animState = other.animState;
     setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
     hasSpell = other.hasSpell;
     isBattleActive = other.isBattleActive;
@@ -97,6 +104,10 @@ namespace Battle {
     brokenCooldown = other.brokenCooldown;
     teamCooldown = other.teamCooldown;
     flickerTeamCooldown = other.flickerTeamCooldown;
+    red_team_atlas = other.red_team_atlas;
+    blue_team_atlas = other.blue_team_atlas;
+    animation = other.animation;
+
   }
 
   Tile::~Tile() {
@@ -185,78 +196,31 @@ namespace Battle {
   void Tile::RefreshTexture() {
     // Hack to toggle between team color without rewriting redundant code
     auto currTeam = team;
-    auto otherTeam = (team == Team::UNKNOWN)? Team::UNKNOWN : (team == Team::RED)? Team::BLUE : Team::RED;
+    auto otherTeam = (team == Team::UNKNOWN) ? Team::UNKNOWN : (team == Team::RED) ? Team::BLUE : Team::RED;
+
+    auto prevAnimState = animState;
+
     ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
 
-    if (state == TileState::NORMAL) {
-      if (currTeam == Team::BLUE) {
-        textureType = TextureType::TILE_BLUE_NORMAL;
-      }
-      else {
-        textureType = TextureType::TILE_RED_NORMAL;
-      }
-    }
-    else if (state == TileState::CRACKED) {
-      if (currTeam == Team::BLUE) {
-        textureType = TextureType::TILE_BLUE_CRACKED;
-      }
-      else {
-        textureType = TextureType::TILE_RED_CRACKED;
-      }
-    }
-    else if (state == TileState::BROKEN) {
+    if (state == TileState::BROKEN) {
       // Broken tiles flicker when they regen
-      if (currTeam == Team::BLUE) {
-        textureType = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? TextureType::TILE_BLUE_NORMAL : TextureType::TILE_BLUE_BROKEN;
-      }
-      else {
-        textureType = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? TextureType::TILE_RED_NORMAL : TextureType::TILE_RED_BROKEN;
-      }
-    }
-    else if (state == TileState::EMPTY) {
-      if (currTeam == Team::BLUE) {
-        textureType = TextureType::TILE_BLUE_EMPTY;
-      }
-      else {
-        textureType = TextureType::TILE_RED_EMPTY;
-      }
-    }
-    else if (state == TileState::ICE) {
-      if (currTeam == Team::BLUE) {
-        textureType = TextureType::TILE_BLUE_ICE;
-      }
-      else {
-        textureType = TextureType::TILE_RED_ICE;
-      }
-    }
-    else if (state == TileState::GRASS) {
-      if (currTeam == Team::BLUE) {
-        textureType = TextureType::TILE_BLUE_GRASS;
-      }
-      else {
-        textureType = TextureType::TILE_RED_GRASS;
-      }
-    }
-    else if (state == TileState::POISON) {
-      if (currTeam == Team::BLUE) {
-        textureType = TextureType::TILE_BLUE_PURPLE;
-      }
-      else {
-        textureType = TextureType::TILE_RED_PURPLE;
-      }
-    }
-    else if (state == TileState::LAVA) {
-      if (currTeam == Team::BLUE) {
-        textureType = TextureType::TILE_BLUE_LAVA;
-      }
-      else {
-        textureType = TextureType::TILE_RED_LAVA;
-      }
+      animState = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? std::move(GetAnimState(TileState::NORMAL)) : std::move(GetAnimState(state));
     }
     else {
-      assert(false && "Tile in invalid state");
+      animState = std::move(GetAnimState(state));
     }
-    setTexture(*TEXTURES.GetTexture(textureType));
+
+    if (currTeam == Team::RED) {
+      this->setTexture(*red_team_atlas);
+    }
+    else {
+      this->setTexture(*blue_team_atlas);
+    }
+
+    if (prevAnimState != animState) {
+      animation.SetAnimation(animState);
+      animation << Animate::Mode::Loop;
+    }
   }
 
   bool Tile::IsWalkable() const {
@@ -473,6 +437,7 @@ namespace Battle {
 
       if ((*entity)->IsDeleted() || (*entity) == nullptr)
         continue;
+
       (*entity)->Update(_elapsed);
     }
 
@@ -495,6 +460,39 @@ namespace Battle {
       }
 
       (*entity)->Update(_elapsed);
+
+      /*
+      Special tile rules for directional pads
+      Only if the entity isn't moving this frame (has a null next tile)
+      and if they are not floating, we push the entity in a specific direction
+      */
+      if (this->isBattleActive) {
+        auto directional = Direction::NONE;
+
+        switch (GetState()) {
+        case TileState::DIRECTION_DOWN:
+          directional = Direction::DOWN;
+          break;
+        case TileState::DIRECTION_UP:
+          directional = Direction::UP;
+          break;
+        case TileState::DIRECTION_LEFT:
+          directional = Direction::LEFT;
+          break;
+        case TileState::DIRECTION_RIGHT:
+          directional = Direction::RIGHT;
+          break;
+        }
+
+        if (directional != Direction::NONE) {
+          if (!(*entity)->HasAirShoe() && !(*entity)->HasFloatShoe()) {
+            if (!(*entity)->IsSliding() && (*entity)->GetNextTile() == nullptr) {
+              (*entity)->SlideToTile(true);
+              (*entity)->Move(directional);
+            }
+          }
+        }
+      }
     }
 
 
@@ -517,6 +515,11 @@ namespace Battle {
     }
 
     this->RefreshTexture();
+
+    animation.Update(_elapsed, *this);
+
+    // animation will want to reset the sprite's origin. Prevent this.
+    setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
   }
 
   void Tile::SetBattleActive(bool state)
@@ -535,6 +538,60 @@ namespace Battle {
     }
 
     return res;
+  }
+
+  std::string Tile::GetAnimState(const TileState state)
+  {
+    std::string str = "row_" + std::to_string(4-GetY()) + "_";
+
+    switch (state) {
+    case TileState::BROKEN:
+      str = str + "broken";
+      break;
+    case TileState::CRACKED:
+      str = str + "cracked";
+      break;
+    case TileState::EMPTY:
+      str = str + "empty";
+      break;
+    case TileState::GRASS:
+      str = str + "grass";
+      break;
+    case TileState::ICE:
+      str = str + "ice";
+      break;
+    case TileState::LAVA:
+      str = str + "lava";
+      break;
+    case TileState::NORMAL:
+      str = str + "normal";
+      break;
+    case TileState::POISON:
+      str = str + "poison";
+      break;
+    case TileState::DIRECTION_DOWN:
+      str = str + "direction_down";
+      break;
+    case TileState::DIRECTION_LEFT:
+      str = str + "direction_left";
+      break;
+    case TileState::DIRECTION_RIGHT:
+      str = str + "direction_right";
+      break;
+    case TileState::DIRECTION_UP:
+      str = str + "direction_up";
+      break;
+    case TileState::VOLCANO:
+      str = str + "volcano";
+      break;
+    case TileState::HOLY:
+      str = str + "holy";
+      break;
+    default:
+      str = str + "normal";
+    }
+
+    return str;
   }
 
 }
