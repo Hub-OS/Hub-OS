@@ -231,6 +231,4 @@ protected:
   double stunCooldown; /*!< Timer until stun is over */
   double invincibilityCooldown; /*!< Timer until invincibility is over */
   Character::Rank rank;
-  sf::Time burnCycle; /*!< how long until a tile burns an entity */
-  double elapsedBurnTime; // in seconds
 };

@@ -3,7 +3,6 @@
 #include "bnSpell.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnExplosion.h"
 #include "bnElementalDamage.h"
 #include "bnShaderResourceManager.h"
 
@@ -20,10 +19,8 @@ Character::Character(Rank _rank) :
   rank(_rank),
   invokeDeletion(false),
   hit(false),
-  CounterHitPublisher() {
+  CounterHitPublisher(), Entity() {
 
-  burnCycle = sf::milliseconds(150);
-  elapsedBurnTime = burnCycle.asSeconds();
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
   stun = SHADERS.GetShader(ShaderType::YELLOW);
 }
@@ -60,32 +57,6 @@ void Character::Update(float _elapsed) {
   double prevThisFrameStun = this->stunCooldown;
 
   this->ResolveFrameBattleDamage();
-
-  elapsedBurnTime -= _elapsed;
-
-    if(!this->HasFloatShoe()) {
-    if (this->GetTile()) {
-      if (this->GetTile()->GetState() == TileState::POISON) {
-        if (elapsedBurnTime <= 0) {
-          if (this->Hit(Hit::Properties({ 1, 0x00, Element::NONE, nullptr, Direction::NONE }))) {
-            elapsedBurnTime = burnCycle.asSeconds();
-          }
-        }
-      }
-      else {
-        elapsedBurnTime = 0;
-      }
-
-      if (this->GetTile()->GetState() == TileState::LAVA) {
-        if (this->Hit(Hit::Properties({ 50, Hit::pierce, Element::FIRE, nullptr, Direction::NONE }))) {
-          Field* field = GetField();
-          Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
-          field->AddEntity(*explosion, tile->GetX(), tile->GetY());
-          this->GetTile()->SetState(TileState::NORMAL);
-        }
-      }
-    }
-  }
 
   if (!hit) {
       if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {

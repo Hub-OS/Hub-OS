@@ -74,6 +74,7 @@ void MetalMan::OnUpdate(float _elapsed) {
   if (movedByStun) { 
     this->Teleport((rand() % 3) + 4, (rand() % 3) + 1); 
     this->AdoptNextTile(); 
+    this->FinishMove();
     movedByStun = false; 
   }
 
@@ -94,7 +95,7 @@ void MetalMan::OnUpdate(float _elapsed) {
 
   HitBox* hitbox = new HitBox(GetField(), GetTeam(), 40);
   auto props = hitbox->GetHitboxProperties();
-  props.flags |= Hit::impact;
+  props.flags |= Hit::impact | Hit::recoil;
   hitbox->SetHitboxProperties(props);
 
   field->AddEntity(*hitbox, tile->GetX(), tile->GetY());

@@ -257,6 +257,9 @@ namespace Battle {
     bool hasSpell; /**< Highlights when there is a spell occupied in this tile */
     bool isBattleActive;
 
+    double elapsedBurnTime;
+    double burncycle;
+
     // Todo: use sets to avoid duplicate entries
     vector<Artifact*> artifacts; /**< Entity bucket for type Artifacts */
     vector<Spell*> spells; /**< Entity bucket for type Spells */

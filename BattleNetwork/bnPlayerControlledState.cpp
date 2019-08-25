@@ -23,9 +23,9 @@ void PlayerControlledState::OnEnter(Player& player) {
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   // Action controls take priority over movement
 #ifndef __ANDROID__
-  if (!INPUT.Has(HELD_A)) {
+  if (!INPUT.Has(HELD_A) && !player.IsSliding() && !player.GetNextTile()) {
 #else
-    if(INPUT.Has(PRESSED_A) && !INPUT.Has(RELEASED_B)) {
+    if(INPUT.Has(PRESSED_A) && !INPUT.Has(RELEASED_B) && !player.IsSliding() && !player.GetNextTile()) {
 #endif
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack();
@@ -34,7 +34,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};
       player.SetAnimation(PLAYER_SHOOTING, onFinish);
     }
-    else {
+    else if(!player.IsSliding() && !player.GetNextTile()){
       isChargeHeld = false;
 
 #ifdef __ANDROID__
@@ -94,8 +94,11 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     if (moved) {
       auto onFinish = [&]() {
         player.SetAnimation("PLAYER_MOVED", [p = &player]() {
-			p->SetAnimation(PLAYER_IDLE); });
-		player.AdoptNextTile();
+			    p->SetAnimation(PLAYER_IDLE); 
+          p->FinishMove();
+        });
+
+		    player.AdoptNextTile();
         direction = Direction::NONE;
       }; // end lambda
       player.SetAnimation(PLAYER_MOVING, onFinish);

@@ -120,5 +120,50 @@ private:
   bool isBattleActive; /*!< State flag if battle is over */
   int width; /*!< col */
   int height; /*!< rows */
+  bool isUpdating; /*!< enqueue entities if added in the update loop */
+
+  struct queueBucket {
+    int x;
+    int y;
+
+    enum class type : int {
+      character,
+      spell,
+      obstacle,
+      artifact
+    } entity_type;
+
+    union type_data {
+      Character* character;
+      Spell* spell;
+      Obstacle* obstacle;
+      Artifact* artifact;
+    } data;
+
+    queueBucket(int x, int y, Character& d) : x(x), y(y), entity_type(type::character) 
+    { 
+      data.character = &d;
+    }
+
+    queueBucket(int x, int y, Obstacle& d) : x(x), y(y), entity_type(type::obstacle)
+    {
+      data.obstacle = &d;
+    }
+
+    queueBucket(int x, int y, Artifact& d) : x(x), y(y), entity_type(type::artifact)
+    {
+      data.artifact = &d;
+    }
+
+    queueBucket(int x, int y, Spell& d) : x(x), y(y), entity_type(type::spell)
+    {
+      data.spell = &d;
+    }
+
+    queueBucket(const queueBucket& rhs) = default;
+  };
+
+  vector<queueBucket> pending;
+
   vector<vector<Battle::Tile*>> tiles; /*!< Nested vector to make calls via tiles[x][y] */
 };

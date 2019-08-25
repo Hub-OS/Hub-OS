@@ -6,6 +6,8 @@
 #include "bnArtifact.h"
 
 #include "bnPlayer.h"
+#include "bnExplosion.h"
+
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnField.h"
@@ -46,6 +48,9 @@ namespace Battle {
     brokenCooldown = 0;
     flickerTeamCooldown = teamCooldown = 0;
     red_team_atlas = blue_team_atlas = nullptr; // Set by field
+
+    burncycle = 0.12; // milliseconds
+    elapsedBurnTime = burncycle;
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -75,6 +80,8 @@ namespace Battle {
     red_team_atlas = other.red_team_atlas;
     blue_team_atlas = other.blue_team_atlas;
     animation = other.animation;
+    burncycle = other.burncycle;
+    elapsedBurnTime = other.elapsedBurnTime;
 
     return *this;
   }
@@ -107,7 +114,8 @@ namespace Battle {
     red_team_atlas = other.red_team_atlas;
     blue_team_atlas = other.blue_team_atlas;
     animation = other.animation;
-
+    burncycle = other.burncycle;
+    elapsedBurnTime = other.elapsedBurnTime;
   }
 
   Tile::~Tile() {
@@ -459,15 +467,48 @@ namespace Battle {
         continue;
       }
 
-      (*entity)->Update(_elapsed);
-
       /*
       Special tile rules for directional pads
       Only if the entity isn't moving this frame (has a null next tile)
       and if they are not floating, we push the entity in a specific direction
       */
+
       if (this->isBattleActive) {
+        // LAVA TILES
+        elapsedBurnTime -= _elapsed;
+
+        if (!(*entity)->HasFloatShoe()) {
+          if (GetState() == TileState::POISON) {
+            if (elapsedBurnTime <= 0) {
+              if ((*entity)->Hit(Hit::Properties({ 1, 0x00, Element::NONE, nullptr, Direction::NONE }))) {
+                elapsedBurnTime = burncycle;
+              }
+            }
+          }
+          else {
+            elapsedBurnTime = 0;
+          }
+
+          if (GetState() == TileState::LAVA) {
+            if ((*entity)->Hit(Hit::Properties({ 50, Hit::pierce, Element::FIRE, nullptr, Direction::NONE }))) {
+              Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
+              field->AddEntity(*explosion, GetX(), GetY());
+              SetState(TileState::NORMAL);
+            }
+          }
+        }
+
+        // DIRECTIONAL TILES
         auto directional = Direction::NONE;
+
+        auto notMoving = (*entity)->GetNextTile() == nullptr;
+
+        auto animComp = (*entity)->GetFirstComponent<AnimationComponent>();
+
+        // TODO: take out this hack because other entities need to move too
+        if (animComp && animComp->GetAnimationString() == "PLAYER_MOVED") {
+          notMoving = false;
+        }
 
         switch (GetState()) {
         case TileState::DIRECTION_DOWN:
@@ -486,13 +527,16 @@ namespace Battle {
 
         if (directional != Direction::NONE) {
           if (!(*entity)->HasAirShoe() && !(*entity)->HasFloatShoe()) {
-            if (!(*entity)->IsSliding() && (*entity)->GetNextTile() == nullptr) {
+            if (!(*entity)->IsSliding() && notMoving) {
               (*entity)->SlideToTile(true);
               (*entity)->Move(directional);
             }
           }
         }
       }
+
+      (*entity)->Update(_elapsed);
+
     }
 
 

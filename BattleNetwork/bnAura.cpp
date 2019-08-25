@@ -78,10 +78,13 @@ void Aura::Inject(BattleScene& bs) {
   this->bs = &bs;
   this->bs->Inject((Component*)this);
   GetOwner()->FreeComponentByID(this->GetID());
- 
 }
 
 void Aura::OnUpdate(float _elapsed) {
+  if (this->bs == nullptr) {
+    return;
+  }
+
   currHP = health;
   
   if(this->bs->IsBattleActive() && (!persist || isOver)) {

@@ -52,8 +52,9 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
 
     if(next && metal.Teleport(next->GetX()+1, next->GetY())) {
       metal.AdoptNextTile();
-      auto onFinish = [this]() {
+      auto onFinish = [this, &metal]() {
         this->ChangeState<MetalManPunchState>();
+        metal.FinishMove();
       };
 
       metal.SetAnimation(MOB_MOVING, onFinish);
@@ -66,6 +67,8 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
     metal.AdoptNextTile();
 
     auto onFinish = [this, m = &metal]() { 
+      m->FinishMove();
+
       if (m->GetTarget() && m->GetTarget()->GetTile()) {
         int targetY = m->GetTarget()->GetTile()->GetY();
         int targetX = m->GetTarget()->GetTile()->GetX();

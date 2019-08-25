@@ -70,6 +70,11 @@ std::vector<Battle::Tile*> Field::FindTiles(std::function<bool(Battle::Tile* t)>
 
 void Field::AddEntity(Character & character, int x, int y)
 {
+  if (isUpdating) {
+    pending.push_back(queueBucket(x, y, character ));
+    return;
+  }
+
   character.SetField(this);
 
   Battle::Tile* tile = GetAt(x, y);
@@ -82,6 +87,11 @@ void Field::AddEntity(Character & character, int x, int y)
 
 void Field::AddEntity(Spell & spell, int x, int y)
 {
+  if (isUpdating) {
+    pending.push_back(queueBucket(x, y, spell ));
+    return;
+  }
+
   spell.SetField(this);
 
   Battle::Tile* tile = GetAt(x, y);
@@ -93,6 +103,11 @@ void Field::AddEntity(Spell & spell, int x, int y)
 
 void Field::AddEntity(Obstacle & obst, int x, int y)
 {
+  if (isUpdating) {
+    pending.push_back(queueBucket(x, y, obst));
+    return;
+  }
+
   obst.SetField(this);
 
   Battle::Tile* tile = GetAt(x, y);
@@ -104,6 +119,11 @@ void Field::AddEntity(Obstacle & obst, int x, int y)
 
 void Field::AddEntity(Artifact & art, int x, int y)
 {
+  if (isUpdating) {
+    pending.push_back(queueBucket(x, y, art ));
+    return;
+  }
+
   art.SetField(this);
 
   Battle::Tile* tile = GetAt(x, y);
@@ -142,6 +162,29 @@ Battle::Tile* Field::GetAt(int _x, int _y) const {
 }
 
 void Field::Update(float _elapsed) {
+  while (pending.size()) {
+    auto next = pending.back();
+    pending.pop_back();
+
+    switch (next.entity_type) {
+    case queueBucket::type::artifact:
+      this->AddEntity(*next.data.artifact, next.x, next.y);
+      break;
+    case queueBucket::type::character:
+      this->AddEntity(*next.data.character, next.x, next.y);
+      break;
+    case queueBucket::type::obstacle:
+      this->AddEntity(*next.data.obstacle, next.x, next.y);
+      break;
+    case queueBucket::type::spell:
+      this->AddEntity(*next.data.spell, next.x, next.y);
+      break;
+    }
+  }
+
+  // FORCES PENDING OF NEWLY ADDED ENTITIES
+  this->isUpdating = true;
+
   int entityCount = 0;
 
   int redTeamFarCol = 0; // from red's perspective, 5 is the farthest - begin at the first (0 col) index and increment
@@ -229,6 +272,9 @@ void Field::Update(float _elapsed) {
   }
 
   backToRed.clear();
+
+  // UNLOCK ADD ENTITIES
+  this->isUpdating = false;
 }
 
 void Field::SetBattleActive(bool state)

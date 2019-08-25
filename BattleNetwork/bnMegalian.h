@@ -129,6 +129,7 @@ private:
           this->AdoptNextTile();
           auto tele2 = this->base->Teleport(x, y);
           base->AdoptNextTile();
+          base->FinishMove();
           this->SetDirection(Direction::LEFT);
 
           Logger::Log("tele1: " + std::to_string(tele1) + " tele2: " + std::to_string(tele2));
@@ -191,6 +192,7 @@ private:
     AnimationComponent* animation;
     Megalian* base;
     double timer;
+
   };
 
 public:

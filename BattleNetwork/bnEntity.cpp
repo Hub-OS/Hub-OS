@@ -405,9 +405,9 @@ void Entity::AdoptNextTile()
   if (next->GetState() == TileState::ICE && !this->HasFloatShoe()) {
     this->SlideToTile(true);
   } else {
-    // Adopting a tile is the last step in the move procedure
+    // If not using animations, then 
+    // adopting a tile is the last step in the move procedure
     // Increase the move count
-    next = nullptr;
     moveCount++;
   }
 }
@@ -439,6 +439,14 @@ void Entity::FreeComponentByID(long ID) {
       return;
     }
   }
+}
+
+void Entity::FinishMove()
+{
+  // prevent breaking sliding mechanics
+  if (IsSliding()) return;
+
+  next = nullptr;
 }
 
 Component* Entity::RegisterComponent(Component* c) {

@@ -341,6 +341,13 @@ public:
    */
   void FreeComponentByID(long ID);
 
+  /**
+  * @brief used by move systems to signal a move is complete 
+  * use with animation component to complete a move animation after teleporting to the next tile
+  * otherwise the move system will incorrectly deduce the move states
+  */
+  void FinishMove();
+
 protected:
   Battle::Tile* next; /**< Pointer to the next tile */
   Battle::Tile* tile; /**< Current tile pointer */
@@ -361,16 +368,16 @@ protected:
 
 private:
   bool isBattleActive;
-  bool ownedByField; /**< Must delete the entity manual if not owned by the field. */
+  bool ownedByField; /*!< Must delete the entity manual if not owned by the field. */
   bool passthrough;
   bool floatShoe;
   bool airShoe;
   bool isSliding; /*!< If sliding/gliding to a tile */
   bool deleted;
-  int moveCount; /**< Used by battle results */
-  sf::Time slideTime; /**< how long slide behavior lasts */
-  sf::Time defaultSlideTime; /**< If slidetime is modified by outside source, the slide to return back to */
-  double elapsedSlideTime; /**< When elapsedSlideTime is equal to slideTime, slide is over */
+  int moveCount; /*!< Used by battle results */
+  sf::Time slideTime; /*!< how long slide behavior lasts */
+  sf::Time defaultSlideTime; /*!< If slidetime is modified by outside source, the slide to return back to */
+  double elapsedSlideTime; /*!< When elapsedSlideTime is equal to slideTime, slide is over */
   Direction direction;
   Direction previousDirection;
 

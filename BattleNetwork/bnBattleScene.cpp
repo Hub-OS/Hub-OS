@@ -273,17 +273,15 @@ void BattleScene::ProcessNewestComponents()
       // Injects usually removes the owner so this step proceeds the lastComponentID update
       auto latestID = e->components[0]->GetID();
 
-      if (e->lastComponentID < e->components[0]->GetID()) {
+      if (e->lastComponentID < latestID) {
         //std::cout << "latestID: " << latestID << " lastComponentID: " << e->lastComponentID << "\n";
-
-        // Process the newest components
-        std::vector<Component*> newest;
 
         for (auto c : e->components) {
           if (c->GetID() <= e->lastComponentID) break; // Older components are last in order, we're done
 
           // Otherwise inject into scene
           c->Inject(*this);
+          Logger::Log("component ID " + std::to_string(c->GetID()) + " was injected");
         }
 
         e->lastComponentID = latestID;
