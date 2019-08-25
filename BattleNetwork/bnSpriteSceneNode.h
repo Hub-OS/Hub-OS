@@ -27,6 +27,8 @@ public:
     * Owns sprite and allocatedSprite will be true
     */
   SpriteSceneNode();
+
+  SpriteSceneNode(const SpriteSceneNode& rhs) = delete;
   
   /**
    * @brief Construct SpriteSceneNode from an existing sprite

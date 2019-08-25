@@ -1,6 +1,7 @@
 #include "bnPlayerControlledState.h"
 #include "bnInputManager.h"
 #include "bnPlayer.h"
+#include "bnChipAction.h"
 #include "bnTile.h"
 #include "bnAudioResourceManager.h"
 
@@ -22,6 +23,8 @@ void PlayerControlledState::OnEnter(Player& player) {
 
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   // Action controls take priority over movement
+  if (player.GetComponentsDerivedFrom<ChipAction>().size()) return;
+
 #ifndef __ANDROID__
   if (!INPUT.Has(HELD_A) && !player.IsSliding() && !player.GetNextTile()) {
 #else
@@ -112,4 +115,11 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 void PlayerControlledState::OnLeave(Player& player) {
   /* Mega loses charge when we leave this state */
   player.chargeComponent.SetCharging(false);
+
+  /* Cancel chip actions */
+  auto actions = player.GetComponentsDerivedFrom<ChipAction>();
+
+  for (auto a : actions) {
+    a->EndAction();
+  }
 }

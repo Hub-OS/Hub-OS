@@ -5,8 +5,14 @@
 #include <functional>
 #include <assert.h>
 #include <iostream>
+#include <list>
 
 #include "bnLogger.h"
+
+struct OverrideFrame {
+  int frameIndex;
+  double duration;
+};
 
 /**
  * @struct Frame
@@ -21,6 +27,46 @@ struct Frame {
   sf::Vector2f origin;
   
   std::map<std::string, sf::Vector2f> points;
+
+  Frame(float duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin) 
+  : duration(duration), subregion(subregion), applyOrigin(applyOrigin), origin(origin) {
+
+  }
+
+  Frame(const Frame& rhs) {
+    *this = rhs;
+  }
+
+  Frame& operator=(const Frame& rhs) {
+    duration = rhs.duration;
+    subregion = rhs.subregion;
+    applyOrigin = rhs.applyOrigin;
+    origin = rhs.origin;
+    points = rhs.points;
+
+    return *this;
+  }
+
+
+  Frame& operator=(Frame&& rhs) {
+    duration = rhs.duration;
+    rhs.duration = 0;
+
+    subregion = rhs.subregion;
+
+    applyOrigin = rhs.applyOrigin;
+    rhs.applyOrigin = false;
+
+    origin = rhs.origin;
+    points = rhs.points;
+    rhs.points.clear();
+
+    return *this;
+  }
+
+  Frame(Frame&& rhs) {
+    *this = rhs;
+  }
 };
 
 /**
@@ -37,7 +83,26 @@ public:
   friend class Animate;
 
   FrameList() { totalDuration = 0; }
-  FrameList(const FrameList& rhs) { frames = rhs.frames; totalDuration = rhs.totalDuration; }
+  FrameList(const FrameList& rhs) { 
+    frames = rhs.frames; 
+    totalDuration = rhs.totalDuration;
+  }
+
+  FrameList MakeNewFromOverrideData(std::list<OverrideFrame>&& data) {
+    auto iter = data.begin();
+
+    FrameList res;
+
+    while (iter != data.end() && data.size() > 0) {
+      auto copy = this->frames[iter->frameIndex - 1];
+
+      res.frames.push_back(copy);
+      res.totalDuration += copy.duration;
+      iter++;
+    }
+
+    return res;
+  }
 
   /**
    * @brief Adds frame to list with an origin at (0,0) and increases totalDuration
@@ -45,7 +110,7 @@ public:
    * @param sub int rectangle defining the frame from a texture sheet
    */
   void Add(float dur, sf::IntRect sub) {
-    frames.push_back({ dur, sub, false, sf::Vector2f(0,0) });
+    frames.emplace_back(std::move(Frame(dur, sub, false, sf::Vector2f(0,0) )));
     totalDuration += dur;
   }
 
@@ -56,7 +121,7 @@ public:
    * @param origin origin of frame
    */
   void Add(float dur, sf::IntRect sub, sf::Vector2f origin) {
-    frames.push_back({ dur, sub, true, origin });
+    frames.emplace_back(std::move(Frame(dur, sub, true, origin)));
     totalDuration += dur;
   }
 
@@ -189,11 +254,11 @@ public:
   char GetMode() { return playbackMode;  }
   
   const sf::Vector2f GetPoint(const std::string& pointName) {
-      if(currentPoints.find(pointName) == currentPoints.end()) {
-          Logger::Log("Could not find point in current sequence named " + pointName);
-          return sf::Vector2f();
-      }
-      return currentPoints[pointName];
+    if(currentPoints.find(pointName) == currentPoints.end()) {
+        Logger::Log("Could not find point in current sequence named " + pointName);
+        return sf::Vector2f();
+    }
+    return currentPoints[pointName];
   }
   
   /**

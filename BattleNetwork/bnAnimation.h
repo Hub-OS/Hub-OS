@@ -155,6 +155,8 @@ public:
 
   sf::Vector2f GetPoint(const std::string& pointName);
 
+  void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame>&& data, std::string& uuid);
+
 private:
   /**
    * @brief Strips the key-value from a file format

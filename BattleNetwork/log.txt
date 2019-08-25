@@ -1,5 +1,5 @@
-StartTime 1566698299
-Engine initialized: 0.521000 secs
+StartTime 1566758159
+Engine initialized: 0.550000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -117,7 +117,7 @@ Loaded texture: resources/shaders/textures/heat.png
 Loaded texture: resources/shaders/textures/noise.png
 Loaded texture: resources/shaders/textures/noise_invert.png
 Loaded texture: resources/ui/light.png
-Loaded textures: 0.288000 secs
+Loaded textures: 0.290000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -134,7 +134,7 @@ Loaded shader: resources/shaders/glsl_110/spot_reflection
 Loaded shader: resources/shaders/glsl_110/transition
 Loaded shader: resources/shaders/glsl_110/chip_reveal
 Loaded shader: resources/shaders/glsl_110/wire
-Loaded shaders: 0.010000 secs
+Loaded shaders: 0.006000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -178,13 +178,13 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.192000 secs
+Loaded audio sources: 0.180000 secs
 Loaded navi: Megaman
 Loaded navi: Starman
 Loaded navi: Roll
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
-Loaded registered navis: 0.641000 secs
+Loaded registered navis: 0.661000 secs
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
 Loaded texture: resources/mobs/starfish/preview.png
@@ -199,8 +199,8 @@ Loaded texture: resources/mobs/select/random.png
 Loaded mob: Random
 Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
-Loaded registered mobs: 1.733000 secs
-library size: 89
+Loaded registered mobs: 1.714000 secs
+library size: 90
 Loaded texture: resources/backgrounds/lan/bg.png
 main menu onStart
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
@@ -214,84 +214,532 @@ Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded texture: resources/backgrounds/grave/fg.png
 Loaded texture: resources/ui/img_health.png
-component ID 1 was injected
 Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded texture: resources/ui/custom.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onLeave()
 SelectMobScene::onExit()
-component ID 5 was injected
-component ID 4 was injected
-component ID 7 was injected
-component ID 6 was injected
-component ID 12 was injected
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
 Num of waves is: 1
-component ID 13 was injected
 Num of waves is: 2
-component ID 14 was injected
+Loaded texture: resources/spells/AirShot.png
 Num of waves is: 3
-component ID 15 was injected
+Loaded texture: resources/spells/CannonSeries.png
+pushing states
+Mettaur OnHit
 Num of waves is: 4
-component ID 16 was injected
-component ID 17 was injected
-pushing states
-Mettaur OnHit
-component ID 18 was injected
-pushing states
-Mettaur OnHit
-component ID 19 was injected
-pushing states
-Mettaur OnHit
-component ID 20 was injected
-pushing states
-Mettaur OnHit
-component ID 21 was injected
-pushing states
-Mettaur OnHit
-component ID 22 was injected
-pushing states
-Mettaur OnHit
-component ID 23 was injected
-pushing states
-Mettaur OnHit
-component ID 24 was injected
-pushing states
-Mettaur OnHit
-component ID 25 was injected
-pushing states
-Mettaur OnHit
-component ID 26 was injected
-pushing states
-Mettaur OnHit
-component ID 27 was injected
-pushing states
-Mettaur OnHit
+Loaded texture: resources/spells/CannonSeries.png
 Num of waves is: 5
-component ID 28 was injected
-component ID 29 was injected
 pushing states
-Mettaur OnHit
+should be flinching
 Num of waves is: 6
-component ID 30 was injected
 Num of waves is: 7
-component ID 31 was injected
 Num of waves is: 8
-component ID 32 was injected
 Num of waves is: 9
-component ID 33 was injected
 Num of waves is: 10
-component ID 34 was injected
 Num of waves is: 11
-component ID 35 was injected
 Num of waves is: 12
-component ID 36 was injected
-component ID 37 was injected
+Num of waves is: 13
+Num of waves is: 14
+pushing states
+should be flinching
+Num of waves is: 15
+Num of waves is: 16
+Num of waves is: 17
+Loaded texture: resources/spells/AirShot.png
+Num of waves is: 18
+Num of waves is: 19
+Num of waves is: 20
+Num of waves is: 21
+Num of waves is: 22
+pushing states
+should be flinching
+Num of waves is: 23
+Num of waves is: 24
+Num of waves is: 25
+Num of waves is: 26
+Num of waves is: 27
+Num of waves is: 28
 pushing states
 Mettaur OnHit
-component ID 38 was injected
-Num of waves is: 13
-component ID 39 was injected
-component ID 40 was injected
-Num of waves is: 14
-component ID 41 was injected
+Num of waves is: 29
+Num of waves is: 30
+pushing states
+should be flinching
+pushing states
+Mettaur OnHit
+Num of waves is: 31
+Num of waves is: 32
+Loaded texture: resources/spells/CannonSeries.png
+Num of waves is: 33
+pushing states
+Mettaur OnHit
+Num of waves is: 34
+Num of waves is: 35
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+pushing states
+Loaded texture: resources/spells/CannonSeries.png
+pushing states
+Mettaur OnHit
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/AirShot.png
+pushing states
+pushing states
+Mettaur OnHit
+pushing states
+Num of waves is: 36
+pushing states
+pushing states
+pushing states
+Num of waves is: 37
+Num of waves is: 38
+Num of waves is: 39
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/grave/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Num of waves is: 40
+Num of waves is: 41
+Loaded texture: resources/spells/CannonSeries.png
+Num of waves is: 42
+pushing states
+Mettaur OnHit
+Num of waves is: 43
+Num of waves is: 44
+pushing states
+Mettaur OnHit
+Num of waves is: 45
+pushing states
+should be flinching
+Num of waves is: 46
+Num of waves is: 47
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
+Num of waves is: 48
+pushing states
+Mettaur OnHit
+Num of waves is: 49
+Num of waves is: 50
+Num of waves is: 51
+Num of waves is: 52
+pushing states
+Mettaur OnHit
+Num of waves is: 53
+Num of waves is: 54
+pushing states
+Mettaur OnHit
+Num of waves is: 55
+pushing states
+should be flinching
+Num of waves is: 56
+Num of waves is: 57
+Num of waves is: 58
+Loaded texture: resources/spells/CannonSeries.png
+Num of waves is: 59
+pushing states
+Mettaur OnHit
+Num of waves is: 60
+Num of waves is: 61
+Num of waves is: 62
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/grave/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Num of waves is: 63
+pushing states
+Num of waves is: 64
+Num of waves is: 65
+pushing states
+Num of waves is: 66
+pushing states
+Num of waves is: 67
+Num of waves is: 68
+pushing states
+Num of waves is: 69
+Num of waves is: 70
+Loaded texture: resources/spells/CannonSeries.png
+pushing states
+Mettaur OnHit
+Loaded texture: resources/spells/CannonSeries.png
+pushing states
+Mettaur OnHit
+should be flinching
+should be flinching
+should be flinching
+should be flinching
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+Num of waves is: 71
+Num of waves is: 72
+Num of waves is: 73
+Loaded texture: resources/spells/CannonSeries.png
+pushing states
+Mettaur OnHit
+Num of waves is: 74
+Num of waves is: 75
+pushing states
+should be flinching
+Num of waves is: 76
+Num of waves is: 77
+Num of waves is: 78
+Num of waves is: 79
+Num of waves is: 80
+Loaded texture: resources/spells/CannonSeries.png
+Num of waves is: 81
+pushing states
+should be flinching
+Num of waves is: 82
+Loaded texture: resources/spells/AirShot.png
+Num of waves is: 83
+Num of waves is: 84
+Num of waves is: 85
+pushing states
+pushing states
+Loaded texture: resources/spells/AirShot.png
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
+Num of waves is: 86
+Num of waves is: 87
+Num of waves is: 88
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+Num of waves is: 89
+pushing states
+Mettaur OnHit
+Num of waves is: 90
+pushing states
+should be flinching
+Num of waves is: 91
+Loaded texture: resources/spells/CannonSeries.png
+pushing states
+Mettaur OnHit
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+SelectMobScene::onEnd()
+library saved successfully. Number of chips saved: 95
+main menu onResume
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+library saved successfully. Number of chips saved: 95
+main menu onResume
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onStart()
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+SelectMobScene::onEnd()
+library saved successfully. Number of chips saved: 95
+main menu onResume
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onStart()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+No animation found in file for PLAYER_MOVED
+Loaded texture: resources/spells/CannonSeries.png
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+pushing states
+Mettaur OnHit
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Num of waves is: 92
+Num of waves is: 93
+Num of waves is: 94
+Num of waves is: 95
+Loaded texture: resources/spells/AirShot.png
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+Loaded texture: resources/spells/AirShot.png
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+pushing states
+Mettaur OnHit
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+pushing states
+pushing states
+Mettaur OnHit
+Mettaur OnHit
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+No animation found in file for PLAYER_MOVED
+Loaded texture: resources/spells/CannonSeries.png
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+pushing states
+Mettaur OnHit
+Loaded texture: resources/spells/CannonSeries.png
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+Could not find point in current sequence named Buster
+pushing states
+Mettaur OnHit
+Could not find point in current sequence named Buster
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+SelectMobScene::onEnd()
+library saved successfully. Number of chips saved: 97
+main menu onResume
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+library saved successfully. Number of chips saved: 97
+main menu onResume
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onStart()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
+pushing states
+Num of waves is: 96
+Loaded texture: resources/spells/AirShot.png
+Num of waves is: 97
+pushing states
+Mettaur OnHit
+Num of waves is: 98
+pushing states
+should be flinching
+Num of waves is: 99
+Num of waves is: 100
+Num of waves is: 101
+Num of waves is: 102
+Num of waves is: 103
+Num of waves is: 104
+Num of waves is: 105
+Num of waves is: 106
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
+Num of waves is: 107
+Num of waves is: 108
+Num of waves is: 109
+Num of waves is: 110
+Num of waves is: 111
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+Num of waves is: 112
+Num of waves is: 113
+Num of waves is: 114
+Num of waves is: 115
+Num of waves is: 116
+Loaded texture: resources/spells/CannonSeries.png
+pushing states
+Mettaur OnHit
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+SelectMobScene::onEnd()
+library saved successfully. Number of chips saved: 98
+main menu onResume
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+library saved successfully. Number of chips saved: 98
+main menu onResume
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf

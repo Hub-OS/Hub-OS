@@ -284,6 +284,7 @@ void Character::ResolveFrameBattleDamage()
     this->invokeDeletion = true;
     this->stunCooldown = 0;
     this->invincibilityCooldown = 0;
+    this->SlideToTile(false); // cancel slide
 
     if(frameCounterAggressor) {
       // Slide entity back a few pixels

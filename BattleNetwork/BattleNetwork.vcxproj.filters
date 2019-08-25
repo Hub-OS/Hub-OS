@@ -497,6 +497,15 @@
     <Filter Include="Engine\ResourceManagers\FontResource">
       <UniqueIdentifier>{439edcdf-bce0-4360-b0e4-4fe0e780bf66}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action">
+      <UniqueIdentifier>{d2c84dfc-7be8-49c9-a201-90c8fa891443}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action\Cannon">
+      <UniqueIdentifier>{567b2f61-8b57-4aa8-8363-96ceeab0e2d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action\AirShot">
+      <UniqueIdentifier>{653e5b8f-d5cb-4ea9-b8a1-936479988bcc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -945,6 +954,15 @@
     </ClCompile>
     <ClCompile Include="bnDefenseVirusBody.cpp">
       <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\VirusBody</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCannonChipAction.cpp">
+      <Filter>Activities\Battle\Content\Chips\Action\Cannon</Filter>
+    </ClCompile>
+    <ClCompile Include="bnPlayerChipUseListener.cpp">
+      <Filter>Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAirShotChipAction.cpp">
+      <Filter>Activities\Battle\Content\Chips\Action\AirShot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1533,6 +1551,15 @@
     </ClInclude>
     <ClInclude Include="bnDefenseVirusBody.h">
       <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\VirusBody</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCannonChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action\Cannon</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAirShotChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action\AirShot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

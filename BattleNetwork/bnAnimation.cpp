@@ -7,6 +7,7 @@ using sf::IntRect;
 #include "bnLogger.h"
 #include "bnEntity.h"
 #include <cmath>
+#include <chrono>
 
 Animation::Animation() : animator(), path("") {
   progress = 0;
@@ -157,6 +158,7 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
   progress += elapsed * (float)std::fabs(playbackSpeed);
 
   std::string stateNow = currAnimation;
+
   animator(progress, target, animations[currAnimation]);
 
   if(currAnimation != stateNow) {
@@ -180,9 +182,11 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
 {
   if(path.empty() || animations.empty() || animations.find(currAnimation) == animations.end()) return;
 
-  if (frame <= 0 || frame > animations[currAnimation].GetFrameCount()) {
+  auto size = animations[currAnimation].GetFrameCount();
+
+  if (frame <= 0 || frame > size) {
     progress = 0.0f;
-    animator.SetFrame(1, target, animations[currAnimation]);
+    animator.SetFrame(int(size), target, animations[currAnimation]);
 
   }
   else {
@@ -248,4 +252,10 @@ void Animation::operator<<(std::function<void()> onFinish)
 sf::Vector2f Animation::GetPoint(const std::string & pointName)
 {
   return animator.GetPoint(pointName);
+}
+
+void Animation::OverrideAnimationFrames(const std::string& animation, std::list <OverrideFrame>&& data, std::string& uuid)
+{
+  uuid = animation + "@" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
+  this->animations.emplace(uuid, std::move(this->animations[animation].MakeNewFromOverrideData(std::move(data))));
 }

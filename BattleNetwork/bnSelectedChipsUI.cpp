@@ -2,15 +2,11 @@
 #include <Swoosh/Ease.h>
 #include "bnPlayer.h"
 #include "bnField.h"
-#include "bnCannon.h"
-#include "bnBasicSword.h"
-#include "bnTile.h"
 #include "bnSelectedChipsUI.h"
 #include "bnTextureResourceManager.h"
-#include "bnAudioResourceManager.h"
 #include "bnInputManager.h"
 #include "bnChip.h"
-#include "bnEngine.h"
+#include "bnChipAction.h"
 
 using std::to_string;
 
@@ -155,7 +151,7 @@ void SelectedChipsUI::LoadChips(Chip ** incoming, int size) {
 }
 
 void SelectedChipsUI::UseNextChip() {
-  if (curr >= chipCount) {
+  if (curr >= chipCount || player->GetComponentsDerivedFrom<ChipAction>().size()) {
     return;
   }
 

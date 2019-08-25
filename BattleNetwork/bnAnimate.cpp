@@ -50,6 +50,8 @@ void Animate::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
 void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequence) {
   float startProgress = progress;
 
+  UpdateCurrentPoints(0, sequence);
+
   // Callbacks are only invalide during clears in the update loop
   if (!callbacksAreValid) callbacksAreValid = true;
 
@@ -231,7 +233,7 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
           target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
         }
 
-        UpdateCurrentPoints(index, sequence);
+        UpdateCurrentPoints(index-1, sequence);
 
         break;
       }
@@ -248,13 +250,17 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
       if ((*iter).applyOrigin) {
         target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
       }
-
-      UpdateCurrentPoints(index, sequence);
     }
 
     // End updating flag
     isUpdating = false;
     callbacksAreValid = true;
+
+    if (index == 0) {
+      index = 1;
+    }
+
+    UpdateCurrentPoints(index-1, sequence);
 
     // Merge queued callbacks
     callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());

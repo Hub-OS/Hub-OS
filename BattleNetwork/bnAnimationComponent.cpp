@@ -86,6 +86,11 @@ sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
   return animation.GetPoint(pointName);
 }
 
+void AnimationComponent::OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame>&& data, std::string & uuid)
+{
+  this->animation.OverrideAnimationFrames(animation, std::move(data), uuid);
+}
+
 void AnimationComponent::SetFrame(const int index)
 {
   animation.SetFrame(index, *GetOwner());

@@ -222,6 +222,9 @@ namespace Battle {
      */
     void SetBattleActive(bool state);
 
+    void HandleTileBehaviors(Obstacle * obst);
+    void HandleTileBehaviors(Character* character);
+
     /**
      * @brief Query for multiple entities using a functor
      * This is useful for movement as well as chip attacks 

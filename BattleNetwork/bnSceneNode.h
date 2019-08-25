@@ -23,6 +23,8 @@ public:
    */
   SceneNode();
 
+  SceneNode(const SceneNode& rhs) = delete;
+
   /**
    * @brief Deconstructor does not delete children
    */

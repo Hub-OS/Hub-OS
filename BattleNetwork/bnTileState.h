@@ -18,5 +18,5 @@ enum class TileState : int {
   DIRECTION_UP = 12,
   DIRECTION_DOWN = 13,
   VOLCANO = 14,
-  SIZE = 8
+  SIZE = 15
 };

@@ -395,6 +395,11 @@ namespace Battle {
   void Tile::Update(float _elapsed) {
     hasSpell = false;
 
+    if (isBattleActive) {
+        // LAVA TILES
+        elapsedBurnTime -= _elapsed;
+    }
+
     /*
     // NOTE: There has got to be some opportunity for optimization around here
     */
@@ -467,73 +472,7 @@ namespace Battle {
         continue;
       }
 
-      /*
-      Special tile rules for directional pads
-      Only if the entity isn't moving this frame (has a null next tile)
-      and if they are not floating, we push the entity in a specific direction
-      */
-
-      if (this->isBattleActive) {
-        // LAVA TILES
-        elapsedBurnTime -= _elapsed;
-
-        if (!(*entity)->HasFloatShoe()) {
-          if (GetState() == TileState::POISON) {
-            if (elapsedBurnTime <= 0) {
-              if ((*entity)->Hit(Hit::Properties({ 1, 0x00, Element::NONE, nullptr, Direction::NONE }))) {
-                elapsedBurnTime = burncycle;
-              }
-            }
-          }
-          else {
-            elapsedBurnTime = 0;
-          }
-
-          if (GetState() == TileState::LAVA) {
-            if ((*entity)->Hit(Hit::Properties({ 50, Hit::pierce, Element::FIRE, nullptr, Direction::NONE }))) {
-              Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
-              field->AddEntity(*explosion, GetX(), GetY());
-              SetState(TileState::NORMAL);
-            }
-          }
-        }
-
-        // DIRECTIONAL TILES
-        auto directional = Direction::NONE;
-
-        auto notMoving = (*entity)->GetNextTile() == nullptr;
-
-        auto animComp = (*entity)->GetFirstComponent<AnimationComponent>();
-
-        // TODO: take out this hack because other entities need to move too
-        if (animComp && animComp->GetAnimationString() == "PLAYER_MOVED") {
-          notMoving = false;
-        }
-
-        switch (GetState()) {
-        case TileState::DIRECTION_DOWN:
-          directional = Direction::DOWN;
-          break;
-        case TileState::DIRECTION_UP:
-          directional = Direction::UP;
-          break;
-        case TileState::DIRECTION_LEFT:
-          directional = Direction::LEFT;
-          break;
-        case TileState::DIRECTION_RIGHT:
-          directional = Direction::RIGHT;
-          break;
-        }
-
-        if (directional != Direction::NONE) {
-          if (!(*entity)->HasAirShoe() && !(*entity)->HasFloatShoe()) {
-            if (!(*entity)->IsSliding() && notMoving) {
-              (*entity)->SlideToTile(true);
-              (*entity)->Move(directional);
-            }
-          }
-        }
-      }
+      HandleTileBehaviors(*entity);
 
       (*entity)->Update(_elapsed);
 
@@ -569,6 +508,101 @@ namespace Battle {
   void Tile::SetBattleActive(bool state)
   {
     isBattleActive = state;
+  }
+
+  void Tile::HandleTileBehaviors(Obstacle* obst) {
+    if (this->isBattleActive) {
+      // DIRECTIONAL TILES
+      auto directional = Direction::NONE;
+
+      auto notMoving = obst->GetNextTile() == nullptr;
+
+      switch (GetState()) {
+      case TileState::DIRECTION_DOWN:
+        directional = Direction::DOWN;
+        break;
+      case TileState::DIRECTION_UP:
+        directional = Direction::UP;
+        break;
+      case TileState::DIRECTION_LEFT:
+        directional = Direction::LEFT;
+        break;
+      case TileState::DIRECTION_RIGHT:
+        directional = Direction::RIGHT;
+        break;
+      }
+
+      if (directional != Direction::NONE) {
+        if (!obst->HasAirShoe() && !obst->HasFloatShoe()) {
+          if (!obst->IsSliding() && notMoving) {
+            obst->SlideToTile(true);
+            obst->Move(directional);
+          }
+        }
+      }
+    }
+  }
+
+  void Tile::HandleTileBehaviors(Character* character)
+  {
+    /*
+     Special tile rules for directional pads
+     Only if the entity isn't moving this frame (has a null next tile)
+     and if they are not floating, we push the entity in a specific direction
+     */
+
+    if (this->isBattleActive) {
+      // LAVA TILES
+      if (!character->HasFloatShoe()) {
+        if (GetState() == TileState::POISON) {
+          if (elapsedBurnTime <= 0) {
+            if (character->Hit(Hit::Properties({ 1, 0x00, Element::NONE, nullptr, Direction::NONE }))) {
+              elapsedBurnTime = burncycle;
+            }
+          }
+        }
+        else {
+          elapsedBurnTime = 0;
+        }
+
+        if (GetState() == TileState::LAVA) {
+          if (character->Hit(Hit::Properties({ 50, Hit::pierce, Element::FIRE, nullptr, Direction::NONE }))) {
+            Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
+            field->AddEntity(*explosion, GetX(), GetY());
+            SetState(TileState::NORMAL);
+          }
+        }
+      }
+
+      // DIRECTIONAL TILES
+      auto directional = Direction::NONE;
+
+      auto notMoving = character->GetNextTile() == nullptr;
+
+      switch (GetState()) {
+      case TileState::DIRECTION_DOWN:
+        directional = Direction::DOWN;
+        break;
+      case TileState::DIRECTION_UP:
+        directional = Direction::UP;
+        break;
+      case TileState::DIRECTION_LEFT:
+        directional = Direction::LEFT;
+        break;
+      case TileState::DIRECTION_RIGHT:
+        directional = Direction::RIGHT;
+        break;
+      }
+
+      if (directional != Direction::NONE) {
+        if (!character->HasAirShoe() && !character->HasFloatShoe()) {
+          if (!character->IsSliding() && notMoving) {
+            character->SlideToTile(true);
+            character->Move(directional);
+          }
+        }
+      }
+    }
   }
 
   std::vector<Entity*> Tile::FindEntities(std::function<bool(Entity* e)> query)

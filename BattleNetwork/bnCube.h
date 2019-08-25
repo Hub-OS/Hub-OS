@@ -58,6 +58,7 @@ protected:
   static const int numOfAllowedCubesOnField;
   int cubeIndex;
   bool hit;
+  bool pushedByDrag; /*!< Whether or not to keep momentum going*/
   double timer;
   Direction previousDirection;
 

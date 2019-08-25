@@ -180,6 +180,7 @@
   <ItemGroup>
     <ClCompile Include="Android\bnTouchArea.cpp" />
     <ClCompile Include="bnAirShot.cpp" />
+    <ClCompile Include="bnAirShotChipAction.cpp" />
     <ClCompile Include="bnAnimate.cpp" />
     <ClCompile Include="bnAnimatedCharacter.cpp" />
     <ClCompile Include="bnAnimatedTextBox.cpp" />
@@ -193,6 +194,7 @@
     <ClCompile Include="bnAudioResourceManager.cpp" />
     <ClCompile Include="bnBubble.cpp" />
     <ClCompile Include="bnBubbleTrap.cpp" />
+    <ClCompile Include="bnCannonChipAction.cpp" />
     <ClCompile Include="bnComponent.cpp" />
     <ClCompile Include="bnDefenseAntiDamage.cpp" />
     <ClCompile Include="bnDefenseBubbleWrap.cpp" />
@@ -273,6 +275,7 @@
     <ClCompile Include="bnPA.cpp" />
     <ClCompile Include="bnPanelGrab.cpp" />
     <ClCompile Include="bnParticlePoof.cpp" />
+    <ClCompile Include="bnPlayerChipUseListener.cpp" />
     <ClCompile Include="bnPlayerHitState.cpp" />
     <ClCompile Include="bnPlayerIdleState.cpp" />
     <ClCompile Include="bnProgBomb.cpp" />
@@ -339,6 +342,7 @@
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
     <ClInclude Include="Android\bnTouchArea.h" />
     <ClInclude Include="bnAirShot.h" />
+    <ClInclude Include="bnAirShotChipAction.h" />
     <ClInclude Include="bnAnimate.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
@@ -347,6 +351,8 @@
     <ClInclude Include="bnBubble.h" />
     <ClInclude Include="bnBubbleState.h" />
     <ClInclude Include="bnBubbleTrap.h" />
+    <ClInclude Include="bnCannonChipAction.h" />
+    <ClInclude Include="bnChipAction.h" />
     <ClInclude Include="bnDefenseAntiDamage.h" />
     <ClInclude Include="bnDefenseBubbleWrap.h" />
     <ClInclude Include="bnChargedBusterHit.h" />

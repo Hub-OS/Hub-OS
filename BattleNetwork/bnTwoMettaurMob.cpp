@@ -34,7 +34,9 @@ Mob* TwoMettaurMob::Build() {
       for (int j = 0; j < field->GetHeight(); j++) {
         Battle::Tile* tile = field->GetAt(i + 1, j + 1);
 
-        if (tile->GetTeam() == Team::RED) {
+        tile->SetState(TileState(rand()%int(TileState::SIZE)));
+
+        /*if (tile->GetTeam() == Team::RED) {
           if (i == 1 && j == 1) {
             tile->SetState(TileState::DIRECTION_RIGHT);
           }
@@ -54,11 +56,17 @@ Mob* TwoMettaurMob::Build() {
           }
             break;
           case 2:
-            tile->SetState(TileState::DIRECTION_RIGHT);
+          {
+            if (i == 5)
+              tile->SetState(TileState::DIRECTION_UP);
+            else
+              tile->SetState(TileState::DIRECTION_RIGHT);
+          }
             break;
           }
-        }
-        if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE && tile->GetEntityCount() == 0) {
+        }*/
+
+        if (tile->IsWalkable() && tile->GetTeam() == Team::BLUE) {
           if (rand() % 50 > 25 && count-- > 0)
             mob->Spawn<Rank1<Mettaur>>(i + 1, j + 1);
         }

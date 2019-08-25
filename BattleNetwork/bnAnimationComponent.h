@@ -113,6 +113,8 @@ public:
    */
   sf::Vector2f GetPoint(const std::string& pointName);
   
+  void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame>&& data, std::string& uuid);
+
   /**
    * @brief Force the animation to jump to this frame index 
    * @param index index of the frame

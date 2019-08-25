@@ -281,7 +281,7 @@ void BattleScene::ProcessNewestComponents()
 
           // Otherwise inject into scene
           c->Inject(*this);
-          Logger::Log("component ID " + std::to_string(c->GetID()) + " was injected");
+          // Logger::Log("component ID " + std::to_string(c->GetID()) + " was injected");
         }
 
         e->lastComponentID = latestID;

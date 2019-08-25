@@ -9,6 +9,7 @@ frame duration="0.05" x="161" y="14" w="47" h="36" originx="8" originy="19"
 frame duration="0.05" x="217" y="12" w="60" h="40" originx="8" originy="21"
 frame duration="0.05" x="283" y="6" w="67" h="53" originx="11" originy="27"
 frame duration="0.05" x="355" y="3" w="66" h="57" originx="10" originy="30"
+frame duration="0.05" x="72" y="23" w="26" h="20" originx="8" originy="10"
 
 animation state="Cannon2"
 frame duration="0.05" x="2" y="82" w="25" h="19" originx="8" originy="10"

@@ -10,7 +10,7 @@ const int Cube::numOfAllowedCubesOnField = 2;
 int Cube::currCubeIndex = 0;
 int Cube::cubesRemovedCount = 0;
 
-Cube::Cube(Field* _field, Team _team) : Obstacle(field, team) {
+Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), pushedByDrag(false) {
   this->setTexture(LOAD_TEXTURE(MISC_CUBE));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);
@@ -110,7 +110,7 @@ void Cube::OnUpdate(float _elapsed) {
   this->tile->AffectEntities(this);
 
   // Keep momentum
-  if (!IsSliding()) {
+  if (!IsSliding() && pushedByDrag) {
     this->SlideToTile(true);
     this->Move(this->GetDirection());
   }
@@ -140,6 +140,9 @@ void Cube::OnDelete() {
 }
 
 const bool Cube::OnHit(const Hit::Properties props) {
+  if (this->animation->GetAnimationString() == "APPEAR")
+    return false;
+
   // Teams cannot accidentally pull cube into their side
   if(props.aggressor && (props.flags & Hit::drag) == Hit::drag){
     if(props.aggressor->GetTeam() == Team::RED) {
@@ -159,10 +162,9 @@ const bool Cube::OnHit(const Hit::Properties props) {
         return false;
       }
     }
-  }
 
-  if (this->animation->GetAnimationString() == "APPEAR")
-    return false;
+    pushedByDrag = true;
+  }
 
   AUDIO.Play(AudioType::HURT);
   
