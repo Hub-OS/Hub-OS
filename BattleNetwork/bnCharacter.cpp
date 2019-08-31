@@ -5,6 +5,9 @@
 #include "bnField.h"
 #include "bnElementalDamage.h"
 #include "bnShaderResourceManager.h"
+#include "bnAnimationComponent.h"
+
+#include <Swoosh/Ease.h>
 
 Character::Character(Rank _rank) : 
   health(0),
@@ -15,6 +18,7 @@ Character::Character(Rank _rank) :
   canShareTile(false),
   stunCooldown(0),
   invincibilityCooldown(0),
+  counterSlideDelta(0),
   name("unnamed"),
   rank(_rank),
   invokeDeletion(false),
@@ -26,6 +30,11 @@ Character::Character(Rank _rank) :
 }
 
 Character::~Character() {
+}
+
+bool Character::IsStunned()
+{
+  return this->stunCooldown > 0;
 }
 
 const Character::Rank Character::GetRank() const {
@@ -53,10 +62,11 @@ const bool Character::CanTilePush() const {
 }
 
 void Character::Update(float _elapsed) {
-
   double prevThisFrameStun = this->stunCooldown;
 
   this->ResolveFrameBattleDamage();
+
+  this->setColor(sf::Color::White);
 
   if (!hit) {
       if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
@@ -64,6 +74,10 @@ void Character::Update(float _elapsed) {
       }
       else if(!this->IsDeleted()) {
           this->SetShader(nullptr);
+
+          if (this->counterable) {
+            this->setColor(sf::Color(255, 55, 55));
+          }
       }
 
       if (this->invincibilityCooldown > 0) {
@@ -90,9 +104,11 @@ void Character::Update(float _elapsed) {
     // HACKY: If we are stunned this frame, let AI update step once
     // to turn into their respective hit state animations
     this->OnUpdate(_elapsed);
-  }
-  else if (this->stunCooldown > 0.0) {
+  } else if (this->stunCooldown > 0.0) {
     this->stunCooldown -= _elapsed;
+
+    // we need to manually update their position if drag is in effect
+    setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
     if (this->stunCooldown <= 0.0) {
       this->stunCooldown = 0.0;
@@ -100,6 +116,18 @@ void Character::Update(float _elapsed) {
   }
 
   Entity::Update(_elapsed);
+
+  // If the counterSlideOffset has changed from 0, it's due to the character
+  // being deleted on a counter frame. Begin animating the counter-delete slide
+  if (counterSlideOffset.x != 0 || counterSlideOffset.y != 0) {
+    counterSlideDelta += _elapsed;
+    
+    auto delta = swoosh::ease::linear(counterSlideDelta, 0.10f, 1.0f);
+    auto offset = delta * counterSlideOffset;
+
+    // Add this offset onto our offsets
+    setPosition(tile->getPosition().x + offset.x, tile->getPosition().y + offset.y);
+  }
 
   hit = false;
 
@@ -118,7 +146,7 @@ bool Character::CanMoveTo(Battle::Tile * next)
 }
 
 const bool Character::Hit(Hit::Properties props) {
-  if (this->invincibilityCooldown > 0 || this->IsPassthrough()) return false;
+  if (this->invincibilityCooldown > 0 || this->IsPassthrough() || this->GetHealth() == 0) return false;
 
   this->SetHealth(GetHealth() - props.damage);
   
@@ -173,122 +201,127 @@ void Character::ResolveFrameBattleDamage()
   std::queue<Hit::Properties> append;
 
   while(!this->statusQueue.empty() && !IsSliding()) {
-     Hit::Properties& props = this->statusQueue.front();
+    Hit::Properties& props = this->statusQueue.front();
     this->statusQueue.pop();
 
     int tileDamage = 0;
 
-    // Calculate elemental damage if the tile the character is on is super effective to it
-    if (props.element == Element::FIRE
-      && GetTile()->GetState() == TileState::GRASS
-      && !(this->HasAirShoe() || this->HasFloatShoe())) {
-      tileDamage = props.damage;
+// Calculate elemental damage if the tile the character is on is super effective to it
+if (props.element == Element::FIRE
+  && GetTile()->GetState() == TileState::GRASS
+  && !(this->HasAirShoe() || this->HasFloatShoe())) {
+  tileDamage = props.damage;
+}
+else if (props.element == Element::ELEC
+  && GetTile()->GetState() == TileState::ICE
+  && !(this->HasAirShoe() || this->HasFloatShoe())) {
+  tileDamage = props.damage;
+}
+
+// Pass on hit properties to the user-defined handler
+if (this->OnHit(props)) {
+  // Only register counter if:
+  // 1. Hit type is impact
+  // 2. The character is on a counter frame
+  // 3. Hit properties has an aggressor
+  // This will set the counter aggressor to be the first non-impact hit and not check again this frame
+  if (this->IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
+    if (props.aggressor) {
+      frameCounterAggressor = props.aggressor;
     }
-    else if (props.element == Element::ELEC
-      && GetTile()->GetState() == TileState::ICE
-      && !(this->HasAirShoe() || this->HasFloatShoe())) {
-      tileDamage = props.damage;
+  }
+
+  // Requeue drag if already sliding by drag
+  if ((props.flags & Hit::drag) == Hit::drag) {
+    if (this->slideFromDrag) {
+      append.push({ 0, Hit::drag, Element::NONE, nullptr, props.drag });
     }
-
-    // Pass on hit properties to the user-defined handler
-    if (this->OnHit(props)) {
-      // Only register counter if:
-      // 1. Hit type is impact
-      // 2. The character is on a counter frame
-      // 3. Hit properties has an aggressor
-      // This will set the counter aggressor to be the first non-impact hit and not check again this frame
-      if (this->IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if (props.aggressor) {
-          frameCounterAggressor = props.aggressor;
-        }
-      }
-
-      // Requeue drag if already sliding by drag
-      if((props.flags & Hit::drag) == Hit::drag) {
-        if(this->slideFromDrag) {
-          append.push({0, Hit::drag, Element::NONE, nullptr, props.drag});
-        } else {
-          // Apply directional slide later
-          postDragDir = props.drag;
-        }
-
-        // exclude this from the next processing step
-        props.drag = Direction::NONE;
-        props.flags &= ~Hit::drag;
-      }
-
-      // Stun can be canceled by non-stun hits or queued if dragging
-      if((props.flags & Hit::stun) == Hit::stun) {
-        if(postDragDir != Direction::NONE) {
-          append.push({0, props.flags, Element::NONE, nullptr, Direction::NONE});
-        } else {
-          this->stunCooldown = 3.0;
-        }
-      } else if(this->stunCooldown > 0) {
-        // cancel
-        this->stunCooldown = 0;
-      }
-
-      // exclude this from the next processing step
-      props.flags &= ~Hit::stun;
-
-      // Flinch is ignored if already flinching
-      // and can be queued if dragging this frame
-      if ((props.flags & Hit::flinch) == Hit::flinch) {
-        if (postDragDir != Direction::NONE) {
-          append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
-        }
-        else {
-          if (this->invincibilityCooldown <= 0.0) {
-            this->invincibilityCooldown = 3.0;
-          }
-        }
-      }
-
-      hit = hit || true;
+    else {
+      // Apply directional slide later
+      postDragDir = props.drag;
     }
 
-    if (hit) {
-      if (this->GetHealth() == 0) {
-        this->stunCooldown = 0;
-        postDragDir = Direction::NONE; // Cancel slide post-status if blowing up
+    // exclude this from the next processing step
+    props.drag = Direction::NONE;
+    props.flags &= ~Hit::drag;
+  }
+
+  // Stun can be canceled by non-stun hits or queued if dragging
+  if ((props.flags & Hit::stun) == Hit::stun) {
+    if (postDragDir != Direction::NONE) {
+      append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
+    }
+    else {
+      this->stunCooldown = 3.0;
+    }
+  }
+  else if (this->stunCooldown > 0) {
+    // cancel
+    this->stunCooldown = 0;
+  }
+
+  // exclude this from the next processing step
+  props.flags &= ~Hit::stun;
+
+  // Flinch is ignored if already flinching
+  // and can be queued if dragging this frame
+  if ((props.flags & Hit::flinch) == Hit::flinch) {
+    if (postDragDir != Direction::NONE) {
+      append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
+    }
+    else {
+      if (this->invincibilityCooldown <= 0.0) {
+        this->invincibilityCooldown = 3.0;
       }
     }
   }
 
-  if(!append.empty()) {
-      this->statusQueue = append;
+  hit = hit || true;
+}
+
+if (hit) {
+  if (this->GetHealth() == 0) {
+    this->stunCooldown = 0;
+    postDragDir = Direction::NONE; // Cancel slide post-status if blowing up
+  }
+}
   }
 
-  if(postDragDir != Direction::NONE) {
+  if (!append.empty()) {
+    this->statusQueue = append;
+  }
+
+  if (postDragDir != Direction::NONE) {
     // enemies and objects on opposing side of field are granted immunity from drag
-    if(Teammate(this->GetTile()->GetTeam())) {
+    if (Teammate(this->GetTile()->GetTeam())) {
       this->SlideToTile(true);
-      //this->slideFromDrag = true;
+      this->slideFromDrag = true;
       this->Move(postDragDir);
     }
-  } else if(this->slideFromDrag){
-    // No dragging status in this frame, no sliding
-    //this->slideFromDrag = false;
   }
 
-  if(frameCounterAggressor) {
-    Logger::Log("counter broadcasted!");
+  if (frameCounterAggressor) {
     this->Broadcast(*this, *frameCounterAggressor);
     this->ToggleCounter(false);
     this->Stun(3.0);
   }
 
   if (this->GetHealth() == 0 && !this->invokeDeletion) {
+
+    while(this->statusQueue.size() > 0) {
+      this->statusQueue.pop();
+    }
+
     this->OnDelete();
     this->invokeDeletion = true;
     this->stunCooldown = 0;
     this->invincibilityCooldown = 0;
+
     this->SlideToTile(false); // cancel slide
 
     if(frameCounterAggressor) {
       // Slide entity back a few pixels
-      this->tileOffset = sf::Vector2f(50.f, 0.0f);
+      this->counterSlideOffset = sf::Vector2f(50.f, 0.0f);
     }
   }
 }

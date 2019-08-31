@@ -31,9 +31,13 @@ CannonChipAction::CannonChipAction(Character * owner, int damage) : ChipAction(o
   this->OverrideAnimationFrames({ FRAMES });
 
   // On shoot frame, drop projectile
-  auto onFire = [this, damage]() -> void {
+  auto onFire = [this, damage, owner]() -> void {
     // Spawn a single cannon instance on the tile in front of the player
     Cannon* cannon = new Cannon(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+    auto props = cannon->GetHitboxProperties();
+    props.aggressor = GetOwnerAs<Character>();
+    cannon->SetHitboxProperties(props);
+
     AUDIO.Play(AudioType::CANNON);
 
     cannon->SetDirection(Direction::RIGHT);

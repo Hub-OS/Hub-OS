@@ -38,6 +38,11 @@ Cannon::Cannon(Field* _field, Team _team, int _damage) : Spell(_field, _team){
   for (int x = 0; x < BULLET_ANIMATION_SPRITES; x++) {
     animation.Add(0.3f, IntRect(BULLET_ANIMATION_WIDTH*x, 0, BULLET_ANIMATION_WIDTH, BULLET_ANIMATION_HEIGHT));
   }
+
+  auto props = Hit::DefaultProperties;
+  props.damage = damage;
+  props.flags |= Hit::flinch;
+  SetHitboxProperties(props);
 }
 
 Cannon::~Cannon() {
@@ -111,10 +116,7 @@ void Cannon::Attack(Character* _entity) {
     return;
   }
 
-  auto props = Hit::DefaultProperties;
-  props.damage = damage;
-  props.flags |= Hit::flinch;
-  _entity->Hit(props);
+  _entity->Hit(GetHitboxProperties());
   hitHeight = _entity->GetHitHeight();
 
   if (!_entity->IsPassthrough()) {

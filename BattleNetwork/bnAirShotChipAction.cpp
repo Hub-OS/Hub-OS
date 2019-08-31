@@ -36,6 +36,9 @@ AirShotChipAction::AirShotChipAction(Character * owner, int damage) : ChipAction
 
     AirShot* airshot = new AirShot(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
     airshot->SetDirection(Direction::RIGHT);
+    auto props = airshot->GetHitboxProperties();
+    props.aggressor = GetOwnerAs<Character>();
+    airshot->SetHitboxProperties(props);
 
     GetOwner()->GetField()->AddEntity(*airshot, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
   };

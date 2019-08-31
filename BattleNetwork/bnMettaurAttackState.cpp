@@ -17,7 +17,13 @@ void MettaurAttackState::OnEnter(Mettaur& met) {
     met.SetAnimation("ATTACK", onFinish);
   }
 
+
+  met.SetCounterFrame(3);
   met.SetCounterFrame(4);
+  met.SetCounterFrame(5);
+  met.SetCounterFrame(6);
+  met.SetCounterFrame(7);
+  met.SetCounterFrame(8);
 }
 
 void MettaurAttackState::OnUpdate(float _elapsed, Mettaur& met) {

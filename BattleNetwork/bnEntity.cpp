@@ -155,7 +155,7 @@ void Entity::Update(float _elapsed) {
   else {
     // If we don't have a valid next tile pointer or are not sliding,
     // Keep centered in the current tile with no offset
-    this->tileOffset = sf::Vector2f(0, 0);
+    //this->tileOffset = sf::Vector2f(0, 0);
     isSliding = false;
   }
 

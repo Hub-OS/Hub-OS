@@ -141,21 +141,11 @@ public:
   void ToggleCounter(bool on = true);
   
   /**
-   * @brief Stun a character for maxCooldown seconds
-   * @param maxCooldown
-   * 
-   * NOTE: This may not be used anymore. Should probably remove.
+   * @brief Query the character's state is Stunned
+   * @return true if character is currently stunned, false otherwise
    */
-  void Stun(double maxCooldown);
-  
-  /**
-   * @brief Query if an attack successfully countered a Character
-   * @return true if character is currently countered, false otherwise
-   * 
-   * NOTE: this may not be used anymore. Should probably remove.
-   */
-  bool IsCountered();
-  
+  bool IsStunned();
+
   /**
    * @brief Get the rank of this character
    * @return const Rank
@@ -222,8 +212,26 @@ public:
 
 private:
   int maxHealth;
-
+  sf::Vector2f counterSlideOffset; /*!< Used when enemies delete on counter - they slide back */
+  float counterSlideDelta;
 protected:
+  /**
+ * @brief Stun a character for maxCooldown seconds
+ * @param maxCooldown
+ * Used internally by class
+ *
+ */
+  void Stun(double maxCooldown);
+
+  /**
+ * @brief Query if an attack successfully countered a Character
+ * @return true if character is currently countered, false otherwise
+ * Used internally by class
+ */
+  bool IsCountered();
+
+
+
   int health;
   bool counterable;
   bool canTilePush;

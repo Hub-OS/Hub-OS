@@ -135,6 +135,9 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
     player->SetAnimation(PLAYER_SWORD, onFinish);
 
     BasicSword* sword = new BasicSword(player->GetField(), player->GetTeam(), chip.GetDamage());
+    auto props = sword->GetHitboxProperties();
+    props.aggressor = player;
+    sword->SetHitboxProperties(props);
 
     AUDIO.Play(AudioType::SWORD_SWING);
 
@@ -163,6 +166,14 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
 
     BasicSword* sword = new BasicSword(player->GetField(), player->GetTeam(), chip.GetDamage());
     BasicSword* sword2 = new BasicSword(player->GetField(), player->GetTeam(), chip.GetDamage());
+
+    auto props = sword->GetHitboxProperties();
+    props.aggressor = player;
+    sword->SetHitboxProperties(props);
+
+    props = sword2->GetHitboxProperties();
+    props.aggressor = player;
+    sword2->SetHitboxProperties(props);
 
     AUDIO.Play(AudioType::SWORD_SWING);
 

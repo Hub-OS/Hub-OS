@@ -72,6 +72,12 @@ public:
    * @param playbackSpeed factor of 100 e.g. 2 is 200%, 0.5 is 50%
    */
   void SetPlaybackSpeed(const double playbackSpeed);
+
+  /**
+   * @brief Fetch the animation playback speed 
+   * @return double playback speed 
+   */
+  const double GetPlaybackSpeed();
   
   /**
    * @brief Set the playback mode

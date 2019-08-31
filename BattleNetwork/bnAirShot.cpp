@@ -30,6 +30,12 @@ AirShot::AirShot(Field* _field, Team _team, int _damage) : Spell(_field, _team) 
   SetDirection(Direction::RIGHT);
 
   damage = _damage;
+
+  auto props = Hit::DefaultProperties;
+  props.damage = damage;
+  props.flags |= Hit::drag;
+  props.drag = Direction::RIGHT;
+  SetHitboxProperties(props);
 }
 
 AirShot::~AirShot() {
@@ -50,12 +56,7 @@ void AirShot::OnUpdate(float _elapsed) {
 }
 
 void AirShot::Attack(Character* _entity) {
-  auto props = Hit::DefaultProperties;
-  props.damage = damage;
-  props.flags |= Hit::drag;
-  props.drag = Direction::RIGHT;
-
-  if(_entity->Hit(props)) {
+  if(_entity->Hit(GetHitboxProperties())) {
     this->Delete();
   }
 

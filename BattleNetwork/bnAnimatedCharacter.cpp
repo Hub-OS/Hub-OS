@@ -18,7 +18,7 @@ void AnimatedCharacter::SetCounterFrame(int frame)
 {
   auto onFinish = [&]() { this->ToggleCounter(); };
   auto onNext = [&]() { this->ToggleCounter(false); };
-  animationComponent->AddCallback(frame, onFinish, onNext);
+  animationComponent->AddCallback(frame, onFinish, onNext, true);
 }
 
 void AnimatedCharacter::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce)

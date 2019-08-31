@@ -6,6 +6,7 @@ using sf::IntRect;
 #include "bnFileUtil.h"
 #include "bnLogger.h"
 #include "bnEntity.h"
+#include "bnCharacter.h"
 
 AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
   speed = 1.0;
@@ -16,6 +17,12 @@ AnimationComponent::~AnimationComponent() {
 
 void AnimationComponent::OnUpdate(float _elapsed)
 {
+  auto character = this->GetOwnerAs<Character>();
+
+  if (character && character->IsStunned()) {
+    return;
+  }
+
   animation.Update(_elapsed, *GetOwner(), speed);
 }
 
@@ -46,6 +53,11 @@ const std::string& AnimationComponent::GetFilePath() const
 void AnimationComponent::SetPlaybackSpeed(const double playbackSpeed)
 {
   speed = playbackSpeed;
+}
+
+const double AnimationComponent::GetPlaybackSpeed()
+{
+  return speed;
 }
 
 void AnimationComponent::SetAnimation(string state, std::function<void()> onFinish)

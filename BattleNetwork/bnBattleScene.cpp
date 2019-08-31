@@ -344,8 +344,6 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 {
   AUDIO.Play(AudioType::COUNTER, AudioPriority::HIGHEST);
 
-  Logger::Log("OnCounter");
-
   if (&aggressor == this->player) {
     totalCounterMoves++;
 
@@ -445,46 +443,51 @@ void BattleScene::onUpdate(double elapsed) {
 
   // Do not update when: paused or in chip select, during a summon sequence, showing Battle Start sign
   if (!(isPaused || isInChipSelect) && summons.IsSummonOver() && !isPreBattle) {
-    if(multiDeleteTimer.isPaused()) {
-      multiDeleteTimer.start();
-    }
+
 
     // kill switch for testing:
-    if (INPUT.Has(InputEvent::PRESSED_A) && INPUT.Has(InputEvent::PRESSED_B) && INPUT.Has(InputEvent::PRESSED_LEFT) && INPUT.Has(InputEvent::PRESSED_RIGHT)) {
+    if (INPUT.Has(InputEvent::PRESSED_A) && INPUT.Has(InputEvent::PRESSED_B) && INPUT.Has(InputEvent::PRESSED_LEFT)) {
       mob->KillSwitch();
     }
 
     field->Update((float)elapsed);
-  } else {
-    multiDeleteTimer.pause();
-  }
-
-  int newMobSize = mob->GetRemainingMobCount();
-
-  if (lastMobSize != newMobSize) {
-    multiDeleteTimer.reset();
-    lastMobSize = newMobSize;
-  }
-
-  if(multiDeleteTimer.getElapsed() < sf::seconds(12.0f/60.0f)) {
-    if (lastMobSize != newMobSize) { comboDeleteCounter++; }
-    if (comboDeleteCounter == 2) {
-      didDoubleDelete = true;
-      comboInfo = doubleDelete;
-      comboInfoTimer.reset();
-    } else if (comboDeleteCounter > 2) {
-      didTripleDelete = true;
-      comboInfo = tripleDelete;
-      comboInfoTimer.reset();
-    }
-  } else {
-    comboDeleteCounter = 0;
-  }
+  } 
 
   // todo: we desperately need states
   // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
   if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle)) {
     int newMobSize = mob->GetRemainingMobCount();
+
+    if (lastMobSize != newMobSize) {
+      if (multiDeleteTimer.getElapsed() < sf::seconds(12.0f / 60.0f)) {
+        comboDeleteCounter += lastMobSize - newMobSize;
+
+        if (comboDeleteCounter == 2) {
+          didDoubleDelete = true;
+          comboInfo = doubleDelete;
+          comboInfoTimer.reset();
+        }
+        else if (comboDeleteCounter > 2) {
+          didTripleDelete = true;
+          comboInfo = tripleDelete;
+          comboInfoTimer.reset();
+        }
+      }
+      else {
+        comboDeleteCounter = 0;
+      }
+
+      // prepare for another enemy deletion
+      multiDeleteTimer.reset();
+    }
+
+    if (lastMobSize != newMobSize) {
+      Logger::Log("lastMobSize: " + std::to_string(lastMobSize));
+      Logger::Log("newMobSize: " + std::to_string(newMobSize));
+      Logger::Log("multiDeleteTimer: " + std::to_string(multiDeleteTimer.getElapsed().asSeconds()));
+    }
+
+    lastMobSize = newMobSize;
 
     if (newMobSize == 0) {
       if (!battleTimer.isPaused()) {
@@ -496,6 +499,8 @@ void BattleScene::onUpdate(double elapsed) {
       if (battleTimer.isPaused()) {
         // start counting seconds again
         battleTimer.start();
+        comboDeleteCounter = 0; // reset the combo
+        Logger::Log("comboDeleteCounter reset");
       }
 
       customProgress += elapsed;
@@ -513,7 +518,7 @@ void BattleScene::onUpdate(double elapsed) {
 
   // other player controls
   if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
-    // Todo: replace PLAYER_IDLE check for a chip lock status
+    // Todo: move this to player controller state where these checks are performed for us
     if (player && player->GetTile() && player->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE") {
       chipUI.UseNextChip();
     }
