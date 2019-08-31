@@ -98,6 +98,7 @@ enum TextureType {
   FOLDER_MB,
   FOLDER_NEXT_ARROW,
   FOLDER_SORT,
+  LETTER_CURSOR,
 
   // Navi Select View
   GLOWING_PAD_ATLAS,

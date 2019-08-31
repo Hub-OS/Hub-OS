@@ -314,11 +314,16 @@ void FolderScene::onUpdate(double elapsed) {
             AUDIO.Play(AudioType::PA_ADVANCE);
             break;
           case 2: // CHANGE NAME
-            using namespace intent;
-            using next = segue<BlackWashFade>::to<FolderChangeNameScene>;
-            getController().push<next>();
-            AUDIO.Play(AudioType::CHIP_CONFIRM);
-            gotoNextScene = true;
+            if (folder) {
+              using namespace intent;
+              using next = segue<BlackWashFade>::to<FolderChangeNameScene>;
+              getController().push<next>(folderNames[currFolderIndex]);
+              AUDIO.Play(AudioType::CHIP_CONFIRM);
+              gotoNextScene = true;
+            }
+            else {
+              AUDIO.Play(AudioType::CHIP_ERROR);
+            }
             break;
           }
         }
@@ -387,6 +392,7 @@ void FolderScene::onResume() {
     gotoNextScene = false;
 
     // Save any edits
+    collection.SetFolderName(folderNames[currFolderIndex], folder);
     folderSwitch = true;
     collection.WriteToFile("resources/database/folders.txt");
 }

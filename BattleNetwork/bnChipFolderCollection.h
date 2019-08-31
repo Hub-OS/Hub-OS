@@ -104,11 +104,21 @@ public:
 
     for (std::map<std::string, ChipFolder*>::iterator it = collection.begin(); it != collection.end(); ++it) {
       if (it->second == folder) {
-        collection[name] = it->second;
+
+        // insert the new name where the old name was
+        auto f = std::find(order.begin(), order.end(), it->first);
+        order.insert(f, name);
+
+        // remove the old name
+        order.erase(std::remove(order.begin(), order.end(), it->first));
+
+        // remove the folder
         collection.erase(it);
         break;
       }
     }
+
+    collection[name] = folder;
 
     return true;
   }
