@@ -7,7 +7,7 @@ using std::map;
 using std::vector;
 
 #include "bnInputEvent.h"
-#include "bnChronoXConfigReader.h"
+#include "bnConfigReader.h"
 
 using std::map;
 using std::vector;
@@ -61,13 +61,13 @@ public:
    * @brief Creates a reference to the config reader object
    * @param config
    */
-  void SupportChronoXGamepad(ChronoXConfigReader& config);
+  void SupportConfigSettings(ConfigReader& config);
   
   /**
-   * @brief Returns true if the config reader is set, config file is valid, & a joystick is found
+   * @brief Returns true if the config reader is set and config file is valid
    * @return 
    */
-  bool HasChronoXGamepadSupport();
+  bool IsConfigFileValid();
   
   /**
    * @brief Begins capturing entered text instead of firing game input events
@@ -130,6 +130,8 @@ public:
   */
   void BindLoseFocusEvent(std::function<void()> callback);
 
+  const bool IsJosytickAvailable() const;
+
 private:
   bool captureInputBuffer; /*!< Flags input buffer capture state */
   std::string inputBuffer; /*!< The internal input buffer data */
@@ -144,7 +146,7 @@ private:
 
   map<std::string, bool> gamepadPressed; /*!< Maps controller events*/
 
-  ChronoXConfigReader* config;   /*!< Support for ChronoX config.ini files */
+  ConfigReader* config;   /*!< Support for ChronoX config.ini files */
 
   std::function<void()> onRegainFocus; /*!< How the application should respond to regaining focus */
   std::function<void()> onLoseFocus; /*!< How the application should respond to losing focus */

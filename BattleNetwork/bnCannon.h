@@ -15,15 +15,12 @@ public:
   virtual ~Cannon();
 
   virtual void OnUpdate(float _elapsed);
-  virtual bool Move(Direction _direction);
+  virtual bool CanMoveTo(Battle::Tile* next);
   virtual void Attack(Character* _entity);
 
 private:
   int damage;
   int random;
   float cooldown, progress, hitHeight;
-  FrameList animation;
-  Animate animator;
   bool hit;
-  sf::Texture* texture;
 };

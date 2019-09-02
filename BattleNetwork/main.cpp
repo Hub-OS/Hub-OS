@@ -26,7 +26,8 @@
 #include "bnMainMenuScene.h"
 #include "bnFakeScene.h"
 #include "bnAnimate.h"
-#include "bnChronoXConfigReader.h"
+#include "bnConfigReader.h"
+#include "bnConfigScene.h"
 #include "SFML/System.hpp"
 
 #include <time.h>
@@ -193,8 +194,8 @@ int main(int argc, char** argv) {
   // State flags
   bool inConfigMessageState = true;
 
-  // For fans, try to read the chrono x config file
-  ChronoXConfigReader config("options.ini");
+  // try to read the config file
+  ConfigReader config("options.ini");
 
   if (!config.IsOK()) {
     // If the file is not ok, don't use the config
@@ -205,7 +206,7 @@ int main(int argc, char** argv) {
     // If the file is good, use the audio and 
     // controller settings from the config
     AUDIO.EnableAudio(config.IsAudioEnabled());
-    INPUT.SupportChronoXGamepad(config);
+    INPUT.SupportConfigSettings(config);
   }
 
   /**
@@ -394,6 +395,8 @@ int main(int argc, char** argv) {
   bool loadMobs = false;
   bool pressedStart = false;
 
+  int selected = 0; // menu options are CONTINUE (0) and CONFIGURE (1)
+
   // When resources are loaded, flash the screen white
   double shaderCooldown = 2000;  // 2 seconds
   double logFadeOutTimer = 4000; // 4 seconds of idle before logs fade out
@@ -556,7 +559,7 @@ int main(int argc, char** argv) {
       ENGINE.Draw(&bgSprite);
 
       // Show the gamepad icon at the top-left if we have joystick support
-      if (INPUT.HasChronoXGamepadSupport()) {
+      if (INPUT.IsJosytickAvailable()) {
         sf::Sprite gamePadICon(*TEXTURES.GetTexture(TextureType::GAMEPAD_SUPPORT_ICON));
         gamePadICon.setScale(2.f, 2.f);
         gamePadICon.setPosition(10.f, 5.0f);
@@ -635,8 +638,15 @@ int main(int argc, char** argv) {
             progSprite.setColor(darken);
             logoSprite.setColor(darken);
 
-            auto offset = std::abs((std::sin(totalElapsed/100.0f)*4.f));
-            cursorSprite.setPosition(sf::Vector2f(163.0f + offset, 227.f));
+            auto offset = std::abs((std::sin(totalElapsed / 100.0f)*4.f));
+
+            if (selected == 0) {
+              cursorSprite.setPosition(sf::Vector2f(163.0f + offset, 227.f));
+            }
+            else {
+              cursorSprite.setPosition(sf::Vector2f(163.0f + offset, 257.f));
+            }
+
             ENGINE.Draw(cursorSprite);
 
             // Show continue or settings options
@@ -651,6 +661,21 @@ int main(int argc, char** argv) {
             ENGINE.Draw(startLabel);
 
             bool shouldStart = INPUT.Has(RELEASED_START);
+
+            if (INPUT.Has(PRESSED_UP)) {
+              if (selected != 0) {
+                AUDIO.Play(AudioType::CHIP_SELECT);
+              }
+
+              selected = 0;
+            }
+            else if (INPUT.Has(PRESSED_DOWN)) {
+              if (selected != 1) {
+                AUDIO.Play(AudioType::CHIP_SELECT);
+              }
+
+              selected = 1;
+            }
 
 #ifdef __ANDROID__
             shouldStart = sf::Touch::isDown(0);
@@ -723,6 +748,10 @@ int main(int argc, char** argv) {
 
   // We want the next screen to be the main menu screen
   app.push<MainMenuScene>();
+
+  if (selected > 0) {
+    app.push<ConfigScene>();
+  }
 
   // This scene is designed to immediately pop off the stack
   // and segue into the previous scene on the stack: MainMenuScene

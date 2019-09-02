@@ -39,7 +39,7 @@ InputManager::~InputManager() {
   this->config = nullptr;
 }
 
-void InputManager::SupportChronoXGamepad(ChronoXConfigReader& config) {
+void InputManager::SupportConfigSettings(ConfigReader& config) {
   this->config = &config;
 }
 
@@ -73,7 +73,7 @@ void InputManager::Update() {
         std::string action = "";
 
         if (sf::Joystick::isButtonPressed(GAMEPAD_1, i)) {
-          action = config->GetPairedAction((ChronoXConfigReader::Gamepad)i);
+          action = config->GetPairedAction((ConfigReader::Gamepad)i);
 
           if (action == "") continue;
 
@@ -114,7 +114,7 @@ void InputManager::Update() {
             }
           }
         } else {
-          action = config->GetPairedAction((ChronoXConfigReader::Gamepad)i);
+          action = config->GetPairedAction((ConfigReader::Gamepad)i);
 
           if (action == "") continue;
 
@@ -531,13 +531,18 @@ void InputManager::BindLoseFocusEvent(std::function<void()> callback)
   this->onLoseFocus = callback;;
 }
 
+const bool InputManager::IsJosytickAvailable() const
+{
+  return sf::Joystick::isConnected(GAMEPAD_1);
+}
+
 bool InputManager::Empty() {
   return events.empty();
 }
 
-bool InputManager::HasChronoXGamepadSupport()
+bool InputManager::IsConfigFileValid()
 {
-  return config && (config->IsOK() && sf::Joystick::isConnected(GAMEPAD_1));
+  return config && (config->IsOK());
 }
 
 void InputManager::BeginCaptureInputBuffer()

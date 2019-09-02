@@ -75,9 +75,18 @@ public:
   ~Animation();
   /**
    * @brief Reads file at path set by constructor, parses lines, and populates FrameList with data
+
+     Effectively same as calling Load()
    */
   void Reload();
-  
+ 
+  /**
+ * @brief Reads file at path set by constructor, parses lines, and populates FrameList with data
+
+    Effectively same as calling Reload();
+ */
+  void Load();
+
   /**
    * @brief Apply FrameList to sprite
    * @param _elapsed in seconds to add to progress

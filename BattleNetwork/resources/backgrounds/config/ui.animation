@@ -1,0 +1,50 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/backgrounds/config/atlas.png"
+
+animation state="SELECT"
+frame duration="1" x="0" y="0" w="93" h="10" originx="0" originy="0"
+
+animation state="START"
+frame duration="1" x="0" y="10" w="83" h="10" originx="0" originy="0"
+
+animation state="LPAD"
+frame duration="1" x="0" y="20" w="66" h="10" originx="0" originy="0"
+
+animation state="RPAD"
+frame duration="1" x="0" y="30" w="66" h="10" originx="0" originy="0"
+
+animation state="LEFT"
+frame duration="1" x="0" y="40" w="60" h="10" originx="0" originy="0"
+
+animation state="RIGHT"
+frame duration="1" x="0" y="50" w="74" h="10" originx="0" originy="0"
+
+animation state="DOWN"
+frame duration="1" x="0" y="60" w="65" h="10" originx="0" originy="0"
+
+animation state="UP"
+frame duration="1" x="0" y="70" w="32" h="10" originx="0" originy="0"
+
+animation state="A"
+frame duration="1" x="0" y="80" w="15" h="10" originx="0" originy="0"
+
+animation state="B"
+frame duration="1" x="0" y="90" w="15" h="10" originx="0" originy="0"
+
+animation state="HINT"
+frame duration="1" x="32" y="81" w="208" h="18" originx="0" originy="0"
+
+animation state="GBA"
+frame duration="0.01" x="115" y="100" w="115" h="68" originx="0" originy="0"
+frame duration="0.01" x="0" y="100" w="115" h="68" originx="0" originy="0"
+
+animation state="CURSOR"
+frame duration="0.05" x="69" y="28" w="17" h="17" originx="0" originy="0"
+frame duration="0.05" x="86" y="28" w="17" h="17" originx="0" originy="0"
+frame duration="0.05" x="103" y="28" w="17" h="17" originx="0" originy="0"
+frame duration="0.05" x="120" y="28" w="17" h="17" originx="0" originy="0"
+
+animation state="AUDIO"
+frame duration="0.05" x="80" y="56" w="11" h="16" originx="0" originy="0"
+frame duration="0.05" x="91" y="56" w="11" h="16" originx="0" originy="0"
+frame duration="0.05" x="102" y="56" w="11" h="16" originx="0" originy="0"
+frame duration="0.05" x="113" y="56" w="11" h="16" originx="0" originy="0"

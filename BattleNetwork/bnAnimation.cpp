@@ -142,6 +142,11 @@ void Animation::Reload() {
   }
 }
 
+void Animation::Load()
+{
+  Reload();
+}
+
 string Animation::ValueOf(string _key, string _line) {
   int keyIndex = (int)_line.find(_key);
   // assert(keyIndex > -1 && "Key was not found in .animation file.");

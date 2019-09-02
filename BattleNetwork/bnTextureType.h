@@ -151,5 +151,10 @@ enum TextureType {
 
   // EDITOR UI
   LIGHT,
+
+  // CONFIG UI
+  CONFIG_UI,
+
+  // Query size of all texture types
   TEXTURE_TYPE_SIZE
 };

@@ -26,8 +26,9 @@ private:
   int cursorPosX; /*!< x location in column */
   int cursorPosY; /*!< y location in column */
   int currTable;  /*!< which table we're on */
-  sf::Sprite cursor;
-  Animation animator;
+  sf::Sprite cursorPieceLeft, cursorPieceRight;
+  Animation animatorLeft;
+  Animation animatorRight;
   float elapsed;
   std::string& folderName;
 

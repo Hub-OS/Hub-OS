@@ -198,6 +198,5 @@ void NaviRegistration::LoadAllNavis(std::atomic<int>& progress)
     Logger::GetMutex()->unlock();
 
     progress++;
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 }

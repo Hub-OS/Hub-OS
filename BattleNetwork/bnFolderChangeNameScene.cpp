@@ -73,14 +73,17 @@ void FolderChangeNameScene::DoEND()
 }
 
 FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& controller, std::string& folderName) : swoosh::Activity(&controller), folderName(folderName) {
+  
   leave = true;
   // folder menu graphic
   bg = sf::Sprite(LOAD_TEXTURE(FOLDER_CHANGE_NAME_BG));
   bg.setScale(2.f, 2.f);
 
-  cursor = sf::Sprite(LOAD_TEXTURE(LETTER_CURSOR));
-  cursor.setScale(2.f, 2.f);
-  cursor.setPosition(12 * 2.f, 58 * 2.f);
+  cursorPieceLeft = sf::Sprite(LOAD_TEXTURE(LETTER_CURSOR));
+  cursorPieceLeft.setScale(2.f, 2.f);
+  cursorPieceLeft.setPosition(12 * 2.f, 58 * 2.f);
+
+  cursorPieceRight = cursorPieceLeft;
 
   letterPos = cursorPosX = cursorPosY = currTable = 0;
 
@@ -99,10 +102,15 @@ FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& control
     name[i] = folderName[i];
   }
 
-  animator = Animation("resources/ui/letter_cursor.animation");
-  animator.Reload();
-  animator.SetAnimation("BLINK");
-  animator << Animate::Mode::Loop;
+  animatorLeft = Animation("resources/ui/letter_cursor.animation");
+  animatorLeft.Load();
+  animatorLeft.SetAnimation("BLINK_L");
+  animatorLeft << Animate::Mode::Loop;
+
+  animatorRight = Animation("resources/ui/letter_cursor.animation");
+  animatorRight.Load();
+  animatorRight.SetAnimation("BLINK_R");
+  animatorRight << Animate::Mode::Loop;
 
   table = {
     { // First column
@@ -196,6 +204,8 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
 
   // Check X pos
   if (lastX != cursorPosX) {
+    AUDIO.Play(AudioType::CHIP_SELECT);
+
     if (cursorPosX < 0) {
       currTable--;
 
@@ -230,6 +240,8 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
 
   // Check Y pos
   if (lastY != cursorPosY) {
+    AUDIO.Play(AudioType::CHIP_SELECT);
+
     if (cursorPosY < 0) {
       cursorPosY = 0;
     }
@@ -245,18 +257,24 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
   // Update flashing cursor position
   auto tableOffset = (88.f)*currTable;
   auto startX = 12.f;
-  auto startY = 59.f;
+  auto startY = 60.f;
   auto offsetx = 16.f * cursorPosX;
   auto offsety = 16.f * cursorPosY;
 
-  cursor.setPosition(2.f*(startX + offsetx + tableOffset), 2.f*(startY + offsety));
+  cursorPieceLeft.setPosition (2.f*(startX + offsetx + tableOffset), 2.f*(startY + offsety));
+
+  // Last column has wide text e.g. "NEXT", "BACK", ... ensure we fit those words
+  if (currTable == 2) { offsetx += 22; if (cursorPosY == 2) { offsetx -= 14; } else if (cursorPosY == 3) { offsetx -= 8; } }
+
+  cursorPieceRight.setPosition(2.f*(startX + offsetx + tableOffset + 4.0f), 2.f*(startY + offsety));
 
   // Resolve action command if any
   if (executeAction) {
     this->ExecuteAction(currTable, cursorPosX, cursorPosY);
   }
 
-  animator.Update((float)elapsed, cursor);
+  animatorLeft.Update ((float)elapsed, cursorPieceLeft);
+  animatorRight.Update((float)elapsed, cursorPieceRight);
 
   auto c = name[letterPos];
 }
@@ -264,8 +282,9 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
 void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
   ENGINE.Draw(bg);
-  ENGINE.Draw(cursor);
-  
+  ENGINE.Draw(cursorPieceLeft);
+  ENGINE.Draw(cursorPieceRight);
+
   auto blink = int(this->elapsed * 3000) % 1000 < 500;
 
   for (int i = 0; i < name.size(); i++) {

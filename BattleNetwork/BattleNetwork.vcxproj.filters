@@ -506,6 +506,9 @@
     <Filter Include="Activities\Battle\Content\Chips\Action\AirShot">
       <UniqueIdentifier>{653e5b8f-d5cb-4ea9-b8a1-936479988bcc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Config">
+      <UniqueIdentifier>{e7929995-400d-4212-a3e6-93fc49841dd9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -964,6 +967,9 @@
     <ClCompile Include="bnAirShotChipAction.cpp">
       <Filter>Activities\Battle\Content\Chips\Action\AirShot</Filter>
     </ClCompile>
+    <ClCompile Include="bnConfigScene.cpp">
+      <Filter>Activities\Config</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -1133,9 +1139,6 @@
       <Filter>Activities\Battle\Content\Entities\Spell\Sword\Basic</Filter>
     </ClInclude>
     <ClInclude Include="bnFileUtil.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="bnChronoXConfigReader.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="bnLanBackground.h">
@@ -1560,6 +1563,12 @@
     </ClInclude>
     <ClInclude Include="bnAirShotChipAction.h">
       <Filter>Activities\Battle\Content\Chips\Action\AirShot</Filter>
+    </ClInclude>
+    <ClInclude Include="bnConfigScene.h">
+      <Filter>Activities\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="bnConfigReader.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

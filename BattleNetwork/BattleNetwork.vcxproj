@@ -196,6 +196,7 @@
     <ClCompile Include="bnBubbleTrap.cpp" />
     <ClCompile Include="bnCannonChipAction.cpp" />
     <ClCompile Include="bnComponent.cpp" />
+    <ClCompile Include="bnConfigScene.cpp" />
     <ClCompile Include="bnDefenseAntiDamage.cpp" />
     <ClCompile Include="bnDefenseBubbleWrap.cpp" />
     <ClCompile Include="bnCanodumb.cpp" />
@@ -353,6 +354,7 @@
     <ClInclude Include="bnBubbleTrap.h" />
     <ClInclude Include="bnCannonChipAction.h" />
     <ClInclude Include="bnChipAction.h" />
+    <ClInclude Include="bnConfigScene.h" />
     <ClInclude Include="bnDefenseAntiDamage.h" />
     <ClInclude Include="bnDefenseBubbleWrap.h" />
     <ClInclude Include="bnChargedBusterHit.h" />
@@ -447,7 +449,7 @@
     <ClInclude Include="bnChip.h" />
     <ClInclude Include="bnChipLibrary.h" />
     <ClInclude Include="bnChipSelectionCust.h" />
-    <ClInclude Include="bnChronoXConfigReader.h" />
+    <ClInclude Include="bnConfigReader.h" />
     <ClInclude Include="bnInputManager.h" />
     <ClInclude Include="bnInputEvent.h" />
     <ClInclude Include="bnEntity.h" />

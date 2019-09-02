@@ -236,6 +236,9 @@ TextureResourceManager::TextureResourceManager(void) {
 
   // editor ui
   paths.push_back("resources/ui/light.png");
+
+  // config ui
+  paths.push_back("resources/backgrounds/config/atlas_compressed.png");
 }
 
 TextureResourceManager::~TextureResourceManager(void) {
