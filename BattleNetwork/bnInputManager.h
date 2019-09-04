@@ -43,7 +43,11 @@ public:
    * the button state is transformed into a HELD state equivalent.
    */
   void Update();
+
+  sf::Keyboard::Key GetAnyKey();
   
+  const bool ConvertKeyToString(const sf::Keyboard::Key key, std::string& out);
+
   /**
    * @brief Queries if an input event has been fired
    * @param _event the event to look for.
@@ -133,6 +137,8 @@ public:
   const bool IsJosytickAvailable() const;
 
 private:
+  sf::Keyboard::Key lastkey;
+
   bool captureInputBuffer; /*!< Flags input buffer capture state */
   std::string inputBuffer; /*!< The internal input buffer data */
 

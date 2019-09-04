@@ -472,10 +472,9 @@ namespace Battle {
         continue;
       }
 
-      HandleTileBehaviors(*entity);
-
+      // Allow user input to move them out of tiles if they are frame perfect
       (*entity)->Update(_elapsed);
-
+      HandleTileBehaviors(*entity);
     }
 
 

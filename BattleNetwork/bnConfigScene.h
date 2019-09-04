@@ -31,11 +31,22 @@ private:
   sf::Sprite cursor;
 
   bool leave;
+  bool awaitingKey;
   int audioMode;
   
   Background* bg;
 
-  std::vector<sf::Sprite*> uiList;
+  sf::Sprite uiSprite;
+
+  struct uiData {
+    std::string label;
+    sf::Vector2f position;
+    sf::Vector2f scale;
+    int alpha;
+  };
+
+  std::vector<uiData> uiList, boundKeys;
+
   std::vector<sf::Vector2f> points;
 
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */

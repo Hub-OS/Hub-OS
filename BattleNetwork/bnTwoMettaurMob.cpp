@@ -34,7 +34,7 @@ Mob* TwoMettaurMob::Build() {
       for (int j = 0; j < field->GetHeight(); j++) {
         Battle::Tile* tile = field->GetAt(i + 1, j + 1);
 
-        //tile->SetState(TileState(rand()%int(TileState::SIZE)));
+        tile->SetState(TileState(rand()%int(TileState::SIZE)));
 
         /*if (tile->GetTeam() == Team::RED) {
           if (i == 1 && j == 1) {

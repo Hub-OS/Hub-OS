@@ -32,6 +32,8 @@ InputManager::InputManager() : config(nullptr) {
     gamepadPressed["Up"] = false;
     gamepadPressed["Down"] = false;
   }
+
+  lastkey = sf::Keyboard::Key::Unknown;
 }
 
 
@@ -48,15 +50,19 @@ void InputManager::Update() {
   this->events.clear();
 
   Event event;
+
+  lastkey = sf::Keyboard::Key::Unknown;
+
   while (ENGINE.GetWindow()->pollEvent(event)) {
     if (event.type == Event::Closed) {
       this->onLoseFocus();
       ENGINE.GetWindow()->close();
     }
 
-    if(event.type == Event::LostFocus) {
+    if (event.type == Event::LostFocus) {
       this->onLoseFocus();
-    } else if(event.type == Event::GainedFocus) {
+    }
+    else if (event.type == Event::GainedFocus) {
       this->onRegainFocus();
     }
     else if (event.type == Event::Resized) {
@@ -67,7 +73,11 @@ void InputManager::Update() {
       this->HandleInputBuffer(event);
     }
 
-    if (config && config->IsOK() && sf::Joystick::isConnected(GAMEPAD_1)) {
+    if(event.type == sf::Event::KeyPressed) {
+      lastkey = event.key.code;
+    }
+
+    if (sf::Joystick::isConnected(GAMEPAD_1)) {
       for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++)
       {
         std::string action = "";
@@ -506,6 +516,141 @@ void InputManager::Update() {
     events.clear(); // TODO: what inputs get stuck in the event list on droid?
     TouchArea::poll();
 #endif
+}
+
+sf::Keyboard::Key InputManager::GetAnyKey()
+{
+  return lastkey;
+}
+
+const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::string & out)
+{
+  switch (key) {
+    case sf::Keyboard::Key::Num1:
+      out = std::string("1"); return true;
+    case sf::Keyboard::Key::Num2:
+      out = std::string("2"); return true;
+    case sf::Keyboard::Key::Num3:
+      out = std::string("3"); return true;
+    case sf::Keyboard::Key::Num4:
+      out = std::string("4"); return true;
+    case sf::Keyboard::Key::Num5:
+      out = std::string("5"); return true;
+    case sf::Keyboard::Key::Num6:
+      out = std::string("6"); return true;
+    case sf::Keyboard::Key::Num7:
+      out = std::string("7"); return true;
+    case sf::Keyboard::Key::Num8:
+      out = std::string("8"); return true;
+    case sf::Keyboard::Key::Num9:
+      out = std::string("9"); return true;
+    case sf::Keyboard::Key::Num0:
+      out = std::string("0"); return true;
+    case sf::Keyboard::Key::Return:
+      out = std::string("Enter"); return true;
+    case sf::Keyboard::Key::BackSpace:
+      out = std::string("BackSpace"); return true;
+    case sf::Keyboard::Key::Space:
+      out = std::string("Space"); return true;
+    case sf::Keyboard::Key::Left:
+      out = std::string("Left"); return true;
+    case sf::Keyboard::Key::Down:
+      out = std::string("Down"); return true;
+    case sf::Keyboard::Key::Right:
+      out = std::string("Right"); return true;
+    case sf::Keyboard::Key::Up:
+      out = std::string("Up"); return true;
+    case sf::Keyboard::Key::Delete:
+      out = std::string("Delete"); return true;
+    case sf::Keyboard::Key::A:
+      out = std::string("A"); return true;
+    case sf::Keyboard::Key::B:
+      out = std::string("B"); return true;
+    case sf::Keyboard::Key::C:
+      out = std::string("C"); return true;
+    case sf::Keyboard::Key::D:
+      out = std::string("D"); return true;
+    case sf::Keyboard::Key::E:
+      out = std::string("E"); return true;
+    case sf::Keyboard::Key::F:
+      out = std::string("F"); return true;
+    case sf::Keyboard::Key::G:
+      out = std::string("G"); return true;
+    case sf::Keyboard::Key::H:
+      out = std::string("H"); return true;
+    case sf::Keyboard::Key::I:
+      out = std::string("I"); return true;
+    case sf::Keyboard::Key::J:
+      out = std::string("J"); return true;
+    case sf::Keyboard::Key::K:
+      out = std::string("K"); return true;
+    case sf::Keyboard::Key::L:
+      out = std::string("L"); return true;
+    case sf::Keyboard::Key::M:
+      out = std::string("M"); return true;
+    case sf::Keyboard::Key::N:
+      out = std::string("N"); return true;
+    case sf::Keyboard::Key::O:
+      out = std::string("O"); return true;
+    case sf::Keyboard::Key::P:
+      out = std::string("P"); return true;
+    case sf::Keyboard::Key::Q:
+      out = std::string("Q"); return true;
+    case sf::Keyboard::Key::R:
+      out = std::string("R"); return true;
+    case sf::Keyboard::Key::S:
+      out = std::string("S"); return true;
+    case sf::Keyboard::Key::T:
+      out = std::string("T"); return true;
+    case sf::Keyboard::Key::U:
+      out = std::string("U"); return true;
+    case sf::Keyboard::Key::V:
+      out = std::string("V"); return true;
+    case sf::Keyboard::Key::W:
+      out = std::string("W"); return true;
+    case sf::Keyboard::Key::X:
+      out = std::string("X"); return true;
+    case sf::Keyboard::Key::Y:
+      out = std::string("Y"); return true;
+    case sf::Keyboard::Key::Z:
+      out = std::string("Z"); return true;
+    case sf::Keyboard::Key::Tilde:
+      out = std::string("~"); return true;
+    case sf::Keyboard::Key::Tab:
+      out = std::string("TAB"); return true;
+    case sf::Keyboard::Key::LControl:
+      out = std::string("L CTRL"); return true;
+    case sf::Keyboard::Key::LAlt:
+      out = std::string("L ALT"); return true;
+    case sf::Keyboard::Key::RAlt:
+      out = std::string("R ALT"); return true;
+    case sf::Keyboard::Key::RControl:
+      out = std::string("R CTRL"); return true;
+    case sf::Keyboard::Key::SemiColon:
+      out = std::string(");"); return true;
+    case sf::Keyboard::Key::Equal:
+      out = std::string("="); return true;
+    case sf::Keyboard::Key::Comma:
+      out = std::string("<"); return true;
+    case sf::Keyboard::Key::Dash:
+      out = std::string("-"); return true;
+    case sf::Keyboard::Key::Period:
+      out = std::string(">"); return true;
+    case sf::Keyboard::Key::Divide:
+      out = std::string("?"); return true;
+    case sf::Keyboard::Key::LBracket:
+      out = std::string("["); return true;
+    case sf::Keyboard::Key::Slash:
+      out = std::string("\\"); return true;
+    case sf::Keyboard::Key::RBracket:
+      out = std::string("]"); return true;
+    case sf::Keyboard::Key::Quote:
+      out = std::string("'"); return true;
+  }
+
+  out = "";
+
+  return false;
 }
 
 bool InputManager::Has(InputEvent _event) {

@@ -43,8 +43,124 @@ frame duration="0.1" x="230" y="35" w="17" h="17" originx="8" originy="8"
 frame duration="0.1" x="230" y="52" w="17" h="17" originx="8" originy="8"
 frame duration="0.1" x="230" y="69" w="17" h="17" originx="8" originy="8"
 
-animation state="AUDIO"
+animation state="AUDIO_BG"
 frame duration="0.05" x="240" y="0" w="11" h="16" originx="0" originy="0"
 frame duration="0.05" x="197" y="96" w="11" h="16" originx="0" originy="0"
 frame duration="0.05" x="208" y="96" w="11" h="16" originx="0" originy="0"
 frame duration="0.05" x="219" y="96" w="11" h="16" originx="0" originy="0"
+
+animation state="Q"
+frame duration="-2.22674e-38" x="0" y="128" w="16" h="10" originx="0" originy="0"
+
+animation state="W"
+frame duration="-2.32877e-38" x="16" y="128" w="16" h="10" originx="0" originy="0"
+
+animation state="E"
+frame duration="-2.32979e-38" x="32" y="128" w="15" h="10" originx="0" originy="0"
+
+animation state="R"
+frame duration="-2.32733e-38" x="47" y="128" w="16" h="10" originx="0" originy="0"
+
+animation state="T"
+frame duration="-2.41389e-38" x="63" y="128" w="16" h="10" originx="0" originy="0"
+
+animation state="Y"
+frame duration="-2.40726e-38" x="79" y="128" w="16" h="10" originx="0" originy="0"
+
+animation state="U"
+frame duration="-2.41235e-38" x="95" y="128" w="13" h="10" originx="0" originy="0"
+
+animation state="I"
+frame duration="-2.53979e-38" x="110" y="128" w="6" h="10" originx="0" originy="0"
+
+animation state="O"
+frame duration="-2.54298e-38" x="117" y="128" w="14" h="10" originx="0" originy="0"
+
+animation state="P"
+frame duration="-2.5465e-38" x="131" y="128" w="16" h="10" originx="0" originy="0"
+
+animation state="["
+frame duration="-2.55029e-38" x="148" y="128" w="8" h="10" originx="0" originy="0"
+
+animation state="]"
+frame duration="-2.55244e-38" x="158" y="128" w="8" h="10" originx="0" originy="0"
+
+animation state="A"
+frame duration="-2.53829e-38" x="0" y="138" w="16" h="10" originx="0" originy="0"
+
+animation state="S"
+frame duration="-2.80072e-38" x="16" y="138" w="16" h="10" originx="0" originy="0"
+
+animation state="D"
+frame duration="-3.50752e-38" x="32" y="138" w="16" h="10" originx="0" originy="0"
+
+animation state="F"
+frame duration="-3.51038e-38" x="48" y="138" w="16" h="10" originx="0" originy="0"
+
+animation state="G"
+frame duration="-3.51397e-38" x="64" y="138" w="17" h="10" originx="0" originy="0"
+
+animation state="H"
+frame duration="-3.51718e-38" x="81" y="138" w="16" h="10" originx="0" originy="0"
+
+animation state="J"
+frame duration="-3.51938e-38" x="97" y="138" w="16" h="10" originx="0" originy="0"
+
+animation state="K"
+frame duration="-3.52321e-38" x="113" y="138" w="16" h="10" originx="0" originy="0"
+
+animation state="L"
+frame duration="-3.52778e-38" x="129" y="138" w="16" h="10" originx="0" originy="0"
+
+animation state=";"
+frame duration="-3.52915e-38" x="146" y="138" w="6" h="10" originx="0" originy="0"
+
+animation state="'"
+frame duration="-3.49476e-38" x="153" y="138" w="6" h="10" originx="0" originy="0"
+
+animation state="Z"
+frame duration="-3.49982e-38" x="0" y="148" w="16" h="10" originx="0" originy="0"
+
+animation state="X"
+frame duration="-3.50384e-38" x="16" y="148" w="16" h="10" originx="0" originy="0"
+
+animation state="C"
+frame duration="-3.22453e-38" x="32" y="148" w="16" h="10" originx="0" originy="0"
+
+animation state="V"
+frame duration="-3.22794e-38" x="48" y="148" w="13" h="10" originx="0" originy="0"
+
+animation state="B"
+frame duration="-3.23278e-38" x="61" y="148" w="16" h="10" originx="0" originy="0"
+
+animation state="N"
+frame duration="-3.2383e-38" x="77" y="148" w="16" h="10" originx="0" originy="0"
+
+animation state="M"
+frame duration="-3.22274e-38" x="93" y="148" w="16" h="10" originx="0" originy="0"
+
+animation state="<"
+frame duration="-3.1676e-38" x="113" y="149" w="8" h="10" originx="0" originy="0"
+
+animation state=">"
+frame duration="-3.17233e-38" x="121" y="149" w="8" h="9" originx="0" originy="0"
+
+animation state="?"
+frame duration="-3.17403e-38" x="129" y="148" w="16" h="10" originx="0" originy="0"
+
+animation state="KEY"
+frame duration="-3.15964e-38" x="95" y="117" w="48" h="10" originx="0" originy="0"
+
+animation state="ARROW"
+frame duration="-3.16491e-38" x="0" y="117" w="82" h="10" originx="0" originy="0"
+
+animation state="AUDIO_FX"
+frame duration="-1.656e+35" x="197" y="110" w="11" h="14" originx="0" originy="0"
+frame duration="-1.64339e+35" x="208" y="110" w="11" h="14" originx="0" originy="0"
+frame duration="-2.76153e+35" x="219" y="110" w="11" h="14" originx="0" originy="0"
+
+animation state="BG_LABEL"
+frame duration="-2.76454e+35" x="247" y="110" w="9" h="6" originx="0" originy="0"
+
+animation state="FX_LABEL"
+frame duration="-2.76639e+35" x="247" y="103" w="8" h="5" originx="0" originy="0"

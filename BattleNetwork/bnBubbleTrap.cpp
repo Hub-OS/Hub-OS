@@ -45,6 +45,8 @@ void BubbleTrap::Inject(BattleScene& bs) {
 }
 
 void BubbleTrap::OnUpdate(float _elapsed) {
+  if (!this->tile) return;
+
   if (duration <= 0 &&  animation.GetAnimationString() != "POP" ) {
     this->Pop();
   }
