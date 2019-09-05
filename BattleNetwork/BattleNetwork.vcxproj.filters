@@ -494,9 +494,6 @@
     <Filter Include="Engine\ResourceManagers\ShaderResource">
       <UniqueIdentifier>{49b19f7e-5aec-46e0-967f-2e0f585adcef}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\ResourceManagers\FontResource">
-      <UniqueIdentifier>{439edcdf-bce0-4360-b0e4-4fe0e780bf66}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Chips\Action">
       <UniqueIdentifier>{d2c84dfc-7be8-49c9-a201-90c8fa891443}</UniqueIdentifier>
     </Filter>
@@ -508,6 +505,9 @@
     </Filter>
     <Filter Include="Activities\Config">
       <UniqueIdentifier>{e7929995-400d-4212-a3e6-93fc49841dd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Modules\Graphics\Font">
+      <UniqueIdentifier>{74859765-f626-4184-8267-15ab70d541fc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -237,8 +237,12 @@ TextureResourceManager::TextureResourceManager(void) {
   // editor ui
   paths.push_back("resources/ui/light.png");
 
+  // font
+  paths.push_back("resources/fonts/all_fonts.png");
+
   // config ui
-  paths.push_back("resources/backgrounds/config/atlas_compressed.png");
+  paths.push_back("resources/backgrounds/config/audio.png");
+  paths.push_back("resources/backgrounds/config/end_btn.png");
 }
 
 TextureResourceManager::~TextureResourceManager(void) {

@@ -66,7 +66,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   ow = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_OW));
   ow.setScale(2.f, 2.f);
 
-  gotoNextScene = false;
+  gotoNextScene = true;
 
   menuSelectionIndex = lastMenuSelectionIndex = 0;
 }
@@ -84,7 +84,7 @@ void MainMenuScene::onStart() {
 #endif
 
   Logger::Log("main menu onStart");
-
+  gotoNextScene = false;
 }
 
 void MainMenuScene::onUpdate(double elapsed) {

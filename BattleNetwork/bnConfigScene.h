@@ -19,21 +19,26 @@ class ConfigScene : public swoosh::Activity {
 private:
   // ui sprite maps
   Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
-  Animation cursorAnimator;
+  Animation endBtnAnimator;
+  Animation audioAnimator;
   int menuSelectionIndex;; /*!< Current selection */
   int lastMenuSelectionIndex;
   int maxMenuSelectionIndex; 
+  int colIndex;
+  int maxCols;
 
   sf::Sprite overlay; /*!< PET */
   sf::Sprite gba;
-  sf::Sprite audio;
+  sf::Sprite audioBGM,audioSFX;
   sf::Sprite hint;
-  sf::Sprite cursor;
+  sf::Sprite endBtn;
 
-  bool leave;
+  bool leave; // ?
   bool awaitingKey;
-  int audioMode;
-  
+  bool isSelectingTopMenu;
+  int audioModeBGM;
+  int audioModeSFX;
+
   Background* bg;
 
   sf::Sprite uiSprite;
@@ -42,12 +47,14 @@ private:
     std::string label;
     sf::Vector2f position;
     sf::Vector2f scale;
+    enum class ActionItemType : int {
+      BATTLE,
+      MENUS
+    } type;
     int alpha;
   };
 
-  std::vector<uiData> uiList, boundKeys;
-
-  std::vector<sf::Vector2f> points;
+  std::vector<uiData> uiList[2], boundKeys;
 
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
 
