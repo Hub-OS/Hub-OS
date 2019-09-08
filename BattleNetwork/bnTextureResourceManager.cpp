@@ -74,24 +74,26 @@ TextureResourceManager::TextureResourceManager(void) {
   //Red tile
   paths.push_back("resources/tiles/tile_atlas_red.png");
 
-
   //-Navis-
-  //Megaman
+  // Megaman
   paths.push_back("resources/navis/megaman/navi_megaman_atlas.png");
 
-  //Starman
+  // Starman
   paths.push_back("resources/navis/starman/navi_starman_atlas.png");
 
-  //Roll
+  // Roll
   paths.push_back("resources/navis/roll/navi_roll_atlas.png");
 
-  //-Mobs-
+  // Mobs
   paths.push_back("resources/mobs/mob_move.png");
   paths.push_back("resources/mobs/mob_explosion.png");
   paths.push_back("resources/mobs/boss_shine.png");
 
-  //Mettaur
+  // Mettaur
   paths.push_back("resources/mobs/mettaur/mettaur.png");
+
+  // Metrid
+  paths.push_back("resources/mobs/metrid/metrid.png");
 
   // ProgsMan
   paths.push_back("resources/mobs/progsman/mob_progsman_atlas.png");
@@ -135,7 +137,9 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/poof.png");
   paths.push_back("resources/spells/areagrab.png");
   paths.push_back("resources/spells/sword_effect.png");
-  
+  paths.push_back("resources/spells/spell_meteor.png");
+  paths.push_back("resources/spells/spell_ring_explosion.png");
+
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");
   paths.push_back("resources/ui/chip_cursor_small.png");

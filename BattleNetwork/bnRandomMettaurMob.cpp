@@ -17,6 +17,7 @@
 #include "bnBattleOverTrigger.h"
 #include "bnStarfishIdleState.h"
 #include "bnUndernetBackground.h"
+#include "bnMetrid.h"
 
 RandomMettaurMob::RandomMettaurMob(Field* field) : MobFactory(field)
 {
@@ -45,7 +46,7 @@ Mob* RandomMettaurMob::Build() {
         Battle::Tile* tile = field->GetAt(i + 1, j + 1);
 
         if (tile->GetTeam() == Team::BLUE && !tile->ContainsEntityType<Character>() && rand() % 10 == 0) {
-          mob->Spawn<Rank1<Megalian>>(i + 1, j + 1);
+          mob->Spawn<Rank1<Metrid>>(i + 1, j + 1);
         }
       }
     }

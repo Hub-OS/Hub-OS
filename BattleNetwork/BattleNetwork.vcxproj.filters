@@ -296,9 +296,6 @@
     <Filter Include="Activities\Battle\Content\Entities\Artifact\Explosion\Basic">
       <UniqueIdentifier>{ce16928b-ae94-41f1-ade6-70a553ef4874}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Entities\Artifact\Explosion\Projectile">
-      <UniqueIdentifier>{5b575b1c-744c-4485-b16e-9d326c04ed10}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Entities\Artifact\Explosion\Boss">
       <UniqueIdentifier>{db93d211-1a1a-4eb3-9b32-71aab8dfc689}</UniqueIdentifier>
     </Filter>
@@ -508,6 +505,21 @@
     </Filter>
     <Filter Include="Engine\Modules\Graphics\Font">
       <UniqueIdentifier>{74859765-f626-4184-8267-15ab70d541fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Metrid">
+      <UniqueIdentifier>{a8da2016-550d-4605-9f4a-3d16442f03a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Character\Metrid\States">
+      <UniqueIdentifier>{fb6b5f2d-e710-44c2-b513-aa6278369c05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Meteor">
+      <UniqueIdentifier>{8a1a78ab-e47b-450a-8084-db72e03784a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\MobMove">
+      <UniqueIdentifier>{2069f2d7-1429-47bb-93ad-c33215235fc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Artifact\Explosion\RingExplosion">
+      <UniqueIdentifier>{3703da15-9c5c-4726-8524-fc3bb2afdd17}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -969,6 +981,24 @@
     </ClCompile>
     <ClCompile Include="bnConfigScene.cpp">
       <Filter>Activities\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetrid.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Metrid</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetridIdleState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Metrid\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetridAttackState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Metrid\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMeteor.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\Meteor</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMobMoveEffect.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\MobMove</Filter>
+    </ClCompile>
+    <ClCompile Include="bnRingExplosion.cpp">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Explosion\RingExplosion</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1569,6 +1599,30 @@
     </ClInclude>
     <ClInclude Include="bnConfigReader.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetrid.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Metrid</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetridIdleState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Metrid\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetridMoveState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Metrid\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetridMoveState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Metrid\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetridAttackState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Metrid\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMeteor.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\Meteor</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMobMoveEffect.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\MobMove</Filter>
+    </ClInclude>
+    <ClInclude Include="bnRingExplosion.h">
+      <Filter>Activities\Battle\Content\Entities\Artifact\Explosion\RingExplosion</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

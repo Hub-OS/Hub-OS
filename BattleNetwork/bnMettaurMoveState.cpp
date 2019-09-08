@@ -5,8 +5,6 @@
 #include "bnMettaurAttackState.h"
 #include "bnMettaurIdleState.h"
 
-#include "bnProgsMan.h"
-
 MettaurMoveState::MettaurMoveState() : isMoving(false), AIState<Mettaur>() { ; }
 MettaurMoveState::~MettaurMoveState() { ; }
 

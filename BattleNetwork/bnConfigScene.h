@@ -54,6 +54,8 @@ private:
     int alpha;
   };
 
+  int menuDivideIndex;
+
   std::vector<uiData> uiList[2], boundKeys;
 
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */

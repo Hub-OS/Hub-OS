@@ -35,12 +35,12 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activ
   audioBGM.setScale(2.f, 2.f);
 
   audioAnimator.SetAnimation("DEFAULT");
-  audioAnimator.Update(0, audioBGM);
+  audioAnimator.Update(4, audioBGM);
   audioBGM.setPosition(2*3, 2*140);
 
   audioSFX = audioBGM;
   audioAnimator.SetAnimation("DEFAULT");
-  audioAnimator.Update(0, audioBGM);
+  audioAnimator.Update(4, audioBGM);
   audioSFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
 
   // GBA
@@ -91,7 +91,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activ
     boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
   }
   
-  maxMenuSelectionIndex = (int)actions.size();
+  menuDivideIndex = maxMenuSelectionIndex = (int)actions.size();
 
   actions.clear();
   actions.push_back("UI UP");
@@ -182,24 +182,21 @@ void ConfigScene::onUpdate(double elapsed)
       }
     }
     else if (INPUT.Has(InputEvent::PRESSED_A)) {
-      if (menuSelectionIndex == maxMenuSelectionIndex) {
+      // bg audio
+      if (menuSelectionIndex == 0 && colIndex == 0) {
         audioModeBGM = (audioModeBGM+1) % 4;
-
-        // only mute fx if all audio is mute
-        if (audioModeBGM == 0) {
-          AUDIO.SetChannelVolume(0);
-        }
-        else {
-          AUDIO.SetChannelVolume(100);
-        }
-
         AUDIO.SetStreamVolume (((audioModeBGM)/3.0f)*100.0f);
-        uiAnimator.SetAnimation("DEFAULT");
-        uiAnimator.SetFrame(audioModeBGM + 1, audioBGM);
+        audioAnimator.SetAnimation("DEFAULT");
+        audioAnimator.SetFrame(audioModeBGM + 1, audioBGM);
 
+
+      }
+      else if (menuSelectionIndex == 1 && colIndex == 0) {
+        audioModeSFX = (audioModeSFX + 1) % 4;
         AUDIO.SetChannelVolume(((audioModeSFX) / 3.0f)*100.0f);
-        uiAnimator.SetAnimation("DEFAULT");
-        uiAnimator.SetFrame(audioModeSFX + 1, audioSFX);
+        audioAnimator.SetAnimation("DEFAULT");
+        audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
+        AUDIO.Play(AudioType::BUSTER_PEA);
       }
       else if(!awaitingKey) {
         awaitingKey = true;
@@ -251,7 +248,7 @@ void ConfigScene::onUpdate(double elapsed)
 
       auto s = sf::Vector2f(2.f*scale, 2.f*scale);
       auto slerp = sf::Vector2f(swoosh::ease::interpolate(delta, s.x, (*container)[i].scale.x), swoosh::ease::interpolate(delta, s.y, (*container)[i].scale.y));
-      (*container)[i].scale = sf::Vector2f(2.f, 2.f); //slerp;
+      (*container)[i].scale = slerp;
 
       // recalculate, unbounded this time
       scale = 1.0f - (w*abs(diff));
@@ -360,7 +357,7 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
           uiAnimator.SetAnimation(sc);
           uiAnimator.SetFrame(1, uiSprite);
           uiSprite.setScale(ui.scale);
-          uiSprite.setPosition(ui.scale.x*(ui.position.x + offset), ui.position.y);
+          uiSprite.setPosition(2.f*(ui.position.x + offset), ui.position.y);
 
           if (ui.type == uiData::ActionItemType::BATTLE) {
             uiSprite.setColor(sf::Color(255, 165, 0, ui.alpha));
@@ -370,7 +367,7 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
           }
 
           ENGINE.Draw(uiSprite);
-          offset += uiSprite.getLocalBounds().width + 2;
+          offset += (int)uiSprite.getLocalBounds().width + 2;
         }
       }
     }
@@ -391,8 +388,8 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
 
       uiAnimator.SetFrame(1, uiSprite);
       uiSprite.setScale(ui.scale);
-      uiSprite.setPosition((ui.position.x + offset), ui.position.y);
-      offset += uiSprite.getLocalBounds().width + 2;
+      uiSprite.setPosition(2.f*(ui.position.x + offset), ui.position.y);
+      offset += (int)uiSprite.getLocalBounds().width + 2;
     }
 
     auto totalOffset = offset;
@@ -412,7 +409,9 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
 
       uiAnimator.SetFrame(1, uiSprite);
       uiSprite.setScale(ui.scale);
-      uiSprite.setPosition((ui.position.x - (totalOffset*ui.scale.x)) + offset*ui.scale.x, ui.position.y);
+      uiSprite.setPosition(2.0f*(ui.position.x + offset) , ui.position.y);
+
+      Logger::Log("position is: " + std::to_string(2.0f*(ui.position.x + offset)));
 
       if (ui.type == uiData::ActionItemType::BATTLE) {
         uiSprite.setColor(sf::Color(255, 165, 0, ui.alpha));
@@ -422,7 +421,7 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
       }
 
       ENGINE.Draw(uiSprite);
-      offset += uiSprite.getLocalBounds().width + 2;
+      offset += (int)uiSprite.getLocalBounds().width + 2;
     }
   }
 

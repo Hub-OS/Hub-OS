@@ -67,12 +67,8 @@ void Mettaur::OnDelete() {
 
       if (it != Mettaur::metIDs.end()) {
           // Remove this mettaur out of rotation...
-          Mettaur::currMetIndex++;
-
           Mettaur::metIDs.erase(it);
-          if (Mettaur::currMetIndex >= Mettaur::metIDs.size()) {
-              Mettaur::currMetIndex = 0;
-          }
+          this->NextMettaurTurn();
       }
   }
 }
@@ -105,7 +101,7 @@ const bool Mettaur::IsMettaurTurn() const
 void Mettaur::NextMettaurTurn() {
   Mettaur::currMetIndex++;
 
-  if (Mettaur::currMetIndex >= Mettaur::metIDs.size()) {
+  if (Mettaur::currMetIndex >= Mettaur::metIDs.size() && Mettaur::metIDs.size() > 0) {
     Mettaur::currMetIndex = 0;
   }
 }

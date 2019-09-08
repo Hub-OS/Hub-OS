@@ -46,6 +46,7 @@ void Cannon::OnUpdate(float _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
+    if (GetTile()->GetX() == 6) { this->Delete(); } 
     Move(GetDirection());
     this->AdoptNextTile();
     cooldown = 0;

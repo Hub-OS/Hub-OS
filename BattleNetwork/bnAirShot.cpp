@@ -46,6 +46,7 @@ void AirShot::OnUpdate(float _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
+    if (GetTile()->GetX() == 6) { this->Delete(); }
     if (Move(Direction::RIGHT)) {
       this->AdoptNextTile();
     }
