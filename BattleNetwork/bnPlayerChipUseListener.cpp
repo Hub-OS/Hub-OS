@@ -7,6 +7,7 @@
 #include "bnTwinFangChipAction.h"
 #include "bnTornadoChipAction.h"
 #include "bnFireBurnChipAction.h"
+#include "bnElecSwordChipAction.h"
 #include "bnVulcanChipAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
@@ -116,6 +117,10 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
   }
   else if (name == "Tornado") {
     auto action = new TornadoChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
+  }
+  else if (name == "ElecSwrd") {
+    auto action = new ElecSwordChipAction(player, chip.GetDamage());
     player->RegisterComponent(action);
   }
   else if (name.substr(0, 7) == "FireBrn") {

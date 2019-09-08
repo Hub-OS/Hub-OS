@@ -73,6 +73,9 @@ void Vulcan::OnUpdate(float _elapsed) {
 
   // If it did not hit a target this frame, move to next tile
   if (!hit) {
+    if (GetTile()->GetX() == 6 && this->GetTeam() == Team::RED) { this->Delete(); }
+    if (GetTile()->GetX() == 1 && this->GetTeam() == Team::BLUE) { this->Delete(); }
+
     Move(GetDirection());
     AdoptNextTile();
     FinishMove();

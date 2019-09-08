@@ -250,6 +250,8 @@ if (this->OnHit(props)) {
     props.flags &= ~Hit::drag;
   }
 
+  bool hadStun = false;
+
   // Stun can be canceled by non-stun hits or queued if dragging
   if ((props.flags & Hit::stun) == Hit::stun) {
     if (postDragDir != Direction::NONE) {
@@ -258,6 +260,7 @@ if (this->OnHit(props)) {
     else {
       this->stunCooldown = 3.0;
     }
+    hadStun = true;
   }
   else if (this->stunCooldown > 0) {
     // cancel
@@ -267,9 +270,9 @@ if (this->OnHit(props)) {
   // exclude this from the next processing step
   props.flags &= ~Hit::stun;
 
-  // Flinch is ignored if already flinching
+  // Flinch is ignored if already flinching or stunned
   // and can be queued if dragging this frame
-  if ((props.flags & Hit::flinch) == Hit::flinch) {
+  if ((props.flags & Hit::flinch) == Hit::flinch && !hadStun) {
     if (postDragDir != Direction::NONE) {
       append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
     }

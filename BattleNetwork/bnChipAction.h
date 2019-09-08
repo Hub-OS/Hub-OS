@@ -9,7 +9,7 @@
 #include <SFML/Graphics.hpp>
 
 class ChipAction : public Component {
-private:
+protected:
   AnimationComponent* anim;
   std::string animation, nodeName;
   std::string uuid, prevState;
@@ -32,6 +32,16 @@ public:
 
     if (anim) {
       prevState = anim->GetAnimationString();
+
+      // use the current animation's arrangement, do not overload
+      this->anim = owner->GetFirstComponent<AnimationComponent>();
+      this->prevState = anim->GetAnimationString();;
+      this->anim->SetAnimation(animation, [this]() {
+        anim->SetAnimation(prevState);
+        this->EndAction();
+      });
+
+      anim->OnUpdate(0);
     }
   }
 

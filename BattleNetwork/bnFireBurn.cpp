@@ -37,7 +37,7 @@ FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(da
 
   auto props = GetHitboxProperties();
   props.flags &= ~Hit::recoil;
-  props.flags |= Hit::breaking;
+  props.flags |= Hit::breaking | Hit::flinch;
   props.damage = damage;
   props.element = Element::FIRE;
   this->SetHitboxProperties(props);

@@ -216,6 +216,7 @@
     <ClCompile Include="bnDefenseRule.cpp" />
     <ClCompile Include="bnDefenseVirusBody.cpp" />
     <ClCompile Include="bnElecpulse.cpp" />
+    <ClCompile Include="bnElecSwordChipAction.cpp" />
     <ClCompile Include="bnElementalDamage.cpp" />
     <ClCompile Include="bnEnemyChipsUI.cpp" />
     <ClCompile Include="bnFakeScene.cpp" />
@@ -381,6 +382,7 @@
     <ClInclude Include="bnDefenseGuard.h" />
     <ClInclude Include="bnDefenseVirusBody.h" />
     <ClInclude Include="bnElecPulse.h" />
+    <ClInclude Include="bnElecSwordChipAction.h" />
     <ClInclude Include="bnElementalDamage.h" />
     <ClInclude Include="bnEnemyChipUseListener.h" />
     <ClInclude Include="bnBackground.h" />

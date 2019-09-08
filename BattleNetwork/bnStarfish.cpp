@@ -9,6 +9,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
+#include "bnDefenseVirusBody.h"
 
 #define RESOURCE_PATH "resources/mobs/starfish/starfish.animation"
 
@@ -17,6 +18,7 @@ Starfish::Starfish(Rank _rank)
   this->SetName("Starfish");
   this->team = Team::BLUE;
 
+  this->SetElement(Element::AQUA);
   this->SetHealth(100);
   textureType = TextureType::MOB_STARFISH_ATLAS;
 
@@ -33,6 +35,9 @@ Starfish::Starfish(Rank _rank)
   this->SetFloatShoe(true);
 
   animationComponent->OnUpdate(0);
+
+  virusBody = new DefenseVirusBody();
+  this->AddDefenseRule(virusBody);
 }
 
 Starfish::~Starfish() {
@@ -54,6 +59,11 @@ const float Starfish::GetHitHeight() const {
 }
 
 void Starfish::OnDelete() {
+  if (virusBody) {
+    this->RemoveDefenseRule(virusBody);
+    delete virusBody;
+    virusBody = nullptr;
+  }
+
   this->ChangeState<ExplodeState<Starfish>>();
-  this->LockState();
 }

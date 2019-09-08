@@ -24,8 +24,7 @@ void StarfishAttackState::OnEnter(Starfish& star) {
 
   star.SetAnimation("PREATTACK", onPreAttack);
 
-  star.SetCounterFrame(1);
-  star.SetCounterFrame(2);
+  // star.SetCounterFrame(1);
 }
 
 void StarfishAttackState::OnUpdate(float _elapsed, Starfish& star) {

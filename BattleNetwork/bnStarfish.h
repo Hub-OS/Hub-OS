@@ -36,4 +36,5 @@ public:
 private:
   float hitHeight;
   TextureType textureType;
+  DefenseRule* virusBody;
 };

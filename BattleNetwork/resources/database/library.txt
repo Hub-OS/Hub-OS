@@ -1,4 +1,4 @@
-# Saved on 19-09-08 14:59:49
+# Saved on 19-09-08 15:52:41
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="*" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="L" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="Antidamg" cardIndex="88" iconIndex="190" damage="0" type="NONE" codes="*" desc="Protect and attack" verbose="This chip does not have extra information." rarity="3" 
@@ -35,6 +35,7 @@ Chip name="CrckPanel" cardIndex="83" iconIndex="158" damage="0" type="NONE" code
 Chip name="CrckPanel" cardIndex="83" iconIndex="158" damage="0" type="NONE" codes="K" desc="Cracks a panel" verbose="Cracks the tiles in the column immediately in front" rarity="2" 
 Chip name="CrckPanel" cardIndex="83" iconIndex="158" damage="0" type="NONE" codes="K" desc="Cracks a panel" verbose="Cracks the tiles in the column immediately in front" rarity="2" 
 Chip name="CrckPanel" cardIndex="83" iconIndex="158" damage="0" type="NONE" codes="K" desc="Cracks a panel" verbose="Cracks the tiles in the column immediately in front" rarity="2" 
+Chip name="ElecSwrd" cardIndex="23" iconIndex="35" damage="120" type="ELEC" codes="*" desc="Cut enmy 3sq fwrd w/elec" verbose="This chip does not have extra information." rarity="5" 
 Chip name="Elecplse" cardIndex="53" iconIndex="107" damage="40" type="ELEC" codes="*" desc="Paralyze and pull enmy " verbose="This chip does not have extra information." rarity="3" 
 Chip name="Elecplse" cardIndex="53" iconIndex="107" damage="40" type="ELEC" codes="B" desc="Paralyze and pull enmy " verbose="This chip does not have extra information." rarity="3" 
 Chip name="Elecplse" cardIndex="53" iconIndex="107" damage="40" type="ELEC" codes="R" desc="Paralyze and pull enmy " verbose="This chip does not have extra information." rarity="3" 
@@ -71,6 +72,7 @@ Chip name="Recov200" cardIndex="80" iconIndex="152" damage="200" type="NONE" cod
 Chip name="Recov200" cardIndex="80" iconIndex="152" damage="200" type="NONE" codes="E" desc="Recovers 200HP" verbose="This chip does not have extra information." rarity="4" 
 Chip name="Recov200" cardIndex="80" iconIndex="152" damage="200" type="NONE" codes="F" desc="Recovers 200HP" verbose="This chip does not have extra information." rarity="4" 
 Chip name="Recov30" cardIndex="75" iconIndex="147" damage="30" type="NONE" codes="R" desc="Recovers 30HP" verbose="This chip does not have extra information." rarity="1" 
+Chip name="Recov30" cardIndex="75" iconIndex="147" damage="30" type="NONE" codes="R" desc="Recover 30HP" verbose="" rarity="1" 
 Chip name="Recov300" cardIndex="81" iconIndex="153" damage="300" type="NONE" codes="Z" desc="Recovers 300HP" verbose="This chip does not have extra information." rarity="5" 
 Chip name="Recov50" cardIndex="76" iconIndex="148" damage="50" type="NONE" codes="T" desc="Recovers 50HP" verbose="This chip does not have extra information." rarity="2" 
 Chip name="Recov80" cardIndex="77" iconIndex="149" damage="80" type="NONE" codes="K" desc="Recovers 80HP" verbose="This chip does not have extra information." rarity="2" 
