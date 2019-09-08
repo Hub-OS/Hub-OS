@@ -1,0 +1,7 @@
+imagePath="spell_tornado_compressed.png"
+
+animation state="DEFAULT"
+frame duration="0.1" x="0" y="0" w="35" h="30" originx="10" originy="15"
+frame duration="0.1" x="35" y="0" w="33" h="30" originx="7" originy="15"
+frame duration="0.1" x="0" y="30" w="30" h="30" originx="6" originy="15"
+frame duration="0.1" x="68" y="0" w="31" h="30" originx="8" originy="15"

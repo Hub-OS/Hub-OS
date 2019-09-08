@@ -139,6 +139,9 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/sword_effect.png");
   paths.push_back("resources/spells/spell_meteor.png");
   paths.push_back("resources/spells/spell_ring_explosion.png");
+  paths.push_back("resources/spells/spell_twin_fang.png");
+  paths.push_back("resources/spells/spell_tornado.png");
+  paths.push_back("resources/spells/spell_flame.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");

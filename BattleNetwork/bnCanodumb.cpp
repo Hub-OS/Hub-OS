@@ -8,6 +8,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
+#include "bnDefenseVirusBody.h"
 
 #define RESOURCE_NAME "canodumb"
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
@@ -43,7 +44,8 @@ Canodumb::Canodumb(Rank _rank)
     break;
   }
 
-  // this->animationComponent->Update(0);
+  virusBody = new DefenseVirusBody();
+  this->AddDefenseRule(virusBody);
 }
 
 Canodumb::~Canodumb() {
@@ -66,6 +68,13 @@ const float Canodumb::GetHitHeight() const {
 }
 
 void Canodumb::OnDelete() {
+  if (virusBody) {
+    this->RemoveDefenseRule(virusBody);
+    delete virusBody;
+    virusBody = nullptr;
+
+  }
+
   // Explode if health depleted
   this->ChangeState<ExplodeState<Canodumb>>(3,0.55);
 }

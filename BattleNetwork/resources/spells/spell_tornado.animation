@@ -1,0 +1,6 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/spell_tornado.png"
+
+animation state="DEFAULT"
+frame duration="0.05" x="0" y="0" w="31" h="49" originx="13" originy="48"
+frame duration="0.05" x="32" y="0" w="27" h="49" originx="14" originy="48"
+frame duration="0.05" x="64" y="0" w="28" h="50" originx="13" originy="48"

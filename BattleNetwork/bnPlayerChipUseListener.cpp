@@ -4,6 +4,9 @@
 #include "bnTile.h"
 #include "bnCannonChipAction.h"
 #include "bnAirShotChipAction.h"
+#include "bnTwinFangChipAction.h"
+#include "bnTornadoChipAction.h"
+#include "bnFireBurnChipAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
@@ -104,25 +107,19 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
     }
   }
   else if (name == "XtrmeCnnon") {
-    /* Spawn a cannon spell on all rows
-    Cannon* xtreme1 = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());
-    Cannon* xtreme2 = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());
-    Cannon* xtreme3 = new Cannon(player->GetField(), player->GetTeam(), chip.GetDamage());
 
-    // Shake the camera for 1 second with an intensity of 25 pixels
-    ENGINE.GetCamera()->ShakeCamera(25, sf::seconds(1));
-
-    auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
-    player->SetAnimation(PLAYER_CANNON, onFinish);
-    AUDIO.Play(AudioType::CANNON);
-
-    xtreme1->SetDirection(Direction::RIGHT);
-    xtreme2->SetDirection(Direction::RIGHT);
-    xtreme3->SetDirection(Direction::RIGHT);
-
-    player->GetField()->AddEntity(*xtreme1, player->GetTile()->GetX(), 1);
-    player->GetField()->AddEntity(*xtreme2, player->GetTile()->GetX(), 2);
-    player->GetField()->AddEntity(*xtreme3, player->GetTile()->GetX(), 3); */
+  }
+  else if (name == "TwinFang") {
+    auto action = new TwinFangChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
+  }
+  else if (name == "Tornado") {
+    auto action = new TornadoChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
+  }
+  else if (name.substr(0, 7) == "FireBrn") {
+    auto action = new FireBurnChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
   }
   else if (name.size() >= 6 && name.substr(0, 6) == "Cannon") {
     auto action = new CannonChipAction(player, chip.GetDamage());

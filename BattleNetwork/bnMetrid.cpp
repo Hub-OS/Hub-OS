@@ -20,6 +20,8 @@ Metrid::Metrid(Rank _rank)
   name = "Metrid";
   SetTeam(Team::BLUE);
 
+  SetElement(Element::FIRE);
+
   auto animationComponent = new AnimationComponent(this);
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Reload();
@@ -49,7 +51,7 @@ Metrid::Metrid(Rank _rank)
   this->RegisterComponent(animationComponent);
 
   metID = (int)Metrid::metIDs.size();
-  Metrid::metIDs.push_back((int)Metrid::metIDs.size());
+  Metrid::metIDs.push_back(metID);
 
   virusBody = new DefenseVirusBody();
   this->AddDefenseRule(virusBody);
@@ -102,7 +104,7 @@ const bool Metrid::IsMetridTurn() const
 void Metrid::NextMetridTurn() {
   Metrid::currMetIndex++;
 
-  if (Metrid::currMetIndex >= Metrid::metIDs.size() && Metrid::metIDs.size() > 0) {
+  if (Metrid::currMetIndex >= Metrid::metIDs.size()) {
     Metrid::currMetIndex = 0;
   }
 }

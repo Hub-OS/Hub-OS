@@ -20,6 +20,7 @@ class Canodumb : public AnimatedCharacter, public AI<Canodumb> {
   friend class CanodumbCursor;
 
   float hitHeight;
+  DefenseRule* virusBody;
 
 public:
   using DefaultState = CanodumbIdleState;

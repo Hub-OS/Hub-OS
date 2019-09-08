@@ -103,6 +103,7 @@ void Character::Update(float _elapsed) {
   if (prevThisFrameStun <= 0.0) {
     // HACKY: If we are stunned this frame, let AI update step once
     // to turn into their respective hit state animations
+
     this->OnUpdate(_elapsed);
   } else if (this->stunCooldown > 0.0) {
     this->stunCooldown -= _elapsed;
@@ -130,6 +131,9 @@ void Character::Update(float _elapsed) {
   }
 
   hit = false;
+
+  // TODO: Something IS skipping the SetHealth() routine. Find out what and take this check out.
+  if (health < 0) health = 0;
 
   TryDelete();
 }

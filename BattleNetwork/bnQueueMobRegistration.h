@@ -14,6 +14,7 @@
 #include "bnTwoMettaurMob.h"
 #include "bnCanodumbMob.h"
 #include "bnStarfishMob.h"
+#include "bnMetridMob.h"
 #include "bnMetalManBossFight.h"
 #include "bnMetalManBossFight2.h"
 #include "bnRandomMettaurMob.h"
@@ -31,14 +32,6 @@ void QueueMobRegistration() {
   info->SetAttack(10);
   info->SetHP(80);
 
-  info = MOBS.AddClass<TwoMettaurMob>();  // Create and register mob info object
-  info->SetDescription("Alpha is absorbing the net again!"); // Set property
-  info->SetPlaceholderTexturePath("resources/mobs/alpha/preview.png");
-  info->SetName("Alpha");
-  info->SetSpeed(0);
-  info->SetAttack(80);
-  info->SetHP(1000);
-
   info = MOBS.AddClass<StarfishMob>();  // Create and register mob info object
   info->SetDescription("Starfish can trap you in bubbles"); // Set property
   info->SetName("Bubble Battle");
@@ -54,6 +47,14 @@ void QueueMobRegistration() {
   info->SetSpeed(0);
   info->SetAttack(20);
   info->SetHP(500);
+
+  info = MOBS.AddClass<MetridMob>();  // Create and register mob info object
+  info->SetDescription("Fire-type wizard virii summon meteors."); // Set property
+  info->SetName("Fire Frenzy");
+  info->SetPlaceholderTexturePath("resources/mobs/metrid/preview.png");
+  info->SetSpeed(100);
+  info->SetAttack(120);
+  info->SetHP(250);
 
   info = MOBS.AddClass<ProgsManBossFight>();  // Create and register mob info object
   info->SetDescription("A rogue Mr.Prog! Can you stop it?"); // Set property
@@ -85,5 +86,13 @@ void QueueMobRegistration() {
   info->SetPlaceholderTexturePath("resources/mobs/metalman/preview2.png");
   info->SetSpeed(6);
   info->SetAttack(20);
+  info->SetHP(1000);
+
+  info = MOBS.AddClass<TwoMettaurMob>();  // Create and register mob info object
+  info->SetDescription("Alpha is absorbing the net again!"); // Set property
+  info->SetPlaceholderTexturePath("resources/mobs/alpha/preview.png");
+  info->SetName("Alpha");
+  info->SetSpeed(0);
+  info->SetAttack(80);
   info->SetHP(1000);
 }

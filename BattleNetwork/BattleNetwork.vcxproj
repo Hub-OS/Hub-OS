@@ -219,6 +219,8 @@
     <ClCompile Include="bnElementalDamage.cpp" />
     <ClCompile Include="bnEnemyChipsUI.cpp" />
     <ClCompile Include="bnFakeScene.cpp" />
+    <ClCompile Include="bnFireBurn.cpp" />
+    <ClCompile Include="bnFireBurnChipAction.cpp" />
     <ClCompile Include="bnFishy.cpp" />
     <ClCompile Include="bnFolderChangeNameScene.cpp" />
     <ClCompile Include="bnFolderEditScene.cpp" />
@@ -265,6 +267,7 @@
     <ClCompile Include="bnMetrid.cpp" />
     <ClCompile Include="bnMetridAttackState.cpp" />
     <ClCompile Include="bnMetridIdleState.cpp" />
+    <ClCompile Include="bnMetridMob.cpp" />
     <ClCompile Include="bnMettaurAttackState.cpp" />
     <ClCompile Include="bnMettaurIdleState.cpp" />
     <ClCompile Include="bnMettaurMoveState.cpp" />
@@ -320,6 +323,10 @@
     <ClCompile Include="bnTextureResourceManager.cpp" />
     <ClCompile Include="bnPlayerHealthUI.cpp" />
     <ClCompile Include="bnBuster.cpp" />
+    <ClCompile Include="bnTornado.cpp" />
+    <ClCompile Include="bnTornadoChipAction.cpp" />
+    <ClCompile Include="bnTwinFang.cpp" />
+    <ClCompile Include="bnTwinFangChipAction.cpp" />
     <ClCompile Include="bnTwoMettaurMob.cpp" />
     <ClCompile Include="bnUndernetBackground.cpp" />
     <ClCompile Include="bnUserSession.cpp" />
@@ -392,6 +399,8 @@
     <ClInclude Include="bnComponent.h" />
     <ClInclude Include="bnEnemyChipsUI.h" />
     <ClInclude Include="bnFakeScene.h" />
+    <ClInclude Include="bnFireBurn.h" />
+    <ClInclude Include="bnFireBurnChipAction.h" />
     <ClInclude Include="bnFishy.h" />
     <ClInclude Include="bnFolderChangeNameScene.h" />
     <ClInclude Include="bnFolderEditScene.h" />
@@ -419,6 +428,7 @@
     <ClInclude Include="bnMetrid.h" />
     <ClInclude Include="bnMetridAttackState.h" />
     <ClInclude Include="bnMetridIdleState.h" />
+    <ClInclude Include="bnMetridMob.h" />
     <ClInclude Include="bnMetridMoveState.h" />
     <ClInclude Include="bnMetridMoveState.cpp" />
     <ClInclude Include="bnMissile.h" />
@@ -519,6 +529,10 @@
     <ClInclude Include="bnPlayerState.h" />
     <ClInclude Include="bnPlayerHealthUI.h" />
     <ClInclude Include="bnBuster.h" />
+    <ClInclude Include="bnTornado.h" />
+    <ClInclude Include="bnTornadoChipAction.h" />
+    <ClInclude Include="bnTwinFang.h" />
+    <ClInclude Include="bnTwinFangChipAction.h" />
     <ClInclude Include="bnTwoMettaurMob.h" />
     <ClInclude Include="bnUIComponent.h" />
     <ClInclude Include="bnUserSession.h" />

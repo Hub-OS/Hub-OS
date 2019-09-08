@@ -405,7 +405,20 @@ void BattleScene::onUpdate(double elapsed) {
 
   isBattleRoundOver = (isPlayerDeleted || isMobDeleted);
 
-  if (mob->NextMobReady() && isSceneInFocus) {
+  // Check if entire mob is deleted
+  if (mob->IsCleared()) {
+    if (!isPostBattle && battleEndTimer.getElapsed().asSeconds() < postBattleLength) {
+      // Show Enemy Deleted
+      isPostBattle = true;
+      battleEndTimer.reset();
+      AUDIO.StopStream();
+      AUDIO.Stream("resources/loops/enemy_deleted.ogg");
+      player->ChangeState<PlayerIdleState>();
+    }
+    else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
+      isMobDeleted = true;
+    }
+  } else if (mob->NextMobReady() && isSceneInFocus) {
     Mob::MobData* data = mob->GetNextMob();
 
     Agent* cast = dynamic_cast<Agent*>(data->mob);
@@ -420,21 +433,6 @@ void BattleScene::onUpdate(double elapsed) {
 
     // Listen for counters
     this->Subscribe(*data->mob);
-  }
-
-  // Check if entire mob is deleted
-  if (mob->IsCleared()) {
-    if (!isPostBattle && battleEndTimer.getElapsed().asSeconds() < postBattleLength) {
-      // Show Enemy Deleted
-      isPostBattle = true;
-      battleEndTimer.reset();
-      AUDIO.StopStream();
-      AUDIO.Stream("resources/loops/enemy_deleted.ogg");
-      player->ChangeState<PlayerIdleState>();
-    }
-    else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
-      isMobDeleted = true;
-    }
   }
 
   camera.Update((float)elapsed);
@@ -713,7 +711,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   float nextLabelHeight = 0;
-  if (!mob->IsSpawningDone() || isInChipSelect) {
+  if (!mob->IsCleared() && !mob->IsSpawningDone() || isInChipSelect) {
     for (int i = 0; i < mob->GetMobCount(); i++) {
       if (mob->GetMobAt(i).IsDeleted())
         continue;

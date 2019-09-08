@@ -64,7 +64,7 @@ void MetridAttackState::DoAttack(Metrid& met) {
 
   auto animation = met.GetFirstComponent<AnimationComponent>();
 
-  if (meteorCount-- == 0) {
+  if (--meteorCount == 0) {
     animation->CancelCallbacks();
 
     auto onEnd = [this]() {

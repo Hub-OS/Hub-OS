@@ -33,7 +33,7 @@ void GameOverScene::onUpdate(double elapsed) {
       fadeInCooldown = 0;
     }
 
-    if (fadeInCooldown == 0 && sf::Touch::isDown(0)) {
+    if (fadeInCooldown == 0 && (sf::Touch::isDown(0) || INPUT.Has(PRESSED_START))) {
       leave = true;
     }
   } else {

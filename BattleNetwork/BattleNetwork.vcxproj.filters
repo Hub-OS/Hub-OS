@@ -521,6 +521,30 @@
     <Filter Include="Activities\Battle\Content\Entities\Artifact\Explosion\RingExplosion">
       <UniqueIdentifier>{3703da15-9c5c-4726-8524-fc3bb2afdd17}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\Addons\MobRegistration\MobFactories\Boss\Alpha">
+      <UniqueIdentifier>{015487f9-8f4e-47fb-b5f9-88219b9c6999}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\TwinFang">
+      <UniqueIdentifier>{b642012f-1bec-4fb0-b455-31e167a9ed67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action\TwinFang">
+      <UniqueIdentifier>{a5a63528-aa5f-4af8-a9e2-d70b4435097f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action\Tornado">
+      <UniqueIdentifier>{16366d2e-9c80-4612-9495-85fcf23760fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Tornado">
+      <UniqueIdentifier>{1533c17a-8c03-493e-9a88-02c9e0410646}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\FireAttacks">
+      <UniqueIdentifier>{4ef15a5e-f6ef-444a-89eb-e2974a77907b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\FireAttacks\FireBurn">
+      <UniqueIdentifier>{b6fd8c74-a5bd-403a-9939-a9593a4b8c27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action\FireBurn">
+      <UniqueIdentifier>{c89ed520-1310-4ed6-a85a-178a352f08a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -999,6 +1023,27 @@
     </ClCompile>
     <ClCompile Include="bnRingExplosion.cpp">
       <Filter>Activities\Battle\Content\Entities\Artifact\Explosion\RingExplosion</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMetridMob.cpp">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Challenging</Filter>
+    </ClCompile>
+    <ClCompile Include="bnTwinFang.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\TwinFang</Filter>
+    </ClCompile>
+    <ClCompile Include="bnTwinFangChipAction.cpp">
+      <Filter>Activities\Battle\Content\Chips\Action\TwinFang</Filter>
+    </ClCompile>
+    <ClCompile Include="bnTornadoChipAction.cpp">
+      <Filter>Activities\Battle\Content\Chips\Action\Tornado</Filter>
+    </ClCompile>
+    <ClCompile Include="bnTornado.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\Tornado</Filter>
+    </ClCompile>
+    <ClCompile Include="bnFireBurn.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\FireAttacks\FireBurn</Filter>
+    </ClCompile>
+    <ClCompile Include="bnFireBurnChipAction.cpp">
+      <Filter>Activities\Battle\Content\Chips\Action\FireBurn</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1623,6 +1668,27 @@
     </ClInclude>
     <ClInclude Include="bnRingExplosion.h">
       <Filter>Activities\Battle\Content\Entities\Artifact\Explosion\RingExplosion</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMetridMob.h">
+      <Filter>Engine\Addons\MobRegistration\MobFactories\Challenging</Filter>
+    </ClInclude>
+    <ClInclude Include="bnTwinFang.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\TwinFang</Filter>
+    </ClInclude>
+    <ClInclude Include="bnTwinFangChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action\TwinFang</Filter>
+    </ClInclude>
+    <ClInclude Include="bnTornadoChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action\Tornado</Filter>
+    </ClInclude>
+    <ClInclude Include="bnTornado.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\Tornado</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFireBurn.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\FireAttacks\FireBurn</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFireBurnChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action\FireBurn</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

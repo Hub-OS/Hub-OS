@@ -17,7 +17,7 @@ private:
   AnimationComponent* animationComponent;
 
 public:
-  ChargedBusterHit(Field* _field, Character* hit);
+  ChargedBusterHit(Field* _field);
   ~ChargedBusterHit();
 
   virtual void OnUpdate(float _elapsed);

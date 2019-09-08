@@ -46,7 +46,8 @@ void Cannon::OnUpdate(float _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    if (GetTile()->GetX() == 6) { this->Delete(); } 
+    if (GetTile()->GetX() == 6 && this->GetTeam() == Team::RED) { this->Delete(); } 
+    if (GetTile()->GetX() == 1 && this->GetTeam() == Team::BLUE) { this->Delete(); }
     Move(GetDirection());
     this->AdoptNextTile();
     cooldown = 0;

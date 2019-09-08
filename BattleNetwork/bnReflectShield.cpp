@@ -59,6 +59,9 @@ void ReflectShield::OnUpdate(float _elapsed) {
 void ReflectShield::DoReflect(Spell* in, Character* owner)
 {
   if (!this->activated) {
+
+    AUDIO.Play(AudioType::GUARD_HIT);
+
     Direction direction = Direction::NONE;
 
     if (GetOwner()->GetTeam() == Team::RED) {

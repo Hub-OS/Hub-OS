@@ -17,8 +17,6 @@ const bool DefenseGuard::Check(Spell * in, Character* owner)
 {
   auto props = in->GetHitboxProperties();
 
-  std::cout << "props.flags & Hit::breaking = " << (props.flags & Hit::breaking) << std::endl;
-
   if ((props.flags & Hit::breaking) == 0) {
     this->callback(in, owner);
 

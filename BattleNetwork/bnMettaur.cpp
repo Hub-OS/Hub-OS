@@ -92,6 +92,9 @@ const float Mettaur::GetHitHeight() const {
 
 const bool Mettaur::IsMettaurTurn() const
 {
+  // TODO: this shouldn't be necessary, the check occurs in NextMettaurTurn() ... what gives?
+  if (Mettaur::currMetIndex > Mettaur::metIDs.size()) { Mettaur::currMetIndex = 0; }
+
   if(Mettaur::metIDs.size() > 0)
     return (Mettaur::metIDs.at(Mettaur::currMetIndex) == this->metID);
 

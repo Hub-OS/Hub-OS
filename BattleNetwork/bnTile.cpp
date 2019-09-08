@@ -564,8 +564,8 @@ namespace Battle {
           elapsedBurnTime = 0;
         }
 
-        if (GetState() == TileState::LAVA) {
-          if (character->Hit(Hit::Properties({ 50, Hit::pierce, Element::FIRE, nullptr, Direction::NONE }))) {
+        if (GetState() == TileState::LAVA && character->GetElement() != Element::FIRE) {
+          if (character->Hit(Hit::Properties({ 50, Hit::pierce | Hit::flinch, Element::FIRE, nullptr, Direction::NONE }))) {
             Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
             field->AddEntity(*explosion, GetX(), GetY());
             SetState(TileState::NORMAL);
