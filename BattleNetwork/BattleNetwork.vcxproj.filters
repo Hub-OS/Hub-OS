@@ -536,14 +536,17 @@
     <Filter Include="Activities\Battle\Content\Entities\Spell\Tornado">
       <UniqueIdentifier>{1533c17a-8c03-493e-9a88-02c9e0410646}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Activities\Battle\Content\Entities\Spell\FireAttacks">
-      <UniqueIdentifier>{4ef15a5e-f6ef-444a-89eb-e2974a77907b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Activities\Battle\Content\Entities\Spell\FireAttacks\FireBurn">
-      <UniqueIdentifier>{b6fd8c74-a5bd-403a-9939-a9593a4b8c27}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Activities\Battle\Content\Chips\Action\FireBurn">
       <UniqueIdentifier>{c89ed520-1310-4ed6-a85a-178a352f08a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action\Vulcan">
+      <UniqueIdentifier>{dff4ff60-0671-4ed5-b26c-0ed3bd30ae10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Vulcan">
+      <UniqueIdentifier>{13820cca-4488-4652-916c-1e03155e732f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\FireBurn">
+      <UniqueIdentifier>{b6fd8c74-a5bd-403a-9939-a9593a4b8c27}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1040,10 +1043,16 @@
       <Filter>Activities\Battle\Content\Entities\Spell\Tornado</Filter>
     </ClCompile>
     <ClCompile Include="bnFireBurn.cpp">
-      <Filter>Activities\Battle\Content\Entities\Spell\FireAttacks\FireBurn</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\FireBurn</Filter>
     </ClCompile>
     <ClCompile Include="bnFireBurnChipAction.cpp">
       <Filter>Activities\Battle\Content\Chips\Action\FireBurn</Filter>
+    </ClCompile>
+    <ClCompile Include="bnVulcanChipAction.cpp">
+      <Filter>Activities\Battle\Content\Chips\Action\Vulcan</Filter>
+    </ClCompile>
+    <ClCompile Include="bnVulcan.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\Vulcan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1685,10 +1694,16 @@
       <Filter>Activities\Battle\Content\Entities\Spell\Tornado</Filter>
     </ClInclude>
     <ClInclude Include="bnFireBurn.h">
-      <Filter>Activities\Battle\Content\Entities\Spell\FireAttacks\FireBurn</Filter>
+      <Filter>Activities\Battle\Content\Entities\Spell\FireBurn</Filter>
     </ClInclude>
     <ClInclude Include="bnFireBurnChipAction.h">
       <Filter>Activities\Battle\Content\Chips\Action\FireBurn</Filter>
+    </ClInclude>
+    <ClInclude Include="bnVulcanChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action\Vulcan</Filter>
+    </ClInclude>
+    <ClInclude Include="bnVulcan.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\Vulcan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

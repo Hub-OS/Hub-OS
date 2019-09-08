@@ -3,11 +3,18 @@
 #include "bnAnimation.h"
 
 class FireBurn : public Spell {
+public:
+  enum class Type : int {
+    _1 = 1,
+    _2 = 2,
+    _3 = 3
+  };
+
 protected:
   Animation animation; /*!< the animation of the shot */
   int damage; /*!< How much damage to deal */
 public:
-  FireBurn(Field* _field, Team _team, int damage);
+  FireBurn(Field* _field, Team _team, Type type, int damage);
 
   /**
    * @brief Deconstructor

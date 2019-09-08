@@ -7,6 +7,7 @@
 #include "bnTwinFangChipAction.h"
 #include "bnTornadoChipAction.h"
 #include "bnFireBurnChipAction.h"
+#include "bnVulcanChipAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
@@ -118,7 +119,12 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
     player->RegisterComponent(action);
   }
   else if (name.substr(0, 7) == "FireBrn") {
-    auto action = new FireBurnChipAction(player, chip.GetDamage());
+    auto type = FireBurn::Type(std::atoi(name.substr(7, 1).c_str()));
+    auto action = new FireBurnChipAction(player, type, chip.GetDamage());
+    player->RegisterComponent(action);
+  }
+  else if (name.substr(0, 6) == "Vulcan") {
+    auto action = new VulcanChipAction(player, chip.GetDamage());
     player->RegisterComponent(action);
   }
   else if (name.size() >= 6 && name.substr(0, 6) == "Cannon") {

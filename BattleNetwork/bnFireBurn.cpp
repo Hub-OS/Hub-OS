@@ -5,7 +5,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-FireBurn::FireBurn(Field* _field, Team _team, int damage) : damage(damage), Spell(_field, _team) {
+FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(damage), Spell(_field, _team) {
   SetLayer(-1);
 
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_FIREBURN);
@@ -18,7 +18,18 @@ FireBurn::FireBurn(Field* _field, Team _team, int damage) : damage(damage), Spel
   };
 
   animation = Animation("resources/spells/spell_flame.animation");
-  animation.SetAnimation("FLAME_1");
+
+  switch (type) {
+  case Type::_2:
+    animation.SetAnimation("FLAME_2");
+    break;
+  case Type::_3:
+    animation.SetAnimation("FLAME_3");
+    break;
+  default:
+    animation.SetAnimation("FLAME_1");
+  }
+
   animation << onFinish;
   animation.Update(0, *this);
 
@@ -26,6 +37,7 @@ FireBurn::FireBurn(Field* _field, Team _team, int damage) : damage(damage), Spel
 
   auto props = GetHitboxProperties();
   props.flags &= ~Hit::recoil;
+  props.flags |= Hit::breaking;
   props.damage = damage;
   props.element = Element::FIRE;
   this->SetHitboxProperties(props);

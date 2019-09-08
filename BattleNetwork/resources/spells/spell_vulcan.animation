@@ -1,0 +1,10 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/spell_vulcan.png"
+
+animation state="DEFAULT"
+frame duration="0.05" x="0" y="0" w="36" h="25" originx="14" originy="13"
+frame duration="0.05" x="36" y="0" w="34" h="25" originx="14" originy="13"
+frame duration="0.05" x="70" y="0" w="69" h="26" originx="14" originy="13"
+frame duration="0.05" x="36" y="0" w="34" h="25" originx="14" originy="13"
+frame duration="0.05" x="70" y="0" w="69" h="26" originx="14" originy="13"
+frame duration="0.05" x="36" y="0" w="34" h="25" originx="14" originy="13"
+frame duration="0.05" x="70" y="0" w="69" h="26" originx="14" originy="13"

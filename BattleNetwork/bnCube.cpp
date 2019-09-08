@@ -143,6 +143,12 @@ const bool Cube::OnHit(const Hit::Properties props) {
   if (this->animation->GetAnimationString() == "APPEAR")
     return false;
 
+  // breaking prop is insta-kill
+  if ((props.flags & Hit::breaking) == Hit::breaking) {
+    this->SetHealth(0);
+    return true;
+  }
+
   // Teams cannot accidentally pull cube into their side
   if(props.aggressor && (props.flags & Hit::drag) == Hit::drag){
     if(props.aggressor->GetTeam() == Team::RED) {

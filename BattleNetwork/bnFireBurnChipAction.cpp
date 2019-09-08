@@ -3,7 +3,6 @@
 #include "bnSpriteSceneNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnFireBurn.h"
 
 #define PATH "resources/spells/buster_flame.png"
 #define ANIM "resources/spells/buster_flame.animation"
@@ -18,7 +17,7 @@
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
 
-FireBurnChipAction::FireBurnChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+FireBurnChipAction::FireBurnChipAction(Character * owner, FireBurn::Type type, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
@@ -32,8 +31,8 @@ FireBurnChipAction::FireBurnChipAction(Character * owner, int damage) : ChipActi
   this->OverrideAnimationFrames({ FRAMES });
 
   // On shoot frame, drop projectile
-  auto onFire = [this, damage, owner](int offset) -> void {
-    FireBurn* fb = new FireBurn(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  auto onFire = [this, damage, owner, type](int offset) -> void {
+    FireBurn* fb = new FireBurn(GetOwner()->GetField(), GetOwner()->GetTeam(), type, damage);
     auto props = fb->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
     fb->SetHitboxProperties(props);
