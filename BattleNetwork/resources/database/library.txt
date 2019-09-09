@@ -1,4 +1,4 @@
-# Saved on 19-09-08 18:56:29
+# Saved on 19-09-08 19:31:24
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="*" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="L" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="Antidamg" cardIndex="88" iconIndex="190" damage="0" type="NONE" codes="*" desc="Protect and attack" verbose="This chip does not have extra information." rarity="3" 
@@ -13,7 +13,7 @@ Chip name="Cannon" cardIndex="0" iconIndex="0" damage="40" type="NONE" codes="B"
 Chip name="Cannon" cardIndex="0" iconIndex="0" damage="40" type="NONE" codes="B" desc="Cannon attack to 1 enemy" verbose="Cannon (ABCDE)\n40 Damage. 1 Hit.\nElement: NULL\nFire a shot down the same row hitting the closest enemy.\n6 frame startup\nInstant travel time\n6 frame endlag" rarity="1" 
 Chip name="Cannon" cardIndex="0" iconIndex="0" damage="40" type="NONE" codes="C" desc="Cannon attack to 1 enemy" verbose="Cannon (ABCDE)\n40 Damage. 1 Hit.\nElement: NULL\nFire a shot down the same row hitting the closest enemy.\n6 frame startup\nInstant travel time\n6 frame endlag" rarity="1" 
 Chip name="Cannon" cardIndex="0" iconIndex="0" damage="40" type="NONE" codes="C" desc="Cannon attack to 1 enemy" verbose="Cannon (ABCDE)\n40 Damage. 1 Hit.\nElement: NULL\nFire a shot down the same row hitting the closest enemy.\n6 frame startup\nInstant travel time\n6 frame endlag" rarity="1" 
-Chip name="CrakShot" cardIndex="109" iconIndex="0" damage="60" type="NONE" codes="*" desc="Shoot a panel at an enemy!" verbose="todo" rarity="1" 
+Chip name="CrakShot" cardIndex="109" iconIndex="227" damage="60" type="NONE" codes="*" desc="Shoot a panel at an enemy!" verbose="todo" rarity="1" 
 Chip name="CrckPanel" cardIndex="83" iconIndex="158" damage="0" type="NONE" codes="K" desc="Cracks a panel" verbose="Cracks the tiles in the column immediately in front" rarity="2" 
 Chip name="CrckPanel" cardIndex="83" iconIndex="158" damage="0" type="NONE" codes="K" desc="Cracks a panel" verbose="Cracks the tiles in the column immediately in front" rarity="2" 
 Chip name="ElecSwrd" cardIndex="23" iconIndex="35" damage="120" type="ELEC" codes="*" desc="Cut enmy 3sq fwrd w/elec" verbose="This chip does not have extra information." rarity="5" 
