@@ -192,11 +192,14 @@
     </ClCompile>
     <ClCompile Include="bnArtifact.cpp" />
     <ClCompile Include="bnAudioResourceManager.cpp" />
+    <ClCompile Include="bnBombChipAction.cpp" />
     <ClCompile Include="bnBubble.cpp" />
     <ClCompile Include="bnBubbleTrap.cpp" />
     <ClCompile Include="bnCannonChipAction.cpp" />
     <ClCompile Include="bnComponent.cpp" />
     <ClCompile Include="bnConfigScene.cpp" />
+    <ClCompile Include="bnCrackShot.cpp" />
+    <ClCompile Include="bnCrackShotChipAction.cpp" />
     <ClCompile Include="bnDefenseAntiDamage.cpp" />
     <ClCompile Include="bnDefenseBubbleWrap.cpp" />
     <ClCompile Include="bnCanodumb.cpp" />
@@ -272,6 +275,7 @@
     <ClCompile Include="bnMettaurAttackState.cpp" />
     <ClCompile Include="bnMettaurIdleState.cpp" />
     <ClCompile Include="bnMettaurMoveState.cpp" />
+    <ClCompile Include="bnMiniBomb.cpp" />
     <ClCompile Include="bnMissile.cpp" />
     <ClCompile Include="bnMobHealthUI.cpp" />
     <ClCompile Include="bnMobMoveEffect.cpp" />
@@ -365,12 +369,15 @@
     <ClInclude Include="bnAnimation.h" />
     <ClInclude Include="bnAura.h" />
     <ClInclude Include="bnBattleOverTrigger.h" />
+    <ClInclude Include="bnBombChipAction.h" />
     <ClInclude Include="bnBubble.h" />
     <ClInclude Include="bnBubbleState.h" />
     <ClInclude Include="bnBubbleTrap.h" />
     <ClInclude Include="bnCannonChipAction.h" />
     <ClInclude Include="bnChipAction.h" />
     <ClInclude Include="bnConfigScene.h" />
+    <ClInclude Include="bnCrackShot.h" />
+    <ClInclude Include="bnCrackShotChipAction.h" />
     <ClInclude Include="bnDefenseAntiDamage.h" />
     <ClInclude Include="bnDefenseBubbleWrap.h" />
     <ClInclude Include="bnChargedBusterHit.h" />
@@ -435,6 +442,7 @@
     <ClInclude Include="bnMetridMob.h" />
     <ClInclude Include="bnMetridMoveState.h" />
     <ClInclude Include="bnMetridMoveState.cpp" />
+    <ClInclude Include="bnMiniBomb.h" />
     <ClInclude Include="bnMissile.h" />
     <ClInclude Include="bnMobMoveEffect.h" />
     <ClInclude Include="bnMobRegistration.h" />

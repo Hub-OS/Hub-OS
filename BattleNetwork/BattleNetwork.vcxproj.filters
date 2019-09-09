@@ -551,6 +551,18 @@
     <Filter Include="Activities\Battle\Content\Chips\Action\ElecSwrd">
       <UniqueIdentifier>{2cd0fd6f-6139-43b9-a392-95d496add8ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action\Bomb">
+      <UniqueIdentifier>{63ae7282-2203-4234-8c4a-5ef18c118ac7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\Bomb">
+      <UniqueIdentifier>{27b8b793-dc78-4c55-b340-73e5aecffc6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action\CrackShot">
+      <UniqueIdentifier>{5963924e-61d5-4007-bbf8-9062e3a931e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\Entities\Spell\CrackShot">
+      <UniqueIdentifier>{8589a8ff-b9d9-4619-8c85-d7f842c441e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1059,6 +1071,18 @@
     </ClCompile>
     <ClCompile Include="bnElecSwordChipAction.cpp">
       <Filter>Activities\Battle\Content\Chips\Action\ElecSwrd</Filter>
+    </ClCompile>
+    <ClCompile Include="bnBombChipAction.cpp">
+      <Filter>Activities\Battle\Content\Chips\Action\Bomb</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMiniBomb.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\Bomb</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCrackShotChipAction.cpp">
+      <Filter>Activities\Battle\Content\Chips\Action\CrackShot</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCrackShot.cpp">
+      <Filter>Activities\Battle\Content\Entities\Spell\CrackShot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1713,6 +1737,18 @@
     </ClInclude>
     <ClInclude Include="bnElecSwordChipAction.h">
       <Filter>Activities\Battle\Content\Chips\Action\ElecSwrd</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBombChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action\Bomb</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMiniBomb.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\Bomb</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCrackShotChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action\CrackShot</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCrackShot.h">
+      <Filter>Activities\Battle\Content\Entities\Spell\CrackShot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

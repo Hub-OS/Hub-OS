@@ -1,0 +1,7 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/spell_panel_shot.png"
+
+animation state="RED_TEAM"
+frame duration="0.1" x="2" y="0" w="35" h="48" originx="19" originy="42"
+
+animation state="BLUE_TEAM"
+frame duration="0.1" x="46" y="0" w="35" h="47" originx="19" originy="42"

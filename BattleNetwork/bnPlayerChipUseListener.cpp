@@ -9,6 +9,8 @@
 #include "bnFireBurnChipAction.h"
 #include "bnElecSwordChipAction.h"
 #include "bnVulcanChipAction.h"
+#include "bnBombChipAction.h"
+#include "bnCrackShotChipAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
@@ -134,6 +136,14 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
   }
   else if (name.size() >= 6 && name.substr(0, 6) == "Cannon") {
     auto action = new CannonChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
+  }
+  else if (name == "MiniBomb") {
+    auto action = new BombChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
+  }
+  else if (name == "CrakShot") {
+    auto action = new CrackShotChipAction(player, chip.GetDamage());
     player->RegisterComponent(action);
   }
   else if (name == "Swrd") {

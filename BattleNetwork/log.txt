@@ -1,5 +1,5 @@
-StartTime 1567977234
-Engine initialized: 0.552000 secs
+StartTime 1567988677
+Engine initialized: 0.530000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -45,6 +45,8 @@ Loaded texture: resources/spells/spell_ring_explosion.png
 Loaded texture: resources/spells/spell_twin_fang.png
 Loaded texture: resources/spells/spell_tornado.png
 Loaded texture: resources/spells/spell_flame.png
+Loaded texture: resources/spells/spell_bomb.png
+Loaded texture: resources/spells/spell_panel_shot.png
 Loaded texture: resources/ui/chip_select.png
 Loaded texture: resources/ui/chip_cursor_small.png
 Loaded texture: resources/ui/chip_cursor_big.png
@@ -127,7 +129,7 @@ Loaded texture: resources/ui/light.png
 Loaded texture: resources/fonts/all_fonts.png
 Loaded texture: resources/backgrounds/config/audio.png
 Loaded texture: resources/backgrounds/config/end_btn.png
-Loaded textures: 0.214000 secs
+Loaded textures: 0.235000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -188,11 +190,11 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.188000 secs
+Loaded audio sources: 0.180000 secs
 Loaded navi: Megaman
 Loaded navi: Starman
 Loaded navi: Roll
-Loaded registered navis: 0.038000 secs
+Loaded registered navis: 0.032000 secs
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
 Loaded texture: resources/mobs/starfish/preview.png
@@ -211,8 +213,8 @@ Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.126000 secs
-library size: 132
+Loaded registered mobs: 0.124000 secs
+library size: 70
 Loaded texture: resources/backgrounds/lan/bg.png
 main menu onStart
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
@@ -235,43 +237,31 @@ SelectMobScene::onExit()
 comboDeleteCounter reset
 comboDeleteCounter reset
 comboDeleteCounter reset
+pushing states
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_flame.png
+pushing states
+pushing states
 Loaded texture: resources/spells/spell_vulcan.png
 pushing states
 pushing states
 pushing states
-pushing states
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
 comboDeleteCounter reset
-comboDeleteCounter reset
+pushing states
+pushing states
+pushing states
+should be flinching
+Loaded texture: resources/spells/spell_bomb.png
+Loaded texture: resources/spells/spell_bomb.png
+pushing states
+should be flinching
+pushing states
 Loaded texture: resources/spells/spell_elec_sword.png
 pushing states
-should be flinching
-pushing states
-pushing states
-pushing states
-comboDeleteCounter reset
-pushing states
-pushing states
-Loaded texture: resources/spells/buster_flame.png
-pushing states
-pushing states
-Loaded texture: resources/spells/buster_flame.png
-pushing states
-pushing states
-pushing states
-should be flinching
-should be flinching
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-comboDeleteCounter reset
+lastMobSize: 3
+newMobSize: 2
+multiDeleteTimer: 0.000000
 comboDeleteCounter reset
 Loaded texture: resources/spells/spell_vulcan.png
 pushing states
@@ -279,9 +269,10 @@ pushing states
 pushing states
 Loaded texture: resources/spells/spell_vulcan.png
 pushing states
-pushing states
-pushing states
-pushing states
+lastMobSize: 2
+newMobSize: 1
+multiDeleteTimer: 0.000000
+Loaded texture: resources/spells/spell_vulcan.png
 pushing states
 pushing states
 Loaded font: resources/fonts/mmbnthick_regular.ttf
