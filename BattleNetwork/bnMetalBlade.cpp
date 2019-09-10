@@ -24,7 +24,7 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, 
   this->RegisterComponent(animation);
   animation->Setup("resources/mobs/metalman/metalman.animation");
   animation->Load();
-  animation->SetAnimation("BLADE",Animate::Mode::Loop);
+  animation->SetAnimation("BLADE",Animator::Mode::Loop);
 
   auto props = Hit::DefaultProperties;
   props.damage = 40;

@@ -93,11 +93,11 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
 
   equipAnimation = Animation("resources/ui/folder_equip.animation");
   equipAnimation.SetAnimation("BLINK");
-  equipAnimation << Animate::Mode::Loop;
+  equipAnimation << Animator::Mode::Loop;
 
   folderCursorAnimation = Animation("resources/ui/folder_cursor.animation");
   folderCursorAnimation.SetAnimation("BLINK");
-  folderCursorAnimation << Animate::Mode::Loop;
+  folderCursorAnimation << Animator::Mode::Loop;
 
   equipAnimation.Update(0,folderEquip);
   folderCursorAnimation.Update(0, folderCursor);

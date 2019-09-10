@@ -34,6 +34,6 @@ void GraveyardBackground::Update(float _elapsed) {
   // Wrap by x,y movement
   Wrap(sf::Vector2f(x, y));
   
-  // Animate by offsetting the texture sample by the frame count
+  // Animator by offsetting the texture sample by the frame count
   TextureOffset(sf::Vector2f((float)(frame*COMPONENT_WIDTH), 0));
 }

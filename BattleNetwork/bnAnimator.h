@@ -80,7 +80,7 @@ class FrameList {
   float totalDuration; /*!< Sum of all frame durations */
 
 public:
-  friend class Animate;
+  friend class Animator;
 
   FrameList() { totalDuration = 0; }
   FrameList(const FrameList& rhs) { 
@@ -163,7 +163,7 @@ public:
 };
 
 /**
- * @class Animate
+ * @class Animator
  * @author mav
  * @date 13/05/19
  * @brief Robust animator class that handles callbacks of many kinds
@@ -173,7 +173,7 @@ public:
  * It can set callbacks on frame numbers, one time callbacks, and will intelligently
  * queue callbacks if callbacks are being added during a callback itself.
  */
-class Animate {
+class Animator {
 private:
   std::map<int, std::function<void()>> callbacks; /*!< Called every time on frame */
   std::map<int, std::function<void()>> onetimeCallbacks; /*!< Called once on frame then discarded */
@@ -205,7 +205,7 @@ public:
     std::function<void()> callback; /*!< Callback to queue */
     bool doOnce; /*!< If true, this is a one-time callback */
 
-    friend class Animate;
+    friend class Animator;
     On(int id, std::function<void()> callback, bool doOnce = false) : id(id), callback(callback), doOnce(doOnce) {
       ;
     }
@@ -228,7 +228,7 @@ public:
   private:
     int playback;
     
-    friend class Animate;
+    friend class Animator;
   public:
     static const char NoEffect = 0x00; /*!< Play once and stop */
     static const char Loop = 0x01; /*!< When it reaches the end, restarts animation and resumes */
@@ -242,10 +242,10 @@ public:
     ~Mode() { ; }
   };
 
-  Animate();
-  Animate(const Animate& rhs);
-  Animate& operator=(const Animate& rhs);
-  ~Animate();
+  Animator();
+  Animator(const Animator& rhs);
+  Animator& operator=(const Animator& rhs);
+  ~Animator();
 
   /**
    * @brief Get the current playback mode
@@ -281,16 +281,16 @@ public:
   /**
    * @brief Applies a callback
    * @param rhs On struct
-   * @return Animate& for chaining 
+   * @return Animator& for chaining 
    */
-  Animate& operator<< (On rhs);
+  Animator& operator<< (On rhs);
   
   /**
    * @brief Applies a playback mode
    * @param rhs byte mode
-   * @return Animate& for chaining
+   * @return Animator& for chaining
    */
-  Animate& operator<< (char rhs);
+  Animator& operator<< (char rhs);
   
   /**
    * @brief Sets an onFinish callback. 

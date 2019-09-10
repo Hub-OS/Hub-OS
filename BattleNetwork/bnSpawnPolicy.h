@@ -94,7 +94,7 @@ public:
  * Ranking affect enemy names and allows the programmer to change other aspects such as appearance
  * e.g. Mettaur, Mettaur2, CanodumbRare1, ProgsmanEX, etc...
 */
-template<class T>
+template<class T, template <typename> class IntroState>
 class RankedSpawnPolicy : public SpawnPolicy<T> {
 protected:
     /**
@@ -110,7 +110,7 @@ protected:
         T* agent = dynamic_cast<T*>(character);
 
         if (agent) {
-          agent->template ChangeState<PixelInState<T>>(onFinish);
+          agent->template ChangeState<IntroState<T>>(onFinish);
         }
       };
 
@@ -139,10 +139,10 @@ protected:
  * Adds UI component
 */
 
-template<class T>
-class Rank1 : public RankedSpawnPolicy<T> {
+template<class T, template <typename> class IntroState=PixelInState>
+class Rank1 : public RankedSpawnPolicy<T, IntroState> {
 public:
-  Rank1(Mob& mob) : RankedSpawnPolicy<T>(mob) {
+  Rank1(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
     this->Spawn(new T(T::Rank::_1));
     Component* ui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);
@@ -157,11 +157,11 @@ public:
  * Adds UI component
 */
 
-template<class T>
-class Rank2 : public RankedSpawnPolicy<T> {
+template<class T, template <typename> class IntroState = PixelInState>
+class Rank2 : public RankedSpawnPolicy<T, IntroState> {
   public:
 
-  Rank2(Mob& mob) : RankedSpawnPolicy<T>(mob) {
+  Rank2(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
     this->Spawn(new T(T::Rank::_2));
     Component* ui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);
@@ -175,11 +175,11 @@ class Rank2 : public RankedSpawnPolicy<T> {
  * Automatically constructs an entity with Rank3
  * Adds UI component
 */
-template<class T>
-class Rank3 : public RankedSpawnPolicy<T> {
+template<class T, template <typename> class IntroState = PixelInState>
+class Rank3 : public RankedSpawnPolicy<T, IntroState> {
   public:
 
-  Rank3(Mob& mob) : RankedSpawnPolicy<T>(mob) {
+  Rank3(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
     this->Spawn(new T(T::Rank::_3));
     Component* ui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);
@@ -194,11 +194,11 @@ class Rank3 : public RankedSpawnPolicy<T> {
  * Adds UI component
 */
 
-template<class T>
-class RankSP : public RankedSpawnPolicy<T> {
+template<class T, template <typename> class IntroState = PixelInState>
+class RankSP : public RankedSpawnPolicy<T, IntroState> {
 public:
 
-  RankSP(Mob& mob) : RankedSpawnPolicy<T>(mob) {
+  RankSP(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
     this->Spawn(new T(T::Rank::SP));
     this->GetSpawned()->SetName(SP(this->GetSpawned()->GetName()));
     Component* ui = new MobHealthUI(this->GetSpawned());
@@ -214,11 +214,11 @@ public:
  * Adds UI component
 */
 
-template<class T>
-class RankEX : public RankedSpawnPolicy<T> {
+template<class T, template <typename> class IntroState = PixelInState>
+class RankEX : public RankedSpawnPolicy<T, IntroState> {
 public:
 
-  RankEX(Mob& mob) : RankedSpawnPolicy<T>(mob) {
+  RankEX(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
     this->Spawn(new T(T::Rank::EX));
     this->GetSpawned()->SetName(EX(this->GetSpawned()->GetName()));
     Component* ui = new MobHealthUI(this->GetSpawned());

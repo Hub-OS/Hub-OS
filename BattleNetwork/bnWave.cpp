@@ -41,7 +41,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
 
   animation->Setup("resources/spells/spell_wave.animation");
   animation->Load();
-  animation->SetAnimation("DEFAULT", Animate::Mode::NoEffect, [this]() { this->Delete(); });
+  animation->SetAnimation("DEFAULT", Animator::Mode::NoEffect, [this]() { this->Delete(); });
   animation->AddCallback(4, spawnNext);
   animation->SetPlaybackSpeed(speed);
   animation->OnUpdate(0);

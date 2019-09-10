@@ -18,7 +18,7 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), 
   animation->Setup("resources/mobs/metalman/metalman.animation");
   animation->Reload();
 
-  animation->SetAnimation("GEAR", Animate::Mode::Loop);
+  animation->SetAnimation("GEAR", Animator::Mode::Loop);
 
   this->SetHealth(999);
 

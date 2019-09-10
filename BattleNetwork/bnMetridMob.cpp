@@ -52,7 +52,7 @@ Mob* MetridMob::Build() {
 
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 3; j++) {
-      field->GetAt(i + 1, j + 1)->SetState(TileState::LAVA);
+      field->GetAt(i + 1, j + 1)->SetState(TileState::VOLCANO);
     }
   }
 

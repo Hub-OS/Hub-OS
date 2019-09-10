@@ -79,12 +79,12 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) 
   cursorSmallAnimator = Animation("resources/ui/cursor_small.animation");
   cursorSmallAnimator.Reload();
   cursorSmallAnimator.SetAnimation("BLINK");
-  cursorSmallAnimator << Animate::Mode::Loop;
+  cursorSmallAnimator << Animator::Mode::Loop;
 
   cursorBigAnimator = Animation("resources/ui/cursor_big.animation");
   cursorBigAnimator.Reload();
   cursorBigAnimator.SetAnimation("BLINK");
-  cursorBigAnimator << Animate::Mode::Loop;
+  cursorBigAnimator << Animator::Mode::Loop;
 
   //this->setScale(0.5f, 0.5); // testing transforms
 }

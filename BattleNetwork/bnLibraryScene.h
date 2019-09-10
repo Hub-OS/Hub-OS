@@ -53,7 +53,7 @@ private:
   int maxChipsOnScreen; /*!< Number of chip items that can appear in a list*/
   int currChipIndex; /*!< Current selection in the list */
   int lastChipOnScreen; /*!< The topmost chip seen in the list */
-  int prevIndex; /*!< Animate if we've selected a new chip this frame */
+  int prevIndex; /*!< Animator if we've selected a new chip this frame */
   int numOfChips; /*!< Total of all chips in the folder to list */
 
   double totalTimeElapsed; /*!< accum. of seconds passed */

@@ -178,7 +178,7 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
   if(duration <= 0.f) return;
 
   // Since we are manually keeping track of the progress, we must account for the animator's loop mode
-  while (progress > duration && (animator.GetMode() & Animate::Mode::Loop) == Animate::Mode::Loop) {
+  while (progress > duration && (animator.GetMode() & Animator::Mode::Loop) == Animator::Mode::Loop) {
     progress -= duration;
   }
 }
@@ -232,7 +232,7 @@ FrameList & Animation::GetFrameList(std::string animation)
   return animations[animation];
 }
 
-Animation & Animation::operator<<(Animate::On rhs)
+Animation & Animation::operator<<(Animator::On rhs)
 {
   animator << rhs;
   return *this;

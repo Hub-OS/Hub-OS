@@ -54,7 +54,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   naviAnimator = Animation("resources/navis/megaman/megaman.animation");
   naviAnimator.Reload();
   naviAnimator.SetAnimation("PLAYER_OW_RD");
-  naviAnimator << Animate::Mode::Loop;
+  naviAnimator << Animator::Mode::Loop;
 
   // Share the navi sprite
   // Map will transform navi's ortho position into isometric position
@@ -226,7 +226,7 @@ void MainMenuScene::onEnter()
   naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
   naviAnimator.Reload();
   naviAnimator.SetAnimation("PLAYER_OW_RD");
-  naviAnimator << Animate::Mode::Loop;
+  naviAnimator << Animator::Mode::Loop;
 }
 
 void MainMenuScene::onResume() {

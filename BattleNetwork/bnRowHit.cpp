@@ -22,7 +22,7 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_f
 
   animation = Animation("resources/spells/spell_charged_bullet_hit.animation");
   animation.SetAnimation("HIT");
-  animation << Animate::On(3, onFrameTwo, true) << onFinish;
+  animation << Animator::On(3, onFrameTwo, true) << onFinish;
   animation.Update(0, *this);
 
   EnableTileHighlight(false);

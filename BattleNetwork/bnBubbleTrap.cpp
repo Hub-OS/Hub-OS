@@ -33,7 +33,7 @@ BubbleTrap::BubbleTrap(Character* owner) : Artifact(nullptr), Component(owner)
   animation = Animation(RESOURCE_PATH);
   animation.Reload();
 
-  animation << "DEFAULT" << Animate::Mode::Loop;
+  animation << "DEFAULT" << Animator::Mode::Loop;
 
   animation.Update(0, *this);
 

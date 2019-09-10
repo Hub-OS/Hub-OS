@@ -1,6 +1,6 @@
 #pragma once
 #include "bnSpell.h"
-#include "bnAnimate.h"
+#include "bnAnimator.h"
 
 /**
  * @class AirShot

@@ -227,7 +227,7 @@ namespace Battle {
 
     if (prevAnimState != animState) {
       animation.SetAnimation(animState);
-      animation << Animate::Mode::Loop;
+      animation << Animator::Mode::Loop;
     }
   }
 
@@ -241,6 +241,11 @@ namespace Battle {
 
   bool Tile::IsHighlighted() const {
     return hasSpell;
+  }
+
+  bool Tile::IsReservedByCharacter()
+  {
+    return (this->characters.size() != 0 || this->reserved.size() != 0);
   }
 
   void Tile::AddEntity(Spell & _entity)

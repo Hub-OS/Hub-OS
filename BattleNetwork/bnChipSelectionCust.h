@@ -196,7 +196,7 @@ public:
   void draw(sf::RenderTarget& target, sf::RenderStates states) const;
   
   /**
-   * @brief Animates cursors and textbox animations
+   * @brief Animators cursors and textbox animations
    * @param elapsed in seconds
    */
   void Update(float elapsed);

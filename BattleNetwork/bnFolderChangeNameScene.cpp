@@ -105,12 +105,12 @@ FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& control
   animatorLeft = Animation("resources/ui/letter_cursor.animation");
   animatorLeft.Load();
   animatorLeft.SetAnimation("BLINK_L");
-  animatorLeft << Animate::Mode::Loop;
+  animatorLeft << Animator::Mode::Loop;
 
   animatorRight = Animation("resources/ui/letter_cursor.animation");
   animatorRight.Load();
   animatorRight.SetAnimation("BLINK_R");
-  animatorRight << Animate::Mode::Loop;
+  animatorRight << Animator::Mode::Loop;
 
   table = {
     { // First column

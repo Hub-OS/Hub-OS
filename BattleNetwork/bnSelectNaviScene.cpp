@@ -94,7 +94,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   naviAnimator = Animation(NAVIS.At(naviSelectionIndex).GetBattleAnimationPath());
   naviAnimator.Reload();
   naviAnimator.SetAnimation("PLAYER_IDLE");
-  naviAnimator << Animate::Mode::Loop;
+  naviAnimator << Animator::Mode::Loop;
    
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
@@ -107,7 +107,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   glowpadAnimator = Animation("resources/backgrounds/select/glow_pad.animation");
   glowpadAnimator.Reload();
   glowpadAnimator.SetAnimation("GLOW");
-  glowpadAnimator << Animate::Mode::Loop;
+  glowpadAnimator << Animator::Mode::Loop;
 
   glowpad = sf::Sprite(LOAD_TEXTURE(GLOWING_PAD_ATLAS));
   glowpad.setScale(2.f, 2.f);
@@ -344,7 +344,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
     naviAnimator = Animation(NAVIS.At(naviSelectionIndex).GetBattleAnimationPath());
     naviAnimator.Reload();
     naviAnimator.SetAnimation("PLAYER_IDLE");
-    naviAnimator << Animate::Mode::Loop;
+    naviAnimator << Animator::Mode::Loop;
 
     int offset = (int)(NAVIS.At(naviSelectionIndex).GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));

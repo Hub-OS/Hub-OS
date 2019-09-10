@@ -8,7 +8,7 @@ StarfishIdleState::StarfishIdleState() : cooldown(3), AIState<Starfish>() { ; }
 StarfishIdleState::~StarfishIdleState() { ; }
 
 void StarfishIdleState::OnEnter(Starfish& star) {
-  star.GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", Animate::Mode::Loop);
+  star.GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", Animator::Mode::Loop);
 }
 
 void StarfishIdleState::OnUpdate(float _elapsed, Starfish& star) {

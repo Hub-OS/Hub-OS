@@ -25,7 +25,7 @@
 #include "bnGameOverScene.h"
 #include "bnMainMenuScene.h"
 #include "bnFakeScene.h"
-#include "bnAnimate.h"
+#include "bnAnimator.h"
 #include "bnConfigReader.h"
 #include "bnConfigScene.h"
 #include "SFML/System.hpp"
@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
   Animation mouseAnimation("resources/ui/mouse.animation");
   mouseAnimation.Reload();
   mouseAnimation.SetAnimation("DEFAULT");
-  mouseAnimation << Animate::Mode::Loop;
+  mouseAnimation << Animator::Mode::Loop;
   sf::Vector2f lastMousepos;
   double mouseAlpha = 1.0;
 
@@ -352,7 +352,7 @@ int main(int argc, char** argv) {
   FrameList progAnim;
   
   // Animator object uses frames to animate
-  Animate animator;
+  Animator animator;
   float progAnimProgress = 0.f;
   
   SpriteSceneNode bgSprite;
@@ -579,7 +579,7 @@ int main(int argc, char** argv) {
     }
 
     if (progs) {
-      // Animate the prog character at the title screen
+      // Animator the prog character at the title screen
       // and draw him if we have it loaded
       animator(progAnimProgress, progSprite, progAnim);
       ENGINE.Draw(&progSprite);

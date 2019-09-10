@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#include "bnAnimate.h"
+#include "bnAnimator.h"
 
 using std::string;
 using std::to_string;
@@ -16,7 +16,7 @@ using std::to_string;
  * @class Animation
  * @author mav
  * @date 14/05/19
- * @see bnAnimate.h
+ * @see bnAnimator.h
  * @brief Loads a FrameList from an animation file format and animates a sprite
  * 
  * Basically a wrapper around the animator that knows the possible animations.
@@ -140,7 +140,7 @@ public:
    * @param rhs On struct
    * @return Animation& to chain
    */
-  Animation& operator<<(Animate::On rhs);
+  Animation& operator<<(Animator::On rhs);
   
   /**
    * @brief Set the animator mode
@@ -175,7 +175,7 @@ private:
    */
   string ValueOf(string _key, string _line);
 protected:
-  Animate animator; /*!< Internal animator to delegate most of the work to */
+  Animator animator; /*!< Internal animator to delegate most of the work to */
   string path; /*!< Path to the animation file */
   string currAnimation; /*!< Name of the current animation state */
   float progress; /*!< Current progress of animation */

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "bnOverworldMap.h"
-#include "bnAnimate.h"
+#include "bnAnimator.h"
 #include "bnAnimation.h"
 
 namespace Overworld {
@@ -35,7 +35,7 @@ namespace Overworld {
     Overworld::Tile* head; /*!< The head of the trail that tiles branch off of*/
     int branchDepth; /*!< 0 = no paths. 1 or more generates twists and turns for a bigger map */
     
-    Animate animator; /*!< Animate object to use on any animation */
+    Animator animator; /*!< Animator object to use on any animation */
     Animation progAnimations; /*!< mr prog animations to animate */
     Animation numbermanAnimations; /*!< numberman animations to animate */
 

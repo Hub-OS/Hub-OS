@@ -21,7 +21,7 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
     this->RegisterComponent(anim);
     anim->Setup("resources/mobs/metalman/metalman.animation");
     anim->Load();
-    anim->SetAnimation("MISSILE_UP", Animate::Mode::Loop);
+    anim->SetAnimation("MISSILE_UP", Animator::Mode::Loop);
 
     setScale(0.f, 0.f);
 
@@ -94,7 +94,7 @@ void Missile::OnUpdate(float _elapsed) {
             // update to come down
             goingUp = false;
             progress = 0;
-            anim->SetAnimation("MISSILE_DOWN", Animate::Mode::Loop);
+            anim->SetAnimation("MISSILE_DOWN", Animator::Mode::Loop);
 
             if(this->GetTile() != target) {
                 auto pos = this->getPosition();

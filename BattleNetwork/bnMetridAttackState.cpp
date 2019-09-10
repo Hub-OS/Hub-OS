@@ -24,7 +24,7 @@ void MetridAttackState::OnEnter(Metrid& met) {
       meteorCount = 11;
     }
 
-    animation->SetPlaybackMode(Animate::Mode::Loop);
+    animation->SetPlaybackMode(Animator::Mode::Loop);
     this->DoAttack(met);
   };
 
@@ -81,7 +81,7 @@ void MetridAttackState::DoAttack(Metrid& met) {
       animation->SetAnimation("MOB_HIDE_3", onEnd);
     }
 
-    animation->SetPlaybackMode(Animate::Mode::Reverse);
+    animation->SetPlaybackMode(Animator::Mode::Reverse);
   }
   else {
     int damage = 40;

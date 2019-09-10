@@ -151,6 +151,13 @@ namespace Battle {
     bool IsHighlighted() const;
 
     /**
+     * @brief Returns true if a character is standing on or has reserved this tile 
+     * 
+     * Only checks for character entity types
+     */
+    bool IsReservedByCharacter(); 
+
+    /**
      * @brief Adds a spell to the spell bucket if it doesn't already exist
      * @param _entity
      */

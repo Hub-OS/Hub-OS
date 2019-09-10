@@ -1,8 +1,8 @@
-#include "bnAnimate.h"
+#include "bnAnimator.h"
 
 #include <iostream>
 
-Animate::Animate() {
+Animator::Animator() {
   onFinish = nullptr;
   queuedOnFinish = nullptr;
   isUpdating = false;
@@ -10,11 +10,11 @@ Animate::Animate() {
   playbackMode = 0x00;
 }
 
-Animate::Animate(const Animate& rhs) {
+Animator::Animator(const Animator& rhs) {
   *this = rhs;
 }
 
-Animate & Animate::operator=(const Animate & rhs)
+Animator & Animator::operator=(const Animator & rhs)
 {
   this->onFinish = rhs.onFinish;
   this->callbacks = rhs.callbacks;
@@ -31,7 +31,7 @@ Animate & Animate::operator=(const Animate & rhs)
   return *this;
 }
 
-Animate::~Animate() {
+Animator::~Animator() {
   this->callbacks.clear();
   this->queuedCallbacks.clear();
   this->onetimeCallbacks.clear();
@@ -41,13 +41,13 @@ Animate::~Animate() {
   this->queuedOnFinish = nullptr;
 }
 
-void Animate::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
+void Animator::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
   if (sequence.frames.size() <= frameIndex) return;
 
   currentPoints = sequence.frames[frameIndex].points;
 }
 
-void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequence) {
+void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequence) {
   float startProgress = progress;
 
   UpdateCurrentPoints(0, sequence);
@@ -278,11 +278,11 @@ void Animate::operator() (float progress, sf::Sprite& target, FrameList& sequenc
 /**
  * @brief Add a callback 
  * @param rhs On struct
- * @return Animate& to chain
+ * @return Animator& to chain
  * 
  * If in the middle of an update loop, add to the queue otherwise add directly to callback list
  */
-Animate & Animate::operator<<(On rhs)
+Animator & Animator::operator<<(On rhs)
 {
   if(!rhs.callback) return *this;
   
@@ -305,13 +305,13 @@ Animate & Animate::operator<<(On rhs)
   return *this;
 }
 
-Animate & Animate::operator<<(char rhs)
+Animator & Animator::operator<<(char rhs)
 {
   this->playbackMode = rhs;
   return *this;
 }
 
-void Animate::operator<<(std::function<void()> finishNotifier)
+void Animator::operator<<(std::function<void()> finishNotifier)
 {
   if(!finishNotifier) return;
   
@@ -322,7 +322,7 @@ void Animate::operator<<(std::function<void()> finishNotifier)
   }
 }
 
-void Animate::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)
+void Animator::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)
 {
   int index = 0;
   for (Frame& frame : sequence.frames) {

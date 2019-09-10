@@ -9,7 +9,7 @@ class Field;
  * @class ChargedBusterHit
  * @author mav
  * @date 05/05/19
- * @brief Animated hit effect on the enemy and then removes itself 
+ * @brief Animatord hit effect on the enemy and then removes itself 
  */
 class ChargedBusterHit : public Artifact
 {

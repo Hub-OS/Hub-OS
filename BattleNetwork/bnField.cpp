@@ -14,7 +14,7 @@ Field::Field(int _width, int _height)
   // Moved tile resource acquisition to field so we only them once for all tiles
   Animation a(TILE_ANIMATION_PATH);
   a.Reload();
-  a << Animate::Mode::Loop;
+  a << Animator::Mode::Loop;
 
   auto t_a_b = TEXTURES.GetTexture(TextureType::TILE_ATLAS_BLUE);
   auto t_a_r = TEXTURES.GetTexture(TextureType::TILE_ATLAS_RED);

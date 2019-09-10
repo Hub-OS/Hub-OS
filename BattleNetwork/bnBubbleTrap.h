@@ -33,7 +33,7 @@ public:
   virtual void Inject(BattleScene&);
   
   /**
-   * @brief Animates bubble. When timer runs out, pops the bubble
+   * @brief Animators bubble. When timer runs out, pops the bubble
    * @param _elapsed in seconds
    */
   virtual void OnUpdate(float _elapsed);

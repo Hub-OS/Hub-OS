@@ -181,7 +181,11 @@
     <ClCompile Include="Android\bnTouchArea.cpp" />
     <ClCompile Include="bnAirShot.cpp" />
     <ClCompile Include="bnAirShotChipAction.cpp" />
-    <ClCompile Include="bnAnimate.cpp" />
+    <ClCompile Include="bnAlphaArm.cpp" />
+    <ClCompile Include="bnAlphaBossFight.cpp" />
+    <ClCompile Include="bnAlphaCore.cpp" />
+    <ClCompile Include="bnAlphaIdleState.cpp" />
+    <ClCompile Include="bnAnimator.cpp" />
     <ClCompile Include="bnAnimatedCharacter.cpp" />
     <ClCompile Include="bnAnimatedTextBox.cpp" />
     <ClCompile Include="bnAnimation.cpp" />
@@ -364,7 +368,11 @@
     <ClInclude Include="Android\bnTouchArea.h" />
     <ClInclude Include="bnAirShot.h" />
     <ClInclude Include="bnAirShotChipAction.h" />
-    <ClInclude Include="bnAnimate.h" />
+    <ClInclude Include="bnAlphaArm.h" />
+    <ClInclude Include="bnAlphaBossFight.h" />
+    <ClInclude Include="bnAlphaCore.h" />
+    <ClInclude Include="bnAlphaIdleState.h" />
+    <ClInclude Include="bnAnimator.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
     <ClInclude Include="bnAura.h" />
@@ -409,6 +417,7 @@
     <ClInclude Include="bnChipUsePublisher.h" />
     <ClInclude Include="bnComponent.h" />
     <ClInclude Include="bnEnemyChipsUI.h" />
+    <ClInclude Include="bnFadeInState.h" />
     <ClInclude Include="bnFakeScene.h" />
     <ClInclude Include="bnFireBurn.h" />
     <ClInclude Include="bnFireBurnChipAction.h" />

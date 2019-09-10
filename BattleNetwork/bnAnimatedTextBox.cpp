@@ -41,7 +41,7 @@ void AnimatedTextBox::Close() {
     this->isPaused = true;
   };
 
-  animator << Animate::On(3, callback, true);
+  animator << Animator::On(3, callback, true);
 }
 
 const bool AnimatedTextBox::SelectYes() const {
@@ -83,7 +83,7 @@ void AnimatedTextBox::Open() {
     this->isReady = true;
   };
 
-  animator << Animate::On(2, callback, true);
+  animator << Animator::On(2, callback, true);
 }
 
 const bool AnimatedTextBox::IsPlaying() const { return !isPaused; }
@@ -106,7 +106,7 @@ void AnimatedTextBox::DequeMessage() {
 
   mugAnimator = Animation(animPaths[0]);
   mugAnimator.SetAnimation("TALK");
-  mugAnimator << Animate::Mode::Loop;
+  mugAnimator << Animator::Mode::Loop;
   textBox.SetMessage(messages[0]->GetMessage());
 }
 
@@ -119,7 +119,7 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
 
   mugAnimator = Animation(animPaths[0]);
   mugAnimator.SetAnimation("TALK");
-  mugAnimator << Animate::Mode::Loop;
+  mugAnimator << Animator::Mode::Loop;
 
   std::string strMessage = messages[0]->GetMessage();
   textBox.SetMessage(strMessage);
@@ -146,7 +146,7 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
     if (!isPaused) {
       if (mugAnimator.GetAnimationString() != "TALK") {
         mugAnimator.SetAnimation("TALK");
-        mugAnimator << Animate::Mode::Loop;
+        mugAnimator << Animator::Mode::Loop;
       }
 
       textBox.Update(elapsed*(float)textSpeed);
@@ -158,7 +158,7 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
     else {
       if (mugAnimator.GetAnimationString() != "IDLE") {
         mugAnimator.SetAnimation("IDLE");
-        mugAnimator << Animate::Mode::Loop;
+        mugAnimator << Animator::Mode::Loop;
       }
     }
 

@@ -17,7 +17,7 @@ void StarfishAttackState::OnEnter(Starfish& star) {
       this->DoAttack(*s); 
     };
 	
-    s->GetFirstComponent<AnimationComponent>()->SetAnimation("ATTACK", Animate::Mode::Loop);
+    s->GetFirstComponent<AnimationComponent>()->SetAnimation("ATTACK", Animator::Mode::Loop);
     s->OnFrameCallback(1, onAttack, std::function<void()>(), false);
   };
 
@@ -42,7 +42,7 @@ void StarfishAttackState::DoAttack(Starfish& star) {
   }
   
   if (--bubbleCount == 0) {
-	star.GetFirstComponent<AnimationComponent>()->SetPlaybackMode(Animate::Mode::NoEffect);
+	star.GetFirstComponent<AnimationComponent>()->SetPlaybackMode(Animator::Mode::NoEffect);
 	star.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
 	
 	// On animation end, go back to idle

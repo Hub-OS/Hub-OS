@@ -12,7 +12,7 @@ MetalManIdleState::~MetalManIdleState()
 }
 
 void MetalManIdleState::OnEnter(MetalMan& metal) {
-  metal.GetFirstComponent<AnimationComponent>()->SetAnimation(MOB_IDLE, Animate::Mode::Loop);
+  metal.GetFirstComponent<AnimationComponent>()->SetAnimation(MOB_IDLE, Animator::Mode::Loop);
 }
 
 void MetalManIdleState::OnUpdate(float _elapsed, MetalMan& metal) {

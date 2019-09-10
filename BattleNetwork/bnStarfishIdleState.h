@@ -1,7 +1,7 @@
 
 /*! \brief Idle state for Starfish AI
  * 
- * Animates in place until the timer runs down 
+ * Animators in place until the timer runs down 
  * and then switches to Attack state
  */
 #pragma once
@@ -24,7 +24,7 @@ public:
   void OnEnter(Starfish& star);
   
   /**
-   * @brief Animates in place before switching to StarfishAttackState
+   * @brief Animators in place before switching to StarfishAttackState
    * @param _elapsed in seconds
    * @param star the agent to update
    */

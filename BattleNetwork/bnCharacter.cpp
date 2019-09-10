@@ -168,10 +168,7 @@ const bool Character::Hit(Hit::Properties props) {
 
   // Show ! super effective symbol on the field
   if (isSuperEffective) {
-    // Additional damage bonus if super effective against the attack too
-    if (isSuperEffective) {
       props.damage *= 2;
-    }
 
     Artifact *seSymbol = new ElementalDamage(field);
     field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());

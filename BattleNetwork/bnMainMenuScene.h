@@ -45,7 +45,7 @@ private:
 
   SelectedNavi currentNavi; /*!< Current navi selection index */
   sf::Sprite owNavi; /*!< Overworld navi sprite */
-  Animation naviAnimator; /*!< Animates navi sprite */
+  Animation naviAnimator; /*!< Animators navi sprite */
  
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
 

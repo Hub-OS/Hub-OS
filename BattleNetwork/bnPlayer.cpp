@@ -113,7 +113,7 @@ void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
 
   if (state == PLAYER_IDLE) {
-    auto playback = Animate::Mode::Loop;
+    auto playback = Animator::Mode::Loop;
     animationComponent->SetAnimation(_state, playback);
   }
   else {

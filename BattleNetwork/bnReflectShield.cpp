@@ -38,7 +38,7 @@ ReflectShield::ReflectShield(Character* owner) : Artifact(nullptr), Component(ow
 
   // Add end callback, flag for deletion, and remove the component from the owner
   // This way the owner doesn't container a pointer to an invalid address
-  animation << Animate::On(5, onEnd, true) << [this]() { this->Delete(); this->GetOwner()->FreeComponentByID(this->Component::GetID()); };
+  animation << Animator::On(5, onEnd, true) << [this]() { this->Delete(); this->GetOwner()->FreeComponentByID(this->Component::GetID()); };
 
   animation.Update(0, *this);
 

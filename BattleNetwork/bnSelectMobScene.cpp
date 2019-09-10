@@ -24,7 +24,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   navigatorAnimator = Animation("resources/ui/navigator.animation");
   navigatorAnimator.Reload();
   navigatorAnimator.SetAnimation("TALK");
-  navigatorAnimator << Animate::Mode::Loop;
+  navigatorAnimator << Animator::Mode::Loop;
 
   mobSpr = sf::Sprite();
 
@@ -412,11 +412,11 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   if (isEqual && navigatorAnimator.GetAnimationString() != "IDLE") {
     navigatorAnimator.SetAnimation("IDLE");
-    navigatorAnimator << Animate::Mode::Loop;
+    navigatorAnimator << Animator::Mode::Loop;
   }
   else if(!isEqual && navigatorAnimator.GetAnimationString() != "TALK") {
     navigatorAnimator.SetAnimation("TALK");
-    navigatorAnimator << Animate::Mode::Loop;
+    navigatorAnimator << Animator::Mode::Loop;
   }
 }
 

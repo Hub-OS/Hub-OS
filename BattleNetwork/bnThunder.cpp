@@ -24,7 +24,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
 
   animation = Animation("resources/spells/thunder.animation");
   animation.SetAnimation("DEFAULT");
-  animation << Animate::Mode::Loop;
+  animation << Animator::Mode::Loop;
 
   target = nullptr;
   EnableTileHighlight(false);

@@ -17,7 +17,7 @@ class Field;
 class Explosion : public Artifact
 {
 private:
-  AnimationComponent* animationComponent; /*!< Animate the explosion */
+  AnimationComponent* animationComponent; /*!< Animator the explosion */
   int numOfExplosions; /*!< Once the count reaches this number, the effect is over */
   sf::Vector2f offset; /*!< Explosion children are placed randomly around the spawn area */
   int count; /*!< Used by root to keep track of explosions left */

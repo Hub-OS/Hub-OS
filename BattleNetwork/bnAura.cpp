@@ -70,7 +70,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   
   owner->AddDefenseRule(defense);
 
-  animation << Animate::Mode::Loop;
+  animation << Animator::Mode::Loop;
   animation.Update(0, *aura);
 }
 

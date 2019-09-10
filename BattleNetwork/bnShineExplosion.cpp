@@ -18,7 +18,7 @@ ShineExplosion::ShineExplosion(Field* _field, Team _team) : Artifact(_field)
   this->RegisterComponent(animationComponent);
   animationComponent->Setup("resources/mobs/boss_shine.animation");
   animationComponent->Load();
-  animationComponent->SetAnimation("SHINE", Animate::Mode::Loop);
+  animationComponent->SetAnimation("SHINE", Animator::Mode::Loop);
   animationComponent->OnUpdate(0.0f);
 }
 

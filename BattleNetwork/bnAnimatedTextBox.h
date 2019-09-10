@@ -7,7 +7,7 @@
  * @class AnimatedTextBox
  * @author mav
  * @date 13/05/19
- * @brief Animates a mmbn textbox with a mugshot that animates with text
+ * @brief Animators a mmbn textbox with a mugshot that animates with text
  * 
  * @warning WIP utilities to ask questions but is not working as expected
  * 
@@ -92,7 +92,7 @@ private:
   mutable sf::Sprite nextCursor; /*!< Green cursor at bottom-right */
   mutable sf::Sprite selectCursor; /*!< Used for making selections */
 
-  mutable Animation mugAnimator; /*!< Animates the mugshot frames */
+  mutable Animation mugAnimator; /*!< Animators the mugshot frames */
   bool isPaused; /*!< Pause text flag */
   bool isReady; /*!< Ready to type text flag */
   bool isOpening; /*!< Opening textbox flag */

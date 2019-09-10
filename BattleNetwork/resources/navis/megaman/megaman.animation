@@ -65,3 +65,8 @@ frame duration="0.05" x="206" y="111" w="49" h="47" originx="15" originy="40"
 point label="Hand" x="45" y="21"
 frame duration="0.05" x="161" y="162" w="43" h="46" originx="19" originy="40"
 point label="Hand" x="38" y="27"
+
+animation state="HAND"
+frame duration="0.05" x="293" y="239" w="18" h="16" originx="11" originy="6"
+frame duration="0.05" x="342" y="233" w="16" h="16" originx="6" originy="6"
+frame duration="0.15" x="365" y="227" w="16" h="16" originx="7" originy="8"

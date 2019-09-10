@@ -96,7 +96,7 @@ private:
 
   sf::Sprite navigator; /*!< Mugshot spritesheet */
   
-  Animation navigatorAnimator; /*!< Animates mugshot */
+  Animation navigatorAnimator; /*!< Animators mugshot */
 
   bool gotoNextScene; /*!< Cannot interact with scene if true */
 
@@ -126,7 +126,7 @@ public:
   virtual void onResume();
   
   /**
-   * @brief Animates and accepts user input: LEFt/RIGHT A to battle, B to return
+   * @brief Animators and accepts user input: LEFt/RIGHT A to battle, B to return
    * @param elapsed
    */
   virtual void onUpdate(double elapsed);

@@ -7,7 +7,7 @@
  * @class CanonSmoke
  * @author mav
  * @date 05/05/19
- * @brief Animates smoke and deletes after
+ * @brief Animators smoke and deletes after
  */
 class CanonSmoke : public Artifact
 {

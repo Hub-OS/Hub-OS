@@ -24,7 +24,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
 
   animation = Animation("resources/spells/bubble.animation");
 
-  auto onFinish = [this]() { animation << "FLOAT" << Animate::Mode::Loop; };
+  auto onFinish = [this]() { animation << "FLOAT" << Animator::Mode::Loop; };
 
   // Spawn animation and then turns into "FLOAT" which loops forever
   animation << "INIT" << onFinish;

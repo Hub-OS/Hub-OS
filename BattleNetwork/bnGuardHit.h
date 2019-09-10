@@ -13,7 +13,7 @@
 class GuardHit : public Artifact
 {
 private:
-  AnimationComponent* animationComponent; /*!< Animate the effect */
+  AnimationComponent* animationComponent; /*!< Animator the effect */
   float w; float h; /*!< Area to appear in */
   bool center; /*!< If true, dink will appear in center of area instead of random */
 

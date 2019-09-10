@@ -19,7 +19,7 @@ PanelGrab::PanelGrab(Field* _field, Team _team, float _duration) : duration(_dur
   this->RegisterComponent(this->animationComponent);
   this->animationComponent->Setup("resources/spells/areagrab.animation");
   this->animationComponent->Reload();
-  this->animationComponent->SetAnimation("FALLING", Animate::Mode::Loop);
+  this->animationComponent->SetAnimation("FALLING", Animator::Mode::Loop);
   this->animationComponent->OnUpdate(0);
 
   auto props = Hit::DefaultProperties;
