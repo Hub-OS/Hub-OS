@@ -5,6 +5,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnExplosion.h"
+#include "bnMobMoveEffect.h"
 #include <cmath>
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
@@ -65,10 +66,17 @@ void MiniBomb::OnUpdate(float _elapsed) {
   // When at the end of the arc
   if (arcProgress >= arcDuration) {
     // update tile to target tile 
-    tile->AffectEntities(this);
-    Artifact* explosion = new Explosion(this->GetField(), this->GetTeam());
-    this->GetField()->AddEntity(*explosion, this->tile->GetX(), this->tile->GetY());
-    this->Delete();
+    if (tile->IsWalkable()) {
+      tile->AffectEntities(this);
+      Artifact* explosion = new Explosion(this->GetField(), this->GetTeam());
+      this->GetField()->AddEntity(*explosion, this->tile->GetX(), this->tile->GetY());
+      this->Delete();
+    }
+    else {
+      auto fx = new MobMoveEffect(GetField());
+      GetField()->AddEntity(*fx, GetTile()->GetX(), GetTile()->GetY());
+      this->Delete();
+    }
   }
 }
 

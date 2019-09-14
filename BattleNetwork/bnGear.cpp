@@ -16,7 +16,7 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
   animation->Setup("resources/mobs/metalman/metalman.animation");
-  animation->Reload();
+  animation->Load();
 
   animation->SetAnimation("GEAR", Animator::Mode::Loop);
 

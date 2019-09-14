@@ -66,6 +66,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::GUARD_HIT, "resources/sfx/guard_hit.ogg"); status++;
   LoadSource(AudioType::CANNON, "resources/sfx/cannon.ogg"); status++;
   LoadSource(AudioType::COUNTER, "resources/sfx/counter.ogg"); status++;
+  LoadSource(AudioType::WIND, "resources/sfx/wind.ogg"); status++;
   LoadSource(AudioType::CHIP_CANCEL, "resources/sfx/chip_cancel.ogg"); status++;
   LoadSource(AudioType::CHIP_CHOOSE, "resources/sfx/chip_choose.ogg"); status++;
   LoadSource(AudioType::CHIP_CONFIRM, "resources/sfx/chip_confirm.ogg"); status++;

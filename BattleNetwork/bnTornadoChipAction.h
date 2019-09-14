@@ -10,6 +10,7 @@ private:
   sf::Sprite fan;
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
+  bool armIsOut;
 public:
   TornadoChipAction(Character* owner, int damage);
   virtual ~TornadoChipAction();

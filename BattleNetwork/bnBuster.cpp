@@ -15,7 +15,7 @@
 
 Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), Spell(_field, _team) {
   SetPassthrough(true);
-  SetLayer(0);
+  SetLayer(-100);
 
   cooldown = 0;
 

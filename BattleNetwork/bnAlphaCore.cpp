@@ -1,4 +1,6 @@
 #include "bnAlphaCore.h"
+#include "bnAlphaArm.h"
+#include "bnObstacle.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnWave.h"
@@ -15,12 +17,13 @@ AlphaCore::AlphaCore(Rank _rank)
   : AI<AlphaCore>(this), Character(_rank) {
   Entity::team = Team::BLUE;
   totalElapsed = 0;
-  coreHP = prevCoreHP = 10;
+  coreHP = prevCoreHP = 40;
   coreRegen = 0;
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   setScale(2.f, 2.f);
 
-  this->SetHealth(4000);
+  SetName("Alpha");
+  this->SetHealth(3000);
 
   //Components setup and load
   this->animationComponent = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
@@ -34,33 +37,63 @@ AlphaCore::AlphaCore(Rank _rank)
   animation.Load();
 
   acid = new SpriteSceneNode();
+  acid->SetLayer(1);
   acid->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   animation.SetAnimation("ACID");
   animation.Update(0, *acid);
-  
+
   head = new SpriteSceneNode();
   head->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   head->SetLayer(-2);
-  head->setPosition(-10, -50);
   animation.SetAnimation("HEAD");
   animation.Update(0, *head);
 
   side = new SpriteSceneNode();
   side->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   side->SetLayer(-1);
-  side->setPosition(6 , -50);
   animation.SetAnimation("SIDE");
   animation.Update(0, *side);
+
+  leftShoulder = new SpriteSceneNode();
+  leftShoulder->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  leftShoulder->SetLayer(0);
+  animation.SetAnimation("LEFT_SHOULDER");
+  animation.Update(0, *leftShoulder);
+
+  rightShoulder = new SpriteSceneNode();
+  rightShoulder->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  rightShoulder->SetLayer(-3);
+  animation.SetAnimation("RIGHT_SHOULDER");
+  animation.Update(0, *rightShoulder);
 
   this->AddNode(acid);
   this->AddNode(head);
   this->AddNode(side);
+  this->AddNode(rightShoulder);
+  this->AddNode(leftShoulder);
 
   virusBody = new DefenseVirusBody();
   this->AddDefenseRule(virusBody);
 
   defense = new AlphaCoreDefenseRule(coreHP);
   this->AddDefenseRule(defense);
+
+  // arms
+  leftArm = new AlphaArm(nullptr, GetTeam());
+  leftArm->setTexture(*this->getTexture());
+  auto leftArmAnim = (AnimationComponent*)RegisterComponent(new AnimationComponent(leftArm));
+  leftArmAnim->Setup(RESOURCE_PATH);
+  leftArmAnim->Load();
+  leftArmAnim->SetAnimation("RIGHT_CLAW_DEFAULT");
+  leftArmAnim->OnUpdate(0);
+
+  rightArm = new AlphaArm(nullptr, GetTeam());
+  rightArm->setTexture(*this->getTexture());
+  auto rightArmAnim = (AnimationComponent*)RegisterComponent(new AnimationComponent(rightArm));
+  rightArmAnim->Setup(RESOURCE_PATH);
+  rightArmAnim->Load();
+  rightArmAnim->SetAnimation("LEFT_CLAW_DEFAULT");
+  rightArmAnim->OnUpdate(0);
 }
 
 AlphaCore::~AlphaCore() {
@@ -69,21 +102,50 @@ AlphaCore::~AlphaCore() {
 }
 
 void AlphaCore::OnUpdate(float _elapsed) {
-  totalElapsed += _elapsed;
-  coreRegen += _elapsed;
+  // TODO: Add a OnEnterField() for these types of things...
+  if (leftArm->GetField() == nullptr) {
+    GetField()->AddEntity((*leftArm), GetTile()->GetX(), GetTile()->GetY() + 1);
+    GetField()->AddEntity((*rightArm), GetTile()->GetX()-1, GetTile()->GetY() - 1);
 
-  if (coreHP < 10) {
-    if (coreRegen > 1) {
+    // Block player from stealing rows
+    Battle::Tile* block = GetField()->GetAt(4, 1);
+    block->ReserveEntityByID(this->GetID());
+
+    block = GetField()->GetAt(4, 2);
+    block->ReserveEntityByID(this->GetID());
+
+    block = GetField()->GetAt(4, 3);
+    block->ReserveEntityByID(this->GetID());
+  }
+
+  totalElapsed += _elapsed;
+
+  float delta = std::sinf(totalElapsed)*0.5f;
+  head->setPosition(-10, -44 - delta);
+  side->setPosition(6, -54 - delta);
+  leftShoulder->setPosition(-21, -58 - delta);
+  rightShoulder->setPosition(2, -53 - delta);
+
+  if (coreHP < 40) {
+    coreRegen += _elapsed;
+
+    if (coreRegen >= 1.5) {
       coreRegen = 0;
-      coreHP += 5;
+      coreHP += 20;
     }
 
+    coreHP = std::min(40, coreHP);
+
     if (prevCoreHP != coreHP) {
+      if (prevCoreHP > coreHP) {
+        coreRegen = 0; // restart the regen timer
+      }
+
       if (coreHP <= 0) {
         this->animationComponent->SetAnimation("CORE_EXPOSED");
         this->animationComponent->SetPlaybackMode(Animator::Mode::Loop);
       }
-      else if (coreHP <= 5) {
+      else if (coreHP <= 20) {
         this->animationComponent->SetAnimation("CORE_HALF");
         this->animationComponent->SetPlaybackMode(Animator::Mode::Loop);
       }
@@ -136,16 +198,37 @@ void AlphaCore::OnDelete() {
   this->ChangeState<ExplodeState<AlphaCore>>(30, 1.5);
 }
 
+void AlphaCore::OpenShoulderGuns()
+{
+  animation.SetAnimation("LEFT_SHOULDER");
+  animation.SetFrame(2, *leftShoulder);
+
+  animation.SetAnimation("RIGHT_SHOULDER");
+  animation.SetFrame(2, *rightShoulder);
+}
+
+void AlphaCore::CloseShoulderGuns()
+{
+  animation.SetAnimation("LEFT_SHOULDER");
+  animation.SetFrame(1, *leftShoulder);
+
+  animation.SetAnimation("RIGHT_SHOULDER");
+  animation.SetFrame(1, *rightShoulder);
+}
+
 AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 const bool AlphaCore::AlphaCoreDefenseRule::Check(Spell* in, Character* owner) {
   // Drop a 0 damage hitbox to block/trigger attack hits
   owner->GetField()->AddEntity(*new HitBox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
-  owner->Hit(Hit::Properties());
+
+  if ((in->GetHitboxProperties().flags & Hit::breaking) == Hit::breaking) {
+    alphaCoreHP = 0;
+  }
 
   if (alphaCoreHP <= 0) return false;
   alphaCoreHP -= in->GetHitboxProperties().damage;
-  alphaCoreHP = std::max(-10, alphaCoreHP);
+  alphaCoreHP = std::max(0, alphaCoreHP);
 
   return true;
 }

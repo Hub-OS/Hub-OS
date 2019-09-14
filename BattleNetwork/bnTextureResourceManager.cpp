@@ -119,6 +119,7 @@ TextureResourceManager::TextureResourceManager(void) {
   // Battle misc / Artifacts
   paths.push_back("resources/mobs/mystery_data/mystery_data.png");
   paths.push_back("resources/mobs/cube/cube.png");
+  paths.push_back("resources/mobs/small_shadow.png");
 
   //-Spells-
   paths.push_back("resources/spells/spell_bullet_hit.png");

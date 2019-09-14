@@ -6,17 +6,21 @@
 #include "bnDefenseRule.h"
 
 class AnimationComponent;
+class Obstacle;
 
 class AlphaCore : public Character, public AI<AlphaCore> {
   friend class AlphaIdleState;
 
   DefenseRule* virusBody;
   AnimationComponent* animationComponent;
-  SpriteSceneNode *acid, *head, *side;
+  SpriteSceneNode *acid, *head, *side, *leftShoulder, *rightShoulder;
   Animation animation;
   float totalElapsed, coreRegen;
   float hitHeight;
   int coreHP, prevCoreHP;
+
+  Obstacle* leftArm;
+  Obstacle* rightArm;
 
   class AlphaCoreDefenseRule : public DefenseRule {
     int& alphaCoreHP;
@@ -26,7 +30,6 @@ class AlphaCore : public Character, public AI<AlphaCore> {
     virtual ~AlphaCoreDefenseRule();
     virtual const bool Check(Spell* in, Character* owner);
   } *defense;
-
 public:
   using DefaultState = AlphaIdleState;
 
@@ -44,4 +47,7 @@ public:
 
   virtual const bool OnHit(const Hit::Properties props);
   virtual void OnDelete();
+
+  void OpenShoulderGuns();
+  void CloseShoulderGuns();
 };

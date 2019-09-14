@@ -7,6 +7,7 @@
 #define PATH "resources/spells/buster_flame.png"
 #define ANIM "resources/spells/buster_flame.animation"
 
+#define WAIT   { 1, 0.1 }
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
 #define FRAME3 { 3, 0.05 }
@@ -14,7 +15,7 @@
 #define FRAME5 { 5, 0.05 }
 
 // TODO: check frame-by-frame anim
-#define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
+#define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
 
 FireBurnChipAction::FireBurnChipAction(Character * owner, FireBurn::Type type, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {

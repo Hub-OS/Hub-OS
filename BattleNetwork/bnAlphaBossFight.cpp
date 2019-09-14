@@ -22,7 +22,7 @@ Mob* AlphaBossFight::Build() {
 
   // Changes music and ranking algorithm
   mob->ToggleBossFlag();
-
+  mob->StreamCustomMusic("resources/loops/proto.ogg");
 
   mob->Spawn<Rank1<AlphaCore, FadeInState>>(5, 2);
 

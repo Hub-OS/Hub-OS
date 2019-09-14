@@ -16,6 +16,7 @@ enum AudioType {
   GUARD_HIT,
   CANNON,
   COUNTER,
+  WIND,
   CHIP_CANCEL,
   CHIP_CHOOSE,
   CHIP_CONFIRM,

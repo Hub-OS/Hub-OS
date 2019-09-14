@@ -572,6 +572,15 @@
     <Filter Include="Engine\CoreModules\Graphics\Animations">
       <UniqueIdentifier>{f7b3b6ba-319e-41c2-9861-e349a23173bc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard\Normal">
+      <UniqueIdentifier>{3c102bee-18d5-4525-a732-4697a616cd37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard\Indestructable">
+      <UniqueIdentifier>{d18e6d9c-1892-4af7-a337-20aba959c1c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Activities\Battle\Content\SpriteNodes">
+      <UniqueIdentifier>{b54e681b-7f61-4220-b86a-84028ddf5abf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -883,9 +892,6 @@
     <ClCompile Include="bnGuardHit.cpp">
       <Filter>Activities\Battle\Content\Entities\Artifact\Hits\Guard</Filter>
     </ClCompile>
-    <ClCompile Include="bnDefenseGuard.cpp">
-      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard</Filter>
-    </ClCompile>
     <ClCompile Include="bnReflectShield.cpp">
       <Filter>Activities\Battle\Content\Entities\Artifact\Guard</Filter>
     </ClCompile>
@@ -1104,6 +1110,21 @@
     </ClCompile>
     <ClCompile Include="bnAnimator.cpp">
       <Filter>Engine\CoreModules\Graphics\Animations</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseGuard.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard\Normal</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseIndestructable.cpp">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard\Indestructable</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAlphaClawSwipeState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAlphaGunState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAlphaElectricState.cpp">
+      <Filter>Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1543,9 +1564,6 @@
     <ClInclude Include="AlphaBossSpawnPolicy.h">
       <Filter>Engine\Addons\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy</Filter>
     </ClInclude>
-    <ClInclude Include="bnDefenseGuard.h">
-      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard</Filter>
-    </ClInclude>
     <ClInclude Include="bnReflectShield.h">
       <Filter>Activities\Battle\Content\Entities\Artifact\Guard</Filter>
     </ClInclude>
@@ -1785,6 +1803,21 @@
     </ClInclude>
     <ClInclude Include="bnFadeInState.h">
       <Filter>Activities\Battle\Content\AI\Any\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseGuard.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard\Normal</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseIndestructable.h">
+      <Filter>Activities\Battle\Content\BattleStepModifiers\DefenseRules\Guard\Indestructable</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAlphaClawSwipeState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAlphaGunState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAlphaElectricState.h">
+      <Filter>Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -183,7 +183,10 @@
     <ClCompile Include="bnAirShotChipAction.cpp" />
     <ClCompile Include="bnAlphaArm.cpp" />
     <ClCompile Include="bnAlphaBossFight.cpp" />
+    <ClCompile Include="bnAlphaClawSwipeState.cpp" />
     <ClCompile Include="bnAlphaCore.cpp" />
+    <ClCompile Include="bnAlphaElectricState.cpp" />
+    <ClCompile Include="bnAlphaGunState.cpp" />
     <ClCompile Include="bnAlphaIdleState.cpp" />
     <ClCompile Include="bnAnimator.cpp" />
     <ClCompile Include="bnAnimatedCharacter.cpp" />
@@ -350,6 +353,7 @@
     <ClCompile Include="bnCamera.cpp" />
     <ClCompile Include="bnCanonSmoke.cpp" />
     <ClCompile Include="bnInvis.cpp" />
+    <ClCompile Include="bnDefenseIndestructable.cpp" />
     <ClCompile Include="main.cpp">
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp17</LanguageStandard>
     </ClCompile>
@@ -370,7 +374,10 @@
     <ClInclude Include="bnAirShotChipAction.h" />
     <ClInclude Include="bnAlphaArm.h" />
     <ClInclude Include="bnAlphaBossFight.h" />
+    <ClInclude Include="bnAlphaClawSwipeState.h" />
     <ClInclude Include="bnAlphaCore.h" />
+    <ClInclude Include="bnAlphaElectricState.h" />
+    <ClInclude Include="bnAlphaGunState.h" />
     <ClInclude Include="bnAlphaIdleState.h" />
     <ClInclude Include="bnAnimator.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
@@ -431,6 +438,7 @@
     <ClInclude Include="bnHideUntil.h" />
     <ClInclude Include="bnHitBox.h" />
     <ClInclude Include="bnHitProperties.h" />
+    <ClInclude Include="bnDefenseIndestructable.h" />
     <ClInclude Include="bnInvis.h" />
     <ClInclude Include="bnLibraryScene.h" />
     <ClInclude Include="bnMegalian.h" />
