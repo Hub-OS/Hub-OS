@@ -1,5 +1,7 @@
 #include "bnAlphaCore.h"
 #include "bnAlphaArm.h"
+#include "bnAlphaClawSwipeState.h"
+#include "bnAlphaGunState.h"
 #include "bnObstacle.h"
 #include "bnMobMoveEffect.h"
 #include "bnTile.h"
@@ -15,7 +17,7 @@
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
 
 AlphaCore::AlphaCore(Rank _rank)
-  : AI<AlphaCore>(this), Character(_rank) {
+  : BossPatternAI<AlphaCore>(this), Character(_rank) {
   Entity::team = Team::BLUE;
   totalElapsed = 0;
   coreHP = prevCoreHP = 40;
@@ -25,6 +27,8 @@ AlphaCore::AlphaCore(Rank _rank)
 
   SetName("Alpha");
   this->SetHealth(1000);
+
+  SetLayer(1);
 
   firstTime = true;
 
@@ -84,6 +88,13 @@ AlphaCore::AlphaCore(Rank _rank)
   // arms
   rightArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::RIGHT_IDLE);
   leftArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::LEFT_IDLE);
+
+  // Setup AI pattern
+  this->AddState<AlphaIdleState>();
+  this->AddState<AlphaClawSwipeState>();
+  this->AddState<AlphaClawSwipeState>();
+  this->AddState<AlphaClawSwipeState>();
+  this->AddState<AlphaGunState>();
 }
 
 AlphaCore::~AlphaCore() {
@@ -124,7 +135,13 @@ void AlphaCore::OnUpdate(float _elapsed) {
   leftShoulder->setPosition(-21, -58 - delta);
   rightShoulder->setPosition(2, -53 - delta);
 
-  if (coreHP < 40) {
+  // keep core exposed if deleted for effect
+  // If the core hp is less that initial hp, we need to 
+  // 1) regen
+  // 2) set the correct animation
+  // 3) refresh the sprite
+
+  if (coreHP < 40 && GetHealth() > 0) {
     coreRegen += _elapsed;
 
     // regen after 4 seconds
@@ -174,7 +191,7 @@ void AlphaCore::OnUpdate(float _elapsed) {
   animation << Animator::Mode::Loop;
   animation.Update(totalElapsed, *side);
 
-  this->AI<AlphaCore>::Update(_elapsed);
+  this->BossPatternAI<AlphaCore>::Update(_elapsed);
 }
 
 const bool AlphaCore::OnHit(const Hit::Properties props) {
@@ -198,7 +215,7 @@ void AlphaCore::OnDelete() {
   AUDIO.StopStream();
 
   // Explode if health depleted
-  this->ChangeState<ExplodeState<AlphaCore>>(30, 1.5);
+  this->InterruptState<ExplodeState<AlphaCore>>(30, 1.5);
 }
 
 void AlphaCore::OpenShoulderGuns()
@@ -225,7 +242,6 @@ void AlphaCore::HideLeftArm()
   GetField()->AddEntity(*fx, leftArm->GetTile()->GetX(), leftArm->GetTile()->GetY());
   leftArm->GetTile()->ReserveEntityByID(leftArm->GetID());
   leftArm->GetTile()->RemoveEntityByID(leftArm->GetID());
-
 }
 
 void AlphaCore::RevealLeftArm()

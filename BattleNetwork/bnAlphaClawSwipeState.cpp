@@ -1,5 +1,4 @@
 #include "bnAlphaClawSwipeState.h"
-#include "bnAlphaGunState.h"
 #include "bnAlphaCore.h"
 #include "bnAlphaArm.h"
 
@@ -31,11 +30,13 @@ void AlphaClawSwipeState::OnUpdate(float _elapsed, AlphaCore& a) {
   }
 
   if (leftArm && leftArm->IsDeleted()) {
-    a.ChangeState<AlphaGunState>();
+    a.GoToNextState();
   }
 }
 
 void AlphaClawSwipeState::OnLeave(AlphaCore& a) {
   a.RevealLeftArm();
   a.RevealRightArm();
+
+  leftArm = rightArm = nullptr;
 }

@@ -185,7 +185,7 @@ namespace Battle {
      * @brief If found, remove the entity from all buckets with the same ID
      * @param ID
      */
-    void RemoveEntityByID(int ID);
+    void RemoveEntityByID(long ID);
     
     /**
      * @brief Query if the given entity already occupies this tile
@@ -203,7 +203,7 @@ namespace Battle {
      * When the entity is added again with AddEntity(), the reserve will be removed.
      * @param ID
      */
-    void ReserveEntityByID(int ID);
+    void ReserveEntityByID(long ID);
 
     /**
      * @brief Query the tile for an entity type
@@ -276,7 +276,7 @@ namespace Battle {
     vector<Character*> characters; /**< Entity bucket for type Characters */
     vector<Entity*> entities; /**< Entity bucket for looping over all entities **/
 
-    set<int> reserved; /**< IDs of entities reserving this tile*/
+    set<long> reserved; /**< IDs of entities reserving this tile*/
     vector<long> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
 
     Animation animation;

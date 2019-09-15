@@ -1,6 +1,8 @@
 #pragma once
 #include <functional>
+#include <type_traits>
 #include "bnAI.h"
+#include "bnBossPatternAI.h"
 #include "bnCharacter.h"
 #include "bnPixelInState.h"
 #include "bnStringEncoder.h"
@@ -94,8 +96,12 @@ public:
  * Ranking affect enemy names and allows the programmer to change other aspects such as appearance
  * e.g. Mettaur, Mettaur2, CanodumbRare1, ProgsmanEX, etc...
 */
+
+template<bool, class T, template <typename> class IntroState>
+class RankedSpawnPolicy_t;
+
 template<class T, template <typename> class IntroState>
-class RankedSpawnPolicy : public SpawnPolicy<T> {
+class RankedSpawnPolicy_t<false, T, IntroState> : public SpawnPolicy<T> {
 protected:
     /**
      * @brief Registers pixelate intro and DefaultState ready callbacks
@@ -118,7 +124,7 @@ protected:
         T* agent = dynamic_cast<T*>(character); 
         using DefaultState = typename T::DefaultState;
 
-        if (agent) { agent->template ChangeState<DefaultState>(); }
+        if (agent) { agent->InvokeDefaultState(); }
       };
 
       this->SetIntroCallback(pixelStateInvoker);
@@ -126,10 +132,51 @@ protected:
     }
 
   public:
-    RankedSpawnPolicy(Mob& mob) : SpawnPolicy<T>(mob) {
+    RankedSpawnPolicy_t(Mob& mob) : SpawnPolicy<T>(mob) {
       PrepareCallbacks(mob);
     }
 };
+
+template<class T, template <typename> class IntroState>
+class RankedSpawnPolicy_t<true, T, IntroState> : public SpawnPolicy<T> {
+protected:
+  /**
+   * @brief Registers pixelate intro and DefaultState ready callbacks
+   * @param mob must flag the intro over with FlagNextReady()
+   */
+  virtual void PrepareCallbacks(Mob &mob) {
+    // This retains the current entity type and stores it in a function. We do this to transform the 
+    // unknown type back later and can call the proper state change
+    auto pixelStateInvoker = [&mob](Character* character) {
+      auto onFinish = [&mob]() { mob.FlagNextReady(); };
+
+      T* agent = dynamic_cast<T*>(character);
+
+      if (agent) {
+        agent->template InterruptState<IntroState<T>>(onFinish);
+      }
+    };
+
+    auto defaultStateInvoker = [](Character* character) {
+      T* agent = dynamic_cast<T*>(character);
+      using DefaultState = typename T::DefaultState;
+
+      if (agent) { agent->InvokeDefaultState(); }
+    };
+
+    this->SetIntroCallback(pixelStateInvoker);
+    this->SetReadyCallback(defaultStateInvoker);
+  }
+
+public:
+  RankedSpawnPolicy_t<true, T, IntroState>(Mob& mob) : SpawnPolicy<T>(mob) {
+    PrepareCallbacks(mob);
+  }
+};
+
+template<typename T, template <typename> class IntroState>
+using RankedSpawnPolicy = RankedSpawnPolicy_t< std::is_base_of<BossPatternAI<typename T>, typename T>::value, T, IntroState>;
+
 
 /*! \brief Special implementations of RankedSpawnPolicy
  * 

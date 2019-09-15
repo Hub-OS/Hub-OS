@@ -14,7 +14,7 @@ class Obstacle;
 class Artifact;
 
 namespace Battle {
-    class Tile;
+  class Tile;
 }
 
 class Field {
@@ -116,7 +116,15 @@ public:
    */
   void SetBattleActive(bool state);
 
+  /**
+  * @brief Removes any pending entities that have not been added back to the field 
+  * @param pointer to the tile 
+  * @param ID long ID references the entity
+  */
+  void TileRequestsRemovalOfQueued(Battle::Tile*, long ID);
+
 private:
+
   bool isBattleActive; /*!< State flag if battle is over */
   int width; /*!< col */
   int height; /*!< rows */
@@ -125,6 +133,7 @@ private:
   struct queueBucket {
     int x;
     int y;
+    long ID;
 
     enum class type : int {
       character,
@@ -140,25 +149,13 @@ private:
       Artifact* artifact;
     } data;
 
-    queueBucket(int x, int y, Character& d) : x(x), y(y), entity_type(type::character) 
-    { 
-      data.character = &d;
-    }
+    queueBucket(int x, int y, Character& d);
 
-    queueBucket(int x, int y, Obstacle& d) : x(x), y(y), entity_type(type::obstacle)
-    {
-      data.obstacle = &d;
-    }
+    queueBucket(int x, int y, Obstacle& d);
 
-    queueBucket(int x, int y, Artifact& d) : x(x), y(y), entity_type(type::artifact)
-    {
-      data.artifact = &d;
-    }
+    queueBucket(int x, int y, Artifact& d);
 
-    queueBucket(int x, int y, Spell& d) : x(x), y(y), entity_type(type::spell)
-    {
-      data.spell = &d;
-    }
+    queueBucket(int x, int y, Spell& d);
 
     queueBucket(const queueBucket& rhs) = default;
   };

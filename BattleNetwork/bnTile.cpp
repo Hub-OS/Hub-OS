@@ -292,8 +292,10 @@ namespace Battle {
     std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
   }
 
-  void Tile::RemoveEntityByID(int ID)
+  void Tile::RemoveEntityByID(long ID)
   {
+    field->TileRequestsRemovalOfQueued(this, ID);
+
     bool doBreakState = false;
 
     auto itEnt   = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
@@ -340,7 +342,7 @@ namespace Battle {
     return find(copy.begin(), copy.end(), _entity) != copy.end();
   }
 
-  void Tile::ReserveEntityByID(int ID)
+  void Tile::ReserveEntityByID(long ID)
   {
     reserved.insert(ID);
   }

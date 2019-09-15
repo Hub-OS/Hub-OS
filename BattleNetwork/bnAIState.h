@@ -28,7 +28,6 @@ public:
   AIState(const AIState<T>& rhs) = default;
   AIState(AIState<T>&& ref) = default;
 
- 
   /**
    * @brief Updates the state
    * @param _elapsed in seconds

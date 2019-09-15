@@ -82,6 +82,7 @@ public:
       return;
     }
 
+    if (queuedState) { delete queuedState; }
     queuedState = new U();
   }
 
@@ -96,6 +97,7 @@ template<typename U, typename ...Args>
       return;
     }
 
+    if (queuedState) { delete queuedState; }
     queuedState = new U(args...);
   }
 
@@ -106,6 +108,8 @@ template<typename U, typename ...Args>
  * If a change state request is made inside of a state, change to that state at end of update
  */
   void Update(float _elapsed) {
+    if (isUpdating) return;
+
     isUpdating = true;
 
     if (stateMachine != nullptr) {

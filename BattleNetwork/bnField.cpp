@@ -1,6 +1,7 @@
 #include "bnField.h"
-
 #include "bnObstacle.h"
+#include "bnCharacter.h"
+#include "bnSpell.h"
 #include "bnArtifact.h"
 #include "bnTextureResourceManager.h"
 
@@ -280,4 +281,42 @@ void Field::Update(float _elapsed) {
 void Field::SetBattleActive(bool state)
 {
   isBattleActive = state;
+}
+
+void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, long ID)
+{
+  auto q = pending.begin();
+  while(q != pending.end()) {
+    if (q->x == tile->GetX() && q->y == tile->GetY()) {
+      if (q->ID == ID) {
+        q = pending.erase(q);
+      }
+    }
+
+    q++;
+  }
+}
+
+Field::queueBucket::queueBucket(int x, int y, Character& d) : x(x), y(y), entity_type(Field::queueBucket::type::character)
+{
+  data.character = &d;
+  ID = d.GetID();
+}
+
+Field::queueBucket::queueBucket(int x, int y, Obstacle& d) : x(x), y(y), entity_type(Field::queueBucket::type::obstacle)
+{
+  data.obstacle = &d;
+  ID = d.GetID();
+}
+
+Field::queueBucket::queueBucket(int x, int y, Artifact& d) : x(x), y(y), entity_type(Field::queueBucket::type::artifact)
+{
+  data.artifact = &d;
+  ID = d.GetID();
+}
+
+Field::queueBucket::queueBucket(int x, int y, Spell& d) : x(x), y(y), entity_type(Field::queueBucket::type::spell)
+{
+  data.spell = &d;
+  ID = d.GetID();
 }

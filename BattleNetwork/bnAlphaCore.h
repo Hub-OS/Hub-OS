@@ -1,5 +1,5 @@
 #pragma once
-#include "bnAI.h"
+#include "bnBossPatternAI.h"
 #include "bnCharacter.h"
 #include "bnAlphaIdleState.h"
 #include "bnAnimation.h"
@@ -9,7 +9,7 @@ class AnimationComponent;
 class Obstacle;
 class AlphaArm;
 
-class AlphaCore : public Character, public AI<AlphaCore> {
+class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   friend class AlphaIdleState;
 
   DefenseRule* virusBody;
