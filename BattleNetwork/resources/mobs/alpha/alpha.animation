@@ -52,19 +52,19 @@ frame duration="0.1" x="133" y="1113" w="55" h="66" originx="32" originy="63"
 frame duration="0.1" x="203" y="1109" w="74" h="71" originx="54" originy="67"
 frame duration="0.1" x="291" y="1109" w="98" h="72" originx="78" originy="67"
 
-animation state="LEFT_CLAW_DEFAULT"
+animation state="RIGHT_CLAW_DEFAULT"
 frame duration="0.1" x="105" y="1438" w="67" h="49" originx="28" originy="33"
 
-animation state="RIGHT_CLAW_DEFAULT"
+animation state="LEFT_CLAW_DEFAULT"
 frame duration="0.1" x="172" y="1444" w="69" h="43" originx="16" originy="60"
 
-animation state="LEFT_CLAW_SWIPE"
+animation state="RIGHT_CLAW_SWIPE"
 frame duration="0.1" x="292" y="1434" w="39" h="53" originx="16" originy="28"
 
-animation state="LEFT_CLAW_SWIPE_SHADOW"
+animation state="RIGHT_CLAW_SWIPE_SHADOW"
 frame duration="0.1" x="252" y="1434" w="39" h="53" originx="19" originy="31"
 
-animation state="RIGHT_CLAW_SWIPE"
+animation state="LEFT_CLAW_SWIPE"
 frame duration="0.1" x="333" y="1442" w="69" h="47" originx="31" originy="39"
 
 animation state="LEFT_SHOULDER"

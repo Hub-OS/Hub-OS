@@ -9,7 +9,7 @@ using sf::IntRect;
 Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _playbackSpeed) : Artifact(_field)
 {
   root = this;
-  SetLayer(-1000);
+  SetLayer(1);
   field = _field;
   team = _team;
   numOfExplosions = _numOfExplosions;
@@ -65,7 +65,7 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
   root = copy.root;
 
   count = 0; // uneeded for this copy
-  SetLayer(1);
+  SetLayer(-1000);
   field = copy.GetField();
   team = copy.GetTeam();
   numOfExplosions = copy.numOfExplosions-1;

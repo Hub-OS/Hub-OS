@@ -10,27 +10,27 @@ AlphaClawSwipeState::AlphaClawSwipeState() : AIState<AlphaCore>() {
 AlphaClawSwipeState::~AlphaClawSwipeState() { ; }
 
 void AlphaClawSwipeState::OnEnter(AlphaCore& a) {
-  a.HideLeftArm();
+  a.HideRightArm();
 
-  // spawn left claw
-  leftArm = new AlphaArm(nullptr, a.GetTeam(), AlphaArm::Type::LEFT_SWIPE);
+  // spawn right claw
+  rightArm = new AlphaArm(nullptr, a.GetTeam(), AlphaArm::Type::RIGHT_SWIPE);
   Field* field = a.GetField();
-  field->AddEntity(*leftArm, a.GetTarget()->GetTile()->GetX(), 1);
+  field->AddEntity(*rightArm, a.GetTarget()->GetTile()->GetX(), 1);
 }
 
 void AlphaClawSwipeState::OnUpdate(float _elapsed, AlphaCore& a) {
-  // left claw finished swiping, spawn right claw
-  if (leftArm && leftArm->IsDeleted()) {
-    a.HideRightArm();
+  // right claw finished swiping, spawn left claw
+  if (rightArm && rightArm->IsDeleted()) {
+    a.HideLeftArm();
 
-    rightArm = new AlphaArm(nullptr, a.GetTeam(), AlphaArm::Type::RIGHT_SWIPE);
+    leftArm = new AlphaArm(nullptr, a.GetTeam(), AlphaArm::Type::LEFT_SWIPE);
     Field* field = a.GetField();
-    field->AddEntity(*rightArm, 4, a.GetTarget()->GetTile()->GetY());
+    field->AddEntity(*leftArm, 4, a.GetTarget()->GetTile()->GetY());
 
-    leftArm = nullptr;
+    rightArm = nullptr;
   }
 
-  if (rightArm && rightArm->IsDeleted()) {
+  if (leftArm && leftArm->IsDeleted()) {
     this->ChangeState<AlphaGunState>();
   }
 }

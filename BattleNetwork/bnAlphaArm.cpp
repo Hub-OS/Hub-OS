@@ -44,7 +44,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
 
   Animation blueShadowAnim(animComponent->GetFilePath());
   blueShadowAnim.Load();
-  blueShadowAnim.SetAnimation("LEFT_CLAW_SWIPE_SHADOW");
+  blueShadowAnim.SetAnimation("RIGHT_CLAW_SWIPE_SHADOW");
   blueShadowAnim.Update(0, *blueShadow);
 
   switch (type) {
@@ -56,8 +56,8 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
     animComponent->SetAnimation("RIGHT_CLAW_DEFAULT");
     this->AddNode(shadow);
     break;
-  case Type::LEFT_SWIPE:
-    animComponent->SetAnimation("LEFT_CLAW_SWIPE");
+  case Type::RIGHT_SWIPE:
+    animComponent->SetAnimation("RIGHT_CLAW_SWIPE");
     SetSlideTime(sf::seconds(0.13f)); // 8 frames in 60 seconds
     SetDirection(Direction::DOWN);
     this->AddNode(shadow);
@@ -75,8 +75,8 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
     blueShadow->Hide();
     this->AddNode(blueShadow);
     break;
-  case Type::RIGHT_SWIPE:
-    animComponent->SetAnimation("RIGHT_CLAW_SWIPE");
+  case Type::LEFT_SWIPE:
+    animComponent->SetAnimation("LEFT_CLAW_SWIPE");
     SetSlideTime(sf::seconds(0.13f)); // 8 frames in 60 seconds
     SetDirection(Direction::LEFT);
     changeState = (rand() % 10 < 5) ? TileState::POISON : TileState::ICE;
@@ -104,7 +104,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
   float delta = std::sinf(10*totalElapsed+1);
 
 
-  if (type == Type::LEFT_SWIPE) {
+  if (type == Type::RIGHT_SWIPE) {
     blueShadowTimer += _elapsed;
     
     if (blueShadowTimer > 1.0f / 60.0f) {
@@ -144,7 +144,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
       }
     }
   }
-  else if (type == Type::RIGHT_SWIPE) {
+  else if (type == Type::LEFT_SWIPE) {
     delta = 0; // do not bob
 
       // May have just finished moving
@@ -208,13 +208,13 @@ void AlphaArm::Attack(Character* other) {
 const float AlphaArm::GetHitHeight() const
 {
   switch (type) {
-  case Type::LEFT_IDLE:
-    return 10; break;
   case Type::RIGHT_IDLE:
     return 10; break;
-  case Type::LEFT_SWIPE:
-    return 30; break;
+  case Type::LEFT_IDLE:
+    return 10; break;
   case Type::RIGHT_SWIPE:
+    return 30; break;
+  case Type::LEFT_SWIPE:
     return 10; break;
   }
 

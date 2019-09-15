@@ -82,8 +82,8 @@ AlphaCore::AlphaCore(Rank _rank)
   this->AddDefenseRule(defense);
 
   // arms
-  leftArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::RIGHT_IDLE);
-  rightArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::LEFT_IDLE);
+  rightArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::RIGHT_IDLE);
+  leftArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::LEFT_IDLE);
 }
 
 AlphaCore::~AlphaCore() {
@@ -112,8 +112,8 @@ void AlphaCore::OnUpdate(float _elapsed) {
 
   totalElapsed += _elapsed;
 
-  leftArm->SyncElapsedTime(totalElapsed);
-  rightArm->SyncElapsedTime(totalElapsed);
+  leftArm->SyncElapsedTime(totalElapsed+1.0f);
+  rightArm->SyncElapsedTime(totalElapsed+1.0f);
 
   float delta = std::sinf(10*totalElapsed)*0.5f;
   head->setPosition(-10, -44 - delta);
