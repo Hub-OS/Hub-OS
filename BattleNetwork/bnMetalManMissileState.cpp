@@ -53,8 +53,8 @@ void MetalManMissileState::OnUpdate(float _elapsed, MetalMan& metal) {
   // printf("cooldown: %f", cooldown);
 
   if (cooldown < 0) {
-      this->ChangeState<MetalManIdleState>();
-    }
+    metal.ChangeState<MetalManIdleState>();
+  }
 }
 
 void MetalManMissileState::OnLeave(MetalMan& metal) {}

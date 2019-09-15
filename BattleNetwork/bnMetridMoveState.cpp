@@ -33,7 +33,7 @@ void MetridMoveState::OnUpdate(float _elapsed, Metrid& met) {
 
   if (target && target->GetTile() && moveCount <= 0 && met.IsMetridTurn()) {
     // Try attacking
-    return this->ChangeState<MetridAttackState>();
+    return met.ChangeState<MetridAttackState>();
   }
 
   auto myteam = met.GetField()->FindTiles([&met](Battle::Tile* t) {

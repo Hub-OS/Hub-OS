@@ -21,63 +21,24 @@ class AIState
   friend class AI<T>;
 
 public:
-
-private:
-  AIState<T>* nextState; /*!< Delayed state change object */
-
   /**
-   * @brief Transfers ownership to the state machine 
-   * @see bnAI.h
-   * @return nullptr if no next state, otherwise AIState<T>*
+   * @brief Ctor
    */
-  AIState<T>* GetNextState() {
-    AIState<T>* out = nextState;
-    nextState = nullptr;
-    return out;
-  }
-
-
-public:
-  /**
-   * @brief Sets nextState to nullptr
-   */
-  AIState() { nextState = nullptr; }
+  AIState() { }
   AIState(const AIState<T>& rhs) = default;
   AIState(AIState<T>&& ref) = default;
 
+ 
   /**
-   * @brief Same syntax as AI<T>, constructs a delayed state change
-   */
-  template<class U, typename ...Args>
-  void ChangeState(Args... args) {
-    if (nextState) { delete nextState; }
-
-    nextState = new U(args...);
-  }
-
-  /**
-   * @brief Same syntax as AI<T>, constructs a delayed state change
-   */
-  template<class U>
-  void ChangeState() {
-    if (nextState) { delete nextState; }
-        nextState = new U();
-  }
-
-  /**
-   * @brief Updates the state and returns a new state if it was requested
+   * @brief Updates the state
    * @param _elapsed in seconds
    * @param context the referenced AI object
-   * @return nextState
    */
-  AIState<T>* Update(float _elapsed, T& context) {
-    // nextState could be non-null after update
+  void Update(float _elapsed, T& context) {
     OnUpdate(_elapsed, context);
-
-    return nextState;
   }
 
-  virtual ~AIState() { /*if (nextState) { delete nextState;  }*/ }
+  virtual ~AIState() { }
 
   /**
    * @brief Initialize the reference object when this state is created

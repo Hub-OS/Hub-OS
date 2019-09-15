@@ -46,5 +46,5 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
     met.field->AddEntity(*spell, met.tile->GetX() - 1, met.tile->GetY());
   }
 
-  this->ChangeState<MettaurIdleState>();
+  met.ChangeState<MettaurIdleState>();
 }

@@ -23,7 +23,8 @@ private:
   AIState<CharacterT>* stateMachine; /*!< State machine responsible for state management */
   CharacterT* ref; /*!< AI of this instance */
   int lock; /*!< Whether or not a state is locked */
-
+  bool isUpdating;
+  AIState<CharacterT>* queuedState;
 protected:
   /**
   * @brief State machine can or cannot be changed */
@@ -54,7 +55,12 @@ public:
    * @brief Construct an AI with the object ref
    * @param _ref object to pass around the state
    */
-  AI(CharacterT* _ref) : Agent() { stateMachine = nullptr; ref = _ref; lock = AI<CharacterT>::StateLock::Unlocked; }
+  AI(CharacterT* _ref) : Agent() { 
+    stateMachine = queuedState = nullptr; 
+    ref = _ref; 
+    lock = AI<CharacterT>::StateLock::Unlocked; 
+    isUpdating = false;
+  }
   
   /**
    * @brief Deletes the state machine object and Frees target
@@ -76,15 +82,7 @@ public:
       return;
     }
 
-    // For easy checks below, provide a null state to leave from
-    if (!stateMachine) {
-      stateMachine = new NoState<CharacterT>();
-    }
-
-    // Change to U
-    stateMachine->template ChangeState<U>();
-
-    //stateMachine->OnEnter(*ref);
+    queuedState = new U();
   }
 
 /**
@@ -98,13 +96,7 @@ template<typename U, typename ...Args>
       return;
     }
 
-    if (!stateMachine) {
-      stateMachine = new NoState<CharacterT>();
-    }
-
-    stateMachine->template ChangeState<U>(args...);
-
-    //stateMachine->OnEnter(*ref);
+    queuedState = new U(args...);
   }
 
 /**
@@ -114,19 +106,30 @@ template<typename U, typename ...Args>
  * If a change state request is made inside of a state, change to that state at end of update
  */
   void Update(float _elapsed) {
-    if (stateMachine != nullptr) {
-      AIState<CharacterT>* nextState = stateMachine->Update(_elapsed, *ref);
+    isUpdating = true;
 
-      if (nextState != nullptr) {
+    if (stateMachine != nullptr) {
+      stateMachine->Update(_elapsed, *ref);
+
+      if (queuedState != nullptr) {
 
         stateMachine->OnLeave(*ref);
 
         AIState<CharacterT>* oldState = stateMachine;
-        stateMachine = nextState;
+        stateMachine = queuedState;
         stateMachine->OnEnter(*ref);
         delete oldState;
-        oldState = nullptr;
+        queuedState = nullptr;
       }
     }
+    else {
+      if (queuedState != nullptr) {
+        stateMachine = queuedState;
+        stateMachine->OnEnter(*ref);
+        queuedState = nullptr;
+      }
+    }
+
+    isUpdating = false;
   }
 };

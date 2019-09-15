@@ -15,7 +15,7 @@ void AlphaGunState::OnUpdate(float _elapsed, AlphaCore& a) {
   cooldown -= _elapsed;
 
   if (cooldown <= 0) {
-    this->ChangeState<AlphaIdleState>();
+    a.ChangeState<AlphaIdleState>();
   }
 }
 

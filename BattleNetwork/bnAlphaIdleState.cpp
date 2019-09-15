@@ -2,6 +2,7 @@
 #include "bnAlphaClawSwipeState.h"
 #include "bnTile.h"
 #include "bnField.h"
+#include "bnAlphaCore.h"
 
 AlphaIdleState::AlphaIdleState() : AIState<AlphaCore>(), cooldown(2.83f) { ; }
 AlphaIdleState::~AlphaIdleState() { ; }
@@ -13,7 +14,7 @@ void AlphaIdleState::OnUpdate(float _elapsed, AlphaCore& a) {
   cooldown -= _elapsed;
 
   if (cooldown <= 0) {
-    this->ChangeState<AlphaClawSwipeState>();
+    a.ChangeState<AlphaClawSwipeState>();
   }
 }
 

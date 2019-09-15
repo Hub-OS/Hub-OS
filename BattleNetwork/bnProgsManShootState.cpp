@@ -24,7 +24,7 @@ void ProgsManShootState::OnEnter(ProgsMan& progs) {
     progs.GetField()->AddEntity(*buster, progs.GetTile()->GetX(), progs.GetTile()->GetY());
   };
 
-  auto onFinish = [this, &progs]() { this->ChangeState<ProgsManIdleState>(); };
+  auto onFinish = [this, p = &progs]() { p->ChangeState<ProgsManIdleState>(); };
 
   progs.SetAnimation("SHOOT", onFinish);
   progs.SetCounterFrame(1);

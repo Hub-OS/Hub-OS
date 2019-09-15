@@ -20,7 +20,7 @@ void ProgsManIdleState::OnUpdate(float _elapsed, ProgsMan& progs) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {
-    this->ChangeState<ProgsManMoveState>();
+    progs.ChangeState<ProgsManMoveState>();
   }
 }
 

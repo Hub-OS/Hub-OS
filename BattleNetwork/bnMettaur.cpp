@@ -18,7 +18,6 @@ int Mettaur::currMetIndex = 0;
 
 Mettaur::Mettaur(Rank _rank)
   :  AI<Mettaur>(this), AnimatedCharacter(_rank) {
-  //this->ChangeState<MettaurIdleState>();
   name = "Mettaur";
   SetTeam(Team::BLUE);
 

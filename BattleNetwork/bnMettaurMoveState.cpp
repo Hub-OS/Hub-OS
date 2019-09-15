@@ -31,11 +31,11 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
       Battle::Tile* forward = met.GetField()->GetAt(temp->GetX() - 1, temp->GetY());
 
       if (forward && forward->IsWalkable()) {
-        return this->ChangeState<MettaurAttackState>();
+        return met.ChangeState<MettaurAttackState>();
       }
       else {
         // Forfeit turn.
-        this->ChangeState<MettaurIdleState>();
+        met.ChangeState<MettaurIdleState>();
         met.NextMettaurTurn();
         return;
       }
@@ -46,13 +46,13 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
   
   if (moved) {
     met.AdoptNextTile();
-    auto onFinish = [this, &met]() { this->ChangeState<MettaurIdleState>(); met.FinishMove(); };
+    auto onFinish = [this, &met]() { met.ChangeState<MettaurIdleState>(); met.FinishMove(); };
     met.SetAnimation(MOB_MOVING, onFinish);
     isMoving = true;
   }
   else {
     // Cannot move or attack. Forfeit turn.
-    this->ChangeState<MettaurIdleState>();
+    met.ChangeState<MettaurIdleState>();
     met.NextMettaurTurn();
   }
 }

@@ -27,7 +27,7 @@ void MetridIdleState::OnUpdate(float _elapsed, Metrid& met) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {
-    this->ChangeState<MetridMoveState>();
+    met.ChangeState<MetridMoveState>();
   }
 }
 

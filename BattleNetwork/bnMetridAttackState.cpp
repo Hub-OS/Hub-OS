@@ -67,8 +67,8 @@ void MetridAttackState::DoAttack(Metrid& met) {
   if (--meteorCount == 0) {
     animation->CancelCallbacks();
 
-    auto onEnd = [this]() {
-      this->ChangeState<MetridIdleState>();
+    auto onEnd = [this, m = &met]() {
+      m->ChangeState<MetridIdleState>();
     };
 
     if (met.GetRank() == Metrid::Rank::_1) {

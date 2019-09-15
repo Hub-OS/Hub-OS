@@ -21,8 +21,6 @@ ProgsMan::ProgsMan(Rank _rank)
   state = MOB_IDLE;
   textureType = TextureType::MOB_PROGSMAN_ATLAS;
 
-  this->ChangeState<ProgsManIdleState>();
-
   setTexture(*TEXTURES.GetTexture(textureType));
   setScale(2.f, 2.f);
 

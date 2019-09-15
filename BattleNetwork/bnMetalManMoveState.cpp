@@ -53,7 +53,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
     if(next && metal.Teleport(next->GetX()+1, next->GetY())) {
       metal.AdoptNextTile();
       auto onFinish = [this, &metal]() {
-        this->ChangeState<MetalManPunchState>();
+        metal.ChangeState<MetalManPunchState>();
         metal.FinishMove();
       };
 
@@ -74,18 +74,18 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
         int targetX = m->GetTarget()->GetTile()->GetX();
 
         if ((targetX == 1 || targetY != 2) && (rand() % 4) == 0) {
-          this->ChangeState<MetalManThrowState>();
+          m->ChangeState<MetalManThrowState>();
         }
         else {
             if(rand() % 20 > 15) {
-                this->ChangeState<MetalManMissileState>((m->GetHealth() <= 300)? 10 : 5);
+                m->ChangeState<MetalManMissileState>((m->GetHealth() <= 300)? 10 : 5);
             } else {
-                this->ChangeState<MetalManIdleState>();
+                m->ChangeState<MetalManIdleState>();
             }
         }
       }
       else {
-        this->ChangeState<MetalManIdleState>();
+        m->ChangeState<MetalManIdleState>();
       }
     };
 
@@ -93,7 +93,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
     isMoving = true;
   }
   else {
-    this->ChangeState<MetalManIdleState>();
+    metal.ChangeState<MetalManIdleState>();
   }
 }
 

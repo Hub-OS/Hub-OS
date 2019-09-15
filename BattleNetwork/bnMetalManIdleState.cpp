@@ -21,7 +21,7 @@ void MetalManIdleState::OnUpdate(float _elapsed, MetalMan& metal) {
   // printf("cooldown: %f", cooldown);
 
   if (cooldown < 0) {
-    this->ChangeState<MetalManMoveState>();
+    metal.ChangeState<MetalManMoveState>();
   }
 }
 

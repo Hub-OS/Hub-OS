@@ -31,7 +31,7 @@ void AlphaClawSwipeState::OnUpdate(float _elapsed, AlphaCore& a) {
   }
 
   if (leftArm && leftArm->IsDeleted()) {
-    this->ChangeState<AlphaGunState>();
+    a.ChangeState<AlphaGunState>();
   }
 }
 
