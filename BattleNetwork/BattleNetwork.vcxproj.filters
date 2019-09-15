@@ -1393,9 +1393,6 @@
     <ClInclude Include="bnGridBackground.h">
       <Filter>Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
-    <ClInclude Include="bnTileBehavior.h">
-      <Filter>Activities\Battle\Content\AI</Filter>
-    </ClInclude>
     <ClInclude Include="bnRoll.h">
       <Filter>Activities\Battle\Content\Entities\Character\Player\Roll</Filter>
     </ClInclude>
@@ -1827,6 +1824,9 @@
     </ClInclude>
     <ClInclude Include="bnReflectChipAction.h">
       <Filter>Activities\Battle\Content\Chips\Action\Reflect</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBossPatternAI.h">
+      <Filter>Activities\Battle\Content\AI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -16,7 +16,6 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   this->SetTeam(_team);
   this->SetDirection(Direction::LEFT);
   this->EnableTileHighlight(false);
-
   this->SetHealth(999);
 
   this->SetSlideTime(sf::seconds(0.1333f)); // 8 frames
@@ -81,11 +80,11 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
     SetSlideTime(sf::seconds(0.13f)); // 8 frames in 60 seconds
     SetDirection(Direction::LEFT);
     changeState = (rand() % 10 < 5) ? TileState::POISON : TileState::ICE;
+    this->SetLayer(-1);
     break;
   }
 
   isSwiping = false;
-
   animComponent->OnUpdate(0);
 }
 

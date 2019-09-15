@@ -87,10 +87,14 @@ void Buster::OnUpdate(float _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    Move(GetDirection());
-    AdoptNextTile();
-    FinishMove();
-    cooldown = 0;
+    if (Move(GetDirection())) {
+      AdoptNextTile();
+      FinishMove();
+      cooldown = 0;
+    }
+    else {
+      this->Delete();
+    }
   }
 
 }

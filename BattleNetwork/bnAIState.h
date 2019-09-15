@@ -20,6 +20,8 @@ class AIState
 {
   friend class AI<T>;
 
+public:
+
 private:
   AIState<T>* nextState; /*!< Delayed state change object */
 

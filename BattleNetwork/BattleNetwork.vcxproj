@@ -386,6 +386,7 @@
     <ClInclude Include="bnAura.h" />
     <ClInclude Include="bnBattleOverTrigger.h" />
     <ClInclude Include="bnBombChipAction.h" />
+    <ClInclude Include="bnBossPatternAI.h" />
     <ClInclude Include="bnBubble.h" />
     <ClInclude Include="bnBubbleState.h" />
     <ClInclude Include="bnBubbleTrap.h" />
@@ -490,7 +491,6 @@
     <ClInclude Include="bnStarfishMob.h" />
     <ClInclude Include="bnSwordEffect.h" />
     <ClInclude Include="bnThunder.h" />
-    <ClInclude Include="bnTileBehavior.h" />
     <ClInclude Include="bnElements.h" />
     <ClInclude Include="bnFolderScene.h" />
     <ClInclude Include="bnGraveyardBackground.h" />

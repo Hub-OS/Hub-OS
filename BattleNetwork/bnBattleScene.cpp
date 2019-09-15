@@ -308,6 +308,7 @@ void BattleScene::TEMPFilterAtkChips(Chip ** chips, int chipCount)
   for (int i = 0; i < chipCount; ) {
     if (chips[i]->GetShortName() == "Atk+10") {
       if (nonSupport) {
+        // Do not modify these chips
         auto supportChips = { "Barrier", "Invis", "Recov80" };
         if (std::find(supportChips.begin(), supportChips.end(), nonSupport->GetShortName()) ==  supportChips.end()) {
           nonSupport->damage += 10;
@@ -444,7 +445,7 @@ void BattleScene::onUpdate(double elapsed) {
 
 
     // kill switch for testing:
-    if (INPUT.Has(InputEvent::PRESSED_A) && INPUT.Has(InputEvent::PRESSED_B) && INPUT.Has(InputEvent::PRESSED_LEFT)) {
+    if (INPUT.Has(InputEvent::HELD_A) && INPUT.Has(InputEvent::HELD_B) && INPUT.Has(InputEvent::HELD_LEFT)) {
       mob->KillSwitch();
     }
 
@@ -565,94 +566,128 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     tilesIter++;
   }
 
-  // Second tile pass: draw the entities and shaders per row
+  // Second tile pass: draw the entities and shaders per row and per layer
   tile = nullptr;
   tilesIter = allTiles.begin();
 
-    while (tilesIter != allTiles.end()) {
-        tile = (*tilesIter);
-    static float totalTime = 0;
-    totalTime += (float)elapsed;
+  std::vector<Entity*> entitiesOnRow;
+  int lastRow = 0;
 
-    //heatShader.setUniform("time", totalTime*0.02f);
-    //heatShader.setUniform("distortionFactor", 0.01f);
-    //heatShader.setUniform("riseFactor", 0.1f);
+  while (tilesIter != allTiles.end()) {
+    if (lastRow != (*tilesIter)->GetY()) {
+      lastRow = (*tilesIter)->GetY();
 
-    //heatShader.setUniform("w", tile->GetWidth() - 8.f);
-    //heatShader.setUniform("h", tile->GetHeight()*1.5f);
+      // Ensure all entities are sorted by layer
+      std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity*b) -> bool { return a->GetLayer() > b->GetLayer(); });
 
-    //iceShader.setUniform("w", tile->GetWidth() - 8.f);
-    //iceShader.setUniform("h", tile->GetHeight()*0.8f);
-
-    Entity* entity = nullptr;
-
-    auto allEntities = tile->FindEntities([](Entity* e) { return true; });
-    auto entitiesIter = allEntities.begin();
-
-    while (entitiesIter != allEntities.end()) {
-        entity = (*entitiesIter);
-      if (!entity->IsDeleted()) {
-        auto uic = entity->GetComponentsDerivedFrom<UIComponent>();
-
-        //Logger::Log("uic size is: " + std::to_string(uic.size()));
-
-        if (!uic.empty()) {
-          ui.insert(ui.begin(), uic.begin(), uic.end());
-        }
-
+      // draw this row
+      for (auto entity : entitiesOnRow) {
         entity->move(ENGINE.GetViewOffset());
 
         ENGINE.Draw(entity);
 
         entity->move(-ENGINE.GetViewOffset());
-
       }
 
-        entitiesIter++;
+      // prepare for bext row
+      entitiesOnRow.clear();
     }
 
-    /*if (tile->GetState() == TileState::LAVA) {
-      heatShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x + 3.0f);
+      tile = (*tilesIter);
+      static float totalTime = 0;
+      totalTime += (float)elapsed;
 
-      float repos = (float)(tile->getPosition().y - (tile->getTexture()->getSize().y*2.5f));
-      heatShader.setUniform("y", repos);
+      //heatShader.setUniform("time", totalTime*0.02f);
+      //heatShader.setUniform("distortionFactor", 0.01f);
+      //heatShader.setUniform("riseFactor", 0.1f);
 
-      surface.display();
-      sf::Texture postprocessing = surface.getTexture(); // Make a copy
+      //heatShader.setUniform("w", tile->GetWidth() - 8.f);
+      //heatShader.setUniform("h", tile->GetHeight()*1.5f);
 
-      sf::Sprite distortionPost;
-      distortionPost.setTexture(postprocessing);
+      //iceShader.setUniform("w", tile->GetWidth() - 8.f);
+      //iceShader.setUniform("h", tile->GetHeight()*0.8f);
 
-      surface.clear();
+      Entity* entity = nullptr;
 
-      LayeredDrawable* bake = new LayeredDrawable(distortionPost);
-      bake->SetShader(&heatShader);
+      auto allEntities = tile->FindEntities([](Entity* e) { return true; });
+      auto entitiesIter = allEntities.begin();
 
-      ENGINE.Draw(bake);
-      delete bake;
-    }
-    else if (tile->GetState() == TileState::ICE) {
-      iceShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x);
+      while (entitiesIter != allEntities.end()) {
+          entity = (*entitiesIter);
+        if (!entity->IsDeleted()) {
+          auto uic = entity->GetComponentsDerivedFrom<UIComponent>();
 
-      float repos = (float)(tile->getPosition().y - tile->getTexture()->getSize().y);
-      iceShader.setUniform("y", repos);
+          //Logger::Log("uic size is: " + std::to_string(uic.size()));
 
-      surface.display();
-      sf::Texture postprocessing = surface.getTexture(); // Make a copy
+          if (!uic.empty()) {
+            ui.insert(ui.begin(), uic.begin(), uic.end());
+          }
 
-      sf::Sprite reflectionPost;
-      reflectionPost.setTexture(postprocessing);
+          entitiesOnRow.push_back(*entitiesIter);
 
-      surface.clear();
+        }
 
-      LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
-      bake->SetShader(&iceShader);
+          entitiesIter++;
+      }
 
-      ENGINE.Draw(bake);
-      delete bake;
-    }*/
+      /*if (tile->GetState() == TileState::LAVA) {
+        heatShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x + 3.0f);
+
+        float repos = (float)(tile->getPosition().y - (tile->getTexture()->getSize().y*2.5f));
+        heatShader.setUniform("y", repos);
+
+        surface.display();
+        sf::Texture postprocessing = surface.getTexture(); // Make a copy
+
+        sf::Sprite distortionPost;
+        distortionPost.setTexture(postprocessing);
+
+        surface.clear();
+
+        LayeredDrawable* bake = new LayeredDrawable(distortionPost);
+        bake->SetShader(&heatShader);
+
+        ENGINE.Draw(bake);
+        delete bake;
+      }
+      else if (tile->GetState() == TileState::ICE) {
+        iceShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x);
+
+        float repos = (float)(tile->getPosition().y - tile->getTexture()->getSize().y);
+        iceShader.setUniform("y", repos);
+
+        surface.display();
+        sf::Texture postprocessing = surface.getTexture(); // Make a copy
+
+        sf::Sprite reflectionPost;
+        reflectionPost.setTexture(postprocessing);
+
+        surface.clear();
+
+        LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
+        bake->SetShader(&iceShader);
+
+        ENGINE.Draw(bake);
+        delete bake;
+      }*/
         tilesIter++;
-    }
+  }
+
+  // Last row needs to be drawn now that the loop is over
+  // Ensure all entities are sorted by layer
+  std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity*b) -> bool { return a->GetLayer() > b->GetLayer(); });
+
+  // draw this row
+  for (auto entity : entitiesOnRow) {
+    entity->move(ENGINE.GetViewOffset());
+
+    ENGINE.Draw(entity);
+
+    entity->move(-ENGINE.GetViewOffset());
+  }
+
+  // prepare for bext row
+  entitiesOnRow.clear();
 
   // Draw scene nodes
   for (auto node : scenenodes) {

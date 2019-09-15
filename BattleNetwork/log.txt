@@ -1,5 +1,5 @@
-StartTime 1568525477
-Engine initialized: 0.585000 secs
+StartTime 1568562631
+Engine initialized: 0.523000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -130,7 +130,7 @@ Loaded texture: resources/ui/light.png
 Loaded texture: resources/fonts/all_fonts.png
 Loaded texture: resources/backgrounds/config/audio.png
 Loaded texture: resources/backgrounds/config/end_btn.png
-Loaded textures: 0.220000 secs
+Loaded textures: 0.241000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -147,7 +147,7 @@ Loaded shader: resources/shaders/glsl_110/spot_reflection
 Loaded shader: resources/shaders/glsl_110/transition
 Loaded shader: resources/shaders/glsl_110/chip_reveal
 Loaded shader: resources/shaders/glsl_110/wire
-Loaded shaders: 0.009000 secs
+Loaded shaders: 0.006000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -192,11 +192,11 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.208000 secs
+Loaded audio sources: 0.164000 secs
 Loaded navi: Megaman
 Loaded navi: Starman
 Loaded navi: Roll
-Loaded registered navis: 0.046000 secs
+Loaded registered navis: 0.033000 secs
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
 Loaded texture: resources/mobs/starfish/preview.png
@@ -215,7 +215,7 @@ Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.135000 secs
+Loaded registered mobs: 0.106000 secs
 library size: 75
 Loaded texture: resources/backgrounds/lan/bg.png
 main menu onStart
@@ -238,240 +238,7 @@ SelectMobScene::onLeave()
 SelectMobScene::onExit()
 comboDeleteCounter reset
 comboDeleteCounter reset
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-comboDeleteCounter reset
-pushing states
-pushing states
 Loaded texture: resources/spells/buster_flame.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-comboDeleteCounter reset
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-comboDeleteCounter reset
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-comboDeleteCounter reset
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-Loaded texture: resources/spells/buster_flame.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
 pushing states
 pushing states
 pushing states
@@ -498,6 +265,191 @@ pushing states
 pushing states
 pushing states
 pushing states
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onResume()
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/spell_vulcan.png
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
