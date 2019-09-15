@@ -406,7 +406,7 @@ void BattleScene::onUpdate(double elapsed) {
   isBattleRoundOver = (isPlayerDeleted || isMobDeleted);
 
   // Check if entire mob is deleted
-  if (mob->IsCleared()) {
+  if (mob->IsCleared() && !isPlayerDeleted) {
     if (!isPostBattle && battleEndTimer.getElapsed().asSeconds() < postBattleLength) {
       // Show Enemy Deleted
       isPostBattle = true;
@@ -418,7 +418,7 @@ void BattleScene::onUpdate(double elapsed) {
     else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
       isMobDeleted = true;
     }
-  } else if (mob->NextMobReady() && isSceneInFocus) {
+  } else if (!isPlayerDeleted && mob->NextMobReady() && isSceneInFocus) {
     Mob::MobData* data = mob->GetNextMob();
 
     Agent* cast = dynamic_cast<Agent*>(data->mob);

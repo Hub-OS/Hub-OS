@@ -1,6 +1,7 @@
 #include "bnAlphaCore.h"
 #include "bnAlphaArm.h"
 #include "bnObstacle.h"
+#include "bnMobMoveEffect.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnWave.h"
@@ -23,7 +24,9 @@ AlphaCore::AlphaCore(Rank _rank)
   setScale(2.f, 2.f);
 
   SetName("Alpha");
-  this->SetHealth(3000);
+  this->SetHealth(1000);
+
+  firstTime = true;
 
   //Components setup and load
   this->animationComponent = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
@@ -79,21 +82,8 @@ AlphaCore::AlphaCore(Rank _rank)
   this->AddDefenseRule(defense);
 
   // arms
-  leftArm = new AlphaArm(nullptr, GetTeam());
-  leftArm->setTexture(*this->getTexture());
-  auto leftArmAnim = (AnimationComponent*)RegisterComponent(new AnimationComponent(leftArm));
-  leftArmAnim->Setup(RESOURCE_PATH);
-  leftArmAnim->Load();
-  leftArmAnim->SetAnimation("RIGHT_CLAW_DEFAULT");
-  leftArmAnim->OnUpdate(0);
-
-  rightArm = new AlphaArm(nullptr, GetTeam());
-  rightArm->setTexture(*this->getTexture());
-  auto rightArmAnim = (AnimationComponent*)RegisterComponent(new AnimationComponent(rightArm));
-  rightArmAnim->Setup(RESOURCE_PATH);
-  rightArmAnim->Load();
-  rightArmAnim->SetAnimation("LEFT_CLAW_DEFAULT");
-  rightArmAnim->OnUpdate(0);
+  leftArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::RIGHT_IDLE);
+  rightArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::LEFT_IDLE);
 }
 
 AlphaCore::~AlphaCore() {
@@ -103,9 +93,9 @@ AlphaCore::~AlphaCore() {
 
 void AlphaCore::OnUpdate(float _elapsed) {
   // TODO: Add a OnEnterField() for these types of things...
-  if (leftArm->GetField() == nullptr) {
-    GetField()->AddEntity((*leftArm), GetTile()->GetX(), GetTile()->GetY() + 1);
-    GetField()->AddEntity((*rightArm), GetTile()->GetX()-1, GetTile()->GetY() - 1);
+  if (firstTime) {
+    this->RevealLeftArm();
+    this->RevealRightArm();
 
     // Block player from stealing rows
     Battle::Tile* block = GetField()->GetAt(4, 1);
@@ -116,20 +106,29 @@ void AlphaCore::OnUpdate(float _elapsed) {
 
     block = GetField()->GetAt(4, 3);
     block->ReserveEntityByID(this->GetID());
+
+    firstTime = false;
   }
 
   totalElapsed += _elapsed;
 
-  float delta = std::sinf(totalElapsed)*0.5f;
+  leftArm->SyncElapsedTime(totalElapsed);
+  rightArm->SyncElapsedTime(totalElapsed);
+
+  float delta = std::sinf(10*totalElapsed)*0.5f;
   head->setPosition(-10, -44 - delta);
   side->setPosition(6, -54 - delta);
+
+  // shoulders lag behind
+  delta = std::sinf(10 * totalElapsed+1.5f)*0.5f;
   leftShoulder->setPosition(-21, -58 - delta);
   rightShoulder->setPosition(2, -53 - delta);
 
   if (coreHP < 40) {
     coreRegen += _elapsed;
 
-    if (coreRegen >= 1.5) {
+    // regen after 4 seconds
+    if (coreRegen >= 4) {
       coreRegen = 0;
       coreHP += 20;
     }
@@ -138,7 +137,7 @@ void AlphaCore::OnUpdate(float _elapsed) {
 
     if (prevCoreHP != coreHP) {
       if (prevCoreHP > coreHP) {
-        coreRegen = 0; // restart the regen timer
+      //  coreRegen = 0; // restart the regen timer
       }
 
       if (coreHP <= 0) {
@@ -191,8 +190,12 @@ void AlphaCore::OnDelete() {
     this->RemoveDefenseRule(virusBody);
     delete virusBody;
     virusBody = nullptr;
-
   }
+
+  leftArm->Delete();
+  rightArm->Delete();
+
+  AUDIO.StopStream();
 
   // Explode if health depleted
   this->ChangeState<ExplodeState<AlphaCore>>(30, 1.5);
@@ -216,6 +219,37 @@ void AlphaCore::CloseShoulderGuns()
   animation.SetFrame(1, *rightShoulder);
 }
 
+void AlphaCore::HideLeftArm()
+{
+  auto fx = new MobMoveEffect(GetField());
+  GetField()->AddEntity(*fx, leftArm->GetTile()->GetX(), leftArm->GetTile()->GetY());
+  leftArm->GetTile()->ReserveEntityByID(leftArm->GetID());
+  leftArm->GetTile()->RemoveEntityByID(leftArm->GetID());
+
+}
+
+void AlphaCore::RevealLeftArm()
+{
+  GetField()->AddEntity((*leftArm), GetTile()->GetX(), GetTile()->GetY() + 1);
+  auto fx = new MobMoveEffect(GetField());
+  GetField()->AddEntity(*fx, GetTile()->GetX(), GetTile()->GetY() + 1);
+}
+
+void AlphaCore::HideRightArm()
+{
+  auto fx = new MobMoveEffect(GetField());
+  GetField()->AddEntity(*fx, rightArm->GetTile()->GetX(), rightArm->GetTile()->GetY());
+  rightArm->GetTile()->ReserveEntityByID(rightArm->GetID());
+  rightArm->GetTile()->RemoveEntityByID(rightArm->GetID());
+}
+
+void AlphaCore::RevealRightArm()
+{
+  GetField()->AddEntity((*rightArm), GetTile()->GetX() - 1, GetTile()->GetY() - 1);
+  auto fx = new MobMoveEffect(GetField());
+  GetField()->AddEntity(*fx, GetTile()->GetX() - 1, GetTile()->GetY() - 1);
+}
+
 AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 const bool AlphaCore::AlphaCoreDefenseRule::Check(Spell* in, Character* owner) {
@@ -231,4 +265,10 @@ const bool AlphaCore::AlphaCoreDefenseRule::Check(Spell* in, Character* owner) {
   alphaCoreHP = std::max(0, alphaCoreHP);
 
   return true;
+}
+
+Hit::Properties & AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties & statuses)
+{
+  statuses.flags &= ~Hit::drag;
+  return statuses;
 }

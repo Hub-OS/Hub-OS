@@ -581,6 +581,9 @@
     <Filter Include="Activities\Battle\Content\SpriteNodes">
       <UniqueIdentifier>{b54e681b-7f61-4220-b86a-84028ddf5abf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Activities\Battle\Content\Chips\Action\Reflect">
+      <UniqueIdentifier>{09e5a072-6c03-4a1e-94f1-9dfaca5fec8c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1125,6 +1128,9 @@
     </ClCompile>
     <ClCompile Include="bnAlphaElectricState.cpp">
       <Filter>Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnReflectChipAction.cpp">
+      <Filter>Activities\Battle\Content\Chips\Action\Reflect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1818,6 +1824,9 @@
     </ClInclude>
     <ClInclude Include="bnAlphaElectricState.h">
       <Filter>Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnReflectChipAction.h">
+      <Filter>Activities\Battle\Content\Chips\Action\Reflect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

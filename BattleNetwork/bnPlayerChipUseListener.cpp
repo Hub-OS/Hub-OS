@@ -9,6 +9,7 @@
 #include "bnFireBurnChipAction.h"
 #include "bnElecSwordChipAction.h"
 #include "bnVulcanChipAction.h"
+#include "bnReflectChipAction.h"
 #include "bnBombChipAction.h"
 #include "bnCrackShotChipAction.h"
 #include "bnBasicSword.h"
@@ -59,21 +60,8 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
     player->RegisterComponent(invis);
   }
   else if (name == "Rflctr1") {
-    // Create a new reflect shield component. This handles the logic for shields.
-    ReflectShield* reflect = new ReflectShield(player);
-
-    // Add the component to the player
-    player->RegisterComponent(reflect);
-
-    // Play the appear sound
-    AUDIO.Play(AudioType::APPEAR);
-
-    // Add shield artifact on the same layer as player
-    Battle::Tile* tile = player->GetTile();
-
-    if (tile) {
-      this->player->GetField()->AddEntity(*reflect, tile->GetX(), tile->GetY());
-    }
+    auto action = new ReflectChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
   }
   else if (name == "Fishy") {
     /**

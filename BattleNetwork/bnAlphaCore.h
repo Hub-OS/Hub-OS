@@ -7,6 +7,7 @@
 
 class AnimationComponent;
 class Obstacle;
+class AlphaArm;
 
 class AlphaCore : public Character, public AI<AlphaCore> {
   friend class AlphaIdleState;
@@ -19,8 +20,10 @@ class AlphaCore : public Character, public AI<AlphaCore> {
   float hitHeight;
   int coreHP, prevCoreHP;
 
-  Obstacle* leftArm;
-  Obstacle* rightArm;
+  AlphaArm* leftArm;
+  AlphaArm* rightArm;
+
+  bool firstTime;
 
   class AlphaCoreDefenseRule : public DefenseRule {
     int& alphaCoreHP;
@@ -29,6 +32,7 @@ class AlphaCore : public Character, public AI<AlphaCore> {
     AlphaCoreDefenseRule(int& alphaCoreHP);
     virtual ~AlphaCoreDefenseRule();
     virtual const bool Check(Spell* in, Character* owner);
+    virtual Hit::Properties& FilterStatuses(Hit::Properties& statuses);
   } *defense;
 public:
   using DefaultState = AlphaIdleState;
@@ -50,4 +54,8 @@ public:
 
   void OpenShoulderGuns();
   void CloseShoulderGuns();
+  void HideLeftArm();
+  void RevealLeftArm();
+  void HideRightArm();
+  void RevealRightArm();
 };

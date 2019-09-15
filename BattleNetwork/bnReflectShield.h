@@ -24,7 +24,7 @@ private:
   Animation animation; /*!< Shield animation */
   sf::Sprite shield; /*!< Shield graphic */
   bool activated; /*!< Flag if effect is active */
-
+  int damage; /*!< Damage the reflect trail deals */
 public:
   /**
    * @brief Adds a guard rule to the attached entity for a short time *
@@ -35,7 +35,7 @@ public:
    * At the end of the shield animation the rule is dropped and this 
    * component is removed from the owner and then deleted.
    */
-  ReflectShield(Character* owner);
+  ReflectShield(Character* owner, int damage);
   
   /**
    * @brief Delete guard pointer

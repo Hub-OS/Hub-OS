@@ -349,7 +349,6 @@ namespace Battle {
     if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
       return;
 
-
     // Cleanup before main loop just in case
     // NOTE: this fuction has been modified since earlier builds that needed this
     //       possibly can remove the following lines
@@ -560,7 +559,7 @@ namespace Battle {
       if (!character->HasFloatShoe()) {
         if (GetState() == TileState::POISON) {
           if (elapsedBurnTime <= 0) {
-            if (character->Hit(Hit::Properties({ 1, 0x00, Element::NONE, nullptr, Direction::NONE }))) {
+            if (character->Hit(Hit::Properties({ 1, Hit::pierce, Element::NONE, nullptr, Direction::NONE }))) {
               elapsedBurnTime = burncycle;
             }
           }

@@ -309,6 +309,7 @@
     <ClCompile Include="bnProgsManThrowState.cpp" />
     <ClCompile Include="bnProtoManSummon.cpp" />
     <ClCompile Include="bnRandomMettaurMob.cpp" />
+    <ClCompile Include="bnReflectChipAction.cpp" />
     <ClCompile Include="bnReflectShield.cpp" />
     <ClCompile Include="bnRingExplosion.cpp" />
     <ClCompile Include="bnRockDebris.cpp" />
@@ -474,6 +475,7 @@
     <ClInclude Include="bnProgsManThrowState.h" />
     <ClInclude Include="bnProtoManSummon.h" />
     <ClInclude Include="bnQueueMobRegistration.h" />
+    <ClInclude Include="bnReflectChipAction.h" />
     <ClInclude Include="bnReflectShield.h" />
     <ClInclude Include="bnRingExplosion.h" />
     <ClInclude Include="bnRoll.h" />

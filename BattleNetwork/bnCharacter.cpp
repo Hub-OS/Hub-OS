@@ -150,7 +150,12 @@ bool Character::CanMoveTo(Battle::Tile * next)
 }
 
 const bool Character::Hit(Hit::Properties props) {
-  if (this->invincibilityCooldown > 0 || this->IsPassthrough() || this->GetHealth() == 0) return false;
+  if (this->GetHealth() <= 0) return false;
+
+  // Pierce hits even when passthrough or flinched
+  if ((props.flags & Hit::pierce) != Hit::pierce) {
+    if (this->invincibilityCooldown > 0 || this->IsPassthrough()) return false;
+  }
 
   this->SetHealth(GetHealth() - props.damage);
   
