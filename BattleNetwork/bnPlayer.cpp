@@ -58,6 +58,10 @@ void Player::OnUpdate(float _elapsed) {
     setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
   }
 
+  if (GetFirstComponent<BubbleTrap>()) {
+    this->ChangeState<BubbleState<Player>>();
+  }
+
   AI<Player>::Update(_elapsed);
 
   //Components updates
@@ -87,9 +91,6 @@ const bool Player::OnHit(const Hit::Properties props) {
   if ((props.flags & Hit::recoil) == Hit::recoil) {
     this->ChangeState<PlayerHitState>();
   }
-
-  if ((props.flags & Hit::flinch) == Hit::flinch) { Logger::Log("should be flinching"); }
-
 
   return true;
 }

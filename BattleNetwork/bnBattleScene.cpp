@@ -541,6 +541,13 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   while (tilesIter != allTiles.end()) {
     tile = (*tilesIter);
+
+    // Skip edge tiles - they cannot be seen by players
+    if (tile->IsEdgeTile()) {
+      tilesIter++;
+      continue;
+    }
+
     tile->move(ENGINE.GetViewOffset());
 
     if (summons.IsSummonActive() || showSummonBackdrop) {

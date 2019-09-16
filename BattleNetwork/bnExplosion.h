@@ -20,6 +20,7 @@ private:
   AnimationComponent* animationComponent; /*!< Animator the explosion */
   int numOfExplosions; /*!< Once the count reaches this number, the effect is over */
   sf::Vector2f offset; /*!< Explosion children are placed randomly around the spawn area */
+  sf::Vector2f offsetArea; /*!< Screen space relative to origin to randomly pick from*/
   int count; /*!< Used by root to keep track of explosions left */
   Explosion* root; /*!< The explosion that starts the chain */
   double playbackSpeed; /*!< The speed of the explosion effect. Bosses have higher speeds */
@@ -56,5 +57,9 @@ public:
    */
   void IncrementExplosionCount();
 
+  /**
+ * @brief area.x is width, area.y is height relative to origin to explode in
+ */
+  void SetOffsetArea(sf::Vector2f area);
 };
 

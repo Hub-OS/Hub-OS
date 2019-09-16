@@ -21,7 +21,7 @@ ElementalDamage::ElementalDamage(Field* field) : Artifact(field), animationCompo
 void ElementalDamage::OnUpdate(float _elapsed) {
   progress += _elapsed;
 
-  auto alpha = swoosh::ease::wideParabola(progress, 1.0f, 4.0f);
+  auto alpha = swoosh::ease::wideParabola(progress, 0.5f, 4.0f);
 
   if (progress > 1.0f) {
     this->Delete();

@@ -66,6 +66,14 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
   explosion = new Explosion(field, e.GetTeam(), this->numOfExplosions, this->playbackSpeed);
+
+  // Define the area relative to origin to spawn explosions around
+  // based on a fraction of the current frame's size
+  auto area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height / 6.0f);
+
+  Logger::Log("explosion area: " + std::to_string(area.x) + ", " + std::to_string(area.y));
+
+  ((Explosion*)explosion)->SetOffsetArea(area);
   field->AddEntity(*(Artifact*)explosion, tile->GetX(), tile->GetY());
 
   auto animation = e.GetFirstComponent<AnimationComponent>();
@@ -90,7 +98,9 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
     e.SetShader(nullptr);
   }
 
-  /* If explosion is over, delete the entity*/
+  /* If root explosion is over, delete the entity that entered this state
+     This ends the effect
+     */
   if (explosion->IsDeleted()) {
     e.Delete();
   }

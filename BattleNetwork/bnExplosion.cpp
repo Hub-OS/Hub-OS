@@ -21,18 +21,8 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   animationComponent->Setup("resources/mobs/mob_explosion.animation");
   animationComponent->Reload();
 
-  int randNegX = 1;
-  int randNegY = 1;
-  int randX = rand() % 20;
-  int randY = rand() % 20;
-
-  if (rand() % 10 > 5) randNegX = -1;
-  if (rand() % 10 > 5) randNegY = -1;
-
-  randX *= randNegX;
-  randY *= randNegY;
-
-  offset = sf::Vector2f((float)randX, (float)randY);
+  offsetArea = sf::Vector2f(20.f, 0.f);
+  SetOffsetArea(offsetArea);
 
   AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
 
@@ -77,18 +67,7 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
   animationComponent->Setup("resources/mobs/mob_explosion.animation");
   animationComponent->Reload();
 
-  int randNegX = 1;
-  int randNegY = 1;
-  int randX = rand() % 20;
-  int randY = rand() % 20;
-
-  if (rand() % 10 > 5) randNegX = -1;
-  if (rand() % 10 > 5) randNegY = -1;
-
-  randX *= randNegX;
-  randY *= randNegY;
-
-  offset = sf::Vector2f((float)randX, (float)randY);
+  SetOffsetArea(copy.offsetArea);
 
   AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
 
@@ -135,6 +114,28 @@ void Explosion::OnUpdate(float _elapsed) {
 
 void Explosion::IncrementExplosionCount() {
   count++;
+}
+
+void Explosion::SetOffsetArea(sf::Vector2f area)
+{
+  if ((int)area.x == 0) area.x = 1;
+  if ((int)area.y == 0) area.y = 1;
+
+  this->offsetArea = area;
+
+  int randX = rand() % (int)(area.x+0.5f);
+  int randY = rand() % (int)(area.y+0.5f);
+
+  int randNegX = 1;
+  int randNegY = 1;
+
+  if (rand() % 10 > 5) randNegX = -1;
+  if (rand() % 10 > 5) randNegY = -1;
+
+  randX *= randNegX;
+  randY *= -randY;
+
+  offset = sf::Vector2f((float)randX, (float)randY);
 }
 
 Explosion::~Explosion()

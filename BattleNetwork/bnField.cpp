@@ -20,10 +20,10 @@ Field::Field(int _width, int _height)
   auto t_a_b = TEXTURES.GetTexture(TextureType::TILE_ATLAS_BLUE);
   auto t_a_r = TEXTURES.GetTexture(TextureType::TILE_ATLAS_RED);
 
-  for (int y = 0; y < _height; y++) {
+  for (int y = 0; y < _height+2; y++) {
     vector<Battle::Tile*> row = vector<Battle::Tile*>();
-    for (int x = 0; x < _width; x++) {
-      Battle::Tile* tile = new Battle::Tile(x + 1, y + 1);
+    for (int x = 0; x < _width+2; x++) {
+      Battle::Tile* tile = new Battle::Tile(x, y);
       tile->SetField(this);
       tile->animation = a;
       tile->blue_team_atlas = t_a_b;
@@ -32,6 +32,23 @@ Field::Field(int _width, int _height)
     }
     tiles.push_back(row);
   }
+
+  /*
+  // DEBUGGING
+  // invisible tiles surround the arena for some entities to slide off of
+  for (int i = 0; i < _width + 2; i++) {
+    tiles[0][i]->setColor(sf::Color(255, 255, 255, 50));
+  }
+
+  for (int i = 0; i < _width + 2; i++) {
+    tiles[_height + 1][i]->setColor(sf::Color(255, 255, 255, 50));
+  }
+
+  for (int i = 1; i < _height + 1; i++) {
+    tiles[i][0]->setColor(sf::Color(255, 255, 255, 50));
+    tiles[i][_width + 1]->setColor(sf::Color(255, 255, 255, 50));
+
+  }*/
 
   isBattleActive = false;
 }
@@ -152,14 +169,17 @@ std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
 }
 
 void Field::SetAt(int _x, int _y, Team _team) {
-  tiles[_y - 1][_x - 1]->SetTeam(_team);
+  if (_x < 0 || _x > 7) return;
+  if (_y < 0 || _y > 4) return;
+
+  tiles[_y][_x]->SetTeam(_team);
 }
 
 Battle::Tile* Field::GetAt(int _x, int _y) const {
-  if (_x <= 0 || _x > 6) return nullptr;
-  if (_y <= 0 || _y > 3) return nullptr;
+  if (_x < 0 || _x > 7) return nullptr;
+  if (_y < 0 || _y > 4) return nullptr;
 
-  return tiles[_y - 1][_x - 1];
+  return tiles[_y][_x];
 }
 
 void Field::Update(float _elapsed) {
@@ -198,25 +218,25 @@ void Field::Update(float _elapsed) {
   float syncBlueTeamCooldown = 0;
   float syncRedTeamCooldown = 0;
 
-  for (int x = 0; x < width; x++) {
-    for (int y = 0; y < height; y++) {
-      tiles[y][x]->Update(_elapsed);
+  for (int i = 0; i < tiles.size(); i++) {
+    for (int j = 0; j < tiles[i].size(); j++) {
+      tiles[i][j]->Update(_elapsed);
 
-      auto t = tiles[y][x];
+      auto t = tiles[i][j];
 
       for(auto it = t->characters.begin(); it != t->characters.end(); it++) {
-        if((*it)->GetTeam() == Team::RED && redTeamFarCol <= x) { redTeamFarCol = x; }
-        else if((*it)->GetTeam() == Team::BLUE && blueTeamFarCol >= x) { blueTeamFarCol = x; }
+        if((*it)->GetTeam() == Team::RED && redTeamFarCol <= j) { redTeamFarCol = j; }
+        else if((*it)->GetTeam() == Team::BLUE && blueTeamFarCol >= j) { blueTeamFarCol = j; }
       }
 
-      if(x <= 2) {
+      if(j <= 3) {
         // sync stolen red tiles together
         syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->flickerTeamCooldown);
 
         // tiles should be red
         if(t->GetTeam() == Team::BLUE) {
           if(t->teamCooldown <= 0) {
-            backToRed.insert(std::make_pair(x, true));
+            backToRed.insert(std::make_pair(j, true));
           }
         }
       } else{
@@ -225,13 +245,13 @@ void Field::Update(float _elapsed) {
 
         if(t->GetTeam() == Team::RED) {
           if(t->teamCooldown <= 0) {
-            backToBlue.insert(std::make_pair(x, true));
+            backToBlue.insert(std::make_pair(j, true));
           }
         }
       }
 
-      entityCount += (int)tiles[y][x]->GetEntityCount();
-      tiles[y][x]->SetBattleActive(isBattleActive);
+      entityCount += (int)tiles[i][j]->GetEntityCount();
+      tiles[i][j]->SetBattleActive(isBattleActive);
     }
   }
 
@@ -257,7 +277,7 @@ void Field::Update(float _elapsed) {
   for(auto p : backToBlue) {
     if (p.first <= redTeamFarCol) continue;
 
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < tiles.size(); i++) {
       tiles[i][p.first]->SetTeam(Team::BLUE, true);
     }
   }
@@ -267,7 +287,7 @@ void Field::Update(float _elapsed) {
   for(auto p : backToRed) {
     if (p.first >= blueTeamFarCol) continue;
 
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < tiles.size(); i++) {
       tiles[i][p.first]->SetTeam(Team::RED, true);
     }
   }

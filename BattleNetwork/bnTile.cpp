@@ -185,6 +185,8 @@ namespace Battle {
   }
 
   void Tile::SetState(TileState _state) {
+    if (IsEdgeTile()) return; // edge tiles are immutable
+
     if (_state == TileState::BROKEN) {
       if(this->characters.size() || this->reserved.size()) {
         return;
@@ -237,6 +239,11 @@ namespace Battle {
 
   bool Tile::IsCracked() const {
     return state == TileState::CRACKED;
+  }
+
+  bool Tile::IsEdgeTile() const
+  {
+    return GetX() == 0 || GetX() == 7 || GetY() == 0 || GetY() == 4;
   }
 
   bool Tile::IsHighlighted() const {
@@ -292,9 +299,15 @@ namespace Battle {
     std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
   }
 
-  void Tile::RemoveEntityByID(long ID)
+  bool Tile::RemoveEntityByID(long ID)
   {
+    bool modified = false;
+
     field->TileRequestsRemovalOfQueued(this, ID);
+
+    // If the entity was in the reserved list, remove it
+    auto reservedIter = reserved.find(ID);
+    if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
 
     bool doBreakState = false;
 
@@ -312,6 +325,8 @@ namespace Battle {
       }
 
       entities.erase(itEnt);
+
+      modified = true;
     }
 
     if (itSpell != spells.end()) {
@@ -335,6 +350,8 @@ namespace Battle {
       SetState(TileState::BROKEN);
       AUDIO.Play(AudioType::PANEL_CRACK);
     }
+
+    return modified;
   }
 
   bool Tile::ContainsEntity(Entity* _entity) const {
@@ -350,16 +367,6 @@ namespace Battle {
   void Tile::AffectEntities(Spell* caller) {
     if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
       return;
-
-    // Cleanup before main loop just in case
-    // NOTE: this fuction has been modified since earlier builds that needed this
-    //       possibly can remove the following lines
-    /*for (auto it = entities.begin(); it != entities.end(); ++it) {
-      if (*it == nullptr) {
-        it = entities.erase(it);
-        continue;
-      }
-    }*/
 
     auto entities_copy = entities; // may be modified after hitboxes are resolved
     // Spells dont cause damage when the battle is over
@@ -410,19 +417,23 @@ namespace Battle {
     // NOTE: There has got to be some opportunity for optimization around here
     */
 
-    auto itEnt = entities.begin();
+    int i = 0;
 
     // Step through the entity bucket (all entity types)
-    while (itEnt != entities.end()) {
+    while (i < entities.size()) {
       // If the entity is marked for deletion
-      if ((*itEnt)->IsDeleted()) {
-        long ID = (*itEnt)->GetID();
+      if (entities[i]->IsDeleted()) {
+        long ID = entities[i]->GetID();
 
-        // If the entity was in the reserved list, remove it
-        auto reservedIter = reserved.find(ID);
-        if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
+        // free memory
+        auto ptr = entities[i];
 
-        auto fitSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+        if (RemoveEntityByID(ID)) {
+          delete ptr;
+          continue;
+        }
+
+        /*auto fitSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitChar = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
         auto fitArt = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
 
@@ -437,18 +448,15 @@ namespace Battle {
 
         if (fitArt != artifacts.end()) {
           artifacts.erase(fitArt);
-        }
-
-        // free memory
-        delete (*itEnt);
+        }*/
 
         // update the iterator
-        itEnt = entities.erase(itEnt);
       }
       else {
-        (*itEnt)->SetBattleActive(this->isBattleActive);
-        itEnt++;
+        entities[i]->SetBattleActive(this->isBattleActive);
       }
+
+      i++;
     }
 
     vector<Artifact*> artifacts_copy = artifacts;
@@ -625,7 +633,7 @@ namespace Battle {
 
   std::string Tile::GetAnimState(const TileState state)
   {
-    std::string str = "row_" + std::to_string(4-GetY()) + "_";
+    std::string str = "row_" + std::to_string(4 - GetY()) + "_";
 
     switch (state) {
     case TileState::BROKEN:
@@ -672,6 +680,10 @@ namespace Battle {
       break;
     default:
       str = str + "normal";
+    }
+
+    if (GetX() == 0 || GetX() == 7 || GetY() == 0 || GetY() == 4) {
+      str = "row_1_normal";
     }
 
     return str;

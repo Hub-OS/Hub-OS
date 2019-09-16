@@ -1,5 +1,5 @@
-StartTime 1568585886
-Engine initialized: 0.527000 secs
+StartTime 1568603140
+Engine initialized: 0.578000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -130,7 +130,7 @@ Loaded texture: resources/ui/light.png
 Loaded texture: resources/fonts/all_fonts.png
 Loaded texture: resources/backgrounds/config/audio.png
 Loaded texture: resources/backgrounds/config/end_btn.png
-Loaded textures: 0.225000 secs
+Loaded textures: 0.245000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -147,7 +147,7 @@ Loaded shader: resources/shaders/glsl_110/spot_reflection
 Loaded shader: resources/shaders/glsl_110/transition
 Loaded shader: resources/shaders/glsl_110/chip_reveal
 Loaded shader: resources/shaders/glsl_110/wire
-Loaded shaders: 0.008000 secs
+Loaded shaders: 0.011000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -192,11 +192,11 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.185000 secs
+Loaded audio sources: 0.213000 secs
 Loaded navi: Megaman
 Loaded navi: Starman
 Loaded navi: Roll
-Loaded registered navis: 0.030000 secs
+Loaded registered navis: 0.042000 secs
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
 Loaded texture: resources/mobs/starfish/preview.png
@@ -215,2136 +215,8 @@ Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.120000 secs
-library size: 77
-Loaded texture: resources/backgrounds/lan/bg.png
-main menu onStart
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onStart()
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/lan/bg.png
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-is interrupted
-stateIndex is: 0
-comboDeleteCounter reset
-is interrupted
-stateIndex is: 0
-comboDeleteCounter reset
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-Loaded texture: resources/spells/buster_fan.png
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-Loaded texture: resources/spells/buster_fan.png
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-Loaded texture: resources/spells/buster_fan.png
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-Loaded texture: resources/spells/spell_vulcan.png
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-Loaded texture: resources/spells/buster_flame.png
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-comboDeleteCounter reset
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-Loaded texture: resources/spells/buster_fan.png
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-Loaded texture: resources/spells/buster_fan.png
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-Loaded texture: resources/spells/spell_vulcan.png
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-SelectMobScene::onEnd()
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 0
+Loaded registered mobs: 0.191000 secs
+library size: 80
 Loaded texture: resources/backgrounds/lan/bg.png
 main menu onStart
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
@@ -2476,6 +348,7 @@ stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
+stateIndex is: 0
 Loaded texture: resources/spells/buster_fan.png
 stateIndex is: 0
 stateIndex is: 0
@@ -2553,6 +426,13 @@ stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
 Loaded texture: resources/spells/buster_fan.png
 stateIndex is: 0
 stateIndex is: 0
@@ -2628,15 +508,6 @@ stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
-Loaded texture: resources/spells/buster_flame.png
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 1
@@ -2647,167 +518,123 @@ stateIndex is: 1
 stateIndex is: 1
 stateIndex is: 1
 stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 2
 pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
 pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
+stateIndex is: 2
+stateIndex is: 2
+Loaded texture: resources/spells/spell_elec_sword.png
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
 pushing states
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
 stateIndex is: 2
 stateIndex is: 2
 stateIndex is: 2
@@ -2825,13 +652,91 @@ stateIndex is: 2
 stateIndex is: 2
 stateIndex is: 2
 stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+pushing states
 stateIndex is: 2
 stateIndex is: 2
 stateIndex is: 2
 stateIndex is: 2
 stateIndex is: 2
 stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -2840,6 +745,7 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -2848,6 +754,7 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -2856,6 +763,7 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -2864,14 +772,17 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -2880,6 +791,7 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -2887,6 +799,7 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -2895,6 +808,7 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -2903,6 +817,7 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+pushing states
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -2926,6 +841,16 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -2940,7 +865,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-Loaded texture: resources/spells/buster_flame.png
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -2959,7 +883,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3016,7 +939,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-Loaded texture: resources/spells/spell_vulcan.png
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3029,13 +951,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3100,7 +1015,12 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-Loaded texture: resources/spells/buster_fan.png
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 0
 stateIndex is: 0
@@ -3110,389 +1030,436 @@ stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
 pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 1
+stateIndex is: 1
 Loaded texture: resources/spells/buster_fan.png
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
 pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
 pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
 pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 2
 pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
 pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
 pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
 pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
 pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
 Loaded texture: resources/spells/spell_vulcan.png
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 1
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-pushing states
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 2
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -3506,47 +1473,7 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
 pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-stateIndex is: 3
-pushing states
-stateIndex is: 3
-stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
@@ -3588,6 +1515,19 @@ stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
 stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3599,7 +1539,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3608,14 +1547,12 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3624,7 +1561,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3633,13 +1569,11 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3648,7 +1582,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3657,7 +1590,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3666,7 +1598,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3675,7 +1606,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3684,7 +1614,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3693,7 +1622,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3702,7 +1630,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3711,43 +1638,11 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3758,7 +1653,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3767,7 +1661,6 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3776,7 +1669,33 @@ stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
-pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
 stateIndex is: 4
@@ -3785,7 +1704,160 @@ stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
-pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
@@ -3795,6 +1867,547 @@ stateIndex is: 0
 stateIndex is: 0
 Loaded texture: resources/spells/buster_fan.png
 stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+Loaded texture: resources/spells/buster_flame.png
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+Loaded texture: resources/spells/buster_flame.png
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+comboDeleteCounter reset
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+Loaded texture: resources/spells/buster_flame.png
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
 pushing states
 stateIndex is: 0
 stateIndex is: 0
@@ -3818,23 +2431,12 @@ stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
-pushing states
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 pushing states
 stateIndex is: 0
-stateIndex is: 0
-pushing states
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-stateIndex is: 0
-pushing states
-pushing states
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
@@ -3844,14 +2446,79 @@ stateIndex is: 0
 stateIndex is: 0
 pushing states
 stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
 pushing states
 stateIndex is: 0
 stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+Loaded texture: resources/spells/buster_fan.png
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
 stateIndex is: 0
 stateIndex is: 0
 stateIndex is: 0
 pushing states
 is interrupted
+explosion area: 13.750000, 11.000000
 stateIndex is: 0
 is interrupted
 stateIndex is: 0
@@ -4402,3 +3069,2499 @@ stateIndex is: 0
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onEnter()
 SelectMobScene::onResume()
+Loaded texture: resources/backgrounds/undernet/bg.png
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+explosion area: 12.750000, 12.500000
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/spell_vulcan.png
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/spell_vulcan.png
+pushing states
+pushing states
+pushing states
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+explosion area: 17.000000, 12.333333
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+explosion area: 9.750000, 9.166667
+lastMobSize: 3
+newMobSize: 2
+multiDeleteTimer: 0.000000
+Loaded texture: resources/spells/spell_vulcan.png
+pushing states
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/spell_bomb.png
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_fan.png
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+comboDeleteCounter reset
+pushing states
+explosion area: 10.250000, 12.166667
+lastMobSize: 2
+newMobSize: 1
+multiDeleteTimer: 0.000000
+comboDeleteCounter reset
+Loaded texture: resources/spells/spell_vulcan.png
+Loaded texture: resources/spells/spell_elec_sword.png
+pushing states
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_flame.png
+pushing states
+Loaded texture: resources/spells/buster_flame.png
+pushing states
+explosion area: 10.750000, 11.833333
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+explosion area: 9.750000, 9.166667
+lastMobSize: 3
+newMobSize: 2
+multiDeleteTimer: 0.000000
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+Loaded texture: resources/spells/buster_fan.png
+Loaded texture: resources/spells/buster_flame.png
+pushing states
+lastMobSize: 2
+newMobSize: 1
+multiDeleteTimer: 0.000000
+explosion area: 10.250000, 9.166667
+pushing states
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/spell_vulcan.png
+pushing states
+pushing states
+pushing states
+explosion area: 9.750000, 9.166667
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/grave/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+explosion area: 10.500000, 9.000000
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+pushing states
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/spell_vulcan.png
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+pushing states
+pushing states
+pushing states
+explosion area: 10.500000, 9.000000
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+explosion area: 10.750000, 7.000000
+lastMobSize: 2
+newMobSize: 1
+multiDeleteTimer: 0.000000
+Loaded texture: resources/spells/buster_fan.png
+pushing states
+Mettaur OnHit
+pushing states
+Mettaur OnHit
+explosion area: 10.750000, 7.000000
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+comboDeleteCounter reset
+is interrupted
+stateIndex is: 0
+comboDeleteCounter reset
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+Loaded texture: resources/spells/buster_fan.png
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+Loaded texture: resources/spells/buster_fan.png
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+Loaded texture: resources/spells/spell_vulcan.png
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+comboDeleteCounter reset
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+Loaded texture: resources/spells/buster_fan.png
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+Loaded texture: resources/spells/buster_fan.png
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+Loaded texture: resources/spells/buster_fan.png
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+Loaded texture: resources/spells/buster_flame.png
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+pushing states
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 1
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+pushing states
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 2
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+Loaded texture: resources/spells/spell_elec_sword.png
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 3
+pushing states
+stateIndex is: 3
+stateIndex is: 3
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+comboDeleteCounter reset
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+Loaded texture: resources/spells/buster_fan.png
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+pushing states
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 4
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+Loaded texture: resources/spells/buster_fan.png
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+stateIndex is: 0
+pushing states
+is interrupted
+explosion area: 13.750000, 11.000000
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+is interrupted
+stateIndex is: 0
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+SelectMobScene::onEnd()
+library saved successfully. Number of chips saved: 85
+main menu onResume
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf

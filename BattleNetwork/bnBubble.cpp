@@ -20,7 +20,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
 
   this->speed = speed;
 
-  this->SetSlideTime(sf::seconds(0.5f / (float)speed));
+  this->SetSlideTime(sf::seconds(0.75f / (float)speed));
 
   animation = Animation("resources/spells/bubble.animation");
 
@@ -50,36 +50,24 @@ void Bubble::OnUpdate(float _elapsed) {
   // Keep moving
   if (!this->IsSliding() && animation.GetAnimationString() == "FLOAT") {
     if (this->GetTile()->GetX() == 1) {
-      if (this->GetTile()->GetY() == 2 && this->GetDirection() == Direction::LEFT) {
-        this->Delete();
-      }
-      else if (this->GetTile()->GetY() == 1) {
+      if (this->GetTile()->GetY() == 1) {
         if (this->GetDirection() == Direction::LEFT) {
           this->SetDirection(Direction::DOWN);
-        }
-        else {
-          this->Delete();
         }
       }
       else if (this->GetTile()->GetY() == 3) {
         if (this->GetDirection() == Direction::LEFT) {
           this->SetDirection(Direction::UP);
         }
-        else {
-          this->Delete();
-        }
       }
     }
-    else if (this->GetTile()->GetX() == 6) {
-      this->Delete();
-    }
-
-	// Drop a shared hitbox when moving to prevent player from hopping through
-	/*SharedHitBox* shb = new SharedHitBox(this, 2.0f);
-	GetField()->AddEntity(*shb, tile->GetX(), tile->GetY());*/
 
     this->SlideToTile(true);
     this->Move(this->GetDirection());
+
+    if (!this->GetNextTile()) {
+      this->Delete();
+    }
   }
 
   GetTile()->AffectEntities(this);

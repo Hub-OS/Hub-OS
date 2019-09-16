@@ -319,7 +319,8 @@ public:
         last = int(message.size() - 1);
       }
 
-      int len = last - begin;
+      int len = last - begin + 1; // include the start position character in string::substr() func
+
       text.setString(message.substr(begin, len));
 
      // We don't need to fill box

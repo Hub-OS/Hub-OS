@@ -25,7 +25,7 @@ class Player : public Character, public AI<Player> {
   friend class PlayerIdleState;
   friend class PlayerHitState;
 public:
-  using DefaultState = PlayerIdleState;
+  using DefaultState = PlayerControlledState;
 
     /**
    * @brief Loads graphics and adds a charge component

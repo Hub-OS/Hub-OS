@@ -28,7 +28,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
       dir = Direction::RIGHT;
     }
 
-    if(nextTile && nextTile->IsWalkable()) {
+    if(nextTile && nextTile->IsWalkable() && !nextTile->IsEdgeTile()) {
         auto* wave = new Wave(this->GetField(), this->GetTeam(), this->speed);
         wave->SetDirection(dir);
 

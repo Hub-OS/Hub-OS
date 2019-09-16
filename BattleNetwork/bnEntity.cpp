@@ -189,7 +189,7 @@ bool Entity::Move(Direction _direction) {
   // to move to and check to see if this entity is allowed
   // to move onto it with CanMoveTo() 
   if (_direction == Direction::UP) {
-    if (tile->GetY() - 1 > 0) {
+    if (tile->GetY() - 1 >= 0) {
       next = field->GetAt(tile->GetX(), tile->GetY() - 1);
       if (!CanMoveTo(next)) {
         next = nullptr;
@@ -197,7 +197,7 @@ bool Entity::Move(Direction _direction) {
     }
   }
   else if (_direction == Direction::LEFT) {
-    if (tile->GetX() - 1 > 0) {
+    if (tile->GetX() - 1 >= 0) {
       next = field->GetAt(tile->GetX() - 1, tile->GetY());
       if (!CanMoveTo(next)) {
         next = nullptr;
@@ -205,7 +205,7 @@ bool Entity::Move(Direction _direction) {
     }
   }
   else if (_direction == Direction::DOWN) {
-    if (tile->GetY() + 1 <= (int)field->GetHeight()) {
+    if (tile->GetY() + 1 <= (int)field->GetHeight()+1) {
       next = field->GetAt(tile->GetX(), tile->GetY() + 1);
       if (!CanMoveTo(next)) {
         next = nullptr;
@@ -213,7 +213,7 @@ bool Entity::Move(Direction _direction) {
     }
   }
   else if (_direction == Direction::RIGHT) {
-    if (tile->GetX() + 1 <= static_cast<int>(field->GetWidth())) {
+    if (tile->GetX() + 1 <= (int)(field->GetWidth()+1)) {
       next = field->GetAt(tile->GetX() + 1, tile->GetY());
       if (!CanMoveTo(next)) {
         next = nullptr;

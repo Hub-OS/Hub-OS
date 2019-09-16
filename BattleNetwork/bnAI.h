@@ -116,7 +116,6 @@ template<typename U, typename ...Args>
       stateMachine->Update(_elapsed, *ref);
 
       if (queuedState != nullptr) {
-
         stateMachine->OnLeave(*ref);
 
         AIState<CharacterT>* oldState = stateMachine;

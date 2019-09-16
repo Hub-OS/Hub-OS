@@ -53,21 +53,15 @@ void CrackShot::OnUpdate(float _elapsed) {
 
   // Keep moving, when we reach the end of the map, remove from play
   if (!this->IsSliding()) {
-    if (GetTeam() == Team::BLUE) {
-      if (GetTile()->GetX() == 1) {
-        this->Delete();
-      }
-    }
-    else if (GetTeam() == Team::RED) {
-      if (GetTile()->GetX() == 6) {
-        this->Delete();
-      }
-    }
-
     this->SlideToTile(true);
 
     // Keep moving
     this->Move(this->GetDirection());
+
+    // Move failed can only be an edge
+    if (!this->GetNextTile()) {
+      this->Delete();
+    }
   }
 
   tile->AffectEntities(this);

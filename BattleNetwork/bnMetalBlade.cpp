@@ -47,11 +47,7 @@ void MetalBlade::OnUpdate(float _elapsed) {
     if(this->GetTeam() == Team::BLUE) {
         // Are we on the first column on the field?
         if (this->tile->GetX() == 1) {
-          // Middle row just deletes at the end
-          if (this->tile->GetY() == 2 && this->GetDirection() == Direction::LEFT) {
-            this->Delete();
-          }
-          else if (this->tile->GetY() == 1) {
+         if (this->tile->GetY() == 1) {
             // If we're at the top row going left, go down
             if (this->GetDirection() == Direction::LEFT) {
               this->SetDirection(Direction::DOWN);
@@ -72,42 +68,31 @@ void MetalBlade::OnUpdate(float _elapsed) {
             }
           }
         }
-        else if (this->tile->GetX() == 6) {
-          // If we're back on our team's side, delete
-          this->Delete();
-        }
-    } else {
-        // Are we on the back column on the field?
-        if (this->tile->GetX() == 6) {
-          // Middle row just deletes at the end
-          if (this->tile->GetY() == 2 && this->GetDirection() == Direction::RIGHT) {
-            this->Delete();
+    }
+    else {
+      // Are we on the back column on the field?
+      if (this->tile->GetX() == 6) {
+        if (this->tile->GetY() == 1) {
+          // If we're at the top row going right, go down
+          if (this->GetDirection() == Direction::RIGHT) {
+            this->SetDirection(Direction::DOWN);
           }
-          else if (this->tile->GetY() == 1) {
-            // If we're at the top row going right, go down
-            if (this->GetDirection() == Direction::RIGHT) {
-              this->SetDirection(Direction::DOWN);
-            }
-            else {
-              // Otherwise make a left
-              this->SetDirection(Direction::LEFT);
-            }
-          }
-          else if(this->tile->GetY() == 3){
-            // If were at bottom tile going right, go up
-            if (this->GetDirection() == Direction::RIGHT) {
-              this->SetDirection(Direction::UP);
-            }
-            else {
-              // Otherwise make a left
-              this->SetDirection(Direction::LEFT);
-            }
+          else {
+            // Otherwise make a left
+            this->SetDirection(Direction::LEFT);
           }
         }
-        else if (this->tile->GetX() == 1) {
-          // If we're back on our team's side, delete
-          this->Delete();
-        }        
+        else if (this->tile->GetY() == 3) {
+          // If were at bottom tile going right, go up
+          if (this->GetDirection() == Direction::RIGHT) {
+            this->SetDirection(Direction::UP);
+          }
+          else {
+            // Otherwise make a left
+            this->SetDirection(Direction::LEFT);
+          }
+        }
+      }
     }
 
     // Always slide
@@ -115,6 +100,11 @@ void MetalBlade::OnUpdate(float _elapsed) {
     
     // Keep moving
     this->Move(this->GetDirection());
+
+    // We must have flown off screen
+    if (!this->GetNextTile()) {
+      this->Delete();
+    }
   }
 
   tile->AffectEntities(this);

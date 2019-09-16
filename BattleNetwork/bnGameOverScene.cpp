@@ -1,5 +1,6 @@
 #include "bnGameOverScene.h"
 #include "bnMainMenuScene.h"
+#include "Segues\WhiteWashFade.h"
 #include <Swoosh/ActivityController.h>
 
 GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(&controller) {
@@ -43,7 +44,9 @@ void GameOverScene::onUpdate(double elapsed) {
       fadeInCooldown = 2.0f;
 
       leave = false;
-      getController().push<MainMenuScene>();
+
+      using effect = swoosh::intent::segue<WhiteWashFade>;
+      getController().push<effect::to<MainMenuScene>>();
     }
   }
 }

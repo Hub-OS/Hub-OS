@@ -46,7 +46,7 @@ void StarfishAttackState::DoAttack(Starfish& star) {
 	star.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
 	
 	// On animation end, go back to idle
-	star.GetFirstComponent<AnimationComponent>()->AddCallback(9, [this, s = &star](){
+	star.GetFirstComponent<AnimationComponent>()->AddCallback(4, [this, s = &star](){
 		s->ChangeState<StarfishIdleState>();
 	}, std::function<void()>(), false);
   }

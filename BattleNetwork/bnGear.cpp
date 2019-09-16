@@ -38,6 +38,8 @@ Gear::~Gear() {
 
 bool Gear::CanMoveTo(Battle::Tile * next)
 {
+  if (next->IsEdgeTile()) return false;
+
   bool valid = next ? (next->IsWalkable() && (next->GetTeam() == tileStartTeam)) : false;
   
   if (next == tile) return true;

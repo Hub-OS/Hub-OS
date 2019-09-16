@@ -141,6 +141,12 @@ namespace Battle {
     bool IsCracked() const;
 
     /**
+   * @brief Query if the tile is an edge tile
+   * @return true if x = {0, 7} or y = {0, 4}
+   */
+    bool IsEdgeTile() const;
+
+    /**
      * @brief Query if the tile should be highlighted in battle
      * Some spells don't highlight tiles they occupy
      * The boolean is toggled in the Tile's Update() loop 
@@ -184,8 +190,9 @@ namespace Battle {
     /**
      * @brief If found, remove the entity from all buckets with the same ID
      * @param ID
+     * @return true if the entity bucket has been modified and the entity removed
      */
-    void RemoveEntityByID(long ID);
+    bool RemoveEntityByID(long ID);
     
     /**
      * @brief Query if the given entity already occupies this tile
