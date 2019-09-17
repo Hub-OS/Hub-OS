@@ -59,6 +59,7 @@ enum TextureType {
   SPELL_FIREBURN,
   SPELL_MINI_BOMB,
   SPELL_CRACKSHOT,
+  SPELL_YOYO,
 
   //Chip Select 
   CHIP_SELECT_MENU,

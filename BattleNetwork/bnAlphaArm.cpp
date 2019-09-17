@@ -17,7 +17,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   this->SetDirection(Direction::LEFT);
   this->EnableTileHighlight(false);
   this->SetHealth(999);
-
+  this->ShareTileSpace(true);
   this->SetSlideTime(sf::seconds(0.1333f)); // 8 frames
 
   Hit::Properties props = Hit::DefaultProperties;

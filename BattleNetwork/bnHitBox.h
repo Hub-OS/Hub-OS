@@ -14,7 +14,7 @@ public:
   /**
    * @brief disables tile highlighting by default
    */
-  HitBox(Field* _field, Team _team, int damage);
+  HitBox(Field* _field, Team _team, int damage = 0);
   
   /**
    * @brief deconstructor

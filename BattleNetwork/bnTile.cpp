@@ -423,6 +423,7 @@ namespace Battle {
     while (i < entities.size()) {
       // If the entity is marked for deletion
       if (entities[i]->IsDeleted()) {
+        entities[i]->OnDelete();
         long ID = entities[i]->GetID();
 
         // free memory

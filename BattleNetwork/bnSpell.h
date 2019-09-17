@@ -73,6 +73,8 @@ public:
    */
   const Hit::Properties GetHitboxProperties() const;
 
+  virtual void OnDelete() { ;  }
+
 protected:
   bool markTile; /*!< Highlight occupying tile */
   Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */

@@ -31,5 +31,7 @@ bool HitBox::Move(Direction _direction) {
 }
 
 void HitBox::Attack(Character* _entity) {
-  _entity->Hit(GetHitboxProperties());
+  if (_entity->Hit(GetHitboxProperties())) {
+    AUDIO.Play(AudioType::HURT);
+  }
 }

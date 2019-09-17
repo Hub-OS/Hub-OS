@@ -90,7 +90,11 @@ void AnimationComponent::AddCallback(int frame, std::function<void()> onFrame, s
 
 void AnimationComponent::CancelCallbacks()
 {
+  // We just want to cancel callbacks
+  // Preserve some other state info
+  auto mode = animation.GetMode();
   animation.RemoveCallbacks();
+  animation << mode;
 }
 
 sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)

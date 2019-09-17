@@ -355,6 +355,8 @@
     <ClCompile Include="bnCanonSmoke.cpp" />
     <ClCompile Include="bnInvis.cpp" />
     <ClCompile Include="bnDefenseIndestructable.cpp" />
+    <ClCompile Include="bnYoYo.cpp" />
+    <ClCompile Include="bnYoYoChipAction.cpp" />
     <ClCompile Include="main.cpp">
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">stdcpp17</LanguageStandard>
     </ClCompile>
@@ -586,6 +588,8 @@
     <ClInclude Include="bnChipFolderCollection.h" />
     <ClInclude Include="bnNaviExplodeState.h" />
     <ClInclude Include="bnDefenseRule.h" />
+    <ClInclude Include="bnYoYo.h" />
+    <ClInclude Include="bnYoYoChipAction.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnCanodumbCursor.h" />
     <ClInclude Include="bnRollHeal.h" />

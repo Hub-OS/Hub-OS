@@ -50,6 +50,8 @@ public:
   Entity();
   virtual ~Entity();
 
+  virtual void OnDelete() = 0;
+
   /**
    * @brief Virtual. Update an entity. Used by Character class. @see Character::Update()
    * This must be used by Character base class to perform correctly. All entities slide.

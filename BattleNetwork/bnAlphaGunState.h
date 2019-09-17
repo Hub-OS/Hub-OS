@@ -8,7 +8,8 @@ class AlphaGunState : public AIState<AlphaCore>
 private:
   // in seconds
   float cooldown;
-
+  int count;
+  Battle::Tile* last;
 public:
   AlphaGunState();
   ~AlphaGunState();

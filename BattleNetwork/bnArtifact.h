@@ -12,7 +12,7 @@ public:
   virtual ~Artifact();
 
   virtual void OnUpdate(float _elapsed) = 0;
-
+  virtual void OnDelete() { }
   virtual void Update(float _elapsed) final;
   virtual void AdoptTile(Battle::Tile* tile) final;
 };

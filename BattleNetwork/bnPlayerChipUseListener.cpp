@@ -10,6 +10,7 @@
 #include "bnElecSwordChipAction.h"
 #include "bnVulcanChipAction.h"
 #include "bnReflectChipAction.h"
+#include "bnYoYoChipAction.h"
 #include "bnBombChipAction.h"
 #include "bnCrackShotChipAction.h"
 #include "bnBasicSword.h"
@@ -51,6 +52,10 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
     if (low) { low->SetState(TileState::CRACKED); }
 
     AUDIO.Play(AudioType::PANEL_CRACK);
+  }
+  else if (name == "YoYo") {
+    auto action = new YoYoChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
   }
   else if (name == "Invis") {
     // Create an invisible component. This handles the logic for timed invis

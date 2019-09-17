@@ -55,8 +55,6 @@ public:
 
   Character(Rank _rank = Rank::_1);
   virtual ~Character();
-
-  virtual void OnDelete() = 0;
   
   /**
    * @brief Describe what happens to this character when they are hit

@@ -1,0 +1,4 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/buster_yoyo.png"
+
+animation state="DEFAULT"
+frame duration="99.99" x="2" y="1" w="27" h="23" originx="8" originy="12"

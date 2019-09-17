@@ -185,6 +185,8 @@ bool Entity::Move(Direction _direction) {
 
   Battle::Tile* temp = tile;
   
+  if (_direction == Direction::NONE) next = nullptr;
+
   // Based on the input direction grab the tile we wish 
   // to move to and check to see if this entity is allowed
   // to move onto it with CanMoveTo() 

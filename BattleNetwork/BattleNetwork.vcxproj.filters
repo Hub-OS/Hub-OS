@@ -584,6 +584,12 @@
     <Filter Include="Scenes/Activities\Config">
       <UniqueIdentifier>{e7929995-400d-4212-a3e6-93fc49841dd9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\YoYo">
+      <UniqueIdentifier>{333948d5-9dae-4d9a-b2d8-781d18dd94cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\YoYo">
+      <UniqueIdentifier>{22d03e9f-9935-4911-a044-f6c63b52dfba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1131,6 +1137,12 @@
     </ClCompile>
     <ClCompile Include="bnReflectChipAction.cpp">
       <Filter>Scenes/Activities\Battle\Content\Chips\Action\Reflect</Filter>
+    </ClCompile>
+    <ClCompile Include="bnYoYoChipAction.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Action\YoYo</Filter>
+    </ClCompile>
+    <ClCompile Include="bnYoYo.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\YoYo</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1827,6 +1839,12 @@
     </ClInclude>
     <ClInclude Include="bnBossPatternAI.h">
       <Filter>Scenes/Activities\Battle\Content\AI</Filter>
+    </ClInclude>
+    <ClInclude Include="bnYoYoChipAction.h">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Action\YoYo</Filter>
+    </ClInclude>
+    <ClInclude Include="bnYoYo.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\YoYo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

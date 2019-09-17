@@ -20,6 +20,9 @@ protected:
     anim->AddCallback(frame, action, std::function<void()>(), true);
   }
 
+  void RecallPreviousState() {
+    anim->SetAnimation(prevState);
+  }
 
 public:
   ChipAction() = delete;
@@ -37,7 +40,7 @@ public:
       this->anim = owner->GetFirstComponent<AnimationComponent>();
       this->prevState = anim->GetAnimationString();;
       this->anim->SetAnimation(animation, [this]() {
-        anim->SetAnimation(prevState);
+        this->RecallPreviousState();
         this->EndAction();
       });
 

@@ -215,7 +215,7 @@ void AlphaCore::OnDelete() {
   AUDIO.StopStream();
 
   // Explode if health depleted
-  this->InterruptState<ExplodeState<AlphaCore>>(30, 1.5);
+  this->InterruptState<ExplodeState<AlphaCore>>(30, 1.35);
 }
 
 void AlphaCore::OpenShoulderGuns()
@@ -238,6 +238,8 @@ void AlphaCore::CloseShoulderGuns()
 
 void AlphaCore::HideLeftArm()
 {
+  if (IsDeleted()) return;
+
   auto fx = new MobMoveEffect(GetField());
   GetField()->AddEntity(*fx, leftArm->GetTile()->GetX(), leftArm->GetTile()->GetY());
   leftArm->GetTile()->ReserveEntityByID(leftArm->GetID());
@@ -246,6 +248,8 @@ void AlphaCore::HideLeftArm()
 
 void AlphaCore::RevealLeftArm()
 {
+  if (IsDeleted()) return;
+
   GetField()->AddEntity((*leftArm), GetTile()->GetX(), GetTile()->GetY() + 1);
   auto fx = new MobMoveEffect(GetField());
   GetField()->AddEntity(*fx, GetTile()->GetX(), GetTile()->GetY() + 1);
@@ -253,6 +257,8 @@ void AlphaCore::RevealLeftArm()
 
 void AlphaCore::HideRightArm()
 {
+  if (IsDeleted()) return;
+
   auto fx = new MobMoveEffect(GetField());
   GetField()->AddEntity(*fx, rightArm->GetTile()->GetX(), rightArm->GetTile()->GetY());
   rightArm->GetTile()->ReserveEntityByID(rightArm->GetID());
@@ -261,6 +267,8 @@ void AlphaCore::HideRightArm()
 
 void AlphaCore::RevealRightArm()
 {
+  if (IsDeleted()) return;
+
   GetField()->AddEntity((*rightArm), GetTile()->GetX() - 1, GetTile()->GetY() - 1);
   auto fx = new MobMoveEffect(GetField());
   GetField()->AddEntity(*fx, GetTile()->GetX() - 1, GetTile()->GetY() - 1);
