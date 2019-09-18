@@ -60,7 +60,7 @@ public:
    */
   virtual void OnDelete();
 
-  virtual const float GetHitHeight() const { return 0; }
+  virtual const float GetHitHeight() const;
   /**
    * @brief Get how many times the player has moved across the grid
    * @return int

@@ -26,3 +26,12 @@ Starman::Starman() : Player()
   // Starman has FloatShoe enabled
   SetFloatShoe(true);
 }
+
+Starman::~Starman() {
+
+}
+
+const float Starman::GetHitHeight() const
+{
+  return 140.0f;
+}

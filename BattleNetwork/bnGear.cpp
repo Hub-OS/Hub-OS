@@ -1,5 +1,6 @@
 #include "bnGear.h"
 #include "bnTile.h"
+#include "bnDefenseIndestructable.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
@@ -31,6 +32,8 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), 
   this->SetHitboxProperties(props);
 
   tileStartTeam = Team::UNKNOWN;
+
+  AddDefenseRule(new DefenseIndestructable());
 }
 
 Gear::~Gear() {

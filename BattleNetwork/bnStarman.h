@@ -23,4 +23,7 @@ public:
   friend class PlayerIdleState;
 
   Starman();
+  virtual ~Starman();
+
+  virtual const float GetHitHeight() const;
 };

@@ -84,6 +84,11 @@ void Player::OnDelete() {
   this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
 }
 
+const float Player::GetHitHeight() const
+{
+  return 101.0f;
+}
+
 const bool Player::OnHit(const Hit::Properties props) {
   hitCount++;
 

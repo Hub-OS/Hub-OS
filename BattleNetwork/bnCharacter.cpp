@@ -108,7 +108,7 @@ void Character::Update(float _elapsed) {
   } else if (this->stunCooldown > 0.0) {
     this->stunCooldown -= _elapsed;
 
-    // we need to manually update their position if drag is in effect
+    // TODO: is this needed anymore?
     setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
     if (this->stunCooldown <= 0.0) {
@@ -136,6 +136,9 @@ void Character::Update(float _elapsed) {
   if (health < 0) health = 0;
 
   TryDelete();
+
+  // If drag status is over, reset the flag
+  if (!IsSliding() && this->slideFromDrag) this->slideFromDrag = false;
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)
@@ -215,88 +218,91 @@ void Character::ResolveFrameBattleDamage()
 
     int tileDamage = 0;
 
-// Calculate elemental damage if the tile the character is on is super effective to it
-if (props.element == Element::FIRE
-  && GetTile()->GetState() == TileState::GRASS
-  && !(this->HasAirShoe() || this->HasFloatShoe())) {
-  tileDamage = props.damage;
-}
-else if (props.element == Element::ELEC
-  && GetTile()->GetState() == TileState::ICE
-  && !(this->HasAirShoe() || this->HasFloatShoe())) {
-  tileDamage = props.damage;
-}
-
-// Pass on hit properties to the user-defined handler
-if (this->OnHit(props)) {
-  // Only register counter if:
-  // 1. Hit type is impact
-  // 2. The character is on a counter frame
-  // 3. Hit properties has an aggressor
-  // This will set the counter aggressor to be the first non-impact hit and not check again this frame
-  if (this->IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-    if (props.aggressor) {
-      frameCounterAggressor = props.aggressor;
+    // Calculate elemental damage if the tile the character is on is super effective to it
+    if (props.element == Element::FIRE
+      && GetTile()->GetState() == TileState::GRASS
+      && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      tileDamage = props.damage;
+      GetTile()->SetState(TileState::NORMAL);
     }
-  }
-
-  // Requeue drag if already sliding by drag
-  if ((props.flags & Hit::drag) == Hit::drag) {
-    if (this->slideFromDrag) {
-      append.push({ 0, Hit::drag, Element::NONE, nullptr, props.drag });
-    }
-    else {
-      // Apply directional slide later
-      postDragDir = props.drag;
+    else if (props.element == Element::ELEC
+      && GetTile()->GetState() == TileState::ICE
+      && !(this->HasAirShoe() || this->HasFloatShoe())) {
+      tileDamage = props.damage;
+      GetTile()->SetState(TileState::NORMAL);
     }
 
-    // exclude this from the next processing step
-    props.drag = Direction::NONE;
-    props.flags &= ~Hit::drag;
-  }
+    // Pass on hit properties to the user-defined handler
+    if (this->OnHit(props)) {
+      // Only register counter if:
+      // 1. Hit type is impact
+      // 2. The character is on a counter frame
+      // 3. Hit properties has an aggressor
+      // This will set the counter aggressor to be the first non-impact hit and not check again this frame
+      if (this->IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
+        if (props.aggressor) {
+          frameCounterAggressor = props.aggressor;
+        }
+      }
 
-  bool hadStun = false;
+      // Requeue drag if already sliding by drag
+      if ((props.flags & Hit::drag) == Hit::drag) {
+        if (this->slideFromDrag) {
+          append.push({ 0, Hit::drag, Element::NONE, nullptr, props.drag });
+        }
+        else {
+          // Apply directional slide in a moment
+          postDragDir = props.drag;
+        }
 
-  // Stun can be canceled by non-stun hits or queued if dragging
-  if ((props.flags & Hit::stun) == Hit::stun) {
-    if (postDragDir != Direction::NONE) {
-      append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
+        // exclude this from the next processing step
+        props.drag = Direction::NONE;
+        props.flags &= ~Hit::drag;
+      }
+
+      bool hadStun = false;
+
+      // Stun can be canceled by non-stun hits or queued if dragging
+      if ((props.flags & Hit::stun) == Hit::stun) {
+        if (postDragDir != Direction::NONE) {
+          // requeue these statuses if in the middle of a slide
+          append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
+        }
+        else {
+          this->stunCooldown = 3.0;
+        }
+        hadStun = true;
+      }
+      else if (this->stunCooldown > 0) {
+        // cancel
+        this->stunCooldown = 0;
+      }
+
+      // exclude this from the next processing step
+      props.flags &= ~Hit::stun;
+
+      // Flinch is ignored if already flinching or stunned
+      // and can be queued if dragging this frame
+      if ((props.flags & Hit::flinch) == Hit::flinch && !hadStun) {
+        if (postDragDir != Direction::NONE) {
+          append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
+        }
+        else {
+          if (this->invincibilityCooldown <= 0.0) {
+            this->invincibilityCooldown = 3.0;
+          }
+        }
+      }
+
+      hit = hit || true;
     }
-    else {
-      this->stunCooldown = 3.0;
-    }
-    hadStun = true;
-  }
-  else if (this->stunCooldown > 0) {
-    // cancel
-    this->stunCooldown = 0;
-  }
 
-  // exclude this from the next processing step
-  props.flags &= ~Hit::stun;
-
-  // Flinch is ignored if already flinching or stunned
-  // and can be queued if dragging this frame
-  if ((props.flags & Hit::flinch) == Hit::flinch && !hadStun) {
-    if (postDragDir != Direction::NONE) {
-      append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
-    }
-    else {
-      if (this->invincibilityCooldown <= 0.0) {
-        this->invincibilityCooldown = 3.0;
+    if (hit) {
+      if (this->GetHealth() == 0) {
+        this->stunCooldown = 0;
+        postDragDir = Direction::NONE; // Cancel slide post-status if blowing up
       }
     }
-  }
-
-  hit = hit || true;
-}
-
-if (hit) {
-  if (this->GetHealth() == 0) {
-    this->stunCooldown = 0;
-    postDragDir = Direction::NONE; // Cancel slide post-status if blowing up
-  }
-}
   }
 
   if (!append.empty()) {

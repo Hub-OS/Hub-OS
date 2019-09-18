@@ -145,7 +145,7 @@ public:
   }
 
   void Update(double _elapsed) {
-    std::cout << "in summons update" << std::endl;
+    //std::cout << "in summons update" << std::endl;
 
     // queue.GetCaller()->Update(0);
 
@@ -167,7 +167,7 @@ public:
   }
 
   void OnEnter() { 
-    std::cout << "Summons onEnter ";
+    //std::cout << "Summons onEnter ";
 
     Character* summonedBy = queue.GetCaller();
 
