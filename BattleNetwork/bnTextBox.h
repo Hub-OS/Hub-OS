@@ -308,18 +308,20 @@ public:
     // If the message is empty don't update
     if (!play || message.empty()) return;
 
-    // If we're at the end of the message, don't update 
-    // unless scrolling through lines via the API
+    // If we're at the end of the message, don't step  
+    // through the words
     if (charIndex >= message.length()) {
       int begin = lines[lineIndex];
-      int lastIndex = std::min((int)lines.size()-1, lineIndex+numberOfFittingLines);
+      int lastIndex = std::min((int)lines.size()-1, lineIndex+numberOfFittingLines-1);
       int last = lines[lastIndex];
+      auto len = 0;
 
-      if (lastIndex == lines.size()-1) {
-        last = int(message.size() - 1);
+      if (lineIndex + (numberOfFittingLines) < lines.size()) {
+        len = std::min(charIndex - begin, lines[lineIndex + (numberOfFittingLines)] - begin);
       }
-
-      int len = last - begin + 1; // include the start position character in string::substr() func
+      else {
+        len = charIndex - begin;
+      }
 
       text.setString(message.substr(begin, len));
 

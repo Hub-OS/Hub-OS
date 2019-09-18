@@ -57,9 +57,10 @@ void YoYo::OnUpdate(float _elapsed) {
 
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
-  tile->AffectEntities(this);
-
-  // Keep moving. When we reach the end, go up or down the column, and U-turn
+  // When moving, attack tiles normally
+  // When stationary, our anim callbacks are
+  // designed to hit exactly 3 times 
+  // like the rhythm of the original games
   if (!this->IsSliding()) {
     if (tileCount > 0 && startTile == GetTile()) {
       this->Delete();
@@ -77,21 +78,35 @@ void YoYo::OnUpdate(float _elapsed) {
         auto direction = GetDirection();
 
         SetDirection(Direction::NONE);
+
         reversed = true;
 
-        animation->AddCallback(3, [this, direction]() {
-          auto hitbox = new HitBox(GetField(), GetTeam());
-          hitbox->SetHitboxProperties(GetHitboxProperties());
-          GetField()->AddEntity(*hitbox, GetTile()->GetX(), GetTile()->GetY());
+        animation->CancelCallbacks();
 
-          // After we hit 3 times, reverse the direction 
-          if (++this->hitCount == 3) {
-            SetDirection(Reverse(direction));
-            animation->CancelCallbacks();
+        animation->AddCallback(3, [this, direction]() {
+          // First, let the slide finish for this final tile...
+          if (!this->IsSliding()) {
+            auto hitbox = new HitBox(GetField(), GetTeam());
+            hitbox->SetHitboxProperties(GetHitboxProperties());
+            //hitbox->EnableTileHighlight(true);
+            GetField()->AddEntity(*hitbox, GetTile()->GetX(), GetTile()->GetY());
+
+            // After we hit 2 more times, reverse the direction 
+            if (++this->hitCount == 2) {
+              SetDirection(Reverse(direction));
+              animation->CancelCallbacks();
+            }
           }
         });
       }
-    }
+    } 
+  }else if (tileCount != 3) {
+    // The tile counter updates when it has reached
+    // center tile, when count == 2, we were spinning in place
+    // So we want to skip count == 3 because it will have only
+    // begun moving to the previous tile. 
+
+    tile->AffectEntities(this);
   }
 }
 

@@ -907,7 +907,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   else if (isInChipSelect && chipCustGUI.IsInView()) {
 #ifndef __ANDROID__
     if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
-      if (!INPUT.Has(HELD_PAUSE)) {
+      if (!INPUT.Has(HELD_RPAD)) {
         chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
       }
       else if (INPUT.Has(PRESSED_A) ){

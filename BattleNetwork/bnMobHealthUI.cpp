@@ -88,9 +88,10 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
     float offsetx = -(((size)*8.0f) / 2.0f)*glyphs.getScale().x;
     int index = 0;
     while (index < size) {
-      auto c = std::to_string(healthCounter)[index];
-
-      int number = std::atoi(&c);
+      auto str = std::to_string(healthCounter);
+      auto substr = str.substr(index, 1);
+      const char* cc = substr.c_str();
+      int number = std::atoi(cc);
 
       int row = (10-number-1);
       int rowStart = row + (row * 10);

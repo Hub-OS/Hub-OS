@@ -16,7 +16,9 @@ void ChipDescriptionTextbox::DescribeChip(Chip* chip)
 
   this->EnqueMessage(sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR)), "resources/ui/navigator.animation", new AnimatedTextBox::Message(chip->GetDescription()));
 
-  auto yes = [this]() {
+
+  // FOR FUN TESTING:
+  /*auto yes = [this]() {
     this->EnqueMessage(sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR)), "resources/ui/navigator.animation", new AnimatedTextBox::Message("Glad I could help!"));
   };
 
@@ -27,6 +29,7 @@ void ChipDescriptionTextbox::DescribeChip(Chip* chip)
   };
 
   this->EnqueMessage(sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR)), "resources/ui/navigator.animation", new AnimatedTextBox::Question("Was this helpful? Please tell me it was helpful. Yes or no?", yes, no));
+  */
 
   this->Open();
 }

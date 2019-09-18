@@ -41,7 +41,7 @@ void AnimatedTextBox::Close() {
     this->isPaused = true;
   };
 
-  animator << Animator::On(3, callback, true);
+  animator << callback;
 }
 
 const bool AnimatedTextBox::SelectYes() const {
@@ -83,7 +83,7 @@ void AnimatedTextBox::Open() {
     this->isReady = true;
   };
 
-  animator << Animator::On(2, callback, true);
+  animator << callback;
 }
 
 const bool AnimatedTextBox::IsPlaying() const { return !isPaused; }
@@ -236,8 +236,10 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
 
     mugAnimator.Update(0, sprite);
 
-    target.draw(sprite);
-    sprite.setPosition(oldpos);
+    if (IsOpen()) {
+      target.draw(sprite);
+      sprite.setPosition(oldpos);
+    }
 
     // Draw the animated text
     textBox.draw(target, states);
