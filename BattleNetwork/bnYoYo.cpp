@@ -19,7 +19,7 @@ YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, 
   this->speed = speed;
 
   // Adjust by speed factor
-  this->SetSlideTime(sf::seconds(0.13f / (float)speed));
+  this->SetSlideTime(sf::seconds(0.11f / (float)speed));
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
@@ -57,7 +57,7 @@ void YoYo::OnUpdate(float _elapsed) {
 
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
-  animation->SetPlaybackSpeed(this->speed);
+  tile->AffectEntities(this);
 
   // Keep moving. When we reach the end, go up or down the column, and U-turn
   if (!this->IsSliding()) {
@@ -79,11 +79,12 @@ void YoYo::OnUpdate(float _elapsed) {
         SetDirection(Direction::NONE);
         reversed = true;
 
-        animation->AddCallback(2, [this, direction]() {
+        animation->AddCallback(3, [this, direction]() {
           auto hitbox = new HitBox(GetField(), GetTeam());
           hitbox->SetHitboxProperties(GetHitboxProperties());
           GetField()->AddEntity(*hitbox, GetTile()->GetX(), GetTile()->GetY());
 
+          // After we hit 3 times, reverse the direction 
           if (++this->hitCount == 3) {
             SetDirection(Reverse(direction));
             animation->CancelCallbacks();
@@ -92,8 +93,6 @@ void YoYo::OnUpdate(float _elapsed) {
       }
     }
   }
-
-  tile->AffectEntities(this);
 }
 
 // Nothing prevents blade from cutting through

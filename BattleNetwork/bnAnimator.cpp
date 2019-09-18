@@ -155,8 +155,8 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     // We add a check to ensure the start progress wasn't also 0
     // If it did not start at zero, we know we came across the end of the animation
     if ((progress <= 0.f || &(*iter) == &copy.back()) && startProgress != 0.f) {
-      std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = this->callbacks.find(index - 1);
-      std::map<int, std::function<void()>>::iterator onetimeCallbackIter = this->onetimeCallbacks.find(index - 1);
+      std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = this->callbacks.find(index);
+      std::map<int, std::function<void()>>::iterator onetimeCallbackIter = this->onetimeCallbacks.find(index);
 
       callbackIter = callbacks.begin();
 
@@ -175,10 +175,10 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
         callbackIter = callbacks.erase(callbackIter);
 
         // Find the callback at the given index
-        callbackFind = callbacks.find(index - 1);
+        callbackFind = callbacks.find(index);
       }
 
-        // If callbacks are ok and the interator matches the expected position
+        // If callbacks are ok and the iterator matches the expected position
         if (callbacksAreValid && callbackIter == callbackFind && callbackFind != this->callbacks.end()) {
           if (callbackIter->second) {
             callbackIter->second();
