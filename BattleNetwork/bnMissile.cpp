@@ -1,5 +1,5 @@
 #include "bnMissile.h"
-#include "bnExplosion.h"
+#include "bnRingExplosion.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
@@ -69,7 +69,7 @@ void Missile::OnUpdate(float _elapsed) {
                 tile->AffectEntities(this);
 
                 if(tile->GetState() != TileState::EMPTY && tile->GetState() != TileState::BROKEN) {
-                    this->field->AddEntity(*(new Explosion(this->field, this->GetTeam(), 1)),
+                    this->field->AddEntity(*(new RingExplosion(this->field)),
                                            this->GetTile()->GetX(), this->GetTile()->GetY());
                 }
 

@@ -17,15 +17,16 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
     Entity* user = in->GetHitboxProperties().aggressor;
     Battle::Tile* tile = nullptr;
 
+    // Add a HideTimer for the owner of anti damage
+    owner->RegisterComponent(new HideTimer(owner, 1.0));
+
+    // Add a poof particle to denote owner dissapearing
+    owner->GetField()->AddEntity(*new ParticlePoof(owner->GetField()), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+
     if (user) {
       // If there's an aggressor, grab their tile and target it
       tile = user->GetTile();
       
-      // Add a HideTimer for the owner of anti damage
-      owner->RegisterComponent(new HideTimer(owner, 1.0));
-      
-      // Add a poof particle to denote owner dissapearing
-      owner->GetField()->AddEntity(*new ParticlePoof(owner->GetField()), owner->GetTile()->GetX(), owner->GetTile()->GetY());
     }
 
     // If there's a tile
