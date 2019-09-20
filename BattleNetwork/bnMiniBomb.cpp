@@ -15,6 +15,8 @@ MiniBomb::MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   cooldown = 0;
   damageCooldown = 0;
 
+  this->HighlightTile(Battle::Tile::Highlight::flash);
+
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB);
   setTexture(*texture);
   setScale(2.f, 2.f);
@@ -43,15 +45,6 @@ MiniBomb::~MiniBomb(void) {
 
 void MiniBomb::OnUpdate(float _elapsed) {
   arcProgress += _elapsed;
-
-  int flash = (int)(arcProgress * 15);
-
-  if (flash % 2 == 0) {
-    this->EnableTileHighlight(true);
-  }
-  else {
-    this->EnableTileHighlight(false);
-  }
 
   double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0f));
   double beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0f));

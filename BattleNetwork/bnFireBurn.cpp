@@ -33,7 +33,7 @@ FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(da
   animation << onFinish;
   animation.Update(0, *this);
 
-  EnableTileHighlight(true);
+  this->HighlightTile(Battle::Tile::Highlight::solid);
 
   auto props = GetHitboxProperties();
   props.flags &= ~Hit::recoil;

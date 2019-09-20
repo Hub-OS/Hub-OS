@@ -10,7 +10,6 @@
 SharedHitBox::SharedHitBox(Spell* owner, float duration) : owner(owner), Obstacle(owner->GetField(), owner->GetTeam()) {
   cooldown = duration;
   SetHealth(1);
-  EnableTileHighlight(false);
   ShareTileSpace(true);
   SetHitboxProperties(owner->GetHitboxProperties());
 }

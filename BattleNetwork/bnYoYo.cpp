@@ -32,8 +32,6 @@ YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, 
   props.flags |= Hit::recoil;
   this->SetHitboxProperties(props);
 
-  EnableTileHighlight(false);
-
   tileCount = hitCount = 0;
   startTile = nullptr;
 
@@ -88,7 +86,6 @@ void YoYo::OnUpdate(float _elapsed) {
           if (!this->IsSliding()) {
             auto hitbox = new HitBox(GetField(), GetTeam());
             hitbox->SetHitboxProperties(GetHitboxProperties());
-            //hitbox->EnableTileHighlight(true);
             GetField()->AddEntity(*hitbox, GetTile()->GetX(), GetTile()->GetY());
 
             // After we hit 2 more times, reverse the direction 

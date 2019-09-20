@@ -15,7 +15,6 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   this->SetFloatShoe(true);
   this->SetTeam(_team);
   this->SetDirection(Direction::LEFT);
-  this->EnableTileHighlight(false);
   this->SetHealth(999);
   this->ShareTileSpace(true);
   this->SetSlideTime(sf::seconds(0.1333f)); // 8 frames

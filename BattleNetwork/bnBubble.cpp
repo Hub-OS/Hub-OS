@@ -30,8 +30,6 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   animation << "INIT" << onFinish;
 
   AUDIO.Play(AudioType::BUBBLE_SPAWN, AudioPriority::LOWEST);
-
-  EnableTileHighlight(false);
   
   // Bubbles can overlap eachother partially
   ShareTileSpace(true);

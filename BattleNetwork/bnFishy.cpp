@@ -29,7 +29,6 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   props.flags |= Hit::recoil | Hit::flinch;
   this->SetHitboxProperties(props);
 
-  EnableTileHighlight(false);
   this->SetFloatShoe(true);
 }
 

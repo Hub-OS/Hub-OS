@@ -155,8 +155,9 @@ string Animation::ValueOf(string _key, string _line) {
 }
 
 void Animation::Refresh(sf::Sprite& target) {
-	animator(0, target, animations[currAnimation]);
-	progress = 0;
+  Update(0, target);
+	//animator(0, target, animations[currAnimation]);
+	//progress = 0;
 }
 
 void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) {
@@ -181,6 +182,11 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
   while (progress > duration && (animator.GetMode() & Animator::Mode::Loop) == Animator::Mode::Loop) {
     progress -= duration;
   }
+}
+
+void Animation::SyncTime(float newTime)
+{
+  progress = newTime;
 }
 
 void Animation::SetFrame(int frame, sf::Sprite& target)

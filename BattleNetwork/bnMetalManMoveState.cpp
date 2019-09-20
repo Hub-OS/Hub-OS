@@ -12,6 +12,7 @@ MetalManMoveState::MetalManMoveState() : isMoving(false), AIState<MetalMan>() { 
 MetalManMoveState::~MetalManMoveState() { ; }
 
 void MetalManMoveState::OnEnter(MetalMan& metal) {
+  isMoving = false;
 }
 
 void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
@@ -38,62 +39,19 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
 
   Battle::Tile* next = nullptr;
 
-  bool shouldPunch = false;
-
-  if(metal.GetHealth() > 300) {
-      shouldPunch = (rand() % 30 > 23);
-  } else {
-      shouldPunch = (rand() % 30 > 16);
-  }
-
-  if (shouldPunch) {
-
-    next = metal.GetTarget()->GetTile();
-
-    if(next && metal.Teleport(next->GetX()+1, next->GetY())) {
-      metal.AdoptNextTile();
-      auto onFinish = [this, &metal]() {
-        metal.ChangeState<MetalManPunchState>();
-        metal.FinishMove();
-      };
-
-      metal.SetAnimation(MOB_MOVING, onFinish);
-      isMoving = true;
-    }
-    else {
-      isMoving = false;
-    }
-  } else if (moved) {
+  if (moved) {
     metal.AdoptNextTile();
 
     auto onFinish = [this, m = &metal]() { 
       m->FinishMove();
-
-      if (m->GetTarget() && m->GetTarget()->GetTile()) {
-        int targetY = m->GetTarget()->GetTile()->GetY();
-        int targetX = m->GetTarget()->GetTile()->GetX();
-
-        if ((targetX == 1 || targetY != 2) && (rand() % 4) == 0) {
-          m->ChangeState<MetalManThrowState>();
-        }
-        else {
-            if(rand() % 20 > 15) {
-                m->ChangeState<MetalManMissileState>((m->GetHealth() <= 300)? 10 : 5);
-            } else {
-                m->ChangeState<MetalManIdleState>();
-            }
-        }
-      }
-      else {
-        m->ChangeState<MetalManIdleState>();
-      }
+        m->GoToNextState();
     };
 
     metal.SetAnimation(MOB_MOVING, onFinish);
     isMoving = true;
   }
   else {
-    metal.ChangeState<MetalManIdleState>();
+  metal.GoToNextState();
   }
 }
 

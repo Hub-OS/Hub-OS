@@ -7,10 +7,10 @@ class MetalManMissileState : public AIState<MetalMan>
 private:
   float cooldown;
   float lastMissileTimestamp;
-  int missiles;
+  int missiles, missileIndex;
 
 public:
-    MetalManMissileState(int missiles = 0);
+    MetalManMissileState(int missiles);
   ~MetalManMissileState();
 
   void OnEnter(MetalMan& p);

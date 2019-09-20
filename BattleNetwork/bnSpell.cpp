@@ -13,7 +13,7 @@ Spell::Spell(Field* field, Team team) : Entity() {
   SetLayer(1);
   SetTeam(team);
   SetField(field);
-  markTile = false;
+  mode = Battle::Tile::Highlight::none;
   hitboxProperties.flags = Hit::none;
 }
 
@@ -25,8 +25,8 @@ void Spell::Update(float _elapsed) {
 
   this->OnUpdate(_elapsed);
 }
-const bool Spell::IsTileHighlightEnabled() const {
-  return markTile;
+const Battle::Tile::Highlight Spell::GetTileHighlightMode() const {
+  return mode;
 }
 
 void Spell::AdoptTile(Battle::Tile * tile)
@@ -38,9 +38,9 @@ void Spell::AdoptTile(Battle::Tile * tile)
   }
 }
 
-void Spell::EnableTileHighlight(bool enable)
+void Spell::HighlightTile(Battle::Tile::Highlight mode)
 {
-  markTile = enable;
+  this->mode = mode;
 }
 
 void Spell::SetHitboxProperties(Hit::Properties props)

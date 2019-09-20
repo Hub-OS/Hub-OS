@@ -27,7 +27,6 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
   animation << Animator::Mode::Loop;
 
   target = nullptr;
-  EnableTileHighlight(false);
 
   AUDIO.Play(AudioType::THUNDER);
 

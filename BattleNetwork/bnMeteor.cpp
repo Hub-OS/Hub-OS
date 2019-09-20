@@ -12,6 +12,7 @@ Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, floa
   this->target = target;
   SetLayer(1);
 
+  this->HighlightTile(Battle::Tile::Highlight::flash);
 
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_METEOR);
   setTexture(*texture);
@@ -72,8 +73,6 @@ void Meteor::OnUpdate(float _elapsed) {
   }
 
   progress += _elapsed;
-
-  this->EnableTileHighlight(int(progress * 15) % 2);
 }
 
 bool Meteor::Move(Direction _direction) {

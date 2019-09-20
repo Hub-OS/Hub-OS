@@ -6,6 +6,10 @@
 #include "bnShaderResourceManager.h"
 #include "bnEngine.h"
 #include "bnNaviExplodeState.h"
+#include "bnMetalManMissileState.h"
+#include "bnMetalManMoveState.h"
+#include "bnMetalManPunchState.h"
+#include "bnMetalManThrowState.h"
 #include "bnObstacle.h"
 #include "bnHitBox.h"
 
@@ -13,7 +17,7 @@
 
 MetalMan::MetalMan(Rank _rank)
   :
-  AI<MetalMan>(this), Character(_rank) {
+  BossPatternAI<MetalMan>(this), Character(_rank) {
   name = "MetalMan";
   this->team = Team::BLUE;
 
@@ -49,6 +53,25 @@ MetalMan::MetalMan(Rank _rank)
   movedByStun = false;
 
   hit = false;
+
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManThrowState>();
+  this->AddState<MetalManPunchState>();
+  this->AddState<MetalManMissileState>(10);
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManThrowState>();
+  this->AddState<MetalManPunchState>();
+  this->AddState<MetalManPunchState>();
+  this->AddState<MetalManPunchState>();
+  this->AddState<MetalManMissileState>(10);
 }
 
 MetalMan::~MetalMan() {
@@ -87,7 +110,7 @@ void MetalMan::OnUpdate(float _elapsed) {
 
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
-  this->AI<MetalMan>::Update(_elapsed);
+  this->BossPatternAI<MetalMan>::Update(_elapsed);
 
   // Explode if health depleted
 
@@ -133,5 +156,5 @@ void MetalMan::SetAnimation(string _state, std::function<void()> onFinish) {
 }
 
 void MetalMan::OnDelete() {
-  this->ChangeState<NaviExplodeState<MetalMan>>(9, 0.75); // freezes animation
+  this->InterruptState<NaviExplodeState<MetalMan>>(9, 0.75); // freezes animation
 }

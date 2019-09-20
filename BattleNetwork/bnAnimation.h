@@ -96,6 +96,11 @@ public:
   void Update(float _elapsed, sf::Sprite& target, double playbackSpeed = 1.0);
   
   /**
+   * @brief Syncs the animation elapsed counter to one provided
+   */
+  void SyncTime(float newTime);
+
+  /**
    * @brief Sets progress to 0 and updates sprite. Same as a call to Update(0, target).
    * @param target
    */

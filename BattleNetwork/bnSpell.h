@@ -8,6 +8,7 @@
 
 #pragma once
 #include "bnEntity.h"
+#include "bnTile.h"
 #include "bnCharacter.h"
 #include "bnAnimationComponent.h"
 
@@ -24,9 +25,9 @@ public:
 
   /**
    * @brief Queried by Tile to highlight or not
-   * @return true if markTile is true, otherwise false
+   * @return Highlight mode
    */
-  const bool IsTileHighlightEnabled() const;
+  const Battle::Tile::Highlight GetTileHighlightMode() const;
 
   /**
    * @brief Implement OnUpdate required
@@ -54,12 +55,13 @@ public:
 
   /**
    * @brief Toggle whether or not to highlight a tile
-   * @param enable
+   * @param mode
    * 
-   * Can be toggled on over a short period of time to make the 
-   * yellow flashing effect seen in some attacks
+   * FLASH - flicker every other frame
+   * SOLID - Stay yellow
+   * NONE  - this is the default. No effects are applied.
    */
-  void EnableTileHighlight(bool enable);
+  void HighlightTile(Battle::Tile::Highlight mode);
 
   /**
    * @brief When an entity is hit, these are the hit properties it will use
@@ -76,6 +78,6 @@ public:
   virtual void OnDelete() { ;  }
 
 protected:
-  bool markTile; /*!< Highlight occupying tile */
+  Battle::Tile::Highlight mode; /*!< Highlight occupying tile */
   Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
 };

@@ -108,8 +108,8 @@ void Character::Update(float _elapsed) {
   } else if (this->stunCooldown > 0.0) {
     this->stunCooldown -= _elapsed;
 
-    // TODO: is this needed anymore?
-    setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
+    // TODO: is this needed here anymore?
+    // setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
     if (this->stunCooldown <= 0.0) {
       this->stunCooldown = 0.0;

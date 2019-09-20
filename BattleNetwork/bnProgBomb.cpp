@@ -35,9 +35,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   setOrigin(sf::Vector2f(19, 24) / 2.f);
   AUDIO.Play(AudioType::TOSS_ITEM);
 
-  // Quick fix for newly added entities not adjusting to tile on draw
-  // TODO: only have newly added entities draw who have been updated 
-  this->Hide();
+  this->HighlightTile(Battle::Tile::Highlight::flash);
 }
 
 ProgBomb::~ProgBomb(void) {
@@ -45,15 +43,6 @@ ProgBomb::~ProgBomb(void) {
 
 void ProgBomb::OnUpdate(float _elapsed) {
   arcProgress += _elapsed;
-
-  int flash = (int)(arcProgress * 15);
-
-  if (flash % 2 == 0) {
-    this->EnableTileHighlight(true);
-  }
-  else {
-    this->EnableTileHighlight(false);
-  }
 
   double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0f));
   double beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0f));

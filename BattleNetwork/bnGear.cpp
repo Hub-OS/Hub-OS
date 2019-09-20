@@ -12,7 +12,7 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), 
   this->SetName("MetalGear");
   this->SetTeam(_team);
   this->SetDirection(startDir);
-  this->EnableTileHighlight(true);
+  this->HighlightTile(Battle::Tile::Highlight::solid);
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);

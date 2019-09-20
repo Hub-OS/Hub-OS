@@ -15,7 +15,8 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
 
   //Components setup and load
   auto spawnNext = [this]() {
-    this->EnableTileHighlight(false);
+    this->HighlightTile(Battle::Tile::Highlight::none);
+
     Battle::Tile* nextTile = nullptr;
     Direction dir = Direction::NONE;
 
@@ -53,7 +54,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
 
   AUDIO.Play(AudioType::WAVE);
 
-  EnableTileHighlight(true);
+  this->HighlightTile(Battle::Tile::Highlight::solid);
 
   Logger::Log("Num of waves is: " + std::to_string(++Wave::numOf));
 }

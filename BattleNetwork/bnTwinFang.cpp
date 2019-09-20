@@ -45,8 +45,6 @@ TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_f
   props.flags |= Hit::flinch;
   this->SetHitboxProperties(props);
 
-  EnableTileHighlight(false);
-
   spreadOut = onEdgeOfMap = false;
 
   flickeroutTimer = 1; // in seconds

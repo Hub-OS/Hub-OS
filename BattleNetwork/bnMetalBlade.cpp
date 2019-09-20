@@ -30,8 +30,6 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, 
   props.damage = 40;
   props.flags |= Hit::flinch;
   this->SetHitboxProperties(props);
-
-  EnableTileHighlight(false);
 }
 
 MetalBlade::~MetalBlade() {

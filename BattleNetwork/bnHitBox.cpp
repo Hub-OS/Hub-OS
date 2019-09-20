@@ -14,8 +14,6 @@ HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
   auto props = Hit::DefaultProperties;
   props.damage = _damage;
   this->SetHitboxProperties(props);
-
-  EnableTileHighlight(false);
 }
 
 HitBox::~HitBox() {

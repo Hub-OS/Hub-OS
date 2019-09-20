@@ -8,10 +8,10 @@ using sf::IntRect;
 #include "bnMobHealthUI.h"
 #include "bnMetalManIdleState.h"
 #include "bnAnimationComponent.h"
-#include "bnAI.h"
+#include "bnBossPatternAI.h"
 
 /*! \brief Metalman is a boss that throws blades, fires rockets, and punches the ground */
-class MetalMan : public Character, public AI<MetalMan> {
+class MetalMan : public Character, public BossPatternAI<MetalMan> {
   friend class MetalManIdleState;
   friend class MetalManMoveState;
   friend class MetalManPunchState;

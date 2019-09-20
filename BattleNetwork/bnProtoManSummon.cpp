@@ -17,7 +17,6 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell(_summons->Ge
 {
   summons = _summons;
   SetPassthrough(true);
-  EnableTileHighlight(false); // Do not highlight where we move
   random = rand() % 20 - 20;
 
   int lr = (team == Team::RED) ? 1 : -1;

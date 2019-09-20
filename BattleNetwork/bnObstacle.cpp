@@ -8,7 +8,6 @@ Obstacle::Obstacle(Field* _field, Team _team) : Spell(_field, _team), Character(
 
   SetFloatShoe(true);
   SetLayer(1);
-  markTile = false;
   hitboxProperties.flags = Hit::none;
 }
 

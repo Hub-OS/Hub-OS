@@ -26,6 +26,7 @@ namespace Battle {
   float Tile::flickerTeamCooldownLength = FLICKER;
 
   Tile::Tile(int _x, int _y) : animation() {
+    totalElapsed = 0;
     x = _x;
     y = _y;
     if (x <= 3) {
@@ -43,7 +44,7 @@ namespace Battle {
     height = TILE_HEIGHT * getScale().y;
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
     setPosition((width/2.0f) + ((x - 1) * width) + START_X, (height/2.0f) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
-    hasSpell = false;
+    willHighlight = false;
     isBattleActive = false;
     brokenCooldown = 0;
     flickerTeamCooldown = teamCooldown = 0;
@@ -51,6 +52,8 @@ namespace Battle {
 
     burncycle = 0.12; // milliseconds
     elapsedBurnTime = burncycle;
+
+    highlightMode = Highlight::none;
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -58,6 +61,7 @@ namespace Battle {
     x = other.x;
     y = other.y;
 
+    totalElapsed = other.totalElapsed;
     team = other.team;
     state = other.state;
     RefreshTexture();
@@ -68,7 +72,7 @@ namespace Battle {
     height = other.height;
     animState = other.animState;
     setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
-    hasSpell = other.hasSpell;
+    willHighlight = other.willHighlight;
     reserved = other.reserved;
     characters = other.characters;
     spells = other.spells;
@@ -82,6 +86,8 @@ namespace Battle {
     animation = other.animation;
     burncycle = other.burncycle;
     elapsedBurnTime = other.elapsedBurnTime;
+    highlightMode = other.highlightMode;
+
 
     return *this;
   }
@@ -92,6 +98,7 @@ namespace Battle {
     x = other.x;
     y = other.y;
 
+    totalElapsed = other.totalElapsed;
     team = other.team;
     state = other.state;
     RefreshTexture();
@@ -102,7 +109,7 @@ namespace Battle {
     height = other.height;
     animState = other.animState;
     setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
-    hasSpell = other.hasSpell;
+    willHighlight = other.willHighlight;
     isBattleActive = other.isBattleActive;
     reserved = other.reserved;
     characters = other.characters;
@@ -116,6 +123,8 @@ namespace Battle {
     animation = other.animation;
     burncycle = other.burncycle;
     elapsedBurnTime = other.elapsedBurnTime;
+    highlightMode = other.highlightMode;
+
   }
 
   Tile::~Tile() {
@@ -247,7 +256,7 @@ namespace Battle {
   }
 
   bool Tile::IsHighlighted() const {
-    return hasSpell;
+    return willHighlight;
   }
 
   bool Tile::IsReservedByCharacter()
@@ -406,7 +415,8 @@ namespace Battle {
 
   */
   void Tile::Update(float _elapsed) {
-    hasSpell = false;
+    willHighlight = false;
+    totalElapsed += _elapsed;
 
     if (isBattleActive) {
         // LAVA TILES
@@ -433,25 +443,6 @@ namespace Battle {
           delete ptr;
           continue;
         }
-
-        /*auto fitSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
-        auto fitChar = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
-        auto fitArt = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
-
-        // Remove them from the tile's bucket
-        if (fitSpell != spells.end()) {
-          spells.erase(fitSpell);
-        }
-
-        if (fitChar != characters.end()) {
-          characters.erase(fitChar);
-        }
-
-        if (fitArt != artifacts.end()) {
-          artifacts.erase(fitArt);
-        }*/
-
-        // update the iterator
       }
       else {
         entities[i]->SetBattleActive(this->isBattleActive);
@@ -469,13 +460,19 @@ namespace Battle {
       (*entity)->Update(_elapsed);
     }
 
+    this->highlightMode = Highlight::none;
+
     vector<Spell*> spells_copy = spells;
     for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
 
       if ((*entity)->IsDeleted() || (*entity) == nullptr)
         continue;
 
-      hasSpell = hasSpell || (*entity)->IsTileHighlightEnabled();
+      int request = (int)(*entity)->GetTileHighlightMode();
+
+      if (request > (int)highlightMode) {
+        highlightMode = (Highlight)request;
+      }
 
       (*entity)->Update(_elapsed);
     }
@@ -513,7 +510,19 @@ namespace Battle {
 
     this->RefreshTexture();
 
-    animation.Update(_elapsed, *this);
+    animation.SyncTime(totalElapsed);
+    animation.Refresh(*this);
+
+    switch (highlightMode) {
+    case Highlight::solid:
+      willHighlight = true;
+      break;
+    case Highlight::flash:
+      willHighlight = (int)(totalElapsed * 15) % 2 == 0;
+      break;
+    default:
+      willHighlight = false;
+    }
 
     // animation will want to reset the sprite's origin. Prevent this.
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);

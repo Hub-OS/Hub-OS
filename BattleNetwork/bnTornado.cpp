@@ -22,7 +22,7 @@ Tornado::Tornado(Field* _field, Team _team, int damage) : damage(damage), Spell(
   animation << onFinish;
   animation.Update(0, *this);
 
-  EnableTileHighlight(true);
+  this->HighlightTile(Battle::Tile::Highlight::solid);
 
   auto props = GetHitboxProperties();
   props.flags &= ~Hit::recoil;

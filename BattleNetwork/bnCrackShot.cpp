@@ -34,8 +34,6 @@ CrackShot::CrackShot(Field* _field, Team _team, Battle::Tile* tile) : Spell(_fie
   auto props = Hit::DefaultProperties;
   props.flags |= Hit::flinch;
   this->SetHitboxProperties(props);
-
-  EnableTileHighlight(false);
 }
 
 CrackShot::~CrackShot() {

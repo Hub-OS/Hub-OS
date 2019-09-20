@@ -21,7 +21,7 @@ BasicSword::BasicSword(Field* _field, Team _team, int _damage) : Spell(_field, _
   hit = false;
   cooldown = 0;
 
-  EnableTileHighlight(true);
+  this->HighlightTile(Battle::Tile::Highlight::solid);
 
   auto  props = GetHitboxProperties();;
   props.damage = _damage;

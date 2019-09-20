@@ -17,7 +17,6 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell(_summons->Get
 {
   summons = _summons;
   SetPassthrough(true);
-  EnableTileHighlight(false); // Do not highlight where we move
 
   random = rand() % 20 - 20;
 

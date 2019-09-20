@@ -20,7 +20,7 @@ void AlphaGunState::OnUpdate(float _elapsed, AlphaCore& a) {
   if (cooldown <= 0) {
     if (last) {
       auto v = new Vulcan(a.GetField(), a.GetTeam(), 40);
-      v->EnableTileHighlight(true);
+      v->HighlightTile(Battle::Tile::Highlight::solid);
       a.GetField()->AddEntity(*v, last->GetX(), last->GetY());
     }
 

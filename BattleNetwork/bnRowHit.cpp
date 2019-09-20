@@ -24,8 +24,6 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_f
   animation.SetAnimation("HIT");
   animation << Animator::On(3, onFrameTwo, true) << onFinish;
   animation.Update(0, *this);
-
-  EnableTileHighlight(false);
 }
 
 RowHit::~RowHit() {

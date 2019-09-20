@@ -17,7 +17,8 @@ RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spel
   summons->GetCaller()->Reveal();
 
   SetPassthrough(true);
-  EnableTileHighlight(true);
+
+  this->HighlightTile(Battle::Tile::Highlight::solid);
 
   height = 200;
 

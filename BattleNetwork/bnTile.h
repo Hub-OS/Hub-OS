@@ -41,8 +41,14 @@ class Artifact;
 namespace Battle {
   class Tile : public Sprite {
   public:
-      friend Field::Field(int _width, int _height);
-      friend void Field::Update(float _elapsed);
+    enum class Highlight : int {
+      none = 0,
+      solid = 1,
+      flash = 2
+    };
+
+    friend Field::Field(int _width, int _height);
+    friend void Field::Update(float _elapsed);
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.
@@ -152,7 +158,7 @@ namespace Battle {
      * The boolean is toggled in the Tile's Update() loop 
      * In the battle scene, if a tile is highlighted, it will use the
      * yellow luminocity shader to highlight the tile.
-     * @return true if tile should be highlighted
+     * @return true if tile will be highlighted
      */
     bool IsHighlighted() const;
 
@@ -271,7 +277,9 @@ namespace Battle {
     static float brokenCooldownLength;
     float flickerTeamCooldown;
     static float flickerTeamCooldownLength;
-    bool hasSpell; /**< Highlights when there is a spell occupied in this tile */
+    float totalElapsed;
+    bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
+    Highlight highlightMode;
     bool isBattleActive;
 
     double elapsedBurnTime;

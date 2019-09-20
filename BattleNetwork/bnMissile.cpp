@@ -79,8 +79,11 @@ void Missile::OnUpdate(float _elapsed) {
 
         progress += _elapsed;
 
-        this->EnableTileHighlight(int(progress*15)%2);
+        this->HighlightTile(Battle::Tile::Highlight::flash);
+
     } else {
+        this->HighlightTile(Battle::Tile::Highlight::none);
+
         double beta = swoosh::ease::linear(progress, duration, 1.0);
 
         double posX = tile->getPosition().x + 16.0f;
