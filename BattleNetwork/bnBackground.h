@@ -33,11 +33,16 @@ protected:
  
   /**
    * @brief Offsets the texture area to do animated backgrounds from spritesheets
-   * @param _offset in pixels [0, textureSize]
+   * @param _offset in pixels from 0 -> textureSize
    */
   void TextureOffset(sf::Vector2f _offset) {
     textureRect.left = (int)_offset.x;
     textureRect.top  = (int)_offset.y;
+  }
+
+  void TextureOffset(const sf::IntRect& _offset) {
+    textureRect.left = (int)_offset.left;
+    textureRect.top = (int)_offset.top;
   }
 
   /**

@@ -90,6 +90,10 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
       this->GetField()->AddEntity(*new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
     }, std::function<void()>(), true);
   }
+  else {
+    // Last explosion happens behind entities
+    this->SetLayer(1000); // ensure bottom draw
+  }
 
   this->RegisterComponent(animationComponent);
 }

@@ -8,7 +8,6 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-#include "bnGuardHit.h"
 #include "bnGear.h" 
 
 #define COOLDOWN 40.0f/1000.0f
@@ -64,15 +63,9 @@ Buster::~Buster() {
 }
 
 void Buster::OnUpdate(float _elapsed) {
-  if (spawnGuard) {
-    field->AddEntity(*new GuardHit(field, contact), this->tile->GetX(), this->tile->GetY());
-    spawnGuard = false;
-    this->Delete();
-    return;
-  }
-
   if (hit) {
     if (progress == 0.0f) {
+      animationComponent->SetAnimation("HIT");
       setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
     }
     progress += 5 * _elapsed;
@@ -105,12 +98,6 @@ bool Buster::CanMoveTo(Battle::Tile * next)
 }
 
 void Buster::Attack(Character* _entity) {
-  if (dynamic_cast<Gear*>(_entity)) {
-    spawnGuard = true;
-    contact = _entity;
-    return;
-  }
-
   if (_entity->Hit(this->GetHitboxProperties())) {
     hit = true;  
 

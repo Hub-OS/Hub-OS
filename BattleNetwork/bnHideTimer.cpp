@@ -13,8 +13,11 @@ HideTimer::HideTimer(Character* owner, double secs) : Component(owner) {
 }
 
 void HideTimer::OnUpdate(float _elapsed) {
-  if (!this->scene || !this->scene->IsBattleActive())
-    return;
+  if(!this->scene) return;
+
+  if (!this->scene->IsCleared() && !this->scene->IsBattleActive()) {
+      return;
+  }
 
   elapsed += _elapsed;
 

@@ -1,0 +1,8 @@
+imagePath="RoboControlPCbg_compressed.png"
+
+animation state="BG"
+frame duration="0.2" x="0" y="0" w="64" h="64" originx="0" originy="0"
+frame duration="0.2" x="64" y="0" w="64" h="64" originx="0" originy="0"
+frame duration="0.2" x="128" y="0" w="64" h="64" originx="0" originy="0"
+frame duration="0.2" x="0" y="64" w="64" h="64" originx="0" originy="0"
+frame duration="0.2" x="64" y="64" w="64" h="64" originx="0" originy="0"

@@ -47,9 +47,9 @@ void MetridMoveState::OnUpdate(float _elapsed, Metrid& met) {
   int teley = 0;
 
   if (myteam.size() > 0) {
-    int randIndex = rand() % myteam.size();
-    telex = myteam[randIndex]->GetX();
-    teley = myteam[randIndex]->GetY();
+      int randIndex = rand() % myteam.size();
+      telex = myteam[randIndex]->GetX();
+      teley = myteam[randIndex]->GetY();
   }
 
   bool moved = (myteam.size() > 0) && met.Teleport(telex, teley);

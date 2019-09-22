@@ -23,7 +23,7 @@ private:
   AIState<CharacterT>* stateMachine; /*!< State machine responsible for state management */
   CharacterT* ref; /*!< AI of this instance */
   int lock; /*!< Whether or not a state is locked */
-  bool isUpdating;
+  bool isUpdating; /*!< Safely ignore any extra Update() requests */
   AIState<CharacterT>* queuedState;
 protected:
   /**

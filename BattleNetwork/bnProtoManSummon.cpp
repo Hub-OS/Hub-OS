@@ -47,7 +47,7 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell(_summons->Ge
 		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
 
 		auto characters = prev->FindEntities([_summons](Entity* in) {
-			return _summons->GetCaller() != in && (dynamic_cast<Character*>(in) && !dynamic_cast<Character*>(in)  && in->GetTeam() != Team::UNKNOWN);
+			return _summons->GetCaller() != in && (dynamic_cast<Character*>(in) && !dynamic_cast<Obstacle*>(in)  && in->GetTeam() != Team::UNKNOWN);
 		});
 
 	    bool blocked = (characters.size() > 0) || !prev->IsWalkable();

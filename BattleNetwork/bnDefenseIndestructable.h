@@ -10,9 +10,10 @@
  *
  */
 class DefenseIndestructable : public DefenseRule {
+  bool breakCollidingObjectOnHit; /*!< Whether or not colliding objects delete on contact. This does will not resolve true for entity->Hit() calls */
 
 public:
-  DefenseIndestructable();
+  DefenseIndestructable(bool breakCollidingObjectOnHit = false);
 
   virtual ~DefenseIndestructable();
 

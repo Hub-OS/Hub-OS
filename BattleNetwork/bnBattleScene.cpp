@@ -3,6 +3,12 @@
 #include "bnChipLibrary.h"
 #include "bnGameOverScene.h"
 #include "bnUndernetBackground.h"
+#include "bnWeatherBackground.h"
+#include "bnRobotBackground.h"
+#include "bnMedicalBackground.h"
+#include "bnACDCBackground.h"
+#include "bnMiscBackground.h"
+#include "bnJudgeTreeBackground.h"
 #include "bnPlayerHealthUI.h"
 #include "Android/bnTouchArea.h"
 
@@ -57,7 +63,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   background = mob->GetBackground();
 
   if (!background) {
-    int randBG = rand() % 3;
+    int randBG = rand() % 9;
 
     if (randBG == 0) {
       background = new LanBackground();
@@ -67,6 +73,24 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
     }
     else if (randBG == 2) {
       background = new VirusBackground();
+    }
+    else if (randBG == 3) {
+      background = new WeatherBackground();
+    }
+    else if (randBG == 4) {
+      background = new RobotBackground();
+    }
+    else if (randBG == 5) {
+      background = new MedicalBackground();
+    }
+    else if (randBG == 6) {
+      background = new ACDCBackground();
+    }
+    else if (randBG == 7) {
+      background = new MiscBackground();
+    }
+    else if (randBG == 8) {
+      background = new JudgeTreeBackground();
     }
   }
 
@@ -976,14 +1000,14 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
         }
         else if (performed) {
-          AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGH);
+          AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGHEST);
         }
         else {
           AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
         }
       }
       else if (INPUT.Has(PRESSED_B) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
-        chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGH) : 1;
+        chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGHEST) : 1;
       }
       else if (INPUT.Has(PRESSED_RPAD)) {
         chipCustGUI.OpenChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;

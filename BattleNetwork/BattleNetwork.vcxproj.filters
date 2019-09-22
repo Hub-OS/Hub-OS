@@ -590,6 +590,39 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\YoYo">
       <UniqueIdentifier>{22d03e9f-9935-4911-a044-f6c63b52dfba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Weather">
+      <UniqueIdentifier>{be0228f7-6606-4dba-9003-0cd628e605bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Graveyard">
+      <UniqueIdentifier>{62fe01fb-e1c2-4bc9-966c-71f72bce4827}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Grid">
+      <UniqueIdentifier>{fe4848e8-f366-4e76-bbb5-0f7e0d05933f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Lan">
+      <UniqueIdentifier>{5c46e6c7-b5a1-4dfd-83b2-e3d93877057b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Undernet">
+      <UniqueIdentifier>{5ab3f75a-e1dd-414a-9b4a-bc057de09a23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Virus">
+      <UniqueIdentifier>{30ce87ba-fb7c-478d-9be9-9eb8851e81bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\ACDC">
+      <UniqueIdentifier>{24d1603c-170f-4130-85a5-1993acd31ebc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Misc">
+      <UniqueIdentifier>{f5baa907-dcd2-4541-90aa-f2b38fcfe2c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\JudgeTree">
+      <UniqueIdentifier>{a1de2ab9-6a64-4dea-9bb2-210fbcbfecf5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Medical">
+      <UniqueIdentifier>{1d85f951-3b9f-4e5f-aa78-5b24f444f721}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Robot">
+      <UniqueIdentifier>{70fdd773-8bb0-41f5-a969-480a7dd63342}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -712,15 +745,6 @@
     <ClCompile Include="bnBasicSword.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Sword\Basic</Filter>
     </ClCompile>
-    <ClCompile Include="bnLanBackground.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
-    </ClCompile>
-    <ClCompile Include="bnGraveyardBackground.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
-    </ClCompile>
-    <ClCompile Include="bnVirusBackground.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
-    </ClCompile>
     <ClCompile Include="bnProgsManBossFight.cpp">
       <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\ProgsMan</Filter>
     </ClCompile>
@@ -780,9 +804,6 @@
     </ClCompile>
     <ClCompile Include="bnNaviRegistration.cpp">
       <Filter>Engine\Addons\NaviRegistration</Filter>
-    </ClCompile>
-    <ClCompile Include="bnGridBackground.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
     </ClCompile>
     <ClCompile Include="bnRoll.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Roll</Filter>
@@ -888,9 +909,6 @@
     </ClCompile>
     <ClCompile Include="bnThunder.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Thunder</Filter>
-    </ClCompile>
-    <ClCompile Include="bnUndernetBackground.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
     </ClCompile>
     <ClCompile Include="bnExplosion.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Explosion\Basic</Filter>
@@ -1144,6 +1162,39 @@
     <ClCompile Include="bnYoYo.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\YoYo</Filter>
     </ClCompile>
+    <ClCompile Include="bnGraveyardBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Graveyard</Filter>
+    </ClCompile>
+    <ClCompile Include="bnGridBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Grid</Filter>
+    </ClCompile>
+    <ClCompile Include="bnLanBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Lan</Filter>
+    </ClCompile>
+    <ClCompile Include="bnVirusBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Virus</Filter>
+    </ClCompile>
+    <ClCompile Include="bnUndernetBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Undernet</Filter>
+    </ClCompile>
+    <ClCompile Include="bnWeatherBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Weather</Filter>
+    </ClCompile>
+    <ClCompile Include="bnRobotBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Robot</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMedicalBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Medical</Filter>
+    </ClCompile>
+    <ClCompile Include="bnACDCBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\ACDC</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMiscBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="bnJudgeTreeBackground.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\JudgeTree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -1315,15 +1366,6 @@
     <ClInclude Include="bnFileUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="bnLanBackground.h">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
-    </ClInclude>
-    <ClInclude Include="bnGraveyardBackground.h">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
-    </ClInclude>
-    <ClInclude Include="bnVirusBackground.h">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
-    </ClInclude>
     <ClInclude Include="bnProgsManBossFight.h">
       <Filter>Engine\Addons\MobRegistration\MobFactories\Boss\ProgsMan</Filter>
     </ClInclude>
@@ -1401,9 +1443,6 @@
     </ClInclude>
     <ClInclude Include="bnBackground.h">
       <Filter>Prefabs\Background</Filter>
-    </ClInclude>
-    <ClInclude Include="bnGridBackground.h">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
     <ClInclude Include="bnRoll.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Roll</Filter>
@@ -1560,9 +1599,6 @@
     </ClInclude>
     <ClInclude Include="bnInputEvent.h">
       <Filter>Enumerations</Filter>
-    </ClInclude>
-    <ClInclude Include="bnUndernetBackground.h">
-      <Filter>Scenes/Activities\Battle\Content\Backgrounds</Filter>
     </ClInclude>
     <ClInclude Include="bnNaviExplodeState.h">
       <Filter>Scenes/Activities\Battle\Content\AI\Any\States</Filter>
@@ -1845,6 +1881,39 @@
     </ClInclude>
     <ClInclude Include="bnYoYo.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\YoYo</Filter>
+    </ClInclude>
+    <ClInclude Include="bnGraveyardBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Graveyard</Filter>
+    </ClInclude>
+    <ClInclude Include="bnGridBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Grid</Filter>
+    </ClInclude>
+    <ClInclude Include="bnLanBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Lan</Filter>
+    </ClInclude>
+    <ClInclude Include="bnVirusBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Virus</Filter>
+    </ClInclude>
+    <ClInclude Include="bnUndernetBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Undernet</Filter>
+    </ClInclude>
+    <ClInclude Include="bnWeatherBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Weather</Filter>
+    </ClInclude>
+    <ClInclude Include="bnRobotBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Robot</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMedicalBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Medical</Filter>
+    </ClInclude>
+    <ClInclude Include="bnACDCBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\ACDC</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMiscBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="bnJudgeTreeBackground.h">
+      <Filter>Scenes/Activities\Battle\Content\Backgrounds\JudgeTree</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

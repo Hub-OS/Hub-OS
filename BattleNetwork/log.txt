@@ -1,5 +1,5 @@
-StartTime 1568983997
-Engine initialized: 0.618000 secs
+StartTime 1569113173
+Engine initialized: 0.548000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -131,7 +131,7 @@ Loaded texture: resources/ui/light.png
 Loaded texture: resources/fonts/all_fonts.png
 Loaded texture: resources/backgrounds/config/audio.png
 Loaded texture: resources/backgrounds/config/end_btn.png
-Loaded textures: 0.289000 secs
+Loaded textures: 0.224000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -148,7 +148,7 @@ Loaded shader: resources/shaders/glsl_110/spot_reflection
 Loaded shader: resources/shaders/glsl_110/transition
 Loaded shader: resources/shaders/glsl_110/chip_reveal
 Loaded shader: resources/shaders/glsl_110/wire
-Loaded shaders: 0.054000 secs
+Loaded shaders: 0.009000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -193,11 +193,11 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.376000 secs
+Loaded audio sources: 0.204000 secs
 Loaded navi: Megaman
 Loaded navi: Starman
 Loaded navi: Roll
-Loaded registered navis: 0.053000 secs
+Loaded registered navis: 0.042000 secs
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
 Loaded texture: resources/mobs/starfish/preview.png
@@ -216,8 +216,8 @@ Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.178000 secs
-library size: 94
+Loaded registered mobs: 0.183000 secs
+library size: 97
 Loaded texture: resources/backgrounds/lan/bg.png
 main menu onStart
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
@@ -229,7 +229,7 @@ Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/backgrounds/judge_tree/bg.png
 Loaded texture: resources/ui/img_health.png
 Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
 Loaded font: resources/fonts/dr_cain_terminal.ttf
@@ -239,24 +239,121 @@ SelectMobScene::onLeave()
 SelectMobScene::onExit()
 comboDeleteCounter reset
 comboDeleteCounter reset
-Loaded texture: resources/spells/AirShot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/AirShot.png
+Loaded texture: resources/spells/buster_yoyo.png
 pushing states
 Mettaur OnHit
 lastMobSize: 2
 newMobSize: 1
 multiDeleteTimer: 0.000000
+Loaded texture: resources/spells/buster_yoyo.png
 Num of waves is: 1
 pushing states
+Mettaur OnHit
 Num of waves is: 2
 Num of waves is: 3
 Num of waves is: 4
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/medical/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+pushing states
+Mettaur OnHit
 Num of waves is: 5
 Num of waves is: 6
+Num of waves is: 7
+pushing states
+Mettaur OnHit
+Num of waves is: 8
+Num of waves is: 9
+Num of waves is: 10
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Mettaur OnHit
+lastMobSize: 2
+newMobSize: 1
+multiDeleteTimer: 0.000000
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Mettaur OnHit
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/weather/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
 comboDeleteCounter reset
-Loaded texture: resources/spells/protoman_summon.png
+comboDeleteCounter reset
+Num of waves is: 11
+Num of waves is: 12
+Num of waves is: 13
+Num of waves is: 14
+Num of waves is: 15
+Num of waves is: 16
+Num of waves is: 17
+Num of waves is: 18
+Num of waves is: 19
+Num of waves is: 20
+Num of waves is: 21
+Loaded texture: resources/spells/buster_yoyo.png
+Num of waves is: 22
+pushing states
+Mettaur OnHit
+lastMobSize: 2
+newMobSize: 1
+multiDeleteTimer: 0.000000
+Num of waves is: 23
+Num of waves is: 24
+Num of waves is: 25
+Num of waves is: 26
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Mettaur OnHit
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/weather/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Mettaur OnHit
+lastMobSize: 2
+newMobSize: 1
+multiDeleteTimer: 0.000000
+Loaded texture: resources/spells/buster_yoyo.png
 pushing states
 Mettaur OnHit
 Loaded font: resources/fonts/mmbnthick_regular.ttf
@@ -276,6 +373,14 @@ SelectMobScene::onLeave()
 SelectMobScene::onExit()
 comboDeleteCounter reset
 comboDeleteCounter reset
-comboDeleteCounter reset
+Loaded texture: resources/spells/buster_yoyo.png
 pushing states
+Mettaur OnHit
+lastMobSize: 2
+newMobSize: 1
+multiDeleteTimer: 0.000000
 pushing states
+Mettaur OnHit
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()

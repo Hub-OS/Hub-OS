@@ -9,6 +9,10 @@
 // For more retro experience, decrease available channels.
 #define NUM_OF_CHANNELS 10
 
+// Prevent duplicate sounds from stacking on same frame
+// Allows duplicate audio samples to play in X ms apart from eachother
+#define AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS 58 // 58ms = ~3.5 frames
+
 /**
   * @class AudioPriority
   * @brief Each priority describes how or if a playing sample should be interrupted

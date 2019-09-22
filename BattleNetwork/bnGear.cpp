@@ -33,7 +33,7 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), 
 
   tileStartTeam = Team::UNKNOWN;
 
-  AddDefenseRule(new DefenseIndestructable());
+  AddDefenseRule(new DefenseIndestructable(true));
 }
 
 Gear::~Gear() {

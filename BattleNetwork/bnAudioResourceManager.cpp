@@ -123,6 +123,19 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
     return -1;
   }
 
+  // Annoying sound check. Make sure duplicate sounds are played only by a given amount of offset from the last time it was played.
+  // This prevents amplitude stacking when duplicate sounds are played on the same frame...
+  // NOTE: an audio queue would be a better place for this check. Then play() those sounds that pass the queue filter.
+  if (priority != AudioPriority::HIGH) {
+    for (int i = 0; i < NUM_OF_CHANNELS; i++) {
+      if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
+        auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
+        if (howLongPlayed < AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
+          return -1;
+        }
+      }
+    }
+  }
 
   // Priorities are LOWEST  (one at a time, if channel available),
   //                LOW     (any free channels),
@@ -133,6 +146,9 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   // Highest priority plays over anything that isn't like it
   if (priority == AudioPriority::HIGHEST) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
+      if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type]) {
+
+      }
       if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || (sf::SoundBuffer*)channels[i].buffer.getBuffer() != &sources[type]) {
         channels[i].buffer.stop();
         channels[i].buffer.setBuffer(sources[type]);

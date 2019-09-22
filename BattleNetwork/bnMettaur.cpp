@@ -60,6 +60,7 @@ void Mettaur::OnDelete() {
   delete virusBody;
 
   this->ChangeState<ExplodeState<Mettaur>>();
+  this->LockState();
 
   if (Mettaur::metIDs.size() > 0) {
       vector<int>::iterator it = find(Mettaur::metIDs.begin(), Mettaur::metIDs.end(), metID);

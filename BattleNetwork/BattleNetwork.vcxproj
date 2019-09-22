@@ -179,6 +179,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Android\bnTouchArea.cpp" />
+    <ClCompile Include="bnACDCBackground.cpp" />
     <ClCompile Include="bnAirShot.cpp" />
     <ClCompile Include="bnAirShotChipAction.cpp" />
     <ClCompile Include="bnAlphaArm.cpp" />
@@ -245,6 +246,7 @@
     <ClCompile Include="bnHideUntil.cpp" />
     <ClCompile Include="bnHitBox.cpp" />
     <ClCompile Include="bnInfiniteMap.cpp" />
+    <ClCompile Include="bnJudgeTreeBackground.cpp" />
     <ClCompile Include="bnLanBackground.cpp" />
     <ClCompile Include="bnBattleResults.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -263,6 +265,7 @@
     <ClCompile Include="bnLibraryScene.cpp" />
     <ClCompile Include="bnLogger.cpp" />
     <ClCompile Include="bnMainMenuScene.cpp" />
+    <ClCompile Include="bnMedicalBackground.cpp" />
     <ClCompile Include="bnMegalian.cpp" />
     <ClCompile Include="bnMegalianIdleState.cpp" />
     <ClCompile Include="bnMetalBlade.cpp" />
@@ -283,6 +286,7 @@
     <ClCompile Include="bnMettaurIdleState.cpp" />
     <ClCompile Include="bnMettaurMoveState.cpp" />
     <ClCompile Include="bnMiniBomb.cpp" />
+    <ClCompile Include="bnMiscBackground.cpp" />
     <ClCompile Include="bnMissile.cpp" />
     <ClCompile Include="bnMobHealthUI.cpp" />
     <ClCompile Include="bnMobMoveEffect.cpp" />
@@ -312,6 +316,7 @@
     <ClCompile Include="bnReflectChipAction.cpp" />
     <ClCompile Include="bnReflectShield.cpp" />
     <ClCompile Include="bnRingExplosion.cpp" />
+    <ClCompile Include="bnRobotBackground.cpp" />
     <ClCompile Include="bnRockDebris.cpp" />
     <ClCompile Include="bnRoll.cpp" />
     <ClCompile Include="bnRollHeal.cpp" />
@@ -355,6 +360,7 @@
     <ClCompile Include="bnCanonSmoke.cpp" />
     <ClCompile Include="bnInvis.cpp" />
     <ClCompile Include="bnDefenseIndestructable.cpp" />
+    <ClCompile Include="bnWeatherBackground.cpp" />
     <ClCompile Include="bnYoYo.cpp" />
     <ClCompile Include="bnYoYoChipAction.cpp" />
     <ClCompile Include="main.cpp">
@@ -373,6 +379,7 @@
   <ItemGroup>
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
     <ClInclude Include="Android\bnTouchArea.h" />
+    <ClInclude Include="bnACDCBackground.h" />
     <ClInclude Include="bnAirShot.h" />
     <ClInclude Include="bnAirShotChipAction.h" />
     <ClInclude Include="bnAlphaArm.h" />
@@ -444,7 +451,9 @@
     <ClInclude Include="bnHitProperties.h" />
     <ClInclude Include="bnDefenseIndestructable.h" />
     <ClInclude Include="bnInvis.h" />
+    <ClInclude Include="bnJudgeTreeBackground.h" />
     <ClInclude Include="bnLibraryScene.h" />
+    <ClInclude Include="bnMedicalBackground.h" />
     <ClInclude Include="bnMegalian.h" />
     <ClInclude Include="bnMegalianIdleState.h" />
     <ClInclude Include="bnMetalBlade.h" />
@@ -464,6 +473,7 @@
     <ClInclude Include="bnMetridMoveState.h" />
     <ClInclude Include="bnMetridMoveState.cpp" />
     <ClInclude Include="bnMiniBomb.h" />
+    <ClInclude Include="bnMiscBackground.h" />
     <ClInclude Include="bnMissile.h" />
     <ClInclude Include="bnMobMoveEffect.h" />
     <ClInclude Include="bnMobRegistration.h" />
@@ -481,6 +491,7 @@
     <ClInclude Include="bnReflectChipAction.h" />
     <ClInclude Include="bnReflectShield.h" />
     <ClInclude Include="bnRingExplosion.h" />
+    <ClInclude Include="bnRobotBackground.h" />
     <ClInclude Include="bnRoll.h" />
     <ClInclude Include="bnRollHeart.h" />
     <ClInclude Include="bnRowHit.h" />
@@ -588,6 +599,7 @@
     <ClInclude Include="bnChipFolderCollection.h" />
     <ClInclude Include="bnNaviExplodeState.h" />
     <ClInclude Include="bnDefenseRule.h" />
+    <ClInclude Include="bnWeatherBackground.h" />
     <ClInclude Include="bnYoYo.h" />
     <ClInclude Include="bnYoYoChipAction.h" />
     <ClInclude Include="resource.h" />
