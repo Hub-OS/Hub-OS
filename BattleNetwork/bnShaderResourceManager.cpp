@@ -106,6 +106,7 @@ ShaderResourceManager::ShaderResourceManager(void) {
     paths[(int)ShaderType::CHIP_REVEAL] = std::string() + "resources/shaders/" + version + "/chip_reveal";
     paths[(int)ShaderType::BADGE_WIRE] = std::string() + "resources/shaders/" + version + "/wire";
     paths[(int)ShaderType::TRANSITION] = std::string() + "resources/shaders/" + version + "/transition";
+    paths[(int)ShaderType::COLORIZE] = std::string() + "resources/shaders/" + version + "/colorize";
 }
 
 ShaderResourceManager::~ShaderResourceManager(void) {

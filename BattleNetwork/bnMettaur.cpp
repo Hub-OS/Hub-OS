@@ -35,7 +35,7 @@ Mettaur::Mettaur(Rank _rank)
     animationComponent->SetAnimation("IDLE");
   }
 
-  hitHeight = 0;
+  hitHeight = 60;
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_METTAUR));
 

@@ -133,6 +133,8 @@ public:
   * Will overwrite any other point with the same name in the frame - unique names only
   */
   void SetPoint(const std::string& name, int x, int y) {
+    auto str = name;
+    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
     frames[frames.size() - 1].points[name] = sf::Vector2f(float(x), float(y));
   }
 
@@ -254,11 +256,13 @@ public:
   char GetMode() { return playbackMode;  }
   
   const sf::Vector2f GetPoint(const std::string& pointName) {
-    if(currentPoints.find(pointName) == currentPoints.end()) {
-        Logger::Log("Could not find point in current sequence named " + pointName);
+    auto str = pointName;
+    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+    if(currentPoints.find(str) == currentPoints.end()) {
+        Logger::Log("Could not find point in current sequence named " + str);
         return sf::Vector2f();
     }
-    return currentPoints[pointName];
+    return currentPoints[str];
   }
   
   /**

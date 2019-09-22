@@ -43,7 +43,7 @@ Metrid::Metrid(Rank _rank)
     SetHealth(150);
   }
 
-  hitHeight = 0;
+  hitHeight = 60;
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_METRID));
   setScale(2.f, 2.f);

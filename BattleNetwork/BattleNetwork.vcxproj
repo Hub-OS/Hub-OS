@@ -189,6 +189,8 @@
     <ClCompile Include="bnAlphaElectricState.cpp" />
     <ClCompile Include="bnAlphaGunState.cpp" />
     <ClCompile Include="bnAlphaIdleState.cpp" />
+    <ClCompile Include="bnAlphaRocket.cpp" />
+    <ClCompile Include="bnAlphaRocketState.cpp" />
     <ClCompile Include="bnAnimator.cpp" />
     <ClCompile Include="bnAnimatedCharacter.cpp" />
     <ClCompile Include="bnAnimatedTextBox.cpp" />
@@ -237,6 +239,7 @@
     <ClCompile Include="bnFolderChangeNameScene.cpp" />
     <ClCompile Include="bnFolderEditScene.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />
+    <ClCompile Include="bnForte.cpp" />
     <ClCompile Include="bnGameOverScene.cpp" />
     <ClCompile Include="bnGear.cpp" />
     <ClCompile Include="bnGraveyardBackground.cpp" />
@@ -333,6 +336,7 @@
     <ClCompile Include="bnStarfishIdleState.cpp" />
     <ClCompile Include="bnStarfishMob.cpp" />
     <ClCompile Include="bnStarman.cpp" />
+    <ClCompile Include="bnSuperVulcan.cpp" />
     <ClCompile Include="bnSwordEffect.cpp" />
     <ClCompile Include="bnThunder.cpp" />
     <ClCompile Include="bnTile.cpp" />
@@ -389,6 +393,8 @@
     <ClInclude Include="bnAlphaElectricState.h" />
     <ClInclude Include="bnAlphaGunState.h" />
     <ClInclude Include="bnAlphaIdleState.h" />
+    <ClInclude Include="bnAlphaRocket.h" />
+    <ClInclude Include="bnAlphaRocketState.h" />
     <ClInclude Include="bnAnimator.h" />
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
@@ -442,6 +448,7 @@
     <ClInclude Include="bnFishy.h" />
     <ClInclude Include="bnFolderChangeNameScene.h" />
     <ClInclude Include="bnFolderEditScene.h" />
+    <ClInclude Include="bnForte.h" />
     <ClInclude Include="bnGameOverScene.h" />
     <ClInclude Include="bnGear.h" />
     <ClInclude Include="bnGuardHit.h" />
@@ -502,6 +509,7 @@
     <ClInclude Include="bnStarfishAttackState.h" />
     <ClInclude Include="bnStarfishIdleState.h" />
     <ClInclude Include="bnStarfishMob.h" />
+    <ClInclude Include="bnSuperVulcan.h" />
     <ClInclude Include="bnSwordEffect.h" />
     <ClInclude Include="bnThunder.h" />
     <ClInclude Include="bnElements.h" />

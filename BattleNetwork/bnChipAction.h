@@ -22,6 +22,7 @@ protected:
 
   void RecallPreviousState() {
     anim->SetAnimation(prevState);
+    anim->SetPlaybackMode(Animator::Mode::Loop);
   }
 
 public:
@@ -54,6 +55,7 @@ public:
       anim->OverrideAnimationFrames(this->animation, std::move(frameData), this->uuid);
       anim->SetAnimation(this->uuid, [this]() { 
         anim->SetAnimation(prevState);
+        anim->SetPlaybackMode(Animator::Mode::Loop);
         this->EndAction();
       });
       anim->OnUpdate(0);

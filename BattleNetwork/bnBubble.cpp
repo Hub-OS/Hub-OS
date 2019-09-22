@@ -8,11 +8,13 @@
 #include "bnSharedHitBox.h"
 
 Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) {
-  SetLayer(1);
+  SetLayer(-100);
   field = _field;
 
-  health = 1;
+  SetHealth(1);
   
+  SetTeam(team);
+
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_BUBBLE);
   
   setTexture(*texture);
@@ -35,12 +37,16 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   ShareTileSpace(true);
 
   animation.Update(0, *this);
+
+  popping = false;
 }
 
 Bubble::~Bubble() {
 }
 
 void Bubble::OnUpdate(float _elapsed) {
+  ResolveFrameBattleDamage();
+
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   animation.Update(_elapsed*(float)this->speed, *this);
@@ -69,6 +75,7 @@ void Bubble::OnUpdate(float _elapsed) {
   }
 
   GetTile()->AffectEntities(this);
+  TryDelete();
 }
 
 bool Bubble::CanMoveTo(Battle::Tile* tile) {
@@ -77,54 +84,55 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 
 
 const bool Bubble::OnHit(const Hit::Properties props) {
-  // TODO: Hack. Bubbles keep attacking team mates. Why?
-  // if(props.aggressor && props.aggressor->GetTeam() == Team::BLUE) return false;
+  if (!popping) {
+    popping = true;
 
-  if (!hit) {
-    hit = true;
-
-    auto onFinish = [this]() { this->Delete(); };
-    animation << "POP" << onFinish;
-    AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::LOWEST);
+    SetHealth(0);
 
     return true;
   }
 
-  return false;
+  return true;
+}
+
+void Bubble::OnDelete()
+{
+  auto onFinish = [this]() { this->Delete(); };
+  animation << "POP" << onFinish;
+  AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::LOWEST);
+}
+
+const float Bubble::GetHitHeight() const
+{
+  return 80.0f;
 }
 
 void Bubble::Attack(Character* _entity) {
   // TODO: Hack. Bubbles keep attacking team mates. Why?
-  if(_entity->GetTeam() == Team::BLUE) return;
+  if(_entity->GetTeam() == Team::BLUE || popping) return;
 
-  if (!hit) {
+  Obstacle* other = dynamic_cast<Obstacle*>(_entity);
+  Component* comp = dynamic_cast<Component*>(_entity);
 
-    Obstacle* other = dynamic_cast<Obstacle*>(_entity);
-    Component* comp = dynamic_cast<Component*>(_entity);
-
-    if (other) {
-      if (other->GetHitboxProperties().aggressor != this->GetHitboxProperties().aggressor) {
-        _entity->Hit(this->GetHitboxProperties());
-
-        auto onFinish = [this]() { this->Delete(); };
-        animation << "POP" << onFinish;
-        AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::LOWEST);
-      }
-    }
-    else {
-      hit = _entity->Hit(this->GetHitboxProperties());
+  if (other) {
+    if (other->GetHitboxProperties().aggressor != this->GetHitboxProperties().aggressor) {
+      _entity->Hit(this->GetHitboxProperties());
+      this->SetHealth(0);
     }
 
-    if (hit) {
-      if (_entity->GetFirstComponent<BubbleTrap>() == nullptr && !comp) {
-        BubbleTrap* trap = new BubbleTrap(_entity);
-        _entity->RegisterComponent(trap);
-        GetField()->AddEntity(*trap, GetTile()->GetX(), GetTile()->GetY());
-      }
+    return;
+  }
+  else {
+    popping = popping || _entity->Hit(this->GetHitboxProperties());
+  }
 
-      auto onFinish = [this]() { this->Delete(); };
-      animation << "POP" << onFinish;
-      AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::LOWEST);
+  if (popping) {
+    if (_entity->GetFirstComponent<BubbleTrap>() == nullptr && !comp) {
+      BubbleTrap* trap = new BubbleTrap(_entity);
+      _entity->RegisterComponent(trap);
+      GetField()->AddEntity(*trap, GetTile()->GetX(), GetTile()->GetY());
     }
+
+    this->SetHealth(0);
   }
 }

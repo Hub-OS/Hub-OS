@@ -26,7 +26,7 @@ Starfish::Starfish(Rank _rank)
   animationComponent->Load();
   animationComponent->SetAnimation("IDLE");
 
-  hitHeight = 0;
+  hitHeight = 60;
 
   setTexture(*TEXTURES.GetTexture(textureType));
   setScale(2.f, 2.f);

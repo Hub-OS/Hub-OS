@@ -15,7 +15,7 @@ public:
   /**
    * @brief If _charged is true, deals 10 damage
    */
-  Buster(Field* _field, Team _team, bool _charged);
+  Buster(Field* _field, Team _team, bool _charged, int damage);
   virtual ~Buster();
 
   virtual void OnUpdate(float _elapsed);

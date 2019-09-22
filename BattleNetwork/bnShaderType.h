@@ -49,6 +49,7 @@
         TRANSITION,
         CHIP_REVEAL,
         BADGE_WIRE,
+        COLORIZE,
         SHADER_TYPE_SIZE
     };
 #endif

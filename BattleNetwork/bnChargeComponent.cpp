@@ -1,6 +1,7 @@
 #include "bnEntity.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnShaderResourceManager.h"
 #include "bnChargeComponent.h"
 
 ChargeComponent::ChargeComponent(Entity* _entity) {
@@ -12,6 +13,7 @@ ChargeComponent::ChargeComponent(Entity* _entity) {
   animation = Animation("resources/spells/spell_buster_charge.animation");
 
   isCharged = isPartiallyCharged = false;
+  chargeColor = sf::Color::Magenta;
 }
 
 ChargeComponent::~ChargeComponent() {
@@ -32,6 +34,9 @@ void ChargeComponent::Update(float _elapsed) {
         AUDIO.Play(AudioType::BUSTER_CHARGED);
         animation.SetAnimation("CHARGED");
         animation << Animator::Mode::Loop;
+        setColor(chargeColor);
+        this->SetShader(SHADERS.GetShader(ShaderType::COLORIZE));
+
       }
 
       isCharged = true;      
@@ -41,6 +46,9 @@ void ChargeComponent::Update(float _elapsed) {
         AUDIO.Play(AudioType::BUSTER_CHARGING);
         animation.SetAnimation("CHARGING");
         animation << Animator::Mode::Loop;
+        setColor(sf::Color::White);
+        this->RevokeShader();
+
       }
 
       isPartiallyCharged = true;
@@ -66,4 +74,9 @@ float ChargeComponent::GetChargeCounter() const {
 const bool ChargeComponent::IsFullyCharged() const
 {
   return isCharged;
+}
+
+void ChargeComponent::SetFullyChargedColor(const sf::Color color)
+{
+  chargeColor = color;
 }

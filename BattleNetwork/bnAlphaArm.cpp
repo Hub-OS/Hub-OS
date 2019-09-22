@@ -10,7 +10,7 @@
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
 
 AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
-  : Obstacle(_field, _team), isMoving(false), type(type) {
+  : Obstacle(_field, _team), isMoving(false), canChangeTileState(false), type(type) {
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(true);
   this->SetTeam(_team);
@@ -83,7 +83,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
     break;
   }
 
-  isSwiping = false;
+  isSwiping = isFinished = false;
   animComponent->OnUpdate(0);
 }
 
@@ -102,8 +102,11 @@ void AlphaArm::OnUpdate(float _elapsed) {
   totalElapsed += _elapsed;
   float delta = std::sinf(10*totalElapsed+1);
 
-
   if (type == Type::RIGHT_SWIPE) {
+    if (canChangeTileState) {
+      setColor(sf::Color::Yellow);
+    }
+
     blueShadowTimer += _elapsed;
     
     if (blueShadowTimer > 1.0f / 60.0f) {
@@ -131,13 +134,19 @@ void AlphaArm::OnUpdate(float _elapsed) {
         // May have just finished moving
         this->GetTile()->AffectEntities(this);
 
+        if (!Teammate(GetTile()->GetTeam())) {
+          if (canChangeTileState) {
+            GetTile()->SetTeam(GetTeam());
+          }
+        }
+
         // Keep moving
         if (!this->IsSliding()) {
           this->SlideToTile(true);
           this->Move(this->GetDirection());
 
           if (!GetNextTile()) {
-            this->Delete();
+            this->isFinished = true;
           }
         }
       }
@@ -156,7 +165,9 @@ void AlphaArm::OnUpdate(float _elapsed) {
       }
 
       if (!Teammate(GetTile()->GetTeam()) && GetTile()->IsWalkable()) {
-        GetTile()->SetState(changeState);
+        if (canChangeTileState) {
+          GetTile()->SetState(changeState);
+        }
       }
 
       // Keep moving
@@ -165,7 +176,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
         this->Move(this->GetDirection());
 
         if (!GetNextTile()) {
-          this->Delete();
+          this->isFinished = true;
         }
       }
     }
@@ -229,4 +240,19 @@ void AlphaArm::SyncElapsedTime(const float elapsedTime)
 {
   // the claws get out of sync, we must sync them up
   this->totalElapsed = elapsedTime;
+}
+
+void AlphaArm::LeftArmChangesTileState()
+{
+  canChangeTileState = true;
+}
+
+void AlphaArm::RightArmChangesTileTeam()
+{
+  canChangeTileState = true;
+}
+
+const bool AlphaArm::GetIsFinished() const
+{
+  return isFinished;
 }

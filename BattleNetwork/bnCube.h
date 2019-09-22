@@ -31,7 +31,7 @@ public:
 
   virtual void OnDelete();
   
-  virtual const float GetHitHeight() const { return 0; }
+  virtual const float GetHitHeight() const;
 
   virtual void SetAnimation(std::string animation);
   

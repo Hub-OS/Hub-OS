@@ -243,7 +243,7 @@ namespace Battle {
   }
 
   bool Tile::IsWalkable() const {
-    return (state != TileState::BROKEN && state != TileState::EMPTY);
+    return (state != TileState::BROKEN && state != TileState::EMPTY && !IsEdgeTile());
   }
 
   bool Tile::IsCracked() const {
@@ -282,7 +282,7 @@ namespace Battle {
 
   void Tile::AddEntity(Obstacle & _entity)
   {
-    if (!ContainsEntity((Obstacle*)&_entity)) {
+    if (!ContainsEntity(&_entity)) {
       spells.push_back(&_entity);
       this->AddEntity(&_entity);
     }
@@ -290,7 +290,7 @@ namespace Battle {
 
   void Tile::AddEntity(Artifact & _entity)
   {
-    if (!ContainsEntity((Artifact*)&_entity)) {
+    if (!ContainsEntity(&_entity)) {
       artifacts.push_back(&_entity);
       this->AddEntity(&_entity);
     }
@@ -305,7 +305,7 @@ namespace Battle {
 
     // Sort by layer (draw order)
     // e.g. layer 0 draws first so it must be last in the draw list
-    std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
+    // std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
   }
 
   bool Tile::RemoveEntityByID(long ID)
@@ -433,11 +433,12 @@ namespace Battle {
     while (i < entities.size()) {
       // If the entity is marked for deletion
       if (entities[i]->IsDeleted()) {
-        entities[i]->OnDelete();
         long ID = entities[i]->GetID();
 
         // free memory
         auto ptr = entities[i];
+
+        //entities[i]->OnDelete();
 
         if (RemoveEntityByID(ID)) {
           delete ptr;

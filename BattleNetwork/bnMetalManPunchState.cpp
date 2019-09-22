@@ -14,17 +14,53 @@ MetalManPunchState::~MetalManPunchState()
 }
 
 void MetalManPunchState::OnEnter(MetalMan& metal) {
-  auto onFinish = [m = &metal]() { m->GoToNextState(); };
-  auto onGroundHit = [this, m = &metal]() {   this->Attack(*m); };
+  auto tile = metal.GetTarget()->GetTile();
+  if (!tile) {
+    metal.GoToNextState();
+    return;
+  }
 
-  metal.SetAnimation("PUNCH", onFinish);
-  metal.SetCounterFrame(1);
-  metal.SetCounterFrame(2);
-  metal.SetCounterFrame(3);
-  metal.OnFrameCallback(4, onGroundHit, std::function<void()>(), true);
+  auto nextTile = metal.GetField()->GetAt(tile->GetX() + 1, tile->GetY());
+
+  if (nextTile) {
+    auto lastTile = metal.GetTile();
+    nextTile->ReserveEntityByID(metal.GetID());
+    lastTile->ReserveEntityByID(metal.GetID());
+
+
+    auto onFinish = [metal = &metal, nextTile, lastTile, this]() {
+      metal->Teleport(nextTile->GetX(), nextTile->GetY());
+      metal->AdoptNextTile();
+      metal->FinishMove();
+
+      auto onFinishPunch = [m = metal, lastTile]() { 
+        Logger::Log("finish punch called");
+        m->Teleport(lastTile->GetX(), lastTile->GetY());
+        m->AdoptNextTile();
+        m->FinishMove();
+        m->GoToNextState(); 
+      };
+      auto onGroundHit = [this, m = metal]() { this->Attack(*m); };
+
+      metal->GetFirstComponent<AnimationComponent>()->CancelCallbacks();
+      metal->SetAnimation("PUNCH", onFinishPunch);
+      metal->SetCounterFrame(1);
+      metal->SetCounterFrame(2);
+      metal->SetCounterFrame(3);
+      metal->OnFrameCallback(4, onGroundHit, std::function<void()>(), true);
+    };
+
+    metal.SetAnimation(MOB_MOVING, onFinish);
+  }
+  else {
+    metal.GoToNextState();
+  }
+
 }
 
 void MetalManPunchState::OnLeave(MetalMan& metal) {
+  metal.SetAnimation(MOB_IDLE);
+
 }
 
 void MetalManPunchState::OnUpdate(float _elapsed, MetalMan& metal) {

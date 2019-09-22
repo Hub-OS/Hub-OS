@@ -85,6 +85,12 @@ void SpriteSceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
 
   states.transform *= combinedTransform;
 
+  const sf::Shader* s = const_cast<const sf::Shader*>(shader.Get());
+
+  if (s) {
+    states.shader =s;
+  }
+
   std::vector<SceneNode*> copies = this->childNodes;
   copies.push_back((SceneNode*)this);
 

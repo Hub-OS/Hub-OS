@@ -115,7 +115,7 @@ void Cube::OnUpdate(float _elapsed) {
     this->Move(this->GetDirection());
   }
 
-  if (timer <= 0) {
+  if (timer <= 0 || GetTile()->IsReservedByCharacter()) {
     this->SetHealth(0);
   }
 
@@ -137,6 +137,11 @@ void Cube::OnDelete() {
 
   tile->RemoveEntityByID(this->GetID());
   AUDIO.Play(AudioType::PANEL_CRACK);
+}
+
+const float Cube::GetHitHeight() const
+{
+  return 64.0f;
 }
 
 const bool Cube::OnHit(const Hit::Properties props) {

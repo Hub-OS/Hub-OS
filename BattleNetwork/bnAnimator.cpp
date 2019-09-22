@@ -334,7 +334,7 @@ void Animator::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence
         target.setOrigin((float)frame.origin.x, (float)frame.origin.y);
       }
       
-      UpdateCurrentPoints(frameIndex, sequence);
+      UpdateCurrentPoints(frameIndex-1, sequence);
 
       return;
     }

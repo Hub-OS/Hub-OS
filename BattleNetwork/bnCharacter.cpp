@@ -30,6 +30,11 @@ Character::Character(Rank _rank) :
 }
 
 Character::~Character() {
+  //for (auto d : defenses) {
+  //  delete d;
+ // }
+
+  defenses.clear();
 }
 
 bool Character::IsStunned()

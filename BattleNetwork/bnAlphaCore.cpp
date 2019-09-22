@@ -1,6 +1,7 @@
 #include "bnAlphaCore.h"
 #include "bnAlphaArm.h"
 #include "bnAlphaClawSwipeState.h"
+#include "bnAlphaRocketState.h"
 #include "bnAlphaGunState.h"
 #include "bnObstacle.h"
 #include "bnMobMoveEffect.h"
@@ -26,11 +27,13 @@ AlphaCore::AlphaCore(Rank _rank)
   setScale(2.f, 2.f);
 
   SetName("Alpha");
-  this->SetHealth(1000);
+  this->SetHealth(2000);
 
   SetLayer(1);
 
   firstTime = true;
+  impervious = false;
+  shootSuperVulcans = false;
 
   //Components setup and load
   this->animationComponent = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
@@ -73,11 +76,24 @@ AlphaCore::AlphaCore(Rank _rank)
   animation.SetAnimation("RIGHT_SHOULDER");
   animation.Update(0, *rightShoulder);
 
+  rightShoulderShoot= new SpriteSceneNode();
+  rightShoulderShoot->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  rightShoulderShoot->SetLayer(-4);
+
+  leftShoulderShoot = new SpriteSceneNode();
+  leftShoulderShoot->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  leftShoulderShoot->SetLayer(-4);
+
   this->AddNode(acid);
   this->AddNode(head);
   this->AddNode(side);
   this->AddNode(rightShoulder);
   this->AddNode(leftShoulder);
+  rightShoulder->AddNode(rightShoulderShoot);
+  leftShoulder->AddNode(leftShoulderShoot);
+
+  leftShoulderShoot->Hide();
+  rightShoulderShoot->Hide();
 
   virusBody = new DefenseVirusBody();
   this->AddDefenseRule(virusBody);
@@ -95,6 +111,17 @@ AlphaCore::AlphaCore(Rank _rank)
   this->AddState<AlphaClawSwipeState>();
   this->AddState<AlphaClawSwipeState>();
   this->AddState<AlphaGunState>();
+  this->AddState<AlphaIdleState>();
+  this->AddState<AlphaClawSwipeState>();
+  this->AddState<AlphaClawSwipeState>();
+  this->AddState<AlphaClawSwipeState>(true);
+  this->AddState<AlphaGunState>();
+  this->AddState<AlphaIdleState>();
+  this->AddState<AlphaClawSwipeState>();
+  this->AddState<AlphaClawSwipeState>();
+  this->AddState<AlphaClawSwipeState>();
+  this->AddState<AlphaGunState>();
+  this->AddState<AlphaRocketState>();
 }
 
 AlphaCore::~AlphaCore() {
@@ -132,7 +159,17 @@ void AlphaCore::OnUpdate(float _elapsed) {
 
   // shoulders lag behind
   delta = std::sinf(10 * totalElapsed+1.5f)*0.5f;
+
+  if (shootSuperVulcans) {
+    delta = std::sinf(50 * totalElapsed + 1.5f);
+  }
+
   leftShoulder->setPosition(-21, -58 - delta);
+
+  if (shootSuperVulcans) {
+    delta = -delta;
+  }
+
   rightShoulder->setPosition(2, -53 - delta);
 
   // keep core exposed if deleted for effect
@@ -141,7 +178,7 @@ void AlphaCore::OnUpdate(float _elapsed) {
   // 2) set the correct animation
   // 3) refresh the sprite
 
-  if (coreHP < 40 && GetHealth() > 0) {
+  if (coreHP < 40 && GetHealth() > 0 && !impervious) {
     coreRegen += _elapsed;
 
     // regen after 4 seconds
@@ -191,6 +228,16 @@ void AlphaCore::OnUpdate(float _elapsed) {
   animation << Animator::Mode::Loop;
   animation.Update(totalElapsed, *side);
 
+  if (shootSuperVulcans) {
+    animation.SetAnimation("SUPER_VULCAN");
+    animation << Animator::Mode::Loop;
+    animation.Update(totalElapsed, *leftShoulderShoot);
+
+    animation.SetAnimation("SUPER_VULCAN");
+    animation << Animator::Mode::Loop;
+    animation.Update(totalElapsed+0.04f, *rightShoulderShoot);
+  }
+
   this->BossPatternAI<AlphaCore>::Update(_elapsed);
 }
 
@@ -215,16 +262,35 @@ void AlphaCore::OnDelete() {
   AUDIO.StopStream();
 
   // Explode if health depleted
-  this->InterruptState<ExplodeState<AlphaCore>>(30, 1.35);
+  this->InterruptState<ExplodeState<AlphaCore>>(20, 1.35);
 }
 
 void AlphaCore::OpenShoulderGuns()
 {
+  animation.SetAnimation("SUPER_VULCAN");
+  animation << Animator::Mode::Loop;
+  animation.Update(totalElapsed, *leftShoulderShoot);
+
+  animation.SetAnimation("SUPER_VULCAN");
+  animation << Animator::Mode::Loop;
+  animation.Update(totalElapsed + 0.04f, *rightShoulderShoot);
+
   animation.SetAnimation("LEFT_SHOULDER");
   animation.SetFrame(2, *leftShoulder);
 
+  // TODO: WHY CANT MY NODES JUST LINK UP TO THE POINTS?
+  auto bounds = leftShoulder->getLocalBounds();
+  auto offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
+
+  leftShoulderShoot->setPosition(-offset.x, 0);
+
   animation.SetAnimation("RIGHT_SHOULDER");
   animation.SetFrame(2, *rightShoulder);
+
+  bounds = rightShoulder->getLocalBounds();
+  offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
+
+  rightShoulderShoot->setPosition(-offset.x+10.0f, 5.0f);
 }
 
 void AlphaCore::CloseShoulderGuns()
@@ -234,11 +300,15 @@ void AlphaCore::CloseShoulderGuns()
 
   animation.SetAnimation("RIGHT_SHOULDER");
   animation.SetFrame(1, *rightShoulder);
+
+  leftShoulderShoot->Hide();
+  rightShoulderShoot->Hide();
+  shootSuperVulcans = false;
 }
 
 void AlphaCore::HideLeftArm()
 {
-  if (IsDeleted()) return;
+  if (!leftArm) return;
 
   auto fx = new MobMoveEffect(GetField());
   GetField()->AddEntity(*fx, leftArm->GetTile()->GetX(), leftArm->GetTile()->GetY());
@@ -248,7 +318,7 @@ void AlphaCore::HideLeftArm()
 
 void AlphaCore::RevealLeftArm()
 {
-  if (IsDeleted()) return;
+  if (!leftArm) return;
 
   GetField()->AddEntity((*leftArm), GetTile()->GetX(), GetTile()->GetY() + 1);
   auto fx = new MobMoveEffect(GetField());
@@ -257,7 +327,7 @@ void AlphaCore::RevealLeftArm()
 
 void AlphaCore::HideRightArm()
 {
-  if (IsDeleted()) return;
+  if (!rightArm) return;
 
   auto fx = new MobMoveEffect(GetField());
   GetField()->AddEntity(*fx, rightArm->GetTile()->GetX(), rightArm->GetTile()->GetY());
@@ -267,11 +337,24 @@ void AlphaCore::HideRightArm()
 
 void AlphaCore::RevealRightArm()
 {
-  if (IsDeleted()) return;
+  if (!rightArm) return;
 
   GetField()->AddEntity((*rightArm), GetTile()->GetX() - 1, GetTile()->GetY() - 1);
   auto fx = new MobMoveEffect(GetField());
   GetField()->AddEntity(*fx, GetTile()->GetX() - 1, GetTile()->GetY() - 1);
+}
+
+void AlphaCore::EnableImpervious(bool impervious)
+{
+  this->impervious = impervious;
+  coreHP = 40;
+}
+
+void AlphaCore::ShootSuperVulcans()
+{
+  shootSuperVulcans = true;
+  leftShoulderShoot->Reveal();
+  rightShoulderShoot->Reveal();
 }
 
 AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
@@ -280,9 +363,7 @@ const bool AlphaCore::AlphaCoreDefenseRule::Check(Spell* in, Character* owner) {
   // Drop a 0 damage hitbox to block/trigger attack hits
   owner->GetField()->AddEntity(*new HitBox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
 
-  if ((in->GetHitboxProperties().flags & Hit::breaking) == Hit::breaking) {
-    alphaCoreHP = 0;
-  }
+  if (static_cast<AlphaCore*>(owner)->impervious) return true;
 
   if (alphaCoreHP <= 0) return false;
   alphaCoreHP -= in->GetHitboxProperties().damage;

@@ -147,7 +147,7 @@ void Entity::Update(float _elapsed) {
         }
       }
       else {
-        // Invalidate the next tile poiter
+        // Invalidate the next tile pointer
         this->next = nullptr;
       }
     }
@@ -305,8 +305,10 @@ void Entity::SlideToTile(bool enabled)
 {
   isSliding = enabled;
 
-  // capture potential slide starting position
-  this->UpdateSlideStartPosition();
+  if (enabled) {
+    // capture potential slide starting position
+    this->UpdateSlideStartPosition();
+  }
 }
 
 const bool Entity::IsSliding() const

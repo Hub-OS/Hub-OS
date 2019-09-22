@@ -22,6 +22,10 @@ Mob* MetridMob::Build() {
   // 1 - 2 metrid and cannodumb of higher types
   // 2 - highest metrids, lava tiles, and holes
   Mob* mob = new Mob(field);
+  mob->RegisterRankedReward(9, BattleItem(Chip(8, 19, '*', 150, Element::FIRE, "FireBrn3", "Crcks 3 sqrs ahd with fire", "This chip does not have extra information.", 4)));
+  mob->RegisterRankedReward(6, BattleItem(Chip(8, 19, 'A', 150, Element::FIRE, "FireBrn3", "Crcks 3 sqrs ahd with fire", "This chip does not have extra information.", 4)));
+  mob->RegisterRankedReward(4, BattleItem(Chip(7, 18, 'A', 110, Element::FIRE, "FireBrn2", "Crcks 3 sqrs ahd with fire", "This chip does not have extra information.", 4)));
+  mob->RegisterRankedReward(1, BattleItem(Chip(7, 18, 'Y', 110, Element::FIRE, "FireBrn2", "Crcks 3 sqrs ahd with fire", "This chip does not have extra information.", 4)));
 
   if (mobType == 0) {
 

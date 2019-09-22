@@ -16,10 +16,14 @@ ProgsMan::ProgsMan(Rank _rank)
     AI<ProgsMan>(this), Character(_rank) {
   name = "ProgsMan";
   this->team = Team::BLUE;
-  SetHealth(300);
+  SetHealth(1200);
   hitHeight = 64;
   state = MOB_IDLE;
   textureType = TextureType::MOB_PROGSMAN_ATLAS;
+
+  if (_rank == ProgsMan::Rank::EX) {
+    SetHealth(2500);
+  }
 
   setTexture(*TEXTURES.GetTexture(textureType));
   setScale(2.f, 2.f);

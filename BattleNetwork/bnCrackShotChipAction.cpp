@@ -5,11 +5,19 @@
 #include "bnAudioResourceManager.h"
 #include "bnCrackShot.h"
 
+#define FRAME1 { 1, 0.05 }
+#define FRAME2 { 2, 0.05 }
+#define FRAME3 { 3, 0.3 }
+
+#define FRAMES FRAME1, FRAME2, FRAME3
+
 CrackShotChipAction::CrackShotChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SWORD", &attachment, "BUSTER") {
   overlay.setTexture(*owner->getTexture());
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
   owner->AddNode(this->attachment);
+
+  this->OverrideAnimationFrames({ FRAMES });
 
   attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
@@ -40,7 +48,7 @@ CrackShotChipAction::CrackShotChipAction(Character * owner, int damage) : ChipAc
     }
   };
 
-  this->AddAction(2, onThrow); // TODO: should be frame 3, why does it not fire?
+  this->AddAction(3, onThrow);
 }
 
 CrackShotChipAction::~CrackShotChipAction()

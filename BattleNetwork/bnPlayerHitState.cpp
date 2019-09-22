@@ -22,4 +22,5 @@ void PlayerHitState::OnUpdate(float _elapsed, Player& player) {
 }
 
 void PlayerHitState::OnLeave(Player& player) {
+
 }

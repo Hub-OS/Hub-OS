@@ -15,7 +15,11 @@ DefenseIndestructable::~DefenseIndestructable()
 
 const bool DefenseIndestructable::Check(Spell * in, Character* owner)
 {
-  owner->GetField()->AddEntity(*new GuardHit(owner->GetField(), owner, true), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+  // Only drop gaurd effect as a response to attacks that can do impact damage > 0
+  if (in->GetHitboxProperties().damage > 0 && (in->GetHitboxProperties().flags & Hit::impact) != 0) {
+    owner->GetField()->AddEntity(*new GuardHit(owner->GetField(), owner, true), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+  }
+
   owner->GetField()->AddEntity(*new HitBox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
 
   if (breakCollidingObjectOnHit) in->Delete();

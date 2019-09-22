@@ -32,15 +32,20 @@ public:
 
   void SyncElapsedTime(const float elapsedTime);
 
+  void LeftArmChangesTileState();
+  void RightArmChangesTileTeam();
+
+  const bool GetIsFinished() const;
+
 private:
   TileState changeState;
   Direction startDir;
-  bool hit, isMoving;
+  bool hit, isMoving, canChangeTileState;
   float totalElapsed;
   SpriteSceneNode* shadow;
   SpriteSceneNode* blueShadow;
   std::vector<sf::Vector2f> blueArmShadowPos;
   int blueArmShadowPosIdx;
   float blueShadowTimer; // 1/60 of a second = 1 frame
-  bool isSwiping;
+  bool isSwiping, isFinished;
 };

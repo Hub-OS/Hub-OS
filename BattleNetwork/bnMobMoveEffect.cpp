@@ -35,7 +35,7 @@ void MobMoveEffect::OnUpdate(float _elapsed) {
   this->setPosition(this->GetTile()->getPosition());
 
   animation.Update(_elapsed, *this);
-  Entity::Update(_elapsed);
+  //Entity::Update(_elapsed);
 }
 
 MobMoveEffect::~MobMoveEffect()

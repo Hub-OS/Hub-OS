@@ -43,6 +43,6 @@ public:
   virtual void AdoptTile(Battle::Tile* tile) final override;
 
   virtual void OnDelete() {
-
+    Logger::Log("Obstacle onDelete called");
   }
 };

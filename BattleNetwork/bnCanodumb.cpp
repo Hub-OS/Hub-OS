@@ -46,6 +46,8 @@ Canodumb::Canodumb(Rank _rank)
 
   virusBody = new DefenseVirusBody();
   this->AddDefenseRule(virusBody);
+
+  hitHeight = 60;
 }
 
 Canodumb::~Canodumb() {

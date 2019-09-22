@@ -26,6 +26,7 @@ Mob* MetalManBossFight::Build() {
   mob->StreamCustomMusic("resources/loops/loop_boss_battle.ogg");
 
   mob->RegisterRankedReward(1, BattleItem(Chip(100, 139, 'Y', 0, Element::NONE, "YoYo", "", "", 0)));
+  mob->RegisterRankedReward(4, BattleItem(Chip(100, 139, '*', 0, Element::NONE, "YoYo", "", "", 0)));
 
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);

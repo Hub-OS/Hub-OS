@@ -470,7 +470,7 @@ void BattleScene::onUpdate(double elapsed) {
 
     // kill switch for testing:
     if (INPUT.Has(InputEvent::HELD_A) && INPUT.Has(InputEvent::HELD_B) && INPUT.Has(InputEvent::HELD_LEFT)) {
-      mob->KillSwitch();
+      //mob->KillSwitch();
     }
 
     field->Update((float)elapsed);

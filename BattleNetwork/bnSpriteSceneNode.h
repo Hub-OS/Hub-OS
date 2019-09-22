@@ -17,7 +17,7 @@
 class SpriteSceneNode : public SceneNode {
 private:
   bool allocatedSprite; /*!< Whether or not SpriteSceneNode owns the sprite pointer */
-  SmartShader shader; /*!< Sprites can have shaders attached to them */
+  mutable SmartShader shader; /*!< Sprites can have shaders attached to them */
   sf::Sprite* sprite; /*!< Reference to sprite behind proxy */
 
 public:

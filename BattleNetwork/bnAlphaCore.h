@@ -14,7 +14,7 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
 
   DefenseRule* virusBody;
   AnimationComponent* animationComponent;
-  SpriteSceneNode *acid, *head, *side, *leftShoulder, *rightShoulder;
+  SpriteSceneNode *acid, *head, *side, *leftShoulder, *rightShoulder, *leftShoulderShoot, *rightShoulderShoot;
   Animation animation;
   float totalElapsed, coreRegen;
   float hitHeight;
@@ -24,6 +24,8 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   AlphaArm* rightArm;
 
   bool firstTime;
+  bool impervious;
+  bool shootSuperVulcans;
 
   class AlphaCoreDefenseRule : public DefenseRule {
     int& alphaCoreHP;
@@ -58,4 +60,6 @@ public:
   void RevealLeftArm();
   void HideRightArm();
   void RevealRightArm();
+  void EnableImpervious(bool impervious = true);
+  void ShootSuperVulcans();
 };

@@ -53,7 +53,7 @@ void BubbleTrap::OnUpdate(float _elapsed) {
 
   duration -= _elapsed;
 
-  this->setPosition(this->tile->getPosition() - sf::Vector2f(0, 25.0f));
+  this->setPosition(this->GetOwner()->getPosition() - sf::Vector2f(0, 25.0f));
 
   animation.Update(_elapsed, *this);
 }

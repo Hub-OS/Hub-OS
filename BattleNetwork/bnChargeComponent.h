@@ -39,6 +39,8 @@ public:
    */
   const bool IsFullyCharged() const;
 
+  void SetFullyChargedColor(const sf::Color color);
+
 private:
   Entity * entity;
   bool charging;
@@ -46,4 +48,5 @@ private:
   bool isPartiallyCharged;
   float chargeCounter;
   Animation animation;
+  sf::Color chargeColor;
 };

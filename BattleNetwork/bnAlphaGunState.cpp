@@ -1,6 +1,6 @@
 #include "bnAlphaGunState.h"
 #include "bnAlphaCore.h"
-#include "bnVulcan.h"
+#include "bnSuperVulcan.h"
 #include "bnTile.h"
 #include "bnField.h"
 
@@ -18,16 +18,17 @@ void AlphaGunState::OnUpdate(float _elapsed, AlphaCore& a) {
   cooldown -= _elapsed;
 
   if (cooldown <= 0) {
+    a.ShootSuperVulcans();
+
     if (last) {
-      auto v = new Vulcan(a.GetField(), a.GetTeam(), 40);
-      v->HighlightTile(Battle::Tile::Highlight::solid);
+      auto v = new SuperVulcan(a.GetField(), a.GetTeam(), 40);
       a.GetField()->AddEntity(*v, last->GetX(), last->GetY());
     }
 
     last = a.GetTarget()->GetTile();;
 
     count++;
-    cooldown = 0.33f;
+    cooldown = 0.23f;
 
     if (count == 16) {
       a.GoToNextState();

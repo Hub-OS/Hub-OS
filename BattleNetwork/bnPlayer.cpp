@@ -30,8 +30,9 @@ Player::Player()
   this->AddNode(&chargeComponent);
   chargeComponent.setPosition(0, -20.0f); // translate up -20
 
-  SetHealth(1000);
-  
+  health = 900;
+  busterDamage = 1;
+  chargedBusterDamage = 10;
   SetName("Megaman");
   SetLayer(0);
   team = Team::RED;
@@ -48,6 +49,8 @@ Player::Player()
   setTexture(*TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
   previous = nullptr;
+
+  playerControllerSlide = false;
 }
 
 Player::~Player() {
@@ -70,7 +73,8 @@ void Player::OnUpdate(float _elapsed) {
 
 void Player::Attack() {
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
-    Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged());
+    auto damage = chargeComponent.IsFullyCharged() ? this->chargedBusterDamage : this->busterDamage;
+    Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged(), damage);
     spell->SetDirection(Direction::RIGHT);
     field->AddEntity(*spell, tile->GetX(), tile->GetY());
   }
@@ -82,6 +86,7 @@ void Player::OnDelete() {
   animationComponent->CancelCallbacks();
   animationComponent->SetAnimation(PLAYER_HIT);
   this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
+  this->LockState();
 }
 
 const float Player::GetHitHeight() const
@@ -94,6 +99,8 @@ const bool Player::OnHit(const Hit::Properties props) {
 
   // Respond to the recoil bit state
   if ((props.flags & Hit::recoil) == Hit::recoil) {
+    // When movement is interrupted because of a hit, we need to reset/flush the movement state data
+    FinishMove();
     this->ChangeState<PlayerHitState>();
   }
 
@@ -125,4 +132,24 @@ void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   else {
     animationComponent->SetAnimation(_state, 0, onFinish);
   }
+}
+
+void Player::EnablePlayerControllerSlideMovementBehavior(bool enable)
+{
+  playerControllerSlide = enable;
+}
+
+const bool Player::PlayerControllerSlideEnabled() const
+{
+  return playerControllerSlide;
+}
+
+void Player::SetBusterDamage(int damage)
+{
+  this->busterDamage = damage;
+}
+
+void Player::SetChargedBusterDamage(int damage)
+{
+  this->chargedBusterDamage = damage;
 }

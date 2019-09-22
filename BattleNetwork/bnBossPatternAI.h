@@ -159,7 +159,7 @@ public:
     isUpdating = true;
 
     if (interruptState) {
-      Logger::Log("is interrupted");
+      Logger::Log("Boss pattern AI was interrupted");
 
       if (beginInterrupt) {
         stateMachine[stateIndex]->OnLeave(*ref);
@@ -192,8 +192,6 @@ public:
     } else if (stateIndex < stateMachine.size()) {
       stateMachine[stateIndex]->Update(_elapsed, *ref);
     }
-
-    Logger::Log("stateIndex is: " + std::to_string(stateIndex));
 
     if (gotoNext) {
       stateMachine[stateIndex]->OnLeave(*ref);

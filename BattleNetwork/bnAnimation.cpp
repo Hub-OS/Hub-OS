@@ -69,6 +69,8 @@ void Animation::Reload() {
       string state = ValueOf("state", line);
       currentState = state;
 
+      std::transform(currentState.begin(), currentState.end(), currentState.begin(), ::toupper);
+
       if (legacySupport) {
         string width = ValueOf("width", line);
         string height = ValueOf("height", line);
@@ -126,6 +128,8 @@ void Animation::Reload() {
       string pointName = ValueOf("label", line);
       string xStr = ValueOf("x", line);
       string yStr = ValueOf("y", line);
+
+      std::transform(pointName.begin(), pointName.end(), pointName.begin(), ::toupper);
 
       int x = atoi(xStr.c_str());
       int y = atoi(yStr.c_str());
@@ -215,6 +219,8 @@ void Animation::SetAnimation(string state) {
    progress = 0.0f;
    currAnimation = state;
 
+   std::transform(currAnimation.begin(), currAnimation.end(), currAnimation.begin(), ::toupper);
+
    auto pos = animations.find(currAnimation);
 
    if (pos == animations.end()) {
@@ -235,6 +241,7 @@ const std::string Animation::GetAnimationString() const
 
 FrameList & Animation::GetFrameList(std::string animation)
 {
+  std::transform(animation.begin(), animation.end(), animation.begin(), ::toupper);
   return animations[animation];
 }
 
@@ -262,11 +269,16 @@ void Animation::operator<<(std::function<void()> onFinish)
 
 sf::Vector2f Animation::GetPoint(const std::string & pointName)
 {
-  return animator.GetPoint(pointName);
+  auto point = pointName;
+  std::transform(point.begin(), point.end(), point.begin(), ::toupper);
+  return animator.GetPoint(point);
 }
 
 void Animation::OverrideAnimationFrames(const std::string& animation, std::list <OverrideFrame>&& data, std::string& uuid)
 {
+  auto currentAnimation = animation;
+  std::transform(currentAnimation.begin(), currentAnimation.end(), currentAnimation.begin(), ::toupper);
+
   uuid = animation + "@" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
   this->animations.emplace(uuid, std::move(this->animations[animation].MakeNewFromOverrideData(std::move(data))));
 }

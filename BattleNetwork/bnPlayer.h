@@ -86,10 +86,17 @@ public:
    */
   virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
 
+  void EnablePlayerControllerSlideMovementBehavior(bool enable = true);
+  const bool PlayerControllerSlideEnabled() const;
+
+  void SetBusterDamage(int);
+  void SetChargedBusterDamage(int);
+
 protected:
+  int busterDamage, chargedBusterDamage;
   int hitCount; /*!< How many times the player has been hit. Used by score board. */
   string state; /*!< Animation state name */
-
+  bool playerControllerSlide;
   AnimationComponent* animationComponent;
   ChargeComponent chargeComponent; /*!< Handles charge effect */
 };

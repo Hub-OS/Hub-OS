@@ -19,7 +19,7 @@ class BubbleState : public AIState<Any>
 {
 protected:
   double progress;
-  //BubbleTrap* trap;
+  bool prevFloatShoe;
 
 public:
   BubbleState();
@@ -46,6 +46,8 @@ BubbleState<Any>::~BubbleState() {
 template<typename Any>
 void BubbleState<Any>::OnEnter(Any& e) {
   e.LockState(); // Lock AI state. We cannot be forced out of this.
+  prevFloatShoe = e.HasFloatShoe();
+  e.SetFloatShoe(true);
 }
 
 template<typename Any>
@@ -54,6 +56,13 @@ void BubbleState<Any>::OnUpdate(float _elapsed, Any& e) {
   if (e.template GetFirstComponent<BubbleTrap>() == nullptr) {
     e.UnlockState();
     e.ChangeState<Any::DefaultState>();
+    e.SetFloatShoe(prevFloatShoe);
+  }
+
+  if (e.GetHealth() <= 0) {
+    e.UnlockState();
+    e.ChangeState<ExplodeState<Any>>(5);
+    e.LockState();
   }
 
   sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));

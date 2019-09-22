@@ -30,14 +30,18 @@ TornadoChipAction::TornadoChipAction(Character * owner, int damage)
   // add override anims
   this->OverrideAnimationFrames({ FRAMES });
 
+  auto team = GetOwner()->GetTeam();
+  auto tile = GetOwner()->GetTile();
+  auto field = GetOwner()->GetField();
+
   // On shoot frame, drop projectile
-  auto onFire = [this, damage, owner]() -> void {
-    Tornado* tornado = new Tornado(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  auto onFire = [this, damage, team, tile,field ]() -> void {
+    Tornado* tornado = new Tornado(field, team, damage);
     auto props = tornado->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
     tornado->SetHitboxProperties(props);
 
-    GetOwner()->GetField()->AddEntity(*tornado, GetOwner()->GetTile()->GetX() + 2, GetOwner()->GetTile()->GetY());
+    field->AddEntity(*tornado, tile->GetX() + 2, tile->GetY());
   };
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times

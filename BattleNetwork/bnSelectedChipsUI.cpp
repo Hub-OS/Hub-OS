@@ -36,12 +36,6 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     dmg.setString("");
 
     if (player) {
-      if (firstFrame) {
-        sf::Vector2f dest = player->getPosition() + sf::Vector2f(- 4.f, player->GetHitHeight() - 20.f);
-        icon.setPosition(dest);
-        firstFrame = false;
-      }
-
       int chipOrder = 0;
       
       // i = curr so we only see the chips that are left
@@ -75,6 +69,11 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           // We want to smoothly move from the spread position to the stacked position
           double alpha = swoosh::ease::linear(interpolTimeDest, (double)interpolDur.asSeconds(), 1.0);
           
+          if (alpha >= 1.0f) {
+            if (firstFrame) {
+              firstFrame = false;
+            }
+          }
           // interpolate
           icon.setPosition(((float)alpha*dest) + ((float)(1.0 - alpha)*icon.getPosition()));
 
@@ -83,16 +82,18 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           interpolTimeFlat = 0;
         }
 
-        // The black border needs to sit 1 pixel outside of the icon
-        // 1px * 2 (scale) = 2px
-        frame.setPosition(icon.getPosition());
-        frame.setPosition(frame.getPosition() - sf::Vector2f(2.f, 2.f));
-        target.draw(frame);
+        if (!firstFrame) {
+          // The black border needs to sit 1 pixel outside of the icon
+          // 1px * 2 (scale) = 2px
+          frame.setPosition(icon.getPosition());
+          frame.setPosition(frame.getPosition() - sf::Vector2f(2.f, 2.f));
+          target.draw(frame);
 
-        // Grab the ID of the chip and draw that icon from the spritesheet
-        sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(selectedChips[drawOrderIndex]->GetIconID());
-        icon.setTextureRect(iconSubFrame);
-        target.draw(icon);
+          // Grab the ID of the chip and draw that icon from the spritesheet
+          sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(selectedChips[drawOrderIndex]->GetIconID());
+          icon.setTextureRect(iconSubFrame);
+          target.draw(icon);
+        }
       }
 
       // If we have a valid chip, update and draw the data

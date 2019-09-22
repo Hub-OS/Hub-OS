@@ -84,6 +84,9 @@ TextureResourceManager::TextureResourceManager(void) {
   // Roll
   paths.push_back("resources/navis/roll/navi_roll_atlas.png");
 
+  // Forte
+  paths.push_back("resources/navis/forte/navi_forte_atlas.png");
+
   // Mobs
   paths.push_back("resources/mobs/mob_move.png");
   paths.push_back("resources/mobs/mob_explosion.png");
@@ -146,6 +149,8 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/spell_bomb.png");
   paths.push_back("resources/spells/spell_panel_shot.png");
   paths.push_back("resources/spells/spell_yoyo.png");
+  paths.push_back("resources/spells/spell_super_vulcan.png");
+  paths.push_back("resources/spells/alpha_rocket.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");

@@ -21,11 +21,42 @@ MetalMan::MetalMan(Rank _rank)
   name = "MetalMan";
   this->team = Team::BLUE;
 
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManThrowState>();
+  //this->AddState<MetalManPunchState>();
+
   if (rank == Rank::EX) {
     SetHealth(1300);
+
+    // Append more states
+    this->AddState<MetalManMissileState>(10);
+    this->AddState<MetalManIdleState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManThrowState>();
+    this->AddState<MetalManPunchState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManPunchState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManPunchState>();
+    this->AddState<MetalManMissileState>(10);
   }
   else {
     SetHealth(1000);
+
+    this->AddState<MetalManIdleState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManIdleState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManThrowState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManThrowState>();
   }
 
   this->ShareTileSpace(true); // mega can walk into him on red tiles
@@ -53,25 +84,6 @@ MetalMan::MetalMan(Rank _rank)
   movedByStun = false;
 
   hit = false;
-
-  this->AddState<MetalManIdleState>();
-  this->AddState<MetalManMoveState>();
-  this->AddState<MetalManIdleState>();
-  this->AddState<MetalManMoveState>();
-  this->AddState<MetalManIdleState>();
-  this->AddState<MetalManMoveState>();
-  this->AddState<MetalManThrowState>();
-  this->AddState<MetalManPunchState>();
-  this->AddState<MetalManMissileState>(10);
-  this->AddState<MetalManIdleState>();
-  this->AddState<MetalManMoveState>();
-  this->AddState<MetalManMoveState>();
-  this->AddState<MetalManMoveState>();
-  this->AddState<MetalManThrowState>();
-  this->AddState<MetalManPunchState>();
-  this->AddState<MetalManPunchState>();
-  this->AddState<MetalManPunchState>();
-  this->AddState<MetalManMissileState>(10);
 }
 
 MetalMan::~MetalMan() {

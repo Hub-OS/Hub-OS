@@ -12,7 +12,7 @@
 
 #define COOLDOWN 40.0f/1000.0f
 
-Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), Spell(_field, _team) {
+Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_field, _team) {
   SetPassthrough(true);
   SetLayer(-100);
 
@@ -34,13 +34,11 @@ Buster::Buster(Field* _field, Team _team, bool _charged) : isCharged(_charged), 
   this->RegisterComponent(animationComponent);
 
   if (_charged) {
-    damage = 10;
     texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
     animationComponent->Setup("resources/spells/spell_charged_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   } else {
-    damage = 1;
     texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
     animationComponent->Setup("resources/spells/spell_bullet_hit.animation");
     animationComponent->Reload();

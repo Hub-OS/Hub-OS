@@ -14,7 +14,7 @@ class Bubble : public Obstacle {
 protected:
   Animation animation;
   double speed;
-  bool hit;
+  bool popping;
 public:
   Bubble(Field* _field, Team _team, double speed = 1.0);
 
@@ -41,6 +41,6 @@ public:
 
   virtual const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete() { ; }
-  virtual const float GetHitHeight() const { return  0; }
+  virtual void OnDelete();
+  virtual const float GetHitHeight() const;
 };

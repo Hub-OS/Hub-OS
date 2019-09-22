@@ -8,9 +8,10 @@ class AlphaClawSwipeState : public AIState<AlphaCore>
 {
 private:
   AlphaArm *leftArm, *rightArm;
-
+  bool goldenArmState;
+  Battle::Tile* last;
 public:
-  AlphaClawSwipeState();
+  AlphaClawSwipeState(bool goldenArmState = false);
   ~AlphaClawSwipeState();
 
   void OnEnter(AlphaCore& a);

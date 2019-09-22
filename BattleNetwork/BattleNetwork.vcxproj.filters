@@ -434,30 +434,6 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Mettaur\States">
       <UniqueIdentifier>{0edefaae-8923-437f-9711-2ae3d410892b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Player">
-      <UniqueIdentifier>{10c1c4d0-3a84-4a71-bef9-04835d2185da}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman">
-      <UniqueIdentifier>{8cbbf029-e0d4-4f36-96ba-f9d11ea106df}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman\States">
-      <UniqueIdentifier>{ce04f5a8-3636-4a36-8ba1-192b3f0785eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Player\Starman">
-      <UniqueIdentifier>{96b1d867-02b9-449d-89c5-42ddcc67c189}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Player\Starman\States">
-      <UniqueIdentifier>{b7b66854-d776-4a16-ac13-be8464927b6c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Player\Protoman">
-      <UniqueIdentifier>{6a4a149c-363c-4995-beeb-0fe217611da6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Player\Roll">
-      <UniqueIdentifier>{34dd93df-6037-4d84-ba75-91be8baca2fa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Player\Roll\States">
-      <UniqueIdentifier>{a85c89af-631a-4657-9c6c-3f47c2e18ea7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\ProgsMan">
       <UniqueIdentifier>{5d15a7de-9f57-48f4-8d8a-3dcff2b9cefc}</UniqueIdentifier>
     </Filter>
@@ -623,6 +599,45 @@
     <Filter Include="Scenes/Activities\Battle\Content\Backgrounds\Robot">
       <UniqueIdentifier>{70fdd773-8bb0-41f5-a969-480a7dd63342}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players">
+      <UniqueIdentifier>{10c1c4d0-3a84-4a71-bef9-04835d2185da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman">
+      <UniqueIdentifier>{8cbbf029-e0d4-4f36-96ba-f9d11ea106df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman\States">
+      <UniqueIdentifier>{ce04f5a8-3636-4a36-8ba1-192b3f0785eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Starman">
+      <UniqueIdentifier>{96b1d867-02b9-449d-89c5-42ddcc67c189}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Starman\States">
+      <UniqueIdentifier>{b7b66854-d776-4a16-ac13-be8464927b6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Protoman">
+      <UniqueIdentifier>{6a4a149c-363c-4995-beeb-0fe217611da6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Roll">
+      <UniqueIdentifier>{34dd93df-6037-4d84-ba75-91be8baca2fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Roll\States">
+      <UniqueIdentifier>{a85c89af-631a-4657-9c6c-3f47c2e18ea7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Forte">
+      <UniqueIdentifier>{154c07e1-807b-4495-b4a8-9e0652831be1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Forte\States">
+      <UniqueIdentifier>{727f0990-741f-4e58-acbb-2a09e03e0155}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\SuperVulcan">
+      <UniqueIdentifier>{824deddf-9d16-4528-8a11-55d171ce85c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha\Arms">
+      <UniqueIdentifier>{a84fb2e5-0bbf-4256-b0ea-fdcfe3d75feb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha\Rocket">
+      <UniqueIdentifier>{d27e2125-e506-4b84-a451-e584ac86c88b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -686,10 +701,10 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Mettaur\States</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayerControlledState.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman\States</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayerHitState.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman\States</Filter>
     </ClCompile>
     <ClCompile Include="bnArtifact.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact</Filter>
@@ -704,7 +719,7 @@
       <Filter>Engine\CoreModules\Camera</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayerIdleState.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman\States</Filter>
     </ClCompile>
     <ClCompile Include="bnRandomMettaurMob.cpp">
       <Filter>Engine\Addons\MobRegistration\MobFactories\Random</Filter>
@@ -761,7 +776,7 @@
       <Filter>Scenes/Activities\Main Menu</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayer.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman</Filter>
     </ClCompile>
     <ClCompile Include="bnOverworldMap.cpp">
       <Filter>Scenes/Activities\Main Menu\Overworld\Map</Filter>
@@ -797,7 +812,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Character</Filter>
     </ClCompile>
     <ClCompile Include="bnStarman.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Starman</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Starman</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectNaviScene.cpp">
       <Filter>Scenes/Activities\Select Navi</Filter>
@@ -806,7 +821,7 @@
       <Filter>Engine\Addons\NaviRegistration</Filter>
     </ClCompile>
     <ClCompile Include="bnRoll.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Roll</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Roll</Filter>
     </ClCompile>
     <ClCompile Include="bnRollHeal.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Summons\Roll</Filter>
@@ -1126,9 +1141,6 @@
     <ClCompile Include="bnAlphaCore.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Alpha</Filter>
     </ClCompile>
-    <ClCompile Include="bnAlphaArm.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha</Filter>
-    </ClCompile>
     <ClCompile Include="bnAlphaIdleState.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
     </ClCompile>
@@ -1194,6 +1206,21 @@
     </ClCompile>
     <ClCompile Include="bnJudgeTreeBackground.cpp">
       <Filter>Scenes/Activities\Battle\Content\Backgrounds\JudgeTree</Filter>
+    </ClCompile>
+    <ClCompile Include="bnForte.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Forte</Filter>
+    </ClCompile>
+    <ClCompile Include="bnSuperVulcan.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\SuperVulcan</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAlphaRocketState.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAlphaArm.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha\Arms</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAlphaRocket.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha\Rocket</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1294,10 +1321,10 @@
       <Filter>Scenes/Activities\Battle\Content\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerControlledState.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerHitState.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman\States</Filter>
     </ClInclude>
     <ClInclude Include="bnMeta.h">
       <Filter>Utilities</Filter>
@@ -1312,7 +1339,7 @@
       <Filter>Scenes/Activities\Battle\Content\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerIdleState.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman\States</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman\States</Filter>
     </ClInclude>
     <ClInclude Include="bnMob.h">
       <Filter>Engine\Addons\MobRegistration\MobFactories</Filter>
@@ -1379,7 +1406,7 @@
       <Filter>Scenes/Activities\Main Menu</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayer.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Megaman</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman</Filter>
     </ClInclude>
     <ClInclude Include="bnOverworldMap.h">
       <Filter>Scenes/Activities\Main Menu\Overworld\Map</Filter>
@@ -1427,7 +1454,7 @@
       <Filter>Scenes/Activities\Battle\Content\Components</Filter>
     </ClInclude>
     <ClInclude Include="bnStarman.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Starman</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Starman</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectNaviScene.h">
       <Filter>Scenes/Activities\Select Navi</Filter>
@@ -1445,7 +1472,7 @@
       <Filter>Prefabs\Background</Filter>
     </ClInclude>
     <ClInclude Include="bnRoll.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Player\Roll</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Roll</Filter>
     </ClInclude>
     <ClInclude Include="bnChipSummonHandler.h">
       <Filter>Scenes/Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Any</Filter>
@@ -1840,9 +1867,6 @@
     <ClInclude Include="bnAlphaCore.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Alpha</Filter>
     </ClInclude>
-    <ClInclude Include="bnAlphaArm.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha</Filter>
-    </ClInclude>
     <ClInclude Include="bnAlphaIdleState.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
     </ClInclude>
@@ -1914,6 +1938,21 @@
     </ClInclude>
     <ClInclude Include="bnJudgeTreeBackground.h">
       <Filter>Scenes/Activities\Battle\Content\Backgrounds\JudgeTree</Filter>
+    </ClInclude>
+    <ClInclude Include="bnForte.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players\Forte</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSuperVulcan.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\SuperVulcan</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAlphaRocketState.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAlphaArm.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha\Arms</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAlphaRocket.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha\Rocket</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

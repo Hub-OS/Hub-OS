@@ -1,6 +1,6 @@
 /*! \brief Roll playable net navi
  * 
- * Sets health to 400, name to "Roll", and enables Float Shoe
+ * Sets health to 900, name to "Roll", and enables Float Shoe
  */
 
 #pragma once
@@ -25,4 +25,6 @@ public:
   friend class PlayerIdleState;
 
   Roll();
+
+  virtual const float GetHitHeight() const;
 };

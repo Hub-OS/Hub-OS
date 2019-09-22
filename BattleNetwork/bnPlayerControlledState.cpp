@@ -26,7 +26,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (player.GetComponentsDerivedFrom<ChipAction>().size()) return;
 
 #ifndef __ANDROID__
-  if (!INPUT.Has(HELD_A) && !player.IsSliding() && !player.GetNextTile()) {
+  if (!INPUT.Has(HELD_A) && !player.IsSliding()) {
 #else
     if(INPUT.Has(PRESSED_A) && !INPUT.Has(RELEASED_B) && !player.IsSliding() && !player.GetNextTile()) {
 #endif
@@ -37,7 +37,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};
       player.SetAnimation(PLAYER_SHOOTING, onFinish);
     }
-    else if(!player.IsSliding() && !player.GetNextTile()){
+    else if(!player.GetNextTile()){
       isChargeHeld = false;
 
 #ifdef __ANDROID__
@@ -92,7 +92,13 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   }
 
   if (direction != Direction::NONE && player.state == PLAYER_IDLE && !player.IsSliding()) {
-    bool moved = player.Move(direction);
+    if (player.PlayerControllerSlideEnabled()) {
+      player.SlideToTile(true);
+    }
+
+    player.Move(direction);
+
+    bool moved = player.GetNextTile();
 
     if (moved) {
       auto onFinish = [&]() {
@@ -105,9 +111,6 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
         direction = Direction::NONE;
       }; // end lambda
       player.SetAnimation(PLAYER_MOVING, onFinish);
-    }
-    else {
-      player.SetAnimation(PLAYER_IDLE);
     }
   }
 }

@@ -16,12 +16,14 @@ Starman::Starman() : Player()
   name = "Starman";
   SetLayer(0);
   team = Team::RED;
-  this->SetElement(Element::CURSOR);
+  this->SetElement(Element::NONE);
 
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Reload();
 
   setTexture(*TEXTURES.GetTexture(TextureType::NAVI_STARMAN_ATLAS));
+
+  this->SetHealth(1000);
 
   // Starman has FloatShoe enabled
   SetFloatShoe(true);

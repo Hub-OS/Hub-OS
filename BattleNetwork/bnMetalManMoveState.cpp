@@ -56,6 +56,6 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
 }
 
 void MetalManMoveState::OnLeave(MetalMan& metal) {
-
+  metal.GetFirstComponent<AnimationComponent>()->SetAnimation(MOB_IDLE, Animator::Mode::Loop);
 }
 

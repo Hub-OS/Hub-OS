@@ -26,6 +26,7 @@ Tornado::Tornado(Field* _field, Team _team, int damage) : damage(damage), Spell(
 
   auto props = GetHitboxProperties();
   props.flags &= ~Hit::recoil;
+  props.flags |= Hit::impact;
   props.damage = damage;
   props.element = Element::WIND;
   this->SetHitboxProperties(props);

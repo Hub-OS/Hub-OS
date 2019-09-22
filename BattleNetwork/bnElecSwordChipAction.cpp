@@ -8,11 +8,19 @@
 #define PATH "resources/spells/spell_elec_sword.png"
 #define ANIM "resources/spells/spell_elec_sword.animation"
 
+#define FRAME1 { 1, 0.05 }
+#define FRAME2 { 2, 0.05 }
+#define FRAME3 { 3, 0.3 }
+
+#define FRAMES FRAME1, FRAME2, FRAME3
+
 ElecSwordChipAction::ElecSwordChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SWORD", &attachment, "BUSTER"), attachmentAnim(ANIM) {
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
   owner->AddNode(this->attachment);
+
+  this->OverrideAnimationFrames({ FRAMES });
 
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");

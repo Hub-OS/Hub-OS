@@ -17,7 +17,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   
   auraSprite.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
   aura = new SpriteSceneNode(auraSprite);
-  
+
   // owner draws -> aura component draws -> aura sprite anim draws
   owner->RegisterComponent(this);
   owner->AddNode(this);
@@ -164,6 +164,9 @@ void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   this_states.transform *= this->getTransform();
   this_states.shader = nullptr; // we don't want to apply effects from the owner to this component
   SceneNode::draw(target, this_states);
+
+  // Only draw HP font for Barriers. Auras are hidden.
+  if (this->type <= Type::AURA_1000) return;
 
   // 0 - 5 are on first row
   // Glyphs are 8x15 
