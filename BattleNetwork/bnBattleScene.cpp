@@ -20,6 +20,11 @@
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
 
+// Combos are counted if more than one enemy is hit within x frames
+// The game is clocked to display 60 frames per second
+// If x = 15 frames, then we want a combo hit threshold of 15/60 = 0.3 seconds
+#define COMBO_HIT_THRESHOLD_SECONDS 15.0f/60.0f
+
 BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, ChipFolder* folder) :
         swoosh::Activity(&controller),
         player(player),
@@ -476,61 +481,63 @@ void BattleScene::onUpdate(double elapsed) {
     field->Update((float)elapsed);
   } 
 
+  int newMobSize = mob->GetRemainingMobCount();
+
+  if (lastMobSize != newMobSize) {
+    if (multiDeleteTimer.getElapsed() <= sf::seconds(COMBO_HIT_THRESHOLD_SECONDS) && !showSummonBackdrop && summons.IsSummonOver()) {
+      comboDeleteCounter += lastMobSize - newMobSize;
+
+      if (comboDeleteCounter == 2) {
+        didDoubleDelete = true;
+        comboInfo = doubleDelete;
+        comboInfoTimer.reset();
+      }
+      else if (comboDeleteCounter > 2) {
+        didTripleDelete = true;
+        comboInfo = tripleDelete;
+        comboInfoTimer.reset();
+      }
+    }
+    else if(multiDeleteTimer.getElapsed() > sf::seconds(COMBO_HIT_THRESHOLD_SECONDS)){
+      comboDeleteCounter = 0;
+    }
+  }
+
+  if (lastMobSize != newMobSize) {
+    Logger::Log("lastMobSize: " + std::to_string(lastMobSize));
+    Logger::Log("newMobSize: " + std::to_string(newMobSize));
+    Logger::Log("comboDeleteCounter: " + std::to_string(comboDeleteCounter));
+    Logger::Log("multiDeleteTimer: " + std::to_string(multiDeleteTimer.getElapsed().asSeconds()));
+    // prepare for another enemy deletion
+    multiDeleteTimer.reset();
+  }
+
+  lastMobSize = newMobSize;
+
   // todo: we desperately need states
   // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
   if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle)) {
-    int newMobSize = mob->GetRemainingMobCount();
-
-    if (lastMobSize != newMobSize) {
-      if (multiDeleteTimer.getElapsed() < sf::seconds(12.0f / 60.0f)) {
-        comboDeleteCounter += lastMobSize - newMobSize;
-
-        if (comboDeleteCounter == 2) {
-          didDoubleDelete = true;
-          comboInfo = doubleDelete;
-          comboInfoTimer.reset();
-        }
-        else if (comboDeleteCounter > 2) {
-          didTripleDelete = true;
-          comboInfo = tripleDelete;
-          comboInfoTimer.reset();
-        }
-      }
-      else {
-        comboDeleteCounter = 0;
-      }
-
-      // prepare for another enemy deletion
-      multiDeleteTimer.reset();
-    }
-
-    if (lastMobSize != newMobSize) {
-      Logger::Log("lastMobSize: " + std::to_string(lastMobSize));
-      Logger::Log("newMobSize: " + std::to_string(newMobSize));
-      Logger::Log("multiDeleteTimer: " + std::to_string(multiDeleteTimer.getElapsed().asSeconds()));
-    }
-
-    lastMobSize = newMobSize;
-
-    if (newMobSize == 0) {
-      if (!battleTimer.isPaused()) {
-        battleTimer.pause();
-        AUDIO.StopStream();
-      }
-    }
-    else {
+    if (battleTimer.isPaused()) {
+      // start counting seconds again
       if (battleTimer.isPaused()) {
-        // start counting seconds again
         battleTimer.start();
         comboDeleteCounter = 0; // reset the combo
         Logger::Log("comboDeleteCounter reset");
       }
-
-      customProgress += elapsed;
-
-      // NOTE: this may be a redundant flag now that nodes and components can be updated by injection
-      field->SetBattleActive(true);
     }
+
+    if (newMobSize == 0) {
+      if (!battleTimer.isPaused()) {
+        battleTimer.pause();
+        multiDeleteTimer.start();
+        AUDIO.StopStream();
+      }
+    }
+
+    customProgress += elapsed;
+
+    // NOTE: this may be a redundant flag now that nodes and components can be updated by injection
+    field->SetBattleActive(true);
   }
   else {
     battleTimer.pause();

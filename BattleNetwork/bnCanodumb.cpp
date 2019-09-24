@@ -51,7 +51,12 @@ Canodumb::Canodumb(Rank _rank)
 }
 
 Canodumb::~Canodumb() {
+  if (virusBody) {
+    this->RemoveDefenseRule(virusBody);
+    delete virusBody;
+    virusBody = nullptr;
 
+  }
 }
 
 void Canodumb::OnUpdate(float _elapsed) {
@@ -70,13 +75,6 @@ const float Canodumb::GetHitHeight() const {
 }
 
 void Canodumb::OnDelete() {
-  if (virusBody) {
-    this->RemoveDefenseRule(virusBody);
-    delete virusBody;
-    virusBody = nullptr;
-
-  }
-
   // Explode if health depleted
   this->ChangeState<ExplodeState<Canodumb>>(3,0.55);
 }

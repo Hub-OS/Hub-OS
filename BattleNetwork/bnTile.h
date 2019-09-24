@@ -43,8 +43,8 @@ namespace Battle {
   public:
     enum class Highlight : int {
       none = 0,
-      solid = 1,
-      flash = 2
+      flash = 1,
+      solid = 2,
     };
 
     friend Field::Field(int _width, int _height);
