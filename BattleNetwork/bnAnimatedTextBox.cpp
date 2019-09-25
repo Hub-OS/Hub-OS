@@ -4,12 +4,11 @@
 AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos)
     : textArea(), totalTime(0), textBox(280, 40, 24, "resources/fonts/NETNAVI_4-6_V3.ttf") {
     frame = sf::Sprite(LOAD_TEXTURE(ANIMATED_TEXT_BOX));
-    nextCursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_NEXT_CURSOR));
-    selectCursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_CURSOR));
 
     // set the textbox positions
     textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0f, this->getPosition().y - 40.0f));
     this->setPosition(pos);
+    this->setScale(2.0f, 2.0f);
 
     textSpeed = 1.0;
 
@@ -44,30 +43,6 @@ void AnimatedTextBox::Close() {
   animator << callback;
 }
 
-const bool AnimatedTextBox::SelectYes() const {
-  if (this->messages.size() == 0 || textBox.HasMore()) return false;
-  if (!isReady || !this->messages[0]->IsQuestion()) return false;
-
-  return this->messages[0]->SelectYes();
-}
-
-const bool AnimatedTextBox::SelectNo() const {
-  if (this->messages.size() == 0 || textBox.HasMore()) return false;
-  if (!isReady || !this->messages[0]->IsQuestion()) return false;
-
-  return this->messages[0]->SelectNo();
-}
-
-const bool AnimatedTextBox::ConfirmSelection() {
-  if (this->messages.size() == 0 || textBox.HasMore()) return false;
-  if (!isReady || !this->messages[0]->IsQuestion()) return false;
-
-  this->messages[0]->ExecuteSelection();
-  this->DequeMessage();
-  isPaused = false;
-
-  return true;
-}
 
 void AnimatedTextBox::Open() {
   if (isReady || isOpening) return;
@@ -94,6 +69,30 @@ const bool AnimatedTextBox::HasMessage() {
   return (messages.size() > 0);
 }
 
+const bool AnimatedTextBox::IsEndOfMessage()
+{
+  return !textBox.HasMore();
+}
+
+void AnimatedTextBox::ShowNextLines()
+{
+  for (int i = 0; i < textBox.GetNumberOfFittingLines(); i++) {
+    textBox.ShowNextLine();
+  }
+
+  isPaused = false;
+}
+
+const float AnimatedTextBox::GetFrameWidth() const
+{
+  return frame.getGlobalBounds().width;
+}
+
+const float AnimatedTextBox::GetFrameHeight() const
+{
+  return frame.getGlobalBounds().height;
+}
+
 void AnimatedTextBox::DequeMessage() {
   if (messages.size() == 0) return;
 
@@ -108,9 +107,11 @@ void AnimatedTextBox::DequeMessage() {
   mugAnimator.SetAnimation("TALK");
   mugAnimator << Animator::Mode::Loop;
   textBox.SetMessage(messages[0]->GetMessage());
+
+  isPaused = false; // Begin playing again
 }
 
-void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath, Message* message) {
+void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message) {
   speaker.setScale(2.0f, 2.0f);
   messages.push_back(message);
 
@@ -123,9 +124,11 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
 
   std::string strMessage = messages[0]->GetMessage();
   textBox.SetMessage(strMessage);
+
+  message->SetTextbox(this);
 }
 
-  void AnimatedTextBox::Update(float elapsed) {
+  void AnimatedTextBox::Update(double elapsed) {
   totalTime += elapsed;
 
   if (isReady && messages.size() > 0) {
@@ -133,15 +136,6 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
     int yIndex = (int)(textBox.GetNumberOfLines() % textBox.GetNumberOfFittingLines());
     auto y = (textBox.GetNumberOfFittingLines() -yIndex) * 10.0f;
     y = frame.getPosition().y - y;
-
-    if (this->messages[0]->IsYes()) {
-      auto x = swoosh::ease::interpolate(elapsed * 10.f, selectCursor.getPosition().x, frame.getPosition().x + 140.0f);
-      selectCursor.setPosition(x, y);
-    }
-    else {
-      auto x = swoosh::ease::interpolate(elapsed * 10.f, selectCursor.getPosition().x, frame.getPosition().x + 265.0f);
-      selectCursor.setPosition(x, y);
-    }
 
     if (!isPaused) {
       if (mugAnimator.GetAnimationString() != "TALK") {
@@ -162,7 +156,9 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
       }
     }
 
-    mugAnimator.Update(elapsed*(float)textSpeed, mugshots.front());
+    mugAnimator.Update((float)(elapsed*textSpeed), mugshots.front());
+
+    messages.front()->OnUpdate(elapsed);
   }
 
   textBox.Play(!isPaused);
@@ -170,7 +166,7 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
   // set the textbox position
   textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0f, this->getPosition().y - 40.0f));
 
-  animator.Update(elapsed, frame);
+  animator.Update((float)elapsed, frame);
 }
 
 void AnimatedTextBox::SetTextSpeed(double factor) {
@@ -179,37 +175,11 @@ void AnimatedTextBox::SetTextSpeed(double factor) {
   }
 }
 
-void AnimatedTextBox::Continue() {
-  if (!this->isPaused) return;
-
-  if (!textBox.HasMore()) {
-    if (messages.size() > 1 && !this->messages[0]->IsQuestion()) {
-      this->DequeMessage();
-    }
-
-  }
-  else {
-    for (int i = 0; i < textBox.GetNumberOfFittingLines(); i++) {
-      textBox.ShowNextLine();
-    }
-  }
-
-  isPaused = false;
-}
-
 void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-  frame.setScale(this->getScale()*2.0f);
+  frame.setScale(this->getScale());
   frame.setPosition(this->getPosition());
   frame.setRotation(this->getRotation());
-
-  nextCursor.setScale(this->getScale()*2.0f);
-  selectCursor.setScale(this->getScale()*2.0f);
-
-  auto bounce = std::sin((float)totalTime*10.0f)*5.0f;
-
-  nextCursor.setPosition(sf::Vector2f(this->getPosition().x + frame.getGlobalBounds().width - 30.0f, this->getPosition().y + 30.0f + bounce));
-  nextCursor.setRotation(this->getRotation());
 
   if (isOpening || isReady || isClosing) {
     target.draw(frame);
@@ -241,22 +211,19 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
       sprite.setPosition(oldpos);
     }
 
-    // Draw the animated text
-    textBox.draw(target, states);
-
-    if (this->messages[0]->IsQuestion() && !textBox.HasMore()) {
-
-      // Draw the Yes / No and a cursor
-      if (this->isPaused) {
-        // TODO: draw yes / no?
-        //sf::Text text = textBox.GetText();
-
-        //target.draw(text);
-        target.draw(selectCursor);
-      }
-    }
-    else if (this->isPaused && (textBox.HasMore() || this->messages.size() > 1)) {
-      target.draw(nextCursor);
-    }
+    messages.front()->OnDraw(target, states);
   }
+}
+
+void AnimatedTextBox::DrawMessage(sf::RenderTarget & target, sf::RenderStates states) const
+{
+  target.draw(textBox, states);
+}
+
+sf::Text AnimatedTextBox::MakeTextObject(std::string data)
+{
+  auto obj = textBox.GetText();
+  obj.setString(data);
+
+  return obj;
 }

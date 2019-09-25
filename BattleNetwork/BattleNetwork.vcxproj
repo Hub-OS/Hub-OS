@@ -271,6 +271,8 @@
     <ClCompile Include="bnMedicalBackground.cpp" />
     <ClCompile Include="bnMegalian.cpp" />
     <ClCompile Include="bnMegalianIdleState.cpp" />
+    <ClCompile Include="bnMessage.cpp" />
+    <ClCompile Include="bnMessageQuestion.cpp" />
     <ClCompile Include="bnMetalBlade.cpp" />
     <ClCompile Include="bnMetalMan.cpp" />
     <ClCompile Include="bnMetalManBossFight.cpp" />
@@ -463,6 +465,9 @@
     <ClInclude Include="bnMedicalBackground.h" />
     <ClInclude Include="bnMegalian.h" />
     <ClInclude Include="bnMegalianIdleState.h" />
+    <ClInclude Include="bnMessage.h" />
+    <ClInclude Include="bnMessageInterface.h" />
+    <ClInclude Include="bnMessageQuestion.h" />
     <ClInclude Include="bnMetalBlade.h" />
     <ClInclude Include="bnMetalMan.h" />
     <ClInclude Include="bnMetalManBossFight.h" />

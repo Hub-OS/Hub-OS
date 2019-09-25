@@ -12,6 +12,7 @@
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
 #include "Android/bnTouchArea.h"
+#include "bnMessageQuestion.h"
 
 #include <SFML/Graphics.hpp>
 using sf::RenderWindow;
@@ -26,6 +27,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   collection(collection),
   camera(ENGINE.GetView()),
   folderSwitch(true),
+  textbox(sf::Vector2f(4, 255)),
   swoosh::Activity(&controller)
 {
   promptOptions = false;
@@ -149,6 +151,14 @@ void FolderScene::onUpdate(double elapsed) {
   camera.Update((float)elapsed);
   folderCursorAnimation.Update((float)elapsed, folderCursor);
   equipAnimation.Update((float)elapsed, folderEquip);
+  textbox.Update(elapsed);
+
+  auto lastChipIndex = currChipIndex;
+  auto lastFolderIndex = currFolderIndex;
+  auto lastOptionIndex = optionIndex;
+
+  // Prioritize textbox input
+  if (textbox.IsOpen()) return;
 
   // Scene keyboard controls
   if (enterText) {
@@ -196,8 +206,6 @@ void FolderScene::onUpdate(double elapsed) {
           else {
             optionIndex--;
           }
-
-          AUDIO.Play(AudioType::CHIP_SELECT);
         }
       }
       else if (INPUT.Has(PRESSED_DOWN)) {
@@ -212,8 +220,6 @@ void FolderScene::onUpdate(double elapsed) {
           else {
             optionIndex++;
           }
-
-          AUDIO.Play(AudioType::CHIP_SELECT);
         }
       }
       else if (INPUT.Has(PRESSED_RIGHT)) {
@@ -225,7 +231,6 @@ void FolderScene::onUpdate(double elapsed) {
           if (!promptOptions) {
             currFolderIndex++;
             folderSwitch = true;
-            AUDIO.Play(AudioType::CHIP_SELECT);
           }
         }
       }
@@ -238,7 +243,6 @@ void FolderScene::onUpdate(double elapsed) {
           if (!promptOptions) {
             currFolderIndex--;
             folderSwitch = true;
-            AUDIO.Play(AudioType::CHIP_SELECT);
           }
         }
       }
@@ -251,7 +255,19 @@ void FolderScene::onUpdate(double elapsed) {
       currFolderIndex = std::max(0, currFolderIndex);
       currFolderIndex = std::min((int)folderNames.size() - 1, currFolderIndex);
       optionIndex = std::max(0, optionIndex);
-      optionIndex = std::min(2, optionIndex);
+
+      if (currChipIndex != lastChipIndex 
+        || currFolderIndex != lastFolderIndex 
+        || optionIndex != lastOptionIndex) {
+        AUDIO.Play(AudioType::CHIP_SELECT);
+      }
+
+      if (folderNames.size()) {
+        optionIndex = std::min(4, optionIndex); // total of 5 options 
+      }
+      else {
+        optionIndex = 0; // "NEW" option only
+      }
 
 #ifdef __ANDROID__
       if(lastFolderIndex != currFolderIndex) {
@@ -270,7 +286,7 @@ void FolderScene::onUpdate(double elapsed) {
         folderSwitch = false;
       }
 
-      InputEvent  cancelButton = RELEASED_B;
+      InputEvent cancelButton = RELEASED_B;
 
       if (INPUT.Has(PRESSED_B)) {
         if (!promptOptions) {
@@ -294,7 +310,7 @@ void FolderScene::onUpdate(double elapsed) {
           promptOptions = true;
           AUDIO.Play(AudioType::CHIP_DESC);
         }
-        else {
+        else if(folderNames.size()) {
           switch (optionIndex) {
           case 0: // EDIT
             if (folder) {
@@ -325,7 +341,27 @@ void FolderScene::onUpdate(double elapsed) {
               AUDIO.Play(AudioType::CHIP_ERROR);
             }
             break;
+          case 3: // NEW 
+            MakeNewFolder();
+            promptOptions = false;
+            currFolderIndex = (int)folderNames.size() - 1;
+            folderSwitch = true;
+
+            break;
+          case 4: // DELETE 
+            DeleteFolder([this]() {
+              promptOptions = false;
+              currFolderIndex--;
+              folderSwitch = true;
+            });
+            break;
           }
+        }
+        else {
+          MakeNewFolder();
+          promptOptions = false;
+          currFolderIndex = (int)folderNames.size() - 1;
+          folderSwitch = true;
         }
       }
   }
@@ -472,68 +508,117 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.Draw(scrollbar);
 
-  if (!folder) return;
-  if (folder->GetSize() == 0) return;
-
-  // Move the chip library iterator to the current highlighted chip
-  ChipFolder::Iter iter = folder->Begin();
-
-  for (int j = 0; j < currChipIndex; j++) {
-    iter++;
-  }
-
-
-  chipLabel->setFillColor(sf::Color::White);
-  chipLabel->setString(folderNames[currFolderIndex]);
-  chipLabel->setOrigin(0.f, chipLabel->getGlobalBounds().height / 2.0f);
-  chipLabel->setPosition(195.0f, 100.0f);
-  ENGINE.Draw(chipLabel, false);
-
-  // Now that we are at the viewing range, draw each chip in the list
-  for (int i = 0; i < maxChipsOnScreen && currChipIndex + i < numOfChips; i++) {
-    chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(((*iter)->GetIconID())));
-    chipIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
-    ENGINE.Draw(chipIcon, false);
-
-    chipLabel->setOrigin(0.0f, 0.0f);
-    chipLabel->setFillColor(sf::Color::White);
-    chipLabel->setPosition(2.f*115.f, 128.0f + (32.f*i));
-    chipLabel->setString((*iter)->GetShortName());
-    ENGINE.Draw(chipLabel, false);
-
-
-    int offset = (int)((*iter)->GetElement());
-    element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-    element.setPosition(2.f*173.f, 133.0f + (32.f*i));
-    ENGINE.Draw(element, false);
-
-    chipLabel->setOrigin(0, 0);
-    chipLabel->setPosition(2.f*190.f, 128.0f + (32.f*i));
-    chipLabel->setString(std::string() + (*iter)->GetCode());
-    ENGINE.Draw(chipLabel, false);
-
-    mbPlaceholder.setPosition(2.f*200.f, 134.0f + (32.f*i));
-    ENGINE.Draw(mbPlaceholder, false);
-    iter++;
-  }
-
-  auto y = swoosh::ease::interpolate((float)frameElapsed*7.0f, cursor.getPosition().y, 170.0f + ((optionIndex)*32.0f));
-  cursor.setPosition(2.0, y);
+  ENGINE.Draw(folderOptions);
 
   float scale = 0.0f;
 
-  ENGINE.Draw(folderOptions);
-
-
   if (promptOptions) {
-   scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
-   ENGINE.Draw(cursor);
+    scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
+    ENGINE.Draw(cursor);
   }
   else {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
   }
 
   folderOptions.setScale(2.0f, scale);
+
+
+  auto y = swoosh::ease::interpolate((float)frameElapsed*7.0f, cursor.getPosition().y, 138.0f + ((optionIndex)*32.0f));
+  cursor.setPosition(2.0, y);
+
+  if (!folder) return;
+  if (folder->GetSize() != 0) {
+
+    // Move the chip library iterator to the current highlighted chip
+    ChipFolder::Iter iter = folder->Begin();
+
+    for (int j = 0; j < currChipIndex; j++) {
+      iter++;
+    }
+
+    chipLabel->setFillColor(sf::Color::White);
+    chipLabel->setString(folderNames[currFolderIndex]);
+    chipLabel->setOrigin(0.f, chipLabel->getGlobalBounds().height / 2.0f);
+    chipLabel->setPosition(195.0f, 100.0f);
+    ENGINE.Draw(chipLabel, false);
+
+    // Now that we are at the viewing range, draw each chip in the list
+    for (int i = 0; i < maxChipsOnScreen && currChipIndex + i < numOfChips; i++) {
+      chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(((*iter)->GetIconID())));
+      chipIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
+      ENGINE.Draw(chipIcon, false);
+
+      chipLabel->setOrigin(0.0f, 0.0f);
+      chipLabel->setFillColor(sf::Color::White);
+      chipLabel->setPosition(2.f*115.f, 128.0f + (32.f*i));
+      chipLabel->setString((*iter)->GetShortName());
+      ENGINE.Draw(chipLabel, false);
+
+
+      int offset = (int)((*iter)->GetElement());
+      element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+      element.setPosition(2.f*173.f, 133.0f + (32.f*i));
+      ENGINE.Draw(element, false);
+
+      chipLabel->setOrigin(0, 0);
+      chipLabel->setPosition(2.f*190.f, 128.0f + (32.f*i));
+      chipLabel->setString(std::string() + (*iter)->GetCode());
+      ENGINE.Draw(chipLabel, false);
+
+      mbPlaceholder.setPosition(2.f*200.f, 134.0f + (32.f*i));
+      ENGINE.Draw(mbPlaceholder, false);
+      iter++;
+    }
+  }
+
+  ENGINE.Draw(textbox, false);
+}
+
+void FolderScene::MakeNewFolder() {
+  AUDIO.Play(AudioType::CHIP_CONFIRM); 
+
+  std::string name = "NewFldr";
+  int i = 0;
+
+  while (!collection.MakeFolder(name)) {
+    i++;
+    name = "NewFldr" + std::to_string(i);
+  }
+
+  folderNames = collection.GetFolderNames();
+}
+
+void FolderScene::DeleteFolder(std::function<void()> onSuccess)
+{
+  if (!folderNames.size()) {
+    AUDIO.Play(AudioType::CHIP_ERROR);
+
+    return;
+  }
+
+  auto onYes = [onSuccess, this]() {
+    if (collection.DeleteFolder(folderNames[currFolderIndex])) {
+      onSuccess();
+      folderNames = collection.GetFolderNames();
+    }
+
+    textbox.Close();
+    AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+  };
+
+  auto onNo = [this]() {
+    textbox.Close();
+    AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+  };
+
+  textbox.EnqueMessage(
+    sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR)), 
+    "resources/ui/navigator.animation", 
+    new Question("AAA", 
+    onYes,
+    onNo));
+
+  textbox.Open();
 }
 
 void FolderScene::onEnd() {

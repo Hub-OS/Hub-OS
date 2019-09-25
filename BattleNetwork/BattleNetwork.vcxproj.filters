@@ -638,6 +638,15 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha\Rocket">
       <UniqueIdentifier>{d27e2125-e506-4b84-a451-e584ac86c88b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Prefabs\TextBox\Framed\Messages">
+      <UniqueIdentifier>{b62e7de7-f669-4e8f-b6e9-c49005f4ca11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Prefabs\TextBox\Framed\Messages\Question">
+      <UniqueIdentifier>{954cdd4e-0017-4ca0-a694-6f710b764f38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Prefabs\TextBox\Framed\Messages\Default">
+      <UniqueIdentifier>{c3af9515-4592-476a-a67a-e40875b518a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1221,6 +1230,12 @@
     </ClCompile>
     <ClCompile Include="bnAlphaRocket.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha\Rocket</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMessageQuestion.cpp">
+      <Filter>Prefabs\TextBox\Framed\Messages\Question</Filter>
+    </ClCompile>
+    <ClCompile Include="bnMessage.cpp">
+      <Filter>Prefabs\TextBox\Framed\Messages\Default</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1953,6 +1968,15 @@
     </ClInclude>
     <ClInclude Include="bnAlphaRocket.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Alpha\Rocket</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMessageInterface.h">
+      <Filter>Prefabs\TextBox\Framed\Messages</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMessageQuestion.h">
+      <Filter>Prefabs\TextBox\Framed\Messages\Question</Filter>
+    </ClInclude>
+    <ClInclude Include="bnMessage.h">
+      <Filter>Prefabs\TextBox\Framed\Messages\Default</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -301,7 +301,7 @@ bool ChipSelectionCust::OpenChipDescription()
 bool ChipSelectionCust::ContinueChipDescription() {
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
-  chipDescriptionTextbox.Continue();
+  //chipDescriptionTextbox.Continue();
 
   return true;
 }
@@ -325,20 +325,24 @@ bool ChipSelectionCust::CloseChipDescription() {
 bool ChipSelectionCust::ChipDescriptionYes() {
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
-  return chipDescriptionTextbox.SelectYes();
+  //return chipDescriptionTextbox.SelectYes();
+  return true;
+
 }
 
 bool ChipSelectionCust::ChipDescriptionNo() {
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
-  return chipDescriptionTextbox.SelectNo();
+  //return chipDescriptionTextbox.SelectNo();
+  return true;
 }
 
 
 bool ChipSelectionCust::ChipDescriptionConfirmQuestion() {
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
-  return chipDescriptionTextbox.ConfirmSelection();
+  // return chipDescriptionTextbox.ConfirmSelection();
+  return true;
 }
 
 void ChipSelectionCust::GetNextChips() {

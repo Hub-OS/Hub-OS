@@ -46,6 +46,27 @@ public:
   }
 
   /**
+ * @brief Deletes a folder with the give name
+ * @param name of the folder to delete from collection
+ * @return true if deleted, false if folder does not exist
+ * @warning THIS IS PERMANENT AND CANNOT UNDO
+ */
+  bool DeleteFolder(std::string name) {
+    auto iter = collection.find(name);
+
+    if (iter != collection.end()) {
+      auto f = std::find(order.begin(), order.end(), iter->first);
+      // remove the old name from the order
+      order.erase(f);
+
+      collection.erase(iter);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * @brief Get the folder by name
    * @param name of the folder to get
    * @param folder handle to the folder 

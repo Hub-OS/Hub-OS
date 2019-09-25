@@ -8,6 +8,8 @@
 #include "bnChipFolder.h"
 #include "Android/bnTouchArea.h"
 
+#include "bnMessage.h"
+
 #include <SFML/Graphics.hpp>
 #include <cmath>
 
@@ -270,7 +272,7 @@ void LibraryScene::onUpdate(double elapsed) {
       }
 
       textbox.DequeMessage(); // make sure textbox is empty
-      textbox.EnqueMessage(sf::Sprite(), "", new AnimatedTextBox::Message(iter->GetVerboseDescription()));
+      textbox.EnqueMessage(sf::Sprite(), "", new Message(iter->GetVerboseDescription()));
       textbox.Open();
       AUDIO.Play(AudioType::CHIP_DESC);
     }
@@ -284,7 +286,7 @@ void LibraryScene::onUpdate(double elapsed) {
     }
     else if (INPUT.Has(RELEASED_A) && textbox.IsOpen()) {
       textbox.SetTextSpeed(1.0);
-      textbox.Continue();
+      //textbox.Continue();
     }
 
     currChipIndex = std::max(0, currChipIndex);

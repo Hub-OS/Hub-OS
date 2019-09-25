@@ -11,6 +11,7 @@
 #include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
+#include "bnAnimatedTextBox.h"
 
 /**
  * @class FolderScene
@@ -65,6 +66,8 @@ private:
   Animation equipAnimation; /*!< Flashes */
   Animation folderCursorAnimation; /*!< Flashes */
 
+  AnimatedTextBox textbox;
+
   int currFolderIndex;
   int selectedFolderIndex;
   int lastFolderIndex;
@@ -99,6 +102,8 @@ private:
     void ShutdownTouchControls();
 #endif
 
+  void MakeNewFolder();
+  void DeleteFolder(std::function<void()> onSuccess);
 public:
   virtual void onStart();
   

@@ -142,10 +142,16 @@ public:
   }
 
   /**
-   * @brief Get sf::Text object
+   * @brief Get reference to sf::Text object
    * @return sf::Text&
    */
   const sf::Text& GetText() const { return this->text; }
+
+  /**
+ * @brief Get reference to sf::Font object
+ * @return sf::Font&
+ */
+  const sf::Font& GetFont() const { return *this->font; }
 
   /**
    * @brief Set text fill color
@@ -324,6 +330,8 @@ public:
       }
 
       text.setString(message.substr(begin, len));
+
+      play = false;
 
      // We don't need to fill box
      return;
