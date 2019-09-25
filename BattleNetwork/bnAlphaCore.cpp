@@ -154,7 +154,7 @@ void AlphaCore::OnUpdate(float _elapsed) {
   rightArm->SyncElapsedTime(totalElapsed+1.0f);
 
   float delta = std::sinf(10*totalElapsed)*0.5f;
-  head->setPosition(-10, -44 - delta);
+  head->setPosition(-10, -48 - delta);
   side->setPosition(6, -54 - delta);
 
   // shoulders lag behind
@@ -164,13 +164,13 @@ void AlphaCore::OnUpdate(float _elapsed) {
     delta = std::sinf(50 * totalElapsed + 1.5f);
   }
 
-  leftShoulder->setPosition(-21, -58 - delta);
+  leftShoulder->setPosition(-21, -62 - delta);
 
   if (shootSuperVulcans) {
     delta = -delta;
   }
 
-  rightShoulder->setPosition(2, -53 - delta);
+  rightShoulder->setPosition(2, -57 - delta);
 
   // keep core exposed if deleted for effect
   // If the core hp is less that initial hp, we need to 

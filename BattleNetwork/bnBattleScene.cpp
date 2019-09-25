@@ -475,7 +475,7 @@ void BattleScene::onUpdate(double elapsed) {
 
     // kill switch for testing:
     if (INPUT.Has(InputEvent::HELD_A) && INPUT.Has(InputEvent::HELD_B) && INPUT.Has(InputEvent::HELD_LEFT)) {
-      //mob->KillSwitch();
+      mob->KillSwitch();
     }
 
     field->Update((float)elapsed);
@@ -504,10 +504,6 @@ void BattleScene::onUpdate(double elapsed) {
   }
 
   if (lastMobSize != newMobSize) {
-    Logger::Log("lastMobSize: " + std::to_string(lastMobSize));
-    Logger::Log("newMobSize: " + std::to_string(newMobSize));
-    Logger::Log("comboDeleteCounter: " + std::to_string(comboDeleteCounter));
-    Logger::Log("multiDeleteTimer: " + std::to_string(multiDeleteTimer.getElapsed().asSeconds()));
     // prepare for another enemy deletion
     multiDeleteTimer.reset();
   }
