@@ -33,7 +33,7 @@ Forte::Forte() : Player()
 
   aura = new Aura(Aura::Type::AURA_200, this);
   this->RegisterComponent(aura);
-  aura->setPosition(0, -20.0f);
+  //aura->setPosition(0, -20.0f);
 
   dropCooldown = COPY_DROP_COOLDOWN;
 
@@ -55,7 +55,7 @@ Forte::~Forte()
 
 const float Forte::GetHitHeight() const
 {
-  return 140.0f;
+  return 160.0f;
 }
 
 void Forte::OnUpdate(float _elapsed)

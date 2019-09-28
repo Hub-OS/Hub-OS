@@ -294,7 +294,7 @@ void FolderScene::onUpdate(double elapsed) {
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
           using swoosh::intent::direction;
-          using segue = swoosh::intent::segue<PushIn<direction::right>>;
+          using segue = swoosh::intent::segue<PushIn<direction::right>, swoosh::intent::milli<500>>;
           getController().queuePop<segue>();
         } else {
             promptOptions = false;
@@ -315,7 +315,7 @@ void FolderScene::onUpdate(double elapsed) {
           case 0: // EDIT
             if (folder) {
               using namespace intent;
-              using next = segue<BlackWashFade>::to<FolderEditScene>;
+              using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderEditScene>;
               getController().push<next>(*folder);
               AUDIO.Play(AudioType::CHIP_CONFIRM);
               gotoNextScene = true;
@@ -332,7 +332,7 @@ void FolderScene::onUpdate(double elapsed) {
           case 2: // CHANGE NAME
             if (folder) {
               using namespace intent;
-              using next = segue<BlackWashFade>::to<FolderChangeNameScene>;
+              using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderChangeNameScene>;
               getController().push<next>(folderNames[currFolderIndex]);
               AUDIO.Play(AudioType::CHIP_CONFIRM);
               gotoNextScene = true;

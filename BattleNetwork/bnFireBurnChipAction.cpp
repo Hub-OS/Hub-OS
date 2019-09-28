@@ -38,6 +38,16 @@ FireBurnChipAction::FireBurnChipAction(Character * owner, FireBurn::Type type, i
     props.aggressor = GetOwnerAs<Character>();
     fb->SetHitboxProperties(props);
 
+    // update node position in the animation
+    auto baseOffset = anim->GetPoint(nodeName).y - anim->GetPoint("origin").y;
+
+    if (baseOffset < 0) { baseOffset = -baseOffset;  }
+
+
+    baseOffset *= 2.0f;
+
+    fb->SetHeight(baseOffset);
+
     GetOwner()->GetField()->AddEntity(*fb, GetOwner()->GetTile()->GetX() + 1 + offset, GetOwner()->GetTile()->GetY());
   };
 

@@ -66,7 +66,7 @@ void FolderChangeNameScene::DoOK()
 void FolderChangeNameScene::DoEND()
 {
   using namespace swoosh::intent;
-  using effect = segue<BlackWashFade>;
+  using effect = segue<BlackWashFade, swoosh::intent::milli<500>>;
   getController().queuePop<effect>();
   AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
   leave = true;

@@ -87,7 +87,7 @@ void Character::Update(float _elapsed) {
       }
 
       if (this->invincibilityCooldown > 0) {
-          // This just blinks every 15 frames
+          // This just blinks every 15 ms
           if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
             this->Hide();
           }
@@ -259,6 +259,10 @@ void Character::ResolveFrameBattleDamage()
         else {
           // Apply directional slide in a moment
           postDragDir = props.drag;
+
+          // requeue counter hits
+          append.push({ 0, Hit::impact, Element::NONE, frameCounterAggressor, Direction::NONE });
+          frameCounterAggressor = nullptr;
         }
 
         // exclude this from the next processing step
@@ -276,8 +280,8 @@ void Character::ResolveFrameBattleDamage()
         }
         else {
           this->stunCooldown = 3.0;
+          hadStun = true;
         }
-        hadStun = true;
       }
       else if (this->stunCooldown > 0) {
         // cancel
@@ -405,11 +409,20 @@ const std::string Character::GetName() const
 
 void Character::AddDefenseRule(DefenseRule * rule)
 {
-  auto iter = std::find(defenses.begin(), defenses.end(), rule);
+  if (!rule) return;
+
+  auto iter = std::find_if(defenses.begin(), defenses.end(), [rule](DefenseRule* other) { return rule->GetPriorityLevel() == other->GetPriorityLevel(); });
 
   if (rule && iter == defenses.end()) {
     defenses.push_back(rule);
     std::sort(defenses.begin(), defenses.end(), [](DefenseRule* first, DefenseRule* second) { return first->GetPriorityLevel() < second->GetPriorityLevel(); });
+  }
+  else {
+    (*iter)->replaced = true; // Flag that this defense rule may be valid ptr, but is no longer in use
+    this->RemoveDefenseRule(*iter);
+
+    // call again, adding this time
+    this->AddDefenseRule(rule);
   }
 }
 

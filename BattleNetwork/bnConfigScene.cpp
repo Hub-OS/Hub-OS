@@ -127,7 +127,7 @@ void ConfigScene::onUpdate(double elapsed)
   if (INPUT.Has(InputEvent::PRESSED_A) && isSelectingTopMenu && !leave) {
     if (!awaitingKey) {
       using namespace swoosh::intent;
-      using effect = segue<ZoomFadeIn>;
+      using effect = segue<ZoomFadeIn, swoosh::intent::milli<500>>;
       getController().queuePop<effect>();
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       leave = true;

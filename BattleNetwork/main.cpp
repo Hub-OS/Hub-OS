@@ -186,6 +186,8 @@ int main(int argc, char** argv) {
   QueuNaviRegistration(); // Queues navis to be loaded later
   QueueMobRegistration(); // Queues mobs to be loaded later
 
+  AUDIO.SetStreamVolume(0);
+
   // Tell the input event loop how to behave when the app loses and regains focus
   INPUT.BindLoseFocusEvent(AppLoseFocus);
   INPUT.BindRegainFocusEvent(AppRegainFocus);
@@ -386,7 +388,6 @@ int main(int argc, char** argv) {
   audioLoad.launch();
 
   // stream some music while we wait
-  AUDIO.SetStreamVolume(10);
   AUDIO.Stream("resources/loops/loop_theme.ogg");
 
   // Draw some log info while we wait

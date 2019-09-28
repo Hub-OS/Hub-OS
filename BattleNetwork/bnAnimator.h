@@ -30,7 +30,7 @@ struct Frame {
 
   Frame(float duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin) 
   : duration(duration), subregion(subregion), applyOrigin(applyOrigin), origin(origin) {
-
+    points["ORIGIN"] = origin;
   }
 
   Frame(const Frame& rhs) {
@@ -60,7 +60,6 @@ struct Frame {
     origin = rhs.origin;
     points = rhs.points;
     rhs.points.clear();
-
     return *this;
   }
 

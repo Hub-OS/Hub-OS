@@ -28,7 +28,7 @@ void FakeScene::onUpdate(double elapsed) {
     triggered = true;
 
     using pattern = BlackWashFade;
-    using segue = swoosh::intent::segue<pattern, swoosh::intent::sec<1>>;
+    using segue = swoosh::intent::segue<pattern, swoosh::intent::milli<500>>;
     getController().queuePop<segue>();
   }
 }

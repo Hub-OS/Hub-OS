@@ -208,10 +208,10 @@ void InputManager::Update() {
           events.push_back(PRESSED_RIGHT);
         }
         else if (Keyboard::X == event.key.code) {
-          events.push_back(PRESSED_A); // shoot 
+          events.push_back(PRESSED_B); // use chip 
         }
         else if (Keyboard::Z == event.key.code) {
-          events.push_back(PRESSED_B); // use chip 
+          events.push_back(PRESSED_A); // shoot
         }
         else if (Keyboard::Space == event.key.code) {
           events.push_back(PRESSED_START); 
@@ -276,10 +276,10 @@ void InputManager::Update() {
           events.push_back(RELEASED_RIGHT);
         }
         else if (Keyboard::X == event.key.code) {
-          events.push_back(RELEASED_A);
+          events.push_back(RELEASED_B);
         }
         else if (Keyboard::Z == event.key.code) {
-          events.push_back(RELEASED_B);
+          events.push_back(RELEASED_A);
         }
         else if (Keyboard::Space == event.key.code) {
           events.push_back(RELEASED_START);

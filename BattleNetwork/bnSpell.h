@@ -75,9 +75,12 @@ public:
    */
   const Hit::Properties GetHitboxProperties() const;
 
+  void SetHeight(double height);
+
   virtual void OnDelete() { ;  }
 
 protected:
   Battle::Tile::Highlight mode; /*!< Highlight occupying tile */
   Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
+  double heightOffset; /*!< When drawing, how high up this spell should be. Used for chip attacks where busters must align.*/
 };

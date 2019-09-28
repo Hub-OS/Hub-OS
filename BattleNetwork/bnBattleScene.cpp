@@ -1265,7 +1265,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
               }
             }
 
-            using segue = swoosh::intent::segue<PixelateBlackWashFade>;
+            using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>;
             getController().queuePop<segue>();
           }
           else {
@@ -1278,7 +1278,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   else if (isBattleRoundOver && isPlayerDeleted) {
     if (!initFadeOut) {
       initFadeOut = true;
-      using segue = swoosh::intent::segue<WhiteWashFade>::to<GameOverScene>;
+      using segue = swoosh::intent::segue<WhiteWashFade, swoosh::intent::milli<500>>::to<GameOverScene>;
       getController().queueRewind<segue>();
     }
   }

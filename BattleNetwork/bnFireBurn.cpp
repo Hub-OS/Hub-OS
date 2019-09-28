@@ -47,9 +47,8 @@ FireBurn::~FireBurn() {
 }
 
 void FireBurn::OnUpdate(float _elapsed) {
-  auto height = 30.0f; // above the tile
   auto xoffset = 38.0f; // the flames come out a little from the origin
-  setPosition(tile->getPosition().x + xoffset, tile->getPosition().y - height);
+  setPosition(tile->getPosition().x + xoffset, tile->getPosition().y);
 
   animation.Update(_elapsed, *this);
 

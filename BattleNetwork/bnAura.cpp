@@ -23,6 +23,9 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   owner->AddNode(this);
   this->AddNode(aura);
 
+  // Note: need to get rid of artificial scaling by 2. Makes the math awful. No need for it.
+  this->setPosition(0, -owner->GetHitHeight() / 2.0f / 2.0f); // divide twice. 1 -> real screen coord 2 -> half of real height
+
   persist = false;
 
   font.setTexture(LOAD_TEXTURE(AURA_NUMSET));
@@ -85,6 +88,16 @@ void Aura::OnUpdate(float _elapsed) {
     return;
   }
 
+  // If the aura has been replaced by another defense rule, remove all
+  // associated components 
+  if (defense->IsReplaced()) {
+    this->RemoveNode(aura);
+    this->privOwner->RemoveNode(this);
+    this->bs->Eject(this);
+    delete this;
+    return;
+  }
+
   currHP = health;
   
   if(this->bs->IsBattleActive() && (!persist || isOver)) {
@@ -95,7 +108,7 @@ void Aura::OnUpdate(float _elapsed) {
     if (health == 0 || timer <= 0.0) {
       isOver = true;
       timer = 2;
-      this->auraSprite.setColor(sf::Color(255, 255, 255, 230));
+      this->auraSprite.setColor(sf::Color(255, 255, 255, 50));
     }
 
     this->Reveal(); // always show regardless of owner
@@ -145,7 +158,7 @@ const int Aura::GetHealth() const {
 
 void Aura::TakeDamage(int damage)
 {
-  Logger::Log("Taking damage: " + std::to_string(damage) + " with type: " + std::to_string((int)type));
+  Logger::Log("Aura taking damage: " + std::to_string(damage) + " and has aura type: " + std::to_string((int)type));
 
   if (type >= Aura::Type::BARRIER_100) {
     health = health - damage;

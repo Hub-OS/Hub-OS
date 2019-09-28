@@ -161,7 +161,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       // Fade out black and go back to the menu
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-      using segue = swoosh::intent::segue<BlackWashFade>;
+      using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
       getController().queuePop<segue>();
     }
   }
@@ -193,7 +193,7 @@ void SelectMobScene::onUpdate(double elapsed) {
             // Fade out black and go back to the menu
             gotoNextScene = true;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-            using segue = swoosh::intent::segue<BlackWashFade>;
+            using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
             getController().queuePop<segue>();
         }
     }

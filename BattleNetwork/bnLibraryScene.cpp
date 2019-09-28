@@ -300,7 +300,7 @@ void LibraryScene::onUpdate(double elapsed) {
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
       using swoosh::intent::direction;
-      using segue = swoosh::intent::segue<PushIn<direction::left>>;
+      using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
       getController().queuePop<segue>();
     }
   }

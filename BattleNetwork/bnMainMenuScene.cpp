@@ -125,7 +125,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         AUDIO.Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
-        using segue = swoosh::intent::segue<PushIn<direction::left>>;
+        using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
         this->getController().push<segue::to<FolderScene>>(data);
       }
 
@@ -135,7 +135,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         AUDIO.Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
-        using segue = swoosh::intent::segue<PushIn<direction::right>>;
+        using segue = swoosh::intent::segue<PushIn<direction::right>, swoosh::intent::milli<500>>;
         this->getController().push<segue::to<LibraryScene>>();
       }
 
@@ -156,7 +156,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 
         if (data.GetFolder(0, folder)) {
           AUDIO.Play(AudioType::CHIP_DESC);
-          using segue = swoosh::intent::segue<PixelateBlackWashFade>::to<SelectMobScene>;
+          using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
           this->getController().push<segue>(currentNavi, *folder);
         }
         else {
@@ -383,7 +383,7 @@ void MainMenuScene::StartupTouchControls() {
         AUDIO.Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
-        using segue = swoosh::intent::segue<PushIn<direction::left>>;
+        using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
         this->getController().push<segue::to<FolderScene>>(this->data);
     });
 
@@ -410,7 +410,7 @@ void MainMenuScene::StartupTouchControls() {
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::right>>;
-        this->getController().push<segue::to<LibraryScene>>();
+        this->getController().push<segue::to<LibraryScene>, swoosh::intent::milli<500>>();
     });
 
     libraryBtn.onTouch([this]() {
@@ -453,7 +453,7 @@ void MainMenuScene::StartupTouchControls() {
 
         if (this->data.GetFolder("Default", folder)) {
           AUDIO.Play(AudioType::CHIP_DESC);
-          using segue = swoosh::intent::segue<PixelateBlackWashFade>::to<SelectMobScene>;
+          using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
           this->getController().push<segue>(this->currentNavi, *folder);
         }
         else {

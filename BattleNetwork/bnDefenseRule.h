@@ -18,11 +18,14 @@ typedef int Priority;
 class DefenseRule {
 private:
   Priority priorityLevel; /*!< Lowest priority goes first */
-
+  bool replaced; /*!< If this rule has been replaced by another one in the entity*/
 public:
+  friend class Character;
+
   DefenseRule(Priority level);
 
   const Priority GetPriorityLevel() const;
+  const bool IsReplaced() const;
 
   virtual ~DefenseRule();
 

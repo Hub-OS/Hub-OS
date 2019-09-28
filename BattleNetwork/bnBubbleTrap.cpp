@@ -53,7 +53,9 @@ void BubbleTrap::OnUpdate(float _elapsed) {
 
   duration -= _elapsed;
 
-  this->setPosition(this->GetOwner()->getPosition() - sf::Vector2f(0, 25.0f));
+  auto x = this->GetOwner()->getPosition().x;
+  auto y = this->GetOwner()->getPosition().y - (this->GetOwnerAs<Character>()->GetHitHeight()/2.0f / 2.0f);
+  this->setPosition(x, y);
 
   animation.Update(_elapsed, *this);
 }
