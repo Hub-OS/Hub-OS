@@ -31,7 +31,7 @@ void MetridMoveState::OnUpdate(float _elapsed, Metrid& met) {
 
   Entity* target = met.GetTarget();
 
-  if (target && target->GetTile() && moveCount <= 0 && met.IsMetridTurn()) {
+  if (target && target->GetTile() && moveCount <= 0 && met.IsMyTurn()) {
     // Try attacking
     return met.ChangeState<MetridAttackState>();
   }

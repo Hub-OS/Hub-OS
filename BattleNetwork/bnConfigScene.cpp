@@ -411,8 +411,6 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
       uiSprite.setScale(ui.scale);
       uiSprite.setPosition(2.0f*(ui.position.x + offset) , ui.position.y);
 
-      Logger::Log("position is: " + std::to_string(2.0f*(ui.position.x + offset)));
-
       if (ui.type == uiData::ActionItemType::BATTLE) {
         uiSprite.setColor(sf::Color(255, 165, 0, ui.alpha));
       }

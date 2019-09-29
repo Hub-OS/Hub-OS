@@ -4,11 +4,12 @@
 #include "bnMetridMoveState.h"
 #include "bnMetridAttackState.h"
 #include "bnAI.h"
+#include "bnTurnOrderTrait.h"
 #include "bnTextureType.h"
 #include "bnCharacter.h"
 
 /*! \brief Basic metrid enemy */
-class Metrid : public Character, public AI<Metrid> {
+class Metrid : public Character, public AI<Metrid>, public TurnOrderTrait<Metrid> {
   friend class MetridIdleState;
   friend class MetridMoveState;
   friend class MetridAttackState;
@@ -44,17 +45,6 @@ public:
   virtual const float GetHitHeight() const;
 
 private:
-
-  const bool IsMetridTurn() const;
-
-  /**
-   * @brief Passes control to the next mettaur
-   */
-  void NextMetridTurn();
-
-  static vector<int> metIDs; /*!< list of metrids spawned to take turns */
-  static int currMetIndex; /*!< current active metrid ID */
-  int metID; /*!< This metrid's turn ID */
 
   float hitHeight; /*!< hit height of this entity */
 

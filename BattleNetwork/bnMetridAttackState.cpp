@@ -60,7 +60,7 @@ void MetridAttackState::OnUpdate(float _elapsed, Metrid& met) {
 }
 
 void MetridAttackState::OnLeave(Metrid& met) {
-  met.NextMetridTurn(); // Let the next begin attacking too
+  met.EndMyTurn(); // Let the next begin attacking too
 }
 
 void MetridAttackState::DoAttack(Metrid& met) {

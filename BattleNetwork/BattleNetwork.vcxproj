@@ -410,6 +410,7 @@
     <ClInclude Include="bnCannonChipAction.h" />
     <ClInclude Include="bnChipAction.h" />
     <ClInclude Include="bnConfigScene.h" />
+    <ClInclude Include="bnCounterTrait.h" />
     <ClInclude Include="bnCrackShot.h" />
     <ClInclude Include="bnCrackShotChipAction.h" />
     <ClInclude Include="bnDefenseAntiDamage.h" />
@@ -588,6 +589,7 @@
     <ClInclude Include="bnBuster.h" />
     <ClInclude Include="bnTornado.h" />
     <ClInclude Include="bnTornadoChipAction.h" />
+    <ClInclude Include="bnTurnOrderTrait.h" />
     <ClInclude Include="bnTwinFang.h" />
     <ClInclude Include="bnTwinFangChipAction.h" />
     <ClInclude Include="bnTwoMettaurMob.h" />

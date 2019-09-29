@@ -31,7 +31,7 @@ void MettaurAttackState::OnUpdate(float _elapsed, Mettaur& met) {
 }
 
 void MettaurAttackState::OnLeave(Mettaur& met) { 
-  met.NextMettaurTurn();
+  met.EndMyTurn();
 }
 
 void MettaurAttackState::DoAttack(Mettaur& met) {

@@ -225,7 +225,7 @@ namespace Battle {
     template<class Type> bool ContainsEntityType();
     
     /**
-     * @brief Attack all entities occupying this tile with spell 
+     * @brief Queues spell to all entities occupying this tile with spell 
      * @param caller must be valid non-null spell
      */
     void AffectEntities(Spell* caller);
@@ -255,6 +255,12 @@ namespace Battle {
     std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
   private:
+    /**
+    * @brief Attack all entities occupying this tile with spell
+    * @param non-null spell type pulled from queue
+    */
+    void PerformSpellAttack(Spell* caller);
+
     std::string GetAnimState(const TileState state);
 
     int x; /**< Column number*/
@@ -292,6 +298,7 @@ namespace Battle {
     vector<Entity*> entities; /**< Entity bucket for looping over all entities **/
 
     set<long> reserved; /**< IDs of entities reserving this tile*/
+    vector<long> queuedSpells; /**< IDs of occupying spells that have signaled they are to attack this frame */
     vector<long> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
 
     Animation animation;

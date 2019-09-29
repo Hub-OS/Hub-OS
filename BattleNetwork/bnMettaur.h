@@ -5,9 +5,10 @@
 #include "bnAI.h"
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
+#include "bnTurnOrderTrait.h"
 
 /*! \brief Basic mettaur enemy */
-class Mettaur : public AnimatedCharacter, public AI<Mettaur> {
+class Mettaur : public AnimatedCharacter, public AI<Mettaur>, public TurnOrderTrait<Mettaur> {
   friend class MettaurIdleState;
   friend class MettaurMoveState;
   friend class MettaurAttackState;
@@ -47,20 +48,6 @@ public:
   virtual const float GetHitHeight() const;
 
 private:
-  /**
-   * @brief Used in states, if this mettaur is allowed to move 
-   * @return 
-   */
-  const bool IsMettaurTurn() const;
-
-  /**
-   * @brief Passes control to the next mettaur
-   */
-  void NextMettaurTurn();
-
-  static vector<int> metIDs; /*!< list of mettaurs spawned to take turns */
-  static int currMetIndex; /*!< current active mettaur ID */
-  int metID; /*!< This mettaur's turn ID */
 
   float hitHeight; /*!< hit height of this mettaur */
   TextureType textureType;

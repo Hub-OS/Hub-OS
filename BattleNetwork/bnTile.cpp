@@ -376,7 +376,12 @@ namespace Battle {
   void Tile::AffectEntities(Spell* caller) {
     if (std::find_if(taggedSpells.begin(), taggedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != taggedSpells.end())
       return;
+    if (std::find_if(queuedSpells.begin(), queuedSpells.end(), [&caller](int ID) { return ID == caller->GetID(); }) != queuedSpells.end())
+      return;
+    queuedSpells.push_back(caller->GetID());
+  }
 
+  void Tile::PerformSpellAttack(Spell* caller) {
     auto entities_copy = entities; // may be modified after hitboxes are resolved
     // Spells dont cause damage when the battle is over
     if (this->isBattleActive) {
@@ -385,7 +390,7 @@ namespace Battle {
         if (*it == caller)
           continue;
 
-        // TODO: use group buckets to poll by ID instead of dy casting
+        // TODO: use group buckets to poll by ID instead of dyna casting
         Character *c = dynamic_cast<Character *>(*it);
 
         // the entity is a character (can be hit) and the team isn't the same
@@ -454,10 +459,6 @@ namespace Battle {
 
     vector<Artifact*> artifacts_copy = artifacts;
     for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
-
-      if ((*entity)->IsDeleted() || (*entity) == nullptr)
-        continue;
-
       (*entity)->Update(_elapsed);
     }
 
@@ -465,10 +466,6 @@ namespace Battle {
 
     vector<Spell*> spells_copy = spells;
     for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
-
-      if ((*entity)->IsDeleted() || (*entity) == nullptr)
-        continue;
-
       int request = (int)(*entity)->GetTileHighlightMode();
 
       if (request > (int)highlightMode) {
@@ -480,16 +477,22 @@ namespace Battle {
 
     vector<Character*> characters_copy = characters;
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
-
-      if ((*entity)->IsDeleted() || (*entity) == nullptr) {
-        continue;
-      }
-
       // Allow user input to move them out of tiles if they are frame perfect
       (*entity)->Update(_elapsed);
       HandleTileBehaviors(*entity);
     }
 
+    // Now that spells and characters have updated and moved, they are due to check for attack outcomes
+    for (auto q : queuedSpells) {
+      auto iter = std::find_if(spells.begin(), spells.end(), [q](Spell* in) { return in->GetID() == q; });
+
+      if (iter != spells.end()) {
+        this->PerformSpellAttack(*iter);
+      }
+    }
+
+    // empty queue for next frame
+    queuedSpells.clear();
 
     if (this->isBattleActive) {
       if (teamCooldown > 0) {

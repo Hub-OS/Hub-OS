@@ -36,7 +36,7 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
       else {
         // Forfeit turn.
         met.ChangeState<MettaurIdleState>();
-        met.NextMettaurTurn();
+        met.EndMyTurn();
         return;
       }
     }
@@ -53,7 +53,7 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
   else {
     // Cannot move or attack. Forfeit turn.
     met.ChangeState<MettaurIdleState>();
-    met.NextMettaurTurn();
+    met.EndMyTurn();
   }
 }
 

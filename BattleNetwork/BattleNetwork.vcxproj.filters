@@ -647,6 +647,9 @@
     <Filter Include="Prefabs\TextBox\Framed\Messages\Default">
       <UniqueIdentifier>{c3af9515-4592-476a-a67a-e40875b518a3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\CRTP Traits">
+      <UniqueIdentifier>{85c7bb34-06bc-4c47-a728-51ff5adb9d0d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1977,6 +1980,12 @@
     </ClInclude>
     <ClInclude Include="bnMessage.h">
       <Filter>Prefabs\TextBox\Framed\Messages\Default</Filter>
+    </ClInclude>
+    <ClInclude Include="bnTurnOrderTrait.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\CRTP Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCounterTrait.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\CRTP Traits</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

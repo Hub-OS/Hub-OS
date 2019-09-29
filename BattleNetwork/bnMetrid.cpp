@@ -12,11 +12,8 @@
 
 const std::string RESOURCE_PATH = "resources/mobs/metrid/metrid.animation";
 
-vector<int> Metrid::metIDs = vector<int>();
-int Metrid::currMetIndex = 0;
-
 Metrid::Metrid(Rank _rank)
-  : AI<Metrid>(this), Character(_rank) {
+  : AI<Metrid>(this), TurnOrderTrait<Metrid>(), Character(_rank) {
   name = "Metrid";
   SetTeam(Team::BLUE);
 
@@ -50,9 +47,6 @@ Metrid::Metrid(Rank _rank)
   animationComponent->OnUpdate(0);
   this->RegisterComponent(animationComponent);
 
-  metID = (int)Metrid::metIDs.size();
-  Metrid::metIDs.push_back(metID);
-
   virusBody = new DefenseVirusBody();
   this->AddDefenseRule(virusBody);
 }
@@ -66,16 +60,7 @@ void Metrid::OnDelete() {
 
   this->ChangeState<ExplodeState<Metrid>>();
 
-  if (Metrid::metIDs.size() > 0) {
-    vector<int>::iterator it = find(Metrid::metIDs.begin(), Metrid::metIDs.end(), metID);
-
-    if (it != Metrid::metIDs.end()) {
-      // Remove this metrid out of rotation...
-      Metrid::metIDs.erase(it);
-      
-      this->NextMetridTurn();
-    }
-  }
+  this->RemoveMeFromTurnOrder();
 }
 
 void Metrid::OnUpdate(float _elapsed) {
@@ -91,20 +76,4 @@ const bool Metrid::OnHit(const Hit::Properties props) {
 
 const float Metrid::GetHitHeight() const {
   return hitHeight;
-}
-
-const bool Metrid::IsMetridTurn() const
-{
-  if (Metrid::metIDs.size() > 0)
-    return (Metrid::metIDs.at(Metrid::currMetIndex) == this->metID);
-
-  return false;
-}
-
-void Metrid::NextMetridTurn() {
-  Metrid::currMetIndex++;
-
-  if (Metrid::currMetIndex >= Metrid::metIDs.size()) {
-    Metrid::currMetIndex = 0;
-  }
 }

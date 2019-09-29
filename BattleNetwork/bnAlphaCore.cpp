@@ -374,6 +374,8 @@ const bool AlphaCore::AlphaCoreDefenseRule::Check(Spell* in, Character* owner) {
 
 Hit::Properties & AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties & statuses)
 {
+  statuses.flags &= ~Hit::flinch;
+  statuses.flags &= ~Hit::recoil;
   statuses.flags &= ~Hit::drag;
   return statuses;
 }

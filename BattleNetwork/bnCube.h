@@ -1,6 +1,7 @@
 #pragma once
 #include "bnObstacle.h"
 #include "bnAnimationComponent.h"
+#include "bnCounterTrait.h"
 
 using sf::Texture;
 
@@ -16,7 +17,7 @@ using sf::Texture;
  *  Floatshoe is disabled to crack tiles
  *  Cube has 200 HP 
  */
-class Cube : public Obstacle {
+class Cube : public Obstacle, public CounterTrait<Cube> {
 public:
   Cube(Field* _field, Team _team);
   virtual ~Cube();
@@ -53,10 +54,8 @@ protected:
   AnimationComponent* animation;
   sf::Shader* whiteout;
 
-  static int currCubeIndex; 
-  static int cubesRemovedCount; 
   static const int numOfAllowedCubesOnField;
-  int cubeIndex;
+
   bool hit;
   bool pushedByDrag; /*!< Whether or not to keep momentum going*/
   double timer;

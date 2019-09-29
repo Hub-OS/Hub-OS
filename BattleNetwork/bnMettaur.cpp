@@ -13,11 +13,8 @@
 
 const std::string RESOURCE_PATH = "resources/mobs/mettaur/mettaur.animation";
 
-vector<int> Mettaur::metIDs = vector<int>(); 
-int Mettaur::currMetIndex = 0; 
-
 Mettaur::Mettaur(Rank _rank)
-  :  AI<Mettaur>(this), AnimatedCharacter(_rank) {
+  :  AI<Mettaur>(this), TurnOrderTrait<Mettaur>(), AnimatedCharacter(_rank) {
   name = "Mettaur";
   SetTeam(Team::BLUE);
 
@@ -43,9 +40,6 @@ Mettaur::Mettaur(Rank _rank)
 
   this->SetHealth(health);
 
-  metID = (int)Mettaur::metIDs.size();
-  Mettaur::metIDs.push_back((int)Mettaur::metIDs.size());
-
   animationComponent->OnUpdate(0);
 
   virusBody = new DefenseVirusBody();
@@ -62,15 +56,7 @@ void Mettaur::OnDelete() {
   this->ChangeState<ExplodeState<Mettaur>>();
   this->LockState();
 
-  if (Mettaur::metIDs.size() > 0) {
-      vector<int>::iterator it = find(Mettaur::metIDs.begin(), Mettaur::metIDs.end(), metID);
-
-      if (it != Mettaur::metIDs.end()) {
-          // Remove this mettaur out of rotation...
-          Mettaur::metIDs.erase(it);
-          this->NextMettaurTurn();
-      }
-  }
+  this->RemoveMeFromTurnOrder();
 }
 
 void Mettaur::OnUpdate(float _elapsed) {
@@ -88,23 +74,4 @@ const bool Mettaur::OnHit(const Hit::Properties props) {
 
 const float Mettaur::GetHitHeight() const {
   return hitHeight;
-}
-
-const bool Mettaur::IsMettaurTurn() const
-{
-  // this could be the first frame, all mettaurs are loaded, so set the index to start
-  if (Mettaur::currMetIndex >= Mettaur::metIDs.size()) { Mettaur::currMetIndex = 0; }
-
-  if(Mettaur::metIDs.size() > 0)
-    return (Mettaur::metIDs.at(Mettaur::currMetIndex) == this->metID);
-
-  return false;
-}
-
-void Mettaur::NextMettaurTurn() {
-  Mettaur::currMetIndex++;
-
-  if (Mettaur::currMetIndex >= Mettaur::metIDs.size() && Mettaur::metIDs.size() > 0) {
-    Mettaur::currMetIndex = 0;
-  }
 }

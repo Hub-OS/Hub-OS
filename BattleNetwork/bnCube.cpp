@@ -7,10 +7,8 @@
 #include "bnAudioResourceManager.h"
 
 const int Cube::numOfAllowedCubesOnField = 2;
-int Cube::currCubeIndex = 0;
-int Cube::cubesRemovedCount = 0;
 
-Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), pushedByDrag(false) {
+Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), CounterTrait<Cube>(), pushedByDrag(false) {
   this->setTexture(LOAD_TEXTURE(MISC_CUBE));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);
@@ -40,24 +38,22 @@ Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), pushedByDrag(fals
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
 
-this->SetSlideTime(sf::seconds(1.0f / 5.0f)); // was 1/15 
+  this->SetSlideTime(sf::seconds(1.0f / 5.0f)); // was 1/15 
 
-cubeIndex = ++currCubeIndex;
+  hit = false;
 
-hit = false;
+  this->previousDirection = Direction::NONE;
 
-this->previousDirection = Direction::NONE;
+  virusBody = new DefenseVirusBody();
+  this->AddDefenseRule(virusBody);
 
-virusBody = new DefenseVirusBody();
-this->AddDefenseRule(virusBody);
-
-auto props = GetHitboxProperties();
-props.damage = 200;
-this->SetHitboxProperties(props);
+  auto props = GetHitboxProperties();
+  props.flags |= Hit::impact | Hit::breaking;
+  props.damage = 200;
+  this->SetHitboxProperties(props);
 }
 
 Cube::~Cube() {
-  ++cubesRemovedCount;
 }
 
 bool Cube::CanMoveTo(Battle::Tile * next)
@@ -106,6 +102,12 @@ void Cube::OnUpdate(float _elapsed) {
     this->previousDirection = Direction::NONE;
   }
 
+  if (CounterTrait<Cube>::GetCounterSize() > Cube::numOfAllowedCubesOnField) {
+    if (this->IsLast()) {
+      this->SetHealth(0); // Trigger death and deletion
+    }
+  }
+
   // May have just finished sliding
   this->tile->AffectEntities(this);
 
@@ -115,7 +117,9 @@ void Cube::OnUpdate(float _elapsed) {
     this->Move(this->GetDirection());
   }
 
-  if (timer <= 0 || GetTile()->IsReservedByCharacter()) {
+
+   // TODO: put reserve and contains cube checks in an OnSpawn function...
+  if (timer <= 0 || GetTile()->IsReservedByCharacter() || GetTile()->ContainsEntityType<Cube>()) {
     this->SetHealth(0);
   }
 
@@ -123,6 +127,7 @@ void Cube::OnUpdate(float _elapsed) {
   timer -= _elapsed;
 }
 
+// Triggered by health == 0
 void Cube::OnDelete() {
   this->RemoveDefenseRule(virusBody);
   delete virusBody;
@@ -137,6 +142,10 @@ void Cube::OnDelete() {
 
   tile->RemoveEntityByID(this->GetID());
   AUDIO.Play(AudioType::PANEL_CRACK);
+
+  this->RemoveMeFromCounterList();
+
+  this->Delete(); // TODO: shouldn't be necessary!
 }
 
 const float Cube::GetHitHeight() const
