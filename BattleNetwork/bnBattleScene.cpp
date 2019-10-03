@@ -474,7 +474,7 @@ void BattleScene::onUpdate(double elapsed) {
 
 
     // kill switch for testing:
-    if (INPUT.Has(InputEvent::HELD_A) && INPUT.Has(InputEvent::HELD_B) && INPUT.Has(InputEvent::HELD_LEFT)) {
+    if (INPUT.Has(EventTypes::HELD_USE_CHIP) && INPUT.Has(EventTypes::HELD_SHOOT) && INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
       mob->KillSwitch();
     }
 
@@ -543,7 +543,7 @@ void BattleScene::onUpdate(double elapsed) {
   chipCustGUI.Update((float)elapsed);
 
   // other player controls
-  if (INPUT.Has(RELEASED_B) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
+  if (INPUT.Has(EventTypes::RELEASED_SHOOT) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
     // Todo: move this to player controller state where these checks are performed for us
     if (player && player->GetTile() && player->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE") {
       chipUI.UseNextChip();
@@ -878,7 +878,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   // Scene keyboard controls
   // TODO: really belongs in Update() but also handles a lot of conditional draws
   //       refactoring battle scene into battle states should reduce this complexity
-  if (INPUT.Has(PRESSED_PAUSE) && !isInChipSelect && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
+  if (INPUT.Has(EventTypes::PRESSED_PAUSE) && !isInChipSelect && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
     isPaused = !isPaused;
 
     if (!isPaused) {
@@ -890,7 +890,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
   else if ((!isMobFinished && mob->IsSpawningDone()) ||
            (
-                    (INPUT.Has(PRESSED_LPAD) || INPUT.Has(PRESSED_RPAD)) && customProgress >= customDuration && !isInChipSelect && !isPaused &&
+                   INPUT.Has(EventTypes::PRESSED_CUST_MENU) && customProgress >= customDuration && !isInChipSelect && !isPaused &&
                    !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle
            )) {
     // enemy intro finished
@@ -934,31 +934,31 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   else if (isInChipSelect && chipCustGUI.IsInView()) {
 #ifndef __ANDROID__
     if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
-      if (!INPUT.Has(HELD_RPAD)) {
+      if (!INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
         chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
       }
-      else if (INPUT.Has(PRESSED_A) ){
+      else if (INPUT.Has(EventTypes::PRESSED_CONFIRM) ){
 
         chipCustGUI.ChipDescriptionConfirmQuestion()? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
         chipCustGUI.ContinueChipDescription();
       }
 
-      if (INPUT.Has(HELD_A)) {
+      if (INPUT.Has(EventTypes::HELD_CONFIRM)) {
         chipCustGUI.FastForwardChipDescription(3.0);
       }
       else {
         chipCustGUI.FastForwardChipDescription(1.0);
       }
 
-      if (INPUT.Has(PRESSED_LEFT)) {
+      if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
         chipCustGUI.ChipDescriptionYes() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
       }
-      else if (INPUT.Has(PRESSED_RIGHT)) {
+      else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
         chipCustGUI.ChipDescriptionNo() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
       }
     }
     else {
-      if (INPUT.Has(PRESSED_LEFT)) {
+      if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
         chipSelectInputCooldown -= elapsed;
 
         if (chipSelectInputCooldown <= 0) {
@@ -966,7 +966,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           chipSelectInputCooldown = maxChipSelectInputCooldown;
         }
       }
-      else if (INPUT.Has(PRESSED_RIGHT)) {
+      else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
         chipSelectInputCooldown -= elapsed;
 
         if (chipSelectInputCooldown <= 0) {
@@ -974,7 +974,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           chipSelectInputCooldown = maxChipSelectInputCooldown;
         }
       }
-      else if (INPUT.Has(PRESSED_UP)) {
+      else if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
         chipSelectInputCooldown -= elapsed;
 
         if (chipSelectInputCooldown <= 0) {
@@ -982,7 +982,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           chipSelectInputCooldown = maxChipSelectInputCooldown;
         }
       }
-      else if (INPUT.Has(PRESSED_DOWN)) {
+      else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
         chipSelectInputCooldown -= elapsed;
 
         if (chipSelectInputCooldown <= 0) {
@@ -994,7 +994,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         chipSelectInputCooldown = 0;
       }
 
-      if (INPUT.Has(PRESSED_A)) {
+      if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
         bool performed = chipCustGUI.CursorAction();
 
         if (chipCustGUI.AreChipsReady()) {
@@ -1009,10 +1009,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
         }
       }
-      else if (INPUT.Has(PRESSED_B) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+      else if (INPUT.Has(EventTypes::PRESSED_CANCEL) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
         chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGHEST) : 1;
       }
-      else if (INPUT.Has(PRESSED_RPAD)) {
+      else if (INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
         chipCustGUI.OpenChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;
       }
     }
@@ -1020,7 +1020,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 #else
     static bool isHidden = false;
 
-    if(INPUT.Has(InputEvent::RELEASED_LEFT)) {
+    if(INPUT.Has(EventTypes::RELEASED_LEFT)) {
       if(!isHidden) {
         chipCustGUI.Hide();
         isHidden = true;
@@ -1251,7 +1251,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         battleResults->Move(sf::Vector2f(amount, 0));
       }
       else {
-        if (INPUT.Has(PRESSED_A)) {
+        if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
           // Have to hit twice
           if (battleResults->IsFinished()) {
             BattleItem* reward = battleResults->GetReward();

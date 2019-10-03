@@ -162,7 +162,7 @@ void FolderScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (enterText) {
-    InputEvent  cancelButton = RELEASED_B;
+    InputEvent  cancelButton = EventTypes::RELEASED_CANCEL;
 
 #ifdef __ANDROID__
     cancelButton = PRESSED_B;
@@ -194,7 +194,7 @@ void FolderScene::onUpdate(double elapsed) {
 #endif
     }
   } else if (!gotoNextScene) {
-      if (INPUT.Has(PRESSED_UP)) {
+      if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -208,7 +208,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUT.Has(PRESSED_DOWN)) {
+      else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -222,7 +222,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUT.Has(PRESSED_RIGHT)) {
+      else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -234,7 +234,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUT.Has(PRESSED_LEFT)) {
+      else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -286,9 +286,9 @@ void FolderScene::onUpdate(double elapsed) {
         folderSwitch = false;
       }
 
-      InputEvent cancelButton = RELEASED_B;
+      InputEvent cancelButton = EventTypes::RELEASED_CANCEL;
 
-      if (INPUT.Has(PRESSED_B)) {
+      if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
         if (!promptOptions) {
           gotoNextScene = true;
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
@@ -300,12 +300,12 @@ void FolderScene::onUpdate(double elapsed) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         }
-      } else if (INPUT.Has(RELEASED_B)) {
+      } else if (INPUT.Has(EventTypes::RELEASED_CANCEL)) {
           if (promptOptions) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
           }
-      } else if (INPUT.Has(PRESSED_A)) {
+      } else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
         if (!promptOptions) {
           promptOptions = true;
           AUDIO.Play(AudioType::CHIP_DESC);

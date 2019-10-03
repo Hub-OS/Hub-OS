@@ -150,8 +150,10 @@ void AlphaCore::OnUpdate(float _elapsed) {
 
   totalElapsed += _elapsed;
 
-  leftArm->SyncElapsedTime(totalElapsed+1.0f);
-  rightArm->SyncElapsedTime(totalElapsed+1.0f);
+  if (leftArm && rightArm) {
+    leftArm->SyncElapsedTime(totalElapsed + 1.0f);
+    rightArm->SyncElapsedTime(totalElapsed + 1.0f);
+  }
 
   float delta = std::sinf(10*totalElapsed)*0.5f;
   head->setPosition(-10, -48 - delta);
@@ -258,6 +260,9 @@ void AlphaCore::OnDelete() {
 
   leftArm->Delete();
   rightArm->Delete();
+
+  leftArm = nullptr;
+  rightArm = nullptr;
 
   AUDIO.StopStream();
 

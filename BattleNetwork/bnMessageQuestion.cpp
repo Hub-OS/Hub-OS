@@ -30,17 +30,17 @@ void Question::OnUpdate(double elapsed) {
 
   isQuestionReady = !GetTextBox()->IsPlaying() && GetTextBox()->IsEndOfMessage();
 
-  if (INPUT.Has(RELEASED_A) && isQuestionReady) {
+  if (INPUT.Has(EventTypes::RELEASED_CONFIRM) && isQuestionReady) {
     ExecuteSelection();
     GetTextBox()->DequeMessage();
   }
-  else if (INPUT.Has(PRESSED_B)) {
+  else if (INPUT.Has(EventTypes::RELEASED_CANCEL)) {
     AUDIO.Play(AudioType::CHIP_ERROR);
   }
-  else if (INPUT.Has(PRESSED_LEFT)) {
+  else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
     SelectYes();
   }
-  else if (INPUT.Has(PRESSED_RIGHT)) {
+  else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
     SelectNo();
   }
 }

@@ -52,50 +52,29 @@ class ConfigReader {
 public:
   enum Gamepad { };
 
+  struct DiscordInfo {
+    std::string user;
+    std::string key;
+  };
+
 private:
   // Config values
   // Map keys to actions
   std::map<sf::Keyboard::Key, std::string> keyboard; /*!< Keyboard key to event */
-  std::map<Gamepad, std::string> gamepad; /*!< Gamepad button to event */
+  std::map<Gamepad          , std::string> gamepad; /*!< Gamepad button to event */
+  DiscordInfo discord;
+
   bool isAudioEnabled; /*!< Mute audio if flagged */
 
   // State flags
   bool isOK; /*!< true if the file was ok */
 
+   /**
+   * @brief Writes the config settings to disc
+   * @param path string of output file path
+   */
   void WriteToFile(std::string path) {
-    /*
-    [Discord]
-    RPC="1"
-    [Audio]
-    Play="1"
-    [Net]
-    uPNP="0"
-    [Video]
-    Filter="0"
-    Size="1"
-    [Keyboard]
-    Select="8"
-    Start="13"
-    R="83"
-    L="65"
-    B="88"
-    A="90"
-    Left="37"
-    Down="40"
-    Right="39"
-    Up="38"
-    [Gamepad]
-    Select="32777"
-    Start="32778"
-    R="32774"
-    L="32773"
-    B="32769"
-    A="32770"
-    Left="32783"
-    Down="32782"
-    Right="32784"
-    Up="32781"
-*/
+ 
   }
 
   /**
@@ -125,7 +104,6 @@ private:
    * @brief Deprecated. 
    * @param key
    * @return Gamepad button
-   * @warning Deprecated since dropping chronox support
    */
   Gamepad GetGamepadCode(int key) {
     
@@ -296,7 +274,15 @@ private:
         return ParseAudio(buffer);
       }
 
-      // TODO: integrate with discord
+      if (line.find("User") != std::string::npos) {
+        std::string value = ValueOf("User", line);
+        discord.user = value;
+      }
+
+      if (line.find("Key") != std::string::npos) {
+        std::string value = ValueOf("Key", line);
+        discord.key = value;
+      }
 
       // Read next line...
       buffer = buffer.substr(endline + 1);
@@ -414,54 +400,12 @@ private:
         return ParseGamepad(buffer);
       }
 
-      if (line.find("Select") != std::string::npos) {
-        std::string value = ValueOf("Select", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "Select"));
-      }
 
-      if (line.find("Start") != std::string::npos) {
-        std::string value = ValueOf("Start", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "Start"));
-      }
-
-      if (line.find("R") != std::string::npos) {
-        std::string value = ValueOf("R", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "R"));
-      }
-
-      if (line.find("L") != std::string::npos) {
-        std::string value = ValueOf("L", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "L"));
-      }
-
-      if (line.find("B") != std::string::npos) {
-        std::string value = ValueOf("B", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "B"));
-      }
-
-      if (line.find("A") != std::string::npos) {
-        std::string value = ValueOf("A", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "A"));
-      }
-
-      if (line.find("Left") != std::string::npos) {
-        std::string value = ValueOf("Left", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "Left"));
-      }
-
-      if (line.find("Right") != std::string::npos) {
-        std::string value = ValueOf("Right", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "Right"));
-      }
-
-      if (line.find("Down") != std::string::npos) {
-        std::string value = ValueOf("Down", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "Down"));
-      }
-
-      if (line.find("Up") != std::string::npos) {
-        std::string value = ValueOf("Up", line);
-        keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), "Up"));
+      for (auto key : EventTypes::KEYS) {
+        if (line.find(key) != std::string::npos) {
+          std::string value = ValueOf(key, line);
+          keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), key));
+        }
       }
 
       // Read next line...
@@ -485,54 +429,11 @@ private:
 
       Trim(line);
 
-      if (line.find("Select") != std::string::npos) {
-        std::string value = ValueOf("Select", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "Select"));
-      }
-
-      if (line.find("Start") != std::string::npos) {
-        std::string value = ValueOf("Start", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "Start"));
-      }
-
-      if (line.find("R") != std::string::npos) {
-        std::string value = ValueOf("R", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "R"));
-      }
-
-      if (line.find("L") != std::string::npos) {
-        std::string value = ValueOf("L", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "L"));
-      }
-
-      if (line.find("B") != std::string::npos) {
-        std::string value = ValueOf("B", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "B"));
-      }
-
-      if (line.find("A") != std::string::npos) {
-        std::string value = ValueOf("A", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "A"));
-      }
-
-      if (line.find("Left") != std::string::npos) {
-        std::string value = ValueOf("Left", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "Left"));
-      }
-
-      if (line.find("Right") != std::string::npos) {
-        std::string value = ValueOf("Right", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "Right"));
-      }
-
-      if (line.find("Down") != std::string::npos) {
-        std::string value = ValueOf("Down", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "Down"));
-      }
-
-      if (line.find("Up") != std::string::npos) {
-        std::string value = ValueOf("Up", line);
-        gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), "Up"));
+      for (auto key : EventTypes::KEYS) {
+        if (line.find(key) != std::string::npos) {
+          std::string value = ValueOf(key, line);
+          gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), key));
+        }
       }
 
       // Read next line...
@@ -569,11 +470,10 @@ public:
    * @brief For a keyboard event, return the action string
    * @param event sfml keyboard key
    * @return the mapped input event
-   * 
-   * TODO: use InputType instead of strings
    */
   const std::string GetPairedAction(sf::Keyboard::Key event) {
     std::map<sf::Keyboard::Key, std::string>::iterator iter = keyboard.find(event);
+
 
     if (iter != keyboard.end()) {
       return iter->second;
@@ -586,8 +486,6 @@ public:
    * @brief For a gamepad event, return the action string
    * @param Gamepad button
    * @return the mapped input event
-   * 
-   * TODO: use InputType instead of strings
    */
   const std::string GetPairedAction(Gamepad event) {
     std::map<Gamepad, std::string>::iterator iter = gamepad.find(event);

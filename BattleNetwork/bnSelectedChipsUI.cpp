@@ -135,7 +135,7 @@ void SelectedChipsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
 };
 
 void SelectedChipsUI::OnUpdate(float _elapsed) {
-  if (INPUT.Has(InputEvent::HELD_LPAD) || INPUT.Has(InputEvent::HELD_RPAD)) {
+  if (INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
     spread = true;
   }
   else {

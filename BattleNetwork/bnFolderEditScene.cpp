@@ -231,7 +231,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       view = &packView;
     }
 
-    if (INPUT.Has(PRESSED_UP)) {
+    if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currChipIndex;
@@ -248,7 +248,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         chipRevealTimer.reset();
       }
     }
-    else if (INPUT.Has(PRESSED_DOWN)) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currChipIndex;
@@ -264,7 +264,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
         chipRevealTimer.reset();
       }
-    }else if (INPUT.Has(PRESSED_LPAD)) {
+    }else if (INPUT.Has(EventTypes::PRESSED_SCAN_LEFT)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currChipIndex;
@@ -284,7 +284,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         chipRevealTimer.reset();
       }
     }
-    else if (INPUT.Has(PRESSED_RPAD)) {
+    else if (INPUT.Has(EventTypes::PRESSED_SCAN_RIGHT)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currChipIndex;
@@ -307,7 +307,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.Has(PRESSED_A)) {
+    if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
       if (currViewMode == ViewMode::FOLDER) {
         if (folderView.swapChipIndex != -1) {
           if (folderView.swapChipIndex == folderView.currChipIndex) {
@@ -459,12 +459,12 @@ void FolderEditScene::onUpdate(double elapsed) {
         }
       }
     }
-    else if (INPUT.Has(PRESSED_RIGHT) && currViewMode == ViewMode::FOLDER) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT) && currViewMode == ViewMode::FOLDER) {
       currViewMode = ViewMode::PACK;
       canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC);
     }
-    else if (INPUT.Has(PRESSED_LEFT) && currViewMode == ViewMode::PACK) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT) && currViewMode == ViewMode::PACK) {
       currViewMode = ViewMode::FOLDER;
       canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC);
@@ -478,7 +478,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
     bool gotoLastScene = false;
 
-    if (INPUT.Has(PRESSED_B) && canInteract) {
+    if (INPUT.Has(EventTypes::PRESSED_CANCEL) && canInteract) {
       if (packView.swapChipIndex != -1 || folderView.swapChipIndex != -1) {
         AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         packView.swapChipIndex = folderView.swapChipIndex = -1;

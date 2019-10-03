@@ -618,7 +618,7 @@ int main(int argc, char** argv) {
             // Finally everything is loaded, show "Press Start"
             ENGINE.Draw(startLabel);
 
-            bool shouldStart = INPUT.Has(RELEASED_START);
+            bool shouldStart = INPUT.Has(EventTypes::PRESSED_CONFIRM);
 
 #ifdef __ANDROID__
             shouldStart = sf::Touch::isDown(0);
@@ -661,16 +661,16 @@ int main(int argc, char** argv) {
             startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
             ENGINE.Draw(startLabel);
 
-            bool shouldStart = INPUT.Has(RELEASED_START);
+            bool shouldStart = INPUT.Has(EventTypes::RELEASED_CONFIRM);
 
-            if (INPUT.Has(PRESSED_UP)) {
+            if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
               if (selected != 0) {
                 AUDIO.Play(AudioType::CHIP_SELECT);
               }
 
               selected = 0;
             }
-            else if (INPUT.Has(PRESSED_DOWN)) {
+            else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
               if (selected != 1) {
                 AUDIO.Play(AudioType::CHIP_SELECT);
               }

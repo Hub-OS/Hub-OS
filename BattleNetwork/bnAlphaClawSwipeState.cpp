@@ -47,6 +47,12 @@ void AlphaClawSwipeState::OnUpdate(float _elapsed, AlphaCore& a) {
     }
   }
 
+  // Check if alpha dies
+  if (a.IsDeleted()) {
+    if (rightArm) { rightArm->Delete(); rightArm = nullptr; }
+    if (leftArm)  { leftArm->Delete();  leftArm = nullptr;  }
+  }
+
   // right claw finished swiping, spawn left claw
   if (rightArm && rightArm->GetIsFinished()) {
     a.HideLeftArm();

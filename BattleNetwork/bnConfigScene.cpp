@@ -43,12 +43,6 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activ
   audioAnimator.Update(4, audioBGM);
   audioSFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
 
-  // GBA
-  gba = sprite;
-  uiAnimator.SetAnimation("GBA");
-  uiAnimator.Update(0, gba);
-  gba.setPosition(2*63, 2*47);
-
   // end button
   endBtn = sf::Sprite(LOAD_TEXTURE(END_BTN));;
   endBtn.setScale(2.f, 2.f);
@@ -56,19 +50,13 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activ
   endBtnAnimator.SetFrame(1, endBtn);
   endBtn.setPosition(2*180, 2*10);
 
-  // A/B hint
-  hint = sprite;
-  uiAnimator.SetAnimation("HINT");
-  uiAnimator.Update(0, hint);
-  hint.setPosition(2*30, 2*140);
-
   // ui sprite maps
   // ascii 58 - 96
   std::list<std::string> actions;
 
   actions.push_back("AUDIO_BGM");
   actions.push_back("AUDIO_SFX");
-  actions.push_back("SHADERS");
+  actions.push_back("SHADERS: ON");
 
   for (auto a : actions) {
     uiList[OPTIONS].push_back({a, sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
@@ -124,7 +112,7 @@ void ConfigScene::onUpdate(double elapsed)
 {
   bg->Update((float)elapsed);
 
-  if (INPUT.Has(InputEvent::PRESSED_A) && isSelectingTopMenu && !leave) {
+  if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && isSelectingTopMenu && !leave) {
     if (!awaitingKey) {
       using namespace swoosh::intent;
       using effect = segue<ZoomFadeIn, swoosh::intent::milli<500>>;
@@ -134,7 +122,7 @@ void ConfigScene::onUpdate(double elapsed)
     }
   }
 
-  if (INPUT.Has(InputEvent::PRESSED_B)) {
+  if (INPUT.Has(EventTypes::HELD_CANCEL)) {
     isSelectingTopMenu = true;
     colIndex = menuSelectionIndex = 0;
   }
@@ -155,7 +143,7 @@ void ConfigScene::onUpdate(double elapsed)
         }
       }
     }
-    else if (INPUT.Has(InputEvent::PRESSED_UP)) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
       if (menuSelectionIndex == 0 && !isSelectingTopMenu) {
         isSelectingTopMenu = true;
         colIndex = 0;
@@ -163,7 +151,7 @@ void ConfigScene::onUpdate(double elapsed)
       else {
         menuSelectionIndex--;
       }
-    } else if (INPUT.Has(InputEvent::PRESSED_DOWN)) {
+    } else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
       if (menuSelectionIndex == 0 && isSelectingTopMenu) {
         isSelectingTopMenu = false;
       }
@@ -171,17 +159,17 @@ void ConfigScene::onUpdate(double elapsed)
         menuSelectionIndex++;
       }
     }
-    else if (INPUT.Has(InputEvent::PRESSED_LEFT)) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
       if (!isSelectingTopMenu) {
         colIndex--;
       }
     }
-    else if (INPUT.Has(InputEvent::PRESSED_RIGHT)) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
       if (!isSelectingTopMenu) {
         colIndex++;
       }
     }
-    else if (INPUT.Has(InputEvent::PRESSED_A)) {
+    else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
       // bg audio
       if (menuSelectionIndex == 0 && colIndex == 0) {
         audioModeBGM = (audioModeBGM+1) % 4;
@@ -239,7 +227,7 @@ void ConfigScene::onUpdate(double elapsed)
       float scale = 1.0f - (w*abs(diff));
       auto colSpan = 45;
       auto lineSpan = 15;
-      scale = std::max(scale, 0.3f);
+      scale = std::max(scale, 0.8f);
       scale = std::min(scale, 1.0f);
 
       //scale = 1.0f;
@@ -325,8 +313,6 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
   ENGINE.SetRenderSurface(surface);
   ENGINE.Draw(bg);
 
-  //ENGINE.Draw(gba);
-  //ENGINE.Draw(hint);
  
   ENGINE.Draw(endBtn);
 
@@ -389,7 +375,11 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
       uiAnimator.SetFrame(1, uiSprite);
       uiSprite.setScale(ui.scale);
       uiSprite.setPosition(2.f*(ui.position.x + offset), ui.position.y);
+
       offset += (int)uiSprite.getLocalBounds().width + 2;
+
+      ENGINE.Draw(uiSprite);
+
     }
 
     auto totalOffset = offset;
@@ -409,7 +399,7 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
 
       uiAnimator.SetFrame(1, uiSprite);
       uiSprite.setScale(ui.scale);
-      uiSprite.setPosition(2.0f*(ui.position.x + offset) , ui.position.y);
+      uiSprite.setPosition((ui.position.x + 2.0f*(offset - totalOffset)), ui.position.y);
 
       if (ui.type == uiData::ActionItemType::BATTLE) {
         uiSprite.setColor(sf::Color(255, 165, 0, ui.alpha));

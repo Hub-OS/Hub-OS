@@ -150,7 +150,7 @@ private:
   vector<InputEvent> events; /*!< Current event list */
   vector<InputEvent> eventsLastFrame; /*!< The even list prior to this update */
 
-  map<std::string, bool> gamepadPressed; /*!< Maps controller events*/
+  map<InputEvent, std::string> input; /*!< Maps controller events*/
 
   ConfigReader* config;   /*!< Support for ChronoX config.ini files */
 

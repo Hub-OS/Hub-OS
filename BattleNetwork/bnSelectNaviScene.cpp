@@ -290,7 +290,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUT.Has(PRESSED_LEFT)) {
+    if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -302,7 +302,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUT.Has(PRESSED_RIGHT)) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -318,20 +318,12 @@ void SelectNaviScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.Has(PRESSED_B)) {
+    if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
 
       getController().queuePop<swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>>();
-    }
-
-    if (INPUT.Has(PRESSED_UP)) {
-      textbox.ShowPreviousLine();
-    }
-
-    if (INPUT.Has(PRESSED_DOWN)) {
-      textbox.ShowNextLine();
     }
   }
 
@@ -426,7 +418,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   navi.setPosition(xpos, glowbase.getPosition().y + 10);
 
   // Make a selection
-  if (INPUT.Has(PRESSED_A) && prevChosen != naviSelectionIndex) {
+  if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && prevChosen != naviSelectionIndex) {
     AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOW);
     prevChosen = prevSelect;
 

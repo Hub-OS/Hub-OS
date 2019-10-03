@@ -26,9 +26,9 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (player.GetComponentsDerivedFrom<ChipAction>().size()) return;
 
 #ifndef __ANDROID__
-  if (!INPUT.Has(HELD_A) && !player.IsSliding()) {
+  if (!INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !player.IsSliding()) {
 #else
-    if(INPUT.Has(PRESSED_A) && !INPUT.Has(RELEASED_B) && !player.IsSliding() && !player.GetNextTile()) {
+    if(INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !INPUT.Has(EventTypes::RELEASED_SHOOT) && !player.IsSliding() && !player.GetNextTile()) {
 #endif
     if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack();
@@ -52,21 +52,21 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   static Direction direction = Direction::NONE;
   if (player.IsBattleActive()) {
-    if (INPUT.Has(PRESSED_UP) ||INPUT.Has(HELD_UP)) {
+    if (INPUT.Has(EventTypes::PRESSED_MOVE_UP) ||INPUT.Has(EventTypes::HELD_MOVE_UP)) {
       direction = Direction::UP;
     }
-    else if (INPUT.Has(PRESSED_LEFT) || INPUT.Has(HELD_LEFT)) {
+    else if (INPUT.Has(EventTypes::PRESSED_MOVE_LEFT) || INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
       direction = Direction::LEFT;
     }
-    else if (INPUT.Has(PRESSED_DOWN) || INPUT.Has(HELD_DOWN)) {
+    else if (INPUT.Has(EventTypes::PRESSED_MOVE_DOWN) || INPUT.Has(EventTypes::HELD_MOVE_DOWN)) {
       direction = Direction::DOWN;
     }
-    else if (INPUT.Has(PRESSED_RIGHT) || INPUT.Has(HELD_RIGHT)) {
+    else if (INPUT.Has(EventTypes::PRESSED_MOVE_RIGHT) || INPUT.Has(EventTypes::HELD_MOVE_RIGHT)) {
       direction = Direction::RIGHT;
     }
   }
 
-  bool shouldShoot = INPUT.Has(HELD_A) && isChargeHeld == false;
+  bool shouldShoot = INPUT.Has(EventTypes::PRESSED_SHOOT) && isChargeHeld == false;
 
 #ifdef __ANDROID__
   shouldShoot = INPUT.Has(PRESSED_A);
@@ -78,16 +78,16 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     player.chargeComponent.SetCharging(true);
   }
 
-  if (INPUT.Has(RELEASED_UP)) {
+  if (INPUT.Has(EventTypes::RELEASED_MOVE_UP)) {
     direction = Direction::NONE;
   }
-  else if (INPUT.Has(RELEASED_LEFT)) {
+  else if (INPUT.Has(EventTypes::RELEASED_MOVE_LEFT)) {
     direction = Direction::NONE;
   }
-  else if (INPUT.Has(RELEASED_DOWN)) {
+  else if (INPUT.Has(EventTypes::RELEASED_MOVE_DOWN)) {
     direction = Direction::NONE;
   }
-  else if (INPUT.Has(RELEASED_RIGHT)) {
+  else if (INPUT.Has(EventTypes::RELEASED_MOVE_RIGHT)) {
     direction = Direction::NONE;
   }
 

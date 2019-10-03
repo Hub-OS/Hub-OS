@@ -117,7 +117,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
 
   if (!gotoNextScene) {
-    if (INPUT.Has(PRESSED_A) && !INPUT.Has(PRESSED_B)) {
+    if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && !INPUT.Has(EventTypes::PRESSED_CANCEL)) {
 
       // Folder Select
       if (menuSelectionIndex == 0) {
@@ -167,7 +167,7 @@ void MainMenuScene::onUpdate(double elapsed) {
       }
     }
 
-    if (INPUT.Has(PRESSED_UP)) {
+    if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -176,7 +176,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         menuSelectionIndex--;
       }
     }
-    else if (INPUT.Has(PRESSED_DOWN)) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
