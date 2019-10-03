@@ -488,10 +488,12 @@ public:
    * @return the mapped input event
    */
   const std::string GetPairedAction(Gamepad event) {
-    std::map<Gamepad, std::string>::iterator iter = gamepad.find(event);
+    if (gamepad.size()) {
+      std::map<Gamepad, std::string>::iterator iter = gamepad.find(event);
 
-    if (iter != gamepad.end()) {
-      return iter->second;
+      if (iter != gamepad.end()) {
+        return iter->second;
+      }
     }
 
     return "";

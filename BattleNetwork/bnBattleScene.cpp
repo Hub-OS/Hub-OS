@@ -543,7 +543,7 @@ void BattleScene::onUpdate(double elapsed) {
   chipCustGUI.Update((float)elapsed);
 
   // other player controls
-  if (INPUT.Has(EventTypes::RELEASED_SHOOT) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
+  if (INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
     // Todo: move this to player controller state where these checks are performed for us
     if (player && player->GetTile() && player->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE") {
       chipUI.UseNextChip();

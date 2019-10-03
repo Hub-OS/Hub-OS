@@ -63,7 +63,7 @@ void InputManager::Update() {
       lastkey = event.key.code;
     }
 
-    if (sf::Joystick::isConnected(GAMEPAD_1)) {
+    if (sf::Joystick::isConnected(GAMEPAD_1) && config) {
       for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++)
       {
         std::string action = "";
@@ -130,6 +130,12 @@ void InputManager::Update() {
         else if (Keyboard::S == event.key.code) {
           events.push_back(EventTypes::PRESSED_SPECIAL);
         }
+        else if (Keyboard::D == event.key.code) {
+          events.push_back(EventTypes::PRESSED_SCAN_LEFT);
+        }
+        else if (Keyboard::F == event.key.code) {
+          events.push_back(EventTypes::PRESSED_SCAN_RIGHT);
+        }
       }
     } else if (Event::KeyReleased == event.type) {
       std::string action = "";
@@ -178,6 +184,12 @@ void InputManager::Update() {
         else if (Keyboard::S == event.key.code) {
           events.push_back(EventTypes::RELEASED_SPECIAL);
         }
+        else if (Keyboard::D == event.key.code) {
+          events.push_back(EventTypes::RELEASED_SCAN_LEFT);
+        }
+        else if (Keyboard::F == event.key.code) {
+          events.push_back(EventTypes::RELEASED_SCAN_RIGHT);
+        }
       }
     }
   } // end event poll
@@ -219,19 +231,21 @@ void InputManager::Update() {
 
   // First, we must see if any held keys from the last frame are released this frame
   for (auto e : events) {
-    InputEvent find1 = { e.name, InputState::PRESSED };
-    InputEvent find2 = { e.name, InputState::HELD };
-    auto trunc = std::remove(eventsLastFrame.begin(), eventsLastFrame.end(), find1);
-    eventsLastFrame.erase(trunc, eventsLastFrame.end());
+    if (e.state == InputState::RELEASED) {
+      InputEvent find1 = { e.name, InputState::PRESSED };
+      InputEvent find2 = { e.name, InputState::HELD };
+      auto trunc = std::remove(eventsLastFrame.begin(), eventsLastFrame.end(), find1);
+      eventsLastFrame.erase(trunc, eventsLastFrame.end());
 
-    trunc = std::remove(eventsLastFrame.begin(), eventsLastFrame.end(), find2);
-    eventsLastFrame.erase(trunc, eventsLastFrame.end());
+      trunc = std::remove(eventsLastFrame.begin(), eventsLastFrame.end(), find2);
+      eventsLastFrame.erase(trunc, eventsLastFrame.end());
 
-    trunc = std::remove(events.begin(), events.end(), find1);
-    events.erase(trunc, events.end());
+      trunc = std::remove(events.begin(), events.end(), find1);
+      events.erase(trunc, events.end());
 
-    trunc = std::remove(events.begin(), events.end(), find2);
-    events.erase(trunc, events.end());
+      trunc = std::remove(events.begin(), events.end(), find2);
+      events.erase(trunc, events.end());
+    }
   }
 
   // Finally, merge the continuous held key events into the final event buffer
@@ -258,6 +272,23 @@ void InputManager::Update() {
     if (insert != EventTypes::NONE && std::find(events.begin(), events.end(), insert) == events.end()) {
       events.push_back(insert); // migrate this input
     }
+  }
+
+  for (auto e : events) {
+    std::string state = "NONE";
+
+    switch (e.state) {
+    case InputState::HELD:
+      state = "HELD";
+      break;
+    case InputState::RELEASED:
+      state = "RELEASED";
+      break;
+    case InputState::PRESSED:
+      state = "PRESSED";
+      break;
+    }
+    Logger::Logf("input event %s, %s", e.name.c_str(), state.c_str());
   }
 
   eventsLastFrame.clear();
