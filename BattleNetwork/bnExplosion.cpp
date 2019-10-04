@@ -34,7 +34,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
    * On the 11th frame, increment the explosion count, and turn the first 
    * explosion transpatent.
    * 
-   * If there are more explosions expected, spawn a copy on frame 9
+   * If there are more explosions expected, spawn a copy on frame 8
    */
   animationComponent->AddCallback(11, [this]() {
     this->root->IncrementExplosionCount();
@@ -42,7 +42,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   }, std::function<void()>(), true);
 
   if (_numOfExplosions > 1) {
-    animationComponent->AddCallback(9, [this, _field, _team, _numOfExplosions]() {
+    animationComponent->AddCallback(8, [this, _field, _team, _numOfExplosions]() {
       this->GetField()->AddEntity(*new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
     }, std::function<void()>(), true);
   }
@@ -79,14 +79,14 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
    * Tell root to increment explosion count on frame 11
    * 
    * Similar to the root constructor, if there are more explosions
-   * Spawn a copy on frame 9
+   * Spawn a copy on frame 8
    */
   animationComponent->AddCallback(11, [this]() {
     this->Delete(); this->root->IncrementExplosionCount();
   }, std::function<void()>(), true);
 
   if (numOfExplosions > 1) {
-    animationComponent->AddCallback(9, [this]() {
+    animationComponent->AddCallback(8, [this]() {
       this->GetField()->AddEntity(*new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
     }, std::function<void()>(), true);
   }

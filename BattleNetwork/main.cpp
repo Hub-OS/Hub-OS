@@ -193,22 +193,15 @@ int main(int argc, char** argv) {
   INPUT.BindRegainFocusEvent(AppRegainFocus);
   INPUT.BindResizedEvent(AppResize);
 
-  // State flags
-  bool inConfigMessageState = true;
-
   // try to read the config file
   ConfigReader config("options.ini");
+  INPUT.SupportConfigSettings(config);
 
-  if (!config.IsOK()) {
-    // If the file is not ok, don't use the config
-    // And skip the success screen
-    inConfigMessageState = false; 
-  }
-  else {
+  if (config.GetConfigSettings().IsOK()) {
     // If the file is good, use the audio and 
     // controller settings from the config
-    AUDIO.EnableAudio(config.IsAudioEnabled());
-    INPUT.SupportConfigSettings(config);
+    AUDIO.EnableAudio(config.GetConfigSettings().IsAudioEnabled());
+
   }
 
   /**
@@ -278,9 +271,8 @@ int main(int argc, char** argv) {
   mobLoadedLabel->setCharacterSize(24);
   mobLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
   mobLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
- 
-  // If using chrono x config file, deliver a message to them
-  sf::Text* message = new sf::Text("Your Chrono X config settings\nhave been imported", *startFont);
+
+  sf::Text* message = new sf::Text("This software is non profit\nIP rights belong to Capcom", *startFont);
   message->setCharacterSize(24);
   message->setOrigin(message->getLocalBounds().width/2.f, message->getLocalBounds().height*2);
   message->setPosition(sf::Vector2f(300.f, 200.f));
@@ -300,8 +292,9 @@ int main(int argc, char** argv) {
   // Use our external render surface as the game's screen
   ENGINE.SetRenderSurface(loadSurface);
 
-  // This loop is just for the chrono x message screen
-  while (inConfigMessageState && ENGINE.Running()) {
+  bool inMessageState = true;
+
+  while (inMessageState && ENGINE.Running()) {
     clock.restart();
 
     // Poll input
@@ -312,7 +305,7 @@ int main(int argc, char** argv) {
 
     // If 3 seconds is over, exit this loop
     if (messageCooldown <= 0) {
-      inConfigMessageState = false;
+      inMessageState = false;
       messageCooldown = 0;
     }
 

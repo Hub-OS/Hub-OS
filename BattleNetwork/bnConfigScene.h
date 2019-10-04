@@ -12,11 +12,17 @@
 #include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
+#include "bnConfigSettings.h"
+#include "bnConfigWriter.h"
+
 #include <SFML/Graphics.hpp>
 #include <time.h>
 
 class ConfigScene : public swoosh::Activity {
 private:
+  ConfigSettings configSettings;
+  ConfigWriter* writer;
+
   // ui sprite maps
   Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
   Animation endBtnAnimator;

@@ -207,7 +207,10 @@
     <ClCompile Include="bnBubbleTrap.cpp" />
     <ClCompile Include="bnCannonChipAction.cpp" />
     <ClCompile Include="bnComponent.cpp" />
+    <ClCompile Include="bnConfigReader.cpp" />
     <ClCompile Include="bnConfigScene.cpp" />
+    <ClCompile Include="bnConfigSettings.cpp" />
+    <ClCompile Include="bnConfigWriter.cpp" />
     <ClCompile Include="bnCrackShot.cpp" />
     <ClCompile Include="bnCrackShotChipAction.cpp" />
     <ClCompile Include="bnDefenseAntiDamage.cpp" />
@@ -410,6 +413,8 @@
     <ClInclude Include="bnCannonChipAction.h" />
     <ClInclude Include="bnChipAction.h" />
     <ClInclude Include="bnConfigScene.h" />
+    <ClInclude Include="bnConfigSettings.h" />
+    <ClInclude Include="bnConfigWriter.h" />
     <ClInclude Include="bnCounterTrait.h" />
     <ClInclude Include="bnCrackShot.h" />
     <ClInclude Include="bnCrackShotChipAction.h" />

@@ -650,6 +650,15 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\CRTP Traits">
       <UniqueIdentifier>{85c7bb34-06bc-4c47-a728-51ff5adb9d0d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\CoreModules\Settings">
+      <UniqueIdentifier>{d2f96403-6612-4264-acd5-ea154b80b96c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\CoreModules\Settings\Reader">
+      <UniqueIdentifier>{c224a7f3-acff-4456-b08e-d0d73f82f09a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\CoreModules\Settings\Writer">
+      <UniqueIdentifier>{18f09d22-dea9-4be4-89f1-1c275870cfd4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1240,6 +1249,15 @@
     <ClCompile Include="bnMessage.cpp">
       <Filter>Prefabs\TextBox\Framed\Messages\Default</Filter>
     </ClCompile>
+    <ClCompile Include="bnConfigSettings.cpp">
+      <Filter>Engine\CoreModules\Settings</Filter>
+    </ClCompile>
+    <ClCompile Include="bnConfigReader.cpp">
+      <Filter>Engine\CoreModules\Settings\Reader</Filter>
+    </ClCompile>
+    <ClCompile Include="bnConfigWriter.cpp">
+      <Filter>Engine\CoreModules\Settings\Writer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -1813,9 +1831,6 @@
     <ClInclude Include="bnConfigScene.h">
       <Filter>Scenes/Activities\Config</Filter>
     </ClInclude>
-    <ClInclude Include="bnConfigReader.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="bnMetrid.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Metrid</Filter>
     </ClInclude>
@@ -1986,6 +2001,15 @@
     </ClInclude>
     <ClInclude Include="bnCounterTrait.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\CRTP Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="bnConfigSettings.h">
+      <Filter>Engine\CoreModules\Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="bnConfigReader.h">
+      <Filter>Engine\CoreModules\Settings\Reader</Filter>
+    </ClInclude>
+    <ClInclude Include="bnConfigWriter.h">
+      <Filter>Engine\CoreModules\Settings\Writer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -64,33 +64,34 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activ
 
   actions.clear();
 
-  actions.push_back("MOVE UP");
-  actions.push_back("MOVE LEFT");
-  actions.push_back("MOVE RIGHT");
-  actions.push_back("MOVE DOWN");
-  actions.push_back("SHOOT");
-  actions.push_back("USE CHIP");
-  actions.push_back("SPECIAL");
-  actions.push_back("CUST MENU");
-  actions.push_back("PAUSE");
+  Logger::Log("input manager request");
+  configSettings = INPUT.GetConfigSettings();
 
-  for (auto a : actions) {
+  // For input keys 
+
+  for (auto a : EventTypes::KEYS) {
     uiList[ACTIONS].push_back({ a, sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
-    boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
+
+    if (false /*!configSettings.IsOK()*/) {
+      boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
+    }
+    else {
+      std::string keyStr;
+
+      if (INPUT.ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
+        boundKeys.push_back({ keyStr,  sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
+      }
+      else {
+        boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
+      }
+    }
   }
   
   menuDivideIndex = maxMenuSelectionIndex = (int)actions.size();
 
-  actions.clear();
-  actions.push_back("UI UP");
-  actions.push_back("UI LEFT");
-  actions.push_back("UI RIGHT");
-  actions.push_back("UI DOWN");
-  actions.push_back("CONFIRM");
-  actions.push_back("CANCEL");
-  actions.push_back("QUICK OPT");
-
   maxMenuSelectionIndex += (int)actions.size();
+
+  // For menu keys
 
   for (auto a : actions) {
     uiList[ACTIONS].push_back({ a, sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::MENUS });

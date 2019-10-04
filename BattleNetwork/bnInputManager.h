@@ -8,6 +8,8 @@ using std::vector;
 
 #include "bnInputEvent.h"
 #include "bnConfigReader.h"
+#include "bnConfigWriter.h"
+#include "bnConfigSettings.h"
 
 using std::map;
 using std::vector;
@@ -136,6 +138,8 @@ public:
 
   const bool IsJosytickAvailable() const;
 
+  ConfigSettings GetConfigSettings();
+
 private:
   sf::Keyboard::Key lastkey;
 
@@ -152,7 +156,9 @@ private:
 
   map<InputEvent, std::string> input; /*!< Maps controller events*/
 
-  ConfigReader* config;   /*!< Support for ChronoX config.ini files */
+  ConfigReader* reader;   /*!< Reads */
+  ConfigWriter* writer;   /*!< Writes */
+  ConfigSettings settings; /*!< Settings object*/
 
   std::function<void()> onRegainFocus; /*!< How the application should respond to regaining focus */
   std::function<void()> onLoseFocus; /*!< How the application should respond to losing focus */

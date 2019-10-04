@@ -30,7 +30,7 @@ void Engine::Initialize() {
   this->Resize((int)view.getSize().x, (int)view.getSize().y);
 
   window->setFramerateLimit(60);
-  window->setMouseCursorVisible(false); // Hide cursor
+  // window->setMouseCursorVisible(false); // Hide cursor
 
   window->setIcon(sfml_icon.width, sfml_icon.height, sfml_icon.pixel_data);
 

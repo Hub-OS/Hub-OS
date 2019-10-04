@@ -18,17 +18,19 @@ InputManager& InputManager::GetInstance() {
   return instance;
 }
 
-InputManager::InputManager() : config(nullptr) {
+InputManager::InputManager() : reader(nullptr), writer(nullptr) {
   lastkey = sf::Keyboard::Key::Unknown;
 }
 
 
 InputManager::~InputManager() {
-  this->config = nullptr;
+  this->reader = nullptr;
 }
 
 void InputManager::SupportConfigSettings(ConfigReader& config) {
-  this->config = &config;
+  this->reader = &config;
+  settings = reader->GetConfigSettings();
+
 }
 
 void InputManager::Update() {
@@ -63,20 +65,20 @@ void InputManager::Update() {
       lastkey = event.key.code;
     }
 
-    if (sf::Joystick::isConnected(GAMEPAD_1) && config) {
+    if (sf::Joystick::isConnected(GAMEPAD_1) && settings.IsOK()) {
       for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++)
       {
         std::string action = "";
 
         if (sf::Joystick::isButtonPressed(GAMEPAD_1, i)) {
-          action = config->GetPairedAction((ConfigReader::Gamepad)i);
+          action = settings.GetPairedAction((ConfigSettings::Gamepad)i);
 
           if (action == "") continue;
 
           events.push_back({ action, InputState::PRESSED });
           
         } else {
-          action = config->GetPairedAction((ConfigReader::Gamepad)i);
+          action = settings.GetPairedAction((ConfigSettings::Gamepad)i);
 
           if (action == "") continue;
 
@@ -86,8 +88,8 @@ void InputManager::Update() {
     } else if (Event::KeyPressed == event.type) {
       /* Gamepad not connected. Strictly use keyboard events. */
       std::string action = "";
-      if (config && config->IsOK()) {
-        action = config->GetPairedAction(event.key.code);
+      if (settings.IsOK()) {
+        action = settings.GetPairedAction(event.key.code);
 
         if (action == "") continue;
 
@@ -139,8 +141,8 @@ void InputManager::Update() {
       }
     } else if (Event::KeyReleased == event.type) {
       std::string action = "";
-      if (config && config->IsOK()) {
-        action = config->GetPairedAction(event.key.code);
+      if (settings.IsOK()) {
+        action = settings.GetPairedAction(event.key.code);
 
         if (action == "") continue;
 
@@ -462,13 +464,18 @@ const bool InputManager::IsJosytickAvailable() const
   return sf::Joystick::isConnected(GAMEPAD_1);
 }
 
+ConfigSettings InputManager::GetConfigSettings()
+{
+  return settings;
+}
+
 bool InputManager::Empty() {
   return events.empty();
 }
 
 bool InputManager::IsConfigFileValid()
 {
-  return config && (config->IsOK());
+  return settings.IsOK();
 }
 
 void InputManager::BeginCaptureInputBuffer()

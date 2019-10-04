@@ -1,5 +1,5 @@
-StartTime 1570149512
-Engine initialized: 0.409000 secs
+StartTime 1570160274
+Engine initialized: 0.382000 secs
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
 Loaded texture: resources/backgrounds/title/tile_en.png
@@ -134,7 +134,7 @@ Loaded texture: resources/ui/light.png
 Loaded texture: resources/fonts/all_fonts.png
 Loaded texture: resources/backgrounds/config/audio.png
 Loaded texture: resources/backgrounds/config/end_btn.png
-Loaded textures: 0.192000 secs
+Loaded textures: 0.224000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -152,7 +152,7 @@ Loaded shader: resources/shaders/glsl_110/transition
 Loaded shader: resources/shaders/glsl_110/chip_reveal
 Loaded shader: resources/shaders/glsl_110/wire
 Loaded shader: resources/shaders/glsl_110/colorize
-Loaded shaders: 0.006000 secs
+Loaded shaders: 0.007000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -197,12 +197,12 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.162000 secs
+Loaded audio sources: 0.165000 secs
 Loaded navi: Megaman
 Loaded navi: Roll
 Loaded navi: Starman
 Loaded navi: Bass
-Loaded registered navis: 0.042000 secs
+Loaded registered navis: 0.041000 secs
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
 Loaded texture: resources/mobs/starfish/preview.png
@@ -215,19 +215,17 @@ Loaded texture: resources/mobs/progsman/preview.png
 Loaded mob: Enter ProgsMan
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.115000 secs
-library size: 139
+Loaded registered mobs: 0.120000 secs
+library size: 140
 Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/backgrounds/lan/bg.png
+input manager request
+No animation found in file for GBA
 main menu onStart
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onStart()
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-SelectMobScene::onEnd()
-library saved successfully. Number of chips saved: 139
+library saved successfully. Number of chips saved: 140
 main menu onResume
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
@@ -238,7 +236,7 @@ Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/robot/bg.png
+Loaded texture: resources/backgrounds/misc/bg.png
 Loaded texture: resources/ui/img_health.png
 Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
 Loaded font: resources/fonts/dr_cain_terminal.ttf
@@ -248,82 +246,67 @@ SelectMobScene::onLeave()
 SelectMobScene::onExit()
 comboDeleteCounter reset
 comboDeleteCounter reset
-Num of waves is: 1
-Num of waves is: 2
-Num of waves is: 3
 pushing states
-Mettaur OnHit
-Num of waves is: 4
-Num of waves is: 5
-Num of waves is: 6
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-Num of waves is: 7
-pushing states
-Mettaur OnHit
-Num of waves is: 8
-Num of waves is: 9
-pushing states
-pushing states
-Mettaur OnHit
-Num of waves is: 10
-pushing states
-Mettaur OnHit
-Num of waves is: 11
-Num of waves is: 12
-Num of waves is: 13
-Num of waves is: 14
-Num of waves is: 15
-pushing states
-Mettaur OnHit
-Num of waves is: 16
-Num of waves is: 17
-Num of waves is: 18
+Aura taking damage: 10 and has aura type: 1
 Loaded texture: resources/spells/buster_yoyo.png
 pushing states
-Mettaur OnHit
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Aura taking damage: 10 and has aura type: 1
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+pushing states
+Aura taking damage: 10 and has aura type: 1
+Aura taking damage: 10 and has aura type: 1
+Aura taking damage: 10 and has aura type: 1
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Aura taking damage: 10 and has aura type: 1
+pushing states
+Aura taking damage: 10 and has aura type: 1
 comboDeleteCounter reset
-pushing states
-Mettaur OnHit
-Num of waves is: 19
-Num of waves is: 20
-Num of waves is: 21
 Loaded texture: resources/spells/buster_yoyo.png
 pushing states
-Mettaur OnHit
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_flame.png
+pushing states
+Aura taking damage: 10 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 10 and has aura type: 1
+Loaded texture: resources/spells/buster_yoyo.png
+Aura taking damage: 40 and has aura type: 1
+Loaded texture: resources/spells/buster_flame.png
+pushing states
+Aura taking damage: 10 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Aura taking damage: 20 and has aura type: 1
+Aura taking damage: 20 and has aura type: 1
+Aura taking damage: 20 and has aura type: 1
+Aura taking damage: 20 and has aura type: 1
+Aura taking damage: 20 and has aura type: 1
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onEnter()
 SelectMobScene::onResume()
 SelectMobScene::onLeave()
 SelectMobScene::onExit()
 SelectMobScene::onEnd()
-library saved successfully. Number of chips saved: 140
-main menu onResume
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-library saved successfully. Number of chips saved: 140
-main menu onResume
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-library saved successfully. Number of chips saved: 140
-main menu onResume
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-library saved successfully. Number of chips saved: 140
+library saved successfully. Number of chips saved: 141
 main menu onResume
