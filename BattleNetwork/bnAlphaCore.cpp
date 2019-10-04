@@ -267,7 +267,7 @@ void AlphaCore::OnDelete() {
   AUDIO.StopStream();
 
   // Explode if health depleted
-  this->InterruptState<ExplodeState<AlphaCore>>(20, 1.35);
+  this->InterruptState<ExplodeState<AlphaCore>>(20, 1.1);
 }
 
 void AlphaCore::OpenShoulderGuns()

@@ -18,18 +18,16 @@ InputManager& InputManager::GetInstance() {
   return instance;
 }
 
-InputManager::InputManager() : reader(nullptr), writer(nullptr) {
+InputManager::InputManager()  : settings() {
   lastkey = sf::Keyboard::Key::Unknown;
 }
 
 
 InputManager::~InputManager() {
-  this->reader = nullptr;
 }
 
-void InputManager::SupportConfigSettings(ConfigReader& config) {
-  this->reader = &config;
-  settings = reader->GetConfigSettings();
+void InputManager::SupportConfigSettings(ConfigReader& reader) {
+  settings = reader.GetConfigSettings();
 
 }
 

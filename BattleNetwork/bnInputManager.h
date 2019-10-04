@@ -65,9 +65,9 @@ public:
   
   /**
    * @brief Creates a reference to the config reader object
-   * @param config
+   * @param config reader
    */
-  void SupportConfigSettings(ConfigReader& config);
+  void SupportConfigSettings(ConfigReader& reader);
   
   /**
    * @brief Returns true if the config reader is set and config file is valid
@@ -156,8 +156,6 @@ private:
 
   map<InputEvent, std::string> input; /*!< Maps controller events*/
 
-  ConfigReader* reader;   /*!< Reads */
-  ConfigWriter* writer;   /*!< Writes */
   ConfigSettings settings; /*!< Settings object*/
 
   std::function<void()> onRegainFocus; /*!< How the application should respond to regaining focus */

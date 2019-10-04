@@ -8,7 +8,8 @@ Example file contents
 ---------------------
 
 [Discord]
-RPC="1"
+User="JohnDoe"
+Key="ABCDE"
 [Audio]
 Play="1"
 [Net]

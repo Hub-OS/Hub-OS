@@ -50,6 +50,8 @@ public:
 
   ConfigSettings& operator=(ConfigSettings rhs);
 
+  const DiscordInfo GetDiscordInfo() const;
+
   ConfigSettings(const ConfigSettings& rhs);
 
   ConfigSettings();

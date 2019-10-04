@@ -77,6 +77,11 @@ ConfigSettings & ConfigSettings::operator=(ConfigSettings rhs)
   return *this;
 }
 
+const ConfigSettings::DiscordInfo ConfigSettings::GetDiscordInfo() const
+{
+  return this->discord;
+}
+
 ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
 {
   this->discord.key = rhs.discord.key;

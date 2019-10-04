@@ -120,6 +120,9 @@ void ConfigScene::onUpdate(double elapsed)
       getController().queuePop<effect>();
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       leave = true;
+
+      ConfigWriter writer(configSettings);
+      writer.Write("options.ini");
     }
   }
 
