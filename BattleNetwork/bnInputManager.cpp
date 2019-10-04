@@ -274,7 +274,7 @@ void InputManager::Update() {
     }
   }
 
-  for (auto e : events) {
+  /*for (auto e : events) {
     std::string state = "NONE";
 
     switch (e.state) {
@@ -289,7 +289,7 @@ void InputManager::Update() {
       break;
     }
     Logger::Logf("input event %s, %s", e.name.c_str(), state.c_str());
-  }
+  }*/
 
   eventsLastFrame.clear();
 

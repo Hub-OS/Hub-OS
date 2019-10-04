@@ -459,12 +459,12 @@ void FolderEditScene::onUpdate(double elapsed) {
         }
       }
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT) && currViewMode == ViewMode::FOLDER) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT) && currViewMode == ViewMode::FOLDER) {
       currViewMode = ViewMode::PACK;
       canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC);
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT) && currViewMode == ViewMode::PACK) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT) && currViewMode == ViewMode::PACK) {
       currViewMode = ViewMode::FOLDER;
       canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC);

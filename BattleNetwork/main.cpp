@@ -576,7 +576,7 @@ int main(int argc, char** argv) {
       logLabel->setString(logs[i]);
       logLabel->setPosition(0.f, 320 - (i * 10.f) - 15.f);
       logLabel->setFillColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*std::fmax(0, 255 - (255 / 30)*i))));
-      //ENGINE.Draw(logLabel);
+      ENGINE.Draw(logLabel);
     }
 
     if (progs) {
@@ -661,7 +661,7 @@ int main(int argc, char** argv) {
             startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
             ENGINE.Draw(startLabel);
 
-            bool shouldStart = INPUT.Has(EventTypes::RELEASED_CONFIRM);
+            bool shouldStart = INPUT.Has(EventTypes::PRESSED_CONFIRM);
 
             if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
               if (selected != 0) {
@@ -704,7 +704,7 @@ int main(int argc, char** argv) {
     ENGINE.GetWindow()->draw(postprocess, states);
 
 #ifndef __ANDROID__
-    ENGINE.GetWindow()->draw(mouse, states);
+    //ENGINE.GetWindow()->draw(mouse, states);
 #endif
 
     // Finally, everything is drawn to window buffer, display it to screen
@@ -819,7 +819,7 @@ int main(int argc, char** argv) {
 #ifdef __ANDROID__
       ENGINE.GetWindow()->draw(*logLabel, states);
 #else
-      ENGINE.GetWindow()->draw(mouse, states);
+      //ENGINE.GetWindow()->draw(mouse, states);
 #endif
 
       ENGINE.GetWindow()->display();

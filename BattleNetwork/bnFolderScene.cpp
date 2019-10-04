@@ -300,7 +300,7 @@ void FolderScene::onUpdate(double elapsed) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         }
-      } else if (INPUT.Has(EventTypes::RELEASED_CANCEL)) {
+      } else if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
           if (promptOptions) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);

@@ -26,7 +26,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (player.GetComponentsDerivedFrom<ChipAction>().size()) return;
 
 #ifndef __ANDROID__
-  if (!INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !player.IsSliding()) {
+  if (!INPUT.Has(EventTypes::HELD_SHOOT) && !player.IsSliding()) {
 #else
     if(INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !INPUT.Has(EventTypes::RELEASED_SHOOT) && !player.IsSliding() && !player.GetNextTile()) {
 #endif
@@ -66,7 +66,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
   }
 
-  bool shouldShoot = INPUT.Has(EventTypes::PRESSED_SHOOT) && isChargeHeld == false;
+  bool shouldShoot = INPUT.Has(EventTypes::HELD_SHOOT) && isChargeHeld == false;
 
 #ifdef __ANDROID__
   shouldShoot = INPUT.Has(PRESSED_A);
