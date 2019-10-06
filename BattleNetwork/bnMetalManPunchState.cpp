@@ -42,7 +42,7 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
       };
       auto onGroundHit = [this, m = metal]() { this->Attack(*m); };
 
-      metal->GetFirstComponent<AnimationComponent>()->CancelCallbacks();
+      //metal->GetFirstComponent<AnimationComponent>()->CancelCallbacks();
       metal->SetAnimation("PUNCH", onFinishPunch);
       metal->SetCounterFrame(1);
       metal->SetCounterFrame(2);

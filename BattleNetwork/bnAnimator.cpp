@@ -52,7 +52,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
 
   UpdateCurrentPoints(0, sequence);
 
-  // Callbacks are only invalide during clears in the update loop
+  // Callbacks are only invalid during clears in the update loop
   if (!callbacksAreValid) callbacksAreValid = true;
 
   // Set our flag to let callback additions go to the right queue  
@@ -92,6 +92,16 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
   // Determine if the progress has completed the animation
   bool applyCallback = (sequence.totalDuration == 0 || (startProgress > sequence.totalDuration && startProgress > 0.f));
 
+  if (sequence.totalDuration == 1.2f) {
+    Logger::Logf("metal man punch progress: %f", startProgress);
+
+    if (applyCallback) {
+      Logger::Logf("Onfinish Notifier is %d", onFinish ? 1 : 0);
+      Logger::Logf("Queued Onfinish Notifier is %d", queuedOnFinish ? 1 : 0);
+
+    }
+  }
+
   if (applyCallback) {
     if (onFinish != nullptr) {
       // If applicable, fire the onFinish callback
@@ -101,31 +111,30 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
       if ((playbackMode & Mode::Loop) != Mode::Loop) {
         onFinish = nullptr;
       }
-
-      // We've ended the loop
-      isUpdating = false;
-
-      // Callbacks are valid
-      callbacksAreValid = true;
-
-      // Insert any queued callbacks
-      callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
-      queuedCallbacks.clear();
-
-      // Insert any queued one-time callbacks
-      onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
-      queuedOnetimeCallbacks.clear();
-
-      // If any queued onFinish notifiers...
-      if (queuedOnFinish) {
-        // Add it
-        onFinish = queuedOnFinish;
-        queuedOnFinish = nullptr;
-      }
-
-      // End
-      return;
     }
+    // We've ended the loop
+    isUpdating = false;
+
+    // Callbacks are valid
+    callbacksAreValid = true;
+
+    // Insert any queued callbacks
+    callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
+    queuedCallbacks.clear();
+
+    // Insert any queued one-time callbacks
+    onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
+    queuedOnetimeCallbacks.clear();
+
+    // If any queued onFinish notifiers...
+    if (queuedOnFinish) {
+      // Add it
+      onFinish = queuedOnFinish;
+      queuedOnFinish = nullptr;
+    }
+
+    // End
+    return;
   }
 
   // We may modify the frame order, make a copy
@@ -206,7 +215,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
           if ((playbackMode & Mode::Bounce) == Mode::Bounce) {
             reverse(copy.begin(), copy.end());
             iter = copy.begin();
-            iter++;
+            iter++; // last frame _was_ first frame for reversed animations, move to the 2nd
           }
           else {
             // It was set only to loop, start from the beginning
@@ -240,39 +249,35 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
 
       // If not finish, go to next frame
       iter++;
+  }
+
+  // If we prematurely ended the loop, update the sprite
+  if (iter != copy.end()) {
+    target.setTextureRect((*iter).subregion);
+
+    // If applicable, update the origin
+    if ((*iter).applyOrigin) {
+      target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
     }
+  }
 
-    // If we prematurely ended the loop, update the sprite
-    if (iter != copy.end()) {
-      target.setTextureRect((*iter).subregion);
+  // End updating flag
+  isUpdating = false;
+  callbacksAreValid = true;
 
-      // If applicable, update the origin
-      if ((*iter).applyOrigin) {
-        target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
-      }
-    }
+  UpdateCurrentPoints((index==0)? 0 : index-1, sequence);
 
-    // End updating flag
-    isUpdating = false;
-    callbacksAreValid = true;
+  // Merge queued callbacks
+  callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
+  queuedCallbacks.clear();
 
-    if (index == 0) {
-      index = 1;
-    }
+  onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
+  queuedOnetimeCallbacks.clear();
 
-    UpdateCurrentPoints(index-1, sequence);
-
-    // Merge queued callbacks
-    callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
-    queuedCallbacks.clear();
-
-    onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
-    queuedOnetimeCallbacks.clear();
-
-    if (queuedOnFinish) {
-      onFinish = queuedOnFinish;
-      queuedOnFinish = nullptr;
-    }
+  if (queuedOnFinish) {
+    onFinish = queuedOnFinish;
+    queuedOnFinish = nullptr;
+  }
 }
 
 /**
@@ -318,7 +323,7 @@ void Animator::operator<<(std::function<void()> finishNotifier)
   if(!this->isUpdating) {
     this->onFinish = finishNotifier;
   } else {
-	this->queuedOnFinish = finishNotifier;
+	  this->queuedOnFinish = finishNotifier;
   }
 }
 
