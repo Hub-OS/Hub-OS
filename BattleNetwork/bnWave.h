@@ -14,7 +14,7 @@ protected:
   double speed;
 public:
   Wave(Field* _field, Team _team, double speed = 1.0);
-  virtual ~Wave();
+  ~Wave();
 
   static int numOf;
 

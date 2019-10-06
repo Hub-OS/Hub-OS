@@ -77,7 +77,7 @@ void Character::Update(float _elapsed) {
       if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
           this->SetShader(stun);
       }
-      else if(!this->IsDeleted()) {
+      else if(this->GetHealth() > 0) {
           this->SetShader(nullptr);
 
           if (this->counterable) {

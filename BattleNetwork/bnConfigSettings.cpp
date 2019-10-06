@@ -11,22 +11,41 @@ const bool ConfigSettings::IsOK() { return isOK; }
  * @brief Check if audio is on or off based on ini file
  * @return true if on, false otherwise
  */
-const bool ConfigSettings::IsAudioEnabled() { return isAudioEnabled; }
+const bool ConfigSettings::IsAudioEnabled() { return (musicLevel || sfxLevel); }
 
-/**
- * @brief For a keyboard event, return the action string
- * @param event sfml keyboard key
- * @return the mapped input event
- */
-const std::string ConfigSettings::GetPairedAction(sf::Keyboard::Key event) {
-  decltype(keyboard)::iterator iter = keyboard.find(event);
+const int ConfigSettings::GetMusicLevel()
+{
+  return musicLevel;
+}
 
+const int ConfigSettings::GetSFXLevel()
+{
+  return sfxLevel;
+}
 
-  if (iter != keyboard.end()) {
-    return iter->second;
+void ConfigSettings::SetMusicLevel(int level)
+{
+  musicLevel = level;
+}
+
+void ConfigSettings::SetSFXLevel(int level)
+{
+  sfxLevel = level;
+}
+
+const std::list<std::string> ConfigSettings::GetPairedActions(sf::Keyboard::Key event) {
+  std::list<std::string> list;
+
+  decltype(keyboard)::iterator iter = keyboard.begin();
+
+  while (iter != keyboard.end()) {
+    if (iter->first == event) {
+      list.push_back(iter->second);
+    }
+    iter++;
   }
 
-  return "";
+  return list;
 }
 
 const sf::Keyboard::Key ConfigSettings::GetPairedInput(std::string action)
@@ -35,12 +54,11 @@ const sf::Keyboard::Key ConfigSettings::GetPairedInput(std::string action)
 
   while (iter != keyboard.end()) {
     auto first = iter->second;
-    auto second = action;
 
     std::transform(first.begin(), first.end(), first.begin(), ::toupper);
-    std::transform(second.begin(), second.end(), second.begin(), ::toupper);
+    std::transform(action.begin(), action.end(), action.begin(), ::toupper);
 
-    if (first == second) {
+    if (first == action) {
       return iter->first;
     }
     iter++;
@@ -49,21 +67,40 @@ const sf::Keyboard::Key ConfigSettings::GetPairedInput(std::string action)
   return sf::Keyboard::Unknown;
 }
 
-/**
- * @brief For a gamepad event, return the action string
- * @param Gamepad button
- * @return the mapped input event
- */
-const std::string ConfigSettings::GetPairedAction(ConfigSettings::Gamepad event) {
-  if (gamepad.size()) {
-    decltype(gamepad)::iterator iter = gamepad.find(event);
+const Gamepad ConfigSettings::GetPairedGamepadButton(std::string action)
+{
+  auto iter = gamepad.begin();
 
-    if (iter != gamepad.end()) {
-      return iter->second;
+  while (iter != gamepad.end()) {
+    auto first = iter->second;
+
+    std::transform(first.begin(), first.end(), first.begin(), ::toupper);
+    std::transform(action.begin(), action.end(), action.begin(), ::toupper);
+
+    if (first == action) {
+      return iter->first;
+    }
+    iter++;
+  }
+
+  return (Gamepad) - 1;
+}
+
+const std::list<std::string> ConfigSettings::GetPairedActions(Gamepad event) {
+  std::list<std::string> list;
+
+  if (gamepad.size()) {
+    decltype(gamepad)::iterator iter = gamepad.begin();
+
+    while (iter != gamepad.end()) {
+      if (iter->first == event) {
+        list.push_back(iter->second);
+      }
+      iter++;
     }
   }
 
-  return "";
+  return list;
 }
 
 ConfigSettings & ConfigSettings::operator=(ConfigSettings rhs)
@@ -71,15 +108,26 @@ ConfigSettings & ConfigSettings::operator=(ConfigSettings rhs)
   this->discord.key = rhs.discord.key;
   this->discord.user = rhs.discord.user;
   this->gamepad = rhs.gamepad;
-  this->isAudioEnabled = rhs.isAudioEnabled;
+  this->musicLevel = rhs.musicLevel;
+  this->sfxLevel = rhs.sfxLevel;
   this->isOK = rhs.isOK;
   this->keyboard = rhs.keyboard;
   return *this;
 }
 
-const ConfigSettings::DiscordInfo ConfigSettings::GetDiscordInfo() const
+const DiscordInfo ConfigSettings::GetDiscordInfo() const
 {
   return this->discord;
+}
+
+void ConfigSettings::SetKeyboardHash(const KeyboardHash key)
+{
+  keyboard = key;
+}
+
+void ConfigSettings::SetGamepadHash(const GamepadHash gamepad)
+{
+  this->gamepad = gamepad;
 }
 
 ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
@@ -87,7 +135,8 @@ ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
   this->discord.key = rhs.discord.key;
   this->discord.user = rhs.discord.user;
   this->gamepad = rhs.gamepad;
-  this->isAudioEnabled = rhs.isAudioEnabled;
+  this->musicLevel = rhs.musicLevel;
+  this->sfxLevel = rhs.sfxLevel;
   this->isOK = rhs.isOK;
   this->keyboard = rhs.keyboard;
 }

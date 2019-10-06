@@ -1,6 +1,7 @@
 #include "bnConfigScene.h"
-#include <Swoosh\ActivityController.h>
-#include "Segues\ZoomFadeIn.h"
+#include <Swoosh/ActivityController.h>
+#include "Segues/WhiteWashFade.h"
+#include "bnRobotBackground.h"
 
 const constexpr int OPTIONS   = 0;
 const constexpr int ACTIONS   = 1;
@@ -8,10 +9,10 @@ const constexpr int BOUNDKEYS = 2;
 
 ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activity(&controller)
 {
-  isSelectingTopMenu = false;
+  isSelectingTopMenu = inGamepadList = inKeyboardList = false;
 
   // Draws the scrolling background
-  bg = new LanBackground();
+  bg = new RobotBackground();
 
   // dim
   bg->setColor(sf::Color(120, 120, 120));
@@ -57,9 +58,17 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activ
   actions.push_back("AUDIO_BGM");
   actions.push_back("AUDIO_SFX");
   actions.push_back("SHADERS: ON");
+  actions.push_back("MY KEYBOARD");
+  actions.push_back("MY GAMEPAD");
 
   for (auto a : actions) {
-    uiList[OPTIONS].push_back({a, sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
+    uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
+
+    if (a == "SHADERS: ON") {
+      type = uiData::ActionItemType::DISABLED;
+    }
+
+    uiList[OPTIONS].push_back({a, sf::Vector2f(), sf::Vector2f(), type });
   }
 
   actions.clear();
@@ -67,45 +76,86 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activ
   Logger::Log("input manager request");
   configSettings = INPUT.GetConfigSettings();
 
-  // For input keys 
+  // For keyboard keys 
 
   for (auto a : EventTypes::KEYS) {
-    uiList[ACTIONS].push_back({ a, sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
+    uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
 
-    if (false /*!configSettings.IsOK()*/) {
-      boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
+    uiList[ACTIONS].push_back({ a, sf::Vector2f(), sf::Vector2f(), type });
+
+    if (!configSettings.IsOK()) {
+      boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
     }
     else {
       std::string keyStr;
 
       if (INPUT.ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
-        boundKeys.push_back({ keyStr,  sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
+        keyHash.insert(std::make_pair(configSettings.GetPairedInput(a), a));
+
+        boundKeys.push_back({ keyStr,  sf::Vector2f(), sf::Vector2f(), type });
       }
       else {
-        boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::BATTLE });
+        boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
       }
     }
   }
   
-  menuDivideIndex = maxMenuSelectionIndex = (int)actions.size();
-
   maxMenuSelectionIndex += (int)actions.size();
 
-  // For menu keys
+  // For gamepad keys
 
-  for (auto a : actions) {
-    uiList[ACTIONS].push_back({ a, sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::MENUS });
-    boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), uiData::ActionItemType::MENUS });
+  for (auto a : EventTypes::KEYS) {
+    uiData::ActionItemType type = uiData::ActionItemType::GAMEPAD;
+
+    if (!configSettings.IsOK()) {
+      boundGamepadButtons.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
+    }
+    else {
+      auto gamepadCode = configSettings.GetPairedGamepadButton(a);
+      gamepadHash.insert(std::make_pair(gamepadCode, a));
+
+      if (gamepadCode != Gamepad::BAD_CODE) {
+        std::string label = "BTN " + std::to_string((int)gamepadCode);
+
+        switch (gamepadCode) {
+        case Gamepad::DOWN:
+          label = "-Y AXIS";
+          break;
+        case Gamepad::UP:
+          label = "+Y AXIS";
+          break;
+        case Gamepad::LEFT:
+          label = "-X AXIS";
+          break;
+        case Gamepad::RIGHT:
+          label = "+X AXIS";
+          break;
+        case Gamepad::BAD_CODE:
+          label = "BAD_CODE";
+          break;
+        }
+
+        boundGamepadButtons.push_back({ label,  sf::Vector2f(), sf::Vector2f(), type });
+      }
+      else {
+        boundGamepadButtons.push_back({ "NO KEY",  sf::Vector2f(), sf::Vector2f(), type });
+      }
+    }
   }
 
   leave = false;
   awaitingKey = false;
   gotoNextScene = true; // true when entering or leaving, prevents user from interacting with scene
 
-  menuSelectionIndex = lastMenuSelectionIndex = 0;
+  menuSelectionIndex = lastMenuSelectionIndex = 1; // select first item
 
-  audioModeBGM = 3; // full
-  audioModeSFX = 3;
+  audioModeBGM = configSettings.GetMusicLevel();
+  audioModeSFX = configSettings.GetSFXLevel();
+
+  audioAnimator.SetAnimation("DEFAULT");
+  audioAnimator.SetFrame(audioModeBGM + 1, audioBGM);
+  audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
+
   colIndex = 0; maxCols = 3; // [options] [actions] [key]
 }
 
@@ -113,41 +163,129 @@ void ConfigScene::onUpdate(double elapsed)
 {
   bg->Update((float)elapsed);
 
-  if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && isSelectingTopMenu && !leave) {
+  bool hasConfirmed = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false ) || INPUT.GetAnyKey() == sf::Keyboard::Enter;
+  bool isInSubmenu = inKeyboardList || inGamepadList;
+
+  if (hasConfirmed && isSelectingTopMenu && !leave) {
     if (!awaitingKey) {
       using namespace swoosh::intent;
-      using effect = segue<ZoomFadeIn, swoosh::intent::milli<500>>;
+      using effect = segue<WhiteWashFade, swoosh::intent::milli<500>>;
       getController().queuePop<effect>();
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      AUDIO.Play(AudioType::NEW_GAME);
       leave = true;
 
+      configSettings.SetKeyboardHash(keyHash);
+      configSettings.SetGamepadHash(gamepadHash);
       ConfigWriter writer(configSettings);
       writer.Write("options.ini");
+      ConfigReader reader("options.ini");
+      INPUT.SupportConfigSettings(reader);
     }
   }
 
-  if (INPUT.Has(EventTypes::HELD_CANCEL)) {
-    isSelectingTopMenu = true;
-    colIndex = menuSelectionIndex = 0;
-  }
-
   if (!leave) {
-    if (awaitingKey) {
-      auto key = INPUT.GetAnyKey();
+    bool hasCanceled = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CANCEL) : false) ||
+      (INPUT.GetAnyKey() == sf::Keyboard::BackSpace || INPUT.GetAnyKey() == sf::Keyboard::Escape);
 
-      if (key != sf::Keyboard::Unknown) {
-        std::string boundKey = "";
+    bool hasUp    = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUT.GetAnyKey() == sf::Keyboard::Up;
+    bool hasDown  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUT.GetAnyKey() == sf::Keyboard::Down;
+    bool hasLeft  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_LEFT) : false) || INPUT.GetAnyKey() == sf::Keyboard::Left;
+    bool hasRight = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_RIGHT): false) || INPUT.GetAnyKey() == sf::Keyboard::Right;
 
-        if (INPUT.ConvertKeyToString(key, boundKey)) {
-          std::transform(boundKey.begin(), boundKey.end(), boundKey.begin(), ::toupper);
-          boundKeys[menuSelectionIndex].label = boundKey;
+    if (hasCanceled && !awaitingKey) {
+      if (!isInSubmenu) {
+        isSelectingTopMenu = true;
+        colIndex = menuSelectionIndex = 0;
+      }
+      else {
+        if (inGamepadList) menuSelectionIndex = 4;
+        if (inKeyboardList) menuSelectionIndex = 3;
+
+        inGamepadList = inKeyboardList = false;
+        isInSubmenu = false; // this flag affects the rest of this update step
+        colIndex = 0;
+
+        isSelectingTopMenu = false;
+      }
+    }
+    else if (awaitingKey) {
+      if (inKeyboardList) {
+        auto key = INPUT.GetAnyKey();
+
+        if (key != sf::Keyboard::Unknown) {
+          std::string boundKey = "";
+
+          if (INPUT.ConvertKeyToString(key, boundKey)) {
+
+            auto iter = keyHash.begin();
+
+            while (iter != keyHash.end()) {
+              if (iter->second == EventTypes::KEYS[menuSelectionIndex]) break;
+              iter++;
+            }
+
+            if (iter != keyHash.end()) {
+              keyHash.erase(iter);
+            }
+
+            keyHash.insert(std::make_pair(key, EventTypes::KEYS[menuSelectionIndex]));
+
+            std::transform(boundKey.begin(), boundKey.end(), boundKey.begin(), ::toupper);
+            boundKeys[menuSelectionIndex].label = boundKey;
+            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+
+            awaitingKey = false;
+          }
+        }
+      }
+
+      if (inGamepadList) {
+        // GAMEPAD
+        auto gamepad = INPUT.GetAnyGamepadButton();
+
+        if (gamepad != (Gamepad)-1) {
+          auto iter = gamepadHash.begin();
+
+          while (iter != gamepadHash.end()) {
+            if (iter->second == EventTypes::KEYS[menuSelectionIndex]) break;
+            iter++;
+          }
+
+          if (iter != gamepadHash.end()) {
+            gamepadHash.erase(iter);
+          }
+
+          gamepadHash.insert(std::make_pair(gamepad, EventTypes::KEYS[menuSelectionIndex]));
+
+          std::string label = "BTN " + std::to_string((int)gamepad);
+
+          switch (gamepad) {
+          case Gamepad::DOWN:
+            label = "-Y AXIS";
+            break;
+          case Gamepad::UP:
+            label = "+Y AXIS";
+            break;
+          case Gamepad::LEFT:
+            label = "-X AXIS";
+            break;
+          case Gamepad::RIGHT:
+            label = "+X AXIS";
+            break;
+          case Gamepad::BAD_CODE:
+            label = "BAD_CODE";
+            break;
+          }
+
+          boundGamepadButtons[menuSelectionIndex].label = label;
+
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
           awaitingKey = false;
         }
       }
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
+    else if (hasUp) {
       if (menuSelectionIndex == 0 && !isSelectingTopMenu) {
         isSelectingTopMenu = true;
         colIndex = 0;
@@ -155,7 +293,7 @@ void ConfigScene::onUpdate(double elapsed)
       else {
         menuSelectionIndex--;
       }
-    } else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
+    } else if (hasDown) {
       if (menuSelectionIndex == 0 && isSelectingTopMenu) {
         isSelectingTopMenu = false;
       }
@@ -163,25 +301,24 @@ void ConfigScene::onUpdate(double elapsed)
         menuSelectionIndex++;
       }
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
-      if (!isSelectingTopMenu) {
+    else if (hasLeft) {
+      /*if (!isSelectingTopMenu) {
         colIndex--;
-      }
+      }*/
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
-      if (!isSelectingTopMenu) {
+    else if (hasRight) {
+      /*if (!isSelectingTopMenu && !isInSubmenu) {
         colIndex++;
-      }
+      }*/
     }
-    else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
+    else if (hasConfirmed) {
       // bg audio
       if (menuSelectionIndex == 0 && colIndex == 0) {
         audioModeBGM = (audioModeBGM+1) % 4;
         AUDIO.SetStreamVolume (((audioModeBGM)/3.0f)*100.0f);
         audioAnimator.SetAnimation("DEFAULT");
         audioAnimator.SetFrame(audioModeBGM + 1, audioBGM);
-
-
+        configSettings.SetMusicLevel(audioModeBGM);
       }
       else if (menuSelectionIndex == 1 && colIndex == 0) {
         audioModeSFX = (audioModeSFX + 1) % 4;
@@ -189,6 +326,24 @@ void ConfigScene::onUpdate(double elapsed)
         audioAnimator.SetAnimation("DEFAULT");
         audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
         AUDIO.Play(AudioType::BUSTER_PEA);
+        configSettings.SetSFXLevel(audioModeSFX);
+      }
+      else if (menuSelectionIndex == 2 && colIndex == 0) {
+        // TODO: Shader Toggle
+        AUDIO.Play(AudioType::CHIP_ERROR);
+
+      }
+      else if (menuSelectionIndex == 3 && colIndex == 0) {
+        inKeyboardList = true;
+        inGamepadList = false;
+        colIndex = 1;
+        menuSelectionIndex = 0; // move the row cursor to the top
+      }
+      else if (menuSelectionIndex == 4 && colIndex == 0) {
+        inGamepadList = true;
+        inKeyboardList = false;
+        colIndex = 1;
+        menuSelectionIndex = 0; // move the row cursor to the top
       }
       else if(!awaitingKey) {
         awaitingKey = true;
@@ -197,7 +352,13 @@ void ConfigScene::onUpdate(double elapsed)
     }
   }
 
-  colIndex = std::max(0, colIndex);
+  if (isInSubmenu) {
+    colIndex = std::max(1, colIndex);
+  }
+  else {
+    colIndex = std::max(0, colIndex);
+  }
+
   colIndex = std::min(colIndex, maxCols - 1 - 1); // we share the last colum: bound keys
 
   menuSelectionIndex = std::max(0, menuSelectionIndex);
@@ -220,10 +381,15 @@ void ConfigScene::onUpdate(double elapsed)
   lastMenuSelectionIndex = menuSelectionIndex;
 
   for (int j = 0; j < maxCols; j++) {
-    
     std::vector<uiData>* container = &boundKeys;
     
-    if(j != BOUNDKEYS) container = &uiList[j];
+    if (inGamepadList) {
+      container = &boundGamepadButtons;
+    }
+
+    if (j != BOUNDKEYS) {
+      container = &uiList[j];
+    }
 
     for (int i = 0; i < container->size(); i++) {
       auto w = 0.3f;
@@ -244,8 +410,8 @@ void ConfigScene::onUpdate(double elapsed)
 
       // recalculate, unbounded this time
       scale = 1.0f - (w*abs(diff));
-      scale = std::max(scale, 0.3f);
-      scale = std::min(scale, 1.5f);
+      scale = std::max(scale, 0.2f);
+      scale = std::min(scale, 2.0f);
 
       s = sf::Vector2f(2.f*scale, 2.f*scale);
 
@@ -264,33 +430,33 @@ void ConfigScene::onUpdate(double elapsed)
 
       if (j == 0 && colIndex == 0) {
         if (i != menuSelectionIndex) {
-          (*container)[i].alpha = boundKeys[i].alpha = 100;
+          (*container)[i].alpha = 150;
 
           if (awaitingKey) {
-            (*container)[i].alpha = boundKeys[i].alpha = 50;
+            (*container)[i].alpha = 50;
           }
         }
         else {
-          (*container)[i].alpha = boundKeys[i].alpha = 255;
+          (*container)[i].alpha = 255;
         }
       }
       else if(j > 0 && colIndex > 0) {
         if (i != menuSelectionIndex) {
-          (*container)[i].alpha = boundKeys[i].alpha = 100;
+          (*container)[i].alpha = 150;
 
           if (awaitingKey) {
-            (*container)[i].alpha = boundKeys[i].alpha = 50;
+            (*container)[i].alpha = 50;
           }
         }
         else {
-          (*container)[i].alpha = boundKeys[i].alpha = 255;
+          (*container)[i].alpha = 255;
         }
       }
       else {
-        (*container)[i].alpha = boundKeys[i].alpha = 100;
+        (*container)[i].alpha = 100;
 
         if (awaitingKey) {
-          (*container)[i].alpha = boundKeys[i].alpha = 50;
+          (*container)[i].alpha = 50;
         }
       }
 
@@ -317,12 +483,34 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
   ENGINE.SetRenderSurface(surface);
   ENGINE.Draw(bg);
 
- 
   ENGINE.Draw(endBtn);
 
-  for (auto col : uiList) {
+  ENGINE.Draw(audioBGM);
+  ENGINE.Draw(audioSFX);
 
-    for (auto ui : col) {
+  // Draw options
+  DrawMenuOptions();
+
+  if (inKeyboardList) {
+    // Keyboard keys
+    DrawMappedKeyMenu(boundKeys);
+  }
+
+  if (inGamepadList) {
+    // Gamepad keys
+    DrawMappedKeyMenu(boundGamepadButtons);
+  }
+}
+
+void ConfigScene::DrawMenuOptions()
+{
+  for (int i = 0; i < 3; i++) {
+    if (i > 0) {
+      // Expand menu if the gamepad or keyboard option was selected
+      if (!inGamepadList && !inKeyboardList) return;
+    }
+
+    for (auto ui : uiList[i]) {
       if (ui.label == "AUDIO_BGM") {
         audioBGM.setScale(ui.scale);
         audioBGM.setPosition(ui.position.x, ui.position.y);
@@ -349,11 +537,14 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
           uiSprite.setScale(ui.scale);
           uiSprite.setPosition(2.f*(ui.position.x + offset), ui.position.y);
 
-          if (ui.type == uiData::ActionItemType::BATTLE) {
+          if (ui.type == uiData::ActionItemType::KEYBOARD) {
             uiSprite.setColor(sf::Color(255, 165, 0, ui.alpha));
           }
+          else if (ui.type == uiData::ActionItemType::DISABLED) {
+            uiSprite.setColor(sf::Color(255, 0, 0, ui.alpha));
+          }
           else {
-            uiSprite.setColor(sf::Color(255, 10, 255, ui.alpha));
+            uiSprite.setColor(sf::Color(10, 165, 255, ui.alpha));
           }
 
           ENGINE.Draw(uiSprite);
@@ -362,8 +553,11 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
       }
     }
   }
+}
 
-  for (auto ui : boundKeys) {
+void ConfigScene::DrawMappedKeyMenu(std::vector<uiData>& container)
+{
+  for (auto ui : container) {
     int offset = 0;
 
     for (auto c : ui.label) {
@@ -393,7 +587,7 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
     for (auto c : ui.label) {
       if (c == ' ') {
         offset += 11;
-       continue;
+        continue;
       }
 
       std::string sc = "SMALL_";
@@ -405,26 +599,21 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
       uiSprite.setScale(ui.scale);
       uiSprite.setPosition((ui.position.x + 2.0f*(offset - totalOffset)), ui.position.y);
 
-      if (ui.type == uiData::ActionItemType::BATTLE) {
+      if (ui.type == uiData::ActionItemType::KEYBOARD) {
         uiSprite.setColor(sf::Color(255, 165, 0, ui.alpha));
       }
       else {
-        uiSprite.setColor(sf::Color(255, 10, 255, ui.alpha));
+        uiSprite.setColor(sf::Color(10, 165, 255, ui.alpha));
       }
 
       ENGINE.Draw(uiSprite);
       offset += (int)uiSprite.getLocalBounds().width + 2;
     }
   }
-
-  ENGINE.Draw(audioBGM);
-  ENGINE.Draw(audioSFX);
 }
 
 void ConfigScene::onStart()
 {
-  uiAnimator.SetAnimation("GBA");
-  uiAnimator.SetFrame(2, gba);
   AUDIO.Stream("resources/loops/config.ogg", false);
 }
 

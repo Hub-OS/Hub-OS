@@ -1,5 +1,6 @@
 #pragma once
 #include "bnConfigReader.h"
+#include "bnInputManager.h"
 
 void ConfigReader::Trim(std::string& line) {
   while (line.compare(0, 1, " ") == 0)
@@ -14,9 +15,9 @@ std::string ConfigReader::ValueOf(std::string _key, std::string _line) {
   return s.substr(0, s.find("\""));
 }
 
-ConfigSettings::Gamepad ConfigReader::GetGamepadCode(int key) {
+Gamepad ConfigReader::GetGamepadCode(int key) {
 
-  return (ConfigSettings::Gamepad)key;
+  return (Gamepad)key;
 }
 
 sf::Keyboard::Key ConfigReader::GetKeyCodeFromAscii(int ascii) {
@@ -71,9 +72,13 @@ const bool ConfigReader::ParseAudio(std::string buffer) {
     if (line.find("[Net]") != std::string::npos) {
       return ParseNet(buffer);
     }
-    else if (line.find("Play") != std::string::npos) {
-      std::string enabledStr = ValueOf("Play", line);
-      settings.isAudioEnabled = (enabledStr == "1");
+    else if (line.find("Music") != std::string::npos) {
+      std::string enabledStr = ValueOf("Music", line);
+      settings.musicLevel = std::atoi(enabledStr.c_str());
+    }
+    else if (line.find("SFX") != std::string::npos) {
+      std::string enabledStr = ValueOf("SFX", line);
+      settings.sfxLevel = std::atoi(enabledStr.c_str());
     }
 
     // Read next line...
@@ -144,7 +149,9 @@ const bool ConfigReader::ParseKeyboard(std::string buffer) {
     for (auto key : EventTypes::KEYS) {
       if (line.find(key) != std::string::npos) {
         std::string value = ValueOf(key, line);
-        settings.keyboard.insert(std::make_pair(GetKeyCodeFromAscii(std::atoi(value.c_str())), key));
+        auto code = GetKeyCodeFromAscii(std::atoi(value.c_str()));
+
+        settings.keyboard.insert(std::make_pair(code, key));
       }
     }
 
@@ -186,6 +193,7 @@ ConfigReader::ConfigReader(std::string filepath) {
   // We need SOME values
   // Provide default layout
   if (!settings.keyboard.size() || !settings.isOK) {
+    Logger::Log("config settings was not OK. Switching to default key layout.");
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Left,  "Move Left"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Up,    "Move Up"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Right, "Move Right"));
@@ -206,9 +214,19 @@ ConfigReader::ConfigReader(std::string filepath) {
     settings.keyboard.insert(std::make_pair(sf::Keyboard::D, "Scan Left"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::F, "Scan Right"));
     
-    settings.isAudioEnabled = true;
+    settings.sfxLevel = settings.musicLevel = 3;
 
     settings.isOK = false; // This can be used as a flag that we're using default controls
+  }
+  else {
+    Logger::Log("config settings is OK");
+
+    /*Logger::Log("settings was: ");
+    for (auto p : settings.keyboard) {
+      std::string first;
+      INPUT.ConvertKeyToString(p.first, first);
+      Logger::Logf("key %s is %s", first.c_str(), p.second.c_str());
+    }*/
   }
 }
 

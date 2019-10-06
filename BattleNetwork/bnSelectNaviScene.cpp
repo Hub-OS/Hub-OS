@@ -125,6 +125,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   textbox.SetCharactersPerSecond(15);
   textbox.setPosition(UI_RIGHT_POS_MAX + 10, 205);
   textbox.Stop();
+  textbox.Mute(); // no tick sound
 
   elapsed = 0;
 }
@@ -196,11 +197,11 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
 
     if (UI_RIGHT_POS > UI_RIGHT_POS_MAX) {
-      UI_RIGHT_POS -= (float)elapsed * 500;
+      UI_RIGHT_POS -= (float)elapsed * 1000;
     }
     else {
       UI_RIGHT_POS = UI_RIGHT_POS_MAX;
-      UI_TOP_POS -= (float)elapsed * 500;
+      UI_TOP_POS -= (float)elapsed * 1000;
 
       if (UI_TOP_POS < UI_TOP_POS_MAX) {
         UI_TOP_POS = UI_TOP_POS_MAX;
@@ -218,27 +219,27 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
 
     if (UI_LEFT_POS < UI_LEFT_POS_MAX) {
-      UI_LEFT_POS += (float)elapsed * 500;
+      UI_LEFT_POS += (float)elapsed * 1000;
     }
     else {
       UI_LEFT_POS = UI_LEFT_POS_MAX;
     }
   }
   else {
-    factor += (float)elapsed * 180.f;
+    factor += (float)elapsed * 320.f;
 
     if (factor >= MAX_PIXEL_FACTOR) {
       factor = MAX_PIXEL_FACTOR;
     }
 
     if (UI_TOP_POS < UI_TOP_POS_START) {
-      UI_TOP_POS += (float)elapsed * 500;
+      UI_TOP_POS += (float)elapsed * 1000;
     }
     else {
-      UI_RIGHT_POS += (float)elapsed * 500;
+      UI_RIGHT_POS += (float)elapsed * 1000;
 
       if (UI_RIGHT_POS > UI_RIGHT_POS_START / 2) // Be quicker at leave than startup
-        UI_LEFT_POS -= (float)elapsed * 500;
+        UI_LEFT_POS -= (float)elapsed * 1000;
     }
   }
 

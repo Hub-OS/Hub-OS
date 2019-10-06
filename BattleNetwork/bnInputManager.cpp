@@ -20,6 +20,8 @@ InputManager& InputManager::GetInstance() {
 
 InputManager::InputManager()  : settings() {
   lastkey = sf::Keyboard::Key::Unknown;
+  lastButton = (decltype(lastButton))-1;
+  lastAxisXPower = axisXPower = lastAxisYPower = axisYPower = 0.f;
 }
 
 
@@ -28,7 +30,8 @@ InputManager::~InputManager() {
 
 void InputManager::SupportConfigSettings(ConfigReader& reader) {
   settings = reader.GetConfigSettings();
-
+  events.clear();
+  eventsLastFrame.clear();
 }
 
 void InputManager::Update() {
@@ -38,6 +41,7 @@ void InputManager::Update() {
   Event event;
 
   lastkey = sf::Keyboard::Key::Unknown;
+  lastButton = (decltype(lastButton))-1;
 
   while (ENGINE.GetWindow()->pollEvent(event)) {
     if (event.type == Event::Closed) {
@@ -63,35 +67,43 @@ void InputManager::Update() {
       lastkey = event.key.code;
     }
 
+    for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++) {
+      if (sf::Joystick::isButtonPressed(GAMEPAD_1, i)) {
+        lastButton = (decltype(lastButton))i;
+      }
+    }
+
     if (sf::Joystick::isConnected(GAMEPAD_1) && settings.IsOK()) {
-      for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++)
-      {
-        std::string action = "";
-
+      for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++) {
         if (sf::Joystick::isButtonPressed(GAMEPAD_1, i)) {
-          action = settings.GetPairedAction((ConfigSettings::Gamepad)i);
+          auto action = settings.GetPairedActions((Gamepad)i);
 
-          if (action == "") continue;
+          if (!action.size()) continue;
 
-          events.push_back({ action, InputState::PRESSED });
+          for (auto a : action) {
+            events.push_back({ a, InputState::PRESSED });
+          }
           
         } else {
-          action = settings.GetPairedAction((ConfigSettings::Gamepad)i);
+          auto action = settings.GetPairedActions((Gamepad)i);
 
-          if (action == "") continue;
+          if (!action.size()) continue;
 
-          events.push_back({ action, InputState::RELEASED });
+          for (auto a : action) {
+            events.push_back({ a, InputState::RELEASED });
+          }
         }
       }
     } else if (Event::KeyPressed == event.type) {
       /* Gamepad not connected. Strictly use keyboard events. */
-      std::string action = "";
       if (settings.IsOK()) {
-        action = settings.GetPairedAction(event.key.code);
+        auto action = settings.GetPairedActions(event.key.code);
 
-        if (action == "") continue;
+        if (!action.size()) continue;
 
-        events.push_back({ action, InputState::PRESSED });
+        for (auto a : action) {
+          events.push_back({ a, InputState::PRESSED });
+        }
       } else {
         if (Keyboard::Up == event.key.code) {
           events.push_back(EventTypes::PRESSED_MOVE_UP);
@@ -138,13 +150,14 @@ void InputManager::Update() {
         }
       }
     } else if (Event::KeyReleased == event.type) {
-      std::string action = "";
       if (settings.IsOK()) {
-        action = settings.GetPairedAction(event.key.code);
+        auto action = settings.GetPairedActions(event.key.code);
 
-        if (action == "") continue;
+        if (!action.size()) continue;
 
-        events.push_back({ action, InputState::RELEASED });
+        for (auto a : action) {
+          events.push_back({ a, InputState::RELEASED });
+        }
       }
       else {
         if (Keyboard::Up == event.key.code) {
@@ -193,10 +206,13 @@ void InputManager::Update() {
       }
     }
   } // end event poll
-  // Check these every frame regardless of input state...
 
-  float axisXPower = 0.f;
-  float axisYPower = 0.f;
+  // Check these every frame regardless of input state...
+  lastAxisXPower = axisXPower;
+  lastAxisYPower = axisYPower;
+
+  axisXPower = 0.f;
+  axisYPower = 0.f;
 
   if (sf::Joystick::isConnected(GAMEPAD_1)) {
 
@@ -209,23 +225,79 @@ void InputManager::Update() {
     }
 
     if (axisXPower <= -GAMEPAD_1_AXIS_SENSITIVITY) {
-      events.push_back(EventTypes::PRESSED_MOVE_LEFT);
-      events.push_back(EventTypes::PRESSED_UI_LEFT);
-    }
+      lastButton = Gamepad::LEFT;
 
+      auto action = settings.GetPairedActions((Gamepad)lastButton);
+
+      for (auto a : action) {
+        events.push_back({ a, InputState::PRESSED });
+      }
+    }
+    
     if (axisXPower >= GAMEPAD_1_AXIS_SENSITIVITY) {
-      events.push_back(EventTypes::PRESSED_MOVE_RIGHT);
-      events.push_back(EventTypes::PRESSED_UI_RIGHT);
+      lastButton = Gamepad::RIGHT;
+
+      auto action = settings.GetPairedActions((Gamepad)lastButton);
+
+      for (auto a : action) {
+        events.push_back({ a, InputState::PRESSED });
+      }
     }
 
     if (axisYPower >= GAMEPAD_1_AXIS_SENSITIVITY) {
-      events.push_back(EventTypes::PRESSED_MOVE_UP);
-      events.push_back(EventTypes::PRESSED_UI_UP);
+      lastButton = Gamepad::UP;
+
+      auto action = settings.GetPairedActions((Gamepad)lastButton);
+
+      for (auto a : action) {
+        events.push_back({ a, InputState::PRESSED });
+      }
     }
 
     if (axisYPower <= -GAMEPAD_1_AXIS_SENSITIVITY) {
-      events.push_back(EventTypes::PRESSED_MOVE_DOWN);
-      events.push_back(EventTypes::PRESSED_UI_DOWN);
+      lastButton = Gamepad::DOWN;
+
+      auto action = settings.GetPairedActions((Gamepad)lastButton);
+
+      for (auto a : action) {
+        events.push_back({ a, InputState::PRESSED });
+      }
+    }
+
+    if (axisXPower - lastAxisXPower != 0.f) {
+      if (axisXPower - lastAxisXPower >= -GAMEPAD_1_AXIS_SENSITIVITY) {
+        auto action = settings.GetPairedActions(Gamepad::LEFT);
+
+        for (auto a : action) {
+          events.push_back({ a, InputState::RELEASED });
+        }
+      }
+
+      if (axisXPower - lastAxisXPower <= GAMEPAD_1_AXIS_SENSITIVITY) {
+        auto action = settings.GetPairedActions(Gamepad::RIGHT);
+
+        for (auto a : action) {
+          events.push_back({ a, InputState::RELEASED });
+        }
+      }
+    }
+
+    if (axisYPower - lastAxisYPower != 0.f) {
+      if (axisYPower - lastAxisYPower >= -GAMEPAD_1_AXIS_SENSITIVITY) {
+        auto action = settings.GetPairedActions(Gamepad::DOWN);
+
+        for (auto a : action) {
+          events.push_back({ a, InputState::RELEASED });
+        }
+      }
+
+      if (axisYPower - lastAxisYPower <= GAMEPAD_1_AXIS_SENSITIVITY) {
+        auto action = settings.GetPairedActions(Gamepad::UP);
+
+        for (auto a : action) {
+          events.push_back({ a, InputState::RELEASED });
+        }
+      }
     }
   }
 
@@ -273,8 +345,9 @@ void InputManager::Update() {
       events.push_back(insert); // migrate this input
     }
   }
-
-  /*for (auto e : events) {
+  /*
+  // Uncomment for debugging
+  for (auto e : events) {
     std::string state = "NONE";
 
     switch (e.state) {
@@ -302,6 +375,11 @@ void InputManager::Update() {
 sf::Keyboard::Key InputManager::GetAnyKey()
 {
   return lastkey;
+}
+
+Gamepad InputManager::GetAnyGamepadButton()
+{
+  return lastButton;
 }
 
 const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::string & out)
@@ -408,7 +486,7 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
     case sf::Keyboard::Key::RControl:
       out = std::string("R CTRL"); return true;
     case sf::Keyboard::Key::SemiColon:
-      out = std::string(");"); return true;
+      out = std::string(";"); return true;
     case sf::Keyboard::Key::Equal:
       out = std::string("="); return true;
     case sf::Keyboard::Key::Comma:
@@ -420,13 +498,13 @@ const bool InputManager::ConvertKeyToString(const sf::Keyboard::Key key, std::st
     case sf::Keyboard::Key::Divide:
       out = std::string("?"); return true;
     case sf::Keyboard::Key::LBracket:
-      out = std::string("["); return true;
+      out = std::string("L Bracket"); return true;
     case sf::Keyboard::Key::Slash:
       out = std::string("\\"); return true;
     case sf::Keyboard::Key::RBracket:
-      out = std::string("]"); return true;
+      out = std::string("R Bracket"); return true;
     case sf::Keyboard::Key::Quote:
-      out = std::string("'"); return true;
+      out = std::string("Quote"); return true;
   }
 
   out = "";
@@ -493,8 +571,6 @@ const std::string InputManager::GetInputBuffer()
 }
 
 void InputManager::HandleInputBuffer(sf::Event e) {
-  Logger::Log(std::string("e.KeyPressed: ") + std::to_string(e.KeyPressed) + " e.key.code: " + std::to_string(e.key.code));
-
   if ((e.KeyPressed && e.key.code == sf::Keyboard::BackSpace) || (e.text.unicode == 8 && inputBuffer.size() != 0)) {
     inputBuffer.pop_back();
   } else if(e.text.unicode < 128 && e.text.unicode != 8) {

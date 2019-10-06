@@ -11,7 +11,6 @@
 #include "bnTextureResourceManager.h"
 #include "bnEngine.h"
 #include "bnAnimation.h"
-#include "bnLanBackground.h"
 #include "bnConfigSettings.h"
 #include "bnConfigWriter.h"
 
@@ -21,6 +20,8 @@
 class ConfigScene : public swoosh::Activity {
 private:
   ConfigSettings configSettings;
+  ConfigSettings::KeyboardHash keyHash;
+  ConfigSettings::GamepadHash gamepadHash;
 
   // ui sprite maps
   Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
@@ -41,6 +42,8 @@ private:
   bool leave; // ?
   bool awaitingKey;
   bool isSelectingTopMenu;
+  bool inGamepadList;
+  bool inKeyboardList;
   int audioModeBGM;
   int audioModeSFX;
 
@@ -53,15 +56,16 @@ private:
     sf::Vector2f position;
     sf::Vector2f scale;
     enum class ActionItemType : int {
-      BATTLE,
-      MENUS
+      KEYBOARD,
+      GAMEPAD,
+      DISABLED
     } type;
     int alpha;
   };
 
   int menuDivideIndex;
 
-  std::vector<uiData> uiList[2], boundKeys;
+  std::vector<uiData> uiList[3], boundKeys, boundGamepadButtons;
 
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
 
@@ -69,7 +73,8 @@ private:
   void StartupTouchControls();
   void ShutdownTouchControls();
 #endif
-
+  void DrawMenuOptions();
+  void DrawMappedKeyMenu(std::vector<uiData>& container);
 public:
 
   /**

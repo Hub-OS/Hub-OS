@@ -9,6 +9,8 @@ using sf::Sprite;
 using sf::IntRect;
 using sf::Drawable;
 
+#include "bnAnimation.h"
+
 /*! \brief Moves diagonally and animates */
 class LanBackground : public Background {
 public:
@@ -26,4 +28,7 @@ private:
   //Animation
   float x, y;
   float progress;
+
+  Animation animation;
+  sf::Sprite dummy;
 };

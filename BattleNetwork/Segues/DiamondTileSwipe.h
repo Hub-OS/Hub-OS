@@ -164,7 +164,7 @@ public:
                         "    vColor = color;\n"
                         "    vTexCoord = (textMatrix * vec4(texCoord.xy, 0.0, 1.0)).xy;\n"
                         "}", ::DIAMOND_SHADER);
-#elif
+#else
     shader.loadFromMemory(::DIAMOND_SHADER, sf::Shader::Fragment);
 #endif
   }

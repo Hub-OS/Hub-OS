@@ -10,17 +10,23 @@
 #define COMPONENT_WIDTH 64
 #define COMPONENT_HEIGHT 64
 
+#define PATH std::string("resources/backgrounds/lan/")
+
 LanBackground::LanBackground(void)
-  : x(0.0f), y(0.0f), progress(0.0f), Background(*TEXTURES.LoadTextureFromFile("resources/backgrounds/lan/bg.png"), 240, 180) {
+  : x(0.0f), y(0.0f), progress(0.0f), Background(*TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
+
+  animation = Animation(PATH + "bg.animation");
+  animation.Load();
+  animation.SetAnimation("BG");
+  animation << Animator::Mode::Loop;
 }
 
 LanBackground::~LanBackground(void) {
 }
 
 void LanBackground::Update(float _elapsed) {
-  progress += 1 * _elapsed;
-  if (progress >= 1.f) progress = 0.0f;
+  animation.Update(_elapsed, dummy);
 
   y -= 0.3f * _elapsed;
   x -= 0.3f * _elapsed;
@@ -33,8 +39,8 @@ void LanBackground::Update(float _elapsed) {
     y = 1;
   }
 
-  int frame = (int)(progress * COMPONENT_FRAME_COUNT);
-
   Wrap(sf::Vector2f(x, y));
-  TextureOffset(sf::Vector2f((float)(frame*COMPONENT_WIDTH), 0));
+
+  // Grab the subrect used in the sprite from animation Update() call
+  TextureOffset(dummy.getTextureRect());
 }

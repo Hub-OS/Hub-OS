@@ -28,7 +28,7 @@ MetalMan::MetalMan(Rank _rank)
   this->AddState<MetalManIdleState>();
   this->AddState<MetalManMoveState>();
   this->AddState<MetalManThrowState>();
-  //this->AddState<MetalManPunchState>();
+  this->AddState<MetalManPunchState>();
 
   if (rank == Rank::EX) {
     SetHealth(1300);

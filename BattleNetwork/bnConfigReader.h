@@ -70,7 +70,7 @@ private:
    * @param key
    * @return Gamepad button
    */
-  ConfigSettings::Gamepad GetGamepadCode(int key);
+  Gamepad GetGamepadCode(int key);
   /**
    * @brief Transform ascii values to SFML events
    * @param ascii code

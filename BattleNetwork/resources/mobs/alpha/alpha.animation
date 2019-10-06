@@ -110,3 +110,8 @@ animation state="SUPER_VULCAN"
 frame duration="0.0360533" x="204" y="1273" w="11" h="9" originx="9" originy="2"
 frame duration="0.0355887" x="179" y="1271" w="17" h="13" originx="14" originy="2"
 frame duration="0.07" x="179" y="1271" w="0" h="0" originx="14" originy="2"
+
+animation state="WAVE_CHARGE"
+frame duration="0.05" x="166" y="1397" w="16" h="16" originx="7" originy="7"
+frame duration="0.05" x="179" y="1397" w="16" h="16" originx="7" originy="7"
+frame duration="0.05" x="193" y="1397" w="16" h="16" originx="7" originy="7"

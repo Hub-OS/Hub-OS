@@ -11,25 +11,13 @@ ConfigWriter::~ConfigWriter()
 
 void ConfigWriter::Write(std::string path)
 {
-  /*
-  [Discord]
-  User="JohnDoe"
-  Key="ABCDE"
-  [Audio]
-  Play="1"
-  [Net]
-  uPNP="0"
-  [Video]
-  Fullscreen="0"
-  [Keyboard]
-*/
-
   FileUtil::WriteStream w(path);
   w << "[Discord]" << w.endl();
   w << "User=" << "\"" << settings.GetDiscordInfo().user << "\"" << w.endl();
   w << "Key=" << "\"" << settings.GetDiscordInfo().key << "\"" << w.endl();
   w << "[Audio]" << w.endl();
-  w << "Play=" << (settings.IsAudioEnabled() ? "\"1\"" : "\"0\"") << w.endl();
+  w << "Music=" << "\"" << std::to_string(settings.GetMusicLevel()) <<  "\""<< w.endl();
+  w << "SFX=" << "\"" << std::to_string(settings.GetSFXLevel()) <<  "\"" << w.endl();
   w << "[Net]" << w.endl();
   w << "uPNP=" << "\"0\"" << w.endl();
   w << "[Video]" << w.endl();
@@ -39,9 +27,15 @@ void ConfigWriter::Write(std::string path)
   for (auto a : EventTypes::KEYS) {
     w << a << "=" << "\"" << std::to_string(GetAsciiFromKeyboard(settings.GetPairedInput(a))) << "\"" << w.endl();
   }
+
+  w << "[Gamepad]" << w.endl();
+
+  for (auto a : EventTypes::KEYS) {
+    w << a << "=" << "\"" << std::to_string(GetAsciiFromGamepad(settings.GetPairedGamepadButton(a))) << "\"" << w.endl();
+  }
 }
 
-int ConfigWriter::GetAsciiFromGamepad(ConfigSettings::Gamepad code)
+int ConfigWriter::GetAsciiFromGamepad(Gamepad code)
 {
   return (int)code;
 }

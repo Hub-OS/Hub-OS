@@ -22,8 +22,8 @@
 
 // Combos are counted if more than one enemy is hit within x frames
 // The game is clocked to display 60 frames per second
-// If x = 15 frames, then we want a combo hit threshold of 15/60 = 0.3 seconds
-#define COMBO_HIT_THRESHOLD_SECONDS 15.0f/60.0f
+// If x = 20 frames, then we want a combo hit threshold of 20/60 = 0.3 seconds
+#define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
 BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, ChipFolder* folder) :
         swoosh::Activity(&controller),

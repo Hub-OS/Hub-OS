@@ -91,5 +91,5 @@ namespace EventTypes {
 
   static const std::string KEYS[] = { "Move Up", "Move Down", "Move Left", "Move Right", "Shoot",
                                     "Use Chip", "Special", "Cust Menu", "Pause", "UI Up", "UI Left", "UI Right", 
-                                    "Confirm", "Cancel", "Quick Opt", "Scan Left", "Scan Right" };
+                                    "UI Down", "Confirm", "Cancel", "Quick Opt", "Scan Left", "Scan Right" };
 };

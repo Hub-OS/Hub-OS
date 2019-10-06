@@ -186,8 +186,6 @@ int main(int argc, char** argv) {
   QueuNaviRegistration(); // Queues navis to be loaded later
   QueueMobRegistration(); // Queues mobs to be loaded later
 
-  AUDIO.SetStreamVolume(0);
-
   // Tell the input event loop how to behave when the app loses and regains focus
   INPUT.BindLoseFocusEvent(AppLoseFocus);
   INPUT.BindRegainFocusEvent(AppRegainFocus);
@@ -201,7 +199,8 @@ int main(int argc, char** argv) {
     // If the file is good, use the audio and 
     // controller settings from the config
     AUDIO.EnableAudio(config.GetConfigSettings().IsAudioEnabled());
-
+    AUDIO.SetStreamVolume(((config.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
+    AUDIO.SetChannelVolume(((config.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
   }
 
   /**
@@ -611,7 +610,7 @@ int main(int argc, char** argv) {
             // Finally everything is loaded, show "Press Start"
             ENGINE.Draw(startLabel);
 
-            bool shouldStart = INPUT.Has(EventTypes::PRESSED_CONFIRM);
+            bool shouldStart = (INPUT.IsConfigFileValid()? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
 
 #ifdef __ANDROID__
             shouldStart = sf::Touch::isDown(0);
@@ -654,16 +653,18 @@ int main(int argc, char** argv) {
             startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
             ENGINE.Draw(startLabel);
 
-            bool shouldStart = INPUT.Has(EventTypes::PRESSED_CONFIRM);
-
-            if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
+            bool shouldStart  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
+            bool pressedUp    = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUT.GetAnyKey() == sf::Keyboard::Up;
+            bool pressedDown  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUT.GetAnyKey() == sf::Keyboard::Down;
+            
+            if (pressedUp) {
               if (selected != 0) {
                 AUDIO.Play(AudioType::CHIP_SELECT);
               }
 
               selected = 0;
             }
-            else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
+            else if (pressedDown) {
               if (selected != 1) {
                 AUDIO.Play(AudioType::CHIP_SELECT);
               }

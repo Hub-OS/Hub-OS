@@ -65,13 +65,13 @@ void QueueMobRegistration() {
   info->SetAttack(20);
   info->SetHP(600);
 
-  /*info = MOBS.AddClass<MetalManBossFight>();  // Create and register mob info object
+  info = MOBS.AddClass<MetalManBossFight>();  // Create and register mob info object
   info->SetDescription("MetalMan throws blades, shoots missiles, and can shatter the ground."); // Set property
   info->SetName("BN4 MetalMan");
   info->SetPlaceholderTexturePath("resources/mobs/metalman/preview.png");
   info->SetSpeed(6);
   info->SetAttack(20);
-  info->SetHP(1000);*/
+  info->SetHP(1000);
 
   /*info = MOBS.AddClass<RandomMettaurMob>();  // Create and register mob info object
   info->SetDescription("Randomly generated battle. Anything goes."); // Set property
@@ -81,13 +81,13 @@ void QueueMobRegistration() {
   info->SetAttack(999);
   info->SetHP(999);*/
 
-  /*info = MOBS.AddClass<MetalManBossFight2>();  // Create and register mob info object
+  info = MOBS.AddClass<MetalManBossFight2>();  // Create and register mob info object
   info->SetDescription("MetalMan - On ice!"); // Set property
   info->SetName("Vengence Served Cold");
   info->SetPlaceholderTexturePath("resources/mobs/metalman/preview2.png");
   info->SetSpeed(6);
   info->SetAttack(20);
-  info->SetHP(1000);*/
+  info->SetHP(1000);
 
   info = MOBS.AddClass<AlphaBossFight>();  // Create and register mob info object
   info->SetDescription("Alpha is absorbing the net again!"); // Set property

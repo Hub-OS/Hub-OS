@@ -47,6 +47,7 @@ public:
   void Update();
 
   sf::Keyboard::Key GetAnyKey();
+  Gamepad GetAnyGamepadButton();
   
   const bool ConvertKeyToString(const sf::Keyboard::Key key, std::string& out);
 
@@ -142,9 +143,13 @@ public:
 
 private:
   sf::Keyboard::Key lastkey;
+  Gamepad lastButton;
 
   bool captureInputBuffer; /*!< Flags input buffer capture state */
   std::string inputBuffer; /*!< The internal input buffer data */
+
+  float axisXPower, lastAxisXPower;
+  float axisYPower, lastAxisYPower;
 
   /**
    * @brief sets all initial input events to false

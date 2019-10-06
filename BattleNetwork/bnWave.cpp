@@ -55,15 +55,9 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   AUDIO.Play(AudioType::WAVE);
 
   this->HighlightTile(Battle::Tile::Highlight::solid);
-
-  Logger::Log("Num of waves is: " + std::to_string(++Wave::numOf));
 }
 
 Wave::~Wave() {
-  {
-    Logger::Log("Wave dtor called");
-    Wave::numOf = Wave::numOf - 1;
-  }
 }
 
 void Wave::OnUpdate(float _elapsed) {
