@@ -1,4 +1,4 @@
-# Saved on 19-10-06 13:50:42
+# Saved on 19-10-06 15:16:46
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="*" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="A" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="C" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 

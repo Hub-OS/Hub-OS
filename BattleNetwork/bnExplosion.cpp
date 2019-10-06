@@ -31,12 +31,12 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   animationComponent->OnUpdate(0.0f);
 
   /*
-   * On the 11th frame, increment the explosion count, and turn the first 
+   * On the 12th frame, increment the explosion count, and turn the first 
    * explosion transpatent.
    * 
    * If there are more explosions expected, spawn a copy on frame 8
    */
-  animationComponent->AddCallback(11, [this]() {
+  animationComponent->AddCallback(12, [this]() {
     this->root->IncrementExplosionCount();
     this->setColor(sf::Color(0, 0, 0, 0));
   }, std::function<void()>(), true);
@@ -76,12 +76,12 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
   animationComponent->OnUpdate(0.0f);
 
   /**
-   * Tell root to increment explosion count on frame 11
+   * Tell root to increment explosion count on frame 12
    * 
    * Similar to the root constructor, if there are more explosions
    * Spawn a copy on frame 8
    */
-  animationComponent->AddCallback(11, [this]() {
+  animationComponent->AddCallback(12, [this]() {
     this->Delete(); this->root->IncrementExplosionCount();
   }, std::function<void()>(), true);
 

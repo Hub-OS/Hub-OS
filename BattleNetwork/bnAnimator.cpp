@@ -112,6 +112,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
         onFinish = nullptr;
       }
     }
+      /*
     // We've ended the loop
     isUpdating = false;
 
@@ -134,7 +135,8 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     }
 
     // End
-    return;
+    return;*/
+
   }
 
   // We may modify the frame order, make a copy
@@ -325,6 +327,22 @@ void Animator::operator<<(std::function<void()> finishNotifier)
   } else {
 	  this->queuedOnFinish = finishNotifier;
   }
+}
+
+const sf::Vector2f Animator::GetPoint(const std::string& pointName) {
+  auto str = pointName;
+  std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+  if (currentPoints.find(str) == currentPoints.end()) {
+    Logger::Log("Could not find point in current sequence named " + str);
+    return sf::Vector2f();
+  }
+  return currentPoints[str];
+}
+
+void Animator::Clear() {
+  callbacksAreValid = false;
+  queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
+  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0;
 }
 
 void Animator::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)

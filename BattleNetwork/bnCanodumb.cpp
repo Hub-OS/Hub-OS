@@ -76,7 +76,7 @@ const float Canodumb::GetHitHeight() const {
 
 void Canodumb::OnDelete() {
   // Explode if health depleted
-  this->ChangeState<ExplodeState<Canodumb>>(3,0.55);
+  this->ChangeState<ExplodeState<Canodumb>>(2);
 }
 
 

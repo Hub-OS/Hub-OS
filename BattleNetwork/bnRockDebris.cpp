@@ -63,13 +63,6 @@ void RockDebris::OnUpdate(float _elapsed) {
     this->setPosition((float)posX, (float)posY);
   }
 
-  // Rotate by intensity to look sort of authentic
-  setRotation((float)(-std::min(1.0,(progress / duration))*90.0 * intensity));
-
-  if (type == RockDebris::Type::RIGHT || type == RockDebris::Type::RIGHT_ICE) {
-    setRotation(getRotation()*-1.0f);
-  }
-
   // std::cout << "beta: " << beta << std::endl;
 
   // After progress >= 1.0, the rock is on the ground

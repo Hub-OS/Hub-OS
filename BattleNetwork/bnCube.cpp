@@ -83,6 +83,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
       if (stop) {
         this->SetDirection(Direction::NONE);
         this->previousDirection = Direction::NONE;
+        pushedByDrag = false;
         return false;
       }
     }
@@ -119,7 +120,7 @@ void Cube::OnUpdate(float _elapsed) {
 
 
    // TODO: put reserve and contains cube checks in an OnSpawn function...
-  if (timer <= 0 || GetTile()->IsReservedByCharacter() || GetTile()->ContainsEntityType<Cube>()) {
+  if (timer <= 0 || GetTile()->IsReservedByCharacter()) {
     this->SetHealth(0);
   }
 
@@ -132,7 +133,7 @@ void Cube::OnDelete() {
   this->RemoveDefenseRule(virusBody);
   delete virusBody;
 
-  double intensity = (double)(rand() % 2) + 1.0;
+  double intensity = 2.0;
 
   auto left = (this->GetElement() == Element::ICE) ? RockDebris::Type::LEFT_ICE : RockDebris::Type::LEFT;
   auto right = (this->GetElement() == Element::ICE) ? RockDebris::Type::RIGHT_ICE : RockDebris::Type::RIGHT;
@@ -210,6 +211,10 @@ void Cube::Attack(Character* other) {
 
   if (isCharacter && isCharacter != this) {
     this->SetHealth(0);
+    auto props = GetHitboxProperties();
+
+    Logger::Logf("cube hitbox damage is: %d", props.damage);
+
     isCharacter->Hit(GetHitboxProperties());
     this->hit = true;
   }

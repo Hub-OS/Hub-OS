@@ -85,7 +85,7 @@ void Player::OnDelete() {
   auto animationComponent = this->GetFirstComponent<AnimationComponent>();
   animationComponent->CancelCallbacks();
   animationComponent->SetAnimation(PLAYER_HIT);
-  this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
+  this->ChangeState<NaviExplodeState<Player>>();
   this->LockState();
 }
 

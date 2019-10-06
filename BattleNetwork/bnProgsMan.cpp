@@ -58,7 +58,7 @@ void ProgsMan::OnUpdate(float _elapsed) {
 
 void ProgsMan::OnDelete() {
   this->SetAnimation(MOB_HIT);
-  this->ChangeState<NaviExplodeState<ProgsMan>>(7, 1.0); // freezes animation
+  this->ChangeState<NaviExplodeState<ProgsMan>>(); // freezes animation
   this->LockState();
 }
 

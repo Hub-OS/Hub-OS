@@ -162,6 +162,7 @@ bool Character::CanMoveTo(Battle::Tile * next)
 }
 
 const bool Character::Hit(Hit::Properties props) {
+
   if (this->GetHealth() <= 0) return false;
 
   // Pierce hits even when passthrough or flinched

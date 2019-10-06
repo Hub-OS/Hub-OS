@@ -261,7 +261,7 @@ namespace Battle {
 
   bool Tile::IsReservedByCharacter()
   {
-    return (this->characters.size() != 0 || this->reserved.size() != 0);
+    return (this->reserved.size() != 0);
   }
 
   void Tile::AddEntity(Spell & _entity)

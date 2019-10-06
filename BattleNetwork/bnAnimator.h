@@ -254,24 +254,12 @@ public:
    */
   char GetMode() { return playbackMode;  }
   
-  const sf::Vector2f GetPoint(const std::string& pointName) {
-    auto str = pointName;
-    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
-    if(currentPoints.find(str) == currentPoints.end()) {
-        Logger::Log("Could not find point in current sequence named " + str);
-        return sf::Vector2f();
-    }
-    return currentPoints[str];
-  }
+  const sf::Vector2f GetPoint(const std::string& pointName);
   
   /**
    * @brief Clears all callback functors
    */
-  void Clear() {
-	  callbacksAreValid = false;
-	  //queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
-	  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0; 
-  }
+  void Clear();
 
   /**
    * @brief Overload the () operator to apply proper frame onto a sprite 

@@ -45,7 +45,7 @@ Megalian::~Megalian() {
 }
 
 void Megalian::OnDelete() {
-  this->ChangeState<ExplodeState<Megalian>>();
+  this->ChangeState<ExplodeState<Megalian>>(2);
 }
 
 void Megalian::OnUpdate(float _elapsed) {

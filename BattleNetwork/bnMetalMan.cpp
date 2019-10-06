@@ -168,5 +168,5 @@ void MetalMan::SetAnimation(string _state, std::function<void()> onFinish) {
 }
 
 void MetalMan::OnDelete() {
-  this->InterruptState<NaviExplodeState<MetalMan>>(9, 0.75); // freezes animation
+  this->InterruptState<NaviExplodeState<MetalMan>>(); // freezes animation
 }

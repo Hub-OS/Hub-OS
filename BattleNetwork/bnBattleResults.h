@@ -2,6 +2,7 @@
 
 #include <SFML/System.hpp>
 #include <SFML/Graphics.hpp>
+#include <array> 
 
 class Mob;
 class BattleItem;
@@ -24,7 +25,6 @@ private:
   sf::Sprite rewardCard; /*!< Reward card graphics */
   sf::Sprite pressA; /*!< Press A sprite */
   sf::Sprite star; /*!< Counter stars */
-  sf::Shader* chipReveal; /*!< Reveal chip effect */
 
   bool isHidden; /*!< Flag if modal is hidden */
   bool isRevealed; /*!< Flag if modal is revealed */
@@ -37,6 +37,9 @@ private:
 
   double totalElapsed; /*!< delta time this frame */
     
+  std::array<int, 7*6> hideChipMatrix; /*~< blocks are 7x6 block space to uncover at 8x8 pixels*/
+  int chipMatrixIndex;
+
   /**
    * @brief Format the time to look like BN time stamp
    * @param time

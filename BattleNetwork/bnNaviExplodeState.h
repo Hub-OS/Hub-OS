@@ -29,7 +29,7 @@ public:
    * 
    * Calls super ExplodeState<Any>(_numOfExplosions, _playbackSpeed)
    */
-  NaviExplodeState(int _numOfExplosions = 2, double _playbackSpeed = 0.55);
+  NaviExplodeState(int _numOfExplosions = 5, double _playbackSpeed = 1.0);
   
   /**
    * @brief deconstructor

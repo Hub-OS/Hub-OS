@@ -1,5 +1,5 @@
-StartTime 1570387812
-Engine initialized: 0.382000 secs
+StartTime 1570399375
+Engine initialized: 0.386000 secs
 config settings is OK
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
@@ -153,7 +153,7 @@ Loaded shader: resources/shaders/glsl_110/transition
 Loaded shader: resources/shaders/glsl_110/chip_reveal
 Loaded shader: resources/shaders/glsl_110/wire
 Loaded shader: resources/shaders/glsl_110/colorize
-Loaded shaders: 0.006000 secs
+Loaded shaders: 0.005000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -198,7 +198,7 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.126000 secs
+Loaded audio sources: 0.117000 secs
 Loaded navi: Megaman
 Loaded navi: Roll
 Loaded navi: Starman
@@ -220,20 +220,553 @@ Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.155000 secs
+Loaded registered mobs: 0.145000 secs
 library size: 150
 Loaded texture: resources/backgrounds/lan/bg.png
-Loaded texture: resources/backgrounds/robot/bg.png
-input manager request
-config settings is OK
 main menu onStart
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onEnter()
 SelectMobScene::onStart()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/virus/fg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onLeave()
 SelectMobScene::onExit()
-SelectMobScene::onEnd()
-library saved successfully. Number of chips saved: 150
-main menu onResume
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
+Mettaur OnHit
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
+Mettaur OnHit
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Mettaur OnHit
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/robot/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Loaded texture: resources/spells/AirShot.png
+pushing states
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/AirShot.png
+pushing states
+Loaded texture: resources/spells/AirShot.png
+pushing states
+pushing states
+pushing states
+comboDeleteCounter reset
+pushing states
+comboDeleteCounter reset
+comboDeleteCounter reset
+pushing states
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/AirShot.png
+pushing states
+cube hitbox damage is: 200
+pushing states
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded texture: resources/backgrounds/undernet/bg.png
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded texture: resources/backgrounds/undernet/bg.png
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/medical/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()

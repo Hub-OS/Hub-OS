@@ -32,7 +32,7 @@ protected:
   double playbackSpeed; /*!< how fast the animation should be */
 public:
 
-  ExplodeState(int _numOfExplosions=2, double _playbackSpeed=0.55);
+  ExplodeState(int _numOfExplosions=2, double _playbackSpeed=1.0);
   virtual ~ExplodeState();
 
   void OnEnter(Any& e);
