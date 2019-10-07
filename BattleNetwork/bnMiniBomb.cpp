@@ -67,7 +67,7 @@ void MiniBomb::OnUpdate(float _elapsed) {
     }
     else {
       auto fx = new MobMoveEffect(GetField());
-      GetField()->AddEntity(*fx, GetTile()->GetX(), GetTile()->GetY());
+      GetField()->AddEntity(*fx, *this->GetTile());
       this->Delete();
     }
   }

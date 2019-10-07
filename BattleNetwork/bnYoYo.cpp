@@ -43,7 +43,7 @@ YoYo::~YoYo() {
 
 void YoYo::OnDelete() {
   if (startTile && startTile != this->GetTile()) {
-    GetField()->AddEntity(*new Explosion(GetField(), GetTeam(), 1), GetTile()->GetX(), GetTile()->GetY());
+    GetField()->AddEntity(*new Explosion(GetField(), GetTeam(), 1), *this->GetTile());
   }
 }
 
@@ -86,7 +86,7 @@ void YoYo::OnUpdate(float _elapsed) {
           if (!this->IsSliding()) {
             auto hitbox = new HitBox(GetField(), GetTeam());
             hitbox->SetHitboxProperties(GetHitboxProperties());
-            GetField()->AddEntity(*hitbox, GetTile()->GetX(), GetTile()->GetY());
+            GetField()->AddEntity(*hitbox, *this->GetTile());
 
             // After we hit 2 more times, reverse the direction 
             if (++this->hitCount == 2) {

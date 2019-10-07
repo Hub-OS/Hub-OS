@@ -69,7 +69,7 @@ void Forte::OnUpdate(float _elapsed)
   if (this->GetNextTile()) {
     if (dropCooldown <= 0) {
       auto fx = new MoveEffect(field);
-      field->AddEntity(*fx, GetTile()->GetX(), GetTile()->GetY());
+      field->AddEntity(*fx, *this->GetTile());
     }
     else {
       dropCooldown = COPY_DROP_COOLDOWN;

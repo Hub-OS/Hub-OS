@@ -70,7 +70,7 @@ void Missile::OnUpdate(float _elapsed) {
 
                 if(tile->GetState() != TileState::EMPTY && tile->GetState() != TileState::BROKEN) {
                     this->field->AddEntity(*(new RingExplosion(this->field)),
-                                           this->GetTile()->GetX(), this->GetTile()->GetY());
+                                           *this->GetTile());
                 }
 
                 this->Delete();

@@ -66,7 +66,7 @@ void Meteor::OnUpdate(float _elapsed) {
     if (tile->GetState() != TileState::EMPTY && tile->GetState() != TileState::BROKEN) {
       ENGINE.GetCamera()->ShakeCamera(5, sf::seconds(0.5));
 
-      this->field->AddEntity(*(new RingExplosion(this->field)), this->GetTile()->GetX(), this->GetTile()->GetY());
+      this->field->AddEntity(*(new RingExplosion(this->field)), *this->GetTile());
     }
 
     this->Delete();

@@ -24,7 +24,7 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell(_summons->Ge
 
   Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
-  this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
+  this->field->AddEntity(*this, *_tile);
 
   AUDIO.Play(AudioType::APPEAR);
 
@@ -43,11 +43,11 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell(_summons->Ge
   while (iter != allTiles.end()) {
     next = (*iter);
 
-	  if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
+	  if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != this->GetTeam()) {
 		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
 
 		auto characters = prev->FindEntities([_summons](Entity* in) {
-			return _summons->GetCaller() != in && (dynamic_cast<Character*>(in) && !dynamic_cast<Obstacle*>(in)  && in->GetTeam() != Team::UNKNOWN);
+			return _summons->GetCaller() != in && (dynamic_cast<Character*>(in)  && in->GetTeam() != Team::UNKNOWN);
 		});
 
 	    bool blocked = (characters.size() > 0) || !prev->IsWalkable();
@@ -70,6 +70,7 @@ ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell(_summons->Ge
 
   auto props = GetHitboxProperties();
   props.damage = 120;
+  props.flags |= Hit::flinch | Hit::shake;
   props.aggressor = _summons->GetCaller();
   SetHitboxProperties(props);
 }
@@ -90,7 +91,10 @@ void ProtoManSummon::DoAttackStep() {
 	});
 
 	this->animationComponent->AddCallback(4,  [this]() {
-		this->targets[0]->AffectEntities(this);
+    for (auto entity : this->targets[0]->FindEntities([](Entity* e) { return dynamic_cast<Character*>(e); })) {
+      Attack(dynamic_cast<Character*>(entity));
+    }
+
 		this->targets.erase(targets.begin());
 	}, std::function<void()>(), true);
   }
@@ -116,7 +120,7 @@ bool ProtoManSummon::Move(Direction _direction) {
 
 void ProtoManSummon::Attack(Character* _entity) {
   SwordEffect* effect = new SwordEffect(GetField());
-  GetField()->AddEntity(*effect, _entity->GetTile()->GetX(), _entity->GetTile()->GetY());
+  GetField()->AddEntity(*effect, *_entity->GetTile());
   this->summons->SummonEntity(effect, false);
 
   auto props = GetHitboxProperties();

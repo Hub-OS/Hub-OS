@@ -26,15 +26,17 @@ public:
    * @brief Keep sliding if moving in previous frame
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
 
-  virtual const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete();
+  void OnDelete();
   
-  virtual const float GetHitHeight() const;
+  const float GetHitHeight() const;
 
-  virtual void SetAnimation(std::string animation);
+  void SetAnimation(std::string animation);
+
+  void OnSpawn(Battle::Tile& start);
   
   /**
    * @brief Can move over any tile if it is not broken or empty or contains another cube

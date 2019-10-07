@@ -10,7 +10,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/cube/cube.animation"
 
-RockDebris::RockDebris(RockDebris::Type type, double intensity) : Artifact(nullptr), type(type), intensity(intensity), duration(0.5*intensity), progress(0)
+RockDebris::RockDebris(RockDebris::Type type, double intensity) : Artifact(nullptr), type(type), intensity(intensity), duration(0.5), progress(0)
 {
   SetLayer(0);
   this->setTexture(*TEXTURES.GetTexture(TextureType::MISC_CUBE));
@@ -22,7 +22,7 @@ RockDebris::RockDebris(RockDebris::Type type, double intensity) : Artifact(nullp
   animation.Reload();
 
   if (type == RockDebris::Type::LEFT_ICE || type == RockDebris::Type::RIGHT_ICE) {
-    animation.SetAnimation("DEBRIS");
+    animation.SetAnimation("ICE_DEBRIS");
 
     animation.SetFrame((int)type-2, *this);
   }
@@ -63,16 +63,8 @@ void RockDebris::OnUpdate(float _elapsed) {
     this->setPosition((float)posX, (float)posY);
   }
 
-  // std::cout << "beta: " << beta << std::endl;
-
-  // After progress >= 1.0, the rock is on the ground
-  // Wait for a total of duration*2.0 before removing the rock
-  if (progress >= duration*2.0f) {
-    //progress = 0;
-
-    //if (--intensity == 0) {
+  if (progress >= duration) {
       this->Delete();
-    //}
   }
 }
 

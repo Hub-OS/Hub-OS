@@ -20,6 +20,7 @@ Entity::Entity()
   passthrough(false),
   ownedByField(false),
   isSliding(false),
+  hasSpawned(false),
   element(Element::NONE),
   tileOffset(sf::Vector2f(0,0)),
   slideTime(sf::milliseconds(100)),
@@ -41,23 +42,32 @@ Entity::~Entity() {
   components.clear();
 }
 
+void Entity::Spawn(Battle::Tile & start)
+{
+  if (!this->hasSpawned) {
+    this->OnSpawn(start);
+  }
+
+  this->hasSpawned = true;
+}
+
 const bool Entity::IsSuperEffective(Element _other) const {
-    switch(this->GetElement()) {
-        case Element::AQUA:
-            return _other == Element::ELEC;
-            break;
-        case Element::FIRE:
-            return _other == Element::AQUA;
-            break;
-        case Element::WOOD:
-            return _other == Element::FIRE;
-            break;
-        case Element::ELEC:
-            return _other == Element::WOOD;
-            break;
-    }
+  switch(this->GetElement()) {
+    case Element::AQUA:
+        return _other == Element::ELEC;
+        break;
+    case Element::FIRE:
+        return _other == Element::AQUA;
+        break;
+    case Element::WOOD:
+        return _other == Element::FIRE;
+        break;
+    case Element::ELEC:
+        return _other == Element::WOOD;
+        break;
+  }
     
-    return false;
+  return false;
 }
 
 void Entity::Update(float _elapsed) {

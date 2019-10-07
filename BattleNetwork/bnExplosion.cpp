@@ -43,7 +43,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
 
   if (_numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this, _field, _team, _numOfExplosions]() {
-      this->GetField()->AddEntity(*new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
+      this->GetField()->AddEntity(*new Explosion(*this), *this->GetTile());
     }, std::function<void()>(), true);
   }
 
@@ -87,7 +87,7 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
 
   if (numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this]() {
-      this->GetField()->AddEntity(*new Explosion(*this), this->GetTile()->GetX(), this->GetTile()->GetY());
+      this->GetField()->AddEntity(*new Explosion(*this), *this->GetTile());
     }, std::function<void()>(), true);
   }
   else {

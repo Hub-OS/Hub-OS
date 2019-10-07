@@ -56,7 +56,8 @@ public:
    * @param y row
    */
   void AddEntity(Character& character, int x, int y);
-  
+  void AddEntity(Character& character, Battle::Tile& dest);
+
   /**
    * @brief Adds a spell using the spell's AdoptTile() routine
    * @param spell
@@ -64,7 +65,8 @@ public:
    * @param y row
    */
   void AddEntity(Spell& spell, int x, int y);
-  
+  void AddEntity(Spell& spell, Battle::Tile& dest);
+
   /**
    * @brief Adds an obstacle using the obstacle's AdoptTile() routine
    * @param obst
@@ -72,7 +74,8 @@ public:
    * @param y row
    */
   void AddEntity(Obstacle& obst, int x, int y);
-  
+  void AddEntity(Obstacle& obst, Battle::Tile& dest);
+
   /**
    * @brief Adds an artifact using the artifact's AdoptTile() routine
    * @param art
@@ -80,6 +83,7 @@ public:
    * @param y row
    */
   void AddEntity(Artifact& art, int x, int y);
+  void AddEntity(Artifact& art, Battle::Tile& dest);
 
   /**
    * @brief Query for entities on the entire field

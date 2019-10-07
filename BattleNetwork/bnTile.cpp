@@ -299,13 +299,14 @@ namespace Battle {
   // Aux function
   void Tile::AddEntity(Entity* _entity) {
     _entity->SetTile(this);
+
+    // May be part of the spawn routine
+    // First tile set means entity is live and ready to go
+    _entity->Spawn(*this);
+
     auto reservedIter = reserved.find(_entity->GetID());
     if (reservedIter != reserved.end()) { reserved.erase(reservedIter); }
     entities.push_back(_entity);
-
-    // Sort by layer (draw order)
-    // e.g. layer 0 draws first so it must be last in the draw list
-    // std::sort(entities.begin(), entities.end(), [](Entity* a, Entity* b) { return a->GetLayer() > b->GetLayer(); });
   }
 
   bool Tile::RemoveEntityByID(long ID)

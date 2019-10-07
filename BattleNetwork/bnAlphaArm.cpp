@@ -190,7 +190,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
 
 void AlphaArm::OnDelete() {
   auto fx = new MobMoveEffect(GetField());
-  GetField()->AddEntity(*fx, GetTile()->GetX(), GetTile()->GetY());
+  GetField()->AddEntity(*fx, *this->GetTile());
 }
 
 const bool AlphaArm::OnHit(const Hit::Properties props) {

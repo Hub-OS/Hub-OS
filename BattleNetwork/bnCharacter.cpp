@@ -6,10 +6,10 @@
 #include "bnElementalDamage.h"
 #include "bnShaderResourceManager.h"
 #include "bnAnimationComponent.h"
-
+#include "bnShakingEffect.h"
 #include <Swoosh/Ease.h>
 
-Character::Character(Rank _rank) : 
+Character::Character(Rank _rank) :
   health(0),
   maxHealth(0),
   counterable(false),
@@ -67,9 +67,13 @@ const bool Character::CanTilePush() const {
 }
 
 void Character::Update(float _elapsed) {
+  sf::Vector2f shakeOffset;
+
   double prevThisFrameStun = this->stunCooldown;
 
-  this->ResolveFrameBattleDamage();
+  if (this->IsBattleActive()) {
+    this->ResolveFrameBattleDamage();
+  }
 
   this->setColor(sf::Color::White);
 
@@ -136,6 +140,8 @@ void Character::Update(float _elapsed) {
     setPosition(tile->getPosition().x + offset.x, tile->getPosition().y + offset.y);
   }
 
+  setPosition(getPosition() + shakeOffset);
+
   hit = false;
 
   // TODO: Something IS skipping the SetHealth() routine. Find out what and take this check out.
@@ -168,6 +174,10 @@ const bool Character::Hit(Hit::Properties props) {
   // Pierce hits even when passthrough or flinched
   if ((props.flags & Hit::pierce) != Hit::pierce) {
     if (this->invincibilityCooldown > 0 || this->IsPassthrough()) return false;
+  }
+
+  if ((props.flags & Hit::shake) == Hit::shake) {
+    this->RegisterComponent(new ShakingEffect(this));
   }
 
   this->SetHealth(GetHealth() - props.damage);
@@ -376,11 +386,13 @@ void Character::AdoptTile(Battle::Tile * tile)
 }
 
 void Character::TryDelete() {
-    if (this->GetHealth() == 0 && !this->invokeDeletion) {
-        this->OnDelete();
-        this->invokeDeletion = true;
-        this->SlideToTile(false);
-    }
+  if (!IsBattleActive()) return;
+
+  if (this->GetHealth() == 0 && !this->invokeDeletion) {
+      this->OnDelete();
+      this->invokeDeletion = true;
+      this->SlideToTile(false);
+  }
 }
 
 void Character::ToggleCounter(bool on)

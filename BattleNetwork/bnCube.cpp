@@ -1,5 +1,6 @@
 #include "bnCube.h"
 #include "bnRockDebris.h"
+#include "bnParticlePoof.h"
 #include "bnTile.h"
 #include "bnDefenseVirusBody.h"
 #include "bnTextureResourceManager.h"
@@ -15,26 +16,8 @@ Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), CounterTrait<Cube
   this->SetName("Cube");
   this->SetTeam(_team);
 
-  animation = new AnimationComponent(this);
-  this->RegisterComponent(animation);
-  animation->Setup("resources/mobs/cube/cube.animation");
-  animation->Reload();
-
-  auto onfinish = [this]() { 
-    if (this->GetTile()->GetState() == TileState::ICE) { 
-      this->SetAnimation("ICE"); 
-      this->SetElement(Element::ICE);
-    } 
-    else 
-    { this->SetAnimation("NORMAL");  } 
-  };
-
-  animation->SetAnimation("APPEAR", 0, onfinish);
-
   this->SetHealth(200);
   this->timer = 100;
-
-  animation->OnUpdate(0);
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
 
@@ -58,7 +41,7 @@ Cube::~Cube() {
 
 bool Cube::CanMoveTo(Battle::Tile * next)
 {
-  if (next && next->IsWalkable() && next != tile) {
+  if (next && next->IsWalkable()) {
     if (next->ContainsEntityType<Obstacle>()) {
       Entity* other = nullptr;
 
@@ -91,8 +74,6 @@ bool Cube::CanMoveTo(Battle::Tile * next)
     return true;
   }
 
-  if (next == tile) { return true; }
-
   this->SetDirection(Direction::NONE);
   this->previousDirection = Direction::NONE;
   return false;
@@ -113,14 +94,14 @@ void Cube::OnUpdate(float _elapsed) {
   this->tile->AffectEntities(this);
 
   // Keep momentum
-  if (!IsSliding() && pushedByDrag) {
+  if (!IsSliding() && pushedByDrag && GetDirection() != Direction::NONE) {
     this->SlideToTile(true);
     this->Move(this->GetDirection());
+    FinishMove();
   }
 
 
-   // TODO: put reserve and contains cube checks in an OnSpawn function...
-  if (timer <= 0 || GetTile()->IsReservedByCharacter()) {
+  if (timer <= 0 ) {
     this->SetHealth(0);
   }
 
@@ -133,16 +114,26 @@ void Cube::OnDelete() {
   this->RemoveDefenseRule(virusBody);
   delete virusBody;
 
-  double intensity = 2.0;
+  if (this->GetFirstComponent<AnimationComponent>()->GetAnimationString() != "APPEAR") {
+    int intensity = rand() % 2;
+    intensity += 1;
 
-  auto left = (this->GetElement() == Element::ICE) ? RockDebris::Type::LEFT_ICE : RockDebris::Type::LEFT;
-  auto right = (this->GetElement() == Element::ICE) ? RockDebris::Type::RIGHT_ICE : RockDebris::Type::RIGHT;
+    auto left = (this->GetElement() == Element::ICE) ? RockDebris::Type::LEFT_ICE : RockDebris::Type::LEFT;
+    this->GetField()->AddEntity(*new RockDebris(left, (double)intensity), *this->GetTile());
 
-  this->GetField()->AddEntity(*new RockDebris(left, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
-  this->GetField()->AddEntity(*new RockDebris(right, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
+
+    intensity = rand() % 3;
+    intensity += 1;
+    auto right = (this->GetElement() == Element::ICE) ? RockDebris::Type::RIGHT_ICE : RockDebris::Type::RIGHT;
+    this->GetField()->AddEntity(*new RockDebris(right, (double)intensity), *this->GetTile());
+
+    auto poof = new ParticlePoof();
+    GetField()->AddEntity(*poof, *GetTile());
+
+    AUDIO.Play(AudioType::PANEL_CRACK);
+  }
 
   tile->RemoveEntityByID(this->GetID());
-  AUDIO.Play(AudioType::PANEL_CRACK);
 
   this->RemoveMeFromCounterList();
 
@@ -223,4 +214,33 @@ void Cube::Attack(Character* other) {
 void Cube::SetAnimation(std::string animation)
 {
   this->animation->SetAnimation(animation);
+}
+
+void Cube::OnSpawn(Battle::Tile & start)
+{
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+  animation->Setup("resources/mobs/cube/cube.animation");
+  animation->Reload();
+
+  animation->OnUpdate(0);
+
+  auto onFinish = [this, &start]() {
+    if (start.GetState() == TileState::ICE) {
+      animation->SetAnimation("ICE");
+      this->SetElement(Element::ICE);
+    }
+    else {
+      animation->SetAnimation("NORMAL");
+    }
+  };
+
+  if (start.IsReservedByCharacter() || start.ContainsEntityType<Character>()) {
+    this->SetHealth(0);
+    animation->SetAnimation("APPEAR", 0);
+  }
+  else {
+    animation->SetAnimation("APPEAR", 0, onFinish);
+  }
+
 }

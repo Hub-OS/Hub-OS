@@ -14,7 +14,7 @@ public:
   /**
    * \brief sets the animation 
    */
-  ParticlePoof(Field* field);
+  ParticlePoof();
   
   /**
    * @brief deconstructor

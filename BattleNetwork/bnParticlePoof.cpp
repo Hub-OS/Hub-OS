@@ -8,7 +8,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/poof.animation"
 
-ParticlePoof::ParticlePoof(Field* field) : Artifact(field)
+ParticlePoof::ParticlePoof() : Artifact(nullptr)
 {
   SetLayer(0);
   this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_POOF));

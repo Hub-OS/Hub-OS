@@ -333,6 +333,7 @@
     <ClCompile Include="bnSceneNode.cpp" />
     <ClCompile Include="bnSelectNaviScene.cpp" />
     <ClCompile Include="bnShaderResourceManager.cpp" />
+    <ClCompile Include="bnShakingEffect.cpp" />
     <ClCompile Include="bnSharedHitBox.cpp" />
     <ClCompile Include="bnShineExplosion.cpp" />
     <ClCompile Include="bnSpriteSceneNode.cpp" />
@@ -388,6 +389,7 @@
   <ItemGroup>
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
     <ClInclude Include="Android\bnTouchArea.h" />
+    <ClInclude Include="bnShakingEffect.h" />
     <ClInclude Include="bnACDCBackground.h" />
     <ClInclude Include="bnAirShot.h" />
     <ClInclude Include="bnAirShotChipAction.h" />

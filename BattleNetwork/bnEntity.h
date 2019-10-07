@@ -44,13 +44,17 @@ private:
   static long numOfIDs; /**< Internal counter to identify the next entity with. */
   int alpha;            /**< Control the transparency of an entity. */
   long lastComponentID; /**< Entities keep track of new components to run through scene injection later. */
-
+  bool hasSpawned;      /**< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
 public:
 
   Entity();
   virtual ~Entity();
 
   virtual void OnDelete() = 0;
+
+  void Spawn(Battle::Tile& start);
+
+  virtual void OnSpawn(Battle::Tile& start) { };
 
   /**
    * @brief Virtual. Update an entity. Used by Character class. @see Character::Update()

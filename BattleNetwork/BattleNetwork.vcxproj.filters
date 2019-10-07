@@ -203,12 +203,6 @@
     <Filter Include="Scenes/Activities\Battle\Content\Components">
       <UniqueIdentifier>{dfa2cbcd-8575-45f2-93b6-c5d98a64e469}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Components\Animation">
-      <UniqueIdentifier>{32f5b123-7c10-4d87-abfc-a9326380e103}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Components\Animation\Charge">
-      <UniqueIdentifier>{ab250ee0-5fc9-498e-97e9-3b1f28a188c7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scenes/Activities\Battle\Content\Components\UI">
       <UniqueIdentifier>{a8e9ac2a-8f91-4965-9108-64886a52dd16}</UniqueIdentifier>
     </Filter>
@@ -647,9 +641,6 @@
     <Filter Include="Prefabs\TextBox\Framed\Messages\Default">
       <UniqueIdentifier>{c3af9515-4592-476a-a67a-e40875b518a3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\CRTP Traits">
-      <UniqueIdentifier>{85c7bb34-06bc-4c47-a728-51ff5adb9d0d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\CoreModules\Settings">
       <UniqueIdentifier>{d2f96403-6612-4264-acd5-ea154b80b96c}</UniqueIdentifier>
     </Filter>
@@ -658,6 +649,21 @@
     </Filter>
     <Filter Include="Engine\CoreModules\Settings\Writer">
       <UniqueIdentifier>{18f09d22-dea9-4be4-89f1-1c275870cfd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\CRTP Traits">
+      <UniqueIdentifier>{85c7bb34-06bc-4c47-a728-51ff5adb9d0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Components\VisualEffects">
+      <UniqueIdentifier>{32f5b123-7c10-4d87-abfc-a9326380e103}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Components\VisualEffects\ShakingEffect">
+      <UniqueIdentifier>{9f61627c-259a-4eb3-a9da-e348ee074f4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Components\VisualEffects\Animation">
+      <UniqueIdentifier>{b2829cba-334d-47e8-b535-5efa66d368cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\SpriteNodes\Charge">
+      <UniqueIdentifier>{ab250ee0-5fc9-498e-97e9-3b1f28a188c7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -680,7 +686,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Mettaur</Filter>
     </ClCompile>
     <ClCompile Include="bnChargeComponent.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Components\Animation\Charge</Filter>
+      <Filter>Scenes/Activities\Battle\Content\SpriteNodes\Charge</Filter>
     </ClCompile>
     <ClCompile Include="bnEntity.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities</Filter>
@@ -708,9 +714,6 @@
     </ClCompile>
     <ClCompile Include="bnChip.cpp">
       <Filter>Database</Filter>
-    </ClCompile>
-    <ClCompile Include="bnAnimationComponent.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Components\Animation</Filter>
     </ClCompile>
     <ClCompile Include="bnMettaurIdleState.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Mettaur\States</Filter>
@@ -1258,6 +1261,12 @@
     <ClCompile Include="bnConfigWriter.cpp">
       <Filter>Engine\CoreModules\Settings\Writer</Filter>
     </ClCompile>
+    <ClCompile Include="bnShakingEffect.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\ShakingEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAnimationComponent.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\Animation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -1288,7 +1297,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Mettaur</Filter>
     </ClInclude>
     <ClInclude Include="bnChargeComponent.h">
-      <Filter>Scenes/Activities\Battle\Content\Components\Animation\Charge</Filter>
+      <Filter>Scenes/Activities\Battle\Content\SpriteNodes\Charge</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerState.h">
       <Filter>Enumerations</Filter>
@@ -1334,9 +1343,6 @@
     </ClInclude>
     <ClInclude Include="bnChip.h">
       <Filter>Database</Filter>
-    </ClInclude>
-    <ClInclude Include="bnAnimationComponent.h">
-      <Filter>Scenes/Activities\Battle\Content\Components\Animation</Filter>
     </ClInclude>
     <ClInclude Include="bnAIState.h">
       <Filter>Scenes/Activities\Battle\Content\AI</Filter>
@@ -1997,10 +2003,10 @@
       <Filter>Prefabs\TextBox\Framed\Messages\Default</Filter>
     </ClInclude>
     <ClInclude Include="bnTurnOrderTrait.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\CRTP Traits</Filter>
+      <Filter>Scenes/Activities\Battle\Content\CRTP Traits</Filter>
     </ClInclude>
     <ClInclude Include="bnCounterTrait.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\CRTP Traits</Filter>
+      <Filter>Scenes/Activities\Battle\Content\CRTP Traits</Filter>
     </ClInclude>
     <ClInclude Include="bnConfigSettings.h">
       <Filter>Engine\CoreModules\Settings</Filter>
@@ -2010,6 +2016,12 @@
     </ClInclude>
     <ClInclude Include="bnConfigWriter.h">
       <Filter>Engine\CoreModules\Settings\Writer</Filter>
+    </ClInclude>
+    <ClInclude Include="bnShakingEffect.h">
+      <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\ShakingEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAnimationComponent.h">
+      <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\Animation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

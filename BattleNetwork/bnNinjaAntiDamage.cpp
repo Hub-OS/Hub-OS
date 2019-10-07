@@ -21,7 +21,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
     owner->RegisterComponent(new HideTimer(owner, 1.0));
 
     // Add a poof particle to denote owner dissapearing
-    owner->GetField()->AddEntity(*new ParticlePoof(owner->GetField()), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+    owner->GetField()->AddEntity(*new ParticlePoof(), *owner->GetTile());
 
     if (user) {
       // If there's an aggressor, grab their tile and target it

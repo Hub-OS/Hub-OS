@@ -24,7 +24,7 @@ void MysteryData::OnUpdate(float _elapsed) {
 
   if (this->GetHealth() == 0) {
     this->Delete();
-    this->field->AddEntity(*new Explosion(this->field, this->team), this->GetTile()->GetX(), this->GetTile()->GetY());
+    this->field->AddEntity(*new Explosion(this->field, this->team), *this->GetTile());
   }
 
   setPosition(tile->getPosition().x, tile->getPosition().y);

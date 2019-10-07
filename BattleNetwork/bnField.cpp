@@ -102,6 +102,11 @@ void Field::AddEntity(Character & character, int x, int y)
   }
 }
 
+void Field::AddEntity(Character & character, Battle::Tile & dest)
+{
+  AddEntity(character, dest.GetX(), dest.GetY());
+}
+
 
 void Field::AddEntity(Spell & spell, int x, int y)
 {
@@ -117,6 +122,11 @@ void Field::AddEntity(Spell & spell, int x, int y)
   if (tile) {
     spell.AdoptTile(tile);
   }
+}
+
+void Field::AddEntity(Spell & spell, Battle::Tile & dest)
+{
+  AddEntity(spell, dest.GetX(), dest.GetY());
 }
 
 void Field::AddEntity(Obstacle & obst, int x, int y)
@@ -135,6 +145,11 @@ void Field::AddEntity(Obstacle & obst, int x, int y)
   }
 }
 
+void Field::AddEntity(Obstacle & obst, Battle::Tile & dest)
+{
+  AddEntity(obst, dest.GetX(), dest.GetY());
+}
+
 void Field::AddEntity(Artifact & art, int x, int y)
 {
   if (isUpdating) {
@@ -149,6 +164,11 @@ void Field::AddEntity(Artifact & art, int x, int y)
   if (tile) {
     art.AdoptTile(tile);
   }
+}
+
+void Field::AddEntity(Artifact & art, Battle::Tile & dest)
+{
+  AddEntity(art, dest.GetX(), dest.GetY());
 }
 
 std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
@@ -294,7 +314,7 @@ void Field::Update(float _elapsed) {
 
   backToRed.clear();
 
-  // UNLOCK ADD ENTITIES
+  // UNLOCK ADD ENTITIES FUNCTION
   this->isUpdating = false;
 }
 
