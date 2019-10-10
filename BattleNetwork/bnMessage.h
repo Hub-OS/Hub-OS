@@ -18,7 +18,7 @@ public:
 
   virtual void OnUpdate(double elapsed);
   virtual void OnDraw(sf::RenderTarget& target, sf::RenderStates states);
-
+  virtual void SetTextBox(AnimatedTextBox* textbox);
   /**
   * @brief Continues the text if it didn't fit the line.
   *

@@ -24,9 +24,6 @@ Roll::Roll() : Player()
   this->SetHealth(1500);
 
   SetFloatShoe(true);
-
-  SetBusterDamage(2);
-  SetChargedBusterDamage(20);
 }
 
 const float Roll::GetHitHeight() const

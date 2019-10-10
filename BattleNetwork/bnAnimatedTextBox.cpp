@@ -85,12 +85,12 @@ void AnimatedTextBox::ShowNextLines()
 
 const float AnimatedTextBox::GetFrameWidth() const
 {
-  return frame.getGlobalBounds().width;
+  return frame.getLocalBounds().width;
 }
 
 const float AnimatedTextBox::GetFrameHeight() const
 {
-  return frame.getGlobalBounds().height;
+  return frame.getLocalBounds().height;
 }
 
 void AnimatedTextBox::DequeMessage() {
@@ -125,7 +125,7 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
   std::string strMessage = messages[0]->GetMessage();
   textBox.SetMessage(strMessage);
 
-  message->SetTextbox(this);
+  message->SetTextBox(this);
 }
 
   void AnimatedTextBox::Update(double elapsed) {
@@ -211,6 +211,8 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
       sprite.setPosition(oldpos);
     }
 
+    states.transform = this->getTransform();
+
     messages.front()->OnDraw(target, states);
   }
 }
@@ -222,7 +224,8 @@ void AnimatedTextBox::DrawMessage(sf::RenderTarget & target, sf::RenderStates st
 
 sf::Text AnimatedTextBox::MakeTextObject(std::string data)
 {
-  auto obj = textBox.GetText();
+  sf::Text obj = textBox.GetText();
+  obj.setFont(textBox.GetFont());
   obj.setString(data);
 
   return obj;

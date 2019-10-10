@@ -4,9 +4,6 @@
     <Filter Include="Engine">
       <UniqueIdentifier>{b2d44660-3edc-4851-bcad-91fd074e9eef}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Entry">
-      <UniqueIdentifier>{99da17ce-caae-4583-a7c2-d4d60a27fba6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utilities">
       <UniqueIdentifier>{8c50a11b-c013-4ca0-a58e-cfc37e58a64f}</UniqueIdentifier>
     </Filter>
@@ -148,39 +145,6 @@
     </Filter>
     <Filter Include="Scenes/Activities\Battle\Content\Chips\Cust\UI">
       <UniqueIdentifier>{36e8f1dc-b46a-4384-b735-c0cfab8a122e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action">
-      <UniqueIdentifier>{d2c84dfc-7be8-49c9-a201-90c8fa891443}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\Cannon">
-      <UniqueIdentifier>{567b2f61-8b57-4aa8-8363-96ceeab0e2d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\AirShot">
-      <UniqueIdentifier>{653e5b8f-d5cb-4ea9-b8a1-936479988bcc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\TwinFang">
-      <UniqueIdentifier>{a5a63528-aa5f-4af8-a9e2-d70b4435097f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\Tornado">
-      <UniqueIdentifier>{16366d2e-9c80-4612-9495-85fcf23760fa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\FireBurn">
-      <UniqueIdentifier>{c89ed520-1310-4ed6-a85a-178a352f08a6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\Vulcan">
-      <UniqueIdentifier>{dff4ff60-0671-4ed5-b26c-0ed3bd30ae10}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\ElecSwrd">
-      <UniqueIdentifier>{2cd0fd6f-6139-43b9-a392-95d496add8ce}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\Bomb">
-      <UniqueIdentifier>{63ae7282-2203-4234-8c4a-5ef18c118ac7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\CrackShot">
-      <UniqueIdentifier>{5963924e-61d5-4007-bbf8-9062e3a931e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\Reflect">
-      <UniqueIdentifier>{09e5a072-6c03-4a1e-94f1-9dfaca5fec8c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Scenes/Activities\Battle\Content\AI">
       <UniqueIdentifier>{b0e97f40-0be3-48ff-a3c0-924576c7938e}</UniqueIdentifier>
@@ -554,9 +518,6 @@
     <Filter Include="Scenes/Activities\Config">
       <UniqueIdentifier>{e7929995-400d-4212-a3e6-93fc49841dd9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Action\YoYo">
-      <UniqueIdentifier>{333948d5-9dae-4d9a-b2d8-781d18dd94cd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\YoYo">
       <UniqueIdentifier>{22d03e9f-9935-4911-a044-f6c63b52dfba}</UniqueIdentifier>
     </Filter>
@@ -665,6 +626,48 @@
     <Filter Include="Scenes/Activities\Battle\Content\SpriteNodes\Charge">
       <UniqueIdentifier>{ab250ee0-5fc9-498e-97e9-3b1f28a188c7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{99da17ce-caae-4583-a7c2-d4d60a27fba6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions">
+      <UniqueIdentifier>{d2c84dfc-7be8-49c9-a201-90c8fa891443}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Cannon">
+      <UniqueIdentifier>{567b2f61-8b57-4aa8-8363-96ceeab0e2d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\AirShot">
+      <UniqueIdentifier>{653e5b8f-d5cb-4ea9-b8a1-936479988bcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\TwinFang">
+      <UniqueIdentifier>{a5a63528-aa5f-4af8-a9e2-d70b4435097f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Tornado">
+      <UniqueIdentifier>{16366d2e-9c80-4612-9495-85fcf23760fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\FireBurn">
+      <UniqueIdentifier>{c89ed520-1310-4ed6-a85a-178a352f08a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Vulcan">
+      <UniqueIdentifier>{dff4ff60-0671-4ed5-b26c-0ed3bd30ae10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\ElecSwrd">
+      <UniqueIdentifier>{2cd0fd6f-6139-43b9-a392-95d496add8ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Bomb">
+      <UniqueIdentifier>{63ae7282-2203-4234-8c4a-5ef18c118ac7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\CrackShot">
+      <UniqueIdentifier>{5963924e-61d5-4007-bbf8-9062e3a931e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Reflect">
+      <UniqueIdentifier>{09e5a072-6c03-4a1e-94f1-9dfaca5fec8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\YoYo">
+      <UniqueIdentifier>{333948d5-9dae-4d9a-b2d8-781d18dd94cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Buster">
+      <UniqueIdentifier>{2e06f78e-f1f8-46c2-b31a-fd4eece609aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -684,9 +687,6 @@
     </ClCompile>
     <ClCompile Include="bnMettaur.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Mettaur</Filter>
-    </ClCompile>
-    <ClCompile Include="bnChargeComponent.cpp">
-      <Filter>Scenes/Activities\Battle\Content\SpriteNodes\Charge</Filter>
     </ClCompile>
     <ClCompile Include="bnEntity.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities</Filter>
@@ -734,7 +734,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Entry</Filter>
+      <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="bnLogger.cpp">
       <Filter>Utilities</Filter>
@@ -1091,13 +1091,13 @@
       <Filter>Scenes/Activities\Battle\Content\BattleStepModifiers\DefenseRules\VirusBody</Filter>
     </ClCompile>
     <ClCompile Include="bnCannonChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Cannon</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Cannon</Filter>
     </ClCompile>
     <ClCompile Include="bnPlayerChipUseListener.cpp">
       <Filter>Scenes/Activities\Battle\Content\PubSub\ChipUse\ChipUseListener\Player</Filter>
     </ClCompile>
     <ClCompile Include="bnAirShotChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\AirShot</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\AirShot</Filter>
     </ClCompile>
     <ClCompile Include="bnConfigScene.cpp">
       <Filter>Scenes/Activities\Config</Filter>
@@ -1127,10 +1127,10 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\TwinFang</Filter>
     </ClCompile>
     <ClCompile Include="bnTwinFangChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\TwinFang</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\TwinFang</Filter>
     </ClCompile>
     <ClCompile Include="bnTornadoChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Tornado</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Tornado</Filter>
     </ClCompile>
     <ClCompile Include="bnTornado.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Tornado</Filter>
@@ -1139,25 +1139,25 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\FireBurn</Filter>
     </ClCompile>
     <ClCompile Include="bnFireBurnChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\FireBurn</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\FireBurn</Filter>
     </ClCompile>
     <ClCompile Include="bnVulcanChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Vulcan</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Vulcan</Filter>
     </ClCompile>
     <ClCompile Include="bnVulcan.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Vulcan</Filter>
     </ClCompile>
     <ClCompile Include="bnElecSwordChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\ElecSwrd</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\ElecSwrd</Filter>
     </ClCompile>
     <ClCompile Include="bnBombChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Bomb</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Bomb</Filter>
     </ClCompile>
     <ClCompile Include="bnMiniBomb.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Bomb</Filter>
     </ClCompile>
     <ClCompile Include="bnCrackShotChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\CrackShot</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\CrackShot</Filter>
     </ClCompile>
     <ClCompile Include="bnCrackShot.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\CrackShot</Filter>
@@ -1190,10 +1190,10 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
     </ClCompile>
     <ClCompile Include="bnReflectChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Reflect</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Reflect</Filter>
     </ClCompile>
     <ClCompile Include="bnYoYoChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\YoYo</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\YoYo</Filter>
     </ClCompile>
     <ClCompile Include="bnYoYo.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\YoYo</Filter>
@@ -1267,6 +1267,12 @@
     <ClCompile Include="bnAnimationComponent.cpp">
       <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\Animation</Filter>
     </ClCompile>
+    <ClCompile Include="bnBusterChipAction.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Buster</Filter>
+    </ClCompile>
+    <ClCompile Include="bnChargeEffectSceneNode.cpp">
+      <Filter>Scenes/Activities\Battle\Content\SpriteNodes\Charge</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -1295,9 +1301,6 @@
     </ClInclude>
     <ClInclude Include="bnMettaur.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Mettaur</Filter>
-    </ClInclude>
-    <ClInclude Include="bnChargeComponent.h">
-      <Filter>Scenes/Activities\Battle\Content\SpriteNodes\Charge</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerState.h">
       <Filter>Enumerations</Filter>
@@ -1826,13 +1829,13 @@
       <Filter>Scenes/Activities\Battle\Content\BattleStepModifiers\DefenseRules\VirusBody</Filter>
     </ClInclude>
     <ClInclude Include="bnCannonChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Cannon</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Cannon</Filter>
     </ClInclude>
     <ClInclude Include="bnChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions</Filter>
     </ClInclude>
     <ClInclude Include="bnAirShotChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\AirShot</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\AirShot</Filter>
     </ClInclude>
     <ClInclude Include="bnConfigScene.h">
       <Filter>Scenes/Activities\Config</Filter>
@@ -1868,10 +1871,10 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\TwinFang</Filter>
     </ClInclude>
     <ClInclude Include="bnTwinFangChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\TwinFang</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\TwinFang</Filter>
     </ClInclude>
     <ClInclude Include="bnTornadoChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Tornado</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Tornado</Filter>
     </ClInclude>
     <ClInclude Include="bnTornado.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Tornado</Filter>
@@ -1880,25 +1883,25 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\FireBurn</Filter>
     </ClInclude>
     <ClInclude Include="bnFireBurnChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\FireBurn</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\FireBurn</Filter>
     </ClInclude>
     <ClInclude Include="bnVulcanChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Vulcan</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Vulcan</Filter>
     </ClInclude>
     <ClInclude Include="bnVulcan.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Vulcan</Filter>
     </ClInclude>
     <ClInclude Include="bnElecSwordChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\ElecSwrd</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\ElecSwrd</Filter>
     </ClInclude>
     <ClInclude Include="bnBombChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Bomb</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Bomb</Filter>
     </ClInclude>
     <ClInclude Include="bnMiniBomb.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Bomb</Filter>
     </ClInclude>
     <ClInclude Include="bnCrackShotChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\CrackShot</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\CrackShot</Filter>
     </ClInclude>
     <ClInclude Include="bnCrackShot.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\CrackShot</Filter>
@@ -1934,13 +1937,13 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Alpha\States</Filter>
     </ClInclude>
     <ClInclude Include="bnReflectChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\Reflect</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Reflect</Filter>
     </ClInclude>
     <ClInclude Include="bnBossPatternAI.h">
       <Filter>Scenes/Activities\Battle\Content\AI</Filter>
     </ClInclude>
     <ClInclude Include="bnYoYoChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Action\YoYo</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\YoYo</Filter>
     </ClInclude>
     <ClInclude Include="bnYoYo.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\YoYo</Filter>
@@ -2022,6 +2025,12 @@
     </ClInclude>
     <ClInclude Include="bnAnimationComponent.h">
       <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBusterChipAction.h">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Buster</Filter>
+    </ClInclude>
+    <ClInclude Include="bnChargeEffectSceneNode.h">
+      <Filter>Scenes/Activities\Battle\Content\SpriteNodes\Charge</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

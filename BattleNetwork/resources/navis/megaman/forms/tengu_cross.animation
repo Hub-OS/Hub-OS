@@ -1,0 +1,34 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/navis/megaman/forms/tengu_cross.png"
+
+animation state="PLAYER_IDLE"
+frame duration="-9.09436e+36" x="3" y="8" w="55" h="46" originx="39" originy="14"
+
+animation state="PLAYER_HIT"
+frame duration="-1.24815e-36" x="270" y="66" w="56" h="48" originx="0" originy="0"
+frame duration="-1.24883e-36" x="4" y="117" w="45" h="50" originx="0" originy="0"
+frame duration="-7.33483e+36" x="4" y="59" w="42" h="55" originx="0" originy="0"
+
+animation state="PLAYER_MOVING"
+frame duration="0.07" x="125" y="177" w="54" h="44" originx="37" originy="13"
+frame duration="0.02" x="185" y="176" w="56" h="48" originx="37" originy="16"
+frame duration="0.02" x="67" y="175" w="52" h="45" originx="35" originy="12"
+
+animation state="PLAYER_MOVED"
+frame duration="0.02" x="186" y="230" w="53" h="48" originx="35" originy="14"
+frame duration="0.02" x="127" y="235" w="56" h="45" originx="35" originy="13"
+frame duration="0.02" x="66" y="239" w="53" h="45" originx="36" originy="12"
+frame duration="0.05" x="6" y="238" w="54" h="47" originx="36" originy="15"
+
+animation state="PLAYER_SWORD"
+frame duration="0.05" x="58" y="292" w="53" h="32" originx="33" originy="13"
+frame duration="0.05" x="112" y="291" w="48" h="33" originx="30" originy="13"
+frame duration="0.15" x="163" y="290" w="52" h="36" originx="35" originy="17"
+
+animation state="PLAYER_SHOOTING"
+frame duration="-2.66425e-36" x="8" y="688" w="47" h="33" originx="31" originy="14"
+
+animation state="PLAYER_THROW"
+frame duration="0.1" x="10" y="337" w="56" h="38" originx="24" originy="9"
+frame duration="0.05" x="67" y="337" w="43" h="39" originx="27" originy="14"
+frame duration="0.05" x="112" y="337" w="57" h="42" originx="34" originy="17"
+frame duration="0.05" x="171" y="342" w="54" h="41" originx="38" originy="14"

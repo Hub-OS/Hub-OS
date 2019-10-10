@@ -78,19 +78,34 @@ void InputManager::Update() {
         if (sf::Joystick::isButtonPressed(GAMEPAD_1, i)) {
           auto action = settings.GetPairedActions((Gamepad)i);
 
-          if (!action.size()) continue;
-
           for (auto a : action) {
             events.push_back({ a, InputState::PRESSED });
           }
           
         } else {
+          /*
+          joysticks can only determine if the signal is on or off,
+          we must compare with the last frame to determine if this 
+          was a release event
+          */
           auto action = settings.GetPairedActions((Gamepad)i);
 
-          if (!action.size()) continue;
-
           for (auto a : action) {
-            events.push_back({ a, InputState::RELEASED });
+            bool canRelease = false;
+
+            InputEvent find1 = { a, InputState::HELD };
+            InputEvent find2 = { a, InputState::PRESSED };
+
+            if (find(eventsLastFrame.begin(), eventsLastFrame.end(), find1) != eventsLastFrame.end()) {
+              canRelease = true;
+            }
+            else if (find(eventsLastFrame.begin(), eventsLastFrame.end(), find2) != eventsLastFrame.end()) {
+              canRelease = true;
+            }       
+
+            if (canRelease) {
+              events.push_back({ a, InputState::RELEASED });
+            }
           }
         }
       }
@@ -98,8 +113,6 @@ void InputManager::Update() {
       /* Gamepad not connected. Strictly use keyboard events. */
       if (settings.IsOK()) {
         auto action = settings.GetPairedActions(event.key.code);
-
-        if (!action.size()) continue;
 
         for (auto a : action) {
           events.push_back({ a, InputState::PRESSED });
@@ -345,6 +358,7 @@ void InputManager::Update() {
       events.push_back(insert); // migrate this input
     }
   }
+  
   /*
   // Uncomment for debugging
   for (auto e : events) {
@@ -362,7 +376,8 @@ void InputManager::Update() {
       break;
     }
     Logger::Logf("input event %s, %s", e.name.c_str(), state.c_str());
-  }*/
+  }
+  */
 
   eventsLastFrame.clear();
 

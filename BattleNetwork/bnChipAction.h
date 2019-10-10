@@ -41,8 +41,9 @@ public:
       this->anim = owner->GetFirstComponent<AnimationComponent>();
       this->prevState = anim->GetAnimationString();;
       this->anim->SetAnimation(animation, [this]() {
-        this->RecallPreviousState();
-        this->EndAction();
+        Logger::Log("normal callback fired");
+        //this->RecallPreviousState();
+        //this->EndAction();
       });
 
       anim->OnUpdate(0);
@@ -54,8 +55,10 @@ public:
     if (anim) {
       anim->OverrideAnimationFrames(this->animation, std::move(frameData), this->uuid);
       anim->SetAnimation(this->uuid, [this]() { 
-        anim->SetAnimation(prevState);
+        Logger::Log("custom callback fired");
+
         anim->SetPlaybackMode(Animator::Mode::Loop);
+        this->RecallPreviousState();
         this->EndAction();
       });
       anim->OnUpdate(0);

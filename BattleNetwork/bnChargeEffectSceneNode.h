@@ -14,15 +14,15 @@ class Entity;
 #define CHARGE_COUNTER_MAX 2.4f
 
 /**
- * @class ChargeComponent
+ * @class ChargeEffectSceneNode
  * @author mav
  * @date 05/05/19
  * @brief Draws on top of attached entity
  */
-class ChargeComponent : public SpriteSceneNode {
+class ChargeEffectSceneNode : public SpriteSceneNode {
 public:
-  ChargeComponent(Entity* _entity);
-  ~ChargeComponent();
+  ChargeEffectSceneNode(Entity* _entity);
+  ~ChargeEffectSceneNode();
 
   void Update(float _elapsed);
   

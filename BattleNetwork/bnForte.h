@@ -10,7 +10,7 @@
 #include "bnPlayerState.h"
 #include "bnTextureType.h"
 #include "bnPlayerHealthUI.h"
-#include "bnChargeComponent.h"
+#include "bnChargeEffectSceneNode.h"
 #include "bnAnimationComponent.h"
 #include "bnAI.h"
 #include "bnPlayerControlledState.h"
@@ -38,6 +38,8 @@ private:
 
     void OnUpdate(float _elapsed);
   };
+  
+  void ExecuteChargedBusterAction() final;
 
 public:
   friend class PlayerControlledState;

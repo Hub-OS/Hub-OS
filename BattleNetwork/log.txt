@@ -1,5 +1,5 @@
-StartTime 1570418526
-Engine initialized: 0.368000 secs
+StartTime 1570727403
+Engine initialized: 0.372000 secs
 config settings is OK
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
@@ -135,7 +135,7 @@ Loaded texture: resources/ui/light.png
 Loaded texture: resources/fonts/all_fonts.png
 Loaded texture: resources/backgrounds/config/audio.png
 Loaded texture: resources/backgrounds/config/end_btn.png
-Loaded textures: 0.206000 secs
+Loaded textures: 0.215000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -153,7 +153,7 @@ Loaded shader: resources/shaders/glsl_110/transition
 Loaded shader: resources/shaders/glsl_110/chip_reveal
 Loaded shader: resources/shaders/glsl_110/wire
 Loaded shader: resources/shaders/glsl_110/colorize
-Loaded shaders: 0.012000 secs
+Loaded shaders: 0.005000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -198,12 +198,12 @@ Loaded audio: resources/sfx/low_hp.ogg
 Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
-Loaded audio sources: 0.188000 secs
+Loaded audio sources: 0.125000 secs
 Loaded navi: Megaman
 Loaded navi: Roll
 Loaded navi: Starman
 Loaded navi: Bass
-Loaded registered navis: 0.070000 secs
+Loaded registered navis: 0.052000 secs
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
 Loaded texture: resources/mobs/starfish/preview.png
@@ -220,10 +220,16 @@ Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.316000 secs
-library size: 161
+Loaded registered mobs: 0.145000 secs
+library size: 163
 Loaded texture: resources/backgrounds/lan/bg.png
 main menu onStart
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+library saved successfully. Number of chips saved: 163
+main menu onResume
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
@@ -243,29 +249,89 @@ SelectMobScene::onLeave()
 SelectMobScene::onExit()
 comboDeleteCounter reset
 comboDeleteCounter reset
-comboDeleteCounter reset
+Loaded texture: resources/spells/buster_shoot.png
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
 pushing states
-comboDeleteCounter reset
-Loaded texture: resources/spells/AirShot.png
-comboDeleteCounter reset
-Loaded texture: resources/spells/AirShot.png
+Loaded texture: resources/spells/buster_yoyo.png
 pushing states
 Mettaur OnHit
-Mettaur OnHit
-Aura taking damage: 10 and has aura type: 3
-Loaded texture: resources/spells/AirShot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/AirShot.png
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-comboDeleteCounter reset
-pushing states
-comboDeleteCounter reset
-Loaded texture: resources/spells/AirShot.png
-pushing states
-cube hitbox damage is: 200
 pushing states
 Mettaur OnHit
 Loaded font: resources/fonts/mmbnthick_regular.ttf
@@ -285,27 +351,2315 @@ SelectMobScene::onLeave()
 SelectMobScene::onExit()
 comboDeleteCounter reset
 comboDeleteCounter reset
-comboDeleteCounter reset
-Loaded texture: resources/spells/AirShot.png
+Loaded texture: resources/spells/protoman_summon.png
 pushing states
-cube hitbox damage is: 200
 pushing states
 Mettaur OnHit
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/AirShot.png
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-comboDeleteCounter reset
-comboDeleteCounter reset
-Loaded texture: resources/spells/AirShot.png
-pushing states
-cube hitbox damage is: 200
-pushing states
 Mettaur OnHit
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onEnter()
 SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/robot/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+comboDeleteCounter reset
+Boss pattern AI was interrupted
+comboDeleteCounter reset
+Loaded texture: resources/spells/protoman_summon.png
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded texture: resources/backgrounds/undernet/bg.png
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+comboDeleteCounter reset
+Boss pattern AI was interrupted
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_yoyo.png
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.000000
+metal man punch progress: 0.000000
+metal man punch progress: 0.016667
+metal man punch progress: 0.033333
+metal man punch progress: 0.050000
+metal man punch progress: 0.066667
+metal man punch progress: 0.083333
+metal man punch progress: 0.100000
+metal man punch progress: 0.116667
+metal man punch progress: 0.133333
+metal man punch progress: 0.150000
+metal man punch progress: 0.166667
+metal man punch progress: 0.183333
+metal man punch progress: 0.200000
+metal man punch progress: 0.216667
+metal man punch progress: 0.233333
+metal man punch progress: 0.250000
+metal man punch progress: 0.266667
+metal man punch progress: 0.283333
+metal man punch progress: 0.300000
+metal man punch progress: 0.316667
+metal man punch progress: 0.333333
+metal man punch progress: 0.350000
+metal man punch progress: 0.366667
+Loaded texture: resources/spells/buster_yoyo.png
+metal man punch progress: 0.383333
+metal man punch progress: 0.400000
+metal man punch progress: 0.416667
+metal man punch progress: 0.433333
+metal man punch progress: 0.450000
+metal man punch progress: 0.466667
+pushing states
+metal man punch progress: 0.483334
+metal man punch progress: 0.500000
+metal man punch progress: 0.516667
+metal man punch progress: 0.533333
+metal man punch progress: 0.550000
+metal man punch progress: 0.566667
+metal man punch progress: 0.583333
+metal man punch progress: 0.600000
+metal man punch progress: 0.616667
+metal man punch progress: 0.633333
+metal man punch progress: 0.650000
+metal man punch progress: 0.666667
+metal man punch progress: 0.683333
+metal man punch progress: 0.700000
+metal man punch progress: 0.716667
+metal man punch progress: 0.733333
+metal man punch progress: 0.750000
+metal man punch progress: 0.766667
+metal man punch progress: 0.783333
+metal man punch progress: 0.800000
+metal man punch progress: 0.816667
+metal man punch progress: 0.833333
+metal man punch progress: 0.850000
+metal man punch progress: 0.866666
+metal man punch progress: 0.883333
+metal man punch progress: 0.900000
+metal man punch progress: 0.916666
+metal man punch progress: 0.933333
+metal man punch progress: 0.950000
+metal man punch progress: 0.966666
+metal man punch progress: 0.983333
+metal man punch progress: 1.000000
+metal man punch progress: 1.016666
+metal man punch progress: 1.033333
+metal man punch progress: 1.050000
+metal man punch progress: 1.066666
+pushing states
+metal man punch progress: 1.083333
+metal man punch progress: 1.100000
+metal man punch progress: 1.116666
+metal man punch progress: 1.133333
+metal man punch progress: 1.150000
+metal man punch progress: 1.166666
+metal man punch progress: 1.183333
+metal man punch progress: 1.200000
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.216666
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.033333
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.050000
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.066666
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.083333
+metal man punch progress: 0.100000
+metal man punch progress: 0.116666
+metal man punch progress: 0.133333
+metal man punch progress: 0.149999
+metal man punch progress: 0.166666
+metal man punch progress: 0.183333
+metal man punch progress: 0.199999
+metal man punch progress: 0.216666
+metal man punch progress: 0.233333
+metal man punch progress: 0.249999
+metal man punch progress: 0.266666
+metal man punch progress: 0.283333
+metal man punch progress: 0.300000
+metal man punch progress: 0.316666
+metal man punch progress: 0.333333
+metal man punch progress: 0.350000
+metal man punch progress: 0.366666
+metal man punch progress: 0.383333
+metal man punch progress: 0.400000
+metal man punch progress: 0.416666
+metal man punch progress: 0.433333
+metal man punch progress: 0.450000
+metal man punch progress: 0.466666
+metal man punch progress: 0.483333
+metal man punch progress: 0.500000
+metal man punch progress: 0.516666
+metal man punch progress: 0.533333
+metal man punch progress: 0.550000
+metal man punch progress: 0.566666
+metal man punch progress: 0.583333
+metal man punch progress: 0.600000
+metal man punch progress: 0.616666
+metal man punch progress: 0.633333
+metal man punch progress: 0.650000
+metal man punch progress: 0.666666
+metal man punch progress: 0.683333
+metal man punch progress: 0.700000
+metal man punch progress: 0.716666
+metal man punch progress: 0.733333
+metal man punch progress: 0.749999
+metal man punch progress: 0.766666
+metal man punch progress: 0.783333
+metal man punch progress: 0.799999
+metal man punch progress: 0.816666
+metal man punch progress: 0.833333
+metal man punch progress: 0.849999
+metal man punch progress: 0.866666
+metal man punch progress: 0.883333
+metal man punch progress: 0.899999
+metal man punch progress: 0.916666
+metal man punch progress: 0.933333
+metal man punch progress: 0.949999
+metal man punch progress: 0.966666
+metal man punch progress: 0.983333
+metal man punch progress: 0.999999
+metal man punch progress: 1.016666
+metal man punch progress: 1.033333
+metal man punch progress: 1.049999
+metal man punch progress: 1.066666
+metal man punch progress: 1.083333
+metal man punch progress: 1.099999
+metal man punch progress: 1.116666
+metal man punch progress: 1.133332
+metal man punch progress: 1.149999
+metal man punch progress: 1.166666
+metal man punch progress: 1.183332
+metal man punch progress: 1.199999
+metal man punch progress: 1.216666
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033332
+metal man punch progress: 0.049999
+metal man punch progress: 0.066666
+metal man punch progress: 0.083332
+metal man punch progress: 0.099999
+metal man punch progress: 0.116666
+metal man punch progress: 0.133332
+metal man punch progress: 0.149999
+metal man punch progress: 0.166666
+metal man punch progress: 0.183332
+metal man punch progress: 0.199999
+metal man punch progress: 0.216666
+metal man punch progress: 0.233332
+metal man punch progress: 0.249999
+Loaded texture: resources/spells/buster_yoyo.png
+metal man punch progress: 0.266666
+metal man punch progress: 0.283332
+metal man punch progress: 0.299999
+metal man punch progress: 0.316666
+metal man punch progress: 0.333332
+metal man punch progress: 0.349999
+pushing states
+metal man punch progress: 0.366666
+metal man punch progress: 0.383332
+metal man punch progress: 0.399999
+metal man punch progress: 0.416666
+metal man punch progress: 0.433333
+metal man punch progress: 0.449999
+metal man punch progress: 0.466666
+metal man punch progress: 0.483333
+metal man punch progress: 0.499999
+metal man punch progress: 0.516666
+metal man punch progress: 0.533333
+metal man punch progress: 0.549999
+metal man punch progress: 0.566666
+metal man punch progress: 0.583332
+metal man punch progress: 0.599999
+metal man punch progress: 0.616666
+metal man punch progress: 0.633332
+metal man punch progress: 0.649999
+metal man punch progress: 0.666666
+metal man punch progress: 0.683332
+metal man punch progress: 0.699999
+metal man punch progress: 0.716666
+metal man punch progress: 0.733332
+metal man punch progress: 0.749999
+metal man punch progress: 0.766666
+metal man punch progress: 0.783332
+metal man punch progress: 0.799999
+metal man punch progress: 0.816666
+metal man punch progress: 0.833332
+metal man punch progress: 0.849999
+metal man punch progress: 0.866666
+metal man punch progress: 0.883332
+metal man punch progress: 0.899999
+metal man punch progress: 0.916665
+metal man punch progress: 0.933332
+metal man punch progress: 0.949999
+pushing states
+metal man punch progress: 0.966665
+metal man punch progress: 0.983332
+metal man punch progress: 0.999999
+metal man punch progress: 1.016665
+metal man punch progress: 1.033332
+metal man punch progress: 1.049999
+metal man punch progress: 1.066665
+metal man punch progress: 1.083332
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.099999
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.116665
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.133332
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.149999
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.166665
+metal man punch progress: 1.183332
+metal man punch progress: 1.199999
+metal man punch progress: 1.216665
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033332
+metal man punch progress: 0.049999
+metal man punch progress: 0.066665
+metal man punch progress: 0.083332
+metal man punch progress: 0.099999
+metal man punch progress: 0.116665
+metal man punch progress: 0.133332
+metal man punch progress: 0.149999
+metal man punch progress: 0.166665
+metal man punch progress: 0.183332
+metal man punch progress: 0.199999
+metal man punch progress: 0.216665
+metal man punch progress: 0.233332
+metal man punch progress: 0.249999
+metal man punch progress: 0.266665
+metal man punch progress: 0.283332
+Loaded texture: resources/spells/buster_yoyo.png
+metal man punch progress: 0.299999
+metal man punch progress: 0.316665
+metal man punch progress: 0.333332
+metal man punch progress: 0.349999
+metal man punch progress: 0.366665
+metal man punch progress: 0.383332
+pushing states
+metal man punch progress: 0.399999
+metal man punch progress: 0.416665
+metal man punch progress: 0.433332
+metal man punch progress: 0.449999
+metal man punch progress: 0.466665
+metal man punch progress: 0.483332
+metal man punch progress: 0.499999
+metal man punch progress: 0.516665
+metal man punch progress: 0.533332
+metal man punch progress: 0.549999
+metal man punch progress: 0.566665
+metal man punch progress: 0.583332
+metal man punch progress: 0.599999
+metal man punch progress: 0.616665
+metal man punch progress: 0.633332
+metal man punch progress: 0.649999
+metal man punch progress: 0.666665
+metal man punch progress: 0.683332
+metal man punch progress: 0.699999
+metal man punch progress: 0.716665
+metal man punch progress: 0.733332
+metal man punch progress: 0.749999
+metal man punch progress: 0.766665
+metal man punch progress: 0.783332
+metal man punch progress: 0.799998
+metal man punch progress: 0.816665
+metal man punch progress: 0.833332
+metal man punch progress: 0.849998
+metal man punch progress: 0.866665
+metal man punch progress: 0.883332
+metal man punch progress: 0.899998
+metal man punch progress: 0.916665
+metal man punch progress: 0.933332
+metal man punch progress: 0.949998
+metal man punch progress: 0.966665
+metal man punch progress: 0.983332
+pushing states
+metal man punch progress: 0.999998
+metal man punch progress: 1.016665
+metal man punch progress: 1.033332
+metal man punch progress: 1.049998
+metal man punch progress: 1.066665
+metal man punch progress: 1.083332
+metal man punch progress: 1.099998
+metal man punch progress: 1.116665
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.133332
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.149998
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.166665
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.183331
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.199998
+metal man punch progress: 1.216665
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033331
+metal man punch progress: 0.049998
+metal man punch progress: 0.066665
+metal man punch progress: 0.083331
+metal man punch progress: 0.099998
+metal man punch progress: 0.116665
+metal man punch progress: 0.133331
+metal man punch progress: 0.149998
+metal man punch progress: 0.166665
+metal man punch progress: 0.183331
+metal man punch progress: 0.199998
+metal man punch progress: 0.216665
+metal man punch progress: 0.233331
+metal man punch progress: 0.249998
+metal man punch progress: 0.266665
+metal man punch progress: 0.283331
+metal man punch progress: 0.299998
+metal man punch progress: 0.316665
+Loaded texture: resources/spells/buster_yoyo.png
+metal man punch progress: 0.333331
+metal man punch progress: 0.349998
+metal man punch progress: 0.366665
+metal man punch progress: 0.383332
+metal man punch progress: 0.399998
+metal man punch progress: 0.416665
+pushing states
+metal man punch progress: 0.433332
+metal man punch progress: 0.449998
+metal man punch progress: 0.466665
+metal man punch progress: 0.483332
+metal man punch progress: 0.499998
+metal man punch progress: 0.516665
+metal man punch progress: 0.533332
+metal man punch progress: 0.549998
+metal man punch progress: 0.566665
+metal man punch progress: 0.583332
+metal man punch progress: 0.599998
+metal man punch progress: 0.616665
+metal man punch progress: 0.633331
+metal man punch progress: 0.649998
+metal man punch progress: 0.666665
+metal man punch progress: 0.683331
+metal man punch progress: 0.699998
+metal man punch progress: 0.716665
+metal man punch progress: 0.733331
+metal man punch progress: 0.749998
+metal man punch progress: 0.766665
+metal man punch progress: 0.783331
+metal man punch progress: 0.799998
+metal man punch progress: 0.816665
+metal man punch progress: 0.833331
+metal man punch progress: 0.849998
+metal man punch progress: 0.866665
+metal man punch progress: 0.883331
+metal man punch progress: 0.899998
+metal man punch progress: 0.916665
+metal man punch progress: 0.933331
+metal man punch progress: 0.949998
+metal man punch progress: 0.966664
+metal man punch progress: 0.983331
+metal man punch progress: 0.999998
+metal man punch progress: 1.016665
+pushing states
+metal man punch progress: 1.033331
+metal man punch progress: 1.049998
+metal man punch progress: 1.066664
+metal man punch progress: 1.083331
+metal man punch progress: 1.099998
+metal man punch progress: 1.116664
+metal man punch progress: 1.133331
+metal man punch progress: 1.149998
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.166664
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.183331
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.199998
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.216664
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.033331
+metal man punch progress: 0.049998
+metal man punch progress: 0.066664
+metal man punch progress: 0.083331
+metal man punch progress: 0.099998
+metal man punch progress: 0.116664
+metal man punch progress: 0.133331
+metal man punch progress: 0.149998
+metal man punch progress: 0.166664
+metal man punch progress: 0.183331
+metal man punch progress: 0.199998
+metal man punch progress: 0.216664
+metal man punch progress: 0.233331
+metal man punch progress: 0.249998
+metal man punch progress: 0.266664
+metal man punch progress: 0.283331
+metal man punch progress: 0.299998
+metal man punch progress: 0.316664
+metal man punch progress: 0.333331
+metal man punch progress: 0.349998
+metal man punch progress: 0.366664
+metal man punch progress: 0.383331
+metal man punch progress: 0.399998
+metal man punch progress: 0.416664
+metal man punch progress: 0.433331
+metal man punch progress: 0.449998
+metal man punch progress: 0.466664
+metal man punch progress: 0.483331
+metal man punch progress: 0.499998
+metal man punch progress: 0.516664
+metal man punch progress: 0.533331
+metal man punch progress: 0.549998
+metal man punch progress: 0.566664
+metal man punch progress: 0.583331
+metal man punch progress: 0.599998
+metal man punch progress: 0.616664
+metal man punch progress: 0.633331
+metal man punch progress: 0.649998
+metal man punch progress: 0.666664
+metal man punch progress: 0.683331
+metal man punch progress: 0.699998
+metal man punch progress: 0.716664
+metal man punch progress: 0.733331
+metal man punch progress: 0.749998
+metal man punch progress: 0.766664
+metal man punch progress: 0.783331
+metal man punch progress: 0.799998
+metal man punch progress: 0.816664
+metal man punch progress: 0.833331
+metal man punch progress: 0.849997
+metal man punch progress: 0.866664
+metal man punch progress: 0.883331
+metal man punch progress: 0.899997
+metal man punch progress: 0.916664
+metal man punch progress: 0.933331
+metal man punch progress: 0.949997
+metal man punch progress: 0.966664
+metal man punch progress: 0.983331
+metal man punch progress: 0.999997
+metal man punch progress: 1.016664
+metal man punch progress: 1.033331
+metal man punch progress: 1.049997
+metal man punch progress: 1.066664
+metal man punch progress: 1.083331
+metal man punch progress: 1.099997
+metal man punch progress: 1.116664
+metal man punch progress: 1.133331
+metal man punch progress: 1.149997
+metal man punch progress: 1.166664
+metal man punch progress: 1.183331
+metal man punch progress: 1.199997
+metal man punch progress: 1.216664
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033330
+metal man punch progress: 0.049997
+metal man punch progress: 0.066664
+metal man punch progress: 0.083330
+metal man punch progress: 0.099997
+metal man punch progress: 0.116664
+comboDeleteCounter reset
+metal man punch progress: 0.133330
+metal man punch progress: 0.149997
+metal man punch progress: 0.166664
+metal man punch progress: 0.183330
+metal man punch progress: 0.199997
+metal man punch progress: 0.216664
+metal man punch progress: 0.233330
+metal man punch progress: 0.249997
+metal man punch progress: 0.266664
+Loaded texture: resources/spells/buster_yoyo.png
+metal man punch progress: 0.283330
+metal man punch progress: 0.299997
+metal man punch progress: 0.316664
+metal man punch progress: 0.333331
+metal man punch progress: 0.349997
+metal man punch progress: 0.366664
+metal man punch progress: 0.383331
+metal man punch progress: 0.399997
+metal man punch progress: 0.416664
+metal man punch progress: 0.433331
+metal man punch progress: 0.449997
+metal man punch progress: 0.466664
+metal man punch progress: 0.483331
+pushing states
+metal man punch progress: 0.499997
+metal man punch progress: 0.516664
+metal man punch progress: 0.533331
+metal man punch progress: 0.549997
+metal man punch progress: 0.566664
+metal man punch progress: 0.583331
+metal man punch progress: 0.599997
+metal man punch progress: 0.616664
+metal man punch progress: 0.633331
+metal man punch progress: 0.649997
+metal man punch progress: 0.666664
+metal man punch progress: 0.683330
+pushing states
+metal man punch progress: 0.699997
+metal man punch progress: 0.716664
+metal man punch progress: 0.733330
+metal man punch progress: 0.749997
+metal man punch progress: 0.766664
+metal man punch progress: 0.783330
+metal man punch progress: 0.799997
+metal man punch progress: 0.816664
+metal man punch progress: 0.833330
+pushing states
+metal man punch progress: 0.849997
+metal man punch progress: 0.866664
+metal man punch progress: 0.883330
+metal man punch progress: 0.899997
+metal man punch progress: 0.916664
+metal man punch progress: 0.933330
+metal man punch progress: 0.949997
+metal man punch progress: 0.966664
+metal man punch progress: 0.983330
+metal man punch progress: 0.999997
+metal man punch progress: 1.016664
+metal man punch progress: 1.033330
+metal man punch progress: 1.049997
+metal man punch progress: 1.066664
+metal man punch progress: 1.083330
+metal man punch progress: 1.099997
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.116663
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.133330
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.149997
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.166663
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.183330
+metal man punch progress: 1.199997
+metal man punch progress: 1.216663
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033330
+metal man punch progress: 0.049997
+metal man punch progress: 0.066663
+metal man punch progress: 0.083330
+metal man punch progress: 0.099997
+metal man punch progress: 0.116663
+metal man punch progress: 0.133330
+metal man punch progress: 0.149997
+Loaded texture: resources/spells/buster_yoyo.png
+metal man punch progress: 0.166663
+metal man punch progress: 0.183330
+metal man punch progress: 0.199997
+metal man punch progress: 0.216663
+metal man punch progress: 0.233330
+metal man punch progress: 0.249997
+metal man punch progress: 0.266663
+metal man punch progress: 0.283330
+metal man punch progress: 0.299997
+metal man punch progress: 0.316663
+metal man punch progress: 0.333330
+metal man punch progress: 0.349997
+metal man punch progress: 0.366663
+pushing states
+metal man punch progress: 0.383330
+metal man punch progress: 0.399997
+metal man punch progress: 0.416663
+metal man punch progress: 0.433330
+metal man punch progress: 0.449997
+metal man punch progress: 0.466663
+metal man punch progress: 0.483330
+metal man punch progress: 0.499997
+metal man punch progress: 0.516663
+metal man punch progress: 0.533330
+metal man punch progress: 0.549997
+metal man punch progress: 0.566663
+pushing states
+metal man punch progress: 0.583330
+metal man punch progress: 0.599997
+metal man punch progress: 0.616663
+metal man punch progress: 0.633330
+metal man punch progress: 0.649997
+metal man punch progress: 0.666663
+metal man punch progress: 0.683330
+metal man punch progress: 0.699997
+metal man punch progress: 0.716663
+pushing states
+metal man punch progress: 0.733330
+metal man punch progress: 0.749997
+metal man punch progress: 0.766663
+metal man punch progress: 0.783330
+metal man punch progress: 0.799997
+metal man punch progress: 0.816663
+metal man punch progress: 0.833330
+metal man punch progress: 0.849997
+metal man punch progress: 0.866663
+metal man punch progress: 0.883330
+metal man punch progress: 0.899996
+metal man punch progress: 0.916663
+metal man punch progress: 0.933330
+metal man punch progress: 0.949996
+metal man punch progress: 0.966663
+metal man punch progress: 0.983330
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.999996
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.016663
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.033330
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.049996
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.066663
+metal man punch progress: 1.083330
+metal man punch progress: 1.099996
+metal man punch progress: 1.116663
+metal man punch progress: 1.133330
+metal man punch progress: 1.149996
+metal man punch progress: 1.166663
+metal man punch progress: 1.183330
+metal man punch progress: 1.199996
+metal man punch progress: 1.216663
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033330
+metal man punch progress: 0.049996
+metal man punch progress: 0.066663
+metal man punch progress: 0.083329
+metal man punch progress: 0.099996
+metal man punch progress: 0.116663
+metal man punch progress: 0.133329
+metal man punch progress: 0.149996
+metal man punch progress: 0.166663
+metal man punch progress: 0.183329
+metal man punch progress: 0.199996
+metal man punch progress: 0.216663
+metal man punch progress: 0.233329
+metal man punch progress: 0.249996
+metal man punch progress: 0.266663
+metal man punch progress: 0.283330
+metal man punch progress: 0.299996
+metal man punch progress: 0.316663
+metal man punch progress: 0.333330
+metal man punch progress: 0.349996
+metal man punch progress: 0.366663
+metal man punch progress: 0.383330
+metal man punch progress: 0.399996
+metal man punch progress: 0.416663
+metal man punch progress: 0.433330
+metal man punch progress: 0.449996
+metal man punch progress: 0.466663
+metal man punch progress: 0.483330
+metal man punch progress: 0.499996
+metal man punch progress: 0.516663
+metal man punch progress: 0.533330
+metal man punch progress: 0.549996
+metal man punch progress: 0.566663
+metal man punch progress: 0.583330
+metal man punch progress: 0.599996
+metal man punch progress: 0.616663
+metal man punch progress: 0.633330
+metal man punch progress: 0.649996
+metal man punch progress: 0.666663
+metal man punch progress: 0.683330
+metal man punch progress: 0.699996
+metal man punch progress: 0.716663
+metal man punch progress: 0.733329
+metal man punch progress: 0.749996
+metal man punch progress: 0.766663
+metal man punch progress: 0.783329
+metal man punch progress: 0.799996
+metal man punch progress: 0.816663
+metal man punch progress: 0.833329
+metal man punch progress: 0.849996
+metal man punch progress: 0.866663
+metal man punch progress: 0.883329
+metal man punch progress: 0.899996
+metal man punch progress: 0.916663
+metal man punch progress: 0.933329
+metal man punch progress: 0.949996
+metal man punch progress: 0.966663
+metal man punch progress: 0.983329
+metal man punch progress: 0.999996
+metal man punch progress: 1.016663
+metal man punch progress: 1.033329
+metal man punch progress: 1.049996
+metal man punch progress: 1.066663
+metal man punch progress: 1.083329
+metal man punch progress: 1.099996
+metal man punch progress: 1.116663
+metal man punch progress: 1.133329
+metal man punch progress: 1.149996
+metal man punch progress: 1.166662
+metal man punch progress: 1.183329
+metal man punch progress: 1.199996
+metal man punch progress: 1.216662
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033329
+metal man punch progress: 0.049996
+metal man punch progress: 0.066662
+metal man punch progress: 0.083329
+metal man punch progress: 0.099996
+metal man punch progress: 0.116662
+metal man punch progress: 0.133329
+metal man punch progress: 0.149996
+metal man punch progress: 0.166662
+metal man punch progress: 0.183329
+metal man punch progress: 0.199996
+metal man punch progress: 0.216662
+metal man punch progress: 0.233329
+metal man punch progress: 0.249996
+metal man punch progress: 0.266662
+metal man punch progress: 0.283329
+metal man punch progress: 0.299996
+metal man punch progress: 0.316662
+metal man punch progress: 0.333329
+metal man punch progress: 0.349996
+metal man punch progress: 0.366662
+metal man punch progress: 0.383329
+metal man punch progress: 0.399996
+metal man punch progress: 0.416662
+metal man punch progress: 0.433329
+metal man punch progress: 0.449996
+metal man punch progress: 0.466663
+metal man punch progress: 0.483329
+metal man punch progress: 0.499996
+metal man punch progress: 0.516663
+metal man punch progress: 0.533329
+metal man punch progress: 0.549996
+metal man punch progress: 0.566662
+metal man punch progress: 0.583329
+metal man punch progress: 0.599996
+metal man punch progress: 0.616662
+metal man punch progress: 0.633329
+metal man punch progress: 0.649996
+metal man punch progress: 0.666662
+metal man punch progress: 0.683329
+metal man punch progress: 0.699996
+metal man punch progress: 0.716662
+metal man punch progress: 0.733329
+metal man punch progress: 0.749996
+metal man punch progress: 0.766662
+metal man punch progress: 0.783329
+metal man punch progress: 0.799996
+metal man punch progress: 0.816662
+metal man punch progress: 0.833329
+metal man punch progress: 0.849996
+metal man punch progress: 0.866662
+metal man punch progress: 0.883329
+metal man punch progress: 0.899996
+metal man punch progress: 0.916662
+metal man punch progress: 0.933329
+metal man punch progress: 0.949995
+metal man punch progress: 0.966662
+metal man punch progress: 0.983329
+metal man punch progress: 0.999995
+metal man punch progress: 1.016662
+metal man punch progress: 1.033329
+metal man punch progress: 1.049995
+metal man punch progress: 1.066662
+metal man punch progress: 1.083329
+metal man punch progress: 1.099995
+metal man punch progress: 1.116662
+metal man punch progress: 1.133329
+metal man punch progress: 1.149995
+metal man punch progress: 1.166662
+metal man punch progress: 1.183329
+metal man punch progress: 1.199995
+metal man punch progress: 1.216662
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033329
+metal man punch progress: 0.049995
+metal man punch progress: 0.066662
+metal man punch progress: 0.083329
+metal man punch progress: 0.099995
+metal man punch progress: 0.116662
+metal man punch progress: 0.133329
+metal man punch progress: 0.149995
+metal man punch progress: 0.166662
+metal man punch progress: 0.183329
+metal man punch progress: 0.199995
+metal man punch progress: 0.216662
+metal man punch progress: 0.233329
+metal man punch progress: 0.249995
+metal man punch progress: 0.266662
+metal man punch progress: 0.283329
+metal man punch progress: 0.299995
+metal man punch progress: 0.316662
+metal man punch progress: 0.333329
+metal man punch progress: 0.349995
+metal man punch progress: 0.366662
+metal man punch progress: 0.383329
+metal man punch progress: 0.399995
+metal man punch progress: 0.416662
+metal man punch progress: 0.433329
+metal man punch progress: 0.449995
+metal man punch progress: 0.466662
+metal man punch progress: 0.483329
+metal man punch progress: 0.499995
+metal man punch progress: 0.516662
+metal man punch progress: 0.533329
+metal man punch progress: 0.549995
+metal man punch progress: 0.566662
+metal man punch progress: 0.583329
+metal man punch progress: 0.599995
+metal man punch progress: 0.616662
+metal man punch progress: 0.633329
+metal man punch progress: 0.649995
+metal man punch progress: 0.666662
+metal man punch progress: 0.683329
+metal man punch progress: 0.699995
+metal man punch progress: 0.716662
+metal man punch progress: 0.733329
+metal man punch progress: 0.749995
+metal man punch progress: 0.766662
+metal man punch progress: 0.783328
+metal man punch progress: 0.799995
+metal man punch progress: 0.816662
+metal man punch progress: 0.833328
+metal man punch progress: 0.849995
+metal man punch progress: 0.866662
+metal man punch progress: 0.883328
+metal man punch progress: 0.899995
+metal man punch progress: 0.916662
+metal man punch progress: 0.933328
+metal man punch progress: 0.949995
+metal man punch progress: 0.966662
+metal man punch progress: 0.983328
+metal man punch progress: 0.999995
+metal man punch progress: 1.016662
+metal man punch progress: 1.033328
+metal man punch progress: 1.049995
+metal man punch progress: 1.066662
+metal man punch progress: 1.083328
+metal man punch progress: 1.099995
+metal man punch progress: 1.116662
+metal man punch progress: 1.133328
+metal man punch progress: 1.149995
+metal man punch progress: 1.166662
+metal man punch progress: 1.183328
+metal man punch progress: 1.199995
+metal man punch progress: 1.216661
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033328
+metal man punch progress: 0.049995
+metal man punch progress: 0.066661
+metal man punch progress: 0.083328
+metal man punch progress: 0.099995
+metal man punch progress: 0.116661
+metal man punch progress: 0.133328
+metal man punch progress: 0.149995
+metal man punch progress: 0.166661
+metal man punch progress: 0.183328
+metal man punch progress: 0.199995
+metal man punch progress: 0.216661
+metal man punch progress: 0.233328
+metal man punch progress: 0.249995
+metal man punch progress: 0.266661
+metal man punch progress: 0.283328
+metal man punch progress: 0.299995
+metal man punch progress: 0.316661
+metal man punch progress: 0.333328
+metal man punch progress: 0.349995
+metal man punch progress: 0.366661
+metal man punch progress: 0.383328
+metal man punch progress: 0.399995
+metal man punch progress: 0.416662
+metal man punch progress: 0.433328
+metal man punch progress: 0.449995
+metal man punch progress: 0.466662
+metal man punch progress: 0.483328
+metal man punch progress: 0.499995
+metal man punch progress: 0.516662
+metal man punch progress: 0.533328
+metal man punch progress: 0.549995
+metal man punch progress: 0.566662
+metal man punch progress: 0.583328
+metal man punch progress: 0.599995
+metal man punch progress: 0.616661
+metal man punch progress: 0.633328
+metal man punch progress: 0.649995
+metal man punch progress: 0.666661
+metal man punch progress: 0.683328
+metal man punch progress: 0.699995
+metal man punch progress: 0.716661
+metal man punch progress: 0.733328
+metal man punch progress: 0.749995
+metal man punch progress: 0.766661
+metal man punch progress: 0.783328
+metal man punch progress: 0.799995
+metal man punch progress: 0.816661
+metal man punch progress: 0.833328
+metal man punch progress: 0.849995
+metal man punch progress: 0.866661
+metal man punch progress: 0.883328
+metal man punch progress: 0.899995
+metal man punch progress: 0.916661
+metal man punch progress: 0.933328
+metal man punch progress: 0.949995
+metal man punch progress: 0.966661
+metal man punch progress: 0.983328
+metal man punch progress: 0.999994
+metal man punch progress: 1.016661
+metal man punch progress: 1.033328
+metal man punch progress: 1.049994
+metal man punch progress: 1.066661
+metal man punch progress: 1.083328
+metal man punch progress: 1.099994
+metal man punch progress: 1.116661
+metal man punch progress: 1.133328
+metal man punch progress: 1.149994
+metal man punch progress: 1.166661
+metal man punch progress: 1.183328
+metal man punch progress: 1.199994
+metal man punch progress: 1.216661
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033328
+metal man punch progress: 0.049994
+metal man punch progress: 0.066661
+metal man punch progress: 0.083328
+metal man punch progress: 0.099994
+metal man punch progress: 0.116661
+metal man punch progress: 0.133328
+metal man punch progress: 0.149994
+metal man punch progress: 0.166661
+metal man punch progress: 0.183328
+metal man punch progress: 0.199994
+metal man punch progress: 0.216661
+metal man punch progress: 0.233328
+metal man punch progress: 0.249994
+metal man punch progress: 0.266661
+metal man punch progress: 0.283328
+metal man punch progress: 0.299994
+metal man punch progress: 0.316661
+metal man punch progress: 0.333328
+metal man punch progress: 0.349994
+metal man punch progress: 0.366661
+metal man punch progress: 0.383328
+metal man punch progress: 0.399994
+metal man punch progress: 0.416661
+metal man punch progress: 0.433328
+metal man punch progress: 0.449994
+metal man punch progress: 0.466661
+metal man punch progress: 0.483328
+metal man punch progress: 0.499994
+metal man punch progress: 0.516661
+metal man punch progress: 0.533328
+metal man punch progress: 0.549994
+metal man punch progress: 0.566661
+metal man punch progress: 0.583328
+metal man punch progress: 0.599994
+metal man punch progress: 0.616661
+metal man punch progress: 0.633328
+metal man punch progress: 0.649994
+metal man punch progress: 0.666661
+metal man punch progress: 0.683328
+metal man punch progress: 0.699994
+metal man punch progress: 0.716661
+metal man punch progress: 0.733328
+metal man punch progress: 0.749994
+metal man punch progress: 0.766661
+metal man punch progress: 0.783328
+metal man punch progress: 0.799994
+metal man punch progress: 0.816661
+metal man punch progress: 0.833327
+metal man punch progress: 0.849994
+metal man punch progress: 0.866661
+metal man punch progress: 0.883327
+metal man punch progress: 0.899994
+metal man punch progress: 0.916661
+metal man punch progress: 0.933327
+metal man punch progress: 0.949994
+metal man punch progress: 0.966661
+metal man punch progress: 0.983327
+metal man punch progress: 0.999994
+metal man punch progress: 1.016661
+metal man punch progress: 1.033327
+metal man punch progress: 1.049994
+metal man punch progress: 1.066661
+metal man punch progress: 1.083327
+metal man punch progress: 1.099994
+metal man punch progress: 1.116661
+metal man punch progress: 1.133327
+metal man punch progress: 1.149994
+metal man punch progress: 1.166661
+metal man punch progress: 1.183327
+metal man punch progress: 1.199994
+metal man punch progress: 1.216660
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+metal man punch progress: 0.033327
+metal man punch progress: 0.049994
+metal man punch progress: 0.066660
+metal man punch progress: 0.083327
+metal man punch progress: 0.099994
+metal man punch progress: 0.116660
+metal man punch progress: 0.133327
+metal man punch progress: 0.149994
+metal man punch progress: 0.166660
+metal man punch progress: 0.183327
+metal man punch progress: 0.199994
+metal man punch progress: 0.216660
+metal man punch progress: 0.233327
+metal man punch progress: 0.249994
+metal man punch progress: 0.266660
+metal man punch progress: 0.283327
+metal man punch progress: 0.299994
+metal man punch progress: 0.316660
+metal man punch progress: 0.333327
+metal man punch progress: 0.349994
+metal man punch progress: 0.366661
+Loaded texture: resources/spells/buster_shoot.png
+metal man punch progress: 0.383327
+metal man punch progress: 0.399994
+metal man punch progress: 0.416661
+metal man punch progress: 0.433327
+metal man punch progress: 0.449994
+metal man punch progress: 0.466661
+metal man punch progress: 0.483327
+metal man punch progress: 0.499994
+metal man punch progress: 0.516661
+metal man punch progress: 0.533327
+metal man punch progress: 0.549994
+metal man punch progress: 0.566661
+metal man punch progress: 0.583327
+metal man punch progress: 0.599994
+metal man punch progress: 0.616661
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.633327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.649994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.666660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.683327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.699994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.716660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.733327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.749994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.766660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.783327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.799994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.816660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.833327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.849994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.866660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.883327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.899994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.916660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.933327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.949994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.966660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.983327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.999994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.016660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.033327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.049994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.066660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.083327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.099993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.116660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.133327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.149993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.166660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.183327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.199993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.216660
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.033327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.049993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.066660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.083327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.099993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.116660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.133327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.149993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.166660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.183327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.199993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.216660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.233327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.249993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.266660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.283327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.299993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.316660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.333327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.349993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.366660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.383327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.399993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.416660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.433327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.449993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.466660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.483327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.499994
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.516660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.533327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.549993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.566660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.583327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.599993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.616660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.633327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.649993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.666660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.683327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.699993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.716660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.733327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.749993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.766660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.783327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.799993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.816660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.833327
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.849993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.866660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.883326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.899993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.916660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.933326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.949993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.966660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.983326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.999993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.016660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.033326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.049993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.066660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.083326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.099993
+comboDeleteCounter reset
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.116660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.133326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.149993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.166660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.183326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.199993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 1.216660
+Onfinish Notifier is 0
+Queued Onfinish Notifier is 0
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.033326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.049993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.066659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.083326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.099993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.116659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.133326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.149993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.166659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.183326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.199993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.216659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.233326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.249993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.266659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.283326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.299993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.316660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.333326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.349993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.366660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.383326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.399993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.416660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.433326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.449993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.466660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.483326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.499993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.516660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.533326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.549993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.566660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.583326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.599993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.616660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.633326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.649993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.666660
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.683326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.699993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.716659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.733326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.749993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.766659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.783326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.799993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.816659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.833326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.849993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.866659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.883326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.899993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.916659
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.933326
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.949993
+Could not find point in current sequence named BUSTER
+metal man punch progress: 0.966659
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Could not find point in current sequence named BUSTER
+Boss pattern AI was interrupted
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/misc/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/protoman_summon.png
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_shoot.png
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Could not find point in current sequence named BUSTER
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+SelectMobScene::onEnd()
+library saved successfully. Number of chips saved: 167
+main menu onResume

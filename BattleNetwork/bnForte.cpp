@@ -6,10 +6,16 @@
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 #include "bnLogger.h"
+#include "bnVulcanChipAction.h"
 
 const float COPY_DROP_COOLDOWN = 0.15f; // in seconds
 
 const std::string RESOURCE_PATH = "resources/navis/forte/forte.animation";
+
+void Forte::ExecuteChargedBusterAction()
+{
+  this->RegisterComponent(new VulcanChipAction(this, 30));
+}
 
 Forte::Forte() : Player()
 {
@@ -18,9 +24,6 @@ Forte::Forte() : Player()
   SetLayer(0);
   team = Team::RED;
   this->SetElement(Element::NONE);
-
-  this->SetBusterDamage(3);
-  this->SetChargedBusterDamage(20);
 
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Reload();
@@ -40,10 +43,7 @@ Forte::Forte() : Player()
   // Bass slides around lookin pretty slick
   this->EnablePlayerControllerSlideMovementBehavior(true);
 
-  SetBusterDamage(3);
-  SetChargedBusterDamage(30);
   chargeComponent.SetFullyChargedColor(sf::Color::Green);
-
 }
 
 Forte::~Forte()

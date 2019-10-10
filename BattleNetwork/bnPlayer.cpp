@@ -1,7 +1,7 @@
 #include "bnPlayer.h"
 #include "bnNaviExplodeState.h"
 #include "bnField.h"
-#include "bnBuster.h"
+#include "bnBusterChipAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
@@ -31,8 +31,6 @@ Player::Player()
   chargeComponent.setPosition(0, -20.0f); // translate up -20
 
   health = 900;
-  busterDamage = 1;
-  chargedBusterDamage = 10;
   SetName("Megaman");
   SetLayer(0);
   team = Team::RED;
@@ -73,10 +71,7 @@ void Player::OnUpdate(float _elapsed) {
 
 void Player::Attack() {
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
-    auto damage = chargeComponent.IsFullyCharged() ? this->chargedBusterDamage : this->busterDamage;
-    Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged(), damage);
-    spell->SetDirection(Direction::RIGHT);
-    field->AddEntity(*spell, tile->GetX(), tile->GetY());
+    chargeComponent.IsFullyCharged() ? ExecuteChargedBusterAction() : ExecuteBusterAction();
   }
 }
 
@@ -144,12 +139,12 @@ const bool Player::PlayerControllerSlideEnabled() const
   return playerControllerSlide;
 }
 
-void Player::SetBusterDamage(int damage)
+void Player::ExecuteBusterAction()
 {
-  this->busterDamage = damage;
+  this->RegisterComponent(new BusterChipAction(this, false, 1));
 }
 
-void Player::SetChargedBusterDamage(int damage)
+void Player::ExecuteChargedBusterAction()
 {
-  this->chargedBusterDamage = damage;
+  this->RegisterComponent(new BusterChipAction(this, true, 10));
 }

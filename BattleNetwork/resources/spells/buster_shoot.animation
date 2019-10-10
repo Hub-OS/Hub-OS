@@ -1,7 +1,7 @@
 imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/buster_shoot.png"
 
 animation state="DEFAULT"
-frame duration="0.05" x="0" y="0" w="24" h="16" originx="0" originy="6"
-frame duration="0.05" x="0" y="0" w="24" h="16" originx="0" originy="6"
-frame duration="0.05" x="24" y="0" w="24" h="16" originx="0" originy="6"
-frame duration="0.05" x="48" y="0" w="24" h="16" originx="0" originy="6"
+frame duration="0.05" x="0" y="0" w="24" h="12" originx="0" originy="6"
+frame duration="0.05" x="0" y="0" w="24" h="12" originx="0" originy="6"
+frame duration="0.05" x="24" y="0" w="24" h="12" originx="0" originy="6"
+frame duration="0.05" x="48" y="0" w="24" h="12" originx="0" originy="6"

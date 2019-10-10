@@ -205,6 +205,7 @@
     <ClCompile Include="bnBombChipAction.cpp" />
     <ClCompile Include="bnBubble.cpp" />
     <ClCompile Include="bnBubbleTrap.cpp" />
+    <ClCompile Include="bnBusterChipAction.cpp" />
     <ClCompile Include="bnCannonChipAction.cpp" />
     <ClCompile Include="bnComponent.cpp" />
     <ClCompile Include="bnConfigReader.cpp" />
@@ -260,7 +261,7 @@
     </ClCompile>
     <ClCompile Include="bnCanodumbMob.cpp" />
     <ClCompile Include="bnCannon.cpp" />
-    <ClCompile Include="bnChargeComponent.cpp" />
+    <ClCompile Include="bnChargeEffectSceneNode.cpp" />
     <ClCompile Include="bnChip.cpp" />
     <ClCompile Include="bnChipLibrary.cpp" />
     <ClCompile Include="bnChipSelectionCust.cpp" />
@@ -389,6 +390,7 @@
   <ItemGroup>
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
     <ClInclude Include="Android\bnTouchArea.h" />
+    <ClInclude Include="bnBusterChipAction.h" />
     <ClInclude Include="bnShakingEffect.h" />
     <ClInclude Include="bnACDCBackground.h" />
     <ClInclude Include="bnAirShot.h" />
@@ -534,7 +536,7 @@
     <ClInclude Include="bnCamera.h" />
     <ClInclude Include="bnCanodumbMob.h" />
     <ClInclude Include="bnCannon.h" />
-    <ClInclude Include="bnChargeComponent.h" />
+    <ClInclude Include="bnChargeEffectSceneNode.h" />
     <ClInclude Include="bnChip.h" />
     <ClInclude Include="bnChipLibrary.h" />
     <ClInclude Include="bnChipSelectionCust.h" />

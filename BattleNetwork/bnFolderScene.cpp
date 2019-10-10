@@ -30,6 +30,8 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   textbox(sf::Vector2f(4, 255)),
   swoosh::Activity(&controller)
 {
+  textbox.SetTextSpeed(2.0f);
+
   promptOptions = false;
   enterText = false;
   gotoNextScene = true;
@@ -614,7 +616,7 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
   textbox.EnqueMessage(
     sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR)), 
     "resources/ui/navigator.animation", 
-    new Question("AAA", 
+    new Question("Are you sure you want to permanently delete this folder?", 
     onYes,
     onNo));
 

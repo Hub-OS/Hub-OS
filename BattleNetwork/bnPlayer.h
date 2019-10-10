@@ -11,7 +11,7 @@
 #include "bnCharacter.h"
 #include "bnPlayerState.h"
 #include "bnTextureType.h"
-#include "bnChargeComponent.h"
+#include "bnChargeEffectSceneNode.h"
 #include "bnAnimationComponent.h"
 #include "bnAI.h"
 #include "bnPlayerControlledState.h"
@@ -75,7 +75,7 @@ public:
 
   /**
    * @brief Toggles the charge component
-   * @warning This will be removed in future versions. Use GetComponent<ChargeComponent>()
+   * @warning This will be removed in future versions. Use GetComponent<ChargeEffectSceneNode>()
    * @param state
    */
   void SetCharging(bool state);
@@ -89,14 +89,13 @@ public:
   void EnablePlayerControllerSlideMovementBehavior(bool enable = true);
   const bool PlayerControllerSlideEnabled() const;
 
-  void SetBusterDamage(int);
-  void SetChargedBusterDamage(int);
+  virtual void ExecuteBusterAction();
+  virtual void ExecuteChargedBusterAction();
 
 protected:
-  int busterDamage, chargedBusterDamage;
   int hitCount; /*!< How many times the player has been hit. Used by score board. */
   string state; /*!< Animation state name */
   bool playerControllerSlide;
   AnimationComponent* animationComponent;
-  ChargeComponent chargeComponent; /*!< Handles charge effect */
+  ChargeEffectSceneNode chargeComponent; /*!< Handles charge effect */
 };

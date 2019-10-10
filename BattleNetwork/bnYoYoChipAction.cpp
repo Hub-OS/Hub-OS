@@ -56,7 +56,9 @@ void YoYoChipAction::OnUpdate(float _elapsed)
 
   if (yoyo && yoyo->IsDeleted()) {
     yoyo = nullptr;
-    this->EndAction();
+
+    auto onFinish = [this]() { this->EndAction();  };
+    GetOwner()->GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE", onFinish);
   }
 }
 

@@ -102,43 +102,42 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     }
   }
 
-  if (applyCallback) {
+  /*if (applyCallback) {
     if (onFinish != nullptr) {
       // If applicable, fire the onFinish callback
       onFinish();
-
+      onFinish = nullptr;
+    }
       // If we do not loop the animation, empty the onFinish notifier. If we don't empty the notifier, this fires infinitely...
       if ((playbackMode & Mode::Loop) != Mode::Loop) {
         onFinish = nullptr;
       }
-    }
-      /*
-    // We've ended the loop
-    isUpdating = false;
 
-    // Callbacks are valid
-    callbacksAreValid = true;
+      // We've ended the loop
+      isUpdating = false;
 
-    // Insert any queued callbacks
-    callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
-    queuedCallbacks.clear();
+      // Callbacks are valid
+      callbacksAreValid = true;
 
-    // Insert any queued one-time callbacks
-    onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
-    queuedOnetimeCallbacks.clear();
+      // Insert any queued callbacks
+      callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
+      queuedCallbacks.clear();
 
-    // If any queued onFinish notifiers...
-    if (queuedOnFinish) {
-      // Add it
-      onFinish = queuedOnFinish;
-      queuedOnFinish = nullptr;
-    }
+      // Insert any queued one-time callbacks
+      onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
+      queuedOnetimeCallbacks.clear();
 
-    // End
-    return;*/
+      // If any queued onFinish notifiers...
+      if (queuedOnFinish) {
+        // Add it
+        onFinish = queuedOnFinish;
+        queuedOnFinish = nullptr;
+      }
 
+      // End
+      return;
   }
-
+  */
   // We may modify the frame order, make a copy
   std::vector<Frame> copy = sequence.frames;
 
@@ -262,6 +261,10 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
       target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
     }
   }
+  
+  if(startProgress >= sequence.GetTotalDuration()) {
+    if (onFinish) { onFinish(); onFinish = nullptr; }
+  }
 
   // End updating flag
   isUpdating = false;
@@ -302,7 +305,6 @@ Animator & Animator::operator<<(On rhs)
   }
   else {
 	if(this->isUpdating) {
-		// std:: cout << "callback queued" << std::endl;
         this->queuedCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
     } else {
         this->callbacks.insert(std::make_pair(rhs.id, rhs.callback));		
@@ -342,7 +344,7 @@ const sf::Vector2f Animator::GetPoint(const std::string& pointName) {
 void Animator::Clear() {
   callbacksAreValid = false;
   queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
-  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0;
+  nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr;
 }
 
 void Animator::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)

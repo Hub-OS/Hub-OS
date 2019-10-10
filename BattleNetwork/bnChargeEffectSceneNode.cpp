@@ -2,9 +2,9 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
-#include "bnChargeComponent.h"
+#include "bnChargeEffectSceneNode.h"
 
-ChargeComponent::ChargeComponent(Entity* _entity) {
+ChargeEffectSceneNode::ChargeEffectSceneNode(Entity* _entity) {
   entity = _entity;
   charging = false;
   chargeCounter = 0.0f;
@@ -16,10 +16,10 @@ ChargeComponent::ChargeComponent(Entity* _entity) {
   chargeColor = sf::Color::Magenta;
 }
 
-ChargeComponent::~ChargeComponent() {
+ChargeEffectSceneNode::~ChargeEffectSceneNode() {
 }
 
-void ChargeComponent::Update(float _elapsed) {
+void ChargeEffectSceneNode::Update(float _elapsed) {
   if (!charging) {
     chargeCounter = 0.0f;
     this->setScale(0.0f, 0.0f);
@@ -63,20 +63,20 @@ void ChargeComponent::Update(float _elapsed) {
   //this->setPosition(entity->getPosition().x, entity->getPosition().y - 36.0f);
 }
 
-void ChargeComponent::SetCharging(bool _charging) {
+void ChargeEffectSceneNode::SetCharging(bool _charging) {
   charging = _charging;
 }
 
-float ChargeComponent::GetChargeCounter() const {
+float ChargeEffectSceneNode::GetChargeCounter() const {
   return chargeCounter;
 }
 
-const bool ChargeComponent::IsFullyCharged() const
+const bool ChargeEffectSceneNode::IsFullyCharged() const
 {
   return isCharged;
 }
 
-void ChargeComponent::SetFullyChargedColor(const sf::Color color)
+void ChargeEffectSceneNode::SetFullyChargedColor(const sf::Color color)
 {
   chargeColor = color;
 }

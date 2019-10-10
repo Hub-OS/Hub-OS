@@ -8,7 +8,7 @@ Question::Question(std::string message, std::function<void()> onYes, std::functi
   this->isQuestionReady = false;
   selectCursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_CURSOR));
   elapsed = 0;
-  yes = false;
+  yes = canceled = false;
 }
 
 Question::~Question() {
@@ -19,10 +19,16 @@ const bool Question::SelectYes() { if (!isQuestionReady) return false; else yes 
 const bool Question::SelectNo() { if (!isQuestionReady) return false; else yes = false; return true; }
 
 void Question::ExecuteSelection() {
-  if (yes) { onYes(); }
+  if (yes) { 
+    onYes(); 
+    AUDIO.Play(AudioType::NEW_GAME);
+  }
   else {
     { onNo(); }
   }
+
+  canceled = false; // reset
+  isQuestionReady = false; // reset 
 }
 
 void Question::OnUpdate(double elapsed) {
@@ -30,40 +36,43 @@ void Question::OnUpdate(double elapsed) {
 
   isQuestionReady = !GetTextBox()->IsPlaying() && GetTextBox()->IsEndOfMessage();
 
-  if (INPUT.Has(EventTypes::RELEASED_CONFIRM) && isQuestionReady) {
+  if (canceled) {
+    SelectNo();
+    ExecuteSelection();
+    return;
+  }
+
+  if (!isQuestionReady) return;
+
+  if (INPUT.Has(EventTypes::RELEASED_CONFIRM)) {
     ExecuteSelection();
     GetTextBox()->DequeMessage();
   }
   else if (INPUT.Has(EventTypes::RELEASED_CANCEL)) {
-    AUDIO.Play(AudioType::CHIP_ERROR);
+    SelectNo();
+    canceled = true; // wait one more frame
   }
   else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
     SelectYes();
+
   }
   else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
     SelectNo();
   }
+
 }
 
 void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
 
   if (yes) {
-    auto x = swoosh::ease::interpolate((float)elapsed * 10.f, selectCursor.getPosition().x, 140.0f);
-    selectCursor.setPosition(x, GetTextBox()->getPosition().y);
+    selectCursor.setPosition(60.0f, 0.0f);
   }
   else {
-    auto x = swoosh::ease::interpolate((float)elapsed * 10.f, selectCursor.getPosition().x, 265.0f);
-    selectCursor.setPosition(x, GetTextBox()->getPosition().y);
+    selectCursor.setPosition(150.0f, 0.0f);
   }
 
   if (isQuestionReady) {
-    auto last = states;
-
-    states.transform = options.getTransform();
     target.draw(options, states);
-
-    states = last;
-    states.transform = selectCursor.getTransform();
     // Draw the Yes / No and a cursor
     target.draw(selectCursor,states);
   }
@@ -75,12 +84,11 @@ void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
 
 void Question::SetTextBox(AnimatedTextBox * parent)
 {
-  MessageInterface::SetTextbox(parent);
-  options = parent->MakeTextObject("YES NO");
+
+  Message::SetTextBox(parent);
+  options = parent->MakeTextObject("YES          NO");
   options.setFillColor(sf::Color::Black);
   options.setOutlineColor(sf::Color::Black);
-  options.setPosition(parent->getPosition());
-  options.setScale(parent->getScale());
-
-  selectCursor.setScale(parent->getScale());
+  options.setPosition(sf::Vector2f(70, 0));
+  options.setScale(0.5f, 0.5f);
 }

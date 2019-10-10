@@ -15,6 +15,7 @@
 class Question : public Message {
 private:
   bool yes; /*!< Flag for if yes was selected */
+  bool canceled;
   std::function<void()> onYes; /*!< Callback when user presses yes */
   std::function<void()> onNo; /*!< Callback when user presses no */
   bool isQuestionReady; /*!< Flag for when the user has been prompted and input is waiting */
