@@ -65,9 +65,8 @@ void AnimationComponent::SetAnimation(string state, std::function<void()> onFini
   animation.SetAnimation(state);
   animation << onFinish;
 
-  // Todo: this should apply the new rects immediately on set but it
-  //       removes callbacks for some reason
-  // animation.Refresh(*entity);
+  // TODO: why does this cancel callbacks?
+  //animation.Refresh(*GetOwner());
 }
 
 void AnimationComponent::SetAnimation(string state, char playbackMode, std::function<void()> onFinish)
@@ -75,8 +74,8 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, std::func
   animation.SetAnimation(state);
   animation << playbackMode << onFinish;
 
-  // See line 49 in this file
-  // animation.Refresh(*entity);
+  // TODO: why does this cancel callbacks?
+  //animation.Refresh(*GetOwner());
 }
 
 void AnimationComponent::SetPlaybackMode(char playbackMode)

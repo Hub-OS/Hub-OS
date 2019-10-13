@@ -22,7 +22,7 @@ typedef int SelectedMob;
 class MobRegistration {
 public:
   /*! \brief Mob info roster */
-  class MobInfo {
+  class MobMeta {
     friend class MobRegistration;
 
     MobFactory* mobFactory; /*!< The mob factory to build the mob */
@@ -40,60 +40,60 @@ public:
     /**
      * @brief Sets mob to temp data
      */ 
-    MobInfo();
+    MobMeta();
     
     /**
      * @brief deconstructor
      */
-    ~MobInfo();
+    ~MobMeta();
 
     /**
      * @brief Initializes the deffered loader
-     * @return MobInfo& to chain
+     * @return MobMeta& to chain
      */
-    template<class T> MobInfo& SetMobClass();
+    template<class T> MobMeta& SetMobClass();
     
     /**
      * @brief Sets the preview path to load
      * @param path path to preview texture
-     * @return MobInfo& to chain
+     * @return MobMeta& to chain
      */
-    MobInfo& SetPlaceholderTexturePath(std::string path);
+    MobMeta& SetPlaceholderTexturePath(std::string path);
     
     /**
      * @brief Sets the description that shows up in text box
      * @param message 
-     * @return MobInfo& to chain
+     * @return MobMeta& to chain
      */
-    MobInfo& SetDescription(const std::string& message);
+    MobMeta& SetDescription(const std::string& message);
     
     /**
      * @brief Sets the attack to display on the select screen
      * @param atk strength of the mob
-     * @return MobInfo& to chain
+     * @return MobMeta& to chain
      */
-    MobInfo& SetAttack(const int atk);
+    MobMeta& SetAttack(const int atk);
     
     /**
      * @brief Sets the speed to display on the select screen
      * @param speed of the mob
-     * @return MobInfo& to chain
+     * @return MobMeta& to chain
      */
-    MobInfo& SetSpeed(const double speed);
+    MobMeta& SetSpeed(const double speed);
     
     /**
      * @brief Sets the total HP of the mob
      * @param HP health of the mob to display
-     * @return MobInfo& to chain
+     * @return MobMeta& to chain
      */
-    MobInfo& SetHP(const int HP);
+    MobMeta& SetHP(const int HP);
     
     /**
      * @brief Clever title of the mob
      * @param name name of the mob to display
-     * @return MobInfo& to chain
+     * @return MobMeta& to chain
      */
-    MobInfo& SetName(const std::string& name);
+    MobMeta& SetName(const std::string& name);
     
     /**
      * @brief Gets the preview texture
@@ -145,9 +145,9 @@ public:
   };
 
 private:
-  std::vector<const MobInfo*> roster; /*!< List of all mobs registered */
+  std::vector<const MobMeta*> roster; /*!< List of all mobs registered */
 
-  void Register(const MobInfo* info);
+  void Register(const MobMeta* info);
 public:
   /**
    * @brief Gets singleton of the resource
@@ -162,11 +162,11 @@ public:
 
   /**
    * @brief Creates a roster entry object, sets the deferred class type, and registers
-   * @return MobInfo* to chain
+   * @return MobMeta* to chain
    */
   template<class T>
-  MobInfo* AddClass() {
-    MobRegistration::MobInfo* info = new MobRegistration::MobInfo();
+  MobMeta* AddClass() {
+    MobRegistration::MobMeta* info = new MobRegistration::MobMeta();
     info->SetMobClass<T>();
     this->Register(info);
 
@@ -176,9 +176,9 @@ public:
   /**
    * @brief Gets the roster entry object at index
    * @param index position of the roster entry object
-   * @return const MobInfo& The roster object
+   * @return const MobMeta& The roster object
    */
-  const MobInfo& At(int index);
+  const MobMeta& At(int index);
   
   /**
    * @brief The size of the roster
@@ -199,10 +199,10 @@ public:
 
 /**
  * @brief Sets the deferred mob loader
- * @return MobInfo& to chain
+ * @return MobMeta& to chain
  */
 template<class T>
-inline MobRegistration::MobInfo & MobRegistration::MobInfo::SetMobClass()
+inline MobRegistration::MobMeta & MobRegistration::MobMeta::SetMobClass()
 {
   loadMobClass = [this]() {
     if (mobFactory) {

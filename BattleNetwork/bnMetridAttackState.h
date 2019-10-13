@@ -1,7 +1,8 @@
 #pragma once
 #include "bnAIState.h"
-#include "bnMetrid.h"
 
+class Metrid;
+ 
 namespace Battle {
   class Tile;
 }

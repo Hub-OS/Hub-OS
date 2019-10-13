@@ -13,7 +13,9 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) 
   perTurn(perTurn),
   greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
   chipDescriptionTextbox(sf::Vector2f(4, 255)),
-  isInView(false)
+  isInView(false),
+  isInFormSelect(false),
+  canInteract(true)
 {
   frameElapsed = 1;
   folder = _folder;
@@ -86,6 +88,27 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) 
   cursorBigAnimator.SetAnimation("BLINK");
   cursorBigAnimator << Animator::Mode::Loop;
 
+  formSelectAnimator = Animation("resources/ui/form_select.animation");
+  formSelectAnimator.Reload();
+  formSelectAnimator.SetAnimation("CLOSED");
+
+  formCursorAnimator = Animation("resources/ui/form_cursor.animation");
+  formCursorAnimator.Reload();
+  formCursorAnimator.SetAnimation("BLINK");
+  formCursorAnimator << Animator::Mode::Loop;
+
+  formSelectQuitTimer = 0.f; // used to time out the activation
+  thisFrameSelectedForm = selectedForm = -1;
+
+  formItemBG.setTexture(LOAD_TEXTURE(CUST_FORM_ITEM_BG));
+  formItemBG.setScale(2.f, 2.f);
+
+  formSelect.setTexture(LOAD_TEXTURE(CUST_FORM_SELECT));
+  formCursor.setTexture(LOAD_TEXTURE(CUST_FORM_CURSOR));
+
+  formSelect.setScale(2.f, 2.f);
+  formCursor.setScale(2.f, 2.f);
+
   //this->setScale(0.5f, 0.5); // testing transforms
 }
 
@@ -111,29 +134,65 @@ ChipSelectionCust::~ChipSelectionCust() {
 }
 
 bool ChipSelectionCust::CursorUp() {
-  if (--cursorRow < 0) {
-    cursorRow = 0;
-    return false;
-  }
+  if (isInFormSelect) {
+    if (--formCursorRow < 0) {
+      formCursorRow = 0;
+      return false;
+    }
 
-  return true;
+    return true;
+  }
+  else {
+    if (--cursorRow < 0) {
+      cursorRow = 0;
+
+      if (forms.size()) {
+        auto onEnd = [this]() {
+          this->formSelectAnimator << "OPEN";
+        };
+
+        formSelectAnimator << "OPENING" << onEnd;
+        isInFormSelect = true;
+        cursorPos = cursorRow = 0;
+        AUDIO.Play(AudioType::CHIP_DESC);
+      }
+      return false;
+    }
+
+    return true;
+  }
 }
 
 bool ChipSelectionCust::CursorDown() {
-  if (++cursorRow > 1) {
-    cursorRow = 1;
+  if (isInFormSelect) {
+    if (forms.size() == 0) return false;
 
-    return false;
+    if (++formCursorRow >= forms.size()) {
+      formCursorRow = int(forms.size() - 1);
+
+      return false;
+    }
+
+    return true;
   }
+  else {
+    if (++cursorRow > 1) {
+      cursorRow = 1;
 
-  if (cursorPos > 2) {
-    cursorPos = 0;
+      return false;
+    }
+
+    if (cursorPos > 2) {
+      cursorPos = 0;
+    }
+
+    return true;
   }
-
-  return true;
 }
 
 bool ChipSelectionCust::CursorRight() {
+  if (isInFormSelect) return false;
+
   if (++cursorPos > 2 && cursorRow == 1) {
     cursorPos = 0;
   }
@@ -145,6 +204,8 @@ bool ChipSelectionCust::CursorRight() {
 }
 
 bool ChipSelectionCust::CursorLeft() {
+  if (isInFormSelect) return false;
+
   if (--cursorPos < 0 && cursorRow == 1) {
     cursorPos = 2;
   }
@@ -156,6 +217,22 @@ bool ChipSelectionCust::CursorLeft() {
 }
 
 bool ChipSelectionCust::CursorAction() {
+  if (isInFormSelect) {
+    auto res = true;
+
+    thisFrameSelectedForm = formCursorRow;
+
+    if (thisFrameSelectedForm == selectedForm) {
+      res = false;
+      thisFrameSelectedForm = -1; // no change
+    }
+    else {
+      formSelectQuitTimer = 1.0f;
+      selectedForm = thisFrameSelectedForm;
+    }
+    return res;
+  }
+
   // Should never happen but just in case
   if (selectCount > 5) {
     return false;
@@ -206,6 +283,14 @@ bool ChipSelectionCust::CursorAction() {
 }
 
 bool ChipSelectionCust::CursorCancel() {
+  if (isInFormSelect) {
+    formSelectAnimator.SetAnimation("CLOSED");
+    formCursorRow = 0;
+    isInFormSelect = false;
+    cursorPos = cursorRow = 0;
+    return true;
+  }
+
   // Unqueue all chips buckets
   if (selectCount <= 0) {
     selectCount = 0;
@@ -288,6 +373,8 @@ void ChipSelectionCust::Move(sf::Vector2f delta) {
 
 bool ChipSelectionCust::OpenChipDescription()
 {
+  if (isInFormSelect) return false;
+
   int index = cursorPos + (5 * cursorRow);
 
   if (!IsInView() || chipDescriptionTextbox.IsOpen() || 
@@ -299,6 +386,7 @@ bool ChipSelectionCust::OpenChipDescription()
 }
 
 bool ChipSelectionCust::ContinueChipDescription() {
+  if (isInFormSelect) return false;
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
   //chipDescriptionTextbox.Continue();
@@ -307,6 +395,7 @@ bool ChipSelectionCust::ContinueChipDescription() {
 }
 
 bool ChipSelectionCust::FastForwardChipDescription(double factor) {
+  if (isInFormSelect) return false;
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
   chipDescriptionTextbox.SetTextSpeed(factor);
@@ -315,6 +404,7 @@ bool ChipSelectionCust::FastForwardChipDescription(double factor) {
 }
 
 bool ChipSelectionCust::CloseChipDescription() {
+  if (isInFormSelect) return false;
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
   chipDescriptionTextbox.Close();
@@ -323,6 +413,7 @@ bool ChipSelectionCust::CloseChipDescription() {
 }
 
 bool ChipSelectionCust::ChipDescriptionYes() {
+  if (isInFormSelect) return false;
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
   //return chipDescriptionTextbox.SelectYes();
@@ -339,6 +430,7 @@ bool ChipSelectionCust::ChipDescriptionNo() {
 
 
 bool ChipSelectionCust::ChipDescriptionConfirmQuestion() {
+  if (isInFormSelect) return false;
   if (!IsInView() || chipDescriptionTextbox.IsClosed()) return false;
 
   // return chipDescriptionTextbox.ConfirmSelection();
@@ -365,6 +457,17 @@ void ChipSelectionCust::GetNextChips() {
   }
 }
 
+void ChipSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> forms)
+{
+  for (auto f : forms) {
+    this->forms.push_back(f);
+    sf::Sprite ui;
+    ui.setTexture(*TEXTURES.LoadTextureFromFile(f->GetUIPath()));
+    ui.setScale(2.f, 2.f);
+    formUI.push_back(ui);
+  }
+}
+
 void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states) const {
   if(this->IsHidden()) return;
 
@@ -373,7 +476,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   states.transform = combinedTransform;
 
-  auto offset = -custSprite.getTextureRect().width*2.f; // this will be uneccessary once we use this->AddSprite() for all rendered items below
+  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddSprite() for all rendered items below
   custSprite.setPosition(-sf::Vector2f(custSprite.getTextureRect().width*2.f, 0));
   target.draw(custSprite, states);
 
@@ -502,7 +605,9 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       }
 
       // Draw the small cursor
-      target.draw(cursorSmall, states);
+      if (!isInFormSelect) {
+        target.draw(cursorSmall, states);
+      }
     }
     else {
       auto chipSendDataLastPos = chipSendData.getPosition();
@@ -517,6 +622,43 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     }
   //}
 
+    target.draw(formSelect, states);
+
+  if (isInFormSelect) {
+    if (formSelectAnimator.GetAnimationString() == "OPEN") {
+      int i = 0;
+      auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddSprite() for all rendered items below
+
+      for (auto f : formUI) {
+        formItemBG.setPosition(offset + 16.f, 16.f + float(i*32.0f));
+        target.draw(formItemBG, states);
+
+        f.setPosition(offset + 16.f, 16.f + float(i*32.0f));
+
+        if (i != selectedForm && i != formCursorRow && selectedForm > -1) {
+          auto greyscaleState = states;
+          greyscaleState.shader = SHADERS.GetShader(ShaderType::GREYSCALE);
+          target.draw(f, greyscaleState);
+        }
+        else if (i == selectedForm && selectedForm > -1) {
+          auto aquaMarineState = states;
+          //aquaMarineState.shader = SHADERS.GetShader(ShaderType::COLORIZE);
+          f.setColor(sf::Color(127,255,212));
+          target.draw(f, aquaMarineState);
+          f.setColor(sf::Color::White); // back to normal after draw to texture
+        }
+        else {
+          // normal color
+          target.draw(f, states);
+        }
+
+        i++;
+      }
+
+      target.draw(formCursor, states);
+    }
+  }
+
   target.draw(chipDescriptionTextbox, states);
 
   SceneNode::draw(target, states);
@@ -525,7 +667,12 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
 void ChipSelectionCust::Update(float elapsed)
 {
-  if(this->IsHidden()) return;
+  if (this->IsHidden()) {
+    canInteract = false;
+    return;
+  }
+
+  canInteract = true; // assume we can interact unless another flag says otherwise
 
   frameElapsed = (double)elapsed;
 
@@ -535,6 +682,27 @@ void ChipSelectionCust::Update(float elapsed)
   chipDescriptionTextbox.Update(elapsed);
 
   emblem.Update(elapsed);
+
+  formCursorAnimator.Update(elapsed, formCursor);
+  formSelectAnimator.Update(elapsed, formSelect);
+
+  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddSprite() for all rendered items below
+
+  formCursor.setPosition(offset + 16.f, 12.f + float(formCursorRow*32.f));
+  formSelect.setPosition(offset + 88.f, 194.f);
+
+  if (isInFormSelect && formSelectQuitTimer > 0.f) {
+    canInteract = false;
+
+    formSelectQuitTimer -= elapsed;
+
+    if (formSelectQuitTimer <= 0.f) {
+      formSelectAnimator.SetAnimation("CLOSED");
+      isInFormSelect = false;
+      cursorPos = cursorRow = formCursorRow = 0;
+      canInteract = true;
+    }
+  }
 
 #ifdef __ANDROID__
   sf::Vector2i touchPosition = sf::Touch::getPosition(0, *ENGINE.GetWindow());
@@ -649,11 +817,28 @@ const int ChipSelectionCust::GetChipCount() {
   return selectCount;
 }
 
+const int ChipSelectionCust::GetSelectedFormIndex()
+{
+  return selectedForm;
+}
+
+const bool ChipSelectionCust::SelectedNewForm()
+{
+  return (thisFrameSelectedForm != -1);
+}
+
+bool ChipSelectionCust::CanInteract()
+{
+  return canInteract;
+}
+
 void ChipSelectionCust::ResetState() {
   ClearChips();
 
-  cursorPos = 0;
+  cursorPos = formCursorRow = 0;
   areChipsReady = false;
+  isInFormSelect = false;
+  thisFrameSelectedForm = -1;
 }
 
 bool ChipSelectionCust::AreChipsReady() {

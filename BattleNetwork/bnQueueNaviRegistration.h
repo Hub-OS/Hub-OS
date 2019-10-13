@@ -8,7 +8,7 @@
 #pragma once
 
 // Register these navis
-#include "bnPlayer.h"
+#include "bnMegaman.h"
 #include "bnStarman.h"
 #include "bnRoll.h"
 #include "bnForte.h"
@@ -17,7 +17,7 @@ void QueuNaviRegistration() {
   /*********************************************************************
   **********            Register megaman            ********************
   **********************************************************************/
-  auto megamanInfo = NAVIS.AddClass<Player>();  // Create and register navi info object
+  auto megamanInfo = NAVIS.AddClass<Megaman>();  // Create and register navi info object
   megamanInfo->SetSpecialDescription("Star of the series. Well rounded stats."); // Set property
   megamanInfo->SetBattleAnimationPath("resources/navis/megaman/megaman.animation");
   megamanInfo->SetOverworldAnimationPath("resources/navis/megaman/megaman.animation");

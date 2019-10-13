@@ -6,6 +6,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 #include "bnLogger.h"
+#include "bnBusterChipAction.h"
 
 const std::string RESOURCE_PATH = "resources/navis/roll/roll.animation";
 
@@ -29,4 +30,15 @@ Roll::Roll() : Player()
 const float Roll::GetHitHeight() const
 {
   return 140.0f;
+}
+
+void Roll::ExecuteBusterAction()
+{
+  this->RegisterComponent(new BusterChipAction(this, false, 1));
+
+}
+
+void Roll::ExecuteChargedBusterAction()
+{
+  this->RegisterComponent(new BusterChipAction(this, true, 10));
 }

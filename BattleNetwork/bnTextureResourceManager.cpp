@@ -116,6 +116,9 @@ TextureResourceManager::TextureResourceManager(void) {
   // Megalian
   paths.push_back("resources/mobs/megalian/megalian_atlas.png");
 
+  // HoneyBomber
+  paths.push_back("resources/mobs/honeybomber/honeybomber.png");
+
   // Select screen "Anything Goes"
   paths.push_back("resources/mobs/select/random.png");
 
@@ -151,6 +154,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/spell_yoyo.png");
   paths.push_back("resources/spells/spell_super_vulcan.png");
   paths.push_back("resources/spells/alpha_rocket.png");
+  paths.push_back("resources/spells/spell_bees.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");
@@ -166,6 +170,9 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/chip_frame.png");
   paths.push_back("resources/ui/cust_badge.png");
   paths.push_back("resources/ui/cust_badge_mask.png");
+  paths.push_back("resources/ui/form_select.png");
+  paths.push_back("resources/ui/form_cursor.png");
+  paths.push_back("resources/ui/form_item_bg.png");
 
   // In battle signs
   paths.push_back("resources/ui/program_advance.png");

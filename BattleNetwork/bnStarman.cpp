@@ -6,6 +6,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 #include "bnLogger.h"
+#include "bnBusterChipAction.h"
 
 #define RESOURCE_PATH "resources/navis/starman/starman.animation"
 
@@ -36,4 +37,15 @@ Starman::~Starman() {
 const float Starman::GetHitHeight() const
 {
   return 140.0f;
+}
+
+void Starman::ExecuteBusterAction()
+{
+  this->RegisterComponent(new BusterChipAction(this, false, 1));
+
+}
+
+void Starman::ExecuteChargedBusterAction()
+{
+  this->RegisterComponent(new BusterChipAction(this, true, 10));
 }

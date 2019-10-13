@@ -4,9 +4,8 @@ animation state="PLAYER_IDLE"
 frame duration="-9.09436e+36" x="3" y="8" w="55" h="46" originx="39" originy="14"
 
 animation state="PLAYER_HIT"
-frame duration="-1.24815e-36" x="270" y="66" w="56" h="48" originx="0" originy="0"
-frame duration="-1.24883e-36" x="4" y="117" w="45" h="50" originx="0" originy="0"
-frame duration="-7.33483e+36" x="4" y="59" w="42" h="55" originx="0" originy="0"
+frame duration="0.2" x="4" y="117" w="45" h="50" originx="16" originy="11"
+frame duration="0.02" x="271" y="70" w="57" h="44" originx="39" originy="14"
 
 animation state="PLAYER_MOVING"
 frame duration="0.07" x="125" y="177" w="54" h="44" originx="37" originy="13"

@@ -16,7 +16,8 @@ protected:
   SceneNode* parent; /*!< The node this node is a child of */
   bool show; /*!< Flag to hide or display a scene node and its children */
   int layer; /*!< Draw order of this node */
-  
+  bool useParentShader;
+
 public:
   /**
    * @brief Sets layer to 0 and show to true
@@ -84,4 +85,6 @@ public:
    * @param find the node to remove if it exists
    */
   void RemoveNode(SceneNode* find);
+
+  void EnableUseParentShader(bool use);
 };

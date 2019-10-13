@@ -155,7 +155,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   tripleDelete = doubleDelete;
   tripleDelete.setTexture(LOAD_TEXTURE(TRIPLE_DELETE));
 
-
   counterHit = doubleDelete;
   counterHit.setTexture(LOAD_TEXTURE(COUNTER_HIT));
   /*
@@ -180,6 +179,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   customBarPos = sf::Vector2f(240.f, 0.f);
   customBarSprite.setPosition(customBarPos);
   customBarSprite.setScale(2.f, 2.f);
+
+  // Load forms
+  chipCustGUI.SetPlayerFormOptions(player->GetForms());
 
   // Selection input delays
   maxChipSelectInputCooldown = 1 / 10.f; // tenth a second
@@ -931,7 +933,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     // Plus would make more sense to revoke screen effects and labels once complete transition
 
   }
-  else if (isInChipSelect && chipCustGUI.IsInView()) {
+  else if (isInChipSelect && chipCustGUI.IsInView() && chipCustGUI.CanInteract()) {
 #ifndef __ANDROID__
     if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
       if (!INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
@@ -1003,7 +1005,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
         }
         else if (performed) {
-          AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGHEST);
+          if (chipCustGUI.SelectedNewForm()) {
+            AUDIO.Play(AudioType::PA_ADVANCE, AudioPriority::HIGHEST);
+          }
+          else {
+            AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGHEST);
+          }
         }
         else {
           AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
@@ -1070,6 +1077,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         if (hasPA > -1) {
           paSteps = programAdvance.GetMatchingSteps();
           PAStartTimer.reset();
+        }
+
+        int selectedForm = chipCustGUI.GetSelectedFormIndex();
+
+        if (selectedForm > -1) {
+          player->ActivateFormAt(selectedForm);
         }
 
         isPAComplete = true;

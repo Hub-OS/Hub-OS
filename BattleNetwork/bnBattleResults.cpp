@@ -320,7 +320,7 @@ void BattleResults::Draw() {
       for (auto cell : hideChipMatrix) {
         if (cell >= chipMatrixIndex) {
           // position based on cell's index from a 7x6 matrix
-          sf::Vector2f offset = sf::Vector2f((cell % 7) * 8, (std::floor(cell / 7) * 8));
+          sf::Vector2f offset = sf::Vector2f(float(cell % 7) * 8.0f, float(std::floor(cell / 7) * 8.0f));
           offset = 2.0f * offset;
 
           c.setPosition(rewardCard.getPosition() + offset);

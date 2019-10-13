@@ -3,6 +3,7 @@
 SceneNode::SceneNode() {
   show = true;
   layer = 0;
+  useParentShader = true;
 }
 
 SceneNode::~SceneNode() {
@@ -36,20 +37,17 @@ const bool SceneNode::IsVisible() const {
 void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   if (!show) return;
 
-  // combine the parent transform with the node's one
-  //sf::Transform combinedTransform =this->getTransform();
-
-  /*if (parent) {
-    combinedTransform *= parent->getTransform();
-  }*/
-
-  //states.transform *= combinedTransform;
-
   std::sort(childNodes.begin(), childNodes.end(), [](SceneNode* a, SceneNode* b) { return (a->GetLayer() > b->GetLayer()); });
 
   // draw its children
   for (std::size_t i = 0; i < childNodes.size(); i++) {
-    childNodes[i]->draw(target, states);
+    auto childStates = states;
+
+    if (!childNodes[i]->useParentShader) {
+      childStates.shader = nullptr;
+    }
+
+    childNodes[i]->draw(target, childStates);
   }
 }
 
@@ -63,4 +61,9 @@ void SceneNode::RemoveNode(SceneNode* find) {
   auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [find](SceneNode *in) { return in == find; }); 
 
   childNodes.erase(iter, childNodes.end());
+}
+
+void SceneNode::EnableUseParentShader(bool use)
+{
+  useParentShader = use;
 }

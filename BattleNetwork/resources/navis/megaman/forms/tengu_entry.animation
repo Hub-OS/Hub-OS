@@ -1,0 +1,7 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/navis/megaman/forms/tengu_entry.png"
+
+animation state="JP"
+frame duration="1" x="0" y="0" w="72" h="16" originx="0" originy="0"
+
+animation state="EN"
+frame duration="1" x="0" y="20" w="72" h="17" originx="0" originy="0"

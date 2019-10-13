@@ -39,6 +39,7 @@ private:
     void OnUpdate(float _elapsed);
   };
   
+  void ExecuteBusterAction() final;
   void ExecuteChargedBusterAction() final;
 
 public:

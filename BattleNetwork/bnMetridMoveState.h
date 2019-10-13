@@ -1,9 +1,10 @@
 #pragma once
 #include "bnAIState.h"
-#include "bnMetrid.h"
 #include "bnTile.h"
 #include "bnField.h"
 
+class Metrid;
+ 
 /**
  * @class MetridMoveState
  * @author mav

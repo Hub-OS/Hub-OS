@@ -29,6 +29,7 @@ enum TextureType {
   MOB_ALPHA_ATLAS,
   MOB_STARFISH_ATLAS,
   MOB_MEGALIAN_ATLAS,
+  MOB_HONEYBOMBER_ATLAS,
   MOB_ANYTHING_GOES,
 
   // Battle Misc
@@ -63,6 +64,7 @@ enum TextureType {
   SPELL_YOYO,
   SPELL_SUPER_VULCAN,
   SPELL_ALPHA_ROCKET,
+  SPELL_BEES,
 
   //Chip Select 
   CHIP_SELECT_MENU,
@@ -78,6 +80,9 @@ enum TextureType {
   CHIP_FRAME,
   CUST_BADGE, 
   CUST_BADGE_MASK,
+  CUST_FORM_SELECT,
+  CUST_FORM_CURSOR,
+  CUST_FORM_ITEM_BG,
 
   // In-battle signs
   PROGRAM_ADVANCE,

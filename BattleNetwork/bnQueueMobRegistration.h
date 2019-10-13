@@ -14,6 +14,7 @@
 #include "bnTwoMettaurMob.h"
 #include "bnCanodumbMob.h"
 #include "bnStarfishMob.h"
+#include "bnHoneyBomberMob.h"
 #include "bnMetridMob.h"
 #include "bnMetalManBossFight.h"
 #include "bnMetalManBossFight2.h"
@@ -47,7 +48,15 @@ void QueueMobRegistration() {
   info->SetPlaceholderTexturePath("resources/mobs/canodumb/preview.png");
   info->SetSpeed(0);
   info->SetAttack(20);
-  info->SetHP(500);
+  info->SetHP(130);
+
+  info = MOBS.AddClass<HoneyBomberMob>();  // Create and register mob info object
+  info->SetDescription("Honey Bombers attack with bees. Do not get in their way!"); // Set property
+  info->SetName("Sting Squad");
+  info->SetPlaceholderTexturePath("resources/mobs/honeybomber/preview.png");
+  info->SetSpeed(100);
+  info->SetAttack(25);
+  info->SetHP(130);
 
   info = MOBS.AddClass<MetridMob>();  // Create and register mob info object
   info->SetDescription("Fire-type wizard virii summon meteors."); // Set property

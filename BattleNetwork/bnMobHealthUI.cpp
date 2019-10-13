@@ -82,7 +82,7 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
   // First glyph is 9 the last is 0
   // There's 1px space between the glyphs
 
-  if (healthCounter > 0) {
+  if (healthCounter > 0 && mob->GetTile()) {
     int size = (int)(std::to_string(healthCounter).size());
     int hp = healthCounter;
     float offsetx = -(((size)*8.0f) / 2.0f)*glyphs.getScale().x;
@@ -97,7 +97,7 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
       int rowStart = row + (row * 10);
 
       glyphs.setTextureRect(sf::IntRect(0, rowStart, 8, 10));
-      glyphs.setPosition(sf::Vector2f(offsetx, 0.0f) + this->mob->getPosition());
+      glyphs.setPosition(sf::Vector2f(offsetx, 0.0f) + this->mob->GetTile()->getPosition());
       glyphs.setColor(this->color);
 
       target.draw(glyphs, this_states);

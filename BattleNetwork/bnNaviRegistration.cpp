@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-NaviRegistration::NaviInfo::NaviInfo() : symbol(), overworldTexture(), battleTexture()
+NaviRegistration::NaviMeta::NaviMeta() : symbol(), overworldTexture(), battleTexture()
 {
   navi = nullptr;
   special = "None";
@@ -16,14 +16,14 @@ NaviRegistration::NaviInfo::NaviInfo() : symbol(), overworldTexture(), battleTex
   isSword = false;
 }
 
-NaviRegistration::NaviInfo::~NaviInfo()
+NaviRegistration::NaviMeta::~NaviMeta()
 {
   if (navi != nullptr) {
     delete navi;
   }
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetSymbolTexture(sf::Texture& symbol)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetSymbolTexture(sf::Texture& symbol)
 {
   this->symbol = sf::Sprite(symbol);
 
@@ -33,97 +33,97 @@ NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetSymbolTexture(sf::Tex
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetSpecialDescription(const std::string && special)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetSpecialDescription(const std::string && special)
 {
   this->special = special;
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetAttack(const int atk)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetAttack(const int atk)
 {
   this->atk = atk;
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetChargedAttack(const int atk)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetChargedAttack(const int atk)
 {
   this->chargedAtk = atk;
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetSpeed(const double speed)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetSpeed(const double speed)
 {
   this->speed = speed;
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetHP(const int HP)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetHP(const int HP)
 {
   hp = HP;
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetIsSword(const bool enabled)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetIsSword(const bool enabled)
 {
   isSword = enabled;
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetOverworldAnimationPath(const std::string && path)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldAnimationPath(const std::string && path)
 {
   overworldAnimationPath = path;
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetOverworldTexture(const sf::Texture * texture)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldTexture(const sf::Texture * texture)
 {
   overworldTexture = const_cast<sf::Texture*>(texture);
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetBattleAnimationPath(const std::string && path)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetBattleAnimationPath(const std::string && path)
 {
   battleAnimationPath = path;
   return *this;
 }
 
-NaviRegistration::NaviInfo& NaviRegistration::NaviInfo::SetBattleTexture(const sf::Texture * texture)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetBattleTexture(const sf::Texture * texture)
 {
   battleTexture = const_cast<sf::Texture*>(texture);
   return *this;
 }
 
-const sf::Texture & NaviRegistration::NaviInfo::GetOverworldTexture() const
+const sf::Texture & NaviRegistration::NaviMeta::GetOverworldTexture() const
 {
   return *overworldTexture;
 }
 
-const std::string & NaviRegistration::NaviInfo::GetOverworldAnimationPath() const 
+const std::string & NaviRegistration::NaviMeta::GetOverworldAnimationPath() const 
 {
   return overworldAnimationPath;
 }
 
-const sf::Texture & NaviRegistration::NaviInfo::GetBattleTexture() const
+const sf::Texture & NaviRegistration::NaviMeta::GetBattleTexture() const
 {
   return *battleTexture;
 }
 
-const std::string& NaviRegistration::NaviInfo::GetBattleAnimationPath() const
+const std::string& NaviRegistration::NaviMeta::GetBattleAnimationPath() const
 {
   return battleAnimationPath;
 }
 
-const std::string NaviRegistration::NaviInfo::GetName() const
+const std::string NaviRegistration::NaviMeta::GetName() const
 {
   return navi->GetName();
 }
 
-const std::string NaviRegistration::NaviInfo::GetHPString() const
+const std::string NaviRegistration::NaviMeta::GetHPString() const
 {
   return std::to_string(hp);
 }
 
-const std::string NaviRegistration::NaviInfo::GetSpeedString() const
+const std::string NaviRegistration::NaviMeta::GetSpeedString() const
 {
   std::string speedStr = std::to_string(speed);
   std::size_t afterDecimal = speedStr.find(".");
@@ -131,22 +131,22 @@ const std::string NaviRegistration::NaviInfo::GetSpeedString() const
   return speedStr + "x";
 }
 
-const Element NaviRegistration::NaviInfo::GetElement() const
+const Element NaviRegistration::NaviMeta::GetElement() const
 {
   return navi->GetElement();
 }
 
-const std::string NaviRegistration::NaviInfo::GetAttackString() const
+const std::string NaviRegistration::NaviMeta::GetAttackString() const
 {
   return std::to_string(atk) + " - " + std::to_string(chargedAtk) + " charged";
 }
 
-const std::string NaviRegistration::NaviInfo::GetSpecialDescriptionString() const
+const std::string NaviRegistration::NaviMeta::GetSpecialDescriptionString() const
 {
   return special;
 }
 
-Player * NaviRegistration::NaviInfo::GetNavi()
+Player * NaviRegistration::NaviMeta::GetNavi()
 {
   Player* out = navi;
   navi = nullptr;
@@ -170,12 +170,12 @@ NaviRegistration::~NaviRegistration()
   roster.clear();
 }
 
-void NaviRegistration::Register(NaviInfo * info)
+void NaviRegistration::Register(NaviMeta * info)
 {
   roster.push_back(info);
 }
 
-NaviRegistration::NaviInfo & NaviRegistration::At(int index)
+NaviRegistration::NaviMeta & NaviRegistration::At(int index)
 {
   if (index < 0 || index >= (int)Size())
     throw std::runtime_error("Roster index out of bounds");

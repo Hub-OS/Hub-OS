@@ -2,6 +2,7 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnMeteor.h"
+#include "bnMetrid.h"
 #include "bnMetridIdleState.h"
 #include "bnAnimationComponent.h"
 

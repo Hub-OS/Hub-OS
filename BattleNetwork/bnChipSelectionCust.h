@@ -11,6 +11,7 @@
 #include "bnChipDescriptionTextbox.h"
 #include "bnCustEmblem.h"
 #include "bnSceneNode.h"
+#include "bnPlayerForm.h"
 
 /**
  * @class ChipSelectionCust
@@ -39,19 +40,29 @@ private:
   mutable sf::Sprite cursorSmall; // animated
   mutable sf::Sprite cursorBig;   // animated
   mutable sf::Sprite chipLock;
+  mutable sf::Sprite formItemBG;
   Animation cursorSmallAnimator;
   Animation cursorBigAnimator;
+  Animation formSelectAnimator;
+  Animation formCursorAnimator;
   mutable SpriteSceneNode icon;
   mutable SpriteSceneNode chipCard;
   mutable SpriteSceneNode chipNoData;
   mutable SpriteSceneNode chipSendData;
   mutable SpriteSceneNode element;
+  mutable SpriteSceneNode formSelect;
+  mutable SpriteSceneNode formCursor;
   sf::Shader& greyscale;
   sf::Font* labelFont;
   sf::Font* codeFont;
   mutable sf::Text smCodeLabel;
   mutable sf::Text label;
   mutable CustEmblem emblem;
+
+  int formCursorRow;
+  int selectedForm, thisFrameSelectedForm;
+  std::vector<sf::Sprite> formUI;
+  float formSelectQuitTimer;
 
   int chipCount; /*!< How many chips are listed in the GUI */
   int selectCount; /*!< How many chips the user has selected */
@@ -60,6 +71,8 @@ private:
   mutable int cursorRow; /*!< Row of the cursor */
   bool areChipsReady; /*!< If chips have been OKd by user */
   bool isInView; /*!< If the chip cust is all the way in the player's screen */
+  bool isInFormSelect; 
+  bool canInteract;
   int perTurn; /*!< How many chips the player can get per turn */
   ChipFolder* folder; /*!< The loaded chip folder. @warning Will consume and delete this resource */
   Chip** selectedChips; /*!< Pointer to a list of selected chips */
@@ -68,6 +81,8 @@ private:
   ChipDescriptionTextbox chipDescriptionTextbox; /*!< Popups chip descriptions */
 
   double frameElapsed; /*!< delta seconds since last frame */
+
+  std::vector<PlayerFormMeta*> forms;
 
 public:
   /**
@@ -188,6 +203,8 @@ public:
    */
   const sf::Vector2f GetOffset() const { return custSprite.getPosition() - sf::Vector2f(-custSprite.getTextureRect().width*2.f, 0.f); } // TODO: Get rid. See BattleScene.cpp line 241
 
+  void SetPlayerFormOptions(const std::vector<PlayerFormMeta*> forms);
+
   /**
    * @brief Draws GUI and all child graphics on it
    * @param target
@@ -230,6 +247,12 @@ public:
    * @return int
    */
   const int GetChipCount();
+
+  const int GetSelectedFormIndex();
+
+  const bool SelectedNewForm();
+
+  bool CanInteract();
   
   /**
    * @brief Calls ClearChips(), resets cursor, and sets AreChipsReady are false

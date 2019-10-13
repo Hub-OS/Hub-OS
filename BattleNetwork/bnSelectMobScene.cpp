@@ -120,7 +120,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   this->elapsed += elapsed;
 
   // multiplying update by 2 effectively sets playback speed to 200%
-  navigatorAnimator.Update((float)elapsed*2.0, navigator);
+  navigatorAnimator.Update(float(elapsed*2.0), navigator);
 
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);

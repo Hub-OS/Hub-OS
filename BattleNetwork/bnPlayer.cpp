@@ -16,7 +16,7 @@
 Player::Player()
   :
   state(PLAYER_IDLE),
-  chargeComponent(this),
+  chargeEffect(this),
   AI<Player>(this),
   Character(Rank::_1)
 {
@@ -26,12 +26,10 @@ Player::Player()
   // Make sure the charge is in front of this node
   // Otherwise children scene nodes are drawn behind 
   // their parents
-  chargeComponent.SetLayer(-1);
-  this->AddNode(&chargeComponent);
-  chargeComponent.setPosition(0, -20.0f); // translate up -20
+  chargeEffect.SetLayer(-1);
+  this->AddNode(&chargeEffect);
+  chargeEffect.setPosition(0, -20.0f); // translate up -20
 
-  health = 900;
-  SetName("Megaman");
   SetLayer(0);
   team = Team::RED;
 
@@ -44,11 +42,12 @@ Player::Player()
   animationComponent->Reload();
   this->RegisterComponent(animationComponent);
 
-  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
   previous = nullptr;
 
   playerControllerSlide = false;
+
+  activeForm = nullptr;
 }
 
 Player::~Player() {
@@ -65,18 +64,22 @@ void Player::OnUpdate(float _elapsed) {
 
   AI<Player>::Update(_elapsed);
 
-  //Components updates
-  chargeComponent.Update(_elapsed);
+  //Node updates
+  chargeEffect.Update(_elapsed);
+
+  if (activeForm) {
+    activeForm->OnUpdate(_elapsed, *this);
+  }
 }
 
 void Player::Attack() {
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
-    chargeComponent.IsFullyCharged() ? ExecuteChargedBusterAction() : ExecuteBusterAction();
+    chargeEffect.IsFullyCharged() ? ExecuteChargedBusterAction() : ExecuteBusterAction();
   }
 }
 
 void Player::OnDelete() {
-  chargeComponent.Hide();
+  chargeEffect.Hide();
   auto animationComponent = this->GetFirstComponent<AnimationComponent>();
   animationComponent->CancelCallbacks();
   animationComponent->SetAnimation(PLAYER_HIT);
@@ -114,7 +117,7 @@ int Player::GetHitCount() const
 
 void Player::SetCharging(bool state)
 {
-  chargeComponent.SetCharging(state);
+  chargeEffect.SetCharging(state);
 }
 
 void Player::SetAnimation(string _state, std::function<void()> onFinish) {
@@ -139,12 +142,43 @@ const bool Player::PlayerControllerSlideEnabled() const
   return playerControllerSlide;
 }
 
-void Player::ExecuteBusterAction()
+void Player::ActivateFormAt(int index)
 {
-  this->RegisterComponent(new BusterChipAction(this, false, 1));
+  if (activeForm) {
+    delete activeForm;
+    activeForm = nullptr;
+  }
+
+  auto meta = forms[index];
+  activeForm = meta->BuildForm();
+
+  if (activeForm) {
+    activeForm->OnActivate(*this);
+  }
 }
 
-void Player::ExecuteChargedBusterAction()
+void Player::DeactivateForm()
 {
-  this->RegisterComponent(new BusterChipAction(this, true, 10));
+  if (activeForm) {
+    activeForm->OnDeactivate(*this);
+  }
+}
+
+const std::vector<PlayerFormMeta*> Player::GetForms()
+{
+  auto res = std::vector<PlayerFormMeta*>();
+
+  for (int i = 0; i < formSize; i++) {
+    res.push_back(forms[i]);
+  }
+
+  return res;
+}
+
+bool Player::RegisterForm(PlayerFormMeta * info)
+{
+  if (formSize >= forms.size()) return false;
+
+  this->forms[formSize++] = info;
+  return true;
 }

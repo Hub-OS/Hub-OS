@@ -27,4 +27,6 @@ public:
   Roll();
 
   virtual const float GetHitHeight() const;
+  void ExecuteBusterAction() final;
+  void ExecuteChargedBusterAction() final;
 };

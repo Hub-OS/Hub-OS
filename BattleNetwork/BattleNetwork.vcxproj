@@ -202,6 +202,7 @@
     </ClCompile>
     <ClCompile Include="bnArtifact.cpp" />
     <ClCompile Include="bnAudioResourceManager.cpp" />
+    <ClCompile Include="bnBees.cpp" />
     <ClCompile Include="bnBombChipAction.cpp" />
     <ClCompile Include="bnBubble.cpp" />
     <ClCompile Include="bnBubbleTrap.cpp" />
@@ -252,6 +253,11 @@
     <ClCompile Include="bnHideTimer.cpp" />
     <ClCompile Include="bnHideUntil.cpp" />
     <ClCompile Include="bnHitBox.cpp" />
+    <ClCompile Include="bnHoneyBomber.cpp" />
+    <ClCompile Include="bnHoneyBomberAttackState.cpp" />
+    <ClCompile Include="bnHoneyBomberIdleState.cpp" />
+    <ClCompile Include="bnHoneyBomberMob.cpp" />
+    <ClCompile Include="bnHoneyBomberMoveState.cpp" />
     <ClCompile Include="bnInfiniteMap.cpp" />
     <ClCompile Include="bnJudgeTreeBackground.cpp" />
     <ClCompile Include="bnLanBackground.cpp" />
@@ -275,6 +281,7 @@
     <ClCompile Include="bnMedicalBackground.cpp" />
     <ClCompile Include="bnMegalian.cpp" />
     <ClCompile Include="bnMegalianIdleState.cpp" />
+    <ClCompile Include="bnMegaman.cpp" />
     <ClCompile Include="bnMessage.cpp" />
     <ClCompile Include="bnMessageQuestion.cpp" />
     <ClCompile Include="bnMetalBlade.cpp" />
@@ -310,6 +317,7 @@
     <ClCompile Include="bnPanelGrab.cpp" />
     <ClCompile Include="bnParticlePoof.cpp" />
     <ClCompile Include="bnPlayerChipUseListener.cpp" />
+    <ClCompile Include="bnPlayerForm.cpp" />
     <ClCompile Include="bnPlayerHitState.cpp" />
     <ClCompile Include="bnPlayerIdleState.cpp" />
     <ClCompile Include="bnProgBomb.cpp" />
@@ -390,7 +398,15 @@
   <ItemGroup>
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
     <ClInclude Include="Android\bnTouchArea.h" />
+    <ClInclude Include="bnBees.h" />
     <ClInclude Include="bnBusterChipAction.h" />
+    <ClInclude Include="bnHoneyBomber.h" />
+    <ClInclude Include="bnHoneyBomberAttackState.h" />
+    <ClInclude Include="bnHoneyBomberIdleState.h" />
+    <ClInclude Include="bnHoneyBomberMob.h" />
+    <ClInclude Include="bnHoneyBomberMoveState.h" />
+    <ClInclude Include="bnMegaman.h" />
+    <ClInclude Include="bnPlayerForm.h" />
     <ClInclude Include="bnShakingEffect.h" />
     <ClInclude Include="bnACDCBackground.h" />
     <ClInclude Include="bnAirShot.h" />

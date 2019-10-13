@@ -89,6 +89,8 @@ void SpriteSceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
 
   if (s) {
     states.shader =s;
+  } else if (!useParentShader) {
+    states.shader = nullptr;
   }
 
   std::vector<SceneNode*> copies = this->childNodes;

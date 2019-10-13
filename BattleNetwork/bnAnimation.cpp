@@ -217,15 +217,17 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
 void Animation::SetAnimation(string state) {
    RemoveCallbacks();
    progress = 0.0f;
-   currAnimation = state;
 
-   std::transform(currAnimation.begin(), currAnimation.end(), currAnimation.begin(), ::toupper);
+   std::transform(state.begin(), state.end(), state.begin(), ::toupper);
 
-   auto pos = animations.find(currAnimation);
+   auto pos = animations.find(state);
 
    if (pos == animations.end()) {
      //throw std::runtime_error(std::string("No animation found in file for " + currAnimation));
-     Logger::Log("No animation found in file for " + currAnimation);
+     Logger::Log("No animation found in file for " + state);
+   }
+   else {
+     currAnimation = state;
    }
 }
 
@@ -271,7 +273,10 @@ sf::Vector2f Animation::GetPoint(const std::string & pointName)
 {
   auto point = pointName;
   std::transform(point.begin(), point.end(), point.begin(), ::toupper);
-  return animator.GetPoint(point);
+
+  auto res = animator.GetPoint(point);
+
+  return res;
 }
 
 void Animation::OverrideAnimationFrames(const std::string& animation, std::list <OverrideFrame>&& data, std::string& uuid)

@@ -50,6 +50,7 @@
         CHIP_REVEAL,
         BADGE_WIRE,
         COLORIZE,
+        PALETTE_SWAP,
         SHADER_TYPE_SIZE
     };
 #endif

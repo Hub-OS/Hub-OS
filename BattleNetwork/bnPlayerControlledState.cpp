@@ -30,9 +30,9 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 #else
     if(INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !INPUT.Has(EventTypes::RELEASED_SHOOT) && !player.IsSliding() && !player.GetNextTile()) {
 #endif
-    if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
+    if (player.chargeEffect.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack();
-      player.chargeComponent.SetCharging(false);
+      player.chargeEffect.SetCharging(false);
       isChargeHeld = false;
       auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};
       player.SetAnimation(PLAYER_SHOOTING, onFinish);
@@ -75,7 +75,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (shouldShoot) {
     isChargeHeld = true;
 
-    player.chargeComponent.SetCharging(true);
+    player.chargeEffect.SetCharging(true);
   }
 
   if (INPUT.Has(EventTypes::RELEASED_MOVE_UP)) {
@@ -117,7 +117,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
 void PlayerControlledState::OnLeave(Player& player) {
   /* Mega loses charge when we leave this state */
-  player.chargeComponent.SetCharging(false);
+  player.chargeEffect.SetCharging(false);
 
   /* Cancel chip actions */
   auto actions = player.GetComponentsDerivedFrom<ChipAction>();

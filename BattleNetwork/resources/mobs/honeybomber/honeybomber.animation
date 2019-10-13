@@ -1,0 +1,9 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/mobs/honeybomber/honeybomber.png"
+
+animation state="IDLE"
+frame duration="0.05" x="1" y="0" w="50" h="58" originx="12" originy="57"
+frame duration="0.05" x="59" y="0" w="52" h="58" originx="12" originy="56"
+
+animation state="ATTACK"
+frame duration="0.05" x="1" y="66" w="52" h="64" originx="11" originy="55"
+frame duration="0.05" x="68" y="66" w="54" h="64" originx="11" originy="55"

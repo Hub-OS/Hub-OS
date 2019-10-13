@@ -17,6 +17,9 @@
 #include "bnPlayerControlledState.h"
 #include "bnPlayerIdleState.h"
 #include "bnPlayerHitState.h"
+#include "bnPlayerForm.h"
+
+#include <array>
 
 using sf::IntRect;
 
@@ -24,6 +27,12 @@ class Player : public Character, public AI<Player> {
   friend class PlayerControlledState;
   friend class PlayerIdleState;
   friend class PlayerHitState;
+
+protected:
+  bool RegisterForm(PlayerFormMeta* info);
+
+  template<typename T>
+  PlayerFormMeta* AddForm();
 public:
   using DefaultState = PlayerControlledState;
 
@@ -46,7 +55,7 @@ public:
   /**
    * @brief Fires a buster
    */
-  void Attack();
+  virtual void Attack();
 
   /**
    * @brief Don't take damage if blinking. Responds to recoil props
@@ -75,7 +84,6 @@ public:
 
   /**
    * @brief Toggles the charge component
-   * @warning This will be removed in future versions. Use GetComponent<ChargeEffectSceneNode>()
    * @param state
    */
   void SetCharging(bool state);
@@ -84,18 +92,38 @@ public:
    * @brief Set the animation and on finish callback
    * @param _state name of the animation
    */
-  virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
+  void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
 
   void EnablePlayerControllerSlideMovementBehavior(bool enable = true);
   const bool PlayerControllerSlideEnabled() const;
 
-  virtual void ExecuteBusterAction();
-  virtual void ExecuteChargedBusterAction();
+  virtual void ExecuteBusterAction() = 0;
+  virtual void ExecuteChargedBusterAction() = 0;
 
+  void ActivateFormAt(int index); 
+  void DeactivateForm();
+  const std::vector<PlayerFormMeta*> GetForms();
 protected:
   int hitCount; /*!< How many times the player has been hit. Used by score board. */
   string state; /*!< Animation state name */
   bool playerControllerSlide;
   AnimationComponent* animationComponent;
-  ChargeEffectSceneNode chargeComponent; /*!< Handles charge effect */
+  ChargeEffectSceneNode chargeEffect; /*!< Handles charge effect */
+
+  std::array<PlayerFormMeta*, 5> forms;
+  int formSize;
+  PlayerForm* activeForm;
 };
+
+template<typename T>
+PlayerFormMeta* Player::AddForm() {
+  PlayerFormMeta* info = new PlayerFormMeta(formSize+1);
+  info->SetFormClass<T>();
+  
+  if (!this->RegisterForm(info)) {
+    delete info;
+    info = nullptr;
+  }
+
+  return info;
+}

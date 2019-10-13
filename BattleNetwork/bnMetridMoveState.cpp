@@ -5,7 +5,6 @@
 #include "bnMobMoveEffect.h"
 #include "bnAnimationComponent.h"
 #include "bnMetridAttackState.h"
-#include "bnMetridIdleState.h"
 
 MetridMoveState::MetridMoveState() : isMoving(false), moveCount(5), cooldown(1), AIState<Metrid>() { ; }
 MetridMoveState::~MetridMoveState() { ; }

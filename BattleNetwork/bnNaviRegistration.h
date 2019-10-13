@@ -20,7 +20,7 @@ class NaviRegistration {
 public:
 
   /*! \brief Navi roster info object. Assign navi details to display with this. */
-  class NaviInfo {
+  class NaviMeta {
     friend class NaviRegistration;
 
     Player* navi; /*!< The net navi to construct */
@@ -43,92 +43,92 @@ public:
     /**
      * @brief Sets every number to 1 and string to "None"
      */
-    NaviInfo();
+    NaviMeta();
     
     /**
      * @brief Delete navi pointer
      */
-    ~NaviInfo();
+    ~NaviMeta();
 
     /**
      * @brief Prepares the loadNaviClass deffered loading function
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    template<class T> NaviInfo& SetNaviClass();
+    template<class T> NaviMeta& SetNaviClass();
     
     /**
      * @brief Set symbol texture and cropped at 15x15 dimensions
      * @param symbol texture
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetSymbolTexture(sf::Texture& symbol);
+    NaviMeta& SetSymbolTexture(sf::Texture& symbol);
     
     /**
      * @brief Sets special description information of the navi
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetSpecialDescription(const std::string&& special);
+    NaviMeta& SetSpecialDescription(const std::string&& special);
     
     /**
      * @brief Sets attack level to display
      * @param atk attack strength
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetAttack(const int atk);
+    NaviMeta& SetAttack(const int atk);
     
     /**
      * @brief Sets charged attack level to display
      * @param atk charge attack strength
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetChargedAttack(const int atk);
+    NaviMeta& SetChargedAttack(const int atk);
     
     /**
      * @brief Sets speed level to display
      * @param speed how fast the navi is expected to be
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetSpeed(const double speed);
+    NaviMeta& SetSpeed(const double speed);
     
     /**
      * @brief Sets the health to display
      * @param HP health
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetHP(const int HP);
+    NaviMeta& SetHP(const int HP);
     
     /**
      * @brief Toggles if a sword based navi or buster
      * @param enabled true if sword, default is false
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetIsSword(const bool enabled);
+    NaviMeta& SetIsSword(const bool enabled);
     
     /**
      * @brief Sets the overworld animation path used in menu screen
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetOverworldAnimationPath(const std::string&& path);
+    NaviMeta& SetOverworldAnimationPath(const std::string&& path);
     
     /**
      * @brief Sets the texture of the overworld animation
      * @param texture
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetOverworldTexture(const sf::Texture* texture);
+    NaviMeta& SetOverworldTexture(const sf::Texture* texture);
     
     /**
      * @brief Sets the battle animation path used in menu screen
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetBattleAnimationPath(const std::string&& path);
+    NaviMeta& SetBattleAnimationPath(const std::string&& path);
     
     /**
      * @brief Sets the texture of the battle animation used in select screen
      * @param texture
-     * @return NaviInfo& to chain
+     * @return NaviMeta& to chain
      */
-    NaviInfo& SetBattleTexture(const sf::Texture* texture);
+    NaviMeta& SetBattleTexture(const sf::Texture* texture);
     
     /**
      * @brief Gets the overworld texture to draw
@@ -198,13 +198,13 @@ public:
   };
 
 private:
-  std::vector<NaviInfo*> roster; /*!< Complete roster of net navis to load */
+  std::vector<NaviMeta*> roster; /*!< Complete roster of net navis to load */
  
   /**
-   * @brief Registers a navi through a NaviInfo data object
+   * @brief Registers a navi through a NaviMeta data object
    * @param info
    */
-  void Register(NaviInfo* info);
+  void Register(NaviMeta* info);
   
 public:
   /**
@@ -220,11 +220,11 @@ public:
 
   /**
    * @brief Creates a navi roster entry and sets the deffered navi loader for navi type T
-   * @return NaviInfo* roster data object
+   * @return NaviMeta* roster data object
    */
   template<class T>
-  NaviInfo* AddClass() {
-    NaviRegistration::NaviInfo* info = new NaviRegistration::NaviInfo();
+  NaviMeta* AddClass() {
+    NaviRegistration::NaviMeta* info = new NaviRegistration::NaviMeta();
     info->SetNaviClass<T>();
     this->Register(info);
 
@@ -234,10 +234,10 @@ public:
   /**
    * @brief Get the navi info entry at roster index 
    * @param index roster index
-   * @return NaviInfo& of navi entry
+   * @return NaviMeta& of navi entry
    * @throws std::runtime_error if index is greater than number of entries or less than zero
    */
-  NaviInfo& At(int index);
+  NaviMeta& At(int index);
   
   /**
    * @brief Get the size of the navi roster
@@ -262,10 +262,10 @@ public:
  * Automatically sets battle texture and overworld texture from the net navi class
  * Automatically sets health from net navi class
  * 
- * @return NaviInfo& object for chaining
+ * @return NaviMeta& object for chaining
  */
 template<class T>
-inline NaviRegistration::NaviInfo & NaviRegistration::NaviInfo::SetNaviClass()
+inline NaviRegistration::NaviMeta & NaviRegistration::NaviMeta::SetNaviClass()
 {
   loadNaviClass = [this]() { 
     this->navi = new T(); 
