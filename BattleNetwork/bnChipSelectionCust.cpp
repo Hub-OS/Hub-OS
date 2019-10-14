@@ -15,6 +15,7 @@ ChipSelectionCust::ChipSelectionCust(ChipFolder* _folder, int cap, int perTurn) 
   chipDescriptionTextbox(sf::Vector2f(4, 255)),
   isInView(false),
   isInFormSelect(false),
+  playFormSound(false),
   canInteract(true)
 {
   frameElapsed = 1;
@@ -227,7 +228,7 @@ bool ChipSelectionCust::CursorAction() {
       thisFrameSelectedForm = -1; // no change
     }
     else {
-      formSelectQuitTimer = 1.0f;
+      formSelectQuitTimer = 3.0f/6.0f;
       selectedForm = thisFrameSelectedForm;
     }
     return res;
@@ -642,7 +643,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
         }
         else if (i == selectedForm && selectedForm > -1) {
           auto aquaMarineState = states;
-          //aquaMarineState.shader = SHADERS.GetShader(ShaderType::COLORIZE);
+          aquaMarineState.shader = SHADERS.GetShader(ShaderType::COLORIZE);
           f.setColor(sf::Color(127,255,212));
           target.draw(f, aquaMarineState);
           f.setColor(sf::Color::White); // back to normal after draw to texture
@@ -655,13 +656,24 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
         i++;
       }
 
-      target.draw(formCursor, states);
+      // Draw cursor only if not flashing the screen
+      if (formSelectQuitTimer <= 0.f) {
+        target.draw(formCursor, states);
+      }
     }
   }
 
   target.draw(chipDescriptionTextbox, states);
 
   SceneNode::draw(target, states);
+
+  if (isInFormSelect && formSelectQuitTimer <= 2.f / 6.0f) {
+    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, 2.f / 6.f, 1.f);
+    auto view = ENGINE.GetView();
+    sf::RectangleShape screen(view.getSize());
+    screen.setFillColor(sf::Color(255, 255, 255, int(delta * 255.f)));
+    target.draw(screen, sf::RenderStates::Default);
+  }
 }
 
 
@@ -686,7 +698,7 @@ void ChipSelectionCust::Update(float elapsed)
   formCursorAnimator.Update(elapsed, formCursor);
   formSelectAnimator.Update(elapsed, formSelect);
 
-  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddSprite() for all rendered items below
+  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddNode() for all rendered items below
 
   formCursor.setPosition(offset + 16.f, 12.f + float(formCursorRow*32.f));
   formSelect.setPosition(offset + 88.f, 194.f);
@@ -697,10 +709,16 @@ void ChipSelectionCust::Update(float elapsed)
     formSelectQuitTimer -= elapsed;
 
     if (formSelectQuitTimer <= 0.f) {
-      formSelectAnimator.SetAnimation("CLOSED");
-      isInFormSelect = false;
-      cursorPos = cursorRow = formCursorRow = 0;
       canInteract = true;
+      isInFormSelect = false;
+      playFormSound = false;
+    } else if (formSelectQuitTimer <= 1.f / 6.f) {
+      formSelectAnimator.SetAnimation("CLOSED");
+      cursorPos = cursorRow = formCursorRow = 0;
+      if (!playFormSound) {
+        playFormSound = true;
+        AUDIO.Play(AudioType::PA_ADVANCE);
+      }
     }
   }
 
@@ -716,7 +734,7 @@ void ChipSelectionCust::Update(float elapsed)
       row = 1;
     }
     if (IsInView()) {
-        float offset = 0;//-custSprite.getTextureRect().width*2.f; // this will be uneccessary once we use this->AddSprite() for all rendered items below
+        float offset = 0;//-custSprite.getTextureRect().width*2.f; // this will be uneccessary once we use this->AddNode() for all rendered items below
 
         icon.setPosition(offset + 2.f*(9.0f + ((float)(i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
 

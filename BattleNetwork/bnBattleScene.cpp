@@ -1005,10 +1005,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
         }
         else if (performed) {
-          if (chipCustGUI.SelectedNewForm()) {
-            AUDIO.Play(AudioType::PA_ADVANCE, AudioPriority::HIGHEST);
-          }
-          else {
+          if (!chipCustGUI.SelectedNewForm()) {
             AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGHEST);
           }
         }

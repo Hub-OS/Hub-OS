@@ -35,7 +35,7 @@ void ChargeEffectSceneNode::Update(float _elapsed) {
         animation.SetAnimation("CHARGED");
         animation << Animator::Mode::Loop;
         setColor(chargeColor);
-        this->SetShader(SHADERS.GetShader(ShaderType::COLORIZE));
+        this->SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
 
       }
 

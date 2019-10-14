@@ -63,6 +63,7 @@ private:
   int selectedForm, thisFrameSelectedForm;
   std::vector<sf::Sprite> formUI;
   float formSelectQuitTimer;
+  bool playFormSound;
 
   int chipCount; /*!< How many chips are listed in the GUI */
   int selectCount; /*!< How many chips the user has selected */

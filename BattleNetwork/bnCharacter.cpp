@@ -86,7 +86,7 @@ void Character::Update(float _elapsed) {
 
           if (this->counterable) {
             this->setColor(sf::Color(255, 55, 55));
-            this->SetShader(SHADERS.GetShader(ShaderType::COLORIZE));
+            this->SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
           }
       }
 

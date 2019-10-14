@@ -107,6 +107,7 @@ ShaderResourceManager::ShaderResourceManager(void) {
     paths[(int)ShaderType::BADGE_WIRE] = std::string() + "resources/shaders/" + version + "/wire";
     paths[(int)ShaderType::TRANSITION] = std::string() + "resources/shaders/" + version + "/transition";
     paths[(int)ShaderType::COLORIZE] = std::string() + "resources/shaders/" + version + "/colorize";
+    paths[(int)ShaderType::ADDITIVE] = std::string() + "resources/shaders/" + version + "/additive";
     paths[(int)ShaderType::PALETTE_SWAP] = std::string() + "resources/shaders/" + version + "/palette_swap";
 }
 
