@@ -32,6 +32,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
         lastMobSize(mob->GetMobCount()),
         didDoubleDelete(false),
         didTripleDelete(false),
+        isChangingForm(false),
+        isAnimatingFormChange(false),
         comboDeleteCounter(0),
         pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
         whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
@@ -46,6 +48,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
         chipCustGUI(folder->Clone(), 8, 8), 
         camera(*ENGINE.GetCamera()),
         chipUI(player),
+        lastSelectedForm(-1),
         persistentFolder(folder) {
 
   if (mob->GetMobCount() == 0) {
@@ -215,6 +218,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   showSummonText = false;
   summonTextLength = 1.25; // in seconds
 
+  backdropOpacity = 0.25; // default is 25%
+
   // SHADERS
   // TODO: Load shaders if supported
   shaderCooldown = 0;
@@ -224,7 +229,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
   whiteShader.setUniform("opacity", 0.5f);
-
   whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
 
   customBarShader.setUniform("texture", sf::Shader::CurrentTexture);
@@ -241,11 +245,16 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   heatShader.setUniform("distortionMapTexture", distortionMap);
   heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
 
-
   iceShader.setUniform("texture", sf::Shader::CurrentTexture);
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
   iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
   iceShader.setUniform("shine", 0.2f);
+
+  shine = sf::Sprite(LOAD_TEXTURE(MOB_BOSS_SHINE));
+  shine.setScale(2.f, 2.f);
+
+  shineAnimation = Animation("resources/mobs/boss_shine.animation");
+  shineAnimation.Load();
 
   isSceneInFocus = false;
 }
@@ -323,9 +332,10 @@ void BattleScene::ProcessNewestComponents()
 
 const bool BattleScene::IsBattleActive()
 {
-  return !(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle);
+  return !(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm);
 }
 
+// TODO: this needs to be handled by some chip API itself and not hacked
 void BattleScene::TEMPFilterAtkChips(Chip ** chips, int chipCount)
 {
   // Only remove the ATK chips in the queue. Increase the previous chip damage by +10
@@ -391,25 +401,71 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 void BattleScene::onUpdate(double elapsed) {
   this->elapsed = elapsed;
 
+  shineAnimation.Update((float)elapsed, shine);
+
   if(!isPaused) {
     this->summonTimer += elapsed;
 
-    if(showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
-      showSummonBackdropTimer += elapsed;
-      //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " showSummonBackdropLength: " + std::to_string(showSummonBackdropLength));
-    }else if(showSummonBackdropTimer >= showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && !showSummonText && prevSummonState) {
-      if (!summons.IsSummonOver()) {
-        showSummonText = true;
-        //Logger::Log("showSummonText: " + (showSummonText ? std::string("true") : std::string("false")));
+    if (!isChangingForm) {
+      if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
+        showSummonBackdropTimer += elapsed;
+        //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " showSummonBackdropLength: " + std::to_string(showSummonBackdropLength));
       }
-    } else if(showSummonBackdropTimer > 0 && summons.IsSummonOver()) {
-      showSummonBackdropTimer -= elapsed;
-      showSummonText = prevSummonState = false;
-      //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " going to 0");
+      else if (showSummonBackdropTimer >= showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && !showSummonText && prevSummonState) {
+        if (!summons.IsSummonOver()) {
+          showSummonText = true;
+          backdropOpacity = 0.25; // reset for summons
+          //Logger::Log("showSummonText: " + (showSummonText ? std::string("true") : std::string("false")));
+        }
+      }
+      else if (showSummonBackdropTimer > 0 && summons.IsSummonOver()) {
+        showSummonBackdropTimer -= elapsed;
+        showSummonText = prevSummonState = false;
+        //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " going to 0");
 
-    } else if(showSummonBackdropTimer <= 0 && summons.IsSummonOver()) {
-      showSummonBackdropTimer = 0;
-      showSummonBackdrop = false;
+      }
+      else if (showSummonBackdropTimer <= 0 && summons.IsSummonOver()) {
+        showSummonBackdropTimer = 0;
+        showSummonBackdrop = false;
+      }
+    }
+    else if (isChangingForm && !isAnimatingFormChange) {
+      showSummonBackdrop = true;
+      player->Reveal(); // If flickering
+
+      if (showSummonBackdropTimer < showSummonBackdropLength) {
+        showSummonBackdropTimer += elapsed;
+      } else if (showSummonBackdropTimer >= showSummonBackdropLength) {
+        if (!isAnimatingFormChange) {
+          isAnimatingFormChange = true;
+
+          auto pos = player->getPosition();
+          shine.setPosition(pos.x + 16.0f, pos.y - player->GetHitHeight()/4.0f);
+          
+          auto onTransform = [this]() {
+            lastSelectedForm = chipCustGUI.GetSelectedFormIndex();
+            player->ActivateFormAt(lastSelectedForm);
+            isLeavingFormChange = true;
+            AUDIO.Play(AudioType::PA_ADVANCE);
+          };
+
+          shineAnimation << "SHINE" << Animator::On(10, onTransform);
+        }
+      }
+    }
+    else if (isLeavingFormChange && showSummonBackdropTimer > 0.0f) {
+      showSummonBackdropTimer -= elapsed;
+
+      if (showSummonBackdropTimer <= 0.0f) {
+        isChangingForm = false; //done
+        showSummonBackdrop = false;
+        isLeavingFormChange = false;
+        isAnimatingFormChange = false;
+
+        // Show BattleStart
+        isPreBattle = true;
+        battleStartTimer.reset();
+      }
     }
   }
 
@@ -472,7 +528,7 @@ void BattleScene::onUpdate(double elapsed) {
   background->Update((float)elapsed);
 
   // Do not update when: paused or in chip select, during a summon sequence, showing Battle Start sign
-  if (!(isPaused || isInChipSelect) && summons.IsSummonOver() && !isPreBattle) {
+  if (!(isPaused || isInChipSelect || isChangingForm) && summons.IsSummonOver() && !isPreBattle) {
 
 
     // kill switch for testing:
@@ -512,9 +568,9 @@ void BattleScene::onUpdate(double elapsed) {
 
   lastMobSize = newMobSize;
 
-  // todo: we desperately need states
+  // TODO: we desperately need states
   // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
-  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle)) {
+  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm)) {
     if (battleTimer.isPaused()) {
       // start counting seconds again
       if (battleTimer.isPaused()) {
@@ -546,7 +602,7 @@ void BattleScene::onUpdate(double elapsed) {
 
   // other player controls
   if (INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
-    // Todo: move this to player controller state where these checks are performed for us
+    // TODO: move this to player controller state where these types of invasive checks are performed for us
     if (player && player->GetTile() && player->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE") {
       chipUI.UseNextChip();
     }
@@ -557,6 +613,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
 
   ENGINE.Clear();
+
+  if (isChangingForm) {
+    auto delta = 1.0 - (showSummonBackdropTimer / showSummonBackdropLength);
+
+    background->setColor(sf::Color(int(255.f * delta), int(255.f * delta), int(255.f * delta), 255));
+  }
 
   ENGINE.Draw(background);
 
@@ -579,10 +641,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
     tile->move(ENGINE.GetViewOffset());
 
-    if (summons.IsSummonActive() || showSummonBackdrop) {
+    if (summons.IsSummonActive() || showSummonBackdrop || isChangingForm) {
       SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
       coloredTile->SetShader(&pauseShader);
-      pauseShader.setUniform("opacity", 0.25f*float(std::max(0.0, (showSummonBackdropTimer / showSummonBackdropLength))));
+      pauseShader.setUniform("opacity", (float)backdropOpacity*float(std::max(0.0, (showSummonBackdropTimer / showSummonBackdropLength))));
       ENGINE.Draw(coloredTile);
       delete coloredTile;
     }
@@ -737,6 +799,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     surface.draw(*node);
   }
 
+  if (isAnimatingFormChange) {
+    surface.draw(shine);
+  }
 
   // cust dissapears when not in battle
   if (!(isInChipSelect || isPostBattle || mob->IsCleared()))
@@ -747,6 +812,16 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.SetShader(&pauseShader);
     pauseShader.setUniform("opacity", 0.25f);
   }
+
+  // TODO: hack to swap out
+  /*static auto lastShader = player->GetShader();
+
+  if (!isInChipSelect && showSummonBackdropTimer > showSummonBackdropLength/25.0f) {
+    player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+  }
+  else {
+    player->SetShader(lastShader);
+  }*/
 
   if (!summons.IsSummonActive() && showSummonText) {
     sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
@@ -806,7 +881,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(chipUI);
   }
 
-  if (isPreBattle) {
+  if (isPreBattle && !isChangingForm) {
     if (preBattleLength <= 0) {
       isPreBattle = false;
     }
@@ -880,7 +955,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   // Scene keyboard controls
   // TODO: really belongs in Update() but also handles a lot of conditional draws
   //       refactoring battle scene into battle states should reduce this complexity
-  if (INPUT.Has(EventTypes::PRESSED_PAUSE) && !isInChipSelect && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
+  if (INPUT.Has(EventTypes::PRESSED_PAUSE) && !isInChipSelect && !isChangingForm && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
     isPaused = !isPaused;
 
     if (!isPaused) {
@@ -1061,9 +1136,18 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         chipUI.LoadChips(chips, chipCount);
         ENGINE.RevokeShader();
 
-        // Show BattleStart
-        isPreBattle = true;
-        battleStartTimer.reset();
+        int selectedForm = chipCustGUI.GetSelectedFormIndex();
+
+        if (selectedForm != lastSelectedForm) {
+          isChangingForm = true;
+          showSummonBackdropTimer = 0;
+          backdropOpacity = 1.0f; // full black
+        }
+        else {
+          // Show BattleStart
+          isPreBattle = true;
+          battleStartTimer.reset();
+        }
       }
       else if (!isPAComplete) {
         chips = chipCustGUI.GetChips();
@@ -1074,12 +1158,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         if (hasPA > -1) {
           paSteps = programAdvance.GetMatchingSteps();
           PAStartTimer.reset();
-        }
-
-        int selectedForm = chipCustGUI.GetSelectedFormIndex();
-
-        if (selectedForm > -1) {
-          player->ActivateFormAt(selectedForm);
         }
 
         isPAComplete = true;

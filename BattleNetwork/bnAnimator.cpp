@@ -89,6 +89,16 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     return;
   }
 
+  if (startProgress == 0.f) {
+    // We've ended the update loop
+    isUpdating = false;
+
+    // All callbacks are in a valid state
+    callbacksAreValid = true;
+
+    return;
+  }
+
   // Determine if the progress has completed the animation
   bool applyCallback = (sequence.totalDuration == 0 || (startProgress > sequence.totalDuration && startProgress > 0.f));
 
@@ -153,7 +163,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
   std::vector<Frame>::const_iterator iter = copy.begin();
 
   // While there is time left in the progress loop
-  while (iter != copy.end() && startProgress != 0.f) {
+  while (iter != copy.end()) {
     // Increase the index
     index++;
 

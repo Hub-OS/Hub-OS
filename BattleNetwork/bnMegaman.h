@@ -2,10 +2,6 @@
 #include "bnPlayer.h"
 
 class Megaman : public Player {
-private:
-  sf::Texture palette;
-  sf::Shader* paletteSwap;
-
 public:
   Megaman();
   ~Megaman();
@@ -19,6 +15,38 @@ class TenguCross : public PlayerForm {
 public:
   TenguCross();
   ~TenguCross();
+  void OnUpdate(float elapsed, Player&);
+  void OnActivate(Player& player);
+  void OnDeactivate(Player& player);
+  void OnChargedBusterAction(Player&);
+  void OnSpecialAction(Player&);
+private:
+  bool loaded;
+  AnimationComponent* parentAnim;
+  Animation overlayAnimation;
+  SpriteSceneNode* overlay;
+};
+
+class HeatCross : public PlayerForm {
+public:
+  HeatCross();
+  ~HeatCross();
+  void OnUpdate(float elapsed, Player&);
+  void OnActivate(Player& player);
+  void OnDeactivate(Player& player);
+  void OnChargedBusterAction(Player&);
+  void OnSpecialAction(Player&);
+private:
+  bool loaded;
+  AnimationComponent* parentAnim;
+  Animation overlayAnimation;
+  SpriteSceneNode* overlay;
+};
+
+class TomahawkCross : public PlayerForm {
+public:
+  TomahawkCross();
+  ~TomahawkCross();
   void OnUpdate(float elapsed, Player&);
   void OnActivate(Player& player);
   void OnDeactivate(Player& player);

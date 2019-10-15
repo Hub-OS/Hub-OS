@@ -224,8 +224,8 @@ bool ChipSelectionCust::CursorAction() {
     thisFrameSelectedForm = formCursorRow;
 
     if (thisFrameSelectedForm == selectedForm) {
-      res = false;
-      thisFrameSelectedForm = -1; // no change
+      res = true;
+      selectedForm = thisFrameSelectedForm = -1; // no change
     }
     else {
       formSelectQuitTimer = 3.0f/6.0f;
@@ -666,6 +666,16 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   target.draw(chipDescriptionTextbox, states);
 
   SceneNode::draw(target, states);
+
+  // Reveal the new form icon in the HUD after the flash
+  if (selectedForm != -1 && formSelectQuitTimer <= 1.f/6.f) {
+    auto f = formUI[selectedForm];
+    auto rect = f.getTextureRect();
+    f.setTextureRect(sf::Rect(rect.left, rect.top, rect.width - 1, rect.height - 1));
+    f.setPosition(sf::Vector2f(4, 36.f));
+    target.draw(f, states);
+    f.setTextureRect(rect);
+  }
 
   if (isInFormSelect && formSelectQuitTimer <= 2.f / 6.0f) {
     auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, 2.f / 6.f, 1.f);

@@ -17,6 +17,7 @@
 #include "bnPlayerControlledState.h"
 #include "bnPlayerIdleState.h"
 #include "bnPlayerHitState.h"
+#include "bnPlayerChangeFormState.h"
 #include "bnPlayerForm.h"
 
 #include <array>
@@ -27,6 +28,7 @@ class Player : public Character, public AI<Player> {
   friend class PlayerControlledState;
   friend class PlayerIdleState;
   friend class PlayerHitState;
+  friend class PlayerChangeFormState;
 
 protected:
   bool RegisterForm(PlayerFormMeta* info);

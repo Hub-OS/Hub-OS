@@ -169,7 +169,8 @@ private:
   sf::Font *mobFont; /*!< Name of mob font */
   Mob* mob; /*!< Mob and mob data player are fighting against */
 
-  // States. TODO: Abstract this further into battle state classes
+  // States. TODO: Abstract this further into battle state classes 
+  // Instead of a million boolean flags
   bool isPaused; /*!< Pause state */
   bool isInChipSelect; /*!< In chip cust GUI state */
   bool isChipSelectReady; /*!< Used to interact with chip cust GUI, if selected chips are ready to use */
@@ -185,8 +186,16 @@ private:
   bool didDoubleDelete; /*!< Flag if player double deleted this frame */
   bool didTripleDelete; /*!< Flag if player tripled deleted this frame */
 
+  Animation shineAnimation;
+  sf::Sprite shine;
+
   bool isPreBattle; /*!< Is in pre-battle "Battle Start" state */
   bool isPostBattle; /*!< Is in post-battle "Enemy Deleted" state */
+  bool isChangingForm; /*!< Is in a custscene before the Pre Battle symbol*/
+  bool isAnimatingFormChange;
+  bool isLeavingFormChange;
+  int lastSelectedForm;
+
   double preBattleLength; /*!< Duration of state */
   double postBattleLength; /*!< Duration of state */
 
@@ -194,6 +203,8 @@ private:
   int totalCounterMoves; /*!< Track player's counters. Used for ranking. */
   int totalCounterDeletions; /*!< Track player's counter-deletions. Used for ranking. */
   int comboDeleteCounter; /*!< Deletions within 12 frames triggers double or triple deletes. */
+
+  double backdropOpacity;
 
   double summonTimer; /*!< Timer for TFC label to appear at top */
   bool showSummonText; /*!< Whether or not TFC label should appear */

@@ -121,6 +121,9 @@ public:
   
   void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame>&& data, std::string& uuid);
 
+  void SyncAnimation(Animation& other);
+  void SyncAnimation(AnimationComponent* other);
+
   /**
    * @brief Force the animation to jump to this frame index 
    * @param index index of the frame

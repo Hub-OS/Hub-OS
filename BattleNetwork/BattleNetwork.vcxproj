@@ -314,6 +314,7 @@
     <ClCompile Include="bnOverworldLight.cpp" />
     <ClCompile Include="bnOverworldMap.cpp" />
     <ClCompile Include="bnPA.cpp" />
+    <ClCompile Include="bnPaletteSwap.cpp" />
     <ClCompile Include="bnPanelGrab.cpp" />
     <ClCompile Include="bnParticlePoof.cpp" />
     <ClCompile Include="bnPlayerChipUseListener.cpp" />
@@ -406,6 +407,7 @@
     <ClInclude Include="bnHoneyBomberMob.h" />
     <ClInclude Include="bnHoneyBomberMoveState.h" />
     <ClInclude Include="bnMegaman.h" />
+    <ClInclude Include="bnPaletteSwap.h" />
     <ClInclude Include="bnPlayerForm.h" />
     <ClInclude Include="bnShakingEffect.h" />
     <ClInclude Include="bnACDCBackground.h" />

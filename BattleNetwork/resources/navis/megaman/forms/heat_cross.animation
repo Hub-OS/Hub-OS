@@ -1,0 +1,34 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/navis/megaman/forms/heat_cross.png"
+
+animation state="PLAYER_IDLE"
+frame duration="0.01" x="7" y="8" w="34" h="36" originx="23" originy="14"
+frame duration="0.01" x="43" y="8" w="34" h="36" originx="23" originy="14"
+
+animation state="PLAYER_HIT"
+frame duration="0.2" x="4" y="86" w="41" h="43" originx="16" originy="11"
+frame duration="0.02" x="277" y="52" w="36" h="31" originx="24" originy="14"
+
+animation state="PLAYER_MOVING"
+frame duration="0.07" x="7" y="181" w="35" h="40" originx="23" originy="15"
+frame duration="0.02" x="43" y="179" w="34" h="37" originx="23" originy="15"
+frame duration="0.02" x="79" y="176" w="35" h="45" originx="24" originy="17"
+
+animation state="PLAYER_MOVED"
+frame duration="0.02" x="117" y="174" w="37" h="37" originx="23" originy="15"
+frame duration="0.02" x="79" y="177" w="35" h="38" originx="24" originy="16"
+frame duration="0.02" x="43" y="180" w="34" h="37" originx="23" originy="14"
+frame duration="0.05" x="5" y="182" w="36" h="36" originx="25" originy="14"
+
+animation state="PLAYER_SWORD"
+frame duration="0.05" x="44" y="224" w="37" h="32" originx="20" originy="13"
+frame duration="0.05" x="86" y="224" w="26" h="33" originx="14" originy="12"
+frame duration="0.15" x="113" y="223" w="34" h="36" originx="23" originy="16"
+
+animation state="PLAYER_SHOOTING"
+frame duration="-2.66425e-36" x="13" y="629" w="30" h="33" originx="16" originy="14"
+
+animation state="PLAYER_THROW"
+frame duration="0.1" x="10" y="264" w="46" h="38" originx="24" originy="10"
+frame duration="0.05" x="57" y="262" w="32" h="39" originx="23" originy="17"
+frame duration="0.05" x="95" y="263" w="48" h="36" originx="26" originy="19"
+frame duration="0.05" x="150" y="267" w="41" h="37" originx="29" originy="17"

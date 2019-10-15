@@ -26,9 +26,10 @@ Player::Player()
   // Make sure the charge is in front of this node
   // Otherwise children scene nodes are drawn behind 
   // their parents
-  chargeEffect.SetLayer(-1);
+  chargeEffect.SetLayer(-2);
   this->AddNode(&chargeEffect);
   chargeEffect.setPosition(0, -20.0f); // translate up -20
+  chargeEffect.EnableUseParentShader(false);
 
   SetLayer(0);
   team = Team::RED;
@@ -145,15 +146,18 @@ const bool Player::PlayerControllerSlideEnabled() const
 void Player::ActivateFormAt(int index)
 {
   if (activeForm) {
+    activeForm->OnDeactivate(*this);
     delete activeForm;
     activeForm = nullptr;
   }
 
-  auto meta = forms[index];
-  activeForm = meta->BuildForm();
+  if (index >= 0 || index < forms.size()) {
+    auto meta = forms[index];
+    activeForm = meta->BuildForm();
 
-  if (activeForm) {
-    activeForm->OnActivate(*this);
+    if (activeForm) {
+      activeForm->OnActivate(*this);
+    }
   }
 }
 

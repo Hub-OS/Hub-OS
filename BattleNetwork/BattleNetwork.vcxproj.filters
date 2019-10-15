@@ -668,6 +668,9 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\Players\Megaman\Forms">
       <UniqueIdentifier>{fbecb712-6f80-4960-8199-67aae7c70f9b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Components\VisualEffects\PaletteSwap">
+      <UniqueIdentifier>{3bf97168-69a1-488f-b52e-314408839437}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1296,6 +1299,9 @@
     </ClCompile>
     <ClCompile Include="bnPlayerForm.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players</Filter>
+    </ClCompile>
+    <ClCompile Include="bnPaletteSwap.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\PaletteSwap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2079,6 +2085,9 @@
     </ClInclude>
     <ClInclude Include="bnPlayerForm.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Character\Players</Filter>
+    </ClInclude>
+    <ClInclude Include="bnPaletteSwap.h">
+      <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\PaletteSwap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -171,6 +171,8 @@ public:
 
   void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame>&& data, std::string& uuid);
 
+  void SyncAnimation(Animation& other);
+
 private:
   /**
    * @brief Strips the key-value from a file format

@@ -287,3 +287,10 @@ void Animation::OverrideAnimationFrames(const std::string& animation, std::list 
   uuid = animation + "@" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
   this->animations.emplace(uuid, std::move(this->animations[animation].MakeNewFromOverrideData(std::move(data))));
 }
+
+void Animation::SyncAnimation(Animation & other)
+{
+  other.progress = this->progress;
+  other.currAnimation = this->currAnimation;
+  // other << this->GetMode();
+}

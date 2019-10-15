@@ -106,6 +106,16 @@ void AnimationComponent::OverrideAnimationFrames(const std::string& animation, s
   this->animation.OverrideAnimationFrames(animation, std::move(data), uuid);
 }
 
+void AnimationComponent::SyncAnimation(Animation & other)
+{
+  animation.SyncAnimation(other);
+}
+
+void AnimationComponent::SyncAnimation(AnimationComponent * other)
+{
+  animation.SyncAnimation(other->animation);
+}
+
 void AnimationComponent::SetFrame(const int index)
 {
   animation.SetFrame(index, *GetOwner());

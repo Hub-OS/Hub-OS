@@ -4,10 +4,10 @@ animation state="OPEN"
 frame duration="1" x="0" y="0" w="88" h="97" originx="44" originy="97"
 
 animation state="CLOSED"
-frame duration="1" x="0" y="97" w="88" h="8" originx="44" originy="9"
+frame duration="1" x="0" y="97" w="88" h="13" originx="44" originy="9"
 
 animation state="OPENING"
-frame duration="0.05" x="0" y="97" w="88" h="8" originx="44" originy="8"
+frame duration="0.05" x="0" y="97" w="88" h="13" originx="44" originy="9"
 frame duration="0.05" x="0" y="0" w="88" h="10" originx="44" originy="10"
 frame duration="0.05" x="0" y="0" w="88" h="25" originx="44" originy="25"
 frame duration="0.05" x="0" y="0" w="88" h="41" originx="44" originy="41"
