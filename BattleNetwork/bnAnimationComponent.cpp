@@ -101,9 +101,13 @@ sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
   return animation.GetPoint(pointName);
 }
 
-void AnimationComponent::OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame>&& data, std::string & uuid)
+void AnimationComponent::OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string & uuid)
 {
-  this->animation.OverrideAnimationFrames(animation, std::move(data), uuid);
+  this->animation.OverrideAnimationFrames(animation, data, uuid);
+
+  for (auto o : overrideList) {
+    o->OverrideAnimationFrames(animation, data, uuid);
+  }
 }
 
 void AnimationComponent::SyncAnimation(Animation & other)
@@ -114,6 +118,28 @@ void AnimationComponent::SyncAnimation(Animation & other)
 void AnimationComponent::SyncAnimation(AnimationComponent * other)
 {
   animation.SyncAnimation(other->animation);
+}
+
+void AnimationComponent::AddToOverrideList(Animation * other)
+{
+  if (other == &animation) return;
+
+  auto iter = std::find(overrideList.begin(), overrideList.end(), other);
+
+  if (iter == overrideList.end()) {
+    overrideList.push_back(other);
+  }
+}
+
+void AnimationComponent::RemoveFromOverrideList(Animation * other)
+{
+  if (other == &animation) return;
+
+  auto iter = std::find(overrideList.begin(), overrideList.end(), other);
+
+  if (iter != overrideList.end()) {
+    overrideList.erase(iter);
+  }
 }
 
 void AnimationComponent::SetFrame(const int index)

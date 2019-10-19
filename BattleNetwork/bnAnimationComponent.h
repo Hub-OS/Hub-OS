@@ -119,10 +119,13 @@ public:
    */
   sf::Vector2f GetPoint(const std::string& pointName);
   
-  void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame>&& data, std::string& uuid);
+  void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string& uuid);
 
   void SyncAnimation(Animation& other);
   void SyncAnimation(AnimationComponent* other);
+
+  void AddToOverrideList(Animation* other);
+  void RemoveFromOverrideList(Animation* other);
 
   /**
    * @brief Force the animation to jump to this frame index 
@@ -134,4 +137,6 @@ private:
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
   double speed; /*!< Playback speed */
+
+  std::vector<Animation*> overrideList;
 };

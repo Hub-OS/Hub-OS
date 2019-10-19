@@ -279,13 +279,16 @@ sf::Vector2f Animation::GetPoint(const std::string & pointName)
   return res;
 }
 
-void Animation::OverrideAnimationFrames(const std::string& animation, std::list <OverrideFrame>&& data, std::string& uuid)
+void Animation::OverrideAnimationFrames(const std::string& animation, std::list <OverrideFrame> data, std::string& uuid)
 {
   auto currentAnimation = animation;
   std::transform(currentAnimation.begin(), currentAnimation.end(), currentAnimation.begin(), ::toupper);
 
-  uuid = animation + "@" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
-  this->animations.emplace(uuid, std::move(this->animations[animation].MakeNewFromOverrideData(std::move(data))));
+  if (uuid.empty()) {
+    uuid = animation + "@" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
+  }
+
+  this->animations.emplace(uuid, std::move(this->animations[animation].MakeNewFromOverrideData(data)));
 }
 
 void Animation::SyncAnimation(Animation & other)

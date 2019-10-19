@@ -8,8 +8,8 @@ class SpriteSceneNode;
 class Character;
 class BusterChipAction : public ChipAction {
 private:
-  SpriteSceneNode* attachment;
-  Animation attachmentAnim;
+  SpriteSceneNode *attachment, *attachment2;
+  Animation attachmentAnim, attachmentAnim2;
 public:
   BusterChipAction(Character* owner, bool charged, int damage);
   ~BusterChipAction();

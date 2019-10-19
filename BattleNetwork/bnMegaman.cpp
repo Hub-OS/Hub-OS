@@ -4,6 +4,7 @@
 #include "bnBusterChipAction.h"
 #include "bnCrackShotChipAction.h"
 #include "bnFireBurnChipAction.h"
+#include "bnTornadoChipAction.h"
 #include "bnPaletteSwap.h"
 
 Megaman::Megaman() : Player() {
@@ -78,6 +79,9 @@ void TenguCross::OnActivate(Player& player)
 
   OnUpdate(0.01f, player);
 
+  player.AddNode(overlay);
+
+  parentAnim->AddToOverrideList(&overlayAnimation);
 }
 
 void TenguCross::OnDeactivate(Player & player)
@@ -85,6 +89,9 @@ void TenguCross::OnDeactivate(Player & player)
   player.RemoveNode(overlay);
   auto pswap = player.GetFirstComponent<PaletteSwap>();
   pswap->Revert();
+
+  parentAnim->RemoveFromOverrideList(&overlayAnimation);
+
 }
 
 void TenguCross::OnUpdate(float elapsed, Player& player)
@@ -92,23 +99,19 @@ void TenguCross::OnUpdate(float elapsed, Player& player)
   parentAnim->SyncAnimation(overlayAnimation);
   overlayAnimation.Refresh(*overlay);
 
+  overlay->setColor(player.getColor());
+
   // update node position in the animation
   auto baseOffset = parentAnim->GetPoint("Head");
   auto origin = player.operator sf::Sprite &().getOrigin();
   baseOffset = baseOffset - origin;
 
   overlay->setPosition(baseOffset);
-
-  // TODO: do once for demo and then refactor this setup
-  if (loaded) {
-    loaded = false;
-    player.AddNode(overlay);
-  }
 }
 
 void TenguCross::OnChargedBusterAction(Player& player)
 {
-  player.RegisterComponent(new CrackShotChipAction(&player, 30));
+  player.RegisterComponent(new TornadoChipAction(&player, 30));
 }
 
 void TenguCross::OnSpecialAction(Player& player)
@@ -143,9 +146,14 @@ void HeatCross::OnActivate(Player& player)
 
   pswap->LoadPaletteTexture("resources/navis/megaman/forms/heat.palette.png");
 
+  player.SetElement(Element::FIRE);
+
   loaded = true;
 
   OnUpdate(0.01f, player);
+  player.AddNode(overlay);
+
+  parentAnim->AddToOverrideList(&overlayAnimation);
 
 }
 
@@ -154,10 +162,17 @@ void HeatCross::OnDeactivate(Player & player)
   player.RemoveNode(overlay);
   auto pswap = player.GetFirstComponent<PaletteSwap>();
   pswap->Revert();
+
+  player.SetElement(Element::NONE);
+
+  parentAnim->RemoveFromOverrideList(&overlayAnimation);
+
 }
 
 void HeatCross::OnUpdate(float elapsed, Player& player)
 {
+  overlay->setColor(player.getColor());
+
   parentAnim->SyncAnimation(overlayAnimation);
   overlayAnimation.Refresh(*overlay);
 
@@ -167,17 +182,11 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
   baseOffset = baseOffset - origin;
 
   overlay->setPosition(baseOffset);
-
-  // TODO: do once for demo and then refactor this setup
-  if (loaded) {
-    loaded = false;
-    player.AddNode(overlay);
-  }
 }
 
 void HeatCross::OnChargedBusterAction(Player& player)
 {
-  player.RegisterComponent(new FireBurnChipAction(&player, FireBurn::Type::_3, 60));
+  player.RegisterComponent(new FireBurnChipAction(&player, FireBurn::Type::_2, 60));
 }
 
 void HeatCross::OnSpecialAction(Player& player)
@@ -216,6 +225,9 @@ void TomahawkCross::OnActivate(Player& player)
   loaded = true;
 
   OnUpdate(0.01f, player);
+  player.AddNode(overlay);
+
+  parentAnim->AddToOverrideList(&overlayAnimation);
 
 }
 
@@ -224,10 +236,15 @@ void TomahawkCross::OnDeactivate(Player & player)
   player.RemoveNode(overlay);
   auto pswap = player.GetFirstComponent<PaletteSwap>();
   pswap->Revert();
+
+  parentAnim->RemoveFromOverrideList(&overlayAnimation);
+
 }
 
 void TomahawkCross::OnUpdate(float elapsed, Player& player)
 {
+  overlay->setColor(player.getColor());
+
   parentAnim->SyncAnimation(overlayAnimation);
   overlayAnimation.Refresh(*overlay);
 
@@ -237,12 +254,6 @@ void TomahawkCross::OnUpdate(float elapsed, Player& player)
   baseOffset = baseOffset - origin;
 
   overlay->setPosition(baseOffset);
-
-  // TODO: do once for demo and then refactor this setup
-  if (loaded) {
-    loaded = false;
-    player.AddNode(overlay);
-  }
 }
 
 void TomahawkCross::OnChargedBusterAction(Player& player)

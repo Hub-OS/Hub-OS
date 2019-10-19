@@ -40,12 +40,14 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
   // 1px space between colors
   target.draw(sprite, this_states);
 
-  int size = (int)(std::to_string(currHP).size());
+  const std::string currHPStr = std::to_string(currHP);
+
+  int size = (int)(currHPStr.size());
   int hp = currHP;
   float offsetx = -((size)*8.0f)*glyphs.getScale().x;
   int index = 0;
   while (index < size) {
-    const char c = std::to_string(currHP)[index];
+    const char c = currHPStr[index];
     int number = std::atoi(&c);
 
     int col = number*8;

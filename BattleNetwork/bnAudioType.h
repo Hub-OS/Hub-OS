@@ -49,5 +49,6 @@ enum AudioType {
   POINT,
   NEW_GAME,
   TEXT,
+  SHINE,
   AUDIO_TYPE_SIZE
 };

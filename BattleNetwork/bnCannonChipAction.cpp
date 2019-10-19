@@ -11,10 +11,8 @@
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
 #define FRAME3 { 3, 0.05 }
-#define FRAME4 { 4, 0.05 }
-#define FRAME5 { 5, 0.05 }
 
-#define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME4, FRAME5, FRAME5
+#define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME3, FRAME3, FRAME3
 
 
 CannonChipAction::CannonChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(CANNON_ANIM) {

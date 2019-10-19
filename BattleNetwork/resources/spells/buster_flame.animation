@@ -1,7 +1,7 @@
 imagePath="buster_flame.png"
 
 animation state="DEFAULT"
-frame duration="0.1" x="0" y="0" w="32" h="16" originx="7" originy="7"
-frame duration="0.1" x="32" y="0" w="31" h="16" originx="7" originy="7"
-frame duration="0.1" x="0" y="16" w="31" h="16" originx="7" originy="7"
-frame duration="0.1" x="31" y="16" w="30" h="16" originx="6" originy="7"
+frame duration="0.1" x="0" y="0" w="32" h="16" originx="3" originy="7"
+frame duration="0.1" x="32" y="0" w="31" h="16" originx="3" originy="7"
+frame duration="0.1" x="0" y="16" w="31" h="16" originx="3" originy="7"
+frame duration="0.1" x="31" y="16" w="30" h="16" originx="2" originy="7"

@@ -8,10 +8,8 @@
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
 #define FRAME3 { 3, 0.05 }
-#define FRAME4 { 4, 0.05 }
-#define FRAME5 { 5, 0.2 }
 
-#define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME4, FRAME5, FRAME5
+#define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME2, FRAME1, FRAME1
 
 
 TwinFangChipAction::TwinFangChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", nullptr, "Buster") {

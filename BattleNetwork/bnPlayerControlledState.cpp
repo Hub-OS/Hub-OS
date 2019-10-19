@@ -34,8 +34,6 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       player.Attack();
       player.chargeEffect.SetCharging(false);
       isChargeHeld = false;
-      auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};
-      player.SetAnimation(PLAYER_SHOOTING, onFinish);
     }
     else if(!player.GetNextTile()){
       isChargeHeld = false;
@@ -91,7 +89,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     direction = Direction::NONE;
   }
 
-  if (direction != Direction::NONE && player.state == PLAYER_IDLE && !player.IsSliding()) {
+  if (direction != Direction::NONE && player.GetFirstComponent<AnimationComponent>()->GetAnimationString() == PLAYER_IDLE && !player.IsSliding()) {
     if (player.PlayerControllerSlideEnabled()) {
       player.SlideToTile(true);
     }

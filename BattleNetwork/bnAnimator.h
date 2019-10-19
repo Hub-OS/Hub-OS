@@ -87,7 +87,7 @@ public:
     totalDuration = rhs.totalDuration;
   }
 
-  FrameList MakeNewFromOverrideData(std::list<OverrideFrame>&& data) {
+  FrameList MakeNewFromOverrideData(std::list<OverrideFrame> data) {
     auto iter = data.begin();
 
     FrameList res;

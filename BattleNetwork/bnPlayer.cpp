@@ -63,14 +63,14 @@ void Player::OnUpdate(float _elapsed) {
     this->ChangeState<BubbleState<Player>>();
   }
 
+  if (activeForm) {
+    activeForm->OnUpdate(_elapsed, *this);
+  }
+
   AI<Player>::Update(_elapsed);
 
   //Node updates
   chargeEffect.Update(_elapsed);
-
-  if (activeForm) {
-    activeForm->OnUpdate(_elapsed, *this);
-  }
 }
 
 void Player::Attack() {

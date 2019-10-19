@@ -25,7 +25,9 @@ frame duration="0.05" x="86" y="224" w="26" h="33" originx="14" originy="12"
 frame duration="0.15" x="113" y="223" w="34" h="36" originx="23" originy="16"
 
 animation state="PLAYER_SHOOTING"
-frame duration="-2.66425e-36" x="13" y="629" w="30" h="33" originx="16" originy="14"
+frame duration="0.05" x="13" y="629" w="30" h="33" originx="16" originy="14"
+frame duration="0.05" x="49" y="629" w="30" h="33" originx="16" originy="14"
+frame duration="0.05" x="85" y="629" w="30" h="33" originx="16" originy="14"
 
 animation state="PLAYER_THROW"
 frame duration="0.1" x="10" y="264" w="46" h="38" originx="24" originy="10"

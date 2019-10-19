@@ -75,7 +75,7 @@ void Character::Update(float _elapsed) {
     this->ResolveFrameBattleDamage();
   }
 
-  this->setColor(sf::Color::White);
+  this->setColor(sf::Color(255, 255, 255, getColor().a));
 
   if (!hit) {
       if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
@@ -85,7 +85,7 @@ void Character::Update(float _elapsed) {
           this->SetShader(nullptr);
 
           if (this->counterable) {
-            this->setColor(sf::Color(255, 55, 55));
+            this->setColor(sf::Color(255, 55, 55, getColor().a));
             this->SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
           }
       }

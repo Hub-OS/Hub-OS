@@ -3,7 +3,7 @@
 SceneNode::SceneNode() {
   show = true;
   layer = 0;
-  useParentShader = true;
+  useParentShader = false;
 }
 
 SceneNode::~SceneNode() {

@@ -472,10 +472,7 @@ void ChipSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
 void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states) const {
   if(this->IsHidden()) return;
 
-  // combine the parent transform with the node's one
-  sf::Transform combinedTransform = this->getTransform();
-
-  states.transform = combinedTransform;
+  states.transform = this->getTransform();
 
   auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddSprite() for all rendered items below
   custSprite.setPosition(-sf::Vector2f(custSprite.getTextureRect().width*2.f, 0));
@@ -623,7 +620,9 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     }
   //}
 
-    target.draw(formSelect, states);
+    if (formUI.size()) {
+      target.draw(formSelect, states);
+    }
 
   if (isInFormSelect) {
     if (formSelectAnimator.GetAnimationString() == "OPEN") {

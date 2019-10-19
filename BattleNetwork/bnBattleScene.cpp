@@ -409,12 +409,13 @@ void BattleScene::onUpdate(double elapsed) {
     if (!isChangingForm) {
       if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
         showSummonBackdropTimer += elapsed;
+        backdropOpacity = 0.25; // reset for summons
+
         //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " showSummonBackdropLength: " + std::to_string(showSummonBackdropLength));
       }
       else if (showSummonBackdropTimer >= showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && !showSummonText && prevSummonState) {
         if (!summons.IsSummonOver()) {
           showSummonText = true;
-          backdropOpacity = 0.25; // reset for summons
           //Logger::Log("showSummonText: " + (showSummonText ? std::string("true") : std::string("false")));
         }
       }
@@ -445,16 +446,19 @@ void BattleScene::onUpdate(double elapsed) {
           auto onTransform = [this]() {
             lastSelectedForm = chipCustGUI.GetSelectedFormIndex();
             player->ActivateFormAt(lastSelectedForm);
-            isLeavingFormChange = true;
-            AUDIO.Play(AudioType::PA_ADVANCE);
+            AUDIO.Play(AudioType::SHINE);
           };
 
-          shineAnimation << "SHINE" << Animator::On(10, onTransform);
+          auto onFinish = [this]() {
+            isLeavingFormChange = true;
+          };
+
+          shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
         }
       }
     }
     else if (isLeavingFormChange && showSummonBackdropTimer > 0.0f) {
-      showSummonBackdropTimer -= elapsed;
+      showSummonBackdropTimer -= elapsed*0.5f;
 
       if (showSummonBackdropTimer <= 0.0f) {
         isChangingForm = false; //done

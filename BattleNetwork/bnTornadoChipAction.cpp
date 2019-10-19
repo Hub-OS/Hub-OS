@@ -9,10 +9,10 @@
 #define FAN_ANIM "resources/spells/buster_fan.animation"
 
 #define FRAME1 { 1, 0.1  }
-#define FRAME4 { 4, 0.05 }
-#define FRAME5 { 5, 0.05 }
+#define FRAME2 { 2, 0.05 }
+#define FRAME3 { 3, 0.05 }
 
-#define FRAMES FRAME1, FRAME5, FRAME4, FRAME5, FRAME4, FRAME5, FRAME4, FRAME5, FRAME4, FRAME5, FRAME4, FRAME5, FRAME4, FRAME5, FRAME4, FRAME5, FRAME4, FRAME5
+#define FRAMES FRAME1, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
 
 TornadoChipAction::TornadoChipAction(Character * owner, int damage) 

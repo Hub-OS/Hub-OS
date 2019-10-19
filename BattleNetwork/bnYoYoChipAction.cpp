@@ -9,9 +9,9 @@
 #define NODE_ANIM "resources/spells/buster_yoyo.animation"
 
 #define FRAME1 { 1, 0.05 }
-#define FRAME5 { 5, 5.0 }
+#define FRAME3 { 1, 5.0 }
 
-#define FRAMES FRAME1, FRAME5
+#define FRAMES FRAME1, FRAME3
 
 
 YoYoChipAction::YoYoChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
@@ -57,8 +57,8 @@ void YoYoChipAction::OnUpdate(float _elapsed)
   if (yoyo && yoyo->IsDeleted()) {
     yoyo = nullptr;
 
-    auto onFinish = [this]() { this->EndAction();  };
-    GetOwner()->GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE", onFinish);
+    GetOwner()->GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
+    this->EndAction();
   }
 }
 

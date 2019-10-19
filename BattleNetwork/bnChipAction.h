@@ -42,8 +42,8 @@ public:
       this->prevState = anim->GetAnimationString();;
       this->anim->SetAnimation(animation, [this]() {
         Logger::Log("normal callback fired");
-        //this->RecallPreviousState();
-        //this->EndAction();
+        this->RecallPreviousState();
+        this->EndAction();
       });
 
       anim->OnUpdate(0);
@@ -53,7 +53,7 @@ public:
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   {
     if (anim) {
-      anim->OverrideAnimationFrames(this->animation, std::move(frameData), this->uuid);
+      anim->OverrideAnimationFrames(this->animation, frameData, this->uuid);
       anim->SetAnimation(this->uuid, [this]() { 
         Logger::Log("custom callback fired");
 

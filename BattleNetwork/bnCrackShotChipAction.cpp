@@ -15,6 +15,7 @@ CrackShotChipAction::CrackShotChipAction(Character * owner, int damage) : ChipAc
   overlay.setTexture(*owner->getTexture());
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
+  this->attachment->EnableUseParentShader(true);
   owner->AddNode(this->attachment);
 
   this->OverrideAnimationFrames({ FRAMES });

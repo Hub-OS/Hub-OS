@@ -99,6 +99,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::POINT, "resources/sfx/point.ogg"); status++;
   LoadSource(AudioType::NEW_GAME, "resources/sfx/new_game.ogg"); status++;
   LoadSource(AudioType::TEXT, "resources/sfx/text.ogg"); status++;
+  LoadSource(AudioType::SHINE, "resources/sfx/shine.ogg"); status++;
 }
 
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {

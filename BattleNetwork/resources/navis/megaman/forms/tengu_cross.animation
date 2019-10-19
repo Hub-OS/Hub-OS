@@ -25,6 +25,8 @@ frame duration="0.15" x="163" y="290" w="52" h="36" originx="35" originy="17"
 
 animation state="PLAYER_SHOOTING"
 frame duration="-2.66425e-36" x="8" y="688" w="47" h="33" originx="31" originy="14"
+frame duration="-2.66425e-36" x="60" y="688" w="47" h="33" originx="31" originy="14"
+frame duration="-2.66425e-36" x="112" y="688" w="47" h="33" originx="31" originy="14"
 
 animation state="PLAYER_THROW"
 frame duration="0.1" x="10" y="337" w="56" h="38" originx="24" originy="9"
