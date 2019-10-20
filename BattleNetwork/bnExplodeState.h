@@ -1,6 +1,7 @@
 #pragma once
 #include "bnEntity.h"
 #include "bnAIState.h"
+#include "bnAIPriorityLock.h"
 #include "bnExplosion.h"
 #include "bnAnimationComponent.h"
 #include "bnShaderResourceManager.h"
@@ -31,6 +32,7 @@ protected:
   int numOfExplosions; /*!< Number of explosions to spawn */
   double playbackSpeed; /*!< how fast the animation should be */
 public:
+  inline static const int PriorityLevel = 0; // Highest
 
   ExplodeState(int _numOfExplosions=2, double _playbackSpeed=1.0);
   virtual ~ExplodeState();
@@ -60,6 +62,8 @@ ExplodeState<Any>::~ExplodeState() {
 
 template<typename Any>
 void ExplodeState<Any>::OnEnter(Any& e) {
+  AIPriorityLock<Any> lock(e);
+
   e.SetPassthrough(true); // Shoot through dying enemies
 
   /* Spawn an explosion */
@@ -86,8 +90,6 @@ void ExplodeState<Any>::OnEnter(Any& e) {
 
 template<typename Any>
 void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
-  e.LockState(); // Lock AI state. This is a final state.
-
   elapsed += _elapsed;
 
   /* freeze frame, flash white */
@@ -107,4 +109,5 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
 }
 
 template<typename Any>
-void ExplodeState<Any>::OnLeave(Any& e) { }
+void ExplodeState<Any>::OnLeave(Any& e) {
+}

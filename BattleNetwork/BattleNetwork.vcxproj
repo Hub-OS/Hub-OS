@@ -397,6 +397,7 @@
     <ClCompile Include="bnChipDescriptionTextbox.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bnAIPriorityLock.h" />
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
     <ClInclude Include="Android\bnTouchArea.h" />
     <ClInclude Include="bnBees.h" />

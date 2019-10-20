@@ -54,7 +54,6 @@ void Mettaur::OnDelete() {
   delete virusBody;
 
   this->ChangeState<ExplodeState<Mettaur>>();
-  this->LockState();
 
   this->RemoveMeFromTurnOrder();
 }

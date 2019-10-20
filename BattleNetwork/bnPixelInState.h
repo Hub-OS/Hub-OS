@@ -25,6 +25,7 @@ private:
   float factor; /*!< Strength of the pixelate effect. Set to 125 */
   FinishNotifier callback; /*!< Callback when intro effect finished */
 public:
+  inline static const int PriorityLevel = 2;
 
   /**
    * \brief sets the finish callback and loads shader

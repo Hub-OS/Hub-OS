@@ -22,34 +22,13 @@ class AI : public Agent {
 private:
   AIState<CharacterT>* stateMachine; /*!< State machine responsible for state management */
   CharacterT* ref; /*!< AI of this instance */
-  int lock; /*!< Whether or not a state is locked */
   bool isUpdating; /*!< Safely ignore any extra Update() requests */
   AIState<CharacterT>* queuedState;
-protected:
-  /**
-  * @brief State machine can or cannot be changed */
-  enum StateLock {
-    Locked,
-    Unlocked
-   };
-
+  int priorityLevel; 
+  bool priorityLocked;
 public:
   // Used for SFINAE events that require characters with AI
   using IsUsingAI = CharacterT;
-
-  /**
-   * @brief Prevents the AI state to be changed. Must be unlocked to use again.
-   */
-  void LockState() {
-    lock = AI<CharacterT>::StateLock::Locked;
-  }
-
-  /**
-   * @brief Allows the AI state to be changed.
-   */
-  void UnlockState() {
-    lock = AI<CharacterT>::StateLock::Unlocked;
-  }
  
   /**
    * @brief Construct an AI with the object ref
@@ -57,9 +36,10 @@ public:
    */
   AI(CharacterT* _ref) : Agent() { 
     stateMachine = queuedState = nullptr; 
-    ref = _ref; 
-    lock = AI<CharacterT>::StateLock::Unlocked; 
+    ref = _ref;
     isUpdating = false;
+    priorityLocked = false;
+    priorityLevel = 999;
   }
   
   /**
@@ -73,17 +53,36 @@ public:
     this->ChangeState<DefaultState>();
   }
 
+  void PriorityLock() {
+    priorityLocked = true;
+  }
+
+  void PriorityUnlock() {
+    priorityLocked = false;
+  }
+
   /**
    * @brief Change to state U. No arguments.
    */
   template<typename U>
   void ChangeState() {
-    if (lock == AI<CharacterT>::StateLock::Locked) {
-      return;
+    bool change = true;
+
+    if (priorityLocked) {
+      change = false;
+
+      if (priorityLevel > U::PriorityLevel) {
+        change = true;
+        priorityLocked = false; // unlock
+      }
     }
 
-    if (queuedState) { delete queuedState; }
-    queuedState = new U();
+    if (change) {
+      if (queuedState) { delete queuedState; }
+      queuedState = new U();
+
+      priorityLevel = U::PriorityLevel;
+    }
   }
 
 /**
@@ -93,12 +92,23 @@ public:
  */
 template<typename U, typename ...Args>
   void ChangeState(Args... args) {
-    if (lock == AI<CharacterT>::StateLock::Locked) {
-      return;
+    bool change = true;
+
+    if (priorityLocked) {
+      change = false;
+
+      if (priorityLevel > U::PriorityLevel) {
+        change = true;
+        priorityLocked = false; // unlock
+      }
     }
 
-    if (queuedState) { delete queuedState; }
-    queuedState = new U(args...);
+    if (change) {
+      if (queuedState) { delete queuedState; }
+      queuedState = new U(args...);
+
+      priorityLevel = U::PriorityLevel;
+    }
   }
 
 /**

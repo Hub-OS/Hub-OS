@@ -85,7 +85,6 @@ void Player::OnDelete() {
   animationComponent->CancelCallbacks();
   animationComponent->SetAnimation(PLAYER_HIT);
   this->ChangeState<NaviExplodeState<Player>>();
-  this->LockState();
 }
 
 const float Player::GetHitHeight() const

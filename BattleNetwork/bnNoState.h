@@ -14,6 +14,8 @@ template<typename Any>
 class NoState : public AIState<Any>
 {
 public:
+  inline static const int PriorityLevel = 2;
+
   NoState();
   ~NoState();
 

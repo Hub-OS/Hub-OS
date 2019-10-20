@@ -2089,6 +2089,9 @@
     <ClInclude Include="bnPaletteSwap.h">
       <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\PaletteSwap</Filter>
     </ClInclude>
+    <ClInclude Include="bnAIPriorityLock.h">
+      <Filter>Scenes/Activities\Battle\Content\AI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BattleNetwork.rc" />

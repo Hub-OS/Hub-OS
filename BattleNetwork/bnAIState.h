@@ -19,14 +19,16 @@ template<class T>
 class AIState
 {
   friend class AI<T>;
-
 public:
   /**
    * @brief Ctor
    */
-  AIState() { }
+  AIState() = default;
   AIState(const AIState<T>& rhs) = default;
   AIState(AIState<T>&& ref) = default;
+
+  // Default
+  inline static const int PriorityLevel = 999;
 
   /**
    * @brief Updates the state

@@ -1,4 +1,4 @@
-# Saved on 19-10-19 17:01:01
+# Saved on 19-10-20 13:53:12
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="*" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="A" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="C" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
@@ -87,6 +87,7 @@ Chip name="Recov30" cardIndex="75" iconIndex="147" damage="30" type="NONE" codes
 Chip name="Recov30" cardIndex="75" iconIndex="147" damage="30" type="NONE" codes="R" desc="Recover 30HP" verbose="" rarity="1" 
 Chip name="Recov30" cardIndex="75" iconIndex="147" damage="30" type="NONE" codes="R" desc="Recover 30HP" verbose="" rarity="1" 
 Chip name="Recov30" cardIndex="75" iconIndex="147" damage="30" type="NONE" codes="R" desc="Recover 30HP" verbose="" rarity="1" 
+Chip name="Recov30" cardIndex="75" iconIndex="147" damage="30" type="NONE" codes="R" desc="Recover 30HP" verbose="" rarity="1" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="A" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="A" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="A" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
@@ -129,6 +130,7 @@ Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes=
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="B" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="B" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="B" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
+Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="C" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="C" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="C" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="C" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
