@@ -127,10 +127,16 @@ void Bubble::Attack(Character* _entity) {
   }
 
   if (popping) {
-    if (_entity->GetFirstComponent<BubbleTrap>() == nullptr && !comp) {
-      BubbleTrap* trap = new BubbleTrap(_entity);
-      _entity->RegisterComponent(trap);
-      GetField()->AddEntity(*trap, *this->GetTile());
+    auto bubble = _entity->GetFirstComponent<BubbleTrap>();
+    if (!comp) {
+      if (bubble == nullptr) {
+        BubbleTrap* trap = new BubbleTrap(_entity);
+        _entity->RegisterComponent(trap);
+        GetField()->AddEntity(*trap, *this->GetTile());
+      }
+      else {
+        bubble->Pop();
+      }
     }
 
     this->SetHealth(0);

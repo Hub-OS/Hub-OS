@@ -402,6 +402,7 @@
     <ClInclude Include="Android\bnTouchArea.h" />
     <ClInclude Include="bnBees.h" />
     <ClInclude Include="bnBusterChipAction.h" />
+    <ClInclude Include="bnDelayedAttack.h" />
     <ClInclude Include="bnHoneyBomber.h" />
     <ClInclude Include="bnHoneyBomberAttackState.h" />
     <ClInclude Include="bnHoneyBomberIdleState.h" />

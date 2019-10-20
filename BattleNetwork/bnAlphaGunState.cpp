@@ -1,6 +1,7 @@
 #include "bnAlphaGunState.h"
 #include "bnAlphaCore.h"
 #include "bnSuperVulcan.h"
+#include "bnDelayedAttack.h"
 #include "bnTile.h"
 #include "bnField.h"
 
@@ -22,7 +23,8 @@ void AlphaGunState::OnUpdate(float _elapsed, AlphaCore& a) {
 
     if (last) {
       auto v = new SuperVulcan(a.GetField(), a.GetTeam(), 40);
-      a.GetField()->AddEntity(*v, last->GetX(), last->GetY());
+      auto d = new DelayedAttack(v, Battle::Tile::Highlight::flash, 0.25);
+      a.GetField()->AddEntity(*d, last->GetX(), last->GetY());
     }
 
     last = a.GetTarget()->GetTile();;

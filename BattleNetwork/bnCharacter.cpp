@@ -179,8 +179,6 @@ const bool Character::Hit(Hit::Properties props) {
   if ((props.flags & Hit::shake) == Hit::shake) {
     this->RegisterComponent(new ShakingEffect(this));
   }
-
-  this->SetHealth(GetHealth() - props.damage);
   
   for (auto& defense : defenses) {
     props = defense->FilterStatuses(props);
@@ -201,6 +199,8 @@ const bool Character::Hit(Hit::Properties props) {
     Artifact *seSymbol = new ElementalDamage(field);
     field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());
   }
+
+  this->SetHealth(GetHealth() - props.damage);
 
   // Add to status queue for state resolution
   this->statusQueue.push(props);
@@ -294,10 +294,6 @@ void Character::ResolveFrameBattleDamage()
           hadStun = true;
         }
       }
-      else if (this->stunCooldown > 0) {
-        // cancel
-        this->stunCooldown = 0;
-      }
 
       // exclude this from the next processing step
       props.flags &= ~Hit::stun;
@@ -312,6 +308,9 @@ void Character::ResolveFrameBattleDamage()
           if (this->invincibilityCooldown <= 0.0) {
             this->invincibilityCooldown = 3.0;
           }
+
+          // cancel stun
+          this->stunCooldown = 0;
         }
       }
 
@@ -319,6 +318,8 @@ void Character::ResolveFrameBattleDamage()
     }
 
     if (hit) {
+      this->SetHealth(GetHealth() - tileDamage);
+
       if (this->GetHealth() == 0) {
         this->stunCooldown = 0;
         postDragDir = Direction::NONE; // Cancel slide post-status if blowing up
@@ -336,6 +337,9 @@ void Character::ResolveFrameBattleDamage()
       this->SlideToTile(true);
       this->slideFromDrag = true;
       this->Move(postDragDir);
+
+      // cancel stun
+      this->stunCooldown = 0;
     }
   }
 
