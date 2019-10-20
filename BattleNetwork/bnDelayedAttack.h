@@ -1,6 +1,7 @@
 #pragma once
 #include "bnSpell.h"
 
+/*!\brief This spell highlights the tile for a specified amount of time before spawning the desired attack*/
 class DelayedAttack : public Spell {
 private:
   double duration;

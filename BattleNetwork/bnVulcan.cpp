@@ -11,6 +11,8 @@
 #include "bnGuardHit.h"
 #include "bnGear.h" 
 
+#define COOLDOWN 40.0f/1000.0f
+
 Vulcan::Vulcan(Field* _field, Team _team,int damage) :Spell(_field, _team) {
   SetPassthrough(true);
   SetLayer(0);
@@ -36,13 +38,15 @@ Vulcan::Vulcan(Field* _field, Team _team,int damage) :Spell(_field, _team) {
 
   AUDIO.Play(AudioType::GUN, AudioPriority::HIGHEST);
 
-  auto props = Hit::DefaultProperties;
+  auto props = GetHitboxProperties();
   props.flags = props.flags & ~Hit::recoil;
   props.damage = damage;
   this->SetHitboxProperties(props);
 
   contact = nullptr;
   spawnGuard = false;
+
+  HighlightTile(Battle::Tile::Highlight::solid);
 }
 
 Vulcan::~Vulcan() {
@@ -57,6 +61,9 @@ void Vulcan::OnUpdate(float _elapsed) {
   }
 
   if (hit) {
+    animationComponent->Reload();
+    animationComponent->SetAnimation("HIT");
+
     if (progress == 0.0f) {
       setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
     }
@@ -68,12 +75,9 @@ void Vulcan::OnUpdate(float _elapsed) {
     return;
   }
 
-  // Attack the current tile
-  GetTile()->AffectEntities(this);
-
   // Strike panel and leave
   if (GetDirection() == Direction::NONE) {
-    hit = true;
+    this->Delete();
   }
 
   // If it did not hit a target this frame, move to next tile
@@ -81,9 +85,21 @@ void Vulcan::OnUpdate(float _elapsed) {
     if (GetTile()->GetX() == 6 && this->GetTeam() == Team::RED) { this->Delete(); }
     if (GetTile()->GetX() == 1 && this->GetTeam() == Team::BLUE) { this->Delete(); }
 
-    Move(GetDirection());
-    AdoptNextTile();
-    FinishMove();
+    // Mav note: Vulcan moves too fast for the frame to attack the entities... See queuedSpells logic
+    //cooldown += _elapsed;
+    //if (cooldown >= COOLDOWN) {
+      if (Move(GetDirection())) {
+        AdoptNextTile();
+        FinishMove();
+        cooldown = 0;
+
+        // Attack the current tile
+        GetTile()->AffectEntities(this);
+      }
+      else {
+        this->Delete();
+      }
+    //}
   }
 }
 

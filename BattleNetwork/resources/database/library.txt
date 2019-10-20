@@ -1,4 +1,4 @@
-# Saved on 19-10-20 17:12:43
+# Saved on 19-10-20 17:33:56
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="*" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="A" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="C" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
@@ -186,6 +186,7 @@ Chip name="YoYo" cardIndex="100" iconIndex="139" damage="0" type="NONE" codes="*
 Chip name="YoYo" cardIndex="100" iconIndex="139" damage="0" type="NONE" codes="*" desc="" verbose="" rarity="1" 
 Chip name="YoYo" cardIndex="100" iconIndex="139" damage="0" type="NONE" codes="*" desc="" verbose="" rarity="1" 
 Chip name="YoYo" cardIndex="100" iconIndex="140" damage="50" type="NONE" codes="C" desc="YoYo atk reaches 3sq ahead" verbose="This chip does not have extra information." rarity="1" 
+Chip name="YoYo" cardIndex="100" iconIndex="139" damage="0" type="NONE" codes="Y" desc="" verbose="" rarity="1" 
 Chip name="YoYo" cardIndex="100" iconIndex="139" damage="0" type="NONE" codes="Y" desc="" verbose="" rarity="1" 
 Chip name="YoYo" cardIndex="100" iconIndex="139" damage="0" type="NONE" codes="Y" desc="" verbose="" rarity="1" 
 Chip name="YoYo" cardIndex="100" iconIndex="139" damage="0" type="NONE" codes="Y" desc="" verbose="" rarity="1" 

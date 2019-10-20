@@ -20,7 +20,8 @@ class Spell;
  */
 class Character : public virtual Entity, public CounterHitPublisher {
   friend class Field;
-
+  friend class AnimationComponent;
+  
 private:
   bool invokeDeletion; /*!< One-time flag to call OnDelete() if character has custom Delete() behavior */
   bool canShareTile; /*!< Some characters can share tiles with others */
