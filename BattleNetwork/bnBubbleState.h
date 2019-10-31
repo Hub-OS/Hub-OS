@@ -57,7 +57,7 @@ void BubbleState<Any>::OnUpdate(float _elapsed, Any& e) {
   // Check if bubbletrap is removed from entity
   if (e.template GetFirstComponent<BubbleTrap>() == nullptr) {
     e.PriorityUnlock();
-    e.ChangeState<Any::DefaultState>();
+    e.template ChangeState<typename Any::DefaultState>();
     e.SetFloatShoe(prevFloatShoe);
   }
 

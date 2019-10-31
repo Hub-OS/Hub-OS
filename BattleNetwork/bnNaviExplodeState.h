@@ -78,7 +78,7 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
   shine = new ShineExplosion(field, e.GetTeam());
   field->AddEntity(*shine, tile->GetX(), tile->GetY());
 
-  auto animation = e.GetFirstComponent<AnimationComponent>();
+  auto animation = e.template GetFirstComponent<AnimationComponent>();
 
   if (animation) {
     animation->SetPlaybackSpeed(0);

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstring>
 #include <sstream>
 #include <assert.h>
 #include <SFML/System.hpp>
@@ -67,7 +68,7 @@ public:
         }
 
         WriteStream& operator<<(const char* buffer) {
-            std::fwrite(buffer, sizeof(char), strlen(buffer), m_file);
+            std::fwrite(buffer, sizeof(char), std::strlen(buffer), m_file);
 
             return *this;
         }

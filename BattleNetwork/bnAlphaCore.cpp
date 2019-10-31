@@ -14,6 +14,7 @@
 #include "bnExplodeState.h"
 #include "bnDefenseVirusBody.h"
 #include "bnHitBox.h"
+#include <cmath>
 
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
 
@@ -155,15 +156,15 @@ void AlphaCore::OnUpdate(float _elapsed) {
     rightArm->SyncElapsedTime(totalElapsed + 1.0f);
   }
 
-  float delta = std::sinf(10*totalElapsed)*0.5f;
+  float delta = std::sin(10*totalElapsed)*0.5f;
   head->setPosition(-10, -48 - delta);
   side->setPosition(6, -54 - delta);
 
   // shoulders lag behind
-  delta = std::sinf(10 * totalElapsed+1.5f)*0.5f;
+  delta = std::sin(10 * totalElapsed+1.5f)*0.5f;
 
   if (shootSuperVulcans) {
-    delta = std::sinf(50 * totalElapsed + 1.5f);
+    delta = std::sin(50 * totalElapsed + 1.5f);
   }
 
   leftShoulder->setPosition(-21, -62 - delta);

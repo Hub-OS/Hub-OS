@@ -670,7 +670,7 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   if (selectedForm != -1 && formSelectQuitTimer <= 1.f/6.f) {
     auto f = formUI[selectedForm];
     auto rect = f.getTextureRect();
-    f.setTextureRect(sf::Rect(rect.left, rect.top, rect.width - 1, rect.height - 1));
+    f.setTextureRect(sf::IntRect(rect.left, rect.top, rect.width - 1, rect.height - 1));
     f.setPosition(sf::Vector2f(4, 36.f));
     target.draw(f, states);
     f.setTextureRect(rect);

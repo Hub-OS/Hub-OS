@@ -8,7 +8,7 @@
 #include "bnFolderScene.h"
 #include "bnFolderEditScene.h"
 #include "bnFolderChangeNameScene.h"
-#include "Segues\BlackWashFade.h"
+#include "Segues/BlackWashFade.h"
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
 #include "Android/bnTouchArea.h"

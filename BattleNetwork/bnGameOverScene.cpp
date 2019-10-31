@@ -1,6 +1,6 @@
 #include "bnGameOverScene.h"
 #include "bnMainMenuScene.h"
-#include "Segues\WhiteWashFade.h"
+#include "Segues/WhiteWashFade.h"
 #include <Swoosh/ActivityController.h>
 
 GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(&controller) {

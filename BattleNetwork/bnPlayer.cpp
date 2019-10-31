@@ -18,6 +18,7 @@ Player::Player()
   state(PLAYER_IDLE),
   chargeEffect(this),
   AI<Player>(this),
+  formSize(0),
   Character(Rank::_1)
 {
   this->ChangeState<PlayerIdleState>();
@@ -180,7 +181,7 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
 
 bool Player::RegisterForm(PlayerFormMeta * info)
 {
-  if (formSize >= forms.size()) return false;
+  if (formSize >= forms.size() || !info) return false;
 
   this->forms[formSize++] = info;
   return true;

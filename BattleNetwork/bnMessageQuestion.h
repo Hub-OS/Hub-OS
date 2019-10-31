@@ -1,6 +1,6 @@
 #pragma once
 #include "bnMessage.h"
-#include "bnAnimatedTextbox.h"
+#include "bnAnimatedTextBox.h"
 #include <string>
 #include <functional>
 
