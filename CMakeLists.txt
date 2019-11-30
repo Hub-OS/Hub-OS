@@ -6,8 +6,11 @@ project(BattleNetwork-Engine)
 execute_process(COMMAND git submodule update --init -- extern/Swoosh
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-include_directories(extern/Swoosh/src)
+execute_process(COMMAND git submodule update --init -- extern/lua
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+include_directories(extern/Swoosh/src)
+include_directories(extern/lua/src)
 
 file(GLOB bnFiles
         "BattleNetwork/bn*.h"
