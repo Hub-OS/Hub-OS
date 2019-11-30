@@ -10,7 +10,7 @@ execute_process(COMMAND git submodule update --init -- extern/lua
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(extern/Swoosh/src)
-include_directories(extern/lua/src)
+include_directories(extern/lua)
 
 file(GLOB bnFiles
         "BattleNetwork/bn*.h"
