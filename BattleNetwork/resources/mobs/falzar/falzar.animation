@@ -1,0 +1,39 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/mobs/falzar/falzar_atlas.png"
+
+animation state="IDLE"
+frame duration="0.05" x="15" y="3" w="155" h="169" originx="79" originy="168"
+frame duration="0.05" x="175" y="1" w="154" h="171" originx="79" originy="172"
+frame duration="0.05" x="334" y="5" w="156" h="170" originx="79" originy="168"
+frame duration="0.05" x="6" y="176" w="163" h="166" originx="86" originy="167"
+frame duration="0.05" x="177" y="176" w="151" h="169" originx="75" originy="167"
+frame duration="0.05" x="334" y="178" w="157" h="168" originx="77" originy="167"
+
+animation state="MOVE"
+frame duration="0.05" x="99" y="348" w="156" h="168" originx="80" originy="166"
+frame duration="0.05" x="262" y="349" w="163" h="166" originx="77" originy="165"
+
+animation state="SPIN"
+frame duration="0.05" x="28" y="1374" w="146" h="87" originx="79" originy="85"
+frame duration="0.05" x="179" y="1374" w="139" h="86" originx="80" originy="84"
+frame duration="0.05" x="326" y="1370" w="139" h="95" originx="82" originy="89"
+
+animation state="ROAR"
+frame duration="0.05" x="100" y="649" w="158" h="167" originx="77" originy="167"
+frame duration="0.05" x="262" y="651" w="153" h="168" originx="70" originy="167"
+
+animation state="CLAW"
+frame duration="0.05" x="211" y="1476" w="79" h="61" originx="0" originy="0"
+frame duration="0.05" x="299" y="1478" w="76" h="60" originx="0" originy="0"
+
+animation state="NEEDLE"
+frame duration="-5.29375e+12" x="396" y="1558" w="31" h="32" originx="0" originy="0"
+
+animation state="FLAME"
+frame duration="0.05" x="72" y="1556" w="48" h="38" originx="0" originy="0"
+frame duration="0.05" x="122" y="1557" w="48" h="38" originx="0" originy="0"
+frame duration="0.05" x="173" y="1557" w="48" h="38" originx="0" originy="0"
+
+animation state="FLAME_BIRD"
+frame duration="0.05" x="229" y="1556" w="45" h="39" originx="26" originy="35"
+frame duration="0.05" x="278" y="1555" w="55" h="40" originx="30" originy="36"
+frame duration="0.05" x="335" y="1554" w="50" h="41" originx="27" originy="37"
