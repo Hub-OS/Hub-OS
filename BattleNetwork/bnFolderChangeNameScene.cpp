@@ -1,6 +1,6 @@
 #include "bnFolderChangeNameScene.h"
 #include "bnInputManager.h"
-#include "Segues\BlackWashFade.h"
+#include "Segues/BlackWashFade.h"
 #include <Swoosh/ActivityController.h>
 
 #define UPPERCASE 0

@@ -1,6 +1,6 @@
 #include "bnMetrid.h"
 #include "bnMetridIdleState.h"
-#include "bnMetridMoveState.cpp"
+#include "bnMetridMoveState.h"
 #include "bnAnimationComponent.h"
 #include <iostream>
 

@@ -1,5 +1,5 @@
-StartTime 1571611838
-Engine initialized: 0.386000 secs
+StartTime 1572560415
+Engine initialized: 0.096132 secs
 config settings is OK
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
@@ -16,7 +16,7 @@ Loaded texture: resources/mobs/mob_move.png
 Loaded texture: resources/mobs/mob_explosion.png
 Loaded texture: resources/mobs/boss_shine.png
 Loaded texture: resources/mobs/mettaur/mettaur.png
-Loaded texture: resources/mobs/metrid/metrid.png
+Failed loading texture: resources/mobs/metrid/metrid.png
 Loaded texture: resources/mobs/progsman/mob_progsman_atlas.png
 Loaded texture: resources/mobs/canodumb/canodumb_atlas.png
 Loaded texture: resources/mobs/metalman/metalman_atlas.png
@@ -140,7 +140,7 @@ Loaded texture: resources/ui/light.png
 Loaded texture: resources/fonts/all_fonts.png
 Loaded texture: resources/backgrounds/config/audio.png
 Loaded texture: resources/backgrounds/config/end_btn.png
-Loaded textures: 0.229000 secs
+Loaded textures: 0.222670 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -160,7 +160,7 @@ Loaded shader: resources/shaders/glsl_110/wire
 Loaded shader: resources/shaders/glsl_110/colorize
 Loaded shader: resources/shaders/glsl_110/additive
 Loaded shader: resources/shaders/glsl_110/palette_swap
-Loaded shaders: 0.007000 secs
+Loaded shaders: 0.003528 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -206,13 +206,13 @@ Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
 Loaded audio: resources/sfx/shine.ogg
-Loaded audio sources: 0.126000 secs
+Loaded audio sources: 0.363908 secs
 Loaded texture: resources/navis/megaman/forms/base.palette.png
 Loaded navi: Megaman
 Loaded navi: Roll
 Loaded navi: Starman
 Loaded navi: Bass
-Loaded registered navis: 0.054000 secs
+Loaded registered navis: 0.021200 secs
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
 Loaded texture: resources/mobs/starfish/preview.png
@@ -231,35 +231,214 @@ Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.162000 secs
-library size: 193
+Loaded registered mobs: 0.129411 secs
+library size: 195
 Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/backgrounds/robot/bg.png
+input manager request
+config settings is OK
 main menu onStart
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+library saved successfully. Number of chips saved: 195
+main menu onResume
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+library saved successfully. Number of chips saved: 195
+main menu onResume
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onEnter()
 SelectMobScene::onStart()
-Loaded texture: resources/navis/megaman/forms/base.palette.png
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/medical/bg.png
+Loaded texture: resources/backgrounds/robot/bg.png
 Loaded texture: resources/ui/img_health.png
 Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded texture: resources/ui/custom.png
-Loaded texture: resources/navis/megaman/forms/tengu_entry.png
-Loaded texture: resources/navis/megaman/forms/heat_entry.png
-Loaded texture: resources/navis/megaman/forms/hawk_entry.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onLeave()
 SelectMobScene::onExit()
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
+Boss pattern AI was interrupted
 comboDeleteCounter reset
+Boss pattern AI was interrupted
 comboDeleteCounter reset
-Loaded texture: resources/spells/spell_vulcan.png
+Loaded texture: resources/spells/buster_flame.png
 custom callback fired
-Loaded texture: resources/spells/spell_vulcan.png
-custom callback fired
+Loaded texture: resources/spells/buster_flame.png
 pushing states
+custom callback fired
+Loaded texture: resources/spells/buster_flame.png
+pushing states
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+custom callback fired
+Loaded texture: resources/spells/buster_yoyo.png
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+pushing states
+pushing states
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+pushing states
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Loaded texture: resources/spells/spell_vulcan.png
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+custom callback fired
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Loaded texture: resources/spells/buster_shoot.png
+Aura taking damage: 40 and has aura type: 1
+normal callback fired
+Loaded texture: resources/spells/buster_shoot.png
+Aura taking damage: 40 and has aura type: 1
+normal callback fired
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+comboDeleteCounter reset
+Aura taking damage: 40 and has aura type: 1
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/protoman_summon.png
+pushing states
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+pushing states
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+comboDeleteCounter reset
+Aura taking damage: 40 and has aura type: 1
+Loaded texture: resources/spells/buster_flame.png
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+custom callback fired
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+pushing states
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+pushing states
+pushing states
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+pushing states
+Loaded texture: resources/spells/protoman_summon.png
+pushing states
+comboDeleteCounter reset
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 120 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 0 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Loaded texture: resources/spells/spell_vulcan.png
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+custom callback fired
+Aura taking damage: 40 and has aura type: 1
+comboDeleteCounter reset
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+Aura taking damage: 40 and has aura type: 1
+rocket spawned

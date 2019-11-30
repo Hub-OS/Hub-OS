@@ -7,7 +7,7 @@
 #include <Swoosh/Timer.h>
 
 #include "bnFolderEditScene.h"
-#include "Segues\BlackWashFade.h"
+#include "Segues/BlackWashFade.h"
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
 #include "Android/bnTouchArea.h"

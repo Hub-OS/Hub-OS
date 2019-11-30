@@ -9,7 +9,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnDefenseAura.h"
-#include <Swoosh\Ease.h>
+#include <Swoosh/Ease.h>
 
 /*! \brief Megalian enemy is composed of two characters: one deals damage and propogates all damage, and the other controls the whole */
 class Megalian : public Character, public AI<Megalian> {

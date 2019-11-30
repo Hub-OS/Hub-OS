@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <map>
+#include <functional>
 #include <SFML/Window/Event.hpp>
 
 using std::map;

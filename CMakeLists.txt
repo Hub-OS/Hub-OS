@@ -12,7 +12,6 @@ include_directories(extern/Swoosh/src)
 file(GLOB bnFiles
         "BattleNetwork/bn*.h"
         "BattleNetwork/bn*.cpp"
-        "BattleNetwork/AlphaBossSpawnPolicy.h"
         "BattleNetwork/mmbn.ico.c"
         "BattleNetwork/resource.h"
         "BattleNetwork/Segues/*.h"

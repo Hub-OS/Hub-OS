@@ -1,9 +1,9 @@
 #include "bnPlayerForm.h"
 #include "bnPlayer.h"
 
-PlayerFormMeta::PlayerFormMeta(int index) : index(index) { ; }
+PlayerFormMeta::PlayerFormMeta(int index) : index(index), path() { ; }
 
-void PlayerFormMeta::SetUIPath(const std::string path) {
+void PlayerFormMeta::SetUIPath(std::string path) {
   this->path = path;
 }
 

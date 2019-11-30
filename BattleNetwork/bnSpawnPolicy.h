@@ -175,7 +175,7 @@ public:
 };
 
 template<typename T, template <typename> class IntroState>
-using RankedSpawnPolicy = RankedSpawnPolicy_t< std::is_base_of<BossPatternAI<typename T>, typename T>::value, T, IntroState>;
+using RankedSpawnPolicy = RankedSpawnPolicy_t< std::is_base_of<BossPatternAI<T>, T>::value, T, IntroState>;
 
 
 /*! \brief Special implementations of RankedSpawnPolicy

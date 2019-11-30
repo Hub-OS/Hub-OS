@@ -28,7 +28,7 @@ public:
 
   template<class T> PlayerFormMeta& SetFormClass();
 
-  void SetUIPath(const std::string path);
+  void SetUIPath(std::string path);
 
   const std::string GetUIPath() const;
 

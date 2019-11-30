@@ -80,7 +80,7 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   ((Explosion*)explosion)->SetOffsetArea(area);
   field->AddEntity(*(Artifact*)explosion, tile->GetX(), tile->GetY());
 
-  auto animation = e.GetFirstComponent<AnimationComponent>();
+  auto animation = e.template GetFirstComponent<AnimationComponent>();
 
   if (animation) {
     animation->SetPlaybackSpeed(0);

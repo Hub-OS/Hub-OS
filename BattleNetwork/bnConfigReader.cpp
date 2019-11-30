@@ -1,4 +1,3 @@
-#pragma once
 #include "bnConfigReader.h"
 #include "bnInputManager.h"
 

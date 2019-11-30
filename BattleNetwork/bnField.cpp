@@ -10,6 +10,7 @@ constexpr auto TILE_ANIMATION_PATH = "resources/tiles/tiles.animation";
 Field::Field(int _width, int _height)
   : width(_width),
   height(_height),
+  pending(),
   tiles(vector<vector<Battle::Tile*>>())
   {
   // Moved tile resource acquisition to field so we only them once for all tiles
@@ -51,6 +52,7 @@ Field::Field(int _width, int _height)
   }*/
 
   isBattleActive = false;
+  isUpdating = false;
 }
 
 Field::~Field() {

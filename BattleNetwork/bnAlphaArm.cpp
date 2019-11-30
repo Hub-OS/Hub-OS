@@ -5,7 +5,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include <Swoosh\Ease.h>
+#include <Swoosh/Ease.h>
+#include <cmath>
 
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
 
@@ -100,7 +101,7 @@ bool AlphaArm::CanMoveTo(Battle::Tile * next)
 
 void AlphaArm::OnUpdate(float _elapsed) {
   totalElapsed += _elapsed;
-  float delta = std::sinf(10*totalElapsed+1);
+  float delta = std::sin(10.0f*totalElapsed+1.0f);
 
   if (type == Type::RIGHT_SWIPE) {
     if (canChangeTileState) {
