@@ -1,12 +1,13 @@
-#include <Swoosh\ActivityController.h>
+#include <Swoosh/ActivityController.h>
 #include "bnSelectMobScene.h"
+#include "Android/bnTouchArea.h"
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, ChipFolder& selectedFolder) :
   elapsed(0),
-  camera(ENGINE.GetDefaultView()),
+  camera(ENGINE.GetView()),
   textbox(320, 100, 24, "resources/fonts/NETNAVI_4-6_V3.ttf"),
   selectedFolder(selectedFolder),
-  swoosh::Activity(controller)
+  swoosh::Activity(&controller)
 {
   selectedNavi = navi;
 
@@ -23,7 +24,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   navigatorAnimator = Animation("resources/ui/navigator.animation");
   navigatorAnimator.Reload();
   navigatorAnimator.SetAnimation("TALK");
-  navigatorAnimator << Animate::Mode::Loop;
+  navigatorAnimator << Animator::Mode::Loop;
 
   mobSpr = sf::Sprite();
 
@@ -70,25 +71,33 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   textbox.setPosition(100, 210);
   textbox.SetTextColor(sf::Color::Black);
   textbox.SetCharactersPerSecond(25);
+
+#ifdef __ANDROID__
+  touchPosX = 0;
+  canSwipe = false;
+#endif
+
+  mob = nullptr;
 }
 
 SelectMobScene::~SelectMobScene() {
-  /*delete font;
+  delete font;
   delete mobFont;
-  delete hpFont;
+  //delete hpFont;
   delete mobLabel;
   delete attackLabel;
   delete speedLabel;
   delete menuLabel;
-  delete hpLabel;*/
+  delete hpLabel;
 
-  /*if (mob) delete mob;
-  if (factory) delete factory;
-  if (field) delete field;*/
+  if (mob) delete mob;
 }
 
 void SelectMobScene::onResume() {
-  if(mob) delete mob;
+  if(mob) {
+	  delete mob;
+	  mob = nullptr;
+  }
 
   // Fix camera if offset from battle
   ENGINE.SetCamera(camera);
@@ -99,22 +108,29 @@ void SelectMobScene::onResume() {
   gotoNextScene = false;
   doOnce = true;
   showMob = true;
-  textbox.Play();
+
+  Logger::Log("SelectMobScene::onResume()");
+
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
   this->elapsed += elapsed;
 
-  navigatorAnimator.Update((float)elapsed, navigator);
+  // multiplying update by 2 effectively sets playback speed to 200%
+  navigatorAnimator.Update(float(elapsed*2.0), navigator);
 
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
 
   int prevSelect = mobSelectionIndex;
 
+#ifndef __ANDROID__
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUT.Has(PRESSED_LEFT)) {
+    if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -126,7 +142,7 @@ void SelectMobScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUT.Has(PRESSED_RIGHT)) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -142,25 +158,106 @@ void SelectMobScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.Has(PRESSED_B)) {
+    if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
+      // Fade out black and go back to the menu
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-
-      using segue = swoosh::intent::segue<BlackWashFade>;
-
+      using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
       getController().queuePop<segue>();
     }
   }
+#else
+    // Scene keyboard controls
+    if (!gotoNextScene) {
+        if ((touchPosX - touchPosStartX) < -100 && canSwipe) {
+            canSwipe = false;
 
+            // Go to previous mob
+            selectInputCooldown = maxSelectInputCooldown;
+            mobSelectionIndex++;
+
+            // Number scramble effect
+            numberCooldown = maxNumberCooldown;
+        }
+        else if ((touchPosStartX - touchPosX) < -100 && canSwipe) {
+            canSwipe = false;
+
+            // Go to next mob
+            selectInputCooldown = maxSelectInputCooldown;
+            mobSelectionIndex--;
+
+            // Number scramble effect
+            numberCooldown = maxNumberCooldown;
+        }
+
+        if (INPUT.Has(PRESSED_B)) {
+            // Fade out black and go back to the menu
+            gotoNextScene = true;
+            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
+            getController().queuePop<segue>();
+        }
+    }
+#endif
+
+  // Keep our mob index in range
   mobSelectionIndex = std::max(0, mobSelectionIndex);
   mobSelectionIndex = std::min((int)MOBS.Size()-1, mobSelectionIndex);
 
+  // Grab the mob info object from this index
   auto& mobinfo = MOBS.At(mobSelectionIndex);
 
   mobLabel->setString(mobinfo.GetName());
   hpLabel->setString(mobinfo.GetHPString());
   speedLabel->setString(mobinfo.GetSpeedString());
   attackLabel->setString(mobinfo.GetAttackString());
+
+#ifdef __ANDROID__
+  if(canSwipe) {
+      if (sf::Touch::isDown(0)) {
+          sf::Vector2i touchPosition = sf::Touch::getPosition(0, *ENGINE.GetWindow());
+          sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition,
+                                                                     ENGINE.GetDefaultView());
+          sf::Vector2i iCoords = sf::Vector2i((int) coords.x, (int) coords.y);
+          touchPosition = iCoords;
+
+          canSwipe = false;
+
+          if(touchPosition.y < 400 && touchPosition.x < 290) {
+            if (!touchStart) {
+              touchStart = true;
+              touchPosStartX = touchPosition.x;
+            }
+
+            touchPosX = touchPosition.x;
+          }
+
+          if(touchPosition.x <= 320) {
+            mobSpr.setPosition(110.0f - (touchPosStartX - touchPosX), 130.f);
+            canSwipe = true;
+          }
+      } else {
+          canSwipe = false;
+          touchStart = false;
+      }
+  } else {
+      if(prevSelect == mobSelectionIndex) {
+          auto x = swoosh::ease::interpolate(0.5f, mobSpr.getPosition().x, 110.f);
+          auto y = swoosh::ease::interpolate(0.5f, mobSpr.getPosition().y, 130.f);
+          mobSpr.setPosition(x, y);
+
+          if (int(x) == 110 && int(y) == 130) {
+              mobSpr.setPosition(110.f, 130.f);
+              touchPosX = 50; // somewhere in the middle that wont trigger a swipe
+              touchPosStartX = 50;
+              touchStart = false;
+              canSwipe = true;
+          }
+      }
+  }
+#else
+  mobSpr.setPosition(110.0f, 130.f);
+#endif
 
   if (prevSelect != mobSelectionIndex || doOnce) {
     doOnce = false;
@@ -170,13 +267,21 @@ void SelectMobScene::onUpdate(double elapsed) {
     mobSpr = sf::Sprite(*mobinfo.GetPlaceholderTexture());
     mobSpr.setScale(2.f, 2.f);
     mobSpr.setOrigin(mobSpr.getLocalBounds().width / 2.f, mobSpr.getLocalBounds().height / 2.f);
-    mobSpr.setPosition(110.f, 130.f);
 
     textbox.SetMessage(mobinfo.GetDescriptionString());
-
+	textbox.Stop();
+	
     prevSelect = mobSelectionIndex;
   }
 
+  /**
+   * The following code just scrambles the name, health, speed, and attack data
+   * Each line does the same thing
+   * If it's a number, choose random numbers
+   * If it's alphabetical, choose random capital letters
+   * The scramble index moves towards the end of the string over time
+   * Eventually the original data is unmodified and the effect ends
+   */
   if (numberCooldown > 0) {
     numberCooldown -= (float)elapsed;
     std::string newstr;
@@ -198,18 +303,38 @@ void SelectMobScene::onUpdate(double elapsed) {
       }
     }
 
-    int randAttack = rand() % 10;
-    int randSpeed = rand() % 10;
-
+    int randAttack = 0;
+    int randSpeed = 0;
     int randHP = 0;
 
     int count = (int)mobinfo.GetHPString().size() - 1;
-
     while (count >= 0) {
       int index = (int)std::pow(10.0, (double)count);
       index *= (rand() % 9) + 1;
 
       randHP += index;
+
+      count--;
+    }
+    
+    count = (int)mobinfo.GetAttackString().size() - 1;
+
+    while (count >= 0) {
+      int index = (int)std::pow(10.0, (double)count);
+      index *= (rand() % 9) + 1;
+
+      randAttack += index;
+
+      count--;
+    }
+    
+    count = (int)mobinfo.GetSpeedString().size() - 1;
+
+    while (count >= 0) {
+      int index = (int)std::pow(10.0, (double)count);
+      index *= (rand() % 9) + 1;
+
+      randSpeed += index;
 
       count--;
     }
@@ -220,61 +345,79 @@ void SelectMobScene::onUpdate(double elapsed) {
     mobLabel->setString(sf::String(newstr));
   }
 
+  
+  /**
+   * End scramble effect 
+   */
+
   factor -= (float)elapsed * 180.f;
 
   if (factor <= 0.f) {
     factor = 0.f;
   }
 
+  // Progress for data scramble effect
   float progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
 
-  if (progress > 1.f) progress = 1.f;
+  if (progress > 1.f) { 
+	  progress = 1.f; 
+  
+	if(!gotoNextScene) {
+      textbox.Play();
+    }
+  }
 
-  mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255.0*progress)));
-
+  // Mob fades in
   float range = (125.f - factor) / 125.f;
   mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 
   // Make a selection
-  if (INPUT.Has(PRESSED_A) && !gotoNextScene) {
-    Mob* mob = nullptr;
+  if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && !gotoNextScene) {
     
     if (MOBS.Size() != 0) {
-      mob = MOBS.At(mobSelectionIndex).GetMob();
+      this->mob = MOBS.At(mobSelectionIndex).GetMob();
     }
 
     if (!mob) {
+      // Play error buzzer if the mob index is out of range or
+      // data is invalid
       gotoNextScene = false;
 
       AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
-
     }
     else {
       gotoNextScene = true;
 
-      AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOWEST);
+      // Play the pre battle rumble sound
+      AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::HIGH);
 
       // Stop music and go to battle screen 
       AUDIO.StopStream();
 
+      // Get the navi we selected
       Player* player = NAVIS.At(selectedNavi).GetNavi();
 
+      // Shuffle our folder
       selectedFolder.Shuffle();
 
-      using segue = swoosh::intent::segue<CrossZoom>::to<BattleScene>;
-      getController().push<segue>(player, mob, &selectedFolder);
+      // Queue screen transition to Battle Scene with a white fade effect
+      // just like the game
+      using segue = swoosh::intent::segue<WhiteWashFade>::to<BattleScene>;
+      getController().push<segue>(player, this->mob, &selectedFolder);
     }
   }
 
-  bool isEqual = textbox.GetCurrentCharacter() == '\0';
+  // Close mouth when there's a space.
+  // Overload boolean logic to close mouth whenever the text box is also paused
+  bool isEqual = !textbox.IsPlaying() || textbox.GetCurrentCharacter() == '\0';
 
   if (isEqual && navigatorAnimator.GetAnimationString() != "IDLE") {
     navigatorAnimator.SetAnimation("IDLE");
-    navigatorAnimator << Animate::Mode::Loop;
+    navigatorAnimator << Animator::Mode::Loop;
   }
   else if(!isEqual && navigatorAnimator.GetAnimationString() != "TALK") {
     navigatorAnimator.SetAnimation("TALK");
-    navigatorAnimator << Animate::Mode::Loop;
+    navigatorAnimator << Animator::Mode::Loop;
   }
 }
 
@@ -316,10 +459,8 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   hpLabel->setFillColor(sf::Color::White);
   ENGINE.Draw(hpLabel);
 
-  ENGINE.DrawUnderlay();
-  ENGINE.DrawLayers();
-  ENGINE.DrawOverlay();
 
+  // Pixelate the mob texture
   if (mobSpr.getTexture()) {
     sf::IntRect t = mobSpr.getTextureRect();
     sf::Vector2u size = mobSpr.getTexture()->getSize();
@@ -329,11 +470,11 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
     shader.SetUniform("h", (float)t.height / (float)size.y);
     shader.SetUniform("pixel_threshold", (float)(factor / 400.f));
 
-
     // Refresh mob graphic origin every frame as it may change
     mobSpr.setOrigin(mobSpr.getTextureRect().width / 2.f, mobSpr.getTextureRect().height / 2.f);
 
-    LayeredDrawable* bake = new LayeredDrawable(sf::Sprite(mobSpr));
+    // Sprites need to be a SpriteSceneNode to attach shaders to
+    SpriteSceneNode* bake = new SpriteSceneNode(mobSpr);
     bake->SetShader(shader);
 
     if (showMob) {
@@ -345,27 +486,45 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   ENGINE.Draw(textbox);
   ENGINE.Draw(navigator);
 
+  // Draw the LEFT cursor
   if (mobSelectionIndex > 0) {
     cursor.setColor(sf::Color::White);
   }
   else {
+    // If there are no more items to the left, fade the cursor
     cursor.setColor(sf::Color(255, 255, 255, 100));
   }
-
+     
+  // Add sine offset to create a bob effect
   auto offset = std::sin(this->elapsed*10.0) * 5;
+  
+  // Put the left cursor on the left of the mob
   cursor.setPosition(23.0f + (float)offset, 130.0f);
+  
+  // Flip the x axis
   cursor.setScale(-2.f, 2.f);
+  
+  // Draw left cursor
   ENGINE.Draw(cursor);
 
+  // Draw the RIGHT cursor
   if (mobSelectionIndex < (int)(MOBS.Size() - 1)) {
     cursor.setColor(sf::Color::White);
   } else {
+    // If there are no more items to the right, fade the cursor
     cursor.setColor(sf::Color(255, 255, 255, 100));
   }
 
+  // Add sine offset to create a bob effect
   offset = -std::sin(this->elapsed*10.0) * 5;
+  
+  // Put the right cursor on the right of the mob
   cursor.setPosition(200.0f + (float)offset, 130.0f);
+  
+  // Flip the x axis
   cursor.setScale(2.f, 2.f);
+  
+  // Draw the right cursor
   ENGINE.Draw(cursor);
 }
 
@@ -375,20 +534,74 @@ void SelectMobScene::onStart() {
   doOnce = true;
   showMob = true;
   gotoNextScene = false;
+
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
+
+  Logger::Log("SelectMobScene::onStart()");
 }
 
 void SelectMobScene::onLeave() {
   textbox.Stop();
+
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
+
+  Logger::Log("SelectMobScene::onLeave()");
+
 }
 
 void SelectMobScene::onExit() {
+  textbox.SetMessage("");
+
+  Logger::Log("SelectMobScene::onExit()");
 
 }
 
 void SelectMobScene::onEnter() {
+  Logger::Log("SelectMobScene::onEnter()");
 
 }
 
 void SelectMobScene::onEnd() {
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
+  Logger::Log("SelectMobScene::onEnd()");
 
 }
+
+#ifdef __ANDROID__
+void SelectMobScene::StartupTouchControls() {
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  this->releasedB = false;
+
+  rightSide.enableExtendedRelease(true);
+
+  rightSide.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+  });
+
+  rightSide.onRelease([this](sf::Vector2i delta) {
+      if(!this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      }
+  });
+
+  rightSide.onDrag([this](sf::Vector2i delta){
+      if(delta.x < -25 && !this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        this->releasedB = true;
+      }
+  });
+}
+
+void SelectMobScene::ShutdownTouchControls() {
+  TouchArea::free();
+}
+#endif

@@ -1,6 +1,6 @@
 #pragma once
-#include "Swoosh/Ease.h"
-#include "Swoosh/Activity.h"
+#include <Swoosh/Ease.h>
+#include <Swoosh/Activity.h>
 
 #include "bnCamera.h"
 #include "bnInputManager.h"
@@ -10,10 +10,96 @@
 #include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
+#include "bnChipFolder.h"
 
+/**
+ * @class FolderEditScene
+ * @author mav
+ * @date 04/05/19
+ * @brief Edit folder contents and select from chip pool
+ * @important the games, the chip pool chip count is not shared by folders
+ * 
+ * User can select chip and switch to the chip pool on the right side of the scene to select chips
+ * to swap out for. 
+ * 
+ * Before leaving the user is prompted to save changes
+ */
+ 
 class FolderEditScene : public swoosh::Activity {
 private:
+  enum class ViewMode : int {
+    FOLDER,
+    PACK
+  };
+
+  /**
+  * @class PackBucket
+  * @brief Chips in a pack avoid listing duplicates by bundling them in a counted bucket 
+  * 
+  * Users can select up to all of the chips in a bucket. The bucket will remain in the list but at 0. 
+  */
+  class PackBucket {
+  private:
+    unsigned size;
+    unsigned maxSize;
+    Chip info;
+
+  public:
+    PackBucket(unsigned size, Chip info) : size(size), maxSize(size), info(info) { }
+    ~PackBucket() { }
+
+    const bool IsEmpty() const { return size == 0; }
+    const bool GetChip(Chip& copy) { if (IsEmpty()) return false; else copy = Chip(info); size--;  return true; }
+    void AddChip() { size++; size = std::min(size, maxSize);  }
+    const Chip& ViewChip() const { return info; }
+    const unsigned GetCount() const { return size; }
+  };
+
+  /**
+  * @class FolderSlot
+  * @brief A selectable row in the folder to place new chips. When removing chips, an empty slot is left behind
+  */
+  class FolderSlot {
+  private:
+    bool occupied;
+    Chip info;
+  public:
+    void AddChip(Chip other) {
+      info = other;
+      occupied = true;
+    }
+
+    const bool GetChip(Chip& copy) {
+      if (!occupied) return false;
+
+      copy = Chip(info);
+      occupied = false;
+
+      info = Chip(); // null chip
+
+      return true;
+    }
+
+    const bool IsEmpty() const {
+      return !occupied;
+    }
+
+    const Chip& ViewChip() {
+      return info;
+    }
+  };
+
+  void ExcludeFolderDataFromPack();
+  void PlaceFolderDataIntoChipSlots();
+  void PlaceLibraryDataIntoBuckets();
+  void WriteNewFolderData();
+
+private:
+  std::vector<FolderSlot> folderChipSlots; /*!< Rows in the folder that can be inserted with chips or replaced */
+  std::vector<PackBucket> packChipBuckets; /*!< Rows in the pack that represent how many of a chip are left */
+  bool hasFolderChanged; /*!< Flag if folder needs to be saved before quitting screen */
   Camera camera;
+  ChipFolder& folder;
 
   // Menu name font
   sf::Font* font;
@@ -36,30 +122,56 @@ private:
 
   // folder menu graphic
   sf::Sprite bg;
-  sf::Sprite folderDock;
+  sf::Sprite folderDock, packDock;
   sf::Sprite scrollbar;
-  sf::Sprite stars;
   sf::Sprite chipHolder;
   sf::Sprite element;
-  sf::Sprite cursor;
+  sf::Sprite folderCursor, folderSwapCursor;
+  sf::Sprite packCursor, packSwapCursor;
+  sf::Sprite folderNextArrow;
+  sf::Sprite packNextArrow;
+  sf::Sprite folderChipCountBox;
+  sf::Sprite mbPlaceholder;
 
-  // Current chip graphic
+  // Current chip graphic data
   sf::Sprite chip;
   sf::IntRect cardSubFrame;
-
   sf::Sprite chipIcon;
   swoosh::Timer chipRevealTimer;
   swoosh::Timer easeInTimer;
 
-  int maxChipsOnScreen;
-  int currChipIndex;
-  int lastChipOnScreen; // index
-  int prevIndex; // for effect
-  int numOfChips;
+  struct ChipView {
+    int maxChipsOnScreen;
+    int currChipIndex;
+    int lastChipOnScreen; // index
+    int prevIndex; // for effect
+    int numOfChips;
+    int swapChipIndex; // -1 for unselected, otherwise ID
+  } folderView, packView;
+
+  ViewMode currViewMode;
+  ViewMode prevViewMode;
 
   double totalTimeElapsed;
   double frameElapsed;
-  bool gotoNextScene;
+ 
+  bool canInteract;
+
+#ifdef __ANDROID__
+  bool canSwipe;
+  bool touchStart;
+
+  int touchPosX;
+  int touchPosStartX;
+
+  bool releasedB;
+
+  void StartupTouchControls();
+  void ShutdownTouchControls();
+#endif
+
+  void DrawFolder();
+  void DrawLibrary();
 
 public:
   std::string FormatChipDesc(const std::string&& desc);
@@ -73,6 +185,6 @@ public:
   virtual void onDraw(sf::RenderTexture& surface);
   virtual void onEnd();
 
-  FolderEditScene(swoosh::ActivityController&);
+  FolderEditScene(swoosh::ActivityController&, ChipFolder& folder);
   virtual ~FolderEditScene();
 };

@@ -9,27 +9,24 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
+#include "bnDefenseVirusBody.h"
 
 #define RESOURCE_PATH "resources/mobs/starfish/starfish.animation"
 
 Starfish::Starfish(Rank _rank)
   : AI<Starfish>(this), AnimatedCharacter(_rank) {
-  name = "Starfish";
-  Entity::team = Team::BLUE;
+  this->SetName("Starfish");
+  this->team = Team::BLUE;
 
-  health = 100;
-  hit = false;
+  this->SetElement(Element::AQUA);
+  this->SetHealth(100);
   textureType = TextureType::MOB_STARFISH_ATLAS;
 
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Load();
+  animationComponent->SetAnimation("IDLE");
 
-  //Components setup and load
-  animationComponent.SetAnimation("IDLE");
-
-  hitHeight = 0;
-
-  healthUI = new MobHealthUI(this);
+  hitHeight = 60;
 
   setTexture(*TEXTURES.GetTexture(textureType));
   setScale(2.f, 2.f);
@@ -37,122 +34,36 @@ Starfish::Starfish(Rank _rank)
   this->SetHealth(health);
   this->SetFloatShoe(true);
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
+  animationComponent->OnUpdate(0);
 
-  animationComponent.Update(0);
+  virusBody = new DefenseVirusBody();
+  this->AddDefenseRule(virusBody);
 }
 
-Starfish::~Starfish(void) {
+Starfish::~Starfish() {
 
 }
 
-int* Starfish::GetAnimOffset() {
-  Starfish* mob = this;
-
-  int* res = new int[2];
-  res[0] = 10;  res[1] = 0;
-
-  return res;
-}
-
-void Starfish::Update(float _elapsed) {
-  if (!hit) {
-    this->SetShader(nullptr);
-  }
-  else {
-    SetShader(whiteout);
-  }
-
-  this->RefreshTexture();
-
-  if (stunCooldown > 0) {
-    stunCooldown -= _elapsed;
-    healthUI->Update(_elapsed);
-    Character::Update(_elapsed);
-
-    if (stunCooldown <= 0) {
-      stunCooldown = 0;
-      animationComponent.Update(_elapsed);
-    }
-
-    if ((((int)(stunCooldown * 15))) % 2 == 0) {
-      this->SetShader(stun);
-    }
-    else {
-      this->SetShader(nullptr);
-    }
-
-    if (GetHealth() > 0) {
-      return;
-    }
-  }
-
+void Starfish::OnUpdate(float _elapsed) {
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
   this->AI<Starfish>::Update(_elapsed);
-
-  // Explode if health depleted
-  if (GetHealth() <= 0) {
-    this->ChangeState<ExplodeState<Starfish>>();
-    this->LockState();
-  }
-  else {
-    animationComponent.Update(_elapsed);
-  }
-
-  healthUI->Update(_elapsed);
-
-  Character::Update(_elapsed);
-
-  hit = false;
 }
 
-void Starfish::RefreshTexture() {
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-
-  setPosition(getPosition() + tileOffset);
-}
-
-int Starfish::GetHealth() const {
-  return health;
-}
-
-void Starfish::SetHealth(int _health) {
-  health = _health;
-}
-
-const bool Starfish::Hit(Hit::Properties props) {
-  /*if (Character::Hit(_damage, props)) {
-    SetShader(whiteout);
-    return true;
-  }
-
-  return false;*/
-
-  bool result = true;
-
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-
-    // TODO: use resolve system and propagate state information to frame vars
-    if (props.element == Element::ELEC) {
-      health -= props.damage;
-      field->AddEntity(*(new ElementalDamage(field, GetTeam())), tile->GetX(), tile->GetY());
-    }
-
-    if ((props.flags & Hit::stun) == Hit::stun) {
-      SetShader(stun);
-      this->stunCooldown = props.secs;
-    }
-  }
-
-  hit = result;
-
-  return result;
+const bool Starfish::OnHit(const Hit::Properties props) {
+  //  There's no special checks for starfish
+  return true;
 }
 
 const float Starfish::GetHitHeight() const {
   return hitHeight;
+}
+
+void Starfish::OnDelete() {
+  if (virusBody) {
+    this->RemoveDefenseRule(virusBody);
+    delete virusBody;
+    virusBody = nullptr;
+  }
+
+  this->ChangeState<ExplodeState<Starfish>>();
 }

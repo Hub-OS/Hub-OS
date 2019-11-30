@@ -1,5 +1,5 @@
 #pragma once
-#include "Swoosh/Activity.h"
+#include <Swoosh/Activity.h>
 
 #include "bnFolderScene.h"
 #include "bnOverworldMap.h"
@@ -8,7 +8,6 @@
 #include "bnSelectMobScene.h"
 #include "bnLibraryScene.h"
 #include "bnFolderScene.h"
-#include "bnMemory.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
@@ -24,41 +23,90 @@
 
 class MainMenuScene : public swoosh::Activity {
 private:
-  Camera camera;
-  bool showHUD;
+  Camera camera; /*!< camera in scene follows megaman */
+  bool showHUD; /*!< Toggle HUD. Used in debugging. */
 
   // Selection input delays
-  double maxSelectInputCooldown;
-  double selectInputCooldown;
+  double maxSelectInputCooldown; /*!< Maximum delay */
+  double selectInputCooldown; /*!< timer to allow key presses again */
 
   // ui sprite maps
-  sf::Sprite ui;
-  Animation uiAnimator;
+  sf::Sprite ui; /*!< UI loaded as a texture atlas */
+  Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
 
-  int menuSelectionIndex;;
+  int menuSelectionIndex;; /*!< Current selection */
+  int lastMenuSelectionIndex;
 
-  sf::Sprite overlay;
-  sf::Sprite ow;
+  sf::Sprite overlay; /*!< PET */
+  sf::Sprite ow; 
 
-  Background* bg;
-  Overworld::Map* map;
+  Background* bg; /*!< Background image pointer */
+  Overworld::Map* map; /*!< Overworld map pointer */ 
 
-  SelectedNavi currentNavi;
-  sf::Sprite owNavi;
-  Animation naviAnimator;
+  SelectedNavi currentNavi; /*!< Current navi selection index */
+  sf::Sprite owNavi; /*!< Overworld navi sprite */
+  Animation naviAnimator; /*!< Animators navi sprite */
+ 
+  bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
 
-  bool gotoNextScene;
+  ChipFolderCollection data; /*!< TODO: this will be replaced with all saved data */
 
-  ChipFolderCollection data; // TODO: this will be replaced with all saved data
+#ifdef __ANDROID__
+void StartupTouchControls();
+void ShutdownTouchControls();
+#endif
+
 public:
+
+  /**
+   * @brief Loads the player's library data and loads graphics
+   */
   MainMenuScene(swoosh::ActivityController&);
+  
+  /**
+   * @brief Checks input events and listens for select buttons. Segues to new screens.
+   * @param elapsed in seconds
+   */
   virtual void onUpdate(double elapsed);
+  
+  /**
+   * @brief Draws the UI
+   * @param surface
+   */
   virtual void onDraw(sf::RenderTexture& surface);
+  
+  /**
+   * @brief Stops music, plays new track, reset the camera
+   */
   virtual void onStart();
+  
+  /**
+   * @brief Does nothing
+   */
   virtual void onLeave();
+  
+  /**
+   * @brief Does nothing
+   */
   virtual void onExit();
+  
+  /**
+   * @brief Checks the selected navi if changed and loads the new images
+   */
   virtual void onEnter();
+  
+  /**
+   * @brief Resets the camera
+   */
   virtual void onResume();
+  
+  /**
+   * @brief Stops the music
+   */
   virtual void onEnd();
+  
+  /**
+   * @brief deconstructor
+   */
   virtual ~MainMenuScene() { ; }
 };

@@ -1,72 +1,90 @@
+
+/*! \brief SceneNodes are used for visually connected assets like aura's attached to entities 
+ * 
+ * Nodes attached are not handled by the parent node.
+ * Do not expect the deletion of this node to free the memory.
+ * */
+
 #pragma once
 #include <vector>
 #include <algorithm>
 #include <SFML/Graphics.hpp>
 
 class SceneNode : public sf::Transformable, public sf::Drawable {
-private:
-  std::vector<SceneNode*> childNodes;
-  std::vector<sf::Drawable*> sprites;
-  SceneNode* parent;
-  bool show;
+protected:
+  mutable std::vector<SceneNode*> childNodes; /*!< List of all children */
+  SceneNode* parent; /*!< The node this node is a child of */
+  bool show; /*!< Flag to hide or display a scene node and its children */
+  int layer; /*!< Draw order of this node */
+  bool useParentShader;
 
 public:
-  SceneNode() {
-    show = true;
-  }
+  /**
+   * @brief Sets layer to 0 and show to true
+   */
+  SceneNode();
 
-  virtual ~SceneNode() {
+  SceneNode(const SceneNode& rhs) = delete;
 
-  }
+  /**
+   * @brief Deconstructor does not delete children
+   */
+  virtual ~SceneNode();
+  
+  /**
+   * @brief Sets the layer
+   * @param layer
+   */
+  void SetLayer(int layer);
+  
+  /**
+   * @brief Get the layer
+   * @return const int
+   */
+  const int GetLayer() const;
 
-  void Hide()
-  {
-    show = false;
-  }
+  /**
+   * @brief Hide this node and all children nodes
+   */
+  void Hide();
 
-  void Reveal()
-  {
-    show = true;
-  }
+  /**
+   * @brief Show this node and all children nodes
+   */
+  void Reveal();
 
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    if (!show) return;
+  /**
+   * Query if node is hidden
+   * @return true if hidden, false otherwise
+   */
+  const bool IsHidden() const;
 
-    // combine the parent transform with the node's one
-    //sf::Transform combinedTransform =this->getTransform();
-    
-    /*if (parent) {
-      combinedTransform *= parent->getTransform();
-    }*/
+  /**
+   * Query is node is visible
+   * @return false if hidden, true otherwise
+   */
+  const bool IsVisible() const;
 
-    //states.transform *= combinedTransform;
+  /**
+   * @brief Sort the nodes by Ascending Z Order and draw the nodes
+   * @param target
+   * @param states
+   */
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
-    // Draw sprites
-    for (std::size_t i = 0; i < sprites.size(); i++) {
-     target.draw(*sprites[i], states);
-    }
+  /**
+   * @brief Adds a child node
+   * @param child the node to add
+   * 
+   * Must be non null
+   */
+  void AddNode(SceneNode* child);
+  
+  /**
+   * @brief Removes a child node
+   * @param find the node to remove if it exists
+   */
+  void RemoveNode(SceneNode* find);
 
-    // draw its children
-    for (std::size_t i = 0; i < childNodes.size(); i++) {
-      childNodes[i]->draw(target, states);
-    }
-  }
-
-  void AddNode(SceneNode* child) { if (child == nullptr) return;  child->parent = this; childNodes.push_back(child); }
-  void RemoveNode(SceneNode* find) {
-    if (find == nullptr) return;
-
-    auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [&find](SceneNode *in) { return in == find; });
-    (*iter)->parent = nullptr;
-    
-    childNodes.erase(iter, childNodes.end());
-  }
-
-  void AddSprite(sf::Drawable* sprite) { sprites.push_back(sprite); }
-
-  void RemoveSprite(sf::Drawable* find) {
-    auto iter = std::remove_if(sprites.begin(), sprites.end(), [&find](sf::Drawable *in) { return in == find; });
-
-    sprites.erase(iter, sprites.end());
-  }
+  void EnableUseParentShader(bool use);
 };

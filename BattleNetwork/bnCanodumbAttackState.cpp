@@ -1,4 +1,3 @@
-#pragma once
 #include "bnCanodumbIdleState.h"
 #include "bnCanodumbAttackState.h"
 #include "bnCanodumb.h"
@@ -17,7 +16,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
   auto onFinish = [&can]() { can.ChangeState<CanodumbIdleState>(); };
 
   auto spawnSmoke   = [&can]() { 
-    CanonSmoke* smoke = new CanonSmoke(can.GetField(), can.GetTeam());
+    CanonSmoke* smoke = new CanonSmoke(can.GetField());
     can.GetField()->AddEntity(*smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
   };
 

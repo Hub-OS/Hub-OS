@@ -1,7 +1,7 @@
 #include "bnPlayer.h"
 #include "bnNaviExplodeState.h"
 #include "bnField.h"
-#include "bnBuster.h"
+#include "bnBusterChipAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
@@ -13,121 +13,94 @@
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
-Player::Player(void)
-  : health(500),
+Player::Player()
+  :
   state(PLAYER_IDLE),
-  chargeComponent(this),
-  animationComponent(this),
+  chargeEffect(this),
   AI<Player>(this),
+  formSize(0),
   Character(Rank::_1)
 {
   this->ChangeState<PlayerIdleState>();
-  this->AddNode(&chargeComponent);
-  chargeComponent.setPosition(0, -20.0f); // translate up -20
+  
+  // The charge component is also a scene node
+  // Make sure the charge is in front of this node
+  // Otherwise children scene nodes are drawn behind 
+  // their parents
+  chargeEffect.SetLayer(-2);
+  this->AddNode(&chargeEffect);
+  chargeEffect.setPosition(0, -20.0f); // translate up -20
+  chargeEffect.EnableUseParentShader(false);
 
-  name = "Megaman";
   SetLayer(0);
   team = Team::RED;
 
-  moveCount = hitCount = 0;
+  hitCount = 0;
 
-  //Animation
-  animationProgress = 0.0f;
   setScale(2.0f, 2.0f);
 
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+  animationComponent = new AnimationComponent(this);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
+  this->RegisterComponent(animationComponent);
 
-  textureType = TextureType::NAVI_MEGAMAN_ATLAS;
-  setTexture(*TEXTURES.GetTexture(textureType));
 
   previous = nullptr;
 
-  moveCount = 0;
+  playerControllerSlide = false;
 
-  invincibilityCooldown = 0;
+  activeForm = nullptr;
 }
 
-Player::~Player(void) {
+Player::~Player() {
 }
 
-void Player::Update(float _elapsed) {
-  animationComponent.Update(_elapsed);
-
-  if (_elapsed <= 0)
-    return;
-
-  Component* c = GetComponent<BubbleTrap>();
-  if (c) {
-    this->ChangeState<BubbleState<Player, PlayerControlledState>>();
+void Player::OnUpdate(float _elapsed) {
+  if (GetTile() != nullptr) {
+    setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
   }
 
-  if (tile != nullptr) {
-    setPosition(tileOffset.x + tile->getPosition().x, tileOffset.y + tile->getPosition().y);
+  if (GetFirstComponent<BubbleTrap>()) {
+    this->ChangeState<BubbleState<Player>>();
   }
 
-  // Explode if health depleted
-  if (GetHealth() <= 0) {
-    this->ChangeState<NaviExplodeState<Player>>(5, 0.65);
-    AI<Player>::Update(_elapsed);
-    return;
-  }
-
-  if (invincibilityCooldown > 0) {
-    if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
-      this->Hide();
-    }
-    else {
-      this->Reveal();
-    }
-
-    invincibilityCooldown -= _elapsed;
-  }
-  else {
-    this->Reveal();
+  if (activeForm) {
+    activeForm->OnUpdate(_elapsed, *this);
   }
 
   AI<Player>::Update(_elapsed);
 
-  //Components updates
-  chargeComponent.Update(_elapsed);
-
-  Character::Update(_elapsed);
+  //Node updates
+  chargeEffect.Update(_elapsed);
 }
 
-void Player::Attack(float _charge) {
-  if (!tile) return;
-
+void Player::Attack() {
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
-    Spell* spell = new Buster(field, team, chargeComponent.IsFullyCharged());
-    spell->SetDirection(Direction::RIGHT);
-    field->AddEntity(*spell, tile->GetX(), tile->GetY());
+    chargeEffect.IsFullyCharged() ? ExecuteChargedBusterAction() : ExecuteBusterAction();
   }
 }
 
-void Player::SetHealth(int _health) {
-  health = _health;
-
-  if (health < 0) health = 0;
+void Player::OnDelete() {
+  chargeEffect.Hide();
+  auto animationComponent = this->GetFirstComponent<AnimationComponent>();
+  animationComponent->CancelCallbacks();
+  animationComponent->SetAnimation(PLAYER_HIT);
+  this->ChangeState<NaviExplodeState<Player>>();
 }
 
-int Player::GetHealth() const {
-  return health;
+const float Player::GetHitHeight() const
+{
+  return 101.0f;
 }
 
-const bool Player::Hit(Hit::Properties props) {
-  if (invincibilityCooldown > 0) return false;
+const bool Player::OnHit(const Hit::Properties props) {
+  hitCount++;
 
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-    hitCount++;
-
-    if ((props.flags & Hit::recoil) == Hit::recoil) {
-      this->ChangeState<PlayerHitState, float>({ (float)props.secs });
-    }
+  // Respond to the recoil bit state
+  if ((props.flags & Hit::recoil) == Hit::recoil) {
+    // When movement is interrupted because of a hit, we need to reset/flush the movement state data
+    FinishMove();
+    this->ChangeState<PlayerHitState>();
   }
 
   return true;
@@ -135,7 +108,7 @@ const bool Player::Hit(Hit::Properties props) {
 
 int Player::GetMoveCount() const
 {
-  return moveCount;
+  return Entity::GetMoveCount();
 }
 
 int Player::GetHitCount() const
@@ -143,23 +116,73 @@ int Player::GetHitCount() const
   return hitCount;
 }
 
-AnimationComponent& Player::GetAnimationComponent() {
-  return animationComponent;
-}
-
 void Player::SetCharging(bool state)
 {
-  chargeComponent.SetCharging(state);
+  chargeEffect.SetCharging(state);
 }
 
 void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
 
   if (state == PLAYER_IDLE) {
-    int playback = Animate::Mode::Loop;
-    animationComponent.SetAnimation(_state, playback, onFinish);
+    auto playback = Animator::Mode::Loop;
+    animationComponent->SetAnimation(_state, playback);
   }
   else {
-    animationComponent.SetAnimation(_state, 0, onFinish);
+    animationComponent->SetAnimation(_state, 0, onFinish);
   }
+}
+
+void Player::EnablePlayerControllerSlideMovementBehavior(bool enable)
+{
+  playerControllerSlide = enable;
+}
+
+const bool Player::PlayerControllerSlideEnabled() const
+{
+  return playerControllerSlide;
+}
+
+void Player::ActivateFormAt(int index)
+{
+  if (activeForm) {
+    activeForm->OnDeactivate(*this);
+    delete activeForm;
+    activeForm = nullptr;
+  }
+
+  if (index >= 0 || index < forms.size()) {
+    auto meta = forms[index];
+    activeForm = meta->BuildForm();
+
+    if (activeForm) {
+      activeForm->OnActivate(*this);
+    }
+  }
+}
+
+void Player::DeactivateForm()
+{
+  if (activeForm) {
+    activeForm->OnDeactivate(*this);
+  }
+}
+
+const std::vector<PlayerFormMeta*> Player::GetForms()
+{
+  auto res = std::vector<PlayerFormMeta*>();
+
+  for (int i = 0; i < formSize; i++) {
+    res.push_back(forms[i]);
+  }
+
+  return res;
+}
+
+bool Player::RegisterForm(PlayerFormMeta * info)
+{
+  if (formSize >= forms.size() || !info) return false;
+
+  this->forms[formSize++] = info;
+  return true;
 }

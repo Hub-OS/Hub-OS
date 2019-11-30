@@ -1,11 +1,11 @@
+#include "bnTextureResourceManager.h"
+
 #include <stdlib.h>
 #include <atomic>
 #include <sstream>
-using std::stringstream;
 #include <fstream>
 using std::ifstream;
-
-#include "bnTextureResourceManager.h"
+using std::stringstream;
 
 TextureResourceManager& TextureResourceManager::GetInstance() {
   static TextureResourceManager instance;
@@ -53,8 +53,6 @@ sf::IntRect TextureResourceManager::GetCardRectFromID(unsigned ID) {
 
 sf::IntRect TextureResourceManager::GetIconRectFromID(unsigned ID) {
   sf::IntRect result  = sf::IntRect(1+((ID % 20) * 16), 1+((ID / 20) * 16), 14, 14);
-
-  // Start mapping icons to cards
   return result;
 }
 
@@ -71,41 +69,34 @@ Font* TextureResourceManager::LoadFontFromFile(string _path) {
 TextureResourceManager::TextureResourceManager(void) {
   //-Tiles-
   //Blue tile
-  paths.push_back("resources/tiles/img_blue_normal.png");
-  paths.push_back("resources/tiles/img_blue_cracked.png");
-  paths.push_back("resources/tiles/img_blue_broken.png");
-  paths.push_back("resources/tiles/img_blue_ice.png");
-  paths.push_back("resources/tiles/img_blue_grass.png");
-  paths.push_back("resources/tiles/img_blue_purple.png");
-  paths.push_back("resources/tiles/img_blue_lava.png");
-  paths.push_back("resources/tiles/img_blue_empty.png");
+  paths.push_back("resources/tiles/tile_atlas_blue.png");
+
   //Red tile
-  paths.push_back("resources/tiles/img_red_normal.png");
-  paths.push_back("resources/tiles/img_red_cracked.png");
-  paths.push_back("resources/tiles/img_red_broken.png");
-  paths.push_back("resources/tiles/img_red_ice.png");
-  paths.push_back("resources/tiles/img_red_grass.png");
-  paths.push_back("resources/tiles/img_red_purple.png");
-  paths.push_back("resources/tiles/img_red_lava.png");
-  paths.push_back("resources/tiles/img_red_empty.png");
+  paths.push_back("resources/tiles/tile_atlas_red.png");
 
   //-Navis-
-  //Megaman
+  // Megaman
   paths.push_back("resources/navis/megaman/navi_megaman_atlas.png");
 
-  //Starman
+  // Starman
   paths.push_back("resources/navis/starman/navi_starman_atlas.png");
 
-  //Roll
+  // Roll
   paths.push_back("resources/navis/roll/navi_roll_atlas.png");
 
-  //-Mobs-
+  // Forte
+  paths.push_back("resources/navis/forte/navi_forte_atlas.png");
+
+  // Mobs
   paths.push_back("resources/mobs/mob_move.png");
   paths.push_back("resources/mobs/mob_explosion.png");
   paths.push_back("resources/mobs/boss_shine.png");
 
-  //Mettaur
+  // Mettaur
   paths.push_back("resources/mobs/mettaur/mettaur.png");
+
+  // Metrid
+  paths.push_back("resources/mobs/metrid/metrid.png");
 
   // ProgsMan
   paths.push_back("resources/mobs/progsman/mob_progsman_atlas.png");
@@ -122,12 +113,19 @@ TextureResourceManager::TextureResourceManager(void) {
   // Starfish
   paths.push_back("resources/mobs/starfish/starfish_atlas.png");
 
+  // Megalian
+  paths.push_back("resources/mobs/megalian/megalian_atlas.png");
+
+  // HoneyBomber
+  paths.push_back("resources/mobs/honeybomber/honeybomber.png");
+
   // Select screen "Anything Goes"
   paths.push_back("resources/mobs/select/random.png");
 
   // Battle misc / Artifacts
   paths.push_back("resources/mobs/mystery_data/mystery_data.png");
   paths.push_back("resources/mobs/cube/cube.png");
+  paths.push_back("resources/mobs/small_shadow.png");
 
   //-Spells-
   paths.push_back("resources/spells/spell_bullet_hit.png");
@@ -145,6 +143,18 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/ninja_star.png");
   paths.push_back("resources/spells/poof.png");
   paths.push_back("resources/spells/areagrab.png");
+  paths.push_back("resources/spells/sword_effect.png");
+  paths.push_back("resources/spells/spell_meteor.png");
+  paths.push_back("resources/spells/spell_ring_explosion.png");
+  paths.push_back("resources/spells/spell_twin_fang.png");
+  paths.push_back("resources/spells/spell_tornado.png");
+  paths.push_back("resources/spells/spell_flame.png");
+  paths.push_back("resources/spells/spell_bomb.png");
+  paths.push_back("resources/spells/spell_panel_shot.png");
+  paths.push_back("resources/spells/spell_yoyo.png");
+  paths.push_back("resources/spells/spell_super_vulcan.png");
+  paths.push_back("resources/spells/alpha_rocket.png");
+  paths.push_back("resources/spells/spell_bees.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");
@@ -160,6 +170,9 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/chip_frame.png");
   paths.push_back("resources/ui/cust_badge.png");
   paths.push_back("resources/ui/cust_badge_mask.png");
+  paths.push_back("resources/ui/form_select.png");
+  paths.push_back("resources/ui/form_cursor.png");
+  paths.push_back("resources/ui/form_item_bg.png");
 
   // In battle signs
   paths.push_back("resources/ui/program_advance.png");
@@ -180,6 +193,7 @@ TextureResourceManager::TextureResourceManager(void) {
   // folder view
   paths.push_back("resources/ui/folder_chip.png");
   paths.push_back("resources/ui/folder_dock.png");
+  paths.push_back("resources/ui/pack_dock.png");
   paths.push_back("resources/ui/folder_rarity.png");
   paths.push_back("resources/ui/scrollbar.png");
   paths.push_back("resources/ui/select_cursor.png");
@@ -189,6 +203,10 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/folder_options.png");
   paths.push_back("resources/ui/folder_size.png");
   paths.push_back("resources/ui/folder_textbox.png");
+  paths.push_back("resources/ui/mb_placeholder.png");
+  paths.push_back("resources/ui/folder_edit_next.png");
+  paths.push_back("resources/ui/folder_sort.png");
+  paths.push_back("resources/ui/letter_cursor.png");
 
   // Navi Select View
   paths.push_back("resources/backgrounds/select/glow_sheet.png");
@@ -218,6 +236,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/backgrounds/main_menu/arrow.png");
   paths.push_back("resources/backgrounds/folder/bg.png");
   paths.push_back("resources/backgrounds/folder/folder_info.png");
+  paths.push_back("resources/backgrounds/folder/folder_name.png");
   paths.push_back("resources/backgrounds/select/bg.png");
 
   // Overworld
@@ -226,6 +245,8 @@ TextureResourceManager::TextureResourceManager(void) {
 
   // other ui / icons
   paths.push_back("resources/ui/aura_numset.png");
+  paths.push_back("resources/ui/hp_numset.png");
+  paths.push_back("resources/ui/player_numset.png");
   paths.push_back("resources/ui/gamepad_support_icon.png");
   paths.push_back("resources/ui/main_menu_ui.png");
   paths.push_back("resources/ui/elements.png");
@@ -238,6 +259,13 @@ TextureResourceManager::TextureResourceManager(void) {
 
   // editor ui
   paths.push_back("resources/ui/light.png");
+
+  // font
+  paths.push_back("resources/fonts/all_fonts.png");
+
+  // config ui
+  paths.push_back("resources/backgrounds/config/audio.png");
+  paths.push_back("resources/backgrounds/config/end_btn.png");
 }
 
 TextureResourceManager::~TextureResourceManager(void) {

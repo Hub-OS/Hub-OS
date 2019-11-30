@@ -19,10 +19,8 @@ void ProgsManHitState::OnEnter(ProgsMan& progs) {
 void ProgsManHitState::OnUpdate(float _elapsed, ProgsMan& progs) {
   cooldown -= _elapsed;
 
-  // printf("cooldown: %f", cooldown);
-
   if (cooldown < 0) {
-    this->ChangeState<ProgsManIdleState>();
+    progs.ChangeState<ProgsManIdleState>();
   }
 }
 

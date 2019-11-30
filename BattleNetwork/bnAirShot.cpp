@@ -17,117 +17,54 @@
 #define BULLET_ANIMATION_WIDTH 30
 #define BULLET_ANIMATION_HEIGHT 27
 
-AirShot::AirShot(Field* _field, Team _team, int _damage) {
-  SetPassthrough(true);
+AirShot::AirShot(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
+  this->SetPassthrough(true);
+  this->SetFloatShoe(true);
 
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
   hit = false;
   progress = 0.0f;
   hitHeight = 10.0f;
-  srand((unsigned int)time(nullptr));
   random = rand() % 20 - 20;
   cooldown = 0.0f;
 
+  SetDirection(Direction::RIGHT);
+
   damage = _damage;
-  //TODO: make new sprite animation for charged bullet
-  texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
 
-  setScale(2.f, 2.f);
-  for (int x = 0; x < BULLET_ANIMATION_SPRITES; x++) {
-    animation.Add(0.3f, IntRect(BULLET_ANIMATION_WIDTH*x, 0, BULLET_ANIMATION_WIDTH, BULLET_ANIMATION_HEIGHT));
-  }
+  auto props = Hit::DefaultProperties;
+  props.damage = damage;
+  props.flags |= Hit::drag;
+  props.drag = Direction::RIGHT;
+  SetHitboxProperties(props);
 }
 
-AirShot::~AirShot(void) {
+AirShot::~AirShot() {
 }
 
-void AirShot::Update(float _elapsed) {
-  if (hit) {
-    if (progress == 0.0f) {
-      setTexture(*texture);
-      setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
-    }
-    progress += 3 * _elapsed;
-    animator(fmin(progress, 1.0f), *this, animation);
-    if (progress >= 1.f) {
-      deleted = true;
-      Entity::Update(_elapsed);
-    }
-    return;
-  }
-
-  tile->AffectEntities(this);
+void AirShot::OnUpdate(float _elapsed) {
+  GetTile()->AffectEntities(this);
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    Move(direction);
+    if (GetTile()->GetX() == 6) { this->Delete(); }
+    if (Move(Direction::RIGHT)) {
+      this->AdoptNextTile();
+    }
+
     cooldown = 0;
   }
 
-  Entity::Update(_elapsed);
-}
-
-bool AirShot::Move(Direction _direction) {
-  tile->RemoveEntityByID(this->GetID());
-  Battle::Tile* next = nullptr;
-  if (_direction == Direction::UP) {
-    if (tile->GetY() - 1 > 0) {
-      next = field->GetAt(tile->GetX(), tile->GetY() - 1);
-      SetTile(next);
-    }
-  }
-  else if (_direction == Direction::LEFT) {
-    if (tile->GetX() - 1 > 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY());
-      SetTile(next);
-    }
-    else {
-      deleted = true;
-      return false;
-    }
-  }
-  else if (_direction == Direction::DOWN) {
-    if (tile->GetY() + 1 <= (int)field->GetHeight()) {
-      next = field->GetAt(tile->GetX(), tile->GetY() + 1);
-      SetTile(next);
-    }
-  }
-  else if (_direction == Direction::RIGHT) {
-    if (tile->GetX() < (int)field->GetWidth()) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY());
-      SetTile(next);
-    }
-    else {
-      deleted = true;
-      return false;
-    }
-  }
-  tile->AddEntity(*this);
-  return true;
 }
 
 void AirShot::Attack(Character* _entity) {
-  if (hit || deleted) {
-    return;
+  if(_entity->Hit(GetHitboxProperties())) {
+    this->Delete();
   }
 
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    auto props = Hit::DefaultProperties;
-    props.damage = damage;
-    _entity->Hit(props);
-    hitHeight = _entity->GetHitHeight();
+  hitHeight = _entity->GetHitHeight();
+}
 
-    if (!_entity->IsPassthrough()) {
-      hit = true;
-
-      _entity->SlideToTile(true);
-      if (_entity->Move(direction)) {
-        std::cout << "shouldn't be called" << std::endl;
-        _entity->AdoptNextTile();
-      }
-    }
-  }
+bool AirShot::CanMoveTo(Battle::Tile * next)
+{
+  return true;
 }

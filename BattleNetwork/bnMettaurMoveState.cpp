@@ -1,12 +1,9 @@
-#pragma once
 #include "bnMettaurMoveState.h"
 #include "bnMettaur.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnMettaurAttackState.h"
 #include "bnMettaurIdleState.h"
-
-#include "bnProgsMan.h"
 
 MettaurMoveState::MettaurMoveState() : isMoving(false), AIState<Mettaur>() { ; }
 MettaurMoveState::~MettaurMoveState() { ; }
@@ -34,12 +31,12 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
       Battle::Tile* forward = met.GetField()->GetAt(temp->GetX() - 1, temp->GetY());
 
       if (forward && forward->IsWalkable()) {
-        return this->ChangeState<MettaurAttackState>();
+        return met.ChangeState<MettaurAttackState>();
       }
       else {
         // Forfeit turn.
-        this->ChangeState<MettaurIdleState>();
-        met.NextMettaurTurn();
+        met.ChangeState<MettaurIdleState>();
+        met.EndMyTurn();
         return;
       }
     }
@@ -49,14 +46,14 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
   
   if (moved) {
     met.AdoptNextTile();
-    auto onFinish = [&]() { this->ChangeState<MettaurIdleState>(); };
+    auto onFinish = [this, &met]() { met.ChangeState<MettaurIdleState>(); met.FinishMove(); };
     met.SetAnimation(MOB_MOVING, onFinish);
     isMoving = true;
   }
   else {
     // Cannot move or attack. Forfeit turn.
-    this->ChangeState<MettaurIdleState>();
-    met.NextMettaurTurn();
+    met.ChangeState<MettaurIdleState>();
+    met.EndMyTurn();
   }
 }
 

@@ -13,8 +13,8 @@ MetalManThrowState::~MetalManThrowState()
 }
 
 void MetalManThrowState::OnEnter(MetalMan& metal) {
-  auto onFinish = [this]() {   this->ChangeState<MetalManIdleState>(); };
-  auto onThrow = [this, &metal]() { this->Attack(metal); };
+  auto onFinish = [m = &metal]() { m->GoToNextState(); };
+  auto onThrow = [this, m = &metal]() { this->Attack(*m); };
 
   metal.SetAnimation("THROW", onFinish);
   metal.SetCounterFrame(1);

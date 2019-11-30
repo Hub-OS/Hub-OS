@@ -5,23 +5,26 @@
 #include "bnAudioResourceManager.h"
 
 HideTimer::HideTimer(Character* owner, double secs) : Component(owner) {
-  duration = sf::seconds((float)secs);
+  duration = secs;
   elapsed = 0;
 
   this->owner = owner;
   temp = owner->GetTile();
 }
 
-void HideTimer::Update(float _elapsed) {
-  if (temp->GetState() == TileState::BROKEN) {
-    temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
+void HideTimer::OnUpdate(float _elapsed) {
+  if(!this->scene) return;
+
+  if (!this->scene->IsCleared() && !this->scene->IsBattleActive()) {
+      return;
   }
 
   elapsed += _elapsed;
 
-  if (elapsed >= duration.asSeconds()) {
+  if (elapsed >= duration && temp) {
     temp->AddEntity(*this->owner);
     this->GetOwner()->FreeComponentByID(this->GetID());
+
     this->scene->Eject(this);
     delete this;
   }
@@ -33,6 +36,14 @@ void HideTimer::Inject(BattleScene& scene) {
 
   // it is safe now to temporarily remove from character from play
   // the component is now injected into the scene's update loop
-  temp->RemoveEntityByID(owner->GetID());
-  owner->SetTile(nullptr);
+  if (temp) {
+    temp->ReserveEntityByID(owner->GetID());
+    temp->RemoveEntityByID(owner->GetID());
+
+    if (temp->GetState() == TileState::BROKEN) {
+      temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
+    }
+
+    owner->SetTile(nullptr);
+  }
 }

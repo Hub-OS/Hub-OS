@@ -4,77 +4,111 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell() {
+MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, _team) {
+  // Blades float over tiles 
   this->SetFloatShoe(true);
 
   SetLayer(0);
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
-  hit = false;
-  texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
+
+  auto texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
+  setTexture(*texture);
+  setScale(2.f, 2.f);
+
   this->speed = speed;
 
-  this->slideTime = sf::seconds(0.25f / (float)speed);
+  // Blades move from tile to tile in 25 frames
+  // Adjust by speed factor
+  this->SetSlideTime(sf::seconds(0.25f / (float)speed));
 
-  animation = Animation("resources/mobs/metalman/metalman.animation");
-  animation.SetAnimation("BLADE");
-  animation << Animate::Mode::Loop;
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+  animation->Setup("resources/mobs/metalman/metalman.animation");
+  animation->Load();
+  animation->SetAnimation("BLADE",Animator::Mode::Loop);
 
   auto props = Hit::DefaultProperties;
   props.damage = 40;
+  props.flags |= Hit::flinch;
   this->SetHitboxProperties(props);
-
-  EnableTileHighlight(false);
 }
 
-MetalBlade::~MetalBlade(void) {
+MetalBlade::~MetalBlade() {
 }
 
-void MetalBlade::Update(float _elapsed) {
-  setTexture(*texture);
-  setScale(2.f, 2.f);
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
+void MetalBlade::OnUpdate(float _elapsed) {
+  setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
-  animation.Update(_elapsed*(float)this->speed, *this);
+  animation->SetPlaybackSpeed(this->speed);
 
-  // Keep moving
-  if (!this->isSliding) {
-    if (this->tile->GetX() == 1) {
-      if (this->tile->GetY() == 2 && this->GetDirection() == Direction::LEFT) {
-        this->Delete();
-      }
-      else if (this->tile->GetY() == 1) {
-        if (this->GetDirection() == Direction::LEFT) {
-          this->SetDirection(Direction::DOWN);
+  // Keep moving. When we reach the end, go up or down the column, and U-turn
+  if (!this->IsSliding()) {
+    if(this->GetTeam() == Team::BLUE) {
+        // Are we on the first column on the field?
+        if (this->tile->GetX() == 1) {
+         if (this->tile->GetY() == 1) {
+            // If we're at the top row going left, go down
+            if (this->GetDirection() == Direction::LEFT) {
+              this->SetDirection(Direction::DOWN);
+            }
+            else {
+              // Otherwise make a right
+              this->SetDirection(Direction::RIGHT);
+            }
+          }
+          else if(this->tile->GetY() == 3){
+            // If were at bottom tile going left, go up
+            if (this->GetDirection() == Direction::LEFT) {
+              this->SetDirection(Direction::UP);
+            }
+            else {
+              // Otherwise make a right
+              this->SetDirection(Direction::RIGHT);
+            }
+          }
         }
-        else {
-          this->SetDirection(Direction::RIGHT);
+    }
+    else {
+      // Are we on the back column on the field?
+      if (this->tile->GetX() == 6) {
+        if (this->tile->GetY() == 1) {
+          // If we're at the top row going right, go down
+          if (this->GetDirection() == Direction::RIGHT) {
+            this->SetDirection(Direction::DOWN);
+          }
+          else {
+            // Otherwise make a left
+            this->SetDirection(Direction::LEFT);
+          }
         }
-      }
-      else if(this->tile->GetY() == 3){
-        if (this->GetDirection() == Direction::LEFT) {
-          this->SetDirection(Direction::UP);
-        }
-        else {
-          this->SetDirection(Direction::RIGHT);
+        else if (this->tile->GetY() == 3) {
+          // If were at bottom tile going right, go up
+          if (this->GetDirection() == Direction::RIGHT) {
+            this->SetDirection(Direction::UP);
+          }
+          else {
+            // Otherwise make a left
+            this->SetDirection(Direction::LEFT);
+          }
         }
       }
     }
-    else if (this->tile->GetX() == 6) {
+
+    // Always slide
+    this->SlideToTile(true);
+    
+    // Keep moving
+    this->Move(this->GetDirection());
+
+    // We must have flown off screen
+    if (!this->GetNextTile()) {
       this->Delete();
     }
-
-    this->SlideToTile(true);
-    this->Move(this->GetDirection());
   }
 
   tile->AffectEntities(this);
-
-  Entity::Update(_elapsed);
 }
 
+// Nothing prevents blade from cutting through
 bool MetalBlade::CanMoveTo(Battle::Tile* tile) {
   return true;
 }

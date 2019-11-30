@@ -20,14 +20,12 @@ void CustEmblem::CreateWireEffect() {
   w.color = sf::Color::White; // todo make random
 
   // Original concept was to have each wire operate independantly
-  // Incorrect shader math made multiple happen at once which looked cooler
-  // when index is equal to the following, the shader breaks and looks ugly. 
+  // Incorrect shader math made multiple happen at once which looked way cooler!
+  // Note: when index is equal to the following [2,9,10], the shader breaks and looks ugly. 
   // Skip those values.
   do {
     w.index = rand() % numWires;
   } while (w.index == 2 || w.index == 9 || w.index == 10);
-
-  std::cout << "wire index: " << w.index << std::endl;
 
   w.progress = 0;
 

@@ -16,6 +16,7 @@ enum AudioType {
   GUARD_HIT,
   CANNON,
   COUNTER,
+  WIND,
   CHIP_CANCEL,
   CHIP_CHOOSE,
   CHIP_CONFIRM,
@@ -48,5 +49,6 @@ enum AudioType {
   POINT,
   NEW_GAME,
   TEXT,
+  SHINE,
   AUDIO_TYPE_SIZE
 };

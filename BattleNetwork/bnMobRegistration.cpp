@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-MobRegistration::MobInfo::MobInfo() : placeholderTexture(nullptr)
+MobRegistration::MobMeta::MobMeta() : placeholderTexture(nullptr)
 {
   mobFactory = nullptr;
   name = "Unknown";
@@ -15,7 +15,7 @@ MobRegistration::MobInfo::MobInfo() : placeholderTexture(nullptr)
   hp = 0;
 }
 
-MobRegistration::MobInfo::~MobInfo()
+MobRegistration::MobMeta::~MobMeta()
 {
   if (mobFactory) {
     delete mobFactory;
@@ -26,69 +26,69 @@ MobRegistration::MobInfo::~MobInfo()
   }
 }
 
-MobRegistration::MobInfo& MobRegistration::MobInfo::SetPlaceholderTexturePath(std::string path)
+MobRegistration::MobMeta& MobRegistration::MobMeta::SetPlaceholderTexturePath(std::string path)
 {
   this->placeholderPath = path;
   return *this;
 }
 
-MobRegistration::MobInfo& MobRegistration::MobInfo::SetDescription(const std::string & description)
+MobRegistration::MobMeta& MobRegistration::MobMeta::SetDescription(const std::string & message)
 {
-  this->description = description;
+  this->description = message;
   return *this;
 }
 
-MobRegistration::MobInfo& MobRegistration::MobInfo::SetAttack(const int atk)
+MobRegistration::MobMeta& MobRegistration::MobMeta::SetAttack(const int atk)
 {
   this->atk = atk;
   return *this;
 }
 
-MobRegistration::MobInfo& MobRegistration::MobInfo::SetSpeed(const double speed)
+MobRegistration::MobMeta& MobRegistration::MobMeta::SetSpeed(const double speed)
 {
   this->speed = speed;
   return *this;
 }
 
-MobRegistration::MobInfo& MobRegistration::MobInfo::SetHP(const int HP)
+MobRegistration::MobMeta& MobRegistration::MobMeta::SetHP(const int HP)
 {
   hp = HP;
   return *this;
 }
 
-MobRegistration::MobInfo & MobRegistration::MobInfo::SetName(const std::string & name)
+MobRegistration::MobMeta & MobRegistration::MobMeta::SetName(const std::string & name)
 {
   this->name = name;
   return *this;
 }
 
-const sf::Texture* MobRegistration::MobInfo::GetPlaceholderTexture() const
+const sf::Texture* MobRegistration::MobMeta::GetPlaceholderTexture() const
 {
   return this->placeholderTexture;
 }
 
-const std::string MobRegistration::MobInfo::GetPlaceholderTexturePath() const
+const std::string MobRegistration::MobMeta::GetPlaceholderTexturePath() const
 {
   return this->placeholderPath;
 }
 
-const std::string MobRegistration::MobInfo::GetName() const
+const std::string MobRegistration::MobMeta::GetName() const
 {
   return this->name;
 }
 
-const std::string MobRegistration::MobInfo::GetHPString() const
+const std::string MobRegistration::MobMeta::GetHPString() const
 {
   return std::to_string(hp);
 }
 
-const std::string MobRegistration::MobInfo::GetDescriptionString() const
+const std::string MobRegistration::MobMeta::GetDescriptionString() const
 {
   return this->description;
 }
 
 
-const std::string MobRegistration::MobInfo::GetSpeedString() const
+const std::string MobRegistration::MobMeta::GetSpeedString() const
 {
   std::string speedStr = std::to_string(speed);
   std::size_t afterDecimal = speedStr.find(".");
@@ -96,12 +96,12 @@ const std::string MobRegistration::MobInfo::GetSpeedString() const
   return speedStr + "x";
 }
 
-const std::string MobRegistration::MobInfo::GetAttackString() const
+const std::string MobRegistration::MobMeta::GetAttackString() const
 {
   return std::to_string(atk);
 }
 
-Mob * MobRegistration::MobInfo::GetMob() const
+Mob * MobRegistration::MobMeta::GetMob() const
 {
   loadMobClass(); // Reload mob
   return mobFactory->Build();
@@ -121,12 +121,12 @@ MobRegistration::~MobRegistration()
   roster.clear();
 }
 
-void MobRegistration::Register(const MobInfo * info)
+void MobRegistration::Register(const MobMeta * info)
 {
   roster.push_back(info);
 }
 
-const MobRegistration::MobInfo & MobRegistration::At(int index)
+const MobRegistration::MobMeta & MobRegistration::At(int index)
 {
   if (index < 0 || index >= (int)Size())
     throw std::runtime_error("Roster index out of bounds");
@@ -149,6 +149,5 @@ void MobRegistration::LoadAllMobs(std::atomic<int>& progress)
     Logger::GetMutex()->unlock();
 
     progress++;
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 }

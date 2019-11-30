@@ -1,0 +1,7 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/AirShot.png"
+
+animation state="DEFAULT"
+frame duration="0.05" x="3" y="14" w="19" h="16" originx="0" originy="8"
+frame duration="0.05" x="34" y="7" w="48" h="28" originx="2" originy="15"
+frame duration="0.05" x="86" y="1" w="48" h="38" originx="0" originy="21"
+frame duration="1" x="3" y="14" w="19" h="16" originx="0" originy="8"

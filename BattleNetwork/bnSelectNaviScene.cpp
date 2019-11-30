@@ -1,13 +1,15 @@
-#include "bnSelectNaviScene.h"
-#include "Swoosh\ActivityController.h"
 
-#include "Segues\Checkerboard.h"
+#include <Swoosh/ActivityController.h>
+
+#include "bnSelectNaviScene.h"
+#include "Segues/Checkerboard.h"
 
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
   naviSelectionIndex(currentNavi),
-  camera(ENGINE.GetDefaultView()),
+  camera(ENGINE.GetView()),
   textbox(135, 15),
-  swoosh::Activity(controller) {
+  swoosh::Activity(&controller) {
+
   // Menu name font
   font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
   menuLabel = new sf::Text("BATTLE SELECT", *font);
@@ -89,8 +91,11 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   attackLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetAttackString().c_str()));
   hpLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetHPString().c_str()));
 
-  naviAnimator.SetFrame(1, navi);
-
+  naviAnimator = Animation(NAVIS.At(naviSelectionIndex).GetBattleAnimationPath());
+  naviAnimator.Reload();
+  naviAnimator.SetAnimation("PLAYER_IDLE");
+  naviAnimator << Animator::Mode::Loop;
+   
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
 
@@ -102,7 +107,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   glowpadAnimator = Animation("resources/backgrounds/select/glow_pad.animation");
   glowpadAnimator.Reload();
   glowpadAnimator.SetAnimation("GLOW");
-  glowpadAnimator << Animate::Mode::Loop;
+  glowpadAnimator << Animator::Mode::Loop;
 
   glowpad = sf::Sprite(LOAD_TEXTURE(GLOWING_PAD_ATLAS));
   glowpad.setScale(2.f, 2.f);
@@ -120,6 +125,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   textbox.SetCharactersPerSecond(15);
   textbox.setPosition(UI_RIGHT_POS_MAX + 10, 205);
   textbox.Stop();
+  textbox.Mute(); // no tick sound
 
   elapsed = 0;
 }
@@ -191,11 +197,11 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
 
     if (UI_RIGHT_POS > UI_RIGHT_POS_MAX) {
-      UI_RIGHT_POS -= (float)elapsed * 500;
+      UI_RIGHT_POS -= (float)elapsed * 1000;
     }
     else {
       UI_RIGHT_POS = UI_RIGHT_POS_MAX;
-      UI_TOP_POS -= (float)elapsed * 500;
+      UI_TOP_POS -= (float)elapsed * 1000;
 
       if (UI_TOP_POS < UI_TOP_POS_MAX) {
         UI_TOP_POS = UI_TOP_POS_MAX;
@@ -213,31 +219,31 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
 
     if (UI_LEFT_POS < UI_LEFT_POS_MAX) {
-      UI_LEFT_POS += (float)elapsed * 500;
+      UI_LEFT_POS += (float)elapsed * 1000;
     }
     else {
       UI_LEFT_POS = UI_LEFT_POS_MAX;
     }
   }
   else {
-    factor += (float)elapsed * 180.f;
+    factor += (float)elapsed * 320.f;
 
     if (factor >= MAX_PIXEL_FACTOR) {
       factor = MAX_PIXEL_FACTOR;
     }
 
     if (UI_TOP_POS < UI_TOP_POS_START) {
-      UI_TOP_POS += (float)elapsed * 500;
+      UI_TOP_POS += (float)elapsed * 1000;
     }
     else {
-      UI_RIGHT_POS += (float)elapsed * 500;
+      UI_RIGHT_POS += (float)elapsed * 1000;
 
       if (UI_RIGHT_POS > UI_RIGHT_POS_START / 2) // Be quicker at leave than startup
-        UI_LEFT_POS -= (float)elapsed * 500;
+        UI_LEFT_POS -= (float)elapsed * 1000;
     }
   }
 
-  LayeredDrawable* bake = new LayeredDrawable(sf::Sprite(navi));
+  SpriteSceneNode* bake = new SpriteSceneNode(navi);
   bake->SetShader(pixelated);
 
   ENGINE.Draw(bake);
@@ -284,8 +290,8 @@ void SelectNaviScene::onUpdate(double elapsed) {
   SelectedNavi prevSelect = naviSelectionIndex;
 
   // Scene keyboard controls
-  if (!gotoNextScene && transitionProgress == 0.f) {
-    if (INPUT.Has(PRESSED_LEFT)) {
+  if (!gotoNextScene) {
+    if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -297,7 +303,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUT.Has(PRESSED_RIGHT)) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -313,20 +319,12 @@ void SelectNaviScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.Has(PRESSED_B)) {
+    if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
 
       getController().queuePop<swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>>();
-    }
-
-    if (INPUT.Has(PRESSED_UP)) {
-      textbox.ShowPreviousLine();
-    }
-
-    if (INPUT.Has(PRESSED_DOWN)) {
-      textbox.ShowNextLine();
     }
   }
 
@@ -339,7 +337,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
     naviAnimator = Animation(NAVIS.At(naviSelectionIndex).GetBattleAnimationPath());
     naviAnimator.Reload();
     naviAnimator.SetAnimation("PLAYER_IDLE");
-    naviAnimator << Animate::Mode::Loop;
+    naviAnimator << Animator::Mode::Loop;
 
     int offset = (int)(NAVIS.At(naviSelectionIndex).GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
@@ -355,6 +353,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   attackLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetAttackString()));
   hpLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetHPString()));
 
+  // This just scrambles the letters
   if (numberCooldown > 0) {
     numberCooldown -= (float)elapsed;
     std::string newstr;
@@ -364,10 +363,14 @@ void SelectNaviScene::onUpdate(double elapsed) {
       double index = progress * naviLabel->getString().getSize();
 
       if (i < (int)index) {
+        // Choose the unscrambled character from the original string
         newstr += naviLabel->getString()[i];
       }
       else {
+        // If the character in the string isn't a space...
         if (naviLabel->getString()[i] != ' ') {
+            
+          // Choose a random, capital ASCII character
           newstr += (char)(((rand() % (90 - 65)) + 65) + 1);
         }
         else {
@@ -388,10 +391,13 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
   if (progress > 1.f) progress = 1.f;
 
+  // Darken the unselected navis
   if (prevChosen != naviSelectionIndex) {
     navi.setColor(sf::Color(200, 200, 200, 128));
   }
   else {
+
+    // Make selected navis full color
     navi.setColor(sf::Color(255, 255, 255, 255));
   }
 
@@ -413,7 +419,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   navi.setPosition(xpos, glowbase.getPosition().y + 10);
 
   // Make a selection
-  if (INPUT.Has(PRESSED_A) && prevChosen != naviSelectionIndex) {
+  if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && prevChosen != naviSelectionIndex) {
     AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOW);
     prevChosen = prevSelect;
 

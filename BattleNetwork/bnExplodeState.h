@@ -1,33 +1,40 @@
 #pragma once
-#include "bnMeta.h"
 #include "bnEntity.h"
 #include "bnAIState.h"
+#include "bnAIPriorityLock.h"
 #include "bnExplosion.h"
+#include "bnAnimationComponent.h"
 #include "bnShaderResourceManager.h"
 
-/*
-  This state can be used by any Entity in the engine. 
-  It uses constraints to ensure the type passed in Any 
-  is a subclass of Entity. 
-
-  This state spawns an explosion and flickers the 
-  entity at it's current animation. Once the explosion
-  is finished, the entity is tried for deletion. Since 
-  this state is used when health < 0, the deletion will
-  succeed.
-*/
+/**
+ * @class ExplodeState
+ * @author mav
+ * @date 04/05/19
+ * @brief Locks an entity into this state and spawns explosions
+ * 
+ * This state can be used by any Entity in the engine. 
+ * It uses constraints to ensure the type passed in Any 
+ * is a subclass of Entity. 
+ *
+ * This state spawns an explosion and flickers the 
+ * entity at it's current animation. Once the explosion
+ * is finished, the entity is tried for deletion. Since 
+ * this state is used when health < 0, the deletion will
+ * succeed.
+ */
 template<typename Any>
 class ExplodeState : public AIState<Any>
 {
 protected:
-  Entity* explosion;
-  sf::Shader* whiteout;
+  Entity* explosion; /*!< The root explosion object */
+  sf::Shader* whiteout; /*!< Flash the dying entity white */
   double elapsed;
-  int numOfExplosions;
-  double playbackSpeed;
+  int numOfExplosions; /*!< Number of explosions to spawn */
+  double playbackSpeed; /*!< how fast the animation should be */
 public:
+  inline static const int PriorityLevel = 0; // Highest
 
-  ExplodeState(int _numOfExplosions=2, double _playbackSpeed=0.55);
+  ExplodeState(int _numOfExplosions=2, double _playbackSpeed=1.0);
   virtual ~ExplodeState();
 
   void OnEnter(Any& e);
@@ -41,10 +48,6 @@ public:
 template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
-  // Enforce template constraints on class
-  _DerivedFrom<Any, Entity>();
-
-  // If we make it here, we are the proper type
   explosion = nullptr;
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
@@ -59,14 +62,30 @@ ExplodeState<Any>::~ExplodeState() {
 
 template<typename Any>
 void ExplodeState<Any>::OnEnter(Any& e) {
-  e.LockState(); // Lock AI state. This is a final state.
+  AIPriorityLock<Any> lock(e);
+
   e.SetPassthrough(true); // Shoot through dying enemies
 
   /* Spawn an explosion */
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
   explosion = new Explosion(field, e.GetTeam(), this->numOfExplosions, this->playbackSpeed);
+
+  // Define the area relative to origin to spawn explosions around
+  // based on a fraction of the current frame's size
+  auto area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height / 6.0f);
+
+  // Logger::Log("explosion area: " + std::to_string(area.x) + ", " + std::to_string(area.y));
+
+  ((Explosion*)explosion)->SetOffsetArea(area);
   field->AddEntity(*(Artifact*)explosion, tile->GetX(), tile->GetY());
+
+  auto animation = e.template GetFirstComponent<AnimationComponent>();
+
+  if (animation) {
+    animation->SetPlaybackSpeed(0);
+    animation->CancelCallbacks();
+  }
 }
 
 template<typename Any>
@@ -81,11 +100,14 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
     e.SetShader(nullptr);
   }
 
-  /* If explosion is over, delete the entity*/
+  /* If root explosion is over, delete the entity that entered this state
+     This ends the effect
+     */
   if (explosion->IsDeleted()) {
-    e.TryDelete();
+    e.Delete();
   }
 }
 
 template<typename Any>
-void ExplodeState<Any>::OnLeave(Any& e) { }
+void ExplodeState<Any>::OnLeave(Any& e) {
+}

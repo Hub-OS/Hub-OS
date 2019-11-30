@@ -1,25 +1,29 @@
 #pragma once
-#include "bnMeta.h"
+
 #include "bnEntity.h"
 #include "bnAIState.h"
 #include "bnBubbleTrap.h"
 #include "bnShaderResourceManager.h"
+#include <cmath>
 
-/*
-  This state can be used by any Entity in the engine.
-  It uses constraints to ensure the type passed in Any
-  is a subclass of Entity.
-
-  This state traps an entity in a bubble for a duration of time
-*/
-template<typename Any, typename NextState>
+/**
+ * @class BubbleState
+ * @author mav
+ * @date 05/05/19
+ * @brief This state traps an entity in a bubble for a duration of time
+ * 
+ * This state can be used by any Entity in the engine.
+ */
+template<typename Any>
 class BubbleState : public AIState<Any>
 {
 protected:
   double progress;
-  //BubbleTrap* trap;
+  bool prevFloatShoe;
 
 public:
+  inline static const int PriorityLevel = 1;
+
   BubbleState();
   virtual ~BubbleState();
 
@@ -31,43 +35,41 @@ public:
 #include "bnField.h"
 #include "bnLogger.h"
 
-template<typename Any, typename NextState>
-BubbleState<Any, NextState>::BubbleState()
+template<typename Any>
+BubbleState<Any>::BubbleState()
   : progress(0), AIState<Any>() {
-  // Enforce template constraints on class
-  _DerivedFrom<Any, Entity>();
 }
 
-template<typename Any, typename NextState>
-BubbleState<Any, NextState>::~BubbleState() {
-  /* explosion artifact is deleted by field */
+template<typename Any>
+BubbleState<Any>::~BubbleState() {
+  /* artifact is deleted by field */
 }
 
-template<typename Any, typename NextState>
-void BubbleState<Any, NextState>::OnEnter(Any& e) {
-  //std::cout << "entered bubblestate" << std::endl;
-
-  e.LockState(); // Lock AI state. We cannot be forced out of this.
-  //trap = new BubbleTrap(e);
-  //e.GetField()->AddEntity(trap, e.GetTile().GetX(), e.GetTile().GetY());
+template<typename Any>
+void BubbleState<Any>::OnEnter(Any& e) {
+  prevFloatShoe = e.HasFloatShoe();
+  e.SetFloatShoe(true);
+  e.PriorityLock();
 }
 
-template<typename Any, typename NextState>
-void BubbleState<Any, NextState>::OnUpdate(float _elapsed, Any& e) {
-  if (e.GetComponent<BubbleTrap>() == nullptr) {
-    e.UnlockState();
-    this->ChangeState<NextState>();
+template<typename Any>
+void BubbleState<Any>::OnUpdate(float _elapsed, Any& e) {
+  // Check if bubbletrap is removed from entity
+  if (e.template GetFirstComponent<BubbleTrap>() == nullptr) {
+    e.PriorityUnlock();
+    e.template ChangeState<typename Any::DefaultState>();
+    e.SetFloatShoe(prevFloatShoe);
   }
 
-  sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sinf((float)progress * 10.0f));
+  sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));
   e.setPosition(e.getPosition() - offset);
   e.SetAnimation("PLAYER_HIT"); // playing over and over from the start creates a freeze frame effect
 
   progress += _elapsed;
 }
 
-template<typename Any, typename NextState>
-void BubbleState<Any, NextState>::OnLeave(Any& e) { 
+template<typename Any>
+void BubbleState<Any>::OnLeave(Any& e) {
   //std::cout << "left bubblestate" << std::endl;
 
   AUDIO.Play(AudioType::BUBBLE_POP);

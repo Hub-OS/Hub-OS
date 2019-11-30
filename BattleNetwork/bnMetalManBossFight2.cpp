@@ -24,12 +24,12 @@ Mob* MetalManBossFight2::Build() {
   mob->SetBackground(new UndernetBackground());
   mob->StreamCustomMusic("resources/loops/loop_boss_battle2.ogg");
 
-  mob->RegisterRankedReward(1, BattleItem(Chip(139, 0, '*', 0, Element::NONE, "ProtoMan", "Slices all enmy on field", "LOL you wish you could use this", 5)));
+  mob->RegisterRankedReward(1, BattleItem(Chip(139, 0, '*', 120, Element::NONE, "ProtoMan", "Slices all enmy on field", "ProtoMan appears, stopping time, and teleports to each enemy striking once.", 5)));
 
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);
 
-  mob->Spawn<Rank1<MetalMan, MetalManIdleState>>(6, 2);
+  mob->Spawn<Rank1<MetalMan>>(6, 2);
 
   mob->ToggleBossFlag();
 

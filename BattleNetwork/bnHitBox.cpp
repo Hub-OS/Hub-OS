@@ -7,27 +7,19 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell() {
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
+HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
   hit = false;
-  srand((unsigned int)time(nullptr));
-  cooldown = 0;
   damage = _damage;
 
   auto props = Hit::DefaultProperties;
   props.damage = _damage;
   this->SetHitboxProperties(props);
-
-  EnableTileHighlight(false);
 }
 
-HitBox::~HitBox(void) {
+HitBox::~HitBox() {
 }
 
-void HitBox::Update(float _elapsed) {
+void HitBox::OnUpdate(float _elapsed) {
   tile->AffectEntities(this);
   this->Delete();
 }
@@ -37,5 +29,7 @@ bool HitBox::Move(Direction _direction) {
 }
 
 void HitBox::Attack(Character* _entity) {
-  _entity->Hit(GetHitboxProperties());
+  if (_entity->Hit(GetHitboxProperties())) {
+    AUDIO.Play(AudioType::HURT);
+  }
 }

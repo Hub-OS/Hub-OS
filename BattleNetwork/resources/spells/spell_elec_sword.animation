@@ -1,0 +1,10 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/spell_elec_sword.png"
+
+animation state="DEFAULT"
+frame duration="0.05" x="7" y="9" w="26" h="19" originx="2" originy="8"
+frame duration="0.05" x="37" y="4" w="30" h="25" originx="5" originy="13"
+frame duration="0.05" x="71" y="1" w="67" h="28" originx="27" originy="21"
+frame duration="0.05" x="141" y="1" w="57" h="25" originx="24" originy="20"
+frame duration="0.05" x="202" y="1" w="43" h="24" originx="20" originy="20"
+frame duration="0.05" x="255" y="1" w="37" h="21" originx="18" originy="19"
+frame duration="0.05" x="298" y="2" w="21" h="19" originx="17" originy="16"

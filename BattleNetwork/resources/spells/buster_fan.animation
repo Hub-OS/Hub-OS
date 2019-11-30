@@ -1,0 +1,7 @@
+imagePath="buster_fan.png"
+
+animation state="DEFAULT"
+frame duration="0.05" x="0" y="0" w="35" h="30" originx="5" originy="15"
+frame duration="0.05" x="35" y="0" w="33" h="30" originx="2" originy="15"
+frame duration="0.05" x="0" y="30" w="30" h="30" originx="1" originy="15"
+frame duration="0.05" x="68" y="0" w="31" h="30" originx="3" originy="15"

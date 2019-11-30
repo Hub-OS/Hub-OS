@@ -5,6 +5,9 @@
 #include "bnEngine.h"
 #include "bnMob.h"
 #include "bnBattleItem.h"
+#include <numeric>
+#include <algorithm>
+#include <random>
 
 BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount, int counterCount, bool doubleDelete, bool tripleDelete, Mob *mob) {
   totalElapsed = 0;
@@ -49,6 +52,15 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   score = 0;
 
   this->counterCount = std::min(3, counterCount);
+
+  std::random_device rd;
+  std::mt19937 g(rd());
+
+  // begin counting index at 0
+  std::iota(hideChipMatrix.begin(), hideChipMatrix.end(), 0);
+  std::shuffle(hideChipMatrix.begin(), hideChipMatrix.end(), g);
+
+  chipMatrixIndex = 0;
 
   if(!mob->IsBoss()) {
     if (battleLength.asSeconds() > 36.1) score += 4;
@@ -149,12 +161,6 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
 
   rank.setOrigin(rank.getLocalBounds().width, 0);
 
-  chipReveal = ShaderResourceManager::GetInstance().GetShader(ShaderType::CHIP_REVEAL);
-  chipReveal->setUniform("progress", 0.0f);
-  chipReveal->setUniform("cols", 7);
-  chipReveal->setUniform("rows", 7);
-  chipReveal->setUniform("texture", sf::Shader::CurrentTexture);
-
   playSoundOnce = false;
 }
 
@@ -193,8 +199,15 @@ std::string BattleResults::FormatString(sf::Time time)
 bool BattleResults::CursorAction() {
   bool prevStatus = isRevealed;
 
-  isRevealed = true;
-  totalElapsed = 0;
+  if (!isRevealed) {
+    isRevealed = true;
+    totalElapsed = 0;
+  } /*
+    else if(extraItems.size() > 0) {
+        item = extraItems.top(); extraItems.pop();
+        totalElapsed =  0;
+    }
+    */
 
   return prevStatus;
 }
@@ -221,6 +234,7 @@ bool BattleResults::IsInView() {
 
 void BattleResults::Move(sf::Vector2f delta) {
   resultsSprite.setPosition(resultsSprite.getPosition() + delta);
+  this->IsInView();
 }
 
 void BattleResults::Update(double elapsed)
@@ -235,12 +249,15 @@ void BattleResults::Update(double elapsed)
   }
 
   if (isRevealed) {
-    if (totalElapsed > 1.0 && !playSoundOnce) {
+    if (chipMatrixIndex == hideChipMatrix.size() && !playSoundOnce) {
       playSoundOnce = true;
       AUDIO.Play(AudioType::ITEM_GET);
     }
-
-    chipReveal->setUniform("progress", (float)totalElapsed / 1.0f);
+    else {
+      if (chipMatrixIndex < hideChipMatrix.size()) {
+        hideChipMatrix[chipMatrixIndex++] = 0;
+      }
+    }
 
     if (!playSoundOnce) {
       AUDIO.Play(AudioType::TEXT, AudioPriority::LOWEST);
@@ -293,11 +310,25 @@ void BattleResults::Draw() {
     ENGINE.Draw(time, false);
 
     if (isRevealed) {
-      sf::RenderStates states = sf::RenderStates::Default;
-      states.shader = chipReveal;
-      ENGINE.GetRenderSurface().draw(rewardCard, states);
+      ENGINE.Draw(rewardCard, false);
 
-      if (totalElapsed > 1.0) {
+      sf::RectangleShape c(sf::Vector2f(8 * 2, 8 * 2));
+      c.setFillColor(sf::Color::Black);
+      c.setOutlineColor(sf::Color::Black);
+
+      // obscure the chip with a matrix
+      for (auto cell : hideChipMatrix) {
+        if (cell >= chipMatrixIndex) {
+          // position based on cell's index from a 7x6 matrix
+          sf::Vector2f offset = sf::Vector2f(float(cell % 7) * 8.0f, float(std::floor(cell / 7) * 8.0f));
+          offset = 2.0f * offset;
+
+          c.setPosition(rewardCard.getPosition() + offset);
+          ENGINE.Draw(c, false);
+        }
+      }
+
+      if (IsFinished()) {
         ENGINE.Draw(reward, false);
 
         if (rewardIsChip) {
@@ -315,7 +346,7 @@ void BattleResults::Draw() {
 
 // Chip ops
 bool BattleResults::IsFinished() {
-  return isRevealed && totalElapsed > 1.0;
+  return isRevealed && hideChipMatrix.size() == chipMatrixIndex;
 }
 
 BattleItem* BattleResults::GetReward()

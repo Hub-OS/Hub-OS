@@ -1,31 +1,20 @@
 #include "bnPlayerControlledState.h"
 #include "bnInputManager.h"
 #include "bnPlayer.h"
+#include "bnChipAction.h"
 #include "bnTile.h"
 #include "bnAudioResourceManager.h"
 
 #include <iostream>
 
-#define MOVE_KEY_PRESS_COOLDOWN 200.0f
-#define MOVE_LAG_COOLDOWN 40.0f
-#define ATTACK_KEY_PRESS_COOLDOWN 300.0f
-#define ATTACK_TO_IDLE_COOLDOWN 150.0f
-#define HIT_COOLDOWN 300.0f
-
-PlayerControlledState::PlayerControlledState() : inputManager(&InputManager::GetInstance()), AIState<Player>()
+PlayerControlledState::PlayerControlledState() : AIState<Player>()
 {
-  //Cooldowns. TODO: Take these out. We base actions on animation speed now.
-  moveKeyPressCooldown = MOVE_KEY_PRESS_COOLDOWN;
-  attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN;
-  attackToIdleCooldown = 0.0f;
-  previousDirection = Direction::NONE;
   isChargeHeld = false;
 }
 
 
 PlayerControlledState::~PlayerControlledState()
 {
-  inputManager = nullptr;
 }
 
 void PlayerControlledState::OnEnter(Player& player) {
@@ -33,87 +22,105 @@ void PlayerControlledState::OnEnter(Player& player) {
 }
 
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
-  if (!player.IsBattleActive()) return;
-
   // Action controls take priority over movement
-  if (inputManager->Has(RELEASED_A)) {
-    if (player.chargeComponent.GetChargeCounter() > 0 && isChargeHeld == true) {
-      player.Attack(player.chargeComponent.GetChargeCounter());
-      player.chargeComponent.SetCharging(false);
+  if (player.GetComponentsDerivedFrom<ChipAction>().size()) return;
+
+#ifndef __ANDROID__
+  if (!INPUT.Has(EventTypes::HELD_SHOOT) && !player.IsSliding()) {
+#else
+    if(INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !INPUT.Has(EventTypes::RELEASED_SHOOT) && !player.IsSliding() && !player.GetNextTile()) {
+#endif
+    if (player.chargeEffect.GetChargeCounter() > 0 && isChargeHeld == true) {
+      player.Attack();
+      player.chargeEffect.SetCharging(false);
       isChargeHeld = false;
-      attackKeyPressCooldown = 0.0f;
-      auto onFinish = [&]() {player.SetAnimation(PLAYER_IDLE);};
-      player.SetAnimation(PLAYER_SHOOTING, onFinish);
     }
-    else {
+    else if(!player.GetNextTile()){
       isChargeHeld = false;
+
+#ifdef __ANDROID__
+      player.chargeComponent.SetCharging(false);
+#endif
     }
   }
 
-  // Movement increments are restricted based on anim speed
+  // Movement increments are restricted based on anim speed at this time
   if (player.state != PLAYER_IDLE)
     return;
 
   static Direction direction = Direction::NONE;
-  if (moveKeyPressCooldown >= MOVE_KEY_PRESS_COOLDOWN && player.IsBattleActive()) {
-    if (inputManager->Has(PRESSED_UP) || inputManager->Has(HELD_UP)) {
+  if (player.IsBattleActive()) {
+    if (INPUT.Has(EventTypes::PRESSED_MOVE_UP) ||INPUT.Has(EventTypes::HELD_MOVE_UP)) {
       direction = Direction::UP;
     }
-    else if (inputManager->Has(PRESSED_LEFT) || inputManager->Has(HELD_LEFT)) {
+    else if (INPUT.Has(EventTypes::PRESSED_MOVE_LEFT) || INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
       direction = Direction::LEFT;
     }
-    else if (inputManager->Has(PRESSED_DOWN) || inputManager->Has(HELD_DOWN)) {
+    else if (INPUT.Has(EventTypes::PRESSED_MOVE_DOWN) || INPUT.Has(EventTypes::HELD_MOVE_DOWN)) {
       direction = Direction::DOWN;
     }
-    else if (inputManager->Has(PRESSED_RIGHT) || inputManager->Has(HELD_RIGHT)) {
+    else if (INPUT.Has(EventTypes::PRESSED_MOVE_RIGHT) || INPUT.Has(EventTypes::HELD_MOVE_RIGHT)) {
       direction = Direction::RIGHT;
     }
   }
- 
 
-  if (inputManager->Has(HELD_A) && isChargeHeld == false) {
+  bool shouldShoot = INPUT.Has(EventTypes::HELD_SHOOT) && isChargeHeld == false;
+
+#ifdef __ANDROID__
+  shouldShoot = INPUT.Has(PRESSED_A);
+#endif
+
+  if (shouldShoot) {
     isChargeHeld = true;
-    attackKeyPressCooldown = 0.0f;
 
-    player.chargeComponent.SetCharging(true);
-    this->attackKeyPressCooldown = ATTACK_KEY_PRESS_COOLDOWN; 
+    player.chargeEffect.SetCharging(true);
   }
 
-  if (inputManager->Has(RELEASED_UP)) {
+  if (INPUT.Has(EventTypes::RELEASED_MOVE_UP)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->Has(RELEASED_LEFT)) {
+  else if (INPUT.Has(EventTypes::RELEASED_MOVE_LEFT)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->Has(RELEASED_DOWN)) {
+  else if (INPUT.Has(EventTypes::RELEASED_MOVE_DOWN)) {
     direction = Direction::NONE;
   }
-  else if (inputManager->Has(RELEASED_RIGHT)) {
+  else if (INPUT.Has(EventTypes::RELEASED_MOVE_RIGHT)) {
     direction = Direction::NONE;
   }
 
-  //std::cout << "Is player slideing: " << player.isSliding << std::endl;
+  if (direction != Direction::NONE && player.GetFirstComponent<AnimationComponent>()->GetAnimationString() == PLAYER_IDLE && !player.IsSliding()) {
+    if (player.PlayerControllerSlideEnabled()) {
+      player.SlideToTile(true);
+    }
 
-  if (direction != Direction::NONE && player.state != PLAYER_SHOOTING && !player.isSliding) {
-    bool moved = player.Move(direction);
+    player.Move(direction);
+
+    bool moved = player.GetNextTile();
 
     if (moved) {
-      moveKeyPressCooldown = 0.0f;
       auto onFinish = [&]() {
-        player.AdoptNextTile();
-        player.SetAnimation("PLAYER_MOVED", [&player]() {player.SetAnimation(PLAYER_IDLE); });
+        player.SetAnimation("PLAYER_MOVED", [p = &player]() {
+			    p->SetAnimation(PLAYER_IDLE); 
+          p->FinishMove();
+        });
+
+		    player.AdoptNextTile();
         direction = Direction::NONE;
       }; // end lambda
       player.SetAnimation(PLAYER_MOVING, onFinish);
     }
-    else {
-      player.SetAnimation(PLAYER_IDLE);
-    }
-    moveKeyPressCooldown = MOVE_KEY_PRESS_COOLDOWN;
   }
 }
 
 void PlayerControlledState::OnLeave(Player& player) {
-  /* Mega loses charge when we release control */
-  player.chargeComponent.SetCharging(false);
+  /* Mega loses charge when we leave this state */
+  player.chargeEffect.SetCharging(false);
+
+  /* Cancel chip actions */
+  auto actions = player.GetComponentsDerivedFrom<ChipAction>();
+
+  for (auto a : actions) {
+    a->EndAction();
+  }
 }

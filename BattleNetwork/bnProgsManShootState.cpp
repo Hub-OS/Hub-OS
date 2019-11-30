@@ -13,14 +13,18 @@ ProgsManShootState::~ProgsManShootState()
 
 void ProgsManShootState::OnEnter(ProgsMan& progs) {
   auto spawnBuster = [this, &progs]() {
-    Buster* buster = new Buster(progs.GetField(), progs.GetTeam(), false);
-    buster->SetDirection(Direction::LEFT);
-    buster->SetTile(progs.GetTarget()->GetTile());
+    Buster* buster = new Buster(progs.GetField(), progs.GetTeam(), false, 10);
 
+    // Spawn a buster aiming down the field
+    Direction dir = (progs.GetTeam() == Team::BLUE)? Direction::LEFT : Direction::RIGHT;
+    buster->SetDirection(dir);
+    buster->SetTile(progs.GetTarget()->GetTile());
+    
+    // NOTE: Is this necessary anymore
     progs.GetField()->AddEntity(*buster, progs.GetTile()->GetX(), progs.GetTile()->GetY());
   };
 
-  auto onFinish = [this, &progs]() { this->ChangeState<ProgsManIdleState>(); };
+  auto onFinish = [this, p = &progs]() { p->ChangeState<ProgsManIdleState>(); };
 
   progs.SetAnimation("SHOOT", onFinish);
   progs.SetCounterFrame(1);

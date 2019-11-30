@@ -1,10 +1,13 @@
+/*! \brief Custom Navi example: Starman. Extends Player class.
+ */
+
 #pragma once
 
 #include "bnPlayer.h"
 #include "bnPlayerState.h"
 #include "bnTextureType.h"
 #include "bnPlayerHealthUI.h"
-#include "bnChargeComponent.h"
+#include "bnChargeEffectSceneNode.h"
 #include "bnAnimationComponent.h"
 #include "bnAI.h"
 #include "bnPlayerControlledState.h"
@@ -19,6 +22,10 @@ public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;
 
-  Starman(void);
+  Starman();
+  virtual ~Starman();
 
+  virtual const float GetHitHeight() const;
+  void ExecuteBusterAction() final;
+  void ExecuteChargedBusterAction() final;
 };

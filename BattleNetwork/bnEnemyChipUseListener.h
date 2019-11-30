@@ -7,6 +7,17 @@
 #include "bnCannon.h"
 #include "bnBasicSword.h"
 
+/**
+ * @class EnemyChipUseListener
+ * @author mav
+ * @date 04/05/19
+ * @brief Describes what should happen when an enemy uses a chip
+ * @see PlayerChipUseListner.h
+ * @warning Based on legacy design. Ultimately there should be one chip use listener
+ * 
+ * No comments because it is a carbon copy of PlayerChipUseListener
+ * and needs to be removed from the engine.
+ */
 class EnemyChipUseListener : public ChipUseListener {
 private:
  

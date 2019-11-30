@@ -6,29 +6,46 @@
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 #include "bnLogger.h"
+#include "bnBusterChipAction.h"
 
 #define RESOURCE_PATH "resources/navis/starman/starman.animation"
 
-#define MOVE_ANIMATION_SPRITES 4
-#define MOVE_ANIMATION_WIDTH 38
-#define MOVE_ANIMATION_HEIGHT 58
-
-#define SHOOT_ANIMATION_SPRITES 5
-#define SHOOT_ANIMATION_WIDTH 75
-#define SHOOT_ANIMATION_HEIGHT 58
-
-Starman::Starman(void) : Player()
+Starman::Starman() : Player()
 {
+  // Most of this is pretty redundant
+  // But left as example
   name = "Starman";
   SetLayer(0);
   team = Team::RED;
-  this->SetElement(Element::CURSOR);
+  this->SetElement(Element::NONE);
 
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
 
-  textureType = TextureType::NAVI_STARMAN_ATLAS;
-  setTexture(*TEXTURES.GetTexture(textureType));
+  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_STARMAN_ATLAS));
 
+  this->SetHealth(1000);
+
+  // Starman has FloatShoe enabled
   SetFloatShoe(true);
+}
+
+Starman::~Starman() {
+
+}
+
+const float Starman::GetHitHeight() const
+{
+  return 140.0f;
+}
+
+void Starman::ExecuteBusterAction()
+{
+  this->RegisterComponent(new BusterChipAction(this, false, 1));
+
+}
+
+void Starman::ExecuteChargedBusterAction()
+{
+  this->RegisterComponent(new BusterChipAction(this, true, 10));
 }

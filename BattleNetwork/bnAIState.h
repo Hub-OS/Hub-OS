@@ -1,50 +1,63 @@
 #pragma once
 
 #include "bnEntity.h"
-#include "bnMeta.h"
 
+// forward decl
+template<typename T>
+class AI;
+
+/**
+ * @class AIState
+ * @author mav
+ * @date 13/05/19
+ * @brief The state of an AI. AI logic goes here.
+ * 
+ * To prevent UB, delays a state change by storing it in an object.
+ * If an AI is changed to a state outside of this class, that state takes priority.
+ */
 template<class T>
 class AIState
 {
-private:
-  AIState<T>* nextState;
-
+  friend class AI<T>;
 public:
-  AIState() { nextState = nullptr; }
+  /**
+   * @brief Ctor
+   */
+  AIState() = default;
   AIState(const AIState<T>& rhs) = default;
   AIState(AIState<T>&& ref) = default;
 
-  template<class U, typename ...Args>
-  void ChangeState(Args... args) {
-    //_DerivedFrom<U, AIState<T>>();
+  // Default
+  inline static const int PriorityLevel = 999;
 
-    if (nextState) { delete nextState; }
-
-    nextState = new U(args...);
-  }
-
-  template<class U>
-  void ChangeState() {
-    //_DerivedFrom<U, AIState<T>>();
-
-    if (nextState) { delete nextState; }
-
-    nextState = new U();
-  }
-
-  AIState<T>* Update(float _elapsed, T& context) {
-    // if (nextState) { nextState = nullptr; }
-
-    // nextState could be non-null after update
+  /**
+   * @brief Updates the state
+   * @param _elapsed in seconds
+   * @param context the referenced AI object
+   */
+  void Update(float _elapsed, T& context) {
     OnUpdate(_elapsed, context);
-
-    return nextState;
   }
 
-  virtual ~AIState() { ; }
+  virtual ~AIState() { }
 
+  /**
+   * @brief Initialize the reference object when this state is created
+   * @param context reference object
+   */
   virtual void OnEnter(T& context) = 0;
+  
+  /**
+   * @brief Update the reference object
+   * @param _elapsed in seconds
+   * @param context reference object
+   */
   virtual void OnUpdate(float _elapsed, T& context) = 0;
+  
+  /**
+   * @brief Prepare the reference object for the next state, when state changes
+   * @param context reference object
+   */
   virtual void OnLeave(T& context) = 0;
 };
 

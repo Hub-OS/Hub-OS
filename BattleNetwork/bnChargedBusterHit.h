@@ -1,17 +1,26 @@
 #pragma once
 #include "bnArtifact.h"
-#include "bnField.h"
+#include "bnCharacter.h"
+#include "bnAnimationComponent.h"
 
+class Field;
+
+/**
+ * @class ChargedBusterHit
+ * @author mav
+ * @date 05/05/19
+ * @brief Animatord hit effect on the enemy and then removes itself 
+ */
 class ChargedBusterHit : public Artifact
 {
 private:
-  AnimationComponent animationComponent;
+  AnimationComponent* animationComponent;
 
 public:
-  ChargedBusterHit(Field* _field, Character* hit);
+  ChargedBusterHit(Field* _field);
   ~ChargedBusterHit();
 
-  virtual void Update(float _elapsed);
+  virtual void OnUpdate(float _elapsed);
   virtual bool Move(Direction _direction) { return false; }
 
 };
