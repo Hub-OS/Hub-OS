@@ -9,6 +9,6 @@ class ReflectChipAction : public ChipAction {
 public:
   ReflectChipAction(Character* owner, int damage);
   virtual ~ReflectChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
 };

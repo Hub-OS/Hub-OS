@@ -454,7 +454,7 @@ int main(int argc, char** argv) {
         if (!bg) {
           // Load resources from internal storage
           try {
-            bg = TEXTURES.GetTexture(TextureType::BACKGROUND_BLUE);
+            bg = TEXTURES.GetTexture(TextureType::BG_BLUE);
             bgSprite.setTexture(*bg);
             bgSprite.setScale(2.f, 2.f);
           }

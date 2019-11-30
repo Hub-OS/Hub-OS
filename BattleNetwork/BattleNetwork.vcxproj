@@ -101,7 +101,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)extern\Swoosh\src;$(SolutionDir)extern\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extern\Swoosh\src;$(SolutionDir)extern\SFML\include;$(SolutionDir)extern\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -151,7 +151,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)extern\Swoosh\src;$(SolutionDir)extern\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extern\Swoosh\src;$(SolutionDir)extern\SFML\include;$(SolutionDir)extern\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <BrowseInformation>true</BrowseInformation>
       <EnablePREfast>false</EnablePREfast>
@@ -178,6 +178,39 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\extern\lua\lapi.c" />
+    <ClCompile Include="..\extern\lua\lauxlib.c" />
+    <ClCompile Include="..\extern\lua\lbaselib.c" />
+    <ClCompile Include="..\extern\lua\lbitlib.c" />
+    <ClCompile Include="..\extern\lua\lcode.c" />
+    <ClCompile Include="..\extern\lua\lcorolib.c" />
+    <ClCompile Include="..\extern\lua\lctype.c" />
+    <ClCompile Include="..\extern\lua\ldblib.c" />
+    <ClCompile Include="..\extern\lua\ldebug.c" />
+    <ClCompile Include="..\extern\lua\ldo.c" />
+    <ClCompile Include="..\extern\lua\ldump.c" />
+    <ClCompile Include="..\extern\lua\lfunc.c" />
+    <ClCompile Include="..\extern\lua\lgc.c" />
+    <ClCompile Include="..\extern\lua\linit.c" />
+    <ClCompile Include="..\extern\lua\liolib.c" />
+    <ClCompile Include="..\extern\lua\llex.c" />
+    <ClCompile Include="..\extern\lua\lmathlib.c" />
+    <ClCompile Include="..\extern\lua\lmem.c" />
+    <ClCompile Include="..\extern\lua\loadlib.c" />
+    <ClCompile Include="..\extern\lua\lobject.c" />
+    <ClCompile Include="..\extern\lua\lopcodes.c" />
+    <ClCompile Include="..\extern\lua\loslib.c" />
+    <ClCompile Include="..\extern\lua\lparser.c" />
+    <ClCompile Include="..\extern\lua\lstate.c" />
+    <ClCompile Include="..\extern\lua\lstring.c" />
+    <ClCompile Include="..\extern\lua\lstrlib.c" />
+    <ClCompile Include="..\extern\lua\ltable.c" />
+    <ClCompile Include="..\extern\lua\ltablib.c" />
+    <ClCompile Include="..\extern\lua\ltm.c" />
+    <ClCompile Include="..\extern\lua\lundump.c" />
+    <ClCompile Include="..\extern\lua\lutf8lib.c" />
+    <ClCompile Include="..\extern\lua\lvm.c" />
+    <ClCompile Include="..\extern\lua\lzio.c" />
     <ClCompile Include="Android\bnTouchArea.cpp" />
     <ClCompile Include="bnACDCBackground.cpp" />
     <ClCompile Include="bnAirShot.cpp" />
@@ -341,6 +374,7 @@
     <ClCompile Include="bnRollHeart.cpp" />
     <ClCompile Include="bnRowHit.cpp" />
     <ClCompile Include="bnSceneNode.cpp" />
+    <ClCompile Include="bnScriptResourceManager.cpp" />
     <ClCompile Include="bnSelectNaviScene.cpp" />
     <ClCompile Include="bnShaderResourceManager.cpp" />
     <ClCompile Include="bnShakingEffect.cpp" />
@@ -411,6 +445,10 @@
     <ClInclude Include="bnMegaman.h" />
     <ClInclude Include="bnPaletteSwap.h" />
     <ClInclude Include="bnPlayerForm.h" />
+    <ClInclude Include="bnScriptedCharacter.h" />
+    <ClInclude Include="bnScriptedChipAction.h" />
+    <ClInclude Include="bnScriptResourceManager.h" />
+    <ClInclude Include="bnScriptMetaType.h" />
     <ClInclude Include="bnShakingEffect.h" />
     <ClInclude Include="bnACDCBackground.h" />
     <ClInclude Include="bnAirShot.h" />

@@ -136,7 +136,7 @@ enum TextureType {
   TEXT_BOX_CURSOR,
 
   //Background/Foreground
-  BACKGROUND_BLUE,
+  BG_BLUE,
   TITLE_ANIM_CHAR,
   GAME_OVER,
   BATTLE_SELECT_BG,

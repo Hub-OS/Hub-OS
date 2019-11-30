@@ -1,11 +1,10 @@
 /*! \file bnShaderResourceManager.h */
 
-/*! \brief Singleton resource manager for shader data
+/*! \brief Singleton resource manager for scripts and lua state machine
  * 
- * Shader resource manager provides utilities to load shaders from disc 
- * as well as hard-coded shaders loaded at startup.
- * 
- * NOTE: This is legacy code that can be refactored.
+ * Script resource manager is intended to be a closed-off resource that the battle engine
+ * uses to fetch and inject lua into the environment
+ * Some Scripted class implementations will use this resource to pass off to the correct callbacks 
  */
 
 #pragma once

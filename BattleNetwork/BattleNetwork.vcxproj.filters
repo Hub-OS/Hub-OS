@@ -674,6 +674,18 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\DelayedAttack">
       <UniqueIdentifier>{62cc891a-85e9-4225-9351-db09255d178b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\ResourceManagers\ScriptResource">
+      <UniqueIdentifier>{d960e7fd-6fa2-4557-9a3b-019dfae8c405}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\CoreModules\Lua5.3.5">
+      <UniqueIdentifier>{44b515b7-0929-47bf-bc31-5a6d2235742d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Character\ScriptedCharacter">
+      <UniqueIdentifier>{89ccad7a-79ce-47fd-bb3a-98cc689784a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\ScriptedChipAction">
+      <UniqueIdentifier>{03e83242-4e75-4728-9b43-621d6412c6be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1305,6 +1317,108 @@
     </ClCompile>
     <ClCompile Include="bnPaletteSwap.cpp">
       <Filter>Scenes/Activities\Battle\Content\Components\VisualEffects\PaletteSwap</Filter>
+    </ClCompile>
+    <ClCompile Include="bnScriptResourceManager.cpp">
+      <Filter>Engine\ResourceManagers\ScriptResource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lapi.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lauxlib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lbaselib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lbitlib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lcode.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lcorolib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lctype.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\ldblib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\ldebug.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\ldo.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\ldump.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lfunc.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lgc.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\linit.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\liolib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\llex.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lmathlib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lmem.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\loadlib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lobject.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lopcodes.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\loslib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lparser.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lstate.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lstring.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lstrlib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\ltable.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\ltablib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\ltm.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lundump.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lutf8lib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lvm.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lzio.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2097,6 +2211,18 @@
     </ClInclude>
     <ClInclude Include="bnDelayedAttack.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\DelayedAttack</Filter>
+    </ClInclude>
+    <ClInclude Include="bnScriptResourceManager.h">
+      <Filter>Engine\ResourceManagers\ScriptResource</Filter>
+    </ClInclude>
+    <ClInclude Include="bnScriptedCharacter.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Character\ScriptedCharacter</Filter>
+    </ClInclude>
+    <ClInclude Include="bnScriptedChipAction.h">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\ScriptedChipAction</Filter>
+    </ClInclude>
+    <ClInclude Include="bnScriptMetaType.h">
+      <Filter>Engine\ResourceManagers\ScriptResource</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
