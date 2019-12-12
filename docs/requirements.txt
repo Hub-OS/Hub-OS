@@ -1,4 +1,4 @@
 sphinx>=2.0
 breathe>=4.13.0.post0
-git+https://github.com/svenevs/exhale.git@fix/unabridged-bury-files-directories
+git+https://github.com/svenevs/exhale.git
 sphinx_bootstrap_theme
