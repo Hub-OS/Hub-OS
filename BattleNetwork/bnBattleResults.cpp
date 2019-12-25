@@ -58,6 +58,9 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
 
   // begin counting index at 0
   std::iota(hideChipMatrix.begin(), hideChipMatrix.end(), 0);
+
+  // shuffle twice - one shuffle looks too linear
+  std::shuffle(hideChipMatrix.begin(), hideChipMatrix.end(), g);
   std::shuffle(hideChipMatrix.begin(), hideChipMatrix.end(), g);
 
   chipMatrixIndex = 0;

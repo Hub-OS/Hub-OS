@@ -11,9 +11,11 @@ private:
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
   bool armIsOut;
+  int damage;
 public:
   TornadoChipAction(Character* owner, int damage);
-  virtual ~TornadoChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  ~TornadoChipAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
+  void Execute();
 }; 

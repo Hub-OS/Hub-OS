@@ -11,8 +11,18 @@
 
 
 ReflectChipAction::ReflectChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_IDLE", nullptr, "Buster") {
+  this->damage = damage;
+
   // add override anims
   this->OverrideAnimationFrames({ FRAMES });
+}
+
+ReflectChipAction::~ReflectChipAction()
+{
+}
+
+void ReflectChipAction::Execute() {
+  auto owner = GetOwner();
 
   // Create a new reflect shield component. This handles the logic for shields.
   ReflectShield* reflect = new ReflectShield(owner, damage);
@@ -29,10 +39,6 @@ ReflectChipAction::ReflectChipAction(Character * owner, int damage) : ChipAction
   if (tile) {
     owner->GetField()->AddEntity(*reflect, tile->GetX(), tile->GetY());
   }
-}
-
-ReflectChipAction::~ReflectChipAction()
-{
 }
 
 void ReflectChipAction::OnUpdate(float _elapsed)

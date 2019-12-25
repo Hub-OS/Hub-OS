@@ -17,20 +17,29 @@
 
 
 VulcanChipAction::VulcanChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+  this->damage = damage;
+}
+
+VulcanChipAction::~VulcanChipAction()
+{
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
-  owner->AddNode(this->attachment);
-
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
-  attachmentAnim.Update(0, *this->attachment);
 
   // add override anims
   this->OverrideAnimationFrames({ FRAMES });
+}
+
+void VulcanChipAction::Execute() {
+  auto owner = GetOwner();
+
+  owner->AddNode(this->attachment);
+  attachmentAnim.Update(0, *this->attachment);
 
   // On shoot frame, drop projectile
-  auto onFire = [this, damage, owner]() -> void {
+  auto onFire = [this, owner]() -> void {
     Vulcan* b = new Vulcan(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
@@ -44,10 +53,6 @@ VulcanChipAction::VulcanChipAction(Character * owner, int damage) : ChipAction(o
   this->AddAction(2, onFire);
   this->AddAction(4, onFire);
   this->AddAction(6, onFire);
-}
-
-VulcanChipAction::~VulcanChipAction()
-{
 }
 
 void VulcanChipAction::OnUpdate(float _elapsed)

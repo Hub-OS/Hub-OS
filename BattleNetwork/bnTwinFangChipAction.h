@@ -10,9 +10,11 @@ private:
   sf::Sprite cannon;
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
+  int damage;
 public:
   TwinFangChipAction(Character* owner, int damage);
-  virtual ~TwinFangChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  ~TwinFangChipAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
+  void Execute();
 };

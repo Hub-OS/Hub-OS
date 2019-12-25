@@ -28,4 +28,8 @@ public:
     // SCRIPTS.callback(chip_name).onDestroy(this);
     delete this;
   }
+
+  void Execute() {
+
+  }
 };

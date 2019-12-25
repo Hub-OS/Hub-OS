@@ -12,10 +12,19 @@
 #define FRAMES FRAME1, FRAME2, FRAME3
 
 CrackShotChipAction::CrackShotChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SWORD", &attachment, "BUSTER") {
+  this->damage = damage;
+}
+
+CrackShotChipAction::~CrackShotChipAction()
+{
+}
+
+void CrackShotChipAction::Execute() {
+  auto owner = GetOwner();
   overlay.setTexture(*owner->getTexture());
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
-  this->attachment->EnableUseParentShader(true);
+  this->attachment->EnableParentShader(true);
   owner->AddNode(this->attachment);
 
   this->OverrideAnimationFrames({ FRAMES });
@@ -26,7 +35,7 @@ CrackShotChipAction::CrackShotChipAction(Character * owner, int damage) : ChipAc
   attachmentAnim.Update(0, *this->attachment);
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, damage, owner]() -> void {
+  auto onThrow = [this, owner]() -> void {
 
     auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 
@@ -50,10 +59,6 @@ CrackShotChipAction::CrackShotChipAction(Character * owner, int damage) : ChipAc
   };
 
   this->AddAction(3, onThrow);
-}
-
-CrackShotChipAction::~CrackShotChipAction()
-{
 }
 
 void CrackShotChipAction::OnUpdate(float _elapsed)

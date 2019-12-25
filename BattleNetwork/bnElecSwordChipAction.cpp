@@ -15,6 +15,16 @@
 #define FRAMES FRAME1, FRAME2, FRAME3
 
 ElecSwordChipAction::ElecSwordChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SWORD", &attachment, "HILT"), attachmentAnim(ANIM) {
+  this->damage = damage;
+}
+
+ElecSwordChipAction::~ElecSwordChipAction()
+{
+}
+
+void ElecSwordChipAction::Execute() {
+  auto owner = GetOwner();
+
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
@@ -27,7 +37,7 @@ ElecSwordChipAction::ElecSwordChipAction(Character * owner, int damage) : ChipAc
   attachmentAnim.Update(0, *this->attachment);
 
   // On attack frame, drop sword hitbox
-  auto onFire = [this, damage, owner]() -> void {
+  auto onFire = [this, owner]() -> void {
     BasicSword* b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
@@ -45,10 +55,6 @@ ElecSwordChipAction::ElecSwordChipAction(Character * owner, int damage) : ChipAc
   this->AddAction(2, onFire);
 
   this->OnUpdate(0); // position to owner...
-}
-
-ElecSwordChipAction::~ElecSwordChipAction()
-{
 }
 
 void ElecSwordChipAction::OnUpdate(float _elapsed)

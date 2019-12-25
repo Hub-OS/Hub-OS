@@ -32,13 +32,12 @@ const float Roll::GetHitHeight() const
   return 140.0f;
 }
 
-void Roll::ExecuteBusterAction()
+ChipAction* Roll::ExecuteBusterAction()
 {
-  this->RegisterComponent(new BusterChipAction(this, false, 1));
-
+  return new BusterChipAction(this, false, 1);
 }
 
-void Roll::ExecuteChargedBusterAction()
+ChipAction* Roll::ExecuteChargedBusterAction()
 {
-  this->RegisterComponent(new BusterChipAction(this, true, 10));
+  return new BusterChipAction(this, true, 10);
 }

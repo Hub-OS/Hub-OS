@@ -10,10 +10,12 @@ private:
   sf::Sprite overlay;
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
+  int damage;
 public:
   ElecSwordChipAction(Character* owner, int damage);
-  virtual ~ElecSwordChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  ~ElecSwordChipAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
+  void Execute();
 };
 

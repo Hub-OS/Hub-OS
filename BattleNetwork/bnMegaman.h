@@ -7,8 +7,8 @@ public:
   ~Megaman();
 
   virtual void OnUpdate(float elapsed);
-  void ExecuteBusterAction() final;
-  void ExecuteChargedBusterAction() final;
+  ChipAction* ExecuteBusterAction() final;
+  ChipAction* ExecuteChargedBusterAction() final;
 };
 
 class TenguCross : public PlayerForm {
@@ -18,8 +18,9 @@ public:
   void OnUpdate(float elapsed, Player&);
   void OnActivate(Player& player);
   void OnDeactivate(Player& player);
-  void OnChargedBusterAction(Player&);
-  void OnSpecialAction(Player&);
+  ChipAction* OnChargedBusterAction(Player&);
+  ChipAction* OnSpecialAction(Player&);
+
 private:
   bool loaded;
   AnimationComponent* parentAnim;
@@ -34,8 +35,8 @@ public:
   void OnUpdate(float elapsed, Player&);
   void OnActivate(Player& player);
   void OnDeactivate(Player& player);
-  void OnChargedBusterAction(Player&);
-  void OnSpecialAction(Player&);
+  ChipAction* OnChargedBusterAction(Player&);
+  ChipAction* OnSpecialAction(Player&);
 private:
   bool loaded;
   AnimationComponent* parentAnim;
@@ -50,8 +51,8 @@ public:
   void OnUpdate(float elapsed, Player&);
   void OnActivate(Player& player);
   void OnDeactivate(Player& player);
-  void OnChargedBusterAction(Player&);
-  void OnSpecialAction(Player&);
+  ChipAction* OnChargedBusterAction(Player&);
+  ChipAction* OnSpecialAction(Player&);
 private:
   bool loaded;
   AnimationComponent* parentAnim;

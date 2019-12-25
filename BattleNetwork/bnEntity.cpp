@@ -464,6 +464,8 @@ void Entity::FinishMove()
 }
 
 Component* Entity::RegisterComponent(Component* c) {
+  if (c == nullptr) return nullptr;
+
   auto iter = std::find(components.begin(), components.end(), c);
   if (iter != components.end())
     return *iter;

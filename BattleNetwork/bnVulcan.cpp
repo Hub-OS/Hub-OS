@@ -85,9 +85,9 @@ void Vulcan::OnUpdate(float _elapsed) {
     if (GetTile()->GetX() == 6 && this->GetTeam() == Team::RED) { this->Delete(); }
     if (GetTile()->GetX() == 1 && this->GetTeam() == Team::BLUE) { this->Delete(); }
 
-    // Mav note: Vulcan moves too fast for the frame to attack the entities... See queuedSpells logic
-    //cooldown += _elapsed;
-    //if (cooldown >= COOLDOWN) {
+    // TODO: Vulcan moves too fast for the frame to attack the entities... See queuedSpells logic
+    cooldown += _elapsed;
+    if (cooldown >= COOLDOWN) {
       if (Move(GetDirection())) {
         AdoptNextTile();
         FinishMove();
@@ -99,7 +99,7 @@ void Vulcan::OnUpdate(float _elapsed) {
       else {
         this->Delete();
       }
-    //}
+    }
   }
 }
 

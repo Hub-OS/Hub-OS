@@ -10,6 +10,9 @@
 #include "bnMiscBackground.h"
 #include "bnJudgeTreeBackground.h"
 #include "bnPlayerHealthUI.h"
+#include "bnPaletteSwap.h"
+
+// Android only headers
 #include "Android/bnTouchArea.h"
 
 #include "Segues/WhiteWashFade.h"
@@ -349,9 +352,8 @@ void BattleScene::TEMPFilterAtkChips(Chip ** chips, int chipCount)
   for (int i = 0; i < chipCount; ) {
     if (chips[i]->GetShortName() == "Atk+10") {
       if (nonSupport) {
-        // Do not modify these chips
-        auto supportChips = { "Barrier", "Invis", "Recov80" };
-        if (std::find(supportChips.begin(), supportChips.end(), nonSupport->GetShortName()) ==  supportChips.end()) {
+        // Do not modify support chips
+        if (!nonSupport->IsSupport()) {
           nonSupport->damage += 10;
         }
       }
@@ -432,7 +434,26 @@ void BattleScene::onUpdate(double elapsed) {
     }
     else if (isChangingForm && !isAnimatingFormChange) {
       showSummonBackdrop = true;
-      player->Reveal(); // If flickering
+      player->Reveal(); // If flickering, stablizes the sprite for the animation
+      
+      player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+
+      // Preserve the original child node states
+      auto playerChildNodes = player->GetChildNodes();
+
+      // The list of nodes change when adding the shine overlay and new form overlay nodes
+      std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(playerChildNodes.size())); 
+      std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(playerChildNodes.size()));
+
+      for (auto child : playerChildNodes) {
+        childShaderUseStates->push_back(child->IsUsingParentShader());
+        originalChildNodes->push_back(child);
+        child->EnableParentShader(true);
+      }
+      
+      auto paletteSwap = player->GetFirstComponent<PaletteSwap>();
+      
+      if(paletteSwap) paletteSwap->Enable(false);
 
       if (showSummonBackdropTimer < showSummonBackdropLength) {
         showSummonBackdropTimer += elapsed;
@@ -443,14 +464,41 @@ void BattleScene::onUpdate(double elapsed) {
           auto pos = player->getPosition();
           shine.setPosition(pos.x + 16.0f, pos.y - player->GetHitHeight()/4.0f);
           
-          auto onTransform = [this]() {
+          auto onTransform = [this, states = childShaderUseStates, originals = originalChildNodes]() {
             lastSelectedForm = chipCustGUI.GetSelectedFormIndex();
             player->ActivateFormAt(lastSelectedForm);
             AUDIO.Play(AudioType::SHINE);
+
+            // Activating the form will add NEW child nodes onto our character
+            // TODO: There's got to be a more optimal search than this...
+            for (auto child : player->GetChildNodes()) {
+              auto it = std::find_if(originals->begin(), originals->end(), [child](auto in){
+                return (child == in);
+              });
+
+              if (it == originals->end()) {
+                states->push_back(child->IsUsingParentShader());
+                states->push_back(child);
+                child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
+              }
+            }
           };
 
-          auto onFinish = [this]() {
+          auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
             isLeavingFormChange = true;
+            if (paletteSwap) paletteSwap->Enable();
+
+            unsigned idx = 0;
+            for (auto child : *originals) {
+              if (!child) {
+                idx++; continue;
+              }
+
+              unsigned thisIDX = idx;
+              bool enabled =(*states)[idx++];
+              child->EnableParentShader(enabled);
+              Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
+            }
           };
 
           shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
@@ -603,14 +651,6 @@ void BattleScene::onUpdate(double elapsed) {
   }
 
   chipCustGUI.Update((float)elapsed);
-
-  // other player controls
-  if (INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !isInChipSelect && !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle) {
-    // TODO: move this to player controller state where these types of invasive checks are performed for us
-    if (player && player->GetTile() && player->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE") {
-      chipUI.UseNextChip();
-    }
-  }
 }
 
 void BattleScene::onDraw(sf::RenderTexture& surface) {

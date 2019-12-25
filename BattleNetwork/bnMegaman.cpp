@@ -32,18 +32,18 @@ void Megaman::OnUpdate(float elapsed)
   Player::OnUpdate(elapsed);
 }
 
-void Megaman::ExecuteBusterAction()
+ChipAction* Megaman::ExecuteBusterAction()
 {
-  this->RegisterComponent(new BusterChipAction(this, false, 1));
+  return new BusterChipAction(this, false, 1);
 }
 
-void Megaman::ExecuteChargedBusterAction()
+ChipAction* Megaman::ExecuteChargedBusterAction()
 {
   if (activeForm) {
-    activeForm->OnChargedBusterAction(*this);
+    return activeForm->OnChargedBusterAction(*this);
   }
   else {
-    this->RegisterComponent(new BusterChipAction(this, true, 10));
+    return new BusterChipAction(this, true, 10);
   }
 }
 
@@ -68,7 +68,7 @@ void TenguCross::OnActivate(Player& player)
   overlay = new SpriteSceneNode();
   overlay->setTexture(*cross);
   overlay->SetLayer(-1);
-  overlay->EnableUseParentShader(false);
+  overlay->EnableParentShader(false);
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
   auto pswap = player.GetFirstComponent<PaletteSwap>();
@@ -103,19 +103,20 @@ void TenguCross::OnUpdate(float elapsed, Player& player)
 
   // update node position in the animation
   auto baseOffset = parentAnim->GetPoint("Head");
-  auto origin = player.operator sf::Sprite &().getOrigin();
+  auto origin = player.getOrigin();
   baseOffset = baseOffset - origin;
 
   overlay->setPosition(baseOffset);
 }
 
-void TenguCross::OnChargedBusterAction(Player& player)
+ChipAction* TenguCross::OnChargedBusterAction(Player& player)
 {
-  player.RegisterComponent(new TornadoChipAction(&player, 30));
+  return new TornadoChipAction(&player, 30);
 }
 
-void TenguCross::OnSpecialAction(Player& player)
+ChipAction* TenguCross::OnSpecialAction(Player& player)
 {
+  return nullptr;
 }
 
 // HEAT CROSS
@@ -139,7 +140,7 @@ void HeatCross::OnActivate(Player& player)
   overlay = new SpriteSceneNode();
   overlay->setTexture(*cross);
   overlay->SetLayer(-1);
-  overlay->EnableUseParentShader(false);
+  overlay->EnableParentShader(false);
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
   auto pswap = player.GetFirstComponent<PaletteSwap>();
@@ -184,13 +185,14 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
   overlay->setPosition(baseOffset);
 }
 
-void HeatCross::OnChargedBusterAction(Player& player)
+ChipAction* HeatCross::OnChargedBusterAction(Player& player)
 {
-  player.RegisterComponent(new FireBurnChipAction(&player, FireBurn::Type::_2, 60));
+  return new FireBurnChipAction(&player, FireBurn::Type::_2, 60);
 }
 
-void HeatCross::OnSpecialAction(Player& player)
+ChipAction* HeatCross::OnSpecialAction(Player& player)
 {
+  return nullptr;
 }
 
 // TOMAHAWK CROSS
@@ -215,7 +217,7 @@ void TomahawkCross::OnActivate(Player& player)
   overlay = new SpriteSceneNode();
   overlay->setTexture(*cross);
   overlay->SetLayer(-1);
-  overlay->EnableUseParentShader(false);
+  overlay->EnableParentShader(false);
 
   parentAnim = player.GetFirstComponent<AnimationComponent>();
   auto pswap = player.GetFirstComponent<PaletteSwap>();
@@ -256,11 +258,12 @@ void TomahawkCross::OnUpdate(float elapsed, Player& player)
   overlay->setPosition(baseOffset);
 }
 
-void TomahawkCross::OnChargedBusterAction(Player& player)
+ChipAction* TomahawkCross::OnChargedBusterAction(Player& player)
 {
-  player.RegisterComponent(new CrackShotChipAction(&player, 30));
+  return new CrackShotChipAction(&player, 30);
 }
 
-void TomahawkCross::OnSpecialAction(Player& player)
+ChipAction* TomahawkCross::OnSpecialAction(Player& player)
 {
+  return nullptr;
 }

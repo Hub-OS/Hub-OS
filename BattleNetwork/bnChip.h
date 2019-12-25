@@ -2,6 +2,7 @@
 
 #include <string>
 #include <tuple>
+#include <map>
 #include "bnElements.h"
 
 using std::string;
@@ -17,12 +18,10 @@ class SelectedChipsUI;
  * 
  * This will be expanded to load the corresponding script information
  * 
- * TODO: Add support chip flag information
- * TODO: Add Time Freeze attribute
  */
 class Chip {
 public:
-  // TODO: take out from Atk+10 quick hack
+  // TODO: take these out from Atk+10 quick hack
   friend class BattleScene;
   friend class SelectedChipsUI;
 
@@ -85,6 +84,14 @@ public:
    * @return Element
    */
   const Element GetElement() const;
+
+  /**
+  * @brief Secondary element of chip 
+  * @return Element
+  *
+  * @warning This element is used internally. If this is the same as the primary element, this element returns None
+  */
+  const Element GetSecondaryElement() const;
   
   /**
    * @brief Rarity of chip
@@ -92,6 +99,30 @@ public:
    * @warning may be removed as rarity won't be used in the future
    */
   const unsigned GetRarity() const;
+
+  /**
+  * @brief Query if chip summons one or more navis 
+  * @returns true if flagged as a navi chip, false otherwise
+  */
+  const bool IsNaviSummon() const;
+
+  /**
+* @brief Qeuery if chip is tagged as a support chip
+* @returns true if flagged as a support chip, false otherwise
+*/
+  const bool IsSupport() const;
+
+  /**
+* @brief Query if chip should freeze time
+* @returns true if flagged as a time freeze chip, false otherwise
+*/
+  const bool IsTimeFreeze() const;
+
+  /**
+* @brief Query if chip is tagged with user-defined information
+* @returns true if flagged as input meta type, false otherwise
+*/
+  const bool IsTaggedAs(const std::string meta) const;
 
   /**
    * @brief Comparator for std map
@@ -121,10 +152,14 @@ private:
   unsigned ID;
   unsigned icon;
   unsigned damage, unmodDamage;
-  unsigned rarity;
+  unsigned rarity; /*!< Todo: remove and add MB values*/
   char code;
+  bool timeFreeze; /*!< Does this chip rely on action items to resolve before resuming the battle scene? */
+  bool navi; /*!< Does this chip spawn navi(s)?*/
+  bool support; /*!< Does this chip heal or supply perks to the active navi and their chips?*/
   string shortname;
   string description;
   string verboseDescription;
-  Element element;
+  Element element, secondaryElement;
+  std::map<std::string, std::string> metaTags; /*!< Chips can be tagged with additional user information*/
 };

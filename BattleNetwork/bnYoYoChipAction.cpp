@@ -15,22 +15,34 @@
 
 
 YoYoChipAction::YoYoChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
+  this->damage = damage;
+
   this->attachment = new SpriteSceneNode();
   this->attachment->setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
   this->attachment->SetLayer(-1);
-  owner->AddNode(this->attachment);
 
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
-  attachmentAnim.Update(0, *this->attachment);
 
   // add override anims
   this->OverrideAnimationFrames({ FRAMES });
 
+}
+
+YoYoChipAction::~YoYoChipAction()
+{
+}
+
+void YoYoChipAction::Execute() {
+  auto owner = GetOwner();
+
+  owner->AddNode(this->attachment);
+  attachmentAnim.Update(0, *this->attachment);
+
   yoyo = nullptr;
 
   // On shoot frame, drop projectile
-  auto onFire = [this, damage]() -> void {
+  auto onFire = [this]() -> void {
     AUDIO.Play(AudioType::TOSS_ITEM_LITE);
 
     YoYo* y = new YoYo(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
@@ -43,10 +55,6 @@ YoYoChipAction::YoYoChipAction(Character * owner, int damage) : ChipAction(owner
   };
 
   this->AddAction(1, onFire);
-}
-
-YoYoChipAction::~YoYoChipAction()
-{
 }
 
 void YoYoChipAction::OnUpdate(float _elapsed)

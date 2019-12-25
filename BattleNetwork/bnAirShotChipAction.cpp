@@ -16,6 +16,11 @@
 
 
 AirShotChipAction::AirShotChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
+  this->damage = damage;
+}
+
+void AirShotChipAction::Execute() {
+  auto owner = GetOwner();
   airshot.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
   this->attachment = new SpriteSceneNode(airshot);
   this->attachment->SetLayer(-1);
@@ -29,7 +34,7 @@ AirShotChipAction::AirShotChipAction(Character * owner, int damage) : ChipAction
   this->OverrideAnimationFrames({ FRAMES });
 
   // On shoot frame, drop projectile
-  auto onFire = [this, damage]() -> void {
+  auto onFire = [this]() -> void {
     AUDIO.Play(AudioType::SPREADER);
 
     AirShot* airshot = new AirShot(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);

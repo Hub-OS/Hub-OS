@@ -31,6 +31,11 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
 PlayerHealthUI::~PlayerHealthUI() {
 }
 
+void PlayerHealthUI::Inject(BattleScene & scene)
+{
+  this->BattleOverTrigger::Inject(scene);
+}
+
 void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   auto this_states = states;
   this_states.transform *= this->getTransform();
@@ -137,7 +142,7 @@ void PlayerHealthUI::OnUpdate(float elapsed) {
     bool isPoisoned = false;
 
     // If the player is burning or poisoned, turn red to alert them
-    if (player->GetTile()) {
+    if (player->GetTile() && !(player->HasAirShoe() || player->HasFloatShoe())) {
       isBurning = player->GetTile()->GetState() == TileState::LAVA;
       isBurning = isBurning && player->GetElement() != Element::FIRE;
       isBurning = isBurning && !player->HasFloatShoe();

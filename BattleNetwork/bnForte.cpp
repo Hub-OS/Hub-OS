@@ -13,15 +13,14 @@ const float COPY_DROP_COOLDOWN = 0.15f; // in seconds
 
 const std::string RESOURCE_PATH = "resources/navis/forte/forte.animation";
 
-void Forte::ExecuteBusterAction()
+ChipAction* Forte::ExecuteBusterAction()
 {
-  this->RegisterComponent(new BusterChipAction(this, false, 1));
-
+  return new BusterChipAction(this, false, 1);
 }
 
-void Forte::ExecuteChargedBusterAction()
+ChipAction* Forte::ExecuteChargedBusterAction()
 {
-  this->RegisterComponent(new VulcanChipAction(this, 30));
+  return new VulcanChipAction(this, 30);
 }
 
 Forte::Forte() : Player()

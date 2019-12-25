@@ -8,13 +8,22 @@
 #define PATH "resources/spells/spell_bomb.png"
 
 BombChipAction::BombChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_THROW", &attachment, "Hand") {
+  this->damage = damage;
+}
+
+BombChipAction::~BombChipAction()
+{
+}
+
+void BombChipAction::Execute() {
+  auto owner = GetOwner();
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
   owner->AddNode(this->attachment);
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, damage, owner]() -> void {
+  auto onThrow = [this, owner]() -> void {
     attachment->Hide(); // the "bomb" is now airborn - hide the animation overlay
 
     auto duration = 0.5f; // seconds
@@ -23,15 +32,11 @@ BombChipAction::BombChipAction(Character * owner, int damage) : ChipAction(owner
     props.aggressor = GetOwnerAs<Character>();
     b->SetHitboxProperties(props);
 
-    GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX()+3, GetOwner()->GetTile()->GetY());
+    GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 3, GetOwner()->GetTile()->GetY());
   };
 
 
   this->AddAction(3, onThrow);
-}
-
-BombChipAction::~BombChipAction()
-{
 }
 
 void BombChipAction::OnUpdate(float _elapsed)

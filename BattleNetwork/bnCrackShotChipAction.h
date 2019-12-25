@@ -11,9 +11,11 @@ private:
   sf::Sprite overlay;
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
+  int damage;
 public:
   CrackShotChipAction(Character* owner, int damage);
-  virtual ~CrackShotChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  ~CrackShotChipAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
+  void Execute();
 };

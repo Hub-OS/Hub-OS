@@ -10,9 +10,11 @@ private:
   sf::Sprite airshot;
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
+  int damage;
 public:
   AirShotChipAction(Character* owner, int damage);
-  virtual ~AirShotChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  ~AirShotChipAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
+  void Execute();
 };

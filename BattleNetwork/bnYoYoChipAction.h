@@ -10,9 +10,11 @@ private:
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
   Entity* yoyo;
+  int damage;
 public:
   YoYoChipAction(Character* owner, int damage);
-  virtual ~YoYoChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  ~YoYoChipAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
+  void Execute();
 };

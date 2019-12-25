@@ -10,9 +10,11 @@ private:
   sf::Sprite cannon;
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
+  int damage;
 public:
   CannonChipAction(Character* owner, int damage);
-  virtual ~CannonChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  ~CannonChipAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
+  void Execute();
 };

@@ -37,7 +37,8 @@
 #include <Swoosh/ActivityController.h>
 #include <Swoosh/Ease.h>
 
-// #define BN_REGION_JAPAN 1
+#define OBN_REGION_JAPAN 0
+#define OBN_ENABLE_PIXELATE_GFX 0
 
 // Engine addons
 #include "bnQueueNaviRegistration.h"
@@ -225,11 +226,11 @@ int main(int argc, char** argv) {
   double mouseAlpha = 1.0;
 
   // Title screen logo based on region
-#ifdef BN_REGION_JAPAN
+#if OBN_REGION_JAPAN
   sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile.png");
 #else
   sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");
-#endif BN_REGION_JAPAN
+#endif
 
   SpriteSceneNode logoSprite;
 

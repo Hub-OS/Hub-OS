@@ -2,11 +2,11 @@ imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/mobs/falzar/f
 
 animation state="IDLE"
 frame duration="0.05" x="15" y="3" w="155" h="169" originx="79" originy="168"
-frame duration="0.05" x="175" y="1" w="154" h="171" originx="79" originy="172"
-frame duration="0.05" x="334" y="5" w="156" h="170" originx="79" originy="168"
+frame duration="0.05" x="175" y="1" w="154" h="171" originx="79" originy="173"
+frame duration="0.05" x="334" y="5" w="156" h="170" originx="79" originy="169"
 frame duration="0.05" x="6" y="176" w="163" h="166" originx="86" originy="167"
 frame duration="0.05" x="177" y="176" w="151" h="169" originx="75" originy="167"
-frame duration="0.05" x="334" y="178" w="157" h="168" originx="77" originy="167"
+frame duration="0.05" x="334" y="178" w="157" h="168" originx="78" originy="168"
 
 animation state="MOVE"
 frame duration="0.05" x="99" y="348" w="156" h="168" originx="80" originy="166"

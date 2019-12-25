@@ -9,7 +9,7 @@ private:
   sf::Texture palette;
   sf::Texture base;
   sf::Shader* paletteSwap;
-
+  bool enabled; /*!< Turn this effect on/off */
 public:
   PaletteSwap(Entity* owner, sf::Texture base);
   ~PaletteSwap();
@@ -18,4 +18,5 @@ public:
   void LoadPaletteTexture(std::string);
   void SetTexture(sf::Texture& texture);
   void Revert();
+  void Enable(bool enabled = true);
 };

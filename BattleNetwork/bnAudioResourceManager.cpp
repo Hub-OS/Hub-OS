@@ -184,7 +184,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
       }
     }
     else { // HIGH PRIORITY
-      if (channels[i].priority < AudioPriority::HIGH || channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing) {
+      if (channels[i].priority < AudioPriority::HIGH && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing) {
         channels[i].buffer.stop();
         channels[i].buffer.setBuffer(sources[type]);
         channels[i].buffer.play();

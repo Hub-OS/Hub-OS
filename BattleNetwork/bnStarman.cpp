@@ -39,13 +39,12 @@ const float Starman::GetHitHeight() const
   return 140.0f;
 }
 
-void Starman::ExecuteBusterAction()
+ChipAction* Starman::ExecuteBusterAction()
 {
-  this->RegisterComponent(new BusterChipAction(this, false, 1));
-
+  return new BusterChipAction(this, false, 1);
 }
 
-void Starman::ExecuteChargedBusterAction()
+ChipAction* Starman::ExecuteChargedBusterAction()
 {
-  this->RegisterComponent(new BusterChipAction(this, true, 10));
+  return new BusterChipAction(this, true, 10);
 }

@@ -86,5 +86,19 @@ public:
    */
   void RemoveNode(SceneNode* find);
 
-  void EnableUseParentShader(bool use);
+  /**
+  * @brief Forces the child node to use its parents shader in the render step
+  */
+  void EnableParentShader(bool enable);
+
+  /**
+  * @brief Query if the node is using its parent's shader
+  */
+  const bool IsUsingParentShader() const;
+
+  /**
+  * Fetches all the child nodes attached to this node
+  * @return a reference to the vector of SceneNode*
+  */
+  std::vector<SceneNode*>& GetChildNodes();
 };

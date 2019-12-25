@@ -17,25 +17,36 @@
 
 TornadoChipAction::TornadoChipAction(Character * owner, int damage) 
   : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(FAN_ANIM), armIsOut(false) {
+  this->damage = damage;
   fan.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
   this->attachment = new SpriteSceneNode(fan);
   this->attachment->SetLayer(-1);
+
   owner->AddNode(this->attachment);
 
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
-  attachmentAnim.Update(0, *this->attachment);
   attachmentAnim << Animator::Mode::Loop;
 
   // add override anims
   this->OverrideAnimationFrames({ FRAMES });
+}
+
+TornadoChipAction::~TornadoChipAction()
+{
+}
+
+void TornadoChipAction::Execute() {
+  auto owner = GetOwner();
+
+  attachmentAnim.Update(0, *this->attachment);
 
   auto team = GetOwner()->GetTeam();
   auto tile = GetOwner()->GetTile();
   auto field = GetOwner()->GetField();
 
   // On shoot frame, drop projectile
-  auto onFire = [this, damage, team, tile,field ]() -> void {
+  auto onFire = [this, team, tile, field]() -> void {
     Tornado* tornado = new Tornado(field, team, damage);
     auto props = tornado->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
@@ -45,12 +56,12 @@ TornadoChipAction::TornadoChipAction(Character * owner, int damage)
   };
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
-  this->AddAction(2, [onFire, this]() {       
+  this->AddAction(2, [onFire, this]() {
     AUDIO.Play(AudioType::WIND);
     armIsOut = true;
-    onFire(); 
+    onFire();
   });
-    
+
   this->AddAction(4, onFire);
   this->AddAction(6, onFire);
   this->AddAction(8, onFire);
@@ -58,10 +69,6 @@ TornadoChipAction::TornadoChipAction(Character * owner, int damage)
   this->AddAction(12, onFire);
   this->AddAction(14, onFire);
   this->AddAction(16, onFire);
-}
-
-TornadoChipAction::~TornadoChipAction()
-{
 }
 
 void TornadoChipAction::OnUpdate(float _elapsed)

@@ -10,9 +10,12 @@ class BusterChipAction : public ChipAction {
 private:
   SpriteSceneNode *attachment, *attachment2;
   Animation attachmentAnim, attachmentAnim2;
+  bool charged;
+  int damage;
 public:
   BusterChipAction(Character* owner, bool charged, int damage);
   ~BusterChipAction();
   void OnUpdate(float _elapsed);
   void EndAction();
+  void Execute();
 };

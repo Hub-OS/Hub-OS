@@ -10,9 +10,11 @@ private:
   sf::Sprite overlay;
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
+  int damage;
 public:
   BombChipAction(Character* owner, int damage);
-  virtual ~BombChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  ~BombChipAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
+  void Execute();
 };

@@ -30,7 +30,7 @@ Player::Player()
   chargeEffect.SetLayer(-2);
   this->AddNode(&chargeEffect);
   chargeEffect.setPosition(0, -20.0f); // translate up -20
-  chargeEffect.EnableUseParentShader(false);
+  chargeEffect.EnableParentShader(false);
 
   SetLayer(0);
   team = Team::RED;
@@ -44,12 +44,10 @@ Player::Player()
   animationComponent->Reload();
   this->RegisterComponent(animationComponent);
 
-
   previous = nullptr;
-
   playerControllerSlide = false;
-
   activeForm = nullptr;
+  queuedAction = nullptr;
 }
 
 Player::~Player() {
@@ -75,8 +73,10 @@ void Player::OnUpdate(float _elapsed) {
 }
 
 void Player::Attack() {
+  // Queue an action for the controller to fire at the right frame
+  // (MMBN has a specific pipeline that accepts input. This emulates that.)
   if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
-    chargeEffect.IsFullyCharged() ? ExecuteChargedBusterAction() : ExecuteBusterAction();
+    chargeEffect.IsFullyCharged() ? queuedAction = ExecuteChargedBusterAction() : queuedAction = ExecuteBusterAction();
   }
 }
 
@@ -98,7 +98,7 @@ const bool Player::OnHit(const Hit::Properties props) {
 
   // Respond to the recoil bit state
   if ((props.flags & Hit::recoil) == Hit::recoil) {
-    // When movement is interrupted because of a hit, we need to reset/flush the movement state data
+    // When movement is interrupted because of a hit, we need to flush the movement state data
     FinishMove();
     this->ChangeState<PlayerHitState>();
   }

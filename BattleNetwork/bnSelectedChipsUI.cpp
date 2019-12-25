@@ -12,6 +12,7 @@ using std::to_string;
 
 SelectedChipsUI::SelectedChipsUI(Player* _player) : ChipUsePublisher(), UIComponent(_player)
   , player(_player) {
+  player->RegisterComponent(this);
   chipCount = curr = 0;
   icon = sf::Sprite(*TEXTURES.GetTexture(CHIP_ICONS));
   icon.setScale(sf::Vector2f(2.f, 2.f));

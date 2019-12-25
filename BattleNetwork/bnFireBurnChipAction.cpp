@@ -17,20 +17,31 @@
 
 
 FireBurnChipAction::FireBurnChipAction(Character * owner, FireBurn::Type type, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+  this->damage = damage;
+  this->type = type;
+
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
-  owner->AddNode(this->attachment);
-
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
-  attachmentAnim.Update(0, *this->attachment);
 
   // add override anims
   this->OverrideAnimationFrames({ FRAMES });
+}
+
+FireBurnChipAction::~FireBurnChipAction()
+{
+}
+
+void FireBurnChipAction::Execute() {
+  auto owner = GetOwner();
+
+  owner->AddNode(this->attachment);
+  attachmentAnim.Update(0, *this->attachment);
 
   // On shoot frame, drop projectile
-  auto onFire = [this, damage, owner, type](int offset) -> void {
+  auto onFire = [this, owner](int offset) -> void {
     FireBurn* fb = new FireBurn(GetOwner()->GetField(), GetOwner()->GetTeam(), type, damage);
     auto props = fb->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
@@ -39,7 +50,7 @@ FireBurnChipAction::FireBurnChipAction(Character * owner, FireBurn::Type type, i
     // update node position in the animation
     auto baseOffset = anim->GetPoint(nodeName).y - anim->GetPoint("origin").y;
 
-    if (baseOffset < 0) { baseOffset = -baseOffset;  }
+    if (baseOffset < 0) { baseOffset = -baseOffset; }
 
 
     baseOffset *= 2.0f;
@@ -53,10 +64,6 @@ FireBurnChipAction::FireBurnChipAction(Character * owner, FireBurn::Type type, i
   this->AddAction(2, [onFire]() { onFire(0); });
   this->AddAction(4, [onFire]() { onFire(1); });
   this->AddAction(6, [onFire]() { onFire(2); });
-}
-
-FireBurnChipAction::~FireBurnChipAction()
-{
 }
 
 void FireBurnChipAction::OnUpdate(float _elapsed)

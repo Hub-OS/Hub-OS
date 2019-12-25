@@ -16,6 +16,15 @@
 
 
 CannonChipAction::CannonChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(CANNON_ANIM) {
+  this->damage = damage;
+}
+
+CannonChipAction::~CannonChipAction()
+{
+}
+
+void CannonChipAction::Execute() {
+  auto owner = GetOwner();
   cannon.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
   this->attachment = new SpriteSceneNode(cannon);
   this->attachment->SetLayer(-1);
@@ -29,7 +38,7 @@ CannonChipAction::CannonChipAction(Character * owner, int damage) : ChipAction(o
   this->OverrideAnimationFrames({ FRAMES });
 
   // On shoot frame, drop projectile
-  auto onFire = [this, damage, owner]() -> void {
+  auto onFire = [this, owner]() -> void {
     // Spawn a single cannon instance on the tile in front of the player
     Cannon* cannon = new Cannon(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
     auto props = cannon->GetHitboxProperties();
@@ -43,11 +52,7 @@ CannonChipAction::CannonChipAction(Character * owner, int damage) : ChipAction(o
     GetOwner()->GetField()->AddEntity(*cannon, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
   };
 
- this->AddAction(6, onFire);
-}
-
-CannonChipAction::~CannonChipAction()
-{
+  this->AddAction(6, onFire);
 }
 
 void CannonChipAction::OnUpdate(float _elapsed)

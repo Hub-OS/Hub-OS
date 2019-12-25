@@ -4,6 +4,7 @@
 #include <string>
 
 class Player;
+class ChipAction;
 
 class PlayerForm {
 public:
@@ -12,8 +13,8 @@ public:
   virtual void OnActivate(Player&) = 0;
   virtual void OnDeactivate(Player&) = 0;
   virtual void OnUpdate(float elapsed, Player&) = 0;
-  virtual void OnChargedBusterAction(Player&) = 0;
-  virtual void OnSpecialAction(Player&) = 0;
+  virtual ChipAction* OnChargedBusterAction(Player&) = 0;
+  virtual ChipAction* OnSpecialAction(Player&) = 0;
 };
 
 class PlayerFormMeta {

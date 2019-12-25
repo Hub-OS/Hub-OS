@@ -39,8 +39,8 @@ private:
     void OnUpdate(float _elapsed);
   };
   
-  void ExecuteBusterAction() final;
-  void ExecuteChargedBusterAction() final;
+  ChipAction* ExecuteBusterAction() final;
+  ChipAction* ExecuteChargedBusterAction() final;
 
 public:
   friend class PlayerControlledState;

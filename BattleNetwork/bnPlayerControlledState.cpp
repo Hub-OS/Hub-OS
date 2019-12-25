@@ -3,6 +3,7 @@
 #include "bnPlayer.h"
 #include "bnChipAction.h"
 #include "bnTile.h"
+#include "bnSelectedChipsUI.h"
 #include "bnAudioResourceManager.h"
 
 #include <iostream>
@@ -10,11 +11,20 @@
 PlayerControlledState::PlayerControlledState() : AIState<Player>()
 {
   isChargeHeld = false;
+  queuedAction = nullptr; 
 }
 
 
 PlayerControlledState::~PlayerControlledState()
 {
+}
+
+const bool PlayerControlledState::CanTakeAction(Player& player) const
+{
+  auto anim = player.GetFirstComponent<AnimationComponent>();
+  return player.GetTile()
+    && anim && anim->GetAnimationString() == "PLAYER_IDLE"
+    && !player.IsSliding();
 }
 
 void PlayerControlledState::OnEnter(Player& player) {
@@ -25,15 +35,45 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   // Action controls take priority over movement
   if (player.GetComponentsDerivedFrom<ChipAction>().size()) return;
 
+  // Are we creating an action this frame?
+  if (CanTakeAction(player) && INPUT.Has(EventTypes::PRESSED_USE_CHIP)) {
+    auto chipsUI = player.GetFirstComponent<SelectedChipsUI>();
+    if (chipsUI) {
+      chipsUI->UseNextChip();
+      // If the chip used was successful, the player will now have an active chip component
+      auto activeChips = player.GetComponentsDerivedFrom<ChipAction>();
+
+      if (activeChips.size()) {
+        // We have a chip action,
+        // execute the first action
+        // There shouldn't be any more, but if there are
+        // they will be flushed
+        activeChips[0]->OnExecute();
+
+        return;
+      }
+    }
+  }
+
 #ifndef __ANDROID__
-  if (!INPUT.Has(EventTypes::HELD_SHOOT) && !player.IsSliding()) {
+  if (CanTakeAction(player) && !INPUT.Has(EventTypes::HELD_SHOOT)) {
 #else
-    if(INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !INPUT.Has(EventTypes::RELEASED_SHOOT) && !player.IsSliding() && !player.GetNextTile()) {
+    if(CanTakeAction(player) &&INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !INPUT.Has(EventTypes::RELEASED_SHOOT)) {
 #endif
     if (player.chargeEffect.GetChargeCounter() > 0 && isChargeHeld == true) {
       player.Attack();
-      player.chargeEffect.SetCharging(false);
-      isChargeHeld = false;
+
+      // peek into the player's queued Action property
+      auto action = player.queuedAction;
+      player.queuedAction = nullptr;
+
+      // We already have one action queued, delete the next one
+      if (!queuedAction) { 
+        queuedAction = action; 
+      }
+      else {
+        delete action;
+      }
     }
     else if(!player.GetNextTile()){
       isChargeHeld = false;
@@ -108,15 +148,27 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 		    player.AdoptNextTile();
         direction = Direction::NONE;
       }; // end lambda
+      player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
       player.SetAnimation(PLAYER_MOVING, onFinish);
+    }
+  }
+  else if(queuedAction) {
+    if (this->CanTakeAction(player)) {
+      queuedAction->OnExecute();
+      player.RegisterComponent(queuedAction);
+      queuedAction = nullptr;
+
+      player.chargeEffect.SetCharging(false);
+      isChargeHeld = false;
     }
   }
 }
 
 void PlayerControlledState::OnLeave(Player& player) {
-  /* Mega loses charge when we leave this state */
+  /* Navis lose charge when we leave this state */
   player.chargeEffect.SetCharging(false);
-
+  player.queuedAction = nullptr;
+  
   /* Cancel chip actions */
   auto actions = player.GetComponentsDerivedFrom<ChipAction>();
 

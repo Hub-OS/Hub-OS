@@ -14,7 +14,12 @@ protected:
   std::string animation, nodeName;
   std::string uuid, prevState;
   SpriteSceneNode** attachment;
+  std::function<void()> prepareActionDelegate;
+
 protected:
+  /*user defined */
+  virtual void Execute() = 0;
+
   void AddAction(int frame, std::function<void()> action)
   {
     anim->AddCallback(frame, action, std::function<void()>(), true);
@@ -26,6 +31,9 @@ protected:
   }
 
 public:
+  /** Override get owner to always return a character type */
+  Character* GetOwner() { return GetOwnerAs<Character>(); }
+
   ChipAction() = delete;
   ChipAction(const ChipAction& rhs) = delete;
 
@@ -37,37 +45,48 @@ public:
     if (anim) {
       prevState = anim->GetAnimationString();
 
-      // use the current animation's arrangement, do not overload
-      this->anim = owner->GetFirstComponent<AnimationComponent>();
-      this->prevState = anim->GetAnimationString();;
-      this->anim->SetAnimation(animation, [this]() {
-        Logger::Log("normal callback fired");
-        this->RecallPreviousState();
-        this->EndAction();
-      });
+      prepareActionDelegate = [this, owner, animation]() {
+        // use the current animation's arrangement, do not overload
+        this->prevState = anim->GetAnimationString();;
+        this->anim->SetAnimation(animation, [this]() {
+          Logger::Log("normal callback fired");
+          this->RecallPreviousState();
+          this->EndAction();
+        });
 
-      anim->OnUpdate(0);
+        anim->OnUpdate(0);
+      };
     }
   }
 
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   {
     if (anim) {
-      anim->OverrideAnimationFrames(this->animation, frameData, this->uuid);
-      anim->SetAnimation(this->uuid, [this]() { 
-        Logger::Log("custom callback fired");
+      prepareActionDelegate = [this, frameData]() {
+        anim->OverrideAnimationFrames(this->animation, frameData, this->uuid);
+        anim->SetAnimation(this->uuid, [this]() {
+          Logger::Log("custom callback fired");
 
-        anim->SetPlaybackMode(Animator::Mode::Loop);
-        this->RecallPreviousState();
-        this->EndAction();
-      });
-      anim->OnUpdate(0);
-      this->OnUpdate(0); // position to owner...
+          anim->SetPlaybackMode(Animator::Mode::Loop);
+          this->RecallPreviousState();
+          this->EndAction();
+        });
+        anim->OnUpdate(0);
+        this->OnUpdate(0); // position to owner...
+      };
     }
   }
 
   virtual ~ChipAction()
   {
+  }
+
+  void OnExecute() {
+    // prepare the animation behavior
+    prepareActionDelegate();
+
+    // run
+    this->Execute();
   }
 
   virtual void OnUpdate(float _elapsed)
@@ -76,7 +95,7 @@ public:
 
     // update node position in the animation
     auto baseOffset = anim->GetPoint(nodeName);
-    auto origin = GetOwner()->operator sf::Sprite &().getOrigin();
+    auto origin = GetOwner()->getOrigin();
     baseOffset = baseOffset - origin;
 
     (*attachment)->setPosition(baseOffset);

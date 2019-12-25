@@ -47,7 +47,7 @@ public:
    * @brief This component does not need to be injected into the scene
    * @param scene
    */
-  virtual void Inject(BattleScene& scene) { ; }
+  void Inject(BattleScene& scene);
 
   /**
    * @brief Uses bitmap glyphs for each number in the health

@@ -63,7 +63,17 @@ void SceneNode::RemoveNode(SceneNode* find) {
   childNodes.erase(iter, childNodes.end());
 }
 
-void SceneNode::EnableUseParentShader(bool use)
+void SceneNode::EnableParentShader(bool use)
 {
   useParentShader = use;
+}
+
+const bool SceneNode::IsUsingParentShader() const
+{
+  return useParentShader;
+}
+
+std::vector<SceneNode*>& SceneNode::GetChildNodes()
+{
+  return childNodes;
 }

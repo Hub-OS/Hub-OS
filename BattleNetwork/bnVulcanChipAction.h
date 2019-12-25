@@ -10,9 +10,11 @@ private:
   sf::Sprite overlay;
   SpriteSceneNode* attachment;
   Animation attachmentAnim;
+  int damage;
 public:
   VulcanChipAction(Character* owner, int damage);
-  virtual ~VulcanChipAction();
-  virtual void OnUpdate(float _elapsed);
-  virtual void EndAction();
+  ~VulcanChipAction();
+  void OnUpdate(float _elapsed);
+  void EndAction();
+  void Execute();
 };
