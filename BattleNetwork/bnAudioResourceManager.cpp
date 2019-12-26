@@ -129,9 +129,9 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   // NOTE: an audio queue would be a better place for this check. Then play() those sounds that pass the queue filter.
   if (priority != AudioPriority::HIGH) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
-      if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
+      if (channels[i].buffer.getBuffer() == &sources[type] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
         auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
-        if (howLongPlayed < AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
+        if (howLongPlayed <= AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
           return -1;
         }
       }
@@ -150,7 +150,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
       if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type]) {
 
       }
-      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || (sf::SoundBuffer*)channels[i].buffer.getBuffer() != &sources[type]) {
+      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || channels[i].buffer.getBuffer() != &sources[type]) {
         channels[i].buffer.stop();
         channels[i].buffer.setBuffer(sources[type]);
         channels[i].buffer.play();
@@ -183,8 +183,10 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
         return 0;
       }
     }
-    else { // HIGH PRIORITY
-      if (channels[i].priority < AudioPriority::HIGH && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing) {
+    else { // HIGH PRIORITY will not overwrite other HIGH priorities unless they have ended
+      bool canOverwrite = channels[i].priority < AudioPriority::HIGH 
+        ||(channels[i].priority == AudioPriority::HIGH && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing);
+      if (canOverwrite) {
         channels[i].buffer.stop();
         channels[i].buffer.setBuffer(sources[type]);
         channels[i].buffer.play();

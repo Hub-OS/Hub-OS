@@ -29,12 +29,14 @@ MetalMan::MetalMan(Rank _rank)
   this->AddState<MetalManMoveState>();
   this->AddState<MetalManThrowState>();
   this->AddState<MetalManPunchState>();
+  this->AddState<MetalManIdleState>();
 
   if (rank == Rank::EX) {
     SetHealth(1300);
 
     // Append more states
     this->AddState<MetalManMissileState>(10);
+    this->AddState<MetalManIdleState>();
     this->AddState<MetalManIdleState>();
     this->AddState<MetalManMoveState>();
     this->AddState<MetalManMoveState>();
@@ -46,6 +48,7 @@ MetalMan::MetalMan(Rank _rank)
     this->AddState<MetalManMoveState>();
     this->AddState<MetalManPunchState>();
     this->AddState<MetalManMissileState>(10);
+    this->AddState<MetalManIdleState>();
   }
   else {
     SetHealth(1000);

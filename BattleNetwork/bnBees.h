@@ -3,6 +3,8 @@
 #include "bnSpell.h"
 #include "bnAnimation.h"
 
+class HitBox;
+
 class Bees : public Spell {
 protected:
   Animation animation;
@@ -13,6 +15,7 @@ protected:
   SpriteSceneNode* shadow;
   Bees* leader;/*!< which bee to follow*/
   float attackCooldown; 
+  std::list<HitBox*> dropped;
 public:
   Bees(Field* _field, Team _team, int damage);
   Bees(Bees& leader);
@@ -23,4 +26,6 @@ public:
   void OnUpdate(float _elapsed);
 
   void Attack(Character* _entity);
+
+  void OnDelete();
 };

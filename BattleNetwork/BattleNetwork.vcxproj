@@ -265,6 +265,7 @@
     <ClCompile Include="bnDefenseAura.cpp" />
     <ClCompile Include="bnDefenseGuard.cpp" />
     <ClCompile Include="bnDefenseRule.cpp" />
+    <ClCompile Include="bnDefenseInvis.cpp" />
     <ClCompile Include="bnDefenseVirusBody.cpp" />
     <ClCompile Include="bnElecpulse.cpp" />
     <ClCompile Include="bnElecSwordChipAction.cpp" />
@@ -434,6 +435,7 @@
     <ClCompile Include="bnChipDescriptionTextbox.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bnDefenseInvis.h" />
     <ClInclude Include="bnParticleHeal.h" />
     <ClInclude Include="bnAIPriorityLock.h" />
     <ClInclude Include="AlphaBossSpawnPolicy.h" />

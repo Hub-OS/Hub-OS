@@ -228,7 +228,7 @@ bool ChipSelectionCust::CursorAction() {
       selectedForm = thisFrameSelectedForm = -1; // no change
     }
     else {
-      formSelectQuitTimer = 3.0f/6.0f;
+      formSelectQuitTimer = 0.5f; // 0.5 * 60fps = 30 frames
       selectedForm = thisFrameSelectedForm;
     }
     return res;
@@ -516,10 +516,6 @@ void ChipSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
       char code = queue[i].data->GetCode();
 
-      if (code == WILDCARD && code != '*') {
-        code = '*';
-      }
-
       smCodeLabel.setString(code);
       target.draw(smCodeLabel, states);
     }
@@ -721,7 +717,9 @@ void ChipSelectionCust::Update(float elapsed)
       canInteract = true;
       isInFormSelect = false;
       playFormSound = false;
-    } else if (formSelectQuitTimer <= 1.f / 6.f) {
+      thisFrameSelectedForm = -1;
+    }
+    else if (formSelectQuitTimer <= 1.f / 6.f) {
       formSelectAnimator.SetAnimation("CLOSED");
       cursorPos = cursorRow = formCursorRow = 0;
       if (!playFormSound) {

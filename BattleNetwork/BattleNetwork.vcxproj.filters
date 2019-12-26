@@ -695,6 +695,9 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact">
       <UniqueIdentifier>{0e7529a4-83f1-41a4-8648-a8df3ee4d14b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\BattleStepModifiers\DefenseRules\Invis">
+      <UniqueIdentifier>{fd8525c2-77ab-4a7a-b71e-76136162a01f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1437,6 +1440,9 @@
     </ClCompile>
     <ClCompile Include="bnParticleImpact.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseInvis.cpp">
+      <Filter>Scenes/Activities\Battle\Content\BattleStepModifiers\DefenseRules\Invis</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2250,6 +2256,9 @@
     </ClInclude>
     <ClInclude Include="bnParticleImpact.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseInvis.h">
+      <Filter>Scenes/Activities\Battle\Content\BattleStepModifiers\DefenseRules\Invis</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

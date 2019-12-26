@@ -21,7 +21,7 @@ Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), CounterTrait<Cube
 
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
 
-  this->SetSlideTime(sf::seconds(1.0f / 5.0f)); // was 1/15 
+  this->SetSlideTime(sf::seconds(1.0f / 5.0f)); // 1/5 of 60 fps = 12 frames
 
   hit = false;
 
@@ -203,9 +203,6 @@ void Cube::Attack(Character* other) {
   if (isCharacter && isCharacter != this) {
     this->SetHealth(0);
     auto props = GetHitboxProperties();
-
-    Logger::Logf("cube hitbox damage is: %d", props.damage);
-
     isCharacter->Hit(GetHitboxProperties());
     this->hit = true;
   }

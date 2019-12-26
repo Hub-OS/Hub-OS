@@ -1,6 +1,7 @@
 #pragma once
 
 #include "bnComponent.h"
+#include "bnDefenseInvis.h"
 #include <SFML/System.hpp>
 
 /*! \brief Turns any entity invisible and flags the passthrough state property 
@@ -12,7 +13,7 @@ class Invis : public Component {
 private:
   sf::Time duration; /*!< Set to 15 seconds */
   float elapsed; /*!< Time passed in seconds */
-
+  DefenseInvis* defense;
 public:
   /**
    * @brief attach to an entity 

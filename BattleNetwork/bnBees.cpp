@@ -47,10 +47,17 @@ Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage
   // Thunder has electric properties
   props.element = Element::WOOD;
 
-  // Attack does 25 units of damage
+  // Attack does 5 units of damage
   props.damage = damage;
 
   SetHitboxProperties(props);
+
+  if (GetTeam() == Team::RED) {
+    SetDirection(Direction::RIGHT);
+  }
+  else {
+    SetDirection(Direction::LEFT);
+  }
 }
 
 Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(leader.damage)
@@ -89,6 +96,13 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
   SetHitboxProperties(leader.GetHitboxProperties());
 
   this->leader = &leader;
+
+  if (GetTeam() == Team::RED) {
+    SetDirection(Direction::RIGHT);
+  }
+  else {
+    SetDirection(Direction::LEFT);
+  }
 }
 
 Bees::~Bees() {
@@ -215,6 +229,7 @@ void Bees::OnUpdate(float _elapsed) {
       }
     });
     GetField()->AddEntity(*hitbox, *GetTile());
+    dropped.push_back(hitbox);
   }
 
   attackCooldown = std::max(attackCooldown - (float)elapsed, 0.0f);
@@ -238,4 +253,13 @@ void Bees::Attack(Character* _entity) {
     GetField()->AddEntity(*fx, *GetTile());
     fx->SetHeight(_entity->GetHeight()/2.0f);
   }
+}
+
+void Bees::OnDelete()
+{
+  for (auto iter = dropped.begin(); iter != dropped.end(); iter++) {
+    (*iter)->Delete();
+  }
+
+  dropped.clear();
 }
