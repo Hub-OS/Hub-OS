@@ -17,21 +17,23 @@
 
 AirShotChipAction::AirShotChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
   this->damage = damage;
+
+  airshot.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  this->attachment = new SpriteSceneNode(airshot);
+  this->attachment->SetLayer(-1);
+
+  attachmentAnim.Reload();
+  attachmentAnim.SetAnimation("DEFAULT");
+
+  // add override anims
+  this->OverrideAnimationFrames({ FRAMES });
 }
 
 void AirShotChipAction::Execute() {
   auto owner = GetOwner();
-  airshot.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
-  this->attachment = new SpriteSceneNode(airshot);
-  this->attachment->SetLayer(-1);
+
   owner->AddNode(this->attachment);
-
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("DEFAULT");
   attachmentAnim.Update(0, *this->attachment);
-
-  // add override anims
-  this->OverrideAnimationFrames({ FRAMES });
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {

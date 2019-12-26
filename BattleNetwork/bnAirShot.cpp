@@ -61,7 +61,7 @@ void AirShot::Attack(Character* _entity) {
     this->Delete();
   }
 
-  hitHeight = _entity->GetHitHeight();
+  hitHeight = _entity->GetHeight();
 }
 
 bool AirShot::CanMoveTo(Battle::Tile * next)

@@ -2,6 +2,8 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnObstacle.h"
+#include "bnParticleImpact.h"
+#include "bnHitBox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
@@ -25,13 +27,15 @@ Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage
   target = nullptr;
 
   turnCount = 0;
+  hitCount = 0;
+  attackCooldown = 0.60f;
 
   animation.Update(0, *this);
 
   shadow = new SpriteSceneNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
-  shadow->setPosition(-4.0f, 0.0f);
+  shadow->setPosition(-8.0f, 20.0f);
 
   this->AddNode(shadow);
 
@@ -49,6 +53,44 @@ Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage
   SetHitboxProperties(props);
 }
 
+Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(leader.damage)
+{
+  SetLayer(0);
+
+  auto texture = TEXTURES.GetTexture(TextureType::SPELL_BEES);
+  setTexture(*texture);
+  setScale(2.f, 2.f);
+
+  HighlightTile(Battle::Tile::Highlight::solid);
+
+  this->elapsed = 0;
+
+  this->SetSlideTime(sf::seconds(0.50f));
+
+  animation = Animation("resources/spells/spell_bees.animation");
+  animation.SetAnimation("DEFAULT");
+  animation << Animator::Mode::Loop;
+
+  target = leader.target;
+
+  turnCount = 0;
+  hitCount = 0;
+  attackCooldown = 0.60f; // est 2 frames
+
+  animation.Update(0, *this);
+
+  shadow = new SpriteSceneNode();
+  shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
+  shadow->SetLayer(1);
+  shadow->setPosition(-12.0f, 18.0f);
+
+  this->AddNode(shadow);
+
+  SetHitboxProperties(leader.GetHitboxProperties());
+
+  this->leader = &leader;
+}
+
 Bees::~Bees() {
   delete shadow;
 }
@@ -59,9 +101,14 @@ void Bees::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 60.0f);
 
   animation.Update(_elapsed, *this);
+  
+  if (leader && leader->IsDeleted()) {
+    leader = nullptr;
+    target = nullptr;
+  }
 
   // Find target if we don't have one
-  if (!target) {
+  if (!leader && !target) {
     // Find all characters that are not on our team and not an obstacle
     auto query = [&](Entity* e) {
       return (e->GetTeam() != team && dynamic_cast<Character*>(e) && !dynamic_cast<Obstacle*>(e));
@@ -82,13 +129,23 @@ void Bees::OnUpdate(float _elapsed) {
       }
     }
   }
+  else if (leader) {
+    // Follow the leader
+    target = leader;
+  }
 
   // If sliding is flagged to false, we know we've ended a move
-  auto direction = GetDirection();
+  auto direction = Direction::NONE;
+  bool wasMovingVertical   = (GetDirection() == Direction::DOWN || GetDirection() == Direction::UP);
+  wasMovingVertical = (wasMovingVertical || GetDirection() == Direction::NONE);
+
+  bool wasMovingHorizontal = (GetDirection() == Direction::LEFT || GetDirection() == Direction::RIGHT);
+  wasMovingHorizontal = (wasMovingHorizontal || GetDirection() == Direction::NONE);
+
   if (!this->IsSliding()) {
     if (target) {
-      if (target->GetTile()) {
-        if (turnCount > 0) {
+      if (target->GetTile() && turnCount < 3) {
+        if (wasMovingVertical) {
           if (target->GetTile()->GetX() < tile->GetX()) {
             direction = Direction::LEFT;
           }
@@ -96,17 +153,13 @@ void Bees::OnUpdate(float _elapsed) {
             direction = Direction::RIGHT;
           }
         }
-        
-        if (target->GetTile()->GetY() < tile->GetY()) {
-          direction = Direction::UP;
-        }
-        else if (target->GetTile()->GetY() > tile->GetY()) {
-          direction = Direction::DOWN;
-        }
-
-        // Poll if target is flagged for deletion, remove us
-        if (target->IsDeleted()) {
-          this->Delete();
+        else if (wasMovingHorizontal) {
+          if (target->GetTile()->GetY() < tile->GetY()) {
+            direction = Direction::UP;
+          }
+          else if (target->GetTile()->GetY() > tile->GetY()) {
+            direction = Direction::DOWN;
+          }
         }
       }
     }
@@ -121,13 +174,9 @@ void Bees::OnUpdate(float _elapsed) {
       }
     }
 
-    if (direction != this->GetDirection()) {
-      if (this->GetDirection() == Direction::NONE) {
-        this->SetDirection(direction);
-      }
-      else if (turnCount++ < 2) {
-        this->SetDirection(direction);
-      }
+    if (direction != this->GetDirection() && direction != Direction::NONE) {
+      turnCount++;
+      this->SetDirection(direction);
     }
 
     // Always slide to the tile we're moving to
@@ -140,8 +189,40 @@ void Bees::OnUpdate(float _elapsed) {
     }
   }
 
+  if (GetDirection() == Direction::LEFT) {
+    this->setScale(2, 2);
+  }
+  else if (GetDirection() == Direction::RIGHT) {
+    this->setScale(-2, 2);
+  }
+
   // Always affect the tile we're occupying
-  tile->AffectEntities(this);
+  this->GetTile()->AffectEntities(this);
+
+  if (target && GetTile() == target->GetTile() && attackCooldown == 0) {
+    // Try to attack 5 times
+    attackCooldown = 1.80f; // est 3 frames
+    auto hitbox = new HitBox(GetField(), GetTeam());
+    hitbox->SetHitboxProperties(GetHitboxProperties());
+    hitbox->AddCallback([this](Character* entity) {
+      // all other hitbox events will be ignored after 5 hits
+      if (hitCount < 5) {
+        hitCount++;
+        AUDIO.Play(AudioType::HURT, AudioPriority::HIGH);
+        auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
+        entity->GetField()->AddEntity(*fx, *entity->GetTile());
+        fx->SetHeight(entity->GetHeight() / 2.0f);
+      }
+    });
+    GetField()->AddEntity(*hitbox, *GetTile());
+  }
+
+  attackCooldown = std::max(attackCooldown - (float)elapsed, 0.0f);
+ 
+  if(hitCount >= 5) {
+    // Mark us for deletion
+    this->Delete();
+  }
 }
 
 bool Bees::CanMoveTo(Battle::Tile* tile) {
@@ -149,13 +230,12 @@ bool Bees::CanMoveTo(Battle::Tile* tile) {
 }
 
 void Bees::Attack(Character* _entity) {
-  // Only attack entities on this tile that are not on our team
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    // If entity was successfully hit
-    if (_entity->Hit(GetHitboxProperties())) {
-      // Mark us for deletion
-      this->Delete();
-      AUDIO.Play(AudioType::HURT);
-    }
+  // If entity was successfully hit
+  if (hitCount < 5 && _entity->Hit(GetHitboxProperties())) {
+    hitCount++;
+    AUDIO.Play(AudioType::HURT);
+    auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
+    GetField()->AddEntity(*fx, *GetTile());
+    fx->SetHeight(_entity->GetHeight()/2.0f);
   }
 }

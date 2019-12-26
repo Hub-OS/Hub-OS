@@ -686,6 +686,15 @@
     <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\ScriptedChipAction">
       <UniqueIdentifier>{03e83242-4e75-4728-9b43-621d6412c6be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Heal">
+      <UniqueIdentifier>{84aa980c-dadf-4754-aa42-8b158a1b35e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Recover">
+      <UniqueIdentifier>{38371457-7862-4fcd-b2de-135cf9705d69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact">
+      <UniqueIdentifier>{0e7529a4-83f1-41a4-8648-a8df3ee4d14b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1419,6 +1428,15 @@
     </ClCompile>
     <ClCompile Include="..\extern\lua\lzio.c">
       <Filter>Engine\CoreModules\Lua5.3.5</Filter>
+    </ClCompile>
+    <ClCompile Include="bnParticleHeal.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Heal</Filter>
+    </ClCompile>
+    <ClCompile Include="bnRecoverChipAction.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Recover</Filter>
+    </ClCompile>
+    <ClCompile Include="bnParticleImpact.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2223,6 +2241,15 @@
     </ClInclude>
     <ClInclude Include="bnScriptMetaType.h">
       <Filter>Engine\ResourceManagers\ScriptResource</Filter>
+    </ClInclude>
+    <ClInclude Include="bnParticleHeal.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Heal</Filter>
+    </ClInclude>
+    <ClInclude Include="bnRecoverChipAction.h">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Recover</Filter>
+    </ClInclude>
+    <ClInclude Include="bnParticleImpact.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -54,7 +54,7 @@ public:
   virtual const bool OnHit(const Hit::Properties props);
   virtual void OnDelete() { ; }
 
-  virtual const float GetHitHeight() const;
+  virtual const float GetHeight() const;
   
 private:
   float cooldown; /*< When cooldown reaches zero, this hitbox removes */

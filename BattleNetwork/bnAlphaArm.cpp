@@ -183,7 +183,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
     }
   }
 
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - GetHitHeight() - delta);
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - GetHeight() - delta);
 
   shadow->setPosition(-13, -4 + delta / 2.0f); // counter offset the shadow node
 
@@ -216,7 +216,7 @@ void AlphaArm::Attack(Character* other) {
   }
 }
 
-const float AlphaArm::GetHitHeight() const
+const float AlphaArm::GetHeight() const
 {
   switch (type) {
   case Type::RIGHT_IDLE:

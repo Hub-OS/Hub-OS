@@ -9,17 +9,18 @@ protected:
   double elapsed;
   Entity* target; /**< The current enemy to approach */
   int damage;
-  int turnCount;
+  int turnCount, hitCount;
   SpriteSceneNode* shadow;
-
+  Bees* leader;/*!< which bee to follow*/
+  float attackCooldown; 
 public:
   Bees(Field* _field, Team _team, int damage);
-  virtual ~Bees();
+  Bees(Bees& leader);
+  ~Bees();
 
+  bool CanMoveTo(Battle::Tile* tile);
 
-  virtual bool CanMoveTo(Battle::Tile* tile);
+  void OnUpdate(float _elapsed);
 
-  virtual void OnUpdate(float _elapsed);
-
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity);
 };

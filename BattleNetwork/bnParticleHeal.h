@@ -1,34 +1,34 @@
 
-/*! \brief Poof effect that plays when some chips fail */
+/*! \brief Heal effect that plays when some chips support a character */
 
 #pragma once
 #include "bnArtifact.h"
 #include "bnComponent.h"
 #include "bnField.h"
 
-class ParticlePoof : public Artifact {
+class ParticleHeal : public Artifact {
 private:
   Animation animation;
-  sf::Sprite poof;
+  sf::Sprite fx;
 public:
   /**
-   * \brief sets the animation 
+   * \brief sets the animation
    */
-  ParticlePoof();
-  
+  ParticleHeal();
+
   /**
    * @brief deconstructor
    */
-  ~ParticlePoof();
+  ~ParticleHeal();
 
   /**
-   * @brief plays the animation and deletes when finished 
+   * @brief plays the animation and deletes when finished
    * @param _elapsed in seconds
    */
   void OnUpdate(float _elapsed);
-  
+
   /**
-   * @brief particle poof effect doesn't move
+   * @brief heal effect doesn't move
    * @param _direction ignored
    * @return false
    */

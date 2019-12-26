@@ -17,6 +17,15 @@
 
 CannonChipAction::CannonChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(CANNON_ANIM) {
   this->damage = damage;
+
+  cannon.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
+  this->attachment = new SpriteSceneNode(cannon);
+  this->attachment->SetLayer(-1);
+
+  attachmentAnim.Reload();
+  attachmentAnim.SetAnimation("Cannon1");
+  // add override anims
+  this->OverrideAnimationFrames({ FRAMES });
 }
 
 CannonChipAction::~CannonChipAction()
@@ -25,17 +34,9 @@ CannonChipAction::~CannonChipAction()
 
 void CannonChipAction::Execute() {
   auto owner = GetOwner();
-  cannon.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
-  this->attachment = new SpriteSceneNode(cannon);
-  this->attachment->SetLayer(-1);
   owner->AddNode(this->attachment);
 
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("Cannon1");
   attachmentAnim.Update(0, *this->attachment);
-
-  // add override anims
-  this->OverrideAnimationFrames({ FRAMES });
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner]() -> void {

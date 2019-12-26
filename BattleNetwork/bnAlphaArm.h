@@ -26,7 +26,7 @@ public:
 
   virtual void Attack(Character* e);
 
-  virtual const float GetHitHeight() const;
+  virtual const float GetHeight() const;
 
   const bool IsSwiping() const;
 

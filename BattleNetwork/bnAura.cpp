@@ -24,7 +24,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   this->AddNode(aura);
 
   // Note: need to get rid of artificial scaling by 2. Makes the math awful. No need for it.
-  this->setPosition(0, -owner->GetHitHeight() / 2.0f / 2.0f); // divide twice. 1 -> real screen coord 2 -> half of real height
+  this->setPosition(0, -owner->GetHeight() / 2.0f / 2.0f); // divide twice. 1 -> real screen coord 2 -> half of real height
 
   persist = false;
 

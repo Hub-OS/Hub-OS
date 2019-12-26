@@ -49,7 +49,7 @@ public:
    */
   virtual void OnUpdate(float _elapsed);
 
-  virtual const float GetHitHeight() const;
+  virtual const float GetHeight() const;
 
   virtual const bool OnHit(const Hit::Properties props);
   virtual void OnDelete();

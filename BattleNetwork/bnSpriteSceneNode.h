@@ -55,6 +55,12 @@ public:
    */
   operator sf::Sprite&();
 
+  const sf::Sprite& getSprite() const;
+
+  const sf::Vector2f getOrigin() const {
+    return sprite->getOrigin();
+  }
+
   /**
    * @brief Get current texture proxy
    * @return texture of sprite

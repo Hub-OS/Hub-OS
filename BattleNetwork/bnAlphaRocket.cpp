@@ -134,7 +134,7 @@ void AlphaRocket::OnDelete()
   this->Delete();
 }
 
-const float AlphaRocket::GetHitHeight() const
+const float AlphaRocket::GetHeight() const
 {
   return 80.0f;
 }

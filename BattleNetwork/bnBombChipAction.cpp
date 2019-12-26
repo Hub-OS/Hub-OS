@@ -9,6 +9,10 @@
 
 BombChipAction::BombChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_THROW", &attachment, "Hand") {
   this->damage = damage;
+
+  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment->SetLayer(-1);
 }
 
 BombChipAction::~BombChipAction()
@@ -17,9 +21,6 @@ BombChipAction::~BombChipAction()
 
 void BombChipAction::Execute() {
   auto owner = GetOwner();
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  this->attachment = new SpriteSceneNode(overlay);
-  this->attachment->SetLayer(-1);
   owner->AddNode(this->attachment);
 
   // On throw frame, spawn projectile

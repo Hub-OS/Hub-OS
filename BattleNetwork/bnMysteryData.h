@@ -38,7 +38,7 @@ public:
 
   virtual void OnDelete() { ; }
 
-  virtual const float GetHitHeight() const { return 0; }
+  virtual const float GetHeight() const { return 0; }
 
   /**
    * @brief Changes the animation to "GET"

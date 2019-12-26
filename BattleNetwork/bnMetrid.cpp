@@ -74,6 +74,6 @@ const bool Metrid::OnHit(const Hit::Properties props) {
   return true;
 }
 
-const float Metrid::GetHitHeight() const {
+const float Metrid::GetHeight() const {
   return hitHeight;
 }

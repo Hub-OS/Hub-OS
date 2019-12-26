@@ -65,7 +65,7 @@ void Cannon::Attack(Character* _entity) {
   }
 
   _entity->Hit(GetHitboxProperties());
-  hitHeight = _entity->GetHitHeight();
+  hitHeight = _entity->GetHeight();
 
   if (!_entity->IsPassthrough()) {
     hit = true;

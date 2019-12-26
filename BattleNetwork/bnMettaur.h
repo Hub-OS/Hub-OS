@@ -45,7 +45,7 @@ public:
    * @brief Get the hit height of this entity
    * @return const float
    */
-  virtual const float GetHitHeight() const;
+  virtual const float GetHeight() const;
 
 private:
 

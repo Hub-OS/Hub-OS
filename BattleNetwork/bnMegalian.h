@@ -181,7 +181,7 @@ private:
       return true;
     }
     virtual void OnDelete() { }
-    virtual const float GetHitHeight() const { return 15; }
+    virtual const float GetHeight() const { return 15; }
     virtual bool CanMoveTo(Battle::Tile * next) { return true;  }
 
     virtual void Attack(Character* e) {
@@ -227,7 +227,7 @@ public:
    * @brief Get the hit height of this entity
    * @return const float
    */
-  virtual const float GetHitHeight() const;
+  virtual const float GetHeight() const;
 
   const bool HasAura();
 

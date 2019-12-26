@@ -59,7 +59,7 @@ Forte::~Forte()
   aura = nullptr;
 }
 
-const float Forte::GetHitHeight() const
+const float Forte::GetHeight() const
 {
   return 160.0f;
 }

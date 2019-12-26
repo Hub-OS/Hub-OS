@@ -27,7 +27,7 @@ Roll::Roll() : Player()
   SetFloatShoe(true);
 }
 
-const float Roll::GetHitHeight() const
+const float Roll::GetHeight() const
 {
   return 140.0f;
 }

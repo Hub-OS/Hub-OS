@@ -71,6 +71,6 @@ const bool Mettaur::OnHit(const Hit::Properties props) {
   return true;
 }
 
-const float Mettaur::GetHitHeight() const {
+const float Mettaur::GetHeight() const {
   return hitHeight;
 }

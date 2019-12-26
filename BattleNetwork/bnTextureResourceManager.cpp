@@ -142,6 +142,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/elecpulse.png");
   paths.push_back("resources/spells/ninja_star.png");
   paths.push_back("resources/spells/poof.png");
+  paths.push_back("resources/spells/spell_heal.png");
   paths.push_back("resources/spells/areagrab.png");
   paths.push_back("resources/spells/sword_effect.png");
   paths.push_back("resources/spells/spell_meteor.png");
@@ -155,6 +156,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/spell_super_vulcan.png");
   paths.push_back("resources/spells/alpha_rocket.png");
   paths.push_back("resources/spells/spell_bees.png");
+  paths.push_back("resources/spells/artifact_impact_fx.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");

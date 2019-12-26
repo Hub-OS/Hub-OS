@@ -33,7 +33,7 @@ HoneyBomber::HoneyBomber(Rank _rank)
   shadow = new SpriteSceneNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
-  shadow->setPosition(-16.0f, 10.0f);
+  shadow->setPosition(-12.0f, 6.0f);
   this->AddNode(shadow);
 
   virusBody = new DefenseVirusBody();
@@ -54,7 +54,7 @@ void HoneyBomber::OnDelete() {
 }
 
 void HoneyBomber::OnUpdate(float _elapsed) {
-  setPosition(tile->getPosition().x, tile->getPosition().y - GetHitHeight());
+  setPosition(tile->getPosition().x, tile->getPosition().y - GetHeight());
   setPosition(getPosition() + tileOffset);
 
   this->AI<HoneyBomber>::Update(_elapsed);
@@ -64,6 +64,6 @@ const bool HoneyBomber::OnHit(const Hit::Properties props) {
   return true;
 }
 
-const float HoneyBomber::GetHitHeight() const {
-  return 20.0f;
+const float HoneyBomber::GetHeight() const {
+  return 30.0f;
 }

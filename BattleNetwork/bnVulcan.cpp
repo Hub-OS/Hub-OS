@@ -120,7 +120,7 @@ void Vulcan::Attack(Character* _entity) {
     random = _entity->getLocalBounds().width / 2.0f;
     random *= rand() % 2 == 0 ? -1.0f : 1.0f;
 
-    hitHeight = (float)(std::floor(_entity->GetHitHeight()));
+    hitHeight = (float)(std::floor(_entity->GetHeight()));
 
     if (hitHeight > 0) {
       hitHeight = (float)(rand() % (int)hitHeight);

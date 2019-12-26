@@ -9,8 +9,12 @@
  * to design more complex attacks that do not behave in a simple way 
  */
 class HitBox : public Spell {
-public:
+private:
+  int damage; /*!< how many units of damage to deal */
+  bool hit; /*!< Flag if hit last frame */
+  std::function<void(Character*)> callback; /*!< Optional callback when Attack() is triggered*/
 
+public:
   /**
    * @brief disables tile highlighting by default
    */
@@ -19,27 +23,26 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~HitBox();
+  ~HitBox();
 
   /**
    * @brief Attacks tile and deletes itself
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
   
   /**
    * @brief Does not move
    * @param _direction
    * @return false
    */
-  virtual bool Move(Direction _direction);
+  bool Move(Direction _direction);
   
   /**
    * @brief Deals hitbox property damage and then deletes itself
    * @param _entity entity to attack
    */
-  virtual void Attack(Character* _entity);
-private:
-  int damage; /*!< how many units of damage to deal */
-  bool hit; /*!< Flag if hit last frame */
+  void Attack(Character* _entity);
+
+  void AddCallback(decltype(callback) callback);
 };

@@ -18,10 +18,6 @@
 
 VulcanChipAction::VulcanChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
   this->damage = damage;
-}
-
-VulcanChipAction::~VulcanChipAction()
-{
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
@@ -30,6 +26,10 @@ VulcanChipAction::~VulcanChipAction()
 
   // add override anims
   this->OverrideAnimationFrames({ FRAMES });
+}
+
+VulcanChipAction::~VulcanChipAction()
+{
 }
 
 void VulcanChipAction::Execute() {

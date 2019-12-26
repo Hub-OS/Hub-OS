@@ -80,7 +80,7 @@ public:
    * @brief Returns progsman's height 
    * @return const float
    */
-  virtual const float GetHitHeight() const;
+  virtual const float GetHeight() const;
 private:
   AnimationComponent* animationComponent; /*!< component animates entities*/
 

@@ -31,7 +31,7 @@ public:
    * @brief Set the hit height for projectiles to play effects at the correct position
    * @return Y offset
    */
-  virtual const float GetHitHeight() const;
+  virtual const float GetHeight() const;
 
 private:
   float hitHeight;

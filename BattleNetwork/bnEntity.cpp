@@ -22,11 +22,12 @@ Entity::Entity()
   isSliding(false),
   hasSpawned(false),
   element(Element::NONE),
-  tileOffset(sf::Vector2f(0,0)),
+  tileOffset(sf::Vector2f(0, 0)),
   slideTime(sf::milliseconds(100)),
   defaultSlideTime(slideTime),
   elapsedSlideTime(0),
-  lastComponentID(0)
+  lastComponentID(0),
+  height(0)
 {
   this->ID = ++Entity::numOfIDs;
   alpha = 255;
@@ -49,6 +50,14 @@ void Entity::Spawn(Battle::Tile & start)
   }
 
   this->hasSpawned = true;
+}
+
+const float Entity::GetHeight() const {
+  return height;
+}
+
+void Entity::SetHeight(const float height) {
+  this->height = height;
 }
 
 const bool Entity::IsSuperEffective(Element _other) const {
@@ -487,4 +496,9 @@ void Entity::UpdateSlideStartPosition()
 
 void Entity::SetSlideTime(sf::Time time) {
   this->slideTime = time;
+}
+
+const int Entity::GetMoveCount() const
+{
+    return this->moveCount;
 }

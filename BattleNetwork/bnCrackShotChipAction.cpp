@@ -13,6 +13,17 @@
 
 CrackShotChipAction::CrackShotChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SWORD", &attachment, "BUSTER") {
   this->damage = damage;
+
+  overlay.setTexture(*owner->getTexture());
+  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment->SetLayer(-1);
+  this->attachment->EnableParentShader(true);
+
+  this->OverrideAnimationFrames({ FRAMES });
+
+  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim.Reload();
+  attachmentAnim.SetAnimation("HAND");
 }
 
 CrackShotChipAction::~CrackShotChipAction()
@@ -21,17 +32,8 @@ CrackShotChipAction::~CrackShotChipAction()
 
 void CrackShotChipAction::Execute() {
   auto owner = GetOwner();
-  overlay.setTexture(*owner->getTexture());
-  this->attachment = new SpriteSceneNode(overlay);
-  this->attachment->SetLayer(-1);
-  this->attachment->EnableParentShader(true);
+
   owner->AddNode(this->attachment);
-
-  this->OverrideAnimationFrames({ FRAMES });
-
-  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("HAND");
   attachmentAnim.Update(0, *this->attachment);
 
   // On throw frame, spawn projectile

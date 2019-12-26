@@ -79,7 +79,7 @@ public:
    * 
    * Used by spells that emit particle artifacts on hit
    */
-  virtual const float GetHitHeight() const;
+  virtual const float GetHeight() const;
 
 private:
   AnimationComponent* animationComponent; /*!< animates this sprite scene node */

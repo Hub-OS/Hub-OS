@@ -54,7 +54,7 @@ const bool Starfish::OnHit(const Hit::Properties props) {
   return true;
 }
 
-const float Starfish::GetHitHeight() const {
+const float Starfish::GetHeight() const {
   return hitHeight;
 }
 

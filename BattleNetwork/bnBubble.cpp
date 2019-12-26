@@ -102,7 +102,7 @@ void Bubble::OnDelete()
   AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::LOWEST);
 }
 
-const float Bubble::GetHitHeight() const
+const float Bubble::GetHeight() const
 {
   return 80.0f;
 }

@@ -70,7 +70,7 @@ const bool Canodumb::OnHit(const Hit::Properties props) {
   return true;
 }
 
-const float Canodumb::GetHitHeight() const {
+const float Canodumb::GetHeight() const {
   return (float)hitHeight;
 }
 

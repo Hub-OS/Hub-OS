@@ -64,7 +64,7 @@ const bool Megalian::OnHit(const Hit::Properties props) {
   return true;
 }
 
-const float Megalian::GetHitHeight() const {
+const float Megalian::GetHeight() const {
   return hitHeight;
 }
 

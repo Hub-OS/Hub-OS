@@ -34,7 +34,7 @@ Starman::~Starman() {
 
 }
 
-const float Starman::GetHitHeight() const
+const float Starman::GetHeight() const
 {
   return 140.0f;
 }

@@ -63,12 +63,6 @@ public:
    * @return true if hit, false if missed
    */
   virtual const bool OnHit(const Hit::Properties props) = 0;
-  
-  /**
-   * @brief Hit height cannot be easily deduced from sprites and must be implemented
-   * @return float
-   */
-  virtual const float GetHitHeight() const = 0;
 
   /**
    * The hit routine that happens for every character. Queues status properties and damage

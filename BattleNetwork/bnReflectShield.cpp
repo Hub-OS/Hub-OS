@@ -51,7 +51,9 @@ void ReflectShield::Inject(BattleScene& bs) {
 }
 
 void ReflectShield::OnUpdate(float _elapsed) {
-  this->setPosition(this->tile->getPosition());
+  if (!this->GetTile()) return;
+
+  this->setPosition(this->GetTile()->getPosition());
 
   animation.Update(_elapsed, *this);
 }

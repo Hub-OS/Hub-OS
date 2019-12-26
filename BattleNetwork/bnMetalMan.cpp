@@ -49,14 +49,6 @@ MetalMan::MetalMan(Rank _rank)
   }
   else {
     SetHealth(1000);
-
-    this->AddState<MetalManIdleState>();
-    this->AddState<MetalManMoveState>();
-    this->AddState<MetalManIdleState>();
-    this->AddState<MetalManMoveState>();
-    this->AddState<MetalManThrowState>();
-    this->AddState<MetalManMoveState>();
-    this->AddState<MetalManThrowState>();
   }
 
   this->ShareTileSpace(true); // mega can walk into him on red tiles
@@ -150,7 +142,7 @@ const bool MetalMan::OnHit(const Hit::Properties props) {
   return result;
 }
 
-const float MetalMan::GetHitHeight() const {
+const float MetalMan::GetHeight() const {
   return hitHeight;
 }
 

@@ -26,6 +26,11 @@ SpriteSceneNode::operator sf::Sprite&() {
   return *sprite;
 }
 
+const sf::Sprite & SpriteSceneNode::getSprite() const
+{
+  return *sprite;
+}
+
 const sf::Texture* SpriteSceneNode::getTexture() const {
   return sprite->getTexture();
 }
@@ -88,8 +93,9 @@ void SpriteSceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
   const sf::Shader* s = const_cast<const sf::Shader*>(shader.Get());
 
   if (s) {
-    states.shader =s;
-  } else if (!useParentShader) {
+    states.shader = s;
+  }
+  else if(!IsUsingParentShader()){
     states.shader = nullptr;
   }
 

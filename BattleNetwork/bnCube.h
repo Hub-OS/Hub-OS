@@ -32,7 +32,7 @@ public:
 
   void OnDelete();
   
-  const float GetHitHeight() const;
+  const float GetHeight() const;
 
   void SetAnimation(std::string animation);
 

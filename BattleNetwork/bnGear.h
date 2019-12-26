@@ -51,7 +51,7 @@ public:
    */
   virtual void Attack(Character* e);
 
-  virtual const float GetHitHeight() const { return 0; }
+  virtual const float GetHeight() const { return 0; }
 
 private:
   Direction startDir;

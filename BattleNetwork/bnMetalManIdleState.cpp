@@ -12,7 +12,7 @@ MetalManIdleState::~MetalManIdleState()
 }
 
 void MetalManIdleState::OnEnter(MetalMan& metal) {
-  cooldown = 0.8f;
+  cooldown = 1.2f;
   metal.GetFirstComponent<AnimationComponent>()->SetAnimation(MOB_IDLE, Animator::Mode::Loop);
 }
 

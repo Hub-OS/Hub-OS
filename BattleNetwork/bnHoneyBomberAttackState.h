@@ -6,12 +6,14 @@ namespace Battle {
   class Tile;
 }
 
+class Bees;
 
 class HoneyBomberAttackState : public AIState<HoneyBomber>
 {
 private:
   int beeCount;
   float attackCooldown;
+  Bees* lastBee;
 public:
 
   /**

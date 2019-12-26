@@ -25,7 +25,7 @@ public:
   Starman();
   virtual ~Starman();
 
-  virtual const float GetHitHeight() const;
+  virtual const float GetHeight() const;
   ChipAction* ExecuteBusterAction() final;
   ChipAction* ExecuteChargedBusterAction() final;
 };

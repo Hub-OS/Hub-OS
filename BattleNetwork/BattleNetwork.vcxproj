@@ -349,6 +349,8 @@
     <ClCompile Include="bnPA.cpp" />
     <ClCompile Include="bnPaletteSwap.cpp" />
     <ClCompile Include="bnPanelGrab.cpp" />
+    <ClCompile Include="bnParticleHeal.cpp" />
+    <ClCompile Include="bnParticleImpact.cpp" />
     <ClCompile Include="bnParticlePoof.cpp" />
     <ClCompile Include="bnPlayerChipUseListener.cpp" />
     <ClCompile Include="bnPlayerForm.cpp" />
@@ -364,6 +366,7 @@
     <ClCompile Include="bnProgsManThrowState.cpp" />
     <ClCompile Include="bnProtoManSummon.cpp" />
     <ClCompile Include="bnRandomMettaurMob.cpp" />
+    <ClCompile Include="bnRecoverChipAction.cpp" />
     <ClCompile Include="bnReflectChipAction.cpp" />
     <ClCompile Include="bnReflectShield.cpp" />
     <ClCompile Include="bnRingExplosion.cpp" />
@@ -431,6 +434,7 @@
     <ClCompile Include="bnChipDescriptionTextbox.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bnParticleHeal.h" />
     <ClInclude Include="bnAIPriorityLock.h" />
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
     <ClInclude Include="Android\bnTouchArea.h" />
@@ -444,7 +448,9 @@
     <ClInclude Include="bnHoneyBomberMoveState.h" />
     <ClInclude Include="bnMegaman.h" />
     <ClInclude Include="bnPaletteSwap.h" />
+    <ClInclude Include="bnParticleImpact.h" />
     <ClInclude Include="bnPlayerForm.h" />
+    <ClInclude Include="bnRecoverChipAction.h" />
     <ClInclude Include="bnScriptedCharacter.h" />
     <ClInclude Include="bnScriptedChipAction.h" />
     <ClInclude Include="bnScriptResourceManager.h" />

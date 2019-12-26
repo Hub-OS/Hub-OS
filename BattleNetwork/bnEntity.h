@@ -40,11 +40,12 @@ class Entity : public SpriteSceneNode {
   friend class BattleScene;
 
 private:
-  long ID;              /**< IDs are used for tagging during battle & to identify entities in scripting. */
-  static long numOfIDs; /**< Internal counter to identify the next entity with. */
-  int alpha;            /**< Control the transparency of an entity. */
-  long lastComponentID; /**< Entities keep track of new components to run through scene injection later. */
-  bool hasSpawned;      /**< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
+  long ID;              /*!< IDs are used for tagging during battle & to identify entities in scripting. */
+  static long numOfIDs; /*!< Internal counter to identify the next entity with. */
+  int alpha;            /*!< Control the transparency of an entity. */
+  long lastComponentID; /*!< Entities keep track of new components to run through scene injection later. */
+  bool hasSpawned;      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
+  float height;         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection*/
 public:
 
   Entity();
@@ -348,6 +349,14 @@ public:
   void FreeComponentByID(long ID);
 
   /**
+   * @brief Hit height ca be overwritten to deduce from sprite bounds
+   * @return float
+   */
+  virtual const float GetHeight() const;
+
+  virtual void SetHeight(const float height);
+
+  /**
   * @brief used by move systems to signal a move is complete 
   * use with animation component to complete a move animation after teleporting to the next tile
   * otherwise the move system will incorrectly deduce the move states
@@ -364,13 +373,11 @@ protected:
   Team team;
   Element element;
 
-  std::vector<Component*> components; /**< List of all components attached to this entity*/
+  std::vector<Component*> components; /*!< List of all components attached to this entity*/
 
   void SetSlideTime(sf::Time time);
 
-  const int GetMoveCount() const {
-      return this->moveCount;
-  }
+  const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
 
 private:
   bool isBattleActive;

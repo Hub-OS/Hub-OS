@@ -15,7 +15,6 @@
 // TODO: check frame-by-frame anim
 #define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-
 FireBurnChipAction::FireBurnChipAction(Character * owner, FireBurn::Type type, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
   this->damage = damage;
   this->type = type;

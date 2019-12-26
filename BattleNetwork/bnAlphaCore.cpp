@@ -248,7 +248,7 @@ const bool AlphaCore::OnHit(const Hit::Properties props) {
     return true;
 }
 
-const float AlphaCore::GetHitHeight() const {
+const float AlphaCore::GetHeight() const {
   return (float)hitHeight;
 }
 

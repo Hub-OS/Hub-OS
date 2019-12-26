@@ -69,7 +69,7 @@ const bool ProgsMan::OnHit(const Hit::Properties props) {
   return true;
 }
 
-const float ProgsMan::GetHitHeight() const {
+const float ProgsMan::GetHeight() const {
   return hitHeight;
 }
 

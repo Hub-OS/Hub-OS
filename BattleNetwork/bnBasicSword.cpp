@@ -49,5 +49,5 @@ bool BasicSword::Move(Direction _direction) {
 
 void BasicSword::Attack(Character* _entity) {
   hit = hit || _entity->Hit(GetHitboxProperties());
-  hitHeight = _entity->GetHitHeight();
+  hitHeight = _entity->GetHeight();
 }

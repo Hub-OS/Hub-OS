@@ -13,8 +13,8 @@ public:
     return false;
   }
 
-  const float GetHitHeight() const final {
-    // SCRIPTS.callback(character_ID).GetHitHeight(props);
+  const float GetHeight() const final {
+    // SCRIPTS.callback(character_ID).GetHeight(props);
     return 0;
   }
 

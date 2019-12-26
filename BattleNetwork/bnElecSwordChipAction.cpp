@@ -16,6 +16,15 @@
 
 ElecSwordChipAction::ElecSwordChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SWORD", &attachment, "HILT"), attachmentAnim(ANIM) {
   this->damage = damage;
+
+  this->OverrideAnimationFrames({ FRAMES });
+
+  attachmentAnim.Reload();
+  attachmentAnim.SetAnimation("DEFAULT");
+
+  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment->SetLayer(-1);
 }
 
 ElecSwordChipAction::~ElecSwordChipAction()
@@ -24,16 +33,8 @@ ElecSwordChipAction::~ElecSwordChipAction()
 
 void ElecSwordChipAction::Execute() {
   auto owner = GetOwner();
-
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  this->attachment = new SpriteSceneNode(overlay);
-  this->attachment->SetLayer(-1);
   owner->AddNode(this->attachment);
 
-  this->OverrideAnimationFrames({ FRAMES });
-
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("DEFAULT");
   attachmentAnim.Update(0, *this->attachment);
 
   // On attack frame, drop sword hitbox

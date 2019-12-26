@@ -140,7 +140,7 @@ void Cube::OnDelete() {
   this->Delete(); // TODO: shouldn't be necessary!
 }
 
-const float Cube::GetHitHeight() const
+const float Cube::GetHeight() const
 {
   return 64.0f;
 }

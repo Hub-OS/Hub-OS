@@ -29,7 +29,7 @@ Mob* MetalManBossFight2::Build() {
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);
 
-  mob->Spawn<Rank1<MetalMan>>(6, 2);
+  mob->Spawn<RankEX<MetalMan>>(6, 2);
 
   mob->ToggleBossFlag();
 

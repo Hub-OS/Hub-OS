@@ -435,8 +435,6 @@ void BattleScene::onUpdate(double elapsed) {
     else if (isChangingForm && !isAnimatingFormChange) {
       showSummonBackdrop = true;
       player->Reveal(); // If flickering, stablizes the sprite for the animation
-      
-      player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
 
       // Preserve the original child node states
       auto playerChildNodes = player->GetChildNodes();
@@ -445,15 +443,15 @@ void BattleScene::onUpdate(double elapsed) {
       std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(playerChildNodes.size())); 
       std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(playerChildNodes.size()));
 
-      for (auto child : playerChildNodes) {
+      /*for (auto child : playerChildNodes) {
         childShaderUseStates->push_back(child->IsUsingParentShader());
         originalChildNodes->push_back(child);
         child->EnableParentShader(true);
-      }
+      }*/
       
       auto paletteSwap = player->GetFirstComponent<PaletteSwap>();
       
-      if(paletteSwap) paletteSwap->Enable(false);
+      //if(paletteSwap) paletteSwap->Enable(false);
 
       if (showSummonBackdropTimer < showSummonBackdropLength) {
         showSummonBackdropTimer += elapsed;
@@ -462,12 +460,17 @@ void BattleScene::onUpdate(double elapsed) {
           isAnimatingFormChange = true;
 
           auto pos = player->getPosition();
-          shine.setPosition(pos.x + 16.0f, pos.y - player->GetHitHeight()/4.0f);
+          shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight()/4.0f);
           
           auto onTransform = [this, states = childShaderUseStates, originals = originalChildNodes]() {
-            lastSelectedForm = chipCustGUI.GetSelectedFormIndex();
+            // The next form has a switch based on health
+            // This way dying will cancel the form
+            // TODO: make this a separate function that takes in form index or something...
+            lastSelectedForm = player->GetHealth() == 0? -1 : chipCustGUI.GetSelectedFormIndex();
             player->ActivateFormAt(lastSelectedForm);
             AUDIO.Play(AudioType::SHINE);
+
+            //player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
 
             // Activating the form will add NEW child nodes onto our character
             // TODO: There's got to be a more optimal search than this...
@@ -478,15 +481,15 @@ void BattleScene::onUpdate(double elapsed) {
 
               if (it == originals->end()) {
                 states->push_back(child->IsUsingParentShader());
-                states->push_back(child);
-                child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
+                originals->push_back(child);
+                //child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
               }
             }
           };
 
           auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
             isLeavingFormChange = true;
-            if (paletteSwap) paletteSwap->Enable();
+            //if (paletteSwap) paletteSwap->Enable();
 
             unsigned idx = 0;
             for (auto child : *originals) {
@@ -496,7 +499,7 @@ void BattleScene::onUpdate(double elapsed) {
 
               unsigned thisIDX = idx;
               bool enabled =(*states)[idx++];
-              child->EnableParentShader(enabled);
+              //child->EnableParentShader(enabled);
               Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
             }
           };
@@ -532,15 +535,6 @@ void BattleScene::onUpdate(double elapsed) {
 
   if (battleResults) {
     battleResults->Update(elapsed);
-  }
-
-  // check every frame
-  if (!isPlayerDeleted) {
-    isPlayerDeleted = player->IsDeleted();
-
-    if (isPlayerDeleted) {
-      AUDIO.Play(AudioType::DELETED);
-    }
   }
 
   isBattleRoundOver = (isPlayerDeleted || isMobDeleted);
@@ -590,6 +584,14 @@ void BattleScene::onUpdate(double elapsed) {
 
     field->Update((float)elapsed);
   } 
+
+  if (!isPlayerDeleted) {
+    isPlayerDeleted = player->IsDeleted();
+
+    if (isPlayerDeleted) {
+      AUDIO.Play(AudioType::DELETED);
+    }
+  }
 
   int newMobSize = mob->GetRemainingMobCount();
 
@@ -644,6 +646,16 @@ void BattleScene::onUpdate(double elapsed) {
 
     // NOTE: this may be a redundant flag now that nodes and components can be updated by injection
     field->SetBattleActive(true);
+
+    // See if HP is 0 when we were in a form
+    if (player->GetHealth() == 0 && !isChangingForm && lastSelectedForm != -1) {
+      // If we were in a form, replay the animation
+      // going back to our base this time
+
+      isChangingForm = true;
+      showSummonBackdropTimer = 0;
+      backdropOpacity = 1.0f; // full black
+    }
   }
   else {
     battleTimer.pause();

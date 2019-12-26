@@ -49,7 +49,7 @@ public:
   Forte();
   ~Forte();
 
-  const float GetHitHeight() const final;
+  const float GetHeight() const final;
   void OnUpdate(float _elapsed) final;
   void OnDelete() final;
 }; 

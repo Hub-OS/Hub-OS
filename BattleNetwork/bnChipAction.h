@@ -55,6 +55,8 @@ public:
         });
 
         anim->OnUpdate(0);
+        this->OnUpdate(0); // position to owner...
+
       };
     }
   }
@@ -95,7 +97,7 @@ public:
 
     // update node position in the animation
     auto baseOffset = anim->GetPoint(nodeName);
-    auto origin = GetOwner()->getOrigin();
+    auto origin = GetOwner()->getSprite().getOrigin(); GetOwner()->getOrigin();
     baseOffset = baseOffset - origin;
 
     (*attachment)->setPosition(baseOffset);

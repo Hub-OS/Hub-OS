@@ -13,11 +13,11 @@
 #include "bnYoYoChipAction.h"
 #include "bnBombChipAction.h"
 #include "bnCrackShotChipAction.h"
+#include "bnRecoverChipAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
 #include "bnElecpulse.h"
-#include "bnReflectShield.h"
 #include "bnHideUntil.h"
 
 void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
@@ -28,17 +28,8 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
   std::string name = chip.GetShortName();
 
   if (name.substr(0, 5) == "Recov") {
-    // Increase player health
-    player->SetHealth(player->GetHealth() + chip.GetDamage());
-
-    // Play sound
-    AUDIO.Play(AudioType::RECOVER);
-
-    // Change the animation back to IDLE when finished
-    auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
-
-    // Play heal animation with animation end callback
-    player->SetAnimation(PLAYER_HEAL, onFinish);
+    auto action = new RecoverChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
   }
   else if (name == "CrckPanel") {
     // Crack the top, middle, and bottom row in front of player

@@ -35,8 +35,6 @@ void BusterChipAction::Execute() {
 
   owner->AddNode(this->attachment2);
   attachment2->AddNode(this->attachment);
-
-
   attachmentAnim.Update(0, *this->attachment);
 
   this->attachment2->EnableParentShader(true);

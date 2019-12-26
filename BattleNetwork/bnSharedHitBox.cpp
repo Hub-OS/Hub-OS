@@ -58,7 +58,7 @@ void SharedHitBox::Attack(Character* _entity) {
   this->Delete();
 }
 
-const float SharedHitBox::GetHitHeight() const {
-    if(Character* c = dynamic_cast<Character*>(owner)) { return c->GetHitHeight(); }
+const float SharedHitBox::GetHeight() const {
+    if(Character* c = dynamic_cast<Character*>(owner)) { return c->GetHeight(); }
     else { return 0; }
 }

@@ -14,6 +14,8 @@ HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
   auto props = Hit::DefaultProperties;
   props.damage = _damage;
   this->SetHitboxProperties(props);
+
+  callback = 0;
 }
 
 HitBox::~HitBox() {
@@ -29,7 +31,12 @@ bool HitBox::Move(Direction _direction) {
 }
 
 void HitBox::Attack(Character* _entity) {
-  if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
+  if (_entity->Hit(GetHitboxProperties()) && callback) {
+    callback(_entity);
   }
+}
+
+void HitBox::AddCallback(decltype(callback) callback)
+{
+  this->callback = callback;
 }
