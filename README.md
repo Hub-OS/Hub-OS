@@ -1,11 +1,18 @@
 
-# Author TheMaverickProgrammer
+# About This Project
+Follow this project on :bird: [Twitter](https://twitter.com/NetbattleOpen)!
+
 This aims to be an accurate mmbn6 engine that can be used to program custom enemies, chips, navis, or used to make your own mmbn story. It includes a fully playable battle-rush game.
 
 This was originally started to kill some time one summer and I got a little carried away. It's been fun and I hope you have fun with it as I have had making it.
 
 ## Update 12/27/2019
 [![forte-thumbnail.png](https://i.postimg.cc/bNvt3xP3/forte-thumbnail.png)](https://streamable.com/cxp7l#)
+[![thumbnail.png](https://i.postimg.cc/dVNffmg6/thumbnail.png)](https://streamable.com/pmy2d)
+[![thumbnail.png](https://i.postimg.cc/pLmCmN1Q/thumbnail.png)](https://twitter.com/i/status/1175981132912975872)
+[![thumbnail.png](https://i.postimg.cc/8cnWGcG2/thumbnail.png)](https://twitter.com/i/status/1185687172868956161)
+
+_some videos may be a little old_
 
 Lots of updates:
 - New playable characters
