@@ -5,7 +5,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnReflectShield.h"
 
-#define FRAME1 { 1, 2 }
+#define FRAME1 { 1, 1.3f }
 
 #define FRAMES FRAME1
 

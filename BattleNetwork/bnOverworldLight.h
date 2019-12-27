@@ -15,7 +15,7 @@ namespace Overworld {
      * @param diffuse color of light
      * @param radius size of light
      */
-    Light(sf::Vector2f pos, sf::Color diffuse, double radius = 60.f);
+    Light(sf::Vector2f pos, sf::Color diffuse, double radius = 20.f);
 
     /**
      * @brief Update the light's position

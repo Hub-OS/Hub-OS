@@ -393,6 +393,7 @@
     <ClCompile Include="bnSuperVulcan.cpp" />
     <ClCompile Include="bnSwordEffect.cpp" />
     <ClCompile Include="bnThunder.cpp" />
+    <ClCompile Include="bnThunderChipAction.cpp" />
     <ClCompile Include="bnTile.cpp" />
     <ClCompile Include="bnPlayer.cpp" />
     <ClCompile Include="bnSpell.cpp" />
@@ -485,7 +486,7 @@
     <ClInclude Include="bnConfigScene.h" />
     <ClInclude Include="bnConfigSettings.h" />
     <ClInclude Include="bnConfigWriter.h" />
-    <ClInclude Include="bnCounterTrait.h" />
+    <ClInclude Include="bnInstanceCountingTrait.h" />
     <ClInclude Include="bnCrackShot.h" />
     <ClInclude Include="bnCrackShotChipAction.h" />
     <ClInclude Include="bnDefenseAntiDamage.h" />
@@ -652,6 +653,7 @@
     <ClInclude Include="bnTeam.h" />
     <ClInclude Include="bnTextBox.h" />
     <ClInclude Include="bnTextureType.h" />
+    <ClInclude Include="bnThunderChipAction.h" />
     <ClInclude Include="bnTile.h" />
     <ClInclude Include="bnDirection.h" />
     <ClInclude Include="bnPlayer.h" />

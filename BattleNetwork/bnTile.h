@@ -298,6 +298,7 @@ namespace Battle {
     vector<Entity*> entities; /**< Entity bucket for looping over all entities **/
 
     set<long> reserved; /**< IDs of entities reserving this tile*/
+
     vector<long> queuedSpells; /**< IDs of occupying spells that have signaled they are to attack this frame */
     vector<long> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
 
@@ -313,8 +314,6 @@ namespace Battle {
 
   template<class Type>
   bool Tile::ContainsEntityType() {
-    // std::cout << "len of entities is: " << entities.size() << "\n";
-
     for (vector<Entity*>::iterator it = entities.begin(); it != entities.end(); ++it) {
       if (dynamic_cast<Type*>(*it) != nullptr) {
         return true;

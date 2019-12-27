@@ -1,7 +1,7 @@
 #pragma once
 #include "bnObstacle.h"
 #include "bnAnimationComponent.h"
-#include "bnCounterTrait.h"
+#include "bnInstanceCountingTrait.h"
 
 using sf::Texture;
 
@@ -17,7 +17,7 @@ using sf::Texture;
  *  Floatshoe is disabled to crack tiles
  *  Cube has 200 HP 
  */
-class Cube : public Obstacle, public CounterTrait<Cube> {
+class Cube : public Obstacle, public InstanceCountingTrait<Cube> {
 public:
   Cube(Field* _field, Team _team);
   virtual ~Cube();

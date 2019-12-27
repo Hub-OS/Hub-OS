@@ -173,57 +173,64 @@ namespace Overworld {
 
 	  while (depth < branchDepth) {
 	    int randDirection = rand() % 3;
-		int randSpawnNPC = rand() % 70;
+		  int randSpawnNPC = rand() % 70;
 
-	    if (randDirection == 0 && lastDirection == 1)
-	      continue;
+	      if (randDirection == 0 && lastDirection == 1)
+	        continue;
 
-		if (randDirection == 1 && lastDirection == 0)
-		  continue;
+		  if (randDirection == 1 && lastDirection == 0)
+		    continue;
 
-		if (randDirection == 0) {
+      auto npcType = NPCType::MR_PROG_DOWN;
+      sf::Vector2f npcPosition;
+
+		  if (randDirection == 0) {
 	      distFromPath--;
 
-			offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y + this->GetTileSize().y));
-			map.push_back(offroad);
+			  offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y + this->GetTileSize().y));
+			  map.push_back(offroad);
 				
-			if (randSpawnNPC == 0 && distFromPath != 0) {
-			  auto randType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
-			  npcs.push_back(new NPC { sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), randType });
+			  if (randSpawnNPC == 0 && distFromPath != 0) {
+          npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
+			    npcs.push_back(new NPC { sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), npcType });
 
-			  sf::Vector2f pos = offroad->GetPos();
-			  pos += sf::Vector2f(45, 0);
+			    sf::Vector2f pos = offroad->GetPos();
+			    pos += sf::Vector2f(45, 0);
 
-			  npcs.back()->sprite.setPosition(pos);
-			  this->AddSprite(&npcs.back()->sprite);
+			    npcs.back()->sprite.setPosition(pos);
+          npcPosition = pos;
+
+			    this->AddSprite(&npcs.back()->sprite);
 		    }
 			
-			depth++;
+			  depth++;
 		  }
 		  else if (randDirection == 1) {
-			distFromPath++;
+			  distFromPath++;
 
-			offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y - this->GetTileSize().y));
-			map.push_back(offroad);
+			  offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y - this->GetTileSize().y));
+			  map.push_back(offroad);
 
-			if (randSpawnNPC == 0 && distFromPath != 0) {
-			  auto randType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
-		      npcs.push_back(new NPC { sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), randType });
+			  if (randSpawnNPC == 0 && distFromPath != 0) {
+          npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
+		        npcs.push_back(new NPC { sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), npcType });
 
-			  sf::Vector2f pos = offroad->GetPos();
-			  pos += sf::Vector2f(45, 0);
+			    sf::Vector2f pos = offroad->GetPos();
+			    pos += sf::Vector2f(45, 0);
 
-			  npcs.back()->sprite.setPosition(pos);
-			  this->AddSprite(&npcs.back()->sprite);
-			}
+			    npcs.back()->sprite.setPosition(pos);
+          npcPosition = pos;
 
-			depth++;
+			    this->AddSprite(&npcs.back()->sprite);
+			  }
+
+			  depth++;
 		  }
 		  else if (depth > 1) {
-			offroad = new Tile(sf::Vector2f(offroad->GetPos().x + this->GetTileSize().x, offroad->GetPos().y));
-			map.push_back(offroad);
+			  offroad = new Tile(sf::Vector2f(offroad->GetPos().x + this->GetTileSize().x, offroad->GetPos().y));
+			  map.push_back(offroad);
 
-			depth++;
+			  depth++;
 		  }
 
 		  /*int randLight = rand() % 100;
@@ -249,6 +256,12 @@ namespace Overworld {
 		  if (randDirection != 2) {
 			distFromPath = distFromPath + (randDirection ? -randDirection : 1);
 		  }*/
+
+#ifndef __ANDROID__
+      if (npcType == NPCType::MR_PROG_FIRE) {
+        this->AddLight(new Light(npcPosition, sf::Color(255, 120, 0), 10));
+      }
+#endif
 
 		  lastDirection = randDirection;
 

@@ -9,7 +9,7 @@
 
 const int Cube::numOfAllowedCubesOnField = 2;
 
-Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), CounterTrait<Cube>(), pushedByDrag(false) {
+Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), InstanceCountingTrait<Cube>(), pushedByDrag(false) {
   this->setTexture(LOAD_TEXTURE(MISC_CUBE));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);
@@ -43,17 +43,16 @@ bool Cube::CanMoveTo(Battle::Tile * next)
 {
   if (next && next->IsWalkable()) {
     if (next->ContainsEntityType<Obstacle>()) {
-      Entity* other = nullptr;
-
       bool stop = false;
 
-      auto allEntities = next->FindEntities([&stop, &other, this](Entity* e) -> bool {
-        Cube* isCube = dynamic_cast<Cube*>(other);
+      auto allEntities = next->FindEntities([&stop, this](Entity* e) -> bool {
+        Cube* isCube = dynamic_cast<Cube*>(e);
 
         if (isCube && isCube->GetElement() == Element::ICE && this->GetElement() == Element::ICE) {
           isCube->SlideToTile(true);
           Direction dir = this->GetDirection();
           isCube->Move(dir);
+          isCube->FinishMove();
           stop = true;
         }
         else if (isCube) {
@@ -66,6 +65,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
       if (stop) {
         this->SetDirection(Direction::NONE);
         this->previousDirection = Direction::NONE;
+        this->FinishMove();
         pushedByDrag = false;
         return false;
       }
@@ -84,7 +84,7 @@ void Cube::OnUpdate(float _elapsed) {
     this->previousDirection = Direction::NONE;
   }
 
-  if (CounterTrait<Cube>::GetCounterSize() > Cube::numOfAllowedCubesOnField) {
+  if (InstanceCountingTrait<Cube>::GetCounterSize() > Cube::numOfAllowedCubesOnField) {
     if (this->IsLast()) {
       this->SetHealth(0); // Trigger death and deletion
     }
@@ -135,7 +135,7 @@ void Cube::OnDelete() {
 
   tile->RemoveEntityByID(this->GetID());
 
-  this->RemoveMeFromCounterList();
+  this->RemoveInstanceFromCountedList();
 
   this->Delete(); // TODO: shouldn't be necessary!
 }

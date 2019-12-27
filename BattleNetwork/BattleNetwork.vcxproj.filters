@@ -698,6 +698,9 @@
     <Filter Include="Scenes/Activities\Battle\Content\BattleStepModifiers\DefenseRules\Invis">
       <UniqueIdentifier>{fd8525c2-77ab-4a7a-b71e-76136162a01f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Thunder">
+      <UniqueIdentifier>{648174b3-bad7-450f-a8b2-cc14739f176d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1444,6 +1447,9 @@
     <ClCompile Include="bnDefenseInvis.cpp">
       <Filter>Scenes/Activities\Battle\Content\BattleStepModifiers\DefenseRules\Invis</Filter>
     </ClCompile>
+    <ClCompile Include="bnThunderChipAction.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Thunder</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -2167,9 +2173,6 @@
     <ClInclude Include="bnTurnOrderTrait.h">
       <Filter>Scenes/Activities\Battle\Content\CRTP Traits</Filter>
     </ClInclude>
-    <ClInclude Include="bnCounterTrait.h">
-      <Filter>Scenes/Activities\Battle\Content\CRTP Traits</Filter>
-    </ClInclude>
     <ClInclude Include="bnConfigSettings.h">
       <Filter>Engine\CoreModules\Settings</Filter>
     </ClInclude>
@@ -2259,6 +2262,12 @@
     </ClInclude>
     <ClInclude Include="bnDefenseInvis.h">
       <Filter>Scenes/Activities\Battle\Content\BattleStepModifiers\DefenseRules\Invis</Filter>
+    </ClInclude>
+    <ClInclude Include="bnInstanceCountingTrait.h">
+      <Filter>Scenes/Activities\Battle\Content\CRTP Traits</Filter>
+    </ClInclude>
+    <ClInclude Include="bnThunderChipAction.h">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Thunder</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

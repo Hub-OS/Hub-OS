@@ -36,5 +36,13 @@ Mob* ProgsManBossFight::Build() {
   Battle::Tile* tile = field->GetAt(x, y);
   if (!tile->IsWalkable()) { tile->SetState(TileState::NORMAL); }
 
+  for (auto tile : field->FindTiles([](Battle::Tile* t) {
+    return true;
+  })) {
+    tile->SetState(TileState::ICE);
+  }
+
+
+
   return mob;
 }

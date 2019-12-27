@@ -14,6 +14,7 @@
 #include "bnBombChipAction.h"
 #include "bnCrackShotChipAction.h"
 #include "bnRecoverChipAction.h"
+#include "bnThunderChipAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
@@ -215,13 +216,6 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
     player->RegisterComponent(action);
   }
   else if (name == "Thunder") {
-
-    // Spawn the thunder spell to track enemies
-    auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
-
-    player->SetAnimation(PLAYER_SHOOTING, onFinish);
-
-    Thunder* thunder = new Thunder(player->GetField(), player->GetTeam());
-    player->GetField()->AddEntity(*thunder, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+    player->RegisterComponent(new ThunderChipAction(player, chip.GetDamage()));
   }
 }

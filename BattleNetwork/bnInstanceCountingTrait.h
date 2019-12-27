@@ -5,10 +5,10 @@
 using namespace std;
 
 template<typename T>
-class CounterTrait {
+class InstanceCountingTrait {
 protected:
 
-  CounterTrait() {
+  InstanceCountingTrait() {
     myCounterID = (long)IDs.size();
     IDs.push_back(myCounterID);
   };
@@ -22,7 +22,7 @@ protected:
   }
 
 
-  void RemoveMeFromCounterList() {
+  void RemoveInstanceFromCountedList() {
     if (IDs.size() > 0) {
       vector<long>::iterator it = find(IDs.begin(), IDs.end(), myCounterID);
 
@@ -44,7 +44,7 @@ private:
 };
 
 template<typename T> vector<long>
-  CounterTrait<T>::IDs = vector<long>();
+  InstanceCountingTrait<T>::IDs = vector<long>();
 
   template<typename T> int
-    CounterTrait<T>::currIndex = 0;
+    InstanceCountingTrait<T>::currIndex = 0;

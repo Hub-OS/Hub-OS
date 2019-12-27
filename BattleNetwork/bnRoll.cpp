@@ -2,6 +2,7 @@
 #include "bnExplodeState.h"
 #include "bnField.h"
 #include "bnBuster.h"
+#include "bnRecoverChipAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
@@ -13,6 +14,9 @@ const std::string RESOURCE_PATH = "resources/navis/roll/roll.animation";
 Roll::Roll() : Player()
 {
   name = "Roll";
+  chargeEffect.setPosition(0, -30.0f);
+  chargeEffect.SetFullyChargedColor(sf::Color::Yellow);
+
   SetLayer(0);
   team = Team::RED;
   this->SetElement(Element::PLUS);
@@ -39,5 +43,5 @@ ChipAction* Roll::ExecuteBusterAction()
 
 ChipAction* Roll::ExecuteChargedBusterAction()
 {
-  return new BusterChipAction(this, true, 10);
+  return new RecoverChipAction(this, 20);
 }

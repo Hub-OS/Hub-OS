@@ -80,6 +80,9 @@ void Vulcan::OnUpdate(float _elapsed) {
     this->Delete();
   }
 
+  // Attack the current tile
+  GetTile()->AffectEntities(this);
+
   // If it did not hit a target this frame, move to next tile
   if (!hit) {
     if (GetTile()->GetX() == 6 && this->GetTeam() == Team::RED) { this->Delete(); }
@@ -87,19 +90,17 @@ void Vulcan::OnUpdate(float _elapsed) {
 
     // TODO: Vulcan moves too fast for the frame to attack the entities... See queuedSpells logic
     cooldown += _elapsed;
-    if (cooldown >= COOLDOWN) {
-      if (Move(GetDirection())) {
-        AdoptNextTile();
-        FinishMove();
-        cooldown = 0;
+    //if (cooldown >= COOLDOWN) {
 
-        // Attack the current tile
-        GetTile()->AffectEntities(this);
-      }
-      else {
-        this->Delete();
-      }
+    if (Move(GetDirection())) {
+      AdoptNextTile();
+      FinishMove();
+      cooldown = 0;
     }
+    else {
+      this->Delete();
+    }
+    //}
   }
 }
 

@@ -313,6 +313,8 @@ namespace Battle {
   {
     bool modified = false;
 
+    // This is for queued entities that have not been spawned yet
+    // But are requested to be removed on the same frame
     field->TileRequestsRemovalOfQueued(this, ID);
 
     // If the entity was in the reserved list, remove it
@@ -386,7 +388,6 @@ namespace Battle {
     auto entities_copy = entities; // may be modified after hitboxes are resolved
     // Spells dont cause damage when the battle is over
     if (this->isBattleActive) {
-      bool tag = false;
       for (auto it = entities_copy.begin(); it != entities_copy.end(); ++it) {
         if (*it == caller)
           continue;
@@ -405,14 +406,10 @@ namespace Battle {
           }
 
           // Tag the spell
-          tag = true;
-        }
-      }
-
-      // only ignore spells that have already hit something on a tile
-      // this is similar to the hitbox being removed in mmbn mechanics
-      if (tag) {
+          // only ignore spells that have already hit something on a tile
+          // this is similar to the hitbox being removed in mmbn mechanics
           taggedSpells.push_back(caller->GetID());
+        }
       }
     }
   }
@@ -458,11 +455,6 @@ namespace Battle {
       i++;
     }
 
-    vector<Artifact*> artifacts_copy = artifacts;
-    for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
-      (*entity)->Update(_elapsed);
-    }
-
     this->highlightMode = Highlight::none;
 
     vector<Spell*> spells_copy = spells;
@@ -476,20 +468,31 @@ namespace Battle {
       (*entity)->Update(_elapsed);
     }
 
+    // Now that spells and characters have updated and moved, they are due to check for attack outcomes
+    for (auto ID : queuedSpells) {
+      auto list = field->FindEntities([ID](Entity* e) {
+        return e->GetID() == ID;
+      });
+
+      if (list.size()) {
+        auto spell = dynamic_cast<Spell*>(list[0]);
+        
+        //if (!spell->IsDeleted()) {
+          this->PerformSpellAttack(spell);
+        //}
+      }
+    }
+
+    vector<Artifact*> artifacts_copy = artifacts;
+    for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
+      (*entity)->Update(_elapsed);
+    }
+
     vector<Character*> characters_copy = characters;
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
       // Allow user input to move them out of tiles if they are frame perfect
       (*entity)->Update(_elapsed);
       HandleTileBehaviors(*entity);
-    }
-
-    // Now that spells and characters have updated and moved, they are due to check for attack outcomes
-    for (auto q : queuedSpells) {
-      auto iter = std::find_if(spells.begin(), spells.end(), [q](Spell* in) { return in->GetID() == q; });
-
-      if (iter != spells.end()) {
-        this->PerformSpellAttack(*iter);
-      }
     }
 
     // empty queue for next frame

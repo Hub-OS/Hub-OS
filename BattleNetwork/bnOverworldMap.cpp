@@ -136,9 +136,10 @@ namespace Overworld {
         float deltaY = pos.y - (lights[j]->GetPosition().y - offset.y);
 
         float deltaR = sqrt((float)(deltaX*deltaX + deltaY * deltaY));
+        float lightR = (float)(lights[j]->GetRadius()*lights[j]->GetRadius());
 
-        if (deltaR <= lights[j]->GetRadius()) {
-          double dist = (lights[j]->GetRadius() - deltaR) / lights[j]->GetRadius();
+        if (deltaR <= lightR) {
+          double dist = (lightR - deltaR) / lightR;
           sf::Color c = tileSprite.getColor();
 
           double r = (dist*lights[j]->GetDiffuse().r) + c.r;
@@ -233,9 +234,10 @@ namespace Overworld {
         float deltaY = pos.y - (lights[j]->GetPosition().y - offset.y);
 
         float deltaR = sqrt((float)(deltaX*deltaX + deltaY * deltaY));
+        float lightR = (float)(lights[j]->GetRadius()*lights[j]->GetRadius());
 
-        if (deltaR <= lights[j]->GetRadius()) {
-          double dist = (lights[j]->GetRadius() - deltaR) / lights[j]->GetRadius();
+        if (deltaR <= lightR) {
+          double dist = (lightR - deltaR) / lightR;
           sf::Color c = tileSprite.getColor();
 
           double r = (dist*lights[j]->GetDiffuse().r) + c.r;

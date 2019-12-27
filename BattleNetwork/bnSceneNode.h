@@ -89,7 +89,7 @@ public:
   /**
   * @brief Forces the child node to use its parents shader in the render step
   */
-  void EnableParentShader(bool enable);
+  void EnableParentShader(bool enable = true);
 
   /**
   * @brief Query if the node is using its parent's shader

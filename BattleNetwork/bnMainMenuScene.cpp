@@ -2,6 +2,7 @@
 #include "Android/bnTouchArea.h"
 
 #include "bnMainMenuScene.h"
+#include "Segues\DiamondTileSwipe.h"
 #include "bnChipFolderCollection.h"
 
 #include "Segues/PushIn.h"
@@ -83,7 +84,6 @@ void MainMenuScene::onStart() {
   StartupTouchControls();
 #endif
 
-  Logger::Log("main menu onStart");
   gotoNextScene = false;
 }
 
@@ -129,21 +129,21 @@ void MainMenuScene::onUpdate(double elapsed) {
         this->getController().push<segue::to<FolderScene>>(data);
       }
 
-      // Library Select
+      // Config Select on PC 
       if (menuSelectionIndex == 1) {
         gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
-        using segue = swoosh::intent::segue<PushIn<direction::right>, swoosh::intent::milli<500>>;
-        this->getController().push<segue::to<LibraryScene>>();
+        using segue = swoosh::intent::segue<DiamondTileSwipe<direction::right>, swoosh::intent::milli<500>>;
+        this->getController().push<segue::to<ConfigScene>>();
       }
 
       // Navi select
       if (menuSelectionIndex == 2) {
         gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
-        using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>;
+        using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<250>>;
         using intent = segue::to<SelectNaviScene>;
         this->getController().push<intent>(currentNavi);
       }
@@ -190,11 +190,12 @@ void MainMenuScene::onUpdate(double elapsed) {
     }
   }
 
-  /*if (INPUT.Has(PRESSED_PAUSE)) {
+  /*if (INPUT.Has(EventTypes::PRESSED_PAUSE)) {
     static bool toggle = false;
     toggle = !toggle;
     showHUD = false;
     map->ToggleLighting(toggle);
+    map->AddLight(new Overworld::Light(owNavi.getPosition(), sf::Color(135+(120%rand()), 135+(120%rand()), 135+(120%rand()), 255), 10));
   }*/
 
   // Keep menu selection in range
@@ -246,8 +247,6 @@ void MainMenuScene::onResume() {
 #ifdef __ANDROID__
   StartupTouchControls();
 #endif
-
-  Logger::Log("main menu onResume");
 }
 
 void MainMenuScene::onDraw(sf::RenderTexture& surface) {
@@ -282,14 +281,14 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
       ENGINE.Draw(ui);
     }
 
-    uiAnimator.SetAnimation("LIBRARY");
+    uiAnimator.SetAnimation("CONFIG");
 
     if (menuSelectionIndex == 1) {
       uiAnimator.SetFrame(2, ui);
       ui.setPosition(50.f, 120.f);
       ENGINE.Draw(ui);
 
-      uiAnimator.SetAnimation("LIBRARY_LABEL");
+      uiAnimator.SetAnimation("CONFIG_LABEL");
       uiAnimator.SetFrame(2, ui);
       ui.setPosition(100.f, 120.f);
       ENGINE.Draw(ui);
@@ -299,7 +298,7 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
       ui.setPosition(20.f, 120.f);
       ENGINE.Draw(ui);
 
-      uiAnimator.SetAnimation("LIBRARY_LABEL");
+      uiAnimator.SetAnimation("CONFIG_LABEL");
       uiAnimator.SetFrame(1, ui);
       ui.setPosition(100.f, 120.f);
       ENGINE.Draw(ui);
