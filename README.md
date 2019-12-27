@@ -21,13 +21,14 @@ Lots of updates:
 - Support chips
 - No more 3rd party configuration -> we have an options/ joystick config screen now
 - Folder naming, editing, and deleting screens are complete
+- Different AI pattern templates
 - Bunch of other things
 
 # Wiki
 TODO
 
 # Controls
-These are the default bindings
+These are the default bindings. The engine supports 1 joystick. 
 
 ```
 ARROWS -> Move / UI options
