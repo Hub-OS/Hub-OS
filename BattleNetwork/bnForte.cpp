@@ -23,6 +23,10 @@ ChipAction* Forte::ExecuteChargedBusterAction()
   return new VulcanChipAction(this, 30);
 }
 
+ChipAction* Forte::ExecuteSpecialAction() {
+  return nullptr;
+}
+
 Forte::Forte() : Player()
 {
   chargeEffect.setPosition(0, -40.0f);

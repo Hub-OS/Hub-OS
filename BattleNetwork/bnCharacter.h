@@ -85,14 +85,7 @@ public:
    * @return true if character can move to tile, false otherwise
    */
   virtual bool CanMoveTo(Battle::Tile* next);
-  
-  /**
-   * @brief Sets which frame to make counterable
-   * @param frame base 1, frame index to toggle counter flag
-   */
-  virtual void SetCounterFrame(int frame) {
-    ;
-  }
+ 
   
   /**
    * @brief Get the character's current health

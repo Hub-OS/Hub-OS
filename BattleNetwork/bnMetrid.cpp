@@ -44,6 +44,8 @@ Metrid::Metrid(Rank _rank)
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_METRID));
   setScale(2.f, 2.f);
+  animationComponent->SetPlaybackMode(Animator::Mode::Loop);
+
   animationComponent->OnUpdate(0);
   this->RegisterComponent(animationComponent);
 

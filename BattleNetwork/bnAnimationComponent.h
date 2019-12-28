@@ -10,6 +10,7 @@ using std::string;
 using std::to_string;
 
 class Entity;
+class Character;
 
 /**
  * @class AnimationComponent
@@ -25,19 +26,19 @@ public:
    @param _entity Owner of this component
     */
   AnimationComponent(Entity* _entity);
-  virtual ~AnimationComponent();
+  ~AnimationComponent();
 
   /**
    * @brief Delegates work to animation object
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
 
   /**
    * @brief Does not inject into scene. Used by the owner.
    * @param BattleScene& unused
    */
-  virtual void Inject(BattleScene&) { ; }
+  void Inject(BattleScene&) { ; }
   
   /**
    * @brief Reconstructs the animation object
@@ -137,6 +138,6 @@ private:
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
   double speed; /*!< Playback speed */
-
+  Character* character; /*!< Owner already casted as Character*/
   std::vector<Animation*> overrideList;
 };

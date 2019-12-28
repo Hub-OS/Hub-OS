@@ -9,6 +9,7 @@ public:
   virtual void OnUpdate(float elapsed);
   ChipAction* ExecuteBusterAction() final;
   ChipAction* ExecuteChargedBusterAction() final;
+  ChipAction* ExecuteSpecialAction() final;
 };
 
 class TenguCross : public PlayerForm {

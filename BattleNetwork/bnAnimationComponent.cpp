@@ -10,6 +10,7 @@ using sf::IntRect;
 
 AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
   speed = 1.0;
+  character = this->GetOwnerAs<Character>();
 }
 
 AnimationComponent::~AnimationComponent() {
@@ -17,8 +18,6 @@ AnimationComponent::~AnimationComponent() {
 
 void AnimationComponent::OnUpdate(float _elapsed)
 {
-  auto character = this->GetOwnerAs<Character>();
-
   if (character && character->IsStunned()) {
     return;
   }

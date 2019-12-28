@@ -619,7 +619,7 @@ void FolderEditScene::DrawFolder() {
 
   ENGINE.Draw(scrollbar);
 
-  if (folder.GetSize() == 0) return;
+  //if (folder.GetSize() == 0) return;
 
   // Move the chip library iterator to the current highlighted chip
   auto iter = folderChipSlots.begin();
@@ -728,7 +728,7 @@ void FolderEditScene::DrawLibrary() {
 
   ENGINE.Draw(scrollbar);
 
-  if (CHIPLIB.GetSize() == 0) return;
+  //if (CHIPLIB.GetSize() == 0) return;
 
   // Move the chip library iterator to the current highlighted chip
   auto iter = packChipBuckets.begin();

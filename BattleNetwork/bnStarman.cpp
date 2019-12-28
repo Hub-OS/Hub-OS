@@ -48,3 +48,8 @@ ChipAction* Starman::ExecuteChargedBusterAction()
 {
   return new BusterChipAction(this, true, 10);
 }
+
+ChipAction * Starman::ExecuteSpecialAction()
+{
+  return nullptr;
+}

@@ -14,7 +14,7 @@ private:
   ChipAction* queuedAction; /*!< Movement takes priority. If there is an action queued, fire on next best frame*/
 
   const bool CanTakeAction(Player& player) const;
-
+  void QueueAction(Player& player);
 public:
 
   /**

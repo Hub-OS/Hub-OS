@@ -26,17 +26,16 @@ public:
   using DefaultState = CanodumbIdleState;
 
   Canodumb(Rank _rank = Character::Rank::_1);
-
-  virtual ~Canodumb();
+  ~Canodumb();
 
   /**
    * @brief When health is low, deletes. Updates AI
    * @param _elapsed
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
 
-  virtual const float GetHeight() const;
+  const float GetHeight() const;
 
-  virtual const bool OnHit(const Hit::Properties props);
-  virtual void OnDelete();
+  const bool OnHit(const Hit::Properties props);
+  void OnDelete();
 };

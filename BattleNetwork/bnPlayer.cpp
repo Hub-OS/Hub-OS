@@ -62,11 +62,11 @@ void Player::OnUpdate(float _elapsed) {
     this->ChangeState<BubbleState<Player>>();
   }
 
+  AI<Player>::Update(_elapsed);
+
   if (activeForm) {
     activeForm->OnUpdate(_elapsed, *this);
   }
-
-  AI<Player>::Update(_elapsed);
 
   //Node updates
   chargeEffect.Update(_elapsed);
@@ -75,8 +75,15 @@ void Player::OnUpdate(float _elapsed) {
 void Player::Attack() {
   // Queue an action for the controller to fire at the right frame
   // (MMBN has a specific pipeline that accepts input. This emulates that.)
-  if (tile->GetX() <= static_cast<int>(field->GetWidth())) {
+  if (tile) {
     chargeEffect.IsFullyCharged() ? queuedAction = ExecuteChargedBusterAction() : queuedAction = ExecuteBusterAction();
+  }
+}
+
+void Player::UseSpecial()
+{
+  if (tile) {
+    queuedAction = ExecuteSpecialAction();
   }
 }
 

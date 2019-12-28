@@ -7,6 +7,7 @@ using std::cout;
 using std::endl;
 
 #include "bnEntity.h"
+#include "bnCharacterDeletePublisher.h"
 
 class Character;
 class Spell;
@@ -17,7 +18,7 @@ namespace Battle {
   class Tile;
 }
 
-class Field {
+class Field : public CharacterDeletePublisher {
 public:
   
   /**

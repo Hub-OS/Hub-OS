@@ -21,28 +21,28 @@ public:
  * @brief Loads animations based on rank
  */
   Metrid(Rank _rank = Rank::_1);
-  virtual ~Metrid();
+  ~Metrid();
 
   /**
    * @brief Uses AI state to move around. Deletes when health is below zero.
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
 
   /**
    * @brief Takes damage and flashes white
    * @param props
    * @return true if hit, false if missed
    */
-  virtual const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete();
+  void OnDelete();
 
   /**
    * @brief Get the hit height of this entity
    * @return const float
    */
-  virtual const float GetHeight() const;
+  const float GetHeight() const;
 
 private:
 

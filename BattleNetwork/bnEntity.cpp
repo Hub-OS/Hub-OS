@@ -80,6 +80,13 @@ const bool Entity::IsSuperEffective(Element _other) const {
 }
 
 void Entity::Update(float _elapsed) {
+  // If this entity is flagged for deletion, remove it from its current tile
+  /*if (IsDeleted()) {
+    if (tile) {
+      tile->RemoveEntityByID(this->GetID());
+    }
+  }*/
+
   // Update all components
   for (int i = 0; i < components.size(); i++) {
     components[i]->OnUpdate(_elapsed);
@@ -177,13 +184,6 @@ void Entity::Update(float _elapsed) {
     //this->tileOffset = sf::Vector2f(0, 0);
     isSliding = false;
   }
-
-  // If this entity is flagged for deletion, remove it from its current tile
-  if (IsDeleted()) {
-    if (tile) {
-      tile->RemoveEntityByID(this->GetID());
-    }
-  }
 }
 
 void Entity::SetAlpha(int value)
@@ -197,6 +197,8 @@ void Entity::SetAlpha(int value)
 
 
 bool Entity::Move(Direction _direction) {
+  if (!tile) return false;
+
   bool moved = false;
 
   // Update the entity direction 

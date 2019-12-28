@@ -47,6 +47,14 @@ ChipAction* Megaman::ExecuteChargedBusterAction()
   }
 }
 
+ChipAction* Megaman::ExecuteSpecialAction() {
+  if (activeForm) {
+    return activeForm->OnSpecialAction(*this);
+  }
+
+  return nullptr;
+}
+
 // CROSSES / FORMS
 
 TenguCross::TenguCross()
@@ -111,12 +119,12 @@ void TenguCross::OnUpdate(float elapsed, Player& player)
 
 ChipAction* TenguCross::OnChargedBusterAction(Player& player)
 {
-  return new TornadoChipAction(&player, 30);
+  return new BusterChipAction(&player, true, 10);
 }
 
 ChipAction* TenguCross::OnSpecialAction(Player& player)
 {
-  return nullptr;
+  return new TornadoChipAction(&player, 30);
 }
 
 // HEAT CROSS

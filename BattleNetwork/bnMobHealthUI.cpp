@@ -29,6 +29,14 @@ HP drop is not 1 unit per frame. It is:
 void MobHealthUI::OnUpdate(float elapsed) {
   if (mob) {
 
+    if (mob->IsDeleted()) {
+      // We are injected into the UI list of the BattleScene
+      // We do not need self-cleanup
+      mob->FreeComponentByID(this->GetID());
+      mob = nullptr;
+      return;
+    }
+
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
    

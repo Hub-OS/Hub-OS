@@ -31,6 +31,7 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : Artifact(nullptr)
     break;
   case Type::THIN:
     animation.SetAnimation("THIN");
+    break;
   case Type::FIRE:
     animation.SetAnimation("FIRE");
     break;
@@ -49,7 +50,7 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : Artifact(nullptr)
 }
 
 void ParticleImpact::OnSpawn(Battle::Tile& tile) {
-  randOffset = sf::Vector2f(rand() % 10, rand() % 10);
+  randOffset = sf::Vector2f(float(rand() % 10), float(rand() % 10));
   randOffset.x *= rand() % 2 ? -1 : 1;
   randOffset.y = randOffset.y - GetHeight();
 }

@@ -23,9 +23,10 @@ public:
   friend class PlayerIdleState;
 
   Starman();
-  virtual ~Starman();
+  ~Starman();
 
-  virtual const float GetHeight() const;
+  const float GetHeight() const;
   ChipAction* ExecuteBusterAction() final;
   ChipAction* ExecuteChargedBusterAction() final;
+  ChipAction* ExecuteSpecialAction() final;
 };

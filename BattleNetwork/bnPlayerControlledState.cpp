@@ -27,6 +27,21 @@ const bool PlayerControlledState::CanTakeAction(Player& player) const
     && !player.IsSliding();
 }
 
+void PlayerControlledState::QueueAction(Player & player)
+{
+  // peek into the player's queued Action property
+  auto action = player.queuedAction;
+  player.queuedAction = nullptr;
+
+  // We already have one action queued, delete the next one
+  if (!queuedAction) {
+    queuedAction = action;
+  }
+  else {
+    delete action;
+  }
+}
+
 void PlayerControlledState::OnEnter(Player& player) {
   player.SetAnimation(PLAYER_IDLE);
 }
@@ -55,34 +70,28 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
   }
 
-#ifndef __ANDROID__
-  if (CanTakeAction(player) && !INPUT.Has(EventTypes::HELD_SHOOT)) {
-#else
-    if(CanTakeAction(player) &&INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !INPUT.Has(EventTypes::RELEASED_SHOOT)) {
-#endif
-    if (player.chargeEffect.GetChargeCounter() > 0 && isChargeHeld == true) {
-      player.Attack();
-
-      // peek into the player's queued Action property
-      auto action = player.queuedAction;
-      player.queuedAction = nullptr;
-
-      // We already have one action queued, delete the next one
-      if (!queuedAction) { 
-        queuedAction = action; 
-      }
-      else {
-        delete action;
-      }
+  if (CanTakeAction(player)) {
+    if (INPUT.Has(EventTypes::PRESSED_SPECIAL)) {
+      player.UseSpecial();
+      QueueAction(player);
     }
-    else if(!player.GetNextTile()){
-      isChargeHeld = false;
+#ifndef __ANDROID__
+    else if (!INPUT.Has(EventTypes::HELD_SHOOT)) {
+#else
+    else if (CanTakeAction(player) && INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !INPUT.Has(EventTypes::RELEASED_SHOOT)) {
+#endif
+      if (player.chargeEffect.GetChargeCounter() > 0 && isChargeHeld == true) {
+        player.Attack();
+        QueueAction(player);
+      }
+      else if (!player.GetNextTile()) {
+        isChargeHeld = false;
 
 #ifdef __ANDROID__
-      player.chargeComponent.SetCharging(false);
+        player.chargeComponent.SetCharging(false);
 #endif
-    }
-  }
+      }
+    }  }
 
   // Movement increments are restricted based on anim speed at this time
   if (player.state != PLAYER_IDLE)

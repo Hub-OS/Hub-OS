@@ -149,6 +149,17 @@ public:
     return (int)spawn.size();
   }
 
+  void Forget(Character& character) {
+    for (auto iter = spawn.begin(); iter != spawn.end(); iter++) {
+      if ((*iter)->mob == &character) {
+        spawn.erase(iter);
+        break; // done
+      }
+    }
+
+    iter = spawn.end(); // iterator needs to point to new end so IsSpawningDone() is valid
+  }
+
   /**
    * @brief Get the count of remaining enemies in battle
    * 
@@ -157,15 +168,7 @@ public:
    * @return const int 
    */
   const int GetRemainingMobCount() {
-    int remaining = (int)spawn.size();
-
-    for (int i = 0; i < (int)spawn.size(); i++) {
-      if (spawn[i]->mob->GetHealth() <= 0) {
-        remaining--;
-      }
-    }
-
-    return remaining;
+    return int(spawn.size());
   }
 
   /**

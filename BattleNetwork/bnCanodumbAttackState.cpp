@@ -16,6 +16,8 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
   auto onFinish = [&can]() { can.ChangeState<CanodumbIdleState>(); };
 
   auto spawnSmoke   = [&can]() { 
+    // TODO: now that we have a scene node system, make this a scene node that removes itself
+    // on animation end...
     CanonSmoke* smoke = new CanonSmoke(can.GetField());
     can.GetField()->AddEntity(*smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
   };

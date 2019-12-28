@@ -701,6 +701,9 @@
     <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Thunder">
       <UniqueIdentifier>{648174b3-bad7-450f-a8b2-cc14739f176d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\PubSub\CharacterDeleted">
+      <UniqueIdentifier>{80cec1a4-036f-440c-bd1f-bc2ab4823f16}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1449,6 +1452,12 @@
     </ClCompile>
     <ClCompile Include="bnThunderChipAction.cpp">
       <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Thunder</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCharacterDeleteListener.cpp">
+      <Filter>Scenes/Activities\Battle\Content\PubSub\CharacterDeleted</Filter>
+    </ClCompile>
+    <ClCompile Include="bnCharacterDeletePublisher.cpp">
+      <Filter>Scenes/Activities\Battle\Content\PubSub\CharacterDeleted</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2268,6 +2277,12 @@
     </ClInclude>
     <ClInclude Include="bnThunderChipAction.h">
       <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Thunder</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCharacterDeleteListener.h">
+      <Filter>Scenes/Activities\Battle\Content\PubSub\CharacterDeleted</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCharacterDeletePublisher.h">
+      <Filter>Scenes/Activities\Battle\Content\PubSub\CharacterDeleted</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

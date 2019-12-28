@@ -1,7 +1,9 @@
 imagePath="navi_megaman_atlas.old.png"
 
 animation state="PLAYER_IDLE"
-frame duration="1" x="29" y="19" w="48" h="48" originx="22" originy="41"
+frame duration="0.01" x="29" y="19" w="48" h="48" originx="22" originy="41"
+point label="Head" x="29" y="10"
+frame duration="0.01" x="29" y="19" w="48" h="48" originx="22" originy="41"
 point label="Head" x="29" y="10"
 
 animation state="PLAYER_HIT"

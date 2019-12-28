@@ -27,6 +27,7 @@
 #include "bnPlayerChipUseListener.h"
 #include "bnEnemyChipUseListener.h"
 #include "bnCounterHitListener.h"
+#include "bnCharacterDeleteListener.h"
 #include "bnChipSummonHandler.h"
 
 #include <time.h>
@@ -73,7 +74,7 @@ class PlayerHealthUI;
  * This will drastically clean the code up and allow for new custom states. 
  * Custom scenes could include beast-out mode state, dialog state for talking, damage counter state, etc.
  */
-class BattleScene : public swoosh::Activity, public CounterHitListener {
+class BattleScene : public swoosh::Activity, public CounterHitListener, public CharacterDeleteListener {
 private:
   /*
   Program Advance + labels
@@ -246,6 +247,8 @@ private:
    * @param aggressor who caused the counter
    */
   virtual void OnCounter(Character& victim, Character& aggressor);
+
+  virtual void OnDeleteEvent(Character& pending);
 
 #ifdef __ANDROID__
   void SetupTouchControls();

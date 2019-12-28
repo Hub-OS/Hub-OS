@@ -386,30 +386,28 @@ namespace Battle {
 
   void Tile::PerformSpellAttack(Spell* caller) {
     auto entities_copy = entities; // may be modified after hitboxes are resolved
-    // Spells dont cause damage when the battle is over
-    if (this->isBattleActive) {
-      for (auto it = entities_copy.begin(); it != entities_copy.end(); ++it) {
-        if (*it == caller)
-          continue;
 
-        // TODO: use group buckets to poll by ID instead of dyna casting
-        Character *c = dynamic_cast<Character *>(*it);
+    for (auto it = entities_copy.begin(); it != entities_copy.end(); ++it) {
+      if (*it == caller)
+        continue;
 
-        // the entity is a character (can be hit) and the team isn't the same
-        // we see if it passes defense checks, then call attack
+      // TODO: use group buckets to poll by ID instead of dynam casting
+      Character *c = dynamic_cast<Character *>(*it);
 
-        if( c && (c->GetTeam() != caller->GetTeam() ||
-                                             (c->GetTeam() == Team::UNKNOWN &&
-                                              caller->GetTeam() == Team::UNKNOWN))) {
-          if (!c->CheckDefenses(caller)) {
-            caller->Attack(c);
-          }
+      // the entity is a character (can be hit) and the team isn't the same
+      // we see if it passes defense checks, then call attack
 
-          // Tag the spell
-          // only ignore spells that have already hit something on a tile
-          // this is similar to the hitbox being removed in mmbn mechanics
-          taggedSpells.push_back(caller->GetID());
+      if( c && (c->GetTeam() != caller->GetTeam() ||
+                                            (c->GetTeam() == Team::UNKNOWN &&
+                                            caller->GetTeam() == Team::UNKNOWN))) {
+        if (!c->CheckDefenses(caller)) {
+          caller->Attack(c);
         }
+
+        // Tag the spell
+        // only ignore spells that have already hit something on a tile
+        // this is similar to the hitbox being removed in mmbn mechanics
+        taggedSpells.push_back(caller->GetID());
       }
     }
   }
@@ -434,22 +432,31 @@ namespace Battle {
 
     // Step through the entity bucket (all entity types)
     while (i < entities.size()) {
+      auto ptr = entities[i];
+
       // If the entity is marked for deletion
-      if (entities[i]->IsDeleted()) {
-        long ID = entities[i]->GetID();
-
+      if (ptr->IsDeleted()) {
         // free memory
-        auto ptr = entities[i];
+        long ID = ptr->GetID();
 
+        // TODO: do we need to invoke this here?
         //entities[i]->OnDelete();
 
         if (RemoveEntityByID(ID)) {
+          // TODO: STOP DYNAMIC CASTING! SOMEHOW!
+          Character* character = dynamic_cast<Character*>(ptr);
+
+          // We only want to know about character deletions since they are the actors in the battle
+          if (character) {
+            this->field->CharacterDeletePublisher::Broadcast(*character);
+          }
+
           delete ptr;
           continue;
         }
       }
       else {
-        entities[i]->SetBattleActive(this->isBattleActive);
+        ptr->SetBattleActive(this->isBattleActive);
       }
 
       i++;
@@ -468,18 +475,19 @@ namespace Battle {
       (*entity)->Update(_elapsed);
     }
 
-    // Now that spells and characters have updated and moved, they are due to check for attack outcomes
-    for (auto ID : queuedSpells) {
-      auto list = field->FindEntities([ID](Entity* e) {
-        return e->GetID() == ID;
-      });
+    // Spells dont cause damage when the battle is over
+    if (this->isBattleActive) {
+      // Now that spells and characters have updated and moved, they are due to check for attack outcomes
+      for (auto ID : queuedSpells) {
+        // TODO: REDO THIS LOOP. IT IS HORRIBLE AND COSTLY!
+        auto list = field->FindEntities([ID](Entity* e) {
+          return e->GetID() == ID;
+        });
 
-      if (list.size()) {
-        auto spell = dynamic_cast<Spell*>(list[0]);
-        
-        //if (!spell->IsDeleted()) {
+        if (list.size()) {
+          auto spell = dynamic_cast<Spell*>(list[0]);
           this->PerformSpellAttack(spell);
-        //}
+        }
       }
     }
 

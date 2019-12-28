@@ -30,10 +30,7 @@ Character::Character(Rank _rank) :
 }
 
 Character::~Character() {
-  //for (auto d : defenses) {
-  //  delete d;
- // }
-
+  // Defense items need to be manually deleted where they are created
   defenses.clear();
 }
 

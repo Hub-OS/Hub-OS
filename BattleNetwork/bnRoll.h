@@ -26,7 +26,9 @@ public:
 
   Roll();
 
-  virtual const float GetHeight() const;
+  const float GetHeight() const;
+
+  ChipAction* ExecuteSpecialAction() final;
   ChipAction* ExecuteBusterAction() final;
   ChipAction* ExecuteChargedBusterAction() final;
 };

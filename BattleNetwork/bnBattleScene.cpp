@@ -61,6 +61,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   /*
   Set Scene*/
   field = mob->GetField();
+  this->CharacterDeleteListener::Subscribe(*field);
 
   player->ChangeState<PlayerIdleState>();
   field->AddEntity(*player, 2, 2);
@@ -400,6 +401,11 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
   }
 }
 
+void BattleScene::OnDeleteEvent(Character & pending)
+{
+  mob->Forget(pending);
+}
+
 void BattleScene::onUpdate(double elapsed) {
   this->elapsed = elapsed;
 
@@ -566,7 +572,7 @@ void BattleScene::onUpdate(double elapsed) {
     mobNames.push_back(data->mob->GetName());
 
     // Listen for counters
-    this->Subscribe(*data->mob);
+    this->CounterHitListener::Subscribe(*data->mob);
   }
 
   camera.Update((float)elapsed);

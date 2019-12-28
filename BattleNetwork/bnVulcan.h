@@ -6,26 +6,20 @@ class Vulcan : public Spell {
 public:
 
   Vulcan(Field* _field, Team _team, int _damage);
-  virtual ~Vulcan();
+  ~Vulcan();
 
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
 
-  virtual bool CanMoveTo(Battle::Tile* next);
+  bool CanMoveTo(Battle::Tile* next);
 
   /**
    * @brief Deal impact damage
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity);
 private:
-  bool spawnGuard;
-  bool hit;
-  Character* contact;
   int damage;
   float cooldown;
-  float random; // offset
+  float random; // scatter offset
   float hitHeight;
-  sf::Texture* texture;
-  float progress;
-  AnimationComponent* animationComponent;
 };

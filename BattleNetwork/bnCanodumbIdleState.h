@@ -1,7 +1,8 @@
 #pragma once
 #include "bnAIState.h"
+#include "bnCharacter.h"
+#include "bnCanodumbCursor.h"
 
-class CanodumbCursor;
 class Canodumb;
 
 /**
@@ -12,8 +13,16 @@ class Canodumb;
  */
 class CanodumbIdleState : public AIState<Canodumb>
 {
+private:
   CanodumbCursor* cursor; /*!< Spawned to find enemies to attack */
+  Canodumb* can;
+  friend void CanodumbCursor::OnUpdate(float _elapsed);
+  friend CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _parent);
 
+  void Attack();
+  void FreeCursor();
+  Character::Rank GetCanodumbRank();
+  Entity* GetCanodumbTarget();
 public:
   CanodumbIdleState();
   ~CanodumbIdleState();

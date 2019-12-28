@@ -59,7 +59,9 @@ public:
   /**
    * @brief Fires a buster
    */
-  virtual void Attack();
+  void Attack();
+
+  void UseSpecial();
 
   /**
    * @brief Don't take damage if blinking. Responds to recoil props
@@ -104,6 +106,7 @@ public:
 
   virtual ChipAction* ExecuteBusterAction() = 0;
   virtual ChipAction* ExecuteChargedBusterAction() = 0;
+  virtual ChipAction* ExecuteSpecialAction() = 0;
 
   void ActivateFormAt(int index); 
   void DeactivateForm();

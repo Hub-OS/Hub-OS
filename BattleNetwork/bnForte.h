@@ -41,7 +41,7 @@ private:
   
   ChipAction* ExecuteBusterAction() final;
   ChipAction* ExecuteChargedBusterAction() final;
-
+  ChipAction* ExecuteSpecialAction() final;
 public:
   friend class PlayerControlledState;
   friend class PlayerIdleState;

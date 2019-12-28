@@ -36,6 +36,11 @@ const float Roll::GetHeight() const
   return 140.0f;
 }
 
+ChipAction * Roll::ExecuteSpecialAction()
+{
+  return new RecoverChipAction(this, 20);
+}
+
 ChipAction* Roll::ExecuteBusterAction()
 {
   return new BusterChipAction(this, false, 1);
@@ -43,5 +48,5 @@ ChipAction* Roll::ExecuteBusterAction()
 
 ChipAction* Roll::ExecuteChargedBusterAction()
 {
-  return new RecoverChipAction(this, 20);
+  return new BusterChipAction(this, true, 20);
 }
