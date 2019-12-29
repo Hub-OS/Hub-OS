@@ -403,6 +403,25 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 
 void BattleScene::OnDeleteEvent(Character & pending)
 {
+  // Track if player is being deleted
+  if (!isPlayerDeleted && player == &pending) {
+    isPlayerDeleted = true;
+    AUDIO.Play(AudioType::DELETED);
+    player = nullptr;
+  }
+
+  // Find any AI using this character as a target and free that pointer  
+  field->FindEntities([pendingPtr = &pending](Entity* in) {
+    auto agent = dynamic_cast<Agent*>(in);
+
+    if (agent && agent->GetTarget() == pendingPtr) {
+      agent->FreeTarget();
+    }
+
+    return false;
+  });
+
+  Logger::Logf("Deleting %s from battle", pending.GetName());
   mob->Forget(pending);
 }
 
@@ -591,14 +610,6 @@ void BattleScene::onUpdate(double elapsed) {
     field->Update((float)elapsed);
   } 
 
-  if (!isPlayerDeleted) {
-    isPlayerDeleted = player->IsDeleted();
-
-    if (isPlayerDeleted) {
-      AUDIO.Play(AudioType::DELETED);
-    }
-  }
-
   int newMobSize = mob->GetRemainingMobCount();
 
   if (lastMobSize != newMobSize) {
@@ -654,7 +665,7 @@ void BattleScene::onUpdate(double elapsed) {
     field->SetBattleActive(true);
 
     // See if HP is 0 when we were in a form
-    if (player->GetHealth() == 0 && !isChangingForm && lastSelectedForm != -1) {
+    if (player && player->GetHealth() == 0 && !isChangingForm && lastSelectedForm != -1) {
       // If we were in a form, replay the animation
       // going back to our base this time
 

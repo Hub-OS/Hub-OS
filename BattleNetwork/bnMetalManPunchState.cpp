@@ -1,6 +1,6 @@
 #include "bnMetalManPunchState.h"
 #include "bnMetalMan.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 #include "bnObstacle.h"
 #include "bnAudioResourceManager.h"
 
@@ -14,7 +14,7 @@ MetalManPunchState::~MetalManPunchState()
 }
 
 void MetalManPunchState::OnEnter(MetalMan& metal) {
-  auto tile = metal.GetTarget()->GetTile();
+  auto tile = metal.GetTarget()? metal.GetTarget()->GetTile() : nullptr;
   if (!tile) {
     metal.GoToNextState();
     return;
@@ -74,7 +74,7 @@ void MetalManPunchState::Attack(MetalMan& metal) {
   if (tile) {
     Entity* next = nullptr;
 
-    HitBox* hitbox = new HitBox(metal.field, metal.GetTeam(), 100);
+    Hitbox* hitbox = new Hitbox(metal.field, metal.GetTeam(), 100);
     auto props = hitbox->GetHitboxProperties();
     props.flags |= Hit::flinch;
     props.aggressor = &metal;

@@ -8,6 +8,9 @@
 #include "bnTornadoChipAction.h"
 #include "bnFireBurnChipAction.h"
 #include "bnElecSwordChipAction.h"
+#include "bnSwordChipAction.h"
+#include "bnWideSwordChipAction.h"
+#include "bnLongSwordChipAction.h"
 #include "bnVulcanChipAction.h"
 #include "bnReflectChipAction.h"
 #include "bnYoYoChipAction.h"
@@ -132,19 +135,8 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
     player->RegisterComponent(action);
   }
   else if (name == "Swrd") {
-    // Play sword animation and add sword spell in the tile in front
-    auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
-
-    player->SetAnimation(PLAYER_SWORD, onFinish);
-
-    BasicSword* sword = new BasicSword(player->GetField(), player->GetTeam(), chip.GetDamage());
-    auto props = sword->GetHitboxProperties();
-    props.aggressor = player;
-    sword->SetHitboxProperties(props);
-
-    AUDIO.Play(AudioType::SWORD_SWING);
-
-    player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+    auto action = new SwordChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
   }
   else if (name == "Elecplse") {
     // Spawn an elecpulse attack
@@ -159,57 +151,17 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
     player->GetField()->AddEntity(*pulse, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
   }
   else if (name == "LongSwrd") {
-
-    // Play sword animation
-    // Spawn two sword spells on the tile in front and one after that
-    // This effecitvely works as long sword
-    auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
-
-    player->SetAnimation(PLAYER_SWORD, onFinish);
-
-    BasicSword* sword = new BasicSword(player->GetField(), player->GetTeam(), chip.GetDamage());
-    BasicSword* sword2 = new BasicSword(player->GetField(), player->GetTeam(), chip.GetDamage());
-
-    auto props = sword->GetHitboxProperties();
-    props.aggressor = player;
-    sword->SetHitboxProperties(props);
-
-    props = sword2->GetHitboxProperties();
-    props.aggressor = player;
-    sword2->SetHitboxProperties(props);
-
-    AUDIO.Play(AudioType::SWORD_SWING);
-
-    // We cant spawn an entity on a tile that doesn't exist
-    if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY())) {
-      player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
-    }
-
-    if (player->GetField()->GetAt(player->GetTile()->GetX() + 2, player->GetTile()->GetY())) {
-      player->GetField()->AddEntity(*sword2, player->GetTile()->GetX() + 2, player->GetTile()->GetY());
-    }
+    auto action = new LongSwordChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
   }
   else if (name == "WideSwrd") {
-    // Same as long sword
-    // Spawn two sword spells in front of the player and one above that
-    // This effecitvely works as a wide sword
-
-    auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
-
-    player->SetAnimation(PLAYER_SWORD, onFinish);
-
-    BasicSword* sword = new BasicSword(player->GetField(), player->GetTeam(), chip.GetDamage());
-    BasicSword* sword2 = new BasicSword(player->GetField(), player->GetTeam(), chip.GetDamage());
-
-    AUDIO.Play(AudioType::SWORD_SWING);
-
-    if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY())) {
-      player->GetField()->AddEntity(*sword, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
-    }
-
-    if (player->GetField()->GetAt(player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1)) {
-      player->GetField()->AddEntity(*sword2, player->GetTile()->GetX() + 1, player->GetTile()->GetY() + 1);
-    }
+    auto action = new WideSwordChipAction(player, chip.GetDamage());
+    player->RegisterComponent(action);
+  }
+  else if (name == "FireSwrd") {
+    auto action = new LongSwordChipAction(player, chip.GetDamage());
+    action->SetElement(Element::FIRE);
+    player->RegisterComponent(action);
   }
   else if (name == "AirShot1") {
     auto action = new AirShotChipAction(player, chip.GetDamage());

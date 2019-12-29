@@ -16,7 +16,7 @@
 #include "bnObstacle.h"
 #include "bnComponent.h"
 
-class SharedHitBox : public Obstacle {
+class SharedHitbox : public Obstacle {
 public:
 	
   /**
@@ -24,8 +24,8 @@ public:
    * @param owner the original spell source
    * @param duration how long the hitbox should linger in seconds
    */
-  SharedHitBox(Spell* owner, float duration);
-  virtual ~SharedHitBox();
+  SharedHitbox(Spell* owner, float duration);
+  virtual ~SharedHitbox();
 
   /**
    * @brief Removes itself if time is up or the original source is deleted

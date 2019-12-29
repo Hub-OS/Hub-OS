@@ -11,7 +11,7 @@
 #include "bnMetalManPunchState.h"
 #include "bnMetalManThrowState.h"
 #include "bnObstacle.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 
 #define RESOURCE_PATH "resources/mobs/metalman/metalman.animation"
 
@@ -90,7 +90,7 @@ void MetalMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::fu
 
 bool MetalMan::CanMoveTo(Battle::Tile * next)
 {
-  if (!next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>()) {
+  if (!next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && !next->IsEdgeTile()) {
     return true;
   }
 
@@ -121,7 +121,7 @@ void MetalMan::OnUpdate(float _elapsed) {
 
   // Explode if health depleted
 
-  HitBox* hitbox = new HitBox(GetField(), GetTeam(), 40);
+  Hitbox* hitbox = new Hitbox(GetField(), GetTeam(), 40);
   auto props = hitbox->GetHitboxProperties();
   props.flags |= Hit::impact | Hit::recoil | Hit::flinch;
   hitbox->SetHitboxProperties(props);

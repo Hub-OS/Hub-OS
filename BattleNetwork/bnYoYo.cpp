@@ -2,7 +2,7 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnExplosion.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
@@ -84,7 +84,7 @@ void YoYo::OnUpdate(float _elapsed) {
         animation->AddCallback(3, [this, direction]() {
           // First, let the slide finish for this final tile...
           if (!this->IsSliding()) {
-            auto hitbox = new HitBox(GetField(), GetTeam());
+            auto hitbox = new Hitbox(GetField(), GetTeam());
             hitbox->SetHitboxProperties(GetHitboxProperties());
             GetField()->AddEntity(*hitbox, *this->GetTile());
 

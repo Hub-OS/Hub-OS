@@ -459,7 +459,7 @@ const bool Character::CheckDefenses(Spell* in)
   return false;
 }
 
-void Character::ShareHitboxDamage(Character * to)
+void Character::SharedHitboxDamage(Character * to)
 {
   auto iter = std::find(shareHit.begin(), shareHit.end(), to);
 
@@ -468,7 +468,7 @@ void Character::ShareHitboxDamage(Character * to)
   }
 }
 
-void Character::CancelShareHitboxDamage(Character * to)
+void Character::CancelSharedHitboxDamage(Character * to)
 {
   auto iter = std::remove_if(shareHit.begin(), shareHit.end(), [&to](Character * in) { return in == to; });
 

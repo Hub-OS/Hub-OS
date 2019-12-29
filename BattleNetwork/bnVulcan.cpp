@@ -66,15 +66,9 @@ void Vulcan::Attack(Character* _entity) {
   }
 
   if (_entity->Hit(this->GetHitboxProperties())) {
-    random = _entity->getLocalBounds().width / 2.0f;
-    random *= rand() % 2 == 0 ? -1.0f : 1.0f;
-
-    hitHeight = (float)(std::floor(_entity->GetHeight()));
-    hitHeight = (float)(rand() % (int)hitHeight);
     AUDIO.Play(AudioType::HURT);
     auto impact = new ParticleImpact(ParticleImpact::Type::YELLOW);
-    impact->SetHeight(hitHeight);
-    //impact->SetScatterOffset(random);
+    impact->SetHeight(_entity->GetHeight());
     field->AddEntity(*impact, *_entity->GetTile());
     this->Delete();
   }

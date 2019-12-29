@@ -2,7 +2,7 @@
 #include "bnEntity.h"
 #include "bnField.h"
 #include "bnSpell.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 
 DefenseInvis::DefenseInvis() : DefenseRule(0)
 {

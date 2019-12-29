@@ -12,7 +12,7 @@ void AlphaGunState::OnEnter(AlphaCore& a) {
   cooldown = 0.13f;
   count = 0;
   a.OpenShoulderGuns();
-  last = a.GetTarget()->GetTile();;
+  last = a.GetTarget()? a.GetTarget()->GetTile() : nullptr;
 }
 
 void AlphaGunState::OnUpdate(float _elapsed, AlphaCore& a) {
@@ -27,7 +27,9 @@ void AlphaGunState::OnUpdate(float _elapsed, AlphaCore& a) {
       a.GetField()->AddEntity(*d, last->GetX(), last->GetY());
     }
 
-    last = a.GetTarget()->GetTile();;
+    if (a.GetTarget()) {
+      last = a.GetTarget()->GetTile();
+    }
 
     count++;
     cooldown = 0.23f;

@@ -27,7 +27,7 @@ private:
     Head(Megalian* belongsTo) : base(belongsTo), Obstacle(belongsTo->GetField(), belongsTo->GetTeam()) {
       this->SetFloatShoe(true);
       this->SetTeam(base->GetTeam());
-      this->ShareHitboxDamage(base);
+      this->SharedHitboxDamage(base);
       animation = new AnimationComponent(this);
       auto baseAnimation = belongsTo->GetFirstComponent<AnimationComponent>();
       auto str = baseAnimation->GetFilePath();

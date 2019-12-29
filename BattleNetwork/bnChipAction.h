@@ -8,6 +8,9 @@
 
 #include <SFML/Graphics.hpp>
 
+// This was written before chip actions had many sprite nodes involved (like hilt + sword piece)
+// So the constructor, which was written to make chip creation easy,
+// has now made it convoluted and difficult. REWRITE THIS CHIP ACTION CONSTRUCTOR!
 class ChipAction : public Component {
 protected:
   AnimationComponent* anim;
@@ -97,7 +100,7 @@ public:
 
     // update node position in the animation
     auto baseOffset = anim->GetPoint(nodeName);
-    auto origin = GetOwner()->getSprite().getOrigin(); GetOwner()->getOrigin();
+    auto origin = GetOwner()->getSprite().getOrigin();
     baseOffset = baseOffset - origin;
 
     (*attachment)->setPosition(baseOffset);

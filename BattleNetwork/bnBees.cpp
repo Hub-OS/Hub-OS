@@ -3,7 +3,7 @@
 #include "bnField.h"
 #include "bnObstacle.h"
 #include "bnParticleImpact.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
@@ -216,7 +216,7 @@ void Bees::OnUpdate(float _elapsed) {
   if (target && GetTile() == target->GetTile() && attackCooldown == 0) {
     // Try to attack 5 times
     attackCooldown = 1.80f; // est 3 frames
-    auto hitbox = new HitBox(GetField(), GetTeam());
+    auto hitbox = new Hitbox(GetField(), GetTeam());
     hitbox->SetHitboxProperties(GetHitboxProperties());
     hitbox->AddCallback([this](Character* entity) {
       // all other hitbox events will be ignored after 5 hits

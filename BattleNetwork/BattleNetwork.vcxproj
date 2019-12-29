@@ -313,6 +313,7 @@
     <ClCompile Include="bnBattleScene.cpp" />
     <ClCompile Include="bnLibraryScene.cpp" />
     <ClCompile Include="bnLogger.cpp" />
+    <ClCompile Include="bnLongSwordChipAction.cpp" />
     <ClCompile Include="bnMainMenuScene.cpp" />
     <ClCompile Include="bnMedicalBackground.cpp" />
     <ClCompile Include="bnMegalian.cpp" />
@@ -393,6 +394,7 @@
     <ClCompile Include="bnStarfishMob.cpp" />
     <ClCompile Include="bnStarman.cpp" />
     <ClCompile Include="bnSuperVulcan.cpp" />
+    <ClCompile Include="bnSwordChipAction.cpp" />
     <ClCompile Include="bnSwordEffect.cpp" />
     <ClCompile Include="bnThunder.cpp" />
     <ClCompile Include="bnThunderChipAction.cpp" />
@@ -422,6 +424,7 @@
     <ClCompile Include="bnInvis.cpp" />
     <ClCompile Include="bnDefenseIndestructable.cpp" />
     <ClCompile Include="bnWeatherBackground.cpp" />
+    <ClCompile Include="bnWideSwordChipAction.cpp" />
     <ClCompile Include="bnYoYo.cpp" />
     <ClCompile Include="bnYoYoChipAction.cpp" />
     <ClCompile Include="main.cpp">
@@ -441,6 +444,7 @@
     <ClInclude Include="bnCharacterDeleteListener.h" />
     <ClInclude Include="bnCharacterDeletePublisher.h" />
     <ClInclude Include="bnDefenseInvis.h" />
+    <ClInclude Include="bnLongSwordChipAction.h" />
     <ClInclude Include="bnParticleHeal.h" />
     <ClInclude Include="bnAIPriorityLock.h" />
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
@@ -596,6 +600,7 @@
     <ClInclude Include="bnStarfishIdleState.h" />
     <ClInclude Include="bnStarfishMob.h" />
     <ClInclude Include="bnSuperVulcan.h" />
+    <ClInclude Include="bnSwordChipAction.h" />
     <ClInclude Include="bnSwordEffect.h" />
     <ClInclude Include="bnThunder.h" />
     <ClInclude Include="bnElements.h" />
@@ -696,6 +701,7 @@
     <ClInclude Include="bnNaviExplodeState.h" />
     <ClInclude Include="bnDefenseRule.h" />
     <ClInclude Include="bnWeatherBackground.h" />
+    <ClInclude Include="bnWideSwordChipAction.h" />
     <ClInclude Include="bnYoYo.h" />
     <ClInclude Include="bnYoYoChipAction.h" />
     <ClInclude Include="resource.h" />

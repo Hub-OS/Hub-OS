@@ -5,7 +5,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnSharedHitBox.h"
+#include "bnSharedHitbox.h"
 
 Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   SetLayer(-100);

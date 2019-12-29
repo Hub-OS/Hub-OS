@@ -102,6 +102,9 @@ void Field::AddEntity(Character & character, int x, int y)
   if (tile) {
     character.AdoptTile(tile);
   }
+  else {
+    delete &character;
+  }
 }
 
 void Field::AddEntity(Character & character, Battle::Tile & dest)
@@ -124,6 +127,9 @@ void Field::AddEntity(Spell & spell, int x, int y)
   if (tile) {
     spell.AdoptTile(tile);
   }
+  else {
+    delete &spell;
+  }
 }
 
 void Field::AddEntity(Spell & spell, Battle::Tile & dest)
@@ -145,6 +151,9 @@ void Field::AddEntity(Obstacle & obst, int x, int y)
   if (tile) {
     obst.AdoptTile(tile);
   }
+  else {
+    delete &obst;
+  }
 }
 
 void Field::AddEntity(Obstacle & obst, Battle::Tile & dest)
@@ -165,6 +174,9 @@ void Field::AddEntity(Artifact & art, int x, int y)
 
   if (tile) {
     art.AdoptTile(tile);
+  }
+  else {
+    delete &art;
   }
 }
 

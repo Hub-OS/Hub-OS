@@ -1,7 +1,7 @@
 #include "bnWave.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnSharedHitBox.h"
+#include "bnSharedHitbox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 

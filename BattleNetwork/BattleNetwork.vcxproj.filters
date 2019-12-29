@@ -245,12 +245,6 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\RowHit">
       <UniqueIdentifier>{a540c9b8-5a8d-4d43-b201-696941acf792}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\HitBox">
-      <UniqueIdentifier>{fe504cb6-8871-4913-ad55-6cb742f26b28}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\HitBox\SharedHitBox">
-      <UniqueIdentifier>{445f22e8-8c11-4df2-916a-61302a2f333f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\Elecpulse">
       <UniqueIdentifier>{f9e4081c-a440-47cf-a7bf-002d2861872e}</UniqueIdentifier>
     </Filter>
@@ -593,9 +587,6 @@
     <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Vulcan">
       <UniqueIdentifier>{dff4ff60-0671-4ed5-b26c-0ed3bd30ae10}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\ElecSwrd">
-      <UniqueIdentifier>{2cd0fd6f-6139-43b9-a392-95d496add8ce}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Bomb">
       <UniqueIdentifier>{63ae7282-2203-4234-8c4a-5ef18c118ac7}</UniqueIdentifier>
     </Filter>
@@ -703,6 +694,27 @@
     </Filter>
     <Filter Include="Scenes/Activities\Battle\Content\PubSub\CharacterDeleted">
       <UniqueIdentifier>{80cec1a4-036f-440c-bd1f-bc2ab4823f16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\Hitbox">
+      <UniqueIdentifier>{fe504cb6-8871-4913-ad55-6cb742f26b28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\Hitbox\SharedHitbox">
+      <UniqueIdentifier>{445f22e8-8c11-4df2-916a-61302a2f333f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Swords">
+      <UniqueIdentifier>{95ae18b9-eaf9-4da3-b68b-8c2d2e42e94e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Swords\BasicSword">
+      <UniqueIdentifier>{52e05be5-69a4-4017-b384-a8c54253e846}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Swords\LongSword">
+      <UniqueIdentifier>{0f33d12e-05a0-4170-864b-90ad449b4808}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Swords\ElecSwrd">
+      <UniqueIdentifier>{2cd0fd6f-6139-43b9-a392-95d496add8ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Swords\WideSword">
+      <UniqueIdentifier>{79412d32-80e6-4b2f-83c1-aa49129c2922}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1016,7 +1028,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Bubble</Filter>
     </ClCompile>
     <ClCompile Include="bnHitBox.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\HitBox</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Hitbox</Filter>
     </ClCompile>
     <ClCompile Include="bnBubbleTrap.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\BubbleTrap</Filter>
@@ -1079,7 +1091,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Summons\Protoman</Filter>
     </ClCompile>
     <ClCompile Include="bnSharedHitBox.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\HitBox\SharedHitBox</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Hitbox\SharedHitbox</Filter>
     </ClCompile>
     <ClCompile Include="bnSwordEffect.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Sword\WideSword</Filter>
@@ -1169,7 +1181,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Vulcan</Filter>
     </ClCompile>
     <ClCompile Include="bnElecSwordChipAction.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\ElecSwrd</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\ElecSwrd</Filter>
     </ClCompile>
     <ClCompile Include="bnBombChipAction.cpp">
       <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Bomb</Filter>
@@ -1458,6 +1470,15 @@
     </ClCompile>
     <ClCompile Include="bnCharacterDeletePublisher.cpp">
       <Filter>Scenes/Activities\Battle\Content\PubSub\CharacterDeleted</Filter>
+    </ClCompile>
+    <ClCompile Include="bnSwordChipAction.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\BasicSword</Filter>
+    </ClCompile>
+    <ClCompile Include="bnWideSwordChipAction.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\WideSword</Filter>
+    </ClCompile>
+    <ClCompile Include="bnLongSwordChipAction.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\LongSword</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1901,7 +1922,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Obstacle\Bubble</Filter>
     </ClInclude>
     <ClInclude Include="bnHitBox.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\HitBox</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Hitbox</Filter>
     </ClInclude>
     <ClInclude Include="bnBubbleState.h">
       <Filter>Scenes/Activities\Battle\Content\AI\Any\States</Filter>
@@ -1967,7 +1988,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Summons\Protoman</Filter>
     </ClInclude>
     <ClInclude Include="bnSharedHitBox.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\HitBox\SharedHitBox</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Hitbox\SharedHitbox</Filter>
     </ClInclude>
     <ClInclude Include="bnSwordEffect.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Sword\WideSword</Filter>
@@ -2066,7 +2087,7 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Vulcan</Filter>
     </ClInclude>
     <ClInclude Include="bnElecSwordChipAction.h">
-      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\ElecSwrd</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\ElecSwrd</Filter>
     </ClInclude>
     <ClInclude Include="bnBombChipAction.h">
       <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Bomb</Filter>
@@ -2283,6 +2304,15 @@
     </ClInclude>
     <ClInclude Include="bnCharacterDeletePublisher.h">
       <Filter>Scenes/Activities\Battle\Content\PubSub\CharacterDeleted</Filter>
+    </ClInclude>
+    <ClInclude Include="bnSwordChipAction.h">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\BasicSword</Filter>
+    </ClInclude>
+    <ClInclude Include="bnWideSwordChipAction.h">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\WideSword</Filter>
+    </ClInclude>
+    <ClInclude Include="bnLongSwordChipAction.h">
+      <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\LongSword</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

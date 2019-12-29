@@ -1,23 +1,23 @@
 #include <random>
 #include <time.h>
 
-#include "bnSharedHitBox.h"
+#include "bnSharedHitbox.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-SharedHitBox::SharedHitBox(Spell* owner, float duration) : owner(owner), Obstacle(owner->GetField(), owner->GetTeam()) {
+SharedHitbox::SharedHitbox(Spell* owner, float duration) : owner(owner), Obstacle(owner->GetField(), owner->GetTeam()) {
   cooldown = duration;
   SetHealth(1);
   ShareTileSpace(true);
   SetHitboxProperties(owner->GetHitboxProperties());
 }
 
-SharedHitBox::~SharedHitBox() {
+SharedHitbox::~SharedHitbox() {
 }
 
-void SharedHitBox::OnUpdate(float _elapsed) {
+void SharedHitbox::OnUpdate(float _elapsed) {
   cooldown -= _elapsed;
   
   tile->AffectEntities(this);
@@ -32,11 +32,11 @@ void SharedHitBox::OnUpdate(float _elapsed) {
   Obstacle::Update(_elapsed);
 }
 
-bool SharedHitBox::Move(Direction _direction) {
+bool SharedHitbox::Move(Direction _direction) {
   return false;
 }
 
-const bool SharedHitBox::OnHit(const Hit::Properties props) {
+const bool SharedHitbox::OnHit(const Hit::Properties props) {
   Character* c = dynamic_cast<Character*>(owner);
 	
   if(c) {
@@ -47,7 +47,7 @@ const bool SharedHitBox::OnHit(const Hit::Properties props) {
   return false;
 }
 
-void SharedHitBox::Attack(Character* _entity) {
+void SharedHitbox::Attack(Character* _entity) {
   if(_entity->GetID() == owner->GetID()) return;
   
   if(owner) {
@@ -58,7 +58,7 @@ void SharedHitBox::Attack(Character* _entity) {
   this->Delete();
 }
 
-const float SharedHitBox::GetHeight() const {
+const float SharedHitbox::GetHeight() const {
     if(Character* c = dynamic_cast<Character*>(owner)) { return c->GetHeight(); }
     else { return 0; }
 }

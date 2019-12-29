@@ -13,7 +13,7 @@
 #include "bnEngine.h"
 #include "bnExplodeState.h"
 #include "bnDefenseVirusBody.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 #include <cmath>
 
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
@@ -367,7 +367,7 @@ AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : Defens
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 const bool AlphaCore::AlphaCoreDefenseRule::Check(Spell* in, Character* owner) {
   // Drop a 0 damage hitbox to block/trigger attack hits
-  owner->GetField()->AddEntity(*new HitBox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+  owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
 
   if (static_cast<AlphaCore*>(owner)->impervious) return true;
 

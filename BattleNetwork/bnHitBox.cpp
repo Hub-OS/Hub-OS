@@ -1,13 +1,13 @@
 #include <random>
 #include <time.h>
 
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
+Hitbox::Hitbox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
   hit = false;
   damage = _damage;
 
@@ -18,25 +18,25 @@ HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
   callback = 0;
 }
 
-HitBox::~HitBox() {
+Hitbox::~Hitbox() {
 }
 
-void HitBox::OnUpdate(float _elapsed) {
+void Hitbox::OnUpdate(float _elapsed) {
   tile->AffectEntities(this);
   this->Delete();
 }
 
-bool HitBox::Move(Direction _direction) {
+bool Hitbox::Move(Direction _direction) {
   return false;
 }
 
-void HitBox::Attack(Character* _entity) {
+void Hitbox::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties()) && callback) {
     callback(_entity);
   }
 }
 
-void HitBox::AddCallback(decltype(callback) callback)
+void Hitbox::AddCallback(decltype(callback) callback)
 {
   this->callback = callback;
 }

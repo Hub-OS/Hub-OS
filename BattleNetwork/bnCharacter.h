@@ -193,8 +193,8 @@ public:
    */
   const bool CheckDefenses(Spell* in);
 
-  void ShareHitboxDamage(Character* to);
-  void CancelShareHitboxDamage(Character* to);
+  void SharedHitboxDamage(Character* to);
+  void CancelSharedHitboxDamage(Character* to);
 
 private:
   int maxHealth;

@@ -8,7 +8,7 @@
  * and need to account for hitting the player. Overall hitbox is a spell that can be used as a tool
  * to design more complex attacks that do not behave in a simple way 
  */
-class HitBox : public Spell {
+class Hitbox : public Spell {
 private:
   int damage; /*!< how many units of damage to deal */
   bool hit; /*!< Flag if hit last frame */
@@ -18,12 +18,12 @@ public:
   /**
    * @brief disables tile highlighting by default
    */
-  HitBox(Field* _field, Team _team, int damage = 0);
+  Hitbox(Field* _field, Team _team, int damage = 0);
   
   /**
    * @brief deconstructor
    */
-  ~HitBox();
+  ~Hitbox();
 
   /**
    * @brief Attacks tile and deletes itself

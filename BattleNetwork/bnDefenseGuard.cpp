@@ -2,7 +2,7 @@
 #include "bnEntity.h"
 #include "bnField.h"
 #include "bnSpell.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 #include "bnGuardHit.h"
 
 DefenseGuard::DefenseGuard(DefenseGuard::Callback callback) : callback(callback), DefenseRule(Priority(1))
@@ -21,7 +21,7 @@ const bool DefenseGuard::Check(Spell * in, Character* owner)
     this->callback(in, owner);
 
     owner->GetField()->AddEntity(*new GuardHit(owner->GetField(), owner, true), owner->GetTile()->GetX(), owner->GetTile()->GetY());
-    owner->GetField()->AddEntity(*new HitBox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+    owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
 
     return true; // Guard disallows an attack to passthrough
   }

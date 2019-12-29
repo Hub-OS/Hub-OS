@@ -11,7 +11,7 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3
 
-CrackShotChipAction::CrackShotChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SWORD", &attachment, "BUSTER") {
+CrackShotChipAction::CrackShotChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
   this->damage = damage;
 
   overlay.setTexture(*owner->getTexture());

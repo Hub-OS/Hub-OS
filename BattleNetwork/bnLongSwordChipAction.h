@@ -5,10 +5,10 @@
 
 class SpriteSceneNode;
 class Character;
-class ElecSwordChipAction : public SwordChipAction {
+class LongSwordChipAction : public SwordChipAction {
 public:
-  ElecSwordChipAction(Character* owner, int damage);
-  ~ElecSwordChipAction();
+  LongSwordChipAction(Character* owner, int damage);
+  ~LongSwordChipAction();
   void OnSpawnHitbox();
 };
 

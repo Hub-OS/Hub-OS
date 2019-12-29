@@ -3,7 +3,7 @@
 #include "bnSpell.h"
 #include "bnAnimation.h"
 
-class HitBox;
+class Hitbox;
 
 class Bees : public Spell {
 protected:
@@ -15,7 +15,7 @@ protected:
   SpriteSceneNode* shadow;
   Bees* leader;/*!< which bee to follow*/
   float attackCooldown; 
-  std::list<HitBox*> dropped;
+  std::list<Hitbox*> dropped;
 public:
   Bees(Field* _field, Team _team, int damage);
   Bees(Bees& leader);

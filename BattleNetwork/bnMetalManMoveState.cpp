@@ -1,5 +1,5 @@
 #include "bnMetalMan.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnMetalManIdleState.h"

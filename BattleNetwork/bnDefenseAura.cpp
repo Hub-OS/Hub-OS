@@ -3,7 +3,7 @@
 #include "bnField.h"
 #include "bnSpell.h"
 #include "bnGuardHit.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 
 DefenseAura::DefenseAura(DefenseAura::Callback callback) : DefenseRule(Priority(4))
 {
@@ -21,7 +21,7 @@ DefenseAura::~DefenseAura()
 const bool DefenseAura::Check(Spell * in, Character* owner)
 {
   // Drop a 0 damage hitbox to block/trigger attack hits
-  owner->GetField()->AddEntity(*new HitBox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+  owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
 
   if(callback) { callback(in, owner); }
   

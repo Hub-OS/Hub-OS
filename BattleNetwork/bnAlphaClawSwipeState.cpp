@@ -14,7 +14,7 @@ void AlphaClawSwipeState::OnEnter(AlphaCore& a) {
 
   leftArm = rightArm = nullptr;
 
-  if (last != a.GetTarget()->GetTile()) {
+  if (a.GetTarget() && last != a.GetTarget()->GetTile()) {
     if (a.GetTarget()->GetTile()) {
       last = a.GetTarget()->GetTile();
     }
@@ -36,12 +36,10 @@ void AlphaClawSwipeState::OnEnter(AlphaCore& a) {
   else {
     field->AddEntity(*rightArm, last->GetX(), 1);
   }
-
-
 }
 
 void AlphaClawSwipeState::OnUpdate(float _elapsed, AlphaCore& a) {
-  if (last != a.GetTarget()->GetTile()) {
+  if (a.GetTarget() && last != a.GetTarget()->GetTile()) {
     if (a.GetTarget()->GetTile()) {
       last = a.GetTarget()->GetTile();
     }

@@ -1,6 +1,6 @@
 #include "bnProgsManPunchState.h"
 #include "bnProgsMan.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 
 ProgsManPunchState::ProgsManPunchState() : AIState<ProgsMan>()
 {
@@ -35,7 +35,7 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
 
     if (next) {
       // Spawn a hurt box 
-      HitBox* hitbox = new HitBox(progs.GetField(), progs.GetTeam(), 100);
+      Hitbox* hitbox = new Hitbox(progs.GetField(), progs.GetTeam(), 100);
       auto props = hitbox->GetHitboxProperties();
       props.flags = props.flags | Hit::breaking | Hit::flinch;
       props.aggressor = &progs;

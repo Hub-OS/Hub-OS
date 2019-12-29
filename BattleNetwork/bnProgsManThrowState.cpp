@@ -14,6 +14,9 @@ ProgsManThrowState::~ProgsManThrowState()
 
 void ProgsManThrowState::OnEnter(ProgsMan& progs) {
   auto spawnBomb = [this, &progs]() { 
+    if (!progs.GetTarget())
+      return;
+
     // Spawn the bomb with the sprite position where Progsman is
     auto startPos = progs.GetTile()->getPosition();
     startPos.y -= 60.0f;

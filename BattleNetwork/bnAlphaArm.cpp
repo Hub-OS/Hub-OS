@@ -100,6 +100,8 @@ bool AlphaArm::CanMoveTo(Battle::Tile * next)
 }
 
 void AlphaArm::OnUpdate(float _elapsed) {
+  if (isFinished) { this->Delete(); }
+
   totalElapsed += _elapsed;
   float delta = std::sin(10.0f*totalElapsed+1.0f);
 

@@ -1,7 +1,7 @@
 #include "bnAlphaRocket.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 #include "bnExplosion.h"
 #include "bnAura.h"
 #include "bnTextureResourceManager.h"
@@ -120,7 +120,7 @@ void AlphaRocket::OnDelete()
   });
 
   for (auto t : adj) {
-    HitBox* box = new HitBox(GetField(), GetTeam(), 200);
+    Hitbox* box = new Hitbox(GetField(), GetTeam(), 200);
     Explosion* exp = new Explosion(GetField(), GetTeam());
 
     box->SetHitboxProperties(this->GetHitboxProperties());

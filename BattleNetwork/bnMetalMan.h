@@ -25,13 +25,13 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~MetalMan();
+  ~MetalMan();
 
   /**
    * @brief Forces a move on metalman if he was stunned. Updates AI. Explodes when health is zero.
    * @param _elapsed in seconds
     */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
   
   /**
    * @brief If the next tile does not contain obstacles or characters, Metalman can move to it
@@ -40,20 +40,20 @@ public:
    * 
    * NOTE: Does not matter if either criteria has CanShareTile() enabled, metalman avoids it
    */
-  virtual bool CanMoveTo(Battle::Tile * next);
+  bool CanMoveTo(Battle::Tile * next);
   
   /**
    * @brief Delegates work to animationComponent
    * @param _state new animation state
    * @param onFinish when finish ends callback
    */
-  virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
+  void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
   
   /**
    * @brief Toggles counter flag for this frame
    * @param frame the animation frame to toggle counter flag for
    */
-  virtual void SetCounterFrame(int frame);
+  void SetCounterFrame(int frame);
   
   /**
    * @brief Adds a callback when the frame is reached
@@ -62,16 +62,16 @@ public:
    * @param onLeave the callback when leaving the frame
    * @param doOnce if true, callbacks never fire again, otherwise fire every time this fame
    */
-  virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
+  void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
 
   /**
    * @brief If hit while on opponents side, requests a move next frame
    * @param props hit properties
    * @return true if hit, false if missed
    */
-  virtual const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete();
+  void OnDelete();
   
   /**
    * @brief Get the hit height for metalman
@@ -79,7 +79,7 @@ public:
    * 
    * Used by spells that emit particle artifacts on hit
    */
-  virtual const float GetHeight() const;
+  const float GetHeight() const;
 
 private:
   AnimationComponent* animationComponent; /*!< animates this sprite scene node */
@@ -90,5 +90,4 @@ private:
 
   bool movedByStun; /*!< If metalman was stunned outside of this area, move him back to his space */
   bool hit; /*!< Flash white if his this frame */
-
 };

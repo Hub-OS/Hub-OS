@@ -1,0 +1,8 @@
+imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/mobs/kettle/kettle_atlas.png"
+
+animation state="IDLE"
+
+animation state="ANGRY"
+
+animation state="NO_TOP"
+frame duration="0.05" x="67" y="65" w="44" h="34" originx="26" originy="21"
