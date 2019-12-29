@@ -28,20 +28,13 @@ Mob* ProgsManBossFight::Build() {
   mob->RegisterRankedReward(1, BattleItem(Chip(100, 139, 'Y', 0, Element::NONE, "YoYo", "", "", 0)));
   mob->RegisterRankedReward(4, BattleItem(Chip(100, 139, '*', 0, Element::NONE, "YoYo", "", "", 0)));
 
-  int x = (field->GetWidth() / 2) + 1;
+  int x = 5;
   int y = (field->GetHeight() / 2) + 1;
   
   mob->Spawn<RankEX<ProgsMan>>(x, y);
 
   Battle::Tile* tile = field->GetAt(x, y);
   if (!tile->IsWalkable()) { tile->SetState(TileState::NORMAL); }
-
-  for (auto tile : field->FindTiles([](Battle::Tile* t) {
-    return true;
-  })) {
-    tile->SetState(TileState::ICE);
-  }
-
 
 
   return mob;

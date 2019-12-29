@@ -14,19 +14,19 @@ public:
   } type;
 
   AlphaArm(Field * _field, Team _team, AlphaArm::Type type);
-  virtual ~AlphaArm();
+  ~AlphaArm();
 
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
 
-  virtual const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props);
  
-  virtual void OnDelete();
+  void OnDelete();
 
-  virtual bool CanMoveTo(Battle::Tile * next);
+  bool CanMoveTo(Battle::Tile * next);
 
-  virtual void Attack(Character* e);
+  void Attack(Character* e);
 
-  virtual const float GetHeight() const;
+  const float GetHeight() const;
 
   const bool IsSwiping() const;
 

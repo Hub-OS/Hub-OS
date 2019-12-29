@@ -33,7 +33,7 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~ProgsMan();
+  ~ProgsMan();
 
   /**
    * @brief Calls Character::Update() for battle resolution and updates animation
@@ -41,14 +41,14 @@ public:
    * 
    * When health is zero, changes to NaviExplosion state
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
 
   /**
    * @brief Delegates animation commands to animationComponent
    * @param _state the animation to change to
    * @param onFinish the callback that happens when the animation ends
    */
-  virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
+  void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
   
   /**
    * @brief Sets the animation at frame to toggle the counter flag
@@ -56,7 +56,7 @@ public:
    * 
    * When a spell attacks progsman with counter enabled, progsman is stunned
    */
-  virtual void SetCounterFrame(int frame);
+  void SetCounterFrame(int frame);
   
   /**
    * @brief Delegate animation commands to animationComponnent
@@ -65,26 +65,23 @@ public:
    * @param onLeave callbacks fire when leaving this frame
    * @param doOnce If true, the callbacks will fire and never fire again
    */
-  virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
+  void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
   
   /**
    * @brief Describes what happens when progsman gets hit
    * @param props the propeties progsman was hit with
    * @return true if hit, false if missed
    */
-  virtual const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete();
+  void OnDelete();
 
   /**
    * @brief Returns progsman's height 
    * @return const float
    */
-  virtual const float GetHeight() const;
+  const float GetHeight() const;
 private:
   AnimationComponent* animationComponent; /*!< component animates entities*/
 
-  float hitHeight; /*!< The height for progsman for any given frame */
-  string state; /*!< Animation name */
-  TextureType textureType; /*!< Progsman's texture */
 };

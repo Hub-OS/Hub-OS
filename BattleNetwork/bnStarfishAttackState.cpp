@@ -18,7 +18,7 @@ void StarfishAttackState::OnEnter(Starfish& star) {
     };
 	
     s->GetFirstComponent<AnimationComponent>()->SetAnimation("ATTACK", Animator::Mode::Loop);
-    s->OnFrameCallback(1, onAttack, std::function<void()>(), false);
+    s->OnFrameCallback(1, onAttack, Animator::NoCallback, false);
   };
 
 
@@ -48,6 +48,6 @@ void StarfishAttackState::DoAttack(Starfish& star) {
 	// On animation end, go back to idle
 	star.GetFirstComponent<AnimationComponent>()->AddCallback(5, [this, s = &star](){
 		s->ChangeState<StarfishIdleState>();
-	}, std::function<void()>(), false);
+	}, Animator::NoCallback, false);
   }
 }

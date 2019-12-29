@@ -25,7 +25,7 @@ protected:
 
   void AddAction(int frame, std::function<void()> action)
   {
-    anim->AddCallback(frame, action, std::function<void()>(), true);
+    anim->AddCallback(frame, action, Animator::NoCallback, true);
   }
 
   void RecallPreviousState() {

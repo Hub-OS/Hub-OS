@@ -47,8 +47,7 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
       metal->SetCounterFrame(1);
       metal->SetCounterFrame(2);
       metal->SetCounterFrame(3);
-      metal->OnFrameCallback(4, onGroundHit, std::function<void()>(), true);
-      metal->OnFrameCallback(7, onFinishPunch, std::function<void()>(), true);
+      metal->OnFrameCallback(4, onGroundHit, Animator::NoCallback, true);
     };
 
     metal.SetAnimation(MOB_MOVING, onFinish);

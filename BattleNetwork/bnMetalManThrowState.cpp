@@ -19,7 +19,7 @@ void MetalManThrowState::OnEnter(MetalMan& metal) {
   metal.SetAnimation("THROW", onFinish);
   metal.SetCounterFrame(1);
   metal.SetCounterFrame(2);
-  metal.OnFrameCallback(3, onThrow, std::function<void()>(), true);
+  metal.OnFrameCallback(3, onThrow, Animator::NoCallback, true);
 }
 
 void MetalManThrowState::OnLeave(MetalMan& metal) {

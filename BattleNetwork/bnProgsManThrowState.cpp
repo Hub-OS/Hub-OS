@@ -44,7 +44,7 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
   progs.SetCounterFrame(2);
   
   // Spawn the bomb on frame 3
-  progs.OnFrameCallback(3, spawnBomb, std::function<void()>(), true);
+  progs.OnFrameCallback(3, spawnBomb, Animator::NoCallback, true);
 }
 
 void ProgsManThrowState::OnLeave(ProgsMan& progs) {

@@ -19,7 +19,7 @@ public:
   virtual ~AnimatedCharacter();
 
   virtual const float GetHeight() const =0;
-  virtual void SetAnimation(string _state, std::function<void()> onFinish = std::function<void()>());
+  virtual void SetAnimation(string _state, std::function<void()> onFinish = Animator::NoCallback);
   virtual void SetCounterFrame(int frame);
   virtual void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
 };

@@ -2,6 +2,7 @@
 #include "bnAlphaArm.h"
 #include "bnAlphaClawSwipeState.h"
 #include "bnAlphaRocketState.h"
+#include "bnAlphaElectricState.h"
 #include "bnAlphaGunState.h"
 #include "bnObstacle.h"
 #include "bnMobMoveEffect.h"
@@ -111,7 +112,7 @@ AlphaCore::AlphaCore(Rank _rank)
   this->AddState<AlphaClawSwipeState>();
   this->AddState<AlphaClawSwipeState>();
   this->AddState<AlphaClawSwipeState>();
-  this->AddState<AlphaGunState>();
+  this->AddState<AlphaElectricState>();
   this->AddState<AlphaIdleState>();
   this->AddState<AlphaClawSwipeState>();
   this->AddState<AlphaClawSwipeState>();

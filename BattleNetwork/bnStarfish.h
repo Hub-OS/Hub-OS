@@ -15,23 +15,23 @@ public:
   using DefaultState = StarfishIdleState;
 
   Starfish(Rank _rank = Rank::_1);
-  virtual ~Starfish(void);
+  ~Starfish();
 
   /**
    * @brief Updates health ui, AI, and super classes
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
 
-  virtual const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props);
 
-  virtual void OnDelete();
+  void OnDelete();
   
   /**
    * @brief Set the hit height for projectiles to play effects at the correct position
    * @return Y offset
    */
-  virtual const float GetHeight() const;
+  const float GetHeight() const;
 
 private:
   float hitHeight;

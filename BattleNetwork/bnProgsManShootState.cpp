@@ -29,7 +29,7 @@ void ProgsManShootState::OnEnter(ProgsMan& progs) {
   progs.SetAnimation("SHOOT", onFinish);
   progs.SetCounterFrame(1);
   progs.SetCounterFrame(2);
-  progs.OnFrameCallback(3, spawnBuster, std::function<void()>(), true);
+  progs.OnFrameCallback(3, spawnBuster, Animator::NoCallback, true);
 }
 
 void ProgsManShootState::OnLeave(ProgsMan& progs) {

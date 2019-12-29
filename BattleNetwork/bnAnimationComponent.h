@@ -97,7 +97,7 @@ public:
    * @param state
    * @param playbackMode
    */
-  void SetAnimation(string state, char playbackMode, std::function<void()> onFinish = std::function<void()>());
+  void SetAnimation(string state, char playbackMode, std::function<void()> onFinish = Animator::NoCallback);
   
   /**
    * @brief Add a frame callback
@@ -106,7 +106,7 @@ public:
    * @param outFrame Callback when frame is left
    * @param doOnce Toggle if the callback should be fired every time the animation loops or just once
    */
-  void AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame = std::function<void()>(), bool doOnce = false);
+  void AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame = Animator::NoCallback, bool doOnce = false);
   
   /**
    * @brief Clears callbacks

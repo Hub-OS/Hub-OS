@@ -96,7 +96,7 @@ void ProtoManSummon::DoAttackStep() {
     }
 
 		this->targets.erase(targets.begin());
-	}, std::function<void()>(), true);
+	}, Animator::NoCallback, true);
   }
   else {
 	this->animationComponent->SetAnimation("MOVE", [this] {

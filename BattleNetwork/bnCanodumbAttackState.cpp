@@ -35,7 +35,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
   }
 
   can.SetCounterFrame(2);
-  can.OnFrameCallback(1, spawnSmoke, std::function<void()>(), true);
+  can.OnFrameCallback(1, spawnSmoke, Animator::NoCallback, true);
 }
 
 void CanodumbAttackState::OnUpdate(float _elapsed, Canodumb& can) {

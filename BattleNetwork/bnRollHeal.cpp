@@ -96,9 +96,9 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell(_summons->Get
         });
 
         if (attack) {
-          this->animationComponent->AddCallback(4,  [this, attack]() { attack->AffectEntities(this); }, std::function<void()>(), true);
-          this->animationComponent->AddCallback(12, [this, attack]() { attack->AffectEntities(this); }, std::function<void()>(), true);
-          this->animationComponent->AddCallback(20, [this, attack]() { attack->AffectEntities(this); }, std::function<void()>(), true);
+          this->animationComponent->AddCallback(4,  [this, attack]() { attack->AffectEntities(this); }, Animator::NoCallback, true);
+          this->animationComponent->AddCallback(12, [this, attack]() { attack->AffectEntities(this); }, Animator::NoCallback, true);
+          this->animationComponent->AddCallback(20, [this, attack]() { attack->AffectEntities(this); }, Animator::NoCallback, true);
         }
       }
       else {

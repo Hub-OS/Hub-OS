@@ -25,6 +25,7 @@ Starfish::Starfish(Rank _rank)
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Load();
   animationComponent->SetAnimation("IDLE");
+  animationComponent->SetPlaybackMode(Animator::Mode::Loop);
 
   hitHeight = 60;
 

@@ -23,7 +23,9 @@ private:
   double elapsed;
   sf::Text options;
 public:
-  Question(std::string message, std::function<void()> onYes = std::function<void()>(), std::function<void()> onNo = std::function<void()>());
+  inline static const std::function<void()> NoCallback = []() {};
+
+  Question(std::string message, std::function<void()> onYes = Question::NoCallback, std::function<void()> onNo = Question::NoCallback);
   ~Question();
 
   /**

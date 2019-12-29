@@ -17,15 +17,12 @@ ProgsMan::ProgsMan(Rank _rank)
   name = "ProgsMan";
   this->team = Team::BLUE;
   SetHealth(1200);
-  hitHeight = 64;
-  state = MOB_IDLE;
-  textureType = TextureType::MOB_PROGSMAN_ATLAS;
 
   if (_rank == ProgsMan::Rank::EX) {
     SetHealth(2500);
   }
 
-  setTexture(*TEXTURES.GetTexture(textureType));
+  setTexture(*TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_ATLAS));
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
@@ -51,8 +48,6 @@ void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::fu
 void ProgsMan::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
-  hitHeight = getLocalBounds().height;
-
   this->AI<ProgsMan>::Update(_elapsed);
 }
 
@@ -63,6 +58,7 @@ void ProgsMan::OnDelete() {
 
 const bool ProgsMan::OnHit(const Hit::Properties props) {
   if ((props.flags & Hit::recoil) == Hit::recoil) {
+    FinishMove();
     this->ChangeState<ProgsManHitState>();
   }
 
@@ -70,7 +66,7 @@ const bool ProgsMan::OnHit(const Hit::Properties props) {
 }
 
 const float ProgsMan::GetHeight() const {
-  return hitHeight;
+  return 64.0f;
 }
 
 void ProgsMan::SetCounterFrame(int frame)
@@ -81,7 +77,6 @@ void ProgsMan::SetCounterFrame(int frame)
 }
 
 void ProgsMan::SetAnimation(string _state, std::function<void()> onFinish) {
-  state = _state;
   animationComponent->SetAnimation(_state, onFinish);
   animationComponent->OnUpdate(0);
 }

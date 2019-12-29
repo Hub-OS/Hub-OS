@@ -105,11 +105,11 @@ void AlphaArm::OnUpdate(float _elapsed) {
   totalElapsed += _elapsed;
   float delta = std::sin(10.0f*totalElapsed+1.0f);
 
-  if (type == Type::RIGHT_SWIPE) {
-    if (canChangeTileState) {
-      setColor(sf::Color::Yellow);
-    }
+  if (canChangeTileState) {
+    setColor(sf::Color::Yellow);
+  }
 
+  if (type == Type::RIGHT_SWIPE) {
     blueShadowTimer += _elapsed;
     
     if (blueShadowTimer > 1.0f / 60.0f) {

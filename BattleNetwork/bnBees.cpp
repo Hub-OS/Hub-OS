@@ -158,7 +158,7 @@ void Bees::OnUpdate(float _elapsed) {
 
   if (!this->IsSliding()) {
     if (target) {
-      if (target->GetTile() && turnCount < 3) {
+      if (target->GetTile() && turnCount < 2) {
         if (wasMovingVertical) {
           if (target->GetTile()->GetX() < tile->GetX()) {
             direction = Direction::LEFT;

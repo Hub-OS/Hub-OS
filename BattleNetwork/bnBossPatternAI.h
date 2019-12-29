@@ -159,8 +159,6 @@ public:
     isUpdating = true;
 
     if (interruptState) {
-      Logger::Log("Boss pattern AI was interrupted");
-
       if (beginInterrupt) {
         stateMachine[stateIndex]->OnLeave(*ref);
         interruptState->OnEnter(*ref);

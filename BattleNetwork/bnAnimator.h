@@ -195,6 +195,8 @@ private:
   void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
 
 public:
+  inline static const std::function<void()> NoCallback = [](){};
+
   /**
    * @struct On
    * @author mav

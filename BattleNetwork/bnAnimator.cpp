@@ -89,45 +89,6 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     return;
   }
 
-  // Determine if the progress has completed the animation
-  bool applyCallback = (sequence.totalDuration == 0 || (startProgress > sequence.totalDuration && startProgress > 0.f));
-
-  if (applyCallback) {
-    if (onFinish != nullptr) {
-      // If applicable, fire the onFinish callback
-      onFinish();
-
-      // If we do not loop the animation, empty the onFinish notifier. If we don't empty the notifier, this fires infinitely...
-      if ((playbackMode & Mode::Loop) != Mode::Loop) {
-        onFinish = nullptr;
-      }
-
-      // We've ended the loop
-      isUpdating = false;
-
-      // Callbacks are valid
-      callbacksAreValid = true;
-
-      // Insert any queued callbacks
-      callbacks.insert(queuedCallbacks.begin(), queuedCallbacks.end());
-      queuedCallbacks.clear();
-
-      // Insert any queued one-time callbacks
-      onetimeCallbacks.insert(queuedOnetimeCallbacks.begin(), queuedOnetimeCallbacks.end());
-      queuedOnetimeCallbacks.clear();
-
-      // If any queued onFinish notifiers...
-      if (queuedOnFinish) {
-        // Add it
-        onFinish = queuedOnFinish;
-        queuedOnFinish = nullptr;
-      }
-
-      // End
-      return;
-    }
-  }
-
   // We may modify the frame order, make a copy
   std::vector<Frame> copy = sequence.frames;
 
@@ -160,6 +121,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
 
       callbackIter = callbacks.begin();
 
+      // step through and execute any callbacks that haven't triggerd up to this frame
       while (callbacksAreValid && callbackIter != callbackFind && callbackFind != this->callbacks.end()) {
         if (callbackIter->second) {
           callbackIter->second();
@@ -174,11 +136,11 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
         // Erase the callback so we don't fire again
         callbackIter = callbacks.erase(callbackIter);
 
-        // Find the callback at the given index
+        // Find the callback at the given index b/c iterator will be invalidated
         callbackFind = callbacks.find(index);
       }
 
-      // If callbacks are ok and the iterator matches the expected position
+      // If callbacks are ok and the iterator matches the expected frame
       if (callbacksAreValid && callbackIter == callbackFind && callbackFind != this->callbacks.end()) {
         if (callbackIter->second) {
           callbackIter->second();
@@ -200,7 +162,22 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
         }
       }
 
-      // If the playback mode ws set to loop...
+      // Determine if the progress has completed the animation
+      bool applyCallback = (sequence.totalDuration == 0 || (startProgress > sequence.totalDuration && startProgress > 0.f));
+
+      if (applyCallback) {
+        if (onFinish != nullptr) {
+          // If applicable, fire the onFinish callback
+          onFinish();
+
+          // If we do not loop the animation, empty the onFinish notifier. If we don't empty the notifier, this fires infinitely...
+          if ((playbackMode & Mode::Loop) != Mode::Loop) {
+            onFinish = nullptr;
+          }
+        }
+      }
+
+      // If the playback mode was set to loop...
       if ((playbackMode & Mode::Loop) == Mode::Loop && progress > 0.f && &(*iter) == &copy.back()) {
         // But it was also set to bounce, reverse the list and start over
         if ((playbackMode & Mode::Bounce) == Mode::Bounce) {
