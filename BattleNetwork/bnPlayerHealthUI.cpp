@@ -8,35 +8,86 @@ using std::to_string;
 
 PlayerHealthUI::PlayerHealthUI(Player* _player)
   : player(_player), UIComponent(_player),
-    BattleOverTrigger<Player>(_player, [this](BattleScene& scene, Player& player) { this->isBattleOver = true; }) {
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
+    BattleOverTrigger<Player>(_player, [this](BattleScene& scene, Player& player) { this->isBattleOver = true; }) 
+{
+  
+  // TODO: move this to the preloaded textures      
   texture = TEXTURES.LoadTextureFromFile("resources/ui/img_health.png");
   sprite.setTexture(*texture);
   sprite.setPosition(3.f, 0.0f);
   sprite.setScale(2.f, 2.f);
 
+  glyphs.setTexture(LOAD_TEXTURE(PLAYER_HP_NUMSET));
+  glyphs.setScale(2.f, 2.f);
+
   lastHP = currHP = startHP = _player->GetHealth();
-  text = Text(to_string(currHP), *font);
-  text.setLetterSpacing(4.0f);
-  loaded = false;
+
   cooldown = 0;
 
   isBattleOver = false;
+  color = Color::NORMAL;
 }
 
 PlayerHealthUI::~PlayerHealthUI() {
 }
 
-void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-  states.transform *= this->getTransform();
+void PlayerHealthUI::Inject(BattleScene & scene)
+{
+  this->BattleOverTrigger::Inject(scene);
+}
 
-  target.draw(sprite, states);
-  target.draw(text, states);
+void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  auto this_states = states;
+  this_states.transform *= this->getTransform();
+
+  // Glyphs are 8x11
+  // First glyph is 0 the last is 9
+  // 1px space between colors
+  target.draw(sprite, this_states);
+
+  const std::string currHPStr = std::to_string(currHP);
+
+  int size = (int)(currHPStr.size());
+  int hp = currHP;
+  float offsetx = -((size)*8.0f)*glyphs.getScale().x;
+  int index = 0;
+  while (index < size) {
+    const char c = currHPStr[index];
+    int number = std::atoi(&c);
+
+    int col = number*8;
+    int row = 0;
+
+    if (color == Color::ORANGE) {
+      row = 11;
+    }
+    else if (color == Color::GREEN) {
+      row = 22;
+    }
+
+    glyphs.setTextureRect(sf::IntRect(col, row, 8, 11));
+    glyphs.setPosition(sf::Vector2f(offsetx-8.f, 6.0f) + sf::Vector2f(sprite.getLocalBounds().width*sprite.getScale().x, 0.f));
+
+    // Draw using transforms from parent so we can attach this to the chip cust
+    target.draw(glyphs, this_states);
+
+    offsetx += 8.0f*glyphs.getScale().x;
+    
+    // Move onto the next number
+    index++;
+  }
+
   UIComponent::draw(target, states);
 }
 
-void PlayerHealthUI::Update(float elapsed) {
-  this->BattleOverTrigger<Player>::Update(elapsed);
+/*
+HP drop is not 1 unit per frame. It is:
+10 per frame if difference is 100 or more
+~5 per frame if difference is 99-40 range
+-3 per frame for anything lower
+*/
+void PlayerHealthUI::OnUpdate(float elapsed) {
+  this->BattleOverTrigger<Player>::OnUpdate(elapsed);
 
   if (player) {
     if (player->IsDeleted()) {
@@ -44,17 +95,39 @@ void PlayerHealthUI::Update(float elapsed) {
       return;
     }
 
-    if (!loaded) {
-      lastHP = currHP = player->GetHealth();
-      loaded = true;
-    }
-
     if (lastHP != player->GetHealth()) {
       if (currHP > player->GetHealth()) {
-        currHP -= 1;
+        int diff = currHP - player->GetHealth();
+
+        if (diff >= 100) {
+          currHP -= 10;
+        }
+        else if (diff >= 40) {
+          currHP -= 5;
+        }
+        else if (diff >= 3) {
+          currHP -= 3;
+        }
+        else {
+          currHP--;
+        }
+
         cooldown = 0.5; // seconds
       } else if (currHP < player->GetHealth()) {
-        currHP += 1;
+        int diff = player->GetHealth() - currHP;
+
+        if (diff >= 100) {
+          currHP += 10;
+        }
+        else if (diff >= 40) {
+          currHP += 5;
+        }
+        else if (diff >= 3) {
+          currHP += 3;
+        }
+        else {
+          currHP++;
+        }
       } else {
         lastHP = currHP;
       }
@@ -63,16 +136,13 @@ void PlayerHealthUI::Update(float elapsed) {
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
 
-    text.setFillColor(sf::Color::White);
-    text.setString(to_string(currHP));
-    text.setOrigin(text.getLocalBounds().width, 0);
-    text.setPosition(75.0f, -4.f);
-    //text.setScale(0.8f, 0.8f);
+    color = Color::NORMAL;
 
     bool isBurning = false;
     bool isPoisoned = false;
 
-    if (player->GetTile()) {
+    // If the player is burning or poisoned, turn red to alert them
+    if (player->GetTile() && !(player->HasAirShoe() || player->HasFloatShoe())) {
       isBurning = player->GetTile()->GetState() == TileState::LAVA;
       isBurning = isBurning && player->GetElement() != Element::FIRE;
       isBurning = isBurning && !player->HasFloatShoe();
@@ -80,16 +150,14 @@ void PlayerHealthUI::Update(float elapsed) {
     }
 
     if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0 || player->GetHealth() <= startHP * 0.5) {
-      text.setFillColor(sf::Color(255, 165, 0));
+      color = Color::ORANGE;
 
+      // If HP is low, play beep with high priority 
       if (player->GetHealth() <= startHP * 0.5 && !isBattleOver) {
         AUDIO.Play(AudioType::LOW_HP, AudioPriority::HIGH);
       }
     } else if (currHP < player->GetHealth()) {
-      text.setFillColor(sf::Color(0, 255, 80));
+      color = Color::GREEN;
     }
-
-    text.setOutlineColor(sf::Color(48, 56, 80));
-    text.setOutlineThickness(2.f);
   }
 }

@@ -1,8 +1,10 @@
 #include "bnEngine.h"
 #include <time.h>       /* time */
-#include <SFML\Window\ContextSettings.hpp>
+#include <SFML/Window/ContextSettings.hpp>
 
 #include "mmbn.ico.c"
+#include "bnShaderType.h"
+#include "bnShaderResourceManager.h"
 
 Engine& Engine::GetInstance() {
   static Engine instance;
@@ -10,16 +12,25 @@ Engine& Engine::GetInstance() {
 }
 
 void Engine::Initialize() {
+  // center, size
   view = sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320));
-  original = view; // never changes 
   cam = new Camera(view);
+  window = nullptr;
 
-  sf::ContextSettings ctx;
-  ctx.antialiasingLevel = 8;
+#ifdef __ANDROID__
+  // TODO: does the engine need to find the smallest or does this ratio work
+  // auto videoMode = VideoMode::getFullscreenModes().front();
+  videoMode.width = unsigned int(480.0f);
+  videoMode.height = unsigned int(320.0f);
+#else
+  auto videoMode = VideoMode(480, 320);
+#endif
+  window = new RenderWindow(videoMode, "Battle Network: Progs Edition");
 
-  window = new RenderWindow(VideoMode((unsigned int)view.getSize().x, (unsigned int)view.getSize().y), "Battle Network: Progs Edition", 7U, ctx);
+  this->Resize((int)view.getSize().x, (int)view.getSize().y);
+
   window->setFramerateLimit(60);
-  window->setMouseCursorVisible(false); // Hide cursor
+  // window->setMouseCursorVisible(false); // Hide cursor
 
   window->setIcon(sfml_icon.width, sfml_icon.height, sfml_icon.pixel_data);
 
@@ -31,7 +42,15 @@ void Engine::Draw(Drawable& _drawable, bool applyShaders) {
   if (!HasRenderSurface()) return;
 
   if (applyShaders) {
-    surface->draw(_drawable, state);
+    auto stateCopy = state;
+
+#ifdef __ANDROID__
+    if(!stateCopy.shader) {
+      stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    }
+#endif 
+
+    surface->draw(_drawable, stateCopy);
   } else {
     surface->draw(_drawable);
   }
@@ -45,19 +64,27 @@ void Engine::Draw(Drawable* _drawable, bool applyShaders) {
   }
 
   if (applyShaders) {
-    surface->draw(*_drawable, state);
+    auto stateCopy = state;
+
+#ifdef __ANDROID__
+    if(!stateCopy.shader) {
+      stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+    }
+#endif
+
+    surface->draw(*_drawable, stateCopy);
   } else {
     surface->draw(*_drawable);
   }
 }
 
-void Engine::Draw(LayeredDrawable* _drawable) {
+void Engine::Draw(SpriteSceneNode* _drawable) {
   if (!HasRenderSurface()) return;
 
   // For now, support at most one shader.
   // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
-  LayeredDrawable* context = _drawable;
+  SpriteSceneNode* context = _drawable;
   SmartShader* shader = &context->GetShader();
 
   if (shader && shader->Get()) {
@@ -74,7 +101,7 @@ void Engine::Draw(LayeredDrawable* _drawable) {
     context->draw(*surface, state);
   }
 }
-void Engine::Draw(vector<LayeredDrawable*> _drawable) {
+void Engine::Draw(vector<SpriteSceneNode*> _drawable) {
   if (!HasRenderSurface()) return;
 
   auto it = _drawable.begin();
@@ -106,7 +133,7 @@ void Engine::Draw(vector<LayeredDrawable*> _drawable) {
     // For now, support at most one shader.
     // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
-    LayeredDrawable* context = *it;
+    SpriteSceneNode* context = *it;
     SmartShader& shader = context->GetShader();
     if (shader.Get() != nullptr) {
       shader.ApplyUniforms();
@@ -143,9 +170,6 @@ void Engine::Clear() {
     surface->clear();
   }
 
-  underlay.Clear();
-  layers.Clear();
-  overlay.Clear();
   window->clear();
 }
 
@@ -153,70 +177,34 @@ RenderWindow* Engine::GetWindow() const {
   return window;
 }
 
-Engine::Engine(void)
-  : layers(Layers()),
-  overlay(Overlay()),
-  underlay(Underlay()) {
+Engine::Engine()
+{
 
   cam = new Camera(view);
 }
 
-Engine::~Engine(void) {
+Engine::~Engine() {
   delete window;
 }
 
 const sf::Vector2f Engine::GetViewOffset() {
-  return GetDefaultView().getCenter() - cam->GetView().getCenter();
-}
-
-void Engine::Push(LayeredDrawable* _drawable) {
-  if (_drawable) {
-    layers.Insert(_drawable);
-  }
-}
-
-void Engine::Lay(LayeredDrawable* _drawable) {
-  if (_drawable) {
-    overlay.Push(_drawable);
-  }
-}
-
-void Engine::Lay(vector<sf::Drawable*> _drawable) {
-  auto it = _drawable.begin();
-  for (it; it != _drawable.end(); ++it) {
-    if (*it) {
-      overlay.Push(*it);
-    }
-  }
-}
-
-void Engine::LayUnder(sf::Drawable* _drawable) {
-  if (_drawable) {
-    underlay.Push(_drawable);
-  }
-}
-
-void Engine::DrawLayers() {
-  for (int i = layers.min; i <= layers.max; i++) {
-    Draw(layers.At(i));
-  }
-}
-
-void Engine::DrawOverlay() {
-  Draw(overlay, false);
-}
-
-void Engine::DrawUnderlay() {
-  Draw(underlay);
+  return GetView().getCenter() - cam->GetView().getCenter();
 }
 
 void Engine::SetShader(sf::Shader* shader) {
-
+#ifdef __ANDROID__
   if (shader == nullptr) {
-    state = sf::RenderStates::Default;
+    state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+
+    if(HasRenderSurface()) {
+      surface->setDefaultShader(SHADERS.GetShader(ShaderType::DEFAULT));
+    }
   } else {
     state.shader = shader;
   }
+#else 
+  state.shader = shader;
+#endif
 }
 
 void Engine::RevokeShader() {
@@ -232,8 +220,46 @@ const bool Engine::IsMouseHovering(sf::Sprite & sprite) const
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }
 
-const sf::View Engine::GetDefaultView() {
-  return original;
+void Engine::RegainFocus()
+{
+
+}
+
+void Engine::Resize(int newWidth, int newHeight)
+{
+  float windowRatio = (float)newWidth / (float)newHeight;
+
+  float viewRatio = view.getSize().x / view.getSize().y;
+  float sizeX = 1;
+  float sizeY = 1;
+  float posX = 0;
+  float posY = 0;
+
+  bool horizontalSpacing = true;
+  if (windowRatio < viewRatio) {
+    horizontalSpacing = false;
+  }
+
+  // If horizontalSpacing is true, the black bars will appear on the left and right side.
+  // Otherwise, the black bars will appear on the top and bottom.
+
+  if (horizontalSpacing) {
+    sizeX = viewRatio / windowRatio;
+    posX = (1 - sizeX) / 2.f;
+
+  }
+  else {
+    sizeY = windowRatio / viewRatio;
+    posY = (1 - sizeY) / 2.f;
+  }
+
+  view.setViewport(sf::FloatRect(posX, posY, sizeX, sizeY));
+
+  window->setView(view);
+}
+
+const sf::View Engine::GetView() {
+  return view;
 }
 
 Camera* Engine::GetCamera()

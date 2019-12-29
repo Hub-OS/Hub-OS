@@ -3,10 +3,12 @@
 #include "bnEnemyChipsUI.h"
 #include "bnChip.h"
 
-/*
-Spawn a character with chips
-*/
-
+/**
+ * @class ChipSpawnPolicyChipset
+ * @author mav
+ * @date 05/05/19
+ * @brief Spawn a character with hard-coded chip values
+ */
 class ChipSpawnPolicyChipset {
 public:
   std::vector<Chip> chips;
@@ -34,6 +36,13 @@ protected:
   }
 };
 
+
+/**
+ * @class ChipsSpawnPolicy
+ * @author mav
+ * @date 05/05/19
+ * @brief Spawn an entity with chips
+ */
 template<class T, class DefaultState = NoState<T>, class ChipSet = ChipSpawnPolicyChipset>
 class ChipsSpawnPolicy : public SpawnPolicy<T> {
 private:
@@ -70,12 +79,13 @@ public:
     this->Spawn(new T(T::Rank::_1));
 
     EnemyChipsUI* ui = new EnemyChipsUI(this->GetSpawned());
-    GetSpawned()->RegisterComponent(ui);
+    this->GetSpawned()->RegisterComponent(ui);
 
     ui->LoadChips(ChipSpawnPolicyChipset().chips);
-    mob.DelegateComponent(ui);
+    //mob.DelegateComponent(ui);
 
     Component* healthui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(healthui);
+    //mob.DelegateComponent(healthui);
   }
 };

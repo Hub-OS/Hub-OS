@@ -1,5 +1,6 @@
 #include "bnCamera.h"
 #include <iostream>
+#include <cmath>
 
 Camera::Camera(const sf::View& view) : focus(view)
 {
@@ -8,7 +9,7 @@ Camera::Camera(const sf::View& view) : focus(view)
   dur = sf::milliseconds((sf::Int32)progress);
   shakeProgress = 1.f;
   shakeDur = dur;
-  init = view;
+  init = focus = view;
   isShaking = false;
 }
 
@@ -28,25 +29,29 @@ Camera::~Camera()
 }
 
 void Camera::Update(float elapsed) {
+  // Compare as milliseconds
   progress += elapsed*1000;
   shakeProgress += elapsed*1000;
 
+  // If progress is over, update position to the dest
   if (sf::Time(sf::milliseconds((sf::Int32)progress)) >= dur) {
     PlaceCamera(dest);
   }
-  else {
+  else {  
+    // Otherwise calculate the delta
     sf::Vector2f delta = (dest - origin) * (progress / dur.asMilliseconds()) + origin;
     PlaceCamera(delta);
   }
 
   if (isShaking) {
-    if (sf::Time(sf::milliseconds((sf::Int32)shakeProgress)) < shakeDur) {
+    if (sf::Time(sf::milliseconds((sf::Int32)shakeProgress)) <= shakeDur) {
       // Drop off to zero by end of shake
-      double currStress = stress * (1 - (shakeProgress / shakeDur.asMilliseconds()));
+      double currStress = stress *(1 - (shakeProgress / shakeDur.asMilliseconds()));
 
-      double factor = (-currStress) + (double)((double)(currStress - (-currStress)) * (rand() / (RAND_MAX + 1.0)));
-      double factor2 = (-currStress) + (double)((double)(currStress - (-currStress)) * (rand() / (RAND_MAX + 1.0)));
-      sf::Vector2f offset = sf::Vector2f((float)factor, (float)factor2);
+      int randomAngle = int(shakeProgress) * (rand() % 360);
+      randomAngle += (150 + (rand() % 60));
+
+      auto offset = sf::Vector2f(std::sin((float)randomAngle) * float(currStress), std::cos((float)randomAngle) * float(currStress));
 
       focus.setCenter(init.getCenter() + offset);
     }
@@ -54,6 +59,7 @@ void Camera::Update(float elapsed) {
       focus = init;
       dest = focus.getCenter();
       isShaking = false;
+      stress = 0;
     }
   }
 }
@@ -65,8 +71,9 @@ void Camera::MoveCamera(sf::Vector2f destination, sf::Time duration) {
   dur = duration;
 }
 
-void Camera::PlaceCamera(sf::Vector2f pos) { 
+void Camera::PlaceCamera(sf::Vector2f pos) {
   focus.setCenter(pos);
+  init = focus;
   dest = focus.getCenter();
 }
 
@@ -91,6 +98,8 @@ bool Camera::IsInView(sf::Sprite& sprite) {
 
 void Camera::ShakeCamera(double stress, sf::Time duration)
 {
+  if(isShaking) return;
+  
   init = focus;
   this->stress = stress;
   shakeDur = duration;

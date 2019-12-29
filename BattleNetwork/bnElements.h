@@ -1,7 +1,9 @@
 #pragma once
 
-// Elements based on MMBN 6
-// http://megaman.wikia.com/wiki/Elements
+/*! \brief Elements based on MMBN 6
+ * 
+ * http://megaman.wikia.com/wiki/Elements
+ */
 
 enum class Element : int {
   FIRE,
@@ -15,6 +17,6 @@ enum class Element : int {
   PLUS,
   BREAK,
   NONE,
-  ICE = NONE,
+  ICE,
   SIZE
 };

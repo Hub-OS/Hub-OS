@@ -25,13 +25,13 @@ Mob* MetalManBossFight::Build() {
   mob->SetBackground(new UndernetBackground());
   mob->StreamCustomMusic("resources/loops/loop_boss_battle.ogg");
 
-  mob->RegisterRankedReward(1, BattleItem(Chip(100, 139, 'C', 0, Element::NONE, "RockCube", "Places a cube in front", "", 0)));
-  mob->RegisterRankedReward(5, BattleItem(Chip(100, 139, '*', 0, Element::NONE, "RockCube", "Places a cube in front", "", 0)));
+  mob->RegisterRankedReward(1, BattleItem(Chip(100, 139, 'Y', 0, Element::NONE, "YoYo", "", "", 0)));
+  mob->RegisterRankedReward(4, BattleItem(Chip(100, 139, '*', 0, Element::NONE, "YoYo", "", "", 0)));
 
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);
 
-  mob->Spawn<Rank1<MetalMan, MetalManIdleState>>(6, 2);
+  mob->Spawn<Rank1<MetalMan>>(6, 2);
 
   mob->ToggleBossFlag();
 

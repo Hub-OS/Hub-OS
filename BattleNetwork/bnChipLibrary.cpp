@@ -4,9 +4,11 @@
 #include <assert.h>
 #include <sstream>
 #include <algorithm>
+#include <ctime>
+#include <iomanip>
 
 ChipLibrary::ChipLibrary() {
-  LoadLibrary();
+  LoadLibrary("resources/database/library.txt");
 }
 
 
@@ -76,9 +78,56 @@ const Element ChipLibrary::GetElementFromStr(std::string type)
   return elemType;
 }
 
+const std::string ChipLibrary::GetStrFromElement(const Element type) {
+  std::string res = "NONE";
+
+  switch (type) {
+  case Element::AQUA:
+    res = "AQUA";
+    break;
+  case Element::BREAK:
+    res = "BREAK";
+    break;
+  case Element::CURSOR:
+    res = "CURSOR";
+    break;
+  case Element::ELEC:
+    res = "ELEC";
+    break;
+  case Element::FIRE:
+    res = "FIRE";
+    break;
+  case Element::ICE:
+    res = "ICE";
+    break;
+  case Element::NONE:
+    res = "NONE";
+    break;
+  case Element::PLUS:
+    res = "PLUS";
+    break;
+  case Element::SUMMON:
+    res = "SUMMON";
+    break;
+  case Element::SWORD:
+    res = "SWORD";
+    break;
+  case Element::WIND:
+    res = "WIND";
+    break;
+  case Element::WOOD:
+    res = "WOOD";
+    break;
+  default:
+    res = "NONE";
+  }
+
+  return res;
+}
+
 void ChipLibrary::AddChip(Chip chip)
 {
-  library.push_back(chip);
+  library.insert(chip);
 }
 
 bool ChipLibrary::IsChipValid(Chip& chip)
@@ -105,6 +154,11 @@ std::list<char> ChipLibrary::GetChipCodes(const Chip& chip)
   return codes;
 }
 
+const int ChipLibrary::GetCountOf(const Chip & chip)
+{
+  return int(library.count(chip));
+}
+
 Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
 {
   for (auto i = Begin(); i != End(); i++) {
@@ -116,10 +170,8 @@ Chip ChipLibrary::GetChipEntry(const std::string name, const char code)
   return Chip(0, 0, code, 0, Element::NONE, name, "missing data", "This chip data could not be interpreted. It may come from another library and has not been configured properly to be used.", 1);
 }
 
-// Used as the folder in battle
-void ChipLibrary::LoadLibrary() {
-  // TODO: put this utility in an input stream class and inhert from that
-  string data = FileUtil::Read("resources/database/library.txt");
+void ChipLibrary::LoadLibrary(const std::string& path) {
+  string data = FileUtil::Read(path);
 
   int endline = 0;
 
@@ -174,7 +226,7 @@ void ChipLibrary::LoadLibrary() {
         Chip chip = Chip(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, longDescription, atoi(rarity.c_str()));
         std::list<char> codes = this->GetChipCodes(chip);
 
-        // Avoid code duplicates
+        /* Avoid code duplicates
         if (codes.size() > 0) {
           bool found = (std::find(codes.begin(), codes.end(), chip.GetCode()) != codes.end());
 
@@ -183,19 +235,76 @@ void ChipLibrary::LoadLibrary() {
             // Simply update an existing chip entry by changing the code 
             Chip first = GetChipEntry(chip.GetShortName(), *codes.begin());
             chip = Chip(first.GetID(), first.GetIconID(), chip.GetCode(), first.GetDamage(), first.GetElement(), first.GetShortName(), first.GetDescription(), first.GetVerboseDescription(), first.GetRarity());
-            library.push_back(chip);
+            library.insert(chip);
           }
         }
         else { // first entry
-          library.push_back(chip);
-        }
+           library.insert(chip);
+        }*/
+        library.insert(chip);
       }
     }
 
     data = data.substr(endline + 1);
   } while (endline > -1);
 
-  std::reverse(library.begin(), library.end());
+  Logger::Log(std::string("library size: ") + std::to_string(this->GetSize()));
+}
 
-  std::cout << "library size: " << this->GetSize() << std::endl;;
+const bool ChipLibrary::SaveLibrary(const std::string& path) {
+  /**
+   * Each chip has a particular format
+   * Lines beginning with pound '#' are comments and are ignored
+   * Chip name="ProtoMan" cardIndex="139" iconIndex="232" damage="120" type="Normal" codes="*,P" desc="Slices all enmy on field" "ProtoMan appears, stops time,\nand teleports to each open enemy striking once." rarity="5"
+   */
+
+  try {
+    FileUtil::WriteStream ws(path);
+    auto time = std::time(nullptr);
+    auto timestamp = std::put_time(std::localtime(&time), "%y-%m-%d %OH:%OM:%OS");
+
+    std::stringstream ss;
+    ss << timestamp;
+    std::string timestampStr = ss.str();
+
+    ws << "# Saved on " << timestampStr << ws.endl();
+
+    for (auto& chip : library) {
+      ws << "Chip name=\"" << chip.GetShortName() << "\" cardIndex=\""
+         << std::to_string(chip.GetID()) << "\" ";
+      ws << "iconIndex=\"" << std::to_string(chip.GetIconID()) << "\" damage=\""
+         << std::to_string(chip.GetDamage()) << "\" ";
+      ws << "type=\"" << ChipLibrary::GetStrFromElement(chip.GetElement()) << "\" ";
+
+      auto codes = ChipLibrary::GetChipCodes(chip);
+
+      ws << "codes=\"";
+
+      ws << chip.GetCode();
+
+      /*unsigned i = 0;
+      for (auto code : codes) {
+        ws << code;
+        i++;
+
+        if (i != codes.size() - 1) ws << ",";
+      }*/
+
+      ws << "\" ";
+
+      ws << "desc=\"" << chip.GetDescription() << "\" ";
+      ws << "verbose=\""<< chip.GetVerboseDescription() << "\" ";
+      ws << "rarity=\"" << std::to_string(chip.GetRarity()) << "\" ";
+
+      ws << ws.endl();
+    }
+
+    Logger::Log(std::string("library saved successfully. Number of chips saved: ") +
+                std::to_string(this->GetSize()));
+    return true;
+  } catch(std::exception& e) {
+    Logger::Log(std::string("library save failed. Reason: ") + e.what());
+  }
+
+  return false;
 }

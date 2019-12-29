@@ -1,3 +1,12 @@
+
+/*! \file bnQueueMobRegistration.h*/
+
+/*! \brief This hooks into the loading phase and loads extra content
+ * 
+ * This info adds mobs to the Mob Select screen to select 
+ * Descriptions should be short as user cannot continue long
+ * paragraphs */
+
 #pragma once
 #include "bnMobRegistration.h"
 
@@ -5,9 +14,12 @@
 #include "bnTwoMettaurMob.h"
 #include "bnCanodumbMob.h"
 #include "bnStarfishMob.h"
+#include "bnHoneyBomberMob.h"
+#include "bnMetridMob.h"
 #include "bnMetalManBossFight.h"
 #include "bnMetalManBossFight2.h"
 #include "bnRandomMettaurMob.h"
+#include "bnAlphaBossFight.h"
 
 /***********************************************************************
 ************    Register your custom mobs here    *********************
@@ -36,7 +48,23 @@ void QueueMobRegistration() {
   info->SetPlaceholderTexturePath("resources/mobs/canodumb/preview.png");
   info->SetSpeed(0);
   info->SetAttack(20);
-  info->SetHP(500);
+  info->SetHP(130);
+
+  info = MOBS.AddClass<HoneyBomberMob>();  // Create and register mob info object
+  info->SetDescription("Honey Bombers attack with bees. Do not get in their way!"); // Set property
+  info->SetName("Sting Squad");
+  info->SetPlaceholderTexturePath("resources/mobs/honeybomber/preview.png");
+  info->SetSpeed(100);
+  info->SetAttack(25);
+  info->SetHP(130);
+
+  info = MOBS.AddClass<MetridMob>();  // Create and register mob info object
+  info->SetDescription("Fire-type wizard virii summon meteors."); // Set property
+  info->SetName("Fire Frenzy");
+  info->SetPlaceholderTexturePath("resources/mobs/metrid/preview.png");
+  info->SetSpeed(100);
+  info->SetAttack(120);
+  info->SetHP(250);
 
   info = MOBS.AddClass<ProgsManBossFight>();  // Create and register mob info object
   info->SetDescription("A rogue Mr.Prog! Can you stop it?"); // Set property
@@ -54,13 +82,13 @@ void QueueMobRegistration() {
   info->SetAttack(20);
   info->SetHP(1000);
 
-  info = MOBS.AddClass<RandomMettaurMob>();  // Create and register mob info object
+  /*info = MOBS.AddClass<RandomMettaurMob>();  // Create and register mob info object
   info->SetDescription("Randomly generated battle. Anything goes."); // Set property
   info->SetName("Random");
   info->SetPlaceholderTexturePath("resources/mobs/select/random.png");
   info->SetSpeed(999);
   info->SetAttack(999);
-  info->SetHP(999);
+  info->SetHP(999);*/
 
   info = MOBS.AddClass<MetalManBossFight2>();  // Create and register mob info object
   info->SetDescription("MetalMan - On ice!"); // Set property
@@ -69,4 +97,12 @@ void QueueMobRegistration() {
   info->SetSpeed(6);
   info->SetAttack(20);
   info->SetHP(1000);
+
+  info = MOBS.AddClass<AlphaBossFight>();  // Create and register mob info object
+  info->SetDescription("Alpha is absorbing the net again!"); // Set property
+  info->SetPlaceholderTexturePath("resources/mobs/alpha/preview.png");
+  info->SetName("Alpha");
+  info->SetSpeed(0);
+  info->SetAttack(80);
+  info->SetHP(2000);
 }

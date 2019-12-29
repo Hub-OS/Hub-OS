@@ -2,12 +2,16 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
+#include "bnTile.h"
+#include "bnCharacter.h"
+
+#include <cmath>
 
 using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/guard_hit.animation"
 
-GuardHit::GuardHit(Field* _field, Character* hit, bool center) : animationComponent(this)
+GuardHit::GuardHit(Field* _field, Character* hit, bool center) : Artifact(_field)
 {
   this->center = center;
   SetLayer(0);
@@ -20,7 +24,7 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center) : animationCompon
 
     w = (float)random;
 
-    h = (float)(std::floor(hit->GetHitHeight()));
+    h = (float)(std::floor(hit->GetHeight()));
 
     if (h > 0) {
       h = (float)(rand() % (int)h);
@@ -28,7 +32,7 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center) : animationCompon
   }
   else {
     w = 0;
-    h = (float)(std::floor(hit->GetHitHeight()/2.0f));
+    h = (float)(std::floor(hit->GetHeight()/2.0f));
   }
 
   setTexture(*TEXTURES.GetTexture(TextureType::SPELL_GUARD_HIT));
@@ -36,18 +40,19 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center) : animationCompon
 
   //Components setup and load
   auto onFinish = [&]() { this->Delete();  };
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation("DEFAULT", onFinish);
-  animationComponent.Update(0);
+
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
+  animationComponent->SetAnimation("DEFAULT", onFinish);
+  animationComponent->OnUpdate(0);
 
   AUDIO.Play(AudioType::GUARD_HIT);
 }
 
-void GuardHit::Update(float _elapsed) {
+void GuardHit::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x + w, tile->getPosition().y + tileOffset.y - h);
-  animationComponent.Update(_elapsed);
-  Entity::Update(_elapsed);
 }
 
 GuardHit::~GuardHit()

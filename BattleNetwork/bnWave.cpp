@@ -1,82 +1,77 @@
 #include "bnWave.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnPlayer.h"
-#include "bnMettaur.h"
+#include "bnSharedHitbox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Wave::Wave(Field* _field, Team _team, double speed) : Spell() {
+int Wave::numOf = 0;
+
+Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   SetLayer(0);
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
-  hit = false;
-  texture = TEXTURES.GetTexture(TextureType::SPELL_WAVE);
+
+  setTexture(*TEXTURES.GetTexture(TextureType::SPELL_WAVE));
   this->speed = speed;
 
   //Components setup and load
-  auto onFinish = [this]() {
-    if (Move(direction)) {
-      AUDIO.Play(AudioType::WAVE);
+  auto spawnNext = [this]() {
+    this->HighlightTile(Battle::Tile::Highlight::none);
+
+    Battle::Tile* nextTile = nullptr;
+    Direction dir = Direction::NONE;
+
+    if (this->GetTeam() == Team::BLUE) {
+      nextTile = this->GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
+      dir = Direction::LEFT;
+    } 
+    else {
+      nextTile = this->GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
+      dir = Direction::RIGHT;
+    }
+
+    if(nextTile && nextTile->IsWalkable() && !nextTile->IsEdgeTile()) {
+        auto* wave = new Wave(this->GetField(), this->GetTeam(), this->speed);
+        wave->SetDirection(dir);
+
+        this->GetField()->AddEntity(*wave, nextTile->GetX(), nextTile->GetY());
     }
   };
 
-  animation = Animation("resources/spells/spell_wave.animation");
-  animation.SetAnimation("DEFAULT");
-  animation << Animate::Mode::Loop << Animate::On(5, onFinish);
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+
+  animation->Setup("resources/spells/spell_wave.animation");
+  animation->Load();
+  animation->SetAnimation("DEFAULT", Animator::Mode::NoEffect, [this]() { this->Delete(); });
+  animation->AddCallback(4, spawnNext);
+  animation->SetPlaybackSpeed(speed);
+  animation->OnUpdate(0);
 
   auto props = Hit::DefaultProperties;
   props.damage = 10;
+  props.flags |= Hit::flinch;
   this->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::WAVE);
 
-  EnableTileHighlight(true);
+  this->HighlightTile(Battle::Tile::Highlight::solid);
 }
 
-Wave::~Wave(void) {
+Wave::~Wave() {
 }
 
-void Wave::Update(float _elapsed) {
-  setTexture(*texture);
-
+void Wave::OnUpdate(float _elapsed) {
   int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-
-  animation.Update(_elapsed, *this);
+  setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
 
   if (!this->IsDeleted()) {
-    tile->AffectEntities(this);
+    GetTile()->AffectEntities(this);
   }
-
-  Entity::Update(_elapsed);
 }
 
 bool Wave::Move(Direction _direction) {
-  tile->RemoveEntityByID(this->GetID());
-  Battle::Tile* next = nullptr;
-
-  if (_direction == Direction::LEFT) {
-    if (tile->GetX() - 1 > 0) {
-      next = field->GetAt(tile->GetX() - 1, tile->GetY());
-    }
-  } else if (_direction == Direction::RIGHT) {
-    if (tile->GetX() + 1 <= (int)field->GetWidth()) {
-      next = field->GetAt(tile->GetX() + 1, tile->GetY());
-    }
-  }
-
-  if (next && next->IsWalkable()) {
-    next->AddEntity(*this);
-    return true;
-  }
-
-  tile->RemoveEntityByID(this->GetID());
-  this->Delete();
   return false;
 }
 

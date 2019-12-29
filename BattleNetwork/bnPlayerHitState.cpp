@@ -3,7 +3,7 @@
 #include "bnPlayer.h"
 #include "bnAudioResourceManager.h"
 
-PlayerHitState::PlayerHitState(float _cooldown) : cooldown(_cooldown), AIState<Player>()
+PlayerHitState::PlayerHitState() : AIState<Player>()
 {
 }
 
@@ -22,5 +22,5 @@ void PlayerHitState::OnUpdate(float _elapsed, Player& player) {
 }
 
 void PlayerHitState::OnLeave(Player& player) {
-  player.invincibilityCooldown = 2.0; // 2 seconds
+
 }

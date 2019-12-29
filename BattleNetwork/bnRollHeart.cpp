@@ -10,43 +10,37 @@
 
 #define RESOURCE_PATH "resources/spells/spell_heart.animation"
 
-RollHeart::RollHeart(ChipSummonHandler* _summons, Player* _player, int _heal) : heal(_heal), Spell()
+RollHeart::RollHeart(ChipSummonHandler* _summons, int _heal) : heal(_heal), Spell(_summons->GetCaller()->GetField(), _summons->GetCallerTeam())
 {
-  player = _player;
   summons = _summons;
 
-  player->SetAlpha(255);
+  summons->GetCaller()->Reveal();
 
   SetPassthrough(true);
-  EnableTileHighlight(true);
 
-  field = player->GetField();
-  team = player->GetTeam();
+  this->HighlightTile(Battle::Tile::Highlight::solid);
 
-  direction = Direction::NONE;
-  deleted = false;
-  hit = false;
-  progress = 0.0f;
-  hitHeight = 0.0f;
+  height = 200;
 
-  Battle::Tile* _tile = player->GetTile();
+  Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
   this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation("HEART");
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
+  animationComponent->SetAnimation("HEART");
   this->Update(0);
 
   doOnce = true;
 }
 
-RollHeart::~RollHeart(void) {
+RollHeart::~RollHeart() {
 }
 
-void RollHeart::Update(float _elapsed) {
-  animationComponent.Update(_elapsed);
+void RollHeart::OnUpdate(float _elapsed) {
 
   if (tile != nullptr) {
     setPosition(tile->getPosition().x + (tile->GetWidth() / 2.0f), tile->getPosition().y - height + (tile->GetHeight() / 2.0f));
@@ -59,18 +53,20 @@ void RollHeart::Update(float _elapsed) {
   if (height == 0 && doOnce) {
     AUDIO.Play(AudioType::RECOVER);
     doOnce = false;
-    this->setColor(sf::Color(255, 255, 255, 0)); // hidden
-    player->SetHealth(player->GetHealth() + heal);
-    player->SetAnimation("PLAYER_HEAL", [this]() {
+
+    this->setColor(sf::Color(255, 255, 255, 0)); // hide
+    caller->SetHealth(caller->GetHealth() + heal);
+    
+    /*player->SetAnimation("PLAYER_HEAL", [this]() {
       player->SetAnimation("PLAYER_IDLE", [this]() {
         summons->RemoveEntity(this);
       });
-    });
+    });*/
   }
 }
 
 bool RollHeart::Move(Direction _direction) {
-  return true;
+  return false;
 }
 
 void RollHeart::Attack(Character* _entity) {

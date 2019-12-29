@@ -18,17 +18,16 @@ EnemyChipsUI::EnemyChipsUI(Character* _owner) : ChipUsePublisher(), Component(_o
   icon = sf::Sprite(*TEXTURES.GetTexture(CHIP_ICONS));
   icon.setScale(sf::Vector2f(2.f, 2.f));
   this->character = _owner;
-  srand(time(0));
 }
 
 EnemyChipsUI::~EnemyChipsUI() {
 }
 
-void EnemyChipsUI::Update(float _elapsed) {
+void EnemyChipsUI::OnUpdate(float _elapsed) {
   if (GetOwner() && GetOwner()->GetTile() && !GetOwner()->IsDeleted() && GetOwner()->IsBattleActive()) {
     Agent* agent = GetOwnerAs<Agent>();
 
-    if (agent && agent->GetTarget() && agent->GetTarget()->GetTile()) {
+    if (agent && agent->GetTarget() && !agent->GetTarget()->IsDeleted() && agent->GetTarget()->GetTile()) {
       if (agent->GetTarget()->GetTile()->GetY() == GetOwner()->GetTile()->GetY()) {
         if (rand() % 500 > 299) {
           this->UseNextChip();
@@ -73,6 +72,7 @@ void EnemyChipsUI::UseNextChip() {
     return;
   }
 
+  std::cout << "selected chip " << selectedChips[curr].GetShortName() << " is broadcasted by enemy UI" << std::endl;
   this->Broadcast(selectedChips[curr], *this->character);
 
   curr++;

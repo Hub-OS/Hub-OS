@@ -1,4 +1,3 @@
-#pragma once
 #include "bnCanodumbIdleState.h"
 #include "bnCanodumbAttackState.h"
 #include "bnCanodumb.h"
@@ -17,7 +16,9 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
   auto onFinish = [&can]() { can.ChangeState<CanodumbIdleState>(); };
 
   auto spawnSmoke   = [&can]() { 
-    CanonSmoke* smoke = new CanonSmoke(can.GetField(), can.GetTeam());
+    // TODO: now that we have a scene node system, make this a scene node that removes itself
+    // on animation end...
+    CanonSmoke* smoke = new CanonSmoke(can.GetField());
     can.GetField()->AddEntity(*smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
   };
 
@@ -34,7 +35,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
   }
 
   can.SetCounterFrame(2);
-  can.OnFrameCallback(1, spawnSmoke, std::function<void()>(), true);
+  can.OnFrameCallback(1, spawnSmoke, Animator::NoCallback, true);
 }
 
 void CanodumbAttackState::OnUpdate(float _elapsed, Canodumb& can) {

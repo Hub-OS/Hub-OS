@@ -9,6 +9,12 @@ using std::vector;
 
 #include "bnBackground.h"
 
+/**
+ * @class GraveyardBackground
+ * @author mav
+ * @date 01/05/19
+ * @brief spooky cloud background that animates and moves
+ */
 class GraveyardBackground : public Background
 {
 public:

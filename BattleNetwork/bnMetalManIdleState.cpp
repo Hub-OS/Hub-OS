@@ -12,7 +12,8 @@ MetalManIdleState::~MetalManIdleState()
 }
 
 void MetalManIdleState::OnEnter(MetalMan& metal) {
-  metal.animationComponent.SetAnimation(MOB_IDLE, Animate::Mode::Loop);
+  cooldown = 1.2f;
+  metal.GetFirstComponent<AnimationComponent>()->SetAnimation(MOB_IDLE, Animator::Mode::Loop);
 }
 
 void MetalManIdleState::OnUpdate(float _elapsed, MetalMan& metal) {
@@ -21,7 +22,7 @@ void MetalManIdleState::OnUpdate(float _elapsed, MetalMan& metal) {
   // printf("cooldown: %f", cooldown);
 
   if (cooldown < 0) {
-    this->ChangeState<MetalManMoveState>();
+    metal.GoToNextState();
   }
 }
 

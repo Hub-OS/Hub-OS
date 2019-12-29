@@ -2,6 +2,9 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
+#include "bnCanodumbIdleState.h"
+#include "bnCanodumb.h"
+#include <Swoosh/Ease.h>
 
 using sf::IntRect;
 
@@ -11,28 +14,28 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
-CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : animationComponent(this), Artifact(_field, Team::UNKNOWN) {
+CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _parentState) : Artifact(_field) {
   SetFloatShoe(true);
-  
-  parent = _parent;
-  target = parent->GetTarget();
+
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+
+  parentState = _parentState;
+  target = parentState->GetCanodumbTarget();
 
   SetLayer(0);
-  field = _field;
-  team = Team::UNKNOWN;
-
   direction = Direction::LEFT;
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
 
   //Components setup and load
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation(MOB_CANODUMB_CURSOR);
-  animationComponent.Update(0);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Load();
+  animationComponent->SetAnimation("CURSOR");
+  animationComponent->OnUpdate(0);
 
-  switch (parent->GetRank()) {
+  switch (parentState->GetCanodumbRank()) {
   case Canodumb::Rank::_1:
     maxcooldown = MAX_COOLDOWN_1;
     break;
@@ -45,20 +48,23 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, Canodumb* _parent) : a
   }
 
   movecooldown = maxcooldown;
+  elapsedTime = 0;
 }
 
-void CanodumbCursor::Update(float _elapsed) {
-  animationComponent.Update(_elapsed);
-
+void CanodumbCursor::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
   movecooldown -= _elapsed;
+  elapsedTime += _elapsed;
+
+  auto delta = swoosh::ease::bezierPopIn(elapsedTime, .125f);
+  setScale(delta*2.f, delta*2.f);
 
   if (movecooldown <= 0) {
     if (this->GetTile() == target->GetTile() && !target->IsPassthrough()) {
-      deleted = true;
+      this->Delete();
 
-      parent->ChangeState<CanodumbAttackState>();
+      parentState->Attack();
     }
     else {
       movecooldown = maxcooldown;
@@ -71,12 +77,10 @@ void CanodumbCursor::Update(float _elapsed) {
         t->AddEntity(*this);
       }
       else {
-        deleted = true;
+        parentState->FreeCursor();
       }
     }
   }
-
-  Entity::Update(_elapsed);
 }
 
 CanodumbCursor::~CanodumbCursor()

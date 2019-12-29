@@ -8,190 +8,69 @@
 #include "bnWave.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnDefenseVirusBody.h"
 #include "bnEngine.h"
 
-#define RESOURCE_NAME "mettaur"
-#define RESOURCE_PATH "resources/mobs/mettaur/mettaur.animation"
-
-vector<int> Mettaur::metIDs = vector<int>();
-int Mettaur::currMetIndex = 0;
+const std::string RESOURCE_PATH = "resources/mobs/mettaur/mettaur.animation";
 
 Mettaur::Mettaur(Rank _rank)
-  :  AI<Mettaur>(this), AnimatedCharacter(_rank) {
-  //this->ChangeState<MettaurIdleState>();
+  :  AI<Mettaur>(this), TurnOrderTrait<Mettaur>(), AnimatedCharacter(_rank) {
   name = "Mettaur";
-  Entity::team = Team::BLUE;
+  SetTeam(Team::BLUE);
 
-  health = 40;
-  textureType = TextureType::MOB_METTAUR;
-
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
 
   if (GetRank() == Rank::SP) {
-    health = 100;
-    animationComponent.SetPlaybackSpeed(1.2);
-    animationComponent.SetAnimation("SP_IDLE");
+    SetHealth(200);
+    animationComponent->SetPlaybackSpeed(1.2);
+    animationComponent->SetAnimation("SP_IDLE");
   }
   else {
+	  SetHealth(40);
     //Components setup and load
-    animationComponent.SetAnimation("IDLE");
+    animationComponent->SetAnimation("IDLE");
   }
 
-  hitHeight = 0;
+  hitHeight = 60;
 
-  setTexture(*TEXTURES.GetTexture(textureType));
+  setTexture(*TEXTURES.GetTexture(TextureType::MOB_METTAUR));
+
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
+  animationComponent->OnUpdate(0);
 
-  metID = (int)Mettaur::metIDs.size();
-  Mettaur::metIDs.push_back((int)Mettaur::metIDs.size());
-
-  animationComponent.Update(0);
+  virusBody = new DefenseVirusBody();
+  this->AddDefenseRule(virusBody);
 }
 
-Mettaur::~Mettaur(void) {
-
+Mettaur::~Mettaur() {
 }
 
-int* Mettaur::GetAnimOffset() {
-  Mettaur* mob = this;
+void Mettaur::OnDelete() {
+  this->RemoveDefenseRule(virusBody);
+  delete virusBody;
 
-  int* res = new int[2];
-  res[0] = 10;  res[1] = 0;
+  this->ChangeState<ExplodeState<Mettaur>>();
 
-  return res;
+  this->RemoveMeFromTurnOrder();
 }
 
-void Mettaur::Update(float _elapsed) {
-  this->SetShader(nullptr);
-  this->RefreshTexture();
-
-  if (stunCooldown > 0) {
-    stunCooldown -= _elapsed;
-    Character::Update(_elapsed);
-
-    if (stunCooldown <= 0) {
-      stunCooldown = 0;
-      animationComponent.Update(_elapsed);
-    }
-
-    if ((((int)(stunCooldown * 15))) % 2 == 0) {
-      this->SetShader(stun);
-    }
-
-    if (GetHealth() > 0) {
-      return;
-    }
-  }
+void Mettaur::OnUpdate(float _elapsed) {
+  setPosition(tile->getPosition().x, tile->getPosition().y);
+  setPosition(getPosition() + tileOffset);
 
   this->AI<Mettaur>::Update(_elapsed);
-
-  // Explode if health depleted
-  if (GetHealth() <= 0) {
-    this->ChangeState<ExplodeState<Mettaur>>();
-    
-    if (Mettaur::metIDs.size() > 0) {
-      vector<int>::iterator it = find(Mettaur::metIDs.begin(), Mettaur::metIDs.end(), metID);
-
-      if (it != Mettaur::metIDs.end()) {
-        // Remove this mettaur out of rotation...
-        Mettaur::currMetIndex++;
-
-        Mettaur::metIDs.erase(it);
-        if (Mettaur::currMetIndex >= Mettaur::metIDs.size()) {
-          Mettaur::currMetIndex = 0;
-        }
-      }
-    }
-
-    this->LockState();
-  } else {
-    animationComponent.Update(_elapsed);
-  }
-
-  Character::Update(_elapsed);
 }
 
-void Mettaur::RefreshTexture() {
-  setPosition(tile->getPosition().x, tile->getPosition().y);
+const bool Mettaur::OnHit(const Hit::Properties props) {
+    Logger::Log("Mettaur OnHit");
 
-  setPosition(getPosition() + tileOffset);
+  return true;
 }
 
-/*void Mettaur::SetAnimation(string _state, std::function<void()> onFinish) {
-  state = _state;
-  animationComponent.SetAnimation(_state, onFinish);
-  animationComponent.Update(0);
-}
-
-void Mettaur::SetCounterFrame(int frame)
-{
-  auto onFinish = [&]() { this->ToggleCounter(); };
-  auto onNext = [&]() { this->ToggleCounter(false); };
-  animationComponent.AddCallback(frame, onFinish, onNext);
-}*/
-
-TextureType Mettaur::GetTextureType() const {
-  return textureType;
-}
-
-int Mettaur::GetHealth() const {
-  return health;
-}
-
-void Mettaur::SetHealth(int _health) {
-  health = _health;
-}
-
-const bool Mettaur::Hit(Hit::Properties props) {
-  /*if (Character::Hit(_damage, props)) {
-    SetShader(whiteout);
-    return true;
-  }
-
-  return false;*/
-
-  bool result = true;
-
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-
-    if ((props.flags & Hit::stun) == Hit::stun) {
-      SetShader(stun);
-      this->stunCooldown = props.secs;
-    }
-    else {
-      SetShader(whiteout);
-    }
-  }
-
-  return result;
-}
-
-const float Mettaur::GetHitHeight() const {
+const float Mettaur::GetHeight() const {
   return hitHeight;
-}
-
-const bool Mettaur::IsMettaurTurn() const
-{
-  if(Mettaur::metIDs.size() > 0)
-    return (Mettaur::metIDs.at(Mettaur::currMetIndex) == this->metID);
-
-  return false;
-}
-
-void Mettaur::NextMettaurTurn() {
-  Mettaur::currMetIndex++;
-
-  if (Mettaur::currMetIndex >= Mettaur::metIDs.size()) {
-    Mettaur::currMetIndex = 0;
-  }
 }

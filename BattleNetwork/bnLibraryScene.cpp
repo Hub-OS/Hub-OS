@@ -6,15 +6,20 @@
 #include "bnLibraryScene.h"
 #include "bnChipLibrary.h"
 #include "bnChipFolder.h"
+#include "Android/bnTouchArea.h"
+
+#include "bnMessage.h"
 
 #include <SFML/Graphics.hpp>
+#include <cmath>
+
 using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 using sf::Font;
 
-#include "Segues\PushIn.h"
+#include "Segues/PushIn.h"
 
 std::string LibraryScene::FormatChipDesc(const std::string && desc)
 {
@@ -83,9 +88,9 @@ std::string LibraryScene::FormatChipDesc(const std::string && desc)
 }
 
 LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
-  camera(ENGINE.GetDefaultView()),
+  camera(ENGINE.GetView()),
   textbox(sf::Vector2f(4, 255)),
-  swoosh::Activity(controller)
+  swoosh::Activity(&controller)
 {
 
   // Menu name font
@@ -96,6 +101,15 @@ LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
+
+#ifdef __ANDROID__
+maxSelectInputCooldown = 0.1;
+canSwipe = false;
+releasedB = false;
+touchStart = false;
+touchPosX = touchPosStartX = -1;
+#endif
+
   selectInputCooldown = maxSelectInputCooldown;
 
   // Chip UI font
@@ -190,9 +204,18 @@ void LibraryScene::onStart() {
   ENGINE.SetCamera(camera);
 
   gotoNextScene = false;
+
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
 }
 
 void LibraryScene::onUpdate(double elapsed) {
+#ifdef __ANDROID__
+  if(gotoNextScene)
+    return; // keep the screen looking the same when we come into
+#endif
+
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
@@ -201,7 +224,7 @@ void LibraryScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUT.Has(PRESSED_UP)) {
+    if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currChipIndex;
@@ -218,7 +241,7 @@ void LibraryScene::onUpdate(double elapsed) {
         chipRevealTimer.reset();
       }
     }
-    else if (INPUT.Has(PRESSED_DOWN)) {
+    else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currChipIndex;
@@ -239,7 +262,7 @@ void LibraryScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.Has(PRESSED_A) && textbox.IsClosed()) {
+    if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsClosed()) {
       auto iter = uniqueChips.begin();
       int i = 0;
 
@@ -249,21 +272,21 @@ void LibraryScene::onUpdate(double elapsed) {
       }
 
       textbox.DequeMessage(); // make sure textbox is empty
-      textbox.EnqueMessage(sf::Sprite(), "", new AnimatedTextBox::Message(iter->GetVerboseDescription()));
+      textbox.EnqueMessage(sf::Sprite(), "", new Message(iter->GetVerboseDescription()));
       textbox.Open();
       AUDIO.Play(AudioType::CHIP_DESC);
     }
-    else if (INPUT.Has(RELEASED_B) && textbox.IsOpen()) {
+    else if (INPUT.Has(EventTypes::RELEASED_CANCEL) && textbox.IsOpen()) {
       textbox.Close();
       textbox.SetTextSpeed(1.0);
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
     }
-    else if (INPUT.Has(PRESSED_A) && textbox.IsOpen()) {
+    else if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsOpen()) {
       textbox.SetTextSpeed(3.0);
     }
-    else if (INPUT.Has(RELEASED_A) && textbox.IsOpen()) {
+    else if (INPUT.Has(EventTypes::RELEASED_CONFIRM) && textbox.IsOpen()) {
       textbox.SetTextSpeed(1.0);
-      textbox.Continue();
+      //textbox.Continue();
     }
 
     currChipIndex = std::max(0, currChipIndex);
@@ -272,19 +295,22 @@ void LibraryScene::onUpdate(double elapsed) {
     lastChipOnScreen = std::max(0, lastChipOnScreen);
     lastChipOnScreen = std::min(numOfChips - 1, lastChipOnScreen);
 
-    if (INPUT.Has(PRESSED_B) && textbox.IsClosed()) {
+    if (INPUT.Has(EventTypes::PRESSED_CANCEL) && textbox.IsClosed()) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
       using swoosh::intent::direction;
-      using segue = swoosh::intent::segue<PushIn<direction::left>>;
+      using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
       getController().queuePop<segue>();
     }
   }
+
 }
 
 void LibraryScene::onLeave() {
-
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
 
 void LibraryScene::onExit()
@@ -296,7 +322,9 @@ void LibraryScene::onEnter()
 }
 
 void LibraryScene::onResume() {
-
+#ifdef __ANDROID__
+  this->StartupTouchControls();
+#endif
 }
 
 void LibraryScene::onDraw(sf::RenderTexture& surface) {
@@ -304,10 +332,6 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.Draw(bg);
   ENGINE.Draw(menuLabel);
-
-  ENGINE.DrawUnderlay();
-  ENGINE.DrawLayers();
-  ENGINE.DrawOverlay();
 
   ENGINE.Draw(folderDock);
   ENGINE.Draw(chipHolder);
@@ -322,7 +346,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
   if (uniqueChips.size() == 0) return;
 
   // Move the chip library iterator to the current highlighted chip
-  ChipLibrary::Iter iter = uniqueChips.begin();
+  auto iter = uniqueChips.begin();
 
   for (int j = 0; j < lastChipOnScreen; j++) {
     iter++;
@@ -349,7 +373,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
     // Draw cursor
     if (lastChipOnScreen + i == currChipIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));
-      auto bounce = std::sinf((float)totalTimeElapsed*10.0f)*5.0f;
+      auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
 
       cursor.setPosition((2.f*90.f) + bounce, y);
       ENGINE.Draw(cursor);
@@ -393,4 +417,40 @@ void LibraryScene::onEnd() {
   delete menuLabel;
   delete numberLabel;
   delete chipDesc;
+
+#ifdef __ANDROID__
+  this->ShutdownTouchControls();
+#endif
 }
+
+
+#ifdef __ANDROID__
+void LibraryScene::StartupTouchControls() {
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  rightSide.enableExtendedRelease(true);
+
+  rightSide.onTouch([]() {
+      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+  });
+
+  rightSide.onRelease([this](sf::Vector2i delta) {
+      if(!this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+      }
+  });
+
+  rightSide.onDrag([this](sf::Vector2i delta){
+      if(delta.x < -25 && !this->releasedB) {
+        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        this->releasedB = true;
+      }
+  });
+}
+
+void LibraryScene::ShutdownTouchControls() {
+  TouchArea::free();
+}
+#endif

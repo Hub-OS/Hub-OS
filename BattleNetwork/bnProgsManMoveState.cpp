@@ -1,4 +1,3 @@
-#pragma once
 #include "bnProgsManMoveState.h"
 #include "bnProgsMan.h"
 #include "bnTile.h"
@@ -8,8 +7,6 @@
 #include "bnProgsManPunchState.h"
 #include "bnProgsManThrowState.h"
 #include "bnProgsManShootState.h"
-
-#include "bnMettaur.h"
 
 ProgsManMoveState::ProgsManMoveState() : isMoving(false), AIState<ProgsMan>() { ; }
 ProgsManMoveState::~ProgsManMoveState() { ; }
@@ -22,7 +19,7 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
 
   nextDirection = Direction::NONE;
 
-  Battle::Tile* temp = progs.tile;
+  Battle::Tile* temp = progs.GetTile();
   Battle::Tile* next = nullptr;
 
   int random = rand() % 50;
@@ -31,8 +28,7 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
   Battle::Tile* tile = progs.GetField()->GetAt(progs.GetTile()->GetX() - 1, progs.GetTile()->GetY());
 
   if (tile->ContainsEntityType<Obstacle>()) {
-    this->ChangeState<ProgsManPunchState>();
-    return;
+    return progs.ChangeState<ProgsManPunchState>();
   } else if (random > 15) {
     // Hunt the player
     Entity* target = progs.GetTarget();
@@ -41,23 +37,23 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
       if (target->GetTile()->GetY() == progs.GetTile()->GetY()) {
         if (target->GetTile()->GetX() == progs.GetTile()->GetX() - 1) {
           // Punch
-          this->ChangeState<ProgsManPunchState>();
+          progs.ChangeState<ProgsManPunchState>();
           return;
         }
         else if (rand() % 50 > 30) {
           // Throw bombs.
-          this->ChangeState<ProgsManThrowState>();
+          progs.ChangeState<ProgsManThrowState>();
           return;
         }
         else {
           // Try shooting. 
-          this->ChangeState<ProgsManShootState>();
+          progs.ChangeState<ProgsManShootState>();
           return;
         }
       }
       else if (rand() % 50 > 20) {
         // Throw bombs.
-        this->ChangeState<ProgsManThrowState>();
+        progs.ChangeState<ProgsManThrowState>();
         return;
       }
 
@@ -87,12 +83,13 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
 
   if (moved) {
     progs.AdoptNextTile();
-    auto onFinish = [&]() { this->ChangeState<ProgsManIdleState>(); };
+    auto onFinish = [&progs, this]() { progs.ChangeState<ProgsManIdleState>(); progs.FinishMove(); };
     progs.SetAnimation(MOB_MOVING, onFinish);
     isMoving = true;
   }
   else {
-    this->ChangeState<ProgsManIdleState>();
+    // If we can't move, go back to idle state
+    progs.ChangeState<ProgsManIdleState>();
   }
 }
 

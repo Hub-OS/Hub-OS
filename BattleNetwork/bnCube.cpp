@@ -1,78 +1,72 @@
 #include "bnCube.h"
 #include "bnRockDebris.h"
+#include "bnParticlePoof.h"
 #include "bnTile.h"
+#include "bnDefenseVirusBody.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 
 const int Cube::numOfAllowedCubesOnField = 2;
-int Cube::currCubeIndex = 0;
-int Cube::cubesRemovedCount = 0;
 
-Cube::Cube(Field* _field, Team _team) : animation(this), Obstacle(field, team) {
+Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), InstanceCountingTrait<Cube>(), pushedByDrag(false) {
   this->setTexture(LOAD_TEXTURE(MISC_CUBE));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);
   this->SetName("Cube");
   this->SetTeam(_team);
 
-  animation.Setup("resources/mobs/cube/cube.animation");
-  animation.Reload();
-
-  auto onfinish = [this]() { 
-    if (this->GetTile()->GetState() == TileState::ICE) { 
-      this->SetAnimation("ICE"); 
-      this->SetElement(Element::ICE);
-    } 
-    else 
-    { this->SetAnimation("NORMAL");  } 
-  };
-
-  animation.SetAnimation("APPEAR", 0, onfinish);
-
   this->SetHealth(200);
   this->timer = 100;
 
-  animation.Update(0);
-
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
 
-  this->slideTime = sf::seconds(1.0f/15.0f);
-
-  cubeIndex = ++currCubeIndex;
+  this->SetSlideTime(sf::seconds(1.0f / 5.0f)); // 1/5 of 60 fps = 12 frames
 
   hit = false;
+
+  this->previousDirection = Direction::NONE;
+
+  virusBody = new DefenseVirusBody();
+  this->AddDefenseRule(virusBody);
+
+  auto props = GetHitboxProperties();
+  props.flags |= Hit::impact | Hit::breaking;
+  props.damage = 200;
+  this->SetHitboxProperties(props);
 }
 
-Cube::~Cube(void) {
-  ++cubesRemovedCount;
+Cube::~Cube() {
 }
 
 bool Cube::CanMoveTo(Battle::Tile * next)
 {
-  if (next && next->IsWalkable() && next != tile) {
+  if (next && next->IsWalkable()) {
     if (next->ContainsEntityType<Obstacle>()) {
-      Entity* other = nullptr;
-
       bool stop = false;
 
-      while (next->GetNextEntity(other)) {
-        Cube* isCube = dynamic_cast<Cube*>(other);
+      auto allEntities = next->FindEntities([&stop, this](Entity* e) -> bool {
+        Cube* isCube = dynamic_cast<Cube*>(e);
 
         if (isCube && isCube->GetElement() == Element::ICE && this->GetElement() == Element::ICE) {
           isCube->SlideToTile(true);
-          Direction dir = this->direction;
+          Direction dir = this->GetDirection();
           isCube->Move(dir);
+          isCube->FinishMove();
           stop = true;
         }
         else if (isCube) {
           stop = true;
         }
-      }
+
+        return false;
+      });
 
       if (stop) {
         this->SetDirection(Direction::NONE);
         this->previousDirection = Direction::NONE;
+        this->FinishMove();
+        pushedByDrag = false;
         return false;
       }
     }
@@ -80,83 +74,126 @@ bool Cube::CanMoveTo(Battle::Tile * next)
     return true;
   }
 
-  if (next == tile) { return true; }
-
   this->SetDirection(Direction::NONE);
   this->previousDirection = Direction::NONE;
   return false;
 }
 
-void Cube::Update(float _elapsed) {
-  if (IsDeleted()) return;
+void Cube::OnUpdate(float _elapsed) {
+  if (!!IsSliding()) {
+    this->previousDirection = Direction::NONE;
+  }
 
-  SetShader(nullptr);
+  if (InstanceCountingTrait<Cube>::GetCounterSize() > Cube::numOfAllowedCubesOnField) {
+    if (this->IsLast()) {
+      this->SetHealth(0); // Trigger death and deletion
+    }
+  }
 
   // May have just finished sliding
   this->tile->AffectEntities(this);
 
   // Keep momentum
-  if (!isSliding) {
-      this->SlideToTile(true);
-      this->Move(this->GetDirection());
+  if (!IsSliding() && pushedByDrag && GetDirection() != Direction::NONE) {
+    this->SlideToTile(true);
+    this->Move(this->GetDirection());
+    FinishMove();
   }
 
-  if (timer <= 0) {
+
+  if (timer <= 0 ) {
     this->SetHealth(0);
   }
 
-  animation.Update(_elapsed);
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
-
-  Character::Update(_elapsed);
-
-  if (!isSliding) {
-    this->previousDirection = Direction::NONE;
-  }
-
   timer -= _elapsed;
-
-  if (GetHealth() <= 0) {
-    this->OnDelete(); // TODO: make this automatic callback from field cleanup
-  }
 }
 
+// Triggered by health == 0
 void Cube::OnDelete() {
-  double intensity = (double)(rand() % 2) + 1.0;
+  this->RemoveDefenseRule(virusBody);
+  delete virusBody;
 
-  auto left = (this->GetElement() == Element::ICE) ? RockDebris::Type::LEFT_ICE : RockDebris::Type::LEFT;
-  auto right = (this->GetElement() == Element::ICE) ? RockDebris::Type::RIGHT_ICE : RockDebris::Type::RIGHT;
+  if (this->GetFirstComponent<AnimationComponent>()->GetAnimationString() != "APPEAR") {
+    int intensity = rand() % 2;
+    intensity += 1;
 
-  this->GetField()->AddEntity(*new RockDebris(left, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
-  this->GetField()->AddEntity(*new RockDebris(right, intensity), this->GetTile()->GetX(), this->GetTile()->GetY());
-  this->Delete();
+    auto left = (this->GetElement() == Element::ICE) ? RockDebris::Type::LEFT_ICE : RockDebris::Type::LEFT;
+    this->GetField()->AddEntity(*new RockDebris(left, (double)intensity), *this->GetTile());
+
+
+    intensity = rand() % 3;
+    intensity += 1;
+    auto right = (this->GetElement() == Element::ICE) ? RockDebris::Type::RIGHT_ICE : RockDebris::Type::RIGHT;
+    this->GetField()->AddEntity(*new RockDebris(right, (double)intensity), *this->GetTile());
+
+    auto poof = new ParticlePoof();
+    GetField()->AddEntity(*poof, *GetTile());
+
+    AUDIO.Play(AudioType::PANEL_CRACK);
+  }
+
   tile->RemoveEntityByID(this->GetID());
-  AUDIO.Play(AudioType::PANEL_CRACK);
+
+  this->RemoveInstanceFromCountedList();
+
+  this->Delete(); // TODO: shouldn't be necessary!
 }
 
-const bool Cube::Hit(Hit::Properties props) {
-  if (this->animation.GetAnimationString() == "APPEAR")
+const float Cube::GetHeight() const
+{
+  return 64.0f;
+}
+
+const bool Cube::OnHit(const Hit::Properties props) {
+  if (this->animation->GetAnimationString() == "APPEAR")
     return false;
 
-  int health = this->GetHealth() - props.damage;
-  if (health <= 0) health = 0;
+  // breaking prop is insta-kill
+  if ((props.flags & Hit::breaking) == Hit::breaking) {
+    this->SetHealth(0);
+    return true;
+  }
 
-  this->SetHealth(health);
+  // Teams cannot accidentally pull cube into their side
+  if(props.aggressor && (props.flags & Hit::drag) == Hit::drag){
+    if(props.aggressor->GetTeam() == Team::RED) {
+      if(props.drag == Direction::LEFT) {
+        // take damage anyway, skipping the Character::ResolveBattleStatus() step
+        this->SetHealth(this->GetHealth() - props.damage);
 
-  SetShader(whiteout);
+        // Do not resolve battle step damage or extra status information
+        return false;
+      }
+    } else if(props.aggressor->GetTeam() == Team::BLUE) {
+      if(props.drag == Direction::RIGHT) {
+        // take damage anyway, skipping the Character::ResolveBattleStatus() step
+        this->SetHealth(this->GetHealth() - props.damage);
+
+        // Do not resolve battle step damage or extra status information
+        return false;
+      }
+    }
+
+    pushedByDrag = true;
+  }
 
   AUDIO.Play(AudioType::HURT);
   
-  return health;
+  return true;
 }
 
 void Cube::Attack(Character* other) {
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 
   if (isObstacle) {
-    auto props = Hit::DefaultProperties;
-    props.damage = 200;
-    isObstacle->Hit(props);
+    // breaking prop is insta-kill
+    auto props = isObstacle->GetHitboxProperties();
+    if ((props.flags & Hit::breaking) == Hit::breaking) {
+      return;
+    }
+
+    isObstacle->Hit(GetHitboxProperties());
     this->hit = true;
     return;
   }
@@ -165,15 +202,42 @@ void Cube::Attack(Character* other) {
 
   if (isCharacter && isCharacter != this) {
     this->SetHealth(0);
-
-    auto props = Hit::DefaultProperties;
-    props.damage = 200;
-    isCharacter->Hit(props);
+    auto props = GetHitboxProperties();
+    isCharacter->Hit(GetHitboxProperties());
     this->hit = true;
   }
 }
 
 void Cube::SetAnimation(std::string animation)
 {
-  this->animation.SetAnimation(animation);
+  this->animation->SetAnimation(animation);
+}
+
+void Cube::OnSpawn(Battle::Tile & start)
+{
+  animation = new AnimationComponent(this);
+  this->RegisterComponent(animation);
+  animation->Setup("resources/mobs/cube/cube.animation");
+  animation->Reload();
+
+  animation->OnUpdate(0);
+
+  auto onFinish = [this, &start]() {
+    if (start.GetState() == TileState::ICE) {
+      animation->SetAnimation("ICE");
+      this->SetElement(Element::ICE);
+    }
+    else {
+      animation->SetAnimation("NORMAL");
+    }
+  };
+
+  if (start.IsReservedByCharacter() || start.ContainsEntityType<Character>()) {
+    this->SetHealth(0);
+    animation->SetAnimation("APPEAR", 0);
+  }
+  else {
+    animation->SetAnimation("APPEAR", 0, onFinish);
+  }
+
 }

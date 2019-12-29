@@ -1,69 +1,53 @@
 
-# Author TheMaverickProgrammer
+# About This Project
+Follow this project on :bird: [Twitter](https://twitter.com/NetbattleOpen)!
 
-## Update 3/2/2019
-[![Boss Battle](https://media.giphy.com/media/1eEv6U6IzFpFFfncDT/giphy.gif)](https://youtu.be/8EIgjohRZ_c?t=375)
+This aims to be an accurate mmbn6 engine that can be used to program custom enemies, chips, navis, or used to make your own mmbn story. It includes a fully playable battle-rush game.
 
-(Click the gif to see a video)
+This was originally started to kill some time one summer and I got a little carried away. It's been fun and I hope you have fun with it as I have had making it.
 
-Lots of updates: A full fledged scene node system, defense checks, an aggregate component system, components-as-an-entity, components that modify battle steps, multiple chip implementations, multiple enemy implementations, folders, ... the video says more than I can.
+## Update 12/27/2019
+[![forte-thumbnail.png](https://i.postimg.cc/bNvt3xP3/forte-thumbnail.png)](https://streamable.com/cxp7l#)
+[![thumbnail.png](https://i.postimg.cc/dVNffmg6/thumbnail.png)](https://streamable.com/pmy2d)
+[![thumbnail.png](https://i.postimg.cc/pLmCmN1Q/thumbnail.png)](https://twitter.com/i/status/1175981132912975872)
+[![thumbnail.png](https://i.postimg.cc/8cnWGcG2/thumbnail.png)](https://twitter.com/i/status/1185687172868956161)
 
-# Videos
-#### Branch: master
-Click the thumbnail to watch on youtube. 
+_some videos may be a little old_
 
-[![Video of engine 3/2/2019](http://i3.ytimg.com/vi/8EIgjohRZ_c/hqdefault.jpg)](https://youtu.be/8EIgjohRZ_c)
-
-# Screenshots
-
-
-
-[![starman.png](https://s8.postimg.cc/qjbob7h2d/starman.png)](https://postimg.cc/image/3umhbmzoh/)
-
-[![image.png](https://s8.postimg.cc/sjtcjqrol/folder.png)](https://s8.postimg.cc/sjtcjqrol/folder.png)
-
-[![preview.png](https://s15.postimg.cc/6cpgwlocr/preview.png)](https://postimg.cc/image/phsq6d30n/)
-
-[![menu.png](https://s15.postimg.cc/k819ndp6z/Untitled.png)](https://postimg.cc/image/hdy49xn0n/)
+Lots of updates:
+- New playable characters
+- Customizable forms and form menu
+- New enemies
+- New chips and `ChipAction` system
+- New lifecycle callbacks: `OnSpawn`, `OnDelete`, `OnUpdate` allow more control for custom content 
+- Battle-step routines will have more expected outcomes even with customization
+- Less fickle movement system
+- Entity & Tile queries
+- Hitbox types for sharing damage across multiple targets on the field
+- A single entity can also share life cycle events across other entities to create big enemies with multiple parts (like Alpha or Stone man)
+- Support chips
+- No more 3rd party configuration -> we have an options/ joystick config screen now
+- Folder naming, editing, and deleting screens are complete
+- Different AI pattern templates
+- Bunch of other things
 
 # Wiki
-How to [compile](https://github.com/TheMaverickProgrammer/battlenetwork/wiki/Begin-Here)
-
-Care to [contribute](https://github.com/TheMaverickProgrammer/battlenetwork/wiki)? 
-
-# Features
-
-**Keyboard support for MMBN Chrono X Config .ini files**
-[![tool.png](https://s15.postimg.cc/hdqmp92i3/tool.png)](https://postimg.cc/image/wmgk30w6f/)
-
-Just copy and paste your `options.ini` file to the same folder as the executable and the engine will read it. Plug in your controller. You'll know if everything is good because the GamePad icon will show up on the title screen:
-
-[![gamepad_support.png](https://s15.postimg.cc/nmm2cu7ij/gamepad_support.png)](https://postimg.cc/image/ib75s4lfr/)
-
-There is joystick support but the tricky thing about joysticks are that each vendor has different configurations. If you have a problem with your joystick, file an issue on the project page [here](https://github.com/TheMaverickProgrammer/battlenetwork/issues). 
-
---------
-
-In this demo, you can choose your Navi, choose which mob to battle, move navi around, shoot, charge, and delete enemies on the grid. When the chip cust is full, you can bring up the chip select menu. 
-
-The player can select chips and deselect them in the order they were added.  Return to battle and you can use the chips by pressing Right-Control. 
-
-There is 1 Program Advance: XtremeCannon. Can be activated by selecting `Cannon A` + `Cannon B` + `Cannon C` in order. It deals a whopping 600 points of damage, shaking the screen, and attacks the first 3 enemies vertically.
-There other other PAs that can be triggered through system but are not implemented and do not do any damage. 
-You can write your own PA's and add your own chips by editting the `/database` textfiles.
-
-Mega can also be deleted, ending the demo. If mega wins, the battle results will show up with your time, ranking, and a random chip based on score.
+TODO
 
 # Controls
-If not using [MMBN Chrono X Config Utility](http://www.mmbnchronox.com/download.php), these are the default bindings
+These are the default bindings. The engine supports 1 joystick. 
 
 ```
-ARROWS -> Move
-SPACE  -> Shoot (hold to charge)
-P      -> Pause / Chip description 
-Return -> Bring up chip select GUI / Continue / Spread chips preview
-R CTRL -> Use a chip
+ARROWS -> Move / UI options
+Z      -> Shoot (hold to charge) / UI Cancel
+X      -> Use chip / UI Confirm
+A      -> Bring up chip select GUI
+D      -> Scan Left
+F      -> Scan Right
+RETURN -> Pause
+SPACE  -> Quick Option
 ```
 
-## Contributions to the project
-Pheelbert wrote the original tile-based movement code where the entity kept a pointer reference to his current and next tile. This was a fitting design choice for a mmbn clone. Since then I have gone on to add multiple systems, components, routines, and so much more. It's unrecognizable as anything else but fresh and new.
+# Contributions to the project
+TODO: add contributors list
+

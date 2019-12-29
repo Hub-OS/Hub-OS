@@ -9,8 +9,9 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : Artifact(), Component(owner)
+BubbleTrap::BubbleTrap(Character* owner) : Artifact(nullptr), Component(owner)
 {
+  // Bubbles have to pop when hit
   defense = new DefenseBubbleWrap();
 
   if (owner->IsDeleted()) {
@@ -32,7 +33,7 @@ BubbleTrap::BubbleTrap(Character* owner) : Artifact(), Component(owner)
   animation = Animation(RESOURCE_PATH);
   animation.Reload();
 
-  animation << "DEFAULT" << Animate::Mode::Loop;
+  animation << "DEFAULT" << Animator::Mode::Loop;
 
   animation.Update(0, *this);
 
@@ -43,17 +44,20 @@ void BubbleTrap::Inject(BattleScene& bs) {
 
 }
 
-void BubbleTrap::Update(float _elapsed) {
+void BubbleTrap::OnUpdate(float _elapsed) {
+  if (!this->tile) return;
+
   if (duration <= 0 &&  animation.GetAnimationString() != "POP" ) {
     this->Pop();
   }
 
   duration -= _elapsed;
 
-  this->setPosition(this->tile->getPosition() - sf::Vector2f(0, 25.0f));
+  auto x = this->GetOwner()->getPosition().x;
+  auto y = this->GetOwner()->getPosition().y - (this->GetOwnerAs<Character>()->GetHeight()/2.0f / 2.0f);
+  this->setPosition(x, y);
 
   animation.Update(_elapsed, *this);
-  Entity::Update(_elapsed);
 }
 
 void BubbleTrap::Pop()

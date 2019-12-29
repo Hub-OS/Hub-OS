@@ -3,12 +3,24 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Hide doxygen output from repo 
+docs/build/
+docs/source/_doxygen
+docs/source/api
+
+# Hide extern
+extern/*
+
 # User-specific files
 *.rsuser
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
+
+# Mac binaries
+*.app
+*.app/*
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -20,15 +32,20 @@
 [Rr]eleases/
 x64/
 x86/
+build/
+build/*
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+BattleNetwork/BattleNetwork
+BattleNetwork/BattleNetworkExe
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
+
 # Uncomment if you have tasks that create the project's static files in wwwroot
 #wwwroot/
 
@@ -339,3 +356,23 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database 
 healthchecksdb
+
+<<<<<<< HEAD
+# Visual studio created files 
+.vs/
+
+.idea/
+=======
+#CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+>>>>>>> b486e21e11627262088deae73097eaa7af56791c

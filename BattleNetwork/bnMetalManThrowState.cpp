@@ -13,13 +13,13 @@ MetalManThrowState::~MetalManThrowState()
 }
 
 void MetalManThrowState::OnEnter(MetalMan& metal) {
-  auto onFinish = [this]() {   this->ChangeState<MetalManIdleState>(); };
-  auto onThrow = [this, &metal]() { this->Attack(metal); };
+  auto onFinish = [m = &metal]() { m->GoToNextState(); };
+  auto onThrow = [this, m = &metal]() { this->Attack(*m); };
 
   metal.SetAnimation("THROW", onFinish);
   metal.SetCounterFrame(1);
   metal.SetCounterFrame(2);
-  metal.OnFrameCallback(3, onThrow, std::function<void()>(), true);
+  metal.OnFrameCallback(3, onThrow, Animator::NoCallback, true);
 }
 
 void MetalManThrowState::OnLeave(MetalMan& metal) {

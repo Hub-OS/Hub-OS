@@ -7,26 +7,26 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 
-Artifact::Artifact(Field* _field, Team _team) {
+Artifact::Artifact(Field* _field) {
   this->SetField(_field);
-  this->SetTeam(_team);
+  this->SetTeam(Team::UNKNOWN);
   this->SetPassthrough(true);
 }
 
-Artifact::Artifact(void) {
-  SetLayer(0);
-  texture = nullptr;
-  this->SetPassthrough(true);
+Artifact::~Artifact() {
 }
 
-Artifact::~Artifact(void) {
+void Artifact::Update(float elapsed) {
+  Entity::Update(elapsed);
+  this->OnUpdate(elapsed);
 }
 
 void Artifact::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!isSliding) {
+  if (!IsSliding()) {
     this->setPosition(tile->getPosition());
   }
 }
+

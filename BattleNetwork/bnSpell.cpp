@@ -8,38 +8,42 @@
 #include "bnTextureResourceManager.h"
 
 
-Spell::Spell(void) : animationComponent(this), Entity() {
+Spell::Spell(Field* field, Team team) : Entity() {
   SetFloatShoe(true);
   SetLayer(1);
-  hit = false;
-  srand((unsigned int)time(nullptr));
-  progress = 0.0f;
-  hitHeight = 0.0f;
-  direction = Direction::NONE;
-  texture = nullptr;
-  markTile = false;
+  SetTeam(team);
+  SetField(field);
+  mode = Battle::Tile::Highlight::none;
   hitboxProperties.flags = Hit::none;
+  heightOffset = 0;
 }
 
-Spell::~Spell(void) {
+Spell::~Spell() {
 }
 
-const bool Spell::IsTileHighlightEnabled() const {
-  return markTile;
+void Spell::Update(float _elapsed) {
+  Entity::Update(_elapsed);
+
+  this->OnUpdate(_elapsed);
+
+  this->setPosition(getPosition().x, getPosition().y + (float)heightOffset);
+}
+const Battle::Tile::Highlight Spell::GetTileHighlightMode() const {
+  return mode;
 }
 
 void Spell::AdoptTile(Battle::Tile * tile)
 {
   tile->AddEntity(*this);
 
-  if (!isSliding) {
+  if (!IsSliding()) {
     this->setPosition(tile->getPosition());
   }
 }
 
-void Spell::EnableTileHighlight(bool enable)
+void Spell::HighlightTile(Battle::Tile::Highlight mode)
 {
-  markTile = enable;
+  this->mode = mode;
 }
 
 void Spell::SetHitboxProperties(Hit::Properties props)
@@ -50,4 +54,9 @@ void Spell::SetHitboxProperties(Hit::Properties props)
 const Hit::Properties Spell::GetHitboxProperties() const
 {
   return this->hitboxProperties;
+}
+
+void Spell::SetHeight(double height)
+{
+  heightOffset = -height;
 }

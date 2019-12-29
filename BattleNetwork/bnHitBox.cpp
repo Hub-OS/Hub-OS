@@ -1,41 +1,42 @@
 #include <random>
 #include <time.h>
 
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-HitBox::HitBox(Field* _field, Team _team, int _damage) : Spell() {
-  field = _field;
-  team = _team;
-  direction = Direction::NONE;
-  deleted = false;
+Hitbox::Hitbox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
   hit = false;
-  srand((unsigned int)time(nullptr));
-  cooldown = 0;
   damage = _damage;
 
   auto props = Hit::DefaultProperties;
   props.damage = _damage;
   this->SetHitboxProperties(props);
 
-  EnableTileHighlight(false);
+  callback = 0;
 }
 
-HitBox::~HitBox(void) {
+Hitbox::~Hitbox() {
 }
 
-void HitBox::Update(float _elapsed) {
+void Hitbox::OnUpdate(float _elapsed) {
   tile->AffectEntities(this);
   this->Delete();
 }
 
-bool HitBox::Move(Direction _direction) {
+bool Hitbox::Move(Direction _direction) {
   return false;
 }
 
-void HitBox::Attack(Character* _entity) {
-  _entity->Hit(GetHitboxProperties());
+void Hitbox::Attack(Character* _entity) {
+  if (_entity->Hit(GetHitboxProperties()) && callback) {
+    callback(_entity);
+  }
+}
+
+void Hitbox::AddCallback(decltype(callback) callback)
+{
+  this->callback = callback;
 }

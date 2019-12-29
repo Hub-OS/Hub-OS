@@ -5,9 +5,9 @@
 
 using sf::IntRect;
 
-#define RESOURCE_PATH "resources/spells/guard_hit.animation"
+#define RESOURCE_PATH "resources/spells/spell_charged_bullet_hit.animation"
 
-ChargedBusterHit::ChargedBusterHit(Field* _field, Character* hit) : animationComponent(this)
+ChargedBusterHit::ChargedBusterHit(Field* _field) : Artifact(_field)
 {
   SetLayer(0);
   field = _field;
@@ -18,18 +18,16 @@ ChargedBusterHit::ChargedBusterHit(Field* _field, Character* hit) : animationCom
 
   //Components setup and load
   auto onFinish = [&]() { this->Delete();  };
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation("DEFAULT", onFinish);
-  animationComponent.Update(0);
-
-  AUDIO.Play(AudioType::GUARD_HIT);
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
+  animationComponent->SetAnimation("HIT", onFinish);
+  animationComponent->OnUpdate(0);
 }
 
-void ChargedBusterHit::Update(float _elapsed) {
-  setPosition(tile->getPosition().x, tile->getPosition().y);
-  animationComponent.Update(_elapsed);
-  Entity::Update(_elapsed);
+void ChargedBusterHit::OnUpdate(float _elapsed) {
+  setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
 }
 
 ChargedBusterHit::~ChargedBusterHit()

@@ -1,9 +1,41 @@
 ﻿#pragma once
-#include <Swoosh\Segue.h>
-#include <Swoosh\Ease.h>
-#include <Swoosh\EmbedGLSL.h>
+#include <Swoosh/Segue.h>
+#include <Swoosh/Ease.h>
+#include <Swoosh/EmbedGLSL.h>
 
 using namespace swoosh;
+
+#ifdef __ANDROID__
+namespace {
+    auto ZOOM_FADEIN_FRAG_SHADER = GLSL
+    (
+            100,
+            precision highp float;
+            precision highp int;
+            precision highp sampler2D;
+
+            varying vec2 vTexCoord;
+            varying vec4 vColor;
+
+
+            uniform sampler2D texture;
+            uniform sampler2D texture2;
+            uniform float progress;
+
+            vec2 zoom(vec2 uv, float amount) {
+                return 0.5 + ((uv - 0.5) * (1.0 - amount));
+            }
+
+            void main() {
+                gl_FragColor = mix(
+                        texture2D(texture, zoom(vTexCoord.xy, smoothstep(0.0, 0.75, progress))),
+                        texture2D(texture2, vTexCoord.xy),
+                        smoothstep(0.55, 1.0, progress)
+                );
+            }
+    );
+}
+#else
 
 namespace {
   auto ZOOM_FADEIN_FRAG_SHADER = GLSL
@@ -26,6 +58,8 @@ namespace {
     }
    );
 }
+#endif
+
 
 class ZoomFadeIn : public Segue {
 private:

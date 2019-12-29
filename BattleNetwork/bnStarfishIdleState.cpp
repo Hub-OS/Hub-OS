@@ -1,4 +1,3 @@
-#pragma once
 #include "bnStarfishIdleState.h"
 #include "bnWave.h"
 #include "bnTile.h"
@@ -9,12 +8,13 @@ StarfishIdleState::StarfishIdleState() : cooldown(3), AIState<Starfish>() { ; }
 StarfishIdleState::~StarfishIdleState() { ; }
 
 void StarfishIdleState::OnEnter(Starfish& star) {
-  star.animationComponent.SetAnimation("IDLE", Animate::Mode::Loop);
+  star.GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", Animator::Mode::Loop);
 }
 
 void StarfishIdleState::OnUpdate(float _elapsed, Starfish& star) {
   if (cooldown < 0) {
-    this->ChangeState<StarfishAttackState>(3);
+    // Attack 3 times
+    star.ChangeState<StarfishAttackState>(3);
   }
 
   cooldown -= _elapsed;

@@ -6,203 +6,143 @@
 #include "bnShaderResourceManager.h"
 #include "bnEngine.h"
 #include "bnNaviExplodeState.h"
+#include "bnMetalManMissileState.h"
+#include "bnMetalManMoveState.h"
+#include "bnMetalManPunchState.h"
+#include "bnMetalManThrowState.h"
 #include "bnObstacle.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 
 #define RESOURCE_PATH "resources/mobs/metalman/metalman.animation"
 
 MetalMan::MetalMan(Rank _rank)
-  : animationComponent(this),
-  AI<MetalMan>(this), Character(_rank) {
+  :
+  BossPatternAI<MetalMan>(this), Character(_rank) {
   name = "MetalMan";
   this->team = Team::BLUE;
 
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManIdleState>();
+  this->AddState<MetalManMoveState>();
+  this->AddState<MetalManThrowState>();
+  this->AddState<MetalManPunchState>();
+  this->AddState<MetalManIdleState>();
+
   if (rank == Rank::EX) {
-    health = 1300;
+    SetHealth(1300);
+
+    // Append more states
+    this->AddState<MetalManMissileState>(10);
+    this->AddState<MetalManIdleState>();
+    this->AddState<MetalManIdleState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManThrowState>();
+    this->AddState<MetalManPunchState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManPunchState>();
+    this->AddState<MetalManMoveState>();
+    this->AddState<MetalManPunchState>();
+    this->AddState<MetalManMissileState>(10);
+    this->AddState<MetalManIdleState>();
   }
   else {
-    health = 1000;
+    SetHealth(1000);
   }
 
+  this->ShareTileSpace(true); // mega can walk into him on red tiles
+  
   hitHeight = 64;
+  SetHeight(hitHeight);
+
   state = MOB_IDLE;
-  textureType = TextureType::MOB_METALMAN_ATLAS;
   healthUI = new MobHealthUI(this);
 
-  this->ChangeState<MetalManIdleState>();
+  setTexture(*TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
-  setTexture(*TEXTURES.GetTexture(textureType));
   setScale(2.f, 2.f);
 
   this->SetHealth(health);
   this->SetFloatShoe(true);
 
   //Components setup and load
-  animationComponent.Setup(RESOURCE_PATH);
-  animationComponent.Reload();
-  animationComponent.SetAnimation(MOB_IDLE);
+  animationComponent = new AnimationComponent(this);
+  this->RegisterComponent(animationComponent);
+  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->Reload();
+  animationComponent->SetAnimation(MOB_IDLE);
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
-
-  animationComponent.Update(0);
+  animationComponent->OnUpdate(0);
 
   movedByStun = false;
-
-  hit = false;
 }
 
-MetalMan::~MetalMan(void) {
-}
-
-int* MetalMan::GetAnimOffset() {
-  int* res = new int[2];
-
-  res[0] = 10;
-  res[1] = 6;
-
-  return res;
+MetalMan::~MetalMan() {
 }
 
 void MetalMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
-  animationComponent.AddCallback(frame, onEnter, onLeave, doOnce);
+  animationComponent->AddCallback(frame, onEnter, onLeave, doOnce);
 }
 
 bool MetalMan::CanMoveTo(Battle::Tile * next)
 {
-  if (!next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>()) {
+  if (!next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && !next->IsEdgeTile()) {
     return true;
   }
 
   return false;
 }
 
-void MetalMan::Update(float _elapsed) {
-  // TODO: turn all tile altering functions to a queue
+void MetalMan::OnUpdate(float _elapsed) {
+  // TODO: use StuntDoubles to circumvent teleportaton
   if (movedByStun) { 
     this->Teleport((rand() % 3) + 4, (rand() % 3) + 1); 
     this->AdoptNextTile(); 
+    this->FinishMove();
     movedByStun = false; 
   }
 
-  healthUI->Update(_elapsed);
-
-  if (!hit) {
-    this->SetShader(nullptr);
-  }
-
-  this->RefreshTexture();
-
-  if (_elapsed <= 0) return;
-
-  hitHeight = getLocalBounds().height;
-
-  if (stunCooldown > 0) {
-    stunCooldown -= _elapsed;
-    healthUI->Update(_elapsed);
-    Character::Update(_elapsed);
-
-    if (stunCooldown <= 0) {
-      stunCooldown = 0;
-      animationComponent.Update(_elapsed);
-    }
-
-    if ((((int)(stunCooldown * 15))) % 2 == 0) {
-      this->SetShader(stun);
-    }
-    else {
-      this->SetShader(nullptr);
-    }
-
-    if (GetHealth() > 0) {
-      return;
-    }
-  }
-
-  this->AI<MetalMan>::Update(_elapsed);
-
-  // Explode if health depleted
-  if (GetHealth() <= 0) {
-    this->ChangeState<NaviExplodeState<MetalMan>>(9, 0.75); // freezes animation
-    this->LockState();
-  }
-  else {
-    HitBox* hitbox = new HitBox(field, GetTeam(), 40);
-    auto props = hitbox->GetHitboxProperties();
-    props.flags |= Hit::impact;
-    hitbox->SetHitboxProperties(props);
-
-    field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
-
-    animationComponent.Update(_elapsed);
-  }
-
-  Character::Update(_elapsed);
-
-  hit = false;
-}
-
-void MetalMan::RefreshTexture() {
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
+
+  this->BossPatternAI<MetalMan>::Update(_elapsed);
+
+  Hitbox* hitbox = new Hitbox(GetField(), GetTeam(), 40);
+  auto props = hitbox->GetHitboxProperties();
+  props.flags |= Hit::impact | Hit::recoil | Hit::flinch;
+  hitbox->SetHitboxProperties(props);
+
+  field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
 }
 
-TextureType MetalMan::GetTextureType() const {
-  return textureType;
-}
-
-int MetalMan::GetHealth() const {
-  return health;
-}
-
-void MetalMan::SetHealth(int _health) {
-  health = _health;
-}
-
-const bool MetalMan::Hit(Hit::Properties props) {
-  /*(health - _damage < 0) ? health = 0 : health -= _damage;
-  SetShader(whiteout);
-
-  return health;*/
-
+const bool MetalMan::OnHit(const Hit::Properties props) {
   bool result = true;
 
-  if (health - props.damage < 0) {
-    health = 0;
-  }
-  else {
-    health -= props.damage;
-
-    if ((props.flags & Hit::stun) == Hit::stun) {
-      SetShader(stun);
-      this->stunCooldown = props.secs;
-
-      if (!Teammate(this->GetTile()->GetTeam())) {
-        movedByStun = true;
-      }
-    }
-    else {
-      SetShader(whiteout);
+  if ((props.flags & Hit::stun) == Hit::stun) {
+    if (!Teammate(this->GetTile()->GetTeam())) {
+      movedByStun = true;
     }
   }
-
-  hit = result;
 
   return result;
-}
-
-const float MetalMan::GetHitHeight() const {
-  return hitHeight;
 }
 
 void MetalMan::SetCounterFrame(int frame)
 {
   auto onFinish = [&]() { this->ToggleCounter(); };
   auto onNext = [&]() { this->ToggleCounter(false); };
-  animationComponent.AddCallback(frame, onFinish, onNext);
+  animationComponent->AddCallback(frame, onFinish, onNext);
 }
 
 void MetalMan::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
-  animationComponent.SetAnimation(_state, onFinish);
-  animationComponent.Update(0);
+  animationComponent->SetAnimation(_state, onFinish);
+  animationComponent->OnUpdate(0);
+}
+
+void MetalMan::OnDelete() {
+  this->InterruptState<NaviExplodeState<MetalMan>>(); // freezes animation
 }

@@ -1,0 +1,10 @@
+# Lines beginning with pound '#' are comments and are ignored
+# Types are Null (or None), Fire, Aqua, Wood, Elec, Wind, Sword, Break, Cursor, Plus, and Summon
+
+Chip name="Cannon1"  cardIndex="0" iconIndex="0" damage="20" type="Null" codes="A,B,C
+
+Chip name="Swrd"     cardIndex="15" iconIndex="30" damage="20" type="Sword" codes="A,"
+Chip name="WideSwrd" cardIndex="16" iconIndex="31" damage="30" type="Sword" codes="A,J"
+Chip name="LongSwrd" cardIndex="17" iconIndex="32" damage="40" type="Sword" codes="A"
+
+Chip name="Recov1" cardIndex="74" iconIndex="146" damage="10" type="Null" codes="A,*"

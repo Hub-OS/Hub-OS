@@ -1,8 +1,15 @@
 #pragma once
 #include "bnArtifact.h"
-#include "bnField.h"
 #include "bnAnimationComponent.h"
 
+class Field;
+
+/**
+ * @class ElementalDamage
+ * @author mav
+ * @date 04/05/19
+ * @brief <!> symbol that appears on field when elemental damage occurs
+ */
 class ElementalDamage : public Artifact
 {
 private:
@@ -10,10 +17,14 @@ private:
   float progress;
 
 public:
-  ElementalDamage(Field* field, Team team);
+  ElementalDamage(Field* field);
   ~ElementalDamage();
 
-  virtual void Update(float _elapsed);
+  /**
+   * @brief Grow and shrink quickly. Appear over the sprite.
+   * @param _elapsed
+   */
+  virtual void OnUpdate(float _elapsed);
   virtual bool Move(Direction _direction) { return false; }
 
 };

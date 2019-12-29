@@ -40,6 +40,18 @@ AudioResourceManager::~AudioResourceManager() {
 
 void AudioResourceManager::EnableAudio(bool status) {
   isEnabled = status;
+
+  if(isEnabled) {
+    this->SetStreamVolume(this->streamVolume);
+    this->SetChannelVolume(this->channelVolume);
+  } else {
+    auto streamBefore = this->streamVolume;
+    auto channelBefore = this->channelVolume;
+    this->SetStreamVolume(0);
+    this->SetChannelVolume(0);
+    this->streamVolume = streamBefore;
+    this->channelVolume = channelBefore;
+  }
 }
 
 void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
@@ -54,6 +66,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::GUARD_HIT, "resources/sfx/guard_hit.ogg"); status++;
   LoadSource(AudioType::CANNON, "resources/sfx/cannon.ogg"); status++;
   LoadSource(AudioType::COUNTER, "resources/sfx/counter.ogg"); status++;
+  LoadSource(AudioType::WIND, "resources/sfx/wind.ogg"); status++;
   LoadSource(AudioType::CHIP_CANCEL, "resources/sfx/chip_cancel.ogg"); status++;
   LoadSource(AudioType::CHIP_CHOOSE, "resources/sfx/chip_choose.ogg"); status++;
   LoadSource(AudioType::CHIP_CONFIRM, "resources/sfx/chip_confirm.ogg"); status++;
@@ -86,6 +99,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::POINT, "resources/sfx/point.ogg"); status++;
   LoadSource(AudioType::NEW_GAME, "resources/sfx/new_game.ogg"); status++;
   LoadSource(AudioType::TEXT, "resources/sfx/text.ogg"); status++;
+  LoadSource(AudioType::SHINE, "resources/sfx/shine.ogg"); status++;
 }
 
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
@@ -110,6 +124,19 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
     return -1;
   }
 
+  // Annoying sound check. Make sure duplicate sounds are played only by a given amount of offset from the last time it was played.
+  // This prevents amplitude stacking when duplicate sounds are played on the same frame...
+  // NOTE: an audio queue would be a better place for this check. Then play() those sounds that pass the queue filter.
+  if (priority != AudioPriority::HIGH) {
+    for (int i = 0; i < NUM_OF_CHANNELS; i++) {
+      if (channels[i].buffer.getBuffer() == &sources[type] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
+        auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
+        if (howLongPlayed <= AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
+          return -1;
+        }
+      }
+    }
+  }
 
   // Priorities are LOWEST  (one at a time, if channel available),
   //                LOW     (any free channels),
@@ -120,7 +147,10 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   // Highest priority plays over anything that isn't like it
   if (priority == AudioPriority::HIGHEST) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
-      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || (sf::SoundBuffer*)channels[i].buffer.getBuffer() != &sources[type]) {
+      if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type]) {
+
+      }
+      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || channels[i].buffer.getBuffer() != &sources[type]) {
         channels[i].buffer.stop();
         channels[i].buffer.setBuffer(sources[type]);
         channels[i].buffer.play();
@@ -153,8 +183,10 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
         return 0;
       }
     }
-    else { // HIGH PRIORITY
-      if (channels[i].priority < AudioPriority::HIGH || channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing) {
+    else { // HIGH PRIORITY will not overwrite other HIGH priorities unless they have ended
+      bool canOverwrite = channels[i].priority < AudioPriority::HIGH 
+        ||(channels[i].priority == AudioPriority::HIGH && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing);
+      if (canOverwrite) {
         channels[i].buffer.stop();
         channels[i].buffer.setBuffer(sources[type]);
         channels[i].buffer.play();
@@ -168,7 +200,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   return -1;
 }
 
-int AudioResourceManager::Stream(std::string path, bool loop) {
+int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpan span) {
   if (!isEnabled) { return -1; }
 
   // stop previous stream if any 
@@ -180,6 +212,10 @@ int AudioResourceManager::Stream(std::string path, bool loop) {
   stream.play();
   stream.setLoop(loop);
 
+  if(loop) {
+    stream.setLoopPoints(span);
+  }
+
   return 0;
 }
 
@@ -189,10 +225,13 @@ void AudioResourceManager::StopStream() {
 
 void AudioResourceManager::SetStreamVolume(float volume) {
   stream.setVolume(volume);
+  streamVolume = volume;
 }
 
 void AudioResourceManager::SetChannelVolume(float volume) {
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     channels[i].buffer.setVolume(volume);
   }
+
+  channelVolume = volume;
 }

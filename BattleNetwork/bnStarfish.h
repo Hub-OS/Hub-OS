@@ -1,37 +1,40 @@
+/*! \brief Starfish is Aqua type and spawns bubbles */
+
 #pragma once
 #include "bnAnimatedCharacter.h"
 #include "bnMobState.h"
 #include "bnAI.h"
 #include "bnTextureType.h"
-#include "bnMobHealthUI.h"
+#include "bnStarfishIdleState.h"
 
 class Starfish : public AnimatedCharacter, public AI<Starfish> {
   friend class StarfishIdleState;
   friend class StarfishAttackState;
 
 public:
+  using DefaultState = StarfishIdleState;
+
   Starfish(Rank _rank = Rank::_1);
-  virtual ~Starfish(void);
+  ~Starfish();
 
-  virtual void Update(float _elapsed);
-  virtual void RefreshTexture();
-  //virtual void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
-  //virtual void SetCounterFrame(int frame);
-  virtual int GetHealth() const;
+  /**
+   * @brief Updates health ui, AI, and super classes
+   * @param _elapsed in seconds
+   */
+  void OnUpdate(float _elapsed);
 
-  void SetHealth(int _health);
-  virtual int* GetAnimOffset();
-  virtual const bool Hit( Hit::Properties props = Hit::DefaultProperties);
-  virtual const float GetHitHeight() const;
+  const bool OnHit(const Hit::Properties props);
+
+  void OnDelete();
+  
+  /**
+   * @brief Set the hit height for projectiles to play effects at the correct position
+   * @return Y offset
+   */
+  const float GetHeight() const;
 
 private:
-  sf::Shader* whiteout;
-  sf::Shader* stun;
-
-  string state;
-
   float hitHeight;
-  bool hit;
   TextureType textureType;
-  MobHealthUI* healthUI;
+  DefenseRule* virusBody;
 };

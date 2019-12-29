@@ -7,37 +7,35 @@
 Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   SetLayer(0);
   field = _field;
-  direction = Direction::NONE;
-  deleted = false;
   hit = false;
-  health = 1;
-  texture = TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png");
-
-  // why do we need this??
+  
+  auto texture = TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png");
+  setTexture(*texture);
+  setScale(2.f, 2.f);
+  // why do we need to do this??
+  // The super constructor is failing to set this value
+  // TODO: find out why
   this->team = _team;
 
   this->speed = speed;
 
-  this->slideTime = sf::seconds(0.1f);
+  this->SetSlideTime(sf::seconds(0.1f));
+  this->SetHealth(1);
 
   AUDIO.Play(AudioType::TOSS_ITEM_LITE, AudioPriority::LOWEST);
 
   Hit::Properties props;
   props.damage = 80;
-  props.flags = Hit::recoil | Hit::flinch;
-  props.secs = 3;
+  props.flags |= Hit::recoil | Hit::flinch;
   this->SetHitboxProperties(props);
 
-  EnableTileHighlight(false);
   this->SetFloatShoe(true);
 }
 
-Fishy::~Fishy(void) {
+Fishy::~Fishy() {
 }
 
-void Fishy::Update(float _elapsed) {
-  setTexture(*texture);
-  setScale(2.f, 2.f);
+void Fishy::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x - 40.0f, tile->getPosition().y + tileOffset.y - 120.0f);
 
   if (this->GetTile()->GetX() == 6) {
@@ -45,14 +43,12 @@ void Fishy::Update(float _elapsed) {
   }
 
   // Keep moving
-  if (!this->isSliding) {
+  if (!this->IsSliding()) {
     this->SlideToTile(true);
     this->Move(this->GetDirection());
   }
 
   tile->AffectEntities(this);
-
-  Entity::Update(_elapsed);
 }
 
 bool Fishy::CanMoveTo(Battle::Tile* tile) {
@@ -60,7 +56,7 @@ bool Fishy::CanMoveTo(Battle::Tile* tile) {
 }
 
 
-const bool Fishy::Hit(Hit::Properties props) {
+const bool Fishy::OnHit(const Hit::Properties props) {
   return true; // fishy blocks everything
 }
 
