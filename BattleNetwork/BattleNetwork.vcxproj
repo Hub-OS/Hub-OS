@@ -219,6 +219,7 @@
     <ClCompile Include="bnAlphaBossFight.cpp" />
     <ClCompile Include="bnAlphaClawSwipeState.cpp" />
     <ClCompile Include="bnAlphaCore.cpp" />
+    <ClCompile Include="bnAlphaElectricalCurrent.cpp" />
     <ClCompile Include="bnAlphaElectricState.cpp" />
     <ClCompile Include="bnAlphaGunState.cpp" />
     <ClCompile Include="bnAlphaIdleState.cpp" />
@@ -441,6 +442,7 @@
     <ClCompile Include="bnChipDescriptionTextbox.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bnAlphaElectricalCurrent.h" />
     <ClInclude Include="bnCharacterDeleteListener.h" />
     <ClInclude Include="bnCharacterDeletePublisher.h" />
     <ClInclude Include="bnDefenseInvis.h" />

@@ -1,5 +1,5 @@
-StartTime 1577651880
-Engine initialized: 0.400000 secs
+StartTime 1577657315
+Engine initialized: 0.459000 secs
 config settings is OK
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
@@ -142,7 +142,7 @@ Loaded texture: resources/ui/light.png
 Loaded texture: resources/fonts/all_fonts.png
 Loaded texture: resources/backgrounds/config/audio.png
 Loaded texture: resources/backgrounds/config/end_btn.png
-Loaded textures: 0.242000 secs
+Loaded textures: 0.238000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -208,13 +208,13 @@ Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
 Loaded audio: resources/sfx/shine.ogg
-Loaded audio sources: 0.126000 secs
+Loaded audio sources: 0.134000 secs
 Loaded texture: resources/navis/megaman/forms/base.palette.png
 Loaded navi: Megaman
 Loaded navi: Roll
 Loaded navi: Starman
 Loaded navi: Bass
-Loaded registered navis: 0.050000 secs
+Loaded registered navis: 0.053000 secs
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
 Loaded texture: resources/mobs/starfish/preview.png
@@ -233,7 +233,7 @@ Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.159000 secs
+Loaded registered mobs: 0.177000 secs
 library size: 247
 Loaded texture: resources/backgrounds/lan/bg.png
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
@@ -246,7 +246,7 @@ Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/medical/bg.png
+Loaded texture: resources/backgrounds/virus/fg.png
 Loaded texture: resources/ui/img_health.png
 Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
 Loaded font: resources/fonts/dr_cain_terminal.ttf
@@ -259,165 +259,72 @@ SelectMobScene::onLeave()
 SelectMobScene::onExit()
 comboDeleteCounter reset
 comboDeleteCounter reset
+Loaded texture: resources/spells/spell_vulcan.png
+custom callback fired
+Loaded texture: resources/spells/spell_sword_blades.png
+Loaded texture: resources/spells/spell_sword_blades.png
+custom callback fired
+custom callback fired
 Loaded texture: resources/spells/spell_sword_blades.png
 Loaded texture: resources/spells/spell_sword_blades.png
 Loaded texture: resources/spells/spell_elec_sword.png
 custom callback fired
 Loaded texture: resources/spells/spell_sword_blades.png
 Loaded texture: resources/spells/spell_sword_blades.png
-pushing states
-Mettaur OnHit
-custom callback fired
-Deleting ¿Î¨H from battle
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
-pushing states
-Mettaur OnHit
 custom callback fired
 pushing states
-Mettaur OnHit
-comboDeleteCounter reset
-Deleting @> ™H from battle
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onResume()
-Loaded texture: resources/navis/megaman/forms/base.palette.png
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+pushing states
+Deleting Megaman from battle
+SelectMobScene::onEnd()
 Loaded texture: resources/backgrounds/lan/bg.png
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded texture: resources/navis/megaman/forms/tengu_entry.png
-Loaded texture: resources/navis/megaman/forms/heat_entry.png
-Loaded texture: resources/navis/megaman/forms/hawk_entry.png
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-comboDeleteCounter reset
-comboDeleteCounter reset
-pushing states
-Deleting P7xØH from battle
-Deleting ∞'xØH from battle
-pushing states
-Deleting –>xØH from battle
-Deleting ZxØH from battle
-pushing states
-Deleting 0CxØH from battle
-Deleting  from battle
-pushing states
-Deleting pvxØH from battle
-pushing states
-Deleting `wxØH from battle
-pushing states
-Deleting  from battle
-Deleting @txØH from battle
-Deleting ÇxØH from battle
-Deleting †xxØH from battle
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-Deleting ‡ÉxØH from battle
-pushing states
-Deleting ÅxØH from battle
-custom callback fired
-pushing states
-Deleting  from battle
-Deleting 0*xØH from battle
-Loaded texture: resources/spells/spell_vulcan.png
-Deleting ¿èxØH from battle
-custom callback fired
-Deleting ñxØH from battle
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_elec_sword.png
-pushing states
-Deleting êxØH from battle
-custom callback fired
-pushing states
-Deleting ¿îxØH from battle
-Deleting  from battle
-Deleting –éxØH from battle
-Deleting ñxØH from battle
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-comboDeleteCounter reset
-comboDeleteCounter reset
-Deleting Ä˜xØH from battle
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-pushing states
-pushing states
-Deleting –$yØH from battle
-pushing states
-Deleting @yØH from battle
-pushing states
-Deleting ∞yØH from battle
-Deleting ÄyØH from battle
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Deleting –yØH from battle
-pushing states
-custom callback fired
-Deleting ÄyØH from battle
-pushing states
-Deleting ‡-yØH from battle
-Deleting 0%xØH from battle
-pushing states
-custom callback fired
-pushing states
-Deleting ‡(yØH from battle
-Deleting PKxØH from battle
-Deleting ê7yØH from battle
-pushing states
-Deleting `5yØH from battle
-Deleting ¿qxØH from battle
-Loaded texture: resources/navis/megaman/forms/heat_cross.png
-Loaded texture: resources/navis/megaman/forms/heat.palette.png
-Enabling state for child #1: false
-Enabling state for child #2: false
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-pushing states
-custom callback fired
-Deleting 0yØH from battle
-Deleting †,yØH from battle
-Deleting Ä.yØH from battle
-pushing states
-Deleting `&yØH from battle
-pushing states
-Deleting ‡-yØH from battle
-pushing states
-Deleting @(yØH from battle
-pushing states
-Deleting –8yØH from battle
-pushing states
-Deleting ê7yØH from battle
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Loaded texture: resources/spells/buster_shoot.png
-Deleting pJØH from battle
-comboDeleteCounter reset
-Loaded texture: resources/spells/buster_flame.png
-pushing states
-Deleting ‡ÂØH from battle
-Deleting ‰ØH from battle
-Deleting  from battle
-Deleting ê˘„ØH from battle
+Loaded font: resources/fonts/mgm_nbr_pheelbert.ttf
+library saved successfully. Number of chips saved: 247
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 SelectMobScene::onEnter()
-SelectMobScene::onResume()
+SelectMobScene::onStart()
 Loaded texture: resources/navis/megaman/forms/base.palette.png
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
@@ -436,440 +343,25 @@ SelectMobScene::onLeave()
 SelectMobScene::onExit()
 comboDeleteCounter reset
 comboDeleteCounter reset
-pushing states
-custom callback fired
-Deleting ‡Â,∞H from battle
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_elec_sword.png
-custom callback fired
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-custom callback fired
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_vulcan.png
-custom callback fired
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-custom callback fired
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-custom callback fired
-pushing states
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_vulcan.png
-custom callback fired
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_elec_sword.png
-custom callback fired
-comboDeleteCounter reset
+Loaded texture: resources/spells/buster_shoot.png
+normal callback fired
 pushing states
 pushing states
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
+Loaded texture: resources/spells/buster_shoot.png
+normal callback fired
+Loaded texture: resources/spells/buster_shoot.png
+normal callback fired
+Loaded texture: resources/spells/buster_shoot.png
+normal callback fired
+Loaded texture: resources/spells/buster_shoot.png
+normal callback fired
+Loaded texture: resources/spells/buster_shoot.png
+normal callback fired
+Loaded texture: resources/spells/buster_shoot.png
+normal callback fired
 pushing states
-custom callback fired
 pushing states
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_elec_sword.png
-pushing states
-custom callback fired
-Deleting ∞¿.∞H from battle
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/navis/megaman/forms/hawk_cross.png
-Loaded texture: resources/navis/megaman/forms/hawk.palette.png
-Enabling state for child #1: false
-Enabling state for child #2: false
-comboDeleteCounter reset
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Deleting Ëˇ©H from battle
+Deleting unnamed from battle
+Deleting unnamed from battle
+Deleting Alpha from battle
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onResume()
-Loaded texture: resources/navis/megaman/forms/base.palette.png
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/robot/bg.png
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded texture: resources/navis/megaman/forms/tengu_entry.png
-Loaded texture: resources/navis/megaman/forms/heat_entry.png
-Loaded texture: resources/navis/megaman/forms/hawk_entry.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-comboDeleteCounter reset
-comboDeleteCounter reset
-pushing states
-custom callback fired
-pushing states
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-pushing states
-custom callback fired
-comboDeleteCounter reset
-comboDeleteCounter reset
-pushing states
-Loaded texture: resources/spells/AirShot.png
-pushing states
-custom callback fired
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-pushing states
-custom callback fired
-pushing states
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_elec_sword.png
-pushing states
-pushing states
-Loaded texture: resources/navis/megaman/forms/tengu_cross.png
-Loaded texture: resources/navis/megaman/forms/tengu.palette.png
-Enabling state for child #1: false
-Enabling state for child #2: false
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-pushing states
-pushing states
-custom callback fired
-pushing states
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-pushing states
-pushing states
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_elec_sword.png
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-normal callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-custom callback fired
-Deleting @‘RªH from battle
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onResume()
-Loaded texture: resources/backgrounds/undernet/bg.png
-Loaded texture: resources/navis/megaman/forms/base.palette.png
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded texture: resources/navis/megaman/forms/tengu_entry.png
-Loaded texture: resources/navis/megaman/forms/heat_entry.png
-Loaded texture: resources/navis/megaman/forms/hawk_entry.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-comboDeleteCounter reset
-comboDeleteCounter reset
-custom callback fired
-pushing states
-finish punch called
-custom callback fired
-pushing states
-finish punch called
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_elec_sword.png
-pushing states
-custom callback fired
-pushing states
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_elec_sword.png
-pushing states
-comboDeleteCounter reset
-custom callback fired
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-pushing states
-pushing states
-finish punch called
-comboDeleteCounter reset
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-pushing states
-finish punch called
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-pushing states
-custom callback fired
-pushing states
-finish punch called
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_elec_sword.png
-custom callback fired
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-pushing states
-pushing states
-finish punch called
-Loaded texture: resources/spells/AirShot.png
-pushing states
-custom callback fired
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-custom callback fired
-Loaded texture: resources/navis/megaman/forms/tengu_cross.png
-Loaded texture: resources/navis/megaman/forms/tengu.palette.png
-Enabling state for child #1: false
-Enabling state for child #2: false
-comboDeleteCounter reset
-pushing states
-finish punch called
-Loaded texture: resources/spells/spell_vulcan.png
-custom callback fired
-Loaded texture: resources/spells/spell_vulcan.png
-custom callback fired
-finish punch called
-pushing states
-comboDeleteCounter reset
-comboDeleteCounter reset
-Loaded texture: resources/spells/spell_sword_blades.png
-Loaded texture: resources/spells/spell_sword_blades.png
-pushing states
-custom callback fired
-finish punch called
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-custom callback fired
-finish punch called
-Loaded texture: resources/spells/buster_fan.png
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-finish punch called
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-custom callback fired
-Deleting bªH from battle
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onResume()
-Loaded texture: resources/navis/megaman/forms/base.palette.png
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/acdc/bg.png
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded texture: resources/navis/megaman/forms/tengu_entry.png
-Loaded texture: resources/navis/megaman/forms/heat_entry.png
-Loaded texture: resources/navis/megaman/forms/hawk_entry.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-comboDeleteCounter reset
-Loaded texture: resources/navis/megaman/forms/tengu_cross.png
-Loaded texture: resources/navis/megaman/forms/tengu.palette.png
-Enabling state for child #1: false
-Enabling state for child #2: false
-comboDeleteCounter reset
-Loaded texture: resources/spells/AirShot.png
-comboDeleteCounter reset
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_fan.png
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-pushing states
-custom callback fired
-pushing states
-pushing states
-Loaded texture: resources/navis/megaman/forms/heat_cross.png
-Loaded texture: resources/navis/megaman/forms/heat.palette.png
-Enabling state for child #2: false
-Enabling state for child #3: false
-comboDeleteCounter reset
-Loaded texture: resources/spells/buster_flame.png
-pushing states
-pushing states
-comboDeleteCounter reset
-Loaded texture: resources/spells/buster_flame.png
-custom callback fired
-Loaded texture: resources/spells/buster_flame.png
-pushing states
-custom callback fired
-Loaded texture: resources/spells/buster_flame.png
-Loaded texture: resources/navis/megaman/forms/tengu_cross.png
-Loaded texture: resources/navis/megaman/forms/tengu.palette.png
-Enabling state for child #3: false
-Enabling state for child #4: false
-Enabling state for child #5: false
-comboDeleteCounter reset
-custom callback fired
-Loaded texture: resources/spells/spell_vulcan.png
-pushing states
-custom callback fired
-pushing states
-pushing states
-pushing states
-Loaded texture: resources/spells/buster_shoot.png
-normal callback fired
-comboDeleteCounter reset
-custom callback fired
-pushing states
-pushing states
-Enabling state for child #2: false
-comboDeleteCounter reset
-Deleting Ó£√H from battle
-SelectMobScene::onEnd()

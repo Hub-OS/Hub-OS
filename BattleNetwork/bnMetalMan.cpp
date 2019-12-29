@@ -57,6 +57,8 @@ MetalMan::MetalMan(Rank _rank)
   this->ShareTileSpace(true); // mega can walk into him on red tiles
   
   hitHeight = 64;
+  SetHeight(hitHeight);
+
   state = MOB_IDLE;
   healthUI = new MobHealthUI(this);
 
@@ -77,8 +79,6 @@ MetalMan::MetalMan(Rank _rank)
   animationComponent->OnUpdate(0);
 
   movedByStun = false;
-
-  hit = false;
 }
 
 MetalMan::~MetalMan() {
@@ -106,20 +106,9 @@ void MetalMan::OnUpdate(float _elapsed) {
     movedByStun = false; 
   }
 
-  // todo: add this in Agent::Update() for ALL agent
-  if (this->GetTarget() && this->GetTarget()->IsDeleted()) {
-    this->SetTarget(nullptr);
-  }
-
-  if (!hit) {
-    this->SetShader(nullptr);
-  }
-
   setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
 
   this->BossPatternAI<MetalMan>::Update(_elapsed);
-
-  // Explode if health depleted
 
   Hitbox* hitbox = new Hitbox(GetField(), GetTeam(), 40);
   auto props = hitbox->GetHitboxProperties();
@@ -127,8 +116,6 @@ void MetalMan::OnUpdate(float _elapsed) {
   hitbox->SetHitboxProperties(props);
 
   field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
-
-  hit = false;
 }
 
 const bool MetalMan::OnHit(const Hit::Properties props) {
@@ -140,13 +127,7 @@ const bool MetalMan::OnHit(const Hit::Properties props) {
     }
   }
 
-  hit = result;
-
   return result;
-}
-
-const float MetalMan::GetHeight() const {
-  return hitHeight;
 }
 
 void MetalMan::SetCounterFrame(int frame)

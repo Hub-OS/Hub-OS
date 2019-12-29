@@ -104,7 +104,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
   std::vector<Frame>::const_iterator iter = copy.begin();
 
   // While there is time left in the progress loop
-  while (iter != copy.end() && startProgress != 0.f) {
+  while (startProgress != 0.f) {
     // Increase the index
     index++;
 

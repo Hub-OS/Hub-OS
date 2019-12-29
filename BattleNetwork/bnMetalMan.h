@@ -72,15 +72,7 @@ public:
   const bool OnHit(const Hit::Properties props);
 
   void OnDelete();
-  
-  /**
-   * @brief Get the hit height for metalman
-   * @return  const float
-   * 
-   * Used by spells that emit particle artifacts on hit
-   */
-  const float GetHeight() const;
-
+ 
 private:
   AnimationComponent* animationComponent; /*!< animates this sprite scene node */
 
@@ -89,5 +81,4 @@ private:
   MobHealthUI* healthUI; /*!< Health ui component */
 
   bool movedByStun; /*!< If metalman was stunned outside of this area, move him back to his space */
-  bool hit; /*!< Flash white if his this frame */
 };

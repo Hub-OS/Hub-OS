@@ -29,6 +29,8 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
 
 
     auto onFinish = [metal = &metal, nextTile, lastTile, this]() {
+      Logger::Log("metalman move on finish called");
+
       metal->Teleport(nextTile->GetX(), nextTile->GetY());
       metal->AdoptNextTile();
       metal->FinishMove();
@@ -40,14 +42,17 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
         m->FinishMove();
         m->GoToNextState(); 
       };
-      auto onGroundHit = [this, m = metal]() { this->Attack(*m); };
+      auto onGroundHit = [this, m = metal]() {       
+        Logger::Log("on ground hit called"); 
+        this->Attack(*m); 
+      };
 
-      //metal->GetFirstComponent<AnimationComponent>()->CancelCallbacks();
       metal->SetAnimation("PUNCH", onFinishPunch); // TODO: this is not firing
       metal->SetCounterFrame(1);
       metal->SetCounterFrame(2);
       metal->SetCounterFrame(3);
       metal->OnFrameCallback(4, onGroundHit, Animator::NoCallback, true);
+
     };
 
     metal.SetAnimation(MOB_MOVING, onFinish);

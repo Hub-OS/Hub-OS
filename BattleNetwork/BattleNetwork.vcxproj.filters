@@ -716,6 +716,9 @@
     <Filter Include="Scenes/Activities\Battle\Content\Chips\Actions\Swords\WideSword">
       <UniqueIdentifier>{79412d32-80e6-4b2f-83c1-aa49129c2922}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\AlphaElectricalCurrrent">
+      <UniqueIdentifier>{0b377d43-4a44-4535-9e4e-a3de625053ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1479,6 +1482,9 @@
     </ClCompile>
     <ClCompile Include="bnLongSwordChipAction.cpp">
       <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\LongSword</Filter>
+    </ClCompile>
+    <ClCompile Include="bnAlphaElectricalCurrent.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\AlphaElectricalCurrrent</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2313,6 +2319,9 @@
     </ClInclude>
     <ClInclude Include="bnLongSwordChipAction.h">
       <Filter>Scenes/Activities\Battle\Content\Chips\Actions\Swords\LongSword</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAlphaElectricalCurrent.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\AlphaElectricalCurrrent</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
