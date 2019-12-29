@@ -33,7 +33,7 @@ BasicSword::~BasicSword(void) {
 }
 
 void BasicSword::OnUpdate(float _elapsed) {
-  if (cooldown >= COOLDOWN || hit) {
+  if (cooldown >= COOLDOWN) {
     this->Delete();
     return;
   }

@@ -13,24 +13,24 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~CrackShot();
+  ~CrackShot();
 
   /**
    * @brief CrackShot flies through the air
    * @param tile
    * @return true
    */
-  virtual bool CanMoveTo(Battle::Tile* tile);
+  bool CanMoveTo(Battle::Tile* tile);
 
   /**
    * @brief Moves in one direction
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
 
   /**
    * @brief Deals hitbox damage
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity);
 };

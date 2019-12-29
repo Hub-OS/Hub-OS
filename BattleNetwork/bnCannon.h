@@ -12,11 +12,11 @@
 class Cannon : public Spell {
 public:
   Cannon(Field* _field, Team _team, int damage);
-  virtual ~Cannon();
+  ~Cannon();
 
-  virtual void OnUpdate(float _elapsed);
-  virtual bool CanMoveTo(Battle::Tile* next);
-  virtual void Attack(Character* _entity);
+  void OnUpdate(float _elapsed);
+  bool CanMoveTo(Battle::Tile* next);
+  void Attack(Character* _entity);
 
 private:
   int damage;

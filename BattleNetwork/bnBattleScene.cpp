@@ -542,9 +542,12 @@ void BattleScene::onUpdate(double elapsed) {
         isLeavingFormChange = false;
         isAnimatingFormChange = false;
 
-        // Show BattleStart
-        isPreBattle = true;
-        battleStartTimer.reset();
+        // Case: only show BattleStart if not triggered due to death
+        // More reasons to use real state management for the battle scene...
+        if (player->GetHealth() > 0) {
+          isPreBattle = true;
+          battleStartTimer.reset();
+        }
       }
     }
   }

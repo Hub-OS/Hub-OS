@@ -62,10 +62,11 @@ const double AnimationComponent::GetPlaybackSpeed()
 void AnimationComponent::SetAnimation(string state, std::function<void()> onFinish)
 {
   // Animation changes cancel stun
-  auto c = GetOwnerAs<Character>();
+  // REDACTION: Why did I write this? Changing animation shouldn't cancel stun!
+  /*auto c = GetOwnerAs<Character>();
   if (c && c->IsStunned()) {
     c->stunCooldown = 0;
-  }
+  }*/
 
   animation.SetAnimation(state);
   animation << onFinish;

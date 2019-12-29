@@ -12,7 +12,7 @@ AlphaElectricCurrent::AlphaElectricCurrent(Field* field, Team team, int count) :
   anim->Setup(RESOURCE_PATH);
   anim->Load();
   this->setScale(2.f, 2.f);
-  this->SetHeight(52);
+  this->SetHeight(58);
 
   auto props = Hit::DefaultProperties;
   props.flags |= Hit::flinch;

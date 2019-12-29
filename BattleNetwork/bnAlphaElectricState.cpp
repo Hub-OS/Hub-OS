@@ -9,15 +9,15 @@ AlphaElectricState::AlphaElectricState() : AIState<AlphaCore>() { ; }
 AlphaElectricState::~AlphaElectricState() { ; }
 
 void AlphaElectricState::OnEnter(AlphaCore& a) {
-  // skip unless at half health
-  //if (a.GetHealth() > a.GetMaxHealth() / 2) {
-  //  a.GoToNextState();
-  //  return;
-  //}
-
   ready = false;
   count = 0;
   current = nullptr;
+
+  // skip unless at half health
+  /*if (a.GetHealth() > a.GetMaxHealth() / 2) {
+    a.GoToNextState();
+    return;
+  }*/
 
   a.EnableImpervious();
   AnimationComponent* anim = a.GetFirstComponent<AnimationComponent>();
@@ -51,7 +51,8 @@ void AlphaElectricState::OnUpdate(float _elapsed, AlphaCore& a) {
 
   if (!ready) return;
 
-  current = new AlphaElectricCurrent(a.GetField(), a.GetTeam(), 7);
+  int count = a.GetRank() == AlphaCore::Rank::EX ? 10 : 7;
+  current = new AlphaElectricCurrent(a.GetField(), a.GetTeam(), count);
   auto props = current->GetHitboxProperties();
   props.aggressor = &a;
   current->SetHitboxProperties(props);

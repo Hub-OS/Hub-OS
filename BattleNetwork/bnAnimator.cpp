@@ -50,7 +50,31 @@ void Animator::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
 void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequence) {
   float startProgress = progress;
 
-  UpdateCurrentPoints(0, sequence);
+  // If we did not progress while in an update, do not merge the queues and ignore this request 
+  // All we wish to do is re-adjust the origin if applicable
+  if (progress == 0 && sequence.frames.size()) {
+    auto iter = sequence.frames.begin();
+    int index = 1;
+
+    // If the playback mode is reverse, flip the frames
+    // and the index
+    if ((playbackMode & Mode::Reverse) == Mode::Reverse) {
+      iter = sequence.frames.end();
+      index = sequence.frames.size();
+    }
+
+    target.setTextureRect((*iter).subregion);
+
+    // If applicable, update the origin
+    if ((*iter).applyOrigin) {
+      target.setOrigin((float)(*iter).origin.x, (float)(*iter).origin.y);
+    }
+
+    // animation index are base 1
+    UpdateCurrentPoints(index-1, sequence);
+    return;
+  }
+
 
   // Callbacks are only invalide during clears in the update loop
   if (!callbacksAreValid) callbacksAreValid = true;
@@ -58,7 +82,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
   // Set our flag to let callback additions go to the right queue  
   isUpdating = true;
 
-  if (sequence.frames.empty()) {
+  if (sequence.frames.empty() || sequence.GetTotalDuration() == 0) {
     if (onFinish != nullptr) {
       // Fire the onFinish callback if available
       onFinish();
@@ -115,7 +139,9 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     // We assume progress hits zero because we use it as a decrementing counter
     // We add a check to ensure the start progress wasn't also 0
     // If it did not start at zero, we know we came across the end of the animation
-    if ((progress <= 0.f || &(*iter) == &copy.back()) && startProgress != 0.f) {
+    bool reachedLastFrame = &(*iter) == &copy.back() && startProgress != 0.f;
+
+    if (progress <= 0.f || reachedLastFrame) {
       std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = this->callbacks.find(index);
       std::map<int, std::function<void()>>::iterator onetimeCallbackIter = this->onetimeCallbacks.find(index);
 
@@ -163,9 +189,8 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
       }
 
       // Determine if the progress has completed the animation
-      bool applyCallback = (sequence.totalDuration == 0 || (startProgress > sequence.totalDuration && startProgress > 0.f));
-
-      if (applyCallback) {
+      // NOTE: Last frame doesn't mean all the time has been used. Check for total duration
+      if (reachedLastFrame && startProgress >= sequence.totalDuration && callbacksAreValid) {
         if (onFinish != nullptr) {
           // If applicable, fire the onFinish callback
           onFinish();

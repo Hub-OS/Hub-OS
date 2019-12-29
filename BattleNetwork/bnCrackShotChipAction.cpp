@@ -41,7 +41,7 @@ void CrackShotChipAction::Execute() {
 
     auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 
-    if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter()) {
+    if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter() && !tile->ContainsEntityType<Character>()) {
       CrackShot* b = new CrackShot(GetOwner()->GetField(), GetOwner()->GetTeam(), tile);
       auto props = b->GetHitboxProperties();
       props.damage = damage;
