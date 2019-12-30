@@ -41,10 +41,6 @@ void Vulcan::OnUpdate(float _elapsed) {
   // Strike panel and leave
   GetTile()->AffectEntities(this);
 
-  if (GetDirection() == Direction::NONE) {
-    this->Delete();
-  }
-
   if (Move(GetDirection())) {
     AdoptNextTile();
     FinishMove();

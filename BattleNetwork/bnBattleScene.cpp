@@ -476,7 +476,7 @@ void BattleScene::onUpdate(double elapsed) {
       
       auto paletteSwap = player->GetFirstComponent<PaletteSwap>();
       
-      //if(paletteSwap) paletteSwap->Enable(false);
+      if(paletteSwap) paletteSwap->Enable(false);
 
       if (showSummonBackdropTimer < showSummonBackdropLength) {
         showSummonBackdropTimer += elapsed;
@@ -495,7 +495,7 @@ void BattleScene::onUpdate(double elapsed) {
             player->ActivateFormAt(lastSelectedForm);
             AUDIO.Play(AudioType::SHINE);
 
-            //player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+            player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
 
             // Activating the form will add NEW child nodes onto our character
             // TODO: There's got to be a more optimal search than this...
@@ -507,14 +507,14 @@ void BattleScene::onUpdate(double elapsed) {
               if (it == originals->end()) {
                 states->push_back(child->IsUsingParentShader());
                 originals->push_back(child);
-                //child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
+                child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
               }
             }
           };
 
           auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
             isLeavingFormChange = true;
-            //if (paletteSwap) paletteSwap->Enable();
+            if(paletteSwap) paletteSwap->Enable();
 
             unsigned idx = 0;
             for (auto child : *originals) {
@@ -524,7 +524,7 @@ void BattleScene::onUpdate(double elapsed) {
 
               unsigned thisIDX = idx;
               bool enabled =(*states)[idx++];
-              //child->EnableParentShader(enabled);
+              child->EnableParentShader(enabled);
               Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
             }
           };

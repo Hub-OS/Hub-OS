@@ -11,10 +11,10 @@
 class AirShot : public Spell {
 public:
   AirShot(Field* _field, Team _team, int damage);
-  virtual ~AirShot();
-  virtual void OnUpdate(float _elapsed);
-  virtual void Attack(Character* _entity);
-  virtual bool CanMoveTo(Battle::Tile* next);
+  ~AirShot();
+  void OnUpdate(float _elapsed);
+  void Attack(Character* _entity);
+  bool CanMoveTo(Battle::Tile* next);
 private:
   int damage;
   float cooldown, progress, hitHeight;

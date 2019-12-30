@@ -426,6 +426,7 @@
     <ClCompile Include="bnDefenseIndestructable.cpp" />
     <ClCompile Include="bnWeatherBackground.cpp" />
     <ClCompile Include="bnWideSwordChipAction.cpp" />
+    <ClCompile Include="bnWind.cpp" />
     <ClCompile Include="bnYoYo.cpp" />
     <ClCompile Include="bnYoYoChipAction.cpp" />
     <ClCompile Include="main.cpp">
@@ -704,6 +705,7 @@
     <ClInclude Include="bnDefenseRule.h" />
     <ClInclude Include="bnWeatherBackground.h" />
     <ClInclude Include="bnWideSwordChipAction.h" />
+    <ClInclude Include="bnWind.h" />
     <ClInclude Include="bnYoYo.h" />
     <ClInclude Include="bnYoYoChipAction.h" />
     <ClInclude Include="resource.h" />

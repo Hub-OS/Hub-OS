@@ -719,6 +719,9 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\AlphaElectricalCurrrent">
       <UniqueIdentifier>{0b377d43-4a44-4535-9e4e-a3de625053ef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\Wind">
+      <UniqueIdentifier>{01ca86e8-e208-4898-9362-e209023f34b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1485,6 +1488,9 @@
     </ClCompile>
     <ClCompile Include="bnAlphaElectricalCurrent.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\AlphaElectricalCurrrent</Filter>
+    </ClCompile>
+    <ClCompile Include="bnWind.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Wind</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2322,6 +2328,9 @@
     </ClInclude>
     <ClInclude Include="bnAlphaElectricalCurrent.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\AlphaElectricalCurrrent</Filter>
+    </ClInclude>
+    <ClInclude Include="bnWind.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Wind</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

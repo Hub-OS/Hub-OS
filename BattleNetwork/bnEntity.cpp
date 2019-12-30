@@ -166,7 +166,7 @@ void Entity::Update(float _elapsed) {
 
         // If the next tile is not available, not ice, or we are ice element, don't slide
         if (((this->next && this->tile->GetState() != TileState::ICE) 
-          || !this->CanMoveTo(next)) 
+          || (this->next && !this->CanMoveTo(next)))
           || (this->GetElement() == Element::ICE)) {
           // Conditions not met
           isSliding = false;

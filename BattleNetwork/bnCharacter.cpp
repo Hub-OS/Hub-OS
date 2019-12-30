@@ -110,13 +110,9 @@ void Character::Update(float _elapsed) {
   if (prevThisFrameStun <= 0.0) {
     // HACKY: If we are stunned this frame, let AI update step once
     // to turn into their respective hit state animations
-
     this->OnUpdate(_elapsed);
   } else if (this->stunCooldown > 0.0) {
     this->stunCooldown -= _elapsed;
-
-    // TODO: is this needed here anymore?
-    // setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
     if (this->stunCooldown <= 0.0) {
       this->stunCooldown = 0.0;
@@ -311,7 +307,7 @@ void Character::ResolveFrameBattleDamage()
         }
       }
 
-      hit = hit || true;
+      hit = hit || props.damage;
     }
 
     if (hit) {

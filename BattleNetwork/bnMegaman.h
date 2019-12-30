@@ -1,5 +1,8 @@
 #pragma once
 #include "bnPlayer.h"
+#include "bnChipAction.h"
+
+class SpriteSceneNode;
 
 class Megaman : public Player {
 public:
@@ -27,6 +30,23 @@ private:
   AnimationComponent* parentAnim;
   Animation overlayAnimation;
   SpriteSceneNode* overlay;
+
+  class SpecialAction : public ChipAction {
+    sf::Sprite overlay;
+    SpriteSceneNode* attachment;
+    Animation attachmentAnim;
+
+  public:
+    SpecialAction(Character* owner);
+    ~SpecialAction();
+
+    void OnUpdate(float _elapsed);
+
+    // Inherited via ChipAction
+    void Execute() override;
+    void EndAction() override;
+  };
+
 };
 
 class HeatCross : public PlayerForm {

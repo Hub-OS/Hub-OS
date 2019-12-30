@@ -1,10 +1,15 @@
 #include "bnMegaman.h"
 #include "bnShaderResourceManager.h"
-#include "bnTextureResourceManager.h"
 #include "bnBusterChipAction.h"
 #include "bnCrackShotChipAction.h"
 #include "bnFireBurnChipAction.h"
 #include "bnTornadoChipAction.h"
+#include "bnChipAction.h"
+#include "bnSpriteSceneNode.h"
+#include "bnTextureResourceManager.h"
+#include "bnAudioResourceManager.h"
+
+#include "bnWind.h"
 #include "bnPaletteSwap.h"
 
 Megaman::Megaman() : Player() {
@@ -124,7 +129,7 @@ ChipAction* TenguCross::OnChargedBusterAction(Player& player)
 
 ChipAction* TenguCross::OnSpecialAction(Player& player)
 {
-  return new TornadoChipAction(&player, 30);
+  return new TenguCross::SpecialAction(&player);
 }
 
 // HEAT CROSS
@@ -274,4 +279,65 @@ ChipAction* TomahawkCross::OnChargedBusterAction(Player& player)
 ChipAction* TomahawkCross::OnSpecialAction(Player& player)
 {
   return nullptr;
+}
+
+// SPECIAL ABILITY IMPLEMENTATIONS
+#define FRAME1 { 1, 0.05 }
+#define FRAME2 { 2, 0.05 }
+#define FRAME3 { 3, 0.3 }
+
+#define FRAMES FRAME1, FRAME2, FRAME3
+
+TenguCross::SpecialAction::SpecialAction(Character* owner) : ChipAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
+  overlay.setTexture(*owner->getTexture());
+  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment->SetLayer(-1);
+  this->attachment->EnableParentShader(true);
+
+  this->OverrideAnimationFrames({ FRAMES });
+
+  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim.Reload();
+  attachmentAnim.SetAnimation("HAND");
+}
+
+TenguCross::SpecialAction::~SpecialAction()
+{
+}
+
+void TenguCross::SpecialAction::OnUpdate(float _elapsed)
+{
+  ChipAction::OnUpdate(_elapsed);
+  attachmentAnim.Update(_elapsed, *this->attachment);
+}
+
+void TenguCross::SpecialAction::Execute()
+{
+  auto owner = GetOwner();
+  auto team = owner->GetTeam();
+  auto field = owner->GetField();
+
+  owner->AddNode(this->attachment);
+  attachmentAnim.Update(0, *this->attachment);
+
+  // On throw frame, spawn projectile
+  auto onThrow = [this, owner, team, field]() -> void {
+    auto wind = new Wind(field, team);
+    field->AddEntity(*wind, 6, 1);
+
+    wind = new Wind(field, team);
+    field->AddEntity(*wind, 6, 2);
+
+    wind = new Wind(field, team);
+    field->AddEntity(*wind, 6, 3);
+  };
+
+  this->AddAction(3, onThrow);
+}
+
+void TenguCross::SpecialAction::EndAction()
+{
+  this->GetOwner()->RemoveNode(attachment);
+  GetOwner()->FreeComponentByID(this->GetID());
+  delete this;
 }

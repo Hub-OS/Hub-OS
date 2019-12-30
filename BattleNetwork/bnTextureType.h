@@ -67,6 +67,7 @@ enum TextureType {
   SPELL_ALPHA_ROCKET,
   SPELL_BEES,
   SPELL_IMPACT_FX,
+  SPELL_WIND,
 
   //Chip Select 
   CHIP_SELECT_MENU,

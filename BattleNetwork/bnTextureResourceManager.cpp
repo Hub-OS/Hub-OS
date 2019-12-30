@@ -157,6 +157,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/alpha_rocket.png");
   paths.push_back("resources/spells/spell_bees.png");
   paths.push_back("resources/spells/artifact_impact_fx.png");
+  paths.push_back("resources/spells/spell_wind.png");
 
   // Chip Select 
   paths.push_back("resources/ui/chip_select.png");

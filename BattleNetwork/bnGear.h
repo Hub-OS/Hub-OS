@@ -17,7 +17,7 @@ using sf::Texture;
 class Gear : public Obstacle {
 public:
   Gear(Field * _field, Team _team, Direction startDir);
-  virtual ~Gear();
+  ~Gear();
 
   /**
    * @brief Moves in direction and only within its team area
@@ -25,33 +25,33 @@ public:
    * 
    * if battle is not activive, does not move
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
   
   /**
    * @brief Returns true always
    * @param props ignored
    * @return true
    */
-  virtual const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props);
   /**
    * @brief No special behavior occur when deleted
    */
-  virtual void OnDelete();
+  void OnDelete();
   
   /**
    * @brief Checks if it can move to a tile. If another gear is present, reverse direction.
    * @param next the tile to check
    * @return true if gear can move, false otherwise. May change direction.
    */
-  virtual bool CanMoveTo(Battle::Tile * next);
+  bool CanMoveTo(Battle::Tile * next);
   
   /**
    * @brief Gears deal damage to entities without guard protection. Gears always destroy obstacles.
    * @param e
    */
-  virtual void Attack(Character* e);
+  void Attack(Character* e);
 
-  virtual const float GetHeight() const { return 0; }
+  const float GetHeight() const { return 0; }
 
 private:
   Direction startDir;
