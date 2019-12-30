@@ -2,7 +2,7 @@
 # About This Project
 Follow this project on :bird: [Twitter](https://twitter.com/NetbattleOpen)!
 
-This aims to be an accurate mmbn6 engine that can be used to program custom enemies, chips, navis, or used to make your own mmbn story. It includes a fully playable battle-rush game.
+This aims to be an accurate mmbn6 battle engine that can be used to program custom enemies, chips, navis, or used to make your own mmbn story. It includes a fully playable battle-rush game.
 
 This was originally started to kill some time one summer and I got a little carried away. It's been fun and I hope you have fun with it as I have had making it.
 
@@ -19,7 +19,7 @@ Lots of updates:
 - Customizable forms and form menu
 - New enemies
 - New chips and `ChipAction` system
-- New lifecycle callbacks: `OnSpawn`, `OnDelete`, `OnUpdate` allow more control for custom content 
+- New lifecycle callbacks: `OnSpawn`, `OnDelete`, `OnUpdate` allow more control for custom content
 - Battle-step routines will have more expected outcomes even with customization
 - Less fickle movement system
 - Entity & Tile queries
@@ -35,7 +35,7 @@ Lots of updates:
 TODO
 
 # Controls
-These are the default bindings. The engine supports 1 joystick. 
+These are the default bindings. The engine supports 1 joystick.
 
 ```
 ARROWS -> Move / UI options
@@ -50,4 +50,3 @@ SPACE  -> Quick Option
 
 # Contributions to the project
 TODO: add contributors list
-
