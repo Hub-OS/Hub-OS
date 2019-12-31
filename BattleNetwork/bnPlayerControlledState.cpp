@@ -19,14 +19,6 @@ PlayerControlledState::~PlayerControlledState()
 {
 }
 
-const bool PlayerControlledState::CanTakeAction(Player& player) const
-{
-  auto anim = player.GetFirstComponent<AnimationComponent>();
-  return player.GetTile()
-    && anim && anim->GetAnimationString() == "PLAYER_IDLE"
-    && !player.IsSliding();
-}
-
 void PlayerControlledState::QueueAction(Player & player)
 {
   // peek into the player's queued Action property
@@ -51,47 +43,24 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (player.GetComponentsDerivedFrom<ChipAction>().size()) return;
 
   // Are we creating an action this frame?
-  if (CanTakeAction(player) && INPUT.Has(EventTypes::PRESSED_USE_CHIP)) {
+  if (INPUT.Has(EventTypes::PRESSED_USE_CHIP)) {
     auto chipsUI = player.GetFirstComponent<SelectedChipsUI>();
     if (chipsUI) {
       chipsUI->UseNextChip();
-      // If the chip used was successful, the player will now have an active chip component
-      auto activeChips = player.GetComponentsDerivedFrom<ChipAction>();
-
-      if (activeChips.size()) {
-        // We have a chip action,
-        // execute the first action
-        // There shouldn't be any more, but if there are
-        // they will be flushed
-        activeChips[0]->OnExecute();
-
-        return;
-      }
-    }
-  }
-
-  if (CanTakeAction(player)) {
-    if (INPUT.Has(EventTypes::PRESSED_SPECIAL)) {
-      player.UseSpecial();
+      // If the chip used was successful, the player will now have an active chip in queue
       QueueAction(player);
     }
-#ifndef __ANDROID__
-    else if (!INPUT.Has(EventTypes::HELD_SHOOT)) {
-#else
-    else if (CanTakeAction(player) && INPUT.Has(EventTypes::PRESSED_USE_CHIP) && !INPUT.Has(EventTypes::RELEASED_SHOOT)) {
-#endif
-      if (player.chargeEffect.GetChargeCounter() > 0 && isChargeHeld == true) {
-        player.Attack();
-        QueueAction(player);
-      }
-      else if (!player.GetNextTile()) {
-        isChargeHeld = false;
-
-#ifdef __ANDROID__
-        player.chargeComponent.SetCharging(false);
-#endif
-      }
-    }  }
+  } else if (INPUT.Has(EventTypes::PRESSED_SPECIAL)) {
+    player.UseSpecial();
+    QueueAction(player);
+  }    // queue attack based on input behavior (buster or charge?)
+  else if ((!INPUT.Has(EventTypes::HELD_SHOOT) && isChargeHeld) || INPUT.Has(EventTypes::RELEASED_SHOOT)) {
+    // This routine is responsible for determining the outcome of the attack
+    player.Attack();
+    QueueAction(player);
+    isChargeHeld = false;
+    player.chargeEffect.SetCharging(false);
+  }
 
   // Movement increments are restricted based on anim speed at this time
   if (player.state != PLAYER_IDLE)
@@ -138,7 +107,9 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     direction = Direction::NONE;
   }
 
-  if (direction != Direction::NONE && player.GetFirstComponent<AnimationComponent>()->GetAnimationString() == PLAYER_IDLE && !player.IsSliding()) {
+  if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
+
+  if (direction != Direction::NONE) {
     if (player.PlayerControllerSlideEnabled()) {
       player.SlideToTile(true);
     }
@@ -162,14 +133,12 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
   }
   else if(queuedAction) {
-    if (this->CanTakeAction(player)) {
-      queuedAction->OnExecute();
-      player.RegisterComponent(queuedAction);
-      queuedAction = nullptr;
+    player.RegisterComponent(queuedAction);
+    queuedAction->OnExecute();
+    queuedAction = nullptr;
 
-      player.chargeEffect.SetCharging(false);
-      isChargeHeld = false;
-    }
+    player.chargeEffect.SetCharging(false);
+    isChargeHeld = false;
   }
 }
 

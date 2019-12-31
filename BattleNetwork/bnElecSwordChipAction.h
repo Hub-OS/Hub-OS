@@ -1,14 +1,13 @@
 #pragma once
-#include "bnSwordChipAction.h"
+#include "bnLongSwordChipAction.h"
 #include "bnAnimation.h"
 #include <SFML/Graphics.hpp>
 
 class SpriteSceneNode;
 class Character;
-class ElecSwordChipAction : public SwordChipAction {
+class ElecSwordChipAction : public LongSwordChipAction {
 public:
   ElecSwordChipAction(Character* owner, int damage);
   ~ElecSwordChipAction();
-  void OnSpawnHitbox();
 };
 

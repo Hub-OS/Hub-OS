@@ -197,7 +197,7 @@ void AlphaArm::OnDelete() {
 }
 
 const bool AlphaArm::OnHit(const Hit::Properties props) {
-  return false;
+  return true;
 }
 
 void AlphaArm::Attack(Character* other) {

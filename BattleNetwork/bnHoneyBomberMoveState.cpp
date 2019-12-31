@@ -25,7 +25,8 @@ void HoneyBomberMoveState::OnUpdate(float _elapsed, HoneyBomber& honey) {
 
   Entity* target = honey.GetTarget();
 
-  if (target && target->GetTile() && moveCount <= 0 && honey.IsMyTurn()) {
+  if (target && target->GetTile() && /*moveCount <= 0 && honey.IsMyTurn())*/ honey.GetFirstComponent<AnimationComponent>()->GetPlaybackSpeed() != 1.0)
+ {
     // Try attacking
     return honey.ChangeState<HoneyBomberAttackState>();
   }
@@ -60,8 +61,8 @@ void HoneyBomberMoveState::OnUpdate(float _elapsed, HoneyBomber& honey) {
     moveCount--;
   }
 
-  // else keep trying to move
-  cooldown = 1.0f;
+  // else repeat 
+  return honey.ChangeState<HoneyBomberIdleState>();
 }
 
 void HoneyBomberMoveState::OnLeave(HoneyBomber& met) {

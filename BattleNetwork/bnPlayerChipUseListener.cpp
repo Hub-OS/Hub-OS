@@ -33,7 +33,7 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
 
   if (name.substr(0, 5) == "Recov") {
     auto action = new RecoverChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "CrckPanel") {
     // Crack the top, middle, and bottom row in front of player
@@ -50,7 +50,7 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
   }
   else if (name == "YoYo") {
     auto action = new YoYoChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "Invis") {
     // Create an invisible component. This handles the logic for timed invis
@@ -61,7 +61,7 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
   }
   else if (name == "Rflctr1") {
     auto action = new ReflectChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "Fishy") {
     /**
@@ -99,44 +99,45 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
     }
   }
   else if (name == "XtrmeCnnon") {
-
+    auto action = new CannonChipAction(player, chip.GetDamage(), CannonChipAction::Type::red);
+    player->QueueAction(action);
   }
   else if (name == "TwinFang") {
     auto action = new TwinFangChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "Tornado") {
     auto action = new TornadoChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "ElecSwrd") {
     auto action = new ElecSwordChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name.substr(0, 7) == "FireBrn") {
     auto type = FireBurn::Type(std::atoi(name.substr(7, 1).c_str()));
     auto action = new FireBurnChipAction(player, type, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name.substr(0, 6) == "Vulcan") {
     auto action = new VulcanChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name.size() >= 6 && name.substr(0, 6) == "Cannon") {
     auto action = new CannonChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "MiniBomb") {
     auto action = new BombChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "CrakShot") {
     auto action = new CrackShotChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "Swrd") {
     auto action = new SwordChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "Elecplse") {
     // Spawn an elecpulse attack
@@ -152,22 +153,22 @@ void PlayerChipUseListener::OnChipUse(Chip& chip, Character& character) {
   }
   else if (name == "LongSwrd") {
     auto action = new LongSwordChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "WideSwrd") {
     auto action = new WideSwordChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "FireSwrd") {
     auto action = new LongSwordChipAction(player, chip.GetDamage());
     action->SetElement(Element::FIRE);
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "AirShot1") {
     auto action = new AirShotChipAction(player, chip.GetDamage());
-    player->RegisterComponent(action);
+    player->QueueAction(action);
   }
   else if (name == "Thunder") {
-    player->RegisterComponent(new ThunderChipAction(player, chip.GetDamage()));
+    player->QueueAction(new ThunderChipAction(player, chip.GetDamage()));
   }
 }

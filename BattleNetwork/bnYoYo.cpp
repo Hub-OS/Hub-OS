@@ -47,12 +47,11 @@ void YoYo::OnDelete() {
   }
 }
 
-void YoYo::OnUpdate(float _elapsed) {
-  // TODO: another good case for OnSpawn() or something
-  if (!startTile) {
-    startTile = GetTile();
-  }
+void YoYo::OnSpawn(Battle::Tile& start) {
+  startTile = &start;
+}
 
+void YoYo::OnUpdate(float _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   // When moving, attack tiles normally
@@ -114,6 +113,6 @@ bool YoYo::CanMoveTo(Battle::Tile* tile) {
 
 void YoYo::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
+    AUDIO.Play(AudioType::HURT, AudioPriority::HIGHEST);
   }
 }

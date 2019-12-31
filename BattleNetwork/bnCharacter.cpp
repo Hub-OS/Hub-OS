@@ -190,6 +190,7 @@ const bool Character::Hit(Hit::Properties props) {
       props.damage *= 2;
 
     Artifact *seSymbol = new ElementalDamage(field);
+    seSymbol->SetLayer(-100);
     field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());
   }
 
@@ -255,9 +256,9 @@ void Character::ResolveFrameBattleDamage()
         }
       }
 
-      // Requeue drag if already sliding by drag
+      // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.flags & Hit::drag) == Hit::drag) {
-        if (this->slideFromDrag) {
+        if (this->slideFromDrag || this->GetNextTile()) {
           append.push({ 0, Hit::drag, Element::NONE, nullptr, props.drag });
         }
         else {

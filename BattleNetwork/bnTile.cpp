@@ -25,6 +25,8 @@ namespace Battle {
   float Tile::teamCooldownLength = COOLDOWN;
   float Tile::flickerTeamCooldownLength = FLICKER;
 
+  Character* Tile::dummy = nullptr;
+
   Tile::Tile(int _x, int _y) : animation() {
     totalElapsed = 0;
     x = _x;
@@ -54,6 +56,18 @@ namespace Battle {
     elapsedBurnTime = burncycle;
 
     highlightMode = Highlight::none;
+
+    class Dummy : public Character {
+    public:
+      Dummy() = default;
+      ~Dummy() = default;
+      // Inherited via Character
+      virtual void OnDelete() override {}
+      virtual const bool OnHit(const Hit::Properties props) override { return true;  }
+      virtual void OnUpdate(float elapsed) override { this->SetHealth(1000); }
+    };
+
+    if (dummy == nullptr) { dummy = new Dummy();  }
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -140,6 +154,10 @@ namespace Battle {
     spells.clear();
     artifacts.clear();
     characters.clear();
+
+    if (dummy) {
+      delete dummy; dummy = nullptr;
+    }
   }
 
   void Tile::SetField(Field* _field) {
@@ -400,8 +418,25 @@ namespace Battle {
       if( c && (c->GetTeam() != caller->GetTeam() ||
                                             (c->GetTeam() == Team::UNKNOWN &&
                                             caller->GetTeam() == Team::UNKNOWN))) {
+        // Attack() routine has Hit() which immediately subtracts HP
+        // However it also acts as the last check if contact was made (see: i-frames)
+        // Because we want to write Attack() to determine contact status
+        // without exposing the character to malicious programming (e.g. always dealing damage regardless)
+        // we pass the attack info to a dummy to recieve hits on their behalf
         if (!c->CheckDefenses(caller)) {
+          auto props = caller->GetHitboxProperties();
+
+          if (GetState() == TileState::HOLY) {
+            auto props = caller->GetHitboxProperties();
+            props.damage /= 2;
+            caller->SetHitboxProperties(props);
+          }
+
           caller->Attack(c);
+          caller->SetHitboxProperties(props);
+        }
+        else {
+          caller->Attack(dummy);
         }
 
         // Tag the spell

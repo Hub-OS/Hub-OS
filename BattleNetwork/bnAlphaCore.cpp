@@ -367,10 +367,7 @@ void AlphaCore::ShootSuperVulcans()
 AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 const bool AlphaCore::AlphaCoreDefenseRule::Check(Spell* in, Character* owner) {
-  // Drop a 0 damage hitbox to block/trigger attack hits
-  owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
-
-  if (static_cast<AlphaCore*>(owner)->impervious) return true;
+  if (static_cast<AlphaCore*>(owner)->impervious) { return true; }
 
   if (alphaCoreHP <= 0) return false;
   alphaCoreHP -= in->GetHitboxProperties().damage;

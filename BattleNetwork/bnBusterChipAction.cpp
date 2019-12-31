@@ -28,6 +28,8 @@ attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   attachmentAnim = Animation(NODE_ANIM);
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
+
+  buster = nullptr;
 }
 
 void BusterChipAction::Execute() {
@@ -48,6 +50,8 @@ void BusterChipAction::Execute() {
     b->SetHitboxProperties(props);
     GetOwner()->GetField()->AddEntity(*b, *GetOwner()->GetTile());
     AUDIO.Play(AudioType::BUSTER_PEA);
+
+    buster = b;
   };
 
   this->AddAction(1, onFire);
@@ -66,23 +70,36 @@ BusterChipAction::~BusterChipAction()
 
 void BusterChipAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim2.Update(_elapsed, *this->attachment2);
-  attachmentAnim.Update(_elapsed, *this->attachment);
-
   ChipAction::OnUpdate(_elapsed);
 
-  // update node position in the animation
-  auto baseOffset = attachmentAnim2.GetPoint("endpoint");
-  auto origin = attachment2->getOrigin();
-  baseOffset = baseOffset - origin;
+  if (attachment) {
+    attachmentAnim2.Update(_elapsed, *this->attachment2);
+    attachmentAnim.Update(_elapsed, *this->attachment);
 
-  attachment->setPosition(baseOffset);
+    // update node position in the animation
+    auto baseOffset = attachmentAnim2.GetPoint("endpoint");
+    auto origin = attachment2->getOrigin();
+    baseOffset = baseOffset - origin;
+
+    attachment->setPosition(baseOffset);
+  }
+
+  if (buster && buster->IsDeleted()) {
+    buster = nullptr;
+    this->EndAction();
+  }
 }
 
 void BusterChipAction::EndAction()
 {
-  this->GetOwner()->RemoveNode(attachment2);
-  attachment2->RemoveNode(attachment);
+  if (attachment) {
+    this->GetOwner()->RemoveNode(attachment2);
+    attachment2->RemoveNode(attachment);
+    delete attachment;
+    attachment = nullptr;
+  }
+
+  if (buster) return; // Do not end action if buster is still on field
   GetOwner()->FreeComponentByID(this->GetID());
 
   delete this;

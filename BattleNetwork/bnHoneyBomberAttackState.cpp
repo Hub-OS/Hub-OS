@@ -37,6 +37,7 @@ void HoneyBomberAttackState::OnUpdate(float _elapsed, HoneyBomber& honey) {
 
 void HoneyBomberAttackState::OnLeave(HoneyBomber& honey) {
   honey.EndMyTurn(); // Let the next begin attacking too
+  honey.GetFirstComponent<AnimationComponent>()->SetPlaybackSpeed(1.0);
 }
 
 void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {

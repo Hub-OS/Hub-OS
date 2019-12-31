@@ -186,6 +186,16 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
   return res;
 }
 
+void Player::QueueAction(ChipAction* action)
+{
+  if (this->queuedAction) {
+    delete action;
+    action = nullptr;
+  }
+
+  this->queuedAction = action;
+}
+
 bool Player::RegisterForm(PlayerFormMeta * info)
 {
   if (formSize >= forms.size() || !info) return false;

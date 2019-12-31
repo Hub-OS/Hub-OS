@@ -1,6 +1,7 @@
 #include "bnNinjaAntiDamage.h"
 #include "bnDefenseAntiDamage.h"
 #include "bnNinjaStar.h"
+#include "bnChipAction.h"
 #include "bnHideTimer.h"
 #include "bnAudioResourceManager.h"
 #include "bnTile.h"
@@ -48,9 +49,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
 
   // Construct a anti damage defense rule check with callback onHit
   this->defense = new DefenseAntiDamage(onHit);
-  
-  // Add the defense rule to the owner of this component
-  this->GetOwnerAs<Character>()->AddDefenseRule(defense);
+  added = false;
 }
 
 NinjaAntiDamage::~NinjaAntiDamage() {
@@ -59,7 +58,11 @@ NinjaAntiDamage::~NinjaAntiDamage() {
 }
 
 void NinjaAntiDamage::OnUpdate(float _elapsed) {
-  // Does nothing
+  if (!(added || GetOwner()->GetComponentsDerivedFrom<ChipAction>().size())) {
+    // Add the defense rule to the owner of this component
+    this->GetOwnerAs<Character>()->AddDefenseRule(defense);
+    added = true;
+  }
 }
 
 void NinjaAntiDamage::Inject(BattleScene&) {

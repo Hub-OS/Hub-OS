@@ -49,8 +49,8 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
     animation.SetAnimation("AURA_1000");
     this->health = 1000;;
     break;
-  case Aura::Type::BARRIER_100:
-    animation.SetAnimation("BARRIER_100");
+  case Aura::Type::BARRIER_10:
+    animation.SetAnimation("BARRIER_10");
     this->health = 100;
     break;
   case Aura::Type::BARRIER_200:
@@ -158,9 +158,7 @@ const int Aura::GetHealth() const {
 
 void Aura::TakeDamage(int damage)
 {
-  Logger::Log("Aura taking damage: " + std::to_string(damage) + " and has aura type: " + std::to_string((int)type));
-
-  if (type >= Aura::Type::BARRIER_100) {
+  if (type >= Aura::Type::BARRIER_10) {
     health = health - damage;
   }
   else if (health <= damage) {

@@ -31,8 +31,10 @@ class Player : public Character, public AI<Player> {
   friend class PlayerIdleState;
   friend class PlayerHitState;
   friend class PlayerChangeFormState;
+  friend class PlayerChipUseListener;
 
 protected:
+  void QueueAction(ChipAction* action);
   bool RegisterForm(PlayerFormMeta* info);
 
   template<typename T>

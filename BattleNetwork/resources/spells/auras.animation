@@ -17,7 +17,7 @@ frame duration="0.066666" x="37" y="318" w="59" h="56" originx="28" originy="30"
 frame duration="0.066666" x="96" y="318" w="59" h="56" originx="28" originy="30"
 frame duration="0.066666" x="155" y="318" w="59" h="56" originx="28" originy="30"
 
-animation state="BARRIER_100"
+animation state="BARRIER_10"
 frame duration="0.066666" x="0" y="3" w="59" h="58" originx="30" originy="27"
 frame duration="0.016666" x="0" y="0" w="0" h="0" originx="30" originy="27"
 frame duration="0.066666" x="59" y="2" w="64" h="64" originx="33" originy="28"

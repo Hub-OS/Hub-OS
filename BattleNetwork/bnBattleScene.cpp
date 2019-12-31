@@ -615,7 +615,7 @@ void BattleScene::onUpdate(double elapsed) {
 
   int newMobSize = mob->GetRemainingMobCount();
 
-  if (lastMobSize != newMobSize) {
+  if (lastMobSize != newMobSize && !isPlayerDeleted) {
     if (multiDeleteTimer.getElapsed() <= sf::seconds(COMBO_HIT_THRESHOLD_SECONDS) && !showSummonBackdrop && summons.IsSummonOver()) {
       comboDeleteCounter += lastMobSize - newMobSize;
 

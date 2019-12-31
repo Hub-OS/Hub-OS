@@ -27,7 +27,7 @@ public:
     AURA_100,
     AURA_200,
     AURA_1000,
-    BARRIER_100,
+    BARRIER_10,
     BARRIER_200,
     BARRIER_500
   };

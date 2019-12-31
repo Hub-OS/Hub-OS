@@ -75,6 +75,7 @@ MetalMan::MetalMan(Rank _rank)
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation(MOB_IDLE);
+  animationComponent->SetPlaybackMode(Animator::Mode::Loop);
 
   animationComponent->OnUpdate(0);
 

@@ -46,13 +46,13 @@ public:
     anim = owner->GetFirstComponent<AnimationComponent>();
 
     if (anim) {
-      prevState = anim->GetAnimationString();
-
       prepareActionDelegate = [this, owner, animation]() {
+        prevState = anim->GetAnimationString();
+
         // use the current animation's arrangement, do not overload
         this->prevState = anim->GetAnimationString();;
         this->anim->SetAnimation(animation, [this]() {
-          Logger::Log("normal callback fired");
+          //Logger::Log("normal callback fired");
           this->RecallPreviousState();
           this->EndAction();
         });
@@ -68,9 +68,11 @@ public:
   {
     if (anim) {
       prepareActionDelegate = [this, frameData]() {
+        prevState = anim->GetAnimationString();
+
         anim->OverrideAnimationFrames(this->animation, frameData, this->uuid);
         anim->SetAnimation(this->uuid, [this]() {
-          Logger::Log("custom callback fired");
+          //Logger::Log("custom callback fired");
 
           anim->SetPlaybackMode(Animator::Mode::Loop);
           this->RecallPreviousState();

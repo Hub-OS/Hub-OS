@@ -24,6 +24,7 @@ HoneyBomber::HoneyBomber(Rank _rank)
   SetHealth(130);
   animationComponent->SetPlaybackSpeed(1.0);
   animationComponent->SetAnimation("IDLE");
+  animationComponent->SetPlaybackMode(Animator::Mode::Loop);
 
   setTexture(*TEXTURES.GetTexture(TextureType::MOB_HONEYBOMBER_ATLAS));
   setScale(2.f, 2.f);
@@ -61,6 +62,7 @@ void HoneyBomber::OnUpdate(float _elapsed) {
 }
 
 const bool HoneyBomber::OnHit(const Hit::Properties props) {
+  this->GetFirstComponent<AnimationComponent>()->SetPlaybackSpeed(2.0);
   return true;
 }
 

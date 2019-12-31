@@ -31,6 +31,7 @@ class Spell;
 class Character;
 class Obstacle;
 class Artifact;
+class Dummy;
 
 #include "bnTeam.h"
 #include "bnTextureType.h"
@@ -304,13 +305,14 @@ namespace Battle {
 
     Animation animation;
 
+    static Character* dummy; /*!< Attacks that do not pass a character's defenses will attack an off-screen dummy*/
+
     /**
      * @brief Auxillary function used by all other overloads of AddEntity
      * @param _entity
      */
     void AddEntity(Entity* _entity);
   };
-
 
   template<class Type>
   bool Tile::ContainsEntityType() {

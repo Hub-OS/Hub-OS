@@ -307,7 +307,7 @@ public:
       AUDIO.Play(AudioType::APPEAR);
     }
     else if (summon == "Barrier") {
-      Aura* aura = new Aura(Aura::Type::BARRIER_100, summonedBy);
+      Aura* aura = new Aura(Aura::Type::BARRIER_10, summonedBy);
       AUDIO.Play(AudioType::APPEAR);
     }
   }

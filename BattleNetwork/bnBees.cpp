@@ -159,7 +159,7 @@ void Bees::OnUpdate(float _elapsed) {
   if (!this->IsSliding()) {
     if (target) {
       if (target->GetTile() && turnCount < 2) {
-        if (wasMovingVertical) {
+        if (wasMovingVertical || target->GetTile()->GetY() == tile->GetY()) {
           if (target->GetTile()->GetX() < tile->GetX()) {
             direction = Direction::LEFT;
           }
@@ -167,7 +167,7 @@ void Bees::OnUpdate(float _elapsed) {
             direction = Direction::RIGHT;
           }
         }
-        else if (wasMovingHorizontal) {
+        else if (wasMovingHorizontal && target->GetTile()->GetX() == tile->GetX()) {
           if (target->GetTile()->GetY() < tile->GetY()) {
             direction = Direction::UP;
           }

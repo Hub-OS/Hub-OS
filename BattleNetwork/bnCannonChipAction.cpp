@@ -15,7 +15,7 @@
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME3, FRAME3, FRAME3
 
 
-CannonChipAction::CannonChipAction(Character * owner, int damage) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(CANNON_ANIM) {
+CannonChipAction::CannonChipAction(Character * owner, int damage, CannonChipAction::Type type) : ChipAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(CANNON_ANIM) {
   this->damage = damage;
 
   cannon.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
@@ -23,7 +23,19 @@ CannonChipAction::CannonChipAction(Character * owner, int damage) : ChipAction(o
   this->attachment->SetLayer(-1);
 
   attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("Cannon1");
+
+  switch (type) {
+  case Type::green:
+    attachmentAnim.SetAnimation("Cannon1");
+    break;
+  case Type::blue:
+    attachmentAnim.SetAnimation("Cannon2");
+    break;
+  default:
+    attachmentAnim.SetAnimation("Cannon3");
+
+  }
+
   // add override anims
   this->OverrideAnimationFrames({ FRAMES });
 }

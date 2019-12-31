@@ -7,11 +7,6 @@ Wind::Wind(Field* _field, Team _team) :Spell(_field, _team) {
   SetPassthrough(true);
   SetLayer(-1);
   SetDirection(_team == Team::BLUE ? Direction::RIGHT : Direction::LEFT);
-  auto props = Hit::DefaultProperties;
-  props.flags = Hit::drag;
-  props.drag = GetDirection();
-  this->SetHitboxProperties(props);
-  HighlightTile(Battle::Tile::Highlight::none);
 
   setTexture(LOAD_TEXTURE(SPELL_WIND));
   swoosh::game::setOrigin(*this, 0.8, 0.8);
@@ -44,5 +39,8 @@ bool Wind::CanMoveTo(Battle::Tile* next) {
 }
 
 void Wind::Attack(Character* _entity) {
+  _entity->SlideToTile(true);
+  _entity->Move(GetDirection());
+  _entity->FinishMove();
   _entity->Hit(GetHitboxProperties());
 }

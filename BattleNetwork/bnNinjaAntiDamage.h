@@ -14,7 +14,7 @@ class DefenseRule;
 class NinjaAntiDamage : public Component {
 private:
   DefenseRule* defense; /*!< Adds defense rule to the owner */
-
+  bool added; /*!< This component waits until all actions are completed before popping off*/
 public:
   /**
    * @brief Builds a defense rule for anti damage with a callback to spawn ninja stars
