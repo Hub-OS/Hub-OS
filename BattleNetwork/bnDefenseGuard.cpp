@@ -13,7 +13,7 @@ DefenseGuard::~DefenseGuard()
 {
 }
 
-const bool DefenseGuard::Check(Spell * in, Character* owner)
+const bool DefenseGuard::Blocks(Spell * in, Character* owner)
 {
   auto props = in->GetHitboxProperties();
 

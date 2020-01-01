@@ -22,5 +22,5 @@ public:
    * @param owner the character this is attached to
    * @return false
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  virtual const bool Blocks(Spell* in, Character* owner);
 };

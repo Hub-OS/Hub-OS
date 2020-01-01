@@ -25,8 +25,6 @@ namespace Battle {
   float Tile::teamCooldownLength = COOLDOWN;
   float Tile::flickerTeamCooldownLength = FLICKER;
 
-  Character* Tile::dummy = nullptr;
-
   Tile::Tile(int _x, int _y) : animation() {
     totalElapsed = 0;
     x = _x;
@@ -59,15 +57,18 @@ namespace Battle {
 
     class Dummy : public Character {
     public:
-      Dummy() = default;
+      Dummy() : Character() {
+        this->SetHealth(1000);
+      }
+
       ~Dummy() = default;
       // Inherited via Character
       virtual void OnDelete() override {}
-      virtual const bool OnHit(const Hit::Properties props) override { return true;  }
-      virtual void OnUpdate(float elapsed) override { this->SetHealth(1000); }
+      virtual const bool OnHit(const Hit::Properties props) override { 
+        this->SetHealth(1000); 
+      return true;  }
+      virtual void OnUpdate(float elapsed) override { }
     };
-
-    if (dummy == nullptr) { dummy = new Dummy();  }
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -154,10 +155,6 @@ namespace Battle {
     spells.clear();
     artifacts.clear();
     characters.clear();
-
-    if (dummy) {
-      delete dummy; dummy = nullptr;
-    }
   }
 
   void Tile::SetField(Field* _field) {
@@ -423,7 +420,7 @@ namespace Battle {
         // Because we want to write Attack() to determine contact status
         // without exposing the character to malicious programming (e.g. always dealing damage regardless)
         // we pass the attack info to a dummy to recieve hits on their behalf
-        if (!c->CheckDefenses(caller)) {
+        if (!c->DefenseCheck(caller)) {
           auto props = caller->GetHitboxProperties();
 
           if (GetState() == TileState::HOLY) {
@@ -434,9 +431,6 @@ namespace Battle {
 
           caller->Attack(c);
           caller->SetHitboxProperties(props);
-        }
-        else {
-          caller->Attack(dummy);
         }
 
         // Tag the spell

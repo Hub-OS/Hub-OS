@@ -49,7 +49,7 @@ template<typename Any>
 void BubbleState<Any>::OnEnter(Any& e) {
   prevFloatShoe = e.HasFloatShoe();
   e.SetFloatShoe(true);
-  e.PriorityLock();
+  e.PriorityLock(); // prevent any other state from interrupting this 
 }
 
 template<typename Any>
@@ -73,4 +73,5 @@ void BubbleState<Any>::OnLeave(Any& e) {
   //std::cout << "left bubblestate" << std::endl;
 
   AUDIO.Play(AudioType::BUBBLE_POP);
+  e.FinishMove(); // any movement ops need to be reset
 }

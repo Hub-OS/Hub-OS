@@ -29,8 +29,10 @@ protected:
   }
 
   void RecallPreviousState() {
-    anim->SetAnimation(prevState);
-    anim->SetPlaybackMode(Animator::Mode::Loop);
+    if (anim) {
+      anim->SetAnimation(prevState);
+      anim->SetPlaybackMode(Animator::Mode::Loop);
+    }
   }
 
 public:

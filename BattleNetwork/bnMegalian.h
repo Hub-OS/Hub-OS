@@ -174,10 +174,6 @@ private:
     }
 
     const bool OnHit(const Hit::Properties props) {
-      auto baseProps = props.flags & ~Hit::drag;
-
-      base->Hit(props);
-      
       return true;
     }
     virtual void OnDelete() { }
@@ -185,7 +181,7 @@ private:
     virtual bool CanMoveTo(Battle::Tile * next) { return true;  }
 
     virtual void Attack(Character* e) {
-      e->Hit(this->GetHitboxProperties());
+      e->Hit(GetHitboxProperties());
     }
 
   protected:

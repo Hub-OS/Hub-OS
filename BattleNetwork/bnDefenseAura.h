@@ -30,5 +30,5 @@ public:
    * @param owner the character the rule is attached to (this)
    * @return true
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  virtual const bool Blocks(Spell* in, Character* owner);
 };

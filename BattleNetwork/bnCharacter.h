@@ -191,7 +191,7 @@ public:
    * @param in attack
    * @return true if passes all defenses
    */
-  const bool CheckDefenses(Spell* in);
+  const bool DefenseCheck(Spell* in);
 
   void SharedHitboxDamage(Character* to);
   void CancelSharedHitboxDamage(Character* to);

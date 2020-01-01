@@ -1,5 +1,5 @@
 #include "bnTornado.h"
-#include "bnChargedBusterHit.h"
+#include "bnBusterHit.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
@@ -52,7 +52,7 @@ void Tornado::Attack(Character* _entity) {
     AUDIO.Play(AudioType::HURT);
 
     // Todo swap out with normal buster hit fx
-    Artifact* hitfx = new ChargedBusterHit(GetField());
+    Artifact* hitfx = new BusterHit(GetField(), BusterHit::Type::CHARGED);
     GetField()->AddEntity(*hitfx, _entity->GetTile()->GetX(), _entity->GetTile()->GetY());
   }
 }

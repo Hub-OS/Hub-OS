@@ -12,7 +12,7 @@ DefenseAntiDamage::~DefenseAntiDamage()
 {
 }
 
-const bool DefenseAntiDamage::Check(Spell * in, Character* owner)
+const bool DefenseAntiDamage::Blocks(Spell * in, Character* owner)
 {
   auto props = in->GetHitboxProperties();
 

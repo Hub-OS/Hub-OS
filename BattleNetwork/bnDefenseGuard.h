@@ -27,5 +27,5 @@ public:
    * @param owner the character this is attached to
    * @return Returns true if spell does not have breaking properties, false otherwise
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  virtual const bool Blocks(Spell* in, Character* owner);
 };

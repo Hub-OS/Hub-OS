@@ -12,7 +12,7 @@ public:
   bool CanMoveTo(Battle::Tile* next);
 
   /**
-   * @brief Big pushes entities
+   * @brief moves entities
    * @param _entity
    */
   void Attack(Character* _entity);

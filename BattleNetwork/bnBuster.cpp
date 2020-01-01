@@ -2,6 +2,7 @@
 #include <time.h>
 
 #include "bnBuster.h"
+#include "bnBusterHit.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnPlayer.h"
@@ -61,19 +62,6 @@ Buster::~Buster() {
 }
 
 void Buster::OnUpdate(float _elapsed) {
-  if (hit) {
-    if (progress == 0.0f) {
-      animationComponent->SetAnimation("HIT");
-      setPosition(tile->getPosition().x + random, tile->getPosition().y - hitHeight);
-    }
-    progress += 5 * _elapsed;
-    this->setTexture(*texture);
-    if (progress >= 1.f) {
-      this->Delete();
-    }
-    return;
-  }
-
   GetTile()->AffectEntities(this);
 
   cooldown += _elapsed;
@@ -99,19 +87,27 @@ void Buster::Attack(Character* _entity) {
   if (_entity->Hit(this->GetHitboxProperties())) {
     hit = true;  
 
+    hitHeight = (float)(std::floor(_entity->GetHeight()));
+
     if (!isCharged) {
       random = _entity->getLocalBounds().width / 2.0f;
       random *= rand() % 2 == 0 ? -1.0f : 1.0f;
-
-      hitHeight = (float)(std::floor(_entity->GetHeight()));
 
       if (hitHeight > 0) {
         hitHeight = (float)(rand() % (int)hitHeight);
       }
     }
+    else {
+      hitHeight /= 2;
+    }
+
+    auto bhit = new BusterHit(GetField(), isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
+    bhit->SetOffset({ random, GetHeight() + hitHeight });
+    GetField()->AddEntity(*bhit, *this->GetTile());
   }
 
   if (hit) {
+    this->Delete();
     AUDIO.Play(AudioType::HURT);
   }
 }

@@ -13,7 +13,7 @@ DefenseBubbleWrap::~DefenseBubbleWrap()
 {
 }
 
-const bool DefenseBubbleWrap::Check(Spell * in, Character* owner)
+const bool DefenseBubbleWrap::Blocks(Spell * in, Character* owner)
 {
   // weak obstacles will break like other bubbles
   owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());

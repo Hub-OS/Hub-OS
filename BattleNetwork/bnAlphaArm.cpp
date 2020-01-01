@@ -25,7 +25,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   props.damage = 120;
   this->SetHitboxProperties(props);
 
-  AddDefenseRule(new DefenseIndestructable());
+  AddDefenseRule(new DefenseIndestructable(true));
 
   shadow = new SpriteSceneNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
@@ -204,10 +204,7 @@ void AlphaArm::Attack(Character* other) {
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 
   if (isObstacle) {
-    auto props = Hit::DefaultProperties;
-    props.damage = 9999;
-    isObstacle->Hit(props);
-    this->hit = true;
+    this->Delete(); // cannot pass through obstacles like Cube
     return;
   }
 

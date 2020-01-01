@@ -84,10 +84,10 @@ void BusterChipAction::OnUpdate(float _elapsed)
     attachment->setPosition(baseOffset);
   }
 
-  if (buster && buster->IsDeleted()) {
-    buster = nullptr;
-    this->EndAction();
-  }
+  //if (buster && buster->IsDeleted()) {
+  //  buster = nullptr;
+  //  this->EndAction();
+  //}
 }
 
 void BusterChipAction::EndAction()
@@ -99,7 +99,8 @@ void BusterChipAction::EndAction()
     attachment = nullptr;
   }
 
-  if (buster) return; // Do not end action if buster is still on field
+  //if (buster) return; // Do not end action if buster is still on field
+  buster = nullptr;
   GetOwner()->FreeComponentByID(this->GetID());
 
   delete this;

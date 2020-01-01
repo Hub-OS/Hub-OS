@@ -1,5 +1,4 @@
 #include "bnFireBurn.h"
-#include "bnChargedBusterHit.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"

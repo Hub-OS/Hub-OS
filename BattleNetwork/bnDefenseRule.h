@@ -38,5 +38,5 @@ public:
   /**
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */
-  virtual const bool Check(Spell* in, Character* owner) = 0;
+  virtual const bool Blocks(Spell* in, Character* owner) = 0;
 };

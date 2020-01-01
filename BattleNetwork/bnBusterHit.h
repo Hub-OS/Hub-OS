@@ -11,17 +11,22 @@ class Field;
  * @date 05/05/19
  * @brief Animatord hit effect on the enemy and then removes itself 
  */
-class ChargedBusterHit : public Artifact
+class BusterHit : public Artifact
 {
 private:
   AnimationComponent* animationComponent;
-
+  sf::Vector2f offset;
 public:
-  ChargedBusterHit(Field* _field);
-  ~ChargedBusterHit();
+  enum class Type : int {
+    PEA,
+    CHARGED
+  };
 
-  virtual void OnUpdate(float _elapsed);
-  virtual bool Move(Direction _direction) { return false; }
+  BusterHit(Field* _field, Type type = Type::PEA);
+  ~BusterHit();
+  void SetOffset(const sf::Vector2f offset);
+  void OnUpdate(float _elapsed);
+  bool Move(Direction _direction) { return false; }
 
 };
 

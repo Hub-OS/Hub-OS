@@ -21,5 +21,5 @@ public:
    * @param owner the character with Invis defense (this) added
    * @return true if triggered, false, if not
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  virtual const bool Blocks(Spell* in, Character* owner);
 };

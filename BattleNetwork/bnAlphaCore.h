@@ -33,7 +33,7 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   public:
     AlphaCoreDefenseRule(int& alphaCoreHP);
     virtual ~AlphaCoreDefenseRule();
-    virtual const bool Check(Spell* in, Character* owner);
+    virtual const bool Blocks(Spell* in, Character* owner);
     virtual Hit::Properties& FilterStatuses(Hit::Properties& statuses);
   } *defense;
 public:

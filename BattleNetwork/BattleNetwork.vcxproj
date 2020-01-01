@@ -257,7 +257,7 @@
     <ClCompile Include="bnCanodumbAttackState.cpp" />
     <ClCompile Include="bnCanodumbIdleState.cpp" />
     <ClCompile Include="bnCharacter.cpp" />
-    <ClCompile Include="bnChargedBusterHit.cpp" />
+    <ClCompile Include="bnBusterHit.cpp" />
     <ClCompile Include="bnChipFolder.cpp" />
     <ClCompile Include="bnChipUseListener.cpp" />
     <ClCompile Include="bnChipUsePublisher.cpp" />
@@ -502,7 +502,7 @@
     <ClInclude Include="bnCrackShotChipAction.h" />
     <ClInclude Include="bnDefenseAntiDamage.h" />
     <ClInclude Include="bnDefenseBubbleWrap.h" />
-    <ClInclude Include="bnChargedBusterHit.h" />
+    <ClInclude Include="bnBusterHit.h" />
     <ClInclude Include="bnCounterHitListener.h" />
     <ClInclude Include="bnCounterHitPublisher.h" />
     <ClInclude Include="bnCube.h" />
@@ -630,7 +630,6 @@
     <ClInclude Include="bnLayered.h" />
     <ClInclude Include="bnExplosion.h" />
     <ClInclude Include="bnMainMenuScene.h" />
-    <ClInclude Include="bnMemory.h" />
     <ClInclude Include="bnMettaurIdleState.h" />
     <ClInclude Include="bnMettaurMoveState.h" />
     <ClInclude Include="bnMob.h" />
@@ -692,7 +691,6 @@
     <ClInclude Include="bnEngine.h" />
     <ClInclude Include="bnSelectedChipsUI.h" />
     <ClInclude Include="bnMettaurAttackState.h" />
-    <ClInclude Include="bnMeta.h" />
     <ClInclude Include="bnFileUtil.h" />
     <ClInclude Include="bnCanonSmoke.h" />
     <ClInclude Include="bnNaviRegistration.h" />

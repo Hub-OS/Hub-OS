@@ -296,18 +296,6 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Cannon">
       <UniqueIdentifier>{24bc03bc-251a-4156-a2c4-318d0d5f4bfb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Hits">
-      <UniqueIdentifier>{fc5931dc-2556-40aa-8f4b-96fc899f5707}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Hits\Guard">
-      <UniqueIdentifier>{7dc38b81-9350-486a-a312-cd7d05ae0f3a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Hits\Buster">
-      <UniqueIdentifier>{44f2b70e-d5ac-4e3b-a080-41299189d811}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Guard">
-      <UniqueIdentifier>{2a39016a-5677-4ad3-b2b4-0a9f1a6d6b4c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\BubbleTrap">
       <UniqueIdentifier>{065d1d09-79c9-4d17-b919-bec7210804a9}</UniqueIdentifier>
     </Filter>
@@ -722,6 +710,15 @@
     <Filter Include="Scenes/Activities\Battle\Content\Entities\Spell\Wind">
       <UniqueIdentifier>{01ca86e8-e208-4898-9362-e209023f34b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact\Buster">
+      <UniqueIdentifier>{fc5931dc-2556-40aa-8f4b-96fc899f5707}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact\Guard">
+      <UniqueIdentifier>{7dc38b81-9350-486a-a312-cd7d05ae0f3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes/Activities\Battle\Content\Entities\Artifact\ReflectShield">
+      <UniqueIdentifier>{2a39016a-5677-4ad3-b2b4-0a9f1a6d6b4c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -995,13 +992,10 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Explosion\Boss</Filter>
     </ClCompile>
     <ClCompile Include="bnGuardHit.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Hits\Guard</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact\Guard</Filter>
     </ClCompile>
     <ClCompile Include="bnReflectShield.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Guard</Filter>
-    </ClCompile>
-    <ClCompile Include="bnChargedBusterHit.cpp">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Hits\Buster</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\ReflectShield</Filter>
     </ClCompile>
     <ClCompile Include="bnRowHit.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\RowHit</Filter>
@@ -1492,6 +1486,9 @@
     <ClCompile Include="bnWind.cpp">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Wind</Filter>
     </ClCompile>
+    <ClCompile Include="bnBusterHit.cpp">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact\Buster</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -1502,9 +1499,6 @@
     </ClInclude>
     <ClInclude Include="bnEntity.h">
       <Filter>Scenes/Activities\Battle\Content\Entities</Filter>
-    </ClInclude>
-    <ClInclude Include="bnMemory.h">
-      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="bnSpell.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell</Filter>
@@ -1583,9 +1577,6 @@
     </ClInclude>
     <ClInclude Include="bnExplodeState.h">
       <Filter>Scenes/Activities\Battle\Content\AI\Any\States</Filter>
-    </ClInclude>
-    <ClInclude Include="bnMeta.h">
-      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="bnArtifact.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact</Filter>
@@ -1889,16 +1880,13 @@
       <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Explosion\Boss</Filter>
     </ClInclude>
     <ClInclude Include="bnGuardHit.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Hits\Guard</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact\Guard</Filter>
     </ClInclude>
     <ClInclude Include="AlphaBossSpawnPolicy.h">
       <Filter>Addons\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy</Filter>
     </ClInclude>
     <ClInclude Include="bnReflectShield.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Guard</Filter>
-    </ClInclude>
-    <ClInclude Include="bnChargedBusterHit.h">
-      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Hits\Buster</Filter>
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\ReflectShield</Filter>
     </ClInclude>
     <ClInclude Include="bnRowHit.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\RowHit</Filter>
@@ -2331,6 +2319,9 @@
     </ClInclude>
     <ClInclude Include="bnWind.h">
       <Filter>Scenes/Activities\Battle\Content\Entities\Spell\Wind</Filter>
+    </ClInclude>
+    <ClInclude Include="bnBusterHit.h">
+      <Filter>Scenes/Activities\Battle\Content\Entities\Artifact\Particles\Impact\Buster</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

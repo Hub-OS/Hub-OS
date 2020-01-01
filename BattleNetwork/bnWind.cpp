@@ -42,5 +42,4 @@ void Wind::Attack(Character* _entity) {
   _entity->SlideToTile(true);
   _entity->Move(GetDirection());
   _entity->FinishMove();
-  _entity->Hit(GetHitboxProperties());
 }

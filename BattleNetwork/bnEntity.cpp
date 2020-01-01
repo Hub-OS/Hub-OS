@@ -324,11 +324,13 @@ const Battle::Tile* Entity::GetNextTile() const {
 
 void Entity::SlideToTile(bool enabled)
 {
-  isSliding = enabled;
+  if (!isSliding) {
+    isSliding = enabled;
 
-  if (enabled) {
-    // capture potential slide starting position
-    this->UpdateSlideStartPosition();
+    if (enabled) {
+      // capture potential slide starting position
+      this->UpdateSlideStartPosition();
+    }
   }
 }
 

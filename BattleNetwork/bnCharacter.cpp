@@ -445,10 +445,10 @@ void Character::RemoveDefenseRule(DefenseRule * rule)
     defenses.erase(iter);
 }
 
-const bool Character::CheckDefenses(Spell* in)
+const bool Character::DefenseCheck(Spell* in)
 {
   for (int i = 0; i < defenses.size(); i++) {
-    if (defenses[i]->Check(in, this)) {
+    if (defenses[i]->Blocks(in, this)) {
       return true;
     }
   }

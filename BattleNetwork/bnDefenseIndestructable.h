@@ -10,7 +10,7 @@
  *
  */
 class DefenseIndestructable : public DefenseRule {
-  bool breakCollidingObjectOnHit; /*!< Whether or not colliding objects delete on contact. This does will not resolve true for entity->Hit() calls */
+  bool breakCollidingObjectOnHit; /*!< Whether or not colliding objects auto-delete on contact. */
 
 public:
   DefenseIndestructable(bool breakCollidingObjectOnHit = false);
@@ -23,5 +23,5 @@ public:
    * @param owner the character this is attached to
    * @return always true. Nothing ever passes.
    */
-  virtual const bool Check(Spell* in, Character* owner);
+  virtual const bool Blocks(Spell* in, Character* owner);
 };

@@ -18,7 +18,7 @@ DefenseAura::~DefenseAura()
 {
 }
 
-const bool DefenseAura::Check(Spell * in, Character* owner)
+const bool DefenseAura::Blocks(Spell * in, Character* owner)
 {
   // Drop a 0 damage hitbox to block/trigger attack hits
   owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());

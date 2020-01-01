@@ -6,5 +6,5 @@ public:
   DefenseVirusBody();
   virtual ~DefenseVirusBody();
   virtual Hit::Properties& FilterStatuses(Hit::Properties& statuses);
-  virtual const bool Check(Spell* in, Character* owner) { /* does nothing */ return false; }
+  virtual const bool Blocks(Spell* in, Character* owner) { /* does nothing */ return false; }
 };

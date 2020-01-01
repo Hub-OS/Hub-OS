@@ -366,10 +366,11 @@ void AlphaCore::ShootSuperVulcans()
 
 AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
-const bool AlphaCore::AlphaCoreDefenseRule::Check(Spell* in, Character* owner) {
-  if (static_cast<AlphaCore*>(owner)->impervious) { return true; }
+const bool AlphaCore::AlphaCoreDefenseRule::Blocks(Spell* in, Character* owner) {
+  if (static_cast<AlphaCore*>(owner)->impervious) {  return true; }
 
   if (alphaCoreHP <= 0) return false;
+
   alphaCoreHP -= in->GetHitboxProperties().damage;
   alphaCoreHP = std::max(0, alphaCoreHP);
 

@@ -26,6 +26,9 @@ void AlphaClawSwipeState::OnEnter(AlphaCore& a) {
 
   // spawn right claw
   rightArm = new AlphaArm(nullptr, a.GetTeam(), AlphaArm::Type::RIGHT_SWIPE);
+  auto props = rightArm->GetHitboxProperties();
+  props.aggressor = &a;
+  rightArm->SetHitboxProperties(props);
 
   Field* field = a.GetField();
 
@@ -56,6 +59,10 @@ void AlphaClawSwipeState::OnUpdate(float _elapsed, AlphaCore& a) {
     a.HideLeftArm();
 
     leftArm = new AlphaArm(nullptr, a.GetTeam(), AlphaArm::Type::LEFT_SWIPE);
+    auto props = leftArm->GetHitboxProperties();
+    props.aggressor = &a;
+    leftArm->SetHitboxProperties(props);
+
     Field* field = a.GetField();
     field->AddEntity(*leftArm, 4, last->GetY());
 
