@@ -1,4 +1,4 @@
-# Saved on 20-01-01 00:59:09
+# Saved on 20-01-01 15:50:22
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="*" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="A" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
 Chip name="AirShot1" cardIndex="127" iconIndex="3" damage="20" type="WIND" codes="C" desc="Knocks enemy back 1" verbose="This chip does not have extra information." rarity="1" 
@@ -145,6 +145,7 @@ Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes=
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="A" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="A" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="A" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
+Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="B" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="B" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="B" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 
 Chip name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="B" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2" 

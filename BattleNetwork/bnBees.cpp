@@ -257,9 +257,10 @@ void Bees::Attack(Character* _entity) {
 
 void Bees::OnDelete()
 {
-  for (auto iter = dropped.begin(); iter != dropped.end(); iter++) {
-    (*iter)->Delete();
-  }
+  // TODO: cleanup hitboxes that were related to this
+  //for (auto iter = dropped.begin(); iter != dropped.end(); iter++) {
+  //  (*iter)->Delete();
+  //}
 
   dropped.clear();
 }

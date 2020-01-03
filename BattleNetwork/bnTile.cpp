@@ -469,7 +469,7 @@ namespace Battle {
         long ID = ptr->GetID();
 
         // TODO: do we need to invoke this here?
-        //entities[i]->OnDelete();
+        entities[i]->OnDelete();
 
         if (RemoveEntityByID(ID)) {
           // TODO: STOP DYNAMIC CASTING! SOMEHOW!

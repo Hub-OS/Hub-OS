@@ -260,9 +260,6 @@ void AlphaCore::OnDelete() {
     virusBody = nullptr;
   }
 
-  leftArm->Delete();
-  rightArm->Delete();
-
   leftArm = nullptr;
   rightArm = nullptr;
 

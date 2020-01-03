@@ -26,6 +26,7 @@ using std::string;
 #include "bnTextureType.h"
 #include "bnElements.h"
 #include "bnComponent.h"
+#include "bnCallback.h"
 
 namespace Battle {
   class Tile;
@@ -47,6 +48,7 @@ private:
   bool hasSpawned;      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
   float height;         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection*/
 public:
+  using DeleteCallback = Callback<void()>;
 
   Entity();
   virtual ~Entity();
@@ -243,6 +245,12 @@ public:
    * @brief Frees and clears all components attached. Sets `delete` flag to true.
    */
   void Delete();
+
+  /**
+  * @brief Builds and returns a reference to a callback function of type void()
+  * Useful for safely determining the lifetime of another entity in play
+  */
+  DeleteCallback& CreateDeleteCallback();
   
   /**
    * @brief Query if an entity has been deleted but not removed this frame
@@ -374,6 +382,7 @@ protected:
   Element element;
 
   std::vector<Component*> components; /*!< List of all components attached to this entity*/
+  std::vector<DeleteCallback> deleteCallbacks;
 
   void SetSlideTime(sf::Time time);
 

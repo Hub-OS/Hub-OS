@@ -1,5 +1,5 @@
-StartTime 1577862210
-Engine initialized: 0.367000 secs
+StartTime 1577922302
+Engine initialized: 0.432000 secs
 config settings is OK
 Loaded texture: resources/ui/alert.png
 Loaded texture: resources/ui/mouse.png
@@ -143,7 +143,7 @@ Loaded texture: resources/ui/light.png
 Loaded texture: resources/fonts/all_fonts.png
 Loaded texture: resources/backgrounds/config/audio.png
 Loaded texture: resources/backgrounds/config/end_btn.png
-Loaded textures: 0.203000 secs
+Loaded textures: 0.219000 secs
 Loaded shader: resources/shaders/glsl_110/black_fade
 Loaded shader: resources/shaders/glsl_110/custom_bar
 Loaded shader: resources/shaders/glsl_110/greyscale
@@ -163,7 +163,7 @@ Loaded shader: resources/shaders/glsl_110/wire
 Loaded shader: resources/shaders/glsl_110/colorize
 Loaded shader: resources/shaders/glsl_110/additive
 Loaded shader: resources/shaders/glsl_110/palette_swap
-Loaded shaders: 0.006000 secs
+Loaded shaders: 0.007000 secs
 Loaded audio: resources/sfx/appear.ogg
 Loaded audio: resources/sfx/area_grab.ogg
 Loaded audio: resources/sfx/area_grab_touchdown.ogg
@@ -209,13 +209,13 @@ Loaded audio: resources/sfx/point.ogg
 Loaded audio: resources/sfx/new_game.ogg
 Loaded audio: resources/sfx/text.ogg
 Loaded audio: resources/sfx/shine.ogg
-Loaded audio sources: 0.129000 secs
+Loaded audio sources: 0.130000 secs
 Loaded texture: resources/navis/megaman/forms/base.palette.png
 Loaded navi: Megaman
 Loaded navi: Roll
 Loaded navi: Starman
 Loaded navi: Bass
-Loaded registered navis: 0.052000 secs
+Loaded registered navis: 0.049000 secs
 Loaded texture: resources/mobs/mettaur/preview.png
 Loaded mob: Mettaurs
 Loaded texture: resources/mobs/starfish/preview.png
@@ -234,8 +234,8 @@ Loaded texture: resources/mobs/metalman/preview2.png
 Loaded mob: Vengence Served Cold
 Loaded texture: resources/mobs/alpha/preview.png
 Loaded mob: Alpha
-Loaded registered mobs: 0.163000 secs
-library size: 251
+Loaded registered mobs: 0.161000 secs
+library size: 252
 Loaded texture: resources/backgrounds/lan/bg.png
 Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
@@ -247,7 +247,7 @@ Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
 Loaded font: resources/fonts/dr_cain_terminal.ttf
 Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/lan/bg.png
+Loaded texture: resources/backgrounds/judge_tree/bg.png
 Loaded texture: resources/ui/img_health.png
 Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
 Loaded font: resources/fonts/dr_cain_terminal.ttf
@@ -262,49 +262,6 @@ comboDeleteCounter reset
 comboDeleteCounter reset
 Loaded texture: resources/spells/buster_shoot.png
 pushing states
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-pushing states
-Mettaur OnHit
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Mettaur OnHit
 Mettaur OnHit
 Loaded texture: resources/spells/buster_shoot.png
 pushing states
@@ -321,161 +278,192 @@ Mettaur OnHit
 Loaded texture: resources/spells/buster_shoot.png
 pushing states
 Mettaur OnHit
-comboDeleteCounter reset
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Mettaur OnHit
+pushing states
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Mettaur OnHit
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Mettaur OnHit
+Loaded texture: resources/spells/buster_yoyo.png
 pushing states
 Mettaur OnHit
 Deleting Mettaur from battle
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Mettaur OnHit
+Deleting Mettaur from battle
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onEnter()
+SelectMobScene::onResume()
+Loaded texture: resources/navis/megaman/forms/base.palette.png
+Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+Loaded texture: resources/backgrounds/misc/bg.png
+Loaded texture: resources/ui/img_health.png
+Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
+Loaded font: resources/fonts/dr_cain_terminal.ttf
+Loaded texture: resources/ui/custom.png
+Loaded texture: resources/navis/megaman/forms/tengu_entry.png
+Loaded texture: resources/navis/megaman/forms/heat_entry.png
+Loaded texture: resources/navis/megaman/forms/hawk_entry.png
+Loaded font: resources/fonts/mmbnthick_regular.ttf
+SelectMobScene::onLeave()
+SelectMobScene::onExit()
+comboDeleteCounter reset
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+Loaded texture: resources/spells/buster_shoot.png
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Loaded texture: resources/spells/buster_shoot.png
+Loaded texture: resources/spells/buster_shoot.png
+Loaded texture: resources/spells/buster_shoot.png
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+Loaded texture: resources/spells/buster_shoot.png
+Loaded texture: resources/spells/spell_bomb.png
+pushing states
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+Loaded texture: resources/spells/spell_bomb.png
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+comboDeleteCounter reset
+Loaded texture: resources/spells/spell_bomb.png
+Loaded texture: resources/spells/CannonSeries.png
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Loaded texture: resources/spells/buster_shoot.png
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+Loaded texture: resources/spells/buster_shoot.png
+comboDeleteCounter reset
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Loaded texture: resources/spells/buster_shoot.png
+pushing states
+Deleting unnamed from battle
+Loaded texture: resources/spells/buster_yoyo.png
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+Deleting unnamed from battle
+Deleting unnamed from battle
+comboDeleteCounter reset
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
+Deleting unnamed from battle
+Deleting unnamed from battle
+pushing states
 Loaded texture: resources/spells/spell_sword_blades.png
 Loaded texture: resources/spells/spell_sword_blades.png
 Loaded texture: resources/spells/spell_elec_sword.png
+Deleting unnamed from battle
 pushing states
-Mettaur OnHit
-Deleting Mettaur from battle
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onResume()
-Loaded texture: resources/navis/megaman/forms/base.palette.png
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/medical/bg.png
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded texture: resources/navis/megaman/forms/tengu_entry.png
-Loaded texture: resources/navis/megaman/forms/heat_entry.png
-Loaded texture: resources/navis/megaman/forms/hawk_entry.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-comboDeleteCounter reset
-comboDeleteCounter reset
+Deleting unnamed from battle
 Loaded texture: resources/spells/AirShot.png
-pushing states
-Loaded texture: resources/spells/AirShot.png
-pushing states
-pushing states
-Deleting Canodumb from battle
-Loaded texture: resources/spells/protoman_summon.png
-pushing states
-pushing states
-comboDeleteCounter reset
-Deleting Canodumb2 from battle
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Deleting Canodumb3 from battle
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onEnter()
-SelectMobScene::onResume()
-Loaded texture: resources/navis/megaman/forms/base.palette.png
-Loaded font: resources/fonts/NETNAVI_4-6_V3.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-Loaded texture: resources/backgrounds/weather/bg.png
-Loaded texture: resources/ui/img_health.png
-Error. PA "No Entry": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.
-Loaded font: resources/fonts/dr_cain_terminal.ttf
-Loaded texture: resources/ui/custom.png
-Loaded texture: resources/navis/megaman/forms/tengu_entry.png
-Loaded texture: resources/navis/megaman/forms/heat_entry.png
-Loaded texture: resources/navis/megaman/forms/hawk_entry.png
-Loaded font: resources/fonts/mmbnthick_regular.ttf
-SelectMobScene::onLeave()
-SelectMobScene::onExit()
-comboDeleteCounter reset
-comboDeleteCounter reset
-Loaded texture: resources/spells/buster_yoyo.png
-pushing states
-pushing states
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Loaded texture: resources/spells/CannonSeries.png
-pushing states
-Mettaur OnHit
-Deleting Mettaur from battle
-Loaded texture: resources/spells/CannonSeries.png
-pushing states
-pushing states
-Mettaur OnHit
-Deleting Mettaur from battle
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-pushing states
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-Mettaur OnHit
-comboDeleteCounter reset
-pushing states
-Loaded texture: resources/spells/spell_bomb.png
-pushing states
-Mettaur OnHit
-Deleting Mettaur from battle
-Loaded texture: resources/spells/AirShot.png
-Loaded texture: resources/spells/CannonSeries.png
-pushing states
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-Loaded texture: resources/spells/buster_shoot.png
-pushing states
-pushing states
 pushing states
 pushing states
 Deleting unnamed from battle
 Deleting unnamed from battle
 pushing states
+Deleting unnamed from battle
 pushing states
+Deleting unnamed from battle
 Loaded texture: resources/spells/buster_shoot.png
+Loaded texture: resources/spells/buster_shoot.png
+Deleting Starfish from battle
+Deleting Starfish from battle
+Loaded font: resources/fonts/mmbnthick_regular.ttf

@@ -42,11 +42,12 @@ void Vulcan::OnUpdate(float _elapsed) {
   GetTile()->AffectEntities(this);
 
   if (Move(GetDirection())) {
-    AdoptNextTile();
+    this->AdoptNextTile();
     FinishMove();
   }
-  else {
-    this->Delete();
+
+  if (GetTile()->IsEdgeTile()) {
+    //this->Delete();
   }
 }
 

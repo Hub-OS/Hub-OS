@@ -12,7 +12,7 @@ private:
   Animation attachmentAnim, attachmentAnim2;
   bool charged;
   int damage;
-  Spell* buster;
+  bool isBusterAlive;
 public:
   BusterChipAction(Character* owner, bool charged, int damage);
   ~BusterChipAction();

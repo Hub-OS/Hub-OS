@@ -448,6 +448,7 @@
     <ClInclude Include="bnCharacterDeletePublisher.h" />
     <ClInclude Include="bnDefenseInvis.h" />
     <ClInclude Include="bnLongSwordChipAction.h" />
+    <ClInclude Include="bnMovement.h" />
     <ClInclude Include="bnParticleHeal.h" />
     <ClInclude Include="bnAIPriorityLock.h" />
     <ClInclude Include="AlphaBossSpawnPolicy.h" />
@@ -597,6 +598,7 @@
     <ClInclude Include="bnRowHit.h" />
     <ClInclude Include="bnSharedHitBox.h" />
     <ClInclude Include="bnShineExplosion.h" />
+    <ClInclude Include="bnCallback.h" />
     <ClInclude Include="bnSpriteSceneNode.h" />
     <ClInclude Include="bnStarfish.h" />
     <ClInclude Include="bnStarfishAttackState.h" />

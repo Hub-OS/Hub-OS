@@ -47,12 +47,11 @@ Mettaur::Mettaur(Rank _rank)
 }
 
 Mettaur::~Mettaur() {
+  delete virusBody;
 }
 
 void Mettaur::OnDelete() {
   this->RemoveDefenseRule(virusBody);
-  delete virusBody;
-
   this->ChangeState<ExplodeState<Mettaur>>();
 
   this->RemoveMeFromTurnOrder();

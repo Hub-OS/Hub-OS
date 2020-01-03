@@ -108,13 +108,11 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   }
 
   if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
-
-  if (direction != Direction::NONE) {
     if (player.PlayerControllerSlideEnabled()) {
       player.SlideToTile(true);
     }
 
-    player.Move(direction);
+    if(player.Move(direction)) {
 
     bool moved = player.GetNextTile();
 
@@ -132,7 +130,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       player.SetAnimation(PLAYER_MOVING, onFinish);
     }
   }
-  else if(queuedAction) {
+  else if(queuedAction && !player.IsSliding()) {
     player.RegisterComponent(queuedAction);
     queuedAction->OnExecute();
     queuedAction = nullptr;

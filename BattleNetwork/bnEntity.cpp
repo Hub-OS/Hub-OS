@@ -80,16 +80,12 @@ const bool Entity::IsSuperEffective(Element _other) const {
 }
 
 void Entity::Update(float _elapsed) {
-  // If this entity is flagged for deletion, remove it from its current tile
-  /*if (IsDeleted()) {
-    if (tile) {
-      tile->RemoveEntityByID(this->GetID());
-    }
-  }*/
-
   // Update all components
-  for (int i = 0; i < components.size(); i++) {
-    components[i]->OnUpdate(_elapsed);
+  // May change the size of vector during update()
+  auto copy = components;
+
+  for (int i = 0; i < copy.size(); i++) {
+    copy[i]->OnUpdate(_elapsed);
   }
 
   // Do not upate if the entity's current tile pointer is null
@@ -398,8 +394,23 @@ Direction Entity::GetPreviousDirection()
 
 void Entity::Delete()
 {
+  if (deleted) return;
+
   deleted = true;
+
+  for (auto& callbacks : deleteCallbacks) {
+    callbacks();
+  }
+
+  deleteCallbacks.clear();
+
   this->FreeAllComponents();
+}
+
+Entity::DeleteCallback & Entity::CreateDeleteCallback()
+{
+  deleteCallbacks.push_back(std::move(Entity::DeleteCallback()));
+  return *(deleteCallbacks.end()-1);
 }
 
 bool Entity::IsDeleted() const {
