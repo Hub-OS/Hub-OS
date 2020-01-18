@@ -2,7 +2,7 @@
 #include "Android/bnTouchArea.h"
 
 #include "bnMainMenuScene.h"
-#include "Segues\DiamondTileSwipe.h"
+#include "Segues/DiamondTileSwipe.h"
 #include "bnChipFolderCollection.h"
 
 #include "Segues/PushIn.h"

@@ -404,7 +404,8 @@ template<typename Type>
 inline Type* Entity::GetFirstComponent()
 {
   for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
-    if (typeid(*(*it)) == typeid(Type)) {
+    auto& refType = **it;
+    if (typeid(refType) == typeid(Type)) {
       return dynamic_cast<Type*>(*it);
     }
   }
@@ -418,7 +419,8 @@ inline std::vector<Type*> Entity::GetComponents()
   auto res = std::vector<Type*>();
 
   for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
-    if (typeid(*(*it)) == typeid(Type)) {
+    auto& refType = **it;
+    if (typeid(refType) == typeid(Type)) {
       res.push_back(dynamic_cast<Type*>(*it));
     }
   }

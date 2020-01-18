@@ -1,6 +1,7 @@
 /*! \brief All of the virtual input events to map to joysticks and keyboard commands */
 
 #pragma once
+#include <string>
 enum InputState {
   PRESSED,
   HELD,
