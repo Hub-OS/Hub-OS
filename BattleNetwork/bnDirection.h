@@ -21,6 +21,8 @@ inline Direction Reverse(Direction in) {
     return Direction::UP;
   case Direction::RIGHT:
     return Direction::LEFT;
+  default:
+    ;
   }
 
   return Direction::NONE;

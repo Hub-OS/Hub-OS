@@ -2,7 +2,7 @@
 #include "bnMetridIdleState.h"
 
 // Why only MSVC?
-#ifdef UNIX
+#ifndef WIN32
 #include "bnMetridMoveState.h"
 #else 
 #include "bnMetridMoveState.cpp"
