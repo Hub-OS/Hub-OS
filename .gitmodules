@@ -10,3 +10,6 @@
 [submodule "extern/lua"]
 	path = extern/lua
 	url = https://github.com/lua/lua.git
+[submodule "extern/WebAPI"]
+	path = extern/WebAPI
+	url = https://github.com/TheMaverickProgrammer/OpenNetBattleWebDataAPI.git

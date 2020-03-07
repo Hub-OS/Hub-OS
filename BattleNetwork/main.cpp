@@ -193,15 +193,15 @@ int main(int argc, char** argv) {
   INPUT.BindResizedEvent(AppResize);
 
   // try to read the config file
-  ConfigReader config("options.ini");
-  INPUT.SupportConfigSettings(config);
+  ConfigReader reader("options.ini");
+  INPUT.SupportConfigSettings(reader);
 
-  if (config.GetConfigSettings().IsOK()) {
+  if (reader.GetConfigSettings().IsOK()) {
     // If the file is good, use the audio and 
     // controller settings from the config
-    AUDIO.EnableAudio(config.GetConfigSettings().IsAudioEnabled());
-    AUDIO.SetStreamVolume(((config.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
-    AUDIO.SetChannelVolume(((config.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
+    AUDIO.EnableAudio(reader.GetConfigSettings().IsAudioEnabled());
+    AUDIO.SetStreamVolume(((reader.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
+    AUDIO.SetChannelVolume(((reader.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
   }
 
   /**
