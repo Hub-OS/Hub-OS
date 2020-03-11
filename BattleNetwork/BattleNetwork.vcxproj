@@ -101,7 +101,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)extern\Swoosh\src;X:\Big Code\SFML-2.5.1\include\;$(SolutionDir)extern\lua;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extern\Swoosh\src;X:\Installed\SFML\include;$(SolutionDir)extern\lua;$(SolutionDir)extern\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
@@ -113,8 +113,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>X:\Big Code\SFML-2.5.1\extlibs\libs-msvc\x64;X:\Big Code\SFML-2.5.1\build\lib\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>openal32.lib;freetype.lib;Winmm.lib;OpenGL32.lib;sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-graphics-s-d.lib;sfml-audio-s-d.lib;sfml-main-s-d.lib;flac.lib;ogg.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>X:\Installed\SFML\lib;$(SolutionDir)extern\WebAPI\client\libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>openal32.lib;freetype.lib;Winmm.lib;OpenGL32.lib;sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-graphics-s-d.lib;sfml-audio-s-d.lib;sfml-main-d.lib;flac.lib;ogg.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;OpenNetBattleWebClient.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -411,7 +411,6 @@
     <ClCompile Include="bnTwinFangChipAction.cpp" />
     <ClCompile Include="bnTwoMettaurMob.cpp" />
     <ClCompile Include="bnUndernetBackground.cpp" />
-    <ClCompile Include="bnUserSession.cpp" />
     <ClCompile Include="bnVulcan.cpp" />
     <ClCompile Include="bnVulcanChipAction.cpp" />
     <ClCompile Include="bnWave.cpp" />
@@ -425,6 +424,7 @@
     <ClCompile Include="bnInvis.cpp" />
     <ClCompile Include="bnDefenseIndestructable.cpp" />
     <ClCompile Include="bnWeatherBackground.cpp" />
+    <ClCompile Include="bnWebClientMananger.cpp" />
     <ClCompile Include="bnWideSwordChipAction.cpp" />
     <ClCompile Include="bnWind.cpp" />
     <ClCompile Include="bnYoYo.cpp" />
@@ -684,7 +684,6 @@
     <ClInclude Include="bnTwinFangChipAction.h" />
     <ClInclude Include="bnTwoMettaurMob.h" />
     <ClInclude Include="bnUIComponent.h" />
-    <ClInclude Include="bnUserSession.h" />
     <ClInclude Include="bnVirusBackground.h" />
     <ClInclude Include="bnVulcan.h" />
     <ClInclude Include="bnVulcanChipAction.h" />
@@ -704,6 +703,7 @@
     <ClInclude Include="bnNaviExplodeState.h" />
     <ClInclude Include="bnDefenseRule.h" />
     <ClInclude Include="bnWeatherBackground.h" />
+    <ClInclude Include="bnWebClientMananger.h" />
     <ClInclude Include="bnWideSwordChipAction.h" />
     <ClInclude Include="bnWind.h" />
     <ClInclude Include="bnYoYo.h" />

@@ -80,9 +80,9 @@ public:
   void AddToPaths(FileMeta pathInfo);
 
   static ScriptResourceManager& GetInstance() {
-    static ScriptResourceManager* instance = new ScriptResourceManager();
+    static ScriptResourceManager instance;
 
-    return *instance;
+    return instance;
   }
 
   /**

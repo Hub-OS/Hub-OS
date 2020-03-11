@@ -34,9 +34,6 @@
     <Filter Include="Enumerations">
       <UniqueIdentifier>{5c9d2cbc-eb6d-4112-b2aa-bafcdf47830a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Database\Session">
-      <UniqueIdentifier>{f86c28bf-b3b2-4d72-9129-fcc5920cd2f0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\ResourceManagers">
       <UniqueIdentifier>{0e5b07ae-1ba2-404d-a462-579ab664eac6}</UniqueIdentifier>
     </Filter>
@@ -66,9 +63,6 @@
     </Filter>
     <Filter Include="Engine\CoreModules\Input">
       <UniqueIdentifier>{4a441b30-9e2f-4ff8-921a-60ef383f26d9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Engine\CoreModules\Input\TouchArea">
-      <UniqueIdentifier>{cc087848-8242-499f-99f3-0119e81f0e45}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine\CoreModules\Camera">
       <UniqueIdentifier>{073bf066-0047-4316-9fe1-39c36c5d136a}</UniqueIdentifier>
@@ -193,9 +187,6 @@
     </Filter>
     <Filter Include="Addons\MobRegistration\MobFactories\Challenging">
       <UniqueIdentifier>{9886141e-88bf-4f26-8d5d-8d3f1dab66a3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\Scripting">
-      <UniqueIdentifier>{29a2789a-5953-4284-bd8c-b873ebd82bc4}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine\ResourceManagers\ScriptResource">
       <UniqueIdentifier>{d960e7fd-6fa2-4557-9a3b-019dfae8c405}</UniqueIdentifier>
@@ -722,6 +713,18 @@
     <Filter Include="Scenes/Activities\Battle\PODs">
       <UniqueIdentifier>{40a54a87-4556-4c46-9bab-ae897ff30535}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Online">
+      <UniqueIdentifier>{1fb54317-a270-4890-b705-71faf0a63934}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Online\WebClient">
+      <UniqueIdentifier>{7b6f6ecb-987a-4169-b383-bd1bee00bca5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\CoreModules\Input\MobileDevices">
+      <UniqueIdentifier>{6d66fc36-2f3c-480f-9d57-44b5edeeffcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\CoreModules\Input\MobileDevices\TouchArea">
+      <UniqueIdentifier>{cc087848-8242-499f-99f3-0119e81f0e45}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1103,16 +1106,13 @@
       <Filter>Scenes/Activities\Battle\Entities\Character\MetalMan\States</Filter>
     </ClCompile>
     <ClCompile Include="Android\bnTouchArea.cpp">
-      <Filter>Engine\CoreModules\Input\TouchArea</Filter>
+      <Filter>Engine\CoreModules\Input\MobileDevices\TouchArea</Filter>
     </ClCompile>
     <ClCompile Include="bnMissile.cpp">
       <Filter>Scenes/Activities\Battle\Entities\Spell\Missile</Filter>
     </ClCompile>
     <ClCompile Include="bnFolderScene.cpp">
       <Filter>Scenes/Activities\Folder\List</Filter>
-    </ClCompile>
-    <ClCompile Include="bnUserSession.cpp">
-      <Filter>Database\Session</Filter>
     </ClCompile>
     <ClCompile Include="bnFolderChangeNameScene.cpp">
       <Filter>Scenes/Activities\Folder\ChangeName</Filter>
@@ -1321,9 +1321,6 @@
     <ClCompile Include="bnHoneyBomberMob.cpp">
       <Filter>Addons\MobRegistration\MobFactories\Easy</Filter>
     </ClCompile>
-    <ClCompile Include="bnTwoMettaurMob.cpp">
-      <Filter>Addons</Filter>
-    </ClCompile>
     <ClCompile Include="bnBees.cpp">
       <Filter>Scenes/Activities\Battle\Entities\Spell\Bees</Filter>
     </ClCompile>
@@ -1361,9 +1358,6 @@
       <Filter>Engine\CoreModules\Lua5.3.5</Filter>
     </ClCompile>
     <ClCompile Include="..\extern\lua\lbaselib.c">
-      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
-    </ClCompile>
-    <ClCompile Include="..\extern\lua\lbitlib.c">
       <Filter>Engine\CoreModules\Lua5.3.5</Filter>
     </ClCompile>
     <ClCompile Include="..\extern\lua\lcode.c">
@@ -1491,6 +1485,15 @@
     </ClCompile>
     <ClCompile Include="bnBusterHit.cpp">
       <Filter>Scenes/Activities\Battle\Entities\Artifact\Particles\Impact\Buster</Filter>
+    </ClCompile>
+    <ClCompile Include="bnTwoMettaurMob.cpp">
+      <Filter>Addons\MobRegistration\MobFactories\Easy</Filter>
+    </ClCompile>
+    <ClCompile Include="bnWebClientMananger.cpp">
+      <Filter>Online\WebClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\extern\lua\lbitlib.c">
+      <Filter>Engine\CoreModules\Lua5.3.5</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2000,16 +2003,13 @@
       <Filter>Scenes/Activities\Battle\Entities\Character\MetalMan\States</Filter>
     </ClInclude>
     <ClInclude Include="Android\bnTouchArea.h">
-      <Filter>Engine\CoreModules\Input\TouchArea</Filter>
+      <Filter>Engine\CoreModules\Input\MobileDevices\TouchArea</Filter>
     </ClInclude>
     <ClInclude Include="bnMissile.h">
       <Filter>Scenes/Activities\Battle\Entities\Spell\Missile</Filter>
     </ClInclude>
     <ClInclude Include="bnFolderScene.h">
       <Filter>Scenes/Activities\Folder\List</Filter>
-    </ClInclude>
-    <ClInclude Include="bnUserSession.h">
-      <Filter>Database\Session</Filter>
     </ClInclude>
     <ClInclude Include="bnFolderChangeNameScene.h">
       <Filter>Scenes/Activities\Folder\ChangeName</Filter>
@@ -2331,6 +2331,9 @@
     </ClInclude>
     <ClInclude Include="bnCallback.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="bnWebClientMananger.h">
+      <Filter>Online\WebClient</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

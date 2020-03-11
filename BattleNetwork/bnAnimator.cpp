@@ -54,7 +54,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
   // All we wish to do is re-adjust the origin if applicable
   if (progress == 0 && sequence.frames.size()) {
     auto iter = sequence.frames.begin();
-    int index = 1;
+    size_t index = 1;
 
     // If the playback mode is reverse, flip the frames
     // and the index
@@ -71,7 +71,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     }
 
     // animation index are base 1
-    UpdateCurrentPoints(index-1, sequence);
+    UpdateCurrentPoints(int(index-1), sequence);
     return;
   }
 
