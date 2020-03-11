@@ -182,6 +182,9 @@ int main(int argc, char** argv) {
     AUDIO;
     WEBCLIENT;
 
+    WEBCLIENT.ConnectToWebServer("1", "battlenetwork.io", 3000);
+    WEBCLIENT.IsConnectedToWebServer();
+
     // TODO: Take this out with an in-game login screen
     std::cout << "what is your web account username?: " << std::endl;
     std::string username;
@@ -195,21 +198,26 @@ int main(int argc, char** argv) {
     std::cout << "waiting for server..." << std::endl;
 
     int timeoutCount = 0;
-    while (!result.valid() && timeoutCount < 10) {
+    while (!is_ready(result) && timeoutCount < 10) {
         std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         std::cout << "timeout " << ++timeoutCount << std::endl;
     }
  
     if (timeoutCount == 10) {
         std::cout << "Could not communicate with the server. Aborting." << std::endl;
+        WEBCLIENT.ShutdownAllTasks();
+
         return EXIT_FAILURE;
     }
-    else if (result.valid()) {
-        if (result.get()) {
+    else if (is_ready(result)) {
+        bool success = result.get();
+        if (success) {
             std::cout << "Logged in! Welcome " << username << "! " << std::endl;
         }
         else {
             std::cout << "Could not authenticate. Aborting." << std::endl;
+            WEBCLIENT.ShutdownAllTasks();
+
             return EXIT_FAILURE;
         }
     }
@@ -855,6 +863,8 @@ int main(int argc, char** argv) {
         ENGINE.GetWindow()->display();
 
     }
+    WEBCLIENT.ShutdownAllTasks();
+
     delete mouseTexture;
     delete logLabel;
     delete font;

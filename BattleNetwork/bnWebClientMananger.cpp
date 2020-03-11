@@ -1,20 +1,26 @@
 #include "bnWebClientMananger.h"
+#include <iostream>
 
 void WebClientManager::PingThreadHandler()
 {
-    if (!this->client) return;
-
     do {
+        std::unique_lock<std::mutex> lock(this->clientMutex);
+
+        if (!this->client) {
+            this->isConnected = false;
+        }
+        else {
+            this->isConnected = this->client->IsOK();
+        }      
+
+        lock.unlock();
+
         std::this_thread::sleep_for(std::chrono::microseconds(this->GetPingInterval()));
-        std::scoped_lock<std::mutex>(this->clientMutex);
-        this->isConnected = this->client->IsOK();
     } while (!shutdownSignal);
 }
 
 void WebClientManager::QueuedTasksThreadHandler()
 {
-    if (!this->client) return;
-
     std::unique_lock<std::mutex> lock(this->clientMutex);
 
     do {
@@ -29,11 +35,8 @@ void WebClientManager::QueuedTasksThreadHandler()
             auto op = std::move(taskQueue.front());
             taskQueue.pop();
 
-            //unlock now that we're done messing with the queue
             lock.unlock();
-
             op();
-
             lock.lock();
         }
     } while (!shutdownSignal);
@@ -41,6 +44,8 @@ void WebClientManager::QueuedTasksThreadHandler()
 
 void WebClientManager::InitDownloadImageHandler()
 {
+    if (!this->client) return;
+
     auto callback = [](const char*, WebAccounts::byte*&) -> void {
         // TODO: use SFML http to download raw image data
     };
@@ -52,7 +57,7 @@ void WebClientManager::InitDownloadImageHandler()
 WebClientManager::WebClientManager() {
     shutdownSignal = false;
 
-    InitDownloadImageHandler();
+    PingInterval(2000);
 
     pingThread = std::thread(&WebClientManager::PingThreadHandler, this);
     pingThread.detach();
@@ -77,6 +82,12 @@ const long WebClientManager::GetPingInterval() const {
 void WebClientManager::ConnectToWebServer(const char * apiVersion, const char * domain, int port)
 {
     this->client = std::make_unique<WebAccounts::WebClient>(apiVersion, domain, port);
+    InitDownloadImageHandler();
+}
+
+const bool WebClientManager::IsConnectedToWebServer()
+{
+    return isConnected;
 }
 
 const bool WebClientManager::IsLoggedIn()
@@ -89,7 +100,7 @@ std::future<bool> WebClientManager::SendLoginCommand(const char * username, cons
     auto promise = std::make_shared<std::promise<bool>>();
 
     auto task = [promise, username, password, this]() {
-        if (!this->client || this->client->IsOK()) {
+        if (!this->client) {
             // No valid client? Set to false immediately
             promise->set_value(false);
             return;
@@ -99,7 +110,11 @@ std::future<bool> WebClientManager::SendLoginCommand(const char * username, cons
         promise->set_value(result);
     };
 
-    this->taskQueue.push(std::move(task));
+    std::scoped_lock<std::mutex>(this->clientMutex);
+
+    this->taskQueue.emplace(task);
+
+    this->taskQueueWakeup.notify_all();
 
     return promise->get_future();
 }
@@ -109,7 +124,7 @@ std::future<bool> WebClientManager::SendLogoutCommand()
     auto promise = std::make_shared<std::promise<bool>>();
 
     auto task = [promise, this]() {
-        if (!this->client || !this->client->IsOK()) {
+        if (!this->client) {
             // No valid client? Set to false immediately
             promise->set_value(false);
             return;
@@ -121,7 +136,11 @@ std::future<bool> WebClientManager::SendLogoutCommand()
         promise->set_value(!this->client->IsLoggedIn());
     };
 
-    this->taskQueue.push(std::move(task));
+    std::scoped_lock<std::mutex>(this->clientMutex);
+
+    this->taskQueue.emplace(task);
+
+    this->taskQueueWakeup.notify_all();
 
     return promise->get_future();
 }
@@ -131,7 +150,7 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
     auto promise = std::make_shared<std::promise<WebAccounts::AccountState>>();
 
     auto task = [promise, this]() {
-        if (!this->client || !this->client->IsOK()) {
+        if (!this->client) {
             // No valid client? Don't send invalid data. Throw.
             promise->set_exception(std::make_exception_ptr(std::runtime_error("Could not get account data. Client object is invalid.")));
             return;
@@ -141,7 +160,11 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
         promise->set_value(this->client->GetLocalAccount());
     };
 
-    this->taskQueue.push(std::move(task));
+    std::scoped_lock<std::mutex>(this->clientMutex);
+
+    this->taskQueue.emplace(task);
+
+    this->taskQueueWakeup.notify_all();
 
     return promise->get_future();
 }

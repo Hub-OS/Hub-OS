@@ -6,6 +6,11 @@
 #include <queue>
 #include <future>
 
+template<typename T>
+bool is_ready(const std::future<T>& f) {
+    return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+}
+
 class WebClientManager {
 private:
     std::unique_ptr<WebAccounts::WebClient> client;
@@ -27,6 +32,7 @@ public:
     void PingInterval(long interval);
     const long GetPingInterval() const;
     void ConnectToWebServer(const char* apiVersion, const char* domain, int port);
+    const bool IsConnectedToWebServer();
     const bool IsLoggedIn();
 
     std::future<bool> SendLoginCommand(const char* username, const char* password);
