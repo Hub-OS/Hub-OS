@@ -45,9 +45,7 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
 
     if (!result)
     {
-        Logger::GetMutex()->lock();
         Logger::Log("Error loading shader: " + _path);
-        Logger::GetMutex()->unlock();
 
         return nullptr;
     }
@@ -55,20 +53,14 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
     sf::Shader* shader = new sf::Shader();
     if (!shader->loadFromFile(_path + ".frag", sf::Shader::Fragment)) {
 
-      Logger::GetMutex()->lock();
       Logger::Log("Error loading shader: " + _path + ".frag");
-      Logger::GetMutex()->unlock();
 
       exit(EXIT_FAILURE);
       return nullptr;
     }
 #endif
 
-    //shader->setUniform("texture", sf::Shader::CurrentTexture);
-
-    Logger::GetMutex()->lock();
     Logger::Log("Loaded shader: " + _path);
-    Logger::GetMutex()->unlock();
 
     return shader;
 }
@@ -103,7 +95,7 @@ ShaderResourceManager::ShaderResourceManager(void) {
     paths[(int)ShaderType::DISTORTION] = std::string() + "resources/shaders/" + version + "/distortion";
     paths[(int)ShaderType::SPOT_DISTORTION] = std::string() + "resources/shaders/" + version + "/spot_distortion";
     paths[(int)ShaderType::SPOT_REFLECTION] = std::string() + "resources/shaders/" + version + "/spot_reflection";
-    paths[(int)ShaderType::CHIP_REVEAL] = std::string() + "resources/shaders/" + version + "/chip_reveal";
+    paths[(int)ShaderType::CHIP_REVEAL] = std::string() + "resources/shaders/" + version + "/card_reveal";
     paths[(int)ShaderType::BADGE_WIRE] = std::string() + "resources/shaders/" + version + "/wire";
     paths[(int)ShaderType::TRANSITION] = std::string() + "resources/shaders/" + version + "/transition";
     paths[(int)ShaderType::COLORIZE] = std::string() + "resources/shaders/" + version + "/colorize";

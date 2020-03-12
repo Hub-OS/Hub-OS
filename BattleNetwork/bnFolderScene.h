@@ -3,7 +3,7 @@
 #include <Swoosh/Activity.h>
 
 #include "bnCamera.h"
-#include "bnChipFolderCollection.h"
+#include "bnCardFolderCollection.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
@@ -20,7 +20,7 @@
  * @brief Display folders at top and contents in the center. Player may add, edit, or remove folders.
  * 
  * Use input keys LEFT/RIGHT to navigate through infinite list of folders
- * Use input keys UP/DOWN to scroll through chips inside the folders
+ * Use input keys UP/DOWN to scroll through cards inside the folders
  * Use input key A to prompt management menu. User may edit name, remove, edit, or copy.
  * Use input key B to cancel menus and go back to the previous screen
  * 
@@ -32,8 +32,8 @@
 class FolderScene : public swoosh::Activity {
 private:
   Camera camera;
-  ChipFolderCollection& collection; /*!< The entire user collection */
-  ChipFolder* folder; /*!< Handle to current folder to preview */
+  CardFolderCollection& collection; /*!< The entire user collection */
+  CardFolder* folder; /*!< Handle to current folder to preview */
   std::vector<std::string> folderNames; /*!< List of all folder names at start */
 
   // Menu name font
@@ -44,9 +44,9 @@ private:
   double maxSelectInputCooldown; /*!< Set to half of a second */
   double selectInputCooldown; /*!< The delay between reading user input */
 
-  // Chip UI font
-  sf::Font *chipFont;
-  sf::Text *chipLabel;
+  // Card UI font
+  sf::Font *cardFont;
+  sf::Text *cardLabel;
 
   sf::Font *numberFont;
   sf::Text *numberLabel;
@@ -60,7 +60,7 @@ private:
   sf::Sprite element;
   sf::Sprite cursor;
   sf::Sprite folderEquip;
-  sf::Sprite chipIcon;
+  sf::Sprite cardIcon;
   sf::Sprite mbPlaceholder;
 
   Animation equipAnimation; /*!< Flashes */
@@ -72,9 +72,9 @@ private:
   int selectedFolderIndex;
   int lastFolderIndex;
 
-  int maxChipsOnScreen; /*!< The number of chips to display max in box area */
-  int currChipIndex; /*!< Current index in current folder */
-  int numOfChips; /*!< Number of chips in current folder */
+  int maxCardsOnScreen; /*!< The number of cards to display max in box area */
+  int currCardIndex; /*!< Current index in current folder */
+  int numOfCards; /*!< Number of cards in current folder */
 
   double totalTimeElapsed;
   double frameElapsed;
@@ -129,11 +129,11 @@ public:
   virtual void onEnd();
 
   /**
-   * @brief Requires the user's chip folder collection to display all chip folders
+   * @brief Requires the user's card folder collection to display all card folders
    * 
    * Loads and initializes all default graphics and state values
    */
-  FolderScene(swoosh::ActivityController&, ChipFolderCollection&);
+  FolderScene(swoosh::ActivityController&, CardFolderCollection&);
   
   /**
    * @brief deconstructor

@@ -28,7 +28,7 @@ public:
 
   const float GetHeight() const;
 
-  ChipAction* ExecuteSpecialAction() final;
-  ChipAction* ExecuteBusterAction() final;
-  ChipAction* ExecuteChargedBusterAction() final;
+  CardAction* ExecuteSpecialAction() final;
+  CardAction* ExecuteBusterAction() final;
+  CardAction* ExecuteChargedBusterAction() final;
 };

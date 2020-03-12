@@ -1,6 +1,6 @@
 #include <Swoosh/ActivityController.h>
 #include "bnBattleScene.h"
-#include "bnChipLibrary.h"
+#include "bnCardLibrary.h"
 #include "bnGameOverScene.h"
 #include "bnUndernetBackground.h"
 #include "bnWeatherBackground.h"
@@ -18,7 +18,7 @@
 #include "Segues/WhiteWashFade.h"
 #include "Segues/PixelateBlackWashFade.h"
 
-// modals like chip cust and battle reward slide in 12px per frame for 10 frames. 60 frames = 1 sec
+// modals like card cust and battle reward slide in 12px per frame for 10 frames. 60 frames = 1 sec
 // modal slide moves 120px in 1/6th of a second
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
@@ -28,7 +28,7 @@
 // If x = 20 frames, then we want a combo hit threshold of 20/60 = 0.3 seconds
 #define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
-BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, ChipFolder* folder) :
+BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, CardFolder* folder) :
         swoosh::Activity(&controller),
         player(player),
         mob(mob),
@@ -46,11 +46,11 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
         iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
         distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
         summons(player),
-        chipListener(player),
-        // cap of 8 chips, 8 chips drawn per turn
-        chipCustGUI(folder->Clone(), 8, 8), 
+        cardListener(player),
+        // cap of 8 cards, 8 cards drawn per turn
+        cardCustGUI(folder->Clone(), 8, 8), 
         camera(*ENGINE.GetCamera()),
-        chipUI(player),
+        cardUI(player),
         lastSelectedForm(-1),
         persistentFolder(folder) {
 
@@ -66,9 +66,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   player->ChangeState<PlayerIdleState>();
   field->AddEntity(*player, 2, 2);
 
-  // Chip UI for player
-  chipListener.Subscribe(chipUI);
-  summons.Subscribe(chipUI); // Let the scene's chip listener know about summon chips
+  // Card UI for player
+  cardListener.Subscribe(cardUI);
+  summons.Subscribe(cardUI); // Let the scene's card listener know about summon cards
 
   /*
   Background for scene*/
@@ -109,7 +109,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   components = mob->GetComponents();
 
   PlayerHealthUI* healthUI = new PlayerHealthUI(player);
-  chipCustGUI.AddNode(healthUI);
+  cardCustGUI.AddNode(healthUI);
   components.push_back((UIComponent*)healthUI);
 
   for (auto c : components) {
@@ -165,9 +165,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   counterHit = doubleDelete;
   counterHit.setTexture(LOAD_TEXTURE(COUNTER_HIT));
   /*
-  Chips + Chip select setup*/
-  chips = nullptr;
-  chipCount = 0;
+  Cards + Card select setup*/
+  cards = nullptr;
+  cardCount = 0;
 
   /*
   Battle results pointer */
@@ -188,19 +188,19 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   customBarSprite.setScale(2.f, 2.f);
 
   // Load forms
-  chipCustGUI.SetPlayerFormOptions(player->GetForms());
+  cardCustGUI.SetPlayerFormOptions(player->GetForms());
 
   // Selection input delays
-  maxChipSelectInputCooldown = 1 / 10.f; // tenth a second
-  chipSelectInputCooldown = maxChipSelectInputCooldown;
+  maxCardSelectInputCooldown = 1 / 10.f; // tenth a second
+  cardSelectInputCooldown = maxCardSelectInputCooldown;
 
   // MOB UI
   mobFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   // STATE FLAGS AND TIMERS
   isPaused = false;
-  isInChipSelect = false;
-  isChipSelectReady = false;
+  isInCardSelect = false;
+  isCardSelectReady = false;
   isPlayerDeleted = false;
   isMobDeleted = false;
   isBattleRoundOver = false;
@@ -269,11 +269,11 @@ BattleScene::~BattleScene()
   scenenodes.clear();
 }
 
-// What to do if we inject a chip publisher, subscribe it to the main listener
-void BattleScene::Inject(ChipUsePublisher& pub)
+// What to do if we inject a card publisher, subscribe it to the main listener
+void BattleScene::Inject(CardUsePublisher& pub)
 {
-  std::cout << "a chip use listener added" << std::endl;
-  this->enemyChipListener.Subscribe(pub);
+  std::cout << "a card use listener added" << std::endl;
+  this->enemyCardListener.Subscribe(pub);
   this->summons.Subscribe(pub);
 
   SceneNode* node = dynamic_cast<SceneNode*>(&pub);
@@ -336,24 +336,24 @@ void BattleScene::ProcessNewestComponents()
 
 const bool BattleScene::IsBattleActive()
 {
-  return !(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm);
+  return !(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInCardSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm);
 }
 
-// TODO: this needs to be handled by some chip API itself and not hacked
-void BattleScene::TEMPFilterAtkChips(Chip ** chips, int chipCount)
+// TODO: this needs to be handled by some card API itself and not hacked
+void BattleScene::TEMPFilterAtkCards(Card ** cards, int cardCount)
 {
-  // Only remove the ATK chips in the queue. Increase the previous chip damage by +10
-  int newChipCount = chipCount;
-  Chip* nonSupport = nullptr;
+  // Only remove the ATK cards in the queue. Increase the previous card damage by +10
+  int newCardCount = cardCount;
+  Card* nonSupport = nullptr;
 
-  // Create a temp chip list
-  Chip** newChipList = new Chip*[chipCount];
+  // Create a temp card list
+  Card** newCardList = new Card*[cardCount];
 
   int j = 0;
-  for (int i = 0; i < chipCount; ) {
-    if (chips[i]->GetShortName() == "Atk+10") {
+  for (int i = 0; i < cardCount; ) {
+    if (cards[i]->GetShortName() == "Atk+10") {
       if (nonSupport) {
-        // Do not modify support chips
+        // Do not modify support cards
         if (!nonSupport->IsSupport()) {
           nonSupport->damage += 10;
         }
@@ -363,26 +363,26 @@ void BattleScene::TEMPFilterAtkChips(Chip ** chips, int chipCount)
       continue;
     }
 
-    newChipList[j] = chips[i];
-    nonSupport = chips[i];
+    newCardList[j] = cards[i];
+    nonSupport = cards[i];
 
     i++;
     j++;
   }
 
-  newChipCount = j;
+  newCardCount = j;
 
-  // Set the new chips
-  for (int i = 0; i < newChipCount; i++) {
-    chips[i] = *(newChipList + i);
+  // Set the new cards
+  for (int i = 0; i < newCardCount; i++) {
+    cards[i] = *(newCardList + i);
   }
 
   // Delete the temp list space
   // NOTE: We are _not_ deleting the pointers in them
-  delete[] newChipList;
+  delete[] newCardList;
 
-  this->chips = chips;
-  this->chipCount = newChipCount;
+  this->cards = cards;
+  this->cardCount = newCardCount;
 }
 
 void BattleScene::OnCounter(Character & victim, Character & aggressor)
@@ -491,7 +491,7 @@ void BattleScene::onUpdate(double elapsed) {
             // The next form has a switch based on health
             // This way dying will cancel the form
             // TODO: make this a separate function that takes in form index or something...
-            lastSelectedForm = player->GetHealth() == 0? -1 : chipCustGUI.GetSelectedFormIndex();
+            lastSelectedForm = player->GetHealth() == 0? -1 : cardCustGUI.GetSelectedFormIndex();
             player->ActivateFormAt(lastSelectedForm);
             AUDIO.Play(AudioType::SHINE);
 
@@ -559,7 +559,7 @@ void BattleScene::onUpdate(double elapsed) {
     c->OnUpdate((float)elapsed);
   }
 
-  chipUI.OnUpdate((float)elapsed);
+  cardUI.OnUpdate((float)elapsed);
 
   if (battleResults) {
     battleResults->Update(elapsed);
@@ -601,8 +601,8 @@ void BattleScene::onUpdate(double elapsed) {
 
   background->Update((float)elapsed);
 
-  // Do not update when: paused or in chip select, during a summon sequence, showing Battle Start sign
-  if (!(isPaused || isInChipSelect || isChangingForm) && summons.IsSummonOver() && !isPreBattle) {
+  // Do not update when: paused or in card select, during a summon sequence, showing Battle Start sign
+  if (!(isPaused || isInCardSelect || isChangingForm) && summons.IsSummonOver() && !isPreBattle) {
 
 
     // kill switch for testing:
@@ -643,8 +643,8 @@ void BattleScene::onUpdate(double elapsed) {
   lastMobSize = newMobSize;
 
   // TODO: we desperately need states
-  // update the cust if not paused nor in chip select nor in mob intro nor battle results nor post battle
-  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInChipSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm)) {
+  // update the cust if not paused nor in card select nor in mob intro nor battle results nor post battle
+  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInCardSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm)) {
     if (battleTimer.isPaused()) {
       // start counting seconds again
       if (battleTimer.isPaused()) {
@@ -682,7 +682,7 @@ void BattleScene::onUpdate(double elapsed) {
     field->SetBattleActive(false);
   }
 
-  chipCustGUI.Update((float)elapsed);
+  cardCustGUI.Update((float)elapsed);
 }
 
 void BattleScene::onDraw(sf::RenderTexture& surface) {
@@ -880,7 +880,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   // cust dissapears when not in battle
-  if (!(isInChipSelect || isPostBattle || mob->IsCleared()))
+  if (!(isInCardSelect || isPostBattle || mob->IsCleared()))
     ENGINE.Draw(&customBarSprite);
 
   if (isPaused) {
@@ -892,7 +892,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   // TODO: hack to swap out
   /*static auto lastShader = player->GetShader();
 
-  if (!isInChipSelect && showSummonBackdropTimer > showSummonBackdropLength/25.0f) {
+  if (!isInCardSelect && showSummonBackdropTimer > showSummonBackdropLength/25.0f) {
     player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
   }
   else {
@@ -933,7 +933,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   float nextLabelHeight = 0;
-  if (!mob->IsCleared() && !mob->IsSpawningDone() || isInChipSelect) {
+  if (!mob->IsCleared() && !mob->IsSpawningDone() || isInCardSelect) {
     for (int i = 0; i < mob->GetMobCount(); i++) {
       if (mob->GetMobAt(i).IsDeleted())
         continue;
@@ -954,7 +954,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
 
   if (!isPlayerDeleted && !showSummonBackdrop && !summons.IsSummonActive()) {
-    ENGINE.Draw(chipUI);
+    ENGINE.Draw(cardUI);
   }
 
   if (isPreBattle && !isChangingForm) {
@@ -999,19 +999,19 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(pauseLabel, false);
   }
 
-  // compare the summon state after we used a chip...
+  // compare the summon state after we used a card...
   if (!showSummonText) {
     if (summons.IsSummonOver() && prevSummonState == true) {
       // We are leaving the summons state this frame
       summons.OnLeave();
       prevSummonState = false;
     }
-    else   // When these conditions are met, the chip name has shown and we're ready to follow through with the summon
+    else   // When these conditions are met, the card name has shown and we're ready to follow through with the summon
     if (summons.IsSummonActive() && showSummonBackdrop) {
       summons.Update(elapsed);
     }
 
-    // Track if a summon chip was used on this frame
+    // Track if a summon card was used on this frame
     if (!prevSummonState) {
       prevSummonState = summons.HasMoreInQueue();
 
@@ -1026,12 +1026,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
 
   // Draw cust GUI on top of scene. No shaders affecting.
-  ENGINE.Draw(chipCustGUI);
+  ENGINE.Draw(cardCustGUI);
 
   // Scene keyboard controls
   // TODO: really belongs in Update() but also handles a lot of conditional draws
   //       refactoring battle scene into battle states should reduce this complexity
-  if (INPUT.Has(EventTypes::PRESSED_PAUSE) && !isInChipSelect && !isChangingForm && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
+  if (INPUT.Has(EventTypes::PRESSED_PAUSE) && !isInCardSelect && !isChangingForm && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
     isPaused = !isPaused;
 
     if (!isPaused) {
@@ -1043,7 +1043,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
   else if ((!isMobFinished && mob->IsSpawningDone()) ||
            (
-                   INPUT.Has(EventTypes::PRESSED_CUST_MENU) && customProgress >= customDuration && !isInChipSelect && !isPaused &&
+                   INPUT.Has(EventTypes::PRESSED_CUST_MENU) && customProgress >= customDuration && !isInCardSelect && !isPaused &&
                    !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle
            )) {
     // enemy intro finished
@@ -1054,20 +1054,20 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       player->ChangeState<PlayerControlledState>();
       // Move mob out of the PixelInState
       mob->DefaultState();
-      // show the chip select screen
+      // show the card select screen
       customProgress = customDuration;
     }
 
-    if (isInChipSelect == false && !isBattleRoundOver) {
+    if (isInCardSelect == false && !isBattleRoundOver) {
       player->SetCharging(false);
 
       AUDIO.Play(AudioType::CUSTOM_SCREEN_OPEN);
       // slide up the screen a hair
       //camera.MoveCamera(sf::Vector2f(240.f, 140.f), sf::seconds(0.5f));
-      isInChipSelect = true;
+      isInCardSelect = true;
 
-      // Clear any chip UI queues. they will contain null data.
-      chipUI.LoadChips(0, 0);
+      // Clear any card UI queues. they will contain null data.
+      cardUI.LoadCards(0, 0);
 
       // Reset PA system
       isPAComplete = false;
@@ -1075,88 +1075,88 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       paStepIndex = 0;
       listStepCounter = listStepCooldown;
 
-      // Load the next chips
-      chipCustGUI.ResetState();
-      chipCustGUI.GetNextChips();
+      // Load the next cards
+      cardCustGUI.ResetState();
+      cardCustGUI.GetNextCards();
     }
 
     // NOTE: Need a battle scene state manager to handle going to and from one controll scheme to another.
     // Plus would make more sense to revoke screen effects and labels once complete transition
 
   }
-  else if (isInChipSelect && chipCustGUI.IsInView() && chipCustGUI.CanInteract()) {
+  else if (isInCardSelect && cardCustGUI.IsInView() && cardCustGUI.CanInteract()) {
 #ifndef __ANDROID__
-    if (chipCustGUI.IsChipDescriptionTextBoxOpen()) {
+    if (cardCustGUI.IsCardDescriptionTextBoxOpen()) {
       if (!INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
-        chipCustGUI.CloseChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
+        cardCustGUI.CloseCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
       }
       else if (INPUT.Has(EventTypes::PRESSED_CONFIRM) ){
 
-        chipCustGUI.ChipDescriptionConfirmQuestion()? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
-        chipCustGUI.ContinueChipDescription();
+        cardCustGUI.CardDescriptionConfirmQuestion()? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
+        cardCustGUI.ContinueCardDescription();
       }
 
       if (INPUT.Has(EventTypes::HELD_CONFIRM)) {
-        chipCustGUI.FastForwardChipDescription(3.0);
+        cardCustGUI.FastForwardCardDescription(3.0);
       }
       else {
-        chipCustGUI.FastForwardChipDescription(1.0);
+        cardCustGUI.FastForwardCardDescription(1.0);
       }
 
       if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
-        chipCustGUI.ChipDescriptionYes() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+        cardCustGUI.CardDescriptionYes() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
       }
       else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
-        chipCustGUI.ChipDescriptionNo() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+        cardCustGUI.CardDescriptionNo() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
       }
     }
     else {
       if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
-        chipSelectInputCooldown -= elapsed;
+        cardSelectInputCooldown -= elapsed;
 
-        if (chipSelectInputCooldown <= 0) {
-          chipCustGUI.CursorLeft() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-          chipSelectInputCooldown = maxChipSelectInputCooldown;
+        if (cardSelectInputCooldown <= 0) {
+          cardCustGUI.CursorLeft() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          cardSelectInputCooldown = maxCardSelectInputCooldown;
         }
       }
       else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
-        chipSelectInputCooldown -= elapsed;
+        cardSelectInputCooldown -= elapsed;
 
-        if (chipSelectInputCooldown <= 0) {
-          chipCustGUI.CursorRight() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-          chipSelectInputCooldown = maxChipSelectInputCooldown;
+        if (cardSelectInputCooldown <= 0) {
+          cardCustGUI.CursorRight() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          cardSelectInputCooldown = maxCardSelectInputCooldown;
         }
       }
       else if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
-        chipSelectInputCooldown -= elapsed;
+        cardSelectInputCooldown -= elapsed;
 
-        if (chipSelectInputCooldown <= 0) {
-          chipCustGUI.CursorUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-          chipSelectInputCooldown = maxChipSelectInputCooldown;
+        if (cardSelectInputCooldown <= 0) {
+          cardCustGUI.CursorUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          cardSelectInputCooldown = maxCardSelectInputCooldown;
         }
       }
       else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
-        chipSelectInputCooldown -= elapsed;
+        cardSelectInputCooldown -= elapsed;
 
-        if (chipSelectInputCooldown <= 0) {
-          chipCustGUI.CursorDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-          chipSelectInputCooldown = maxChipSelectInputCooldown;
+        if (cardSelectInputCooldown <= 0) {
+          cardCustGUI.CursorDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          cardSelectInputCooldown = maxCardSelectInputCooldown;
         }
       }
       else {
-        chipSelectInputCooldown = 0;
+        cardSelectInputCooldown = 0;
       }
 
       if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
-        bool performed = chipCustGUI.CursorAction();
+        bool performed = cardCustGUI.CursorAction();
 
-        if (chipCustGUI.AreChipsReady()) {
+        if (cardCustGUI.AreCardsReady()) {
           AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
           customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
         }
         else if (performed) {
-          if (!chipCustGUI.SelectedNewForm()) {
+          if (!cardCustGUI.SelectedNewForm()) {
             AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGHEST);
           }
         }
@@ -1165,10 +1165,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         }
       }
       else if (INPUT.Has(EventTypes::PRESSED_CANCEL) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
-        chipCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGHEST) : 1;
+        cardCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGHEST) : 1;
       }
       else if (INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
-        chipCustGUI.OpenChipDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;
+        cardCustGUI.OpenCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;
       }
     }
 
@@ -1177,42 +1177,42 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
     if(INPUT.Has(EventTypes::RELEASED_LEFT)) {
       if(!isHidden) {
-        chipCustGUI.Hide();
+        cardCustGUI.Hide();
         isHidden = true;
       } else {
-        chipCustGUI.Reveal();
+        cardCustGUI.Reveal();
         isHidden = false;
       }
     }
 
-    if (chipCustGUI.AreChipsReady() && !isHidden) {
+    if (cardCustGUI.AreCardsReady() && !isHidden) {
       AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
       customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
     }
 #endif
   }
 
-  if (isInChipSelect && customProgress > 0.f) {
-    if (!chipCustGUI.IsInView()) {
-      chipCustGUI.Move(sf::Vector2f(MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
+  if (isInCardSelect && customProgress > 0.f) {
+    if (!cardCustGUI.IsInView()) {
+      cardCustGUI.Move(sf::Vector2f(MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
     }
   }
   else {
-    if (!chipCustGUI.IsOutOfView()) {
-      chipCustGUI.Move(sf::Vector2f(-MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
+    if (!cardCustGUI.IsOutOfView()) {
+      cardCustGUI.Move(sf::Vector2f(-MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
     }
-    else if (isInChipSelect) { // we're leaving a state
+    else if (isInCardSelect) { // we're leaving a state
       // Start Program Advance checks
       if (isPAComplete && hasPA == -1) {
-        // Filter and apply support chips
-        TEMPFilterAtkChips(chips, chipCount);
+        // Filter and apply support cards
+        TEMPFilterAtkCards(cards, cardCount);
 
         // Return to game
-        isInChipSelect = false;
-        chipUI.LoadChips(chips, chipCount);
+        isInCardSelect = false;
+        cardUI.LoadCards(cards, cardCount);
         ENGINE.RevokeShader();
 
-        int selectedForm = chipCustGUI.GetSelectedFormIndex();
+        int selectedForm = cardCustGUI.GetSelectedFormIndex();
 
         if (selectedForm != lastSelectedForm) {
           isChangingForm = true;
@@ -1226,10 +1226,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         }
       }
       else if (!isPAComplete) {
-        chips = chipCustGUI.GetChips();
-        chipCount = chipCustGUI.GetChipCount();
+        cards = cardCustGUI.GetCards();
+        cardCount = cardCustGUI.GetCardCount();
 
-        hasPA = programAdvance.FindPA(chips, chipCount);
+        hasPA = programAdvance.FindPA(cards, cardCount);
 
         if (hasPA > -1) {
           paSteps = programAdvance.GetMatchingSteps();
@@ -1249,11 +1249,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         programAdvanceSprite.setScale(2.f, (float)scale*2.f);
         ENGINE.Draw(programAdvanceSprite, false);
 
-        if (paStepIndex <= chipCount + 1) {
-          for (int i = 0; i < paStepIndex && i < chipCount; i++) {
-            std::string formatted = chips[i]->GetShortName();
+        if (paStepIndex <= cardCount + 1) {
+          for (int i = 0; i < paStepIndex && i < cardCount; i++) {
+            std::string formatted = cards[i]->GetShortName();
             formatted.resize(9, ' ');
-            formatted[8] = chips[i]->GetCode();
+            formatted[8] = cards[i]->GetCode();
 
             sf::Text stepLabel = sf::Text(formatted, *mobFont);
 
@@ -1290,10 +1290,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             advanceSoundPlay = true;
           }
 
-          for (int i = 0; i < chipCount; i++) {
-            std::string formatted = chips[i]->GetShortName();
+          for (int i = 0; i < cardCount; i++) {
+            std::string formatted = cards[i]->GetShortName();
             formatted.resize(9, ' ');
-            formatted[8] = chips[i]->GetCode();
+            formatted[8] = cards[i]->GetCode();
 
             sf::Text stepLabel = sf::Text(formatted, *mobFont);
 
@@ -1305,9 +1305,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
             if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
               if (i == hasPA) {
-                Chip* paChip = programAdvance.GetAdvanceChip();
+                Card* paCard = programAdvance.GetAdvanceCard();
 
-                sf::Text stepLabel = sf::Text(paChip->GetShortName(), *mobFont);
+                sf::Text stepLabel = sf::Text(paCard->GetShortName(), *mobFont);
                 stepLabel.setOrigin(0, 0);
                 stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight*2.f));
                 stepLabel.setScale(1.0f, 1.0f);
@@ -1339,58 +1339,58 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           listStepCounter -= (float)elapsed;
         }
         else {
-          // +2 = 1 step for showing PA label and 1 step for showing merged chip
-          // That's the chips we want to show + 1 + 1 = chipCount + 2
-          if (paStepIndex == chipCount + 2) {
+          // +2 = 1 step for showing PA label and 1 step for showing merged card
+          // That's the cards we want to show + 1 + 1 = cardCount + 2
+          if (paStepIndex == cardCount + 2) {
             advanceSoundPlay = false;
 
-            Chip* paChip = programAdvance.GetAdvanceChip();
+            Card* paCard = programAdvance.GetAdvanceCard();
 
-            // Only remove the chips involved in the program advance. Replace them with the new PA chip.
-            // PA chip is dealloc by the class that created it so it must be removed before the library tries to dealloc
-            int newChipCount = chipCount - (int)paSteps.size() + 1; // Add the new one
-            int newChipStart = hasPA;
+            // Only remove the cards involved in the program advance. Replace them with the new PA card.
+            // PA card is dealloc by the class that created it so it must be removed before the library tries to dealloc
+            int newCardCount = cardCount - (int)paSteps.size() + 1; // Add the new one
+            int newCardStart = hasPA;
 
-            // Create a temp chip list
-            Chip** newChipList = new Chip*[newChipCount];
+            // Create a temp card list
+            Card** newCardList = new Card*[newCardCount];
 
             int j = 0;
-            for (int i = 0; i < chipCount; ) {
+            for (int i = 0; i < cardCount; ) {
               if (i == hasPA) {
-                newChipList[j] = paChip;
+                newCardList[j] = paCard;
                 i += (int)paSteps.size();
                 j++;
                 continue;
               }
 
-              newChipList[j] = chips[i];
+              newCardList[j] = cards[i];
               i++;
               j++;
             }
 
-            // Set the new chips
-            for (int i = 0; i < newChipCount; i++) {
-              chips[i] = *(newChipList + i);
+            // Set the new cards
+            for (int i = 0; i < newCardCount; i++) {
+              cards[i] = *(newCardList + i);
             }
 
             // Delete the temp list space
             // NOTE: We are _not_ deleting the pointers in them
-            delete[] newChipList;
+            delete[] newCardList;
 
-            chipCount = newChipCount;
+            cardCount = newCardCount;
 
             hasPA = -1; // state over
           }
           else {
-            if (paStepIndex == chipCount + 1) {
+            if (paStepIndex == cardCount + 1) {
               listStepCounter = listStepCooldown * 2.0f; // Linger on the screen when showing the final PA
             }
             else {
-              listStepCounter = listStepCooldown * 0.7f; // Quicker about non-PA chips
+              listStepCounter = listStepCooldown * 0.7f; // Quicker about non-PA cards
             }
 
             if (paStepIndex >= hasPA && paStepIndex <= hasPA + paSteps.size() - 1) {
-              listStepCounter = listStepCooldown; // Take our time with the PA chips
+              listStepCounter = listStepCooldown; // Take our time with the PA cards
               AUDIO.Play(AudioType::POINT);
             }
 
@@ -1421,10 +1421,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             BattleItem* reward = battleResults->GetReward();
 
             if (reward != nullptr) {
-              if (reward->IsChip()) {
+              if (reward->IsCard()) {
                 // TODO: send the battle item off to the player's
                 // persistent session storage (aka a save file or cloud database)
-                CHIPLIB.AddChip(reward->GetChip());
+                CHIPLIB.AddCard(reward->GetCard());
                 delete reward;
               }
             }
@@ -1448,13 +1448,13 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   if (customProgress / customDuration >= 1.0) {
-    if (isChipSelectReady == false) {
+    if (isCardSelectReady == false) {
       AUDIO.Play(AudioType::CUSTOM_BAR_FULL);
-      isChipSelectReady = true;
+      isCardSelectReady = true;
     }
   }
   else {
-    isChipSelectReady = false;
+    isCardSelectReady = false;
   }
 
   customBarShader.setUniform("factor", (float)(customProgress / customDuration));

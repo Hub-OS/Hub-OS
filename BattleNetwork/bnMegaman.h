@@ -1,6 +1,6 @@
 #pragma once
 #include "bnPlayer.h"
-#include "bnChipAction.h"
+#include "bnCardAction.h"
 
 class SpriteSceneNode;
 
@@ -10,9 +10,9 @@ public:
   ~Megaman();
 
   virtual void OnUpdate(float elapsed);
-  ChipAction* ExecuteBusterAction() final;
-  ChipAction* ExecuteChargedBusterAction() final;
-  ChipAction* ExecuteSpecialAction() final;
+  CardAction* ExecuteBusterAction() final;
+  CardAction* ExecuteChargedBusterAction() final;
+  CardAction* ExecuteSpecialAction() final;
 };
 
 class TenguCross : public PlayerForm {
@@ -22,8 +22,8 @@ public:
   void OnUpdate(float elapsed, Player&);
   void OnActivate(Player& player);
   void OnDeactivate(Player& player);
-  ChipAction* OnChargedBusterAction(Player&);
-  ChipAction* OnSpecialAction(Player&);
+  CardAction* OnChargedBusterAction(Player&);
+  CardAction* OnSpecialAction(Player&);
 
 private:
   bool loaded;
@@ -31,7 +31,7 @@ private:
   Animation overlayAnimation;
   SpriteSceneNode* overlay;
 
-  class SpecialAction : public ChipAction {
+  class SpecialAction : public CardAction {
     sf::Sprite overlay;
     SpriteSceneNode* attachment;
     Animation attachmentAnim;
@@ -42,7 +42,7 @@ private:
 
     void OnUpdate(float _elapsed);
 
-    // Inherited via ChipAction
+    // Inherited via CardAction
     void Execute() override;
     void EndAction() override;
   };
@@ -56,8 +56,8 @@ public:
   void OnUpdate(float elapsed, Player&);
   void OnActivate(Player& player);
   void OnDeactivate(Player& player);
-  ChipAction* OnChargedBusterAction(Player&);
-  ChipAction* OnSpecialAction(Player&);
+  CardAction* OnChargedBusterAction(Player&);
+  CardAction* OnSpecialAction(Player&);
 private:
   bool loaded;
   AnimationComponent* parentAnim;
@@ -72,8 +72,8 @@ public:
   void OnUpdate(float elapsed, Player&);
   void OnActivate(Player& player);
   void OnDeactivate(Player& player);
-  ChipAction* OnChargedBusterAction(Player&);
-  ChipAction* OnSpecialAction(Player&);
+  CardAction* OnChargedBusterAction(Player&);
+  CardAction* OnSpecialAction(Player&);
 private:
   bool loaded;
   AnimationComponent* parentAnim;

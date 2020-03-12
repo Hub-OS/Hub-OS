@@ -2,7 +2,7 @@
 #include "bnMettaur.h"
 #include "bnField.h"
 #include "bnSpawnPolicy.h"
-#include "bnChipsSpawnPolicy.h"
+#include "bnCardsSpawnPolicy.h"
 
 HoneyBomberMob::HoneyBomberMob(Field* field) : MobFactory(field)
 {

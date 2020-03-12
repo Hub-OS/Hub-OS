@@ -1,10 +1,10 @@
 #include "bnMegaman.h"
 #include "bnShaderResourceManager.h"
-#include "bnBusterChipAction.h"
-#include "bnCrackShotChipAction.h"
-#include "bnFireBurnChipAction.h"
-#include "bnTornadoChipAction.h"
-#include "bnChipAction.h"
+#include "bnBusterCardAction.h"
+#include "bnCrackShotCardAction.h"
+#include "bnFireBurnCardAction.h"
+#include "bnTornadoCardAction.h"
+#include "bnCardAction.h"
 #include "bnSpriteSceneNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
@@ -37,22 +37,22 @@ void Megaman::OnUpdate(float elapsed)
   Player::OnUpdate(elapsed);
 }
 
-ChipAction* Megaman::ExecuteBusterAction()
+CardAction* Megaman::ExecuteBusterAction()
 {
-  return new BusterChipAction(this, false, 1);
+  return new BusterCardAction(this, false, 1);
 }
 
-ChipAction* Megaman::ExecuteChargedBusterAction()
+CardAction* Megaman::ExecuteChargedBusterAction()
 {
   if (activeForm) {
     return activeForm->OnChargedBusterAction(*this);
   }
   else {
-    return new BusterChipAction(this, true, 10);
+    return new BusterCardAction(this, true, 10);
   }
 }
 
-ChipAction* Megaman::ExecuteSpecialAction() {
+CardAction* Megaman::ExecuteSpecialAction() {
   if (activeForm) {
     return activeForm->OnSpecialAction(*this);
   }
@@ -122,12 +122,12 @@ void TenguCross::OnUpdate(float elapsed, Player& player)
   overlay->setPosition(baseOffset);
 }
 
-ChipAction* TenguCross::OnChargedBusterAction(Player& player)
+CardAction* TenguCross::OnChargedBusterAction(Player& player)
 {
-  return new BusterChipAction(&player, true, 10);
+  return new BusterCardAction(&player, true, 10);
 }
 
-ChipAction* TenguCross::OnSpecialAction(Player& player)
+CardAction* TenguCross::OnSpecialAction(Player& player)
 {
   return new TenguCross::SpecialAction(&player);
 }
@@ -198,12 +198,12 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
   overlay->setPosition(baseOffset);
 }
 
-ChipAction* HeatCross::OnChargedBusterAction(Player& player)
+CardAction* HeatCross::OnChargedBusterAction(Player& player)
 {
-  return new FireBurnChipAction(&player, FireBurn::Type::_2, 60);
+  return new FireBurnCardAction(&player, FireBurn::Type::_2, 60);
 }
 
-ChipAction* HeatCross::OnSpecialAction(Player& player)
+CardAction* HeatCross::OnSpecialAction(Player& player)
 {
   return nullptr;
 }
@@ -271,12 +271,12 @@ void TomahawkCross::OnUpdate(float elapsed, Player& player)
   overlay->setPosition(baseOffset);
 }
 
-ChipAction* TomahawkCross::OnChargedBusterAction(Player& player)
+CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
 {
-  return new CrackShotChipAction(&player, 30);
+  return new CrackShotCardAction(&player, 30);
 }
 
-ChipAction* TomahawkCross::OnSpecialAction(Player& player)
+CardAction* TomahawkCross::OnSpecialAction(Player& player)
 {
   return nullptr;
 }
@@ -288,7 +288,7 @@ ChipAction* TomahawkCross::OnSpecialAction(Player& player)
 
 #define FRAMES FRAME1, FRAME2, FRAME3
 
-TenguCross::SpecialAction::SpecialAction(Character* owner) : ChipAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
+TenguCross::SpecialAction::SpecialAction(Character* owner) : CardAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
   overlay.setTexture(*owner->getTexture());
   this->attachment = new SpriteSceneNode(overlay);
   this->attachment->SetLayer(-1);
@@ -307,7 +307,7 @@ TenguCross::SpecialAction::~SpecialAction()
 
 void TenguCross::SpecialAction::OnUpdate(float _elapsed)
 {
-  ChipAction::OnUpdate(_elapsed);
+  CardAction::OnUpdate(_elapsed);
   attachmentAnim.Update(_elapsed, *this->attachment);
 }
 

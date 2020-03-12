@@ -29,31 +29,16 @@ Texture* TextureResourceManager::LoadTextureFromFile(string _path) {
   Texture* texture = new Texture();
   if (!texture->loadFromFile(_path)) {
 
-    Logger::GetMutex()->lock();
     Logger::Logf("Failed loading texture: %s", _path.c_str());
-    Logger::GetMutex()->unlock();
 
   } else {
-
-    Logger::GetMutex()->lock();
     Logger::Logf("Loaded texture: %s", _path.c_str());
-    Logger::GetMutex()->unlock();
-
   }
   return texture;
 }
 
 Texture* TextureResourceManager::GetTexture(TextureType _ttype) {
   return textures.at(_ttype);
-}
-
-sf::IntRect TextureResourceManager::GetCardRectFromID(unsigned ID) {
-  return sf::IntRect((ID % 11) * 56, (ID / 11) * 48, 56, 48);
-}
-
-sf::IntRect TextureResourceManager::GetIconRectFromID(unsigned ID) {
-  sf::IntRect result  = sf::IntRect(1+((ID % 20) * 16), 1+((ID / 20) * 16), 14, 14);
-  return result;
 }
 
 Font* TextureResourceManager::LoadFontFromFile(string _path) {
@@ -159,18 +144,18 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/artifact_impact_fx.png");
   paths.push_back("resources/spells/spell_wind.png");
 
-  // Chip Select 
-  paths.push_back("resources/ui/chip_select.png");
-  paths.push_back("resources/ui/chip_cursor_small.png");
-  paths.push_back("resources/ui/chip_cursor_big.png");
-  paths.push_back("resources/ui/chip_cards.png");
-  paths.push_back("resources/ui/chip_icons.png");
-  paths.push_back("resources/ui/chip_nosupport.png");
-  paths.push_back("resources/ui/chip_nodata.png");
-  paths.push_back("resources/ui/chip_senddata.png");
-  paths.push_back("resources/ui/chip_missing.png");
-  paths.push_back("resources/ui/chip_lock.png");
-  paths.push_back("resources/ui/chip_frame.png");
+  // Card Select 
+  paths.push_back("resources/ui/card_select.png");
+  paths.push_back("resources/ui/card_cursor_small.png");
+  paths.push_back("resources/ui/card_cursor_big.png");
+  paths.push_back("resources/ui/card_cards.png");
+  paths.push_back("resources/ui/card_icons.png");
+  paths.push_back("resources/ui/card_nosupport.png");
+  paths.push_back("resources/ui/card_nodata.png");
+  paths.push_back("resources/ui/card_senddata.png");
+  paths.push_back("resources/ui/card_missing.png");
+  paths.push_back("resources/ui/card_lock.png");
+  paths.push_back("resources/ui/card_frame.png");
   paths.push_back("resources/ui/cust_badge.png");
   paths.push_back("resources/ui/cust_badge_mask.png");
   paths.push_back("resources/ui/form_select.png");
@@ -194,7 +179,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/counter_star.png");
 
   // folder view
-  paths.push_back("resources/ui/folder_chip.png");
+  paths.push_back("resources/ui/folder_card.png");
   paths.push_back("resources/ui/folder_dock.png");
   paths.push_back("resources/ui/pack_dock.png");
   paths.push_back("resources/ui/folder_rarity.png");

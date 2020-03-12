@@ -22,9 +22,6 @@ private:
   static std::queue<std::string> logs; /*!< get the log stream in order */
   static std::ofstream file; /*!< The file to write to */
 public:
-  static std::mutex* GetMutex() {
-    return &m;
-  }
 
   /**
    * @brief Gets the next log and stores it in the input string
@@ -32,8 +29,10 @@ public:
    * @return true if there's more text. False if there's no text to input.
    */
   static const bool GetNextLog(std::string &next) {
+    std::scoped_lock<std::mutex> lock(m);
+
     if (logs.size() == 0)
-      return false;
+        return false;
 
     next = logs.front();
     logs.pop();
@@ -46,6 +45,8 @@ public:
    * @param _message
    */
   static void Log(string _message) {
+    std::scoped_lock<std::mutex> lock(m);
+
     if (_message.empty())
       return;
 
@@ -70,6 +71,8 @@ public:
    * @param ... input to match the format 
    */
   static void Logf(const char* fmt, ...) {
+    std::scoped_lock<std::mutex> lock(m);
+
     int size = 512;
     char* buffer = 0;
     buffer = new char[size];

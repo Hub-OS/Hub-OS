@@ -9,8 +9,8 @@
 #include "bnFolderEditScene.h"
 #include "bnFolderChangeNameScene.h"
 #include "Segues/BlackWashFade.h"
-#include "bnChipLibrary.h"
-#include "bnChipFolder.h"
+#include "bnCardLibrary.h"
+#include "bnCardFolder.h"
 #include "Android/bnTouchArea.h"
 #include "bnMessageQuestion.h"
 
@@ -23,7 +23,7 @@ using sf::Font;
 
 #include "Segues/PushIn.h"
 
-FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderCollection& collection) :
+FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderCollection& collection) :
   collection(collection),
   camera(ENGINE.GetView()),
   folderSwitch(true),
@@ -46,10 +46,10 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   maxSelectInputCooldown = 0.5; // half of a second
   selectInputCooldown = maxSelectInputCooldown;
 
-  // Chip UI font
-  chipFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  chipLabel = new sf::Text("", *chipFont);
-  chipLabel->setPosition(275.f, 15.f);
+  // Card UI font
+  cardFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+  cardLabel = new sf::Text("", *cardFont);
+  cardLabel->setPosition(275.f, 15.f);
 
   numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
   numberLabel = new sf::Text("", *numberFont);
@@ -89,8 +89,8 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
-  chipIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
-  chipIcon.setScale(2.f, 2.f);
+  cardIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
+  cardIcon.setScale(2.f, 2.f);
 
   mbPlaceholder = sf::Sprite(LOAD_TEXTURE(FOLDER_MB));
   mbPlaceholder.setScale(2.f, 2.f);
@@ -106,8 +106,8 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   equipAnimation.Update(0,folderEquip);
   folderCursorAnimation.Update(0, folderCursor);
 
-  maxChipsOnScreen = 5;
-  currChipIndex = 0;
+  maxCardsOnScreen = 5;
+  currCardIndex = 0;
   currFolderIndex = lastFolderIndex = 0;
   selectedFolderIndex = optionIndex = 0;
 
@@ -120,10 +120,10 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, ChipFolderColle
   if (collection.GetFolderNames().size() > 0) {
     collection.GetFolder(0, folder);
 
-    numOfChips = folder->GetSize();
+    numOfCards = folder->GetSize();
   }
   else {
-    numOfChips = 0;
+    numOfCards = 0;
   }
 
 #ifdef __ANDROID__
@@ -155,7 +155,7 @@ void FolderScene::onUpdate(double elapsed) {
   equipAnimation.Update((float)elapsed, folderEquip);
   textbox.Update(elapsed);
 
-  auto lastChipIndex = currChipIndex;
+  auto lastCardIndex = currCardIndex;
   auto lastFolderIndex = currFolderIndex;
   auto lastOptionIndex = optionIndex;
 
@@ -203,7 +203,7 @@ void FolderScene::onUpdate(double elapsed) {
           selectInputCooldown = maxSelectInputCooldown;
 
           if (!promptOptions) {
-            currChipIndex--;
+            currCardIndex--;
           }
           else {
             optionIndex--;
@@ -217,7 +217,7 @@ void FolderScene::onUpdate(double elapsed) {
           selectInputCooldown = maxSelectInputCooldown;
 
           if (!promptOptions) {
-            currChipIndex++;
+            currCardIndex++;
           }
           else {
             optionIndex++;
@@ -252,13 +252,13 @@ void FolderScene::onUpdate(double elapsed) {
         selectInputCooldown = 0;
       }
 
-      currChipIndex = std::max(0, currChipIndex);
-      currChipIndex = std::min(numOfChips - 1, currChipIndex);
+      currCardIndex = std::max(0, currCardIndex);
+      currCardIndex = std::min(numOfCards - 1, currCardIndex);
       currFolderIndex = std::max(0, currFolderIndex);
       currFolderIndex = std::min((int)folderNames.size() - 1, currFolderIndex);
       optionIndex = std::max(0, optionIndex);
 
-      if (currChipIndex != lastChipIndex 
+      if (currCardIndex != lastCardIndex 
         || currFolderIndex != lastFolderIndex 
         || optionIndex != lastOptionIndex) {
         AUDIO.Play(AudioType::CHIP_SELECT);
@@ -281,8 +281,8 @@ void FolderScene::onUpdate(double elapsed) {
         if (collection.GetFolderNames().size() > 0) {
           collection.GetFolder(*(folderNames.begin() + currFolderIndex), folder);
 
-          numOfChips = folder->GetSize();
-          currChipIndex = 0;
+          numOfCards = folder->GetSize();
+          currCardIndex = 0;
         }
 
         folderSwitch = false;
@@ -446,11 +446,11 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       folderBox.setPosition(26.0f + (i*144.0f) - (float)folderOffsetX, 34.0f);
       ENGINE.Draw(folderBox);
 
-      chipLabel->setFillColor(sf::Color::White);
-      chipLabel->setString(folderNames[i]);
-      chipLabel->setOrigin(chipLabel->getGlobalBounds().width / 2.0f, chipLabel->getGlobalBounds().height / 2.0f);
-      chipLabel->setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
-      ENGINE.Draw(chipLabel, false);
+      cardLabel->setFillColor(sf::Color::White);
+      cardLabel->setString(folderNames[i]);
+      cardLabel->setOrigin(cardLabel->getGlobalBounds().width / 2.0f, cardLabel->getGlobalBounds().height / 2.0f);
+      cardLabel->setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
+      ENGINE.Draw(cardLabel, false);
 
       if (i == selectedFolderIndex) {
         folderEquip.setPosition(25.0f + (i*144.0f) - (float)folderOffsetX, 30.0f);
@@ -503,9 +503,9 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(folderCursor, false);
   }
 
-  // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
+  // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 120.0f; float bottom = 170.0f;
-  float depth = ((float)(currChipIndex) / (float)numOfChips)*bottom;
+  float depth = ((float)(currCardIndex) / (float)numOfCards)*bottom;
   scrollbar.setPosition(436.f, top + depth);
 
   ENGINE.Draw(scrollbar);
@@ -531,30 +531,30 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   if (!folder) return;
   if (folder->GetSize() != 0) {
 
-    // Move the chip library iterator to the current highlighted chip
-    ChipFolder::Iter iter = folder->Begin();
+    // Move the card library iterator to the current highlighted card
+    CardFolder::Iter iter = folder->Begin();
 
-    for (int j = 0; j < currChipIndex; j++) {
+    for (int j = 0; j < currCardIndex; j++) {
       iter++;
     }
 
-    chipLabel->setFillColor(sf::Color::White);
-    chipLabel->setString(folderNames[currFolderIndex]);
-    chipLabel->setOrigin(0.f, chipLabel->getGlobalBounds().height / 2.0f);
-    chipLabel->setPosition(195.0f, 100.0f);
-    ENGINE.Draw(chipLabel, false);
+    cardLabel->setFillColor(sf::Color::White);
+    cardLabel->setString(folderNames[currFolderIndex]);
+    cardLabel->setOrigin(0.f, cardLabel->getGlobalBounds().height / 2.0f);
+    cardLabel->setPosition(195.0f, 100.0f);
+    ENGINE.Draw(cardLabel, false);
 
-    // Now that we are at the viewing range, draw each chip in the list
-    for (int i = 0; i < maxChipsOnScreen && currChipIndex + i < numOfChips; i++) {
-      chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(((*iter)->GetIconID())));
-      chipIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
-      ENGINE.Draw(chipIcon, false);
+    // Now that we are at the viewing range, draw each card in the list
+    for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
+      cardIcon = sf::Sprite(*WEBCLIENT.GetIconForCard((*iter)->GetUUID()), sf::IntRect(0,0,14,14));
+      cardIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
+      ENGINE.Draw(cardIcon, false);
 
-      chipLabel->setOrigin(0.0f, 0.0f);
-      chipLabel->setFillColor(sf::Color::White);
-      chipLabel->setPosition(2.f*115.f, 128.0f + (32.f*i));
-      chipLabel->setString((*iter)->GetShortName());
-      ENGINE.Draw(chipLabel, false);
+      cardLabel->setOrigin(0.0f, 0.0f);
+      cardLabel->setFillColor(sf::Color::White);
+      cardLabel->setPosition(2.f*115.f, 128.0f + (32.f*i));
+      cardLabel->setString((*iter)->GetShortName());
+      ENGINE.Draw(cardLabel, false);
 
 
       int offset = (int)((*iter)->GetElement());
@@ -562,10 +562,10 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       element.setPosition(2.f*173.f, 133.0f + (32.f*i));
       ENGINE.Draw(element, false);
 
-      chipLabel->setOrigin(0, 0);
-      chipLabel->setPosition(2.f*190.f, 128.0f + (32.f*i));
-      chipLabel->setString(std::string() + (*iter)->GetCode());
-      ENGINE.Draw(chipLabel, false);
+      cardLabel->setOrigin(0, 0);
+      cardLabel->setPosition(2.f*190.f, 128.0f + (32.f*i));
+      cardLabel->setString(std::string() + (*iter)->GetCode());
+      ENGINE.Draw(cardLabel, false);
 
       mbPlaceholder.setPosition(2.f*200.f, 134.0f + (32.f*i));
       ENGINE.Draw(mbPlaceholder, false);
@@ -625,7 +625,7 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
 
 void FolderScene::onEnd() {
   delete font;
-  delete chipFont;
+  delete cardFont;
   delete numberFont;
   delete menuLabel;
   delete numberLabel;

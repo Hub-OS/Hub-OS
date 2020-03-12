@@ -18,9 +18,10 @@
 #include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
-#include "bnChipFolderCollection.h"
+#include "bnCardFolderCollection.h"
 #include <SFML/Graphics.hpp>
 #include <time.h>
+#include <future>
 
 class MainMenuScene : public swoosh::Activity {
 private:
@@ -50,7 +51,9 @@ private:
  
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
 
-  ChipFolderCollection data; /*!< TODO: this will be replaced with all saved data */
+  CardFolderCollection data; /*!< TODO: this will be replaced with all saved data */
+
+  std::future<WebAccounts::AccountState> accountResponse; /*!< Response object that will wait for data from web server*/
 
 #ifdef __ANDROID__
 void StartupTouchControls();

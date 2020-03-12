@@ -9,11 +9,11 @@
 #include "bnAudioResourceManager.h"
 #include "bnSwordEffect.h"
 
-#include "bnChipSummonHandler.h"
+#include "bnCardSummonHandler.h"
 
 #define RESOURCE_PATH "resources/spells/protoman_summon.animation"
 
-ProtoManSummon::ProtoManSummon(ChipSummonHandler* _summons) : Spell(_summons->GetCaller()->GetField(), _summons->GetCaller()->GetTeam())
+ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->GetCaller()->GetField(), _summons->GetCaller()->GetTeam())
 {
   summons = _summons;
   SetPassthrough(true);

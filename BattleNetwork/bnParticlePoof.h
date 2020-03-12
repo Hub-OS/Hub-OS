@@ -1,5 +1,5 @@
 
-/*! \brief Poof effect that plays when some chips fail */
+/*! \brief Poof effect that plays when some cards fail */
 
 #pragma once
 #include "bnArtifact.h"

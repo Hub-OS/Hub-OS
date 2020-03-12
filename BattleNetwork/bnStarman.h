@@ -26,7 +26,7 @@ public:
   ~Starman();
 
   const float GetHeight() const;
-  ChipAction* ExecuteBusterAction() final;
-  ChipAction* ExecuteChargedBusterAction() final;
-  ChipAction* ExecuteSpecialAction() final;
+  CardAction* ExecuteBusterAction() final;
+  CardAction* ExecuteChargedBusterAction() final;
+  CardAction* ExecuteSpecialAction() final;
 };

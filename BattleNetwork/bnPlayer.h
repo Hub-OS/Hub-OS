@@ -24,17 +24,17 @@
 
 using sf::IntRect;
 
-class ChipAction;
+class CardAction;
 
 class Player : public Character, public AI<Player> {
   friend class PlayerControlledState;
   friend class PlayerIdleState;
   friend class PlayerHitState;
   friend class PlayerChangeFormState;
-  friend class PlayerChipUseListener;
+  friend class PlayerCardUseListener;
 
 protected:
-  void QueueAction(ChipAction* action);
+  void QueueAction(CardAction* action);
   bool RegisterForm(PlayerFormMeta* info);
 
   template<typename T>
@@ -106,15 +106,15 @@ public:
   void EnablePlayerControllerSlideMovementBehavior(bool enable = true);
   const bool PlayerControllerSlideEnabled() const;
 
-  virtual ChipAction* ExecuteBusterAction() = 0;
-  virtual ChipAction* ExecuteChargedBusterAction() = 0;
-  virtual ChipAction* ExecuteSpecialAction() = 0;
+  virtual CardAction* ExecuteBusterAction() = 0;
+  virtual CardAction* ExecuteChargedBusterAction() = 0;
+  virtual CardAction* ExecuteSpecialAction() = 0;
 
   void ActivateFormAt(int index); 
   void DeactivateForm();
   const std::vector<PlayerFormMeta*> GetForms();
 protected:
-  ChipAction* queuedAction; /*!< Allow actions to take place through a trusted state */
+  CardAction* queuedAction; /*!< Allow actions to take place through a trusted state */
   int hitCount; /*!< How many times the player has been hit. Used by score board. */
   string state; /*!< Animation state name */
   bool playerControllerSlide;

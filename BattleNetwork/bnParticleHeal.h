@@ -1,5 +1,5 @@
 
-/*! \brief Heal effect that plays when some chips support a character */
+/*! \brief Heal effect that plays when some cards support a character */
 
 #pragma once
 #include "bnArtifact.h"

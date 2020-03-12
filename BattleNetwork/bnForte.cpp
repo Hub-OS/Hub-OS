@@ -6,24 +6,24 @@
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 #include "bnLogger.h"
-#include "bnVulcanChipAction.h"
-#include "bnBusterChipAction.h"
+#include "bnVulcanCardAction.h"
+#include "bnBusterCardAction.h"
 
 const float COPY_DROP_COOLDOWN = 0.15f; // in seconds
 
 const std::string RESOURCE_PATH = "resources/navis/forte/forte.animation";
 
-ChipAction* Forte::ExecuteBusterAction()
+CardAction* Forte::ExecuteBusterAction()
 {
-  return new BusterChipAction(this, false, 1);
+  return new BusterCardAction(this, false, 1);
 }
 
-ChipAction* Forte::ExecuteChargedBusterAction()
+CardAction* Forte::ExecuteChargedBusterAction()
 {
-  return new VulcanChipAction(this, 30);
+  return new VulcanCardAction(this, 30);
 }
 
-ChipAction* Forte::ExecuteSpecialAction() {
+CardAction* Forte::ExecuteSpecialAction() {
   return nullptr;
 }
 

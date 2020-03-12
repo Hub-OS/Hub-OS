@@ -37,7 +37,7 @@ namespace EventTypes {
   static const InputEvent PRESSED_MOVE_LEFT  = { "Move Left",  PRESSED };
   static const InputEvent PRESSED_MOVE_RIGHT = { "Move Right", PRESSED };
   static const InputEvent PRESSED_SHOOT      = { "Shoot",      PRESSED };
-  static const InputEvent PRESSED_USE_CHIP   = { "Use Chip",   PRESSED };
+  static const InputEvent PRESSED_USE_CHIP   = { "Use Card",   PRESSED };
   static const InputEvent PRESSED_SPECIAL    = { "Special",    PRESSED };
   static const InputEvent PRESSED_CUST_MENU  = { "Cust Menu",  PRESSED };
   static const InputEvent PRESSED_PAUSE      = { "Pause",      PRESSED };
@@ -56,7 +56,7 @@ namespace EventTypes {
   static const InputEvent RELEASED_MOVE_LEFT  = { "Move Left",  RELEASED };
   static const InputEvent RELEASED_MOVE_RIGHT = { "Move Right", RELEASED };
   static const InputEvent RELEASED_SHOOT      = { "Shoot",      RELEASED };
-  static const InputEvent RELEASED_USE_CHIP   = { "Use Chip",   RELEASED };
+  static const InputEvent RELEASED_USE_CHIP   = { "Use Card",   RELEASED };
   static const InputEvent RELEASED_SPECIAL    = { "Special",    RELEASED };
   static const InputEvent RELEASED_CUST_MENU  = { "Cust Menu",  RELEASED };
   static const InputEvent RELEASED_PAUSE      = { "Pause",      RELEASED };
@@ -75,7 +75,7 @@ namespace EventTypes {
   static const InputEvent HELD_MOVE_LEFT      = { "Move Left",  HELD };
   static const InputEvent HELD_MOVE_RIGHT     = { "Move Right", HELD };
   static const InputEvent HELD_SHOOT          = { "Shoot",      HELD };
-  static const InputEvent HELD_USE_CHIP       = { "Use Chip",   HELD };
+  static const InputEvent HELD_USE_CHIP       = { "Use Card",   HELD };
   static const InputEvent HELD_SPECIAL        = { "Special",    HELD };
   static const InputEvent HELD_CUST_MENU      = { "Cust Menu",  HELD };
   static const InputEvent HELD_PAUSE          = { "Pause",      HELD };
@@ -90,6 +90,6 @@ namespace EventTypes {
   static const InputEvent HELD_SCAN_RIGHT     = { "Scan Right", HELD };
 
   static const std::string KEYS[] = { "Move Up", "Move Down", "Move Left", "Move Right", "Shoot",
-                                    "Use Chip", "Special", "Cust Menu", "Pause", "UI Up", "UI Left", "UI Right", 
+                                    "Use Card", "Special", "Cust Menu", "Pause", "UI Up", "UI Left", "UI Right", 
                                     "UI Down", "Confirm", "Cancel", "Quick Opt", "Scan Left", "Scan Right" };
 };

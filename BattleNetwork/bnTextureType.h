@@ -69,7 +69,7 @@ enum TextureType {
   SPELL_IMPACT_FX,
   SPELL_WIND,
 
-  //Chip Select 
+  //Card Select 
   CHIP_SELECT_MENU,
   CHIP_CURSOR_SMALL,
   CHIP_CURSOR_BIG,

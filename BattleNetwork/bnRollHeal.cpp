@@ -8,12 +8,12 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-#include "bnChipSummonHandler.h"
+#include "bnCardSummonHandler.h"
 #include "bnRollHeart.h"
 
 #define RESOURCE_PATH "resources/spells/spell_roll.animation"
 
-RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell(_summons->GetCaller()->GetField(), _summons->GetCaller()->GetTeam())
+RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->GetCaller()->GetField(), _summons->GetCaller()->GetTeam())
 {
   summons = _summons;
   SetPassthrough(true);
@@ -39,7 +39,7 @@ RollHeal::RollHeal(ChipSummonHandler* _summons, int _heal) : Spell(_summons->Get
   animationComponent->Reload();
 
   /**
-   * This is very convoluted and will change with the chip summon refactored
+   * This is very convoluted and will change with the card summon refactored
    * Essentially we nest callbacks
    * 
    * First Roll is IDLE. when the animation ends, we set the animation to MOVE

@@ -1,7 +1,7 @@
 /*! \brief Spells are attacks that can do damage 
  * 
  * Spells obey entity per-tile movement 
- * For chips that attack multiple tiles, spawn mutliple Spells
+ * For cards that attack multiple tiles, spawn mutliple Spells
  * By default, all attacks have FloatShoe enabled because they can go over empty tiles.
  * Spells have an animationComponent to load animations easier.
  */
@@ -82,5 +82,5 @@ public:
 protected:
   Battle::Tile::Highlight mode; /*!< Highlight occupying tile */
   Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */
-  double heightOffset; /*!< When drawing, how high up this spell should be. Used for chip attacks where busters must align.*/
+  double heightOffset; /*!< When drawing, how high up this spell should be. Used for card attacks where busters must align.*/
 };

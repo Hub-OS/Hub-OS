@@ -8,7 +8,7 @@
  * @date 05/05/19
  * @brief Invis is a rule that prevents all tangible attacks from passing unless it has pierce ability
  *
- * This is used by the Invis chip's component
+ * This is used by the Invis card's component
  */
 class DefenseInvis : public DefenseRule {
 public:

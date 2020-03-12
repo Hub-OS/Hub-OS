@@ -21,7 +21,7 @@ private:
   sf::Text time; /*!< Formatted time label */
   sf::Text rank; /*!< Battle scored rank */
   sf::Text reward; /*!< Name of reward */
-  sf::Text chipCode; /*!< Code for chips */
+  sf::Text cardCode; /*!< Code for cards */
   sf::Sprite rewardCard; /*!< Reward card graphics */
   sf::Sprite pressA; /*!< Press A sprite */
   sf::Sprite star; /*!< Counter stars */
@@ -29,7 +29,7 @@ private:
   bool isHidden; /*!< Flag if modal is hidden */
   bool isRevealed; /*!< Flag if modal is revealed */
   bool playSoundOnce; /*!< Flag to play sounds once */
-  bool rewardIsChip; /*!< Is current reward a chip */
+  bool rewardIsCard; /*!< Is current reward a card */
 
   BattleItem* item; /*!< The item stored in this modal */
   int score; /*!< 1-10 or 11+ as S rank */
@@ -37,8 +37,8 @@ private:
 
   double totalElapsed; /*!< delta time this frame */
     
-  std::array<int, 7*6> hideChipMatrix; /*~< blocks are 7x6 block space to uncover at 8x8 pixels*/
-  int chipMatrixIndex;
+  std::array<int, 7*6> hideCardMatrix; /*~< blocks are 7x6 block space to uncover at 8x8 pixels*/
+  int cardMatrixIndex;
 
   /**
    * @brief Format the time to look like BN time stamp

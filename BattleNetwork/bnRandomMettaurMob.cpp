@@ -7,11 +7,11 @@
 #include "bnCanodumbIdleState.h"
 #include "bnBattleItem.h"
 #include "bnStringEncoder.h"
-#include "bnChip.h"
+#include "bnCard.h"
 #include "bnField.h"
 #include "bnTile.h"
 #include "bnSpawnPolicy.h"
-#include "bnChipsSpawnPolicy.h"
+#include "bnCardsSpawnPolicy.h"
 #include "bnMysteryData.h"
 #include "bnGear.h"
 #include "bnBattleOverTrigger.h"
@@ -34,7 +34,7 @@ Mob* RandomMettaurMob::Build() {
   // Build a mob around the field input
   Mob* mob = new Mob(field);
 
-  mob->RegisterRankedReward(3, BattleItem(Chip(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
+  //mob->RegisterRankedReward(3, BattleItem(Card(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
 
   bool AllIce = (rand() % 50 > 45);
   bool spawnedGroundEnemy = false;
@@ -86,7 +86,7 @@ Mob* RandomMettaurMob::Build() {
                 mob->Spawn<RankSP<Mettaur>>(i + 1, j + 1);
               }
               else {
-                mob->Spawn<ChipsSpawnPolicy<Mettaur>>(i + 1, j + 1);
+                mob->Spawn<CardsSpawnPolicy<Mettaur>>(i + 1, j + 1);
               }
 
               spawnedGroundEnemy = true;
@@ -107,14 +107,14 @@ Mob* RandomMettaurMob::Build() {
                 mob->Spawn<Rank1<ProgsMan>>(i + 1, j + 1);
               }
               else {
-                mob->Spawn<ChipsSpawnPolicy<ProgsMan>>(i + 1, j + 1);
+                mob->Spawn<CardsSpawnPolicy<ProgsMan>>(i + 1, j + 1);
               }
 
               spawnedGroundEnemy = true;
 
             }
             else if (rand() % 10 > 3) {
-              mob->Spawn<ChipsSpawnPolicy<MetalMan>>(i + 1, j + 1);
+              mob->Spawn<CardsSpawnPolicy<MetalMan>>(i + 1, j + 1);
             }
           }
         }

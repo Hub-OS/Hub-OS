@@ -10,16 +10,16 @@
 #include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
-#include "bnChipFolder.h"
+#include "bnCardFolder.h"
 
 /**
  * @class FolderEditScene
  * @author mav
  * @date 04/05/19
- * @brief Edit folder contents and select from chip pool
- * @important the games, the chip pool chip count is not shared by folders
+ * @brief Edit folder contents and select from card pool
+ * @important the games, the card pool card count is not shared by folders
  * 
- * User can select chip and switch to the chip pool on the right side of the scene to select chips
+ * User can select card and switch to the card pool on the right side of the scene to select cards
  * to swap out for. 
  * 
  * Before leaving the user is prompted to save changes
@@ -34,48 +34,48 @@ private:
 
   /**
   * @class PackBucket
-  * @brief Chips in a pack avoid listing duplicates by bundling them in a counted bucket 
+  * @brief Cards in a pack avoid listing duplicates by bundling them in a counted bucket 
   * 
-  * Users can select up to all of the chips in a bucket. The bucket will remain in the list but at 0. 
+  * Users can select up to all of the cards in a bucket. The bucket will remain in the list but at 0. 
   */
   class PackBucket {
   private:
     unsigned size;
     unsigned maxSize;
-    Chip info;
+    Card info;
 
   public:
-    PackBucket(unsigned size, Chip info) : size(size), maxSize(size), info(info) { }
+    PackBucket(unsigned size, Card info) : size(size), maxSize(size), info(info) { }
     ~PackBucket() { }
 
     const bool IsEmpty() const { return size == 0; }
-    const bool GetChip(Chip& copy) { if (IsEmpty()) return false; else copy = Chip(info); size--;  return true; }
-    void AddChip() { size++; size = std::min(size, maxSize);  }
-    const Chip& ViewChip() const { return info; }
+    const bool GetCard(Card& copy) { if (IsEmpty()) return false; else copy = Card(info); size--;  return true; }
+    void AddCard() { size++; size = std::min(size, maxSize);  }
+    const Card& ViewCard() const { return info; }
     const unsigned GetCount() const { return size; }
   };
 
   /**
   * @class FolderSlot
-  * @brief A selectable row in the folder to place new chips. When removing chips, an empty slot is left behind
+  * @brief A selectable row in the folder to place new cards. When removing cards, an empty slot is left behind
   */
   class FolderSlot {
   private:
     bool occupied;
-    Chip info;
+    Card info;
   public:
-    void AddChip(Chip other) {
+    void AddCard(Card other) {
       info = other;
       occupied = true;
     }
 
-    const bool GetChip(Chip& copy) {
+    const bool GetCard(Card& copy) {
       if (!occupied) return false;
 
-      copy = Chip(info);
+      copy = Card(info);
       occupied = false;
 
-      info = Chip(); // null chip
+      info = Card(); // null card
 
       return true;
     }
@@ -84,22 +84,22 @@ private:
       return !occupied;
     }
 
-    const Chip& ViewChip() {
+    const Card& ViewCard() {
       return info;
     }
   };
 
   void ExcludeFolderDataFromPack();
-  void PlaceFolderDataIntoChipSlots();
+  void PlaceFolderDataIntoCardSlots();
   void PlaceLibraryDataIntoBuckets();
   void WriteNewFolderData();
 
 private:
-  std::vector<FolderSlot> folderChipSlots; /*!< Rows in the folder that can be inserted with chips or replaced */
-  std::vector<PackBucket> packChipBuckets; /*!< Rows in the pack that represent how many of a chip are left */
+  std::vector<FolderSlot> folderCardSlots; /*!< Rows in the folder that can be inserted with cards or replaced */
+  std::vector<PackBucket> packCardBuckets; /*!< Rows in the pack that represent how many of a card are left */
   bool hasFolderChanged; /*!< Flag if folder needs to be saved before quitting screen */
   Camera camera;
-  ChipFolder& folder;
+  CardFolder& folder;
 
   // Menu name font
   sf::Font* font;
@@ -109,44 +109,44 @@ private:
   double maxSelectInputCooldown; // half of a second
   double selectInputCooldown;
 
-  // Chip UI font
-  sf::Font *chipFont;
-  sf::Text *chipLabel;
+  // Card UI font
+  sf::Font *cardFont;
+  sf::Text *cardLabel;
 
   sf::Font *numberFont;
   sf::Text *numberLabel;
 
-  // Chip description font
-  sf::Font *chipDescFont;
-  sf::Text* chipDesc;
+  // Card description font
+  sf::Font *cardDescFont;
+  sf::Text* cardDesc;
 
   // folder menu graphic
   sf::Sprite bg;
   sf::Sprite folderDock, packDock;
   sf::Sprite scrollbar;
-  sf::Sprite chipHolder;
+  sf::Sprite cardHolder;
   sf::Sprite element;
   sf::Sprite folderCursor, folderSwapCursor;
   sf::Sprite packCursor, packSwapCursor;
   sf::Sprite folderNextArrow;
   sf::Sprite packNextArrow;
-  sf::Sprite folderChipCountBox;
+  sf::Sprite folderCardCountBox;
   sf::Sprite mbPlaceholder;
 
-  // Current chip graphic data
-  sf::Sprite chip;
+  // Current card graphic data
+  sf::Sprite card;
   sf::IntRect cardSubFrame;
-  sf::Sprite chipIcon;
-  swoosh::Timer chipRevealTimer;
+  sf::Sprite cardIcon;
+  swoosh::Timer cardRevealTimer;
   swoosh::Timer easeInTimer;
 
-  struct ChipView {
-    int maxChipsOnScreen;
-    int currChipIndex;
-    int lastChipOnScreen; // index
+  struct CardView {
+    int maxCardsOnScreen;
+    int currCardIndex;
+    int lastCardOnScreen; // index
     int prevIndex; // for effect
-    int numOfChips;
-    int swapChipIndex; // -1 for unselected, otherwise ID
+    int numOfCards;
+    int swapCardIndex; // -1 for unselected, otherwise ID
   } folderView, packView;
 
   ViewMode currViewMode;
@@ -174,7 +174,7 @@ private:
   void DrawLibrary();
 
 public:
-  std::string FormatChipDesc(const std::string&& desc);
+  std::string FormatCardDesc(const std::string&& desc);
 
   virtual void onStart();
   virtual void onUpdate(double elapsed);
@@ -185,6 +185,6 @@ public:
   virtual void onDraw(sf::RenderTexture& surface);
   virtual void onEnd();
 
-  FolderEditScene(swoosh::ActivityController&, ChipFolder& folder);
+  FolderEditScene(swoosh::ActivityController&, CardFolder& folder);
   virtual ~FolderEditScene();
 };

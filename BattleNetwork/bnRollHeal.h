@@ -1,6 +1,6 @@
 /*! \brief Roll appears and attacks a random enemy 3 times 
  * 
- *  NOTE: The chip summon system is going under major refactoring and this
+ *  NOTE: The card summon system is going under major refactoring and this
  *  code will not be the same
  */
 
@@ -9,7 +9,7 @@
 #include "bnSpell.h"
 #include "bnAnimationComponent.h"
 
-class ChipSummonHandler;
+class CardSummonHandler;
 
 class RollHeal : public Spell {
 public:
@@ -20,7 +20,7 @@ public:
    * Prepares animations callbacks
    * @param heal how much to heal the player with
    */
-  RollHeal(ChipSummonHandler* _summons, int heal);
+  RollHeal(CardSummonHandler* _summons, int heal);
   
   /**
    * @brief Deconstructor
@@ -49,6 +49,6 @@ public:
 private:
   int heal;
   int random;
-  ChipSummonHandler* summons;
+  CardSummonHandler* summons;
   AnimationComponent* animationComponent;
 };

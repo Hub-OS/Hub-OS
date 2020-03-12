@@ -2,7 +2,7 @@
 #include "bnSelectMobScene.h"
 #include "Android/bnTouchArea.h"
 
-SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, ChipFolder& selectedFolder) :
+SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder) :
   elapsed(0),
   camera(ENGINE.GetView()),
   textbox(320, 100, 24, "resources/fonts/NETNAVI_4-6_V3.ttf"),

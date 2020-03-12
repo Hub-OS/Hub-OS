@@ -3,20 +3,20 @@
 #include "bnFileUtil.h"
 #include <assert.h>
 #include <iostream>
-#include "bnChipLibrary.h"
+#include "bnCardLibrary.h"
 
 PA::PA()
 {
-  advanceChipRef = nullptr;
+  advanceCardRef = nullptr;
 }
 
 
 PA::~PA()
 {
-  if (advanceChipRef) {
+  if (advanceCardRef) {
     // PA manages the memory it creates with `new`
-    delete advanceChipRef;
-    advanceChipRef = nullptr;
+    delete advanceCardRef;
+    advanceCardRef = nullptr;
   }
 
   advances.clear();
@@ -53,13 +53,13 @@ void PA::LoadPA()
     if (line.find("PA") != string::npos) {
       if (!currSteps.empty()) {
         if (currSteps.size() > 1) {
-          Element elemType = ChipLibrary::GetElementFromStr(type);
+          Element elemType = GetElementFromStr(type);
 
           advances.push_back(PA::PAData({ currPA, (unsigned)atoi(icon.c_str()), (unsigned)atoi(damage.c_str()), elemType, currSteps }));
           currSteps.clear();
         }
         else {
-          Logger::Log("Error. PA \"" + currPA + "\": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.");
+          Logger::Log("Error. PA \"" + currPA + "\": only has 1 required card for recipe. PA's must have 2 or more cards. Skipping entry.");
           currSteps.clear();
         }
       }
@@ -68,28 +68,28 @@ void PA::LoadPA()
       damage = valueOf("damage", line);
       icon = valueOf("iconIndex", line);
       type = valueOf("type", line);
-    } else if (line.find("Chip") != string::npos) {
+    } else if (line.find("Card") != string::npos) {
       string name = valueOf("name", line);
       string code = valueOf("code", line);
 
       currSteps.push_back(PA::PAData::Required({ name,code[0] }));
 
-      //std::cout << "chip step: " << name << " " << code[0] << endl;
+      //std::cout << "card step: " << name << " " << code[0] << endl;
     }
 
     data = data.substr(endline + 1);
   } while (endline > -1);
 
   if (currSteps.size() > 1) {
-    Element elemType = ChipLibrary::GetElementFromStr(type);
+    Element elemType = GetElementFromStr(type);
 
     //std::cout << "PA entry 2: " << currPA << " " << (unsigned)atoi(icon.c_str()) << " " << (unsigned)atoi(damage.c_str()) << " " << type << endl;
     advances.push_back(PA::PAData({ currPA, (unsigned)atoi(icon.c_str()), (unsigned)atoi(damage.c_str()), elemType, currSteps }));
     currSteps.clear();
   }
   else {
-    //std::cout << "Error. PA " + currPA + " only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.\n";
-    Logger::Log("Error. PA \"" + currPA + "\": only has 1 required chip for recipe. PA's must have 2 or more chips. Skipping entry.");
+    //std::cout << "Error. PA " + currPA + " only has 1 required card for recipe. PA's must have 2 or more cards. Skipping entry.\n";
+    Logger::Log("Error. PA \"" + currPA + "\": only has 1 required card for recipe. PA's must have 2 or more cards. Skipping entry.");
     currSteps.clear();
   }
 }
@@ -106,18 +106,18 @@ const PASteps PA::GetMatchingSteps()
   PASteps result;
 
   for (int i = 0; i < iter->steps.size(); i++) {
-    result.push_back(std::make_pair(iter->steps[i].chipShortName, iter->steps[i].code));
+    result.push_back(std::make_pair(iter->steps[i].cardShortName, iter->steps[i].code));
   }
 
   return result;
 }
 
-Chip * PA::GetAdvanceChip()
+Card * PA::GetAdvanceCard()
 {
-   return advanceChipRef;
+   return advanceCardRef;
 }
 
-const int PA::FindPA(Chip ** input, unsigned size)
+const int PA::FindPA(Card ** input, unsigned size)
 {
   int startIndex = -1;
 
@@ -137,14 +137,14 @@ const int PA::FindPA(Chip ** input, unsigned size)
     while (index <= (int)size - (int)iter->steps.size()) {
       char code = input[index]->GetCode();
 
-      //std::cout << "iter->steps[0].code == " << iter->steps[0].code << " | iter->steps[0].chipShortName == " << iter->steps[0].chipShortName << std::endl;
+      //std::cout << "iter->steps[0].code == " << iter->steps[0].code << " | iter->steps[0].cardShortName == " << iter->steps[0].cardShortName << std::endl;
       //std::cout << "code == " << code << " | input[index]->GetShortName() == " << input[index]->GetShortName() << std::endl;
 
-      if (iter->steps[0].code == code && iter->steps[0].chipShortName == input[index]->GetShortName()) {
+      if (iter->steps[0].code == code && iter->steps[0].cardShortName == input[index]->GetShortName()) {
         for (unsigned i = 0; i < iter->steps.size(); i++) {
           char code = input[i + index]->GetCode();
 
-          if (iter->steps[i].code == code && iter->steps[i].chipShortName == input[i + index]->GetShortName()) {
+          if (iter->steps[i].code == code && iter->steps[i].cardShortName == input[i + index]->GetShortName()) {
             match = true;
             // We do not break here. If it is a match all across the steps, then the for loop ends 
             // and match stays == true
@@ -165,10 +165,10 @@ const int PA::FindPA(Chip ** input, unsigned size)
     }
 
     if (match) {
-      // Load the PA chip
-      if (advanceChipRef) { delete advanceChipRef; }
+      // Load the PA card
+      if (advanceCardRef) { delete advanceCardRef; }
 
-       advanceChipRef = new Chip(0, iter->icon, 0, iter->damage, iter->type, iter->name, "Program Advance", "", 0);
+       advanceCardRef = new Card("PA", 0, iter->damage, iter->type, iter->name, "Program Advance", "", 0);
 
       return startIndex;
     }

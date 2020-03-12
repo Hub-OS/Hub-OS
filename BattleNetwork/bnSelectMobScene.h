@@ -52,7 +52,7 @@ private:
 
   Camera camera;
   
-  ChipFolder& selectedFolder; /*!< Reference to the selected folder */
+  CardFolder& selectedFolder; /*!< Reference to the selected folder */
 
   Mob* mob; /*!< Pointer to the mob data */
 
@@ -112,7 +112,7 @@ public:
   /**
    * @brief Loads graphics and sets original state of all items
    */
-  SelectMobScene(swoosh::ActivityController&, SelectedNavi, ChipFolder& selectedFolder);
+  SelectMobScene(swoosh::ActivityController&, SelectedNavi, CardFolder& selectedFolder);
   
   /**
    * @brief Deletes all allocated resource. If mob is non null, deletes the mob

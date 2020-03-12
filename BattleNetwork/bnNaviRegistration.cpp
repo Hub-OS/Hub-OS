@@ -193,9 +193,7 @@ void NaviRegistration::LoadAllNavis(std::atomic<int>& progress)
   for (int i = 0; i < (int)Size(); i++) {
     roster[i]->loadNaviClass();
 
-    Logger::GetMutex()->lock();
     Logger::Logf("Loaded navi: %s", roster[i]->navi->GetName().c_str());
-    Logger::GetMutex()->unlock();
 
     progress++;
   }

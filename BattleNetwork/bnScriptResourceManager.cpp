@@ -2,7 +2,7 @@
 #include "bnEntity.h"
 #include "bnScriptedCharacter.h"
 #include "bnElements.h"
-#include "bnScriptedChipAction.h"
+#include "bnScriptedCardAction.h"
 
 void ScriptResourceManager::ConfigureEnvironment() {
   luaState.open_libraries(sol::lib::base);
@@ -21,9 +21,9 @@ void ScriptResourceManager::ConfigureEnvironment() {
     );
 
   // TODO: register animation callback methods
-  auto chip_record = battle_namespace.new_usertype<ScriptedChipAction>("ChipAction",
-    sol::constructors<ScriptedChipAction(Character*, int)>(),
-    sol::base_classes, sol::bases<ChipAction>()
+  auto card_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
+    sol::constructors<ScriptedCardAction(Character*, int)>(),
+    sol::base_classes, sol::bases<CardAction>()
     );
 
   auto elements_table = battle_namespace.new_enum("Element");

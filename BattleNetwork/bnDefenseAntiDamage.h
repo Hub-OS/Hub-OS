@@ -12,7 +12,7 @@
  * This is used by the NinjaAntiDamage component that adds the rule to the entity
  * and spawns a NinjaStar when the callback is triggered
  * 
- * You can create more anti damage chips using this rule
+ * You can create more anti damage cards using this rule
  */
 class DefenseAntiDamage : public DefenseRule {
 public:

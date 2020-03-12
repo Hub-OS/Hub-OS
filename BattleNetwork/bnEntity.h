@@ -297,7 +297,7 @@ public:
   /**
    * @brief Sets the entity's battle active flag
    * Useful in update loop so that enemies will not attack when
-   * the screen is paused or the chips are open
+   * the screen is paused or the cards are open
    * @param state true if battle is active, false if inactive
    */
   void SetBattleActive(bool state);

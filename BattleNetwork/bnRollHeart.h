@@ -1,6 +1,6 @@
 /*! \brief Part of roll summon. Heart appears from the top of the screen slowly descending 
  * 
- * NOTE: The chip summon system is going under major refactoring and this
+ * NOTE: The card summon system is going under major refactoring and this
  * code will not be the same
  * 
  * NOTE: This should just be an artifact since it is used as effect
@@ -9,13 +9,13 @@
 #pragma once
 
 #include "bnSpell.h"
-#include "bnChipSummonHandler.h"
+#include "bnCardSummonHandler.h"
 #include "bnAnimationComponent.h"
 
 
 class RollHeart : public Spell {
 public:
-  RollHeart(ChipSummonHandler* _summons, int _heal);
+  RollHeart(CardSummonHandler* _summons, int _heal);
   virtual ~RollHeart();
 
   /**
@@ -40,8 +40,8 @@ public:
 private:
   int heal; /*!< How much to heal */
   float height; /*!< The start height of the heart */
-  Character* caller; /*!< The character that used the chip */
-  ChipSummonHandler* summons; /*!< The chip summon system */
+  Character* caller; /*!< The character that used the card */
+  CardSummonHandler* summons; /*!< The card summon system */
   AnimationComponent* animationComponent;
   bool doOnce; /*!< Flag to restore health once */
 };

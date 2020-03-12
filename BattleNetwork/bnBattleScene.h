@@ -12,8 +12,8 @@
 #include "bnVirusBackground.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
-#include "bnChipSelectionCust.h"
-#include "bnChipFolder.h"
+#include "bnCardSelectionCust.h"
+#include "bnCardFolder.h"
 #include "bnShaderResourceManager.h"
 #include "bnPA.h"
 #include "bnEngine.h"
@@ -23,12 +23,12 @@
 #include "bnMob.h"
 #include "bnField.h"
 #include "bnPlayer.h"
-#include "bnSelectedChipsUI.h"
-#include "bnPlayerChipUseListener.h"
-#include "bnEnemyChipUseListener.h"
+#include "bnSelectedCardsUI.h"
+#include "bnPlayerCardUseListener.h"
+#include "bnEnemyCardUseListener.h"
 #include "bnCounterHitListener.h"
 #include "bnCharacterDeleteListener.h"
-#include "bnChipSummonHandler.h"
+#include "bnCardSummonHandler.h"
 
 #include <time.h>
 #include <typeinfo>
@@ -57,9 +57,9 @@ class PlayerHealthUI;
  * 
  * Currently it handles the various states with boolean flags.
  * 
- * At the beginning it loads the mob and then sets the state to chip select. 
+ * At the beginning it loads the mob and then sets the state to card select. 
  * After, the pre-battle begin state shows before the player and mobs are free to move around.
- * The ChipSummonHandler has its own separate state system since summoned entities can update during TFC.
+ * The CardSummonHandler has its own separate state system since summoned entities can update during TFC.
  * 
  * The scene also handles the keyboard interaction and uses the modal APIs to interact with.
  * 
@@ -67,7 +67,7 @@ class PlayerHealthUI;
  * BattleSceneLoseState
  * BattleSceneWinState
  * BattleScenePauseState
- * BattleSceneChipSelectState
+ * BattleSceneCardSelectState
  * BattleSceneIntroState
  * BattleSceneBeginState -> can then be reused to make BattleSceneTurnBegin<3> for 3rd turn
  * 
@@ -79,10 +79,10 @@ private:
   /*
   Program Advance + labels
   */
-  PA programAdvance; /*!< PA object loads PA database and returns matching PA chip from input */
+  PA programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
   PASteps paSteps; /*!< Matching steps in a PA */
   bool isPAComplete; /*!< Flag if PA state is complete */
-  int hasPA; /*!< If -1, no PA found, otherwise is the start of the PA in the current chip list */
+  int hasPA; /*!< If -1, no PA found, otherwise is the start of the PA in the current card list */
   int paStepIndex; /*!< Index in the PA list */
 
   float listStepCooldown; /*!< Remaining time inbetween PA list items */
@@ -114,14 +114,14 @@ private:
   swoosh::Timer multiDeleteTimer; /*!< Deletions start a 12 frame timer to count towards combos */
 
   /*
-  Chips + Chip select setup*/
-  ChipSelectionCust chipCustGUI; /*!< Chip selection GUI that has an API to interact with */
-  Chip** chips; /*!< List of Chip* the user selects from the chip cust */
-  int chipCount; /*!< Length of chip list */
+  Cards + Card select setup*/
+  CardSelectionCust cardCustGUI; /*!< Card selection GUI that has an API to interact with */
+  Card** cards; /*!< List of Card* the user selects from the card cust */
+  int cardCount; /*!< Length of card list */
 
   /*
-  Chip Summons*/
-  ChipSummonHandler summons; /*!< TFC sytem */
+  Card Summons*/
+  CardSummonHandler summons; /*!< TFC sytem */
 
   /*
   Battle results pointer */
@@ -136,13 +136,13 @@ private:
 
   Player* player; /*!< Pointer to player's selected character */
 
-  // Chip UI for player
-  SelectedChipsUI chipUI; /*!< Player's Chip UI implementation */
-  PlayerChipUseListener chipListener; /*!< Chip use listener handles one chip at a time */ 
-  EnemyChipUseListener enemyChipListener; /*!< Enemies can use chips now */
+  // Card UI for player
+  SelectedCardsUI cardUI; /*!< Player's Card UI implementation */
+  PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */ 
+  EnemyCardUseListener enemyCardListener; /*!< Enemies can use cards now */
 
   // TODO: replace with persistent storage object?
-  ChipFolder* persistentFolder; /*!< Add rewarded items to the player's folder */
+  CardFolder* persistentFolder; /*!< Add rewarded items to the player's folder */
 
   // Other components
   std::vector<Component*> components; /*!< Components injected into the scene */
@@ -163,8 +163,8 @@ private:
   sf::Vector2f customBarPos; /*!< Cust gauge position */
 
   // Selection input delays
-  double maxChipSelectInputCooldown; /*!< When interacting with Chip Cust GUI API, delay input */
-  double chipSelectInputCooldown; /*!< Time remaining with delayed input */
+  double maxCardSelectInputCooldown; /*!< When interacting with Card Cust GUI API, delay input */
+  double cardSelectInputCooldown; /*!< Time remaining with delayed input */
 
   // MOB
   sf::Font *mobFont; /*!< Name of mob font */
@@ -173,8 +173,8 @@ private:
   // States. TODO: Abstract this further into battle state classes 
   // Instead of a million boolean flags
   bool isPaused; /*!< Pause state */
-  bool isInChipSelect; /*!< In chip cust GUI state */
-  bool isChipSelectReady; /*!< Used to interact with chip cust GUI, if selected chips are ready to use */
+  bool isInCardSelect; /*!< In card cust GUI state */
+  bool isCardSelectReady; /*!< Used to interact with card cust GUI, if selected cards are ready to use */
   bool isPlayerDeleted; /*!< If player is deleted this frame */
   bool isMobDeleted; /*!< If the entire mob is deleted this frame */
   bool isBattleRoundOver; /*!< Is round over state */
@@ -306,7 +306,7 @@ public:
   /**
    * @brief Construct scene with selected player, generated mob data, and the folder to use
    */
-  BattleScene(swoosh::ActivityController&, Player*, Mob*, ChipFolder* folder);
+  BattleScene(swoosh::ActivityController&, Player*, Mob*, CardFolder* folder);
   
   /**
    * @brief Clears all nodes and components
@@ -314,10 +314,10 @@ public:
   virtual ~BattleScene();
 
   /**
-   * @brief Inject uses double-visitor design pattern. Battle Scene subscribes to chip pub components.
-   * @param pub ChipUsePublisher component to subscribe to
+   * @brief Inject uses double-visitor design pattern. Battle Scene subscribes to card pub components.
+   * @param pub CardUsePublisher component to subscribe to
    */
-  void Inject(ChipUsePublisher& pub);
+  void Inject(CardUsePublisher& pub);
   
   /**
    * @brief Inject uses double-visitor design pattern. BattleScene adds component to draw and update list.
@@ -356,6 +356,6 @@ public:
  */
   const bool IsBattleActive();
 
-  // NOTE: just for demo until chip api is compete...
-  void TEMPFilterAtkChips(Chip** chips, int chipCount);
+  // NOTE: just for demo until card api is compete...
+  void TEMPFilterAtkCards(Card** cards, int cardCount);
 };

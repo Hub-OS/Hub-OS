@@ -2,7 +2,7 @@
 #include "bnMetalMan.h"
 #include "bnBattleItem.h"
 #include "bnStringEncoder.h"
-#include "bnChip.h"
+#include "bnCard.h"
 #include "bnField.h"
 #include "bnTile.h"
 #include "bnSpawnPolicy.h"
@@ -25,8 +25,8 @@ Mob* MetalManBossFight::Build() {
   mob->SetBackground(new UndernetBackground());
   mob->StreamCustomMusic("resources/loops/loop_boss_battle.ogg");
 
-  mob->RegisterRankedReward(1, BattleItem(Chip(100, 139, 'Y', 0, Element::NONE, "YoYo", "", "", 0)));
-  mob->RegisterRankedReward(4, BattleItem(Chip(100, 139, '*', 0, Element::NONE, "YoYo", "", "", 0)));
+  //mob->RegisterRankedReward(1, BattleItem(Card(100, 139, 'Y', 0, Element::NONE, "YoYo", "", "", 0)));
+  //mob->RegisterRankedReward(4, BattleItem(Card(100, 139, '*', 0, Element::NONE, "YoYo", "", "", 0)));
 
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);

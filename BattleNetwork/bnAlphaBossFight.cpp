@@ -3,7 +3,7 @@
 #include "bnMettaur.h"
 #include "bnBattleItem.h"
 #include "bnStringEncoder.h"
-#include "bnChip.h"
+#include "bnCard.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnSpawnPolicy.h"

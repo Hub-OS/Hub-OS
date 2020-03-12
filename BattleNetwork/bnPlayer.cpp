@@ -1,7 +1,7 @@
 #include "bnPlayer.h"
 #include "bnNaviExplodeState.h"
 #include "bnField.h"
-#include "bnBusterChipAction.h"
+#include "bnBusterCardAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
@@ -186,7 +186,7 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
   return res;
 }
 
-void Player::QueueAction(ChipAction* action)
+void Player::QueueAction(CardAction* action)
 {
   if (this->queuedAction) {
     delete action;

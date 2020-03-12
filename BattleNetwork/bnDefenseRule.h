@@ -12,7 +12,7 @@ typedef int Priority;
  * @date 05/05/19
  * @brief This class is used specifically for checks in the attack step
  * 
- * Build custom defense rules for special chips using this class
+ * Build custom defense rules for special cards using this class
  * and then add them to entities
  */
 class DefenseRule {

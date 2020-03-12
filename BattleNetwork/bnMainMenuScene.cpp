@@ -1,9 +1,11 @@
 #include <Swoosh/ActivityController.h>
+#include "bnWebClientMananger.h"
+
 #include "Android/bnTouchArea.h"
 
 #include "bnMainMenuScene.h"
-#include "Segues\DiamondTileSwipe.h"
-#include "bnChipFolderCollection.h"
+#include "Segues/DiamondTileSwipe.h"
+#include "bnCardFolderCollection.h"
 
 #include "Segues/PushIn.h"
 #include "Segues/Checkerboard.h"
@@ -19,9 +21,15 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetView()),
   swoosh::Activity(&controller)
 {
-  // When we reach the menu scene we need to load the player information
-  // before proceeding to next sub menus
-  data = ChipFolderCollection::ReadFromFile("resources/database/folders.txt");
+    // When we reach the menu scene we need to load the player information
+    // before proceeding to next sub menus
+    //data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
+
+    Logger::Log("Fetching account data...");
+
+    accountResponse = WEBCLIENT.SendFetchAccountCommand();
+
+    Logger::Log("waiting for server...");
 
   // Draws the scrolling background
   bg = new LanBackground();
@@ -88,10 +96,17 @@ void MainMenuScene::onStart() {
 }
 
 void MainMenuScene::onUpdate(double elapsed) {
-#ifdef __ANDROID__
-  if(gotoNextScene)
-    return; // keep the screen looking the same when we come back
-#endif
+    #ifdef __ANDROID__
+    if(gotoNextScene)
+        return; // keep the screen looking the same when we come back
+    #endif
+
+    if (is_ready(accountResponse) && accountResponse.valid()) {
+        WebAccounts::AccountState account = accountResponse.get();
+
+        std::cout << "you have " << account.folders.size() << " folders on your account" << std::endl;
+        data = CardFolderCollection::ReadFromWebAccount(account);
+    }
 
   // Update the map
   map->Update((float)elapsed);
@@ -108,10 +123,10 @@ void MainMenuScene::onUpdate(double elapsed) {
   // Move the navi down
   owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*(float)elapsed, 0));
 
-  // TODO: fix this broken camera system
+  // TODO: fix this broken camera system! I have no idea why these values are working...
   sf::Vector2f camOffset = camera.GetView().getSize();
-  camOffset.x /= 5;
-  camOffset.y /= 3.5;
+  camOffset.x /= 5; // what?
+  camOffset.y /= 3.5; // huh?
 
   // Follow the navi
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
@@ -152,7 +167,7 @@ void MainMenuScene::onUpdate(double elapsed) {
       if (menuSelectionIndex == 3) {
         gotoNextScene = true;
 
-        ChipFolder* folder = nullptr;
+        CardFolder* folder = nullptr;
 
         if (data.GetFolder(0, folder)) {
           AUDIO.Play(AudioType::CHIP_DESC);
@@ -210,9 +225,9 @@ void MainMenuScene::onUpdate(double elapsed) {
 }
 
 void MainMenuScene::onLeave() {
-#ifdef __ANDROID__
-  ShutdownTouchControls();
-#endif
+    #ifdef __ANDROID__
+    ShutdownTouchControls();
+    #endif
 }
 
 void MainMenuScene::onExit()
@@ -235,14 +250,14 @@ void MainMenuScene::onResume() {
 
   ENGINE.SetCamera(camera);
 
-  std::string folderPath("resources/database/folders.txt");
+  /*std::string folderPath("resources/database/folders.txt");
   std::string libraryPath("resources/database/library.txt");
 
   if (data.GetFolderNames().size() > 0) {
     data.WriteToFile(folderPath);
   }
 
-  CHIPLIB.SaveLibrary(libraryPath);
+  CHIPLIB.SaveLibrary(libraryPath);*/
 
 #ifdef __ANDROID__
   StartupTouchControls();
@@ -448,7 +463,7 @@ void MainMenuScene::StartupTouchControls() {
     mobBtn.onRelease([this](sf::Vector2i delta) {
         this->gotoNextScene = true;
 
-        ChipFolder* folder = nullptr;
+        CardFolder* folder = nullptr;
 
         if (this->data.GetFolder("Default", folder)) {
           AUDIO.Play(AudioType::CHIP_DESC);

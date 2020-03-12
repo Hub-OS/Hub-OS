@@ -6,9 +6,9 @@
  * as well as hard-coded textures loaded at startup.
  * 
  * NOTE: This is legacy code that can be refactored. Could be renamed to 
- * Graphics Resource Manager. It also has methods to get chip rectangles
- * from the ID when the chips were intended to be hard-coded and used a 
- * sprite sheet. Now chips are going to be scripted and this is no 
+ * Graphics Resource Manager. It also has methods to get card rectangles
+ * from the ID when the cards were intended to be hard-coded and used a 
+ * sprite sheet. Now cards are going to be scripted and this is no 
  * longer needed and should be removed.
  */
 
@@ -59,20 +59,6 @@ public:
    * @warning Do not delete! This resource is managed by the manager.
    */
   Texture* GetTexture(TextureType _ttype);
-  
-  /**
-   * @brief Legacy code. Returns card rectangle for spritesheet.
-   * @param ID ID of chip
-   * @return IntRect
-   */
-  sf::IntRect GetCardRectFromID(unsigned ID);
-  
-  /**
-   * @brief Legacy code. Returns icon rectangle for spritesheet.
-   * @param ID ID of chip
-   * @return IntRect
-   */
-  sf::IntRect GetIconRectFromID(unsigned ID);
   
   /**
    * @brief Given a file path, returns a pointer to the loaded font

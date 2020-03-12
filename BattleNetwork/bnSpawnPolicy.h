@@ -17,7 +17,7 @@
  * For custom spawning, inherit from this class.
  *
  * Examples: Boss spawner (Alpha has many pieces that need to know about eachother) or 
- *           ChipSpawner (enemy equiped with a chip and ChipUIComponent at start)
+ *           CardSpawner (enemy equiped with a card and CardUIComponent at start)
  */
 template<class T>
 class SpawnPolicy {
@@ -91,7 +91,7 @@ public:
  * It also registers two specific callbacks in the battle intro: 
  * 1) PixelInState and 2) DefaultState
  * For this state, the character will pixelate in. 
- * And when the battle begins (cue chip select), all character will revert to their DefaultState
+ * And when the battle begins (cue card select), all character will revert to their DefaultState
  * 
  * Ranking affect enemy names and allows the programmer to change other aspects such as appearance
  * e.g. Mettaur, Mettaur2, CanodumbRare1, ProgsmanEX, etc...

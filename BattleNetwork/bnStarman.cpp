@@ -6,7 +6,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 #include "bnLogger.h"
-#include "bnBusterChipAction.h"
+#include "bnBusterCardAction.h"
 
 #define RESOURCE_PATH "resources/navis/starman/starman.animation"
 
@@ -39,17 +39,17 @@ const float Starman::GetHeight() const
   return 140.0f;
 }
 
-ChipAction* Starman::ExecuteBusterAction()
+CardAction* Starman::ExecuteBusterAction()
 {
-  return new BusterChipAction(this, false, 1);
+  return new BusterCardAction(this, false, 1);
 }
 
-ChipAction* Starman::ExecuteChargedBusterAction()
+CardAction* Starman::ExecuteChargedBusterAction()
 {
-  return new BusterChipAction(this, true, 10);
+  return new BusterCardAction(this, true, 10);
 }
 
-ChipAction * Starman::ExecuteSpecialAction()
+CardAction * Starman::ExecuteSpecialAction()
 {
   return nullptr;
 }

@@ -6,7 +6,7 @@
  * and prints status information for each resource in the background
  * of the title screen. 
  * 
- * All queued 3rd party plugins for navis, chips, and mobs are
+ * All queued 3rd party plugins for navis, cards, and mobs are
  * parsed and loaded into the resource managers after primary
  * resources are loaded. 
  * 
@@ -80,9 +80,7 @@ void RunNaviInit(std::atomic<int>* progress) {
 
   NAVIS.LoadAllNavis(*progress);
 
-  Logger::GetMutex()->lock();
   Logger::Logf("Loaded registered navis: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
-  Logger::GetMutex()->unlock();
 }
 
 /*! \brief This thread tnitializes all mobs
@@ -100,9 +98,7 @@ void RunMobInit(std::atomic<int>* progress) {
 
   MOBS.LoadAllMobs(*progress);
 
-  Logger::GetMutex()->lock();
   Logger::Logf("Loaded registered mobs: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
-  Logger::GetMutex()->unlock();
 }
 
 /*! \brief This thread loads textures and shaders
@@ -114,16 +110,12 @@ void RunGraphicsInit(std::atomic<int> * progress) {
   clock_t begin_time = clock();
   TEXTURES.LoadAllTextures(*progress);
 
-  Logger::GetMutex()->lock();
   Logger::Logf("Loaded textures: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
-  Logger::GetMutex()->unlock();
 
   begin_time = clock();
   SHADERS.LoadAllShaders(*progress);
 
-  Logger::GetMutex()->lock();
   Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
-  Logger::GetMutex()->unlock();
 }
 
 /*! \brief This thread loads sound effects
@@ -135,9 +127,7 @@ void RunAudioInit(std::atomic<int> * progress) {
   const clock_t begin_time = clock();
   AUDIO.LoadAllSources(*progress);
 
-  Logger::GetMutex()->lock();
   Logger::Logf("Loaded audio sources: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
-  Logger::GetMutex()->unlock();
 }
 
 /*! \brief This function describes how the app behaves on focus regain
@@ -240,11 +230,11 @@ int main(int argc, char** argv) {
     INPUT.SupportConfigSettings(reader);
 
     if (reader.GetConfigSettings().IsOK()) {
-    // If the file is good, use the audio and 
-    // controller settings from the config
-    AUDIO.EnableAudio(reader.GetConfigSettings().IsAudioEnabled());
-    AUDIO.SetStreamVolume(((reader.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
-    AUDIO.SetChannelVolume(((reader.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
+        // If the file is good, use the audio and 
+        // controller settings from the config
+        AUDIO.EnableAudio(reader.GetConfigSettings().IsAudioEnabled());
+        AUDIO.SetStreamVolume(((reader.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
+        AUDIO.SetChannelVolume(((reader.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
     }
 
     /**
@@ -338,43 +328,43 @@ int main(int argc, char** argv) {
     bool inMessageState = true;
 
     while (inMessageState && ENGINE.Running()) {
-    clock.restart();
+        clock.restart();
 
-    // Poll input
-    INPUT.Update();
+        // Poll input
+        INPUT.Update();
 
-    // Prepare for next draw calls
-    ENGINE.Clear();
+        // Prepare for next draw calls
+        ENGINE.Clear();
 
-    // If 3 seconds is over, exit this loop
-    if (messageCooldown <= 0) {
-        inMessageState = false;
-        messageCooldown = 0;
-    }
+        // If 3 seconds is over, exit this loop
+        if (messageCooldown <= 0) {
+            inMessageState = false;
+            messageCooldown = 0;
+        }
 
-    // Fade out 
-    float alpha = std::min((messageCooldown)*255.f, 255.f);
-    alertSprite.setColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
-    message->setFillColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
-    messageCooldown -= elapsed;
+        // Fade out 
+        float alpha = std::min((messageCooldown)*255.f, 255.f);
+        alertSprite.setColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
+        message->setFillColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
+        messageCooldown -= elapsed;
 
-    // Draw the message
-    ENGINE.Draw(alertSprite);
-    ENGINE.Draw(message);
+        // Draw the message
+        ENGINE.Draw(alertSprite);
+        ENGINE.Draw(message);
 
-    // Flip the buffer 
-    loadSurface.display();
+        // Flip the buffer 
+        loadSurface.display();
 
-    // Create a sf::Drawable from the buffer's texture data
-    sf::Sprite postprocess(loadSurface.getTexture());
+        // Create a sf::Drawable from the buffer's texture data
+        sf::Sprite postprocess(loadSurface.getTexture());
 
-    // Draw it to the screen
-    ENGINE.GetWindow()->draw(postprocess);
+        // Draw it to the screen
+        ENGINE.GetWindow()->draw(postprocess);
     
-    // Show the screen
-    ENGINE.GetWindow()->display();
+        // Show the screen
+        ENGINE.GetWindow()->display();
 
-    elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
+        elapsed = static_cast<float>(clock.getElapsedTime().asSeconds());
     }
 
     // Cleanup
@@ -444,312 +434,310 @@ int main(int argc, char** argv) {
     sf::Shader* whiteShader = nullptr;
 
     while(inLoadState && ENGINE.Running()) {
-    clock.restart();
+        clock.restart();
     
-    INPUT.Update();
+        INPUT.Update();
 
-    // Set title bar to loading %
-    float percentage = (float)progress / (float)totalObjects;
-    std::string percentageStr = std::to_string((int)(percentage*100));
-    ENGINE.GetWindow()->setTitle(sf::String(std::string("Loading: ") + percentageStr + "%"));
+        // Set title bar to loading %
+        float percentage = (float)progress / (float)totalObjects;
+        std::string percentageStr = std::to_string((int)(percentage*100));
+        ENGINE.GetWindow()->setTitle(sf::String(std::string("Loading: ") + percentageStr + "%"));
 
-    // Show the mouse to the user
-    sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+        // Show the mouse to the user
+        sf::Vector2f mousepos = ENGINE.GetWindow()->mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()));
     
-    // Mouse fades out if not being used
-    mouseAlpha -= elapsed/1000.0f;
-    mouseAlpha = std::max(0.0, mouseAlpha);
+        // Mouse fades out if not being used
+        mouseAlpha -= elapsed/1000.0f;
+        mouseAlpha = std::max(0.0, mouseAlpha);
 
-    // Mouse shows up when touched
-    if (mousepos != lastMousepos) {
-        lastMousepos = mousepos;
-        mouseAlpha = 1.0;
-    }
+        // Mouse shows up when touched
+        if (mousepos != lastMousepos) {
+            lastMousepos = mousepos;
+            mouseAlpha = 1.0;
+        }
 
-    mouse.setPosition(mousepos);
-    mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
+        mouse.setPosition(mousepos);
+        mouse.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * mouseAlpha)));
     
-    // Mouse blinks
-    mouseAnimation.Update(elapsed/1000.0f, mouse);
+        // Mouse blinks
+        mouseAnimation.Update(elapsed/1000.0f, mouse);
 
-    /*
-        Get next logs. One at a time for effect.
-    */
-    std::string log;
+        /*
+            Get next logs. One at a time for effect.
+        */
+        std::string log;
 
-    Logger::GetMutex()->lock();
-    if(Logger::GetNextLog(log)) {
-        logs.insert(logs.begin(), log);
-    }
-    Logger::GetMutex()->unlock();
-
-    // If progress is equal to total resources, 
-    // we can show graphics and load external data
-    if (progress == totalObjects) {
-        // read boolean is used to track if we loaded media 
-        if (!ready) {
-        ready = true;
-
-        // Now that media is ready, we can launch the navis thread
-        navisLoad.launch();
-        }
-        else { 
-        // Else we may be ready this frame
-        if (!bg) {
-            // Load resources from internal storage
-            try {
-            bg = TEXTURES.GetTexture(TextureType::BG_BLUE);
-            bgSprite.setTexture(*bg);
-            bgSprite.setScale(2.f, 2.f);
-            }
-            catch (std::exception e) {
-            // didnt catchup? debug
-            }
+        if(Logger::GetNextLog(log)) {
+            logs.insert(logs.begin(), log);
         }
 
-        if (!progs) {
-            // Load resources from internal storage
-            try {
-            progs = TEXTURES.GetTexture(TextureType::TITLE_ANIM_CHAR);
+        // If progress is equal to total resources, 
+        // we can show graphics and load external data
+        if (progress == totalObjects) {
+            // read boolean is used to track if we loaded media 
+            if (!ready) {
+                ready = true;
 
-            progSprite.setTexture(*progs);
-            progSprite.setPosition(200.f, 0.f);
-            progSprite.setScale(2.f, 2.f);
-
-            // This adds the title character frames to the FramesList 
-            // to animate
-            int i = 0;
-            for (int x = 0; x < TITLE_ANIM_CHAR_SPRITES; x++) {
-                progAnim.Add(1.f/(float)TITLE_ANIM_CHAR_SPRITES, sf::IntRect(TITLE_ANIM_CHAR_WIDTH*i, 0, TITLE_ANIM_CHAR_WIDTH, TITLE_ANIM_CHAR_HEIGHT));
-                i++;
+                // Now that media is ready, we can launch the navis thread
+                navisLoad.launch();
+            }
+            else { 
+            // Else we may be ready this frame
+            if (!bg) {
+                // Load resources from internal storage
+                try {
+                bg = TEXTURES.GetTexture(TextureType::BG_BLUE);
+                bgSprite.setTexture(*bg);
+                bgSprite.setScale(2.f, 2.f);
+                }
+                catch (std::exception e) {
+                // didnt catchup? debug
+                }
             }
 
+            if (!progs) {
+                // Load resources from internal storage
+                try {
+                    progs = TEXTURES.GetTexture(TextureType::TITLE_ANIM_CHAR);
+
+                    progSprite.setTexture(*progs);
+                    progSprite.setPosition(200.f, 0.f);
+                    progSprite.setScale(2.f, 2.f);
+
+                    // This adds the title character frames to the FramesList 
+                    // to animate
+                    int i = 0;
+                    for (int x = 0; x < TITLE_ANIM_CHAR_SPRITES; x++) {
+                        progAnim.Add(1.f/(float)TITLE_ANIM_CHAR_SPRITES, sf::IntRect(TITLE_ANIM_CHAR_WIDTH*i, 0, TITLE_ANIM_CHAR_WIDTH, TITLE_ANIM_CHAR_HEIGHT));
+                        i++;
+                    }
+
+                }
+                catch (std::exception e) {
+                    Logger::Log(e.what());
+                }
             }
-            catch (std::exception e) {
-            // didnt catchup? debug
+
+            if (!cursor) {
+                // Load resources from internal storage
+                try {
+                cursor = TEXTURES.GetTexture(TextureType::TEXT_BOX_CURSOR);
+
+                cursorSprite.setTexture(*cursor);
+                cursorSprite.setPosition(sf::Vector2f(160.0f, 225.f));
+                cursorSprite.setScale(2.f, 2.f);
+                }
+                catch (std::exception e) {
+                // didnt catchup? debug
+                }
+            }
+
+            if (!whiteShader) {
+                try {
+                whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
+                whiteShader->setUniform("opacity", 0.0f);
+                ENGINE.SetShader(whiteShader);
+                }
+                catch (std::exception e) {
+                // didnt catchup? debug
+                }
+            }
+
+            shaderCooldown -= elapsed;
+            progAnimProgress += elapsed/2000.f;
+
+            // If the white flash is less than zero
+            // can cause unexpected visual effects
+            if (shaderCooldown < 0) {
+                shaderCooldown = 0;
+            }
+
+            // Adjust timers by elapsed time
+            if (shaderCooldown == 0) {
+                logFadeOutTimer -= elapsed;
+            }
+
+            if (logFadeOutTimer <= 0) {
+                logFadeOutSpeed -= elapsed;
+            }
+
+            if (logFadeOutSpeed < 0) {
+                logFadeOutSpeed = 0;
+            }
+
+            // keep animation in bounds
+            if (progAnimProgress > 1.f) {
+                progAnimProgress = 0.f;
+            }
+
+            // update white flash
+            whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
             }
         }
 
-        if (!cursor) {
-            // Load resources from internal storage
-            try {
-            cursor = TEXTURES.GetTexture(TextureType::TEXT_BOX_CURSOR);
+        // Prepare for next draw calls
+        ENGINE.Clear();
 
-            cursorSprite.setTexture(*cursor);
-            cursorSprite.setPosition(sf::Vector2f(160.0f, 225.f));
-            cursorSprite.setScale(2.f, 2.f);
-            }
-            catch (std::exception e) {
-            // didnt catchup? debug
-            }
-        }
+        // if background is ready and loaded from threads...
+        if (ready) {
+            // show it
+            ENGINE.Draw(&bgSprite);
 
-        if (!whiteShader) {
-            try {
-            whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
-            whiteShader->setUniform("opacity", 0.0f);
-            ENGINE.SetShader(whiteShader);
-            }
-            catch (std::exception e) {
-            // didnt catchup? debug
+            // Show the gamepad icon at the top-left if we have joystick support
+            if (INPUT.IsJosytickAvailable()) {
+                sf::Sprite gamePadICon(*TEXTURES.GetTexture(TextureType::GAMEPAD_SUPPORT_ICON));
+                gamePadICon.setScale(2.f, 2.f);
+                gamePadICon.setPosition(10.f, 5.0f);
+                ENGINE.Draw(gamePadICon);
             }
         }
 
-        shaderCooldown -= elapsed;
-        progAnimProgress += elapsed/2000.f;
-
-        // If the white flash is less than zero
-        // can cause unexpected visual effects
-        if (shaderCooldown < 0) {
-            shaderCooldown = 0;
+        // Draw logs on top of bg
+        for (int i = 0; i < logs.size(); i++) {
+            // fade from newest to oldest
+            // newest at bottom full opacity
+            // oldest at the top (at most 30 on screen) at full transparency
+            logLabel->setString(logs[i]);
+            logLabel->setPosition(0.f, 320 - (i * 10.f) - 15.f);
+            logLabel->setFillColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*std::fmax(0, 255 - (255 / 30)*i))));
+            ENGINE.Draw(logLabel);
         }
 
-        // Adjust timers by elapsed time
-        if (shaderCooldown == 0) {
-            logFadeOutTimer -= elapsed;
-        }
+        if (progs) {
+            // Animator the prog character at the title screen
+            // and draw him if we have it loaded
+            animator(progAnimProgress, progSprite, progAnim);
+            ENGINE.Draw(&progSprite);
+            ENGINE.Draw(&logoSprite);
 
-        if (logFadeOutTimer <= 0) {
-            logFadeOutSpeed -= elapsed;
-        }
-
-        if (logFadeOutSpeed < 0) {
-            logFadeOutSpeed = 0;
-        }
-
-        // keep animation in bounds
-        if (progAnimProgress > 1.f) {
-            progAnimProgress = 0.f;
-        }
-
-        // update white flash
-        whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
-        }
-    }
-
-    // Prepare for next draw calls
-    ENGINE.Clear();
-
-    // if background is ready and loaded from threads...
-    if (ready) {
-        // show it
-        ENGINE.Draw(&bgSprite);
-
-        // Show the gamepad icon at the top-left if we have joystick support
-        if (INPUT.IsJosytickAvailable()) {
-        sf::Sprite gamePadICon(*TEXTURES.GetTexture(TextureType::GAMEPAD_SUPPORT_ICON));
-        gamePadICon.setScale(2.f, 2.f);
-        gamePadICon.setPosition(10.f, 5.0f);
-        ENGINE.Draw(gamePadICon);
-        }
-    }
-
-    // Draw logs on top of bg
-    for (int i = 0; i < logs.size(); i++) {
-        // fade from newest to oldest
-        // newest at bottom full opacity
-        // oldest at the top (at most 30 on screen) at full transparency
-        logLabel->setString(logs[i]);
-        logLabel->setPosition(0.f, 320 - (i * 10.f) - 15.f);
-        logLabel->setFillColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*std::fmax(0, 255 - (255 / 30)*i))));
-        ENGINE.Draw(logLabel);
-    }
-
-    if (progs) {
-        // Animator the prog character at the title screen
-        // and draw him if we have it loaded
-        animator(progAnimProgress, progSprite, progAnim);
-        ENGINE.Draw(&progSprite);
-        ENGINE.Draw(&logoSprite);
-
-        // If the progs resource is valid we know we are
-        // loading navi and mob data. Check which one 
-        // and display their loading %
-        if (navisLoaded < (int)NAVIS.Size()) {
-        navisLoadedLabel->setString(std::string("Loading Navi Data ") + std::to_string(navisLoaded) + " / " + std::to_string(NAVIS.Size()));
-        sf::FloatRect bounds = navisLoadedLabel->getLocalBounds();
-        sf::Vector2f origin = {bounds.width / 2.0f, bounds.height / 2.0f};
-        navisLoadedLabel->setOrigin(origin);
-        ENGINE.Draw(navisLoadedLabel);
-        }
-        else {
-        // Else, navis are loaded, launch next thread and display mob %
-        if (mobsLoaded < (int)MOBS.Size()) {
-            if (!loadMobs) {
-            loadMobs = true;
-            mobsLoad.launch();
+            // If the progs resource is valid we know we are
+            // loading navi and mob data. Check which one 
+            // and display their loading %
+            if (navisLoaded < (int)NAVIS.Size()) {
+                navisLoadedLabel->setString(std::string("Loading Navi Data ") + std::to_string(navisLoaded) + " / " + std::to_string(NAVIS.Size()));
+                sf::FloatRect bounds = navisLoadedLabel->getLocalBounds();
+                sf::Vector2f origin = {bounds.width / 2.0f, bounds.height / 2.0f};
+                navisLoadedLabel->setOrigin(origin);
+                ENGINE.Draw(navisLoadedLabel);
             }
             else {
-            mobLoadedLabel->setString(std::string("Loading Mob Data ") + std::to_string(mobsLoaded) + " / " + std::to_string(MOBS.Size()));
-            sf::FloatRect bounds = mobLoadedLabel->getLocalBounds();
-            sf::Vector2f origin = { bounds.width / 2.0f, bounds.height / 2.0f };
-            mobLoadedLabel->setOrigin(origin);
-            ENGINE.Draw(mobLoadedLabel);
-            }
-        }
-        else {
-            // Finally everything is loaded
+                // Else, navis are loaded, launch next thread and display mob %
+                if (mobsLoaded < (int)MOBS.Size()) {
+                    if (!loadMobs) {
+                        loadMobs = true;
+                        mobsLoad.launch();
+                    }
+                    else {
+                        mobLoadedLabel->setString(std::string("Loading Mob Data ") + std::to_string(mobsLoaded) + " / " + std::to_string(MOBS.Size()));
+                        sf::FloatRect bounds = mobLoadedLabel->getLocalBounds();
+                        sf::Vector2f origin = { bounds.width / 2.0f, bounds.height / 2.0f };
+                        mobLoadedLabel->setOrigin(origin);
+                        ENGINE.Draw(mobLoadedLabel);
+                    }
+                }
+                else {
+                    // Finally everything is loaded
 
-            if (!pressedStart) {
-            // Finally everything is loaded, show "Press Start"
-            ENGINE.Draw(startLabel);
+                    if (!pressedStart) {
+                        // Finally everything is loaded, show "Press Start"
+                        ENGINE.Draw(startLabel);
 
-            bool shouldStart = (INPUT.IsConfigFileValid()? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
+                        bool shouldStart = (INPUT.IsConfigFileValid()? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
 
-    #ifdef __ANDROID__
-            shouldStart = sf::Touch::isDown(0);
-    #endif
-            if (shouldStart) {
-                pressedStart = true;
-                AUDIO.Play(AudioType::CHIP_CHOOSE);
+                        #ifdef __ANDROID__
+                        shouldStart = sf::Touch::isDown(0);
+                        #endif
 
-            }
-            }
-            else {
-            // darken bg and title card like the game
-            auto interpol = int(swoosh::ease::interpolate((elapsed/1000.0f)*3.0f, float(bgSprite.getColor().r), 105.f));
-            interpol = std::max(105, interpol);
+                        if (shouldStart) {
+                            pressedStart = true;
+                            AUDIO.Play(AudioType::CHIP_CHOOSE);
 
-            sf::Color darken = sf::Color(interpol, interpol, interpol);
-            bgSprite.setColor(darken);
-            progSprite.setColor(darken);
-            logoSprite.setColor(darken);
+                        }
+                    }
+                    else {
+                        // darken bg and title card like the game
+                        auto interpol = int(swoosh::ease::interpolate((elapsed/1000.0f)*3.0f, float(bgSprite.getColor().r), 105.f));
+                        interpol = std::max(105, interpol);
 
-            auto offset = std::abs((std::sin(totalElapsed / 100.0f)*4.f));
+                        sf::Color darken = sf::Color(interpol, interpol, interpol);
+                        bgSprite.setColor(darken);
+                        progSprite.setColor(darken);
+                        logoSprite.setColor(darken);
 
-            if (selected == 0) {
-                cursorSprite.setPosition(sf::Vector2f(163.0f + offset, 227.f));
-            }
-            else {
-                cursorSprite.setPosition(sf::Vector2f(163.0f + offset, 257.f));
-            }
+                        auto offset = std::abs((std::sin(totalElapsed / 100.0f)*4.f));
 
-            ENGINE.Draw(cursorSprite);
+                        if (selected == 0) {
+                            cursorSprite.setPosition(sf::Vector2f(163.0f + offset, 227.f));
+                        }
+                        else {
+                            cursorSprite.setPosition(sf::Vector2f(163.0f + offset, 257.f));
+                        }
 
-            // Show continue or settings options
-            startLabel->setString("CONTINUE");
-            startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-            startLabel->setPosition(sf::Vector2f(200.0f, 240.f));
-            ENGINE.Draw(startLabel);
+                        ENGINE.Draw(cursorSprite);
 
-            startLabel->setString("CONFIGURE");
-            startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-            startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
-            ENGINE.Draw(startLabel);
+                        // Show continue or settings options
+                        startLabel->setString("CONTINUE");
+                        startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+                        startLabel->setPosition(sf::Vector2f(200.0f, 240.f));
+                        ENGINE.Draw(startLabel);
 
-            bool shouldStart  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
-            bool pressedUp    = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUT.GetAnyKey() == sf::Keyboard::Up;
-            bool pressedDown  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUT.GetAnyKey() == sf::Keyboard::Down;
+                        startLabel->setString("CONFIGURE");
+                        startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+                        startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
+                        ENGINE.Draw(startLabel);
+
+                        bool shouldStart  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
+                        bool pressedUp    = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUT.GetAnyKey() == sf::Keyboard::Up;
+                        bool pressedDown  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUT.GetAnyKey() == sf::Keyboard::Down;
             
-            if (pressedUp) {
-                if (selected != 0) {
-                AUDIO.Play(AudioType::CHIP_SELECT);
+                        if (pressedUp) {
+                            if (selected != 0) {
+                            AUDIO.Play(AudioType::CHIP_SELECT);
+                            }
+
+                            selected = 0;
+                        }
+                        else if (pressedDown) {
+                            if (selected != 1) {
+                            AUDIO.Play(AudioType::CHIP_SELECT);
+                            }
+
+                            selected = 1;
+                        }
+
+                         #ifdef __ANDROID__
+                        shouldStart = sf::Touch::isDown(0);
+                        #endif
+                        if (shouldStart) {
+                            inLoadState = false;
+                            AUDIO.Play(AudioType::NEW_GAME);
+                        }
+                    }
                 }
-
-                selected = 0;
-            }
-            else if (pressedDown) {
-                if (selected != 1) {
-                AUDIO.Play(AudioType::CHIP_SELECT);
-                }
-
-                selected = 1;
-            }
-
-    #ifdef __ANDROID__
-            shouldStart = sf::Touch::isDown(0);
-    #endif
-            if (shouldStart) {
-                inLoadState = false;
-                AUDIO.Play(AudioType::NEW_GAME);
-            }
             }
         }
-        }
-    }
 
-    loadSurface.display();
+        loadSurface.display();
 
-    sf::Sprite postprocess(loadSurface.getTexture());
+        sf::Sprite postprocess(loadSurface.getTexture());
 
-    auto states = sf::RenderStates::Default;
-    //states.transform.scale(4.f,4.f);
+        auto states = sf::RenderStates::Default;
 
-    #ifdef __ANDROID__
-    states.shader = SHADERS.GetShader(ShaderType::DEFAULT);
-    #endif
+        #ifdef __ANDROID__
+        states.shader = SHADERS.GetShader(ShaderType::DEFAULT);
+        #endif
 
-    ENGINE.GetWindow()->draw(postprocess, states);
+        ENGINE.GetWindow()->draw(postprocess, states);
 
-    #ifndef __ANDROID__
-    //ENGINE.GetWindow()->draw(mouse, states);
-    #endif
+        #ifndef __ANDROID__
+        //ENGINE.GetWindow()->draw(mouse, states);
+        #endif
 
-    // Finally, everything is drawn to window buffer, display it to screen
-    ENGINE.GetWindow()->display();
+        // Finally, everything is drawn to window buffer, display it to screen
+        ENGINE.GetWindow()->display();
 
-    elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
-    totalElapsed += elapsed;
+        elapsed = static_cast<float>(clock.getElapsedTime().asMilliseconds());
+        totalElapsed += elapsed;
     }
 
     // Do not clear the Engine's render surface
@@ -789,7 +777,7 @@ int main(int argc, char** argv) {
     app.push<MainMenuScene>();
 
     if (selected > 0) {
-    app.push<ConfigScene>();
+        app.push<ConfigScene>();
     }
 
     // This scene is designed to immediately pop off the stack
@@ -842,11 +830,10 @@ int main(int argc, char** argv) {
         ENGINE.Clear();
 
         auto states = sf::RenderStates::Default;
-        //states.transform.scale(4.f,4.f);
 
-    #ifdef __ANDROID__
+        #ifdef __ANDROID__
         states.shader = SHADERS.GetShader(ShaderType::DEFAULT);
-    #endif 
+        #endif 
 
         app.draw(loadSurface);
         loadSurface.display();
@@ -854,15 +841,16 @@ int main(int argc, char** argv) {
         sf::Sprite toScreen(loadSurface.getTexture());
         ENGINE.GetWindow()->draw(toScreen, states);
 
-    #ifdef __ANDROID__
+        #ifdef __ANDROID__
         ENGINE.GetWindow()->draw(*logLabel, states);
-    #else
+        #else
         //ENGINE.GetWindow()->draw(mouse, states);
-    #endif
+        #endif
 
         ENGINE.GetWindow()->display();
 
     }
+
     WEBCLIENT.ShutdownAllTasks();
 
     delete mouseTexture;

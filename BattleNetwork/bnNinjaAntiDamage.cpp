@@ -1,7 +1,7 @@
 #include "bnNinjaAntiDamage.h"
 #include "bnDefenseAntiDamage.h"
 #include "bnNinjaStar.h"
-#include "bnChipAction.h"
+#include "bnCardAction.h"
 #include "bnHideTimer.h"
 #include "bnAudioResourceManager.h"
 #include "bnTile.h"
@@ -58,7 +58,7 @@ NinjaAntiDamage::~NinjaAntiDamage() {
 }
 
 void NinjaAntiDamage::OnUpdate(float _elapsed) {
-  if (!(added || GetOwner()->GetComponentsDerivedFrom<ChipAction>().size())) {
+  if (!(added || GetOwner()->GetComponentsDerivedFrom<CardAction>().size())) {
     // Add the defense rule to the owner of this component
     this->GetOwnerAs<Character>()->AddDefenseRule(defense);
     added = true;

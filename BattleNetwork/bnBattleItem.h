@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "bnChip.h"
+#include "bnCard.h"
 // #include "bnHealthItem.h"
 // #include "bnZennyItem.h"
 
@@ -9,58 +9,58 @@
  * @class BattleItem
  * @author mav
  * @date 13/05/19
- * @brief BattleItem is a container for the awarded object type and can be money, a chip, or hp gain.
+ * @brief BattleItem is a container for the awarded object type and can be money, a card, or hp gain.
  * 
- * @warning Must be refactored to support scripted chip types
- * @important Like a union struct, can be any type. You must check IsChip(), IsHP(), or IsZenny() respectively.
+ * @warning Must be refactored to support scripted card types
+ * @important Like a union struct, can be any type. You must check IsCard(), IsHP(), or IsZenny() respectively.
  */
 class BattleItem {
 private:
-  int cardID; /*!< The ID for the chip card */
-  std::string name; /*!< Name of the item or chip */
-  bool isChip; /*!< Flag if chip */
+  std::string cardUUID; /*!< The ID for the card card */
+  std::string name; /*!< Name of the item or card */
+  bool isCard; /*!< Flag if card */
   bool isZenny; /*!< Flag if zenny */
   bool isHP; /*!< Flag if HP */
-  Chip chip; /*!< Chip data */
+  Card card; /*!< Card data */
   // HealthItem hpGain; // +10, +50, +100, +200 HP gained post battle
   // ZennyItem zennyGain; // stores arbitrary zenny amount
 public:
   /**
-   * @brief Constructs a battle item with chip data 
-   * @param chip the chip to copy and reward player with
+   * @brief Constructs a battle item with card data 
+   * @param card the card to copy and reward player with
    */
-  BattleItem(Chip chip) : chip(chip), name(chip.GetShortName()), cardID(chip.GetID()) { isChip = true; isZenny = isHP = false; }
-  BattleItem(const BattleItem& rhs) : chip(rhs.chip) { isChip = rhs.isChip; isZenny = rhs.isZenny; isHP = rhs.isHP; cardID = rhs.cardID; name = rhs.name; }
+  BattleItem(Card card) : card(card), name(card.GetShortName()), cardUUID(card.GetUUID()) { isCard = true; isZenny = isHP = false; }
+  BattleItem(const BattleItem& rhs) : card(rhs.card) { isCard = rhs.isCard; isZenny = rhs.isZenny; isHP = rhs.isHP; cardUUID = rhs.cardUUID; name = rhs.name; }
   
   /**
-   * @brief Get chip ID
-   * @return int
+   * @brief Get card UUID
+   * @return string
    */
-  int GetID() { return cardID; }
+  std::string GetUUID() { return cardUUID; }
   
   /**
-   * @brief Get item or chip name
+   * @brief Get item or card name
    * @return const string
    */
   const std::string GetName() { return name;  }
   
   /**
-   * @brief Query if chip
-   * @return true if battle item is a chip and contains chip data
+   * @brief Query if card
+   * @return true if battle item is a card and contains card data
    */
-  bool IsChip() { return isChip; }
+  bool IsCard() { return isCard; }
   
   /**
-   * @brief Get chip data
-   * @return Chip
+   * @brief Get card data
+   * @return Card
    */
-  Chip GetChip() { return chip; }
+  Card GetCard() { return card; }
   
   /**
-   * @brief Get chip code 
+   * @brief Get card code 
    * @return char
    */
-  char GetChipCode() {
-    return chip.GetCode();
+  char GetCardCode() {
+    return card.GetCode();
   }
 };

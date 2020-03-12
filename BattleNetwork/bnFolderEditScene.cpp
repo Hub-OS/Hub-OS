@@ -6,10 +6,11 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Timer.h>
 
+#include "bnWebClientMananger.h"
 #include "bnFolderEditScene.h"
 #include "Segues/BlackWashFade.h"
-#include "bnChipLibrary.h"
-#include "bnChipFolder.h"
+#include "bnCardLibrary.h"
+#include "bnCardFolder.h"
 #include "Android/bnTouchArea.h"
 
 #include <SFML/Graphics.hpp>
@@ -19,7 +20,7 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
-std::string FolderEditScene::FormatChipDesc(const std::string && desc)
+std::string FolderEditScene::FormatCardDesc(const std::string && desc)
 {
   std::string output = desc;
 
@@ -76,7 +77,7 @@ std::string FolderEditScene::FormatChipDesc(const std::string && desc)
     index++;
   }
 
-  // Chip docks can only fit 9 characters per line, 3 lines total
+  // Card docks can only fit 9 characters per line, 3 lines total
   if (output.size() > 3 * 10) {
     output = output.substr(0, (3 * 10));
     output[output.size()] = ';'; // font glyph will show an elipses
@@ -85,15 +86,15 @@ std::string FolderEditScene::FormatChipDesc(const std::string && desc)
   return output;
 }
 
-FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFolder& folder) :
+FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFolder& folder) :
   camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))), folder(folder), hasFolderChanged(false),
   swoosh::Activity(&controller)
 {
-  // Move chip data into their appropriate containers for easier management
-  PlaceFolderDataIntoChipSlots();
+  // Move card data into their appropriate containers for easier management
+  PlaceFolderDataIntoCardSlots();
   PlaceLibraryDataIntoBuckets();
 
-  // We must account for existing chip data to accurately represent what's left from our pool
+  // We must account for existing card data to accurately represent what's left from our pool
   ExcludeFolderDataFromPack();
 
   // Menu name font
@@ -106,10 +107,10 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
   maxSelectInputCooldown = 0.5; // half of a second
   selectInputCooldown = maxSelectInputCooldown;
 
-  // Chip UI font
-  chipFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  chipLabel = new sf::Text("", *chipFont);
-  chipLabel->setPosition(275.f, 15.f);
+  // Card UI font
+  cardFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+  cardLabel = new sf::Text("", *cardFont);
+  cardLabel->setPosition(275.f, 15.f);
 
   numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
   numberLabel = new sf::Text("", *numberFont);
@@ -119,11 +120,11 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
   numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
   numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
 
-  // Chip description font
-  chipDescFont = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
-  chipDesc = new sf::Text("", *chipDescFont);
-  chipDesc->setCharacterSize(24);
-  chipDesc->setFillColor(sf::Color::Black);
+  // Card description font
+  cardDescFont = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
+  cardDesc = new sf::Text("", *cardDescFont);
+  cardDesc->setCharacterSize(24);
+  cardDesc->setFillColor(sf::Color::Black);
 
   // folder menu graphic
   bg = sf::Sprite(LOAD_TEXTURE(FOLDER_VIEW_BG));
@@ -158,41 +159,41 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, ChipFol
   packNextArrow = folderNextArrow;
   packNextArrow.setScale(-2.f, 2.f);
 
-  folderChipCountBox = sf::Sprite(LOAD_TEXTURE(FOLDER_SIZE));
-  folderChipCountBox.setPosition(sf::Vector2f(425.f, 10.f + folderChipCountBox.getLocalBounds().height));
-  folderChipCountBox.setScale(2.f, 2.f);
-  folderChipCountBox.setOrigin(folderChipCountBox.getLocalBounds().width / 2.0f, folderChipCountBox.getLocalBounds().height / 2.0f);
+  folderCardCountBox = sf::Sprite(LOAD_TEXTURE(FOLDER_SIZE));
+  folderCardCountBox.setPosition(sf::Vector2f(425.f, 10.f + folderCardCountBox.getLocalBounds().height));
+  folderCardCountBox.setScale(2.f, 2.f);
+  folderCardCountBox.setOrigin(folderCardCountBox.getLocalBounds().width / 2.0f, folderCardCountBox.getLocalBounds().height / 2.0f);
 
-  chipHolder = sf::Sprite(LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
-  chipHolder.setScale(2.f, 2.f);
+  cardHolder = sf::Sprite(LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+  cardHolder.setScale(2.f, 2.f);
 
   element = sf::Sprite(LOAD_TEXTURE(ELEMENT_ICON));
   element.setScale(2.f, 2.f);
 
-  // Current chip graphic
-  chip = sf::Sprite(LOAD_TEXTURE(CHIP_CARDS));
-  cardSubFrame = sf::IntRect(TEXTURES.GetCardRectFromID(0));
-  chip.setTextureRect(cardSubFrame);
-  chip.setScale(2.f, 2.f);
-  chip.setOrigin(chip.getLocalBounds().width / 2.0f, chip.getLocalBounds().height / 2.0f);
+  // Current card graphic
+  card = sf::Sprite();
+  cardSubFrame = sf::IntRect(0,0,56,48);
+  card.setTextureRect(cardSubFrame);
+  card.setScale(2.f, 2.f);
+  card.setOrigin(card.getLocalBounds().width / 2.0f, card.getLocalBounds().height / 2.0f);
 
-  chipIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
-  chipIcon.setScale(2.f, 2.f);
+  cardIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
+  cardIcon.setScale(2.f, 2.f);
 
-  chipRevealTimer.start();
+  cardRevealTimer.start();
   easeInTimer.start();
 
   /* foldet view */
-  folderView.maxChipsOnScreen = 7;
-  folderView.currChipIndex = folderView.lastChipOnScreen = folderView.prevIndex = 0;
-  folderView.swapChipIndex = -1;
-  folderView.numOfChips = int(folderChipSlots.size());
+  folderView.maxCardsOnScreen = 7;
+  folderView.currCardIndex = folderView.lastCardOnScreen = folderView.prevIndex = 0;
+  folderView.swapCardIndex = -1;
+  folderView.numOfCards = int(folderCardSlots.size());
 
   /* library view */
-  packView.maxChipsOnScreen = 7;
-  packView.currChipIndex = packView.lastChipOnScreen = packView.prevIndex = 0;
-  packView.swapChipIndex = -1;
-  packView.numOfChips = int(packChipBuckets.size());
+  packView.maxCardsOnScreen = 7;
+  packView.currCardIndex = packView.lastCardOnScreen = packView.prevIndex = 0;
+  packView.swapCardIndex = -1;
+  packView.numOfCards = int(packCardBuckets.size());
 
   prevViewMode = currViewMode = ViewMode::FOLDER;
 
@@ -222,7 +223,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (canInteract) {
-    ChipView* view = nullptr;
+    CardView* view = nullptr;
 
     if (currViewMode == ViewMode::FOLDER) {
       view = &folderView;
@@ -234,73 +235,73 @@ void FolderEditScene::onUpdate(double elapsed) {
     if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
       selectInputCooldown -= elapsed;
 
-      view->prevIndex = view->currChipIndex;
+      view->prevIndex = view->currCardIndex;
 
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
-        view->currChipIndex--;
+        view->currCardIndex--;
         AUDIO.Play(AudioType::CHIP_SELECT);
 
-        if (view->currChipIndex < view->lastChipOnScreen) {
-          --view->lastChipOnScreen;
+        if (view->currCardIndex < view->lastCardOnScreen) {
+          --view->lastCardOnScreen;
         }
 
-        chipRevealTimer.reset();
+        cardRevealTimer.reset();
       }
     }
     else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
       selectInputCooldown -= elapsed;
 
-      view->prevIndex = view->currChipIndex;
+      view->prevIndex = view->currCardIndex;
 
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
-        view->currChipIndex++;
+        view->currCardIndex++;
         AUDIO.Play(AudioType::CHIP_SELECT);
 
-        if (view->currChipIndex > view->lastChipOnScreen + view->maxChipsOnScreen - 1) {
-          ++view->lastChipOnScreen;
+        if (view->currCardIndex > view->lastCardOnScreen + view->maxCardsOnScreen - 1) {
+          ++view->lastCardOnScreen;
         }
 
-        chipRevealTimer.reset();
+        cardRevealTimer.reset();
       }
     }else if (INPUT.Has(EventTypes::PRESSED_SCAN_LEFT)) {
       selectInputCooldown -= elapsed;
 
-      view->prevIndex = view->currChipIndex;
+      view->prevIndex = view->currCardIndex;
 
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
-        view->currChipIndex -= view->maxChipsOnScreen;
+        view->currCardIndex -= view->maxCardsOnScreen;
 
-        view->currChipIndex = std::max(view->currChipIndex, 0);
+        view->currCardIndex = std::max(view->currCardIndex, 0);
 
         AUDIO.Play(AudioType::CHIP_SELECT);
 
-        while (view->currChipIndex < view->lastChipOnScreen) {
-          --view->lastChipOnScreen;
+        while (view->currCardIndex < view->lastCardOnScreen) {
+          --view->lastCardOnScreen;
         }
 
-        chipRevealTimer.reset();
+        cardRevealTimer.reset();
       }
     }
     else if (INPUT.Has(EventTypes::PRESSED_SCAN_RIGHT)) {
       selectInputCooldown -= elapsed;
 
-      view->prevIndex = view->currChipIndex;
+      view->prevIndex = view->currCardIndex;
 
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
-        view->currChipIndex += view->maxChipsOnScreen;
+        view->currCardIndex += view->maxCardsOnScreen;
         AUDIO.Play(AudioType::CHIP_SELECT);
 
-        view->currChipIndex = std::min(view->currChipIndex, view->numOfChips-1);
+        view->currCardIndex = std::min(view->currCardIndex, view->numOfCards-1);
 
-        while (view->currChipIndex > view->lastChipOnScreen + view->maxChipsOnScreen - 1) {
-          ++view->lastChipOnScreen;
+        while (view->currCardIndex > view->lastCardOnScreen + view->maxCardsOnScreen - 1) {
+          ++view->lastCardOnScreen;
         }
 
-        chipRevealTimer.reset();
+        cardRevealTimer.reset();
       }
     }
     else {
@@ -309,66 +310,66 @@ void FolderEditScene::onUpdate(double elapsed) {
 
     if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
       if (currViewMode == ViewMode::FOLDER) {
-        if (folderView.swapChipIndex != -1) {
-          if (folderView.swapChipIndex == folderView.currChipIndex) {
-            // Unselect the chip
-            folderView.swapChipIndex = -1;
+        if (folderView.swapCardIndex != -1) {
+          if (folderView.swapCardIndex == folderView.currCardIndex) {
+            // Unselect the card
+            folderView.swapCardIndex = -1;
             AUDIO.Play(AudioType::CHIP_CANCEL);
 
           }
           else {
-            // swap the chip
-            auto temp = folderChipSlots[folderView.swapChipIndex];
-            folderChipSlots[folderView.swapChipIndex] = folderChipSlots[folderView.currChipIndex];
-            folderChipSlots[folderView.currChipIndex] = temp;
+            // swap the card
+            auto temp = folderCardSlots[folderView.swapCardIndex];
+            folderCardSlots[folderView.swapCardIndex] = folderCardSlots[folderView.currCardIndex];
+            folderCardSlots[folderView.currCardIndex] = temp;
             AUDIO.Play(AudioType::CHIP_CONFIRM);
 
-            folderView.swapChipIndex = -1;
+            folderView.swapCardIndex = -1;
           }
         }
         else {
           // See if we're swapping from a pack
-          if (packView.swapChipIndex != -1) {
-            // Try to swap the chip with the one from the pack
-            // The chip from the pack is copied and added to the slot
-            // The slot chip needs to find its corresponding bucket and increment it
-            Chip copy;
+          if (packView.swapCardIndex != -1) {
+            // Try to swap the card with the one from the pack
+            // The card from the pack is copied and added to the slot
+            // The slot card needs to find its corresponding bucket and increment it
+            Card copy;
 
-            bool gotChip = false;
+            bool gotCard = false;
 
-            // If the pack pointed to is the same as the chip in our folder, add the chip back into folder
-            if (packChipBuckets[packView.swapChipIndex].ViewChip() == folderChipSlots[folderView.currChipIndex].ViewChip()) {
-              packChipBuckets[packView.swapChipIndex].AddChip();
-              folderChipSlots[folderView.currChipIndex].GetChip(copy);
+            // If the pack pointed to is the same as the card in our folder, add the card back into folder
+            if (packCardBuckets[packView.swapCardIndex].ViewCard() == folderCardSlots[folderView.currCardIndex].ViewCard()) {
+              packCardBuckets[packView.swapCardIndex].AddCard();
+              folderCardSlots[folderView.currCardIndex].GetCard(copy);
 
-              gotChip = true;
+              gotCard = true;
             }
-            else if (packChipBuckets[packView.swapChipIndex].GetChip(copy)) {
-              Chip prev;
+            else if (packCardBuckets[packView.swapCardIndex].GetCard(copy)) {
+              Card prev;
 
-              bool findBucket = folderChipSlots[folderView.currChipIndex].GetChip(prev);
+              bool findBucket = folderCardSlots[folderView.currCardIndex].GetCard(prev);
 
-              folderChipSlots[folderView.currChipIndex].AddChip(copy);
+              folderCardSlots[folderView.currCardIndex].AddCard(copy);
 
-              // If the chip slot had a chip, find the corresponding bucket to add it back into
+              // If the card slot had a card, find the corresponding bucket to add it back into
               if (findBucket) {
-                auto iter = std::find_if(packChipBuckets.begin(), packChipBuckets.end(),
-                  [&prev](const PackBucket& in) { return prev.GetShortName() == in.ViewChip().GetShortName(); }
+                auto iter = std::find_if(packCardBuckets.begin(), packCardBuckets.end(),
+                  [&prev](const PackBucket& in) { return prev.GetShortName() == in.ViewCard().GetShortName(); }
                 );
 
-                if (iter != packChipBuckets.end()) {
-                  iter->AddChip();
+                if (iter != packCardBuckets.end()) {
+                  iter->AddCard();
                 }
               }
 
-              gotChip = true;
+              gotCard = true;
             }
 
-            if (gotChip) {
+            if (gotCard) {
               hasFolderChanged = true;
 
-              packView.swapChipIndex = -1;
-              folderView.swapChipIndex = -1;
+              packView.swapCardIndex = -1;
+              folderView.swapCardIndex = -1;
 
               AUDIO.Play(AudioType::CHIP_CONFIRM);
             }
@@ -377,71 +378,71 @@ void FolderEditScene::onUpdate(double elapsed) {
             }
           }
           else {
-            // select the chip
-            folderView.swapChipIndex = folderView.currChipIndex;
+            // select the card
+            folderView.swapCardIndex = folderView.currCardIndex;
             AUDIO.Play(AudioType::CHIP_CHOOSE);
           }
         }
       }
       else if (currViewMode == ViewMode::PACK) {
-        if (packView.swapChipIndex != -1) {
-          if (packView.swapChipIndex == packView.currChipIndex) {
-            // Unselect the chip
-            packView.swapChipIndex = -1;
+        if (packView.swapCardIndex != -1) {
+          if (packView.swapCardIndex == packView.currCardIndex) {
+            // Unselect the card
+            packView.swapCardIndex = -1;
             AUDIO.Play(AudioType::CHIP_CANCEL);
 
           }
           else {
             // swap the pack
-            auto temp = packChipBuckets[packView.swapChipIndex];
-            packChipBuckets[packView.swapChipIndex] = packChipBuckets[packView.currChipIndex];
-            packChipBuckets[packView.currChipIndex] = temp;
+            auto temp = packCardBuckets[packView.swapCardIndex];
+            packCardBuckets[packView.swapCardIndex] = packCardBuckets[packView.currCardIndex];
+            packCardBuckets[packView.currCardIndex] = temp;
             AUDIO.Play(AudioType::CHIP_CONFIRM);
 
-            packView.swapChipIndex = -1;
+            packView.swapCardIndex = -1;
           }
         }
         else {
           // See if we're swapping from our folder
-          if (folderView.swapChipIndex != -1) {
-            // Try to swap the chip with the one from the folder
-            // The chip from the pack is copied and added to the slot
-            // The slot chip needs to find its corresponding bucket and increment it
-            Chip copy;
+          if (folderView.swapCardIndex != -1) {
+            // Try to swap the card with the one from the folder
+            // The card from the pack is copied and added to the slot
+            // The slot card needs to find its corresponding bucket and increment it
+            Card copy;
 
-            bool gotChip = false;
+            bool gotCard = false;
 
-            // If the pack pointed to is the same as the chip in our folder, add the chip back into folder
-            if (packChipBuckets[packView.currChipIndex].ViewChip() == folderChipSlots[folderView.swapChipIndex].ViewChip()) {
-              packChipBuckets[packView.currChipIndex].AddChip();
-              folderChipSlots[folderView.swapChipIndex].GetChip(copy);
+            // If the pack pointed to is the same as the card in our folder, add the card back into folder
+            if (packCardBuckets[packView.currCardIndex].ViewCard() == folderCardSlots[folderView.swapCardIndex].ViewCard()) {
+              packCardBuckets[packView.currCardIndex].AddCard();
+              folderCardSlots[folderView.swapCardIndex].GetCard(copy);
 
-              gotChip = true;
+              gotCard = true;
             }
-            else if (packChipBuckets[packView.currChipIndex].GetChip(copy)) {
-              Chip prev;
+            else if (packCardBuckets[packView.currCardIndex].GetCard(copy)) {
+              Card prev;
 
-              bool findBucket = folderChipSlots[folderView.swapChipIndex].GetChip(prev);
+              bool findBucket = folderCardSlots[folderView.swapCardIndex].GetCard(prev);
 
-              folderChipSlots[folderView.swapChipIndex].AddChip(copy);
+              folderCardSlots[folderView.swapCardIndex].AddCard(copy);
 
-              // If the chip slot had a chip, find the corresponding bucket to add it back into
+              // If the card slot had a card, find the corresponding bucket to add it back into
               if (findBucket) {
-                auto iter = std::find_if(packChipBuckets.begin(), packChipBuckets.end(),
-                  [&prev](const PackBucket& in) { return prev.GetShortName() == in.ViewChip().GetShortName(); }
+                auto iter = std::find_if(packCardBuckets.begin(), packCardBuckets.end(),
+                  [&prev](const PackBucket& in) { return prev.GetShortName() == in.ViewCard().GetShortName(); }
                 );
 
-                if (iter != packChipBuckets.end()) {
-                  iter->AddChip();
+                if (iter != packCardBuckets.end()) {
+                  iter->AddCard();
                 }
               }
 
-              gotChip = true;
+              gotCard = true;
             }
 
-            if (gotChip) {
-              packView.swapChipIndex = -1;
-              folderView.swapChipIndex = -1;
+            if (gotCard) {
+              packView.swapCardIndex = -1;
+              folderView.swapCardIndex = -1;
 
               hasFolderChanged = true;
 
@@ -452,8 +453,8 @@ void FolderEditScene::onUpdate(double elapsed) {
             }
           }
           else {
-            // select the chip
-            packView.swapChipIndex = packView.currChipIndex;
+            // select the card
+            packView.swapCardIndex = packView.currCardIndex;
             AUDIO.Play(AudioType::CHIP_CHOOSE);
           }
         }
@@ -470,18 +471,18 @@ void FolderEditScene::onUpdate(double elapsed) {
       AUDIO.Play(AudioType::CHIP_DESC);
     }
 
-    view->currChipIndex = std::max(0, view->currChipIndex);
-    view->currChipIndex = std::min(view->numOfChips - 1, view->currChipIndex);
+    view->currCardIndex = std::max(0, view->currCardIndex);
+    view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex);
 
-    view->lastChipOnScreen = std::max(0, view->lastChipOnScreen);
-    view->lastChipOnScreen = std::min(view->numOfChips - 1, view->lastChipOnScreen);
+    view->lastCardOnScreen = std::max(0, view->lastCardOnScreen);
+    view->lastCardOnScreen = std::min(view->numOfCards - 1, view->lastCardOnScreen);
 
     bool gotoLastScene = false;
 
     if (INPUT.Has(EventTypes::PRESSED_CANCEL) && canInteract) {
-      if (packView.swapChipIndex != -1 || folderView.swapChipIndex != -1) {
+      if (packView.swapCardIndex != -1 || folderView.swapCardIndex != -1) {
         AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-        packView.swapChipIndex = folderView.swapChipIndex = -1;
+        packView.swapCardIndex = folderView.swapCardIndex = -1;
       }
       else  {
         WriteNewFolderData();
@@ -552,105 +553,105 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
 
   float scale = 0.0f;
 
-  ENGINE.Draw(folderChipCountBox);
+  ENGINE.Draw(folderCardCountBox);
 
-  if(int(0.5+folderChipCountBox.getScale().y) == 2) {
-    auto nonempty = (decltype(folderChipSlots))(folderChipSlots.size());
-    auto iter = std::copy_if(folderChipSlots.begin(), folderChipSlots.end(), nonempty.begin(), [](auto in) { return !in.IsEmpty(); });
+  if(int(0.5+folderCardCountBox.getScale().y) == 2) {
+    auto nonempty = (decltype(folderCardSlots))(folderCardSlots.size());
+    auto iter = std::copy_if(folderCardSlots.begin(), folderCardSlots.end(), nonempty.begin(), [](auto in) { return !in.IsEmpty(); });
     nonempty.resize(std::distance(nonempty.begin(), iter));  // shrink container to new size
 
     std::string str = std::to_string(nonempty.size());
-    // Draw number of chips in this folder
-    chipLabel->setString(str);
-    chipLabel->setOrigin(chipLabel->getLocalBounds().width, 0);
-    chipLabel->setPosition(410.f, 1.f);
+    // Draw number of cards in this folder
+    cardLabel->setString(str);
+    cardLabel->setOrigin(cardLabel->getLocalBounds().width, 0);
+    cardLabel->setPosition(410.f, 1.f);
 
     if (nonempty.size() == 30) {
-      chipLabel->setFillColor(sf::Color::Green);
+      cardLabel->setFillColor(sf::Color::Green);
     }
     else {
-      chipLabel->setFillColor(sf::Color::White);
+      cardLabel->setFillColor(sf::Color::White);
     }
 
-    ENGINE.Draw(chipLabel, false);
+    ENGINE.Draw(cardLabel, false);
 
     // Draw max
-    chipLabel->setString(std::string("/ 30"));
-    chipLabel->setOrigin(0, 0);;
-    chipLabel->setPosition(415.f, 1.f);
+    cardLabel->setString(std::string("/ 30"));
+    cardLabel->setOrigin(0, 0);;
+    cardLabel->setPosition(415.f, 1.f);
 
-    ENGINE.Draw(chipLabel, false);
+    ENGINE.Draw(cardLabel, false);
 
     // reset, we use this label everywhere in this scene...
-    chipLabel->setFillColor(sf::Color::White);
+    cardLabel->setFillColor(sf::Color::White);
 
   }
 
-  // folder chip count opens on FOLDER view mode only
+  // folder card count opens on FOLDER view mode only
   if (currViewMode == ViewMode::FOLDER) {
     if (prevViewMode == currViewMode) { // camera pan finished
-      scale = swoosh::ease::interpolate((float)frameElapsed*8.f, 2.0f, folderChipCountBox.getScale().y);
+      scale = swoosh::ease::interpolate((float)frameElapsed*8.f, 2.0f, folderCardCountBox.getScale().y);
     }
   }
   else {
-    scale = swoosh::ease::interpolate((float)frameElapsed*8.f, 0.0f, folderChipCountBox.getScale().y);
+    scale = swoosh::ease::interpolate((float)frameElapsed*8.f, 0.0f, folderCardCountBox.getScale().y);
   }
 
-  folderChipCountBox.setScale(2.0f, scale);
+  folderCardCountBox.setScale(2.0f, scale);
 
   DrawFolder();
   DrawLibrary();
 }
 
 void FolderEditScene::DrawFolder() {
-  chipDesc->setPosition(sf::Vector2f(20.f, 185.0f));
+  cardDesc->setPosition(sf::Vector2f(20.f, 185.0f));
   scrollbar.setPosition(410.f, 60.f);
-  chipHolder.setPosition(4.f, 35.f);
+  cardHolder.setPosition(4.f, 35.f);
   element.setPosition(2.f*25.f, 146.f);
-  chip.setPosition(83.f, 93.f);
+  card.setPosition(83.f, 93.f);
 
   ENGINE.Draw(folderDock);
-  ENGINE.Draw(chipHolder);
+  ENGINE.Draw(cardHolder);
 
-  // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
+  // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 50.0f; float bottom = 230.0f;
-  float depth = ((float)folderView.lastChipOnScreen / (float)folderView.numOfChips)*bottom;
+  float depth = ((float)folderView.lastCardOnScreen / (float)folderView.numOfCards)*bottom;
   scrollbar.setPosition(452.f, top + depth);
 
   ENGINE.Draw(scrollbar);
 
   //if (folder.GetSize() == 0) return;
 
-  // Move the chip library iterator to the current highlighted chip
-  auto iter = folderChipSlots.begin();
+  // Move the card library iterator to the current highlighted card
+  auto iter = folderCardSlots.begin();
 
-  for (int j = 0; j < folderView.lastChipOnScreen; j++) {
+  for (int j = 0; j < folderView.lastCardOnScreen; j++) {
     iter++;
   }
 
-  // Now that we are at the viewing range, draw each chip in the list
-  for (int i = 0; i < folderView.maxChipsOnScreen && folderView.lastChipOnScreen + i < folderView.numOfChips; i++) {
-    const Chip& copy = iter->ViewChip();
+  // Now that we are at the viewing range, draw each card in the list
+  for (int i = 0; i < folderView.maxCardsOnScreen && folderView.lastCardOnScreen + i < folderView.numOfCards; i++) {
+    const Card& copy = iter->ViewCard();
 
     if (!iter->IsEmpty()) {
-      chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(copy.GetIconID()));
-      chipIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
-      ENGINE.Draw(chipIcon, false);
+      cardIcon.setTextureRect(sf::IntRect{ 0,0,14,14});
+      cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
+      ENGINE.Draw(cardIcon, false);
 
-      chipLabel->setFillColor(sf::Color::White);
-      chipLabel->setPosition(2.f*120.f, 60.0f + (32.f*i));
-      chipLabel->setString(copy.GetShortName());
-      ENGINE.Draw(chipLabel, false);
+      cardLabel->setFillColor(sf::Color::White);
+      cardLabel->setPosition(2.f*120.f, 60.0f + (32.f*i));
+      cardLabel->setString(copy.GetShortName());
+      ENGINE.Draw(cardLabel, false);
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f*183.f, 65.0f + (32.f*i));
       ENGINE.Draw(element, false);
 
-      chipLabel->setOrigin(0, 0);
-      chipLabel->setPosition(2.f*200.f, 60.0f + (32.f*i));
-      chipLabel->setString(std::string() + copy.GetCode());
-      ENGINE.Draw(chipLabel, false);
+      cardLabel->setOrigin(0, 0);
+      cardLabel->setPosition(2.f*200.f, 60.0f + (32.f*i));
+      cardLabel->setString(std::string() + copy.GetCode());
+      ENGINE.Draw(cardLabel, false);
 
       //Draw MB
       mbPlaceholder.setPosition(2.f*210.f, 67.0f + (32.f*i));
@@ -658,7 +659,7 @@ void FolderEditScene::DrawFolder() {
     }
 
     // Draw cursor
-    if (folderView.lastChipOnScreen + i == folderView.currChipIndex) {
+    if (folderView.lastCardOnScreen + i == folderView.currCardIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, folderCursor.getPosition().y, 64.0f + (32.f*i));
       auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
 
@@ -667,30 +668,29 @@ void FolderEditScene::DrawFolder() {
 
       if (!iter->IsEmpty()) {
 
-        sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(copy.GetID());
-        chip.setTextureRect(cardSubFrame);
-        chip.setScale((float)swoosh::ease::linear(chipRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
-        ENGINE.Draw(chip, false);
+        card = sf::Sprite(*WEBCLIENT.GetImageForCard(copy.GetUUID()), sf::IntRect(0,0,56,48));
+        card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
+        ENGINE.Draw(card, false);
 
-        // This draws the currently highlighted chip
+        // This draws the currently highlighted card
         if (copy.GetDamage() > 0) {
-          chipLabel->setFillColor(sf::Color::White);
-          chipLabel->setString(std::to_string(copy.GetDamage()));
-          chipLabel->setOrigin(chipLabel->getLocalBounds().width + chipLabel->getLocalBounds().left, 0);
-          chipLabel->setPosition(2.f*(70.f), 135.f);
+          cardLabel->setFillColor(sf::Color::White);
+          cardLabel->setString(std::to_string(copy.GetDamage()));
+          cardLabel->setOrigin(cardLabel->getLocalBounds().width + cardLabel->getLocalBounds().left, 0);
+          cardLabel->setPosition(2.f*(70.f), 135.f);
 
-          ENGINE.Draw(chipLabel, false);
+          ENGINE.Draw(cardLabel, false);
         }
 
-        chipLabel->setOrigin(0, 0);
-        chipLabel->setFillColor(sf::Color::Yellow);
-        chipLabel->setPosition(2.f*14.f, 135.f);
-        chipLabel->setString(std::string() + copy.GetCode());
-        ENGINE.Draw(chipLabel, false);
+        cardLabel->setOrigin(0, 0);
+        cardLabel->setFillColor(sf::Color::Yellow);
+        cardLabel->setPosition(2.f*14.f, 135.f);
+        cardLabel->setString(std::string() + copy.GetCode());
+        ENGINE.Draw(cardLabel, false);
 
-        std::string formatted = FormatChipDesc(copy.GetDescription());
-        chipDesc->setString(formatted);
-        ENGINE.Draw(chipDesc, false);
+        std::string formatted = FormatCardDesc(copy.GetDescription());
+        cardDesc->setString(formatted);
+        ENGINE.Draw(cardDesc, false);
 
         int offset = (int)(copy.GetElement());
         element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
@@ -699,7 +699,7 @@ void FolderEditScene::DrawFolder() {
       }
     }
     
-    if (folderView.lastChipOnScreen + i == folderView.swapChipIndex && (int(totalTimeElapsed*1000) % 2 == 0)) {
+    if (folderView.lastCardOnScreen + i == folderView.swapCardIndex && (int(totalTimeElapsed*1000) % 2 == 0)) {
       auto y =  64.0f + (32.f*i);
 
       folderSwapCursor.setPosition((2.f*95.f) + 2.0f, y);
@@ -713,43 +713,43 @@ void FolderEditScene::DrawFolder() {
 }
 
 void FolderEditScene::DrawLibrary() {
-  chipDesc->setPosition(sf::Vector2f(326.f + 480.f, 185.0f));
-  chipHolder.setPosition(310.f + 480.f, 35.f);
+  cardDesc->setPosition(sf::Vector2f(326.f + 480.f, 185.0f));
+  cardHolder.setPosition(310.f + 480.f, 35.f);
   element.setPosition(400.f + 2.f*20.f + 480.f, 146.f);
-  chip.setPosition(389.f + 480.f, 93.f);
+  card.setPosition(389.f + 480.f, 93.f);
 
   ENGINE.Draw(packDock);
-  ENGINE.Draw(chipHolder);
+  ENGINE.Draw(cardHolder);
 
-  // ScrollBar limits: Top to bottom screen position when selecting first and last chip respectively
+  // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 50.0f; float bottom = 230.0f;
-  float depth = ((float)packView.lastChipOnScreen / (float)packView.numOfChips)*bottom;
+  float depth = ((float)packView.lastCardOnScreen / (float)packView.numOfCards)*bottom;
   scrollbar.setPosition(292.f + 480.f, top + depth);
 
   ENGINE.Draw(scrollbar);
 
   //if (CHIPLIB.GetSize() == 0) return;
 
-  // Move the chip library iterator to the current highlighted chip
-  auto iter = packChipBuckets.begin();
+  // Move the card library iterator to the current highlighted card
+  auto iter = packCardBuckets.begin();
 
-  for (int j = 0; j < packView.lastChipOnScreen; j++) {
+  for (int j = 0; j < packView.lastCardOnScreen; j++) {
     iter++;
   }
 
-  // Now that we are at the viewing range, draw each chip in the list
-  for (int i = 0; i < packView.maxChipsOnScreen && packView.lastChipOnScreen + i < packView.numOfChips; i++) {
+  // Now that we are at the viewing range, draw each card in the list
+  for (int i = 0; i < packView.maxCardsOnScreen && packView.lastCardOnScreen + i < packView.numOfCards; i++) {
     int count = iter->GetCount();
-    const Chip& copy = iter->ViewChip();
+    const Card& copy = iter->ViewCard();
 
-    chipIcon.setTextureRect(TEXTURES.GetIconRectFromID(copy.GetIconID()));
-    chipIcon.setPosition(19.f + 480.f, 65.0f + (32.f*i));
-    ENGINE.Draw(chipIcon, false);
+    cardIcon.setTextureRect(sf::IntRect{ 0,0,16,16 });
+    cardIcon.setPosition(19.f + 480.f, 65.0f + (32.f*i));
+    ENGINE.Draw(cardIcon, false);
 
-    chipLabel->setFillColor(sf::Color::White);
-    chipLabel->setPosition(50.f + 480.f, 60.0f + (32.f*i));
-    chipLabel->setString(copy.GetShortName());
-    ENGINE.Draw(chipLabel, false);
+    cardLabel->setFillColor(sf::Color::White);
+    cardLabel->setPosition(50.f + 480.f, 60.0f + (32.f*i));
+    cardLabel->setString(copy.GetShortName());
+    ENGINE.Draw(cardLabel, false);
 
 
     int offset = (int)(copy.GetElement());
@@ -757,53 +757,52 @@ void FolderEditScene::DrawLibrary() {
     element.setPosition(163.0f + 480.f, 65.0f + (32.f*i));
     ENGINE.Draw(element, false);
 
-    chipLabel->setOrigin(0, 0);
-    chipLabel->setPosition(196.f + 480.f, 60.0f + (32.f*i));
-    chipLabel->setString(std::string() + copy.GetCode());
-    ENGINE.Draw(chipLabel, false);
+    cardLabel->setOrigin(0, 0);
+    cardLabel->setPosition(196.f + 480.f, 60.0f + (32.f*i));
+    cardLabel->setString(std::string() + copy.GetCode());
+    ENGINE.Draw(cardLabel, false);
 
     // Draw count in pack
-    chipLabel->setOrigin(0, 0);
-    chipLabel->setPosition(275.f + 480.f, 60.0f + (32.f*i));
-    chipLabel->setString(std::to_string(count));
-    ENGINE.Draw(chipLabel, false);
+    cardLabel->setOrigin(0, 0);
+    cardLabel->setPosition(275.f + 480.f, 60.0f + (32.f*i));
+    cardLabel->setString(std::to_string(count));
+    ENGINE.Draw(cardLabel, false);
 
     //Draw MB
     mbPlaceholder.setPosition(220.f + 480.f, 67.0f + (32.f*i));
     ENGINE.Draw(mbPlaceholder, false);
 
     // Draw cursor
-    if (packView.lastChipOnScreen + i == packView.currChipIndex) {
+    if (packView.lastCardOnScreen + i == packView.currCardIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, packCursor.getPosition().y, 64.0f + (32.f*i));
       auto bounce = std::sin((float)totalTimeElapsed*10.0f)*2.0f;
 
       packCursor.setPosition(bounce + 480.f + 2.f, y);
       ENGINE.Draw(packCursor);
 
-      sf::IntRect cardSubFrame = TEXTURES.GetCardRectFromID(copy.GetID());
-      chip.setTextureRect(cardSubFrame);
-      chip.setScale((float)swoosh::ease::linear(chipRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
-      ENGINE.Draw(chip, false);
+      card.setTextureRect(sf::IntRect{ 0,0,56,48 });
+      card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
+      ENGINE.Draw(card, false);
 
-      // This draws the currently highlighted chip
+      // This draws the currently highlighted card
       if (copy.GetDamage() > 0) {
-        chipLabel->setFillColor(sf::Color::White);
-        chipLabel->setString(std::to_string(copy.GetDamage()));
-        chipLabel->setOrigin(chipLabel->getLocalBounds().width + chipLabel->getLocalBounds().left, 0);
-        chipLabel->setPosition(2.f*(223.f) + 480.f, 135.f);
+        cardLabel->setFillColor(sf::Color::White);
+        cardLabel->setString(std::to_string(copy.GetDamage()));
+        cardLabel->setOrigin(cardLabel->getLocalBounds().width + cardLabel->getLocalBounds().left, 0);
+        cardLabel->setPosition(2.f*(223.f) + 480.f, 135.f);
 
-        ENGINE.Draw(chipLabel, false);
+        ENGINE.Draw(cardLabel, false);
       }
 
-      chipLabel->setOrigin(0, 0);
-      chipLabel->setFillColor(sf::Color::Yellow);
-      chipLabel->setPosition(2.f*167.f + 480.f, 135.f);
-      chipLabel->setString(std::string() + copy.GetCode());
-      ENGINE.Draw(chipLabel, false);
+      cardLabel->setOrigin(0, 0);
+      cardLabel->setFillColor(sf::Color::Yellow);
+      cardLabel->setPosition(2.f*167.f + 480.f, 135.f);
+      cardLabel->setString(std::string() + copy.GetCode());
+      ENGINE.Draw(cardLabel, false);
 
-      std::string formatted = FormatChipDesc(copy.GetDescription());
-      chipDesc->setString(formatted);
-      ENGINE.Draw(chipDesc, false);
+      std::string formatted = FormatCardDesc(copy.GetDescription());
+      cardDesc->setString(formatted);
+      ENGINE.Draw(cardDesc, false);
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
@@ -811,7 +810,7 @@ void FolderEditScene::DrawLibrary() {
       ENGINE.Draw(element, false);
     }
     
-    if (packView.lastChipOnScreen + i == packView.swapChipIndex && (int(totalTimeElapsed*1000) % 2 == 0)) {
+    if (packView.lastCardOnScreen + i == packView.swapCardIndex && (int(totalTimeElapsed*1000) % 2 == 0)) {
       auto y =  64.0f + (32.f*i);
 
       packSwapCursor.setPosition(485.f + 2.f + 2.f, y);
@@ -826,45 +825,45 @@ void FolderEditScene::DrawLibrary() {
 
 void FolderEditScene::onEnd() {
   delete font;
-  delete chipFont;
-  delete chipDescFont;
+  delete cardFont;
+  delete cardDescFont;
   delete numberFont;
   delete menuLabel;
   delete numberLabel;
-  delete chipDesc;
+  delete cardDesc;
 }
 
 void FolderEditScene::ExcludeFolderDataFromPack()
 {
-  Chip mock; // will not be used
-  for (auto& f : folderChipSlots) {
-    auto iter = std::find_if(packChipBuckets.begin(), packChipBuckets.end(), [&f](PackBucket& pack) { return pack.ViewChip() == f.ViewChip(); });
-    if (iter != packChipBuckets.end()) {
-      iter->GetChip(mock);
+  Card mock; // will not be used
+  for (auto& f : folderCardSlots) {
+    auto iter = std::find_if(packCardBuckets.begin(), packCardBuckets.end(), [&f](PackBucket& pack) { return pack.ViewCard() == f.ViewCard(); });
+    if (iter != packCardBuckets.end()) {
+      iter->GetCard(mock);
     }
   }
 }
 
-void FolderEditScene::PlaceFolderDataIntoChipSlots()
+void FolderEditScene::PlaceFolderDataIntoCardSlots()
 {
-  ChipFolder::Iter iter = folder.Begin();
+  CardFolder::Iter iter = folder.Begin();
   
-  while (iter != folder.End() && folderChipSlots.size() < 30) {
+  while (iter != folder.End() && folderCardSlots.size() < 30) {
     auto slot = FolderSlot();
-    slot.AddChip(Chip(**iter));
-    folderChipSlots.push_back(slot);
+    slot.AddCard(Card(**iter));
+    folderCardSlots.push_back(slot);
     iter++;
   }
 
-  while (folderChipSlots.size() < 30) {
-    folderChipSlots.push_back({});
+  while (folderCardSlots.size() < 30) {
+    folderCardSlots.push_back({});
   }
 }
 
 void FolderEditScene::PlaceLibraryDataIntoBuckets()
 {
-  ChipLibrary::Iter iter = CHIPLIB.Begin();
-  std::map<Chip, bool, Chip::Compare> visited; // visit table
+  CardLibrary::Iter iter = CHIPLIB.Begin();
+  std::map<Card, bool, Card::Compare> visited; // visit table
 
   while (iter != CHIPLIB.End()) {
     if (visited.find(*iter) != visited.end()) {
@@ -874,20 +873,20 @@ void FolderEditScene::PlaceLibraryDataIntoBuckets()
 
     visited[(*iter)] = true;
     int count = CHIPLIB.GetCountOf(*iter);
-    auto bucket = PackBucket(count, Chip(*iter));
-    packChipBuckets.push_back(bucket);
+    auto bucket = PackBucket(count, Card(*iter));
+    packCardBuckets.push_back(bucket);
     iter++;
   }
 }
 
 void FolderEditScene::WriteNewFolderData()
 {
-  folder = ChipFolder();
+  folder = CardFolder();
 
-  for (auto iter = folderChipSlots.begin(); iter != folderChipSlots.end(); iter++) {
+  for (auto iter = folderCardSlots.begin(); iter != folderCardSlots.end(); iter++) {
     if ((*iter).IsEmpty()) continue; 
 
-    folder.AddChip((*iter).ViewChip());
+    folder.AddCard((*iter).ViewCard());
   }
 }
 

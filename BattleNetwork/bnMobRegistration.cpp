@@ -144,9 +144,7 @@ void MobRegistration::LoadAllMobs(std::atomic<int>& progress)
   for (int i = 0; i < (int)Size(); i++) {
     roster[i]->loadMobClass();
 
-    Logger::GetMutex()->lock();
     Logger::Logf("Loaded mob: %s", roster[i]->GetName().c_str());
-    Logger::GetMutex()->unlock();
 
     progress++;
   }

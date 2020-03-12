@@ -5,6 +5,9 @@
 #include <mutex>
 #include <queue>
 #include <future>
+#include <SFML/Graphics.hpp>
+
+#include "bnCard.h"
 
 template<typename T>
 bool is_ready(const std::future<T>& f) {
@@ -26,6 +29,8 @@ private:
     void PingThreadHandler();
     void QueuedTasksThreadHandler();
     void InitDownloadImageHandler();
+    std::map<std::string, std::shared_ptr<sf::Texture>> iconTextureCache;
+    std::map<std::string, std::shared_ptr<sf::Texture>> cardTextureCache;
 public:
     WebClientManager();
     static WebClientManager& GetInstance();
@@ -39,6 +44,12 @@ public:
     std::future<bool> SendLogoutCommand();
     std::future<WebAccounts::AccountState> SendFetchAccountCommand();
 
+    const std::shared_ptr<sf::Texture> GetIconForCard(const std::string& uuid);
+    const std::shared_ptr<sf::Texture> GetImageForCard(const std::string& uuid);
+
+    static Card MakeBattleCardFromWebCardData(const WebAccounts::AccountState& account, const WebAccounts::Card& card);
+
+    void CacheTextureData(const WebAccounts::AccountState& account);
     void ShutdownAllTasks();
 };
 

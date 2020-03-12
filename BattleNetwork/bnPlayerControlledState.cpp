@@ -1,9 +1,9 @@
 #include "bnPlayerControlledState.h"
 #include "bnInputManager.h"
 #include "bnPlayer.h"
-#include "bnChipAction.h"
+#include "bnCardAction.h"
 #include "bnTile.h"
-#include "bnSelectedChipsUI.h"
+#include "bnSelectedCardsUI.h"
 #include "bnAudioResourceManager.h"
 
 #include <iostream>
@@ -40,14 +40,14 @@ void PlayerControlledState::OnEnter(Player& player) {
 
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   // Action controls take priority over movement
-  if (player.GetComponentsDerivedFrom<ChipAction>().size()) return;
+  if (player.GetComponentsDerivedFrom<CardAction>().size()) return;
 
   // Are we creating an action this frame?
   if (INPUT.Has(EventTypes::PRESSED_USE_CHIP)) {
-    auto chipsUI = player.GetFirstComponent<SelectedChipsUI>();
-    if (chipsUI) {
-      chipsUI->UseNextChip();
-      // If the chip used was successful, the player will now have an active chip in queue
+    auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
+    if (cardsUI) {
+      cardsUI->UseNextCard();
+      // If the card used was successful, the player will now have an active card in queue
       QueueAction(player);
     }
   } else if (INPUT.Has(EventTypes::PRESSED_SPECIAL)) {
@@ -145,8 +145,8 @@ void PlayerControlledState::OnLeave(Player& player) {
   player.chargeEffect.SetCharging(false);
   player.queuedAction = nullptr;
   
-  /* Cancel chip actions */
-  auto actions = player.GetComponentsDerivedFrom<ChipAction>();
+  /* Cancel card actions */
+  auto actions = player.GetComponentsDerivedFrom<CardAction>();
 
   for (auto a : actions) {
     a->EndAction();

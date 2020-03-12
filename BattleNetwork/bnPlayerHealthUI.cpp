@@ -68,7 +68,7 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
     glyphs.setTextureRect(sf::IntRect(col, row, 8, 11));
     glyphs.setPosition(sf::Vector2f(offsetx-8.f, 6.0f) + sf::Vector2f(sprite.getLocalBounds().width*sprite.getScale().x, 0.f));
 
-    // Draw using transforms from parent so we can attach this to the chip cust
+    // Draw using transforms from parent so we can attach this to the card cust
     target.draw(glyphs, this_states);
 
     offsetx += 8.0f*glyphs.getScale().x;

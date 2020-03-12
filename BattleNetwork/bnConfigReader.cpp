@@ -199,7 +199,7 @@ ConfigReader::ConfigReader(std::string filepath) {
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Down,  "Move Down"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Down, "Move Down"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Z, "Shoot"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::X, "Use Chip"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::X, "Use Card"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::S, "Special"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::A, "Cust Menu"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Return, "Pause"));

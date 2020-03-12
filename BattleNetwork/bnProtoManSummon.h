@@ -1,6 +1,6 @@
 /*! \brief Protoman appears and attacks every enemy he can reach
  * 
- * NOTE: The chip summon system is going under major refactoring and this
+ * NOTE: The card summon system is going under major refactoring and this
  * code will not be the same
  */
 
@@ -8,7 +8,7 @@
 #include "bnSpell.h"
 #include "bnAnimationComponent.h"
 
-class ChipSummonHandler;
+class CardSummonHandler;
 
 class ProtoManSummon : public Spell {
 public:
@@ -17,7 +17,7 @@ public:
    * \brief Scans for enemies. Checks to see if protoman can
    * spawn in front of them. If so, the tile is stored
    * as targets.*/
-  ProtoManSummon(ChipSummonHandler* _summons);
+  ProtoManSummon(CardSummonHandler* _summons);
   
   /**
    * @brief deconstructor
@@ -58,6 +58,6 @@ public:
 private:
   std::vector<Battle::Tile*> targets; /*!< List of every tile ProtoMan must visit */
   int random;
-  ChipSummonHandler* summons;
+  CardSummonHandler* summons;
   AnimationComponent* animationComponent;
 };

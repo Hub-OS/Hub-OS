@@ -5,13 +5,13 @@
 class Tile;
 class Player;
 class InputManager;
-class ChipAction;
+class CardAction;
 
 class PlayerControlledState : public AIState<Player>
 {
 private:  
   bool isChargeHeld; /*!< Flag if player is holding down shoot button */
-  ChipAction* queuedAction; /*!< Movement takes priority. If there is an action queued, fire on next best frame*/
+  CardAction* queuedAction; /*!< Movement takes priority. If there is an action queued, fire on next best frame*/
 
   void QueueAction(Player& player);
 public:

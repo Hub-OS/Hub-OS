@@ -1,4 +1,5 @@
 #include "bnBattleResults.h"
+#include "bnWebClientMananger.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
@@ -57,13 +58,13 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   std::mt19937 g(rd());
 
   // begin counting index at 0
-  std::iota(hideChipMatrix.begin(), hideChipMatrix.end(), 0);
+  std::iota(hideCardMatrix.begin(), hideCardMatrix.end(), 0);
 
   // shuffle twice - one shuffle looks too linear
-  std::shuffle(hideChipMatrix.begin(), hideChipMatrix.end(), g);
-  std::shuffle(hideChipMatrix.begin(), hideChipMatrix.end(), g);
+  std::shuffle(hideCardMatrix.begin(), hideCardMatrix.end(), g);
+  std::shuffle(hideCardMatrix.begin(), hideCardMatrix.end(), g);
 
-  chipMatrixIndex = 0;
+  cardMatrixIndex = 0;
 
   if(!mob->IsBoss()) {
     if (battleLength.asSeconds() > 36.1) score += 4;
@@ -117,17 +118,20 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   sf::Font *font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   if (item) {
-    sf::IntRect rect = TEXTURES.GetCardRectFromID(item->GetID());
+    std::shared_ptr<sf::Texture> tex = WEBCLIENT.GetImageForCard(item->GetUUID());
 
-    rewardCard = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CARDS));
-    rewardCard.setTextureRect(rect);
+    if (tex) {
+        rewardCard = sf::Sprite(*tex);
+    }
 
-    if (item->IsChip()) {
-      rewardIsChip = true;
+    rewardCard.setTextureRect(sf::IntRect(0,0,56,48));
 
-      chipCode.setFont(*font);
-      chipCode.setPosition(2.f*114.f, 209.f);
-      chipCode.setString(std::string() + item->GetChipCode());
+    if (item->IsCard()) {
+      rewardIsCard = true;
+
+      cardCode.setFont(*font);
+      cardCode.setPosition(2.f*114.f, 209.f);
+      cardCode.setString(std::string() + item->GetCardCode());
     }
   }
   else {
@@ -252,13 +256,13 @@ void BattleResults::Update(double elapsed)
   }
 
   if (isRevealed) {
-    if (chipMatrixIndex == hideChipMatrix.size() && !playSoundOnce) {
+    if (cardMatrixIndex == hideCardMatrix.size() && !playSoundOnce) {
       playSoundOnce = true;
       AUDIO.Play(AudioType::ITEM_GET);
     }
     else {
-      if (chipMatrixIndex < hideChipMatrix.size()) {
-        hideChipMatrix[chipMatrixIndex++] = 0;
+      if (cardMatrixIndex < hideCardMatrix.size()) {
+        hideCardMatrix[cardMatrixIndex++] = 0;
       }
     }
 
@@ -319,9 +323,9 @@ void BattleResults::Draw() {
       c.setFillColor(sf::Color::Black);
       c.setOutlineColor(sf::Color::Black);
 
-      // obscure the chip with a matrix
-      for (auto cell : hideChipMatrix) {
-        if (cell >= chipMatrixIndex) {
+      // obscure the card with a matrix
+      for (auto cell : hideCardMatrix) {
+        if (cell >= cardMatrixIndex) {
           // position based on cell's index from a 7x6 matrix
           sf::Vector2f offset = sf::Vector2f(float(cell % 7) * 8.0f, float(std::floor(cell / 7) * 8.0f));
           offset = 2.0f * offset;
@@ -334,8 +338,8 @@ void BattleResults::Draw() {
       if (IsFinished()) {
         ENGINE.Draw(reward, false);
 
-        if (rewardIsChip) {
-          ENGINE.Draw(chipCode, false);
+        if (rewardIsCard) {
+          ENGINE.Draw(cardCode, false);
         }
       }
     }
@@ -347,9 +351,9 @@ void BattleResults::Draw() {
   }
 }
 
-// Chip ops
+// Card ops
 bool BattleResults::IsFinished() {
-  return isRevealed && hideChipMatrix.size() == chipMatrixIndex;
+  return isRevealed && hideCardMatrix.size() == cardMatrixIndex;
 }
 
 BattleItem* BattleResults::GetReward()

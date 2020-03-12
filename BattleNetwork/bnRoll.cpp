@@ -2,12 +2,12 @@
 #include "bnExplodeState.h"
 #include "bnField.h"
 #include "bnBuster.h"
-#include "bnRecoverChipAction.h"
+#include "bnRecoverCardAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnEngine.h"
 #include "bnLogger.h"
-#include "bnBusterChipAction.h"
+#include "bnBusterCardAction.h"
 
 const std::string RESOURCE_PATH = "resources/navis/roll/roll.animation";
 
@@ -36,17 +36,17 @@ const float Roll::GetHeight() const
   return 140.0f;
 }
 
-ChipAction * Roll::ExecuteSpecialAction()
+CardAction * Roll::ExecuteSpecialAction()
 {
-  return new RecoverChipAction(this, 20);
+  return new RecoverCardAction(this, 20);
 }
 
-ChipAction* Roll::ExecuteBusterAction()
+CardAction* Roll::ExecuteBusterAction()
 {
-  return new BusterChipAction(this, false, 1);
+  return new BusterCardAction(this, false, 1);
 }
 
-ChipAction* Roll::ExecuteChargedBusterAction()
+CardAction* Roll::ExecuteChargedBusterAction()
 {
-  return new BusterChipAction(this, true, 20);
+  return new BusterCardAction(this, true, 20);
 }

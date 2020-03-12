@@ -124,7 +124,7 @@ namespace Battle {
     /**
      * @brief Change the tile's state if unoccupied or not broken nor empty
      * SetState tries to abide by the game's original rules
-     * You cannot use a chip to change the state of the tile if it's in a state
+     * You cannot use a card to change the state of the tile if it's in a state
      * that cannot be modified such as being TileState::Empty
      * @param _state
      */
@@ -211,7 +211,7 @@ namespace Battle {
     /**
      * @brief Reserve this tile for an entity with ID 
      * An entity may be temporarily removed from play but will be back
-     * later. This mechanic is seen with AntiDamage chip. While
+     * later. This mechanic is seen with AntiDamage card. While
      * the entity is removed, the tile it was on must not be modified
      * by state changes and should be treated as occupied for all other checks.
      * When the entity is added again with AddEntity(), the reserve will be removed.
@@ -248,7 +248,7 @@ namespace Battle {
 
     /**
      * @brief Query for multiple entities using a functor
-     * This is useful for movement as well as chip attacks 
+     * This is useful for movement as well as card attacks 
      * to find specific enemy types under specific conditions
      * @param e Functor that takes in an entity and returns a boolean
      * @return returns a list of entities that returned true in the functor `e` 

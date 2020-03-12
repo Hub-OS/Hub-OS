@@ -67,15 +67,15 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::CANNON, "resources/sfx/cannon.ogg"); status++;
   LoadSource(AudioType::COUNTER, "resources/sfx/counter.ogg"); status++;
   LoadSource(AudioType::WIND, "resources/sfx/wind.ogg"); status++;
-  LoadSource(AudioType::CHIP_CANCEL, "resources/sfx/chip_cancel.ogg"); status++;
-  LoadSource(AudioType::CHIP_CHOOSE, "resources/sfx/chip_choose.ogg"); status++;
-  LoadSource(AudioType::CHIP_CONFIRM, "resources/sfx/chip_confirm.ogg"); status++;
-  LoadSource(AudioType::CHIP_DESC, "resources/sfx/chip_desc.ogg"); status++;
-  LoadSource(AudioType::CHIP_DESC_CLOSE, "resources/sfx/chip_desc_close.ogg"); status++;
-  LoadSource(AudioType::CHIP_SELECT, "resources/sfx/chip_select.ogg"); status++;
-  LoadSource(AudioType::CHIP_ERROR, "resources/sfx/chip_error.ogg"); status++;
+  LoadSource(AudioType::CHIP_CANCEL, "resources/sfx/card_cancel.ogg"); status++;
+  LoadSource(AudioType::CHIP_CHOOSE, "resources/sfx/card_choose.ogg"); status++;
+  LoadSource(AudioType::CHIP_CONFIRM, "resources/sfx/card_confirm.ogg"); status++;
+  LoadSource(AudioType::CHIP_DESC, "resources/sfx/card_desc.ogg"); status++;
+  LoadSource(AudioType::CHIP_DESC_CLOSE, "resources/sfx/card_desc_close.ogg"); status++;
+  LoadSource(AudioType::CHIP_SELECT, "resources/sfx/card_select.ogg"); status++;
+  LoadSource(AudioType::CHIP_ERROR, "resources/sfx/card_error.ogg"); status++;
   LoadSource(AudioType::CUSTOM_BAR_FULL, "resources/sfx/custom_bar_full.ogg"); status++;
-  LoadSource(AudioType::CUSTOM_SCREEN_OPEN, "resources/sfx/chip_screen_open.ogg"); status++;
+  LoadSource(AudioType::CUSTOM_SCREEN_OPEN, "resources/sfx/card_screen_open.ogg"); status++;
   LoadSource(AudioType::ITEM_GET, "resources/sfx/item_get.ogg"); status++;
   LoadSource(AudioType::DELETED, "resources/sfx/deleted.ogg"); status++;
   LoadSource(AudioType::EXPLODE, "resources/sfx/explode_once.ogg"); status++;
@@ -104,16 +104,10 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
 
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
   if (!sources[type].loadFromFile(path)) {
-
-    Logger::GetMutex()->lock();
     Logger::Logf("Failed loading audio: %s\n", path.c_str());
-    Logger::GetMutex()->unlock();
 
   } else {
-
-    Logger::GetMutex()->lock();
     Logger::Logf("Loaded audio: %s", path.c_str());
-    Logger::GetMutex()->unlock();
   }
 }
 
