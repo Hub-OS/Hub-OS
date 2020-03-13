@@ -55,7 +55,6 @@ sf::Shader* ShaderResourceManager::LoadShaderFromFile(string _path)
 
       Logger::Log("Error loading shader: " + _path + ".frag");
 
-      exit(EXIT_FAILURE);
       return nullptr;
     }
 #endif

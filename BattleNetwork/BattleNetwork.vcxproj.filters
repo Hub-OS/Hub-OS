@@ -725,6 +725,9 @@
     <Filter Include="Addons\MobRegistration\MobFactories\SpawnPolicies\CardSpawnPolicies">
       <UniqueIdentifier>{818f9f46-08a6-49c1-917e-8f8dbd065e02}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameEngine\ResourceManagers\FileResource">
+      <UniqueIdentifier>{e56bc97a-f542-4eb2-b6bc-026abc81c841}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">

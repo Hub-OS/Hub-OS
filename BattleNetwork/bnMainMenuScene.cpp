@@ -19,6 +19,7 @@ using sf::Font;
 
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetView()),
+  lastIsConnectedState(false),
   swoosh::Activity(&controller)
 {
     // When we reach the menu scene we need to load the player information
@@ -31,53 +32,60 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
     Logger::Log("waiting for server...");
 
-  // Draws the scrolling background
-  bg = new LanBackground();
+    webAccountIcon = sf::Sprite(LOAD_TEXTURE(WEBACCOUNT_STATUS));
+    webAccountIcon.setScale(2.f, 2.f);
+    webAccountIcon.setPosition(getController().getVirtualWindowSize().x - (32.f*2.f), 50.f);
+    webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
+    webAccountAnimator.Load();
+    webAccountAnimator.SetAnimation("POLL_CONNECTION");
 
-  // Generate an infinite map with a branch depth of 3, column size of 10
-  // and tile dimensions 47x24
-  map = new Overworld::InfiniteMap(3, 10, 47, 24);
+    // Draws the scrolling background
+    bg = new LanBackground();
+
+    // Generate an infinite map with a branch depth of 3, column size of 10
+    // and tile dimensions 47x24
+    map = new Overworld::InfiniteMap(3, 10, 47, 24);
   
-  // Share the camera
-  map->SetCamera(&camera);
+    // Share the camera
+    map->SetCamera(&camera);
 
-  // Show the HUD
-  showHUD = true;
+    // Show the HUD
+    showHUD = true;
 
-  // Selection input delays
-  maxSelectInputCooldown = 0.5; // half of a second
-  selectInputCooldown = maxSelectInputCooldown;
+    // Selection input delays
+    maxSelectInputCooldown = 0.5; // half of a second
+    selectInputCooldown = maxSelectInputCooldown;
 
-  // ui sprite maps
-  ui = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_UI));
-  ui.setScale(2.f, 2.f);
-  uiAnimator = Animation("resources/ui/main_menu_ui.animation");
-  uiAnimator.Reload();
+    // ui sprite maps
+    ui = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_UI));
+    ui.setScale(2.f, 2.f);
+    uiAnimator = Animation("resources/ui/main_menu_ui.animation");
+    uiAnimator.Reload();
 
-  // Keep track of selected navi
-  currentNavi = 0;
+    // Keep track of selected navi
+    currentNavi = 0;
 
-  owNavi = sf::Sprite(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
-  owNavi.setScale(2.f, 2.f);
-  owNavi.setPosition(0, 0.f);
-  naviAnimator = Animation("resources/navis/megaman/megaman.animation");
-  naviAnimator.Reload();
-  naviAnimator.SetAnimation("PLAYER_OW_RD");
-  naviAnimator << Animator::Mode::Loop;
+    owNavi = sf::Sprite(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
+    owNavi.setScale(2.f, 2.f);
+    owNavi.setPosition(0, 0.f);
+    naviAnimator = Animation("resources/navis/megaman/megaman.animation");
+    naviAnimator.Reload();
+    naviAnimator.SetAnimation("PLAYER_OW_RD");
+    naviAnimator << Animator::Mode::Loop;
 
-  // Share the navi sprite
-  // Map will transform navi's ortho position into isometric position
-  map->AddSprite(&owNavi);
+    // Share the navi sprite
+    // Map will transform navi's ortho position into isometric position
+    map->AddSprite(&owNavi);
 
-  overlay = sf::Sprite(LOAD_TEXTURE(MAIN_MENU));
-  overlay.setScale(2.f, 2.f);
+    overlay = sf::Sprite(LOAD_TEXTURE(MAIN_MENU));
+    overlay.setScale(2.f, 2.f);
 
-  ow = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_OW));
-  ow.setScale(2.f, 2.f);
+    ow = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_OW));
+    ow.setScale(2.f, 2.f);
 
-  gotoNextScene = true;
+    gotoNextScene = true;
 
-  menuSelectionIndex = lastMenuSelectionIndex = 0;
+    menuSelectionIndex = lastMenuSelectionIndex = 0;
 }
 
 void MainMenuScene::onStart() {
@@ -101,12 +109,25 @@ void MainMenuScene::onUpdate(double elapsed) {
         return; // keep the screen looking the same when we come back
     #endif
 
-    if (is_ready(accountResponse) && accountResponse.valid()) {
+    if (accountResponse.valid() && is_ready(accountResponse)) {
         WebAccounts::AccountState account = accountResponse.get();
 
         std::cout << "you have " << account.folders.size() << " folders on your account" << std::endl;
         data = CardFolderCollection::ReadFromWebAccount(account);
     }
+
+  // update the web connectivity icon
+  bool currentConnectivity = WEBCLIENT.IsConnectedToWebServer();
+  if (currentConnectivity != lastIsConnectedState) {
+    if (WEBCLIENT.IsConnectedToWebServer()) {
+        webAccountAnimator.SetAnimation("OK_CONNECTION");
+    }
+    else {
+        webAccountAnimator.SetAnimation("NO_CONNECTION");
+    }
+
+    lastIsConnectedState = currentConnectivity;
+  }
 
   // Update the map
   map->Update((float)elapsed);
@@ -123,7 +144,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   // Move the navi down
   owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*(float)elapsed, 0));
 
-  // TODO: fix this broken camera system! I have no idea why these values are working...
+  // TODO: fix this broken camera system! I have no idea why these values are required to look right...
   sf::Vector2f camOffset = camera.GetView().getSize();
   camOffset.x /= 5; // what?
   camOffset.y /= 3.5; // huh?
@@ -220,6 +241,8 @@ void MainMenuScene::onUpdate(double elapsed) {
   if (menuSelectionIndex != lastMenuSelectionIndex) {
     AUDIO.Play(AudioType::CHIP_SELECT);
   }
+
+  webAccountAnimator.Update((float)elapsed, webAccountIcon);
 
   lastMenuSelectionIndex = menuSelectionIndex;
 }
@@ -367,6 +390,10 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
 
     ENGINE.Draw(ui);
   }
+
+  // Add the web account connection symbol
+  ENGINE.Draw(&webAccountIcon);
+
 }
 
 void MainMenuScene::onEnd() {

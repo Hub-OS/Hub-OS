@@ -498,7 +498,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       }
 
       icon.setPosition(offset + 2.f*(9.0f + ((i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
-      icon  = sf::Sprite(*WEBCLIENT.GetImageForCard(queue[i].data->GetUUID()), sf::IntRect(0,0,14,14));
+      icon  = sf::Sprite(WEBCLIENT.GetImageForCard(queue[i].data->GetUUID()), sf::IntRect(0,0,14,14));
       icon.SetShader(nullptr);
 
       if (queue[i].state == 0) {
@@ -524,7 +524,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
     for (int i = 0; i < selectCount; i++) {
       icon.setPosition(offset + 2 * 97.f, 2.f*(25.0f + (i*16.0f)));
-      icon = sf::Sprite(*WEBCLIENT.GetImageForCard((*selectQueue)[i].data->GetUUID()), sf::IntRect(0, 0, 14, 14));
+      icon = sf::Sprite(WEBCLIENT.GetImageForCard((*selectQueue)[i].data->GetUUID()), sf::IntRect(0, 0, 14, 14));
 
       cardLock.setPosition(offset + 2 * 93.f, 2.f*(23.0f + (i*16.0f)));
       target.draw(cardLock, states);
@@ -538,7 +538,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
       if (cursorPos + (5 * cursorRow) < cardCount) {
         // Draw the selected card card
-        cardCard = sf::Sprite(*WEBCLIENT.GetImageForCard(queue[cursorPos+(5*cursorRow)].data->GetUUID()), sf::IntRect(0,0,56,48));
+        cardCard = sf::Sprite(WEBCLIENT.GetImageForCard(queue[cursorPos+(5*cursorRow)].data->GetUUID()), sf::IntRect(0,0,56,48));
 
         auto lastPos = cardCard.getPosition();
         cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());

@@ -34,7 +34,11 @@ private:
 
   // ui sprite maps
   sf::Sprite ui; /*!< UI loaded as a texture atlas */
-  Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
+  Animation uiAnimator; /*!< Use animator to represent the different UI buttons */
+
+  sf::Sprite webAccountIcon; /*!< Status icon if connected to web server*/
+  Animation webAccountAnimator; /*!< Use animator to represent different statuses */
+  bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
 
   int menuSelectionIndex;; /*!< Current selection */
   int lastMenuSelectionIndex;

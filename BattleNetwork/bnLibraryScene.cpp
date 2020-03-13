@@ -355,7 +355,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 
   // Now that we are at the viewing range, draw each card in the list
   for (int i = 0; i < maxCardsOnScreen && lastCardOnScreen + i < numOfCards; i++) {
-    cardIcon = sf::Sprite(*WEBCLIENT.GetIconForCard(iter->GetUUID()), sf::IntRect(0,0,14,14));
+    cardIcon = sf::Sprite(WEBCLIENT.GetIconForCard(iter->GetUUID()), sf::IntRect(0,0,14,14));
     cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
     ENGINE.Draw(cardIcon, false);
 

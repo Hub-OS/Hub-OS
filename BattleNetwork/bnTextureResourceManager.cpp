@@ -245,8 +245,10 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/shaders/textures/noise.png");
   paths.push_back("resources/shaders/textures/noise_invert.png");
 
-  // editor ui
+  // misc ui
   paths.push_back("resources/ui/light.png");
+  paths.push_back("resources/ui/webaccount_icon.png");
+  paths.push_back("resources/ui/spinner.png");
 
   // font
   paths.push_back("resources/fonts/all_fonts.png");

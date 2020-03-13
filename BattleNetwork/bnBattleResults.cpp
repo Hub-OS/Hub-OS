@@ -118,11 +118,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   sf::Font *font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   if (item) {
-    std::shared_ptr<sf::Texture> tex = WEBCLIENT.GetImageForCard(item->GetUUID());
-
-    if (tex) {
-        rewardCard = sf::Sprite(*tex);
-    }
+    rewardCard = sf::Sprite(WEBCLIENT.GetImageForCard(item->GetUUID()));
 
     rewardCard.setTextureRect(sf::IntRect(0,0,56,48));
 

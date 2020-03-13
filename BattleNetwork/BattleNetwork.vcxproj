@@ -114,7 +114,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>X:\Installed\SFML\lib;$(SolutionDir)extern\WebAPI\client\libs</AdditionalLibraryDirectories>
-      <AdditionalDependencies>openal32.lib;freetype.lib;Winmm.lib;OpenGL32.lib;sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-graphics-s-d.lib;sfml-audio-s-d.lib;sfml-network-s-d.lib;sfml-main-d.lib;flac.lib;ogg.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;OpenNetBattleWebClient.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>openal32.lib;freetype.lib;ws2_32.lib;Winmm.lib;OpenGL32.lib;sfml-system-s-d.lib;sfml-window-s-d.lib;sfml-graphics-s-d.lib;sfml-audio-s-d.lib;sfml-network-s-d.lib;sfml-main-d.lib;flac.lib;ogg.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;OpenNetBattleWebClient.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

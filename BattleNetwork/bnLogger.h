@@ -51,7 +51,8 @@ public:
       return;
 
     if (!file.is_open()) {
-      file.open("log.txt");
+      file.open("log.txt", std::ios::app);
+      file << "==============================" << endl;
       file << "StartTime " << time(0) << endl;
     }
 
@@ -95,7 +96,8 @@ public:
     __android_log_print(ANDROID_LOG_INFO,"open mmbn engine","%s",ret.c_str());
 #else
     if (!file.is_open()) {
-      file.open("log.txt");
+      file.open("log.txt", std::ios::app);
+      file << "==========================" << endl;
       file << "StartTime " << time(0) << endl;
     }
 

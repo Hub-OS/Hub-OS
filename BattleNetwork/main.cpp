@@ -203,6 +203,15 @@ int main(int argc, char** argv) {
         bool success = result.get();
         if (success) {
             std::cout << "Logged in! Welcome " << username << "! " << std::endl;
+
+
+            try {
+                const WebAccounts::AccountState& account = WEBCLIENT.SendFetchAccountCommand().get();
+                WEBCLIENT.CacheTextureData(account);
+            }
+            catch (const std::future_error& e) {
+                Logger::Logf("Caught a future_error with code %s\nMessage: %s", e.code().message(), e.what());
+            }
         }
         else {
             std::cout << "Could not authenticate. Aborting." << std::endl;
@@ -257,6 +266,17 @@ int main(int argc, char** argv) {
     mouseAnimation << Animator::Mode::Loop;
     sf::Vector2f lastMousepos;
     double mouseAlpha = 1.0;
+
+    // set a loading spinner on the bottom-right corner of the screen
+    sf::Texture* spinnerTexture = TEXTURES.LoadTextureFromFile("resources/ui/spinner.png");
+    sf::Sprite spinner(*spinnerTexture);
+    spinner.setScale(2.f, 2.f);
+    spinner.setPosition(float(ENGINE.GetWindow()->getSize().x - 64), float(ENGINE.GetWindow()->getSize().y - 50));
+
+    Animation spinnerAnimator("resources/ui/spinner.animation");
+    spinnerAnimator.Load();
+    spinnerAnimator.SetAnimation("SPIN");
+    spinnerAnimator << Animator::Mode::Loop;
 
     // Title screen logo based on region
     #if OBN_REGION_JAPAN
@@ -486,12 +506,12 @@ int main(int argc, char** argv) {
             if (!bg) {
                 // Load resources from internal storage
                 try {
-                bg = TEXTURES.GetTexture(TextureType::BG_BLUE);
-                bgSprite.setTexture(*bg);
-                bgSprite.setScale(2.f, 2.f);
+                    bg = TEXTURES.GetTexture(TextureType::BG_BLUE);
+                    bgSprite.setTexture(*bg);
+                    bgSprite.setScale(2.f, 2.f);
                 }
                 catch (std::exception e) {
-                // didnt catchup? debug
+                    Logger::Log(e.what());
                 }
             }
 
@@ -521,25 +541,25 @@ int main(int argc, char** argv) {
             if (!cursor) {
                 // Load resources from internal storage
                 try {
-                cursor = TEXTURES.GetTexture(TextureType::TEXT_BOX_CURSOR);
+                    cursor = TEXTURES.GetTexture(TextureType::TEXT_BOX_CURSOR);
 
-                cursorSprite.setTexture(*cursor);
-                cursorSprite.setPosition(sf::Vector2f(160.0f, 225.f));
-                cursorSprite.setScale(2.f, 2.f);
+                    cursorSprite.setTexture(*cursor);
+                    cursorSprite.setPosition(sf::Vector2f(160.0f, 225.f));
+                    cursorSprite.setScale(2.f, 2.f);
                 }
                 catch (std::exception e) {
-                // didnt catchup? debug
+                    // didnt catchup? debug
                 }
             }
 
             if (!whiteShader) {
                 try {
-                whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
-                whiteShader->setUniform("opacity", 0.0f);
-                ENGINE.SetShader(whiteShader);
+                    whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
+                    whiteShader->setUniform("opacity", 0.0f);
+                    ENGINE.SetShader(whiteShader);
                 }
                 catch (std::exception e) {
-                // didnt catchup? debug
+                    // didnt catchup? debug
                 }
             }
 
@@ -717,6 +737,12 @@ int main(int argc, char** argv) {
             }
         }
 
+        // Add the "loading" spinner
+        if (WEBCLIENT.IsWorking()) {
+            spinnerAnimator.Update(elapsed/1000, spinner);
+            ENGINE.Draw(&spinner);
+        }
+
         loadSurface.display();
 
         sf::Sprite postprocess(loadSurface.getTexture());
@@ -847,12 +873,19 @@ int main(int argc, char** argv) {
         //ENGINE.GetWindow()->draw(mouse, states);
         #endif
 
+        // Add the "loading" spinner
+        if (WEBCLIENT.IsWorking()) {
+            spinnerAnimator.Update(elapsed, spinner);
+            ENGINE.GetWindow()->draw(spinner, states);
+        }
+
         ENGINE.GetWindow()->display();
 
     }
 
     WEBCLIENT.ShutdownAllTasks();
 
+    delete spinnerTexture;
     delete mouseTexture;
     delete logLabel;
     delete font;

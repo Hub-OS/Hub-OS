@@ -1,8 +1,9 @@
 #include "bnWebClientMananger.h"
 #include "bnXPlatformStringCopy.h"
 #include "bnURLParser.h"
-
+#include "bnLogger.h"
 #include "bnElements.h"
+
 #include <SFML/Network/Http.hpp>
 
 void WebClientManager::PingThreadHandler()
@@ -36,12 +37,14 @@ void WebClientManager::QueuedTasksThreadHandler()
         //after wait, we own the lock
         if (taskQueue.size())
         {
+            this->isWorking = true;
             auto op = std::move(taskQueue.front());
             taskQueue.pop();
 
             lock.unlock();
             op();
             lock.lock();
+            this->isWorking = false;
         }
     } while (!shutdownSignal);
 }
@@ -61,13 +64,19 @@ void WebClientManager::InitDownloadImageHandler()
         request.setMethod(sf::Http::Request::Get);
         request.setUri(urlParser.GetPath());
 
+        std::cout << urlParser.GetHost() << ", " << urlParser.GetPath() << ", " << urlParser.GetQuery() << std::endl;
+
         sf::Http::Response Page = Http.sendRequest(request);
 
         size = Page.getBody().size();
 
         std::string data = Page.getBody();
 
-        XPLATFORM_STRCPY((char*)image, size, data.data());
+        image = new WebAccounts::byte[size + 1];
+        if (size > 0) {
+            XPLATFORM_STRCPY((char*)image, size + 1, data.data());
+            image[size] = '\0';
+        }
     };
 
     std::scoped_lock<std::mutex>(this->clientMutex);
@@ -76,24 +85,27 @@ void WebClientManager::InitDownloadImageHandler()
 
 void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account)
 {
+    /*
     for (auto&& card : account.cards) {
         auto cardModel = account.cardModels.find(card.second.modelId);
 
         auto imageData = cardModel->second.imageData;
         auto iconData = cardModel->second.iconData;
 
-        auto textureObject = std::make_shared<sf::Texture>();
-        textureObject->loadFromMemory(imageData, strlen((char*)imageData)*sizeof(char));
+        sf::Texture textureObject;
+        textureObject.loadFromMemory(imageData, strlen((char*)imageData));
         this->cardTextureCache.insert(std::make_pair(card.first, textureObject));
 
-        textureObject = std::make_shared<sf::Texture>();
-        textureObject->loadFromMemory(iconData, strlen((char*)iconData)*sizeof(char));
+        textureObject = sf::Texture();
+        textureObject.loadFromMemory(iconData, strlen((char*)iconData));
         this->iconTextureCache.insert(std::make_pair(card.first, textureObject));
-    }
+    }*/
 }
 
 WebClientManager::WebClientManager() {
     shutdownSignal = false;
+    isConnected = false;
+    isWorking = false;
 
     PingInterval(2000);
 
@@ -133,6 +145,11 @@ const bool WebClientManager::IsLoggedIn()
     return this->client ? this->client->IsLoggedIn() : false;
 }
 
+const bool WebClientManager::IsWorking()
+{
+    return true || this->isWorking;
+}
+
 std::future<bool> WebClientManager::SendLoginCommand(const char * username, const char * password)
 {
     auto promise = std::make_shared<std::promise<bool>>();
@@ -146,9 +163,6 @@ std::future<bool> WebClientManager::SendLoginCommand(const char * username, cons
 
         bool result = this->client->Login(username, password);
         promise->set_value(result);
-
-        const WebAccounts::AccountState& account = this->SendFetchAccountCommand().get();
-        this->CacheTextureData(account);
     };
 
     std::scoped_lock<std::mutex>(this->clientMutex);
@@ -210,14 +224,14 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
     return promise->get_future();
 }
 
-const std::shared_ptr<sf::Texture> WebClientManager::GetIconForCard(const std::string & uuid)
+const sf::Texture& WebClientManager::GetIconForCard(const std::string & uuid)
 {
-    return iconTextureCache.find(uuid)->second;
+    return iconTextureCache[uuid];
 }
 
-const std::shared_ptr<sf::Texture> WebClientManager::GetImageForCard(const std::string & uuid)
+const sf::Texture& WebClientManager::GetImageForCard(const std::string & uuid)
 {
-    return cardTextureCache.find(uuid)->second;
+    return cardTextureCache[uuid];
 }
 
 Card WebClientManager::MakeBattleCardFromWebCardData(const WebAccounts::AccountState& account, const WebAccounts::Card & card)
@@ -233,15 +247,19 @@ void WebClientManager::ShutdownAllTasks()
 {
     shutdownSignal = true;
 
+    std::unique_lock<std::mutex> lock(clientMutex);
+    while (taskQueue.size()) {
+        taskQueue.pop();
+    }
+    lock.unlock();
+
+    this->taskQueueWakeup.notify_all();
+
     if (tasksThread.joinable()) {
         tasksThread.join();
     }
 
     if (pingThread.joinable()) {
         pingThread.join();
-    }
-
-    while (taskQueue.size()) {
-        taskQueue.pop();
     }
 }

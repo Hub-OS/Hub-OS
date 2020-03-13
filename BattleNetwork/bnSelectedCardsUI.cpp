@@ -92,7 +92,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           target.draw(frame);
 
           // Grab the ID of the card and draw that icon from the spritesheet
-          icon = sf::Sprite(*WEBCLIENT.GetIconForCard(selectedCards[drawOrderIndex]->GetUUID()), sf::IntRect(0, 0, 14, 14));
+          icon = sf::Sprite(WEBCLIENT.GetIconForCard(selectedCards[drawOrderIndex]->GetUUID()), sf::IntRect(0, 0, 14, 14));
 
           target.draw(icon);
         }

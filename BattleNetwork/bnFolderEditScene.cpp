@@ -668,7 +668,7 @@ void FolderEditScene::DrawFolder() {
 
       if (!iter->IsEmpty()) {
 
-        card = sf::Sprite(*WEBCLIENT.GetImageForCard(copy.GetUUID()), sf::IntRect(0,0,56,48));
+        card = sf::Sprite(WEBCLIENT.GetImageForCard(copy.GetUUID()), sf::IntRect(0,0,56,48));
         card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
         ENGINE.Draw(card, false);
 
@@ -728,7 +728,7 @@ void FolderEditScene::DrawLibrary() {
 
   ENGINE.Draw(scrollbar);
 
-  //if (CHIPLIB.GetSize() == 0) return;
+  if (packView.numOfCards == 0) return;
 
   // Move the card library iterator to the current highlighted card
   auto iter = packCardBuckets.begin();

@@ -5,7 +5,8 @@
 #include <mutex>
 #include <queue>
 #include <future>
-#include <SFML/Graphics.hpp>
+
+#include <SFML/Graphics/Texture.hpp>
 
 #include "bnCard.h"
 
@@ -20,17 +21,18 @@ private:
     std::thread tasksThread; //!< This thread performs api requests when queued by the battle engine
     std::thread pingThread; //!< This thread pings the server to gauge the connection
     std::mutex clientMutex; //!< Mutex for WebClient since it may be accessed by multiple threads...
-    char isConnected; //!< True if pinged heartbeat endpoint successfully in the last invernal
+    bool isConnected; //!< True if pinged heartbeat endpoint successfully in the last invernal
     long heartbeatInterval; //!< The time in milliseconds to ping the web server
     std::queue<std::function<void()>> taskQueue;
     std::condition_variable taskQueueWakeup;
     bool shutdownSignal;
+    bool isWorking;
 
     void PingThreadHandler();
     void QueuedTasksThreadHandler();
     void InitDownloadImageHandler();
-    std::map<std::string, std::shared_ptr<sf::Texture>> iconTextureCache;
-    std::map<std::string, std::shared_ptr<sf::Texture>> cardTextureCache;
+    std::map<std::string, sf::Texture> iconTextureCache;
+    std::map<std::string, sf::Texture> cardTextureCache;
 public:
     WebClientManager();
     static WebClientManager& GetInstance();
@@ -39,13 +41,14 @@ public:
     void ConnectToWebServer(const char* apiVersion, const char* domain, int port);
     const bool IsConnectedToWebServer();
     const bool IsLoggedIn();
+    const bool IsWorking();
 
     std::future<bool> SendLoginCommand(const char* username, const char* password);
     std::future<bool> SendLogoutCommand();
     std::future<WebAccounts::AccountState> SendFetchAccountCommand();
 
-    const std::shared_ptr<sf::Texture> GetIconForCard(const std::string& uuid);
-    const std::shared_ptr<sf::Texture> GetImageForCard(const std::string& uuid);
+    const sf::Texture& GetIconForCard(const std::string& uuid);
+    const sf::Texture& GetImageForCard(const std::string& uuid);
 
     static Card MakeBattleCardFromWebCardData(const WebAccounts::AccountState& account, const WebAccounts::Card& card);
 
