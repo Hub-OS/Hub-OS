@@ -1,6 +1,6 @@
 #include "bnBombCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnMiniBomb.h"
@@ -11,7 +11,7 @@ BombCardAction::BombCardAction(Character * owner, int damage) : CardAction(owner
   this->damage = damage;
 
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment = new SpriteProxyNode(overlay);
   this->attachment->SetLayer(-1);
 }
 

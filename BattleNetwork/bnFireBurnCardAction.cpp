@@ -1,6 +1,6 @@
 #include "bnFireBurnCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
@@ -20,7 +20,7 @@ FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, i
   this->type = type;
 
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment = new SpriteProxyNode(overlay);
   this->attachment->SetLayer(-1);
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");

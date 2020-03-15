@@ -15,7 +15,8 @@ using std::to_string;
 
 EnemyCardsUI::EnemyCardsUI(Character* _owner) : CardUsePublisher(), Component(_owner) {
   cardCount = curr = 0;
-  icon = sf::Sprite(*TEXTURES.GetTexture(CHIP_ICONS));
+  icon = sf::Sprite();
+  icon.setTextureRect({ 0,0,14,14 });
   icon.setScale(sf::Vector2f(2.f, 2.f));
   this->character = _owner;
 }

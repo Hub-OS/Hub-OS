@@ -1,6 +1,6 @@
 #include "bnVulcanCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnVulcan.h"
@@ -19,7 +19,7 @@
 VulcanCardAction::VulcanCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
   this->damage = damage;
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment = new SpriteProxyNode(overlay);
   this->attachment->SetLayer(-1);
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");

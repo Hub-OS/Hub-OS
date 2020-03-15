@@ -191,7 +191,7 @@ public:
           // 10 chars fit on the box 
           title = title.substr(0, 10);
 
-          Logger::Logf("making folder %s", title);
+          Logger::Logf("making folder %s", title.c_str());
           Logger::Logf("folder status: %i", (int)(collection.MakeFolder(title)));
           Logger::Logf("retrieved folder: %i", (int)collection.GetFolder(title, currFolder));
         }
@@ -232,16 +232,16 @@ public:
             // 10 chars fit on the box 
             title = title.substr(0, 10);
 
-            Logger::Logf("making folder %s", title);
+            Logger::Logf("making folder %s", title.c_str());
             Logger::Logf("folder status: %i", (int)(collection.MakeFolder(title)));
             Logger::Logf("retrieved folder: %i", (int)collection.GetFolder(title, currFolder));
         }
 
-        for (auto&& uuid : folder.second.cards) {
+        for (auto&& uuid : folder.second->cards) {
             auto cardIter = account.cards.find(uuid);
 
             if (cardIter != account.cards.end()) {
-                Card card = WEBCLIENT.MakeBattleCardFromWebCardData(account, cardIter->second);
+                Card card = WEBCLIENT.MakeBattleCardFromWebCardData(account, *cardIter->second);
                 currFolder->AddCard(card);
             }
         }

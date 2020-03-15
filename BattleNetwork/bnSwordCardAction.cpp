@@ -1,6 +1,6 @@
 #include "bnSwordCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnBasicSword.h"
@@ -21,10 +21,10 @@ SwordCardAction::SwordCardAction(Character * owner, int damage) : CardAction(own
   attachmentAnim.SetAnimation("DEFAULT");
 
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment = new SpriteProxyNode(overlay);
   this->attachment->SetLayer(-2);
 
-  this->hiltAttachment = new SpriteSceneNode();
+  this->hiltAttachment = new SpriteProxyNode();
   this->hiltAttachment->setTexture(*owner->getTexture());
   this->hiltAttachment->SetLayer(-1);
 

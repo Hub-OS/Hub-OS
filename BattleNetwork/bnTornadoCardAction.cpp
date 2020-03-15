@@ -1,6 +1,6 @@
 #include "bnTornadoCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTornado.h"
@@ -19,7 +19,7 @@ TornadoCardAction::TornadoCardAction(Character * owner, int damage)
   : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(FAN_ANIM), armIsOut(false) {
   this->damage = damage;
   fan.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
-  this->attachment = new SpriteSceneNode(fan);
+  this->attachment = new SpriteProxyNode(fan);
   this->attachment->SetLayer(-1);
 
   owner->AddNode(this->attachment);

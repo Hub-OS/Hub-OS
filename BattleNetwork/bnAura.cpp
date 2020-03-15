@@ -16,7 +16,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   this->timer = 50; // seconds
   
   auraSprite.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
-  aura = new SpriteSceneNode(auraSprite);
+  aura = new SpriteProxyNode(auraSprite);
 
   // owner draws -> aura component draws -> aura sprite anim draws
   owner->RegisterComponent(this);

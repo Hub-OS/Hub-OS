@@ -2,7 +2,7 @@
 #include "bnComponent.h"
 #include "bnAnimationComponent.h"
 #include "bnCharacter.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include <string>
 #include <functional>
 
@@ -16,7 +16,7 @@ protected:
   AnimationComponent* anim;
   std::string animation, nodeName;
   std::string uuid, prevState;
-  SpriteSceneNode** attachment;
+  SpriteProxyNode** attachment;
   std::function<void()> prepareActionDelegate;
 
 protected:
@@ -42,7 +42,7 @@ public:
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
 
-  CardAction(Character * owner, std::string animation, SpriteSceneNode** attachment, std::string nodeName)
+  CardAction(Character * owner, std::string animation, SpriteProxyNode** attachment, std::string nodeName)
     : Component(owner), animation(animation), nodeName(nodeName), attachment(attachment)
   {
     anim = owner->GetFirstComponent<AnimationComponent>();

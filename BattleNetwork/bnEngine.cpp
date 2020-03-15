@@ -78,13 +78,13 @@ void Engine::Draw(Drawable* _drawable, bool applyShaders) {
   }
 }
 
-void Engine::Draw(SpriteSceneNode* _drawable) {
+void Engine::Draw(SpriteProxyNode* _drawable) {
   if (!HasRenderSurface()) return;
 
   // For now, support at most one shader.
   // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
-  SpriteSceneNode* context = _drawable;
+  SpriteProxyNode* context = _drawable;
   SmartShader* shader = &context->GetShader();
 
   if (shader && shader->Get()) {
@@ -101,7 +101,7 @@ void Engine::Draw(SpriteSceneNode* _drawable) {
     context->draw(*surface, state);
   }
 }
-void Engine::Draw(vector<SpriteSceneNode*> _drawable) {
+void Engine::Draw(vector<SpriteProxyNode*> _drawable) {
   if (!HasRenderSurface()) return;
 
   auto it = _drawable.begin();
@@ -133,7 +133,7 @@ void Engine::Draw(vector<SpriteSceneNode*> _drawable) {
     // For now, support at most one shader.
     // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
-    SpriteSceneNode* context = *it;
+    SpriteProxyNode* context = *it;
     SmartShader& shader = context->GetShader();
     if (shader.Get() != nullptr) {
       shader.ApplyUniforms();

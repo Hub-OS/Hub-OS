@@ -27,7 +27,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
 
   AddDefenseRule(new DefenseIndestructable(true));
 
-  shadow = new SpriteSceneNode();
+  shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
 
@@ -38,7 +38,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   animComponent->Setup(RESOURCE_PATH);
   animComponent->Load();
 
-  blueShadow = new SpriteSceneNode();
+  blueShadow = new SpriteProxyNode();
   blueShadow->setTexture(LOAD_TEXTURE(MOB_ALPHA_ATLAS));
   blueShadow->SetLayer(1);
 

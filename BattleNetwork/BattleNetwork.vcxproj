@@ -388,7 +388,7 @@
     <ClCompile Include="bnShakingEffect.cpp" />
     <ClCompile Include="bnSharedHitBox.cpp" />
     <ClCompile Include="bnShineExplosion.cpp" />
-    <ClCompile Include="bnSpriteSceneNode.cpp" />
+    <ClCompile Include="bnSpriteProxyNode.cpp" />
     <ClCompile Include="bnStarfish.cpp" />
     <ClCompile Include="bnStarfishAttackState.cpp" />
     <ClCompile Include="bnStarfishIdleState.cpp" />
@@ -447,6 +447,7 @@
     <ClInclude Include="bnAlphaElectricalCurrent.h" />
     <ClInclude Include="bnCharacterDeleteListener.h" />
     <ClInclude Include="bnCharacterDeletePublisher.h" />
+    <ClInclude Include="bnCurrentTime.h" />
     <ClInclude Include="bnDefenseInvis.h" />
     <ClInclude Include="bnLongSwordCardAction.h" />
     <ClInclude Include="bnMovement.h" />
@@ -600,7 +601,7 @@
     <ClInclude Include="bnSharedHitBox.h" />
     <ClInclude Include="bnShineExplosion.h" />
     <ClInclude Include="bnCallback.h" />
-    <ClInclude Include="bnSpriteSceneNode.h" />
+    <ClInclude Include="bnSpriteProxyNode.h" />
     <ClInclude Include="bnStarfish.h" />
     <ClInclude Include="bnStarfishAttackState.h" />
     <ClInclude Include="bnStarfishIdleState.h" />
@@ -708,7 +709,6 @@
     <ClInclude Include="bnWebClientMananger.h" />
     <ClInclude Include="bnWideSwordCardAction.h" />
     <ClInclude Include="bnWind.h" />
-    <ClInclude Include="bnXPlatformStringCopy.h" />
     <ClInclude Include="bnYoYo.h" />
     <ClInclude Include="bnYoYoCardAction.h" />
     <ClInclude Include="resource.h" />

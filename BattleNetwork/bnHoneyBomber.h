@@ -47,6 +47,6 @@ public:
 private:
 
   float hitHeight; /*!< hit height of this entity */
-  SpriteSceneNode* shadow;
+  SpriteProxyNode* shadow;
   DefenseRule* virusBody;
 };

@@ -1,6 +1,6 @@
 #include "bnAirShotCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnAirShot.h"
@@ -19,7 +19,7 @@ AirShotCardAction::AirShotCardAction(Character * owner, int damage) : CardAction
   this->damage = damage;
 
   airshot.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
-  this->attachment = new SpriteSceneNode(airshot);
+  this->attachment = new SpriteProxyNode(airshot);
   this->attachment->SetLayer(-1);
 
   attachmentAnim.Reload();

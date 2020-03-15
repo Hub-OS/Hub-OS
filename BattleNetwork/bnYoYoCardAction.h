@@ -3,11 +3,11 @@
 #include "bnAnimation.h"
 #include <SFML/Graphics.hpp>
 
-class SpriteSceneNode;
+class SpriteProxyNode;
 class Character;
 class YoYoCardAction : public CardAction {
 private:
-  SpriteSceneNode* attachment;
+  SpriteProxyNode* attachment;
   Animation attachmentAnim;
   Entity* yoyo;
   int damage;

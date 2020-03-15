@@ -3,12 +3,12 @@
 #include "bnAnimation.h"
 #include <SFML/Graphics.hpp>
 
-class SpriteSceneNode;
+class SpriteProxyNode;
 class Character;
 class TornadoCardAction : public CardAction {
 private:
   sf::Sprite fan;
-  SpriteSceneNode* attachment;
+  SpriteProxyNode* attachment;
   Animation attachmentAnim;
   bool armIsOut;
   int damage;

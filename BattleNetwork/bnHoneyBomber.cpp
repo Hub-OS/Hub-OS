@@ -31,7 +31,7 @@ HoneyBomber::HoneyBomber(Rank _rank)
   animationComponent->OnUpdate(0);
   this->RegisterComponent(animationComponent);
 
-  shadow = new SpriteSceneNode();
+  shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->setPosition(-12.0f, 6.0f);

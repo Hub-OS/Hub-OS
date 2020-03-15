@@ -3,7 +3,7 @@
 #include "bnAnimation.h"
 #include <SFML/Graphics.hpp>
 
-class SpriteSceneNode;
+class SpriteProxyNode;
 class Character;
 class ScriptedCardAction : public CardAction {
 public:

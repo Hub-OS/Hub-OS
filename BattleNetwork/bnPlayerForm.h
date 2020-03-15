@@ -1,6 +1,6 @@
 #pragma once
 #include "bnAnimation.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include <string>
 
 class Player;

@@ -5,6 +5,7 @@
 #include <queue>
 #include <mutex>
 #include <fstream>
+#include "bnCurrentTime.h"
 
 #if defined(__ANDROID__)
 #include <android/log.h>
@@ -53,7 +54,7 @@ public:
     if (!file.is_open()) {
       file.open("log.txt", std::ios::app);
       file << "==============================" << endl;
-      file << "StartTime " << time(0) << endl;
+      file << "StartTime " << CurrentTime::Get() << endl;
     }
 
 #if defined(__ANDROID__)
@@ -98,15 +99,21 @@ public:
     if (!file.is_open()) {
       file.open("log.txt", std::ios::app);
       file << "==========================" << endl;
-      file << "StartTime " << time(0) << endl;
+      file << "StartTime " << CurrentTime::Get() << endl;
     }
 
     file << ret << endl;
 #endif
   }
 
-  static string ToString(float _number) {
-    return to_string(_number);
+  template<typename T>
+  static string ToString(const T& number) {
+    return to_string(number);
+  }
+
+  template<>
+  static string ToString(const std::string& input) {
+      return input;
   }
 
 private:
@@ -117,3 +124,4 @@ private:
    */
   ~Logger() { file.close(); while (!logs.empty()) { logs.pop(); }  }
 };
+

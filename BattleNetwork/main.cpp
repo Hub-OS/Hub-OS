@@ -203,15 +203,6 @@ int main(int argc, char** argv) {
         bool success = result.get();
         if (success) {
             std::cout << "Logged in! Welcome " << username << "! " << std::endl;
-
-
-            try {
-                const WebAccounts::AccountState& account = WEBCLIENT.SendFetchAccountCommand().get();
-                WEBCLIENT.CacheTextureData(account);
-            }
-            catch (const std::future_error& e) {
-                Logger::Logf("Caught a future_error with code %s\nMessage: %s", e.code().message(), e.what());
-            }
         }
         else {
             std::cout << "Could not authenticate. Aborting." << std::endl;
@@ -285,7 +276,7 @@ int main(int argc, char** argv) {
     sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");
     #endif
 
-    SpriteSceneNode logoSprite;
+    SpriteProxyNode logoSprite;
 
     logoSprite.setTexture(*logo);
     logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);
@@ -403,9 +394,9 @@ int main(int argc, char** argv) {
     Animator animator;
     float progAnimProgress = 0.f;
   
-    SpriteSceneNode bgSprite;
-    SpriteSceneNode progSprite;
-    SpriteSceneNode cursorSprite;
+    SpriteProxyNode bgSprite;
+    SpriteProxyNode progSprite;
+    SpriteProxyNode cursorSprite;
     float totalElapsed = 0.f;
 
     // When progress is equal to the totalObject count, we are 100% ready
@@ -416,6 +407,7 @@ int main(int argc, char** argv) {
     std::atomic<int> progress{0};
     std::atomic<int> navisLoaded{0};
     std::atomic<int> mobsLoaded{0};
+    std::future<WebAccounts::AccountState> accountCommandResponse;
 
     RunGraphicsInit(&progress);
     ENGINE.SetShader(nullptr);
@@ -494,104 +486,109 @@ int main(int argc, char** argv) {
         // If progress is equal to total resources, 
         // we can show graphics and load external data
         if (progress == totalObjects) {
-            // read boolean is used to track if we loaded media 
+            // `ready` boolean is used to track if we loaded media 
             if (!ready) {
                 ready = true;
 
                 // Now that media is ready, we can launch the navis thread
                 navisLoad.launch();
+
+                // Media is ready so we can cache texture data
+                // This will uses resources from TEXTURE manager for failed graphics
+                // This is why we wait to do this here
+                accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
             }
-            else { 
-            // Else we may be ready this frame
-            if (!bg) {
-                // Load resources from internal storage
-                try {
-                    bg = TEXTURES.GetTexture(TextureType::BG_BLUE);
-                    bgSprite.setTexture(*bg);
-                    bgSprite.setScale(2.f, 2.f);
-                }
-                catch (std::exception e) {
-                    Logger::Log(e.what());
-                }
-            }
-
-            if (!progs) {
-                // Load resources from internal storage
-                try {
-                    progs = TEXTURES.GetTexture(TextureType::TITLE_ANIM_CHAR);
-
-                    progSprite.setTexture(*progs);
-                    progSprite.setPosition(200.f, 0.f);
-                    progSprite.setScale(2.f, 2.f);
-
-                    // This adds the title character frames to the FramesList 
-                    // to animate
-                    int i = 0;
-                    for (int x = 0; x < TITLE_ANIM_CHAR_SPRITES; x++) {
-                        progAnim.Add(1.f/(float)TITLE_ANIM_CHAR_SPRITES, sf::IntRect(TITLE_ANIM_CHAR_WIDTH*i, 0, TITLE_ANIM_CHAR_WIDTH, TITLE_ANIM_CHAR_HEIGHT));
-                        i++;
+            else { // This `else` clause effectively waits 1 more frame before trying to load the bg and prog graphics
+                // Else we may be ready this frame
+                if (!bg) {
+                    // Load resources from internal storage
+                    try {
+                        bg = TEXTURES.GetTexture(TextureType::BG_BLUE);
+                        bgSprite.setTexture(*bg);
+                        bgSprite.setScale(2.f, 2.f);
                     }
-
+                    catch (std::exception& e) {
+                        Logger::Log(e.what());
+                    }
                 }
-                catch (std::exception e) {
-                    Logger::Log(e.what());
+
+                if (!progs) {
+                    // Load resources from internal storage
+                    try {
+                        progs = TEXTURES.GetTexture(TextureType::TITLE_ANIM_CHAR);
+
+                        progSprite.setTexture(*progs);
+                        progSprite.setPosition(200.f, 0.f);
+                        progSprite.setScale(2.f, 2.f);
+
+                        // This adds the title character frames to the FramesList 
+                        // to animate
+                        int i = 0;
+                        for (int x = 0; x < TITLE_ANIM_CHAR_SPRITES; x++) {
+                            progAnim.Add(1.f/(float)TITLE_ANIM_CHAR_SPRITES, sf::IntRect(TITLE_ANIM_CHAR_WIDTH*i, 0, TITLE_ANIM_CHAR_WIDTH, TITLE_ANIM_CHAR_HEIGHT));
+                            i++;
+                        }
+
+                    }
+                    catch (std::exception& e) {
+                        Logger::Log(e.what());
+                    }
                 }
-            }
 
-            if (!cursor) {
-                // Load resources from internal storage
-                try {
-                    cursor = TEXTURES.GetTexture(TextureType::TEXT_BOX_CURSOR);
+                if (!cursor) {
+                    // Load resources from internal storage
+                    try {
+                        cursor = TEXTURES.GetTexture(TextureType::TEXT_BOX_CURSOR);
 
-                    cursorSprite.setTexture(*cursor);
-                    cursorSprite.setPosition(sf::Vector2f(160.0f, 225.f));
-                    cursorSprite.setScale(2.f, 2.f);
+                        cursorSprite.setTexture(*cursor);
+                        cursorSprite.setPosition(sf::Vector2f(160.0f, 225.f));
+                        cursorSprite.setScale(2.f, 2.f);
+                    }
+                    catch (std::exception e) {
+                        // didnt catchup? debug
+                    }
                 }
-                catch (std::exception e) {
-                    // didnt catchup? debug
+
+                if (!whiteShader) {
+                    try {
+                        whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
+                        whiteShader->setUniform("opacity", 0.0f);
+                        ENGINE.SetShader(whiteShader);
+                    }
+                    catch (std::exception e) {
+                        // didnt catchup? debug
+                    }
                 }
-            }
 
-            if (!whiteShader) {
-                try {
-                    whiteShader = SHADERS.GetShader(ShaderType::WHITE_FADE);
-                    whiteShader->setUniform("opacity", 0.0f);
-                    ENGINE.SetShader(whiteShader);
+                shaderCooldown -= elapsed;
+                progAnimProgress += elapsed/2000.f;
+
+                // If the white flash is less than zero
+                // can cause unexpected visual effects
+                if (shaderCooldown < 0) {
+                    shaderCooldown = 0;
                 }
-                catch (std::exception e) {
-                    // didnt catchup? debug
+
+                // Adjust timers by elapsed time
+                if (shaderCooldown == 0) {
+                    logFadeOutTimer -= elapsed;
                 }
-            }
 
-            shaderCooldown -= elapsed;
-            progAnimProgress += elapsed/2000.f;
+                if (logFadeOutTimer <= 0) {
+                    logFadeOutSpeed -= elapsed;
+                }
 
-            // If the white flash is less than zero
-            // can cause unexpected visual effects
-            if (shaderCooldown < 0) {
-                shaderCooldown = 0;
-            }
+                if (logFadeOutSpeed < 0) {
+                    logFadeOutSpeed = 0;
+                }
 
-            // Adjust timers by elapsed time
-            if (shaderCooldown == 0) {
-                logFadeOutTimer -= elapsed;
-            }
+                // keep animation in bounds
+                if (progAnimProgress > 1.f) {
+                    progAnimProgress = 0.f;
+                }
 
-            if (logFadeOutTimer <= 0) {
-                logFadeOutSpeed -= elapsed;
-            }
-
-            if (logFadeOutSpeed < 0) {
-                logFadeOutSpeed = 0;
-            }
-
-            // keep animation in bounds
-            if (progAnimProgress > 1.f) {
-                progAnimProgress = 0.f;
-            }
-
-            // update white flash
-            whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
+                // update white flash
+                whiteShader->setUniform("opacity", (float)(shaderCooldown / 1000.f)*0.5f);
             }
         }
 
@@ -788,6 +785,15 @@ int main(int argc, char** argv) {
 
     // Stop music and go to menu screen
     AUDIO.StopStream();
+
+    // Halt and ensure the account is loaded by now
+    try {
+        const WebAccounts::AccountState& account = accountCommandResponse.get();
+        WEBCLIENT.CacheTextureData(account);
+    }
+    catch (const std::future_error& e) {
+        Logger::Logf("Could not fetch account. Error with code %s\nMessage: %s", e.code().message(), e.what());
+    }
 
     // Create an activity controller
     // Behaves like a state machine using stacks

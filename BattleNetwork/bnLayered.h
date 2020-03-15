@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "bnSmartShader.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 
 using sf::Drawable;
 using sf::RenderWindow;
@@ -20,12 +20,12 @@ using std::vector;
  * Bottom layer was tiles, mid layer was sprites, and top layer was UI.
  * This is no longer used but lingers in the code base. Remove asap.
  */
-class Layers : vector<SpriteSceneNode*> {
+class Layers : vector<SpriteProxyNode*> {
 public:
   int min;
   int max;
 
-  void Insert(SpriteSceneNode* node) {
+  void Insert(SpriteProxyNode* node) {
     if (node->GetLayer() > max) {
       max = node->GetLayer();
     } else if (node->GetLayer() < min) {
@@ -35,8 +35,8 @@ public:
     push_back(node);
   }
 
-  vector<SpriteSceneNode*> At(int _layer) {
-    vector<SpriteSceneNode*> layer = vector<SpriteSceneNode*>();
+  vector<SpriteProxyNode*> At(int _layer) {
+    vector<SpriteProxyNode*> layer = vector<SpriteProxyNode*>();
     auto it = begin();
     for (it; it != end(); ++it) {
       if ((*it)->GetLayer() == _layer) {

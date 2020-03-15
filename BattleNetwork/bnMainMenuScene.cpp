@@ -34,7 +34,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
     webAccountIcon = sf::Sprite(LOAD_TEXTURE(WEBACCOUNT_STATUS));
     webAccountIcon.setScale(2.f, 2.f);
-    webAccountIcon.setPosition(getController().getVirtualWindowSize().x - (32.f*2.f), 50.f);
+    webAccountIcon.setPosition((ENGINE.GetWindow()->getSize().x-96.0f), ENGINE.GetWindow()->getSize().y - 34.0f);
     webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
     webAccountAnimator.Load();
     webAccountAnimator.SetAnimation("POLL_CONNECTION");

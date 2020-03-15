@@ -148,12 +148,11 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/card_select.png");
   paths.push_back("resources/ui/card_cursor_small.png");
   paths.push_back("resources/ui/card_cursor_big.png");
-  paths.push_back("resources/ui/card_cards.png");
-  paths.push_back("resources/ui/card_icons.png");
   paths.push_back("resources/ui/card_nosupport.png");
   paths.push_back("resources/ui/card_nodata.png");
   paths.push_back("resources/ui/card_senddata.png");
   paths.push_back("resources/ui/card_missing.png");
+  paths.push_back("resources/ui/icon_missing.png");
   paths.push_back("resources/ui/card_lock.png");
   paths.push_back("resources/ui/card_frame.png");
   paths.push_back("resources/ui/cust_badge.png");

@@ -1,20 +1,20 @@
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 
-SpriteSceneNode::SpriteSceneNode() : SceneNode() {
+SpriteProxyNode::SpriteProxyNode() : SceneNode() {
   sprite = new sf::Sprite();
   allocatedSprite = true;
 }
 
-SpriteSceneNode::SpriteSceneNode(sf::Sprite& rhs) : SceneNode() {
+SpriteProxyNode::SpriteProxyNode(sf::Sprite& rhs) : SceneNode() {
   allocatedSprite = false;
   sprite = &rhs;
 }
 
-SpriteSceneNode::~SpriteSceneNode() {
+SpriteProxyNode::~SpriteProxyNode() {
   if(allocatedSprite) delete this->sprite;
 }
 
-void SpriteSceneNode::operator=(sf::Sprite& rhs) {
+void SpriteProxyNode::operator=(sf::Sprite& rhs) {
   if(allocatedSprite) delete this->sprite;
 
   sprite = &rhs;
@@ -22,44 +22,44 @@ void SpriteSceneNode::operator=(sf::Sprite& rhs) {
   allocatedSprite = false;
 }
 
-SpriteSceneNode::operator sf::Sprite&() {
+SpriteProxyNode::operator sf::Sprite&() {
   return *sprite;
 }
 
-const sf::Sprite & SpriteSceneNode::getSprite() const
+const sf::Sprite & SpriteProxyNode::getSprite() const
 {
   return *sprite;
 }
 
-const sf::Texture* SpriteSceneNode::getTexture() const {
+const sf::Texture* SpriteProxyNode::getTexture() const {
   return sprite->getTexture();
 }
 
-void SpriteSceneNode::setColor(sf::Color color) {
+void SpriteProxyNode::setColor(sf::Color color) {
   sprite->setColor(color);
 }
 
-const sf::Color& SpriteSceneNode::getColor() const {
+const sf::Color& SpriteProxyNode::getColor() const {
   return sprite->getColor();
 }
 
-const sf::IntRect& SpriteSceneNode::getTextureRect() {
+const sf::IntRect& SpriteProxyNode::getTextureRect() {
   return sprite->getTextureRect();
 }
 
-void SpriteSceneNode::setTextureRect(sf::IntRect& rect) {
+void SpriteProxyNode::setTextureRect(sf::IntRect& rect) {
   sprite->setTextureRect(rect);
 }
 
-sf::FloatRect SpriteSceneNode::getLocalBounds() {
+sf::FloatRect SpriteProxyNode::getLocalBounds() {
   return sprite->getLocalBounds();
 }
 
-void SpriteSceneNode::setTexture(const sf::Texture& texture, bool resetRect) {
+void SpriteProxyNode::setTexture(const sf::Texture& texture, bool resetRect) {
   sprite->setTexture(texture, resetRect);
 }
 
-void SpriteSceneNode::SetShader(sf::Shader* _shader) {
+void SpriteProxyNode::SetShader(sf::Shader* _shader) {
   if (shader.Get() == _shader && _shader != nullptr) return;
 
   RevokeShader();
@@ -69,20 +69,20 @@ void SpriteSceneNode::SetShader(sf::Shader* _shader) {
   }
 }
 
-void SpriteSceneNode::SetShader(SmartShader& _shader) {
+void SpriteProxyNode::SetShader(SmartShader& _shader) {
   RevokeShader();
   shader = _shader;
 }
 
-SmartShader& SpriteSceneNode::GetShader() {
+SmartShader& SpriteProxyNode::GetShader() {
   return shader;
 }
 
-void SpriteSceneNode::RevokeShader() {
+void SpriteProxyNode::RevokeShader() {
   shader.Reset();
 }
 
-void SpriteSceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void SpriteProxyNode::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   if (!show) return;
 
   // combine the parent transform with the node's one

@@ -32,7 +32,7 @@ Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage
 
   animation.Update(0, *this);
 
-  shadow = new SpriteSceneNode();
+  shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->setPosition(-8.0f, 20.0f);
@@ -86,7 +86,7 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
 
   animation.Update(0, *this);
 
-  shadow = new SpriteSceneNode();
+  shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->setPosition(-12.0f, 18.0f);

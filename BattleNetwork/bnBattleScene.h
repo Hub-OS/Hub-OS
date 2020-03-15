@@ -159,7 +159,7 @@ private:
 
   // CHIP CUST GRAPHICS
   sf::Texture* customBarTexture; /*!< Cust gauge image */
-  SpriteSceneNode customBarSprite; /*!< Cust gauge sprite */
+  SpriteProxyNode customBarSprite; /*!< Cust gauge sprite */
   sf::Vector2f customBarPos; /*!< Cust gauge position */
 
   // Selection input delays

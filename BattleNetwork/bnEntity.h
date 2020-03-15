@@ -35,7 +35,7 @@ namespace Battle {
 class Field;
 class BattleScene; // forward decl
 
-class Entity : public SpriteSceneNode {
+class Entity : public SpriteProxyNode {
   friend class Field;
   friend class Component;
   friend class BattleScene;

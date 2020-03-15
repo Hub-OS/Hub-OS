@@ -1,6 +1,6 @@
 #include "bnCrackShotCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnCrackShot.h"
@@ -15,7 +15,7 @@ CrackShotCardAction::CrackShotCardAction(Character * owner, int damage) : CardAc
   this->damage = damage;
 
   overlay.setTexture(*owner->getTexture());
-  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment = new SpriteProxyNode(overlay);
   this->attachment->SetLayer(-1);
   this->attachment->EnableParentShader(true);
 

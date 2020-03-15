@@ -89,8 +89,9 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
-  cardIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
+  cardIcon = sf::Sprite();
   cardIcon.setScale(2.f, 2.f);
+  cardIcon.setTextureRect(sf::IntRect(0, 0, 14, 14));
 
   mbPlaceholder = sf::Sprite(LOAD_TEXTURE(FOLDER_MB));
   mbPlaceholder.setScale(2.f, 2.f);
@@ -509,7 +510,6 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   scrollbar.setPosition(436.f, top + depth);
 
   ENGINE.Draw(scrollbar);
-
   ENGINE.Draw(folderOptions);
 
   float scale = 0.0f;
@@ -546,7 +546,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
     // Now that we are at the viewing range, draw each card in the list
     for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
-      cardIcon = sf::Sprite(WEBCLIENT.GetIconForCard((*iter)->GetUUID()), sf::IntRect(0,0,14,14));
+      cardIcon.setTexture(WEBCLIENT.GetIconForCard((*iter)->GetUUID()));
       cardIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
       ENGINE.Draw(cardIcon, false);
 

@@ -4,11 +4,11 @@
 #include "bnAnimation.h"
 #include <SFML/Graphics.hpp>
 
-class SpriteSceneNode;
+class SpriteProxyNode;
 class Character;
 class BusterCardAction : public CardAction {
 private:
-  SpriteSceneNode *attachment, *attachment2;
+  SpriteProxyNode *attachment, *attachment2;
   Animation attachmentAnim, attachmentAnim2;
   bool charged;
   int damage;

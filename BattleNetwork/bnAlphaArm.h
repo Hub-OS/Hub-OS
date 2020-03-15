@@ -42,8 +42,8 @@ private:
   Direction startDir;
   bool hit, isMoving, canChangeTileState;
   float totalElapsed;
-  SpriteSceneNode* shadow;
-  SpriteSceneNode* blueShadow;
+  SpriteProxyNode* shadow;
+  SpriteProxyNode* blueShadow;
   std::vector<sf::Vector2f> blueArmShadowPos;
   int blueArmShadowPosIdx;
   float blueShadowTimer; // 1/60 of a second = 1 frame

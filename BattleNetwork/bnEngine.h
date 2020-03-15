@@ -55,13 +55,13 @@ public:
    * @brief Draws a SpriteSceneNode through the engine pipeline
    * @param _drawable SpriteSceneNode*
    */
-  void Draw(SpriteSceneNode * _drawable);
+  void Draw(SpriteProxyNode * _drawable);
   
   /**
    * @brief Draws a batch of SpriteSceneNodes through the engine pipeline
    * @param _drawable vector of SpriteSceneNode*
    */
-  void Draw(vector<SpriteSceneNode*> _drawable);
+  void Draw(vector<SpriteProxyNode*> _drawable);
   
   /**
    * @brief Returns true if the window is open

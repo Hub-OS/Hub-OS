@@ -3,12 +3,12 @@
 #include "bnAnimation.h"
 #include <SFML/Graphics.hpp>
 
-class SpriteSceneNode;
+class SpriteProxyNode;
 class Character;
 class VulcanCardAction : public CardAction {
 private:
   sf::Sprite overlay;
-  SpriteSceneNode* attachment;
+  SpriteProxyNode* attachment;
   Animation attachmentAnim;
   int damage;
 public:

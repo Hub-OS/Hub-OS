@@ -1,6 +1,6 @@
 #include "bnCannonCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnCannon.h"
@@ -19,7 +19,7 @@ CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardActi
   this->damage = damage;
 
   cannon.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
-  this->attachment = new SpriteSceneNode(cannon);
+  this->attachment = new SpriteProxyNode(cannon);
   this->attachment->SetLayer(-1);
 
   attachmentAnim.Reload();

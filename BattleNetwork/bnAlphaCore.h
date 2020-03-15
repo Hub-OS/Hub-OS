@@ -14,7 +14,7 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
 
   DefenseRule* virusBody;
   AnimationComponent* animationComponent;
-  SpriteSceneNode *acid, *head, *side, *leftShoulder, *rightShoulder, *leftShoulderShoot, *rightShoulderShoot;
+  SpriteProxyNode *acid, *head, *side, *leftShoulder, *rightShoulder, *leftShoulderShoot, *rightShoulderShoot;
   Animation animation;
   float totalElapsed, coreRegen;
   float hitHeight;

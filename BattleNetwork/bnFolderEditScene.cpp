@@ -172,12 +172,12 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
 
   // Current card graphic
   card = sf::Sprite();
-  cardSubFrame = sf::IntRect(0,0,56,48);
-  card.setTextureRect(cardSubFrame);
+  card.setTextureRect(sf::IntRect(0, 0, 56, 48));
   card.setScale(2.f, 2.f);
   card.setOrigin(card.getLocalBounds().width / 2.0f, card.getLocalBounds().height / 2.0f);
 
-  cardIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
+  cardIcon = sf::Sprite();
+  cardIcon.setTextureRect(sf::IntRect(0, 0, 14, 14));
   cardIcon.setScale(2.f, 2.f);
 
   cardRevealTimer.start();
@@ -404,7 +404,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         }
         else {
           // See if we're swapping from our folder
-          if (folderView.swapCardIndex != -1) {
+          if (folderView.swapCardIndex != -1 && packView.numOfCards > 0) {
             // Try to swap the card with the one from the folder
             // The card from the pack is copied and added to the slot
             // The slot card needs to find its corresponding bucket and increment it
@@ -576,7 +576,7 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(cardLabel, false);
 
     // Draw max
-    cardLabel->setString(std::string("/ 30"));
+    cardLabel->setString(std::string("/ 30")); // will print "# / 30"
     cardLabel->setOrigin(0, 0);;
     cardLabel->setPosition(415.f, 1.f);
 
@@ -620,8 +620,6 @@ void FolderEditScene::DrawFolder() {
 
   ENGINE.Draw(scrollbar);
 
-  //if (folder.GetSize() == 0) return;
-
   // Move the card library iterator to the current highlighted card
   auto iter = folderCardSlots.begin();
 
@@ -634,7 +632,7 @@ void FolderEditScene::DrawFolder() {
     const Card& copy = iter->ViewCard();
 
     if (!iter->IsEmpty()) {
-      cardIcon.setTextureRect(sf::IntRect{ 0,0,14,14});
+      cardIcon.setTexture(WEBCLIENT.GetIconForCard(copy.GetUUID()));
       cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
       ENGINE.Draw(cardIcon, false);
 
@@ -668,7 +666,7 @@ void FolderEditScene::DrawFolder() {
 
       if (!iter->IsEmpty()) {
 
-        card = sf::Sprite(WEBCLIENT.GetImageForCard(copy.GetUUID()), sf::IntRect(0,0,56,48));
+        card.setTexture(WEBCLIENT.GetImageForCard(copy.GetUUID()));
         card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
         ENGINE.Draw(card, false);
 

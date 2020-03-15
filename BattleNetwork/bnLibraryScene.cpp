@@ -169,7 +169,8 @@ touchPosX = touchPosStartX = -1;
   card.setPosition(83.f, 93.f);
   card.setOrigin(card.getLocalBounds().width / 2.0f, card.getLocalBounds().height / 2.0f);
 
-  cardIcon = sf::Sprite(LOAD_TEXTURE(CHIP_ICONS));
+  cardIcon = sf::Sprite();
+  cardIcon.setTextureRect(sf::IntRect(0, 0, 14, 14));
   cardIcon.setScale(2.f, 2.f);
 
   cardRevealTimer.start();
@@ -355,7 +356,7 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 
   // Now that we are at the viewing range, draw each card in the list
   for (int i = 0; i < maxCardsOnScreen && lastCardOnScreen + i < numOfCards; i++) {
-    cardIcon = sf::Sprite(WEBCLIENT.GetIconForCard(iter->GetUUID()), sf::IntRect(0,0,14,14));
+    cardIcon.setTexture(WEBCLIENT.GetIconForCard(iter->GetUUID()));
     cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
     ENGINE.Draw(cardIcon, false);
 

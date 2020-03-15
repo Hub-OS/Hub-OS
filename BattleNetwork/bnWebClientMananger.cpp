@@ -1,9 +1,8 @@
 #include "bnWebClientMananger.h"
-#include "bnXPlatformStringCopy.h"
 #include "bnURLParser.h"
 #include "bnLogger.h"
 #include "bnElements.h"
-
+#include "bnTextureResourceManager.h"
 #include <SFML/Network/Http.hpp>
 
 void WebClientManager::PingThreadHandler()
@@ -20,7 +19,7 @@ void WebClientManager::PingThreadHandler()
 
         lock.unlock();
 
-        std::this_thread::sleep_for(std::chrono::microseconds(this->GetPingInterval()));
+        std::this_thread::sleep_for(std::chrono::milliseconds(this->GetPingInterval()));
     } while (!shutdownSignal);
 }
 
@@ -53,29 +52,36 @@ void WebClientManager::InitDownloadImageHandler()
 {
     if (!this->client) return;
 
-    auto callback = [](const char* url, WebAccounts::byte*& image) -> void {
+    auto callback = [](const char* url, WebAccounts::byte*& image, size_t& len) -> void {
+        size_t size = 0;
+        URL urlParser(url);
+
         sf::Http Http;
         sf::Http::Request request;
-        size_t size = 0;
-
-        URL urlParser(url);
 
         Http.setHost(urlParser.GetHost());
         request.setMethod(sf::Http::Request::Get);
-        request.setUri(urlParser.GetPath());
+        request.setUri(urlParser.GetPath()+urlParser.GetQuery());
 
-        std::cout << urlParser.GetHost() << ", " << urlParser.GetPath() << ", " << urlParser.GetQuery() << std::endl;
+        if (urlParser.GetHost().empty() || urlParser.GetPath().empty()) {
+            image = 0;
+            return;
+        }
 
         sf::Http::Response Page = Http.sendRequest(request);
 
-        size = Page.getBody().size();
-
         std::string data = Page.getBody();
+        len = data.size();
 
-        image = new WebAccounts::byte[size + 1];
-        if (size > 0) {
-            XPLATFORM_STRCPY((char*)image, size + 1, data.data());
-            image[size] = '\0';
+        if (data.empty()) {
+            image = 0;
+            return;
+        }
+
+        if (len > 0) {
+            image = new WebAccounts::byte[len+1];
+            data.copy(image, len);
+            image[len] = 0;
         }
     };
 
@@ -85,21 +91,48 @@ void WebClientManager::InitDownloadImageHandler()
 
 void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account)
 {
-    /*
     for (auto&& card : account.cards) {
-        auto cardModel = account.cardModels.find(card.second.modelId);
+        auto&& cardModelIter = account.cardModels.find(card.second->modelId);
 
-        auto imageData = cardModel->second.imageData;
-        auto iconData = cardModel->second.iconData;
+        if (cardModelIter == account.cardModels.end()) continue;
+
+        const WebAccounts::byte* imageData = cardModelIter->second->imageData;
+        const size_t imageDataLen = cardModelIter->second->imageDataLen;
+        const WebAccounts::byte* iconData = cardModelIter->second->iconData;
+        const size_t iconDataLen = cardModelIter->second->iconDataLen;
 
         sf::Texture textureObject;
-        textureObject.loadFromMemory(imageData, strlen((char*)imageData));
-        this->cardTextureCache.insert(std::make_pair(card.first, textureObject));
 
+        bool imageSucceeded = (imageDataLen > 0);
+
+        if (imageDataLen) {
+            if (textureObject.loadFromMemory(imageData, imageDataLen)) {
+                this->cardTextureCache.insert(std::make_pair(card.first, textureObject));
+                imageSucceeded = true;
+            }
+        }
+
+        if (!imageSucceeded) {
+            Logger::Logf("Creating image data for card (%s, %s) failed", cardModelIter->first.c_str(), cardModelIter->second->name.c_str());
+            textureObject = LOAD_TEXTURE(CHIP_MISSINGDATA);
+            this->cardTextureCache.insert(std::make_pair(card.first, textureObject));
+        }
+        
         textureObject = sf::Texture();
-        textureObject.loadFromMemory(iconData, strlen((char*)iconData));
-        this->iconTextureCache.insert(std::make_pair(card.first, textureObject));
-    }*/
+        imageSucceeded = (iconDataLen > 0);
+
+        if (iconDataLen) {
+            if (textureObject.loadFromMemory(iconData, iconDataLen)) {
+                this->iconTextureCache.insert(std::make_pair(card.first, textureObject));
+            }
+        }
+
+        if (!imageSucceeded) {
+            Logger::Logf("Creating icon data for card (%s, %s) failed", cardModelIter->first.c_str(), cardModelIter->second->name.c_str());
+            textureObject = LOAD_TEXTURE(CHIP_ICON_MISSINGDATA);
+            this->iconTextureCache.insert(std::make_pair(card.first, textureObject));
+        }
+    }
 }
 
 WebClientManager::WebClientManager() {
@@ -147,7 +180,7 @@ const bool WebClientManager::IsLoggedIn()
 
 const bool WebClientManager::IsWorking()
 {
-    return true || this->isWorking;
+    return this->isWorking;
 }
 
 std::future<bool> WebClientManager::SendLoginCommand(const char * username, const char * password)
@@ -239,8 +272,8 @@ Card WebClientManager::MakeBattleCardFromWebCardData(const WebAccounts::AccountS
     auto modelIter = account.cardModels.find(card.modelId);
     auto cardModel = modelIter->second;
 
-    return Card(card.id, card.code, cardModel.damage, GetElementFromStr(cardModel.element),
-        cardModel.name, cardModel.description, cardModel.verboseDescription, 0);
+    return Card(card.id, card.code, cardModel->damage, GetElementFromStr(cardModel->element),
+        cardModel->name, cardModel->description, cardModel->verboseDescription, 0);
 }
 
 void WebClientManager::ShutdownAllTasks()

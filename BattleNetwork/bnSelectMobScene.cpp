@@ -474,7 +474,7 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
     mobSpr.setOrigin(mobSpr.getTextureRect().width / 2.f, mobSpr.getTextureRect().height / 2.f);
 
     // Sprites need to be a SpriteSceneNode to attach shaders to
-    SpriteSceneNode* bake = new SpriteSceneNode(mobSpr);
+    SpriteProxyNode* bake = new SpriteProxyNode(mobSpr);
     bake->SetShader(shader);
 
     if (showMob) {

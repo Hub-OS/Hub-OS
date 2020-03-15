@@ -718,7 +718,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     tile->move(ENGINE.GetViewOffset());
 
     if (summons.IsSummonActive() || showSummonBackdrop || isChangingForm) {
-      SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
+      SpriteProxyNode* coloredTile = new SpriteProxyNode(*(sf::Sprite*)tile);
       coloredTile->SetShader(&pauseShader);
       pauseShader.setUniform("opacity", (float)backdropOpacity*float(std::max(0.0, (showSummonBackdropTimer / showSummonBackdropLength))));
       ENGINE.Draw(coloredTile);
@@ -726,7 +726,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
     else {
       if (tile->IsHighlighted()) {
-        SpriteSceneNode* coloredTile = new SpriteSceneNode(*(sf::Sprite*)tile);
+        SpriteProxyNode* coloredTile = new SpriteProxyNode(*(sf::Sprite*)tile);
         coloredTile->SetShader(&yellowShader);
         ENGINE.Draw(coloredTile);
         delete coloredTile;

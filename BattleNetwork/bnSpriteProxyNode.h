@@ -14,7 +14,7 @@
 #include "bnSceneNode.h"
 #include "bnSmartShader.h"
 
-class SpriteSceneNode : public SceneNode {
+class SpriteProxyNode : public SceneNode {
 private:
   bool allocatedSprite; /*!< Whether or not SpriteSceneNode owns the sprite pointer */
   mutable SmartShader shader; /*!< Sprites can have shaders attached to them */
@@ -26,9 +26,9 @@ public:
     * 
     * Owns sprite and allocatedSprite will be true
     */
-  SpriteSceneNode();
+  SpriteProxyNode();
 
-  SpriteSceneNode(const SpriteSceneNode& rhs) = delete;
+  SpriteProxyNode(const SpriteProxyNode& rhs) = delete;
   
   /**
    * @brief Construct SpriteSceneNode from an existing sprite
@@ -36,12 +36,12 @@ public:
    * 
    * Does not own sprite and allocatedSprite will be false
    */
-  SpriteSceneNode(sf::Sprite& rhs);
+  SpriteProxyNode(sf::Sprite& rhs);
   
   /**
    * @brief If allocatedSprite is true, deletes the sprite
    */
-  virtual ~SpriteSceneNode();
+  virtual ~SpriteProxyNode();
   
   /**
    * @brief If allocatedSprite is true, deletes sprite and then points to rhs

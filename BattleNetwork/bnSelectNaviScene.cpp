@@ -243,7 +243,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  SpriteSceneNode* bake = new SpriteSceneNode(navi);
+  SpriteProxyNode* bake = new SpriteProxyNode(navi);
   bake->SetShader(pixelated);
 
   ENGINE.Draw(bake);

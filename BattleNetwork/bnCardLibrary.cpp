@@ -1,11 +1,9 @@
 #include "bnCardLibrary.h"
 #include "bnFileUtil.h"
+#include "bnCurrentTime.h"
 #include "bnTextureResourceManager.h"
 #include <assert.h>
-#include <sstream>
 #include <algorithm>
-#include <ctime>
-#include <iomanip>
 
 CardLibrary::CardLibrary() {
   LoadLibrary("resources/database/library.txt");
@@ -160,14 +158,8 @@ const bool CardLibrary::SaveLibrary(const std::string& path) {
 
   try {
     FileUtil::WriteStream ws(path);
-    auto time = std::time(nullptr);
-    auto timestamp = std::put_time(std::localtime(&time), "%y-%m-%d %OH:%OM:%OS");
 
-    std::stringstream ss;
-    ss << timestamp;
-    std::string timestampStr = ss.str();
-
-    ws << "# Saved on " << timestampStr << ws.endl();
+    ws << "# Saved on " << CurrentTime::Get() << ws.endl();
 
     for (auto& card : library) {
       ws << "Card name=\"" << card.GetShortName() << "\" cardIndex=\""

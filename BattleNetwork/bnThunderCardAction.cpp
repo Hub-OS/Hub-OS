@@ -1,6 +1,6 @@
 #include "bnThunderCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnThunder.h"
@@ -9,7 +9,7 @@ ThunderCardAction::ThunderCardAction(Character * owner, int damage) : CardAction
 attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   this->damage = damage;
 
-  this->attachment = new SpriteSceneNode();
+  this->attachment = new SpriteProxyNode();
   this->attachment->setTexture(*owner->getTexture());
   this->attachment->SetLayer(-1);
 

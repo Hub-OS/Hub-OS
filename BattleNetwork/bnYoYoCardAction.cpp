@@ -1,6 +1,6 @@
 #include "bnYoYoCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnYoYo.h"
@@ -17,7 +17,7 @@
 YoYoCardAction::YoYoCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
   this->damage = damage;
 
-  this->attachment = new SpriteSceneNode();
+  this->attachment = new SpriteProxyNode();
   this->attachment->setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
   this->attachment->SetLayer(-1);
 

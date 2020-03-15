@@ -48,41 +48,41 @@ AlphaCore::AlphaCore(Rank _rank)
   animation = Animation(animationComponent->GetFilePath());
   animation.Load();
 
-  acid = new SpriteSceneNode();
+  acid = new SpriteProxyNode();
   acid->SetLayer(1);
   acid->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   animation.SetAnimation("ACID");
   animation.Update(0, *acid);
 
-  head = new SpriteSceneNode();
+  head = new SpriteProxyNode();
   head->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   head->SetLayer(-2);
   animation.SetAnimation("HEAD");
   animation.Update(0, *head);
 
-  side = new SpriteSceneNode();
+  side = new SpriteProxyNode();
   side->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   side->SetLayer(-1);
   animation.SetAnimation("SIDE");
   animation.Update(0, *side);
 
-  leftShoulder = new SpriteSceneNode();
+  leftShoulder = new SpriteProxyNode();
   leftShoulder->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   leftShoulder->SetLayer(0);
   animation.SetAnimation("LEFT_SHOULDER");
   animation.Update(0, *leftShoulder);
 
-  rightShoulder = new SpriteSceneNode();
+  rightShoulder = new SpriteProxyNode();
   rightShoulder->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   rightShoulder->SetLayer(-3);
   animation.SetAnimation("RIGHT_SHOULDER");
   animation.Update(0, *rightShoulder);
 
-  rightShoulderShoot= new SpriteSceneNode();
+  rightShoulderShoot= new SpriteProxyNode();
   rightShoulderShoot->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   rightShoulderShoot->SetLayer(-4);
 
-  leftShoulderShoot = new SpriteSceneNode();
+  leftShoulderShoot = new SpriteProxyNode();
   leftShoulderShoot->setTexture(*TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   leftShoulderShoot->SetLayer(-4);
 

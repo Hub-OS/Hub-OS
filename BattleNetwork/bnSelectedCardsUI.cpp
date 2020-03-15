@@ -15,7 +15,8 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UICompon
   , player(_player) {
   player->RegisterComponent(this);
   cardCount = curr = 0;
-  icon = sf::Sprite(*TEXTURES.GetTexture(CHIP_ICONS));
+  icon = sf::Sprite();
+  icon.setTextureRect(sf::IntRect(0, 0, 14, 14));
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
   frame = sf::Sprite(*TEXTURES.GetTexture(CHIP_FRAME));
@@ -92,7 +93,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           target.draw(frame);
 
           // Grab the ID of the card and draw that icon from the spritesheet
-          icon = sf::Sprite(WEBCLIENT.GetIconForCard(selectedCards[drawOrderIndex]->GetUUID()), sf::IntRect(0, 0, 14, 14));
+          icon.setTexture(WEBCLIENT.GetIconForCard(selectedCards[drawOrderIndex]->GetUUID()));
 
           target.draw(icon);
         }

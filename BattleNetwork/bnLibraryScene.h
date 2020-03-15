@@ -14,7 +14,9 @@
 
 #include <list>
 
-/*! \brief Library scene shows a list of unique card data collected by the player */
+/*! \brief Library scene shows a list of unique card data collected by the player 
+    \warning no longer used. may not work.
+*/
 class LibraryScene : public swoosh::Activity {
 private:
   Camera camera;

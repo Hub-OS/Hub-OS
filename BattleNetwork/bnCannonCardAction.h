@@ -3,7 +3,7 @@
 #include "bnAnimation.h"
 #include <SFML/Graphics.hpp>
 
-class SpriteSceneNode;
+class SpriteProxyNode;
 class Character;
 class CannonCardAction : public CardAction {
 public:
@@ -15,7 +15,7 @@ public:
 
 private:
   sf::Sprite cannon;
-  SpriteSceneNode* attachment;
+  SpriteProxyNode* attachment;
   Animation attachmentAnim;
   int damage;
   Type type;

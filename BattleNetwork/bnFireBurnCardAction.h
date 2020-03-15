@@ -4,12 +4,12 @@
 #include "bnFireBurn.h"
 #include <SFML/Graphics.hpp>
 
-class SpriteSceneNode;
+class SpriteProxyNode;
 class Character;
 class FireBurnCardAction : public CardAction {
 private:
   sf::Sprite overlay;
-  SpriteSceneNode* attachment;
+  SpriteProxyNode* attachment;
   Animation attachmentAnim;
   FireBurn::Type type;
   int damage;

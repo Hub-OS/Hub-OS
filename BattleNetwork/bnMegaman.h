@@ -2,7 +2,7 @@
 #include "bnPlayer.h"
 #include "bnCardAction.h"
 
-class SpriteSceneNode;
+class SpriteProxyNode;
 
 class Megaman : public Player {
 public:
@@ -29,11 +29,11 @@ private:
   bool loaded;
   AnimationComponent* parentAnim;
   Animation overlayAnimation;
-  SpriteSceneNode* overlay;
+  SpriteProxyNode* overlay;
 
   class SpecialAction : public CardAction {
     sf::Sprite overlay;
-    SpriteSceneNode* attachment;
+    SpriteProxyNode* attachment;
     Animation attachmentAnim;
 
   public:
@@ -62,7 +62,7 @@ private:
   bool loaded;
   AnimationComponent* parentAnim;
   Animation overlayAnimation;
-  SpriteSceneNode* overlay;
+  SpriteProxyNode* overlay;
 };
 
 class TomahawkCross : public PlayerForm {
@@ -78,5 +78,5 @@ private:
   bool loaded;
   AnimationComponent* parentAnim;
   Animation overlayAnimation;
-  SpriteSceneNode* overlay;
+  SpriteProxyNode* overlay;
 };

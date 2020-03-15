@@ -12,7 +12,7 @@ protected:
   Entity* target; /**< The current enemy to approach */
   int damage;
   int turnCount, hitCount;
-  SpriteSceneNode* shadow;
+  SpriteProxyNode* shadow;
   Bees* leader;/*!< which bee to follow*/
   float attackCooldown; 
   std::list<Hitbox*> dropped;

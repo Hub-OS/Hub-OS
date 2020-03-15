@@ -34,7 +34,7 @@ public:
 
 private:
   Animation animation; /*!< Animation object */
-  SpriteSceneNode* aura; /*!< The scene node to attach to the entity's scene node */
+  SpriteProxyNode* aura; /*!< The scene node to attach to the entity's scene node */
   sf::Sprite auraSprite; /*!< the sprite drawn by SpriteSceneNode* aura */
   Type type; /*!< Type of aura */
   DefenseAura* defense; /*!< Defense rule */

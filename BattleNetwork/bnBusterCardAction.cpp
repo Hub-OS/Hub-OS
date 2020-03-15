@@ -1,6 +1,6 @@
 #include "bnBusterCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnBuster.h"
@@ -13,7 +13,7 @@ attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   this->damage = damage;
   this->charged = charged;
 
-  this->attachment2 = new SpriteSceneNode();
+  this->attachment2 = new SpriteProxyNode();
   this->attachment2->setTexture(*owner->getTexture());
   this->attachment2->SetLayer(-1);
 
@@ -21,7 +21,7 @@ attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   attachmentAnim2.Reload();
   attachmentAnim2.SetAnimation("BUSTER");
 
-  this->attachment = new SpriteSceneNode();
+  this->attachment = new SpriteProxyNode();
   this->attachment->setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
   this->attachment->SetLayer(-1);
 

@@ -19,7 +19,7 @@ class Entity;
  * @date 05/05/19
  * @brief Draws on top of attached entity
  */
-class ChargeEffectSceneNode : public SpriteSceneNode {
+class ChargeEffectSceneNode : public SpriteProxyNode {
 public:
   ChargeEffectSceneNode(Entity* _entity);
   ~ChargeEffectSceneNode();

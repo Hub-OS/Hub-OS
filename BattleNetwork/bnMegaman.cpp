@@ -5,7 +5,7 @@
 #include "bnFireBurnCardAction.h"
 #include "bnTornadoCardAction.h"
 #include "bnCardAction.h"
-#include "bnSpriteSceneNode.h"
+#include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
@@ -78,7 +78,7 @@ void TenguCross::OnActivate(Player& player)
   overlayAnimation = Animation("resources/navis/megaman/forms/tengu_cross.animation");
   overlayAnimation.Load();
   auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/tengu_cross.png");
-  overlay = new SpriteSceneNode();
+  overlay = new SpriteProxyNode();
   overlay->setTexture(*cross);
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
@@ -150,7 +150,7 @@ void HeatCross::OnActivate(Player& player)
   overlayAnimation = Animation("resources/navis/megaman/forms/heat_cross.animation");
   overlayAnimation.Load();
   auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/heat_cross.png");
-  overlay = new SpriteSceneNode();
+  overlay = new SpriteProxyNode();
   overlay->setTexture(*cross);
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
@@ -227,7 +227,7 @@ void TomahawkCross::OnActivate(Player& player)
   overlayAnimation = Animation("resources/navis/megaman/forms/hawk_cross.animation");
   overlayAnimation.Load();
   auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/hawk_cross.png");
-  overlay = new SpriteSceneNode();
+  overlay = new SpriteProxyNode();
   overlay->setTexture(*cross);
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
@@ -290,7 +290,7 @@ CardAction* TomahawkCross::OnSpecialAction(Player& player)
 
 TenguCross::SpecialAction::SpecialAction(Character* owner) : CardAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
   overlay.setTexture(*owner->getTexture());
-  this->attachment = new SpriteSceneNode(overlay);
+  this->attachment = new SpriteProxyNode(overlay);
   this->attachment->SetLayer(-1);
   this->attachment->EnableParentShader(true);
 

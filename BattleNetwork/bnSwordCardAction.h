@@ -3,15 +3,15 @@
 #include "bnAnimation.h"
 #include <SFML/Graphics.hpp>
 
-class SpriteSceneNode;
+class SpriteProxyNode;
 class Character;
 
 // TODO: Redesign CardAction!
 class SwordCardAction : public CardAction {
 protected:
   sf::Sprite overlay;
-  SpriteSceneNode* attachment;
-  SpriteSceneNode* hiltAttachment;
+  SpriteProxyNode* attachment;
+  SpriteProxyNode* hiltAttachment;
   Animation attachmentAnim,hiltAttachmentAnim;
   int damage;
   Element element;

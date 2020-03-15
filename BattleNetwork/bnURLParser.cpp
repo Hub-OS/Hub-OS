@@ -6,26 +6,26 @@
 #include <functional>
 using namespace std;
 
-URL::URL(const string& url_s) {
+URL::URL(const string& url_s) : host(), path(), query(), protocol() {
     this->parse(url_s);
 }
 
-const std::string URL::GetProtocol() const
+const std::string& URL::GetProtocol() const
 {
     return protocol;
 }
 
-const std::string URL::GetHost() const
+const std::string& URL::GetHost() const
 {
     return host;
 }
 
-const std::string URL::GetPath() const
+const std::string& URL::GetPath() const
 {
     return path;
 }
 
-const std::string URL::GetQuery() const
+const std::string& URL::GetQuery() const
 {
     return query;
 }
