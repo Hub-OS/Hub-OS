@@ -28,7 +28,8 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
 
   persist = false;
 
-  font.setTexture(LOAD_TEXTURE(AURA_NUMSET));
+  fontTextureRef = LOAD_TEXTURE(AURA_NUMSET);
+  font.setTexture(*fontTextureRef);
   font.setScale(1.f, 1.f);
   //Components setup and load
   animation = Animation(RESOURCE_PATH);

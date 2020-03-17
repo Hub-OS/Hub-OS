@@ -38,12 +38,10 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     // TODO: fully use scene nodes on all card slots and the GUI sprite
     // this->AddSprite(custSprite);
 
-    icon.setTexture(sf::Texture());
     icon.setTextureRect(sf::IntRect{ 0,0,14,14 });
     icon.setScale(sf::Vector2f(2.f, 2.f));
 
-    sf::Texture* elementTexture = TEXTURES.GetTexture(TextureType::ELEMENT_ICON);
-    element.setTexture(*elementTexture);
+    element.setTexture(TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
     element.setScale(2.f, 2.f);
     element.setPosition(2.f*25.f, 146.f);
 
@@ -56,20 +54,18 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     // never moves
     cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*122.f));
 
-    cardLock = sf::Sprite(LOAD_TEXTURE(CHIP_LOCK));
+    cardLock = sf::Sprite(*LOAD_TEXTURE(CHIP_LOCK));
     cardLock.setScale(sf::Vector2f(2.f, 2.f));
 
     cardCard.setScale(2.f, 2.f);
     cardCard.setPosition(2.f*16.f, 48.f);
     cardCard.setTextureRect(sf::IntRect{0, 0, 56, 48});
 
-    sf::Texture* nodata = TEXTURES.GetTexture(TextureType::CHIP_NODATA);
-    cardNoData.setTexture(*nodata);
+    cardNoData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_NODATA));
     cardNoData.setScale(2.f, 2.f);
     cardNoData.setPosition(2.f*16.f, 48.f);
 
-    sf::Texture* senddata = TEXTURES.GetTexture(TextureType::CHIP_SENDDATA);
-    cardSendData.setTexture(*senddata);
+    cardSendData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_SENDDATA));
     cardSendData.setScale(2.f, 2.f);
     cardSendData.setPosition(2.f*16.f, 48.f);
 
@@ -103,7 +99,7 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     formSelectQuitTimer = 0.f; // used to time out the activation
     thisFrameSelectedForm = selectedForm = -1;
 
-    formItemBG.setTexture(LOAD_TEXTURE(CUST_FORM_ITEM_BG));
+    formItemBG.setTexture(*LOAD_TEXTURE(CUST_FORM_ITEM_BG));
     formItemBG.setScale(2.f, 2.f);
 
     formSelect.setTexture(LOAD_TEXTURE(CUST_FORM_SELECT));

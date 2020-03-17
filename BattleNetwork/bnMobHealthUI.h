@@ -45,7 +45,7 @@ public:
 private:
   Character * mob; /*!< Owner of health */
   sf::Color color; /*!< Color of the glyphs */
-  mutable sf::Sprite glyphs; /*!< Drawable texture */
+  mutable SpriteProxyNode glyphs; /*!< Drawable texture */
   int healthCounter; /*!< mob's current health */
   double cooldown; /*!< Time after dial to uncolorize */
 };

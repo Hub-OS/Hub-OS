@@ -22,7 +22,7 @@ ProgsMan::ProgsMan(Rank _rank)
     SetHealth(2500);
   }
 
-  setTexture(*TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_ATLAS));
+  setTexture(TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_ATLAS));
   setScale(2.f, 2.f);
 
   this->SetHealth(health);

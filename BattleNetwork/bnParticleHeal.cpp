@@ -11,7 +11,7 @@ using sf::IntRect;
 ParticleHeal::ParticleHeal() : Artifact(nullptr)
 {
   SetLayer(0);
-  this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_HEAL));
+  this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_HEAL));
   this->setScale(2.f, 2.f);
   fx = (sf::Sprite)*this;
 

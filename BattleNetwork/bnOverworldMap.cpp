@@ -54,12 +54,12 @@ namespace Overworld {
     lights.push_back(_light);
   }
 
-  void Map::AddSprite(sf::Sprite * _sprite)
+  void Map::AddSprite(const sf::Sprite * _sprite)
   {
     sprites.push_back(_sprite);
   }
 
-  void Map::RemoveSprite(sf::Sprite * _sprite) {
+  void Map::RemoveSprite(const sf::Sprite * _sprite) {
     auto pos = std::find(sprites.begin(), sprites.end(), _sprite);
 
     if(pos != sprites.end())

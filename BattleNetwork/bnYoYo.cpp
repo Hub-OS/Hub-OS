@@ -12,8 +12,7 @@ YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, 
 
   SetLayer(0);
 
-  auto texture = TEXTURES.GetTexture(TextureType::SPELL_YOYO);
-  setTexture(*texture);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_YOYO));
   setScale(2.f, 2.f);
 
   this->speed = speed;

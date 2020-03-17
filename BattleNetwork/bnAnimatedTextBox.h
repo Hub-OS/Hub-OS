@@ -32,7 +32,7 @@ private:
   std::vector<std::string> animPaths; /*!< List of animation paths for the mugshots */
   std::vector<MessageInterface*> messages; /*!< Lists of current and next messages */
   Animation animator; /*!< Animator for the textbox */
-
+  std::shared_ptr<Texture> textureRef; /*!< smart reference to the texture*/
   sf::IntRect textArea; /*!< The area for text to type in */
   TextBox textBox; /*!< Textbox object types text out for us */
 

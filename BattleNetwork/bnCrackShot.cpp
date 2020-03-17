@@ -10,8 +10,7 @@ CrackShot::CrackShot(Field* _field, Team _team, Battle::Tile* tile) : Spell(_fie
 
   SetLayer(-1);
 
-  auto texture = TEXTURES.GetTexture(TextureType::SPELL_CRACKSHOT);
-  setTexture(*texture);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_CRACKSHOT));
   setScale(2.f, 2.f);
 
   // TODO: how many frames does it take crackshot to move from one tile to the next?

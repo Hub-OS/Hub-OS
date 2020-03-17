@@ -242,14 +242,14 @@ int main(int argc, char** argv) {
     Because the resource managers have yet to be loaded 
     We must manually load some graphics ourselves
     */
-    sf::Texture* alert = TEXTURES.LoadTextureFromFile("resources/ui/alert.png");
+    std::shared_ptr<sf::Texture> alert = TEXTURES.LoadTextureFromFile("resources/ui/alert.png");
     sf::Sprite alertSprite(*alert);
     alertSprite.setScale(2.f, 2.f);
     alertSprite.setOrigin(alertSprite.getLocalBounds().width / 2, alertSprite.getLocalBounds().height / 2);
     sf::Vector2f alertPos = (sf::Vector2f)((sf::Vector2i)ENGINE.GetWindow()->getSize() / 2);
     alertSprite.setPosition(sf::Vector2f(100.f, alertPos.y));
 
-    sf::Texture* mouseTexture = TEXTURES.LoadTextureFromFile("resources/ui/mouse.png");
+    std::shared_ptr<sf::Texture> mouseTexture = TEXTURES.LoadTextureFromFile("resources/ui/mouse.png");
     sf::Sprite mouse(*mouseTexture);
     mouse.setScale(2.f, 2.f);
     Animation mouseAnimation("resources/ui/mouse.animation");
@@ -260,7 +260,7 @@ int main(int argc, char** argv) {
     double mouseAlpha = 1.0;
 
     // set a loading spinner on the bottom-right corner of the screen
-    sf::Texture* spinnerTexture = TEXTURES.LoadTextureFromFile("resources/ui/spinner.png");
+    std::shared_ptr<sf::Texture> spinnerTexture = TEXTURES.LoadTextureFromFile("resources/ui/spinner.png");
     sf::Sprite spinner(*spinnerTexture);
     spinner.setScale(2.f, 2.f);
     spinner.setPosition(float(ENGINE.GetWindow()->getSize().x - 64), float(ENGINE.GetWindow()->getSize().y - 50));
@@ -272,14 +272,14 @@ int main(int argc, char** argv) {
 
     // Title screen logo based on region
     #if OBN_REGION_JAPAN
-    sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile.png");
+    std::shared_ptr<sf::Texture> logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile.png");
     #else
-    sf::Texture* logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");
+    std::shared_ptr<sf::Texture> logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");
     #endif
 
     SpriteProxyNode logoSprite;
 
-    logoSprite.setTexture(*logo);
+    logoSprite.setTexture(logo);
     logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);
     sf::Vector2f logoPos = sf::Vector2f(240.f, 160.f);
     logoSprite.setPosition(logoPos);
@@ -384,9 +384,9 @@ int main(int argc, char** argv) {
 
     // Title screen background
     // This will be loaded from the resource manager AFTER it's ready
-    sf::Texture* bg = nullptr;
-    sf::Texture* progs = nullptr;
-    sf::Texture* cursor = nullptr;
+    std::shared_ptr<sf::Texture> bg = nullptr;
+    std::shared_ptr<sf::Texture> progs = nullptr;
+    std::shared_ptr<sf::Texture> cursor = nullptr;
 
     // List of frames
     FrameList progAnim;
@@ -499,7 +499,7 @@ int main(int argc, char** argv) {
                     // Load resources from internal storage
                     try {
                         bg = TEXTURES.GetTexture(TextureType::BG_BLUE);
-                        bgSprite.setTexture(*bg);
+                        bgSprite.setTexture(bg);
                         bgSprite.setScale(2.f, 2.f);
                     }
                     catch (std::exception& e) {
@@ -512,7 +512,7 @@ int main(int argc, char** argv) {
                     try {
                         progs = TEXTURES.GetTexture(TextureType::TITLE_ANIM_CHAR);
 
-                        progSprite.setTexture(*progs);
+                        progSprite.setTexture(progs);
                         progSprite.setPosition(200.f, 0.f);
                         progSprite.setScale(2.f, 2.f);
 
@@ -535,7 +535,7 @@ int main(int argc, char** argv) {
                     try {
                         cursor = TEXTURES.GetTexture(TextureType::TEXT_BOX_CURSOR);
 
-                        cursorSprite.setTexture(*cursor);
+                        cursorSprite.setTexture(cursor);
                         cursorSprite.setPosition(sf::Vector2f(160.0f, 225.f));
                         cursorSprite.setScale(2.f, 2.f);
                     }
@@ -776,7 +776,6 @@ int main(int argc, char** argv) {
 
     //delete logLabel;
     //delete font;
-    delete logo;
 
     // Stop music and go to menu screen
     AUDIO.StopStream();
@@ -818,6 +817,7 @@ int main(int argc, char** argv) {
         // Non-simulation
         elapsed = static_cast<float>(clock.restart().asSeconds()) + static_cast<float>(remainder);
 
+        TEXTURES.HandleExpiredTextureCache(); // TODO: put this on a timed interval? Max image size?
         INPUT.Update();
 
         float FPS = 0.f;
@@ -877,8 +877,6 @@ int main(int argc, char** argv) {
 
     WEBCLIENT.ShutdownAllTasks();
 
-    delete spinnerTexture;
-    delete mouseTexture;
     delete logLabel;
     delete font;
 

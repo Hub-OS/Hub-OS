@@ -88,7 +88,6 @@ void Engine::Draw(SpriteProxyNode* _drawable) {
   SmartShader* shader = &context->GetShader();
 
   if (shader && shader->Get()) {
-    const sf::Texture* original = context->getTexture();
     shader->ApplyUniforms();
 
     sf::RenderStates newState = state;

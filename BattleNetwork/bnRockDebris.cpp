@@ -13,7 +13,7 @@ using sf::IntRect;
 RockDebris::RockDebris(RockDebris::Type type, double intensity) : Artifact(nullptr), type(type), intensity(intensity), duration(0.5), progress(0)
 {
   SetLayer(0);
-  this->setTexture(*TEXTURES.GetTexture(TextureType::MISC_CUBE));
+  this->setTexture(TEXTURES.GetTexture(TextureType::MISC_CUBE));
   this->setScale(2.f, 2.f);
   rightRock = (sf::Sprite)*this;
 

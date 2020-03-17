@@ -2,7 +2,7 @@
 #include "bnAnimatedTextBox.h"
 #include "bnTextureResourceManager.h"
 Message::Message(std::string message) : MessageInterface(message) {
-  nextCursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_NEXT_CURSOR));
+  nextCursor.setTexture(LOAD_TEXTURE(TEXT_BOX_NEXT_CURSOR));
   totalElapsed = 0;
 }
 

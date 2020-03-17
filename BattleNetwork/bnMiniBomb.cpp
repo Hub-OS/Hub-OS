@@ -16,9 +16,7 @@ MiniBomb::MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   damageCooldown = 0;
 
   this->HighlightTile(Battle::Tile::Highlight::flash);
-
-  auto texture = TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB);
-  setTexture(*texture);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
   setScale(2.f, 2.f);
 
   SetLayer(-1);

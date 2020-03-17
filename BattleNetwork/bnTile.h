@@ -276,8 +276,8 @@ namespace Battle {
     Field* field;
     float teamCooldown;
 
-    sf::Texture* red_team_atlas;
-    sf::Texture* blue_team_atlas;
+    std::shared_ptr<sf::Texture> red_team_atlas;
+    std::shared_ptr<sf::Texture> blue_team_atlas;
 
     static float teamCooldownLength;
     float brokenCooldown;

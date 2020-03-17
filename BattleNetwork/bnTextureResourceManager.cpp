@@ -17,19 +17,36 @@ void TextureResourceManager::LoadAllTextures(std::atomic<int> &status) {
   while (textureType != TEXTURE_TYPE_SIZE) {
     status++;
 
-    // TODO: Catch failed resources and try again
-    Texture* texture = nullptr;
-    texture = LoadTextureFromFile(paths[static_cast<int>(textureType)]);
-    if (texture) textures.insert(pair<TextureType, Texture*>(textureType, texture));
+    std::shared_ptr<Texture> texture = LoadTextureFromFile(paths[static_cast<int>(textureType)]);
+    textures.insert(pair<TextureType, CachedResource<Texture*>>(textureType, texture));
     textureType = (TextureType)(static_cast<int>(textureType) + 1);
   }
 }
 
-Texture* TextureResourceManager::LoadTextureFromFile(string _path) {
+void TextureResourceManager::HandleExpiredTextureCache()
+{
+    auto iter = texturesFromPath.begin();
+    while (iter != texturesFromPath.end()) {
+        if (iter->second.IsInUse()) {
+            iter++; continue;
+        }
+
+        if (iter->second.GetSecondsSinceLastRequest() > 60.0f) {
+            // 5 minutes is long enough
+            Logger::Logf("Texture data %s expired", iter->first.c_str());
+            iter = texturesFromPath.erase(iter);
+            continue;
+        }
+
+        iter++;
+    }
+}
+
+std::shared_ptr<Texture> TextureResourceManager::LoadTextureFromFile(string _path) {
     auto iter = texturesFromPath.find(_path);
 
     if (iter != texturesFromPath.end()) {
-        return iter->second;
+        return iter->second.GetResource();
     }
 
     auto pathsIter = std::find(paths.begin(), paths.end(), _path);
@@ -40,7 +57,7 @@ Texture* TextureResourceManager::LoadTextureFromFile(string _path) {
         skipCaching = true;
     }
 
-  Texture* texture = new Texture();
+    std::shared_ptr<Texture> texture = std::make_shared<Texture>();
   if (!texture->loadFromFile(_path)) {
 
     Logger::Logf("Failed loading texture: %s", _path.c_str());
@@ -50,14 +67,14 @@ Texture* TextureResourceManager::LoadTextureFromFile(string _path) {
   }
 
   if (!skipCaching) {
-      //texturesFromPath.insert(std::make_pair(_path, texture));
+      texturesFromPath.insert(std::make_pair(_path, texture));
   }
 
   return texture;
 }
 
-Texture* TextureResourceManager::GetTexture(TextureType _ttype) {
-  return textures.at(_ttype);
+std::shared_ptr<Texture> TextureResourceManager::GetTexture(TextureType _ttype) {
+  return textures.at(_ttype).GetResource();
 }
 
 Font* TextureResourceManager::LoadFontFromFile(string _path) {
@@ -277,11 +294,4 @@ TextureResourceManager::TextureResourceManager(void) {
 }
 
 TextureResourceManager::~TextureResourceManager(void) {
-    for (auto it = textures.begin(); it != textures.end(); ++it) {
-        delete it->second;
-    }
-
-    for (auto it = texturesFromPath.begin(); it != texturesFromPath.end(); ++it) {
-        delete it->second;
-    }
 }

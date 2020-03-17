@@ -73,5 +73,5 @@ private:
   Font* font; /*!< Card name font */
   mutable Text text; /*!< Text displays card name */
   mutable Text dmg; /*!< Text displays card damage */
-  mutable sf::Sprite icon, frame; /*!< Sprite for the card icon and the black border */
+  mutable SpriteProxyNode icon, frame; /*!< Sprite for the card icon and the black border */
 };

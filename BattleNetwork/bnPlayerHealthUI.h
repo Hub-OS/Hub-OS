@@ -25,7 +25,6 @@ class Player;
 
 using sf::Font;
 using sf::Text;
-using sf::Sprite;
 using sf::Texture;
 using sf::Drawable;
 using std::vector;
@@ -67,9 +66,9 @@ private:
   int currHP; /*!< HP of target current frame */
   int startHP; /*!< HP of target when this component was attached */
   Player* player; /*!< target entity of type Player */
-  mutable Sprite glyphs; /*!< bitmap image object to draw */
-  Sprite sprite; /*!< the box surrounding the health */
-  Texture* texture; /*!< the texture of the box */
+  mutable SpriteProxyNode glyphs; /*!< bitmap image object to draw */
+  SpriteProxyNode uibox; /*!< the box surrounding the health */
+  std::shared_ptr<Texture> texture; /*!< the texture of the box */
 
   /**
    * @class Color

@@ -19,7 +19,7 @@ private:
   bool allocatedSprite; /*!< Whether or not SpriteSceneNode owns the sprite pointer */
   mutable SmartShader shader; /*!< Sprites can have shaders attached to them */
   sf::Sprite* sprite; /*!< Reference to sprite behind proxy */
-
+  std::shared_ptr<sf::Texture> textureRef; /*!< We want to intelligently keep track so the cache doesn't eat it*/
 public:
   /**
     * \brief Construct new SpriteSceneNode
@@ -65,7 +65,7 @@ public:
    * @brief Get current texture proxy
    * @return texture of sprite
    */
-  const sf::Texture* getTexture() const;
+  const std::shared_ptr<sf::Texture> getTexture() const;
 
   /**
    * @brief Set sprite color proxy
@@ -102,7 +102,7 @@ public:
    * @param texture 
    * @param resetRect
    */
-  void setTexture(const sf::Texture& texture, bool resetRect = false);
+  void setTexture(const std::shared_ptr<sf::Texture>& texture, bool resetRect = false);
 
   /**
    * @brief Converts sf::Shader to SmartShader and attaches it.

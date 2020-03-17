@@ -19,7 +19,7 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UICompon
   icon.setTextureRect(sf::IntRect(0, 0, 14, 14));
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
-  frame = sf::Sprite(*TEXTURES.GetTexture(CHIP_FRAME));
+  frame.setTexture(TEXTURES.GetTexture(CHIP_FRAME));
   frame.setScale(sf::Vector2f(2.f, 2.f));
 
   font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");

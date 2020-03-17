@@ -14,14 +14,12 @@
 
 Megaman::Megaman() : Player() {
 
-  auto base_palette = TEXTURES.LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
-  PaletteSwap* pswap = new PaletteSwap(this, *base_palette);
+  PaletteSwap* pswap = new PaletteSwap(this, TEXTURES.LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png"));
   RegisterComponent(pswap);
-  delete base_palette;
 
   SetHealth(900);
   SetName("Megaman");
-  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
+  setTexture(TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
   this->AddForm<TenguCross>()->SetUIPath("resources/navis/megaman/forms/tengu_entry.png");
   this->AddForm<HeatCross>()->SetUIPath("resources/navis/megaman/forms/heat_entry.png");
@@ -79,7 +77,7 @@ void TenguCross::OnActivate(Player& player)
   overlayAnimation.Load();
   auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/tengu_cross.png");
   overlay = new SpriteProxyNode();
-  overlay->setTexture(*cross);
+  overlay->setTexture(cross);
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
 
@@ -151,7 +149,7 @@ void HeatCross::OnActivate(Player& player)
   overlayAnimation.Load();
   auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/heat_cross.png");
   overlay = new SpriteProxyNode();
-  overlay->setTexture(*cross);
+  overlay->setTexture(cross);
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
 
@@ -228,7 +226,7 @@ void TomahawkCross::OnActivate(Player& player)
   overlayAnimation.Load();
   auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/hawk_cross.png");
   overlay = new SpriteProxyNode();
-  overlay->setTexture(*cross);
+  overlay->setTexture(cross);
   overlay->SetLayer(-1);
   overlay->EnableParentShader(false);
 

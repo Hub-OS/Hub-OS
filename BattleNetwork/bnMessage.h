@@ -1,5 +1,6 @@
 #pragma once
 #include "bnMessageInterface.h"
+#include "bnSpriteProxyNode.h"
 #include <string>
 
 /**
@@ -9,7 +10,7 @@
    * @brief Message object prints message in classic RPG style
    */
 class Message : public MessageInterface {
-  mutable sf::Sprite nextCursor; /*!< Green cursor at bottom-right */
+  mutable SpriteProxyNode nextCursor; /*!< Green cursor at bottom-right */
   double totalElapsed;
 public:
   Message(std::string message);

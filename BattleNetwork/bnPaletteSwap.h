@@ -6,17 +6,17 @@ class Entity;
 
 class PaletteSwap : public Component {
 private:
-  sf::Texture palette;
-  sf::Texture base;
+  std::shared_ptr<sf::Texture> palette;
+  std::shared_ptr<sf::Texture> base;
   sf::Shader* paletteSwap;
   bool enabled; /*!< Turn this effect on/off */
 public:
-  PaletteSwap(Entity* owner, sf::Texture base);
+  PaletteSwap(Entity* owner, std::shared_ptr<sf::Texture> base);
   ~PaletteSwap();
   void OnUpdate(float _elapsed);
   void Inject(BattleScene&);
   void LoadPaletteTexture(std::string);
-  void SetTexture(sf::Texture& texture);
+  void SetTexture(const std::shared_ptr<sf::Texture>& texture);
   void Revert();
   void Enable(bool enabled = true);
 };

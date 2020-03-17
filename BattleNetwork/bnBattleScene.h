@@ -158,7 +158,7 @@ private:
   sf::Text* pauseLabel; /*!< "PAUSE" test */
 
   // CHIP CUST GRAPHICS
-  sf::Texture* customBarTexture; /*!< Cust gauge image */
+  std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   SpriteProxyNode customBarSprite; /*!< Cust gauge sprite */
   sf::Vector2f customBarPos; /*!< Cust gauge position */
 

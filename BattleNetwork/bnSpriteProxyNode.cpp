@@ -8,6 +8,7 @@ SpriteProxyNode::SpriteProxyNode() : SceneNode() {
 SpriteProxyNode::SpriteProxyNode(sf::Sprite& rhs) : SceneNode() {
   allocatedSprite = false;
   sprite = &rhs;
+  textureRef = std::make_shared<sf::Texture>();
 }
 
 SpriteProxyNode::~SpriteProxyNode() {
@@ -18,6 +19,7 @@ void SpriteProxyNode::operator=(sf::Sprite& rhs) {
   if(allocatedSprite) delete this->sprite;
 
   sprite = &rhs;
+  textureRef = std::make_shared<sf::Texture>();
 
   allocatedSprite = false;
 }
@@ -31,8 +33,8 @@ const sf::Sprite & SpriteProxyNode::getSprite() const
   return *sprite;
 }
 
-const sf::Texture* SpriteProxyNode::getTexture() const {
-  return sprite->getTexture();
+const std::shared_ptr<sf::Texture> SpriteProxyNode::getTexture() const {
+  return textureRef;
 }
 
 void SpriteProxyNode::setColor(sf::Color color) {
@@ -55,8 +57,9 @@ sf::FloatRect SpriteProxyNode::getLocalBounds() {
   return sprite->getLocalBounds();
 }
 
-void SpriteProxyNode::setTexture(const sf::Texture& texture, bool resetRect) {
-  sprite->setTexture(texture, resetRect);
+void SpriteProxyNode::setTexture(const std::shared_ptr<sf::Texture>& texture, bool resetRect) {
+    textureRef = texture;
+    sprite->setTexture(*texture, resetRect);
 }
 
 void SpriteProxyNode::SetShader(sf::Shader* _shader) {

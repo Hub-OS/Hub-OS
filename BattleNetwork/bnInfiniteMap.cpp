@@ -18,7 +18,7 @@ namespace Overworld {
     }
 
     // Add the arrow at the top
-    map.insert(map.begin(), new Tile(&LOAD_TEXTURE(MAIN_MENU_ARROW), sf::Vector2f(-(float)((LOAD_TEXTURE(MAIN_MENU_ARROW)).getSize().x*1.25), 0)));
+    map.insert(map.begin(), new Tile(LOAD_TEXTURE(MAIN_MENU_ARROW), sf::Vector2f(-(float)((LOAD_TEXTURE(MAIN_MENU_ARROW))->getSize().x*1.25), 0)));
 
     // Make a pointer to the start of the map
     head = map.back();
@@ -192,7 +192,7 @@ namespace Overworld {
 				
 			  if (randSpawnNPC == 0 && distFromPath != 0) {
           npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
-			    npcs.push_back(new NPC { sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), npcType });
+			    npcs.push_back(new NPC { sf::Sprite(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
 
 			    sf::Vector2f pos = offroad->GetPos();
 			    pos += sf::Vector2f(45, 0);
@@ -213,7 +213,7 @@ namespace Overworld {
 
 			  if (randSpawnNPC == 0 && distFromPath != 0) {
           npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
-		        npcs.push_back(new NPC { sf::Sprite(LOAD_TEXTURE(OW_MR_PROG)), npcType });
+		        npcs.push_back(new NPC { sf::Sprite(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
 
 			    sf::Vector2f pos = offroad->GetPos();
 			    pos += sf::Vector2f(45, 0);

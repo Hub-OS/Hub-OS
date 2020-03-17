@@ -9,7 +9,7 @@
 namespace Overworld {
   /*! \brief Structure to hold tile data */
   class Tile {
-    sf::Texture* texture;
+    std::shared_ptr<sf::Texture> texture;
     sf::Vector2f pos;
 
     bool cleanup; /*!< flag to remove tile */
@@ -32,7 +32,7 @@ namespace Overworld {
     Tile() { pos = sf::Vector2f(0, 0); LoadTexture(); cleanup = false;  }
     Tile(const Tile& rhs) { texture = rhs.texture; pos = rhs.pos;  cleanup = false; }
 
-    Tile(sf::Texture* _texture, sf::Vector2f pos = sf::Vector2f()) : pos(pos) { texture = _texture; cleanup = false; }
+    Tile(std::shared_ptr<sf::Texture> _texture, sf::Vector2f pos = sf::Vector2f()) : pos(pos) { texture = _texture; cleanup = false; }
     Tile(sf::Vector2f pos) : pos(pos) { LoadTexture(); cleanup = false;}
     ~Tile() { ; }
     const sf::Vector2f GetPos() const { return pos; }
@@ -68,7 +68,7 @@ namespace Overworld {
   protected:
     std::vector<Tile*> map; /*!< tiles */
     std::vector<Overworld::Light*> lights; /*!< light sources */
-    std::vector<sf::Sprite*> sprites; /*!< other sprites in the scene */
+    std::vector<const sf::Sprite*> sprites; /*!< other sprites in the scene */
     
     bool enableLighting; /*!< if true, enables light shading */
 
@@ -168,13 +168,13 @@ namespace Overworld {
      * @brief Add a sprite
      * @param _sprite
      */
-    void AddSprite(sf::Sprite* _sprite);
+    void AddSprite(const sf::Sprite* _sprite);
     
     /**
      * @brief Remove a sprite
      * @param _sprite
      */
-    void RemoveSprite(sf::Sprite * _sprite);
+    void RemoveSprite(const sf::Sprite * _sprite);
 
     /**
      * @brief Sorts tiles. Deletes ones marked for removal.

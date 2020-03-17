@@ -25,7 +25,7 @@ SwordCardAction::SwordCardAction(Character * owner, int damage) : CardAction(own
   this->attachment->SetLayer(-2);
 
   this->hiltAttachment = new SpriteProxyNode();
-  this->hiltAttachment->setTexture(*owner->getTexture());
+  this->hiltAttachment->setTexture(owner->getTexture());
   this->hiltAttachment->SetLayer(-1);
 
   hiltAttachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());

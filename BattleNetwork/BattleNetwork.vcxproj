@@ -469,6 +469,7 @@
     <ClInclude Include="bnParticleImpact.h" />
     <ClInclude Include="bnPlayerForm.h" />
     <ClInclude Include="bnRecoverCardAction.h" />
+    <ClInclude Include="bnCachedResource.h" />
     <ClInclude Include="bnScriptedCharacter.h" />
     <ClInclude Include="bnScriptedCardAction.h" />
     <ClInclude Include="bnScriptResourceManager.h" />

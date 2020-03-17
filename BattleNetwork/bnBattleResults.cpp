@@ -108,17 +108,17 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   resultsSprite.setScale(2.f, 2.f);
   resultsSprite.setPosition(-resultsSprite.getTextureRect().width*2.f, 20.f);
 
-  pressA = sf::Sprite(LOAD_TEXTURE(BATTLE_RESULTS_PRESS_A));
+  pressA = sf::Sprite(*LOAD_TEXTURE(BATTLE_RESULTS_PRESS_A));
   pressA.setScale(2.f, 2.f);
   pressA.setPosition(2.f*42.f, 249.f);
 
-  star = sf::Sprite(LOAD_TEXTURE(BATTLE_RESULTS_STAR));
+  star = sf::Sprite(*LOAD_TEXTURE(BATTLE_RESULTS_STAR));
   star.setScale(2.f, 2.f);
   
   sf::Font *font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   if (item) {
-    rewardCard = sf::Sprite(WEBCLIENT.GetImageForCard(item->GetUUID()));
+    rewardCard = sf::Sprite(*WEBCLIENT.GetImageForCard(item->GetUUID()));
 
     rewardCard.setTextureRect(sf::IntRect(0,0,56,48));
 

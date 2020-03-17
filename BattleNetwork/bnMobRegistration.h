@@ -30,7 +30,7 @@ public:
     std::string name;       /*!< Name of the mob */
     std::string description;/*!< Description of mob that shows up in the text box */
     std::string placeholderPath; /*!< Path to the preview image */
-    sf::Texture* placeholderTexture; /*!< Texture of the preview image */
+    std::shared_ptr<sf::Texture> placeholderTexture; /*!< Texture of the preview image */
     int atk; /*!< Strength of mob to display */
     double speed; /*!< Speed of mob to display */
     int hp; /*!< Total health of mob to display */
@@ -97,9 +97,9 @@ public:
     
     /**
      * @brief Gets the preview texture
-     * @return const sf::Texture*
+     * @return const std::shared_ptr<sf::Texture>
      */
-    const sf::Texture* GetPlaceholderTexture() const;
+    const std::shared_ptr<sf::Texture> GetPlaceholderTexture() const;
     
     /**
      * @brief Gets the preview texture path 

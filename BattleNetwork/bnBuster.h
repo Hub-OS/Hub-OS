@@ -36,7 +36,7 @@ private:
   float cooldown;
   float random; // offset
   float hitHeight;
-  sf::Texture* texture;
+  std::shared_ptr<sf::Texture> texture;
   float progress;
   AnimationComponent* animationComponent;
 };

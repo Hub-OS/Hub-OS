@@ -29,13 +29,13 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : textbox(sf::V
   audioAnimator = Animation("resources/backgrounds/config/audio.animation");
   audioAnimator.Load();
 
-  auto sprite = sf::Sprite(LOAD_TEXTURE(FONT));
+  auto sprite = sf::Sprite(*LOAD_TEXTURE(FONT));
   sprite.setScale(2.f, 2.f);
 
   uiSprite = sprite;
 
   // audio button
-  audioBGM =  sf::Sprite(LOAD_TEXTURE(AUDIO_ICO));
+  audioBGM =  sf::Sprite(*LOAD_TEXTURE(AUDIO_ICO));
   audioBGM.setScale(2.f, 2.f);
 
   audioAnimator.SetAnimation("DEFAULT");
@@ -48,7 +48,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : textbox(sf::V
   audioSFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
 
   // end button
-  endBtn = sf::Sprite(LOAD_TEXTURE(END_BTN));;
+  endBtn = sf::Sprite(*LOAD_TEXTURE(END_BTN));;
   endBtn.setScale(2.f, 2.f);
   endBtnAnimator.SetAnimation("BLINK");
   endBtnAnimator.SetFrame(1, endBtn);

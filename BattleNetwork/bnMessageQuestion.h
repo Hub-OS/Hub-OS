@@ -19,7 +19,7 @@ private:
   std::function<void()> onYes; /*!< Callback when user presses yes */
   std::function<void()> onNo; /*!< Callback when user presses no */
   bool isQuestionReady; /*!< Flag for when the user has been prompted and input is waiting */
-  mutable sf::Sprite selectCursor; /*!< Used for making selections */
+  mutable SpriteProxyNode selectCursor; /*!< Used for making selections */
   double elapsed;
   sf::Text options;
 public:

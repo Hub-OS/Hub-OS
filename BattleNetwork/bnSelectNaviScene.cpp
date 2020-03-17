@@ -58,29 +58,29 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   UI_LEFT_POS = UI_LEFT_POS_START;
   UI_TOP_POS = UI_TOP_POS_START;
 
-  charName = sf::Sprite(LOAD_TEXTURE(CHAR_NAME));
+  charName.setTexture(LOAD_TEXTURE(CHAR_NAME));
   charName.setScale(2.f, 2.f);
   charName.setPosition(UI_LEFT_POS, 10);
 
-  charElement = sf::Sprite(LOAD_TEXTURE(CHAR_ELEMENT));
+  charElement.setTexture(LOAD_TEXTURE(CHAR_ELEMENT));
   charElement.setScale(2.f, 2.f);
   charElement.setPosition(UI_LEFT_POS, 80);
 
-  charStat = sf::Sprite(LOAD_TEXTURE(CHAR_STAT));
+  charStat.setTexture(LOAD_TEXTURE(CHAR_STAT));
   charStat.setScale(2.f, 2.f);
   charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
 
-  charInfo = sf::Sprite(LOAD_TEXTURE(CHAR_INFO_BOX));
+  charInfo.setTexture(LOAD_TEXTURE(CHAR_INFO_BOX));
   charInfo.setScale(2.f, 2.f);
   charInfo.setPosition(UI_RIGHT_POS, 170);
 
-  element = sf::Sprite(*TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
+  element.setTexture(TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(UI_LEFT_POS_MAX + 15.f, 90);
 
   // Current navi graphic
   loadNavi = false;
-  navi = sf::Sprite(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
+  navi.setTexture(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
   navi.setScale(2.f, 2.f);
   navi.setOrigin(navi.getLocalBounds().width / 2.f, navi.getLocalBounds().height / 2.f);
   navi.setPosition(100.f, 150.f);
@@ -109,15 +109,15 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   glowpadAnimator.SetAnimation("GLOW");
   glowpadAnimator << Animator::Mode::Loop;
 
-  glowpad = sf::Sprite(LOAD_TEXTURE(GLOWING_PAD_ATLAS));
+  glowpad.setTexture(LOAD_TEXTURE(GLOWING_PAD_ATLAS));
   glowpad.setScale(2.f, 2.f);
   glowpad.setPosition(37, 135);
 
-  glowbase = sf::Sprite(LOAD_TEXTURE(GLOWING_PAD_BASE));
+  glowbase.setTexture(LOAD_TEXTURE(GLOWING_PAD_BASE));
   glowbase.setScale(2.f, 2.f);
   glowbase.setPosition(40, 200);
 
-  glowbottom = sf::Sprite(LOAD_TEXTURE(GLOWING_PAD_BOTTOM));
+  glowbottom.setTexture(LOAD_TEXTURE(GLOWING_PAD_BOTTOM));
   glowbottom.setScale(2.f, 2.f);
   glowbottom.setPosition(40, 200);
 
@@ -243,11 +243,9 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  SpriteProxyNode* bake = new SpriteProxyNode(navi);
-  bake->SetShader(pixelated);
+  navi.SetShader(pixelated);
 
-  ENGINE.Draw(bake);
-  delete bake;
+  ENGINE.Draw(navi);
 }
 
 void SelectNaviScene::onStart()

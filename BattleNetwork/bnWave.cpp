@@ -10,7 +10,7 @@ int Wave::numOf = 0;
 Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   SetLayer(0);
 
-  setTexture(*TEXTURES.GetTexture(TextureType::SPELL_WAVE));
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_WAVE));
   this->speed = speed;
 
   //Components setup and load

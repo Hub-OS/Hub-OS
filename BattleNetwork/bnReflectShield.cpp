@@ -12,7 +12,7 @@ const std::string RESOURCE_PATH = "resources/spells/reflect_shield.animation";
 ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Artifact(nullptr), Component(owner)
 {
   SetLayer(0);
-  this->setTexture(*TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
+  this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
   this->setScale(2.f, 2.f);
   shield = (sf::Sprite)*this;
   activated = false;

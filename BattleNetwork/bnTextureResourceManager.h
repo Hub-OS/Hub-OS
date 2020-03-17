@@ -15,6 +15,7 @@
 #pragma once
 #include "bnTextureType.h"
 #include "bnLogger.h"
+#include "bnCachedResource.h"
 
 #include <SFML/Graphics.hpp>
 #include <map>
@@ -44,21 +45,26 @@ public:
    * @param status Increases the count after each texture loads
    */
   void LoadAllTextures(std::atomic<int> &status);
+
+  /**
+  * @brief will clean expired textures from the cache and free image data
+  */
+  void HandleExpiredTextureCache();
   
   /**
    * @brief Given a file path, returns a pointer to the loaded texture
    * @param _path Relative path to the application
-   * @return Texture pointer. Must manually delete.
+   * @return Texture. The texture is cached.
    */
-  Texture* LoadTextureFromFile(string _path);
+  std::shared_ptr<Texture> LoadTextureFromFile(string _path);
   
   /**
    * @brief Returns pointer to the pre-loaded texture type
    * @param _ttype Texture type to fetch from cache
    * @return Texture pointer. 
-   * @warning Do not delete! This resource is managed by the manager.
+   * @warning This resource is managed by the manager.
    */
-  Texture* GetTexture(TextureType _ttype);
+  std::shared_ptr<Texture> GetTexture(TextureType _ttype);
   
   /**
    * @brief Given a file path, returns a pointer to the loaded font
@@ -71,12 +77,12 @@ private:
   TextureResourceManager();
   ~TextureResourceManager();
   vector<string> paths; /**< Paths to all textures. Must be in order of TextureType @see TextureType */
-  map<TextureType, Texture*> textures; /**< Cache */
-  map<std::string, Texture*> texturesFromPath; /**< Cache for textures loaded at run-time */
+  map<TextureType, CachedResource<Texture*>> textures; /**< Cache */
+  map<std::string, CachedResource<Texture*>> texturesFromPath; /**< Cache for textures loaded at run-time */
 };
 
 /*! \brief Shorthand to get instance of the manager */
 #define TEXTURES TextureResourceManager::GetInstance()
 
 /*! \brief Shorthand to get a preloaded texture */
-#define LOAD_TEXTURE(x) *TEXTURES.GetTexture(TextureType::x)
+#define LOAD_TEXTURE(x) TEXTURES.GetTexture(TextureType::x)

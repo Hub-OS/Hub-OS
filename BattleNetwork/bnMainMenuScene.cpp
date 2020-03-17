@@ -26,7 +26,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
     // before proceeding to next sub menus
     //data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
 
-    webAccountIcon = sf::Sprite(LOAD_TEXTURE(WEBACCOUNT_STATUS));
+    webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
     webAccountIcon.setScale(2.f, 2.f);
     webAccountIcon.setPosition((ENGINE.GetWindow()->getSize().x-96.0f), ENGINE.GetWindow()->getSize().y - 34.0f);
     webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
@@ -51,7 +51,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
     selectInputCooldown = maxSelectInputCooldown;
 
     // ui sprite maps
-    ui = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_UI));
+    ui.setTexture(LOAD_TEXTURE(MAIN_MENU_UI));
     ui.setScale(2.f, 2.f);
     uiAnimator = Animation("resources/ui/main_menu_ui.animation");
     uiAnimator.Reload();
@@ -59,7 +59,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
     // Keep track of selected navi
     currentNavi = 0;
 
-    owNavi = sf::Sprite(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
+    owNavi.setTexture(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
     owNavi.setScale(2.f, 2.f);
     owNavi.setPosition(0, 0.f);
     naviAnimator = Animation("resources/navis/megaman/megaman.animation");
@@ -69,12 +69,12 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
     // Share the navi sprite
     // Map will transform navi's ortho position into isometric position
-    map->AddSprite(&owNavi);
+    map->AddSprite(&owNavi.getSprite());
 
-    overlay = sf::Sprite(LOAD_TEXTURE(MAIN_MENU));
+    overlay.setTexture(LOAD_TEXTURE(MAIN_MENU));
     overlay.setScale(2.f, 2.f);
 
-    ow = sf::Sprite(LOAD_TEXTURE(MAIN_MENU_OW));
+    ow.setTexture(LOAD_TEXTURE(MAIN_MENU_OW));
     ow.setScale(2.f, 2.f);
 
     gotoNextScene = true;
@@ -280,15 +280,6 @@ void MainMenuScene::onResume() {
   accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
 
   Logger::Log("waiting for server...");
-
-  /*std::string folderPath("resources/database/folders.txt");
-  std::string libraryPath("resources/database/library.txt");
-
-  if (data.GetFolderNames().size() > 0) {
-    data.WriteToFile(folderPath);
-  }
-
-  CHIPLIB.SaveLibrary(libraryPath);*/
 
 #ifdef __ANDROID__
   StartupTouchControls();

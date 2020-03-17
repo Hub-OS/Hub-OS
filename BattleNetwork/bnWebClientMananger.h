@@ -31,8 +31,8 @@ private:
     void PingThreadHandler();
     void QueuedTasksThreadHandler();
     void InitDownloadImageHandler();
-    std::map<std::string, sf::Texture> iconTextureCache;
-    std::map<std::string, sf::Texture> cardTextureCache;
+    std::map<std::string, std::shared_ptr<sf::Texture>> iconTextureCache;
+    std::map<std::string, std::shared_ptr<sf::Texture>> cardTextureCache;
     WebAccounts::AccountState account;
 
     std::string username;
@@ -50,8 +50,8 @@ public:
     std::future<bool> SendLogoutCommand();
     std::future<WebAccounts::AccountState> SendFetchAccountCommand();
 
-    const sf::Texture& GetIconForCard(const std::string& uuid);
-    const sf::Texture& GetImageForCard(const std::string& uuid);
+    std::shared_ptr<sf::Texture> GetIconForCard(const std::string& uuid);
+    std::shared_ptr<sf::Texture> GetImageForCard(const std::string& uuid);
     const Battle::Card MakeBattleCardFromWebCardData(const WebAccounts::Card& card);
     const std::string& GetUserName() const;
 

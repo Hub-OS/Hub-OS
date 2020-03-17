@@ -76,10 +76,10 @@ FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& control
   
   leave = true;
   // folder menu graphic
-  bg = sf::Sprite(LOAD_TEXTURE(FOLDER_CHANGE_NAME_BG));
+  bg = sf::Sprite(*LOAD_TEXTURE(FOLDER_CHANGE_NAME_BG));
   bg.setScale(2.f, 2.f);
 
-  cursorPieceLeft = sf::Sprite(LOAD_TEXTURE(LETTER_CURSOR));
+  cursorPieceLeft = sf::Sprite(*LOAD_TEXTURE(LETTER_CURSOR));
   cursorPieceLeft.setScale(2.f, 2.f);
   cursorPieceLeft.setPosition(12 * 2.f, 58 * 2.f);
 

@@ -48,6 +48,7 @@ private:
   mutable Sprite font; /*!< Aura HP glyphs */
   Character* privOwner; /*!< We wish to track the original owner */
   BattleScene* bs; /*!< pointer to the battle scene*/
+  std::shared_ptr<Texture> fontTextureRef; /*!< reference to the texture set used */
 public:
   /**
    * @brief Create an aura with type and a Character owner

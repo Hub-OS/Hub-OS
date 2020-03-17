@@ -37,18 +37,18 @@ private:
   sf::Font *cardDescFont; /*!< Font used for card desc */
   sf::Text* cardDesc; /*!< Actual card desc */
 
-  sf::Sprite bg; /*!< Background for this scene */
-  sf::Sprite folderDock; /*!< Area where folder list appears */
-  sf::Sprite scrollbar; /*!< Scrollbar moves */
-  sf::Sprite stars; /*!< Some cards are rare */
-  sf::Sprite cardHolder; /*!< Card visual where card and desc sits on top of */
-  sf::Sprite element; /*!< Element of the card */
-  sf::Sprite cursor; /*!< Nav cursor */
+  SpriteProxyNode bg; /*!< Background for this scene */
+  SpriteProxyNode folderDock; /*!< Area where folder list appears */
+  SpriteProxyNode scrollbar; /*!< Scrollbar moves */
+  SpriteProxyNode stars; /*!< Some cards are rare */
+  SpriteProxyNode cardHolder; /*!< Card visual where card and desc sits on top of */
+  SpriteProxyNode element; /*!< Element of the card */
+  SpriteProxyNode cursor; /*!< Nav cursor */
 
   sf::Sprite card; /*!< Current card graphic */
   sf::IntRect cardSubFrame; /*!< The frame of the current card from the texture atlas */
 
-  sf::Sprite cardIcon; /*!< The mini icon */
+  SpriteProxyNode cardIcon; /*!< The mini icon */
   swoosh::Timer cardRevealTimer; /*!< Ease into the next card for a flip effect */
   swoosh::Timer easeInTimer;
 

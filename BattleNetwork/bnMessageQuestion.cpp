@@ -6,7 +6,7 @@ Question::Question(std::string message, std::function<void()> onYes, std::functi
   this->onNo = onNo;
   this->onYes = onYes;
   this->isQuestionReady = false;
-  selectCursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  selectCursor.setTexture(LOAD_TEXTURE(TEXT_BOX_CURSOR));
   elapsed = 0;
   yes = canceled = false;
 }

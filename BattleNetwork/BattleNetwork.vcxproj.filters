@@ -2346,6 +2346,9 @@
     <ClInclude Include="bnCardUUIDs.h">
       <Filter>Enumerations</Filter>
     </ClInclude>
+    <ClInclude Include="bnCachedResource.h">
+      <Filter>GameEngine\ResourceManagers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BattleNetwork.rc" />

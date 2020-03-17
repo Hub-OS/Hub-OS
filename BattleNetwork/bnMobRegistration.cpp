@@ -20,10 +20,6 @@ MobRegistration::MobMeta::~MobMeta()
   if (mobFactory) {
     delete mobFactory;
   }
-
-  if (placeholderTexture) {
-    delete placeholderTexture;
-  }
 }
 
 MobRegistration::MobMeta& MobRegistration::MobMeta::SetPlaceholderTexturePath(std::string path)
@@ -62,7 +58,7 @@ MobRegistration::MobMeta & MobRegistration::MobMeta::SetName(const std::string &
   return *this;
 }
 
-const sf::Texture* MobRegistration::MobMeta::GetPlaceholderTexture() const
+const std::shared_ptr<sf::Texture> MobRegistration::MobMeta::GetPlaceholderTexture() const
 {
   return this->placeholderTexture;
 }

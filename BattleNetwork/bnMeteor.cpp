@@ -14,8 +14,7 @@ Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, floa
 
   this->HighlightTile(Battle::Tile::Highlight::flash);
 
-  auto texture = TEXTURES.GetTexture(TextureType::SPELL_METEOR);
-  setTexture(*texture);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_METEOR));
 
   setScale(0.f, 0.f);
 

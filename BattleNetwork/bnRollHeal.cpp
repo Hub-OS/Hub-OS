@@ -31,7 +31,7 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
 
   AUDIO.Play(AudioType::APPEAR);
 
-  setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
+  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
 
   animationComponent = new AnimationComponent(this);
   this->RegisterComponent(animationComponent);

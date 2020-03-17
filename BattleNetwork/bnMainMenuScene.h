@@ -33,24 +33,24 @@ private:
   double selectInputCooldown; /*!< timer to allow key presses again */
 
   // ui sprite maps
-  sf::Sprite ui; /*!< UI loaded as a texture atlas */
+  SpriteProxyNode ui; /*!< UI loaded as a texture atlas */
   Animation uiAnimator; /*!< Use animator to represent the different UI buttons */
 
-  sf::Sprite webAccountIcon; /*!< Status icon if connected to web server*/
+  SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/
   Animation webAccountAnimator; /*!< Use animator to represent different statuses */
   bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
 
   int menuSelectionIndex;; /*!< Current selection */
   int lastMenuSelectionIndex;
 
-  sf::Sprite overlay; /*!< PET */
-  sf::Sprite ow; 
+  SpriteProxyNode overlay; /*!< PET */
+  SpriteProxyNode ow;
 
   Background* bg; /*!< Background image pointer */
   Overworld::Map* map; /*!< Overworld map pointer */ 
 
   SelectedNavi currentNavi; /*!< Current navi selection index */
-  sf::Sprite owNavi; /*!< Overworld navi sprite */
+  SpriteProxyNode owNavi; /*!< Overworld navi sprite */
   Animation naviAnimator; /*!< Animators navi sprite */
  
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */

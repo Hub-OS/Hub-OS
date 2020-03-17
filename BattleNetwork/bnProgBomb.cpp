@@ -13,8 +13,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   cooldown = 0;
   damageCooldown = 0;
   
-  auto texture = TEXTURES.GetTexture(TextureType::SPELL_PROG_BOMB);
-  setTexture(*texture);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_PROG_BOMB));
   setScale(2.f, 2.f);
 
   SetLayer(-1);

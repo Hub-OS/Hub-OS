@@ -3,7 +3,8 @@
 
 AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos)
     : textArea(), totalTime(0), textBox(280, 40, 24, "resources/fonts/NETNAVI_4-6_V3.ttf") {
-    frame = sf::Sprite(LOAD_TEXTURE(ANIMATED_TEXT_BOX));
+    textureRef = LOAD_TEXTURE(ANIMATED_TEXT_BOX);
+    frame = sf::Sprite(*textureRef);
 
     // set the textbox positions
     textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0f, this->getPosition().y - 40.0f));

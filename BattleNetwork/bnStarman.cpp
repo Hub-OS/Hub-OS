@@ -22,7 +22,7 @@ Starman::Starman() : Player()
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_STARMAN_ATLAS));
+  setTexture(TEXTURES.GetTexture(TextureType::NAVI_STARMAN_ATLAS));
 
   this->SetHealth(1000);
 

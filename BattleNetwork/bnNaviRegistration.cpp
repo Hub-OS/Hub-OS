@@ -75,9 +75,9 @@ NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldAnimationPat
   return *this;
 }
 
-NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldTexture(const sf::Texture * texture)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldTexture(const std::shared_ptr<Texture> texture)
 {
-  overworldTexture = const_cast<sf::Texture*>(texture);
+  overworldTexture = texture;
   return *this;
 }
 
@@ -87,15 +87,15 @@ NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetBattleAnimationPath(c
   return *this;
 }
 
-NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetBattleTexture(const sf::Texture * texture)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetBattleTexture(const std::shared_ptr<Texture> texture)
 {
-  battleTexture = const_cast<sf::Texture*>(texture);
+  battleTexture = texture;
   return *this;
 }
 
-const sf::Texture & NaviRegistration::NaviMeta::GetOverworldTexture() const
+const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetOverworldTexture() const
 {
-  return *overworldTexture;
+  return overworldTexture;
 }
 
 const std::string & NaviRegistration::NaviMeta::GetOverworldAnimationPath() const 
@@ -103,9 +103,9 @@ const std::string & NaviRegistration::NaviMeta::GetOverworldAnimationPath() cons
   return overworldAnimationPath;
 }
 
-const sf::Texture & NaviRegistration::NaviMeta::GetBattleTexture() const
+const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetBattleTexture() const
 {
-  return *battleTexture;
+  return battleTexture;
 }
 
 const std::string& NaviRegistration::NaviMeta::GetBattleAnimationPath() const

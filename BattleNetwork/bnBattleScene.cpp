@@ -132,7 +132,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   listStepCooldown = 0.2f;
   listStepCounter = listStepCooldown;
 
-  programAdvanceSprite = sf::Sprite(LOAD_TEXTURE(PROGRAM_ADVANCE));
+  programAdvanceSprite = sf::Sprite(*LOAD_TEXTURE(PROGRAM_ADVANCE));
   programAdvanceSprite.setScale(2.f, 2.f);
   programAdvanceSprite.setOrigin(0, programAdvanceSprite.getLocalBounds().height/2.0f);
   programAdvanceSprite.setPosition(40.0f, 58.f);
@@ -144,26 +144,26 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   Other battle labels
   */
 
-  battleStart = sf::Sprite(LOAD_TEXTURE(BATTLE_START));
+  battleStart = sf::Sprite(*LOAD_TEXTURE(BATTLE_START));
   battleStart.setOrigin(battleStart.getLocalBounds().width / 2.0f, battleStart.getLocalBounds().height / 2.0f);
   battleStartPos = sf::Vector2f(240.f, 140.f);
   battleStart.setPosition(battleStartPos);
   battleStart.setScale(2.f, 2.f);
 
   battleEnd = battleStart;
-  battleEnd.setTexture(LOAD_TEXTURE(ENEMY_DELETED));
+  battleEnd.setTexture(*LOAD_TEXTURE(ENEMY_DELETED));
 
-  doubleDelete = sf::Sprite(LOAD_TEXTURE(DOUBLE_DELETE));
+  doubleDelete = sf::Sprite(*LOAD_TEXTURE(DOUBLE_DELETE));
   doubleDelete.setOrigin(doubleDelete.getLocalBounds().width / 2.0f, doubleDelete.getLocalBounds().height / 2.0f);
   comboInfoPos = sf::Vector2f(240.0f, 50.f);
   doubleDelete.setPosition(comboInfoPos);
   doubleDelete.setScale(2.f, 2.f);
 
   tripleDelete = doubleDelete;
-  tripleDelete.setTexture(LOAD_TEXTURE(TRIPLE_DELETE));
+  tripleDelete.setTexture(*LOAD_TEXTURE(TRIPLE_DELETE));
 
   counterHit = doubleDelete;
-  counterHit.setTexture(LOAD_TEXTURE(COUNTER_HIT));
+  counterHit.setTexture(*LOAD_TEXTURE(COUNTER_HIT));
   /*
   Cards + Card select setup*/
   cards = nullptr;
@@ -181,7 +181,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   // CHIP CUST GRAPHICS
   customBarTexture = TEXTURES.LoadTextureFromFile("resources/ui/custom.png");
-  customBarSprite.setTexture(*customBarTexture);
+  customBarSprite.setTexture(customBarTexture);
   customBarSprite.setOrigin(customBarSprite.getLocalBounds().width / 2, 0);
   customBarPos = sf::Vector2f(240.f, 0.f);
   customBarSprite.setPosition(customBarPos);
@@ -254,7 +254,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
   iceShader.setUniform("shine", 0.2f);
 
-  shine = sf::Sprite(LOAD_TEXTURE(MOB_BOSS_SHINE));
+  shine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
   shine.setScale(2.f, 2.f);
 
   shineAnimation = Animation("resources/mobs/boss_shine.animation");

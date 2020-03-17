@@ -6,8 +6,8 @@ CustEmblem::CustEmblem() {
   wireShader->setUniform("texture", sf::Shader::CurrentTexture);
   wireShader->setUniform("numOfWires", numWires);
 
-  emblem.setTexture(LOAD_TEXTURE(CUST_BADGE));
-  emblemWireMask.setTexture(LOAD_TEXTURE(CUST_BADGE_MASK));
+  emblem.setTexture(*LOAD_TEXTURE(CUST_BADGE));
+  emblemWireMask.setTexture(*LOAD_TEXTURE(CUST_BADGE_MASK));
 
   emblemWireMask.setPosition(-9.0f, -7.0f);
 }

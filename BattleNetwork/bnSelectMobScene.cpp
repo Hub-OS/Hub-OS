@@ -17,7 +17,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   menuLabel->setCharacterSize(15);
   menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
 
-  navigator = sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR));
+  navigator.setTexture(LOAD_TEXTURE(MUG_NAVIGATOR));
   navigator.setScale(2.0f, 2.0f);
   navigator.setPosition(10.0f, 208.0f);
 
@@ -28,7 +28,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 
   mobSpr = sf::Sprite();
 
-  cursor = sf::Sprite(LOAD_TEXTURE(FOLDER_CURSOR));
+  cursor.setTexture(LOAD_TEXTURE(FOLDER_CURSOR));
   cursor.setScale(2.f, 2.f);
 
   // Selection input delays
@@ -53,7 +53,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   numberCooldown = maxNumberCooldown; // half a second
 
   // select menu graphic
-  bg = sf::Sprite(LOAD_TEXTURE(BATTLE_SELECT_BG));
+  bg.setTexture(LOAD_TEXTURE(BATTLE_SELECT_BG));
   bg.setScale(2.f, 2.f);
 
   gotoNextScene = true; 
@@ -473,14 +473,8 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
     // Refresh mob graphic origin every frame as it may change
     mobSpr.setOrigin(mobSpr.getTextureRect().width / 2.f, mobSpr.getTextureRect().height / 2.f);
 
-    // Sprites need to be a SpriteSceneNode to attach shaders to
-    SpriteProxyNode* bake = new SpriteProxyNode(mobSpr);
-    bake->SetShader(shader);
-
-    if (showMob) {
-      ENGINE.Draw(bake);
-      delete bake;
-    }
+    mobSpr.SetShader(shader);
+    ENGINE.Draw(mobSpr);
   }
 
   ENGINE.Draw(textbox);

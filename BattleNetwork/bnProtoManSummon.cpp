@@ -28,7 +28,7 @@ ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->Ge
 
   AUDIO.Play(AudioType::APPEAR);
 
-  setTexture(*TEXTURES.LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
+  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
 
   animationComponent = new AnimationComponent(this);
   this->RegisterComponent(animationComponent);

@@ -18,7 +18,7 @@ YoYoCardAction::YoYoCardAction(Character * owner, int damage) : CardAction(owner
   this->damage = damage;
 
   this->attachment = new SpriteProxyNode();
-  this->attachment->setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  this->attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
   this->attachment->SetLayer(-1);
 
   attachmentAnim.Reload();

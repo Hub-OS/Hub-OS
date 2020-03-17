@@ -15,7 +15,7 @@ AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
   SetLayer(-1);
 
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_ALPHA_ROCKET);
-  setTexture(*texture);
+  setTexture(texture);
   setScale(2.f, 2.f);
 
   this->SetSlideTime(sf::seconds(0.5f));

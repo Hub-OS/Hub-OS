@@ -38,7 +38,7 @@ Forte::Forte() : Player()
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
+  setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
 
   this->SetHealth(2000);
 
@@ -96,7 +96,7 @@ int Forte::MoveEffect::counter = 0;
 
 Forte::MoveEffect::MoveEffect(Field* field) : Artifact(field)
 {
-  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
+  setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
 
   SetLayer(1);
   this->setScale(2.f, 2.f);

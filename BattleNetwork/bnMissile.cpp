@@ -12,10 +12,8 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
     this->target = target;
     SetLayer(1);
 
-
     goingUp = true;
-    auto texture = TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS);
-    setTexture(*texture);
+    setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
     anim = new AnimationComponent(this);
     this->RegisterComponent(anim);

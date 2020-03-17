@@ -96,13 +96,13 @@ public:
    * @param width of screen
    * @param height of screen
    */
-  Background(sf::Texture& ref, int width, int height) : offset(0,0), textureRect(0, 0, width, height), width(width), height(height), texture(ref) {
+  Background(const std::shared_ptr<sf::Texture>& ref, int width, int height) : offset(0,0), textureRect(0, 0, width, height), width(width), height(height), texture(ref) {
       texture = ref;
-      texture.setRepeated(true);
+      texture->setRepeated(true);
 
       vertices.setPrimitiveType(sf::Triangles);
 
-      sf::Vector2u textureSize = ref.getSize();
+      sf::Vector2u textureSize = texture->getSize();
 
       FillScreen(textureSize);
 
@@ -128,9 +128,9 @@ public:
     states.transform *= getTransform();
 
     // apply the tileset texture
-    states.texture = &texture;
+    states.texture = &*texture;
 
-    sf::Vector2u size = texture.getSize();
+    sf::Vector2u size = texture->getSize();
 
     textureWrap->setUniform("x", (float)textureRect.left / (float)size.x);
     textureWrap->setUniform("y", (float)textureRect.top / (float)size.y);
@@ -158,7 +158,7 @@ public:
 
 protected:
   sf::VertexArray vertices; /*!< Geometry */
-  sf::Texture& texture; /*!< Texture aka spritesheet if animated */
+  std::shared_ptr<sf::Texture> texture; /*!< Texture aka spritesheet if animated */
   sf::IntRect textureRect; /*!< Frame of the animation if applicable */
   sf::Vector2f offset; /*!< Offset of the frame in pixels */
   int width, height; /*!< Dimensions of screen in pixels */

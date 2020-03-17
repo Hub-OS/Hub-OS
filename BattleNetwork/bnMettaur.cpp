@@ -34,7 +34,7 @@ Mettaur::Mettaur(Rank _rank)
 
   hitHeight = 60;
 
-  setTexture(*TEXTURES.GetTexture(TextureType::MOB_METTAUR));
+  setTexture(TEXTURES.GetTexture(TextureType::MOB_METTAUR));
 
   setScale(2.f, 2.f);
 

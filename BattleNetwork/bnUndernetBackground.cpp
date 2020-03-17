@@ -11,7 +11,7 @@
 #define COMPONENT_WIDTH 240
 #define COMPONENT_HEIGHT 160
 UndernetBackground::UndernetBackground(void)
-  : progress(0.0f), Background(*TEXTURES.LoadTextureFromFile("resources/backgrounds/undernet/bg.png"), 240, 180) {
+  : progress(0.0f), Background(TEXTURES.LoadTextureFromFile("resources/backgrounds/undernet/bg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
   colorIndex = 0;
 

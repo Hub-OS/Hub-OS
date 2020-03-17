@@ -60,32 +60,32 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
 
   // folder menu graphic
-  bg = sf::Sprite(LOAD_TEXTURE(FOLDER_INFO_BG));
+  bg = sf::Sprite(*LOAD_TEXTURE(FOLDER_INFO_BG));
   bg.setScale(2.f, 2.f);
 
-  scrollbar = sf::Sprite(LOAD_TEXTURE(FOLDER_SCROLLBAR));
+  scrollbar = sf::Sprite(*LOAD_TEXTURE(FOLDER_SCROLLBAR));
   scrollbar.setScale(2.f, 2.f);
   scrollbar.setPosition(410.f, 60.f);
 
-  folderBox = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX));
+  folderBox = sf::Sprite(*LOAD_TEXTURE(FOLDER_BOX));
   folderBox.setScale(2.f, 2.f);
 
-  folderOptions = sf::Sprite(LOAD_TEXTURE(FOLDER_OPTIONS));
+  folderOptions = sf::Sprite(*LOAD_TEXTURE(FOLDER_OPTIONS));
   folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
   folderOptions.setPosition(98.0f, 210.0f);
   folderOptions.setScale(2.f, 0.f); // hide on start
 
-  folderCursor = sf::Sprite(LOAD_TEXTURE(FOLDER_BOX_CURSOR));
+  folderCursor = sf::Sprite(*LOAD_TEXTURE(FOLDER_BOX_CURSOR));
   folderCursor.setScale(2.f, 2.f);
 
-  folderEquip = sf::Sprite(LOAD_TEXTURE(FOLDER_EQUIP));
+  folderEquip = sf::Sprite(*LOAD_TEXTURE(FOLDER_EQUIP));
   folderEquip.setScale(2.f, 2.f);
 
-  cursor = sf::Sprite(LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  cursor = sf::Sprite(*LOAD_TEXTURE(TEXT_BOX_CURSOR));
   cursor.setScale(2.f, 2.f);
   cursor.setPosition(2.0, 155.0f);
 
-  element = sf::Sprite(LOAD_TEXTURE(ELEMENT_ICON));
+  element = sf::Sprite(*LOAD_TEXTURE(ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
@@ -93,7 +93,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   cardIcon.setScale(2.f, 2.f);
   cardIcon.setTextureRect(sf::IntRect(0, 0, 14, 14));
 
-  mbPlaceholder = sf::Sprite(LOAD_TEXTURE(FOLDER_MB));
+  mbPlaceholder = sf::Sprite(*LOAD_TEXTURE(FOLDER_MB));
   mbPlaceholder.setScale(2.f, 2.f);
 
   equipAnimation = Animation("resources/ui/folder_equip.animation");
@@ -546,7 +546,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
     // Now that we are at the viewing range, draw each card in the list
     for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
-      cardIcon.setTexture(WEBCLIENT.GetIconForCard((*iter)->GetUUID()));
+      cardIcon.setTexture(*WEBCLIENT.GetIconForCard((*iter)->GetUUID()));
       cardIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
       ENGINE.Draw(cardIcon, false);
 
@@ -614,7 +614,7 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
   };
 
   textbox.EnqueMessage(
-    sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR)), 
+    sf::Sprite(*LOAD_TEXTURE(MUG_NAVIGATOR)), 
     "resources/ui/navigator.animation", 
     new Question("Are you sure you want to permanently delete this folder?", 
     onYes,

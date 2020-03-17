@@ -29,8 +29,8 @@ public:
     std::string overworldAnimationPath; /*!< The net navi's overworld animation */
     std::string battleAnimationPath; /*!< The net navi's battle animation */
     std::string name; /*!< The net navi's name */
-    sf::Texture* overworldTexture; /*!< Texture of overworld animation */
-    sf::Texture* battleTexture; /*!< Texture of the battle animation */
+    std::shared_ptr<sf::Texture> overworldTexture; /*!< Texture of overworld animation */
+    std::shared_ptr<sf::Texture> battleTexture; /*!< Texture of the battle animation */
     int atk; /*!< Attack level of the net navi */
     int chargedAtk; /*!< Charged attack level of the net navi */
     double speed; /*!< The speed of the navi */
@@ -115,7 +115,7 @@ public:
      * @param texture
      * @return NaviMeta& to chain
      */
-    NaviMeta& SetOverworldTexture(const sf::Texture* texture);
+    NaviMeta& SetOverworldTexture(const std::shared_ptr<sf::Texture> texture);
     
     /**
      * @brief Sets the battle animation path used in menu screen
@@ -128,13 +128,13 @@ public:
      * @param texture
      * @return NaviMeta& to chain
      */
-    NaviMeta& SetBattleTexture(const sf::Texture* texture);
+    NaviMeta& SetBattleTexture(const std::shared_ptr<Texture> texture);
     
     /**
      * @brief Gets the overworld texture to draw
      * @return const sf::Texture&
      */
-    const sf::Texture& GetOverworldTexture() const;
+    const std::shared_ptr<Texture> GetOverworldTexture() const;
     
     /**
      * @brief Gets the overworld animation path
@@ -146,7 +146,7 @@ public:
      * @brief Gets the battle texture to draw
      * @return const sf::Texture&
      */
-    const sf::Texture& GetBattleTexture() const;
+    const std::shared_ptr<sf::Texture> GetBattleTexture() const;
     
     /**
      * @brief Gets the battle animation path
@@ -269,8 +269,8 @@ inline NaviRegistration::NaviMeta & NaviRegistration::NaviMeta::SetNaviClass()
 {
   loadNaviClass = [this]() { 
     this->navi = new T(); 
-    this->battleTexture = const_cast<sf::Texture*>(this->navi->getTexture());
-    this->overworldTexture = const_cast<sf::Texture*>(this->navi->getTexture());
+    this->battleTexture = this->navi->getTexture();
+    this->overworldTexture = this->navi->getTexture();
     this->hp = this->navi->GetHealth();
   };
 

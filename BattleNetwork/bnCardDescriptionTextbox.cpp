@@ -15,7 +15,7 @@ void CardDescriptionTextbox::DescribeCard(Battle::Card* card)
     this->DequeMessage();
   }
 
-  this->EnqueMessage(sf::Sprite(LOAD_TEXTURE(MUG_NAVIGATOR)), "resources/ui/navigator.animation", new Message(card->GetDescription()));
+  this->EnqueMessage(sf::Sprite(*LOAD_TEXTURE(MUG_NAVIGATOR)), "resources/ui/navigator.animation", new Message(card->GetDescription()));
 
 
   // FOR FUN TESTING:

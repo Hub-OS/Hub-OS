@@ -13,7 +13,7 @@
 #define PATH std::string("resources/backgrounds/lan/")
 
 LanBackground::LanBackground(void)
-  : x(0.0f), y(0.0f), progress(0.0f), Background(*TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
+  : x(0.0f), y(0.0f), progress(0.0f), Background(TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 
   animation = Animation(PATH + "bg.animation");

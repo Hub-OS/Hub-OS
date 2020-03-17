@@ -15,9 +15,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   
   SetTeam(team);
 
-  auto texture = TEXTURES.GetTexture(TextureType::SPELL_BUBBLE);
-  
-  setTexture(*texture);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BUBBLE));
   setScale(2.f, 2.f);
 
   this->speed = speed;

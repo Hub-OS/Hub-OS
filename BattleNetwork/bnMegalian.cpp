@@ -30,7 +30,7 @@ Megalian::Megalian(Rank _rank)
 
   hitHeight = 20;
 
-  setTexture(*TEXTURES.GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
+  setTexture(TEXTURES.GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
 
   setScale(2.f, 2.f);
 

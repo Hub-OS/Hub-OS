@@ -3,10 +3,10 @@
 #include "bnShaderResourceManager.h"
 #include "bnEntity.h"
 
-PaletteSwap::PaletteSwap(Entity * owner, sf::Texture base_palette) : Component(owner), base(base_palette), enabled(true)
+PaletteSwap::PaletteSwap(Entity * owner, std::shared_ptr<sf::Texture> base_palette) : Component(owner), base(base_palette), enabled(true)
 {
   paletteSwap = ShaderResourceManager::GetInstance().GetShader(ShaderType::PALETTE_SWAP);
-  paletteSwap->setUniform("palette", base);
+  paletteSwap->setUniform("palette", *base);
   paletteSwap->setUniform("texture", sf::Shader::CurrentTexture);
 }
 
@@ -27,17 +27,15 @@ void PaletteSwap::Inject(BattleScene &)
 
 void PaletteSwap::LoadPaletteTexture(std::string path)
 {
-  auto texture = TextureResourceManager::GetInstance().LoadTextureFromFile(path);
-  palette = *texture;
-  delete texture;
-  paletteSwap->setUniform("palette", palette);
+  palette = TextureResourceManager::GetInstance().LoadTextureFromFile(path);
+  paletteSwap->setUniform("palette", *palette);
 
 }
 
-void PaletteSwap::SetTexture(sf::Texture & texture)
+void PaletteSwap::SetTexture(const std::shared_ptr<sf::Texture>& texture)
 {
   palette = texture;
-  paletteSwap->setUniform("palette", palette);
+  paletteSwap->setUniform("palette", *palette);
 }
 
 void PaletteSwap::Revert()

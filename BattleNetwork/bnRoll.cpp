@@ -24,7 +24,7 @@ Roll::Roll() : Player()
   animationComponent->Setup(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(*TEXTURES.GetTexture(TextureType::NAVI_ROLL_ATLAS));
+  setTexture(TEXTURES.GetTexture(TextureType::NAVI_ROLL_ATLAS));
 
   this->SetHealth(1500);
 

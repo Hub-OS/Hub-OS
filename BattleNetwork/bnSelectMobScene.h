@@ -88,13 +88,13 @@ private:
   void ShutdownTouchControls();
 #endif
 
-  sf::Sprite bg; /*!< Background sprite */
+  SpriteProxyNode bg; /*!< Background sprite */
 
-  sf::Sprite mobSpr; /*!< Current mob sprite */
+  SpriteProxyNode mobSpr; /*!< Current mob sprite */
 
-  sf::Sprite cursor; /*!< LEFT / RIGHT cursors */
+  SpriteProxyNode cursor; /*!< LEFT / RIGHT cursors */
 
-  sf::Sprite navigator; /*!< Mugshot spritesheet */
+  SpriteProxyNode navigator; /*!< Mugshot spritesheet */
   
   Animation navigatorAnimator; /*!< Animators mugshot */
 

@@ -62,7 +62,7 @@ MetalMan::MetalMan(Rank _rank)
   state = MOB_IDLE;
   healthUI = new MobHealthUI(this);
 
-  setTexture(*TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
+  setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
   setScale(2.f, 2.f);
 

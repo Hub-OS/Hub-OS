@@ -26,7 +26,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _pa
   SetLayer(0);
   direction = Direction::LEFT;
 
-  setTexture(*TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
+  setTexture(TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
 
   //Components setup and load

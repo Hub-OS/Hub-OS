@@ -102,13 +102,13 @@ void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account
         const WebAccounts::byte* iconData = cardModelIter->second->iconData;
         const size_t iconDataLen = cardModelIter->second->iconDataLen;
 
-        sf::Texture textureObject;
+        std::shared_ptr<sf::Texture> textureObject = std::make_shared<sf::Texture>();
 
         bool imageSucceeded = (imageDataLen > 0);
 
         if (imageDataLen) {
-            if (textureObject.loadFromMemory(imageData, imageDataLen)) {
-                this->cardTextureCache.insert(std::make_pair(card.first, textureObject));
+            if (textureObject->loadFromMemory(imageData, imageDataLen)) {
+                this->cardTextureCache.insert(std::make_pair(card.first,textureObject));
                 imageSucceeded = true;
             }
         }
@@ -116,22 +116,22 @@ void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account
         if (!imageSucceeded) {
             Logger::Logf("Creating image data for card (%s, %s) failed", cardModelIter->first.c_str(), cardModelIter->second->name.c_str());
             textureObject = LOAD_TEXTURE(CHIP_MISSINGDATA);
-            this->cardTextureCache.insert(std::make_pair(card.first, textureObject));
+            this->cardTextureCache.insert(std::make_pair(card.first,textureObject));
         }
         
-        textureObject = sf::Texture();
+        textureObject.reset();
         imageSucceeded = (iconDataLen > 0);
 
         if (iconDataLen) {
-            if (textureObject.loadFromMemory(iconData, iconDataLen)) {
-                this->iconTextureCache.insert(std::make_pair(card.first, textureObject));
+            if (textureObject->loadFromMemory(iconData, iconDataLen)) {
+                this->iconTextureCache.insert(std::make_pair(card.first,textureObject));
             }
         }
 
         if (!imageSucceeded) {
             Logger::Logf("Creating icon data for card (%s, %s) failed", cardModelIter->first.c_str(), cardModelIter->second->name.c_str());
             textureObject = LOAD_TEXTURE(CHIP_ICON_MISSINGDATA);
-            this->iconTextureCache.insert(std::make_pair(card.first, textureObject));
+            this->iconTextureCache.insert(std::make_pair(card.first,textureObject));
         }
     }
 }
@@ -271,12 +271,12 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
     return promise->get_future();
 }
 
-const sf::Texture& WebClientManager::GetIconForCard(const std::string & uuid)
+std::shared_ptr<sf::Texture> WebClientManager::GetIconForCard(const std::string & uuid)
 {
     return iconTextureCache[uuid];
 }
 
-const sf::Texture& WebClientManager::GetImageForCard(const std::string & uuid)
+std::shared_ptr<sf::Texture> WebClientManager::GetImageForCard(const std::string & uuid)
 {
     return cardTextureCache[uuid];
 }

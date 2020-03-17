@@ -71,15 +71,15 @@ private:
   float UI_LEFT_POS;
   float UI_TOP_POS;
 
-  sf::Sprite charName; /*!< name holder panel */
-  sf::Sprite charElement; /*!< element holder panel */
-  sf::Sprite charStat; /*!< stat holder panel */
-  sf::Sprite charInfo; /*!< navi info box */
-  sf::Sprite element; /*! element icon */
+  SpriteProxyNode charName; /*!< name holder panel */
+  SpriteProxyNode charElement; /*!< element holder panel */
+  SpriteProxyNode charStat; /*!< stat holder panel */
+  SpriteProxyNode charInfo; /*!< navi info box */
+  SpriteProxyNode element; /*! element icon */
 
   bool loadNavi;
 
-  sf::Sprite navi; /*!< Navi sprite */
+  SpriteProxyNode navi; /*!< Navi sprite */
   
   Animation naviAnimator; /*!< Some navi idle graphics animate */
 
@@ -90,9 +90,9 @@ private:
   SmartShader pixelated; /*!< Pixelate distortion effect */
 
   Animation glowpadAnimator; /*!< Animator for the glowing pad */
-  sf::Sprite glowpad; /*!< Glow pad ring piece */
-  sf::Sprite glowbase; /*!< G;ow pad base */
-  sf::Sprite glowbottom; /*!< Glow pad bottom piece */
+  SpriteProxyNode glowpad; /*!< Glow pad ring piece */
+  SpriteProxyNode glowbase; /*!< G;ow pad base */
+  SpriteProxyNode glowbottom; /*!< Glow pad bottom piece */
 
   TextBox textbox; /*!< Displays extra navi info. Use UP/DOWN to read more */
 

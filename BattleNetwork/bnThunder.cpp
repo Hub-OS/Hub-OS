@@ -8,8 +8,7 @@
 Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
   SetLayer(0);
 
-  auto texture = TEXTURES.GetTexture(TextureType::SPELL_THUNDER);
-  setTexture(*texture);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_THUNDER));
   setScale(2.f, 2.f);
 
   this->elapsed = 0;

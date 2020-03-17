@@ -36,7 +36,7 @@ private:
       animation->SetAnimation("Head1");
       animation->SetPlaybackSpeed(0); 
       setScale(2.f, 2.f);
-      setTexture(*TEXTURES.GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
+      setTexture(TEXTURES.GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
       animation->OnUpdate(0);
       this->SetLayer(-1); // on top of base
       this->SetHealth(base->GetHealth());

@@ -13,9 +13,9 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
   
   // TODO: move this to the preloaded textures      
   texture = TEXTURES.LoadTextureFromFile("resources/ui/img_health.png");
-  sprite.setTexture(*texture);
-  sprite.setPosition(3.f, 0.0f);
-  sprite.setScale(2.f, 2.f);
+  uibox.setTexture(texture);
+  uibox.setPosition(3.f, 0.0f);
+  uibox.setScale(2.f, 2.f);
 
   glyphs.setTexture(LOAD_TEXTURE(PLAYER_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
@@ -43,7 +43,7 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
   // Glyphs are 8x11
   // First glyph is 0 the last is 9
   // 1px space between colors
-  target.draw(sprite, this_states);
+  target.draw(uibox, this_states);
 
   const std::string currHPStr = std::to_string(currHP);
 
@@ -66,7 +66,7 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
     }
 
     glyphs.setTextureRect(sf::IntRect(col, row, 8, 11));
-    glyphs.setPosition(sf::Vector2f(offsetx-8.f, 6.0f) + sf::Vector2f(sprite.getLocalBounds().width*sprite.getScale().x, 0.f));
+    glyphs.setPosition(sf::Vector2f(offsetx-8.f, 6.0f) + sf::Vector2f(uibox.getSprite().getLocalBounds().width*uibox.getScale().x, 0.f));
 
     // Draw using transforms from parent so we can attach this to the card cust
     target.draw(glyphs, this_states);

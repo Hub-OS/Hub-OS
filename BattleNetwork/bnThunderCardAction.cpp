@@ -10,7 +10,7 @@ attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   this->damage = damage;
 
   this->attachment = new SpriteProxyNode();
-  this->attachment->setTexture(*owner->getTexture());
+  this->attachment->setTexture(owner->getTexture());
   this->attachment->SetLayer(-1);
 
   attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());

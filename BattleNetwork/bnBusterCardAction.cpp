@@ -14,7 +14,7 @@ attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   this->charged = charged;
 
   this->attachment2 = new SpriteProxyNode();
-  this->attachment2->setTexture(*owner->getTexture());
+  this->attachment2->setTexture(owner->getTexture());
   this->attachment2->SetLayer(-1);
 
   attachmentAnim2 = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
@@ -22,7 +22,7 @@ attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   attachmentAnim2.SetAnimation("BUSTER");
 
   this->attachment = new SpriteProxyNode();
-  this->attachment->setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  this->attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
   this->attachment->SetLayer(-1);
 
   attachmentAnim = Animation(NODE_ANIM);
