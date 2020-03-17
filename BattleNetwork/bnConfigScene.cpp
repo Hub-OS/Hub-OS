@@ -3,12 +3,15 @@
 #include "Segues/WhiteWashFade.h"
 #include "bnRobotBackground.h"
 
-const constexpr int OPTIONS   = 0;
-const constexpr int ACTIONS   = 1;
-const constexpr int BOUNDKEYS = 2;
+// Columns. 
+const constexpr int OPTIONS   = 0; // First column is top-level menu (option)
+const constexpr int ACTIONS   = 1; // Second column is actions within that menu
+const constexpr int BOUNDKEYS = 2; // Third column is used for bound keys
 
-ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activity(&controller)
+ConfigScene::ConfigScene(swoosh::ActivityController &controller) : textbox(sf::Vector2f(0,250)), swoosh::Activity(&controller)
 {
+    textbox.SetTextSpeed(2.0);
+
   isSelectingTopMenu = inGamepadList = inKeyboardList = false;
 
   // Draws the scrolling background
@@ -60,6 +63,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activ
   actions.push_back("SHADERS: ON");
   actions.push_back("MY KEYBOARD");
   actions.push_back("MY GAMEPAD");
+  actions.push_back("LOGIN");
 
   for (auto a : actions) {
     uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
@@ -161,7 +165,16 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) : swoosh::Activ
 
 void ConfigScene::onUpdate(double elapsed)
 {
+  textbox.Update(elapsed);
   bg->Update((float)elapsed);
+
+  if (!WEBCLIENT.IsLoggedIn()) {
+      uiList[0][uiList[0].size()-1].label = "LOGIN";
+  }
+  else {
+      uiList[0][uiList[0].size()-1].label = "LOGOUT " + WEBCLIENT.GetUserName();
+  }
+
 
   bool hasConfirmed = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false ) || INPUT.GetAnyKey() == sf::Keyboard::Enter;
   bool isInSubmenu = inKeyboardList || inGamepadList;
@@ -345,6 +358,32 @@ void ConfigScene::onUpdate(double elapsed)
         colIndex = 1;
         menuSelectionIndex = 0; // move the row cursor to the top
       }
+      else if (menuSelectionIndex == 5 && colIndex == 0) {
+
+          if (WEBCLIENT.IsLoggedIn()) {
+              if (textbox.IsClosed()) {
+                  auto onYes = [this]() {
+                      WEBCLIENT.SendLogoutCommand();
+                      textbox.Close();
+                  };
+
+                  auto onNo = [this]() {
+                      textbox.Close();
+                  };
+
+                  textbox.EnqueMessage(sf::Sprite(), "", new Question("Are you sure you want to logout?", onYes, onNo));
+                  textbox.Open();
+              }
+          }
+          else {
+              // TODO: Show the login prompt
+              inLoginMenu = true;
+              inGamepadList = false;
+              inKeyboardList = false;
+              colIndex = 1;
+              menuSelectionIndex = 0;
+          }
+      }
       else if(!awaitingKey) {
         awaitingKey = true;
         AUDIO.Play(AudioType::CHIP_DESC);
@@ -500,6 +539,8 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
     // Gamepad keys
     DrawMappedKeyMenu(boundGamepadButtons);
   }
+
+  ENGINE.Draw(textbox);
 }
 
 void ConfigScene::DrawMenuOptions()

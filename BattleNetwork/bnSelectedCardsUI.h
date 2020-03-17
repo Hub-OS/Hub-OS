@@ -48,7 +48,7 @@ public:
    * @param incoming List of Card pointers
    * @param size Size of List
    */
-  void LoadCards(Card** incoming, int size);
+  void LoadCards(Battle::Card** incoming, int size);
   
   /**
    * @brief Broadcasts the card at the cursor curr. Increases curr.
@@ -61,7 +61,7 @@ public:
   void Inject(BattleScene&);
 private:
   float elapsed; /*!< Used by draw function, delta time since last update frame */
-  Card** selectedCards; /*!< Current list of cards. */
+  Battle::Card** selectedCards; /*!< Current list of cards. */
   int cardCount; /*!< Size of list */
   int curr; /*!< Card cursor index */
   mutable double interpolTimeFlat; /*!< Interpolation time for spread cards */

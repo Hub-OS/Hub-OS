@@ -62,7 +62,7 @@ private:
   double frameElapsed; /*!< delta last frame time in seconds */
   bool gotoNextScene; /*!< If true, player cannot interact with scene */
 
-  std::list<Card> uniqueCards; /*!< List of unique cards in pack */
+  std::list<Battle::Card> uniqueCards; /*!< List of unique cards in pack */
 
   /**
    * @brief Takes user's folder and puts unique cards in a list

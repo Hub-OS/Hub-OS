@@ -51,7 +51,7 @@ public:
    * @brief Loads the next cards
    * @param incoming
    */
-  void LoadCards(std::vector<Card> incoming);
+  void LoadCards(const std::vector<Battle::Card>& incoming);
   
   /**
    * @brief Broadcasts the used card
@@ -63,7 +63,7 @@ public:
    */
   void Inject(BattleScene&);
 private:
-  std::vector<Card> selectedCards;
+  std::vector<Battle::Card> selectedCards;
   int cardCount;
   int curr;
   Character* character;

@@ -241,7 +241,7 @@ public:
             auto cardIter = account.cards.find(uuid);
 
             if (cardIter != account.cards.end()) {
-                Card card = WEBCLIENT.MakeBattleCardFromWebCardData(account, *cardIter->second);
+                Battle::Card card = WEBCLIENT.MakeBattleCardFromWebCardData(*cardIter->second);
                 currFolder->AddCard(card);
             }
         }

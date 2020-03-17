@@ -24,7 +24,7 @@ Mob* MetalManBossFight2::Build() {
   mob->SetBackground(new UndernetBackground());
   mob->StreamCustomMusic("resources/loops/loop_boss_battle2.ogg");
 
-  //mob->RegisterRankedReward(1, BattleItem(Card(139, 0, '*', 120, Element::NONE, "ProtoMan", "Slices all enmy on field", "ProtoMan appears, stopping time, and teleports to each enemy striking once.", 5)));
+  //mob->RegisterRankedReward(1, BattleItem(Battle::Card(139, 0, '*', 120, Element::NONE, "ProtoMan", "Slices all enmy on field", "ProtoMan appears, stopping time, and teleports to each enemy striking once.", 5)));
 
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
   field->AddEntity(*new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);

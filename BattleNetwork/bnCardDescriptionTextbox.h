@@ -24,5 +24,5 @@ public:
    * If there's any messages left in the queue, dequeus them
    * before adding new information
    */
-  void DescribeCard(Card* card);
+  void DescribeCard(Battle::Card* card);
 };

@@ -40,14 +40,14 @@ class CardSummonHandler : public CardUseListener {
 private:
   struct CardSummonQueue {
     std::queue<Character*> callers;
-    std::queue<Card> cards;
+    std::queue<Battle::Card> cards;
     std::queue<sf::Time> durations;
 
     const size_t Size() const {
       return callers.size();
     }
 
-    void Add(Card card, Character& caller, sf::Time duration) {
+    void Add(Battle::Card card, Character& caller, sf::Time duration) {
       callers.push(&caller);
       cards.push(card);
       durations.push(duration);
@@ -65,7 +65,7 @@ private:
       return callers.front();
     }
 
-    Card GetCard() {
+    Battle::Card GetCard() {
       return cards.front();
     }
 
@@ -90,7 +90,7 @@ private:
   double timeInSecs;
   sf::Time duration;
   std::string summon;
-  Card copy;
+  Battle::Card copy;
   Team callerTeam;
 
   CardSummonQueue queue;
@@ -332,7 +332,7 @@ public:
     }
   }
 
-  void OnCardUse(Card& card, Character& character) {
+  void OnCardUse(Battle::Card& card, Character& character) {
     std::cout << "on cards use " << card.GetShortName() << " by " << character.GetName() << std::endl;
     std::string name = card.GetShortName();
 
@@ -371,7 +371,7 @@ public:
     else {
       summon.clear();
       timeInSecs = duration.asSeconds() + 1;
-      copy = Card();
+      copy = Battle::Card();
       add = false;
     }
 

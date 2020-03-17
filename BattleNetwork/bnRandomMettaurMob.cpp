@@ -34,7 +34,7 @@ Mob* RandomMettaurMob::Build() {
   // Build a mob around the field input
   Mob* mob = new Mob(field);
 
-  //mob->RegisterRankedReward(3, BattleItem(Card(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
+  //mob->RegisterRankedReward(3, BattleItem(Battle::Card(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
 
   bool AllIce = (rand() % 50 > 45);
   bool spawnedGroundEnemy = false;

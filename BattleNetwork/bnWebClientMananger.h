@@ -33,6 +33,9 @@ private:
     void InitDownloadImageHandler();
     std::map<std::string, sf::Texture> iconTextureCache;
     std::map<std::string, sf::Texture> cardTextureCache;
+    WebAccounts::AccountState account;
+
+    std::string username;
 public:
     WebClientManager();
     static WebClientManager& GetInstance();
@@ -49,8 +52,8 @@ public:
 
     const sf::Texture& GetIconForCard(const std::string& uuid);
     const sf::Texture& GetImageForCard(const std::string& uuid);
-
-    static Card MakeBattleCardFromWebCardData(const WebAccounts::AccountState& account, const WebAccounts::Card& card);
+    const Battle::Card MakeBattleCardFromWebCardData(const WebAccounts::Card& card);
+    const std::string& GetUserName() const;
 
     void CacheTextureData(const WebAccounts::AccountState& account);
     void ShutdownAllTasks();

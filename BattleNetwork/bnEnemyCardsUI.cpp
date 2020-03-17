@@ -61,7 +61,7 @@ void EnemyCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) cons
   SceneNode::draw(target, states);
 }
 
-void EnemyCardsUI::LoadCards(std::vector<Card> incoming) {
+void EnemyCardsUI::LoadCards(const std::vector<Battle::Card>& incoming) {
   selectedCards = incoming;
   cardCount = (int)incoming.size();
   curr = 0;

@@ -29,6 +29,7 @@
 #include "bnAnimator.h"
 #include "bnConfigReader.h"
 #include "bnConfigScene.h"
+
 #include "SFML/System.hpp"
 
 #include <time.h>
@@ -407,7 +408,6 @@ int main(int argc, char** argv) {
     std::atomic<int> progress{0};
     std::atomic<int> navisLoaded{0};
     std::atomic<int> mobsLoaded{0};
-    std::future<WebAccounts::AccountState> accountCommandResponse;
 
     RunGraphicsInit(&progress);
     ENGINE.SetShader(nullptr);
@@ -492,11 +492,6 @@ int main(int argc, char** argv) {
 
                 // Now that media is ready, we can launch the navis thread
                 navisLoad.launch();
-
-                // Media is ready so we can cache texture data
-                // This will uses resources from TEXTURE manager for failed graphics
-                // This is why we wait to do this here
-                accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
             }
             else { // This `else` clause effectively waits 1 more frame before trying to load the bg and prog graphics
                 // Else we may be ready this frame
@@ -785,15 +780,6 @@ int main(int argc, char** argv) {
 
     // Stop music and go to menu screen
     AUDIO.StopStream();
-
-    // Halt and ensure the account is loaded by now
-    try {
-        const WebAccounts::AccountState& account = accountCommandResponse.get();
-        WEBCLIENT.CacheTextureData(account);
-    }
-    catch (const std::future_error& e) {
-        Logger::Logf("Could not fetch account. Error with code %s\nMessage: %s", e.code().message(), e.what());
-    }
 
     // Create an activity controller
     // Behaves like a state machine using stacks

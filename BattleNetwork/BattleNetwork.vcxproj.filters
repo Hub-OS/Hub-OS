@@ -31,45 +31,6 @@
     <Filter Include="Prefabs\TextBox\Framed\Messages\Default">
       <UniqueIdentifier>{c3af9515-4592-476a-a67a-e40875b518a3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Addons">
-      <UniqueIdentifier>{1f5b033a-23dc-49c3-851a-b980cd582e04}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\NaviRegistration">
-      <UniqueIdentifier>{7083bfe5-ae7f-40a6-9cec-6611633e79df}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration">
-      <UniqueIdentifier>{5c8b3f8e-1cbb-4f3c-9b38-04f0153d1e1e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories">
-      <UniqueIdentifier>{1cf38e39-dbdc-4910-ad71-868672316374}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\Random">
-      <UniqueIdentifier>{0e4e830d-27bf-4942-a2b1-f80cf9b05101}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\Easy">
-      <UniqueIdentifier>{b20f104e-955c-40ee-88f5-0246628bbff6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\Boss">
-      <UniqueIdentifier>{e66292ed-1af5-4333-930f-cd53c65a9e48}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\Boss\ProgsMan">
-      <UniqueIdentifier>{a79cf10e-8091-4ad4-a760-c6bf708c83cb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\Boss\MetalMan">
-      <UniqueIdentifier>{bf0078df-2b66-4101-88ac-eba5e87d190a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\Boss\Alpha">
-      <UniqueIdentifier>{015487f9-8f4e-47fb-b5f9-88219b9c6999}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\SpawnPolicies">
-      <UniqueIdentifier>{81d9d5d5-0eae-40eb-bcf8-b901b9638cec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy">
-      <UniqueIdentifier>{8deab339-cfc6-43e6-b86c-2cb7f139d585}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\Challenging">
-      <UniqueIdentifier>{9886141e-88bf-4f26-8d5d-8d3f1dab66a3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Online">
       <UniqueIdentifier>{1fb54317-a270-4890-b705-71faf0a63934}</UniqueIdentifier>
     </Filter>
@@ -105,9 +66,6 @@
     </Filter>
     <Filter Include="GameEngine\CoreModules\Graphics\SceneNodes\Sprites">
       <UniqueIdentifier>{4f57f2cc-2325-4004-b156-95f580a09792}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GameEngine\CoreModules\Graphics\Font">
-      <UniqueIdentifier>{74859765-f626-4184-8267-15ab70d541fc}</UniqueIdentifier>
     </Filter>
     <Filter Include="GameEngine\CoreModules\Graphics\Animations">
       <UniqueIdentifier>{f7b3b6ba-319e-41c2-9861-e349a23173bc}</UniqueIdentifier>
@@ -148,9 +106,6 @@
     <Filter Include="Start">
       <UniqueIdentifier>{99da17ce-caae-4583-a7c2-d4d60a27fba6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Addons\MobRegistration\MobFactories\SpawnPolicies\CardSpawnPolicies">
-      <UniqueIdentifier>{818f9f46-08a6-49c1-917e-8f8dbd065e02}</UniqueIdentifier>
-    </Filter>
     <Filter Include="GameEngine\ResourceManagers\FileResource">
       <UniqueIdentifier>{e56bc97a-f542-4eb2-b6bc-026abc81c841}</UniqueIdentifier>
     </Filter>
@@ -159,10 +114,6 @@
     </Filter>
     <Filter Include="Screens/Activities\Battle">
       <UniqueIdentifier>{10976369-a638-4250-b08c-f835a7bbfe7d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Battle\Content">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Screens/Activities\Battle\AI">
       <UniqueIdentifier>{b0e97f40-0be3-48ff-a3c0-924576c7938e}</UniqueIdentifier>
@@ -728,6 +679,51 @@
     <Filter Include="Screens/Activities\Config">
       <UniqueIdentifier>{e7929995-400d-4212-a3e6-93fc49841dd9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameEngine\CoreModules\Graphics\SceneNodes\Font">
+      <UniqueIdentifier>{74859765-f626-4184-8267-15ab70d541fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories">
+      <UniqueIdentifier>{1f5b033a-23dc-49c3-851a-b980cd582e04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\NaviRegistration">
+      <UniqueIdentifier>{7083bfe5-ae7f-40a6-9cec-6611633e79df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration">
+      <UniqueIdentifier>{5c8b3f8e-1cbb-4f3c-9b38-04f0153d1e1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories">
+      <UniqueIdentifier>{1cf38e39-dbdc-4910-ad71-868672316374}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\Random">
+      <UniqueIdentifier>{0e4e830d-27bf-4942-a2b1-f80cf9b05101}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\Easy">
+      <UniqueIdentifier>{b20f104e-955c-40ee-88f5-0246628bbff6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\Boss">
+      <UniqueIdentifier>{e66292ed-1af5-4333-930f-cd53c65a9e48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\Boss\ProgsMan">
+      <UniqueIdentifier>{a79cf10e-8091-4ad4-a760-c6bf708c83cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\Boss\MetalMan">
+      <UniqueIdentifier>{bf0078df-2b66-4101-88ac-eba5e87d190a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\Boss\Alpha">
+      <UniqueIdentifier>{015487f9-8f4e-47fb-b5f9-88219b9c6999}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\SpawnPolicies">
+      <UniqueIdentifier>{81d9d5d5-0eae-40eb-bcf8-b901b9638cec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy">
+      <UniqueIdentifier>{8deab339-cfc6-43e6-b86c-2cb7f139d585}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\SpawnPolicies\CardSpawnPolicies">
+      <UniqueIdentifier>{818f9f46-08a6-49c1-917e-8f8dbd065e02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Factories\MobRegistration\MobFactories\Challenging">
+      <UniqueIdentifier>{9886141e-88bf-4f26-8d5d-8d3f1dab66a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -788,7 +784,7 @@
       <Filter>GameEngine\CoreModules\Camera</Filter>
     </ClCompile>
     <ClCompile Include="bnRandomMettaurMob.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Random</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Random</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManIdleState.cpp">
       <Filter>Screens/Activities\Battle\Entities\Character\ProgsMan\States</Filter>
@@ -824,7 +820,7 @@
       <Filter>Screens/Activities\Battle\Entities\Spell\Sword\Basic</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsManBossFight.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Boss\ProgsMan</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Boss\ProgsMan</Filter>
     </ClCompile>
     <ClCompile Include="bnAgent.h">
       <Filter>Screens/Activities\Battle\AI</Filter>
@@ -875,7 +871,7 @@
       <Filter>Screens/Activities\Select Navi</Filter>
     </ClCompile>
     <ClCompile Include="bnNaviRegistration.cpp">
-      <Filter>Addons\NaviRegistration</Filter>
+      <Filter>Factories\NaviRegistration</Filter>
     </ClCompile>
     <ClCompile Include="bnRoll.cpp">
       <Filter>Screens/Activities\Battle\Entities\Character\Players\Roll</Filter>
@@ -992,13 +988,13 @@
       <Filter>Screens/Activities\Battle\BattleStepModifiers\DefenseRules</Filter>
     </ClCompile>
     <ClCompile Include="bnMobRegistration.cpp">
-      <Filter>Addons\MobRegistration</Filter>
+      <Filter>Factories\MobRegistration</Filter>
     </ClCompile>
     <ClCompile Include="bnCanodumbMob.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Challenging</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Challenging</Filter>
     </ClCompile>
     <ClCompile Include="bnStarfishMob.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Easy</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Easy</Filter>
     </ClCompile>
     <ClCompile Include="bnStarfish.cpp">
       <Filter>Screens/Activities\Battle\Entities\Character\Starfish</Filter>
@@ -1058,10 +1054,10 @@
       <Filter>Screens/Activities\Battle\Entities\Spell\PanelGrab</Filter>
     </ClCompile>
     <ClCompile Include="bnMetalManBossFight.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Boss\MetalMan</Filter>
     </ClCompile>
     <ClCompile Include="bnMetalManBossFight2.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Boss\MetalMan</Filter>
     </ClCompile>
     <ClCompile Include="bnSceneNode.cpp">
       <Filter>GameEngine\CoreModules\Graphics\SceneNodes</Filter>
@@ -1121,7 +1117,7 @@
       <Filter>Screens/Activities\Battle\Entities\Artifact\Explosion\RingExplosion</Filter>
     </ClCompile>
     <ClCompile Include="bnMetridMob.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Challenging</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Challenging</Filter>
     </ClCompile>
     <ClCompile Include="bnTwinFang.cpp">
       <Filter>Screens/Activities\Battle\Entities\Spell\TwinFang</Filter>
@@ -1148,7 +1144,7 @@
       <Filter>Screens/Activities\Battle\Entities\Character\Alpha\States</Filter>
     </ClCompile>
     <ClCompile Include="bnAlphaBossFight.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Boss\Alpha</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Boss\Alpha</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimator.cpp">
       <Filter>GameEngine\CoreModules\Graphics\Animations</Filter>
@@ -1253,7 +1249,7 @@
       <Filter>Screens/Activities\Battle\Entities\Character\HoneyComb\States</Filter>
     </ClCompile>
     <ClCompile Include="bnHoneyBomberMob.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Easy</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Easy</Filter>
     </ClCompile>
     <ClCompile Include="bnBees.cpp">
       <Filter>Screens/Activities\Battle\Entities\Spell\Bees</Filter>
@@ -1406,7 +1402,7 @@
       <Filter>Screens/Activities\Battle\Entities\Artifact\Particles\Impact\Buster</Filter>
     </ClCompile>
     <ClCompile Include="bnTwoMettaurMob.cpp">
-      <Filter>Addons\MobRegistration\MobFactories\Easy</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Easy</Filter>
     </ClCompile>
     <ClCompile Include="bnWebClientMananger.cpp">
       <Filter>Online\WebClient</Filter>
@@ -1591,17 +1587,17 @@
       <Filter>Screens/Activities\Battle\AI\Any\States</Filter>
     </ClInclude>
     <ClInclude Include="bnMob.h">
-      <Filter>Addons\MobRegistration\MobFactories</Filter>
+      <Filter>Factories\MobRegistration\MobFactories</Filter>
     </ClInclude>
     <ClInclude Include="bnMobFactory.h">
-      <Filter>Addons\MobRegistration\MobFactories</Filter>
+      <Filter>Factories\MobRegistration\MobFactories</Filter>
     </ClInclude>
     <ClInclude Include="bnRandomMettaurMob.h">
-      <Filter>Addons\MobRegistration\MobFactories\Random</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Random</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="bnTwoMettaurMob.h">
-      <Filter>Addons\MobRegistration\MobFactories\Easy</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Easy</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManIdleState.h">
       <Filter>Screens/Activities\Battle\Entities\Character\ProgsMan\States</Filter>
@@ -1643,7 +1639,7 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsManBossFight.h">
-      <Filter>Addons\MobRegistration\MobFactories\Boss\ProgsMan</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Boss\ProgsMan</Filter>
     </ClInclude>
     <ClInclude Include="bnBattleScene.h">
       <Filter>Screens/Activities\Battle</Filter>
@@ -1700,10 +1696,10 @@
       <Filter>Screens/Activities\Select Navi</Filter>
     </ClInclude>
     <ClInclude Include="bnNaviRegistration.h">
-      <Filter>Addons\NaviRegistration</Filter>
+      <Filter>Factories\NaviRegistration</Filter>
     </ClInclude>
     <ClInclude Include="bnQueueNaviRegistration.h">
-      <Filter>Addons</Filter>
+      <Filter>Factories</Filter>
     </ClInclude>
     <ClInclude Include="bnTextBox.h">
       <Filter>Prefabs\TextBox</Filter>
@@ -1757,7 +1753,7 @@
       <Filter>Segues</Filter>
     </ClInclude>
     <ClInclude Include="bnSpawnPolicy.h">
-      <Filter>Addons\MobRegistration\MobFactories\SpawnPolicies</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\SpawnPolicies</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimation.h">
       <Filter>GameEngine\CoreModules\Graphics\Animations</Filter>
@@ -1856,7 +1852,7 @@
       <Filter>Screens/Activities\Battle\Entities\Artifact\Particles\Impact\Guard</Filter>
     </ClInclude>
     <ClInclude Include="AlphaBossSpawnPolicy.h">
-      <Filter>Addons\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy</Filter>
     </ClInclude>
     <ClInclude Include="bnReflectShield.h">
       <Filter>Screens/Activities\Battle\Entities\Artifact\ReflectShield</Filter>
@@ -1871,16 +1867,16 @@
       <Filter>Screens/Activities\Battle\BattleStepModifiers\DefenseRules</Filter>
     </ClInclude>
     <ClInclude Include="bnMobRegistration.h">
-      <Filter>Addons\MobRegistration</Filter>
+      <Filter>Factories\MobRegistration</Filter>
     </ClInclude>
     <ClInclude Include="bnQueueMobRegistration.h">
-      <Filter>Addons</Filter>
+      <Filter>Factories</Filter>
     </ClInclude>
     <ClInclude Include="bnCanodumbMob.h">
-      <Filter>Addons\MobRegistration\MobFactories\Challenging</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Challenging</Filter>
     </ClInclude>
     <ClInclude Include="bnStarfishMob.h">
-      <Filter>Addons\MobRegistration\MobFactories\Easy</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Easy</Filter>
     </ClInclude>
     <ClInclude Include="bnStarfish.h">
       <Filter>Screens/Activities\Battle\Entities\Character\Starfish</Filter>
@@ -1946,10 +1942,10 @@
       <Filter>Screens/Activities\Battle\Entities\Spell\PanelGrab</Filter>
     </ClInclude>
     <ClInclude Include="bnMetalManBossFight.h">
-      <Filter>Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Boss\MetalMan</Filter>
     </ClInclude>
     <ClInclude Include="bnMetalManBossFight2.h">
-      <Filter>Addons\MobRegistration\MobFactories\Boss\MetalMan</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Boss\MetalMan</Filter>
     </ClInclude>
     <ClInclude Include="bnProtoManSummon.h">
       <Filter>Screens/Activities\Battle\Entities\Summons\Protoman</Filter>
@@ -2015,7 +2011,7 @@
       <Filter>Screens/Activities\Battle\Entities\Artifact\Explosion\RingExplosion</Filter>
     </ClInclude>
     <ClInclude Include="bnMetridMob.h">
-      <Filter>Addons\MobRegistration\MobFactories\Challenging</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Challenging</Filter>
     </ClInclude>
     <ClInclude Include="bnTwinFang.h">
       <Filter>Screens/Activities\Battle\Entities\Spell\TwinFang</Filter>
@@ -2042,7 +2038,7 @@
       <Filter>Screens/Activities\Battle\Entities\Character\Alpha\States</Filter>
     </ClInclude>
     <ClInclude Include="bnAlphaBossFight.h">
-      <Filter>Addons\MobRegistration\MobFactories\Boss\Alpha</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Boss\Alpha</Filter>
     </ClInclude>
     <ClInclude Include="bnAnimator.h">
       <Filter>GameEngine\CoreModules\Graphics\Animations</Filter>
@@ -2159,7 +2155,7 @@
       <Filter>Screens/Activities\Battle\Entities\Character\HoneyComb\States</Filter>
     </ClInclude>
     <ClInclude Include="bnHoneyBomberMob.h">
-      <Filter>Addons\MobRegistration\MobFactories\Easy</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\Easy</Filter>
     </ClInclude>
     <ClInclude Include="bnBees.h">
       <Filter>Screens/Activities\Battle\Entities\Spell\Bees</Filter>
@@ -2336,7 +2332,7 @@
       <Filter>Screens/Activities\Battle\PubSub\CardUse\CardUseListener\Player</Filter>
     </ClInclude>
     <ClInclude Include="bnCardsSpawnPolicy.h">
-      <Filter>Addons\MobRegistration\MobFactories\SpawnPolicies\CardSpawnPolicies</Filter>
+      <Filter>Factories\MobRegistration\MobFactories\SpawnPolicies\CardSpawnPolicies</Filter>
     </ClInclude>
     <ClInclude Include="bnURLParser.h">
       <Filter>Utilities</Filter>
@@ -2346,6 +2342,9 @@
     </ClInclude>
     <ClInclude Include="bnSpriteProxyNode.h">
       <Filter>GameEngine\CoreModules\Graphics\SceneNodes\Sprites</Filter>
+    </ClInclude>
+    <ClInclude Include="bnCardUUIDs.h">
+      <Filter>Enumerations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -798,9 +798,9 @@ void CardSelectionCust::Update(float elapsed)
   this->isInView = IsInView();
 }
 
-Card** CardSelectionCust::GetCards() {
+Battle::Card** CardSelectionCust::GetCards() {
   // Allocate selected cards list
-  selectedCards = (Card**)malloc(sizeof(Card*)*selectCount);
+  selectedCards = (Battle::Card**)malloc(sizeof(Battle::Card*)*selectCount);
 
   // Point to selected queue
   for (int i = 0; i < selectCount; i++) {

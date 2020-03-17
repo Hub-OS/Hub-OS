@@ -23,7 +23,7 @@ public:
    * @param card
    * @param user
    */
-  virtual void OnCardUse(Card& card, Character& user) = 0;
+  virtual void OnCardUse(Battle::Card& card, Character& user) = 0;
   
   /**
    * @brief Subscribe this listener to a publisher objects

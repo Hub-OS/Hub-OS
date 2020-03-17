@@ -37,13 +37,13 @@ CardFolder* CardFolder::Clone() {
   return clone;
 }
 
-void CardFolder::AddCard(Card copy)
+void CardFolder::AddCard(Battle::Card copy)
 {
-  folderList.push_back(new Card(copy));
+  folderList.push_back(new Battle::Card(copy));
   folderSize = (int)folderList.size();
 }
 
-Card* CardFolder::Next() {
+Battle::Card* CardFolder::Next() {
   if (--folderSize < 0) {
     return nullptr;
   }

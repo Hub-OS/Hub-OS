@@ -193,7 +193,7 @@ void LibraryScene::MakeUniqueCardsFromPack()
     this->uniqueCards.insert(uniqueCards.begin(), *iter);
   }
 
-  auto pred = [](const Card &a, const Card &b) -> bool {
+  auto pred = [](const Battle::Card &a, const Battle::Card &b) -> bool {
     return a.GetShortName() == b.GetShortName();
   };
 

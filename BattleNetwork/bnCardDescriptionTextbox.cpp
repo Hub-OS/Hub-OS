@@ -7,7 +7,7 @@ CardDescriptionTextbox::CardDescriptionTextbox(sf::Vector2f pos) :
 
 }
 
-void CardDescriptionTextbox::DescribeCard(Card* card)
+void CardDescriptionTextbox::DescribeCard(Battle::Card* card)
 {
   if (card == nullptr) return;
 

@@ -42,16 +42,16 @@ private:
   private:
     unsigned size;
     unsigned maxSize;
-    Card info;
+    Battle::Card info;
 
   public:
-    PackBucket(unsigned size, Card info) : size(size), maxSize(size), info(info) { }
+    PackBucket(unsigned size, Battle::Card info) : size(size), maxSize(size), info(info) { }
     ~PackBucket() { }
 
     const bool IsEmpty() const { return size == 0; }
-    const bool GetCard(Card& copy) { if (IsEmpty()) return false; else copy = Card(info); size--;  return true; }
+    const bool GetCard(Battle::Card& copy) { if (IsEmpty()) return false; else copy = Battle::Card(info); size--;  return true; }
     void AddCard() { size++; size = std::min(size, maxSize);  }
-    const Card& ViewCard() const { return info; }
+    const Battle::Card& ViewCard() const { return info; }
     const unsigned GetCount() const { return size; }
   };
 
@@ -62,20 +62,20 @@ private:
   class FolderSlot {
   private:
     bool occupied;
-    Card info;
+    Battle::Card info;
   public:
-    void AddCard(Card other) {
+    void AddCard(Battle::Card other) {
       info = other;
       occupied = true;
     }
 
-    const bool GetCard(Card& copy) {
+    const bool GetCard(Battle::Card& copy) {
       if (!occupied) return false;
 
-      copy = Card(info);
+      copy = Battle::Card(info);
       occupied = false;
 
-      info = Card(); // null card
+      info = Battle::Card(); // null card
 
       return true;
     }
@@ -84,7 +84,7 @@ private:
       return !occupied;
     }
 
-    const Card& ViewCard() {
+    const Battle::Card& ViewCard() {
       return info;
     }
   };

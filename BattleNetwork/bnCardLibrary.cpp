@@ -33,12 +33,12 @@ const unsigned CardLibrary::GetSize() const
   return (unsigned)library.size();
 }
 
-void CardLibrary::AddCard(Card card)
+void CardLibrary::AddCard(Battle::Card card)
 {
   library.insert(card);
 }
 
-bool CardLibrary::IsCardValid(Card& card)
+bool CardLibrary::IsCardValid(Battle::Card& card)
 {
   for (auto i = Begin(); i != End(); i++) {
     if (i->GetShortName() == card.GetShortName() && i->GetCode() == card.GetCode()) {
@@ -49,7 +49,7 @@ bool CardLibrary::IsCardValid(Card& card)
   return false;
 }
 
-std::list<char> CardLibrary::GetCardCodes(const Card& card)
+std::list<char> CardLibrary::GetCardCodes(const Battle::Card& card)
 {
   std::list<char> codes;
 
@@ -62,7 +62,7 @@ std::list<char> CardLibrary::GetCardCodes(const Card& card)
   return codes;
 }
 
-const int CardLibrary::GetCountOf(const Card & card)
+const int CardLibrary::GetCountOf(const Battle::Card & card)
 {
   return int(library.count(card));
 }

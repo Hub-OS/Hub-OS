@@ -226,9 +226,9 @@ void Animation::SetAnimation(string state) {
      //throw std::runtime_error(std::string("No animation found in file for " + currAnimation));
      Logger::Log("No animation found in file for " + state);
    }
-   else {
-     currAnimation = state;
-   }
+
+   // Even if we don't have this animation, switch to it anyway
+   currAnimation = state;
 }
 
 void Animation::RemoveCallbacks()

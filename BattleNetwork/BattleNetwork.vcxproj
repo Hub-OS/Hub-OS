@@ -445,6 +445,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnAlphaElectricalCurrent.h" />
+    <ClInclude Include="bnCardUUIDs.h" />
     <ClInclude Include="bnCharacterDeleteListener.h" />
     <ClInclude Include="bnCharacterDeletePublisher.h" />
     <ClInclude Include="bnCurrentTime.h" />

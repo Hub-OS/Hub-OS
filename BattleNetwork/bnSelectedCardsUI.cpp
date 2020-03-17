@@ -148,7 +148,7 @@ void SelectedCardsUI::OnUpdate(float _elapsed) {
   this->elapsed = _elapsed;
 }
 
-void SelectedCardsUI::LoadCards(Card ** incoming, int size) {
+void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
   selectedCards = incoming;
   cardCount = size;
   curr = 0;

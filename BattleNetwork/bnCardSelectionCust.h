@@ -30,7 +30,7 @@ public:
    * A card may be SELECTED, QUEUED, AVAILABLE
    */
   struct Bucket {
-    Card* data;
+    Battle::Card* data;
     short state;
   };
 
@@ -76,7 +76,7 @@ private:
   bool canInteract;
   int perTurn; /*!< How many cards the player can get per turn */
   CardFolder* folder; /*!< The loaded card folder. @warning Will consume and delete this resource */
-  Card** selectedCards; /*!< Pointer to a list of selected cards */
+  Battle::Card** selectedCards; /*!< Pointer to a list of selected cards */
   Bucket* queue; /*!< List of buckets */
   Bucket** selectQueue; /*!< List of selected buckets in order */
   CardDescriptionTextbox cardDescriptionTextbox; /*!< Popups card descriptions */
@@ -236,7 +236,7 @@ public:
    * @brief Transfer ownership from Folder through GUI to user of all selected cards in queue
    * @return List of Card*
    */
-  Card** GetCards();
+  Battle::Card** GetCards();
   
   /**
    * @brief Shifts all leftover cards so that the queue has non-null buckets. Points selected cards to null.

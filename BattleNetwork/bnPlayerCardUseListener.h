@@ -31,5 +31,5 @@ public:
    * @param card Card used
    * @param character Character using card
    */
-  void OnCardUse(Card& card, Character& character);
+  void OnCardUse(Battle::Card& card, Character& character);
 };

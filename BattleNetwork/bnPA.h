@@ -43,7 +43,7 @@ class PA
 
   std::vector<PAData> advances; /*!< list of all PAs */
   std::vector<PAData>::iterator iter; /*!< iterator */
-  Card* advanceCardRef; /*!< Allocated PA needs to be deleted */
+  Battle::Card* advanceCardRef; /*!< Allocated PA needs to be deleted */
 public:
   /**
    * @brief sets advanceCardRef to null
@@ -74,7 +74,7 @@ public:
    * @param size size of card list
    * @return -1 if no match. Otherwise returns the start position of the PA
    */
-  const int FindPA(Card** input, unsigned size);
+  const int FindPA(Battle::Card** input, unsigned size);
   
   /**
    * @brief Returns the list of matching steps in the PA
@@ -88,6 +88,6 @@ public:
    * @warning do not delete this pointer!
    * This is deleted by the PA 
    */
-  Card* GetAdvanceCard();
+  Battle::Card* GetAdvanceCard();
 };
 

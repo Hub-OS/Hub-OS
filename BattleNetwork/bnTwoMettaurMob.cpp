@@ -2,6 +2,8 @@
 #include "bnField.h"
 #include "bnSpawnPolicy.h"
 #include "bnCardsSpawnPolicy.h"
+#include "bnWebClientMananger.h"
+#include "bnCardUUIDs.h"
 
 TwoMettaurMob::TwoMettaurMob(Field* field) : MobFactory(field)
 {
@@ -17,12 +19,11 @@ Mob* TwoMettaurMob::Build() {
   Mob* mob = new Mob(field);
 
   // Assign rewards based on rank
-  //Card name="CrckPanel" cardIndex="83" iconIndex="158" damage="0" type="NONE" codes="K" desc="Cracks a panel" verbose="Cracks the tiles in the column immediately in front" rarity="2" 
-  //Card name="Rflctr1" cardIndex="72" iconIndex="99" damage="60" type="NONE" codes="*" desc="Defends and reflects" verbose="Press A to bring up a shield that protects you and reflects damage." rarity="2"
-  //mob->RegisterRankedReward(1, BattleItem(Card(72, 99, 'C', 60, Element::NONE, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
-  //mob->RegisterRankedReward(1, BattleItem(Card(72, 99, 'B', 60, Element::NONE, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
-  //mob->RegisterRankedReward(3, BattleItem(Card(72, 99, 'A', 60, Element::NONE, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
-  //mob->RegisterRankedReward(1, BattleItem(Card(83, 158, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "Cracks the tiles in the column immediately in front", 2)));
+  mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::Reflect)));
+  //mob->RegisterRankedReward(1, BattleItem(Battle::Card(72, 99, 'C', 60, Element::NONE, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
+  //mob->RegisterRankedReward(1, BattleItem(Battle::Card(72, 99, 'B', 60, Element::NONE, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
+  //mob->RegisterRankedReward(3, BattleItem(Battle::Card(72, 99, 'A', 60, Element::NONE, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
+  //mob->RegisterRankedReward(1, BattleItem(Battle::Card(83, 158, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "Cracks the tiles in the column immediately in front", 2)));
 
   int count = 2;
 

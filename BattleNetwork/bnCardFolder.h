@@ -17,12 +17,12 @@
  */
 class CardFolder {
 private:
-  std::vector<Card*> folderList; /*!< Cards */
+  std::vector<Battle::Card*> folderList; /*!< Cards */
   int folderSize; /*!< Size of the folder */
   int initialSize; /*!< Start of the folder size */
 
 public:
-  typedef std::vector<Card*>::const_iterator Iter;
+  typedef std::vector<Battle::Card*>::const_iterator Iter;
 
   /** 
    * @brief Empty folder
@@ -58,13 +58,13 @@ public:
    * @brief Copies card data and allocates new one in folder
    * @param copy
    */
-  void AddCard(Card copy);
+  void AddCard(Battle::Card copy);
   
   /**
    * @brief Moves the iterator over after returning card pointer
    * @return Card*
    */
-  Card* Next();
+  Battle::Card* Next();
   
   /**
    * @brief The remaining size of the folder 
@@ -104,7 +104,7 @@ public:
         iter++;
       }
 
-      folder.folderList.push_back(new Card(*(iter)));
+      folder.folderList.push_back(new Battle::Card(*(iter)));
     }
 
     return folder;

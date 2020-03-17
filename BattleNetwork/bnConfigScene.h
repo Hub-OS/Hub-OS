@@ -13,15 +13,21 @@
 #include "bnAnimation.h"
 #include "bnConfigSettings.h"
 #include "bnConfigWriter.h"
-
+#include "bnAnimatedTextBox.h"
+#include "bnMessageQuestion.h"
 #include <SFML/Graphics.hpp>
 #include <time.h>
 
+/*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
+    \warning This scene was made in a clear conscious and is in no way an example of good code design.
+*/
 class ConfigScene : public swoosh::Activity {
 private:
   ConfigSettings configSettings;
   ConfigSettings::KeyboardHash keyHash;
   ConfigSettings::GamepadHash gamepadHash;
+
+  AnimatedTextBox textbox;
 
   // ui sprite maps
   Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
@@ -44,6 +50,7 @@ private:
   bool isSelectingTopMenu;
   bool inGamepadList;
   bool inKeyboardList;
+  bool inLoginMenu;
   int audioModeBGM;
   int audioModeSFX;
 

@@ -340,14 +340,14 @@ const bool BattleScene::IsBattleActive()
 }
 
 // TODO: this needs to be handled by some card API itself and not hacked
-void BattleScene::TEMPFilterAtkCards(Card ** cards, int cardCount)
+void BattleScene::TEMPFilterAtkCards(Battle::Card ** cards, int cardCount)
 {
   // Only remove the ATK cards in the queue. Increase the previous card damage by +10
   int newCardCount = cardCount;
-  Card* nonSupport = nullptr;
+  Battle::Card* nonSupport = nullptr;
 
   // Create a temp card list
-  Card** newCardList = new Card*[cardCount];
+  Battle::Card** newCardList = new Battle::Card*[cardCount];
 
   int j = 0;
   for (int i = 0; i < cardCount; ) {
@@ -1305,7 +1305,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
             if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
               if (i == hasPA) {
-                Card* paCard = programAdvance.GetAdvanceCard();
+                Battle::Card* paCard = programAdvance.GetAdvanceCard();
 
                 sf::Text stepLabel = sf::Text(paCard->GetShortName(), *mobFont);
                 stepLabel.setOrigin(0, 0);
@@ -1344,7 +1344,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           if (paStepIndex == cardCount + 2) {
             advanceSoundPlay = false;
 
-            Card* paCard = programAdvance.GetAdvanceCard();
+            Battle::Card* paCard = programAdvance.GetAdvanceCard();
 
             // Only remove the cards involved in the program advance. Replace them with the new PA card.
             // PA card is dealloc by the class that created it so it must be removed before the library tries to dealloc
@@ -1352,7 +1352,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             int newCardStart = hasPA;
 
             // Create a temp card list
-            Card** newCardList = new Card*[newCardCount];
+            Battle::Card** newCardList = new Battle::Card*[newCardCount];
 
             int j = 0;
             for (int i = 0; i < cardCount; ) {

@@ -24,7 +24,7 @@
 #include "bnElecpulse.h"
 #include "bnHideUntil.h"
 
-void PlayerCardUseListener::OnCardUse(Card& card, Character& character) {
+void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) {
   // Player charging is cancelled
   player->SetCharging(false);
 

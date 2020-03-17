@@ -11,7 +11,7 @@
  */
 class CardSpawnPolicyCardset {
 public:
-  std::vector<Card> cards;
+  std::vector<Battle::Card> cards;
 
   CardSpawnPolicyCardset() {
 
@@ -22,20 +22,20 @@ public:
     int random = rand() % 3;
 
     if (random == 0) {
-      cards.push_back(Card(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2));
-      cards.push_back(Card(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "", 2));
+      cards.push_back(Battle::Card(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2));
+      cards.push_back(Battle::Card(83, 0, 'K', 0, Element::NONE, "CrckPanel", "Cracks a panel", "", 2));
     }
     else if(random == 2) {
-      cards.push_back(Card(75, 147, 'R', 30, Element::NONE, "Recov30", "Recover 30HP", "", 1));
-      cards.push_back(Card(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2));
+      cards.push_back(Battle::Card(75, 147, 'R', 30, Element::NONE, "Recov30", "Recover 30HP", "", 1));
+      cards.push_back(Battle::Card(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2));
     }
     else {
-      cards.push_back(Card(120, 168, '*', 0, Element::NONE, "Barrier", "Nullifies 100HP of damage!", "", 1));
+      cards.push_back(Battle::Card(120, 168, '*', 0, Element::NONE, "Barrier", "Nullifies 100HP of damage!", "", 1));
     }*/
   }
 
 protected:
-  void AddCard(Card card) {
+  void AddCard(Battle::Card card) {
     cards.push_back(card);
   }
 };
@@ -85,7 +85,7 @@ public:
     EnemyCardsUI* ui = new EnemyCardsUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);
 
-    ui->LoadCards(CardSpawnPolicyCardset().cards);
+    ui->LoadCards(Battle::CardSpawnPolicyCardset().cards);
     //mob.DelegateComponent(ui);
 
     Component* healthui = new MobHealthUI(this->GetSpawned());

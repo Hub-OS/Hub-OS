@@ -77,7 +77,7 @@ std::string FolderEditScene::FormatCardDesc(const std::string && desc)
     index++;
   }
 
-  // Card docks can only fit 9 characters per line, 3 lines total
+  // Battle::Card docks can only fit 9 characters per line, 3 lines total
   if (output.size() > 3 * 10) {
     output = output.substr(0, (3 * 10));
     output[output.size()] = ';'; // font glyph will show an elipses
@@ -107,7 +107,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   maxSelectInputCooldown = 0.5; // half of a second
   selectInputCooldown = maxSelectInputCooldown;
 
-  // Card UI font
+  // Battle::Card UI font
   cardFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
   cardLabel = new sf::Text("", *cardFont);
   cardLabel->setPosition(275.f, 15.f);
@@ -120,7 +120,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
   numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
 
-  // Card description font
+  // Battle::Card description font
   cardDescFont = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
   cardDesc = new sf::Text("", *cardDescFont);
   cardDesc->setCharacterSize(24);
@@ -333,7 +333,7 @@ void FolderEditScene::onUpdate(double elapsed) {
             // Try to swap the card with the one from the pack
             // The card from the pack is copied and added to the slot
             // The slot card needs to find its corresponding bucket and increment it
-            Card copy;
+            Battle::Card copy;
 
             bool gotCard = false;
 
@@ -345,7 +345,7 @@ void FolderEditScene::onUpdate(double elapsed) {
               gotCard = true;
             }
             else if (packCardBuckets[packView.swapCardIndex].GetCard(copy)) {
-              Card prev;
+              Battle::Card prev;
 
               bool findBucket = folderCardSlots[folderView.currCardIndex].GetCard(prev);
 
@@ -408,7 +408,7 @@ void FolderEditScene::onUpdate(double elapsed) {
             // Try to swap the card with the one from the folder
             // The card from the pack is copied and added to the slot
             // The slot card needs to find its corresponding bucket and increment it
-            Card copy;
+            Battle::Card copy;
 
             bool gotCard = false;
 
@@ -420,7 +420,7 @@ void FolderEditScene::onUpdate(double elapsed) {
               gotCard = true;
             }
             else if (packCardBuckets[packView.currCardIndex].GetCard(copy)) {
-              Card prev;
+              Battle::Card prev;
 
               bool findBucket = folderCardSlots[folderView.swapCardIndex].GetCard(prev);
 
@@ -629,7 +629,7 @@ void FolderEditScene::DrawFolder() {
 
   // Now that we are at the viewing range, draw each card in the list
   for (int i = 0; i < folderView.maxCardsOnScreen && folderView.lastCardOnScreen + i < folderView.numOfCards; i++) {
-    const Card& copy = iter->ViewCard();
+    const Battle::Card& copy = iter->ViewCard();
 
     if (!iter->IsEmpty()) {
       cardIcon.setTexture(WEBCLIENT.GetIconForCard(copy.GetUUID()));
@@ -738,7 +738,7 @@ void FolderEditScene::DrawLibrary() {
   // Now that we are at the viewing range, draw each card in the list
   for (int i = 0; i < packView.maxCardsOnScreen && packView.lastCardOnScreen + i < packView.numOfCards; i++) {
     int count = iter->GetCount();
-    const Card& copy = iter->ViewCard();
+    const Battle::Card& copy = iter->ViewCard();
 
     cardIcon.setTextureRect(sf::IntRect{ 0,0,16,16 });
     cardIcon.setPosition(19.f + 480.f, 65.0f + (32.f*i));
@@ -833,7 +833,7 @@ void FolderEditScene::onEnd() {
 
 void FolderEditScene::ExcludeFolderDataFromPack()
 {
-  Card mock; // will not be used
+  Battle::Card mock; // will not be used
   for (auto& f : folderCardSlots) {
     auto iter = std::find_if(packCardBuckets.begin(), packCardBuckets.end(), [&f](PackBucket& pack) { return pack.ViewCard() == f.ViewCard(); });
     if (iter != packCardBuckets.end()) {
@@ -848,7 +848,7 @@ void FolderEditScene::PlaceFolderDataIntoCardSlots()
   
   while (iter != folder.End() && folderCardSlots.size() < 30) {
     auto slot = FolderSlot();
-    slot.AddCard(Card(**iter));
+    slot.AddCard(Battle::Card(**iter));
     folderCardSlots.push_back(slot);
     iter++;
   }
@@ -861,7 +861,7 @@ void FolderEditScene::PlaceFolderDataIntoCardSlots()
 void FolderEditScene::PlaceLibraryDataIntoBuckets()
 {
   CardLibrary::Iter iter = CHIPLIB.Begin();
-  std::map<Card, bool, Card::Compare> visited; // visit table
+  std::map<Battle::Card, bool, Battle::Card::Compare> visited; // visit table
 
   while (iter != CHIPLIB.End()) {
     if (visited.find(*iter) != visited.end()) {
@@ -871,7 +871,7 @@ void FolderEditScene::PlaceLibraryDataIntoBuckets()
 
     visited[(*iter)] = true;
     int count = CHIPLIB.GetCountOf(*iter);
-    auto bucket = PackBucket(count, Card(*iter));
+    auto bucket = PackBucket(count, Battle::Card(*iter));
     packCardBuckets.push_back(bucket);
     iter++;
   }

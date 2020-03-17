@@ -72,6 +72,7 @@ private:
   ~TextureResourceManager();
   vector<string> paths; /**< Paths to all textures. Must be in order of TextureType @see TextureType */
   map<TextureType, Texture*> textures; /**< Cache */
+  map<std::string, Texture*> texturesFromPath; /**< Cache for textures loaded at run-time */
 };
 
 /*! \brief Shorthand to get instance of the manager */

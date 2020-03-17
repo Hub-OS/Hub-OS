@@ -21,7 +21,7 @@ private:
   bool isCard; /*!< Flag if card */
   bool isZenny; /*!< Flag if zenny */
   bool isHP; /*!< Flag if HP */
-  Card card; /*!< Card data */
+  Battle::Card card; /*!< Card data */
   // HealthItem hpGain; // +10, +50, +100, +200 HP gained post battle
   // ZennyItem zennyGain; // stores arbitrary zenny amount
 public:
@@ -29,7 +29,7 @@ public:
    * @brief Constructs a battle item with card data 
    * @param card the card to copy and reward player with
    */
-  BattleItem(Card card) : card(card), name(card.GetShortName()), cardUUID(card.GetUUID()) { isCard = true; isZenny = isHP = false; }
+  BattleItem(const Battle::Card& card) : card(card), name(card.GetShortName()), cardUUID(card.GetUUID()) { isCard = true; isZenny = isHP = false; }
   BattleItem(const BattleItem& rhs) : card(rhs.card) { isCard = rhs.isCard; isZenny = rhs.isZenny; isHP = rhs.isHP; cardUUID = rhs.cardUUID; name = rhs.name; }
   
   /**
@@ -52,9 +52,9 @@ public:
   
   /**
    * @brief Get card data
-   * @return Card
+   * @return Battle::Card
    */
-  Card GetCard() { return card; }
+  Battle::Card GetCard() { return card; }
   
   /**
    * @brief Get card code 

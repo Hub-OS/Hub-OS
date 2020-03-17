@@ -2,6 +2,7 @@
 #include "bnURLParser.h"
 #include "bnLogger.h"
 #include "bnElements.h"
+#include "bnCardUUIDs.h"
 #include "bnTextureResourceManager.h"
 #include <SFML/Network/Http.hpp>
 
@@ -195,6 +196,11 @@ std::future<bool> WebClientManager::SendLoginCommand(const char * username, cons
         }
 
         bool result = this->client->Login(username, password);
+
+        if (result) {
+            this->username = username;
+        }
+
         promise->set_value(result);
     };
 
@@ -219,6 +225,7 @@ std::future<bool> WebClientManager::SendLogoutCommand()
         }
 
         this->client->LogoutAndReset();
+        account = WebAccounts::AccountState(); // should effectively reset it
 
         // We should be logged out
         promise->set_value(!this->client->IsLoggedIn());
@@ -245,7 +252,14 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
         }
 
         this->client->FetchAccount();
-        promise->set_value(this->client->GetLocalAccount());
+
+        // Download these cards too:
+        for (auto&& uuid : BuiltInCards::AsList) {
+            this->client->FetchCard(uuid);
+        }
+
+        this->account = this->client->GetLocalAccount();
+        promise->set_value(this->account);
     };
 
     std::scoped_lock<std::mutex>(this->clientMutex);
@@ -267,13 +281,35 @@ const sf::Texture& WebClientManager::GetImageForCard(const std::string & uuid)
     return cardTextureCache[uuid];
 }
 
-Card WebClientManager::MakeBattleCardFromWebCardData(const WebAccounts::AccountState& account, const WebAccounts::Card & card)
+const Battle::Card WebClientManager::MakeBattleCardFromWebCardData(const WebAccounts::Card & card)
 {
-    auto modelIter = account.cardModels.find(card.modelId);
-    auto cardModel = modelIter->second;
+    std::string modelId = card.modelId;
+    char code = card.code;
 
-    return Card(card.id, card.code, cardModel->damage, GetElementFromStr(cardModel->element),
-        cardModel->name, cardModel->description, cardModel->verboseDescription, 0);
+    if (card.modelId.empty()) {
+        // try to find fill in the data
+        auto cardDataIter = account.cards.find(card.id);
+
+        if (cardDataIter != account.cards.end()) {
+            modelId = cardDataIter->second->modelId;
+            code = cardDataIter->second->code;
+        }
+    }
+    auto cardModelIter = account.cardModels.find(modelId);
+
+    if (cardModelIter != account.cardModels.end()) {
+        auto cardModel = cardModelIter->second;
+
+        return Battle::Card(card.id, code, cardModel->damage, GetElementFromStr(cardModel->element),
+            cardModel->name, cardModel->description, cardModel->verboseDescription, 0);
+    }
+
+    return Battle::Card();
+}
+
+const std::string & WebClientManager::GetUserName() const
+{
+    return this->username;
 }
 
 void WebClientManager::ShutdownAllTasks()

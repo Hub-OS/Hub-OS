@@ -116,7 +116,7 @@ private:
   /*
   Cards + Card select setup*/
   CardSelectionCust cardCustGUI; /*!< Card selection GUI that has an API to interact with */
-  Card** cards; /*!< List of Card* the user selects from the card cust */
+  Battle::Card** cards; /*!< List of Card* the user selects from the card cust */
   int cardCount; /*!< Length of card list */
 
   /*
@@ -357,5 +357,5 @@ public:
   const bool IsBattleActive();
 
   // NOTE: just for demo until card api is compete...
-  void TEMPFilterAtkCards(Card** cards, int cardCount);
+  void TEMPFilterAtkCards(Battle::Card** cards, int cardCount);
 };

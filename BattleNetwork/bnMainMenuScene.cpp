@@ -26,12 +26,6 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
     // before proceeding to next sub menus
     //data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
 
-    Logger::Log("Fetching account data...");
-
-    accountResponse = WEBCLIENT.SendFetchAccountCommand();
-
-    Logger::Log("waiting for server...");
-
     webAccountIcon = sf::Sprite(LOAD_TEXTURE(WEBACCOUNT_STATUS));
     webAccountIcon.setScale(2.f, 2.f);
     webAccountIcon.setPosition((ENGINE.GetWindow()->getSize().x-96.0f), ENGINE.GetWindow()->getSize().y - 34.0f);
@@ -96,6 +90,12 @@ void MainMenuScene::onStart() {
   // Set the camera back to ours
   ENGINE.SetCamera(camera);
 
+  Logger::Log("Fetching account data...");
+
+  accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
+
+  Logger::Log("waiting for server...");
+
 #ifdef __ANDROID__
   StartupTouchControls();
 #endif
@@ -109,11 +109,16 @@ void MainMenuScene::onUpdate(double elapsed) {
         return; // keep the screen looking the same when we come back
     #endif
 
-    if (accountResponse.valid() && is_ready(accountResponse)) {
-        WebAccounts::AccountState account = accountResponse.get();
-
-        std::cout << "you have " << account.folders.size() << " folders on your account" << std::endl;
-        data = CardFolderCollection::ReadFromWebAccount(account);
+    if (accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
+        try {
+            const WebAccounts::AccountState& account = accountCommandResponse.get();
+            std::cout << "you have " << account.folders.size() << " folders on your account" << std::endl;
+            WEBCLIENT.CacheTextureData(account);
+            data = CardFolderCollection::ReadFromWebAccount(account);
+        }
+        catch (const std::future_error& e) {
+            Logger::Logf("Could not fetch account. Error with code %s\nMessage: %s", e.code().message(), e.what());
+        }
     }
 
   // update the web connectivity icon
@@ -226,13 +231,10 @@ void MainMenuScene::onUpdate(double elapsed) {
     }
   }
 
-  /*if (INPUT.Has(EventTypes::PRESSED_PAUSE)) {
-    static bool toggle = false;
-    toggle = !toggle;
-    showHUD = false;
-    map->ToggleLighting(toggle);
-    map->AddLight(new Overworld::Light(owNavi.getPosition(), sf::Color(135+(120%rand()), 135+(120%rand()), 135+(120%rand()), 255), 10));
-  }*/
+  // Allow player to resync with remote account by pressing the pause action
+  if (INPUT.Has(EventTypes::PRESSED_PAUSE)) {
+      accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
+  }
 
   // Keep menu selection in range
   menuSelectionIndex = std::max(0, menuSelectionIndex);
@@ -272,6 +274,12 @@ void MainMenuScene::onResume() {
   gotoNextScene = false;
 
   ENGINE.SetCamera(camera);
+
+  Logger::Log("Fetching account data...");
+
+  accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
+
+  Logger::Log("waiting for server...");
 
   /*std::string folderPath("resources/database/folders.txt");
   std::string libraryPath("resources/database/library.txt");

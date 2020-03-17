@@ -20,7 +20,7 @@ using std::multiset;
  */
 class CardLibrary {
 public:
-  typedef multiset<Card, Card::Compare>::iterator Iter;
+  typedef multiset<Battle::Card, Battle::Card::Compare>::iterator Iter;
 
   /**
    * @brief Invokes LoadLibrary()
@@ -56,27 +56,27 @@ public:
    * @brief Adds a card directly into the library
    * @param card entry to add to list
    */
-  void AddCard(Card card);
+  void AddCard(Battle::Card card);
   
   /**
    * @brief Checks if a card with the same code exists in the library
    * @param card to compare
    * @return true if both name and code match any cards in the library
    */
-  bool IsCardValid(Card& card);
+  bool IsCardValid(Battle::Card& card);
 
   /**
    * @brief Given a card name, return all existing codes from the pool
    * @param card to compare
    * @return list<char> codes
    */
-  std::list<char> GetCardCodes(const Card& card);
+  std::list<char> GetCardCodes(const Battle::Card& card);
 
   /**
    * @brief Returns number of copies in this data pool
    * @return integer number of copies or zero if not found
    */
-  const int GetCountOf(const Card& card);
+  const int GetCountOf(const Battle::Card& card);
   
   /**
    * @brief Given a name and code, return the card from the database
@@ -84,7 +84,7 @@ public:
    * @param code of the card
    * @return Copy of entry. If no entry was found, a card with error information is returned
    */
-  Card GetCardEntry(const std::string name, const char code);
+  Battle::Card GetCardEntry(const std::string name, const char code);
 
   /**
   * @brief Writes library to disc
@@ -111,7 +111,7 @@ protected:
   void LoadLibrary(const std::string& path);
 
 private:
-  mutable multiset<Card, Card::Compare> library; /*!< the card pool used by all card resources */
+  mutable multiset<Battle::Card, Battle::Card::Compare> library; /*!< the card pool used by all card resources */
 };
 
 #define CHIPLIB CardLibrary::GetInstance()

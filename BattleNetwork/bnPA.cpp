@@ -112,12 +112,12 @@ const PASteps PA::GetMatchingSteps()
   return result;
 }
 
-Card * PA::GetAdvanceCard()
+Battle::Card * PA::GetAdvanceCard()
 {
    return advanceCardRef;
 }
 
-const int PA::FindPA(Card ** input, unsigned size)
+const int PA::FindPA(Battle::Card ** input, unsigned size)
 {
   int startIndex = -1;
 
@@ -168,7 +168,7 @@ const int PA::FindPA(Card ** input, unsigned size)
       // Load the PA card
       if (advanceCardRef) { delete advanceCardRef; }
 
-       advanceCardRef = new Card("PA", 0, iter->damage, iter->type, iter->name, "Program Advance", "", 0);
+       advanceCardRef = new Battle::Card("PA", 0, iter->damage, iter->type, iter->name, "Program Advance", "", 0);
 
       return startIndex;
     }

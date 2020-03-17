@@ -38,7 +38,7 @@ public:
   * @param card being used
   * @param user using the card
   */
-  void Broadcast(Card& card, Character& user) {
+  void Broadcast(Battle::Card& card, Character& user) {
     std::list<CardUseListener*>::iterator iter = listeners.begin();
 
     while (iter != listeners.end()) {

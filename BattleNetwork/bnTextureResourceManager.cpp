@@ -26,6 +26,20 @@ void TextureResourceManager::LoadAllTextures(std::atomic<int> &status) {
 }
 
 Texture* TextureResourceManager::LoadTextureFromFile(string _path) {
+    auto iter = texturesFromPath.find(_path);
+
+    if (iter != texturesFromPath.end()) {
+        return iter->second;
+    }
+
+    auto pathsIter = std::find(paths.begin(), paths.end(), _path);
+
+    bool skipCaching = false;
+
+    if (pathsIter != paths.end()) {
+        skipCaching = true;
+    }
+
   Texture* texture = new Texture();
   if (!texture->loadFromFile(_path)) {
 
@@ -34,6 +48,11 @@ Texture* TextureResourceManager::LoadTextureFromFile(string _path) {
   } else {
     Logger::Logf("Loaded texture: %s", _path.c_str());
   }
+
+  if (!skipCaching) {
+      //texturesFromPath.insert(std::make_pair(_path, texture));
+  }
+
   return texture;
 }
 
@@ -258,7 +277,11 @@ TextureResourceManager::TextureResourceManager(void) {
 }
 
 TextureResourceManager::~TextureResourceManager(void) {
-  for (auto it = textures.begin(); it != textures.end(); ++it) {
-    delete it->second;
-  }
+    for (auto it = textures.begin(); it != textures.end(); ++it) {
+        delete it->second;
+    }
+
+    for (auto it = texturesFromPath.begin(); it != texturesFromPath.end(); ++it) {
+        delete it->second;
+    }
 }
