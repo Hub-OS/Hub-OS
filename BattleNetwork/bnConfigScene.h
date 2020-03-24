@@ -20,6 +20,8 @@
 
 /*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
     \warning This scene was made in a clear conscious and is in no way an example of good code design.
+
+    This could use a redesign (and re-code)
 */
 class ConfigScene : public swoosh::Activity {
 private:

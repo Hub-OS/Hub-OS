@@ -12,156 +12,153 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
     textbox(sf::Vector2f(0,250)), swoosh::Activity(&controller)
 {
     textbox.SetTextSpeed(2.0);
+    isSelectingTopMenu = inGamepadList = inKeyboardList = false;
 
-  isSelectingTopMenu = inGamepadList = inKeyboardList = false;
+    // Draws the scrolling background
+    bg = new RobotBackground();
 
-  // Draws the scrolling background
-  bg = new RobotBackground();
+    // dim
+    bg->setColor(sf::Color(120, 120, 120));
 
-  // dim
-  bg->setColor(sf::Color(120, 120, 120));
+    uiAnimator = Animation("resources/fonts/fonts.animation");
+    uiAnimator.Load();
 
-  uiAnimator = Animation("resources/fonts/fonts.animation");
-  uiAnimator.Load();
+    endBtnAnimator = Animation("resources/backgrounds/config/end_btn.animation");
+    endBtnAnimator.Load();
 
-  endBtnAnimator = Animation("resources/backgrounds/config/end_btn.animation");
-  endBtnAnimator.Load();
+    audioAnimator = Animation("resources/backgrounds/config/audio.animation");
+    audioAnimator.Load();
 
-  audioAnimator = Animation("resources/backgrounds/config/audio.animation");
-  audioAnimator.Load();
+    auto sprite = sf::Sprite(*LOAD_TEXTURE(FONT));
+    sprite.setScale(2.f, 2.f);
 
-  auto sprite = sf::Sprite(*LOAD_TEXTURE(FONT));
-  sprite.setScale(2.f, 2.f);
+    uiSprite = sprite;
 
-  uiSprite = sprite;
+    // audio button
+    audioBGM =  sf::Sprite(*LOAD_TEXTURE(AUDIO_ICO));
+    audioBGM.setScale(2.f, 2.f);
 
-  // audio button
-  audioBGM =  sf::Sprite(*LOAD_TEXTURE(AUDIO_ICO));
-  audioBGM.setScale(2.f, 2.f);
+    audioAnimator.SetAnimation("DEFAULT");
+    audioAnimator.Update(4, audioBGM);
+    audioBGM.setPosition(2*3, 2*140);
 
-  audioAnimator.SetAnimation("DEFAULT");
-  audioAnimator.Update(4, audioBGM);
-  audioBGM.setPosition(2*3, 2*140);
+    audioSFX = audioBGM;
+    audioAnimator.SetAnimation("DEFAULT");
+    audioAnimator.Update(4, audioBGM);
+    audioSFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
 
-  audioSFX = audioBGM;
-  audioAnimator.SetAnimation("DEFAULT");
-  audioAnimator.Update(4, audioBGM);
-  audioSFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
+    // end button
+    endBtn = sf::Sprite(*LOAD_TEXTURE(END_BTN));;
+    endBtn.setScale(2.f, 2.f);
+    endBtnAnimator.SetAnimation("BLINK");
+    endBtnAnimator.SetFrame(1, endBtn);
+    endBtn.setPosition(2*180, 2*10);
 
-  // end button
-  endBtn = sf::Sprite(*LOAD_TEXTURE(END_BTN));;
-  endBtn.setScale(2.f, 2.f);
-  endBtnAnimator.SetAnimation("BLINK");
-  endBtnAnimator.SetFrame(1, endBtn);
-  endBtn.setPosition(2*180, 2*10);
+    // ui sprite maps
+    // ascii 58 - 96
+    std::list<std::string> actions;
 
-  // ui sprite maps
-  // ascii 58 - 96
-  std::list<std::string> actions;
+    actions.push_back("AUDIO_BGM");
+    actions.push_back("AUDIO_SFX");
+    actions.push_back("SHADERS: ON");
+    actions.push_back("MY KEYBOARD");
+    actions.push_back("MY GAMEPAD");
+    actions.push_back("LOGIN");
 
-  actions.push_back("AUDIO_BGM");
-  actions.push_back("AUDIO_SFX");
-  actions.push_back("SHADERS: ON");
-  actions.push_back("MY KEYBOARD");
-  actions.push_back("MY GAMEPAD");
-  actions.push_back("LOGIN");
+    for (auto a : actions) {
+        uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
 
-  for (auto a : actions) {
-    uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
+        if (a == "SHADERS: ON") {
+            type = uiData::ActionItemType::DISABLED;
+        }
 
-    if (a == "SHADERS: ON") {
-      type = uiData::ActionItemType::DISABLED;
+        uiList[OPTIONS].push_back({a, sf::Vector2f(), sf::Vector2f(), type });
     }
 
-    uiList[OPTIONS].push_back({a, sf::Vector2f(), sf::Vector2f(), type });
-  }
+    actions.clear();
 
-  actions.clear();
+    configSettings = INPUT.GetConfigSettings();
 
-  Logger::Log("input manager request");
-  configSettings = INPUT.GetConfigSettings();
+    // For keyboard keys 
+    for (auto a : EventTypes::KEYS) {
+        uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
 
-  // For keyboard keys 
+        uiList[ACTIONS].push_back({ a, sf::Vector2f(), sf::Vector2f(), type });
 
-  for (auto a : EventTypes::KEYS) {
-    uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
+        if (!configSettings.IsOK()) {
+            boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
+        }
+        else {
+            std::string keyStr;
 
-    uiList[ACTIONS].push_back({ a, sf::Vector2f(), sf::Vector2f(), type });
+            if (INPUT.ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
+            keyHash.insert(std::make_pair(configSettings.GetPairedInput(a), a));
 
-    if (!configSettings.IsOK()) {
-      boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
+            boundKeys.push_back({ keyStr,  sf::Vector2f(), sf::Vector2f(), type });
+            }
+            else {
+            boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
+            }
+        }
     }
-    else {
-      std::string keyStr;
-
-      if (INPUT.ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
-        keyHash.insert(std::make_pair(configSettings.GetPairedInput(a), a));
-
-        boundKeys.push_back({ keyStr,  sf::Vector2f(), sf::Vector2f(), type });
-      }
-      else {
-        boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
-      }
-    }
-  }
   
-  maxMenuSelectionIndex += (int)actions.size();
+    maxMenuSelectionIndex += (int)actions.size();
 
-  // For gamepad keys
+    // For gamepad keys
 
-  for (auto a : EventTypes::KEYS) {
+    for (auto a : EventTypes::KEYS) {
     uiData::ActionItemType type = uiData::ActionItemType::GAMEPAD;
 
     if (!configSettings.IsOK()) {
-      boundGamepadButtons.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
+        boundGamepadButtons.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
     }
     else {
-      auto gamepadCode = configSettings.GetPairedGamepadButton(a);
-      gamepadHash.insert(std::make_pair(gamepadCode, a));
+        auto gamepadCode = configSettings.GetPairedGamepadButton(a);
+        gamepadHash.insert(std::make_pair(gamepadCode, a));
 
-      if (gamepadCode != Gamepad::BAD_CODE) {
-        std::string label = "BTN " + std::to_string((int)gamepadCode);
+        if (gamepadCode != Gamepad::BAD_CODE) {
+            std::string label = "BTN " + std::to_string((int)gamepadCode);
 
-        switch (gamepadCode) {
-        case Gamepad::DOWN:
-          label = "-Y AXIS";
-          break;
-        case Gamepad::UP:
-          label = "+Y AXIS";
-          break;
-        case Gamepad::LEFT:
-          label = "-X AXIS";
-          break;
-        case Gamepad::RIGHT:
-          label = "+X AXIS";
-          break;
-        case Gamepad::BAD_CODE:
-          label = "BAD_CODE";
-          break;
+            switch (gamepadCode) {
+            case Gamepad::DOWN:
+                label = "-Y AXIS";
+                break;
+            case Gamepad::UP:
+                label = "+Y AXIS";
+                break;
+            case Gamepad::LEFT:
+                label = "-X AXIS";
+                break;
+            case Gamepad::RIGHT:
+                label = "+X AXIS";
+                break;
+            case Gamepad::BAD_CODE:
+                label = "BAD_CODE";
+                break;
+            }
+
+            boundGamepadButtons.push_back({ label,  sf::Vector2f(), sf::Vector2f(), type });
+            }
+            else {
+            boundGamepadButtons.push_back({ "NO KEY",  sf::Vector2f(), sf::Vector2f(), type });
+            }
         }
-
-        boundGamepadButtons.push_back({ label,  sf::Vector2f(), sf::Vector2f(), type });
-      }
-      else {
-        boundGamepadButtons.push_back({ "NO KEY",  sf::Vector2f(), sf::Vector2f(), type });
-      }
     }
-  }
 
-  leave = false;
-  awaitingKey = false;
-  gotoNextScene = true; // true when entering or leaving, prevents user from interacting with scene
+    leave = false;
+    awaitingKey = false;
+    gotoNextScene = true; // true when entering or leaving, prevents user from interacting with scene
 
-  menuSelectionIndex = lastMenuSelectionIndex = 1; // select first item
+    menuSelectionIndex = lastMenuSelectionIndex = 1; // select first item
 
-  audioModeBGM = configSettings.GetMusicLevel();
-  audioModeSFX = configSettings.GetSFXLevel();
+    audioModeBGM = configSettings.GetMusicLevel();
+    audioModeSFX = configSettings.GetSFXLevel();
 
-  audioAnimator.SetAnimation("DEFAULT");
-  audioAnimator.SetFrame(audioModeBGM + 1, audioBGM);
-  audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
+    audioAnimator.SetAnimation("DEFAULT");
+    audioAnimator.SetFrame(audioModeBGM + 1, audioBGM);
+    audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
 
-  colIndex = 0; maxCols = 3; // [options] [actions] [key]
+    colIndex = 0; maxCols = 3; // [options] [actions] [key]
 }
 
 void ConfigScene::onUpdate(double elapsed)
@@ -175,7 +172,6 @@ void ConfigScene::onUpdate(double elapsed)
   else {
       uiList[0][uiList[0].size()-1].label = "LOGOUT " + WEBCLIENT.GetUserName();
   }
-
 
   bool hasConfirmed = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false ) || INPUT.GetAnyKey() == sf::Keyboard::Enter;
   bool isInSubmenu = inKeyboardList || inGamepadList;
@@ -396,6 +392,7 @@ void ConfigScene::onUpdate(double elapsed)
                   questionInterface = new Question("Are you sure you want to logout?", onYes, onNo);
                   textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
                   textbox.Open();
+                  AUDIO.Play(AudioType::CHIP_DESC);
               }
           }
           else {
