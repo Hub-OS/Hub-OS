@@ -46,8 +46,11 @@ HoneyBomber::~HoneyBomber() {
 }
 
 void HoneyBomber::OnDelete() {
-  this->RemoveDefenseRule(virusBody);
-  delete virusBody;
+    if (virusBody) {
+        this->RemoveDefenseRule(virusBody);
+        delete virusBody;
+        virusBody = nullptr;
+    }
 
   this->ChangeState<ExplodeState<HoneyBomber>>();
 

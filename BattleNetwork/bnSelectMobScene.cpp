@@ -26,8 +26,6 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   navigatorAnimator.SetAnimation("TALK");
   navigatorAnimator << Animator::Mode::Loop;
 
-  mobSpr = sf::Sprite();
-
   cursor.setTexture(LOAD_TEXTURE(FOLDER_CURSOR));
   cursor.setScale(2.f, 2.f);
 
@@ -264,11 +262,11 @@ void SelectMobScene::onUpdate(double elapsed) {
     factor = 125;
 
     // Current mob graphic
-    mobSpr = sf::Sprite(*mobinfo.GetPlaceholderTexture());
+    mobSpr.setTexture(mobinfo.GetPlaceholderTexture());
     mobSpr.setScale(2.f, 2.f);
     mobSpr.setOrigin(mobSpr.getLocalBounds().width / 2.f, mobSpr.getLocalBounds().height / 2.f);
 
-    textbox.SetMessage(mobinfo.GetDescriptionString());
+    textbox.SetText(mobinfo.GetDescriptionString());
 	textbox.Stop();
 	
     prevSelect = mobSelectionIndex;
@@ -548,7 +546,7 @@ void SelectMobScene::onLeave() {
 }
 
 void SelectMobScene::onExit() {
-  textbox.SetMessage("");
+  textbox.SetText("");
 
   Logger::Log("SelectMobScene::onExit()");
 

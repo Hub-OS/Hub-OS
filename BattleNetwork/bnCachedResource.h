@@ -31,7 +31,7 @@ public:
 
     /*! \brief checks if this resource is still in use*/
     const bool IsInUse() const {
-        return resource.use_count() > 1;
+        return resource.use_count() >= 1;
     }
 
     /*! \brief returns the resource 

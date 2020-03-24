@@ -2,7 +2,8 @@
 #include "bnInputManager.h"
 #include "bnTextureResourceManager.h"
 
-Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) : Message(message) {
+Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) 
+    : Message(message + "\n    YES        NO") {
   this->onNo = onNo;
   this->onYes = onYes;
   this->isQuestionReady = false;
@@ -18,77 +19,77 @@ Question::~Question() {
 const bool Question::SelectYes() { if (!isQuestionReady) return false; else yes = true; return true; }
 const bool Question::SelectNo() { if (!isQuestionReady) return false; else yes = false; return true; }
 
-void Question::ExecuteSelection() {
-  if (yes) { 
-    onYes(); 
-    AUDIO.Play(AudioType::NEW_GAME);
-  }
-  else {
-    { onNo(); }
-  }
+void Question::Cancel()
+{
+    if (!isQuestionReady) return;
+    SelectNo();
+    canceled = true; // wait one more frame
+}
 
-  canceled = false; // reset
-  isQuestionReady = false; // reset 
+void Question::ConfirmSelection()
+{
+    if (!isQuestionReady) return;
+    ExecuteSelection();
+    GetTextBox()->DequeMessage();
+}
+
+void Question::ExecuteSelection() {
+    if (yes) { 
+        onYes(); 
+        AUDIO.Play(AudioType::NEW_GAME);
+    }
+    else {
+        onNo(); 
+    }
+
+    canceled = false; // reset
+    isQuestionReady = false; // reset 
 }
 
 void Question::OnUpdate(double elapsed) {
-  this->elapsed = elapsed;;
+    this->elapsed = elapsed;;
 
-  isQuestionReady = !GetTextBox()->IsPlaying() && GetTextBox()->IsEndOfMessage();
+    isQuestionReady = !GetTextBox()->IsPlaying() && GetTextBox()->IsEndOfMessage();
 
-  if (canceled) {
-    SelectNo();
-    ExecuteSelection();
-    return;
-  }
+    this->Message::OnUpdate(elapsed);
 
-  if (!isQuestionReady) return;
-
-  if (INPUT.Has(EventTypes::RELEASED_CONFIRM)) {
-    ExecuteSelection();
-    GetTextBox()->DequeMessage();
-  }
-  else if (INPUT.Has(EventTypes::RELEASED_CANCEL)) {
-    SelectNo();
-    canceled = true; // wait one more frame
-  }
-  else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
-    SelectYes();
-
-  }
-  else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
-    SelectNo();
-  }
-
+    if (canceled) {
+        SelectNo();
+        ExecuteSelection();
+        return;
+    }
 }
 
 void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
 
-  if (yes) {
-    selectCursor.setPosition(60.0f, 0.0f);
-  }
-  else {
-    selectCursor.setPosition(150.0f, 0.0f);
-  }
+    // We added "YES NO" to the last row of the message box
+    // So it is visible when the message box is done printing.
+    // Find out how many rows there are and place arrows to fit the text.
+    float cursorY = -20.0f;
+    int numOfFitLines = GetTextBox()->GetNumberOfFittingLines();
 
-  if (isQuestionReady) {
-    target.draw(options, states);
-    // Draw the Yes / No and a cursor
-    target.draw(selectCursor,states);
-  }
-  else {
-    GetTextBox()->DrawMessage(target, states);
-  }
+    if (numOfFitLines == 2) {
+        cursorY = -8.0f;
+    }
+    else if (numOfFitLines == 3) {
+        cursorY = 6.0f;
+    }
 
+    if (yes) {
+        selectCursor.setPosition(62.0f, cursorY);
+    }
+    else {
+        selectCursor.setPosition(140.0f, cursorY);
+    }
+
+    if (isQuestionReady) {
+        // Draw the Yes / No and a cursor
+        target.draw(selectCursor,states);
+    }
+
+    this->Message::OnDraw(target, states);
 }
 
-void Question::SetTextBox(AnimatedTextBox * parent)
-{
-
+void Question::SetTextBox(AnimatedTextBox * parent){
   Message::SetTextBox(parent);
-  options = parent->MakeTextObject("YES          NO");
-  options.setFillColor(sf::Color::Black);
-  options.setOutlineColor(sf::Color::Black);
-  options.setPosition(sf::Vector2f(70, 0));
-  options.setScale(0.5f, 0.5f);
 }

@@ -28,6 +28,13 @@ public:
     */
   SpriteProxyNode();
 
+  /**
+  * \brief Construct new SpriteSceneNode with a texture
+  *
+  * Owns sprite and allocatedSprite will be true
+  */
+  SpriteProxyNode(const sf::Texture& texture);
+
   SpriteProxyNode(const SpriteProxyNode& rhs) = delete;
   
   /**

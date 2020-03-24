@@ -31,7 +31,7 @@ void Message::SetTextBox(AnimatedTextBox * textbox)
 void Message::Continue() {
   if (GetTextBox()->IsPlaying()) return;
 
-  if (!GetTextBox()->IsEndOfMessage()) {
+  if (GetTextBox()->IsEndOfMessage()) {
     if (GetTextBox()->HasMessage()) {
       GetTextBox()->DequeMessage();
     }

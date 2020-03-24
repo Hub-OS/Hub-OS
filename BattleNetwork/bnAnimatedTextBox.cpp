@@ -84,6 +84,11 @@ void AnimatedTextBox::ShowNextLines()
   isPaused = false;
 }
 
+const int AnimatedTextBox::GetNumberOfFittingLines() const
+{
+    return textBox.GetNumberOfFittingLines();
+}
+
 const float AnimatedTextBox::GetFrameWidth() const
 {
   return frame.getLocalBounds().width;
@@ -107,7 +112,7 @@ void AnimatedTextBox::DequeMessage() {
   mugAnimator = Animation(animPaths[0]);
   mugAnimator.SetAnimation("TALK");
   mugAnimator << Animator::Mode::Loop;
-  textBox.SetMessage(messages[0]->GetMessage());
+  textBox.SetText(messages[0]->GetMessage());
 
   isPaused = false; // Begin playing again
 }
@@ -124,9 +129,15 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
   mugAnimator << Animator::Mode::Loop;
 
   std::string strMessage = messages[0]->GetMessage();
-  textBox.SetMessage(strMessage);
+  textBox.SetText(strMessage);
 
   message->SetTextBox(this);
+}
+
+void AnimatedTextBox::ReplaceText(std::string text)
+{
+    textBox.SetText(text);
+    this->isPaused = false; // start over with new text
 }
 
   void AnimatedTextBox::Update(double elapsed) {

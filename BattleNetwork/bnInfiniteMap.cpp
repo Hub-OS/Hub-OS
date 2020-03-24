@@ -166,96 +166,96 @@ namespace Overworld {
 
       int depth = 0;
 
-	  Overworld::Tile* offroad = head;
+      Overworld::Tile* offroad = head;
 
       int lastDirection = -1;
-	  int distFromPath = 0;
+      int distFromPath = 0;
 
-	  while (depth < branchDepth) {
-	    int randDirection = rand() % 3;
-		  int randSpawnNPC = rand() % 70;
+      while (depth < branchDepth) {
+        int randDirection = rand() % 3;
+        int randSpawnNPC = rand() % 70;
 
-	      if (randDirection == 0 && lastDirection == 1)
-	        continue;
+        if (randDirection == 0 && lastDirection == 1)
+        continue;
 
-		  if (randDirection == 1 && lastDirection == 0)
-		    continue;
+        if (randDirection == 1 && lastDirection == 0)
+        continue;
 
-      auto npcType = NPCType::MR_PROG_DOWN;
-      sf::Vector2f npcPosition;
+        auto npcType = NPCType::MR_PROG_DOWN;
+        sf::Vector2f npcPosition;
 
-		  if (randDirection == 0) {
-	      distFromPath--;
+        if (randDirection == 0) {
+            distFromPath--;
 
-			  offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y + this->GetTileSize().y));
-			  map.push_back(offroad);
-				
-			  if (randSpawnNPC == 0 && distFromPath != 0) {
-          npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
-			    npcs.push_back(new NPC { sf::Sprite(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
+            offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y + this->GetTileSize().y));
+            map.push_back(offroad);
+                
+            if (randSpawnNPC == 0 && distFromPath != 0) {
+                npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
+                npcs.push_back(new NPC { SpriteProxyNode(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
 
-			    sf::Vector2f pos = offroad->GetPos();
-			    pos += sf::Vector2f(45, 0);
+                sf::Vector2f pos = offroad->GetPos();
+                pos += sf::Vector2f(45, 0);
 
-			    npcs.back()->sprite.setPosition(pos);
-          npcPosition = pos;
+                npcs.back()->sprite.setPosition(pos);
+                npcPosition = pos;
 
-			    this->AddSprite(&npcs.back()->sprite);
-		    }
-			
-			  depth++;
-		  }
-		  else if (randDirection == 1) {
-			  distFromPath++;
+                this->AddSprite(&npcs.back()->sprite);
+            }
+            
+        depth++;
+        }
+        else if (randDirection == 1) {
+            distFromPath++;
 
-			  offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y - this->GetTileSize().y));
-			  map.push_back(offroad);
+            offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y - this->GetTileSize().y));
+            map.push_back(offroad);
 
-			  if (randSpawnNPC == 0 && distFromPath != 0) {
-          npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
-		        npcs.push_back(new NPC { sf::Sprite(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
+            if (randSpawnNPC == 0 && distFromPath != 0) {
+                npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
+                npcs.push_back(new NPC { SpriteProxyNode(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
 
-			    sf::Vector2f pos = offroad->GetPos();
-			    pos += sf::Vector2f(45, 0);
+                sf::Vector2f pos = offroad->GetPos();
+                pos += sf::Vector2f(45, 0);
 
-			    npcs.back()->sprite.setPosition(pos);
-          npcPosition = pos;
+                npcs.back()->sprite.setPosition(pos);
+                npcPosition = pos;
 
-			    this->AddSprite(&npcs.back()->sprite);
-			  }
+                this->AddSprite(&npcs.back()->sprite);
+            }
 
-			  depth++;
-		  }
-		  else if (depth > 1) {
-			  offroad = new Tile(sf::Vector2f(offroad->GetPos().x + this->GetTileSize().x, offroad->GetPos().y));
-			  map.push_back(offroad);
+            depth++;
+        }
+        else if (depth > 1) {
+            offroad = new Tile(sf::Vector2f(offroad->GetPos().x + this->GetTileSize().x, offroad->GetPos().y));
+            map.push_back(offroad);
 
-			  depth++;
-		  }
+            depth++;
+        }
 
-		  /*int randLight = rand() % 100;
+        /*int randLight = rand() % 100;
 
-		  sf::Vector2f pos = offroad->GetPos();
-		  pos += sf::Vector2f(45, 0);
+        sf::Vector2f pos = offroad->GetPos();
+        pos += sf::Vector2f(45, 0);
 
-		  if (randLight < 10) {
-			sf::Uint8 lighten = 180;
-			sf::Uint8 r = rand() % (256 - lighten);
-			sf::Uint8 g = rand() % (256 - lighten);
-			sf::Uint8 b = rand() % (256 - lighten);
-			double radius = (double)(rand() % 120);
+        if (randLight < 10) {
+        sf::Uint8 lighten = 180;
+        sf::Uint8 r = rand() % (256 - lighten);
+        sf::Uint8 g = rand() % (256 - lighten);
+        sf::Uint8 b = rand() % (256 - lighten);
+        double radius = (double)(rand() % 120);
 
-			if(randLight < 3)
-			  this->AddLight(new Light(pos, sf::Color(r + lighten, 0, r + lighten, 255), radius));
-			else if (randLight < 6)
-			  this->AddLight(new Light(pos, sf::Color(0, g + lighten, b + lighten, 255), radius));
-			else
-			  this->AddLight(new Light(pos, sf::Color(0, 0, b + lighten, 255), radius));
-		  }
+        if(randLight < 3)
+            this->AddLight(new Light(pos, sf::Color(r + lighten, 0, r + lighten, 255), radius));
+        else if (randLight < 6)
+            this->AddLight(new Light(pos, sf::Color(0, g + lighten, b + lighten, 255), radius));
+        else
+            this->AddLight(new Light(pos, sf::Color(0, 0, b + lighten, 255), radius));
+        }
 
-		  if (randDirection != 2) {
-			distFromPath = distFromPath + (randDirection ? -randDirection : 1);
-		  }*/
+        if (randDirection != 2) {
+        distFromPath = distFromPath + (randDirection ? -randDirection : 1);
+        }*/
 
 #ifndef __ANDROID__
       if (npcType == NPCType::MR_PROG_FIRE) {
@@ -263,9 +263,9 @@ namespace Overworld {
       }
 #endif
 
-		  lastDirection = randDirection;
+        lastDirection = randDirection;
 
-		  std::sort(map.begin(), map.end(), InfiniteMap::TileComparitor(this));
+        std::sort(map.begin(), map.end(), InfiniteMap::TileComparitor(this));
       }
     }
   }

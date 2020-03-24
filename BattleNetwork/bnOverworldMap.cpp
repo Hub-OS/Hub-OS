@@ -54,12 +54,12 @@ namespace Overworld {
     lights.push_back(_light);
   }
 
-  void Map::AddSprite(const sf::Sprite * _sprite)
+  void Map::AddSprite(const SpriteProxyNode * _sprite)
   {
     sprites.push_back(_sprite);
   }
 
-  void Map::RemoveSprite(const sf::Sprite * _sprite) {
+  void Map::RemoveSprite(const SpriteProxyNode * _sprite) {
     auto pos = std::find(sprites.begin(), sprites.end(), _sprite);
 
     if(pos != sprites.end())
@@ -77,7 +77,10 @@ namespace Overworld {
 		}
 	}
 
-    std::sort(sprites.begin(), sprites.end(), [](const sf::Sprite* sprite, const sf::Sprite* other) { return sprite->getPosition().y < other->getPosition().y; });
+    std::sort(sprites.begin(), sprites.end(), 
+        [](const SpriteProxyNode* sprite, const SpriteProxyNode* other) 
+        { return sprite->getPosition().y < other->getPosition().y; }
+    );
 
   }
 
@@ -191,7 +194,7 @@ namespace Overworld {
   void Map::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
     for (int i = 0; i < sprites.size(); i++) {
       sf::Sprite tileSprite(*sprites[i]->getTexture());
-      tileSprite.setTextureRect(sprites[i]->getTextureRect());
+      tileSprite.setTextureRect(sprites[i]->getSprite().getTextureRect());
       tileSprite.setPosition(sprites[i]->getPosition());
       tileSprite.setOrigin(sprites[i]->getOrigin());
 

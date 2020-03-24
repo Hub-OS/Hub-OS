@@ -8,7 +8,8 @@ const constexpr int OPTIONS   = 0; // First column is top-level menu (option)
 const constexpr int ACTIONS   = 1; // Second column is actions within that menu
 const constexpr int BOUNDKEYS = 2; // Third column is used for bound keys
 
-ConfigScene::ConfigScene(swoosh::ActivityController &controller) : textbox(sf::Vector2f(0,250)), swoosh::Activity(&controller)
+ConfigScene::ConfigScene(swoosh::ActivityController &controller) : 
+    textbox(sf::Vector2f(0,250)), swoosh::Activity(&controller)
 {
     textbox.SetTextSpeed(2.0);
 
@@ -197,6 +198,8 @@ void ConfigScene::onUpdate(double elapsed)
   }
 
   if (!leave) {
+    bool hasConfirmed = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
+    
     bool hasCanceled = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CANCEL) : false) ||
       (INPUT.GetAnyKey() == sf::Keyboard::BackSpace || INPUT.GetAnyKey() == sf::Keyboard::Escape);
 
@@ -205,7 +208,26 @@ void ConfigScene::onUpdate(double elapsed)
     bool hasLeft  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_LEFT) : false) || INPUT.GetAnyKey() == sf::Keyboard::Left;
     bool hasRight = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_RIGHT): false) || INPUT.GetAnyKey() == sf::Keyboard::Right;
 
-    if (hasCanceled && !awaitingKey) {
+    if (textbox.IsOpen()) {
+        questionInterface->OnUpdate(elapsed);
+        if (textbox.IsEndOfMessage()) {
+            if (hasLeft) {
+                questionInterface->SelectYes();
+            }
+            else if (hasRight) {
+                questionInterface->SelectNo();
+            }
+            else if (hasCanceled) {
+                questionInterface->Cancel();
+            }
+            else if (hasConfirmed) {
+                questionInterface->ConfirmSelection();
+            }
+        }
+        else if (!textbox.IsPlaying() && hasConfirmed) {
+            questionInterface->Continue();
+        }
+    }else if (hasCanceled && !awaitingKey) {
       if (!isInSubmenu) {
         isSelectingTopMenu = true;
         colIndex = menuSelectionIndex = 0;
@@ -369,9 +391,10 @@ void ConfigScene::onUpdate(double elapsed)
 
                   auto onNo = [this]() {
                       textbox.Close();
+                      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
                   };
-
-                  textbox.EnqueMessage(sf::Sprite(), "", new Question("Are you sure you want to logout?", onYes, onNo));
+                  questionInterface = new Question("Are you sure you want to logout?", onYes, onNo);
+                  textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
                   textbox.Open();
               }
           }

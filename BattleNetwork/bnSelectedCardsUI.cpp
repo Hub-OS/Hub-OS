@@ -15,7 +15,6 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UICompon
   , player(_player) {
   player->RegisterComponent(this);
   cardCount = curr = 0;
-  icon = sf::Sprite();
   icon.setTextureRect(sf::IntRect(0, 0, 14, 14));
   icon.setScale(sf::Vector2f(2.f, 2.f));
 

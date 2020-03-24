@@ -397,6 +397,7 @@
     <ClCompile Include="bnSuperVulcan.cpp" />
     <ClCompile Include="bnSwordCardAction.cpp" />
     <ClCompile Include="bnSwordEffect.cpp" />
+    <ClCompile Include="bnTextBox.cpp" />
     <ClCompile Include="bnThunder.cpp" />
     <ClCompile Include="bnThunderCardAction.cpp" />
     <ClCompile Include="bnTile.cpp" />

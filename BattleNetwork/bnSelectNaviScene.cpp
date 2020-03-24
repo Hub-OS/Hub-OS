@@ -341,7 +341,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
 
     navi.setTexture(NAVIS.At(naviSelectionIndex).GetBattleTexture(), true);
-    textbox.SetMessage(NAVIS.At(naviSelectionIndex).GetSpecialDescriptionString());
+    textbox.SetText(NAVIS.At(naviSelectionIndex).GetSpecialDescriptionString());
     loadNavi = true;
   }
 

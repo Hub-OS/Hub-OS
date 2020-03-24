@@ -176,13 +176,8 @@ int main(int argc, char** argv) {
     WEBCLIENT.ConnectToWebServer("1", "battlenetwork.io", 3000);
     WEBCLIENT.IsConnectedToWebServer();
 
-    // TODO: Take this out with an in-game login screen
-    std::cout << "what is your web account username?: " << std::endl;
-    std::string username;
-    std::cin >> username;
-    std::cout << "what is your web account password?: " << std::endl;
-    std::string password;
-    std::cin >> password;
+    std::string username = "Graham";
+    std::string password = "0";
 
     auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
 
@@ -324,6 +319,7 @@ int main(int argc, char** argv) {
 
     Clock clock;
     float elapsed = 0.0f;
+    float speed = 1.0f;
     float messageCooldown = 3;
 
     // We need a render surface to draw to so Swoosh ActivityController
@@ -358,7 +354,7 @@ int main(int argc, char** argv) {
         float alpha = std::min((messageCooldown)*255.f, 255.f);
         alertSprite.setColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
         message->setFillColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
-        messageCooldown -= elapsed;
+        messageCooldown -= elapsed*speed;
 
         // Draw the message
         ENGINE.Draw(alertSprite);
@@ -369,6 +365,12 @@ int main(int argc, char** argv) {
 
         // Create a sf::Drawable from the buffer's texture data
         sf::Sprite postprocess(loadSurface.getTexture());
+
+        bool startPressed = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
+
+        if (startPressed) {
+            speed = 5.f;
+        }
 
         // Draw it to the screen
         ENGINE.GetWindow()->draw(postprocess);

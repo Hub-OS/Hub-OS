@@ -5,6 +5,13 @@ SpriteProxyNode::SpriteProxyNode() : SceneNode() {
   allocatedSprite = true;
 }
 
+SpriteProxyNode::SpriteProxyNode(const sf::Texture & texture)
+{
+    sprite = new sf::Sprite();
+    textureRef = std::make_shared<sf::Texture>(texture);
+    allocatedSprite = true;
+}
+
 SpriteProxyNode::SpriteProxyNode(sf::Sprite& rhs) : SceneNode() {
   allocatedSprite = false;
   sprite = &rhs;

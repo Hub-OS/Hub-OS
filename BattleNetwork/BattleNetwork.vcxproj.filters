@@ -1497,6 +1497,9 @@
     <ClCompile Include="bnSpriteProxyNode.cpp">
       <Filter>GameEngine\CoreModules\Graphics\SceneNodes\Sprites</Filter>
     </ClCompile>
+    <ClCompile Include="bnTextBox.cpp">
+      <Filter>Prefabs\TextBox</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">

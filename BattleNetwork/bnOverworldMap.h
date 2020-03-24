@@ -68,7 +68,7 @@ namespace Overworld {
   protected:
     std::vector<Tile*> map; /*!< tiles */
     std::vector<Overworld::Light*> lights; /*!< light sources */
-    std::vector<const sf::Sprite*> sprites; /*!< other sprites in the scene */
+    std::vector<const SpriteProxyNode*> sprites; /*!< other sprites in the scene */
     
     bool enableLighting; /*!< if true, enables light shading */
 
@@ -168,13 +168,13 @@ namespace Overworld {
      * @brief Add a sprite
      * @param _sprite
      */
-    void AddSprite(const sf::Sprite* _sprite);
+    void AddSprite(const SpriteProxyNode* _sprite);
     
     /**
      * @brief Remove a sprite
      * @param _sprite
      */
-    void RemoveSprite(const sf::Sprite * _sprite);
+    void RemoveSprite(const SpriteProxyNode* _sprite);
 
     /**
      * @brief Sorts tiles. Deletes ones marked for removal.

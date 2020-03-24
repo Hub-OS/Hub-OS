@@ -90,8 +90,12 @@ void Player::UseSpecial()
 void Player::OnDelete() {
   chargeEffect.Hide();
   auto animationComponent = this->GetFirstComponent<AnimationComponent>();
-  animationComponent->CancelCallbacks();
-  animationComponent->SetAnimation(PLAYER_HIT);
+
+  if (animationComponent) {
+      animationComponent->CancelCallbacks();
+      animationComponent->SetAnimation(PLAYER_HIT);
+  }
+
   this->ChangeState<NaviExplodeState<Player>>();
 }
 

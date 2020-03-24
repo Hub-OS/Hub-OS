@@ -27,12 +27,12 @@ void TextureResourceManager::HandleExpiredTextureCache()
 {
     auto iter = texturesFromPath.begin();
     while (iter != texturesFromPath.end()) {
-        if (iter->second.IsInUse()) {
-            iter++; continue;
-        }
-
         if (iter->second.GetSecondsSinceLastRequest() > 60.0f) {
-            // 5 minutes is long enough
+            if (iter->second.IsInUse()) {
+                iter++; continue;
+            }
+
+            // 1 minute is long enough
             Logger::Logf("Texture data %s expired", iter->first.c_str());
             iter = texturesFromPath.erase(iter);
             continue;

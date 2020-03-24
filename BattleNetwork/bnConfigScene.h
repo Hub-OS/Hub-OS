@@ -76,6 +76,8 @@ private:
 
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
 
+  Question* questionInterface;
+
 #ifdef __ANDROID__
   void StartupTouchControls();
   void ShutdownTouchControls();

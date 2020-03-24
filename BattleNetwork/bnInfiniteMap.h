@@ -18,7 +18,7 @@ namespace Overworld {
 
   /*! \brief Draw information for NPC */
   struct NPC {
-    sf::Sprite sprite;
+    SpriteProxyNode sprite;
     NPCType type;
   };
 

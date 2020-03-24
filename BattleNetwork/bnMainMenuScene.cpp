@@ -28,7 +28,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
     webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
     webAccountIcon.setScale(2.f, 2.f);
-    webAccountIcon.setPosition((ENGINE.GetWindow()->getSize().x-96.0f), ENGINE.GetWindow()->getSize().y - 34.0f);
+    webAccountIcon.setPosition((getController().getVirtualWindowSize().x-96.0f), getController().getVirtualWindowSize().y - 34.0f);
     webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
     webAccountAnimator.Load();
     webAccountAnimator.SetAnimation("POLL_CONNECTION");
@@ -69,7 +69,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
     // Share the navi sprite
     // Map will transform navi's ortho position into isometric position
-    map->AddSprite(&owNavi.getSprite());
+    map->AddSprite(&owNavi);
 
     overlay.setTexture(LOAD_TEXTURE(MAIN_MENU));
     overlay.setScale(2.f, 2.f);

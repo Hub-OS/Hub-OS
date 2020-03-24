@@ -10,7 +10,8 @@
    * @date 13/05/19
    * @brief Initializes yes/no message objects
    *
-   * @warning honestly this design could be changed to do without the hackery and should see changes
+   * Simply adds "YES  NO" as an additional line of text. We use the number of fitted lines to determine which row
+   * the text is seen on and place arrows on the selection. This is a very simple design for choice prompts.
    */
 class Question : public Message {
 private:
@@ -21,7 +22,9 @@ private:
   bool isQuestionReady; /*!< Flag for when the user has been prompted and input is waiting */
   mutable SpriteProxyNode selectCursor; /*!< Used for making selections */
   double elapsed;
-  sf::Text options;
+
+  void ExecuteSelection();
+
 public:
   inline static const std::function<void()> NoCallback = []() {};
 
@@ -40,7 +43,8 @@ public:
  */
   const bool SelectNo();
 
-  void ExecuteSelection();
+  void Cancel();
+  void ConfirmSelection();
 
   void OnUpdate(double elapsed);
   void OnDraw(sf::RenderTarget& target, sf::RenderStates states);

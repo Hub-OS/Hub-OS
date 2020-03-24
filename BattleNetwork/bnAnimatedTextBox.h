@@ -58,6 +58,8 @@ public:
    */
   void EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message);
   
+  void ReplaceText(std::string text);
+
   /**
    * @brief Begins closing the textbox
    */
@@ -94,15 +96,19 @@ public:
 
   /**
    * @brief Query if the message has finished or if there is more text waiting to print
-   * @return true if there are 1 or more messages in queue and the textbox isn't finished, false otherwise
+   * @return false if there are 1 or more messages in queue and the textbox isn't finished, true otherwise
    */
   const bool IsEndOfMessage();
 
   /**
-   * @brief Query if the message has finished or if there is more text waiting to print
-   * @return true if there are 1 or more messages in queue and the textbox isn't finished, false otherwise
+   * @brief Will remove the first line and add the next line to ensure all text fits
    */
   void ShowNextLines();
+
+  /**
+  * @brief returns the number of fitting lines in the underlyning textbox object
+  */
+  const int GetNumberOfFittingLines() const;
 
   const float GetFrameWidth() const;
   const float GetFrameHeight() const;
