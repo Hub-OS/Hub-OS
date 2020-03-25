@@ -173,38 +173,48 @@ int main(int argc, char** argv) {
     AUDIO;
     WEBCLIENT;
 
-    WEBCLIENT.ConnectToWebServer("1", "battlenetwork.io", 3000);
-    WEBCLIENT.IsConnectedToWebServer();
+    // try to read the config file
+    ConfigReader reader("options.ini");
+    ConfigSettings configSettings = reader.GetConfigSettings();
 
-    std::string username = "Graham";
-    std::string password = "0";
+    if (configSettings.IsOK()) {
+        const WebServerInfo info = configSettings.GetWebServerInfo();
+        const std::string version = info.version;
+        const std::string URL = info.URL;
+        const int port = info.port;
+        const std::string username = info.user;
+        const std::string password = info.password;
 
-    auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
-
-    std::cout << "waiting for server..." << std::endl;
-
-    int timeoutCount = 0;
-    while (!is_ready(result) && timeoutCount < 10) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-        std::cout << "timeout " << ++timeoutCount << std::endl;
-    }
- 
-    if (timeoutCount == 10) {
-        std::cout << "Could not communicate with the server. Aborting." << std::endl;
-        WEBCLIENT.ShutdownAllTasks();
-
-        return EXIT_FAILURE;
-    }
-    else if (is_ready(result)) {
-        bool success = result.get();
-        if (success) {
-            std::cout << "Logged in! Welcome " << username << "! " << std::endl;
+        if (URL.empty() || version.empty() || username.empty() || password.empty()) {
+            Logger::Logf("One or more web server fields are empty in config.");
         }
         else {
-            std::cout << "Could not authenticate. Aborting." << std::endl;
-            WEBCLIENT.ShutdownAllTasks();
 
-            return EXIT_FAILURE;
+            WEBCLIENT.ConnectToWebServer(info.version.data(), info.URL.data(), info.port);
+            WEBCLIENT.IsConnectedToWebServer();
+
+            auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
+
+            Logger::Logf("waiting for server...");
+
+            int timeoutCount = 0;
+            while (!is_ready(result) && timeoutCount < 5) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                Logger::Logf("timeout %i", ++timeoutCount);
+            }
+
+            if (timeoutCount == 10) {
+                Logger::Logf("Could not communicate with the server. Aborting automatic login.");
+            }
+            else if (is_ready(result)) {
+                bool success = result.get();
+                if (success) {
+                    Logger::Logf("Logged in! Welcome %s!", username);
+                }
+                else {
+                    Logger::Logf("Could not authenticate. Aborting automatic login");
+                }
+            }
         }
     }
 
@@ -220,12 +230,9 @@ int main(int argc, char** argv) {
     INPUT.BindLoseFocusEvent(AppLoseFocus);
     INPUT.BindRegainFocusEvent(AppRegainFocus);
     INPUT.BindResizedEvent(AppResize);
-
-    // try to read the config file
-    ConfigReader reader("options.ini");
     INPUT.SupportConfigSettings(reader);
 
-    if (reader.GetConfigSettings().IsOK()) {
+    if (configSettings.IsOK()) {
         // If the file is good, use the audio and 
         // controller settings from the config
         AUDIO.EnableAudio(reader.GetConfigSettings().IsAudioEnabled());

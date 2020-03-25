@@ -400,7 +400,7 @@ void ConfigScene::onUpdate(double elapsed)
               inLoginMenu = true;
               inGamepadList = false;
               inKeyboardList = false;
-              colIndex = 1;
+              colIndex = 0;
               menuSelectionIndex = 0;
           }
       }

@@ -31,7 +31,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
     webAccountIcon.setPosition((getController().getVirtualWindowSize().x-96.0f), getController().getVirtualWindowSize().y - 34.0f);
     webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
     webAccountAnimator.Load();
-    webAccountAnimator.SetAnimation("POLL_CONNECTION");
+    webAccountAnimator.SetAnimation("NO_CONNECTION");
 
     // Draws the scrolling background
     bg = new LanBackground();
@@ -112,12 +112,12 @@ void MainMenuScene::onUpdate(double elapsed) {
     if (accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
         try {
             const WebAccounts::AccountState& account = accountCommandResponse.get();
-            std::cout << "you have " << account.folders.size() << " folders on your account" << std::endl;
+            Logger::Logf("You have %i folders on your account", account.folders.size());
             WEBCLIENT.CacheTextureData(account);
             data = CardFolderCollection::ReadFromWebAccount(account);
         }
-        catch (const std::future_error& e) {
-            Logger::Logf("Could not fetch account. Error with code %s\nMessage: %s", e.code().message(), e.what());
+        catch (const std::runtime_error& e) {
+            Logger::Logf("Could not fetch account.\nError: %s", e.what());
         }
     }
 

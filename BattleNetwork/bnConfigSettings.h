@@ -9,6 +9,19 @@ struct DiscordInfo {
   std::string user;
   std::string key;
 
+  DiscordInfo() = default;
+  DiscordInfo(const DiscordInfo&) = default;
+};
+
+struct WebServerInfo {
+    std::string user;
+    std::string password;
+    std::string URL;
+    std::string version;
+    int port;
+
+    WebServerInfo() = default;
+    WebServerInfo(const WebServerInfo&) = default;
 };
 
 /*! \brief easy to cast in with some special codes for joystick x/y axis */
@@ -67,13 +80,13 @@ public:
 
   ConfigSettings& operator=(ConfigSettings rhs);
 
-  const DiscordInfo GetDiscordInfo() const;
+  const DiscordInfo& GetDiscordInfo() const;
+  const WebServerInfo& GetWebServerInfo() const;
 
   void SetKeyboardHash(const KeyboardHash key);
   void SetGamepadHash(const GamepadHash gamepad);
 
   ConfigSettings(const ConfigSettings& rhs);
-
   ConfigSettings();
 
 private:
@@ -81,7 +94,8 @@ private:
   // Map keys to actions
   KeyboardHash keyboard; /*!< Keyboard key to event */
   GamepadHash gamepad; /*!< Gamepad button to event */
-  DiscordInfo discord;
+  DiscordInfo discord; /*!< account info to allow alerts on discord channel */
+  WebServerInfo webServer; /*!< account info that hosts cards and folders */
 
   int musicLevel;
   int sfxLevel;

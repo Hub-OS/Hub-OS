@@ -11,7 +11,11 @@ Key="ABCDE"
 [Audio]
 Play="1"
 [Net]
-uPNP="0"
+WebServer="battlenetwork.io"
+Version="1"
+Port="3030"
+Username="Deltron"
+Password="Mastermind"
 [Video]
 Fullscreen="0"
 [Keyboard]
@@ -49,6 +53,9 @@ public:
   ~ConfigWriter();
 
   void Write(std::string path);
+
+  const std::string quote(const std::string& str);
+
 private:
   /**
    * @brief Transform Gamepad codes to ascii

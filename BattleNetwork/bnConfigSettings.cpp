@@ -15,133 +15,138 @@ const bool ConfigSettings::IsAudioEnabled() { return (musicLevel || sfxLevel); }
 
 const int ConfigSettings::GetMusicLevel()
 {
-  return musicLevel;
+    return musicLevel;
 }
 
 const int ConfigSettings::GetSFXLevel()
 {
-  return sfxLevel;
+    return sfxLevel;
 }
 
 void ConfigSettings::SetMusicLevel(int level)
 {
-  musicLevel = level;
+    musicLevel = level;
 }
 
 void ConfigSettings::SetSFXLevel(int level)
 {
-  sfxLevel = level;
+    sfxLevel = level;
 }
 
 const std::list<std::string> ConfigSettings::GetPairedActions(sf::Keyboard::Key event) {
-  std::list<std::string> list;
+    std::list<std::string> list;
 
-  decltype(keyboard)::iterator iter = keyboard.begin();
+    decltype(keyboard)::iterator iter = keyboard.begin();
 
-  while (iter != keyboard.end()) {
-    if (iter->first == event) {
-      list.push_back(iter->second);
+    while (iter != keyboard.end()) {
+        if (iter->first == event) {
+            list.push_back(iter->second);
+        }
+        iter++;
     }
-    iter++;
-  }
 
-  return list;
+    return list;
 }
 
 const sf::Keyboard::Key ConfigSettings::GetPairedInput(std::string action)
 {
-  auto iter = keyboard.begin();
+    auto iter = keyboard.begin();
 
-  while (iter != keyboard.end()) {
-    auto first = iter->second;
+    while (iter != keyboard.end()) {
+        auto first = iter->second;
 
-    std::transform(first.begin(), first.end(), first.begin(), ::toupper);
-    std::transform(action.begin(), action.end(), action.begin(), ::toupper);
+        std::transform(first.begin(), first.end(), first.begin(), ::toupper);
+        std::transform(action.begin(), action.end(), action.begin(), ::toupper);
 
-    if (first == action) {
-      return iter->first;
+        if (first == action) {
+            return iter->first;
+        }
+        iter++;
     }
-    iter++;
-  }
 
-  return sf::Keyboard::Unknown;
+    return sf::Keyboard::Unknown;
 }
 
 const Gamepad ConfigSettings::GetPairedGamepadButton(std::string action)
 {
-  auto iter = gamepad.begin();
+    auto iter = gamepad.begin();
 
-  while (iter != gamepad.end()) {
-    auto first = iter->second;
+    while (iter != gamepad.end()) {
+        auto first = iter->second;
 
-    std::transform(first.begin(), first.end(), first.begin(), ::toupper);
-    std::transform(action.begin(), action.end(), action.begin(), ::toupper);
+        std::transform(first.begin(), first.end(), first.begin(), ::toupper);
+        std::transform(action.begin(), action.end(), action.begin(), ::toupper);
 
-    if (first == action) {
-      return iter->first;
+        if (first == action) {
+            return iter->first;
+        }
+        iter++;
     }
-    iter++;
-  }
 
-  return (Gamepad) - 1;
+    return (Gamepad) - 1;
 }
 
 const std::list<std::string> ConfigSettings::GetPairedActions(Gamepad event) {
-  std::list<std::string> list;
+    std::list<std::string> list;
 
-  if (gamepad.size()) {
-    decltype(gamepad)::iterator iter = gamepad.begin();
+    if (gamepad.size()) {
+        decltype(gamepad)::iterator iter = gamepad.begin();
 
-    while (iter != gamepad.end()) {
-      if (iter->first == event) {
-        list.push_back(iter->second);
-      }
-      iter++;
+        while (iter != gamepad.end()) {
+            if (iter->first == event) {
+                list.push_back(iter->second);
+            }
+            iter++;
+        }
     }
-  }
 
-  return list;
+    return list;
 }
 
 ConfigSettings & ConfigSettings::operator=(ConfigSettings rhs)
 {
-  this->discord.key = rhs.discord.key;
-  this->discord.user = rhs.discord.user;
-  this->gamepad = rhs.gamepad;
-  this->musicLevel = rhs.musicLevel;
-  this->sfxLevel = rhs.sfxLevel;
-  this->isOK = rhs.isOK;
-  this->keyboard = rhs.keyboard;
-  return *this;
+    this->discord = rhs.discord;
+    this->webServer = rhs.webServer;
+    this->gamepad = rhs.gamepad;
+    this->musicLevel = rhs.musicLevel;
+    this->sfxLevel = rhs.sfxLevel;
+    this->isOK = rhs.isOK;
+    this->keyboard = rhs.keyboard;
+    return *this;
 }
 
-const DiscordInfo ConfigSettings::GetDiscordInfo() const
+const DiscordInfo& ConfigSettings::GetDiscordInfo() const
 {
-  return this->discord;
+    return this->discord;
+}
+
+const WebServerInfo& ConfigSettings::GetWebServerInfo() const
+{
+    return this->webServer;
 }
 
 void ConfigSettings::SetKeyboardHash(const KeyboardHash key)
 {
-  keyboard = key;
+    keyboard = key;
 }
 
 void ConfigSettings::SetGamepadHash(const GamepadHash gamepad)
 {
-  this->gamepad = gamepad;
+    this->gamepad = gamepad;
 }
 
 ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
 {
-  this->discord.key = rhs.discord.key;
-  this->discord.user = rhs.discord.user;
-  this->gamepad = rhs.gamepad;
-  this->musicLevel = rhs.musicLevel;
-  this->sfxLevel = rhs.sfxLevel;
-  this->isOK = rhs.isOK;
-  this->keyboard = rhs.keyboard;
+    this->discord = rhs.discord;
+    this->webServer = rhs.webServer;
+    this->gamepad = rhs.gamepad;
+    this->musicLevel = rhs.musicLevel;
+    this->sfxLevel = rhs.sfxLevel;
+    this->isOK = rhs.isOK;
+    this->keyboard = rhs.keyboard;
 }
 
 ConfigSettings::ConfigSettings()
 {
-  isOK = false;
+    isOK = false;
 }
