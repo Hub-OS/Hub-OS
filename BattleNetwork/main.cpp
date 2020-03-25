@@ -174,7 +174,7 @@ int main(int argc, char** argv) {
     WEBCLIENT;
 
     // try to read the config file
-    ConfigReader reader("options.ini");
+    ConfigReader reader("config.ini");
     ConfigSettings configSettings = reader.GetConfigSettings();
 
     if (configSettings.IsOK()) {
@@ -190,26 +190,29 @@ int main(int argc, char** argv) {
         }
         else {
 
-            WEBCLIENT.ConnectToWebServer(info.version.data(), info.URL.data(), info.port);
-            WEBCLIENT.IsConnectedToWebServer();
+            Logger::Logf("Connecting to web server @ %s:%i (Version %s)", URL.data(), port, version.data());
+
+            WEBCLIENT.ConnectToWebServer(version.data(), URL.data(), port);
 
             auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
 
             Logger::Logf("waiting for server...");
 
             int timeoutCount = 0;
-            while (!is_ready(result) && timeoutCount < 5) {
+            constexpr int MAX_TIMEOUT = 5;
+
+            while (!is_ready(result) && timeoutCount < MAX_TIMEOUT) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 Logger::Logf("timeout %i", ++timeoutCount);
             }
 
-            if (timeoutCount == 10) {
+            if (timeoutCount == MAX_TIMEOUT) {
                 Logger::Logf("Could not communicate with the server. Aborting automatic login.");
             }
             else if (is_ready(result)) {
                 bool success = result.get();
                 if (success) {
-                    Logger::Logf("Logged in! Welcome %s!", username);
+                    Logger::Logf("Logged in! Welcome %s!", username.data());
                 }
                 else {
                     Logger::Logf("Could not authenticate. Aborting automatic login");
@@ -418,20 +421,21 @@ int main(int argc, char** argv) {
     std::atomic<int> navisLoaded{0};
     std::atomic<int> mobsLoaded{0};
 
-    RunGraphicsInit(&progress);
+    //RunGraphicsInit(&progress); // TODO: needed for android?
     ENGINE.SetShader(nullptr);
 
     #ifdef __ANDROID__
     loadSurface.setDefaultShader(&LOAD_SHADER(DEFAULT));
     #endif
 
-    //sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
+    sf::Thread graphicsLoad(&RunGraphicsInit, &progress);
     sf::Thread audioLoad(&RunAudioInit, &progress);
 
     // We must deffer these threads until graphics and audio are finished
     sf::Thread navisLoad(&RunNaviInit, &navisLoaded);
     sf::Thread mobsLoad(&RunMobInit, &mobsLoaded);
 
+    graphicsLoad.launch();
     audioLoad.launch();
 
     // stream some music while we wait

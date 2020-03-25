@@ -111,7 +111,7 @@ void InputManager::Update() {
       }
     } else if (Event::KeyPressed == event.type) {
       /* Gamepad not connected. Strictly use keyboard events. */
-      if (settings.IsOK()) {
+      if (settings.IsOK() && settings.IsKeyboardOK()) {
         auto action = settings.GetPairedActions(event.key.code);
 
         for (auto a : action) {
@@ -163,7 +163,7 @@ void InputManager::Update() {
         }
       }
     } else if (Event::KeyReleased == event.type) {
-      if (settings.IsOK()) {
+      if (settings.IsOK() && settings.IsKeyboardOK()) {
         auto action = settings.GetPairedActions(event.key.code);
 
         if (!action.size()) continue;

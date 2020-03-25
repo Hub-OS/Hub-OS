@@ -15,3 +15,4 @@ namespace BuiltInCards {
 }
 
 #undef MAKE_ID
+#undef MAKE_ID_LIST

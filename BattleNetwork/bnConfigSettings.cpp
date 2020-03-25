@@ -1,42 +1,41 @@
 #include "bnConfigSettings.h"
 #include "bnLogger.h"
+#include "bnInputEvent.h"
 
 /**
  * @brief If config file is ok
  * @return true if wellformed, false otherwise
  */
-const bool ConfigSettings::IsOK() { return isOK; }
+const bool ConfigSettings::IsOK() const { return isOK; }
 
 /**
  * @brief Check if audio is on or off based on ini file
  * @return true if on, false otherwise
  */
-const bool ConfigSettings::IsAudioEnabled() { return (musicLevel || sfxLevel); }
+const bool ConfigSettings::IsAudioEnabled() const { return (musicLevel || sfxLevel); }
 
-const int ConfigSettings::GetMusicLevel()
-{
-    return musicLevel;
+const int ConfigSettings::GetMusicLevel() const { return musicLevel; }
+
+const int ConfigSettings::GetSFXLevel() const { return sfxLevel; }
+
+const bool ConfigSettings::IsKeyboardOK() const { 
+    bool hasUp      = GetPairedInput(EventTypes::PRESSED_UI_UP.name) != sf::Keyboard::Unknown;
+    bool hasDown    = GetPairedInput(EventTypes::PRESSED_UI_DOWN.name) != sf::Keyboard::Unknown;
+    bool hasLeft    = GetPairedInput(EventTypes::PRESSED_UI_LEFT.name) != sf::Keyboard::Unknown;
+    bool hasRight   = GetPairedInput(EventTypes::PRESSED_UI_RIGHT.name) != sf::Keyboard::Unknown;
+    bool hasConfirm = GetPairedInput(EventTypes::PRESSED_CONFIRM.name) != sf::Keyboard::Unknown;
+
+    return hasUp && hasDown && hasLeft && hasRight && hasConfirm;
 }
 
-const int ConfigSettings::GetSFXLevel()
-{
-    return sfxLevel;
-}
+void ConfigSettings::SetMusicLevel(int level) { musicLevel = level; }
 
-void ConfigSettings::SetMusicLevel(int level)
-{
-    musicLevel = level;
-}
+void ConfigSettings::SetSFXLevel(int level) { sfxLevel = level; }
 
-void ConfigSettings::SetSFXLevel(int level)
-{
-    sfxLevel = level;
-}
-
-const std::list<std::string> ConfigSettings::GetPairedActions(sf::Keyboard::Key event) {
+const std::list<std::string> ConfigSettings::GetPairedActions(const sf::Keyboard::Key& event) const {
     std::list<std::string> list;
 
-    decltype(keyboard)::iterator iter = keyboard.begin();
+    auto iter = keyboard.cbegin();
 
     while (iter != keyboard.end()) {
         if (iter->first == event) {
@@ -48,7 +47,7 @@ const std::list<std::string> ConfigSettings::GetPairedActions(sf::Keyboard::Key 
     return list;
 }
 
-const sf::Keyboard::Key ConfigSettings::GetPairedInput(std::string action)
+const sf::Keyboard::Key ConfigSettings::GetPairedInput(std::string action) const
 {
     auto iter = keyboard.begin();
 
@@ -67,7 +66,7 @@ const sf::Keyboard::Key ConfigSettings::GetPairedInput(std::string action)
     return sf::Keyboard::Unknown;
 }
 
-const Gamepad ConfigSettings::GetPairedGamepadButton(std::string action)
+const Gamepad ConfigSettings::GetPairedGamepadButton(std::string action) const
 {
     auto iter = gamepad.begin();
 
@@ -86,11 +85,11 @@ const Gamepad ConfigSettings::GetPairedGamepadButton(std::string action)
     return (Gamepad) - 1;
 }
 
-const std::list<std::string> ConfigSettings::GetPairedActions(Gamepad event) {
+const std::list<std::string> ConfigSettings::GetPairedActions(const Gamepad& event) const {
     std::list<std::string> list;
 
     if (gamepad.size()) {
-        decltype(gamepad)::iterator iter = gamepad.begin();
+        auto iter = gamepad.cbegin();
 
         while (iter != gamepad.end()) {
             if (iter->first == event) {
@@ -103,7 +102,7 @@ const std::list<std::string> ConfigSettings::GetPairedActions(Gamepad event) {
     return list;
 }
 
-ConfigSettings & ConfigSettings::operator=(ConfigSettings rhs)
+ConfigSettings & ConfigSettings::operator=(const ConfigSettings& rhs)
 {
     this->discord = rhs.discord;
     this->webServer = rhs.webServer;

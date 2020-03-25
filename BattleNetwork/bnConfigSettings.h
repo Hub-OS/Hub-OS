@@ -38,16 +38,22 @@ public:
  * @brief If config file is ok
  * @return true if wellformed, false otherwise
  */
-  const bool IsOK();
+  const bool IsOK() const;
+
+  /**
+* @brief If config file has empty keyboard mappings
+* @return true if all keyboard mappings are NO KEY
+*/
+  const bool IsKeyboardOK() const;
 
   /**
    * @brief Check if audio is on or off based on ini file
    * @return true if on, false otherwise
    */
-  const bool IsAudioEnabled();
+  const bool IsAudioEnabled() const;
 
-  const int GetMusicLevel();
-  const int GetSFXLevel();
+  const int GetMusicLevel() const;
+  const int GetSFXLevel() const;
   void SetMusicLevel(int level);
   void SetSFXLevel(int level);
   /**
@@ -55,30 +61,30 @@ public:
    * @param event sfml keyboard key
    * @return the mapped input event
    */
-  const std::list<std::string> GetPairedActions(sf::Keyboard::Key event);
+  const std::list<std::string> GetPairedActions(const sf::Keyboard::Key& event) const;
 
   /**
  * @brief For an action string, return the bound keyboard key
  * @param action name
  * @return the bound key
  */
-  const sf::Keyboard::Key GetPairedInput(std::string action);
+  const sf::Keyboard::Key GetPairedInput(std::string action) const;
 
   /**
 * @brief For an action string, return the bound gamepad event
 * @param action name
 * @return the bound gamepad event
 */
-  const Gamepad GetPairedGamepadButton(std::string action);
+  const Gamepad GetPairedGamepadButton(std::string action) const;
 
   /**
    * @brief For a gamepad event, return the action string
    * @param Gamepad button
    * @return list of the mapped input events
    */
-  const std::list<std::string> GetPairedActions(Gamepad event);
+  const std::list<std::string> GetPairedActions(const Gamepad& event) const;
 
-  ConfigSettings& operator=(ConfigSettings rhs);
+  ConfigSettings& operator=(const ConfigSettings& rhs);
 
   const DiscordInfo& GetDiscordInfo() const;
   const WebServerInfo& GetWebServerInfo() const;

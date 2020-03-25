@@ -159,9 +159,7 @@ private:
   
   vector<InputEvent> events; /*!< Current event list */
   vector<InputEvent> eventsLastFrame; /*!< The even list prior to this update */
-
   map<InputEvent, std::string> input; /*!< Maps controller events*/
-
   ConfigSettings settings; /*!< Settings object*/
 
   std::function<void()> onRegainFocus; /*!< How the application should respond to regaining focus */

@@ -43,6 +43,12 @@ void WebClientManager::QueuedTasksThreadHandler()
 
             lock.unlock();
             op();
+
+            char* error;
+            while (client && client->GetNextError(&error)) {
+                Logger::Logf("Web Client encountered an error: %s", error);
+            }
+
             lock.lock();
             this->isWorking = false;
         }
@@ -255,10 +261,11 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
 
         // Download these cards too:
         for (auto&& uuid : BuiltInCards::AsList) {
-            this->client->FetchCard(uuid);
+            Logger::Logf("Could fetch card %s? %s", uuid.data(), (this->client->FetchCard(uuid)? "yes": "no"));
         }
 
         this->account = this->client->GetLocalAccount();
+
         promise->set_value(this->account);
     };
 

@@ -9,7 +9,7 @@ const constexpr int ACTIONS   = 1; // Second column is actions within that menu
 const constexpr int BOUNDKEYS = 2; // Third column is used for bound keys
 
 ConfigScene::ConfigScene(swoosh::ActivityController &controller) : 
-    textbox(sf::Vector2f(0,250)), swoosh::Activity(&controller)
+    textbox(sf::Vector2f(4,250)), swoosh::Activity(&controller)
 {
     textbox.SetTextSpeed(2.0);
     isSelectingTopMenu = inGamepadList = inKeyboardList = false;
@@ -92,12 +92,12 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
             std::string keyStr;
 
             if (INPUT.ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
-            keyHash.insert(std::make_pair(configSettings.GetPairedInput(a), a));
+                keyHash.insert(std::make_pair(configSettings.GetPairedInput(a), a));
 
-            boundKeys.push_back({ keyStr,  sf::Vector2f(), sf::Vector2f(), type });
+                boundKeys.push_back({ keyStr,  sf::Vector2f(), sf::Vector2f(), type });
             }
             else {
-            boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
+                boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
             }
         }
     }
@@ -177,20 +177,38 @@ void ConfigScene::onUpdate(double elapsed)
   bool isInSubmenu = inKeyboardList || inGamepadList;
 
   if (hasConfirmed && isSelectingTopMenu && !leave) {
-    if (!awaitingKey) {
-      using namespace swoosh::intent;
-      using effect = segue<WhiteWashFade, swoosh::intent::milli<500>>;
-      getController().queuePop<effect>();
-      AUDIO.Play(AudioType::NEW_GAME);
-      leave = true;
+      if (textbox.IsClosed()) {
+          auto onYes = [this]() {
+              // Save before leaving
+              using namespace swoosh::intent;
+              using effect = segue<WhiteWashFade, swoosh::intent::milli<300>>;
+              getController().queuePop<effect>();
+              AUDIO.Play(AudioType::NEW_GAME);
+              leave = true;
 
-      configSettings.SetKeyboardHash(keyHash);
-      configSettings.SetGamepadHash(gamepadHash);
-      ConfigWriter writer(configSettings);
-      writer.Write("options.ini");
-      ConfigReader reader("options.ini");
-      INPUT.SupportConfigSettings(reader);
-    }
+              configSettings.SetKeyboardHash(keyHash);
+              configSettings.SetGamepadHash(gamepadHash);
+              ConfigWriter writer(configSettings);
+              writer.Write("config.ini");
+              ConfigReader reader("config.ini");
+              INPUT.SupportConfigSettings(reader);
+              textbox.Close();
+          };
+
+          auto onNo = [this]() {
+              // Just close and leave
+              using namespace swoosh::intent;
+              using effect = segue<BlackWashFade, swoosh::intent::milli<300>>;
+              getController().queuePop<effect>();
+              leave = true;
+
+              textbox.Close();
+          };
+          questionInterface = new Question("Overwite your config settings?", onYes, onNo);
+          textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
+          textbox.Open();
+          AUDIO.Play(AudioType::CHIP_DESC);
+      }
   }
 
   if (!leave) {
@@ -381,6 +399,7 @@ void ConfigScene::onUpdate(double elapsed)
           if (WEBCLIENT.IsLoggedIn()) {
               if (textbox.IsClosed()) {
                   auto onYes = [this]() {
+                      Logger::Log("SendLogoutCommand");
                       WEBCLIENT.SendLogoutCommand();
                       textbox.Close();
                   };

@@ -140,7 +140,7 @@ void AnimatedTextBox::ReplaceText(std::string text)
     this->isPaused = false; // start over with new text
 }
 
-  void AnimatedTextBox::Update(double elapsed) {
+void AnimatedTextBox::Update(double elapsed) {
   totalTime += elapsed;
 
   if (isReady && messages.size() > 0) {

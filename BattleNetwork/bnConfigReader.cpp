@@ -41,6 +41,11 @@ const bool ConfigReader::ParseDiscord(std::string buffer) {
 
     Trim(line);
 
+
+    if (line.find("[Audio]") != std::string::npos) {
+        return ParseAudio(buffer);
+    }
+
     if (line.find("User") != std::string::npos) {
       std::string value = ValueOf("User", line);
       settings.discord.user = value;
