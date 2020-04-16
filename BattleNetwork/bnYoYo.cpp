@@ -68,10 +68,10 @@ void YoYo::OnUpdate(float _elapsed) {
     // Keep moving
     this->Move(this->GetDirection());
 
-    // Retract after moving 2 spaces
-    if (!this->GetNextTile() || ++tileCount == 2) {
+    // Retract after moving 2 spaces, if possible
+    if (!this->GetNextTile() || (++tileCount == 2)) {
       if (!reversed) {
-        auto direction = GetDirection();
+        auto direction = GetPreviousDirection();
 
         SetDirection(Direction::NONE);
 
@@ -99,7 +99,8 @@ void YoYo::OnUpdate(float _elapsed) {
     // The tile counter updates when it has reached
     // center tile, when count == 2, we were spinning in place
     // So we want to skip count == 3 because it will have only
-    // begun moving to the previous tile. 
+    // begun moving to the previous tile. This avoids a duplicate hit
+    // caused by the animation callback when it drops 3 hitboxes.
 
     tile->AffectEntities(this);
   }

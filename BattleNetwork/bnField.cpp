@@ -34,7 +34,7 @@ Field::Field(int _width, int _height)
     tiles.push_back(row);
   }
 
-  /*
+#ifdef ONB_DEBUG
   // DEBUGGING
   // invisible tiles surround the arena for some entities to slide off of
   for (int i = 0; i < _width + 2; i++) {
@@ -49,7 +49,8 @@ Field::Field(int _width, int _height)
     tiles[i][0]->setColor(sf::Color(255, 255, 255, 50));
     tiles[i][_width + 1]->setColor(sf::Color(255, 255, 255, 50));
 
-  }*/
+  }
+#endif
 
   isBattleActive = false;
   isUpdating = false;
@@ -217,7 +218,7 @@ Battle::Tile* Field::GetAt(int _x, int _y) const {
 }
 
 void Field::Update(float _elapsed) {
-  while (pending.size()) {
+  while (pending.size() && isBattleActive) {
     auto next = pending.back();
     pending.pop_back();
 
@@ -237,13 +238,15 @@ void Field::Update(float _elapsed) {
     }
   }
 
-  // FORCES PENDING OF NEWLY ADDED ENTITIES
+  // This is a state flag that decides if entities added this update tick will be
+  // put into a pending queue bucket or added directly onto the field
   this->isUpdating = true;
 
   int entityCount = 0;
 
-  int redTeamFarCol = 0; // from red's perspective, 5 is the farthest - begin at the first (0 col) index and increment
-  int blueTeamFarCol = 5; // from blue's perspective, 0  is the farthest - begin at the first (5th col) index and increment
+  // These are the columns that an entity was found on
+  int redTeamFarCol = 0; // from blue's perspective, 7 is the farthest - begin at the first (0 col) index and increment
+  int blueTeamFarCol = 7; // from red's perspective, 0  is the farthest - begin at the first (7th col) index and decrement
 
   // tile cols to check to restore team state
   std::map<int, bool> backToRed;
@@ -256,27 +259,26 @@ void Field::Update(float _elapsed) {
     for (int j = 0; j < tiles[i].size(); j++) {
       tiles[i][j]->Update(_elapsed);
 
-      auto t = tiles[i][j];
+      auto&& t = tiles[i][j];
 
+      // How far has entity of either moved across the map?
+      // This check will help prevent trapping moving characters 
+      // when their tiles' team type resets
       for(auto it = t->characters.begin(); it != t->characters.end(); it++) {
-        if((*it)->GetTeam() == Team::RED && redTeamFarCol <= j) { redTeamFarCol = j; }
-        else if((*it)->GetTeam() == Team::BLUE && blueTeamFarCol >= j) { blueTeamFarCol = j; }
+        Team team = (*it)->GetTeam();
+        if (team == Team::RED) { redTeamFarCol = std::max(redTeamFarCol, j); }
+        else if(team == Team::BLUE) { blueTeamFarCol = std::min(blueTeamFarCol, j); }
       }
 
       if(j <= 3) {
-        // sync stolen red tiles together
-        syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->flickerTeamCooldown);
-
-        // tiles should be red
+        // This tile was originally red
         if(t->GetTeam() == Team::BLUE) {
           if(t->teamCooldown <= 0) {
             backToRed.insert(std::make_pair(j, true));
           }
         }
       } else{
-        // sync stolen blue tiles together
-        syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, t->flickerTeamCooldown);
-
+        // This tile was originally blue
         if(t->GetTeam() == Team::RED) {
           if(t->teamCooldown <= 0) {
             backToBlue.insert(std::make_pair(j, true));
@@ -284,57 +286,74 @@ void Field::Update(float _elapsed) {
         }
       }
 
+      // now that the loop for this tile is over
+      // and it has been updated, we set the battle active flag
+      // to its latest state and calculate how many entities remain
+      // on the field
       entityCount += (int)tiles[i][j]->GetEntityCount();
-      tiles[i][j]->SetBattleActive(isBattleActive);
     }
   }
 
-  /*if (syncRedTeamCooldown != 0.f && syncBlueTeamCooldown != 0.f) {
-    for (int x = 0; x < width; x++) {
-      for (int y = 0; y < height; y++) {
-        auto t = tiles[y][x];
-        if (x <= 2) {
-          t->flickerTeamCooldown = syncRedTeamCooldown;
-        }
-        else {
-          t->flickerTeamCooldown = syncBlueTeamCooldown;
-        }
-      }
-    }
-  }*/
-
-  // Restore **whole** col team states not just a single tile...
+  // plan: Restore column team states not just a single tile
   // col must be ahead of the furthest character of the same team
   // e.g. red team characters must be behind the col row
   //      blue team characters must be ahead the col row
   // otherwise we risk trapping characters in a striped battle field
-  for(auto p : backToBlue) {
+
+  // stolen blue tiles
+  for(auto&& p : backToBlue) {
     if (p.first <= redTeamFarCol) continue;
 
+    Logger::Logf("redTeamFarCol found %i, while p.first is %i", redTeamFarCol, p.first);
+
+    // these are the tiles (rows) in the column
     for(int i = 0; i < tiles.size(); i++) {
-      tiles[i][p.first]->SetTeam(Team::BLUE, true);
+      // sync stolen blue tiles together
+      syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, tiles[i][p.first]->flickerTeamCooldown);
+    }
+    if (syncBlueTeamCooldown <= 0.0f) {
+        for (int i = 0; i < tiles.size(); i++) {
+            tiles[i][p.first]->SetTeam(Team::BLUE, true);
+        }
     }
   }
 
   backToBlue.clear();
 
-  for(auto p : backToRed) {
+  // stolen red tiles
+  for(auto&& p : backToRed) {
     if (p.first >= blueTeamFarCol) continue;
 
+    // these are the tiles (rows) in the column
     for(int i = 0; i < tiles.size(); i++) {
-      tiles[i][p.first]->SetTeam(Team::RED, true);
+      // sync stolen red tiles together
+      syncRedTeamCooldown = std::max(syncRedTeamCooldown, tiles[i][p.first]->flickerTeamCooldown);
+    }
+
+    if (syncRedTeamCooldown <= 0.0f) {
+        for (int i = 0; i < tiles.size(); i++) {
+            tiles[i][p.first]->SetTeam(Team::RED, true);
+        }
     }
   }
 
   backToRed.clear();
 
-  // UNLOCK ADD ENTITIES FUNCTION
+  // Now that updating is complete any entities being added to the field will be added directly
   this->isUpdating = false;
 }
 
 void Field::SetBattleActive(bool state)
 {
+  if (isBattleActive == state) return;
+
   isBattleActive = state;
+
+  for (int i = 0; i < tiles.size(); i++) {
+      for (int j = 0; j < tiles[i].size(); j++) {
+          tiles[i][j]->SetBattleActive(isBattleActive);
+      }
+  }
 }
 
 void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, long ID)

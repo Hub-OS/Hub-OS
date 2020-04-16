@@ -33,7 +33,6 @@ AlphaCore::AlphaCore(Rank _rank)
 
   SetLayer(1);
 
-  firstTime = true;
   impervious = false;
   shootSuperVulcans = false;
 
@@ -132,24 +131,6 @@ AlphaCore::~AlphaCore() {
 }
 
 void AlphaCore::OnUpdate(float _elapsed) {
-  // TODO: Add a OnEnterField() for these types of things...
-  if (firstTime) {
-    this->RevealLeftArm();
-    this->RevealRightArm();
-
-    // Block player from stealing rows
-    Battle::Tile* block = GetField()->GetAt(4, 1);
-    block->ReserveEntityByID(this->GetID());
-
-    block = GetField()->GetAt(4, 2);
-    block->ReserveEntityByID(this->GetID());
-
-    block = GetField()->GetAt(4, 3);
-    block->ReserveEntityByID(this->GetID());
-
-    firstTime = false;
-  }
-
   totalElapsed += _elapsed;
 
   if (leftArm && rightArm) {
@@ -253,12 +234,33 @@ const float AlphaCore::GetHeight() const {
   return (float)hitHeight;
 }
 
+void AlphaCore::OnSpawn(Battle::Tile & start)
+{
+    this->RevealLeftArm();
+    this->RevealRightArm();
+
+    // Block player from stealing rows
+    Battle::Tile* block = GetField()->GetAt(4, 1);
+    block->ReserveEntityByID(this->GetID());
+
+    block = GetField()->GetAt(4, 2);
+    block->ReserveEntityByID(this->GetID());
+
+    block = GetField()->GetAt(4, 3);
+    block->ReserveEntityByID(this->GetID());
+}
+
 void AlphaCore::OnDelete() {
   if (virusBody) {
     this->RemoveDefenseRule(virusBody);
     delete virusBody;
     virusBody = nullptr;
   }
+
+  Logger::Logf("AlphaCore::OnDelete()");
+
+  leftArm? leftArm->Delete() : 0;
+  rightArm? rightArm->Delete() : 0;
 
   leftArm = nullptr;
   rightArm = nullptr;
@@ -363,6 +365,7 @@ void AlphaCore::ShootSuperVulcans()
 
 AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
+
 const bool AlphaCore::AlphaCoreDefenseRule::Blocks(Spell* in, Character* owner) {
   if (static_cast<AlphaCore*>(owner)->impervious) {  return true; }
 

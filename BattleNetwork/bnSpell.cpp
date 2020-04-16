@@ -22,6 +22,8 @@ Spell::~Spell() {
 }
 
 void Spell::Update(float _elapsed) {
+  if (!IsBattleActive()) return;
+
   Entity::Update(_elapsed);
 
   this->OnUpdate(_elapsed);

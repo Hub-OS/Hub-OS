@@ -90,7 +90,7 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
   // First glyph is 9 the last is 0
   // There's 1px space between the glyphs
 
-  if (healthCounter > 0 && mob->GetTile()) {
+  if (healthCounter > 0 && mob && mob->GetTile()) {
     int size = (int)(std::to_string(healthCounter).size());
     int hp = healthCounter;
     float offsetx = -(((size)*8.0f) / 2.0f)*glyphs.getScale().x;

@@ -68,11 +68,15 @@ void Character::Update(float _elapsed) {
 
   double prevThisFrameStun = this->stunCooldown;
 
-  if (this->IsBattleActive()) {
+  //if (this->IsBattleActive()) {
     this->ResolveFrameBattleDamage();
-  }
+  //}
 
   this->setColor(sf::Color(255, 255, 255, getColor().a));
+
+  // Prevent animations from updating and AI from moving around
+  // If during time freeze battle states
+  if (!this->IsBattleActive()) return;
 
   if (!hit) {
       if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
@@ -110,6 +114,7 @@ void Character::Update(float _elapsed) {
   if (prevThisFrameStun <= 0.0) {
     // HACKY: If we are stunned this frame, let AI update step once
     // to turn into their respective hit state animations
+    // TODO at some sort of hooks instead for Characters
     this->OnUpdate(_elapsed);
   } else if (this->stunCooldown > 0.0) {
     this->stunCooldown -= _elapsed;
@@ -138,10 +143,14 @@ void Character::Update(float _elapsed) {
   hit = false;
 
   // TODO: Something IS skipping the SetHealth() routine. Find out what and take this check out.
-  if (health < 0) health = 0;
+  if (health <= 0) {
+      health = 0;
 
-  TryDelete();
-
+      if (!this->invokeDeletion) {
+          this->OnDelete();
+          this->invokeDeletion = true;
+      }
+  }
   // If drag status is over, reset the flag
   if (!IsSliding() && this->slideFromDrag) this->slideFromDrag = false;
 }
@@ -349,8 +358,8 @@ void Character::ResolveFrameBattleDamage()
       this->statusQueue.pop();
     }
 
-    this->OnDelete();
-    this->invokeDeletion = true;
+    //this->OnDelete();
+    //this->invokeDeletion = true;
     this->stunCooldown = 0;
     this->invincibilityCooldown = 0;
 
@@ -370,8 +379,8 @@ void Character::SetHealth(const int _health) {
     maxHealth = health;
   }
 
-  if (health < 0) health = 0;
   if (health > maxHealth) health = maxHealth;
+  if (health < 0) health = 0;
 }
 
 void Character::AdoptTile(Battle::Tile * tile)
@@ -387,8 +396,9 @@ void Character::TryDelete() {
   if (!IsBattleActive()) return;
 
   if (this->GetHealth() == 0 && !this->invokeDeletion) {
-      this->OnDelete();
-      this->invokeDeletion = true;
+      this->SetHealth(0);
+      //this->Delete();
+      //this->invokeDeletion = true;
       this->SlideToTile(false);
   }
 }

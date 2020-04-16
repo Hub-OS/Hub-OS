@@ -151,7 +151,7 @@ public:
 
     timeInSecs += _elapsed;
 
-
+    /*
     for (auto iter = summonedItems.begin(); iter != summonedItems.end();) {
       if (iter->entity->IsDeleted()) {
         iter = summonedItems.erase(iter);
@@ -163,7 +163,7 @@ public:
 
     for (auto items : summonedItems) {
         items.entity->Update((float)_elapsed);
-    }
+    }*/
   }
 
   void OnEnter() { 
@@ -187,8 +187,8 @@ public:
       summon = "Barrier";
 
     }
-    else if (name == "Antidamg") {
-      summon = "Antidamg";
+    else if (name == "AntiDmg") {
+      summon = "AntiDmg";
 
     }
     else if (name == "AreaGrab") {
@@ -234,7 +234,7 @@ public:
       PanelGrab** grab = new PanelGrab*[3];
       
       for (int i = 0; i < 3; i++) {
-        grab[i] = new PanelGrab(summonedBy->GetField(), summonedBy->GetTeam(), 0.5);
+        grab[i] = new PanelGrab(summonedBy->GetField(), summonedBy->GetTeam(), 0.25f);
       }
 
       Battle::Tile** tile = new Battle::Tile*[3];
@@ -300,7 +300,7 @@ public:
       delete[] grab;
     }
 
-    else if (summon == "Antidamg") {
+    else if (summon == "AntiDmg") {
       NinjaAntiDamage* antidamage = new NinjaAntiDamage(summonedBy);
       summonedBy->RegisterComponent(antidamage);
 
@@ -358,8 +358,8 @@ public:
       timeInSecs = 0;
       duration = sf::seconds(1);
     }
-    else if (name == "Antidamg") {
-      summon = "Antidamg";
+    else if (name == "AntiDmg") {
+      summon = "AntiDmg";
       timeInSecs = 0;
       duration = sf::seconds(1);
     }

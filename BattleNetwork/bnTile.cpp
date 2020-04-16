@@ -54,21 +54,6 @@ namespace Battle {
     elapsedBurnTime = burncycle;
 
     highlightMode = Highlight::none;
-
-    class Dummy : public Character {
-    public:
-      Dummy() : Character() {
-        this->SetHealth(1000);
-      }
-
-      ~Dummy() = default;
-      // Inherited via Character
-      virtual void OnDelete() override {}
-      virtual const bool OnHit(const Hit::Properties props) override { 
-        this->SetHealth(1000); 
-      return true;  }
-      virtual void OnUpdate(float elapsed) override { }
-    };
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -102,7 +87,6 @@ namespace Battle {
     burncycle = other.burncycle;
     elapsedBurnTime = other.elapsedBurnTime;
     highlightMode = other.highlightMode;
-
 
     return *this;
   }
@@ -139,7 +123,6 @@ namespace Battle {
     burncycle = other.burncycle;
     elapsedBurnTime = other.elapsedBurnTime;
     highlightMode = other.highlightMode;
-
   }
 
   Tile::~Tile() {
@@ -429,6 +412,12 @@ namespace Battle {
             caller->SetHitboxProperties(props);
           }
 
+          if (!this->isBattleActive) {
+              auto props = caller->GetHitboxProperties();
+              props.flags |= Hit::shake;
+              caller->SetHitboxProperties(props);
+          }
+
           caller->Attack(c);
           caller->SetHitboxProperties(props);
         }
@@ -469,7 +458,7 @@ namespace Battle {
         long ID = ptr->GetID();
 
         // TODO: do we need to invoke this here?
-        entities[i]->OnDelete();
+        ptr->FreeAllComponents();
 
         if (RemoveEntityByID(ID)) {
           // TODO: STOP DYNAMIC CASTING! SOMEHOW!
@@ -483,9 +472,6 @@ namespace Battle {
           delete ptr;
           continue;
         }
-      }
-      else {
-        ptr->SetBattleActive(this->isBattleActive);
       }
 
       i++;
@@ -505,7 +491,8 @@ namespace Battle {
     }
 
     // Spells dont cause damage when the battle is over
-    if (this->isBattleActive) {
+    // TODO: replace with isBattleOver signal from Scene
+    if (true || this->isBattleActive) {
       // Now that spells and characters have updated and moved, they are due to check for attack outcomes
       for (auto ID : queuedSpells) {
         // TODO: REDO THIS LOOP. IT IS HORRIBLE AND COSTLY!
@@ -575,7 +562,12 @@ namespace Battle {
 
   void Tile::SetBattleActive(bool state)
   {
+    if (isBattleActive == state) return;
     isBattleActive = state;
+
+    for (auto&& entity : entities) {
+      entity->SetBattleActive(isBattleActive);
+    }
   }
 
   void Tile::HandleTileBehaviors(Obstacle* obst) {

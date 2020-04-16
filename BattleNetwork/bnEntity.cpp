@@ -15,7 +15,7 @@ Entity::Entity()
   previousDirection(Direction::NONE),
   direction(Direction::NONE),
   team(Team::UNKNOWN),
-  isBattleActive(false),
+  isBattleActive(true),
   deleted(false),
   passthrough(false),
   ownedByField(false),
@@ -398,13 +398,11 @@ void Entity::Delete()
 
   deleted = true;
 
-  for (auto& callbacks : deleteCallbacks) {
+  for (auto&& callbacks : deleteCallbacks) {
     callbacks();
   }
 
   deleteCallbacks.clear();
-
-  this->FreeAllComponents();
 }
 
 Entity::DeleteCallback & Entity::CreateDeleteCallback()

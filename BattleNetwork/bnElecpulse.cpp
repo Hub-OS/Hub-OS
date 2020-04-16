@@ -11,6 +11,7 @@ Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _tea
   this->SetLayer(0);
   SetPassthrough(true);
   this->SetElement(Element::ELEC);
+  this->HighlightTile(Battle::Tile::Highlight::flash);
   setScale(2.f, 2.f);
   progress = 0.0f;
 

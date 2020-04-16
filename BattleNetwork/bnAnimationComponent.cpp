@@ -18,7 +18,11 @@ AnimationComponent::~AnimationComponent() {
 
 void AnimationComponent::OnUpdate(float _elapsed)
 {
-  if (character && character->IsStunned()) {
+  // Since animations can be used on non-characters
+  // we check if the owning entity is non-null 
+  // we also check if it is a character, because stunned
+  // characters do not update
+  if (!GetOwner() || (character && character->IsStunned())) {
     return;
   }
 
@@ -111,7 +115,7 @@ void AnimationComponent::OverrideAnimationFrames(const std::string& animation, s
 {
   this->animation.OverrideAnimationFrames(animation, data, uuid);
 
-  for (auto o : overrideList) {
+  for (auto&& o : overrideList) {
     o->OverrideAnimationFrames(animation, data, uuid);
   }
 }

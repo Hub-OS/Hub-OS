@@ -65,6 +65,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   player->ChangeState<PlayerIdleState>();
   field->AddEntity(*player, 2, 2);
+  field->SetBattleActive(true);
 
   // Card UI for player
   cardListener.Subscribe(cardUI);
@@ -590,6 +591,7 @@ void BattleScene::onUpdate(double elapsed) {
       cast->SetTarget(player);
     }
 
+    data->mob->SetBattleActive(true);
     field->AddEntity(*data->mob, data->tileX, data->tileY);
     mobNames.push_back(data->mob->GetName());
 
@@ -602,14 +604,21 @@ void BattleScene::onUpdate(double elapsed) {
   background->Update((float)elapsed);
 
   // Do not update when: paused or in card select, during a summon sequence, showing Battle Start sign
-  if (!(isPaused || isInCardSelect || isChangingForm) && summons.IsSummonOver() && !isPreBattle) {
+  if (!(isPaused || isInCardSelect || isChangingForm)  && !isPreBattle) {
 
 
     // kill switch for testing:
-    if (INPUT.Has(EventTypes::HELD_USE_CHIP) && INPUT.Has(EventTypes::HELD_SHOOT) && INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
-      mob->KillSwitch();
-    }
+      if (summons.IsSummonOver()) {
+          if (INPUT.Has(EventTypes::HELD_USE_CHIP) && INPUT.Has(EventTypes::HELD_SHOOT) && INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
+              mob->KillSwitch();
+          }
 
+          //field->Update((float)elapsed);
+      }
+
+    if (prevSummonState) {
+        field->SetBattleActive(false);
+    }
     field->Update((float)elapsed);
   } 
 
@@ -679,7 +688,7 @@ void BattleScene::onUpdate(double elapsed) {
   }
   else {
     battleTimer.pause();
-    field->SetBattleActive(false);
+    //field->SetBattleActive(false);
   }
 
   cardCustGUI.Update((float)elapsed);

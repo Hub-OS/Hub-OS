@@ -37,7 +37,7 @@ point label="Buster" x="33" y="17"
 frame duration="0.05" x="132" y="218" w="47" h="48" originx="19" originy="42"
 point label="Head" x="27" y="11"
 point label="Buster" x="31" y="16"
-frame duration="0.05" x="230" y="220" w="48" h="51" originx="21" originy="40"
+frame duration="0.10" x="230" y="220" w="48" h="51" originx="21" originy="40"
 point label="Head" x="29" y="9"
 point label="Buster" x="33" y="14"
 

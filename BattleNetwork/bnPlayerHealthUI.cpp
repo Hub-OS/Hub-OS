@@ -52,8 +52,9 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
   float offsetx = -((size)*8.0f)*glyphs.getScale().x;
   int index = 0;
   while (index < size) {
-    const char c = currHPStr[index];
-    int number = std::atoi(&c);
+    const std::string digitStr = std::string(1, currHPStr[index]);
+    const char* digit = digitStr.c_str();
+    int number = std::atoi(digit);
 
     int col = number*8;
     int row = 0;

@@ -23,7 +23,6 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   AlphaArm* leftArm;
   AlphaArm* rightArm;
 
-  bool firstTime;
   bool impervious;
   bool shootSuperVulcans;
 
@@ -50,6 +49,7 @@ public:
   void OnUpdate(float _elapsed);
 
   const float GetHeight() const;
+  void OnSpawn(Battle::Tile& start) override;
 
   const bool OnHit(const Hit::Properties props);
   void OnDelete();

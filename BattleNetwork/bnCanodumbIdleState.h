@@ -16,6 +16,7 @@ class CanodumbIdleState : public AIState<Canodumb>
 private:
   CanodumbCursor* cursor; /*!< Spawned to find enemies to attack */
   Canodumb* can;
+  Entity::DeleteCallback freeCursorCallback;
   friend void CanodumbCursor::OnUpdate(float _elapsed);
   friend CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _parent);
 

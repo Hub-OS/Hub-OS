@@ -11,9 +11,7 @@
 
 #define RESOURCE_PATH "resources/mobs/progsman/progsman.animation"
 
-ProgsMan::ProgsMan(Rank _rank)
-  :
-    AI<ProgsMan>(this), Character(_rank) {
+ProgsMan::ProgsMan(Rank _rank) : AI<ProgsMan>(this), Character(_rank) {
   name = "ProgsMan";
   this->team = Team::BLUE;
   SetHealth(1200);

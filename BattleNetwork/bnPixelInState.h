@@ -83,7 +83,7 @@ void PixelInState<Any>::OnEnter(Any& e) {
 template<typename Any>
 void PixelInState<Any>::OnUpdate(float _elapsed, Any& e) {
     /* freeze frame */
-#if OBN_ENABLE_PIXELATE_GFX 
+#if ONB_ENABLE_PIXELATE_GFX 
     e.SetShader(pixelated);
 #endif
 

@@ -275,11 +275,11 @@ void MainMenuScene::onResume() {
 
   ENGINE.SetCamera(camera);
 
-  Logger::Log("Fetching account data...");
+  //Logger::Log("Fetching account data...");
 
-  accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
+  //accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
 
-  Logger::Log("waiting for server...");
+  //Logger::Log("waiting for server...");
 
 #ifdef __ANDROID__
   StartupTouchControls();

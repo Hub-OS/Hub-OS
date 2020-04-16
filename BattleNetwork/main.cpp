@@ -39,8 +39,8 @@
 #include <Swoosh/ActivityController.h>
 #include <Swoosh/Ease.h>
 
-#define OBN_REGION_JAPAN 0
-#define OBN_ENABLE_PIXELATE_GFX 0
+#define ONB_REGION_JAPAN 0
+#define ONB_ENABLE_PIXELATE_GFX 0
 
 // Engine addons
 #include "bnQueueNaviRegistration.h"
@@ -276,7 +276,7 @@ int main(int argc, char** argv) {
     spinnerAnimator << Animator::Mode::Loop;
 
     // Title screen logo based on region
-    #if OBN_REGION_JAPAN
+    #if ONB_REGION_JAPAN
     std::shared_ptr<sf::Texture> logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile.png");
     #else
     std::shared_ptr<sf::Texture> logo = TEXTURES.LoadTextureFromFile("resources/backgrounds/title/tile_en.png");

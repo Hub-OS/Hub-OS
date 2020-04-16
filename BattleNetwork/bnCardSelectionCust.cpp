@@ -116,7 +116,7 @@ CardSelectionCust::~CardSelectionCust() {
   ClearCards();
 
   for (int i = 0; i < cardCount; i++) {
-    //selectQueue[i] = nullptr;
+    // selectQueue[i] = nullptr;
     // delete queue[i].data;
   }
 
@@ -525,7 +525,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
     for (int i = 0; i < selectCount; i++) {
       icon.setPosition(offset + 2 * 97.f, 2.f*(25.0f + (i*16.0f)));
-      icon.setTexture(WEBCLIENT.GetIconForCard((*selectQueue)[i].data->GetUUID()));
+      icon.setTexture(WEBCLIENT.GetIconForCard((*selectQueue[i]).data->GetUUID()));
 
       cardLock.setPosition(offset + 2 * 93.f, 2.f*(23.0f + (i*16.0f)));
       target.draw(cardLock, states);

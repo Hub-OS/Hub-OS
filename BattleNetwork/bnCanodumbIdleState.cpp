@@ -12,11 +12,7 @@ void CanodumbIdleState::Attack()
 
 void CanodumbIdleState::FreeCursor()
 {
-  if (cursor) {
-    cursor->Delete();
-  }
-
-  cursor = nullptr;
+    freeCursorCallback();
 }
 
 Character::Rank CanodumbIdleState::GetCanodumbRank()
@@ -52,8 +48,18 @@ void CanodumbIdleState::OnUpdate(float _elapsed, Canodumb& can) {
   if (can.GetTarget() && can.GetTarget()->GetTile()) {
     if (can.GetTarget()->GetTile()->GetY() == can.GetTile()->GetY() && !can.GetTarget()->IsPassthrough()) {
       // Spawn tracking cursor object
-      if (cursor == nullptr || cursor->IsDeleted()) {
+      if (cursor == nullptr) {
         cursor = new CanodumbCursor(can.GetField(), can.GetTeam(), this);
+        freeCursorCallback = cursor->CreateDeleteCallback();
+
+        freeCursorCallback.Slot([this]() {
+            if (cursor) {
+                cursor->Delete();
+            }
+
+            cursor = nullptr;
+        });
+
         can.GetField()->AddEntity(*cursor, can.GetTile()->GetX() - 1, can.GetTile()->GetY());
       }
     }
