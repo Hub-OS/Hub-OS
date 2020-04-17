@@ -17,7 +17,8 @@ Artifact::~Artifact() {
 }
 
 void Artifact::Update(float elapsed) {
-  if (!IsBattleActive()) return;
+  if (IsTimeFrozen()) return;
+
   Entity::Update(elapsed);
   this->OnUpdate(elapsed);
 }

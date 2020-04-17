@@ -5,8 +5,6 @@
 #include "bnField.h"
 
 class SwordEffect : public Artifact {
-private:
-  Animation animation; /*!< Animation of the effect */
 public:
   /**
    * @brief loads the animation and adds a callback to delete when finished
@@ -26,4 +24,7 @@ public:
    * @return false
    */
   virtual bool Move(Direction _direction) { return false; }
+
+  // On animation end it deletes itself
+  void SetAnimation(const std::string& animation);
 };

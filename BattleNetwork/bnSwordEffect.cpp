@@ -1,12 +1,13 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnField.h"
+#include "bnAnimationComponent.h"
 #include "bnTile.h"
 #include "bnSwordEffect.h"
 
 using sf::IntRect;
 
-#define RESOURCE_PATH "resources/spells/sword_effect.animation"
+#define RESOURCE_PATH "resources/spells/spell_sword_slashes.animation"
 
 SwordEffect::SwordEffect(Field* field) : Artifact(field)
 {
@@ -15,28 +16,40 @@ SwordEffect::SwordEffect(Field* field) : Artifact(field)
   this->setScale(2.f, 2.f);
 
   //Components setup and load
-  animation = Animation(RESOURCE_PATH);
-  animation.Reload();
-
-  animation.SetAnimation("DEFAULT");
+  auto animation = CreateComponent<AnimationComponent>(this);
+  animation->SetPath(RESOURCE_PATH);
+  animation->Reload();
 
   // Create a callback
   // When animation ends
   // delete this effect
   auto onEnd = [this]() {
-    this->Delete();
+      this->Delete();
   };
-
-  animation << onEnd;
+  animation->SetAnimation("DEFAULT", onEnd);
 
   // Use the first rect in the frame list
-  animation.Update(0, *this);
+  animation->SetFrame(0);
 }
 
 void SwordEffect::OnUpdate(float _elapsed) {
   this->setPosition(this->GetTile()->getPosition());
+}
 
-  animation.Update(_elapsed, *this);
+void SwordEffect::SetAnimation(const std::string & animStr)
+{
+    auto animation = GetFirstComponent<AnimationComponent>();
+    // Create a callback
+    // When animation ends
+    // delete this effect
+    auto onEnd = [this]() {
+        this->Delete();
+    };
+
+    animation->SetAnimation(animStr, onEnd);
+
+    // Use the first rect in the frame list
+    animation->SetFrame(0);
 }
 
 SwordEffect::~SwordEffect()

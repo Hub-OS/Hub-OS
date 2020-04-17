@@ -238,10 +238,20 @@ namespace Battle {
     void Update(float _elapsed);
 
     /**
-     * @brief Notifies all entities that the battle is active
+     * @brief Triggers this tile and all entities to behave as if time is frozen
      * @param state
      */
-    void SetBattleActive(bool state);
+    void ToggleTimeFreeze(bool state);
+
+    /**
+     * @brief Notifies all entities that the battle is active
+     */
+    void BattleStart();
+
+    /**
+     * @brief Notifies all entities that the battle is inactive
+     */
+    void BattleStop();
 
     void HandleTileBehaviors(Obstacle * obst);
     void HandleTileBehaviors(Character* character);
@@ -287,7 +297,8 @@ namespace Battle {
     float totalElapsed;
     bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
     Highlight highlightMode;
-    bool isBattleActive;
+    bool isTimeFrozen;
+    bool isBattleOver;
 
     double elapsedBurnTime;
     double burncycle;

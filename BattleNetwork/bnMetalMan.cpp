@@ -11,6 +11,7 @@
 #include "bnMetalManPunchState.h"
 #include "bnMetalManThrowState.h"
 #include "bnObstacle.h"
+#include "bnDefenseVirusBody.h"
 #include "bnHitbox.h"
 
 #define RESOURCE_PATH "resources/mobs/metalman/metalman.animation"
@@ -72,17 +73,23 @@ MetalMan::MetalMan(Rank _rank)
   //Components setup and load
   animationComponent = new AnimationComponent(this);
   this->RegisterComponent(animationComponent);
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation(MOB_IDLE);
   animationComponent->SetPlaybackMode(Animator::Mode::Loop);
 
   animationComponent->OnUpdate(0);
 
+  // TODO: take this out
+  // multi-move attacks (like punch) will have a destination tile
   movedByStun = false;
+
+  virusBody = new DefenseVirusBody();
+  this->AddDefenseRule(virusBody);
 }
 
 MetalMan::~MetalMan() {
+    delete virusBody;
 }
 
 void MetalMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {

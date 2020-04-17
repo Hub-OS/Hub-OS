@@ -75,7 +75,7 @@ public:
  
 private:
   AnimationComponent* animationComponent; /*!< animates this sprite scene node */
-
+  DefenseRule* virusBody;
   float hitHeight; /*!< Hit height of metalman */
   string state; /*!< current animation name */
   MobHealthUI* healthUI; /*!< Health ui component */

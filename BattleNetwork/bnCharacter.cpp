@@ -64,19 +64,17 @@ const bool Character::CanTilePush() const {
 }
 
 void Character::Update(float _elapsed) {
-  sf::Vector2f shakeOffset;
-
-  double prevThisFrameStun = this->stunCooldown;
-
-  //if (this->IsBattleActive()) {
-    this->ResolveFrameBattleDamage();
-  //}
-
-  this->setColor(sf::Color(255, 255, 255, getColor().a));
+  this->ResolveFrameBattleDamage();
 
   // Prevent animations from updating and AI from moving around
   // If during time freeze battle states
-  if (!this->IsBattleActive()) return;
+  if (this->IsTimeFrozen()) return;
+
+  this->setColor(sf::Color(255, 255, 255, getColor().a));
+
+  sf::Vector2f shakeOffset;
+
+  double prevThisFrameStun = this->stunCooldown;
 
   if (!hit) {
       if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
@@ -393,7 +391,7 @@ void Character::AdoptTile(Battle::Tile * tile)
 }
 
 void Character::TryDelete() {
-  if (!IsBattleActive()) return;
+  if (IsTimeFrozen()) return;
 
   if (this->GetHealth() == 0 && !this->invokeDeletion) {
       this->SetHealth(0);

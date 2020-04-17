@@ -8,6 +8,7 @@
 #include "bnLogger.h"
 #include "bnVulcanCardAction.h"
 #include "bnBusterCardAction.h"
+#include <Swoosh/Ease.h>
 
 const float COPY_DROP_COOLDOWN = 0.15f; // in seconds
 
@@ -35,7 +36,7 @@ Forte::Forte() : Player()
   team = Team::RED;
   this->SetElement(Element::NONE);
 
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
@@ -102,7 +103,7 @@ Forte::MoveEffect::MoveEffect(Field* field) : Artifact(field)
   this->setScale(2.f, 2.f);
 
   animationComponent = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("COPY");
 

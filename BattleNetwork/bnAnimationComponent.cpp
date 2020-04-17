@@ -29,7 +29,7 @@ void AnimationComponent::OnUpdate(float _elapsed)
   animation.Update(_elapsed, *GetOwner(), speed);
 }
 
-void AnimationComponent::Setup(string _path)
+void AnimationComponent::SetPath(string _path)
 {
   path = _path;
 }

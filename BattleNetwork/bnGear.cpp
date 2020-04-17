@@ -5,7 +5,8 @@
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), Obstacle(field, team) {
+Gear::Gear(Field* _field, Team _team, Direction startDir) 
+    : startDir(startDir), stopMoving(false), Obstacle(field, team) {
   this->setTexture(LOAD_TEXTURE(MOB_METALMAN_ATLAS));
   this->setScale(2.f, 2.f);
   this->SetFloatShoe(false);
@@ -16,10 +17,13 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), 
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
-  animation->Setup("resources/mobs/metalman/metalman.animation");
+  animation->SetPath("resources/mobs/metalman/metalman.animation");
   animation->Load();
-
   animation->SetAnimation("GEAR", Animator::Mode::Loop);
+
+  std::function<void(BattleScene&, Gear&)> battleOverCallback = [this](BattleScene&, Gear&) {
+      this->stopMoving = true;
+  };
 
   this->SetHealth(999);
 
@@ -34,6 +38,8 @@ Gear::Gear(Field* _field, Team _team, Direction startDir) : startDir(startDir), 
   tileStartTeam = Team::UNKNOWN;
 
   AddDefenseRule(new DefenseIndestructable(true));
+
+  stopMoving = true;
 }
 
 Gear::~Gear() {
@@ -78,7 +84,7 @@ void Gear::OnUpdate(float _elapsed) {
 
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
-  if (!this->IsBattleActive()) return;
+  if (stopMoving) return;
 
   // May have just finished moving
   this->tile->AffectEntities(this);
@@ -133,4 +139,16 @@ void Gear::Attack(Character* other) {
     props.damage = 20;
     isCharacter->Hit(props);
   }
+}
+
+void Gear::OnBattleStart()
+{
+    Logger::Log("Gear::OnBattleStart()");
+    stopMoving = false;
+}
+
+void Gear::OnBattleStop()
+{
+    Logger::Log("Gear::OnBattleStop()");
+    stopMoving = true;
 }

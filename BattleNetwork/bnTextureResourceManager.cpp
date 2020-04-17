@@ -165,7 +165,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/poof.png");
   paths.push_back("resources/spells/spell_heal.png");
   paths.push_back("resources/spells/areagrab.png");
-  paths.push_back("resources/spells/sword_effect.png");
+  paths.push_back("resources/spells/spell_sword_slashes.png");
   paths.push_back("resources/spells/spell_meteor.png");
   paths.push_back("resources/spells/spell_ring_explosion.png");
   paths.push_back("resources/spells/spell_twin_fang.png");

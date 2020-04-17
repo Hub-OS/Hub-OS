@@ -16,12 +16,12 @@
 #include <sstream>
 #include <vector>
 
-#include "bnBattleOverTrigger.h"
 #include "bnPlayer.h"
 #include "bnUIComponent.h"
 
 class Entity;
 class Player;
+class BattleScene;
 
 using sf::Font;
 using sf::Text;
@@ -30,7 +30,7 @@ using sf::Drawable;
 using std::vector;
 using std::ostringstream;
 
-class PlayerHealthUI : virtual public UIComponent, virtual public BattleOverTrigger<Player> {
+class PlayerHealthUI : public UIComponent {
 public:
   /**
    * \brief Sets the player owner. Sets hp tracker to current health.
@@ -69,6 +69,7 @@ private:
   mutable SpriteProxyNode glyphs; /*!< bitmap image object to draw */
   SpriteProxyNode uibox; /*!< the box surrounding the health */
   std::shared_ptr<Texture> texture; /*!< the texture of the box */
+  BattleScene* bs;
 
   /**
    * @class Color

@@ -29,7 +29,7 @@ ProgsMan::ProgsMan(Rank _rank) : AI<ProgsMan>(this), Character(_rank) {
 
   animationComponent = new AnimationComponent(this);
   this->RegisterComponent(animationComponent);
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation(MOB_IDLE);
 

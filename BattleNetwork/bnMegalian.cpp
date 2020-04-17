@@ -17,7 +17,7 @@ Megalian::Megalian(Rank _rank)
   SetTeam(Team::BLUE);
 
   animationComponent = new AnimationComponent(this);
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
   this->RegisterComponent(animationComponent);
 

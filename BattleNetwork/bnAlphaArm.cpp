@@ -35,7 +35,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
 
   this->setTexture(LOAD_TEXTURE(MOB_ALPHA_ATLAS));
   auto animComponent = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
-  animComponent->Setup(RESOURCE_PATH);
+  animComponent->SetPath(RESOURCE_PATH);
   animComponent->Load();
 
   blueShadow = new SpriteProxyNode();

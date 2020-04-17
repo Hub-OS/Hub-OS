@@ -20,12 +20,12 @@ BusterHit::BusterHit(Field* _field, Type type) : Artifact(_field)
 
   if (type == Type::CHARGED) {
     setTexture(TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));
-    animationComponent->Setup(CHARGED_RESOURCE_PATH);
+    animationComponent->SetPath(CHARGED_RESOURCE_PATH);
 
   }
   else {
     setTexture(TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT));
-    animationComponent->Setup(PEA_RESOURCE_PATH);
+    animationComponent->SetPath(PEA_RESOURCE_PATH);
 
   }
 

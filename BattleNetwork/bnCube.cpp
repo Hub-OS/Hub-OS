@@ -217,7 +217,7 @@ void Cube::OnSpawn(Battle::Tile & start)
 {
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
-  animation->Setup("resources/mobs/cube/cube.animation");
+  animation->SetPath("resources/mobs/cube/cube.animation");
   animation->Reload();
 
   animation->OnUpdate(0);

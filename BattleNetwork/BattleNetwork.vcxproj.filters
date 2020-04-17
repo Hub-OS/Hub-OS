@@ -1788,9 +1788,6 @@
     <ClInclude Include="bnCounterHitListener.h">
       <Filter>Screens/Activities\Battle\PubSub\CounterHit</Filter>
     </ClInclude>
-    <ClInclude Include="bnBattleOverTrigger.h">
-      <Filter>Screens/Activities\Battle\Components\Triggers</Filter>
-    </ClInclude>
     <ClInclude Include="bnMysteryData.h">
       <Filter>Screens/Activities\Battle\Entities\Character\Mystery</Filter>
     </ClInclude>

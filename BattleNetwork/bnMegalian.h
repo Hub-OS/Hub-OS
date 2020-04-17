@@ -31,7 +31,7 @@ private:
       animation = new AnimationComponent(this);
       auto baseAnimation = belongsTo->GetFirstComponent<AnimationComponent>();
       auto str = baseAnimation->GetFilePath();
-      animation->Setup(str);
+      animation->SetPath(str);
       animation->Load();
       animation->SetAnimation("Head1");
       animation->SetPlaybackSpeed(0); 

@@ -35,7 +35,7 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
 
   animationComponent = new AnimationComponent(this);
   this->RegisterComponent(animationComponent);
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
   /**

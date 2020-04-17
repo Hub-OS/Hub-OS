@@ -492,7 +492,6 @@
     <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
     <ClInclude Include="bnAura.h" />
-    <ClInclude Include="bnBattleOverTrigger.h" />
     <ClInclude Include="bnBombCardAction.h" />
     <ClInclude Include="bnBossPatternAI.h" />
     <ClInclude Include="bnBubble.h" />

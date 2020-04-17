@@ -64,8 +64,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   this->CharacterDeleteListener::Subscribe(*field);
 
   player->ChangeState<PlayerIdleState>();
+  player->ToggleTimeFreeze(false);
   field->AddEntity(*player, 2, 2);
-  field->SetBattleActive(true);
 
   // Card UI for player
   cardListener.Subscribe(cardUI);
@@ -577,6 +577,7 @@ void BattleScene::onUpdate(double elapsed) {
       AUDIO.StopStream();
       AUDIO.Stream("resources/loops/enemy_deleted.ogg");
       player->ChangeState<PlayerIdleState>();
+      field->RequestBattleStop();
     }
     else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
       isMobDeleted = true;
@@ -591,7 +592,7 @@ void BattleScene::onUpdate(double elapsed) {
       cast->SetTarget(player);
     }
 
-    data->mob->SetBattleActive(true);
+    data->mob->ToggleTimeFreeze(false);
     field->AddEntity(*data->mob, data->tileX, data->tileY);
     mobNames.push_back(data->mob->GetName());
 
@@ -608,17 +609,18 @@ void BattleScene::onUpdate(double elapsed) {
 
 
     // kill switch for testing:
-      if (summons.IsSummonOver()) {
-          if (INPUT.Has(EventTypes::HELD_USE_CHIP) && INPUT.Has(EventTypes::HELD_SHOOT) && INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
-              mob->KillSwitch();
-          }
+    if (summons.IsSummonOver()) {
+        if (INPUT.Has(EventTypes::HELD_USE_CHIP) && INPUT.Has(EventTypes::HELD_SHOOT) && INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
+            mob->KillSwitch();
+        }
 
-          //field->Update((float)elapsed);
-      }
+        //field->Update((float)elapsed);
+    }
 
     if (prevSummonState) {
-        field->SetBattleActive(false);
+        field->ToggleTimeFreeze(true);
     }
+
     field->Update((float)elapsed);
   } 
 
@@ -673,8 +675,7 @@ void BattleScene::onUpdate(double elapsed) {
 
     customProgress += elapsed;
 
-    // NOTE: this may be a redundant flag now that nodes and components can be updated by injection
-    field->SetBattleActive(true);
+    field->ToggleTimeFreeze(false);
 
     // See if HP is 0 when we were in a form
     if (player && player->GetHealth() == 0 && !isChangingForm && lastSelectedForm != -1) {
@@ -688,7 +689,6 @@ void BattleScene::onUpdate(double elapsed) {
   }
   else {
     battleTimer.pause();
-    //field->SetBattleActive(false);
   }
 
   cardCustGUI.Update((float)elapsed);
@@ -1063,8 +1063,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       player->ChangeState<PlayerControlledState>();
       // Move mob out of the PixelInState
       mob->DefaultState();
+      field->ToggleTimeFreeze(true);
       // show the card select screen
       customProgress = customDuration;
+      field->RequestBattleStart();
     }
 
     if (isInCardSelect == false && !isBattleRoundOver) {
@@ -1090,95 +1092,111 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
 
     // NOTE: Need a battle scene state manager to handle going to and from one controll scheme to another.
-    // Plus would make more sense to revoke screen effects and labels once complete transition
+    //       This has become unweidly.
+    //       Plus would make more sense to revoke screen effects and labels once 
+    //       a state has terminated
 
   }
-  else if (isInCardSelect && cardCustGUI.IsInView() && cardCustGUI.CanInteract()) {
+  else if (isInCardSelect && cardCustGUI.IsInView()) {
 #ifndef __ANDROID__
-    if (cardCustGUI.IsCardDescriptionTextBoxOpen()) {
-      if (!INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
-        cardCustGUI.CloseCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
-      }
-      else if (INPUT.Has(EventTypes::PRESSED_CONFIRM) ){
-
-        cardCustGUI.CardDescriptionConfirmQuestion()? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
-        cardCustGUI.ContinueCardDescription();
-      }
-
-      if (INPUT.Has(EventTypes::HELD_CONFIRM)) {
-        cardCustGUI.FastForwardCardDescription(3.0);
-      }
-      else {
-        cardCustGUI.FastForwardCardDescription(1.0);
-      }
-
-      if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
-        cardCustGUI.CardDescriptionYes() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
-      }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
-        cardCustGUI.CardDescriptionNo() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
-      }
-    }
-    else {
-      if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
-        cardSelectInputCooldown -= elapsed;
-
-        if (cardSelectInputCooldown <= 0) {
-          cardCustGUI.CursorLeft() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-          cardSelectInputCooldown = maxCardSelectInputCooldown;
-        }
-      }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
-        cardSelectInputCooldown -= elapsed;
-
-        if (cardSelectInputCooldown <= 0) {
-          cardCustGUI.CursorRight() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-          cardSelectInputCooldown = maxCardSelectInputCooldown;
-        }
-      }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
-        cardSelectInputCooldown -= elapsed;
-
-        if (cardSelectInputCooldown <= 0) {
-          cardCustGUI.CursorUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-          cardSelectInputCooldown = maxCardSelectInputCooldown;
-        }
-      }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
-        cardSelectInputCooldown -= elapsed;
-
-        if (cardSelectInputCooldown <= 0) {
-          cardCustGUI.CursorDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-          cardSelectInputCooldown = maxCardSelectInputCooldown;
-        }
-      }
-      else {
-        cardSelectInputCooldown = 0;
-      }
-
-      if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
-        bool performed = cardCustGUI.CursorAction();
-
-        if (cardCustGUI.AreCardsReady()) {
-          AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
-          customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
-          //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
-        }
-        else if (performed) {
-          if (!cardCustGUI.SelectedNewForm()) {
-            AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGHEST);
-          }
+    if (INPUT.Has(EventTypes::PRESSED_SCAN_RIGHT) || INPUT.Has(EventTypes::PRESSED_SCAN_LEFT)) {
+        if (cardCustGUI.IsVisible()) {
+            cardCustGUI.Hide();
         }
         else {
-          AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
+            cardCustGUI.Reveal();
         }
-      }
-      else if (INPUT.Has(EventTypes::PRESSED_CANCEL) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
-        cardCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGHEST) : 1;
-      }
-      else if (INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
-        cardCustGUI.OpenCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;
-      }
+
+        Logger::Log("card cust visibility toggled");
+
+    } 
+    
+    if (cardCustGUI.CanInteract()) {
+        if (cardCustGUI.IsCardDescriptionTextBoxOpen()) {
+            if (!INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
+                cardCustGUI.CloseCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
+            }
+            else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
+
+                cardCustGUI.CardDescriptionConfirmQuestion() ? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
+                cardCustGUI.ContinueCardDescription();
+            }
+
+            if (INPUT.Has(EventTypes::HELD_CONFIRM)) {
+                cardCustGUI.FastForwardCardDescription(3.0);
+            }
+            else {
+                cardCustGUI.FastForwardCardDescription(1.0);
+            }
+
+            if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
+                cardCustGUI.CardDescriptionYes() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+            }
+            else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
+                cardCustGUI.CardDescriptionNo() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+            }
+        }
+        else {
+            if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
+                cardSelectInputCooldown -= elapsed;
+
+                if (cardSelectInputCooldown <= 0) {
+                    cardCustGUI.CursorLeft() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+                    cardSelectInputCooldown = maxCardSelectInputCooldown;
+                }
+            }
+            else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
+                cardSelectInputCooldown -= elapsed;
+
+                if (cardSelectInputCooldown <= 0) {
+                    cardCustGUI.CursorRight() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+                    cardSelectInputCooldown = maxCardSelectInputCooldown;
+                }
+            }
+            else if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
+                cardSelectInputCooldown -= elapsed;
+
+                if (cardSelectInputCooldown <= 0) {
+                    cardCustGUI.CursorUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+                    cardSelectInputCooldown = maxCardSelectInputCooldown;
+                }
+            }
+            else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
+                cardSelectInputCooldown -= elapsed;
+
+                if (cardSelectInputCooldown <= 0) {
+                    cardCustGUI.CursorDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+                    cardSelectInputCooldown = maxCardSelectInputCooldown;
+                }
+            }
+            else {
+                cardSelectInputCooldown = 0;
+            }
+
+            if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
+                bool performed = cardCustGUI.CursorAction();
+
+                if (cardCustGUI.AreCardsReady()) {
+                    AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
+                    customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
+                    //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
+                }
+                else if (performed) {
+                    if (!cardCustGUI.SelectedNewForm()) {
+                        AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGHEST);
+                    }
+                }
+                else {
+                    AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
+                }
+            }
+            else if (INPUT.Has(EventTypes::PRESSED_CANCEL) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+                cardCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGHEST) : 1;
+            }
+            else if (INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
+                cardCustGUI.OpenCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;
+            }
+        }
     }
 
 #else

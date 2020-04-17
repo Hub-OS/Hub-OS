@@ -44,7 +44,7 @@ public:
    * @brief Reconstructs the animation object
    * @param _path to animation file
    */
-  void Setup(string _path);
+  void SetPath(string _path);
 
   /**
    * @brief Loads the animation object

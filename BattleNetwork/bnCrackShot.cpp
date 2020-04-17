@@ -20,7 +20,7 @@ CrackShot::CrackShot(Field* _field, Team _team, Battle::Tile* tile) : Spell(_fie
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
-  animation->Setup("resources/spells/spell_panel_shot.animation");
+  animation->SetPath("resources/spells/spell_panel_shot.animation");
   animation->Load();
 
   if (tile->GetTeam() == Team::RED) {

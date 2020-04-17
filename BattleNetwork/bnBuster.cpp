@@ -36,12 +36,12 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
 
   if (_charged) {
     texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
-    animationComponent->Setup("resources/spells/spell_charged_bullet_hit.animation");
+    animationComponent->SetPath("resources/spells/spell_charged_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   } else {
     texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
-    animationComponent->Setup("resources/spells/spell_bullet_hit.animation");
+    animationComponent->SetPath("resources/spells/spell_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   }

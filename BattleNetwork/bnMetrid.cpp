@@ -20,7 +20,7 @@ Metrid::Metrid(Rank _rank)
   SetElement(Element::FIRE);
 
   auto animationComponent = new AnimationComponent(this);
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
   if (GetRank() == Rank::_2) {

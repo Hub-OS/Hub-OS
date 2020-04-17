@@ -16,7 +16,7 @@ PanelGrab::PanelGrab(Field* _field, Team _team, float _duration) : duration(_dur
   AUDIO.Play(AudioType::AREA_GRAB, AudioPriority::LOWEST);
   this->animationComponent = new AnimationComponent(this);
   this->RegisterComponent(this->animationComponent);
-  this->animationComponent->Setup("resources/spells/areagrab.animation");
+  this->animationComponent->SetPath("resources/spells/areagrab.animation");
   this->animationComponent->Reload();
   this->animationComponent->SetAnimation("FALLING", Animator::Mode::Loop);
   this->animationComponent->OnUpdate(0);

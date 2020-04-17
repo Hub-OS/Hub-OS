@@ -9,7 +9,7 @@ AlphaElectricCurrent::AlphaElectricCurrent(Field* field, Team team, int count) :
 {
   this->setTexture(LOAD_TEXTURE(MOB_ALPHA_ATLAS));
   anim = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
-  anim->Setup(RESOURCE_PATH);
+  anim->SetPath(RESOURCE_PATH);
   anim->Load();
   this->setScale(2.f, 2.f);
   this->SetHeight(58);

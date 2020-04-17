@@ -14,10 +14,10 @@ void AlphaElectricState::OnEnter(AlphaCore& a) {
   current = nullptr;
 
   // skip unless at half health
-  /*if (a.GetHealth() > a.GetMaxHealth() / 2) {
+  if (a.GetHealth() > a.GetMaxHealth() / 2) {
     a.GoToNextState();
     return;
-  }*/
+  }
 
   a.EnableImpervious();
   AnimationComponent* anim = a.GetFirstComponent<AnimationComponent>();

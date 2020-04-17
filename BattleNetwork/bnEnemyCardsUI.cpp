@@ -25,7 +25,7 @@ EnemyCardsUI::~EnemyCardsUI() {
 }
 
 void EnemyCardsUI::OnUpdate(float _elapsed) {
-  if (GetOwner() && GetOwner()->GetTile() && !GetOwner()->IsDeleted() && GetOwner()->IsBattleActive()) {
+  if (GetOwner() && GetOwner()->GetTile() && !GetOwner()->IsDeleted() && !GetOwner()->IsTimeFrozen()) {
     Agent* agent = GetOwnerAs<Agent>();
 
     if (agent && agent->GetTarget() && !agent->GetTarget()->IsDeleted() && agent->GetTarget()->GetTile()) {

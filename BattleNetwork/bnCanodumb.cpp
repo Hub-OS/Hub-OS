@@ -23,7 +23,7 @@ Canodumb::Canodumb(Rank _rank)
   this->SetHealth(health);
 
   //Components setup and load
-  this->animationComponent->Setup(RESOURCE_PATH);
+  this->animationComponent->SetPath(RESOURCE_PATH);
   this->animationComponent->Load();
 
   switch (GetRank()) {

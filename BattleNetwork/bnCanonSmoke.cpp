@@ -20,7 +20,7 @@ CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
 
   //Components setup and load
   auto onFinish = [&]() { this->Delete();  };
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
   animationComponent->SetAnimation(MOB_CANODUMB_SMOKE, onFinish);
   animationComponent->OnUpdate(0);
@@ -28,7 +28,7 @@ CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
 }
 
 void CanonSmoke::OnUpdate(float _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 65.0f);
+  setPosition(tile->getPosition().x + tileOffset.x + 14.0f, tile->getPosition().y + tileOffset.y - 65.0f);
 }
 
 CanonSmoke::~CanonSmoke()

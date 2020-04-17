@@ -26,9 +26,6 @@ Mob* AlphaBossFight::Build() {
   mob->StreamCustomMusic("resources/loops/proto.ogg");
 
   mob->Spawn<Rank1<AlphaCore, FadeInState>>(5, 2);
-  mob->Spawn<Rank1<Mettaur, FadeInState>>(6, 1);
-  mob->Spawn<Rank1<Mettaur, FadeInState>>(6, 2);
-  mob->Spawn<Rank1<Mettaur, FadeInState>>(6, 3);
 
   Battle::Tile* tile = field->GetAt(5, 2);
   if (!tile->IsWalkable()) { tile->SetState(TileState::NORMAL); }

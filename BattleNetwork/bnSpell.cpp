@@ -22,7 +22,7 @@ Spell::~Spell() {
 }
 
 void Spell::Update(float _elapsed) {
-  if (!IsBattleActive()) return;
+  if (IsTimeFrozen()) return;
 
   Entity::Update(_elapsed);
 

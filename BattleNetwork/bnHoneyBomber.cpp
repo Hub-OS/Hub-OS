@@ -18,7 +18,7 @@ HoneyBomber::HoneyBomber(Rank _rank)
   SetFloatShoe(true);
 
   auto animationComponent = new AnimationComponent(this);
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
   SetHealth(130);

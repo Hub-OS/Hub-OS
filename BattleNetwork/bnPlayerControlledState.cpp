@@ -67,7 +67,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     return;
 
   static Direction direction = Direction::NONE;
-  if (player.IsBattleActive()) {
+  if (!player.IsTimeFrozen()) {
     if (INPUT.Has(EventTypes::PRESSED_MOVE_UP) ||INPUT.Has(EventTypes::HELD_MOVE_UP)) {
       direction = Direction::UP;
     }

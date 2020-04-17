@@ -18,7 +18,7 @@ Mettaur::Mettaur(Rank _rank)
   name = "Mettaur";
   SetTeam(Team::BLUE);
 
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
   if (GetRank() == Rank::SP) {

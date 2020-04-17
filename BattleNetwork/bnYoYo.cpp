@@ -22,7 +22,7 @@ YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, 
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
-  animation->Setup("resources/spells/spell_yoyo.animation");
+  animation->SetPath("resources/spells/spell_yoyo.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT", Animator::Mode::Loop);
 

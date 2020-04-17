@@ -22,7 +22,7 @@ AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
-  animation->Setup("resources/spells/spell_alpha_rocket.animation");
+  animation->SetPath("resources/spells/spell_alpha_rocket.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT");
   animation->SetPlaybackMode(Animator::Mode::Loop);

@@ -45,7 +45,8 @@ namespace Battle {
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
     setPosition((width/2.0f) + ((x - 1) * width) + START_X, (height/2.0f) + ((y - 1) * (height - Y_OFFSET)) + START_Y);
     willHighlight = false;
-    isBattleActive = false;
+    isTimeFrozen = true;
+    isBattleOver = false;
     brokenCooldown = 0;
     flickerTeamCooldown = teamCooldown = 0;
     red_team_atlas = blue_team_atlas = nullptr; // Set by field
@@ -77,7 +78,8 @@ namespace Battle {
     characters = other.characters;
     spells = other.spells;
     entities = other.entities;
-    isBattleActive = other.isBattleActive;
+    isTimeFrozen = other.isTimeFrozen;
+    isBattleOver = other.isBattleOver;
     brokenCooldown = other.brokenCooldown;
     teamCooldown = other.teamCooldown;
     flickerTeamCooldown = other.flickerTeamCooldown;
@@ -109,7 +111,8 @@ namespace Battle {
     animState = other.animState;
     setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
     willHighlight = other.willHighlight;
-    isBattleActive = other.isBattleActive;
+    isTimeFrozen = other.isTimeFrozen;
+    isBattleOver = other.isBattleOver;
     reserved = other.reserved;
     characters = other.characters;
     spells = other.spells;
@@ -412,7 +415,7 @@ namespace Battle {
             caller->SetHitboxProperties(props);
           }
 
-          if (!this->isBattleActive) {
+          if (this->isTimeFrozen) {
               auto props = caller->GetHitboxProperties();
               props.flags |= Hit::shake;
               caller->SetHitboxProperties(props);
@@ -437,7 +440,7 @@ namespace Battle {
     willHighlight = false;
     totalElapsed += _elapsed;
 
-    if (isBattleActive) {
+    if (!isTimeFrozen) {
         // LAVA TILES
         elapsedBurnTime -= _elapsed;
     }
@@ -491,8 +494,7 @@ namespace Battle {
     }
 
     // Spells dont cause damage when the battle is over
-    // TODO: replace with isBattleOver signal from Scene
-    if (true || this->isBattleActive) {
+    if (!this->isBattleOver) {
       // Now that spells and characters have updated and moved, they are due to check for attack outcomes
       for (auto ID : queuedSpells) {
         // TODO: REDO THIS LOOP. IT IS HORRIBLE AND COSTLY!
@@ -522,7 +524,7 @@ namespace Battle {
     // empty queue for next frame
     queuedSpells.clear();
 
-    if (this->isBattleActive) {
+    if (!this->isTimeFrozen) {
       if (teamCooldown > 0) {
         teamCooldown -= 1.0f * _elapsed;
         if (teamCooldown < 0) teamCooldown = 0;
@@ -560,18 +562,33 @@ namespace Battle {
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
   }
 
-  void Tile::SetBattleActive(bool state)
+  void Tile::ToggleTimeFreeze(bool state)
   {
-    if (isBattleActive == state) return;
-    isBattleActive = state;
+    if (isTimeFrozen == state) return;
+    isTimeFrozen = state;
 
     for (auto&& entity : entities) {
-      entity->SetBattleActive(isBattleActive);
+      entity->ToggleTimeFreeze(isTimeFrozen);
     }
   }
 
+  void Tile::BattleStart()
+  {
+    for (auto&& e : entities) {
+        e->OnBattleStart();
+    }
+    isBattleOver = false;
+  }
+
+  void Tile::BattleStop() {
+    for (auto&& e : entities) {
+        e->OnBattleStop();
+    }
+    isBattleOver = true;
+  }
+
   void Tile::HandleTileBehaviors(Obstacle* obst) {
-    if (this->isBattleActive) {
+    if (!this->isTimeFrozen) {
       // DIRECTIONAL TILES
       auto directional = Direction::NONE;
 
@@ -611,7 +628,7 @@ namespace Battle {
      and if they are not floating, we push the entity in a specific direction
      */
 
-    if (this->isBattleActive) {
+    if (!this->isTimeFrozen) {
       // LAVA TILES
       if (!character->HasFloatShoe()) {
         if (GetState() == TileState::POISON) {

@@ -14,7 +14,6 @@
 #include "bnCardsSpawnPolicy.h"
 #include "bnMysteryData.h"
 #include "bnGear.h"
-#include "bnBattleOverTrigger.h"
 #include "bnStarfishIdleState.h"
 #include "bnUndernetBackground.h"
 #include "bnMetrid.h"

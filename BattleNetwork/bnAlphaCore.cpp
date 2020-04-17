@@ -30,7 +30,6 @@ AlphaCore::AlphaCore(Rank _rank)
 
   SetName("Alpha");
   this->SetHealth(2000);
-
   SetLayer(1);
 
   impervious = false;
@@ -38,7 +37,7 @@ AlphaCore::AlphaCore(Rank _rank)
 
   //Components setup and load
   this->animationComponent = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
-  this->animationComponent->Setup(RESOURCE_PATH);
+  this->animationComponent->SetPath(RESOURCE_PATH);
   this->animationComponent->Load();
   this->animationComponent->SetAnimation("CORE_FULL");
   this->animationComponent->SetPlaybackMode(Animator::Mode::Loop);

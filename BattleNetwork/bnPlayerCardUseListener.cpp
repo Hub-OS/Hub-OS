@@ -135,11 +135,11 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
     auto action = new CrackShotCardAction(player, card.GetDamage());
     player->QueueAction(action);
   }
-  else if (name == "Swrd") {
+  else if (name == "Sword") {
     auto action = new SwordCardAction(player, card.GetDamage());
     player->QueueAction(action);
   }
-  else if (name == "Elecplse") {
+  else if (name == "ElcPuls1") {
     // Spawn an elecpulse attack
     auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
 

@@ -22,7 +22,7 @@ Starfish::Starfish(Rank _rank)
   this->SetHealth(100);
   textureType = TextureType::MOB_STARFISH_ATLAS;
 
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
   animationComponent->SetAnimation("IDLE");
   animationComponent->SetPlaybackMode(Animator::Mode::Loop);

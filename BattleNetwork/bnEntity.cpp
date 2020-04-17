@@ -15,7 +15,7 @@ Entity::Entity()
   previousDirection(Direction::NONE),
   direction(Direction::NONE),
   team(Team::UNKNOWN),
-  isBattleActive(true),
+  isTimeFrozen(false),
   deleted(false),
   passthrough(false),
   ownedByField(false),
@@ -448,14 +448,14 @@ void Entity::AdoptNextTile()
   }
 }
 
-void Entity::SetBattleActive(bool state)
+void Entity::ToggleTimeFreeze(bool state)
 {
-  isBattleActive = state;
+  isTimeFrozen = state;
 }
 
-const bool Entity::IsBattleActive()
+const bool Entity::IsTimeFrozen()
 {
-  return isBattleActive;
+  return isTimeFrozen;
 }
 
 void Entity::FreeAllComponents()

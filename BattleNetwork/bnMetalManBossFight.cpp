@@ -7,7 +7,6 @@
 #include "bnTile.h"
 #include "bnSpawnPolicy.h"
 #include "bnGear.h"
-#include "bnBattleOverTrigger.h"
 
 #include "bnUndernetBackground.h"
 

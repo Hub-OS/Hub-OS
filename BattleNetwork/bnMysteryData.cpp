@@ -9,7 +9,7 @@ MysteryData::MysteryData(Field* _field, Team _team) : Character() {
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
-  animation->Setup("resources/mobs/mystery_data/mystery_data.animation");
+  animation->SetPath("resources/mobs/mystery_data/mystery_data.animation");
   animation->Reload();
   animation->SetAnimation("SPIN", Animator::Mode::Loop);
   this->SetHealth(1);

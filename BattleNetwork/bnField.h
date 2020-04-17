@@ -18,11 +18,11 @@ namespace Battle {
   class Tile;
 }
 
-class Field : public CharacterDeletePublisher {
+class Field : public CharacterDeletePublisher{
 public:
   
   /**
-   * @brief Creates a field _wdith x _height tiles. Sets isBattleActive to false
+   * @brief Creates a field _wdith x _height tiles. Sets isTimeFrozen to false
    */
   Field(int _width, int _height);
   
@@ -119,7 +119,17 @@ public:
    * @brief Propagates the state to all tiles for specific behavior
    * @param state whether or not the battle is ongoing
    */
-  void SetBattleActive(bool state);
+  void ToggleTimeFreeze(bool state);
+
+  /**
+ * @brief Propagates the state to all tiles for specific behavior
+ */
+  void RequestBattleStart();
+
+  /**
+* @brief Propagates the state to all tiles for specific behavior
+*/
+  void RequestBattleStop();
 
   /**
   * @brief Removes any pending entities that have not been added back to the field 
@@ -130,7 +140,8 @@ public:
 
 private:
 
-  bool isBattleActive; /*!< State flag if battle is over */
+  bool isTimeFrozen; 
+  bool isBattleActive; /*!< State flag if battle is active */
   int width; /*!< col */
   int height; /*!< rows */
   bool isUpdating; /*!< enqueue entities if added in the update loop */

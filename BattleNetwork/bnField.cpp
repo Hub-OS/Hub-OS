@@ -52,6 +52,7 @@ Field::Field(int _width, int _height)
   }
 #endif
 
+  isTimeFrozen = true;
   isBattleActive = false;
   isUpdating = false;
 }
@@ -218,7 +219,7 @@ Battle::Tile* Field::GetAt(int _x, int _y) const {
 }
 
 void Field::Update(float _elapsed) {
-  while (pending.size() && isBattleActive) {
+  while (pending.size()) {
     auto next = pending.back();
     pending.pop_back();
 
@@ -343,17 +344,39 @@ void Field::Update(float _elapsed) {
   this->isUpdating = false;
 }
 
-void Field::SetBattleActive(bool state)
+void Field::ToggleTimeFreeze(bool state)
 {
-  if (isBattleActive == state) return;
+  if (isTimeFrozen == state) return;
 
-  isBattleActive = state;
+  isTimeFrozen = state;
 
   for (int i = 0; i < tiles.size(); i++) {
       for (int j = 0; j < tiles[i].size(); j++) {
-          tiles[i][j]->SetBattleActive(isBattleActive);
+          tiles[i][j]->ToggleTimeFreeze(isTimeFrozen);
       }
   }
+}
+
+void Field::RequestBattleStart()
+{
+    isBattleActive = true;
+
+    for (int i = 0; i < tiles.size(); i++) {
+        for (int j = 0; j < tiles[i].size(); j++) {
+            tiles[i][j]->BattleStart();
+        }
+    }
+}
+
+void Field::RequestBattleStop()
+{
+    isBattleActive = false;
+
+    for (int i = 0; i < tiles.size(); i++) {
+        for (int j = 0; j < tiles[i].size(); j++) {
+            tiles[i][j]->BattleStop();
+        }
+    }
 }
 
 void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, long ID)

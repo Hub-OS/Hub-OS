@@ -40,7 +40,7 @@ Player::Player()
   setScale(2.0f, 2.0f);
 
   animationComponent = new AnimationComponent(this);
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   this->RegisterComponent(animationComponent);
 

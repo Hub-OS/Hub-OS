@@ -43,7 +43,7 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center) : Artifact(_field
 
   animationComponent = new AnimationComponent(this);
   this->RegisterComponent(animationComponent);
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("DEFAULT", onFinish);
   animationComponent->OnUpdate(0);

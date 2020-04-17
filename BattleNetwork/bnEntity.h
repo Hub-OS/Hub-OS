@@ -58,6 +58,8 @@ public:
   void Spawn(Battle::Tile& start);
 
   virtual void OnSpawn(Battle::Tile& start) { };
+  virtual void OnBattleStart() { };
+  virtual void OnBattleStop() { };
 
   /**
    * @brief Virtual. Update an entity. Used by Character class. @see Character::Update()
@@ -160,7 +162,7 @@ public:
 
   /**
    * @brief Gets the field pointer
-   * Useful to check field state such as IsBattleActive()
+   * Useful to check field state such as IsTimeFrozen()
    * @return Field pointer
    */
   Field* GetField() const;
@@ -295,18 +297,18 @@ public:
   virtual void AdoptTile(Battle::Tile* tile) = 0;
 
   /**
-   * @brief Sets the entity's battle active flag
+   * @brief Sets the entity's TFC flag
    * Useful in update loop so that enemies will not attack when
    * the screen is paused or the cards are open
-   * @param state true if battle is active, false if inactive
+   * @param state true to freeze time, false if ongoing
    */
-  void SetBattleActive(bool state);
+  void ToggleTimeFreeze(bool state);
   
   /**
-   * @brief Query if battle is active
-   * @return true if battle is active, false if inactive
+   * @brief Query if entity is time frozen
+   * @return true if entity is time frozen, false if active
    */
-  const bool IsBattleActive();
+  const bool IsTimeFrozen();
 
   /**
    * @brief Get the first component that matches the exact Type
@@ -338,10 +340,18 @@ public:
   bool IsA();
 
   /**
-   * @brief Attaches a component to an entity
-   * @param c the component to add 
-   * @return Returns the component as a pointer
+   * @brief Creates and attaches a component to an entity
+   * @param Args. Parameter pack of any argument type to pass into the component's constructor
+   * @return Returns the component as a pointer of the same type as ComponentT
    */
+  template<typename ComponentT, typename... Args>
+  ComponentT* CreateComponent(Args&&...);
+
+  /**
+  * @brief Attaches a component to an entity
+  * @param c the component to add
+  * @return Returns the component as a pointer of the common base class type
+  */
   Component* RegisterComponent(Component* c);
   
   /**
@@ -389,7 +399,7 @@ protected:
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
 
 private:
-  bool isBattleActive;
+  bool isTimeFrozen;
   bool ownedByField; /*!< Must delete the entity manual if not owned by the field. */
   bool passthrough;
   bool floatShoe;
@@ -455,4 +465,16 @@ inline std::vector<BaseType*> Entity::GetComponentsDerivedFrom()
 template<typename Type>
 inline bool Entity::IsA() {
   return (dynamic_cast<Type*>(this) != nullptr);
+}
+
+template<typename ComponentT, typename... Args>
+inline ComponentT* Entity::CreateComponent(Args&& ...args) {
+    ComponentT* c = new ComponentT(std::forward<decltype(args)>(args)...);
+
+    components.push_back(c);
+
+    // Newest components appear first in the list for easy referencing
+    std::sort(components.begin(), components.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
+
+    return c;
 }

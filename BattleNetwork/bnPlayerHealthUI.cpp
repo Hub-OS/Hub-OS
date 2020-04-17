@@ -5,10 +5,10 @@ using std::to_string;
 #include "bnPlayerHealthUI.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnBattleScene.h"
 
 PlayerHealthUI::PlayerHealthUI(Player* _player)
-  : player(_player), UIComponent(_player),
-    BattleOverTrigger<Player>(_player, [this](BattleScene& scene, Player& player) { this->isBattleOver = true; }) 
+  : player(_player), UIComponent(_player) 
 {
   
   // TODO: move this to the preloaded textures      
@@ -33,7 +33,7 @@ PlayerHealthUI::~PlayerHealthUI() {
 
 void PlayerHealthUI::Inject(BattleScene & scene)
 {
-  this->BattleOverTrigger::Inject(scene);
+  this->bs = &scene;
 }
 
 void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
@@ -88,7 +88,7 @@ HP drop is not 1 unit per frame. It is:
 -3 per frame for anything lower
 */
 void PlayerHealthUI::OnUpdate(float elapsed) {
-  this->BattleOverTrigger<Player>::OnUpdate(elapsed);
+  this->isBattleOver = this->bs->IsCleared();
 
   if (player) {
     if (player->IsDeleted()) {

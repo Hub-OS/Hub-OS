@@ -17,7 +17,7 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
 
     anim = new AnimationComponent(this);
     this->RegisterComponent(anim);
-    anim->Setup("resources/mobs/metalman/metalman.animation");
+    anim->SetPath("resources/mobs/metalman/metalman.animation");
     anim->Load();
     anim->SetAnimation("MISSILE_UP", Animator::Mode::Loop);
 

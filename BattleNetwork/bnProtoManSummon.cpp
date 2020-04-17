@@ -32,7 +32,7 @@ ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->Ge
 
   animationComponent = new AnimationComponent(this);
   this->RegisterComponent(animationComponent);
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
 
   Battle::Tile* next = nullptr;
@@ -120,6 +120,7 @@ bool ProtoManSummon::Move(Direction _direction) {
 
 void ProtoManSummon::Attack(Character* _entity) {
   SwordEffect* effect = new SwordEffect(GetField());
+  effect->SetAnimation("WIDE");
   GetField()->AddEntity(*effect, *_entity->GetTile());
   this->summons->SummonEntity(effect, false);
 

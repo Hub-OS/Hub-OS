@@ -53,10 +53,14 @@ public:
 
   const float GetHeight() const { return 0; }
 
+  void OnBattleStart() override;
+  void OnBattleStop() override;
+
 private:
   Direction startDir;
   Team tileStartTeam; // only move around on the origin team's area
   Texture* texture;
   AnimationComponent* animation;
   bool hit;
+  bool stopMoving;
 };

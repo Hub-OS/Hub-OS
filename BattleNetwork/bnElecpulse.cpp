@@ -21,7 +21,7 @@ Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _tea
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
-  animation->Setup("resources/spells/elecpulse.animation");
+  animation->SetPath("resources/spells/elecpulse.animation");
   animation->Reload();
 
   auto onFinish = [this]() { this->Delete(); };

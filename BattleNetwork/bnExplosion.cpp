@@ -18,7 +18,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
   animationComponent = new AnimationComponent(this);
-  animationComponent->Setup("resources/mobs/mob_explosion.animation");
+  animationComponent->SetPath("resources/mobs/mob_explosion.animation");
   animationComponent->Reload();
 
   offsetArea = sf::Vector2f(20.f, 0.f);
@@ -64,7 +64,7 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
   setScale(2.f, 2.f);
 
   animationComponent = new AnimationComponent(this);
-  animationComponent->Setup("resources/mobs/mob_explosion.animation");
+  animationComponent->SetPath("resources/mobs/mob_explosion.animation");
   animationComponent->Reload();
 
   SetOffsetArea(copy.offsetArea);

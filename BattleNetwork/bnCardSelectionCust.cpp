@@ -462,7 +462,7 @@ void CardSelectionCust::GetNextCards() {
 
 void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> forms)
 {
-  for (auto f : forms) {
+  for (auto&& f : forms) {
     this->forms.push_back(f);
     sf::Sprite ui;
     ui.setTexture(*TEXTURES.LoadTextureFromFile(f->GetUIPath()));

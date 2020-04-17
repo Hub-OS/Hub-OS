@@ -100,7 +100,12 @@ const std::string MobRegistration::MobMeta::GetAttackString() const
 Mob * MobRegistration::MobMeta::GetMob() const
 {
   loadMobClass(); // Reload mob
-  return mobFactory->Build();
+  Mob* result = mobFactory->Build();
+
+  // All active entities on the field must freeze at start
+  // Reactivation is handled in the BattleScene update loop
+  result->GetField()->ToggleTimeFreeze(true);
+  return result;
 }
 
 MobRegistration & MobRegistration::GetInstance()

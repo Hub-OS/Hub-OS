@@ -21,7 +21,7 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, 
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
-  animation->Setup("resources/mobs/metalman/metalman.animation");
+  animation->SetPath("resources/mobs/metalman/metalman.animation");
   animation->Load();
   animation->SetAnimation("BLADE",Animator::Mode::Loop);
 

@@ -30,7 +30,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _pa
   setScale(2.f, 2.f);
 
   //Components setup and load
-  animationComponent->Setup(RESOURCE_PATH);
+  animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
   animationComponent->SetAnimation("CURSOR");
   animationComponent->OnUpdate(0);

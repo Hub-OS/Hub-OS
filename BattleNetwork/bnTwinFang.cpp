@@ -35,7 +35,7 @@ TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_f
 
   animation = new AnimationComponent(this);
   this->RegisterComponent(animation);
-  animation->Setup("resources/spells/twin_fang.animation");
+  animation->SetPath("resources/spells/twin_fang.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT");
 

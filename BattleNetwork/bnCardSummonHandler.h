@@ -317,11 +317,11 @@ public:
 
     std::cout << "Summon onLeave [queue size is " << queue.Size() << "]" << std::endl;
 
-    for (auto items : summonedItems) {
+    /*for (auto items : summonedItems) {
       if (!items.persist) {
         items.entity->Delete();
       }
-    }
+    }*/
 
     summonedItems.clear();
 

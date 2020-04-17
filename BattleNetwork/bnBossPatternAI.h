@@ -200,9 +200,9 @@ public:
         stateIndex = 0;
       }
 
-      stateMachine[stateIndex]->OnEnter(*ref);
-
       gotoNext = false;
+
+      stateMachine[stateIndex]->OnEnter(*ref);
     }
 
     isUpdating = false;
