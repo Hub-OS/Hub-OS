@@ -470,9 +470,11 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
 
     // Refresh mob graphic origin every frame as it may change
     mobSpr.setOrigin(mobSpr.getTextureRect().width / 2.f, mobSpr.getTextureRect().height / 2.f);
+    
+    // TODO: This makes the preview not show up?
+    //mobSpr.SetShader(shader);
 
-    mobSpr.SetShader(shader);
-    ENGINE.Draw(mobSpr, false);
+    ENGINE.Draw(mobSpr);
   }
 
   ENGINE.Draw(textbox);

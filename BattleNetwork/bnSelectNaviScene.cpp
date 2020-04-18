@@ -80,7 +80,6 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
 
   // Current navi graphic
   loadNavi = false;
-  navi.setTexture(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
   navi.setScale(2.f, 2.f);
   navi.setOrigin(navi.getLocalBounds().width / 2.f, navi.getLocalBounds().height / 2.f);
   navi.setPosition(100.f, 150.f);
@@ -243,9 +242,10 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  navi.SetShader(pixelated);
+  // TODO: This makes the preview not show up...
+  //navi.SetShader(pixelated);
 
-  ENGINE.Draw(navi, false);
+  ENGINE.Draw(navi);
 }
 
 void SelectNaviScene::onStart()

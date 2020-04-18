@@ -110,7 +110,7 @@ public:
    * @param texture 
    * @param resetRect
    */
-  void setTexture(const std::shared_ptr<sf::Texture>& texture, bool resetRect = true);
+  void setTexture(const std::shared_ptr<sf::Texture> texture, bool resetRect = true);
 
   /**
    * @brief Converts sf::Shader to SmartShader and attaches it.
@@ -147,5 +147,5 @@ public:
    * SpriteSceneNodes can have child nodes in front of them. To achieve this,
    * we sort by Z and if this sprite node is to be drawn, drawns the proxy sprite
    */
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };
