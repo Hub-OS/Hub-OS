@@ -34,7 +34,7 @@ void CrackShotCardAction::Execute() {
   auto owner = GetOwner();
 
   owner->AddNode(this->attachment);
-  attachmentAnim.Update(0, *this->attachment);
+  attachmentAnim.Update(0, this->attachment->getSprite());
 
   // On throw frame, spawn projectile
   auto onThrow = [this, owner]() -> void {
@@ -65,7 +65,7 @@ void CrackShotCardAction::Execute() {
 
 void CrackShotCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, *this->attachment);
+  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 

@@ -1,7 +1,7 @@
 
 /*! \brief External hit boxes that delegate hits to their owners
  * 
- * Some spells and characters drop lagging hit boxes @see Wave 
+ * Some spells and characters drop lagging hit boxes 
  * and contact with these hitboxes need to behave the same as if
  * they hit the original source.
  * 
@@ -24,7 +24,7 @@ public:
    * @param owner the original spell source
    * @param duration how long the hitbox should linger in seconds
    */
-  SharedHitbox(Spell* owner, float duration);
+  SharedHitbox(Spell* owner, float duration = 0.0f);
   virtual ~SharedHitbox();
 
   /**
@@ -58,5 +58,6 @@ public:
   
 private:
   float cooldown; /*< When cooldown reaches zero, this hitbox removes */
+  bool keepAlive; /*!< If duration is not set, the hitbox stays alive for long as the owner stays alive*/
   Spell* owner; /*!< When this hitbox is hit, the owner is hit */
 };

@@ -37,7 +37,6 @@ namespace Battle {
     }
 
     state = TileState::NORMAL;
-    elapsed = 0;
     entities = vector<Entity*>();
     setScale(2.f, 2.f);
     width = TILE_WIDTH * getScale().x;
@@ -66,7 +65,6 @@ namespace Battle {
     team = other.team;
     state = other.state;
     RefreshTexture();
-    elapsed = other.elapsed;
     entities = other.entities;
     setScale(2.f, 2.f);
     width = other.width;
@@ -103,7 +101,6 @@ namespace Battle {
     team = other.team;
     state = other.state;
     RefreshTexture();
-    elapsed = other.elapsed;
     entities = other.entities;
     setScale(2.f, 2.f);
     width = other.width;
@@ -458,7 +455,7 @@ namespace Battle {
       // If the entity is marked for deletion
       if (ptr->IsDeleted()) {
         // free memory
-        long ID = ptr->GetID();
+        Entity::ID_t ID = ptr->GetID();
 
         // TODO: do we need to invoke this here?
         ptr->FreeAllComponents();
@@ -472,6 +469,7 @@ namespace Battle {
             this->field->CharacterDeletePublisher::Broadcast(*character);
           }
 
+          field->ForgetEntity(ID);
           delete ptr;
           continue;
         }
@@ -489,8 +487,8 @@ namespace Battle {
       if (request > (int)highlightMode) {
         highlightMode = (Highlight)request;
       }
-
-      (*entity)->Update(_elapsed);
+      
+      field->UpdateEntityOnce(*entity, _elapsed);
     }
 
     // Spells dont cause damage when the battle is over
@@ -511,13 +509,13 @@ namespace Battle {
 
     vector<Artifact*> artifacts_copy = artifacts;
     for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
-      (*entity)->Update(_elapsed);
+        field->UpdateEntityOnce(*entity, _elapsed);
     }
 
     vector<Character*> characters_copy = characters;
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
       // Allow user input to move them out of tiles if they are frame perfect
-      (*entity)->Update(_elapsed);
+      field->UpdateEntityOnce(*entity, _elapsed);
       HandleTileBehaviors(*entity);
     }
 

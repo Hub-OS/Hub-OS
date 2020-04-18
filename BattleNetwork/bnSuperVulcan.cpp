@@ -19,7 +19,7 @@ SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : damage(damage)
   animation.Load();
   animation.SetAnimation("DEFAULT");
   animation << onFinish;
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
   AUDIO.Play(AudioType::GUN, AudioPriority::HIGHEST);
 
@@ -34,7 +34,7 @@ SuperVulcan::~SuperVulcan() {
 void SuperVulcan::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
 
   tile->AffectEntities(this);
 }

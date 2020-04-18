@@ -280,12 +280,24 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
 
 std::shared_ptr<sf::Texture> WebClientManager::GetIconForCard(const std::string & uuid)
 {
-    return iconTextureCache[uuid];
+    auto value = iconTextureCache[uuid];
+
+    if (value == nullptr) {
+        value = iconTextureCache[uuid] = LOAD_TEXTURE(CHIP_ICON_MISSINGDATA);
+    }
+
+    return value;
 }
 
 std::shared_ptr<sf::Texture> WebClientManager::GetImageForCard(const std::string & uuid)
 {
-    return cardTextureCache[uuid];
+    auto value = cardTextureCache[uuid];
+
+    if (value == nullptr) {
+        value = cardTextureCache[uuid] = LOAD_TEXTURE(CHIP_MISSINGDATA);
+    }
+
+    return value;
 }
 
 const Battle::Card WebClientManager::MakeBattleCardFromWebCardData(const WebAccounts::Card & card)

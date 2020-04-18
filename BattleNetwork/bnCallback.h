@@ -12,10 +12,6 @@ public:
 
   ~Callback() = default;
 
-  Callback(const Callback& rhs) {
-    slot = rhs.slot;
-  }
-
   void Slot(decltype(slot) slot) {
     this->slot = slot;
   }

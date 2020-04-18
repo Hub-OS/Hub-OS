@@ -75,7 +75,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   owner->AddDefenseRule(defense);
 
   animation << Animator::Mode::Loop;
-  animation.Update(0, *aura);
+  animation.Update(0, aura->getSprite());
 }
 
 void Aura::Inject(BattleScene& bs) {
@@ -137,7 +137,7 @@ void Aura::OnUpdate(float _elapsed) {
    return;
  }
 
- animation.Update(_elapsed, *aura);
+ animation.Update(_elapsed, aura->getSprite());
 }
 
 const Aura::Type Aura::GetAuraType()

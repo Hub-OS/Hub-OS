@@ -45,7 +45,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   Animation blueShadowAnim(animComponent->GetFilePath());
   blueShadowAnim.Load();
   blueShadowAnim.SetAnimation("RIGHT_CLAW_SWIPE_SHADOW");
-  blueShadowAnim.Update(0, *blueShadow);
+  blueShadowAnim.Update(0, blueShadow->getSprite());
 
   switch (type) {
   case Type::LEFT_IDLE:

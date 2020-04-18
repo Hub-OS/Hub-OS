@@ -4,6 +4,7 @@
 #include "bnElecpulse.h"
 #include "bnTile.h"
 #include "bnField.h"
+#include "bnSharedHitBox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
@@ -31,6 +32,14 @@ Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _tea
 Elecpulse::~Elecpulse(void) {
 }
 
+void Elecpulse::OnSpawn(Battle::Tile & start)
+{
+    auto field = GetField();
+    auto forward = GetField()->GetAt(start.GetX()+1, start.GetY());
+    auto shared = new SharedHitbox(this);
+    field->AddEntity(*shared, *forward);
+}
+
 void Elecpulse::OnUpdate(float _elapsed) {
   GetTile()->AffectEntities(this);
 
@@ -42,13 +51,20 @@ bool Elecpulse::Move(Direction _direction) {
 }
 
 void Elecpulse::Attack(Character* _entity) {
-  Hit::Properties props;
-  props.element = this->GetElement();
-  props.flags = Hit::recoil | Hit::stun;
-  props.damage = damage;
+    long ID = _entity->GetID();
 
-   _entity->Hit(props);
-   _entity->SlideToTile(true);
-   _entity->Move(Direction::LEFT);
+    if (std::find(taggedCharacters.begin(), taggedCharacters.end(), ID) != taggedCharacters.end())
+        return; // we've already hit this entity somewhere
+
+    Hit::Properties props;
+    props.element = this->GetElement();
+    props.flags = Hit::recoil | Hit::stun | Hit::drag;
+    props.drag = (GetTeam() == Team::RED)? Direction::LEFT : Direction::RIGHT;
+    props.damage = damage;
+
+    _entity->Hit(props);
+    _entity->SlideToTile(true);
+
+    taggedCharacters.insert(taggedCharacters.begin(), _entity->GetID());
 }
 

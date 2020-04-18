@@ -405,10 +405,10 @@ void Entity::Delete()
   deleteCallbacks.clear();
 }
 
-Entity::DeleteCallback & Entity::CreateDeleteCallback()
+std::reference_wrapper<Entity::DeleteCallback> Entity::CreateDeleteCallback()
 {
   deleteCallbacks.push_back(std::move(Entity::DeleteCallback()));
-  return *(deleteCallbacks.end()-1);
+  return std::ref(*(deleteCallbacks.end()-1));
 }
 
 bool Entity::IsDeleted() const {
@@ -467,7 +467,7 @@ void Entity::FreeAllComponents()
   components.clear();
 }
 
-void Entity::FreeComponentByID(long ID) {
+void Entity::FreeComponentByID(Component::ID_t ID) {
   for (int i = 0; i < components.size(); i++) {
     if (components[i]->GetID() == ID) {
       components[i]->FreeOwner();

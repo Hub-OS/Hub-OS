@@ -144,7 +144,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   bg->Update((float)elapsed);
 
   // Draw navi moving
-  naviAnimator.Update((float)elapsed, owNavi);
+  naviAnimator.Update((float)elapsed, owNavi.getSprite());
 
   // Move the navi down
   owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*(float)elapsed, 0));
@@ -244,7 +244,7 @@ void MainMenuScene::onUpdate(double elapsed) {
     AUDIO.Play(AudioType::CHIP_SELECT);
   }
 
-  webAccountAnimator.Update((float)elapsed, webAccountIcon);
+  webAccountAnimator.Update((float)elapsed, webAccountIcon.getSprite());
 
   lastMenuSelectionIndex = menuSelectionIndex;
 }
@@ -298,22 +298,22 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
     uiAnimator.SetAnimation("CHIP_FOLDER");
 
     if (menuSelectionIndex == 0) {
-      uiAnimator.SetFrame(2, ui);
+      uiAnimator.SetFrame(2, ui.getSprite());
       ui.setPosition(50.f, 50.f);
       ENGINE.Draw(ui);
 
       uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
-      uiAnimator.SetFrame(2, ui);
+      uiAnimator.SetFrame(2, ui.getSprite());
       ui.setPosition(100.f, 50.f);
       ENGINE.Draw(ui);
     }
     else {
-      uiAnimator.SetFrame(1, ui);
+      uiAnimator.SetFrame(1, ui.getSprite());
       ui.setPosition(20.f, 50.f);
       ENGINE.Draw(ui);
 
       uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
-      uiAnimator.SetFrame(1, ui);
+      uiAnimator.SetFrame(1, ui.getSprite());
       ui.setPosition(100.f, 50.f);
       ENGINE.Draw(ui);
     }
@@ -321,22 +321,22 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
     uiAnimator.SetAnimation("CONFIG");
 
     if (menuSelectionIndex == 1) {
-      uiAnimator.SetFrame(2, ui);
+      uiAnimator.SetFrame(2, ui.getSprite());
       ui.setPosition(50.f, 120.f);
       ENGINE.Draw(ui);
 
       uiAnimator.SetAnimation("CONFIG_LABEL");
-      uiAnimator.SetFrame(2, ui);
+      uiAnimator.SetFrame(2, ui.getSprite());
       ui.setPosition(100.f, 120.f);
       ENGINE.Draw(ui);
     }
     else {
-      uiAnimator.SetFrame(1, ui);
+      uiAnimator.SetFrame(1, ui.getSprite());
       ui.setPosition(20.f, 120.f);
       ENGINE.Draw(ui);
 
       uiAnimator.SetAnimation("CONFIG_LABEL");
-      uiAnimator.SetFrame(1, ui);
+      uiAnimator.SetFrame(1, ui.getSprite());
       ui.setPosition(100.f, 120.f);
       ENGINE.Draw(ui);
     }
@@ -344,22 +344,22 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
     uiAnimator.SetAnimation("NAVI");
 
     if (menuSelectionIndex == 2) {
-      uiAnimator.SetFrame(2, ui);
+      uiAnimator.SetFrame(2, ui.getSprite());
       ui.setPosition(50.f, 190.f);
       ENGINE.Draw(ui);
 
       uiAnimator.SetAnimation("NAVI_LABEL");
-      uiAnimator.SetFrame(2, ui);
+      uiAnimator.SetFrame(2, ui.getSprite());
       ui.setPosition(100.f, 190.f);
       ENGINE.Draw(ui);
     }
     else {
-      uiAnimator.SetFrame(1, ui);
+      uiAnimator.SetFrame(1, ui.getSprite());
       ui.setPosition(20.f, 190.f);
       ENGINE.Draw(ui);
 
       uiAnimator.SetAnimation("NAVI_LABEL");
-      uiAnimator.SetFrame(1, ui);
+      uiAnimator.SetFrame(1, ui.getSprite());
       ui.setPosition(100.f, 190.f);
       ENGINE.Draw(ui);
     }
@@ -367,22 +367,22 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
     uiAnimator.SetAnimation("MOB_SELECT");
 
     if (menuSelectionIndex == 3) {
-      uiAnimator.SetFrame(2, ui);
+      uiAnimator.SetFrame(2, ui.getSprite());
       ui.setPosition(50.f, 260.f);
       ENGINE.Draw(ui);
 
       uiAnimator.SetAnimation("MOB_SELECT_LABEL");
-      uiAnimator.SetFrame(2, ui);
+      uiAnimator.SetFrame(2, ui.getSprite());
       ui.setPosition(100.f, 260.f);
       ENGINE.Draw(ui);
     }
     else {
-      uiAnimator.SetFrame(1, ui);
+      uiAnimator.SetFrame(1, ui.getSprite());
       ui.setPosition(20.f, 260.f);
       ENGINE.Draw(ui);
 
       uiAnimator.SetAnimation("MOB_SELECT_LABEL");
-      uiAnimator.SetFrame(1, ui);
+      uiAnimator.SetFrame(1, ui.getSprite());
       ui.setPosition(100.f, 260.f);
       ENGINE.Draw(ui);
     }

@@ -13,7 +13,7 @@ ParticleHeal::ParticleHeal() : Artifact(nullptr)
   SetLayer(0);
   this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_HEAL));
   this->setScale(2.f, 2.f);
-  fx = (sf::Sprite)*this;
+  fx = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -27,14 +27,14 @@ ParticleHeal::ParticleHeal() : Artifact(nullptr)
 
   animation << onEnd;
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
 }
 
 void ParticleHeal::OnUpdate(float _elapsed) {
   this->setPosition(this->GetTile()->getPosition());
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
   Entity::Update(_elapsed);
 }
 

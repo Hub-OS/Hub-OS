@@ -59,8 +59,7 @@ void ChargeEffectSceneNode::Update(float _elapsed) {
     }
   }
 
-  animation.Update(_elapsed, *this);
-  //this->setPosition(entity->getPosition().x, entity->getPosition().y - 36.0f);
+  animation.Update(_elapsed, this->getSprite());
 }
 
 void ChargeEffectSceneNode::SetCharging(bool _charging) {

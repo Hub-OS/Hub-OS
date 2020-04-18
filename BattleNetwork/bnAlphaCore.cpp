@@ -50,31 +50,31 @@ AlphaCore::AlphaCore(Rank _rank)
   acid->SetLayer(1);
   acid->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   animation.SetAnimation("ACID");
-  animation.Update(0, *acid);
+  animation.Update(0, acid->getSprite());
 
   head = new SpriteProxyNode();
   head->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   head->SetLayer(-2);
   animation.SetAnimation("HEAD");
-  animation.Update(0, *head);
+  animation.Update(0, head->getSprite());
 
   side = new SpriteProxyNode();
   side->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   side->SetLayer(-1);
   animation.SetAnimation("SIDE");
-  animation.Update(0, *side);
+  animation.Update(0, side->getSprite());
 
   leftShoulder = new SpriteProxyNode();
   leftShoulder->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   leftShoulder->SetLayer(0);
   animation.SetAnimation("LEFT_SHOULDER");
-  animation.Update(0, *leftShoulder);
+  animation.Update(0, leftShoulder->getSprite());
 
   rightShoulder = new SpriteProxyNode();
   rightShoulder->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   rightShoulder->SetLayer(-3);
   animation.SetAnimation("RIGHT_SHOULDER");
-  animation.Update(0, *rightShoulder);
+  animation.Update(0, rightShoulder->getSprite());
 
   rightShoulderShoot= new SpriteProxyNode();
   rightShoulderShoot->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
@@ -202,24 +202,24 @@ void AlphaCore::OnUpdate(float _elapsed) {
 
   animation.SetAnimation("ACID");
   animation << Animator::Mode::Loop;
-  animation.Update(totalElapsed, *acid);
+  animation.Update(totalElapsed, acid->getSprite());
 
   animation.SetAnimation("HEAD");
   animation << Animator::Mode::Loop;
-  animation.Update(totalElapsed, *head);
+  animation.Update(totalElapsed, head->getSprite());
 
   animation.SetAnimation("SIDE");
   animation << Animator::Mode::Loop;
-  animation.Update(totalElapsed, *side);
+  animation.Update(totalElapsed, side->getSprite());
 
   if (shootSuperVulcans) {
     animation.SetAnimation("SUPER_VULCAN");
     animation << Animator::Mode::Loop;
-    animation.Update(totalElapsed, *leftShoulderShoot);
+    animation.Update(totalElapsed, leftShoulderShoot->getSprite());
 
     animation.SetAnimation("SUPER_VULCAN");
     animation << Animator::Mode::Loop;
-    animation.Update(totalElapsed+0.04f, *rightShoulderShoot);
+    animation.Update(totalElapsed+0.04f, rightShoulderShoot->getSprite());
   }
 
   this->BossPatternAI<AlphaCore>::Update(_elapsed);
@@ -274,14 +274,14 @@ void AlphaCore::OpenShoulderGuns()
 {
   animation.SetAnimation("SUPER_VULCAN");
   animation << Animator::Mode::Loop;
-  animation.Update(totalElapsed, *leftShoulderShoot);
+  animation.Update(totalElapsed, leftShoulderShoot->getSprite());
 
   animation.SetAnimation("SUPER_VULCAN");
   animation << Animator::Mode::Loop;
-  animation.Update(totalElapsed + 0.04f, *rightShoulderShoot);
+  animation.Update(totalElapsed + 0.04f, rightShoulderShoot->getSprite());
 
   animation.SetAnimation("LEFT_SHOULDER");
-  animation.SetFrame(2, *leftShoulder);
+  animation.SetFrame(2, leftShoulder->getSprite());
 
   // TODO: WHY CANT MY NODES JUST LINK UP TO THE POINTS?
   auto bounds = leftShoulder->getLocalBounds();
@@ -290,7 +290,7 @@ void AlphaCore::OpenShoulderGuns()
   leftShoulderShoot->setPosition(-offset.x, 0);
 
   animation.SetAnimation("RIGHT_SHOULDER");
-  animation.SetFrame(2, *rightShoulder);
+  animation.SetFrame(2, rightShoulder->getSprite());
 
   bounds = rightShoulder->getLocalBounds();
   offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
@@ -301,10 +301,10 @@ void AlphaCore::OpenShoulderGuns()
 void AlphaCore::CloseShoulderGuns()
 {
   animation.SetAnimation("LEFT_SHOULDER");
-  animation.SetFrame(1, *leftShoulder);
+  animation.SetFrame(1, leftShoulder->getSprite());
 
   animation.SetAnimation("RIGHT_SHOULDER");
-  animation.SetFrame(1, *rightShoulder);
+  animation.SetFrame(1, rightShoulder->getSprite());
 
   leftShoulderShoot->Hide();
   rightShoulderShoot->Hide();

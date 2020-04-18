@@ -57,13 +57,14 @@ public:
   void operator=(sf::Sprite& rhs);
 
   /**
-   * @brief Disolves class into sf::Sprite& for draw() calls
-   * @return reference to sprite being proxied
+   * @brief reference to sprite being proxied
    */
-  operator sf::Sprite&();
+  const sf::Sprite& getSpriteConst() const;
+  sf::Sprite& getSprite() const;
 
-  const sf::Sprite& getSprite() const;
-
+  /**
+  * @brief returns the sprite's origin values
+  */
   const sf::Vector2f getOrigin() const {
     return sprite->getOrigin();
   }
@@ -109,7 +110,7 @@ public:
    * @param texture 
    * @param resetRect
    */
-  void setTexture(const std::shared_ptr<sf::Texture>& texture, bool resetRect = false);
+  void setTexture(const std::shared_ptr<sf::Texture>& texture, bool resetRect = true);
 
   /**
    * @brief Converts sf::Shader to SmartShader and attaches it.

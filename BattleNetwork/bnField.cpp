@@ -103,6 +103,7 @@ void Field::AddEntity(Character & character, int x, int y)
 
   if (tile) {
     character.AdoptTile(tile);
+    allEntityHash.insert(std::make_pair(character.GetID(), &character));
   }
   else {
     delete &character;
@@ -128,6 +129,7 @@ void Field::AddEntity(Spell & spell, int x, int y)
 
   if (tile) {
     spell.AdoptTile(tile);
+    allEntityHash.insert(std::make_pair(spell.GetID(), &spell));
   }
   else {
     delete &spell;
@@ -152,6 +154,7 @@ void Field::AddEntity(Obstacle & obst, int x, int y)
 
   if (tile) {
     obst.AdoptTile(tile);
+    allEntityHash.insert(std::make_pair(obst.GetID(), &obst));
   }
   else {
     delete &obst;
@@ -176,6 +179,7 @@ void Field::AddEntity(Artifact & art, int x, int y)
 
   if (tile) {
     art.AdoptTile(tile);
+    allEntityHash.insert(std::make_pair(art.GetID(), &art));
   }
   else {
     delete &art;
@@ -219,26 +223,6 @@ Battle::Tile* Field::GetAt(int _x, int _y) const {
 }
 
 void Field::Update(float _elapsed) {
-  while (pending.size()) {
-    auto next = pending.back();
-    pending.pop_back();
-
-    switch (next.entity_type) {
-    case queueBucket::type::artifact:
-      this->AddEntity(*next.data.artifact, next.x, next.y);
-      break;
-    case queueBucket::type::character:
-      this->AddEntity(*next.data.character, next.x, next.y);
-      break;
-    case queueBucket::type::obstacle:
-      this->AddEntity(*next.data.obstacle, next.x, next.y);
-      break;
-    case queueBucket::type::spell:
-      this->AddEntity(*next.data.spell, next.x, next.y);
-      break;
-    }
-  }
-
   // This is a state flag that decides if entities added this update tick will be
   // put into a pending queue bucket or added directly onto the field
   this->isUpdating = true;
@@ -250,98 +234,103 @@ void Field::Update(float _elapsed) {
   int blueTeamFarCol = 7; // from red's perspective, 0  is the farthest - begin at the first (7th col) index and decrement
 
   // tile cols to check to restore team state
-  std::map<int, bool> backToRed;
-  std::map<int, bool> backToBlue;
+  std::list<int> backToRed;
+  std::list<int> backToBlue;
 
   float syncBlueTeamCooldown = 0;
   float syncRedTeamCooldown = 0;
 
   for (int i = 0; i < tiles.size(); i++) {
-    for (int j = 0; j < tiles[i].size(); j++) {
-      tiles[i][j]->Update(_elapsed);
-
-      auto&& t = tiles[i][j];
-
-      // How far has entity of either moved across the map?
-      // This check will help prevent trapping moving characters 
-      // when their tiles' team type resets
-      for(auto it = t->characters.begin(); it != t->characters.end(); it++) {
-        Team team = (*it)->GetTeam();
-        if (team == Team::RED) { redTeamFarCol = std::max(redTeamFarCol, j); }
-        else if(team == Team::BLUE) { blueTeamFarCol = std::min(blueTeamFarCol, j); }
+      for (int j = 0; j < tiles[i].size(); j++) {
+          tiles[i][j]->Update(_elapsed);
       }
+  }
 
-      if(j <= 3) {
-        // This tile was originally red
-        if(t->GetTeam() == Team::BLUE) {
-          if(t->teamCooldown <= 0) {
-            backToRed.insert(std::make_pair(j, true));
+  for (int i = 0; i < tiles.size(); i++) {
+      for (int j = 0; j < tiles[i].size(); j++) {
+          auto&& t = tiles[i][j];
+
+          // How far has entity of either moved across the map?
+          // This check will help prevent trapping moving characters 
+          // when their tiles' team type resets
+          for(auto&& it = t->characters.begin(); it != t->characters.end(); it++) {
+            Team team = (*it)->GetTeam();
+            if (team == Team::RED) { redTeamFarCol = std::max(redTeamFarCol, j); }
+            else if(team == Team::BLUE) { blueTeamFarCol = std::min(blueTeamFarCol, j); }
           }
-        }
-      } else{
-        // This tile was originally blue
-        if(t->GetTeam() == Team::RED) {
-          if(t->teamCooldown <= 0) {
-            backToBlue.insert(std::make_pair(j, true));
+
+          if(j <= 3) {
+            // This tile was originally red
+            if(t->GetTeam() == Team::BLUE) {
+              syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->flickerTeamCooldown);
+
+              if(t->teamCooldown <= 0) {
+                backToRed.insert(backToRed.begin(), j);
+              }
+            }
+          } else{
+            // This tile was originally blue
+            if(t->GetTeam() == Team::RED) {
+              syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, t->flickerTeamCooldown);
+
+              if(t->teamCooldown <= 0) {
+                backToBlue.insert(backToBlue.begin(), j);
+              }
+            }
           }
-        }
-      }
 
-      // now that the loop for this tile is over
-      // and it has been updated, we set the battle active flag
-      // to its latest state and calculate how many entities remain
-      // on the field
-      entityCount += (int)tiles[i][j]->GetEntityCount();
-    }
+          // now that the loop for this tile is over
+          // and it has been updated, we calculate how many entities remain
+          // on the field
+          entityCount += (int)tiles[i][j]->GetEntityCount();
+        }
   }
 
-  // plan: Restore column team states not just a single tile
-  // col must be ahead of the furthest character of the same team
-  // e.g. red team characters must be behind the col row
-  //      blue team characters must be ahead the col row
-  // otherwise we risk trapping characters in a striped battle field
+    // plan: Restore column team states not just a single tile
+    // col must be relatively ahead of the furthest character of the same team
+    // e.g. red team characters must be behind the col row
+    //      blue team characters must be after the col row
+    //      otherwise we risk trapping characters in a striped battle field
 
-  // stolen blue tiles
-  for(auto&& p : backToBlue) {
-    if (p.first <= redTeamFarCol) continue;
-
-    Logger::Logf("redTeamFarCol found %i, while p.first is %i", redTeamFarCol, p.first);
-
-    // these are the tiles (rows) in the column
-    for(int i = 0; i < tiles.size(); i++) {
-      // sync stolen blue tiles together
-      syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, tiles[i][p.first]->flickerTeamCooldown);
-    }
-    if (syncBlueTeamCooldown <= 0.0f) {
-        for (int i = 0; i < tiles.size(); i++) {
-            tiles[i][p.first]->SetTeam(Team::BLUE, true);
+    // stolen blue tiles
+    for(auto&& p : backToBlue) {
+        if (p > redTeamFarCol && syncBlueTeamCooldown <= 0.0f) {
+            for (int i = 0; i < tiles.size(); i++) {
+                tiles[i][p]->SetTeam(Team::BLUE, true);
+            }
+        }
+        else {
+            // resync
+            for (int i = 0; i < tiles.size(); i++) {
+                tiles[i][p]->flickerTeamCooldown = syncBlueTeamCooldown;
+            }
         }
     }
-  }
 
-  backToBlue.clear();
+    backToBlue.clear();
 
-  // stolen red tiles
-  for(auto&& p : backToRed) {
-    if (p.first >= blueTeamFarCol) continue;
-
-    // these are the tiles (rows) in the column
-    for(int i = 0; i < tiles.size(); i++) {
-      // sync stolen red tiles together
-      syncRedTeamCooldown = std::max(syncRedTeamCooldown, tiles[i][p.first]->flickerTeamCooldown);
-    }
-
-    if (syncRedTeamCooldown <= 0.0f) {
-        for (int i = 0; i < tiles.size(); i++) {
-            tiles[i][p.first]->SetTeam(Team::RED, true);
+    // stolen red tiles
+    for(auto&& p : backToRed) {
+        if (p < blueTeamFarCol && syncRedTeamCooldown <= 0.0f) {
+            for (int i = 0; i < tiles.size(); i++) {
+                tiles[i][p]->SetTeam(Team::RED, true);
+            }
+        }
+        else {
+            // resync
+            for (int i = 0; i < tiles.size(); i++) {
+                tiles[i][p]->flickerTeamCooldown = syncRedTeamCooldown;
+            }
         }
     }
-  }
 
   backToRed.clear();
 
   // Now that updating is complete any entities being added to the field will be added directly
   this->isUpdating = false;
+
+  SpawnPendingEntities();
+  updatedEntities.clear();
 }
 
 void Field::ToggleTimeFreeze(bool state)
@@ -379,18 +368,56 @@ void Field::RequestBattleStop()
     }
 }
 
-void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, long ID)
+void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, Entity::ID_t ID)
 {
   auto q = pending.begin();
   while(q != pending.end()) {
     if (q->x == tile->GetX() && q->y == tile->GetY()) {
       if (q->ID == ID) {
         q = pending.erase(q);
+        allEntityHash.erase(ID);
       }
     }
 
     q++;
   }
+}
+
+void Field::SpawnPendingEntities()
+{
+    while (pending.size()) {
+        auto next = pending.back();
+        pending.pop_back();
+
+        switch (next.entity_type) {
+        case queueBucket::type::artifact:
+            this->AddEntity(*next.data.artifact, next.x, next.y);
+            break;
+        case queueBucket::type::character:
+            this->AddEntity(*next.data.character, next.x, next.y);
+            break;
+        case queueBucket::type::obstacle:
+            this->AddEntity(*next.data.obstacle, next.x, next.y);
+            break;
+        case queueBucket::type::spell:
+            this->AddEntity(*next.data.spell, next.x, next.y);
+            break;
+        }
+    }
+}
+
+void Field::UpdateEntityOnce(Entity * entity, const float elapsed)
+{
+    if(entity == nullptr || updatedEntities.find(entity->GetID()) != updatedEntities.end())
+        return;
+
+    entity->Update(elapsed);
+    updatedEntities.insert(std::make_pair(entity->GetID(), (void*)0));
+}
+
+void Field::ForgetEntity(Entity::ID_t ID)
+{
+    allEntityHash.erase(ID);
 }
 
 Field::queueBucket::queueBucket(int x, int y, Character& d) : x(x), y(y), entity_type(Field::queueBucket::type::character)

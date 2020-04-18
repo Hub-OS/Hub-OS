@@ -29,7 +29,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
 
   AUDIO.Play(AudioType::THUNDER);
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 }
 
 Thunder::~Thunder(void) {
@@ -47,7 +47,7 @@ void Thunder::OnUpdate(float _elapsed) {
   // (keep in mind scale is 2, e.g. 15 * 2 = 30)
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 30.0f);
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
 
   // Find target if we don't have one
   if (!target) {

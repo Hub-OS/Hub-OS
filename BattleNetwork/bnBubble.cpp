@@ -34,7 +34,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   // Bubbles can overlap eachother partially
   ShareTileSpace(true);
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
   popping = false;
 }
@@ -47,7 +47,7 @@ void Bubble::OnUpdate(float _elapsed) {
 
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
-  animation.Update(_elapsed*(float)this->speed, *this);
+  animation.Update(_elapsed*(float)this->speed, this->getSprite());
 
   // Keep moving
   if (!this->IsSliding() && animation.GetAnimationString() == "FLOAT") {

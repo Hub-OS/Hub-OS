@@ -698,8 +698,8 @@ void CardSelectionCust::Update(float elapsed)
 
   emblem.Update(elapsed);
 
-  formCursorAnimator.Update(elapsed, formCursor);
-  formSelectAnimator.Update(elapsed, formSelect);
+  formCursorAnimator.Update(elapsed, formCursor.getSprite());
+  formSelectAnimator.Update(elapsed, formSelect.getSprite());
 
   auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddNode() for all rendered items below
 

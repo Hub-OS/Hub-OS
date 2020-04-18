@@ -1,4 +1,5 @@
 #include "bnSpriteProxyNode.h"
+#include "bnLogger.h"
 
 SpriteProxyNode::SpriteProxyNode() : SceneNode() {
   sprite = new sf::Sprite();
@@ -31,13 +32,14 @@ void SpriteProxyNode::operator=(sf::Sprite& rhs) {
   allocatedSprite = false;
 }
 
-SpriteProxyNode::operator sf::Sprite&() {
+const sf::Sprite & SpriteProxyNode::getSpriteConst() const
+{
   return *sprite;
 }
 
-const sf::Sprite & SpriteProxyNode::getSprite() const
+sf::Sprite& SpriteProxyNode::getSprite() const
 {
-  return *sprite;
+    return *sprite;
 }
 
 const std::shared_ptr<sf::Texture> SpriteProxyNode::getTexture() const {

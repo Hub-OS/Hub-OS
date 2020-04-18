@@ -279,7 +279,6 @@ namespace Battle {
     Team team;
     TileState state;
     std::string animState; /**< reflects the tile's state - lookup animation from animation file */
-    float elapsed; /**< Internal counter for non-permanent states e.g. TileState::Cracked */
 
     float width;
     float height;

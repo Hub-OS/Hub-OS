@@ -46,6 +46,8 @@ public:
    */
   virtual void Attack(Character* _entity);
 
+  void DropHitbox(Battle::Tile* target);
+
 private:
   int heal;
   int random;

@@ -724,6 +724,9 @@
     <Filter Include="Factories\MobRegistration\MobFactories\Challenging">
       <UniqueIdentifier>{9886141e-88bf-4f26-8d5d-8d3f1dab66a3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Screens/Activities\Battle\Cards\Actions\ElecPulse">
+      <UniqueIdentifier>{410e46b7-f4c5-4330-b740-1e77475d8122}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1499,6 +1502,9 @@
     </ClCompile>
     <ClCompile Include="bnTextBox.cpp">
       <Filter>Prefabs\TextBox</Filter>
+    </ClCompile>
+    <ClCompile Include="bnElecPulseCardAction.cpp">
+      <Filter>Screens/Activities\Battle\Cards\Actions\ElecPulse</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2348,6 +2354,9 @@
     </ClInclude>
     <ClInclude Include="bnCachedResource.h">
       <Filter>GameEngine\ResourceManagers</Filter>
+    </ClInclude>
+    <ClInclude Include="bnElecPulseCardAction.h">
+      <Filter>Screens/Activities\Battle\Cards\Actions\ElecPulse</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

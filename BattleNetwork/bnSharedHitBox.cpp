@@ -12,6 +12,12 @@ SharedHitbox::SharedHitbox(Spell* owner, float duration) : owner(owner), Obstacl
   SetHealth(1);
   ShareTileSpace(true);
   SetHitboxProperties(owner->GetHitboxProperties());
+  keepAlive = (duration == 0.0f);
+
+  Entity::DeleteCallback& deleteHandler = owner->CreateDeleteCallback();
+  deleteHandler.Slot([this]() {
+      this->owner = nullptr;
+  });
 }
 
 SharedHitbox::~SharedHitbox() {
@@ -22,14 +28,18 @@ void SharedHitbox::OnUpdate(float _elapsed) {
   
   tile->AffectEntities(this);
   
-  if(cooldown <= 0.f || this->owner->IsDeleted()) {
-    this->Delete();
-  } else {
-	//tile->RemoveEntityByID(this->GetID());
-	//tile->AddEntity(*this);
+  if (this->owner) {
+      if (this->owner->IsDeleted()) {
+          this->Delete();
+      }
+      else if (!keepAlive && cooldown <= 0.f ) {
+          this->Delete();
+      }
   }
-  
-  Obstacle::Update(_elapsed);
+  else if (this->keepAlive) {
+      // If we are set to KeepAlive but the owner isn't set, delete
+      this->Delete();
+  }
 }
 
 bool SharedHitbox::Move(Direction _direction) {

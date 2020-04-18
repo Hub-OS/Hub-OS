@@ -13,7 +13,7 @@ ParticlePoof::ParticlePoof() : Artifact(nullptr)
   SetLayer(0);
   this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_POOF));
   this->setScale(2.f, 2.f);
-  poof = (sf::Sprite)*this;
+  poof = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -27,14 +27,14 @@ ParticlePoof::ParticlePoof() : Artifact(nullptr)
 
   animation << onEnd;
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
 }
 
 void ParticlePoof::OnUpdate(float _elapsed) {
   this->setPosition(this->GetTile()->getPosition());
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
   Entity::Update(_elapsed);
 }
 

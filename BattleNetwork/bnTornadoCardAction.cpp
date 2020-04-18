@@ -39,7 +39,7 @@ TornadoCardAction::~TornadoCardAction()
 void TornadoCardAction::Execute() {
   auto owner = GetOwner();
 
-  attachmentAnim.Update(0, *this->attachment);
+  attachmentAnim.Update(0, this->attachment->getSprite());
 
   auto team = GetOwner()->GetTeam();
   auto tile = GetOwner()->GetTile();
@@ -74,7 +74,7 @@ void TornadoCardAction::Execute() {
 void TornadoCardAction::OnUpdate(float _elapsed)
 {
   if (armIsOut) {
-    attachmentAnim.Update(_elapsed, *this->attachment);
+    attachmentAnim.Update(_elapsed, this->attachment->getSprite());
   }
 
   CardAction::OnUpdate(_elapsed);

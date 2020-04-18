@@ -271,6 +271,7 @@
     <ClCompile Include="bnDefenseInvis.cpp" />
     <ClCompile Include="bnDefenseVirusBody.cpp" />
     <ClCompile Include="bnElecpulse.cpp" />
+    <ClCompile Include="bnElecPulseCardAction.cpp" />
     <ClCompile Include="bnElecSwordCardAction.cpp" />
     <ClCompile Include="bnElementalDamage.cpp" />
     <ClCompile Include="bnEnemyCardsUI.cpp" />
@@ -451,6 +452,7 @@
     <ClInclude Include="bnCharacterDeletePublisher.h" />
     <ClInclude Include="bnCurrentTime.h" />
     <ClInclude Include="bnDefenseInvis.h" />
+    <ClInclude Include="bnElecPulseCardAction.h" />
     <ClInclude Include="bnLongSwordCardAction.h" />
     <ClInclude Include="bnMovement.h" />
     <ClInclude Include="bnParticleHeal.h" />

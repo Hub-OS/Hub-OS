@@ -245,7 +245,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
 
   navi.SetShader(pixelated);
 
-  ENGINE.Draw(navi);
+  ENGINE.Draw(navi, false);
 }
 
 void SelectNaviScene::onStart()
@@ -280,9 +280,9 @@ void SelectNaviScene::onUpdate(double elapsed) {
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
 
-  glowpadAnimator.Update((float)elapsed, glowpad);
+  glowpadAnimator.Update((float)elapsed, glowpad.getSprite());
 
-  naviAnimator.Update((float)elapsed, navi);
+  naviAnimator.Update((float)elapsed, navi.getSprite());
   bg->Update((float)elapsed);
 
   SelectedNavi prevSelect = naviSelectionIndex;

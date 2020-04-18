@@ -29,7 +29,7 @@ Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage
   hitCount = 0;
   attackCooldown = 0.60f;
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
@@ -82,7 +82,7 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
   hitCount = 0;
   attackCooldown = 0.60f; // est 2 frames
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
@@ -94,6 +94,12 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
   SetHitboxProperties(leader.GetHitboxProperties());
 
   this->leader = &leader;
+
+  Entity::DeleteCallback& deleteHandler = this->leader->CreateDeleteCallback();
+  deleteHandler.Slot([this]() {
+      if (this->target == this->leader) this->target = nullptr;
+      this->leader = nullptr;
+  });
 
   if (GetTeam() == Team::RED) {
     SetDirection(Direction::RIGHT);
@@ -112,12 +118,7 @@ void Bees::OnUpdate(float _elapsed) {
 
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 60.0f);
 
-  animation.Update(_elapsed, *this);
-  
-  if (leader && leader->IsDeleted()) {
-    leader = nullptr;
-    target = nullptr;
-  }
+  animation.Update(_elapsed, this->getSprite());
 
   // Find target if we don't have one
   if (!leader && !target) {
@@ -255,10 +256,5 @@ void Bees::Attack(Character* _entity) {
 
 void Bees::OnDelete()
 {
-  // TODO: cleanup hitboxes that were related to this
-  //for (auto iter = dropped.begin(); iter != dropped.end(); iter++) {
-  //  (*iter)->Delete();
-  //}
-
   dropped.clear();
 }

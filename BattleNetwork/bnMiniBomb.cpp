@@ -33,7 +33,7 @@ MiniBomb::MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
 
   start = startPos;
 
-  swoosh::game::setOrigin(*this, 0.5, 0.5);
+  swoosh::game::setOrigin(this->getSprite(), 0.5, 0.5);
   
   AUDIO.Play(AudioType::TOSS_ITEM);
 }

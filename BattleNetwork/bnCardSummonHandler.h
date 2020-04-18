@@ -202,7 +202,7 @@ public:
     if (summon == "Roll") {
       summonedBy->Hide();
 
-      Entity* roll = new RollHeal(this, copy.GetDamage());
+      Entity* roll = new RollHeal(this, queue.GetCard().GetDamage());
       SummonEntity(roll);
     } else if(summon == "ProtoMan") {
 		summonedBy->Hide();

@@ -2,6 +2,7 @@
 #include <time.h>
 
 #include "bnRollHeart.h"
+#include "bnParticleHeal.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnPlayer.h"
@@ -13,8 +14,8 @@
 RollHeart::RollHeart(CardSummonHandler* _summons, int _heal) : heal(_heal), Spell(_summons->GetCaller()->GetField(), _summons->GetCallerTeam())
 {
   summons = _summons;
-
-  summons->GetCaller()->Reveal();
+  caller = summons->GetCaller();
+  caller->Reveal();
 
   SetPassthrough(true);
 
@@ -43,7 +44,7 @@ RollHeart::~RollHeart() {
 void RollHeart::OnUpdate(float _elapsed) {
 
   if (tile != nullptr) {
-    setPosition(tile->getPosition().x + (tile->GetWidth() / 2.0f), tile->getPosition().y - height + (tile->GetHeight() / 2.0f));
+    setPosition(tile->getPosition().x, tile->getPosition().y - height);
   }
 
   height -= _elapsed * 150.f;
@@ -54,14 +55,10 @@ void RollHeart::OnUpdate(float _elapsed) {
     AUDIO.Play(AudioType::RECOVER);
     doOnce = false;
 
-    this->setColor(sf::Color(255, 255, 255, 0)); // hide
+    this->Delete();
     caller->SetHealth(caller->GetHealth() + heal);
-    
-    /*player->SetAnimation("PLAYER_HEAL", [this]() {
-      player->SetAnimation("PLAYER_IDLE", [this]() {
-        summons->RemoveEntity(this);
-      });
-    });*/
+    auto healfx = new ParticleHeal();
+    caller->GetField()->AddEntity(*healfx, tile->GetX(), tile->GetY());
   }
 }
 

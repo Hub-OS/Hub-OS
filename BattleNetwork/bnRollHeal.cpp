@@ -7,6 +7,7 @@
 #include "bnPlayer.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnHitBox.h"
 
 #include "bnCardSummonHandler.h"
 #include "bnRollHeart.h"
@@ -38,6 +39,11 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
+  auto props = Hit::DefaultProperties;
+  props.damage = heal;
+  props.flags |= Hit::recoil;
+  this->SetHitboxProperties(props);
+
   /**
    * This is very convoluted and will change with the card summon refactored
    * Essentially we nest callbacks
@@ -62,21 +68,20 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
 
       bool found = false;
 
-      Battle::Tile* next = nullptr;
       Battle::Tile* attack = nullptr;
 
       auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
       auto iter = allTiles.begin();
 
       while (iter != allTiles.end()) {
-        Battle::Tile* tile = (*iter);
+        Battle::Tile* next = (*iter);
 
         if (!found) {
           if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
             this->GetTile()->RemoveEntityByID(this->GetID());
 
             Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
-            prev->AddEntity(*this);
+            this->AdoptTile(prev);
 
             attack = next;
 
@@ -90,21 +95,21 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
       if (found) {
         this->animationComponent->SetAnimation("ROLL_ATTACKING", [this] {
           this->animationComponent->SetAnimation("ROLL_MOVE", [this] {
-            this->summons->SummonEntity(new RollHeart(this->summons, this->heal));
-            this->summons->RemoveEntity(this);
+            this->summons->SummonEntity(new RollHeart(this->summons, this->heal*3));
+            this->Delete();
           });
         });
 
         if (attack) {
-          this->animationComponent->AddCallback(4,  [this, attack]() { attack->AffectEntities(this); }, Animator::NoCallback, true);
-          this->animationComponent->AddCallback(12, [this, attack]() { attack->AffectEntities(this); }, Animator::NoCallback, true);
-          this->animationComponent->AddCallback(20, [this, attack]() { attack->AffectEntities(this); }, Animator::NoCallback, true);
+          this->animationComponent->AddCallback(4,  [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
+          this->animationComponent->AddCallback(12, [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
+          this->animationComponent->AddCallback(20, [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
         }
       }
       else {
         this->animationComponent->SetAnimation("ROLL_MOVE", [this] {
-          this->summons->SummonEntity(new RollHeart(this->summons, this->heal));
-          this->summons->RemoveEntity(this);
+          this->summons->SummonEntity(new RollHeart(this->summons, this->heal*3));
+          this->Delete();
         });
       }
     });
@@ -125,21 +130,16 @@ bool RollHeal::Move(Direction _direction) {
 }
 
 void RollHeal::Attack(Character* _entity) {
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
-    if (!_entity->IsPassthrough()) {
-      auto props = Hit::DefaultProperties;
-      props.damage = heal;
-      _entity->Hit(props);
+    // Old code went here
+}
 
-      int i = 1;
-
-      if (rand() % 2 == 0) i = -1;
-
-      if (_entity) {
-        _entity->setPosition(_entity->getPosition().x + (i*(rand() % 4)), _entity->getPosition().y + (i*(rand() % 4)));
-      }
-
-      AUDIO.Play(AudioType::HURT);
-    }
-  }
+void RollHeal::DropHitbox(Battle::Tile* target)
+{   
+    auto hitbox = new Hitbox(GetField(), GetTeam());
+    hitbox->HighlightTile(Battle::Tile::Highlight::solid);
+    hitbox->SetHitboxProperties(GetHitboxProperties());
+    hitbox->AddCallback([](Character* hit) {
+        AUDIO.Play(AudioType::HURT);
+    });
+    GetField()->AddEntity(*hitbox, *target);
 }

@@ -1,10 +1,8 @@
 #pragma once
 #include <vector>
-#include <iostream>
-
+#include <map>
+using std::map;
 using std::vector;
-using std::cout;
-using std::endl;
 
 #include "bnEntity.h"
 #include "bnCharacterDeletePublisher.h"
@@ -136,7 +134,28 @@ public:
   * @param pointer to the tile 
   * @param ID long ID references the entity
   */
-  void TileRequestsRemovalOfQueued(Battle::Tile*, long ID);
+  void TileRequestsRemovalOfQueued(Battle::Tile*, Entity::ID_t ID);
+
+  /**
+  * @brief Entities will be added to the field during battle such as spells
+  * 
+  * In attempt to be frame-accurate to the original source material, all 
+  * entities added on some frame N need to be spawned at the end of that frame
+  */
+  void SpawnPendingEntities();
+
+  /**
+  * @brief Prevent duplicate update calls for a given entity during one update tick
+  *
+  * Because entities update on a per-tile basis, we need to ensure an entity spanning multiple tiles
+  * Is only ever updated once.
+  */
+  void UpdateEntityOnce(Entity* entity, const float elapsed);
+
+  /**
+  * @brief removes the ID from allEntityHash
+  */
+  void ForgetEntity(Entity::ID_t ID);
 
 private:
 
@@ -146,10 +165,13 @@ private:
   int height; /*!< rows */
   bool isUpdating; /*!< enqueue entities if added in the update loop */
 
+  // Since we don't want to invalidate our entity lists while updating,
+  // we create a pending queue of entities and tag them by type so later
+  // we can add them into play
   struct queueBucket {
     int x;
     int y;
-    long ID;
+    Entity::ID_t ID;
 
     enum class type : int {
       character,
@@ -166,17 +188,13 @@ private:
     } data;
 
     queueBucket(int x, int y, Character& d);
-
     queueBucket(int x, int y, Obstacle& d);
-
     queueBucket(int x, int y, Artifact& d);
-
     queueBucket(int x, int y, Spell& d);
-
     queueBucket(const queueBucket& rhs) = default;
   };
-
+  map<Entity::ID_t, Entity*> allEntityHash; /*!< Quick lookup of entities on the field */
+  map<Entity::ID_t, void*> updatedEntities; /*!< Since entities can be shared across tiles, prevent multiple updates*/
   vector<queueBucket> pending;
-
   vector<vector<Battle::Tile*>> tiles; /*!< Nested vector to make calls via tiles[x][y] */
 };

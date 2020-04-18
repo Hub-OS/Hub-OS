@@ -94,7 +94,7 @@ private:
       this->SetHealth(base->GetHealth());
 
       auto baseOffset = base->GetFirstComponent<AnimationComponent>()->GetPoint("head");
-      auto origin = base->operator sf::Sprite &().getOrigin();
+      auto origin = base->getSprite().getOrigin();
 
       // transform from sprite space to world space -- scale by 2
       baseOffset = baseOffset - origin;

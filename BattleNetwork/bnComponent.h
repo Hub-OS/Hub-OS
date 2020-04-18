@@ -13,10 +13,12 @@ class BattleScene;
  * This allows for custom behavior on pre-existing effects, characters, and attacks
  */
 class Component {
+public:
+  using ID_t = long;
 private:
   Entity* owner; /*!< Who the component is attached to */
   static long numOfComponents; /*!< Resource counter to generate new IDs */
-  long ID; /*!< ID for quick lookups, resource management, and scripting */
+  ID_t ID; /*!< ID for quick lookups, resource management, and scripting */
 
 public:
   Component() = delete;
@@ -56,7 +58,7 @@ public:
    * @brief Get the Id of the component
    * @return ID
    */
-  const long GetID() const { return ID; }
+  const ID_t GetID() const { return ID; }
 
   /**
    * @brief Update must be implemented by child class

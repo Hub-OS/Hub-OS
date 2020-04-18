@@ -13,7 +13,7 @@ RingExplosion::RingExplosion(Field* field) : Artifact(field)
   SetLayer(0);
   this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_RING_EXPLOSION));
   this->setScale(2.f, 2.f);
-  poof = (sf::Sprite)*this;
+  poof = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -29,14 +29,14 @@ RingExplosion::RingExplosion(Field* field) : Artifact(field)
 
   animation << onEnd;
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
 }
 
 void RingExplosion::OnUpdate(float _elapsed) {
   this->setPosition(this->GetTile()->getPosition());
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
   Entity::Update(_elapsed);
 }
 

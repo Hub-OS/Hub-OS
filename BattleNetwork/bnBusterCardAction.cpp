@@ -37,10 +37,10 @@ void BusterCardAction::Execute() {
 
   owner->AddNode(this->attachment2);
   attachment2->AddNode(this->attachment);
-  attachmentAnim.Update(0, *this->attachment);
+  attachmentAnim.Update(0, this->attachment->getSprite());
 
   this->attachment2->EnableParentShader(true);
-  attachmentAnim2.Update(0, *this->attachment2);
+  attachmentAnim2.Update(0, this->attachment2->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
@@ -50,7 +50,7 @@ void BusterCardAction::Execute() {
     b->SetHitboxProperties(props);
 
     isBusterAlive = true;
-    auto& busterRemoved = b->CreateDeleteCallback();
+    Entity::DeleteCallback& busterRemoved = b->CreateDeleteCallback();
     busterRemoved.Slot([this]() {
       isBusterAlive = false;
     });
@@ -78,8 +78,8 @@ void BusterCardAction::OnUpdate(float _elapsed)
   if (attachment) {
     CardAction::OnUpdate(_elapsed);
 
-    attachmentAnim2.Update(_elapsed, *this->attachment2);
-    attachmentAnim.Update(_elapsed, *this->attachment);
+    attachmentAnim2.Update(_elapsed, this->attachment2->getSprite());
+    attachmentAnim.Update(_elapsed, this->attachment->getSprite());
 
     // update node position in the animation
     auto baseOffset = attachmentAnim2.GetPoint("endpoint");

@@ -13,7 +13,7 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : Artifact(nullptr)
   SetLayer(0);
   this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_IMPACT_FX));
   this->setScale(2.f, 2.f);
-  fx = (sf::Sprite)*this;
+  fx = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -45,7 +45,7 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : Artifact(nullptr)
 
   animation << onEnd;
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
 }
 
@@ -56,7 +56,7 @@ void ParticleImpact::OnSpawn(Battle::Tile& tile) {
 }
 
 void ParticleImpact::OnUpdate(float _elapsed) {
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
   Entity::Update(_elapsed);
 
   this->setPosition(this->GetTile()->getPosition() + tileOffset + randOffset);

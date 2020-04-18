@@ -14,7 +14,7 @@ ElementalDamage::ElementalDamage(Field* field) : Artifact(field), animationCompo
   SetLayer(0);
   setTexture(LOAD_TEXTURE(ELEMENT_ALERT));
   setScale(0.f, 0.0f);
-  swoosh::game::setOrigin(*this, 0.5, 0.5);
+  swoosh::game::setOrigin(this->getSprite(), 0.5, 0.5);
   progress = 0;
 }
 

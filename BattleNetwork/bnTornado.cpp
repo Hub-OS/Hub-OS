@@ -19,7 +19,7 @@ Tornado::Tornado(Field* _field, Team _team, int damage) : damage(damage), Spell(
   animation = Animation("resources/spells/spell_tornado.animation");
   animation.SetAnimation("DEFAULT");
   animation << onFinish;
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
   this->HighlightTile(Battle::Tile::Highlight::solid);
 
@@ -37,7 +37,7 @@ Tornado::~Tornado() {
 void Tornado::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
 
   tile->AffectEntities(this);
 }

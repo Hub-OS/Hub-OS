@@ -18,6 +18,7 @@
 #include "bnCrackShotCardAction.h"
 #include "bnRecoverCardAction.h"
 #include "bnThunderCardAction.h"
+#include "bnElecPulseCardAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
@@ -140,16 +141,8 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
     player->QueueAction(action);
   }
   else if (name == "ElcPuls1") {
-    // Spawn an elecpulse attack
-    auto onFinish = [this]() { this->player->SetAnimation(PLAYER_IDLE);  };
-
-    player->SetAnimation(PLAYER_SHOOTING, onFinish);
-
-    Elecpulse* pulse = new Elecpulse(player->GetField(), player->GetTeam(), card.GetDamage());
-
-    AUDIO.Play(AudioType::ELECPULSE);
-
-    player->GetField()->AddEntity(*pulse, player->GetTile()->GetX() + 1, player->GetTile()->GetY());
+    auto action = new ElecPulseCardAction(player, card.GetDamage());
+    player->QueueAction(action);
   }
   else if (name == "LongSwrd") {
     auto action = new LongSwordCardAction(player, card.GetDamage());

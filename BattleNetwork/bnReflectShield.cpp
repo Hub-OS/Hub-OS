@@ -14,7 +14,7 @@ ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Art
   SetLayer(0);
   this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
   this->setScale(2.f, 2.f);
-  shield = (sf::Sprite)*this;
+  shield = getSprite();
   activated = false;
 
   //Components setup and load
@@ -40,7 +40,7 @@ ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Art
   // This way the owner doesn't container a pointer to an invalid address
   animation << Animator::On(5, onEnd, true) << [this]() { this->Delete(); this->GetOwner()->FreeComponentByID(this->Component::GetID()); };
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
   // Add the defense rule to the owner
   owner->AddDefenseRule(guard);
@@ -55,7 +55,7 @@ void ReflectShield::OnUpdate(float _elapsed) {
 
   this->setPosition(this->GetTile()->getPosition());
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
 }
 
 void ReflectShield::DoReflect(Spell* in, Character* owner)

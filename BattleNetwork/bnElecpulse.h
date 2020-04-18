@@ -11,15 +11,17 @@
 class Elecpulse : public Spell {
 public:
   Elecpulse(Field* _field, Team _team, int damage);
-  virtual ~Elecpulse();
+  ~Elecpulse();
 
-  virtual void OnUpdate(float _elapsed);
-  virtual bool Move(Direction _direction);
-  virtual void Attack(Character* _entity);
+  void OnSpawn(Battle::Tile& start) override;
+  void OnUpdate(float _elapsed) override;
+  bool Move(Direction _direction) override;
+  void Attack(Character* _entity) override;
 
 private:
   int damage;
   int random;
   float cooldown, progress;
   AnimationComponent* animation;
+  std::list<int> taggedCharacters; //< We share a hit box, don't attack these
 };

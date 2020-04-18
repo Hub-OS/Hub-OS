@@ -26,7 +26,7 @@ void AnimationComponent::OnUpdate(float _elapsed)
     return;
   }
 
-  animation.Update(_elapsed, *GetOwner(), speed);
+  animation.Update(_elapsed, GetOwner()->getSprite(), speed);
 }
 
 void AnimationComponent::SetPath(string _path)
@@ -75,8 +75,7 @@ void AnimationComponent::SetAnimation(string state, std::function<void()> onFini
   animation.SetAnimation(state);
   animation << onFinish;
 
-  // TODO: why does this cancel callbacks?
-  //animation.Refresh(*GetOwner());
+  animation.Refresh(GetOwner()->getSprite());
 }
 
 void AnimationComponent::SetAnimation(string state, char playbackMode, std::function<void()> onFinish)
@@ -84,8 +83,7 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, std::func
   animation.SetAnimation(state);
   animation << playbackMode << onFinish;
 
-  // TODO: why does this cancel callbacks?
-  //animation.Refresh(*GetOwner());
+  animation.Refresh(GetOwner()->getSprite());
 }
 
 void AnimationComponent::SetPlaybackMode(char playbackMode)
@@ -154,5 +152,5 @@ void AnimationComponent::RemoveFromOverrideList(Animation * other)
 
 void AnimationComponent::SetFrame(const int index)
 {
-  animation.SetFrame(index, *GetOwner());
+  animation.SetFrame(index, GetOwner()->getSprite());
 }

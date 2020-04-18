@@ -43,11 +43,11 @@ Meteor::~Meteor() {
 void Meteor::OnUpdate(float _elapsed) {
   if (GetTeam() == Team::BLUE) {
     setScale(-2.f, 2.f);
-    swoosh::game::setOrigin(*this, 1.0, 1.0);
+    swoosh::game::setOrigin(this->getSprite(), 1.0, 1.0);
   }
   else {
     setScale(2.f, 2.f);
-    swoosh::game::setOrigin(*this, 0.0, 1.0);
+    swoosh::game::setOrigin(this->getSprite(), 0.0, 1.0);
   }
 
   double beta = swoosh::ease::linear(progress, duration, 1.0);

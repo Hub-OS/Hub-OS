@@ -15,7 +15,7 @@ RockDebris::RockDebris(RockDebris::Type type, double intensity) : Artifact(nullp
   SetLayer(0);
   this->setTexture(TEXTURES.GetTexture(TextureType::MISC_CUBE));
   this->setScale(2.f, 2.f);
-  rightRock = (sf::Sprite)*this;
+  rightRock = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -24,12 +24,12 @@ RockDebris::RockDebris(RockDebris::Type type, double intensity) : Artifact(nullp
   if (type == RockDebris::Type::LEFT_ICE || type == RockDebris::Type::RIGHT_ICE) {
     animation.SetAnimation("ICE_DEBRIS");
 
-    animation.SetFrame((int)type-2, *this);
+    animation.SetFrame((int)type-2, getSprite());
   }
   else {
     animation.SetAnimation("DEBRIS");
 
-    animation.SetFrame((int)type, *this);
+    animation.SetFrame((int)type, getSprite());
   }
 }
 

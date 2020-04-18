@@ -17,6 +17,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <functional>
 using std::string;
 
 #include "bnAnimation.h"
@@ -36,15 +37,18 @@ class Field;
 class BattleScene; // forward decl
 
 class Entity : public SpriteProxyNode {
+public:
+  using ID_t = long;
+
   friend class Field;
   friend class Component;
   friend class BattleScene;
 
 private:
-  long ID;              /*!< IDs are used for tagging during battle & to identify entities in scripting. */
+  ID_t ID;              /*!< IDs are used for tagging during battle & to identify entities in scripting. */
   static long numOfIDs; /*!< Internal counter to identify the next entity with. */
   int alpha;            /*!< Control the transparency of an entity. */
-  long lastComponentID; /*!< Entities keep track of new components to run through scene injection later. */
+  Component::ID_t lastComponentID; /*!< Entities keep track of new components to run through scene injection later. */
   bool hasSpawned;      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
   float height;         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection*/
 public:
@@ -112,7 +116,7 @@ public:
    * @brief Entity's ID
    * @return ID 
    */
-  const long GetID() const;
+  const ID_t GetID() const;
 
   /**
    * @brief Checks to see if the input team is friendly 
@@ -252,7 +256,7 @@ public:
   * @brief Builds and returns a reference to a callback function of type void()
   * Useful for safely determining the lifetime of another entity in play
   */
-  DeleteCallback& CreateDeleteCallback();
+  std::reference_wrapper<DeleteCallback> CreateDeleteCallback();
   
   /**
    * @brief Query if an entity has been deleted but not removed this frame
@@ -364,7 +368,7 @@ public:
    * @brief Frees one component with the same ID
    * @param ID ID of the component to remove
    */
-  void FreeComponentByID(long ID);
+  void FreeComponentByID(Component::ID_t ID);
 
   /**
    * @brief Hit height ca be overwritten to deduce from sprite bounds

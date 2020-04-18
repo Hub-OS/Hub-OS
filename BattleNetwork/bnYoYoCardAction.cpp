@@ -37,7 +37,7 @@ void YoYoCardAction::Execute() {
   auto owner = GetOwner();
 
   owner->AddNode(this->attachment);
-  attachmentAnim.Update(0, *this->attachment);
+  attachmentAnim.Update(0, this->attachment->getSprite());
 
   yoyo = nullptr;
 
@@ -59,7 +59,7 @@ void YoYoCardAction::Execute() {
 
 void YoYoCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, *this->attachment);
+  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 
   if (yoyo && yoyo->IsDeleted()) {

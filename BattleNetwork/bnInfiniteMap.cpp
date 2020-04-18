@@ -106,7 +106,7 @@ namespace Overworld {
       switch (npc->type) {
       case NPCType::MR_PROG_DOWN:
       {
-        animator(total, npc->sprite, progAnimations.GetFrameList("PROG_DR"));
+        animator(total, npc->sprite.getSprite(), progAnimations.GetFrameList("PROG_DR"));
 
         sf::Vector2f newPos = npc->sprite.getPosition();
         npc->sprite.setPosition(newPos);
@@ -114,12 +114,12 @@ namespace Overworld {
       break;
       case NPCType::MR_PROG_LEFT:
       {
-        animator(total, npc->sprite, progAnimations.GetFrameList("PROG_UR"));
+        animator(total, npc->sprite.getSprite(), progAnimations.GetFrameList("PROG_UR"));
       }
       break;
       case NPCType::MR_PROG_RIGHT:
       {
-        animator(total, npc->sprite, progAnimations.GetFrameList("PROG_DR"));
+        animator(total, npc->sprite.getSprite(), progAnimations.GetFrameList("PROG_DR"));
         npc->sprite.setScale(-1.0f, 1.0f);
         
         // sf::Vector2f newPos = npc->sprite.getPosition();
@@ -129,23 +129,23 @@ namespace Overworld {
       break;
       case NPCType::MR_PROG_UP:
       {
-        animator(total, npc->sprite, progAnimations.GetFrameList("PROG_UR"));
+        animator(total, npc->sprite.getSprite(), progAnimations.GetFrameList("PROG_UR"));
 
       }
       break;
       case NPCType::MR_PROG_FIRE:
       {
-        animator(total, npc->sprite, progAnimations.GetFrameList("PROG_DR_FIRE"));
+        animator(total, npc->sprite.getSprite(), progAnimations.GetFrameList("PROG_DR_FIRE"));
       }
       break;
       case NPCType::NUMBERMAN_DANCE:
       {
-        animator(total, npc->sprite, numbermanAnimations.GetFrameList("NUMBERMAN_DANCE"));
+        animator(total, npc->sprite.getSprite(), numbermanAnimations.GetFrameList("NUMBERMAN_DANCE"));
       }
       break;
       case NPCType::NUMBERMAN_DOWN:
       {
-        animator(total, npc->sprite, numbermanAnimations.GetFrameList("NUMBERMAN_IDLE_DR"));
+        animator(total, npc->sprite.getSprite(), numbermanAnimations.GetFrameList("NUMBERMAN_IDLE_DR"));
       }
       break;
       }

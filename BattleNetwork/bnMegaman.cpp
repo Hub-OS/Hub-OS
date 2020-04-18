@@ -108,7 +108,7 @@ void TenguCross::OnDeactivate(Player & player)
 void TenguCross::OnUpdate(float elapsed, Player& player)
 {
   parentAnim->SyncAnimation(overlayAnimation);
-  overlayAnimation.Refresh(*overlay);
+  overlayAnimation.Refresh(overlay->getSprite());
 
   overlay->setColor(player.getColor());
 
@@ -186,11 +186,11 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
   overlay->setColor(player.getColor());
 
   parentAnim->SyncAnimation(overlayAnimation);
-  overlayAnimation.Refresh(*overlay);
+  overlayAnimation.Refresh(overlay->getSprite());
 
   // update node position in the animation
   auto baseOffset = parentAnim->GetPoint("Head");
-  auto origin = player.operator sf::Sprite &().getOrigin();
+  auto origin = player.getSprite().getOrigin();
   baseOffset = baseOffset - origin;
 
   overlay->setPosition(baseOffset);
@@ -241,6 +241,7 @@ void TomahawkCross::OnActivate(Player& player)
   player.AddNode(overlay);
 
   parentAnim->AddToOverrideList(&overlayAnimation);
+  player.SetAirShoe(true);
 
 }
 
@@ -251,7 +252,7 @@ void TomahawkCross::OnDeactivate(Player & player)
   pswap->Revert();
 
   parentAnim->RemoveFromOverrideList(&overlayAnimation);
-
+  player.SetAirShoe(false);
 }
 
 void TomahawkCross::OnUpdate(float elapsed, Player& player)
@@ -259,11 +260,11 @@ void TomahawkCross::OnUpdate(float elapsed, Player& player)
   overlay->setColor(player.getColor());
 
   parentAnim->SyncAnimation(overlayAnimation);
-  overlayAnimation.Refresh(*overlay);
+  overlayAnimation.Refresh(overlay->getSprite());
 
   // update node position in the animation
   auto baseOffset = parentAnim->GetPoint("Head");
-  auto origin = player.operator sf::Sprite &().getOrigin();
+  auto origin = player.getSprite().getOrigin();
   baseOffset = baseOffset - origin;
 
   overlay->setPosition(baseOffset);
@@ -306,7 +307,7 @@ TenguCross::SpecialAction::~SpecialAction()
 void TenguCross::SpecialAction::OnUpdate(float _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
-  attachmentAnim.Update(_elapsed, *this->attachment);
+  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
 }
 
 void TenguCross::SpecialAction::Execute()
@@ -316,7 +317,7 @@ void TenguCross::SpecialAction::Execute()
   auto field = owner->GetField();
 
   owner->AddNode(this->attachment);
-  attachmentAnim.Update(0, *this->attachment);
+  attachmentAnim.Update(0, this->attachment->getSprite());
 
   // On throw frame, spawn projectile
   auto onThrow = [this, owner, team, field]() -> void {

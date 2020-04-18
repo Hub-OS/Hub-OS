@@ -27,7 +27,7 @@ BubbleTrap::BubbleTrap(Character* owner) : Artifact(nullptr), Component(owner)
   SetLayer(1);
   this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_BUBBLE_TRAP));
   this->setScale(2.f, 2.f);
-  bubble = (sf::Sprite)*this;
+  bubble = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -35,7 +35,7 @@ BubbleTrap::BubbleTrap(Character* owner) : Artifact(nullptr), Component(owner)
 
   animation << "DEFAULT" << Animator::Mode::Loop;
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
   duration = 4; // seconds
 }
@@ -57,7 +57,7 @@ void BubbleTrap::OnUpdate(float _elapsed) {
   auto y = this->GetOwner()->getPosition().y - (this->GetOwnerAs<Character>()->GetHeight()/2.0f / 2.0f);
   this->setPosition(x, y);
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
 }
 
 void BubbleTrap::Pop()

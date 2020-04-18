@@ -37,7 +37,7 @@ void FireBurnCardAction::Execute() {
   auto owner = GetOwner();
 
   owner->AddNode(this->attachment);
-  attachmentAnim.Update(0, *this->attachment);
+  attachmentAnim.Update(0, this->attachment->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner](int offset) -> void {
@@ -67,7 +67,7 @@ void FireBurnCardAction::Execute() {
 
 void FireBurnCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, *this->attachment);
+  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 

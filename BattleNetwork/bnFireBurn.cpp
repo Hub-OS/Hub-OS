@@ -29,7 +29,7 @@ FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(da
   }
 
   animation << onFinish;
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
   this->HighlightTile(Battle::Tile::Highlight::solid);
 
@@ -48,7 +48,7 @@ void FireBurn::OnUpdate(float _elapsed) {
   auto xoffset = 38.0f; // the flames come out a little from the origin
   setPosition(tile->getPosition().x + xoffset, tile->getPosition().y);
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
 
   // crack the tile it is on
   GetTile()->SetState(TileState::CRACKED);

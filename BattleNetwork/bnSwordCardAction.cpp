@@ -56,11 +56,11 @@ SwordCardAction::~SwordCardAction()
 void SwordCardAction::Execute() {
   auto owner = GetOwner();
   owner->AddNode(this->hiltAttachment);
-  hiltAttachmentAnim.Update(0, *this->hiltAttachment);
+  hiltAttachmentAnim.Update(0, this->hiltAttachment->getSprite());
   this->hiltAttachment->EnableParentShader(true);
 
   hiltAttachment->AddNode(attachment);
-  attachmentAnim.Update(0, *this->attachment);
+  attachmentAnim.Update(0, this->attachment->getSprite());
 
   // On attack frame, drop sword hitbox
   auto onTrigger = [this, owner]() -> void {
@@ -106,8 +106,8 @@ const Element SwordCardAction::GetElement() const
 
 void SwordCardAction::OnUpdate(float _elapsed)
 {
-  hiltAttachmentAnim.Update(_elapsed, *this->hiltAttachment);
-  attachmentAnim.Update(_elapsed, *this->attachment);
+  hiltAttachmentAnim.Update(_elapsed, this->hiltAttachment->getSprite());
+  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
 
   // update node position in the animation:
   // Position the hilt

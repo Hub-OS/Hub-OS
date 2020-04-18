@@ -206,8 +206,6 @@ const bool Character::Hit(Hit::Properties props) {
   // Add to status queue for state resolution
   this->statusQueue.push(props);
 
-  Logger::Log("pushing states");
-
   return true;
 }
 

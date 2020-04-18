@@ -9,7 +9,7 @@ Wind::Wind(Field* _field, Team _team) :Spell(_field, _team) {
   SetDirection(_team == Team::BLUE ? Direction::RIGHT : Direction::LEFT);
 
   setTexture(LOAD_TEXTURE(SPELL_WIND));
-  swoosh::game::setOrigin(*this, 0.8, 0.8);
+  swoosh::game::setOrigin(this->getSprite(), 0.8, 0.8);
   setScale(-2.f, 2.f);
 }
 

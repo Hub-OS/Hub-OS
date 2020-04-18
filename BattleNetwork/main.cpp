@@ -631,7 +631,7 @@ int main(int argc, char** argv) {
         if (progs) {
             // Animator the prog character at the title screen
             // and draw him if we have it loaded
-            animator(progAnimProgress, progSprite, progAnim);
+            animator(progAnimProgress, progSprite.getSprite(), progAnim);
             ENGINE.Draw(&progSprite);
             ENGINE.Draw(&logoSprite);
 

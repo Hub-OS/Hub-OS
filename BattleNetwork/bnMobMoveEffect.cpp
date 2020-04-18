@@ -13,7 +13,7 @@ MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
   SetLayer(-1);
   this->setTexture(TEXTURES.GetTexture(TextureType::MOB_MOVE));
   this->setScale(2.f, 2.f);
-  move = (sf::Sprite)*this;
+  move = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -27,14 +27,14 @@ MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
 
   animation << onEnd;
 
-  animation.Update(0, *this);
+  animation.Update(0, this->getSprite());
 
 }
 
 void MobMoveEffect::OnUpdate(float _elapsed) {
   this->setPosition(this->GetTile()->getPosition());
 
-  animation.Update(_elapsed, *this);
+  animation.Update(_elapsed, this->getSprite());
   //Entity::Update(_elapsed);
 }
 

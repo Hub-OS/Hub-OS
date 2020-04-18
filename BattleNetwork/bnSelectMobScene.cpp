@@ -118,7 +118,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   this->elapsed += elapsed;
 
   // multiplying update by 2 effectively sets playback speed to 200%
-  navigatorAnimator.Update(float(elapsed*2.0), navigator);
+  navigatorAnimator.Update(float(elapsed*2.0), navigator.getSprite());
 
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
@@ -472,7 +472,7 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
     mobSpr.setOrigin(mobSpr.getTextureRect().width / 2.f, mobSpr.getTextureRect().height / 2.f);
 
     mobSpr.SetShader(shader);
-    ENGINE.Draw(mobSpr);
+    ENGINE.Draw(mobSpr, false);
   }
 
   ENGINE.Draw(textbox);
