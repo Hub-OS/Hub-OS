@@ -455,6 +455,7 @@
     <ClInclude Include="bnElecPulseCardAction.h" />
     <ClInclude Include="bnLongSwordCardAction.h" />
     <ClInclude Include="bnMovement.h" />
+    <ClInclude Include="bnNaviWhiteoutState.h" />
     <ClInclude Include="bnParticleHeal.h" />
     <ClInclude Include="bnAIPriorityLock.h" />
     <ClInclude Include="AlphaBossSpawnPolicy.h" />

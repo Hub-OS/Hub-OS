@@ -75,8 +75,6 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   // based on a fraction of the current frame's size
   auto area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height / 6.0f);
 
-  // Logger::Log("explosion area: " + std::to_string(area.x) + ", " + std::to_string(area.y));
-
   ((Explosion*)explosion)->SetOffsetArea(area);
   field->AddEntity(*(Artifact*)explosion, tile->GetX(), tile->GetY());
 

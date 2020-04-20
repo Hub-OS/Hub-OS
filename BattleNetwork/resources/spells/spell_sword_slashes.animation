@@ -1,9 +1,9 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/spell_sword_slashes.png"
+imagePath="spell_sword_slashes.png"
 
 animation state="WIDE"
-frame duration="0.05" x="146" y="5" w="47" h="75" originx="0" originy="0"
-frame duration="0.05" x="199" y="5" w="30" h="58" originx="0" originy="0"
-frame duration="0.05" x="236" y="4" w="29" h="30" originx="0" originy="0"
+frame duration="0.05" x="146" y="5" w="47" h="75" originx="23" originy="24"
+frame duration="0.05" x="199" y="5" w="30" h="58" originx="7" originy="24"
+frame duration="0.05" x="236" y="4" w="29" h="30" originx="7" originy="25"
 
 animation state="LONG"
 frame duration="0.05" x="107" y="88" w="75" h="45" originx="0" originy="0"

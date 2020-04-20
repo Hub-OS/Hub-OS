@@ -407,7 +407,6 @@ void BattleScene::OnDeleteEvent(Character & pending)
   // Track if player is being deleted
   if (!isPlayerDeleted && player == &pending) {
     isPlayerDeleted = true;
-    AUDIO.Play(AudioType::DELETED);
     player = nullptr;
   }
 

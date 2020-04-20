@@ -2358,6 +2358,9 @@
     <ClInclude Include="bnElecPulseCardAction.h">
       <Filter>Screens/Activities\Battle\Cards\Actions\ElecPulse</Filter>
     </ClInclude>
+    <ClInclude Include="bnNaviWhiteoutState.h">
+      <Filter>Screens/Activities\Battle\AI\Any\States</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BattleNetwork.rc" />

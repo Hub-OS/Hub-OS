@@ -21,6 +21,7 @@ protected:
   ShineExplosion* shine; /*!< Shine X that appears over navi ranked enemies */
 
 public:
+  inline static const int PriorityLevel = 0; // Highest
 
   /**
    * @brief Constructor

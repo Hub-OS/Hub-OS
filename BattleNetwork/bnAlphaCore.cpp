@@ -366,14 +366,15 @@ AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : Defens
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 
 const bool AlphaCore::AlphaCoreDefenseRule::Blocks(Spell* in, Character* owner) {
-  if (static_cast<AlphaCore*>(owner)->impervious) {  return true; }
-
-  if (alphaCoreHP <= 0) return false;
+  AlphaCore* alpha = static_cast<AlphaCore*>(owner);
+  if (alpha->impervious) {  return true; }
 
   alphaCoreHP -= in->GetHitboxProperties().damage;
   alphaCoreHP = std::max(0, alphaCoreHP);
 
-  return true;
+  // Combat damage happens in real time, however during TFC the core
+  // should protect Alpha until it is able to changed to its exposed state
+  return (alpha->animationComponent->GetAnimationString() != "CORE_EXPOSED");
 }
 
 Hit::Properties & AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties & statuses)

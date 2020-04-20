@@ -1,5 +1,5 @@
 #include "bnPlayer.h"
-#include "bnNaviExplodeState.h"
+#include "bnNaviWhiteoutState.h"
 #include "bnField.h"
 #include "bnBusterCardAction.h"
 #include "bnTextureResourceManager.h"
@@ -58,6 +58,8 @@ void Player::OnUpdate(float _elapsed) {
     setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
   }
 
+
+  // TODO: is there a way to have custom states and respond to them?
   if (GetFirstComponent<BubbleTrap>()) {
     this->ChangeState<BubbleState<Player>>();
   }
@@ -96,7 +98,7 @@ void Player::OnDelete() {
       animationComponent->SetAnimation(PLAYER_HIT);
   }
 
-  this->ChangeState<NaviExplodeState<Player>>();
+  this->ChangeState<NaviWhiteoutState<Player>>();
 }
 
 const float Player::GetHeight() const

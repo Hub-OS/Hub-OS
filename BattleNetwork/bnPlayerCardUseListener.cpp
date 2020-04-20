@@ -60,7 +60,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
     // Add the component to player
     player->RegisterComponent(invis);
   }
-  else if (name == "Rflctr1") {
+  else if (name.substr(0,7) == "Rflectr") {
     auto action = new ReflectCardAction(player, card.GetDamage());
     player->QueueAction(action);
   }
