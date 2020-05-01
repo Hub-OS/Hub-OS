@@ -23,6 +23,11 @@ using std::vector;
  */
 class Engine {
 public:
+  enum class WindowMode : int {
+    window,
+    fullscreen
+  };
+
   friend class ActivityManager;
 
   /**
@@ -33,8 +38,10 @@ public:
   
   /**
    * @brief Creates an SFML window and sets the icon
+   * @param fullscreen. If false, the game launches in windowed mode.
+   * @warning on mobile the activity is always the full window regardless of mode.
    */
-  void Initialize();
+  void Initialize(WindowMode);
   
   /**
    * @brief Draw an sf::Drawable through the engine pipeline

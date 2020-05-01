@@ -18,24 +18,24 @@ protected:
 
 public:
   Thunder(Field* _field, Team _team);
-  virtual ~Thunder(void);
+  ~Thunder();
   
   /**
    * @brief Thunder can always move to a tile no matter the conditions
    * @param tile
    * @return Always returns true
    */
-  virtual bool CanMoveTo(Battle::Tile* tile);
+  bool CanMoveTo(Battle::Tile* tile) override;
   
   /**
    * @brief If target is null, query the field for all character enemies and track the closest one
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Attacks enemy entities. If succesful, thunder is deleted.
    * @param _entity character to attack
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
 }; 

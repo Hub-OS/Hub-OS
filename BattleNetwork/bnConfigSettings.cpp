@@ -14,6 +14,11 @@ const bool ConfigSettings::IsOK() const { return isOK; }
  */
 const bool ConfigSettings::IsAudioEnabled() const { return (musicLevel || sfxLevel); }
 
+const bool ConfigSettings::IsFullscreen() const
+{
+    return fullscreen;
+}
+
 const int ConfigSettings::GetMusicLevel() const { return musicLevel; }
 
 const int ConfigSettings::GetSFXLevel() const { return sfxLevel; }
@@ -111,6 +116,7 @@ ConfigSettings & ConfigSettings::operator=(const ConfigSettings& rhs)
     this->sfxLevel = rhs.sfxLevel;
     this->isOK = rhs.isOK;
     this->keyboard = rhs.keyboard;
+    this->fullscreen = rhs.fullscreen;
     return *this;
 }
 
@@ -143,6 +149,7 @@ ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
     this->sfxLevel = rhs.sfxLevel;
     this->isOK = rhs.isOK;
     this->keyboard = rhs.keyboard;
+    this->fullscreen = rhs.fullscreen;
 }
 
 ConfigSettings::ConfigSettings()

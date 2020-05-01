@@ -27,10 +27,9 @@ public:
     sf::Sprite symbol; /*!< The net navi's symbol */
     std::string special; /*!< The net navi's special description */
     std::string overworldAnimationPath; /*!< The net navi's overworld animation */
-    std::string battleAnimationPath; /*!< The net navi's battle animation */
     std::string name; /*!< The net navi's name */
     std::shared_ptr<sf::Texture> overworldTexture; /*!< Texture of overworld animation */
-    std::shared_ptr<sf::Texture> battleTexture; /*!< Texture of the battle animation */
+    std::shared_ptr<sf::Texture> previewTexture; /*!< Roster profile picture */
     int atk; /*!< Attack level of the net navi */
     int chargedAtk; /*!< Charged attack level of the net navi */
     double speed; /*!< The speed of the navi */
@@ -118,17 +117,11 @@ public:
     NaviMeta& SetOverworldTexture(const std::shared_ptr<sf::Texture> texture);
     
     /**
-     * @brief Sets the battle animation path used in menu screen
-     * @return NaviMeta& to chain
-     */
-    NaviMeta& SetBattleAnimationPath(const std::string&& path);
-    
-    /**
-     * @brief Sets the texture of the battle animation used in select screen
+     * @brief Sets the texture of the preview used in select screen
      * @param texture
      * @return NaviMeta& to chain
      */
-    NaviMeta& SetBattleTexture(const std::shared_ptr<Texture> texture);
+    NaviMeta& SetPreviewTexture(const std::shared_ptr<Texture> texture);
     
     /**
      * @brief Gets the overworld texture to draw
@@ -143,16 +136,10 @@ public:
     const std::string& GetOverworldAnimationPath() const;
     
     /**
-     * @brief Gets the battle texture to draw
+     * @brief Gets the preview texture to draw
      * @return const sf::Texture&
      */
-    const std::shared_ptr<sf::Texture> GetBattleTexture() const;
-    
-    /**
-     * @brief Gets the battle animation path
-     * @return const std::string&
-     */
-    const std::string& GetBattleAnimationPath() const;
+    const std::shared_ptr<sf::Texture> GetPreviewTexture() const;
     
     /**
      * @brief Gets the net navi name
@@ -267,10 +254,12 @@ public:
 template<class T>
 inline NaviRegistration::NaviMeta & NaviRegistration::NaviMeta::SetNaviClass()
 {
-  loadNaviClass = [this]() { 
+  loadNaviClass = [this]() {
+    // NOTE: This used to extract information from the class type T itself
+    //        and would mofidy the preview in the navi select screen.
+    //        Lots has changed since then and this may be useless.
     this->navi = new T(); 
-    this->battleTexture = this->navi->getTexture();
-    this->overworldTexture = this->navi->getTexture();
+    this->SetOverworldTexture(this->navi->getTexture()); // TODO: Overworld doesn't need to be stored in the battle object
     this->hp = this->navi->GetHealth();
   };
 

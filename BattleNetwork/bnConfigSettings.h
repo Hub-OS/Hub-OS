@@ -52,6 +52,11 @@ public:
    */
   const bool IsAudioEnabled() const;
 
+  /** 
+  * @brief Get fullscreen mode 
+  */
+  const bool IsFullscreen() const;
+
   const int GetMusicLevel() const;
   const int GetSFXLevel() const;
   void SetMusicLevel(int level);
@@ -105,6 +110,8 @@ private:
 
   int musicLevel;
   int sfxLevel;
+
+  bool fullscreen;
 
   // State flags
   bool isOK; /*!< true if the file was ok */

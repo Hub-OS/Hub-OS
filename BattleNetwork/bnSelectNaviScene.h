@@ -45,6 +45,7 @@ class SelectNaviScene : public swoosh::Activity
 private:
   SelectedNavi& naviSelectionIndex; /*!< SelectedNavi reference. Will change when user selects new navi */
   SelectedNavi prevChosen; /*!< The previous selected navi. Used to start effects. */
+  SelectedNavi currentChosen; /*!< The value of naviSelectionIndex if no change, otherwise the user's selection*/
 
   Camera camera;
 
@@ -53,7 +54,7 @@ private:
 
   // NAVI UI font
   sf::Font* font;
-  sf::Font *naviFont;
+  sf::Font* naviFont;
   sf::Text* menuLabel;
 
   sf::Text *naviLabel; /*!< navi name text */
@@ -81,18 +82,9 @@ private:
 
   SpriteProxyNode navi; /*!< Navi sprite */
   
-  Animation naviAnimator; /*!< Some navi idle graphics animate */
-
   double factor; /*!< Used in pixelate distortion effect */
 
   bool gotoNextScene; /*!< If true, user cannot interact with the scene */
-
-  SmartShader pixelated; /*!< Pixelate distortion effect */
-
-  Animation glowpadAnimator; /*!< Animator for the glowing pad */
-  SpriteProxyNode glowpad; /*!< Glow pad ring piece */
-  SpriteProxyNode glowbase; /*!< G;ow pad base */
-  SpriteProxyNode glowbottom; /*!< Glow pad bottom piece */
 
   TextBox textbox; /*!< Displays extra navi info. Use UP/DOWN to read more */
 
@@ -108,7 +100,7 @@ public:
   /**
    * @brief Cleanup all allocated memory
    */
-  virtual ~SelectNaviScene();
+  ~SelectNaviScene();
 
   /**
    * @brief Updates scene
@@ -120,42 +112,42 @@ public:
    * 
    * The opposite happens when the user leaves the scene (Press B)
    */
-  virtual void onUpdate(double elapsed);
+  void onUpdate(double elapsed) override;
   
   /**
    * @brief Draws entire scene
    * @param surface
    */
-  virtual void onDraw(sf::RenderTexture& surface);
+  void onDraw(sf::RenderTexture& surface) override;
   
   /**
    * @brief gotoNextScene = false, user can interact
    */
-  virtual void onStart();
+  void onStart() override;
   
   /**
    * @brief nothing
    */
-  virtual void onLeave();
+  void onLeave() override;
   
   /**
    * @brief nothing
    */
-  virtual void onExit();
+  void onExit() override;
   
   /**
    * @brief nothing
    */
-  virtual void onEnter();
+  void onEnter() override;
   
   /**
    * @brief gotoNextScene = false, user can interact
    */
-  virtual void onResume();
+  void onResume() override;
   
   /**
    * @brief nothing
    */
-  virtual void onEnd();
+  void onEnd() override;
 };
 

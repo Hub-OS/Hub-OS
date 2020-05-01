@@ -1,11 +1,13 @@
 
 #include <Swoosh/ActivityController.h>
+#include <Swoosh/Game.h>
 
 #include "bnSelectNaviScene.h"
 #include "Segues/Checkerboard.h"
 
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
   naviSelectionIndex(currentNavi),
+  currentChosen(currentNavi),
   camera(ENGINE.GetView()),
   textbox(135, 15),
   swoosh::Activity(&controller) {
@@ -84,41 +86,16 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   navi.setOrigin(navi.getLocalBounds().width / 2.f, navi.getLocalBounds().height / 2.f);
   navi.setPosition(100.f, 150.f);
 
-  navi.setTexture(NAVIS.At(naviSelectionIndex).GetBattleTexture());
-  naviLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetName().c_str()));
-  speedLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetSpeedString().c_str()));
-  attackLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetAttackString().c_str()));
-  hpLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetHPString().c_str()));
-
-  naviAnimator = Animation(NAVIS.At(naviSelectionIndex).GetBattleAnimationPath());
-  naviAnimator.Reload();
-  naviAnimator.SetAnimation("PLAYER_IDLE");
-  naviAnimator << Animator::Mode::Loop;
+  navi.setTexture(NAVIS.At(currentChosen).GetPreviewTexture());
+  naviLabel->setString(sf::String(NAVIS.At(currentChosen).GetName().c_str()));
+  speedLabel->setString(sf::String(NAVIS.At(currentChosen).GetSpeedString().c_str()));
+  attackLabel->setString(sf::String(NAVIS.At(currentChosen).GetAttackString().c_str()));
+  hpLabel->setString(sf::String(NAVIS.At(currentChosen).GetHPString().c_str()));
    
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
 
   gotoNextScene = true;
-
-  pixelated = LOAD_SHADER(TEXEL_PIXEL_BLUR);
-
-  // Load glowing pad animation (never changes/always plays)
-  glowpadAnimator = Animation("resources/backgrounds/select/glow_pad.animation");
-  glowpadAnimator.Reload();
-  glowpadAnimator.SetAnimation("GLOW");
-  glowpadAnimator << Animator::Mode::Loop;
-
-  glowpad.setTexture(LOAD_TEXTURE(GLOWING_PAD_ATLAS));
-  glowpad.setScale(2.f, 2.f);
-  glowpad.setPosition(37, 135);
-
-  glowbase.setTexture(LOAD_TEXTURE(GLOWING_PAD_BASE));
-  glowbase.setScale(2.f, 2.f);
-  glowbase.setPosition(40, 200);
-
-  glowbottom.setTexture(LOAD_TEXTURE(GLOWING_PAD_BOTTOM));
-  glowbottom.setScale(2.f, 2.f);
-  glowbottom.setPosition(40, 200);
 
   // Text box 
   textbox.SetCharactersPerSecond(15);
@@ -145,8 +122,19 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
 
   ENGINE.Draw(bg);
-  ENGINE.Draw(glowbottom);
-  ENGINE.Draw(glowbase);
+
+  // Navi preview shadow
+  auto originalPosition = navi.getPosition();
+  auto originalColor = navi.getColor();
+
+  // Make the shadow begin on the other side of the window by an arbitrary offset
+  navi.setPosition(-20.0f + getController().getVirtualWindowSize().x - navi.getPosition().x, navi.getPosition().y);
+  navi.setColor(sf::Color::Black);
+  ENGINE.Draw(navi);
+
+  // End 'hack' by restoring original position and color values
+  navi.setPosition(originalPosition);
+  navi.setColor(originalColor);
 
   charName.setPosition(UI_LEFT_POS, charName.getPosition().y);
   ENGINE.Draw(charName);
@@ -185,11 +173,9 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   charInfo.setPosition(UI_RIGHT_POS, charInfo.getPosition().y);
   ENGINE.Draw(charInfo);
 
-  ENGINE.Draw(glowpad);
-
   // Update UI slide in
   if (!gotoNextScene) {
-    factor -= (float)elapsed * 180.f;
+    factor -= (float)elapsed * 280.f;
 
     if (factor <= 0.f) {
       factor = 0.f;
@@ -280,12 +266,9 @@ void SelectNaviScene::onUpdate(double elapsed) {
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
 
-  glowpadAnimator.Update((float)elapsed, glowpad.getSprite());
-
-  naviAnimator.Update((float)elapsed, navi.getSprite());
   bg->Update((float)elapsed);
 
-  SelectedNavi prevSelect = naviSelectionIndex;
+  SelectedNavi prevSelect = currentChosen;
 
   // Scene keyboard controls
   if (!gotoNextScene) {
@@ -295,7 +278,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to previous mob 
         selectInputCooldown = maxSelectInputCooldown;
-        naviSelectionIndex = static_cast<SelectedNavi>((int)naviSelectionIndex - 1);
+        currentChosen = static_cast<SelectedNavi>((int)currentChosen - 1);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -307,7 +290,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         // Go to next mob 
         selectInputCooldown = maxSelectInputCooldown;
-        naviSelectionIndex = static_cast<SelectedNavi>((int)naviSelectionIndex + 1);
+        currentChosen = static_cast<SelectedNavi>((int)currentChosen + 1);
 
         // Number scramble effect
         numberCooldown = maxNumberCooldown;
@@ -326,30 +309,26 @@ void SelectNaviScene::onUpdate(double elapsed) {
     }
   }
 
-  naviSelectionIndex = (SelectedNavi)std::max(0, (int)naviSelectionIndex);
-  naviSelectionIndex = (SelectedNavi)std::min((int)NAVIS.Size() - 1, (int)naviSelectionIndex);
+  currentChosen = (SelectedNavi)std::max(0, (int)currentChosen);
+  currentChosen = (SelectedNavi)std::min((int)NAVIS.Size() - 1, (int)currentChosen);
 
-  if (naviSelectionIndex != prevSelect || !loadNavi) {
+  // Reset the factor/slide in effects if a new selection was made
+  if (currentChosen != prevSelect || !loadNavi) {
     factor = 125;
 
-    naviAnimator = Animation(NAVIS.At(naviSelectionIndex).GetBattleAnimationPath());
-    naviAnimator.Reload();
-    naviAnimator.SetAnimation("PLAYER_IDLE");
-    naviAnimator << Animator::Mode::Loop;
-
-    int offset = (int)(NAVIS.At(naviSelectionIndex).GetElement());
+    int offset = (int)(NAVIS.At(currentChosen).GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
 
-    navi.setTexture(NAVIS.At(naviSelectionIndex).GetBattleTexture(), true);
-    textbox.SetText(NAVIS.At(naviSelectionIndex).GetSpecialDescriptionString());
+    navi.setTexture(NAVIS.At(currentChosen).GetPreviewTexture(), true);
+    textbox.SetText(NAVIS.At(currentChosen).GetSpecialDescriptionString());
     loadNavi = true;
   }
 
   // This goes here because the jumbling effect may finish and we need to see proper values
-  naviLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetName()));
-  speedLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetSpeedString()));
-  attackLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetAttackString()));
-  hpLabel->setString(sf::String(NAVIS.At(naviSelectionIndex).GetHPString()));
+  naviLabel->setString(sf::String(NAVIS.At(currentChosen).GetName()));
+  speedLabel->setString(sf::String(NAVIS.At(currentChosen).GetSpeedString()));
+  attackLabel->setString(sf::String(NAVIS.At(currentChosen).GetAttackString()));
+  hpLabel->setString(sf::String(NAVIS.At(currentChosen).GetHPString()));
 
   // This just scrambles the letters
   if (numberCooldown > 0) {
@@ -390,8 +369,8 @@ void SelectNaviScene::onUpdate(double elapsed) {
   if (progress > 1.f) progress = 1.f;
 
   // Darken the unselected navis
-  if (prevChosen != naviSelectionIndex) {
-    navi.setColor(sf::Color(200, 200, 200, 128));
+  if (prevChosen != currentChosen) {
+    navi.setColor(sf::Color(200, 200, 200, 188));
   }
   else {
 
@@ -399,28 +378,23 @@ void SelectNaviScene::onUpdate(double elapsed) {
     navi.setColor(sf::Color(255, 255, 255, 255));
   }
 
+  // transform this value into a 0 -> 1 range
+  float range = (125.f - (float)factor) / 125.f;
+
   if (factor != 0.f) {
-    float range = (125.f - (float)factor) / 125.f;
     navi.setColor(sf::Color(255, 255, 255, (sf::Uint8)(navi.getColor().a * range)));
   }
 
-  sf::IntRect t = navi.getTextureRect();
-  sf::Vector2u size = navi.getTexture()->getSize();
-  pixelated.SetUniform("x", (float)t.left / (float)size.x);
-  pixelated.SetUniform("y", (float)t.top / (float)size.y);
-  pixelated.SetUniform("w", (float)t.width / (float)size.x);
-  pixelated.SetUniform("h", (float)t.height / (float)size.y);
-  pixelated.SetUniform("pixel_threshold", (float)(factor / 400.f));
-
   // Refresh mob graphic origin every frame as it may change
-  float xpos = ((glowbase.getTextureRect().width / 2.0f)*glowbase.getScale().x) + glowbase.getPosition().x;
-  navi.setPosition(xpos, glowbase.getPosition().y + 10);
+  auto size = getController().getVirtualWindowSize();
+
+  navi.setPosition(range*size.x*0.425, size.y);
+  navi.setOrigin(navi.getTextureRect().width*0.5f, navi.getTextureRect().height);
 
   // Make a selection
-  if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && prevChosen != naviSelectionIndex) {
+  if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && currentChosen != naviSelectionIndex) {
     AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOW);
-    prevChosen = prevSelect;
-
-    // TODO: Highlight the chosen navi symbol
+    prevChosen = currentChosen;
+    naviSelectionIndex = currentChosen;
   }
 }

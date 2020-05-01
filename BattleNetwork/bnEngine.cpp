@@ -11,7 +11,7 @@ Engine& Engine::GetInstance() {
   return instance;
 }
 
-void Engine::Initialize() {
+void Engine::Initialize(Engine::WindowMode mode) {
   // center, size
   view = sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320));
   cam = new Camera(view);
@@ -25,7 +25,13 @@ void Engine::Initialize() {
 #else
   auto videoMode = VideoMode(480, 320);
 #endif
-  window = new RenderWindow(videoMode, "Battle Network: Progs Edition");
+  auto style = sf::Style::Default;
+
+  if (mode == WindowMode::fullscreen) {
+      style = sf::Style::Fullscreen;
+  }
+
+  window = new RenderWindow(videoMode, "Battle Network: Progs Edition", style);
 
   this->Resize((int)view.getSize().x, (int)view.getSize().y);
 

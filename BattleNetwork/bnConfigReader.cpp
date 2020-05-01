@@ -29,6 +29,7 @@ const bool ConfigReader::Parse(std::string buffer) {
     // WARNING: this parser is janky. It expects every category to be in order otherwise it fails
     // This is because it was written earlier to read tokens in a single pass
     // This should be re-written to seek categories and _then_ parse
+    // This way every ParseX() step won't need to fail if the next category is not in order
     return ParseDiscord(buffer);
 }
 
@@ -144,7 +145,10 @@ const bool ConfigReader::ParseVideo(std::string buffer) {
       return ParseKeyboard(buffer);
     }
 
-    // TODO: handle video settings
+    if (line.find("Fullscreen") != std::string::npos) {
+        std::string value = ValueOf("Fullscreen", line);
+        settings.fullscreen = value=="1"? true : false;
+    }
 
     // Read next line...
     buffer = buffer.substr(endline + 1);
@@ -165,7 +169,6 @@ const bool ConfigReader::ParseKeyboard(std::string buffer) {
     if (line.find("[Gamepad]") != std::string::npos) {
       return ParseGamepad(buffer);
     }
-
 
     for (auto key : EventTypes::KEYS) {
       if (line.find(key) != std::string::npos) {

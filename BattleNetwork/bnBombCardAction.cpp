@@ -5,12 +5,16 @@
 #include "bnAudioResourceManager.h"
 #include "bnMiniBomb.h"
 
+#include <Swoosh/Game.h>
+
 #define PATH "resources/spells/spell_bomb.png"
 
 BombCardAction::BombCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_THROW", &attachment, "Hand") {
   this->damage = damage;
 
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  overlay.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
+  swoosh::game::setOrigin(overlay, 0.5, 0.5);
+
   this->attachment = new SpriteProxyNode(overlay);
   this->attachment->SetLayer(-1);
 }

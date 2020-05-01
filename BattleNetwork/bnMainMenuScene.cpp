@@ -263,23 +263,24 @@ void MainMenuScene::onExit()
 void MainMenuScene::onEnter()
 {
   // If coming back from navi select, the navi has changed, update it
-  owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
-  naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
-  naviAnimator.Reload();
-  naviAnimator.SetAnimation("PLAYER_OW_RD");
-  naviAnimator << Animator::Mode::Loop;
+  auto owPath = NAVIS.At(currentNavi).GetOverworldAnimationPath();
+
+  if (owPath.size()) {
+      owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
+      naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
+      naviAnimator.Reload();
+      naviAnimator.SetAnimation("PLAYER_OW_RD");
+      naviAnimator << Animator::Mode::Loop;
+  }
+  else {
+      Logger::Logf("Overworld animation not found for navi at index %i", currentNavi);
+  }
 }
 
 void MainMenuScene::onResume() {
   gotoNextScene = false;
 
   ENGINE.SetCamera(camera);
-
-  //Logger::Log("Fetching account data...");
-
-  //accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
-
-  //Logger::Log("waiting for server...");
 
 #ifdef __ANDROID__
   StartupTouchControls();

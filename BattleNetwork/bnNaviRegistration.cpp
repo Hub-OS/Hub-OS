@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-NaviRegistration::NaviMeta::NaviMeta() : symbol(), overworldTexture(), battleTexture()
+NaviRegistration::NaviMeta::NaviMeta() : symbol(), overworldTexture(), previewTexture()
 {
   navi = nullptr;
   special = "None";
@@ -81,15 +81,9 @@ NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetOverworldTexture(cons
   return *this;
 }
 
-NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetBattleAnimationPath(const std::string && path)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetPreviewTexture(const std::shared_ptr<Texture> texture)
 {
-  battleAnimationPath = path;
-  return *this;
-}
-
-NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetBattleTexture(const std::shared_ptr<Texture> texture)
-{
-  battleTexture = texture;
+  previewTexture = texture;
   return *this;
 }
 
@@ -103,14 +97,9 @@ const std::string & NaviRegistration::NaviMeta::GetOverworldAnimationPath() cons
   return overworldAnimationPath;
 }
 
-const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetBattleTexture() const
+const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetPreviewTexture() const
 {
-  return battleTexture;
-}
-
-const std::string& NaviRegistration::NaviMeta::GetBattleAnimationPath() const
-{
-  return battleAnimationPath;
+  return previewTexture;
 }
 
 const std::string NaviRegistration::NaviMeta::GetName() const

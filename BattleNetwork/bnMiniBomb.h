@@ -12,9 +12,9 @@ private:
 
 public:
   MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration, int damage);
-  virtual ~MiniBomb(void);
+  ~MiniBomb();
 
-  virtual void OnUpdate(float _elapsed);
-  virtual bool Move(Direction _direction);
-  virtual void Attack(Character* _entity);
+  void OnUpdate(float _elapsed) override;
+  bool Move(Direction _direction) override;
+  void Attack(Character* _entity) override;
 };

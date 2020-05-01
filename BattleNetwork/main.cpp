@@ -223,7 +223,9 @@ int main(int argc, char** argv) {
 
     // Initialize the engine and log the startup time
     const clock_t begin_time = clock();
-    ENGINE.Initialize();
+    Engine::WindowMode mode = configSettings.IsFullscreen()? Engine::WindowMode::fullscreen : Engine::WindowMode::window;
+
+    ENGINE.Initialize(mode);
     Logger::Logf("Engine initialized: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 
     QueuNaviRegistration(); // Queues navis to be loaded later

@@ -13,6 +13,8 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
 
   this->elapsed = 0;
 
+  this->HighlightTile(Battle::Tile::Highlight::solid);
+
   // Thunder moves from tile to tile in exactly 60 frames
   // The app is clocked at 60 frames a second
   // Therefore thunder slide duration is 1 second
