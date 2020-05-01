@@ -75,3 +75,7 @@ bool PanelGrab::Move(Direction _direction) {
 void PanelGrab::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
 }
+
+void PanelGrab::OnDelete()
+{
+}

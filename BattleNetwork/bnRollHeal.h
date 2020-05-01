@@ -25,26 +25,28 @@ public:
   /**
    * @brief Deconstructor
    */
-  virtual ~RollHeal();
+  ~RollHeal();
 
   /**
    * @brief Updates the animation
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Does not move
    * @param _direction ignored 
    * @return false
    */
-  virtual bool Move(Direction _direction);
+  bool Move(Direction _direction) override;
 
   /**
    * @brief Deals damage to enemy
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
+
+  void OnDelete() override;
 
   void DropHitbox(Battle::Tile* target);
 

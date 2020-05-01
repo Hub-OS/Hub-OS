@@ -34,7 +34,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   totalElapsed = 0;
 
   this->setTexture(LOAD_TEXTURE(MOB_ALPHA_ATLAS));
-  auto animComponent = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
+  auto animComponent = CreateComponent<AnimationComponent>(this);
   animComponent->SetPath(RESOURCE_PATH);
   animComponent->Load();
 
@@ -65,7 +65,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
     blueArmShadowPos = {
       sf::Vector2f(0, -80.0f), sf::Vector2f(0, -10.0f),
       sf::Vector2f(0, -80.0f), sf::Vector2f(0, -10.0f),
-     sf::Vector2f(0, -80.0f), sf::Vector2f(0, -10.0f),  sf::Vector2f(0, -40.0f)
+      sf::Vector2f(0, -80.0f), sf::Vector2f(0, -10.0f),  sf::Vector2f(0, -40.0f)
     };
 
     blueArmShadowPosIdx = 0;
@@ -106,6 +106,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
   float delta = std::sin(10.0f*totalElapsed+1.0f);
 
   if (canChangeTileState) {
+    // golden claw
     setColor(sf::Color::Yellow);
   }
 

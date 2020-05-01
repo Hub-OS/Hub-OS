@@ -11,9 +11,10 @@ private:
   float damageCooldown;
 public:
   ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration);
-  virtual ~ProgBomb(void);
+  ~ProgBomb();
 
-  virtual void OnUpdate(float _elapsed);
-  virtual bool Move(Direction _direction);
-  virtual void Attack(Character* _entity);
+  void OnUpdate(float _elapsed) override;
+  bool Move(Direction _direction) override;
+  void Attack(Character* _entity) override;
+  void OnDelete() override;
 };

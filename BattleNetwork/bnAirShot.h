@@ -12,9 +12,10 @@ class AirShot : public Spell {
 public:
   AirShot(Field* _field, Team _team, int damage);
   ~AirShot();
-  void OnUpdate(float _elapsed);
-  void Attack(Character* _entity);
-  bool CanMoveTo(Battle::Tile* next);
+  void OnUpdate(float _elapsed) override;
+  void Attack(Character* _entity) override;
+  bool CanMoveTo(Battle::Tile* next) override;
+  void OnDelete() override;
 private:
   int damage;
   float cooldown, progress, hitHeight;

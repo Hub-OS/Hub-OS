@@ -7,10 +7,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-SharedHitbox::SharedHitbox(Spell* owner, float duration) : owner(owner), Obstacle(owner->GetField(), owner->GetTeam()) {
+SharedHitbox::SharedHitbox(Spell* owner, float duration) : owner(owner), Spell(owner->GetField(), owner->GetTeam()) {
   cooldown = duration;
-  SetHealth(1);
-  ShareTileSpace(true);
   SetHitboxProperties(owner->GetHitboxProperties());
   keepAlive = (duration == 0.0f);
 
@@ -43,17 +41,6 @@ void SharedHitbox::OnUpdate(float _elapsed) {
 }
 
 bool SharedHitbox::Move(Direction _direction) {
-  return false;
-}
-
-const bool SharedHitbox::OnHit(const Hit::Properties props) {
-  Character* c = dynamic_cast<Character*>(owner);
-	
-  if(c) {
-	return c->Hit(props); 
-  }
-
-  // Passthrough if owner is not an obstacle
   return false;
 }
 

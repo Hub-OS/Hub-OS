@@ -75,3 +75,7 @@ bool NinjaStar::Move(Direction _direction) {
 void NinjaStar::Attack(Character* _entity) {
     _entity->Hit(GetHitboxProperties());
 }
+
+void NinjaStar::OnDelete()
+{
+}

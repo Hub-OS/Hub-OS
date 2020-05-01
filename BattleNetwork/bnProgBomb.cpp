@@ -72,3 +72,7 @@ void ProgBomb::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
   this->Delete();
 }
+
+void ProgBomb::OnDelete()
+{
+}

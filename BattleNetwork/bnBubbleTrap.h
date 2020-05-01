@@ -30,20 +30,20 @@ public:
    * @brief Does not inject into the battle scene
    * 
    */
-  virtual void Inject(BattleScene&);
+  void Inject(BattleScene&) override;
   
   /**
    * @brief Animators bubble. When timer runs out, pops the bubble
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Does not move
    * @param _direction
    * @return false
    */
-  virtual bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) override { return false; }
 
   /**
    * @brief Sets the pop animation and deletes self when over

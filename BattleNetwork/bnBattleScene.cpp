@@ -284,6 +284,7 @@ void BattleScene::Inject(CardUsePublisher& pub)
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
 void BattleScene::Inject(MobHealthUI& other)
 {
+  other.GetOwner()->FreeComponentByID(other.GetID()); // We are owned by the scene now
   SceneNode* node = dynamic_cast<SceneNode*>(&other);
   this->scenenodes.push_back(node);
   components.push_back(&other);
@@ -295,6 +296,7 @@ void BattleScene::Inject(Component * other)
 {
   if (!other) return;
 
+  other->GetOwner()->FreeComponentByID(other->GetID());
   components.push_back(other);
 }
 
@@ -612,8 +614,6 @@ void BattleScene::onUpdate(double elapsed) {
         if (INPUT.Has(EventTypes::HELD_USE_CHIP) && INPUT.Has(EventTypes::HELD_SHOOT) && INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
             mob->KillSwitch();
         }
-
-        //field->Update((float)elapsed);
     }
 
     if (prevSummonState) {

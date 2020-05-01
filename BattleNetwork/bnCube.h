@@ -20,36 +20,36 @@ using sf::Texture;
 class Cube : public Obstacle, public InstanceCountingTrait<Cube> {
 public:
   Cube(Field* _field, Team _team);
-  virtual ~Cube();
+  ~Cube();
 
   /**
    * @brief Keep sliding if moving in previous frame
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
 
-  const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props) override;
 
-  void OnDelete();
+  void OnDelete() override;
   
   const float GetHeight() const;
 
   void SetAnimation(std::string animation);
 
-  void OnSpawn(Battle::Tile& start);
+  void OnSpawn(Battle::Tile& start) override;
   
   /**
    * @brief Can move over any tile if it is not broken or empty or contains another cube
    * @param next tile to move to
    * @return true if it can move to the tile, false otherwise
    */
-  virtual bool CanMoveTo(Battle::Tile * next);
+  bool CanMoveTo(Battle::Tile * next) override;
   
   /**
    * @brief Deals 200 units of damage to enemies occupying the tile and then breaks
    * @param e
    */
-  virtual void Attack(Character* e);
+  void Attack(Character* e) override;
 
 protected:
   Texture* texture;

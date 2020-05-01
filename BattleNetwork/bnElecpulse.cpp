@@ -43,7 +43,11 @@ void Elecpulse::OnSpawn(Battle::Tile & start)
 void Elecpulse::OnUpdate(float _elapsed) {
   GetTile()->AffectEntities(this);
 
-  setPosition(tile->getPosition()-sf::Vector2f(-80.0f, 40.0f));
+  setPosition(tile->getPosition()-sf::Vector2f(-87.0f, 30.0f));
+}
+
+void Elecpulse::OnDelete()
+{
 }
 
 bool Elecpulse::Move(Direction _direction) {

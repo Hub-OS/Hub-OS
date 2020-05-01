@@ -111,6 +111,10 @@ void Missile::OnUpdate(float _elapsed) {
     }
 }
 
+void Missile::OnDelete()
+{
+}
+
 bool Missile::Move(Direction _direction) {
     return true;
 }

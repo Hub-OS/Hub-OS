@@ -20,17 +20,21 @@ public:
    * @param tile
    * @return true
    */
-  bool CanMoveTo(Battle::Tile* tile);
+  bool CanMoveTo(Battle::Tile* tile) override;
 
   /**
    * @brief Moves in one direction
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
 
   /**
    * @brief Deals hitbox damage
    * @param _entity
    */
-  void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
+
+  /**
+  * @brief Does nothing */
+  void OnDelete() override;
 };

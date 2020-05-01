@@ -5,8 +5,6 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-int Wave::numOf = 0;
-
 Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   SetLayer(0);
 
@@ -37,7 +35,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
     }
   };
 
-  animation = new AnimationComponent(this);
+  animation = CreateComponent<AnimationComponent>(this);
   this->RegisterComponent(animation);
 
   animation->SetPath("resources/spells/spell_wave.animation");
@@ -77,4 +75,8 @@ bool Wave::Move(Direction _direction) {
 
 void Wave::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
+}
+
+void Wave::OnDelete()
+{
 }

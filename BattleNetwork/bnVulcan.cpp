@@ -55,6 +55,10 @@ bool Vulcan::CanMoveTo(Battle::Tile* next) {
   return true;
 }
 
+void Vulcan::OnDelete()
+{
+}
+
 void Vulcan::Attack(Character* _entity) {
   if (dynamic_cast<Gear*>(_entity)) {
     field->AddEntity(*new GuardHit(field, _entity), *_entity->GetTile());

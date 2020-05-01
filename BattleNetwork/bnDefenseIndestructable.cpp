@@ -20,9 +20,10 @@ const bool DefenseIndestructable::Blocks(Spell * in, Character* owner)
     owner->GetField()->AddEntity(*new GuardHit(owner->GetField(), owner, true), *owner->GetTile());
   }
 
+  // spawn a hitbox to create contact with a spell, this may trigger its Delete routine
   owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), *owner->GetTile());
 
-  if (breakCollidingObjectOnHit) in->Delete();
+  //if (breakCollidingObjectOnHit) in->Delete();
 
-  return true; // Guard blocks - this prevents an attack to passthrough
+  return true; // Successfully blocks - this prevents an attack to passthrough
 }

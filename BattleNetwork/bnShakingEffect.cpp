@@ -38,7 +38,6 @@ void ShakingEffect::OnUpdate(float _elapsed)
 
 void ShakingEffect::Inject(BattleScene &bscene)
 {
-  GetOwner()->FreeComponentByID(GetID());
   bscene.Inject(this);
   this->bscene = &bscene;
 }

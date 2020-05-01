@@ -193,7 +193,20 @@ public:
    */
   const bool DefenseCheck(Spell* in);
 
+  /**
+  * @brief Create a combat link between other characters
+  * @param to. A Character ptr.
+  *
+  * When this entity gets hit, it will propagate the hit to this parameter Character ptr
+  */
   void SharedHitboxDamage(Character* to);
+
+  /**
+  * @brief Sever a combat link from other character 
+  * @param to. A Character ptr.
+  *
+  * If the character exists in this entity's shared hit-list, it will remove it
+  */
   void CancelSharedHitboxDamage(Character* to);
 
 private:

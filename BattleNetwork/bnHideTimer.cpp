@@ -40,10 +40,6 @@ void HideTimer::Inject(BattleScene& scene) {
     temp->ReserveEntityByID(owner->GetID());
     temp->RemoveEntityByID(owner->GetID());
 
-    if (temp->GetState() == TileState::BROKEN) {
-      temp->SetState(TileState::CRACKED); // TODO: reserve tile hack
-    }
-
     owner->SetTile(nullptr);
   }
 }

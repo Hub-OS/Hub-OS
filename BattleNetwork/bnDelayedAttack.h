@@ -8,24 +8,13 @@ private:
   Spell* next;
 
 public:
-  DelayedAttack(Spell* next, Battle::Tile::Highlight highlightMode, double seconds) : duration(seconds),
-  Spell(next->GetField(), next->GetTeam()) {
-    this->HighlightTile(highlightMode);
-    this->SetFloatShoe(true);
-    this->next = next;
-  }
+  DelayedAttack(Spell* next, Battle::Tile::Highlight highlightMode, double seconds);
 
-  ~DelayedAttack() { ;  }
+  ~DelayedAttack();
 
-  void OnUpdate(float elapsed) {
-    duration -= elapsed;
+  void OnUpdate(float elapsed) override;
 
-    if (duration <= 0 && next) {
-      GetField()->AddEntity(*next, *GetTile());
-      this->Delete();
-      next = nullptr;
-    }
-  }
+  void Attack(Character* _entity) override;
 
-  void Attack(Character* _entity) { }
+  void OnDelete() override;
 };

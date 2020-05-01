@@ -469,6 +469,7 @@ namespace Battle {
             this->field->CharacterDeletePublisher::Broadcast(*character);
           }
 
+          // Don't track this entity anymore
           field->ForgetEntity(ID);
           delete ptr;
           continue;
@@ -495,15 +496,8 @@ namespace Battle {
     if (!this->isBattleOver) {
       // Now that spells and characters have updated and moved, they are due to check for attack outcomes
       for (auto ID : queuedSpells) {
-        // TODO: REDO THIS LOOP. IT IS HORRIBLE AND COSTLY!
-        auto list = field->FindEntities([ID](Entity* e) {
-          return e->GetID() == ID;
-        });
-
-        if (list.size()) {
-          auto spell = dynamic_cast<Spell*>(list[0]);
-          this->PerformSpellAttack(spell);
-        }
+        Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
+        spell? this->PerformSpellAttack(spell) : 0;
       }
     }
 

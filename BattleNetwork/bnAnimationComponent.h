@@ -32,13 +32,13 @@ public:
    * @brief Delegates work to animation object
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
 
   /**
    * @brief Does not inject into scene. Used by the owner.
    * @param BattleScene& unused
    */
-  void Inject(BattleScene&) { ; }
+  void Inject(BattleScene&) override { ; }
   
   /**
    * @brief Reconstructs the animation object

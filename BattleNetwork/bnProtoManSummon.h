@@ -22,20 +22,20 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~ProtoManSummon();
+  ~ProtoManSummon();
 
   /**
    * @brief Updates position and animation
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Protoman teleports and doesn't use this
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction);
+  bool Move(Direction _direction) override;
   
   /**
    * @brief Deals damage to the enemy with recoil
@@ -43,7 +43,7 @@ public:
    * 
    * Spawns a sword slash artifact on top
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
   
   /**
    * @brief Attacks the next enemy when the animation ends
@@ -54,6 +54,11 @@ public:
    * delete protoman
    */
   void DoAttackStep();
+
+  /**
+  * @brief Does nothing
+  */
+  void OnDelete() override;
 
 private:
   std::vector<Battle::Tile*> targets; /*!< List of every tile ProtoMan must visit */

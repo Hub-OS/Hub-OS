@@ -81,3 +81,7 @@ bool Meteor::Move(Direction _direction) {
 void Meteor::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
 }
+
+void Meteor::OnDelete()
+{
+}

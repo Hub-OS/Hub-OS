@@ -30,10 +30,10 @@ public:
    * @brief Does nothing
    * @param _elapsed
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Not injected into battle scene
    */
-  virtual void Inject(BattleScene&);
+  void Inject(BattleScene&) override;
 };

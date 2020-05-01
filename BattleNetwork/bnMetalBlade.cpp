@@ -115,3 +115,7 @@ bool MetalBlade::CanMoveTo(Battle::Tile* tile) {
 void MetalBlade::Attack(Character* _entity) {
    _entity->Hit(GetHitboxProperties());
 }
+
+void MetalBlade::OnDelete()
+{
+}

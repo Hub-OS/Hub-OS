@@ -74,3 +74,7 @@ void CrackShot::Attack(Character* _entity) {
     this->Delete();
   }
 }
+
+void CrackShot::OnDelete()
+{
+}

@@ -16,9 +16,10 @@ private:
 
 public:
   Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, float _duration);
-  virtual ~Meteor();
+  ~Meteor();
 
-  virtual void OnUpdate(float _elapsed);
-  virtual bool Move(Direction _direction);
-  virtual void Attack(Character* _entity);
+  void OnUpdate(float _elapsed) override;
+  bool Move(Direction _direction) override;
+  void Attack(Character* _entity) override;
+  void OnDelete() override;
 };

@@ -65,3 +65,7 @@ void FireBurn::Attack(Character* _entity) {
     AUDIO.Play(AudioType::HURT);
   }
 }
+
+void FireBurn::OnDelete()
+{
+}

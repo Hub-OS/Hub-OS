@@ -24,24 +24,29 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~PanelGrab();
+  ~PanelGrab();
 
   /**
    * @brief Interpolate from start pos to tile and changes tile team
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief PanelGrab does not move across field
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction);
+  bool Move(Direction _direction) override;
   
   /**
    * @brief Deals 10 damage
    * @param _entity to hit
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
+
+  /** 
+  * @brief Does nothing
+  */
+  void OnDelete() override;
 };

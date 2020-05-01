@@ -23,24 +23,29 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~NinjaStar();
+  ~NinjaStar();
 
   /**
    * @brief Interpol. from start to tile attacking entites on the tile when anim finishes
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Does not move across tiles
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction);
+  bool Move(Direction _direction) override;
   
   /**
    * @brief Attacks entity
    * @param _entity to deal hitbox damage to
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
+
+  /**
+  * @brief Does nothing
+  */
+  void OnDelete() override;
 }; 

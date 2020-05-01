@@ -79,3 +79,7 @@ void MiniBomb::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
   this->Delete();
 }
+
+void MiniBomb::OnDelete()
+{
+}

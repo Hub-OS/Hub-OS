@@ -25,6 +25,7 @@ private:
   sf::Sprite shield; /*!< Shield graphic */
   bool activated; /*!< Flag if effect is active */
   int damage; /*!< Damage the reflect trail deals */
+
 public:
   /**
    * @brief Adds a guard rule to the attached entity for a short time *
@@ -45,20 +46,20 @@ public:
   /**
    * @brief This component does not get injected into the scene
    */
-  virtual void Inject(BattleScene&);
+  void Inject(BattleScene&) override;
   
   /**
    * @brief Updates animation
    * @param _elapsed
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief This artifact does not move across the grid
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) override { return false; }
 
   /**
    * @brief If the first time reflecting, spawn a RowHit spell

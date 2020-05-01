@@ -87,3 +87,7 @@ void AlphaElectricCurrent::OnUpdate(float _elapsed)
 void AlphaElectricCurrent::Attack(Character * _entity)
 {
 }
+
+void AlphaElectricCurrent::OnDelete()
+{
+}

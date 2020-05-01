@@ -40,3 +40,7 @@ void Hitbox::AddCallback(decltype(callback) callback)
 {
   this->callback = callback;
 }
+
+void Hitbox::OnDelete()
+{
+}

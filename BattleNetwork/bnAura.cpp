@@ -81,7 +81,6 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
 void Aura::Inject(BattleScene& bs) {
   this->bs = &bs;
   this->bs->Inject((Component*)this);
-  GetOwner()->FreeComponentByID(this->GetID());
 }
 
 void Aura::OnUpdate(float _elapsed) {

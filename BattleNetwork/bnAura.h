@@ -63,9 +63,9 @@ public:
   ~Aura();
 
   /**
-   * @brief Does not inject into the scene.
+   * @brief Injects into the scene so the animation updates regardless of battle paused.
    */
-  virtual void Inject(BattleScene&);
+  void Inject(BattleScene&) override;
   
   /**
    * @brief If timer or HP is over, remove the components and nodes in this recipe
@@ -82,14 +82,14 @@ public:
    * If the player is off of the field, toggle Hide
    * If the plaer is back on the field, Show
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Draws health using glyphs with correct margins
    * @param target
    * @param states
    */
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   
   /**
    * @brief Query the type of aura

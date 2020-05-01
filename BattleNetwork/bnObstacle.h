@@ -24,7 +24,7 @@ public:
   Obstacle(Field* _field, Team _team);
   virtual ~Obstacle();
 
-  virtual void Update(float _elapsed) final override {
+  void Update(float _elapsed) final override {
       Spell::Update(_elapsed);
       Character::Update(_elapsed);
   }
@@ -34,15 +34,11 @@ public:
    * @param next
    * @return 
    */
-  virtual bool CanMoveTo(Battle::Tile * next) override;
+  bool CanMoveTo(Battle::Tile * next) override;
 
   /**
    * @brief Uses the Spell::AdoptTile() function to be put into the Tile's spell bucket
    * @param tile
    */
-  virtual void AdoptTile(Battle::Tile* tile) final override;
-
-  virtual void OnDelete() {
-    Logger::Log("Obstacle onDelete called");
-  }
+  void AdoptTile(Battle::Tile* tile) final override;
 };

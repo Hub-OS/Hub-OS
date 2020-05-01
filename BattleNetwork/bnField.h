@@ -18,7 +18,12 @@ namespace Battle {
 
 class Field : public CharacterDeletePublisher{
 public:
-  
+  enum class AddEntityStatus {
+    queued,
+    added,
+    deleted
+  };
+
   /**
    * @brief Creates a field _wdith x _height tiles. Sets isTimeFrozen to false
    */
@@ -54,8 +59,8 @@ public:
    * @param x col
    * @param y row
    */
-  void AddEntity(Character& character, int x, int y);
-  void AddEntity(Character& character, Battle::Tile& dest);
+  AddEntityStatus AddEntity(Character& character, int x, int y);
+  AddEntityStatus AddEntity(Character& character, Battle::Tile& dest);
 
   /**
    * @brief Adds a spell using the spell's AdoptTile() routine
@@ -63,8 +68,8 @@ public:
    * @param x col
    * @param y row
    */
-  void AddEntity(Spell& spell, int x, int y);
-  void AddEntity(Spell& spell, Battle::Tile& dest);
+  AddEntityStatus AddEntity(Spell& spell, int x, int y);
+  AddEntityStatus AddEntity(Spell& spell, Battle::Tile& dest);
 
   /**
    * @brief Adds an obstacle using the obstacle's AdoptTile() routine
@@ -72,8 +77,8 @@ public:
    * @param x col
    * @param y row
    */
-  void AddEntity(Obstacle& obst, int x, int y);
-  void AddEntity(Obstacle& obst, Battle::Tile& dest);
+  AddEntityStatus AddEntity(Obstacle& obst, int x, int y);
+  AddEntityStatus AddEntity(Obstacle& obst, Battle::Tile& dest);
 
   /**
    * @brief Adds an artifact using the artifact's AdoptTile() routine
@@ -81,8 +86,8 @@ public:
    * @param x col
    * @param y row
    */
-  void AddEntity(Artifact& art, int x, int y);
-  void AddEntity(Artifact& art, Battle::Tile& dest);
+  AddEntityStatus AddEntity(Artifact& art, int x, int y);
+  AddEntityStatus AddEntity(Artifact& art, Battle::Tile& dest);
 
   /**
    * @brief Query for entities on the entire field
@@ -156,6 +161,11 @@ public:
   * @brief removes the ID from allEntityHash
   */
   void ForgetEntity(Entity::ID_t ID);
+
+  /**
+  * @brief returns the entity from the allEntityHash otherwise nullptr
+  */
+  Entity* GetEntity(Entity::ID_t ID);
 
 private:
 

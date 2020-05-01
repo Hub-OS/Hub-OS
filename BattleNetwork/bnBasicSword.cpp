@@ -51,3 +51,7 @@ void BasicSword::Attack(Character* _entity) {
   hit = hit || _entity->Hit(GetHitboxProperties());
   hitHeight = _entity->GetHeight();
 }
+
+void BasicSword::OnDelete()
+{
+}

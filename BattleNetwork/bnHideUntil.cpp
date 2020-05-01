@@ -18,15 +18,11 @@ void HideUntil::OnUpdate(float _elapsed) {
 }
 
 void HideUntil::Inject(BattleScene& scene) {
-  std::cout << "scene is " << &scene << std::endl;
-
   scene.Inject(this);
   this->scene = &scene;
 
   // it is safe now to temporarily remove from character from play
   // the component is now injected into the scene's update loop
-  
-  this->GetOwner()->FreeComponentByID(this->GetID());
 
   if (temp) {
     temp->ReserveEntityByID(owner->GetID());

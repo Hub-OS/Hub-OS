@@ -17,9 +17,9 @@ public:
   AlphaElectricCurrent(Field* field, Team team, int count);
   ~AlphaElectricCurrent();
 
-  void OnSpawn(Battle::Tile& start);
-
   // Inherited via Spell
+  void OnSpawn(Battle::Tile& start) override;
   void OnUpdate(float _elapsed) override;
   void Attack(Character * _entity) override;
+  void OnDelete() override;
 };

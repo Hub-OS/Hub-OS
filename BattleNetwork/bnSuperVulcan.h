@@ -14,24 +14,29 @@ public:
   /**
    * @brief Deconstructor
    */
-  virtual ~SuperVulcan();
+  ~SuperVulcan();
 
   /**
    * @brief Attack the tile and animate
    * @param _elapsed
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
 
   /**
    * @brief Does not move
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction);
+  bool Move(Direction _direction) override;
 
   /**
    * @brief Deals damage with default hit props
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
+
+  /**
+  * @brief does nothing
+  */
+  void OnDelete() override;
 };

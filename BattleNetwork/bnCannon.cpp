@@ -72,3 +72,7 @@ void Cannon::Attack(Character* _entity) {
   }
 }
 
+void Cannon::OnDelete()
+{
+}
+

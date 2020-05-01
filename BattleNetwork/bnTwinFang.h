@@ -25,19 +25,29 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~TwinFang();
+  ~TwinFang();
 
   /**
    * @brief Twin Fang through everything
    * @param tile
    * @return true
    */
-  virtual bool CanMoveTo(Battle::Tile* tile);
-  virtual void OnUpdate(float _elapsed);
+  bool CanMoveTo(Battle::Tile* tile) override;
+
+  /**
+  * @brief Spreads outwards on a target tile and then moves across the field
+  * @param _elapsed float of elapsed time in seconds
+  */
+  void OnUpdate(float _elapsed) override;
 
   /**
    * @brief Deals hitbox damage
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
+
+  /**
+  * Does nothing
+  */
+  void OnDelete() override;
 };

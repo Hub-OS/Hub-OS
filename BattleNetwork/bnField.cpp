@@ -90,11 +90,11 @@ std::vector<Battle::Tile*> Field::FindTiles(std::function<bool(Battle::Tile* t)>
   return res;
 }
 
-void Field::AddEntity(Character & character, int x, int y)
+Field::AddEntityStatus Field::AddEntity(Character & character, int x, int y)
 {
   if (isUpdating) {
     pending.push_back(queueBucket(x, y, character ));
-    return;
+    return Field::AddEntityStatus::queued;
   }
 
   character.SetField(this);
@@ -104,23 +104,26 @@ void Field::AddEntity(Character & character, int x, int y)
   if (tile) {
     character.AdoptTile(tile);
     allEntityHash.insert(std::make_pair(character.GetID(), &character));
+    return Field::AddEntityStatus::added;
   }
   else {
     delete &character;
   }
+
+  return Field::AddEntityStatus::deleted;
 }
 
-void Field::AddEntity(Character & character, Battle::Tile & dest)
+Field::AddEntityStatus Field::AddEntity(Character & character, Battle::Tile & dest)
 {
-  AddEntity(character, dest.GetX(), dest.GetY());
+  return AddEntity(character, dest.GetX(), dest.GetY());
 }
 
 
-void Field::AddEntity(Spell & spell, int x, int y)
+Field::AddEntityStatus Field::AddEntity(Spell & spell, int x, int y)
 {
   if (isUpdating) {
     pending.push_back(queueBucket(x, y, spell ));
-    return;
+    return Field::AddEntityStatus::queued;
   }
 
   spell.SetField(this);
@@ -130,22 +133,25 @@ void Field::AddEntity(Spell & spell, int x, int y)
   if (tile) {
     spell.AdoptTile(tile);
     allEntityHash.insert(std::make_pair(spell.GetID(), &spell));
+    return Field::AddEntityStatus::added;
   }
   else {
     delete &spell;
   }
+
+  return Field::AddEntityStatus::deleted;
 }
 
-void Field::AddEntity(Spell & spell, Battle::Tile & dest)
+Field::AddEntityStatus Field::AddEntity(Spell & spell, Battle::Tile & dest)
 {
-  AddEntity(spell, dest.GetX(), dest.GetY());
+  return AddEntity(spell, dest.GetX(), dest.GetY());
 }
 
-void Field::AddEntity(Obstacle & obst, int x, int y)
+Field::AddEntityStatus Field::AddEntity(Obstacle & obst, int x, int y)
 {
   if (isUpdating) {
     pending.push_back(queueBucket(x, y, obst));
-    return;
+    return Field::AddEntityStatus::queued;
   }
 
   obst.SetField(this);
@@ -155,22 +161,25 @@ void Field::AddEntity(Obstacle & obst, int x, int y)
   if (tile) {
     obst.AdoptTile(tile);
     allEntityHash.insert(std::make_pair(obst.GetID(), &obst));
+    return Field::AddEntityStatus::added;
   }
   else {
     delete &obst;
   }
+
+  return Field::AddEntityStatus::deleted;
 }
 
-void Field::AddEntity(Obstacle & obst, Battle::Tile & dest)
+Field::AddEntityStatus Field::AddEntity(Obstacle & obst, Battle::Tile & dest)
 {
-  AddEntity(obst, dest.GetX(), dest.GetY());
+  return AddEntity(obst, dest.GetX(), dest.GetY());
 }
 
-void Field::AddEntity(Artifact & art, int x, int y)
+Field::AddEntityStatus Field::AddEntity(Artifact & art, int x, int y)
 {
   if (isUpdating) {
     pending.push_back(queueBucket(x, y, art ));
-    return;
+    return Field::AddEntityStatus::queued;
   }
 
   art.SetField(this);
@@ -180,15 +189,18 @@ void Field::AddEntity(Artifact & art, int x, int y)
   if (tile) {
     art.AdoptTile(tile);
     allEntityHash.insert(std::make_pair(art.GetID(), &art));
+    return Field::AddEntityStatus::added;
   }
   else {
     delete &art;
   }
+
+  return Field::AddEntityStatus::deleted;
 }
 
-void Field::AddEntity(Artifact & art, Battle::Tile & dest)
+Field::AddEntityStatus Field::AddEntity(Artifact & art, Battle::Tile & dest)
 {
-  AddEntity(art, dest.GetX(), dest.GetY());
+  return AddEntity(art, dest.GetX(), dest.GetY());
 }
 
 std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
@@ -329,7 +341,17 @@ void Field::Update(float _elapsed) {
   // Now that updating is complete any entities being added to the field will be added directly
   this->isUpdating = false;
 
+  // This may force battle steps to re-evaluate
   SpawnPendingEntities();
+
+  /*do {
+      for (int i = 0; i < tiles.size(); i++) {
+          for (int j = 0; j < tiles[i].size(); j++) {
+              tiles[i][j]->Update(0);
+          }
+      }
+  } while (pending.size());*/
+
   updatedEntities.clear();
 }
 
@@ -376,6 +398,7 @@ void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, Entity::ID_t ID)
       if (q->ID == ID) {
         q = pending.erase(q);
         allEntityHash.erase(ID);
+        break;
       }
     }
 
@@ -385,22 +408,31 @@ void Field::TileRequestsRemovalOfQueued(Battle::Tile* tile, Entity::ID_t ID)
 
 void Field::SpawnPendingEntities()
 {
+    
     while (pending.size()) {
         auto next = pending.back();
         pending.pop_back();
 
         switch (next.entity_type) {
         case queueBucket::type::artifact:
-            this->AddEntity(*next.data.artifact, next.x, next.y);
+            if (this->AddEntity(*next.data.artifact, next.x, next.y) == Field::AddEntityStatus::added) {
+                next.data.artifact->Update(0);
+            }
             break;
         case queueBucket::type::character:
-            this->AddEntity(*next.data.character, next.x, next.y);
+            if (this->AddEntity(*next.data.character, next.x, next.y) == Field::AddEntityStatus::added) {
+                next.data.character->Update(0);
+            }
             break;
         case queueBucket::type::obstacle:
-            this->AddEntity(*next.data.obstacle, next.x, next.y);
+            if (this->AddEntity(*next.data.obstacle, next.x, next.y) == Field::AddEntityStatus::added) {
+                next.data.obstacle->Update(0);
+            }
             break;
         case queueBucket::type::spell:
-            this->AddEntity(*next.data.spell, next.x, next.y);
+            if (this->AddEntity(*next.data.spell, next.x, next.y) == Field::AddEntityStatus::added) {
+                next.data.spell->Update(0);
+            }
             break;
         }
     }
@@ -418,6 +450,11 @@ void Field::UpdateEntityOnce(Entity * entity, const float elapsed)
 void Field::ForgetEntity(Entity::ID_t ID)
 {
     allEntityHash.erase(ID);
+}
+
+Entity * Field::GetEntity(Entity::ID_t ID)
+{
+    return allEntityHash[ID];
 }
 
 Field::queueBucket::queueBucket(int x, int y, Character& d) : x(x), y(y), entity_type(Field::queueBucket::type::character)

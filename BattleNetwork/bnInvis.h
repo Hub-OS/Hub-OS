@@ -24,10 +24,10 @@ public:
    * @brief When under time, set opacity to 50% and pasthrough. Otherwise, restore character.
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief does not inject
    */
-  virtual void Inject(BattleScene&);
+  void Inject(BattleScene&) override;
 };

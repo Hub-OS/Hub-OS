@@ -147,3 +147,7 @@ void Thunder::Attack(Character* _entity) {
     }
   }
 }
+
+void Thunder::OnDelete()
+{
+}

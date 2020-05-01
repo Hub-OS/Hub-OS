@@ -14,7 +14,7 @@ public:
   AlphaGunState();
   ~AlphaGunState();
 
-  void OnEnter(AlphaCore& a);
-  void OnUpdate(float _elapsed, AlphaCore& a);
-  void OnLeave(AlphaCore& a);
+  void OnEnter(AlphaCore& a) override;
+  void OnUpdate(float _elapsed, AlphaCore& a) override;
+  void OnLeave(AlphaCore& a) override;
 };

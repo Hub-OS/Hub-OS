@@ -15,6 +15,11 @@ MobHealthUI::MobHealthUI(Character* _mob)
   color = sf::Color::White;
   glyphs.setTexture(LOAD_TEXTURE(ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
+
+  Entity::DeleteCallback& onDelete = mob->CreateDeleteCallback();
+  onDelete.Slot([this]() {
+      mob = nullptr;
+  });
 }
 
 MobHealthUI::~MobHealthUI() {
@@ -28,15 +33,6 @@ HP drop is not 1 unit per frame. It is:
 */
 void MobHealthUI::OnUpdate(float elapsed) {
   if (mob) {
-
-    if (mob->IsDeleted()) {
-      // We are injected into the UI list of the BattleScene
-      // We do not need self-cleanup
-      mob->FreeComponentByID(this->GetID());
-      mob = nullptr;
-      return;
-    }
-
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
    
@@ -76,8 +72,6 @@ void MobHealthUI::OnUpdate(float elapsed) {
 
 void MobHealthUI::Inject(BattleScene & scene)
 {
-  // TODO: add this free step to inject step? It's manadatory. No sense repeating this every time
-  GetOwner()->FreeComponentByID(this->GetID()); // We are owned by the scene now
   scene.Inject(*this);
 }
 

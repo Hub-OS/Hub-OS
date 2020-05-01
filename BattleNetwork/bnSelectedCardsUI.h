@@ -35,13 +35,13 @@ public:
    */
   ~SelectedCardsUI();
 
-  void draw(sf::RenderTarget & target, sf::RenderStates states) const;
+  void draw(sf::RenderTarget & target, sf::RenderStates states) const override;
 
   /**
    * @brief Hold START to spread the cards out
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Set the cards array and size. Updates card cursor to 0.
@@ -58,7 +58,8 @@ public:
   /**
    * @brief nothing
    */
-  void Inject(BattleScene&);
+  void Inject(BattleScene&) override;
+
 private:
   float elapsed; /*!< Used by draw function, delta time since last update frame */
   Battle::Card** selectedCards; /*!< Current list of cards. */

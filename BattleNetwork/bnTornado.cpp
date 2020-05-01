@@ -55,3 +55,7 @@ void Tornado::Attack(Character* _entity) {
     GetField()->AddEntity(*hitfx, _entity->GetTile()->GetX(), _entity->GetTile()->GetY());
   }
 }
+
+void Tornado::OnDelete()
+{
+}

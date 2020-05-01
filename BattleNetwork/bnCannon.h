@@ -14,9 +14,10 @@ public:
   Cannon(Field* _field, Team _team, int damage);
   ~Cannon();
 
-  void OnUpdate(float _elapsed);
-  bool CanMoveTo(Battle::Tile* next);
-  void Attack(Character* _entity);
+  void OnUpdate(float _elapsed) override;
+  bool CanMoveTo(Battle::Tile* next) override;
+  void Attack(Character* _entity) override;
+  void OnDelete() override;
 
 private:
   int damage;

@@ -17,6 +17,6 @@ private:
 public:
   ShakingEffect(Entity* owner);
   ~ShakingEffect();
-  void OnUpdate(float _elapsed);
-  void Inject(BattleScene&);;
+  void OnUpdate(float _elapsed) override;
+  void Inject(BattleScene&) override;
 };

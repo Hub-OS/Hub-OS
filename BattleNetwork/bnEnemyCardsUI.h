@@ -32,20 +32,20 @@ class Card;
 class EnemyCardsUI : public CardUsePublisher, public Component, public SceneNode {
 public:
   EnemyCardsUI(Character* owner);
-  virtual ~EnemyCardsUI();
+  ~EnemyCardsUI();
 
   /**
    * @brief Randomly uses a card if the scene is active
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Draws cards stacked
    * @param target
    * @param states
    */
-  virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const;
+  void draw(sf::RenderTarget & target, sf::RenderStates states) const override;
   
   /**
    * @brief Loads the next cards
@@ -61,7 +61,7 @@ public:
   /**
    * @brief Injects itself as a card publisher into the scene
    */
-  void Inject(BattleScene&);
+  void Inject(BattleScene&) override;
 private:
   std::vector<Battle::Card> selectedCards;
   int cardCount;

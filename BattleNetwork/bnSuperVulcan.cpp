@@ -48,3 +48,7 @@ void SuperVulcan::Attack(Character* _entity) {
     AUDIO.Play(AudioType::HURT);
   }
 }
+
+void SuperVulcan::OnDelete()
+{
+}

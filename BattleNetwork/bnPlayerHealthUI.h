@@ -46,20 +46,20 @@ public:
    * @brief This component does not need to be injected into the scene
    * @param scene
    */
-  void Inject(BattleScene& scene);
+  void Inject(BattleScene& scene) override;
 
   /**
    * @brief Uses bitmap glyphs for each number in the health
    * @param target
    * @param states
    */
-  virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const;
+  void draw(sf::RenderTarget & target, sf::RenderStates states) const override;
   
   /**
    * @brief Quickly depletes health based on game rules and beeps if health is low
    * @param elapsed in seconds
    */
-  void OnUpdate(float elapsed);
+  void OnUpdate(float elapsed) override;
 
 private:
   int lastHP; /*!< HP of target last frame */

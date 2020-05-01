@@ -47,3 +47,7 @@ void RowHit::Attack(Character* _entity) {
     _entity->Hit(props);
   }
 }
+
+void RowHit::OnDelete()
+{
+}

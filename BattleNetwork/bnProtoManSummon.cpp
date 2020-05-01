@@ -108,6 +108,10 @@ void ProtoManSummon::DoAttackStep() {
   }
 }
 
+void ProtoManSummon::OnDelete()
+{
+}
+
 void ProtoManSummon::OnUpdate(float _elapsed) {
   if (tile != nullptr) {
     setPosition(tile->getPosition());

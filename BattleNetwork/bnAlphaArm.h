@@ -16,15 +16,15 @@ public:
   AlphaArm(Field * _field, Team _team, AlphaArm::Type type);
   ~AlphaArm();
 
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
 
-  const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props) override;
  
-  void OnDelete();
+  void OnDelete() override;
 
-  bool CanMoveTo(Battle::Tile * next);
+  bool CanMoveTo(Battle::Tile * next) override;
 
-  void Attack(Character* e);
+  void Attack(Character* e) override;
 
   const float GetHeight() const;
 

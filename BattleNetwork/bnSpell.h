@@ -77,8 +77,6 @@ public:
 
   void SetHeight(double height);
 
-  virtual void OnDelete() { ;  }
-
 protected:
   Battle::Tile::Highlight mode; /*!< Highlight occupying tile */
   Hit::Properties hitboxProperties; /*!< Hitbox properties used when an entity is hit by this attack */

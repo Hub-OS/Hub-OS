@@ -38,4 +38,9 @@ public:
    * @param _entity character to attack
    */
   void Attack(Character* _entity) override;
+
+  /** 
+  * @brief Does nothing
+  */
+  void OnDelete() override;
 }; 

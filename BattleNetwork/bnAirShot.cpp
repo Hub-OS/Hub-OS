@@ -68,3 +68,7 @@ bool AirShot::CanMoveTo(Battle::Tile * next)
 {
   return true;
 }
+
+void AirShot::OnDelete()
+{
+}

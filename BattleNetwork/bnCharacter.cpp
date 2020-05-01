@@ -143,12 +143,13 @@ void Character::Update(float _elapsed) {
   // TODO: Something IS skipping the SetHealth() routine. Find out what and take this check out.
   if (health <= 0) {
       health = 0;
-
-      if (!this->invokeDeletion) {
-          this->OnDelete();
-          this->invokeDeletion = true;
-      }
   }
+
+  if (!this->invokeDeletion && (health == 0 || this->IsDeleted())) {
+      this->OnDelete();
+      this->invokeDeletion = true;
+  }
+
   // If drag status is over, reset the flag
   if (!IsSliding() && this->slideFromDrag) this->slideFromDrag = false;
 }

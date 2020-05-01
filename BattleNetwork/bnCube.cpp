@@ -137,7 +137,6 @@ void Cube::OnDelete() {
 
   this->RemoveInstanceFromCountedList();
 
-  this->Delete(); // TODO: shouldn't be necessary!
 }
 
 const float Cube::GetHeight() const

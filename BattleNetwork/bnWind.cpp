@@ -43,3 +43,7 @@ void Wind::Attack(Character* _entity) {
   _entity->Move(GetDirection());
   _entity->FinishMove();
 }
+
+void Wind::OnDelete()
+{
+}

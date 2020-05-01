@@ -24,7 +24,7 @@ public:
    * @brief Dials health to the mob's current health and colorizes
    * @param elapsed
    */
-  virtual void OnUpdate(float elapsed);
+  void OnUpdate(float elapsed) override;
   
   /**
    * @brief UI is drawn lest and must be injected into the battle scene
@@ -33,14 +33,14 @@ public:
    * Frees the owner of the component of resource management
    * but still maintains the pointer to the character
    */
-  virtual void Inject(BattleScene& scene);
+  void Inject(BattleScene& scene) override;
   
   /**
    * @brief Uses bitmap glyphs to draw game accurate health
    * @param target
    * @param states
    */
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
   Character * mob; /*!< Owner of health */

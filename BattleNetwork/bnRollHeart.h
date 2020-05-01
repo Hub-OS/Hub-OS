@@ -16,26 +16,31 @@
 class RollHeart : public Spell {
 public:
   RollHeart(CardSummonHandler* _summons, int _heal);
-  virtual ~RollHeart();
+  ~RollHeart();
 
   /**
    * @brief Descend and then heal the player
    * @param _elapsed
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief does not move
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction);
+  bool Move(Direction _direction) override;
   
   /**
    * @brief Does nothing
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override; 
+
+  /** 
+  * @brief Does nothing/
+  */
+  void OnDelete() override;
 
 private:
   int heal; /*!< How much to heal */

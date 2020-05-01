@@ -7,14 +7,15 @@ public:
   Wind(Field* _field, Team _team);
   ~Wind();
 
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
 
-  bool CanMoveTo(Battle::Tile* next);
+  bool CanMoveTo(Battle::Tile* next) override;
 
   /**
    * @brief moves entities
    * @param _entity
    */
-  void Attack(Character* _entity);
-private:
+  void Attack(Character* _entity) override;
+
+  void OnDelete() override;
 };

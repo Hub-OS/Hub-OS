@@ -270,6 +270,7 @@
     <ClCompile Include="bnDefenseRule.cpp" />
     <ClCompile Include="bnDefenseInvis.cpp" />
     <ClCompile Include="bnDefenseVirusBody.cpp" />
+    <ClCompile Include="bnDelayedAttack.cpp" />
     <ClCompile Include="bnElecpulse.cpp" />
     <ClCompile Include="bnElecPulseCardAction.cpp" />
     <ClCompile Include="bnElecSwordCardAction.cpp" />

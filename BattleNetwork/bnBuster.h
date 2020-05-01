@@ -16,17 +16,20 @@ public:
    * @brief If _charged is true, deals 10 damage
    */
   Buster(Field* _field, Team _team, bool _charged, int damage);
-  virtual ~Buster();
+  ~Buster() override;
 
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
-  virtual bool CanMoveTo(Battle::Tile* next);
+  bool CanMoveTo(Battle::Tile* next) override;
+
+  void OnDelete() override;
 
   /**
    * @brief Deal impact damage
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
+
 private:
   bool isCharged;
   bool spawnGuard;

@@ -133,6 +133,10 @@ void RollHeal::Attack(Character* _entity) {
     // Old code went here
 }
 
+void RollHeal::OnDelete()
+{
+}
+
 void RollHeal::DropHitbox(Battle::Tile* target)
 {   
     auto hitbox = new Hitbox(GetField(), GetTeam());

@@ -83,6 +83,10 @@ bool Buster::CanMoveTo(Battle::Tile * next)
   return true;
 }
 
+void Buster::OnDelete()
+{
+}
+
 void Buster::Attack(Character* _entity) {
   if (_entity->Hit(this->GetHitboxProperties())) {
     hit = true;  

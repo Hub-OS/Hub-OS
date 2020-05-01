@@ -28,7 +28,7 @@ RollHeart::RollHeart(CardSummonHandler* _summons, int _heal) : heal(_heal), Spel
   this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
-  animationComponent = new AnimationComponent(this);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   this->RegisterComponent(animationComponent);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
@@ -44,7 +44,7 @@ RollHeart::~RollHeart() {
 void RollHeart::OnUpdate(float _elapsed) {
 
   if (tile != nullptr) {
-    setPosition(tile->getPosition().x, tile->getPosition().y - height);
+    setPosition(tile->getPosition().x, tile->getPosition().y - height - 10.0f);
   }
 
   height -= _elapsed * 150.f;
@@ -67,4 +67,8 @@ bool RollHeart::Move(Direction _direction) {
 }
 
 void RollHeart::Attack(Character* _entity) {
+}
+
+void RollHeart::OnDelete()
+{
 }

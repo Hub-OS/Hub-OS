@@ -150,9 +150,9 @@ public:
   }
 
   void Forget(Character& character) {
-    for (auto iter = spawn.begin(); iter != spawn.end(); iter++) {
-      if ((*iter)->mob == &character) {
-        spawn.erase(iter);
+    for (auto innerIter = spawn.begin(); innerIter != spawn.end(); innerIter++) {
+      if ((*innerIter)->mob == &character) {
+        spawn.erase(innerIter);
         break; // done
       }
     }

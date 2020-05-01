@@ -7,6 +7,7 @@ class MetalBlade : public Spell {
 protected:
   AnimationComponent* animation; /*!< Blade spinnig animation */
   double speed; /*!< Faster spinning blades */
+
 public:
 
   /**
@@ -20,24 +21,29 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~MetalBlade();
+  ~MetalBlade();
   
   /**
    * @brief Blade cuts through everything
    * @param tile
    * @return true
    */
-  virtual bool CanMoveTo(Battle::Tile* tile);
+  bool CanMoveTo(Battle::Tile* tile) override;
   
   /**
    * @brief Moves left/right depending on team. Makes U-Turn at end of field.
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Deals hitbox damage
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
+
+  /**
+  * @brief Does nothing
+  */
+  void OnDelete() override;
 };
