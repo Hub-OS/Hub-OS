@@ -16,6 +16,7 @@ RollHeart::RollHeart(CardSummonHandler* _summons, int _heal) : heal(_heal), Spel
   summons = _summons;
   caller = summons->GetCaller();
   caller->Reveal();
+  SetLayer(-10);
 
   SetPassthrough(true);
 

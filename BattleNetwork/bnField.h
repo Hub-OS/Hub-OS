@@ -16,6 +16,8 @@ namespace Battle {
   class Tile;
 }
 
+#define BN_MAX_COMBAT_EVALUATION_STEPS 20
+
 class Field : public CharacterDeletePublisher{
 public:
   enum class AddEntityStatus {
@@ -148,6 +150,13 @@ public:
   * entities added on some frame N need to be spawned at the end of that frame
   */
   void SpawnPendingEntities();
+
+  /**
+  * @brief Returns true if pending.size() > 0
+  *
+  * Used when performing combat evalulation iterations at the end of the frame's update loop
+  */
+  const bool HasPendingEntities() const;
 
   /**
   * @brief Prevent duplicate update calls for a given entity during one update tick

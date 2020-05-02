@@ -446,76 +446,17 @@ namespace Battle {
     // NOTE: There has got to be some opportunity for optimization around here
     */
 
-    int i = 0;
+    CleanupDeletedEntities();
 
-    // Step through the entity bucket (all entity types)
-    while (i < entities.size()) {
-      auto ptr = entities[i];
+    UpdateSpells(_elapsed);
 
-      // If the entity is marked for deletion
-      if (ptr->IsDeleted()) {
-        // free memory
-        Entity::ID_t ID = ptr->GetID();
+    ExecuteAllSpellAttacks();
 
-        // TODO: do we need to invoke this here?
-        ptr->FreeAllComponents();
+    UpdateArtifacts(_elapsed);
 
-        if (RemoveEntityByID(ID)) {
-          // TODO: STOP DYNAMIC CASTING! SOMEHOW!
-          Character* character = dynamic_cast<Character*>(ptr);
+    UpdateCharacters(_elapsed);
 
-          // We only want to know about character deletions since they are the actors in the battle
-          if (character) {
-            this->field->CharacterDeletePublisher::Broadcast(*character);
-          }
-
-          // Don't track this entity anymore
-          field->ForgetEntity(ID);
-          delete ptr;
-          continue;
-        }
-      }
-
-      i++;
-    }
-
-    this->highlightMode = Highlight::none;
-
-    vector<Spell*> spells_copy = spells;
-    for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
-      int request = (int)(*entity)->GetTileHighlightMode();
-
-      if (request > (int)highlightMode) {
-        highlightMode = (Highlight)request;
-      }
-      
-      field->UpdateEntityOnce(*entity, _elapsed);
-    }
-
-    // Spells dont cause damage when the battle is over
-    if (!this->isBattleOver) {
-      // Now that spells and characters have updated and moved, they are due to check for attack outcomes
-      for (auto ID : queuedSpells) {
-        Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
-        spell? this->PerformSpellAttack(spell) : 0;
-      }
-    }
-
-    vector<Artifact*> artifacts_copy = artifacts;
-    for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
-        field->UpdateEntityOnce(*entity, _elapsed);
-    }
-
-    vector<Character*> characters_copy = characters;
-    for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
-      // Allow user input to move them out of tiles if they are frame perfect
-      field->UpdateEntityOnce(*entity, _elapsed);
-      HandleTileBehaviors(*entity);
-    }
-
-    // empty queue for next frame
-    queuedSpells.clear();
-
+    // Update our tile animation and texture
     if (!this->isTimeFrozen) {
       if (teamCooldown > 0) {
         teamCooldown -= 1.0f * _elapsed;
@@ -550,7 +491,7 @@ namespace Battle {
       willHighlight = false;
     }
 
-    // animation will want to reset the sprite's origin. Prevent this.
+    // animation will want to override the sprite's origin. Use setOrigin() to fix this.
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
   }
 
@@ -745,4 +686,88 @@ namespace Battle {
     return str;
   }
 
+  void Tile::CleanupDeletedEntities()
+  {
+    int i = 0;
+
+    // Step through the entity bucket (all entity types)
+    while (i < entities.size()) {
+      auto ptr = entities[i];
+
+      // If the entity is marked for deletion
+      if (ptr->IsDeleted()) {
+        // free memory
+        Entity::ID_t ID = ptr->GetID();
+
+        // TODO: do we need to invoke this here?
+        ptr->FreeAllComponents();
+
+        if (RemoveEntityByID(ID)) {
+          // TODO: STOP DYNAMIC CASTING! SOMEHOW!
+          Character* character = dynamic_cast<Character*>(ptr);
+
+          // We only want to know about character deletions since they are the actors in the battle
+          if (character) {
+            this->field->CharacterDeletePublisher::Broadcast(*character);
+          }
+
+          // Don't track this entity anymore
+          field->ForgetEntity(ID);
+          delete ptr;
+          continue;
+        } 
+      }  
+
+      i++;
+    }
+  }
+
+  void Tile::ExecuteAllSpellAttacks()
+  {
+    // Spells dont cause damage when the battle is over
+    if (!this->isBattleOver) {
+      // Now that spells and characters have updated and moved, they are due to check for attack outcomes
+      for (auto ID : queuedSpells) {
+        Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
+        spell ? this->PerformSpellAttack(spell) : 0;
+      }
+    }
+
+    // empty queue for next frame
+    queuedSpells.clear();
+  }
+
+  void Tile::UpdateSpells(const float elapsed)
+  {
+    this->highlightMode = Highlight::none;
+
+    vector<Spell*> spells_copy = spells;
+    for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
+      int request = (int)(*entity)->GetTileHighlightMode();
+
+      if (request > (int)highlightMode) {
+        highlightMode = (Highlight)request;
+      }
+
+      field->UpdateEntityOnce(*entity, elapsed);
+    }
+  }
+
+  void Tile::UpdateArtifacts(const float elapsed)
+  {
+    vector<Artifact*> artifacts_copy = artifacts;
+    for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
+      field->UpdateEntityOnce(*entity, elapsed);
+    }
+  }
+
+  void Tile::UpdateCharacters(const float elapsed)
+  {
+    vector<Character*> characters_copy = characters;
+    for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
+      // Allow user input to move them out of tiles if they are frame perfect
+      field->UpdateEntityOnce(*entity, elapsed);
+      HandleTileBehaviors(*entity);
+    }
+  }
 }

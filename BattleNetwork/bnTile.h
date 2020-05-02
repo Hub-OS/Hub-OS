@@ -274,6 +274,12 @@ namespace Battle {
 
     std::string GetAnimState(const TileState state);
 
+    void CleanupDeletedEntities();
+    void ExecuteAllSpellAttacks();
+    void UpdateSpells(const float elapsed);
+    void UpdateArtifacts(const float elapsed);
+    void UpdateCharacters(const float elapsed);
+
     int x; /**< Column number*/
     int y; /**< Row number*/
     Team team;

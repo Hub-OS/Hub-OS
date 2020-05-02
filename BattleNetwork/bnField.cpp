@@ -341,16 +341,20 @@ void Field::Update(float _elapsed) {
   // Now that updating is complete any entities being added to the field will be added directly
   this->isUpdating = false;
 
-  // This may force battle steps to re-evaluate
-  SpawnPendingEntities();
+  short combatEvaluationIteration = BN_MAX_COMBAT_EVALUATION_STEPS;
+  while(HasPendingEntities() && combatEvaluationIteration > 0) {
+      // This may force battle steps to evaluate again
+      SpawnPendingEntities();
 
-  /*do {
+      // Apply new spells into this frame's combat resolution
       for (int i = 0; i < tiles.size(); i++) {
           for (int j = 0; j < tiles[i].size(); j++) {
-              tiles[i][j]->Update(0);
+              tiles[i][j]->ExecuteAllSpellAttacks();
           }
       }
-  } while (pending.size());*/
+
+      combatEvaluationIteration--;
+  }
 
   updatedEntities.clear();
 }
@@ -436,6 +440,11 @@ void Field::SpawnPendingEntities()
             break;
         }
     }
+}
+
+const bool Field::HasPendingEntities() const
+{
+    return pending.size();
 }
 
 void Field::UpdateEntityOnce(Entity * entity, const float elapsed)
