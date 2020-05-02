@@ -377,7 +377,7 @@ const bool AlphaCore::AlphaCoreDefenseRule::Blocks(Spell* in, Character* owner) 
   return (alpha->animationComponent->GetAnimationString() != "CORE_EXPOSED");
 }
 
-Hit::Properties & AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties & statuses)
+Hit::Properties & AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties& statuses)
 {
   statuses.flags &= ~Hit::flinch;
   statuses.flags &= ~Hit::recoil;

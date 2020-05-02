@@ -172,26 +172,31 @@ const bool Character::Hit(Hit::Properties props) {
 
   if (this->GetHealth() <= 0) return false;
 
-  // Pierce hits even when passthrough or flinched
+  // Pierce status hits even when passthrough or flinched
   if ((props.flags & Hit::pierce) != Hit::pierce) {
     if (this->invincibilityCooldown > 0 || this->IsPassthrough()) return false;
   }
 
+  // Retangible flag takes characters out of passthrough status
+  if ((props.flags & Hit::retangible) != Hit::retangible) {
+    this->SetPassthrough(false);
+  }
+
   if ((props.flags & Hit::shake) == Hit::shake) {
-    this->RegisterComponent(new ShakingEffect(this));
+    this->CreateComponent<ShakingEffect>(this);
   }
   
-  for (auto& defense : defenses) {
+  for (auto&& defense : defenses) {
     props = defense->FilterStatuses(props);
   }
 
-  for (auto c : shareHit) {
-    c->Hit(props);
+  for (auto linkedCharacter : shareHit) {
+      linkedCharacter->Hit(props);
   }
 
   // If the character itself is also super-effective,
   // double the damage independently from tile damage
-  bool isSuperEffective = IsSuperEffective(props.element);
+  bool isSuperEffective = IsSuperEffective(props.element) && (props.flags & Hit::impact) != Hit::impact;
 
   // Show ! super effective symbol on the field
   if (isSuperEffective) {

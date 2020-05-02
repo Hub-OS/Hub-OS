@@ -5,17 +5,18 @@
 class Character;
 
 namespace Hit {
-  typedef unsigned char Flags;
+  using Flags = uint16_t;
 
-  const Flags none = 0x00;
-  const Flags recoil = 0x01;
-  const Flags shake = 0x02;
-  const Flags stun = 0x04;
-  const Flags pierce = 0x08;
-  const Flags flinch = 0x10;
-  const Flags breaking = 0x20;
-  const Flags impact = 0x40;
-  const Flags drag = 0x80;
+  const Flags none = 0x0000;
+  const Flags recoil = 0x0001;
+  const Flags shake = 0x0002;
+  const Flags stun = 0x0004;
+  const Flags pierce = 0x0008;
+  const Flags flinch = 0x0010;
+  const Flags breaking = 0x0020;
+  const Flags impact = 0x0040;
+  const Flags drag = 0x0080;
+  const Flags retangible = 0x0100;
 
   /**
    * @struct Properties

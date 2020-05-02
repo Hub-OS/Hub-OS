@@ -31,9 +31,9 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
 
   public:
     AlphaCoreDefenseRule(int& alphaCoreHP);
-    virtual ~AlphaCoreDefenseRule();
-    virtual const bool Blocks(Spell* in, Character* owner);
-    virtual Hit::Properties& FilterStatuses(Hit::Properties& statuses);
+    ~AlphaCoreDefenseRule();
+    const bool Blocks(Spell* in, Character* owner) override;
+    Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
   } *defense;
 public:
   using DefaultState = AlphaIdleState;
@@ -46,13 +46,12 @@ public:
    * @brief When health is low, deletes. Updates AI
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed);
-
-  const float GetHeight() const;
+  void OnUpdate(float _elapsed) override;
+  const float GetHeight() const override;
   void OnSpawn(Battle::Tile& start) override;
 
-  const bool OnHit(const Hit::Properties props);
-  void OnDelete();
+  const bool OnHit(const Hit::Properties props) override;
+  void OnDelete() override;
 
   void OpenShoulderGuns();
   void CloseShoulderGuns();
