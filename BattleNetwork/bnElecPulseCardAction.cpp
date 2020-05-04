@@ -50,7 +50,7 @@ void ElecPulseCardAction::Execute() {
         props.aggressor = GetOwnerAs<Character>();
         elecpulse->SetHitboxProperties(props);
 
-        Entity::DeleteCallback& deleteHandler = elecpulse->CreateDeleteCallback();
+        Entity::RemoveCallback& deleteHandler = elecpulse->CreateRemoveCallback();
         
         deleteHandler.Slot([this]() {
             Logger::Log("elecpulse OnDelete() triggered.");

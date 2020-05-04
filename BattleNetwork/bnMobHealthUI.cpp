@@ -16,7 +16,7 @@ MobHealthUI::MobHealthUI(Character* _mob)
   glyphs.setTexture(LOAD_TEXTURE(ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 
-  Entity::DeleteCallback& onDelete = mob->CreateDeleteCallback();
+  Entity::RemoveCallback& onDelete = mob->CreateRemoveCallback();
   onDelete.Slot([this]() {
       mob = nullptr;
   });

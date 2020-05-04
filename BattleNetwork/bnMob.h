@@ -261,7 +261,8 @@ public:
    */
   const bool IsCleared() {
     for (int i = 0; i < (int)spawn.size(); i++) {
-      if (!spawn[i]->mob->IsDeleted()) {
+      auto mob = spawn[i]->mob;
+      if (!(mob->IsDeleted() || mob->WillRemoveLater())) {
         return false;
       }
     }

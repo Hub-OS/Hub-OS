@@ -50,4 +50,5 @@ void RowHit::Attack(Character* _entity) {
 
 void RowHit::OnDelete()
 {
+  Remove();
 }

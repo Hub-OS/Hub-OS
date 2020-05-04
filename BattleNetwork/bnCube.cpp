@@ -136,6 +136,7 @@ void Cube::OnDelete() {
   tile->RemoveEntityByID(this->GetID());
 
   this->RemoveInstanceFromCountedList();
+  this->Remove();
 
 }
 

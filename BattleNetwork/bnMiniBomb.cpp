@@ -82,4 +82,5 @@ void MiniBomb::Attack(Character* _entity) {
 
 void MiniBomb::OnDelete()
 {
+    this->Remove();
 }

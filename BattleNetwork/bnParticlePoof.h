@@ -25,12 +25,17 @@ public:
    * @brief plays the animation and deletes when finished 
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
+  /** 
+  * @brief Removes the poof
+  */
+  void OnDelete() override;
+
   /**
    * @brief particle poof effect doesn't move
    * @param _direction ignored
    * @return false
    */
-  bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) override;
 };

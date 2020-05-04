@@ -23,7 +23,6 @@ class Character : public virtual Entity, public CounterHitPublisher {
   friend class AnimationComponent;
   
 private:
-  bool invokeDeletion; /*!< One-time flag to call OnDelete() if character has custom Delete() behavior */
   bool canShareTile; /*!< Some characters can share tiles with others */
   bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
   std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
@@ -77,14 +76,16 @@ public:
   virtual void OnUpdate(float elapsed) = 0;
 
   // TODO: move tile behavior out of update loop and into its own rule system for customization
-  void Update(float elapsed);
+  void Update(float elapsed) override;
+
+  void Delete() final override;
   
   /**
    * @brief Default characters cannot move onto occupied, broken, or empty tiles
    * @param next
    * @return true if character can move to tile, false otherwise
    */
-  virtual bool CanMoveTo(Battle::Tile* next);
+  virtual bool CanMoveTo(Battle::Tile* next) override;
  
   
   /**
@@ -110,11 +111,6 @@ public:
    * @param tile
    */
   virtual void AdoptTile(Battle::Tile* tile);
-
-  /**
-   * @brief Deletes only if health is <= 0
-   */
-  void TryDelete();
   
   /**
    * @brief Sets counter flag on
@@ -150,11 +146,11 @@ public:
    */
   const bool CanShareTileSpace() const;
 
-    /**
-   * @brief Query if entity is pushable by tiles
-   * @return true if canTilePush is enabled, false otherwise
-   */
-    const bool CanTilePush() const;
+  /**
+  * @brief Query if entity is pushable by tiles
+  * @return true if canTilePush is enabled, false otherwise
+  */
+  const bool CanTilePush() const;
 
   /**
    * @brief Some characters can be moved around on the field by tiles
@@ -213,23 +209,22 @@ private:
   int maxHealth;
   sf::Vector2f counterSlideOffset; /*!< Used when enemies delete on counter - they slide back */
   float counterSlideDelta;
+
 protected:
   /**
- * @brief Stun a character for maxCooldown seconds
- * @param maxCooldown
- * Used internally by class
- *
- */
+  * @brief Stun a character for maxCooldown seconds
+  * @param maxCooldown
+  * Used internally by class
+  *
+  */
   void Stun(double maxCooldown);
 
   /**
- * @brief Query if an attack successfully countered a Character
- * @return true if character is currently countered, false otherwise
- * Used internally by class
- */
+  * @brief Query if an attack successfully countered a Character
+  * @return true if character is currently countered, false otherwise
+  * Used internally by class
+  */
   bool IsCountered();
-
-
 
   int health;
   bool counterable;

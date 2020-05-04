@@ -58,7 +58,7 @@ void AirShot::OnUpdate(float _elapsed) {
 
 void AirShot::Attack(Character* _entity) {
   if(_entity->Hit(GetHitboxProperties())) {
-    this->Delete();
+    this->Remove();
   }
 
   hitHeight = _entity->GetHeight();

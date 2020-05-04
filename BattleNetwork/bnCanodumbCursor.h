@@ -32,12 +32,17 @@ public:
    * @brief If tile is same as target, tells cannon to attack. Otherwise tries to move
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
+
+  /**
+  * @brief Removes cursor from play
+  */
+  void OnDelete() override;
   
   /**
    * @brief Legacy code. The cursor should be using this...
    * @param _direction
    * @return false
    */
-  bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) override;
 };

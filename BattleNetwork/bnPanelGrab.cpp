@@ -78,4 +78,5 @@ void PanelGrab::Attack(Character* _entity) {
 
 void PanelGrab::OnDelete()
 {
+  Remove();
 }

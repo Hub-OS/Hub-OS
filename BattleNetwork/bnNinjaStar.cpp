@@ -78,4 +78,5 @@ void NinjaStar::Attack(Character* _entity) {
 
 void NinjaStar::OnDelete()
 {
+  Remove();
 }

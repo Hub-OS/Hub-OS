@@ -135,6 +135,7 @@ void RollHeal::Attack(Character* _entity) {
 
 void RollHeal::OnDelete()
 {
+  Remove();
 }
 
 void RollHeal::DropHitbox(Battle::Tile* target)

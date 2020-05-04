@@ -37,13 +37,15 @@ public:
    * @param _elapsed in seconds
    */
   void OnUpdate(float _elapsed) override;
+
+  void OnDelete() override;
   
   /**
    * @brief Does not move
    * @param _direction
    * @return false
    */
-  bool Move(Direction _direction) override { return false; }
+  bool Move(Direction _direction) override;
 
   /**
    * @brief Sets the pop animation and deletes self when over

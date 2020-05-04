@@ -22,13 +22,15 @@ public:
    * @brief animates smoke
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
+
+  void OnDelete() override;
   
   /**
    * @brief Does not move
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) override;
 };
 

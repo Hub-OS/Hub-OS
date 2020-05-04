@@ -54,4 +54,5 @@ void BasicSword::Attack(Character* _entity) {
 
 void BasicSword::OnDelete()
 {
+  Remove();
 }

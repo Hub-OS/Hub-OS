@@ -118,4 +118,5 @@ void MetalBlade::Attack(Character* _entity) {
 
 void MetalBlade::OnDelete()
 {
+  Remove();
 }

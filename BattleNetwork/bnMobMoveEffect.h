@@ -22,12 +22,17 @@ public:
    * @brief plays the animation and deletes when finished
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) final override;
+
+  /**
+  * @brief Removes entity from play
+  */
+  void OnDelete() final override;
 
   /**
    * @brief mob move effect doesn't move
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) final override;
 };

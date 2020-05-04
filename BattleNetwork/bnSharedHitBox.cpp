@@ -12,7 +12,7 @@ SharedHitbox::SharedHitbox(Spell* owner, float duration) : owner(owner), Spell(o
   SetHitboxProperties(owner->GetHitboxProperties());
   keepAlive = (duration == 0.0f);
 
-  Entity::DeleteCallback& deleteHandler = owner->CreateDeleteCallback();
+  Entity::RemoveCallback& deleteHandler = owner->CreateRemoveCallback();
   deleteHandler.Slot([this]() {
       this->owner = nullptr;
   });
@@ -53,6 +53,11 @@ void SharedHitbox::Attack(Character* _entity) {
 
   // Remove after first registered hit
   this->Delete();
+}
+
+void SharedHitbox::OnDelete()
+{
+  Remove();
 }
 
 const float SharedHitbox::GetHeight() const {

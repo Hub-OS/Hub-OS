@@ -31,6 +31,16 @@ void CanonSmoke::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x + 14.0f, tile->getPosition().y + tileOffset.y - 65.0f);
 }
 
+void CanonSmoke::OnDelete()
+{
+  Remove();
+}
+
+bool CanonSmoke::Move(Direction _direction)
+{
+  return false;
+}
+
 CanonSmoke::~CanonSmoke()
 {
 }

@@ -281,6 +281,7 @@ namespace Battle {
   void Tile::AddEntity(Obstacle & _entity)
   {
     if (!ContainsEntity(&_entity)) {
+      characters.push_back(&_entity);
       spells.push_back(&_entity);
       this->AddEntity(&_entity);
     }
@@ -307,7 +308,7 @@ namespace Battle {
     entities.push_back(_entity);
   }
 
-  bool Tile::RemoveEntityByID(long ID)
+  bool Tile::RemoveEntityByID(Entity::ID_t ID)
   {
     bool modified = false;
 
@@ -321,10 +322,10 @@ namespace Battle {
 
     bool doBreakState = false;
 
-    auto itEnt   = find_if(entities.begin(), entities.end(), [&ID](Entity* in) { return in->GetID() == ID; });
-    auto itSpell = find_if(spells.begin(), spells.end(), [&ID](Entity* in) { return in->GetID() == ID; });
-    auto itChar  = find_if(characters.begin(), characters.end(), [&ID](Entity* in) { return in->GetID() == ID; });
-    auto itArt   = find_if(artifacts.begin(), artifacts.end(), [&ID](Entity* in) { return in->GetID() == ID; });
+    auto itEnt   = find_if(entities.begin(), entities.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itSpell = find_if(spells.begin(), spells.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itChar  = find_if(characters.begin(), characters.end(), [ID](Entity* in) { return in->GetID() == ID; });
+    auto itArt   = find_if(artifacts.begin(), artifacts.end(), [ID](Entity* in) { return in->GetID() == ID; });
 
     if (itEnt != entities.end()) {
       // TODO: HasFloatShoe and HasAirShoe should be a component and use the component system
@@ -342,7 +343,7 @@ namespace Battle {
     if (itSpell != spells.end()) {
       spells.erase(itSpell);
 
-      auto tagged = std::find_if(taggedSpells.begin(), taggedSpells.end(), [&ID](int in) { return ID == in; });
+      auto tagged = std::find_if(taggedSpells.begin(), taggedSpells.end(), [ID](Entity::ID_t in) { return ID == in; });
       if (tagged != taggedSpells.end()) {
         taggedSpells.erase(tagged);
       }
@@ -364,7 +365,7 @@ namespace Battle {
     return modified;
   }
 
-  bool Tile::ContainsEntity(Entity* _entity) const {
+  bool Tile::ContainsEntity(const Entity* _entity) const {
     vector<Entity*> copy = this->entities;
     return find(copy.begin(), copy.end(), _entity) != copy.end();
   }
@@ -383,28 +384,30 @@ namespace Battle {
   }
 
   void Tile::PerformSpellAttack(Spell* caller) {
-    auto entities_copy = entities; // may be modified after hitboxes are resolved
+    auto characters_copy = characters; // may be modified after hitboxes are resolved
 
-    for (auto it = entities_copy.begin(); it != entities_copy.end(); ++it) {
-      if (*it == caller)
+    for (auto it = characters_copy.begin(); it != characters_copy.end(); ++it) {
+      if ((*it)->GetID() == caller->GetID()) // Case: prevent obstacles from attacking themselves
         continue;
-
-      // TODO: use group buckets to poll by ID instead of dynam casting
-      Character *c = dynamic_cast<Character *>(*it);
 
       // the entity is a character (can be hit) and the team isn't the same
       // we see if it passes defense checks, then call attack
 
-      if( c && (c->GetTeam() != caller->GetTeam() ||
-                                            (c->GetTeam() == Team::UNKNOWN &&
-                                            caller->GetTeam() == Team::UNKNOWN))) {
-        // Attack() routine has Hit() which immediately subtracts HP
-        // However it also acts as the last check if contact was made (see: i-frames)
-        // Because we want to write Attack() to determine contact status
-        // without exposing the character to malicious programming (e.g. always dealing damage regardless)
-        // we pass the attack info to a dummy to recieve hits on their behalf
-        if (!c->DefenseCheck(caller)) {
-          auto props = caller->GetHitboxProperties();
+      Character& c = *(*it);
+
+      bool unknownTeams = (c.GetTeam() == Team::UNKNOWN && caller->GetTeam() == Team::UNKNOWN);
+      if(c.GetTeam() != caller->GetTeam() || unknownTeams) {
+        auto props = caller->GetHitboxProperties();
+
+        // Retangible flag takes characters out of passthrough status
+        bool retangible = (props.flags & Hit::retangible) != Hit::retangible;
+
+        if (!c.DefenseCheck(caller)) {
+          // Attack() routine has Hit() which immediately subtracts HP
+          // However it also acts as the last check if contact was made (see: i-frames)
+          // Because we want to write Attack() to determine contact status
+          // without exposing the character to malicious programming (e.g. always dealing damage regardless)
+          // we pass the attack info to a dummy to recieve hits on their behalf
 
           if (GetState() == TileState::HOLY) {
             auto props = caller->GetHitboxProperties();
@@ -418,9 +421,11 @@ namespace Battle {
               caller->SetHitboxProperties(props);
           }
 
-          caller->Attack(c);
+          caller->Attack(&c);
           caller->SetHitboxProperties(props);
         }
+
+        if (retangible) c.SetPassthrough(false);
 
         // Tag the spell
         // only ignore spells that have already hit something on a tile
@@ -430,9 +435,6 @@ namespace Battle {
     }
   }
 
-  /*
-
-  */
   void Tile::Update(float _elapsed) {
     willHighlight = false;
     totalElapsed += _elapsed;
@@ -442,11 +444,7 @@ namespace Battle {
         elapsedBurnTime -= _elapsed;
     }
 
-    /*
-    // NOTE: There has got to be some opportunity for optimization around here
-    */
-
-    CleanupDeletedEntities();
+    CleanupEntities();
 
     UpdateSpells(_elapsed);
 
@@ -522,9 +520,9 @@ namespace Battle {
 
   void Tile::HandleTileBehaviors(Obstacle* obst) {
     if (!this->isTimeFrozen) {
+
       // DIRECTIONAL TILES
       auto directional = Direction::NONE;
-
       auto notMoving = obst->GetNextTile() == nullptr;
 
       switch (GetState()) {
@@ -686,7 +684,7 @@ namespace Battle {
     return str;
   }
 
-  void Tile::CleanupDeletedEntities()
+  void Tile::CleanupEntities()
   {
     int i = 0;
 
@@ -694,16 +692,16 @@ namespace Battle {
     while (i < entities.size()) {
       auto ptr = entities[i];
 
-      // If the entity is marked for deletion
-      if (ptr->IsDeleted()) {
+      // If the entity is marked for removal
+      if (ptr->WillRemoveLater()) {
         // free memory
         Entity::ID_t ID = ptr->GetID();
 
-        // TODO: do we need to invoke this here?
+        // If not removed indirectly by Delete() call, ensure components are free'd
         ptr->FreeAllComponents();
 
         if (RemoveEntityByID(ID)) {
-          // TODO: STOP DYNAMIC CASTING! SOMEHOW!
+          // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
           Character* character = dynamic_cast<Character*>(ptr);
 
           // We only want to know about character deletions since they are the actors in the battle
@@ -727,7 +725,7 @@ namespace Battle {
     // Spells dont cause damage when the battle is over
     if (!this->isBattleOver) {
       // Now that spells and characters have updated and moved, they are due to check for attack outcomes
-      for (auto ID : queuedSpells) {
+      for (Entity::ID_t ID : queuedSpells) {
         Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
         spell ? this->PerformSpellAttack(spell) : 0;
       }

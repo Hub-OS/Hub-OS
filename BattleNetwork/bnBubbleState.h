@@ -47,7 +47,7 @@ BubbleState<Any>::~BubbleState() {
 
 template<typename Any>
 void BubbleState<Any>::OnEnter(Any& e) {
-  prevFloatShoe = e.HasFloatShoe();
+  prevFloatShoe = e.HasFloatShoe(); // Hack: bubble would be otherwise pushed by moving tiles
   e.SetFloatShoe(true);
   e.PriorityLock(); // prevent any other state from interrupting this 
 }

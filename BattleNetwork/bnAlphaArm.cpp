@@ -190,11 +190,20 @@ void AlphaArm::OnUpdate(float _elapsed) {
 
   shadow->setPosition(-13, -4 + delta / 2.0f); // counter offset the shadow node
 
+  if (isSwiping) {
+      GetTile()->FindEntities([this](Entity* in) -> bool {
+          if (dynamic_cast<Obstacle*>(in) && in != this)
+              this->Delete();
+
+          return false;
+      });
+  }
 }
 
 void AlphaArm::OnDelete() {
   auto fx = new MobMoveEffect(GetField());
   GetField()->AddEntity(*fx, *this->GetTile());
+  Remove();
 }
 
 const bool AlphaArm::OnHit(const Hit::Properties props) {
@@ -207,12 +216,6 @@ void AlphaArm::Attack(Character* other) {
   if (isObstacle) {
     this->Delete(); // cannot pass through obstacles like Cube
     return;
-  }
-
-  Character* isCharacter = dynamic_cast<Character*>(other);
-
-  if (isCharacter && isCharacter != this) {
-    isCharacter->Hit(GetHitboxProperties());
   }
 }
 

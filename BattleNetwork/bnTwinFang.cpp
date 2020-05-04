@@ -129,4 +129,5 @@ void TwinFang::Attack(Character* _entity) {
 
 void TwinFang::OnDelete()
 {
+  Remove();
 }

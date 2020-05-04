@@ -20,12 +20,17 @@ public:
    * @brief Loops animations
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
+  /**
+  * @brief Removes shine explosion from play
+  */
+  void OnDelete() override;
+
   /**
    * @brief the shine effect does not move
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) override;
 };

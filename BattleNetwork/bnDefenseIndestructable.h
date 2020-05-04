@@ -15,7 +15,7 @@ class DefenseIndestructable : public DefenseRule {
 public:
   DefenseIndestructable(bool breakCollidingObjectOnHit = false);
 
-  virtual ~DefenseIndestructable();
+  ~DefenseIndestructable();
 
   /**
    * @brief Check for breaking properties
@@ -23,5 +23,5 @@ public:
    * @param owner the character this is attached to
    * @return always true. Nothing ever passes.
    */
-  virtual const bool Blocks(Spell* in, Character* owner);
+  const bool Blocks(Spell* in, Character* owner) override;
 };

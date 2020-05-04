@@ -43,14 +43,16 @@ public:
    * @brief If root increment count is size of numOfExplosions, delete and stop the chain 
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
+
+  void OnDelete() override;
   
   /**
    * @brief Explosion doesnt move
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction) { return false; }
+  virtual bool Move(Direction _direction) override;
 
   /**
    * @brief Used by root. Increment the number of explosions

@@ -398,21 +398,33 @@ void Entity::Delete()
 
   deleted = true;
 
-  for (auto&& callbacks : deleteCallbacks) {
+  for (auto&& callbacks : removeCallbacks) {
     callbacks();
   }
 
-  deleteCallbacks.clear();
+  this->OnDelete();
+
+  removeCallbacks.clear();
 }
 
-std::reference_wrapper<Entity::DeleteCallback> Entity::CreateDeleteCallback()
+void Entity::Remove()
 {
-  deleteCallbacks.push_back(std::move(Entity::DeleteCallback()));
-  return std::ref(*(deleteCallbacks.end()-1));
+  flagForRemove = true;
+}
+
+std::reference_wrapper<Entity::RemoveCallback> Entity::CreateRemoveCallback()
+{
+  removeCallbacks.push_back(std::move(Entity::RemoveCallback()));
+  return std::ref(*(removeCallbacks.end()-1));
 }
 
 bool Entity::IsDeleted() const {
   return deleted;
+}
+
+bool Entity::WillRemoveLater() const
+{
+    return flagForRemove;
 }
 
 void Entity::SetElement(Element _elem)

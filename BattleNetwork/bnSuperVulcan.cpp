@@ -51,4 +51,5 @@ void SuperVulcan::Attack(Character* _entity) {
 
 void SuperVulcan::OnDelete()
 {
+  Remove();
 }

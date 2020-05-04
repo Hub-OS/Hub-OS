@@ -98,11 +98,11 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
     e.SetShader(nullptr);
   }
 
-  /* If root explosion is over, delete the entity that entered this state
+  /* If root explosion is over, finally remove the entity that entered this state
      This ends the effect
      */
-  if (explosion->IsDeleted()) {
-    e.Delete();
+  if (explosion->WillRemoveLater()) {
+    e.Remove();
   }
 }
 

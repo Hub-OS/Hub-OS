@@ -25,8 +25,9 @@ public:
   BusterHit(Field* _field, Type type = Type::PEA);
   ~BusterHit();
   void SetOffset(const sf::Vector2f offset);
-  void OnUpdate(float _elapsed);
-  bool Move(Direction _direction) { return false; }
+  void OnUpdate(float _elapsed) override;
+  bool Move(Direction _direction) override;
+  void OnDelete() override;
 
 };
 

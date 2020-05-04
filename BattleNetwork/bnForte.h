@@ -36,7 +36,8 @@ private:
     MoveEffect(Field* field);
     ~MoveEffect();
 
-    void OnUpdate(float _elapsed);
+    void OnUpdate(float _elapsed) override;
+    void OnDelete() override;
   };
   
   CardAction* ExecuteBusterAction() final;

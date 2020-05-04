@@ -55,6 +55,16 @@ void GuardHit::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x + w, tile->getPosition().y + tileOffset.y - h);
 }
 
+void GuardHit::OnDelete()
+{
+  Remove();
+}
+
+bool GuardHit::Move(Direction _direction)
+{
+  return false;
+}
+
 GuardHit::~GuardHit()
 {
 }

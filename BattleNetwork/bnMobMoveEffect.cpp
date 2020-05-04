@@ -35,7 +35,16 @@ void MobMoveEffect::OnUpdate(float _elapsed) {
   this->setPosition(this->GetTile()->getPosition());
 
   animation.Update(_elapsed, this->getSprite());
-  //Entity::Update(_elapsed);
+}
+
+void MobMoveEffect::OnDelete()
+{
+  Remove();
+}
+
+bool MobMoveEffect::Move(Direction _direction)
+{
+  return false;
 }
 
 MobMoveEffect::~MobMoveEffect()

@@ -34,14 +34,16 @@ public:
    * @brief plays the animation and deletes when finished
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) final override;
+
+  void OnDelete() final override;
 
   /**
    * @brief particle fx effect doesn't move
    * @param _direction ignored
    * @return false
    */
-  bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) final override;
 
-  void OnSpawn(Battle::Tile& tile);
+  void OnSpawn(Battle::Tile& tile) final override;
 }; 

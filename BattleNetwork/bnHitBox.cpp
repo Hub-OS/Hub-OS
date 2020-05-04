@@ -43,4 +43,5 @@ void Hitbox::AddCallback(decltype(callback) callback)
 
 void Hitbox::OnDelete()
 {
+  Remove();
 }

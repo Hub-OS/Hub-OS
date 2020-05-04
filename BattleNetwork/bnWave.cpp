@@ -79,4 +79,5 @@ void Wave::Attack(Character* _entity) {
 
 void Wave::OnDelete()
 {
+  Remove();
 }

@@ -110,6 +110,7 @@ void ProtoManSummon::DoAttackStep() {
 
 void ProtoManSummon::OnDelete()
 {
+  Remove();
 }
 
 void ProtoManSummon::OnUpdate(float _elapsed) {

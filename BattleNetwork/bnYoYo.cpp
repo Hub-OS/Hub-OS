@@ -44,6 +44,7 @@ void YoYo::OnDelete() {
   if (startTile && startTile != this->GetTile()) {
     GetField()->AddEntity(*new Explosion(GetField(), GetTeam(), 1), *this->GetTile());
   }
+  Remove();
 }
 
 void YoYo::OnSpawn(Battle::Tile& start) {

@@ -28,4 +28,5 @@ void DelayedAttack::Attack(Character * _entity)
 
 void DelayedAttack::OnDelete()
 {
+  Remove();
 }

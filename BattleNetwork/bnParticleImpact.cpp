@@ -49,6 +49,11 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : Artifact(nullptr)
 
 }
 
+bool ParticleImpact::Move(Direction _direction)
+{
+  return false;
+}
+
 void ParticleImpact::OnSpawn(Battle::Tile& tile) {
   randOffset = sf::Vector2f(float(rand() % 10), float(rand() % 10));
   randOffset.x *= rand() % 2 ? -1 : 1;
@@ -60,6 +65,11 @@ void ParticleImpact::OnUpdate(float _elapsed) {
   Entity::Update(_elapsed);
 
   this->setPosition(this->GetTile()->getPosition() + tileOffset + randOffset);
+}
+
+void ParticleImpact::OnDelete()
+{
+  Remove();
 }
 
 ParticleImpact::~ParticleImpact()

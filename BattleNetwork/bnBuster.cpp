@@ -85,6 +85,7 @@ bool Buster::CanMoveTo(Battle::Tile * next)
 
 void Buster::OnDelete()
 {
+  Remove();
 }
 
 void Buster::Attack(Character* _entity) {

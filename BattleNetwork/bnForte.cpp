@@ -102,7 +102,7 @@ Forte::MoveEffect::MoveEffect(Field* field) : Artifact(field)
   SetLayer(1);
   this->setScale(2.f, 2.f);
 
-  animationComponent = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
+  animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("COPY");
@@ -126,4 +126,9 @@ void Forte::MoveEffect::OnUpdate(float _elapsed)
   if (delta <= 0.0f) {
     this->Delete();
   }
+}
+
+void Forte::MoveEffect::OnDelete()
+{
+  Remove();
 }

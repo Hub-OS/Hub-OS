@@ -59,15 +59,14 @@ void AlphaRocket::OnUpdate(float _elapsed) {
 
     // Move failed can only be an edge
     if (!this->GetNextTile()) {
-      this->SetHealth(0);
-      this->TryDelete();
+        this->Delete();
     }
   }
 
   tile->AffectEntities(this);
 
   if (tile->ContainsEntityType<Character>()) {
-    this->TryDelete();
+      this->Delete();
   }
 }
 
@@ -79,7 +78,7 @@ bool AlphaRocket::CanMoveTo(Battle::Tile* tile) {
 void AlphaRocket::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     this->SetHealth(0);
-    this->TryDelete();
+    this->Delete();
   }
 }
 
@@ -131,7 +130,7 @@ void AlphaRocket::OnDelete()
     ENGINE.GetCamera()->ShakeCamera(10, sf::seconds(1));
   }
 
-  this->Delete();
+  this->Remove();
 }
 
 const float AlphaRocket::GetHeight() const

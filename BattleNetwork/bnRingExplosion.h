@@ -22,12 +22,17 @@ public:
    * @brief plays the animation and deletes when finished
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed);
+
+  /**
+   * @brief removes the ring explosion from play
+   */
+  void OnDelete();
 
   /**
    * @brief ring explosion effect doesn't move
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction);
 };

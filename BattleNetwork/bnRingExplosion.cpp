@@ -40,6 +40,16 @@ void RingExplosion::OnUpdate(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
+void RingExplosion::OnDelete()
+{
+  Remove();
+}
+
+bool RingExplosion::Move(Direction _direction)
+{
+  return false;
+}
+
 RingExplosion::~RingExplosion()
 {
 }

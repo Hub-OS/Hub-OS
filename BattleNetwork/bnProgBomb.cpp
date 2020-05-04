@@ -75,4 +75,5 @@ void ProgBomb::Attack(Character* _entity) {
 
 void ProgBomb::OnDelete()
 {
+  Remove();
 }

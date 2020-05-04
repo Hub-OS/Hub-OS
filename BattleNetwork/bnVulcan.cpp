@@ -57,6 +57,7 @@ bool Vulcan::CanMoveTo(Battle::Tile* next) {
 
 void Vulcan::OnDelete()
 {
+  Remove();
 }
 
 void Vulcan::Attack(Character* _entity) {

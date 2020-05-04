@@ -84,4 +84,5 @@ void Meteor::Attack(Character* _entity) {
 
 void Meteor::OnDelete()
 {
+  Remove();
 }

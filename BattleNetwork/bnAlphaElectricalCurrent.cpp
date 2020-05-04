@@ -8,7 +8,7 @@
 AlphaElectricCurrent::AlphaElectricCurrent(Field* field, Team team, int count) : countMax(count), count(0), Spell(field, team)
 {
   this->setTexture(LOAD_TEXTURE(MOB_ALPHA_ATLAS));
-  anim = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
+  anim = CreateComponent<AnimationComponent>(this);
   anim->SetPath(RESOURCE_PATH);
   anim->Load();
   this->setScale(2.f, 2.f);
@@ -80,7 +80,7 @@ void AlphaElectricCurrent::OnUpdate(float _elapsed)
   setPosition(tile->getPosition().x + tileOffset.x - (tile->GetWidth()*2.0f), tile->getPosition().y + tileOffset.y - GetHeight());
 
   if (count >= countMax) {
-    this->Delete();
+    this->Remove();
   }
 }
 

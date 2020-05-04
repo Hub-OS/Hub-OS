@@ -55,11 +55,16 @@ public:
   void OnUpdate(float _elapsed) override;
   
   /**
+   * @brief Removes reflect shield from play
+   */
+  void OnDelete() override;
+
+  /**
    * @brief This artifact does not move across the grid
    * @param _direction ignored
    * @return false
    */
-  bool Move(Direction _direction) override { return false; }
+  bool Move(Direction _direction) override;
 
   /**
    * @brief If the first time reflecting, spawn a RowHit spell

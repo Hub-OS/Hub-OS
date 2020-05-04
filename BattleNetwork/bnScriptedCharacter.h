@@ -18,7 +18,7 @@ public:
     return 0;
   }
 
-  void OnDelete() final {
+  void OnDelete() override final {
 
   }
 

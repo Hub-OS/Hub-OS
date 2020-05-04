@@ -38,6 +38,16 @@ void ParticleHeal::OnUpdate(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
+void ParticleHeal::OnDelete()
+{
+  Remove();
+}
+
+bool ParticleHeal::Move(Direction _direction)
+{
+  return false;
+}
+
 ParticleHeal::~ParticleHeal()
 {
 }

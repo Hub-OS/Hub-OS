@@ -48,6 +48,7 @@ void Elecpulse::OnUpdate(float _elapsed) {
 
 void Elecpulse::OnDelete()
 {
+  Remove();
 }
 
 bool Elecpulse::Move(Direction _direction) {

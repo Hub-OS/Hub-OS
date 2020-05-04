@@ -16,7 +16,7 @@ class CanodumbIdleState : public AIState<Canodumb>
 private:
   CanodumbCursor* cursor; /*!< Spawned to find enemies to attack */
   Canodumb* can;
-  Entity::DeleteCallback freeCursorCallback;
+  Entity::RemoveCallback freeCursorCallback;
   friend void CanodumbCursor::OnUpdate(float _elapsed);
   friend CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _parent);
 
@@ -32,19 +32,19 @@ public:
    * @brief Sets idle animation based on rank
    * @param can canodumb
    */
-  void OnEnter(Canodumb& can);
+  void OnEnter(Canodumb& can) final override;
   
   /**
    * @brief If no cursor exists, spawns one to look for enemies
    * @param _elapsed in seconds
    * @param can canodumb
    */
-  void OnUpdate(float _elapsed, Canodumb& can);
+  void OnUpdate(float _elapsed, Canodumb& can) final override;
   
   /**
    * @brief Deletes any existing cursors 
    * @param can canodumb 
    */
-  void OnLeave(Canodumb& can);
+  void OnLeave(Canodumb& can) final override;
 };
 

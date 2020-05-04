@@ -38,6 +38,16 @@ void ParticlePoof::OnUpdate(float _elapsed) {
   Entity::Update(_elapsed);
 }
 
+void ParticlePoof::OnDelete()
+{
+  Remove();
+}
+
+bool ParticlePoof::Move(Direction _direction)
+{
+  return false;
+}
+
 ParticlePoof::~ParticlePoof()
 {
 }

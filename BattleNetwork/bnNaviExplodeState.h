@@ -91,8 +91,8 @@ template<typename Any>
 void NaviExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
   ExplodeState<Any>::OnUpdate(_elapsed, e);
 
-  if (e.IsDeleted()) {
-    shine->Delete();
+  if (e.WillRemoveLater()) {
+    shine->Remove();
   }
 }
 

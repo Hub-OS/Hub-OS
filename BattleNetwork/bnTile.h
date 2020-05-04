@@ -199,14 +199,14 @@ namespace Battle {
      * @param ID
      * @return true if the entity bucket has been modified and the entity removed
      */
-    bool RemoveEntityByID(long ID);
+    bool RemoveEntityByID(Entity::ID_t ID);
     
     /**
      * @brief Query if the given entity already occupies this tile
      * @param _entity to check
      * @return true if the entity is already in one of the buckets
      */
-    bool ContainsEntity(Entity* _entity) const;
+    bool ContainsEntity(const Entity* _entity) const;
 
     /**
      * @brief Reserve this tile for an entity with ID 
@@ -274,7 +274,7 @@ namespace Battle {
 
     std::string GetAnimState(const TileState state);
 
-    void CleanupDeletedEntities();
+    void CleanupEntities();
     void ExecuteAllSpellAttacks();
     void UpdateSpells(const float elapsed);
     void UpdateArtifacts(const float elapsed);
@@ -314,10 +314,10 @@ namespace Battle {
     vector<Character*> characters; /**< Entity bucket for type Characters */
     vector<Entity*> entities; /**< Entity bucket for looping over all entities **/
 
-    set<long> reserved; /**< IDs of entities reserving this tile*/
+    set<Entity::ID_t> reserved; /**< IDs of entities reserving this tile*/
 
-    vector<long> queuedSpells; /**< IDs of occupying spells that have signaled they are to attack this frame */
-    vector<long> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
+    vector<Entity::ID_t> queuedSpells; /**< IDs of occupying spells that have signaled they are to attack this frame */
+    vector<Entity::ID_t> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
 
     Animation animation;
 

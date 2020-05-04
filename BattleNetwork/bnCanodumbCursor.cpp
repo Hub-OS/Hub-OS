@@ -83,6 +83,16 @@ void CanodumbCursor::OnUpdate(float _elapsed) {
   }
 }
 
+void CanodumbCursor::OnDelete()
+{
+  Remove();
+}
+
+bool CanodumbCursor::Move(Direction _direction)
+{
+  return false;
+}
+
 CanodumbCursor::~CanodumbCursor()
 {
 }

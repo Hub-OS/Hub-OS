@@ -68,4 +68,5 @@ void FireBurn::Attack(Character* _entity) {
 
 void FireBurn::OnDelete()
 {
+  Remove();
 }

@@ -58,4 +58,5 @@ void Tornado::Attack(Character* _entity) {
 
 void Tornado::OnDelete()
 {
+  Remove();
 }

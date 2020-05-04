@@ -72,4 +72,5 @@ void RollHeart::Attack(Character* _entity) {
 
 void RollHeart::OnDelete()
 {
+  Remove();
 }

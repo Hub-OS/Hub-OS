@@ -114,7 +114,7 @@ void Gear::OnUpdate(float _elapsed) {
 }
 
 void Gear::OnDelete() {
-
+    Remove();
 }
 
 const bool Gear::OnHit(const Hit::Properties props) {

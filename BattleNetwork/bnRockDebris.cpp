@@ -68,6 +68,16 @@ void RockDebris::OnUpdate(float _elapsed) {
   }
 }
 
+void RockDebris::OnDelete()
+{
+  Remove();
+}
+
+bool RockDebris::Move(Direction _direction)
+{
+  return false;
+}
+
 RockDebris::~RockDebris()
 {
 }

@@ -73,7 +73,6 @@ void Bubble::OnUpdate(float _elapsed) {
   }
 
   GetTile()->AffectEntities(this);
-  TryDelete();
 }
 
 bool Bubble::CanMoveTo(Battle::Tile* tile) {
@@ -85,7 +84,7 @@ const bool Bubble::OnHit(const Hit::Properties props) {
   if (!popping) {
     popping = true;
 
-    SetHealth(0);
+    this->Delete();
 
     return true;
   }
@@ -95,7 +94,7 @@ const bool Bubble::OnHit(const Hit::Properties props) {
 
 void Bubble::OnDelete()
 {
-  auto onFinish = [this]() { this->Delete(); };
+  auto onFinish = [this]() { this->Remove(); };
   animation << "POP" << onFinish;
   AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::LOWEST);
 }
@@ -106,8 +105,7 @@ const float Bubble::GetHeight() const
 }
 
 void Bubble::Attack(Character* _entity) {
-  // TODO: Hack. Bubbles keep attacking team mates. Why?
-  if(_entity->GetTeam() == Team::BLUE || popping) return;
+  if(popping) return;
 
   Obstacle* other = dynamic_cast<Obstacle*>(_entity);
   Component* comp = dynamic_cast<Component*>(_entity);
@@ -137,6 +135,6 @@ void Bubble::Attack(Character* _entity) {
       }
     }
 
-    this->SetHealth(0);
+    this->Delete();
   }
 }

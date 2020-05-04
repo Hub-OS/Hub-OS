@@ -18,29 +18,29 @@ protected:
 public:
   Bubble(Field* _field, Team _team, double speed = 1.0);
 
-  virtual ~Bubble();
+  ~Bubble();
   
   /**
    * @brief bubble can move to any tile no matter the state
    * @param tile
    * @return true
    */
-  virtual bool CanMoveTo(Battle::Tile* tile);
+  bool CanMoveTo(Battle::Tile* tile) override;
   
   /**
    * @brief Continues to slide until it reaches the end of its path
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief If an obstacle, deals damage and pops. If character, tries adding a bubble trap component and pops.
    * @param _entity
    */
-  virtual void Attack(Character* _entity);
+  void Attack(Character* _entity) override;
 
-  virtual const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props) override;
 
-  virtual void OnDelete();
-  virtual const float GetHeight() const;
+  void OnDelete() override;
+  const float GetHeight() const override;
 };

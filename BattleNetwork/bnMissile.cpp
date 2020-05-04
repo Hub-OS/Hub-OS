@@ -113,6 +113,7 @@ void Missile::OnUpdate(float _elapsed) {
 
 void Missile::OnDelete()
 {
+  Remove();
 }
 
 bool Missile::Move(Direction _direction) {

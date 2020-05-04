@@ -7,16 +7,22 @@ class Character;
 namespace Hit {
   using Flags = uint16_t;
 
+  // These are in order!
+  // Hitboxes properties will be inserted in queue
+  // based on priority (A < B) where the highest priority
+  // is the lowest value
   const Flags none = 0x0000;
-  const Flags recoil = 0x0001;
-  const Flags shake = 0x0002;
-  const Flags stun = 0x0004;
-  const Flags pierce = 0x0008;
-  const Flags flinch = 0x0010;
-  const Flags breaking = 0x0020;
-  const Flags impact = 0x0040;
-  const Flags drag = 0x0080;
-  const Flags retangible = 0x0100;
+  const Flags retangible = 0x0001;
+  const Flags freeze = 0x0002;
+  const Flags pierce = 0x0004;
+  const Flags recoil = 0x0008;
+  const Flags shake = 0x0010;
+  const Flags stun = 0x0020;
+  const Flags flinch = 0x0040;
+  const Flags breaking = 0x0080;
+  const Flags impact = 0x0100;
+  const Flags drag = 0x0200;
+
 
   /**
    * @struct Properties

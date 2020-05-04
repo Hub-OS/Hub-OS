@@ -95,7 +95,7 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
 
   this->leader = &leader;
 
-  Entity::DeleteCallback& deleteHandler = this->leader->CreateDeleteCallback();
+  Entity::RemoveCallback& deleteHandler = this->leader->CreateRemoveCallback();
   deleteHandler.Slot([this]() {
       if (this->target == this->leader) this->target = nullptr;
       this->leader = nullptr;
@@ -257,4 +257,5 @@ void Bees::Attack(Character* _entity) {
 void Bees::OnDelete()
 {
   dropped.clear();
+  Remove();
 }

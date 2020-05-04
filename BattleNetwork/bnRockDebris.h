@@ -42,13 +42,18 @@ public:
    * @brief Uses separate x and y interpolation to look like there's force and gravity
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
+
+  /**
+  * @brief Removes debris from play
+  */
+  void OnDelete() override;
   
   /**
    * @brief Does not move along the grid
    * @param _direction ignored
    * @return false
    */
-  virtual bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) override;
 };
 

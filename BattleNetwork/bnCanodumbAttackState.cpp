@@ -44,8 +44,8 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
     break;
   }
 
-  can.SetCounterFrame(2);
-  can.OnFrameCallback(1, onAttack, Animator::NoCallback, true);
+  can.SetCounterFrame(1);
+  can.OnFrameCallback(2, onAttack, Animator::NoCallback, true);
 }
 
 void CanodumbAttackState::OnUpdate(float _elapsed, Canodumb& can) {

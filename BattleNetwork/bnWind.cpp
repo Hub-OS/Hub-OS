@@ -46,4 +46,5 @@ void Wind::Attack(Character* _entity) {
 
 void Wind::OnDelete()
 {
+  Remove();
 }

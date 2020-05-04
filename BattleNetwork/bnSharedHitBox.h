@@ -47,7 +47,7 @@ public:
    */
   void Attack(Character* _entity) override;
   
-  void OnDelete() override { ; }
+  void OnDelete() override;
 
   const float GetHeight() const override;
   

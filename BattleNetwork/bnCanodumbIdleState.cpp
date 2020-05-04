@@ -50,7 +50,7 @@ void CanodumbIdleState::OnUpdate(float _elapsed, Canodumb& can) {
       // Spawn tracking cursor object
       if (cursor == nullptr) {
         cursor = new CanodumbCursor(can.GetField(), can.GetTeam(), this);
-        freeCursorCallback = cursor->CreateDeleteCallback();
+        freeCursorCallback = cursor->CreateRemoveCallback();
 
         freeCursorCallback.Slot([this]() {
             if (cursor) {

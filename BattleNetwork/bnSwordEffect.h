@@ -16,14 +16,19 @@ public:
    * @brief Update the effect animation
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
+
+  /**
+   * @brief Removes sword effect from play
+   */
+  void OnDelete() override;
   
   /**
    * @brief Effect doesnt move across tiles
    * @param _direction dismissed
    * @return false
    */
-  virtual bool Move(Direction _direction) { return false; }
+  bool Move(Direction _direction) override;
 
   // On animation end it deletes itself
   void SetAnimation(const std::string& animation);

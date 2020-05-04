@@ -59,6 +59,11 @@ const bool Fishy::OnHit(const Hit::Properties props) {
   return true; // fishy blocks everything
 }
 
+void Fishy::OnDelete()
+{
+    Remove();
+}
+
 void Fishy::Attack(Character* _entity) {
   std::cout << "fishy team: " << (int)this->GetTeam() << std::endl;
 

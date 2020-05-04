@@ -116,6 +116,16 @@ void Explosion::OnUpdate(float _elapsed) {
   }
 }
 
+void Explosion::OnDelete()
+{
+  Remove();
+}
+
+bool Explosion::Move(Direction _direction)
+{
+  return false;
+}
+
 void Explosion::IncrementExplosionCount() {
   count++;
 }

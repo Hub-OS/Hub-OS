@@ -21,7 +21,6 @@ Character::Character(Rank _rank) :
   counterSlideDelta(0),
   name("unnamed"),
   rank(_rank),
-  invokeDeletion(false),
   hit(false),
   CounterHitPublisher(), Entity() {
 
@@ -145,13 +144,18 @@ void Character::Update(float _elapsed) {
       health = 0;
   }
 
-  if (!this->invokeDeletion && (health == 0 || this->IsDeleted())) {
-      this->OnDelete();
-      this->invokeDeletion = true;
+  if (!this->IsDeleted() && health == 0) {
+      this->Delete();
   }
 
   // If drag status is over, reset the flag
   if (!IsSliding() && this->slideFromDrag) this->slideFromDrag = false;
+}
+
+void Character::Delete()
+{
+  SetHealth(0);
+  Entity::Delete();
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)
@@ -174,12 +178,7 @@ const bool Character::Hit(Hit::Properties props) {
 
   // Pierce status hits even when passthrough or flinched
   if ((props.flags & Hit::pierce) != Hit::pierce) {
-    if (this->invincibilityCooldown > 0 || this->IsPassthrough()) return false;
-  }
-
-  // Retangible flag takes characters out of passthrough status
-  if ((props.flags & Hit::retangible) != Hit::retangible) {
-    this->SetPassthrough(false);
+      if (this->invincibilityCooldown > 0 || this->IsPassthrough()) return false;
   }
 
   if ((props.flags & Hit::shake) == Hit::shake) {
@@ -299,6 +298,10 @@ void Character::ResolveFrameBattleDamage()
           hadStun = true;
         }
       }
+      else {
+          // cancel stun
+          this->stunCooldown = 0.0;
+      }
 
       // exclude this from the next processing step
       props.flags &= ~Hit::stun;
@@ -318,6 +321,17 @@ void Character::ResolveFrameBattleDamage()
           this->stunCooldown = 0;
         }
       }
+
+      // exclude this from the next processing step
+      props.flags &= ~Hit::flinch;
+
+      // Flinch is canceled if retangibility is applied
+      if ((props.flags & Hit::retangible) == Hit::retangible) {
+        this->invincibilityCooldown = 0.0;
+      }
+
+      // exclude this from the next processing step
+      props.flags &= ~Hit::retangible;
 
       hit = hit || props.damage;
     }
@@ -354,14 +368,12 @@ void Character::ResolveFrameBattleDamage()
     this->Stun(3.0);
   }
 
-  if (this->GetHealth() == 0 && !this->invokeDeletion) {
+  if (this->GetHealth() == 0) {
 
     while(this->statusQueue.size() > 0) {
       this->statusQueue.pop();
     }
 
-    //this->OnDelete();
-    //this->invokeDeletion = true;
     this->stunCooldown = 0;
     this->invincibilityCooldown = 0;
 
@@ -391,17 +403,6 @@ void Character::AdoptTile(Battle::Tile * tile)
 
   if (!IsSliding()) {
     this->setPosition(tile->getPosition());
-  }
-}
-
-void Character::TryDelete() {
-  if (IsTimeFrozen()) return;
-
-  if (this->GetHealth() == 0 && !this->invokeDeletion) {
-      this->SetHealth(0);
-      //this->Delete();
-      //this->invokeDeletion = true;
-      this->SlideToTile(false);
   }
 }
 

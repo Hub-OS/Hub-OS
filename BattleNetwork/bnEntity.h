@@ -52,17 +52,36 @@ private:
   bool hasSpawned;      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
   float height;         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection*/
 public:
-  using DeleteCallback = Callback<void()>;
+  using RemoveCallback = Callback<void()>;
 
   Entity();
   virtual ~Entity();
 
+  /**
+  * @brief Performs some user-specified deletion behavior before removing from play
+  *
+  * Deleted entities are excluded from all battle attack steps however they 
+  * will be visually present and must be removed from field by calling Remove()
+  */
   virtual void OnDelete() = 0;
 
+  /**
+  * @brief Sets the tile for this entity and invokes OnSpawn() if this is the first time
+  */
   void Spawn(Battle::Tile& start);
 
   virtual void OnSpawn(Battle::Tile& start) { };
+
+  /**
+  * @brief Performs some user-specified behavior when the battle starts for the first time 
+  * @example See bnGears.h for an entity that is live when the round begins and only moves after this call.
+  */
   virtual void OnBattleStart() { };
+
+  /**
+  * @brief Performs some user-specified behavior when the battle is over
+  * @example See bnGears.h for an entity that only stops in place when the round is over
+  */
   virtual void OnBattleStop() { };
 
   /**
@@ -250,19 +269,30 @@ public:
   /**
    * @brief Frees and clears all components attached. Sets `delete` flag to true.
    */
-  void Delete();
+  virtual void Delete();
+
+  /**
+  * @brief Flags the entity to be pruned from the field 
+  */
+  void Remove();
 
   /**
   * @brief Builds and returns a reference to a callback function of type void()
   * Useful for safely determining the lifetime of another entity in play
   */
-  std::reference_wrapper<DeleteCallback> CreateDeleteCallback();
+  std::reference_wrapper<RemoveCallback> CreateRemoveCallback();
   
   /**
    * @brief Query if an entity has been deleted but not removed this frame
    * @return true if flagged for deletion, false otherwise
    */
   bool IsDeleted() const;
+
+  /**
+  * @brief Query if an entity has been marked for removal
+  * @return true if flagged, false otherwise
+  */
+  bool WillRemoveLater() const;
 
   /**
    * @brief Changes the element of the entity
@@ -396,7 +426,7 @@ protected:
   Element element;
 
   std::vector<Component*> components; /*!< List of all components attached to this entity*/
-  std::vector<DeleteCallback> deleteCallbacks;
+  std::vector<RemoveCallback> removeCallbacks;
 
   void SetSlideTime(sf::Time time);
 
@@ -409,7 +439,8 @@ private:
   bool floatShoe;
   bool airShoe;
   bool isSliding; /*!< If sliding/gliding to a tile */
-  bool deleted;
+  bool deleted; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
+  bool flagForRemove; /*!< Used to remove this entity from the field immediately */
   int moveCount; /*!< Used by battle results */
   sf::Time slideTime; /*!< how long slide behavior lasts */
   sf::Time defaultSlideTime; /*!< If slidetime is modified by outside source, the slide to return back to */

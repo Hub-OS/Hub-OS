@@ -60,6 +60,16 @@ void BubbleTrap::OnUpdate(float _elapsed) {
   animation.Update(_elapsed, this->getSprite());
 }
 
+void BubbleTrap::OnDelete()
+{
+  Remove();
+}
+
+bool BubbleTrap::Move(Direction _direction)
+{
+  return false;
+}
+
 void BubbleTrap::Pop()
 {
   auto onFinish = [this]() {
