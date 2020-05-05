@@ -19,16 +19,16 @@ private:
   Callback callback;
   
 public:
-  DefenseAura(Callback callback);
+  DefenseAura(const Callback& callback);
   DefenseAura();
   
-  virtual ~DefenseAura();
+  ~DefenseAura();
 
   /**
    * @brief Aura defense rules never let anything through
    * @param in the attack
    * @param owner the character the rule is attached to (this)
-   * @return true
+   * @return true if hitbox is impact
    */
-  virtual const bool Blocks(Spell* in, Character* owner);
+  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
 };

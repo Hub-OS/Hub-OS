@@ -91,7 +91,8 @@ void PlayerHealthUI::OnUpdate(float elapsed) {
   this->isBattleOver = this->bs->IsCleared();
 
   if (player) {
-    if (player->IsDeleted()) {
+    if (player->WillRemoveLater()) {
+      player->FreeComponentByID(GetID());
       player = nullptr;
       return;
     }

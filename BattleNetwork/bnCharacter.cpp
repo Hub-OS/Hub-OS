@@ -451,15 +451,15 @@ void Character::RemoveDefenseRule(DefenseRule * rule)
     defenses.erase(iter);
 }
 
-const bool Character::DefenseCheck(Spell* in)
+const bool Character::DefenseCheck(DefenseResolutionArbiter& arbiter, Spell& in)
 {
+  bool blocked = false;
+
   for (int i = 0; i < defenses.size(); i++) {
-    if (defenses[i]->Blocks(in, this)) {
-      return true;
-    }
+    blocked = blocked && defenses[i]->CanBlock(arbiter, in, *this);
   }
 
-  return false;
+  return blocked;
 }
 
 void Character::SharedHitboxDamage(Character * to)

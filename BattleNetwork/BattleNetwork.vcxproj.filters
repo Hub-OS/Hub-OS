@@ -1507,6 +1507,9 @@
       <Filter>Screens/Activities\Battle\Cards\Actions\ElecPulse</Filter>
     </ClCompile>
     <ClCompile Include="bnDelayedAttack.cpp" />
+    <ClCompile Include="bnDefenseResolutionArbiter.cpp">
+      <Filter>Screens/Activities\Battle\BattleStepModifiers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -2361,6 +2364,9 @@
     </ClInclude>
     <ClInclude Include="bnNaviWhiteoutState.h">
       <Filter>Screens/Activities\Battle\AI\Any\States</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseResolutionArbiter.h">
+      <Filter>Screens/Activities\Battle\BattleStepModifiers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

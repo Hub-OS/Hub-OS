@@ -1,5 +1,6 @@
 #pragma once
 #include "bnHitProperties.h"
+#include "bnDefenseResolutionArbiter.h"
 
 class Spell;
 class Character;
@@ -22,11 +23,24 @@ private:
 public:
   friend class Character;
 
+  /**
+  * @brief Constructs a defense rule with a priority level
+  */
   DefenseRule(Priority level);
 
+  /**
+  * @brief Returns the priority level of this defense rule
+  */
   const Priority GetPriorityLevel() const;
+  
+  /**
+  * @brief True if the defense rule has been flagged for replacement by another with a priority level of equal value
+  */
   const bool IsReplaced() const;
 
+  /**
+  * @brief Deconstructor
+  */
   virtual ~DefenseRule();
 
   /**
@@ -38,5 +52,5 @@ public:
   /**
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */
-  virtual const bool Blocks(Spell* in, Character* owner) = 0;
+  virtual const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) = 0;
 };

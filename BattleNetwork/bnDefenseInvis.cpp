@@ -12,7 +12,7 @@ DefenseInvis::~DefenseInvis()
 {
 }
 
-const bool DefenseInvis::Blocks(Spell * in, Character* owner)
+const bool DefenseInvis::CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner)
 {
-  return (in->GetHitboxProperties().flags & Hit::pierce) != Hit::pierce;
+  return (in.GetHitboxProperties().flags & Hit::pierce) != Hit::pierce;
 }

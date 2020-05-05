@@ -5,25 +5,28 @@
 #include "bnGuardHit.h"
 #include "bnHitbox.h"
 
-DefenseAura::DefenseAura(DefenseAura::Callback callback) : DefenseRule(Priority(4))
+DefenseAura::DefenseAura(const DefenseAura::Callback& callback) : DefenseRule(Priority(4))
 {
-	this->callback = callback;
+  this->callback = callback;
 }
 
 DefenseAura::DefenseAura() : DefenseRule(Priority(4)) {
-	callback = nullptr;
+  callback = nullptr;
 }
 
 DefenseAura::~DefenseAura()
 {
 }
 
-const bool DefenseAura::Blocks(Spell * in, Character* owner)
+const bool DefenseAura::CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner)
 {
-  // Drop a 0 damage hitbox to block/trigger attack hits
-  owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+  if ((in.GetHitboxProperties().flags & Hit::impact) != Hit::impact) return false;
 
-  if(callback) { callback(in, owner); }
+  arbiter.BlockDamage();
+
+  if(callback) { 
+    arbiter.AddTrigger(callback, in, owner); 
+  }
   
-  return true; // barrier never lets attacks passthrough
+  return true; // barrier blocks if impact
 }

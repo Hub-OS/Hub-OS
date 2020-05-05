@@ -13,10 +13,28 @@ DefenseBubbleWrap::~DefenseBubbleWrap()
 {
 }
 
-const bool DefenseBubbleWrap::Blocks(Spell * in, Character* owner)
+Hit::Properties& DefenseBubbleWrap::FilterStatuses(Hit::Properties& statuses) {
+  if(statuses.element == Element::ELEC)
+    statuses.damage *= 2;
+  return statuses;
+}
+
+const bool DefenseBubbleWrap::CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner)
 {
   // weak obstacles will break like other bubbles
-  owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
-  
+  owner.GetField()->AddEntity(*new Hitbox(owner.GetField(), owner.GetTeam(), 0), owner.GetTile()->GetX(), owner.GetTile()->GetY());
+
+  auto props = in.GetHitboxProperties();
+  if ((props.flags & Hit::impact) == Hit::impact) {
+
+    if (in.GetElement() == Element::ELEC) {
+      arbiter.BlockDamage();
+      return true;
+    }
+    else {
+      // TODO: trigger to remove bubble wrap
+    }
+  }
+
   return false; // let anything else pass through
 }

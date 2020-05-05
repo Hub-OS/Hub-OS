@@ -32,7 +32,7 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   public:
     AlphaCoreDefenseRule(int& alphaCoreHP);
     ~AlphaCoreDefenseRule();
-    const bool Blocks(Spell* in, Character* owner) override;
+    const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
     Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
   } *defense;
 public:

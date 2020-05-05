@@ -13,7 +13,7 @@
 class DefenseInvis : public DefenseRule {
 public:
   DefenseInvis();
-  virtual ~DefenseInvis();
+  ~DefenseInvis();
 
   /**
    * @brief If the attack does pierce damage, the defense fails
@@ -21,5 +21,5 @@ public:
    * @param owner the character with Invis defense (this) added
    * @return true if triggered, false, if not
    */
-  virtual const bool Blocks(Spell* in, Character* owner);
+  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
 };

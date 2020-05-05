@@ -21,7 +21,7 @@ public:
    * @brief Check for breaking properties
    * @param in the attack
    * @param owner the character this is attached to
-   * @return always true. Nothing ever passes.
+   * @return Always true
    */
-  const bool Blocks(Spell* in, Character* owner) override;
+  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
 };

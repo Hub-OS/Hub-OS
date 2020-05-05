@@ -13,14 +13,15 @@
 class DefenseBubbleWrap : public DefenseRule {
 public:
   DefenseBubbleWrap();
-
-  virtual ~DefenseBubbleWrap();
+  ~DefenseBubbleWrap();
   
+  Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
+
   /**
    * @brief Allows all attacks to hit and pass 
    * @param in the attack spell
    * @param owner the character this is attached to
    * @return false
    */
-  virtual const bool Blocks(Spell* in, Character* owner);
+  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
 };

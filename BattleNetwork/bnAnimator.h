@@ -176,11 +176,11 @@ public:
  */
 class Animator {
 private:
-  std::map<int, std::function<void()>> callbacks; /*!< Called every time on frame */
-  std::map<int, std::function<void()>> onetimeCallbacks; /*!< Called once on frame then discarded */
-  std::map<int, std::function<void()>> nextLoopCallbacks; /*!< used to queue already called callbacks */
-  std::map<int, std::function<void()>> queuedCallbacks; /*!< used for adding new callbacks while updating */
-  std::map<int, std::function<void()>> queuedOnetimeCallbacks; /*!< adding new one-time callbacks in update */
+  std::multimap<int, std::function<void()>> callbacks; /*!< Called every time on frame */
+  std::multimap<int, std::function<void()>> onetimeCallbacks; /*!< Called once on frame then discarded */
+  std::multimap<int, std::function<void()>> nextLoopCallbacks; /*!< used to queue already called callbacks */
+  std::multimap<int, std::function<void()>> queuedCallbacks; /*!< used for adding new callbacks while updating */
+  std::multimap<int, std::function<void()>> queuedOnetimeCallbacks; /*!< adding new one-time callbacks in update */
   
   std::map<std::string, sf::Vector2f> currentPoints;
   
@@ -214,11 +214,11 @@ public:
     }
     
     On(const On& rhs) {
-		  //std::cout << "in cpy constructor" << std::endl;
-		  this->id = rhs.id;
-		  this->callback = rhs.callback;
-		  this->doOnce = rhs.doOnce;
-	  }
+      //std::cout << "in cpy constructor" << std::endl;
+      this->id = rhs.id;
+      this->callback = rhs.callback;
+      this->doOnce = rhs.doOnce;
+    }
   };
 
   /**

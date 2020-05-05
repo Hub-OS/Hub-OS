@@ -365,11 +365,15 @@ void AlphaCore::ShootSuperVulcans()
 AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 
-const bool AlphaCore::AlphaCoreDefenseRule::Blocks(Spell* in, Character* owner) {
-  AlphaCore* alpha = static_cast<AlphaCore*>(owner);
-  if (alpha->impervious) {  return true; }
+const bool AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) {
+  AlphaCore* alpha = static_cast<AlphaCore*>(&owner);
+  if (alpha->impervious) {  
+    arbiter.BlockDamage();
+    arbiter.BlockImpact();
+    return true; 
+  }
 
-  alphaCoreHP -= in->GetHitboxProperties().damage;
+  alphaCoreHP -= in.GetHitboxProperties().damage;
   alphaCoreHP = std::max(0, alphaCoreHP);
 
   // Combat damage happens in real time, however during TFC the core

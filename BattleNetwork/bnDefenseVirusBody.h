@@ -4,7 +4,7 @@
 class DefenseVirusBody : public DefenseRule {
 public:
   DefenseVirusBody();
-  virtual ~DefenseVirusBody();
-  virtual Hit::Properties& FilterStatuses(Hit::Properties& statuses);
-  virtual const bool Blocks(Spell* in, Character* owner) { /* does nothing */ return false; }
+  ~DefenseVirusBody();
+  Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
+  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
 };

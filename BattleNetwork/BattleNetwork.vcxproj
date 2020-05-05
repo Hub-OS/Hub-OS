@@ -244,6 +244,7 @@
     <ClCompile Include="bnCannonCardAction.cpp" />
     <ClCompile Include="bnCharacterDeleteListener.cpp" />
     <ClCompile Include="bnCharacterDeletePublisher.cpp" />
+    <ClCompile Include="bnDefenseResolutionArbiter.cpp" />
     <ClCompile Include="bnComponent.cpp" />
     <ClCompile Include="bnConfigReader.cpp" />
     <ClCompile Include="bnConfigScene.cpp" />
@@ -451,6 +452,7 @@
     <ClInclude Include="bnCardUUIDs.h" />
     <ClInclude Include="bnCharacterDeleteListener.h" />
     <ClInclude Include="bnCharacterDeletePublisher.h" />
+    <ClInclude Include="bnDefenseResolutionArbiter.h" />
     <ClInclude Include="bnCurrentTime.h" />
     <ClInclude Include="bnDefenseInvis.h" />
     <ClInclude Include="bnElecPulseCardAction.h" />

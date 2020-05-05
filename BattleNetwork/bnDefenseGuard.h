@@ -17,9 +17,8 @@ private:
   Callback callback;
 
 public:
-  DefenseGuard(Callback callback);
-
-  virtual ~DefenseGuard();
+  DefenseGuard(const Callback& callback);
+  ~DefenseGuard();
 
   /**
    * @brief Check for breaking properties
@@ -27,5 +26,5 @@ public:
    * @param owner the character this is attached to
    * @return Returns true if spell does not have breaking properties, false otherwise
    */
-  virtual const bool Blocks(Spell* in, Character* owner);
+  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner);
 };

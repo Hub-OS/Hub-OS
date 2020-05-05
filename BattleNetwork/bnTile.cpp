@@ -4,6 +4,7 @@
 #include "bnObstacle.h"
 #include "bnSpell.h"
 #include "bnArtifact.h"
+#include "bnDefenseResolutionArbiter.h"
 
 #include "bnPlayer.h"
 #include "bnExplosion.h"
@@ -383,62 +384,6 @@ namespace Battle {
     queuedSpells.push_back(caller->GetID());
   }
 
-  void Tile::PerformSpellAttack(Spell* caller) {
-    auto characters_copy = characters; // may be modified after hitboxes are resolved
-
-    for (auto it = characters_copy.begin(); it != characters_copy.end(); ++it) {
-      if ((*it)->GetID() == caller->GetID()) // Case: prevent obstacles from attacking themselves
-        continue;
-
-      // the entity is a character (can be hit) and the team isn't the same
-      // we see if it passes defense checks, then call attack
-
-      Character& c = *(*it);
-
-      if (c.GetName() == "Bubble") {
-        Logger::Logf("team: %s", c.GetTeam() == Team::UNKNOWN ? "Unknown" : c.GetTeam() == Team::RED ? "Red" : "Blue");
-      }
-
-      bool unknownTeams = (c.GetTeam() == Team::UNKNOWN && caller->GetTeam() == Team::UNKNOWN);
-      if(c.GetTeam() != caller->GetTeam() || unknownTeams) {
-        auto props = caller->GetHitboxProperties();
-
-        // Retangible flag takes characters out of passthrough status
-        bool retangible = (props.flags & Hit::retangible) != Hit::retangible;
-
-        if (!c.DefenseCheck(caller)) {
-          // Attack() routine has Hit() which immediately subtracts HP
-          // However it also acts as the last check if contact was made (see: i-frames)
-          // Because we want to write Attack() to determine contact status
-          // without exposing the character to malicious programming (e.g. always dealing damage regardless)
-          // we pass the attack info to a dummy to recieve hits on their behalf
-
-          if (GetState() == TileState::HOLY) {
-            auto props = caller->GetHitboxProperties();
-            props.damage /= 2;
-            caller->SetHitboxProperties(props);
-          }
-
-          if (this->isTimeFrozen) {
-              auto props = caller->GetHitboxProperties();
-              props.flags |= Hit::shake;
-              caller->SetHitboxProperties(props);
-          }
-
-          caller->Attack(&c);
-          caller->SetHitboxProperties(props);
-        }
-
-        if (retangible) c.SetPassthrough(false);
-
-        // Tag the spell
-        // only ignore spells that have already hit something on a tile
-        // this is similar to the hitbox being removed in mmbn mechanics
-        taggedSpells.push_back(caller->GetID());
-      }
-    }
-  }
-
   void Tile::Update(float _elapsed) {
     willHighlight = false;
     totalElapsed += _elapsed;
@@ -724,12 +669,76 @@ namespace Battle {
   void Tile::ExecuteAllSpellAttacks()
   {
     // Spells dont cause damage when the battle is over
-    if (!this->isBattleOver) {
+    if (this->isBattleOver) return;
+
       // Now that spells and characters have updated and moved, they are due to check for attack outcomes
-      for (Entity::ID_t ID : queuedSpells) {
-        Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
-        spell ? this->PerformSpellAttack(spell) : 0;
+      auto characters_copy = characters; // may be modified after hitboxes are resolved
+
+      for (auto it = characters_copy.begin(); it != characters_copy.end(); ++it) {
+        // the entity is a character (can be hit) and the team isn't the same
+        // we see if it passes defense checks, then call attack
+
+        Character& c = *(*it);
+        DefenseResolutionArbiter arbiter; // arbiter for this character's defenses
+        std::vector<Spell*> hitSpells;
+        bool retangible = false;
+
+        for (Entity::ID_t ID : queuedSpells) {
+          Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
+
+          if ((*it)->GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
+            continue;
+
+          bool unknownTeams = (c.GetTeam() == Team::UNKNOWN && spell->GetTeam() == Team::UNKNOWN);
+          if (c.GetTeam() != spell->GetTeam() || unknownTeams) {
+            auto props = spell->GetHitboxProperties();
+
+            // Retangible flag takes characters out of passthrough status
+            retangible = (props.flags & Hit::retangible) != Hit::retangible;
+
+            // The spell passed at least one defense check
+            if (c.DefenseCheck(arbiter, *spell)) {
+              hitSpells.push_back(spell);
+            }
+        }
       }
+      
+      for(auto&& spell : hitSpells) {
+        auto props = spell->GetHitboxProperties();
+
+          // Attack() routine has Hit() which immediately subtracts HP
+          // However it also acts as the last check if contact was made (see: i-frames)
+          // Because we want to write Attack() to determine contact status
+          // without exposing the character to malicious programming (e.g. always dealing damage regardless)
+          // we pass the attack info to a dummy to recieve hits on their behalf
+
+          if (GetState() == TileState::HOLY) {
+            auto props = spell->GetHitboxProperties();
+            props.damage /= 2;
+            spell->SetHitboxProperties(props);
+          }
+
+        if (this->isTimeFrozen) {
+          auto props = spell->GetHitboxProperties();
+          props.flags |= Hit::shake;
+          spell->SetHitboxProperties(props);
+        }
+
+        spell->Attack(&c);
+        spell->SetHitboxProperties(props);
+
+        // Tag the spell
+        // only ignore spells that have already hit something on a tile
+        // this is similar to the hitbox being removed in mmbn mechanics
+        taggedSpells.push_back(spell->GetID());
+      }
+
+      // No defenses were compromised, execute triggers
+      if (hitSpells.size() == 0) {
+        arbiter.ExecuteAllTriggers();
+      }
+
+      if (retangible) c.SetPassthrough(false);
     }
 
     // empty previous frame queue to be used this current frame

@@ -8,14 +8,14 @@
  * @date 05/05/19
  * @brief Spawns a cannon and smoke effect
  */
-class CanodumbAttackState : public AIState<Canodumb>
+class CanodumbAttackState final : public AIState<Canodumb>
 {
 public:
   CanodumbAttackState();
   ~CanodumbAttackState();
 
-  void OnEnter(Canodumb& can) final override;
-  void OnUpdate(float _elapsed, Canodumb& can) final override;
-  void OnLeave(Canodumb& can) final override;
+  void OnEnter(Canodumb& can) override;
+  void OnUpdate(float _elapsed, Canodumb& can) override;
+  void OnLeave(Canodumb& can) override;
 };
 

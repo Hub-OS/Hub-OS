@@ -16,7 +16,7 @@
  */
 class DefenseAntiDamage : public DefenseRule {
 public:
-  typedef std::function<void(Spell* in, Character* owner)> Callback;
+  typedef std::function<void(Spell& in, Character& owner)> Callback;
 
 private:
   Callback callback; /*!< Runs when the antidefense is triggered */
@@ -26,9 +26,9 @@ public:
    * @brief sets callback
    * @param callback
    */
-  DefenseAntiDamage(Callback callback);
+  DefenseAntiDamage(const Callback& callback);
 
-  virtual ~DefenseAntiDamage();
+  ~DefenseAntiDamage();
 
   /**
    * @brief If the attack does > 10 units of impact damage, triggers the callback
@@ -36,5 +36,5 @@ public:
    * @param owner the character with antidamage defense (this) added 
    * @return true if triggered, false, if not
    */
-  virtual const bool Blocks(Spell* in, Character* owner);
+  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
 };

@@ -4,7 +4,7 @@
 #include "bnSpell.h"
 #include "bnHitbox.h"
 
-DefenseAntiDamage::DefenseAntiDamage(DefenseAntiDamage::Callback callback) : callback(callback), DefenseRule(Priority(5))
+DefenseAntiDamage::DefenseAntiDamage(const DefenseAntiDamage::Callback& callback) : callback(callback), DefenseRule(Priority(5))
 {
 }
 
@@ -12,15 +12,17 @@ DefenseAntiDamage::~DefenseAntiDamage()
 {
 }
 
-const bool DefenseAntiDamage::Blocks(Spell * in, Character* owner)
+const bool DefenseAntiDamage::CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner)
 {
-  auto props = in->GetHitboxProperties();
+  auto props = in.GetHitboxProperties();
 
-  if ((props.flags & Hit::impact) == Hit::impact && props.damage >= 10) {
+  if ((props.flags & Hit::impact) == Hit::impact && props.damage >= 10
+    && !arbiter.IsDamageBlocked() && !arbiter.IsImpactBlocked()) {
 
-    owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), owner->GetTile()->GetX(), owner->GetTile()->GetY());
+    owner.GetField()->AddEntity(*new Hitbox(owner.GetField(), owner.GetTeam(), 0), owner.GetTile()->GetX(), owner.GetTile()->GetY());
 
-    this->callback(in, owner);
+    arbiter.AddTrigger(callback, in, owner);
+    arbiter.BlockDamage();
 
     return true; // Antidamage disallows an attack to passthrough
   }

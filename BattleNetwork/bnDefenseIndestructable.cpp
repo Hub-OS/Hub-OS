@@ -13,17 +13,17 @@ DefenseIndestructable::~DefenseIndestructable()
 {
 }
 
-const bool DefenseIndestructable::Blocks(Spell * in, Character* owner)
+const bool DefenseIndestructable::CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner)
 {
+  arbiter.BlockImpact();
+
   // Only drop gaurd effect as a response to attacks that can do impact damage > 0
-  if (in->GetHitboxProperties().damage > 0 && (in->GetHitboxProperties().flags & Hit::impact) != 0) {
-    owner->GetField()->AddEntity(*new GuardHit(owner->GetField(), owner, true), *owner->GetTile());
+  if (in.GetHitboxProperties().damage > 0 && (in.GetHitboxProperties().flags & Hit::impact) != 0) {
+    owner.GetField()->AddEntity(*new GuardHit(owner.GetField(), &owner, true), *owner.GetTile());
+    arbiter.BlockDamage();
   }
 
-  // spawn a hitbox to create contact with a spell, this may trigger its Delete routine
-  owner->GetField()->AddEntity(*new Hitbox(owner->GetField(), owner->GetTeam(), 0), *owner->GetTile());
-
-  if (breakCollidingObjectOnHit) in->Delete();
+  if (breakCollidingObjectOnHit) in.Delete();
 
   return true; // Successfully blocks - this prevents an attack to passthrough
 }
