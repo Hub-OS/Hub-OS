@@ -19,7 +19,6 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
 
   cooldown = 0;
 
-  hit = false;
   progress = 0.0f;
 
   if (isCharged) {
@@ -31,7 +30,7 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
 
   random = 0;
 
-  animationComponent = new AnimationComponent(this);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   this->RegisterComponent(animationComponent);
 
   if (_charged) {
@@ -89,30 +88,26 @@ void Buster::OnDelete()
 }
 
 void Buster::Attack(Character* _entity) {
-  if (_entity->Hit(this->GetHitboxProperties())) {
-    hit = true;  
+  if (!_entity->Hit(GetHitboxProperties())) return;
 
-    hitHeight = (float)(std::floor(_entity->GetHeight()));
+  hitHeight = (float)(std::floor(_entity->GetHeight()));
 
-    if (!isCharged) {
-      random = _entity->getLocalBounds().width / 2.0f;
-      random *= rand() % 2 == 0 ? -1.0f : 1.0f;
+  if (!isCharged) {
+    random = _entity->getLocalBounds().width / 2.0f;
+    random *= rand() % 2 == 0 ? -1.0f : 1.0f;
 
-      if (hitHeight > 0) {
-        hitHeight = (float)(rand() % (int)hitHeight);
-      }
+    if (hitHeight > 0) {
+      hitHeight = (float)(rand() % (int)hitHeight);
     }
-    else {
-      hitHeight /= 2;
-    }
-
-    auto bhit = new BusterHit(GetField(), isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
-    bhit->SetOffset({ random, GetHeight() + hitHeight });
-    GetField()->AddEntity(*bhit, *this->GetTile());
+  }
+  else {
+    hitHeight /= 2;
   }
 
-  if (hit) {
-    this->Delete();
-    AUDIO.Play(AudioType::HURT);
-  }
+  auto bhit = new BusterHit(GetField(), isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
+  bhit->SetOffset({ random, GetHeight() + hitHeight });
+  GetField()->AddEntity(*bhit, *this->GetTile());
+
+  this->Delete();
+  AUDIO.Play(AudioType::HURT);
 }

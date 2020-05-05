@@ -21,6 +21,7 @@ Entity::Entity()
   ownedByField(false),
   isSliding(false),
   hasSpawned(false),
+  flagForRemove(false),
   element(Element::NONE),
   tileOffset(sf::Vector2f(0, 0)),
   slideTime(sf::milliseconds(100)),
@@ -34,13 +35,12 @@ Entity::Entity()
 }
 
 // Entity's own the components still attached
-// Use FreeComponent() to preserve a component upon entity's deletion
+// Use FreeComponent() to preserve a component before entity's deletion
 Entity::~Entity() {
   for (int i = 0; i < components.size(); i++) {
+    components[i]->FreeOwner();
     delete components[i];
   }
-
-  components.clear();
 }
 
 void Entity::Spawn(Battle::Tile & start)
@@ -127,6 +127,7 @@ void Entity::Update(float _elapsed) {
       }
       else {
         // Slide back into the origin tile if we can no longer slide to the next tile
+        slideStartPosition = this->next->getPosition();
         this->next = this->tile;
       }
     } 
@@ -398,11 +399,11 @@ void Entity::Delete()
 
   deleted = true;
 
+  this->OnDelete();
+
   for (auto&& callbacks : removeCallbacks) {
     callbacks();
   }
-
-  this->OnDelete();
 
   removeCallbacks.clear();
 }

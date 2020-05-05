@@ -139,23 +139,16 @@ void Character::Update(float _elapsed) {
 
   hit = false;
 
-  // TODO: Something IS skipping the SetHealth() routine. Find out what and take this check out.
-  if (health <= 0) {
+  if (health <= 0 || IsDeleted()) {
       health = 0;
   }
 
-  if (!this->IsDeleted() && health == 0) {
+  if (health == 0) {
       this->Delete();
   }
 
   // If drag status is over, reset the flag
   if (!IsSliding() && this->slideFromDrag) this->slideFromDrag = false;
-}
-
-void Character::Delete()
-{
-  SetHealth(0);
-  Entity::Delete();
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)

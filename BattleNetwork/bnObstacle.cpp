@@ -15,6 +15,12 @@ Obstacle::~Obstacle() {
 
 }
 
+void Obstacle::Update(float _elapsed)
+{
+  Spell::Update(_elapsed);
+  Character::Update(_elapsed);
+}
+
 bool Obstacle::CanMoveTo(Battle::Tile * next)
 {
   return (Entity::CanMoveTo(next));
@@ -22,6 +28,10 @@ bool Obstacle::CanMoveTo(Battle::Tile * next)
 
 void Obstacle::AdoptTile(Battle::Tile * tile)
 {
-  this->Spell::AdoptTile(tile); // favor spell grouping
+  tile->AddEntity(*this);
+
+  if (!IsSliding()) {
+    this->setPosition(tile->getPosition());
+  }
 }
 

@@ -33,7 +33,6 @@ public:
 private:
   bool isCharged;
   bool spawnGuard;
-  bool hit;
   Character* contact;
   int damage;
   float cooldown;

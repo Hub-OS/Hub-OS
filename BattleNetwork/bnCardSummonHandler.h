@@ -147,23 +147,7 @@ public:
   void Update(double _elapsed) {
     //std::cout << "in summons update" << std::endl;
 
-    // queue.GetCaller()->Update(0);
-
     timeInSecs += _elapsed;
-
-    /*
-    for (auto iter = summonedItems.begin(); iter != summonedItems.end();) {
-      if (iter->entity->IsDeleted()) {
-        iter = summonedItems.erase(iter);
-        continue;
-      }
-      
-      iter++;
-    }
-
-    for (auto items : summonedItems) {
-        items.entity->Update((float)_elapsed);
-    }*/
   }
 
   void OnEnter() { 
@@ -195,8 +179,8 @@ public:
       summon = name;
 
     } else if(name == "ProtoMan") {
-		summon = name; 
-	}
+    summon = name; 
+  }
 
     // TODO: Don't use summon, use queue.GetCard();
     if (summon == "Roll") {
@@ -205,10 +189,10 @@ public:
       Entity* roll = new RollHeal(this, queue.GetCard().GetDamage());
       SummonEntity(roll);
     } else if(summon == "ProtoMan") {
-		summonedBy->Hide();
-		Entity* proto = new ProtoManSummon(this);
-		SummonEntity(proto);
-	}
+    summonedBy->Hide();
+    Entity* proto = new ProtoManSummon(this);
+    SummonEntity(proto);
+  }
     else if (summon == "RockCube") {
       Obstacle* cube = new Cube(summonedBy->GetField(), Team::UNKNOWN);
 
@@ -344,10 +328,10 @@ public:
       duration = sf::seconds(4);
     }
     else if(name == "ProtoMan") {
-		summon = "ProtoMan";
-		timeInSecs = 0;
-		duration = sf::seconds(3);
-	}
+    summon = "ProtoMan";
+    timeInSecs = 0;
+    duration = sf::seconds(3);
+  }
     else if (name.substr(0, 8) == "RockCube") {
       summon = "RockCube";
       timeInSecs = 0;

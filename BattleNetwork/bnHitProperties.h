@@ -37,26 +37,15 @@ namespace Hit {
     Character* aggressor;
     Direction drag; // Used by dragging payload
 
-    static Properties GetDefaultProperties() {
-      return Properties(0, Flags(Hit::recoil | Hit::impact), Element::NONE, nullptr, Direction::NONE);
-    }
-
-
-    Properties(int damage = 0, Flags flags = 0x00, Element element = Element::NONE, Character* aggressor = nullptr, Direction drag = Direction::NONE) 
-      : damage(damage), flags(flags), element(element), aggressor(aggressor), drag(drag) { }
-    
-    Properties(const Properties& rhs) {
-      damage = rhs.damage;
-      flags = rhs.flags;
-      element = rhs.element;
-      aggressor = rhs.aggressor;
-      drag = rhs.drag;
-    }
-
+    Properties() = default;
+    Properties(const Properties& rhs) = default;
     ~Properties() = default;
   };
 
+  static constexpr Properties GetDefaultProps() {
+    return Properties{ 0, Flags(Hit::recoil | Hit::impact), Element::NONE, nullptr, Direction::NONE };
+  }
 
-  const Properties DefaultProperties = Properties::GetDefaultProperties();
+  const constexpr Hit::Properties DefaultProperties = Hit::GetDefaultProps();
 
 }

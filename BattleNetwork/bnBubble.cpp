@@ -12,6 +12,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   field = _field;
 
   SetHealth(1);
+  SetName("Bubble");
   
   SetTeam(team);
 
@@ -43,8 +44,6 @@ Bubble::~Bubble() {
 }
 
 void Bubble::OnUpdate(float _elapsed) {
-  ResolveFrameBattleDamage();
-
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   animation.Update(_elapsed*(float)this->speed, this->getSprite());
@@ -68,7 +67,7 @@ void Bubble::OnUpdate(float _elapsed) {
     this->Move(this->GetDirection());
 
     if (!this->GetNextTile()) {
-      this->Delete();
+      this->Remove(); // Don't pop
     }
   }
 
@@ -89,7 +88,7 @@ const bool Bubble::OnHit(const Hit::Properties props) {
     return true;
   }
 
-  return true;
+  return false;
 }
 
 void Bubble::OnDelete()

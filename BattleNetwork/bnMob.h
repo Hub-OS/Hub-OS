@@ -257,12 +257,12 @@ public:
 
   /**
    * @brief Query if all the enemies have been deleted
-   * @return true if all mobs are marked IsDeleted()
+   * @return true if all mobs are marked for removal from play via WillRemoveLater() == true
    */
   const bool IsCleared() {
     for (int i = 0; i < (int)spawn.size(); i++) {
       auto mob = spawn[i]->mob;
-      if (!(mob->IsDeleted() || mob->WillRemoveLater())) {
+      if (!mob->WillRemoveLater()) {
         return false;
       }
     }

@@ -796,7 +796,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
       while (entitiesIter != allEntities.end()) {
           entity = (*entitiesIter);
-        if (!entity->IsDeleted()) {
+        if (!entity->WillRemoveLater()) {
           auto uic = entity->GetComponentsDerivedFrom<UIComponent>();
 
           //Logger::Log("uic size is: " + std::to_string(uic.size()));

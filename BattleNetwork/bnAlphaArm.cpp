@@ -12,18 +12,18 @@
 
 AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   : Obstacle(_field, _team), isMoving(false), canChangeTileState(false), type(type) {
-  this->setScale(2.f, 2.f);
-  this->SetFloatShoe(true);
-  this->SetTeam(_team);
-  this->SetDirection(Direction::LEFT);
-  this->SetHealth(999);
-  this->ShareTileSpace(true);
-  this->SetSlideTime(sf::seconds(0.1333f)); // 8 frames
-
+  setScale(2.f, 2.f);
+  SetFloatShoe(true);
+  SetTeam(_team);
+  SetDirection(Direction::LEFT);
+  SetHealth(999);
+  ShareTileSpace(true);
+  SetSlideTime(sf::seconds(0.1333f)); // 8 frames
+  SetName("AlphaArm");
   Hit::Properties props = Hit::DefaultProperties;
   props.flags |= Hit::recoil | Hit::breaking;
   props.damage = 120;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   AddDefenseRule(new DefenseIndestructable(true));
 
@@ -136,8 +136,6 @@ void AlphaArm::OnUpdate(float _elapsed) {
 
       if (totalElapsed - 1.0f > 0.12f) {
         // May have just finished moving
-        this->GetTile()->AffectEntities(this);
-
         if (!Teammate(GetTile()->GetTeam())) {
           if (canChangeTileState) {
             GetTile()->SetTeam(GetTeam());
@@ -160,8 +158,6 @@ void AlphaArm::OnUpdate(float _elapsed) {
     delta = 0; // do not bob
 
       // May have just finished moving
-    this->GetTile()->AffectEntities(this);
-
     if (totalElapsed > 1.2f) {
       if (!isSwiping) {
         isSwiping = true;
@@ -191,12 +187,19 @@ void AlphaArm::OnUpdate(float _elapsed) {
   shadow->setPosition(-13, -4 + delta / 2.0f); // counter offset the shadow node
 
   if (isSwiping) {
-      GetTile()->FindEntities([this](Entity* in) -> bool {
-          if (dynamic_cast<Obstacle*>(in) && in != this)
-              this->Delete();
+      auto res = GetTile()->FindEntities([this](Entity* in) -> bool {
+        if (dynamic_cast<Obstacle*>(in) && in != this) {
+          this->Delete();
+          return true;
+        }
 
-          return false;
+        return false;
       });
+
+      // Only if we are not blocked by an obstacle, can we proceed and attack
+      if (res.size() == 0) {
+        GetTile()->AffectEntities(this);
+      }
   }
 }
 

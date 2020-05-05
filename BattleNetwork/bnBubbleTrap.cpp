@@ -15,9 +15,8 @@ BubbleTrap::BubbleTrap(Character* owner) : Artifact(nullptr), Component(owner)
   defense = new DefenseBubbleWrap();
 
   if (owner->IsDeleted()) {
-    this->Delete();
+    this->Remove();
     this->GetOwner()->FreeComponentByID(this->Component::GetID());
-    this->FreeOwner();
     this->defense = nullptr;
   }
   else {
@@ -46,6 +45,7 @@ void BubbleTrap::Inject(BattleScene& bs) {
 
 void BubbleTrap::OnUpdate(float _elapsed) {
   if (!this->tile) return;
+  if (!GetOwner()) Remove();
 
   if (duration <= 0 &&  animation.GetAnimationString() != "POP" ) {
     this->Pop();

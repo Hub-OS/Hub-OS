@@ -64,11 +64,11 @@ public:
   virtual const bool OnHit(const Hit::Properties props) = 0;
 
   /**
-   * The hit routine that happens for every character. Queues status properties and damage
-   * to resolve at the end of the battle step.
-   * @param props
-   * @return Returns false  if IsPassthrough() is true (i-frames), otherwise true
-   */
+  * The hit routine that happens for every character. Queues status properties and damage
+  * to resolve at the end of the battle step.
+  * @param props
+  * @return Returns false  if IsPassthrough() is true (i-frames), otherwise true
+  */
   const bool Hit(Hit::Properties props = Hit::DefaultProperties);
 
   void ResolveFrameBattleDamage();
@@ -77,14 +77,12 @@ public:
 
   // TODO: move tile behavior out of update loop and into its own rule system for customization
   void Update(float elapsed) override;
-
-  void Delete() final override;
   
   /**
-   * @brief Default characters cannot move onto occupied, broken, or empty tiles
-   * @param next
-   * @return true if character can move to tile, false otherwise
-   */
+  * @brief Default characters cannot move onto occupied, broken, or empty tiles
+  * @param next
+  * @return true if character can move to tile, false otherwise
+  */
   virtual bool CanMoveTo(Battle::Tile* next) override;
  
   

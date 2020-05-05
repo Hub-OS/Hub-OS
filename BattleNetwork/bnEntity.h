@@ -269,7 +269,7 @@ public:
   /**
    * @brief Frees and clears all components attached. Sets `delete` flag to true.
    */
-  virtual void Delete();
+  void Delete();
 
   /**
   * @brief Flags the entity to be pruned from the field 

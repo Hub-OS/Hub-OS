@@ -81,7 +81,7 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, std::func
 
 void AnimationComponent::SetPlaybackMode(char playbackMode)
 {
-	animation << playbackMode;
+  animation << playbackMode;
 }
 
 void AnimationComponent::AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame, bool doOnce) {

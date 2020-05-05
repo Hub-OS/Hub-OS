@@ -395,6 +395,10 @@ namespace Battle {
 
       Character& c = *(*it);
 
+      if (c.GetName() == "Bubble") {
+        Logger::Logf("team: %s", c.GetTeam() == Team::UNKNOWN ? "Unknown" : c.GetTeam() == Team::RED ? "Red" : "Blue");
+      }
+
       bool unknownTeams = (c.GetTeam() == Team::UNKNOWN && caller->GetTeam() == Team::UNKNOWN);
       if(c.GetTeam() != caller->GetTeam() || unknownTeams) {
         auto props = caller->GetHitboxProperties();
@@ -519,7 +523,7 @@ namespace Battle {
   }
 
   void Tile::HandleTileBehaviors(Obstacle* obst) {
-    if (!this->isTimeFrozen) {
+    if (!this->isTimeFrozen || !this->isBattleOver) {
 
       // DIRECTIONAL TILES
       auto directional = Direction::NONE;
@@ -559,7 +563,7 @@ namespace Battle {
      and if they are not floating, we push the entity in a specific direction
      */
 
-    if (!this->isTimeFrozen) {
+    if (!this->isTimeFrozen || !this->isBattleOver) {
       // LAVA TILES
       if (!character->HasFloatShoe()) {
         if (GetState() == TileState::POISON) {
@@ -697,9 +701,6 @@ namespace Battle {
         // free memory
         Entity::ID_t ID = ptr->GetID();
 
-        // If not removed indirectly by Delete() call, ensure components are free'd
-        ptr->FreeAllComponents();
-
         if (RemoveEntityByID(ID)) {
           // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
           Character* character = dynamic_cast<Character*>(ptr);
@@ -731,7 +732,7 @@ namespace Battle {
       }
     }
 
-    // empty queue for next frame
+    // empty previous frame queue to be used this current frame
     queuedSpells.clear();
   }
 

@@ -21,17 +21,17 @@ public:
    * @brief Updates health ui, AI, and super classes
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
 
-  const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props) override;
 
-  void OnDelete();
+  void OnDelete() override;
   
   /**
    * @brief Set the hit height for projectiles to play effects at the correct position
    * @return Y offset
    */
-  const float GetHeight() const;
+  const float GetHeight() const override;
 
 private:
   float hitHeight;
