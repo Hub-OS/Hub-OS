@@ -7,14 +7,13 @@ class Callback {
 
 public:
   Callback() {
-    slot = [](){};
   }
 
   ~Callback() = default;
 
   void Slot(decltype(slot) slot) {
-    slot = slot;
+    Callback::slot = slot;
   }
 
-  void operator()() { slot(); }
+  void operator()() { slot? slot() : 0; }
 };

@@ -21,6 +21,14 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   // owner draws -> aura component draws -> aura sprite anim draws
   owner->RegisterComponent(this);
   owner->AddNode(this);
+
+  Entity::RemoveCallback& callback = owner->CreateRemoveCallback();
+  callback.Slot([this]() {
+    timer = 0;
+    FreeOwner();
+    privOwner = nullptr;
+  });
+
   AddNode(aura);
 
   // Note: need to get rid of artificial scaling by 2. Makes the math awful. No need for it.
