@@ -25,35 +25,35 @@ NaviRegistration::NaviMeta::~NaviMeta()
 
 NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetSymbolTexture(sf::Texture& symbol)
 {
-  this->symbol = sf::Sprite(symbol);
+  NaviMeta::symbol = sf::Sprite(symbol);
 
   // Symbols are 15x15
-  this->symbol.setTextureRect(sf::IntRect(0, 0, 15, 15));
+  NaviMeta::symbol.setTextureRect(sf::IntRect(0, 0, 15, 15));
 
   return *this;
 }
 
 NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetSpecialDescription(const std::string && special)
 {
-  this->special = special;
+  NaviMeta::special = special;
   return *this;
 }
 
 NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetAttack(const int atk)
 {
-  this->atk = atk;
+  NaviMeta::atk = atk;
   return *this;
 }
 
 NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetChargedAttack(const int atk)
 {
-  this->chargedAtk = atk;
+  chargedAtk = atk;
   return *this;
 }
 
 NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetSpeed(const double speed)
 {
-  this->speed = speed;
+  NaviMeta::speed = speed;
   return *this;
 }
 

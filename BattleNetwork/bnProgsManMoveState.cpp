@@ -17,7 +17,7 @@ void ProgsManMoveState::OnEnter(ProgsMan& progs) {
 void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
   if (isMoving) return; // We're already moving (animations take time)
 
-  nextDirection = Direction::NONE;
+  nextDirection = Direction::none;
 
   Battle::Tile* temp = progs.GetTile();
   Battle::Tile* next = nullptr;
@@ -28,46 +28,25 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
   Battle::Tile* tile = progs.GetField()->GetAt(progs.GetTile()->GetX() - 1, progs.GetTile()->GetY());
 
   if (tile->ContainsEntityType<Obstacle>()) {
-    return progs.ChangeState<ProgsManPunchState>();
+    return progs.GoToNextState();
   } else if (random > 15) {
     // Hunt the player
     Entity* target = progs.GetTarget();
 
     if (target && target->GetTile()) {
       if (target->GetTile()->GetY() == progs.GetTile()->GetY()) {
-        if (target->GetTile()->GetX() == progs.GetTile()->GetX() - 1) {
-          // Punch
-          progs.ChangeState<ProgsManPunchState>();
-          return;
+        if (target->GetTile()->GetY() < progs.GetTile()->GetY()) {
+          nextDirection = Direction::up;
         }
-        else if (rand() % 50 > 30) {
-          // Throw bombs.
-          progs.ChangeState<ProgsManThrowState>();
-          return;
+        else if (target->GetTile()->GetY() > progs.GetTile()->GetY()) {
+          nextDirection = Direction::down;
         }
-        else {
-          // Try shooting. 
-          progs.ChangeState<ProgsManShootState>();
-          return;
-        }
-      }
-      else if (rand() % 50 > 20) {
-        // Throw bombs.
-        progs.ChangeState<ProgsManThrowState>();
-        return;
-      }
 
-      if (target->GetTile()->GetY() < progs.GetTile()->GetY()) {
-        nextDirection = Direction::UP;
-      }
-      else if (target->GetTile()->GetY() > progs.GetTile()->GetY()) {
-        nextDirection = Direction::DOWN;
-      }
-
-      // special. if player is hanging at the middle, threaten them with a punch
-      if (progs.GetField()->GetAt(target->GetTile()->GetX() + 1, target->GetTile()->GetY())->GetTeam() == progs.GetTeam()
-        && progs.GetTile()->GetX() != target->GetTile()->GetX() + 1) {
-        nextDirection = Direction::LEFT;
+        // special. if player is hanging at the middle, threaten them with a punch
+        if (progs.GetField()->GetAt(target->GetTile()->GetX() + 1, target->GetTile()->GetY())->GetTeam() == progs.GetTeam()
+          && progs.GetTile()->GetX() != target->GetTile()->GetX() + 1) {
+          nextDirection = Direction::left;
+        }
       }
     }
   }
@@ -75,7 +54,7 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
   // otherwise aimlessly move around 
   int randDirection = rand() % 4;
 
-  if (nextDirection == Direction::NONE) {
+  if (nextDirection == Direction::none) {
     nextDirection = static_cast<Direction>(randDirection + 1);
   }
 
@@ -83,13 +62,13 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
 
   if (moved) {
     progs.AdoptNextTile();
-    auto onFinish = [&progs, this]() { progs.ChangeState<ProgsManIdleState>(); progs.FinishMove(); };
-    progs.SetAnimation(MOB_MOVING, onFinish);
+    auto onFinish = [&progs, this]() { progs.GoToNextState(); progs.FinishMove(); };
+    progs.SetAnimation("MOVING", onFinish);
     isMoving = true;
   }
   else {
     // If we can't move, go back to idle state
-    progs.ChangeState<ProgsManIdleState>();
+    progs.GoToNextState();
   }
 }
 

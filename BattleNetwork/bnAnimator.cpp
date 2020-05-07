@@ -2,6 +2,11 @@
 
 #include <iostream>
 
+Animator::Mode::Mode(int playback)
+{
+  Mode::playback = playback;
+}
+
 Animator::Animator() {
   onFinish = nullptr;
   queuedOnFinish = nullptr;
@@ -16,29 +21,29 @@ Animator::Animator(const Animator& rhs) {
 
 Animator & Animator::operator=(const Animator & rhs)
 {
-  this->onFinish = rhs.onFinish;
-  this->callbacks = rhs.callbacks;
-  this->onetimeCallbacks = rhs.onetimeCallbacks;
-  this->nextLoopCallbacks = rhs.nextLoopCallbacks;
-  this->queuedCallbacks = rhs.queuedCallbacks;
-  this->queuedOnetimeCallbacks = rhs.queuedOnetimeCallbacks;
-  this->queuedOnFinish = rhs.queuedOnFinish;
-  this->isUpdating = rhs.isUpdating;
-  this->callbacksAreValid = rhs.callbacksAreValid;
-  this->currentPoints = rhs.currentPoints;
-  this->playbackMode = rhs.playbackMode;
+  onFinish = rhs.onFinish;
+  callbacks = rhs.callbacks;
+  onetimeCallbacks = rhs.onetimeCallbacks;
+  nextLoopCallbacks = rhs.nextLoopCallbacks;
+  queuedCallbacks = rhs.queuedCallbacks;
+  queuedOnetimeCallbacks = rhs.queuedOnetimeCallbacks;
+  queuedOnFinish = rhs.queuedOnFinish;
+  isUpdating = rhs.isUpdating;
+  callbacksAreValid = rhs.callbacksAreValid;
+  currentPoints = rhs.currentPoints;
+  playbackMode = rhs.playbackMode;
 
   return *this;
 }
 
 Animator::~Animator() {
-  this->callbacks.clear();
-  this->queuedCallbacks.clear();
-  this->onetimeCallbacks.clear();
-  this->queuedOnetimeCallbacks.clear();
-  this->nextLoopCallbacks.clear();
-  this->onFinish = nullptr;
-  this->queuedOnFinish = nullptr;
+  callbacks.clear();
+  queuedCallbacks.clear();
+  onetimeCallbacks.clear();
+  queuedOnetimeCallbacks.clear();
+  nextLoopCallbacks.clear();
+  onFinish = nullptr;
+  queuedOnFinish = nullptr;
 }
 
 void Animator::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
@@ -142,13 +147,13 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     bool reachedLastFrame = &(*iter) == &copy.back() && startProgress != 0.f;
 
     if (progress <= 0.f || reachedLastFrame) {
-      std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = this->callbacks.find(index);
-      std::map<int, std::function<void()>>::iterator onetimeCallbackIter = this->onetimeCallbacks.find(index);
+      std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = callbacks.find(index);
+      std::map<int, std::function<void()>>::iterator onetimeCallbackIter = onetimeCallbacks.find(index);
 
       callbackIter = callbacks.begin();
 
       // step through and execute any callbacks that haven't triggerd up to this frame
-      while (callbacksAreValid && callbackIter != callbackFind && callbackFind != this->callbacks.end()) {
+      while (callbacksAreValid && callbackIter != callbackFind && callbackFind != callbacks.end()) {
         if (callbackIter->second) {
           callbackIter->second();
         }
@@ -167,7 +172,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
       }
 
       // If callbacks are ok and the iterator matches the expected frame
-      if (callbacksAreValid && callbackIter == callbackFind && callbackFind != this->callbacks.end()) {
+      if (callbacksAreValid && callbackIter == callbackFind && callbackFind != callbacks.end()) {
         if (callbackIter->second) {
           callbackIter->second();
         }
@@ -178,7 +183,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
         }
       }
 
-      if (callbacksAreValid && onetimeCallbackIter != this->onetimeCallbacks.end()) {
+      if (callbacksAreValid && onetimeCallbackIter != onetimeCallbacks.end()) {
         if (onetimeCallbackIter->second) {
           onetimeCallbackIter->second();
         }
@@ -216,11 +221,11 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
         }
 
         // Clear any remaining callbacks
-        this->callbacks.clear();
+        callbacks.clear();
 
         // Enqueue the callbacks for the next go around
-        this->callbacks = nextLoopCallbacks;
-        this->nextLoopCallbacks.clear();
+        callbacks = nextLoopCallbacks;
+        nextLoopCallbacks.clear();
 
         callbacksAreValid = true;
 
@@ -290,18 +295,18 @@ Animator & Animator::operator<<(On rhs)
   if(!rhs.callback) return *this;
   
   if (rhs.doOnce) {
-	  if(this->isUpdating) {
-		  this->queuedOnetimeCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
-	  } else {
-          this->onetimeCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
+    if(isUpdating) {
+      queuedOnetimeCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
+    } else {
+          onetimeCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
       }
   }
   else {
-	if(this->isUpdating) {
-        this->queuedCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
+  if(isUpdating) {
+        queuedCallbacks.insert(std::make_pair(rhs.id, rhs.callback));
     } else {
-        this->callbacks.insert(std::make_pair(rhs.id, rhs.callback));		
-	}
+        callbacks.insert(std::make_pair(rhs.id, rhs.callback));		
+  }
   }
 
   return *this;
@@ -309,7 +314,7 @@ Animator & Animator::operator<<(On rhs)
 
 Animator & Animator::operator<<(char rhs)
 {
-  this->playbackMode = rhs;
+  playbackMode = rhs;
   return *this;
 }
 
@@ -317,11 +322,16 @@ void Animator::operator<<(std::function<void()> finishNotifier)
 {
   if(!finishNotifier) return;
   
-  if(!this->isUpdating) {
-    this->onFinish = finishNotifier;
+  if(!isUpdating) {
+    onFinish = finishNotifier;
   } else {
-	  this->queuedOnFinish = finishNotifier;
+    queuedOnFinish = finishNotifier;
   }
+}
+
+char Animator::GetMode()
+{
+  return playbackMode;
 }
 
 const sf::Vector2f Animator::GetPoint(const std::string& pointName) {

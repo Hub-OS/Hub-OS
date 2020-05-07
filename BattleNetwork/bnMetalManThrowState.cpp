@@ -14,7 +14,7 @@ MetalManThrowState::~MetalManThrowState()
 
 void MetalManThrowState::OnEnter(MetalMan& metal) {
   auto onFinish = [m = &metal]() { m->GoToNextState(); };
-  auto onThrow = [this, m = &metal]() { this->Attack(*m); };
+  auto onThrow = [this, m = &metal]() { Attack(*m); };
 
   metal.SetAnimation("THROW", onFinish);
   metal.SetCounterFrame(1);
@@ -35,7 +35,7 @@ void MetalManThrowState::Attack(MetalMan& metal) {
   props.aggressor = &metal;
   blade->SetHitboxProperties(props);
 
-  blade->SetDirection(Direction::LEFT);
+  blade->SetDirection(Direction::left);
 
   metal.GetField()->AddEntity(*blade, metal.GetTile()->GetX()-1, metal.GetTile()->GetY());
   AUDIO.Play(AudioType::SWORD_SWING);

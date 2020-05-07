@@ -35,8 +35,8 @@ void InputManager::SupportConfigSettings(ConfigReader& reader) {
 }
 
 void InputManager::Update() {
-  this->eventsLastFrame = this->events;
-  this->events.clear();
+  eventsLastFrame = events;
+  events.clear();
 
   Event event;
 
@@ -45,22 +45,22 @@ void InputManager::Update() {
 
   while (ENGINE.GetWindow()->pollEvent(event)) {
     if (event.type == Event::Closed) {
-      this->onLoseFocus();
+      onLoseFocus();
       ENGINE.GetWindow()->close();
     }
 
     if (event.type == Event::LostFocus) {
-      this->onLoseFocus();
+      onLoseFocus();
     }
     else if (event.type == Event::GainedFocus) {
-      this->onRegainFocus();
+      onRegainFocus();
     }
     else if (event.type == Event::Resized) {
-      this->onResized(event.size.width, event.size.height);
+      onResized(event.size.width, event.size.height);
     }
 
-    if (event.type == sf::Event::TextEntered && this->captureInputBuffer) {
-      this->HandleInputBuffer(event);
+    if (event.type == sf::Event::TextEntered && captureInputBuffer) {
+      HandleInputBuffer(event);
     }
 
     if(event.type == sf::Event::KeyPressed) {
@@ -537,17 +537,17 @@ void InputManager::VirtualKeyEvent(InputEvent event) {
 
 void InputManager::BindRegainFocusEvent(std::function<void()> callback)
 {
-  this->onRegainFocus = callback;
+  onRegainFocus = callback;
 }
 
 void InputManager::BindResizedEvent(std::function<void(int, int)> callback)
 {
-  this->onResized = callback;
+  onResized = callback;
 }
 
 void InputManager::BindLoseFocusEvent(std::function<void()> callback)
 {
-  this->onLoseFocus = callback;;
+  onLoseFocus = callback;;
 }
 
 const bool InputManager::IsJosytickAvailable() const

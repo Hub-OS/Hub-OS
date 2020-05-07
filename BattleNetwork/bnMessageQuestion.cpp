@@ -4,9 +4,9 @@
 
 Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) 
     : Message(message + "\n    YES        NO") {
-  this->onNo = onNo;
-  this->onYes = onYes;
-  this->isQuestionReady = false;
+  Question::onNo = onNo;
+  Question::onYes = onYes;
+  isQuestionReady = false;
   selectCursor.setTexture(LOAD_TEXTURE(TEXT_BOX_CURSOR));
   elapsed = 0;
   yes = canceled = false;
@@ -47,11 +47,11 @@ void Question::ExecuteSelection() {
 }
 
 void Question::OnUpdate(double elapsed) {
-    this->elapsed = elapsed;;
+    Question::elapsed = elapsed;;
 
     isQuestionReady = !GetTextBox()->IsPlaying() && GetTextBox()->IsEndOfMessage();
 
-    this->Message::OnUpdate(elapsed);
+    Message::OnUpdate(elapsed);
 
     if (canceled) {
         SelectNo();
@@ -87,7 +87,7 @@ void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
         target.draw(selectCursor,states);
     }
 
-    this->Message::OnDraw(target, states);
+    Message::OnDraw(target, states);
 }
 
 void Question::SetTextBox(AnimatedTextBox * parent){

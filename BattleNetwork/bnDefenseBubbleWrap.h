@@ -23,5 +23,5 @@ public:
    * @param owner the character this is attached to
    * @return false
    */
-  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
+  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
 };

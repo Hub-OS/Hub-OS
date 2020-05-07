@@ -1,6 +1,5 @@
 #pragma once
-#include "bnAnimatedCharacter.h"
-#include "bnMobState.h"
+#include "bnCharacter.h"
 #include "bnAI.h"
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
@@ -14,14 +13,14 @@
  * @brief Classic cannon enemy waits for opponent to be in view.
  * @warning Legacy code. Should update code.
  */
-class Canodumb : public AnimatedCharacter, public AI<Canodumb> {
+class Canodumb : public Character, public AI<Canodumb> {
   friend class CanodumbIdleState;
   friend class CanodumbAttackState;
   friend class CanodumbCursor;
 
   float hitHeight;
   DefenseRule* virusBody;
-
+  AnimationComponent* animation;
 public:
   using DefaultState = CanodumbIdleState;
 

@@ -12,9 +12,9 @@ Entity::Entity()
   next(nullptr),
   previous(nullptr),
   field(nullptr),
-  previousDirection(Direction::NONE),
-  direction(Direction::NONE),
-  team(Team::UNKNOWN),
+  previousDirection(Direction::none),
+  direction(Direction::none),
+  team(Team::unknown),
   isTimeFrozen(false),
   deleted(false),
   passthrough(false),
@@ -22,7 +22,7 @@ Entity::Entity()
   isSliding(false),
   hasSpawned(false),
   flagForRemove(false),
-  element(Element::NONE),
+  element(Element::none),
   tileOffset(sf::Vector2f(0, 0)),
   slideTime(sf::milliseconds(100)),
   defaultSlideTime(slideTime),
@@ -30,7 +30,7 @@ Entity::Entity()
   lastComponentID(0),
   height(0)
 {
-  this->ID = ++Entity::numOfIDs;
+  ID = ++Entity::numOfIDs;
   alpha = 255;
 }
 
@@ -45,11 +45,11 @@ Entity::~Entity() {
 
 void Entity::Spawn(Battle::Tile & start)
 {
-  if (!this->hasSpawned) {
-    this->OnSpawn(start);
+  if (!hasSpawned) {
+    OnSpawn(start);
   }
 
-  this->hasSpawned = true;
+  hasSpawned = true;
 }
 
 const float Entity::GetHeight() const {
@@ -57,22 +57,22 @@ const float Entity::GetHeight() const {
 }
 
 void Entity::SetHeight(const float height) {
-  this->height = height;
+  Entity::height = height;
 }
 
 const bool Entity::IsSuperEffective(Element _other) const {
-  switch(this->GetElement()) {
-    case Element::AQUA:
-        return _other == Element::ELEC;
+  switch(GetElement()) {
+    case Element::aqua:
+        return _other == Element::elec;
         break;
-    case Element::FIRE:
-        return _other == Element::AQUA;
+    case Element::fire:
+        return _other == Element::aqua;
         break;
-    case Element::WOOD:
-        return _other == Element::FIRE;
+    case Element::wood:
+        return _other == Element::fire;
         break;
-    case Element::ELEC:
-        return _other == Element::WOOD;
+    case Element::elec:
+        return _other == Element::wood;
         break;
   }
     
@@ -93,42 +93,42 @@ void Entity::Update(float _elapsed) {
     return;
 
   // Only slide if we have a valid next tile pointer
-  if (isSliding && this->next) {
+  if (isSliding && next) {
     elapsedSlideTime += _elapsed;
 
     // Get a value from 0.0 to 1.0
     float delta = swoosh::ease::linear((float)elapsedSlideTime, slideTime.asSeconds(), 1.0f);
 
-    sf::Vector2f pos = this->slideStartPosition;
-    sf::Vector2f tar = this->next->getPosition();
+    sf::Vector2f pos = slideStartPosition;
+    sf::Vector2f tar = next->getPosition();
 
     // Interpolate the sliding position from the start position to the end position
     auto interpol = tar * delta + (pos*(1.0f - delta));
-    this->tileOffset = interpol - pos;
+    tileOffset = interpol - pos;
 
     // Once halfway, the mmbn entities switch to the next tile
     // and the slide position offset must be readjusted 
     if (delta >= 0.5f) {
       // conditions of the target tile may change, ensure by the time we switch
-      if (this->CanMoveTo(next)) {
+      if (CanMoveTo(next)) {
         if (tile != next) {
           // Remove the entity from its previous tile pointer 
-          previous->RemoveEntityByID(this->GetID());
+          previous->RemoveEntityByID(GetID());
           
           // Previous tile is now the current tile
           previous = tile;
 
           // Curent tile is now the next tile
-          this->AdoptTile(next);
+          AdoptTile(next);
         }
 
         // Adjust for the new current tile, begin halfway approaching the current tile
-        this->tileOffset = -tar + pos + tileOffset;
+        tileOffset = -tar + pos + tileOffset;
       }
       else {
         // Slide back into the origin tile if we can no longer slide to the next tile
-        slideStartPosition = this->next->getPosition();
-        this->next = this->tile;
+        slideStartPosition = next->getPosition();
+        next = tile;
       }
     } 
 
@@ -136,49 +136,49 @@ void Entity::Update(float _elapsed) {
     if(delta == 1.0f)
     {
       elapsedSlideTime = 0;
-      Battle::Tile* prevTile = this->GetTile();
-      this->tileOffset = sf::Vector2f(0, 0);
+      Battle::Tile* prevTile = GetTile();
+      tileOffset = sf::Vector2f(0, 0);
 
       // If we slide onto an ice block and we don't have float shoe enabled, slide
-      if (this->tile->GetState() == TileState::ICE && !this->HasFloatShoe()) {
+      if (tile->GetState() == TileState::ice && !HasFloatShoe()) {
         // Move again in the same direction as before
-        this->Move(this->GetPreviousDirection());
+        Move(GetPreviousDirection());
 
         // calculate our new entity's position
-        this->UpdateSlideStartPosition();
+        UpdateSlideStartPosition();
 
-        // TODO: shorten with this->GetPreviousDirection() switch
-        if (this->previous->GetX() > prevTile->GetX()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX() - 1, this->GetTile()->GetY());
+        // TODO: shorten with GetPreviousDirection() switch
+        if (previous->GetX() > prevTile->GetX()) {
+          next = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
         }
-        else if (this->previous->GetX() < prevTile->GetX()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX() + 1, this->GetTile()->GetY());
+        else if (previous->GetX() < prevTile->GetX()) {
+          next = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
         }
-        else if (this->previous->GetY() < prevTile->GetY()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() + 1);
+        else if (previous->GetY() < prevTile->GetY()) {
+          next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() + 1);
         }
-        else if (this->previous->GetY() > prevTile->GetY()) {
-          this->next = this->GetField()->GetAt(this->GetTile()->GetX(), this->GetTile()->GetY() - 1);
+        else if (previous->GetY() > prevTile->GetY()) {
+          next = GetField()->GetAt(GetTile()->GetX(), GetTile()->GetY() - 1);
         }
 
         // If the next tile is not available, not ice, or we are ice element, don't slide
-        if (((this->next && this->tile->GetState() != TileState::ICE) 
-          || (this->next && !this->CanMoveTo(next)))
-          || (this->GetElement() == Element::ICE)) {
+        if (((next && tile->GetState() != TileState::ice) 
+          || (next && !CanMoveTo(next)))
+          || (GetElement() == Element::ice)) {
           // Conditions not met
           isSliding = false;
         }
       }
       else {
         // Invalidate the next tile pointer
-        this->next = nullptr;
+        next = nullptr;
       }
     }
   }
   else {
     // If we don't have a valid next tile pointer or are not sliding,
     // Keep centered in the current tile with no offset
-    //this->tileOffset = sf::Vector2f(0, 0);
+    //tileOffset = sf::Vector2f(0, 0);
     isSliding = false;
   }
 }
@@ -186,10 +186,10 @@ void Entity::Update(float _elapsed) {
 void Entity::SetAlpha(int value)
 {
   alpha = value;
-  sf::Color c = this->getColor();
+  sf::Color c = getColor();
   c.a = alpha;
 
-  this->setColor(c);
+  setColor(c);
 }
 
 
@@ -199,16 +199,16 @@ bool Entity::Move(Direction _direction) {
   bool moved = false;
 
   // Update the entity direction 
-  this->direction = _direction;
+  direction = _direction;
 
   Battle::Tile* temp = tile;
   
-  if (_direction == Direction::NONE) next = nullptr;
+  if (_direction == Direction::none) next = nullptr;
 
   // Based on the input direction grab the tile we wish 
   // to move to and check to see if this entity is allowed
   // to move onto it with CanMoveTo() 
-  if (_direction == Direction::UP) {
+  if (_direction == Direction::up) {
     if (tile->GetY() - 1 >= 0) {
       next = field->GetAt(tile->GetX(), tile->GetY() - 1);
       if (!CanMoveTo(next)) {
@@ -216,7 +216,7 @@ bool Entity::Move(Direction _direction) {
       }
     }
   }
-  else if (_direction == Direction::LEFT) {
+  else if (_direction == Direction::left) {
     if (tile->GetX() - 1 >= 0) {
       next = field->GetAt(tile->GetX() - 1, tile->GetY());
       if (!CanMoveTo(next)) {
@@ -224,7 +224,7 @@ bool Entity::Move(Direction _direction) {
       }
     }
   }
-  else if (_direction == Direction::DOWN) {
+  else if (_direction == Direction::down) {
     if (tile->GetY() + 1 <= (int)field->GetHeight()+1) {
       next = field->GetAt(tile->GetX(), tile->GetY() + 1);
       if (!CanMoveTo(next)) {
@@ -232,7 +232,7 @@ bool Entity::Move(Direction _direction) {
       }
     }
   }
-  else if (_direction == Direction::RIGHT) {
+  else if (_direction == Direction::right) {
     if (tile->GetX() + 1 <= (int)(field->GetWidth()+1)) {
       next = field->GetAt(tile->GetX() + 1, tile->GetY());
       if (!CanMoveTo(next)) {
@@ -243,7 +243,7 @@ bool Entity::Move(Direction _direction) {
 
   // If the next tile pointer is valid and is different from our current tile, we are moving
   if (next && next != tile) {
-    this->previousDirection = _direction;
+    previousDirection = _direction;
 
     previous = temp;
 
@@ -253,7 +253,7 @@ bool Entity::Move(Direction _direction) {
     moved = true;
   }
   else {
-    this->direction = Direction::NONE;
+    direction = Direction::none;
     isSliding = false;
   }
 
@@ -265,7 +265,7 @@ bool Entity::Teleport(int col, int row) {
 
   Battle::Tile* temp = tile;
 
-  this->direction = Direction::NONE;
+  direction = Direction::none;
 
 
   next = field->GetAt(col, row);
@@ -275,7 +275,7 @@ bool Entity::Teleport(int col, int row) {
   }
 
   if (next) {
-    this->previousDirection = Direction::NONE;
+    previousDirection = Direction::none;
 
     previous = temp;
 
@@ -293,18 +293,18 @@ bool Entity::Teleport(int col, int row) {
 // 3) if the tile is valid and the next tile is the same team
 bool Entity::CanMoveTo(Battle::Tile * next)
 {
-  bool valid = next? (this->HasFloatShoe()? true : next->IsWalkable()) : false;
+  bool valid = next? (HasFloatShoe()? true : next->IsWalkable()) : false;
   return valid && Teammate(next->GetTeam());
 }
 
 const long Entity::GetID() const
 {
-  return this->ID;
+  return ID;
 }
 
 /** \brief Unkown team entities are friendly to all spaces @see Cubes */
 bool Entity::Teammate(Team _team) {
-  return (team == Team::UNKNOWN) || (team == _team);
+  return (team == Team::unknown) || (team == _team);
 }
 
 void Entity::SetTile(Battle::Tile* _tile) {
@@ -326,7 +326,7 @@ void Entity::SlideToTile(bool enabled)
 
     if (enabled) {
       // capture potential slide starting position
-      this->UpdateSlideStartPosition();
+      UpdateSlideStartPosition();
     }
   }
 }
@@ -380,7 +380,7 @@ bool Entity::HasAirShoe() {
 }
 
 void Entity::SetDirection(Direction dir) {
-  this->direction = dir;
+  direction = dir;
 }
 
 Direction Entity::GetDirection()
@@ -399,7 +399,7 @@ void Entity::Delete()
 
   deleted = true;
 
-  this->OnDelete();
+  OnDelete();
 
   for (auto&& callbacks : removeCallbacks) {
     callbacks();
@@ -430,7 +430,7 @@ bool Entity::WillRemoveLater() const
 
 void Entity::SetElement(Element _elem)
 {
-  this->element = _elem;
+  element = _elem;
 }
 
 const Element Entity::GetElement() const
@@ -445,14 +445,14 @@ void Entity::AdoptNextTile()
   }
 
   if (previous != nullptr) {
-    previous->RemoveEntityByID(this->GetID());
+    previous->RemoveEntityByID(GetID());
   }
 
-  this->AdoptTile(next);
+  AdoptTile(next);
 
   // Slide if the tile we are moving to is ICE
-  if (next->GetState() == TileState::ICE && !this->HasFloatShoe()) {
-    this->SlideToTile(true);
+  if (next->GetState() == TileState::ice && !HasFloatShoe()) {
+    SlideToTile(true);
   } else {
     // If not using animations, then 
     // adopting a tile is the last step in the move procedure
@@ -521,10 +521,10 @@ void Entity::UpdateSlideStartPosition()
 }
 
 void Entity::SetSlideTime(sf::Time time) {
-  this->slideTime = time;
+  slideTime = time;
 }
 
 const int Entity::GetMoveCount() const
 {
-    return this->moveCount;
+    return moveCount;
 }

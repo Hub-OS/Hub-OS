@@ -1,6 +1,6 @@
 #pragma once
 #include "bnHitProperties.h"
-#include "bnDefenseResolutionArbiter.h"
+#include "bnDefenseFrameStateArbiter.h"
 
 class Spell;
 class Character;
@@ -52,5 +52,5 @@ public:
   /**
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */
-  virtual const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) = 0;
+  virtual const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) = 0;
 };

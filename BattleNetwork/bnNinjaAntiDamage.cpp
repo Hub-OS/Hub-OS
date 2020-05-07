@@ -40,7 +40,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
     owner.RemoveDefenseRule(defense);
     
     // Remove this component from the owner
-    owner.FreeComponentByID(this->GetID());
+    owner.FreeComponentByID(GetID());
     
     // Self cleanup
     delete this;
@@ -48,7 +48,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
 
 
   // Construct a anti damage defense rule check with callback onHit
-  this->defense = new DefenseAntiDamage(onHit);
+  defense = new DefenseAntiDamage(onHit);
   added = false;
 }
 
@@ -60,7 +60,7 @@ NinjaAntiDamage::~NinjaAntiDamage() {
 void NinjaAntiDamage::OnUpdate(float _elapsed) {
   if (!(added || GetOwner()->GetComponentsDerivedFrom<CardAction>().size())) {
     // Add the defense rule to the owner of this component
-    this->GetOwnerAs<Character>()->AddDefenseRule(defense);
+    GetOwnerAs<Character>()->AddDefenseRule(defense);
     added = true;
   }
 }

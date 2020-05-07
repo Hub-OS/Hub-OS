@@ -13,8 +13,8 @@ using sf::IntRect;
 RockDebris::RockDebris(RockDebris::Type type, double intensity) : Artifact(nullptr), type(type), intensity(intensity), duration(0.5), progress(0)
 {
   SetLayer(0);
-  this->setTexture(TEXTURES.GetTexture(TextureType::MISC_CUBE));
-  this->setScale(2.f, 2.f);
+  setTexture(TEXTURES.GetTexture(TextureType::MISC_CUBE));
+  setScale(2.f, 2.f);
   rightRock = getSprite();
 
   //Components setup and load
@@ -53,18 +53,18 @@ void RockDebris::OnUpdate(float _elapsed) {
 
   // Set the position of the left debris
   if (type == RockDebris::Type::LEFT || type == RockDebris::Type::LEFT_ICE) {
-    this->setPosition((float)posX, (float)posY);
+    setPosition((float)posX, (float)posY);
   }
 
   // Same as before but in the opposite direction for right pieces
   posX = (beta * (GetTile()->getPosition().x + (10.0*intensity))) + ((1.0 - beta)*GetTile()->getPosition().x);
 
   if (type == RockDebris::Type::RIGHT || type == RockDebris::Type::RIGHT_ICE) {
-    this->setPosition((float)posX, (float)posY);
+    setPosition((float)posX, (float)posY);
   }
 
   if (progress >= duration) {
-      this->Delete();
+      Delete();
   }
 }
 

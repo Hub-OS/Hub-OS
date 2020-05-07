@@ -76,9 +76,9 @@ private:
    * @brief strong type for glyph colors
    */
   enum class Color : int {
-    NORMAL,
-    ORANGE,
-    GREEN
+    normal,
+    orange,
+    green
   } color; /*!< color of the glyphs */
 
   bool isBattleOver; /*!< flag when battle scene ends to stop beeping */

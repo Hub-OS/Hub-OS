@@ -11,8 +11,8 @@ using sf::IntRect;
 ParticleImpact::ParticleImpact(ParticleImpact::Type type) : Artifact(nullptr)
 {
   SetLayer(0);
-  this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_IMPACT_FX));
-  this->setScale(2.f, 2.f);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_IMPACT_FX));
+  setScale(2.f, 2.f);
   fx = getSprite();
 
   //Components setup and load
@@ -40,12 +40,12 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : Artifact(nullptr)
   }
 
   auto onEnd = [this]() {
-    this->Delete();
+    Delete();
   };
 
   animation << onEnd;
 
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
 }
 
@@ -61,10 +61,10 @@ void ParticleImpact::OnSpawn(Battle::Tile& tile) {
 }
 
 void ParticleImpact::OnUpdate(float _elapsed) {
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
 
-  this->setPosition(this->GetTile()->getPosition() + tileOffset + randOffset);
+  setPosition(GetTile()->getPosition() + tileOffset + randOffset);
 }
 
 void ParticleImpact::OnDelete()

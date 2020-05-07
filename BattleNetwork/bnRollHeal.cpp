@@ -23,26 +23,25 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
 
   heal = _heal;
 
-  int lr = (team == Team::RED) ? 1 : -1;
+  int lr = (team == Team::red) ? 1 : -1;
   setScale(2.0f*lr, 2.0f);
 
   Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
-  this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
+  field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   AUDIO.Play(AudioType::APPEAR);
 
   setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
 
-  animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
   auto props = Hit::DefaultProperties;
   props.damage = heal;
   props.flags |= Hit::recoil;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   /**
    * This is very convoluted and will change with the card summon refactored
@@ -64,7 +63,7 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
    * and request the summon system to remove this entity
    */
   animationComponent->SetAnimation("ROLL_IDLE", [this] {
-    this->animationComponent->SetAnimation("ROLL_MOVE", [this] {
+    animationComponent->SetAnimation("ROLL_MOVE", [this] {
 
       bool found = false;
 
@@ -77,11 +76,11 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
         Battle::Tile* next = (*iter);
 
         if (!found) {
-          if (next->ContainsEntityType<Character>() && next->GetTeam() != this->GetTeam()) {
-            this->GetTile()->RemoveEntityByID(this->GetID());
+          if (next->ContainsEntityType<Character>() && next->GetTeam() != GetTeam()) {
+            GetTile()->RemoveEntityByID(GetID());
 
             Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
-            this->AdoptTile(prev);
+            AdoptTile(prev);
 
             attack = next;
 
@@ -93,23 +92,23 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
       }
 
       if (found) {
-        this->animationComponent->SetAnimation("ROLL_ATTACKING", [this] {
-          this->animationComponent->SetAnimation("ROLL_MOVE", [this] {
-            this->summons->SummonEntity(new RollHeart(this->summons, this->heal*3));
-            this->Delete();
+        animationComponent->SetAnimation("ROLL_ATTACKING", [this] {
+          animationComponent->SetAnimation("ROLL_MOVE", [this] {
+            summons->SummonEntity(new RollHeart(summons, heal*3));
+            Delete();
           });
         });
 
         if (attack) {
-          this->animationComponent->AddCallback(4,  [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
-          this->animationComponent->AddCallback(12, [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
-          this->animationComponent->AddCallback(20, [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
+          animationComponent->AddCallback(4,  [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
+          animationComponent->AddCallback(12, [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
+          animationComponent->AddCallback(20, [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
         }
       }
       else {
-        this->animationComponent->SetAnimation("ROLL_MOVE", [this] {
-          this->summons->SummonEntity(new RollHeart(this->summons, this->heal*3));
-          this->Delete();
+        animationComponent->SetAnimation("ROLL_MOVE", [this] {
+          summons->SummonEntity(new RollHeart(summons, heal*3));
+          Delete();
         });
       }
     });

@@ -13,7 +13,7 @@ DefenseIndestructable::~DefenseIndestructable()
 {
 }
 
-const bool DefenseIndestructable::CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner)
+const bool DefenseIndestructable::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
 {
   arbiter.BlockImpact();
 

@@ -8,20 +8,19 @@
 
 YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, _team) {
   // YoYo float over tiles 
-  this->SetFloatShoe(true);
+  SetFloatShoe(true);
 
   SetLayer(0);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_YOYO));
   setScale(2.f, 2.f);
 
-  this->speed = speed;
+  YoYo::speed = speed;
 
   // Adjust by speed factor
-  this->SetSlideTime(sf::seconds(0.11f / (float)speed));
+  SetSlideTime(sf::seconds(0.11f / (float)speed));
 
-  animation = new AnimationComponent(this);
-  this->RegisterComponent(animation);
+  animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/spell_yoyo.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT", Animator::Mode::Loop);
@@ -29,7 +28,7 @@ YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
   props.flags |= Hit::recoil;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   tileCount = hitCount = 0;
   startTile = nullptr;
@@ -41,8 +40,8 @@ YoYo::~YoYo() {
 }
 
 void YoYo::OnDelete() {
-  if (startTile && startTile != this->GetTile()) {
-    GetField()->AddEntity(*new Explosion(GetField(), GetTeam(), 1), *this->GetTile());
+  if (startTile && startTile != GetTile()) {
+    GetField()->AddEntity(*new Explosion(GetField(), GetTeam(), 1), *GetTile());
   }
   Remove();
 }
@@ -58,23 +57,23 @@ void YoYo::OnUpdate(float _elapsed) {
   // When stationary, our anim callbacks are
   // designed to hit exactly 3 times 
   // like the rhythm of the original games
-  if (!this->IsSliding()) {
+  if (!IsSliding()) {
     if (tileCount > 0 && startTile == GetTile()) {
-      this->Delete();
+      Delete();
     }
 
     // Always slide
-    this->SlideToTile(true);
+    SlideToTile(true);
 
     // Keep moving
-    this->Move(this->GetDirection());
+    Move(GetDirection());
 
     // Retract after moving 2 spaces, if possible
-    if (!this->GetNextTile() || (++tileCount == 2)) {
+    if (!GetNextTile() || (++tileCount == 2)) {
       if (!reversed) {
         auto direction = GetPreviousDirection();
 
-        SetDirection(Direction::NONE);
+        SetDirection(Direction::none);
 
         reversed = true;
 
@@ -82,13 +81,13 @@ void YoYo::OnUpdate(float _elapsed) {
 
         animation->AddCallback(3, [this, direction]() {
           // First, let the slide finish for this final tile...
-          if (!this->IsSliding()) {
+          if (!IsSliding()) {
             auto hitbox = new Hitbox(GetField(), GetTeam());
             hitbox->SetHitboxProperties(GetHitboxProperties());
-            GetField()->AddEntity(*hitbox, *this->GetTile());
+            GetField()->AddEntity(*hitbox, *GetTile());
 
             // After we hit 2 more times, reverse the direction 
-            if (++this->hitCount == 2) {
+            if (++hitCount == 2) {
               SetDirection(Reverse(direction));
               animation->CancelCallbacks();
             }
@@ -114,6 +113,6 @@ bool YoYo::CanMoveTo(Battle::Tile* tile) {
 
 void YoYo::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT, AudioPriority::HIGHEST);
+    AUDIO.Play(AudioType::HURT, AudioPriority::highest);
   }
 }

@@ -110,7 +110,6 @@ public:
    */
   void Cleanup() {
     for (int i = 0; i < spawn.size(); i++) {
-      //delete spawn[i]->mob;
       delete spawn[i];
     }
 
@@ -191,7 +190,7 @@ public:
    * @param background
    */
   void SetBackground(Background* background) {
-    this->background = background;
+    Mob::background = background;
   }
 
   /**
@@ -199,7 +198,7 @@ public:
    * @return Background*
    */
   Background* GetBackground() {
-    return this->background;
+    return background;
   }
 
   /**
@@ -207,7 +206,7 @@ public:
    * @param path path relative to the app 
    */
   void StreamCustomMusic(const std::string path) {
-    this->music = path;
+    music = path;
   }
 
   /**
@@ -215,7 +214,7 @@ public:
    * @return true if music string length is > 0
    */
   bool HasCustomMusicPath() {
-    return this->music.length() > 0;
+    return music.length() > 0;
   }
 
   /**
@@ -223,7 +222,7 @@ public:
    * @return const std::string
    */
   const std::string GetCustomMusicPath() const {
-    return this->music;
+    return music;
   }
 
   /**
@@ -277,7 +276,7 @@ public:
    * and is always required.
    */
   void FlagNextReady() {
-    this->nextReady = true;
+    nextReady = true;
   }
 
   /**
@@ -307,7 +306,7 @@ public:
   MobData* GetNextMob() {
     if (iter == spawn.end()) return nullptr;
 
-    this->nextReady = false;
+    nextReady = false;
     MobData* data = *(iter);
     iter++;
     pixelStateInvokers[data->index](data->mob);

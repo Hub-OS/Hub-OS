@@ -14,12 +14,11 @@ const std::string RESOURCE_PATH = "resources/mobs/megalian/megalian.animation";
 Megalian::Megalian(Rank _rank)
   : AI<Megalian>(this), Character(_rank) {
   name = "Megalian";
-  SetTeam(Team::BLUE);
+  SetTeam(Team::blue);
 
-  animationComponent = new AnimationComponent(this);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
-  this->RegisterComponent(animationComponent);
 
   auto aura = new Aura(Aura::Type::AURA_100, this);
   aura->Persist(true);
@@ -38,14 +37,14 @@ Megalian::Megalian(Rank _rank)
 
   head = nullptr;
 
-  this->EnableTilePush(false);
+  EnableTilePush(false);
 }
 
 Megalian::~Megalian() {
 }
 
 void Megalian::OnDelete() {
-  this->ChangeState<ExplodeState<Megalian>>(2);
+  ChangeState<ExplodeState<Megalian>>(2);
 }
 
 void Megalian::OnUpdate(float _elapsed) {
@@ -57,7 +56,7 @@ void Megalian::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
   setPosition(getPosition() + tileOffset);
 
-  this->AI<Megalian>::Update(_elapsed);
+  AI<Megalian>::Update(_elapsed);
 }
 
 const bool Megalian::OnHit(const Hit::Properties props) {
@@ -70,7 +69,7 @@ const float Megalian::GetHeight() const {
 
 const bool Megalian::HasAura()
 {
-  return this->GetFirstComponent<Aura>();
+  return GetFirstComponent<Aura>();
 }
 
 bool Megalian::CanMoveTo(Battle::Tile * next)

@@ -4,24 +4,24 @@
 * @brief Used by entity movement
 */
 enum class Direction : int {
-  NONE,
-  UP,
-  LEFT,
-  DOWN,
-  RIGHT
+  none,
+  up,
+  left,
+  down,
+  right
 };
 
 inline Direction Reverse(Direction in) {
   switch (in) {
-  case Direction::UP:
-    return Direction::DOWN;
-  case Direction::LEFT:
-    return Direction::RIGHT;
-  case Direction::DOWN:
-    return Direction::UP;
-  case Direction::RIGHT:
-    return Direction::LEFT;
+  case Direction::up:
+    return Direction::down;
+  case Direction::left:
+    return Direction::right;
+  case Direction::down:
+    return Direction::up;
+  case Direction::right:
+    return Direction::left;
   }
 
-  return Direction::NONE;
+  return Direction::none;
 }

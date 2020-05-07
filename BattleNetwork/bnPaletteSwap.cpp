@@ -45,7 +45,7 @@ void PaletteSwap::Revert()
 
 void PaletteSwap::Enable(bool enabled)
 {
-  this->enabled = enabled;
+  PaletteSwap::enabled = enabled;
 
   // Apply it on this call
   // Don't wait for the next frame (update())

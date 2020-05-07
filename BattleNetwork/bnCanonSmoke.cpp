@@ -10,19 +10,18 @@ using sf::IntRect;
 
 CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
 {
-  this->SetLayer(0);
+  SetLayer(0);
 
-  animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
+  animationComponent = CreateComponent<AnimationComponent>(this);
 
   setTexture(TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
 
   //Components setup and load
-  auto onFinish = [&]() { this->Delete();  };
+  auto onFinish = [&]() { Delete();  };
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
-  animationComponent->SetAnimation(MOB_CANODUMB_SMOKE, onFinish);
+  animationComponent->SetAnimation("SMOKE", onFinish);
   animationComponent->OnUpdate(0);
 
 }

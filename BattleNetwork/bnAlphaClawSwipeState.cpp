@@ -24,7 +24,7 @@ void AlphaClawSwipeState::OnEnter(AlphaCore& a) {
     last = a.GetField()->GetAt(1 + (rand() % 3), 1);
   }
 
-  this->SpawnRightArm(a);
+  SpawnRightArm(a);
 }
 
 void AlphaClawSwipeState::OnUpdate(float _elapsed, AlphaCore& a) {
@@ -42,7 +42,7 @@ void AlphaClawSwipeState::OnUpdate(float _elapsed, AlphaCore& a) {
 
   // right claw finished swiping, spawn left claw
   if (rightArm && rightArm->GetIsFinished()) {
-      this->SpawnLeftArm(a);
+      SpawnLeftArm(a);
       rightArm->GetTile()->RemoveEntityByID(rightArm->GetID());
       rightArm->Delete();
   }
@@ -96,7 +96,7 @@ void AlphaClawSwipeState::SpawnRightArm(AlphaCore& a) {
     Entity::RemoveCallback& cb = rightArm->CreateRemoveCallback();
     cb.Slot([this, alphaCore=&a]() {
         rightArm = nullptr;
-        this->SpawnLeftArm(*alphaCore);
+        SpawnLeftArm(*alphaCore);
     });
 
     auto props = rightArm->GetHitboxProperties();

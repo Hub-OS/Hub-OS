@@ -8,9 +8,9 @@
 #include "bnTextureResourceManager.h"
 
 Artifact::Artifact(Field* _field) {
-  this->SetField(_field);
-  this->SetTeam(Team::UNKNOWN);
-  this->SetPassthrough(true);
+  SetField(_field);
+  SetTeam(Team::unknown);
+  SetPassthrough(true);
 }
 
 Artifact::~Artifact() {
@@ -19,7 +19,7 @@ Artifact::~Artifact() {
 void Artifact::Update(float elapsed) {
   if (IsTimeFrozen()) return;
   Entity::Update(elapsed);
-  this->OnUpdate(elapsed);
+  OnUpdate(elapsed);
 }
 
 void Artifact::AdoptTile(Battle::Tile * tile)
@@ -27,7 +27,7 @@ void Artifact::AdoptTile(Battle::Tile * tile)
   tile->AddEntity(*this);
 
   if (!IsSliding()) {
-    this->setPosition(tile->getPosition());
+    setPosition(tile->getPosition());
   }
 }
 

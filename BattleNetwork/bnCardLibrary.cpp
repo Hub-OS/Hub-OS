@@ -122,7 +122,7 @@ void CardLibrary::LoadLibrary(const std::string& path) {
         Element elemType = GetElementFromStr(type);
 
         // Card card = Card(atoi(cardID.c_str()), atoi(iconID.c_str()), code[0], atoi(damage.c_str()), elemType, name, description, longDescription, atoi(rarity.c_str()));
-        // std::list<char> codes = this->GetCardCodes(card);
+        // std::list<char> codes = GetCardCodes(card);
 
         /* Avoid code duplicates
         if (codes.size() > 0) {
@@ -146,7 +146,7 @@ void CardLibrary::LoadLibrary(const std::string& path) {
     data = data.substr(endline + 1);
   } while (endline > -1);
 
-  Logger::Log(std::string("library size: ") + std::to_string(this->GetSize()));
+  Logger::Log(std::string("library size: ") + std::to_string(GetSize()));
 }
 
 const bool CardLibrary::SaveLibrary(const std::string& path) {
@@ -191,7 +191,7 @@ const bool CardLibrary::SaveLibrary(const std::string& path) {
     }
 
     Logger::Log(std::string("library saved successfully. Number of cards saved: ") +
-                std::to_string(this->GetSize()));
+                std::to_string(GetSize()));
     return true;
   } catch(std::exception& e) {
     Logger::Log(std::string("library save failed. Reason: ") + e.what());

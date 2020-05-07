@@ -4,6 +4,7 @@
 #include "bnField.h"
 #include "bnMettaurAttackState.h"
 #include "bnMettaurIdleState.h"
+#include "bnAnimationComponent.h"
 
 MettaurMoveState::MettaurMoveState() : isMoving(false), AIState<Mettaur>() { ; }
 MettaurMoveState::~MettaurMoveState() { ; }
@@ -21,10 +22,10 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
 
   if (target && target->GetTile()) {
     if (target->GetTile()->GetY() < met.GetTile()->GetY()) {
-      nextDirection = Direction::UP;
+      nextDirection = Direction::up;
     }
     else if (target->GetTile()->GetY() > met.GetTile()->GetY()) {
-      nextDirection = Direction::DOWN;
+      nextDirection = Direction::down;
     }
     else {
       // Try attacking if facing an available tile
@@ -47,7 +48,8 @@ void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
   if (moved) {
     met.AdoptNextTile();
     auto onFinish = [this, &met]() { met.ChangeState<MettaurIdleState>(); met.FinishMove(); };
-    met.SetAnimation(MOB_MOVING, onFinish);
+
+    met.GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinish);
     isMoving = true;
   }
   else {

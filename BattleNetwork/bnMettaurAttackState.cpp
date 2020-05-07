@@ -8,22 +8,23 @@ MettaurAttackState::MettaurAttackState() : AIState<Mettaur>() { ; }
 MettaurAttackState::~MettaurAttackState() { ; }
 
 void MettaurAttackState::OnEnter(Mettaur& met) {
-  auto onFinish = [this, &met]() {this->DoAttack(met); };
+  auto onFinish = [this, &met]() {DoAttack(met); };
 
+  auto& animation = *met.GetFirstComponent<AnimationComponent>();
   if (met.GetRank() == Mettaur::Rank::SP) {
-    met.SetAnimation("SP_ATTACK", onFinish);
+    animation.SetAnimation("SP_ATTACK", onFinish);
   }
   else {
-    met.SetAnimation("ATTACK", onFinish);
+    animation.SetAnimation("ATTACK", onFinish);
   }
 
 
-  met.SetCounterFrame(3);
-  met.SetCounterFrame(4);
-  met.SetCounterFrame(5);
-  met.SetCounterFrame(6);
-  met.SetCounterFrame(7);
-  met.SetCounterFrame(8);
+  animation.SetCounterFrame(3);
+  animation.SetCounterFrame(4);
+  animation.SetCounterFrame(5);
+  animation.SetCounterFrame(6);
+  animation.SetCounterFrame(7);
+  animation.SetCounterFrame(8);
 }
 
 void MettaurAttackState::OnUpdate(float _elapsed, Mettaur& met) {
@@ -42,7 +43,7 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
     props.aggressor = &met;
     spell->SetHitboxProperties(props);
 
-    spell->SetDirection(Direction::LEFT);
+    spell->SetDirection(Direction::left);
     met.field->AddEntity(*spell, met.tile->GetX() - 1, met.tile->GetY());
   }
 

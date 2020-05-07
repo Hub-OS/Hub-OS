@@ -4,7 +4,7 @@
 PlayerFormMeta::PlayerFormMeta(int index) : index(index), path() { ; }
 
 void PlayerFormMeta::SetUIPath(std::string path) {
-  this->path = path;
+  PlayerFormMeta::path = path;
 }
 
 const std::string PlayerFormMeta::GetUIPath() const

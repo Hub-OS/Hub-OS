@@ -18,8 +18,8 @@ Invis::Invis(Entity* owner) : Component(owner) {
 
 void Invis::OnUpdate(float _elapsed) {
   if (elapsed >= duration.asSeconds()) {
-    this->GetOwner()->SetAlpha(255);
-    this->GetOwner()->SetPassthrough(false); 
+    GetOwner()->SetAlpha(255);
+    GetOwner()->SetPassthrough(false); 
 
     auto character = GetOwnerAs<Character>();
     if (character) {
@@ -27,12 +27,12 @@ void Invis::OnUpdate(float _elapsed) {
     }
 
     delete defense;
-    this->GetOwner()->FreeComponentByID(this->GetID());
+    GetOwner()->FreeComponentByID(GetID());
     delete this; 
   }
   else {
-    this->GetOwner()->SetAlpha(125);
-    this->GetOwner()->SetPassthrough(true);
+    GetOwner()->SetAlpha(125);
+    GetOwner()->SetPassthrough(true);
     elapsed += _elapsed;
   }
 }

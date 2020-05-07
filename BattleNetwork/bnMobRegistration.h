@@ -168,7 +168,7 @@ public:
   MobMeta* AddClass() {
     MobRegistration::MobMeta* info = new MobRegistration::MobMeta();
     info->SetMobClass<T>();
-    this->Register(info);
+    Register(info);
 
     return info;
   }
@@ -210,10 +210,10 @@ inline MobRegistration::MobMeta & MobRegistration::MobMeta::SetMobClass()
       mobFactory = nullptr;
     }
 
-    this->mobFactory = new T(new Field(6, 3));
+    mobFactory = new T(new Field(6, 3));
 
-    if (!this->placeholderTexture) {
-      this->placeholderTexture = TEXTURES.LoadTextureFromFile(this->GetPlaceholderTexturePath());
+    if (!placeholderTexture) {
+      placeholderTexture = TEXTURES.LoadTextureFromFile(GetPlaceholderTexturePath());
     }
   };
 

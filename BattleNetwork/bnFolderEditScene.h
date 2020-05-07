@@ -102,7 +102,7 @@ private:
   CardFolder& folder;
 
   // Menu name font
-  sf::Font* font;
+  std::shared_ptr<sf::Font> font;
   sf::Text* menuLabel;
 
   // Selection input delays
@@ -110,14 +110,14 @@ private:
   double selectInputCooldown;
 
   // Card UI font
-  sf::Font *cardFont;
+  std::shared_ptr<sf::Font> cardFont;
   sf::Text *cardLabel;
 
-  sf::Font *numberFont;
+  std::shared_ptr<sf::Font> numberFont;
   sf::Text *numberLabel;
 
   // Card description font
-  sf::Font *cardDescFont;
+  std::shared_ptr<sf::Font> cardDescFont;
   sf::Text* cardDesc;
 
   // folder menu graphic

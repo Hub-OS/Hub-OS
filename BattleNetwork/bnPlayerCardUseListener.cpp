@@ -43,9 +43,9 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
     Battle::Tile* low = player->GetField()->GetAt(player->GetTile()->GetX() + 1, 3);
 
     // If the tiles are valid, set their state to CRACKED
-    if (top) { top->SetState(TileState::CRACKED); }
-    if (mid) { mid->SetState(TileState::CRACKED); }
-    if (low) { low->SetState(TileState::CRACKED); }
+    if (top) { top->SetState(TileState::cracked); }
+    if (mid) { mid->SetState(TileState::cracked); }
+    if (low) { low->SetState(TileState::cracked); }
 
     AUDIO.Play(AudioType::PANEL_CRACK);
   }
@@ -83,7 +83,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
       * owner
       */
     Fishy* fishy = new Fishy(player->GetField(), player->GetTeam(), 1.0);
-    fishy->SetDirection(Direction::RIGHT);
+    fishy->SetDirection(Direction::right);
 
     // Condition to end hide
     HideUntil::Callback until = [fishy]() { return fishy->IsDeleted(); };
@@ -96,7 +96,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
     Battle::Tile* tile = player->GetTile();
 
     if (tile) {
-      this->player->GetField()->AddEntity(*fishy, tile->GetX(), tile->GetY());
+      player->GetField()->AddEntity(*fishy, tile->GetX(), tile->GetY());
     }
   }
   else if (name == "XtrmeCnnon") {
@@ -154,7 +154,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
   }
   else if (name == "FireSwrd") {
     auto action = new LongSwordCardAction(player, card.GetDamage());
-    action->SetElement(Element::FIRE);
+    action->SetElement(Element::fire);
     player->QueueAction(action);
   }
   else if (name == "AirShot1") {

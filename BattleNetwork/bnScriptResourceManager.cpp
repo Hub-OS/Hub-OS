@@ -27,18 +27,18 @@ void ScriptResourceManager::ConfigureEnvironment() {
     );
 
   auto elements_table = battle_namespace.new_enum("Element");
-  elements_table["FIRE"] = Element::FIRE;
-  elements_table["AQUA"] = Element::AQUA;
-  elements_table["ELEC"] = Element::ELEC;
-  elements_table["WOOD"] = Element::WOOD;
-  elements_table["SWORD"] = Element::SWORD;
-  elements_table["WIND"] = Element::WIND;
-  elements_table["CURSOR"] = Element::CURSOR;
-  elements_table["SUMMON"] = Element::SUMMON;
-  elements_table["PLUS"] = Element::PLUS;
-  elements_table["BREAK"] = Element::BREAK;
-  elements_table["NONE"] = Element::NONE;
-  elements_table["ICE"] = Element::ICE;
+  elements_table["FIRE"] = Element::fire;
+  elements_table["AQUA"] = Element::aqua;
+  elements_table["ELEC"] = Element::elec;
+  elements_table["WOOD"] = Element::wood;
+  elements_table["SWORD"] = Element::sword;
+  elements_table["WIND"] = Element::wind;
+  elements_table["CURSOR"] = Element::cursor;
+  elements_table["SUMMON"] = Element::summon;
+  elements_table["PLUS"] = Element::plus;
+  elements_table["BREAK"] = Element::breaker;
+  elements_table["NONE"] = Element::none;
+  elements_table["ICE"] = Element::ice;
 
   try {
     luaState.script(

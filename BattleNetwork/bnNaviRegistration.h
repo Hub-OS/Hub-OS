@@ -213,7 +213,7 @@ public:
   NaviMeta* AddClass() {
     NaviRegistration::NaviMeta* info = new NaviRegistration::NaviMeta();
     info->SetNaviClass<T>();
-    this->Register(info);
+    Register(info);
 
     return info;
   }
@@ -258,9 +258,9 @@ inline NaviRegistration::NaviMeta & NaviRegistration::NaviMeta::SetNaviClass()
     // NOTE: This used to extract information from the class type T itself
     //        and would mofidy the preview in the navi select screen.
     //        Lots has changed since then and this may be useless.
-    this->navi = new T(); 
-    this->SetOverworldTexture(this->navi->getTexture()); // TODO: Overworld doesn't need to be stored in the battle object
-    this->hp = this->navi->GetHealth();
+    navi = new T(); 
+    SetOverworldTexture(navi->getTexture()); // TODO: Overworld doesn't need to be stored in the battle object
+    hp = navi->GetHealth();
   };
 
   return *this;

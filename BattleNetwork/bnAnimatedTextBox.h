@@ -134,5 +134,5 @@ public:
 
   void DrawMessage(sf::RenderTarget& target, sf::RenderStates states) const;
 
-  sf::Text MakeTextObject(std::string data = std::string());
+  sf::Text MakeTextObject(const std::string& data = std::string());
 };

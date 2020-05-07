@@ -12,13 +12,13 @@ using std::vector;
 
 #include "bnBackground.h"
 
-class UndernetBackground : public Background
+class UndernetBackground final : public Background
 {
 public:
   UndernetBackground();
   ~UndernetBackground();
 
-  virtual void Update(float _elapsed);
+  void Update(float _elapsed) override;
 
 private:
   float progress; /**< Animation progress */

@@ -16,31 +16,31 @@
 
 
 AirShotCardAction::AirShotCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
-  this->damage = damage;
+  AirShotCardAction::damage = damage;
 
   airshot.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
-  this->attachment = new SpriteProxyNode(airshot);
-  this->attachment->SetLayer(-1);
+  attachment = new SpriteProxyNode(airshot);
+  attachment->SetLayer(-1);
 
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
 
   // add override anims
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 }
 
 void AirShotCardAction::Execute() {
   auto owner = GetOwner();
 
-  owner->AddNode(this->attachment);
-  attachmentAnim.Update(0, this->attachment->getSprite());
+  owner->AddNode(attachment);
+  attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
     AUDIO.Play(AudioType::SPREADER);
 
     AirShot* airshot = new AirShot(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
-    airshot->SetDirection(Direction::RIGHT);
+    airshot->SetDirection(Direction::right);
     auto props = airshot->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
     airshot->SetHitboxProperties(props);
@@ -48,7 +48,7 @@ void AirShotCardAction::Execute() {
     GetOwner()->GetField()->AddEntity(*airshot, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
   };
 
-  this->AddAction(2, onFire);
+  AddAction(2, onFire);
 }
 
 AirShotCardAction::~AirShotCardAction()
@@ -57,13 +57,13 @@ AirShotCardAction::~AirShotCardAction()
 
 void AirShotCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
+  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 
 void AirShotCardAction::EndAction()
 {
-  this->GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->RemoveNode(attachment);
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

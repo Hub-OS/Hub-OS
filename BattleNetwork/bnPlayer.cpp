@@ -21,28 +21,27 @@ Player::Player()
   formSize(0),
   Character(Rank::_1)
 {
-  this->ChangeState<PlayerIdleState>();
+  ChangeState<PlayerIdleState>();
   
   // The charge component is also a scene node
   // Make sure the charge is in front of this node
   // Otherwise children scene nodes are drawn behind 
   // their parents
   chargeEffect.SetLayer(-2);
-  this->AddNode(&chargeEffect);
+  AddNode(&chargeEffect);
   chargeEffect.setPosition(0, -20.0f); // translate up -20
   chargeEffect.EnableParentShader(false);
 
   SetLayer(0);
-  team = Team::RED;
+  team = Team::red;
 
   hitCount = 0;
 
   setScale(2.0f, 2.0f);
 
-  animationComponent = new AnimationComponent(this);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
-  this->RegisterComponent(animationComponent);
 
   previous = nullptr;
   playerControllerSlide = false;
@@ -61,7 +60,7 @@ void Player::OnUpdate(float _elapsed) {
 
   // TODO: is there a way to have custom states and respond to them?
   if (GetFirstComponent<BubbleTrap>()) {
-    this->ChangeState<BubbleState<Player>>();
+    ChangeState<BubbleState<Player>>();
   }
 
   AI<Player>::Update(_elapsed);
@@ -91,14 +90,14 @@ void Player::UseSpecial()
 
 void Player::OnDelete() {
   chargeEffect.Hide();
-  auto animationComponent = this->GetFirstComponent<AnimationComponent>();
+  auto animationComponent = GetFirstComponent<AnimationComponent>();
 
   if (animationComponent) {
       animationComponent->CancelCallbacks();
       animationComponent->SetAnimation(PLAYER_HIT);
   }
 
-  this->ChangeState<NaviWhiteoutState<Player>>();
+  ChangeState<NaviWhiteoutState<Player>>();
 }
 
 const float Player::GetHeight() const
@@ -113,7 +112,7 @@ const bool Player::OnHit(const Hit::Properties props) {
   if ((props.flags & Hit::recoil) == Hit::recoil) {
     // When movement is interrupted because of a hit, we need to flush the movement state data
     FinishMove();
-    this->ChangeState<PlayerHitState>();
+    ChangeState<PlayerHitState>();
   }
 
   return true;
@@ -194,18 +193,18 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
 
 void Player::QueueAction(CardAction* action)
 {
-  if (this->queuedAction) {
+  if (queuedAction) {
     delete action;
     action = nullptr;
   }
 
-  this->queuedAction = action;
+  queuedAction = action;
 }
 
 bool Player::RegisterForm(PlayerFormMeta * info)
 {
   if (formSize >= forms.size() || !info) return false;
 
-  this->forms[formSize++] = info;
+  forms[formSize++] = info;
   return true;
 }

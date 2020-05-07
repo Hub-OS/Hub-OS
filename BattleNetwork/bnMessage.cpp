@@ -15,7 +15,7 @@ void Message::OnUpdate(double elapsed) {
 void Message::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
   auto bounce = std::sin((float)totalElapsed*10.0f)*1.0f;
 
-  nextCursor.setPosition(sf::Vector2f(this->GetTextBox()->GetFrameWidth() - 20.0f, 10.0f + bounce));
+  nextCursor.setPosition(sf::Vector2f(GetTextBox()->GetFrameWidth() - 20.0f, 10.0f + bounce));
 
   GetTextBox()->DrawMessage(target, states);
 

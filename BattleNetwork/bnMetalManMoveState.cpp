@@ -18,7 +18,7 @@ void MetalManMoveState::OnEnter(MetalMan& metal) {
 void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
   if (isMoving || !metal.GetTarget() || !metal.GetTarget()->GetTile()) return; // We're already moving (animations take time)
 
-  nextDirection = Direction::NONE;
+  nextDirection = Direction::none;
 
   bool moved = false;
 
@@ -47,7 +47,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
         m->GoToNextState();
     };
 
-    metal.SetAnimation(MOB_MOVING, onFinish);
+    metal.SetAnimation("MOVING", onFinish);
     isMoving = true;
   }
   else {
@@ -56,6 +56,6 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
 }
 
 void MetalManMoveState::OnLeave(MetalMan& metal) {
-  metal.GetFirstComponent<AnimationComponent>()->SetAnimation(MOB_IDLE, Animator::Mode::Loop);
+  metal.GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", Animator::Mode::Loop);
 }
 

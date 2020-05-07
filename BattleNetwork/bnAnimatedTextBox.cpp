@@ -7,9 +7,9 @@ AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos)
     frame = sf::Sprite(*textureRef);
 
     // set the textbox positions
-    textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0f, this->getPosition().y - 40.0f));
-    this->setPosition(pos);
-    this->setScale(2.0f, 2.0f);
+    textBox.setPosition(sf::Vector2f(getPosition().x + 90.0f, getPosition().y - 40.0f));
+    setPosition(pos);
+    setScale(2.0f, 2.0f);
 
     textSpeed = 1.0;
 
@@ -36,9 +36,9 @@ void AnimatedTextBox::Close() {
   animator.SetAnimation("CLOSE");
 
   auto callback = [this]() {
-    this->isClosing = false;
-    this->isOpening = false;
-    this->isPaused = true;
+    isClosing = false;
+    isOpening = false;
+    isPaused = true;
   };
 
   animator << callback;
@@ -53,10 +53,10 @@ void AnimatedTextBox::Open() {
   animator.SetAnimation("OPEN");
 
   auto callback = [this]() {
-    this->isClosing = false;
-    this->isPaused = false;
-    this->isOpening = false;
-    this->isReady = true;
+    isClosing = false;
+    isPaused = false;
+    isOpening = false;
+    isReady = true;
   };
 
   animator << callback;
@@ -137,7 +137,7 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
 void AnimatedTextBox::ReplaceText(std::string text)
 {
     textBox.SetText(text);
-    this->isPaused = false; // start over with new text
+    isPaused = false; // start over with new text
 }
 
 void AnimatedTextBox::Update(double elapsed) {
@@ -176,7 +176,7 @@ void AnimatedTextBox::Update(double elapsed) {
   textBox.Play(!isPaused);
 
   // set the textbox position
-  textBox.setPosition(sf::Vector2f(this->getPosition().x + 90.0f, this->getPosition().y - 40.0f));
+  textBox.setPosition(sf::Vector2f(getPosition().x + 90.0f, getPosition().y - 40.0f));
 
   animator.Update((float)elapsed, frame);
 }
@@ -189,9 +189,9 @@ void AnimatedTextBox::SetTextSpeed(double factor) {
 
 void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-  frame.setScale(this->getScale());
-  frame.setPosition(this->getPosition());
-  frame.setRotation(this->getRotation());
+  frame.setScale(getScale());
+  frame.setPosition(getPosition());
+  frame.setRotation(getRotation());
 
   if (isOpening || isReady || isClosing) {
     target.draw(frame);
@@ -202,7 +202,7 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
 
     sf::Vector2f oldpos = sprite.getPosition();
     auto pos = oldpos;
-    pos += this->getPosition();
+    pos += getPosition();
 
     // This is a really bad design hack
     // I inherited the text area class which uses it's position as the text
@@ -223,7 +223,7 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
       sprite.setPosition(oldpos);
     }
 
-    states.transform = this->getTransform();
+    states.transform = getTransform();
 
     messages.front()->OnDraw(target, states);
   }
@@ -234,7 +234,7 @@ void AnimatedTextBox::DrawMessage(sf::RenderTarget & target, sf::RenderStates st
   target.draw(textBox, states);
 }
 
-sf::Text AnimatedTextBox::MakeTextObject(std::string data)
+sf::Text AnimatedTextBox::MakeTextObject(const std::string& data)
 {
   sf::Text obj = textBox.GetText();
   obj.setFont(textBox.GetFont());

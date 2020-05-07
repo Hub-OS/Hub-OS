@@ -143,7 +143,7 @@ void FolderScene::onStart() {
   gotoNextScene = false;
 
 #ifdef __ANDROID__
-    this->StartupTouchControls();
+    StartupTouchControls();
 #endif
 }
 
@@ -175,7 +175,7 @@ void FolderScene::onUpdate(double elapsed) {
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(false);
 #endif
-      this->enterText = false;
+      enterText = false;
       bool changed = collection.SetFolderName(folderNames[currFolderIndex], folder);
 
       if (!changed) {
@@ -411,7 +411,7 @@ void FolderScene::onUpdate(double elapsed) {
 
 void FolderScene::onLeave() {
 #ifdef __ANDROID__
-    this->ShutdownTouchControls();
+    ShutdownTouchControls();
 #endif
 }
 
@@ -425,7 +425,7 @@ void FolderScene::onEnter()
 
 void FolderScene::onResume() {
 #ifdef __ANDROID__
-    this->StartupTouchControls();
+    StartupTouchControls();
 #endif
 
     gotoNextScene = false;
@@ -624,14 +624,11 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
 }
 
 void FolderScene::onEnd() {
-  delete font;
-  delete cardFont;
-  delete numberFont;
   delete menuLabel;
   delete numberLabel;
 
 #ifdef __ANDROID__
-    this->ShutdownTouchControls();
+    ShutdownTouchControls();
 #endif
 }
 
@@ -647,18 +644,18 @@ void FolderScene::StartupTouchControls() {
     });
 
     rightSide.onRelease([this](sf::Vector2i delta) {
-        if(!this->releasedB) {
+        if(!releasedB) {
             INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
         }
 
-        this->releasedB = false;
+        releasedB = false;
     });
 
     rightSide.onDrag([this](sf::Vector2i delta){
-        if(delta.x < -25 && !this->releasedB && !touchStart) {
+        if(delta.x < -25 && !releasedB && !touchStart) {
             INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
             INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
-            this->releasedB = true;
+            releasedB = true;
         }
     });
 }

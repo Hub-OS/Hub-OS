@@ -37,7 +37,7 @@ public:
    * @return true if created, false if folder already exists
    */
   bool MakeFolder(std::string name) {
-    if (this->HasFolder(name)) return false;
+    if (HasFolder(name)) return false;
 
     collection[name] = new CardFolder();
 
@@ -74,7 +74,7 @@ public:
    * @return true if loaded, false if the folder was not found
    */
   bool GetFolder(std::string name, CardFolder*& folder) {
-    if (!this->HasFolder(name)) return false;
+    if (!HasFolder(name)) return false;
 
     folder = collection[name];
 
@@ -90,7 +90,7 @@ public:
   bool GetFolder(int index, CardFolder*& folder) {
     if (index >= order.size() || index < 0) return false;
 
-    if (!this->HasFolder(order[index])) return false;
+    if (!HasFolder(order[index])) return false;
 
     folder = collection[order[index]];
 
@@ -120,7 +120,7 @@ public:
   bool SetFolderName(std::string name, CardFolder* folder) {
     if (!folder) return false;
 
-    if (this->HasFolder(name)) {
+    if (HasFolder(name)) {
       return false;
     }
 

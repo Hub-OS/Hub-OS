@@ -18,13 +18,13 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _pa
   SetFloatShoe(true);
 
   animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
+  RegisterComponent(animationComponent);
 
   parentState = _parentState;
   target = parentState->GetCanodumbTarget();
 
   SetLayer(0);
-  direction = Direction::LEFT;
+  direction = Direction::left;
 
   setTexture(TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
@@ -61,19 +61,19 @@ void CanodumbCursor::OnUpdate(float _elapsed) {
   setScale(delta*2.f, delta*2.f);
 
   if (movecooldown <= 0) {
-    if (this->GetTile() == target->GetTile() && !target->IsPassthrough()) {
-      this->Delete();
+    if (GetTile() == target->GetTile() && !target->IsPassthrough()) {
+      Delete();
 
       parentState->Attack();
     }
     else {
       movecooldown = maxcooldown;
 
-      Field* f = this->GetField();
-      Battle::Tile* t = f->GetAt(this->GetTile()->GetX() - 1, this->GetTile()->GetY());
+      Field* f = GetField();
+      Battle::Tile* t = f->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
 
       if (t != nullptr) {
-        this->GetTile()->RemoveEntityByID(this->GetID());
+        GetTile()->RemoveEntityByID(GetID());
         t->AddEntity(*this);
       }
       else {

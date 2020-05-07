@@ -374,7 +374,7 @@ public:
   bool IsA();
 
   /**
-   * @brief Creates and attaches a component to an entity
+   * @brief Creates and then registers a component to an entity
    * @param Args. Parameter pack of any argument type to pass into the component's constructor
    * @return Returns the component as a pointer of the same type as ComponentT
    */
@@ -510,6 +510,8 @@ inline ComponentT* Entity::CreateComponent(Args&& ...args) {
 
     // Newest components appear first in the list for easy referencing
     std::sort(components.begin(), components.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
+
+    RegisterComponent(c);
 
     return c;
 }

@@ -219,7 +219,7 @@ void FolderEditScene::onUpdate(double elapsed) {
   menuLabel->setPosition(offset + 20.0f, 5.f);
 
   camera.Update((float)elapsed);
-  this->setView(camera.GetView());
+  setView(camera.GetView());
 
   // Scene keyboard controls
   if (canInteract) {
@@ -822,10 +822,6 @@ void FolderEditScene::DrawLibrary() {
 }
 
 void FolderEditScene::onEnd() {
-  delete font;
-  delete cardFont;
-  delete cardDescFont;
-  delete numberFont;
   delete menuLabel;
   delete numberLabel;
   delete cardDesc;
@@ -901,16 +897,16 @@ void FolderEditScene::StartupTouchControls() {
   });
 
   rightSide.onRelease([this](sf::Vector2i delta) {
-      if(!this->releasedB) {
+      if(!releasedB) {
         INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
       }
   });
 
   rightSide.onDrag([this](sf::Vector2i delta){
-      if(delta.x < -25 && !this->releasedB) {
+      if(delta.x < -25 && !releasedB) {
         INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
         INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
-        this->releasedB = true;
+        releasedB = true;
       }
   });
 }

@@ -18,7 +18,7 @@ EnemyCardsUI::EnemyCardsUI(Character* _owner) : CardUsePublisher(), Component(_o
   icon = sf::Sprite();
   icon.setTextureRect({ 0,0,14,14 });
   icon.setScale(sf::Vector2f(2.f, 2.f));
-  this->character = _owner;
+  character = _owner;
 }
 
 EnemyCardsUI::~EnemyCardsUI() {
@@ -31,21 +31,21 @@ void EnemyCardsUI::OnUpdate(float _elapsed) {
     if (agent && agent->GetTarget() && !agent->GetTarget()->IsDeleted() && agent->GetTarget()->GetTile()) {
       if (agent->GetTarget()->GetTile()->GetY() == GetOwner()->GetTile()->GetY()) {
         if (rand() % 500 > 299) {
-          this->UseNextCard();
+          UseNextCard();
         }
       }
     }
   }
   else if (GetOwner() && GetOwner()->IsDeleted()) {
-    GetOwner()->FreeComponentByID(this->GetID());
-    this->FreeOwner();
+    GetOwner()->FreeComponentByID(GetID());
+    FreeOwner();
     std::cout << "owner is free" << std::endl;
   }
 }
 
 void EnemyCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
-  sf::RenderStates this_states = states.transform * this->getTransform();
+  sf::RenderStates this_states = states.transform * getTransform();
   if (character && character->GetHealth() > 0) {
     int cardOrder = 0;
     for (int i = curr; i < cardCount; i++) {
@@ -73,7 +73,7 @@ void EnemyCardsUI::UseNextCard() {
   }
 
   std::cout << "selected card " << selectedCards[curr].GetShortName() << " is broadcasted by enemy UI" << std::endl;
-  this->Broadcast(selectedCards[curr], *this->character);
+  Broadcast(selectedCards[curr], *character);
 
   curr++;
 }

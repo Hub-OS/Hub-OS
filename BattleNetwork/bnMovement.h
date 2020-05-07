@@ -3,9 +3,9 @@
 #include "bnTile.h"
 
 enum class MoveState : int {
-  NONE,
-  TELEPORT,
-  SLIDE
+  none,
+  teleport,
+  slide
 };
 
 struct Movement {
@@ -15,9 +15,9 @@ struct Movement {
   Battle::Tile* next;
 
   Movement() {
-    state = MoveState::NONE;
+    state = MoveState::none;
     slideTime = 0.5; // 30 frames
-    direction = Direction::NONE;
+    direction = Direction::none;
     next = nullptr;
   }
 

@@ -109,25 +109,25 @@ const std::list<std::string> ConfigSettings::GetPairedActions(const Gamepad& eve
 
 ConfigSettings & ConfigSettings::operator=(const ConfigSettings& rhs)
 {
-    this->discord = rhs.discord;
-    this->webServer = rhs.webServer;
-    this->gamepad = rhs.gamepad;
-    this->musicLevel = rhs.musicLevel;
-    this->sfxLevel = rhs.sfxLevel;
-    this->isOK = rhs.isOK;
-    this->keyboard = rhs.keyboard;
-    this->fullscreen = rhs.fullscreen;
+    discord = rhs.discord;
+    webServer = rhs.webServer;
+    gamepad = rhs.gamepad;
+    musicLevel = rhs.musicLevel;
+    sfxLevel = rhs.sfxLevel;
+    isOK = rhs.isOK;
+    keyboard = rhs.keyboard;
+    fullscreen = rhs.fullscreen;
     return *this;
 }
 
 const DiscordInfo& ConfigSettings::GetDiscordInfo() const
 {
-    return this->discord;
+    return discord;
 }
 
 const WebServerInfo& ConfigSettings::GetWebServerInfo() const
 {
-    return this->webServer;
+    return webServer;
 }
 
 void ConfigSettings::SetKeyboardHash(const KeyboardHash key)
@@ -137,19 +137,19 @@ void ConfigSettings::SetKeyboardHash(const KeyboardHash key)
 
 void ConfigSettings::SetGamepadHash(const GamepadHash gamepad)
 {
-    this->gamepad = gamepad;
+    ConfigSettings::gamepad = gamepad;
 }
 
 ConfigSettings::ConfigSettings(const ConfigSettings & rhs)
 {
-    this->discord = rhs.discord;
-    this->webServer = rhs.webServer;
-    this->gamepad = rhs.gamepad;
-    this->musicLevel = rhs.musicLevel;
-    this->sfxLevel = rhs.sfxLevel;
-    this->isOK = rhs.isOK;
-    this->keyboard = rhs.keyboard;
-    this->fullscreen = rhs.fullscreen;
+    discord = rhs.discord;
+    webServer = rhs.webServer;
+    gamepad = rhs.gamepad;
+    musicLevel = rhs.musicLevel;
+    sfxLevel = rhs.sfxLevel;
+    isOK = rhs.isOK;
+    keyboard = rhs.keyboard;
+    fullscreen = rhs.fullscreen;
 }
 
 ConfigSettings::ConfigSettings()

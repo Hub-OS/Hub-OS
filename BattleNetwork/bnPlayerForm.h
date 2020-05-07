@@ -50,7 +50,7 @@ template<class T>
 inline PlayerFormMeta& PlayerFormMeta::SetFormClass()
 {
   loadFormClass = [this]() {
-    this->form = new T();
+    form = new T();
   };
 
   return *this;

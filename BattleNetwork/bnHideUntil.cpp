@@ -4,15 +4,15 @@
 #include "bnTile.h"
 #include "bnAudioResourceManager.h"
 
-HideUntil::HideUntil(Character* owner, HideUntil::Callback callback) : callback(callback), Component(owner) {
-  this->owner = owner;
+HideUntil::HideUntil(Character* owner, HideUntil::Callback callback) 
+  : owner(owner), callback(callback), Component(owner) {
   temp = owner->GetTile();
 }
 
 void HideUntil::OnUpdate(float _elapsed) {
   if ((callback && callback()) && temp) {
-    temp->AddEntity(*this->owner);
-    this->scene->Eject(this);
+    temp->AddEntity(*owner);
+    scene->Eject(this);
     delete this;
   }
 }

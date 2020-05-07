@@ -13,20 +13,20 @@ const std::string RESOURCE_PATH = "resources/navis/roll/roll.animation";
 
 Roll::Roll() : Player()
 {
-  name = "Roll";
+  SetName("Roll");
   chargeEffect.setPosition(0, -30.0f);
   chargeEffect.SetFullyChargedColor(sf::Color::Yellow);
 
   SetLayer(0);
-  team = Team::RED;
-  this->SetElement(Element::PLUS);
+  SetTeam(Team::red);
+  SetElement(Element::plus);
 
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_ROLL_ATLAS));
 
-  this->SetHealth(1500);
+  SetHealth(1500);
 
   SetFloatShoe(true);
 }

@@ -12,8 +12,8 @@ ProgsManPunchState::~ProgsManPunchState()
 }
 
 void ProgsManPunchState::OnEnter(ProgsMan& progs) {
-  auto onPunch = [this, &progs]() { this->Attack(progs); };
-  progs.SetAnimation(MOB_ATTACKING, [p = &progs] { p->ChangeState<ProgsManIdleState>(); });
+  auto onPunch = [this, &progs]() { Attack(progs); };
+  progs.SetAnimation("ATTACKING", [p = &progs] { p->GoToNextState(); });
   progs.GetFirstComponent<AnimationComponent>()->AddCallback(4, onPunch);
   progs.SetCounterFrame(1);
   progs.SetCounterFrame(2);
@@ -40,7 +40,7 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
       props.flags = props.flags | Hit::breaking | Hit::flinch;
       props.aggressor = &progs;
       props.flags |= Hit::drag;
-      props.drag = Direction::LEFT;
+      props.drag = Direction::left;
       hitbox->SetHitboxProperties(props);
 
       progs.GetField()->AddEntity(*hitbox, next->GetX(), next->GetY());

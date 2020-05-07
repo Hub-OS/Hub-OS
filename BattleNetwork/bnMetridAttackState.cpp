@@ -26,7 +26,7 @@ void MetridAttackState::OnEnter(Metrid& met) {
     }
 
     animation->SetPlaybackMode(Animator::Mode::Loop);
-    this->DoAttack(met);
+    DoAttack(met);
   };
 
   if (met.GetRank() == Metrid::Rank::_1) {

@@ -2,7 +2,7 @@
 
 #pragma once
 enum class Team : int {
-  UNKNOWN,
-  BLUE,
-  RED
+  unknown,
+  blue,
+  red
 };

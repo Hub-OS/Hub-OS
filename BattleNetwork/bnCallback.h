@@ -13,7 +13,7 @@ public:
   ~Callback() = default;
 
   void Slot(decltype(slot) slot) {
-    this->slot = slot;
+    slot = slot;
   }
 
   void operator()() { slot(); }

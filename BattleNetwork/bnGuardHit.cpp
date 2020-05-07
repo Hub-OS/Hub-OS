@@ -13,10 +13,10 @@ using sf::IntRect;
 
 GuardHit::GuardHit(Field* _field, Character* hit, bool center) : Artifact(_field)
 {
-  this->center = center;
+  center = center;
   SetLayer(0);
   field = _field;
-  team = Team::UNKNOWN;
+  team = Team::unknown;
 
   if (!center) {
     float random = hit->getLocalBounds().width / 2.0f;
@@ -39,10 +39,9 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center) : Artifact(_field
   setScale(2.f, 2.f);
 
   //Components setup and load
-  auto onFinish = [&]() { this->Delete();  };
+  auto onFinish = [&]() { Delete();  };
 
-  animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("DEFAULT", onFinish);

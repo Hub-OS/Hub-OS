@@ -15,7 +15,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   setScale(2.f, 2.f);
   SetFloatShoe(true);
   SetTeam(_team);
-  SetDirection(Direction::LEFT);
+  SetDirection(Direction::left);
   SetHealth(999);
   ShareTileSpace(true);
   SetSlideTime(sf::seconds(0.1333f)); // 8 frames
@@ -33,7 +33,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
 
   totalElapsed = 0;
 
-  this->setTexture(LOAD_TEXTURE(MOB_ALPHA_ATLAS));
+  setTexture(LOAD_TEXTURE(MOB_ALPHA_ATLAS));
   auto animComponent = CreateComponent<AnimationComponent>(this);
   animComponent->SetPath(RESOURCE_PATH);
   animComponent->Load();
@@ -50,17 +50,17 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   switch (type) {
   case Type::LEFT_IDLE:
     animComponent->SetAnimation("LEFT_CLAW_DEFAULT");
-    this->AddNode(shadow);
+    AddNode(shadow);
     break;
   case Type::RIGHT_IDLE:
     animComponent->SetAnimation("RIGHT_CLAW_DEFAULT");
-    this->AddNode(shadow);
+    AddNode(shadow);
     break;
   case Type::RIGHT_SWIPE:
     animComponent->SetAnimation("RIGHT_CLAW_SWIPE");
     SetSlideTime(sf::seconds(0.13f)); // 8 frames in 60 seconds
-    SetDirection(Direction::DOWN);
-    this->AddNode(shadow);
+    SetDirection(Direction::down);
+    AddNode(shadow);
 
     blueArmShadowPos = {
       sf::Vector2f(0, -80.0f), sf::Vector2f(0, -10.0f),
@@ -73,14 +73,14 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
 
     blueShadow->setPosition(0, -10.0f);
     blueShadow->Hide();
-    this->AddNode(blueShadow);
+    AddNode(blueShadow);
     break;
   case Type::LEFT_SWIPE:
     animComponent->SetAnimation("LEFT_CLAW_SWIPE");
     SetSlideTime(sf::seconds(0.13f)); // 8 frames in 60 seconds
-    SetDirection(Direction::LEFT);
-    changeState = (rand() % 10 < 5) ? TileState::POISON : TileState::ICE;
-    this->SetLayer(-1);
+    SetDirection(Direction::left);
+    changeState = (rand() % 10 < 5) ? TileState::poison : TileState::ice;
+    SetLayer(-1);
     break;
   }
 
@@ -89,7 +89,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
 }
 
 AlphaArm::~AlphaArm() {
-  // this->RemoveNode(shadow);
+  // RemoveNode(shadow);
   delete shadow;
   delete blueShadow;
 }
@@ -100,7 +100,7 @@ bool AlphaArm::CanMoveTo(Battle::Tile * next)
 }
 
 void AlphaArm::OnUpdate(float _elapsed) {
-  if (isFinished) { this->Delete(); }
+  if (isFinished) { Delete(); }
 
   totalElapsed += _elapsed;
   float delta = std::sin(10.0f*totalElapsed+1.0f);
@@ -143,12 +143,12 @@ void AlphaArm::OnUpdate(float _elapsed) {
         }
 
         // Keep moving
-        if (!this->IsSliding()) {
-          this->SlideToTile(true);
-          this->Move(this->GetDirection());
+        if (!IsSliding()) {
+          SlideToTile(true);
+          Move(GetDirection());
 
           if (!GetNextTile()) {
-            this->isFinished = true;
+            isFinished = true;
           }
         }
       }
@@ -171,12 +171,12 @@ void AlphaArm::OnUpdate(float _elapsed) {
       }
 
       // Keep moving
-      if (!this->IsSliding()) {
-        this->SlideToTile(true);
-        this->Move(this->GetDirection());
+      if (!IsSliding()) {
+        SlideToTile(true);
+        Move(GetDirection());
 
         if (!GetNextTile()) {
-          this->isFinished = true;
+          isFinished = true;
         }
       }
     }
@@ -189,7 +189,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
   if (isSwiping) {
       auto res = GetTile()->FindEntities([this](Entity* in) -> bool {
         if (dynamic_cast<Obstacle*>(in) && in != this) {
-          this->Delete();
+          Delete();
           return true;
         }
 
@@ -205,7 +205,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
 
 void AlphaArm::OnDelete() {
   auto fx = new MobMoveEffect(GetField());
-  GetField()->AddEntity(*fx, *this->GetTile());
+  GetField()->AddEntity(*fx, *GetTile());
   Remove();
 }
 
@@ -217,7 +217,7 @@ void AlphaArm::Attack(Character* other) {
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 
   if (isObstacle) {
-    this->Delete(); // cannot pass through obstacles like Cube
+    Delete(); // cannot pass through obstacles like Cube
     return;
   }
 }
@@ -246,7 +246,7 @@ const bool AlphaArm::IsSwiping() const
 void AlphaArm::SyncElapsedTime(const float elapsedTime)
 {
   // the claws get out of sync, we must sync them up
-  this->totalElapsed = elapsedTime;
+  totalElapsed = elapsedTime;
 }
 
 void AlphaArm::LeftArmChangesTileState()

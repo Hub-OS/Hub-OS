@@ -17,8 +17,8 @@ public:
         double duration = getDuration().asMilliseconds();
         double alpha = ease::linear(elapsed, duration, 1.0);
 
-        surface.clear(this->getLastActivityBGColor());
-        this->drawLastActivity(surface);
+        surface.clear(getLastActivityBGColor());
+        drawLastActivity(surface);
 
         surface.display(); // flip and ready the buffer
 
@@ -43,9 +43,9 @@ public:
 
         left.setPosition((float)(lr * alpha * left.getTexture()->getSize().x), (float)(ud * alpha * left.getTexture()->getSize().y));
 
-        surface.clear(this->getNextActivityBGColor());
+        surface.clear(getNextActivityBGColor());
 
-        this->drawNextActivity(surface);
+        drawNextActivity(surface);
 
         surface.display(); // flip and ready the buffer
 

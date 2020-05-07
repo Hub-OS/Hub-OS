@@ -22,19 +22,19 @@ private:
   Camera camera;
   AnimatedTextBox textbox; /*!< Display extra card info*/
 
-  sf::Font* font; /*!< Menu name font */
+  std::shared_ptr<sf::Font> font; /*!< Menu name font */
   sf::Text* menuLabel; /*!< The menu text */
 
   double maxSelectInputCooldown; /*!< Max time to delay input */
   double selectInputCooldown; /*!< Current time left in input delay */
 
-  sf::Font *cardFont; /*!< Card font */
+  std::shared_ptr<sf::Font> cardFont; /*!< Card font */
   sf::Text *cardLabel; /*!< Card text */
 
-  sf::Font *numberFont; /*!< Font for numbers */
+  std::shared_ptr<sf::Font> numberFont; /*!< Font for numbers */
   sf::Text *numberLabel; /*!< Numbers as text */
 
-  sf::Font *cardDescFont; /*!< Font used for card desc */
+  std::shared_ptr<sf::Font> cardDescFont; /*!< Font used for card desc */
   sf::Text* cardDesc; /*!< Actual card desc */
 
   SpriteProxyNode bg; /*!< Background for this scene */

@@ -24,10 +24,10 @@ Mob* MetalManBossFight2::Build() {
   mob->SetBackground(new UndernetBackground());
   mob->StreamCustomMusic("resources/loops/loop_boss_battle2.ogg");
 
-  //mob->RegisterRankedReward(1, BattleItem(Battle::Card(139, 0, '*', 120, Element::NONE, "ProtoMan", "Slices all enmy on field", "ProtoMan appears, stopping time, and teleports to each enemy striking once.", 5)));
+  //mob->RegisterRankedReward(1, BattleItem(Battle::Card(139, 0, '*', 120, Element::none, "ProtoMan", "Slices all enmy on field", "ProtoMan appears, stopping time, and teleports to each enemy striking once.", 5)));
 
-  field->AddEntity(*new Gear(field, Team::BLUE, Direction::LEFT), 3, 2);
-  field->AddEntity(*new Gear(field, Team::BLUE, Direction::RIGHT), 4, 2);
+  field->AddEntity(*new Gear(field, Team::blue, Direction::left), 3, 2);
+  field->AddEntity(*new Gear(field, Team::blue, Direction::right), 4, 2);
 
   mob->Spawn<RankEX<MetalMan>>(6, 2);
 
@@ -36,7 +36,7 @@ Mob* MetalManBossFight2::Build() {
   for (int i = 0; i < field->GetWidth(); i++) {
     for (int j = 0; j < field->GetHeight(); j++) {
       Battle::Tile* tile = field->GetAt(i + 1, j + 1);
-      tile->SetState(TileState::ICE);
+      tile->SetState(TileState::ice);
     }
   }
 

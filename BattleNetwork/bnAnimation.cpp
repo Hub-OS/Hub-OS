@@ -27,11 +27,11 @@ Animation::Animation(const Animation& rhs) {
 
 Animation & Animation::operator=(const Animation & rhs)
 {
-  this->animations = rhs.animations;
-  this->animator = rhs.animator;
-  this->currAnimation = rhs.currAnimation;
-  this->path = rhs.path;
-  this->progress = rhs.progress;
+  animations = rhs.animations;
+  animator = rhs.animator;
+  currAnimation = rhs.currAnimation;
+  path = rhs.path;
+  progress = rhs.progress;
   return *this;
 }
 
@@ -160,8 +160,7 @@ string Animation::ValueOf(string _key, string _line) {
 
 void Animation::Refresh(sf::Sprite& target) {
   Update(0, target);
-	//animator(0, target, animations[currAnimation]);
-	//progress = 0;
+  progress = 0;
 }
 
 void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) {
@@ -172,10 +171,10 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
   animator(progress, target, animations[currAnimation]);
 
   if(currAnimation != stateNow) {
-	  // it was changed during a callback
-	  // apply new state to target on same frame
-	  animator(0, target, animations[currAnimation]);
-	  progress = 0;
+    // it was changed during a callback
+    // apply new state to target on same frame
+    animator(0, target, animations[currAnimation]);
+    progress = 0;
   }
 
   const float duration = animations[currAnimation].GetTotalDuration();
@@ -223,7 +222,6 @@ void Animation::SetAnimation(string state) {
    auto pos = animations.find(state);
 
    if (pos == animations.end()) {
-     //throw std::runtime_error(std::string("No animation found in file for " + currAnimation));
      Logger::Log("No animation found in file for " + state);
    }
 
@@ -260,7 +258,7 @@ Animation & Animation::operator<<(char rhs)
 }
 
 Animation& Animation::operator<<(std::string state) {
-  this->SetAnimation(state);
+  SetAnimation(state);
   return *this;
 }
 
@@ -288,12 +286,11 @@ void Animation::OverrideAnimationFrames(const std::string& animation, std::list 
     uuid = animation + "@" + std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
   }
 
-  this->animations.emplace(uuid, std::move(this->animations[animation].MakeNewFromOverrideData(data)));
+  animations.emplace(uuid, std::move(animations[animation].MakeNewFromOverrideData(data)));
 }
 
 void Animation::SyncAnimation(Animation & other)
 {
-  other.progress = this->progress;
-  other.currAnimation = this->currAnimation;
-  // other << this->GetMode();
+  other.progress = progress;
+  other.currAnimation = currAnimation;
 }

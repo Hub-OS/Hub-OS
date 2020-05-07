@@ -25,6 +25,7 @@ private:
   sf::Sprite rewardCard; /*!< Reward card graphics */
   sf::Sprite pressA; /*!< Press A sprite */
   sf::Sprite star; /*!< Counter stars */
+  std::shared_ptr<sf::Font> font;
 
   bool isHidden; /*!< Flag if modal is hidden */
   bool isRevealed; /*!< Flag if modal is revealed */

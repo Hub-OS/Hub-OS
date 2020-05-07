@@ -109,6 +109,12 @@ public:
   void AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame = Animator::NoCallback, bool doOnce = false);
   
   /**
+   * @brief adds a callback to make the frame toggle counterable = true for Characters
+   * @param frame Base 1 index
+   */
+  void SetCounterFrame(int frame);
+
+  /**
    * @brief Clears callbacks
    */
   void CancelCallbacks();

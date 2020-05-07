@@ -92,6 +92,6 @@
   }
 
   void SmartShader::Reset() {
-    this->ResetUniforms();
-    this->ref = nullptr;
+    ResetUniforms();
+    ref = nullptr;
   }

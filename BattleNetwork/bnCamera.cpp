@@ -101,7 +101,7 @@ void Camera::ShakeCamera(double stress, sf::Time duration)
   if(isShaking) return;
   
   init = focus;
-  this->stress = stress;
+  Camera::stress = stress;
   shakeDur = duration;
   shakeProgress = 0;
   isShaking = true;

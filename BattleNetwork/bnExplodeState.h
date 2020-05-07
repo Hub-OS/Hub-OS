@@ -69,7 +69,7 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   /* Spawn an explosion */
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
-  explosion = new Explosion(field, e.GetTeam(), this->numOfExplosions, this->playbackSpeed);
+  explosion = new Explosion(field, e.GetTeam(), numOfExplosions, playbackSpeed);
 
   // Define the area relative to origin to spawn explosions around
   // based on a fraction of the current frame's size

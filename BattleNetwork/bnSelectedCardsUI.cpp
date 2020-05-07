@@ -60,7 +60,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           icon.setPosition(((float)alpha*flat) + ((float)(1.0-alpha)*icon.getPosition()));
 
           interpolTimeDest = 0;
-          interpolTimeFlat += this->elapsed;
+          interpolTimeFlat += elapsed;
         }
         else {
           // If stacked, the algorithm makes a jagged pattern that goes up and to the left:
@@ -79,7 +79,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           // interpolate
           icon.setPosition(((float)alpha*dest) + ((float)(1.0 - alpha)*icon.getPosition()));
 
-          interpolTimeDest += this->elapsed;
+          interpolTimeDest += elapsed;
 
           interpolTimeFlat = 0;
         }
@@ -144,7 +144,7 @@ void SelectedCardsUI::OnUpdate(float _elapsed) {
     spread = false;
   }
 
-  this->elapsed = _elapsed;
+  elapsed = _elapsed;
 }
 
 void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
@@ -159,7 +159,7 @@ void SelectedCardsUI::UseNextCard() {
   }
 
   // Broadcast to all subscribed CardUseListeners
-  this->Broadcast(*selectedCards[curr], *player);
+  Broadcast(*selectedCards[curr], *player);
 
   curr++;
 }

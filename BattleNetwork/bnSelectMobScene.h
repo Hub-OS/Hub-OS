@@ -56,14 +56,14 @@ private:
 
   Mob* mob; /*!< Pointer to the mob data */
 
-  sf::Font* font; /*!< Menu title font */
+  std::shared_ptr<sf::Font> font; /*!< Menu title font */
   sf::Text* menuLabel; /*!< "Mob Select" */
 
   double maxSelectInputCooldown; /*!< Maximum time for input delay */
   double selectInputCooldown; /*!< Remaining time for input delay */
   double elapsed; /*!< delta seconds since last frame */
 
-  sf::Font *mobFont; /*!< font for mob data */
+  std::shared_ptr<sf::Font> mobFont; /*!< font for mob data */
   sf::Text *mobLabel; /*!< name */
   sf::Text *attackLabel; /*!< power */
   sf::Text *speedLabel; /*!< mob speed */

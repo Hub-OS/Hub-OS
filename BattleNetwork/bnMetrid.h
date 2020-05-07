@@ -1,5 +1,4 @@
 #pragma once
-#include "bnMobState.h"
 #include "bnMetridIdleState.h"
 #include "bnMetridMoveState.h"
 #include "bnMetridAttackState.h"

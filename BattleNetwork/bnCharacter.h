@@ -1,7 +1,7 @@
 #pragma once
 #include "bnEntity.h"
 #include "bnCounterHitPublisher.h"
-#include "bnDefenseResolutionArbiter.h"
+#include "bnDefenseFrameStateArbiter.h"
 #include "bnHitProperties.h"
 #include "bnTile.h"
 
@@ -182,11 +182,11 @@ public:
   void RemoveDefenseRule(DefenseRule* rule);
 
   /**
-   * @brief Check if spell passes all defense checks. Updates the DefenseResolutionArbiter.
+   * @brief Check if spell passes all defense checks. Updates the DefenseFrameStateArbiter.
    * @param in attack
    * @param arbiter. The defense resolution arbiter object with current triggers and block statuses
    */
-  const bool DefenseCheck(DefenseResolutionArbiter& arbiter, Spell& in);
+  const bool DefenseCheck(DefenseFrameStateArbiter& arbiter, Spell& in);
 
   /**
   * @brief Create a combat link between other characters

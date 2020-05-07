@@ -13,26 +13,25 @@ PanelGrab::PanelGrab(Field* _field, Team _team, float _duration) : duration(_dur
 
   progress = 0.0f;
 
-  AUDIO.Play(AudioType::AREA_GRAB, AudioPriority::LOWEST);
-  this->animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(this->animationComponent);
-  this->animationComponent->SetPath("resources/spells/areagrab.animation");
-  this->animationComponent->Reload();
-  this->animationComponent->SetAnimation("FALLING", Animator::Mode::Loop);
-  this->animationComponent->OnUpdate(0);
+  AUDIO.Play(AudioType::AREA_GRAB, AudioPriority::lowest);
+  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent->SetPath("resources/spells/areagrab.animation");
+  animationComponent->Reload();
+  animationComponent->SetAnimation("FALLING", Animator::Mode::Loop);
+  animationComponent->OnUpdate(0);
 
   auto props = Hit::DefaultProperties;
   props.damage = 10;
 
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 }
 
 PanelGrab::~PanelGrab() {
 }
 
 void PanelGrab::OnUpdate(float _elapsed) {
-  if (this->GetTile()) {
-    start = sf::Vector2f(this->tile->getPosition().x, 0);
+  if (GetTile()) {
+    start = sf::Vector2f(tile->getPosition().x, 0);
 
     double beta = swoosh::ease::linear(progress, duration, 1.0);
 
@@ -48,23 +47,23 @@ void PanelGrab::OnUpdate(float _elapsed) {
       tile->AffectEntities(this);
       
       // Change the team
-      tile->SetTeam(this->GetTeam());
+      tile->SetTeam(GetTeam());
 
       // Show the panel grab spread animation
-      if (this->animationComponent->GetAnimationString() != "HIT") {
-        AUDIO.Play(AudioType::AREA_GRAB_TOUCHDOWN, AudioPriority::LOWEST);
-        this->animationComponent->SetAnimation("HIT");
+      if (animationComponent->GetAnimationString() != "HIT") {
+        AUDIO.Play(AudioType::AREA_GRAB_TOUCHDOWN, AudioPriority::lowest);
+        animationComponent->SetAnimation("HIT");
       }
     }
 
     if (progress > duration*2.0) {
-      this->Delete();
+      Delete();
     }
 
     progress += _elapsed;
   }
   else {
-    this->Delete();
+    Delete();
   }
 }
 

@@ -10,12 +10,12 @@
 #define COMPONENT_WIDTH 240
 #define COMPONENT_HEIGHT 160
 
-GridBackground::GridBackground(void)
+GridBackground::GridBackground()
   : x(0.0f), y(0), progress(0.0f), Background(LOAD_TEXTURE(NAVI_SELECT_BG), 240, 160) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 }
 
-GridBackground::~GridBackground(void) {
+GridBackground::~GridBackground() {
 }
 
 void GridBackground::Update(float _elapsed) {

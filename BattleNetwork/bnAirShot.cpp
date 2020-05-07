@@ -18,8 +18,8 @@
 #define BULLET_ANIMATION_HEIGHT 27
 
 AirShot::AirShot(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
-  this->SetPassthrough(true);
-  this->SetFloatShoe(true);
+  SetPassthrough(true);
+  SetFloatShoe(true);
 
   hit = false;
   progress = 0.0f;
@@ -27,14 +27,14 @@ AirShot::AirShot(Field* _field, Team _team, int _damage) : Spell(_field, _team) 
   random = rand() % 20 - 20;
   cooldown = 0.0f;
 
-  SetDirection(Direction::RIGHT);
+  SetDirection(Direction::right);
 
   damage = _damage;
 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
   props.flags |= Hit::drag;
-  props.drag = Direction::RIGHT;
+  props.drag = Direction::right;
   SetHitboxProperties(props);
 }
 
@@ -46,9 +46,9 @@ void AirShot::OnUpdate(float _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    if (GetTile()->GetX() == 6) { this->Delete(); }
-    if (Move(Direction::RIGHT)) {
-      this->AdoptNextTile();
+    if (GetTile()->GetX() == 6) { Delete(); }
+    if (Move(Direction::right)) {
+      AdoptNextTile();
     }
 
     cooldown = 0;
@@ -58,7 +58,7 @@ void AirShot::OnUpdate(float _elapsed) {
 
 void AirShot::Attack(Character* _entity) {
   if(_entity->Hit(GetHitboxProperties())) {
-    this->Remove();
+    Remove();
   }
 
   hitHeight = _entity->GetHeight();

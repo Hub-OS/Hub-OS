@@ -53,7 +53,7 @@ Battle::Card* CardFolder::Next() {
 
 const int CardFolder::GetSize() const
 {
-  return this->folderSize;
+  return folderSize;
 }
 
 CardFolder::Iter CardFolder::Begin()

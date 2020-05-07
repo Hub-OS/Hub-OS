@@ -45,12 +45,12 @@ public:
   /**
    * @brief Deletes the state machine object and Frees target
    */
-  ~AI() { if (stateMachine) { delete stateMachine; } ref = nullptr; this->FreeTarget(); }
+  ~AI() { if (stateMachine) { delete stateMachine; } ref = nullptr; FreeTarget(); }
 
   void InvokeDefaultState() {
     using DefaultState = typename CharacterT::DefaultState;
 
-    this->ChangeState<DefaultState>();
+    ChangeState<DefaultState>();
   }
 
   void PriorityLock() {
@@ -88,7 +88,7 @@ public:
 /**
  * @brief For states that require arguments, pass the arguments
  * 
- * e.g. this->ChangeState<PlayerThrowBombState>(200.f, 300, true);
+ * e.g. ChangeState<PlayerThrowBombState>(200.f, 300, true);
  */
 template<typename U, typename ...Args>
   void ChangeState(Args... args) {
@@ -105,7 +105,7 @@ template<typename U, typename ...Args>
 
     if (change) {
       if (queuedState) { delete queuedState; }
-      queuedState = new U(args...);
+      queuedState = new U(std::forward<Args>(args)...);
 
       priorityLevel = U::PriorityLevel;
     }

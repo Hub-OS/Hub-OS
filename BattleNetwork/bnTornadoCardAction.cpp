@@ -17,19 +17,19 @@
 
 TornadoCardAction::TornadoCardAction(Character * owner, int damage) 
   : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(FAN_ANIM), armIsOut(false) {
-  this->damage = damage;
+  TornadoCardAction::damage = damage;
   fan.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
-  this->attachment = new SpriteProxyNode(fan);
-  this->attachment->SetLayer(-1);
+  attachment = new SpriteProxyNode(fan);
+  attachment->SetLayer(-1);
 
-  owner->AddNode(this->attachment);
+  owner->AddNode(attachment);
 
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
   attachmentAnim << Animator::Mode::Loop;
 
   // add override anims
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 }
 
 TornadoCardAction::~TornadoCardAction()
@@ -39,7 +39,7 @@ TornadoCardAction::~TornadoCardAction()
 void TornadoCardAction::Execute() {
   auto owner = GetOwner();
 
-  attachmentAnim.Update(0, this->attachment->getSprite());
+  attachmentAnim.Update(0, attachment->getSprite());
 
   auto team = GetOwner()->GetTeam();
   auto tile = GetOwner()->GetTile();
@@ -56,25 +56,25 @@ void TornadoCardAction::Execute() {
   };
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
-  this->AddAction(2, [onFire, this]() {
+  AddAction(2, [onFire, this]() {
     AUDIO.Play(AudioType::WIND);
     armIsOut = true;
     onFire();
   });
 
-  this->AddAction(4, onFire);
-  this->AddAction(6, onFire);
-  this->AddAction(8, onFire);
-  this->AddAction(10, onFire);
-  this->AddAction(12, onFire);
-  this->AddAction(14, onFire);
-  this->AddAction(16, onFire);
+  AddAction(4, onFire);
+  AddAction(6, onFire);
+  AddAction(8, onFire);
+  AddAction(10, onFire);
+  AddAction(12, onFire);
+  AddAction(14, onFire);
+  AddAction(16, onFire);
 }
 
 void TornadoCardAction::OnUpdate(float _elapsed)
 {
   if (armIsOut) {
-    attachmentAnim.Update(_elapsed, this->attachment->getSprite());
+    attachmentAnim.Update(_elapsed, attachment->getSprite());
   }
 
   CardAction::OnUpdate(_elapsed);
@@ -82,7 +82,7 @@ void TornadoCardAction::OnUpdate(float _elapsed)
 
 void TornadoCardAction::EndAction()
 {
-  this->GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->RemoveNode(attachment);
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

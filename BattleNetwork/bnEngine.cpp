@@ -33,7 +33,7 @@ void Engine::Initialize(Engine::WindowMode mode) {
 
   window = new RenderWindow(videoMode, "Battle Network: Progs Edition", style);
 
-  this->Resize((int)view.getSize().x, (int)view.getSize().y);
+  Resize((int)view.getSize().x, (int)view.getSize().y);
 
   window->setFramerateLimit(60);
   // window->setMouseCursorVisible(false); // Hide cursor
@@ -275,10 +275,10 @@ Camera* Engine::GetCamera()
 void Engine::SetCamera(Camera& camera) {
   // if (cam) delete cam;
 
-  this->cam = &camera;
+  cam = &camera;
 }
 
 /*void Engine::SetView(sf::View v) {
-  this->view = v;
+  view = v;
 }
 */

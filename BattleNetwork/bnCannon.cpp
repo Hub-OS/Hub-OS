@@ -20,10 +20,10 @@ Cannon::Cannon(Field* _field, Team _team, int _damage) : Spell(_field, _team){
 
   random = rand() % 20 - 20;
 
-  if(_team == Team::RED) {
-    SetDirection(Direction::RIGHT);
+  if(_team == Team::red) {
+    SetDirection(Direction::right);
   } else {
-    SetDirection(Direction::LEFT);
+    SetDirection(Direction::left);
   }
   damage = _damage;
 
@@ -38,7 +38,7 @@ Cannon::~Cannon() {
 
 void Cannon::OnUpdate(float _elapsed) {
   if (hit) {
-      this->Delete();
+      Delete();
     return;
   }
 
@@ -46,10 +46,10 @@ void Cannon::OnUpdate(float _elapsed) {
 
   cooldown += _elapsed;
   if (cooldown >= COOLDOWN) {
-    if (GetTile()->GetX() == 6 && this->GetTeam() == Team::RED) { this->Delete(); } 
-    if (GetTile()->GetX() == 1 && this->GetTeam() == Team::BLUE) { this->Delete(); }
+    if (GetTile()->GetX() == 6 && GetTeam() == Team::red) { Delete(); } 
+    if (GetTile()->GetX() == 1 && GetTeam() == Team::blue) { Delete(); }
     Move(GetDirection());
-    this->AdoptNextTile();
+    AdoptNextTile();
     cooldown = 0;
   }
 }

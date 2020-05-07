@@ -34,7 +34,7 @@ protected:
    * @param generated
    */
   void Spawn(T* generated) {
-    this->generate = generated;
+    generate = generated;
   }
 
   /**
@@ -44,7 +44,7 @@ protected:
    * Describes how the entity should behave during the intro animation
    */
   void SetIntroCallback(SpawnStateCallback intro) {
-    this->intro = intro;
+    SpawnPolicy::intro = intro;
   }
 
   /**
@@ -54,7 +54,7 @@ protected:
    * Describes how the entity should behave after all entities are spawned
    */
   void SetReadyCallback(SpawnStateCallback ready) {
-    this->ready = ready;
+    SpawnPolicy::ready = ready;
   }
 
 public:
@@ -127,8 +127,8 @@ protected:
         if (agent) { agent->InvokeDefaultState(); }
       };
 
-      this->SetIntroCallback(pixelStateInvoker);
-      this->SetReadyCallback(defaultStateInvoker);
+      SetIntroCallback(pixelStateInvoker);
+      SetReadyCallback(defaultStateInvoker);
     }
 
   public:
@@ -164,8 +164,8 @@ protected:
       if (agent) { agent->InvokeDefaultState(); }
     };
 
-    this->SetIntroCallback(pixelStateInvoker);
-    this->SetReadyCallback(defaultStateInvoker);
+    SetIntroCallback(pixelStateInvoker);
+    SetReadyCallback(defaultStateInvoker);
   }
 
 public:
@@ -190,9 +190,9 @@ template<class T, template <typename> class IntroState=PixelInState>
 class Rank1 : public RankedSpawnPolicy<T, IntroState> {
 public:
   Rank1(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    this->Spawn(new T(T::Rank::_1));
-    Component* ui = new MobHealthUI(this->GetSpawned());
-    this->GetSpawned()->RegisterComponent(ui);
+    Spawn(new T(T::Rank::_1));
+    Component* ui = new MobHealthUI(GetSpawned());
+    GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -209,9 +209,9 @@ class Rank2 : public RankedSpawnPolicy<T, IntroState> {
   public:
 
   Rank2(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    this->Spawn(new T(T::Rank::_2));
-    Component* ui = new MobHealthUI(this->GetSpawned());
-    this->GetSpawned()->RegisterComponent(ui);
+    Spawn(new T(T::Rank::_2));
+    Component* ui = new MobHealthUI(GetSpawned());
+    GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -227,9 +227,9 @@ class Rank3 : public RankedSpawnPolicy<T, IntroState> {
   public:
 
   Rank3(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    this->Spawn(new T(T::Rank::_3));
-    Component* ui = new MobHealthUI(this->GetSpawned());
-    this->GetSpawned()->RegisterComponent(ui);
+    Spawn(new T(T::Rank::_3));
+    Component* ui = new MobHealthUI(GetSpawned());
+    GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -246,10 +246,10 @@ class RankSP : public RankedSpawnPolicy<T, IntroState> {
 public:
 
   RankSP(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    this->Spawn(new T(T::Rank::SP));
-    this->GetSpawned()->SetName(SP(this->GetSpawned()->GetName()));
-    Component* ui = new MobHealthUI(this->GetSpawned());
-    this->GetSpawned()->RegisterComponent(ui);
+    Spawn(new T(T::Rank::SP));
+    GetSpawned()->SetName(SP(GetSpawned()->GetName()));
+    Component* ui = new MobHealthUI(GetSpawned());
+    GetSpawned()->RegisterComponent(ui);
   }
 };
 
@@ -266,9 +266,9 @@ class RankEX : public RankedSpawnPolicy<T, IntroState> {
 public:
 
   RankEX(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    this->Spawn(new T(T::Rank::EX));
-    this->GetSpawned()->SetName(EX(this->GetSpawned()->GetName()));
-    Component* ui = new MobHealthUI(this->GetSpawned());
-    this->GetSpawned()->RegisterComponent(ui);
+    Spawn(new T(T::Rank::EX));
+    GetSpawned()->SetName(EX(GetSpawned()->GetName()));
+    Component* ui = new MobHealthUI(GetSpawned());
+    GetSpawned()->RegisterComponent(ui);
   }
 };

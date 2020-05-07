@@ -1,16 +1,17 @@
 #include "bnMettaurIdleState.h"
 #include "bnMettaurMoveState.h"
-#include <iostream>
+#include "bnAnimationComponent.h"
 
 MettaurIdleState::MettaurIdleState() : cooldown(0.5), AIState<Mettaur>() { ; }
 MettaurIdleState::~MettaurIdleState() { ; }
 
 void MettaurIdleState::OnEnter(Mettaur& met) {
+  auto& animation = *met.GetFirstComponent<AnimationComponent>();
   if (met.GetRank() == Mettaur::Rank::SP) {
-    met.SetAnimation("SP_IDLE");
+    animation.SetAnimation("SP_IDLE");
   }
   else {
-    met.SetAnimation("IDLE");
+    animation.SetAnimation("IDLE");
   }
 
   if (met.GetRank() == Mettaur::Rank::SP) {

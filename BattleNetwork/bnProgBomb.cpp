@@ -23,7 +23,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   auto props = Hit::DefaultProperties;
   props.damage = 40;
   props.flags |= Hit::flinch;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   arcDuration = _duration;
   arcProgress = 0;
@@ -34,7 +34,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   setOrigin(sf::Vector2f(19, 24) / 2.f);
   AUDIO.Play(AudioType::TOSS_ITEM);
 
-  this->HighlightTile(Battle::Tile::Highlight::flash);
+  HighlightTile(Battle::Tile::Highlight::flash);
 }
 
 ProgBomb::~ProgBomb(void) {
@@ -52,15 +52,15 @@ void ProgBomb::OnUpdate(float _elapsed) {
 
   setPosition((float)posX, (float)posY);
   setRotation(-(arcProgress / arcDuration)*90.0f);
-  this->Reveal();
+  Reveal();
 
   // When at the end of the arc
   if (arcProgress >= arcDuration) {
     // update tile to target tile 
     tile->AffectEntities(this);
-    Artifact* explosion = new Explosion(this->GetField(), this->GetTeam());
-    this->GetField()->AddEntity(*explosion, this->tile->GetX(), this->tile->GetY());
-    this->Delete();
+    Artifact* explosion = new Explosion(GetField(), GetTeam());
+    GetField()->AddEntity(*explosion, tile->GetX(), tile->GetY());
+    Delete();
   }
 }
 
@@ -70,7 +70,7 @@ bool ProgBomb::Move(Direction _direction) {
 
 void ProgBomb::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
-  this->Delete();
+  Delete();
 }
 
 void ProgBomb::OnDelete()

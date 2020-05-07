@@ -9,10 +9,10 @@
 #include <Swoosh/Game.h>
 
 Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, float _duration) : duration(_duration), Spell(_field, _team) {
-  this->target = target;
+  Meteor::target = target;
   SetLayer(1);
 
-  this->HighlightTile(Battle::Tile::Highlight::flash);
+  HighlightTile(Battle::Tile::Highlight::flash);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_METEOR));
 
@@ -21,33 +21,33 @@ Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, floa
   progress = 0.0f;
 
   // Which direction to come down from
-  if (GetTeam() == Team::BLUE) {
+  if (GetTeam() == Team::blue) {
     start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y - 480.0f);
   }
-  else if (GetTeam() == Team::RED) {
+  else if (GetTeam() == Team::red) {
     start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y - 480.0f);
   }
   else {
-    this->Delete();
+    Delete();
   }
 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
   props.flags |= Hit::impact | Hit::flinch | Hit::recoil | Hit::breaking;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 }
 
 Meteor::~Meteor() {
 }
 
 void Meteor::OnUpdate(float _elapsed) {
-  if (GetTeam() == Team::BLUE) {
+  if (GetTeam() == Team::blue) {
     setScale(-2.f, 2.f);
-    swoosh::game::setOrigin(this->getSprite(), 1.0, 1.0);
+    swoosh::game::setOrigin(getSprite(), 1.0, 1.0);
   }
   else {
     setScale(2.f, 2.f);
-    swoosh::game::setOrigin(this->getSprite(), 0.0, 1.0);
+    swoosh::game::setOrigin(getSprite(), 0.0, 1.0);
   }
 
   double beta = swoosh::ease::linear(progress, duration, 1.0);
@@ -62,13 +62,13 @@ void Meteor::OnUpdate(float _elapsed) {
     // update tile to target tile
     tile->AffectEntities(this);
 
-    if (tile->GetState() != TileState::EMPTY && tile->GetState() != TileState::BROKEN) {
+    if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
       ENGINE.GetCamera()->ShakeCamera(5, sf::seconds(0.5));
 
-      this->field->AddEntity(*(new RingExplosion(this->field)), *this->GetTile());
+      field->AddEntity(*(new RingExplosion(field)), *GetTile());
     }
 
-    this->Delete();
+    Delete();
   }
 
   progress += _elapsed;

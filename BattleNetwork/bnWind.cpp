@@ -6,10 +6,10 @@
 Wind::Wind(Field* _field, Team _team) :Spell(_field, _team) {
   SetPassthrough(true);
   SetLayer(-1);
-  SetDirection(_team == Team::BLUE ? Direction::RIGHT : Direction::LEFT);
+  SetDirection(_team == Team::blue ? Direction::right : Direction::left);
 
   setTexture(LOAD_TEXTURE(SPELL_WIND));
-  swoosh::game::setOrigin(this->getSprite(), 0.8, 0.8);
+  swoosh::game::setOrigin(getSprite(), 0.8, 0.8);
   setScale(-2.f, 2.f);
 }
 
@@ -26,7 +26,7 @@ void Wind::OnUpdate(float _elapsed) {
     // Wind is active on the opposing team's area
     // Once we enter our team area, we're useless
     if (Teammate(GetTile()->GetTeam())) {
-      this->Delete();
+      Delete();
     }
 
     SlideToTile(true);

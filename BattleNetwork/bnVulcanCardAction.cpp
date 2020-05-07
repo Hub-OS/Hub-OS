@@ -17,15 +17,15 @@
 
 
 VulcanCardAction::VulcanCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
-  this->damage = damage;
+  VulcanCardAction::damage = damage;
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  this->attachment = new SpriteProxyNode(overlay);
-  this->attachment->SetLayer(-1);
+  attachment = new SpriteProxyNode(overlay);
+  attachment->SetLayer(-1);
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
 
   // add override anims
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 }
 
 VulcanCardAction::~VulcanCardAction()
@@ -35,8 +35,8 @@ VulcanCardAction::~VulcanCardAction()
 void VulcanCardAction::Execute() {
   auto owner = GetOwner();
 
-  owner->AddNode(this->attachment);
-  attachmentAnim.Update(0, this->attachment->getSprite());
+  owner->AddNode(attachment);
+  attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner]() -> void {
@@ -44,26 +44,26 @@ void VulcanCardAction::Execute() {
     auto props = b->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
     b->SetHitboxProperties(props);
-    b->SetDirection(Direction::RIGHT);
+    b->SetDirection(Direction::right);
 
     GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
   };
 
 
-  this->AddAction(2, onFire);
-  this->AddAction(4, onFire);
-  this->AddAction(6, onFire);
+  AddAction(2, onFire);
+  AddAction(4, onFire);
+  AddAction(6, onFire);
 }
 
 void VulcanCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
+  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 
 void VulcanCardAction::EndAction()
 {
-  this->GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->RemoveNode(attachment);
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

@@ -15,17 +15,17 @@
                , FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2
 
 ElecPulseCardAction::ElecPulseCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
-    this->damage = damage;
+    ElecPulseCardAction::damage = damage;
 
     overlay.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
 
-    this->attachment = new SpriteProxyNode(overlay);
-    this->attachment->SetLayer(-1);
+    attachment = new SpriteProxyNode(overlay);
+    attachment->SetLayer(-1);
     attachmentAnim.Reload();
     attachmentAnim.SetAnimation("BUSTER");
 
     // add override anims
-    this->OverrideAnimationFrames({ FRAMES });
+    OverrideAnimationFrames({ FRAMES });
 
     elecpulse = nullptr;
 }
@@ -37,9 +37,9 @@ ElecPulseCardAction::~ElecPulseCardAction()
 void ElecPulseCardAction::Execute() {
     auto owner = GetOwner();
 
-    owner->AddNode(this->attachment);
-    this->attachment->EnableParentShader(false);
-    attachmentAnim.Update(0, this->attachment->getSprite());
+    owner->AddNode(attachment);
+    attachment->EnableParentShader(false);
+    attachmentAnim.Update(0, attachment->getSprite());
 
     // On shoot frame, drop projectile
     auto onFire = [this, owner]() -> void {
@@ -54,19 +54,19 @@ void ElecPulseCardAction::Execute() {
         
         deleteHandler.Slot([this]() {
             Logger::Log("elecpulse OnDelete() triggered.");
-            this->elecpulse = nullptr;
+            elecpulse = nullptr;
         });
 
         GetOwner()->GetField()->AddEntity(*elecpulse, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
     };
 
 
-    this->AddAction(2, onFire);
+    AddAction(2, onFire);
 }
 
 void ElecPulseCardAction::OnUpdate(float _elapsed)
 {
-    attachmentAnim.Update(_elapsed, this->attachment->getSprite());
+    attachmentAnim.Update(_elapsed, attachment->getSprite());
     CardAction::OnUpdate(_elapsed);
 }
 
@@ -74,7 +74,7 @@ void ElecPulseCardAction::EndAction()
 {
     elecpulse? elecpulse->Delete() : 0;
 
-    this->GetOwner()->RemoveNode(attachment);
-    GetOwner()->FreeComponentByID(this->GetID());
+    GetOwner()->RemoveNode(attachment);
+    GetOwner()->FreeComponentByID(GetID());
     delete this;
 }

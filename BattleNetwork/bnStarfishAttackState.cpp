@@ -5,26 +5,25 @@
 #include "bnStarfishAttackState.h"
 
 StarfishAttackState::StarfishAttackState(int maxBubbleCount) : bubbleCount(maxBubbleCount), AIState<Starfish>() { 
-	leaveState = false; 
+  leaveState = false; 
 }
 
 StarfishAttackState::~StarfishAttackState() { ; }
 
 void StarfishAttackState::OnEnter(Starfish& star) {
-  auto onPreAttack = [this, s = &star]() { 
+  auto animation = star.GetFirstComponent<AnimationComponent>();
 
-    auto onAttack = [this, s]() {
-      this->DoAttack(*s); 
+  auto onPreAttack = [this, s = &star, animation]() { 
+    auto onAttack = [this, s, animation]() {
+      DoAttack(*s); 
     };
-	
-    s->GetFirstComponent<AnimationComponent>()->SetAnimation("ATTACK", Animator::Mode::Loop);
-    s->OnFrameCallback(1, onAttack, Animator::NoCallback, false);
+
+    animation->SetAnimation("ATTACK", Animator::Mode::Loop);
+    animation->AddCallback(1, onAttack, Animator::NoCallback, false);
   };
 
-
-  star.SetAnimation("PREATTACK", onPreAttack);
-
-  // star.SetCounterFrame(1);
+  animation->SetAnimation("PREATTACK", onPreAttack);
+  animation->SetCounterFrame(1);
 }
 
 void StarfishAttackState::OnUpdate(float _elapsed, Starfish& star) {
@@ -34,20 +33,24 @@ void StarfishAttackState::OnLeave(Starfish& star) {
 }
 
 void StarfishAttackState::DoAttack(Starfish& star) {
+  auto animation = star.GetFirstComponent<AnimationComponent>();
+
   if (star.GetField()->GetAt(star.GetTile()->GetX() - 1, star.GetTile()->GetY())) {
     Spell* spell = new Bubble(star.GetField(), star.GetTeam(), (star.GetRank() == Starfish::Rank::SP) ? 1.5 : 1.0);
-    spell->SetHitboxProperties({ 40, static_cast<Hit::Flags>(spell->GetHitboxProperties().flags | Hit::impact), Element::AQUA, &star });
-    spell->SetDirection(Direction::LEFT);
+    spell->SetHitboxProperties({ 40, static_cast<Hit::Flags>(spell->GetHitboxProperties().flags | Hit::impact), Element::aqua, &star });
+    spell->SetDirection(Direction::left);
     star.GetField()->AddEntity(*spell, star.GetTile()->GetX() - 1, star.GetTile()->GetY());
   }
   
   if (--bubbleCount == 0) {
-	star.GetFirstComponent<AnimationComponent>()->SetPlaybackMode(Animator::Mode::NoEffect);
-	star.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
-	
-	// On animation end, go back to idle
-	star.GetFirstComponent<AnimationComponent>()->AddCallback(5, [this, s = &star](){
-		s->ChangeState<StarfishIdleState>();
-	}, Animator::NoCallback, false);
+  animation->SetPlaybackMode(Animator::Mode::NoEffect);
+  animation->CancelCallbacks();
+  
+  // On animation end, go back to idle
+  animation->AddCallback(5, 
+    [this, s = &star](){
+      s->ChangeState<StarfishIdleState>();
+    }, 
+    Animator::NoCallback, false);
   }
 }

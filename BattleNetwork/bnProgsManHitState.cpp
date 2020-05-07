@@ -13,14 +13,14 @@ ProgsManHitState::~ProgsManHitState()
 }
 
 void ProgsManHitState::OnEnter(ProgsMan& progs) {
-  progs.SetAnimation(MOB_HIT);
+  progs.SetAnimation("HIT");
 }
 
 void ProgsManHitState::OnUpdate(float _elapsed, ProgsMan& progs) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {
-    progs.ChangeState<ProgsManIdleState>();
+    progs.GoToNextState();
   }
 }
 

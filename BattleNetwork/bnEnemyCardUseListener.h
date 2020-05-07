@@ -36,9 +36,9 @@ public:
       Battle::Tile* mid = user.GetField()->GetAt(user.GetTile()->GetX() - 1, 2);
       Battle::Tile* low = user.GetField()->GetAt(user.GetTile()->GetX() - 1, 3);
 
-      if (top) { top->SetState(TileState::CRACKED); }
-      if (mid) { mid->SetState(TileState::CRACKED); }
-      if (low) { low->SetState(TileState::CRACKED); }
+      if (top) { top->SetState(TileState::cracked); }
+      if (mid) { mid->SetState(TileState::cracked); }
+      if (low) { low->SetState(TileState::cracked); }
 
       AUDIO.Play(AudioType::PANEL_CRACK);
     }
@@ -51,7 +51,7 @@ public:
 
       AUDIO.Play(AudioType::CANNON);
 
-      cannon->SetDirection(Direction::LEFT);
+      cannon->SetDirection(Direction::left);
 
       user.GetField()->AddEntity(*cannon, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
     }

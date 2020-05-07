@@ -15,18 +15,18 @@
 #define FRAMES FRAME1, FRAME2, FRAME3
 
 SwordCardAction::SwordCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SWORD", &attachment, "HILT"), attachmentAnim(ANIM) {
-  this->damage = damage;
+  SwordCardAction::damage = damage;
 
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
 
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  this->attachment = new SpriteProxyNode(overlay);
-  this->attachment->SetLayer(-2);
+  attachment = new SpriteProxyNode(overlay);
+  attachment->SetLayer(-2);
 
-  this->hiltAttachment = new SpriteProxyNode();
-  this->hiltAttachment->setTexture(owner->getTexture());
-  this->hiltAttachment->SetLayer(-1);
+  hiltAttachment = new SpriteProxyNode();
+  hiltAttachment->setTexture(owner->getTexture());
+  hiltAttachment->SetLayer(-1);
 
   hiltAttachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
   hiltAttachmentAnim.Reload();
@@ -37,9 +37,9 @@ SwordCardAction::SwordCardAction(Character * owner, int damage) : CardAction(own
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
 
-  element = Element::NONE;
+  element = Element::none;
 
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 }
 
 SwordCardAction::~SwordCardAction()
@@ -55,30 +55,30 @@ SwordCardAction::~SwordCardAction()
 
 void SwordCardAction::Execute() {
   auto owner = GetOwner();
-  owner->AddNode(this->hiltAttachment);
-  hiltAttachmentAnim.Update(0, this->hiltAttachment->getSprite());
-  this->hiltAttachment->EnableParentShader(true);
+  owner->AddNode(hiltAttachment);
+  hiltAttachmentAnim.Update(0, hiltAttachment->getSprite());
+  hiltAttachment->EnableParentShader(true);
 
   hiltAttachment->AddNode(attachment);
-  attachmentAnim.Update(0, this->attachment->getSprite());
+  attachmentAnim.Update(0, attachment->getSprite());
 
   // On attack frame, drop sword hitbox
   auto onTrigger = [this, owner]() -> void {
-    this->OnSpawnHitbox();
+    OnSpawnHitbox();
   };
 
   switch (GetElement()) {
-    case Element::FIRE:
+    case Element::fire:
       attachment->setColor(sf::Color::Red);
       break;
-    case Element::AQUA:
+    case Element::aqua:
       attachment->setColor(sf::Color::Green);
       break;
   }
 
-  this->AddAction(2, onTrigger);
+  AddAction(2, onTrigger);
 
-  this->OnUpdate(0); // position to owner...
+  OnUpdate(0); // position to owner...
 }
 
 void SwordCardAction::OnSpawnHitbox()
@@ -106,12 +106,12 @@ const Element SwordCardAction::GetElement() const
 
 void SwordCardAction::OnUpdate(float _elapsed)
 {
-  hiltAttachmentAnim.Update(_elapsed, this->hiltAttachment->getSprite());
-  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
+  hiltAttachmentAnim.Update(_elapsed, hiltAttachment->getSprite());
+  attachmentAnim.Update(_elapsed, attachment->getSprite());
 
   // update node position in the animation:
   // Position the hilt
-  auto baseOffset = this->anim->GetPoint("HILT");
+  auto baseOffset = anim->GetPoint("HILT");
   auto origin = GetOwner()->getSprite().getOrigin();
   baseOffset = baseOffset - origin;
   hiltAttachment->setPosition(baseOffset);
@@ -125,9 +125,9 @@ void SwordCardAction::OnUpdate(float _elapsed)
 
 void SwordCardAction::EndAction()
 {
-  this->GetOwner()->RemoveNode(hiltAttachment);
+  GetOwner()->RemoveNode(hiltAttachment);
   hiltAttachment->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->FreeComponentByID(GetID());
 
   delete this;
 }

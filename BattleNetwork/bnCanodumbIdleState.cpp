@@ -30,16 +30,17 @@ CanodumbIdleState::~CanodumbIdleState() { ; }
 
 void CanodumbIdleState::OnEnter(Canodumb& can) {
   this->can = &can;
-  
+  auto animation = can.GetFirstComponent<AnimationComponent>();
+
   switch (can.GetRank()) {
   case Canodumb::Rank::_1:
-    can.SetAnimation(MOB_CANODUMB_IDLE_1);
+    animation->SetAnimation("IDLE_1");
     break;
   case Canodumb::Rank::_2:
-    can.SetAnimation(MOB_CANODUMB_IDLE_2);
+    animation->SetAnimation("IDLE_2");
     break;
   case Canodumb::Rank::_3:
-    can.SetAnimation(MOB_CANODUMB_IDLE_3);
+    animation->SetAnimation("IDLE_3");
     break;
   }
 }

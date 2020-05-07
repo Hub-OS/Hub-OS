@@ -71,7 +71,7 @@ public:
    * @param _path Relative to the application
    * @return Font pointer. Must manually delete.
    */
-  Font* LoadFontFromFile(string _path);
+  std::shared_ptr<Font> LoadFontFromFile(string _path);
 
 private:
   TextureResourceManager();

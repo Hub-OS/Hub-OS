@@ -8,7 +8,7 @@
 
 #include <SFML/Graphics.hpp>
 
-// This was written before card actions had many sprite nodes involved (like hilt + sword piece)
+// TODO: This was written before card actions had many sprite nodes involved (like hilt + sword piece)
 // So the constructor, which was written to make card creation easy,
 // has now made it convoluted and difficult. REWRITE THIS CHIP ACTION CONSTRUCTOR!
 class CardAction : public Component {
@@ -52,15 +52,15 @@ public:
         prevState = anim->GetAnimationString();
 
         // use the current animation's arrangement, do not overload
-        this->prevState = anim->GetAnimationString();;
-        this->anim->SetAnimation(animation, [this]() {
+        prevState = anim->GetAnimationString();;
+        anim->SetAnimation(animation, [this]() {
           //Logger::Log("normal callback fired");
-          this->RecallPreviousState();
-          this->EndAction();
+          RecallPreviousState();
+          EndAction();
         });
 
         anim->OnUpdate(0);
-        this->OnUpdate(0); // position to owner...
+        OnUpdate(0); // position to owner...
 
       };
     }
@@ -72,16 +72,16 @@ public:
       prepareActionDelegate = [this, frameData]() {
         prevState = anim->GetAnimationString();
 
-        anim->OverrideAnimationFrames(this->animation, frameData, this->uuid);
-        anim->SetAnimation(this->uuid, [this]() {
+        anim->OverrideAnimationFrames(animation, frameData, uuid);
+        anim->SetAnimation(uuid, [this]() {
           //Logger::Log("custom callback fired");
 
           anim->SetPlaybackMode(Animator::Mode::Loop);
-          this->RecallPreviousState();
-          this->EndAction();
+          RecallPreviousState();
+          EndAction();
         });
         anim->OnUpdate(0);
-        this->OnUpdate(0); // position to owner...
+        OnUpdate(0); // position to owner...
       };
     }
   }
@@ -95,7 +95,7 @@ public:
     prepareActionDelegate();
 
     // run
-    this->Execute();
+    Execute();
   }
 
   virtual void OnUpdate(float _elapsed)

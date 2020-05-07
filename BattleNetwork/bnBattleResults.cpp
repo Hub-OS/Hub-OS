@@ -52,7 +52,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
     */
   score = 0;
 
-  this->counterCount = std::min(3, counterCount);
+  counterCount = std::min(3, counterCount);
 
   std::random_device rd;
   std::mt19937 g(rd());
@@ -94,7 +94,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   if (doubleDelete) score += 2;
   if (tripleDelete) score += 4;
 
-  score += this->counterCount;
+  score += counterCount;
 
   // No score of zero or below. Min score of 1
   score = std::max(1, score);
@@ -115,7 +115,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   star = sf::Sprite(*LOAD_TEXTURE(BATTLE_RESULTS_STAR));
   star.setScale(2.f, 2.f);
   
-  sf::Font *font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   if (item) {
     rewardCard = sf::Sprite(*WEBCLIENT.GetImageForCard(item->GetUUID()));
@@ -237,7 +237,7 @@ bool BattleResults::IsInView() {
 
 void BattleResults::Move(sf::Vector2f delta) {
   resultsSprite.setPosition(resultsSprite.getPosition() + delta);
-  this->IsInView();
+  IsInView();
 }
 
 void BattleResults::Update(double elapsed)
@@ -263,7 +263,7 @@ void BattleResults::Update(double elapsed)
     }
 
     if (!playSoundOnce) {
-      AUDIO.Play(AudioType::TEXT, AudioPriority::LOWEST);
+      AUDIO.Play(AudioType::TEXT, AudioPriority::lowest);
     }
   }
 }
@@ -276,7 +276,7 @@ void BattleResults::Draw() {
 
   // moves over when there's counter stars
   auto starSpacing = [](int index) -> float { return (19.f*index); };
-  auto rankPos = sf::Vector2f((2.f*191.f) - starSpacing(this->counterCount), 110.f);
+  auto rankPos = sf::Vector2f((2.f*191.f) - starSpacing(counterCount), 110.f);
 
   if (IsInView()) {
     // Draw shadow

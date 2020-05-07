@@ -15,11 +15,11 @@ const std::string RESOURCE_PATH = "resources/mobs/metrid/metrid.animation";
 Metrid::Metrid(Rank _rank)
   : AI<Metrid>(this), TurnOrderTrait<Metrid>(), Character(_rank) {
   name = "Metrid";
-  SetTeam(Team::BLUE);
+  SetTeam(Team::blue);
 
-  SetElement(Element::FIRE);
+  SetElement(Element::fire);
 
-  auto animationComponent = new AnimationComponent(this);
+  auto animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
@@ -47,29 +47,28 @@ Metrid::Metrid(Rank _rank)
   animationComponent->SetPlaybackMode(Animator::Mode::Loop);
 
   animationComponent->OnUpdate(0);
-  this->RegisterComponent(animationComponent);
 
   virusBody = new DefenseVirusBody();
-  this->AddDefenseRule(virusBody);
+  AddDefenseRule(virusBody);
 }
 
 Metrid::~Metrid() {
 }
 
 void Metrid::OnDelete() {
-  this->RemoveDefenseRule(virusBody);
+  RemoveDefenseRule(virusBody);
   delete virusBody;
 
-  this->ChangeState<ExplodeState<Metrid>>();
+  ChangeState<ExplodeState<Metrid>>();
 
-  this->RemoveMeFromTurnOrder();
+  RemoveMeFromTurnOrder();
 }
 
 void Metrid::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
   setPosition(getPosition() + tileOffset);
 
-  this->AI<Metrid>::Update(_elapsed);
+  AI<Metrid>::Update(_elapsed);
 }
 
 const bool Metrid::OnHit(const Hit::Properties props) {

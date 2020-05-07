@@ -16,13 +16,13 @@ using std::vector;
  * @date 09/21/19
  * @brief background scrolls and animates
  */
-class JudgeTreeBackground : public Background
+class JudgeTreeBackground final : public Background
 {
 public:
   JudgeTreeBackground();
   ~JudgeTreeBackground();
 
-  virtual void Update(float _elapsed);
+  void Update(float _elapsed) override;
 
 private:
   float x, y;

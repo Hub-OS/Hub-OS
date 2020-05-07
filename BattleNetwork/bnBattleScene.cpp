@@ -46,7 +46,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
         iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
         distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
         summons(player),
-        cardListener(player),
+        cardListener(*player),
         // cap of 8 cards, 8 cards drawn per turn
         cardCustGUI(folder->Clone(), 8, 8), 
         camera(*ENGINE.GetCamera()),
@@ -61,7 +61,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   /*
   Set Scene*/
   field = mob->GetField();
-  this->CharacterDeleteListener::Subscribe(*field);
+  CharacterDeleteListener::Subscribe(*field);
 
   player->ChangeState<PlayerIdleState>();
   player->ToggleTimeFreeze(false);
@@ -273,12 +273,11 @@ BattleScene::~BattleScene()
 // What to do if we inject a card publisher, subscribe it to the main listener
 void BattleScene::Inject(CardUsePublisher& pub)
 {
-  std::cout << "a card use listener added" << std::endl;
-  this->enemyCardListener.Subscribe(pub);
-  this->summons.Subscribe(pub);
+  enemyCardListener.Subscribe(pub);
+  summons.Subscribe(pub);
 
   SceneNode* node = dynamic_cast<SceneNode*>(&pub);
-  this->scenenodes.push_back(node);
+  scenenodes.push_back(node);
 }
 
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
@@ -286,7 +285,7 @@ void BattleScene::Inject(MobHealthUI& other)
 {
   other.GetOwner()->FreeComponentByID(other.GetID()); // We are owned by the scene now
   SceneNode* node = dynamic_cast<SceneNode*>(&other);
-  this->scenenodes.push_back(node);
+  scenenodes.push_back(node);
   components.push_back(&other);
 }
 
@@ -384,15 +383,15 @@ void BattleScene::TEMPFilterAtkCards(Battle::Card ** cards, int cardCount)
   // NOTE: We are _not_ deleting the pointers in them
   delete[] newCardList;
 
-  this->cards = cards;
-  this->cardCount = newCardCount;
+  BattleScene::cards = cards;
+  BattleScene::cardCount = newCardCount;
 }
 
 void BattleScene::OnCounter(Character & victim, Character & aggressor)
 {
-  AUDIO.Play(AudioType::COUNTER, AudioPriority::HIGHEST);
+  AUDIO.Play(AudioType::COUNTER, AudioPriority::highest);
 
-  if (&aggressor == this->player) {
+  if (&aggressor == player) {
     totalCounterMoves++;
 
     if (victim.IsDeleted()) {
@@ -428,12 +427,12 @@ void BattleScene::OnDeleteEvent(Character & pending)
 }
 
 void BattleScene::onUpdate(double elapsed) {
-  this->elapsed = elapsed;
+  BattleScene::elapsed = elapsed;
 
   shineAnimation.Update((float)elapsed, shine);
 
   if(!isPaused) {
-    this->summonTimer += elapsed;
+    summonTimer += elapsed;
 
     if (!isChangingForm) {
       if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
@@ -598,7 +597,7 @@ void BattleScene::onUpdate(double elapsed) {
     mobNames.push_back(data->mob->GetName());
 
     // Listen for counters
-    this->CounterHitListener::Subscribe(*data->mob);
+    CounterHitListener::Subscribe(*data->mob);
   }
 
   camera.Update((float)elapsed);
@@ -812,7 +811,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           entitiesIter++;
       }
 
-      /*if (tile->GetState() == TileState::LAVA) {
+      /*if (tile->GetState() == TileState::lava) {
         heatShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x + 3.0f);
 
         float repos = (float)(tile->getPosition().y - (tile->getTexture()->getSize().y*2.5f));
@@ -832,7 +831,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         ENGINE.Draw(bake);
         delete bake;
       }
-      else if (tile->GetState() == TileState::ICE) {
+      else if (tile->GetState() == TileState::ice) {
         iceShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x);
 
         float repos = (float)(tile->getPosition().y - tile->getTexture()->getSize().y);
@@ -913,7 +912,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     double summonSecs = summonTimer - showSummonBackdropLength;
     double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
 
-    if (summons.GetCallerTeam() == Team::RED) {
+    if (summons.GetCallerTeam() == Team::red) {
       summonsLabel.setPosition(40.0f, 80.f);
     }
     else {
@@ -925,7 +924,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     summonsLabel.setFillColor(sf::Color::White);
     summonsLabel.setOutlineThickness(2.f);
 
-    if (summons.GetCallerTeam() == Team::RED) {
+    if (summons.GetCallerTeam() == Team::red) {
       summonsLabel.setOrigin(0, summonsLabel.getLocalBounds().height);
     }
     else {
@@ -1027,7 +1026,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         summonTimer = 0;
         showSummonBackdrop = true;
         showSummonBackdropTimer = 0;
-        std::cout << "prevSummonState flagged" << std::endl;
       }
     }
   }
@@ -1105,15 +1103,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         else {
             cardCustGUI.Reveal();
         }
-
-        Logger::Log("card cust visibility toggled");
-
     } 
     
     if (cardCustGUI.CanInteract()) {
         if (cardCustGUI.IsCardDescriptionTextBoxOpen()) {
             if (!INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
-                cardCustGUI.CloseCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::LOWEST) : 1;
+                cardCustGUI.CloseCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::lowest) : 1;
             }
             else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
 
@@ -1176,24 +1171,24 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 bool performed = cardCustGUI.CursorAction();
 
                 if (cardCustGUI.AreCardsReady()) {
-                    AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
+                    AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
                     customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
                     //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
                 }
                 else if (performed) {
                     if (!cardCustGUI.SelectedNewForm()) {
-                        AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::HIGHEST);
+                        AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
                     }
                 }
                 else {
-                    AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
+                    AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
                 }
             }
             else if (INPUT.Has(EventTypes::PRESSED_CANCEL) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
-                cardCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::HIGHEST) : 1;
+                cardCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::highest) : 1;
             }
             else if (INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
-                cardCustGUI.OpenCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::LOWEST) : 1;
+                cardCustGUI.OpenCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::lowest) : 1;
             }
         }
     }
@@ -1212,7 +1207,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
 
     if (cardCustGUI.AreCardsReady() && !isHidden) {
-      AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::HIGH);
+      AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
       customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
     }
 #endif
@@ -1507,13 +1502,13 @@ void BattleScene::onStart() {
   }
 
 #ifdef __ANDROID__
-  this->SetupTouchControls();
+  SetupTouchControls();
 #endif
 }
 
 void BattleScene::onLeave() {
 #ifdef __ANDROID__
-  this->ShutdownTouchControls();
+  ShutdownTouchControls();
 #endif
 }
 
@@ -1526,14 +1521,14 @@ void BattleScene::onEnter() {
 
 void BattleScene::onResume() {
 #ifdef __ANDROID__
-  this->SetupTouchControls();
+  SetupTouchControls();
 #endif
 }
 
 void BattleScene::onEnd() {
   
 #ifdef __ANDROID__
-  this->ShutdownTouchControls();
+  ShutdownTouchControls();
 #endif
 }
 
@@ -1543,31 +1538,31 @@ void BattleScene::SetupTouchControls() {
   TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
 
   rightSide.enableExtendedRelease(true);
-  this->releasedB = false;
+  releasedB = false;
 
   rightSide.onTouch([]() {
       INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
   });
 
   rightSide.onRelease([this](sf::Vector2i delta) {
-      if(!this->releasedB) {
+      if(!releasedB) {
         INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
       }
 
-      this->releasedB = false;
+      releasedB = false;
 
   });
 
   rightSide.onDrag([this](sf::Vector2i delta){
-      if(delta.x < -25 && !this->releasedB) {
+      if(delta.x < -25 && !releasedB) {
         INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
         INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
-        this->releasedB = true;
+        releasedB = true;
       }
   });
 
   rightSide.onDefault([this]() {
-      this->releasedB = false;
+      releasedB = false;
   });
 
   TouchArea& custSelectButton = TouchArea::create(sf::IntRect(100, 0, 380, 100));

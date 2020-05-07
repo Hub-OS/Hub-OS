@@ -25,10 +25,10 @@ private:
     DefenseRule* copout;
   public:
     Head(Megalian* belongsTo) : base(belongsTo), Obstacle(belongsTo->GetField(), belongsTo->GetTeam()) {
-      this->SetFloatShoe(true);
-      this->SetTeam(base->GetTeam());
-      this->SharedHitboxDamage(base);
-      animation = new AnimationComponent(this);
+      SetFloatShoe(true);
+      SetTeam(base->GetTeam());
+      SharedHitboxDamage(base);
+      animation = CreateComponent<AnimationComponent>(this);
       auto baseAnimation = belongsTo->GetFirstComponent<AnimationComponent>();
       auto str = baseAnimation->GetFilePath();
       animation->SetPath(str);
@@ -38,24 +38,23 @@ private:
       setScale(2.f, 2.f);
       setTexture(TEXTURES.GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
       animation->OnUpdate(0);
-      this->SetLayer(-1); // on top of base
-      this->SetHealth(base->GetHealth());
-      this->RegisterComponent(animation);
-      this->SetDirection(Direction::LEFT);
-      this->SetSlideTime(sf::milliseconds(250));
+      SetLayer(-1); // on top of base
+      SetHealth(base->GetHealth());
+      SetDirection(Direction::left);
+      SetSlideTime(sf::milliseconds(250));
       timer = 0;
       moveCount = 0;
       progress = 0;
-      this->ShareTileSpace(true);
-      auto props = this->GetHitboxProperties();
+      ShareTileSpace(true);
+      auto props = GetHitboxProperties();
       props.damage = 30;
       props.flags = Hit::impact | Hit::breaking | Hit::recoil | Hit::flinch;
       props.aggressor = base;
-      this->SetHitboxProperties(props);
-      this->SetName("M. Head");
+      SetHitboxProperties(props);
+      SetName("M. Head");
       lastTile = nullptr;
 
-      DefenseAura::Callback nothing = [](Spell * in, Character* protect) {};
+      DefenseAura::Callback nothing = [](Spell& in, Character& protect) {};
       copout = new DefenseAura(nothing);
     }
 
@@ -65,24 +64,24 @@ private:
       progress += _elapsed;
       if (!base || !base->GetHealth()) {
         if (int(progress * 1000) % 2 == 0) {
-          this->Hide();
+          Hide();
         }
         else {
-          this->Reveal();
+          Reveal();
         }
 
         if (base && base->IsDeleted()) {
-          this->Delete();
+          Delete();
         }
 
         return;
       }
 
       if (GetTile() == base->GetTile() && base->HasAura()) {
-        this->AddDefenseRule(copout);
+        AddDefenseRule(copout);
       }
       else {
-        this->RemoveDefenseRule(copout);
+        RemoveDefenseRule(copout);
       }
 
       if (lastTile && lastTile != GetTile()) {
@@ -91,7 +90,7 @@ private:
       }
 
       // share HP across both peices
-      this->SetHealth(base->GetHealth());
+      SetHealth(base->GetHealth());
 
       auto baseOffset = base->GetFirstComponent<AnimationComponent>()->GetPoint("head");
       auto origin = base->getSprite().getOrigin();
@@ -103,12 +102,12 @@ private:
       setPosition(tile->getPosition().x, tile->getPosition().y);
       setPosition(getPosition() + baseOffset + tileOffset);
 
-      this->tile->AffectEntities(this);
+      tile->AffectEntities(this);
 
-      if (!this->IsSliding()) {
+      if (!IsSliding()) {
         timer += _elapsed;
 
-        if (timer > 1 && lastTile == nullptr && GetDirection() == Direction::NONE && moveCount == 0) {
+        if (timer > 1 && lastTile == nullptr && GetDirection() == Direction::none && moveCount == 0) {
           Battle::Tile* nextTile = nullptr;
 
           int x = 0;
@@ -125,12 +124,12 @@ private:
           }
 
           // teleporting erases our direction information
-          auto tele1 = this->Teleport(x, y);
-          this->AdoptNextTile();
-          auto tele2 = this->base->Teleport(x, y);
+          auto tele1 = Teleport(x, y);
+          AdoptNextTile();
+          auto tele2 = base->Teleport(x, y);
           base->AdoptNextTile();
           base->FinishMove();
-          this->SetDirection(Direction::LEFT);
+          SetDirection(Direction::left);
 
           Logger::Log("tele1: " + std::to_string(tele1) + " tele2: " + std::to_string(tele2));
 
@@ -141,7 +140,7 @@ private:
           static bool playOnce = true;
           auto adjusted = 0;  swoosh::ease::wideParabola(timer - 5.0, 0.1, 1.0);
 
-          this->SetSlideTime(sf::milliseconds(250 + (adjusted * 500)));
+          SetSlideTime(sf::milliseconds(250 + (adjusted * 500)));
 
           Logger::Log("timer: " + std::to_string(timer-5.0) + " adjusted: " + std::to_string(adjusted) + " SetSlideTime: " + std::to_string(250 + (adjusted * 500)));
 
@@ -150,8 +149,8 @@ private:
             playOnce = false;
           }
 
-          if (this->GetTile() == base->GetTile() && this->GetDirection() == Direction::RIGHT) {
-            this->SetDirection(Direction::NONE);
+          if (GetTile() == base->GetTile() && GetDirection() == Direction::right) {
+            SetDirection(Direction::none);
             timer = 0;
             animation->SetFrame(1);
             playOnce = true;
@@ -160,12 +159,12 @@ private:
           }
           else {
 
-            this->SlideToTile(true);
-            this->Move(this->GetDirection());
+            SlideToTile(true);
+            Move(GetDirection());
             animation->SetFrame(2);
 
             if(moveCount >= 2) {
-              this->SetDirection(Direction::RIGHT);
+              SetDirection(Direction::right);
             }
           }
         }

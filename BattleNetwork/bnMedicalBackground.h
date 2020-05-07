@@ -16,13 +16,13 @@ using std::vector;
  * @date 09/21/19
  * @brief pills animate
  */
-class MedicalBackground : public Background
+class MedicalBackground final : public Background
 {
 public:
   MedicalBackground();
   ~MedicalBackground();
 
-  virtual void Update(float _elapsed);
+  void Update(float _elapsed) override;
 
 private:
   float x, y;

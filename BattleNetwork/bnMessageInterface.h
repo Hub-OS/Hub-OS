@@ -10,8 +10,8 @@ private:
 
 public:
   MessageInterface(std::string message, AnimatedTextBox* parent = nullptr) : message(message) { textbox = parent; }
-  virtual void SetTextBox(AnimatedTextBox* textbox) { this->textbox = textbox;  }
-  AnimatedTextBox* GetTextBox() const { return this->textbox; }
+  virtual void SetTextBox(AnimatedTextBox* textbox) { MessageInterface::textbox = textbox;  }
+  AnimatedTextBox* GetTextBox() const { return textbox; }
   virtual ~MessageInterface() { ; }
   const std::string GetMessage() { return message; }
   virtual void OnUpdate(double elapsed) = 0;

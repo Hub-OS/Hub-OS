@@ -33,7 +33,7 @@ Mob* RandomMettaurMob::Build() {
   // Build a mob around the field input
   Mob* mob = new Mob(field);
 
-  //mob->RegisterRankedReward(3, BattleItem(Battle::Card(82, 154, '*', 0, Element::NONE, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
+  //mob->RegisterRankedReward(3, BattleItem(Battle::Card(82, 154, '*', 0, Element::none, "AreaGrab", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
 
   bool AllIce = (rand() % 50 > 45);
   bool spawnedGroundEnemy = false;
@@ -44,7 +44,7 @@ Mob* RandomMettaurMob::Build() {
       for (int j = 0; j < field->GetHeight(); j++) {
         Battle::Tile* tile = field->GetAt(i + 1, j + 1);
 
-        if (tile->GetTeam() == Team::BLUE && !tile->ContainsEntityType<Character>() && rand() % 10 == 0) {
+        if (tile->GetTeam() == Team::blue && !tile->ContainsEntityType<Character>() && rand() % 10 == 0) {
           mob->Spawn<Rank1<Metrid>>(i + 1, j + 1);
         }
       }
@@ -61,12 +61,12 @@ Mob* RandomMettaurMob::Build() {
           tile->SetState(randState);
         }
 
-        if (AllIce) { tile->SetState(TileState::ICE); }
+        if (AllIce) { tile->SetState(TileState::ice); }
 
-        if (tile->GetTeam() == Team::BLUE && !tile->ContainsEntityType<Character>() && !tile->ContainsEntityType<MysteryData>()) {
+        if (tile->GetTeam() == Team::blue && !tile->ContainsEntityType<Character>() && !tile->ContainsEntityType<MysteryData>()) {
           if (rand() % 50 > 30) {
             if (rand() % 100 > 90 && mysterycount < 3) {
-              MysteryData* mystery = new MysteryData(mob->GetField(), Team::UNKNOWN);
+              MysteryData* mystery = new MysteryData(mob->GetField(), Team::unknown);
               field->AddEntity(*mystery, tile->GetX(), tile->GetY());
 
               // Callback for the battle over trigger
@@ -118,8 +118,8 @@ Mob* RandomMettaurMob::Build() {
           }
         }
 
-        if(spawnedGroundEnemy && (tile->GetState() == TileState::EMPTY || tile->GetState() == TileState::BROKEN)) {
-          tile->SetState(TileState::NORMAL);
+        if(spawnedGroundEnemy && (tile->GetState() == TileState::empty || tile->GetState() == TileState::broken)) {
+          tile->SetState(TileState::normal);
         }
       }
     }*/

@@ -53,8 +53,8 @@ private:
   double selectInputCooldown;    /*!< count down before registering input */
 
   // NAVI UI font
-  sf::Font* font;
-  sf::Font* naviFont;
+  std::shared_ptr<sf::Font> font;
+  std::shared_ptr<sf::Font> naviFont;
   sf::Text* menuLabel;
 
   sf::Text *naviLabel; /*!< navi name text */

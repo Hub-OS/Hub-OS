@@ -13,7 +13,7 @@ Hitbox::Hitbox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
 
   auto props = Hit::DefaultProperties;
   props.damage = _damage;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   callback = 0;
 }
@@ -23,7 +23,7 @@ Hitbox::~Hitbox() {
 
 void Hitbox::OnUpdate(float _elapsed) {
   tile->AffectEntities(this);
-  this->Delete();
+  Delete();
 }
 
 bool Hitbox::Move(Direction _direction) {
@@ -38,7 +38,7 @@ void Hitbox::Attack(Character* _entity) {
 
 void Hitbox::AddCallback(decltype(callback) callback)
 {
-  this->callback = callback;
+  Hitbox::callback = callback;
 }
 
 void Hitbox::OnDelete()

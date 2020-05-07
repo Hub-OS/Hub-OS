@@ -119,7 +119,7 @@ public:
       return queue.callers.front()->GetTeam();
     }
 
-    return Team::UNKNOWN;
+    return Team::unknown;
   }
 
   Character* GetCaller() {
@@ -194,11 +194,11 @@ public:
     SummonEntity(proto);
   }
     else if (summon == "RockCube") {
-      Obstacle* cube = new Cube(summonedBy->GetField(), Team::UNKNOWN);
+      Obstacle* cube = new Cube(summonedBy->GetField(), Team::unknown);
 
       Battle::Tile* tile = summonedBy->GetTile();
 
-      if (summonedBy->GetTeam() == Team::RED) {
+      if (summonedBy->GetTeam() == Team::red) {
         tile = summonedBy->GetField()->GetAt(tile->GetX() + 1, tile->GetY());
       }
       else {
@@ -225,12 +225,12 @@ public:
 
       Field* f = summonedBy->GetField();
       // Read team grab scans from left to right
-      if (summonedBy->GetTeam() == Team::RED) {
+      if (summonedBy->GetTeam() == Team::red) {
         int minIndex = 6;
 
         for (int i = 0; i < f->GetHeight(); i++) {
           int index = 1;
-          while (f->GetAt(index, i + 1) && f->GetAt(index, i + 1)->GetTeam() == Team::RED) {
+          while (f->GetAt(index, i + 1) && f->GetAt(index, i + 1)->GetTeam() == Team::red) {
             index++;
           }
 
@@ -250,14 +250,14 @@ public:
             delete grab[i];
           }
         }
-      } else if (summonedBy->GetTeam() == Team::BLUE) {
+      } else if (summonedBy->GetTeam() == Team::blue) {
         // Blue team grab scans from right to left
 
         int maxIndex = 1;
 
         for (int i = 0; i < f->GetHeight(); i++) {
           int index = f->GetWidth();
-          while (f->GetAt(index, i + 1) && f->GetAt(index, i + 1)->GetTeam() == Team::BLUE) {
+          while (f->GetAt(index, i + 1) && f->GetAt(index, i + 1)->GetTeam() == Team::blue) {
             index--;
           }
 

@@ -9,14 +9,13 @@
 #include <Swoosh/Game.h>
 
 Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duration) : duration(_duration), Spell(_field, _team) {
-    this->target = target;
+    Missile::target = target;
     SetLayer(1);
 
     goingUp = true;
     setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
-    anim = new AnimationComponent(this);
-    this->RegisterComponent(anim);
+    anim = CreateComponent<AnimationComponent>(this);
     anim->SetPath("resources/mobs/metalman/metalman.animation");
     anim->Load();
     anim->SetAnimation("MISSILE_UP", Animator::Mode::Loop);
@@ -26,14 +25,14 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
     progress = 0.0f;
 
     // Which direction to come down from
-    if (GetTeam() == Team::BLUE) {
+    if (GetTeam() == Team::blue) {
         start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y -480.0f);
     }
-    else if (GetTeam() == Team::RED) {
+    else if (GetTeam() == Team::red) {
         start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y -480.0f);
     }
     else {
-        this->Delete();
+        Delete();
     }
 
     AUDIO.Play(AudioType::TOSS_ITEM_LITE);
@@ -41,7 +40,7 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
     auto props = Hit::DefaultProperties;
     props.damage = 100;
     props.flags |= Hit::impact;
-    this->SetHitboxProperties(props);
+    SetHitboxProperties(props);
 
     anim->OnUpdate(0);
 }
@@ -66,21 +65,21 @@ void Missile::OnUpdate(float _elapsed) {
                 // update tile to target tile
                 tile->AffectEntities(this);
 
-                if(tile->GetState() != TileState::EMPTY && tile->GetState() != TileState::BROKEN) {
-                    this->field->AddEntity(*(new RingExplosion(this->field)),
-                                           *this->GetTile());
+                if(tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
+                    field->AddEntity(*(new RingExplosion(field)),
+                                           *GetTile());
                 }
 
-                this->Delete();
+                Delete();
             }
         }
 
         progress += _elapsed;
 
-        this->HighlightTile(Battle::Tile::Highlight::flash);
+        HighlightTile(Battle::Tile::Highlight::flash);
 
     } else {
-        this->HighlightTile(Battle::Tile::Highlight::none);
+        HighlightTile(Battle::Tile::Highlight::none);
 
         double beta = swoosh::ease::linear(progress, duration, 1.0);
 
@@ -97,11 +96,11 @@ void Missile::OnUpdate(float _elapsed) {
             progress = 0;
             anim->SetAnimation("MISSILE_DOWN", Animator::Mode::Loop);
 
-            if(this->GetTile() != target) {
-                auto pos = this->getPosition();
-                tile->RemoveEntityByID(this->GetID());
-                this->AdoptTile(target);
-                this->setPosition(pos);
+            if(GetTile() != target) {
+                auto pos = getPosition();
+                tile->RemoveEntityByID(GetID());
+                AdoptTile(target);
+                setPosition(pos);
             }
 
             setPosition(start.x, start.y);

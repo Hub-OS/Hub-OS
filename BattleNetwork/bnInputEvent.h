@@ -13,7 +13,7 @@ struct InputEvent {
   InputState state;
 
   const bool operator==(InputEvent& rhs) {
-    return (rhs.name == this->name && rhs.state == this->state);
+    return (rhs.name == name && rhs.state == state);
   }
 
   const bool operator!=(InputEvent& rhs) {
@@ -21,11 +21,11 @@ struct InputEvent {
   }
 
   const bool operator==(const InputEvent& rhs) {
-    return (rhs.name == this->name && rhs.state == this->state);
+    return (rhs.name == name && rhs.state == state);
   }
 
   const bool operator!=(const InputEvent& rhs) {
-    return !(rhs.name == this->name && rhs.state == this->state);
+    return !(rhs.name == name && rhs.state == state);
   }
 };
 

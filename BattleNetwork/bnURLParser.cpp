@@ -7,7 +7,7 @@
 using namespace std;
 
 URL::URL(const string& url_s) : host(), path(), query(), protocol() {
-    this->parse(url_s);
+    parse(url_s);
 }
 
 const std::string& URL::GetProtocol() const

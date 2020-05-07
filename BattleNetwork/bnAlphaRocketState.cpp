@@ -29,7 +29,7 @@ void AlphaRocketState::OnEnter(AlphaCore& a) {
     props.aggressor = alpha;
     rocket->SetHitboxProperties(props);
 
-    rocket->SetDirection(Direction::LEFT);
+    rocket->SetDirection(Direction::left);
 
     // This will happen on the core's tick step but we want it to happen immediately after launching too.
     anim->SetAnimation("CORE_FULL");

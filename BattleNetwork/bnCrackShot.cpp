@@ -6,33 +6,30 @@
 
 CrackShot::CrackShot(Field* _field, Team _team, Battle::Tile* tile) : Spell(_field, _team) {
   // Blades float over tiles 
-  this->SetFloatShoe(true);
+  SetFloatShoe(true);
 
   SetLayer(-1);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_CRACKSHOT));
   setScale(2.f, 2.f);
 
-  // TODO: how many frames does it take crackshot to move from one tile to the next?
-  // For testing purposes 8 frames = 0.1 seconds
+  // 8 frames = 0.1 seconds
+  SetSlideTime(sf::seconds(0.1f));
 
-  this->SetSlideTime(sf::seconds(0.1f));
-
-  animation = new AnimationComponent(this);
-  this->RegisterComponent(animation);
+  animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/spell_panel_shot.animation");
   animation->Load();
 
-  if (tile->GetTeam() == Team::RED) {
+  if (tile->GetTeam() == Team::red) {
     animation->SetAnimation("RED_TEAM");
   }
-  else if (tile->GetTeam() == Team::BLUE) {
+  else if (tile->GetTeam() == Team::blue) {
     animation->SetAnimation("BLUE_TEAM");
   }
 
   auto props = Hit::DefaultProperties;
   props.flags |= Hit::flinch;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 }
 
 CrackShot::~CrackShot() {
@@ -41,7 +38,7 @@ CrackShot::~CrackShot() {
 void CrackShot::OnUpdate(float _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
-  if (GetDirection() == Direction::LEFT) {
+  if (GetDirection() == Direction::left) {
     setScale(-2.f, 2.f);
   }
   else {
@@ -49,15 +46,15 @@ void CrackShot::OnUpdate(float _elapsed) {
   }
 
   // Keep moving, when we reach the end of the map, remove from play
-  if (!this->IsSliding()) {
-    this->SlideToTile(true);
+  if (!IsSliding()) {
+    SlideToTile(true);
 
     // Keep moving
-    this->Move(this->GetDirection());
+    Move(GetDirection());
 
     // Move failed can only be an edge
-    if (!this->GetNextTile()) {
-      this->Delete();
+    if (!GetNextTile()) {
+      Delete();
     }
   }
 
@@ -71,7 +68,7 @@ bool CrackShot::CanMoveTo(Battle::Tile* tile) {
 
 void CrackShot::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    this->Delete();
+    Delete();
   }
 }
 

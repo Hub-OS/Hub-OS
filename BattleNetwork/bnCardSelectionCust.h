@@ -53,8 +53,8 @@ private:
   mutable SpriteProxyNode formSelect;
   mutable SpriteProxyNode formCursor;
   sf::Shader& greyscale;
-  sf::Font* labelFont;
-  sf::Font* codeFont;
+  std::shared_ptr<sf::Font> labelFont;
+  std::shared_ptr<sf::Font> codeFont;
   mutable sf::Text smCodeLabel;
   mutable sf::Text label;
   mutable CustEmblem emblem;

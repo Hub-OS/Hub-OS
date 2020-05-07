@@ -237,7 +237,7 @@ Battle::Tile* Field::GetAt(int _x, int _y) const {
 void Field::Update(float _elapsed) {
   // This is a state flag that decides if entities added this update tick will be
   // put into a pending queue bucket or added directly onto the field
-  this->isUpdating = true;
+  isUpdating = true;
 
   int entityCount = 0;
 
@@ -267,13 +267,13 @@ void Field::Update(float _elapsed) {
           // when their tiles' team type resets
           for(auto&& it = t->characters.begin(); it != t->characters.end(); it++) {
             Team team = (*it)->GetTeam();
-            if (team == Team::RED) { redTeamFarCol = std::max(redTeamFarCol, j); }
-            else if(team == Team::BLUE) { blueTeamFarCol = std::min(blueTeamFarCol, j); }
+            if (team == Team::red) { redTeamFarCol = std::max(redTeamFarCol, j); }
+            else if(team == Team::blue) { blueTeamFarCol = std::min(blueTeamFarCol, j); }
           }
 
           if(j <= 3) {
             // This tile was originally red
-            if(t->GetTeam() == Team::BLUE) {
+            if(t->GetTeam() == Team::blue) {
               syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->flickerTeamCooldown);
 
               if(t->teamCooldown <= 0) {
@@ -282,7 +282,7 @@ void Field::Update(float _elapsed) {
             }
           } else{
             // This tile was originally blue
-            if(t->GetTeam() == Team::RED) {
+            if(t->GetTeam() == Team::red) {
               syncBlueTeamCooldown = std::max(syncBlueTeamCooldown, t->flickerTeamCooldown);
 
               if(t->teamCooldown <= 0) {
@@ -308,7 +308,7 @@ void Field::Update(float _elapsed) {
     for(auto&& p : backToBlue) {
         if (p > redTeamFarCol && syncBlueTeamCooldown <= 0.0f) {
             for (int i = 0; i < tiles.size(); i++) {
-                tiles[i][p]->SetTeam(Team::BLUE, true);
+                tiles[i][p]->SetTeam(Team::blue, true);
             }
         }
         else {
@@ -325,7 +325,7 @@ void Field::Update(float _elapsed) {
     for(auto&& p : backToRed) {
         if (p < blueTeamFarCol && syncRedTeamCooldown <= 0.0f) {
             for (int i = 0; i < tiles.size(); i++) {
-                tiles[i][p]->SetTeam(Team::RED, true);
+                tiles[i][p]->SetTeam(Team::red, true);
             }
         }
         else {
@@ -339,7 +339,7 @@ void Field::Update(float _elapsed) {
   backToRed.clear();
 
   // Now that updating is complete any entities being added to the field will be added directly
-  this->isUpdating = false;
+  isUpdating = false;
 
   short combatEvaluationIteration = BN_MAX_COMBAT_EVALUATION_STEPS;
   while(HasPendingEntities() && combatEvaluationIteration > 0) {
@@ -419,22 +419,22 @@ void Field::SpawnPendingEntities()
 
         switch (next.entity_type) {
         case queueBucket::type::artifact:
-            if (this->AddEntity(*next.data.artifact, next.x, next.y) == Field::AddEntityStatus::added) {
+            if (AddEntity(*next.data.artifact, next.x, next.y) == Field::AddEntityStatus::added) {
                 next.data.artifact->Update(0);
             }
             break;
         case queueBucket::type::character:
-            if (this->AddEntity(*next.data.character, next.x, next.y) == Field::AddEntityStatus::added) {
+            if (AddEntity(*next.data.character, next.x, next.y) == Field::AddEntityStatus::added) {
                 next.data.character->Update(0);
             }
             break;
         case queueBucket::type::obstacle:
-            if (this->AddEntity(*next.data.obstacle, next.x, next.y) == Field::AddEntityStatus::added) {
+            if (AddEntity(*next.data.obstacle, next.x, next.y) == Field::AddEntityStatus::added) {
                 next.data.obstacle->Update(0);
             }
             break;
         case queueBucket::type::spell:
-            if (this->AddEntity(*next.data.spell, next.x, next.y) == Field::AddEntityStatus::added) {
+            if (AddEntity(*next.data.spell, next.x, next.y) == Field::AddEntityStatus::added) {
                 next.data.spell->Update(0);
             }
             break;

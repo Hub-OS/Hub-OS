@@ -18,7 +18,7 @@ class FolderChangeNameScene : public swoosh::Activity {
 private:
   sf::Sprite bg; /*!< Most of the elements on the screen are static */
   bool leave; /*!< Scene state coming/going flag */
-  sf::Font *font;
+  std::shared_ptr<sf::Font> font;
   sf::Text *nameLabel;
   std::string name;
   int letterPos; /*!< Where the name will begin writing to*/

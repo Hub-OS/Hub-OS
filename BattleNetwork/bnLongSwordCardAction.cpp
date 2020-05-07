@@ -6,7 +6,7 @@
 #include "bnBasicSword.h"
 
 LongSwordCardAction::LongSwordCardAction(Character * owner, int damage) : SwordCardAction(owner, damage) {
-  this->damage = damage;
+  LongSwordCardAction::damage = damage;
 }
 
 LongSwordCardAction::~LongSwordCardAction()

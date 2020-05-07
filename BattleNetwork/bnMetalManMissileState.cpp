@@ -26,7 +26,7 @@ void MetalManMissileState::OnEnter(MetalMan& metal) {
     lastMissileTimestamp = cooldown;
   }
 
-  metal.GetFirstComponent<AnimationComponent>()->SetAnimation(MOB_IDLE, Animator::Mode::Loop);
+  metal.GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", Animator::Mode::Loop);
 }
 
 void MetalManMissileState::OnUpdate(float _elapsed, MetalMan& metal) {

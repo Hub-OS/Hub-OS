@@ -13,7 +13,7 @@
  */
 class DefenseAura : public DefenseRule {
 public:
-  typedef std::function<void(Spell*in, Character*owner)> Callback;
+  typedef std::function<void(Spell& in, Character& owner)> Callback;
   
 private:
   Callback callback;
@@ -30,5 +30,5 @@ public:
    * @param owner the character the rule is attached to (this)
    * @return true if hitbox is impact
    */
-  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
+  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
 };

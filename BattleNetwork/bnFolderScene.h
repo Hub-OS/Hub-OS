@@ -37,7 +37,7 @@ private:
   std::vector<std::string> folderNames; /*!< List of all folder names at start */
 
   // Menu name font
-  sf::Font* font; /*!< Font of the  menu name label*/
+  std::shared_ptr<sf::Font> font; /*!< Font of the  menu name label*/
   sf::Text* menuLabel; /*!< "Folder" text on top-left */
 
   // Selection input delays
@@ -45,10 +45,10 @@ private:
   double selectInputCooldown; /*!< The delay between reading user input */
 
   // Card UI font
-  sf::Font *cardFont;
+  std::shared_ptr<sf::Font> cardFont;
   sf::Text *cardLabel;
 
-  sf::Font *numberFont;
+  std::shared_ptr<sf::Font> numberFont;
   sf::Text *numberLabel;
 
   // folder menu graphics

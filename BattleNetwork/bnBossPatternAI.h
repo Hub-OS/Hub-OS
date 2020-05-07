@@ -61,7 +61,7 @@ public:
 
     stateMachine.clear();
 
-    ref = nullptr; this->FreeTarget(); 
+    ref = nullptr; FreeTarget(); 
   }
 
   void InvokeDefaultState() {
@@ -98,7 +98,7 @@ public:
   /**
    * @brief For states that require arguments, pass the arguments
    *
-   * e.g. this->AddState<PlayerThrowBombState>(200.f, 300, true);
+   * e.g. AddState<PlayerThrowBombState>(200.f, 300, true);
    */
   template<typename U, typename ...Args>
   void AddState(Args... args) {
@@ -106,7 +106,7 @@ public:
       return;
     }
 
-    stateMachine.push_back(new U(args...));
+    stateMachine.push_back(new U(std::forward<Args>(args)...));
   }
 
   /**
@@ -130,7 +130,7 @@ public:
   /**
    * @brief For states that require arguments, pass the arguments
    *
-   * e.g. this->AddState<PlayerThrowBombState>(200.f, 300, true);
+   * e.g. AddState<PlayerThrowBombState>(200.f, 300, true);
    */
   template<typename U, typename ...Args>
   void InterruptState(Args... args) {
@@ -143,7 +143,7 @@ public:
       delete interruptState; 
     }
 
-    interruptState = new U(args...);
+    interruptState = new U(std::forward<Args>(args)...);
     beginInterrupt = true;
   }
 

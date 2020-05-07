@@ -16,11 +16,11 @@
 
 
 CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardAction::Type type) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(CANNON_ANIM) {
-  this->damage = damage;
+  CannonCardAction::damage = damage;
 
   cannon.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
-  this->attachment = new SpriteProxyNode(cannon);
-  this->attachment->SetLayer(-1);
+  attachment = new SpriteProxyNode(cannon);
+  attachment->SetLayer(-1);
 
   attachmentAnim.Reload();
 
@@ -37,7 +37,7 @@ CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardActi
   }
 
   // add override anims
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 }
 
 CannonCardAction::~CannonCardAction()
@@ -46,9 +46,9 @@ CannonCardAction::~CannonCardAction()
 
 void CannonCardAction::Execute() {
   auto owner = GetOwner();
-  owner->AddNode(this->attachment);
+  owner->AddNode(attachment);
 
-  attachmentAnim.Update(0, this->attachment->getSprite());
+  attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner]() -> void {
@@ -60,23 +60,23 @@ void CannonCardAction::Execute() {
 
     AUDIO.Play(AudioType::CANNON);
 
-    cannon->SetDirection(Direction::RIGHT);
+    cannon->SetDirection(Direction::right);
 
     GetOwner()->GetField()->AddEntity(*cannon, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
   };
 
-  this->AddAction(6, onFire);
+  AddAction(6, onFire);
 }
 
 void CannonCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
+  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 
 void CannonCardAction::EndAction()
 {
-  this->GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->RemoveNode(attachment);
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

@@ -20,62 +20,60 @@ MetalMan::MetalMan(Rank _rank)
   :
   BossPatternAI<MetalMan>(this), Character(_rank) {
   name = "MetalMan";
-  this->team = Team::BLUE;
+  team = Team::blue;
 
-  this->AddState<MetalManIdleState>();
-  this->AddState<MetalManMoveState>();
-  this->AddState<MetalManIdleState>();
-  this->AddState<MetalManMoveState>();
-  this->AddState<MetalManIdleState>();
-  this->AddState<MetalManMoveState>();
-  this->AddState<MetalManThrowState>();
-  this->AddState<MetalManPunchState>();
-  this->AddState<MetalManIdleState>();
+  AddState<MetalManIdleState>();
+  AddState<MetalManMoveState>();
+  AddState<MetalManIdleState>();
+  AddState<MetalManMoveState>();
+  AddState<MetalManIdleState>();
+  AddState<MetalManMoveState>();
+  AddState<MetalManThrowState>();
+  AddState<MetalManPunchState>();
+  AddState<MetalManIdleState>();
 
   if (rank == Rank::EX) {
     SetHealth(1300);
 
     // Append more states
-    this->AddState<MetalManMissileState>(10);
-    this->AddState<MetalManIdleState>();
-    this->AddState<MetalManIdleState>();
-    this->AddState<MetalManMoveState>();
-    this->AddState<MetalManMoveState>();
-    this->AddState<MetalManMoveState>();
-    this->AddState<MetalManThrowState>();
-    this->AddState<MetalManPunchState>();
-    this->AddState<MetalManMoveState>();
-    this->AddState<MetalManPunchState>();
-    this->AddState<MetalManMoveState>();
-    this->AddState<MetalManPunchState>();
-    this->AddState<MetalManMissileState>(10);
-    this->AddState<MetalManIdleState>();
+    AddState<MetalManMissileState>(10);
+    AddState<MetalManIdleState>();
+    AddState<MetalManIdleState>();
+    AddState<MetalManMoveState>();
+    AddState<MetalManMoveState>();
+    AddState<MetalManMoveState>();
+    AddState<MetalManThrowState>();
+    AddState<MetalManPunchState>();
+    AddState<MetalManMoveState>();
+    AddState<MetalManPunchState>();
+    AddState<MetalManMoveState>();
+    AddState<MetalManPunchState>();
+    AddState<MetalManMissileState>(10);
+    AddState<MetalManIdleState>();
   }
   else {
     SetHealth(1000);
   }
 
-  this->ShareTileSpace(true); // mega can walk into him on red tiles
+  ShareTileSpace(true); // mega can walk into him on red tiles
   
   hitHeight = 64;
   SetHeight(hitHeight);
 
-  state = MOB_IDLE;
   healthUI = new MobHealthUI(this);
 
   setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
   setScale(2.f, 2.f);
 
-  this->SetHealth(health);
-  this->SetFloatShoe(true);
+  SetHealth(health);
+  SetFloatShoe(true);
 
   //Components setup and load
-  animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
-  animationComponent->SetAnimation(MOB_IDLE);
+  animationComponent->SetAnimation("IDLE");
   animationComponent->SetPlaybackMode(Animator::Mode::Loop);
 
   animationComponent->OnUpdate(0);
@@ -85,7 +83,7 @@ MetalMan::MetalMan(Rank _rank)
   movedByStun = false;
 
   virusBody = new DefenseVirusBody();
-  this->AddDefenseRule(virusBody);
+  AddDefenseRule(virusBody);
 }
 
 MetalMan::~MetalMan() {
@@ -108,15 +106,15 @@ bool MetalMan::CanMoveTo(Battle::Tile * next)
 void MetalMan::OnUpdate(float _elapsed) {
   // TODO: use StuntDoubles to circumvent teleportaton
   if (movedByStun) { 
-    this->Teleport((rand() % 3) + 4, (rand() % 3) + 1); 
-    this->AdoptNextTile(); 
-    this->FinishMove();
+    Teleport((rand() % 3) + 4, (rand() % 3) + 1); 
+    AdoptNextTile(); 
+    FinishMove();
     movedByStun = false; 
   }
 
-  setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
-  this->BossPatternAI<MetalMan>::Update(_elapsed);
+  BossPatternAI<MetalMan>::Update(_elapsed);
 
   Hitbox* hitbox = new Hitbox(GetField(), GetTeam(), 40);
   auto props = hitbox->GetHitboxProperties();
@@ -130,7 +128,7 @@ const bool MetalMan::OnHit(const Hit::Properties props) {
   bool result = true;
 
   if ((props.flags & Hit::stun) == Hit::stun) {
-    if (!Teammate(this->GetTile()->GetTeam())) {
+    if (!Teammate(GetTile()->GetTeam())) {
       movedByStun = true;
     }
   }
@@ -140,8 +138,8 @@ const bool MetalMan::OnHit(const Hit::Properties props) {
 
 void MetalMan::SetCounterFrame(int frame)
 {
-  auto onFinish = [&]() { this->ToggleCounter(); };
-  auto onNext = [&]() { this->ToggleCounter(false); };
+  auto onFinish = [&]() { ToggleCounter(); };
+  auto onNext = [&]() { ToggleCounter(false); };
   animationComponent->AddCallback(frame, onFinish, onNext);
 }
 
@@ -152,5 +150,5 @@ void MetalMan::SetAnimation(string _state, std::function<void()> onFinish) {
 }
 
 void MetalMan::OnDelete() {
-  this->InterruptState<NaviExplodeState<MetalMan>>(); // freezes animation
+  InterruptState<NaviExplodeState<MetalMan>>(); // freezes animation
 }

@@ -11,8 +11,8 @@ using sf::IntRect;
 ParticlePoof::ParticlePoof() : Artifact(nullptr)
 {
   SetLayer(0);
-  this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_POOF));
-  this->setScale(2.f, 2.f);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_POOF));
+  setScale(2.f, 2.f);
   poof = getSprite();
 
   //Components setup and load
@@ -22,19 +22,19 @@ ParticlePoof::ParticlePoof() : Artifact(nullptr)
   animation.SetAnimation("DEFAULT");
 
   auto onEnd = [this]() {
-    this->Delete();
+    Delete();
   };
 
   animation << onEnd;
 
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
 }
 
 void ParticlePoof::OnUpdate(float _elapsed) {
-  this->setPosition(this->GetTile()->getPosition());
+  setPosition(GetTile()->getPosition());
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
 }
 

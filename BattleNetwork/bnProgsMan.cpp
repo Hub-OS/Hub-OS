@@ -11,9 +11,9 @@
 
 #define RESOURCE_PATH "resources/mobs/progsman/progsman.animation"
 
-ProgsMan::ProgsMan(Rank _rank) : AI<ProgsMan>(this), Character(_rank) {
+ProgsMan::ProgsMan(Rank _rank) : BossPatternAI<ProgsMan>(this), Character(_rank) {
   name = "ProgsMan";
-  this->team = Team::BLUE;
+  team = Team::blue;
   SetHealth(1200);
 
   if (_rank == ProgsMan::Rank::EX) {
@@ -23,17 +23,28 @@ ProgsMan::ProgsMan(Rank _rank) : AI<ProgsMan>(this), Character(_rank) {
   setTexture(TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_ATLAS));
   setScale(2.f, 2.f);
 
-  this->SetHealth(health);
+  SetHealth(health);
 
   //Components setup and load
 
-  animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
-  animationComponent->SetAnimation(MOB_IDLE);
-
+  animationComponent->SetAnimation("MOB_IDLE");
   animationComponent->OnUpdate(0);
+
+  // Setup AI pattern
+  AddState<ProgsManMoveState>();
+  AddState<ProgsManMoveState>();
+  AddState<ProgsManMoveState>();
+  AddState<ProgsManThrowState>();
+  AddState<ProgsManThrowState>();
+  AddState<ProgsManThrowState>();
+  AddState<ProgsManIdleState>();
+  AddState<ProgsManMoveState>();
+  AddState<ProgsManShootState>();
+  AddState<ProgsManMoveState>();
+  AddState<ProgsManShootState>();
 }
 
 ProgsMan::~ProgsMan() {
@@ -44,20 +55,20 @@ void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::fu
 }
 
 void ProgsMan::OnUpdate(float _elapsed) {
-  setPosition(tile->getPosition().x + this->tileOffset.x, tile->getPosition().y + this->tileOffset.y);
+  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
-  this->AI<ProgsMan>::Update(_elapsed);
+  BossPatternAI<ProgsMan>::Update(_elapsed);
 }
 
 void ProgsMan::OnDelete() {
-  this->SetAnimation(MOB_HIT);
-  this->ChangeState<NaviExplodeState<ProgsMan>>(); // freezes animation
+  SetAnimation("MOB_HIT");
+  InterruptState<NaviExplodeState<ProgsMan>>(); // freezes animation
 }
 
 const bool ProgsMan::OnHit(const Hit::Properties props) {
   if ((props.flags & Hit::recoil) == Hit::recoil) {
     FinishMove();
-    this->ChangeState<ProgsManHitState>();
+    InterruptState<ProgsManHitState>();
   }
 
   return true;
@@ -69,8 +80,8 @@ const float ProgsMan::GetHeight() const {
 
 void ProgsMan::SetCounterFrame(int frame)
 {
-  auto onFinish = [&]() { this->ToggleCounter(); };
-  auto onNext = [&]() { this->ToggleCounter(false); };
+  auto onFinish = [&]() { ToggleCounter(); };
+  auto onNext = [&]() { ToggleCounter(false); };
   animationComponent->AddCallback(frame, onFinish, onNext);
 }
 

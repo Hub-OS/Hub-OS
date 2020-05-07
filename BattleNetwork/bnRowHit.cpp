@@ -12,17 +12,17 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_f
 
   //When the animation ends, delete this
   auto onFinish = [this]() {
-    this->Delete();
+    Delete();
   };
 
   auto onFrameTwo = [this]() {
-    field->AddEntity(*new RowHit(field, this->GetTeam(), this->damage), this->tile->GetX() + 1, this->tile->GetY());
+    field->AddEntity(*new RowHit(field, GetTeam(), RowHit::damage), tile->GetX() + 1, tile->GetY());
   };
 
   animation = Animation("resources/spells/spell_charged_bullet_hit.animation");
   animation.SetAnimation("HIT");
   animation << Animator::On(3, onFrameTwo, true) << onFinish;
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 }
 
 RowHit::~RowHit() {
@@ -31,7 +31,7 @@ RowHit::~RowHit() {
 void RowHit::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
 
   tile->AffectEntities(this);
 }
@@ -41,7 +41,7 @@ bool RowHit::Move(Direction _direction) {
 }
 
 void RowHit::Attack(Character* _entity) {
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
+  if (_entity && _entity->GetTeam() != GetTeam()) {
     auto props = Hit::DefaultProperties;
     props.damage = damage;
     _entity->Hit(props);

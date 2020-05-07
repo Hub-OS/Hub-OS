@@ -226,7 +226,6 @@
     <ClCompile Include="bnAlphaRocket.cpp" />
     <ClCompile Include="bnAlphaRocketState.cpp" />
     <ClCompile Include="bnAnimator.cpp" />
-    <ClCompile Include="bnAnimatedCharacter.cpp" />
     <ClCompile Include="bnAnimatedTextBox.cpp" />
     <ClCompile Include="bnAnimation.cpp" />
     <ClCompile Include="bnAura.cpp" />
@@ -244,7 +243,7 @@
     <ClCompile Include="bnCannonCardAction.cpp" />
     <ClCompile Include="bnCharacterDeleteListener.cpp" />
     <ClCompile Include="bnCharacterDeletePublisher.cpp" />
-    <ClCompile Include="bnDefenseResolutionArbiter.cpp" />
+    <ClCompile Include="bnDefenseFrameStateArbiter.cpp" />
     <ClCompile Include="bnComponent.cpp" />
     <ClCompile Include="bnConfigReader.cpp" />
     <ClCompile Include="bnConfigScene.cpp" />
@@ -452,7 +451,7 @@
     <ClInclude Include="bnCardUUIDs.h" />
     <ClInclude Include="bnCharacterDeleteListener.h" />
     <ClInclude Include="bnCharacterDeletePublisher.h" />
-    <ClInclude Include="bnDefenseResolutionArbiter.h" />
+    <ClInclude Include="bnDefenseFrameStateArbiter.h" />
     <ClInclude Include="bnCurrentTime.h" />
     <ClInclude Include="bnDefenseInvis.h" />
     <ClInclude Include="bnElecPulseCardAction.h" />
@@ -461,7 +460,6 @@
     <ClInclude Include="bnNaviWhiteoutState.h" />
     <ClInclude Include="bnParticleHeal.h" />
     <ClInclude Include="bnAIPriorityLock.h" />
-    <ClInclude Include="AlphaBossSpawnPolicy.h" />
     <ClInclude Include="Android\bnTouchArea.h" />
     <ClInclude Include="bnBees.h" />
     <ClInclude Include="bnBusterCardAction.h" />
@@ -495,7 +493,6 @@
     <ClInclude Include="bnAlphaRocket.h" />
     <ClInclude Include="bnAlphaRocketState.h" />
     <ClInclude Include="bnAnimator.h" />
-    <ClInclude Include="bnAnimatedCharacter.h" />
     <ClInclude Include="bnAnimation.h" />
     <ClInclude Include="bnAura.h" />
     <ClInclude Include="bnBombCardAction.h" />
@@ -647,7 +644,6 @@
     <ClInclude Include="bnMob.h" />
     <ClInclude Include="bnMobFactory.h" />
     <ClInclude Include="bnMobHealthUI.h" />
-    <ClInclude Include="bnMobState.h" />
     <ClInclude Include="bnNoState.h" />
     <ClInclude Include="bnOverworldLight.h" />
     <ClInclude Include="bnOverworldMap.h" />

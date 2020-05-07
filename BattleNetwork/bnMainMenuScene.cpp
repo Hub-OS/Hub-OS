@@ -167,7 +167,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
-        this->getController().push<segue::to<FolderScene>>(data);
+        getController().push<segue::to<FolderScene>>(data);
       }
 
       // Config Select on PC 
@@ -177,7 +177,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<DiamondTileSwipe<direction::right>, swoosh::intent::milli<500>>;
-        this->getController().push<segue::to<ConfigScene>>();
+        getController().push<segue::to<ConfigScene>>();
       }
 
       // Navi select
@@ -186,7 +186,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         AUDIO.Play(AudioType::CHIP_DESC);
         using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<250>>;
         using intent = segue::to<SelectNaviScene>;
-        this->getController().push<intent>(currentNavi);
+        getController().push<intent>(currentNavi);
       }
 
       // Mob select
@@ -198,7 +198,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         if (data.GetFolder(0, folder)) {
           AUDIO.Play(AudioType::CHIP_DESC);
           using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
-          this->getController().push<segue>(currentNavi, *folder);
+          getController().push<segue>(currentNavi, *folder);
         }
         else {
           AUDIO.Play(AudioType::CHIP_ERROR); 
@@ -420,12 +420,12 @@ void MainMenuScene::StartupTouchControls() {
     folderBtn.onRelease([this](sf::Vector2i delta) {
         Logger::Log("folder released");
 
-        this->gotoNextScene = true;
+        gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
-        this->getController().push<segue::to<FolderScene>>(this->data);
+        getController().push<segue::to<FolderScene>>(data);
     });
 
     folderBtn.onTouch([this]() {
@@ -446,12 +446,12 @@ void MainMenuScene::StartupTouchControls() {
     libraryBtn.onRelease([this](sf::Vector2i delta) {
         Logger::Log("library released");
 
-        this->gotoNextScene = true;
+        gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::right>>;
-        this->getController().push<segue::to<LibraryScene>, swoosh::intent::milli<500>>();
+        getController().push<segue::to<LibraryScene>, swoosh::intent::milli<500>>();
     });
 
     libraryBtn.onTouch([this]() {
@@ -468,11 +468,11 @@ void MainMenuScene::StartupTouchControls() {
     auto& naviBtn = TouchArea::create(rect);
 
     naviBtn.onRelease([this](sf::Vector2i delta) {
-        this->gotoNextScene = true;
+        gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
         using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>;
         using intent = segue::to<SelectNaviScene>;
-        this->getController().push<intent>(this->currentNavi);
+        getController().push<intent>(currentNavi);
     });
 
     naviBtn.onTouch([this]() {
@@ -488,19 +488,19 @@ void MainMenuScene::StartupTouchControls() {
     auto& mobBtn = TouchArea::create(rect);
 
     mobBtn.onRelease([this](sf::Vector2i delta) {
-        this->gotoNextScene = true;
+        gotoNextScene = true;
 
         CardFolder* folder = nullptr;
 
-        if (this->data.GetFolder("Default", folder)) {
+        if (data.GetFolder("Default", folder)) {
           AUDIO.Play(AudioType::CHIP_DESC);
           using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
-          this->getController().push<segue>(this->currentNavi, *folder);
+          getController().push<segue>(currentNavi, *folder);
         }
         else {
           AUDIO.Play(AudioType::CHIP_ERROR);
           Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
-          this->gotoNextScene = false;
+          gotoNextScene = false;
         }
     });
 

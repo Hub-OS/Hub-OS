@@ -35,7 +35,7 @@ Character::~Character() {
 
 bool Character::IsStunned()
 {
-  return this->stunCooldown > 0;
+  return stunCooldown > 0;
 }
 
 const Character::Rank Character::GetRank() const {
@@ -50,57 +50,57 @@ void Character::ShareTileSpace(bool enabled)
 
 const bool Character::CanShareTileSpace() const
 {
-  return this->canShareTile;
+  return canShareTile;
 }
 
 void Character::EnableTilePush(bool enabled)
 {
-  this->canTilePush = enabled;
+  canTilePush = enabled;
 }
 
 const bool Character::CanTilePush() const {
-  return this->canTilePush;
+  return canTilePush;
 }
 
 void Character::Update(float _elapsed) {
-  this->ResolveFrameBattleDamage();
+  ResolveFrameBattleDamage();
 
   // Prevent animations from updating and AI from moving around
   // If during time freeze battle states
-  if (this->IsTimeFrozen()) return;
+  if (IsTimeFrozen()) return;
 
-  this->setColor(sf::Color(255, 255, 255, getColor().a));
+  setColor(sf::Color(255, 255, 255, getColor().a));
 
   sf::Vector2f shakeOffset;
 
-  double prevThisFrameStun = this->stunCooldown;
+  double prevThisFrameStun = stunCooldown;
 
   if (!hit) {
       if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
-          this->SetShader(stun);
+          SetShader(stun);
       }
-      else if(this->GetHealth() > 0) {
-          this->SetShader(nullptr);
+      else if(GetHealth() > 0) {
+          SetShader(nullptr);
 
-          if (this->counterable) {
-            this->setColor(sf::Color(255, 55, 55, getColor().a));
-            this->SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
+          if (counterable) {
+            setColor(sf::Color(255, 55, 55, getColor().a));
+            SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
           }
       }
 
-      if (this->invincibilityCooldown > 0) {
+      if (invincibilityCooldown > 0) {
           // This just blinks every 15 ms
           if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
-            this->Hide();
+            Hide();
           }
           else {
-            this->Reveal();
+            Reveal();
           }
 
           invincibilityCooldown -= _elapsed;
 
-          if (this->invincibilityCooldown <= 0) {
-            this->Reveal();
+          if (invincibilityCooldown <= 0) {
+            Reveal();
           }
       }
   }
@@ -112,12 +112,12 @@ void Character::Update(float _elapsed) {
     // HACKY: If we are stunned this frame, let AI update step once
     // to turn into their respective hit state animations
     // TODO at some sort of hooks instead for Characters
-    this->OnUpdate(_elapsed);
-  } else if (this->stunCooldown > 0.0) {
-    this->stunCooldown -= _elapsed;
+    OnUpdate(_elapsed);
+  } else if (stunCooldown > 0.0) {
+    stunCooldown -= _elapsed;
 
-    if (this->stunCooldown <= 0.0) {
-      this->stunCooldown = 0.0;
+    if (stunCooldown <= 0.0) {
+      stunCooldown = 0.0;
     }
   }
 
@@ -144,11 +144,11 @@ void Character::Update(float _elapsed) {
   }
 
   if (health == 0) {
-      this->Delete();
+      Delete();
   }
 
   // If drag status is over, reset the flag
-  if (!IsSliding() && this->slideFromDrag) this->slideFromDrag = false;
+  if (!IsSliding() && slideFromDrag) slideFromDrag = false;
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)
@@ -167,15 +167,15 @@ bool Character::CanMoveTo(Battle::Tile * next)
 
 const bool Character::Hit(Hit::Properties props) {
 
-  if (this->GetHealth() <= 0) return false;
+  if (GetHealth() <= 0) return false;
 
   // Pierce status hits even when passthrough or flinched
   if ((props.flags & Hit::pierce) != Hit::pierce) {
-      if (this->invincibilityCooldown > 0 || this->IsPassthrough()) return false;
+      if (invincibilityCooldown > 0 || IsPassthrough()) return false;
   }
 
   if ((props.flags & Hit::shake) == Hit::shake) {
-    this->CreateComponent<ShakingEffect>(this);
+    CreateComponent<ShakingEffect>(this);
   }
   
   for (auto&& defense : defenses) {
@@ -199,10 +199,10 @@ const bool Character::Hit(Hit::Properties props) {
     field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());
   }
 
-  this->SetHealth(GetHealth() - props.damage);
+  SetHealth(GetHealth() - props.damage);
 
   // Add to status queue for state resolution
-  this->statusQueue.push(props);
+  statusQueue.push(props);
 
   return true;
 }
@@ -213,47 +213,47 @@ int Character::GetHealth() const {
 
 const int Character::GetMaxHealth() const
 {
-  return this->maxHealth;
+  return maxHealth;
 }
 
 void Character::ResolveFrameBattleDamage()
 {
-  if(this->statusQueue.empty()) return;
+  if(statusQueue.empty()) return;
 
   Character* frameCounterAggressor = nullptr;
   bool frameStunCancel = false;
-  Direction postDragDir = Direction::NONE;
+  Direction postDragDir = Direction::none;
 
   std::queue<Hit::Properties> append;
 
-  while(!this->statusQueue.empty() && !IsSliding()) {
-    Hit::Properties& props = this->statusQueue.front();
-    this->statusQueue.pop();
+  while(!statusQueue.empty() && !IsSliding()) {
+    Hit::Properties& props = statusQueue.front();
+    statusQueue.pop();
 
     int tileDamage = 0;
 
     // Calculate elemental damage if the tile the character is on is super effective to it
-    if (props.element == Element::FIRE
-      && GetTile()->GetState() == TileState::GRASS
-      && !(this->HasAirShoe() || this->HasFloatShoe())) {
+    if (props.element == Element::fire
+      && GetTile()->GetState() == TileState::grass
+      && !(HasAirShoe() || HasFloatShoe())) {
       tileDamage = props.damage;
-      GetTile()->SetState(TileState::NORMAL);
+      GetTile()->SetState(TileState::normal);
     }
-    else if (props.element == Element::ELEC
-      && GetTile()->GetState() == TileState::ICE
-      && !(this->HasAirShoe() || this->HasFloatShoe())) {
+    else if (props.element == Element::elec
+      && GetTile()->GetState() == TileState::ice
+      && !(HasAirShoe() || HasFloatShoe())) {
       tileDamage = props.damage;
-      GetTile()->SetState(TileState::NORMAL);
+      GetTile()->SetState(TileState::normal);
     }
 
     // Pass on hit properties to the user-defined handler
-    if (this->OnHit(props)) {
+    if (OnHit(props)) {
       // Only register counter if:
       // 1. Hit type is impact
       // 2. The character is on a counter frame
       // 3. Hit properties has an aggressor
       // This will set the counter aggressor to be the first non-impact hit and not check again this frame
-      if (this->IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
+      if (IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
         if (props.aggressor) {
           frameCounterAggressor = props.aggressor;
         }
@@ -261,20 +261,20 @@ void Character::ResolveFrameBattleDamage()
 
       // Requeue drag if already sliding by drag or in the middle of a move
       if ((props.flags & Hit::drag) == Hit::drag) {
-        if (this->slideFromDrag || this->GetNextTile()) {
-          append.push({ 0, Hit::drag, Element::NONE, nullptr, props.drag });
+        if (slideFromDrag || GetNextTile()) {
+          append.push({ 0, Hit::drag, Element::none, nullptr, props.drag });
         }
         else {
           // Apply directional slide in a moment
           postDragDir = props.drag;
 
           // requeue counter hits
-          append.push({ 0, Hit::impact, Element::NONE, frameCounterAggressor, Direction::NONE });
+          append.push({ 0, Hit::impact, Element::none, frameCounterAggressor, Direction::none });
           frameCounterAggressor = nullptr;
         }
 
         // exclude this from the next processing step
-        props.drag = Direction::NONE;
+        props.drag = Direction::none;
         props.flags &= ~Hit::drag;
       }
 
@@ -282,18 +282,18 @@ void Character::ResolveFrameBattleDamage()
 
       // Stun can be canceled by non-stun hits or queued if dragging
       if ((props.flags & Hit::stun) == Hit::stun) {
-        if (postDragDir != Direction::NONE) {
+        if (postDragDir != Direction::none) {
           // requeue these statuses if in the middle of a slide
-          append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
+          append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
         }
         else {
-          this->stunCooldown = 3.0;
+          stunCooldown = 3.0;
           hadStun = true;
         }
       }
       else {
           // cancel stun
-          this->stunCooldown = 0.0;
+          stunCooldown = 0.0;
       }
 
       // exclude this from the next processing step
@@ -302,16 +302,16 @@ void Character::ResolveFrameBattleDamage()
       // Flinch is ignored if already flinching or stunned
       // and can be queued if dragging this frame
       if ((props.flags & Hit::flinch) == Hit::flinch && !hadStun) {
-        if (postDragDir != Direction::NONE) {
-          append.push({ 0, props.flags, Element::NONE, nullptr, Direction::NONE });
+        if (postDragDir != Direction::none) {
+          append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
         }
         else {
-          if (this->invincibilityCooldown <= 0.0) {
-            this->invincibilityCooldown = 3.0;
+          if (invincibilityCooldown <= 0.0) {
+            invincibilityCooldown = 3.0;
           }
 
           // cancel stun
-          this->stunCooldown = 0;
+          stunCooldown = 0;
         }
       }
 
@@ -320,7 +320,7 @@ void Character::ResolveFrameBattleDamage()
 
       // Flinch is canceled if retangibility is applied
       if ((props.flags & Hit::retangible) == Hit::retangible) {
-        this->invincibilityCooldown = 0.0;
+        invincibilityCooldown = 0.0;
       }
 
       // exclude this from the next processing step
@@ -330,51 +330,51 @@ void Character::ResolveFrameBattleDamage()
     }
 
     if (hit) {
-      this->SetHealth(GetHealth() - tileDamage);
+      SetHealth(GetHealth() - tileDamage);
 
-      if (this->GetHealth() == 0) {
-        this->stunCooldown = 0;
-        postDragDir = Direction::NONE; // Cancel slide post-status if blowing up
+      if (GetHealth() == 0) {
+        stunCooldown = 0;
+        postDragDir = Direction::none; // Cancel slide post-status if blowing up
       }
     }
   }
 
   if (!append.empty()) {
-    this->statusQueue = append;
+    statusQueue = append;
   }
 
-  if (postDragDir != Direction::NONE) {
+  if (postDragDir != Direction::none) {
     // enemies and objects on opposing side of field are granted immunity from drag
-    if (Teammate(this->GetTile()->GetTeam())) {
-      this->SlideToTile(true);
-      this->slideFromDrag = true;
-      this->Move(postDragDir);
+    if (Teammate(GetTile()->GetTeam())) {
+      SlideToTile(true);
+      slideFromDrag = true;
+      Move(postDragDir);
 
       // cancel stun
-      this->stunCooldown = 0;
+      stunCooldown = 0;
     }
   }
 
   if (frameCounterAggressor) {
-    this->Broadcast(*this, *frameCounterAggressor);
-    this->ToggleCounter(false);
-    this->Stun(3.0);
+    Broadcast(*this, *frameCounterAggressor);
+    ToggleCounter(false);
+    Stun(3.0);
   }
 
-  if (this->GetHealth() == 0) {
+  if (GetHealth() == 0) {
 
-    while(this->statusQueue.size() > 0) {
-      this->statusQueue.pop();
+    while(statusQueue.size() > 0) {
+      statusQueue.pop();
     }
 
-    this->stunCooldown = 0;
-    this->invincibilityCooldown = 0;
+    stunCooldown = 0;
+    invincibilityCooldown = 0;
 
-    this->SlideToTile(false); // cancel slide
+    SlideToTile(false); // cancel slide
 
     if(frameCounterAggressor) {
       // Slide entity back a few pixels
-      this->counterSlideOffset = sf::Vector2f(50.f, 0.0f);
+      counterSlideOffset = sf::Vector2f(50.f, 0.0f);
     }
   }
 }
@@ -395,7 +395,7 @@ void Character::AdoptTile(Battle::Tile * tile)
   tile->AddEntity(*this);
 
   if (!IsSliding()) {
-    this->setPosition(tile->getPosition());
+    setPosition(tile->getPosition());
   }
 }
 
@@ -416,7 +416,7 @@ bool Character::IsCountered()
 
 void Character::SetName(std::string name)
 {
-  this->name = name;
+  Character::name = name;
 }
 
 const std::string Character::GetName() const
@@ -436,10 +436,10 @@ void Character::AddDefenseRule(DefenseRule * rule)
   }
   else {
     (*iter)->replaced = true; // Flag that this defense rule may be valid ptr, but is no longer in use
-    this->RemoveDefenseRule(*iter);
+    RemoveDefenseRule(*iter);
 
     // call again, adding this time
-    this->AddDefenseRule(rule);
+    AddDefenseRule(rule);
   }
 }
 
@@ -451,9 +451,9 @@ void Character::RemoveDefenseRule(DefenseRule * rule)
     defenses.erase(iter);
 }
 
-const bool Character::DefenseCheck(DefenseResolutionArbiter& arbiter, Spell& in)
+const bool Character::DefenseCheck(DefenseFrameStateArbiter& arbiter, Spell& in)
 {
-  bool blocked = false;
+  bool blocked = defenses.size()?true : false;
 
   for (int i = 0; i < defenses.size(); i++) {
     blocked = blocked && defenses[i]->CanBlock(arbiter, in, *this);

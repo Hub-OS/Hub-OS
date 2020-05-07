@@ -14,21 +14,21 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   // why do we need to do this??
   // The super constructor is failing to set this value
   // TODO: find out why
-  this->team = _team;
+  team = _team;
 
-  this->speed = speed;
+  Fishy::speed = speed;
 
-  this->SetSlideTime(sf::seconds(0.1f));
-  this->SetHealth(1);
+  SetSlideTime(sf::seconds(0.1f));
+  SetHealth(1);
 
-  AUDIO.Play(AudioType::TOSS_ITEM_LITE, AudioPriority::LOWEST);
+  AUDIO.Play(AudioType::TOSS_ITEM_LITE, AudioPriority::lowest);
 
   Hit::Properties props;
   props.damage = 80;
   props.flags |= Hit::recoil | Hit::flinch;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
-  this->SetFloatShoe(true);
+  SetFloatShoe(true);
 }
 
 Fishy::~Fishy() {
@@ -37,14 +37,14 @@ Fishy::~Fishy() {
 void Fishy::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x - 40.0f, tile->getPosition().y + tileOffset.y - 120.0f);
 
-  if (this->GetTile()->GetX() == 6) {
-    this->Delete();
+  if (GetTile()->GetX() == 6) {
+    Delete();
   }
 
   // Keep moving
-  if (!this->IsSliding()) {
-    this->SlideToTile(true);
-    this->Move(this->GetDirection());
+  if (!IsSliding()) {
+    SlideToTile(true);
+    Move(GetDirection());
   }
 
   tile->AffectEntities(this);
@@ -65,14 +65,12 @@ void Fishy::OnDelete()
 }
 
 void Fishy::Attack(Character* _entity) {
-  std::cout << "fishy team: " << (int)this->GetTeam() << std::endl;
-
   if (!hit) {
 
-    hit = _entity->Hit(this->GetHitboxProperties());
+    hit = _entity->Hit(GetHitboxProperties());
     if (hit) {
       // end this
-      this->Delete();
+      Delete();
     }
   }
 }

@@ -9,38 +9,36 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   SetLayer(0);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_WAVE));
-  this->speed = speed;
+  Wave::speed = speed;
 
   //Components setup and load
   auto spawnNext = [this]() {
-    this->HighlightTile(Battle::Tile::Highlight::none);
+    HighlightTile(Battle::Tile::Highlight::none);
 
     Battle::Tile* nextTile = nullptr;
-    Direction dir = Direction::NONE;
+    Direction dir = Direction::none;
 
-    if (this->GetTeam() == Team::BLUE) {
-      nextTile = this->GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
-      dir = Direction::LEFT;
+    if (GetTeam() == Team::blue) {
+      nextTile = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
+      dir = Direction::left;
     } 
     else {
-      nextTile = this->GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
-      dir = Direction::RIGHT;
+      nextTile = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
+      dir = Direction::right;
     }
 
     if(nextTile && nextTile->IsWalkable() && !nextTile->IsEdgeTile()) {
-        auto* wave = new Wave(this->GetField(), this->GetTeam(), this->speed);
+        auto* wave = new Wave(GetField(), GetTeam(), Wave::speed);
         wave->SetDirection(dir);
 
-        this->GetField()->AddEntity(*wave, nextTile->GetX(), nextTile->GetY());
+        GetField()->AddEntity(*wave, nextTile->GetX(), nextTile->GetY());
     }
   };
 
   animation = CreateComponent<AnimationComponent>(this);
-  this->RegisterComponent(animation);
-
   animation->SetPath("resources/spells/spell_wave.animation");
   animation->Load();
-  animation->SetAnimation("DEFAULT", Animator::Mode::NoEffect, [this]() { this->Delete(); });
+  animation->SetAnimation("DEFAULT", Animator::Mode::NoEffect, [this]() { Delete(); });
   animation->AddCallback(4, spawnNext);
   animation->SetPlaybackSpeed(speed);
   animation->OnUpdate(0);
@@ -48,23 +46,23 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   auto props = Hit::DefaultProperties;
   props.damage = 10;
   props.flags |= Hit::flinch;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::WAVE);
 
-  this->HighlightTile(Battle::Tile::Highlight::solid);
+  HighlightTile(Battle::Tile::Highlight::solid);
 }
 
 Wave::~Wave() {
 }
 
 void Wave::OnUpdate(float _elapsed) {
-  int lr = (this->GetDirection() == Direction::LEFT) ? 1 : -1;
+  int lr = (GetDirection() == Direction::left) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 
   setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
 
-  if (!this->IsDeleted()) {
+  if (!IsDeleted()) {
     GetTile()->AffectEntities(this);
   }
 }

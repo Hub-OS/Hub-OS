@@ -10,19 +10,21 @@
 using sf::IntRect;
 
 #include "bnCharacter.h"
-#include "bnMobState.h"
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
 #include "bnProgsManIdleState.h"
 #include "bnProgsManHitState.h"
+#include "bnProgsManMoveState.h"
+#include "bnProgsManPunchState.h"
+#include "bnProgsManShootState.h"
+#include "bnProgsManThrowState.h"
 #include "bnAnimationComponent.h"
-#include "bnAI.h"
+#include "bnBossPatternAI.h"
 
-class ProgsMan : public Character, public AI<ProgsMan> {
+class ProgsMan : public Character, public BossPatternAI<ProgsMan> {
 public:
   friend class ProgsManIdleState;
   friend class ProgsManMoveState;
-  friend class ProgsManAttackState;
   using DefaultState = ProgsManIdleState;
 
   /**

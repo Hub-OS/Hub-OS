@@ -66,19 +66,19 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (player.state != PLAYER_IDLE)
     return;
 
-  static Direction direction = Direction::NONE;
+  static Direction direction = Direction::none;
   if (!player.IsTimeFrozen()) {
     if (INPUT.Has(EventTypes::PRESSED_MOVE_UP) ||INPUT.Has(EventTypes::HELD_MOVE_UP)) {
-      direction = Direction::UP;
+      direction = Direction::up;
     }
     else if (INPUT.Has(EventTypes::PRESSED_MOVE_LEFT) || INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
-      direction = Direction::LEFT;
+      direction = Direction::left;
     }
     else if (INPUT.Has(EventTypes::PRESSED_MOVE_DOWN) || INPUT.Has(EventTypes::HELD_MOVE_DOWN)) {
-      direction = Direction::DOWN;
+      direction = Direction::down;
     }
     else if (INPUT.Has(EventTypes::PRESSED_MOVE_RIGHT) || INPUT.Has(EventTypes::HELD_MOVE_RIGHT)) {
-      direction = Direction::RIGHT;
+      direction = Direction::right;
     }
   }
 
@@ -95,16 +95,16 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   }
 
   if (INPUT.Has(EventTypes::RELEASED_MOVE_UP)) {
-    direction = Direction::NONE;
+    direction = Direction::none;
   }
   else if (INPUT.Has(EventTypes::RELEASED_MOVE_LEFT)) {
-    direction = Direction::NONE;
+    direction = Direction::none;
   }
   else if (INPUT.Has(EventTypes::RELEASED_MOVE_DOWN)) {
-    direction = Direction::NONE;
+    direction = Direction::none;
   }
   else if (INPUT.Has(EventTypes::RELEASED_MOVE_RIGHT)) {
-    direction = Direction::NONE;
+    direction = Direction::none;
   }
 
   if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
@@ -119,12 +119,12 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     if (moved) {
       auto onFinish = [&]() {
         player.SetAnimation("PLAYER_MOVED", [p = &player]() {
-			    p->SetAnimation(PLAYER_IDLE); 
+          p->SetAnimation(PLAYER_IDLE); 
           p->FinishMove();
         });
 
-		    player.AdoptNextTile();
-        direction = Direction::NONE;
+        player.AdoptNextTile();
+        direction = Direction::none;
       }; // end lambda
       player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
       player.SetAnimation(PLAYER_MOVING, onFinish);

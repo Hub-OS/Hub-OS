@@ -4,28 +4,28 @@ VERSION="2.0"
 
 imagePath=""
 
-animation state="IDLE1"
+animation state="IDLE_1"
 frame duration="0.1" x="31" y="2" w="39" h="55" originx="19" originy="49"
 
-animation state="SHOOT1"
+animation state="SHOOT_1"
 frame duration="0.1" x="31" y="2" w="39" h="55" originx="19" originy="49"
 frame duration="0.1" x="74" y="2" w="39" h="55" originx="19" originy="49"
 frame duration="0.1" x="117" y="2" w="41" h="55" originx="19" originy="49"
 frame duration="0.1" x="162" y="2" w="41" h="55" originx="19" originy="49"
 
-animation state="IDLE2"
+animation state="IDLE_2"
 frame duration="0.1" x="31" y="57" w="39" h="55" originx="19" originy="49"
 
-animation state="SHOOT2"
+animation state="SHOOT_2"
 frame duration="0.1" x="31" y="57" w="39" h="55" originx="19" originy="49"
 frame duration="0.1" x="74" y="57" w="39" h="55" originx="19" originy="49"
 frame duration="0.1" x="117" y="57" w="41" h="55" originx="19" originy="49"
 frame duration="0.1" x="162" y="57" w="41" h="55" originx="19" originy="49"
 
-animation state="IDLE3"
+animation state="IDLE_3"
 frame duration="0.1" x="31" y="112" w="39" h="55" originx="19" originy="49"
 
-animation state="SHOOT3"
+animation state="SHOOT_3"
 frame duration="0.1" x="31" y="112" w="39" h="55" originx="19" originy="49"
 frame duration="0.1" x="74" y="112" w="39" h="55" originx="19" originy="49"
 frame duration="0.1" x="117" y="112" w="41" h="55" originx="19" originy="49"

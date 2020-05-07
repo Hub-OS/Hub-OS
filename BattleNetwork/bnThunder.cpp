@@ -11,17 +11,17 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_THUNDER));
   setScale(2.f, 2.f);
 
-  this->elapsed = 0;
+  elapsed = 0;
 
-  this->HighlightTile(Battle::Tile::Highlight::solid);
+  HighlightTile(Battle::Tile::Highlight::solid);
 
   // Thunder moves from tile to tile in exactly 60 frames
   // The app is clocked at 60 frames a second
   // Therefore thunder slide duration is 1 second
-  this->SetSlideTime(sf::seconds(1.0f));
+  SetSlideTime(sf::seconds(1.0f));
   
   // Thunder is removed in roughly 7 seconds
-  this->timeout = sf::seconds(20.f / 3.f);
+  timeout = sf::seconds(20.f / 3.f);
 
   animation = Animation("resources/spells/thunder.animation");
   animation.SetAnimation("DEFAULT");
@@ -31,7 +31,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
 
   AUDIO.Play(AudioType::THUNDER);
 
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 }
 
 Thunder::~Thunder(void) {
@@ -40,7 +40,7 @@ Thunder::~Thunder(void) {
 void Thunder::OnUpdate(float _elapsed) {
 
   if (elapsed > timeout.asSeconds()) {
-    this->Delete();
+    Delete();
   }
 
   elapsed += _elapsed;
@@ -49,7 +49,7 @@ void Thunder::OnUpdate(float _elapsed) {
   // (keep in mind scale is 2, e.g. 15 * 2 = 30)
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 30.0f);
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
 
   // Find target if we don't have one
   if (!target) {
@@ -76,20 +76,20 @@ void Thunder::OnUpdate(float _elapsed) {
 
   // If sliding is flagged to false, we know we've ended a move
   auto direction = GetDirection();
-  if (!this->IsSliding()) {
+  if (!IsSliding()) {
     if (target) {
       if (target->GetTile()) {
         if (target->GetTile()->GetX() < tile->GetX()) {
-          direction = Direction::LEFT;
+          direction = Direction::left;
         }
         else if (target->GetTile()->GetX() > tile->GetX()) {
-          direction = Direction::RIGHT;
+          direction = Direction::right;
         }
         else if (target->GetTile()->GetY() < tile->GetY()) {
-          direction = Direction::UP;
+          direction = Direction::up;
         }
         else if (target->GetTile()->GetY() > tile->GetY()) {
-          direction = Direction::DOWN;
+          direction = Direction::down;
         }
 
         // Poll if target is flagged for deletion, remove our mark
@@ -101,21 +101,21 @@ void Thunder::OnUpdate(float _elapsed) {
     else {
       // If there are no targets, aimlessly move right or left
       // depending on the team
-      if (GetTeam() == Team::RED) {
-        direction = Direction::RIGHT;
+      if (GetTeam() == Team::red) {
+        direction = Direction::right;
       }
       else {
-        direction = Direction::LEFT;
+        direction = Direction::left;
       }
     }
 
-    if(direction != this->GetDirection()) {
-      this->SetDirection(direction);
+    if(direction != GetDirection()) {
+      SetDirection(direction);
     }
 
     // Always slide to the tile we're moving to
-    this->SlideToTile(true);
-    this->Move(this->GetDirection());
+    SlideToTile(true);
+    Move(GetDirection());
   }
 
   // Always affect the tile we're occupying
@@ -128,14 +128,14 @@ bool Thunder::CanMoveTo(Battle::Tile* tile) {
 
 void Thunder::Attack(Character* _entity) {
   // Only attack entities on this tile that are not on our team
-  if (_entity && _entity->GetTeam() != this->GetTeam()) {
+  if (_entity && _entity->GetTeam() != GetTeam()) {
     Hit::Properties props;
     
     // Thunder stuns and recoils
     props.flags |= Hit::recoil | Hit::stun;
     
     // Thunder has electric properties
-    props.element = Element::ELEC;
+    props.element = Element::elec;
     
     // Attack does 40 units of damage
     props.damage = 40;
@@ -143,7 +143,7 @@ void Thunder::Attack(Character* _entity) {
     // If entity was successfully hit
     if (_entity->Hit(props)) {
       // Mark us for deletion
-      this->Delete();
+      Delete();
     }
   }
 }

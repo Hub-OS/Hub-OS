@@ -3,7 +3,7 @@
 #include <functional>
 
 /**
- * @class DefenseResolutionArbiter
+ * @class DefenseFrameStateArbiter
  * @author mav
  * @date 05/05/20
  * @brief This class is used to help determine the correct outcome for combat
@@ -13,14 +13,14 @@
  * then it is added to the list. It might be that most fail upon the final combat step.
  * In that case, the triggers will be cleared and unused.
  */
-class DefenseResolutionArbiter final {
+class DefenseFrameStateArbiter final {
   bool blockedDamage, blockedImpact;
   std::list<std::function<void()>> triggers;
 
 public:
-  DefenseResolutionArbiter() = default;
-  DefenseResolutionArbiter(const DefenseResolutionArbiter&) = delete;
-  ~DefenseResolutionArbiter() = default;
+  DefenseFrameStateArbiter() = default;
+  DefenseFrameStateArbiter(const DefenseFrameStateArbiter&) = delete;
+  ~DefenseFrameStateArbiter() = default;
 
   const bool IsDamageBlocked() const;
   const bool IsImpactBlocked() const;
@@ -34,10 +34,10 @@ public:
 };
 
 template<typename Func, typename... Args>
-void DefenseResolutionArbiter::AddTrigger(const Func& func, Args&&... args) {
-  /*auto closure = [func, args=args...]{
-    func(args...);
+void DefenseFrameStateArbiter::AddTrigger(const Func& func, Args&&... args) {
+  auto closure = [func, args...]() -> void {
+      std::invoke(func, args...);
   };
 
-  triggers.push_back(closure);*/
+  triggers.push_back(closure);
 }

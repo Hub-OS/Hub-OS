@@ -58,7 +58,7 @@ public:
     std::string name;
 
     FileMeta() {
-      type = ScriptMetaType::ERROR_STATE;
+      type = ScriptMetaType::error;
     }
 
     FileMeta(const FileMeta& rhs) {

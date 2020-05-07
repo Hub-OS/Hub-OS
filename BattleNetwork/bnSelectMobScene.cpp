@@ -79,9 +79,6 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 }
 
 SelectMobScene::~SelectMobScene() {
-  delete font;
-  delete mobFont;
-  //delete hpFont;
   delete mobLabel;
   delete attackLabel;
   delete speedLabel;
@@ -93,8 +90,8 @@ SelectMobScene::~SelectMobScene() {
 
 void SelectMobScene::onResume() {
   if(mob) {
-	  delete mob;
-	  mob = nullptr;
+    delete mob;
+    mob = nullptr;
   }
 
   // Fix camera if offset from battle
@@ -110,12 +107,12 @@ void SelectMobScene::onResume() {
   Logger::Log("SelectMobScene::onResume()");
 
 #ifdef __ANDROID__
-  this->StartupTouchControls();
+  StartupTouchControls();
 #endif
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
-  this->elapsed += elapsed;
+  SelectMobScene::elapsed += elapsed;
 
   // multiplying update by 2 effectively sets playback speed to 200%
   navigatorAnimator.Update(float(elapsed*2.0), navigator.getSprite());
@@ -267,8 +264,8 @@ void SelectMobScene::onUpdate(double elapsed) {
     mobSpr.setOrigin(mobSpr.getLocalBounds().width / 2.f, mobSpr.getLocalBounds().height / 2.f);
 
     textbox.SetText(mobinfo.GetDescriptionString());
-	textbox.Stop();
-	
+  textbox.Stop();
+  
     prevSelect = mobSelectionIndex;
   }
 
@@ -358,9 +355,9 @@ void SelectMobScene::onUpdate(double elapsed) {
   float progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
 
   if (progress > 1.f) { 
-	  progress = 1.f; 
+    progress = 1.f; 
   
-	if(!gotoNextScene) {
+  if(!gotoNextScene) {
       textbox.Play();
     }
   }
@@ -373,7 +370,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && !gotoNextScene) {
     
     if (MOBS.Size() != 0) {
-      this->mob = MOBS.At(mobSelectionIndex).GetMob();
+      mob = MOBS.At(mobSelectionIndex).GetMob();
     }
 
     if (!mob) {
@@ -381,13 +378,13 @@ void SelectMobScene::onUpdate(double elapsed) {
       // data is invalid
       gotoNextScene = false;
 
-      AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::LOWEST);
+      AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
     }
     else {
       gotoNextScene = true;
 
       // Play the pre battle rumble sound
-      AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::HIGH);
+      AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
       // Stop music and go to battle screen 
       AUDIO.StopStream();
@@ -401,7 +398,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
       using segue = swoosh::intent::segue<WhiteWashFade>::to<BattleScene>;
-      getController().push<segue>(player, this->mob, &selectedFolder);
+      getController().push<segue>(player, mob, &selectedFolder);
     }
   }
 
@@ -490,7 +487,7 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   }
      
   // Add sine offset to create a bob effect
-  auto offset = std::sin(this->elapsed*10.0) * 5;
+  auto offset = std::sin(elapsed*10.0) * 5;
   
   // Put the left cursor on the left of the mob
   cursor.setPosition(23.0f + (float)offset, 130.0f);
@@ -510,7 +507,7 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   }
 
   // Add sine offset to create a bob effect
-  offset = -std::sin(this->elapsed*10.0) * 5;
+  offset = -std::sin(elapsed*10.0) * 5;
   
   // Put the right cursor on the right of the mob
   cursor.setPosition(200.0f + (float)offset, 130.0f);
@@ -530,7 +527,7 @@ void SelectMobScene::onStart() {
   gotoNextScene = false;
 
 #ifdef __ANDROID__
-  this->StartupTouchControls();
+  StartupTouchControls();
 #endif
 
   Logger::Log("SelectMobScene::onStart()");
@@ -540,7 +537,7 @@ void SelectMobScene::onLeave() {
   textbox.Stop();
 
 #ifdef __ANDROID__
-  this->ShutdownTouchControls();
+  ShutdownTouchControls();
 #endif
 
   Logger::Log("SelectMobScene::onLeave()");
@@ -561,7 +558,7 @@ void SelectMobScene::onEnter() {
 
 void SelectMobScene::onEnd() {
 #ifdef __ANDROID__
-  this->ShutdownTouchControls();
+  ShutdownTouchControls();
 #endif
   Logger::Log("SelectMobScene::onEnd()");
 
@@ -572,7 +569,7 @@ void SelectMobScene::StartupTouchControls() {
   /* Android touch areas*/
   TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
 
-  this->releasedB = false;
+  releasedB = false;
 
   rightSide.enableExtendedRelease(true);
 
@@ -581,16 +578,16 @@ void SelectMobScene::StartupTouchControls() {
   });
 
   rightSide.onRelease([this](sf::Vector2i delta) {
-      if(!this->releasedB) {
+      if(!releasedB) {
         INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
       }
   });
 
   rightSide.onDrag([this](sf::Vector2i delta){
-      if(delta.x < -25 && !this->releasedB) {
+      if(delta.x < -25 && !releasedB) {
         INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
         INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
-        this->releasedB = true;
+        releasedB = true;
       }
   });
 }

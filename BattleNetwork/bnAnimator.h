@@ -93,7 +93,7 @@ public:
     FrameList res;
 
     while (iter != data.end() && data.size() > 0) {
-      auto copy = this->frames[iter->frameIndex - 1];
+      auto copy = frames[iter->frameIndex - 1];
       copy.duration = (float)iter->duration;
       res.frames.push_back(copy);
       res.totalDuration += copy.duration;
@@ -141,14 +141,14 @@ public:
  * @brief Get the total number of frames in this list
  * @return const unsigned int
  */
-  const size_t GetFrameCount() { return this->frames.size(); }
+  const size_t GetFrameCount() { return frames.size(); }
 
   /**
   * @brief Get the frame data at the given index
   * @param index of the frame in the list (base 0)
   * @return const Frame immutable
   */
-  const Frame& GetFrame(const int index) { return this->frames[index]; }
+  const Frame& GetFrame(const int index) { return frames[index]; }
 
   /**
    * @brief Get the total duration for the list of frames
@@ -215,9 +215,9 @@ public:
     
     On(const On& rhs) {
       //std::cout << "in cpy constructor" << std::endl;
-      this->id = rhs.id;
-      this->callback = rhs.callback;
-      this->doOnce = rhs.doOnce;
+      id = rhs.id;
+      callback = rhs.callback;
+      doOnce = rhs.doOnce;
     }
   };
 
@@ -238,11 +238,9 @@ public:
     static const char Bounce = 0x02; /*!< When it reaches the end, reverse the animation and resume */
     static const char Reverse = 0x04; /*!< Reverse the animation */
 
-    Mode(int playback) {
-      this->playback = playback;
-    }
+    Mode(int playback);
 
-    ~Mode() { ; }
+    ~Mode() = default;
   };
 
   Animator();
@@ -254,7 +252,7 @@ public:
    * @brief Get the current playback mode
    * @return char
    */
-  char GetMode() { return playbackMode;  }
+  char GetMode();
   
   const sf::Vector2f GetPoint(const std::string& pointName);
   

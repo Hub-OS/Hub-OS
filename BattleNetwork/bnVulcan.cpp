@@ -24,12 +24,12 @@ Vulcan::Vulcan(Field* _field, Team _team,int damage) :Spell(_field, _team) {
 
   random = 0;
 
-  AUDIO.Play(AudioType::GUN, AudioPriority::HIGHEST);
+  AUDIO.Play(AudioType::GUN, AudioPriority::highest);
 
   auto props = GetHitboxProperties();
   props.flags = props.flags & ~Hit::recoil;
   props.damage = damage;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   HighlightTile(Battle::Tile::Highlight::none);
 }
@@ -42,12 +42,12 @@ void Vulcan::OnUpdate(float _elapsed) {
   GetTile()->AffectEntities(this);
 
   if (Move(GetDirection())) {
-    this->AdoptNextTile();
+    AdoptNextTile();
     FinishMove();
   }
 
   if (GetTile()->IsEdgeTile()) {
-    //this->Delete();
+    //Delete();
   }
 }
 
@@ -61,17 +61,11 @@ void Vulcan::OnDelete()
 }
 
 void Vulcan::Attack(Character* _entity) {
-  if (dynamic_cast<Gear*>(_entity)) {
-    field->AddEntity(*new GuardHit(field, _entity), *_entity->GetTile());
-    this->Delete();
-    return;
-  }
-
-  if (_entity->Hit(this->GetHitboxProperties())) {
+  if (_entity->Hit(GetHitboxProperties())) {
     AUDIO.Play(AudioType::HURT);
     auto impact = new ParticleImpact(ParticleImpact::Type::YELLOW);
     impact->SetHeight(_entity->GetHeight());
     field->AddEntity(*impact, *_entity->GetTile());
-    this->Delete();
+    Delete();
   }
 }

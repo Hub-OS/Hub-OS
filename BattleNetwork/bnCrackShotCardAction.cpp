@@ -12,14 +12,14 @@
 #define FRAMES FRAME1, FRAME2, FRAME3
 
 CrackShotCardAction::CrackShotCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
-  this->damage = damage;
+  CrackShotCardAction::damage = damage;
 
   overlay.setTexture(*owner->getTexture());
-  this->attachment = new SpriteProxyNode(overlay);
-  this->attachment->SetLayer(-1);
-  this->attachment->EnableParentShader(true);
+  attachment = new SpriteProxyNode(overlay);
+  attachment->SetLayer(-1);
+  attachment->EnableParentShader(true);
 
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 
   attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
@@ -33,8 +33,8 @@ CrackShotCardAction::~CrackShotCardAction()
 void CrackShotCardAction::Execute() {
   auto owner = GetOwner();
 
-  owner->AddNode(this->attachment);
-  attachmentAnim.Update(0, this->attachment->getSprite());
+  owner->AddNode(attachment);
+  attachmentAnim.Update(0, attachment->getSprite());
 
   // On throw frame, spawn projectile
   auto onThrow = [this, owner]() -> void {
@@ -48,7 +48,7 @@ void CrackShotCardAction::Execute() {
       props.aggressor = GetOwnerAs<Character>();
       b->SetHitboxProperties(props);
 
-      auto direction = (owner->GetTeam() == Team::RED) ? Direction::RIGHT : Direction::LEFT;
+      auto direction = (owner->GetTeam() == Team::red) ? Direction::right : Direction::left;
       b->SetDirection(direction);
 
 
@@ -56,21 +56,21 @@ void CrackShotCardAction::Execute() {
 
       AUDIO.Play(AudioType::TOSS_ITEM_LITE);
 
-      tile->SetState(TileState::BROKEN);
+      tile->SetState(TileState::broken);
     }
   };
 
-  this->AddAction(3, onThrow);
+  AddAction(3, onThrow);
 }
 
 void CrackShotCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
+  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 
 void CrackShotCardAction::EndAction() {
-  this->GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->RemoveNode(attachment);
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

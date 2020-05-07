@@ -71,7 +71,7 @@ private:
   mutable bool firstFrame; /*!< If true, this UI graphic is being drawn for the first time*/
   sf::Time interpolDur; /*!< Max duration for interpolation 0.2 seconds */
   Player* player; /*!< Player this component is attached to */
-  Font* font; /*!< Card name font */
+  std::shared_ptr<Font> font; /*!< Card name font */
   mutable Text text; /*!< Text displays card name */
   mutable Text dmg; /*!< Text displays card damage */
   mutable SpriteProxyNode icon, frame; /*!< Sprite for the card icon and the black border */

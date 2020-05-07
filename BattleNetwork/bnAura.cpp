@@ -13,7 +13,7 @@ using sf::IntRect;
 
 Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Component(owner), privOwner(owner)
 {
-  this->timer = 50; // seconds
+  timer = 50; // seconds
   
   auraSprite.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
   aura = new SpriteProxyNode(auraSprite);
@@ -21,10 +21,10 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   // owner draws -> aura component draws -> aura sprite anim draws
   owner->RegisterComponent(this);
   owner->AddNode(this);
-  this->AddNode(aura);
+  AddNode(aura);
 
   // Note: need to get rid of artificial scaling by 2. Makes the math awful. No need for it.
-  this->setPosition(0, -owner->GetHeight() / 2.0f / 2.0f); // divide twice. 1 -> real screen coord 2 -> half of real height
+  setPosition(0, -owner->GetHeight() / 2.0f / 2.0f); // divide twice. 1 -> real screen coord 2 -> half of real height
 
   persist = false;
 
@@ -40,37 +40,37 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   switch (type) {
   case Aura::Type::AURA_100:
     animation.SetAnimation("AURA_100");
-    this->health = 100;
+    health = 100;
     break;
   case Aura::Type::AURA_200:
     animation.SetAnimation("AURA_200");
-    this->health = 200;
+    health = 200;
     break;
   case Aura::Type::AURA_1000:
     animation.SetAnimation("AURA_1000");
-    this->health = 1000;;
+    health = 1000;;
     break;
   case Aura::Type::BARRIER_10:
     animation.SetAnimation("BARRIER_10");
-    this->health = 100;
+    health = 100;
     break;
   case Aura::Type::BARRIER_200:
     animation.SetAnimation("BARRIER_200");
-    this->health = 200;
+    health = 200;
     break;
   case Aura::Type::BARRIER_500:
     animation.SetAnimation("BARRIER_500");
-    this->health = 500;
+    health = 500;
     break;
   }
   
   currHP = health;
 
-  DefenseAura::Callback onHit = [this](Spell* in, Character* owner) {
-	  this->TakeDamage(in->GetHitboxProperties().damage);
+  DefenseAura::Callback onHit = [this](Spell& in, Character& owner) {
+    TakeDamage(in.GetHitboxProperties().damage);
   };
   
-  this->defense = new DefenseAura(onHit);
+  defense = new DefenseAura(onHit);
   
   owner->AddDefenseRule(defense);
 
@@ -79,28 +79,28 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
 }
 
 void Aura::Inject(BattleScene& bs) {
+  bs.Inject((Component*)this);
   this->bs = &bs;
-  this->bs->Inject((Component*)this);
 }
 
 void Aura::OnUpdate(float _elapsed) {
-  if (this->bs == nullptr) {
+  if (bs == nullptr) {
     return;
   }
 
   // If the aura has been replaced by another defense rule, remove all
   // associated components 
   if (defense->IsReplaced()) {
-    this->RemoveNode(aura);
-    this->privOwner->RemoveNode(this);
-    this->bs->Eject(this);
+    RemoveNode(aura);
+    privOwner->RemoveNode(this);
+    bs->Eject(this);
     delete this;
     return;
   }
 
   currHP = health;
   
-  if(!this->bs->IsBattleActive() && (!persist || isOver)) {
+  if(!bs->IsBattleActive() && (!persist || isOver)) {
     timer -= _elapsed;
   }
 
@@ -108,31 +108,31 @@ void Aura::OnUpdate(float _elapsed) {
     if (health == 0 || timer <= 0.0) {
       isOver = true;
       timer = 2;
-      this->auraSprite.setColor(sf::Color(255, 255, 255, 50));
+      auraSprite.setColor(sf::Color(255, 255, 255, 50));
     }
 
-    this->Reveal(); // always show regardless of owner
+    Reveal(); // always show regardless of owner
   }
   else if (timer <= 0.0) {
-    this->privOwner->RemoveDefenseRule(this->defense);
-    this->RemoveNode(aura);
-    this->privOwner->RemoveNode(this);
-    this->bs->Eject(this);
+    privOwner->RemoveDefenseRule(defense);
+    RemoveNode(aura);
+    privOwner->RemoveNode(this);
+    bs->Eject(this);
     delete this;
     return;
   }
   else {
     // flicker
     if (int(timer*15000) % 2 == 0) {
-      this->Hide();
+      Hide();
     }
     else {
-      this->Reveal();
+      Reveal();
     }
   }
 
- if (this->privOwner->GetTile() == nullptr) {
-   this->Hide();
+ if (privOwner->GetTile() == nullptr) {
+   Hide();
    return;
  }
 
@@ -145,15 +145,15 @@ const Aura::Type Aura::GetAuraType()
 }
  
 void Aura::Persist(bool enable) {
-	this->persist = enable;
+  persist = enable;
 }
 
 const bool Aura::IsPersistent() const {
-	 return this->persist;
+   return persist;
  }
   
 const int Aura::GetHealth() const {
-	return this->health;
+  return health;
 }
 
 void Aura::TakeDamage(int damage)
@@ -172,12 +172,12 @@ void Aura::TakeDamage(int damage)
 
 void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {  
   auto this_states = states;
-  this_states.transform *= this->getTransform();
+  this_states.transform *= getTransform();
   this_states.shader = nullptr; // we don't want to apply effects from the owner to this component
   SceneNode::draw(target, this_states);
 
   // Only draw HP font for Barriers. Auras are hidden.
-  if (this->type <= Type::AURA_1000) return;
+  if (type <= Type::AURA_1000) return;
 
   // 0 - 5 are on first row
   // Glyphs are 8x15 
@@ -203,7 +203,6 @@ void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {
       font.setPosition(sf::Vector2f(offsetx, 25.0f));
 
       target.draw(font, this_states);
-      //ENGINE.Draw(font);
 
       offsetx += 8.0f*font.getScale().x;
       index++;
@@ -213,6 +212,6 @@ void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 
 Aura::~Aura()
 {
-  delete this->aura;
-  delete this->defense;
+  delete aura;
+  delete defense;
 }

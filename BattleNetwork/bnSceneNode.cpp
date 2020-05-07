@@ -11,11 +11,11 @@ SceneNode::~SceneNode() {
 }
 
 void SceneNode::SetLayer(int layer) {
-  this->layer = layer;
+  SceneNode::layer = layer;
 }
 
 const int SceneNode::GetLayer() const {
-  return this->layer;
+  return layer;
 }
 
 void SceneNode::Hide() {

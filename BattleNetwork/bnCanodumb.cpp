@@ -14,45 +14,46 @@
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
 Canodumb::Canodumb(Rank _rank)
-  :  AI<Canodumb>(this), AnimatedCharacter(_rank) {
-  Entity::team = Team::BLUE;
+  :  AI<Canodumb>(this), Character(_rank) {
+  SetTeam(Team::blue);
 
   setTexture(TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
 
-  this->SetHealth(health);
+  SetHealth(health);
 
   //Components setup and load
-  this->animationComponent->SetPath(RESOURCE_PATH);
-  this->animationComponent->Load();
+  animation = CreateComponent<AnimationComponent>(this);
+  animation->SetPath(RESOURCE_PATH);
+  animation->Load();
 
   switch (GetRank()) {
   case Rank::_1:
-    this->animationComponent->SetAnimation(MOB_CANODUMB_IDLE_1);
+    animation->SetAnimation("IDLE_1");
     name = "Canodumb";
     health = 60;
     break;
   case Rank::_2:
-    this->animationComponent->SetAnimation(MOB_CANODUMB_IDLE_2);
+    animation->SetAnimation("IDLE_2");
     name = "Canodumb2";
     health = 90;
     break;
   case Rank::_3:
-    this->animationComponent->SetAnimation(MOB_CANODUMB_IDLE_3);
+    animation->SetAnimation("IDLE_3");
     name = "Canodumb3";
     health = 130;
     break;
   }
 
   virusBody = new DefenseVirusBody();
-  this->AddDefenseRule(virusBody);
+  AddDefenseRule(virusBody);
 
   hitHeight = 60;
 }
 
 Canodumb::~Canodumb() {
   if (virusBody) {
-    this->RemoveDefenseRule(virusBody);
+    RemoveDefenseRule(virusBody);
     delete virusBody;
     virusBody = nullptr;
 
@@ -63,7 +64,7 @@ void Canodumb::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
   hitHeight = getLocalBounds().height;
 
-  this->AI<Canodumb>::Update(_elapsed);
+  AI<Canodumb>::Update(_elapsed);
 }
 
 const bool Canodumb::OnHit(const Hit::Properties props) {
@@ -76,7 +77,7 @@ const float Canodumb::GetHeight() const {
 
 void Canodumb::OnDelete() {
   // Explode if health depleted
-  this->ChangeState<ExplodeState<Canodumb>>(2);
+  ChangeState<ExplodeState<Canodumb>>(2);
 }
 
 

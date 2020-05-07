@@ -13,23 +13,23 @@ NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_dur
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_NINJA_STAR));
   
   // Swoosh util sets the texture origin to 50% x and 80% y
-  swoosh::game::setOrigin(this->getSprite(), 0.5, 0.8);
+  swoosh::game::setOrigin(getSprite(), 0.5, 0.8);
   
   setScale(2.f, 2.f);
 
   progress = 0.0f;
 
   // Blue team starts from the right side of the screen
-  if (GetTeam() == Team::BLUE) {
+  if (GetTeam() == Team::blue) {
     start = sf::Vector2f(480.0f, 0.0f);
   }
   // Red ream starts from the left side of the screen
-  else if (GetTeam() == Team::RED) {
+  else if (GetTeam() == Team::red) {
     start = sf::Vector2f(0.0f, 0.0f);
   }
   // Otherwise, unsupported
   else {
-    this->Delete();
+    Delete();
   }
 
   AUDIO.Play(AudioType::TOSS_ITEM_LITE);
@@ -39,7 +39,7 @@ NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_dur
   // Do 100 units of impact damage
   props.damage = 100;
   props.flags |= Hit::impact;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 }
 
 NinjaStar::~NinjaStar() {
@@ -62,7 +62,7 @@ void NinjaStar::OnUpdate(float _elapsed) {
   
   // Let the star linger around for a bit before deleting
   if (progress > duration*2.0) {
-    this->Delete();
+    Delete();
   }
 
   progress += _elapsed;

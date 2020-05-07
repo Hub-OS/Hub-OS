@@ -23,7 +23,6 @@ private:
   Player * player; /*!< Entity to listen for */
 
 public:
-  PlayerCardUseListener(Player* _player) : CardUseListener() { player = _player; }
   PlayerCardUseListener(Player& _player) : CardUseListener() { player = &_player;  }
 
   /**

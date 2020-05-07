@@ -11,10 +11,10 @@
 
 
 ReflectCardAction::ReflectCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_IDLE", nullptr, "Buster") {
-  this->damage = damage;
+  ReflectCardAction::damage = damage;
 
   // add override anims
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 }
 
 ReflectCardAction::~ReflectCardAction()
@@ -48,6 +48,6 @@ void ReflectCardAction::OnUpdate(float _elapsed)
 
 void ReflectCardAction::EndAction()
 {
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

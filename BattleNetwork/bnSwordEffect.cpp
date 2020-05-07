@@ -12,8 +12,8 @@ using sf::IntRect;
 SwordEffect::SwordEffect(Field* field) : Artifact(field)
 {
   SetLayer(0);
-  this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_SWORD));
-  this->setScale(2.f, 2.f);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_SWORD));
+  setScale(2.f, 2.f);
 
   //Components setup and load
   auto animation = CreateComponent<AnimationComponent>(this);
@@ -24,7 +24,7 @@ SwordEffect::SwordEffect(Field* field) : Artifact(field)
   // When animation ends
   // delete this effect
   auto onEnd = [this]() {
-      this->Delete();
+      Delete();
   };
   animation->SetAnimation("DEFAULT", onEnd);
 
@@ -33,7 +33,7 @@ SwordEffect::SwordEffect(Field* field) : Artifact(field)
 }
 
 void SwordEffect::OnUpdate(float _elapsed) {
-  this->setPosition(this->GetTile()->getPosition());
+  setPosition(GetTile()->getPosition());
 }
 
 void SwordEffect::OnDelete()
@@ -53,7 +53,7 @@ void SwordEffect::SetAnimation(const std::string & animStr)
     // When animation ends
     // delete this effect
     auto onEnd = [this]() {
-        this->Delete();
+        Delete();
     };
 
     animation->SetAnimation(animStr, onEnd);

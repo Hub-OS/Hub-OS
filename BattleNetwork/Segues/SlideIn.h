@@ -16,7 +16,7 @@ public:
     double duration = getDuration().asMilliseconds();
     double alpha = ease::linear(elapsed, duration, 1.0);
 
-    this->drawLastActivity(surface);
+    drawLastActivity(surface);
 
     surface.display(); // flip and ready the buffer
 
@@ -35,7 +35,7 @@ public:
 
     surface.clear();
 
-    this->drawNextActivity(surface);
+    drawNextActivity(surface);
 
     surface.display(); // flip and ready the buffer
     sf::Sprite right(surface.getTexture());

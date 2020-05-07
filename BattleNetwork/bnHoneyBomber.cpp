@@ -12,12 +12,12 @@ const std::string RESOURCE_PATH = "resources/mobs/honeybomber/honeybomber.animat
 HoneyBomber::HoneyBomber(Rank _rank)
   : AI<HoneyBomber>(this), TurnOrderTrait<HoneyBomber>(), Character(_rank) {
   name = "HonyBmbr";
-  SetTeam(Team::BLUE);
+  SetTeam(Team::blue);
 
-  SetElement(Element::WOOD);
+  SetElement(Element::wood);
   SetFloatShoe(true);
 
-  auto animationComponent = new AnimationComponent(this);
+  auto animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
@@ -29,16 +29,15 @@ HoneyBomber::HoneyBomber(Rank _rank)
   setTexture(TEXTURES.GetTexture(TextureType::MOB_HONEYBOMBER_ATLAS));
   setScale(2.f, 2.f);
   animationComponent->OnUpdate(0);
-  this->RegisterComponent(animationComponent);
 
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->setPosition(-12.0f, 6.0f);
-  this->AddNode(shadow);
+  AddNode(shadow);
 
   virusBody = new DefenseVirusBody();
-  this->AddDefenseRule(virusBody);
+  AddDefenseRule(virusBody);
 }
 
 HoneyBomber::~HoneyBomber() {
@@ -47,25 +46,25 @@ HoneyBomber::~HoneyBomber() {
 
 void HoneyBomber::OnDelete() {
     if (virusBody) {
-        this->RemoveDefenseRule(virusBody);
+        RemoveDefenseRule(virusBody);
         delete virusBody;
         virusBody = nullptr;
     }
 
-  this->ChangeState<ExplodeState<HoneyBomber>>();
+  ChangeState<ExplodeState<HoneyBomber>>();
 
-  this->RemoveMeFromTurnOrder();
+  RemoveMeFromTurnOrder();
 }
 
 void HoneyBomber::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - GetHeight());
   setPosition(getPosition() + tileOffset);
 
-  this->AI<HoneyBomber>::Update(_elapsed);
+  AI<HoneyBomber>::Update(_elapsed);
 }
 
 const bool HoneyBomber::OnHit(const Hit::Properties props) {
-  this->GetFirstComponent<AnimationComponent>()->SetPlaybackSpeed(2.0);
+  GetFirstComponent<AnimationComponent>()->SetPlaybackSpeed(2.0);
   return true;
 }
 

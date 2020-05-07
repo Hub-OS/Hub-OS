@@ -1,6 +1,5 @@
 #pragma once
-#include "bnAnimatedCharacter.h"
-#include "bnMobState.h"
+#include "bnCharacter.h"
 #include "bnMettaurIdleState.h"
 #include "bnAI.h"
 #include "bnTextureType.h"
@@ -8,7 +7,7 @@
 #include "bnTurnOrderTrait.h"
 
 /*! \brief Basic mettaur enemy */
-class Mettaur : public AnimatedCharacter, public AI<Mettaur>, public TurnOrderTrait<Mettaur> {
+class Mettaur : public Character, public AI<Mettaur>, public TurnOrderTrait<Mettaur> {
   friend class MettaurIdleState;
   friend class MettaurMoveState;
   friend class MettaurAttackState;
@@ -24,33 +23,32 @@ public:
   /**
    * @brief Removes its turn ID from the list of active mettaurs
    */
-  virtual ~Mettaur();
+  ~Mettaur();
 
   /**
    * @brief Uses AI state to move around. Deletes when health is below zero.
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  void OnUpdate(float _elapsed) override;
   
   /**
    * @brief Takes damage and flashes white
    * @param props
    * @return true if hit, false if missed
    */
-  virtual const bool OnHit(const Hit::Properties props);
+  const bool OnHit(const Hit::Properties props) override;
 
-  virtual void OnDelete();
+  void OnDelete() override;
   
   /**
    * @brief Get the hit height of this entity
    * @return const float
    */
-  virtual const float GetHeight() const;
+  const float GetHeight() const override;
 
 private:
-
   float hitHeight; /*!< hit height of this mettaur */
   TextureType textureType;
-
+  AnimationComponent* animation;
   DefenseRule* virusBody;
 };

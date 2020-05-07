@@ -13,10 +13,10 @@
 
 
 TwinFangCardAction::TwinFangCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", nullptr, "Buster") {
-  this->damage = damage;
+  TwinFangCardAction::damage = damage;
 
   // add override anims
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 }
 
 void TwinFangCardAction::Execute() {
@@ -39,7 +39,7 @@ void TwinFangCardAction::Execute() {
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = GetOwnerAs<Character>();
       twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(Direction::RIGHT);
+      twinfang->SetDirection(Direction::right);
 
       GetOwner()->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() - 1);
     }
@@ -48,7 +48,7 @@ void TwinFangCardAction::Execute() {
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = GetOwnerAs<Character>();
       twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(Direction::RIGHT);
+      twinfang->SetDirection(Direction::right);
 
       GetOwner()->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY());
     }
@@ -58,7 +58,7 @@ void TwinFangCardAction::Execute() {
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = GetOwnerAs<Character>();
       twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(Direction::RIGHT);
+      twinfang->SetDirection(Direction::right);
 
       GetOwner()->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() + 1);
     }
@@ -67,13 +67,13 @@ void TwinFangCardAction::Execute() {
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = GetOwnerAs<Character>();
       twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(Direction::RIGHT);
+      twinfang->SetDirection(Direction::right);
 
       GetOwner()->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY());
     }
   };
 
-  this->AddAction(2, onFire);
+  AddAction(2, onFire);
 }
 
 TwinFangCardAction::~TwinFangCardAction()
@@ -87,6 +87,6 @@ void TwinFangCardAction::OnUpdate(float _elapsed)
 
 void TwinFangCardAction::EndAction()
 {
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

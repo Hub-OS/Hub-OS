@@ -13,12 +13,12 @@ DefenseGuard::~DefenseGuard()
 {
 }
 
-const bool DefenseGuard::CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner)
+const bool DefenseGuard::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
 {
   auto props = in.GetHitboxProperties();
 
   if ((props.flags & Hit::breaking) == 0) {
-    arbiter.AddTrigger(callback, in, owner);
+    arbiter.AddTrigger(callback, std::ref(in), std::ref(owner));
     arbiter.BlockDamage();
 
     if ((props.flags & Hit::impact) == Hit::impact) {

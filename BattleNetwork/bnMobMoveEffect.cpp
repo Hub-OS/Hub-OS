@@ -11,8 +11,8 @@ using sf::IntRect;
 MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
 {
   SetLayer(-1);
-  this->setTexture(TEXTURES.GetTexture(TextureType::MOB_MOVE));
-  this->setScale(2.f, 2.f);
+  setTexture(TEXTURES.GetTexture(TextureType::MOB_MOVE));
+  setScale(2.f, 2.f);
   move = getSprite();
 
   //Components setup and load
@@ -22,19 +22,19 @@ MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
   animation.SetAnimation("DEFAULT");
 
   auto onEnd = [this]() {
-    this->Delete();
+    Delete();
   };
 
   animation << onEnd;
 
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
 }
 
 void MobMoveEffect::OnUpdate(float _elapsed) {
-  this->setPosition(this->GetTile()->getPosition());
+  setPosition(GetTile()->getPosition());
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
 }
 
 void MobMoveEffect::OnDelete()

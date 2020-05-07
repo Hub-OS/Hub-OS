@@ -21,7 +21,7 @@
 
 AlphaCore::AlphaCore(Rank _rank)
   : BossPatternAI<AlphaCore>(this), Character(_rank) {
-  Entity::team = Team::BLUE;
+  Entity::team = Team::blue;
   totalElapsed = 0;
   coreHP = prevCoreHP = 40;
   coreRegen = 0;
@@ -29,19 +29,19 @@ AlphaCore::AlphaCore(Rank _rank)
   setScale(2.f, 2.f);
 
   SetName("Alpha");
-  this->SetHealth(2000);
+  SetHealth(2000);
   SetLayer(1);
 
   impervious = false;
   shootSuperVulcans = false;
 
   //Components setup and load
-  this->animationComponent = (AnimationComponent*)RegisterComponent(new AnimationComponent(this));
-  this->animationComponent->SetPath(RESOURCE_PATH);
-  this->animationComponent->Load();
-  this->animationComponent->SetAnimation("CORE_FULL");
-  this->animationComponent->SetPlaybackMode(Animator::Mode::Loop);
-  this->animationComponent->OnUpdate(0);
+  animationComponent = CreateComponent<AnimationComponent>(this);
+  animationComponent->SetPath(RESOURCE_PATH);
+  animationComponent->Load();
+  animationComponent->SetAnimation("CORE_FULL");
+  animationComponent->SetPlaybackMode(Animator::Mode::Loop);
+  animationComponent->OnUpdate(0);
 
   animation = Animation(animationComponent->GetFilePath());
   animation.Load();
@@ -84,11 +84,11 @@ AlphaCore::AlphaCore(Rank _rank)
   leftShoulderShoot->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
   leftShoulderShoot->SetLayer(-4);
 
-  this->AddNode(acid);
-  this->AddNode(head);
-  this->AddNode(side);
-  this->AddNode(rightShoulder);
-  this->AddNode(leftShoulder);
+  AddNode(acid);
+  AddNode(head);
+  AddNode(side);
+  AddNode(rightShoulder);
+  AddNode(leftShoulder);
   rightShoulder->AddNode(rightShoulderShoot);
   leftShoulder->AddNode(leftShoulderShoot);
 
@@ -96,32 +96,32 @@ AlphaCore::AlphaCore(Rank _rank)
   rightShoulderShoot->Hide();
 
   virusBody = new DefenseVirusBody();
-  this->AddDefenseRule(virusBody);
+  AddDefenseRule(virusBody);
 
   defense = new AlphaCoreDefenseRule(coreHP);
-  this->AddDefenseRule(defense);
+  AddDefenseRule(defense);
 
   // arms
   rightArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::RIGHT_IDLE);
   leftArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::LEFT_IDLE);
 
   // Setup AI pattern
-  this->AddState<AlphaIdleState>();
-  this->AddState<AlphaClawSwipeState>();
-  this->AddState<AlphaClawSwipeState>();
-  this->AddState<AlphaClawSwipeState>();
-  this->AddState<AlphaElectricState>();
-  this->AddState<AlphaIdleState>();
-  this->AddState<AlphaClawSwipeState>();
-  this->AddState<AlphaClawSwipeState>();
-  this->AddState<AlphaClawSwipeState>(true);
-  this->AddState<AlphaGunState>();
-  this->AddState<AlphaIdleState>();
-  this->AddState<AlphaClawSwipeState>();
-  this->AddState<AlphaClawSwipeState>();
-  this->AddState<AlphaClawSwipeState>();
-  this->AddState<AlphaGunState>();
-  this->AddState<AlphaRocketState>();
+  AddState<AlphaIdleState>();
+  AddState<AlphaClawSwipeState>();
+  AddState<AlphaClawSwipeState>();
+  AddState<AlphaClawSwipeState>();
+  AddState<AlphaElectricState>();
+  AddState<AlphaIdleState>();
+  AddState<AlphaClawSwipeState>();
+  AddState<AlphaClawSwipeState>();
+  AddState<AlphaClawSwipeState>(true);
+  AddState<AlphaGunState>();
+  AddState<AlphaIdleState>();
+  AddState<AlphaClawSwipeState>();
+  AddState<AlphaClawSwipeState>();
+  AddState<AlphaClawSwipeState>();
+  AddState<AlphaGunState>();
+  AddState<AlphaRocketState>();
 }
 
 AlphaCore::~AlphaCore() {
@@ -179,19 +179,19 @@ void AlphaCore::OnUpdate(float _elapsed) {
       }
 
       if (coreHP <= 0) {
-        this->animationComponent->SetAnimation("CORE_EXPOSED");
-        this->animationComponent->SetPlaybackMode(Animator::Mode::Loop);
+        animationComponent->SetAnimation("CORE_EXPOSED");
+        animationComponent->SetPlaybackMode(Animator::Mode::Loop);
       }
       else if (coreHP <= 20) {
-        this->animationComponent->SetAnimation("CORE_HALF");
-        this->animationComponent->SetPlaybackMode(Animator::Mode::Loop);
+        animationComponent->SetAnimation("CORE_HALF");
+        animationComponent->SetPlaybackMode(Animator::Mode::Loop);
       }
       else {
-        this->animationComponent->SetAnimation("CORE_FULL");
-        this->animationComponent->SetPlaybackMode(Animator::Mode::Loop);
+        animationComponent->SetAnimation("CORE_FULL");
+        animationComponent->SetPlaybackMode(Animator::Mode::Loop);
       }
 
-      this->animationComponent->OnUpdate(0);
+      animationComponent->OnUpdate(0);
     }
   }
 
@@ -222,7 +222,7 @@ void AlphaCore::OnUpdate(float _elapsed) {
     animation.Update(totalElapsed+0.04f, rightShoulderShoot->getSprite());
   }
 
-  this->BossPatternAI<AlphaCore>::Update(_elapsed);
+  BossPatternAI<AlphaCore>::Update(_elapsed);
 }
 
 const bool AlphaCore::OnHit(const Hit::Properties props) {
@@ -235,23 +235,23 @@ const float AlphaCore::GetHeight() const {
 
 void AlphaCore::OnSpawn(Battle::Tile & start)
 {
-    this->RevealLeftArm();
-    this->RevealRightArm();
+    RevealLeftArm();
+    RevealRightArm();
 
     // Block player from stealing rows
     Battle::Tile* block = GetField()->GetAt(4, 1);
-    block->ReserveEntityByID(this->GetID());
+    block->ReserveEntityByID(GetID());
 
     block = GetField()->GetAt(4, 2);
-    block->ReserveEntityByID(this->GetID());
+    block->ReserveEntityByID(GetID());
 
     block = GetField()->GetAt(4, 3);
-    block->ReserveEntityByID(this->GetID());
+    block->ReserveEntityByID(GetID());
 }
 
 void AlphaCore::OnDelete() {
   if (virusBody) {
-    this->RemoveDefenseRule(virusBody);
+    RemoveDefenseRule(virusBody);
     delete virusBody;
     virusBody = nullptr;
   }
@@ -267,7 +267,7 @@ void AlphaCore::OnDelete() {
   AUDIO.StopStream();
 
   // Explode if health depleted
-  this->InterruptState<ExplodeState<AlphaCore>>(15, 0.8);
+  InterruptState<ExplodeState<AlphaCore>>(15, 0.8);
 }
 
 void AlphaCore::OpenShoulderGuns()
@@ -351,7 +351,7 @@ void AlphaCore::RevealRightArm()
 
 void AlphaCore::EnableImpervious(bool impervious)
 {
-  this->impervious = impervious;
+  AlphaCore::impervious = impervious;
   coreHP = 40;
 }
 
@@ -365,7 +365,7 @@ void AlphaCore::ShootSuperVulcans()
 AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 
-const bool AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) {
+const bool AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) {
   AlphaCore* alpha = static_cast<AlphaCore*>(&owner);
   if (alpha->impervious) {  
     arbiter.BlockDamage();

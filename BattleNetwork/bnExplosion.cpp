@@ -24,7 +24,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   offsetArea = sf::Vector2f(20.f, 0.f);
   SetOffsetArea(offsetArea);
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
+  AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
 
   animationComponent->SetAnimation("EXPLODE");
   animationComponent->SetPlaybackSpeed(playbackSpeed);
@@ -37,17 +37,17 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
    * If there are more explosions expected, spawn a copy on frame 8
    */
   animationComponent->AddCallback(12, [this]() {
-    this->root->IncrementExplosionCount();
-    this->setColor(sf::Color(0, 0, 0, 0));
+    root->IncrementExplosionCount();
+    setColor(sf::Color(0, 0, 0, 0));
   }, Animator::NoCallback, true);
 
   if (_numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this, _field, _team, _numOfExplosions]() {
-      this->GetField()->AddEntity(*new Explosion(*this), *this->GetTile());
+      GetField()->AddEntity(*new Explosion(*this), *GetTile());
     }, Animator::NoCallback, true);
   }
 
-  this->RegisterComponent(animationComponent);
+  RegisterComponent(animationComponent);
 }
 
 Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
@@ -63,13 +63,13 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
   setScale(2.f, 2.f);
 
-  animationComponent = new AnimationComponent(this);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath("resources/mobs/mob_explosion.animation");
   animationComponent->Reload();
 
   SetOffsetArea(copy.offsetArea);
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
+  AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
 
   animationComponent->SetAnimation("EXPLODE");
   animationComponent->SetPlaybackSpeed(playbackSpeed);
@@ -82,20 +82,18 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
    * Spawn a copy on frame 8
    */
   animationComponent->AddCallback(12, [this]() {
-    this->Delete(); this->root->IncrementExplosionCount();
+    Delete(); root->IncrementExplosionCount();
   }, Animator::NoCallback, true);
 
   if (numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this]() {
-      this->GetField()->AddEntity(*new Explosion(*this), *this->GetTile());
+      GetField()->AddEntity(*new Explosion(*this), *GetTile());
     }, Animator::NoCallback, true);
   }
   else {
     // Last explosion happens behind entities
-    this->SetLayer(1000); // ensure bottom draw
+    SetLayer(1000); // ensure bottom draw
   }
-
-  this->RegisterComponent(animationComponent);
 }
 
 void Explosion::OnUpdate(float _elapsed) {
@@ -109,10 +107,12 @@ void Explosion::OnUpdate(float _elapsed) {
     }
   }
 
-  if(this->numOfExplosions != 1) {
-    setPosition((GetTile()->getPosition().x + offset.x), (GetTile()->getPosition().y + offset.y));
+  float height = 15.0f;
+
+  if(numOfExplosions != 1) {
+    setPosition((GetTile()->getPosition().x + offset.x), (GetTile()->getPosition().y + offset.y)-height);
   } else {
-    setPosition((GetTile()->getPosition().x), (GetTile()->getPosition().y));
+    setPosition((GetTile()->getPosition().x), GetTile()->getPosition().y-height);
   }
 }
 
@@ -135,7 +135,7 @@ void Explosion::SetOffsetArea(sf::Vector2f area)
   if ((int)area.x == 0) area.x = 1;
   if ((int)area.y == 0) area.y = 1;
 
-  this->offsetArea = area;
+  offsetArea = area;
 
   int randX = rand() % (int)(area.x+0.5f);
   int randY = rand() % (int)(area.y+0.5f);

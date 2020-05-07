@@ -16,7 +16,7 @@ void ProgsManShootState::OnEnter(ProgsMan& progs) {
     Buster* buster = new Buster(progs.GetField(), progs.GetTeam(), false, 10);
 
     // Spawn a buster aiming down the field
-    Direction dir = (progs.GetTeam() == Team::BLUE)? Direction::LEFT : Direction::RIGHT;
+    Direction dir = (progs.GetTeam() == Team::blue)? Direction::left : Direction::right;
     buster->SetDirection(dir);
     buster->SetTile(progs.GetTarget()->GetTile());
     
@@ -24,7 +24,7 @@ void ProgsManShootState::OnEnter(ProgsMan& progs) {
     progs.GetField()->AddEntity(*buster, progs.GetTile()->GetX(), progs.GetTile()->GetY());
   };
 
-  auto onFinish = [this, p = &progs]() { p->ChangeState<ProgsManIdleState>(); };
+  auto onFinish = [this, p = &progs]() { p->GoToNextState(); };
 
   progs.SetAnimation("SHOOT", onFinish);
   progs.SetCounterFrame(1);

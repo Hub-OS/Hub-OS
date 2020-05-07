@@ -113,7 +113,7 @@ namespace Battle {
      * @brief Get the number of entities occupying this tile
      * Size
      */
-    const size_t GetEntityCount() const { return this->entities.size(); }
+    const size_t GetEntityCount() const { return entities.size(); }
     
     /**
      * @brief Get the height of the tile sprite
@@ -143,7 +143,7 @@ namespace Battle {
     
     /**
      * @brief Query if the tile is cracked
-     * @return true if state == TileState::CRACKED 
+     * @return true if state == TileState::cracked 
      */
     bool IsCracked() const;
 

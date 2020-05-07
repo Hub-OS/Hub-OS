@@ -10,13 +10,13 @@
 #define PATH "resources/spells/spell_bomb.png"
 
 BombCardAction::BombCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_THROW", &attachment, "Hand") {
-  this->damage = damage;
+  BombCardAction::damage = damage;
 
   overlay.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
   swoosh::game::setOrigin(overlay, 0.5, 0.5);
 
-  this->attachment = new SpriteProxyNode(overlay);
-  this->attachment->SetLayer(-1);
+  attachment = new SpriteProxyNode(overlay);
+  attachment->SetLayer(-1);
 }
 
 BombCardAction::~BombCardAction()
@@ -25,7 +25,7 @@ BombCardAction::~BombCardAction()
 
 void BombCardAction::Execute() {
   auto owner = GetOwner();
-  owner->AddNode(this->attachment);
+  owner->AddNode(attachment);
 
   // On throw frame, spawn projectile
   auto onThrow = [this, owner]() -> void {
@@ -41,7 +41,7 @@ void BombCardAction::Execute() {
   };
 
 
-  this->AddAction(3, onThrow);
+  AddAction(3, onThrow);
 }
 
 void BombCardAction::OnUpdate(float _elapsed)
@@ -51,7 +51,7 @@ void BombCardAction::OnUpdate(float _elapsed)
 
 void BombCardAction::EndAction()
 {
-  this->GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->RemoveNode(attachment);
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

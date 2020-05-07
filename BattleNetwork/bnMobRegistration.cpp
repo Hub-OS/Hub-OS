@@ -24,25 +24,25 @@ MobRegistration::MobMeta::~MobMeta()
 
 MobRegistration::MobMeta& MobRegistration::MobMeta::SetPlaceholderTexturePath(std::string path)
 {
-  this->placeholderPath = path;
+  placeholderPath = path;
   return *this;
 }
 
 MobRegistration::MobMeta& MobRegistration::MobMeta::SetDescription(const std::string & message)
 {
-  this->description = message;
+  description = message;
   return *this;
 }
 
 MobRegistration::MobMeta& MobRegistration::MobMeta::SetAttack(const int atk)
 {
-  this->atk = atk;
+  MobMeta::atk = atk;
   return *this;
 }
 
 MobRegistration::MobMeta& MobRegistration::MobMeta::SetSpeed(const double speed)
 {
-  this->speed = speed;
+  MobMeta::speed = speed;
   return *this;
 }
 
@@ -54,23 +54,23 @@ MobRegistration::MobMeta& MobRegistration::MobMeta::SetHP(const int HP)
 
 MobRegistration::MobMeta & MobRegistration::MobMeta::SetName(const std::string & name)
 {
-  this->name = name;
+  MobMeta::name = name;
   return *this;
 }
 
 const std::shared_ptr<sf::Texture> MobRegistration::MobMeta::GetPlaceholderTexture() const
 {
-  return this->placeholderTexture;
+  return placeholderTexture;
 }
 
 const std::string MobRegistration::MobMeta::GetPlaceholderTexturePath() const
 {
-  return this->placeholderPath;
+  return placeholderPath;
 }
 
 const std::string MobRegistration::MobMeta::GetName() const
 {
-  return this->name;
+  return name;
 }
 
 const std::string MobRegistration::MobMeta::GetHPString() const
@@ -80,7 +80,7 @@ const std::string MobRegistration::MobMeta::GetHPString() const
 
 const std::string MobRegistration::MobMeta::GetDescriptionString() const
 {
-  return this->description;
+  return description;
 }
 
 

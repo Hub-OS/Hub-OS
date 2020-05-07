@@ -51,14 +51,14 @@ void UndernetBackground::Update(float _elapsed) {
     sf::Color mix = sf::Color((int)r, (int)g, (int)b);
 
     // Assign the color
-    this->setColor(mix);
+    setColor(mix);
 
     // Use the remaining time to see if we've ended
     alpha = swoosh::ease::linear(colorProgress - (colorDuration.asSeconds()*0.75f), 0.30f, 1.0f);
 
     if (alpha == 1.0f) {
       // Move onto the next color
-      this->setColor(sf::Color::White);
+      setColor(sf::Color::White);
       colorProgress = 0;
       colorIndex = (colorIndex + 1) % (int)colors.size();;
     }

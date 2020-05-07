@@ -15,7 +15,7 @@ MiniBomb::MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   cooldown = 0;
   damageCooldown = 0;
 
-  this->HighlightTile(Battle::Tile::Highlight::flash);
+  HighlightTile(Battle::Tile::Highlight::flash);
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
   setScale(2.f, 2.f);
 
@@ -26,14 +26,14 @@ MiniBomb::MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   auto props = Hit::DefaultProperties;
   props.damage = damage;
   props.flags |= Hit::flinch;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   arcDuration = _duration;
   arcProgress = 0;
 
   start = startPos;
 
-  swoosh::game::setOrigin(this->getSprite(), 0.5, 0.5);
+  swoosh::game::setOrigin(getSprite(), 0.5, 0.5);
   
   AUDIO.Play(AudioType::TOSS_ITEM);
 }
@@ -59,14 +59,14 @@ void MiniBomb::OnUpdate(float _elapsed) {
     // update tile to target tile 
     if (tile->IsWalkable()) {
       tile->AffectEntities(this);
-      Artifact* explosion = new Explosion(this->GetField(), this->GetTeam());
-      this->GetField()->AddEntity(*explosion, this->tile->GetX(), this->tile->GetY());
-      this->Delete();
+      Artifact* explosion = new Explosion(GetField(), GetTeam());
+      GetField()->AddEntity(*explosion, tile->GetX(), tile->GetY());
+      Delete();
     }
     else {
       auto fx = new MobMoveEffect(GetField());
-      GetField()->AddEntity(*fx, *this->GetTile());
-      this->Delete();
+      GetField()->AddEntity(*fx, *GetTile());
+      Delete();
     }
   }
 }
@@ -77,10 +77,10 @@ bool MiniBomb::Move(Direction _direction) {
 
 void MiniBomb::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
-  this->Delete();
+  Delete();
 }
 
 void MiniBomb::OnDelete()
 {
-    this->Remove();
+    Remove();
 }

@@ -5,14 +5,14 @@
 
 namespace Battle {
     Card::Card(std::string uuid, char code, unsigned damage, Element element, string sname, string desc, string verboseDesc, unsigned rarity) :
-        uuid(uuid), code(code), damage(damage), unmodDamage(damage), element(element), secondaryElement(Element::NONE),
+        uuid(uuid), code(code), damage(damage), unmodDamage(damage), element(element), secondaryElement(Element::none),
         navi(false), support(false), timeFreeze(false)
     {
-        this->shortname.assign(sname);
-        this->description.assign(desc);
-        this->verboseDescription.assign(verboseDesc);
-        this->rarity = std::max((unsigned)1, rarity);
-        this->rarity = std::min(this->rarity, (unsigned)5);
+        shortname.assign(sname);
+        description.assign(desc);
+        verboseDescription.assign(verboseDesc);
+        Card::rarity = std::max((unsigned)1, rarity);
+        Card::rarity = std::min(rarity, (unsigned)5);
     }
 
     Card::Card() {
@@ -79,7 +79,7 @@ namespace Battle {
 
     const Element Card::GetSecondaryElement() const
     {
-        return (element == secondaryElement) ? Element::NONE : secondaryElement;
+        return (element == secondaryElement) ? Element::none : secondaryElement;
     }
 
     const unsigned Card::GetRarity() const

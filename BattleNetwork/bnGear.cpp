@@ -7,35 +7,34 @@
 
 Gear::Gear(Field* _field, Team _team, Direction startDir) 
     : startDir(startDir), stopMoving(false), Obstacle(field, team) {
-  this->setTexture(LOAD_TEXTURE(MOB_METALMAN_ATLAS));
-  this->setScale(2.f, 2.f);
-  this->SetFloatShoe(false);
-  this->SetName("MetalGear");
-  this->SetTeam(_team);
-  this->SetDirection(startDir);
-  this->HighlightTile(Battle::Tile::Highlight::solid);
+  setTexture(LOAD_TEXTURE(MOB_METALMAN_ATLAS));
+  setScale(2.f, 2.f);
+  SetFloatShoe(false);
+  SetName("MetalGear");
+  SetTeam(_team);
+  SetDirection(startDir);
+  HighlightTile(Battle::Tile::Highlight::solid);
 
-  animation = new AnimationComponent(this);
-  this->RegisterComponent(animation);
+  animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/mobs/metalman/metalman.animation");
   animation->Load();
   animation->SetAnimation("GEAR", Animator::Mode::Loop);
 
   std::function<void(BattleScene&, Gear&)> battleOverCallback = [this](BattleScene&, Gear&) {
-      this->stopMoving = true;
+      stopMoving = true;
   };
 
-  this->SetHealth(999);
+  SetHealth(999);
 
   animation->OnUpdate(0);
 
-  this->SetSlideTime(sf::seconds(2.0f)); // crawl
+  SetSlideTime(sf::seconds(2.0f)); // crawl
 
   Hit::Properties props = Hit::DefaultProperties;
   props.flags |= Hit::recoil | Hit::breaking;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
-  tileStartTeam = Team::UNKNOWN;
+  tileStartTeam = Team::unknown;
 
   AddDefenseRule(new DefenseIndestructable(true));
 
@@ -55,11 +54,11 @@ bool Gear::CanMoveTo(Battle::Tile * next)
 
   if (valid) {
     if (next->ContainsEntityType<Gear>()) {
-      if (this->GetDirection() == Direction::LEFT) {
-        this->SetDirection(Direction::RIGHT);
+      if (GetDirection() == Direction::left) {
+        SetDirection(Direction::right);
       }
-      else if(this->GetDirection() == Direction::RIGHT) {
-        this->SetDirection(Direction::LEFT);
+      else if(GetDirection() == Direction::right) {
+        SetDirection(Direction::left);
       }
       return false;
     }
@@ -67,18 +66,18 @@ bool Gear::CanMoveTo(Battle::Tile * next)
     return true;
   }
 
-  if (this->GetDirection() == Direction::LEFT) {
-    this->SetDirection(Direction::RIGHT);
+  if (GetDirection() == Direction::left) {
+    SetDirection(Direction::right);
   }
-  else if (this->GetDirection() == Direction::RIGHT) {
-    this->SetDirection(Direction::LEFT);
+  else if (GetDirection() == Direction::right) {
+    SetDirection(Direction::left);
   }
 
   return false;
 }
 
 void Gear::OnUpdate(float _elapsed) {
-  if (tileStartTeam == Team::UNKNOWN && tile) {
+  if (tileStartTeam == Team::unknown && tile) {
     tileStartTeam = tile->GetTeam();
   }
 
@@ -87,28 +86,28 @@ void Gear::OnUpdate(float _elapsed) {
   if (stopMoving) return;
 
   // May have just finished moving
-  this->tile->AffectEntities(this);
+  tile->AffectEntities(this);
 
   // Keep moving
-  if (!this->IsSliding()) {
-    this->SlideToTile(true);
-    this->Move(this->GetDirection());
+  if (!IsSliding()) {
+    SlideToTile(true);
+    Move(GetDirection());
   }
 
-  if (this->GetDirection() == Direction::NONE) {
-    if (this->GetPreviousDirection() == Direction::LEFT) {
-      this->SetDirection(Direction::RIGHT);
+  if (GetDirection() == Direction::none) {
+    if (GetPreviousDirection() == Direction::left) {
+      SetDirection(Direction::right);
     }
-    else if (this->GetPreviousDirection() == Direction::RIGHT) {
-      this->SetDirection(Direction::LEFT);
+    else if (GetPreviousDirection() == Direction::right) {
+      SetDirection(Direction::left);
     }
-    else if (this->GetPreviousDirection() == Direction::NONE) {
-      this->SetDirection(startDir); // Todo: should slide mechanism remove previous direction info? This works but not necessary
+    else if (GetPreviousDirection() == Direction::none) {
+      SetDirection(startDir); // Todo: should slide mechanism remove previous direction info? This works but not necessary
     }
 
     // Now try to move
-    this->SlideToTile(true);
-    this->Move(this->GetDirection());
+    SlideToTile(true);
+    Move(GetDirection());
   }
 
 }
@@ -128,7 +127,7 @@ void Gear::Attack(Character* other) {
     auto props = Hit::DefaultProperties;
     props.damage = 9999;
     isObstacle->Hit(props);
-    this->hit = true;
+    hit = true;
     return;
   }
 

@@ -5,7 +5,7 @@ namespace Overworld {
   InfiniteMap::InfiniteMap(int branchDepth, int numOfCols, int tileWidth, int tileHeight) 
     : Overworld::Map(numOfCols, 0, tileWidth, tileHeight)
   {
-    this->branchDepth = branchDepth;
+    branchDepth = branchDepth;
 
     ToggleLighting(false);
 
@@ -157,7 +157,7 @@ namespace Overworld {
 
     if (std::max((int)(map.size()-branchDepth), 0) < cols*5) {
 
-      Overworld::Tile* tile = new Tile(sf::Vector2f(head->GetPos().x + this->GetTileSize().x, head->GetPos().y));
+      Overworld::Tile* tile = new Tile(sf::Vector2f(head->GetPos().x + GetTileSize().x, head->GetPos().y));
       map.push_back(tile);
 
       head = tile;
@@ -187,7 +187,7 @@ namespace Overworld {
         if (randDirection == 0) {
             distFromPath--;
 
-            offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y + this->GetTileSize().y));
+            offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y + GetTileSize().y));
             map.push_back(offroad);
                 
             if (randSpawnNPC == 0 && distFromPath != 0) {
@@ -200,7 +200,7 @@ namespace Overworld {
                 npcs.back()->sprite.setPosition(pos);
                 npcPosition = pos;
 
-                this->AddSprite(&npcs.back()->sprite);
+                AddSprite(&npcs.back()->sprite);
             }
             
         depth++;
@@ -208,7 +208,7 @@ namespace Overworld {
         else if (randDirection == 1) {
             distFromPath++;
 
-            offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y - this->GetTileSize().y));
+            offroad = new Tile(sf::Vector2f(offroad->GetPos().x, offroad->GetPos().y - GetTileSize().y));
             map.push_back(offroad);
 
             if (randSpawnNPC == 0 && distFromPath != 0) {
@@ -221,13 +221,13 @@ namespace Overworld {
                 npcs.back()->sprite.setPosition(pos);
                 npcPosition = pos;
 
-                this->AddSprite(&npcs.back()->sprite);
+                AddSprite(&npcs.back()->sprite);
             }
 
             depth++;
         }
         else if (depth > 1) {
-            offroad = new Tile(sf::Vector2f(offroad->GetPos().x + this->GetTileSize().x, offroad->GetPos().y));
+            offroad = new Tile(sf::Vector2f(offroad->GetPos().x + GetTileSize().x, offroad->GetPos().y));
             map.push_back(offroad);
 
             depth++;
@@ -246,11 +246,11 @@ namespace Overworld {
         double radius = (double)(rand() % 120);
 
         if(randLight < 3)
-            this->AddLight(new Light(pos, sf::Color(r + lighten, 0, r + lighten, 255), radius));
+            AddLight(new Light(pos, sf::Color(r + lighten, 0, r + lighten, 255), radius));
         else if (randLight < 6)
-            this->AddLight(new Light(pos, sf::Color(0, g + lighten, b + lighten, 255), radius));
+            AddLight(new Light(pos, sf::Color(0, g + lighten, b + lighten, 255), radius));
         else
-            this->AddLight(new Light(pos, sf::Color(0, 0, b + lighten, 255), radius));
+            AddLight(new Light(pos, sf::Color(0, 0, b + lighten, 255), radius));
         }
 
         if (randDirection != 2) {
@@ -259,7 +259,7 @@ namespace Overworld {
 
 #ifndef __ANDROID__
       if (npcType == NPCType::MR_PROG_FIRE) {
-        this->AddLight(new Light(npcPosition, sf::Color(255, 120, 0), 10));
+        AddLight(new Light(npcPosition, sf::Color(255, 120, 0), 10));
       }
 #endif
 

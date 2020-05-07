@@ -3,8 +3,8 @@
 #include "bnShaderResourceManager.h"
 
 Obstacle::Obstacle(Field* _field, Team _team) : Spell(_field, _team), Character()  {
-  this->field = _field;
-  this->team = _team;
+  field = _field;
+  team = _team;
 
   SetFloatShoe(true);
   SetLayer(1);
@@ -31,7 +31,7 @@ void Obstacle::AdoptTile(Battle::Tile * tile)
   tile->AddEntity(*this);
 
   if (!IsSliding()) {
-    this->setPosition(tile->getPosition());
+    setPosition(tile->getPosition());
   }
 }
 

@@ -36,7 +36,7 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
 
     // TODO: fully use scene nodes on all card slots and the GUI sprite
-    // this->AddSprite(custSprite);
+    // AddSprite(custSprite);
 
     icon.setTextureRect(sf::IntRect{ 0,0,14,14 });
     icon.setScale(sf::Vector2f(2.f, 2.f));
@@ -108,7 +108,7 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     formSelect.setScale(2.f, 2.f);
     formCursor.setScale(2.f, 2.f);
 
-    //this->setScale(0.5f, 0.5); // testing transforms
+    //setScale(0.5f, 0.5); // testing transforms
 }
 
 
@@ -127,8 +127,6 @@ CardSelectionCust::~CardSelectionCust() {
 
   cardCount = 0;
 
-  delete labelFont;
-  delete codeFont;
   delete folder;
 }
 
@@ -147,7 +145,7 @@ bool CardSelectionCust::CursorUp() {
 
       if (forms.size()) {
         auto onEnd = [this]() {
-          this->formSelectAnimator << "OPEN";
+          formSelectAnimator << "OPEN";
         };
 
         formSelectAnimator << "OPENING" << onEnd;
@@ -341,23 +339,23 @@ bool CardSelectionCust::CursorCancel() {
 bool CardSelectionCust::IsOutOfView() {
   float bounds = 0;
 
-  if (this->getPosition().x <= bounds) {
-    this->setPosition(bounds, this->getPosition().y);
+  if (getPosition().x <= bounds) {
+    setPosition(bounds, getPosition().y);
   }
 
-  return (this->getPosition().x == bounds);
+  return (getPosition().x == bounds);
 }
 
 const bool CardSelectionCust::IsInView() {
   float bounds = custSprite.getTextureRect().width*2.f;
 
-  // std::cout << "this->getPosition().x: " << this->getPosition().x << std::endl;
+  // std::cout << "getPosition().x: " << getPosition().x << std::endl;
 
-  if (this->getPosition().x >= bounds) {
-    this->setPosition(bounds, this->getPosition().y);
+  if (getPosition().x >= bounds) {
+    setPosition(bounds, getPosition().y);
   }
 
-  return (this->getPosition().x == bounds);
+  return (getPosition().x == bounds);
 }
 
 bool CardSelectionCust::IsCardDescriptionTextBoxOpen()
@@ -366,8 +364,8 @@ bool CardSelectionCust::IsCardDescriptionTextBoxOpen()
 }
 
 void CardSelectionCust::Move(sf::Vector2f delta) {
-  this->setPosition(this->getPosition() + delta);
-  this->IsInView();
+  setPosition(getPosition() + delta);
+  IsInView();
 }
 
 bool CardSelectionCust::OpenCardDescription()
@@ -472,11 +470,11 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
 }
 
 void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states) const {
-  if(this->IsHidden()) return;
+  if(IsHidden()) return;
 
-  states.transform = this->getTransform();
+  states.transform = getTransform();
 
-  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddSprite() for all rendered items below
+  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddSprite() for all rendered items below
   custSprite.setPosition(-sf::Vector2f(custSprite.getTextureRect().width*2.f, 0));
   target.draw(custSprite, states);
 
@@ -621,7 +619,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   if (isInFormSelect) {
     if (formSelectAnimator.GetAnimationString() == "OPEN") {
       int i = 0;
-      auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddSprite() for all rendered items below
+      auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddSprite() for all rendered items below
 
       for (auto f : formUI) {
         formItemBG.setPosition(offset + 16.f, 16.f + float(i*32.0f));
@@ -682,7 +680,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
 void CardSelectionCust::Update(float elapsed)
 {
-  if (this->IsHidden()) {
+  if (IsHidden()) {
     canInteract = false;
     return;
   }
@@ -701,7 +699,7 @@ void CardSelectionCust::Update(float elapsed)
   formCursorAnimator.Update(elapsed, formCursor.getSprite());
   formSelectAnimator.Update(elapsed, formSelect.getSprite());
 
-  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use this->AddNode() for all rendered items below
+  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
 
   formCursor.setPosition(offset + 16.f, 12.f + float(formCursorRow*32.f));
   formSelect.setPosition(offset + 88.f, 194.f);
@@ -739,7 +737,7 @@ void CardSelectionCust::Update(float elapsed)
       row = 1;
     }
     if (IsInView()) {
-        float offset = 0;//-custSprite.getTextureRect().width*2.f; // this will be uneccessary once we use this->AddNode() for all rendered items below
+        float offset = 0;//-custSprite.getTextureRect().width*2.f; // this will be uneccessary once we use AddNode() for all rendered items below
 
         icon.setPosition(offset + 2.f*(9.0f + ((float)(i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
 
@@ -791,7 +789,7 @@ void CardSelectionCust::Update(float elapsed)
 
 #endif
 
-  this->isInView = IsInView();
+  isInView = IsInView();
 }
 
 Battle::Card** CardSelectionCust::GetCards() {

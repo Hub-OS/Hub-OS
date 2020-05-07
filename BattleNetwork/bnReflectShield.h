@@ -71,5 +71,5 @@ public:
    * @param in the attack we are reflecting
    * @param owner the owner of the attack
    */
-  void DoReflect(Spell* in, Character* owner);
+  void DoReflect(Spell& in, Character& owner);
 };

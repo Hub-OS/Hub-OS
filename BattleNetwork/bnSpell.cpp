@@ -26,9 +26,9 @@ void Spell::Update(float _elapsed) {
 
   Entity::Update(_elapsed);
 
-  this->OnUpdate(_elapsed);
+  OnUpdate(_elapsed);
 
-  this->setPosition(getPosition().x, getPosition().y + (float)heightOffset);
+  setPosition(getPosition().x, getPosition().y + (float)heightOffset);
 }
 const Battle::Tile::Highlight Spell::GetTileHighlightMode() const {
   return mode;
@@ -39,13 +39,13 @@ void Spell::AdoptTile(Battle::Tile * tile)
   tile->AddEntity(*this);
 
   if (!IsSliding()) {
-    this->setPosition(tile->getPosition());
+    setPosition(tile->getPosition());
   }
 }
 
 void Spell::HighlightTile(Battle::Tile::Highlight mode)
 {
-  this->mode = mode;
+  Spell::mode = mode;
 }
 
 void Spell::SetHitboxProperties(Hit::Properties props)
@@ -55,7 +55,7 @@ void Spell::SetHitboxProperties(Hit::Properties props)
 
 const Hit::Properties Spell::GetHitboxProperties() const
 {
-  return this->hitboxProperties;
+  return hitboxProperties;
 }
 
 void Spell::SetHeight(double height)

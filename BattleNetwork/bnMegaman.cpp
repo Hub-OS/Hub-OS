@@ -13,17 +13,16 @@
 #include "bnPaletteSwap.h"
 
 Megaman::Megaman() : Player() {
-
-  PaletteSwap* pswap = new PaletteSwap(this, TEXTURES.LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png"));
-  RegisterComponent(pswap);
+  auto basePallete = TEXTURES.LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
+  PaletteSwap* pswap = CreateComponent<PaletteSwap>(this, basePallete);
 
   SetHealth(900);
   SetName("Megaman");
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
-  this->AddForm<TenguCross>()->SetUIPath("resources/navis/megaman/forms/tengu_entry.png");
-  this->AddForm<HeatCross>()->SetUIPath("resources/navis/megaman/forms/heat_entry.png");
-  this->AddForm<TomahawkCross>()->SetUIPath("resources/navis/megaman/forms/hawk_entry.png");
+  AddForm<TenguCross>()->SetUIPath("resources/navis/megaman/forms/tengu_entry.png");
+  AddForm<HeatCross>()->SetUIPath("resources/navis/megaman/forms/heat_entry.png");
+  AddForm<TomahawkCross>()->SetUIPath("resources/navis/megaman/forms/hawk_entry.png");
 }
 
 Megaman::~Megaman()
@@ -158,7 +157,7 @@ void HeatCross::OnActivate(Player& player)
 
   pswap->LoadPaletteTexture("resources/navis/megaman/forms/heat.palette.png");
 
-  player.SetElement(Element::FIRE);
+  player.SetElement(Element::fire);
 
   loaded = true;
 
@@ -175,7 +174,7 @@ void HeatCross::OnDeactivate(Player & player)
   auto pswap = player.GetFirstComponent<PaletteSwap>();
   pswap->Revert();
 
-  player.SetElement(Element::NONE);
+  player.SetElement(Element::none);
 
   parentAnim->RemoveFromOverrideList(&overlayAnimation);
 
@@ -289,11 +288,11 @@ CardAction* TomahawkCross::OnSpecialAction(Player& player)
 
 TenguCross::SpecialAction::SpecialAction(Character* owner) : CardAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
   overlay.setTexture(*owner->getTexture());
-  this->attachment = new SpriteProxyNode(overlay);
-  this->attachment->SetLayer(-1);
-  this->attachment->EnableParentShader(true);
+  attachment = new SpriteProxyNode(overlay);
+  attachment->SetLayer(-1);
+  attachment->EnableParentShader(true);
 
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 
   attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
@@ -307,7 +306,7 @@ TenguCross::SpecialAction::~SpecialAction()
 void TenguCross::SpecialAction::OnUpdate(float _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
-  attachmentAnim.Update(_elapsed, this->attachment->getSprite());
+  attachmentAnim.Update(_elapsed, attachment->getSprite());
 }
 
 void TenguCross::SpecialAction::Execute()
@@ -316,8 +315,8 @@ void TenguCross::SpecialAction::Execute()
   auto team = owner->GetTeam();
   auto field = owner->GetField();
 
-  owner->AddNode(this->attachment);
-  attachmentAnim.Update(0, this->attachment->getSprite());
+  owner->AddNode(attachment);
+  attachmentAnim.Update(0, attachment->getSprite());
 
   // On throw frame, spawn projectile
   auto onThrow = [this, owner, team, field]() -> void {
@@ -331,12 +330,12 @@ void TenguCross::SpecialAction::Execute()
     field->AddEntity(*wind, 6, 3);
   };
 
-  this->AddAction(3, onThrow);
+  AddAction(3, onThrow);
 }
 
 void TenguCross::SpecialAction::EndAction()
 {
-  this->GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->RemoveNode(attachment);
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

@@ -77,8 +77,8 @@ std::shared_ptr<Texture> TextureResourceManager::GetTexture(TextureType _ttype) 
   return textures.at(_ttype).GetResource();
 }
 
-Font* TextureResourceManager::LoadFontFromFile(string _path) {
-  Font* font = new Font();
+std::shared_ptr<Font> TextureResourceManager::LoadFontFromFile(string _path) {
+  std::shared_ptr<Font> font = std::make_shared<Font>();
   if (!font->loadFromFile(_path)) {
     Logger::Logf("Failed loading font: %s", _path.c_str());
   } else {

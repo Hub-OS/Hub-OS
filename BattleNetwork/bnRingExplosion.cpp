@@ -11,8 +11,8 @@ using sf::IntRect;
 RingExplosion::RingExplosion(Field* field) : Artifact(field)
 {
   SetLayer(0);
-  this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_RING_EXPLOSION));
-  this->setScale(2.f, 2.f);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_RING_EXPLOSION));
+  setScale(2.f, 2.f);
   poof = getSprite();
 
   //Components setup and load
@@ -22,21 +22,21 @@ RingExplosion::RingExplosion(Field* field) : Artifact(field)
   animation.SetAnimation("EXPLODE");
 
   auto onEnd = [this]() {
-    this->Delete();
+    Delete();
   };
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::LOW);
+  AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
 
   animation << onEnd;
 
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
 }
 
 void RingExplosion::OnUpdate(float _elapsed) {
-  this->setPosition(this->GetTile()->getPosition());
+  setPosition(GetTile()->getPosition());
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
 }
 

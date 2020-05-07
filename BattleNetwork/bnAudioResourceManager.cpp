@@ -42,15 +42,15 @@ void AudioResourceManager::EnableAudio(bool status) {
   isEnabled = status;
 
   if(isEnabled) {
-    this->SetStreamVolume(this->streamVolume);
-    this->SetChannelVolume(this->channelVolume);
+    SetStreamVolume(streamVolume);
+    SetChannelVolume(channelVolume);
   } else {
-    auto streamBefore = this->streamVolume;
-    auto channelBefore = this->channelVolume;
-    this->SetStreamVolume(0);
-    this->SetChannelVolume(0);
-    this->streamVolume = streamBefore;
-    this->channelVolume = channelBefore;
+    auto streamBefore = streamVolume;
+    auto channelBefore = channelVolume;
+    SetStreamVolume(0);
+    SetChannelVolume(0);
+    streamVolume = streamBefore;
+    channelVolume = channelBefore;
   }
 }
 
@@ -121,7 +121,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   // Annoying sound check. Make sure duplicate sounds are played only by a given amount of offset from the last time it was played.
   // This prevents amplitude stacking when duplicate sounds are played on the same frame...
   // NOTE: an audio queue would be a better place for this check. Then play() those sounds that pass the queue filter.
-  if (priority < AudioPriority::HIGH) {
+  if (priority < AudioPriority::high) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getBuffer() == &sources[type] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
         auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
@@ -139,7 +139,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
 
 
   // Highest priority plays over anything that isn't like it
-  if (priority == AudioPriority::HIGHEST) {
+  if (priority == AudioPriority::highest) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type]) {
 
@@ -156,7 +156,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
 
   // For lowest priority or high priority sounds, scan and see if this sound is already playing...
   // This step is also used as a pre-check for low priority sounds
-  if (priority == AudioPriority::LOWEST || priority == AudioPriority::HIGH) {
+  if (priority == AudioPriority::lowest || priority == AudioPriority::high) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
         if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type]) {
@@ -169,7 +169,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
 
   // Play sound based on priortiy rules
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
-    if (priority != AudioPriority::HIGH) {
+    if (priority != AudioPriority::high) {
       if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing) {
         channels[i].buffer.setBuffer(sources[type]);
         channels[i].buffer.play();
@@ -178,8 +178,8 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
       }
     }
     else { // HIGH PRIORITY will not overwrite other HIGH priorities unless they have ended
-      bool canOverwrite = channels[i].priority < AudioPriority::HIGH 
-        ||(channels[i].priority == AudioPriority::HIGH && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing);
+      bool canOverwrite = channels[i].priority < AudioPriority::high 
+        ||(channels[i].priority == AudioPriority::high && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing);
       if (canOverwrite) {
         channels[i].buffer.stop();
         channels[i].buffer.setBuffer(sources[type]);

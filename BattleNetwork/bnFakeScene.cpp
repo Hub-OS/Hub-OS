@@ -4,7 +4,7 @@
 #include "Segues/BlackWashFade.h"
 
 FakeScene::FakeScene(swoosh::ActivityController& controller, sf::Texture& snapshot) : swoosh::Activity(&controller) {
-  this->snapshot = sf::Sprite(snapshot);
+  FakeScene::snapshot = sf::Sprite(snapshot);
   triggered = false;
 }
 

@@ -14,7 +14,7 @@ SharedHitbox::SharedHitbox(Spell* owner, float duration) : owner(owner), Spell(o
 
   Entity::RemoveCallback& deleteHandler = owner->CreateRemoveCallback();
   deleteHandler.Slot([this]() {
-      this->owner = nullptr;
+      SharedHitbox::owner = nullptr;
   });
 }
 
@@ -26,17 +26,17 @@ void SharedHitbox::OnUpdate(float _elapsed) {
   
   tile->AffectEntities(this);
   
-  if (this->owner) {
-      if (this->owner->IsDeleted()) {
-          this->Delete();
+  if (owner) {
+      if (owner->IsDeleted()) {
+          Delete();
       }
       else if (!keepAlive && cooldown <= 0.f ) {
-          this->Delete();
+          Delete();
       }
   }
-  else if (this->keepAlive) {
+  else if (keepAlive) {
       // If we are set to KeepAlive but the owner isn't set, delete
-      this->Delete();
+      Delete();
   }
 }
 
@@ -52,7 +52,7 @@ void SharedHitbox::Attack(Character* _entity) {
   }
 
   // Remove after first registered hit
-  this->Delete();
+  Delete();
 }
 
 void SharedHitbox::OnDelete()

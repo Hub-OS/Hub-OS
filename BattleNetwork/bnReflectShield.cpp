@@ -12,8 +12,8 @@ const std::string RESOURCE_PATH = "resources/spells/reflect_shield.animation";
 ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Artifact(nullptr), Component(owner)
 {
   SetLayer(0);
-  this->setTexture(TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
-  this->setScale(2.f, 2.f);
+  setTexture(TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
+  setScale(2.f, 2.f);
   shield = getSprite();
   activated = false;
 
@@ -24,23 +24,23 @@ ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Art
   animation.SetAnimation("DEFAULT");
 
   // Specify the guard callback when it fails
-  DefenseGuard::Callback callback = [this](Spell* in, Character* owner) {
-    this->DoReflect(in, owner);
+  DefenseGuard::Callback callback = [this](Spell& in, Character& owner) {
+    DoReflect(in, owner);
   };
 
   // Build a basic guard rule
-  this->guard = new DefenseGuard(callback);
+  guard = new DefenseGuard(callback);
 
   // When the animtion ends, remove the defense rule
   auto onEnd = [this]() {
-    this->GetOwnerAs<Character>()->RemoveDefenseRule(this->guard);
+    GetOwnerAs<Character>()->RemoveDefenseRule(guard);
   };
 
   // Add end callback, flag for deletion, and remove the component from the owner
   // This way the owner doesn't container a pointer to an invalid address
-  animation << Animator::On(5, onEnd, true) << [this]() { this->Delete(); this->GetOwner()->FreeComponentByID(this->Component::GetID()); };
+  animation << Animator::On(5, onEnd, true) << [this]() { Delete(); GetOwner()->FreeComponentByID(Component::GetID()); };
 
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
   // Add the defense rule to the owner
   owner->AddDefenseRule(guard);
@@ -51,11 +51,11 @@ void ReflectShield::Inject(BattleScene& bs) {
 }
 
 void ReflectShield::OnUpdate(float _elapsed) {
-  if (!this->GetTile()) return;
+  if (!GetTile()) return;
 
-  this->setPosition(this->GetTile()->getPosition());
+  setPosition(GetTile()->getPosition());
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
 }
 
 void ReflectShield::OnDelete()
@@ -68,34 +68,34 @@ bool ReflectShield::Move(Direction _direction)
   return false;
 }
 
-void ReflectShield::DoReflect(Spell* in, Character* owner)
+void ReflectShield::DoReflect(Spell& in, Character& owner)
 {
-  if (!this->activated) {
+  if (!activated) {
 
     AUDIO.Play(AudioType::GUARD_HIT);
 
-    Direction direction = Direction::NONE;
+    Direction direction = Direction::none;
 
-    if (GetOwner()->GetTeam() == Team::RED) {
-      direction = Direction::RIGHT;
+    if (GetOwner()->GetTeam() == Team::red) {
+      direction = Direction::right;
     }
-    else if (GetOwner()->GetTeam() == Team::BLUE) {
-      direction = Direction::LEFT;
+    else if (GetOwner()->GetTeam() == Team::blue) {
+      direction = Direction::left;
     }
 
-    Field* field = owner->GetField();
+    Field* field = owner.GetField();
 
-    Spell* rowhit = new RowHit(field, owner->GetTeam(), damage);
+    Spell* rowhit = new RowHit(field, owner.GetTeam(), damage);
     rowhit->SetDirection(direction);
 
-    field->AddEntity(*rowhit, owner->GetTile()->GetX() + 1, owner->GetTile()->GetY());
+    field->AddEntity(*rowhit, owner.GetTile()->GetX() + 1, owner.GetTile()->GetY());
 
     // Only emit a row hit once
-    this->activated = true;
+    activated = true;
   }
 }
 
 ReflectShield::~ReflectShield()
 {
-  delete this->guard;
+  delete guard;
 }

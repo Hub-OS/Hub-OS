@@ -131,7 +131,7 @@ PlayerFormMeta* Player::AddForm() {
   PlayerFormMeta* info = new PlayerFormMeta(formSize+1);
   info->SetFormClass<T>();
   
-  if (!this->RegisterForm(info)) {
+  if (!RegisterForm(info)) {
     delete info;
     info = nullptr;
   }

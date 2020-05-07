@@ -15,13 +15,13 @@ using std::vector;
  * @date 01/05/19
  * @brief spooky cloud background that animates and moves
  */
-class GraveyardBackground : public Background
+class GraveyardBackground final : public Background
 {
 public:
   GraveyardBackground();
   ~GraveyardBackground();
 
-  virtual void Update(float _elapsed);
+  void Update(float _elapsed) override;
 
 private:
   float x, y;

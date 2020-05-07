@@ -13,7 +13,6 @@ CustEmblem::CustEmblem() {
 }
 
 void CustEmblem::CreateWireEffect() {
-
   sf::Color mix = sf::Color::White;
 
   WireEffect w;

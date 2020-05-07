@@ -44,7 +44,7 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
       };
       auto onGroundHit = [this, m = metal]() {       
         Logger::Log("on ground hit called"); 
-        this->Attack(*m); 
+        Attack(*m); 
       };
 
       metal->SetAnimation("PUNCH", onFinishPunch); // TODO: this is not firing
@@ -55,7 +55,7 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
 
     };
 
-    metal.SetAnimation(MOB_MOVING, onFinish);
+    metal.SetAnimation("MOVING", onFinish);
   }
   else {
     metal.GoToNextState();
@@ -64,7 +64,7 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
 }
 
 void MetalManPunchState::OnLeave(MetalMan& metal) {
-  metal.SetAnimation(MOB_IDLE);
+  metal.SetAnimation("IDLE");
 
 }
 
@@ -86,15 +86,15 @@ void MetalManPunchState::Attack(MetalMan& metal) {
 
     metal.field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
 
-    if (tile->GetState() != TileState::EMPTY && tile->GetState() != TileState::BROKEN) {
+    if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
       ENGINE.GetCamera()->ShakeCamera(5.0, sf::seconds(0.5));
       AUDIO.Play(AudioType::PANEL_CRACK);
 
-      if (tile->GetState() == TileState::CRACKED) {
-        tile->SetState(TileState::BROKEN);
+      if (tile->GetState() == TileState::cracked) {
+        tile->SetState(TileState::broken);
       }
       else {
-        tile->SetState(TileState::CRACKED);
+        tile->SetState(TileState::cracked);
       }
     }
   }

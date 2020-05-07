@@ -715,9 +715,6 @@
     <Filter Include="Factories\MobRegistration\MobFactories\SpawnPolicies">
       <UniqueIdentifier>{81d9d5d5-0eae-40eb-bcf8-b901b9638cec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Factories\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy">
-      <UniqueIdentifier>{8deab339-cfc6-43e6-b86c-2cb7f139d585}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Factories\MobRegistration\MobFactories\SpawnPolicies\CardSpawnPolicies">
       <UniqueIdentifier>{818f9f46-08a6-49c1-917e-8f8dbd065e02}</UniqueIdentifier>
     </Filter>
@@ -863,9 +860,6 @@
     </ClCompile>
     <ClCompile Include="bnCanonSmoke.cpp">
       <Filter>Screens/Activities\Battle\Entities\Artifact\Cannon</Filter>
-    </ClCompile>
-    <ClCompile Include="bnAnimatedCharacter.cpp">
-      <Filter>Screens/Activities\Battle\Entities\Character</Filter>
     </ClCompile>
     <ClCompile Include="bnStarman.cpp">
       <Filter>Screens/Activities\Battle\Entities\Character\Players\Starman</Filter>
@@ -1506,9 +1500,11 @@
     <ClCompile Include="bnElecPulseCardAction.cpp">
       <Filter>Screens/Activities\Battle\Cards\Actions\ElecPulse</Filter>
     </ClCompile>
-    <ClCompile Include="bnDelayedAttack.cpp" />
-    <ClCompile Include="bnDefenseResolutionArbiter.cpp">
+    <ClCompile Include="bnDefenseFrameStateArbiter.cpp">
       <Filter>Screens/Activities\Battle\BattleStepModifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDelayedAttack.cpp">
+      <Filter>Screens/Activities\Battle\Entities\Spell\DelayedAttack</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1537,9 +1533,6 @@
       <Filter>Screens/Activities\Battle\Entities\Character\Mettaur</Filter>
     </ClInclude>
     <ClInclude Include="bnPlayerState.h">
-      <Filter>Enumerations</Filter>
-    </ClInclude>
-    <ClInclude Include="bnMobState.h">
       <Filter>Enumerations</Filter>
     </ClInclude>
     <ClInclude Include="bnTileState.h">
@@ -1692,9 +1685,6 @@
     </ClInclude>
     <ClInclude Include="bnElements.h">
       <Filter>Enumerations</Filter>
-    </ClInclude>
-    <ClInclude Include="bnAnimatedCharacter.h">
-      <Filter>Screens/Activities\Battle\Entities\Character</Filter>
     </ClInclude>
     <ClInclude Include="bnNoState.h">
       <Filter>Screens/Activities\Battle\AI\Any\States</Filter>
@@ -1860,9 +1850,6 @@
     </ClInclude>
     <ClInclude Include="bnGuardHit.h">
       <Filter>Screens/Activities\Battle\Entities\Artifact\Particles\Impact\Guard</Filter>
-    </ClInclude>
-    <ClInclude Include="AlphaBossSpawnPolicy.h">
-      <Filter>Factories\MobRegistration\MobFactories\SpawnPolicies\AlphaBossSpawnPolicy</Filter>
     </ClInclude>
     <ClInclude Include="bnReflectShield.h">
       <Filter>Screens/Activities\Battle\Entities\Artifact\ReflectShield</Filter>
@@ -2365,7 +2352,7 @@
     <ClInclude Include="bnNaviWhiteoutState.h">
       <Filter>Screens/Activities\Battle\AI\Any\States</Filter>
     </ClInclude>
-    <ClInclude Include="bnDefenseResolutionArbiter.h">
+    <ClInclude Include="bnDefenseFrameStateArbiter.h">
       <Filter>Screens/Activities\Battle\BattleStepModifiers</Filter>
     </ClInclude>
   </ItemGroup>

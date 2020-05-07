@@ -13,14 +13,14 @@ ProgsManIdleState::~ProgsManIdleState()
 }
 
 void ProgsManIdleState::OnEnter(ProgsMan& progs) {
-  progs.SetAnimation(MOB_IDLE);
+  progs.SetAnimation("IDLE");
 }
 
 void ProgsManIdleState::OnUpdate(float _elapsed, ProgsMan& progs) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {
-    progs.ChangeState<ProgsManMoveState>();
+    progs.GoToNextState();
   }
 }
 

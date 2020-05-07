@@ -12,13 +12,13 @@ using std::vector;
 
 #include "bnBackground.h"
 
-class VirusBackground : public Background
+class VirusBackground final : public Background
 {
 public:
   VirusBackground();
   ~VirusBackground();
 
-  virtual void Update(float _elapsed);
+  void Update(float _elapsed) override;
 
 private:
   float x, y;

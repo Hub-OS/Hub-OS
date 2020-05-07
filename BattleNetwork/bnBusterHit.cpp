@@ -14,9 +14,8 @@ BusterHit::BusterHit(Field* _field, Type type) : Artifact(_field)
   field = _field;
 
   //Components setup and load
-  auto onFinish = [&]() { this->Delete();  };
-  animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
+  auto onFinish = [&]() { Delete();  };
+  animationComponent = CreateComponent<AnimationComponent>(this);
 
   if (type == Type::CHARGED) {
     setTexture(TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));

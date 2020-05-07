@@ -180,7 +180,7 @@ touchPosX = touchPosStartX = -1;
   currCardIndex = lastCardOnScreen = prevIndex = 0;
   totalTimeElapsed = frameElapsed = 0.0;
 
-  this->MakeUniqueCardsFromPack();
+  MakeUniqueCardsFromPack();
 }
 
 LibraryScene::~LibraryScene() { ; }
@@ -190,14 +190,14 @@ void LibraryScene::MakeUniqueCardsFromPack()
   CardLibrary::Iter iter = CHIPLIB.Begin();
 
   for (iter; iter != CHIPLIB.End(); iter++) {
-    this->uniqueCards.insert(uniqueCards.begin(), *iter);
+    uniqueCards.insert(uniqueCards.begin(), *iter);
   }
 
   auto pred = [](const Battle::Card &a, const Battle::Card &b) -> bool {
     return a.GetShortName() == b.GetShortName();
   };
 
-  this->uniqueCards.unique(pred);
+  uniqueCards.unique(pred);
 
   numOfCards = (int)uniqueCards.size();
 }
@@ -208,7 +208,7 @@ void LibraryScene::onStart() {
   gotoNextScene = false;
 
 #ifdef __ANDROID__
-  this->StartupTouchControls();
+  StartupTouchControls();
 #endif
 }
 
@@ -311,7 +311,7 @@ void LibraryScene::onUpdate(double elapsed) {
 
 void LibraryScene::onLeave() {
 #ifdef __ANDROID__
-  this->ShutdownTouchControls();
+  ShutdownTouchControls();
 #endif
 }
 
@@ -325,7 +325,7 @@ void LibraryScene::onEnter()
 
 void LibraryScene::onResume() {
 #ifdef __ANDROID__
-  this->StartupTouchControls();
+  StartupTouchControls();
 #endif
 }
 
@@ -410,16 +410,12 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 }
 
 void LibraryScene::onEnd() {
-  delete font;
-  delete cardFont;
-  delete cardDescFont;
-  delete numberFont;
   delete menuLabel;
   delete numberLabel;
   delete cardDesc;
 
 #ifdef __ANDROID__
-  this->ShutdownTouchControls();
+  ShutdownTouchControls();
 #endif
 }
 
@@ -436,16 +432,16 @@ void LibraryScene::StartupTouchControls() {
   });
 
   rightSide.onRelease([this](sf::Vector2i delta) {
-      if(!this->releasedB) {
+      if(!releasedB) {
         INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
       }
   });
 
   rightSide.onDrag([this](sf::Vector2i delta){
-      if(delta.x < -25 && !this->releasedB) {
+      if(delta.x < -25 && !releasedB) {
         INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
         INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
-        this->releasedB = true;
+        releasedB = true;
       }
   });
 }

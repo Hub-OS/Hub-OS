@@ -11,10 +11,10 @@
 
 
 RecoverCardAction::RecoverCardAction(Character * owner, int heal) : CardAction(owner, "PLAYER_IDLE", nullptr, "Origin") {
-  this->heal = heal;
+  RecoverCardAction::heal = heal;
 
   // add override anims
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 }
 
 RecoverCardAction::~RecoverCardAction()
@@ -46,6 +46,6 @@ void RecoverCardAction::OnUpdate(float _elapsed)
 
 void RecoverCardAction::EndAction()
 {
-  GetOwner()->FreeComponentByID(this->GetID());
+  GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

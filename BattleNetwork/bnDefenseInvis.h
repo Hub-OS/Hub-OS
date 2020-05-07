@@ -21,5 +21,5 @@ public:
    * @param owner the character with Invis defense (this) added
    * @return true if triggered, false, if not
    */
-  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner) override;
+  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
 };

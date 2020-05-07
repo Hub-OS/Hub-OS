@@ -14,7 +14,7 @@ ElementalDamage::ElementalDamage(Field* field) : Artifact(field), animationCompo
   SetLayer(0);
   setTexture(LOAD_TEXTURE(ELEMENT_ALERT));
   setScale(0.f, 0.0f);
-  swoosh::game::setOrigin(this->getSprite(), 0.5, 0.5);
+  swoosh::game::setOrigin(getSprite(), 0.5, 0.5);
   progress = 0;
 }
 
@@ -24,7 +24,7 @@ void ElementalDamage::OnUpdate(float _elapsed) {
   auto alpha = swoosh::ease::wideParabola(progress, 0.5f, 4.0f);
 
   if (progress > 1.0f) {
-    this->Delete();
+    Delete();
   }
 
   setScale(2.f*alpha, 2.f*alpha);

@@ -16,13 +16,13 @@ using std::vector;
  * @date 09/21/19
  * @brief weather forecast background that moves
  */
-class WeatherBackground : public Background
+class WeatherBackground final : public Background
 {
 public:
   WeatherBackground();
   ~WeatherBackground();
 
-  virtual void Update(float _elapsed);
+  void Update(float _elapsed) override;
 
 private:
   float x, y;

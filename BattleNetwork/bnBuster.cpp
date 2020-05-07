@@ -31,7 +31,6 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
   random = 0;
 
   animationComponent = CreateComponent<AnimationComponent>(this);
-  this->RegisterComponent(animationComponent);
 
   if (_charged) {
     texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
@@ -46,12 +45,12 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
   }
   setScale(2.f, 2.f);
 
-  AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::HIGH);
+  AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::high);
 
   auto props = Hit::DefaultProperties;
   props.flags = props.flags & ~Hit::recoil;
   props.damage = damage;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   contact = nullptr;
   spawnGuard = false;
@@ -71,7 +70,7 @@ void Buster::OnUpdate(float _elapsed) {
       cooldown = 0;
     }
     else {
-      this->Delete();
+      Delete();
     }
   }
 
@@ -106,8 +105,8 @@ void Buster::Attack(Character* _entity) {
 
   auto bhit = new BusterHit(GetField(), isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
   bhit->SetOffset({ random, GetHeight() + hitHeight });
-  GetField()->AddEntity(*bhit, *this->GetTile());
+  GetField()->AddEntity(*bhit, *GetTile());
 
-  this->Delete();
+  Delete();
   AUDIO.Play(AudioType::HURT);
 }

@@ -19,19 +19,18 @@ ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->Ge
   SetPassthrough(true);
   random = rand() % 20 - 20;
 
-  int lr = (team == Team::RED) ? 1 : -1;
+  int lr = (team == Team::red) ? 1 : -1;
   setScale(2.0f*lr, 2.0f);
 
   Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
-  this->field->AddEntity(*this, *_tile);
+  field->AddEntity(*this, *_tile);
 
   AUDIO.Play(AudioType::APPEAR);
 
   setTexture(TEXTURES.LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
 
-  animationComponent = new AnimationComponent(this);
-  this->RegisterComponent(animationComponent);
+  animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Load();
 
@@ -43,34 +42,34 @@ ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->Ge
   while (iter != allTiles.end()) {
     next = (*iter);
 
-	  if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != this->GetTeam()) {
-		Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
+    if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != GetTeam()) {
+    Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
 
-		auto characters = prev->FindEntities([_summons](Entity* in) {
-			return _summons->GetCaller() != in && (dynamic_cast<Character*>(in)  && in->GetTeam() != Team::UNKNOWN);
-		});
+    auto characters = prev->FindEntities([_summons](Entity* in) {
+      return _summons->GetCaller() != in && (dynamic_cast<Character*>(in)  && in->GetTeam() != Team::unknown);
+    });
 
-	    bool blocked = (characters.size() > 0) || !prev->IsWalkable();
+      bool blocked = (characters.size() > 0) || !prev->IsWalkable();
 
-	    if(!blocked) {
-			targets.push_back(next);
-	    }
-	  }
+      if(!blocked) {
+      targets.push_back(next);
+      }
+    }
 
     iter++;
   }
 
   // TODO: noodely callbacks desgin might be best abstracted by ActionLists
   animationComponent->SetAnimation("APPEAR", [this] {
-	auto handleAttack = [this] () {
-	    this->DoAttackStep();
+  auto handleAttack = [this] () {
+      DoAttackStep();
     };
-    this->animationComponent->SetAnimation("MOVE", handleAttack);
+    animationComponent->SetAnimation("MOVE", handleAttack);
   });
 
   auto props = GetHitboxProperties();
   props.damage = 120;
-  props.flags |= Hit::flinch | Hit::shake;
+  props.flags |= Hit::flinch;
   props.aggressor = _summons->GetCaller();
   SetHitboxProperties(props);
 }
@@ -80,31 +79,29 @@ ProtoManSummon::~ProtoManSummon() {
 
 void ProtoManSummon::DoAttackStep() {
   if (targets.size() > 0) {
-	Battle::Tile* prev = field->GetAt(targets[0]->GetX() - 1, targets[0]->GetY());
-    this->GetTile()->RemoveEntityByID(this->GetID());
+  Battle::Tile* prev = field->GetAt(targets[0]->GetX() - 1, targets[0]->GetY());
+    GetTile()->RemoveEntityByID(GetID());
     prev->AddEntity(*this);
 
-	this->animationComponent->SetAnimation("ATTACK", [this, prev] {
-	  this->animationComponent->SetAnimation("MOVE", [this, prev] {
-		this->DoAttackStep();
-	  });
-	});
+  animationComponent->SetAnimation("ATTACK", [this, prev] {
+    animationComponent->SetAnimation("MOVE", [this, prev] {
+    DoAttackStep();
+    });
+  });
 
-	this->animationComponent->AddCallback(4,  [this]() {
-    for (auto entity : this->targets[0]->FindEntities([](Entity* e) { return dynamic_cast<Character*>(e); })) {
-      Attack(dynamic_cast<Character*>(entity));
+  animationComponent->AddCallback(4,  [this]() {
+    for (auto entity : targets[0]->FindEntities([](Entity* e) { return dynamic_cast<Character*>(e); })) {
+      entity->GetTile()->AffectEntities(this);
     }
 
-		this->targets.erase(targets.begin());
-	}, Animator::NoCallback, true);
+    targets.erase(targets.begin());
+  }, Animator::NoCallback, true);
   }
   else {
-	this->animationComponent->SetAnimation("MOVE", [this] {
-	// TODO: queue for removal by next update, dont delete immediately
-	// esp during anim callbacks...
-    this->Delete();
+  animationComponent->SetAnimation("MOVE", [this] {
+    Delete();
     summons->GetCaller()->Reveal();
-	});
+  });
   }
 }
 
@@ -127,7 +124,7 @@ void ProtoManSummon::Attack(Character* _entity) {
   SwordEffect* effect = new SwordEffect(GetField());
   effect->SetAnimation("WIDE");
   GetField()->AddEntity(*effect, *_entity->GetTile());
-  this->summons->SummonEntity(effect, false);
+  summons->SummonEntity(effect, false);
 
   auto props = GetHitboxProperties();
   _entity->Hit(props);

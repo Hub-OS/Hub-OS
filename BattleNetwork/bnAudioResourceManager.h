@@ -23,10 +23,10 @@
   *                HIGHEST (force a channel to play sound always)
   */
 enum class AudioPriority : int {
-  LOWEST,
-  LOW,
-  HIGH,
-  HIGHEST
+  lowest,
+  low,
+  high,
+  highest
 };
 
 /**
@@ -68,7 +68,7 @@ public:
    * @param priority describes if and how to interrupt other playing samples
    * @return -1 if could not play, otherwise 0
    */
-  int Play(AudioType type, AudioPriority priority = AudioPriority::LOW);
+  int Play(AudioType type, AudioPriority priority = AudioPriority::low);
   int Stream(std::string path, bool loop = false, sf::Music::TimeSpan span = sf::Music::TimeSpan());
   void StopStream();
   void SetStreamVolume(float volume);

@@ -45,7 +45,7 @@ protected:
       if (it != IDs.end()) {
         // Remove me out of rotation...
         IDs.erase(it);
-        this->EndMyTurn();
+        EndMyTurn();
       }
     }
   }

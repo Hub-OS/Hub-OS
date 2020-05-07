@@ -23,11 +23,11 @@ SpriteProxyNode::SpriteProxyNode(sf::Sprite& rhs) : SceneNode() {
 }
 
 SpriteProxyNode::~SpriteProxyNode() {
-  if(allocatedSprite) delete this->sprite;
+  if(allocatedSprite) delete sprite;
 }
 
 void SpriteProxyNode::operator=(sf::Sprite& rhs) {
-  if(allocatedSprite) delete this->sprite;
+  if(allocatedSprite) delete sprite;
 
   sprite = &rhs;
   textureRef = std::make_shared<sf::Texture>();
@@ -101,7 +101,7 @@ void SpriteProxyNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
   if (!show) return;
 
   // combine the parent transform with the node's one
-  sf::Transform combinedTransform =this->getTransform();
+  sf::Transform combinedTransform =getTransform();
 
   states.transform *= combinedTransform;
 
@@ -114,7 +114,7 @@ void SpriteProxyNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
     states.shader = nullptr;
   }
 
-  std::vector<SceneNode*> copies = this->childNodes;
+  std::vector<SceneNode*> copies = childNodes;
   copies.push_back((SceneNode*)this);
 
   std::sort(copies.begin(), copies.end(), [](SceneNode* a, SceneNode* b) { return (a->GetLayer() > b->GetLayer()); });

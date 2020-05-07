@@ -12,7 +12,7 @@ FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(da
 
   //When the animation ends, delete this
   auto onFinish = [this]() {
-    this->Delete();
+    Delete();
   };
 
   animation = Animation("resources/spells/spell_flame.animation");
@@ -29,16 +29,16 @@ FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(da
   }
 
   animation << onFinish;
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
-  this->HighlightTile(Battle::Tile::Highlight::solid);
+  HighlightTile(Battle::Tile::Highlight::solid);
 
   auto props = GetHitboxProperties();
   props.flags &= ~Hit::recoil;
   props.flags |= Hit::breaking | Hit::flinch;
   props.damage = damage;
-  props.element = Element::FIRE;
-  this->SetHitboxProperties(props);
+  props.element = Element::fire;
+  SetHitboxProperties(props);
 }
 
 FireBurn::~FireBurn() {
@@ -48,10 +48,10 @@ void FireBurn::OnUpdate(float _elapsed) {
   auto xoffset = 38.0f; // the flames come out a little from the origin
   setPosition(tile->getPosition().x + xoffset, tile->getPosition().y);
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
 
   // crack the tile it is on
-  GetTile()->SetState(TileState::CRACKED);
+  GetTile()->SetState(TileState::cracked);
 
   tile->AffectEntities(this);
 }
@@ -61,7 +61,7 @@ bool FireBurn::Move(Direction _direction) {
 }
 
 void FireBurn::Attack(Character* _entity) {
-  if (_entity->Hit(this->GetHitboxProperties())) {
+  if (_entity->Hit(GetHitboxProperties())) {
     AUDIO.Play(AudioType::HURT);
   }
 }

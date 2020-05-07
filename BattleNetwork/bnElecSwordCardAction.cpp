@@ -14,14 +14,14 @@
 #define FRAMES FRAME1, FRAME2, FRAME3
 
 ElecSwordCardAction::ElecSwordCardAction(Character * owner, int damage) : LongSwordCardAction(owner, damage) {
-  this->damage = damage;
+  ElecSwordCardAction::damage = damage;
 
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   attachmentAnim = Animation(ANIM);
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
 
-  this->OverrideAnimationFrames({ FRAMES });
+  OverrideAnimationFrames({ FRAMES });
 }
 
 ElecSwordCardAction::~ElecSwordCardAction()

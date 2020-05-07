@@ -6,10 +6,11 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include <SFML/Graphics.hpp>
+#include <memory>
 
 class TextBox : public sf::Drawable, public sf::Transformable {
 private:
-  sf::Font* font;
+  std::shared_ptr<sf::Font> font;
   mutable sf::Text text;
   double charsPerSecond; /**< default is 10 cps */
   double progress; /**< Total elapsed time */

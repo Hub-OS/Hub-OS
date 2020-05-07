@@ -9,10 +9,10 @@
 #include "bnAudioResourceManager.h"
 
 Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _team) {
-  this->SetLayer(0);
+  SetLayer(0);
   SetPassthrough(true);
-  this->SetElement(Element::ELEC);
-  this->HighlightTile(Battle::Tile::Highlight::flash);
+  SetElement(Element::elec);
+  HighlightTile(Battle::Tile::Highlight::flash);
   setScale(2.f, 2.f);
   progress = 0.0f;
 
@@ -20,12 +20,11 @@ Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _tea
   
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
 
-  animation = new AnimationComponent(this);
-  this->RegisterComponent(animation);
+  animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/elecpulse.animation");
   animation->Reload();
 
-  auto onFinish = [this]() { this->Delete(); };
+  auto onFinish = [this]() { Delete(); };
   animation->SetAnimation("PULSE", onFinish);
 }
 
@@ -62,9 +61,9 @@ void Elecpulse::Attack(Character* _entity) {
         return; // we've already hit this entity somewhere
 
     Hit::Properties props;
-    props.element = this->GetElement();
+    props.element = GetElement();
     props.flags = Hit::recoil | Hit::stun | Hit::drag;
-    props.drag = (GetTeam() == Team::RED)? Direction::LEFT : Direction::RIGHT;
+    props.drag = (GetTeam() == Team::red)? Direction::left : Direction::right;
     props.damage = damage;
 
     _entity->Hit(props);

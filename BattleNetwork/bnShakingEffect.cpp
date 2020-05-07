@@ -39,5 +39,5 @@ void ShakingEffect::OnUpdate(float _elapsed)
 void ShakingEffect::Inject(BattleScene &bscene)
 {
   bscene.Inject(this);
-  this->bscene = &bscene;
+  ShakingEffect::bscene = &bscene;
 }

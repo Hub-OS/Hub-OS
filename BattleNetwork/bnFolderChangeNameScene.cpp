@@ -147,7 +147,7 @@ void FolderChangeNameScene::onStart() {
 }
 
 void FolderChangeNameScene::onUpdate(double elapsed) {
-  this->elapsed += float(elapsed);
+  FolderChangeNameScene::elapsed += float(elapsed);
 
   bool executeAction = false; // Did we execute the action this frame?
 
@@ -270,7 +270,7 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
 
   // Resolve action command if any
   if (executeAction) {
-    this->ExecuteAction(currTable, cursorPosX, cursorPosY);
+    ExecuteAction(currTable, cursorPosX, cursorPosY);
   }
 
   animatorLeft.Update ((float)elapsed, cursorPieceLeft);
@@ -285,7 +285,7 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(cursorPieceLeft);
   ENGINE.Draw(cursorPieceRight);
 
-  auto blink = int(this->elapsed * 3000) % 1000 < 500;
+  auto blink = int(elapsed * 3000) % 1000 < 500;
 
   for (int i = 0; i < name.size(); i++) {
     if(i == letterPos && blink)

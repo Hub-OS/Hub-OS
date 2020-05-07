@@ -3,7 +3,6 @@
 using sf::IntRect;
 
 #include "bnCharacter.h"
-#include "bnMobState.h"
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
 #include "bnMetalManIdleState.h"

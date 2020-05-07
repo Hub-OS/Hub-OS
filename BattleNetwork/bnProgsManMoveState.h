@@ -1,5 +1,5 @@
 /*! \brief This state determines how progsman moves and his next action based on his position */
-
+#pragma once
 #include "bnAIState.h"
 
 class ProgsMan;

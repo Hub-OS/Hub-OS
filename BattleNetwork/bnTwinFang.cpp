@@ -6,8 +6,8 @@
 
 TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_field, _team), type(_type) {
   // Blades float over tiles 
-  this->SetFloatShoe(true);
-  this->SetAirShoe(true);
+  SetFloatShoe(true);
+  SetAirShoe(true);
 
   switch(type) {
   case Type::ABOVE:
@@ -31,10 +31,9 @@ TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_f
 
   // Twin fang move from tile to tile in 4 frames
   // Adjust by speed factor
-  this->SetSlideTime(sf::seconds(1.0f / 15.0f));
+  SetSlideTime(sf::seconds(1.0f / 15.0f));
 
-  animation = new AnimationComponent(this);
-  this->RegisterComponent(animation);
+  animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/twin_fang.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT");
@@ -42,7 +41,7 @@ TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_f
   auto props = Hit::DefaultProperties;
   props.damage = damage;
   props.flags |= Hit::flinch;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   spreadOut = onEdgeOfMap = false;
 
@@ -84,27 +83,27 @@ void TwinFang::OnUpdate(float _elapsed) {
   else {
     if (onEdgeOfMap) {
       if (int(flickeroutTimer * 1000) % 3 == 0) {
-        this->Hide();
+        Hide();
       }
       else {
-        this->Reveal();
+        Reveal();
       }
 
       flickeroutTimer -= _elapsed;
 
       if (flickeroutTimer < 0) {
-        this->Delete();
+        Delete();
       }
     }
     else {
       // Always glide
       if (!IsSliding()) {
-        this->SlideToTile(true);
+        SlideToTile(true);
 
         // Keep moving
-        this->Move(this->GetDirection());
+        Move(GetDirection());
 
-        if (this->GetNextTile() == nullptr) {
+        if (GetNextTile() == nullptr) {
           // we hit the wall
           onEdgeOfMap = true;
         }

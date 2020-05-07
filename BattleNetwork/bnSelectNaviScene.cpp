@@ -108,8 +108,6 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
 
 SelectNaviScene::~SelectNaviScene()
 {
-  delete font;
-  delete naviFont;
   delete naviLabel;
   delete attackLabel;
   delete speedLabel;
@@ -261,7 +259,7 @@ void SelectNaviScene::onEnd()
 }
 
 void SelectNaviScene::onUpdate(double elapsed) {
-  this->elapsed = elapsed;
+  SelectNaviScene::elapsed = elapsed;
 
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
@@ -388,12 +386,12 @@ void SelectNaviScene::onUpdate(double elapsed) {
   // Refresh mob graphic origin every frame as it may change
   auto size = getController().getVirtualWindowSize();
 
-  navi.setPosition(range*size.x*0.425, size.y);
-  navi.setOrigin(navi.getTextureRect().width*0.5f, navi.getTextureRect().height);
+  navi.setPosition(range*float(size.x)*0.425f, float(size.y));
+  navi.setOrigin(float(navi.getTextureRect().width)*0.5f, float(navi.getTextureRect().height));
 
   // Make a selection
   if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && currentChosen != naviSelectionIndex) {
-    AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::LOW);
+    AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
     prevChosen = currentChosen;
     naviSelectionIndex = currentChosen;
   }

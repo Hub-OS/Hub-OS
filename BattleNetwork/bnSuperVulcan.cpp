@@ -12,20 +12,20 @@ SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : damage(damage)
 
   //When the animation ends, delete this
   auto onFinish = [this]() {
-    this->Delete();
+    Delete();
   };
 
   animation = Animation("resources/spells/spell_super_vulcan.animation");
   animation.Load();
   animation.SetAnimation("DEFAULT");
   animation << onFinish;
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
-  AUDIO.Play(AudioType::GUN, AudioPriority::HIGHEST);
+  AUDIO.Play(AudioType::GUN, AudioPriority::highest);
 
   auto props = GetHitboxProperties();
   props.damage = damage;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 }
 
 SuperVulcan::~SuperVulcan() {
@@ -34,7 +34,7 @@ SuperVulcan::~SuperVulcan() {
 void SuperVulcan::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
 
   tile->AffectEntities(this);
 }
@@ -44,7 +44,7 @@ bool SuperVulcan::Move(Direction _direction) {
 }
 
 void SuperVulcan::Attack(Character* _entity) {
-  if (_entity->Hit(this->GetHitboxProperties())) {
+  if (_entity->Hit(GetHitboxProperties())) {
     AUDIO.Play(AudioType::HURT);
   }
 }

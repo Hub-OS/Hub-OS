@@ -154,7 +154,7 @@ private:
   int randBG; /*!< If background provided by Mob data is nullptr, randomly select one */
 
   // PAUSE
-  sf::Font* font; /*!< PAUSE font */
+  std::shared_ptr<sf::Font> font; /*!< PAUSE font */
   sf::Text* pauseLabel; /*!< "PAUSE" test */
 
   // CHIP CUST GRAPHICS
@@ -167,7 +167,7 @@ private:
   double cardSelectInputCooldown; /*!< Time remaining with delayed input */
 
   // MOB
-  sf::Font *mobFont; /*!< Name of mob font */
+  std::shared_ptr<sf::Font> mobFont; /*!< Name of mob font */
   Mob* mob; /*!< Mob and mob data player are fighting against */
 
   // States. TODO: Abstract this further into battle state classes 
@@ -347,7 +347,7 @@ public:
    * @return true if isPostBattle is true, otherwise false
    */
   const bool IsCleared() {
-    return isPostBattle;
+    return mob->IsCleared();
   }
 
   /**

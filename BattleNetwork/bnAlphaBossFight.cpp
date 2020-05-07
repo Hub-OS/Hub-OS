@@ -28,9 +28,9 @@ Mob* AlphaBossFight::Build() {
   mob->Spawn<Rank1<AlphaCore, FadeInState>>(5, 2);
 
   Battle::Tile* tile = field->GetAt(5, 2);
-  if (!tile->IsWalkable()) { tile->SetState(TileState::NORMAL); }
+  if (!tile->IsWalkable()) { tile->SetState(TileState::normal); }
 
-  field->GetAt(2, 2)->SetState(TileState::HOLY);
+  field->GetAt(2, 2)->SetState(TileState::holy);
 
   return mob;
 }

@@ -4,7 +4,7 @@
 #include "bnObstacle.h"
 #include "bnSpell.h"
 #include "bnArtifact.h"
-#include "bnDefenseResolutionArbiter.h"
+#include "bnDefenseFrameStateArbiter.h"
 
 #include "bnPlayer.h"
 #include "bnExplosion.h"
@@ -31,13 +31,13 @@ namespace Battle {
     x = _x;
     y = _y;
     if (x <= 3) {
-      team = Team::RED;
+      team = Team::red;
     }
     else {
-      team = Team::BLUE;
+      team = Team::blue;
     }
 
-    state = TileState::NORMAL;
+    state = TileState::normal;
     entities = vector<Entity*>();
     setScale(2.f, 2.f);
     width = TILE_WIDTH * getScale().x;
@@ -159,23 +159,23 @@ namespace Battle {
 
   void Tile::SetTeam(Team _team, bool useFlicker) {
     // Check if no characters on the opposing team are on this tile
-    if (this->GetTeam() == Team::UNKNOWN || this->GetTeam() != _team) {
-      size_t size = this->FindEntities([this](Entity* in) {
-        return in->GetTeam() == this->GetTeam();
+    if (GetTeam() == Team::unknown || GetTeam() != _team) {
+      size_t size = FindEntities([this](Entity* in) {
+        return in->GetTeam() == GetTeam();
       }).size();
 
-      if (size == 0 && this->reserved.size() == 0) {
+      if (size == 0 && reserved.size() == 0) {
         team = _team;
         
         if(useFlicker) {
-          this->flickerTeamCooldown = this->flickerTeamCooldownLength;
+          flickerTeamCooldown = flickerTeamCooldownLength;
         }
         else {
-          this->flickerTeamCooldown = 0; // cancel 
-          this->teamCooldown = this->teamCooldownLength;
+          flickerTeamCooldown = 0; // cancel 
+          teamCooldown = teamCooldownLength;
         }
 
-        this->RefreshTexture();
+        RefreshTexture();
       }
     }
   }
@@ -195,15 +195,15 @@ namespace Battle {
   void Tile::SetState(TileState _state) {
     if (IsEdgeTile()) return; // edge tiles are immutable
 
-    if (_state == TileState::BROKEN) {
-      if(this->characters.size() || this->reserved.size()) {
+    if (_state == TileState::broken) {
+      if(characters.size() || reserved.size()) {
         return;
       } else {
         brokenCooldown = brokenCooldownLength;
       }
     }
 
-    if (_state == TileState::CRACKED && (state == TileState::EMPTY || state == TileState::BROKEN)) {
+    if (_state == TileState::cracked && (state == TileState::empty || state == TileState::broken)) {
       return;
     }
 
@@ -214,25 +214,25 @@ namespace Battle {
   void Tile::RefreshTexture() {
     // Hack to toggle between team color without rewriting redundant code
     auto currTeam = team;
-    auto otherTeam = (team == Team::UNKNOWN) ? Team::UNKNOWN : (team == Team::RED) ? Team::BLUE : Team::RED;
+    auto otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
 
     auto prevAnimState = animState;
 
     ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
 
-    if (state == TileState::BROKEN) {
+    if (state == TileState::broken) {
       // Broken tiles flicker when they regen
-      animState = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? std::move(GetAnimState(TileState::NORMAL)) : std::move(GetAnimState(state));
+      animState = ((int)(brokenCooldown * 100) % 2 == 0 && brokenCooldown <= FLICKER) ? std::move(GetAnimState(TileState::normal)) : std::move(GetAnimState(state));
     }
     else {
       animState = std::move(GetAnimState(state));
     }
 
-    if (currTeam == Team::RED) {
-      this->setTexture(*red_team_atlas);
+    if (currTeam == Team::red) {
+      setTexture(*red_team_atlas);
     }
     else {
-      this->setTexture(*blue_team_atlas);
+      setTexture(*blue_team_atlas);
     }
 
     if (prevAnimState != animState) {
@@ -242,11 +242,11 @@ namespace Battle {
   }
 
   bool Tile::IsWalkable() const {
-    return (state != TileState::BROKEN && state != TileState::EMPTY && !IsEdgeTile());
+    return (state != TileState::broken && state != TileState::empty && !IsEdgeTile());
   }
 
   bool Tile::IsCracked() const {
-    return state == TileState::CRACKED;
+    return state == TileState::cracked;
   }
 
   bool Tile::IsEdgeTile() const
@@ -260,14 +260,14 @@ namespace Battle {
 
   bool Tile::IsReservedByCharacter()
   {
-    return (this->reserved.size() != 0);
+    return (reserved.size() != 0);
   }
 
   void Tile::AddEntity(Spell & _entity)
   {
     if (!ContainsEntity(&_entity)) {
       spells.push_back(&_entity);
-      this->AddEntity(&_entity);
+      AddEntity(&_entity);
     }
   }
 
@@ -275,7 +275,7 @@ namespace Battle {
   {
     if (!ContainsEntity(&_entity)) {
       characters.push_back(&_entity);
-      this->AddEntity(&_entity);
+      AddEntity(&_entity);
     }
   }
 
@@ -284,7 +284,7 @@ namespace Battle {
     if (!ContainsEntity(&_entity)) {
       characters.push_back(&_entity);
       spells.push_back(&_entity);
-      this->AddEntity(&_entity);
+      AddEntity(&_entity);
     }
   }
 
@@ -292,7 +292,7 @@ namespace Battle {
   {
     if (!ContainsEntity(&_entity)) {
       artifacts.push_back(&_entity);
-      this->AddEntity(&_entity);
+      AddEntity(&_entity);
     }
   }
 
@@ -359,7 +359,7 @@ namespace Battle {
     }
 
     if (doBreakState) {
-      SetState(TileState::BROKEN);
+      SetState(TileState::broken);
       AUDIO.Play(AudioType::PANEL_CRACK);
     }
 
@@ -367,7 +367,7 @@ namespace Battle {
   }
 
   bool Tile::ContainsEntity(const Entity* _entity) const {
-    vector<Entity*> copy = this->entities;
+    vector<Entity*> copy = entities;
     return find(copy.begin(), copy.end(), _entity) != copy.end();
   }
 
@@ -404,7 +404,7 @@ namespace Battle {
     UpdateCharacters(_elapsed);
 
     // Update our tile animation and texture
-    if (!this->isTimeFrozen) {
+    if (!isTimeFrozen) {
       if (teamCooldown > 0) {
         teamCooldown -= 1.0f * _elapsed;
         if (teamCooldown < 0) teamCooldown = 0;
@@ -415,14 +415,14 @@ namespace Battle {
         if (flickerTeamCooldown < 0) flickerTeamCooldown = 0;
       }
 
-      if (state == TileState::BROKEN) {
+      if (state == TileState::broken) {
         brokenCooldown -= 1.0f * _elapsed;
 
-        if (brokenCooldown < 0) { brokenCooldown = 0; state = TileState::NORMAL; }
+        if (brokenCooldown < 0) { brokenCooldown = 0; state = TileState::normal; }
       }
     }
 
-    this->RefreshTexture();
+    RefreshTexture();
 
     animation.SyncTime(totalElapsed);
     animation.Refresh(*this);
@@ -468,28 +468,28 @@ namespace Battle {
   }
 
   void Tile::HandleTileBehaviors(Obstacle* obst) {
-    if (!this->isTimeFrozen || !this->isBattleOver) {
+    if (!isTimeFrozen || !isBattleOver) {
 
       // DIRECTIONAL TILES
-      auto directional = Direction::NONE;
+      auto directional = Direction::none;
       auto notMoving = obst->GetNextTile() == nullptr;
 
       switch (GetState()) {
-      case TileState::DIRECTION_DOWN:
-        directional = Direction::DOWN;
+      case TileState::directionDown:
+        directional = Direction::down;
         break;
-      case TileState::DIRECTION_UP:
-        directional = Direction::UP;
+      case TileState::directionUp:
+        directional = Direction::up;
         break;
-      case TileState::DIRECTION_LEFT:
-        directional = Direction::LEFT;
+      case TileState::directionLeft:
+        directional = Direction::left;
         break;
-      case TileState::DIRECTION_RIGHT:
-        directional = Direction::RIGHT;
+      case TileState::directionRight:
+        directional = Direction::right;
         break;
       }
 
-      if (directional != Direction::NONE) {
+      if (directional != Direction::none) {
         if (!obst->HasAirShoe() && !obst->HasFloatShoe()) {
           if (!obst->IsSliding() && notMoving) {
             obst->SlideToTile(true);
@@ -508,12 +508,12 @@ namespace Battle {
      and if they are not floating, we push the entity in a specific direction
      */
 
-    if (!this->isTimeFrozen || !this->isBattleOver) {
+    if (!isTimeFrozen || !isBattleOver) {
       // LAVA TILES
       if (!character->HasFloatShoe()) {
-        if (GetState() == TileState::POISON) {
+        if (GetState() == TileState::poison) {
           if (elapsedBurnTime <= 0) {
-            if (character->Hit(Hit::Properties({ 1, Hit::pierce, Element::NONE, nullptr, Direction::NONE }))) {
+            if (character->Hit(Hit::Properties({ 1, Hit::pierce, Element::none, nullptr, Direction::none }))) {
               elapsedBurnTime = burncycle;
             }
           }
@@ -522,36 +522,36 @@ namespace Battle {
           elapsedBurnTime = 0;
         }
 
-        if (GetState() == TileState::LAVA && character->GetElement() != Element::FIRE) {
-          if (character->Hit(Hit::Properties({ 50, Hit::pierce | Hit::flinch, Element::FIRE, nullptr, Direction::NONE }))) {
-            Artifact* explosion = new Explosion(field, this->GetTeam(), 1);
+        if (GetState() == TileState::lava && character->GetElement() != Element::fire) {
+          if (character->Hit(Hit::Properties({ 50, Hit::pierce | Hit::flinch, Element::fire, nullptr, Direction::none }))) {
+            Artifact* explosion = new Explosion(field, GetTeam(), 1);
             field->AddEntity(*explosion, GetX(), GetY());
-            SetState(TileState::NORMAL);
+            SetState(TileState::normal);
           }
         }
       }
 
       // DIRECTIONAL TILES
-      auto directional = Direction::NONE;
+      auto directional = Direction::none;
 
       auto notMoving = character->GetNextTile() == nullptr;
 
       switch (GetState()) {
-      case TileState::DIRECTION_DOWN:
-        directional = Direction::DOWN;
+      case TileState::directionDown:
+        directional = Direction::down;
         break;
-      case TileState::DIRECTION_UP:
-        directional = Direction::UP;
+      case TileState::directionUp:
+        directional = Direction::up;
         break;
-      case TileState::DIRECTION_LEFT:
-        directional = Direction::LEFT;
+      case TileState::directionLeft:
+        directional = Direction::left;
         break;
-      case TileState::DIRECTION_RIGHT:
-        directional = Direction::RIGHT;
+      case TileState::directionRight:
+        directional = Direction::right;
         break;
       }
 
-      if (directional != Direction::NONE) {
+      if (directional != Direction::none) {
         if (!character->HasAirShoe() && !character->HasFloatShoe()) {
           if (!character->IsSliding() && notMoving) {
             character->SlideToTile(true);
@@ -566,7 +566,7 @@ namespace Battle {
   {
     std::vector<Entity*> res;
 
-    for(auto iter = this->entities.begin(); iter != this->entities.end(); iter++ ) {
+    for(auto iter = entities.begin(); iter != entities.end(); iter++ ) {
       if (query(*iter)) {
         res.push_back(*iter);
       }
@@ -580,46 +580,46 @@ namespace Battle {
     std::string str = "row_" + std::to_string(4 - GetY()) + "_";
 
     switch (state) {
-    case TileState::BROKEN:
+    case TileState::broken:
       str = str + "broken";
       break;
-    case TileState::CRACKED:
+    case TileState::cracked:
       str = str + "cracked";
       break;
-    case TileState::EMPTY:
+    case TileState::empty:
       str = str + "empty";
       break;
-    case TileState::GRASS:
+    case TileState::grass:
       str = str + "grass";
       break;
-    case TileState::ICE:
+    case TileState::ice:
       str = str + "ice";
       break;
-    case TileState::LAVA:
+    case TileState::lava:
       str = str + "lava";
       break;
-    case TileState::NORMAL:
+    case TileState::normal:
       str = str + "normal";
       break;
-    case TileState::POISON:
+    case TileState::poison:
       str = str + "poison";
       break;
-    case TileState::DIRECTION_DOWN:
+    case TileState::directionDown:
       str = str + "direction_down";
       break;
-    case TileState::DIRECTION_LEFT:
+    case TileState::directionLeft:
       str = str + "direction_left";
       break;
-    case TileState::DIRECTION_RIGHT:
+    case TileState::directionRight:
       str = str + "direction_right";
       break;
-    case TileState::DIRECTION_UP:
+    case TileState::directionUp:
       str = str + "direction_up";
       break;
-    case TileState::VOLCANO:
+    case TileState::volcano:
       str = str + "volcano";
       break;
-    case TileState::HOLY:
+    case TileState::holy:
       str = str + "holy";
       break;
     default:
@@ -643,6 +643,8 @@ namespace Battle {
 
       // If the entity is marked for removal
       if (ptr->WillRemoveLater()) {
+        ptr->FreeAllComponents();
+
         // free memory
         Entity::ID_t ID = ptr->GetID();
 
@@ -652,7 +654,7 @@ namespace Battle {
 
           // We only want to know about character deletions since they are the actors in the battle
           if (character) {
-            this->field->CharacterDeletePublisher::Broadcast(*character);
+            field->CharacterDeletePublisher::Broadcast(*character);
           }
 
           // Don't track this entity anymore
@@ -669,7 +671,7 @@ namespace Battle {
   void Tile::ExecuteAllSpellAttacks()
   {
     // Spells dont cause damage when the battle is over
-    if (this->isBattleOver) return;
+    if (isBattleOver) return;
 
       // Now that spells and characters have updated and moved, they are due to check for attack outcomes
       auto characters_copy = characters; // may be modified after hitboxes are resolved
@@ -679,25 +681,25 @@ namespace Battle {
         // we see if it passes defense checks, then call attack
 
         Character& c = *(*it);
-        DefenseResolutionArbiter arbiter; // arbiter for this character's defenses
+        DefenseFrameStateArbiter arbiter; // arbiter for this character's defenses
         std::vector<Spell*> hitSpells;
         bool retangible = false;
 
         for (Entity::ID_t ID : queuedSpells) {
           Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
 
-          if ((*it)->GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
+          if (c.GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
             continue;
 
-          bool unknownTeams = (c.GetTeam() == Team::UNKNOWN && spell->GetTeam() == Team::UNKNOWN);
+          bool unknownTeams = (c.GetTeam() == Team::unknown && spell->GetTeam() == Team::unknown);
           if (c.GetTeam() != spell->GetTeam() || unknownTeams) {
             auto props = spell->GetHitboxProperties();
 
             // Retangible flag takes characters out of passthrough status
-            retangible = (props.flags & Hit::retangible) != Hit::retangible;
+            retangible = (props.flags & Hit::retangible) == Hit::retangible;
 
             // The spell passed at least one defense check
-            if (c.DefenseCheck(arbiter, *spell)) {
+            if (!c.DefenseCheck(arbiter, *spell)) {
               hitSpells.push_back(spell);
             }
         }
@@ -712,13 +714,13 @@ namespace Battle {
           // without exposing the character to malicious programming (e.g. always dealing damage regardless)
           // we pass the attack info to a dummy to recieve hits on their behalf
 
-          if (GetState() == TileState::HOLY) {
+          if (GetState() == TileState::holy) {
             auto props = spell->GetHitboxProperties();
             props.damage /= 2;
             spell->SetHitboxProperties(props);
           }
 
-        if (this->isTimeFrozen) {
+        if (isTimeFrozen) {
           auto props = spell->GetHitboxProperties();
           props.flags |= Hit::shake;
           spell->SetHitboxProperties(props);
@@ -747,7 +749,7 @@ namespace Battle {
 
   void Tile::UpdateSpells(const float elapsed)
   {
-    this->highlightMode = Highlight::none;
+    highlightMode = Highlight::none;
 
     vector<Spell*> spells_copy = spells;
     for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {

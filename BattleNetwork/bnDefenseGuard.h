@@ -11,7 +11,7 @@
  */
 class DefenseGuard : public DefenseRule {
 public:
-  typedef std::function<void(Spell* in, Character* owner)> Callback;
+  typedef std::function<void(Spell& in, Character& owner)> Callback;
 
 private:
   Callback callback;
@@ -26,5 +26,5 @@ public:
    * @param owner the character this is attached to
    * @return Returns true if spell does not have breaking properties, false otherwise
    */
-  const bool CanBlock(DefenseResolutionArbiter& arbiter, Spell& in, Character& owner);
+  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner);
 };

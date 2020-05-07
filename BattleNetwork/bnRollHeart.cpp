@@ -20,21 +20,20 @@ RollHeart::RollHeart(CardSummonHandler* _summons, int _heal) : heal(_heal), Spel
 
   SetPassthrough(true);
 
-  this->HighlightTile(Battle::Tile::Highlight::solid);
+  HighlightTile(Battle::Tile::Highlight::solid);
 
   height = 200;
 
   Battle::Tile* _tile = summons->GetCaller()->GetTile();
 
-  this->field->AddEntity(*this, _tile->GetX(), _tile->GetY());
+  field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
   animationComponent = CreateComponent<AnimationComponent>(this);
-  this->RegisterComponent(animationComponent);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
   animationComponent->SetAnimation("HEART");
-  this->Update(0);
+  Update(0);
 
   doOnce = true;
 }
@@ -48,7 +47,7 @@ void RollHeart::OnUpdate(float _elapsed) {
     setPosition(tile->getPosition().x, tile->getPosition().y - height - 10.0f);
   }
 
-  height -= _elapsed * 150.f;
+  height -= _elapsed * 300.f;
   
   if (height <= 0) height = 0;
 
@@ -56,7 +55,7 @@ void RollHeart::OnUpdate(float _elapsed) {
     AUDIO.Play(AudioType::RECOVER);
     doOnce = false;
 
-    this->Delete();
+    Delete();
     caller->SetHealth(caller->GetHealth() + heal);
     auto healfx = new ParticleHeal();
     caller->GetField()->AddEntity(*healfx, tile->GetX(), tile->GetY());

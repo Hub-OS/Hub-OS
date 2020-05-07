@@ -25,7 +25,7 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
   cooldown = 0;
 
   isBattleOver = false;
-  color = Color::NORMAL;
+  color = Color::normal;
 }
 
 PlayerHealthUI::~PlayerHealthUI() {
@@ -33,12 +33,12 @@ PlayerHealthUI::~PlayerHealthUI() {
 
 void PlayerHealthUI::Inject(BattleScene & scene)
 {
-  this->bs = &scene;
+  bs = &scene;
 }
 
 void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   auto this_states = states;
-  this_states.transform *= this->getTransform();
+  this_states.transform *= getTransform();
 
   // Glyphs are 8x11
   // First glyph is 0 the last is 9
@@ -59,10 +59,10 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
     int col = number*8;
     int row = 0;
 
-    if (color == Color::ORANGE) {
+    if (color == Color::orange) {
       row = 11;
     }
-    else if (color == Color::GREEN) {
+    else if (color == Color::green) {
       row = 22;
     }
 
@@ -88,7 +88,7 @@ HP drop is not 1 unit per frame. It is:
 -3 per frame for anything lower
 */
 void PlayerHealthUI::OnUpdate(float elapsed) {
-  this->isBattleOver = this->bs->IsCleared();
+  isBattleOver = bs->IsCleared();
 
   if (player) {
     if (player->WillRemoveLater()) {
@@ -138,28 +138,28 @@ void PlayerHealthUI::OnUpdate(float elapsed) {
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
 
-    color = Color::NORMAL;
+    color = Color::normal;
 
     bool isBurning = false;
     bool isPoisoned = false;
 
     // If the player is burning or poisoned, turn red to alert them
     if (player->GetTile() && !(player->HasAirShoe() || player->HasFloatShoe())) {
-      isBurning = player->GetTile()->GetState() == TileState::LAVA;
-      isBurning = isBurning && player->GetElement() != Element::FIRE;
+      isBurning = player->GetTile()->GetState() == TileState::lava;
+      isBurning = isBurning && player->GetElement() != Element::fire;
       isBurning = isBurning && !player->HasFloatShoe();
-      isPoisoned = player->GetTile()->GetState() == TileState::POISON;
+      isPoisoned = player->GetTile()->GetState() == TileState::poison;
     }
 
     if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0 || player->GetHealth() <= startHP * 0.5) {
-      color = Color::ORANGE;
+      color = Color::orange;
 
       // If HP is low, play beep with high priority 
       if (player->GetHealth() <= startHP * 0.5 && !isBattleOver) {
-        AUDIO.Play(AudioType::LOW_HP, AudioPriority::HIGH);
+        AUDIO.Play(AudioType::LOW_HP, AudioPriority::high);
       }
     } else if (currHP < player->GetHealth()) {
-      color = Color::GREEN;
+      color = Color::green;
     }
   }
 }

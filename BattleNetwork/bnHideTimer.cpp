@@ -4,28 +4,27 @@
 #include "bnTile.h"
 #include "bnAudioResourceManager.h"
 
-HideTimer::HideTimer(Character* owner, double secs) : Component(owner) {
+HideTimer::HideTimer(Character* owner, double secs) : owner(owner), Component(owner) {
   duration = secs;
   elapsed = 0;
 
-  this->owner = owner;
   temp = owner->GetTile();
 }
 
 void HideTimer::OnUpdate(float _elapsed) {
-  if(!this->scene) return;
+  if(!scene) return;
 
-  if (!this->scene->IsCleared() && !this->scene->IsBattleActive()) {
+  if (!scene->IsCleared() && !scene->IsBattleActive()) {
       return;
   }
 
   elapsed += _elapsed;
 
   if (elapsed >= duration && temp) {
-    temp->AddEntity(*this->owner);
-    this->GetOwner()->FreeComponentByID(this->GetID());
+    temp->AddEntity(*owner);
+    GetOwner()->FreeComponentByID(GetID());
 
-    this->scene->Eject(this);
+    scene->Eject(this);
     delete this;
   }
 }

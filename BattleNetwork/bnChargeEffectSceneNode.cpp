@@ -8,7 +8,7 @@ ChargeEffectSceneNode::ChargeEffectSceneNode(Entity* _entity) {
   entity = _entity;
   charging = false;
   chargeCounter = 0.0f;
-  this->setTexture(LOAD_TEXTURE(SPELL_BUSTER_CHARGE));
+  setTexture(LOAD_TEXTURE(SPELL_BUSTER_CHARGE));
 
   animation = Animation("resources/spells/spell_buster_charge.animation");
 
@@ -22,7 +22,7 @@ ChargeEffectSceneNode::~ChargeEffectSceneNode() {
 void ChargeEffectSceneNode::Update(float _elapsed) {
   if (!charging) {
     chargeCounter = 0.0f;
-    this->setScale(0.0f, 0.0f);
+    setScale(0.0f, 0.0f);
     isCharged = false;
     isPartiallyCharged = false;
   } else {
@@ -35,7 +35,7 @@ void ChargeEffectSceneNode::Update(float _elapsed) {
         animation.SetAnimation("CHARGED");
         animation << Animator::Mode::Loop;
         setColor(chargeColor);
-        this->SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
+        SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
 
       }
 
@@ -47,7 +47,7 @@ void ChargeEffectSceneNode::Update(float _elapsed) {
         animation.SetAnimation("CHARGING");
         animation << Animator::Mode::Loop;
         setColor(sf::Color::White);
-        this->RevokeShader();
+        RevokeShader();
 
       }
 
@@ -55,11 +55,11 @@ void ChargeEffectSceneNode::Update(float _elapsed) {
     }
 
     if (isPartiallyCharged) {
-      this->setScale(1.0f, 1.0f);
+      setScale(1.0f, 1.0f);
     }
   }
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
 }
 
 void ChargeEffectSceneNode::SetCharging(bool _charging) {

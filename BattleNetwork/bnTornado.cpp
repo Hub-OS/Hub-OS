@@ -13,22 +13,22 @@ Tornado::Tornado(Field* _field, Team _team, int damage) : damage(damage), Spell(
 
   //When the animation ends, delete this
   auto onFinish = [this]() {
-    this->Delete();
+    Delete();
   };
 
   animation = Animation("resources/spells/spell_tornado.animation");
   animation.SetAnimation("DEFAULT");
   animation << onFinish;
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
-  this->HighlightTile(Battle::Tile::Highlight::solid);
+  HighlightTile(Battle::Tile::Highlight::solid);
 
   auto props = GetHitboxProperties();
   props.flags &= ~Hit::recoil;
   props.flags |= Hit::impact;
   props.damage = damage;
-  props.element = Element::WIND;
-  this->SetHitboxProperties(props);
+  props.element = Element::wind;
+  SetHitboxProperties(props);
 }
 
 Tornado::~Tornado() {
@@ -37,7 +37,7 @@ Tornado::~Tornado() {
 void Tornado::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
 
   tile->AffectEntities(this);
 }
@@ -47,7 +47,7 @@ bool Tornado::Move(Direction _direction) {
 }
 
 void Tornado::Attack(Character* _entity) {
-  if (_entity->Hit(this->GetHitboxProperties())) {
+  if (_entity->Hit(GetHitboxProperties())) {
     AUDIO.Play(AudioType::HURT);
 
     // Todo swap out with normal buster hit fx

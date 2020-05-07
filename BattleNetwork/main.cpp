@@ -292,14 +292,14 @@ int main(int argc, char** argv) {
     logoSprite.setPosition(logoPos);
 
     // Log output text
-    sf::Font* font = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
+    std::shared_ptr<sf::Font> font = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
     sf::Text* logLabel = new sf::Text("...", *font);
     logLabel->setCharacterSize(10);
     logLabel->setOrigin(0.f, logLabel->getLocalBounds().height);
     std::vector<std::string> logs;
 
     // Press Start text
-    sf::Font* startFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+    std::shared_ptr<sf::Font> startFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
     #if defined(__ANDROID__)
     sf::Text* startLabel = new sf::Text("TAP SCREEN", *startFont);
@@ -893,7 +893,6 @@ int main(int argc, char** argv) {
     WEBCLIENT.ShutdownAllTasks();
 
     delete logLabel;
-    delete font;
 
     return EXIT_SUCCESS;
 }

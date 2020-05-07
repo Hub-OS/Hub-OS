@@ -1,13 +1,12 @@
 /*! \brief Starfish is Aqua type and spawns bubbles */
 
 #pragma once
-#include "bnAnimatedCharacter.h"
-#include "bnMobState.h"
+#include "bnCharacter.h"
 #include "bnAI.h"
 #include "bnTextureType.h"
 #include "bnStarfishIdleState.h"
 
-class Starfish : public AnimatedCharacter, public AI<Starfish> {
+class Starfish : public Character, public AI<Starfish> {
   friend class StarfishIdleState;
   friend class StarfishAttackState;
 
@@ -37,4 +36,5 @@ private:
   float hitHeight;
   TextureType textureType;
   DefenseRule* virusBody;
+  AnimationComponent* animation;
 };

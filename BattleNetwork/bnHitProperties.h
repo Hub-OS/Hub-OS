@@ -43,7 +43,7 @@ namespace Hit {
   };
 
   static constexpr Properties GetDefaultProps() {
-    return Properties{ 0, Flags(Hit::recoil | Hit::impact), Element::NONE, nullptr, Direction::NONE };
+    return Properties{ 0, Flags(Hit::recoil | Hit::impact), Element::none, nullptr, Direction::none };
   }
 
   const constexpr Hit::Properties DefaultProperties = Hit::GetDefaultProps();

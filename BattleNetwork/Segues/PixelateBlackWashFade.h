@@ -67,14 +67,14 @@ public:
         double alpha = ease::wideParabola(elapsed, duration, 1.0);
 
         if (elapsed <= duration * 0.5)
-            this->drawLastActivity(surface);
+            drawLastActivity(surface);
         else {
             if (loaded && !nextScreen) {
                 loaded = false;
                 nextScreen = true;
             }
 
-            this->drawNextActivity(surface);
+            drawNextActivity(surface);
         }
 
         surface.display();

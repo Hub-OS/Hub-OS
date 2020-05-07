@@ -101,12 +101,11 @@ TextBox::TextBox(int width, int height, int characterSize, std::string fontPath)
 }
 
 TextBox::~TextBox() {
-    delete font;
 }
 
-const sf::Text& TextBox::GetText() const { return this->text; }
+const sf::Text& TextBox::GetText() const { return text; }
 
-const sf::Font& TextBox::GetFont() const { return *this->font; }
+const sf::Font& TextBox::GetFont() const { return *font; }
 
 void TextBox::SetTextFillColor(sf::Color color) {
     fillColor = color;
@@ -156,11 +155,11 @@ void TextBox::ShowPreviousLine() {
 }
 
 void TextBox::SetCharactersPerSecond(const double cps) {
-    this->charsPerSecond = cps;
+    charsPerSecond = cps;
 }
 
 void TextBox::SetText(const std::string& text) {
-    this->message = text;
+    message = text;
     charIndex = 0;
     progress = 0;
     lines.clear();
@@ -170,7 +169,7 @@ void TextBox::SetText(const std::string& text) {
 }
 
 void TextBox::Play(const bool play) {
-    this->play = play;
+    TextBox::play = play;
 }
 
 void TextBox::Stop() {
@@ -310,9 +309,9 @@ void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
     // apply the transform
     states.transform *= getTransform();
 
-    text.setPosition(this->getPosition());
-    text.setScale(this->getScale());
-    text.setRotation(this->getRotation());
+    text.setPosition(getPosition());
+    text.setScale(getScale());
+    text.setRotation(getRotation());
     text.setFillColor(fillColor);
     text.setOutlineColor(outlineColor);
 

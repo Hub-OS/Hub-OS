@@ -10,7 +10,7 @@ using sf::IntRect;
 
 AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
   speed = 1.0;
-  character = this->GetOwnerAs<Character>();
+  character = GetOwnerAs<Character>();
 }
 
 AnimationComponent::~AnimationComponent() {
@@ -35,7 +35,7 @@ void AnimationComponent::SetPath(string _path)
 }
 
 void AnimationComponent::Load() {
-  this->Reload();
+  Reload();
 }
 
 void AnimationComponent::Reload() {
@@ -88,6 +88,19 @@ void AnimationComponent::AddCallback(int frame, std::function<void()> onFrame, s
   animation << Animator::On(frame, onFrame, doOnce) << Animator::On(frame+1, outFrame, doOnce);
 }
 
+void AnimationComponent::SetCounterFrame(int frame)
+{
+  auto c = GetOwnerAs<Character>();
+  if (c == nullptr) return;
+
+  AddCallback(frame, [c]() {
+    c->ToggleCounter();
+  },
+    [c]() {
+    c->ToggleCounter(false);
+  }, true);
+}
+
 void AnimationComponent::CancelCallbacks()
 {
   // We just want to cancel callbacks
@@ -104,7 +117,7 @@ sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
 
 void AnimationComponent::OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string & uuid)
 {
-  this->animation.OverrideAnimationFrames(animation, data, uuid);
+  AnimationComponent::animation.OverrideAnimationFrames(animation, data, uuid);
 
   for (auto&& o : overrideList) {
     o->OverrideAnimationFrames(animation, data, uuid);

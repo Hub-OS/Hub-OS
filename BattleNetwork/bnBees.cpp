@@ -15,9 +15,9 @@ Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage
 
   HighlightTile(Battle::Tile::Highlight::solid);
 
-  this->elapsed = 0;
+  elapsed = 0;
 
-  this->SetSlideTime(sf::seconds(0.50f));
+  SetSlideTime(sf::seconds(0.50f));
 
   animation = Animation("resources/spells/spell_bees.animation");
   animation.SetAnimation("DEFAULT");
@@ -29,14 +29,14 @@ Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage
   hitCount = 0;
   attackCooldown = 0.60f;
 
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->setPosition(-8.0f, 20.0f);
 
-  this->AddNode(shadow);
+  AddNode(shadow);
 
   auto props = GetHitboxProperties();
 
@@ -44,18 +44,18 @@ Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage
   props.flags = Hit::impact;
 
   // Thunder has electric properties
-  props.element = Element::WOOD;
+  props.element = Element::wood;
 
   // Attack does 5 units of damage
   props.damage = damage;
 
   SetHitboxProperties(props);
 
-  if (GetTeam() == Team::RED) {
-    SetDirection(Direction::RIGHT);
+  if (GetTeam() == Team::red) {
+    SetDirection(Direction::right);
   }
   else {
-    SetDirection(Direction::LEFT);
+    SetDirection(Direction::left);
   }
 }
 
@@ -68,9 +68,9 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
 
   HighlightTile(Battle::Tile::Highlight::solid);
 
-  this->elapsed = 0;
+  elapsed = 0;
 
-  this->SetSlideTime(sf::seconds(0.50f));
+  SetSlideTime(sf::seconds(0.50f));
 
   animation = Animation("resources/spells/spell_bees.animation");
   animation.SetAnimation("DEFAULT");
@@ -82,14 +82,14 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
   hitCount = 0;
   attackCooldown = 0.60f; // est 2 frames
 
-  animation.Update(0, this->getSprite());
+  animation.Update(0, getSprite());
 
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
   shadow->setPosition(-12.0f, 18.0f);
 
-  this->AddNode(shadow);
+  AddNode(shadow);
 
   SetHitboxProperties(leader.GetHitboxProperties());
 
@@ -97,15 +97,15 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
 
   Entity::RemoveCallback& deleteHandler = this->leader->CreateRemoveCallback();
   deleteHandler.Slot([this]() {
-      if (this->target == this->leader) this->target = nullptr;
+      if (target == this->leader) target = nullptr;
       this->leader = nullptr;
   });
 
-  if (GetTeam() == Team::RED) {
-    SetDirection(Direction::RIGHT);
+  if (GetTeam() == Team::red) {
+    SetDirection(Direction::right);
   }
   else {
-    SetDirection(Direction::LEFT);
+    SetDirection(Direction::left);
   }
 }
 
@@ -118,7 +118,7 @@ void Bees::OnUpdate(float _elapsed) {
 
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 60.0f);
 
-  animation.Update(_elapsed, this->getSprite());
+  animation.Update(_elapsed, getSprite());
 
   // Find target if we don't have one
   if (!leader && !target) {
@@ -148,30 +148,30 @@ void Bees::OnUpdate(float _elapsed) {
   }
 
   // If sliding is flagged to false, we know we've ended a move
-  auto direction = Direction::NONE;
-  bool wasMovingVertical   = (GetDirection() == Direction::DOWN || GetDirection() == Direction::UP);
-  wasMovingVertical = (wasMovingVertical || GetDirection() == Direction::NONE);
+  auto direction = Direction::none;
+  bool wasMovingVertical   = (GetDirection() == Direction::down || GetDirection() == Direction::up);
+  wasMovingVertical = (wasMovingVertical || GetDirection() == Direction::none);
 
-  bool wasMovingHorizontal = (GetDirection() == Direction::LEFT || GetDirection() == Direction::RIGHT);
-  wasMovingHorizontal = (wasMovingHorizontal || GetDirection() == Direction::NONE);
+  bool wasMovingHorizontal = (GetDirection() == Direction::left || GetDirection() == Direction::right);
+  wasMovingHorizontal = (wasMovingHorizontal || GetDirection() == Direction::none);
 
-  if (!this->IsSliding()) {
+  if (!IsSliding()) {
     if (target) {
       if (target->GetTile() && turnCount < 2) {
         if (wasMovingVertical || target->GetTile()->GetY() == tile->GetY()) {
           if (target->GetTile()->GetX() < tile->GetX()) {
-            direction = Direction::LEFT;
+            direction = Direction::left;
           }
           else if (target->GetTile()->GetX() > tile->GetX()) {
-            direction = Direction::RIGHT;
+            direction = Direction::right;
           }
         }
         else if (wasMovingHorizontal && target->GetTile()->GetX() == tile->GetX()) {
           if (target->GetTile()->GetY() < tile->GetY()) {
-            direction = Direction::UP;
+            direction = Direction::up;
           }
           else if (target->GetTile()->GetY() > tile->GetY()) {
-            direction = Direction::DOWN;
+            direction = Direction::down;
           }
         }
       }
@@ -179,38 +179,38 @@ void Bees::OnUpdate(float _elapsed) {
     else {
       // If there are no targets, aimlessly move right or left
       // depending on the team
-      if (GetTeam() == Team::RED) {
-        direction = Direction::RIGHT;
+      if (GetTeam() == Team::red) {
+        direction = Direction::right;
       }
       else {
-        direction = Direction::LEFT;
+        direction = Direction::left;
       }
     }
 
-    if (direction != this->GetDirection() && direction != Direction::NONE) {
+    if (direction != GetDirection() && direction != Direction::none) {
       turnCount++;
-      this->SetDirection(direction);
+      SetDirection(direction);
     }
 
     // Always slide to the tile we're moving to
-    this->SlideToTile(true);
-    this->Move(this->GetDirection());
+    SlideToTile(true);
+    Move(GetDirection());
 
     // Did not move and update next tile pointer
     if (!GetNextTile() && GetTile()->IsEdgeTile()) {
-      this->Delete();
+      Delete();
     }
   }
 
-  if (GetDirection() == Direction::LEFT) {
-    this->setScale(2, 2);
+  if (GetDirection() == Direction::left) {
+    setScale(2, 2);
   }
-  else if (GetDirection() == Direction::RIGHT) {
-    this->setScale(-2, 2);
+  else if (GetDirection() == Direction::right) {
+    setScale(-2, 2);
   }
 
   // Always affect the tile we're occupying
-  this->GetTile()->AffectEntities(this);
+  GetTile()->AffectEntities(this);
 
   if (target && GetTile() == target->GetTile() && attackCooldown == 0) {
     // Try to attack 5 times
@@ -221,7 +221,7 @@ void Bees::OnUpdate(float _elapsed) {
       // all other hitbox events will be ignored after 5 hits
       if (hitCount < 5) {
         hitCount++;
-        AUDIO.Play(AudioType::HURT, AudioPriority::HIGH);
+        AUDIO.Play(AudioType::HURT, AudioPriority::high);
         auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
         entity->GetField()->AddEntity(*fx, *entity->GetTile());
         fx->SetHeight(entity->GetHeight() / 2.0f);
@@ -235,7 +235,7 @@ void Bees::OnUpdate(float _elapsed) {
  
   if(hitCount >= 5) {
     // Mark us for deletion
-    this->Delete();
+    Delete();
   }
 }
 

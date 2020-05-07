@@ -21,7 +21,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
 
     if (can.GetField()->GetAt(can.tile->GetX() - 1, can.tile->GetY())) {
         Spell* spell = new Cannon(can.field, can.team, 10);
-        spell->SetDirection(Direction::LEFT);
+        spell->SetDirection(Direction::left);
         auto props = spell->GetHitboxProperties();
         props.aggressor = &can;
         spell->SetHitboxProperties(props);
@@ -32,20 +32,22 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
     }
   };
 
+  auto animation = can.GetFirstComponent<AnimationComponent>();
+
   switch (can.GetRank()) {
   case Canodumb::Rank::_1:
-    can.SetAnimation(MOB_CANODUMB_SHOOT_1, onFinish);
+    animation->SetAnimation("SHOOT_1", onFinish);
     break;
   case Canodumb::Rank::_2:
-    can.SetAnimation(MOB_CANODUMB_SHOOT_2, onFinish);
+    animation->SetAnimation("SHOOT_2", onFinish);
     break;
   case Canodumb::Rank::_3:
-    can.SetAnimation(MOB_CANODUMB_SHOOT_3, onFinish);
+    animation->SetAnimation("SHOOT_3", onFinish);
     break;
   }
 
-  can.SetCounterFrame(1);
-  can.OnFrameCallback(2, onAttack, Animator::NoCallback, true);
+  animation->SetCounterFrame(1);
+  animation->AddCallback(2, onAttack, Animator::NoCallback, true);
 }
 
 void CanodumbAttackState::OnUpdate(float _elapsed, Canodumb& can) {

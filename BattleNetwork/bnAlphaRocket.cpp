@@ -9,19 +9,18 @@
 
 AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
   // AlphaRocket float over tiles 
-  this->SetFloatShoe(true);
-  this->SetTeam(_team);
-  this->ShareTileSpace(true);
+  SetFloatShoe(true);
+  SetTeam(_team);
+  ShareTileSpace(true);
   SetLayer(-1);
 
   auto texture = TEXTURES.GetTexture(TextureType::SPELL_ALPHA_ROCKET);
   setTexture(texture);
   setScale(2.f, 2.f);
 
-  this->SetSlideTime(sf::seconds(0.5f));
+  SetSlideTime(sf::seconds(0.5f));
 
-  animation = new AnimationComponent(this);
-  this->RegisterComponent(animation);
+  animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/spell_alpha_rocket.animation");
   animation->Load();
   animation->SetAnimation("DEFAULT");
@@ -30,11 +29,9 @@ AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
   auto props = Hit::DefaultProperties;
   props.flags |= Hit::flinch | Hit::recoil | Hit::breaking | Hit::impact;
   props.damage = 200;
-  this->SetHitboxProperties(props);
+  SetHitboxProperties(props);
 
   SetHealth(100);
-
-  Logger::Log("rocket spawned");
 }
 
 AlphaRocket::~AlphaRocket() {
@@ -43,7 +40,7 @@ AlphaRocket::~AlphaRocket() {
 void AlphaRocket::OnUpdate(float _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
-  if (GetDirection() == Direction::LEFT) {
+  if (GetDirection() == Direction::left) {
     setScale(2.f, 2.f);
   }
   else {
@@ -51,22 +48,22 @@ void AlphaRocket::OnUpdate(float _elapsed) {
   }
 
   // Keep moving, when we reach the end of the map, remove from play
-  if (!this->IsSliding()) {
-    this->SlideToTile(true);
+  if (!IsSliding()) {
+    SlideToTile(true);
 
     // Keep moving
-    this->Move(this->GetDirection());
+    Move(GetDirection());
 
     // Move failed can only be an edge
-    if (!this->GetNextTile()) {
-        this->Delete();
+    if (!GetNextTile()) {
+        Delete();
     }
   }
 
   tile->AffectEntities(this);
 
   if (tile->ContainsEntityType<Character>()) {
-      this->Delete();
+      Delete();
   }
 }
 
@@ -77,8 +74,8 @@ bool AlphaRocket::CanMoveTo(Battle::Tile* tile) {
 
 void AlphaRocket::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    this->SetHealth(0);
-    this->Delete();
+    SetHealth(0);
+    Delete();
   }
 }
 
@@ -106,7 +103,7 @@ void AlphaRocket::OnDelete()
     bool includedValid = false;
 
     // Missile hit the back row, include the right-most column
-    if (this->GetTile()->IsEdgeTile()) {
+    if (GetTile()->IsEdgeTile()) {
       auto additionalXTiles = {
         GetTile()->GetX() + 2
       };
@@ -122,7 +119,7 @@ void AlphaRocket::OnDelete()
     Hitbox* box = new Hitbox(GetField(), GetTeam(), 200);
     Explosion* exp = new Explosion(GetField(), GetTeam());
 
-    box->SetHitboxProperties(this->GetHitboxProperties());
+    box->SetHitboxProperties(GetHitboxProperties());
 
     GetField()->AddEntity(*box, t->GetX(), t->GetY());
     GetField()->AddEntity(*exp, t->GetX(), t->GetY());
@@ -130,7 +127,7 @@ void AlphaRocket::OnDelete()
     ENGINE.GetCamera()->ShakeCamera(10, sf::seconds(1));
   }
 
-  this->Remove();
+  Remove();
 }
 
 const float AlphaRocket::GetHeight() const
