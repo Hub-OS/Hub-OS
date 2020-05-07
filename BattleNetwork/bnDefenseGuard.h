@@ -24,7 +24,6 @@ public:
    * @brief Check for breaking properties
    * @param in the attack
    * @param owner the character this is attached to
-   * @return Returns true if spell does not have breaking properties, false otherwise
    */
-  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner);
+  void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner);
 };

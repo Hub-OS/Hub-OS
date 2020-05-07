@@ -21,7 +21,6 @@ public:
    * @brief Allows all attacks to hit and pass 
    * @param in the attack spell
    * @param owner the character this is attached to
-   * @return false
    */
-  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
 };

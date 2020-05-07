@@ -14,6 +14,6 @@ Hit::Properties& DefenseVirusBody::FilterStatuses(Hit::Properties& statuses)
   return statuses;
 }
 
-const bool DefenseVirusBody::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) {
-  return false; // doesn't block anything
+void DefenseVirusBody::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) {
+  // doesn't block anything
 }

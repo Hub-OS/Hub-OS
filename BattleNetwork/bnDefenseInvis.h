@@ -19,7 +19,6 @@ public:
    * @brief If the attack does pierce damage, the defense fails
    * @param in attack spell
    * @param owner the character with Invis defense (this) added
-   * @return true if triggered, false, if not
    */
-  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
 };

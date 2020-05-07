@@ -29,8 +29,8 @@ public:
 
   template<typename Func, typename... Args>
   void AddTrigger(const Func& func, Args&&... args);
-
   void ExecuteAllTriggers();
+  std::list<std::function<void()>> GetTriggers() const;
 };
 
 template<typename Func, typename... Args>

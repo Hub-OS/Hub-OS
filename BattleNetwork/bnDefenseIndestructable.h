@@ -21,7 +21,6 @@ public:
    * @brief Check for breaking properties
    * @param in the attack
    * @param owner the character this is attached to
-   * @return Always true
    */
-  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
 };

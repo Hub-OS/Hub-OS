@@ -28,3 +28,8 @@ void DefenseFrameStateArbiter::ExecuteAllTriggers()
 
   triggers.clear();
 }
+
+std::list<std::function<void()>> DefenseFrameStateArbiter::GetTriggers() const
+{
+  return triggers;
+}

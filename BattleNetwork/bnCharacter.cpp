@@ -169,11 +169,6 @@ const bool Character::Hit(Hit::Properties props) {
 
   if (GetHealth() <= 0) return false;
 
-  // Pierce status hits even when passthrough or flinched
-  if ((props.flags & Hit::pierce) != Hit::pierce) {
-      if (invincibilityCooldown > 0 || IsPassthrough()) return false;
-  }
-
   if ((props.flags & Hit::shake) == Hit::shake) {
     CreateComponent<ShakingEffect>(this);
   }
@@ -192,7 +187,7 @@ const bool Character::Hit(Hit::Properties props) {
 
   // Show ! super effective symbol on the field
   if (isSuperEffective) {
-      props.damage *= 2;
+    props.damage *= 2;
 
     Artifact *seSymbol = new ElementalDamage(field);
     seSymbol->SetLayer(-100);
@@ -203,6 +198,16 @@ const bool Character::Hit(Hit::Properties props) {
 
   // Add to status queue for state resolution
   statusQueue.push(props);
+
+  return true;
+}
+
+const bool Character::HasCollision(const Hit::Properties & props)
+{
+  // Pierce status hits even when passthrough or flinched
+  if ((props.flags & Hit::pierce) != Hit::pierce) {
+    if (invincibilityCooldown > 0 || IsPassthrough()) return false;
+  }
 
   return true;
 }
@@ -451,15 +456,11 @@ void Character::RemoveDefenseRule(DefenseRule * rule)
     defenses.erase(iter);
 }
 
-const bool Character::DefenseCheck(DefenseFrameStateArbiter& arbiter, Spell& in)
+void Character::DefenseCheck(DefenseFrameStateArbiter& arbiter, Spell& in)
 {
-  bool blocked = defenses.size()?true : false;
-
   for (int i = 0; i < defenses.size(); i++) {
-    blocked = blocked && defenses[i]->CanBlock(arbiter, in, *this);
+    defenses[i]->CanBlock(arbiter, in, *this);
   }
-
-  return blocked;
 }
 
 void Character::SharedHitboxDamage(Character * to)

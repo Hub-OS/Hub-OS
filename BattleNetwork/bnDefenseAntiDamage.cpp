@@ -12,7 +12,7 @@ DefenseAntiDamage::~DefenseAntiDamage()
 {
 }
 
-const bool DefenseAntiDamage::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
+void DefenseAntiDamage::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
 {
   auto props = in.GetHitboxProperties();
 
@@ -23,9 +23,5 @@ const bool DefenseAntiDamage::CanBlock(DefenseFrameStateArbiter& arbiter, Spell&
 
     arbiter.AddTrigger(callback, std::ref(in), std::ref(owner));
     arbiter.BlockDamage();
-
-    return true; // Antidamage disallows an attack to passthrough
   }
-
-  return false;
 }

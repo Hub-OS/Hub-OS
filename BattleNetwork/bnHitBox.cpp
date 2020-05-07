@@ -12,6 +12,7 @@ Hitbox::Hitbox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
   damage = _damage;
 
   auto props = Hit::DefaultProperties;
+  props.flags |= Hit::impact;
   props.damage = _damage;
   SetHitboxProperties(props);
 
@@ -19,6 +20,11 @@ Hitbox::Hitbox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
 }
 
 Hitbox::~Hitbox() {
+}
+
+void Hitbox::OnSpawn(Battle::Tile & start)
+{
+
 }
 
 void Hitbox::OnUpdate(float _elapsed) {

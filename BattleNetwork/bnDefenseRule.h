@@ -20,6 +20,7 @@ class DefenseRule {
 private:
   Priority priorityLevel; /*!< Lowest priority goes first */
   bool replaced; /*!< If this rule has been replaced by another one in the entity*/
+
 public:
   friend class Character;
 
@@ -52,5 +53,5 @@ public:
   /**
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */
-  virtual const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) = 0;
+  virtual void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) = 0;
 };

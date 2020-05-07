@@ -19,7 +19,7 @@ Hit::Properties& DefenseBubbleWrap::FilterStatuses(Hit::Properties& statuses) {
   return statuses;
 }
 
-const bool DefenseBubbleWrap::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
+void DefenseBubbleWrap::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
 {
   // weak obstacles will break like other bubbles
   owner.GetField()->AddEntity(*new Hitbox(owner.GetField(), owner.GetTeam(), 0), owner.GetTile()->GetX(), owner.GetTile()->GetY());
@@ -29,12 +29,6 @@ const bool DefenseBubbleWrap::CanBlock(DefenseFrameStateArbiter& arbiter, Spell&
 
     if (in.GetElement() == Element::elec) {
       arbiter.BlockDamage();
-      return true;
-    }
-    else {
-      // TODO: trigger to remove bubble wrap
     }
   }
-
-  return false; // let anything else pass through
 }

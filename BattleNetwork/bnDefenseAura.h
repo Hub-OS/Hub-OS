@@ -28,7 +28,6 @@ public:
    * @brief Aura defense rules never let anything through
    * @param in the attack
    * @param owner the character the rule is attached to (this)
-   * @return true if hitbox is impact
    */
-  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
 };

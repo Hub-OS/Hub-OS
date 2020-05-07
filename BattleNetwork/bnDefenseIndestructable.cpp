@@ -13,7 +13,7 @@ DefenseIndestructable::~DefenseIndestructable()
 {
 }
 
-const bool DefenseIndestructable::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
+void DefenseIndestructable::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
 {
   arbiter.BlockImpact();
 
@@ -24,6 +24,4 @@ const bool DefenseIndestructable::CanBlock(DefenseFrameStateArbiter& arbiter, Sp
   }
 
   if (breakCollidingObjectOnHit) in.Delete();
-
-  return true; // Successfully blocks - this prevents an attack to passthrough
 }

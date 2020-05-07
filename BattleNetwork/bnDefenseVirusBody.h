@@ -6,5 +6,5 @@ public:
   DefenseVirusBody();
   ~DefenseVirusBody();
   Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
-  const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
 };

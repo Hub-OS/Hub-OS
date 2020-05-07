@@ -18,15 +18,13 @@ DefenseAura::~DefenseAura()
 {
 }
 
-const bool DefenseAura::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
+void DefenseAura::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
 {
-  if ((in.GetHitboxProperties().flags & Hit::impact) != Hit::impact) return false;
+  if ((in.GetHitboxProperties().flags & Hit::impact) != Hit::impact) return;
 
   arbiter.BlockDamage();
 
   if(callback) { 
     arbiter.AddTrigger(callback, std::ref(in), std::ref(owner)); 
   }
-  
-  return true; // barrier blocks if impact
 }

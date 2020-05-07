@@ -220,6 +220,8 @@ void AlphaArm::Attack(Character* other) {
     Delete(); // cannot pass through obstacles like Cube
     return;
   }
+
+  other->Hit(GetHitboxProperties());
 }
 
 const float AlphaArm::GetHeight() const

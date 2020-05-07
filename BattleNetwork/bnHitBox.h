@@ -25,6 +25,8 @@ public:
    */
   ~Hitbox();
 
+  void OnSpawn(Battle::Tile& start) override;
+
   /**
    * @brief Attacks tile and deletes itself
    * @param _elapsed in seconds

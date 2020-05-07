@@ -13,7 +13,7 @@ DefenseGuard::~DefenseGuard()
 {
 }
 
-const bool DefenseGuard::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
+void DefenseGuard::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
 {
   auto props = in.GetHitboxProperties();
 
@@ -26,9 +26,5 @@ const bool DefenseGuard::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, 
       owner.GetField()->AddEntity(*new GuardHit(owner.GetField(), &owner, true), owner.GetTile()->GetX(), owner.GetTile()->GetY());
       owner.GetField()->AddEntity(*new Hitbox(owner.GetField(), owner.GetTeam(), 0), owner.GetTile()->GetX(), owner.GetTile()->GetY());
     }
-
-    return true; // Guard disallows an attack to passthrough
   }
-
-  return false;
 }

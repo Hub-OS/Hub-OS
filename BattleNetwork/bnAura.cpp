@@ -25,8 +25,8 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   Entity::RemoveCallback& callback = owner->CreateRemoveCallback();
   callback.Slot([this]() {
     timer = 0;
-    FreeOwner();
-    privOwner = nullptr;
+    bs->Eject(this);
+    delete this;
   });
 
   AddNode(aura);
@@ -108,7 +108,7 @@ void Aura::OnUpdate(float _elapsed) {
 
   currHP = health;
   
-  if(!bs->IsBattleActive() && (!persist || isOver)) {
+  if(bs->IsBattleActive() && (!persist || isOver)) {
     timer -= _elapsed;
   }
 
@@ -123,7 +123,6 @@ void Aura::OnUpdate(float _elapsed) {
   }
   else if (timer <= 0.0) {
     privOwner->RemoveDefenseRule(defense);
-    RemoveNode(aura);
     privOwner->RemoveNode(this);
     bs->Eject(this);
     delete this;

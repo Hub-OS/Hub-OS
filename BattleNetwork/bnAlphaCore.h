@@ -26,13 +26,16 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   bool impervious;
   bool shootSuperVulcans;
 
+  /**
+  * @brief a defense rule specifically for alpha
+  */
   class AlphaCoreDefenseRule : public DefenseRule {
     int& alphaCoreHP;
 
   public:
     AlphaCoreDefenseRule(int& alphaCoreHP);
     ~AlphaCoreDefenseRule();
-    const bool CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
+    void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
     Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
   } *defense;
 public:
@@ -52,6 +55,7 @@ public:
 
   const bool OnHit(const Hit::Properties props) override;
   void OnDelete() override;
+  bool CanMoveTo(Battle::Tile* next) override;
 
   void OpenShoulderGuns();
   void CloseShoulderGuns();

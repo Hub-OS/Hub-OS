@@ -270,6 +270,12 @@ void AlphaCore::OnDelete() {
   InterruptState<ExplodeState<AlphaCore>>(15, 0.8);
 }
 
+bool AlphaCore::CanMoveTo(Battle::Tile * next)
+{
+  // alpha does not move / cannot be dragged
+  return false;
+}
+
 void AlphaCore::OpenShoulderGuns()
 {
   animation.SetAnimation("SUPER_VULCAN");
@@ -277,25 +283,25 @@ void AlphaCore::OpenShoulderGuns()
   animation.Update(totalElapsed, leftShoulderShoot->getSprite());
 
   animation.SetAnimation("SUPER_VULCAN");
-  animation << Animator::Mode::Loop;
-  animation.Update(totalElapsed + 0.04f, rightShoulderShoot->getSprite());
+animation << Animator::Mode::Loop;
+animation.Update(totalElapsed + 0.04f, rightShoulderShoot->getSprite());
 
-  animation.SetAnimation("LEFT_SHOULDER");
-  animation.SetFrame(2, leftShoulder->getSprite());
+animation.SetAnimation("LEFT_SHOULDER");
+animation.SetFrame(2, leftShoulder->getSprite());
 
-  // TODO: WHY CANT MY NODES JUST LINK UP TO THE POINTS?
-  auto bounds = leftShoulder->getLocalBounds();
-  auto offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
+// TODO: WHY CANT MY NODES JUST LINK UP TO THE POINTS?
+auto bounds = leftShoulder->getLocalBounds();
+auto offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
 
-  leftShoulderShoot->setPosition(-offset.x, 0);
+leftShoulderShoot->setPosition(-offset.x, 0);
 
-  animation.SetAnimation("RIGHT_SHOULDER");
-  animation.SetFrame(2, rightShoulder->getSprite());
+animation.SetAnimation("RIGHT_SHOULDER");
+animation.SetFrame(2, rightShoulder->getSprite());
 
-  bounds = rightShoulder->getLocalBounds();
-  offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
+bounds = rightShoulder->getLocalBounds();
+offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
 
-  rightShoulderShoot->setPosition(-offset.x+10.0f, 5.0f);
+rightShoulderShoot->setPosition(-offset.x + 10.0f, 5.0f);
 }
 
 void AlphaCore::CloseShoulderGuns()
@@ -365,12 +371,11 @@ void AlphaCore::ShootSuperVulcans()
 AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 
-const bool AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) {
+void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) {
   AlphaCore* alpha = static_cast<AlphaCore*>(&owner);
-  if (alpha->impervious) {  
+  if (alpha->impervious) {
     arbiter.BlockDamage();
     arbiter.BlockImpact();
-    return true; 
   }
 
   alphaCoreHP -= in.GetHitboxProperties().damage;
@@ -378,7 +383,10 @@ const bool AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateArbiter& a
 
   // Combat damage happens in real time, however during TFC the core
   // should protect Alpha until it is able to changed to its exposed state
-  return (alpha->animationComponent->GetAnimationString() != "CORE_EXPOSED");
+  if (alpha->animationComponent->GetAnimationString() != "CORE_EXPOSED") {
+    arbiter.BlockDamage();
+    arbiter.BlockImpact();
+  }
 }
 
 Hit::Properties & AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties& statuses)

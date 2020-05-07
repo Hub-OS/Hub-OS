@@ -344,6 +344,7 @@
     <ClCompile Include="bnMiniBomb.cpp" />
     <ClCompile Include="bnMiscBackground.cpp" />
     <ClCompile Include="bnMissile.cpp" />
+    <ClCompile Include="bnMob.cpp" />
     <ClCompile Include="bnMobHealthUI.cpp" />
     <ClCompile Include="bnMobMoveEffect.cpp" />
     <ClCompile Include="bnMobRegistration.cpp" />

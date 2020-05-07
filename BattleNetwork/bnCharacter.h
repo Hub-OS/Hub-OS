@@ -72,6 +72,8 @@ public:
   */
   const bool Hit(Hit::Properties props = Hit::DefaultProperties);
 
+  const bool HasCollision(const Hit::Properties& props);
+
   void ResolveFrameBattleDamage();
 
   virtual void OnUpdate(float elapsed) = 0;
@@ -186,7 +188,7 @@ public:
    * @param in attack
    * @param arbiter. The defense resolution arbiter object with current triggers and block statuses
    */
-  const bool DefenseCheck(DefenseFrameStateArbiter& arbiter, Spell& in);
+  void DefenseCheck(DefenseFrameStateArbiter& arbiter, Spell& in);
 
   /**
   * @brief Create a combat link between other characters
