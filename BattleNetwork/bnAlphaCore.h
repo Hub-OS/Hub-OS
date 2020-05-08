@@ -35,7 +35,7 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   public:
     AlphaCoreDefenseRule(int& alphaCoreHP);
     ~AlphaCoreDefenseRule();
-    void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
+    void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
     Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
   } *defense;
 public:

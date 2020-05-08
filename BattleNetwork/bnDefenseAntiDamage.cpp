@@ -4,7 +4,7 @@
 #include "bnSpell.h"
 #include "bnHitbox.h"
 
-DefenseAntiDamage::DefenseAntiDamage(const DefenseAntiDamage::Callback& callback) : callback(callback), DefenseRule(Priority(5))
+DefenseAntiDamage::DefenseAntiDamage(const DefenseAntiDamage::Callback& callback) : callback(callback), DefenseRule(Priority(5), DefenseOrder::collisionOnly)
 {
 }
 
@@ -12,16 +12,18 @@ DefenseAntiDamage::~DefenseAntiDamage()
 {
 }
 
-void DefenseAntiDamage::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
+void DefenseAntiDamage::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
 {
   auto props = in.GetHitboxProperties();
 
-  if ((props.flags & Hit::impact) == Hit::impact && props.damage >= 10
-    && !arbiter.IsDamageBlocked() && !arbiter.IsImpactBlocked()) {
+  if (props.element == Element::cursor) {
+    judge.SignalDefenseWasPierced();
+  } else if ((props.flags & Hit::impact) == Hit::impact && props.damage >= 10
+    && !judge.IsDamageBlocked() && !judge.IsImpactBlocked()) {
 
     owner.GetField()->AddEntity(*new Hitbox(owner.GetField(), owner.GetTeam(), 0), owner.GetTile()->GetX(), owner.GetTile()->GetY());
 
-    arbiter.AddTrigger(callback, std::ref(in), std::ref(owner));
-    arbiter.BlockDamage();
+    judge.AddTrigger(callback, std::ref(in), std::ref(owner));
+    judge.BlockDamage();
   }
 }

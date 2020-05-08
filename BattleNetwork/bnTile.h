@@ -38,6 +38,7 @@ class Dummy;
 #include "bnTileState.h"
 #include "bnAnimation.h"
 #include "bnField.h"
+#include "bnDefenseRule.h"
 
 namespace Battle {
   class Tile : public Sprite {
@@ -266,11 +267,6 @@ namespace Battle {
     std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
   private:
-    /**
-    * @brief Attack all entities occupying this tile with spell
-    * @param non-null spell type pulled from queue
-    */
-    void PerformSpellAttack(Spell* caller);
 
     std::string GetAnimState(const TileState state);
 
@@ -279,6 +275,7 @@ namespace Battle {
     void UpdateSpells(const float elapsed);
     void UpdateArtifacts(const float elapsed);
     void UpdateCharacters(const float elapsed);
+    void PerformDefenseChecks(DefenseFrameStateJudge&,Spell&,Character&,const DefenseOrder&);
 
     int x; /**< Column number*/
     int y; /**< Row number*/

@@ -30,17 +30,19 @@ ProgsMan::ProgsMan(Rank _rank) : BossPatternAI<ProgsMan>(this), Character(_rank)
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
-  animationComponent->SetAnimation("MOB_IDLE");
+  animationComponent->SetAnimation("IDLE");
   animationComponent->OnUpdate(0);
 
   // Setup AI pattern
+  AddState<ProgsManIdleState>(1.0f);
   AddState<ProgsManMoveState>();
-  AddState<ProgsManMoveState>();
-  AddState<ProgsManMoveState>();
+  AddState<ProgsManIdleState>(1.0f);
   AddState<ProgsManThrowState>();
+  AddState<ProgsManIdleState>(1.0f);
   AddState<ProgsManThrowState>();
+  AddState<ProgsManIdleState>(1.0f);
   AddState<ProgsManThrowState>();
-  AddState<ProgsManIdleState>();
+  AddState<ProgsManIdleState>(2.0f);
   AddState<ProgsManMoveState>();
   AddState<ProgsManShootState>();
   AddState<ProgsManMoveState>();

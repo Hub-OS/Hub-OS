@@ -34,13 +34,7 @@ Entity::Entity()
   alpha = 255;
 }
 
-// Entity's own the components still attached
-// Use FreeComponent() to preserve a component before entity's deletion
 Entity::~Entity() {
-  for (int i = 0; i < components.size(); i++) {
-    components[i]->FreeOwner();
-    delete components[i];
-  }
 }
 
 void Entity::Spawn(Battle::Tile & start)

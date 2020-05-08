@@ -292,19 +292,16 @@ void Character::ResolveFrameBattleDamage()
           append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
         }
         else {
+          // refresh stun
           stunCooldown = 3.0;
           hadStun = true;
         }
-      }
-      else {
-          // cancel stun
-          stunCooldown = 0.0;
       }
 
       // exclude this from the next processing step
       props.flags &= ~Hit::stun;
 
-      // Flinch is ignored if already flinching or stunned
+      // Flinch is ignored if already flinching or stunned (super armor equivalent)
       // and can be queued if dragging this frame
       if ((props.flags & Hit::flinch) == Hit::flinch && !hadStun) {
         if (postDragDir != Direction::none) {
@@ -314,9 +311,6 @@ void Character::ResolveFrameBattleDamage()
           if (invincibilityCooldown <= 0.0) {
             invincibilityCooldown = 3.0;
           }
-
-          // cancel stun
-          stunCooldown = 0;
         }
       }
 
@@ -338,7 +332,6 @@ void Character::ResolveFrameBattleDamage()
       SetHealth(GetHealth() - tileDamage);
 
       if (GetHealth() == 0) {
-        stunCooldown = 0;
         postDragDir = Direction::none; // Cancel slide post-status if blowing up
       }
     }
@@ -363,7 +356,7 @@ void Character::ResolveFrameBattleDamage()
   if (frameCounterAggressor) {
     Broadcast(*this, *frameCounterAggressor);
     ToggleCounter(false);
-    Stun(3.0);
+    Stun(2.5); // 150 frames @ 60 fps = 2.5 seconds
   }
 
   if (GetHealth() == 0) {
@@ -456,10 +449,14 @@ void Character::RemoveDefenseRule(DefenseRule * rule)
     defenses.erase(iter);
 }
 
-void Character::DefenseCheck(DefenseFrameStateArbiter& arbiter, Spell& in)
+void Character::DefenseCheck(DefenseFrameStateJudge& judge, Spell& in, const DefenseOrder& filter)
 {
   for (int i = 0; i < defenses.size(); i++) {
-    defenses[i]->CanBlock(arbiter, in, *this);
+    if (defenses[i]->GetDefenseOrder() == filter) {
+      DefenseRule* defenseRule = defenses[i];
+      judge.SetDefenseContext(defenseRule);
+      defenseRule->CanBlock(judge, in, *this);
+    }
   }
 }
 

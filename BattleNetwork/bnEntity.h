@@ -348,15 +348,15 @@ public:
    * @brief Get the first component that matches the exact Type
    * @return null if no component is found, otherwise returns the component
    */
-  template<typename Type>
-  Type* GetFirstComponent();
+  template<typename ComponentType>
+  ComponentType* GetFirstComponent();
 
    /**
    * @brief Get all components that matches the exact Type
    * @return vector of specified components
    */
-  template<typename Type>
-  std::vector<Type*> GetComponents();
+  template<typename ComponentType>
+  std::vector<ComponentType*> GetComponents();
 
   /**
 * @brief Get all components that inherit BaseType
@@ -378,8 +378,8 @@ public:
    * @param Args. Parameter pack of any argument type to pass into the component's constructor
    * @return Returns the component as a pointer of the same type as ComponentT
    */
-  template<typename ComponentT, typename... Args>
-  ComponentT* CreateComponent(Args&&...);
+  template<typename ComponentType, typename... Args>
+  ComponentType* CreateComponent(Args&&...);
 
   /**
   * @brief Attaches a component to an entity
@@ -454,26 +454,26 @@ private:
   void UpdateSlideStartPosition();
 };
 
-template<typename Type>
-inline Type* Entity::GetFirstComponent()
+template<typename ComponentType>
+inline ComponentType* Entity::GetFirstComponent()
 {
   for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
-    if (typeid(*(*it)) == typeid(Type)) {
-      return dynamic_cast<Type*>(*it);
+    if (typeid(*(*it)) == typeid(ComponentType)) {
+      return dynamic_cast<ComponentType*>(*it);
     }
   }
 
   return nullptr;
 }
 
-template<typename Type>
-inline std::vector<Type*> Entity::GetComponents()
+template<typename ComponentType>
+inline std::vector<ComponentType*> Entity::GetComponents()
 {
-  auto res = std::vector<Type*>();
+  auto res = std::vector<ComponentType*>();
 
   for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
-    if (typeid(*(*it)) == typeid(Type)) {
-      res.push_back(dynamic_cast<Type*>(*it));
+    if (typeid(*(*it)) == typeid(ComponentType)) {
+      res.push_back(dynamic_cast<ComponentType*>(*it));
     }
   }
 
@@ -502,16 +502,11 @@ inline bool Entity::IsA() {
   return (dynamic_cast<Type*>(this) != nullptr);
 }
 
-template<typename ComponentT, typename... Args>
-inline ComponentT* Entity::CreateComponent(Args&& ...args) {
-    ComponentT* c = new ComponentT(std::forward<decltype(args)>(args)...);
+template<typename ComponentType, typename... Args>
+inline ComponentType* Entity::CreateComponent(Args&& ...args) {
+  ComponentType* c = new ComponentType(std::forward<decltype(args)>(args)...);
 
-    components.push_back(c);
+  RegisterComponent(c);
 
-    // Newest components appear first in the list for easy referencing
-    std::sort(components.begin(), components.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
-
-    RegisterComponent(c);
-
-    return c;
+  return c;
 }

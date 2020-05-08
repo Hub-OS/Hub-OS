@@ -1,11 +1,16 @@
 #pragma once
 #include "bnHitProperties.h"
-#include "bnDefenseFrameStateArbiter.h"
+#include "bnDefenseFrameStateJudge.h"
 
 class Spell;
 class Character;
 
 typedef int Priority;
+
+enum class DefenseOrder : int {
+  collisionOnly,
+  always
+};
 
 /**
  * @class DefenseRule
@@ -18,6 +23,7 @@ typedef int Priority;
  */
 class DefenseRule {
 private:
+  DefenseOrder order; /*!< Some defenses only check if there was a collision */
   Priority priorityLevel; /*!< Lowest priority goes first */
   bool replaced; /*!< If this rule has been replaced by another one in the entity*/
 
@@ -27,12 +33,17 @@ public:
   /**
   * @brief Constructs a defense rule with a priority level
   */
-  DefenseRule(Priority level);
+  DefenseRule(const Priority level, const DefenseOrder& order);
 
   /**
   * @brief Returns the priority level of this defense rule
   */
   const Priority GetPriorityLevel() const;
+
+  /**
+  * @brief Returns the defense order of this defense rule
+  */
+  const DefenseOrder GetDefenseOrder() const;
   
   /**
   * @brief True if the defense rule has been flagged for replacement by another with a priority level of equal value
@@ -53,5 +64,5 @@ public:
   /**
     * @brief Returns false if spell passes through this defense, true if defense prevents it
     */
-  virtual void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) = 0;
+  virtual void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) = 0;
 };

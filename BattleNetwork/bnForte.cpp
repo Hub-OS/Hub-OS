@@ -59,8 +59,6 @@ Forte::Forte() : Player()
 
 Forte::~Forte()
 {
-  FreeComponentByID(aura->GetID());
-  delete aura;
   aura = nullptr;
 }
 
@@ -90,6 +88,7 @@ void Forte::OnUpdate(float _elapsed)
 
 void Forte::OnDelete()
 {
+  FreeComponentByID(aura->GetID());
   Player::OnDelete();
 }
 

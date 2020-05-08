@@ -4,7 +4,7 @@
 #include "bnSpell.h"
 #include "bnHitbox.h"
 
-DefenseInvis::DefenseInvis() : DefenseRule(0)
+DefenseInvis::DefenseInvis() : DefenseRule(Priority(0), DefenseOrder::always)
 {
 }
 
@@ -12,10 +12,10 @@ DefenseInvis::~DefenseInvis()
 {
 }
 
-void DefenseInvis::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
+void DefenseInvis::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
 {
   if ((in.GetHitboxProperties().flags & Hit::pierce) != Hit::pierce) {
-    arbiter.BlockDamage();
-    arbiter.BlockImpact();
+    judge.BlockDamage();
+    judge.BlockImpact();
   }
 }

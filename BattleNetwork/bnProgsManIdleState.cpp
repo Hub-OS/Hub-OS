@@ -3,7 +3,7 @@
 #include "bnProgsMan.h"
 
 
-ProgsManIdleState::ProgsManIdleState() : cooldown(0.5f), AIState<ProgsMan>()
+ProgsManIdleState::ProgsManIdleState(const float cooldown) : initialCooldown(cooldown), AIState<ProgsMan>()
 {
 }
 
@@ -14,6 +14,7 @@ ProgsManIdleState::~ProgsManIdleState()
 
 void ProgsManIdleState::OnEnter(ProgsMan& progs) {
   progs.SetAnimation("IDLE");
+  cooldown = initialCooldown;
 }
 
 void ProgsManIdleState::OnUpdate(float _elapsed, ProgsMan& progs) {

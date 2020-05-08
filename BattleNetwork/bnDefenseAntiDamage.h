@@ -35,5 +35,5 @@ public:
    * @param in attack spell
    * @param owner the character with antidamage defense (this) added 
    */
-  void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
 };

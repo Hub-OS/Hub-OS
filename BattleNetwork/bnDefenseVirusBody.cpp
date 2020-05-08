@@ -1,6 +1,6 @@
 #include "bnDefenseVirusBody.h"
 
-DefenseVirusBody::DefenseVirusBody() : DefenseRule(Priority(0)) {
+DefenseVirusBody::DefenseVirusBody() : DefenseRule(Priority(0), DefenseOrder::collisionOnly) {
 }
 
 DefenseVirusBody::~DefenseVirusBody() { }
@@ -14,6 +14,6 @@ Hit::Properties& DefenseVirusBody::FilterStatuses(Hit::Properties& statuses)
   return statuses;
 }
 
-void DefenseVirusBody::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) {
+void DefenseVirusBody::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) {
   // doesn't block anything
 }

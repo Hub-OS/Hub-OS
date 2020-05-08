@@ -8,12 +8,12 @@ class ProgsManIdleState : public AIState<ProgsMan>
 {
 private:
   float cooldown; /*!< Time left before changing states */
-
+  float initialCooldown; /*!< Cooldown used in this state's constructor */
 public:
   /**
    * @brief Sets the timer to 0.5 seconds
    */
-  ProgsManIdleState();
+  ProgsManIdleState(const float);
   
   /**
    * @brief Deconstructor

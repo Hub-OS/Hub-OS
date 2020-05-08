@@ -368,14 +368,15 @@ void AlphaCore::ShootSuperVulcans()
   rightShoulderShoot->Reveal();
 }
 
-AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : DefenseRule(Priority(0)), alphaCoreHP(alphaCoreHP) {}
+AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) 
+  : DefenseRule(Priority(0), DefenseOrder::collisionOnly), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 
-void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) {
+void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) {
   AlphaCore* alpha = static_cast<AlphaCore*>(&owner);
   if (alpha->impervious) {
-    arbiter.BlockDamage();
-    arbiter.BlockImpact();
+    judge.BlockDamage();
+    judge.BlockImpact();
   }
 
   alphaCoreHP -= in.GetHitboxProperties().damage;
@@ -384,8 +385,8 @@ void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateArbiter& arbiter
   // Combat damage happens in real time, however during TFC the core
   // should protect Alpha until it is able to changed to its exposed state
   if (alpha->animationComponent->GetAnimationString() != "CORE_EXPOSED") {
-    arbiter.BlockDamage();
-    arbiter.BlockImpact();
+    judge.BlockDamage();
+    judge.BlockImpact();
   }
 }
 

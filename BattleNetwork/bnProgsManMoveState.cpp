@@ -73,6 +73,6 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
 }
 
 void ProgsManMoveState::OnLeave(ProgsMan& progs) {
-
+  isMoving = false;
 }
 

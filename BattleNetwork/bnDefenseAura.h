@@ -29,5 +29,5 @@ public:
    * @param in the attack
    * @param owner the character the rule is attached to (this)
    */
-  void CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner) override;
+  void CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) override;
 };

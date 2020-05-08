@@ -5,7 +5,7 @@
 #include "bnHitbox.h"
 #include "bnGuardHit.h"
 
-DefenseBubbleWrap::DefenseBubbleWrap() : DefenseRule(Priority(0))
+DefenseBubbleWrap::DefenseBubbleWrap() : DefenseRule(Priority(0), DefenseOrder::always)
 {
 }
 
@@ -19,16 +19,18 @@ Hit::Properties& DefenseBubbleWrap::FilterStatuses(Hit::Properties& statuses) {
   return statuses;
 }
 
-void DefenseBubbleWrap::CanBlock(DefenseFrameStateArbiter& arbiter, Spell& in, Character& owner)
+void DefenseBubbleWrap::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
 {
+  if ((in.GetHitboxProperties().flags & Hit::impact) == 0) return;
+
   // weak obstacles will break like other bubbles
   owner.GetField()->AddEntity(*new Hitbox(owner.GetField(), owner.GetTeam(), 0), owner.GetTile()->GetX(), owner.GetTile()->GetY());
 
   auto props = in.GetHitboxProperties();
   if ((props.flags & Hit::impact) == Hit::impact) {
 
-    if (in.GetElement() == Element::elec) {
-      arbiter.BlockDamage();
+    if (in.GetElement() != Element::elec) {
+      judge.BlockDamage();
     }
   }
 }

@@ -1500,14 +1500,14 @@
     <ClCompile Include="bnElecPulseCardAction.cpp">
       <Filter>BattleEngine\Cards\Actions\ElecPulse</Filter>
     </ClCompile>
-    <ClCompile Include="bnDefenseFrameStateArbiter.cpp">
-      <Filter>BattleEngine\BattleStepModifiers</Filter>
-    </ClCompile>
     <ClCompile Include="bnDelayedAttack.cpp">
       <Filter>BattleEngine\Entities\Spell\DelayedAttack</Filter>
     </ClCompile>
     <ClCompile Include="bnMob.cpp">
       <Filter>BattleEngine\Factories\MobRegistration</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDefenseFrameStateJudge.cpp">
+      <Filter>BattleEngine\BattleStepModifiers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2352,11 +2352,11 @@
     <ClInclude Include="bnNaviWhiteoutState.h">
       <Filter>BattleEngine\AI\Any\States</Filter>
     </ClInclude>
-    <ClInclude Include="bnDefenseFrameStateArbiter.h">
-      <Filter>BattleEngine\BattleStepModifiers</Filter>
-    </ClInclude>
     <ClInclude Include="bnMob.h">
       <Filter>BattleEngine\Factories\MobRegistration</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDefenseFrameStateJudge.h">
+      <Filter>BattleEngine\BattleStepModifiers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

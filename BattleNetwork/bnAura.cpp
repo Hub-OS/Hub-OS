@@ -207,7 +207,7 @@ void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {
       int col = 8 * (number % 5);
 
       font.setTextureRect(sf::IntRect(col, rowstart, 8, 15));
-      font.setPosition(sf::Vector2f(offsetx, 25.0f));
+      font.setPosition(sf::Vector2f(offsetx, 35.0f));
 
       target.draw(font, this_states);
 

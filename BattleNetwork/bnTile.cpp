@@ -7,7 +7,8 @@
 #include "bnObstacle.h"
 #include "bnSpell.h"
 #include "bnArtifact.h"
-#include "bnDefenseFrameStateArbiter.h"
+#include "bnDefenseFrameStateJudge.h"
+#include "bnDefenseRule.h"
 
 #include "bnPlayer.h"
 #include "bnExplosion.h"
@@ -683,77 +684,77 @@ namespace Battle {
         // the entity is a character (can be hit) and the team isn't the same
         // we see if it passes defense checks, then call attack
 
-        Character& c = *(*it);
-        std::vector<Spell*> hitSpells;
-        std::list<std::function<void()>> triggers;
+        Character& character = *(*it);
         bool retangible = false;
-        bool allDamageBlocked = true;
+        DefenseFrameStateJudge judge; // judge for this character's defenses
 
         for (Entity::ID_t ID : queuedSpells) {
           Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
-          DefenseFrameStateArbiter arbiter; // arbiter for this character's defenses
 
-          if (c.GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
+          if (character.GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
             continue;
 
+          bool unknownTeams = character.GetTeam() == Team::unknown;
+          unknownTeams = unknownTeams && (spell->GetTeam() == Team::unknown);
+
+          if (character.GetTeam() == spell->GetTeam() && !unknownTeams) // Case: prevent friendly fire
+            continue;
+
+          character.DefenseCheck(judge, *spell, DefenseOrder::always);
+
+          bool alreadyTagged = false;
+
+          if (judge.IsDamageBlocked()) {
+            alreadyTagged = true;
+            // Tag the spell
+            // only ignore spells that have already hit something on a tile
+            // this is similar to the hitbox being removed in mmbn mechanics
+            taggedSpells.push_back(spell->GetID());
+          }
+
+          // Collision here means "we are able to hit" 
+          // either with a hitbox that can peirce a defense or by tangibility
           auto props = spell->GetHitboxProperties();
+          if (!character.HasCollision(props)) continue;
 
-          if (!c.HasCollision(props)) continue;
+          if (!alreadyTagged) {
+            // If not collided by the earlier defense types, tag it now
+            // since we have a definite collision
+            taggedSpells.push_back(spell->GetID());
+          }
 
-          // Tag the spell
-          // only ignore spells that have already hit something on a tile
-          // this is similar to the hitbox being removed in mmbn mechanics
-          taggedSpells.push_back(spell->GetID());
+          // Retangible flag takes characters out of passthrough status
+          retangible = retangible || ((props.flags & Hit::retangible) == Hit::retangible);
 
-          bool unknownTeams = (c.GetTeam() == Team::unknown && spell->GetTeam() == Team::unknown);
-          if (c.GetTeam() != spell->GetTeam() || unknownTeams) {
+          // The spell passed at least one defense check
+          character.DefenseCheck(judge, *spell, DefenseOrder::collisionOnly);
 
-            // Retangible flag takes characters out of passthrough status
-            retangible = (props.flags & Hit::retangible) == Hit::retangible;
+          if (!judge.IsDamageBlocked()) {
 
-            // The spell passed at least one defense check
-            c.DefenseCheck(arbiter, *spell);
-            hitSpells.push_back(spell);
-
-            if (arbiter.IsDamageBlocked()) {
-              triggers.splice(triggers.end(), arbiter.GetTriggers());
-            } else {
-              allDamageBlocked = false;
-
+            // Attack() routine has Hit() which immediately subtracts HP
+            // We make sure to apply any tile bonuses at this stage
+            if (GetState() == TileState::holy) {
               auto props = spell->GetHitboxProperties();
-
-              // Attack() routine has Hit() which immediately subtracts HP
-              // However it also acts as the last check if contact was made (see: i-frames)
-              // Because we want to write Attack() to determine contact status
-              // without exposing the character to malicious programming (e.g. always dealing damage regardless)
-              // we pass the attack info to a dummy to recieve hits on their behalf
-
-              if (GetState() == TileState::holy) {
-                auto props = spell->GetHitboxProperties();
-                props.damage /= 2;
-                spell->SetHitboxProperties(props);
-              }
-
-              if (isTimeFrozen) {
-                auto props = spell->GetHitboxProperties();
-                props.flags |= Hit::shake;
-                spell->SetHitboxProperties(props);
-              }
-
-              spell->Attack(&c);
+              props.damage /= 2;
               spell->SetHitboxProperties(props);
             }
-        } // end each hitbox loop
 
-        if (allDamageBlocked) {
-          for (auto t : triggers) {
-            t();
+            if (isTimeFrozen) {
+              auto props = spell->GetHitboxProperties();
+              props.flags |= Hit::shake;
+              spell->SetHitboxProperties(props);
+            }
+
+            spell->Attack(&character);
+            spell->SetHitboxProperties(props);
           }
-        }
-      } // end each character loop
 
-      if (retangible) c.SetPassthrough(false);
-    }
+          judge.PrepareForNextAttack();
+      } // end each spell loop
+
+      judge.ExecuteAllTriggers();
+      if (retangible) character.SetPassthrough(false);
+    } // end each character loop
 
     // empty previous frame queue to be used this current frame
     queuedSpells.clear();
