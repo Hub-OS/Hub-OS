@@ -24,7 +24,7 @@ void HideTimer::OnUpdate(float _elapsed) {
     temp->AddEntity(*owner);
     GetOwner()->FreeComponentByID(GetID());
 
-    scene->Eject(this);
+    scene->Eject(GetID());
     delete this;
   }
 }

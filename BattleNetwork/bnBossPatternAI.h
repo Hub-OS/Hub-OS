@@ -65,6 +65,10 @@ public:
   }
 
   void InvokeDefaultState() {
+    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
+      return;
+    }
+
     if (interruptState) {
       endInterrupt = true;
 
@@ -78,6 +82,10 @@ public:
   }
 
   void GoToNextState() {
+    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
+      return;
+    }
+
     gotoNext = true;
 
     if (interruptState) { endInterrupt = true; }
@@ -88,10 +96,6 @@ public:
    */
   template<typename U>
   void AddState() {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
-      return;
-    }
-
     stateMachine.push_back(new U());
   }
 
@@ -102,10 +106,6 @@ public:
    */
   template<typename U, typename ...Args>
   void AddState(Args... args) {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
-      return;
-    }
-
     stateMachine.push_back(new U(std::forward<Args>(args)...));
   }
 

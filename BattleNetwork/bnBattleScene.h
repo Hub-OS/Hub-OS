@@ -335,7 +335,7 @@ public:
    * @brief When ejecting component from scene, simply removes it from update list
    * @param other
    */
-  void Eject(Component* other);
+  void Eject(Component::ID_t ID);
 
   /**
    * @brief Scans the entity list for updated components and tries to Inject them if the components require.

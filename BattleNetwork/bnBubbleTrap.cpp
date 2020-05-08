@@ -9,13 +9,12 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : Artifact(nullptr), Component(owner)
+BubbleTrap::BubbleTrap(Character* owner) : SpriteProxyNode(), Component(owner)
 {
   // Bubbles have to pop when hit
   defense = new DefenseBubbleWrap();
 
   if (owner->IsDeleted()) {
-    Remove();
     GetOwner()->FreeComponentByID(Component::GetID());
     defense = nullptr;
   }
@@ -44,8 +43,6 @@ void BubbleTrap::Inject(BattleScene& bs) {
 }
 
 void BubbleTrap::OnUpdate(float _elapsed) {
-  if (!tile) return;
-  if (!GetOwner()) Remove();
 
   if (duration <= 0 &&  animation.GetAnimationString() != "POP" ) {
     Pop();
@@ -60,16 +57,6 @@ void BubbleTrap::OnUpdate(float _elapsed) {
   animation.Update(_elapsed, getSprite());
 }
 
-void BubbleTrap::OnDelete()
-{
-  Remove();
-}
-
-bool BubbleTrap::Move(Direction _direction)
-{
-  return false;
-}
-
 void BubbleTrap::Pop()
 {
   auto onFinish = [this]() {
@@ -78,7 +65,8 @@ void BubbleTrap::Pop()
       GetOwner()->FreeComponentByID(Component::GetID());
     }
 
-    Delete();
+    GetOwner()->RemoveNode(this);
+    delete this;
   };
 
   animation << "POP" << onFinish;

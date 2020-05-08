@@ -25,7 +25,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   Entity::RemoveCallback& callback = owner->CreateRemoveCallback();
   callback.Slot([this]() {
     timer = 0;
-    bs->Eject(this);
+    bs->Eject(GetID());
     delete this;
   });
 
@@ -101,7 +101,7 @@ void Aura::OnUpdate(float _elapsed) {
   if (defense->IsReplaced()) {
     RemoveNode(aura);
     privOwner->RemoveNode(this);
-    bs->Eject(this);
+    bs->Eject(GetID());
     delete this;
     return;
   }
@@ -124,7 +124,7 @@ void Aura::OnUpdate(float _elapsed) {
   else if (timer <= 0.0) {
     privOwner->RemoveDefenseRule(defense);
     privOwner->RemoveNode(this);
-    bs->Eject(this);
+    bs->Eject(GetID());
     delete this;
     return;
   }

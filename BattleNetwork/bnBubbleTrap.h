@@ -12,7 +12,7 @@
  * Creates a defense rule to absord first damage and forces this bubble to pop
  * On pop, frees owner and deletes self
  */
-class BubbleTrap : virtual public Artifact, virtual public Component
+class BubbleTrap : public SpriteProxyNode, public Component
 {
 private:
   Animation animation;
@@ -37,15 +37,6 @@ public:
    * @param _elapsed in seconds
    */
   void OnUpdate(float _elapsed) override;
-
-  void OnDelete() override;
-  
-  /**
-   * @brief Does not move
-   * @param _direction
-   * @return false
-   */
-  bool Move(Direction _direction) override;
 
   /**
    * @brief Sets the pop animation and deletes self when over

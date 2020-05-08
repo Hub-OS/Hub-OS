@@ -107,7 +107,6 @@ void Bubble::Attack(Character* _entity) {
   if(popping) return;
 
   Obstacle* other = dynamic_cast<Obstacle*>(_entity);
-  Component* comp = dynamic_cast<Component*>(_entity);
 
   if (other) {
     if (other->GetHitboxProperties().aggressor != GetHitboxProperties().aggressor) {
@@ -123,15 +122,11 @@ void Bubble::Attack(Character* _entity) {
 
   if (popping) {
     auto bubble = _entity->GetFirstComponent<BubbleTrap>();
-    if (!comp) {
-      if (bubble == nullptr) {
-        BubbleTrap* trap = new BubbleTrap(_entity);
-        _entity->RegisterComponent(trap);
-        GetField()->AddEntity(*trap, *GetTile());
-      }
-      else {
-        bubble->Pop();
-      }
+    if (bubble == nullptr) {
+      _entity->CreateComponent<BubbleTrap>(_entity);
+    }
+    else {
+      bubble->Pop();
     }
 
     Delete();

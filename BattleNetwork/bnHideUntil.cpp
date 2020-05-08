@@ -12,7 +12,7 @@ HideUntil::HideUntil(Character* owner, HideUntil::Callback callback)
 void HideUntil::OnUpdate(float _elapsed) {
   if ((callback && callback()) && temp) {
     temp->AddEntity(*owner);
-    scene->Eject(this);
+    scene->Eject(GetID());
     delete this;
   }
 }

@@ -69,11 +69,11 @@ public:
     bool change = true;
 
     if (priorityLocked) {
-      change = false;
-
       if (priorityLevel > U::PriorityLevel) {
-        change = true;
-        priorityLocked = false; // unlock
+        PriorityUnlock();
+      }
+      else {
+        change = false;
       }
     }
 
@@ -95,11 +95,11 @@ template<typename U, typename ...Args>
     bool change = true;
 
     if (priorityLocked) {
-      change = false;
-
       if (priorityLevel > U::PriorityLevel) {
-        change = true;
-        priorityLocked = false; // unlock
+        PriorityUnlock();
+      }
+      else {
+        change = false;
       }
     }
 

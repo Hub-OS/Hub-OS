@@ -9,7 +9,9 @@ namespace AIPriorityDetail {
   // Locker
   template<typename Dummy, class Enabled = void>
   struct AIPriorityLock_t {
-    AIPriorityLock_t(Dummy& dummy) {  }
+    AIPriorityLock_t(Dummy& dummy) { 
+      dummy.LockState();
+    }
   };
 
   template<typename Dummy> 
@@ -23,7 +25,9 @@ namespace AIPriorityDetail {
   // Unlocker
   template<typename Dummy, class Enabled = void>
   struct AIPriorityUnlock_t {
-    AIPriorityUnlock_t(Dummy& dummy) {  }
+    AIPriorityUnlock_t(Dummy& dummy) { 
+      dummy.UnlockState();
+    }
   };
 
   template<typename Dummy>

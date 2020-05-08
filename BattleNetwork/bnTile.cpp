@@ -262,6 +262,11 @@ namespace Battle {
     return willHighlight;
   }
 
+  void Tile::RequestHighlight(Highlight mode)
+  {
+    highlightMode = mode;
+  }
+
   bool Tile::IsReservedByCharacter()
   {
     return (reserved.size() != 0);
@@ -444,6 +449,7 @@ namespace Battle {
 
     // animation will want to override the sprite's origin. Use setOrigin() to fix this.
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
+    highlightMode = Highlight::none;
   }
 
   void Tile::ToggleTimeFreeze(bool state)
@@ -762,8 +768,6 @@ namespace Battle {
 
   void Tile::UpdateSpells(const float elapsed)
   {
-    highlightMode = Highlight::none;
-
     vector<Spell*> spells_copy = spells;
     for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
       int request = (int)(*entity)->GetTileHighlightMode();

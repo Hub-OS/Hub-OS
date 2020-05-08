@@ -299,9 +299,9 @@ void BattleScene::Inject(Component * other)
   components.push_back(other);
 }
 
-void BattleScene::Eject(Component * other)
+void BattleScene::Eject(Component::ID_t ID)
 {
-  auto iter = std::find(components.begin(), components.end(), other);
+  auto iter = std::find_if(components.begin(), components.end(), [ID](auto in) { return in->GetID() == ID; });
 
   if (iter != components.end()) {
     components.erase(iter);

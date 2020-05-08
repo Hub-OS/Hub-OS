@@ -165,6 +165,11 @@ namespace Battle {
     bool IsHighlighted() const;
 
     /**
+     * @brief will request a highlight style for one frame
+     */
+    void RequestHighlight(Highlight mode);
+
+    /**
      * @brief Returns true if a character is standing on or has reserved this tile 
      * 
      * Only checks for character entity types
@@ -275,7 +280,6 @@ namespace Battle {
     void UpdateSpells(const float elapsed);
     void UpdateArtifacts(const float elapsed);
     void UpdateCharacters(const float elapsed);
-    void PerformDefenseChecks(DefenseFrameStateJudge&,Spell&,Character&,const DefenseOrder&);
 
     int x; /**< Column number*/
     int y; /**< Row number*/
