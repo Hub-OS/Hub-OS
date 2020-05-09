@@ -35,19 +35,19 @@ ElecPulseCardAction::~ElecPulseCardAction()
 }
 
 void ElecPulseCardAction::Execute() {
-    auto owner = GetOwner();
+    auto user = GetUser();
 
-    owner->AddNode(attachment);
+    user->AddNode(attachment);
     attachment->EnableParentShader(false);
     attachmentAnim.Update(0, attachment->getSprite());
 
     // On shoot frame, drop projectile
-    auto onFire = [this, owner]() -> void {
-        elecpulse = new Elecpulse(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+    auto onFire = [this, user]() -> void {
+        elecpulse = new Elecpulse(user->GetField(), user->GetTeam(), damage);
         AUDIO.Play(AudioType::ELECPULSE);
 
         auto props = elecpulse->GetHitboxProperties();
-        props.aggressor = GetOwnerAs<Character>();
+        props.aggressor = user;
         elecpulse->SetHitboxProperties(props);
 
         Entity::RemoveCallback& deleteHandler = elecpulse->CreateRemoveCallback();
@@ -57,7 +57,7 @@ void ElecPulseCardAction::Execute() {
             elecpulse = nullptr;
         });
 
-        GetOwner()->GetField()->AddEntity(*elecpulse, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+        user->GetField()->AddEntity(*elecpulse, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
     };
 
 
@@ -74,7 +74,6 @@ void ElecPulseCardAction::EndAction()
 {
     elecpulse? elecpulse->Delete() : 0;
 
-    GetOwner()->RemoveNode(attachment);
-    GetOwner()->FreeComponentByID(GetID());
-    delete this;
+    user->RemoveNode(attachment);
+    user->EndCurrentAction();
 }

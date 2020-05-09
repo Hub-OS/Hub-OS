@@ -16,7 +16,7 @@
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
 
-VulcanCardAction::VulcanCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+VulcanCardAction::VulcanCardAction(Character * user, int damage) : CardAction(user, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
   VulcanCardAction::damage = damage;
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   attachment = new SpriteProxyNode(overlay);
@@ -33,20 +33,20 @@ VulcanCardAction::~VulcanCardAction()
 }
 
 void VulcanCardAction::Execute() {
-  auto owner = GetOwner();
+  auto user = GetUser();
 
-  owner->AddNode(attachment);
+  user->AddNode(attachment);
   attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
-  auto onFire = [this, owner]() -> void {
-    Vulcan* b = new Vulcan(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  auto onFire = [this, user]() -> void {
+    Vulcan* b = new Vulcan(GetUser()->GetField(), GetUser()->GetTeam(), damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = user;
     b->SetHitboxProperties(props);
     b->SetDirection(Direction::right);
 
-    GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+    GetUser()->GetField()->AddEntity(*b, GetUser()->GetTile()->GetX() + 1, GetUser()->GetTile()->GetY());
   };
 
 
@@ -63,7 +63,6 @@ void VulcanCardAction::OnUpdate(float _elapsed)
 
 void VulcanCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  GetUser()->RemoveNode(attachment);
+  GetUser()->EndCurrentAction();
 }

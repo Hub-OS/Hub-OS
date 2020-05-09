@@ -22,7 +22,7 @@ ReflectCardAction::~ReflectCardAction()
 }
 
 void ReflectCardAction::Execute() {
-  auto owner = GetOwner();
+  auto owner = GetUser();
 
   // Create a new reflect shield component. This handles the logic for shields.
   ReflectShield* reflect = new ReflectShield(owner, damage);
@@ -48,6 +48,5 @@ void ReflectCardAction::OnUpdate(float _elapsed)
 
 void ReflectCardAction::EndAction()
 {
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  GetUser()->EndCurrentAction();
 }

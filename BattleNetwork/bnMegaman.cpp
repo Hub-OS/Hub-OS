@@ -286,15 +286,15 @@ CardAction* TomahawkCross::OnSpecialAction(Player& player)
 
 #define FRAMES FRAME1, FRAME2, FRAME3
 
-TenguCross::SpecialAction::SpecialAction(Character* owner) : CardAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
-  overlay.setTexture(*owner->getTexture());
+TenguCross::SpecialAction::SpecialAction(Character* user) : CardAction(user, "PLAYER_SWORD", &attachment, "HILT") {
+  overlay.setTexture(*user->getTexture());
   attachment = new SpriteProxyNode(overlay);
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
 
   OverrideAnimationFrames({ FRAMES });
 
-  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(user->GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("HAND");
 }
@@ -311,15 +311,15 @@ void TenguCross::SpecialAction::OnUpdate(float _elapsed)
 
 void TenguCross::SpecialAction::Execute()
 {
-  auto owner = GetOwner();
-  auto team = owner->GetTeam();
-  auto field = owner->GetField();
+  auto user = GetUser();
+  auto team = user->GetTeam();
+  auto field = user->GetField();
 
-  owner->AddNode(attachment);
+  user->AddNode(attachment);
   attachmentAnim.Update(0, attachment->getSprite());
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, owner, team, field]() -> void {
+  auto onThrow = [this, user, team, field]() -> void {
     auto wind = new Wind(field, team);
     field->AddEntity(*wind, 6, 1);
 
@@ -335,7 +335,6 @@ void TenguCross::SpecialAction::Execute()
 
 void TenguCross::SpecialAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  GetUser()->RemoveNode(attachment);
+  GetUser()->EndCurrentAction();
 }

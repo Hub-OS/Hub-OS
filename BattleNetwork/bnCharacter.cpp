@@ -476,3 +476,15 @@ void Character::CancelSharedHitboxDamage(Character * to)
   if(iter != shareHit.end())
     shareHit.erase(iter);
 }
+
+void Character::QueueAction(CardAction * action)
+{
+  if (queuedAction) delete queuedAction;
+  queuedAction = action;
+}
+
+void Character::EndCurrentAction()
+{
+  if (currentAction) delete currentAction;
+  currentAction = nullptr;
+}

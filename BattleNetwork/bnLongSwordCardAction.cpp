@@ -15,19 +15,19 @@ LongSwordCardAction::~LongSwordCardAction()
 
 void LongSwordCardAction::OnSpawnHitbox()
 {
-  BasicSword* b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  BasicSword* b = new BasicSword(user->GetField(), user->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
   props.element = GetElement();
-  props.aggressor = GetOwnerAs<Character>();
+  props.aggressor = user;
   b->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::SWORD_SWING);
 
-  GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+  user->GetField()->AddEntity(*b, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
 
-  b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  b = new BasicSword(user->GetField(), user->GetTeam(), damage);
   // resuse props
   b->SetHitboxProperties(props);
 
-  GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 2, GetOwner()->GetTile()->GetY());
+  user->GetField()->AddEntity(*b, user->GetTile()->GetX() + 2, user->GetTile()->GetY());
 }

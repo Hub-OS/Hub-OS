@@ -8,7 +8,7 @@ class Character;
 class ScriptedCardAction : public CardAction {
 public:
   ScriptedCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_IDLE", nullptr, "Buster") {
-    // SCRIPTS.callback(card_name).onCreate(this);
+    // SCRIPTS.callback(card_name).OnCreate(this);
   }
 
   ~ScriptedCardAction()
@@ -19,14 +19,13 @@ public:
   {
     CardAction::OnUpdate(_elapsed);
 
-    // SCRIPTS.callback(card_name).onUpdate(this);
+    // SCRIPTS.callback(card_name).OnUpdate(this);
   }
 
   void EndAction()
   {
-    GetOwner()->FreeComponentByID(GetID());
-    // SCRIPTS.callback(card_name).onDestroy(this);
-    delete this;
+    GetUser()->EndCurrentAction();
+    // SCRIPTS.callback(card_name).OnEndAction(this);
   }
 
   void Execute() {

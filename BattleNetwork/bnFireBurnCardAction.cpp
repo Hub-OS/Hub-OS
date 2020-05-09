@@ -34,16 +34,16 @@ FireBurnCardAction::~FireBurnCardAction()
 }
 
 void FireBurnCardAction::Execute() {
-  auto owner = GetOwner();
+  auto owner = user;
 
   owner->AddNode(attachment);
   attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner](int offset) -> void {
-    FireBurn* fb = new FireBurn(GetOwner()->GetField(), GetOwner()->GetTeam(), type, damage);
+    FireBurn* fb = new FireBurn(user->GetField(), user->GetTeam(), type, damage);
     auto props = fb->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = GetUser();
     fb->SetHitboxProperties(props);
 
     // update node position in the animation
@@ -56,7 +56,7 @@ void FireBurnCardAction::Execute() {
 
     fb->SetHeight(baseOffset);
 
-    GetOwner()->GetField()->AddEntity(*fb, GetOwner()->GetTile()->GetX() + 1 + offset, GetOwner()->GetTile()->GetY());
+    user->GetField()->AddEntity(*fb, user->GetTile()->GetX() + 1 + offset, user->GetTile()->GetY());
   };
 
 
@@ -73,7 +73,6 @@ void FireBurnCardAction::OnUpdate(float _elapsed)
 
 void FireBurnCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  user->RemoveNode(attachment);
+  user->EndCurrentAction();
 }

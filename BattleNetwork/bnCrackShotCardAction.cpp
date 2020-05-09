@@ -31,28 +31,28 @@ CrackShotCardAction::~CrackShotCardAction()
 }
 
 void CrackShotCardAction::Execute() {
-  auto owner = GetOwner();
+  auto user = GetUser();
 
-  owner->AddNode(attachment);
+  user->AddNode(attachment);
   attachmentAnim.Update(0, attachment->getSprite());
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, owner]() -> void {
+  auto onThrow = [this, user]() -> void {
 
-    auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+    auto tile = user->GetField()->GetAt(user->GetTile()->GetX() + 1, user->GetTile()->GetY());
 
     if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter() && !tile->ContainsEntityType<Character>()) {
-      CrackShot* b = new CrackShot(GetOwner()->GetField(), GetOwner()->GetTeam(), tile);
+      CrackShot* b = new CrackShot(user->GetField(), user->GetTeam(), tile);
       auto props = b->GetHitboxProperties();
       props.damage = damage;
-      props.aggressor = GetOwnerAs<Character>();
+      props.aggressor = user;
       b->SetHitboxProperties(props);
 
-      auto direction = (owner->GetTeam() == Team::red) ? Direction::right : Direction::left;
+      auto direction = (user->GetTeam() == Team::red) ? Direction::right : Direction::left;
       b->SetDirection(direction);
 
 
-      GetOwner()->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
+      user->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
 
       AUDIO.Play(AudioType::TOSS_ITEM_LITE);
 
@@ -70,7 +70,6 @@ void CrackShotCardAction::OnUpdate(float _elapsed)
 }
 
 void CrackShotCardAction::EndAction() {
-  GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  user->RemoveNode(attachment);
+  user->EndCurrentAction();
 }

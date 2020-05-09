@@ -1,5 +1,4 @@
 #pragma once
-#include "bnComponent.h"
 #include "bnAnimationComponent.h"
 #include "bnCharacter.h"
 #include "bnSpriteProxyNode.h"
@@ -8,11 +7,9 @@
 
 #include <SFML/Graphics.hpp>
 
-// TODO: This was written before card actions had many sprite nodes involved (like hilt + sword piece)
-// So the constructor, which was written to make card creation easy,
-// has now made it convoluted and difficult. REWRITE THIS CHIP ACTION CONSTRUCTOR!
-class CardAction : public Component {
+class CardAction {
 protected:
+  Character* user;
   AnimationComponent* anim;
   std::string animation, nodeName;
   std::string uuid, prevState;
@@ -36,19 +33,18 @@ protected:
   }
 
 public:
-  /** Override get owner to always return a character type */
-  Character* GetOwner() { return GetOwnerAs<Character>(); }
+  Character* GetUser() { return user; }
 
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
 
-  CardAction(Character * owner, std::string animation, SpriteProxyNode** attachment, std::string nodeName)
-    : Component(owner), animation(animation), nodeName(nodeName), attachment(attachment)
+  CardAction(Character * user, std::string animation, SpriteProxyNode** attachment, std::string nodeName)
+    : user(user), animation(animation), nodeName(nodeName), attachment(attachment)
   {
-    anim = owner->GetFirstComponent<AnimationComponent>();
+    anim = user->GetFirstComponent<AnimationComponent>();
 
     if (anim) {
-      prepareActionDelegate = [this, owner, animation]() {
+      prepareActionDelegate = [this, user, animation]() {
         prevState = anim->GetAnimationString();
 
         // use the current animation's arrangement, do not overload
@@ -100,20 +96,13 @@ public:
 
   virtual void OnUpdate(float _elapsed)
   {
-    if (!GetOwner() || !GetOwner()->GetTile() || !attachment) return;
-
     // update node position in the animation
     auto baseOffset = anim->GetPoint(nodeName);
-    auto origin = GetOwner()->getSprite().getOrigin();
+    auto origin = GetUser()->getSprite().getOrigin();
     baseOffset = baseOffset - origin;
 
     (*attachment)->setPosition(baseOffset);
   }
 
   virtual void EndAction() = 0;
-
-  void Inject(BattleScene &) final
-  {
-    // do nothing
-  }
 };

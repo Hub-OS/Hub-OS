@@ -54,7 +54,7 @@ SwordCardAction::~SwordCardAction()
 }
 
 void SwordCardAction::Execute() {
-  auto owner = GetOwner();
+  auto owner = user;
   owner->AddNode(hiltAttachment);
   hiltAttachmentAnim.Update(0, hiltAttachment->getSprite());
   hiltAttachment->EnableParentShader(true);
@@ -83,15 +83,15 @@ void SwordCardAction::Execute() {
 
 void SwordCardAction::OnSpawnHitbox()
 {
-  BasicSword* b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  BasicSword* b = new BasicSword(user->GetField(), user->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
-  props.aggressor = GetOwnerAs<Character>();
+  props.aggressor = user;
 
   b->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::SWORD_SWING);
 
-  GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+  user->GetField()->AddEntity(*b, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
 }
 
 void SwordCardAction::SetElement(Element elem)
@@ -112,7 +112,7 @@ void SwordCardAction::OnUpdate(float _elapsed)
   // update node position in the animation:
   // Position the hilt
   auto baseOffset = anim->GetPoint("HILT");
-  auto origin = GetOwner()->getSprite().getOrigin();
+  auto origin = user->getSprite().getOrigin();
   baseOffset = baseOffset - origin;
   hiltAttachment->setPosition(baseOffset);
 
@@ -125,9 +125,7 @@ void SwordCardAction::OnUpdate(float _elapsed)
 
 void SwordCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(hiltAttachment);
+  user->RemoveNode(hiltAttachment);
   hiltAttachment->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-
-  delete this;
+  user->EndCurrentAction();
 }

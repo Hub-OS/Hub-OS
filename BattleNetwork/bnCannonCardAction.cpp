@@ -45,24 +45,24 @@ CannonCardAction::~CannonCardAction()
 }
 
 void CannonCardAction::Execute() {
-  auto owner = GetOwner();
-  owner->AddNode(attachment);
+  auto user = GetUser();
+  user->AddNode(attachment);
 
   attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
-  auto onFire = [this, owner]() -> void {
+  auto onFire = [this, user]() -> void {
     // Spawn a single cannon instance on the tile in front of the player
-    Cannon* cannon = new Cannon(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+    Cannon* cannon = new Cannon(user->GetField(), user->GetTeam(), damage);
     auto props = cannon->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = GetUser();
     cannon->SetHitboxProperties(props);
 
     AUDIO.Play(AudioType::CANNON);
 
     cannon->SetDirection(Direction::right);
 
-    GetOwner()->GetField()->AddEntity(*cannon, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+    user->GetField()->AddEntity(*cannon, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
   };
 
   AddAction(6, onFire);
@@ -76,7 +76,6 @@ void CannonCardAction::OnUpdate(float _elapsed)
 
 void CannonCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  user->RemoveNode(attachment);
+  user->EndCurrentAction();
 }

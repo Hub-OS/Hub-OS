@@ -33,9 +33,9 @@ attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
 }
 
 void BusterCardAction::Execute() {
-  auto owner = GetOwner();
+  auto user = GetUser();
 
-  owner->AddNode(attachment2);
+  user->AddNode(attachment2);
   attachment2->AddNode(attachment);
   attachmentAnim.Update(0, attachment->getSprite());
 
@@ -43,8 +43,8 @@ void BusterCardAction::Execute() {
   attachmentAnim2.Update(0, attachment2->getSprite());
 
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
-    Buster* b = new Buster(GetOwner()->GetField(), GetOwner()->GetTeam(), charged, damage);
+  auto onFire = [this, user]() -> void {
+    Buster* b = new Buster(user->GetField(), user->GetTeam(), charged, damage);
     b->SetDirection(Direction::right);
     auto props = b->GetHitboxProperties();
     b->SetHitboxProperties(props);
@@ -55,7 +55,7 @@ void BusterCardAction::Execute() {
       isBusterAlive = false;
     });
 
-    GetOwner()->GetField()->AddEntity(*b, *GetOwner()->GetTile());
+    user->GetField()->AddEntity(*b, *user->GetTile());
     AUDIO.Play(AudioType::BUSTER_PEA);
   };
 
@@ -96,7 +96,7 @@ void BusterCardAction::OnUpdate(float _elapsed)
 void BusterCardAction::EndAction()
 {
   if (attachment) {
-    GetOwner()->RemoveNode(attachment2);
+    GetUser()->RemoveNode(attachment2);
     attachment2->RemoveNode(attachment);
 
     attachment = nullptr;
@@ -105,6 +105,5 @@ void BusterCardAction::EndAction()
 
   if (isBusterAlive) return; // Do not end action if buster is still on field
 
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  GetUser()->EndCurrentAction();
 }

@@ -30,22 +30,22 @@ AirShotCardAction::AirShotCardAction(Character * owner, int damage) : CardAction
 }
 
 void AirShotCardAction::Execute() {
-  auto owner = GetOwner();
+  auto user = GetUser();
 
-  owner->AddNode(attachment);
+  user->AddNode(attachment);
   attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
+  auto onFire = [this, user]() -> void {
     AUDIO.Play(AudioType::SPREADER);
 
-    AirShot* airshot = new AirShot(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+    AirShot* airshot = new AirShot(user->GetField(), user->GetTeam(), damage);
     airshot->SetDirection(Direction::right);
     auto props = airshot->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = GetUser();
     airshot->SetHitboxProperties(props);
 
-    GetOwner()->GetField()->AddEntity(*airshot, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+    user->GetField()->AddEntity(*airshot, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
   };
 
   AddAction(2, onFire);
@@ -63,7 +63,7 @@ void AirShotCardAction::OnUpdate(float _elapsed)
 
 void AirShotCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  auto user = GetUser();
+  user->RemoveNode(attachment);
+  user->EndCurrentAction();
 }

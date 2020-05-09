@@ -14,7 +14,7 @@
 #define FRAMES FRAME1, FRAME3
 
 
-YoYoCardAction::YoYoCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
+YoYoCardAction::YoYoCardAction(Character * user, int damage) : CardAction(user, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
   YoYoCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
@@ -34,24 +34,24 @@ YoYoCardAction::~YoYoCardAction()
 }
 
 void YoYoCardAction::Execute() {
-  auto owner = GetOwner();
+  auto user = GetUser();
 
-  owner->AddNode(attachment);
+  user->AddNode(attachment);
   attachmentAnim.Update(0, attachment->getSprite());
 
   yoyo = nullptr;
 
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
+  auto onFire = [this, user]() -> void {
     AUDIO.Play(AudioType::TOSS_ITEM_LITE);
 
-    YoYo* y = new YoYo(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+    YoYo* y = new YoYo(GetUser()->GetField(), GetUser()->GetTeam(), damage);
     y->SetDirection(Direction::right);
     auto props = y->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = user;
     y->SetHitboxProperties(props);
     yoyo = y;
-    GetOwner()->GetField()->AddEntity(*y, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+    GetUser()->GetField()->AddEntity(*y, GetUser()->GetTile()->GetX() + 1, GetUser()->GetTile()->GetY());
   };
 
   AddAction(1, onFire);
@@ -65,7 +65,7 @@ void YoYoCardAction::OnUpdate(float _elapsed)
   if (yoyo && yoyo->IsDeleted()) {
     yoyo = nullptr;
 
-    GetOwner()->GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
+    GetUser()->GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
     EndAction();
   }
 }
@@ -76,9 +76,6 @@ void YoYoCardAction::EndAction()
     yoyo->Delete();
   }
 
-  GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  RecallPreviousState();
-
-  delete this;
+  GetUser()->RemoveNode(attachment);
+  GetUser()->EndCurrentAction();
 }

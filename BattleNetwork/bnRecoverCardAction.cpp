@@ -22,7 +22,7 @@ RecoverCardAction::~RecoverCardAction()
 }
 
 void RecoverCardAction::Execute() {
-  auto owner = GetOwner();
+  auto owner = GetUser();
 
   // Increase player health
   owner->SetHealth(owner->GetHealth() + heal);
@@ -46,6 +46,5 @@ void RecoverCardAction::OnUpdate(float _elapsed)
 
 void RecoverCardAction::EndAction()
 {
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  GetUser()->EndCurrentAction();
 }

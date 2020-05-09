@@ -15,14 +15,14 @@
 #define FRAMES FRAME1, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
 
-TornadoCardAction::TornadoCardAction(Character * owner, int damage) 
-  : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(FAN_ANIM), armIsOut(false) {
+TornadoCardAction::TornadoCardAction(Character * user, int damage) 
+  : CardAction(user, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(FAN_ANIM), armIsOut(false) {
   TornadoCardAction::damage = damage;
   fan.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
   attachment = new SpriteProxyNode(fan);
   attachment->SetLayer(-1);
 
-  owner->AddNode(attachment);
+  user->AddNode(attachment);
 
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
@@ -37,19 +37,19 @@ TornadoCardAction::~TornadoCardAction()
 }
 
 void TornadoCardAction::Execute() {
-  auto owner = GetOwner();
+  auto user = GetUser();
 
   attachmentAnim.Update(0, attachment->getSprite());
 
-  auto team = GetOwner()->GetTeam();
-  auto tile = GetOwner()->GetTile();
-  auto field = GetOwner()->GetField();
+  auto team = GetUser()->GetTeam();
+  auto tile = GetUser()->GetTile();
+  auto field = GetUser()->GetField();
 
   // On shoot frame, drop projectile
-  auto onFire = [this, team, tile, field]() -> void {
+  auto onFire = [this, team, tile, field, user]() -> void {
     Tornado* tornado = new Tornado(field, team, damage);
     auto props = tornado->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = user;
     tornado->SetHitboxProperties(props);
 
     field->AddEntity(*tornado, tile->GetX() + 2, tile->GetY());
@@ -82,7 +82,6 @@ void TornadoCardAction::OnUpdate(float _elapsed)
 
 void TornadoCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  GetUser()->RemoveNode(attachment);
+  GetUser()->EndCurrentAction();
 }

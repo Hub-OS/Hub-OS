@@ -24,7 +24,7 @@ BombCardAction::~BombCardAction()
 }
 
 void BombCardAction::Execute() {
-  auto owner = GetOwner();
+  auto owner = GetUser();
   owner->AddNode(attachment);
 
   // On throw frame, spawn projectile
@@ -32,12 +32,12 @@ void BombCardAction::Execute() {
     attachment->Hide(); // the "bomb" is now airborn - hide the animation overlay
 
     auto duration = 0.5f; // seconds
-    MiniBomb* b = new MiniBomb(GetOwner()->GetField(), GetOwner()->GetTeam(), owner->getPosition() + attachment->getPosition(), duration, damage);
+    MiniBomb* b = new MiniBomb(GetUser()->GetField(), GetUser()->GetTeam(), owner->getPosition() + attachment->getPosition(), duration, damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = GetUser();
     b->SetHitboxProperties(props);
 
-    GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 3, GetOwner()->GetTile()->GetY());
+    GetUser()->GetField()->AddEntity(*b, GetUser()->GetTile()->GetX() + 3, GetUser()->GetTile()->GetY());
   };
 
 
@@ -51,7 +51,6 @@ void BombCardAction::OnUpdate(float _elapsed)
 
 void BombCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  GetUser()->RemoveNode(attachment);
+  GetUser()->EndCurrentAction();
 }

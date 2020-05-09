@@ -131,7 +131,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
   }
   else if(queuedAction && !player.IsSliding()) {
-    player.RegisterComponent(queuedAction);
+    player.QueueAction(queuedAction);
     queuedAction->OnExecute();
     queuedAction = nullptr;
 
