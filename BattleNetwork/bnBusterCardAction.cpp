@@ -8,55 +8,51 @@
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
-BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment2, "Buster"), 
-attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
+BusterCardAction::BusterCardAction(Character& user, bool charged, int damage) : CardAction(user, "PLAYER_SHOOTING") {
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 
-  attachment2 = new SpriteProxyNode();
-  attachment2->setTexture(owner->getTexture());
-  attachment2->SetLayer(-1);
+  buster = new SpriteProxyNode();
+  buster->setTexture(user.getTexture());
+  buster->SetLayer(-1);
+  buster->EnableParentShader();
 
-  attachmentAnim2 = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
-  attachmentAnim2.Reload();
-  attachmentAnim2.SetAnimation("BUSTER");
+  busterAnim = Animation(anim->GetFilePath());
+  busterAnim.SetAnimation("BUSTER");
 
-  attachment = new SpriteProxyNode();
-  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
-  attachment->SetLayer(-1);
+  flare = new SpriteProxyNode();
+  flare->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  flare->SetLayer(-1);
 
-  attachmentAnim = Animation(NODE_ANIM);
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("DEFAULT");
+  flareAnim = Animation(NODE_ANIM);
+  flareAnim.Reload();
+  flareAnim.SetAnimation("DEFAULT");
 
-  isBusterAlive = false;
+  AddAttachment(anim->GetAnimationObject(), "buster", *buster).PrepareAnimation(busterAnim);
+  AddAttachment(busterAnim, "endpoint", *flare).PrepareAnimation(flareAnim);
 }
 
-void BusterCardAction::Execute() {
-  auto user = GetUser();
-
-  user->AddNode(attachment2);
-  attachment2->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
-
-  attachment2->EnableParentShader(true);
-  attachmentAnim2.Update(0, attachment2->getSprite());
+void BusterCardAction::OnExecute() {
 
   // On shoot frame, drop projectile
-  auto onFire = [this, user]() -> void {
-    Buster* b = new Buster(user->GetField(), user->GetTeam(), charged, damage);
+  auto onFire = [this]() -> void {
+    auto& user = GetUser();
+
+    Buster* b = new Buster(user.GetField(), user.GetTeam(), charged, damage);
     b->SetDirection(Direction::right);
     auto props = b->GetHitboxProperties();
     b->SetHitboxProperties(props);
 
-    isBusterAlive = true;
-    Entity::RemoveCallback& busterRemoved = b->CreateRemoveCallback();
-    busterRemoved.Slot([this]() {
-      isBusterAlive = false;
-    });
+    auto status = user.GetField()->AddEntity(*b, *user.GetTile());
 
-    user->GetField()->AddEntity(*b, *user->GetTile());
-    AUDIO.Play(AudioType::BUSTER_PEA);
+    if (status != Field::AddEntityStatus::deleted) {
+      Entity::RemoveCallback& busterRemoved = b->CreateRemoveCallback();
+      busterRemoved.Slot([this]() {
+        EndAction();
+      });
+
+      AUDIO.Play(AudioType::BUSTER_PEA);
+    }
   };
 
   AddAction(1, onFire);
@@ -64,46 +60,11 @@ void BusterCardAction::Execute() {
 
 BusterCardAction::~BusterCardAction()
 {
-  if (attachment) {
-    delete attachment;
-  }
-
-  if (attachment2) {
-    delete attachment2;
-  }
+  delete buster;
+  delete flare;
 }
-
-void BusterCardAction::OnUpdate(float _elapsed)
+void BusterCardAction::OnEndAction()
 {
-  if (attachment) {
-    CardAction::OnUpdate(_elapsed);
-
-    attachmentAnim2.Update(_elapsed, attachment2->getSprite());
-    attachmentAnim.Update(_elapsed, attachment->getSprite());
-
-    // update node position in the animation
-    auto baseOffset = attachmentAnim2.GetPoint("endpoint");
-    auto origin = attachment2->getOrigin();
-    baseOffset = baseOffset - origin;
-
-    attachment->setPosition(baseOffset);
-  }
-  else if (!isBusterAlive) {
-    EndAction();
-  }
-}
-
-void BusterCardAction::EndAction()
-{
-  if (attachment) {
-    GetUser()->RemoveNode(attachment2);
-    attachment2->RemoveNode(attachment);
-
-    attachment = nullptr;
-    attachment2 = nullptr;
-  }
-
-  if (isBusterAlive) return; // Do not end action if buster is still on field
-
-  GetUser()->EndCurrentAction();
+    GetUser().RemoveNode(buster);
+    GetUser().RemoveNode(flare);
 }

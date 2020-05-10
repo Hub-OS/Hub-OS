@@ -15,37 +15,35 @@
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME3, FRAME3
 
 
-AirShotCardAction::AirShotCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
+AirShotCardAction::AirShotCardAction(Character& user, int damage) : CardAction(user, "PLAYER_SHOOTING") {
   AirShotCardAction::damage = damage;
 
-  airshot.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
-  attachment = new SpriteProxyNode(airshot);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
   attachment->SetLayer(-1);
 
-  attachmentAnim.Reload();
+  attachmentAnim = Animation(NODE_ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 }
 
-void AirShotCardAction::Execute() {
-  auto user = GetUser();
-
-  user->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
+void AirShotCardAction::OnExecute() {
 
   // On shoot frame, drop projectile
-  auto onFire = [this, user]() -> void {
+  auto onFire = [this]() -> void {
+    auto& user = GetUser();
+
     AUDIO.Play(AudioType::SPREADER);
 
-    AirShot* airshot = new AirShot(user->GetField(), user->GetTeam(), damage);
+    AirShot* airshot = new AirShot(user.GetField(), user.GetTeam(), damage);
     airshot->SetDirection(Direction::right);
     auto props = airshot->GetHitboxProperties();
-    props.aggressor = GetUser();
+    props.aggressor = &user;
     airshot->SetHitboxProperties(props);
 
-    user->GetField()->AddEntity(*airshot, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
+    user.GetField()->AddEntity(*airshot, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
   };
 
   AddAction(2, onFire);
@@ -55,15 +53,9 @@ AirShotCardAction::~AirShotCardAction()
 {
 }
 
-void AirShotCardAction::OnUpdate(float _elapsed)
-{
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
-  CardAction::OnUpdate(_elapsed);
-}
 
-void AirShotCardAction::EndAction()
+void AirShotCardAction::OnEndAction()
 {
-  auto user = GetUser();
+  auto user = &GetUser();
   user->RemoveNode(attachment);
-  user->EndCurrentAction();
 }

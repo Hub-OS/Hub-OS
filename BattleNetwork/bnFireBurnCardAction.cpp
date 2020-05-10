@@ -15,15 +15,19 @@
 // TODO: check frame-by-frame anim
 #define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+FireBurnCardAction::FireBurnCardAction(Character& user, FireBurn::Type type, int damage) : CardAction(user, "PLAYER_SHOOTING") {
   FireBurnCardAction::damage = damage;
   FireBurnCardAction::type = type;
 
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  attachment = new SpriteProxyNode(overlay);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   attachment->SetLayer(-1);
-  attachmentAnim.Reload();
+
+  attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
+
+  auto& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -33,46 +37,34 @@ FireBurnCardAction::~FireBurnCardAction()
 {
 }
 
-void FireBurnCardAction::Execute() {
-  auto owner = user;
-
-  owner->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
-
+void FireBurnCardAction::OnExecute() {
   // On shoot frame, drop projectile
-  auto onFire = [this, owner](int offset) -> void {
-    FireBurn* fb = new FireBurn(user->GetField(), user->GetTeam(), type, damage);
+  auto onFire = [this](int offset) -> void {
+    auto& owner = GetUser();
+
+    FireBurn* fb = new FireBurn(user.GetField(), user.GetTeam(), type, damage);
     auto props = fb->GetHitboxProperties();
-    props.aggressor = GetUser();
+    props.aggressor = &user;
     fb->SetHitboxProperties(props);
 
     // update node position in the animation
-    auto baseOffset = anim->GetPoint(nodeName).y - anim->GetPoint("origin").y;
+    auto baseOffset = anim->GetPoint("buster").y - anim->GetPoint("origin").y;
 
     if (baseOffset < 0) { baseOffset = -baseOffset; }
 
-
-    baseOffset *= 2.0f;
+    baseOffset *= 2.0f; // turn into screenspace values (2x scale)
 
     fb->SetHeight(baseOffset);
 
-    user->GetField()->AddEntity(*fb, user->GetTile()->GetX() + 1 + offset, user->GetTile()->GetY());
+    user.GetField()->AddEntity(*fb, user.GetTile()->GetX() + 1 + offset, user.GetTile()->GetY());
   };
-
 
   AddAction(2, [onFire]() { onFire(0); });
   AddAction(4, [onFire]() { onFire(1); });
   AddAction(6, [onFire]() { onFire(2); });
 }
 
-void FireBurnCardAction::OnUpdate(float _elapsed)
+void FireBurnCardAction::OnEndAction()
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
-  CardAction::OnUpdate(_elapsed);
-}
-
-void FireBurnCardAction::EndAction()
-{
-  user->RemoveNode(attachment);
-  user->EndCurrentAction();
+  GetUser().RemoveNode(attachment);
 }

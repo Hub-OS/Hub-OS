@@ -7,14 +7,12 @@ class SpriteProxyNode;
 class Character;
 class BombCardAction : public CardAction {
 private:
-  sf::Sprite overlay;
   SpriteProxyNode* attachment;
   Animation attachmentAnim;
   int damage;
 public:
-  BombCardAction(Character* owner, int damage);
+  BombCardAction(Character& user, int damage);
   ~BombCardAction();
-  void OnUpdate(float _elapsed);
-  void EndAction();
-  void Execute();
+  void OnEndAction() override;
+  void OnExecute() override;
 };

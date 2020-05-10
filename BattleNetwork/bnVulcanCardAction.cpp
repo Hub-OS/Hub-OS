@@ -16,13 +16,17 @@
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
 
-VulcanCardAction::VulcanCardAction(Character * user, int damage) : CardAction(user, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+VulcanCardAction::VulcanCardAction(Character& user, int damage) : CardAction(user, "PLAYER_SHOOTING") {
   VulcanCardAction::damage = damage;
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  attachment = new SpriteProxyNode(overlay);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   attachment->SetLayer(-1);
-  attachmentAnim.Reload();
+
+  attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
+
+  Animation& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -32,37 +36,26 @@ VulcanCardAction::~VulcanCardAction()
 {
 }
 
-void VulcanCardAction::Execute() {
-  auto user = GetUser();
-
-  user->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
-
+void VulcanCardAction::OnExecute() {
   // On shoot frame, drop projectile
-  auto onFire = [this, user]() -> void {
-    Vulcan* b = new Vulcan(GetUser()->GetField(), GetUser()->GetTeam(), damage);
+  auto onFire = [this]() -> void {
+    auto& user = GetUser();
+
+    Vulcan* b = new Vulcan(user.GetField(), user.GetTeam(), damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = user;
+    props.aggressor = &user;
     b->SetHitboxProperties(props);
     b->SetDirection(Direction::right);
 
-    GetUser()->GetField()->AddEntity(*b, GetUser()->GetTile()->GetX() + 1, GetUser()->GetTile()->GetY());
+    GetUser().GetField()->AddEntity(*b, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
   };
-
 
   AddAction(2, onFire);
   AddAction(4, onFire);
   AddAction(6, onFire);
 }
 
-void VulcanCardAction::OnUpdate(float _elapsed)
+void VulcanCardAction::OnEndAction()
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
-  CardAction::OnUpdate(_elapsed);
-}
-
-void VulcanCardAction::EndAction()
-{
-  GetUser()->RemoveNode(attachment);
-  GetUser()->EndCurrentAction();
+  GetUser().RemoveNode(attachment);
 }

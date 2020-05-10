@@ -269,7 +269,7 @@ namespace Battle {
 
   bool Tile::IsReservedByCharacter()
   {
-    return (reserved.size() != 0);
+    return (reserved.size() != 0) && (characters.size() != 0);
   }
 
   void Tile::AddEntity(Spell & _entity)
@@ -518,7 +518,7 @@ namespace Battle {
      and if they are not floating, we push the entity in a specific direction
      */
 
-    if (!isTimeFrozen || !isBattleOver) {
+    if (!(isTimeFrozen || isBattleOver)) {
       // LAVA TILES
       if (!character->HasFloatShoe()) {
         if (GetState() == TileState::poison) {

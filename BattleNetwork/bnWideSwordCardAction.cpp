@@ -5,7 +5,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnBasicSword.h"
 
-WideSwordCardAction::WideSwordCardAction(Character * user, int damage) : SwordCardAction(user, damage) {
+WideSwordCardAction::WideSwordCardAction(Character& user, int damage) : SwordCardAction(user, damage) {
   WideSwordCardAction::damage = damage;
 }
 
@@ -15,18 +15,19 @@ WideSwordCardAction::~WideSwordCardAction()
 
 void WideSwordCardAction::OnSpawnHitbox()
 {
-  BasicSword* b = new BasicSword(GetUser()->GetField(), GetUser()->GetTeam(), damage);
+  auto& user = GetUser();
+  BasicSword* b = new BasicSword(user.GetField(), user.GetTeam(), damage);
   auto props = b->GetHitboxProperties();
-  props.aggressor = GetUser();
+  props.aggressor = &user;
   b->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::SWORD_SWING);
 
-  GetUser()->GetField()->AddEntity(*b, GetUser()->GetTile()->GetX() + 1, GetUser()->GetTile()->GetY());
+  user.GetField()->AddEntity(*b, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
 
-  b = new BasicSword(GetUser()->GetField(), GetUser()->GetTeam(), damage);
+  b = new BasicSword(user.GetField(), user.GetTeam(), damage);
   // resuse props
   b->SetHitboxProperties(props);
 
-  GetUser()->GetField()->AddEntity(*b, GetUser()->GetTile()->GetX() + 1, GetUser()->GetTile()->GetY() + 1);
+  GetUser().GetField()->AddEntity(*b, user.GetTile()->GetX() + 1, user.GetTile()->GetY() + 1);
 }

@@ -16,12 +16,6 @@ TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_f
   case Type::BELOW:
     spreadOffset = -40.0f;
     break;
-  case Type::ABOVE_DUD:
-    spreadOffset = +40.0f;
-    break;
-  case Type::BELOW_DUD:
-    spreadOffset = -40.0f;
-    break;
   }
 
   SetLayer(0);
@@ -53,13 +47,6 @@ TwinFang::~TwinFang() {
 
 void TwinFang::OnUpdate(float _elapsed) {
   auto height = 50.0f;
-
-  if (type == Type::ABOVE_DUD) {
-    height += 40.0f;
-  }
-  else if (type == Type::BELOW_DUD) {
-    height -= 40.0f;
-  }
 
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y - height + spreadOffset);
 
@@ -111,10 +98,8 @@ void TwinFang::OnUpdate(float _elapsed) {
       }
     }
   }
-
-  if (type != Type::ABOVE_DUD && type != Type::BELOW_DUD) {
-    tile->AffectEntities(this);
-  }
+  
+  tile->AffectEntities(this);
 }
 
 // This attack flies through the air

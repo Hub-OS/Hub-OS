@@ -15,14 +15,14 @@
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME3, FRAME3, FRAME3
 
 
-CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardAction::Type type) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(CANNON_ANIM) {
+CannonCardAction::CannonCardAction(Character& owner, int damage, CannonCardAction::Type type) : CardAction(owner, "PLAYER_SHOOTING") {
   CannonCardAction::damage = damage;
 
-  cannon.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
-  attachment = new SpriteProxyNode(cannon);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
   attachment->SetLayer(-1);
 
-  attachmentAnim.Reload();
+  attachmentAnim = Animation(CANNON_ANIM);
 
   switch (type) {
   case Type::green:
@@ -38,44 +38,37 @@ CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardActi
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
+
+  AddAttachment(anim->GetAnimationObject(), "buster", *attachment).PrepareAnimation(attachmentAnim);
 }
 
 CannonCardAction::~CannonCardAction()
 {
 }
 
-void CannonCardAction::Execute() {
-  auto user = GetUser();
-  user->AddNode(attachment);
-
-  attachmentAnim.Update(0, attachment->getSprite());
+void CannonCardAction::OnExecute() {
 
   // On shoot frame, drop projectile
-  auto onFire = [this, user]() -> void {
+  auto onFire = [this]() -> void {
+    auto& user = GetUser();
+
     // Spawn a single cannon instance on the tile in front of the player
-    Cannon* cannon = new Cannon(user->GetField(), user->GetTeam(), damage);
+    Cannon* cannon = new Cannon(user.GetField(), user.GetTeam(), damage);
     auto props = cannon->GetHitboxProperties();
-    props.aggressor = GetUser();
+    props.aggressor = &GetUser();
     cannon->SetHitboxProperties(props);
 
     AUDIO.Play(AudioType::CANNON);
 
     cannon->SetDirection(Direction::right);
 
-    user->GetField()->AddEntity(*cannon, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
+    user.GetField()->AddEntity(*cannon, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
   };
 
   AddAction(6, onFire);
 }
 
-void CannonCardAction::OnUpdate(float _elapsed)
+void CannonCardAction::OnEndAction()
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
-  CardAction::OnUpdate(_elapsed);
-}
-
-void CannonCardAction::EndAction()
-{
-  user->RemoveNode(attachment);
-  user->EndCurrentAction();
+  GetUser().RemoveNode(attachment);
 }

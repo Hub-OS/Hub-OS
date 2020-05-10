@@ -7,14 +7,12 @@ class SpriteProxyNode;
 class Character;
 class AirShotCardAction : public CardAction {
 private:
-  sf::Sprite airshot;
   SpriteProxyNode* attachment;
   Animation attachmentAnim;
   int damage;
 public:
-  AirShotCardAction(Character* owner, int damage);
+  AirShotCardAction(Character& user, int damage);
   ~AirShotCardAction();
-  void OnUpdate(float _elapsed);
-  void EndAction();
-  void Execute();
+  void OnEndAction() override;
+  void OnExecute() override;
 };

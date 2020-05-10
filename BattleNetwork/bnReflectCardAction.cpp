@@ -10,7 +10,7 @@
 #define FRAMES FRAME1
 
 
-ReflectCardAction::ReflectCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_IDLE", nullptr, "Buster") {
+ReflectCardAction::ReflectCardAction(Character& owner, int damage) : CardAction(owner, "PLAYER_IDLE") {
   ReflectCardAction::damage = damage;
 
   // add override anims
@@ -21,32 +21,35 @@ ReflectCardAction::~ReflectCardAction()
 {
 }
 
-void ReflectCardAction::Execute() {
-  auto owner = GetUser();
+void ReflectCardAction::OnExecute() {
+  auto& owner = GetUser();
 
   // Create a new reflect shield component. This handles the logic for shields.
-  ReflectShield* reflect = new ReflectShield(owner, damage);
+  ReflectShield* reflect = new ReflectShield(&owner, damage);
 
   // Add the component to the player
-  owner->RegisterComponent(reflect);
+  owner.RegisterComponent(reflect);
 
   // Play the appear sound
   AUDIO.Play(AudioType::APPEAR);
 
   // Add shield artifact on the same layer as player
-  Battle::Tile* tile = owner->GetTile();
+  Battle::Tile* tile = owner.GetTile();
 
   if (tile) {
-    owner->GetField()->AddEntity(*reflect, tile->GetX(), tile->GetY());
+    auto status = owner.GetField()->AddEntity(*reflect, tile->GetX(), tile->GetY());
+    if (status != Field::AddEntityStatus::deleted) {
+      Entity::RemoveCallback& cleanup = reflect->CreateRemoveCallback();
+      cleanup.Slot([this]() {
+        this->EndAction();
+      });
+    }
+    else {
+      this->EndAction(); // quit early
+    }
   }
 }
 
-void ReflectCardAction::OnUpdate(float _elapsed)
+void ReflectCardAction::OnEndAction()
 {
-  CardAction::OnUpdate(_elapsed);
-}
-
-void ReflectCardAction::EndAction()
-{
-  GetUser()->EndCurrentAction();
 }

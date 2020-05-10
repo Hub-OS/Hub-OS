@@ -22,7 +22,7 @@ void ScriptResourceManager::ConfigureEnvironment() {
 
   // TODO: register animation callback methods
   auto card_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
-    sol::constructors<ScriptedCardAction(Character*, int)>(),
+    sol::constructors<ScriptedCardAction(Character&, int)>(),
     sol::base_classes, sol::bases<CardAction>()
     );
 

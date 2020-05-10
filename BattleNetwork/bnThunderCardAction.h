@@ -12,9 +12,8 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  ThunderCardAction(Character* owner, int damage);
+  ThunderCardAction(Character& owner, int damage);
   ~ThunderCardAction();
-  void OnUpdate(float _elapsed);
-  void EndAction();
-  void Execute();
+  void OnEndAction() override;
+  void OnExecute() override;
 };

@@ -7,11 +7,9 @@ class SpriteProxyNode;
 class Character;
 class RecoverCardAction : public CardAction {
   int heal;
-
 public:
-  RecoverCardAction(Character* owner, int heal);
+  RecoverCardAction(Character& owner, int heal);
   ~RecoverCardAction();
-  void OnUpdate(float _elapsed);
-  void EndAction();
-  void Execute();
+  void OnExecute() override;
+  void OnEndAction() override;
 };

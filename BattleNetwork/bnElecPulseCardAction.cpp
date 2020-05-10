@@ -11,18 +11,22 @@
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
 
-#define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1 \
-               , FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2
+#define FRAMES      WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1 \
+                , FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2 \
+                , FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME1, FRAME2 \
+                , FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2
 
-ElecPulseCardAction::ElecPulseCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+ElecPulseCardAction::ElecPulseCardAction(Character& owner, int damage) : CardAction(owner, "PLAYER_SHOOTING") {
     ElecPulseCardAction::damage = damage;
 
-    overlay.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
-
-    attachment = new SpriteProxyNode(overlay);
+    attachment = new SpriteProxyNode();
+    attachment->setTexture(TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
     attachment->SetLayer(-1);
-    attachmentAnim.Reload();
+
+    attachmentAnim = Animation(ANIM);
     attachmentAnim.SetAnimation("BUSTER");
+
+    AddAttachment(anim->GetAnimationObject(), "buster", *attachment).PrepareAnimation(attachmentAnim);
 
     // add override anims
     OverrideAnimationFrames({ FRAMES });
@@ -34,46 +38,39 @@ ElecPulseCardAction::~ElecPulseCardAction()
 {
 }
 
-void ElecPulseCardAction::Execute() {
-    auto user = GetUser();
-
-    user->AddNode(attachment);
-    attachment->EnableParentShader(false);
-    attachmentAnim.Update(0, attachment->getSprite());
-
+void ElecPulseCardAction::OnExecute() {
     // On shoot frame, drop projectile
-    auto onFire = [this, user]() -> void {
-        elecpulse = new Elecpulse(user->GetField(), user->GetTeam(), damage);
-        AUDIO.Play(AudioType::ELECPULSE);
+    auto onFire = [this]() -> void {
+      auto& user = GetUser();
 
-        auto props = elecpulse->GetHitboxProperties();
-        props.aggressor = user;
-        elecpulse->SetHitboxProperties(props);
+      elecpulse = new Elecpulse(user.GetField(), user.GetTeam(), damage);
+      AUDIO.Play(AudioType::ELECPULSE);
 
+      auto props = elecpulse->GetHitboxProperties();
+      props.aggressor = &user;
+      elecpulse->SetHitboxProperties(props);
+
+      auto status = user.GetField()->AddEntity(*elecpulse, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+
+      if (status != Field::AddEntityStatus::deleted) {
         Entity::RemoveCallback& deleteHandler = elecpulse->CreateRemoveCallback();
-        
         deleteHandler.Slot([this]() {
-            Logger::Log("elecpulse OnDelete() triggered.");
-            elecpulse = nullptr;
+          EndAction();
         });
 
-        user->GetField()->AddEntity(*elecpulse, user->GetTile()->GetX() + 1, user->GetTile()->GetY());
+        // Promise to delete this entity when this action ends for any reason
+        TrackEntity(*elecpulse);
+      }
+      else {
+        EndAction(); // quit 
+      }
     };
 
 
     AddAction(2, onFire);
 }
 
-void ElecPulseCardAction::OnUpdate(float _elapsed)
+void ElecPulseCardAction::OnEndAction()
 {
-    attachmentAnim.Update(_elapsed, attachment->getSprite());
-    CardAction::OnUpdate(_elapsed);
-}
-
-void ElecPulseCardAction::EndAction()
-{
-    elecpulse? elecpulse->Delete() : 0;
-
-    user->RemoveNode(attachment);
-    user->EndCurrentAction();
+  GetUser().RemoveNode(attachment);
 }

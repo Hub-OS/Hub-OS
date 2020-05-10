@@ -9,9 +9,8 @@ class ReflectCardAction : public CardAction {
   int damage;
 
 public:
-  ReflectCardAction(Character* owner, int damage);
+  ReflectCardAction(Character& owner, int damage);
   ~ReflectCardAction();
-  void OnUpdate(float _elapsed);
-  void EndAction();
-  void Execute();
+  void OnEndAction() override;
+  void OnExecute() override;
 };

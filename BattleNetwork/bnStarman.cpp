@@ -41,12 +41,12 @@ const float Starman::GetHeight() const
 
 CardAction* Starman::ExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1);
+  return new BusterCardAction(*this, false, 1);
 }
 
 CardAction* Starman::ExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 10);
+  return new BusterCardAction(*this, true, 10);
 }
 
 CardAction * Starman::ExecuteSpecialAction()

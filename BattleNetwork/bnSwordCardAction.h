@@ -6,21 +6,18 @@
 class SpriteProxyNode;
 class Character;
 
-// TODO: Redesign CardAction!
 class SwordCardAction : public CardAction {
 protected:
-  sf::Sprite overlay;
-  SpriteProxyNode* attachment;
-  SpriteProxyNode* hiltAttachment;
-  Animation attachmentAnim,hiltAttachmentAnim;
+  SpriteProxyNode* blade;
+  SpriteProxyNode* hilt;
+  Animation bladeAnim, hiltAnim;
   int damage;
   Element element;
 public:
-  SwordCardAction(Character* owner, int damage);
+  SwordCardAction(Character& owner, int damage);
   virtual ~SwordCardAction();
-  void OnUpdate(float _elapsed);
-  void EndAction();
-  void Execute();
+  void OnEndAction() override;
+  void OnExecute() override;
   virtual void OnSpawnHitbox();
   void SetElement(Element elem);
   const Element GetElement() const;

@@ -9,48 +9,43 @@
 
 #define PATH "resources/spells/spell_bomb.png"
 
-BombCardAction::BombCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_THROW", &attachment, "Hand") {
+BombCardAction::BombCardAction(Character& user, int damage) : CardAction(user, "PLAYER_THROW") {
   BombCardAction::damage = damage;
 
-  overlay.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
-  swoosh::game::setOrigin(overlay, 0.5, 0.5);
-
-  attachment = new SpriteProxyNode(overlay);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
   attachment->SetLayer(-1);
+  swoosh::game::setOrigin(attachment->getSprite(), 0.5, 0.5);
+
+  AddAttachment(anim->GetAnimationObject(), "hand", *attachment);
+
 }
 
 BombCardAction::~BombCardAction()
 {
 }
 
-void BombCardAction::Execute() {
-  auto owner = GetUser();
-  owner->AddNode(attachment);
-
+void BombCardAction::OnExecute() {
   // On throw frame, spawn projectile
-  auto onThrow = [this, owner]() -> void {
+  auto onThrow = [this]() -> void {
+    auto& owner = GetUser();
+
     attachment->Hide(); // the "bomb" is now airborn - hide the animation overlay
 
     auto duration = 0.5f; // seconds
-    MiniBomb* b = new MiniBomb(GetUser()->GetField(), GetUser()->GetTeam(), owner->getPosition() + attachment->getPosition(), duration, damage);
+    MiniBomb* b = new MiniBomb(user.GetField(), user.GetTeam(), owner.getPosition() + attachment->getPosition(), duration, damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = GetUser();
+    props.aggressor = &GetUser();
     b->SetHitboxProperties(props);
 
-    GetUser()->GetField()->AddEntity(*b, GetUser()->GetTile()->GetX() + 3, GetUser()->GetTile()->GetY());
+    user.GetField()->AddEntity(*b, user.GetTile()->GetX() + 3, user.GetTile()->GetY());
   };
 
 
   AddAction(3, onThrow);
 }
 
-void BombCardAction::OnUpdate(float _elapsed)
+void BombCardAction::OnEndAction()
 {
-  CardAction::OnUpdate(_elapsed);
-}
-
-void BombCardAction::EndAction()
-{
-  GetUser()->RemoveNode(attachment);
-  GetUser()->EndCurrentAction();
+  GetUser().RemoveNode(attachment);
 }

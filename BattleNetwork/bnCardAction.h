@@ -7,22 +7,84 @@
 
 #include <SFML/Graphics.hpp>
 
+// TODO: Refactor this further when using transition system: SimpleCardAction (this) and CardAction
+//       SimpleCardAction will take in an animation like this class currently does
+//       while CardAction will use Swoosh's action lists to create sequences
+//       this will allow card actions to be used for TFC and actions that use the transition system
+
+/**
+* @brief This class defines a framework for creating custom attack behaviors from simple to complex sequences 
+*
+* Cards effectively freeze a Character from recieving any more input and will only return to their previous
+* animation (mechanically, always default/idle state animation) when the sequence is complete or they were interrupted.
+* Most card actions add overlays as attachment scene nodes onto the animation's target point.
+* These overlays can also be animated.
+* The character's animation can be overriden to reuse frames from existing animations for complex behavior.
+*/
 class CardAction {
+public:
+  struct NodeAttachment {
+    std::reference_wrapper<SpriteProxyNode> spriteProxy;
+    std::reference_wrapper<Animation> parentAnim;
+    Animation anim;
+
+    void PrepareAnimation(const Animation& animation) {
+      anim = animation;
+    }
+
+    void Update(float elapsed) {
+      anim.Update(elapsed, spriteProxy.get().getSprite());
+    }
+
+    void SetPosition(const sf::Vector2f& pos) {
+      spriteProxy.get().setPosition(pos);
+    }
+
+    Animation& GetParent() {
+      // By design of the node attachment system, we will ALWAYS have a parent
+      return parentAnim;
+    }
+
+    NodeAttachment() = default;
+    ~NodeAttachment() = default;
+  };
+
+  using Attachments = std::multimap<std::string,NodeAttachment>;
 protected:
-  Character* user;
+  Character& user;
   AnimationComponent* anim;
-  std::string animation, nodeName;
+  std::string animation;
   std::string uuid, prevState;
-  SpriteProxyNode** attachment;
+  Attachments attachments;
   std::function<void()> prepareActionDelegate;
+  std::list<Entity*> tracked;
 
 protected:
   /*user defined */
-  virtual void Execute() = 0;
+  void Execute() {
+    // prepare the animation behavior
+    prepareActionDelegate();
+
+    for (auto&&[nodeName, node] : attachments) {
+      GetUser().AddNode(&node.spriteProxy.get());
+    }
+
+    // run
+    OnExecute();
+  }
+
+  void TrackEntity(Entity& entity) {
+    tracked.insert(tracked.begin(), &entity);
+  }
 
   void AddAction(int frame, std::function<void()> action)
   {
     anim->AddCallback(frame, action, Animator::NoCallback, true);
+  }
+
+  NodeAttachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
+    auto iter = attachments.insert(std::make_pair(point, NodeAttachment{ std::ref(node), std::ref(parent) }));
+    return iter->second;
   }
 
   void RecallPreviousState() {
@@ -33,30 +95,29 @@ protected:
   }
 
 public:
-  Character* GetUser() { return user; }
+  Character& GetUser() { return user; }
 
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
 
-  CardAction(Character * user, std::string animation, SpriteProxyNode** attachment, std::string nodeName)
-    : user(user), animation(animation), nodeName(nodeName), attachment(attachment)
+  CardAction(Character& user, const std::string& animation) : user(user), animation(animation)
   {
-    anim = user->GetFirstComponent<AnimationComponent>();
+    anim = user.GetFirstComponent<AnimationComponent>();
 
     if (anim) {
-      prepareActionDelegate = [this, user, animation]() {
+      prepareActionDelegate = [this, animation]() {
         prevState = anim->GetAnimationString();
 
         // use the current animation's arrangement, do not overload
-        prevState = anim->GetAnimationString();;
+        prevState = anim->GetAnimationString();
         anim->SetAnimation(animation, [this]() {
-          //Logger::Log("normal callback fired");
+          anim->SetPlaybackMode(Animator::Mode::Loop);
           RecallPreviousState();
-          EndAction();
+          OnEndAction();
         });
 
         anim->OnUpdate(0);
-        OnUpdate(0); // position to owner...
+        OnUpdate(0); // position attachments to owner...
 
       };
     }
@@ -67,17 +128,15 @@ public:
     if (anim) {
       prepareActionDelegate = [this, frameData]() {
         prevState = anim->GetAnimationString();
-
+        
         anim->OverrideAnimationFrames(animation, frameData, uuid);
         anim->SetAnimation(uuid, [this]() {
-          //Logger::Log("custom callback fired");
-
           anim->SetPlaybackMode(Animator::Mode::Loop);
           RecallPreviousState();
-          EndAction();
+          OnEndAction();
         });
         anim->OnUpdate(0);
-        OnUpdate(0); // position to owner...
+        OnUpdate(0); // position attachments to owner...
       };
     }
   }
@@ -86,23 +145,34 @@ public:
   {
   }
 
-  void OnExecute() {
-    // prepare the animation behavior
-    prepareActionDelegate();
-
-    // run
-    Execute();
-  }
+  virtual void OnExecute() = 0;
 
   virtual void OnUpdate(float _elapsed)
   {
-    // update node position in the animation
-    auto baseOffset = anim->GetPoint(nodeName);
-    auto origin = GetUser()->getSprite().getOrigin();
-    baseOffset = baseOffset - origin;
+    auto& user = GetUser();
 
-    (*attachment)->setPosition(baseOffset);
+    // update node positions in the animation
+    for (auto&&[nodeName, node] : attachments) {
+      // update the node's animation
+      node.Update(_elapsed);
+ 
+      // update the node's position
+      auto baseOffset = node.GetParent().GetPoint(nodeName);
+      auto origin = user.getSprite().getOrigin();
+      baseOffset = baseOffset - origin;
+
+      node.SetPosition(baseOffset);
+    }
   }
 
-  virtual void EndAction() = 0;
+  void EndAction() {
+    for (auto&& e : tracked) {
+      e->Delete();
+    }
+
+    OnEndAction();
+    GetUser().EndCurrentAction();
+  }
+
+  virtual void OnEndAction() = 0;
 };

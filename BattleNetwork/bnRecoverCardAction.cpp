@@ -10,7 +10,7 @@
 #define FRAMES FRAME1
 
 
-RecoverCardAction::RecoverCardAction(Character * owner, int heal) : CardAction(owner, "PLAYER_IDLE", nullptr, "Origin") {
+RecoverCardAction::RecoverCardAction(Character& owner, int heal) : CardAction(owner, "PLAYER_IDLE") {
   RecoverCardAction::heal = heal;
 
   // add override anims
@@ -21,30 +21,35 @@ RecoverCardAction::~RecoverCardAction()
 {
 }
 
-void RecoverCardAction::Execute() {
-  auto owner = GetUser();
+void RecoverCardAction::OnExecute() {
+  auto& owner = GetUser();
 
   // Increase player health
-  owner->SetHealth(owner->GetHealth() + heal);
+  owner.SetHealth(owner.GetHealth() + heal);
 
   // Play sound
   AUDIO.Play(AudioType::RECOVER);
 
   // Add artifact on the same layer as player
-  Battle::Tile* tile = owner->GetTile();
+  Battle::Tile* tile = owner.GetTile();
 
   if (tile) {
     auto healfx = new ParticleHeal();
-    owner->GetField()->AddEntity(*healfx, tile->GetX(), tile->GetY());
+    auto status = owner.GetField()->AddEntity(*healfx, tile->GetX(), tile->GetY());
+
+    if (status != Field::AddEntityStatus::deleted) {
+      Entity::RemoveCallback& cleanup = healfx->CreateRemoveCallback();
+      cleanup.Slot([this]() {
+        this->EndAction();
+      });
+    }
+    else {
+      this->EndAction(); // quit early
+    }
   }
 }
 
-void RecoverCardAction::OnUpdate(float _elapsed)
+void RecoverCardAction::OnEndAction()
 {
-  CardAction::OnUpdate(_elapsed);
-}
-
-void RecoverCardAction::EndAction()
-{
-  GetUser()->EndCurrentAction();
+  // do nothing special
 }

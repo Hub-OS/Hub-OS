@@ -7,14 +7,12 @@ class SpriteProxyNode;
 class Character;
 class VulcanCardAction : public CardAction {
 private:
-  sf::Sprite overlay;
   SpriteProxyNode* attachment;
   Animation attachmentAnim;
   int damage;
 public:
-  VulcanCardAction(Character* owner, int damage);
+  VulcanCardAction(Character& owner, int damage);
   ~VulcanCardAction();
-  void OnUpdate(float _elapsed);
-  void EndAction();
-  void Execute();
+  void OnEndAction() override;
+  void OnExecute() override;
 };

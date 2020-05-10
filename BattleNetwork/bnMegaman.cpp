@@ -36,7 +36,7 @@ void Megaman::OnUpdate(float elapsed)
 
 CardAction* Megaman::ExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1);
+  return new BusterCardAction(*this, false, 1);
 }
 
 CardAction* Megaman::ExecuteChargedBusterAction()
@@ -45,7 +45,7 @@ CardAction* Megaman::ExecuteChargedBusterAction()
     return activeForm->OnChargedBusterAction(*this);
   }
   else {
-    return new BusterCardAction(this, true, 10);
+    return new BusterCardAction(*this, true, 10);
   }
 }
 
@@ -121,12 +121,12 @@ void TenguCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TenguCross::OnChargedBusterAction(Player& player)
 {
-  return new BusterCardAction(&player, true, 10);
+  return new BusterCardAction(player, true, 10);
 }
 
 CardAction* TenguCross::OnSpecialAction(Player& player)
 {
-  return new TenguCross::SpecialAction(&player);
+  return new TenguCross::SpecialAction(player);
 }
 
 // HEAT CROSS
@@ -197,7 +197,7 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* HeatCross::OnChargedBusterAction(Player& player)
 {
-  return new FireBurnCardAction(&player, FireBurn::Type::_2, 60);
+  return new FireBurnCardAction(player, FireBurn::Type::_2, 60);
 }
 
 CardAction* HeatCross::OnSpecialAction(Player& player)
@@ -271,7 +271,7 @@ void TomahawkCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
 {
-  return new CrackShotCardAction(&player, 30);
+  return new CrackShotCardAction(player, 30);
 }
 
 CardAction* TomahawkCross::OnSpecialAction(Player& player)
@@ -286,40 +286,32 @@ CardAction* TomahawkCross::OnSpecialAction(Player& player)
 
 #define FRAMES FRAME1, FRAME2, FRAME3
 
-TenguCross::SpecialAction::SpecialAction(Character* user) : CardAction(user, "PLAYER_SWORD", &attachment, "HILT") {
-  overlay.setTexture(*user->getTexture());
-  attachment = new SpriteProxyNode(overlay);
+TenguCross::SpecialAction::SpecialAction(Character& user) : CardAction(user, "PLAYER_SWORD") {
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(user.getTexture());
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
 
   OverrideAnimationFrames({ FRAMES });
 
-  attachmentAnim = Animation(user->GetFirstComponent<AnimationComponent>()->GetFilePath());
-  attachmentAnim.Reload();
+  attachmentAnim = Animation(anim->GetFilePath());
   attachmentAnim.SetAnimation("HAND");
+
+  AddAttachment(anim->GetAnimationObject(), "hilt", *attachment).PrepareAnimation(attachmentAnim);
 }
 
 TenguCross::SpecialAction::~SpecialAction()
 {
 }
 
-void TenguCross::SpecialAction::OnUpdate(float _elapsed)
+void TenguCross::SpecialAction::OnExecute()
 {
-  CardAction::OnUpdate(_elapsed);
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
-}
-
-void TenguCross::SpecialAction::Execute()
-{
-  auto user = GetUser();
-  auto team = user->GetTeam();
-  auto field = user->GetField();
-
-  user->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
+  auto& user = GetUser();
+  auto team = user.GetTeam();
+  auto field = user.GetField();
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, user, team, field]() -> void {
+  auto onThrow = [this, &user, team, field]() -> void {
     auto wind = new Wind(field, team);
     field->AddEntity(*wind, 6, 1);
 
@@ -333,8 +325,7 @@ void TenguCross::SpecialAction::Execute()
   AddAction(3, onThrow);
 }
 
-void TenguCross::SpecialAction::EndAction()
+void TenguCross::SpecialAction::OnEndAction()
 {
-  GetUser()->RemoveNode(attachment);
-  GetUser()->EndCurrentAction();
+  GetUser().RemoveNode(attachment);
 }

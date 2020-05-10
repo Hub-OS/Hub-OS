@@ -149,6 +149,6 @@ void PlayerControlledState::OnLeave(Player& player) {
   auto actions = player.GetComponentsDerivedFrom<CardAction>();
 
   for (auto a : actions) {
-    a->EndAction();
+    a->OnEndAction();
   }
 }

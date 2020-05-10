@@ -32,19 +32,16 @@ private:
   SpriteProxyNode* overlay;
 
   class SpecialAction : public CardAction {
-    sf::Sprite overlay;
     SpriteProxyNode* attachment;
     Animation attachmentAnim;
 
   public:
-    SpecialAction(Character* owner);
+    SpecialAction(Character& owner);
     ~SpecialAction();
 
-    void OnUpdate(float _elapsed);
-
     // Inherited via CardAction
-    void Execute() override;
-    void EndAction() override;
+    void OnExecute() override;
+    void OnEndAction() override;
   };
 
 };

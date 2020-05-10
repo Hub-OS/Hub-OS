@@ -15,18 +15,20 @@
 #define FRAMES FRAME1, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
 
-TornadoCardAction::TornadoCardAction(Character * user, int damage) 
-  : CardAction(user, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(FAN_ANIM), armIsOut(false) {
+TornadoCardAction::TornadoCardAction(Character& user, int damage) 
+  : CardAction(user, "PLAYER_SHOOTING"), armIsOut(false) {
   TornadoCardAction::damage = damage;
-  fan.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
-  attachment = new SpriteProxyNode(fan);
+
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
   attachment->SetLayer(-1);
 
-  user->AddNode(attachment);
-
-  attachmentAnim.Reload();
+  attachmentAnim = Animation(FAN_PATH);
   attachmentAnim.SetAnimation("DEFAULT");
   attachmentAnim << Animator::Mode::Loop;
+
+  Animation& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -36,20 +38,17 @@ TornadoCardAction::~TornadoCardAction()
 {
 }
 
-void TornadoCardAction::Execute() {
-  auto user = GetUser();
-
-  attachmentAnim.Update(0, attachment->getSprite());
-
-  auto team = GetUser()->GetTeam();
-  auto tile = GetUser()->GetTile();
-  auto field = GetUser()->GetField();
-
+void TornadoCardAction::OnExecute() {
   // On shoot frame, drop projectile
-  auto onFire = [this, team, tile, field, user]() -> void {
+  auto onFire = [this]() -> void {
+    auto& user = GetUser();
+    auto team = user.GetTeam();
+    auto tile = user.GetTile();
+    auto field = user.GetField();
+
     Tornado* tornado = new Tornado(field, team, damage);
     auto props = tornado->GetHitboxProperties();
-    props.aggressor = user;
+    props.aggressor = &user;
     tornado->SetHitboxProperties(props);
 
     field->AddEntity(*tornado, tile->GetX() + 2, tile->GetY());
@@ -80,8 +79,7 @@ void TornadoCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
-void TornadoCardAction::EndAction()
+void TornadoCardAction::OnEndAction()
 {
-  GetUser()->RemoveNode(attachment);
-  GetUser()->EndCurrentAction();
+  GetUser().RemoveNode(attachment);
 }

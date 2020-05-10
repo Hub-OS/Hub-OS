@@ -7,7 +7,7 @@ class SpriteProxyNode;
 class Character;
 class ScriptedCardAction : public CardAction {
 public:
-  ScriptedCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_IDLE", nullptr, "Buster") {
+  ScriptedCardAction(Character& owner, int damage) : CardAction(owner, "PLAYER_IDLE") {
     // SCRIPTS.callback(card_name).OnCreate(this);
   }
 
@@ -15,20 +15,19 @@ public:
   {
   }
 
-  void OnUpdate(float _elapsed)
+  void OnUpdate(float _elapsed) override
   {
     CardAction::OnUpdate(_elapsed);
 
     // SCRIPTS.callback(card_name).OnUpdate(this);
   }
 
-  void EndAction()
+  void OnEndAction() override
   {
-    GetUser()->EndCurrentAction();
     // SCRIPTS.callback(card_name).OnEndAction(this);
   }
 
-  void Execute() {
+  void OnExecute() override {
 
   }
 };
