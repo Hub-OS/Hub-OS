@@ -7,6 +7,8 @@
 #include "bnShaderResourceManager.h"
 #include "bnAnimationComponent.h"
 #include "bnShakingEffect.h"
+#include "bnCardAction.h"
+
 #include <Swoosh/Ease.h>
 
 Character::Character(Rank _rank) :
@@ -122,6 +124,16 @@ void Character::Update(float _elapsed) {
   }
 
   Entity::Update(_elapsed);
+
+  if (queuedAction && currentAction == nullptr && !GetNextTile()) {
+    currentAction = queuedAction;
+    queuedAction = nullptr;
+    currentAction->OnExecute();
+  }
+
+  if (currentAction) {
+    currentAction->OnUpdate(_elapsed);
+  }
 
   // If the counterSlideOffset has changed from 0, it's due to the character
   // being deleted on a counter frame. Begin animating the counter-delete slide

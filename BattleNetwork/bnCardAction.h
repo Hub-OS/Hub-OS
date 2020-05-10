@@ -171,6 +171,8 @@ public:
     }
 
     OnEndAction();
+
+    // MUST be last b/c we delete this
     GetUser().EndCurrentAction();
   }
 

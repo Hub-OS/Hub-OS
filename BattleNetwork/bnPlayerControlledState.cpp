@@ -19,28 +19,13 @@ PlayerControlledState::~PlayerControlledState()
 {
 }
 
-void PlayerControlledState::QueueAction(Player & player)
-{
-  // peek into the player's queued Action property
-  auto action = player.queuedAction;
-  player.queuedAction = nullptr;
-
-  // We already have one action queued, delete the next one
-  if (!queuedAction) {
-    queuedAction = action;
-  }
-  else {
-    delete action;
-  }
-}
-
 void PlayerControlledState::OnEnter(Player& player) {
   player.SetAnimation(PLAYER_IDLE);
 }
 
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
-  // Action controls take priority over movement
-  if (player.GetComponentsDerivedFrom<CardAction>().size()) return;
+  // Actions take priority over movement
+  // TODO: add to character update routine
 
   // Are we creating an action this frame?
   if (INPUT.Has(EventTypes::PRESSED_USE_CHIP)) {
@@ -48,16 +33,13 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     if (cardsUI) {
       cardsUI->UseNextCard();
       // If the card used was successful, the player will now have an active card in queue
-      QueueAction(player);
     }
   } else if (INPUT.Has(EventTypes::PRESSED_SPECIAL)) {
     player.UseSpecial();
-    QueueAction(player);
   }    // queue attack based on input behavior (buster or charge?)
   else if ((!INPUT.Has(EventTypes::HELD_SHOOT) && isChargeHeld) || INPUT.Has(EventTypes::RELEASED_SHOOT)) {
     // This routine is responsible for determining the outcome of the attack
     player.Attack();
-    QueueAction(player);
     isChargeHeld = false;
     player.chargeEffect.SetCharging(false);
   }
@@ -130,25 +112,13 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       player.SetAnimation(PLAYER_MOVING, onFinish);
     }
   }
-  else if(queuedAction && !player.IsSliding()) {
-    player.QueueAction(queuedAction);
-    queuedAction->OnExecute();
-    queuedAction = nullptr;
-
-    player.chargeEffect.SetCharging(false);
-    isChargeHeld = false;
-  }
+    else {
+      // TODO how to turn off charging...
+    }
 }
 
 void PlayerControlledState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.chargeEffect.SetCharging(false);
-  player.queuedAction = nullptr;
-  
-  /* Cancel card actions */
-  auto actions = player.GetComponentsDerivedFrom<CardAction>();
-
-  for (auto a : actions) {
-    a->OnEndAction();
-  }
+  player.EndCurrentAction();
 }
