@@ -15,7 +15,6 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetView()),

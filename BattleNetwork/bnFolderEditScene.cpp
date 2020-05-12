@@ -18,7 +18,6 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 std::string FolderEditScene::FormatCardDesc(const std::string && desc)
 {
@@ -87,7 +86,18 @@ std::string FolderEditScene::FormatCardDesc(const std::string && desc)
 }
 
 FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFolder& folder) :
-  camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))), folder(folder), hasFolderChanged(false),
+  camera(sf::View(sf::Vector2f(240, 160), 
+    sf::Vector2f(480, 320))), 
+  folder(folder), 
+  hasFolderChanged(false),
+  font(Font::Style::small),
+  menuLabel("", font),
+  cardFont(Font::Style::wide),
+  cardLabel("", cardFont),
+  cardDescFont(Font::Style::big),
+  cardDesc("", cardDescFont),
+  numberFont(Font::Style::small),
+  numberLabel("", numberFont),
   swoosh::Activity(&controller)
 {
   // Move card data into their appropriate containers for easier management
@@ -98,33 +108,22 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   ExcludeFolderDataFromPack();
 
   // Menu name font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  menuLabel = new sf::Text("Folder Edit", *font);
-  menuLabel->setCharacterSize(15);
-  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
   selectInputCooldown = maxSelectInputCooldown;
 
   // Battle::Card UI font
-  cardFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  cardLabel = new sf::Text("", *cardFont);
-  cardLabel->setPosition(275.f, 15.f);
+  cardLabel.setPosition(275.f, 15.f);
 
-  numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
-  numberLabel = new sf::Text("", *numberFont);
-  numberLabel->setOutlineColor(sf::Color(48, 56, 80));
-  numberLabel->setOutlineThickness(2.f);
-  numberLabel->setScale(0.8f, 0.8f);
-  numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
-  numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
+  numberLabel.SetColor(sf::Color(48, 56, 80));
+  numberLabel.setScale(0.8f, 0.8f);
+  numberLabel.setOrigin(numberLabel.GetLocalBounds().width, 0);
+  numberLabel.setPosition(sf::Vector2f(170.f, 28.0f));
 
   // Battle::Card description font
-  cardDescFont = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
-  cardDesc = new sf::Text("", *cardDescFont);
-  cardDesc->setCharacterSize(24);
-  cardDesc->setFillColor(sf::Color::Black);
+  cardDesc.SetColor(sf::Color::Black);
 
   // folder menu graphic
   bg = sf::Sprite(*LOAD_TEXTURE(FOLDER_VIEW_BG));
@@ -216,7 +215,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
   auto offset = camera.GetView().getCenter().x - 240;
   bg.setPosition(offset, 0.f);
-  menuLabel->setPosition(offset + 20.0f, 5.f);
+  menuLabel.setPosition(offset + 20.0f, 5.f);
 
   camera.Update((float)elapsed);
   setView(camera.GetView());
@@ -562,28 +561,28 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
 
     std::string str = std::to_string(nonempty.size());
     // Draw number of cards in this folder
-    cardLabel->setString(str);
-    cardLabel->setOrigin(cardLabel->getLocalBounds().width, 0);
-    cardLabel->setPosition(410.f, 1.f);
+    cardLabel.SetString(str);
+    cardLabel.setOrigin(cardLabel.GetLocalBounds().width, 0);
+    cardLabel.setPosition(410.f, 1.f);
 
     if (nonempty.size() == 30) {
-      cardLabel->setFillColor(sf::Color::Green);
+      cardLabel.SetColor(sf::Color::Green);
     }
     else {
-      cardLabel->setFillColor(sf::Color::White);
+      cardLabel.SetColor(sf::Color::White);
     }
 
     ENGINE.Draw(cardLabel, false);
 
     // Draw max
-    cardLabel->setString(std::string("/ 30")); // will print "# / 30"
-    cardLabel->setOrigin(0, 0);;
-    cardLabel->setPosition(415.f, 1.f);
+    cardLabel.SetString(std::string("/ 30")); // will print "# / 30"
+    cardLabel.setOrigin(0, 0);;
+    cardLabel.setPosition(415.f, 1.f);
 
     ENGINE.Draw(cardLabel, false);
 
     // reset, we use this label everywhere in this scene...
-    cardLabel->setFillColor(sf::Color::White);
+    cardLabel.SetColor(sf::Color::White);
 
   }
 
@@ -604,7 +603,7 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
 }
 
 void FolderEditScene::DrawFolder() {
-  cardDesc->setPosition(sf::Vector2f(20.f, 185.0f));
+  cardDesc.setPosition(sf::Vector2f(20.f, 185.0f));
   scrollbar.setPosition(410.f, 60.f);
   cardHolder.setPosition(4.f, 35.f);
   element.setPosition(2.f*25.f, 146.f);
@@ -636,9 +635,9 @@ void FolderEditScene::DrawFolder() {
       cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
       ENGINE.Draw(cardIcon, false);
 
-      cardLabel->setFillColor(sf::Color::White);
-      cardLabel->setPosition(2.f*120.f, 60.0f + (32.f*i));
-      cardLabel->setString(copy.GetShortName());
+      cardLabel.SetColor(sf::Color::White);
+      cardLabel.setPosition(2.f*120.f, 60.0f + (32.f*i));
+      cardLabel.SetString(copy.GetShortName());
       ENGINE.Draw(cardLabel, false);
 
       int offset = (int)(copy.GetElement());
@@ -646,9 +645,9 @@ void FolderEditScene::DrawFolder() {
       element.setPosition(2.f*183.f, 65.0f + (32.f*i));
       ENGINE.Draw(element, false);
 
-      cardLabel->setOrigin(0, 0);
-      cardLabel->setPosition(2.f*200.f, 60.0f + (32.f*i));
-      cardLabel->setString(std::string() + copy.GetCode());
+      cardLabel.setOrigin(0, 0);
+      cardLabel.setPosition(2.f*200.f, 60.0f + (32.f*i));
+      cardLabel.SetString(std::string() + copy.GetCode());
       ENGINE.Draw(cardLabel, false);
 
       //Draw MB
@@ -672,22 +671,22 @@ void FolderEditScene::DrawFolder() {
 
         // This draws the currently highlighted card
         if (copy.GetDamage() > 0) {
-          cardLabel->setFillColor(sf::Color::White);
-          cardLabel->setString(std::to_string(copy.GetDamage()));
-          cardLabel->setOrigin(cardLabel->getLocalBounds().width + cardLabel->getLocalBounds().left, 0);
-          cardLabel->setPosition(2.f*(70.f), 135.f);
+          cardLabel.SetColor(sf::Color::White);
+          cardLabel.SetString(std::to_string(copy.GetDamage()));
+          cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
+          cardLabel.setPosition(2.f*(70.f), 135.f);
 
           ENGINE.Draw(cardLabel, false);
         }
 
-        cardLabel->setOrigin(0, 0);
-        cardLabel->setFillColor(sf::Color::Yellow);
-        cardLabel->setPosition(2.f*14.f, 135.f);
-        cardLabel->setString(std::string() + copy.GetCode());
+        cardLabel.setOrigin(0, 0);
+        cardLabel.SetColor(sf::Color::Yellow);
+        cardLabel.setPosition(2.f*14.f, 135.f);
+        cardLabel.SetString(std::string() + copy.GetCode());
         ENGINE.Draw(cardLabel, false);
 
         std::string formatted = FormatCardDesc(copy.GetDescription());
-        cardDesc->setString(formatted);
+        cardDesc.SetString(formatted);
         ENGINE.Draw(cardDesc, false);
 
         int offset = (int)(copy.GetElement());
@@ -711,7 +710,7 @@ void FolderEditScene::DrawFolder() {
 }
 
 void FolderEditScene::DrawLibrary() {
-  cardDesc->setPosition(sf::Vector2f(326.f + 480.f, 185.0f));
+  cardDesc.setPosition(sf::Vector2f(326.f + 480.f, 185.0f));
   cardHolder.setPosition(310.f + 480.f, 35.f);
   element.setPosition(400.f + 2.f*20.f + 480.f, 146.f);
   card.setPosition(389.f + 480.f, 93.f);
@@ -744,9 +743,9 @@ void FolderEditScene::DrawLibrary() {
     cardIcon.setPosition(19.f + 480.f, 65.0f + (32.f*i));
     ENGINE.Draw(cardIcon, false);
 
-    cardLabel->setFillColor(sf::Color::White);
-    cardLabel->setPosition(50.f + 480.f, 60.0f + (32.f*i));
-    cardLabel->setString(copy.GetShortName());
+    cardLabel.SetColor(sf::Color::White);
+    cardLabel.setPosition(50.f + 480.f, 60.0f + (32.f*i));
+    cardLabel.SetString(copy.GetShortName());
     ENGINE.Draw(cardLabel, false);
 
 
@@ -755,15 +754,15 @@ void FolderEditScene::DrawLibrary() {
     element.setPosition(163.0f + 480.f, 65.0f + (32.f*i));
     ENGINE.Draw(element, false);
 
-    cardLabel->setOrigin(0, 0);
-    cardLabel->setPosition(196.f + 480.f, 60.0f + (32.f*i));
-    cardLabel->setString(std::string() + copy.GetCode());
+    cardLabel.setOrigin(0, 0);
+    cardLabel.setPosition(196.f + 480.f, 60.0f + (32.f*i));
+    cardLabel.SetString(std::string() + copy.GetCode());
     ENGINE.Draw(cardLabel, false);
 
     // Draw count in pack
-    cardLabel->setOrigin(0, 0);
-    cardLabel->setPosition(275.f + 480.f, 60.0f + (32.f*i));
-    cardLabel->setString(std::to_string(count));
+    cardLabel.setOrigin(0, 0);
+    cardLabel.setPosition(275.f + 480.f, 60.0f + (32.f*i));
+    cardLabel.SetString(std::to_string(count));
     ENGINE.Draw(cardLabel, false);
 
     //Draw MB
@@ -784,22 +783,22 @@ void FolderEditScene::DrawLibrary() {
 
       // This draws the currently highlighted card
       if (copy.GetDamage() > 0) {
-        cardLabel->setFillColor(sf::Color::White);
-        cardLabel->setString(std::to_string(copy.GetDamage()));
-        cardLabel->setOrigin(cardLabel->getLocalBounds().width + cardLabel->getLocalBounds().left, 0);
-        cardLabel->setPosition(2.f*(223.f) + 480.f, 135.f);
+        cardLabel.SetColor(sf::Color::White);
+        cardLabel.SetString(std::to_string(copy.GetDamage()));
+        cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
+        cardLabel.setPosition(2.f*(223.f) + 480.f, 135.f);
 
         ENGINE.Draw(cardLabel, false);
       }
 
-      cardLabel->setOrigin(0, 0);
-      cardLabel->setFillColor(sf::Color::Yellow);
-      cardLabel->setPosition(2.f*167.f + 480.f, 135.f);
-      cardLabel->setString(std::string() + copy.GetCode());
+      cardLabel.setOrigin(0, 0);
+      cardLabel.SetColor(sf::Color::Yellow);
+      cardLabel.setPosition(2.f*167.f + 480.f, 135.f);
+      cardLabel.SetString(std::string() + copy.GetCode());
       ENGINE.Draw(cardLabel, false);
 
       std::string formatted = FormatCardDesc(copy.GetDescription());
-      cardDesc->setString(formatted);
+      cardDesc.SetString(formatted);
       ENGINE.Draw(cardDesc, false);
 
       int offset = (int)(copy.GetElement());
@@ -822,9 +821,6 @@ void FolderEditScene::DrawLibrary() {
 }
 
 void FolderEditScene::onEnd() {
-  delete menuLabel;
-  delete numberLabel;
-  delete cardDesc;
 }
 
 void FolderEditScene::ExcludeFolderDataFromPack()

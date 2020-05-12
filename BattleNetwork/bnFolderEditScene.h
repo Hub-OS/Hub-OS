@@ -11,6 +11,7 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 #include "bnCardFolder.h"
+#include "bnText.h"
 
 /**
  * @class FolderEditScene
@@ -102,23 +103,23 @@ private:
   CardFolder& folder;
 
   // Menu name font
-  std::shared_ptr<sf::Font> font;
-  sf::Text* menuLabel;
+  Font font;
+  Text menuLabel;
 
   // Selection input delays
   double maxSelectInputCooldown; // half of a second
   double selectInputCooldown;
 
   // Card UI font
-  std::shared_ptr<sf::Font> cardFont;
-  sf::Text *cardLabel;
+  Font cardFont;
+  Text cardLabel;
 
-  std::shared_ptr<sf::Font> numberFont;
-  sf::Text *numberLabel;
+  Font numberFont;
+  Text numberLabel;
 
   // Card description font
-  std::shared_ptr<sf::Font> cardDescFont;
-  sf::Text* cardDesc;
+  Font cardDescFont;
+  Text cardDesc;
 
   // folder menu graphic
   sf::Sprite bg;

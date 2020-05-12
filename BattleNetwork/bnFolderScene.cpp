@@ -19,7 +19,6 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 #include "Segues/PushIn.h"
 
@@ -27,6 +26,12 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   collection(collection),
   camera(ENGINE.GetView()),
   folderSwitch(true),
+  font(Font::Style::wide),
+  menuLabel("", font),
+  cardFont(Font::Style::small),
+  cardLabel("", cardFont),
+  numberFont(Font::Style::big),
+  numberLabel("", numberFont),
   textbox(sf::Vector2f(4, 255)),
   swoosh::Activity(&controller)
 {
@@ -36,28 +41,21 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   enterText = false;
   gotoNextScene = true;
 
-  // Menu name font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  menuLabel = new sf::Text("Folders", *font);
-  menuLabel->setCharacterSize(15);
-  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+  // Menu name
+  menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
   selectInputCooldown = maxSelectInputCooldown;
 
   // Card UI font
-  cardFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  cardLabel = new sf::Text("", *cardFont);
-  cardLabel->setPosition(275.f, 15.f);
+  cardLabel.setPosition(275.f, 15.f);
 
-  numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
-  numberLabel = new sf::Text("", *numberFont);
-  numberLabel->setOutlineColor(sf::Color(48, 56, 80));
-  numberLabel->setOutlineThickness(2.f);
-  numberLabel->setScale(0.8f, 0.8f);
-  numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
-  numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
+  numberLabel.SetColor(sf::Color(48, 56, 80));
+  // numberLabel.setOutlineThickness(2.f); // todo?
+  numberLabel.setScale(0.8f, 0.8f);
+  numberLabel.setOrigin(numberLabel.GetWorldBounds().width, 0);
+  numberLabel.setPosition(sf::Vector2f(170.f, 28.0f));
 
   // folder menu graphic
   bg = sf::Sprite(*LOAD_TEXTURE(FOLDER_INFO_BG));
@@ -447,10 +445,10 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       folderBox.setPosition(26.0f + (i*144.0f) - (float)folderOffsetX, 34.0f);
       ENGINE.Draw(folderBox);
 
-      cardLabel->setFillColor(sf::Color::White);
-      cardLabel->setString(folderNames[i]);
-      cardLabel->setOrigin(cardLabel->getGlobalBounds().width / 2.0f, cardLabel->getGlobalBounds().height / 2.0f);
-      cardLabel->setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
+      cardLabel.SetColor(sf::Color::White);
+      cardLabel.SetString(folderNames[i]);
+      cardLabel.setOrigin(cardLabel.GetWorldBounds().width / 2.0f, cardLabel.GetWorldBounds().height / 2.0f);
+      cardLabel.setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
       ENGINE.Draw(cardLabel, false);
 
       if (i == selectedFolderIndex) {
@@ -538,10 +536,10 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       iter++;
     }
 
-    cardLabel->setFillColor(sf::Color::White);
-    cardLabel->setString(folderNames[currFolderIndex]);
-    cardLabel->setOrigin(0.f, cardLabel->getGlobalBounds().height / 2.0f);
-    cardLabel->setPosition(195.0f, 100.0f);
+    cardLabel.SetColor(sf::Color::White);
+    cardLabel.SetString(folderNames[currFolderIndex]);
+    cardLabel.setOrigin(0.f, cardLabel.GetWorldBounds().height / 2.0f);
+    cardLabel.setPosition(195.0f, 100.0f);
     ENGINE.Draw(cardLabel, false);
 
     // Now that we are at the viewing range, draw each card in the list
@@ -550,10 +548,10 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       cardIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
       ENGINE.Draw(cardIcon, false);
 
-      cardLabel->setOrigin(0.0f, 0.0f);
-      cardLabel->setFillColor(sf::Color::White);
-      cardLabel->setPosition(2.f*115.f, 128.0f + (32.f*i));
-      cardLabel->setString((*iter)->GetShortName());
+      cardLabel.setOrigin(0.0f, 0.0f);
+      cardLabel.SetColor(sf::Color::White);
+      cardLabel.setPosition(2.f*115.f, 128.0f + (32.f*i));
+      cardLabel.SetString((*iter)->GetShortName());
       ENGINE.Draw(cardLabel, false);
 
 
@@ -562,9 +560,9 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       element.setPosition(2.f*173.f, 133.0f + (32.f*i));
       ENGINE.Draw(element, false);
 
-      cardLabel->setOrigin(0, 0);
-      cardLabel->setPosition(2.f*190.f, 128.0f + (32.f*i));
-      cardLabel->setString(std::string() + (*iter)->GetCode());
+      cardLabel.setOrigin(0, 0);
+      cardLabel.setPosition(2.f*190.f, 128.0f + (32.f*i));
+      cardLabel.SetString(std::string() + (*iter)->GetCode());
       ENGINE.Draw(cardLabel, false);
 
       mbPlaceholder.setPosition(2.f*200.f, 134.0f + (32.f*i));
@@ -624,9 +622,6 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
 }
 
 void FolderScene::onEnd() {
-  delete menuLabel;
-  delete numberLabel;
-
 #ifdef __ANDROID__
     ShutdownTouchControls();
 #endif

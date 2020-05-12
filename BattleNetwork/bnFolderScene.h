@@ -37,19 +37,19 @@ private:
   std::vector<std::string> folderNames; /*!< List of all folder names at start */
 
   // Menu name font
-  std::shared_ptr<sf::Font> font; /*!< Font of the  menu name label*/
-  sf::Text* menuLabel; /*!< "Folder" text on top-left */
+  Font font; /*!< Font of the  menu name label*/
+  Text menuLabel; /*!< "Folder" text on top-left */
 
   // Selection input delays
   double maxSelectInputCooldown; /*!< Set to half of a second */
   double selectInputCooldown; /*!< The delay between reading user input */
 
   // Card UI font
-  std::shared_ptr<sf::Font> cardFont;
-  sf::Text *cardLabel;
+  Font cardFont;
+  Text cardLabel;
 
-  std::shared_ptr<sf::Font> numberFont;
-  sf::Text *numberLabel;
+  Font numberFont;
+  Text numberLabel;
 
   // folder menu graphics
   sf::Sprite bg;

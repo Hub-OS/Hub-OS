@@ -29,7 +29,6 @@ using std::vector;
 using std::map;
 using std::pair;
 using sf::Texture;
-using sf::Font;
 using std::string;
 
 class TextureResourceManager {
@@ -45,6 +44,11 @@ public:
    * @param status Increases the count after each texture loads
    */
   void LoadAllTextures(std::atomic<int> &status);
+
+  /**
+  * @brief will load a resource immediately (used at boot for font) 
+  */
+  void LoadImmediately(TextureType type);
 
   /**
   * @brief will clean expired textures from the cache and free image data
@@ -65,13 +69,6 @@ public:
    * @warning This resource is managed by the manager.
    */
   std::shared_ptr<Texture> GetTexture(TextureType _ttype);
-  
-  /**
-   * @brief Given a file path, returns a pointer to the loaded font
-   * @param _path Relative to the application
-   * @return Font pointer. Must manually delete.
-   */
-  std::shared_ptr<Font> LoadFontFromFile(string _path);
 
 private:
   TextureResourceManager();

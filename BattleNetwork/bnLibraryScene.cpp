@@ -10,6 +10,7 @@
 #include "Android/bnTouchArea.h"
 
 #include "bnMessage.h"
+#include "bnFont.h"
 
 #include <SFML/Graphics.hpp>
 #include <cmath>
@@ -18,7 +19,6 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 #include "Segues/PushIn.h"
 
@@ -91,48 +91,45 @@ std::string LibraryScene::FormatCardDesc(const std::string && desc)
 LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
   camera(ENGINE.GetView()),
   textbox(sf::Vector2f(4, 255)),
+  font(Font::Style::big),
+  menuLabel("", font),
+  cardFont(Font::Style::wide),
+  cardLabel("", cardFont),
+  cardDescFont(Font::Style::small),
+  cardDesc("", cardDescFont),
+  numberFont(Font::Style::wide),
+  numberLabel("", numberFont),
   swoosh::Activity(&controller)
 {
 
   // Menu name font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  menuLabel = new sf::Text("Library", *font);
-  menuLabel->setCharacterSize(15);
-  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
 
 #ifdef __ANDROID__
-maxSelectInputCooldown = 0.1;
-canSwipe = false;
-releasedB = false;
-touchStart = false;
-touchPosX = touchPosStartX = -1;
+  maxSelectInputCooldown = 0.1;
+  canSwipe = false;
+  releasedB = false;
+  touchStart = false;
+  touchPosX = touchPosStartX = -1;
 #endif
 
   selectInputCooldown = maxSelectInputCooldown;
 
   // Card UI font
-  cardFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  cardLabel = new sf::Text("", *cardFont);
-  cardLabel->setPosition(275.f, 15.f);
+  cardLabel.setPosition(275.f, 15.f);
 
-  numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
-  numberLabel = new sf::Text("", *numberFont);
-  numberLabel->setOutlineColor(sf::Color(48, 56, 80));
-  numberLabel->setOutlineThickness(2.f);
-  numberLabel->setScale(0.8f, 0.8f);
-  numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
-  numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
+  numberLabel.SetColor(sf::Color(48, 56, 80));
+  numberLabel.setScale(0.8f, 0.8f);
+  numberLabel.setOrigin(numberLabel.GetLocalBounds().width, 0);
+  numberLabel.setPosition(sf::Vector2f(170.f, 28.0f));
 
   // Card description font
-  cardDescFont = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
-  cardDesc = new sf::Text("", *cardDescFont);
-  cardDesc->setCharacterSize(24);
-  cardDesc->setPosition(sf::Vector2f(20.f, 185.0f));
-  //cardDesc->setLineSpacing(5);
-  cardDesc->setFillColor(sf::Color::Black);
+  cardDesc.setPosition(sf::Vector2f(20.f, 185.0f));
+  //cardDesc.setLineSpacing(5);
+  cardDesc.SetColor(sf::Color::Black);
 
   // folder menu graphic
   bg.setTexture(LOAD_TEXTURE(FOLDER_VIEW_BG));
@@ -360,10 +357,10 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
     cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
     ENGINE.Draw(cardIcon, false);
 
-    cardLabel->setOrigin(0, 0);
-    cardLabel->setFillColor(sf::Color::White);
-    cardLabel->setPosition(2.f*120.f, 60.0f + (32.f*i));
-    cardLabel->setString(iter->GetShortName());
+    cardLabel.setOrigin(0, 0);
+    cardLabel.SetColor(sf::Color::White);
+    cardLabel.setPosition(2.f*120.f, 60.0f + (32.f*i));
+    cardLabel.SetString(iter->GetShortName());
     ENGINE.Draw(cardLabel, false);
 
     //Draw rating
@@ -385,16 +382,16 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 
       // This draws the currently highlighted card
       if (iter->GetDamage() > 0) {
-        cardLabel->setFillColor(sf::Color::White);
-        cardLabel->setString(std::to_string(iter->GetDamage()));
-        cardLabel->setOrigin(cardLabel->getLocalBounds().width + cardLabel->getLocalBounds().left, 0);
-        cardLabel->setPosition(2.f*(70.f), 135.f);
+        cardLabel.SetColor(sf::Color::White);
+        cardLabel.SetString(std::to_string(iter->GetDamage()));
+        cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
+        cardLabel.setPosition(2.f*(70.f), 135.f);
 
         ENGINE.Draw(cardLabel, false);
       }
 
       std::string formatted = FormatCardDesc(iter->GetDescription());
-      cardDesc->setString(formatted);
+      cardDesc.SetString(formatted);
       ENGINE.Draw(cardDesc, false);
 
       int offset = (int)(iter->GetElement());
@@ -410,10 +407,6 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
 }
 
 void LibraryScene::onEnd() {
-  delete menuLabel;
-  delete numberLabel;
-  delete cardDesc;
-
 #ifdef __ANDROID__
   ShutdownTouchControls();
 #endif

@@ -19,6 +19,8 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 #include "bnCardFolderCollection.h"
+#include "bnFont.h"
+
 #include <SFML/Graphics.hpp>
 #include <time.h>
 #include <future>

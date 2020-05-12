@@ -43,7 +43,6 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 class SelectMobScene : public swoosh::Activity
 {
@@ -56,18 +55,18 @@ private:
 
   Mob* mob; /*!< Pointer to the mob data */
 
-  std::shared_ptr<sf::Font> font; /*!< Menu title font */
-  sf::Text* menuLabel; /*!< "Mob Select" */
+  Font font; /*!< Menu title font */
+  Text menuLabel; /*!< "Mob Select" */
 
   double maxSelectInputCooldown; /*!< Maximum time for input delay */
   double selectInputCooldown; /*!< Remaining time for input delay */
   double elapsed; /*!< delta seconds since last frame */
 
-  std::shared_ptr<sf::Font> mobFont; /*!< font for mob data */
-  sf::Text *mobLabel; /*!< name */
-  sf::Text *attackLabel; /*!< power */
-  sf::Text *speedLabel; /*!< mob speed */
-  sf::Text *hpLabel; /*!< mob total health */
+  Font mobFont; /*!< font for mob data */
+  Text mobLabel; /*!< name */
+  Text attackLabel; /*!< power */
+  Text speedLabel; /*!< mob speed */
+  Text hpLabel; /*!< mob total health */
 
   float maxNumberCooldown; /*!< Maximum time for the scramble effect */
   float numberCooldown; /*!< Remaining time for scramble effect */

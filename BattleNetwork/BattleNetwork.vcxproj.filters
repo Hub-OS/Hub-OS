@@ -724,6 +724,9 @@
     <Filter Include="BattleEngine\Factories\MobRegistration\MobFactories\Challenging">
       <UniqueIdentifier>{9886141e-88bf-4f26-8d5d-8d3f1dab66a3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameEngine\CoreModules\Graphics\SceneNodes\Text">
+      <UniqueIdentifier>{d146345f-3d33-41b3-afed-d57c747cc61e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -1508,6 +1511,12 @@
     </ClCompile>
     <ClCompile Include="bnDefenseFrameStateJudge.cpp">
       <Filter>BattleEngine\BattleStepModifiers</Filter>
+    </ClCompile>
+    <ClCompile Include="bnFont.cpp">
+      <Filter>GameEngine\CoreModules\Graphics\SceneNodes\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="bnText.cpp">
+      <Filter>GameEngine\CoreModules\Graphics\SceneNodes\Text</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2357,6 +2366,12 @@
     </ClInclude>
     <ClInclude Include="bnDefenseFrameStateJudge.h">
       <Filter>BattleEngine\BattleStepModifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="bnFont.h">
+      <Filter>GameEngine\CoreModules\Graphics\SceneNodes\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="bnText.h">
+      <Filter>GameEngine\CoreModules\Graphics\SceneNodes\Text</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

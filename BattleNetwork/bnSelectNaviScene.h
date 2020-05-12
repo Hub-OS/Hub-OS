@@ -29,7 +29,6 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 constexpr float UI_LEFT_POS_MAX = 10.f; /*!< Left ui stops here */
 constexpr float UI_RIGHT_POS_MAX = 300.f; /*!< Right ui stops here */
@@ -53,14 +52,13 @@ private:
   double selectInputCooldown;    /*!< count down before registering input */
 
   // NAVI UI font
-  std::shared_ptr<sf::Font> font;
-  std::shared_ptr<sf::Font> naviFont;
-  sf::Text* menuLabel;
-
-  sf::Text *naviLabel; /*!< navi name text */
-  sf::Text *attackLabel; /*!< attack text */
-  sf::Text *speedLabel; /*!< speed text */
-  sf::Text *hpLabel; /*!< hp text */
+  Font font;
+  Font naviFont;
+  Text menuLabel;
+  Text naviLabel; /*!< navi name text */
+  Text attackLabel; /*!< attack text */
+  Text speedLabel; /*!< speed text */
+  Text hpLabel; /*!< hp text */
 
   float maxNumberCooldown; /*!< half a second scramble effect */
   float numberCooldown; /*!< Effect count down */

@@ -1,8 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "bnUIComponent.h"
-using sf::Font;
-using sf::Text;
+
 class Character;
 
 /*! \brief Similar to PlayerHealthUI but draws under the mob */

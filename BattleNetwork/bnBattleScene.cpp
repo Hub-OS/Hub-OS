@@ -29,30 +29,34 @@
 #define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
 BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, CardFolder* folder) :
-        swoosh::Activity(&controller),
-        player(player),
-        mob(mob),
-        lastMobSize(mob->GetMobCount()),
-        didDoubleDelete(false),
-        didTripleDelete(false),
-        isChangingForm(false),
-        isAnimatingFormChange(false),
-        comboDeleteCounter(0),
-        pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
-        whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
-        yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
-        customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
-        heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
-        iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
-        distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
-        summons(player),
-        cardListener(*player),
-        // cap of 8 cards, 8 cards drawn per turn
-        cardCustGUI(folder->Clone(), 8, 8), 
-        camera(*ENGINE.GetCamera()),
-        cardUI(player),
-        lastSelectedForm(-1),
-        persistentFolder(folder) {
+  swoosh::Activity(&controller),
+  player(player),
+  mob(mob),
+  lastMobSize(mob->GetMobCount()),
+  didDoubleDelete(false),
+  didTripleDelete(false),
+  isChangingForm(false),
+  isAnimatingFormChange(false),
+  comboDeleteCounter(0),
+  pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
+  whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
+  yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
+  customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
+  heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
+  iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
+  distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
+  summons(player),
+  cardListener(*player),
+  // cap of 8 cards, 8 cards drawn per turn
+  cardCustGUI(folder->Clone(), 8, 8), 
+  camera(*ENGINE.GetCamera()),
+  cardUI(player),
+  lastSelectedForm(-1),
+  persistentFolder(folder),
+  font(Font::Style::wide),
+  mobFont(Font::Style::small),
+  pauseLabel("", font)
+{
 
   if (mob->GetMobCount() == 0) {
     Logger::Log(std::string("Warning: Mob was empty when battle started. Mob Type: ") + typeid(mob).name());
@@ -175,10 +179,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   battleResults = nullptr;
 
   // PAUSE
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  pauseLabel = new sf::Text("paused", *font);
-  pauseLabel->setOrigin(pauseLabel->getLocalBounds().width / 2, pauseLabel->getLocalBounds().height * 2);
-  pauseLabel->setPosition(sf::Vector2f(240.f, 160.f));
+  pauseLabel.setOrigin(pauseLabel.GetLocalBounds().width / 2, pauseLabel.GetLocalBounds().height * 2);
+  pauseLabel.setPosition(sf::Vector2f(240.f, 160.f));
 
   // CHIP CUST GRAPHICS
   customBarTexture = TEXTURES.LoadTextureFromFile("resources/ui/custom.png");
@@ -194,9 +196,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   // Selection input delays
   maxCardSelectInputCooldown = 1 / 10.f; // tenth a second
   cardSelectInputCooldown = maxCardSelectInputCooldown;
-
-  // MOB UI
-  mobFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   // STATE FLAGS AND TIMERS
   isPaused = false;
@@ -907,7 +906,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }*/
 
   if (!summons.IsSummonActive() && showSummonText) {
-    sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
+    Text summonsLabel = Text(summons.GetSummonLabel(), mobFont);
 
     double summonSecs = summonTimer - showSummonBackdropLength;
     double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
@@ -920,15 +919,14 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
 
     summonsLabel.setScale(1.0f, (float)scale);
-    summonsLabel.setOutlineColor(sf::Color::Black);
-    summonsLabel.setFillColor(sf::Color::White);
-    summonsLabel.setOutlineThickness(2.f);
+    // summonsLabel.setOutlineColor(sf::Color::Black); // todo?
+    summonsLabel.SetColor(sf::Color::White);
 
     if (summons.GetCallerTeam() == Team::red) {
-      summonsLabel.setOrigin(0, summonsLabel.getLocalBounds().height);
+      summonsLabel.setOrigin(0, summonsLabel.GetLocalBounds().height);
     }
     else {
-      summonsLabel.setOrigin(summonsLabel.getLocalBounds().width, summonsLabel.getLocalBounds().height);
+      summonsLabel.setOrigin(summonsLabel.GetLocalBounds().width, summonsLabel.GetLocalBounds().height);
     }
 
     ENGINE.Draw(summonsLabel, false);
@@ -945,17 +943,16 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       if (mob->GetMobAt(i).IsDeleted())
         continue;
 
-      sf::Text mobLabel = sf::Text(mob->GetMobAt(i).GetName(), *mobFont);
+      Text mobLabel = Text(mob->GetMobAt(i).GetName(), mobFont);
 
-      mobLabel.setOrigin(mobLabel.getLocalBounds().width, 0);
+      mobLabel.setOrigin(mobLabel.GetLocalBounds().width, 0);
       mobLabel.setPosition(470.0f, -1.f + nextLabelHeight);
       mobLabel.setScale(0.8f, 0.8f);
-      mobLabel.setOutlineColor(sf::Color(48, 56, 80));
-      mobLabel.setOutlineThickness(2.f);
+      // mobLabel.setOutlineColor(sf::Color(48, 56, 80)); todo?
       ENGINE.Draw(mobLabel, false);
 
       // make the next label relative to this one
-      nextLabelHeight += mobLabel.getLocalBounds().height;
+      nextLabelHeight += mobLabel.GetLocalBounds().height;
     }
   }
 
@@ -1276,7 +1273,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             formatted.resize(9, ' ');
             formatted[8] = cards[i]->GetCode();
 
-            sf::Text stepLabel = sf::Text(formatted, *mobFont);
+            Text stepLabel = Text(formatted, mobFont);
 
             stepLabel.setOrigin(0, 0);
             stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight*2.f));
@@ -1284,23 +1281,22 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
             if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
               if (i < paStepIndex - 1) {
-                stepLabel.setOutlineColor(sf::Color(0, 0, 0));
-                stepLabel.setFillColor(sf::Color(128, 248, 80));
+                //stepLabel.setOutlineColor(sf::Color(0, 0, 0)); // todo?
+                stepLabel.SetColor(sf::Color(128, 248, 80));
               }
               else {
-                stepLabel.setOutlineColor(sf::Color(0, 0, 0));
-                stepLabel.setFillColor(sf::Color(247, 188, 27));
+                //stepLabel.setOutlineColor(sf::Color(0, 0, 0)); // todo?
+                stepLabel.SetColor(sf::Color(247, 188, 27));
               }
             }
             else {
-              stepLabel.setOutlineColor(sf::Color(48, 56, 80));
+              //stepLabel.setOutlineColor(sf::Color(48, 56, 80)); // todo?
             }
 
-            stepLabel.setOutlineThickness(2.f);
             ENGINE.Draw(stepLabel, false);
 
             // make the next label relative to this one
-            nextLabelHeight += stepLabel.getLocalBounds().height;
+            nextLabelHeight += stepLabel.GetLocalBounds().height;
           }
           increment = 0;
           nextLabelHeight = 0;
@@ -1316,30 +1312,30 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             formatted.resize(9, ' ');
             formatted[8] = cards[i]->GetCode();
 
-            sf::Text stepLabel = sf::Text(formatted, *mobFont);
+            Text stepLabel = Text(formatted, mobFont);
 
             stepLabel.setOrigin(0, 0);
             stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight*2.f));
             stepLabel.setScale(1.0f, 1.0f);
-            stepLabel.setOutlineColor(sf::Color(48, 56, 80));
-            stepLabel.setOutlineThickness(2.f);
+            stepLabel.SetColor(sf::Color(48, 56, 80));
+            // stepLabel.setOutlineThickness(2.f); // todo?
 
             if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
               if (i == hasPA) {
                 Battle::Card* paCard = programAdvance.GetAdvanceCard();
 
-                sf::Text stepLabel = sf::Text(paCard->GetShortName(), *mobFont);
+                Text stepLabel = Text(paCard->GetShortName(), mobFont);
                 stepLabel.setOrigin(0, 0);
                 stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight*2.f));
                 stepLabel.setScale(1.0f, 1.0f);
 
-                stepLabel.setOutlineColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
-                stepLabel.setOutlineThickness(2.f);
+                stepLabel.SetColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
+                // stepLabel.setOutlineThickness(2.f); // todo?
                 ENGINE.Draw(stepLabel, false);
               }
               else {
                 // make the next label relative to the hidden one and skip drawing
-                nextLabelHeight += stepLabel.getLocalBounds().height;
+                nextLabelHeight += stepLabel.GetLocalBounds().height;
 
                 continue;
               }
@@ -1350,7 +1346,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             }
 
             // make the next label relative to this one
-            nextLabelHeight += stepLabel.getLocalBounds().height;
+            nextLabelHeight += stepLabel.GetLocalBounds().height;
           }
 
           increment += (float)elapsed * 5.f;

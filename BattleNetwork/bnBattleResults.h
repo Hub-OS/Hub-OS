@@ -4,6 +4,9 @@
 #include <SFML/Graphics.hpp>
 #include <array> 
 
+#include "bnText.h"
+#include "bnFont.h"
+
 class Mob;
 class BattleItem;
 
@@ -18,14 +21,14 @@ class BattleItem;
 class BattleResults {
 private:
   sf::Sprite resultsSprite; /*!< This modals graphic */
-  sf::Text time; /*!< Formatted time label */
-  sf::Text rank; /*!< Battle scored rank */
-  sf::Text reward; /*!< Name of reward */
-  sf::Text cardCode; /*!< Code for cards */
   sf::Sprite rewardCard; /*!< Reward card graphics */
   sf::Sprite pressA; /*!< Press A sprite */
   sf::Sprite star; /*!< Counter stars */
-  std::shared_ptr<sf::Font> font;
+  Text time; /*!< Formatted time label */
+  Text rank; /*!< Battle scored rank */
+  Text reward; /*!< Name of reward */
+  Text cardCode; /*!< Code for cards */
+  Font font;
 
   bool isHidden; /*!< Flag if modal is hidden */
   bool isRevealed; /*!< Flag if modal is revealed */

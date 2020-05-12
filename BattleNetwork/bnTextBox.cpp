@@ -8,10 +8,7 @@ void TextBox::FormatToFit() {
 
     lines.push_back(0); // All text begins at pos 0
 
-    text = sf::Text(message, *font);
-    text.setCharacterSize(charSize);
-
-    sf::Text prevText = text;
+    text.SetString(message);
 
     int index = 0;
     int wordIndex = -1; // If we are breaking on a word
@@ -30,9 +27,9 @@ void TextBox::FormatToFit() {
             wordIndex = -1;
         }
 
-        text.setString(message.substr(lastRow, index - lastRow));
-        double width = text.getGlobalBounds().width;
-        double height = text.getGlobalBounds().height;
+        text.SetString(message.substr(lastRow, index - lastRow));
+        double width = text.GetWorldBounds().width;
+        double height = text.GetWorldBounds().height;
 
         if (message[index] == '\n') {
 
@@ -68,7 +65,7 @@ void TextBox::FormatToFit() {
     }
 
     // make final text blank to start
-    text.setString("");
+    text.SetString("");
 
     numberOfFittingLines = line;
 }
@@ -82,9 +79,7 @@ std::string TextBox::replace(std::string str, const std::string& from, const std
     return str;
 }
 
-TextBox::TextBox(int width, int height, int characterSize, std::string fontPath) {
-    font = TEXTURES.LoadFontFromFile(fontPath);
-    text = sf::Text();
+TextBox::TextBox(int width, int height) : font(Font::Style::small), text("", font) {
     message = "";
     areaWidth = width;
     areaHeight = height;
@@ -93,7 +88,6 @@ TextBox::TextBox(int width, int height, int characterSize, std::string fontPath)
     play = true;
     mute = false;
     progress = 0;
-    charSize = characterSize;
     fillColor = sf::Color::White;
     outlineColor = sf::Color::White;
     lineIndex = 0;
@@ -103,9 +97,9 @@ TextBox::TextBox(int width, int height, int characterSize, std::string fontPath)
 TextBox::~TextBox() {
 }
 
-const sf::Text& TextBox::GetText() const { return text; }
+const Text& TextBox::GetText() const { return text; }
 
-const sf::Font& TextBox::GetFont() const { return *font; }
+const Font& TextBox::GetFont() const { return font; }
 
 void TextBox::SetTextFillColor(sf::Color color) {
     fillColor = color;
@@ -216,7 +210,7 @@ void TextBox::Update(const double elapsed) {
             len = charIndex - begin;
         }
 
-        text.setString(message.substr(begin, len));
+        text.SetString(message.substr(begin, len));
 
         play = false;
 
@@ -291,9 +285,9 @@ void TextBox::Update(const double elapsed) {
         // Set the sf::Text to show only the visible text in 
         // the text area
         if (len <= 0)
-            text.setString("");
+            text.SetString("");
         else
-            text.setString(message.substr(begin, len));
+            text.SetString(message.substr(begin, len));
     }
 }
 
@@ -312,8 +306,8 @@ void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
     text.setPosition(getPosition());
     text.setScale(getScale());
     text.setRotation(getRotation());
-    text.setFillColor(fillColor);
-    text.setOutlineColor(outlineColor);
+    text.SetColor(fillColor);
+    // text.SetOutlineColor(outlineColor); // todo?
 
     target.draw(text);
 }

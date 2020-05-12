@@ -23,6 +23,15 @@ void TextureResourceManager::LoadAllTextures(std::atomic<int> &status) {
   }
 }
 
+void TextureResourceManager::LoadImmediately(TextureType type)
+{
+  // don't fetch it from disk if we already have it
+  if (textures.find(type) != textures.end()) return;
+
+  std::shared_ptr<Texture> texture = LoadTextureFromFile(paths[static_cast<int>(type)]);
+  textures.insert(pair<TextureType, CachedResource<Texture*>>(type, texture));
+}
+
 void TextureResourceManager::HandleExpiredTextureCache()
 {
     auto iter = texturesFromPath.begin();
@@ -75,16 +84,6 @@ std::shared_ptr<Texture> TextureResourceManager::LoadTextureFromFile(string _pat
 
 std::shared_ptr<Texture> TextureResourceManager::GetTexture(TextureType _ttype) {
   return textures.at(_ttype).GetResource();
-}
-
-std::shared_ptr<Font> TextureResourceManager::LoadFontFromFile(string _path) {
-  std::shared_ptr<Font> font = std::make_shared<Font>();
-  if (!font->loadFromFile(_path)) {
-    Logger::Logf("Failed loading font: %s", _path.c_str());
-  } else {
-    Logger::Logf("Loaded font: %s", _path.c_str());
-  }
-  return font;
 }
 
 TextureResourceManager::TextureResourceManager(void) {
@@ -286,7 +285,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/spinner.png");
 
   // font
-  paths.push_back("resources/fonts/all_fonts.png");
+  paths.push_back("resources/fonts/all_fonts_atlas.png");
 
   // config ui
   paths.push_back("resources/backgrounds/config/audio.png");

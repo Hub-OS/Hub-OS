@@ -38,7 +38,6 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 class Mob;
 class Player;
@@ -154,8 +153,8 @@ private:
   int randBG; /*!< If background provided by Mob data is nullptr, randomly select one */
 
   // PAUSE
-  std::shared_ptr<sf::Font> font; /*!< PAUSE font */
-  sf::Text* pauseLabel; /*!< "PAUSE" test */
+  Font font; /*!< PAUSE font */
+  Text pauseLabel; /*!< "PAUSE" test */
 
   // CHIP CUST GRAPHICS
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
@@ -167,7 +166,7 @@ private:
   double cardSelectInputCooldown; /*!< Time remaining with delayed input */
 
   // MOB
-  std::shared_ptr<sf::Font> mobFont; /*!< Name of mob font */
+  Font mobFont; /*!< Name of mob font */
   Mob* mob; /*!< Mob and mob data player are fighting against */
 
   // States. TODO: Abstract this further into battle state classes 

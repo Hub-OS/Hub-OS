@@ -11,104 +11,102 @@
 #define QUEUED 2
 
 CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) :
-    perTurn(perTurn),
-    greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
-    cardDescriptionTextbox(sf::Vector2f(4, 255)),
-    isInView(false),
-    isInFormSelect(false),
-    playFormSound(false),
-    canInteract(true)
+  perTurn(perTurn),
+  greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
+  cardDescriptionTextbox(sf::Vector2f(4, 255)),
+  isInView(false),
+  isInFormSelect(false),
+  playFormSound(false),
+  canInteract(true),
+  labelFont(Font::Style::small),
+  codeFont(Font::Style::tiny),
+  label("", labelFont),
+  smCodeLabel("?", codeFont)
 {
-    frameElapsed = 1;
-    folder = _folder;
-    cap = std::min(cap, 8);
-    cardCap = cap;
-    queue = new Bucket[cardCap];
-    selectQueue = new Bucket*[cardCap];
+  frameElapsed = 1;
+  folder = _folder;
+  cap = std::min(cap, 8);
+  cardCap = cap;
+  queue = new Bucket[cardCap];
+  selectQueue = new Bucket*[cardCap];
 
-    cardCount = selectCount = cursorPos = cursorRow = 0;
+  cardCount = selectCount = cursorPos = cursorRow = 0;
 
-    emblem.setScale(2.f, 2.f);
-    emblem.setPosition(194.0f, 14.0f);
+  emblem.setScale(2.f, 2.f);
+  emblem.setPosition(194.0f, 14.0f);
 
-    custSprite = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_SELECT_MENU));
-    custSprite.setScale(2.f, 2.f);
-    custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
+  custSprite = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_SELECT_MENU));
+  custSprite.setScale(2.f, 2.f);
+  custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
 
-    // TODO: fully use scene nodes on all card slots and the GUI sprite
-    // AddSprite(custSprite);
+  // TODO: fully use scene nodes on all card slots and the GUI sprite
+  // AddSprite(custSprite);
 
-    icon.setTextureRect(sf::IntRect{ 0,0,14,14 });
-    icon.setScale(sf::Vector2f(2.f, 2.f));
+  icon.setTextureRect(sf::IntRect{ 0,0,14,14 });
+  icon.setScale(sf::Vector2f(2.f, 2.f));
 
-    element.setTexture(TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
-    element.setScale(2.f, 2.f);
-    element.setPosition(2.f*25.f, 146.f);
+  element.setTexture(TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
+  element.setScale(2.f, 2.f);
+  element.setPosition(2.f*25.f, 146.f);
 
-    cursorSmall = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CURSOR_SMALL));
-    cursorSmall.setScale(sf::Vector2f(2.f, 2.f));
+  cursorSmall = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CURSOR_SMALL));
+  cursorSmall.setScale(sf::Vector2f(2.f, 2.f));
 
-    cursorBig = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CURSOR_BIG));
-    cursorBig.setScale(sf::Vector2f(2.f, 2.f));
+  cursorBig = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CURSOR_BIG));
+  cursorBig.setScale(sf::Vector2f(2.f, 2.f));
 
-    // never moves
-    cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*122.f));
+  // never moves
+  cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*122.f));
 
-    cardLock = sf::Sprite(*LOAD_TEXTURE(CHIP_LOCK));
-    cardLock.setScale(sf::Vector2f(2.f, 2.f));
+  cardLock = sf::Sprite(*LOAD_TEXTURE(CHIP_LOCK));
+  cardLock.setScale(sf::Vector2f(2.f, 2.f));
 
-    cardCard.setScale(2.f, 2.f);
-    cardCard.setPosition(2.f*16.f, 48.f);
-    cardCard.setTextureRect(sf::IntRect{0, 0, 56, 48});
+  cardCard.setScale(2.f, 2.f);
+  cardCard.setPosition(2.f*16.f, 48.f);
+  cardCard.setTextureRect(sf::IntRect{0, 0, 56, 48});
 
-    cardNoData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_NODATA));
-    cardNoData.setScale(2.f, 2.f);
-    cardNoData.setPosition(2.f*16.f, 48.f);
+  cardNoData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_NODATA));
+  cardNoData.setScale(2.f, 2.f);
+  cardNoData.setPosition(2.f*16.f, 48.f);
 
-    cardSendData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_SENDDATA));
-    cardSendData.setScale(2.f, 2.f);
-    cardSendData.setPosition(2.f*16.f, 48.f);
+  cardSendData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_SENDDATA));
+  cardSendData.setScale(2.f, 2.f);
+  cardSendData.setPosition(2.f*16.f, 48.f);
 
-    labelFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-    label.setFont(*labelFont);
+  smCodeLabel.SetColor(sf::Color::Yellow);
 
-    codeFont = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-    smCodeLabel.setFont(*codeFont);
-    smCodeLabel.setCharacterSize(12);
-    smCodeLabel.setFillColor(sf::Color::Yellow);
+  cursorSmallAnimator = Animation("resources/ui/cursor_small.animation");
+  cursorSmallAnimator.Reload();
+  cursorSmallAnimator.SetAnimation("BLINK");
+  cursorSmallAnimator << Animator::Mode::Loop;
 
-    cursorSmallAnimator = Animation("resources/ui/cursor_small.animation");
-    cursorSmallAnimator.Reload();
-    cursorSmallAnimator.SetAnimation("BLINK");
-    cursorSmallAnimator << Animator::Mode::Loop;
+  cursorBigAnimator = Animation("resources/ui/cursor_big.animation");
+  cursorBigAnimator.Reload();
+  cursorBigAnimator.SetAnimation("BLINK");
+  cursorBigAnimator << Animator::Mode::Loop;
 
-    cursorBigAnimator = Animation("resources/ui/cursor_big.animation");
-    cursorBigAnimator.Reload();
-    cursorBigAnimator.SetAnimation("BLINK");
-    cursorBigAnimator << Animator::Mode::Loop;
+  formSelectAnimator = Animation("resources/ui/form_select.animation");
+  formSelectAnimator.Reload();
+  formSelectAnimator.SetAnimation("CLOSED");
 
-    formSelectAnimator = Animation("resources/ui/form_select.animation");
-    formSelectAnimator.Reload();
-    formSelectAnimator.SetAnimation("CLOSED");
+  formCursorAnimator = Animation("resources/ui/form_cursor.animation");
+  formCursorAnimator.Reload();
+  formCursorAnimator.SetAnimation("BLINK");
+  formCursorAnimator << Animator::Mode::Loop;
 
-    formCursorAnimator = Animation("resources/ui/form_cursor.animation");
-    formCursorAnimator.Reload();
-    formCursorAnimator.SetAnimation("BLINK");
-    formCursorAnimator << Animator::Mode::Loop;
+  formSelectQuitTimer = 0.f; // used to time out the activation
+  thisFrameSelectedForm = selectedForm = -1;
 
-    formSelectQuitTimer = 0.f; // used to time out the activation
-    thisFrameSelectedForm = selectedForm = -1;
+  formItemBG.setTexture(*LOAD_TEXTURE(CUST_FORM_ITEM_BG));
+  formItemBG.setScale(2.f, 2.f);
 
-    formItemBG.setTexture(*LOAD_TEXTURE(CUST_FORM_ITEM_BG));
-    formItemBG.setScale(2.f, 2.f);
+  formSelect.setTexture(LOAD_TEXTURE(CUST_FORM_SELECT));
+  formCursor.setTexture(LOAD_TEXTURE(CUST_FORM_CURSOR));
 
-    formSelect.setTexture(LOAD_TEXTURE(CUST_FORM_SELECT));
-    formCursor.setTexture(LOAD_TEXTURE(CUST_FORM_CURSOR));
+  formSelect.setScale(2.f, 2.f);
+  formCursor.setScale(2.f, 2.f);
 
-    formSelect.setScale(2.f, 2.f);
-    formCursor.setScale(2.f, 2.f);
-
-    //setScale(0.5f, 0.5); // testing transforms
+  //setScale(0.5f, 0.5); // testing transforms
 }
 
 
@@ -515,7 +513,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
       char code = queue[i].data->GetCode();
 
-      smCodeLabel.setString(code);
+      smCodeLabel.SetString(code);
       target.draw(smCodeLabel, states);
     }
 
@@ -533,7 +531,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
     if ((cursorPos < 5 && cursorRow == 0) || (cursorPos < 3 && cursorRow == 1)) {
       // Draw the selected card info
-      label.setFillColor(sf::Color::White);
+      label.SetColor(sf::Color::White);
 
       if (cursorPos + (5 * cursorRow) < cardCount) {
         // Draw the selected card card
@@ -558,21 +556,21 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
         cardCard.setPosition(lastPos);
 
         label.setPosition(offset + 2.f*16.f, 16.f);
-        label.setString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
+        label.SetString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
         target.draw(label, states);
 
         // the order here is very important:
         if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
-          label.setString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
-          label.setOrigin(label.getLocalBounds().width+label.getLocalBounds().left, 0);
+          label.SetString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
+          label.setOrigin(label.GetLocalBounds().width+label.GetLocalBounds().left, 0);
           label.setPosition(offset + 2.f*(70.f), 143.f);
           target.draw(label, states);
         }
 
         label.setOrigin(0, 0);
         label.setPosition(offset + 2.f*16.f, 143.f);
-        label.setString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
-        label.setFillColor(sf::Color(225, 180, 0));
+        label.SetString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
+        label.SetColor(sf::Color(225, 180, 0));
         target.draw(label, states);
 
         int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());

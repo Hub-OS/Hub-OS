@@ -2,6 +2,8 @@
 #include "bnEngine.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
+#include "bnFont.h"
+#include "bnText.h"
 
 #include "bnAnimation.h"
 #include <Swoosh/Activity.h>
@@ -18,8 +20,8 @@ class FolderChangeNameScene : public swoosh::Activity {
 private:
   sf::Sprite bg; /*!< Most of the elements on the screen are static */
   bool leave; /*!< Scene state coming/going flag */
-  std::shared_ptr<sf::Font> font;
-  sf::Text *nameLabel;
+  Font font;
+  Text nameLabel;
   std::string name;
   int letterPos; /*!< Where the name will begin writing to*/
   std::vector<std::vector<std::vector<std::string>>> table; /*!< 3 tables with rows and columns */

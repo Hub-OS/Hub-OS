@@ -283,6 +283,7 @@
     <ClCompile Include="bnFolderChangeNameScene.cpp" />
     <ClCompile Include="bnFolderEditScene.cpp" />
     <ClCompile Include="bnFolderScene.cpp" />
+    <ClCompile Include="bnFont.cpp" />
     <ClCompile Include="bnForte.cpp" />
     <ClCompile Include="bnGameOverScene.cpp" />
     <ClCompile Include="bnGear.cpp" />
@@ -400,6 +401,7 @@
     <ClCompile Include="bnSuperVulcan.cpp" />
     <ClCompile Include="bnSwordCardAction.cpp" />
     <ClCompile Include="bnSwordEffect.cpp" />
+    <ClCompile Include="bnText.cpp" />
     <ClCompile Include="bnTextBox.cpp" />
     <ClCompile Include="bnThunder.cpp" />
     <ClCompile Include="bnThunderCardAction.cpp" />
@@ -456,6 +458,7 @@
     <ClInclude Include="bnCurrentTime.h" />
     <ClInclude Include="bnDefenseInvis.h" />
     <ClInclude Include="bnElecPulseCardAction.h" />
+    <ClInclude Include="bnFont.h" />
     <ClInclude Include="bnLongSwordCardAction.h" />
     <ClInclude Include="bnMovement.h" />
     <ClInclude Include="bnNaviWhiteoutState.h" />
@@ -615,6 +618,7 @@
     <ClInclude Include="bnSuperVulcan.h" />
     <ClInclude Include="bnSwordCardAction.h" />
     <ClInclude Include="bnSwordEffect.h" />
+    <ClInclude Include="bnText.h" />
     <ClInclude Include="bnThunder.h" />
     <ClInclude Include="bnElements.h" />
     <ClInclude Include="bnFolderScene.h" />

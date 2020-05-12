@@ -72,7 +72,8 @@ void FolderChangeNameScene::DoEND()
   leave = true;
 }
 
-FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& controller, std::string& folderName) : swoosh::Activity(&controller), folderName(folderName) {
+FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& controller, std::string& folderName) 
+  : swoosh::Activity(&controller), folderName(folderName), font(Font::Style::small), nameLabel("", font) {
   
   leave = true;
   // folder menu graphic
@@ -87,10 +88,7 @@ FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& control
 
   letterPos = cursorPosX = cursorPosY = currTable = 0;
 
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-
-  nameLabel = new sf::Text("", *font);
-  nameLabel->setScale(1.f, 1.f);
+  nameLabel.setScale(1.f, 1.f);
   
   name = std::string(8, '_'); // 8 characters allowed
 
@@ -291,16 +289,16 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
     if(i == letterPos && blink)
       continue;
 
-    nameLabel->setString(name[i]);
-    nameLabel->setPosition((65 + (i*8)) * 2.f, 15 * 2.f);
+    nameLabel.SetString(name[i]);
+    nameLabel.setPosition((65 + (i*8)) * 2.f, 15 * 2.f);
 
     ENGINE.Draw(nameLabel);
   }
 
   // 9th character is a special * asterisk to denote the end of input
   if (letterPos + 1 == 9 && !blink) {
-    nameLabel->setString('*');
-    nameLabel->setPosition((65 + (8 * 8)) * 2.f, 15 * 2.f);
+    nameLabel.SetString('*');
+    nameLabel.setPosition((65 + (8 * 8)) * 2.f, 15 * 2.f);
 
     ENGINE.Draw(nameLabel);
   }

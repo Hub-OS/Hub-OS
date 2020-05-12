@@ -8,10 +8,13 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 
+#include "bnText.h"
+#include "bnFont.h"
+
 class TextBox : public sf::Drawable, public sf::Transformable {
 private:
-  std::shared_ptr<sf::Font> font;
-  mutable sf::Text text;
+  Font font;
+  mutable Text text;
   double charsPerSecond; /**< default is 10 cps */
   double progress; /**< Total elapsed time */
   int areaWidth, areaHeight;
@@ -45,24 +48,22 @@ public:
    * @brief Creates a textbox area of width x height, default font size 15, and hard-coded font path
    * @param width in pixels
    * @param height in pixels
-   * @param characterSize font size
-   * @param fontPath default "resources/fonts/dr_cain_terminal.ttf"
    */
-   TextBox(int width, int height, int characterSize = 15, std::string fontPath = "resources/fonts/dr_cain_terminal.ttf");
+   TextBox(int width, int height);
 
   ~TextBox();
 
   /**
-   * @brief Get reference to sf::Text object
-   * @return sf::Text&
+   * @brief Get reference to Text object
+   * @return Text&
    */
-  const sf::Text& GetText() const;
+  const Text& GetText() const;
 
   /**
- * @brief Get reference to sf::Font object
- * @return sf::Font&
+ * @brief Get reference to Font object
+ * @return Font&
  */
-  const sf::Font& GetFont() const;
+  const Font& GetFont() const;
 
   /**
    * @brief Set text fill color

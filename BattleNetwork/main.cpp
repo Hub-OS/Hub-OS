@@ -29,6 +29,8 @@
 #include "bnAnimator.h"
 #include "bnConfigReader.h"
 #include "bnConfigScene.h"
+#include "bnFont.h"
+#include "bnText.h"
 
 #include "SFML/System.hpp"
 
@@ -45,9 +47,6 @@
 // Engine addons
 #include "bnQueueNaviRegistration.h"
 #include "bnQueueMobRegistration.h"
-
-// Timer
-using sf::Clock;
 
 // Swoosh activity management
 using swoosh::ActivityController;
@@ -173,6 +172,9 @@ int main(int argc, char** argv) {
     AUDIO;
     WEBCLIENT;
 
+    // Load font symbols for use across the entire engine...
+    TEXTURES.LoadImmediately(TextureType::FONT);
+
     // try to read the config file
     ConfigReader reader("config.ini");
     ConfigSettings configSettings = reader.GetConfigSettings();
@@ -292,42 +294,37 @@ int main(int argc, char** argv) {
     logoSprite.setPosition(logoPos);
 
     // Log output text
-    std::shared_ptr<sf::Font> font = TEXTURES.LoadFontFromFile("resources/fonts/NETNAVI_4-6_V3.ttf");
-    sf::Text* logLabel = new sf::Text("...", *font);
-    logLabel->setCharacterSize(10);
-    logLabel->setOrigin(0.f, logLabel->getLocalBounds().height);
+    Font font = Font(Font::Style::tiny);
+    Text logLabel = Text("...", font);
+    logLabel.setOrigin(0.f, logLabel.GetLocalBounds().height);
     std::vector<std::string> logs;
 
     // Press Start text
-    std::shared_ptr<sf::Font> startFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+    Font startFont = Font(Font::Style::wide);
 
     #if defined(__ANDROID__)
-    sf::Text* startLabel = new sf::Text("TAP SCREEN", *startFont);
+    Text* startLabel = Text("TAP SCREEN", startFont);
     #else
-    sf::Text* startLabel = new sf::Text("PRESS START", *startFont);
+    Text startLabel = Text("PRESS START", startFont);
     #endif
 
-    startLabel->setCharacterSize(24);
-    startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-    startLabel->setPosition(sf::Vector2f(180.0f, 240.f));
+    startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
+    startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
 
     // Loaded navis label text
-    sf::Text* navisLoadedLabel = new sf::Text("Loading Navi Data...", *startFont);
-    navisLoadedLabel->setCharacterSize(24);
-    navisLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-    navisLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
+    Text navisLoadedLabel = Text("Loading Navi Data...", startFont);
+    navisLoadedLabel.setOrigin(0.f, navisLoadedLabel.GetLocalBounds().height);
+    navisLoadedLabel.setPosition(sf::Vector2f(230.f, 230.f));
 
 
     // Loaded mobs label text
-    sf::Text* mobLoadedLabel = new sf::Text("Loading Mob Data...", *startFont);
-    mobLoadedLabel->setCharacterSize(24);
-    mobLoadedLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-    mobLoadedLabel->setPosition(sf::Vector2f(230.f, 230.f));
+    Text mobLoadedLabel = Text("Loading Mob Data...", startFont);
+    mobLoadedLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
+    mobLoadedLabel.setPosition(sf::Vector2f(230.f, 230.f));
 
-    sf::Text* message = new sf::Text("This software is non profit\nIP rights belong to Capcom", *startFont);
-    message->setCharacterSize(24);
-    message->setOrigin(message->getLocalBounds().width/2.f, message->getLocalBounds().height*2);
-    message->setPosition(sf::Vector2f(300.f, 200.f));
+    Text message = Text("This software is non profit\nIP rights belong to Capcom", startFont);
+    message.setOrigin(message.GetLocalBounds().width/2.f, message.GetLocalBounds().height*2);
+    message.setPosition(sf::Vector2f(300.f, 200.f));
 
     Clock clock;
     float elapsed = 0.0f;
@@ -365,7 +362,7 @@ int main(int argc, char** argv) {
         // Fade out 
         float alpha = std::min((messageCooldown)*255.f, 255.f);
         alertSprite.setColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
-        message->setFillColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
+        message.SetColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
         messageCooldown -= elapsed*speed;
 
         // Draw the message
@@ -624,9 +621,9 @@ int main(int argc, char** argv) {
             // fade from newest to oldest
             // newest at bottom full opacity
             // oldest at the top (at most 30 on screen) at full transparency
-            logLabel->setString(logs[i]);
-            logLabel->setPosition(0.f, 320 - (i * 10.f) - 15.f);
-            logLabel->setFillColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*std::fmax(0, 255 - (255 / 30)*i))));
+            logLabel.SetString(logs[i]);
+            logLabel.setPosition(0.f, 320 - (i * 10.f) - 15.f);
+            logLabel.SetColor(sf::Color(255, 255, 255, (sf::Uint8)((logFadeOutSpeed/2000.f)*std::fmax(0, 255 - (255 / 30)*i))));
             ENGINE.Draw(logLabel);
         }
 
@@ -641,10 +638,10 @@ int main(int argc, char** argv) {
             // loading navi and mob data. Check which one 
             // and display their loading %
             if (navisLoaded < (int)NAVIS.Size()) {
-                navisLoadedLabel->setString(std::string("Loading Navi Data ") + std::to_string(navisLoaded) + " / " + std::to_string(NAVIS.Size()));
-                sf::FloatRect bounds = navisLoadedLabel->getLocalBounds();
+                navisLoadedLabel.SetString(std::string("Loading Navi Data ") + std::to_string(navisLoaded) + " / " + std::to_string(NAVIS.Size()));
+                sf::FloatRect bounds = navisLoadedLabel.GetWorldBounds();
                 sf::Vector2f origin = {bounds.width / 2.0f, bounds.height / 2.0f};
-                navisLoadedLabel->setOrigin(origin);
+                navisLoadedLabel.setOrigin(origin);
                 ENGINE.Draw(navisLoadedLabel);
             }
             else {
@@ -655,10 +652,10 @@ int main(int argc, char** argv) {
                         mobsLoad.launch();
                     }
                     else {
-                        mobLoadedLabel->setString(std::string("Loading Mob Data ") + std::to_string(mobsLoaded) + " / " + std::to_string(MOBS.Size()));
-                        sf::FloatRect bounds = mobLoadedLabel->getLocalBounds();
+                        mobLoadedLabel.SetString(std::string("Loading Mob Data ") + std::to_string(mobsLoaded) + " / " + std::to_string(MOBS.Size()));
+                        sf::FloatRect bounds = mobLoadedLabel.GetLocalBounds();
                         sf::Vector2f origin = { bounds.width / 2.0f, bounds.height / 2.0f };
-                        mobLoadedLabel->setOrigin(origin);
+                        mobLoadedLabel.setOrigin(origin);
                         ENGINE.Draw(mobLoadedLabel);
                     }
                 }
@@ -703,14 +700,14 @@ int main(int argc, char** argv) {
                         ENGINE.Draw(cursorSprite);
 
                         // Show continue or settings options
-                        startLabel->setString("CONTINUE");
-                        startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-                        startLabel->setPosition(sf::Vector2f(200.0f, 240.f));
+                        startLabel.SetString("CONTINUE");
+                        startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
+                        startLabel.setPosition(sf::Vector2f(200.0f, 240.f));
                         ENGINE.Draw(startLabel);
 
-                        startLabel->setString("CONFIGURE");
-                        startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-                        startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
+                        startLabel.SetString("CONFIGURE");
+                        startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
+                        startLabel.setPosition(sf::Vector2f(200.0f, 270.f));
                         ENGINE.Draw(startLabel);
 
                         bool shouldStart  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
@@ -786,11 +783,6 @@ int main(int argc, char** argv) {
     // Cleanup
     ENGINE.RevokeShader();
     ENGINE.Clear();
-    delete mobLoadedLabel;
-    delete navisLoadedLabel;
-
-    //delete logLabel;
-    //delete font;
 
     // Stop music and go to menu screen
     AUDIO.StopStream();
@@ -823,9 +815,8 @@ int main(int argc, char** argv) {
 
     srand((unsigned int)time(nullptr));
 
-    logLabel->setFillColor(sf::Color::Red);
-    logLabel->setPosition(296,18);
-    logLabel->setStyle(sf::Text::Style::Bold);
+    logLabel.SetColor(sf::Color::Red);
+    logLabel.setPosition(296,18);
 
     // Make sure we didn't quit the loop prematurely
     while (ENGINE.Running()) {
@@ -842,7 +833,7 @@ int main(int argc, char** argv) {
         fpsStr.resize(4);
         ENGINE.GetWindow()->setTitle(sf::String(std::string("FPS: ") + fpsStr));
 
-        logLabel->setString(sf::String(std::string("FPS: ") + fpsStr));
+        logLabel.SetString(std::string("FPS: ") + fpsStr);
 
         // Use the activity controller to update and draw scenes
         app.update((float) FIXED_TIME_STEP);
@@ -891,8 +882,6 @@ int main(int argc, char** argv) {
     }
 
     WEBCLIENT.ShutdownAllTasks();
-
-    delete logLabel;
 
     return EXIT_SUCCESS;
 }

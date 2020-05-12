@@ -12,7 +12,7 @@
 using std::to_string;
 
 SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UIComponent(_player)
-  , player(_player) {
+  , player(_player), font(Font::Style::big), text("", font), dmg("", font) {
   player->RegisterComponent(this);
   cardCount = curr = 0;
   icon.setTextureRect(sf::IntRect(0, 0, 14, 14));
@@ -20,8 +20,6 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UICompon
 
   frame.setTexture(TEXTURES.GetTexture(CHIP_FRAME));
   frame.setScale(sf::Vector2f(2.f, 2.f));
-
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   interpolTimeFlat = interpolTimeDest = 0;
   interpolDur = sf::seconds(0.2f);
@@ -34,8 +32,8 @@ SelectedCardsUI::~SelectedCardsUI() {
 }
 
 void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {    
-    text.setString("");
-    dmg.setString("");
+    text.SetString("");
+    dmg.SetString("");
 
     if (player) {
       int cardOrder = 0;
@@ -102,12 +100,11 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       if (cardCount > 0 && curr < cardCount && selectedCards[curr]) {
           
         // Text sits at the bottom-left of the screen
-        text = Text(sf::String(selectedCards[curr]->GetShortName()), *font);
+        text.SetString(selectedCards[curr]->GetShortName());
         text.setOrigin(0, 0);
         text.setScale(0.8f, 0.8f);
         text.setPosition(3.0f, 290.0f);
-        text.setOutlineThickness(2.f);
-        text.setOutlineColor(sf::Color(48, 56, 80));
+        //text.setOutlineColor(sf::Color(48, 56, 80)); // todo?
 
         // Text sits at the bottom-left of the screen
         sf::String dmgText = std::to_string(selectedCards[curr]->unmodDamage);
@@ -119,13 +116,12 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
 
         // attacks that normally show no damage will show if the modifer adds damage
         if (delta != 0 || selectedCards[curr]->unmodDamage != 0) {
-          dmg = Text(dmgText, *font);
+          dmg.SetString(dmgText);
           dmg.setOrigin(0, 0);
           dmg.setScale(0.8f, 0.8f);
-          dmg.setPosition((text.getLocalBounds().width*text.getScale().x) + 13.f, 290.f);
-          dmg.setFillColor(sf::Color(225, 140, 0));
-          dmg.setOutlineThickness(2.f);
-          dmg.setOutlineColor(sf::Color(48, 56, 80));
+          dmg.setPosition((text.GetLocalBounds().width*text.getScale().x) + 13.f, 290.f);
+          dmg.SetColor(sf::Color(225, 140, 0));
+          // dmg.setOutlineColor(sf::Color(48, 56, 80)); // todo?
         }
       }
     }

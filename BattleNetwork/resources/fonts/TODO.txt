@@ -1,3 +1,0 @@
-replace true type fonts with bitmap fonts 
-no more ttf they are too trouble some and antialiasing is unwanted
-Write a Font class that can use a source bitmap/animation pair to spell out words.
