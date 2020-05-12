@@ -28,18 +28,17 @@ void Font::ApplyStyle()
       letterStr = "LOWER_" + letterStr;
     }
 
-    animName += letterStr;
+    animName = animName + letterStr;
   }
   else {
-    animName += "QUOTE";
+    animName = animName + "QUOTE";
   }
 
-  animation.SetAnimation(animName);
-
-  bounds = animation.GetFrameList(animation.GetAnimationString()).GetFrame(0).subregion;
+  texcoords = animation.GetFrameList(animName).GetFrame(0).subregion;
 }
 
-Font::Font(const Style & style) : style(style), letter('A')
+Font::Font(const Style & style) 
+  : style(style), letter('A'), animation("resources/fonts/fonts_atlas.animation")
 {
 }
 
@@ -67,19 +66,19 @@ const sf::Texture & Font::GetTexture() const
   return *texture;
 }
 
-const sf::IntRect Font::GetBounds() const
+const sf::IntRect Font::GetTextureCoords() const
 {
-  return bounds;
+  return texcoords;
 }
 
 const float Font::GetLetterWidth() const
 {
-  return GetBounds().width;
+  return static_cast<float>(GetTextureCoords().width);
 }
 
 const float Font::GetLetterHeight() const
 {
-  return GetBounds().height;
+  return static_cast<float>(GetTextureCoords().height);
 }
 
 const float Font::GetWhiteSpaceWidth() const
@@ -105,5 +104,3 @@ const float Font::GetWhiteSpaceWidth() const
 
   return width;
 }
-
-Animation Font::animation = Animation("resources/fonts/fonts_atlas.animation");

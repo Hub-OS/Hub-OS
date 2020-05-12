@@ -16,9 +16,9 @@ public:
   } style;
 
 private:
-  static Animation animation;
+  Animation animation;
   char letter;
-  sf::IntRect bounds;
+  sf::IntRect texcoords;
 
   void ApplyStyle();
 
@@ -29,7 +29,7 @@ public:
   const Style& GetStyle() const;
   void SetLetter(char letter);
   const sf::Texture& GetTexture() const;
-  const sf::IntRect GetBounds() const;
+  const sf::IntRect GetTextureCoords() const;
   const float GetLetterHeight() const;
   const float GetLetterWidth() const;
   const float GetWhiteSpaceWidth() const;

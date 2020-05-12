@@ -74,7 +74,6 @@ void Animation::Reload() {
       if (legacySupport) {
         string width = ValueOf("width", line);
         string height = ValueOf("height", line);
-        //std::cout << "animation name in " << currentState << endl;
 
         currentWidth = atoi(width.c_str());
         currentHeight = atoi(height.c_str());

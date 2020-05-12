@@ -2,36 +2,32 @@
 
 void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char letter) const
 {
-  float padding = 0.0; //was 1.0f
+  float padding = 1.0f;
 
   font.SetLetter(letter);
-  auto bounds = font.GetBounds();
+  auto texcoords = font.GetTextureCoords();
 
   const sf::Texture& texture = font.GetTexture();
-  float width = texture.getSize().x;
-  float height = texture.getSize().y;
+  float width  = static_cast<float>(texture.getSize().x);
+  float height = static_cast<float>(texture.getSize().y);
   
-  float left = bounds.left - padding;
-  float top = bounds.top - padding;
-  float right = bounds.left + bounds.width + padding;
-  float bottom = bounds.top + bounds.height + padding;
+  float left   = -padding;
+  float top    = -padding;
+  float right  = static_cast<float>(texcoords.width)  + padding;
+  float bottom = static_cast<float>(texcoords.height) + padding;
 
-  float u = static_cast<float>(bounds.left / width);
-  float v = static_cast<float>(bounds.top / height);
+  // sfml uses screen space dimensions, not GL 0.0 -> 1.0 space...
+  float u1 = texcoords.left;
+  float v1 = texcoords.top;
+  float u2 = texcoords.left + texcoords.width; 
+  float v2 = texcoords.top + texcoords.height;
 
-  auto uvRect = sf::FloatRect(u, v, bounds.width/width, bounds.height/height);
-
-  float u1 = uvRect.left - padding;
-  float v1 = uvRect.top  - padding;
-  float u2 = uvRect.left + uvRect.width  + padding;
-  float v2 = uvRect.top  + uvRect.height + padding;
-
-  vertices.append(sf::Vertex(sf::Vector2f(position.x + left * top, position.y + top), color, sf::Vector2f(u1, v1)));
-  vertices.append(sf::Vertex(sf::Vector2f(position.x + right* top, position.y + top), color, sf::Vector2f(u2, v1)));
-  vertices.append(sf::Vertex(sf::Vector2f(position.x + left * bottom, position.y + bottom), color, sf::Vector2f(u1, v2)));
-  vertices.append(sf::Vertex(sf::Vector2f(position.x + left * bottom, position.y + bottom), color, sf::Vector2f(u1, v2)));
-  vertices.append(sf::Vertex(sf::Vector2f(position.x + right* top, position.y + top), color, sf::Vector2f(u2, v1)));
-  vertices.append(sf::Vertex(sf::Vector2f(position.x + right* bottom, position.y + bottom), color, sf::Vector2f(u2, v2)));
+  vertices.append(sf::Vertex(sf::Vector2f(position.x, position.y + bottom), color, sf::Vector2f(u1, v2)));
+  vertices.append(sf::Vertex(sf::Vector2f(position.x, position.y), color, sf::Vector2f(u1, v1)));
+  vertices.append(sf::Vertex(sf::Vector2f(position.x + right, position.y + bottom), color, sf::Vector2f(u2, v2)));
+  vertices.append(sf::Vertex(sf::Vector2f(position.x, position.y), color, sf::Vector2f(u1, v1)));
+  vertices.append(sf::Vertex(sf::Vector2f(position.x + right, position.y + bottom), color, sf::Vector2f(u2, v2)));
+  vertices.append(sf::Vertex(sf::Vector2f(position.x + right, position.y), color, sf::Vector2f(u2, v1)));
 }
 
 void Text::UpdateGeometry() const
@@ -49,10 +45,10 @@ void Text::UpdateGeometry() const
   whitespaceWidth += letterSpacing;
   float lineSpacing = font.GetLetterHeight() * Text::lineSpacing;
   float x = 0.f;
-  float y = 1.0f; // static_cast<float>(m_characterSize);
+  float y = 1.0f;
 
-  float minX = 1.0f; // static_cast<float>(m_characterSize);
-  float minY = 1.0f; // static_cast<float>(m_characterSize);
+  float minX = 1.0f;
+  float minY = 1.0f;
   float maxX = 0.f;
   float maxY = 0.f;
 
@@ -85,11 +81,11 @@ void Text::UpdateGeometry() const
     x += font.GetLetterWidth() + letterSpacing;
 
     // Update bound values
-    auto letterBounds = font.GetBounds();
-    float left = letterBounds.left;
-    float top = letterBounds.top;
-    float right = letterBounds.left + letterBounds.width;
-    float bottom = letterBounds.top + letterBounds.height;
+    auto texcoords = font.GetTextureCoords();
+    float left = 0.0f;
+    float top = 0.0f; 
+    float right = static_cast<float>(texcoords.width); 
+    float bottom = static_cast<float>(texcoords.height); 
 
     minX = std::min(minX, x + left * bottom);
     maxX = std::max(maxX, x + right * top);
@@ -109,6 +105,8 @@ void Text::UpdateGeometry() const
 Text::Text(const std::string message, Font & font) : font(font), message(message), geometryDirty(true)
 {
   letterSpacing = lineSpacing = 1.0f;
+  color = sf::Color::White;
+  vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
 }
 
 Text::Text(const Text & rhs) : font(rhs.font)

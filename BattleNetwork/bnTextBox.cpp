@@ -1,97 +1,98 @@
 #include "bnTextBox.h"
 
 void TextBox::FormatToFit() {
-    if (message.empty())
-        return;
+  if (message.empty())
+      return;
 
-    message = replace(message, "\\n", "\n"); // replace all ascii "\n" to carriage return char '\n'
+  message = replace(message, "\\n", "\n"); // replace all ascii "\n" to carriage return char '\n'
 
-    lines.push_back(0); // All text begins at pos 0
+  lines.push_back(0); // All text begins at pos 0
 
-    text.SetString(message);
+  text.SetString(message);
 
-    int index = 0;
-    int wordIndex = -1; // If we are breaking on a word
-    int lastRow = 0;
-    int line = 1;
+  int index = 0;
+  int wordIndex = -1; // If we are breaking on a word
+  int lastRow = 0;
+  int line = 1;
 
-    double fitHeight = 0;
+  double fitHeight = 0;
 
-    while (index < message.size()) {
-        if (message[index] != ' ' && message[index] != '\n') {
-            if (wordIndex == -1) { // only mark the beginning of a word
-                wordIndex = index;
-            }
-        }
-        else {
-            wordIndex = -1;
-        }
-
-        text.SetString(message.substr(lastRow, index - lastRow));
-        double width = text.GetWorldBounds().width;
-        double height = text.GetWorldBounds().height;
-
-        if (message[index] == '\n') {
-
-            if (wordIndex > 0) {
-                lastRow = wordIndex + 1;
-            }
-
-            lines.push_back(index + 1);
-
-            if (fitHeight <= areaHeight) {
-                line++;
-                fitHeight += height;
-            }
-
-            wordIndex = -1;
-
-        }
-        else if (width > areaWidth && wordIndex != -1 && wordIndex > 0 && index > 0) {
-            // Line break at the next word
-            message.insert(wordIndex, "\n");
-
-            lastRow = wordIndex + 1;
-            lines.push_back(lastRow);
-            index = lastRow;
-            wordIndex = -1;
-
-            if (fitHeight <= areaHeight) {
-                line++;
-                fitHeight += height;
-            }
-        }
-        index++;
+  while (index < message.size()) {
+    if (message[index] != ' ' && message[index] != '\n') {
+      if (wordIndex == -1) { // only mark the beginning of a word
+          wordIndex = index;
+      }
+    }
+    else {
+      wordIndex = -1;
     }
 
-    // make final text blank to start
-    text.SetString("");
+    text.SetString(message.substr(lastRow, index - lastRow));
+    double width = text.GetWorldBounds().width;
+    double height = text.GetWorldBounds().height;
 
-    numberOfFittingLines = line;
+    if (message[index] == '\n') {
+
+      if (wordIndex > 0) {
+        lastRow = wordIndex + 1;
+      }
+
+      lines.push_back(index + 1);
+
+      if (fitHeight <= areaHeight) {
+        line++;
+        fitHeight += height;
+      }
+
+      wordIndex = -1;
+
+    }
+    else if (width > areaWidth && wordIndex != -1 && wordIndex > 0 && index > 0) {
+      // Line break at the next word
+      message.insert(wordIndex, "\n");
+
+      lastRow = wordIndex + 1;
+      lines.push_back(lastRow);
+      index = lastRow;
+      wordIndex = -1;
+
+      if (fitHeight <= areaHeight) {
+        line++;
+        fitHeight += height;
+      }
+    }
+    index++;
+  }
+
+  // make final text blank to start
+  text.SetString("");
+
+  numberOfFittingLines = line;
 }
 
 std::string TextBox::replace(std::string str, const std::string& from, const std::string& to) {
-    size_t start_pos = 0;
-    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
-    }
-    return str;
+  size_t start_pos = 0;
+  while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+    str.replace(start_pos, from.length(), to);
+    start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+  }
+  return str;
 }
 
 TextBox::TextBox(int width, int height) : font(Font::Style::small), text("", font) {
-    message = "";
-    areaWidth = width;
-    areaHeight = height;
-    charsPerSecond = 10;
-    charIndex = 0;
-    play = true;
-    mute = false;
-    progress = 0;
-    fillColor = sf::Color::White;
-    outlineColor = sf::Color::White;
-    lineIndex = 0;
-    numberOfFittingLines = 1;
+  message = "";
+  areaWidth = width;
+  areaHeight = height;
+  charsPerSecond = 10;
+  charIndex = 0;
+  play = true;
+  mute = false;
+  progress = 0;
+  fillColor = sf::Color::White;
+  outlineColor = sf::Color::White;
+  lineIndex = 0;
+  numberOfFittingLines = 1;
+  text.setScale(2.f, 2.f);
 }
 
 TextBox::~TextBox() {
