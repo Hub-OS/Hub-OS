@@ -9,17 +9,18 @@ class Font
 {
 public:
   enum class Style : int {
-    big = 0,
+    thick = 0,
     small = 1,
     tiny = 2,
-    wide = 3
+    wide = 3,
+    thin = 4
   } style;
 
 private:
   Animation animation;
   char letter;
   sf::IntRect texcoords;
-
+  sf::IntRect letterATexcoords;
   void ApplyStyle();
 
 public:
@@ -33,5 +34,6 @@ public:
   const float GetLetterHeight() const;
   const float GetLetterWidth() const;
   const float GetWhiteSpaceWidth() const;
+  const float GetLineHeight() const;
 };
 

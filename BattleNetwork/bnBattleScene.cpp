@@ -907,6 +907,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   if (!summons.IsSummonActive() && showSummonText) {
     Text summonsLabel = Text(summons.GetSummonLabel(), mobFont);
+    summonsLabel.setScale(2.f, 2.f);
 
     double summonSecs = summonTimer - showSummonBackdropLength;
     double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
@@ -947,7 +948,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
       mobLabel.setOrigin(mobLabel.GetLocalBounds().width, 0);
       mobLabel.setPosition(470.0f, -1.f + nextLabelHeight);
-      mobLabel.setScale(0.8f, 0.8f);
+      mobLabel.setScale(2.f, 2.f);
       // mobLabel.setOutlineColor(sf::Color(48, 56, 80)); todo?
       ENGINE.Draw(mobLabel, false);
 
@@ -1274,10 +1275,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             formatted[8] = cards[i]->GetCode();
 
             Text stepLabel = Text(formatted, mobFont);
-
             stepLabel.setOrigin(0, 0);
             stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight*2.f));
-            stepLabel.setScale(1.0f, 1.0f);
+            stepLabel.setScale(2.0f, 2.0f);
 
             if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
               if (i < paStepIndex - 1) {
@@ -1327,7 +1327,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 Text stepLabel = Text(paCard->GetShortName(), mobFont);
                 stepLabel.setOrigin(0, 0);
                 stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight*2.f));
-                stepLabel.setScale(1.0f, 1.0f);
+                stepLabel.setScale(2.0f, 2.0f);
 
                 stepLabel.SetColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
                 // stepLabel.setOutlineThickness(2.f); // todo?

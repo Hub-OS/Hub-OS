@@ -140,10 +140,13 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   time.setPosition(2.f*192.f, 79.f);
   time.SetString(FormatString(battleLength));
   time.setOrigin(time.GetLocalBounds().width, 0);
+  time.setScale(2.f, 2.f);
 
   rank.setPosition(2.f*192.f, 111.f);
+  rank.setScale(2.f, 2.f);
 
   reward.setPosition(2.f*42.f, 209.f);
+  reward.setScale(2.f, 2.f);
 
   if (item) {
     reward.SetString(item->GetName());

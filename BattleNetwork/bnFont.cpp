@@ -5,8 +5,8 @@ void Font::ApplyStyle()
   std::string animName;
 
   switch (style) {
-  case Style::big: 
-    animName = "BIG_";
+  case Style::thick: 
+    animName = "THICK_";
     break;
   case Style::small:
     animName = "SMALL_";
@@ -17,6 +17,8 @@ void Font::ApplyStyle()
   case Style::wide:
     animName = "WIDE_";
     break;
+  case Style::thin:
+    animName = "THIN_";
   }
 
   std::string letterStr(1, letter);
@@ -34,12 +36,20 @@ void Font::ApplyStyle()
     animName = animName + "QUOTE";
   }
 
-  texcoords = animation.GetFrameList(animName).GetFrame(0).subregion;
+  auto list = animation.GetFrameList(animName);
+  
+  if (list.IsEmpty()) {
+    list = animation.GetFrameList("SMALL_A");
+  }
+   
+  texcoords = list.GetFrame(0).subregion;
 }
 
 Font::Font(const Style & style) 
   : style(style), letter('A'), animation("resources/fonts/fonts_atlas.animation")
 {
+  ApplyStyle();
+  letterATexcoords = texcoords;
 }
 
 Font::~Font()
@@ -78,29 +88,16 @@ const float Font::GetLetterWidth() const
 
 const float Font::GetLetterHeight() const
 {
-  return static_cast<float>(GetTextureCoords().height);
+  return static_cast<float>(GetTextureCoords().height)+2.0f; // +2 for letter 'j'
 }
 
 const float Font::GetWhiteSpaceWidth() const
 {
   // these values are based on the letter 'A' since I didn't add whitespace font entries...
+  return static_cast<float>(letterATexcoords.width);
+}
 
-  float width = 6.0f;
-
-  switch (style) {
-  case Style::big:
-    width = 6;
-    break;
-  case Style::small:
-    width = 5;
-    break;
-  case Style::tiny:
-    width = 5;
-    break;
-  case Style::wide:
-    width = 7;
-    break;
-  }
-
-  return width;
+const float Font::GetLineHeight() const {
+  // values are based on the letter 'A' since .animation doesn't have meta data for this type of use case
+  return static_cast<float>(letterATexcoords.height);
 }

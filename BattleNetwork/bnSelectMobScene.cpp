@@ -5,12 +5,11 @@
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder) :
   elapsed(0),
   camera(ENGINE.GetView()),
-  font(Font::Style::big),
-  mobFont(Font::Style::small),
-  mobLabel("No Data", mobFont),
-  attackLabel("1", mobFont),
-  speedLabel("1", mobFont),
-  hpLabel("1", mobFont),
+  font(Font::Style::thick),
+  mobLabel("No Data", font),
+  attackLabel("1", font),
+  speedLabel("1", font),
+  hpLabel("1", font),
   menuLabel("", font),
   textbox(320, 100),
   selectedFolder(selectedFolder),
@@ -20,6 +19,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setScale(2.f, 2.f);
 
   navigator.setTexture(LOAD_TEXTURE(MUG_NAVIGATOR));
   navigator.setScale(2.0f, 2.0f);
@@ -39,10 +39,16 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 
   // MOB UI font
   mobLabel.setPosition(sf::Vector2f(100.f, 45.0f));
+  mobLabel.setScale(2.f, 2.f);
 
   attackLabel.setPosition(325.f, 30.f);
+  attackLabel.setScale(2.f, 2.f);
+
   speedLabel.setPosition(325.f, 45.f);
+  speedLabel.setScale(2.f, 2.f);
+
   hpLabel.setPosition(325.f, 60.f);
+  hpLabel.setScale(2.f, 2.f);
 
   maxNumberCooldown = 0.5;
   numberCooldown = maxNumberCooldown; // half a second
@@ -255,7 +261,7 @@ void SelectMobScene::onUpdate(double elapsed) {
     mobSpr.setOrigin(mobSpr.getLocalBounds().width / 2.f, mobSpr.getLocalBounds().height / 2.f);
 
     textbox.SetText(mobinfo.GetDescriptionString());
-  textbox.Stop();
+    textbox.Stop();
   
     prevSelect = mobSelectionIndex;
   }

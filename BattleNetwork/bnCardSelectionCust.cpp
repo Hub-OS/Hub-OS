@@ -18,8 +18,9 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   isInFormSelect(false),
   playFormSound(false),
   canInteract(true),
-  labelFont(Font::Style::small),
-  codeFont(Font::Style::tiny),
+  labelFont(Font::Style::thick),
+  codeFont(Font::Style::wide),
+  codeFont2(Font::Style::small),
   label("", labelFont),
   smCodeLabel("?", codeFont)
 {
@@ -107,6 +108,8 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   formCursor.setScale(2.f, 2.f);
 
   //setScale(0.5f, 0.5); // testing transforms
+  label.setScale(2.f, 2.f);
+  smCodeLabel.setScale(2.f, 2.f);
 }
 
 

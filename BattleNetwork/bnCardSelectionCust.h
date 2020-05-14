@@ -54,7 +54,7 @@ private:
   mutable SpriteProxyNode formCursor;
   sf::Shader& greyscale;
   Font labelFont;
-  Font codeFont;
+  Font codeFont, codeFont2;
   mutable Text smCodeLabel;
   mutable Text label;
   mutable CustEmblem emblem;

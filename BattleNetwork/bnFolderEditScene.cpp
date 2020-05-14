@@ -94,7 +94,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   menuLabel("", font),
   cardFont(Font::Style::wide),
   cardLabel("", cardFont),
-  cardDescFont(Font::Style::big),
+  cardDescFont(Font::Style::thick),
   cardDesc("", cardDescFont),
   numberFont(Font::Style::small),
   numberLabel("", numberFont),
@@ -109,6 +109,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
 
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setScale(2.f, 2.f);
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
@@ -116,9 +117,10 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
 
   // Battle::Card UI font
   cardLabel.setPosition(275.f, 15.f);
+  cardLabel.setScale(2.f, 2.f);
 
   numberLabel.SetColor(sf::Color(48, 56, 80));
-  numberLabel.setScale(0.8f, 0.8f);
+  numberLabel.setScale(2.0f, 2.0f);
   numberLabel.setOrigin(numberLabel.GetLocalBounds().width, 0);
   numberLabel.setPosition(sf::Vector2f(170.f, 28.0f));
 

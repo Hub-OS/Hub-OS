@@ -26,11 +26,11 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   collection(collection),
   camera(ENGINE.GetView()),
   folderSwitch(true),
-  font(Font::Style::wide),
+  font(Font::Style::thick),
   menuLabel("", font),
   cardFont(Font::Style::small),
   cardLabel("", cardFont),
-  numberFont(Font::Style::big),
+  numberFont(Font::Style::thick),
   numberLabel("", numberFont),
   textbox(sf::Vector2f(4, 255)),
   swoosh::Activity(&controller)
@@ -43,6 +43,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
 
   // Menu name
   menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setScale(2.f, 2.f);
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
@@ -50,10 +51,10 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
 
   // Card UI font
   cardLabel.setPosition(275.f, 15.f);
+  cardLabel.setScale(2.f, 2.f);
 
   numberLabel.SetColor(sf::Color(48, 56, 80));
-  // numberLabel.setOutlineThickness(2.f); // todo?
-  numberLabel.setScale(0.8f, 0.8f);
+  numberLabel.setScale(2.f, 2.f);
   numberLabel.setOrigin(numberLabel.GetWorldBounds().width, 0);
   numberLabel.setPosition(sf::Vector2f(170.f, 28.0f));
 

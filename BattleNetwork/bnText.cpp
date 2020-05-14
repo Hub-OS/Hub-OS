@@ -2,8 +2,6 @@
 
 void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char letter) const
 {
-  float padding = 1.0f;
-
   font.SetLetter(letter);
   auto texcoords = font.GetTextureCoords();
 
@@ -11,16 +9,21 @@ void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char le
   float width  = static_cast<float>(texture.getSize().x);
   float height = static_cast<float>(texture.getSize().y);
   
-  float left   = -padding;
-  float top    = -padding;
-  float right  = static_cast<float>(texcoords.width)  + padding;
-  float bottom = static_cast<float>(texcoords.height) + padding;
+  float left   = 0;
+  float top    = 0;
+  float right  = static_cast<float>(texcoords.width);
+  float bottom = static_cast<float>(texcoords.height);
+
+  // fit tall letters on the same line
+  float offset = texcoords.height - font.GetLineHeight();
+  if (offset > 0) offset = 0;
+  position.y = position.y + std::fabs(offset);
 
   // sfml uses screen space dimensions, not GL 0.0 -> 1.0 space...
-  float u1 = texcoords.left;
-  float v1 = texcoords.top;
-  float u2 = texcoords.left + texcoords.width; 
-  float v2 = texcoords.top + texcoords.height;
+  float u1 = static_cast<float>(texcoords.left);
+  float v1 = static_cast<float>(texcoords.top);
+  float u2 = static_cast<float>(texcoords.left + texcoords.width);
+  float v2 = static_cast<float>(texcoords.top + texcoords.height);
 
   vertices.append(sf::Vertex(sf::Vector2f(position.x, position.y + bottom), color, sf::Vector2f(u1, v2)));
   vertices.append(sf::Vertex(sf::Vector2f(position.x, position.y), color, sf::Vector2f(u1, v1)));
@@ -41,9 +44,9 @@ void Text::UpdateGeometry() const
 
   // Precompute the variables needed by the algorithm
   float whitespaceWidth = font.GetWhiteSpaceWidth();
-  float letterSpacing = (whitespaceWidth / 3.f) * (Text::letterSpacing - 1.f);
+  float letterSpacing = 1.0f; //  (whitespaceWidth / 3.f) * (Text::letterSpacing - 1.f);
   whitespaceWidth += letterSpacing;
-  float lineSpacing = font.GetLetterHeight() * Text::lineSpacing;
+  float lineSpacing = font.GetLineHeight() * Text::lineSpacing;
   float x = 0.f;
   float y = 1.0f;
 
@@ -104,7 +107,8 @@ void Text::UpdateGeometry() const
 
 Text::Text(const std::string message, Font & font) : font(font), message(message), geometryDirty(true)
 {
-  letterSpacing = lineSpacing = 1.0f;
+  letterSpacing = (font.GetWhiteSpaceWidth()/3.0f) + 1.0f;
+  lineSpacing = 1.0f;
   color = sf::Color::White;
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
 }
@@ -136,14 +140,14 @@ void Text::draw(sf::RenderTarget & target, sf::RenderStates states) const
 
 void Text::SetString(const std::string message)
 {
-  geometryDirty |= Text::message == message;
+  geometryDirty |= Text::message != message;
   Text::message = message;
 }
 
 void Text::SetString(char c)
 {
-  geometryDirty |= Text::message == std::to_string(c);
-  Text::message = std::to_string(c);
+  geometryDirty |= Text::message != std::to_string(c);
+  Text::message = std::string(1, c);
 }
 
 void Text::SetColor(const sf::Color & color)
@@ -163,14 +167,14 @@ void Text::SetColor(const sf::Color & color)
 
 void Text::SetLetterSpacing(float spacing)
 {
-  geometryDirty |= letterSpacing == spacing;
+  geometryDirty |= letterSpacing != spacing;
 
   letterSpacing = spacing;
 }
 
 void Text::SetLineSpacing(float spacing)
 {
-  geometryDirty |= lineSpacing == spacing;
+  geometryDirty |= lineSpacing != spacing;
 
   lineSpacing = spacing;
 }

@@ -62,7 +62,6 @@ private:
   double selectInputCooldown; /*!< Remaining time for input delay */
   double elapsed; /*!< delta seconds since last frame */
 
-  Font mobFont; /*!< font for mob data */
   Text mobLabel; /*!< name */
   Text attackLabel; /*!< power */
   Text speedLabel; /*!< mob speed */

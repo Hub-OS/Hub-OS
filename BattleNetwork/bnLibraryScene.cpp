@@ -91,7 +91,7 @@ std::string LibraryScene::FormatCardDesc(const std::string && desc)
 LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
   camera(ENGINE.GetView()),
   textbox(sf::Vector2f(4, 255)),
-  font(Font::Style::big),
+  font(Font::Style::thick),
   menuLabel("", font),
   cardFont(Font::Style::wide),
   cardLabel("", cardFont),

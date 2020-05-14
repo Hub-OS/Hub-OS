@@ -12,7 +12,7 @@
 using std::to_string;
 
 SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UIComponent(_player)
-  , player(_player), font(Font::Style::big), text("", font), dmg("", font) {
+  , player(_player), font(Font::Style::thick), text("", font), dmg("", font) {
   player->RegisterComponent(this);
   cardCount = curr = 0;
   icon.setTextureRect(sf::IntRect(0, 0, 14, 14));

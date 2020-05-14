@@ -285,7 +285,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/spinner.png");
 
   // font
-  paths.push_back("resources/fonts/all_fonts_atlas.png");
+  paths.push_back("resources/fonts/fonts_atlas.png");
 
   // config ui
   paths.push_back("resources/backgrounds/config/audio.png");

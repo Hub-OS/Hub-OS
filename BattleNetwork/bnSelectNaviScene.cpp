@@ -11,7 +11,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   camera(ENGINE.GetView()),
   textbox(135, 15),
   font(Font::Style::small),
-  naviFont(Font::Style::big),
+  naviFont(Font::Style::thick),
   naviLabel("No Data", naviFont),
   hpLabel("1", font),
   attackLabel("1", font),
@@ -21,6 +21,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
 
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setScale(2.f, 2.f);
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
@@ -28,20 +29,16 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
 
   // NAVI UI font
   naviLabel.setPosition(30.f, 18.f);
-  //naviLabel.setOutlineColor(sf::Color(48, 56, 80)); // todo?
-  naviLabel.setScale(0.8f, 0.8f);
+  naviLabel.setScale(2.0f, 2.0f);
 
   attackLabel.setPosition(335.f, 15.f);
-  //attackLabel.setOutlineColor(sf::Color(48, 56, 80));
-  attackLabel.setScale(0.8f, 0.8f);
+  attackLabel.setScale(2.0f, 2.0f);
 
   speedLabel.setPosition(335.f, 70.f);
-  //speedLabel.setOutlineColor(sf::Color(48, 56, 80));
-  speedLabel.setScale(0.8f, 0.8f);
+  speedLabel.setScale(2.0f, 2.0f);
 
-  //hpLabel.setOutlineColor(sf::Color(48, 56, 80));
   hpLabel.setPosition(sf::Vector2f(335.f, 125.0f));
-  hpLabel.setScale(0.8f, 0.8f);
+  hpLabel.setScale(2.0f, 2.0f);
 
   maxNumberCooldown = 0.5;
   numberCooldown = maxNumberCooldown; // half a second

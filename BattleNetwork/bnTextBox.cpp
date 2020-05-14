@@ -79,7 +79,7 @@ std::string TextBox::replace(std::string str, const std::string& from, const std
   return str;
 }
 
-TextBox::TextBox(int width, int height) : font(Font::Style::small), text("", font) {
+TextBox::TextBox(int width, int height) : font(Font::Style::thin), text("", font) {
   message = "";
   areaWidth = width;
   areaHeight = height;
@@ -103,212 +103,211 @@ const Text& TextBox::GetText() const { return text; }
 const Font& TextBox::GetFont() const { return font; }
 
 void TextBox::SetTextFillColor(sf::Color color) {
-    fillColor = color;
+  fillColor = color;
 }
 
 void TextBox::SetTextOutlineColor(sf::Color color) {
-    outlineColor = color;
+  outlineColor = color;
 }
 
 void TextBox::SetTextColor(sf::Color color) {
-    SetTextFillColor(color);
-    SetTextOutlineColor(color);
+  SetTextFillColor(color);
+  SetTextOutlineColor(color);
 }
 
 void TextBox::Mute(bool enabled) {
-    mute = enabled;
+  mute = enabled;
 }
 
 void TextBox::Unmute() {
-    Mute(false);
+  Mute(false);
 }
 
 const bool TextBox::HasMore() const {
-    if (lineIndex + numberOfFittingLines < lines.size())
-        if (charIndex > lines[lineIndex + numberOfFittingLines])
-            return true;
+  if (lineIndex + numberOfFittingLines < lines.size())
+      if (charIndex > lines[lineIndex + numberOfFittingLines])
+        return true;
 
-    return false;
+  return false;
 }
 
 const bool TextBox::HasLess() const {
-    return lineIndex > 0;
+  return lineIndex > 0;
 }
 
 void TextBox::ShowNextLine() {
-    lineIndex++;
+  lineIndex++;
 
-    if (lineIndex >= lines.size())
-        lineIndex = (int)lines.size() - 1;
+  if (lineIndex >= lines.size())
+    lineIndex = (int)lines.size() - 1;
 }
 
 void TextBox::ShowPreviousLine() {
-    lineIndex--;
+  lineIndex--;
 
-    if (lineIndex < 0)
-        lineIndex = 0;
+  if (lineIndex < 0)
+    lineIndex = 0;
 }
 
 void TextBox::SetCharactersPerSecond(const double cps) {
-    charsPerSecond = cps;
+  charsPerSecond = cps;
 }
 
 void TextBox::SetText(const std::string& text) {
-    message = text;
-    charIndex = 0;
-    progress = 0;
-    lines.clear();
-    lineIndex = 0;
-    numberOfFittingLines = 1;
-    FormatToFit();
+  message = text;
+  charIndex = 0;
+  progress = 0;
+  lines.clear();
+  lineIndex = 0;
+  numberOfFittingLines = 1;
+  FormatToFit();
 }
 
 void TextBox::Play(const bool play) {
-    TextBox::play = play;
+  TextBox::play = play;
 }
 
 void TextBox::Stop() {
-    Play(false);
+  Play(false);
 }
 
 const char TextBox::GetCurrentCharacter() const {
-    return message[charIndex];
+  return message[charIndex];
 }
 
 const int TextBox::GetNumberOfFittingLines() const {
-    return numberOfFittingLines;
+  return numberOfFittingLines;
 }
 
 const int TextBox::GetNumberOfLines() const {
-    return (int)lines.size();
+  return (int)lines.size();
 }
 
 const double TextBox::GetCharsPerSecond() const {
-    return charsPerSecond;
+  return charsPerSecond;
 }
 
 const bool TextBox::IsPlaying() const {
-    return play;
+  return play;
 }
 
 void TextBox::Update(const double elapsed) {
-    // If we're paused don't update
-    // If the message is empty don't update
-    if (!play || message.empty()) return;
+  // If we're paused don't update
+  // If the message is empty don't update
+  if (!play || message.empty()) return;
 
-    // If we're at the end of the message, don't step  
-    // through the words
-    if (charIndex >= message.length()) {
-        int begin = lines[lineIndex];
-        int lastIndex = std::min((int)lines.size() - 1, lineIndex + numberOfFittingLines - 1);
-        int last = lines[lastIndex];
-        auto len = 0;
+  // If we're at the end of the message, don't step  
+  // through the words
+  if (charIndex >= message.length()) {
+    int begin = lines[lineIndex];
+    int lastIndex = std::min((int)lines.size() - 1, lineIndex + numberOfFittingLines - 1);
+    int last = lines[lastIndex];
+    int len = 0;
 
-        if (lineIndex + (numberOfFittingLines) < lines.size()) {
-            len = std::min(charIndex - begin, lines[lineIndex + (numberOfFittingLines)] - begin);
-        }
-        else {
-            len = charIndex - begin;
-        }
-
-        text.SetString(message.substr(begin, len));
-
-        play = false;
-
-        // We don't need to fill box
-        return;
+    if (lineIndex + (numberOfFittingLines) < lines.size()) {
+      len = std::min(charIndex - begin, lines[lineIndex + (numberOfFittingLines)] - begin);
+    }
+    else {
+      len = charIndex - begin;
     }
 
-    // Without this, the audio would play numerous times per frame and sounds bad
-    bool playOnce = true;
+    text.SetString(message.substr(begin, len));
 
-    int charIndexIter = 0;
-    progress += elapsed;
+    play = false;
 
-    // Work backwards, printing what we can show at this frame in respect to the CPS
-    double simulate = progress;
-    // Start at elapsed time `progress` and simulate until it his zero
-    // That is our new state
-    while (simulate > 0 && charsPerSecond > 0) {
+    // We don't need to fill box
+    return;
+  }
 
-        simulate -= 1.0 / charsPerSecond;
+  // Without this, the audio would play numerous times per frame and sounds bad
+  bool playOnce = true;
 
-        // Skip over line breaks and empty spaces
-        while (charIndexIter < message.size() && message[charIndexIter] == ' ') {
-            charIndexIter++;
-        }
+  int charIndexIter = 0;
+  progress += elapsed;
 
-        // Try the next character
-        charIndexIter++;
+  // Work backwards, printing what we can show at this frame in respect to the CPS
+  double simulate = progress;
+  // Start at elapsed time `progress` and simulate until it his zero
+  // That is our new state
+  while (simulate > 0 && charsPerSecond > 0) {
+    simulate -= 1.0 / charsPerSecond;
 
-        // If we're passed the current char index but there's more text to show...
-        if (charIndexIter > charIndex && charIndex < message.size()) {
-
-            // Update the current char index
-            charIndex = charIndexIter;
-
-            // We may overshoot, adjust
-            if (charIndexIter >= message.size()) {
-                charIndex--;
-            }
-            else {
-                // Play a sound if we are able and the character is a letter
-                if (!mute && message[charIndex] != ' ' && message[charIndex] != '\n') {
-                    if (playOnce) {
-                        AUDIO.Play(AudioType::TEXT);
-                        playOnce = false;
-                    }
-                }
-            }
-        }
-
-        int begin = lines[lineIndex];
-        int len = begin;
-
-        /** This section limits the visible string
-        * if the text has already been printed or if
-        * the text is currently being printed. The visible line
-        * may change if the user request ShowNextLine() or ShowPreviousLine()
-        * We make sure we show the last visible character in the line*/
-
-        if (charIndex >= lines[lineIndex]) {
-            if (lineIndex + (numberOfFittingLines) < lines.size()) {
-                len = std::min(charIndex - begin, lines[lineIndex + (numberOfFittingLines)] - begin);
-            }
-            else {
-                len = charIndex - begin;
-            }
-        }
-        else
-            len = 0;
-
-        // Len will be > 0 after first call to Update()
-        // Set the sf::Text to show only the visible text in 
-        // the text area
-        if (len <= 0)
-            text.SetString("");
-        else
-            text.SetString(message.substr(begin, len));
+    // Skip over line breaks and empty spaces
+    while (charIndexIter < message.size() && message[charIndexIter] == ' ') {
+      charIndexIter++;
     }
+
+    // Try the next character
+    charIndexIter++;
+
+    // If we're passed the current char index but there's more text to show...
+    if (charIndexIter > charIndex && charIndex < message.size()) {
+
+      // Update the current char index
+      charIndex = charIndexIter;
+
+      // We may overshoot, adjust
+      if (charIndexIter >= message.size()) {
+        charIndex--;
+      }
+      else {
+        // Play a sound if we are able and the character is a letter
+        if (!mute && message[charIndex] != ' ' && message[charIndex] != '\n') {
+          if (playOnce) {
+            AUDIO.Play(AudioType::TEXT);
+            playOnce = false;
+          }
+        }
+      }
+    }
+
+    int begin = lines[lineIndex];
+    int len = begin;
+
+    /** This section limits the visible string
+    * if the text has already been printed or if
+    * the text is currently being printed. The visible line
+    * may change if the user request ShowNextLine() or ShowPreviousLine()
+    * We make sure we show the last visible character in the line*/
+
+    if (charIndex >= lines[lineIndex]) {
+      if (lineIndex + (numberOfFittingLines) < lines.size()) {
+        len = std::min(charIndex - begin, lines[lineIndex + (numberOfFittingLines)] - begin);
+      }
+      else {
+        len = charIndex - begin;
+      }
+    }
+    else
+      len = 0;
+
+    // Len will be > 0 after first call to Update()
+    // Set the sf::Text to show only the visible text in 
+    // the text area
+    if (len <= 0)
+      text.SetString("");
+    else
+      text.SetString(message.substr(begin, len));
+  }
 }
 
 const bool TextBox::EndOfMessage() const {
-    return (charIndex >= message.length());
+  return (charIndex >= message.length());
 }
 
 void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-    if (message.empty())
-        return;
+  if (message.empty())
+    return;
 
-    // apply the transform
-    states.transform *= getTransform();
+  // apply the transform
+  states.transform *= getTransform();
 
-    text.setPosition(getPosition());
-    text.setScale(getScale());
-    text.setRotation(getRotation());
-    text.SetColor(fillColor);
-    // text.SetOutlineColor(outlineColor); // todo?
+  //text.setPosition(getPosition());
+  text.setScale(2.f, 2.f);
+  // text.setRotation(getRotation());
+  text.SetColor(fillColor);
+  // text.SetOutlineColor(outlineColor); // todo?
 
-    target.draw(text);
+  target.draw(text, states);
 }

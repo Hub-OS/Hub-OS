@@ -238,6 +238,6 @@ Text AnimatedTextBox::MakeTextObject(const std::string& data)
 {
   Text obj = textBox.GetText();
   obj.SetString(data);
-
+  obj.setScale(2.f, 2.f);
   return obj;
 }
