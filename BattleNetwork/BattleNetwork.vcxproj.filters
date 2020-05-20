@@ -103,62 +103,8 @@
     <Filter Include="CardData\Folder">
       <UniqueIdentifier>{bef66beb-f219-4d07-8d52-25a90241ac54}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Start">
-      <UniqueIdentifier>{99da17ce-caae-4583-a7c2-d4d60a27fba6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="GameEngine\ResourceManagers\FileResource">
       <UniqueIdentifier>{e56bc97a-f542-4eb2-b6bc-026abc81c841}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities">
-      <UniqueIdentifier>{2c22d20c-e987-4431-9a4b-554d71926008}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Battle">
-      <UniqueIdentifier>{10976369-a638-4250-b08c-f835a7bbfe7d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Main Menu">
-      <UniqueIdentifier>{d2dc3e83-cab6-4455-9e10-e5295c5f8d2d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Main Menu\Overworld">
-      <UniqueIdentifier>{380f4ec8-7bec-4707-ac1e-38788c83c4b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Main Menu\Overworld\Map">
-      <UniqueIdentifier>{835dd9d2-1448-4cee-9144-0efdeac68187}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Main Menu\Overworld\Map\Lights">
-      <UniqueIdentifier>{fae5d589-c746-4a71-893a-9cfea9ad596c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Main Menu\Overworld\Map\Dynamic">
-      <UniqueIdentifier>{18a112b3-8ba5-4851-82b8-4d75444b101c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Select Mob">
-      <UniqueIdentifier>{82986475-2577-4085-b6c9-d114b769337c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Folder">
-      <UniqueIdentifier>{4207b872-406d-4138-948a-a0d7c9fbdfa1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Folder\Edit">
-      <UniqueIdentifier>{dd2f8f2c-329f-4a6f-90a8-936a258811fa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Folder\ChangeName">
-      <UniqueIdentifier>{72d3fb11-761c-4f5e-8c47-f7154795af9e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Folder\List">
-      <UniqueIdentifier>{22ba24c7-1960-48d4-9ac2-f02b5e550ea4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Select Navi">
-      <UniqueIdentifier>{9d3a1388-2568-497b-8e9d-9c02c4cc066e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\GameOver">
-      <UniqueIdentifier>{d6f2acf8-b44a-4ccc-89c5-4f76f2f39c29}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Library">
-      <UniqueIdentifier>{ea048849-1ab7-42bd-b03a-dcfdc529c6c2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\FakeTitle">
-      <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Screens/Activities\Config">
-      <UniqueIdentifier>{e7929995-400d-4212-a3e6-93fc49841dd9}</UniqueIdentifier>
     </Filter>
     <Filter Include="GameEngine\CoreModules\Graphics\SceneNodes\Font">
       <UniqueIdentifier>{74859765-f626-4184-8267-15ab70d541fc}</UniqueIdentifier>
@@ -727,6 +673,72 @@
     <Filter Include="GameEngine\CoreModules\Graphics\SceneNodes\Text">
       <UniqueIdentifier>{d146345f-3d33-41b3-afed-d57c747cc61e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Prefabs\AppButton">
+      <UniqueIdentifier>{0c9feb95-ab50-4f8a-8232-76e9a4558918}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{99da17ce-caae-4583-a7c2-d4d60a27fba6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes">
+      <UniqueIdentifier>{2c22d20c-e987-4431-9a4b-554d71926008}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Battle">
+      <UniqueIdentifier>{10976369-a638-4250-b08c-f835a7bbfe7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Main Menu">
+      <UniqueIdentifier>{d2dc3e83-cab6-4455-9e10-e5295c5f8d2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Main Menu\Overworld">
+      <UniqueIdentifier>{380f4ec8-7bec-4707-ac1e-38788c83c4b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Main Menu\Overworld\Map">
+      <UniqueIdentifier>{835dd9d2-1448-4cee-9144-0efdeac68187}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Main Menu\Overworld\Map\Lights">
+      <UniqueIdentifier>{fae5d589-c746-4a71-893a-9cfea9ad596c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Main Menu\Overworld\Map\Dynamic">
+      <UniqueIdentifier>{18a112b3-8ba5-4851-82b8-4d75444b101c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Select Mob">
+      <UniqueIdentifier>{82986475-2577-4085-b6c9-d114b769337c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Folder">
+      <UniqueIdentifier>{4207b872-406d-4138-948a-a0d7c9fbdfa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Folder\Edit">
+      <UniqueIdentifier>{dd2f8f2c-329f-4a6f-90a8-936a258811fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Folder\ChangeName">
+      <UniqueIdentifier>{72d3fb11-761c-4f5e-8c47-f7154795af9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Folder\List">
+      <UniqueIdentifier>{22ba24c7-1960-48d4-9ac2-f02b5e550ea4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Select Navi">
+      <UniqueIdentifier>{9d3a1388-2568-497b-8e9d-9c02c4cc066e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\GameOver">
+      <UniqueIdentifier>{d6f2acf8-b44a-4ccc-89c5-4f76f2f39c29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Library">
+      <UniqueIdentifier>{ea048849-1ab7-42bd-b03a-dcfdc529c6c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\FakeTitle">
+      <UniqueIdentifier>{7efcf900-4ee8-4ae7-87cd-477baf1a636a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Config">
+      <UniqueIdentifier>{e7929995-400d-4212-a3e6-93fc49841dd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Intro">
+      <UniqueIdentifier>{14758f14-ea40-436d-bca8-231c8635ccb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scenes\Title">
+      <UniqueIdentifier>{7840e989-6248-4281-88da-7a3f3a3b1183}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Prefabs\SceneTypes">
+      <UniqueIdentifier>{b646c549-1dcd-4b80-b288-d23969b0c67f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bnField.cpp">
@@ -749,9 +761,6 @@
     </ClCompile>
     <ClCompile Include="bnEntity.cpp">
       <Filter>BattleEngine\Entities</Filter>
-    </ClCompile>
-    <ClCompile Include="bnEngine.cpp">
-      <Filter>GameEngine</Filter>
     </ClCompile>
     <ClCompile Include="bnProgsMan.cpp">
       <Filter>BattleEngine\Entities\Character\ProgsMan</Filter>
@@ -778,7 +787,7 @@
       <Filter>BattleEngine\Entities\Artifact</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Start</Filter>
+      <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="bnLogger.cpp">
       <Filter>Utilities</Filter>
@@ -829,22 +838,22 @@
       <Filter>BattleEngine\AI</Filter>
     </ClCompile>
     <ClCompile Include="bnBattleScene.cpp">
-      <Filter>Screens/Activities\Battle</Filter>
+      <Filter>Scenes\Battle</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectMobScene.cpp">
-      <Filter>Screens/Activities\Select Mob</Filter>
+      <Filter>Scenes\Select Mob</Filter>
     </ClCompile>
     <ClCompile Include="bnMainMenuScene.cpp">
-      <Filter>Screens/Activities\Main Menu</Filter>
+      <Filter>Scenes\Main Menu</Filter>
     </ClCompile>
     <ClCompile Include="bnOverworldMap.cpp">
-      <Filter>Screens/Activities\Main Menu\Overworld\Map</Filter>
+      <Filter>Scenes\Main Menu\Overworld\Map</Filter>
     </ClCompile>
     <ClCompile Include="bnOverworldLight.cpp">
-      <Filter>Screens/Activities\Main Menu\Overworld\Map\Lights</Filter>
+      <Filter>Scenes\Main Menu\Overworld\Map\Lights</Filter>
     </ClCompile>
     <ClCompile Include="bnInfiniteMap.cpp">
-      <Filter>Screens/Activities\Main Menu\Overworld\Map\Dynamic</Filter>
+      <Filter>Scenes\Main Menu\Overworld\Map\Dynamic</Filter>
     </ClCompile>
     <ClCompile Include="bnCanodumbAttackState.cpp">
       <Filter>BattleEngine\Entities\Character\Canodumb\States</Filter>
@@ -868,7 +877,7 @@
       <Filter>BattleEngine\Entities\Character\Players\Starman</Filter>
     </ClCompile>
     <ClCompile Include="bnSelectNaviScene.cpp">
-      <Filter>Screens/Activities\Select Navi</Filter>
+      <Filter>Scenes\Select Navi</Filter>
     </ClCompile>
     <ClCompile Include="bnNaviRegistration.cpp">
       <Filter>BattleEngine\Factories\NaviRegistration</Filter>
@@ -886,10 +895,10 @@
       <Filter>BattleEngine\Entities\Character\ProgsMan\States</Filter>
     </ClCompile>
     <ClCompile Include="bnGameOverScene.cpp">
-      <Filter>Screens/Activities\GameOver</Filter>
+      <Filter>Scenes\GameOver</Filter>
     </ClCompile>
     <ClCompile Include="bnFakeScene.cpp">
-      <Filter>Screens/Activities\FakeTitle</Filter>
+      <Filter>Scenes\FakeTitle</Filter>
     </ClCompile>
     <ClCompile Include="bnAnimation.cpp">
       <Filter>GameEngine\CoreModules\Graphics\Animations</Filter>
@@ -898,10 +907,10 @@
       <Filter>BattleEngine\Entities\Spell\AirShot</Filter>
     </ClCompile>
     <ClCompile Include="bnLibraryScene.cpp">
-      <Filter>Screens/Activities\Library</Filter>
+      <Filter>Scenes\Library</Filter>
     </ClCompile>
     <ClCompile Include="bnFolderEditScene.cpp">
-      <Filter>Screens/Activities\Folder\Edit</Filter>
+      <Filter>Scenes\Folder\Edit</Filter>
     </ClCompile>
     <ClCompile Include="bnCounterHitPublisher.cpp">
       <Filter>BattleEngine\PubSub\CounterHit</Filter>
@@ -1081,10 +1090,10 @@
       <Filter>BattleEngine\Entities\Spell\Missile</Filter>
     </ClCompile>
     <ClCompile Include="bnFolderScene.cpp">
-      <Filter>Screens/Activities\Folder\List</Filter>
+      <Filter>Scenes\Folder\List</Filter>
     </ClCompile>
     <ClCompile Include="bnFolderChangeNameScene.cpp">
-      <Filter>Screens/Activities\Folder\ChangeName</Filter>
+      <Filter>Scenes\Folder\ChangeName</Filter>
     </ClCompile>
     <ClCompile Include="bnMegalian.cpp">
       <Filter>BattleEngine\Entities\Character\Megalian</Filter>
@@ -1096,7 +1105,7 @@
       <Filter>BattleEngine\BattleStepModifiers\DefenseRules\VirusBody</Filter>
     </ClCompile>
     <ClCompile Include="bnConfigScene.cpp">
-      <Filter>Screens/Activities\Config</Filter>
+      <Filter>Scenes\Config</Filter>
     </ClCompile>
     <ClCompile Include="bnMetrid.cpp">
       <Filter>BattleEngine\Entities\Character\Metrid</Filter>
@@ -1518,6 +1527,27 @@
     <ClCompile Include="bnText.cpp">
       <Filter>GameEngine\CoreModules\Graphics\SceneNodes\Text</Filter>
     </ClCompile>
+    <ClCompile Include="bnAppButton.cpp">
+      <Filter>Prefabs\AppButton</Filter>
+    </ClCompile>
+    <ClCompile Include="bnDrawWindow.cpp">
+      <Filter>GameEngine\CoreModules\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="bnGame.cpp">
+      <Filter>GameEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="bnTitleScene.cpp">
+      <Filter>Scenes\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="bnIntroScene.cpp">
+      <Filter>Scenes\Intro</Filter>
+    </ClCompile>
+    <ClCompile Include="bnLoaderScene.cpp">
+      <Filter>Prefabs\SceneTypes</Filter>
+    </ClCompile>
+    <ClCompile Include="bnTaskGroup.cpp">
+      <Filter>Prefabs\SceneTypes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnField.h">
@@ -1555,9 +1585,6 @@
     </ClInclude>
     <ClInclude Include="bnDirection.h">
       <Filter>Enumerations</Filter>
-    </ClInclude>
-    <ClInclude Include="bnEngine.h">
-      <Filter>GameEngine</Filter>
     </ClInclude>
     <ClInclude Include="bnProgsMan.h">
       <Filter>BattleEngine\Entities\Character\ProgsMan</Filter>
@@ -1657,22 +1684,22 @@
       <Filter>BattleEngine\Factories\MobRegistration\MobFactories\Boss\ProgsMan</Filter>
     </ClInclude>
     <ClInclude Include="bnBattleScene.h">
-      <Filter>Screens/Activities\Battle</Filter>
+      <Filter>Scenes\Battle</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectMobScene.h">
-      <Filter>Screens/Activities\Select Mob</Filter>
+      <Filter>Scenes\Select Mob</Filter>
     </ClInclude>
     <ClInclude Include="bnMainMenuScene.h">
-      <Filter>Screens/Activities\Main Menu</Filter>
+      <Filter>Scenes\Main Menu</Filter>
     </ClInclude>
     <ClInclude Include="bnOverworldMap.h">
-      <Filter>Screens/Activities\Main Menu\Overworld\Map</Filter>
+      <Filter>Scenes\Main Menu\Overworld\Map</Filter>
     </ClInclude>
     <ClInclude Include="bnOverworldLight.h">
-      <Filter>Screens/Activities\Main Menu\Overworld\Map\Lights</Filter>
+      <Filter>Scenes\Main Menu\Overworld\Map\Lights</Filter>
     </ClInclude>
     <ClInclude Include="bnInfiniteMap.h">
-      <Filter>Screens/Activities\Main Menu\Overworld\Map\Dynamic</Filter>
+      <Filter>Scenes\Main Menu\Overworld\Map\Dynamic</Filter>
     </ClInclude>
     <ClInclude Include="bnCanodumbAttackState.h">
       <Filter>BattleEngine\Entities\Character\Canodumb\States</Filter>
@@ -1705,7 +1732,7 @@
       <Filter>BattleEngine\Entities\Character\Players\Starman</Filter>
     </ClInclude>
     <ClInclude Include="bnSelectNaviScene.h">
-      <Filter>Screens/Activities\Select Navi</Filter>
+      <Filter>Scenes\Select Navi</Filter>
     </ClInclude>
     <ClInclude Include="bnNaviRegistration.h">
       <Filter>BattleEngine\Factories\NaviRegistration</Filter>
@@ -1732,7 +1759,7 @@
       <Filter>BattleEngine\Entities\Character\ProgsMan\States</Filter>
     </ClInclude>
     <ClInclude Include="bnGameOverScene.h">
-      <Filter>Screens/Activities\GameOver</Filter>
+      <Filter>Scenes\GameOver</Filter>
     </ClInclude>
     <ClInclude Include="Segues\Checkerboard.h">
       <Filter>Segues</Filter>
@@ -1753,7 +1780,7 @@
       <Filter>Segues</Filter>
     </ClInclude>
     <ClInclude Include="bnFakeScene.h">
-      <Filter>Screens/Activities\FakeTitle</Filter>
+      <Filter>Scenes\FakeTitle</Filter>
     </ClInclude>
     <ClInclude Include="Segues\ZoomFadeIn.h">
       <Filter>Segues</Filter>
@@ -1780,10 +1807,10 @@
       <Filter>BattleEngine\Entities\Spell\AirShot</Filter>
     </ClInclude>
     <ClInclude Include="bnLibraryScene.h">
-      <Filter>Screens/Activities\Library</Filter>
+      <Filter>Scenes\Library</Filter>
     </ClInclude>
     <ClInclude Include="bnFolderEditScene.h">
-      <Filter>Screens/Activities\Folder\Edit</Filter>
+      <Filter>Scenes\Folder\Edit</Filter>
     </ClInclude>
     <ClInclude Include="bnCounterHitPublisher.h">
       <Filter>BattleEngine\PubSub\CounterHit</Filter>
@@ -1972,10 +1999,10 @@
       <Filter>BattleEngine\Entities\Spell\Missile</Filter>
     </ClInclude>
     <ClInclude Include="bnFolderScene.h">
-      <Filter>Screens/Activities\Folder\List</Filter>
+      <Filter>Scenes\Folder\List</Filter>
     </ClInclude>
     <ClInclude Include="bnFolderChangeNameScene.h">
-      <Filter>Screens/Activities\Folder\ChangeName</Filter>
+      <Filter>Scenes\Folder\ChangeName</Filter>
     </ClInclude>
     <ClInclude Include="bnMegalian.h">
       <Filter>BattleEngine\Entities\Character\Megalian</Filter>
@@ -1990,7 +2017,7 @@
       <Filter>BattleEngine\BattleStepModifiers\DefenseRules\VirusBody</Filter>
     </ClInclude>
     <ClInclude Include="bnConfigScene.h">
-      <Filter>Screens/Activities\Config</Filter>
+      <Filter>Scenes\Config</Filter>
     </ClInclude>
     <ClInclude Include="bnMetrid.h">
       <Filter>BattleEngine\Entities\Character\Metrid</Filter>
@@ -2372,6 +2399,33 @@
     </ClInclude>
     <ClInclude Include="bnText.h">
       <Filter>GameEngine\CoreModules\Graphics\SceneNodes\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="bnAppButton.h">
+      <Filter>Prefabs\AppButton</Filter>
+    </ClInclude>
+    <ClInclude Include="bnDrawWindow.h">
+      <Filter>GameEngine\CoreModules\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="bnGame.h">
+      <Filter>GameEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="bnIntroScene.h">
+      <Filter>Scenes\Intro</Filter>
+    </ClInclude>
+    <ClInclude Include="bnTitleScene.h">
+      <Filter>Scenes\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="bnResourceHandle.h">
+      <Filter>GameEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="bnScene.h">
+      <Filter>Prefabs\SceneTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="bnLoaderScene.h">
+      <Filter>Prefabs\SceneTypes</Filter>
+    </ClInclude>
+    <ClInclude Include="bnTaskGroup.h">
+      <Filter>Prefabs\SceneTypes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

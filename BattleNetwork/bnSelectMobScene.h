@@ -23,7 +23,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnScene.h"
 #include "bnBattleScene.h"
 #include "bnMobFactory.h"
 #include "bnRandomMettaurMob.h"
@@ -44,7 +44,7 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 
-class SelectMobScene : public swoosh::Activity
+class SelectMobScene : public Scene
 {
 private:
   SelectedNavi selectedNavi; /*!< The selected navi */
@@ -110,7 +110,7 @@ public:
   /**
    * @brief Loads graphics and sets original state of all items
    */
-  SelectMobScene(swoosh::ActivityController&, SelectedNavi, CardFolder& selectedFolder);
+  SelectMobScene(swoosh::ActivityController*, SelectedNavi, CardFolder& selectedFolder);
   
   /**
    * @brief Deletes all allocated resource. If mob is non null, deletes the mob
@@ -121,43 +121,43 @@ public:
    * @brief sets gotoNextScene to false, allowing the user to interact
    * If mob is non null (from battling), deletes the mob
    */
-  virtual void onResume();
+  void onResume() override;
   
   /**
    * @brief Animators and accepts user input: LEFt/RIGHT A to battle, B to return
    * @param elapsed
    */
-  virtual void onUpdate(double elapsed);
+  void onUpdate(double elapsed) override;
   
   /**
    * @brief Draws the scene
    * @param surface
    */
-  virtual void onDraw(sf::RenderTexture& surface);
+  void onDraw(sf::RenderTexture& surface) override;
   
   /**
    * @brief Unpauses textbox, triggers special effects to perform again
    */
-  virtual void onStart();
+  void onStart() override;
   
   /**
    * @brief Pauses text box
    */
-  virtual void onLeave();
+  void onLeave() override;
   
   /**
    * @brief Clears the text box
    */
-  virtual void onExit();
+  void onExit() override;
   
   /**
    * @brief nothing
    */
-  virtual void onEnter();
+  void onEnter() override;
   
   /**
    * @brief nothing
    */
-  virtual void onEnd();
+  void onEnd() override;
 };
 

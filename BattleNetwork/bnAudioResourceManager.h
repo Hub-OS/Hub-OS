@@ -33,16 +33,10 @@ enum class AudioPriority : int {
  * @class AudioResourceManager
  * @author mav
  * @date 06/05/19
- * @brief Singleton loads audio samples
+ * @brief Manager loads audio samples
  */
 class AudioResourceManager {
 public:
-  /**
-   * @brief If first call, initializes audio resource instance and returns
-   * @return AudioResourceManager&
-   */
-  static AudioResourceManager& GetInstance();
-
   /**
    * @brief If true, plays audio. If false, does not play audio
    * @param status
@@ -83,6 +77,7 @@ private:
     AudioPriority priority;
   };
 
+  std::mutex mutex;
   Channel* channels;
   sf::SoundBuffer* sources;
   sf::Music stream;
@@ -90,5 +85,3 @@ private:
   float streamVolume;
   bool isEnabled;
 };
-
-#define AUDIO AudioResourceManager::GetInstance()

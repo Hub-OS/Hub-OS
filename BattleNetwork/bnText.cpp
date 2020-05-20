@@ -105,6 +105,14 @@ void Text::UpdateGeometry() const
   geometryDirty = false;
 }
 
+Text::Text(Font & font) : font(font), message(""), geometryDirty(true)
+{
+  letterSpacing = (font.GetWhiteSpaceWidth() / 3.0f) + 1.0f;
+  lineSpacing = 1.0f;
+  color = sf::Color::White;
+  vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
+}
+
 Text::Text(const std::string message, Font & font) : font(font), message(message), geometryDirty(true)
 {
   letterSpacing = (font.GetWhiteSpaceWidth()/3.0f) + 1.0f;

@@ -2,7 +2,7 @@
 #include "bnSelectMobScene.h"
 #include "Android/bnTouchArea.h"
 
-SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder) :
+SelectMobScene::SelectMobScene(swoosh::ActivityController* controller, SelectedNavi navi, CardFolder& selectedFolder) :
   elapsed(0),
   camera(ENGINE.GetView()),
   font(Font::Style::thick),
@@ -13,7 +13,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   menuLabel("", font),
   textbox(320, 100),
   selectedFolder(selectedFolder),
-  swoosh::Activity(&controller)
+  Scene(controller)
 {
   selectedNavi = navi;
 

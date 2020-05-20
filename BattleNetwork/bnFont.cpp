@@ -46,7 +46,7 @@ void Font::ApplyStyle()
 }
 
 Font::Font(const Style & style) 
-  : style(style), letter('A'), animation("resources/fonts/fonts_atlas.animation")
+  : style(style), letter('A'), animation("resources/fonts/fonts_compressed.animation")
 {
   ApplyStyle();
   letterATexcoords = texcoords;

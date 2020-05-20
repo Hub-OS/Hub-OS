@@ -6,7 +6,7 @@
 #define COMPONENT_WIDTH 128
 #define COMPONENT_HEIGHT 64
 
-#define PATH std::string("resources/backgrounds/acdc/")
+#define PATH std::string("resources/scenes/acdc/")
 
 ACDCBackground::ACDCBackground()
   : x(0.0f), y(0.0f), Background(TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {

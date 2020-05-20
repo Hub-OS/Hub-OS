@@ -1,20 +1,17 @@
-#include "bnEngine.h"
-#include <time.h>       /* time */
+#include "bnDrawWindow.h"
+#include <time.h>
 #include <SFML/Window/ContextSettings.hpp>
 
 #include "mmbn.ico.c"
 #include "bnShaderType.h"
 #include "bnShaderResourceManager.h"
 
-Engine& Engine::GetInstance() {
-  static Engine instance;
-  return instance;
-}
-
-void Engine::Initialize(Engine::WindowMode mode) {
+void DrawWindow::Initialize(DrawWindow::WindowMode mode) {
   // center, size
   view = sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320));
-  cam = new Camera(view);
+  cam = std::make_shared<Camera>(view);
+
+  if (window) delete window;
   window = nullptr;
 
 #ifdef __ANDROID__
@@ -44,7 +41,7 @@ void Engine::Initialize(Engine::WindowMode mode) {
   srand((unsigned int)time(0));
 }
 
-void Engine::Draw(Drawable& _drawable, bool applyShaders) {
+void DrawWindow::Draw(Drawable& _drawable, bool applyShaders) {
   if (!HasRenderSurface()) return;
 
   if (applyShaders) {
@@ -62,35 +59,13 @@ void Engine::Draw(Drawable& _drawable, bool applyShaders) {
   }
 }
 
-void Engine::Draw(Drawable* _drawable, bool applyShaders) {
-  if (!HasRenderSurface()) return;
-
-  if (!_drawable) {
-    return;
-  }
-
-  if (applyShaders) {
-    auto stateCopy = state;
-
-#ifdef __ANDROID__
-    if(!stateCopy.shader) {
-      stateCopy.shader = SHADERS.GetShader(ShaderType::DEFAULT);
-    }
-#endif
-
-    surface->draw(*_drawable, stateCopy);
-  } else {
-    surface->draw(*_drawable);
-  }
-}
-
-void Engine::Draw(SpriteProxyNode* _drawable) {
+void DrawWindow::Draw(SpriteProxyNode& _drawable) {
   if (!HasRenderSurface()) return;
 
   // For now, support at most one shader.
   // Grab the shader and image, apply to a new render target, pass this render target into Draw()
 
-  SpriteProxyNode* context = _drawable;
+  SpriteProxyNode* context = &_drawable;
   SmartShader* shader = &context->GetShader();
 
   if (shader && shader->Get()) {
@@ -100,13 +75,13 @@ void Engine::Draw(SpriteProxyNode* _drawable) {
     newState.shader = shader->Get();
 
     context->draw(*surface, newState);
-    // surface->draw(*context, newState); // bake
+
     shader->ResetUniforms();
   } else {
     context->draw(*surface, state);
   }
 }
-void Engine::Draw(vector<SpriteProxyNode*> _drawable) {
+void DrawWindow::Draw(vector<SpriteProxyNode*> _drawable) {
   if (!HasRenderSurface()) return;
 
   auto it = _drawable.begin();
@@ -157,20 +132,20 @@ void Engine::Draw(vector<SpriteProxyNode*> _drawable) {
   }
 }
 
-void Engine::Draw(vector<Drawable*> _drawable, bool applyShaders) {
+void DrawWindow::Draw(vector<Drawable*> _drawable, bool applyShaders) {
   if (!HasRenderSurface()) return;
 
   auto it = _drawable.begin();
   for (it; it != _drawable.end(); ++it) {
-    Draw(*it, applyShaders);
+    Draw(*(*it), applyShaders);
   }
 }
 
-bool Engine::Running() {
+bool DrawWindow::Running() {
   return window->isOpen();
 }
 
-void Engine::Clear() {
+void DrawWindow::Clear() {
   if (HasRenderSurface()) {
     surface->clear();
   }
@@ -178,25 +153,24 @@ void Engine::Clear() {
   window->clear();
 }
 
-RenderWindow* Engine::GetWindow() const {
+RenderWindow* DrawWindow::GetRenderWindow() const {
   return window;
 }
 
-Engine::Engine()
+DrawWindow::DrawWindow()
 {
-
-  cam = new Camera(view);
+  window = nullptr;
 }
 
-Engine::~Engine() {
+DrawWindow::~DrawWindow() {
   delete window;
 }
 
-const sf::Vector2f Engine::GetViewOffset() {
+const sf::Vector2f DrawWindow::GetViewOffset() {
   return GetView().getCenter() - cam->GetView().getCenter();
 }
 
-void Engine::SetShader(sf::Shader* shader) {
+void DrawWindow::SetShader(sf::Shader* shader) {
 #ifdef __ANDROID__
   if (shader == nullptr) {
     state.shader = SHADERS.GetShader(ShaderType::DEFAULT);
@@ -212,11 +186,11 @@ void Engine::SetShader(sf::Shader* shader) {
 #endif
 }
 
-void Engine::RevokeShader() {
+void DrawWindow::RevokeShader() {
   SetShader(nullptr);
 }
 
-const bool Engine::IsMouseHovering(sf::Sprite & sprite) const
+const bool DrawWindow::IsMouseHovering(sf::Sprite & sprite) const
 {
   sf::Vector2i mousei = sf::Mouse::getPosition(*window);
   sf::Vector2f mouse = window->mapPixelToCoords(mousei);
@@ -225,12 +199,12 @@ const bool Engine::IsMouseHovering(sf::Sprite & sprite) const
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }
 
-void Engine::RegainFocus()
+void DrawWindow::RegainFocus()
 {
 
 }
 
-void Engine::Resize(int newWidth, int newHeight)
+void DrawWindow::Resize(int newWidth, int newHeight)
 {
   float windowRatio = (float)newWidth / (float)newHeight;
 
@@ -263,22 +237,15 @@ void Engine::Resize(int newWidth, int newHeight)
   window->setView(view);
 }
 
-const sf::View Engine::GetView() {
+const sf::View DrawWindow::GetView() {
   return view;
 }
 
-Camera* Engine::GetCamera()
+Camera& DrawWindow::GetCamera()
 {
-  return cam;
+  return *cam;
 }
 
-void Engine::SetCamera(Camera& camera) {
-  // if (cam) delete cam;
-
-  cam = &camera;
+void DrawWindow::SetCamera(const std::shared_ptr<Camera>& camera) {
+  cam = camera;
 }
-
-/*void Engine::SetView(sf::View v) {
-  view = v;
-}
-*/

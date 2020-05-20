@@ -27,10 +27,10 @@ namespace Overworld {
     animator = Animator();
     animator << Animator::Mode::Loop;
 
-    progAnimations = Animation("resources/backgrounds/main_menu/prog.animation");
+    progAnimations = Animation("resources/scenes/main_menu/prog.animation");
     progAnimations.Reload();
 
-    numbermanAnimations = Animation("resources/backgrounds/main_menu/numberman.animation");
+    numbermanAnimations = Animation("resources/scenes/main_menu/numberman.animation");
     numbermanAnimations.Reload();
   }
 

@@ -228,6 +228,7 @@
     <ClCompile Include="bnAnimator.cpp" />
     <ClCompile Include="bnAnimatedTextBox.cpp" />
     <ClCompile Include="bnAnimation.cpp" />
+    <ClCompile Include="bnAppButton.cpp" />
     <ClCompile Include="bnAura.cpp" />
     <ClCompile Include="bnBasicSword.cpp" />
     <ClCompile Include="bnBattleResults.h">
@@ -285,6 +286,7 @@
     <ClCompile Include="bnFolderScene.cpp" />
     <ClCompile Include="bnFont.cpp" />
     <ClCompile Include="bnForte.cpp" />
+    <ClCompile Include="bnGame.cpp" />
     <ClCompile Include="bnGameOverScene.cpp" />
     <ClCompile Include="bnGear.cpp" />
     <ClCompile Include="bnGraveyardBackground.cpp" />
@@ -299,6 +301,7 @@
     <ClCompile Include="bnHoneyBomberMob.cpp" />
     <ClCompile Include="bnHoneyBomberMoveState.cpp" />
     <ClCompile Include="bnInfiniteMap.cpp" />
+    <ClCompile Include="bnIntroScene.cpp" />
     <ClCompile Include="bnJudgeTreeBackground.cpp" />
     <ClCompile Include="bnLanBackground.cpp" />
     <ClCompile Include="bnBattleResults.cpp">
@@ -316,6 +319,7 @@
     <ClCompile Include="bnField.cpp" />
     <ClCompile Include="bnBattleScene.cpp" />
     <ClCompile Include="bnLibraryScene.cpp" />
+    <ClCompile Include="bnLoaderScene.cpp" />
     <ClCompile Include="bnLogger.cpp" />
     <ClCompile Include="bnLongSwordCardAction.cpp" />
     <ClCompile Include="bnMainMenuScene.cpp" />
@@ -401,6 +405,7 @@
     <ClCompile Include="bnSuperVulcan.cpp" />
     <ClCompile Include="bnSwordCardAction.cpp" />
     <ClCompile Include="bnSwordEffect.cpp" />
+    <ClCompile Include="bnTaskGroup.cpp" />
     <ClCompile Include="bnText.cpp" />
     <ClCompile Include="bnTextBox.cpp" />
     <ClCompile Include="bnThunder.cpp" />
@@ -411,6 +416,7 @@
     <ClCompile Include="bnTextureResourceManager.cpp" />
     <ClCompile Include="bnPlayerHealthUI.cpp" />
     <ClCompile Include="bnBuster.cpp" />
+    <ClCompile Include="bnTitleScene.cpp" />
     <ClCompile Include="bnTornado.cpp" />
     <ClCompile Include="bnTornadoCardAction.cpp" />
     <ClCompile Include="bnTwinFang.cpp" />
@@ -422,7 +428,7 @@
     <ClCompile Include="bnVulcanCardAction.cpp" />
     <ClCompile Include="bnWave.cpp" />
     <ClCompile Include="bnMettaur.cpp" />
-    <ClCompile Include="bnEngine.cpp" />
+    <ClCompile Include="bnDrawWindow.cpp" />
     <ClCompile Include="bnSelectedCardsUI.cpp" />
     <ClCompile Include="bnExplosion.cpp" />
     <ClCompile Include="bnPlayerControlledState.cpp" />
@@ -451,6 +457,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bnAlphaElectricalCurrent.h" />
+    <ClInclude Include="bnAppButton.h" />
     <ClInclude Include="bnCardUUIDs.h" />
     <ClInclude Include="bnCharacterDeleteListener.h" />
     <ClInclude Include="bnCharacterDeletePublisher.h" />
@@ -459,6 +466,9 @@
     <ClInclude Include="bnDefenseInvis.h" />
     <ClInclude Include="bnElecPulseCardAction.h" />
     <ClInclude Include="bnFont.h" />
+    <ClInclude Include="bnGame.h" />
+    <ClInclude Include="bnIntroScene.h" />
+    <ClInclude Include="bnLoaderScene.h" />
     <ClInclude Include="bnLongSwordCardAction.h" />
     <ClInclude Include="bnMovement.h" />
     <ClInclude Include="bnNaviWhiteoutState.h" />
@@ -479,6 +489,8 @@
     <ClInclude Include="bnPlayerForm.h" />
     <ClInclude Include="bnRecoverCardAction.h" />
     <ClInclude Include="bnCachedResource.h" />
+    <ClInclude Include="bnResourceHandle.h" />
+    <ClInclude Include="bnScene.h" />
     <ClInclude Include="bnScriptedCharacter.h" />
     <ClInclude Include="bnScriptedCardAction.h" />
     <ClInclude Include="bnScriptResourceManager.h" />
@@ -618,6 +630,7 @@
     <ClInclude Include="bnSuperVulcan.h" />
     <ClInclude Include="bnSwordCardAction.h" />
     <ClInclude Include="bnSwordEffect.h" />
+    <ClInclude Include="bnTaskGroup.h" />
     <ClInclude Include="bnText.h" />
     <ClInclude Include="bnThunder.h" />
     <ClInclude Include="bnElements.h" />
@@ -688,6 +701,7 @@
     <ClInclude Include="bnPlayerState.h" />
     <ClInclude Include="bnPlayerHealthUI.h" />
     <ClInclude Include="bnBuster.h" />
+    <ClInclude Include="bnTitleScene.h" />
     <ClInclude Include="bnTornado.h" />
     <ClInclude Include="bnTornadoCardAction.h" />
     <ClInclude Include="bnTurnOrderTrait.h" />
@@ -701,7 +715,7 @@
     <ClInclude Include="bnVulcanCardAction.h" />
     <ClInclude Include="bnWave.h" />
     <ClInclude Include="bnMettaur.h" />
-    <ClInclude Include="bnEngine.h" />
+    <ClInclude Include="bnDrawWindow.h" />
     <ClInclude Include="bnSelectedCardsUI.h" />
     <ClInclude Include="bnMettaurAttackState.h" />
     <ClInclude Include="bnFileUtil.h" />

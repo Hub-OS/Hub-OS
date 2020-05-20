@@ -17,7 +17,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   attackLabel("1", font),
   speedLabel("1", font),
   menuLabel("1", font),
-  swoosh::Activity(&controller) {
+  Scene(&controller) {
 
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));

@@ -23,10 +23,10 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
     uiAnimator = Animation("resources/fonts/fonts.animation");
     uiAnimator.Load();
 
-    endBtnAnimator = Animation("resources/backgrounds/config/end_btn.animation");
+    endBtnAnimator = Animation("resources/scenes/config/end_btn.animation");
     endBtnAnimator.Load();
 
-    audioAnimator = Animation("resources/backgrounds/config/audio.animation");
+    audioAnimator = Animation("resources/scenes/config/audio.animation");
     audioAnimator.Load();
 
     auto sprite = sf::Sprite(*LOAD_TEXTURE(FONT));

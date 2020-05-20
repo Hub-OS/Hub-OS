@@ -6,7 +6,7 @@
 #define COMPONENT_WIDTH 64
 #define COMPONENT_HEIGHT 64
 
-#define PATH std::string("resources/backgrounds/medical/")
+#define PATH std::string("resources/scenes/medical/")
 
 MedicalBackground::MedicalBackground()
   : x(0.0f), y(0.0f), Background(TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {

@@ -1,4 +1,4 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/spell_vulcan.png"
+imagePath="spell_vulcan.png"
 
 animation state="DEFAULT"
 frame duration="0.05" x="0" y="0" w="36" h="25" originx="3" originy="13"

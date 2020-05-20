@@ -1,0 +1,17 @@
+imagePath="atlas_compressed.png"
+
+animation state="IDLE"
+frame duration="0.1" x="102" y="0" w="25" h="24" originx="13" originy="23"
+frame duration="0.1" x="98" y="24" w="25" h="24" originx="13" originy="23"
+frame duration="0.1" x="68" y="48" w="25" h="24" originx="13" originy="23"
+frame duration="0.1" x="93" y="48" w="25" h="24" originx="13" originy="23"
+
+animation state="ATTACK"
+frame duration="0.2" x="34" y="63" w="25" h="24" originx="13" originy="23"
+frame duration="0.05" x="68" y="0" w="34" h="24" originx="22" originy="23"
+frame duration="0.05" x="34" y="0" w="34" h="39" originx="22" originy="38"
+frame duration="0.2" x="0" y="0" w="34" h="43" originx="22" originy="42"
+frame duration="0.05" x="68" y="24" w="30" h="24" originx="18" originy="23"
+frame duration="0.05" x="34" y="39" w="30" h="24" originx="18" originy="23"
+frame duration="0.1" x="0" y="43" w="30" h="24" originx="18" originy="23"
+frame duration="0.1" x="0" y="67" w="25" h="24" originx="13" originy="23"

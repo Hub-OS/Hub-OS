@@ -22,13 +22,8 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnScene.h"
 #include "bnTextBox.h"
-
-using sf::RenderWindow;
-using sf::VideoMode;
-using sf::Clock;
-using sf::Event;
 
 constexpr float UI_LEFT_POS_MAX = 10.f; /*!< Left ui stops here */
 constexpr float UI_RIGHT_POS_MAX = 300.f; /*!< Right ui stops here */
@@ -39,7 +34,7 @@ constexpr float UI_TOP_POS_START = 250.f; /*!< ui begins at top pos here */
 constexpr float UI_TOP_POS_MAX = 0.0f; /*!< ui ends here */
 constexpr float MAX_PIXEL_FACTOR = 125.f;
 
-class SelectNaviScene : public swoosh::Activity
+class SelectNaviScene : public Scene
 {
 private:
   SelectedNavi& naviSelectionIndex; /*!< SelectedNavi reference. Will change when user selects new navi */

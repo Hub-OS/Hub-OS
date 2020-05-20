@@ -6,7 +6,7 @@
 #define COMPONENT_WIDTH 32
 #define COMPONENT_HEIGHT 32
 
-#define PATH std::string("resources/backgrounds/misc/")
+#define PATH std::string("resources/scenes/misc/")
 
 MiscBackground::MiscBackground()
   : x(0.0f), y(0.0f), Background(TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {

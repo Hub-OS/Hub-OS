@@ -6,7 +6,7 @@
 #define COMPONENT_WIDTH 88
 #define COMPONENT_HEIGHT 64
 
-#define PATH std::string("resources/backgrounds/judge_tree/")
+#define PATH std::string("resources/scenes/judge_tree/")
 
 JudgeTreeBackground::JudgeTreeBackground()
   : x(0.0f), y(0.0f), Background(TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {

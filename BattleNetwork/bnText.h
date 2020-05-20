@@ -21,11 +21,13 @@ private:
   void UpdateGeometry() const;
 
 public:
+  Text(Font& font);
   Text(const std::string message, Font& font);
   Text(const Text& rhs);
+  Text& operator=(const Text& rhs) = default;
   virtual ~Text();
 
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   void SetString(const std::string message);
   void SetString(char c);
   void SetColor(const sf::Color& color);

@@ -12,7 +12,7 @@ using std::vector;
 #include "bnLayered.h"
 
 /**
- * @class Engine
+ * @class DrawWindow
  * @author mav
  * @date 04/05/19
  * @brief Wrapper around SFML window and draw call API
@@ -21,7 +21,7 @@ using std::vector;
  * Uses Draw call across entire game to inject custom render states
  * and other effects into SFML draw calls
  */
-class Engine {
+class DrawWindow {
 public:
   enum class WindowMode : int {
     window,
@@ -29,13 +29,16 @@ public:
   };
 
   friend class ActivityManager;
+  
+  /**
+ * @brief sets camera to nullptr
+ */
+  DrawWindow();
 
   /**
-   * @brief If this is the first call, creates the Engine singleton resource
-   * @return Engine&
-   */
-  static Engine& GetInstance();
-  
+    * @brief deletes the window */
+  ~DrawWindow();
+
   /**
    * @brief Creates an SFML window and sets the icon
    * @param fullscreen. If false, the game launches in windowed mode.
@@ -49,7 +52,6 @@ public:
    * @param applyShaders if true, applies a shader
    */
   void Draw(Drawable& _drawable, bool applyShaders = true);
-  void Draw(Drawable* _drawable, bool applyShaders = true);
   
   /**
    * @brief Draws a batch of sf::Drawable through the engine pipeline
@@ -60,9 +62,9 @@ public:
   
   /**
    * @brief Draws a SpriteSceneNode through the engine pipeline
-   * @param _drawable SpriteSceneNode*
+   * @param _drawable SpriteSceneNode&
    */
-  void Draw(SpriteProxyNode * _drawable);
+  void Draw(SpriteProxyNode& _drawable);
   
   /**
    * @brief Draws a batch of SpriteSceneNodes through the engine pipeline
@@ -85,7 +87,7 @@ public:
    * @brief Get the RenderWindow used by the app
    * @return RenderWindow*
    */
-  RenderWindow* GetWindow() const;
+  RenderWindow* GetRenderWindow() const;
 
   /**
    * @brief Sets a post processing effect to be used on the screen
@@ -119,11 +121,11 @@ public:
 
   /**
    * @brief Creates a camera for the scene
-   * @param camera
+   * @param shared pointer to a camera existing in another scene
    * 
    * Camera's view offsets the screen drawing 
    */
-  void SetCamera(Camera& camera);
+  void SetCamera(const std::shared_ptr<Camera>& camera);
 
   /**
    * @brief Make a copy of the current window view
@@ -135,9 +137,9 @@ public:
   
   /**
    * @brief Get the camera object
-   * @return Camera*
+   * @return Camera&
    */
-  Camera* GetCamera();
+  Camera& GetCamera();
 
   /**
    * @brief Sets the external render texture buffer to draw to
@@ -145,10 +147,6 @@ public:
    */
   void SetRenderSurface(sf::RenderTexture& _surface) {
     surface = &_surface;
-  }
-
-  void SetRenderSurface(sf::RenderTexture* _surface) {
-    surface = _surface;
   }
 
   /**
@@ -170,25 +168,11 @@ public:
   // TODO: make this private again
   const sf::Vector2f GetViewOffset(); // for drawing 
 private:
-  /**
-   * @brief sets camera to nullptr
-   */
-  Engine();
-  
-  /**
-    * @brief deletes the window */
-  ~Engine();
-
   RenderWindow* window; /*!< Window created when app launches */
   sf::View view; /*!< Default view created when window launches */
   sf::View original; /*!< Default view created when window launches */
   sf::RenderStates state; /*!< Global GL context information used when drawing*/
   sf::RenderTexture* surface; /*!< The external buffer to draw to */
-  Camera* cam; /*!< Camera object */
+  std::shared_ptr<Camera> cam; /*!< Camera object */
 
 };
-
-/**
- * @brief Shorter to type. Fetches instance of singleton.
- */
-#define ENGINE Engine::GetInstance()
