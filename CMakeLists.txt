@@ -3,17 +3,17 @@ cmake_minimum_required(VERSION 3.12)
 project(BattleNetwork-Engine)
 set (CMAKE_CXX_STANDARD 17)
 
-#execute_process(COMMAND git submodule update --init -- extern/Swoosh
-#                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+execute_process(COMMAND git submodule update --init -- extern/Swoosh
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-#execute_process(COMMAND git submodule update --init -- extern/lua
-#                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+execute_process(COMMAND git submodule update --init -- extern/lua
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-#execute_process(COMMAND git submodule update --init -- extern/SFML
-#                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+execute_process(COMMAND git submodule update --init -- extern/SFML
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-#execute_process(COMMAND git submodule update --init -- extern/WebApi
-#                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+execute_process(COMMAND git submodule update --init -- extern/WebAPI
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 
