@@ -1,5 +1,5 @@
 #pragma once
-#include <WebAPI/client/WebClient.h>
+#include <WebAPI/WebClient.h>
 #include <memory>
 #include <thread>
 #include <mutex>

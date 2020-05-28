@@ -1,36 +1,47 @@
-cmake_minimum_required(VERSION 3.1)
-set (CMAKE_CXX_STANDARD 14)
-
+cmake_minimum_required(VERSION 3.12)
+    
 project(BattleNetwork-Engine)
+set (CMAKE_CXX_STANDARD 17)
 
-execute_process(COMMAND git submodule update --init -- extern/Swoosh
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+#execute_process(COMMAND git submodule update --init -- extern/Swoosh
+#                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-execute_process(COMMAND git submodule update --init -- extern/lua
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+#execute_process(COMMAND git submodule update --init -- extern/lua
+#                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+#execute_process(COMMAND git submodule update --init -- extern/SFML
+#                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+#execute_process(COMMAND git submodule update --init -- extern/WebApi
+#                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 
 include_directories(extern/Swoosh/src)
 include_directories(extern/lua)
 
-file(GLOB bnFiles
-        "BattleNetwork/bn*.h"
-        "BattleNetwork/bn*.cpp"
+add_subdirectory(extern/SFML)
+add_subdirectory(extern/WebApi)
+
+file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
+        "BattleNetwork/*.h"
+        "BattleNetwork/*.cpp"
         "BattleNetwork/mmbn.ico.c"
-        "BattleNetwork/resource.h"
-        "BattleNetwork/Segues/*.h"
         )
 
-find_package(SFML 2.5 COMPONENTS graphics audio network system window)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddFiles.cmake)
+add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
 
-if(SFML_FOUND)
-    add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles})
-    target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
-else()
-    execute_process(COMMAND git submodule update --init -- extern/includes/SFML
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-                    
-    add_subdirectory(extern/SFML)
+source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
+source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
 
-    add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles})
-    target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
-endif()
+target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
+target_link_libraries(BattleNetwork WebAPI-client)
+
+set_target_properties( BattleNetwork
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build/$<CONFIG>"
+)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Compiler.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/PostBuild.cmake)

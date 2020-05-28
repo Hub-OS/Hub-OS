@@ -381,3 +381,7 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 >>>>>>> b486e21e11627262088deae73097eaa7af56791c
+/*.vcxproj
+/*.sln
+/*.filters
+/log.txt

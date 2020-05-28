@@ -10,7 +10,7 @@ using std::to_string;
 AuraHealthUI::AuraHealthUI(Character* owner) : UIComponent(owner) {
    currHP = owner->GetHealth();
    this->owner = owner;
-   font.setTexture(LOAD_TEXTURE(AURA_NUMSET));
+   font.setTexture(*LOAD_TEXTURE(AURA_NUMSET));
    font.setScale(2.f, 2.f);
 }
 

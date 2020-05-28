@@ -105,7 +105,7 @@ void SpriteProxyNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
 
   states.transform *= combinedTransform;
 
-  const sf::Shader* s = const_cast<const sf::Shader*>(shader.Get());
+  sf::Shader* s = shader.Get();
 
   if (s) {
     states.shader = s;

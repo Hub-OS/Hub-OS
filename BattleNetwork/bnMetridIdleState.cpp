@@ -1,12 +1,7 @@
 #include "bnMetrid.h"
 #include "bnMetridIdleState.h"
 
-// Why only MSVC?
-#ifdef UNIX
 #include "bnMetridMoveState.h"
-#else 
-#include "bnMetridMoveState.cpp"
-#endif
 
 #include "bnAnimationComponent.h"
 #include <iostream>
