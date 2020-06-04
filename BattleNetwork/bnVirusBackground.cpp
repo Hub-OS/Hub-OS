@@ -1,7 +1,7 @@
 #include "bnVirusBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 #define X_OFFSET 0
 #define Y_OFFSET 0

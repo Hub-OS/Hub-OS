@@ -1,7 +1,7 @@
 #include "bnMiscBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 #define COMPONENT_WIDTH 32
 #define COMPONENT_HEIGHT 32

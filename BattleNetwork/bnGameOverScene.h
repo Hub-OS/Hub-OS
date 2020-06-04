@@ -1,5 +1,5 @@
 #pragma once
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 

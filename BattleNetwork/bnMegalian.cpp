@@ -6,7 +6,7 @@
 #include "bnWave.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnAura.h"
 
 const std::string RESOURCE_PATH = "resources/mobs/megalian/megalian.animation";

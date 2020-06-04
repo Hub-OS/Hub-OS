@@ -23,7 +23,7 @@ using std::string;
 #include "bnAnimation.h"
 #include "bnDirection.h"
 #include "bnTeam.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnTextureType.h"
 #include "bnElements.h"
 #include "bnComponent.h"

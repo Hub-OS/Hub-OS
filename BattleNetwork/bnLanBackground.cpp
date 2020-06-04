@@ -1,7 +1,7 @@
 #include "bnLanBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 #define X_OFFSET 15
 #define Y_OFFSET 15

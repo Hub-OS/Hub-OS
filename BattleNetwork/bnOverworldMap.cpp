@@ -1,5 +1,5 @@
 #include "bnOverworldMap.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include <cmath>
 
 namespace Overworld {

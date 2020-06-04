@@ -3,7 +3,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnMob.h"
 #include "bnBattleItem.h"
 #include <numeric>

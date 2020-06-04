@@ -7,7 +7,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnCard.h"
 #include "bnAnimation.h"
 #include "bnAnimatedTextBox.h"

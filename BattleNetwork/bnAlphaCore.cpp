@@ -11,7 +11,7 @@
 #include "bnWave.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnExplodeState.h"
 #include "bnDefenseVirusBody.h"
 #include "bnHitbox.h"

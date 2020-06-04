@@ -1,7 +1,7 @@
 #include "bnUndernetBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include <Swoosh/Ease.h>
 
 #define X_OFFSET 0

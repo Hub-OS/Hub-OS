@@ -8,7 +8,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnDefenseVirusBody.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 const std::string RESOURCE_PATH = "resources/mobs/metrid/metrid.animation";
 

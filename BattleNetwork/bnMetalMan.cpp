@@ -4,7 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnNaviExplodeState.h"
 #include "bnMetalManMissileState.h"
 #include "bnMetalManMoveState.h"

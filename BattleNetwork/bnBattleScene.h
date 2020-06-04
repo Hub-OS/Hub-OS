@@ -16,7 +16,7 @@
 #include "bnCardFolder.h"
 #include "bnShaderResourceManager.h"
 #include "bnPA.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnSceneNode.h"
 #include "bnBattleResults.h"
 #include "bnBattleScene.h"

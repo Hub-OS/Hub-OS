@@ -6,7 +6,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnCardFolder.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnAnimation.h"
 #include "bnCardDescriptionTextbox.h"
 #include "bnCustEmblem.h"
