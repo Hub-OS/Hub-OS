@@ -29,7 +29,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
 
   target = nullptr;
 
-  Audio()().Play(AudioType::THUNDER);
+  Audio().Play(AudioType::THUNDER);
 
   animation.Update(0, getSprite());
 }

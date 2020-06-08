@@ -1,6 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
+
+#include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 #include "bnCamera.h"
 #include "bnOverworldLight.h"
@@ -8,7 +10,7 @@
 
 namespace Overworld {
   /*! \brief Structure to hold tile data */
-  class Tile {
+  class Tile : public ResourceHandle {
     std::shared_ptr<sf::Texture> texture;
     sf::Vector2f pos;
 
@@ -21,10 +23,10 @@ namespace Overworld {
       int randTex = rand() % 100;
 
       if (randTex > 80) {
-        texture = TEXTURES.GetTexture(TextureType::MAIN_MENU_OW2);
+        texture = Textures().GetTexture(TextureType::MAIN_MENU_OW2);
       }
       else {
-        texture = TEXTURES.GetTexture(TextureType::MAIN_MENU_OW);
+        texture = Textures().GetTexture(TextureType::MAIN_MENU_OW);
       }
     }
 
@@ -63,7 +65,7 @@ namespace Overworld {
  * \warning This is poorly written and far from optimized. This should be
  * redesigned and not used as a base for real overworld maps.
  */
-  class Map : public sf::Drawable
+  class Map : public sf::Drawable, public ResourceHandle
   {
   protected:
     std::vector<Tile*> map; /*!< tiles */

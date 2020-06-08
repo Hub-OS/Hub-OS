@@ -20,7 +20,7 @@ ProgsMan::ProgsMan(Rank _rank) : BossPatternAI<ProgsMan>(this), Character(_rank)
     SetHealth(2500);
   }
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_PROGSMAN_ATLAS));
   setScale(2.f, 2.f);
 
   SetHealth(health);

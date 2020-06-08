@@ -1,10 +1,12 @@
 #pragma once
 
+#include "bnAudioType.h"
+
 #include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/Music.hpp>
-#include "bnAudioType.h"
 #include <atomic>
+#include <mutex>
 
 // For more retro experience, decrease available channels.
 #define NUM_OF_CHANNELS 10
@@ -41,7 +43,7 @@ public:
    * @brief If true, plays Audio(). If false, does not play Audio()
    * @param status
    */
-  void EnableAudio()(bool status);
+  void EnableAudio(bool status);
   
   /**
    * @brief Loads all queued resources. Increases status value.

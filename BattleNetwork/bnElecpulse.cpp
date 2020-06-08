@@ -18,7 +18,7 @@ Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _tea
 
   damage = _damage;
   
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
+  setTexture(Textures().GetTexture(TextureType::SPELL_ELEC_PULSE));
 
   animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/elecpulse.animation");

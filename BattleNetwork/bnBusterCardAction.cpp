@@ -51,7 +51,7 @@ void BusterCardAction::OnExecute() {
         EndAction();
       });
 
-      Audio()().Play(AudioType::BUSTER_PEA);
+      Audio().Play(AudioType::BUSTER_PEA);
     }
   };
 

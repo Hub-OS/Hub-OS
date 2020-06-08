@@ -113,6 +113,6 @@ bool YoYo::CanMoveTo(Battle::Tile* tile) {
 
 void YoYo::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    Audio()().Play(AudioType::HURT, AudioPriority::highest);
+    Audio().Play(AudioType::HURT, AudioPriority::highest);
   }
 }

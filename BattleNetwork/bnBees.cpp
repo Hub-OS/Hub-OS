@@ -10,7 +10,7 @@
 Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage(damage) {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BEES));
+  setTexture(Textures().GetTexture(TextureType::SPELL_BEES));
   setScale(2.f, 2.f);
 
   HighlightTile(Battle::Tile::Highlight::solid);
@@ -63,7 +63,7 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
 {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BEES));
+  setTexture(Textures().GetTexture(TextureType::SPELL_BEES));
   setScale(2.f, 2.f);
 
   HighlightTile(Battle::Tile::Highlight::solid);

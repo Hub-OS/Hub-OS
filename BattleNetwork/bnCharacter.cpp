@@ -26,8 +26,8 @@ Character::Character(Rank _rank) :
   hit(false),
   CounterHitPublisher(), Entity() {
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
+  whiteout = Shaders().GetShader(ShaderType::WHITE);
+  stun = Shaders().GetShader(ShaderType::YELLOW);
 }
 
 Character::~Character() {
@@ -86,7 +86,7 @@ void Character::Update(float _elapsed) {
 
           if (counterable) {
             setColor(sf::Color(255, 55, 55, getColor().a));
-            SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
+            SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
           }
       }
 

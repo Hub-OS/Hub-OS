@@ -1,7 +1,9 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include "bnResourceHandle.h"
 #include "bnAnimation.h"
 #include "bnLayered.h"
+
+#include <SFML/Graphics.hpp>
 
 using sf::CircleShape;
 using sf::Sprite;
@@ -19,7 +21,7 @@ class Entity;
  * @date 05/05/19
  * @brief Draws on top of attached entity
  */
-class ChargeEffectSceneNode : public SpriteProxyNode {
+class ChargeEffectSceneNode : public SpriteProxyNode, public ResourceHandle {
 public:
   ChargeEffectSceneNode(Entity* _entity);
   ~ChargeEffectSceneNode();

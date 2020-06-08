@@ -33,7 +33,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   numberFont(Font::Style::thick),
   numberLabel("", numberFont),
   textbox(sf::Vector2f(4, 255)),
-  swoosh::Activity(&controller)
+  Scene(&controller)
 {
   textbox.SetTextSpeed(2.0f);
 

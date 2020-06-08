@@ -19,7 +19,7 @@ using sf::Event;
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetView()),
   lastIsConnectedState(false),
-  swoosh::Activity(&controller)
+  Scene(&controller)
 {
     // When we reach the menu scene we need to load the player information
     // before proceeding to next sub menus

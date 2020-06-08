@@ -10,7 +10,7 @@
 NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_duration), Spell(_field, _team) {
   SetLayer(0);;
   
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_NINJA_STAR));
+  setTexture(Textures().GetTexture(TextureType::SPELL_NINJA_STAR));
   
   // Swoosh util sets the texture origin to 50% x and 80% y
   swoosh::game::setOrigin(getSprite(), 0.5, 0.8);

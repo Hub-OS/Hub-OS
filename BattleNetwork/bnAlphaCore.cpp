@@ -264,7 +264,7 @@ void AlphaCore::OnDelete() {
   leftArm = nullptr;
   rightArm = nullptr;
 
-  Audio()().StopStream();
+  Audio().StopStream();
 
   // Explode if health depleted
   InterruptState<ExplodeState<AlphaCore>>(15, 0.8);

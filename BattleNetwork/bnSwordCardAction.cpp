@@ -65,7 +65,7 @@ void SwordCardAction::OnSpawnHitbox()
 
   b->SetHitboxProperties(props);
 
-  Audio()().Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
 
   user.GetField()->AddEntity(*b, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
 }

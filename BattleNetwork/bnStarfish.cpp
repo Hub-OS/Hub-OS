@@ -30,7 +30,7 @@ Starfish::Starfish(Rank _rank)
 
   hitHeight = 60;
 
-  setTexture(TEXTURES.GetTexture(textureType));
+  setTexture(Textures().GetTexture(textureType));
   setScale(2.f, 2.f);
 
   SetHealth(health);

@@ -56,7 +56,7 @@ void TornadoCardAction::OnExecute() {
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
   AddAction(2, [onFire, this]() {
-    Audio()().Play(AudioType::WIND);
+    Audio().Play(AudioType::WIND);
     armIsOut = true;
     onFire();
   });

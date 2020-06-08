@@ -7,7 +7,7 @@
 RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_field, _team) {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));
+  setTexture(Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));
   setScale(2.f, 2.f);
 
   //When the animation ends, delete this

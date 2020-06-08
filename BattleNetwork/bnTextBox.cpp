@@ -256,7 +256,7 @@ void TextBox::Update(const double elapsed) {
         // Play a sound if we are able and the character is a letter
         if (!mute && message[charIndex] != ' ' && message[charIndex] != '\n') {
           if (playOnce) {
-            Audio()().Play(AudioType::TEXT);
+            Audio().Play(AudioType::TEXT);
             playOnce = false;
           }
         }

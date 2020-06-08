@@ -72,6 +72,6 @@ template<typename Any>
 void BubbleState<Any>::OnLeave(Any& e) {
   //std::cout << "left bubblestate" << std::endl;
 
-  Audio().Play(AudioType::BUBBLE_POP);
+  ResourceHandle().Audio().Play(AudioType::BUBBLE_POP);
   e.FinishMove(); // any movement ops need to be reset
 }

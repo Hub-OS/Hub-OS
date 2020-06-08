@@ -1,4 +1,5 @@
 #include "bnCardSelectionCust.h"
+#include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnInputManager.h"
@@ -12,7 +13,7 @@
 
 CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) :
   perTurn(perTurn),
-  greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
+  greyscale(*Shaders().GetShader(ShaderType::GREYSCALE)),
   cardDescriptionTextbox(sf::Vector2f(4, 255)),
   isInView(false),
   isInFormSelect(false),
@@ -36,7 +37,7 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   emblem.setScale(2.f, 2.f);
   emblem.setPosition(194.0f, 14.0f);
 
-  custSprite = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_SELECT_MENU));
+  custSprite = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_SELECT_MENU));
   custSprite.setScale(2.f, 2.f);
   custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
 
@@ -46,14 +47,14 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   icon.setTextureRect(sf::IntRect{ 0,0,14,14 });
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
-  element.setTexture(TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
+  element.setTexture(Textures().GetTexture(TextureType::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(2.f*25.f, 146.f);
 
-  cursorSmall = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CURSOR_SMALL));
+  cursorSmall = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_CURSOR_SMALL));
   cursorSmall.setScale(sf::Vector2f(2.f, 2.f));
 
-  cursorBig = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CURSOR_BIG));
+  cursorBig = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_CURSOR_BIG));
   cursorBig.setScale(sf::Vector2f(2.f, 2.f));
 
   // never moves
@@ -66,11 +67,11 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   cardCard.setPosition(2.f*16.f, 48.f);
   cardCard.setTextureRect(sf::IntRect{0, 0, 56, 48});
 
-  cardNoData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_NODATA));
+  cardNoData.setTexture(Textures().GetTexture(TextureType::CHIP_NODATA));
   cardNoData.setScale(2.f, 2.f);
   cardNoData.setPosition(2.f*16.f, 48.f);
 
-  cardSendData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_SENDDATA));
+  cardSendData.setTexture(Textures().GetTexture(TextureType::CHIP_SENDDATA));
   cardSendData.setScale(2.f, 2.f);
   cardSendData.setPosition(2.f*16.f, 48.f);
 
@@ -464,7 +465,7 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
   for (auto&& f : forms) {
     this->forms.push_back(f);
     sf::Sprite ui;
-    ui.setTexture(*TEXTURES.LoadTextureFromFile(f->GetUIPath()));
+    ui.setTexture(*Textures().LoadTextureFromFile(f->GetUIPath()));
     ui.setScale(2.f, 2.f);
     formUI.push_back(ui);
   }
@@ -472,6 +473,8 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
 
 void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states) const {
   if(IsHidden()) return;
+
+  ResourceHandle handle;
 
   states.transform = getTransform();
 
@@ -630,12 +633,12 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
         if (i != selectedForm && i != formCursorRow && selectedForm > -1) {
           auto greyscaleState = states;
-          greyscaleState.shader = SHADERS.GetShader(ShaderType::GREYSCALE);
+          greyscaleState.shader = handle.Shaders().GetShader(ShaderType::GREYSCALE);
           target.draw(f, greyscaleState);
         }
         else if (i == selectedForm && selectedForm > -1) {
           auto aquaMarineState = states;
-          aquaMarineState.shader = SHADERS.GetShader(ShaderType::COLORIZE);
+          aquaMarineState.shader = handle.Shaders().GetShader(ShaderType::COLORIZE);
           f.setColor(sf::Color(127,255,212));
           target.draw(f, aquaMarineState);
           f.setColor(sf::Color::White); // back to normal after draw to texture
@@ -742,7 +745,7 @@ void CardSelectionCust::Update(float elapsed)
 
         icon.setPosition(offset + 2.f*(9.0f + ((float)(i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
 
-        sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(queue[i].data->GetIconID());
+        sf::IntRect iconSubFrame = Textures().GetIconRectFromID(queue[i].data->GetIconID());
         icon.setTextureRect(iconSubFrame);
 
         sf::FloatRect bounds = sf::FloatRect(icon.getPosition().x, icon.getPosition().y-1, 18, 18);

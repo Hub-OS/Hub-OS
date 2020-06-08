@@ -99,7 +99,7 @@ LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
   cardDesc("", cardDescFont),
   numberFont(Font::Style::wide),
   numberLabel("", numberFont),
-  swoosh::Activity(&controller)
+  Scene(&controller)
 {
 
   // Menu name font

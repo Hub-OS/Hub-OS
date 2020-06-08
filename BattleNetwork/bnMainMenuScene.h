@@ -1,6 +1,6 @@
 #pragma once
-#include <Swoosh/Activity.h>
 
+#include "bnScene.h"
 #include "bnFolderScene.h"
 #include "bnOverworldMap.h"
 #include "bnInfiniteMap.h"
@@ -25,7 +25,7 @@
 #include <time.h>
 #include <future>
 
-class MainMenuScene : public swoosh::Activity {
+class MainMenuScene : public Scene {
 private:
   Camera camera; /*!< camera in scene follows megaman */
   bool showHUD; /*!< Toggle HUD. Used in debugging. */

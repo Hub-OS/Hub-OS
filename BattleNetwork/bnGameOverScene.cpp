@@ -3,10 +3,10 @@
 #include "Segues/WhiteWashFade.h"
 #include <Swoosh/ActivityController.h>
 
-GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(&controller) {
+GameOverScene::GameOverScene(swoosh::ActivityController& controller) : Scene(&controller) {
   fadeInCooldown = 2.0f;
 
-  gameOver.setTexture(*TEXTURES.GetTexture(TextureType::GAME_OVER));
+  gameOver.setTexture(*Textures().GetTexture(TextureType::GAME_OVER));
   gameOver.setScale(2.f, 2.f);
   gameOver.setOrigin(gameOver.getLocalBounds().width / 2, gameOver.getLocalBounds().height / 2);
 

@@ -35,7 +35,7 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center) : Artifact(_field
     h = (float)(std::floor(hit->GetHeight()/2.0f));
   }
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_GUARD_HIT));
+  setTexture(Textures().GetTexture(TextureType::SPELL_GUARD_HIT));
   setScale(2.f, 2.f);
 
   //Components setup and load

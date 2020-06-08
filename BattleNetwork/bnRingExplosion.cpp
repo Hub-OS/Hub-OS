@@ -11,7 +11,7 @@ using sf::IntRect;
 RingExplosion::RingExplosion(Field* field) : Artifact(field)
 {
   SetLayer(0);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_RING_EXPLOSION));
+  setTexture(Textures().GetTexture(TextureType::SPELL_RING_EXPLOSION));
   setScale(2.f, 2.f);
   poof = getSprite();
 

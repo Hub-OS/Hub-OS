@@ -6,7 +6,8 @@ void LoaderScene::ExecuteTasks()
     float progress = tasks.GetTaskNumber() / static_cast<float>(tasks.GetTotalTasks());
     this->onTaskBegin(tasks.GetTaskName(), progress);
     tasks.DoNextTask();
-    float progress = tasks.GetTaskNumber() / static_cast<float>(tasks.GetTotalTasks());
+    
+    progress = tasks.GetTaskNumber() / static_cast<float>(tasks.GetTotalTasks());
     this->onTaskComplete(tasks.GetTaskName(), progress);
   }
 }

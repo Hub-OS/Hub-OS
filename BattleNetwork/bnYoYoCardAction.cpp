@@ -42,7 +42,7 @@ void YoYoCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
     auto& user = GetUser();
-    Audio()().Play(AudioType::TOSS_ITEM_LITE);
+    Audio().Play(AudioType::TOSS_ITEM_LITE);
 
     YoYo* y = new YoYo(user.GetField(), user.GetTeam(), damage);
     y->SetDirection(Direction::right);

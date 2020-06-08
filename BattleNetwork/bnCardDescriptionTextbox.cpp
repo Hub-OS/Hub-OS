@@ -1,5 +1,6 @@
 #include "bnCardDescriptionTextbox.h"
 #include "bnMessage.h"
+#include "bnTextureResourceManager.h"
 
 CardDescriptionTextbox::CardDescriptionTextbox(sf::Vector2f pos) :
    AnimatedTextBox(pos)

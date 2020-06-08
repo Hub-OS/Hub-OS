@@ -61,7 +61,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController* controller, SelectedN
   doOnce = false; // wait until the scene starts or resumes
   showMob = false;
 
-  shader = LOAD_SHADER(TEXEL_PIXEL_BLUR);
+  shader = Shaders().GetShader(ShaderType::TEXEL_PIXEL_BLUR);
   factor = 125;
 
   // Current selection index
@@ -95,7 +95,7 @@ void SelectMobScene::onResume() {
   ENGINE.SetCamera(camera);
 
   // Re-play music
-  Audio()().Stream("resources/loops/loop_navi_customizer.ogg", true);
+  Audio().Stream("resources/loops/loop_navi_customizer.ogg", true);
 
   gotoNextScene = false;
   doOnce = true;
@@ -153,7 +153,7 @@ void SelectMobScene::onUpdate(double elapsed) {
     if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
       // Fade out black and go back to the menu
       gotoNextScene = true;
-      Audio()().Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
       using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
       getController().queuePop<segue>();
     }
@@ -375,16 +375,16 @@ void SelectMobScene::onUpdate(double elapsed) {
       // data is invalid
       gotoNextScene = false;
 
-      Audio()().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
+      Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
     }
     else {
       gotoNextScene = true;
 
       // Play the pre battle rumble sound
-      Audio()().Play(AudioType::PRE_BATTLE, AudioPriority::high);
+      Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
       // Stop music and go to battle screen 
-      Audio()().StopStream();
+      Audio().StopStream();
 
       // Get the navi we selected
       Player* player = NAVIS.At(selectedNavi).GetNavi();

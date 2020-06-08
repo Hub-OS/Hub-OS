@@ -28,7 +28,7 @@ RollHeart::RollHeart(CardSummonHandler* _summons, int _heal) : heal(_heal), Spel
 
   field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
+  setTexture(Textures().LoadTextureFromFile("resources/spells/spell_heart.png"), true);
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();

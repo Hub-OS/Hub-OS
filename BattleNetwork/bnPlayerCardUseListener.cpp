@@ -47,7 +47,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
     if (mid) { mid->SetState(TileState::cracked); }
     if (low) { low->SetState(TileState::cracked); }
 
-    Audio().Play(AudioType::PANEL_CRACK);
+    ResourceHandle().Audio().Play(AudioType::PANEL_CRACK);
   }
   else if (name == "YoYo") {
     auto action = new YoYoCardAction(*player, card.GetDamage());

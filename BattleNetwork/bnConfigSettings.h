@@ -50,7 +50,7 @@ public:
    * @brief Check if Audio() is on or off based on ini file
    * @return true if on, false otherwise
    */
-  const bool IsAudio()Enabled() const;
+  const bool IsAudioEnabled() const;
 
   /** 
   * @brief Get fullscreen mode 

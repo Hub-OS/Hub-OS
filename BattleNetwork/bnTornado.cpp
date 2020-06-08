@@ -48,7 +48,7 @@ bool Tornado::Move(Direction _direction) {
 
 void Tornado::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    Audio()().Play(AudioType::HURT);
+    Audio().Play(AudioType::HURT);
 
     // Todo swap out with normal buster hit fx
     Artifact* hitfx = new BusterHit(GetField(), BusterHit::Type::CHARGED);

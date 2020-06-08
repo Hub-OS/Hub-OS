@@ -19,7 +19,7 @@ CannonCardAction::CannonCardAction(Character& owner, int damage, CannonCardActio
   CannonCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
+  attachment->setTexture(Textures().LoadTextureFromFile(CANNON_PATH));
   attachment->SetLayer(-1);
 
   attachmentAnim = Animation(CANNON_ANIM);

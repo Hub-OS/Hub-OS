@@ -1,10 +1,11 @@
 #pragma once
 #include "bnSpriteProxyNode.h"
+#include "bnResourceHandle.h"
 #include "bnFont.h"
 #include "bnText.h"
 #include "bnCallback.h"
 
-class AppButton : public SceneNode {
+class AppButton : public SceneNode, public ResourceHandle {
 private:
   Callback<void()> callback;
   static Font font;

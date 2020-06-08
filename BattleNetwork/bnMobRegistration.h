@@ -213,7 +213,7 @@ inline MobRegistration::MobMeta & MobRegistration::MobMeta::SetMobClass()
     mobFactory = new T(new Field(6, 3));
 
     if (!placeholderTexture) {
-      placeholderTexture = TEXTURES.LoadTextureFromFile(GetPlaceholderTexturePath());
+      placeholderTexture = Textures().LoadTextureFromFile(GetPlaceholderTexturePath());
     }
   };
 

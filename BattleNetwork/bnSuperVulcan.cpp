@@ -21,7 +21,7 @@ SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : damage(damage)
   animation << onFinish;
   animation.Update(0, getSprite());
 
-  Audio()().Play(AudioType::GUN, AudioPriority::highest);
+  Audio().Play(AudioType::GUN, AudioPriority::highest);
 
   auto props = GetHitboxProperties();
   props.damage = damage;
@@ -45,7 +45,7 @@ bool SuperVulcan::Move(Direction _direction) {
 
 void SuperVulcan::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    Audio()().Play(AudioType::HURT);
+    Audio().Play(AudioType::HURT);
   }
 }
 

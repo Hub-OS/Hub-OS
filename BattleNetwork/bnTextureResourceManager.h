@@ -70,3 +70,5 @@ private:
   map<TextureType, CachedResource<Texture*>> textures; /**< Cache */
   map<std::string, CachedResource<Texture*>> texturesFromPath; /**< Cache for textures loaded at run-time */
 };
+
+#define LOAD_TEXTURE(x) ResourceHandle().Textures().GetTexture(TextureType::x)

@@ -87,7 +87,7 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
     animComponent->SetAnimation(animStr, [this]() {
         shine->Remove();
         fadeout = true;
-        Audio().Play(AudioType::DELETED);
+        ResourceHandle().Audio().Play(AudioType::DELETED);
     });
 
     field->AddEntity(*shine, tile->GetX(), tile->GetY());
@@ -108,7 +108,7 @@ void NaviWhiteoutState<Any>::OnUpdate(float _elapsed, Any& e) {
     e.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 
     // this makes all pixels white
-    e.SetShader(SHADERS.GetShader(ShaderType::WHITE));
+    e.SetShader(e.Shaders().GetShader(ShaderType::WHITE));
 
     if (!fadeout) return;
 

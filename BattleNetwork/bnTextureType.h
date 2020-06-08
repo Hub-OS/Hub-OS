@@ -6,9 +6,9 @@
  * @warning These have to be in order.
  * @see TextureResourceManager
 */
-enum TextureType {
+enum class TextureType : int {
   //Tiles
-  TILE_ATLAS_BLUE,
+  TILE_ATLAS_BLUE = 0,
   TILE_ATLAS_RED,
 
   //Navis

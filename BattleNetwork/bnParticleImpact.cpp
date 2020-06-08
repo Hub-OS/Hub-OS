@@ -11,7 +11,7 @@ using sf::IntRect;
 ParticleImpact::ParticleImpact(ParticleImpact::Type type) : Artifact(nullptr)
 {
   SetLayer(0);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_IMPACT_FX));
+  setTexture(Textures().GetTexture(TextureType::SPELL_IMPACT_FX));
   setScale(2.f, 2.f);
   fx = getSprite();
 

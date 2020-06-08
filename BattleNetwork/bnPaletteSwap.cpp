@@ -5,7 +5,7 @@
 
 PaletteSwap::PaletteSwap(Entity * owner, std::shared_ptr<sf::Texture> base_palette) : Component(owner), base(base_palette), enabled(true)
 {
-  paletteSwap = ShaderResourceManager::GetInstance().GetShader(ShaderType::PALETTE_SWAP);
+  paletteSwap = ResourceHandle().Shaders().GetShader(ShaderType::PALETTE_SWAP);
   paletteSwap->setUniform("palette", *base);
   paletteSwap->setUniform("texture", sf::Shader::CurrentTexture);
 }
@@ -27,7 +27,7 @@ void PaletteSwap::Inject(BattleScene &)
 
 void PaletteSwap::LoadPaletteTexture(std::string path)
 {
-  palette = TextureResourceManager::GetInstance().LoadTextureFromFile(path);
+  palette = ResourceHandle().Textures().LoadTextureFromFile(path);
   paletteSwap->setUniform("palette", *palette);
 
 }

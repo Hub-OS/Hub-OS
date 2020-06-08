@@ -34,11 +34,14 @@
  * of the app until the user quits. Afterwards all resources
  * are cleaned up.
  */
-class Game final : public swoosh::ActivityController {
+
+using swoosh::ActivityController;
+
+class Game final : public ActivityController {
 private:
   TextureResourceManager textureManager;
-  AudioResourceManager Audio()Mananger;
-  ShaderResourceManager shaderMananger;
+  AudioResourceManager audioManager;
+  ShaderResourceManager shaderManager;
 
   DrawWindow window;
   bool showScreenBars;
@@ -110,7 +113,7 @@ private:
  * Uses and std::atomic<int> pointer to keep
  * count of successfully loaded objects
  */
-  void RunAudio()Init(std::atomic<int> * progress);
+  void RunAudioInit(std::atomic<int> * progress);
 
  /*! \brief This function describes how the app behaves on focus regain
  *

@@ -98,7 +98,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   cardDesc("", cardDescFont),
   numberFont(Font::Style::small),
   numberLabel("", numberFont),
-  swoosh::Activity(&controller)
+  Scene(&controller)
 {
   // Move card data into their appropriate containers for easier management
   PlaceFolderDataIntoCardSlots();

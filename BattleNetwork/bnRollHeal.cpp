@@ -32,7 +32,7 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
 
   Audio().Play(AudioType::APPEAR);
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
+  setTexture(Textures().LoadTextureFromFile("resources/spells/spell_roll.png"), true);
 
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
@@ -143,7 +143,7 @@ void RollHeal::DropHitbox(Battle::Tile* target)
     hitbox->HighlightTile(Battle::Tile::Highlight::solid);
     hitbox->SetHitboxProperties(GetHitboxProperties());
     hitbox->AddCallback([](Character* hit) {
-        Audio().Play(AudioType::HURT);
+        ResourceHandle().Audio().Play(AudioType::HURT);
     });
     GetField()->AddEntity(*hitbox, *target);
 }

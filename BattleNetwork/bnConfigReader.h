@@ -103,7 +103,7 @@ private:
    * 
    * expects [Net] to be next
    */
-  const bool ParseAudio()(std::string buffer);
+  const bool ParseAudio(std::string buffer);
 
   /**
    * @brief Parse [Net] and settings

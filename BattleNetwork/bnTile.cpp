@@ -369,7 +369,7 @@ namespace Battle {
 
     if (doBreakState) {
       SetState(TileState::broken);
-      Audio()().Play(AudioType::PANEL_CRACK);
+      Audio().Play(AudioType::PANEL_CRACK);
     }
 
     return modified;

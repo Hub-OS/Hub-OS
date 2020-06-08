@@ -20,7 +20,7 @@ ElecPulseCardAction::ElecPulseCardAction(Character& owner, int damage) : CardAct
     ElecPulseCardAction::damage = damage;
 
     attachment = new SpriteProxyNode();
-    attachment->setTexture(TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
+    attachment->setTexture(Textures().GetTexture(TextureType::SPELL_ELEC_PULSE));
     attachment->SetLayer(-1);
 
     attachmentAnim = Animation(ANIM);

@@ -1,8 +1,12 @@
 #include "bnCustEmblem.h"
+#include "bnResourceHandle.h"
 
 CustEmblem::CustEmblem() {
+  ResourceHandle handle;
+  auto& shaders = handle.Shaders();
+
   numWires = 12;
-  wireShader = &LOAD_SHADER(BADGE_WIRE);
+  wireShader = shaders.GetShader(ShaderType::BADGE_WIRE);
   wireShader->setUniform("texture", sf::Shader::CurrentTexture);
   wireShader->setUniform("numOfWires", numWires);
 

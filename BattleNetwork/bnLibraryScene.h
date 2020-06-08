@@ -1,7 +1,7 @@
 #pragma once
 #include <Swoosh/Ease.h>
-#include <Swoosh/Activity.h>
 
+#include "bnScene.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
@@ -17,7 +17,7 @@
 /*! \brief Library scene shows a list of unique card data collected by the player 
     \warning no longer used. may not work.
 */
-class LibraryScene : public swoosh::Activity {
+class LibraryScene : public Scene {
 private:
   Camera camera;
   AnimatedTextBox textbox; /*!< Display extra card info*/

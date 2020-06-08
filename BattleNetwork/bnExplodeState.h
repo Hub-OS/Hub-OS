@@ -49,9 +49,6 @@ template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
   explosion = nullptr;
-
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-
   elapsed = 0;
 }
 
@@ -62,6 +59,8 @@ ExplodeState<Any>::~ExplodeState() {
 
 template<typename Any>
 void ExplodeState<Any>::OnEnter(Any& e) {
+  whiteout = e.Shaders().GetShader(ShaderType::WHITE);
+
   AIPriorityLock<Any> lock(e);
 
   e.SetPassthrough(true); // Shoot through dying enemies

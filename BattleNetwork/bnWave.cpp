@@ -48,7 +48,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   props.flags |= Hit::flinch;
   SetHitboxProperties(props);
 
-  Audio()().Play(AudioType::WAVE);
+  Audio().Play(AudioType::WAVE);
 
   HighlightTile(Battle::Tile::Highlight::solid);
 }

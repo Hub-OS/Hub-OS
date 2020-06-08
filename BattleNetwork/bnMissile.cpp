@@ -13,7 +13,7 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
     SetLayer(1);
 
     goingUp = true;
-    setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
+    setTexture(Textures().GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
     anim = CreateComponent<AnimationComponent>(this);
     anim->SetPath("resources/mobs/metalman/metalman.animation");

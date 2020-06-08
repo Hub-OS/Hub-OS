@@ -13,12 +13,12 @@
 #include "bnPaletteSwap.h"
 
 Megaman::Megaman() : Player() {
-  auto basePallete = TEXTURES.LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
+  auto basePallete = Textures().LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
   PaletteSwap* pswap = CreateComponent<PaletteSwap>(this, basePallete);
 
   SetHealth(900);
   SetName("Megaman");
-  setTexture(TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
   AddForm<TenguCross>()->SetUIPath("resources/navis/megaman/forms/tengu_entry.png");
   AddForm<HeatCross>()->SetUIPath("resources/navis/megaman/forms/heat_entry.png");
@@ -72,9 +72,11 @@ TenguCross::~TenguCross()
 
 void TenguCross::OnActivate(Player& player)
 {
+  ResourceHandle handle;
+
   overlayAnimation = Animation("resources/navis/megaman/forms/tengu_cross.animation");
   overlayAnimation.Load();
-  auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/tengu_cross.png");
+  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/tengu_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
@@ -144,9 +146,11 @@ HeatCross::~HeatCross()
 
 void HeatCross::OnActivate(Player& player)
 {
+  ResourceHandle handle;
+
   overlayAnimation = Animation("resources/navis/megaman/forms/heat_cross.animation");
   overlayAnimation.Load();
-  auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/heat_cross.png");
+  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/heat_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
@@ -221,9 +225,11 @@ TomahawkCross::~TomahawkCross()
 
 void TomahawkCross::OnActivate(Player& player)
 {
+  ResourceHandle handle;
+
   overlayAnimation = Animation("resources/navis/megaman/forms/hawk_cross.animation");
   overlayAnimation.Load();
-  auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/hawk_cross.png");
+  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/hawk_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);

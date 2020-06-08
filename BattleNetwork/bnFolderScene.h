@@ -1,7 +1,7 @@
 #pragma once
 #include <Swoosh/Ease.h>
-#include <Swoosh/Activity.h>
 
+#include "bnScene.h"
 #include "bnCamera.h"
 #include "bnCardFolderCollection.h"
 #include "bnInputManager.h"
@@ -29,7 +29,7 @@
  * If copying, the user is prompted to confirm
  * If editting, the user is taken to the FolderEditScene
  */
-class FolderScene : public swoosh::Activity {
+class FolderScene : public Scene {
 private:
   Camera camera;
   CardFolderCollection& collection; /*!< The entire user collection */

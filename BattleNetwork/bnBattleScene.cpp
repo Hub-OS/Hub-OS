@@ -1,4 +1,3 @@
-#include <Swoosh/ActivityController.h>
 #include "bnBattleScene.h"
 #include "bnCardLibrary.h"
 #include "bnGameOverScene.h"
@@ -11,12 +10,16 @@
 #include "bnJudgeTreeBackground.h"
 #include "bnPlayerHealthUI.h"
 #include "bnPaletteSwap.h"
+#include "bnShaderResourceManager.h"
+#include "bnAudioResourceManager.h"
+#include "bnTextureResourceManager.h"
+#include "Segues/WhiteWashFade.h"
+#include "Segues/PixelateBlackWashFade.h"
 
 // Android only headers
 #include "Android/bnTouchArea.h"
 
-#include "Segues/WhiteWashFade.h"
-#include "Segues/PixelateBlackWashFade.h"
+#include <Swoosh/ActivityController.h>
 
 // modals like card cust and battle reward slide in 12px per frame for 10 frames. 60 frames = 1 sec
 // modal slide moves 120px in 1/6th of a second
@@ -29,7 +32,7 @@
 #define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
 BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, CardFolder* folder) :
-  swoosh::Activity(&controller),
+  Scene(&controller),
   player(player),
   mob(mob),
   lastMobSize(mob->GetMobCount()),
@@ -38,13 +41,13 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   isChangingForm(false),
   isAnimatingFormChange(false),
   comboDeleteCounter(0),
-  pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
-  whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
-  yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
-  customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
-  heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
-  iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
-  distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
+  pauseShader(*Shaders().GetShader(ShaderType::BLACK_FADE)),
+  whiteShader(*Shaders().GetShader(ShaderType::WHITE_FADE)),
+  yellowShader(*Shaders().GetShader(ShaderType::YELLOW)),
+  customBarShader(*Shaders().GetShader(ShaderType::CUSTOM_BAR)),
+  heatShader(*Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
+  iceShader(*Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
+  distortionMap(*Textures().GetTexture(TextureType::HEAT_TEXTURE)),
   summons(player),
   cardListener(*player),
   // cap of 8 cards, 8 cards drawn per turn
@@ -183,7 +186,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   pauseLabel.setPosition(sf::Vector2f(240.f, 160.f));
 
   // CHIP CUST GRAPHICS
-  customBarTexture = TEXTURES.LoadTextureFromFile("resources/ui/custom.png");
+  customBarTexture = Textures().LoadTextureFromFile("resources/ui/custom.png");
   customBarSprite.setTexture(customBarTexture);
   customBarSprite.setOrigin(customBarSprite.getLocalBounds().width / 2, 0);
   customBarPos = sf::Vector2f(240.f, 0.f);
@@ -495,7 +498,7 @@ void BattleScene::onUpdate(double elapsed) {
             player->ActivateFormAt(lastSelectedForm);
             Audio().Play(AudioType::SHINE);
 
-            player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+            player->SetShader(Shaders().GetShader(ShaderType::WHITE));
 
             // Activating the form will add NEW child nodes onto our character
             // TODO: There's got to be a more optimal search than this...

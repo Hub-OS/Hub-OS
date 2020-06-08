@@ -287,7 +287,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
     if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
       gotoNextScene = true;
-      Audio()().Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
 
       getController().queuePop<swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>>();
@@ -378,7 +378,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
   // Make a selection
   if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && currentChosen != naviSelectionIndex) {
-    Audio()().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
+    Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
     prevChosen = currentChosen;
     naviSelectionIndex = currentChosen;
   }

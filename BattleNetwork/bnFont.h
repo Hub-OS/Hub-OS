@@ -1,11 +1,12 @@
 #pragma once
 #include "bnSceneNode.h"
 #include "bnAnimation.h"
+#include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 
 #include <memory>
 
-class Font
+class Font : ResourceHandle
 {
 public:
   enum class Style : int {

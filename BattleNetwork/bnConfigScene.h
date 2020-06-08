@@ -1,8 +1,7 @@
 #pragma once
 
 #pragma once
-#include <Swoosh/Activity.h>
-
+#include "bnScene.h"
 #include "bnMainMenuScene.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
@@ -23,7 +22,7 @@
 
     This could use a redesign (and re-code)
 */
-class ConfigScene : public swoosh::Activity {
+class ConfigScene : public Scene {
 private:
   ConfigSettings configSettings;
   ConfigSettings::KeyboardHash keyHash;
@@ -34,7 +33,7 @@ private:
   // ui sprite maps
   Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
   Animation endBtnAnimator;
-  Animation Audio()Animator;
+  Animation AudioAnimator;
   int menuSelectionIndex;; /*!< Current selection */
   int lastMenuSelectionIndex;
   int maxMenuSelectionIndex; 
@@ -43,7 +42,7 @@ private:
 
   sf::Sprite overlay; /*!< PET */
   sf::Sprite gba;
-  sf::Sprite Audio()BGM,Audio()SFX;
+  sf::Sprite AudioBGM,AudioSFX;
   sf::Sprite hint;
   sf::Sprite endBtn;
 
@@ -53,8 +52,8 @@ private:
   bool inGamepadList;
   bool inKeyboardList;
   bool inLoginMenu;
-  int Audio()ModeBGM;
-  int Audio()ModeSFX;
+  int AudioModeBGM;
+  int AudioModeSFX;
 
   Background* bg;
 

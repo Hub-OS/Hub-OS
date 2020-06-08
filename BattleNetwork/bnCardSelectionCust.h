@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Swoosh/Ease.h"
-
-#include <SFML/Graphics.hpp>
+#include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnCardFolder.h"
@@ -13,13 +11,16 @@
 #include "bnSceneNode.h"
 #include "bnPlayerForm.h"
 
+#include <SFML/Graphics.hpp>
+#include <Swoosh/Ease.h>
+
 /**
  * @class CardSelectionCust
  * @author mav
  * @date 05/05/19
  * @brief Cardcust GUI used in battle. Can be interacted through public API.
  */
-class CardSelectionCust : public SceneNode {
+class CardSelectionCust : public SceneNode, public ResourceHandle {
 public:
   /**
    * @struct Bucket

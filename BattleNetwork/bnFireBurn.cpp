@@ -7,7 +7,7 @@
 FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(damage), Spell(_field, _team) {
   SetLayer(-1);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_FIREBURN));
+  setTexture(Textures().GetTexture(TextureType::SPELL_FIREBURN));
   setScale(2.f, 2.f);
 
   //When the animation ends, delete this

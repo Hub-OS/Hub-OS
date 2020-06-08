@@ -8,12 +8,15 @@
 #pragma once
 
 // Register these navis
+#include "bnResourceHandle.h"
 #include "bnMegaman.h"
 #include "bnStarman.h"
 #include "bnRoll.h"
 #include "bnForte.h"
 
 void QueuNaviRegistration() {
+  ResourceHandle handle;
+
   /*********************************************************************
   **********            Register megaman            ********************
   **********************************************************************/
@@ -22,7 +25,7 @@ void QueuNaviRegistration() {
 
 
   // THIS IS OK B/C WE'RE LOADING FROM FILE NOT OUR RESOURCES- this should be taken out later
-  megamanInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/megaman/preview.png"));
+  megamanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/megaman/preview.png"));
 
   megamanInfo->SetOverworldAnimationPath("resources/navis/megaman/megaman.animation");
   megamanInfo->SetSpeed(1);
@@ -34,7 +37,7 @@ void QueuNaviRegistration() {
   rollInfo->SetSpecialDescription("High HP and quick to recover from hits. FloatShoe enabled.");
 
   // THIS IS OK B/C WE'RE LOADING FROM FILE NOT OUR RESOURCES- this should be taken out later
-  rollInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/roll/preview.png"));
+  rollInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/preview.png"));
 
   rollInfo->SetOverworldAnimationPath("resources/navis/roll/roll.animation");
   rollInfo->SetSpeed(2);
@@ -46,7 +49,7 @@ void QueuNaviRegistration() {
   starmanInfo->SetSpecialDescription("Fastest navi w/ rapid fire");
 
   // THIS IS OK B/C WE'RE LOADING FROM FILE NOT OUR RESOURCES- this should be taken out later
-  starmanInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/starman/preview.png"));
+  starmanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/starman/preview.png"));
 
   starmanInfo->SetOverworldAnimationPath("resources/navis/starman/starman.animation");
   starmanInfo->SetSpeed(3);
@@ -58,7 +61,7 @@ void QueuNaviRegistration() {
   forteInfo->SetSpecialDescription("Literally too angry to die. Spawns with aura.");
 
   // THIS IS OK B/C WE'RE LOADING FROM FILE NOT OUR RESOURCES- this should be taken out later
-  forteInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/forte/preview.png"));
+  forteInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/preview.png"));
 
   forteInfo->SetOverworldAnimationPath("resources/navis/forte/forte.animation");
   forteInfo->SetSpeed(2);

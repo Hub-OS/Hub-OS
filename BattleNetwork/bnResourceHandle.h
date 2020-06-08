@@ -13,27 +13,43 @@ class ResourceHandle {
 
 private:
   static TextureResourceManager* textures;
-  static AudioResourceManager* Audio();
+  static AudioResourceManager* audio;
   static ShaderResourceManager* shaders;
   //static FileResourceMananger* files;
   //static InputManager* input;
 
 public:
   TextureResourceManager& Textures() { 
-    assert(textures != nullptr, "texture resource manager was nullptr!");  
+    assert(textures != nullptr && "texture resource manager was nullptr!");  
     return *textures; 
   }
-  AudioResourceManager& Audio()() {
-    assert(Audio() != nullptr, "Audio() resource manager was nullptr!");
-    return *Audio(); 
+  AudioResourceManager& Audio() {
+    assert(audio != nullptr && "audio resource manager was nullptr!");
+    return *audio; 
   }
 
   ShaderResourceManager& Shaders() { 
-    assert(shaders != nullptr, "shader resource manager was nullptr!");
+    assert(shaders != nullptr && "shader resource manager was nullptr!");
     return *shaders; 
+  }
+
+  // const-qualified functions
+
+  TextureResourceManager& Textures() const {
+    assert(textures != nullptr && "texture resource manager was nullptr!");
+    return *textures;
+  }
+  AudioResourceManager& Audio() const {
+    assert(audio != nullptr && "audio resource manager was nullptr!");
+    return *audio;
+  }
+
+  ShaderResourceManager& Shaders() const {
+    assert(shaders != nullptr && "shader resource manager was nullptr!");
+    return *shaders;
   }
 };
 
 TextureResourceManager* ResourceHandle::textures = nullptr;
-AudioResourceManager  * ResourceHandle::Audio()    = nullptr;
+AudioResourceManager  * ResourceHandle::audio    = nullptr;
 ShaderResourceManager * ResourceHandle::shaders  = nullptr;

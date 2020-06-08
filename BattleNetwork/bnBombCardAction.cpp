@@ -13,7 +13,7 @@ BombCardAction::BombCardAction(Character& user, int damage) : CardAction(user, "
   BombCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
+  attachment->setTexture(Textures().GetTexture(TextureType::SPELL_MINI_BOMB));
   attachment->SetLayer(-1);
   swoosh::game::setOrigin(attachment->getSprite(), 0.5, 0.5);
 

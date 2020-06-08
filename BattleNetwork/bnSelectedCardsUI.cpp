@@ -18,7 +18,7 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UICompon
   icon.setTextureRect(sf::IntRect(0, 0, 14, 14));
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
-  frame.setTexture(TEXTURES.GetTexture(CHIP_FRAME));
+  frame.setTexture(Textures().GetTexture(CHIP_FRAME));
   frame.setScale(sf::Vector2f(2.f, 2.f));
 
   interpolTimeFlat = interpolTimeDest = 0;

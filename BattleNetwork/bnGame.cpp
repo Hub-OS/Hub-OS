@@ -29,18 +29,18 @@
 #include <Swoosh/Ease.h>
 
 Game::Game() 
-  : window(DrawWindow::WindowMode::window), 
+  : window(), 
   reader("config.ini"),
   configSettings(),
   textureManager(),
-  Audio()Mananger(),
-  shaderMananger(),
-  swoosh::ActivityController(*window.GetRenderWindow()) {
+  audioManager(),
+  shaderManager(),
+  ActivityController(*window.GetRenderWindow()) {
 
   // Link the resource handle to use all the manangers created by the game
-  ResourceHandle::Audio()    = &Audio()Mananger;
+  ResourceHandle::audio    = &audioManager;
   ResourceHandle::textures = &textureManager;
-  ResourceHandle::shaders  = &shaderMananger;
+  ResourceHandle::shaders  = &shaderManager;
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -67,11 +67,13 @@ void Game::Boot()
 
   Logger::Logf("Engine initialized: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 
+  atomic<int> progress(0);
+
   Callback<void()> graphics;
   graphics.Slot(std::bind(&Game::RunGraphicsInit, this, &progress));
 
   Callback<void()> Audio();
-  Audio().Slot(std::bind(&Game::RunAudio()Init, this, &progress));
+  Audio().Slot(std::bind(&Game::RunAudioInit, this, &progress));
 
   Callback<void()> shaders;
   //Callback<void> scripts;
@@ -88,7 +90,6 @@ void Game::Boot()
   tasks.AddTask("Init shaders", shaders);
   tasks.AddTask("Load Navis", navis);
   tasks.AddTask("Load mobs", mobs);
-  tasks.AddTask("")
 
   // Tell the input event loop how to behave when the app loses and regains focus
   INPUT.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
@@ -99,9 +100,9 @@ void Game::Boot()
   if (configSettings.IsOK()) {
     // If the file is good, use the Audio() and 
     // controller settings from the config
-    Audio()Mananger.EnableAudio()(reader.GetConfigSettings().IsAudio()Enabled());
-    Audio()Mananger.SetStreamVolume(((reader.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
-    Audio()Mananger.SetChannelVolume(((reader.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
+    audioManager.EnableAudio(reader.GetConfigSettings().IsAudioEnabled());
+    audioManager.SetStreamVolume(((reader.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
+    audioManager.SetChannelVolume(((reader.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
   }
 
   mouse.setTexture(textureManager.LoadTextureFromFile("resources/ui/mouse.png"));
@@ -216,31 +217,31 @@ void Game::RunGraphicsInit(std::atomic<int> * progress) {
   Logger::Logf("Loaded textures: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 
   begin_time = clock();
-  shaderMananger.LoadAllShaders(*progress);
+  shaderManager.LoadAllShaders(*progress);
 
   Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
-void Game::RunAudio()Init(std::atomic<int> * progress) {
+void Game::RunAudioInit(std::atomic<int> * progress) {
   const clock_t begin_time = clock();
-  Audio()Mananger.LoadAllSources(*progress);
+  audioManager.LoadAllSources(*progress);
 
   Logger::Logf("Loaded Audio() sources: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::GainFocus() {
   window.RegainFocus();
-  Audio()Mananger.EnableAudio()(true);
+  audioManager.EnableAudio(true);
 
 #ifdef __ANDROID__
   // TODO: Reload all graphics and somehow reassign all gl IDs to all allocated sfml graphics structures
-  // TEXTURES.RecoverLostGLContext();
+  // Textures().RecoverLostGLContext();
   // ENGINE.RecoverLostGLContext(); // <- does the window need recreation too?
 #endif
 }
 
 void Game::LoseFocus() {
-  Audio()Mananger.EnableAudio()(false);
+  audioManager.EnableAudio(false);
 }
 
 void Game::Resize(int newWidth, int newHeight) {

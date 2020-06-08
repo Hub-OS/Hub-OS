@@ -1,7 +1,7 @@
 #pragma once
 #include <Swoosh/Ease.h>
-#include <Swoosh/Activity.h>
 
+#include "bnScene.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
@@ -26,7 +26,7 @@
  * Before leaving the user is prompted to save changes
  */
  
-class FolderEditScene : public swoosh::Activity {
+class FolderEditScene : public Scene {
 private:
   enum class ViewMode : int {
     FOLDER,

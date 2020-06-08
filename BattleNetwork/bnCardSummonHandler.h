@@ -208,7 +208,7 @@ public:
       if (tile) {
         summonedBy->GetField()->AddEntity(*cube, tile->GetX(), tile->GetY());
 
-        Audio()().Play(AudioType::APPEAR);
+        Audio().Play(AudioType::APPEAR);
 
         // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
         SummonEntity(cube, true);
@@ -288,12 +288,12 @@ public:
       NinjaAntiDamage* antidamage = new NinjaAntiDamage(summonedBy);
       summonedBy->RegisterComponent(antidamage);
 
-      Audio()().Play(AudioType::APPEAR);
+      Audio().Play(AudioType::APPEAR);
     }
     else if (summon == "Barrier") {
       Aura* aura = new Aura(Aura::Type::BARRIER_10, summonedBy);
 
-      Audio()().Play(AudioType::APPEAR);
+      Audio().Play(AudioType::APPEAR);
     }
   }
 

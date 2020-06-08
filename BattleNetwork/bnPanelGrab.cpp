@@ -8,7 +8,7 @@
 PanelGrab::PanelGrab(Field* _field, Team _team, float _duration) : duration(_duration), Spell(_field, _team) {
   SetLayer(0);
   
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_AREAGRAB));
+  setTexture(Textures().GetTexture(TextureType::SPELL_AREAGRAB));
   setScale(2.f, 2.f);
 
   progress = 0.0f;

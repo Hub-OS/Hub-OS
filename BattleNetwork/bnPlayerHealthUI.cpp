@@ -10,14 +10,15 @@ using std::to_string;
 PlayerHealthUI::PlayerHealthUI(Player* _player)
   : player(_player), UIComponent(_player) 
 {
-  
+  ResourceHandle handle;
+
   // TODO: move this to the preloaded textures      
-  texture = TEXTURES.LoadTextureFromFile("resources/ui/img_health.png");
+  texture = handle.Textures().LoadTextureFromFile("resources/ui/img_health.png");
   uibox.setTexture(texture);
   uibox.setPosition(3.f, 0.0f);
   uibox.setScale(2.f, 2.f);
 
-  glyphs.setTexture(LOAD_TEXTURE(PLAYER_HP_NUMSET));
+  glyphs.setTexture(handle.Textures().GetTexture(TextureType::PLAYER_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 
   lastHP = currHP = startHP = _player->GetHealth();
@@ -156,7 +157,7 @@ void PlayerHealthUI::OnUpdate(float elapsed) {
 
       // If HP is low, play beep with high priority 
       if (player->GetHealth() <= startHP * 0.5 && !isBattleOver) {
-        Audio().Play(AudioType::LOW_HP, AudioPriority::high);
+        ResourceHandle().Audio().Play(AudioType::LOW_HP, AudioPriority::high);
       }
     } else if (currHP < player->GetHealth()) {
       color = Color::green;

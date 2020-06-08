@@ -1,9 +1,6 @@
 #pragma once
 
-#include <Swoosh/Activity.h>
-#include <Swoosh/Ease.h>
-#include <Swoosh/Timer.h>
-
+#include "bnScene.h"
 #include "bnMettaur.h"
 #include "bnProgsMan.h"
 #include "bnBackground.h"
@@ -33,6 +30,8 @@
 #include <time.h>
 #include <typeinfo>
 #include <SFML/Graphics.hpp>
+#include <Swoosh/Ease.h>
+#include <Swoosh/Timer.h>
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -73,7 +72,7 @@ class PlayerHealthUI;
  * This will drastically clean the code up and allow for new custom states. 
  * Custom scenes could include beast-out mode state, dialog state for talking, damage counter state, etc.
  */
-class BattleScene : public swoosh::Activity, public CounterHitListener, public CharacterDeleteListener {
+class BattleScene : public Scene, public CounterHitListener, public CharacterDeleteListener {
 private:
   /*
   Program Advance + labels

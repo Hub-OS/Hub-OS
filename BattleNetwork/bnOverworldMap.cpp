@@ -1,5 +1,8 @@
 #include "bnOverworldMap.h"
 #include "bnGame.h"
+#include "bnTextureResourceManager.h"
+#include "bnResourceHandle.h"
+
 #include <cmath>
 
 namespace Overworld {
@@ -7,25 +10,12 @@ namespace Overworld {
 
     // We must have one for the origin
     sf::Uint8 lighten = 255;
-    //lights.push_back(new Light(sf::Vector2f(0, 0), sf::Color(lighten, lighten, lighten, 255), 100));
-
     enableLighting = false;
-
-    // std::cout << "num of lights: " << lights.size() << "\n";
-
     cam = nullptr;
   }
 
   void Map::ToggleLighting(bool state) {
     enableLighting = state;
-
-    /*if (!enableLighting) {
-      for (int i = 0; i < lights.size(); i++) {
-        delete lights[i];
-      }
-
-      lights.clear();
-    }*/
   }
 
   const sf::Vector2f Map::ScreenToWorld(sf::Vector2f screen) const
@@ -90,6 +80,8 @@ namespace Overworld {
   }
 
   void Map::DrawTiles(sf::RenderTarget& target, sf::RenderStates states) const {
+    const ResourceHandle handle;
+
     for (int i = 0; i < map.size(); i++) {
       sf::Sprite tileSprite(map[i]->GetTexture());
 
@@ -174,7 +166,7 @@ namespace Overworld {
 
     if (cam) {
       for (int i = 0; i < lights.size() && enableLighting; i++) {
-        sf::Sprite originTest(*TEXTURES.GetTexture(TextureType::LIGHT));
+        sf::Sprite originTest(*handle.Textures().GetTexture(TextureType::LIGHT));
 
         sf::Vector2f pos = lights[i]->GetPosition();
 

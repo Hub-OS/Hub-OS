@@ -20,7 +20,7 @@ FireBurnCardAction::FireBurnCardAction(Character& user, FireBurn::Type type, int
   FireBurnCardAction::type = type;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  attachment->setTexture(Textures().LoadTextureFromFile(PATH));
   attachment->SetLayer(-1);
 
   attachmentAnim = Animation(ANIM);

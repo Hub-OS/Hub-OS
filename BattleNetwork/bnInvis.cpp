@@ -6,7 +6,7 @@
 Invis::Invis(Entity* owner) : Component(owner) {
   duration = sf::seconds(15);
   elapsed = 0;
-  Audio().Play(AudioType::INVISIBLE);
+  ResourceHandle().Audio().Play(AudioType::INVISIBLE);
   defense = new DefenseInvis();
   
   auto character = GetOwnerAs<Character>();

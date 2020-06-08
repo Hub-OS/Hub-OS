@@ -33,7 +33,7 @@ void AppButton::Slot(const Callback<void()> callback)
 void AppButton::draw(sf::RenderTarget & target, sf::RenderStates states) const
 {
   states.transform *= getTransform();
-  states.shader = SHADERS.GetShader(ShaderType::COLORIZE);
+  states.shader = Shaders().GetShader(ShaderType::COLORIZE);
 
   edge.setScale(2.f, 2.f);
   edge.setPosition(0, 0);

@@ -1,12 +1,11 @@
 #pragma once
+#include "bnScene.h"
 #include "bnGame.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnFont.h"
 #include "bnText.h"
-
 #include "bnAnimation.h"
-#include <Swoosh/Activity.h>
 
 /**
  * @class FolderChangeNameScene
@@ -16,7 +15,9 @@
  *
  * Modifies target folder in the input collection
  */
-class FolderChangeNameScene : public swoosh::Activity {
+using namespace swoosh;
+
+class FolderChangeNameScene : public Scene {
 private:
   sf::Sprite bg; /*!< Most of the elements on the screen are static */
   bool leave; /*!< Scene state coming/going flag */

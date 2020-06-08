@@ -3,9 +3,9 @@
 * @warning These have to be in order.
 * @see AudioResourceManager
 */
-enum AudioType {
+enum class AudioType : int {
   // In-battle SFX
-  APPEAR,
+  APPEAR = 0,
   AREA_GRAB,
   AREA_GRAB_TOUCHDOWN,
   BUSTER_PEA,

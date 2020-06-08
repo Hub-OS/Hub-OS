@@ -72,8 +72,8 @@ void FolderChangeNameScene::DoEND()
   leave = true;
 }
 
-FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& controller, std::string& folderName) 
-  : swoosh::Activity(&controller), folderName(folderName), font(Font::Style::small), nameLabel("", font) {
+FolderChangeNameScene::FolderChangeNameScene(ActivityController& controller, std::string& folderName) 
+  : Scene(&controller), folderName(folderName), font(Font::Style::small), nameLabel("", font) {
   
   leave = true;
   // folder menu graphic
@@ -283,7 +283,7 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(cursorPieceLeft);
   ENGINE.Draw(cursorPieceRight);
 
-  auto blink = int(elapsed * 3000) % 1000 < 500;
+  int blink = int(elapsed * 3000) % 1000 < 500;
 
   for (int i = 0; i < name.size(); i++) {
     if(i == letterPos && blink)

@@ -35,7 +35,7 @@ void AirShotCardAction::OnExecute() {
   auto onFire = [this]() -> void {
     auto& user = GetUser();
 
-    Audio()().Play(AudioType::SPREADER);
+    Audio().Play(AudioType::SPREADER);
 
     AirShot* airshot = new AirShot(user.GetField(), user.GetTeam(), damage);
     airshot->SetDirection(Direction::right);

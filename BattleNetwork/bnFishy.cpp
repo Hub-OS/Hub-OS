@@ -9,7 +9,7 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   field = _field;
   hit = false;
   
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/spells/fishy_temp.png"));
   setScale(2.f, 2.f);
   // why do we need to do this??
   // The super constructor is failing to set this value

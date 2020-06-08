@@ -9,7 +9,7 @@ const constexpr int ACTIONS   = 1; // Second column is actions within that menu
 const constexpr int BOUNDKEYS = 2; // Third column is used for bound keys
 
 ConfigScene::ConfigScene(swoosh::ActivityController &controller) : 
-    textbox(sf::Vector2f(4,250)), swoosh::Activity(&controller)
+    textbox(sf::Vector2f(4,250)), Scene(&controller)
 {
     textbox.SetTextSpeed(2.0);
     isSelectingTopMenu = inGamepadList = inKeyboardList = false;
@@ -26,8 +26,8 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
     endBtnAnimator = Animation("resources/scenes/config/end_btn.animation");
     endBtnAnimator.Load();
 
-    Audio()Animator = Animation("resources/scenes/config/Audio().animation");
-    Audio()Animator.Load();
+    AudioAnimator = Animation("resources/scenes/config/Audio().animation");
+    AudioAnimator.Load();
 
     auto sprite = sf::Sprite(*LOAD_TEXTURE(FONT));
     sprite.setScale(2.f, 2.f);
@@ -35,17 +35,17 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
     uiSprite = sprite;
 
     // Audio() button
-    Audio()BGM =  sf::Sprite(*LOAD_TEXTURE(Audio_ICO));
-    Audio()BGM.setScale(2.f, 2.f);
+    AudioBGM =  sf::Sprite(*LOAD_TEXTURE(Audio_ICO));
+    AudioBGM.setScale(2.f, 2.f);
 
-    Audio()Animator.SetAnimation("DEFAULT");
-    Audio()Animator.Update(4, Audio()BGM);
-    Audio()BGM.setPosition(2*3, 2*140);
+    AudioAnimator.SetAnimation("DEFAULT");
+    AudioAnimator.Update(4, AudioBGM);
+    AudioBGM.setPosition(2*3, 2*140);
 
-    Audio()SFX = Audio()BGM;
-    Audio()Animator.SetAnimation("DEFAULT");
-    Audio()Animator.Update(4, Audio()BGM);
-    Audio()SFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
+    AudioSFX = AudioBGM;
+    AudioAnimator.SetAnimation("DEFAULT");
+    AudioAnimator.Update(4, AudioBGM);
+    AudioSFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
 
     // end button
     endBtn = sf::Sprite(*LOAD_TEXTURE(END_BTN));;
@@ -151,12 +151,12 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
 
     menuSelectionIndex = lastMenuSelectionIndex = 1; // select first item
 
-    Audio()ModeBGM = configSettings.GetMusicLevel();
-    Audio()ModeSFX = configSettings.GetSFXLevel();
+    AudioModeBGM = configSettings.GetMusicLevel();
+    AudioModeSFX = configSettings.GetSFXLevel();
 
-    Audio()Animator.SetAnimation("DEFAULT");
-    Audio()Animator.SetFrame(Audio()ModeBGM + 1, Audio()BGM);
-    Audio()Animator.SetFrame(Audio()ModeSFX + 1, Audio()SFX);
+    AudioAnimator.SetAnimation("DEFAULT");
+    AudioAnimator.SetFrame(AudioModeBGM + 1, AudioBGM);
+    AudioAnimator.SetFrame(AudioModeSFX + 1, AudioSFX);
 
     colIndex = 0; maxCols = 3; // [options] [actions] [key]
 }
@@ -363,19 +363,19 @@ void ConfigScene::onUpdate(double elapsed)
     else if (hasConfirmed) {
       // bg Audio()
       if (menuSelectionIndex == 0 && colIndex == 0) {
-        Audio()ModeBGM = (Audio()ModeBGM+1) % 4;
-        Audio().SetStreamVolume (((Audio()ModeBGM)/3.0f)*100.0f);
-        Audio()Animator.SetAnimation("DEFAULT");
-        Audio()Animator.SetFrame(Audio()ModeBGM + 1, Audio()BGM);
-        configSettings.SetMusicLevel(Audio()ModeBGM);
+        AudioModeBGM = (AudioModeBGM+1) % 4;
+        Audio().SetStreamVolume (((AudioModeBGM)/3.0f)*100.0f);
+        AudioAnimator.SetAnimation("DEFAULT");
+        AudioAnimator.SetFrame(AudioModeBGM + 1, AudioBGM);
+        configSettings.SetMusicLevel(AudioModeBGM);
       }
       else if (menuSelectionIndex == 1 && colIndex == 0) {
-        Audio()ModeSFX = (Audio()ModeSFX + 1) % 4;
-        Audio().SetChannelVolume(((Audio()ModeSFX) / 3.0f)*100.0f);
-        Audio()Animator.SetAnimation("DEFAULT");
-        Audio()Animator.SetFrame(Audio()ModeSFX + 1, Audio()SFX);
+        AudioModeSFX = (AudioModeSFX + 1) % 4;
+        Audio().SetChannelVolume(((AudioModeSFX) / 3.0f)*100.0f);
+        AudioAnimator.SetAnimation("DEFAULT");
+        AudioAnimator.SetFrame(AudioModeSFX + 1, AudioSFX);
         Audio().Play(AudioType::BUSTER_PEA);
-        configSettings.SetSFXLevel(Audio()ModeSFX);
+        configSettings.SetSFXLevel(AudioModeSFX);
       }
       else if (menuSelectionIndex == 2 && colIndex == 0) {
         // TODO: Shader Toggle
@@ -563,8 +563,8 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
 
   ENGINE.Draw(endBtn);
 
-  ENGINE.Draw(Audio()BGM);
-  ENGINE.Draw(Audio()SFX);
+  ENGINE.Draw(AudioBGM);
+  ENGINE.Draw(AudioSFX);
 
   // Draw options
   DrawMenuOptions();
@@ -592,15 +592,15 @@ void ConfigScene::DrawMenuOptions()
 
     for (auto ui : uiList[i]) {
       if (ui.label == "Audio_BGM") {
-        Audio()BGM.setScale(ui.scale);
-        Audio()BGM.setPosition(ui.position.x, ui.position.y);
-        Audio()BGM.setColor(sf::Color(255, 0, 255, ui.alpha));
+        AudioBGM.setScale(ui.scale);
+        AudioBGM.setPosition(ui.position.x, ui.position.y);
+        AudioBGM.setColor(sf::Color(255, 0, 255, ui.alpha));
 
       }
       else if (ui.label == "Audio_SFX") {
-        Audio()SFX.setScale(ui.scale);
-        Audio()SFX.setPosition(ui.position.x, ui.position.y);
-        Audio()SFX.setColor(sf::Color(10, 165, 255, ui.alpha));
+        AudioSFX.setScale(ui.scale);
+        AudioSFX.setPosition(ui.position.x, ui.position.y);
+        AudioSFX.setColor(sf::Color(10, 165, 255, ui.alpha));
 
       }
       else {

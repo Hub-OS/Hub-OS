@@ -12,7 +12,7 @@ AudioResourceManager::AudioResourceManager() {
 
   sources = new sf::SoundBuffer[AudioType::AUDIO_TYPE_SIZE];
 
-  for (int i = 0; i < AUDIO_TYPE_SIZE; i++) {
+  for (int i = 0; i < AudioType::AUDIO_TYPE_SIZE; i++) {
     sources[i] = sf::SoundBuffer();
   }
 
@@ -33,7 +33,7 @@ AudioResourceManager::~AudioResourceManager() {
   delete[] sources;
 }
 
-void AudioResourceManager::EnableAudio()(bool status) {
+void AudioResourceManager::EnableAudio(bool status) {
   isEnabled = status;
 
   if(isEnabled) {
@@ -100,7 +100,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
   std::scoped_lock lock(mutex);
 
-  if (!sources[type].loadFromFile(path)) {
+  if (!sources[static_cast<int>(type)].loadFromFile(path)) {
     Logger::Logf("Failed loading Audio(): %s\n", path.c_str());
 
   } else {

@@ -106,7 +106,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
  
   isRevealed = false;
 
-  resultsSprite = sf::Sprite(*TEXTURES.GetTexture(TextureType::BATTLE_RESULTS_FRAME));
+  resultsSprite = sf::Sprite(*Textures().GetTexture(TextureType::BATTLE_RESULTS_FRAME));
   resultsSprite.setScale(2.f, 2.f);
   resultsSprite.setPosition(-resultsSprite.getTextureRect().width*2.f, 20.f);
 
@@ -131,7 +131,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
     }
   }
   else {
-    rewardCard = sf::Sprite(*TEXTURES.GetTexture(TextureType::BATTLE_RESULTS_NODATA));
+    rewardCard = sf::Sprite(*Textures().GetTexture(TextureType::BATTLE_RESULTS_NODATA));
   }
 
   rewardCard.setScale(2.f, 2.f);

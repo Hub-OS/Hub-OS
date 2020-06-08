@@ -71,7 +71,7 @@ FadeInState<Any>::~FadeInState() {
 template<typename Any>
 void FadeInState<Any>::OnEnter(Any& e) {
   // play iconic fade in sound
-  Audio()().Play(AudioType::APPEAR);
+  e.Audio().Play(AudioType::APPEAR);
 
   e.setColor(sf::Color(255, 255, 255, 0));
 }

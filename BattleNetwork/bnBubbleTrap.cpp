@@ -9,7 +9,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : SpriteProxyNode(), Component(owner)
+BubbleTrap::BubbleTrap(Character* owner) : SpriteProxyNode(), Component(owner), ResourceHandle()
 {
   // Bubbles have to pop when hit
   defense = new DefenseBubbleWrap();
@@ -23,7 +23,7 @@ BubbleTrap::BubbleTrap(Character* owner) : SpriteProxyNode(), Component(owner)
   }
 
   SetLayer(1);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BUBBLE_TRAP));
+  setTexture(Textures().GetTexture(TextureType::SPELL_BUBBLE_TRAP));
   setScale(2.f, 2.f);
   bubble = getSprite();
 

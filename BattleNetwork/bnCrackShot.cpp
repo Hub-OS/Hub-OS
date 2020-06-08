@@ -10,7 +10,7 @@ CrackShot::CrackShot(Field* _field, Team _team, Battle::Tile* tile) : Spell(_fie
 
   SetLayer(-1);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_CRACKSHOT));
+  setTexture(Textures().GetTexture(TextureType::SPELL_CRACKSHOT));
   setScale(2.f, 2.f);
 
   // 8 frames = 0.1 seconds

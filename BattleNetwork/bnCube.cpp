@@ -19,7 +19,7 @@ Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), InstanceCountingT
   SetHealth(200);
   timer = 100;
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
+  whiteout = Shaders().GetShader(ShaderType::WHITE);
 
   SetSlideTime(sf::seconds(1.0f / 5.0f)); // 1/5 of 60 fps = 12 frames
 

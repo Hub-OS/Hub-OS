@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <array> 
 
+#include "bnResourceHandle.h"
 #include "bnText.h"
 #include "bnFont.h"
 
@@ -18,7 +19,7 @@ class BattleItem;
  * 
  * Exposes an API to interact with the modal
  */
-class BattleResults {
+class BattleResults : public ResourceHandle {
 private:
   sf::Sprite resultsSprite; /*!< This modals graphic */
   sf::Sprite rewardCard; /*!< Reward card graphics */

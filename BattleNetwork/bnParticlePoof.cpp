@@ -11,7 +11,7 @@ using sf::IntRect;
 ParticlePoof::ParticlePoof() : Artifact(nullptr)
 {
   SetLayer(0);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_POOF));
+  setTexture(Textures().GetTexture(TextureType::SPELL_POOF));
   setScale(2.f, 2.f);
   poof = getSprite();
 
