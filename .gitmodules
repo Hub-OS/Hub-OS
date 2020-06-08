@@ -3,7 +3,7 @@
 	url = https://github.com/TheMaverickProgrammer/Swoosh.git
 [submodule "extern/SFML"]
 	path = extern/SFML
-	url = https://github.com/SFML/SFML.git
+	url = https://github.com/TheMaverickProgrammer/SFML_ANDROID_ES_2
 [submodule "breathe"]
 	path = breathe
 	url = https://github.com/michaeljones/breathe.git
