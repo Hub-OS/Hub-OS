@@ -43,8 +43,8 @@ const bool ConfigReader::ParseDiscord(std::string buffer) {
     Trim(line);
 
 
-    if (line.find("[Audio]") != std::string::npos) {
-        return ParseAudio(buffer);
+    if (line.find("[Audio()]") != std::string::npos) {
+        return ParseAudio()(buffer);
     }
 
     if (line.find("User") != std::string::npos) {
@@ -64,7 +64,7 @@ const bool ConfigReader::ParseDiscord(std::string buffer) {
   return false;
 }
 
-const bool ConfigReader::ParseAudio(std::string buffer) {
+const bool ConfigReader::ParseAudio()(std::string buffer) {
   int endline = 0;
 
   do {

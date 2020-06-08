@@ -52,7 +52,7 @@ void RollHeart::OnUpdate(float _elapsed) {
   if (height <= 0) height = 0;
 
   if (height == 0 && doOnce) {
-    AUDIO.Play(AudioType::RECOVER);
+    Audio().Play(AudioType::RECOVER);
     doOnce = false;
 
     Delete();

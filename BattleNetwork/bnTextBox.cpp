@@ -1,4 +1,6 @@
 #include "bnTextBox.h"
+#include "bnAudioResourceManager.h"
+#include "bnTextureResourceManager.h"
 
 void TextBox::FormatToFit() {
   if (message.empty())
@@ -219,7 +221,7 @@ void TextBox::Update(const double elapsed) {
     return;
   }
 
-  // Without this, the audio would play numerous times per frame and sounds bad
+  // Without this, the Audio() would play numerous times per frame and sounds bad
   bool playOnce = true;
 
   int charIndexIter = 0;
@@ -254,7 +256,7 @@ void TextBox::Update(const double elapsed) {
         // Play a sound if we are able and the character is a letter
         if (!mute && message[charIndex] != ' ' && message[charIndex] != '\n') {
           if (playOnce) {
-            AUDIO.Play(AudioType::TEXT);
+            Audio()().Play(AudioType::TEXT);
             playOnce = false;
           }
         }

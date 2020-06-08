@@ -75,7 +75,7 @@ PixelInState<Any>::~PixelInState() {
 template<typename Any>
 void PixelInState<Any>::OnEnter(Any& e) {
   // play swoosh
-  AUDIO.Play(AudioType::APPEAR);
+  Audio().Play(AudioType::APPEAR);
 
   e.setColor(sf::Color(255, 255, 255, 0));
 }

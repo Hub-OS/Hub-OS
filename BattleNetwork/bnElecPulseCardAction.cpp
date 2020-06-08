@@ -44,7 +44,7 @@ void ElecPulseCardAction::OnExecute() {
       auto& user = GetUser();
 
       elecpulse = new Elecpulse(user.GetField(), user.GetTeam(), damage);
-      AUDIO.Play(AudioType::ELECPULSE);
+      Audio().Play(AudioType::ELECPULSE);
 
       auto props = elecpulse->GetHitboxProperties();
       props.aggressor = &user;

@@ -18,8 +18,8 @@ GameOverScene::~GameOverScene() {
 }
 
 void GameOverScene::onStart() {
-  AUDIO.StopStream();
-  AUDIO.Stream("resources/loops/game_over.ogg");
+  Audio().StopStream();
+  Audio().Stream("resources/loops/game_over.ogg");
 }
 
 void GameOverScene::onResume() {

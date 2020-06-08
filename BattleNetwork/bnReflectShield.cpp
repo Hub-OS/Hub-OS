@@ -72,7 +72,7 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
 {
   if (!activated) {
 
-    AUDIO.Play(AudioType::GUARD_HIT);
+    Audio().Play(AudioType::GUARD_HIT);
 
     Direction direction = Direction::none;
 

@@ -18,7 +18,7 @@ YoYoCardAction::YoYoCardAction(Character& user, int damage) : CardAction(user, "
   YoYoCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  attachment->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
   attachment->SetLayer(-1);
 
   attachmentAnim = Animation(NODE_ANIM);
@@ -42,7 +42,7 @@ void YoYoCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
     auto& user = GetUser();
-    AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+    Audio()().Play(AudioType::TOSS_ITEM_LITE);
 
     YoYo* y = new YoYo(user.GetField(), user.GetTeam(), damage);
     y->SetDirection(Direction::right);

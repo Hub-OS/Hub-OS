@@ -25,7 +25,7 @@ RingExplosion::RingExplosion(Field* field) : Artifact(field)
     Delete();
   };
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
+  Audio().Play(AudioType::EXPLODE, AudioPriority::low);
 
   animation << onEnd;
 

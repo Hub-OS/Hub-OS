@@ -95,7 +95,7 @@ void SelectMobScene::onResume() {
   ENGINE.SetCamera(camera);
 
   // Re-play music
-  AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
+  Audio()().Stream("resources/loops/loop_navi_customizer.ogg", true);
 
   gotoNextScene = false;
   doOnce = true;
@@ -153,7 +153,7 @@ void SelectMobScene::onUpdate(double elapsed) {
     if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
       // Fade out black and go back to the menu
       gotoNextScene = true;
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio()().Play(AudioType::CHIP_DESC_CLOSE);
       using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
       getController().queuePop<segue>();
     }
@@ -185,7 +185,7 @@ void SelectMobScene::onUpdate(double elapsed) {
         if (INPUT.Has(PRESSED_B)) {
             // Fade out black and go back to the menu
             gotoNextScene = true;
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            Audio().Play(AudioType::CHIP_DESC_CLOSE);
             using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
             getController().queuePop<segue>();
         }
@@ -375,16 +375,16 @@ void SelectMobScene::onUpdate(double elapsed) {
       // data is invalid
       gotoNextScene = false;
 
-      AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
+      Audio()().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
     }
     else {
       gotoNextScene = true;
 
       // Play the pre battle rumble sound
-      AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::high);
+      Audio()().Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
       // Stop music and go to battle screen 
-      AUDIO.StopStream();
+      Audio()().StopStream();
 
       // Get the navi we selected
       Player* player = NAVIS.At(selectedNavi).GetNavi();

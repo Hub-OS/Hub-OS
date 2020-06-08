@@ -50,7 +50,7 @@ TitleScene::TitleScene(swoosh::ActivityController * controller, TaskGroup&& task
 void TitleScene::onStart()
 {
   // stream some music while we wait
-  Audio().Stream("resources/loops/loop_theme.ogg");
+  Audio()().Stream("resources/loops/loop_theme.ogg");
 
   // Begin performing tasks in the background
   LaunchTasks();
@@ -91,7 +91,7 @@ void TitleScene::onEnter()
 void TitleScene::onResume()
 {
   // stream the theme song again
-  Audio().Stream("resources/loops/loop_theme.ogg");
+  Audio()().Stream("resources/loops/loop_theme.ogg");
 }
 
 void TitleScene::onDraw(sf::RenderTexture & surface)

@@ -35,7 +35,7 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
         Delete();
     }
 
-    AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+    Audio().Play(AudioType::TOSS_ITEM_LITE);
 
     auto props = Hit::DefaultProperties;
     props.damage = 100;

@@ -221,7 +221,7 @@ void Bees::OnUpdate(float _elapsed) {
       // all other hitbox events will be ignored after 5 hits
       if (hitCount < 5) {
         hitCount++;
-        AUDIO.Play(AudioType::HURT, AudioPriority::high);
+        Audio().Play(AudioType::HURT, AudioPriority::high);
         auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
         entity->GetField()->AddEntity(*fx, *entity->GetTile());
         fx->SetHeight(entity->GetHeight() / 2.0f);
@@ -247,7 +247,7 @@ void Bees::Attack(Character* _entity) {
   // If entity was successfully hit
   if (hitCount < 5 && _entity->Hit(GetHitboxProperties())) {
     hitCount++;
-    AUDIO.Play(AudioType::HURT);
+    Audio().Play(AudioType::HURT);
     auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
     GetField()->AddEntity(*fx, *GetTile());
     fx->SetHeight(_entity->GetHeight()/2.0f);

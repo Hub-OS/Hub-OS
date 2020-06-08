@@ -18,7 +18,7 @@
 #include <SFML/Graphics.hpp>
 #include <time.h>
 
-/*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
+/*! \brief Config screen lets users set graphics, Audio(), and input settings. It also lets users manage their account.
     \warning This scene was made in a clear conscious and is in no way an example of good code design.
 
     This could use a redesign (and re-code)
@@ -34,7 +34,7 @@ private:
   // ui sprite maps
   Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
   Animation endBtnAnimator;
-  Animation audioAnimator;
+  Animation Audio()Animator;
   int menuSelectionIndex;; /*!< Current selection */
   int lastMenuSelectionIndex;
   int maxMenuSelectionIndex; 
@@ -43,7 +43,7 @@ private:
 
   sf::Sprite overlay; /*!< PET */
   sf::Sprite gba;
-  sf::Sprite audioBGM,audioSFX;
+  sf::Sprite Audio()BGM,Audio()SFX;
   sf::Sprite hint;
   sf::Sprite endBtn;
 
@@ -53,8 +53,8 @@ private:
   bool inGamepadList;
   bool inKeyboardList;
   bool inLoginMenu;
-  int audioModeBGM;
-  int audioModeSFX;
+  int Audio()ModeBGM;
+  int Audio()ModeSFX;
 
   Background* bg;
 

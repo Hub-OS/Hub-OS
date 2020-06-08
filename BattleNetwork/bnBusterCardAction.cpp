@@ -21,7 +21,7 @@ BusterCardAction::BusterCardAction(Character& user, bool charged, int damage) : 
   busterAnim.SetAnimation("BUSTER");
 
   flare = new SpriteProxyNode();
-  flare->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  flare->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
   flare->SetLayer(-1);
 
   flareAnim = Animation(NODE_ANIM);
@@ -51,7 +51,7 @@ void BusterCardAction::OnExecute() {
         EndAction();
       });
 
-      AUDIO.Play(AudioType::BUSTER_PEA);
+      Audio()().Play(AudioType::BUSTER_PEA);
     }
   };
 

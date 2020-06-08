@@ -7,7 +7,7 @@
 SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : damage(damage), Spell(_field, _team) {
   SetLayer(1);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_SUPER_VULCAN));
+  setTexture(Textures().GetTexture(TextureType::SPELL_SUPER_VULCAN));
   setScale(2.f, 2.f);
 
   //When the animation ends, delete this
@@ -21,7 +21,7 @@ SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : damage(damage)
   animation << onFinish;
   animation.Update(0, getSprite());
 
-  AUDIO.Play(AudioType::GUN, AudioPriority::highest);
+  Audio()().Play(AudioType::GUN, AudioPriority::highest);
 
   auto props = GetHitboxProperties();
   props.damage = damage;
@@ -45,7 +45,7 @@ bool SuperVulcan::Move(Direction _direction) {
 
 void SuperVulcan::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
+    Audio()().Play(AudioType::HURT);
   }
 }
 

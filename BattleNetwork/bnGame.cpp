@@ -33,12 +33,12 @@ Game::Game()
   reader("config.ini"),
   configSettings(),
   textureManager(),
-  audioMananger(),
+  Audio()Mananger(),
   shaderMananger(),
   swoosh::ActivityController(*window.GetRenderWindow()) {
 
   // Link the resource handle to use all the manangers created by the game
-  ResourceHandle::audio    = &audioMananger;
+  ResourceHandle::Audio()    = &Audio()Mananger;
   ResourceHandle::textures = &textureManager;
   ResourceHandle::shaders  = &shaderMananger;
 
@@ -70,8 +70,8 @@ void Game::Boot()
   Callback<void()> graphics;
   graphics.Slot(std::bind(&Game::RunGraphicsInit, this, &progress));
 
-  Callback<void()> audio;
-  audio.Slot(std::bind(&Game::RunAudioInit, this, &progress));
+  Callback<void()> Audio();
+  Audio().Slot(std::bind(&Game::RunAudio()Init, this, &progress));
 
   Callback<void()> shaders;
   //Callback<void> scripts;
@@ -84,7 +84,7 @@ void Game::Boot()
 
   TaskGroup tasks;
   tasks.AddTask("Init graphics", graphics);
-  tasks.AddTask("Init audio", audio);
+  tasks.AddTask("Init Audio()", Audio());
   tasks.AddTask("Init shaders", shaders);
   tasks.AddTask("Load Navis", navis);
   tasks.AddTask("Load mobs", mobs);
@@ -97,11 +97,11 @@ void Game::Boot()
   INPUT.SupportConfigSettings(reader);
 
   if (configSettings.IsOK()) {
-    // If the file is good, use the audio and 
+    // If the file is good, use the Audio() and 
     // controller settings from the config
-    audioMananger.EnableAudio(reader.GetConfigSettings().IsAudioEnabled());
-    audioMananger.SetStreamVolume(((reader.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
-    audioMananger.SetChannelVolume(((reader.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
+    Audio()Mananger.EnableAudio()(reader.GetConfigSettings().IsAudio()Enabled());
+    Audio()Mananger.SetStreamVolume(((reader.GetConfigSettings().GetMusicLevel()) / 3.0f)*100.0f);
+    Audio()Mananger.SetChannelVolume(((reader.GetConfigSettings().GetSFXLevel()) / 3.0f)*100.0f);
   }
 
   mouse.setTexture(textureManager.LoadTextureFromFile("resources/ui/mouse.png"));
@@ -221,16 +221,16 @@ void Game::RunGraphicsInit(std::atomic<int> * progress) {
   Logger::Logf("Loaded shaders: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
-void Game::RunAudioInit(std::atomic<int> * progress) {
+void Game::RunAudio()Init(std::atomic<int> * progress) {
   const clock_t begin_time = clock();
-  audioMananger.LoadAllSources(*progress);
+  Audio()Mananger.LoadAllSources(*progress);
 
-  Logger::Logf("Loaded audio sources: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
+  Logger::Logf("Loaded Audio() sources: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 }
 
 void Game::GainFocus() {
   window.RegainFocus();
-  audioMananger.EnableAudio(true);
+  Audio()Mananger.EnableAudio()(true);
 
 #ifdef __ANDROID__
   // TODO: Reload all graphics and somehow reassign all gl IDs to all allocated sfml graphics structures
@@ -240,7 +240,7 @@ void Game::GainFocus() {
 }
 
 void Game::LoseFocus() {
-  audioMananger.EnableAudio(false);
+  Audio()Mananger.EnableAudio()(false);
 }
 
 void Game::Resize(int newWidth, int newHeight) {

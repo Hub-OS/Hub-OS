@@ -388,7 +388,7 @@ void BattleScene::TEMPFilterAtkCards(Battle::Card ** cards, int cardCount)
 
 void BattleScene::OnCounter(Character & victim, Character & aggressor)
 {
-  AUDIO.Play(AudioType::COUNTER, AudioPriority::highest);
+  Audio().Play(AudioType::COUNTER, AudioPriority::highest);
 
   if (&aggressor == player) {
     totalCounterMoves++;
@@ -493,7 +493,7 @@ void BattleScene::onUpdate(double elapsed) {
             // TODO: make this a separate function that takes in form index or something...
             lastSelectedForm = player->GetHealth() == 0? -1 : cardCustGUI.GetSelectedFormIndex();
             player->ActivateFormAt(lastSelectedForm);
-            AUDIO.Play(AudioType::SHINE);
+            Audio().Play(AudioType::SHINE);
 
             player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
 
@@ -573,8 +573,8 @@ void BattleScene::onUpdate(double elapsed) {
       // Show Enemy Deleted
       isPostBattle = true;
       battleEndTimer.reset();
-      AUDIO.StopStream();
-      AUDIO.Stream("resources/loops/enemy_deleted.ogg");
+      Audio().StopStream();
+      Audio().Stream("resources/loops/enemy_deleted.ogg");
       player->ChangeState<PlayerIdleState>();
       field->RequestBattleStop();
     }
@@ -666,7 +666,7 @@ void BattleScene::onUpdate(double elapsed) {
       if (!battleTimer.isPaused()) {
         battleTimer.pause();
         multiDeleteTimer.start();
-        AUDIO.StopStream();
+        Audio().StopStream();
       }
     }
 
@@ -1042,7 +1042,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       ENGINE.RevokeShader();
     }
     else {
-      AUDIO.Play(AudioType::PAUSE);
+      Audio().Play(AudioType::PAUSE);
     }
   }
   else if ((!isMobFinished && mob->IsSpawningDone()) ||
@@ -1067,7 +1067,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     if (isInCardSelect == false && !isBattleRoundOver) {
       player->SetCharging(false);
 
-      AUDIO.Play(AudioType::CUSTOM_SCREEN_OPEN);
+      Audio().Play(AudioType::CUSTOM_SCREEN_OPEN);
       // slide up the screen a hair
       //camera.MoveCamera(sf::Vector2f(240.f, 140.f), sf::seconds(0.5f));
       isInCardSelect = true;
@@ -1106,11 +1106,11 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     if (cardCustGUI.CanInteract()) {
         if (cardCustGUI.IsCardDescriptionTextBoxOpen()) {
             if (!INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
-                cardCustGUI.CloseCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::lowest) : 1;
+                cardCustGUI.CloseCardDescription() ? Audio().Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::lowest) : 1;
             }
             else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
 
-                cardCustGUI.CardDescriptionConfirmQuestion() ? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
+                cardCustGUI.CardDescriptionConfirmQuestion() ? Audio().Play(AudioType::CHIP_CHOOSE) : 1;
                 cardCustGUI.ContinueCardDescription();
             }
 
@@ -1122,10 +1122,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             }
 
             if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
-                cardCustGUI.CardDescriptionYes() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+                cardCustGUI.CardDescriptionYes() ? Audio().Play(AudioType::CHIP_SELECT) : 1;;
             }
             else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
-                cardCustGUI.CardDescriptionNo() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+                cardCustGUI.CardDescriptionNo() ? Audio().Play(AudioType::CHIP_SELECT) : 1;;
             }
         }
         else {
@@ -1133,7 +1133,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 cardSelectInputCooldown -= elapsed;
 
                 if (cardSelectInputCooldown <= 0) {
-                    cardCustGUI.CursorLeft() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+                    cardCustGUI.CursorLeft() ? Audio().Play(AudioType::CHIP_SELECT) : 1;
                     cardSelectInputCooldown = maxCardSelectInputCooldown;
                 }
             }
@@ -1141,7 +1141,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 cardSelectInputCooldown -= elapsed;
 
                 if (cardSelectInputCooldown <= 0) {
-                    cardCustGUI.CursorRight() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+                    cardCustGUI.CursorRight() ? Audio().Play(AudioType::CHIP_SELECT) : 1;
                     cardSelectInputCooldown = maxCardSelectInputCooldown;
                 }
             }
@@ -1149,7 +1149,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 cardSelectInputCooldown -= elapsed;
 
                 if (cardSelectInputCooldown <= 0) {
-                    cardCustGUI.CursorUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+                    cardCustGUI.CursorUp() ? Audio().Play(AudioType::CHIP_SELECT) : 1;
                     cardSelectInputCooldown = maxCardSelectInputCooldown;
                 }
             }
@@ -1157,7 +1157,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 cardSelectInputCooldown -= elapsed;
 
                 if (cardSelectInputCooldown <= 0) {
-                    cardCustGUI.CursorDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+                    cardCustGUI.CursorDown() ? Audio().Play(AudioType::CHIP_SELECT) : 1;
                     cardSelectInputCooldown = maxCardSelectInputCooldown;
                 }
             }
@@ -1169,24 +1169,24 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 bool performed = cardCustGUI.CursorAction();
 
                 if (cardCustGUI.AreCardsReady()) {
-                    AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
+                    Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
                     customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
                     //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
                 }
                 else if (performed) {
                     if (!cardCustGUI.SelectedNewForm()) {
-                        AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
+                        Audio().Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
                     }
                 }
                 else {
-                    AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
+                    Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
                 }
             }
             else if (INPUT.Has(EventTypes::PRESSED_CANCEL) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
-                cardCustGUI.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::highest) : 1;
+                cardCustGUI.CursorCancel() ? Audio().Play(AudioType::CHIP_CANCEL, AudioPriority::highest) : 1;
             }
             else if (INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
-                cardCustGUI.OpenCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::lowest) : 1;
+                cardCustGUI.OpenCardDescription() ? Audio().Play(AudioType::CHIP_DESC, AudioPriority::lowest) : 1;
             }
         }
     }
@@ -1205,7 +1205,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     }
 
     if (cardCustGUI.AreCardsReady() && !isHidden) {
-      AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
+      Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
       customProgress = 0; // NOTE: Temporary Hack. We base the cust state around the custom Progress value.
     }
 #endif
@@ -1303,7 +1303,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
         }
         else {
           if (!advanceSoundPlay) {
-            AUDIO.Play(AudioType::PA_ADVANCE);
+            Audio().Play(AudioType::PA_ADVANCE);
             advanceSoundPlay = true;
           }
 
@@ -1408,7 +1408,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
             if (paStepIndex >= hasPA && paStepIndex <= hasPA + paSteps.size() - 1) {
               listStepCounter = listStepCooldown; // Take our time with the PA cards
-              AUDIO.Play(AudioType::POINT);
+              Audio().Play(AudioType::POINT);
             }
 
             paStepIndex++;
@@ -1466,7 +1466,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
   if (customProgress / customDuration >= 1.0) {
     if (isCardSelectReady == false) {
-      AUDIO.Play(AudioType::CUSTOM_BAR_FULL);
+      Audio().Play(AudioType::CUSTOM_BAR_FULL);
       isCardSelectReady = true;
     }
   }
@@ -1482,7 +1482,7 @@ void BattleScene::onStart() {
 
   // Stream battle music
   if (mob->HasCustomMusicPath()) {
-    AUDIO.Stream(mob->GetCustomMusicPath(), true);
+    Audio().Stream(mob->GetCustomMusicPath(), true);
   }
   else {
     if (!mob->IsBoss()) {
@@ -1490,10 +1490,10 @@ void BattleScene::onStart() {
       span.offset = sf::microseconds(84);
       span.length = sf::seconds(120.0f * 1.20668f);
 
-      AUDIO.Stream("resources/loops/loop_battle.ogg", true, span);
+      Audio().Stream("resources/loops/loop_battle.ogg", true, span);
     }
     else {
-      AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
+      Audio().Stream("resources/loops/loop_boss_battle.ogg", true);
     }
   }
 

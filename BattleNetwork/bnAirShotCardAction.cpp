@@ -19,7 +19,7 @@ AirShotCardAction::AirShotCardAction(Character& user, int damage) : CardAction(u
   AirShotCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  attachment->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
   attachment->SetLayer(-1);
 
   attachmentAnim = Animation(NODE_ANIM);
@@ -35,7 +35,7 @@ void AirShotCardAction::OnExecute() {
   auto onFire = [this]() -> void {
     auto& user = GetUser();
 
-    AUDIO.Play(AudioType::SPREADER);
+    Audio()().Play(AudioType::SPREADER);
 
     AirShot* airshot = new AirShot(user.GetField(), user.GetTeam(), damage);
     airshot->SetDirection(Direction::right);

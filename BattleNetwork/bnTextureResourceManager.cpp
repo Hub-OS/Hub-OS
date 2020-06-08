@@ -298,7 +298,7 @@ TextureResourceManager::TextureResourceManager() {
   paths.push_back("resources/fonts/fonts_compressed.png");
 
   // config ui
-  paths.push_back("resources/scenes/config/audio.png");
+  paths.push_back("resources/scenes/config/Audio().png");
   paths.push_back("resources/scenes/config/end_btn.png");
 }
 

@@ -32,7 +32,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   
 
   setOrigin(sf::Vector2f(19, 24) / 2.f);
-  AUDIO.Play(AudioType::TOSS_ITEM);
+  Audio().Play(AudioType::TOSS_ITEM);
 
   HighlightTile(Battle::Tile::Highlight::flash);
 }

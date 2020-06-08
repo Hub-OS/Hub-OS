@@ -24,7 +24,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   offsetArea = sf::Vector2f(20.f, 0.f);
   SetOffsetArea(offsetArea);
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
+  Audio().Play(AudioType::EXPLODE, AudioPriority::low);
 
   animationComponent->SetAnimation("EXPLODE");
   animationComponent->SetPlaybackSpeed(playbackSpeed);
@@ -69,7 +69,7 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
 
   SetOffsetArea(copy.offsetArea);
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
+  Audio().Play(AudioType::EXPLODE, AudioPriority::low);
 
   animationComponent->SetAnimation("EXPLODE");
   animationComponent->SetPlaybackSpeed(playbackSpeed);

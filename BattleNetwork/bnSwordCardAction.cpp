@@ -18,7 +18,7 @@ SwordCardAction::SwordCardAction(Character& user, int damage) : CardAction(user,
   SwordCardAction::damage = damage;
 
   blade = new SpriteProxyNode();
-  blade->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  blade->setTexture(Textures().LoadTextureFromFile(PATH));
   blade->SetLayer(-2);
 
   hilt = new SpriteProxyNode();
@@ -65,7 +65,7 @@ void SwordCardAction::OnSpawnHitbox()
 
   b->SetHitboxProperties(props);
 
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio()().Play(AudioType::SWORD_SWING);
 
   user.GetField()->AddEntity(*b, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
 }

@@ -28,7 +28,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
 
         can.field->AddEntity(*spell, can.tile->GetX() - 1, can.tile->GetY());
 
-        AUDIO.Play(AudioType::CANNON);
+        Audio().Play(AudioType::CANNON);
     }
   };
 

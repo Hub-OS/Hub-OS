@@ -127,7 +127,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
     if (totalElapsed > 1.0f) {
       if (!isSwiping) {
         isSwiping = true;
-        AUDIO.Play(AudioType::SWORD_SWING);
+        Audio()().Play(AudioType::SWORD_SWING);
       }
 
       blueShadow->Reveal();
@@ -161,7 +161,7 @@ void AlphaArm::OnUpdate(float _elapsed) {
     if (totalElapsed > 1.2f) {
       if (!isSwiping) {
         isSwiping = true;
-        AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+        Audio()().Play(AudioType::TOSS_ITEM_LITE);
       }
 
       if (!Teammate(GetTile()->GetTeam()) && GetTile()->IsWalkable()) {

@@ -3,15 +3,14 @@
 
 #pragma once
 
-#include "bnTextureResourceManager.h"
-#include "bnAudioResourceManager.h"
 #include <SFML/Graphics.hpp>
 #include <memory>
 
 #include "bnText.h"
 #include "bnFont.h"
+#include "bnResourceHandle.h"
 
-class TextBox : public sf::Drawable, public sf::Transformable {
+class TextBox : public sf::Drawable, public sf::Transformable, public ResourceHandle {
 private:
   Font font;
   mutable Text text;
@@ -84,13 +83,13 @@ public:
   void SetTextColor(sf::Color color);
 
   /**
-   * @brief Disables audio
+   * @brief Disables Audio()
    * @param enabled Default is true
    */
   void Mute(bool enabled = true);
 
   /**
-   * @brief Enables audio
+   * @brief Enables Audio()
    */
   void Unmute();
 

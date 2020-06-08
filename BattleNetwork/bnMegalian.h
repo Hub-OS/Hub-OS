@@ -145,7 +145,7 @@ private:
           Logger::Log("timer: " + std::to_string(timer-5.0) + " adjusted: " + std::to_string(adjusted) + " SetSlideTime: " + std::to_string(250 + (adjusted * 500)));
 
           if(playOnce) {
-            AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+            Audio().Play(AudioType::TOSS_ITEM_LITE);
             playOnce = false;
           }
 

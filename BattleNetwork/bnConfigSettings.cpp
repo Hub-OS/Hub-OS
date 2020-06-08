@@ -9,10 +9,10 @@
 const bool ConfigSettings::IsOK() const { return isOK; }
 
 /**
- * @brief Check if audio is on or off based on ini file
+ * @brief Check if Audio() is on or off based on ini file
  * @return true if on, false otherwise
  */
-const bool ConfigSettings::IsAudioEnabled() const { return (musicLevel || sfxLevel); }
+const bool ConfigSettings::IsAudio()Enabled() const { return (musicLevel || sfxLevel); }
 
 const bool ConfigSettings::IsFullscreen() const
 {

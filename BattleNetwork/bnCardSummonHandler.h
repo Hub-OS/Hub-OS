@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bnAudioResourceManager.h"
+#include "bnResourceHandle.h"
 #include "bnCardUseListener.h"
 #include "bnRollHeal.h"
 #include "bnProtoManSummon.h"
@@ -36,7 +36,7 @@
  * This repeats until the queue is empty. Then the IsSummonOver() will return true.
  * 
  */
-class CardSummonHandler : public CardUseListener {
+class CardSummonHandler : public CardUseListener, public ResourceHandle {
 private:
   struct CardSummonQueue {
     std::queue<Character*> callers;
@@ -208,7 +208,7 @@ public:
       if (tile) {
         summonedBy->GetField()->AddEntity(*cube, tile->GetX(), tile->GetY());
 
-        AUDIO.Play(AudioType::APPEAR);
+        Audio()().Play(AudioType::APPEAR);
 
         // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
         SummonEntity(cube, true);
@@ -288,11 +288,12 @@ public:
       NinjaAntiDamage* antidamage = new NinjaAntiDamage(summonedBy);
       summonedBy->RegisterComponent(antidamage);
 
-      AUDIO.Play(AudioType::APPEAR);
+      Audio()().Play(AudioType::APPEAR);
     }
     else if (summon == "Barrier") {
       Aura* aura = new Aura(Aura::Type::BARRIER_10, summonedBy);
-      AUDIO.Play(AudioType::APPEAR);
+
+      Audio()().Play(AudioType::APPEAR);
     }
   }
 

@@ -8,7 +8,7 @@
 Tornado::Tornado(Field* _field, Team _team, int damage) : damage(damage), Spell(_field, _team) {
   SetLayer(-1);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_TORNADO));
+  setTexture(Textures().GetTexture(TextureType::SPELL_TORNADO));
   setScale(2.f, 2.f);
 
   //When the animation ends, delete this
@@ -48,7 +48,7 @@ bool Tornado::Move(Direction _direction) {
 
 void Tornado::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
+    Audio()().Play(AudioType::HURT);
 
     // Todo swap out with normal buster hit fx
     Artifact* hitfx = new BusterHit(GetField(), BusterHit::Type::CHARGED);

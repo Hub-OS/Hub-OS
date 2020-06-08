@@ -231,7 +231,7 @@ void LibraryScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
         currCardIndex--;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
 
         if (currCardIndex < lastCardOnScreen) {
           --lastCardOnScreen;
@@ -248,7 +248,7 @@ void LibraryScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
         currCardIndex++;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
 
         if (currCardIndex > lastCardOnScreen + maxCardsOnScreen - 1) {
           ++lastCardOnScreen;
@@ -273,12 +273,12 @@ void LibraryScene::onUpdate(double elapsed) {
       textbox.DequeMessage(); // make sure textbox is empty
       textbox.EnqueMessage(sf::Sprite(), "", new Message(iter->GetVerboseDescription()));
       textbox.Open();
-      AUDIO.Play(AudioType::CHIP_DESC);
+      Audio().Play(AudioType::CHIP_DESC);
     }
     else if (INPUT.Has(EventTypes::RELEASED_CANCEL) && textbox.IsOpen()) {
       textbox.Close();
       textbox.SetTextSpeed(1.0);
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
     }
     else if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsOpen()) {
       textbox.SetTextSpeed(3.0);
@@ -296,7 +296,7 @@ void LibraryScene::onUpdate(double elapsed) {
 
     if (INPUT.Has(EventTypes::PRESSED_CANCEL) && textbox.IsClosed()) {
       gotoNextScene = true;
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
       using swoosh::intent::direction;
       using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;

@@ -13,7 +13,7 @@ class ResourceHandle {
 
 private:
   static TextureResourceManager* textures;
-  static AudioResourceManager* audio;
+  static AudioResourceManager* Audio();
   static ShaderResourceManager* shaders;
   //static FileResourceMananger* files;
   //static InputManager* input;
@@ -23,9 +23,9 @@ public:
     assert(textures != nullptr, "texture resource manager was nullptr!");  
     return *textures; 
   }
-  AudioResourceManager& Audio() {
-    assert(audio != nullptr, "audio resource manager was nullptr!");
-    return *audio; 
+  AudioResourceManager& Audio()() {
+    assert(Audio() != nullptr, "Audio() resource manager was nullptr!");
+    return *Audio(); 
   }
 
   ShaderResourceManager& Shaders() { 
@@ -35,5 +35,5 @@ public:
 };
 
 TextureResourceManager* ResourceHandle::textures = nullptr;
-AudioResourceManager  * ResourceHandle::audio    = nullptr;
+AudioResourceManager  * ResourceHandle::Audio()    = nullptr;
 ShaderResourceManager * ResourceHandle::shaders  = nullptr;

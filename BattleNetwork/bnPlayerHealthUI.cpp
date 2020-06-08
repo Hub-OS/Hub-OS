@@ -156,7 +156,7 @@ void PlayerHealthUI::OnUpdate(float elapsed) {
 
       // If HP is low, play beep with high priority 
       if (player->GetHealth() <= startHP * 0.5 && !isBattleOver) {
-        AUDIO.Play(AudioType::LOW_HP, AudioPriority::high);
+        Audio().Play(AudioType::LOW_HP, AudioPriority::high);
       }
     } else if (currHP < player->GetHealth()) {
       color = Color::green;

@@ -20,7 +20,7 @@ TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_f
 
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_TWIN_FANG));
+  setTexture(Textures().GetTexture(TextureType::SPELL_TWIN_FANG));
   setScale(2.f, 2.f);
 
   // Twin fang move from tile to tile in 4 frames

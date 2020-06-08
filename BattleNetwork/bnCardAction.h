@@ -1,7 +1,9 @@
 #pragma once
+#include "bnResourceHandle.h"
 #include "bnAnimationComponent.h"
 #include "bnCharacter.h"
 #include "bnSpriteProxyNode.h"
+
 #include <string>
 #include <functional>
 
@@ -21,7 +23,7 @@
 * These overlays can also be animated.
 * The character's animation can be overriden to reuse frames from existing animations for complex behavior.
 */
-class CardAction {
+class CardAction : public ResourceHandle {
 public:
   struct NodeAttachment {
     std::reference_wrapper<SpriteProxyNode> spriteProxy;

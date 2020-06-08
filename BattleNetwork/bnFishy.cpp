@@ -21,7 +21,7 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   SetSlideTime(sf::seconds(0.1f));
   SetHealth(1);
 
-  AUDIO.Play(AudioType::TOSS_ITEM_LITE, AudioPriority::lowest);
+  Audio().Play(AudioType::TOSS_ITEM_LITE, AudioPriority::lowest);
 
   Hit::Properties props;
   props.damage = 80;

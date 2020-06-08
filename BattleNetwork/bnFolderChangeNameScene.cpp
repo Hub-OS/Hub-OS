@@ -25,13 +25,13 @@ void FolderChangeNameScene::ExecuteAction(size_t table, size_t x, size_t y)
   }
   else { // it's a letter entry
     if (letterPos + 1 == 9) { // denotes end of input, reject
-      AUDIO.Play(AudioType::CHIP_ERROR);
+      Audio().Play(AudioType::CHIP_ERROR);
     }
     else { // not end of input, add latter, and increase letterPos
       name[letterPos++] = entry[0];
       letterPos = std::min(letterPos, 8);
 
-      AUDIO.Play(AudioType::CHIP_CHOOSE);
+      Audio().Play(AudioType::CHIP_CHOOSE);
     }
   }
 }
@@ -68,7 +68,7 @@ void FolderChangeNameScene::DoEND()
   using namespace swoosh::intent;
   using effect = segue<BlackWashFade, swoosh::intent::milli<500>>;
   getController().queuePop<effect>();
-  AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+  Audio().Play(AudioType::CHIP_DESC_CLOSE);
   leave = true;
 }
 
@@ -155,10 +155,10 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
   if (!leave) {
     if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
       if (letterPos != 0 || name[letterPos] != '_') {
-        AUDIO.Play(AudioType::CHIP_CANCEL);
+        Audio().Play(AudioType::CHIP_CANCEL);
       }
       else {
-        AUDIO.Play(AudioType::CHIP_ERROR);
+        Audio().Play(AudioType::CHIP_ERROR);
       }
       
       if (letterPos + 1 == 9) {
@@ -202,7 +202,7 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
 
   // Check X pos
   if (lastX != cursorPosX) {
-    AUDIO.Play(AudioType::CHIP_SELECT);
+    Audio().Play(AudioType::CHIP_SELECT);
 
     if (cursorPosX < 0) {
       currTable--;
@@ -238,7 +238,7 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
 
   // Check Y pos
   if (lastY != cursorPosY) {
-    AUDIO.Play(AudioType::CHIP_SELECT);
+    Audio().Play(AudioType::CHIP_SELECT);
 
     if (cursorPosY < 0) {
       cursorPosY = 0;

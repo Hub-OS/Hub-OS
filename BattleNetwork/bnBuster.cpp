@@ -45,7 +45,7 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
   }
   setScale(2.f, 2.f);
 
-  AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::high);
+  Audio().Play(AudioType::BUSTER_PEA, AudioPriority::high);
 
   auto props = Hit::DefaultProperties;
   props.flags = props.flags & ~Hit::recoil;
@@ -108,5 +108,5 @@ void Buster::Attack(Character* _entity) {
   GetField()->AddEntity(*bhit, *GetTile());
 
   Delete();
-  AUDIO.Play(AudioType::HURT);
+  Audio().Play(AudioType::HURT);
 }

@@ -20,6 +20,7 @@
 #include <functional>
 using std::string;
 
+#include "bnResourceHandle.h"
 #include "bnAnimation.h"
 #include "bnDirection.h"
 #include "bnTeam.h"
@@ -36,7 +37,7 @@ namespace Battle {
 class Field;
 class BattleScene; // forward decl
 
-class Entity : public SpriteProxyNode {
+class Entity : public SpriteProxyNode, public ResourceHandle {
 public:
   using ID_t = long;
 

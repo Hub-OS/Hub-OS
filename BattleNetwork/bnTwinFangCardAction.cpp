@@ -26,7 +26,7 @@ void TwinFangCardAction::OnExecute() {
 
     auto tile = GetUser().GetTile();
 
-    AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+    Audio()().Play(AudioType::TOSS_ITEM_LITE);
 
     if (tile->GetY() != 0) {
       TwinFang* twinfang = new TwinFang(user.GetField(), user.GetTeam(), TwinFang::Type::ABOVE, damage);

@@ -33,7 +33,7 @@ AudioResourceManager::~AudioResourceManager() {
   delete[] sources;
 }
 
-void AudioResourceManager::EnableAudio(bool status) {
+void AudioResourceManager::EnableAudio()(bool status) {
   isEnabled = status;
 
   if(isEnabled) {
@@ -101,10 +101,10 @@ void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
   std::scoped_lock lock(mutex);
 
   if (!sources[type].loadFromFile(path)) {
-    Logger::Logf("Failed loading audio: %s\n", path.c_str());
+    Logger::Logf("Failed loading Audio(): %s\n", path.c_str());
 
   } else {
-    Logger::Logf("Loaded audio: %s", path.c_str());
+    Logger::Logf("Loaded Audio(): %s", path.c_str());
   }
 }
 
@@ -119,12 +119,12 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
 
   // Annoying sound check. Make sure duplicate sounds are played only by a given amount of offset from the last time it was played.
   // This prevents amplitude stacking when duplicate sounds are played on the same frame...
-  // NOTE: an audio queue would be a better place for this check. Then play() those sounds that pass the queue filter.
+  // NOTE: an Audio() queue would be a better place for this check. Then play() those sounds that pass the queue filter.
   if (priority < AudioPriority::high) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getBuffer() == &sources[type] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
         auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
-        if (howLongPlayed <= AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
+        if (howLongPlayed <= Audio_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
           return -1;
         }
       }

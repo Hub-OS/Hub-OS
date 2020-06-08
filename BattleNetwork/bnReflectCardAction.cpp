@@ -31,7 +31,7 @@ void ReflectCardAction::OnExecute() {
   owner.RegisterComponent(reflect);
 
   // Play the appear sound
-  AUDIO.Play(AudioType::APPEAR);
+  Audio().Play(AudioType::APPEAR);
 
   // Add shield artifact on the same layer as player
   Battle::Tile* tile = owner.GetTile();

@@ -83,8 +83,8 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
 
 void MainMenuScene::onStart() {
   // Stop any music already playing
-  AUDIO.StopStream();
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+  Audio().StopStream();
+  Audio().Stream("resources/loops/loop_overworld.ogg", false);
   
   // Set the camera back to ours
   ENGINE.SetCamera(camera);
@@ -162,7 +162,7 @@ void MainMenuScene::onUpdate(double elapsed) {
       // Folder Select
       if (menuSelectionIndex == 0) {
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
@@ -172,7 +172,7 @@ void MainMenuScene::onUpdate(double elapsed) {
       // Config Select on PC 
       if (menuSelectionIndex == 1) {
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<DiamondTileSwipe<direction::right>, swoosh::intent::milli<500>>;
@@ -182,7 +182,7 @@ void MainMenuScene::onUpdate(double elapsed) {
       // Navi select
       if (menuSelectionIndex == 2) {
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
         using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<250>>;
         using intent = segue::to<SelectNaviScene>;
         getController().push<intent>(currentNavi);
@@ -195,12 +195,12 @@ void MainMenuScene::onUpdate(double elapsed) {
         CardFolder* folder = nullptr;
 
         if (data.GetFolder(0, folder)) {
-          AUDIO.Play(AudioType::CHIP_DESC);
+          Audio().Play(AudioType::CHIP_DESC);
           using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
           getController().push<segue>(currentNavi, *folder);
         }
         else {
-          AUDIO.Play(AudioType::CHIP_ERROR); 
+          Audio().Play(AudioType::CHIP_ERROR); 
           Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
           gotoNextScene = false;
         }
@@ -240,7 +240,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   menuSelectionIndex = std::min(3, menuSelectionIndex);
 
   if (menuSelectionIndex != lastMenuSelectionIndex) {
-    AUDIO.Play(AudioType::CHIP_SELECT);
+    Audio().Play(AudioType::CHIP_SELECT);
   }
 
   webAccountAnimator.Update((float)elapsed, webAccountIcon.getSprite());
@@ -396,7 +396,7 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
 }
 
 void MainMenuScene::onEnd() {
-  AUDIO.StopStream();
+  Audio().StopStream();
   ENGINE.RevokeShader();
 
 #ifdef __ANDROID__
@@ -420,7 +420,7 @@ void MainMenuScene::StartupTouchControls() {
         Logger::Log("folder released");
 
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
@@ -446,7 +446,7 @@ void MainMenuScene::StartupTouchControls() {
         Logger::Log("library released");
 
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::right>>;
@@ -468,7 +468,7 @@ void MainMenuScene::StartupTouchControls() {
 
     naviBtn.onRelease([this](sf::Vector2i delta) {
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
         using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>;
         using intent = segue::to<SelectNaviScene>;
         getController().push<intent>(currentNavi);
@@ -492,12 +492,12 @@ void MainMenuScene::StartupTouchControls() {
         CardFolder* folder = nullptr;
 
         if (data.GetFolder("Default", folder)) {
-          AUDIO.Play(AudioType::CHIP_DESC);
+          Audio().Play(AudioType::CHIP_DESC);
           using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
           getController().push<segue>(currentNavi, *folder);
         }
         else {
-          AUDIO.Play(AudioType::CHIP_ERROR);
+          Audio().Play(AudioType::CHIP_ERROR);
           Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
           gotoNextScene = false;
         }

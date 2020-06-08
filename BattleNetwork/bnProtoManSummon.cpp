@@ -26,7 +26,7 @@ ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->Ge
 
   field->AddEntity(*this, *_tile);
 
-  AUDIO.Play(AudioType::APPEAR);
+  Audio().Play(AudioType::APPEAR);
 
   setTexture(TEXTURES.LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
 
@@ -130,5 +130,5 @@ void ProtoManSummon::Attack(Character* _entity) {
   _entity->Hit(props);
 
 
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
 }

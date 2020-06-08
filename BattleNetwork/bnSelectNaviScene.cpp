@@ -68,7 +68,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   charInfo.setScale(2.f, 2.f);
   charInfo.setPosition(UI_RIGHT_POS, 170);
 
-  element.setTexture(TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
+  element.setTexture(Textures().GetTexture(TextureType::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(UI_LEFT_POS_MAX + 15.f, 90);
 
@@ -287,7 +287,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
     if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
       gotoNextScene = true;
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio()().Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
 
       getController().queuePop<swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>>();
@@ -378,7 +378,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
   // Make a selection
   if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && currentChosen != naviSelectionIndex) {
-    AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
+    Audio()().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
     prevChosen = currentChosen;
     naviSelectionIndex = currentChosen;
   }

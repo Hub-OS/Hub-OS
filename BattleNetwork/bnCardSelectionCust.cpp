@@ -152,7 +152,7 @@ bool CardSelectionCust::CursorUp() {
         formSelectAnimator << "OPENING" << onEnd;
         isInFormSelect = true;
         cursorPos = cursorRow = 0;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
       }
       return false;
     }
@@ -721,7 +721,7 @@ void CardSelectionCust::Update(float elapsed)
       cursorPos = cursorRow = formCursorRow = 0;
       if (!playFormSound) {
         playFormSound = true;
-        AUDIO.Play(AudioType::PA_ADVANCE);
+        Audio().Play(AudioType::PA_ADVANCE);
       }
     }
   }

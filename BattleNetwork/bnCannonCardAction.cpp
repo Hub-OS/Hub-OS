@@ -58,7 +58,7 @@ void CannonCardAction::OnExecute() {
     props.aggressor = &GetUser();
     cannon->SetHitboxProperties(props);
 
-    AUDIO.Play(AudioType::CANNON);
+    Audio().Play(AudioType::CANNON);
 
     cannon->SetDirection(Direction::right);
 

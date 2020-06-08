@@ -53,7 +53,7 @@ void AlphaElectricCurrent::OnSpawn(Battle::Tile & start)
     hitbox->SetHitboxProperties(GetHitboxProperties());
     GetField()->AddEntity(*hitbox, 3, 2);
 
-    AUDIO.Play(AudioType::THUNDER);
+    Audio().Play(AudioType::THUNDER);
   };
 
   auto attackMiddleRowTrigger = [this]() {
@@ -64,7 +64,7 @@ void AlphaElectricCurrent::OnSpawn(Battle::Tile & start)
       GetField()->AddEntity(*hitbox, i, 2);
     }
 
-    AUDIO.Play(AudioType::THUNDER);
+    Audio().Play(AudioType::THUNDER);
   };
 
 

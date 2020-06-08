@@ -47,7 +47,7 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center) : Artifact(_field
   animationComponent->SetAnimation("DEFAULT", onFinish);
   animationComponent->OnUpdate(0);
 
-  AUDIO.Play(AudioType::GUARD_HIT);
+  Audio().Play(AudioType::GUARD_HIT);
 }
 
 void GuardHit::OnUpdate(float _elapsed) {

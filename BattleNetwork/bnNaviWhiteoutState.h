@@ -87,7 +87,7 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
     animComponent->SetAnimation(animStr, [this]() {
         shine->Remove();
         fadeout = true;
-        AUDIO.Play(AudioType::DELETED);
+        Audio().Play(AudioType::DELETED);
     });
 
     field->AddEntity(*shine, tile->GetX(), tile->GetY());

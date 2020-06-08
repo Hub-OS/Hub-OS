@@ -51,7 +51,7 @@ void CrackShotCardAction::OnExecute() {
 
       user.GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
 
-      AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+      Audio().Play(AudioType::TOSS_ITEM_LITE);
 
       tile->SetState(TileState::broken);
     }

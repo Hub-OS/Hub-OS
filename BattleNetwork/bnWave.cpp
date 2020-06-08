@@ -8,7 +8,7 @@
 Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_WAVE));
+  setTexture(Textures().GetTexture(TextureType::SPELL_WAVE));
   Wave::speed = speed;
 
   //Components setup and load
@@ -48,7 +48,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   props.flags |= Hit::flinch;
   SetHitboxProperties(props);
 
-  AUDIO.Play(AudioType::WAVE);
+  Audio()().Play(AudioType::WAVE);
 
   HighlightTile(Battle::Tile::Highlight::solid);
 }

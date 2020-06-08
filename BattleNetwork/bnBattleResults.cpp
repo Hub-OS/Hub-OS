@@ -254,7 +254,7 @@ void BattleResults::Update(double elapsed)
   if (isRevealed) {
     if (cardMatrixIndex == hideCardMatrix.size() && !playSoundOnce) {
       playSoundOnce = true;
-      AUDIO.Play(AudioType::ITEM_GET);
+      Audio().Play(AudioType::ITEM_GET);
     }
     else {
       if (cardMatrixIndex < hideCardMatrix.size()) {
@@ -263,7 +263,7 @@ void BattleResults::Update(double elapsed)
     }
 
     if (!playSoundOnce) {
-      AUDIO.Play(AudioType::TEXT, AudioPriority::lowest);
+      Audio().Play(AudioType::TEXT, AudioPriority::lowest);
     }
   }
 }

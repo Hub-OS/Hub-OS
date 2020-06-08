@@ -241,7 +241,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
         view->currCardIndex--;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
 
         if (view->currCardIndex < view->lastCardOnScreen) {
           --view->lastCardOnScreen;
@@ -258,7 +258,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
         view->currCardIndex++;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
 
         if (view->currCardIndex > view->lastCardOnScreen + view->maxCardsOnScreen - 1) {
           ++view->lastCardOnScreen;
@@ -277,7 +277,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
         view->currCardIndex = std::max(view->currCardIndex, 0);
 
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
 
         while (view->currCardIndex < view->lastCardOnScreen) {
           --view->lastCardOnScreen;
@@ -294,7 +294,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       if (selectInputCooldown <= 0) {
         selectInputCooldown = maxSelectInputCooldown;
         view->currCardIndex += view->maxCardsOnScreen;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
 
         view->currCardIndex = std::min(view->currCardIndex, view->numOfCards-1);
 
@@ -315,7 +315,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           if (folderView.swapCardIndex == folderView.currCardIndex) {
             // Unselect the card
             folderView.swapCardIndex = -1;
-            AUDIO.Play(AudioType::CHIP_CANCEL);
+            Audio().Play(AudioType::CHIP_CANCEL);
 
           }
           else {
@@ -323,7 +323,7 @@ void FolderEditScene::onUpdate(double elapsed) {
             auto temp = folderCardSlots[folderView.swapCardIndex];
             folderCardSlots[folderView.swapCardIndex] = folderCardSlots[folderView.currCardIndex];
             folderCardSlots[folderView.currCardIndex] = temp;
-            AUDIO.Play(AudioType::CHIP_CONFIRM);
+            Audio().Play(AudioType::CHIP_CONFIRM);
 
             folderView.swapCardIndex = -1;
           }
@@ -372,16 +372,16 @@ void FolderEditScene::onUpdate(double elapsed) {
               packView.swapCardIndex = -1;
               folderView.swapCardIndex = -1;
 
-              AUDIO.Play(AudioType::CHIP_CONFIRM);
+              Audio().Play(AudioType::CHIP_CONFIRM);
             }
             else {
-              AUDIO.Play(AudioType::CHIP_ERROR);
+              Audio().Play(AudioType::CHIP_ERROR);
             }
           }
           else {
             // select the card
             folderView.swapCardIndex = folderView.currCardIndex;
-            AUDIO.Play(AudioType::CHIP_CHOOSE);
+            Audio().Play(AudioType::CHIP_CHOOSE);
           }
         }
       }
@@ -390,7 +390,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           if (packView.swapCardIndex == packView.currCardIndex) {
             // Unselect the card
             packView.swapCardIndex = -1;
-            AUDIO.Play(AudioType::CHIP_CANCEL);
+            Audio().Play(AudioType::CHIP_CANCEL);
 
           }
           else {
@@ -398,7 +398,7 @@ void FolderEditScene::onUpdate(double elapsed) {
             auto temp = packCardBuckets[packView.swapCardIndex];
             packCardBuckets[packView.swapCardIndex] = packCardBuckets[packView.currCardIndex];
             packCardBuckets[packView.currCardIndex] = temp;
-            AUDIO.Play(AudioType::CHIP_CONFIRM);
+            Audio().Play(AudioType::CHIP_CONFIRM);
 
             packView.swapCardIndex = -1;
           }
@@ -447,16 +447,16 @@ void FolderEditScene::onUpdate(double elapsed) {
 
               hasFolderChanged = true;
 
-              AUDIO.Play(AudioType::CHIP_CONFIRM);
+              Audio().Play(AudioType::CHIP_CONFIRM);
             }
             else {
-              AUDIO.Play(AudioType::CHIP_ERROR);
+              Audio().Play(AudioType::CHIP_ERROR);
             }
           }
           else {
             // select the card
             packView.swapCardIndex = packView.currCardIndex;
-            AUDIO.Play(AudioType::CHIP_CHOOSE);
+            Audio().Play(AudioType::CHIP_CHOOSE);
           }
         }
       }
@@ -464,12 +464,12 @@ void FolderEditScene::onUpdate(double elapsed) {
     else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT) && currViewMode == ViewMode::FOLDER) {
       currViewMode = ViewMode::PACK;
       canInteract = false;
-      AUDIO.Play(AudioType::CHIP_DESC);
+      Audio().Play(AudioType::CHIP_DESC);
     }
     else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT) && currViewMode == ViewMode::PACK) {
       currViewMode = ViewMode::FOLDER;
       canInteract = false;
-      AUDIO.Play(AudioType::CHIP_DESC);
+      Audio().Play(AudioType::CHIP_DESC);
     }
 
     view->currCardIndex = std::max(0, view->currCardIndex);
@@ -482,7 +482,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
     if (INPUT.Has(EventTypes::PRESSED_CANCEL) && canInteract) {
       if (packView.swapCardIndex != -1 || folderView.swapCardIndex != -1) {
-        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
         packView.swapCardIndex = folderView.swapCardIndex = -1;
       }
       else  {
@@ -491,7 +491,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         gotoLastScene = true;
         canInteract = false;        
         
-        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
       }
     }
 

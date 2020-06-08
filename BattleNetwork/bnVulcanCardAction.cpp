@@ -19,7 +19,7 @@
 VulcanCardAction::VulcanCardAction(Character& user, int damage) : CardAction(user, "PLAYER_SHOOTING") {
   VulcanCardAction::damage = damage;
   attachment = new SpriteProxyNode();
-  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  attachment->setTexture(Textures().LoadTextureFromFile(PATH));
   attachment->SetLayer(-1);
 
   attachmentAnim = Animation(ANIM);

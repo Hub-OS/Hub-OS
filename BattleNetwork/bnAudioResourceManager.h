@@ -10,8 +10,8 @@
 #define NUM_OF_CHANNELS 10
 
 // Prevent duplicate sounds from stacking on same frame
-// Allows duplicate audio samples to play in X ms apart from eachother
-#define AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS 58 // 58ms = ~3.5 frames
+// Allows duplicate Audio() samples to play in X ms apart from eachother
+#define Audio_DUPLICATES_ALLOWED_IN_X_MILLISECONDS 58 // 58ms = ~3.5 frames
 
 /**
   * @class AudioPriority
@@ -33,15 +33,15 @@ enum class AudioPriority : int {
  * @class AudioResourceManager
  * @author mav
  * @date 06/05/19
- * @brief Manager loads audio samples
+ * @brief Manager loads Audio() samples
  */
 class AudioResourceManager {
 public:
   /**
-   * @brief If true, plays audio. If false, does not play audio
+   * @brief If true, plays Audio(). If false, does not play Audio()
    * @param status
    */
-  void EnableAudio(bool status);
+  void EnableAudio()(bool status);
   
   /**
    * @brief Loads all queued resources. Increases status value.
@@ -50,15 +50,15 @@ public:
   void LoadAllSources(std::atomic<int> &status);
   
   /**
-   * @brief Loads an audio source at path and map it to enum type
-   * @param type audio enum to map to
-   * @param path path to audio sample
+   * @brief Loads an Audio() source at path and map it to enum type
+   * @param type Audio() enum to map to
+   * @param path path to Audio() sample
    */
   void LoadSource(AudioType type, const std::string& path);
   
   /**
-   * @brief Play a sound with an audio priority
-   * @param type audio to play
+   * @brief Play a sound with an Audio() priority
+   * @param type Audio() to play
    * @param priority describes if and how to interrupt other playing samples
    * @return -1 if could not play, otherwise 0
    */

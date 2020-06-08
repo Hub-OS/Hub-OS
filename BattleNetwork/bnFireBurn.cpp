@@ -62,7 +62,7 @@ bool FireBurn::Move(Direction _direction) {
 
 void FireBurn::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
+    Audio().Play(AudioType::HURT);
   }
 }
 

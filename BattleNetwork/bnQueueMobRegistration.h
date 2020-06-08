@@ -18,6 +18,7 @@
 #include "bnMetridMob.h"
 #include "bnMetalManBossFight.h"
 #include "bnMetalManBossFight2.h"
+#include "bnProgsManBossFight.h"
 #include "bnRandomMettaurMob.h"
 #include "bnAlphaBossFight.h"
 

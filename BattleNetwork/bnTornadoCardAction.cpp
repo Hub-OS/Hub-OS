@@ -20,7 +20,7 @@ TornadoCardAction::TornadoCardAction(Character& user, int damage)
   TornadoCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
+  attachment->setTexture(Textures().LoadTextureFromFile(FAN_PATH));
   attachment->SetLayer(-1);
 
   attachmentAnim = Animation(FAN_PATH);
@@ -56,7 +56,7 @@ void TornadoCardAction::OnExecute() {
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
   AddAction(2, [onFire, this]() {
-    AUDIO.Play(AudioType::WIND);
+    Audio()().Play(AudioType::WIND);
     armIsOut = true;
     onFire();
   });

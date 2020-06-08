@@ -28,7 +28,7 @@ void RecoverCardAction::OnExecute() {
   owner.SetHealth(owner.GetHealth() + heal);
 
   // Play sound
-  AUDIO.Play(AudioType::RECOVER);
+  Audio().Play(AudioType::RECOVER);
 
   // Add artifact on the same layer as player
   Battle::Tile* tile = owner.GetTile();

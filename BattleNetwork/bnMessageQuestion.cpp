@@ -36,7 +36,7 @@ void Question::ConfirmSelection()
 void Question::ExecuteSelection() {
     if (yes) { 
         onYes(); 
-        AUDIO.Play(AudioType::NEW_GAME);
+        Audio().Play(AudioType::NEW_GAME);
     }
     else {
         onNo(); 

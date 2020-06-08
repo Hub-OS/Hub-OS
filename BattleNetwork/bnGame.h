@@ -37,7 +37,7 @@
 class Game final : public swoosh::ActivityController {
 private:
   TextureResourceManager textureManager;
-  AudioResourceManager audioMananger;
+  AudioResourceManager Audio()Mananger;
   ShaderResourceManager shaderMananger;
 
   DrawWindow window;
@@ -110,17 +110,17 @@ private:
  * Uses and std::atomic<int> pointer to keep
  * count of successfully loaded objects
  */
-  void RunAudioInit(std::atomic<int> * progress);
+  void RunAudio()Init(std::atomic<int> * progress);
 
  /*! \brief This function describes how the app behaves on focus regain
  *
- * Refresh the graphics context and enable audio again
+ * Refresh the graphics context and enable Audio() again
  */
   void GainFocus();
 
  /*! \brief This function describes how the app behaves on focus lost
  *
- * Mute the audio
+ * Mute the Audio()
  */
   void LoseFocus();
 

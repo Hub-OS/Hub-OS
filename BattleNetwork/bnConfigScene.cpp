@@ -26,26 +26,26 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
     endBtnAnimator = Animation("resources/scenes/config/end_btn.animation");
     endBtnAnimator.Load();
 
-    audioAnimator = Animation("resources/scenes/config/audio.animation");
-    audioAnimator.Load();
+    Audio()Animator = Animation("resources/scenes/config/Audio().animation");
+    Audio()Animator.Load();
 
     auto sprite = sf::Sprite(*LOAD_TEXTURE(FONT));
     sprite.setScale(2.f, 2.f);
 
     uiSprite = sprite;
 
-    // audio button
-    audioBGM =  sf::Sprite(*LOAD_TEXTURE(AUDIO_ICO));
-    audioBGM.setScale(2.f, 2.f);
+    // Audio() button
+    Audio()BGM =  sf::Sprite(*LOAD_TEXTURE(Audio_ICO));
+    Audio()BGM.setScale(2.f, 2.f);
 
-    audioAnimator.SetAnimation("DEFAULT");
-    audioAnimator.Update(4, audioBGM);
-    audioBGM.setPosition(2*3, 2*140);
+    Audio()Animator.SetAnimation("DEFAULT");
+    Audio()Animator.Update(4, Audio()BGM);
+    Audio()BGM.setPosition(2*3, 2*140);
 
-    audioSFX = audioBGM;
-    audioAnimator.SetAnimation("DEFAULT");
-    audioAnimator.Update(4, audioBGM);
-    audioSFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
+    Audio()SFX = Audio()BGM;
+    Audio()Animator.SetAnimation("DEFAULT");
+    Audio()Animator.Update(4, Audio()BGM);
+    Audio()SFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
 
     // end button
     endBtn = sf::Sprite(*LOAD_TEXTURE(END_BTN));;
@@ -58,8 +58,8 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
     // ascii 58 - 96
     std::list<std::string> actions;
 
-    actions.push_back("AUDIO_BGM");
-    actions.push_back("AUDIO_SFX");
+    actions.push_back("Audio_BGM");
+    actions.push_back("Audio_SFX");
     actions.push_back("SHADERS: ON");
     actions.push_back("MY KEYBOARD");
     actions.push_back("MY GAMEPAD");
@@ -151,12 +151,12 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
 
     menuSelectionIndex = lastMenuSelectionIndex = 1; // select first item
 
-    audioModeBGM = configSettings.GetMusicLevel();
-    audioModeSFX = configSettings.GetSFXLevel();
+    Audio()ModeBGM = configSettings.GetMusicLevel();
+    Audio()ModeSFX = configSettings.GetSFXLevel();
 
-    audioAnimator.SetAnimation("DEFAULT");
-    audioAnimator.SetFrame(audioModeBGM + 1, audioBGM);
-    audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
+    Audio()Animator.SetAnimation("DEFAULT");
+    Audio()Animator.SetFrame(Audio()ModeBGM + 1, Audio()BGM);
+    Audio()Animator.SetFrame(Audio()ModeSFX + 1, Audio()SFX);
 
     colIndex = 0; maxCols = 3; // [options] [actions] [key]
 }
@@ -183,7 +183,7 @@ void ConfigScene::onUpdate(double elapsed)
               using namespace swoosh::intent;
               using effect = segue<WhiteWashFade, swoosh::intent::milli<300>>;
               getController().queuePop<effect>();
-              AUDIO.Play(AudioType::NEW_GAME);
+              Audio().Play(AudioType::NEW_GAME);
               leave = true;
 
               configSettings.SetKeyboardHash(keyHash);
@@ -207,7 +207,7 @@ void ConfigScene::onUpdate(double elapsed)
           questionInterface = new Question("Overwite your config settings?", onYes, onNo);
           textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
           textbox.Open();
-          AUDIO.Play(AudioType::CHIP_DESC);
+          Audio().Play(AudioType::CHIP_DESC);
       }
   }
 
@@ -281,7 +281,7 @@ void ConfigScene::onUpdate(double elapsed)
 
             std::transform(boundKey.begin(), boundKey.end(), boundKey.begin(), ::toupper);
             boundKeys[menuSelectionIndex].label = boundKey;
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
             awaitingKey = false;
           }
@@ -328,7 +328,7 @@ void ConfigScene::onUpdate(double elapsed)
 
           boundGamepadButtons[menuSelectionIndex].label = label;
 
-          AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+          Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
           awaitingKey = false;
         }
@@ -361,25 +361,25 @@ void ConfigScene::onUpdate(double elapsed)
       }*/
     }
     else if (hasConfirmed) {
-      // bg audio
+      // bg Audio()
       if (menuSelectionIndex == 0 && colIndex == 0) {
-        audioModeBGM = (audioModeBGM+1) % 4;
-        AUDIO.SetStreamVolume (((audioModeBGM)/3.0f)*100.0f);
-        audioAnimator.SetAnimation("DEFAULT");
-        audioAnimator.SetFrame(audioModeBGM + 1, audioBGM);
-        configSettings.SetMusicLevel(audioModeBGM);
+        Audio()ModeBGM = (Audio()ModeBGM+1) % 4;
+        Audio().SetStreamVolume (((Audio()ModeBGM)/3.0f)*100.0f);
+        Audio()Animator.SetAnimation("DEFAULT");
+        Audio()Animator.SetFrame(Audio()ModeBGM + 1, Audio()BGM);
+        configSettings.SetMusicLevel(Audio()ModeBGM);
       }
       else if (menuSelectionIndex == 1 && colIndex == 0) {
-        audioModeSFX = (audioModeSFX + 1) % 4;
-        AUDIO.SetChannelVolume(((audioModeSFX) / 3.0f)*100.0f);
-        audioAnimator.SetAnimation("DEFAULT");
-        audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
-        AUDIO.Play(AudioType::BUSTER_PEA);
-        configSettings.SetSFXLevel(audioModeSFX);
+        Audio()ModeSFX = (Audio()ModeSFX + 1) % 4;
+        Audio().SetChannelVolume(((Audio()ModeSFX) / 3.0f)*100.0f);
+        Audio()Animator.SetAnimation("DEFAULT");
+        Audio()Animator.SetFrame(Audio()ModeSFX + 1, Audio()SFX);
+        Audio().Play(AudioType::BUSTER_PEA);
+        configSettings.SetSFXLevel(Audio()ModeSFX);
       }
       else if (menuSelectionIndex == 2 && colIndex == 0) {
         // TODO: Shader Toggle
-        AUDIO.Play(AudioType::CHIP_ERROR);
+        Audio().Play(AudioType::CHIP_ERROR);
 
       }
       else if (menuSelectionIndex == 3 && colIndex == 0) {
@@ -406,12 +406,12 @@ void ConfigScene::onUpdate(double elapsed)
 
                   auto onNo = [this]() {
                       textbox.Close();
-                      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+                      Audio().Play(AudioType::CHIP_DESC_CLOSE);
                   };
                   questionInterface = new Question("Are you sure you want to logout?", onYes, onNo);
                   textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
                   textbox.Open();
-                  AUDIO.Play(AudioType::CHIP_DESC);
+                  Audio().Play(AudioType::CHIP_DESC);
               }
           }
           else {
@@ -425,7 +425,7 @@ void ConfigScene::onUpdate(double elapsed)
       }
       else if(!awaitingKey) {
         awaitingKey = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
       }
     }
   }
@@ -451,7 +451,7 @@ void ConfigScene::onUpdate(double elapsed)
   }
 
   if (lastMenuSelectionIndex != menuSelectionIndex) {
-    AUDIO.Play(AudioType::CHIP_SELECT);
+    Audio().Play(AudioType::CHIP_SELECT);
 
     lastMenuSelectionIndex = menuSelectionIndex;
   }
@@ -563,8 +563,8 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
 
   ENGINE.Draw(endBtn);
 
-  ENGINE.Draw(audioBGM);
-  ENGINE.Draw(audioSFX);
+  ENGINE.Draw(Audio()BGM);
+  ENGINE.Draw(Audio()SFX);
 
   // Draw options
   DrawMenuOptions();
@@ -591,16 +591,16 @@ void ConfigScene::DrawMenuOptions()
     }
 
     for (auto ui : uiList[i]) {
-      if (ui.label == "AUDIO_BGM") {
-        audioBGM.setScale(ui.scale);
-        audioBGM.setPosition(ui.position.x, ui.position.y);
-        audioBGM.setColor(sf::Color(255, 0, 255, ui.alpha));
+      if (ui.label == "Audio_BGM") {
+        Audio()BGM.setScale(ui.scale);
+        Audio()BGM.setPosition(ui.position.x, ui.position.y);
+        Audio()BGM.setColor(sf::Color(255, 0, 255, ui.alpha));
 
       }
-      else if (ui.label == "AUDIO_SFX") {
-        audioSFX.setScale(ui.scale);
-        audioSFX.setPosition(ui.position.x, ui.position.y);
-        audioSFX.setColor(sf::Color(10, 165, 255, ui.alpha));
+      else if (ui.label == "Audio_SFX") {
+        Audio()SFX.setScale(ui.scale);
+        Audio()SFX.setPosition(ui.position.x, ui.position.y);
+        Audio()SFX.setColor(sf::Color(10, 165, 255, ui.alpha));
 
       }
       else {
@@ -694,12 +694,12 @@ void ConfigScene::DrawMappedKeyMenu(std::vector<uiData>& container)
 
 void ConfigScene::onStart()
 {
-  AUDIO.Stream("resources/loops/config.ogg", false);
+  Audio().Stream("resources/loops/config.ogg", false);
 }
 
 void ConfigScene::onLeave()
 {
-  AUDIO.StopStream();
+  Audio().StopStream();
 }
 
 void ConfigScene::onExit()
@@ -708,7 +708,7 @@ void ConfigScene::onExit()
 
 void ConfigScene::onEnter()
 {
-  AUDIO.StopStream();
+  Audio().StopStream();
 }
 
 void ConfigScene::onResume()

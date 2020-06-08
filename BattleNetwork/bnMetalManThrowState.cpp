@@ -38,5 +38,5 @@ void MetalManThrowState::Attack(MetalMan& metal) {
   blade->SetDirection(Direction::left);
 
   metal.GetField()->AddEntity(*blade, metal.GetTile()->GetX()-1, metal.GetTile()->GetY());
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
 }

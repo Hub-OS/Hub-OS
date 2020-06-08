@@ -261,7 +261,7 @@ void FolderScene::onUpdate(double elapsed) {
       if (currCardIndex != lastCardIndex 
         || currFolderIndex != lastFolderIndex 
         || optionIndex != lastOptionIndex) {
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
       }
 
       if (folderNames.size()) {
@@ -293,24 +293,24 @@ void FolderScene::onUpdate(double elapsed) {
       if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
         if (!promptOptions) {
           gotoNextScene = true;
-          AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+          Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
           using swoosh::intent::direction;
           using segue = swoosh::intent::segue<PushIn<direction::right>, swoosh::intent::milli<500>>;
           getController().queuePop<segue>();
         } else {
             promptOptions = false;
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            Audio().Play(AudioType::CHIP_DESC_CLOSE);
         }
       } else if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
           if (promptOptions) {
             promptOptions = false;
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            Audio().Play(AudioType::CHIP_DESC_CLOSE);
           }
       } else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
         if (!promptOptions) {
           promptOptions = true;
-          AUDIO.Play(AudioType::CHIP_DESC);
+          Audio().Play(AudioType::CHIP_DESC);
         }
         else if(folderNames.size()) {
           switch (optionIndex) {
@@ -319,28 +319,28 @@ void FolderScene::onUpdate(double elapsed) {
               using namespace intent;
               using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderEditScene>;
               getController().push<next>(*folder);
-              AUDIO.Play(AudioType::CHIP_CONFIRM);
+              Audio().Play(AudioType::CHIP_CONFIRM);
               gotoNextScene = true;
             }
             else {
-              AUDIO.Play(AudioType::CHIP_ERROR);
+              Audio().Play(AudioType::CHIP_ERROR);
             }
             break;
           case 1: // EQUIP
             selectedFolderIndex = currFolderIndex;
             collection.SwapOrder(0, selectedFolderIndex);
-            AUDIO.Play(AudioType::PA_ADVANCE);
+            Audio().Play(AudioType::PA_ADVANCE);
             break;
           case 2: // CHANGE NAME
             if (folder) {
               using namespace intent;
               using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderChangeNameScene>;
               getController().push<next>(folderNames[currFolderIndex]);
-              AUDIO.Play(AudioType::CHIP_CONFIRM);
+              Audio().Play(AudioType::CHIP_CONFIRM);
               gotoNextScene = true;
             }
             else {
-              AUDIO.Play(AudioType::CHIP_ERROR);
+              Audio().Play(AudioType::CHIP_ERROR);
             }
             break;
           case 3: // NEW 
@@ -576,7 +576,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 }
 
 void FolderScene::MakeNewFolder() {
-  AUDIO.Play(AudioType::CHIP_CONFIRM); 
+  Audio().Play(AudioType::CHIP_CONFIRM); 
 
   std::string name = "NewFldr";
   int i = 0;
@@ -592,7 +592,7 @@ void FolderScene::MakeNewFolder() {
 void FolderScene::DeleteFolder(std::function<void()> onSuccess)
 {
   if (!folderNames.size()) {
-    AUDIO.Play(AudioType::CHIP_ERROR);
+    Audio().Play(AudioType::CHIP_ERROR);
 
     return;
   }
@@ -604,12 +604,12 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     }
 
     textbox.Close();
-    AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+    Audio().Play(AudioType::CHIP_DESC_CLOSE);
   };
 
   auto onNo = [this]() {
     textbox.Close();
-    AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+    Audio().Play(AudioType::CHIP_DESC_CLOSE);
   };
 
   textbox.EnqueMessage(
