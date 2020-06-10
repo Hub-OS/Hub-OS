@@ -11,7 +11,7 @@ using std::stringstream;
 
 void TextureResourceManager::LoadAllTextures(std::atomic<int> &status) {
   TextureType textureType = static_cast<TextureType>(0);
-  while (textureType != TEXTURE_TYPE_SIZE) {
+  while (textureType != TextureType::TEXTURE_TYPE_SIZE) {
     status++;
 
     std::shared_ptr<Texture> texture = LoadTextureFromFile(paths[static_cast<int>(textureType)]);

@@ -10,9 +10,9 @@ AudioResourceManager::AudioResourceManager() {
     channels[i].buffer = sf::Sound();
   }
 
-  sources = new sf::SoundBuffer[AudioType::AUDIO_TYPE_SIZE];
+  sources = new sf::SoundBuffer[static_cast<size_t>(AudioType::AUDIO_TYPE_SIZE)];
 
-  for (int i = 0; i < AudioType::AUDIO_TYPE_SIZE; i++) {
+  for (int i = 0; i < static_cast<size_t>(AudioType::AUDIO_TYPE_SIZE); i++) {
     sources[i] = sf::SoundBuffer();
   }
 
@@ -122,7 +122,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   // NOTE: an Audio() queue would be a better place for this check. Then play() those sounds that pass the queue filter.
   if (priority < AudioPriority::high) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
-      if (channels[i].buffer.getBuffer() == &sources[type] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
+      if (channels[i].buffer.getBuffer() == &sources[static_cast<size_t>(type)] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
         auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
         if (howLongPlayed <= Audio_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
           return -1;
@@ -139,12 +139,12 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   // Highest priority plays over anything that isn't like it
   if (priority == AudioPriority::highest) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
-      if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type]) {
+      if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[static_cast<size_t>(type)]) {
 
       }
-      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || channels[i].buffer.getBuffer() != &sources[type]) {
+      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || channels[i].buffer.getBuffer() != &sources[static_cast<size_t>(type)]) {
         channels[i].buffer.stop();
-        channels[i].buffer.setBuffer(sources[type]);
+        channels[i].buffer.setBuffer(sources[static_cast<size_t>(type)]);
         channels[i].buffer.play();
         channels[i].priority = priority;
         return 0;
@@ -157,7 +157,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   if (priority == AudioPriority::lowest || priority == AudioPriority::high) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
-        if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type]) {
+        if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[static_cast<size_t>(type)]) {
           // Lowest priority or high priority sounds only play once 
           return -1;
         }
@@ -169,7 +169,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     if (priority != AudioPriority::high) {
       if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing) {
-        channels[i].buffer.setBuffer(sources[type]);
+        channels[i].buffer.setBuffer(sources[static_cast<size_t>(type)]);
         channels[i].buffer.play();
         channels[i].priority = priority;
         return 0;
@@ -180,7 +180,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
         ||(channels[i].priority == AudioPriority::high && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing);
       if (canOverwrite) {
         channels[i].buffer.stop();
-        channels[i].buffer.setBuffer(sources[type]);
+        channels[i].buffer.setBuffer(sources[static_cast<size_t>(type)]);
         channels[i].buffer.play();
         channels[i].priority = priority;
         return 0;
