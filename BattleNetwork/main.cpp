@@ -25,11 +25,10 @@
 #include "bnEngine.h"
 #include "bnGameOverScene.h"
 #include "bnMainMenuScene.h"
-#include "bnFakeScene.h"
 #include "bnAnimator.h"
 #include "bnConfigReader.h"
 #include "bnConfigScene.h"
-
+#include "Segues/ZoomFadeIn.h"
 #include "SFML/System.hpp"
 
 #include <time.h>
@@ -51,6 +50,7 @@ using sf::Clock;
 
 // Swoosh activity management
 using swoosh::ActivityController;
+using namespace swoosh::types;
 
 // Title card character
 // NOTE: This is legacy code written before
@@ -812,11 +812,9 @@ int main(int argc, char** argv) {
         app.push<ConfigScene>();
     }
 
-    // This scene is designed to immediately pop off the stack
-    // and segue into the previous scene on the stack: MainMenuScene
-    // It takes a snapshot of the loading/title screen
+    // Swoosh takes a snapshot of the loading/title screen
     // And draws it with supported transition effects
-    app.push<FakeScene>(loadingScreenSnapshot);
+    app.push<segue<ZoomFadeIn>::to<MainMenuScene>>();
 
     double remainder = 0;
     elapsed = 0;

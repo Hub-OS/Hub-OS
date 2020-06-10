@@ -103,7 +103,7 @@ namespace {
 };
 #endif
 
-template<int direction>
+template<types::direction direction>
 class DiamondTileSwipe : public Segue {
 private:
   sf::Texture* temp;
@@ -133,7 +133,7 @@ public:
     sf::Sprite sprite(*temp);
 
     shader.setUniform("texture", *temp);
-    shader.setUniform("direction", direction);
+    shader.setUniform("direction", static_cast<int>(direction));
     shader.setUniform("time", (float)alpha);
 
     sf::RenderStates states;

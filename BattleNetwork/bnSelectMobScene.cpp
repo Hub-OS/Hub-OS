@@ -2,6 +2,8 @@
 #include "bnSelectMobScene.h"
 #include "Android/bnTouchArea.h"
 
+using namespace swoosh::types;
+
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder) :
   elapsed(0),
   camera(ENGINE.GetView()),
@@ -157,8 +159,8 @@ void SelectMobScene::onUpdate(double elapsed) {
       // Fade out black and go back to the menu
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-      using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
-      getController().queuePop<segue>();
+      using effect = segue<BlackWashFade, milliseconds<500>>;
+      getController().queuePop<effect>();
     }
   }
 #else
@@ -397,8 +399,8 @@ void SelectMobScene::onUpdate(double elapsed) {
 
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
-      using segue = swoosh::intent::segue<WhiteWashFade>::to<BattleScene>;
-      getController().push<segue>(player, mob, &selectedFolder);
+      using effect = segue<WhiteWashFade>;
+      getController().push<effect::to<BattleScene>>(player, mob, &selectedFolder);
     }
   }
 

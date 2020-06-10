@@ -22,7 +22,6 @@ using sf::Event;
 using sf::Font;
 
 using namespace swoosh::types;
-using swoosh::types::direction;
 
 #include "Segues/PushIn.h"
 
@@ -299,7 +298,7 @@ void FolderScene::onUpdate(double elapsed) {
           gotoNextScene = true;
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
-          using segue = segue<PushIn<right>, milli<500>>;
+          using segue = segue<PushIn<direction::right>, milli<500>>;
           getController().queuePop<segue>();
         } else {
             promptOptions = false;
