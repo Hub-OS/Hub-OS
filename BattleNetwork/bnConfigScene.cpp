@@ -180,12 +180,6 @@ void ConfigScene::onUpdate(double elapsed)
       if (textbox.IsClosed()) {
           auto onYes = [this]() {
               // Save before leaving
-              using namespace swoosh::intent;
-              using effect = segue<WhiteWashFade, swoosh::intent::milli<300>>;
-              getController().queuePop<effect>();
-              AUDIO.Play(AudioType::NEW_GAME);
-              leave = true;
-
               configSettings.SetKeyboardHash(keyHash);
               configSettings.SetGamepadHash(gamepadHash);
               ConfigWriter writer(configSettings);
@@ -193,12 +187,20 @@ void ConfigScene::onUpdate(double elapsed)
               ConfigReader reader("config.ini");
               INPUT.SupportConfigSettings(reader);
               textbox.Close();
+
+              // transition to the next screen
+              using namespace swoosh::types;
+              using effect = segue<WhiteWashFade, milliseconds<300>>;
+              getController().queuePop<effect>();
+
+              AUDIO.Play(AudioType::NEW_GAME);
+              leave = true;
           };
 
           auto onNo = [this]() {
               // Just close and leave
-              using namespace swoosh::intent;
-              using effect = segue<BlackWashFade, swoosh::intent::milli<300>>;
+              using namespace swoosh::types;
+              using effect = segue<BlackWashFade, milliseconds<300>>;
               getController().queuePop<effect>();
               leave = true;
 

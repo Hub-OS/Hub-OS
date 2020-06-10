@@ -28,6 +28,8 @@
 // If x = 20 frames, then we want a combo hit threshold of 20/60 = 0.3 seconds
 #define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
+using namespace swoosh::types;
+
 BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, CardFolder* folder) :
         swoosh::Activity(&controller),
         player(player),
@@ -1450,8 +1452,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
               }
             }
 
-            using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>;
-            getController().queuePop<segue>();
+            using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
+            getController().queuePop<effect>();
           }
           else {
             battleResults->CursorAction();
@@ -1463,8 +1465,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   else if (isBattleRoundOver && isPlayerDeleted) {
     if (!initFadeOut) {
       initFadeOut = true;
-      using segue = swoosh::intent::segue<WhiteWashFade, swoosh::intent::milli<500>>::to<GameOverScene>;
-      getController().queueRewind<segue>();
+      using effect = segue<WhiteWashFade, milliseconds<500>>;
+      getController().queueRewind<effect::to<GameOverScene>>();
     }
   }
 
