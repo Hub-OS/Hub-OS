@@ -48,7 +48,7 @@ struct Frame {
   }
 
 
-  Frame& operator=(Frame&& rhs) {
+  Frame& operator=(Frame&& rhs) noexcept {
     duration = rhs.duration;
     rhs.duration = 0;
 
@@ -63,7 +63,7 @@ struct Frame {
     return *this;
   }
 
-  Frame(Frame&& rhs) {
+  Frame(Frame&& rhs) noexcept {
     *this = rhs;
   }
 };
@@ -93,7 +93,7 @@ public:
     FrameList res;
 
     while (iter != data.end() && data.size() > 0) {
-      auto copy = frames[iter->frameIndex - 1];
+      auto copy = frames[static_cast<size_t>(iter->frameIndex) - 1];
       copy.duration = (float)iter->duration;
       res.frames.push_back(copy);
       res.totalDuration += copy.duration;

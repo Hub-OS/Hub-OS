@@ -57,14 +57,14 @@ protected:
     occuranceX = std::max(occuranceX, (unsigned)1);
     occuranceY = std::max(occuranceY, (unsigned)1);
 
-    vertices.resize(occuranceX * occuranceY * (unsigned)6);
+    vertices.resize(static_cast<size_t>(occuranceX * occuranceY * (unsigned)6));
 
     textureRect = sf::IntRect(0, 0, textureSize.x, textureSize.y);
 
     for (unsigned int i = 0; i < occuranceX; ++i) {
       for (unsigned int j = 0; j < occuranceY; ++j) {
         // get a pointer to the current tile's quad
-        sf::Vertex* quad = &vertices[(i + j * occuranceX) * 6];
+        sf::Vertex* quad = &vertices[static_cast<size_t>(i + j * occuranceX) * size_t(6)];
 
         // define its 4 corners
         quad[0].position = sf::Vector2f((float)(i * textureSize.x * 2), (float)((j + 1) * textureSize.y * 2));
