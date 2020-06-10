@@ -21,6 +21,9 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
+using namespace swoosh::types;
+using swoosh::types::direction;
+
 #include "Segues/PushIn.h"
 
 FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderCollection& collection) :
@@ -296,8 +299,7 @@ void FolderScene::onUpdate(double elapsed) {
           gotoNextScene = true;
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
-          using swoosh::intent::direction;
-          using segue = swoosh::intent::segue<PushIn<direction::right>, swoosh::intent::milli<500>>;
+          using segue = segue<PushIn<right>, milli<500>>;
           getController().queuePop<segue>();
         } else {
             promptOptions = false;
@@ -317,9 +319,9 @@ void FolderScene::onUpdate(double elapsed) {
           switch (optionIndex) {
           case 0: // EDIT
             if (folder) {
-              using namespace intent;
-              using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderEditScene>;
-              getController().push<next>(*folder);
+              using effect = segue<BlackWashFade, milli<500>>;
+              getController().push<effect::to<FolderEditScene>>(*folder);
+
               AUDIO.Play(AudioType::CHIP_CONFIRM);
               gotoNextScene = true;
             }
@@ -334,9 +336,8 @@ void FolderScene::onUpdate(double elapsed) {
             break;
           case 2: // CHANGE NAME
             if (folder) {
-              using namespace intent;
-              using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderChangeNameScene>;
-              getController().push<next>(folderNames[currFolderIndex]);
+              using effect = segue<BlackWashFade, milli<500>>;
+              getController().push<effect::to<FolderChangeNameScene>>(folderNames[currFolderIndex]);
               AUDIO.Play(AudioType::CHIP_CONFIRM);
               gotoNextScene = true;
             }

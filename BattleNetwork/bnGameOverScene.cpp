@@ -3,6 +3,8 @@
 #include "Segues/WhiteWashFade.h"
 #include <Swoosh/ActivityController.h>
 
+using namespace swoosh::types;
+
 GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(&controller) {
   fadeInCooldown = 2.0f;
 
@@ -45,7 +47,7 @@ void GameOverScene::onUpdate(double elapsed) {
 
       leave = false;
 
-      using effect = swoosh::intent::segue<WhiteWashFade, swoosh::intent::milli<500>>;
+      using effect = segue<WhiteWashFade, milliseconds<500>>;
       getController().push<effect::to<MainMenuScene>>();
     }
   }

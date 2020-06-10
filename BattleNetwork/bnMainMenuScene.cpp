@@ -16,6 +16,7 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 using sf::Font;
+using namespace swoosh::types;
 
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetView()),
@@ -157,6 +158,9 @@ void MainMenuScene::onUpdate(double elapsed) {
   // Follow the navi
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
 
+  const auto left = direction::left;
+  const auto right = direction::right;
+
   if (!gotoNextScene) {
     if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && !INPUT.Has(EventTypes::PRESSED_CANCEL)) {
 
@@ -165,9 +169,8 @@ void MainMenuScene::onUpdate(double elapsed) {
         gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
 
-        using swoosh::intent::direction;
-        using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
-        getController().push<segue::to<FolderScene>>(data);
+        using effect = segue<PushIn<left>, milliseconds<500>>;
+        getController().push<effect::to<FolderScene>>(data);
       }
 
       // Config Select on PC 
@@ -175,18 +178,17 @@ void MainMenuScene::onUpdate(double elapsed) {
         gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
 
-        using swoosh::intent::direction;
-        using segue = swoosh::intent::segue<DiamondTileSwipe<direction::right>, swoosh::intent::milli<500>>;
-        getController().push<segue::to<ConfigScene>>();
+        using effect = segue<DiamondTileSwipe<right>, milliseconds<500>>;
+        getController().push<effect::to<ConfigScene>>();
       }
 
       // Navi select
       if (menuSelectionIndex == 2) {
         gotoNextScene = true;
         AUDIO.Play(AudioType::CHIP_DESC);
-        using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<250>>;
-        using intent = segue::to<SelectNaviScene>;
-        getController().push<intent>(currentNavi);
+
+        using effect = segue<Checkerboard, milliseconds<250>>;
+        getController().push<effect::to<SelectNaviScene>>(currentNavi);
       }
 
       // Mob select
@@ -197,8 +199,9 @@ void MainMenuScene::onUpdate(double elapsed) {
 
         if (data.GetFolder(0, folder)) {
           AUDIO.Play(AudioType::CHIP_DESC);
-          using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
-          getController().push<segue>(currentNavi, *folder);
+
+          using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
+          getController().push<effect::to<SelectMobScene>>(currentNavi, *folder);
         }
         else {
           AUDIO.Play(AudioType::CHIP_ERROR); 

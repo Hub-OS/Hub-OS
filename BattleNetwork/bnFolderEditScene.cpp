@@ -496,8 +496,9 @@ void FolderEditScene::onUpdate(double elapsed) {
 
     if (gotoLastScene) {
       canInteract = false;
-      using swoosh::intent::direction;
-      using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
+
+      using namespace swoosh::types;
+      using segue = segue<BlackWashFade, milli<500>>;
       getController().queuePop<segue>();
     }
   } // end if(gotoLastScene)

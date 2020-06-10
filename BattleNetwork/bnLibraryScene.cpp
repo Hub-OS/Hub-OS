@@ -19,6 +19,8 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 using sf::Font;
+using namespace swoosh::types;
+using swoosh::types::direction;
 
 #include "Segues/PushIn.h"
 
@@ -301,8 +303,7 @@ void LibraryScene::onUpdate(double elapsed) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
-      using swoosh::intent::direction;
-      using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
+      using segue = segue<PushIn<left>, milli<500>>;
       getController().queuePop<segue>();
     }
   }
