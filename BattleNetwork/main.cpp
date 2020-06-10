@@ -783,18 +783,6 @@ int main(int argc, char** argv) {
     loadingScreenSnapshot.flip(true);
     #endif
 
-    // Cleanup
-    ENGINE.RevokeShader();
-    ENGINE.Clear();
-    delete mobLoadedLabel;
-    delete navisLoadedLabel;
-
-    //delete logLabel;
-    //delete font;
-
-    // Stop music and go to menu screen
-    AUDIO.StopStream();
-
     // Create an activity controller
     // Behaves like a state machine using stacks
     // The activity controller uses a virtual window
@@ -809,8 +797,23 @@ int main(int argc, char** argv) {
     app.push<MainMenuScene>();
 
     if (selected > 0) {
-        app.push<ConfigScene>();
+      app.push<ConfigScene>();
     }
+
+    // this will copy the screen's contents
+    app.push<CopyWindow>();
+
+    // Zoom out
+    app.queuePop<segue<CrossZoom>>();
+
+    // Cleanup
+    ENGINE.RevokeShader();
+    ENGINE.Clear();
+    delete mobLoadedLabel;
+    delete navisLoadedLabel;
+
+    // Stop music 
+    AUDIO.StopStream();
 
     double remainder = 0;
     elapsed = 0;
