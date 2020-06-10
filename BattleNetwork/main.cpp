@@ -812,10 +812,6 @@ int main(int argc, char** argv) {
         app.push<ConfigScene>();
     }
 
-    // Swoosh takes a snapshot of the loading/title screen
-    // And draws it with supported transition effects
-    app.push<segue<ZoomFadeIn>::to<MainMenuScene>>();
-
     double remainder = 0;
     elapsed = 0;
 
