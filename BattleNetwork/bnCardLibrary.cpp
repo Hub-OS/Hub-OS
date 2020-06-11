@@ -159,7 +159,7 @@ const bool CardLibrary::SaveLibrary(const std::string& path) {
   try {
     FileUtil::WriteStream ws(path);
 
-    ws << "# Saved on " << CurrentTime::Get() << ws.endl();
+    ws << "# Saved on " << CurrentTime::AsString() << ws.endl();
 
     for (auto& card : library) {
       ws << "Card name=\"" << card.GetShortName() << "\" cardIndex=\""

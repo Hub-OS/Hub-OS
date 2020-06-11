@@ -12,6 +12,8 @@ Entity::Entity()
   next(nullptr),
   previous(nullptr),
   field(nullptr),
+  floatShoe(false),
+  airShoe(false),
   previousDirection(Direction::none),
   direction(Direction::none),
   team(Team::unknown),
@@ -28,10 +30,11 @@ Entity::Entity()
   defaultSlideTime(slideTime),
   elapsedSlideTime(0),
   lastComponentID(0),
-  height(0)
+  height(0),
+  moveCount(0),
+  alpha(255)
 {
   ID = ++Entity::numOfIDs;
-  alpha = 255;
 }
 
 Entity::~Entity() {

@@ -78,11 +78,9 @@ private:
 
   double totalTimeElapsed;
   double frameElapsed;
-
   double folderOffsetX;
 
   bool gotoNextScene; /*!< If true, user cannot interact */
-
   bool folderSwitch; /*!< If a folder at currIndex was changed or index was changed*/
 
   int optionIndex; /*!< Index for menu state options when at the prompt menu */
@@ -104,29 +102,31 @@ private:
 
   void MakeNewFolder();
   void DeleteFolder(std::function<void()> onSuccess);
-public:
-  virtual void onStart();
+
+public:  
+
+  void onLeave() override;
+  void onExit() override;
+  void onEnter() override;
+  void onResume() override;
+  void onStart() override;
   
   /**
-   * @brief Responds to user input and menu states
-   * @param elapsed in seconds
-   */
-  virtual void onUpdate(double elapsed);
-  virtual void onLeave();
-  virtual void onExit();
-  virtual void onEnter();
-  virtual void onResume();
+  * @brief Responds to user input and menu states
+  * @param elapsed in seconds
+  */
+  void onUpdate(double elapsed) override;
   
   /**
    * @brief Interpolate folder positions and draws
    * @param surface
    */
-  virtual void onDraw(sf::RenderTexture& surface);
+  void onDraw(sf::RenderTexture& surface) override;
   
   /**
    * @brief Deletes all resources
    */
-  virtual void onEnd();
+  void onEnd() override;
 
   /**
    * @brief Requires the user's card folder collection to display all card folders
@@ -138,5 +138,5 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~FolderScene();
+  ~FolderScene();
 };

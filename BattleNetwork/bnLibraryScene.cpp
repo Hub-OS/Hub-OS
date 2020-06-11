@@ -223,6 +223,8 @@ void LibraryScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
+  cardRevealTimer.update(elapsed);
+  easeInTimer.update(elapsed);
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
 

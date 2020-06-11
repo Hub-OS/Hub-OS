@@ -214,6 +214,9 @@ void FolderEditScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
+  cardRevealTimer.update(elapsed);
+  easeInTimer.update(elapsed);
+
   auto offset = camera.GetView().getCenter().x - 240;
   bg.setPosition(offset, 0.f);
   menuLabel->setPosition(offset + 20.0f, 5.f);

@@ -3,6 +3,7 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
+#include <chrono>
 
 struct CurrentTime {
 private:
@@ -29,7 +30,12 @@ private:
   }
 
 public:
-  static std::string Get() {
+  static std::string AsString() {
     return time_stamp("%y-%m-%d %OH:%OM:%OS");
+  }
+
+  static long long AsMilli() {
+    using namespace std::chrono;
+    return system_clock::now().time_since_epoch().count();
   }
 };
