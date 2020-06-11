@@ -434,7 +434,13 @@ void BattleScene::onUpdate(double elapsed) {
   shineAnimation.Update((float)elapsed, shine);
 
   if(!isPaused) {
-    summonTimer += elapsed;
+    comboInfoTimer.update(elapsed);
+    battleStartTimer.update(elapsed); 
+    battleEndTimer.update(elapsed);
+    multiDeleteTimer.update(elapsed);
+    summonTimer.update(elapsed);
+    battleTimer.update(elapsed);
+    PAStartTimer.update(elapsed);
 
     if (!isChangingForm) {
       if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
@@ -911,7 +917,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   if (!summons.IsSummonActive() && showSummonText) {
     sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
 
-    double summonSecs = summonTimer - showSummonBackdropLength;
+    double summonSecs = summonTimer.getElapsed().asSeconds() - showSummonBackdropLength;
     double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
 
     if (summons.GetCallerTeam() == Team::red) {
@@ -1025,7 +1031,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       prevSummonState = summons.HasMoreInQueue();
 
       if (prevSummonState) {
-        summonTimer = 0;
+        summonTimer.reset();
         showSummonBackdrop = true;
         showSummonBackdropTimer = 0;
       }
