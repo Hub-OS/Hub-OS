@@ -1,6 +1,11 @@
 #include "bnDefenseFrameStateJudge.h"
 #include "bnDefenseRule.h"
 
+DefenseFrameStateJudge::DefenseFrameStateJudge()
+  : blockedDamage(false), blockedImpact(false), context(nullptr)
+{
+}
+
 const bool DefenseFrameStateJudge::IsDamageBlocked() const
 {
   return blockedDamage;

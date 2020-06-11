@@ -22,7 +22,7 @@ class DefenseFrameStateJudge final {
   std::set<DefenseRule*> piercedSet;
   DefenseRule* context;
 public:
-  DefenseFrameStateJudge() = default;
+  DefenseFrameStateJudge();
   DefenseFrameStateJudge(const DefenseFrameStateJudge&) = delete;
   ~DefenseFrameStateJudge() = default;
 

@@ -45,6 +45,6 @@ public:
 
   /*! \brief return the seconds since this item was last requested */
   const float GetSecondsSinceLastRequest() {
-    return (CurrentTime::AsMilli() - lastRequestTime)/100.0f;
+    return (CurrentTime::AsMilli() - lastRequestTime)/1000.0f;
   }
 };
