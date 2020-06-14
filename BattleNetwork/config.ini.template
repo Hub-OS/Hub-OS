@@ -5,11 +5,11 @@ Key=""
 Music="1"
 SFX="1"
 [Net]
-WebServer="battlenetwork.io"
-Version="1"
-Port="3000"
-Username="Mav"
-Password="741236985"
+WebServer=SERVER
+Version=VERSION
+Port=PORT
+Username=USERNAME
+Password=PASSWORD
 [Video]
 Fullscreen="0"
 [Keyboard]
