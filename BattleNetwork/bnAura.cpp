@@ -22,13 +22,6 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   owner->RegisterComponent(this);
   owner->AddNode(this);
 
-  Entity::RemoveCallback& callback = owner->CreateRemoveCallback();
-  callback.Slot([this]() {
-    timer = 0;
-    bs->Eject(GetID());
-    delete this;
-  });
-
   AddNode(aura);
 
   // Note: need to get rid of artificial scaling by 2. Makes the math awful. No need for it.
@@ -144,6 +137,12 @@ void Aura::OnUpdate(float _elapsed) {
  }
 
  animation.Update(_elapsed, aura->getSprite());
+
+ if (privOwner->WillRemoveLater()) {
+   timer = 0;
+   bs->Eject(GetID());
+   delete this;
+ }
 }
 
 const Aura::Type Aura::GetAuraType()

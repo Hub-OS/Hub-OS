@@ -37,6 +37,8 @@ Bubble::Bubble(Field* _field, Team _team, double speed)
   ShareTileSpace(true);
 
   animation.Update(0, getSprite());
+
+  IgnoreCommonAggressor(true);
 }
 
 Bubble::~Bubble() {
@@ -91,6 +93,10 @@ const bool Bubble::OnHit(const Hit::Properties props) {
   }
 
   return false;
+}
+
+void Bubble::OnCollision() {
+  Delete();
 }
 
 void Bubble::OnDelete()

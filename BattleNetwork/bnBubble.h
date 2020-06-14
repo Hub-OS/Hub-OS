@@ -39,6 +39,8 @@ public:
    */
   void Attack(Character* _entity) override;
 
+  void OnCollision() override;
+
   const bool OnHit(const Hit::Properties props) override;
 
   void OnDelete() override;

@@ -10,10 +10,10 @@
 const std::string RESOURCE_PATH = "resources/mobs/honeybomber/honeybomber.animation";
 
 HoneyBomber::HoneyBomber(Rank _rank)
-  : AI<HoneyBomber>(this), TurnOrderTrait<HoneyBomber>(), Character(_rank) {
+  : hitHeight(0), shadow(nullptr), virusBody(nullptr),
+  AI<HoneyBomber>(this), TurnOrderTrait<HoneyBomber>(), Character(_rank) {
   name = "HonyBmbr";
   SetTeam(Team::blue);
-
   SetElement(Element::wood);
   SetFloatShoe(true);
 

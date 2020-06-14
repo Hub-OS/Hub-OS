@@ -76,7 +76,7 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
         Battle::Tile* next = (*iter);
 
         if (!found) {
-          if (next->ContainsEntityType<Character>() && next->GetTeam() != GetTeam()) {
+          if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != GetTeam()) {
             GetTile()->RemoveEntityByID(GetID());
 
             Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());

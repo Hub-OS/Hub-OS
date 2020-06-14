@@ -7,7 +7,11 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage(damage) {
+Bees::Bees(Field* _field, Team _team, int damage)
+  : animation(), elapsed(0), target(nullptr), turnCount(0), 
+  hitCount(0), shadow(nullptr), leader(nullptr),
+  attackCooldown(0), dropped(), damage(damage), 
+  Spell(_field, _team) {
   SetLayer(0);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_BEES));
@@ -59,7 +63,12 @@ Bees::Bees(Field* _field, Team _team, int damage) : Spell(_field, _team), damage
   }
 }
 
-Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(leader.damage)
+Bees::Bees(Bees & leader) 
+  : 
+  animation(leader.animation), elapsed(0), target(leader.target),
+  turnCount(leader.turnCount), hitCount(0), shadow(nullptr), leader(&leader),
+  attackCooldown(leader.attackCooldown), dropped(), damage(leader.damage),
+  Spell(leader.GetField(), leader.GetTeam())
 {
   SetLayer(0);
 
@@ -67,21 +76,11 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
   setScale(2.f, 2.f);
 
   HighlightTile(Battle::Tile::Highlight::solid);
-
-  elapsed = 0;
-
   SetSlideTime(sf::seconds(0.50f));
 
   animation = Animation("resources/spells/spell_bees.animation");
   animation.SetAnimation("DEFAULT");
   animation << Animator::Mode::Loop;
-
-  target = leader.target;
-
-  turnCount = 0;
-  hitCount = 0;
-  attackCooldown = 0.60f; // est 2 frames
-
   animation.Update(0, getSprite());
 
   shadow = new SpriteProxyNode();
@@ -93,12 +92,18 @@ Bees::Bees(Bees & leader) : Spell(leader.GetField(), leader.GetTeam()), damage(l
 
   SetHitboxProperties(leader.GetHitboxProperties());
 
-  this->leader = &leader;
-
+  Entity::RemoveCallback& selfDeleteHandler = CreateRemoveCallback();
   Entity::RemoveCallback& deleteHandler = this->leader->CreateRemoveCallback();
-  deleteHandler.Slot([this]() {
-      if (target == this->leader) target = nullptr;
-      this->leader = nullptr;
+
+  deleteHandler.Slot([this, s = &selfDeleteHandler]() {
+    if (target == this->leader && target != this) target = nullptr;
+    this->leader = nullptr;
+
+    s->Reset();
+  });
+
+  selfDeleteHandler.Slot([s = &deleteHandler]() {
+    s->Reset();
   });
 
   if (GetTeam() == Team::red) {
@@ -192,6 +197,11 @@ void Bees::OnUpdate(float _elapsed) {
       SetDirection(direction);
     }
 
+    // stay on top of the real target, not the leader
+    if (target && target->GetTile() == GetTile() && !Teammate(target->GetTeam())) {
+      SetDirection(Direction::none);
+    }
+
     // Always slide to the tile we're moving to
     SlideToTile(true);
     Move(GetDirection());
@@ -212,21 +222,21 @@ void Bees::OnUpdate(float _elapsed) {
   // Always affect the tile we're occupying
   GetTile()->AffectEntities(this);
 
-  if (target && GetTile() == target->GetTile() && attackCooldown == 0) {
+  if (target && GetTile() == target->GetTile() && attackCooldown == 0 && !IsSliding()) {
     // Try to attack 5 times
     attackCooldown = 1.80f; // est 3 frames
     auto hitbox = new Hitbox(GetField(), GetTeam());
     hitbox->SetHitboxProperties(GetHitboxProperties());
-    hitbox->AddCallback([this](Character* entity) {
-      // all other hitbox events will be ignored after 5 hits
-      if (hitCount < 5) {
-        hitCount++;
+    // all other hitbox events will be ignored after 5 hits
+    if (hitCount < 5) {
+      hitCount++;
+      hitbox->AddCallback([this](Character* entity) {
         AUDIO.Play(AudioType::HURT, AudioPriority::high);
         auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
         entity->GetField()->AddEntity(*fx, *entity->GetTile());
         fx->SetHeight(entity->GetHeight() / 2.0f);
-      }
-    });
+        });
+    }
     GetField()->AddEntity(*hitbox, *GetTile());
     dropped.push_back(hitbox);
   }
@@ -245,13 +255,13 @@ bool Bees::CanMoveTo(Battle::Tile* tile) {
 
 void Bees::Attack(Character* _entity) {
   // If entity was successfully hit
-  if (hitCount < 5 && _entity->Hit(GetHitboxProperties())) {
+  /*if (hitCount < 5 && _entity->Hit(GetHitboxProperties())) {
     hitCount++;
     AUDIO.Play(AudioType::HURT);
     auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
     GetField()->AddEntity(*fx, *GetTile());
     fx->SetHeight(_entity->GetHeight()/2.0f);
-  }
+  }*/
 }
 
 void Bees::OnDelete()

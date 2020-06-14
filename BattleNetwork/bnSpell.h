@@ -48,6 +48,14 @@ public:
   virtual void Attack(Character* _entity) = 0;
   
   /**
+  * @brief Describes what happens when this attack collides with a character, regardless of defenses
+  *
+  * If this function is called it does not gaurantee the attack will do damage to the character
+  * Use this for visual effects like bubble pop
+  */
+  virtual void OnCollision() { };
+
+  /**
    * @brief Uses visitor double-dispatch pattern to add to the spell bucket 
    * @param tile
    */

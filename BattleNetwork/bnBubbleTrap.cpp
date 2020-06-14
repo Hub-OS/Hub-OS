@@ -9,7 +9,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : willDelete(false), defense(nullptr), duration(4), SpriteProxyNode(), Component(owner)
+BubbleTrap::BubbleTrap(Character* owner) : willDelete(false), defense(nullptr), duration(3), SpriteProxyNode(), Component(owner)
 {
   if (owner->IsDeleted()) {
     GetOwner()->FreeComponentByID(Component::GetID());

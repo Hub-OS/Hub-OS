@@ -11,9 +11,9 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/guard_hit.animation"
 
-GuardHit::GuardHit(Field* _field, Character* hit, bool center) : Artifact(_field)
+GuardHit::GuardHit(Field* _field, Character* hit, bool center) 
+  : w(0), h(0), center(true), Artifact(_field)
 {
-  center = center;
   SetLayer(0);
   field = _field;
   team = Team::unknown;
@@ -51,7 +51,7 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center) : Artifact(_field
 }
 
 void GuardHit::OnUpdate(float _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x + w, tile->getPosition().y + tileOffset.y - h);
+  setPosition(tile->getPosition().x + tileOffset.x + w, (tile->getPosition().y + tileOffset.y) - h);
 }
 
 void GuardHit::OnDelete()
