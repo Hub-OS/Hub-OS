@@ -79,7 +79,10 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 
 
 const bool Bubble::OnHit(const Hit::Properties props) {
-  if (!popping) {
+  // don't pop if hit by other bubbles from the same character
+  bool sameAggressor = props.aggressor == GetHitboxProperties().aggressor;
+
+  if (!popping && !sameAggressor) {
     popping = true;
 
     Delete();
