@@ -13,11 +13,12 @@ ProgsManPunchState::~ProgsManPunchState()
 
 void ProgsManPunchState::OnEnter(ProgsMan& progs) {
   auto onPunch = [this, &progs]() { Attack(progs); };
-  progs.SetAnimation("ATTACKING", [p = &progs] { p->GoToNextState(); });
-  progs.GetFirstComponent<AnimationComponent>()->AddCallback(4, onPunch);
-  progs.SetCounterFrame(1);
-  progs.SetCounterFrame(2);
-  progs.SetCounterFrame(3);
+  auto onPunchFinish = [p = &progs] { p->GoToNextState(); };
+
+  auto anim = progs.GetFirstComponent<AnimationComponent>();
+  anim->SetAnimation("ATTACKING", onPunchFinish);
+  anim->AddCallback(4, onPunch);
+  anim->SetCounterFrameRange(1, 3);
 }
 
 void ProgsManPunchState::OnLeave(ProgsMan& progs) {

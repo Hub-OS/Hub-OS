@@ -41,7 +41,7 @@ void ElecPulseCardAction::Execute() {
     attachment->EnableParentShader(false);
     attachmentAnim.Update(0, attachment->getSprite());
 
-    // On shoot frame, drop projectile
+    // On shoot frame, drop projectile`
     auto onFire = [this, owner]() -> void {
         elecpulse = new Elecpulse(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
         AUDIO.Play(AudioType::ELECPULSE);

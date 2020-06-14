@@ -3,10 +3,8 @@
 namespace Overworld {
 
   InfiniteMap::InfiniteMap(int branchDepth, int numOfCols, int tileWidth, int tileHeight) 
-    : Overworld::Map(numOfCols, 0, tileWidth, tileHeight)
+    : Overworld::Map(numOfCols, 0, tileWidth, tileHeight), branchDepth(branchDepth)
   {
-    branchDepth = branchDepth;
-
     ToggleLighting(false);
 
     DeleteTiles();

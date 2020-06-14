@@ -37,14 +37,10 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
 
   auto onFinish  = [this, p = &progs]() { p->GoToNextState(); };
 
-  progs.SetAnimation("THROW", onFinish);
-  
-  // Counter on frame [1,2]
-  progs.SetCounterFrame(1);
-  progs.SetCounterFrame(2);
-  
-  // Spawn the bomb on frame 3
-  progs.OnFrameCallback(3, spawnBomb, Animator::NoCallback, true);
+  auto anim = progs.GetFirstComponent<AnimationComponent>();
+  anim->SetAnimation("THROW", onFinish);
+  anim->SetCounterFrameRange(1, 2);
+  anim->AddCallback(3, spawnBomb, true); // Spawn the bomb on frame 3
 }
 
 void ProgsManThrowState::OnLeave(ProgsMan& progs) {

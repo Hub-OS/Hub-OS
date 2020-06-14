@@ -29,7 +29,7 @@ namespace Overworld {
    * 
    * Uses the Overworld::Map draw steps to reduce code
    */
-  class InfiniteMap : public Overworld::Map
+  class InfiniteMap final : public Overworld::Map
   {
   private:
     Overworld::Tile* head; /*!< The head of the trail that tiles branch off of*/
@@ -52,19 +52,19 @@ namespace Overworld {
     /**
      * @brief deconstructors
      */
-    virtual ~InfiniteMap();
+    ~InfiniteMap();
 
     /**
      * @brief Moves the tiles based on the camera's movement
      * @param target
      * @param states
      */
-    virtual void DrawTiles(sf::RenderTarget& target, sf::RenderStates states) const;
+    void DrawTiles(sf::RenderTarget& target, sf::RenderStates states) const override;
     
     /**
      * @brief Randomly generates an NPC. If the branch depth isn't reach spawn paths.
      * @param elapsed
      */
-    virtual void Update(double elapsed);
+    void Update(double elapsed) override;
   };
 }

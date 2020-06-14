@@ -9,6 +9,14 @@
 
 #include "bnLogger.h"
 
+using FrameCallback = std::function<void()>;
+using FrameFinishCallback = std::function<void()>;
+using FrameCallbackHash = std::multimap<int, FrameCallback>;
+using PointHash = std::map<std::string, sf::Vector2f>;
+
+/**
+ * @struct OverrideFrame
+ * @brief a struct to override animations with using brace initialization e.g. { 3, 5.0f } */
 struct OverrideFrame {
   int frameIndex;
   double duration;
@@ -26,7 +34,7 @@ struct Frame {
   bool applyOrigin;
   sf::Vector2f origin;
   
-  std::map<std::string, sf::Vector2f> points;
+  PointHash points;
 
   Frame(float duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin) 
   : duration(duration), subregion(subregion), applyOrigin(applyOrigin), origin(origin) {
@@ -176,16 +184,16 @@ public:
  */
 class Animator {
 private:
-  std::multimap<int, std::function<void()>> callbacks; /*!< Called every time on frame */
-  std::multimap<int, std::function<void()>> onetimeCallbacks; /*!< Called once on frame then discarded */
-  std::multimap<int, std::function<void()>> nextLoopCallbacks; /*!< used to queue already called callbacks */
-  std::multimap<int, std::function<void()>> queuedCallbacks; /*!< used for adding new callbacks while updating */
-  std::multimap<int, std::function<void()>> queuedOnetimeCallbacks; /*!< adding new one-time callbacks in update */
+  FrameCallbackHash callbacks; /*!< Called every time on frame */
+  FrameCallbackHash onetimeCallbacks; /*!< Called once on frame then discarded */
+  FrameCallbackHash nextLoopCallbacks; /*!< used to queue already called callbacks */
+  FrameCallbackHash queuedCallbacks; /*!< used for adding new callbacks while updating */
+  FrameCallbackHash queuedOnetimeCallbacks; /*!< adding new one-time callbacks in update */
   
-  std::map<std::string, sf::Vector2f> currentPoints;
+  PointHash currentPoints;
   
-  std::function<void()> onFinish; /*!< special callback that fires when the animation is completed */
-  std::function<void()> queuedOnFinish; /*!< Queues onFinish callback when used in the middle of update */
+  FrameFinishCallback onFinish; /*!< special callback that fires when the animation is completed */
+  FrameFinishCallback queuedOnFinish; /*!< Queues onFinish callback when used in the middle of update */
   
   char playbackMode; /*!< determins how to animate the frame list */
   
@@ -195,7 +203,7 @@ private:
   void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
 
 public:
-  inline static const std::function<void()> NoCallback = [](){};
+  inline static const FrameCallback NoCallback = [](){};
 
   /**
    * @struct On
@@ -205,11 +213,11 @@ public:
    */
   struct On {
     int id; /*!< Base 1 frame index */
-    std::function<void()> callback; /*!< Callback to queue */
+    FrameCallback callback; /*!< Callback to queue */
     bool doOnce; /*!< If true, this is a one-time callback */
 
     friend class Animator;
-    On(int id, std::function<void()> callback, bool doOnce = false) : id(id), callback(callback), doOnce(doOnce) {
+    On(int id, FrameCallback callback, bool doOnce = false) : id(id), callback(callback), doOnce(doOnce) {
       ;
     }
     
@@ -287,7 +295,7 @@ public:
    * @brief Sets an onFinish callback. 
    * @important Does not chain. This must come at the end.
    */
-  void operator<< (std::function<void()> finishNotifier);
+  void operator<< (FrameFinishCallback finishNotifier);
 
   /**
    * @brief Manually applies the frame at index

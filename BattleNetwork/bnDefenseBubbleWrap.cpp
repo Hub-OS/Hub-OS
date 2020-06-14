@@ -5,12 +5,17 @@
 #include "bnHitbox.h"
 #include "bnGuardHit.h"
 
-DefenseBubbleWrap::DefenseBubbleWrap() : DefenseRule(Priority(0), DefenseOrder::always)
+DefenseBubbleWrap::DefenseBubbleWrap() : popped(false), DefenseRule(Priority(0), DefenseOrder::always)
 {
 }
 
 DefenseBubbleWrap::~DefenseBubbleWrap()
 {
+}
+
+const bool DefenseBubbleWrap::IsPopped() const
+{
+  return popped;
 }
 
 Hit::Properties& DefenseBubbleWrap::FilterStatuses(Hit::Properties& statuses) {
@@ -24,7 +29,8 @@ void DefenseBubbleWrap::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Chara
   if ((in.GetHitboxProperties().flags & Hit::impact) == 0) return;
 
   // weak obstacles will break like other bubbles
-  owner.GetField()->AddEntity(*new Hitbox(owner.GetField(), owner.GetTeam(), 0), owner.GetTile()->GetX(), owner.GetTile()->GetY());
+  auto hitbox = new Hitbox(owner.GetField(), owner.GetTeam(), 0);
+  owner.GetField()->AddEntity(*hitbox, owner.GetTile()->GetX(), owner.GetTile()->GetY());
 
   auto props = in.GetHitboxProperties();
   if ((props.flags & Hit::impact) == Hit::impact) {
@@ -32,5 +38,10 @@ void DefenseBubbleWrap::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Chara
     if (in.GetElement() != Element::elec) {
       judge.BlockDamage();
     }
+    else {
+      judge.SignalDefenseWasPierced();
+    }
+
+    popped = true;
   }
 }

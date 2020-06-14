@@ -723,6 +723,16 @@ namespace Battle {
           auto props = spell->GetHitboxProperties();
           if (!character.HasCollision(props)) continue;
 
+          // We make sure to apply any tile bonuses at this stage
+          if (GetState() == TileState::holy) {
+            auto props = spell->GetHitboxProperties();
+            props.damage /= 2;
+            spell->SetHitboxProperties(props);
+          }
+
+          // There was a collision (not necessarilly implies damage will be done)
+          character.OnHit(spell->GetHitboxProperties());
+
           if (!alreadyTagged) {
             // If not collided by the earlier defense types, tag it now
             // since we have a definite collision
@@ -738,13 +748,6 @@ namespace Battle {
           if (!judge.IsDamageBlocked()) {
 
             // Attack() routine has Hit() which immediately subtracts HP
-            // We make sure to apply any tile bonuses at this stage
-            if (GetState() == TileState::holy) {
-              auto props = spell->GetHitboxProperties();
-              props.damage /= 2;
-              spell->SetHitboxProperties(props);
-            }
-
             if (isTimeFrozen) {
               auto props = spell->GetHitboxProperties();
               props.flags |= Hit::shake;

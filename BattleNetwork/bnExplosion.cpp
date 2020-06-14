@@ -39,12 +39,12 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   animationComponent->AddCallback(12, [this]() {
     root->IncrementExplosionCount();
     setColor(sf::Color(0, 0, 0, 0));
-  }, Animator::NoCallback, true);
+  }, true);
 
   if (_numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this, _field, _team, _numOfExplosions]() {
       GetField()->AddEntity(*new Explosion(*this), *GetTile());
-    }, Animator::NoCallback, true);
+    }, true);
   }
 
   RegisterComponent(animationComponent);
@@ -83,12 +83,12 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
    */
   animationComponent->AddCallback(12, [this]() {
     Delete(); root->IncrementExplosionCount();
-  }, Animator::NoCallback, true);
+  }, true);
 
   if (numOfExplosions > 1) {
     animationComponent->AddCallback(8, [this]() {
       GetField()->AddEntity(*new Explosion(*this), *GetTile());
-    }, Animator::NoCallback, true);
+    }, true);
   }
   else {
     // Last explosion happens behind entities

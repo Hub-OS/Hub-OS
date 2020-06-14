@@ -16,10 +16,10 @@ void MetalManThrowState::OnEnter(MetalMan& metal) {
   auto onFinish = [m = &metal]() { m->GoToNextState(); };
   auto onThrow = [this, m = &metal]() { Attack(*m); };
 
-  metal.SetAnimation("THROW", onFinish);
-  metal.SetCounterFrame(1);
-  metal.SetCounterFrame(2);
-  metal.OnFrameCallback(3, onThrow, Animator::NoCallback, true);
+  auto anim = metal.GetFirstComponent<AnimationComponent>();
+  anim->SetAnimation("THROW", onFinish);
+  anim->SetCounterFrameRange(1, 2);
+  anim->AddCallback(3, onThrow, true);
 }
 
 void MetalManThrowState::OnLeave(MetalMan& metal) {

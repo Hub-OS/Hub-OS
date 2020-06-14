@@ -19,11 +19,11 @@ void StarfishAttackState::OnEnter(Starfish& star) {
     };
 
     animation->SetAnimation("ATTACK", Animator::Mode::Loop);
-    animation->AddCallback(1, onAttack, Animator::NoCallback, false);
+    animation->AddCallback(1, onAttack);
   };
 
   animation->SetAnimation("PREATTACK", onPreAttack);
-  animation->SetCounterFrame(1);
+  animation->SetCounterFrameRange(1, 2);
 }
 
 void StarfishAttackState::OnUpdate(float _elapsed, Starfish& star) {
@@ -50,7 +50,6 @@ void StarfishAttackState::DoAttack(Starfish& star) {
   animation->AddCallback(5, 
     [this, s = &star](){
       s->ChangeState<StarfishIdleState>();
-    }, 
-    Animator::NoCallback, false);
+    });
   }
 }

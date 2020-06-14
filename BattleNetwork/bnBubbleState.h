@@ -27,9 +27,9 @@ public:
   BubbleState();
   virtual ~BubbleState();
 
-  void OnEnter(Any& e);
-  void OnUpdate(float _elapsed, Any& e);
-  void OnLeave(Any& e);
+  void OnEnter(Any& e) override;
+  void OnUpdate(float _elapsed, Any& e) override;
+  void OnLeave(Any& e) override;
 };
 
 #include "bnField.h"
@@ -37,7 +37,7 @@ public:
 
 template<typename Any>
 BubbleState<Any>::BubbleState()
-  : progress(0), AIState<Any>() {
+  : progress(0), prevFloatShoe(false), AIState<Any>() {
 }
 
 template<typename Any>

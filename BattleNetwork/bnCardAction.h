@@ -25,7 +25,7 @@ protected:
 
   void AddAction(int frame, std::function<void()> action)
   {
-    anim->AddCallback(frame, action, Animator::NoCallback, true);
+    anim->AddCallback(frame, action, true);
   }
 
   void RecallPreviousState() {
@@ -43,7 +43,7 @@ public:
   CardAction(const CardAction& rhs) = delete;
 
   CardAction(Character * owner, std::string animation, SpriteProxyNode** attachment, std::string nodeName)
-    : Component(owner), animation(animation), nodeName(nodeName), attachment(attachment)
+    : anim(nullptr), animation(animation), nodeName(nodeName), uuid(), prevState(), attachment(attachment), Component(owner)
   {
     anim = owner->GetFirstComponent<AnimationComponent>();
 

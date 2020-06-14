@@ -100,9 +100,9 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
         });
 
         if (attack) {
-          animationComponent->AddCallback(4,  [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
-          animationComponent->AddCallback(12, [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
-          animationComponent->AddCallback(20, [this, attack]() { DropHitbox(attack); }, Animator::NoCallback, true);
+          animationComponent->AddCallback(4,  [this, attack]() { DropHitbox(attack); }, true);
+          animationComponent->AddCallback(12, [this, attack]() { DropHitbox(attack); }, true);
+          animationComponent->AddCallback(20, [this, attack]() { DropHitbox(attack); }, true);
         }
       }
       else {

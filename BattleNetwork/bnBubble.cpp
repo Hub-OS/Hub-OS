@@ -7,14 +7,15 @@
 #include "bnAudioResourceManager.h"
 #include "bnSharedHitbox.h"
 
-Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) {
+Bubble::Bubble(Field* _field, Team _team, double speed) 
+  : popping(false), Obstacle(_field, _team) {
   SetLayer(-100);
   field = _field;
 
   SetHealth(1);
   SetName("Bubble");
   
-  SetTeam(team);
+  SetTeam(_team);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_BUBBLE));
   setScale(2.f, 2.f);
@@ -36,8 +37,6 @@ Bubble::Bubble(Field* _field, Team _team, double speed) : Obstacle(field, team) 
   ShareTileSpace(true);
 
   animation.Update(0, getSprite());
-
-  popping = false;
 }
 
 Bubble::~Bubble() {
@@ -104,6 +103,8 @@ const float Bubble::GetHeight() const
 }
 
 void Bubble::Attack(Character* _entity) {
+  // thsi code looks like it can be rewritten
+
   if(popping) return;
 
   Obstacle* other = dynamic_cast<Obstacle*>(_entity);
@@ -111,7 +112,7 @@ void Bubble::Attack(Character* _entity) {
   if (other) {
     if (other->GetHitboxProperties().aggressor != GetHitboxProperties().aggressor) {
       _entity->Hit(GetHitboxProperties());
-      SetHealth(0);
+      Delete();
     }
 
     return;
@@ -121,14 +122,7 @@ void Bubble::Attack(Character* _entity) {
   }
 
   if (popping) {
-    auto bubble = _entity->GetFirstComponent<BubbleTrap>();
-    if (bubble == nullptr) {
-      _entity->CreateComponent<BubbleTrap>(_entity);
-    }
-    else {
-      bubble->Pop();
-    }
-
+    _entity->CreateComponent<BubbleTrap>(_entity);
     Delete();
   }
 }

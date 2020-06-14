@@ -28,7 +28,7 @@
 #include "bnAnimator.h"
 #include "bnConfigReader.h"
 #include "bnConfigScene.h"
-#include "Segues/ZoomFadeIn.h"
+#include "Segues/DiamondTileCircle.h"
 #include "SFML/System.hpp"
 
 #include <time.h>
@@ -804,7 +804,7 @@ int main(int argc, char** argv) {
     app.push<CopyWindow>();
 
     // Zoom out
-    app.queuePop<segue<CrossZoom>>();
+    app.queuePop<segue<DiamondTileCircle>>();
 
     // Cleanup
     ENGINE.RevokeShader();

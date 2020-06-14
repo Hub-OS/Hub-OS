@@ -25,6 +25,7 @@ class Forte : public Player {
 private:
   float dropCooldown;
   Aura* aura;
+
   class MoveEffect : public Artifact {
     friend class Forte;
     float elapsed;

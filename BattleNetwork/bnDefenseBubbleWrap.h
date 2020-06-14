@@ -11,10 +11,14 @@
  * Allows all attacks to hit and passthrough
  */
 class DefenseBubbleWrap : public DefenseRule {
+private:
+  bool popped; /*!< whether or not the defense popped*/
 public:
   DefenseBubbleWrap();
   ~DefenseBubbleWrap();
   
+  const bool IsPopped() const;
+
   Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
 
   /**

@@ -83,6 +83,7 @@ void Character::Update(float _elapsed) {
           SetShader(nullptr);
 
           if (counterable) {
+            // Highlight red when the character can be countered
             setColor(sf::Color(255, 55, 55, getColor().a));
             SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
           }
@@ -111,7 +112,7 @@ void Character::Update(float _elapsed) {
   if (prevThisFrameStun <= 0.0) {
     // HACKY: If we are stunned this frame, let AI update step once
     // to turn into their respective hit state animations
-    // TODO at some sort of hooks instead for Characters
+    // TODO at some sort of hooks for status effect instead
     OnUpdate(_elapsed);
   } else if (stunCooldown > 0.0) {
     stunCooldown -= _elapsed;
@@ -178,7 +179,7 @@ const bool Character::Hit(Hit::Properties props) {
   }
 
   for (auto linkedCharacter : shareHit) {
-      linkedCharacter->Hit(props);
+    linkedCharacter->Hit(props);
   }
 
   // If the character itself is also super-effective,
@@ -251,82 +252,79 @@ void Character::ResolveFrameBattleDamage()
       GetTile()->SetState(TileState::normal);
     }
 
-    // Pass on hit properties to the user-defined handler
-    if (OnHit(props)) {
-      // Only register counter if:
-      // 1. Hit type is impact
-      // 2. The character is on a counter frame
-      // 3. Hit properties has an aggressor
-      // This will set the counter aggressor to be the first non-impact hit and not check again this frame
-      if (IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
-        if (props.aggressor) {
-          frameCounterAggressor = props.aggressor;
-        }
+    // Only register counter if:
+    // 1. Hit type is impact
+    // 2. The character is on a counter frame
+    // 3. Hit properties has an aggressor
+    // This will set the counter aggressor to be the first non-impact hit and not check again this frame
+    if (IsCountered() && (props.flags & Hit::impact) == Hit::impact && !frameCounterAggressor) {
+      if (props.aggressor) {
+        frameCounterAggressor = props.aggressor;
       }
-
-      // Requeue drag if already sliding by drag or in the middle of a move
-      if ((props.flags & Hit::drag) == Hit::drag) {
-        if (slideFromDrag || GetNextTile()) {
-          append.push({ 0, Hit::drag, Element::none, nullptr, props.drag });
-        }
-        else {
-          // Apply directional slide in a moment
-          postDragDir = props.drag;
-
-          // requeue counter hits
-          append.push({ 0, Hit::impact, Element::none, frameCounterAggressor, Direction::none });
-          frameCounterAggressor = nullptr;
-        }
-
-        // exclude this from the next processing step
-        props.drag = Direction::none;
-        props.flags &= ~Hit::drag;
-      }
-
-      bool hadStun = false;
-
-      // Stun can be canceled by non-stun hits or queued if dragging
-      if ((props.flags & Hit::stun) == Hit::stun) {
-        if (postDragDir != Direction::none) {
-          // requeue these statuses if in the middle of a slide
-          append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
-        }
-        else {
-          // refresh stun
-          stunCooldown = 3.0;
-          hadStun = true;
-        }
-      }
-
-      // exclude this from the next processing step
-      props.flags &= ~Hit::stun;
-
-      // Flinch is ignored if already flinching or stunned (super armor equivalent)
-      // and can be queued if dragging this frame
-      if ((props.flags & Hit::flinch) == Hit::flinch && !hadStun) {
-        if (postDragDir != Direction::none) {
-          append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
-        }
-        else {
-          if (invincibilityCooldown <= 0.0) {
-            invincibilityCooldown = 3.0;
-          }
-        }
-      }
-
-      // exclude this from the next processing step
-      props.flags &= ~Hit::flinch;
-
-      // Flinch is canceled if retangibility is applied
-      if ((props.flags & Hit::retangible) == Hit::retangible) {
-        invincibilityCooldown = 0.0;
-      }
-
-      // exclude this from the next processing step
-      props.flags &= ~Hit::retangible;
-
-      hit = hit || props.damage;
     }
+
+    // Requeue drag if already sliding by drag or in the middle of a move
+    if ((props.flags & Hit::drag) == Hit::drag) {
+      if (slideFromDrag || GetNextTile()) {
+        append.push({ 0, Hit::drag, Element::none, nullptr, props.drag });
+      }
+      else {
+        // Apply directional slide in a moment
+        postDragDir = props.drag;
+
+        // requeue counter hits
+        append.push({ 0, Hit::impact, Element::none, frameCounterAggressor, Direction::none });
+        frameCounterAggressor = nullptr;
+      }
+
+      // exclude this from the next processing step
+      props.drag = Direction::none;
+      props.flags &= ~Hit::drag;
+    }
+
+    bool hadStun = false;
+
+    // Stun can be canceled by non-stun hits or queued if dragging
+    if ((props.flags & Hit::stun) == Hit::stun) {
+      if (postDragDir != Direction::none) {
+        // requeue these statuses if in the middle of a slide
+        append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
+      }
+      else {
+        // refresh stun
+        stunCooldown = 3.0;
+        hadStun = true;
+      }
+    }
+
+    // exclude this from the next processing step
+    props.flags &= ~Hit::stun;
+
+    // Flinch is ignored if already flinching or stunned (super armor equivalent)
+    // and can be queued if dragging this frame
+    if ((props.flags & Hit::flinch) == Hit::flinch && !hadStun) {
+      if (postDragDir != Direction::none) {
+        append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
+      }
+      else {
+        if (invincibilityCooldown <= 0.0) {
+          invincibilityCooldown = 3.0;
+        }
+      }
+    }
+
+    // exclude this from the next processing step
+    props.flags &= ~Hit::flinch;
+
+    // Flinch is canceled if retangibility is applied
+    if ((props.flags & Hit::retangible) == Hit::retangible) {
+      invincibilityCooldown = 0.0;
+    }
+
+    // exclude this from the next processing step
+    props.flags &= ~Hit::retangible;
+
+    hit = hit || props.damage;
 
     if (hit) {
       SetHealth(GetHealth() - tileDamage);

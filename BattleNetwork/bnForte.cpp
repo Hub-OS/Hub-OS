@@ -94,7 +94,8 @@ void Forte::OnDelete()
 
 int Forte::MoveEffect::counter = 0;
 
-Forte::MoveEffect::MoveEffect(Field* field) : Artifact(field)
+Forte::MoveEffect::MoveEffect(Field* field) 
+  : elapsed(0), index(0), Artifact(field)
 {
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
 

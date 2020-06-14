@@ -90,10 +90,6 @@ MetalMan::~MetalMan() {
     delete virusBody;
 }
 
-void MetalMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
-  animationComponent->AddCallback(frame, onEnter, onLeave, doOnce);
-}
-
 bool MetalMan::CanMoveTo(Battle::Tile * next)
 {
   if (!next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && !next->IsEdgeTile()) {
@@ -134,19 +130,6 @@ const bool MetalMan::OnHit(const Hit::Properties props) {
   }
 
   return result;
-}
-
-void MetalMan::SetCounterFrame(int frame)
-{
-  auto onFinish = [&]() { ToggleCounter(); };
-  auto onNext = [&]() { ToggleCounter(false); };
-  animationComponent->AddCallback(frame, onFinish, onNext);
-}
-
-void MetalMan::SetAnimation(string _state, std::function<void()> onFinish) {
-  state = _state;
-  animationComponent->SetAnimation(_state, onFinish);
-  animationComponent->OnUpdate(0);
 }
 
 void MetalMan::OnDelete() {
