@@ -1,6 +1,6 @@
 
 # About This Project
-Follow this project on :bird: [Twitter](https://twitter.com/NetbattleOpen)!
+Follow this project on :bird: [Twitter](https://twitter.com/OpenNetBattle)!
 
 This aims to be an accurate mmbn6 engine that can be used to program custom enemies, chips, navis, or used to make your own mmbn story. It includes a fully playable battle-rush game.
 
