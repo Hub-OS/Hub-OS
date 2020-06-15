@@ -4,11 +4,15 @@
 #include "bnTile.h"
 #include "bnAudioResourceManager.h"
 
-HideTimer::HideTimer(Character* owner, double secs) : owner(owner), Component(owner) {
+HideTimer::HideTimer(Character* owner, double secs) : scene(nullptr), Component(owner) {
   duration = secs;
   elapsed = 0;
 
-  temp = owner->GetTile();
+  temp = GetOwner()->GetTile();
+
+  respawn = [this, owner]() {
+    temp->AddEntity(*owner);
+  };
 }
 
 void HideTimer::OnUpdate(float _elapsed) {
@@ -21,24 +25,25 @@ void HideTimer::OnUpdate(float _elapsed) {
   elapsed += _elapsed;
 
   if (elapsed >= duration && temp) {
-    temp->AddEntity(*owner);
-    GetOwner()->FreeComponentByID(GetID());
-
+    respawn();
     scene->Eject(GetID());
     delete this;
   }
 }
 
 void HideTimer::Inject(BattleScene& scene) {
+  // temporarily remove from character from play
+  if (temp) {
+    // remove then reserve otherwise the API will also clear the reservation
+    temp->RemoveEntityByID(GetOwner()->GetID());
+    temp->ReserveEntityByID(GetOwner()->GetID());
+
+    GetOwner()->SetTile(nullptr);
+  }
+
+  // the component is now injected into the scene's update loop
+  // because the character's update loop is only called when they are on the field
+  // this way the timer can keep ticking
   scene.Inject(this);
   this->scene = &scene;
-
-  // it is safe now to temporarily remove from character from play
-  // the component is now injected into the scene's update loop
-  if (temp) {
-    temp->ReserveEntityByID(owner->GetID());
-    temp->RemoveEntityByID(owner->GetID());
-
-    owner->SetTile(nullptr);
-  }
 }

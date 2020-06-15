@@ -30,6 +30,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   camera(ENGINE.GetView()),
   folderSwitch(true),
   textbox(sf::Vector2f(4, 255)),
+  questionInterface(nullptr),
   swoosh::Activity(&controller)
 {
   textbox.SetTextSpeed(2.0f);
@@ -163,7 +164,27 @@ void FolderScene::onUpdate(double elapsed) {
   auto lastOptionIndex = optionIndex;
 
   // Prioritize textbox input
-  if (textbox.IsOpen()) return;
+  if (textbox.IsOpen() && questionInterface) {
+    if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
+      questionInterface->SelectYes();
+    } else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
+      questionInterface->SelectNo();
+    }
+    else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
+      if (!textbox.IsEndOfMessage()) {
+        questionInterface->Continue();
+      }
+      else {
+        questionInterface->ConfirmSelection();
+      }
+    }
+    else if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
+      questionInterface->SelectNo();
+      questionInterface->ConfirmSelection();
+    }
+
+    return;
+  }
 
   // Scene keyboard controls
   if (enterText) {
@@ -613,12 +634,13 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
   };
 
+  if (questionInterface) delete questionInterface;
+  questionInterface = new Question("Delete this folder?", onYes, onNo);
+
   textbox.EnqueMessage(
     sf::Sprite(*LOAD_TEXTURE(MUG_NAVIGATOR)), 
     "resources/ui/navigator.animation", 
-    new Question("Are you sure you want to permanently delete this folder?", 
-    onYes,
-    onNo));
+    questionInterface);
 
   textbox.Open();
 }

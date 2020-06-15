@@ -27,7 +27,7 @@ public:
    * @brief Sets an owner and ID. Increments numOfComponents beforehand.
    * @param owner the entity to attach to
    */
-  Component(Entity* owner) { Component::owner = owner; ID = ++numOfComponents;  };
+  Component(Entity* owner) : owner(owner) { ID = ++numOfComponents;  };
   virtual ~Component() { ; }
 
   Component(Component&& rhs) = delete;

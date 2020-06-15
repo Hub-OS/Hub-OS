@@ -12,6 +12,7 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 #include "bnAnimatedTextBox.h"
+#include "bnMessageQuestion.h"
 
 /**
  * @class FolderScene
@@ -67,6 +68,7 @@ private:
   Animation folderCursorAnimation; /*!< Flashes */
 
   AnimatedTextBox textbox;
+  Question* questionInterface;
 
   int currFolderIndex;
   int selectedFolderIndex;

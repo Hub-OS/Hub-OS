@@ -4,7 +4,7 @@
 CardDescriptionTextbox::CardDescriptionTextbox(sf::Vector2f pos) :
    AnimatedTextBox(pos)
 {
-
+  this->SetTextSpeed(2.0); // TODO just make this default
 }
 
 void CardDescriptionTextbox::DescribeCard(Battle::Card* card)
