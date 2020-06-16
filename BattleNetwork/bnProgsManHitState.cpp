@@ -13,7 +13,8 @@ ProgsManHitState::~ProgsManHitState()
 }
 
 void ProgsManHitState::OnEnter(ProgsMan& progs) {
-  progs.SetAnimation("HIT");
+  auto anim = progs.GetFirstComponent<AnimationComponent>();
+  anim->SetAnimation("HIT");
 }
 
 void ProgsManHitState::OnUpdate(float _elapsed, ProgsMan& progs) {

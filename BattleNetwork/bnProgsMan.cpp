@@ -52,10 +52,6 @@ ProgsMan::ProgsMan(Rank _rank) : BossPatternAI<ProgsMan>(this), Character(_rank)
 ProgsMan::~ProgsMan() {
 }
 
-void ProgsMan::OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave, bool doOnce) {
-  animationComponent->AddCallback(frame, onEnter, onLeave, doOnce);
-}
-
 void ProgsMan::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
@@ -63,7 +59,7 @@ void ProgsMan::OnUpdate(float _elapsed) {
 }
 
 void ProgsMan::OnDelete() {
-  SetAnimation("MOB_HIT");
+  animationComponent->SetAnimation("MOB_HIT");
   InterruptState<NaviExplodeState<ProgsMan>>(); // freezes animation
 }
 
@@ -78,16 +74,4 @@ const bool ProgsMan::OnHit(const Hit::Properties props) {
 
 const float ProgsMan::GetHeight() const {
   return 64.0f;
-}
-
-void ProgsMan::SetCounterFrame(int frame)
-{
-  auto onFinish = [&]() { ToggleCounter(); };
-  auto onNext = [&]() { ToggleCounter(false); };
-  animationComponent->AddCallback(frame, onFinish, onNext);
-}
-
-void ProgsMan::SetAnimation(string _state, std::function<void()> onFinish) {
-  animationComponent->SetAnimation(_state, onFinish);
-  animationComponent->OnUpdate(0);
 }

@@ -85,6 +85,7 @@ void Character::Update(float _elapsed) {
           SetShader(nullptr);
 
           if (counterable) {
+            // Highlight red when the character can be countered
             setColor(sf::Color(255, 55, 55, getColor().a));
             SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
           }
@@ -113,7 +114,7 @@ void Character::Update(float _elapsed) {
   if (prevThisFrameStun <= 0.0) {
     // HACKY: If we are stunned this frame, let AI update step once
     // to turn into their respective hit state animations
-    // TODO at some sort of hooks instead for Characters
+    // TODO at some sort of hooks for status effect instead
     OnUpdate(_elapsed);
   } else if (stunCooldown > 0.0) {
     stunCooldown -= _elapsed;
@@ -190,7 +191,7 @@ const bool Character::Hit(Hit::Properties props) {
   }
 
   for (auto linkedCharacter : shareHit) {
-      linkedCharacter->Hit(props);
+    linkedCharacter->Hit(props);
   }
 
   // If the character itself is also super-effective,
@@ -243,7 +244,7 @@ void Character::ResolveFrameBattleDamage()
 
   std::queue<Hit::Properties> append;
 
-  while(!statusQueue.empty() && !IsSliding()) {
+  while (!statusQueue.empty() && !IsSliding()) {
     Hit::Properties& props = statusQueue.front();
     statusQueue.pop();
 
@@ -263,8 +264,8 @@ void Character::ResolveFrameBattleDamage()
       GetTile()->SetState(TileState::normal);
     }
 
-    // Pass on hit properties to the user-defined handler
     if (OnHit(props)) {
+
       // Only register counter if:
       // 1. Hit type is impact
       // 2. The character is on a counter frame
@@ -338,13 +339,13 @@ void Character::ResolveFrameBattleDamage()
       props.flags &= ~Hit::retangible;
 
       hit = hit || props.damage;
-    }
 
-    if (hit) {
-      SetHealth(GetHealth() - tileDamage);
+      if (hit) {
+        SetHealth(GetHealth() - tileDamage);
 
-      if (GetHealth() == 0) {
-        postDragDir = Direction::none; // Cancel slide post-status if blowing up
+        if (GetHealth() == 0) {
+          postDragDir = Direction::none; // Cancel slide post-status if blowing up
+        }
       }
     }
   }

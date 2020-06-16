@@ -2,6 +2,7 @@
 #include "bnArtifact.h"
 #include "bnComponent.h"
 #include "bnField.h"
+#include "bnDefenseBubbleWrap.h"
 
 /**
  * @class BubbleTrap
@@ -18,7 +19,9 @@ private:
   Animation animation;
   sf::Sprite bubble;
   double duration; /*!< when this reaches zero, pops */
-  DefenseRule* defense; /*!< Add BubbleWrapTrap defense rule */
+  DefenseBubbleWrap* defense; /*!< Add BubbleWrapTrap defense rule */
+  bool willDelete;
+
 public:
   /**
    * @brief Attaches to the owner, sets the animation */

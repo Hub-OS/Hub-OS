@@ -1,6 +1,7 @@
 [submodule "extern/Swoosh"]
 	path = extern/Swoosh
 	url = https://github.com/TheMaverickProgrammer/Swoosh.git
+	branch = master
 [submodule "extern/SFML"]
 	path = extern/SFML
 	url = https://github.com/TheMaverickProgrammer/SFML_ANDROID_ES_2
@@ -10,6 +11,7 @@
 [submodule "extern/lua"]
 	path = extern/lua
 	url = https://github.com/lua/lua.git
+	branch = v5.3
 [submodule "extern/WebAPI"]
 	path = extern/WebAPI
 	url = https://github.com/TheMaverickProgrammer/OpenNetBattleWebDataAPI.git

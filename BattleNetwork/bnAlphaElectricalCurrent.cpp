@@ -68,8 +68,8 @@ void AlphaElectricCurrent::OnSpawn(Battle::Tile & start)
   };
 
 
-  anim->AddCallback(1, attackTopAndBottomRowTrigger, Animator::NoCallback, false);
-  anim->AddCallback(4, attackMiddleRowTrigger, Animator::NoCallback, false);
+  anim->AddCallback(1, attackTopAndBottomRowTrigger);
+  anim->AddCallback(4, attackMiddleRowTrigger);
 }
 
 

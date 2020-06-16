@@ -147,8 +147,8 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
     bool reachedLastFrame = &(*iter) == &copy.back() && startProgress != 0.f;
 
     if (progress <= 0.f || reachedLastFrame) {
-      std::map<int, std::function<void()>>::iterator callbackIter, callbackFind = callbacks.find(index);
-      std::map<int, std::function<void()>>::iterator onetimeCallbackIter = onetimeCallbacks.find(index);
+      FrameCallbackHash::iterator callbackIter, callbackFind = callbacks.find(index);
+      FrameCallbackHash::iterator onetimeCallbackIter = onetimeCallbacks.find(index);
 
       callbackIter = callbacks.begin();
 
@@ -318,7 +318,7 @@ Animator & Animator::operator<<(char rhs)
   return *this;
 }
 
-void Animator::operator<<(std::function<void()> finishNotifier)
+void Animator::operator<<(FrameFinishCallback finishNotifier)
 {
   if(!finishNotifier) return;
   
@@ -350,7 +350,7 @@ void Animator::Clear() {
   nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0;
 }
 
-void Animator::SetFrame(int frameIndex, sf::Sprite & target, FrameList& sequence)
+void Animator::SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence)
 {
   int index = 0;
   for (Frame& frame : sequence.frames) {

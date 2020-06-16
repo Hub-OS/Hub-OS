@@ -69,6 +69,10 @@ private:
       DISABLED
     } type;
     int alpha;
+
+    uiData() = default;
+    uiData(const uiData& rhs) = default;
+    ~uiData() = default;
   };
 
   int menuDivideIndex;

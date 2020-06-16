@@ -3,10 +3,8 @@
 namespace Overworld {
 
   InfiniteMap::InfiniteMap(int branchDepth, int numOfCols, int tileWidth, int tileHeight) 
-    : Overworld::Map(numOfCols, 0, tileWidth, tileHeight)
+    : Overworld::Map(numOfCols, 0, tileWidth, tileHeight), branchDepth(branchDepth)
   {
-    branchDepth = branchDepth;
-
     ToggleLighting(false);
 
     DeleteTiles();
@@ -40,7 +38,7 @@ namespace Overworld {
 
 
   void InfiniteMap::DrawTiles(sf::RenderTarget& target, sf::RenderStates states) const {
-    //std::cout << "map size: " << map.size() << "\n";
+    //std::cout << "map size: " << npcs.size() << "\n";
     for (int i = 0; i < map.size(); i++) {
       sf::Sprite tileSprite(map[i]->GetTexture());
 
@@ -99,9 +97,8 @@ namespace Overworld {
     static float total = 0;
     total += (float)elapsed;
 
-    for (auto npc : npcs) {
-      if (!npc)
-        continue;
+    for (auto npcIter = npcs.begin(); npcIter != npcs.end(); npcIter++) {
+      auto npc = *npcIter;
 
       switch (npc->type) {
       case NPCType::MR_PROG_DOWN:
@@ -149,6 +146,15 @@ namespace Overworld {
       }
       break;
       }
+
+      auto sprite = npc->sprite.getSprite();
+      auto pos = sprite.getPosition();
+
+      if (!cam->IsInView(sprite)) {
+        if (pos.x < 0) {
+          npcIter = npcs.erase(npcIter);
+        }
+      }
     }
 
     Map::Update(elapsed);
@@ -192,15 +198,15 @@ namespace Overworld {
                 
             if (randSpawnNPC == 0 && distFromPath != 0) {
                 npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
-                npcs.push_back(new NPC { SpriteProxyNode(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
+                //npcs.push_back(new NPC { SpriteProxyNode(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
 
                 sf::Vector2f pos = offroad->GetPos();
                 pos += sf::Vector2f(45, 0);
 
-                npcs.back()->sprite.setPosition(pos);
+                //npcs.back()->sprite.setPosition(pos);
                 npcPosition = pos;
 
-                AddSprite(&npcs.back()->sprite);
+                //AddSprite(&npcs.back()->sprite);
             }
             
         depth++;
@@ -213,15 +219,15 @@ namespace Overworld {
 
             if (randSpawnNPC == 0 && distFromPath != 0) {
                 npcType = (NPCType)(rand()%((int)(NPCType::MR_PROG_FIRE) + 1));
-                npcs.push_back(new NPC { SpriteProxyNode(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
+                //npcs.push_back(new NPC { SpriteProxyNode(*LOAD_TEXTURE(OW_MR_PROG)), npcType });
 
                 sf::Vector2f pos = offroad->GetPos();
                 pos += sf::Vector2f(45, 0);
 
-                npcs.back()->sprite.setPosition(pos);
+                //npcs.back()->sprite.setPosition(pos);
                 npcPosition = pos;
 
-                AddSprite(&npcs.back()->sprite);
+                //AddSprite(&npcs.back()->sprite);
             }
 
             depth++;

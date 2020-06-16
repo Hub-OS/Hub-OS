@@ -95,7 +95,7 @@ void ProtoManSummon::DoAttackStep() {
     }
 
     targets.erase(targets.begin());
-  }, Animator::NoCallback, true);
+  }, true);
   }
   else {
   animationComponent->SetAnimation("MOVE", [this] {

@@ -31,6 +31,8 @@
 // If x = 20 frames, then we want a combo hit threshold of 20/60 = 0.3 seconds
 #define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
+using namespace swoosh::types;
+
 BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, CardFolder* folder) :
   Scene(&controller),
   player(player),
@@ -434,7 +436,13 @@ void BattleScene::onUpdate(double elapsed) {
   shineAnimation.Update((float)elapsed, shine);
 
   if(!isPaused) {
-    summonTimer += elapsed;
+    comboInfoTimer.update(elapsed);
+    battleStartTimer.update(elapsed); 
+    battleEndTimer.update(elapsed);
+    multiDeleteTimer.update(elapsed);
+    summonTimer.update(elapsed);
+    battleTimer.update(elapsed);
+    PAStartTimer.update(elapsed);
 
     if (!isChangingForm) {
       if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
@@ -912,7 +920,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     Text summonsLabel = Text(summons.GetSummonLabel(), mobFont);
     summonsLabel.setScale(2.f, 2.f);
 
-    double summonSecs = summonTimer - showSummonBackdropLength;
+    double summonSecs = summonTimer.getElapsed().asSeconds() - showSummonBackdropLength;
     double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
 
     if (summons.GetCallerTeam() == Team::red) {
@@ -1024,7 +1032,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       prevSummonState = summons.HasMoreInQueue();
 
       if (prevSummonState) {
-        summonTimer = 0;
+        summonTimer.reset();
         showSummonBackdrop = true;
         showSummonBackdropTimer = 0;
       }
@@ -1449,8 +1457,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
               }
             }
 
-            using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>;
-            getController().queuePop<segue>();
+            using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
+            getController().queuePop<effect>();
           }
           else {
             battleResults->CursorAction();
@@ -1462,8 +1470,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   else if (isBattleRoundOver && isPlayerDeleted) {
     if (!initFadeOut) {
       initFadeOut = true;
-      using segue = swoosh::intent::segue<WhiteWashFade, swoosh::intent::milli<500>>::to<GameOverScene>;
-      getController().queueRewind<segue>();
+      using effect = segue<WhiteWashFade, milliseconds<500>>;
+      getController().queueRewind<effect::to<GameOverScene>>();
     }
   }
 

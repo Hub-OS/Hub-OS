@@ -12,6 +12,8 @@ Entity::Entity()
   next(nullptr),
   previous(nullptr),
   field(nullptr),
+  floatShoe(false),
+  airShoe(false),
   previousDirection(Direction::none),
   direction(Direction::none),
   team(Team::unknown),
@@ -23,15 +25,17 @@ Entity::Entity()
   hasSpawned(false),
   flagForRemove(false),
   element(Element::none),
-  tileOffset(sf::Vector2f(0, 0)),
+  tileOffset(),
+  slideStartPosition(),
   slideTime(sf::milliseconds(100)),
   defaultSlideTime(slideTime),
   elapsedSlideTime(0),
   lastComponentID(0),
-  height(0)
+  height(0),
+  moveCount(0),
+  alpha(255)
 {
   ID = ++Entity::numOfIDs;
-  alpha = 255;
 }
 
 Entity::~Entity() {
@@ -172,7 +176,7 @@ void Entity::Update(float _elapsed) {
   else {
     // If we don't have a valid next tile pointer or are not sliding,
     // Keep centered in the current tile with no offset
-    //tileOffset = sf::Vector2f(0, 0);
+    tileOffset = sf::Vector2f(0, 0);
     isSliding = false;
   }
 }

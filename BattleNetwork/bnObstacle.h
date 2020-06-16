@@ -20,6 +20,9 @@ using sf::Texture;
 */
 
 class Obstacle : public Character, public  Spell {
+private:
+  bool ignoreCommonAggressor;
+
 public:
   Obstacle(Field* _field, Team _team);
   virtual ~Obstacle();
@@ -38,4 +41,14 @@ public:
    * @param tile
    */
   void AdoptTile(Battle::Tile* tile) final override;
+
+  /**
+  * @brief if true, other obstacles from the same aggressor cannot hit eachother
+  */
+  void IgnoreCommonAggressor(bool enable);
+
+  /**
+  * @brief Query if ICA is enabled or not
+  */
+  const bool WillIgnoreCommonAggressor() const;
 };

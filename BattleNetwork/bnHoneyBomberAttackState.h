@@ -12,7 +12,7 @@ class HoneyBomberAttackState : public AIState<HoneyBomber>
 {
 private:
   int beeCount;
-  float attackCooldown;
+  float attackCooldown, spawnCooldown;
   Bees* lastBee;
 public:
 

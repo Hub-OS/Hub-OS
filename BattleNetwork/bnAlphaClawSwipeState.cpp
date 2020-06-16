@@ -59,6 +59,9 @@ void AlphaClawSwipeState::OnLeave(AlphaCore& a) {
   a.RevealLeftArm();
   a.RevealRightArm();
 
+  if (leftArm) leftArm->Delete();
+  if (rightArm) rightArm->Delete();
+
   leftArm = rightArm = nullptr;
 
 }

@@ -20,6 +20,9 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 
+using namespace swoosh::types;
+using swoosh::types::direction;
+
 #include "Segues/PushIn.h"
 
 std::string LibraryScene::FormatCardDesc(const std::string && desc)
@@ -218,6 +221,8 @@ void LibraryScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
+  cardRevealTimer.update(elapsed);
+  easeInTimer.update(elapsed);
   camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
 
@@ -298,8 +303,7 @@ void LibraryScene::onUpdate(double elapsed) {
       gotoNextScene = true;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
-      using swoosh::intent::direction;
-      using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
+      using segue = segue<PushIn<direction::left>, milli<500>>;
       getController().queuePop<segue>();
     }
   }

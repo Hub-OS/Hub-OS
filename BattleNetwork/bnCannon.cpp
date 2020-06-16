@@ -16,7 +16,7 @@ Cannon::Cannon(Field* _field, Team _team, int _damage) : Spell(_field, _team){
   SetPassthrough(true);
 
   hit = false;
-  progress = 0.0f;
+  progress = cooldown = hitHeight = 0.0f;
 
   random = rand() % 20 - 20;
 

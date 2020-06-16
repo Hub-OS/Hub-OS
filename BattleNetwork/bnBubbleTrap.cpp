@@ -9,22 +9,20 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : SpriteProxyNode(), Component(owner), ResourceHandle()
+BubbleTrap::BubbleTrap(Character* owner) : willDelete(false), defense(nullptr), duration(3), SpriteProxyNode(), Component(owner)
 {
-  // Bubbles have to pop when hit
-  defense = new DefenseBubbleWrap();
-
   if (owner->IsDeleted()) {
     GetOwner()->FreeComponentByID(Component::GetID());
-    defense = nullptr;
   }
   else {
+    // Bubbles have to pop when hit
+    defense = new DefenseBubbleWrap();
     owner->AddDefenseRule(defense);
+    owner->AddNode(this);
   }
 
   SetLayer(1);
   setTexture(Textures().GetTexture(TextureType::SPELL_BUBBLE_TRAP));
-  setScale(2.f, 2.f);
   bubble = getSprite();
 
   //Components setup and load
@@ -34,8 +32,6 @@ BubbleTrap::BubbleTrap(Character* owner) : SpriteProxyNode(), Component(owner), 
   animation << "DEFAULT" << Animator::Mode::Loop;
 
   animation.Update(0, getSprite());
-
-  duration = 4; // seconds
 }
 
 void BubbleTrap::Inject(BattleScene& bs) {
@@ -44,29 +40,34 @@ void BubbleTrap::Inject(BattleScene& bs) {
 
 void BubbleTrap::OnUpdate(float _elapsed) {
 
-  if (duration <= 0 &&  animation.GetAnimationString() != "POP" ) {
+  // either the timer runs out or the defense was popped by an attack
+  bool shouldpop = duration <= 0 && animation.GetAnimationString() != "POP";
+  shouldpop = shouldpop || (defense->IsPopped() && animation.GetAnimationString() != "POP");
+
+  if (shouldpop) {
     Pop();
   }
 
   duration -= _elapsed;
 
-  auto x = GetOwner()->getPosition().x;
-  auto y = GetOwner()->getPosition().y - (GetOwnerAs<Character>()->GetHeight()/2.0f / 2.0f);
-  setPosition(x, y);
+  auto y = -GetOwnerAs<Character>()->GetHeight() / 4.0f;
+  setPosition(0.f, y);
 
   animation.Update(_elapsed, getSprite());
+
+  if (willDelete)
+    delete this;
 }
 
 void BubbleTrap::Pop()
 {
   auto onFinish = [this]() {
-    if (GetOwner()) {
-      GetOwnerAs<Character>()->RemoveDefenseRule(defense);
-      GetOwner()->FreeComponentByID(Component::GetID());
+    if (auto character = GetOwnerAs<Character>()) {
+      character->RemoveNode(this);
+      character->RemoveDefenseRule(defense);
+      character->FreeComponentByID(Component::GetID());
     }
-
-    GetOwner()->RemoveNode(this);
-    delete this;
+    willDelete = true;
   };
 
   animation << "POP" << onFinish;

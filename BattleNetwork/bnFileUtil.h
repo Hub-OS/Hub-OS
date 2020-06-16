@@ -24,69 +24,68 @@
  */
 class FileUtil {
 public:
-    class WriteStream {
-    private:
-#ifdef __ANDROID_NDK__
-    std::FILE* m_file; //!< The asset file to read
-#else
-        std::FILE* m_file; //!< stdio file stream
-#endif
+  class WriteStream {
+  private:
+    std::FILE* m_file; //!< stdio file stream
 
     bool isOK;
 
-    public:
-        WriteStream(const std::string& path) {
-            isOK = true;
+  public:
+    WriteStream(const std::string& path) {
+      isOK = true;
 #ifdef __ANDROID_NDK__
-            m_file = std::fopen(path.c_str(), "w");
-            if(!m_file) {
-                isOK = false;
-            }
+      m_file = std::fopen(path.c_str(), "w");
+      if(!m_file) {
+        isOK = false;
+      }
 #else
-            m_file = std::fopen(path.c_str(), "w");
-            if(!m_file) {
-                isOK = false;
-            }
+  #ifndef WIN32
+      m_file = std::fopen(path.c_str(), "w");
+      if (!m_file) {
+        isOK = false;
+      }
+  #else
+      errno_t err = fopen_s(&m_file, path.c_str(), "w");
+      if (err != 0) {
+        isOK = false;
+        
+        // todo: strerror_s is not supported in MSVC??
+        //char buf[strerror_s(err) + 1];
+        //strerror_s(buf, sizeof buf, err);
+        //Logger::Logf("cannot open file '%s': %s\n", path.c_str(), buf);
+        Logger::Logf("Cannot open file %s", path.c_str());
+      }
+  #endif
 #endif
-        }
+    }
 
-        ~WriteStream() {
-#ifdef __ANDROID_NDK__
-            if (m_file)
-            {
-                std::fclose(m_file);
-            }
-#else
-            if(m_file) {
-                std::fclose(m_file);
-            }
-#endif
-        }
+    ~WriteStream() {
+      if(m_file) {
+        std::fclose(m_file);
+      }
+    }
 
-        const char endl() const {
-            return '\n';
-        }
+    const char endl() const {
+      return '\n';
+    }
 
-        WriteStream& operator<<(const char* buffer) {
-            std::fwrite(buffer, sizeof(char), std::strlen(buffer), m_file);
+    WriteStream& operator<<(const char* buffer) {
+      std::fwrite(buffer, sizeof(char), std::strlen(buffer), m_file);
+      return *this;
+    }
 
-            return *this;
-        }
+    WriteStream& operator<<(char bit) {
+      char* ptr = &bit;
+      std::fwrite(ptr, sizeof(char), 1, m_file);
+      ptr = nullptr;
+      return *this;
+    }
 
-        WriteStream& operator<<(char bit) {
-            char* ptr = &bit;
-            std::fwrite(ptr, sizeof(char), 1, m_file);
-            ptr = nullptr;
-
-            return *this;
-        }
-
-        WriteStream& operator<<(std::string buffer) {
-            std::fwrite(buffer.c_str(), sizeof(char), buffer.size(), m_file);
-
-            return *this;
-        }
-    };
+    WriteStream& operator<<(std::string buffer) {
+      std::fwrite(buffer.c_str(), sizeof(char), buffer.size(), m_file);
+      return *this;
+    }
+  };
 
   static std::string Read(const std::string& _path) {
     sf::FileInputStream in;
@@ -108,14 +107,14 @@ public:
   }
 
   static std::string ValueOf(std::string key, std::string line) {
-      int keyIndex = (int)line.find(key);
-      std::string error("Key '" + key + "' was not found in line '" + line + "'");
-      if (keyIndex == -1) {
-        Logger::Log(error);
-        throw std::runtime_error(error);
-      }
+    int keyIndex = (int)line.find(key);
+    std::string error("Key '" + key + "' was not found in line '" + line + "'");
+    if (keyIndex == -1) {
+      Logger::Log(error);
+      throw std::runtime_error(error);
+    }
 
-      std::string s = line.substr(keyIndex + key.size() + 2);
-      return s.substr(0, s.find("\""));
+    std::string s = line.substr(keyIndex + key.size() + 2);
+    return s.substr(0, s.find("\""));
   }
 };

@@ -81,7 +81,7 @@ protected:
 
   void AddAction(int frame, std::function<void()> action)
   {
-    anim->AddCallback(frame, action, Animator::NoCallback, true);
+    anim->AddCallback(frame, action, true);
   }
 
   NodeAttachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
@@ -102,10 +102,10 @@ public:
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
 
-  CardAction(Character& user, const std::string& animation) : user(user), animation(animation)
-  {
-    anim = user.GetFirstComponent<AnimationComponent>();
-
+  CardAction(Character& user, const std::string& animation) 
+   user(user), animation(animation), anim(user.GetFirstComponent<AnimationComponent>(),
+   uuid(), prevState(), attachments(), tracked() 
+ {
     if (anim) {
       prepareActionDelegate = [this, animation]() {
         prevState = anim->GetAnimationString();

@@ -4,7 +4,7 @@
 template<typename FnSig>
 class Callback {
   std::function<FnSig> slot;
-
+  bool use = false;
 public:
   Callback() {
   }
@@ -13,7 +13,12 @@ public:
 
   void Slot(decltype(slot) slot) {
     Callback::slot = slot;
+    use = true;
   }
 
-  void operator()() { slot? slot() : 0; }
+  void Reset() {
+    use = false;
+  }
+
+  void operator()() { if (!use) return;  slot ? slot() : 0; }
 };

@@ -271,7 +271,7 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
         promise->set_value(account);
     };
 
-    std::scoped_lock<std::mutex>(this->clientMutex);
+    std::scoped_lock<std::mutex> lock(this->clientMutex);
 
     taskQueue.emplace(task);
 

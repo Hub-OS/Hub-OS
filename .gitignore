@@ -366,7 +366,7 @@ healthchecksdb
 .vs/
 
 .idea/
-=======
+
 #CMake
 CMakeLists.txt.user
 CMakeCache.txt
@@ -384,3 +384,6 @@ _deps
 /*.sln
 /*.filters
 /log.txt
+
+# ini files
+*.ini 

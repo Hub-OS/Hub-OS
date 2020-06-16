@@ -45,7 +45,7 @@ Forte::Forte() : Player()
 
   SetFloatShoe(true);
 
-  aura = CreateComponent<Aura>(Aura::Type::AURA_200, this);
+  CreateComponent<Aura>(Aura::Type::AURA_200, this);
 
   //aura->setPosition(0, -20.0f);
 
@@ -59,7 +59,6 @@ Forte::Forte() : Player()
 
 Forte::~Forte()
 {
-  aura = nullptr;
 }
 
 const float Forte::GetHeight() const
@@ -88,13 +87,13 @@ void Forte::OnUpdate(float _elapsed)
 
 void Forte::OnDelete()
 {
-  FreeComponentByID(aura->GetID());
   Player::OnDelete();
 }
 
 int Forte::MoveEffect::counter = 0;
 
-Forte::MoveEffect::MoveEffect(Field* field) : Artifact(field)
+Forte::MoveEffect::MoveEffect(Field* field) 
+  : elapsed(0), index(0), Artifact(field)
 {
   setTexture(Textures().GetTexture(TextureType::NAVI_FORTE_ATLAS));
 

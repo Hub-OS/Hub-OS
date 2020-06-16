@@ -5,6 +5,8 @@
 #include "bnSelectNaviScene.h"
 #include "Segues/Checkerboard.h"
 
+using namespace swoosh::types;
+
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
   naviSelectionIndex(currentNavi),
   currentChosen(currentNavi),
@@ -290,7 +292,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
 
-      getController().queuePop<swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>>();
+      getController().queuePop<segue<Checkerboard, milliseconds<500>>>();
     }
   }
 

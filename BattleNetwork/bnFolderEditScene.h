@@ -177,15 +177,15 @@ private:
 public:
   std::string FormatCardDesc(const std::string&& desc);
 
-  virtual void onStart();
-  virtual void onUpdate(double elapsed);
-  virtual void onLeave();
-  virtual void onExit();
-  virtual void onEnter();
-  virtual void onResume();
-  virtual void onDraw(sf::RenderTexture& surface);
-  virtual void onEnd();
+  void onStart() override;
+  void onUpdate(double elapsed) override;
+  void onLeave() override;
+  void onExit() override;
+  void onEnter() override;
+  void onResume() override;
+  void onDraw(sf::RenderTexture& surface) override;
+  void onEnd() override;
 
   FolderEditScene(swoosh::ActivityController&, CardFolder& folder);
-  virtual ~FolderEditScene();
+  ~FolderEditScene();
 };

@@ -54,7 +54,7 @@ public:
     if (!file.is_open()) {
       file.open("log.txt", std::ios::app);
       file << "==============================" << endl;
-      file << "StartTime " << CurrentTime::Get() << endl;
+      file << "StartTime " << CurrentTime::AsString() << endl;
     }
 
 #if defined(__ANDROID__)
@@ -99,7 +99,7 @@ public:
     if (!file.is_open()) {
       file.open("log.txt", std::ios::app);
       file << "==========================" << endl;
-      file << "StartTime " << CurrentTime::Get() << endl;
+      file << "StartTime " << CurrentTime::AsString() << endl;
     }
 
     file << ret << endl;

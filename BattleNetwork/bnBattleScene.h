@@ -110,6 +110,9 @@ private:
   swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
   swoosh::Timer battleEndTimer; /*!< How long the end graphic should stay on screen */
   swoosh::Timer multiDeleteTimer; /*!< Deletions start a 12 frame timer to count towards combos */
+  swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
+  swoosh::Timer battleTimer; /*!< Total duration of active battle time */
+  swoosh::Timer PAStartTimer; /*!< Time to scale the PA graphic */
 
   /*
   Cards + Card select setup*/
@@ -124,8 +127,6 @@ private:
   /*
   Battle results pointer */
   BattleResults* battleResults; /*!< BR modal that pops up when player wins */
-  swoosh::Timer battleTimer; /*!< Total duration of active battle time */
-  swoosh::Timer PAStartTimer; /*!< Time to scale the PA graphic */
   double PAStartLength; /*!< Total time to animate PA */
 
   /*
@@ -205,7 +206,6 @@ private:
 
   double backdropOpacity;
 
-  double summonTimer; /*!< Timer for TFC label to appear at top */
   bool showSummonText; /*!< Whether or not TFC label should appear */
   double summonTextLength; /*!< How long TFC label should stay on screen */
   bool showSummonBackdrop; /*!< Dim screen and show new backdrop if applicable */

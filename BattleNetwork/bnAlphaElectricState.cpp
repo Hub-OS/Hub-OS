@@ -5,7 +5,8 @@
 #include "bnTile.h"
 #include "bnField.h"
 
-AlphaElectricState::AlphaElectricState() : AIState<AlphaCore>() { ; }
+AlphaElectricState::AlphaElectricState() 
+  : current(nullptr), cooldown(0), count(0), ready(false), AIState<AlphaCore>() { ; }
 AlphaElectricState::~AlphaElectricState() { ; }
 
 void AlphaElectricState::OnEnter(AlphaCore& a) {
@@ -31,7 +32,7 @@ void AlphaElectricState::OnEnter(AlphaCore& a) {
 
 void AlphaElectricState::OnUpdate(float _elapsed, AlphaCore& a) {
   if (current) {
-    if (current->IsDeleted()) {
+    if (current->WillRemoveLater()) {
       AnimationComponent* anim = a.GetFirstComponent<AnimationComponent>();
       auto onFinish = [alpha = &a, anim, this]() {
         // This will happen on the core's tick step but we want it to happen immediately after too.
@@ -57,7 +58,10 @@ void AlphaElectricState::OnUpdate(float _elapsed, AlphaCore& a) {
   props.aggressor = &a;
   current->SetHitboxProperties(props);
 
-  a.GetField()->AddEntity(*current, a.GetTile()->GetX(), a.GetTile()->GetY());
+  auto state = a.GetField()->AddEntity(*current, a.GetTile()->GetX(), a.GetTile()->GetY());
+  if (state == Field::AddEntityStatus::deleted) {
+    current = nullptr;
+  }
 }
 
 void AlphaElectricState::OnLeave(AlphaCore& a) {

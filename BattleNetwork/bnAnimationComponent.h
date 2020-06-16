@@ -90,29 +90,32 @@ public:
    * @brief Set the animation and provide an on finish notifier
    * @param state
    */
-  void SetAnimation(string state, std::function<void()> onFinish = nullptr);
+  void SetAnimation(string state, FrameFinishCallback onFinish = nullptr);
   
   /**
    * @brief Set the animation, set the playback mode, and provide an on finish notifier
    * @param state
    * @param playbackMode
    */
-  void SetAnimation(string state, char playbackMode, std::function<void()> onFinish = Animator::NoCallback);
+  void SetAnimation(string state, char playbackMode, FrameFinishCallback onFinish = Animator::NoCallback);
   
   /**
    * @brief Add a frame callback
    * @param frame Base 1 index
    * @param onFrame Callback when frame is entered
-   * @param outFrame Callback when frame is left
    * @param doOnce Toggle if the callback should be fired every time the animation loops or just once
    */
-  void AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame = Animator::NoCallback, bool doOnce = false);
+  void AddCallback(int frame, FrameCallback onFrame, bool doOnce = false);
   
   /**
    * @brief adds a callback to make the frame toggle counterable = true for Characters
-   * @param frame Base 1 index
+   * @param frameStart Base 1 index
+   * @param frameEnd Base 1 index
+   *
+   * Includes all frames from range (start, end). Effectively frame end+1 will set counterable = false
+   * @warning If an invalid range is provided the operation will be ignored
    */
-  void SetCounterFrame(int frame);
+  void SetCounterFrameRange(int frameStart, int frameEnd);
 
   /**
    * @brief Clears callbacks

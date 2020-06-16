@@ -24,6 +24,8 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
 
   auto oldTile = metal.GetTile();
 
+
+  // TODO: Field api should have a next-best tile routine
   int tries = 50;
 
   do {
@@ -47,7 +49,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
         m->GoToNextState();
     };
 
-    metal.SetAnimation("MOVING", onFinish);
+    metal.GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinish);
     isMoving = true;
   }
   else {

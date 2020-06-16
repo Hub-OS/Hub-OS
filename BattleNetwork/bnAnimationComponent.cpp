@@ -63,7 +63,7 @@ const double AnimationComponent::GetPlaybackSpeed()
   return speed;
 }
 
-void AnimationComponent::SetAnimation(string state, std::function<void()> onFinish)
+void AnimationComponent::SetAnimation(string state, FrameFinishCallback onFinish)
 {
   animation.SetAnimation(state);
   animation << onFinish;
@@ -71,7 +71,7 @@ void AnimationComponent::SetAnimation(string state, std::function<void()> onFini
   animation.Refresh(GetOwner()->getSprite());
 }
 
-void AnimationComponent::SetAnimation(string state, char playbackMode, std::function<void()> onFinish)
+void AnimationComponent::SetAnimation(string state, char playbackMode, FrameFinishCallback onFinish)
 {
   animation.SetAnimation(state);
   animation << playbackMode << onFinish;
@@ -84,21 +84,24 @@ void AnimationComponent::SetPlaybackMode(char playbackMode)
   animation << playbackMode;
 }
 
-void AnimationComponent::AddCallback(int frame, std::function<void()> onFrame, std::function<void()> outFrame, bool doOnce) {
-  animation << Animator::On(frame, onFrame, doOnce) << Animator::On(frame+1, outFrame, doOnce);
+void AnimationComponent::AddCallback(int frame, FrameCallback onFrame, bool doOnce) {
+  animation << Animator::On(frame, onFrame, doOnce);
 }
 
-void AnimationComponent::SetCounterFrame(int frame)
+void AnimationComponent::SetCounterFrameRange(int frameStart, int frameEnd)
 {
+  if (frameStart == frameEnd) frameEnd = frameEnd + 1;
+  if (frameStart > frameEnd || frameStart <= 0 || frameEnd <= 0) return;
+
   auto c = GetOwnerAs<Character>();
   if (c == nullptr) return;
 
-  AddCallback(frame, [c]() {
-    c->ToggleCounter();
-  },
-    [c]() {
-    c->ToggleCounter(false);
-  }, true);
+  auto enableCounterable  = [c]() { c->ToggleCounter(); };
+  auto disableCounterable = [c]() { c->ToggleCounter(false); };
+
+  animation << Animator::On(frameStart, enableCounterable, true);
+  animation << Animator::On(frameEnd,  disableCounterable, true);
+
 }
 
 void AnimationComponent::CancelCallbacks()

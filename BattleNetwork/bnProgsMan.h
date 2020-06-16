@@ -46,30 +46,6 @@ public:
   void OnUpdate(float _elapsed);
 
   /**
-   * @brief Delegates animation commands to animationComponent
-   * @param _state the animation to change to
-   * @param onFinish the callback that happens when the animation ends
-   */
-  void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
-  
-  /**
-   * @brief Sets the animation at frame to toggle the counter flag
-   * @param frame the frame of the animation that can be countered
-   * 
-   * When a spell attacks progsman with counter enabled, progsman is stunned
-   */
-  void SetCounterFrame(int frame);
-  
-  /**
-   * @brief Delegate animation commands to animationComponnent
-   * @param frame the frame to add callbacks to
-   * @param onEnter callbacks fire when entering this frame
-   * @param onLeave callbacks fire when leaving this frame
-   * @param doOnce If true, the callbacks will fire and never fire again
-   */
-  void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
-  
-  /**
    * @brief Describes what happens when progsman gets hit
    * @param props the propeties progsman was hit with
    * @return true if hit, false if missed

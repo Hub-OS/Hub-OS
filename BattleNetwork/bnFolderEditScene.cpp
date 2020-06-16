@@ -215,6 +215,9 @@ void FolderEditScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
+  cardRevealTimer.update(elapsed);
+  easeInTimer.update(elapsed);
+
   auto offset = camera.GetView().getCenter().x - 240;
   bg.setPosition(offset, 0.f);
   menuLabel.setPosition(offset + 20.0f, 5.f);
@@ -497,8 +500,9 @@ void FolderEditScene::onUpdate(double elapsed) {
 
     if (gotoLastScene) {
       canInteract = false;
-      using swoosh::intent::direction;
-      using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
+
+      using namespace swoosh::types;
+      using segue = segue<BlackWashFade, milli<500>>;
       getController().queuePop<segue>();
     }
   } // end if(gotoLastScene)

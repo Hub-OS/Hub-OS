@@ -44,10 +44,10 @@ bool SharedHitbox::Move(Direction _direction) {
   return false;
 }
 
-void SharedHitbox::Attack(Character* _entity) {
-  if(_entity->GetID() == owner->GetID()) return;
-  
+void SharedHitbox::Attack(Character* _entity) {  
   if(owner) {
+    if (_entity->GetID() == owner->GetID()) return;
+
     owner->Attack(_entity);
   }
 

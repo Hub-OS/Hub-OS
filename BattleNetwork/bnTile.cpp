@@ -219,7 +219,6 @@ namespace Battle {
     // Hack to toggle between team color without rewriting redundant code
     auto currTeam = team;
     auto otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
-
     auto prevAnimState = animState;
 
     ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
@@ -512,6 +511,9 @@ namespace Battle {
 
   void Tile::HandleTileBehaviors(Character* character)
   {
+    // Obstacles cannot be considered
+    if (dynamic_cast<Obstacle*>(character)) return;
+
     /*
      Special tile rules for directional pads
      Only if the entity isn't moving this frame (has a null next tile)
@@ -519,7 +521,7 @@ namespace Battle {
      */
 
     if (!(isTimeFrozen || isBattleOver)) {
-      // LAVA TILES
+      // LAVA & POISON TILES
       if (!character->HasFloatShoe()) {
         if (GetState() == TileState::poison) {
           if (elapsedBurnTime <= 0) {
@@ -542,6 +544,7 @@ namespace Battle {
       }
 
       // DIRECTIONAL TILES
+
       auto directional = Direction::none;
 
       auto notMoving = character->GetNextTile() == nullptr;
@@ -723,6 +726,23 @@ namespace Battle {
           auto props = spell->GetHitboxProperties();
           if (!character.HasCollision(props)) continue;
 
+          // There was a collision (not necessarilly implies damage will be done)
+          Obstacle* obst = dynamic_cast<Obstacle*>(&character); 
+          
+          // If colliding with a character, always do collision effect
+          if (!obst) {
+            spell->OnCollision();
+          } else if(obst) {
+            // Obstacles can hit eachother, even on the same team
+            // Some obstacles shouldn't collide if they come from the same enemy (like Bubbles from the same Starfish)
+            bool sharesCommonAggressor = spell->GetHitboxProperties().aggressor == obst->GetHitboxProperties().aggressor;
+            
+            // If ICA is false or they do not share a common aggressor, let the obstacles invoke the collision effect routine
+            if (!(sharesCommonAggressor && obst->WillIgnoreCommonAggressor())) {
+              spell->OnCollision();
+            }
+          }
+
           if (!alreadyTagged) {
             // If not collided by the earlier defense types, tag it now
             // since we have a definite collision
@@ -737,7 +757,6 @@ namespace Battle {
 
           if (!judge.IsDamageBlocked()) {
 
-            // Attack() routine has Hit() which immediately subtracts HP
             // We make sure to apply any tile bonuses at this stage
             if (GetState() == TileState::holy) {
               auto props = spell->GetHitboxProperties();
@@ -745,6 +764,7 @@ namespace Battle {
               spell->SetHitboxProperties(props);
             }
 
+            // Attack() routine has Hit() which immediately subtracts HP
             if (isTimeFrozen) {
               auto props = spell->GetHitboxProperties();
               props.flags |= Hit::shake;

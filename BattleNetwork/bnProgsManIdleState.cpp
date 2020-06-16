@@ -13,7 +13,8 @@ ProgsManIdleState::~ProgsManIdleState()
 }
 
 void ProgsManIdleState::OnEnter(ProgsMan& progs) {
-  progs.SetAnimation("IDLE");
+  auto anim = progs.GetFirstComponent<AnimationComponent>();
+  anim->SetAnimation("IDLE");
   cooldown = initialCooldown;
 }
 

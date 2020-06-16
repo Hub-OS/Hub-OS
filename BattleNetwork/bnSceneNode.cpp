@@ -1,9 +1,7 @@
 #include "bnSceneNode.h"
 
-SceneNode::SceneNode() {
-  show = true;
-  layer = 0;
-  useParentShader = false;
+SceneNode::SceneNode() :
+show(true), layer(0), useParentShader(false), parent(nullptr), childNodes() {
 }
 
 SceneNode::~SceneNode() {

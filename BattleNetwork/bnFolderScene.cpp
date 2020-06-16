@@ -20,6 +20,8 @@ using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
 
+using namespace swoosh::types;
+
 #include "Segues/PushIn.h"
 
 FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderCollection& collection) :
@@ -33,6 +35,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   numberFont(Font::Style::thick),
   numberLabel("", numberFont),
   textbox(sf::Vector2f(4, 255)),
+  questionInterface(nullptr),
   Scene(&controller)
 {
   textbox.SetTextSpeed(2.0f);
@@ -160,7 +163,27 @@ void FolderScene::onUpdate(double elapsed) {
   auto lastOptionIndex = optionIndex;
 
   // Prioritize textbox input
-  if (textbox.IsOpen()) return;
+  if (textbox.IsOpen() && questionInterface) {
+    if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
+      questionInterface->SelectYes();
+    } else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
+      questionInterface->SelectNo();
+    }
+    else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
+      if (!textbox.IsEndOfMessage()) {
+        questionInterface->Continue();
+      }
+      else {
+        questionInterface->ConfirmSelection();
+      }
+    }
+    else if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
+      questionInterface->SelectNo();
+      questionInterface->ConfirmSelection();
+    }
+
+    return;
+  }
 
   // Scene keyboard controls
   if (enterText) {
@@ -295,8 +318,7 @@ void FolderScene::onUpdate(double elapsed) {
           gotoNextScene = true;
           Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
-          using swoosh::intent::direction;
-          using segue = swoosh::intent::segue<PushIn<direction::right>, swoosh::intent::milli<500>>;
+          using segue = segue<PushIn<direction::right>, milli<500>>;
           getController().queuePop<segue>();
         } else {
             promptOptions = false;
@@ -316,10 +338,10 @@ void FolderScene::onUpdate(double elapsed) {
           switch (optionIndex) {
           case 0: // EDIT
             if (folder) {
-              using namespace intent;
-              using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderEditScene>;
-              getController().push<next>(*folder);
               Audio().Play(AudioType::CHIP_CONFIRM);
+
+              using effect = segue<BlackWashFade, milli<500>>;
+              getController().push<effect::to<FolderEditScene>>(*folder);
               gotoNextScene = true;
             }
             else {
@@ -333,10 +355,10 @@ void FolderScene::onUpdate(double elapsed) {
             break;
           case 2: // CHANGE NAME
             if (folder) {
-              using namespace intent;
-              using next = segue<BlackWashFade, swoosh::intent::milli<500>>::to<FolderChangeNameScene>;
-              getController().push<next>(folderNames[currFolderIndex]);
               Audio().Play(AudioType::CHIP_CONFIRM);
+              using effect = segue<BlackWashFade, milli<500>>;
+              getController().push<effect::to<FolderChangeNameScene>>(folderNames[currFolderIndex]);
+
               gotoNextScene = true;
             }
             else {
@@ -612,12 +634,13 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     Audio().Play(AudioType::CHIP_DESC_CLOSE);
   };
 
+  if (questionInterface) delete questionInterface;
+  questionInterface = new Question("Delete this folder?", onYes, onNo);
+
   textbox.EnqueMessage(
     sf::Sprite(*LOAD_TEXTURE(MUG_NAVIGATOR)), 
     "resources/ui/navigator.animation", 
-    new Question("Are you sure you want to permanently delete this folder?", 
-    onYes,
-    onNo));
+    questionInterface);
 
   textbox.Open();
 }

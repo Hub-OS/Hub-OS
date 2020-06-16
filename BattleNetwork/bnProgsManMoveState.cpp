@@ -63,7 +63,7 @@ void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
   if (moved) {
     progs.AdoptNextTile();
     auto onFinish = [&progs, this]() { progs.GoToNextState(); progs.FinishMove(); };
-    progs.SetAnimation("MOVING", onFinish);
+    progs.GetFirstComponent<AnimationComponent>()->SetAnimation("MOVING", onFinish);
     isMoving = true;
   }
   else {

@@ -26,10 +26,10 @@ void ProgsManShootState::OnEnter(ProgsMan& progs) {
 
   auto onFinish = [this, p = &progs]() { p->GoToNextState(); };
 
-  progs.SetAnimation("SHOOT", onFinish);
-  progs.SetCounterFrame(1);
-  progs.SetCounterFrame(2);
-  progs.OnFrameCallback(3, spawnBuster, Animator::NoCallback, true);
+  auto anim = progs.GetFirstComponent<AnimationComponent>();
+  anim->SetAnimation("SHOOT", onFinish);
+  anim->SetCounterFrameRange(1, 2);
+  anim->AddCallback(3, spawnBuster, true);
 }
 
 void ProgsManShootState::OnLeave(ProgsMan& progs) {

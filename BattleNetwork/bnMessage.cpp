@@ -29,12 +29,10 @@ void Message::SetTextBox(AnimatedTextBox * textbox)
 }
 
 void Message::Continue() {
-  if (GetTextBox()->IsPlaying()) return;
+  if (GetTextBox()->IsPlaying() || !GetTextBox()->HasMessage()) return;
 
   if (GetTextBox()->IsEndOfMessage()) {
-    if (GetTextBox()->HasMessage()) {
-      GetTextBox()->DequeMessage();
-    }
+    GetTextBox()->DequeMessage();
   }
   else {
     GetTextBox()->ShowNextLines();

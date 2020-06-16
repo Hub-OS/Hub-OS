@@ -45,7 +45,7 @@ void GameOverScene::onUpdate(double elapsed) {
 
       leave = false;
 
-      using effect = swoosh::intent::segue<WhiteWashFade, swoosh::intent::milli<500>>;
+      using effect = segue<WhiteWashFade, milliseconds<500>>;
       getController().push<effect::to<MainMenuScene>>();
     }
   }

@@ -3,12 +3,11 @@
 #include "bnField.h"
 #include "bnTile.h"
 #include "bnParticleImpact.h"
-
 using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/artifact_impact_fx.animation"
 
-ParticleImpact::ParticleImpact(ParticleImpact::Type type) : Artifact(nullptr)
+ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifact(nullptr)
 {
   SetLayer(0);
   setTexture(Textures().GetTexture(TextureType::SPELL_IMPACT_FX));
@@ -55,16 +54,16 @@ bool ParticleImpact::Move(Direction _direction)
 }
 
 void ParticleImpact::OnSpawn(Battle::Tile& tile) {
-  randOffset = sf::Vector2f(float(rand() % 10), float(rand() % 10));
-  randOffset.x *= rand() % 2 ? -1 : 1;
-  randOffset.y = randOffset.y - GetHeight();
+  //randOffset = sf::Vector2f(float(rand() % 10), float(rand() % 10));
+  //randOffset.x *= rand() % 2 ? -1 : 1;
+  //randOffset.y = randOffset.y - GetHeight();
 }
 
 void ParticleImpact::OnUpdate(float _elapsed) {
   animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
 
-  setPosition(GetTile()->getPosition() + tileOffset + randOffset);
+  setPosition(GetTile()->getPosition() + tileOffset + randOffset - sf::Vector2f(0, GetHeight()));
 }
 
 void ParticleImpact::OnDelete()

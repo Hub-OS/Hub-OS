@@ -2,7 +2,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 
-Obstacle::Obstacle(Field* _field, Team _team) : Spell(_field, _team), Character()  {
+Obstacle::Obstacle(Field* _field, Team _team) 
+  : ignoreCommonAggressor(false), Spell(_field, _team), Character()  {
   field = _field;
   team = _team;
 
@@ -33,5 +34,15 @@ void Obstacle::AdoptTile(Battle::Tile * tile)
   if (!IsSliding()) {
     setPosition(tile->getPosition());
   }
+}
+
+void Obstacle::IgnoreCommonAggressor(bool enable = true)
+{
+  ignoreCommonAggressor = enable;
+}
+
+const bool Obstacle::WillIgnoreCommonAggressor() const
+{
+  return ignoreCommonAggressor;
 }
 

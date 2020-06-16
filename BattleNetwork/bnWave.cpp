@@ -30,6 +30,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
     if(nextTile && nextTile->IsWalkable() && !nextTile->IsEdgeTile()) {
         auto* wave = new Wave(GetField(), GetTeam(), Wave::speed);
         wave->SetDirection(dir);
+        wave->SetHitboxProperties(GetHitboxProperties());
 
         GetField()->AddEntity(*wave, nextTile->GetX(), nextTile->GetY());
     }

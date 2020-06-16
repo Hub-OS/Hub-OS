@@ -42,28 +42,6 @@ public:
   bool CanMoveTo(Battle::Tile * next);
   
   /**
-   * @brief Delegates work to animationComponent
-   * @param _state new animation state
-   * @param onFinish when finish ends callback
-   */
-  void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
-  
-  /**
-   * @brief Toggles counter flag for this frame
-   * @param frame the animation frame to toggle counter flag for
-   */
-  void SetCounterFrame(int frame);
-  
-  /**
-   * @brief Adds a callback when the frame is reached
-   * @param frame the frame index to add callback to
-   * @param onEnter the callback when the frame is first reached
-   * @param onLeave the callback when leaving the frame
-   * @param doOnce if true, callbacks never fire again, otherwise fire every time this fame
-   */
-  void OnFrameCallback(int frame, std::function<void()> onEnter, std::function<void()> onLeave = nullptr, bool doOnce = false);
-
-  /**
    * @brief If hit while on opponents side, requests a move next frame
    * @param props hit properties
    * @return true if hit, false if missed

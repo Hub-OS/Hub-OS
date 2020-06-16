@@ -20,6 +20,8 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
     return;
   }
 
+  auto anim = metal.GetFirstComponent<AnimationComponent>();
+
   auto nextTile = metal.GetField()->GetAt(tile->GetX() + 1, tile->GetY());
 
   if (nextTile) {
@@ -28,7 +30,7 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
     lastTile->ReserveEntityByID(metal.GetID());
 
 
-    auto onFinish = [metal = &metal, nextTile, lastTile, this]() {
+    auto onFinish = [metal = &metal, nextTile, lastTile, anim, this]() {
       Logger::Log("metalman move on finish called");
 
       metal->Teleport(nextTile->GetX(), nextTile->GetY());
@@ -47,15 +49,13 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
         Attack(*m); 
       };
 
-      metal->SetAnimation("PUNCH", onFinishPunch); // TODO: this is not firing
-      metal->SetCounterFrame(1);
-      metal->SetCounterFrame(2);
-      metal->SetCounterFrame(3);
-      metal->OnFrameCallback(4, onGroundHit, Animator::NoCallback, true);
+      anim->SetAnimation("PUNCH", onFinishPunch); // TODO: this is not firing
+      anim->SetCounterFrameRange(1, 3);
+      anim->AddCallback(4, onGroundHit, true);
 
     };
 
-    metal.SetAnimation("MOVING", onFinish);
+    anim->SetAnimation("MOVING", onFinish);
   }
   else {
     metal.GoToNextState();
@@ -64,7 +64,8 @@ void MetalManPunchState::OnEnter(MetalMan& metal) {
 }
 
 void MetalManPunchState::OnLeave(MetalMan& metal) {
-  metal.SetAnimation("IDLE");
+  auto anim = metal.GetFirstComponent<AnimationComponent>();
+  anim->SetAnimation("IDLE");
 
 }
 
