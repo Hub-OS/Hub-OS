@@ -14,15 +14,9 @@
 
 #define COOLDOWN 40.0f/1000.0f
 
-Vulcan::Vulcan(Field* _field, Team _team,int damage) :Spell(_field, _team) {
+Vulcan::Vulcan(Field* _field, Team _team,int damage) : Spell(_field, _team) {
   SetPassthrough(true);
   SetLayer(0);
-
-  cooldown = 0;
-
-  hitHeight = 20.0f;
-
-  random = 0;
 
   AUDIO.Play(AudioType::GUN, AudioPriority::highest);
 
@@ -47,7 +41,7 @@ void Vulcan::OnUpdate(float _elapsed) {
   }
 
   if (GetTile()->IsEdgeTile()) {
-    //Delete();
+    Delete();
   }
 }
 

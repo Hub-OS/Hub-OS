@@ -8,6 +8,7 @@
 #include "bnMedicalBackground.h"
 #include "bnACDCBackground.h"
 #include "bnMiscBackground.h"
+#include "bnSecretBackground.h"
 #include "bnJudgeTreeBackground.h"
 #include "bnPlayerHealthUI.h"
 #include "bnPaletteSwap.h"
@@ -78,7 +79,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   background = mob->GetBackground();
 
   if (!background) {
-    int randBG = rand() % 9;
+    int randBG = rand() % 10;
 
     if (randBG == 0) {
       background = new LanBackground();
@@ -106,6 +107,9 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
     }
     else if (randBG == 8) {
       background = new JudgeTreeBackground();
+    }
+    else if (randBG == 9) {
+      background = new SecretBackground();
     }
   }
 
@@ -617,7 +621,7 @@ void BattleScene::onUpdate(double elapsed) {
 
 
     // kill switch for testing:
-    if (summons.IsSummonOver()) {
+    if (summons.IsSummonOver() && !isPreBattle) {
         if (INPUT.Has(EventTypes::HELD_USE_CHIP) && INPUT.Has(EventTypes::HELD_SHOOT) && INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
             mob->KillSwitch();
         }
@@ -1028,7 +1032,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
     // Track if a summon card was used on this frame
     if (!prevSummonState) {
-      prevSummonState = summons.HasMoreInQueue();
+      prevSummonState = summons.HasMoreInQueue() && player->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE";
 
       if (prevSummonState) {
         summonTimer.reset();
@@ -1125,10 +1129,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             }
 
             if (INPUT.Has(EventTypes::HELD_CONFIRM)) {
-                cardCustGUI.FastForwardCardDescription(3.0);
+                cardCustGUI.FastForwardCardDescription(4.0);
             }
             else {
-                cardCustGUI.FastForwardCardDescription(1.0);
+                cardCustGUI.FastForwardCardDescription(2.0);
             }
 
             if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {

@@ -65,8 +65,9 @@ void WebClientManager::InitDownloadImageHandler()
 
         sf::Http Http;
         sf::Http::Request request;
+        unsigned short port = (unsigned short)strtoul(urlParser.GetPort().c_str(), nullptr, 0);
 
-        Http.setHost(urlParser.GetHost());
+        Http.setHost(urlParser.GetHost(), port);
         request.setMethod(sf::Http::Request::Get);
         request.setUri(urlParser.GetPath()+urlParser.GetQuery());
 
@@ -115,7 +116,9 @@ void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account
         if (imageDataLen) {
             if (textureObject->loadFromMemory(imageData, imageDataLen)) {
                 cardTextureCache.insert(std::make_pair(card.first,textureObject));
-                imageSucceeded = true;
+            }
+            else {
+              imageSucceeded = false;
             }
         }
 
@@ -125,12 +128,16 @@ void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account
             cardTextureCache.insert(std::make_pair(card.first,textureObject));
         }
         
-        textureObject.reset();
+        textureObject = std::make_shared<sf::Texture>(); // point to new texture
+
         imageSucceeded = (iconDataLen > 0);
 
         if (iconDataLen) {
             if (textureObject->loadFromMemory(iconData, iconDataLen)) {
                 iconTextureCache.insert(std::make_pair(card.first,textureObject));
+            }
+            else {
+              imageSucceeded = false;
             }
         }
 

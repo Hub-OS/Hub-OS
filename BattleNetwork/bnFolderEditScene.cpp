@@ -782,6 +782,7 @@ void FolderEditScene::DrawLibrary() {
       packCursor.setPosition(bounce + 480.f + 2.f, y);
       ENGINE.Draw(packCursor);
 
+      card.setTexture(*WEBCLIENT.GetImageForCard(packCardBuckets[packView.currCardIndex].ViewCard().GetUUID()));
       card.setTextureRect(sf::IntRect{ 0,0,56,48 });
       card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
       ENGINE.Draw(card, false);

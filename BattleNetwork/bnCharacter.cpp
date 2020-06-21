@@ -184,7 +184,7 @@ const bool Character::Hit(Hit::Properties props) {
 
   // If the character itself is also super-effective,
   // double the damage independently from tile damage
-  bool isSuperEffective = IsSuperEffective(props.element) && (props.flags & Hit::impact) != Hit::impact;
+  bool isSuperEffective = IsSuperEffective(props.element);
 
   // Show ! super effective symbol on the field
   if (isSuperEffective) {

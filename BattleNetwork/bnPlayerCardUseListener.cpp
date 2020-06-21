@@ -128,6 +128,14 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
     auto action = new CannonCardAction(player, card.GetDamage());
     player->QueueAction(action);
   }
+  else if (name == "HiCannon") {
+    auto action = new CannonCardAction(player, card.GetDamage(), CannonCardAction::Type::blue);
+    player->QueueAction(action);
+  }
+  else if (name == "M-Cannon") {
+    auto action = new CannonCardAction(player, card.GetDamage(), CannonCardAction::Type::red);
+    player->QueueAction(action);
+  }
   else if (name == "MiniBomb") {
     auto action = new BombCardAction(player, card.GetDamage());
     player->QueueAction(action);

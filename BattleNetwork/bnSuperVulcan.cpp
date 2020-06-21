@@ -4,7 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : damage(damage), Spell(_field, _team) {
+SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : Spell(_field, _team) {
   SetLayer(1);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_SUPER_VULCAN));
@@ -24,6 +24,7 @@ SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : damage(damage)
   AUDIO.Play(AudioType::GUN, AudioPriority::highest);
 
   auto props = GetHitboxProperties();
+  props.flags = props.flags & ~Hit::recoil;
   props.damage = damage;
   SetHitboxProperties(props);
 }

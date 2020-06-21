@@ -11,6 +11,7 @@ Bees::Bees(Field* _field, Team _team, int damage)
   : animation(), elapsed(0), target(nullptr), turnCount(0), 
   hitCount(0), shadow(nullptr), leader(nullptr),
   attackCooldown(0), dropped(), damage(damage), 
+  madeContact(false),
   Spell(_field, _team) {
   SetLayer(0);
 
@@ -21,7 +22,7 @@ Bees::Bees(Field* _field, Team _team, int damage)
 
   elapsed = 0;
 
-  SetSlideTime(sf::seconds(0.50f));
+  SetSlideTime(sf::seconds(0.45f));
 
   animation = Animation("resources/spells/spell_bees.animation");
   animation.SetAnimation("DEFAULT");
@@ -63,11 +64,12 @@ Bees::Bees(Field* _field, Team _team, int damage)
   }
 }
 
-Bees::Bees(Bees & leader) 
+Bees::Bees(const Bees & leader) 
   : 
   animation(leader.animation), elapsed(0), target(leader.target),
-  turnCount(leader.turnCount), hitCount(0), shadow(nullptr), leader(&leader),
+  turnCount(leader.turnCount), hitCount(0), shadow(nullptr), leader(const_cast<Bees*>(&leader)),
   attackCooldown(leader.attackCooldown), dropped(), damage(leader.damage),
+  madeContact(false),
   Spell(leader.GetField(), leader.GetTeam())
 {
   SetLayer(0);
@@ -76,7 +78,7 @@ Bees::Bees(Bees & leader)
   setScale(2.f, 2.f);
 
   HighlightTile(Battle::Tile::Highlight::solid);
-  SetSlideTime(sf::seconds(0.50f));
+  SetSlideTime(sf::seconds(0.45f));
 
   animation = Animation("resources/spells/spell_bees.animation");
   animation.SetAnimation("DEFAULT");
@@ -198,7 +200,7 @@ void Bees::OnUpdate(float _elapsed) {
     }
 
     // stay on top of the real target, not the leader
-    if (target && target->GetTile() == GetTile() && !Teammate(target->GetTeam())) {
+    if (target && target->GetTile() == GetTile() && !Teammate(target->GetTeam()) && madeContact) {
       SetDirection(Direction::none);
     }
 
@@ -222,7 +224,7 @@ void Bees::OnUpdate(float _elapsed) {
   // Always affect the tile we're occupying
   GetTile()->AffectEntities(this);
 
-  if (target && GetTile() == target->GetTile() && attackCooldown == 0 && !IsSliding()) {
+  if (target && GetTile() == target->GetTile() && attackCooldown == 0) {
     // Try to attack 5 times
     attackCooldown = 1.80f; // est 3 frames
     auto hitbox = new Hitbox(GetField(), GetTeam());
@@ -231,6 +233,8 @@ void Bees::OnUpdate(float _elapsed) {
     if (hitCount < 5) {
       hitCount++;
       hitbox->AddCallback([this](Character* entity) {
+        this->madeContact = true; // we hit something!
+
         AUDIO.Play(AudioType::HURT, AudioPriority::high);
         auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
         entity->GetField()->AddEntity(*fx, *entity->GetTile());

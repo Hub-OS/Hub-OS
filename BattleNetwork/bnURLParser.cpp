@@ -6,7 +6,7 @@
 #include <functional>
 using namespace std;
 
-URL::URL(const string& url_s) : host(), path(), query(), protocol() {
+URL::URL(const string& url_s) : host(), path(), query(), protocol(), port() {
     parse(url_s);
 }
 
@@ -30,6 +30,11 @@ const std::string& URL::GetQuery() const
     return query;
 }
 
+const std::string& URL::GetPort() const
+{
+  return port;
+}
+
 void URL::parse(const string& url_s)
 {
     const string prot_end("://");
@@ -47,4 +52,20 @@ void URL::parse(const string& url_s)
     if (query_i != url_s.end())
         ++query_i;
     query.assign(query_i, url_s.end());
+
+    // subdivide host string into domain + port
+    const string port_s(":");
+    string::const_iterator port_i = search(host.cbegin(), host.cend(), port_s.begin(), port_s.end());
+
+    if (port_i == host.cend()) {
+      port = "80";
+      return;
+    }
+
+    ++port_i; // skip the colon
+
+    ptrdiff_t realHostLen = distance(host.cbegin(), port_i);
+    port.reserve(host.length() - realHostLen);
+    port.assign(port_i, host.cend());
+    host = host.substr(0, realHostLen-1); // skip the colon ':'
 }

@@ -701,6 +701,10 @@ namespace Battle {
         for (Entity::ID_t ID : queuedSpells) {
           Spell* spell = dynamic_cast<Spell*>(field->GetEntity(ID));
 
+          // this shouldn't happen but it does sometimes... 
+          // TODO: we need to be sure it's always right to perform static casting
+          if (!spell) continue;
+
           if (character.GetID() == spell->GetID()) // Case: prevent obstacles from attacking themselves
             continue;
 

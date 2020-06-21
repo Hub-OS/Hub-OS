@@ -17,6 +17,8 @@ public:
 
   ~DefenseIndestructable();
 
+  Hit::Properties& FilterStatuses(Hit::Properties& statuses) override;
+
   /**
    * @brief Check for breaking properties
    * @param in the attack

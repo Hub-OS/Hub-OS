@@ -7,7 +7,6 @@ public:
 
 protected:
   Animation animation; /*!< the animation of the shot */
-  int damage; /*!< How much damage to deal */
 public:
   SuperVulcan(Field* _field, Team _team, int damage);
 

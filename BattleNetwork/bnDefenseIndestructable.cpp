@@ -14,6 +14,12 @@ DefenseIndestructable::~DefenseIndestructable()
 {
 }
 
+Hit::Properties& DefenseIndestructable::FilterStatuses(Hit::Properties& statuses)
+{
+  statuses.flags &= ~(Hit::flinch|Hit::freeze|Hit::stun|Hit::recoil|Hit::pierce|Hit::shake);
+  return statuses;
+}
+
 void DefenseIndestructable::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner)
 {
   judge.BlockImpact();

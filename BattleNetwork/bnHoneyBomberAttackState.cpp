@@ -6,7 +6,7 @@
 #include "bnAnimationComponent.h"
 
 HoneyBomberAttackState::HoneyBomberAttackState() 
-: beeCount(3), attackCooldown(0.4f), spawnCooldown(0.1f), lastBee(nullptr), AIState<HoneyBomber>() { 
+: beeCount(3), attackCooldown(0.4f), spawnCooldown(0.4f), lastBee(nullptr), AIState<HoneyBomber>() { 
 }
 
 HoneyBomberAttackState::~HoneyBomberAttackState() { ; }
@@ -34,7 +34,7 @@ void HoneyBomberAttackState::OnUpdate(float _elapsed, HoneyBomber& honey) {
 
   if (canAttack) {
       DoAttack(honey);
-      spawnCooldown = 0.1f; // reset wait time inbetween spawns
+      spawnCooldown = 0.4f; // reset wait time inbetween spawns
   }
 }
 
@@ -46,7 +46,7 @@ void HoneyBomberAttackState::OnLeave(HoneyBomber& honey) {
 void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
   auto animation = honey.GetFirstComponent<AnimationComponent>();
 
-  if (--beeCount == 0) {
+  if (beeCount-- == 0) {
     animation->CancelCallbacks();
 
     auto onEnd = [this, m = &honey]() {

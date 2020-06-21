@@ -19,10 +19,4 @@ public:
    * @param _entity
    */
   void Attack(Character* _entity);
-
-private:
-  int damage;
-  float cooldown;
-  float random; // scatter offset
-  float hitHeight;
 };
