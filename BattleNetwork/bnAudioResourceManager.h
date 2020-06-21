@@ -48,6 +48,13 @@ public:
    * @param status
    */
   void EnableAudio(bool status);
+
+  /**
+  * @brief If true, all audio plays as normal but the volume is set to 0
+  * @param status
+  * If toggled, the previous volume settings are persisted
+  */
+  void Mute(bool status = true);
   
   /**
    * @brief Loads all queued resources. Increases status value.
@@ -89,6 +96,7 @@ private:
   float channelVolume;
   float streamVolume;
   bool isEnabled;
+  bool muted;
 };
 
 #define AUDIO AudioResourceManager::GetInstance()

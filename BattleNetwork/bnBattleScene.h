@@ -165,6 +165,7 @@ private:
 
   // Selection input delays
   double maxCardSelectInputCooldown; /*!< When interacting with Card Cust GUI API, delay input */
+  double heldCardSelectInputCooldown; /*!< When holding the directional inputs, when does the sticky key effect trigger*/
   double cardSelectInputCooldown; /*!< Time remaining with delayed input */
 
   // MOB
@@ -237,9 +238,7 @@ private:
    * @brief Get the total number of counter moves
    * @return const int
    */
-  const int GetCounterCount() const {
-    return totalCounterMoves;
-  }
+  const int GetCounterCount() const;
 
   /**
    * @brief The scene is registered as a counter subscriber to listen for counter events

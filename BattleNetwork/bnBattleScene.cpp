@@ -41,6 +41,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
         isChangingForm(false),
         isAnimatingFormChange(false),
         comboDeleteCounter(0),
+        totalCounterMoves(0),
+        totalCounterDeletions(0),
         pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
         whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
         yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
@@ -125,9 +127,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   ProcessNewestComponents();
 
-  // SCORE
-  totalCounterDeletions = totalCounterMoves = 0;
-
   /*
   Program Advance + labels
   */
@@ -198,7 +197,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
 
   // Selection input delays
-  maxCardSelectInputCooldown = 1 / 10.f; // tenth a second
+  heldCardSelectInputCooldown = 0.35f; // 21 frames @ 60fps = 0.35 second
+  maxCardSelectInputCooldown = 1 / 12.f; // 5 frames @ 60fps = 1/12th second
   cardSelectInputCooldown = maxCardSelectInputCooldown;
 
   // MOB UI
@@ -391,6 +391,11 @@ void BattleScene::TEMPFilterAtkCards(Battle::Card ** cards, int cardCount)
 
   BattleScene::cards = cards;
   BattleScene::cardCount = newCardCount;
+}
+
+const int BattleScene::GetCounterCount() const
+{
+  return totalCounterMoves;
 }
 
 void BattleScene::OnCounter(Character & victim, Character & aggressor)
@@ -1128,55 +1133,65 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
                 cardCustGUI.ContinueCardDescription();
             }
 
-            if (INPUT.Has(EventTypes::HELD_CONFIRM)) {
-                cardCustGUI.FastForwardCardDescription(4.0);
-            }
-            else {
-                cardCustGUI.FastForwardCardDescription(2.0);
-            }
+            cardCustGUI.FastForwardCardDescription(4.0);
 
             if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
-                cardCustGUI.CardDescriptionYes() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+              cardCustGUI.CardDescriptionYes(); //? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
             }
             else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
-                cardCustGUI.CardDescriptionNo() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+              cardCustGUI.CardDescriptionNo(); //? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
             }
         }
         else {
-            if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
+          // there's a wait time between moving ones and moving repeatedly (Sticky keys)
+          bool moveCursor = cardSelectInputCooldown <= 0 || cardSelectInputCooldown == heldCardSelectInputCooldown;
+
+            if (INPUT.Has(EventTypes::PRESSED_UI_LEFT) || INPUT.Has(EventTypes::HELD_UI_LEFT)) {
                 cardSelectInputCooldown -= elapsed;
 
-                if (cardSelectInputCooldown <= 0) {
+                if (moveCursor) {
                     cardCustGUI.CursorLeft() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-                    cardSelectInputCooldown = maxCardSelectInputCooldown;
+
+                    if (cardSelectInputCooldown <= 0) {
+                      cardSelectInputCooldown = maxCardSelectInputCooldown; // sticky key time
+                    }
                 }
             }
-            else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
+            else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT) || INPUT.Has(EventTypes::HELD_UI_RIGHT)) {
                 cardSelectInputCooldown -= elapsed;
 
-                if (cardSelectInputCooldown <= 0) {
+                if (moveCursor) {
                     cardCustGUI.CursorRight() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-                    cardSelectInputCooldown = maxCardSelectInputCooldown;
+
+                    if (cardSelectInputCooldown <= 0) {
+                      cardSelectInputCooldown = maxCardSelectInputCooldown; // sticky key time
+                    }
                 }
             }
-            else if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
+            else if (INPUT.Has(EventTypes::PRESSED_UI_UP) ||  INPUT.Has(EventTypes::HELD_UI_UP)) {
                 cardSelectInputCooldown -= elapsed;
 
-                if (cardSelectInputCooldown <= 0) {
+                if (moveCursor) {
                     cardCustGUI.CursorUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-                    cardSelectInputCooldown = maxCardSelectInputCooldown;
+
+                    if (cardSelectInputCooldown <= 0) {
+                      cardSelectInputCooldown = maxCardSelectInputCooldown; // sticky key time
+                    }
                 }
             }
-            else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
+            else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN) ||  INPUT.Has(EventTypes::HELD_UI_DOWN)) {
                 cardSelectInputCooldown -= elapsed;
 
-                if (cardSelectInputCooldown <= 0) {
+                if (moveCursor) {
                     cardCustGUI.CursorDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
-                    cardSelectInputCooldown = maxCardSelectInputCooldown;
+
+                    if (cardSelectInputCooldown <= 0) {
+                      cardSelectInputCooldown = maxCardSelectInputCooldown; // sticky key time
+                    }
                 }
             }
             else {
-                cardSelectInputCooldown = 0;
+                cardSelectInputCooldown = heldCardSelectInputCooldown;
             }
 
             if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
@@ -1201,6 +1216,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
             }
             else if (INPUT.Has(EventTypes::HELD_QUICK_OPT)) {
                 cardCustGUI.OpenCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::lowest) : 1;
+            }
+            else if (INPUT.Has(EventTypes::HELD_PAUSE)) {
+              cardCustGUI.CursorSelectOK() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::lowest) : 1;;
             }
         }
     }

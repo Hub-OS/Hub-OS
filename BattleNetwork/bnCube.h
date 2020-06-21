@@ -52,16 +52,12 @@ public:
   void Attack(Character* e) override;
 
 protected:
-  Texture* texture;
-  AnimationComponent* animation;
-  sf::Shader* whiteout;
-
   static const int numOfAllowedCubesOnField;
 
-  bool hit;
+  bool killLater;
   bool pushedByDrag; /*!< Whether or not to keep momentum going*/
   double timer;
   Direction previousDirection;
-
-  DefenseRule* virusBody;
+  DefenseRule* defense;
+  AnimationComponent* animation;
 };

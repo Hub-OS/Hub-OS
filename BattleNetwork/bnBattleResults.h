@@ -27,7 +27,6 @@ private:
   sf::Sprite star; /*!< Counter stars */
   std::shared_ptr<sf::Font> font;
 
-  bool isHidden; /*!< Flag if modal is hidden */
   bool isRevealed; /*!< Flag if modal is revealed */
   bool playSoundOnce; /*!< Flag to play sounds once */
   bool rewardIsCard; /*!< Is current reward a card */

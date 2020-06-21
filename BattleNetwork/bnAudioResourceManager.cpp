@@ -54,6 +54,24 @@ void AudioResourceManager::EnableAudio(bool status) {
   }
 }
 
+void AudioResourceManager::Mute(bool status)
+{
+  muted = status;
+
+  if (!muted) {
+    SetStreamVolume(streamVolume);
+    SetChannelVolume(channelVolume);
+  }
+  else {
+    auto streamBefore = streamVolume;
+    auto channelBefore = channelVolume;
+    SetStreamVolume(0);
+    SetChannelVolume(0);
+    streamVolume = streamBefore;
+    channelVolume = channelBefore;
+  }
+}
+
 void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::APPEAR, "resources/sfx/appear.ogg"); status++;
   LoadSource(AudioType::AREA_GRAB, "resources/sfx/area_grab.ogg"); status++;

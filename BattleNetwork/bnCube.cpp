@@ -2,14 +2,16 @@
 #include "bnRockDebris.h"
 #include "bnParticlePoof.h"
 #include "bnTile.h"
-#include "bnDefenseVirusBody.h"
+#include "bnDefenseObstacleBody.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 
 const int Cube::numOfAllowedCubesOnField = 2;
 
-Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), InstanceCountingTrait<Cube>(), pushedByDrag(false) {
+Cube::Cube(Field* _field, Team _team)
+  : killLater(false), pushedByDrag(false), animation(nullptr),
+  Obstacle(field, team), InstanceCountingTrait<Cube>() {
   setTexture(LOAD_TEXTURE(MISC_CUBE));
   setScale(2.f, 2.f);
   SetFloatShoe(false);
@@ -19,16 +21,12 @@ Cube::Cube(Field* _field, Team _team) : Obstacle(field, team), InstanceCountingT
   SetHealth(200);
   timer = 100;
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-
   SetSlideTime(sf::seconds(1.0f / 5.0f)); // 1/5 of 60 fps = 12 frames
-
-  hit = false;
 
   previousDirection = Direction::none;
 
-  virusBody = new DefenseVirusBody();
-  AddDefenseRule(virusBody);
+  defense = new DefenseObstacleBody();
+  AddDefenseRule(defense);
 
   auto props = GetHitboxProperties();
   props.flags |= Hit::impact | Hit::breaking;
@@ -80,8 +78,14 @@ bool Cube::CanMoveTo(Battle::Tile * next)
 }
 
 void Cube::OnUpdate(float _elapsed) {
+  if(GetFirstComponent<AnimationComponent>()->GetAnimationString() == "APPEAR") return;
+
   if (!!IsSliding()) {
     previousDirection = Direction::none;
+  }
+
+  if (killLater) {
+    SetHealth(0);
   }
 
   if (GetCounterSize() > Cube::numOfAllowedCubesOnField) {
@@ -111,8 +115,8 @@ void Cube::OnUpdate(float _elapsed) {
 
 // Triggered by health == 0
 void Cube::OnDelete() {
-  RemoveDefenseRule(virusBody);
-  delete virusBody;
+  RemoveDefenseRule(defense);
+  delete defense;
 
   if (GetFirstComponent<AnimationComponent>()->GetAnimationString() != "APPEAR") {
     int intensity = rand() % 2;
@@ -137,7 +141,6 @@ void Cube::OnDelete() {
 
   RemoveInstanceFromCountedList();
   Remove();
-
 }
 
 const float Cube::GetHeight() const
@@ -194,17 +197,15 @@ void Cube::Attack(Character* other) {
     }
 
     isObstacle->Hit(GetHitboxProperties());
-    hit = true;
     return;
   }
 
   Character* isCharacter = dynamic_cast<Character*>(other);
 
   if (isCharacter && isCharacter != this) {
-    SetHealth(0);
+    killLater = true;
     auto props = GetHitboxProperties();
     isCharacter->Hit(GetHitboxProperties());
-    hit = true;
   }
 }
 
@@ -231,9 +232,9 @@ void Cube::OnSpawn(Battle::Tile & start)
     }
   };
 
-  if (start.IsReservedByCharacter() || start.ContainsEntityType<Character>()) {
-    SetHealth(0);
+  if (!start.IsWalkable() || start.IsReservedByCharacter() || start.ContainsEntityType<Character>()) {
     animation->SetAnimation("APPEAR", 0);
+    killLater = true;
   }
   else {
     animation->SetAnimation("APPEAR", 0, onFinish);

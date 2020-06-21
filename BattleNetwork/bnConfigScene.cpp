@@ -11,7 +11,7 @@ const constexpr int BOUNDKEYS = 2; // Third column is used for bound keys
 ConfigScene::ConfigScene(swoosh::ActivityController &controller) : 
     textbox(sf::Vector2f(4,250)), swoosh::Activity(&controller)
 {
-    textbox.SetTextSpeed(2.0);
+    textbox.SetTextSpeed(4.0);
     isSelectingTopMenu = inGamepadList = inKeyboardList = false;
 
     // Draws the scrolling background
@@ -264,7 +264,10 @@ void ConfigScene::onUpdate(double elapsed)
       }
     }
     else if (awaitingKey) {
-      if (inKeyboardList) {
+      if (hasCanceled) {
+        awaitingKey = false;
+      }
+      else if (inKeyboardList) {
         auto key = INPUT.GetAnyKey();
 
         if (key != sf::Keyboard::Unknown) {

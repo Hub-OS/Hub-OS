@@ -310,7 +310,7 @@ void Character::ResolveFrameBattleDamage()
         }
         else {
           if (invincibilityCooldown <= 0.0) {
-            invincibilityCooldown = 3.0;
+            invincibilityCooldown = 2.0;
           }
         }
       }

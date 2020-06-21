@@ -137,7 +137,7 @@ void RunAudioInit(std::atomic<int> * progress) {
  */
 void AppRegainFocus() {
   ENGINE.RegainFocus();
-  AUDIO.EnableAudio(true);
+  AUDIO.Mute(false);
 
 #ifdef __ANDROID__
   // TODO: Reload all graphics and somehow reassign all gl IDs to all allocated sfml graphics structures
@@ -159,7 +159,7 @@ void AppResize(int newWidth, int newHeight) {
  * Mute the audio 
  */
 void AppLoseFocus() {
-  AUDIO.EnableAudio(false);
+  AUDIO.Mute();
 }
 
 int main(int argc, char** argv) {

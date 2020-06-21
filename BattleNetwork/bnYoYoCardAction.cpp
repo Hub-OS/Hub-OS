@@ -14,7 +14,9 @@
 #define FRAMES FRAME1, FRAME3
 
 
-YoYoCardAction::YoYoCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
+YoYoCardAction::YoYoCardAction(Character * owner, int damage) 
+  : attachmentAnim(NODE_ANIM), yoyo(nullptr),
+  CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster") {
   YoYoCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
@@ -39,8 +41,6 @@ void YoYoCardAction::Execute() {
   owner->AddNode(attachment);
   attachmentAnim.Update(0, attachment->getSprite());
 
-  yoyo = nullptr;
-
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
     AUDIO.Play(AudioType::TOSS_ITEM_LITE);
@@ -62,7 +62,7 @@ void YoYoCardAction::OnUpdate(float _elapsed)
   attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 
-  if (yoyo && yoyo->IsDeleted()) {
+  if (yoyo && yoyo->WillRemoveLater()) {
     yoyo = nullptr;
 
     GetOwner()->GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");

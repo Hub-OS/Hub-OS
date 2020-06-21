@@ -21,12 +21,13 @@ void WideSwordCardAction::OnSpawnHitbox()
   b->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::SWORD_SWING);
-
   GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 
   b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
-  // resuse props
   b->SetHitboxProperties(props);
-
   GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() + 1);
+
+  b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  b->SetHitboxProperties(props);
+  GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() - 1);
 }

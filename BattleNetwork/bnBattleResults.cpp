@@ -10,10 +10,7 @@
 #include <algorithm>
 #include <random>
 
-BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount, int counterCount, bool doubleDelete, bool tripleDelete, Mob *mob) {
-  totalElapsed = 0;
-
-  /*
+/*
   Calculate score and rank
   Calculations are based off http ://megaman.wikia.com/wiki/Virus_Busting
 
@@ -50,9 +47,12 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
     2 = +2
     3 = +3
     */
-  score = 0;
 
-  counterCount = std::min(3, counterCount);
+BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount, int counterCount, bool doubleDelete, bool tripleDelete, Mob *mob) 
+: cardMatrixIndex(0), isRevealed(false), playSoundOnce(false), rewardIsCard(false), item(nullptr), score(0), counterCount(0), totalElapsed(0)
+{
+  this->counterCount = std::min(3, counterCount);
+  this->counterCount = std::max(0, this->counterCount);
 
   std::random_device rd;
   std::mt19937 g(rd());
@@ -101,8 +101,6 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
 
   // Get reward based on score
   item = mob->GetRankedReward(score);
- 
-  isRevealed = false;
 
   resultsSprite = sf::Sprite(*TEXTURES.GetTexture(TextureType::BATTLE_RESULTS_FRAME));
   resultsSprite.setScale(2.f, 2.f);

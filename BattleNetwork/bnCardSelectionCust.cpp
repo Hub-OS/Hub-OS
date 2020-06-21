@@ -336,6 +336,16 @@ bool CardSelectionCust::CursorCancel() {
   return true;
 }
 
+bool CardSelectionCust::CursorSelectOK()
+{
+  if (isInFormSelect || (cursorPos == 5 && cursorRow == 0)) return false;
+
+  cursorPos = 5;
+  cursorRow = 0;
+
+  return true;
+}
+
 bool CardSelectionCust::IsOutOfView() {
   float bounds = 0;
 

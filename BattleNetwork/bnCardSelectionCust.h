@@ -175,6 +175,12 @@ public:
   bool CursorCancel();
 
   /**
+  * @brief Moves the cursor to the OK button
+  * @return true if operation was successful. False otherwise
+  */
+  bool CursorSelectOK();
+
+  /**
    * @brief Check if GUI is completely out of view from the player
    * @return true if in its final position offscreen
    */
