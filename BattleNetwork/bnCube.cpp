@@ -78,7 +78,8 @@ bool Cube::CanMoveTo(Battle::Tile * next)
 }
 
 void Cube::OnUpdate(float _elapsed) {
-  if(GetFirstComponent<AnimationComponent>()->GetAnimationString() == "APPEAR") return;
+  // We couldn't spawn correctly
+  if (!this->IsTimeFrozen() && GetFirstComponent<AnimationComponent>()->GetAnimationString() == "APPEAR") Delete();
 
   if (!!IsSliding()) {
     previousDirection = Direction::none;
@@ -187,6 +188,8 @@ const bool Cube::OnHit(const Hit::Properties props) {
 }
 
 void Cube::Attack(Character* other) {
+  if (GetFirstComponent<AnimationComponent>()->GetAnimationString() == "APPEAR") return;
+
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 
   if (isObstacle) {
