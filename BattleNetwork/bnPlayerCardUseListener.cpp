@@ -165,7 +165,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
     action->SetElement(Element::fire);
     player->QueueAction(action);
   }
-  else if (name == "AirShot1") {
+  else if (name == "AirShot") {
     auto action = new AirShotCardAction(player, card.GetDamage());
     player->QueueAction(action);
   }

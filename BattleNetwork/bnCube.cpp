@@ -44,6 +44,8 @@ bool Cube::CanMoveTo(Battle::Tile * next)
       bool stop = false;
 
       auto allEntities = next->FindEntities([&stop, this](Entity* e) -> bool {
+        if (this == e) return false;
+
         Cube* isCube = dynamic_cast<Cube*>(e);
 
         if (isCube && isCube->GetElement() == Element::ice && GetElement() == Element::ice) {
@@ -79,11 +81,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
 
 void Cube::OnUpdate(float _elapsed) {
   // We couldn't spawn correctly
-  if (!this->IsTimeFrozen() && GetFirstComponent<AnimationComponent>()->GetAnimationString() == "APPEAR") Delete();
-
-  if (!!IsSliding()) {
-    previousDirection = Direction::none;
-  }
+  if (animation->GetAnimationString() == "APPEAR") return;
 
   if (killLater) {
     SetHealth(0);
@@ -99,12 +97,11 @@ void Cube::OnUpdate(float _elapsed) {
   tile->AffectEntities(this);
 
   // Keep momentum
-  if (!IsSliding() && pushedByDrag && GetDirection() != Direction::none) {
+  if (!IsSliding() && pushedByDrag) {
     SlideToTile(true);
     Move(GetDirection());
     FinishMove();
   }
-
 
   if (timer <= 0 ) {
     SetHealth(0);
@@ -119,7 +116,7 @@ void Cube::OnDelete() {
   RemoveDefenseRule(defense);
   delete defense;
 
-  if (GetFirstComponent<AnimationComponent>()->GetAnimationString() != "APPEAR") {
+  if (animation->GetAnimationString() != "APPEAR") {
     int intensity = rand() % 2;
     intensity += 1;
 
@@ -139,9 +136,7 @@ void Cube::OnDelete() {
   }
 
   tile->RemoveEntityByID(GetID());
-
-  RemoveInstanceFromCountedList();
-  Remove();
+  Delete();
 }
 
 const float Cube::GetHeight() const
@@ -160,7 +155,8 @@ const bool Cube::OnHit(const Hit::Properties props) {
   }
 
   // Teams cannot accidentally pull cube into their side
-  if(props.aggressor && (props.flags & Hit::drag) == Hit::drag){
+  // TODO: this doesn't work anymore with the new battlestep routines
+  /*if(props.aggressor && (props.flags & Hit::drag) == Hit::drag){
     if(props.aggressor->GetTeam() == Team::red) {
       if(props.drag == Direction::left) {
         // take damage anyway, skipping the Character::ResolveBattleStatus() step
@@ -180,6 +176,10 @@ const bool Cube::OnHit(const Hit::Properties props) {
     }
 
     pushedByDrag = true;
+  }*/
+
+  if ((props.flags & Hit::drag) == Hit::drag) {
+    pushedByDrag = true;
   }
 
   AUDIO.Play(AudioType::HURT);
@@ -188,7 +188,7 @@ const bool Cube::OnHit(const Hit::Properties props) {
 }
 
 void Cube::Attack(Character* other) {
-  if (GetFirstComponent<AnimationComponent>()->GetAnimationString() == "APPEAR") return;
+  if (animation->GetAnimationString() == "APPEAR") return;
 
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 
@@ -210,6 +210,11 @@ void Cube::Attack(Character* other) {
     auto props = GetHitboxProperties();
     isCharacter->Hit(GetHitboxProperties());
   }
+}
+
+const bool Cube::DidSpawnCorrectly() const
+{
+  return !killLater;
 }
 
 void Cube::SetAnimation(std::string animation)

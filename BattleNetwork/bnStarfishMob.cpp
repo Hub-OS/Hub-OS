@@ -3,6 +3,8 @@
 #include "bnField.h"
 #include "bnSpawnPolicy.h"
 #include "bnCardsSpawnPolicy.h"
+#include "bnWebClientMananger.h"
+#include "bnCardUUIDs.h"
 
 StarfishMob::StarfishMob(Field* field) : MobFactory(field)
 {
@@ -15,8 +17,7 @@ StarfishMob::~StarfishMob()
 
 Mob* StarfishMob::Build() {
   Mob* mob = new Mob(field);
-  //mob->RegisterRankedReward(1, BattleItem(Battle::Card(75, 147, 'R', 30, Element::none, "Recov30", "Recover 30HP", "", 1)));
-  //mob->RegisterRankedReward(11, BattleItem(Battle::Card(81, 153, 'R', 300, Element::none, "Recov300", "Recover 300HP", "", 5)));
+  mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::YoYo_M)));
 
   mob->Spawn<Rank1<Starfish>>(4 + (rand() % 3), 1);
   mob->Spawn<Rank1<Starfish>>(4 + (rand() % 3), 3);

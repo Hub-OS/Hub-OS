@@ -260,7 +260,7 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
     auto task = [promise, this]() {
         if (!client) {
             // No valid client? Don't send invalid data. Throw.
-            promise->set_exception(std::make_exception_ptr(std::runtime_error("Could not get account data. Client object is invalid.")));
+            promise->set_exception(std::make_exception_ptr(std::runtime_error("Could not get account data. Client object is invalid. Are you logged in?")));
             return;
         }
 

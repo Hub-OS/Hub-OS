@@ -19,7 +19,9 @@ Mob* TwoMettaurMob::Build() {
   Mob* mob = new Mob(field);
 
   // Assign rewards based on rank
-  mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::Reflect)));
+  mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::Reflect_A)));
+  mob->RegisterRankedReward(6, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::Cannon_A)));
+
   //mob->RegisterRankedReward(1, BattleItem(Battle::Card(72, 99, 'C', 60, Element::none, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
   //mob->RegisterRankedReward(1, BattleItem(Battle::Card(72, 99, 'B', 60, Element::none, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
   //mob->RegisterRankedReward(3, BattleItem(Battle::Card(72, 99, 'A', 60, Element::none, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));

@@ -51,6 +51,8 @@ public:
    */
   void Attack(Character* e) override;
 
+  const bool DidSpawnCorrectly() const;
+
 protected:
   static const int numOfAllowedCubesOnField;
 

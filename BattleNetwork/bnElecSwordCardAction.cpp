@@ -15,7 +15,7 @@
 
 ElecSwordCardAction::ElecSwordCardAction(Character * owner, int damage) : LongSwordCardAction(owner, damage) {
   ElecSwordCardAction::damage = damage;
-
+  this->SetElement(Element::elec);
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   attachmentAnim = Animation(ANIM);
   attachmentAnim.Reload();

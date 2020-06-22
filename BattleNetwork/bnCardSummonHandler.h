@@ -10,6 +10,7 @@
 #include "bnTile.h"
 #include "bnCube.h"
 #include "bnAura.h"
+#include "bnCallback.h"
 #include "bnPanelGrab.h"
 
 #include <Swoosh/Timer.h>
@@ -38,6 +39,8 @@
  */
 class CardSummonHandler : public CardUseListener {
 private:
+  std::list<Callback<void()>> tfcOnCompleteCallbacks;
+
   struct CardSummonQueue {
     std::queue<Character*> callers;
     std::queue<Battle::Card> cards;
@@ -194,7 +197,7 @@ public:
     SummonEntity(proto);
   }
     else if (summon == "RockCube") {
-      Obstacle* cube = new Cube(summonedBy->GetField(), Team::unknown);
+      Cube* cube = new Cube(summonedBy->GetField(), Team::unknown);
 
       Battle::Tile* tile = summonedBy->GetTile();
 
@@ -212,6 +215,15 @@ public:
 
         // PERSIST. DO NOT ADD TO SUMMONS CLEANUP LIST!
         SummonEntity(cube, true);
+
+        Callback<void()> callback;
+        callback.Slot([cube]() {
+          if (!cube->DidSpawnCorrectly()) {
+            cube->Delete();
+          }
+        });
+
+        tfcOnCompleteCallbacks.insert(tfcOnCompleteCallbacks.begin(), callback);
       }
     }
     else if (summon == "AreaGrab") {
@@ -313,6 +325,13 @@ public:
 
     if (HasMoreInQueue()) {
       timeInSecs = 0;
+    }
+    else {
+      for (auto&& fn : tfcOnCompleteCallbacks) {
+        fn();
+      }
+
+      tfcOnCompleteCallbacks.clear();
     }
   }
 

@@ -5,6 +5,8 @@
 #include "bnTile.h"
 #include "bnSpawnPolicy.h"
 #include "bnCardsSpawnPolicy.h"
+#include "bnWebClientMananger.h"
+#include "bnCardUUIDs.h"
 
 MetridMob::MetridMob(Field* field) : MobFactory(field)
 {
@@ -22,10 +24,9 @@ Mob* MetridMob::Build() {
   // 1 - 2 metrid and cannodumb of higher types
   // 2 - highest metrids, lava tiles, and holes
   Mob* mob = new Mob(field);
-  //mob->RegisterRankedReward(9, BattleItem(Battle::Card(8, 19, '*', 150, Element::fire, "FireBrn3", "Crcks 3 sqrs ahd with fire", "This card does not have extra information.", 4)));
-  //mob->RegisterRankedReward(6, BattleItem(Battle::Card(8, 19, 'A', 150, Element::fire, "FireBrn3", "Crcks 3 sqrs ahd with fire", "This card does not have extra information.", 4)));
-  //mob->RegisterRankedReward(4, BattleItem(Battle::Card(7, 18, 'A', 110, Element::fire, "FireBrn2", "Crcks 3 sqrs ahd with fire", "This card does not have extra information.", 4)));
-  //mob->RegisterRankedReward(1, BattleItem(Battle::Card(7, 18, 'Y', 110, Element::fire, "FireBrn2", "Crcks 3 sqrs ahd with fire", "This card does not have extra information.", 4)));
+
+  mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::ElecPulse_B)));
+  mob->RegisterRankedReward(5, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::Recov3000_WILD)));
 
   if (mobType == 0) {
 
