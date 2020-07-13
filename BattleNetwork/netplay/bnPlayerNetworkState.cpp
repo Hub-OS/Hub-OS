@@ -39,17 +39,26 @@ void PlayerNetworkState::OnEnter(Player& player) {
 }
 
 void PlayerNetworkState::OnUpdate(float _elapsed, Player& player) {
+  QueueAction(player);
+
   // Action controls take priority over movement
   if (player.GetComponentsDerivedFrom<CardAction>().size()) return;
+
+  if (!netflags.isRemoteReady) {
+    netflags.remoteCharge = netflags.remoteShoot = netflags.remoteUseSpecial = false;
+    netflags.remoteDirection = Direction::none;
+    return;
+  }
 
   if (netflags.remoteUseSpecial) {
     player.UseSpecial();
     QueueAction(player);
     netflags.remoteUseSpecial = false;
   }    // queue attack based on input behavior (buster or charge?)
-  else if ((!netflags.remoteCharge && isChargeHeld) || netflags.remoteShoot == false) {
+  else if ((!netflags.remoteCharge && isChargeHeld) || netflags.remoteShoot == true ) {
     // This routine is responsible for determining the outcome of the attack
     player.Attack();
+    netflags.remoteShoot = false;
     QueueAction(player);
     isChargeHeld = false;
     player.chargeEffect.SetCharging(false);

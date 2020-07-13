@@ -31,7 +31,9 @@
 #include "../bnCharacterDeleteListener.h"
 #include "../bnCardSummonHandler.h"
 #include "../bnNaviRegistration.h"
-#include "bnPlayerNetworkState.h"
+
+
+#include "bnNetPlayFlags.h"
 
 #include <time.h>
 #include <typeinfo>
@@ -78,7 +80,7 @@ enum class NetPlaySignals : unsigned int {
   charge
 };
 
-class NetworkCardUseListener;
+class NetworkCardUseListener; // declared bottom of file
 
 class NetworkBattleScene final : public BattleScene {
 private:
@@ -88,6 +90,7 @@ private:
   NetworkCardUseListener* networkCardUseListener;
   Player* remotePlayer{ nullptr };
   CardUsePublisher* remoteCardUsePublisher{ nullptr };
+  PlayerCardUseListener* remoteCardUseListener{ nullptr };
   NetPlayFlags remoteState;
   bool isRemoteChangingForm{ false };
   bool isClientReady{ false };
@@ -100,7 +103,7 @@ private:
   void sendHandshakeSignal(); // sent until we recieve a handshake
   void sendShootSignal();
   void sendUseSpecialSignal();
-  void sendChargeSignal();
+  void sendChargeSignal(const bool);
   void sendConnectSignal(const SelectedNavi navi);
   void sendReadySignal();
   void sendChangedFormSignal(const int form);
@@ -113,7 +116,7 @@ private:
   void recieveHandshakeSignal();
   void recieveShootSignal();
   void recieveUseSpecialSignal();
-  void recieveChargeSignal();
+  void recieveChargeSignal(const Poco::Buffer<char>& buffer);
   void recieveConnectSignal(const Poco::Buffer<char>&);
   void recieveReadySignal();
   void recieveChangedFormSignal(const Poco::Buffer<char>&);

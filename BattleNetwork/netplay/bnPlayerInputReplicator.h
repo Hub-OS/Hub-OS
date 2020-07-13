@@ -21,8 +21,8 @@ public:
     nbs->sendShootSignal();
   }
 
-  void SendChargeSignal() {
-    nbs->sendChargeSignal();
+  void SendChargeSignal(const bool state) {
+    nbs->sendChargeSignal(state);
   }
 
   void SendUseSpecialSignal() {
@@ -30,6 +30,7 @@ public:
   }
 
   void SendMoveSignal(Direction dir) {
+    if (dir == Direction::none) return;
     nbs->sendMoveSignal(dir);
   }
 

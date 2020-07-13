@@ -45,8 +45,11 @@ void YoYoCardAction::Execute() {
   auto onFire = [this]() -> void {
     AUDIO.Play(AudioType::TOSS_ITEM_LITE);
 
-    YoYo* y = new YoYo(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
-    y->SetDirection(Direction::right);
+    Team team = GetOwner()->GetTeam();
+    YoYo* y = new YoYo(GetOwner()->GetField(), team, damage);
+
+    y->SetDirection(team == Team::red? Direction::right : Direction::left);
+
     auto props = y->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
     y->SetHitboxProperties(props);

@@ -105,7 +105,7 @@ public:
    * e.g. AddState<PlayerThrowBombState>(200.f, 300, true);
    */
   template<typename U, typename ...Args>
-  void AddState(Args... args) {
+  void AddState(Args&&... args) {
     stateMachine.push_back(new U(std::forward<Args>(args)...));
   }
 
@@ -133,7 +133,7 @@ public:
    * e.g. AddState<PlayerThrowBombState>(200.f, 300, true);
    */
   template<typename U, typename ...Args>
-  void InterruptState(Args... args) {
+  void InterruptState(Args&&... args) {
     if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
       return;
     }

@@ -1,7 +1,9 @@
 #include "bnPlayerHitState.h"
 #include "bnPlayerControlledState.h"
+#include "netplay/bnPlayerNetworkState.h"
 #include "bnPlayer.h"
 #include "netplay/bnPlayerInputReplicator.h"
+#include "netplay/bnPlayerNetworkProxy.h"
 #include "bnAudioResourceManager.h"
 
 PlayerHitState::PlayerHitState() : AIState<Player>()
@@ -21,8 +23,9 @@ void PlayerHitState::OnEnter(Player& player) {
     //       e.g. ChangeState<PlayerControlledState>(networkController);
     //       But for these cases where we revert states, we need to 
     //       allow the class to be smart enough to propogate that data along...
-    auto replicator = player.GetFirstComponent<PlayerInputReplicator>();
+    auto replicator = player.GetFirstComponent<PlayerNetworkProxy>();
     if (replicator) {
+      Logger::Logf("replicator is present");
       player.ChangeState<PlayerNetworkState>(replicator->GetNetPlayFlags());
     }
     else {

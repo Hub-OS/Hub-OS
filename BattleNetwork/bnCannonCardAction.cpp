@@ -53,14 +53,20 @@ void CannonCardAction::Execute() {
   // On shoot frame, drop projectile
   auto onFire = [this, owner]() -> void {
     // Spawn a single cannon instance on the tile in front of the player
-    Cannon* cannon = new Cannon(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+    Team team = GetOwner()->GetTeam();
+    Cannon* cannon = new Cannon(GetOwner()->GetField(), team, damage);
     auto props = cannon->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
     cannon->SetHitboxProperties(props);
 
     AUDIO.Play(AudioType::CANNON);
 
-    cannon->SetDirection(Direction::right);
+    if (team == Team::red) {
+      cannon->SetDirection(Direction::right);
+    }
+    else {
+      cannon->SetDirection(Direction::left);
+    }
 
     GetOwner()->GetField()->AddEntity(*cannon, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
   };

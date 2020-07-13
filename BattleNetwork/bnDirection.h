@@ -3,12 +3,12 @@
 /**
 * @brief Used by entity movement
 */
-enum class Direction : int {
-  none,
-  up,
-  left,
-  down,
-  right
+enum class Direction : char {
+  none = 0x00,
+  up = 0x01,
+  left = 0x02,
+  down = 0x04,
+  right = 0x08
 };
 
 inline Direction Reverse(Direction in) {

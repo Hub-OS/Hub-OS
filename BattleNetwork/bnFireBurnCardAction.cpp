@@ -41,7 +41,8 @@ void FireBurnCardAction::Execute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner](int offset) -> void {
-    FireBurn* fb = new FireBurn(GetOwner()->GetField(), GetOwner()->GetTeam(), type, damage);
+    Team team = GetOwner()->GetTeam();
+    FireBurn* fb = new FireBurn(GetOwner()->GetField(), team, type, damage);
     auto props = fb->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
     fb->SetHitboxProperties(props);
@@ -56,7 +57,9 @@ void FireBurnCardAction::Execute() {
 
     fb->SetHeight(baseOffset);
 
-    GetOwner()->GetField()->AddEntity(*fb, GetOwner()->GetTile()->GetX() + 1 + offset, GetOwner()->GetTile()->GetY());
+    int dir = team == Team::red ? 1 : -1;
+
+    GetOwner()->GetField()->AddEntity(*fb, GetOwner()->GetTile()->GetX() + ((1 + offset)*dir), GetOwner()->GetTile()->GetY());
   };
 
 

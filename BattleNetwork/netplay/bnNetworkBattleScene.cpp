@@ -1,6 +1,9 @@
 #include <Swoosh/ActivityController.h>
 #include "bnNetworkBattleScene.h"
 #include "bnPlayerInputReplicator.h"
+#include "bnPlayerNetworkState.h"
+#include "bnPlayerNetworkProxy.h"
+
 #include "../bnCardLibrary.h"
 #include "../bnGameOverScene.h"
 #include "../bnUndernetBackground.h"
@@ -55,6 +58,8 @@ NetworkBattleScene::NetworkBattleScene(
   client.connect(remoteAddress);
 
   selectedNavi = config.myNavi;
+
+  player->CreateComponent<PlayerInputReplicator>(player);
 }
 
 NetworkBattleScene::~NetworkBattleScene()
@@ -110,75 +115,84 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       which = remotePlayer;
     }
 
-    which->Reveal(); // If flickering, stablizes the sprite for the animation
-
-    // Preserve the original child node states
-    auto childNodes = which->GetChildNodes();
-
-    // The list of nodes change when adding the shine overlay and new form overlay nodes
-    std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(childNodes.size()));
-    std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(childNodes.size()));
-
-
-    auto paletteSwap = which->GetFirstComponent<PaletteSwap>();
-
-    if (paletteSwap) paletteSwap->Enable(false);
-
     if (showSummonBackdropTimer < showSummonBackdropLength) {
       showSummonBackdropTimer += elapsed;
     }
-    else if (showSummonBackdropTimer >= showSummonBackdropLength) {
-      if (!isAnimatingFormChange) {
-        isAnimatingFormChange = true;
 
-        auto pos = which->getPosition();
-        shine.setPosition(pos.x + 16.0f, pos.y - which->GetHeight() / 4.0f);
+    auto handlePlayerFormChange = [this](Player* which, int& lastSelectedFormRef, int formValue) {
+      which->Reveal(); // If flickering, stablizes the sprite for the animation
 
-        auto onTransform = [this, which, states = childShaderUseStates, originals = originalChildNodes]() {
-          // The next form has a switch based on health
-          // This way dying will cancel the form
-          // TODO: make this a separate function that takes in form index or something...
-          lastSelectedForm = which->GetHealth() == 0 ? -1 : cardCustGUI.GetSelectedFormIndex();
-          which->ActivateFormAt(lastSelectedForm);
-          AUDIO.Play(AudioType::SHINE);
+      // Preserve the original child node states
+      auto childNodes = which->GetChildNodes();
 
-          which->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+      // The list of nodes change when adding the shine overlay and new form overlay nodes
+      std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(childNodes.size()));
+      std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(childNodes.size()));
 
-          // Activating the form will add NEW child nodes onto our character
-          // TODO: There's got to be a more optimal search than this...
-          for (auto child : which->GetChildNodes()) {
-            auto it = std::find_if(originals->begin(), originals->end(), [child](auto in) {
-              return (child == in);
-              });
 
-            if (it == originals->end()) {
-              states->push_back(child->IsUsingParentShader());
-              originals->push_back(child);
-              child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
+      auto paletteSwap = which->GetFirstComponent<PaletteSwap>();
+
+      if (paletteSwap) paletteSwap->Enable(false);
+
+      if (showSummonBackdropTimer >= showSummonBackdropLength) {
+        if (!isAnimatingFormChange) {
+          isAnimatingFormChange = true;
+
+          auto pos = which->getPosition();
+          shine.setPosition(pos.x + 16.0f, pos.y - which->GetHeight() / 4.0f);
+
+          auto onTransform = [
+            this, which,
+              states = childShaderUseStates, originals = originalChildNodes,
+              &lastSelectedFormRef, formValue]() {
+            // The next form has a switch based on health
+            // This way dying will cancel the form
+            // TODO: make this a separate function that takes in form index or something...
+            lastSelectedFormRef = which->GetHealth() == 0 ? -1 : formValue;
+            which->ActivateFormAt(lastSelectedFormRef);
+            AUDIO.Play(AudioType::SHINE);
+
+            which->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+
+            // Activating the form will add NEW child nodes onto our character
+            // TODO: There's got to be a more optimal search than this...
+            for (auto child : which->GetChildNodes()) {
+              auto it = std::find_if(originals->begin(), originals->end(), [child](auto in) {
+                return (child == in);
+                });
+
+              if (it == originals->end()) {
+                states->push_back(child->IsUsingParentShader());
+                originals->push_back(child);
+                child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
+              }
             }
-          }
-        };
+          };
 
-        auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
-          isLeavingFormChange = true;
-          if (paletteSwap) paletteSwap->Enable();
+            auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
+              isLeavingFormChange = true;
+              if (paletteSwap) paletteSwap->Enable();
 
-          unsigned idx = 0;
-          for (auto child : *originals) {
-            if (!child) {
-              idx++; continue;
-            }
+              unsigned idx = 0;
+              for (auto child : *originals) {
+                if (!child) {
+                  idx++; continue;
+                }
 
-            unsigned thisIDX = idx;
-            bool enabled = (*states)[idx++];
-            child->EnableParentShader(enabled);
-            Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
-          }
-        };
+                unsigned thisIDX = idx;
+                bool enabled = (*states)[idx++];
+                child->EnableParentShader(enabled);
+                Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
+              }
+            };
 
-        shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
+            shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
+        }
       }
-    }
+    };
+
+    handlePlayerFormChange(player, lastSelectedForm, cardCustGUI.GetSelectedFormIndex());
+    handlePlayerFormChange(remotePlayer, remoteState.remoteFormSelect, remoteState.remoteFormSelect);
   }
   else if (isLeavingFormChange && showSummonBackdropTimer > 0.0f) {
     showSummonBackdropTimer -= elapsed * 0.5f;
@@ -193,6 +207,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       // More reasons to use real state management for the battle scene...
       if (player->GetHealth() > 0 && remotePlayer->GetHealth() > 0) {
         this->sendReadySignal();
+        this->sendHPSignal(this->clientPrevHP); // the last tracked health value from our update loop
       }
     }
   }
@@ -238,12 +253,12 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   if (!handshakeComplete && this->isSceneInFocus) {
     // Try reaching out to someone...
     this->sendConnectSignal(this->selectedNavi);
-    player->ChangeState<PlayerIdleState>(); // prevent movement
   }
 
   if (remoteState.isRemoteConnected) {
     if (isClientReady && !remoteState.isRemoteReady) {
       this->sendReadySignal();
+      player->ChangeState<PlayerIdleState>(); // prevent movement
     }
 
     if (!handshakeComplete) {
@@ -575,8 +590,11 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
       double scale = swoosh::ease::wideParabola(battleStartSecs, preBattleLength, 2.0);
       battleStart.setScale(2.f, (float)scale*2.f);
 
-      if (battleStartSecs >= preBattleLength)
+      if (battleStartSecs >= preBattleLength) {
         isPreBattle = false;
+        player->ChangeState<PlayerControlledState>();
+        remotePlayer->ChangeState<PlayerNetworkState>(remoteState);
+      }
 
       ENGINE.Draw(battleStart);
     }
@@ -642,9 +660,6 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
     static bool once = true;
 
     if (once) {
-      // allow the player to be controlled by keys
-      player->ChangeState<PlayerControlledState>();
-      remotePlayer->ChangeState<PlayerNetworkState>(remoteState);
       field->ToggleTimeFreeze(true);
       // show the card select screen
       customProgress = customDuration;
@@ -1089,35 +1104,41 @@ void NetworkBattleScene::Inject(PlayerInputReplicator& pub)
 void NetworkBattleScene::sendHandshakeSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::handshake);
+  NetPlaySignals type{ NetPlaySignals::handshake };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   client.sendBytes(buffer.begin(), buffer.size());
 }
 
 void NetworkBattleScene::sendShootSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::shoot);
+  NetPlaySignals type{ NetPlaySignals::shoot };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   client.sendBytes(buffer.begin(), buffer.size());
 }
 
 void NetworkBattleScene::sendUseSpecialSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::special);
+  NetPlaySignals type{ NetPlaySignals::special };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   client.sendBytes(buffer.begin(), buffer.size());
 }
 
-void NetworkBattleScene::sendChargeSignal()
+void NetworkBattleScene::sendChargeSignal(const bool state)
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::charge);
+  NetPlaySignals type{ NetPlaySignals::charge };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
+  buffer.append((char*)&state, sizeof(bool));
   client.sendBytes(buffer.begin(), buffer.size());
 }
 
 void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::connect);
+  NetPlaySignals type{ NetPlaySignals::connect };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&navi, sizeof(SelectedNavi));
   client.sendBytes(buffer.begin(), buffer.size());
 }
@@ -1125,31 +1146,38 @@ void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
 void NetworkBattleScene::sendReadySignal()
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::ready);
+  NetPlaySignals type{ NetPlaySignals::ready };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   client.sendBytes(buffer.begin(), buffer.size());
+
   this->isClientReady = true;
 }
 
 void NetworkBattleScene::sendChangedFormSignal(const int form)
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::form);
+  NetPlaySignals type{ NetPlaySignals::form };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&form, sizeof(int));
   client.sendBytes(buffer.begin(), buffer.size());
 }
 
 void NetworkBattleScene::sendMoveSignal(const Direction dir)
 {
+  Logger::Logf("sending dir of %i", dir);
+
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::move);
-  buffer.append((char*)&dir, sizeof(Direction));
+  NetPlaySignals type{ NetPlaySignals::move };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
+  buffer.append((char*)&dir, sizeof(char));
   client.sendBytes(buffer.begin(), buffer.size());
 }
 
 void NetworkBattleScene::sendHPSignal(const int hp)
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::hp);
+  NetPlaySignals type{ NetPlaySignals::hp };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&hp, sizeof(int));
   client.sendBytes(buffer.begin(), buffer.size());
 }
@@ -1157,7 +1185,8 @@ void NetworkBattleScene::sendHPSignal(const int hp)
 void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::tile);
+  NetPlaySignals type{ NetPlaySignals::tile };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&x, sizeof(int));
   buffer.append((char*)&y, sizeof(int));
   client.sendBytes(buffer.begin(), buffer.size());
@@ -1168,7 +1197,8 @@ void NetworkBattleScene::sendChipUseSignal(const std::string& used)
   Logger::Logf("sending chip data over network for %s", used.data());
 
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((char)NetPlaySignals::chip);
+  NetPlaySignals type{ NetPlaySignals::chip };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)used.data(), sizeof(char)*used.length());
   client.sendBytes(buffer.begin(), buffer.size());
 }
@@ -1176,7 +1206,8 @@ void NetworkBattleScene::sendChipUseSignal(const std::string& used)
 void NetworkBattleScene::sendLoserSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
-  buffer.append((uint8_t)NetPlaySignals::loser);
+  NetPlaySignals type{ NetPlaySignals::loser };
+  buffer.append((char*)&type, sizeof(NetPlaySignals));
   client.sendBytes(buffer.begin(), buffer.size());
 }
 
@@ -1188,17 +1219,33 @@ void NetworkBattleScene::recieveHandshakeSignal()
 
 void NetworkBattleScene::recieveShootSignal()
 {
-  remotePlayer->Attack();
+  if (!remoteState.isRemoteConnected) return;
+
+  //remotePlayer->Attack();
+  remoteState.remoteShoot = true;
+  Logger::Logf("recieved shoot signal from remote");
 }
 
 void NetworkBattleScene::recieveUseSpecialSignal()
 {
-  remotePlayer->UseSpecial();
+  if (!remoteState.isRemoteConnected) return;
+
+  // remotePlayer->UseSpecial();
+  remoteState.remoteUseSpecial = true;
+
+  Logger::Logf("recieved use special signal from remote");
+
 }
 
-void NetworkBattleScene::recieveChargeSignal()
+void NetworkBattleScene::recieveChargeSignal(const Poco::Buffer<char>& buffer)
 {
-  remotePlayer->SetCharging(true);
+  if (!remoteState.isRemoteConnected) return;
+
+  bool state = remoteState.remoteCharge; std::memcpy(&state, buffer.begin(), buffer.size());
+  remoteState.remoteCharge = state;
+
+  Logger::Logf("recieved charge signal from remote: %i", state);
+
 }
 
 void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
@@ -1229,21 +1276,31 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remoteState.remoteHP = remotePlayer->GetHealth();
 
-  remoteCardUsePublisher = new SelectedCardsUI(remotePlayer);
-  this->enemyCardListener.Subscribe(*remoteCardUsePublisher);
+  remoteCardUsePublisher = remotePlayer->CreateComponent<SelectedCardsUI>(remotePlayer);
+  remoteCardUseListener = new PlayerCardUseListener(*remotePlayer);
+  remoteCardUseListener->Subscribe(*remoteCardUsePublisher);
   this->summons.Subscribe(*remoteCardUsePublisher);
 
   remotePlayer->CreateComponent<MobHealthUI>(remotePlayer);
-  remotePlayer->CreateComponent<PlayerInputReplicator>(remotePlayer);
+  remotePlayer->CreateComponent<PlayerNetworkProxy>(remotePlayer, remoteState);
 }
 
 void NetworkBattleScene::recieveReadySignal()
 {
+  if (!remoteState.isRemoteConnected) return;
+
+  if (this->isClientReady && !remoteState.isRemoteReady) {
+    this->isPreBattle = true;
+    this->battleStartTimer.reset();
+  }
+
   remoteState.isRemoteReady = true;
 }
 
 void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buffer)
 {
+  if (!remoteState.isRemoteConnected) return;
+
   int form = remoteState.remoteFormSelect;
   int prevForm = remoteState.remoteFormSelect;
   std::memcpy(&form, buffer.begin(), buffer.size());
@@ -1263,6 +1320,8 @@ void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buff
 
 void NetworkBattleScene::recieveMoveSignal(const Poco::Buffer<char>& buffer)
 {
+  if (!remoteState.isRemoteConnected) return;
+
   Direction dir = remoteState.remoteDirection; std::memcpy(&dir, buffer.begin(), buffer.size());
 
   if (!player->Teammate(remotePlayer->GetTeam())) {
@@ -1271,11 +1330,15 @@ void NetworkBattleScene::recieveMoveSignal(const Poco::Buffer<char>& buffer)
     }
   }
 
+  Logger::Logf("recieved move signal from remote %i", dir);
+
   remoteState.remoteDirection = dir;
 }
 
 void NetworkBattleScene::recieveHPSignal(const Poco::Buffer<char>& buffer)
 {
+  if (!remoteState.isRemoteConnected) return;
+
   int hp = remoteState.remoteHP; std::memcpy(&hp, buffer.begin(), buffer.size());
   remoteState.remoteHP = hp;
   remotePlayer->SetHealth(hp);
@@ -1283,6 +1346,8 @@ void NetworkBattleScene::recieveHPSignal(const Poco::Buffer<char>& buffer)
 
 void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer)
 {
+  if (!remoteState.isRemoteConnected) return;
+
   int x = remoteState.remoteTileX; std::memcpy(&x, buffer.begin(), sizeof(int));
   int y = remoteState.remoteTileX; std::memcpy(&y, (buffer.begin()+sizeof(int)), sizeof(int));
   remoteState.remoteTileX = x;
@@ -1293,6 +1358,8 @@ void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer
 
 void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)
 {
+  if (!remoteState.isRemoteConnected) return;
+
   std::string used = std::string(buffer.begin(), buffer.size());
   remoteState.remoteChipUse = used;
   Battle::Card card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ used });
@@ -1327,9 +1394,9 @@ void NetworkBattleScene::processIncomingPackets()
       rawBuffer[read] = '\0';
 
       NetPlaySignals sig = *(NetPlaySignals*)rawBuffer;
-      size_t sigLen = sizeof(char);
+      size_t sigLen = sizeof(NetPlaySignals);
       Poco::Buffer<char> data{ 0 };
-      data.append(rawBuffer + sigLen, read - sigLen);
+      data.append(rawBuffer + sigLen, size_t(read)-sigLen);
 
       switch (sig) {
       case NetPlaySignals::handshake:
@@ -1366,7 +1433,7 @@ void NetworkBattleScene::processIncomingPackets()
         recieveUseSpecialSignal();
         break;
       case NetPlaySignals::charge:
-        recieveChargeSignal();
+        recieveChargeSignal(data);
         break;
       }
     }

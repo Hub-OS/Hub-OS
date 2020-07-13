@@ -44,8 +44,16 @@ void BusterCardAction::Execute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    Buster* b = new Buster(GetOwner()->GetField(), GetOwner()->GetTeam(), charged, damage);
-    b->SetDirection(Direction::right);
+    Team team = this->GetOwner()->GetTeam();
+    Buster* b = new Buster(GetOwner()->GetField(), team, charged, damage);
+
+    if (team == Team::red) {
+      b->SetDirection(Direction::right);
+    }
+    else {
+      b->SetDirection(Direction::left);
+    }
+
     auto props = b->GetHitboxProperties();
     b->SetHitboxProperties(props);
 

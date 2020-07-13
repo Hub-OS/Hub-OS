@@ -27,12 +27,20 @@ void ThunderCardAction::Execute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    auto* thunder = new Thunder(GetOwner()->GetField(), GetOwner()->GetTeam());
+    Team team = GetOwner()->GetTeam();
+    auto* thunder = new Thunder(GetOwner()->GetField(), team);
     auto props = thunder->GetHitboxProperties();
     props.damage = damage;
     props.aggressor = GetOwner();
     thunder->SetHitboxProperties(props);
-    GetOwner()->GetField()->AddEntity(*thunder, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+
+    int step = 1;
+
+    if (team != Team::red) {
+      step = -1;
+    }
+
+    GetOwner()->GetField()->AddEntity(*thunder, GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
   };
 
   AddAction(1, onFire);

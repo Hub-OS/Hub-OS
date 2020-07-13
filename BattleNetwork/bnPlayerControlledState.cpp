@@ -61,7 +61,10 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     // This routine is responsible for determining the outcome of the attack
     player.Attack();
 
-    if (replicator) replicator->SendShootSignal();
+    if (replicator) {
+      replicator->SendShootSignal();
+      replicator->SendChargeSignal(false);
+    }
 
     QueueAction(player);
     isChargeHeld = false;
@@ -96,7 +99,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   if (shouldShoot) {
     isChargeHeld = true;
-    if (replicator) replicator->SendChargeSignal();
+    if (replicator) replicator->SendChargeSignal(true);
     player.chargeEffect.SetCharging(true);
   }
 
@@ -118,25 +121,24 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       player.SlideToTile(true);
     }
 
+    if (replicator) replicator->SendMoveSignal(direction);
+
     if(player.Move(direction)) {
+      bool moved = player.GetNextTile();
 
-    bool moved = player.GetNextTile();
+      if (moved) {
+        auto onFinish = [&]() {
+          player.SetAnimation("PLAYER_MOVED", [p = &player]() {
+            p->SetAnimation(PLAYER_IDLE); 
+            p->FinishMove();
+          });
 
-    if (moved) {
-      auto onFinish = [&]() {
-        player.SetAnimation("PLAYER_MOVED", [p = &player]() {
-          p->SetAnimation(PLAYER_IDLE); 
-          p->FinishMove();
-        });
-
-        player.AdoptNextTile();
-        direction = Direction::none;
-      }; // end lambda
-      player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
-      player.SetAnimation(PLAYER_MOVING, onFinish);
-
-      if (replicator) replicator->SendMoveSignal(direction);
-    }
+          player.AdoptNextTile();
+          direction = Direction::none;
+        }; // end lambda
+        player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
+        player.SetAnimation(PLAYER_MOVING, onFinish);
+      }
   }
   else if(queuedAction && !player.IsSliding()) {
     player.RegisterComponent(queuedAction);
@@ -144,6 +146,9 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     queuedAction = nullptr;
 
     player.chargeEffect.SetCharging(false);
+
+    if(replicator) replicator->SendChargeSignal(false);
+
     isChargeHeld = false;
   }
 }
@@ -153,6 +158,8 @@ void PlayerControlledState::OnLeave(Player& player) {
   player.chargeEffect.SetCharging(false);
   player.queuedAction = nullptr;
   
+  if (replicator) replicator->SendChargeSignal(false);
+
   /* Cancel card actions */
   auto actions = player.GetComponentsDerivedFrom<CardAction>();
 

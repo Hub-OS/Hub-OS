@@ -91,7 +91,7 @@ public:
  * e.g. ChangeState<PlayerThrowBombState>(200.f, 300, true);
  */
 template<typename U, typename ...Args>
-  void ChangeState(Args... args) {
+  void ChangeState(Args&&... args) {
     bool change = true;
 
     if (priorityLocked) {

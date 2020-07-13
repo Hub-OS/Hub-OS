@@ -22,8 +22,6 @@ TornadoCardAction::TornadoCardAction(Character * owner, int damage)
   attachment = new SpriteProxyNode(fan);
   attachment->SetLayer(-1);
 
-  owner->AddNode(attachment);
-
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
   attachmentAnim << Animator::Mode::Loop;
@@ -41,6 +39,8 @@ void TornadoCardAction::Execute() {
 
   attachmentAnim.Update(0, attachment->getSprite());
 
+  owner->AddNode(attachment);
+
   auto team = GetOwner()->GetTeam();
   auto tile = GetOwner()->GetTile();
   auto field = GetOwner()->GetField();
@@ -52,7 +52,8 @@ void TornadoCardAction::Execute() {
     props.aggressor = GetOwnerAs<Character>();
     tornado->SetHitboxProperties(props);
 
-    field->AddEntity(*tornado, tile->GetX() + 2, tile->GetY());
+    int step = team == Team::red ? 2 : -2;
+    field->AddEntity(*tornado, tile->GetX() + step, tile->GetY());
   };
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times

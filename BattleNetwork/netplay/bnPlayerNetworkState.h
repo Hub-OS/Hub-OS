@@ -1,27 +1,7 @@
 #pragma once
 #include "../bnAIState.h"
-
-struct NetPlayFlags {
-  bool isRemotePlayerLoser{ false };
-  bool isRemoteConnected{ false };
-  bool isRemoteReady{ false };
-  bool remoteShoot{ false };
-  bool remoteUseSpecial{ false };
-  bool remoteCharge{ false };
-  int remoteHP{ 1 };
-  int remoteTileX{ 5 }, remoteTileY{ 2 };
-  int remoteFormSelect{ 0 };
-  Direction remoteDirection{ Direction::none };
-  int remoteNavi;
-  std::string remoteChipUse{ "" };
-};
-
-/*! \brief in this state navi can be controlled by the network */
-
-class Tile;
-class Player;
-class InputManager;
-class CardAction;
+#include "bnNetworkBattleScene.h"
+#include "bnNetPlayFlags.h"
 
 class PlayerNetworkState : public AIState<Player>
 {

@@ -43,7 +43,8 @@ void ElecPulseCardAction::Execute() {
 
     // On shoot frame, drop projectile`
     auto onFire = [this, owner]() -> void {
-        elecpulse = new Elecpulse(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+        Team team = GetOwner()->GetTeam();
+        elecpulse = new Elecpulse(GetOwner()->GetField(), team, damage);
         //AUDIO.Play(AudioType::ELECPULSE);
 
         auto props = elecpulse->GetHitboxProperties();
@@ -57,7 +58,12 @@ void ElecPulseCardAction::Execute() {
             elecpulse = nullptr;
         });
 
-        GetOwner()->GetField()->AddEntity(*elecpulse, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+        int step = 1;
+        if (team != Team::red) {
+          step = -1;
+        }
+
+        GetOwner()->GetField()->AddEntity(*elecpulse, GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
     };
 
 
