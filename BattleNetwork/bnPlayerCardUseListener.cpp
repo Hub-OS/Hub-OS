@@ -38,9 +38,12 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character) 
   }
   else if (name == "CrckPanel") {
     // Crack the top, middle, and bottom row in front of player
-    Battle::Tile* top = player->GetField()->GetAt(player->GetTile()->GetX() + 1, 1);
-    Battle::Tile* mid = player->GetField()->GetAt(player->GetTile()->GetX() + 1, 2);
-    Battle::Tile* low = player->GetField()->GetAt(player->GetTile()->GetX() + 1, 3);
+
+    int dir = player->GetTeam() == Team::red ? 1 : -1;
+
+    Battle::Tile* top = player->GetField()->GetAt(player->GetTile()->GetX() + dir, 1);
+    Battle::Tile* mid = player->GetField()->GetAt(player->GetTile()->GetX() + dir, 2);
+    Battle::Tile* low = player->GetField()->GetAt(player->GetTile()->GetX() + dir, 3);
 
     // If the tiles are valid, set their state to CRACKED
     if (top) { top->SetState(TileState::cracked); }

@@ -248,7 +248,7 @@ ConfigReader::ConfigReader(std::string filepath) {
     /*Logger::Log("settings was: ");
     for (auto p : settings.keyboard) {
       std::string first;
-      INPUT.ConvertKeyToString(p.first, first);
+      INPUTx.ConvertKeyToString(p.first, first);
       Logger::Logf("key %s is %s", first.c_str(), p.second.c_str());
     }*/
   }

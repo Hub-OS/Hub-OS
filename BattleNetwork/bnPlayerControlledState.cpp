@@ -5,10 +5,11 @@
 #include "bnTile.h"
 #include "bnSelectedCardsUI.h"
 #include "bnAudioResourceManager.h"
+#include "netplay/bnPlayerInputReplicator.h"
 
 #include <iostream>
 
-PlayerControlledState::PlayerControlledState() : AIState<Player>()
+PlayerControlledState::PlayerControlledState() : AIState<Player>(), replicator(nullptr)
 {
   isChargeHeld = false;
   queuedAction = nullptr; 
@@ -36,6 +37,7 @@ void PlayerControlledState::QueueAction(Player & player)
 
 void PlayerControlledState::OnEnter(Player& player) {
   player.SetAnimation(PLAYER_IDLE);
+  replicator = player.GetFirstComponent<PlayerInputReplicator>();
 }
 
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
@@ -43,20 +45,24 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (player.GetComponentsDerivedFrom<CardAction>().size()) return;
 
   // Are we creating an action this frame?
-  if (INPUT.Has(EventTypes::PRESSED_USE_CHIP)) {
+  if (INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) {
     auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
     if (cardsUI) {
       cardsUI->UseNextCard();
       // If the card used was successful, the player will now have an active card in queue
       QueueAction(player);
     }
-  } else if (INPUT.Has(EventTypes::PRESSED_SPECIAL)) {
+  } else if (INPUTx.Has(EventTypes::PRESSED_SPECIAL)) {
+    if (replicator) replicator->SendUseSpecialSignal();
     player.UseSpecial();
     QueueAction(player);
   }    // queue attack based on input behavior (buster or charge?)
-  else if ((!INPUT.Has(EventTypes::HELD_SHOOT) && isChargeHeld) || INPUT.Has(EventTypes::RELEASED_SHOOT)) {
+  else if ((!INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld) || INPUTx.Has(EventTypes::RELEASED_SHOOT)) {
     // This routine is responsible for determining the outcome of the attack
     player.Attack();
+
+    if (replicator) replicator->SendShootSignal();
+
     QueueAction(player);
     isChargeHeld = false;
     player.chargeEffect.SetCharging(false);
@@ -68,42 +74,42 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   static Direction direction = Direction::none;
   if (!player.IsTimeFrozen()) {
-    if (INPUT.Has(EventTypes::PRESSED_MOVE_UP) ||INPUT.Has(EventTypes::HELD_MOVE_UP)) {
+    if (INPUTx.Has(EventTypes::PRESSED_MOVE_UP) ||INPUTx.Has(EventTypes::HELD_MOVE_UP)) {
       direction = Direction::up;
     }
-    else if (INPUT.Has(EventTypes::PRESSED_MOVE_LEFT) || INPUT.Has(EventTypes::HELD_MOVE_LEFT)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_MOVE_LEFT) || INPUTx.Has(EventTypes::HELD_MOVE_LEFT)) {
       direction = Direction::left;
     }
-    else if (INPUT.Has(EventTypes::PRESSED_MOVE_DOWN) || INPUT.Has(EventTypes::HELD_MOVE_DOWN)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_MOVE_DOWN) || INPUTx.Has(EventTypes::HELD_MOVE_DOWN)) {
       direction = Direction::down;
     }
-    else if (INPUT.Has(EventTypes::PRESSED_MOVE_RIGHT) || INPUT.Has(EventTypes::HELD_MOVE_RIGHT)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_MOVE_RIGHT) || INPUTx.Has(EventTypes::HELD_MOVE_RIGHT)) {
       direction = Direction::right;
     }
   }
 
-  bool shouldShoot = INPUT.Has(EventTypes::HELD_SHOOT) && isChargeHeld == false;
+  bool shouldShoot = INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld == false;
 
 #ifdef __ANDROID__
-  shouldShoot = INPUT.Has(PRESSED_A);
+  shouldShoot = INPUTx.Has(PRESSED_A);
 #endif
 
   if (shouldShoot) {
     isChargeHeld = true;
-
+    if (replicator) replicator->SendChargeSignal();
     player.chargeEffect.SetCharging(true);
   }
 
-  if (INPUT.Has(EventTypes::RELEASED_MOVE_UP)) {
+  if (INPUTx.Has(EventTypes::RELEASED_MOVE_UP)) {
     direction = Direction::none;
   }
-  else if (INPUT.Has(EventTypes::RELEASED_MOVE_LEFT)) {
+  else if (INPUTx.Has(EventTypes::RELEASED_MOVE_LEFT)) {
     direction = Direction::none;
   }
-  else if (INPUT.Has(EventTypes::RELEASED_MOVE_DOWN)) {
+  else if (INPUTx.Has(EventTypes::RELEASED_MOVE_DOWN)) {
     direction = Direction::none;
   }
-  else if (INPUT.Has(EventTypes::RELEASED_MOVE_RIGHT)) {
+  else if (INPUTx.Has(EventTypes::RELEASED_MOVE_RIGHT)) {
     direction = Direction::none;
   }
 
@@ -128,6 +134,8 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       }; // end lambda
       player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
       player.SetAnimation(PLAYER_MOVING, onFinish);
+
+      if (replicator) replicator->SendMoveSignal(direction);
     }
   }
   else if(queuedAction && !player.IsSliding()) {

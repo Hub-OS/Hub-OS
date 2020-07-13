@@ -171,4 +171,4 @@ private:
 /**
  * @brief macro to shorten manager calls
  */
-#define INPUT InputManager::GetInstance()
+#define INPUTx InputManager::GetInstance()

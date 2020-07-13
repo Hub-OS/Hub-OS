@@ -127,7 +127,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 #ifndef __ANDROID__
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
+    if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -139,7 +139,7 @@ void SelectMobScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -155,7 +155,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
+    if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
       // Fade out black and go back to the menu
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
@@ -187,7 +187,7 @@ void SelectMobScene::onUpdate(double elapsed) {
             numberCooldown = maxNumberCooldown;
         }
 
-        if (INPUT.Has(PRESSED_B)) {
+        if (INPUTx.Has(PRESSED_B)) {
             // Fade out black and go back to the menu
             gotoNextScene = true;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
@@ -369,7 +369,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 
   // Make a selection
-  if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && !gotoNextScene) {
+  if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && !gotoNextScene) {
     
     if (MOBS.Size() != 0) {
       mob = MOBS.At(mobSelectionIndex).GetMob();
@@ -576,19 +576,19 @@ void SelectMobScene::StartupTouchControls() {
   rightSide.enableExtendedRelease(true);
 
   rightSide.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+      INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
   });
 
   rightSide.onRelease([this](sf::Vector2i delta) {
       if(!releasedB) {
-        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
       }
   });
 
   rightSide.onDrag([this](sf::Vector2i delta){
       if(delta.x < -25 && !releasedB) {
-        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
-        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
         releasedB = true;
       }
   });

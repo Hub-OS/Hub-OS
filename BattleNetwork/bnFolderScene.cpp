@@ -165,12 +165,12 @@ void FolderScene::onUpdate(double elapsed) {
 
   // Prioritize textbox input
   if (textbox.IsOpen() && questionInterface) {
-    if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
+    if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
       questionInterface->SelectYes();
-    } else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
+    } else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
       questionInterface->SelectNo();
     }
-    else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
       if (!textbox.IsEndOfMessage()) {
         questionInterface->Continue();
       }
@@ -178,7 +178,7 @@ void FolderScene::onUpdate(double elapsed) {
         questionInterface->ConfirmSelection();
       }
     }
-    else if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
       questionInterface->SelectNo();
       questionInterface->ConfirmSelection();
     }
@@ -194,7 +194,7 @@ void FolderScene::onUpdate(double elapsed) {
     cancelButton = PRESSED_B;
 #endif
 
-    if (INPUT.Has(cancelButton)) {
+    if (INPUTx.Has(cancelButton)) {
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(false);
 #endif
@@ -205,22 +205,22 @@ void FolderScene::onUpdate(double elapsed) {
         folderNames[currFolderIndex] = collection.GetFolderNames()[currFolderIndex];
       }
 
-      INPUT.EndCaptureInputBuffer();
+      INPUTx.EndCaptureInputBuffer();
     }
     else {
-      std::string buffer = INPUT.GetInputBuffer();
+      std::string buffer = INPUTx.GetInputBuffer();
 
       buffer = buffer.substr(0, 10);
       folderNames[currFolderIndex] = buffer;
 
-      INPUT.SetInputBuffer(buffer); // shrink
+      INPUTx.SetInputBuffer(buffer); // shrink
 
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(true);
 #endif
     }
   } else if (!gotoNextScene) {
-      if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
+      if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -234,7 +234,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -248,7 +248,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -260,7 +260,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -314,7 +314,7 @@ void FolderScene::onUpdate(double elapsed) {
 
       InputEvent cancelButton = EventTypes::RELEASED_CANCEL;
 
-      if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
+      if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
         if (!promptOptions) {
           gotoNextScene = true;
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
@@ -325,12 +325,12 @@ void FolderScene::onUpdate(double elapsed) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         }
-      } else if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
+      } else if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
           if (promptOptions) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
           }
-      } else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
+      } else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
         if (!promptOptions) {
           promptOptions = true;
           AUDIO.Play(AudioType::CHIP_DESC);
@@ -662,12 +662,12 @@ void FolderScene::StartupTouchControls() {
     rightSide.enableExtendedRelease(true);
 
     rightSide.onTouch([]() {
-        INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+        INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
     });
 
     rightSide.onRelease([this](sf::Vector2i delta) {
         if(!releasedB) {
-            INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+            INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
         }
 
         releasedB = false;
@@ -675,8 +675,8 @@ void FolderScene::StartupTouchControls() {
 
     rightSide.onDrag([this](sf::Vector2i delta){
         if(delta.x < -25 && !releasedB && !touchStart) {
-            INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
-            INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+            INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
+            INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
             releasedB = true;
         }
     });

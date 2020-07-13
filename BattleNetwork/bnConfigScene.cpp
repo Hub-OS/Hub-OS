@@ -77,7 +77,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
 
     actions.clear();
 
-    configSettings = INPUT.GetConfigSettings();
+    configSettings = INPUTx.GetConfigSettings();
 
     // For keyboard keys 
     for (auto a : EventTypes::KEYS) {
@@ -91,7 +91,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
         else {
             std::string keyStr;
 
-            if (INPUT.ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
+            if (INPUTx.ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
                 keyHash.insert(std::make_pair(configSettings.GetPairedInput(a), a));
 
                 boundKeys.push_back(uiData{ keyStr,  sf::Vector2f(), sf::Vector2f(), type });
@@ -173,7 +173,7 @@ void ConfigScene::onUpdate(double elapsed)
       uiList[0][uiList[0].size()-1].label = "LOGOUT " + WEBCLIENT.GetUserName();
   }
 
-  bool hasConfirmed = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false ) || INPUT.GetAnyKey() == sf::Keyboard::Enter;
+  bool hasConfirmed = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false ) || INPUTx.GetAnyKey() == sf::Keyboard::Enter;
   bool isInSubmenu = inKeyboardList || inGamepadList;
 
   if (hasConfirmed && isSelectingTopMenu && !leave) {
@@ -185,7 +185,7 @@ void ConfigScene::onUpdate(double elapsed)
               ConfigWriter writer(configSettings);
               writer.Write("config.ini");
               ConfigReader reader("config.ini");
-              INPUT.SupportConfigSettings(reader);
+              INPUTx.SupportConfigSettings(reader);
               textbox.Close();
 
               // transition to the next screen
@@ -214,15 +214,15 @@ void ConfigScene::onUpdate(double elapsed)
   }
   
   if (!leave) {
-    bool hasConfirmed = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
+    bool hasConfirmed = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
     
-    bool hasCanceled = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CANCEL) : false) ||
-      (INPUT.GetAnyKey() == sf::Keyboard::BackSpace || INPUT.GetAnyKey() == sf::Keyboard::Escape);
+    bool hasCanceled = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CANCEL) : false) ||
+      (INPUTx.GetAnyKey() == sf::Keyboard::BackSpace || INPUTx.GetAnyKey() == sf::Keyboard::Escape);
 
-    bool hasUp    = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUT.GetAnyKey() == sf::Keyboard::Up;
-    bool hasDown  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUT.GetAnyKey() == sf::Keyboard::Down;
-    bool hasLeft  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_LEFT) : false) || INPUT.GetAnyKey() == sf::Keyboard::Left;
-    bool hasRight = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_RIGHT): false) || INPUT.GetAnyKey() == sf::Keyboard::Right;
+    bool hasUp    = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUTx.GetAnyKey() == sf::Keyboard::Up;
+    bool hasDown  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Down;
+    bool hasLeft  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_LEFT) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Left;
+    bool hasRight = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_RIGHT): false) || INPUTx.GetAnyKey() == sf::Keyboard::Right;
 
     if (textbox.IsOpen()) {
         questionInterface->OnUpdate(elapsed);
@@ -268,12 +268,12 @@ void ConfigScene::onUpdate(double elapsed)
         awaitingKey = false;
       }
       else if (inKeyboardList) {
-        auto key = INPUT.GetAnyKey();
+        auto key = INPUTx.GetAnyKey();
 
         if (key != sf::Keyboard::Unknown) {
           std::string boundKey = "";
 
-          if (INPUT.ConvertKeyToString(key, boundKey)) {
+          if (INPUTx.ConvertKeyToString(key, boundKey)) {
 
             auto iter = keyHash.begin();
 
@@ -299,7 +299,7 @@ void ConfigScene::onUpdate(double elapsed)
 
       if (inGamepadList) {
         // GAMEPAD
-        auto gamepad = INPUT.GetAnyGamepadButton();
+        auto gamepad = INPUTx.GetAnyGamepadButton();
 
         if (gamepad != (Gamepad)-1) {
           auto iter = gamepadHash.begin();

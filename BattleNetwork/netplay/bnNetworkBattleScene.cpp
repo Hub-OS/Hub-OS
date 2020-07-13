@@ -1,23 +1,26 @@
 #include <Swoosh/ActivityController.h>
-#include "bnBattleScene.h"
-#include "bnCardLibrary.h"
-#include "bnGameOverScene.h"
-#include "bnUndernetBackground.h"
-#include "bnWeatherBackground.h"
-#include "bnRobotBackground.h"
-#include "bnMedicalBackground.h"
-#include "bnACDCBackground.h"
-#include "bnMiscBackground.h"
-#include "bnSecretBackground.h"
-#include "bnJudgeTreeBackground.h"
-#include "bnPlayerHealthUI.h"
-#include "bnPaletteSwap.h"
+#include "bnNetworkBattleScene.h"
+#include "bnPlayerInputReplicator.h"
+#include "../bnCardLibrary.h"
+#include "../bnGameOverScene.h"
+#include "../bnUndernetBackground.h"
+#include "../bnWeatherBackground.h"
+#include "../bnRobotBackground.h"
+#include "../bnMedicalBackground.h"
+#include "../bnACDCBackground.h"
+#include "../bnMiscBackground.h"
+#include "../bnSecretBackground.h"
+#include "../bnJudgeTreeBackground.h"
+#include "../bnPlayerHealthUI.h"
+#include "../bnPaletteSwap.h"
+#include "../bnWebClientMananger.h"
+#include "../bnFadeInState.h"
 
 // Android only headers
-#include "Android/bnTouchArea.h"
+#include "../Android/bnTouchArea.h"
 
-#include "Segues/WhiteWashFade.h"
-#include "Segues/PixelateBlackWashFade.h"
+#include "../Segues/WhiteWashFade.h"
+#include "../Segues/PixelateBlackWashFade.h"
 
 // modals like card cust and battle reward slide in 12px per frame for 10 frames. 60 frames = 1 sec
 // modal slide moves 120px in 1/6th of a second
@@ -31,541 +34,165 @@
 
 using namespace swoosh::types;
 
-BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, CardFolder* folder) :
-        swoosh::Activity(&controller),
-        player(player),
-        mob(mob),
-        lastMobSize(mob->GetMobCount()),
-        didDoubleDelete(false),
-        didTripleDelete(false),
-        isChangingForm(false),
-        isAnimatingFormChange(false),
-        comboDeleteCounter(0),
-        totalCounterMoves(0),
-        totalCounterDeletions(0),
-        pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
-        whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
-        yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
-        customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
-        heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
-        iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
-        distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
-        summons(player),
-        cardListener(*player),
-        // cap of 8 cards, 8 cards drawn per turn
-        cardCustGUI(folder->Clone(), 8, 8), 
-        camera(*ENGINE.GetCamera()),
-        cardUI(player),
-        lastSelectedForm(-1),
-        persistentFolder(folder) {
+auto BuildMob = []() {
+  Mob* mob = new Mob(new Field(6, 3));
+  mob->SetBackground(new SecretBackground());
+  return mob;
+};
 
-  if (mob->GetMobCount() == 0) {
-    Logger::Log(std::string("Warning: Mob was empty when battle started. Mob Type: ") + typeid(mob).name());
-  }
+NetworkBattleScene::NetworkBattleScene(
+  swoosh::ActivityController& controller, Player* player, CardFolder* folder, const NetPlayConfig& config) :
+        BattleScene(controller, player, BuildMob(), folder) {
+  networkCardUseListener = new NetworkCardUseListener(*this, *player);
+  networkCardUseListener->Subscribe(this->cardUI);
 
-  /*
-  Set Scene*/
-  field = mob->GetField();
-  CharacterDeleteListener::Subscribe(*field);
+  Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), config.myPort); 
+  client = Poco::Net::DatagramSocket(sa);
+  //client.bind(sa, true);
+  client.setBlocking(false);
 
-  player->ChangeState<PlayerIdleState>();
-  player->ToggleTimeFreeze(false);
-  field->AddEntity(*player, 2, 2);
+  remoteAddress = Poco::Net::SocketAddress(config.remoteIP, config.remotePort);
+  client.connect(remoteAddress);
 
-  // Card UI for player
-  cardListener.Subscribe(cardUI);
-  summons.Subscribe(cardUI); // Let the scene's card listener know about summon cards
-
-  /*
-  Background for scene*/
-  background = mob->GetBackground();
-
-  if (!background) {
-    int randBG = rand() % 10;
-
-    if (randBG == 0) {
-      background = new LanBackground();
-    }
-    else if (randBG == 1) {
-      background = new GraveyardBackground();
-    }
-    else if (randBG == 2) {
-      background = new VirusBackground();
-    }
-    else if (randBG == 3) {
-      background = new WeatherBackground();
-    }
-    else if (randBG == 4) {
-      background = new RobotBackground();
-    }
-    else if (randBG == 5) {
-      background = new MedicalBackground();
-    }
-    else if (randBG == 6) {
-      background = new ACDCBackground();
-    }
-    else if (randBG == 7) {
-      background = new MiscBackground();
-    }
-    else if (randBG == 8) {
-      background = new JudgeTreeBackground();
-    }
-    else if (randBG == 9) {
-      background = new SecretBackground();
-    }
-  }
-
-  components = mob->GetComponents();
-
-  PlayerHealthUI* healthUI = new PlayerHealthUI(player);
-  cardCustGUI.AddNode(healthUI);
-  components.push_back((UIComponent*)healthUI);
-
-  for (auto c : components) {
-    c->Inject(*this);
-  }
-
-  ProcessNewestComponents();
-
-  /*
-  Program Advance + labels
-  */
-  programAdvance.LoadPA();
-  isPAComplete = false;
-  hasPA = -1;
-  paStepIndex = 0;
-
-  listStepCooldown = 0.2f;
-  listStepCounter = listStepCooldown;
-
-  programAdvanceSprite = sf::Sprite(*LOAD_TEXTURE(PROGRAM_ADVANCE));
-  programAdvanceSprite.setScale(2.f, 2.f);
-  programAdvanceSprite.setOrigin(0, programAdvanceSprite.getLocalBounds().height/2.0f);
-  programAdvanceSprite.setPosition(40.0f, 58.f);
-
-  camera = Camera(ENGINE.GetView());
-  ENGINE.SetCamera(camera);
-
-  /*
-  Other battle labels
-  */
-
-  battleStart = sf::Sprite(*LOAD_TEXTURE(BATTLE_START));
-  battleStart.setOrigin(battleStart.getLocalBounds().width / 2.0f, battleStart.getLocalBounds().height / 2.0f);
-  battleStartPos = sf::Vector2f(240.f, 140.f);
-  battleStart.setPosition(battleStartPos);
-  battleStart.setScale(2.f, 2.f);
-
-  battleEnd = battleStart;
-  battleEnd.setTexture(*LOAD_TEXTURE(ENEMY_DELETED));
-
-  doubleDelete = sf::Sprite(*LOAD_TEXTURE(DOUBLE_DELETE));
-  doubleDelete.setOrigin(doubleDelete.getLocalBounds().width / 2.0f, doubleDelete.getLocalBounds().height / 2.0f);
-  comboInfoPos = sf::Vector2f(240.0f, 50.f);
-  doubleDelete.setPosition(comboInfoPos);
-  doubleDelete.setScale(2.f, 2.f);
-
-  tripleDelete = doubleDelete;
-  tripleDelete.setTexture(*LOAD_TEXTURE(TRIPLE_DELETE));
-
-  counterHit = doubleDelete;
-  counterHit.setTexture(*LOAD_TEXTURE(COUNTER_HIT));
-  /*
-  Cards + Card select setup*/
-  cards = nullptr;
-  cardCount = 0;
-
-  /*
-  Battle results pointer */
-  battleResults = nullptr;
-
-  // PAUSE
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  pauseLabel = new sf::Text("paused", *font);
-  pauseLabel->setOrigin(pauseLabel->getLocalBounds().width / 2, pauseLabel->getLocalBounds().height * 2);
-  pauseLabel->setPosition(sf::Vector2f(240.f, 160.f));
-
-  // CHIP CUST GRAPHICS
-  customBarTexture = TEXTURES.LoadTextureFromFile("resources/ui/custom.png");
-  customBarSprite.setTexture(customBarTexture);
-  customBarSprite.setOrigin(customBarSprite.getLocalBounds().width / 2, 0);
-  customBarPos = sf::Vector2f(240.f, 0.f);
-  customBarSprite.setPosition(customBarPos);
-  customBarSprite.setScale(2.f, 2.f);
-
-  // Load forms
-  cardCustGUI.SetPlayerFormOptions(player->GetForms());
-
-  // Selection input delays
-  heldCardSelectInputCooldown = 0.35f; // 21 frames @ 60fps = 0.35 second
-  maxCardSelectInputCooldown = 1 / 12.f; // 5 frames @ 60fps = 1/12th second
-  cardSelectInputCooldown = maxCardSelectInputCooldown;
-
-  // MOB UI
-  mobFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-
-  // STATE FLAGS AND TIMERS
-  isPaused = false;
-  isInCardSelect = false;
-  isCardSelectReady = false;
-  isPlayerDeleted = false;
-  isMobDeleted = false;
-  isBattleRoundOver = false;
-  isMobFinished = false;
-  prevSummonState = false;
-  customProgress = 0; // in seconds
-  customDuration = 10; // 10 seconds
-  initFadeOut = false;
-
-  isPreBattle = false;
-  isPostBattle = false;
-  preBattleLength = 1; // in seconds
-  postBattleLength = 1.4; // in seconds
-  PAStartLength = 0.15; // in seconds
-
-  showSummonBackdrop = false;
-  showSummonBackdropLength = 15.0/60.0; //15 frame fade
-  showSummonBackdropTimer = 0; // No state is active
-  showSummonText = false;
-  summonTextLength = 1.25; // in seconds
-
-  backdropOpacity = 0.25; // default is 25%
-
-  // SHADERS
-  // TODO: Load shaders if supported
-  shaderCooldown = 0;
-
-  pauseShader.setUniform("texture", sf::Shader::CurrentTexture);
-  pauseShader.setUniform("opacity", 0.25f);
-
-  whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
-  whiteShader.setUniform("opacity", 0.5f);
-  whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
-
-  customBarShader.setUniform("texture", sf::Shader::CurrentTexture);
-  customBarShader.setUniform("factor", 0);
-  customBarSprite.SetShader(&customBarShader);
-
-  // Heat distortion effect
-  distortionMap.setRepeated(true);
-  distortionMap.setSmooth(true);
-
-  textureSize = getController().getVirtualWindowSize();
-
-  heatShader.setUniform("texture", sf::Shader::CurrentTexture);
-  heatShader.setUniform("distortionMapTexture", distortionMap);
-  heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
-
-  iceShader.setUniform("texture", sf::Shader::CurrentTexture);
-  iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
-  iceShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
-  iceShader.setUniform("shine", 0.2f);
-
-  shine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
-  shine.setScale(2.f, 2.f);
-
-  shineAnimation = Animation("resources/mobs/boss_shine.animation");
-  shineAnimation.Load();
-
-  isSceneInFocus = false;
+  selectedNavi = config.myNavi;
 }
 
-BattleScene::~BattleScene()
-{
-  components.clear();
-  scenenodes.clear();
+NetworkBattleScene::~NetworkBattleScene()
+{ 
+  delete remotePlayer;
+  delete remoteCardUsePublisher;
+  delete networkCardUseListener;
+  client.close();
 }
 
-// What to do if we inject a card publisher, subscribe it to the main listener
-void BattleScene::Inject(CardUsePublisher& pub)
-{
-  enemyCardListener.Subscribe(pub);
-  summons.Subscribe(pub);
-
-  SceneNode* node = dynamic_cast<SceneNode*>(&pub);
-  scenenodes.push_back(node);
-}
-
-// what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
-void BattleScene::Inject(MobHealthUI& other)
-{
-  if(other.GetOwner()) other.GetOwner()->FreeComponentByID(other.GetID()); // We are owned by the scene now
-  SceneNode* node = dynamic_cast<SceneNode*>(&other);
-  scenenodes.push_back(node);
-  components.push_back(&other);
-}
-
-
-// Default case: no special injection found for the type, just add it to our update loop
-void BattleScene::Inject(Component * other)
-{
-  if (!other) return;
-
-  if(other->GetOwner()) other->GetOwner()->FreeComponentByID(other->GetID());
-  components.push_back(other);
-}
-
-void BattleScene::Eject(Component::ID_t ID)
-{
-  auto iter = std::find_if(components.begin(), components.end(), [ID](auto in) { return in->GetID() == ID; });
-
-  if (iter != components.end()) {
-    components.erase(iter);
-  }
-}
-
-void BattleScene::ProcessNewestComponents()
-{
-  // effectively returns all of them
-  auto entities = field->FindEntities([](Entity* e) { return true; });
-
-  for (auto e : entities) {
-    if (e->components.size() > 0) {
-      // update the ledger
-      // Injects usually removes the owner so this step proceeds the lastComponentID update
-      auto latestID = e->components[0]->GetID();
-
-      if (e->lastComponentID < latestID) {
-        //std::cout << "latestID: " << latestID << " lastComponentID: " << e->lastComponentID << "\n";
-
-        for (auto c : e->components) {
-          if (c->GetID() <= e->lastComponentID) break; // Older components are last in order, we're done
-
-          // Otherwise inject into scene
-          c->Inject(*this);
-          // Logger::Log("component ID " + std::to_string(c->GetID()) + " was injected");
-        }
-
-        e->lastComponentID = latestID;
-      }
-    }
-  }
-}
-
-const bool BattleScene::IsBattleActive()
-{
-  return !(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInCardSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm);
-}
-
-// TODO: this needs to be handled by some card API itself and not hacked
-void BattleScene::TEMPFilterAtkCards(Battle::Card ** cards, int cardCount)
-{
-  // Only remove the ATK cards in the queue. Increase the previous card damage by +10
-  int newCardCount = cardCount;
-  Battle::Card* nonSupport = nullptr;
-
-  // Create a temp card list
-  Battle::Card** newCardList = new Battle::Card*[cardCount];
-
-  int j = 0;
-  for (int i = 0; i < cardCount; ) {
-    if (cards[i]->GetShortName() == "Atk+10") {
-      if (nonSupport) {
-        // Do not modify support cards
-        if (!nonSupport->IsSupport()) {
-          nonSupport->damage += 10;
-        }
-      }
-
-      i++;
-      continue;
-    }
-
-    newCardList[j] = cards[i];
-    nonSupport = cards[i];
-
-    i++;
-    j++;
-  }
-
-  newCardCount = j;
-
-  // Set the new cards
-  for (int i = 0; i < newCardCount; i++) {
-    cards[i] = *(newCardList + i);
-  }
-
-  // Delete the temp list space
-  // NOTE: We are _not_ deleting the pointers in them
-  delete[] newCardList;
-
-  BattleScene::cards = cards;
-  BattleScene::cardCount = newCardCount;
-}
-
-const int BattleScene::GetCounterCount() const
-{
-  return totalCounterMoves;
-}
-
-void BattleScene::OnCounter(Character & victim, Character & aggressor)
-{
-  AUDIO.Play(AudioType::COUNTER, AudioPriority::highest);
-
-  if (&aggressor == player) {
-    totalCounterMoves++;
-
-    if (victim.IsDeleted()) {
-      totalCounterDeletions++;
-    }
-
-    comboInfo = counterHit;
-    comboInfoTimer.reset();
-  }
-}
-
-void BattleScene::OnDeleteEvent(Character & pending)
-{
-  // Track if player is being deleted
-  if (!isPlayerDeleted && player == &pending) {
-    isPlayerDeleted = true;
-    player = nullptr;
-  }
-
-  // Find any AI using this character as a target and free that pointer  
-  field->FindEntities([pendingPtr = &pending](Entity* in) {
-    auto agent = dynamic_cast<Agent*>(in);
-
-    if (agent && agent->GetTarget() == pendingPtr) {
-      agent->FreeTarget();
-    }
-
-    return false;
-  });
-
-  Logger::Logf("Deleting %s from battle", pending.GetName().c_str());
-  mob->Forget(pending);
-}
-
-void BattleScene::onUpdate(double elapsed) {
+void NetworkBattleScene::onUpdate(double elapsed) {
   BattleScene::elapsed = elapsed;
 
   shineAnimation.Update((float)elapsed, shine);
+  comboInfoTimer.update(elapsed);
+  battleStartTimer.update(elapsed);
+  battleEndTimer.update(elapsed);
+  multiDeleteTimer.update(elapsed);
+  summonTimer.update(elapsed);
+  battleTimer.update(elapsed);
+  PAStartTimer.update(elapsed);
 
-  if(!isPaused) {
-    comboInfoTimer.update(elapsed);
-    battleStartTimer.update(elapsed); 
-    battleEndTimer.update(elapsed);
-    multiDeleteTimer.update(elapsed);
-    summonTimer.update(elapsed);
-    battleTimer.update(elapsed);
-    PAStartTimer.update(elapsed);
+  if (!isChangingForm) {
+    if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
+      showSummonBackdropTimer += elapsed;
+      backdropOpacity = 0.25; // reset for summons
 
-    if (!isChangingForm) {
-      if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
-        showSummonBackdropTimer += elapsed;
-        backdropOpacity = 0.25; // reset for summons
-
-        //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " showSummonBackdropLength: " + std::to_string(showSummonBackdropLength));
-      }
-      else if (showSummonBackdropTimer >= showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && !showSummonText && prevSummonState) {
-        if (!summons.IsSummonOver()) {
-          showSummonText = true;
-          //Logger::Log("showSummonText: " + (showSummonText ? std::string("true") : std::string("false")));
-        }
-      }
-      else if (showSummonBackdropTimer > 0 && summons.IsSummonOver()) {
-        showSummonBackdropTimer -= elapsed;
-        showSummonText = prevSummonState = false;
-        //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " going to 0");
-
-      }
-      else if (showSummonBackdropTimer <= 0 && summons.IsSummonOver()) {
-        showSummonBackdropTimer = 0;
-        showSummonBackdrop = false;
+      //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " showSummonBackdropLength: " + std::to_string(showSummonBackdropLength));
+    }
+    else if (showSummonBackdropTimer >= showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && !showSummonText && prevSummonState) {
+      if (!summons.IsSummonOver()) {
+        showSummonText = true;
+        //Logger::Log("showSummonText: " + (showSummonText ? std::string("true") : std::string("false")));
       }
     }
-    else if (isChangingForm && !isAnimatingFormChange) {
-      showSummonBackdrop = true;
-      player->Reveal(); // If flickering, stablizes the sprite for the animation
+    else if (showSummonBackdropTimer > 0 && summons.IsSummonOver()) {
+      showSummonBackdropTimer -= elapsed;
+      showSummonText = prevSummonState = false;
+      //Logger::Log(std::string() + "showSummonBackdropTimer: " + std::to_string(showSummonBackdropTimer) + " going to 0");
 
-      // Preserve the original child node states
-      auto playerChildNodes = player->GetChildNodes();
+    }
+    else if (showSummonBackdropTimer <= 0 && summons.IsSummonOver()) {
+      showSummonBackdropTimer = 0;
+      showSummonBackdrop = false;
+    }
+  }
+  else if (isChangingForm && !isAnimatingFormChange) {
+    showSummonBackdrop = true;
 
-      // The list of nodes change when adding the shine overlay and new form overlay nodes
-      std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(playerChildNodes.size())); 
-      std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(playerChildNodes.size()));
+    Player* which = player;
 
-      /*for (auto child : playerChildNodes) {
-        childShaderUseStates->push_back(child->IsUsingParentShader());
-        originalChildNodes->push_back(child);
-        child->EnableParentShader(true);
-      }*/
-      
-      auto paletteSwap = player->GetFirstComponent<PaletteSwap>();
-      
-      if(paletteSwap) paletteSwap->Enable(false);
+    if (isRemoteChangingForm) {
+      which = remotePlayer;
+    }
 
-      if (showSummonBackdropTimer < showSummonBackdropLength) {
-        showSummonBackdropTimer += elapsed;
-      } else if (showSummonBackdropTimer >= showSummonBackdropLength) {
-        if (!isAnimatingFormChange) {
-          isAnimatingFormChange = true;
+    which->Reveal(); // If flickering, stablizes the sprite for the animation
 
-          auto pos = player->getPosition();
-          shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight()/4.0f);
-          
-          auto onTransform = [this, states = childShaderUseStates, originals = originalChildNodes]() {
-            // The next form has a switch based on health
-            // This way dying will cancel the form
-            // TODO: make this a separate function that takes in form index or something...
-            lastSelectedForm = player->GetHealth() == 0? -1 : cardCustGUI.GetSelectedFormIndex();
-            player->ActivateFormAt(lastSelectedForm);
-            AUDIO.Play(AudioType::SHINE);
+    // Preserve the original child node states
+    auto childNodes = which->GetChildNodes();
 
-            player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+    // The list of nodes change when adding the shine overlay and new form overlay nodes
+    std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(childNodes.size()));
+    std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(childNodes.size()));
 
-            // Activating the form will add NEW child nodes onto our character
-            // TODO: There's got to be a more optimal search than this...
-            for (auto child : player->GetChildNodes()) {
-              auto it = std::find_if(originals->begin(), originals->end(), [child](auto in){
-                return (child == in);
+
+    auto paletteSwap = which->GetFirstComponent<PaletteSwap>();
+
+    if (paletteSwap) paletteSwap->Enable(false);
+
+    if (showSummonBackdropTimer < showSummonBackdropLength) {
+      showSummonBackdropTimer += elapsed;
+    }
+    else if (showSummonBackdropTimer >= showSummonBackdropLength) {
+      if (!isAnimatingFormChange) {
+        isAnimatingFormChange = true;
+
+        auto pos = which->getPosition();
+        shine.setPosition(pos.x + 16.0f, pos.y - which->GetHeight() / 4.0f);
+
+        auto onTransform = [this, which, states = childShaderUseStates, originals = originalChildNodes]() {
+          // The next form has a switch based on health
+          // This way dying will cancel the form
+          // TODO: make this a separate function that takes in form index or something...
+          lastSelectedForm = which->GetHealth() == 0 ? -1 : cardCustGUI.GetSelectedFormIndex();
+          which->ActivateFormAt(lastSelectedForm);
+          AUDIO.Play(AudioType::SHINE);
+
+          which->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+
+          // Activating the form will add NEW child nodes onto our character
+          // TODO: There's got to be a more optimal search than this...
+          for (auto child : which->GetChildNodes()) {
+            auto it = std::find_if(originals->begin(), originals->end(), [child](auto in) {
+              return (child == in);
               });
 
-              if (it == originals->end()) {
-                states->push_back(child->IsUsingParentShader());
-                originals->push_back(child);
-                child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
-              }
+            if (it == originals->end()) {
+              states->push_back(child->IsUsingParentShader());
+              originals->push_back(child);
+              child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
             }
-          };
+          }
+        };
 
-          auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
-            isLeavingFormChange = true;
-            if(paletteSwap) paletteSwap->Enable();
+        auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
+          isLeavingFormChange = true;
+          if (paletteSwap) paletteSwap->Enable();
 
-            unsigned idx = 0;
-            for (auto child : *originals) {
-              if (!child) {
-                idx++; continue;
-              }
-
-              unsigned thisIDX = idx;
-              bool enabled =(*states)[idx++];
-              child->EnableParentShader(enabled);
-              Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
+          unsigned idx = 0;
+          for (auto child : *originals) {
+            if (!child) {
+              idx++; continue;
             }
-          };
 
-          shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
-        }
+            unsigned thisIDX = idx;
+            bool enabled = (*states)[idx++];
+            child->EnableParentShader(enabled);
+            Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
+          }
+        };
+
+        shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
       }
     }
-    else if (isLeavingFormChange && showSummonBackdropTimer > 0.0f) {
-      showSummonBackdropTimer -= elapsed*0.5f;
+  }
+  else if (isLeavingFormChange && showSummonBackdropTimer > 0.0f) {
+    showSummonBackdropTimer -= elapsed * 0.5f;
 
-      if (showSummonBackdropTimer <= 0.0f) {
-        isChangingForm = false; //done
-        showSummonBackdrop = false;
-        isLeavingFormChange = false;
-        isAnimatingFormChange = false;
+    if (showSummonBackdropTimer <= 0.0f) {
+      isChangingForm = false; //done
+      showSummonBackdrop = false;
+      isLeavingFormChange = false;
+      isAnimatingFormChange = false;
 
-        // Case: only show BattleStart if not triggered due to death
-        // More reasons to use real state management for the battle scene...
-        if (player->GetHealth() > 0) {
-          isPreBattle = true;
-          battleStartTimer.reset();
-        }
+      // Case: only show BattleStart if not triggered due to death
+      // More reasons to use real state management for the battle scene...
+      if (player->GetHealth() > 0 && remotePlayer->GetHealth() > 0) {
+        this->sendReadySignal();
       }
     }
   }
@@ -583,10 +210,12 @@ void BattleScene::onUpdate(double elapsed) {
     battleResults->Update(elapsed);
   }
 
-  isBattleRoundOver = (isPlayerDeleted || isMobDeleted);
+  isBattleRoundOver = (isPlayerDeleted || remoteState.isRemotePlayerLoser);
+
+  if (this->isSceneInFocus && !isBattleRoundOver) processIncomingPackets();
 
   // Check if entire mob is deleted
-  if (mob->IsCleared() && !isPlayerDeleted) {
+  if (remoteState.isRemotePlayerLoser && !isPlayerDeleted) {
     if (!isPostBattle && battleEndTimer.getElapsed().asSeconds() < postBattleLength) {
       // Show Enemy Deleted
       isPostBattle = true;
@@ -594,97 +223,59 @@ void BattleScene::onUpdate(double elapsed) {
       AUDIO.StopStream();
       AUDIO.Stream("resources/loops/enemy_deleted.ogg");
       player->ChangeState<PlayerIdleState>();
+      remotePlayer->Remove();
       field->RequestBattleStop();
     }
-    else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
+    else if (!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
       isMobDeleted = true;
     }
-  } else if (!isPlayerDeleted && mob->NextMobReady() && isSceneInFocus) {
-    Mob::MobData* data = mob->GetNextMob();
-
-    Agent* cast = dynamic_cast<Agent*>(data->mob);
-
-    // Some entities have AI and need targets
-    if (cast) {
-      cast->SetTarget(player);
-    }
-
-    data->mob->ToggleTimeFreeze(false);
-    field->AddEntity(*data->mob, data->tileX, data->tileY);
-    mobNames.push_back(data->mob->GetName());
-
-    // Listen for counters
-    CounterHitListener::Subscribe(*data->mob);
   }
 
   camera.Update((float)elapsed);
 
   background->Update((float)elapsed);
 
-  // Do not update when: paused or in card select, during a summon sequence, showing Battle Start sign
-  if (!(isPaused || isInCardSelect || isChangingForm)  && !isPreBattle) {
+  if (!handshakeComplete && this->isSceneInFocus) {
+    // Try reaching out to someone...
+    this->sendConnectSignal(this->selectedNavi);
+    player->ChangeState<PlayerIdleState>(); // prevent movement
+  }
 
-
-    // kill switch for testing:
-    if (summons.IsSummonOver() && !isPreBattle) {
-        if (INPUTx.Has(EventTypes::HELD_USE_CHIP) && INPUTx.Has(EventTypes::HELD_SHOOT) && INPUTx.Has(EventTypes::HELD_MOVE_LEFT)) {
-            mob->KillSwitch();
-        }
+  if (remoteState.isRemoteConnected) {
+    if (isClientReady && !remoteState.isRemoteReady) {
+      this->sendReadySignal();
     }
 
+    if (!handshakeComplete) {
+      this->sendHandshakeSignal();
+    }
+  }
+
+  // Do not update when: in card select, during a summon sequence, showing Battle Start sign
+  if (!(isInCardSelect || isChangingForm) && !isPreBattle) {
     if (prevSummonState) {
-        field->ToggleTimeFreeze(true);
+      field->ToggleTimeFreeze(true);
     }
 
     field->Update((float)elapsed);
-  } 
-
-  int newMobSize = mob->GetRemainingMobCount();
-
-  if (lastMobSize != newMobSize && !isPlayerDeleted) {
-    if (multiDeleteTimer.getElapsed() <= sf::seconds(COMBO_HIT_THRESHOLD_SECONDS) && !showSummonBackdrop && summons.IsSummonOver()) {
-      comboDeleteCounter += lastMobSize - newMobSize;
-
-      if (comboDeleteCounter == 2) {
-        didDoubleDelete = true;
-        comboInfo = doubleDelete;
-        comboInfoTimer.reset();
-      }
-      else if (comboDeleteCounter > 2) {
-        didTripleDelete = true;
-        comboInfo = tripleDelete;
-        comboInfoTimer.reset();
-      }
-    }
-    else if(multiDeleteTimer.getElapsed() > sf::seconds(COMBO_HIT_THRESHOLD_SECONDS)){
-      comboDeleteCounter = 0;
-    }
   }
 
-  if (lastMobSize != newMobSize) {
-    // prepare for another enemy deletion
-    multiDeleteTimer.reset();
+  int clientNewHP = player->GetHealth();
+  if (this->clientPrevHP != clientNewHP) {
+    this->clientPrevHP = clientNewHP;
+    this->sendHPSignal(this->clientPrevHP);
   }
-
-  lastMobSize = newMobSize;
 
   // TODO: we desperately need states
-  // update the cust if not paused nor in card select nor in mob intro nor battle results nor post battle
-  if (!(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInCardSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm)) {
+  // update the cust if not in card select nor in mob intro nor battle results nor post battle
+  if (!(isBattleRoundOver || isInCardSelect || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm) 
+    && remoteState.isRemoteReady && isClientReady) {
     if (battleTimer.isPaused()) {
       // start counting seconds again
       if (battleTimer.isPaused()) {
         battleTimer.start();
         comboDeleteCounter = 0; // reset the combo
         Logger::Log("comboDeleteCounter reset");
-      }
-    }
-
-    if (newMobSize == 0) {
-      if (!battleTimer.isPaused()) {
-        battleTimer.pause();
-        multiDeleteTimer.start();
-        AUDIO.StopStream();
       }
     }
 
@@ -709,7 +300,7 @@ void BattleScene::onUpdate(double elapsed) {
   cardCustGUI.Update((float)elapsed);
 }
 
-void BattleScene::onDraw(sf::RenderTexture& surface) {
+void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
 
   ENGINE.Clear();
@@ -904,14 +495,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   // cust dissapears when not in battle
-  if (!(isInCardSelect || isPostBattle || mob->IsCleared()))
+  if ((!(isInCardSelect || isPostBattle) && remoteState.isRemoteConnected))
     ENGINE.Draw(&customBarSprite);
-
-  if (isPaused) {
-    // apply shader on draw calls below
-    ENGINE.SetShader(&pauseShader);
-    pauseShader.setUniform("opacity", 0.25f);
-  }
 
   // TODO: hack to swap out
   /*static auto lastShader = player->GetShader();
@@ -957,12 +542,12 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   float nextLabelHeight = 0;
-  if (!mob->IsCleared() && !mob->IsSpawningDone() || isInCardSelect) {
-    for (int i = 0; i < mob->GetMobCount(); i++) {
-      if (mob->GetMobAt(i).IsDeleted())
-        continue;
+  if (isInCardSelect) {
+    //for (int i = 0; i < mob->GetMobCount(); i++) {
+    //  if (mob->GetMobAt(i).IsDeleted())
+    //    continue;
 
-      sf::Text mobLabel = sf::Text(mob->GetMobAt(i).GetName(), *mobFont);
+      sf::Text mobLabel = sf::Text(remotePlayer->GetName(), *mobFont);
 
       mobLabel.setOrigin(mobLabel.getLocalBounds().width, 0);
       mobLabel.setPosition(470.0f, -1.f + nextLabelHeight);
@@ -971,9 +556,9 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       mobLabel.setOutlineThickness(2.f);
       ENGINE.Draw(mobLabel, false);
 
-      // make the next label relative to this one
-      nextLabelHeight += mobLabel.getLocalBounds().height;
-    }
+        // make the next label relative to this one
+   //   nextLabelHeight += mobLabel.getLocalBounds().height;
+   // }
   }
 
 
@@ -1018,11 +603,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(comboInfo);
   }
 
-  if (isPaused) {
-    // render on top
-    ENGINE.Draw(pauseLabel, false);
-  }
-
   // compare the summon state after we used a card...
   if (!showSummonText) {
     if (summons.IsSummonOver() && prevSummonState == true) {
@@ -1054,37 +634,26 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   // Scene keyboard controls
   // TODO: really belongs in Update() but also handles a lot of conditional draws
   //       refactoring battle scene into battle states should reduce this complexity
-  if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !isInCardSelect && !isChangingForm && !isBattleRoundOver && !isPreBattle && !isPostBattle) {
-    isPaused = !isPaused;
-
-    if (!isPaused) {
-      ENGINE.RevokeShader();
-    }
-    else {
-      AUDIO.Play(AudioType::PAUSE);
-    }
-  }
-  else if ((!isMobFinished && mob->IsSpawningDone()) ||
+  if (
            (
-                   INPUTx.Has(EventTypes::PRESSED_CUST_MENU) && customProgress >= customDuration && !isInCardSelect && !isPaused &&
+                   customProgress >= customDuration && !isInCardSelect && handshakeComplete &&
                    !isBattleRoundOver && summons.IsSummonOver() && !isPreBattle && !isPostBattle
            )) {
-    // enemy intro finished
-    if (!isMobFinished) {
-      // toggle the flag
-      isMobFinished = true;
+    static bool once = true;
+
+    if (once) {
       // allow the player to be controlled by keys
       player->ChangeState<PlayerControlledState>();
-      // Move mob out of the PixelInState
-      mob->DefaultState();
+      remotePlayer->ChangeState<PlayerNetworkState>(remoteState);
       field->ToggleTimeFreeze(true);
       // show the card select screen
       customProgress = customDuration;
       field->RequestBattleStart();
+      once = false;
     }
-
-    if (isInCardSelect == false && !isBattleRoundOver) {
+    else if (isInCardSelect == false && !isBattleRoundOver) {
       player->SetCharging(false);
+      remotePlayer->SetCharging(false);
 
       AUDIO.Play(AudioType::CUSTOM_SCREEN_OPEN);
       // slide up the screen a hair
@@ -1103,6 +672,8 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       // Load the next cards
       cardCustGUI.ResetState();
       cardCustGUI.GetNextCards();
+
+      this->isClientReady = this->remoteState.isRemoteReady = false;;
     }
 
     // NOTE: Need a battle scene state manager to handle going to and from one controll scheme to another.
@@ -1269,11 +840,10 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           isChangingForm = true;
           showSummonBackdropTimer = 0;
           backdropOpacity = 1.0f; // full black
+          this->sendChangedFormSignal(selectedForm);
         }
         else {
-          // Show BattleStart
-          isPreBattle = true;
-          battleStartTimer.reset();
+          this->sendReadySignal();
         }
       }
       else if (!isPAComplete) {
@@ -1495,6 +1065,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       initFadeOut = true;
       using effect = segue<WhiteWashFade, milliseconds<500>>;
       getController().queueRewind<effect::to<GameOverScene>>();
+      this->sendLoserSignal();
     }
   }
 
@@ -1511,129 +1082,305 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   customBarShader.setUniform("factor", (float)(customProgress / customDuration));
 }
 
-void BattleScene::onStart() {
-  isSceneInFocus = true;
+void NetworkBattleScene::Inject(PlayerInputReplicator& pub)
+{
+}
 
-  // Stream battle music
-  if (mob->HasCustomMusicPath()) {
-    AUDIO.Stream(mob->GetCustomMusicPath(), true);
+void NetworkBattleScene::sendHandshakeSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::handshake);
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendShootSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::shoot);
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendUseSpecialSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::special);
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendChargeSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::charge);
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::connect);
+  buffer.append((char*)&navi, sizeof(SelectedNavi));
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendReadySignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::ready);
+  client.sendBytes(buffer.begin(), buffer.size());
+  this->isClientReady = true;
+}
+
+void NetworkBattleScene::sendChangedFormSignal(const int form)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::form);
+  buffer.append((char*)&form, sizeof(int));
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendMoveSignal(const Direction dir)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::move);
+  buffer.append((char*)&dir, sizeof(Direction));
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendHPSignal(const int hp)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::hp);
+  buffer.append((char*)&hp, sizeof(int));
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::tile);
+  buffer.append((char*)&x, sizeof(int));
+  buffer.append((char*)&y, sizeof(int));
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendChipUseSignal(const std::string& used)
+{
+  Logger::Logf("sending chip data over network for %s", used.data());
+
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char)NetPlaySignals::chip);
+  buffer.append((char*)used.data(), sizeof(char)*used.length());
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::sendLoserSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((uint8_t)NetPlaySignals::loser);
+  client.sendBytes(buffer.begin(), buffer.size());
+}
+
+void NetworkBattleScene::recieveHandshakeSignal()
+{
+  this->handshakeComplete = true;
+  this->sendHandshakeSignal();
+}
+
+void NetworkBattleScene::recieveShootSignal()
+{
+  remotePlayer->Attack();
+}
+
+void NetworkBattleScene::recieveUseSpecialSignal()
+{
+  remotePlayer->UseSpecial();
+}
+
+void NetworkBattleScene::recieveChargeSignal()
+{
+  remotePlayer->SetCharging(true);
+}
+
+void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
+{
+  if (remoteState.isRemoteConnected) return; // prevent multiple connection requests...
+
+  Logger::Log("Recieved connect signal!");
+
+  remoteState.isRemoteConnected = true;
+
+  SelectedNavi navi = SelectedNavi{ 0 }; std::memcpy(&navi, buffer.begin(), buffer.size());
+  remoteState.remoteNavi = navi;
+
+  assert(remotePlayer == nullptr && "remote player was already set!");
+  remotePlayer = NAVIS.At(navi).GetNavi();
+  remotePlayer->SetTeam(Team::blue);
+  remotePlayer->setScale(remotePlayer->getScale().x * -1.0f, remotePlayer->getScale().y);
+  remotePlayer->ChangeState<PlayerIdleState>();
+  remotePlayer->Character::Update(0);
+
+  FinishNotifier onFinish = [this]() {
+    customProgress = customDuration; // open the cust
+  };
+
+  remotePlayer->ChangeState<FadeInState<Player>>(onFinish);
+  field->AddEntity(*remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
+  remotePlayer->ToggleTimeFreeze(false);
+
+  remoteState.remoteHP = remotePlayer->GetHealth();
+
+  remoteCardUsePublisher = new SelectedCardsUI(remotePlayer);
+  this->enemyCardListener.Subscribe(*remoteCardUsePublisher);
+  this->summons.Subscribe(*remoteCardUsePublisher);
+
+  remotePlayer->CreateComponent<MobHealthUI>(remotePlayer);
+  remotePlayer->CreateComponent<PlayerInputReplicator>(remotePlayer);
+}
+
+void NetworkBattleScene::recieveReadySignal()
+{
+  remoteState.isRemoteReady = true;
+}
+
+void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buffer)
+{
+  int form = remoteState.remoteFormSelect;
+  int prevForm = remoteState.remoteFormSelect;
+  std::memcpy(&form, buffer.begin(), buffer.size());
+  remoteState.remoteFormSelect = form;
+
+  if (remotePlayer && remotePlayer->GetHealth() == 0
+    && form != prevForm) {
+    // If we were in a form, replay the animation
+    // going back to our base this time
+
+    isChangingForm = true; // begins the routine
+    isRemoteChangingForm = true; // determines who transforms
+    showSummonBackdropTimer = 0;
+    backdropOpacity = 1.0f; // full black
   }
-  else {
-    if (!mob->IsBoss()) {
-      sf::Music::TimeSpan span;
-      span.offset = sf::microseconds(84);
-      span.length = sf::seconds(120.0f * 1.20668f);
+}
 
-      AUDIO.Stream("resources/loops/loop_battle.ogg", true, span);
-    }
-    else {
-      AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
+void NetworkBattleScene::recieveMoveSignal(const Poco::Buffer<char>& buffer)
+{
+  Direction dir = remoteState.remoteDirection; std::memcpy(&dir, buffer.begin(), buffer.size());
+
+  if (!player->Teammate(remotePlayer->GetTeam())) {
+    if (dir == Direction::left || dir == Direction::right) {
+      dir = Reverse(dir);
     }
   }
 
-#ifdef __ANDROID__
-  SetupTouchControls();
-#endif
+  remoteState.remoteDirection = dir;
 }
 
-void BattleScene::onLeave() {
-#ifdef __ANDROID__
-  ShutdownTouchControls();
-#endif
+void NetworkBattleScene::recieveHPSignal(const Poco::Buffer<char>& buffer)
+{
+  int hp = remoteState.remoteHP; std::memcpy(&hp, buffer.begin(), buffer.size());
+  remoteState.remoteHP = hp;
+  remotePlayer->SetHealth(hp);
 }
 
-void BattleScene::onExit() {
- // ENGINE.RevokeShader(); // Legacy code or necessary?
+void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer)
+{
+  int x = remoteState.remoteTileX; std::memcpy(&x, buffer.begin(), sizeof(int));
+  int y = remoteState.remoteTileX; std::memcpy(&y, (buffer.begin()+sizeof(int)), sizeof(int));
+  remoteState.remoteTileX = x;
+  remoteState.remoteTileY = y;
+
+  // TODO?
 }
 
-void BattleScene::onEnter() {
+void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)
+{
+  std::string used = std::string(buffer.begin(), buffer.size());
+  remoteState.remoteChipUse = used;
+  Battle::Card card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ used });
+  remoteCardUsePublisher->Broadcast(card, *remotePlayer);
+  Logger::Logf("remote used chip %s", used.c_str());
 }
 
-void BattleScene::onResume() {
-#ifdef __ANDROID__
-  SetupTouchControls();
-#endif
+void NetworkBattleScene::recieveLoserSignal()
+{
+  remoteState.isRemotePlayerLoser = true;
 }
 
-void BattleScene::onEnd() {
-  
-#ifdef __ANDROID__
-  ShutdownTouchControls();
-#endif
-}
+void NetworkBattleScene::processIncomingPackets()
+{
+  if (!client.poll(Poco::Timespan{ 0 }, Poco::Net::Socket::SELECT_READ)) return;
 
-#ifdef __ANDROID__
-void BattleScene::SetupTouchControls() {
-  /* Android touch areas*/
-  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+  static int errorCount = 0;
 
-  rightSide.enableExtendedRelease(true);
-  releasedB = false;
+  if (errorCount > 10) {
+    AUDIO.StopStream();
+    using effect = segue<PixelateBlackWashFade>;
+    getController().queuePop<effect>();
+    return;
+  }
 
-  rightSide.onTouch([]() {
-      INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
-  });
+  static char rawBuffer[MAX_BUFFER_LEN] = { 0 };
+  static int read = 0;
 
-  rightSide.onRelease([this](sf::Vector2i delta) {
-      if(!releasedB) {
-        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
+  try {
+    read+= client.receiveBytes(rawBuffer, MAX_BUFFER_LEN-1);
+    if (read > 0) {
+      rawBuffer[read] = '\0';
+
+      NetPlaySignals sig = *(NetPlaySignals*)rawBuffer;
+      size_t sigLen = sizeof(char);
+      Poco::Buffer<char> data{ 0 };
+      data.append(rawBuffer + sigLen, read - sigLen);
+
+      switch (sig) {
+      case NetPlaySignals::handshake:
+        recieveHandshakeSignal();
+        break;
+      case NetPlaySignals::connect:
+        recieveConnectSignal(data);
+        break;
+      case NetPlaySignals::chip:
+        recieveChipUseSignal(data);
+        break;
+      case NetPlaySignals::form:
+        recieveChangedFormSignal(data);
+        break;
+      case NetPlaySignals::hp:
+        recieveHPSignal(data);
+        break;
+      case NetPlaySignals::loser:
+        recieveLoserSignal();
+        break;
+      case NetPlaySignals::move:
+        recieveMoveSignal(data);
+        break;
+      case NetPlaySignals::ready:
+        recieveReadySignal();
+        break;
+      case NetPlaySignals::tile:
+        recieveTileCoordSignal(data);
+        break;
+      case NetPlaySignals::shoot:
+        recieveShootSignal();
+        break;
+      case NetPlaySignals::special:
+        recieveUseSpecialSignal();
+        break;
+      case NetPlaySignals::charge:
+        recieveChargeSignal();
+        break;
       }
+    }
 
-      releasedB = false;
+    errorCount = 0;
+  }
+  catch (std::exception& e) {
+    std::cout << "Network exception: " << e.what() << std::endl;
+    
+    if (remoteState.isRemoteConnected) {
+      errorCount++;
+    }
+  }
 
-  });
-
-  rightSide.onDrag([this](sf::Vector2i delta){
-      if(delta.x < -25 && !releasedB) {
-        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
-        INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
-        releasedB = true;
-      }
-  });
-
-  rightSide.onDefault([this]() {
-      releasedB = false;
-  });
-
-  TouchArea& custSelectButton = TouchArea::create(sf::IntRect(100, 0, 380, 100));
-  custSelectButton.onTouch([]() {
-      INPUTx.VirtualKeyEvent(InputEvent::PRESSED_START);
-  });
-  custSelectButton.onRelease([](sf::Vector2i delta) {
-      INPUTx.VirtualKeyEvent(InputEvent::RELEASED_START);
-  });
-
-  TouchArea& dpad = TouchArea::create(sf::IntRect(0, 0, 240, 320));
-  dpad.enableExtendedRelease(true);
-  dpad.onDrag([](sf::Vector2i delta) {
-      Logger::Log("dpad delta: " + std::to_string(delta.x) + ", " + std::to_string(delta.y));
-
-      if(delta.x > 30) {
-        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_RIGHT);
-      }
-
-      if(delta.x < -30) {
-        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_LEFT);
-      }
-
-      if(delta.y > 30) {
-        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_DOWN);
-      }
-
-      if(delta.y < -30) {
-        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_UP);
-      }
-  });
-
-  dpad.onRelease([](sf::Vector2i delta) {
-      if(delta.x < -30) {
-        INPUTx.VirtualKeyEvent(InputEvent::RELEASED_LEFT);
-      }
-  });
+  read = 0;
+  std::memset(rawBuffer, 0, MAX_BUFFER_LEN);
 }
-
-void BattleScene::ShutdownTouchControls() {
-  TouchArea::free();
-}
-
-#endif

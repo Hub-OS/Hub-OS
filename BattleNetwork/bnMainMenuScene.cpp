@@ -18,6 +18,12 @@ using sf::Event;
 using sf::Font;
 using namespace swoosh::types;
 
+#define OBN_NETPLAY 1
+
+#ifdef OBN_NETPLAY
+#include "netplay/bnNetworkBattleScene.h"
+#endif
+
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
   camera(ENGINE.GetView()),
   lastIsConnectedState(false),
@@ -162,7 +168,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   const auto right = direction::right;
 
   if (!gotoNextScene) {
-    if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && !INPUT.Has(EventTypes::PRESSED_CANCEL)) {
+    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
 
       // Folder Select
       if (menuSelectionIndex == 0) {
@@ -198,10 +204,67 @@ void MainMenuScene::onUpdate(double elapsed) {
         CardFolder* folder = nullptr;
 
         if (data.GetFolder(0, folder)) {
-          AUDIO.Play(AudioType::CHIP_DESC);
+#ifdef OBN_NETPLAY
 
+          // Get the navi we selected
+          Player* player = NAVIS.At(currentNavi).GetNavi();
+
+          // Shuffle our folder
+          CardFolder* copy = folder->Clone();
+          copy->Shuffle();
+
+          // Queue screen transition to Battle Scene with a white fade effect
+          // just like the game
+          using effect = segue<WhiteWashFade>;
+          NetPlayConfig config;
+
+          auto fail = [this](const char* msg) {
+            AUDIO.Play(AudioType::CHIP_ERROR);
+            Logger::Log(msg);
+            this->gotoNextScene = false;
+          };
+
+          try {
+            std::ifstream infile("netplay_config.txt");
+
+            if (infile.is_open()) {
+              std::string line;
+              std::getline(infile, line);
+              config.myPort = std::atoi(line.c_str());
+
+              std::getline(infile, line);
+              config.remoteIP = line;
+
+              std::getline(infile, line);
+              config.remotePort = std::atoi(line.c_str());
+
+              config.myNavi = currentNavi;
+
+              infile.close();
+            }
+            else {
+              fail("Cannot launch PVP. netplay_config.txt was not found...");
+            }
+          }
+          catch (std::exception& e) {
+            fail(e.what());
+          }
+
+          if (gotoNextScene) {
+            // if this is still true, we did not fail loading the pvp config...
+            // Play the pre battle rumble sound
+            AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::high);
+
+            // Stop music and go to battle screen 
+            AUDIO.StopStream();
+
+            getController().push<effect::to<NetworkBattleScene>>(player, copy, config);
+          }
+#else
           using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
+          AUDIO.Play(AudioType::CHIP_DESC);
           getController().push<effect::to<SelectMobScene>>(currentNavi, *folder);
+#endif
         }
         else {
           AUDIO.Play(AudioType::CHIP_ERROR); 
@@ -211,7 +274,7 @@ void MainMenuScene::onUpdate(double elapsed) {
       }
     }
 
-    if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
+    if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -220,7 +283,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         menuSelectionIndex--;
       }
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -235,7 +298,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   }
 
   // Allow player to resync with remote account by pressing the pause action
-  if (INPUT.Has(EventTypes::PRESSED_PAUSE)) {
+  if (INPUTx.Has(EventTypes::PRESSED_PAUSE)) {
       accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
   }
 

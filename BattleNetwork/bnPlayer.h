@@ -28,6 +28,7 @@ class CardAction;
 
 class Player : public Character, public AI<Player> {
   friend class PlayerControlledState;
+  friend class PlayerNetworkState;
   friend class PlayerIdleState;
   friend class PlayerHitState;
   friend class PlayerChangeFormState;

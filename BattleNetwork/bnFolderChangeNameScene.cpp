@@ -156,7 +156,7 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
   auto lastY = cursorPosY;
 
   if (!leave) {
-    if (INPUT.Has(EventTypes::PRESSED_CANCEL)) {
+    if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
       if (letterPos != 0 || name[letterPos] != '_') {
         AUDIO.Play(AudioType::CHIP_CANCEL);
       }
@@ -172,31 +172,31 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
         letterPos = std::max(0, letterPos);
       }
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_LEFT)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
     cursorPosX--;
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_RIGHT)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
     cursorPosX++;
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
     cursorPosY--;
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
     cursorPosY++;
     }
-    else if (INPUT.Has(EventTypes::PRESSED_SCAN_LEFT)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_SCAN_LEFT)) {
       DoBACK();
     }
-    else if (INPUT.Has(EventTypes::PRESSED_SCAN_RIGHT)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_SCAN_RIGHT)) {
       DoNEXT();
     }
-    else if (INPUT.Has(EventTypes::PRESSED_QUICK_OPT)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT)) {
       // hard coded, if columns change this must change too
       cursorPosX = 0;
       cursorPosY = 2;
       currTable = 2;
     }
-    else if (INPUT.Has(EventTypes::PRESSED_CONFIRM)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
       executeAction = true;
     }
   }

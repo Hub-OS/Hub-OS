@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "bnUIComponent.h"
+#include "bnSpriteProxyNode.h"
 using sf::Font;
 using sf::Text;
 class Character;

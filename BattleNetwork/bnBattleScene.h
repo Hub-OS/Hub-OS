@@ -75,7 +75,7 @@ class PlayerHealthUI;
  * Custom scenes could include beast-out mode state, dialog state for talking, damage counter state, etc.
  */
 class BattleScene : public swoosh::Activity, public CounterHitListener, public CharacterDeleteListener {
-private:
+protected:
   /*
   Program Advance + labels
   */

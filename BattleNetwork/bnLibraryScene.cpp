@@ -230,7 +230,7 @@ void LibraryScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUT.Has(EventTypes::PRESSED_UI_UP)) {
+    if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currCardIndex;
@@ -247,7 +247,7 @@ void LibraryScene::onUpdate(double elapsed) {
         cardRevealTimer.reset();
       }
     }
-    else if (INPUT.Has(EventTypes::PRESSED_UI_DOWN)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currCardIndex;
@@ -268,7 +268,7 @@ void LibraryScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsClosed()) {
+    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsClosed()) {
       auto iter = uniqueCards.begin();
       int i = 0;
 
@@ -282,15 +282,15 @@ void LibraryScene::onUpdate(double elapsed) {
       textbox.Open();
       AUDIO.Play(AudioType::CHIP_DESC);
     }
-    else if (INPUT.Has(EventTypes::RELEASED_CANCEL) && textbox.IsOpen()) {
+    else if (INPUTx.Has(EventTypes::RELEASED_CANCEL) && textbox.IsOpen()) {
       textbox.Close();
       textbox.SetTextSpeed(1.0);
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
     }
-    else if (INPUT.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsOpen()) {
+    else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsOpen()) {
       textbox.SetTextSpeed(3.0);
     }
-    else if (INPUT.Has(EventTypes::RELEASED_CONFIRM) && textbox.IsOpen()) {
+    else if (INPUTx.Has(EventTypes::RELEASED_CONFIRM) && textbox.IsOpen()) {
       textbox.SetTextSpeed(1.0);
       //textbox.Continue();
     }
@@ -301,7 +301,7 @@ void LibraryScene::onUpdate(double elapsed) {
     lastCardOnScreen = std::max(0, lastCardOnScreen);
     lastCardOnScreen = std::min(numOfCards - 1, lastCardOnScreen);
 
-    if (INPUT.Has(EventTypes::PRESSED_CANCEL) && textbox.IsClosed()) {
+    if (INPUTx.Has(EventTypes::PRESSED_CANCEL) && textbox.IsClosed()) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
@@ -431,19 +431,19 @@ void LibraryScene::StartupTouchControls() {
   rightSide.enableExtendedRelease(true);
 
   rightSide.onTouch([]() {
-      INPUT.VirtualKeyEvent(InputEvent::RELEASED_A);
+      INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
   });
 
   rightSide.onRelease([this](sf::Vector2i delta) {
       if(!releasedB) {
-        INPUT.VirtualKeyEvent(InputEvent::PRESSED_A);
+        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
       }
   });
 
   rightSide.onDrag([this](sf::Vector2i delta){
       if(delta.x < -25 && !releasedB) {
-        INPUT.VirtualKeyEvent(InputEvent::PRESSED_B);
-        INPUT.VirtualKeyEvent(InputEvent::RELEASED_B);
+        INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
+        INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
         releasedB = true;
       }
   });

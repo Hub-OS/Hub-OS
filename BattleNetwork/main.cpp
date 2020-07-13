@@ -232,10 +232,10 @@ int main(int argc, char** argv) {
     QueueMobRegistration(); // Queues mobs to be loaded later
 
     // Tell the input event loop how to behave when the app loses and regains focus
-    INPUT.BindLoseFocusEvent(AppLoseFocus);
-    INPUT.BindRegainFocusEvent(AppRegainFocus);
-    INPUT.BindResizedEvent(AppResize);
-    INPUT.SupportConfigSettings(reader);
+    INPUTx.BindLoseFocusEvent(AppLoseFocus);
+    INPUTx.BindRegainFocusEvent(AppRegainFocus);
+    INPUTx.BindResizedEvent(AppResize);
+    INPUTx.SupportConfigSettings(reader);
 
     if (configSettings.IsOK()) {
         // If the file is good, use the audio and 
@@ -351,7 +351,7 @@ int main(int argc, char** argv) {
         clock.restart();
 
         // Poll input
-        INPUT.Update();
+        INPUTx.Update();
 
         // Prepare for next draw calls
         ENGINE.Clear();
@@ -378,7 +378,7 @@ int main(int argc, char** argv) {
         // Create a sf::Drawable from the buffer's texture data
         sf::Sprite postprocess(loadSurface.getTexture());
 
-        bool startPressed = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
+        bool startPressed = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
 
         if (startPressed) {
             speed = 5.f;
@@ -463,7 +463,7 @@ int main(int argc, char** argv) {
     while(inLoadState && ENGINE.Running()) {
         clock.restart();
     
-        INPUT.Update();
+        INPUTx.Update();
 
         // Set title bar to loading %
         float percentage = (float)progress / (float)totalObjects;
@@ -611,7 +611,7 @@ int main(int argc, char** argv) {
             ENGINE.Draw(&bgSprite);
 
             // Show the gamepad icon at the top-left if we have joystick support
-            if (INPUT.IsJosytickAvailable()) {
+            if (INPUTx.IsJosytickAvailable()) {
                 sf::Sprite gamePadICon(*TEXTURES.GetTexture(TextureType::GAMEPAD_SUPPORT_ICON));
                 gamePadICon.setScale(2.f, 2.f);
                 gamePadICon.setPosition(10.f, 5.0f);
@@ -669,7 +669,7 @@ int main(int argc, char** argv) {
                         // Finally everything is loaded, show "Press Start"
                         ENGINE.Draw(startLabel);
 
-                        bool shouldStart = (INPUT.IsConfigFileValid()? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
+                        bool shouldStart = (INPUTx.IsConfigFileValid()? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
 
                         #ifdef __ANDROID__
                         shouldStart = sf::Touch::isDown(0);
@@ -713,9 +713,9 @@ int main(int argc, char** argv) {
                         startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
                         ENGINE.Draw(startLabel);
 
-                        bool shouldStart  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
-                        bool pressedUp    = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUT.GetAnyKey() == sf::Keyboard::Up;
-                        bool pressedDown  = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUT.GetAnyKey() == sf::Keyboard::Down;
+                        bool shouldStart  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
+                        bool pressedUp    = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUTx.GetAnyKey() == sf::Keyboard::Up;
+                        bool pressedDown  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Down;
             
                         if (pressedUp) {
                             if (selected != 0) {
@@ -830,7 +830,7 @@ int main(int argc, char** argv) {
         elapsed = static_cast<float>(clock.restart().asSeconds()) + static_cast<float>(remainder);
 
         TEXTURES.HandleExpiredTextureCache(); // TODO: put this on a timed interval? Max image size?
-        INPUT.Update();
+        INPUTx.Update();
 
         float FPS = 0.f;
 

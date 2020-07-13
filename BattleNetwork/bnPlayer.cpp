@@ -75,7 +75,7 @@ void Player::OnUpdate(float _elapsed) {
 
 void Player::Attack() {
   // Queue an action for the controller to fire at the right frame
-  // (MMBN has a specific pipeline that accepts input. This emulates that.)
+  // (MMBN has a specific pipeline that accepts INPUTx. This emulates that.)
   if (tile) {
     chargeEffect.IsFullyCharged() ? queuedAction = ExecuteChargedBusterAction() : queuedAction = ExecuteBusterAction();
   }

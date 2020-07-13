@@ -1,6 +1,6 @@
 /*! \brief This scene allows user to select navi and see their stats
  * 
- * The scene takes SelectedNavi reference as input. The currently selected navi will
+ * The scene takes SelectedNavi reference as INPUTx. The currently selected navi will
  * be directly modified. 
  * 
  * User can press LEFT/RIGHT to move through the navis loaded @see QueueNaviRegistration

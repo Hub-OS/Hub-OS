@@ -114,7 +114,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::INVISIBLE, "resources/sfx/invisible.ogg"); status++;
   LoadSource(AudioType::PA_ADVANCE, "resources/sfx/pa_advance.ogg"); status++;
   LoadSource(AudioType::LOW_HP, "resources/sfx/low_hp.ogg"); status++;
-  LoadSource(AudioType::POINT, "resources/sfx/point.ogg"); status++;
+  LoadSource(AudioType::POINT_SFX, "resources/sfx/point.ogg"); status++;
   LoadSource(AudioType::NEW_GAME, "resources/sfx/new_game.ogg"); status++;
   LoadSource(AudioType::TEXT, "resources/sfx/text.ogg"); status++;
   LoadSource(AudioType::SHINE, "resources/sfx/shine.ogg"); status++;

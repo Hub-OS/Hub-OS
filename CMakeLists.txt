@@ -17,6 +17,8 @@ execute_process(COMMAND git submodule update --init -- extern/WebAPI
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 
+find_package(Poco REQUIRED Foundation Net)
+
 include_directories(extern/Swoosh/src)
 include_directories(extern/lua)
 
@@ -26,6 +28,8 @@ add_subdirectory(extern/WebApi)
 file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
         "BattleNetwork/*.h"
         "BattleNetwork/*.cpp"
+	"BattleNetwork/netplay/*.h"
+	"BattleNetwork/netplay/*.cpp"
         "BattleNetwork/mmbn.ico.c"
         )
 
@@ -37,6 +41,7 @@ source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
 
 target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
 target_link_libraries(BattleNetwork WebAPI-client)
+target_link_libraries(BattleNetwork Poco::Net)
 
 set_target_properties( BattleNetwork
     PROPERTIES

@@ -27,7 +27,7 @@ public:
   /**
    * @brief Gets the next log and stores it in the input string
    * @param next input string to store result into
-   * @return true if there's more text. False if there's no text to input.
+   * @return true if there's more text. False if there's no text to INPUTx.
    */
   static const bool GetNextLog(std::string &next) {
     std::scoped_lock<std::mutex> lock(m);
