@@ -117,28 +117,32 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   }
 
   if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
-    if (player.PlayerControllerSlideEnabled()) {
-      player.SlideToTile(true);
+
+  if (player.PlayerControllerSlideEnabled()) {
+    player.SlideToTile(true);
+  }
+
+  if (replicator) replicator->SendMoveSignal(direction);
+
+  if(player.Move(direction)) {
+    bool moved = player.GetNextTile();
+
+    if (moved) {
+      auto onFinish = [&, this]() {
+        player.SetAnimation("PLAYER_MOVED", [p = &player, this]() {
+          p->SetAnimation(PLAYER_IDLE); 
+          p->FinishMove();
+
+          auto t = p->GetTile();
+          replicator->SendTileSignal(t->GetX(), t->GetY());
+        });
+
+        player.AdoptNextTile();
+        direction = Direction::none;
+      }; // end lambda
+      player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
+      player.SetAnimation(PLAYER_MOVING, onFinish);
     }
-
-    if (replicator) replicator->SendMoveSignal(direction);
-
-    if(player.Move(direction)) {
-      bool moved = player.GetNextTile();
-
-      if (moved) {
-        auto onFinish = [&]() {
-          player.SetAnimation("PLAYER_MOVED", [p = &player]() {
-            p->SetAnimation(PLAYER_IDLE); 
-            p->FinishMove();
-          });
-
-          player.AdoptNextTile();
-          direction = Direction::none;
-        }; // end lambda
-        player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
-        player.SetAnimation(PLAYER_MOVING, onFinish);
-      }
   }
   else if(queuedAction && !player.IsSliding()) {
     player.RegisterComponent(queuedAction);
@@ -150,6 +154,12 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     if(replicator) replicator->SendChargeSignal(false);
 
     isChargeHeld = false;
+  }
+  else if (player.IsSliding() && player.GetNextTile()) {
+    auto t = player.GetTile();
+
+    // we are sliding and have a valid next tile, update remote
+    replicator->SendTileSignal(t->GetX(), t->GetY());
   }
 }
 

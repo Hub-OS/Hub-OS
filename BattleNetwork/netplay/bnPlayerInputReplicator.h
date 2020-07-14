@@ -34,6 +34,10 @@ public:
     nbs->sendMoveSignal(dir);
   }
 
+  void SendTileSignal(const int x, const int y) {
+    nbs->sendTileCoordSignal(x, y);
+  }
+
   void Inject(BattleScene& bs) {
     auto* networkedbs = dynamic_cast<NetworkBattleScene*>(&bs);
     if (networkedbs) {

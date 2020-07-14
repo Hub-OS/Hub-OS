@@ -60,6 +60,12 @@ NetworkBattleScene::NetworkBattleScene(
   selectedNavi = config.myNavi;
 
   player->CreateComponent<PlayerInputReplicator>(player);
+
+  remoteShineAnimation = Animation("resources/mobs/boss_shine.animation");
+  remoteShineAnimation.Load();
+
+  remoteShine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
+  remoteShine.setScale(2.f, 2.f);
 }
 
 NetworkBattleScene::~NetworkBattleScene()
@@ -74,6 +80,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   BattleScene::elapsed = elapsed;
 
   shineAnimation.Update((float)elapsed, shine);
+  remoteShineAnimation.Update((float)elapsed, remoteShine);
   comboInfoTimer.update(elapsed);
   battleStartTimer.update(elapsed);
   battleEndTimer.update(elapsed);
@@ -82,7 +89,11 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   battleTimer.update(elapsed);
   PAStartTimer.update(elapsed);
 
-  if (!isChangingForm) {
+  bool playerFormChangeComplete = !isChangingForm || (isChangingForm && isLeavingFormChange);
+  bool remoteFormChangeComplete = !remoteState.remoteIsFormChanging || (remoteState.remoteIsFormChanging && remoteState.remoteIsLeavingFormChange);
+  bool formChangeStateIsOver = (playerFormChangeComplete == remoteFormChangeComplete);
+
+  if (!isChangingForm && !remoteState.remoteIsFormChanging) {
     if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
       showSummonBackdropTimer += elapsed;
       backdropOpacity = 0.25; // reset for summons
@@ -106,20 +117,16 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       showSummonBackdrop = false;
     }
   }
-  else if (isChangingForm && !isAnimatingFormChange) {
+  else if (!formChangeStateIsOver) {
     showSummonBackdrop = true;
-
-    Player* which = player;
-
-    if (isRemoteChangingForm) {
-      which = remotePlayer;
-    }
 
     if (showSummonBackdropTimer < showSummonBackdropLength) {
       showSummonBackdropTimer += elapsed;
     }
 
-    auto handlePlayerFormChange = [this](Player* which, int& lastSelectedFormRef, int formValue) {
+    auto handlePlayerFormChange = [this]
+    (Player* which, int& lastSelectedFormRef, int formValue, 
+      bool& isAnimating, bool& isLeaving, Animation& shineAnimationRef, sf::Sprite& shineRef) {
       which->Reveal(); // If flickering, stablizes the sprite for the animation
 
       // Preserve the original child node states
@@ -135,14 +142,14 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       if (paletteSwap) paletteSwap->Enable(false);
 
       if (showSummonBackdropTimer >= showSummonBackdropLength) {
-        if (!isAnimatingFormChange) {
-          isAnimatingFormChange = true;
+        if (!isAnimating) {
+          isAnimating = true;
 
           auto pos = which->getPosition();
-          shine.setPosition(pos.x + 16.0f, pos.y - which->GetHeight() / 4.0f);
+          shineRef.setPosition(pos.x + 16.0f, pos.y - which->GetHeight() / 4.0f);
 
           auto onTransform = [
-            this, which,
+            this, which, &isAnimating, &isLeaving,
               states = childShaderUseStates, originals = originalChildNodes,
               &lastSelectedFormRef, formValue]() {
             // The next form has a switch based on health
@@ -169,39 +176,46 @@ void NetworkBattleScene::onUpdate(double elapsed) {
             }
           };
 
-            auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
-              isLeavingFormChange = true;
-              if (paletteSwap) paletteSwap->Enable();
+          auto onFinish = [this, &isLeaving, &isAnimating, 
+                          paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
+            isLeaving = true;
+            if (paletteSwap) paletteSwap->Enable();
 
-              unsigned idx = 0;
-              for (auto child : *originals) {
-                if (!child) {
-                  idx++; continue;
-                }
-
-                unsigned thisIDX = idx;
-                bool enabled = (*states)[idx++];
-                child->EnableParentShader(enabled);
-                Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
+            unsigned idx = 0;
+            for (auto child : *originals) {
+              if (!child) {
+                idx++; continue;
               }
-            };
 
-            shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
+              unsigned thisIDX = idx;
+              bool enabled = (*states)[idx++];
+              child->EnableParentShader(enabled);
+              Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
+            }
+          };
+
+          shineAnimationRef << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
         }
       }
     };
 
-    handlePlayerFormChange(player, lastSelectedForm, cardCustGUI.GetSelectedFormIndex());
-    handlePlayerFormChange(remotePlayer, remoteState.remoteFormSelect, remoteState.remoteFormSelect);
+    handlePlayerFormChange(player, lastSelectedForm, cardCustGUI.GetSelectedFormIndex(), 
+      isAnimatingFormChange, isLeavingFormChange, shineAnimation, shine);
+
+    handlePlayerFormChange(remotePlayer, remoteState.remoteLastFormSelect, remoteState.remoteFormSelect,
+      remoteState.remoteIsAnimatingFormChange, remoteState.remoteIsLeavingFormChange, remoteShineAnimation, remoteShine);
   }
-  else if (isLeavingFormChange && showSummonBackdropTimer > 0.0f) {
+  else if (formChangeStateIsOver && showSummonBackdropTimer > 0.0f) {
     showSummonBackdropTimer -= elapsed * 0.5f;
 
     if (showSummonBackdropTimer <= 0.0f) {
       isChangingForm = false; //done
       showSummonBackdrop = false;
-      isLeavingFormChange = false;
-      isAnimatingFormChange = false;
+      isLeavingFormChange = false; // sanity check
+      isAnimatingFormChange = false; // sanity check
+      remoteState.remoteIsFormChanging = false; // done
+      remoteState.remoteIsAnimatingFormChange = false; // sanity check
+      remoteState.remoteIsLeavingFormChange = false; // sanity check
 
       // Case: only show BattleStart if not triggered due to death
       // More reasons to use real state management for the battle scene...
@@ -298,8 +312,12 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
     field->ToggleTimeFreeze(false);
 
+    bool onePlayerIsDyingInAForm = player && player->GetHealth() == 0 && lastSelectedForm != -1;
+    onePlayerIsDyingInAForm = 
+      onePlayerIsDyingInAForm || (remotePlayer && remotePlayer->GetHealth() == 0 && remoteState.remoteFormSelect != -1);
+
     // See if HP is 0 when we were in a form
-    if (player && player->GetHealth() == 0 && !isChangingForm && lastSelectedForm != -1) {
+    if (onePlayerIsDyingInAForm && !isChangingForm) {
       // If we were in a form, replay the animation
       // going back to our base this time
 
@@ -509,6 +527,10 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
     surface.draw(shine);
   }
 
+  if (remoteState.remoteIsAnimatingFormChange) {
+    surface.draw(remoteShine);
+  }
+
   // cust dissapears when not in battle
   if ((!(isInCardSelect || isPostBattle) && remoteState.isRemoteConnected))
     ENGINE.Draw(&customBarSprite);
@@ -581,7 +603,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(cardUI);
   }
 
-  if (isPreBattle && !isChangingForm) {
+  if (isPreBattle && !isChangingForm && !remoteState.remoteIsFormChanging) {
     if (preBattleLength <= 0) {
       isPreBattle = false;
     }
@@ -689,6 +711,9 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
       cardCustGUI.GetNextCards();
 
       this->isClientReady = this->remoteState.isRemoteReady = false;;
+
+      // resync health real quick before everything pauses
+      this->sendHPSignal(player->GetHealth());
     }
 
     // NOTE: Need a battle scene state manager to handle going to and from one controll scheme to another.
@@ -1150,6 +1175,11 @@ void NetworkBattleScene::sendReadySignal()
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   client.sendBytes(buffer.begin(), buffer.size());
 
+  if (remoteState.isRemoteReady) {
+    this->isPreBattle = true;
+    this->battleStartTimer.reset();
+  }
+
   this->isClientReady = true;
 }
 
@@ -1252,12 +1282,12 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 {
   if (remoteState.isRemoteConnected) return; // prevent multiple connection requests...
 
-  Logger::Log("Recieved connect signal!");
-
   remoteState.isRemoteConnected = true;
 
   SelectedNavi navi = SelectedNavi{ 0 }; std::memcpy(&navi, buffer.begin(), buffer.size());
   remoteState.remoteNavi = navi;
+
+  Logger::Logf("Recieved connect signal! Remote navi: %i", remoteState.remoteNavi);
 
   assert(remotePlayer == nullptr && "remote player was already set!");
   remotePlayer = NAVIS.At(navi).GetNavi();
@@ -1303,16 +1333,16 @@ void NetworkBattleScene::recieveChangedFormSignal(const Poco::Buffer<char>& buff
 
   int form = remoteState.remoteFormSelect;
   int prevForm = remoteState.remoteFormSelect;
-  std::memcpy(&form, buffer.begin(), buffer.size());
-  remoteState.remoteFormSelect = form;
+  std::memcpy(&form, buffer.begin(), sizeof(int));
 
-  if (remotePlayer && remotePlayer->GetHealth() == 0
-    && form != prevForm) {
+  if (remotePlayer && form != prevForm) {
     // If we were in a form, replay the animation
     // going back to our base this time
-
-    isChangingForm = true; // begins the routine
-    isRemoteChangingForm = true; // determines who transforms
+    remoteState.remoteLastFormSelect = remoteState.remoteFormSelect;
+    remoteState.remoteFormSelect = form;
+    remoteState.remoteIsFormChanging = true; // begins the routine
+    remoteState.remoteIsAnimatingFormChange = false; // state moment flags must be false to trigger
+    remoteState.remoteIsLeavingFormChange = false;   // ... after the backdrop turns dark
     showSummonBackdropTimer = 0;
     backdropOpacity = 1.0f; // full black
   }
@@ -1350,8 +1380,19 @@ void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer
 
   int x = remoteState.remoteTileX; std::memcpy(&x, buffer.begin(), sizeof(int));
   int y = remoteState.remoteTileX; std::memcpy(&y, (buffer.begin()+sizeof(int)), sizeof(int));
+
+  // mirror the x value for remote
+  x = (field->GetWidth() - x)+1;
+
   remoteState.remoteTileX = x;
   remoteState.remoteTileY = y;
+
+  Battle::Tile* t = field->GetAt(x, y);
+
+  if (t) {
+    remotePlayer->GetTile()->RemoveEntityByID(remotePlayer->GetID());
+    remotePlayer->AdoptTile(t);
+  }
 
   // TODO?
 }
@@ -1382,6 +1423,7 @@ void NetworkBattleScene::processIncomingPackets()
     AUDIO.StopStream();
     using effect = segue<PixelateBlackWashFade>;
     getController().queuePop<effect>();
+    errorCount = 0; // reset for next match
     return;
   }
 

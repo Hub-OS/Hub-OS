@@ -8,7 +8,12 @@ FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(da
   SetLayer(-1);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_FIREBURN));
+
   setScale(2.f, 2.f);
+
+  if (_team == Team::blue) {
+    setScale(-2.f, 2.f);
+  }
 
   //When the animation ends, delete this
   auto onFinish = [this]() {

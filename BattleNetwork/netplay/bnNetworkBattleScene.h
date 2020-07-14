@@ -92,7 +92,8 @@ private:
   CardUsePublisher* remoteCardUsePublisher{ nullptr };
   PlayerCardUseListener* remoteCardUseListener{ nullptr };
   NetPlayFlags remoteState;
-  bool isRemoteChangingForm{ false };
+  Animation remoteShineAnimation;
+  sf::Sprite remoteShine;
   bool isClientReady{ false };
   Poco::Net::DatagramSocket client; //!< us
   SelectedNavi selectedNavi; //!< the type of navi we selected

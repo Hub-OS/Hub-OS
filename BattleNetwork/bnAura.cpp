@@ -11,7 +11,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/auras.animation"
 
-Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Component(owner), privOwner(owner)
+Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Component(owner), privOwner(owner), bs(nullptr)
 {
   timer = 50; // seconds
   
@@ -101,7 +101,7 @@ void Aura::OnUpdate(float _elapsed) {
 
   currHP = health;
   
-  if(bs->IsBattleActive() && (!persist || isOver)) {
+  if(bs && bs->IsBattleActive() && (!persist || isOver)) {
     timer -= _elapsed;
   }
 

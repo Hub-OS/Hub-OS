@@ -71,6 +71,7 @@ void PlayerNetworkState::OnUpdate(float _elapsed, Player& player) {
   static Direction direction = Direction::none;
   if (!player.IsTimeFrozen()) {
     direction = netflags.remoteDirection;
+    netflags.remoteDirection = Direction::none; // we're moving now
   }
 
   bool shouldShoot = netflags.remoteCharge && isChargeHeld == false;
@@ -103,7 +104,6 @@ void PlayerNetworkState::OnUpdate(float _elapsed, Player& player) {
 
         player.AdoptNextTile();
         direction = Direction::none;
-        netflags.remoteDirection = direction;
       }; // end lambda
       player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
       player.SetAnimation(PLAYER_MOVING, onFinish);
