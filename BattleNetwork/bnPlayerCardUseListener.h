@@ -30,5 +30,5 @@ public:
    * @param card Card used
    * @param character Character using card
    */
-  void OnCardUse(Battle::Card& card, Character& character);
+  void OnCardUse(Battle::Card& card, Character& character, uint64_t timestamp=0);
 };

@@ -43,16 +43,22 @@ ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->Ge
     next = (*iter);
 
     if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != GetTeam()) {
-    Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
+      int step = -1;
 
-    auto characters = prev->FindEntities([_summons](Entity* in) {
-      return _summons->GetCaller() != in && (dynamic_cast<Character*>(in)  && in->GetTeam() != Team::unknown);
-    });
+      if (GetTeam() == Team::blue) {
+        step = 1;
+      }
+      
+      Battle::Tile* prev = field->GetAt(next->GetX() + step, next->GetY());
+
+      auto characters = prev->FindEntities([_summons](Entity* in) {
+        return _summons->GetCaller() != in && (dynamic_cast<Character*>(in)  && in->GetTeam() != Team::unknown);
+      });
 
       bool blocked = (characters.size() > 0) || !prev->IsWalkable();
 
       if(!blocked) {
-      targets.push_back(next);
+        targets.push_back(next);
       }
     }
 
@@ -79,29 +85,35 @@ ProtoManSummon::~ProtoManSummon() {
 
 void ProtoManSummon::DoAttackStep() {
   if (targets.size() > 0) {
-  Battle::Tile* prev = field->GetAt(targets[0]->GetX() - 1, targets[0]->GetY());
+    int step = -1;
+
+    if (GetTeam() == Team::blue) {
+      step = 1;
+    }
+
+    Battle::Tile* prev = field->GetAt(targets[0]->GetX() + step, targets[0]->GetY());
     GetTile()->RemoveEntityByID(GetID());
     prev->AddEntity(*this);
 
-  animationComponent->SetAnimation("ATTACK", [this, prev] {
-    animationComponent->SetAnimation("MOVE", [this, prev] {
-    DoAttackStep();
+    animationComponent->SetAnimation("ATTACK", [this, prev] {
+      animationComponent->SetAnimation("MOVE", [this, prev] {
+      DoAttackStep();
+      });
     });
-  });
 
-  animationComponent->AddCallback(4,  [this]() {
-    for (auto entity : targets[0]->FindEntities([](Entity* e) { return dynamic_cast<Character*>(e); })) {
-      entity->GetTile()->AffectEntities(this);
-    }
+    animationComponent->AddCallback(4,  [this]() {
+      for (auto entity : targets[0]->FindEntities([](Entity* e) { return dynamic_cast<Character*>(e); })) {
+        entity->GetTile()->AffectEntities(this);
+      }
 
-    targets.erase(targets.begin());
-  }, true);
+      targets.erase(targets.begin());
+    }, true);
   }
   else {
-  animationComponent->SetAnimation("MOVE", [this] {
-    Delete();
-    summons->GetCaller()->Reveal();
-  });
+    animationComponent->SetAnimation("MOVE", [this] {
+      Delete();
+      summons->GetCaller()->Reveal();
+    });
   }
 }
 

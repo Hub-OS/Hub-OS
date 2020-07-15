@@ -14,7 +14,7 @@
 #include "bnPanelGrab.h"
 
 #include <Swoosh/Timer.h>
-#include <queue>
+#include <deque>
 
 /**
  * @class CardSummonHandler
@@ -42,25 +42,44 @@ private:
   std::list<Callback<void()>> tfcOnCompleteCallbacks;
 
   struct CardSummonQueue {
-    std::queue<Character*> callers;
-    std::queue<Battle::Card> cards;
-    std::queue<sf::Time> durations;
+    std::deque<Character*> callers;
+    std::deque<Battle::Card> cards;
+    std::deque<sf::Time> durations;
+    std::deque<uint64_t> timestamps;
 
     const size_t Size() const {
       return callers.size();
     }
 
-    void Add(Battle::Card card, Character& caller, sf::Time duration) {
-      callers.push(&caller);
-      cards.push(card);
-      durations.push(duration);
+    void Add(Battle::Card card, Character& caller, sf::Time duration, uint64_t timestamp=0) {
+      callers.push_back(&caller);
+      cards.push_back(card);
+      durations.push_back(duration);
+      timestamps.push_back(timestamp);
+    }
+
+    void AddFront(Battle::Card card, Character& caller, sf::Time duration, uint64_t timestamp=0) {
+      callers.push_front(&caller);
+      cards.push_front(card);
+      durations.push_front(duration);
+      timestamps.push_front(timestamp);
     }
 
     void Pop() {
       if (Size() > 0) {
-        callers.pop();
-        cards.pop();
-        durations.pop();
+        callers.pop_front();
+        cards.pop_front();
+        durations.pop_front();
+        timestamps.pop_front();
+      }
+    }
+
+    const uint64_t GetTimestamp() const {
+      if (timestamps.size()) {
+        return timestamps.front();
+      }
+      else {
+        return 0;
       }
     }
 
@@ -88,8 +107,7 @@ private:
     SummonBucket(Entity* e, bool p) { entity = e; persist = p; }
   };
 
-  Player * player;
-  Character * other;
+  Character *other;
   double timeInSecs;
   sf::Time duration;
   std::string summon;
@@ -100,8 +118,7 @@ private:
   std::vector<SummonBucket> summonedItems; // We must handle our own summoned entites
 
 public:
-  CardSummonHandler(Player* _player) : CardUseListener() { other = nullptr; player = _player; duration = sf::seconds(0); timeInSecs = 0; summon = std::string();  }
-  CardSummonHandler(Player& _player) : CardUseListener() { other = nullptr; player = &_player; duration = sf::seconds(0); timeInSecs = 0; summon = std::string(); }
+  CardSummonHandler() : CardUseListener() { other = nullptr; duration = sf::seconds(0); timeInSecs = 0; summon = std::string(); }
 
   const bool IsSummonOver() const {
     return ((timeInSecs >= queue.GetDuration()));
@@ -192,10 +209,10 @@ public:
       Entity* roll = new RollHeal(this, queue.GetCard().GetDamage());
       SummonEntity(roll);
     } else if(summon == "ProtoMan") {
-    summonedBy->Hide();
-    Entity* proto = new ProtoManSummon(this);
-    SummonEntity(proto);
-  }
+      summonedBy->Hide();
+      Entity* proto = new ProtoManSummon(this);
+      SummonEntity(proto);
+    }
     else if (summon == "RockCube") {
       Cube* cube = new Cube(summonedBy->GetField(), Team::unknown);
 
@@ -295,7 +312,6 @@ public:
       delete[] tile;
       delete[] grab;
     }
-
     else if (summon == "AntiDmg") {
       NinjaAntiDamage* antidamage = new NinjaAntiDamage(summonedBy);
       summonedBy->RegisterComponent(antidamage);
@@ -335,7 +351,13 @@ public:
     }
   }
 
-  void OnCardUse(Battle::Card& card, Character& character) {
+  // when timestamp is 0, we do not check the queue in respect to time
+  void OnCardUse(Battle::Card& card, Character& character, uint64_t timestamp=0) {
+    if (CurrentTime::AsMilli() - (long long)timestamp >= (5 * 1000)) {
+      // 5 seconds or more delay is too long ago. Ignore...
+      return;
+    }
+
     std::cout << "on cards use " << card.GetShortName() << " by " << character.GetName() << std::endl;
     std::string name = card.GetShortName();
 
@@ -347,10 +369,10 @@ public:
       duration = sf::seconds(4);
     }
     else if(name == "ProtoMan") {
-    summon = "ProtoMan";
-    timeInSecs = 0;
-    duration = sf::seconds(3);
-  }
+      summon = "ProtoMan";
+      timeInSecs = 0;
+      duration = sf::seconds(3);
+    }
     else if (name.substr(0, 8) == "RockCube") {
       summon = "RockCube";
       timeInSecs = 0;
@@ -373,16 +395,20 @@ public:
     }
     else {
       summon.clear();
-      timeInSecs = duration.asSeconds() + 1;
-      copy = Battle::Card();
+      timeInSecs = static_cast<double>(duration.asSeconds() + 1.0f);
+      copy = Battle::Card{};
       add = false;
     }
 
     summon.clear();
 
     if (add) {
-      std::cout << "[Summon queued]" << std::endl;
-      queue.Add(card, character, duration);
+      if (timestamp && queue.GetTimestamp() > timestamp) {
+        queue.AddFront(card, character, duration, timestamp);
+      }
+      else {
+        queue.Add(card, character, duration);
+      }
     }
   }
 };

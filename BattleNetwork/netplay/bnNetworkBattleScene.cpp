@@ -1,4 +1,6 @@
 #include <Swoosh/ActivityController.h>
+#include <chrono>
+
 #include "bnNetworkBattleScene.h"
 #include "bnPlayerInputReplicator.h"
 #include "bnPlayerNetworkState.h"
@@ -91,7 +93,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   bool playerFormChangeComplete = !isChangingForm || (isChangingForm && isLeavingFormChange);
   bool remoteFormChangeComplete = !remoteState.remoteIsFormChanging || (remoteState.remoteIsFormChanging && remoteState.remoteIsLeavingFormChange);
-  bool formChangeStateIsOver = (playerFormChangeComplete == remoteFormChangeComplete);
+  bool formChangeStateIsOver = (playerFormChangeComplete && remoteFormChangeComplete);
 
   if (!isChangingForm && !remoteState.remoteIsFormChanging) {
     if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
@@ -142,7 +144,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       if (paletteSwap) paletteSwap->Enable(false);
 
       if (showSummonBackdropTimer >= showSummonBackdropLength) {
-        if (!isAnimating) {
+        if (!isAnimating && (lastSelectedFormRef != formValue)) {
           isAnimating = true;
 
           auto pos = which->getPosition();
@@ -281,7 +283,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   }
 
   // Do not update when: in card select, during a summon sequence, showing Battle Start sign
-  if (!(isInCardSelect || isChangingForm) && !isPreBattle) {
+  if (!(isInCardSelect || isChangingForm || remoteState.remoteIsFormChanging) && !isPreBattle) {
     if (prevSummonState) {
       field->ToggleTimeFreeze(true);
     }
@@ -297,7 +299,8 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
   // TODO: we desperately need states
   // update the cust if not in card select nor in mob intro nor battle results nor post battle
-  if (!(isBattleRoundOver || isInCardSelect || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm) 
+  if (!(isBattleRoundOver || isInCardSelect || showSummonBackdrop
+           || isPreBattle || isPostBattle || isChangingForm || remoteState.remoteIsFormChanging) 
     && remoteState.isRemoteReady && isClientReady) {
     if (battleTimer.isPaused()) {
       // start counting seconds again
@@ -312,16 +315,19 @@ void NetworkBattleScene::onUpdate(double elapsed) {
 
     field->ToggleTimeFreeze(false);
 
-    bool onePlayerIsDyingInAForm = player && player->GetHealth() == 0 && lastSelectedForm != -1;
-    onePlayerIsDyingInAForm = 
-      onePlayerIsDyingInAForm || (remotePlayer && remotePlayer->GetHealth() == 0 && remoteState.remoteFormSelect != -1);
-
     // See if HP is 0 when we were in a form
-    if (onePlayerIsDyingInAForm && !isChangingForm) {
+    if (player && player->GetHealth() == 0 && lastSelectedForm != -1 && !isChangingForm ) {
       // If we were in a form, replay the animation
       // going back to our base this time
 
       isChangingForm = true;
+      showSummonBackdropTimer = 0;
+      backdropOpacity = 1.0f; // full black
+    }
+
+    if (remotePlayer && remotePlayer->GetHealth() == 0 && remoteState.remoteFormSelect != -1 && !remoteState.remoteIsFormChanging) {
+      // same but for remote
+      remoteState.remoteIsFormChanging = true;
       showSummonBackdropTimer = 0;
       backdropOpacity = 1.0f; // full black
     }
@@ -1226,10 +1232,17 @@ void NetworkBattleScene::sendChipUseSignal(const std::string& used)
 {
   Logger::Logf("sending chip data over network for %s", used.data());
 
+  using namespace std::chrono;
+  system_clock::time_point tp = system_clock::now();
+  system_clock::duration dtn = tp.time_since_epoch();
+
+  uint64_t timestamp = dtn.count() * system_clock::period::num / system_clock::period::den;
+
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::chip };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  buffer.append((char*)used.data(), sizeof(char)*used.length());
+  buffer.append((char*)&timestamp, sizeof(uint64_t));
+  buffer.append((char*)used.data(),used.length());
   client.sendBytes(buffer.begin(), buffer.size());
 }
 
@@ -1401,10 +1414,11 @@ void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)
 {
   if (!remoteState.isRemoteConnected) return;
 
-  std::string used = std::string(buffer.begin(), buffer.size());
+  uint64_t timestamp = 0; std::memcpy(&timestamp, buffer.begin(), sizeof(uint64_t));
+  std::string used = std::string(buffer.begin()+sizeof(uint64_t), buffer.size()-sizeof(uint64_t));
   remoteState.remoteChipUse = used;
   Battle::Card card = WEBCLIENT.MakeBattleCardFromWebCardData(WebAccounts::Card{ used });
-  remoteCardUsePublisher->Broadcast(card, *remotePlayer);
+  remoteCardUsePublisher->Broadcast(card, *remotePlayer, timestamp);
   Logger::Logf("remote used chip %s", used.c_str());
 }
 

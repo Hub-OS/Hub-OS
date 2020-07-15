@@ -51,7 +51,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
         heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
         iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
         distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
-        summons(player),
+        summons(),
         cardListener(*player),
         // cap of 8 cards, 8 cards drawn per turn
         cardCustGUI(folder->Clone(), 8, 8), 
