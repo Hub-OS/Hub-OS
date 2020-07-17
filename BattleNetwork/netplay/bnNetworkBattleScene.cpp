@@ -1232,11 +1232,7 @@ void NetworkBattleScene::sendChipUseSignal(const std::string& used)
 {
   Logger::Logf("sending chip data over network for %s", used.data());
 
-  using namespace std::chrono;
-  system_clock::time_point tp = system_clock::now();
-  system_clock::duration dtn = tp.time_since_epoch();
-
-  uint64_t timestamp = dtn.count() * system_clock::period::num / system_clock::period::den;
+  uint64_t timestamp = (uint64_t)CurrentTime::AsMilli();
 
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::chip };
@@ -1402,7 +1398,7 @@ void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer
 
   Battle::Tile* t = field->GetAt(x, y);
 
-  if (t) {
+  if (t && !remotePlayer->IsSliding()) {
     remotePlayer->GetTile()->RemoveEntityByID(remotePlayer->GetID());
     remotePlayer->AdoptTile(t);
   }

@@ -179,6 +179,7 @@ void Aura::TakeDamage(int damage)
 void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {  
   auto this_states = states;
   this_states.transform *= getTransform();
+
   this_states.shader = nullptr; // we don't want to apply effects from the owner to this component
   SceneNode::draw(target, this_states);
 
@@ -208,9 +209,18 @@ void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {
       font.setTextureRect(sf::IntRect(col, rowstart, 8, 15));
       font.setPosition(sf::Vector2f(offsetx, 35.0f));
 
+
+      // this is flipped, but we do not want to flip fonts
+      bool flipped = true;
+      float fontScaleX = font.getScale().x;
+      if (this_states.transform.getMatrix()[0] < 0.0f && fontScaleX > 0.f) {
+        font.setScale(-fontScaleX, font.getScale().y);
+      }
+
       target.draw(font, this_states);
 
       offsetx += 8.0f*font.getScale().x;
+
       index++;
     }
   }

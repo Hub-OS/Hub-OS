@@ -44,6 +44,10 @@ ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Art
 
   // Add the defense rule to the owner
   owner->AddDefenseRule(guard);
+
+  if (owner->GetTeam() == Team::blue) {
+    setScale(-getScale().x, getScale().y);
+  }
 }
 
 void ReflectShield::Inject(BattleScene& bs) {

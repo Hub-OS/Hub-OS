@@ -33,21 +33,27 @@ Elecpulse::~Elecpulse(void) {
 
 void Elecpulse::OnSpawn(Battle::Tile & start)
 {
-    auto field = GetField();
-    auto forward = GetField()->GetAt(start.GetX()+1, start.GetY());
-    auto shared = new SharedHitbox(this);
-    shared->HighlightTile(Battle::Tile::Highlight::flash);
-    field->AddEntity(*shared, *forward);
+  int step = 1;
 
-    auto top = GetField()->GetAt(start.GetX() + 1, start.GetY()-1);
-    shared = new SharedHitbox(this);
-    shared->HighlightTile(Battle::Tile::Highlight::flash);
-    field->AddEntity(*shared, *top);
+  if (GetTeam() == Team::blue) {
+    step = -1;
+  }
 
-    auto bottom = GetField()->GetAt(start.GetX() + 1, start.GetY()+1);
-    shared = new SharedHitbox(this);
-    shared->HighlightTile(Battle::Tile::Highlight::flash);
-    field->AddEntity(*shared, *bottom);
+  auto field = GetField();
+  auto forward = GetField()->GetAt(start.GetX() + step, start.GetY());
+  auto shared = new SharedHitbox(this);
+  shared->HighlightTile(Battle::Tile::Highlight::flash);
+  field->AddEntity(*shared, *forward);
+
+  auto top = GetField()->GetAt(start.GetX() + step, start.GetY() - step);
+  shared = new SharedHitbox(this);
+  shared->HighlightTile(Battle::Tile::Highlight::flash);
+  field->AddEntity(*shared, *top);
+
+  auto bottom = GetField()->GetAt(start.GetX() + step, start.GetY()+ step);
+  shared = new SharedHitbox(this);
+  shared->HighlightTile(Battle::Tile::Highlight::flash);
+  field->AddEntity(*shared, *bottom);
 }
 
 void Elecpulse::OnUpdate(float _elapsed) {
