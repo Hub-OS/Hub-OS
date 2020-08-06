@@ -111,15 +111,16 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         text.setOutlineColor(sf::Color(48, 56, 80));
 
         // Text sits at the bottom-left of the screen
-        sf::String dmgText = std::to_string(selectedCards[curr]->unmodDamage);
-        int delta = selectedCards[curr]->damage - selectedCards[curr]->unmodDamage;
+        int unmodDamage = selectedCards[curr]->GetUnmoddedProps().damage;
+        int delta = selectedCards[curr]->GetDamage() - unmodDamage;
+        sf::String dmgText = std::to_string(unmodDamage);
 
-        if (selectedCards[curr]->unmodDamage != selectedCards[curr]->damage) {
+        if (delta != 0) {
           dmgText = dmgText + sf::String(" + ") + sf::String(std::to_string(delta));
         }
 
         // attacks that normally show no damage will show if the modifer adds damage
-        if (delta != 0 || selectedCards[curr]->unmodDamage != 0) {
+        if (delta != 0 || unmodDamage != 0) {
           dmg = Text(dmgText, *font);
           dmg.setOrigin(0, 0);
           dmg.setScale(0.8f, 0.8f);

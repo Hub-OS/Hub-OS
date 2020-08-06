@@ -140,7 +140,7 @@ public:
   /**
    * @brief Construct scene with selected player, generated mob data, and the folder to use
    */
-  NetworkBattleScene(swoosh::ActivityController&, Player*, CardFolder* folder, const NetPlayConfig&);
+  NetworkBattleScene(swoosh::ActivityController&, Player*, CardFolder*, PA&, const NetPlayConfig&);
   
   /**
    * @brief Clears all nodes and components

@@ -31,9 +31,10 @@
 
 using namespace swoosh::types;
 
-BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, CardFolder* folder) :
+BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player, Mob* mob, CardFolder* folder, PA& programAdvance) :
         swoosh::Activity(&controller),
         player(player),
+        programAdvance(programAdvance),
         mob(mob),
         lastMobSize(mob->GetMobCount()),
         didDoubleDelete(false),
@@ -131,7 +132,6 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   /*
   Program Advance + labels
   */
-  programAdvance.LoadPA();
   isPAComplete = false;
   hasPA = -1;
   paStepIndex = 0;
@@ -348,10 +348,9 @@ const bool BattleScene::IsBattleActive()
   return !(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInCardSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm);
 }
 
-// TODO: this needs to be handled by some card API itself and not hacked
-void BattleScene::TEMPFilterAtkCards(Battle::Card ** cards, int cardCount)
+void BattleScene::FilterSupportCards(Battle::Card ** cards, int cardCount)
 {
-  // Only remove the ATK cards in the queue. Increase the previous card damage by +10
+  // Only remove the support cards in the queue. Increase the previous card damage by their support value.
   int newCardCount = cardCount;
   Battle::Card* nonSupport = nullptr;
 
@@ -360,11 +359,11 @@ void BattleScene::TEMPFilterAtkCards(Battle::Card ** cards, int cardCount)
 
   int j = 0;
   for (int i = 0; i < cardCount; ) {
-    if (cards[i]->GetShortName() == "Atk+10") {
+    if (cards[i]->IsSupport()) {
       if (nonSupport) {
-        // Do not modify support cards
+        // support cards do not modify other support cards
         if (!nonSupport->IsSupport()) {
-          nonSupport->damage += 10;
+          nonSupport->ModDamage(cards[i]->GetDamage());
         }
       }
 
@@ -1257,7 +1256,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       // Start Program Advance checks
       if (isPAComplete && hasPA == -1) {
         // Filter and apply support cards
-        TEMPFilterAtkCards(cards, cardCount);
+        FilterSupportCards(cards, cardCount);
 
         // Return to game
         isInCardSelect = false;

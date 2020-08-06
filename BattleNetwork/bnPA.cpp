@@ -22,83 +22,9 @@ PA::~PA()
   advances.clear();
 }
 
-void PA::LoadPA()
+void PA::RegisterPA(const PAData& entry)
 {
-  advances.clear();
-
-  string data = FileUtil::Read("resources/database/PA.txt");
-
-  int endline = 0;
-  std::vector<PA::PAData::Required> currSteps;
-  std::string currPA;
-  std::string damage;
-  std::string icon;
-  std::string type;
-
-  do {
-    endline = (int)data.find("\n");
-    string line = data.substr(0, endline);
-
-    while (line.compare(0, 1, " ") == 0)
-      line.erase(line.begin()); // remove leading whitespaces
-    while (line.size() > 0 && line.compare(line.size() - 1, 1, " ") == 0)
-      line.erase(line.end() - 1); // remove trailing whitespaces
-
-    if (line[0] == '#') {
-      // Skip comments
-      data = data.substr(endline + 1);
-      continue;
-    }
-
-    if (line.find("PA") != string::npos) {
-      if (!currSteps.empty()) {
-        if (currSteps.size() > 1) {
-          Element elemType = GetElementFromStr(type);
-
-          advances.push_back(PA::PAData({ currPA, (unsigned)atoi(icon.c_str()), (unsigned)atoi(damage.c_str()), elemType, currSteps }));
-          currSteps.clear();
-        }
-        else {
-          Logger::Log("Error. PA \"" + currPA + "\": only has 1 required card for recipe. PA's must have 2 or more cards. Skipping entry.");
-          currSteps.clear();
-        }
-      }
-      
-      currPA = valueOf("name", line);
-      damage = valueOf("damage", line);
-      icon = valueOf("iconIndex", line);
-      type = valueOf("type", line);
-    } else if (line.find("Card") != string::npos) {
-      string name = valueOf("name", line);
-      string code = valueOf("code", line);
-
-      currSteps.push_back(PA::PAData::Required({ name,code[0] }));
-
-      //std::cout << "card step: " << name << " " << code[0] << endl;
-    }
-
-    data = data.substr(endline + 1);
-  } while (endline > -1);
-
-  if (currSteps.size() > 1) {
-    Element elemType = GetElementFromStr(type);
-
-    //std::cout << "PA entry 2: " << currPA << " " << (unsigned)atoi(icon.c_str()) << " " << (unsigned)atoi(damage.c_str()) << " " << type << endl;
-    advances.push_back(PA::PAData({ currPA, (unsigned)atoi(icon.c_str()), (unsigned)atoi(damage.c_str()), elemType, currSteps }));
-    currSteps.clear();
-  }
-  else {
-    //std::cout << "Error. PA " + currPA + " only has 1 required card for recipe. PA's must have 2 or more cards. Skipping entry.\n";
-    Logger::Log("Error. PA \"" + currPA + "\": only has 1 required card for recipe. PA's must have 2 or more cards. Skipping entry.");
-    currSteps.clear();
-  }
-}
-
-std::string PA::valueOf(std::string _key, std::string _line){
-  int keyIndex = (int)_line.find(_key);
-  assert(keyIndex > -1 && "Key was not found in PA file.");
-  string s = _line.substr(keyIndex + _key.size() + 2);
-  return s.substr(0, s.find("\""));
+  advances.push_back(entry);
 }
 
 const PASteps PA::GetMatchingSteps()
@@ -114,7 +40,45 @@ const PASteps PA::GetMatchingSteps()
 
 Battle::Card * PA::GetAdvanceCard()
 {
-   return advanceCardRef;
+  return advanceCardRef;
+}
+
+PA PA::ReadFromWebAccount(const WebAccounts::AccountState& account)
+{
+  PA pa;
+
+  // Loop through each combo entry from the API
+  for (auto&& pair : account.cardCombos) {
+    auto entry = *pair.second;
+    
+    PASteps steps;
+    
+    // Build the steps from each card in the entry
+    for (auto&& step : entry.cards) {
+      auto card = account.cards.find(step)->second;
+      std::string name = account.cardProperties.find(card->modelId)->first;
+      steps.push_back(std::make_pair(name, card->code));
+    }
+
+    if (steps.size() > 2) {
+      // Valid combo recipe
+      PAData data;
+      data.action = entry.action;
+      data.canBoost = entry.canBoost;
+      data.damage = entry.damage;
+      data.metaClasses = entry.metaClasses;
+      data.name = entry.name;
+      data.primaryElement = GetElementFromStr(entry.element);
+      data.secondElement = GetElementFromStr(entry.secondaryElement);
+      data.timeFreeze = entry.timeFreeze;
+      data.uuid = entry.id;
+
+      // Add to our PA object
+      pa.RegisterPA(data);
+    }
+  }
+
+  return pa;
 }
 
 const int PA::FindPA(Battle::Card ** input, unsigned size)
@@ -168,7 +132,7 @@ const int PA::FindPA(Battle::Card ** input, unsigned size)
       // Load the PA card
       if (advanceCardRef) { delete advanceCardRef; }
 
-       advanceCardRef = new Battle::Card("PA", 0, iter->damage, iter->type, iter->name, "Program Advance", "", 0);
+      advanceCardRef = new Battle::Card(WEBCLIENT.MakeBattleCardFromWebComboData(WebAccounts::CardCombo{ iter->uuid }));
 
       return startIndex;
     }

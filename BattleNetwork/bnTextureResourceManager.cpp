@@ -215,6 +215,9 @@ TextureResourceManager::TextureResourceManager(void) {
 
   // folder view
   paths.push_back("resources/ui/folder_card.png");
+  paths.push_back("resources/ui/folder_card_mega.png");
+  paths.push_back("resources/ui/folder_card_giga.png");
+  paths.push_back("resources/ui/folder_card_dark.png");
   paths.push_back("resources/ui/folder_dock.png");
   paths.push_back("resources/ui/pack_dock.png");
   paths.push_back("resources/ui/folder_rarity.png");

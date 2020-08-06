@@ -3,7 +3,7 @@
 /*! \brief PA loads the recipes for PA combos and 
  *         provides interface to swap cards with PA card
  * 
- * Program Advanced class parses a PA input file into a lookup table.
+ * Program Advanced class parses a PA input into a lookup table.
  * Then the class accepts cards as input during game play and replaces
  * matching PA sets with a new unlisted card.
  *  
@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include "bnCard.h"
+#include "bnWebClientMananger.h"
 
 typedef std::pair<std::string, char> PAStep; /*!< Name of card and code */
 typedef std::vector<PAStep> PASteps;         /*!< List of steps for a PA*/
@@ -27,9 +28,14 @@ class PA
    *  \desc Describes the PA card and what steps it needs */
   struct PAData {
     std::string name; /*!< name of PA*/
-    unsigned icon;    /*!< icon of the PA*/
-    unsigned damage;  /*!< damage of the PA*/
-    Element type;     /*!< element of the PA*/
+    std::string uuid; /*!< UUID of PA*/
+    std::string action{ "IDLE" }; /*!< Action this PA invokes*/
+    int damage{ 0 };  /*!< damage of the PA*/
+    Element primaryElement{ Element::none };/*!< element of the PA*/
+    Element secondElement{ Element::none }; /*!< Secondary (hidden) element of PA*/
+    bool canBoost{ false }; /*!< true if damage > 0*/
+    bool timeFreeze{ false }; /*!< Triggers time freeze if true */
+    std::vector<std::string> metaClasses; /*!< User-created class types*/
 
     /*! \class Required
      *  \desc The structure for matching name and code */
@@ -56,17 +62,9 @@ public:
   ~PA();
   
   /**
-   * @brief Interpets and loads data from PA file at resources/database/PA.txt
+   * @brief Registers a new combo
    */
-  void LoadPA();
-  
-  /**
-   * @brief Extracts the value for a key given a line
-   * @param _key to look for
-   * @param _line input string
-   * @return value of key
-   */
-  std::string valueOf(std::string _key, std::string _line);
+  void RegisterPA(const PAData& entry);
   
   /**
    * @brief Given a list of cards, generates a matching PA. 
@@ -89,5 +87,7 @@ public:
    * This is deleted by the PA 
    */
   Battle::Card* GetAdvanceCard();
+
+  static PA ReadFromWebAccount(const WebAccounts::AccountState& account);
 };
 

@@ -185,7 +185,6 @@ const bool CardLibrary::SaveLibrary(const std::string& path) {
 
       ws << "desc=\"" << card.GetDescription() << "\" ";
       ws << "verbose=\""<< card.GetVerboseDescription() << "\" ";
-      ws << "rarity=\"" << std::to_string(card.GetRarity()) << "\" ";
 
       ws << ws.endl();
     }

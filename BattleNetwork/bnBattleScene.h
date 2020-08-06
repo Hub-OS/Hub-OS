@@ -305,7 +305,7 @@ public:
   /**
    * @brief Construct scene with selected player, generated mob data, and the folder to use
    */
-  BattleScene(swoosh::ActivityController&, Player*, Mob*, CardFolder* folder);
+  BattleScene(swoosh::ActivityController&, Player*, Mob*, CardFolder*, PA&);
   
   /**
    * @brief Clears all nodes and components
@@ -350,11 +350,13 @@ public:
   }
 
   /**
- * @brief Query if the battle update loop is ticking.
- * @return true if the field is not paused
+   * @brief Query if the battle update loop is ticking.
+   * @return true if the field is not paused
  */
   const bool IsBattleActive();
 
-  // NOTE: just for demo until card api is compete...
-  void TEMPFilterAtkCards(Battle::Card** cards, int cardCount);
+  /**
+    @brief Crude support card filter step
+  */
+  void FilterSupportCards(Battle::Card** cards, int cardCount);
 };

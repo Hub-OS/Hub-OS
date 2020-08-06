@@ -46,8 +46,8 @@ auto BuildMob = []() {
 };
 
 NetworkBattleScene::NetworkBattleScene(
-  swoosh::ActivityController& controller, Player* player, CardFolder* folder, const NetPlayConfig& config) :
-        BattleScene(controller, player, BuildMob(), folder) {
+  swoosh::ActivityController& controller, Player* player, CardFolder* folder, PA& programAdvance, const NetPlayConfig& config) :
+        BattleScene(controller, player, BuildMob(), folder, programAdvance) {
   networkCardUseListener = new NetworkCardUseListener(*this, *player);
   networkCardUseListener->Subscribe(this->cardUI);
 
@@ -876,7 +876,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
       // Start Program Advance checks
       if (isPAComplete && hasPA == -1) {
         // Filter and apply support cards
-        TEMPFilterAtkCards(cards, cardCount);
+        FilterSupportCards(cards, cardCount);
 
         // Return to game
         isInCardSelect = false;

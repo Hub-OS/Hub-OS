@@ -118,7 +118,7 @@ private:
   std::vector<SummonBucket> summonedItems; // We must handle our own summoned entites
 
 public:
-  CardSummonHandler() : CardUseListener() { other = nullptr; duration = sf::seconds(0); timeInSecs = 0; summon = std::string(); }
+  CardSummonHandler() : CardUseListener(), copy() { other = nullptr; duration = sf::seconds(0); timeInSecs = 0; summon = std::string(); }
 
   const bool IsSummonOver() const {
     return ((timeInSecs >= queue.GetDuration()));

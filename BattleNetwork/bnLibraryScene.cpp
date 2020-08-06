@@ -369,12 +369,6 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
     cardLabel->setString(iter->GetShortName());
     ENGINE.Draw(cardLabel, false);
 
-    //Draw rating
-    unsigned rarity = iter->GetRarity() - 1;
-    stars.setTextureRect(sf::IntRect(0, 16 * rarity, 22, 16));
-    stars.setPosition(2.f*199.f, 74.0f + (32.f*(float)i));
-    ENGINE.Draw(stars, false);
-
     // Draw cursor
     if (lastCardOnScreen + i == currCardIndex) {
       auto y = swoosh::ease::interpolate((float)frameElapsed*7.f, cursor.getPosition().y, 64.0f + (32.f*i));

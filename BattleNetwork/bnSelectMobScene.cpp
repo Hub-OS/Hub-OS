@@ -4,11 +4,12 @@
 
 using namespace swoosh::types;
 
-SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder) :
+SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder, PA& programAdvance) :
   elapsed(0),
   camera(ENGINE.GetView()),
   textbox(320, 100, 24, "resources/fonts/NETNAVI_4-6_V3.ttf"),
   selectedFolder(selectedFolder),
+  programAdvance(programAdvance),
   swoosh::Activity(&controller)
 {
   selectedNavi = navi;
@@ -400,7 +401,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
       using effect = segue<WhiteWashFade>;
-      getController().push<effect::to<BattleScene>>(player, mob, &selectedFolder);
+      getController().push<effect::to<BattleScene>>(player, mob, &selectedFolder, programAdvance);
     }
   }
 

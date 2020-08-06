@@ -25,40 +25,41 @@ enum class Element : int {
   size
 };
 
-static const Element GetElementFromStr(std::string type)
+static const Element GetElementFromStr(const std::string& type)
 {
     Element elemType;
 
-    std::transform(type.begin(), type.end(), type.begin(), ::toupper);
+    std::string temp = type;
+    std::transform(temp.begin(), temp.end(), temp.begin(), ::toupper);
 
-    if (type == "FIRE") {
+    if (temp == "FIRE") {
         elemType = Element::fire;
     }
-    else if (type == "AQUA") {
+    else if (temp == "AQUA") {
         elemType = Element::aqua;
     }
-    else if (type == "WOOD") {
+    else if (temp == "WOOD") {
         elemType = Element::wood;
     }
-    else if (type == "ELEC" || type == "ELECTRIC") {
+    else if (temp == "ELEC" || temp == "ELECTRIC") {
         elemType = Element::elec;
     }
-    else if (type == "WIND") {
+    else if (temp == "WIND") {
         elemType = Element::wind;
     }
-    else if (type == "SWORD") {
+    else if (temp == "SWORD") {
         elemType = Element::sword;
     }
-    else if (type == "BREAK") {
+    else if (temp == "BREAK") {
         elemType = Element::breaker;
     }
-    else if (type == "CURSOR") {
+    else if (temp == "CURSOR") {
         elemType = Element::cursor;
     }
-    else if (type == "PLUS") {
+    else if (temp == "PLUS") {
         elemType = Element::plus;
     }
-    else if (type == "SUMMON") {
+    else if (temp == "SUMMON") {
         elemType = Element::summon;
     }
     else {
@@ -67,6 +68,10 @@ static const Element GetElementFromStr(std::string type)
 
     return elemType;
 }
+
+/*static const Element GetElementFromStr(const char* type) {
+  return GetElementFromStr(std::string(type));
+}*/
 
 static const std::string GetStrFromElement(const Element& type) {
     std::string res = "NONE";

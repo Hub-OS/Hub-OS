@@ -4,107 +4,98 @@
 #include <tuple>
 
 namespace Battle {
-    Card::Card(std::string uuid, char code, unsigned damage, Element element, string sname, string desc, string verboseDesc, unsigned rarity) :
-        uuid(uuid), code(code), damage(damage), unmodDamage(damage), element(element), secondaryElement(Element::none),
-        navi(false), support(false), timeFreeze(false)
-    {
-        shortname.assign(sname);
-        description.assign(desc);
-        verboseDescription.assign(verboseDesc);
-        Card::rarity = std::max((unsigned)1, rarity);
-        Card::rarity = std::min(rarity, (unsigned)5);
-    }
 
-    Card::Card() {
+    Card::Card() : props(), unmodded(props) 
+    { }
 
-    }
+    Card::Card(const Card::Properties& props) : props(props), unmodded(props)
+    { }
 
-    Card::Card(const Battle::Card & copy) {
-        uuid = copy.uuid;
-        code = copy.code;
-        damage = copy.damage;
-        unmodDamage = copy.unmodDamage;
-        shortname = copy.shortname;
-        description = copy.description;
-        verboseDescription = copy.verboseDescription;
-        element = copy.element;
-        secondaryElement = copy.secondaryElement;
-        navi = copy.navi;
-        support = copy.support;
-        timeFreeze = copy.timeFreeze;
-        rarity = copy.rarity;
-        metaTags = copy.metaTags;
-    }
+    Card::Card(const Battle::Card & copy) : props(copy.props), unmodded(copy.props) 
+    { }
 
     Card::~Card() {
-        if (!description.empty()) {
-            description.clear();
-        }
+        props = unmodded = Card::Properties();
+    }
 
-        if (!shortname.empty()) {
-            shortname.clear();
-        }
-
-        metaTags.clear();
+    const Card::Properties& Card::GetUnmoddedProps() const
+    {
+        return unmodded;
     }
 
     const string Card::GetVerboseDescription() const {
-        return verboseDescription;
+        return props.verboseDescription;
     }
 
     const string Card::GetDescription() const {
-        return description;
+        return props.description;
     }
 
     const string Card::GetShortName() const {
-        return shortname;
+        return props.shortname;
     }
 
     const char Card::GetCode() const {
-        return code;
+        return props.code;
     }
 
-    const unsigned Card::GetDamage() const {
-        return damage;
+    const signed Card::GetDamage() const {
+        return props.damage;
+    }
+
+    const CardClass Card::GetClass() const
+    {
+      return props.cardClass;
+    }
+
+    const unsigned Card::GetLimit() const
+    {
+      return props.limit;
+    }
+
+    const std::string Card::GetAction() const
+    {
+      return props.action;
     }
 
     const std::string Card::GetUUID() const {
-        return uuid;
+        return props.uuid;
     }
 
     const Element Card::GetElement() const
     {
-        return element;
+        return props.element;
     }
 
     const Element Card::GetSecondaryElement() const
     {
-        return (element == secondaryElement) ? Element::none : secondaryElement;
-    }
-
-    const unsigned Card::GetRarity() const
-    {
-        return rarity;
+        return (props.element == props.secondaryElement) ? Element::none : props.secondaryElement;
     }
 
     const bool Card::IsNaviSummon() const
     {
-        return navi;
+        return this->IsTaggedAs("navi");
     }
 
     const bool Card::IsSupport() const
     {
-        return support;
+        return this->IsTaggedAs("support");
     }
 
     const bool Card::IsTimeFreeze() const
     {
-        return timeFreeze;
+        return props.timeFreeze;
     }
 
-    const bool Card::IsTaggedAs(const std::string meta) const
+    const bool Card::IsTaggedAs(const std::string& meta) const
     {
-        return metaTags.find(meta) != metaTags.end();
+        auto iter = std::find(props.metaClasses.begin(), props.metaClasses.end(), meta);
+        return iter != props.metaClasses.end();
+    }
+
+    void Card::ModDamage(int modifier)
+    {
+        props.damage += modifier;
     }
 
     bool Card::Compare::operator()(const Battle::Card & lhs, const Battle::Card & rhs) const noexcept

@@ -88,7 +88,7 @@ void WebClientManager::InitDownloadImageHandler()
 
         if (len > 0) {
             image = new WebAccounts::byte[len+1];
-            data.copy(image, len);
+            data.copy((char*)image, len);
             image[len] = 0;
         }
     };
@@ -100,9 +100,9 @@ void WebClientManager::InitDownloadImageHandler()
 void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account)
 {
     for (auto&& card : account.cards) {
-        auto&& cardModelIter = account.cardModels.find(card.second->modelId);
+        auto&& cardModelIter = account.cardProperties.find(card.second->modelId);
 
-        if (cardModelIter == account.cardModels.end()) continue;
+        if (cardModelIter == account.cardProperties.end()) continue;
 
         const WebAccounts::byte* imageData = cardModelIter->second->imageData;
         const size_t imageDataLen = cardModelIter->second->imageDataLen;
@@ -264,7 +264,7 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
             return;
         }
 
-        client->FetchAccount();
+        client->FetchAccount(this->since);
 
         // Download these cards too:
         for (auto&& uuid : BuiltInCards::AsList) {
@@ -274,6 +274,8 @@ std::future<WebAccounts::AccountState> WebClientManager::SendFetchAccountCommand
         account = client->GetLocalAccount();
 
         promise->set_value(account);
+
+        this->since = CurrentTime::AsMilli();
     };
 
     std::scoped_lock<std::mutex> lock(this->clientMutex);
@@ -312,7 +314,7 @@ const Battle::Card WebClientManager::MakeBattleCardFromWebCardData(const WebAcco
     std::string modelId = card.modelId;
     char code = card.code;
 
-    if (card.modelId.empty()) {
+    if (modelId.empty()) {
         // try to find fill in the data
         auto cardDataIter = account.cards.find(card.id);
 
@@ -321,16 +323,58 @@ const Battle::Card WebClientManager::MakeBattleCardFromWebCardData(const WebAcco
             code = cardDataIter->second->code;
         }
     }
-    auto cardModelIter = account.cardModels.find(modelId);
+    auto cardModelIter = account.cardProperties.find(modelId);
 
-    if (cardModelIter != account.cardModels.end()) {
+    Battle::Card::Properties props;
+
+    if (cardModelIter != account.cardProperties.end()) {
         auto cardModel = cardModelIter->second;
 
-        return Battle::Card(card.id, code, cardModel->damage, GetElementFromStr(cardModel->element),
-            cardModel->name, cardModel->description, cardModel->verboseDescription, 0);
+        props.uuid = card.id;
+        props.code = card.code;
+        props.shortname = cardModel->name;
+        props.action = cardModel->action;
+        props.damage = cardModel->damage;
+        props.description = cardModel->description;
+        props.verboseDescription = cardModel->verboseDescription;
+        props.element = GetElementFromStr(cardModel->element);
+        props.secondaryElement = GetElementFromStr(cardModel->secondaryElement);
+        props.limit = cardModel->limit;
+        props.timeFreeze = cardModel->timeFreeze;
+        props.cardClass = static_cast<Battle::CardClass>(cardModel->classType);
+        props.metaClasses = cardModel->metaClasses;
     }
 
-    return Battle::Card();
+    return Battle::Card(props);
+}
+
+const Battle::Card WebClientManager::MakeBattleCardFromWebComboData(const WebAccounts::CardCombo& combo)
+{
+  std::string modelId = combo.id;
+
+  auto comboIter = account.cardCombos.find(modelId);
+
+  Battle::Card::Properties props;
+
+  if (comboIter != account.cardCombos.end()) {
+    auto combo = comboIter->second;
+
+    props.uuid = "PA:"+combo->id; // prefix with a unique way of referencing this type of card
+    props.code = '*'; // Doesn't matter really
+    props.shortname = combo->name;
+    props.action = combo->action;
+    props.damage = combo->damage;
+    props.description = 'N/A'; // combos do not have descriptions
+    props.verboseDescription = 'N/A'; // combos do not have descriptions
+    props.element = GetElementFromStr(combo->element);
+    props.secondaryElement = GetElementFromStr(combo->secondaryElement);
+    props.limit = 1; // Doesn't matter
+    props.timeFreeze = combo->timeFreeze;
+    props.cardClass = Battle::CardClass::standard; // combos do not have class types
+    props.metaClasses = combo->metaClasses;
+  }
+
+  return Battle::Card(props);
 }
 
 const std::string & WebClientManager::GetUserName() const

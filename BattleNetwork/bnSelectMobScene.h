@@ -50,6 +50,8 @@ class SelectMobScene : public swoosh::Activity
 private:
   SelectedNavi selectedNavi; /*!< The selected navi */
 
+  PA& programAdvance;
+
   Camera camera;
   
   CardFolder& selectedFolder; /*!< Reference to the selected folder */
@@ -112,7 +114,7 @@ public:
   /**
    * @brief Loads graphics and sets original state of all items
    */
-  SelectMobScene(swoosh::ActivityController&, SelectedNavi, CardFolder& selectedFolder);
+  SelectMobScene(swoosh::ActivityController&, SelectedNavi, CardFolder&, PA&);
   
   /**
    * @brief Deletes all allocated resource. If mob is non null, deletes the mob

@@ -122,6 +122,7 @@ void MainMenuScene::onUpdate(double elapsed) {
             Logger::Logf("You have %i folders on your account", account.folders.size());
             WEBCLIENT.CacheTextureData(account);
             data = CardFolderCollection::ReadFromWebAccount(account);
+            programAdance = PA::ReadFromWebAccount(account);
         }
         catch (const std::runtime_error& e) {
             Logger::Logf("Could not fetch account.\nError: %s", e.what());
@@ -258,12 +259,12 @@ void MainMenuScene::onUpdate(double elapsed) {
             // Stop music and go to battle screen 
             AUDIO.StopStream();
 
-            getController().push<effect::to<NetworkBattleScene>>(player, copy, config);
+            getController().push<effect::to<NetworkBattleScene>>(player, copy, programAdance, config);
           }
 #else
           using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
           AUDIO.Play(AudioType::CHIP_DESC);
-          getController().push<effect::to<SelectMobScene>>(currentNavi, *folder);
+          getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdance);
 #endif
         }
         else {

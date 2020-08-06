@@ -88,6 +88,7 @@ std::string FolderEditScene::FormatCardDesc(const std::string && desc)
 
 FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFolder& folder) :
   camera(sf::View(sf::Vector2f(240, 160), sf::Vector2f(480, 320))), folder(folder), hasFolderChanged(false),
+  card(),
   swoosh::Activity(&controller)
 {
   // Move card data into their appropriate containers for easier management
@@ -183,7 +184,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   cardRevealTimer.start();
   easeInTimer.start();
 
-  /* foldet view */
+  /* folder view */
   folderView.maxCardsOnScreen = 7;
   folderView.currCardIndex = folderView.lastCardOnScreen = folderView.prevIndex = 0;
   folderView.swapCardIndex = -1;
@@ -476,6 +477,30 @@ void FolderEditScene::onUpdate(double elapsed) {
 
     view->currCardIndex = std::max(0, view->currCardIndex);
     view->currCardIndex = std::min(view->numOfCards - 1, view->currCardIndex);
+
+    if (view->currCardIndex <= folderCardSlots.size()) {
+      auto slot = folderCardSlots[view->currCardIndex];
+
+      // If we have selected a new card, display the appropriate texture for its type
+      if (!slot.IsEmpty() && view->currCardIndex != view->prevIndex) {
+        Battle::Card card;
+        slot.GetCard(card);
+
+        switch (card.GetClass()) {
+        case Battle::CardClass::mega:
+          cardHolder.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_MEGA));
+          break;
+        case Battle::CardClass::giga:
+          cardHolder.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_GIGA));
+          break;
+        case Battle::CardClass::dark:
+          cardHolder.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER_DARK));
+          break;
+        default:
+          cardHolder.setTexture(*LOAD_TEXTURE(FOLDER_CHIP_HOLDER));
+        }
+      }
+    }
 
     view->lastCardOnScreen = std::max(0, view->lastCardOnScreen);
     view->lastCardOnScreen = std::min(view->numOfCards - 1, view->lastCardOnScreen);

@@ -23,6 +23,7 @@ private:
     std::mutex clientMutex; //!< Mutex for WebClient since it may be accessed by multiple threads...
     bool isConnected; //!< True if pinged heartbeat endpoint successfully in the last invernal
     long heartbeatInterval; //!< The time in milliseconds to ping the web server
+    long long since; //!< Last time in milliseconds the API was fetched (how recent are we in sync?)
     std::queue<std::function<void()>> taskQueue;
     std::condition_variable taskQueueWakeup;
     bool shutdownSignal;
@@ -53,6 +54,7 @@ public:
     std::shared_ptr<sf::Texture> GetIconForCard(const std::string& uuid);
     std::shared_ptr<sf::Texture> GetImageForCard(const std::string& uuid);
     const Battle::Card MakeBattleCardFromWebCardData(const WebAccounts::Card& card);
+    const Battle::Card MakeBattleCardFromWebComboData(const WebAccounts::CardCombo& combo);
     const std::string& GetUserName() const;
 
     void CacheTextureData(const WebAccounts::AccountState& account);
