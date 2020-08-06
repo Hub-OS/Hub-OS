@@ -24,7 +24,7 @@ private:
 public:
   EnemyCardUseListener() = default;
 
-  virtual void OnCardUse(Battle::Card& card, Character& user, uint64_t timestamp) {
+  virtual void OnCardUse(Battle::Card& card, Character& user, long long timestamp) {
     std::string name = card.GetShortName();
 
     if (name.substr(0, 5) == "Recov") {

@@ -131,21 +131,21 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       bool& isAnimating, bool& isLeaving, Animation& shineAnimationRef, sf::Sprite& shineRef) {
       which->Reveal(); // If flickering, stablizes the sprite for the animation
 
-      // Preserve the original child node states
-      auto childNodes = which->GetChildNodes();
-
-      // The list of nodes change when adding the shine overlay and new form overlay nodes
-      std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(childNodes.size()));
-      std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(childNodes.size()));
-
-
-      auto paletteSwap = which->GetFirstComponent<PaletteSwap>();
-
-      if (paletteSwap) paletteSwap->Enable(false);
-
       if (showSummonBackdropTimer >= showSummonBackdropLength) {
         if (!isAnimating && (lastSelectedFormRef != formValue)) {
           isAnimating = true;
+
+          // Preserve the original child node states
+          auto childNodes = which->GetChildNodes();
+
+          // The list of nodes change when adding the shine overlay and new form overlay nodes
+          std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(childNodes.size()));
+          std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(childNodes.size()));
+
+
+          auto paletteSwap = which->GetFirstComponent<PaletteSwap>();
+
+          if (paletteSwap) paletteSwap->Enable(false);
 
           auto pos = which->getPosition();
           shineRef.setPosition(pos.x + 16.0f, pos.y - which->GetHeight() / 4.0f);
@@ -283,7 +283,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   }
 
   // Do not update when: in card select, during a summon sequence, showing Battle Start sign
-  if (!(isInCardSelect || isChangingForm || remoteState.remoteIsFormChanging) && !isPreBattle) {
+  if (!(isInCardSelect || (isChangingForm || remoteState.remoteIsFormChanging)) && !isPreBattle) {
     if (prevSummonState) {
       field->ToggleTimeFreeze(true);
     }
@@ -291,10 +291,12 @@ void NetworkBattleScene::onUpdate(double elapsed) {
     field->Update((float)elapsed);
   }
 
-  int clientNewHP = player->GetHealth();
-  if (this->clientPrevHP != clientNewHP) {
-    this->clientPrevHP = clientNewHP;
-    this->sendHPSignal(this->clientPrevHP);
+  if (player) {
+    int clientNewHP = player->GetHealth();
+    if (this->clientPrevHP != clientNewHP) {
+      this->clientPrevHP = clientNewHP;
+      this->sendHPSignal(this->clientPrevHP);
+    }
   }
 
   // TODO: we desperately need states
@@ -323,6 +325,7 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       isChangingForm = true;
       showSummonBackdropTimer = 0;
       backdropOpacity = 1.0f; // full black
+      this->sendChangedFormSignal(-1); // back to original
     }
 
     if (remotePlayer && remotePlayer->GetHealth() == 0 && remoteState.remoteFormSelect != -1 && !remoteState.remoteIsFormChanging) {
@@ -344,7 +347,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.Clear();
 
-  if (isChangingForm) {
+  if (isChangingForm || remoteState.remoteIsFormChanging) {
     auto delta = 1.0 - (showSummonBackdropTimer / showSummonBackdropLength);
 
     background->setColor(sf::Color(int(255.f * delta), int(255.f * delta), int(255.f * delta), 255));
@@ -1398,12 +1401,11 @@ void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer
 
   Battle::Tile* t = field->GetAt(x, y);
 
-  if (t && !remotePlayer->IsSliding()) {
+  if (remotePlayer->GetTile() != t && !remotePlayer->IsSliding()) {
     remotePlayer->GetTile()->RemoveEntityByID(remotePlayer->GetID());
     remotePlayer->AdoptTile(t);
+    remotePlayer->FinishMove();
   }
-
-  // TODO?
 }
 
 void NetworkBattleScene::recieveChipUseSignal(const Poco::Buffer<char>& buffer)

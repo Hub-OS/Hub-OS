@@ -56,7 +56,7 @@ public:
   /**
    * @brief Broadcasts the used card
    */
-  void UseNextCard();
+  const bool UseNextCard() override;
   
   /**
    * @brief Injects itself as a card publisher into the scene

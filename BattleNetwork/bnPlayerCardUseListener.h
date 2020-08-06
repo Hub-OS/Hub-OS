@@ -21,7 +21,7 @@
 class PlayerCardUseListener : public CardUseListener {
 private:
   Player * player; /*!< Entity to listen for */
-
+  
 public:
   PlayerCardUseListener(Player& _player) : CardUseListener() { player = &_player;  }
 
@@ -30,5 +30,5 @@ public:
    * @param card Card used
    * @param character Character using card
    */
-  void OnCardUse(Battle::Card& card, Character& character, uint64_t timestamp=0);
+  void OnCardUse(Battle::Card& card, Character& character, long long timestamp);
 };

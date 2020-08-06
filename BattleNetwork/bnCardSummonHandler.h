@@ -51,14 +51,14 @@ private:
       return callers.size();
     }
 
-    void Add(Battle::Card card, Character& caller, sf::Time duration, uint64_t timestamp=0) {
+    void Add(Battle::Card card, Character& caller, sf::Time duration, long long timestamp) {
       callers.push_back(&caller);
       cards.push_back(card);
       durations.push_back(duration);
       timestamps.push_back(timestamp);
     }
 
-    void AddFront(Battle::Card card, Character& caller, sf::Time duration, uint64_t timestamp=0) {
+    void AddFront(Battle::Card card, Character& caller, sf::Time duration, long long timestamp) {
       callers.push_front(&caller);
       cards.push_front(card);
       durations.push_front(duration);
@@ -74,7 +74,7 @@ private:
       }
     }
 
-    const uint64_t GetTimestamp() const {
+    const long long GetTimestamp() const {
       if (timestamps.size()) {
         return timestamps.front();
       }
@@ -352,8 +352,12 @@ public:
   }
 
   // when timestamp is 0, we do not check the queue in respect to time
-  void OnCardUse(Battle::Card& card, Character& character, uint64_t timestamp=0) {
-    if (CurrentTime::AsMilli() - (long long)timestamp >= (5 * 1000)) {
+  void OnCardUse(Battle::Card& card, Character& character, long long timestamp) {
+    auto timeDiff = CurrentTime::AsMilli() - timestamp;
+   
+    if (timeDiff >= (3 * 1000)) {
+      Logger::Logf("Not spawning chip because timeDiff was %i", timeDiff);
+
       // 5 seconds or more delay is too long ago. Ignore...
       return;
     }
@@ -395,7 +399,7 @@ public:
     }
     else {
       summon.clear();
-      timeInSecs = static_cast<double>(duration.asSeconds() + 1.0f);
+      timeInSecs = 0;
       copy = Battle::Card{};
       add = false;
     }
@@ -407,7 +411,7 @@ public:
         queue.AddFront(card, character, duration, timestamp);
       }
       else {
-        queue.Add(card, character, duration);
+        queue.Add(card, character, duration, 0);
       }
     }
   }

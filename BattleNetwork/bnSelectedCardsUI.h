@@ -52,8 +52,9 @@ public:
   
   /**
    * @brief Broadcasts the card at the cursor curr. Increases curr.
+   * @return True if there was a card to use
    */
-  void UseNextCard();
+  const bool UseNextCard() override;
   
   /**
    * @brief nothing

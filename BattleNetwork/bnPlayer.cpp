@@ -19,6 +19,7 @@ Player::Player()
   chargeEffect(this),
   AI<Player>(this),
   formSize(0),
+  forms{ 0 },
   Character(Rank::_1)
 {
   ChangeState<PlayerIdleState>();

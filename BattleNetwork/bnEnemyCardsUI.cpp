@@ -67,15 +67,15 @@ void EnemyCardsUI::LoadCards(const std::vector<Battle::Card>& incoming) {
   curr = 0;
 }
 
-void EnemyCardsUI::UseNextCard() {
+const bool EnemyCardsUI::UseNextCard() {
   if (curr >= cardCount) {
-    return;
+    return false;
   }
 
   std::cout << "selected card " << selectedCards[curr].GetShortName() << " is broadcasted by enemy UI" << std::endl;
   Broadcast(selectedCards[curr], *character);
 
-  curr++;
+  return ++curr;
 }
 
 void EnemyCardsUI::Inject(BattleScene& scene)

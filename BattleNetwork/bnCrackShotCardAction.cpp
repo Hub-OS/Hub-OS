@@ -39,7 +39,13 @@ void CrackShotCardAction::Execute() {
   // On throw frame, spawn projectile
   auto onThrow = [this, owner]() -> void {
 
-    auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+    int step = 1;
+
+    if (owner->GetTeam() == Team::blue) {
+      step = -1;
+    }
+
+    auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
 
     if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter() && !tile->ContainsEntityType<Character>()) {
       CrackShot* b = new CrackShot(GetOwner()->GetField(), GetOwner()->GetTeam(), tile);

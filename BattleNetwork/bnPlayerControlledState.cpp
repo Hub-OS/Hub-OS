@@ -29,10 +29,16 @@ void PlayerControlledState::QueueAction(Player & player)
   // We already have one action queued, delete the next one
   if (!queuedAction) {
     queuedAction = action;
+    this->startupDelay = STARTUP_DELAY_LEN;
   }
   else {
     delete action;
   }
+
+  player.chargeEffect.SetCharging(false);
+  if (replicator) replicator->SendChargeSignal(false);
+
+  isChargeHeld = false;
 }
 
 void PlayerControlledState::OnEnter(Player& player) {
@@ -41,21 +47,28 @@ void PlayerControlledState::OnEnter(Player& player) {
 }
 
 void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
+  // Action startup time and actions themselves prevent player input
+  if (this->startupDelay > 0.f) {
+    this->startupDelay -= _elapsed;
+    return;
+  }
+
   // Action controls take priority over movement
   if (player.GetComponentsDerivedFrom<CardAction>().size()) return;
 
   // Are we creating an action this frame?
   if (INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) {
     auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
-    if (cardsUI) {
-      cardsUI->UseNextCard();
-      // If the card used was successful, the player will now have an active card in queue
+    if (cardsUI && cardsUI->UseNextCard()) {
+      // If the card used was successful, we may have a card in queue
       QueueAction(player);
+      return; // wait one more frame to use
     }
   } else if (INPUTx.Has(EventTypes::PRESSED_SPECIAL)) {
     if (replicator) replicator->SendUseSpecialSignal();
     player.UseSpecial();
     QueueAction(player);
+    return; // wait one more frame to use
   }    // queue attack based on input behavior (buster or charge?)
   else if ((!INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld) || INPUTx.Has(EventTypes::RELEASED_SHOOT)) {
     // This routine is responsible for determining the outcome of the attack
@@ -69,6 +82,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     QueueAction(player);
     isChargeHeld = false;
     player.chargeEffect.SetCharging(false);
+    return; // wait one more frame to use
   }
 
   // Movement increments are restricted based on anim speed at this time
@@ -77,7 +91,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   static Direction direction = Direction::none;
   if (!player.IsTimeFrozen()) {
-    if (INPUTx.Has(EventTypes::PRESSED_MOVE_UP) ||INPUTx.Has(EventTypes::HELD_MOVE_UP)) {
+    if (INPUTx.Has(EventTypes::PRESSED_MOVE_UP) || INPUTx.Has(EventTypes::HELD_MOVE_UP)) {
       direction = Direction::up;
     }
     else if (INPUTx.Has(EventTypes::PRESSED_MOVE_LEFT) || INPUTx.Has(EventTypes::HELD_MOVE_LEFT)) {
@@ -148,12 +162,6 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     player.RegisterComponent(queuedAction);
     queuedAction->OnExecute();
     queuedAction = nullptr;
-
-    player.chargeEffect.SetCharging(false);
-
-    if(replicator) replicator->SendChargeSignal(false);
-
-    isChargeHeld = false;
   }
   else if (player.IsSliding() && player.GetNextTile()) {
     auto t = player.GetTile();

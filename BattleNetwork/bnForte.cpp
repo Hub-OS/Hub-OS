@@ -77,6 +77,12 @@ void Forte::OnUpdate(float _elapsed)
   if (GetNextTile()) {
     if (dropCooldown <= 0) {
       auto fx = new MoveEffect(field);
+
+      if (GetTeam() == Team::blue) {
+        auto scale = fx->getScale();
+        fx->setScale(-scale.x, scale.y);
+      }
+
       field->AddEntity(*fx, *GetTile());
     }
     else {
@@ -98,6 +104,7 @@ Forte::MoveEffect::MoveEffect(Field* field)
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
 
   SetLayer(1);
+
   setScale(2.f, 2.f);
 
   animationComponent = CreateComponent<AnimationComponent>(this);

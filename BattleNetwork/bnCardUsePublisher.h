@@ -31,7 +31,7 @@ public:
   /**
    * @brief Must implement
    */
-  virtual void UseNextCard() = 0;
+  virtual const bool UseNextCard() = 0;
 
  /**
   * @brief Broadcasts the card information to all listeners

@@ -16,7 +16,7 @@ Megaman::Megaman() : Player() {
   auto basePallete = TEXTURES.LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
   PaletteSwap* pswap = CreateComponent<PaletteSwap>(this, basePallete);
 
-  SetHealth(900);
+  SetHealth(300);
   SetName("Megaman");
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 

@@ -159,7 +159,7 @@ public:
 
   }
 
-  void OnCardUse(Battle::Card& card, Character& user, uint64_t timestamp=0) override {
+  void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override {
     bs.sendChipUseSignal(card.GetUUID());
   }
 };

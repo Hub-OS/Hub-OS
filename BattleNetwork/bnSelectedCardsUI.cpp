@@ -6,6 +6,7 @@
 #include "bnSelectedCardsUI.h"
 #include "bnTextureResourceManager.h"
 #include "bnInputManager.h"
+#include "bnCurrentTime.h"
 #include "bnCard.h"
 #include "bnCardAction.h"
 
@@ -153,15 +154,15 @@ void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
   curr = 0;
 }
 
-void SelectedCardsUI::UseNextCard() {
+const bool SelectedCardsUI::UseNextCard() {
   if (curr >= cardCount || player->GetComponentsDerivedFrom<CardAction>().size()) {
-    return;
+    return false;
   }
 
   // Broadcast to all subscribed CardUseListeners
-  Broadcast(*selectedCards[curr], *player);
+  Broadcast(*selectedCards[curr], *player, CurrentTime::AsMilli());
 
-  curr++;
+  return ++curr;
 }
 
 void SelectedCardsUI::Inject(BattleScene& scene) {
