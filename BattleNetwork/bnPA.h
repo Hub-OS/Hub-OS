@@ -19,11 +19,18 @@
 #include "bnCard.h"
 #include "bnWebClientMananger.h"
 
-typedef std::pair<std::string, char> PAStep; /*!< Name of card and code */
-typedef std::vector<PAStep> PASteps;         /*!< List of steps for a PA*/
-
 class PA
 {
+private: 
+  struct StepType {
+    std::string name;
+    char code;
+  }; /*!< Name of card and code */
+
+public: 
+  typedef std::vector<StepType> Steps;         /*!< List of steps for a PA*/
+
+private:
   /*! \class PAData
    *  \desc Describes the PA card and what steps it needs */
   struct PAData {
@@ -36,15 +43,7 @@ class PA
     bool canBoost{ false }; /*!< true if damage > 0*/
     bool timeFreeze{ false }; /*!< Triggers time freeze if true */
     std::vector<std::string> metaClasses; /*!< User-created class types*/
-
-    /*! \class Required
-     *  \desc The structure for matching name and code */
-    struct Required {
-      std::string cardShortName; /*!< name of card */
-      char code;                 /*!< code of card */
-    };
-
-    std::vector<Required> steps; /*!< list of steps for PA */
+    PA::Steps steps; /*!< list of steps for PA */
   };
 
   std::vector<PAData> advances; /*!< list of all PAs */
@@ -78,7 +77,7 @@ public:
    * @brief Returns the list of matching steps in the PA
    * @return const PASteps
    */
-  const PASteps GetMatchingSteps();
+  const PA::Steps GetMatchingSteps();
   
   /**
    * @brief Fetch the generated PA as a card 

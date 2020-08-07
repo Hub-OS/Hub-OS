@@ -19,6 +19,7 @@
 #include "bnRecoverCardAction.h"
 #include "bnThunderCardAction.h"
 #include "bnElecPulseCardAction.h"
+#include "bnDarkTornadoCardAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
@@ -112,6 +113,10 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
   }
   else if (name == "Tornado") {
     auto action = new TornadoCardAction(player, card.GetDamage());
+    player->QueueAction(action);
+  }
+  else if (name == "DarkTorn") {
+    auto action = new DarkTornadoCardAction(player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "ElecSwrd") {

@@ -37,6 +37,7 @@ public:
 private:
   // TODO: take mutable attr out
   mutable sf::Sprite custSprite;
+  mutable sf::Sprite custDarkCardOverlay, custMegaCardOverlay, custGigaCardOverlay;
   mutable sf::Sprite cursorSmall; // animated
   mutable sf::Sprite cursorBig;   // animated
   mutable sf::Sprite cardLock;
@@ -74,6 +75,8 @@ private:
   bool isInView; /*!< If the card cust is all the way in the player's screen */
   bool isInFormSelect; 
   bool canInteract;
+  bool isDarkCardSelected;
+  float darkCardShadowAlpha;
   int perTurn; /*!< How many cards the player can get per turn */
   CardFolder* folder; /*!< The loaded card folder. @warning Will consume and delete this resource */
   Battle::Card** selectedCards; /*!< Pointer to a list of selected cards */
@@ -198,6 +201,8 @@ public:
    */
   bool IsCardDescriptionTextBoxOpen();
   
+  const bool IsDarkCardSelected();
+
   /**
    * @brief Moves GUI by delta in screen pixels
    * @param delta offset from current position

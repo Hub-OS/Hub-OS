@@ -58,11 +58,8 @@ public:
 };
 
 template<typename Any>
-NaviWhiteoutState<Any>::NaviWhiteoutState()
-{
-    factor = 125.f;
-    fadeout = false;
-}
+NaviWhiteoutState<Any>::NaviWhiteoutState() : shine(nullptr), factor(125.f), fadeout(false)
+{ }
 
 template<typename Any>
 NaviWhiteoutState<Any>::~NaviWhiteoutState() {

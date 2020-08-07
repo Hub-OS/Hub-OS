@@ -482,7 +482,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       auto slot = folderCardSlots[view->currCardIndex];
 
       // If we have selected a new card, display the appropriate texture for its type
-      if (!slot.IsEmpty() && view->currCardIndex != view->prevIndex) {
+      if (!slot.IsEmpty() && (view->currCardIndex != view->prevIndex || view->prevIndex == 0)) {
         Battle::Card card;
         slot.GetCard(card);
 

@@ -182,6 +182,9 @@ TextureResourceManager::TextureResourceManager(void) {
 
   // Card Select 
   paths.push_back("resources/ui/card_select.png");
+  paths.push_back("resources/ui/card_select_mega_overlay.png");
+  paths.push_back("resources/ui/card_select_giga_overlay.png");
+  paths.push_back("resources/ui/card_select_dark_overlay.png");
   paths.push_back("resources/ui/card_cursor_small.png");
   paths.push_back("resources/ui/card_cursor_big.png");
   paths.push_back("resources/ui/card_nosupport.png");

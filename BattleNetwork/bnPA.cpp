@@ -27,12 +27,12 @@ void PA::RegisterPA(const PAData& entry)
   advances.push_back(entry);
 }
 
-const PASteps PA::GetMatchingSteps()
+const PA::Steps PA::GetMatchingSteps()
 {
-  PASteps result;
+  PA::Steps result;
 
   for (int i = 0; i < iter->steps.size(); i++) {
-    result.push_back(std::make_pair(iter->steps[i].cardShortName, iter->steps[i].code));
+    result.push_back(iter->steps[i]);
   }
 
   return result;
@@ -51,18 +51,20 @@ PA PA::ReadFromWebAccount(const WebAccounts::AccountState& account)
   for (auto&& pair : account.cardCombos) {
     auto entry = *pair.second;
     
-    PASteps steps;
+    PA::Steps steps;
     
     // Build the steps from each card in the entry
     for (auto&& step : entry.cards) {
       auto card = account.cards.find(step)->second;
       std::string name = account.cardProperties.find(card->modelId)->first;
-      steps.push_back(std::make_pair(name, card->code));
+      steps.push_back({ name, card->code });
     }
 
     if (steps.size() > 2) {
       // Valid combo recipe
       PAData data;
+      
+      data.steps = steps;
       data.action = entry.action;
       data.canBoost = entry.canBoost;
       data.damage = entry.damage;
@@ -93,22 +95,20 @@ const int PA::FindPA(Battle::Card ** input, unsigned size)
     bool match = false;
     
     if (iter->steps.size() > size) {
-      continue; // try next 
+      continue; // try next recipe
     }
-
 
     int index = 0;
     while (index <= (int)size - (int)iter->steps.size()) {
-      char code = input[index]->GetCode();
+      std::string name = iter->steps[0].name;
+      char code = iter->steps[0].code;
 
-      //std::cout << "iter->steps[0].code == " << iter->steps[0].code << " | iter->steps[0].cardShortName == " << iter->steps[0].cardShortName << std::endl;
-      //std::cout << "code == " << code << " | input[index]->GetShortName() == " << input[index]->GetShortName() << std::endl;
-
-      if (iter->steps[0].code == code && iter->steps[0].cardShortName == input[index]->GetShortName()) {
+      if (code == input[index]->GetCode() && name == input[index]->GetShortName()) {
         for (unsigned i = 0; i < iter->steps.size(); i++) {
-          char code = input[i + index]->GetCode();
+          std::string name_i = iter->steps[i].name;
+          char code_i = iter->steps[i].code;
 
-          if (iter->steps[i].code == code && iter->steps[i].cardShortName == input[i + index]->GetShortName()) {
+          if (code_i == input[i + index]->GetCode() && name_i == input[i + index]->GetShortName()) {
             match = true;
             // We do not break here. If it is a match all across the steps, then the for loop ends 
             // and match stays == true
@@ -132,7 +132,8 @@ const int PA::FindPA(Battle::Card ** input, unsigned size)
       // Load the PA card
       if (advanceCardRef) { delete advanceCardRef; }
 
-      advanceCardRef = new Battle::Card(WEBCLIENT.MakeBattleCardFromWebComboData(WebAccounts::CardCombo{ iter->uuid }));
+      auto fromUUID = WebAccounts::CardCombo{ iter->uuid };
+      advanceCardRef = new Battle::Card(WEBCLIENT.MakeBattleCardFromWebComboData(fromUUID));
 
       return startIndex;
     }

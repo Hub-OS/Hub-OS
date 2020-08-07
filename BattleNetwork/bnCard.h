@@ -31,16 +31,16 @@ namespace Battle {
     public:
         struct Properties {
             std::string uuid;
-            unsigned damage;
-            unsigned limit;
-            char code;
-            bool timeFreeze; /*!< Does this card rely on action items to resolve before resuming the battle scene? */
+            unsigned damage{ 0 };
+            unsigned limit{ 0 };
+            char code{ '*' };
+            bool timeFreeze{ false }; /*!< Does this card rely on action items to resolve before resuming the battle scene? */
             string shortname;
             string action; 
             string description;
             string verboseDescription;
-            Element element, secondaryElement;
-            CardClass cardClass;
+            Element element{ Element::none }, secondaryElement{ Element::none };
+            CardClass cardClass{ CardClass::standard };
             std::vector<std::string> metaClasses; /*!< Cards can be tagged with additional user information*/
         };
 
@@ -54,7 +54,11 @@ namespace Battle {
          */
         Card(const Battle::Card& copy);
 
+        /**
+         * @brief card with no data
+         */
         Card();
+
         ~Card();
 
         const Card::Properties& GetUnmoddedProps() const;

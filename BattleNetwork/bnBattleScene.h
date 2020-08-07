@@ -80,14 +80,15 @@ protected:
   Program Advance + labels
   */
   PA programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
-  PASteps paSteps; /*!< Matching steps in a PA */
+  PA::Steps paSteps; /*!< Matching steps in a PA */
   bool isPAComplete; /*!< Flag if PA state is complete */
   int hasPA; /*!< If -1, no PA found, otherwise is the start of the PA in the current card list */
   int paStepIndex; /*!< Index in the PA list */
 
   float listStepCooldown; /*!< Remaining time inbetween PA list items */
   float listStepCounter; /*!< Max time inbetween PA list items */
- 
+  float streamVolume{ -1 }; /*! Using this variable also as a state flag */
+
   sf::Sprite programAdvanceSprite; /*!< Sprite for "ProgramAdvanced" graphic */
 
   /*

@@ -81,13 +81,15 @@ public:
   void SetStreamVolume(float volume);
   void SetChannelVolume(float volume);
 
+  const float GetStreamVolume() const;
+
   AudioResourceManager();
   ~AudioResourceManager();
 
 private:
   struct Channel {
     sf::Sound buffer;
-    AudioPriority priority;
+    AudioPriority priority{ AudioPriority::lowest };
   };
 
   Channel* channels;

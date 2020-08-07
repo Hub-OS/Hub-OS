@@ -17,7 +17,9 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     isInView(false),
     isInFormSelect(false),
     playFormSound(false),
-    canInteract(true)
+    canInteract(true),
+    isDarkCardSelected(false),
+    darkCardShadowAlpha(0)
 {
     frameElapsed = 1;
     folder = _folder;
@@ -31,9 +33,19 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     emblem.setScale(2.f, 2.f);
     emblem.setPosition(194.0f, 14.0f);
 
-    custSprite = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_SELECT_MENU));
+    custSprite = sf::Sprite(*LOAD_TEXTURE(CHIP_SELECT_MENU));
     custSprite.setScale(2.f, 2.f);
     custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
+
+    custDarkCardOverlay = sf::Sprite(*LOAD_TEXTURE(CHIP_SELECT_DARK_OVERLAY));
+    custDarkCardOverlay.setScale(2.f, 2.f);
+    custDarkCardOverlay.setPosition(custSprite.getPosition());
+
+    custMegaCardOverlay = custDarkCardOverlay;
+    custMegaCardOverlay.setTexture(*LOAD_TEXTURE(CHIP_SELECT_MEGA_OVERLAY));
+
+    custGigaCardOverlay = custDarkCardOverlay;
+    custGigaCardOverlay.setTexture(*LOAD_TEXTURE(CHIP_SELECT_GIGA_OVERLAY));
 
     // TODO: fully use scene nodes on all card slots and the GUI sprite
     // AddSprite(custSprite);
@@ -260,13 +272,17 @@ bool CardSelectionCust::CursorAction() {
         else {
           // Otherwise display the remaining compatible cards...
           // Check card code. If other cards are not compatible, set their bucket state flag to 0
-          char code = queue[cursorPos + (5 * cursorRow)].data->GetCode();
+          Battle::Card* card = queue[cursorPos + (5 * cursorRow)].data;
+          char code = card->GetCode();
+          bool isDark = card->GetClass() == Battle::CardClass::dark;
 
           for (int i = 0; i < cardCount; i++) {
             if (i == cursorPos + (5 * cursorRow) || (queue[i].state == VOIDED) || queue[i].state == QUEUED) continue;
             char otherCode = queue[i].data->GetCode();
+            bool isOtherDark = queue[i].data->GetClass() == Battle::CardClass::dark;
             bool isSameCard = (queue[i].data->GetShortName() == queue[cursorPos + (5 * cursorRow)].data->GetShortName());
-            if (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard) { queue[i].state = STAGED; }
+            bool canPair = (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard);
+            if (isOtherDark == isDark && canPair) { queue[i].state = STAGED; }
             else { queue[i].state = VOIDED; }
           }
 
@@ -371,6 +387,11 @@ const bool CardSelectionCust::IsInView() {
 bool CardSelectionCust::IsCardDescriptionTextBoxOpen()
 {
   return cardDescriptionTextbox.IsOpen();
+}
+
+const bool CardSelectionCust::IsDarkCardSelected()
+{
+  return this->isDarkCardSelected && !this->IsHidden() && this->IsInView();
 }
 
 void CardSelectionCust::Move(sf::Vector2f delta) {
@@ -488,143 +509,178 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   custSprite.setPosition(-sf::Vector2f(custSprite.getTextureRect().width*2.f, 0));
   target.draw(custSprite, states);
 
+  int index = cursorPos + (5 * cursorRow);
 
-  //if (isInView) {
-    auto lastEmblemPos = emblem.getPosition();
-    emblem.setPosition(emblem.getPosition() + sf::Vector2f(offset, 0));
-    target.draw(emblem, states);
-    emblem.setPosition(lastEmblemPos);
+  if (index < cardCount) {
+    switch (this->queue[index].data->GetClass()) {
+    case Battle::CardClass::mega:
+      custMegaCardOverlay.setPosition(custSprite.getPosition());
+      target.draw(custMegaCardOverlay, states);
+      break;
+    case Battle::CardClass::giga:
+      custGigaCardOverlay.setPosition(custSprite.getPosition());
+      target.draw(custGigaCardOverlay, states);
+      break;
+    case Battle::CardClass::dark:
+      custDarkCardOverlay.setPosition(custSprite.getPosition());
+      target.draw(custDarkCardOverlay, states);
+      break;
+    }
+  }
 
-    auto x = swoosh::ease::interpolate(frameElapsed*25, offset + (double)(2.f*(16.0f + (cursorPos*16.0f))), (double)cursorSmall.getPosition().x);
-    auto y = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(113.f + (cursorRow*24.f))), (double)cursorSmall.getPosition().y);
+  auto lastEmblemPos = emblem.getPosition();
+  emblem.setPosition(emblem.getPosition() + sf::Vector2f(offset, 0));
+  target.draw(emblem, states);
+  emblem.setPosition(lastEmblemPos);
 
-    cursorSmall.setPosition((float)x, (float)y); // TODO: Make this relative to cust instead of screen. hint: scene nodes
+  auto x = swoosh::ease::interpolate(frameElapsed*25, offset + (double)(2.f*(16.0f + ((float)cursorPos*16.0f))), (double)cursorSmall.getPosition().x);
+  auto y = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(113.f + ((float)cursorRow*24.f))), (double)cursorSmall.getPosition().y);
 
-    int row = 0;
-    for (int i = 0; i < cardCount; i++) {
-      if (i > 4) {
-        row = 1;
-      }
+  cursorSmall.setPosition((float)x, (float)y); // TODO: Make this relative to cust instead of screen. hint: scene nodes
 
-      icon.setPosition(offset + 2.f*(9.0f + ((i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
-      icon.setTexture(WEBCLIENT.GetIconForCard(queue[i].data->GetUUID()));
-      icon.SetShader(nullptr);
-
-      if (queue[i].state == 0) {
-        icon.SetShader(&greyscale);
-        auto statesCopy = states;
-          statesCopy.shader = &greyscale;
-
-        target.draw(icon,statesCopy);
-
-      } else if (queue[i].state == 1) {
-        target.draw(icon, states);
-      }
-
-      smCodeLabel.setPosition(offset + 2.f*(14.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
-
-      char code = queue[i].data->GetCode();
-
-      smCodeLabel.setString(code);
-      target.draw(smCodeLabel, states);
+  int row = 0;
+  for (int i = 0; i < cardCount; i++) {
+    if (i > 4) {
+      row = 1;
     }
 
+    icon.setPosition(offset + 2.f*(9.0f + ((i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
+    icon.setTexture(WEBCLIENT.GetIconForCard(queue[i].data->GetUUID()));
     icon.SetShader(nullptr);
 
-    for (int i = 0; i < selectCount; i++) {
-      icon.setPosition(offset + 2 * 97.f, 2.f*(25.0f + (i*16.0f)));
-      icon.setTexture(WEBCLIENT.GetIconForCard((*selectQueue[i]).data->GetUUID()));
+    if (queue[i].state == 0) {
+      icon.SetShader(&greyscale);
+      auto statesCopy = states;
+        statesCopy.shader = &greyscale;
 
-      cardLock.setPosition(offset + 2 * 93.f, 2.f*(23.0f + (i*16.0f)));
-      target.draw(cardLock, states);
+      target.draw(icon,statesCopy);
+
+    } else if (queue[i].state == 1) {
       target.draw(icon, states);
     }
 
+    smCodeLabel.setPosition(offset + 2.f*(14.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
 
-    if ((cursorPos < 5 && cursorRow == 0) || (cursorPos < 3 && cursorRow == 1)) {
-      // Draw the selected card info
-      label.setFillColor(sf::Color::White);
+    char code = queue[i].data->GetCode();
 
-      if (cursorPos + (5 * cursorRow) < cardCount) {
-        // Draw the selected card card
-        cardCard.setTexture(WEBCLIENT.GetImageForCard(queue[cursorPos+(5*cursorRow)].data->GetUUID()));
+    smCodeLabel.setString(code);
+    target.draw(smCodeLabel, states);
+  }
 
-        auto lastPos = cardCard.getPosition();
-        cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
-        cardCard.SetShader(nullptr);
+  icon.SetShader(nullptr);
 
-        if (!queue[cursorPos + (5 * cursorRow)].state) {
-          cardCard.SetShader(&greyscale);
+  for (int i = 0; i < selectCount; i++) {
+    icon.setPosition(offset + 2 * 97.f, 2.f*(25.0f + (i*16.0f)));
+    icon.setTexture(WEBCLIENT.GetIconForCard((*selectQueue[i]).data->GetUUID()));
 
-          auto statesCopy = states;
-          statesCopy.shader = &greyscale;
+    cardLock.setPosition(offset + 2 * 93.f, 2.f*(23.0f + (i*16.0f)));
+    target.draw(cardLock, states);
+    target.draw(icon, states);
+  }
 
-          target.draw(cardCard, statesCopy);
 
-        } else {
-          target.draw(cardCard, states);
-        }
+  if ((cursorPos < 5 && cursorRow == 0) || (cursorPos < 3 && cursorRow == 1)) {
+    // Draw the selected card info
+    label.setFillColor(sf::Color::White);
 
-        cardCard.setPosition(lastPos);
 
-        label.setPosition(offset + 2.f*16.f, 16.f);
-        label.setString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
+    if (cursorPos + (5 * cursorRow) < cardCount) {
+      // Draw the selected card card
+      cardCard.setTexture(WEBCLIENT.GetImageForCard(queue[cursorPos+(5*cursorRow)].data->GetUUID()));
+
+      auto lastPos = cardCard.getPosition();
+      cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
+      cardCard.SetShader(nullptr);
+
+      if (!queue[cursorPos + (5 * cursorRow)].state) {
+        cardCard.SetShader(&greyscale);
+
+        auto statesCopy = states;
+        statesCopy.shader = &greyscale;
+
+        target.draw(cardCard, statesCopy);
+
+      } else {
+        target.draw(cardCard, states);
+      }
+
+      cardCard.setPosition(lastPos);
+
+      label.setPosition(offset + 2.f*16.f, 16.f);
+      label.setString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
+      target.draw(label, states);
+
+      // the order here is very important:
+      if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
+        label.setString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
+        label.setOrigin(label.getLocalBounds().width+label.getLocalBounds().left, 0);
+        label.setPosition(offset + 2.f*(70.f), 143.f);
         target.draw(label, states);
+      }
 
-        // the order here is very important:
-        if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
-          label.setString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
-          label.setOrigin(label.getLocalBounds().width+label.getLocalBounds().left, 0);
-          label.setPosition(offset + 2.f*(70.f), 143.f);
-          target.draw(label, states);
-        }
+      label.setOrigin(0, 0);
+      label.setPosition(offset + 2.f*16.f, 143.f);
+      label.setString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
+      label.setFillColor(sf::Color(225, 180, 0));
+      target.draw(label, states);
 
-        label.setOrigin(0, 0);
-        label.setPosition(offset + 2.f*16.f, 143.f);
-        label.setString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
-        label.setFillColor(sf::Color(225, 180, 0));
-        target.draw(label, states);
-
-        int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
+      int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
         
-        auto elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
-        element.setTextureRect(elementRect);
+      auto elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
+      element.setTextureRect(elementRect);
 
-        auto elementLastPos = element.getPosition();
-        element.setPosition(element.getPosition() + sf::Vector2f(offset, 0));
+      auto elementLastPos = element.getPosition();
+      element.setPosition(element.getPosition() + sf::Vector2f(offset, 0));
 
-        target.draw(element, states);
+      target.draw(element, states);
 
-        element.setPosition(elementLastPos);
-      }
-      else {
-        auto cardNoDataLastPos = cardNoData.getPosition();
-        cardNoData.setPosition(cardNoData.getPosition() + sf::Vector2f(offset, 0));
-        target.draw(cardNoData, states);
-        cardNoData.setPosition(cardNoDataLastPos);
-      }
-
-      // Draw the small cursor
-      if (!isInFormSelect) {
-        target.draw(cursorSmall, states);
-      }
+      element.setPosition(elementLastPos);
     }
     else {
-      auto cardSendDataLastPos = cardSendData.getPosition();
-      cardSendData.setPosition(cardSendData.getPosition() + sf::Vector2f(offset, 0));
-      target.draw(cardSendData, states);
-      cardSendData.setPosition(cardSendDataLastPos);
-
-      auto cursorBigLastPos = cursorBig.getPosition();
-      cursorBig.setPosition(cursorBig.getPosition() + sf::Vector2f(offset, 0));
-      target.draw(cursorBig, states);
-      cursorBig.setPosition(cursorBigLastPos);
+      auto cardNoDataLastPos = cardNoData.getPosition();
+      cardNoData.setPosition(cardNoData.getPosition() + sf::Vector2f(offset, 0));
+      target.draw(cardNoData, states);
+      cardNoData.setPosition(cardNoDataLastPos);
     }
-  //}
 
-    if (formUI.size()) {
-      target.draw(formSelect, states);
+    // Draw the small cursor
+    if (!isInFormSelect) {
+      target.draw(cursorSmall, states);
     }
+  }
+  else {
+    auto cardSendDataLastPos = cardSendData.getPosition();
+    cardSendData.setPosition(cardSendData.getPosition() + sf::Vector2f(offset, 0));
+    target.draw(cardSendData, states);
+    cardSendData.setPosition(cardSendDataLastPos);
+
+    auto cursorBigLastPos = cursorBig.getPosition();
+    cursorBig.setPosition(cursorBig.getPosition() + sf::Vector2f(offset, 0));
+    target.draw(cursorBig, states);
+    cursorBig.setPosition(cursorBigLastPos);
+  }
+
+  if (formUI.size()) {
+    target.draw(formSelect, states);
+  }
+
+  // find out if we're in view (IsInView() is non-const qualified...)
+  float bounds = custSprite.getTextureRect().width * 2.f;
+
+  if (getPosition().x == bounds) {
+    // Fade in a screen-wide shadow beneath the card if it is a dark card
+    sf::RectangleShape screen(ENGINE.GetCamera()->GetView().getSize());
+    screen.setFillColor(sf::Color(0, 0, 0, darkCardShadowAlpha * 255));
+    target.draw(screen);
+  }
+
+  // draw the dark card in on top of it so it looks brighter
+  if (isDarkCardSelected) {
+    auto lastPos = cardCard.getPosition();
+    cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
+    target.draw(cardCard, states);
+    cardCard.setPosition(lastPos);
+  }
 
   if (isInFormSelect) {
     if (formSelectAnimator.GetAnimationString() == "OPEN") {
@@ -692,12 +748,21 @@ void CardSelectionCust::Update(float elapsed)
 {
   if (IsHidden()) {
     canInteract = false;
+    isDarkCardSelected = false;
+    darkCardShadowAlpha = 0.f;
     return;
   }
 
   canInteract = true; // assume we can interact unless another flag says otherwise
 
   frameElapsed = (double)elapsed;
+
+  if (isDarkCardSelected) {
+    darkCardShadowAlpha = std::min(darkCardShadowAlpha + elapsed, 0.3f);
+  }
+  else {
+    darkCardShadowAlpha = std::max(darkCardShadowAlpha - elapsed, 0.0f);
+  }
 
   cursorSmallAnimator.Update(elapsed, cursorSmall);
   cursorBigAnimator.Update(elapsed, cursorBig);
@@ -798,6 +863,11 @@ void CardSelectionCust::Update(float elapsed)
  }
 
 #endif
+
+  if (cardCount > 0) {
+    int index = cursorPos + (5 * cursorRow);
+    isDarkCardSelected = this->queue[index].data->GetClass() == Battle::CardClass::dark;
+  }
 
   isInView = IsInView();
 }

@@ -46,6 +46,7 @@ enum AudioType {
   INVISIBLE,
   PA_ADVANCE,
   LOW_HP,
+  DARK_CARD,
   POINT_SFX,
   NEW_GAME,
   TEXT,

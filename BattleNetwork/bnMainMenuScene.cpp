@@ -205,7 +205,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         CardFolder* folder = nullptr;
 
         if (data.GetFolder(0, folder)) {
-#ifdef OBN_NETPLAY
+#ifndef OBN_NETPLAY
 
           // Get the navi we selected
           Player* player = NAVIS.At(currentNavi).GetNavi();

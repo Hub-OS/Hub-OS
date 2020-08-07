@@ -84,7 +84,7 @@ public:
     if (size <= nsize) {
       delete[] buffer;
       buffer = 0;
-      buffer = new char[nsize + 1];
+      buffer = new char[nsize + 0x0001];
       nsize = vsnprintf(buffer, size, fmt, vl);
     }
     std::string ret(buffer);

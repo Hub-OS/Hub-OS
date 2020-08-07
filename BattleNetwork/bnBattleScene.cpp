@@ -707,6 +707,21 @@ void BattleScene::onUpdate(double elapsed) {
   }
 
   cardCustGUI.Update((float)elapsed);
+
+  if (cardCustGUI.IsDarkCardSelected()) {
+    if (streamVolume == -1) {
+      streamVolume = AUDIO.GetStreamVolume();
+      AUDIO.SetStreamVolume(streamVolume/2.f);
+    }
+
+    AUDIO.Play(AudioType::DARK_CARD, AudioPriority::high);
+  }
+  else {
+    if (streamVolume != -1) {
+      AUDIO.SetStreamVolume(streamVolume);
+      streamVolume = -1.f;
+    }
+  }
 }
 
 void BattleScene::onDraw(sf::RenderTexture& surface) {

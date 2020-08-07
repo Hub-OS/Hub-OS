@@ -1140,7 +1140,7 @@ void NetworkBattleScene::sendHandshakeSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::handshake };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendShootSignal()
@@ -1148,7 +1148,7 @@ void NetworkBattleScene::sendShootSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::shoot };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendUseSpecialSignal()
@@ -1156,7 +1156,7 @@ void NetworkBattleScene::sendUseSpecialSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::special };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendChargeSignal(const bool state)
@@ -1165,7 +1165,7 @@ void NetworkBattleScene::sendChargeSignal(const bool state)
   NetPlaySignals type{ NetPlaySignals::charge };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&state, sizeof(bool));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
@@ -1174,7 +1174,7 @@ void NetworkBattleScene::sendConnectSignal(const SelectedNavi navi)
   NetPlaySignals type{ NetPlaySignals::connect };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&navi, sizeof(SelectedNavi));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendReadySignal()
@@ -1182,7 +1182,7 @@ void NetworkBattleScene::sendReadySignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::ready };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 
   if (remoteState.isRemoteReady) {
     this->isPreBattle = true;
@@ -1198,7 +1198,7 @@ void NetworkBattleScene::sendChangedFormSignal(const int form)
   NetPlaySignals type{ NetPlaySignals::form };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&form, sizeof(int));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendMoveSignal(const Direction dir)
@@ -1209,7 +1209,7 @@ void NetworkBattleScene::sendMoveSignal(const Direction dir)
   NetPlaySignals type{ NetPlaySignals::move };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&dir, sizeof(char));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendHPSignal(const int hp)
@@ -1218,7 +1218,7 @@ void NetworkBattleScene::sendHPSignal(const int hp)
   NetPlaySignals type{ NetPlaySignals::hp };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&hp, sizeof(int));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
@@ -1228,7 +1228,7 @@ void NetworkBattleScene::sendTileCoordSignal(const int x, const int y)
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&x, sizeof(int));
   buffer.append((char*)&y, sizeof(int));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendChipUseSignal(const std::string& used)
@@ -1242,7 +1242,7 @@ void NetworkBattleScene::sendChipUseSignal(const std::string& used)
   buffer.append((char*)&type, sizeof(NetPlaySignals));
   buffer.append((char*)&timestamp, sizeof(uint64_t));
   buffer.append((char*)used.data(),used.length());
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::sendLoserSignal()
@@ -1250,7 +1250,7 @@ void NetworkBattleScene::sendLoserSignal()
   Poco::Buffer<char> buffer{ 0 };
   NetPlaySignals type{ NetPlaySignals::loser };
   buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void NetworkBattleScene::recieveHandshakeSignal()
