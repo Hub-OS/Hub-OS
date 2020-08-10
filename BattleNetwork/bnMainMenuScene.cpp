@@ -122,7 +122,7 @@ void MainMenuScene::onUpdate(double elapsed) {
             Logger::Logf("You have %i folders on your account", account.folders.size());
             WEBCLIENT.CacheTextureData(account);
             data = CardFolderCollection::ReadFromWebAccount(account);
-            programAdance = PA::ReadFromWebAccount(account);
+            programAdvance = PA::ReadFromWebAccount(account);
         }
         catch (const std::runtime_error& e) {
             Logger::Logf("Could not fetch account.\nError: %s", e.what());
@@ -264,7 +264,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 #else
           using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
           AUDIO.Play(AudioType::CHIP_DESC);
-          getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdance);
+          getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdvance);
 #endif
         }
         else {

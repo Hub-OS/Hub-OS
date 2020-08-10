@@ -95,7 +95,9 @@ namespace Battle {
 
     void Card::ModDamage(int modifier)
     {
+      if (unmodded.damage != 0) {
         props.damage += modifier;
+      }
     }
 
     bool Card::Compare::operator()(const Battle::Card & lhs, const Battle::Card & rhs) const noexcept

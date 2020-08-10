@@ -100,10 +100,14 @@ public:
    */
   const bool IsEndOfMessage();
 
+  const bool IsEndOfBlock();
+
   /**
    * @brief Will remove the first line and add the next line to ensure all text fits
    */
   void ShowNextLines();
+
+  void CompleteCurrentBlock();
 
   /**
   * @brief returns the number of fitting lines in the underlyning textbox object

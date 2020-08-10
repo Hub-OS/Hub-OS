@@ -23,6 +23,7 @@ class PA
 {
 private: 
   struct StepType {
+    std::string id;
     std::string name;
     char code;
   }; /*!< Name of card and code */

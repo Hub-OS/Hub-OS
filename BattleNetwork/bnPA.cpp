@@ -55,10 +55,22 @@ PA PA::ReadFromWebAccount(const WebAccounts::AccountState& account)
     
     // Build the steps from each card in the entry
     for (auto&& step : entry.cards) {
-      auto card = account.cards.find(step)->second;
-      std::string name = account.cardProperties.find(card->modelId)->first;
-      steps.push_back({ name, card->code });
+      auto cardIter = account.cards.find(step);
+      
+      if (cardIter == account.cards.end()) continue;
+      
+      auto modelIter = account.cardProperties.find(cardIter->second->modelId);
+
+      if (modelIter == account.cardProperties.end()) continue;
+
+      auto card = cardIter->second;
+      auto model = modelIter->second;
+
+      steps.push_back({ card->id, model->name, card->code });
+      Logger::Logf("step: %s code %c", model->name, card->code);
     }
+
+    Logger::Logf("for recipe %s", entry.name.c_str());
 
     if (steps.size() > 2) {
       // Valid combo recipe
@@ -100,28 +112,24 @@ const int PA::FindPA(Battle::Card ** input, unsigned size)
 
     int index = 0;
     while (index <= (int)size - (int)iter->steps.size()) {
-      std::string name = iter->steps[0].name;
-      char code = iter->steps[0].code;
+      for (unsigned i = 0; i < iter->steps.size(); i++) {
+        char code_i = iter->steps[i].code;
+        bool isSameCode = code_i == input[i + index]->GetCode();
+        bool isWildStar = code_i == '*';
+        bool isSameCard = iter->steps[i].name == input[i + index]->GetShortName();
+        if ((isWildStar || isSameCode) && isSameCard) {
+          match = true;
+          // We do not break here. If it is a match all across the steps, then the for loop ends 
+          // and match stays == true
 
-      if (code == input[index]->GetCode() && name == input[index]->GetShortName()) {
-        for (unsigned i = 0; i < iter->steps.size(); i++) {
-          std::string name_i = iter->steps[i].name;
-          char code_i = iter->steps[i].code;
-
-          if (code_i == input[i + index]->GetCode() && name_i == input[i + index]->GetShortName()) {
-            match = true;
-            // We do not break here. If it is a match all across the steps, then the for loop ends 
-            // and match stays == true
-
-            if (startIndex == -1) {
-              startIndex = i + index;
-            }
+          if (startIndex == -1) {
+            startIndex = i + index;
           }
-          else {
-            match = false;
-            startIndex = -1;
-            break;
-          }
+        }
+        else {
+          match = false;
+          startIndex = -1;
+          break;
         }
       }
 

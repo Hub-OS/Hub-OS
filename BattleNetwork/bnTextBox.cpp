@@ -154,6 +154,20 @@ void TextBox::ShowPreviousLine() {
         lineIndex = 0;
 }
 
+void TextBox::CompleteCurrentBlock()
+{
+  int newCharIndex = message.size() - 1;
+  int lastLine = lineIndex + GetNumberOfFittingLines();
+
+  if (lastLine < this->lines.size()) {
+    newCharIndex = this->lines[lastLine]-1;
+  }
+
+  int charactersSkipped = newCharIndex - charIndex;
+  double elapsed = static_cast<double>(charactersSkipped) / this->charsPerSecond;
+  this->progress += elapsed;
+}
+
 void TextBox::SetCharactersPerSecond(const double cps) {
     charsPerSecond = cps;
 }
@@ -297,8 +311,20 @@ void TextBox::Update(const double elapsed) {
     }
 }
 
-const bool TextBox::EndOfMessage() const {
+const bool TextBox::IsEndOfMessage() const {
     return (charIndex >= message.length());
+}
+
+const bool TextBox::IsEndOfBlock() const
+{
+  int testCharIndex = message.size() - 1;
+  int lastLine = lineIndex + GetNumberOfFittingLines();
+
+  if (lastLine < this->lines.size()) {
+    testCharIndex = this->lines[lastLine] - 1;
+  }
+  
+  return charIndex >= testCharIndex;
 }
 
 void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const

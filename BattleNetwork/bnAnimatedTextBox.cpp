@@ -72,7 +72,12 @@ const bool AnimatedTextBox::HasMessage() {
 
 const bool AnimatedTextBox::IsEndOfMessage()
 {
-  return !textBox.HasMore();
+  return !textBox.HasMore() && IsEndOfBlock();
+}
+
+const bool AnimatedTextBox::IsEndOfBlock()
+{
+  return textBox.IsEndOfBlock();
 }
 
 void AnimatedTextBox::ShowNextLines()
@@ -97,6 +102,10 @@ const float AnimatedTextBox::GetFrameWidth() const
 const float AnimatedTextBox::GetFrameHeight() const
 {
   return frame.getLocalBounds().height;
+}
+
+void AnimatedTextBox::CompleteCurrentBlock() {
+  textBox.CompleteCurrentBlock();
 }
 
 void AnimatedTextBox::DequeMessage() {
@@ -157,7 +166,7 @@ void AnimatedTextBox::Update(double elapsed) {
 
       textBox.Update(elapsed*(float)textSpeed);
 
-      if (textBox.EndOfMessage() || textBox.HasMore()) {
+      if (textBox.IsEndOfMessage() || textBox.HasMore()) {
         isPaused = true;
       }
     }

@@ -93,12 +93,19 @@ void WebClientManager::InitDownloadImageHandler()
         }
     };
 
-    std::scoped_lock<std::mutex>(this->clientMutex);
+    std::scoped_lock<std::mutex> lock(this->clientMutex);
     client->SetDownloadImageHandler(callback);
 }
 
 void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account)
 {
+    std::shared_ptr<sf::Texture> comboIconTexture = std::make_shared<sf::Texture>();
+    comboIconTexture->loadFromMemory(account.comboIconData, account.comboIconDataLen);
+
+    for (auto&& combo : account.cardCombos) {
+      iconTextureCache.insert(std::make_pair(combo.first, comboIconTexture));
+    }
+
     for (auto&& card : account.cards) {
         auto&& cardModelIter = account.cardProperties.find(card.second->modelId);
 
@@ -153,6 +160,7 @@ WebClientManager::WebClientManager() {
     shutdownSignal = false;
     isConnected = false;
     isWorking = false;
+    client = nullptr;
 
     PingInterval(2000);
 

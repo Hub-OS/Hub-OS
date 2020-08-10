@@ -466,17 +466,29 @@ bool CardSelectionCust::CardDescriptionConfirmQuestion() {
 }
 
 void CardSelectionCust::GetNextCards() {
+
+  bool selectFirstDarkCard = true;
+
   for (int i = cardCount; i < cardCap; i++) {
 
     // The do-while loop ensures that only cards parsed successfully 
     // should be used in combat
     do {
       queue[i].data = folder->Next();
+      bool isDarkCard = queue[i].data->GetClass() == Battle::CardClass::dark;
 
       if (!queue[i].data) {
         // nullptr is end of list
         return;
       }
+
+      // This auto-selects the first dark card if visible
+      if (selectFirstDarkCard && isDarkCard) {
+        cursorPos = i % 5;
+        cursorRow = i / 5;
+        selectFirstDarkCard = false;
+      }
+
       // NOTE: IsCardValid() will be used for scripted cards again... for now disable the check
     } while (false /*!CHIPLIB.IsCardValid(*queue[i].data)*/);
 
@@ -511,7 +523,8 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   int index = cursorPos + (5 * cursorRow);
 
-  if (index < cardCount) {
+  // Make sure we are not selecting "OK" and we have a valid card highlighted
+  if (index < cardCount && !(cursorPos == 5 && cursorRow == 0)) {
     switch (this->queue[index].data->GetClass()) {
     case Battle::CardClass::mega:
       custMegaCardOverlay.setPosition(custSprite.getPosition());
@@ -757,11 +770,17 @@ void CardSelectionCust::Update(float elapsed)
 
   frameElapsed = (double)elapsed;
 
-  if (isDarkCardSelected) {
-    darkCardShadowAlpha = std::min(darkCardShadowAlpha + elapsed, 0.3f);
+  if (!IsInView()) {
+    darkCardShadowAlpha = 0.0f;
+    isDarkCardSelected = false;
   }
   else {
-    darkCardShadowAlpha = std::max(darkCardShadowAlpha - elapsed, 0.0f);
+    if (isDarkCardSelected) {
+      darkCardShadowAlpha = std::min(darkCardShadowAlpha + elapsed, 0.3f);
+    }
+    else {
+      darkCardShadowAlpha = std::max(darkCardShadowAlpha - elapsed, 0.0f);
+    }
   }
 
   cursorSmallAnimator.Update(elapsed, cursorSmall);
@@ -865,9 +884,17 @@ void CardSelectionCust::Update(float elapsed)
 #endif
 
   if (cardCount > 0) {
-    int index = cursorPos + (5 * cursorRow);
-    isDarkCardSelected = this->queue[index].data->GetClass() == Battle::CardClass::dark;
-  }
+    // If OK button is highlighted, we are not selecting a dark card
+    // If we are in form select, we are no selecting a dark card
+    if (cursorRow == 0 && cursorPos == 5 || isInFormSelect) {
+      isDarkCardSelected = false;
+    }
+    else {
+      // Otherwise check if we are highlighting a dark card 
+      int index = cursorPos + (5 * cursorRow);
+      isDarkCardSelected = this->queue[index].data->GetClass() == Battle::CardClass::dark;
+    }
+  } 
 
   isInView = IsInView();
 }

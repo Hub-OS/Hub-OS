@@ -116,6 +116,11 @@ public:
   void ShowPreviousLine();
 
   /**
+  * @brief Writes-out the currently unrolling line and effectively skips the animation
+  */
+  void CompleteCurrentBlock();
+
+  /**
    * @brief Change how many characters are printed per second
    * @param cps
    */
@@ -174,7 +179,9 @@ public:
    * @brief Query if the textbox has reached the end of the message
    * @return charIndex >= message.length()
    */
-  const bool EndOfMessage() const;
+  const bool IsEndOfMessage() const;
+
+  const bool IsEndOfBlock() const;
 
   /**
    * @brief Draws the textbox with correct transformations

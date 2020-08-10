@@ -240,8 +240,13 @@ void ConfigScene::onUpdate(double elapsed)
                 questionInterface->ConfirmSelection();
             }
         }
-        else if (!textbox.IsPlaying() && hasConfirmed) {
+        else if (hasConfirmed) {
+          if (!textbox.IsPlaying()) {
             questionInterface->Continue();
+          }
+          else {
+            textbox.CompleteCurrentBlock();
+          }
         }
     } else if (hasCanceled && !awaitingKey) {
       if (!isInSubmenu) {

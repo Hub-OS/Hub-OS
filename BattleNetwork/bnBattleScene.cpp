@@ -352,7 +352,7 @@ void BattleScene::FilterSupportCards(Battle::Card ** cards, int cardCount)
 {
   // Only remove the support cards in the queue. Increase the previous card damage by their support value.
   int newCardCount = cardCount;
-  Battle::Card* nonSupport = nullptr;
+  Battle::Card* card = nullptr;
 
   // Create a temp card list
   Battle::Card** newCardList = new Battle::Card*[cardCount];
@@ -360,10 +360,20 @@ void BattleScene::FilterSupportCards(Battle::Card ** cards, int cardCount)
   int j = 0;
   for (int i = 0; i < cardCount; ) {
     if (cards[i]->IsSupport()) {
-      if (nonSupport) {
+      Logger::Logf("Support card %s detected", cards[i]->GetShortName().c_str());
+
+      if (card) {
         // support cards do not modify other support cards
-        if (!nonSupport->IsSupport()) {
-          nonSupport->ModDamage(cards[i]->GetDamage());
+        if (!card->IsSupport()) {
+          int lastDamage = card->GetDamage();
+          int buff = 0;
+
+          if (cards[i]->GetShortName().substr(0, 3) == "Atk") {
+            std::string substr = cards[i]->GetShortName().substr(4, cards[i]->GetShortName().size() - 4).c_str();
+            buff = atoi(substr.c_str());
+          }
+
+          card->ModDamage(buff);
         }
       }
 
@@ -372,7 +382,7 @@ void BattleScene::FilterSupportCards(Battle::Card ** cards, int cardCount)
     }
 
     newCardList[j] = cards[i];
-    nonSupport = cards[i];
+    card = cards[i];
 
     i++;
     j++;

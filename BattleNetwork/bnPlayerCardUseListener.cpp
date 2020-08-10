@@ -103,7 +103,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
       player->GetField()->AddEntity(*fishy, tile->GetX(), tile->GetY());
     }
   }
-  else if (name == "XtrmeCnnon") {
+  else if (name == "Zeta Cannon 1") {
     auto action = new CannonCardAction(player, card.GetDamage(), CannonCardAction::Type::red);
     player->QueueAction(action);
   }

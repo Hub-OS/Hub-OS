@@ -49,7 +49,7 @@ void Question::ExecuteSelection() {
 void Question::OnUpdate(double elapsed) {
     Question::elapsed = elapsed;;
 
-    isQuestionReady = !GetTextBox()->IsPlaying() && GetTextBox()->IsEndOfMessage();
+    isQuestionReady = GetTextBox()->IsEndOfMessage();
 
     Message::OnUpdate(elapsed);
 

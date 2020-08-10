@@ -44,7 +44,7 @@ std::string FolderEditScene::FormatCardDesc(const std::string && desc)
       wordIndex = -1;
     }
 
-    if (perLine > 0 && perLine % 9 == 0) {
+    if (perLine > 0 && perLine % 10 == 0) {
       if (wordIndex > -1) {
         if (index == wordIndex + 9) {
           wordIndex = index; // We have no choice but to cut off part of this lengthy word

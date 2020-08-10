@@ -79,7 +79,7 @@ protected:
   /*
   Program Advance + labels
   */
-  PA programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
+  PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
   PA::Steps paSteps; /*!< Matching steps in a PA */
   bool isPAComplete; /*!< Flag if PA state is complete */
   int hasPA; /*!< If -1, no PA found, otherwise is the start of the PA in the current card list */
