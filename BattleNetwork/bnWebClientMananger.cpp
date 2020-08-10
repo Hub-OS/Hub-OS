@@ -103,10 +103,11 @@ void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account
     // assert(client);
 
     std::shared_ptr<sf::Texture> comboIconTexture = std::make_shared<sf::Texture>();
-    comboIconTexture->loadFromMemory(client->GetServerSettings().comboIconData, client->GetServerSettings().comboIconDataLen);
-
-    for (auto&& combo : account.cardCombos) {
-      iconTextureCache.insert(std::make_pair(combo.first, comboIconTexture));
+    
+    if (comboIconTexture->loadFromMemory(client->GetServerSettings().comboIconData, client->GetServerSettings().comboIconDataLen)) {
+      for (auto&& combo : account.cardCombos) {
+        iconTextureCache.insert(std::make_pair(combo.first, comboIconTexture));
+      }
     }
 
     for (auto&& card : account.cards) {
@@ -228,7 +229,7 @@ std::future<bool> WebClientManager::SendLoginCommand(const char * username, cons
         promise->set_value(result);
     };
 
-    std::scoped_lock<std::mutex>(this->clientMutex);
+    std::scoped_lock<std::mutex> lock(this->clientMutex);
 
     taskQueue.emplace(task);
 
@@ -255,7 +256,7 @@ std::future<bool> WebClientManager::SendLogoutCommand()
         promise->set_value(!client->IsLoggedIn());
     };
 
-    std::scoped_lock<std::mutex>(this->clientMutex);
+    std::scoped_lock<std::mutex> lock(this->clientMutex);
 
     taskQueue.emplace(task);
 
@@ -370,7 +371,7 @@ const Battle::Card WebClientManager::MakeBattleCardFromWebComboData(const WebAcc
   if (comboIter != account.cardCombos.end()) {
     auto combo = comboIter->second;
 
-    props.uuid = "PA:"+combo->id; // prefix with a unique way of referencing this type of card
+    props.uuid = combo->id; // prefix with a unique way of referencing this type of card
     props.code = '*'; // Doesn't matter really
     props.shortname = combo->name;
     props.action = combo->action;

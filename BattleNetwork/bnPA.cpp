@@ -67,10 +67,7 @@ PA PA::ReadFromWebAccount(const WebAccounts::AccountState& account)
       auto model = modelIter->second;
 
       steps.push_back({ card->id, model->name, card->code });
-      Logger::Logf("step: %s code %c", model->name, card->code);
     }
-
-    Logger::Logf("for recipe %s", entry.name.c_str());
 
     if (steps.size() > 2) {
       // Valid combo recipe
@@ -113,8 +110,8 @@ const int PA::FindPA(Battle::Card ** input, unsigned size)
     int index = 0;
     while (index <= (int)size - (int)iter->steps.size()) {
       for (unsigned i = 0; i < iter->steps.size(); i++) {
-        char code_i = iter->steps[i].code;
-        bool isSameCode = code_i == input[i + index]->GetCode();
+        char code_i = input[i + index]->GetCode();
+        bool isSameCode = code_i == iter->steps[i].code;
         bool isWildStar = code_i == '*';
         bool isSameCard = iter->steps[i].name == input[i + index]->GetShortName();
         if ((isWildStar || isSameCode) && isSameCard) {

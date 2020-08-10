@@ -7,7 +7,14 @@
 using namespace std;
 
 URL::URL(const string& url_s) : host(), path(), query(), protocol(), port() {
-    parse(url_s);
+  std::string url = url_s;
+
+  // assume http:// if no protocol included
+  if (url.find("://") == std::string::npos) {
+    url = "http://" + url;
+  }
+  
+  parse(url);
 }
 
 const std::string& URL::GetProtocol() const

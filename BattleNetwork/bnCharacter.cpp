@@ -1,5 +1,6 @@
 #include "bnCharacter.h"
 #include "bnDefenseRule.h"
+#include "bnDefenseSuperArmor.h"
 #include "bnSpell.h"
 #include "bnTile.h"
 #include "bnField.h"
@@ -284,34 +285,47 @@ void Character::ResolveFrameBattleDamage()
         props.flags &= ~Hit::drag;
       }
 
-      bool hadStun = false;
-
-      // Stun can be canceled by non-stun hits or queued if dragging
+      /**
+      While an attack that only flinches will not cancel stun, 
+      an attack that both flinches and flashes will cancel stun. 
+      This applies if the entity doesn't have SuperArmor installed. 
+      If they do have armor, stun isn't cancelled.
+      
+      This effect is requeued for another frame if currently dragging
+      */
       if ((props.flags & Hit::stun) == Hit::stun) {
         if (postDragDir != Direction::none) {
           // requeue these statuses if in the middle of a slide
           append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
         }
         else {
-          // refresh stun
-          stunCooldown = 3.0;
-          hadStun = true;
+          bool hasSuperArmor = false;
+          
+          for (auto&& d : this->defenses) {
+            hasSuperArmor = hasSuperArmor || dynamic_cast<DefenseSuperArmor*>(d);
+          }
+
+          if ((props.flags & Hit::flinch) == Hit::flinch && !hasSuperArmor) {
+            // cancel stun
+            stunCooldown = 0.0;
+          }
+          else {
+            // refresh stun
+            stunCooldown = 3.0;
+          }
         }
       }
 
       // exclude this from the next processing step
       props.flags &= ~Hit::stun;
 
-      // Flinch is ignored if already flinching or stunned (super armor equivalent)
-      // and can be queued if dragging this frame
-      if ((props.flags & Hit::flinch) == Hit::flinch && !hadStun) {
+      // Flinch can be queued if dragging this frame
+      if ((props.flags & Hit::flinch) == Hit::flinch) {
         if (postDragDir != Direction::none) {
           append.push({ 0, props.flags, Element::none, nullptr, Direction::none });
         }
         else {
-          if (invincibilityCooldown <= 0.0) {
-            invincibilityCooldown = 2.0;
-          }
+          invincibilityCooldown = 2.0; // used as a `flinch` status timer
         }
       }
 
