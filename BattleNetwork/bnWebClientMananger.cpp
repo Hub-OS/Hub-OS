@@ -99,8 +99,11 @@ void WebClientManager::InitDownloadImageHandler()
 
 void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account)
 {
+    // NOTE: By this step, the client should be valid and non-null ptr
+    // assert(client);
+
     std::shared_ptr<sf::Texture> comboIconTexture = std::make_shared<sf::Texture>();
-    comboIconTexture->loadFromMemory(account.comboIconData, account.comboIconDataLen);
+    comboIconTexture->loadFromMemory(client->GetServerSettings().comboIconData, client->GetServerSettings().comboIconDataLen);
 
     for (auto&& combo : account.cardCombos) {
       iconTextureCache.insert(std::make_pair(combo.first, comboIconTexture));
