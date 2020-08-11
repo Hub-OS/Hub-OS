@@ -97,11 +97,22 @@ void MainMenuScene::onStart() {
   // Set the camera back to ours
   ENGINE.SetCamera(camera);
 
-  Logger::Log("Fetching account data...");
+  if (WEBCLIENT.IsLoggedIn()) {
+    Logger::Log("Fetching account data...");
 
-  accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
+    accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
 
-  Logger::Log("waiting for server...");
+    Logger::Log("waiting for server...");
+  }
+  else {
+    WebAccounts::AccountState account;
+    if (WEBCLIENT.LoadSession("test_save.bin", &account)) {
+      WEBCLIENT.UseCachedAccount(account);
+      WEBCLIENT.CacheTextureData(account);
+      data = CardFolderCollection::ReadFromWebAccount(account);
+      programAdvance = PA::ReadFromWebAccount(account);
+    }
+  }
 
 #ifdef __ANDROID__
   StartupTouchControls();
@@ -116,13 +127,14 @@ void MainMenuScene::onUpdate(double elapsed) {
         return; // keep the screen looking the same when we come back
     #endif
 
-    if (accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
+    if (WEBCLIENT.IsLoggedIn() && accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
         try {
             const WebAccounts::AccountState& account = accountCommandResponse.get();
             Logger::Logf("You have %i folders on your account", account.folders.size());
             WEBCLIENT.CacheTextureData(account);
             data = CardFolderCollection::ReadFromWebAccount(account);
             programAdvance = PA::ReadFromWebAccount(account);
+            WEBCLIENT.SaveSession("test_save.bin");
         }
         catch (const std::runtime_error& e) {
             Logger::Logf("Could not fetch account.\nError: %s", e.what());

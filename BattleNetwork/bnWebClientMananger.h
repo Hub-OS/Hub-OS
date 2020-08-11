@@ -58,6 +58,9 @@ public:
     const std::string& GetUserName() const;
 
     void CacheTextureData(const WebAccounts::AccountState& account);
+    void SaveSession(const std::string& inpath);
+    const bool LoadSession(const std::string& outpath, WebAccounts::AccountState* accountPtr);
+    void UseCachedAccount(const WebAccounts::AccountState& account);
     void ShutdownAllTasks();
 };
 

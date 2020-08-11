@@ -475,12 +475,13 @@ void CardSelectionCust::GetNextCards() {
     // should be used in combat
     do {
       queue[i].data = folder->Next();
-      bool isDarkCard = queue[i].data->GetClass() == Battle::CardClass::dark;
 
       if (!queue[i].data) {
         // nullptr is end of list
         return;
       }
+
+      bool isDarkCard = queue[i].data->GetClass() == Battle::CardClass::dark;
 
       // This auto-selects the first dark card if visible
       if (selectFirstDarkCard && isDarkCard) {

@@ -194,6 +194,8 @@ int main(int argc, char** argv) {
 
             WEBCLIENT.ConnectToWebServer(version.data(), URL.data(), port);
 
+//#define LOGIN
+#ifdef LOGIN
             auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
 
             Logger::Logf("waiting for server...");
@@ -218,6 +220,7 @@ int main(int argc, char** argv) {
                     Logger::Logf("Could not authenticate. Aborting automatic login");
                 }
             }
+#endif
         }
     }
 
