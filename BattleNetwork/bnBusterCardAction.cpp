@@ -8,8 +8,9 @@
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
-BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment2, "Buster"), 
-attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
+BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage) 
+  : CardAction(owner, "PLAYER_SHOOTING", &attachment2, "Buster")
+{
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 

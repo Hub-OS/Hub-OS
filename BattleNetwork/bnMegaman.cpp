@@ -4,6 +4,7 @@
 #include "bnCrackShotCardAction.h"
 #include "bnFireBurnCardAction.h"
 #include "bnTornadoCardAction.h"
+#include "bnLightningCardAction.h"
 #include "bnCardAction.h"
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
@@ -409,7 +410,7 @@ void ElecCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* ElecCross::OnChargedBusterAction(Player& player)
 {
-  return new FireBurnCardAction(&player, FireBurn::Type::_2, 60);
+  return new LightningCardAction(&player, 50);
 }
 
 CardAction* ElecCross::OnSpecialAction(Player& player)

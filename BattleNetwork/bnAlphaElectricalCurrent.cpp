@@ -17,6 +17,7 @@ AlphaElectricCurrent::AlphaElectricCurrent(Field* field, Team team, int count) :
   auto props = Hit::DefaultProperties;
   props.flags |= Hit::flinch;
   props.damage = 100;
+  props.element = Element::elec;
   SetHitboxProperties(props);
 }
 
