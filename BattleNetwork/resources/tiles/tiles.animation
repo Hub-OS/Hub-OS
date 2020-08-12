@@ -1,4 +1,4 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/tiles/tile_atlas_red.png"
+imagePath="tile_atlas_red.png"
 
 animation state="row_1_normal"
 frame duration="1" x="0" y="0" w="40" h="30" originx="0" originy="0"

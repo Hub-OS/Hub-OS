@@ -1,3 +1,9 @@
+# Installation
+Numpy and Pillow python libraries are required
+
+`pip install numpy`
+`pip install Pillow` aka PIL
+
 # Instructions
 Run `python dump_palette.py base_megaman_with_new_colors.png 256`
 

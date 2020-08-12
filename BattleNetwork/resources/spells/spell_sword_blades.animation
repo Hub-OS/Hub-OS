@@ -1,4 +1,4 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/spell_sword_blades.png"
+imagePath="spell_sword_blades.png"
 
 animation state="DEFAULT"
 frame duration="0.05" x="1" y="23" w="27" h="23" originx="2" originy="7"

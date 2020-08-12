@@ -1,0 +1,35 @@
+imagePath="elec_cross.png"
+
+animation state="PLAYER_IDLE"
+frame duration="0.01" x="13" y="2" w="36" h="36" originx="25" originy="14"
+
+animation state="PLAYER_HIT"
+frame duration="0.2" x="8" y="79" w="41" h="43" originx="17" originy="11"
+frame duration="0.02" x="276" y="45" w="37" h="31" originx="25" originy="14"
+
+animation state="PLAYER_MOVING"
+frame duration="0.07" x="12" y="181" w="38" h="40" originx="26" originy="15"
+frame duration="0.02" x="57" y="179" w="36" h="37" originx="25" originy="15"
+frame duration="0.02" x="102" y="174" w="35" h="45" originx="24" originy="17"
+
+animation state="PLAYER_MOVED"
+frame duration="0.02" x="147" y="171" w="38" h="37" originx="24" originy="15"
+frame duration="0.02" x="102" y="175" w="35" h="38" originx="24" originy="16"
+frame duration="0.02" x="57" y="180" w="36" h="37" originx="25" originy="14"
+frame duration="0.05" x="13" y="182" w="36" h="36" originx="25" originy="14"
+
+animation state="PLAYER_SWORD"
+frame duration="0.05" x="53" y="226" w="41" h="33" originx="26" originy="16"
+frame duration="0.15" x="99" y="223" w="37" h="36" originx="27" originy="17"
+frame duration="0.15" x="145" y="224" w="34" h="36" originx="25" originy="20"
+
+animation state="PLAYER_SHOOTING"
+frame duration="0.05" x="9" y="646" w="31" h="33" originx="25" originy="15"
+frame duration="0.05" x="45" y="646" w="31" h="33" originx="25" originy="15"
+frame duration="0.05" x="81" y="646" w="31" h="33" originx="25" originy="15"
+
+animation state="PLAYER_THROW"
+frame duration="0.05" x="10" y="266" w="46" h="38" originx="24" originy="10"
+frame duration="0.05" x="63" y="264" w="33" h="39" originx="24" originy="17"
+frame duration="0.05" x="99" y="265" w="53" h="36" originx="31" originy="19"
+frame duration="0.05" x="156" y="269" w="42" h="37" originx="30" originy="17"

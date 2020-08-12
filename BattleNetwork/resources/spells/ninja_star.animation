@@ -1,0 +1,10 @@
+imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/spells/ninja_star_atlas.png"
+
+animation state="DEFAULT"
+frame duration="0.05" x="0" y="0" w="35" h="36" originx="18" originy="18"
+
+animation state="GROUNDED"
+frame duration="0.05" x="38" y="0" w="35" h="36" originx="19" originy="18"
+frame duration="0.05" x="78" y="0" w="35" h="36" originx="18" originy="18"
+frame duration="0.05" x="119" y="0" w="35" h="36" originx="18" originy="18"
+frame duration="0.05" x="159" y="0" w="35" h="36" originx="18" originy="18"

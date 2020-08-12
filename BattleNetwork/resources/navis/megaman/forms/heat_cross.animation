@@ -1,4 +1,4 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/navis/megaman/forms/heat_cross.png"
+imagePath="heat_cross.png"
 
 animation state="PLAYER_IDLE"
 frame duration="0.01" x="7" y="8" w="34" h="36" originx="23" originy="14"

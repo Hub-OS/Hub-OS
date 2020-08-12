@@ -1,4 +1,4 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/spells/artifact_impact_fx.png"
+imagePath="artifact_impact_fx.png"
 
 animation state="YELLOW"
 frame duration="0.05" x="7" y="9" w="33" h="34" originx="16" originy="17"
@@ -28,7 +28,7 @@ frame duration="0.05" x="116" y="60" w="30" h="31" originx="15" originy="15"
 
 animation state="THIN"
 frame duration="0.05" x="136" y="12" w="34" h="31" originx="17" originy="15"
-frame duration="0.05" x="174" y="9" w="38" h="35" originx="19" originy="16"
+frame duration="0.05" x="174" y="9" w="38" h="35" originx="19" originy="17"
 frame duration="0.05" x="215" y="6" w="43" h="44" originx="21" originy="21"
-frame duration="0.05" x="264" y="6" w="46" h="45" originx="23" originy="20"
-frame duration="0.05" x="316" y="5" w="48" h="46" originx="25" originy="22"
+frame duration="0.05" x="264" y="5" w="46" h="45" originx="23" originy="22"
+frame duration="0.05" x="316" y="5" w="48" h="46" originx="24" originy="22"
