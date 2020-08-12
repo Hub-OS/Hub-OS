@@ -95,6 +95,8 @@ const int Mob::GetMobCount() {
 }
 
 void Mob::Forget(Character& character) {
+  if (spawn.empty()) return;
+
   auto forgetIter = spawn.begin();
   while(forgetIter != spawn.end()) {
     if ((*forgetIter)->mob == &character) {

@@ -80,3 +80,19 @@ private:
   Animation overlayAnimation;
   SpriteProxyNode* overlay;
 };
+
+class ElecCross : public PlayerForm {
+public:
+  ElecCross();
+  ~ElecCross();
+  void OnUpdate(float elapsed, Player&);
+  void OnActivate(Player& player);
+  void OnDeactivate(Player& player);
+  CardAction* OnChargedBusterAction(Player&);
+  CardAction* OnSpecialAction(Player&);
+private:
+  bool loaded;
+  AnimationComponent* parentAnim;
+  Animation overlayAnimation;
+  SpriteProxyNode* overlay;
+};

@@ -22,6 +22,7 @@ Megaman::Megaman() : Player() {
 
   AddForm<TenguCross>()->SetUIPath("resources/navis/megaman/forms/tengu_entry.png");
   AddForm<HeatCross>()->SetUIPath("resources/navis/megaman/forms/heat_entry.png");
+  AddForm<ElecCross>()->SetUIPath("resources/navis/megaman/forms/elec_entry.png");
   AddForm<TomahawkCross>()->SetUIPath("resources/navis/megaman/forms/hawk_entry.png");
 }
 
@@ -87,7 +88,7 @@ void TenguCross::OnActivate(Player& player)
 
   loaded = true;
 
-  OnUpdate(0.01f, player);
+  OnUpdate(0, player);
 
   player.AddNode(overlay);
 
@@ -161,7 +162,7 @@ void HeatCross::OnActivate(Player& player)
 
   loaded = true;
 
-  OnUpdate(0.01f, player);
+  OnUpdate(0, player);
   player.AddNode(overlay);
 
   parentAnim->AddToOverrideList(&overlayAnimation);
@@ -207,7 +208,6 @@ CardAction* HeatCross::OnSpecialAction(Player& player)
 
 // TOMAHAWK CROSS
 
-
 TomahawkCross::TomahawkCross()
 {
   parentAnim = nullptr;
@@ -236,7 +236,7 @@ void TomahawkCross::OnActivate(Player& player)
 
   loaded = true;
 
-  OnUpdate(0.01f, player);
+  OnUpdate(0, player);
   player.AddNode(overlay);
 
   parentAnim->AddToOverrideList(&overlayAnimation);
@@ -338,4 +338,81 @@ void TenguCross::SpecialAction::EndAction()
   GetOwner()->RemoveNode(attachment);
   GetOwner()->FreeComponentByID(GetID());
   delete this;
+}
+
+
+// ELEC CROSS
+
+ElecCross::ElecCross()
+{
+  parentAnim = nullptr;
+  loaded = false;
+}
+
+ElecCross::~ElecCross()
+{
+  delete overlay;
+}
+
+void ElecCross::OnActivate(Player& player)
+{
+  overlayAnimation = Animation("resources/navis/megaman/forms/elec_cross.animation");
+  overlayAnimation.Load();
+  auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/elec_cross.png");
+  overlay = new SpriteProxyNode();
+  overlay->setTexture(cross);
+  overlay->SetLayer(-1);
+  overlay->EnableParentShader(false);
+
+  parentAnim = player.GetFirstComponent<AnimationComponent>();
+  auto pswap = player.GetFirstComponent<PaletteSwap>();
+
+  pswap->LoadPaletteTexture("resources/navis/megaman/forms/elec.palette.png");
+
+  player.SetElement(Element::elec);
+
+  loaded = true;
+
+  OnUpdate(0, player);
+  player.AddNode(overlay);
+
+  parentAnim->AddToOverrideList(&overlayAnimation);
+
+}
+
+void ElecCross::OnDeactivate(Player& player)
+{
+  player.RemoveNode(overlay);
+  auto pswap = player.GetFirstComponent<PaletteSwap>();
+  pswap->Revert();
+
+  player.SetElement(Element::none);
+
+  parentAnim->RemoveFromOverrideList(&overlayAnimation);
+
+}
+
+void ElecCross::OnUpdate(float elapsed, Player& player)
+{
+  overlay->setColor(player.getColor());
+
+  parentAnim->SyncAnimation(overlayAnimation);
+  overlayAnimation.Refresh(overlay->getSprite());
+
+  // update node position in the animation
+  auto baseOffset = parentAnim->GetPoint("Head");
+  auto origin = player.getSprite().getOrigin();
+  baseOffset = baseOffset - origin;
+
+  overlay->setPosition(baseOffset);
+}
+
+CardAction* ElecCross::OnChargedBusterAction(Player& player)
+{
+  return new FireBurnCardAction(&player, FireBurn::Type::_2, 60);
+}
+
+CardAction* ElecCross::OnSpecialAction(Player& player)
+{
+  return nullptr;
 }

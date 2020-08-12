@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnBasicSword.h"
+#include "bnSwordEffect.h"
 
 #define PATH "resources/spells/spell_sword_blades.png"
 #define ANIM "resources/spells/spell_sword_blades.animation"
@@ -83,7 +84,12 @@ void SwordCardAction::Execute() {
 
 void SwordCardAction::OnSpawnHitbox()
 {
-  BasicSword* b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  auto field = GetOwner()->GetField();
+
+  SwordEffect* e = new SwordEffect(field);
+  field->AddEntity(*e, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+
+  BasicSword* b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
   props.aggressor = GetOwnerAs<Character>();
 
@@ -91,7 +97,7 @@ void SwordCardAction::OnSpawnHitbox()
 
   AUDIO.Play(AudioType::SWORD_SWING);
 
-  GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+  field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 }
 
 void SwordCardAction::SetElement(Element elem)

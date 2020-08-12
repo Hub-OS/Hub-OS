@@ -4,6 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnBasicSword.h"
+#include "bnSwordEffect.h"
 
 WideSwordCardAction::WideSwordCardAction(Character * owner, int damage) : SwordCardAction(owner, damage) {
   WideSwordCardAction::damage = damage;
@@ -15,19 +16,25 @@ WideSwordCardAction::~WideSwordCardAction()
 
 void WideSwordCardAction::OnSpawnHitbox()
 {
-  BasicSword* b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  auto field = GetOwner()->GetField();
+
+  SwordEffect* e = new SwordEffect(field);
+  e->SetAnimation("WIDE");
+  field->AddEntity(*e, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+
+  BasicSword* b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
   props.aggressor = GetOwnerAs<Character>();
   b->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::SWORD_SWING);
-  GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+  field ->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 
-  b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   b->SetHitboxProperties(props);
-  GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() + 1);
+  field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() + 1);
 
-  b = new BasicSword(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+  b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   b->SetHitboxProperties(props);
-  GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() - 1);
+  field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() - 1);
 }
