@@ -59,12 +59,14 @@ void LightningCardAction::Execute() {
     int col = GetOwner()->GetTile()->GetX();
     int row = GetOwner()->GetTile()->GetY();
 
-    for (int i = 1; i < 5; i++) {
+    for (int i = 1; i < 6; i++) {
       auto hitbox = new Hitbox(field, team, LightningCardAction::damage);
       hitbox->HighlightTile(Battle::Tile::Highlight::solid);
       auto props = hitbox->GetHitboxProperties();
       props.aggressor = GetOwnerAs<Character>();
       props.damage = LightningCardAction::damage;
+      props.element = Element::elec;
+      props.flags |= Hit::stun;
       hitbox->SetHitboxProperties(props);
       field->AddEntity(*hitbox, col + i, row);
     }
@@ -93,6 +95,7 @@ void LightningCardAction::OnUpdate(float _elapsed)
 
 void LightningCardAction::EndAction()
 {
+  anim->CancelCallbacks();
   attachment->RemoveNode(attack);
   delete attack;
 

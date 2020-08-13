@@ -815,7 +815,7 @@ void CardSelectionCust::Update(float elapsed)
       cursorPos = cursorRow = formCursorRow = 0;
       if (!playFormSound) {
         playFormSound = true;
-        AUDIO.Play(AudioType::PA_ADVANCE);
+        AUDIO.Play(AudioType::PA_ADVANCE, AudioPriority::highest);
       }
     }
   }

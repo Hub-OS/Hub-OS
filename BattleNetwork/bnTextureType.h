@@ -18,6 +18,8 @@ enum TextureType {
   NAVI_FORTE_ATLAS,
 
   //Mobs
+  MOB_NAME_BACKDROP,
+  MOB_NAME_EDGE,
   MOB_MOVE,
   MOB_EXPLOSION,
   MOB_BOSS_SHINE,

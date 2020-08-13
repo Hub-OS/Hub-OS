@@ -109,6 +109,8 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/navis/forte/navi_forte_atlas.png");
 
   // Mobs
+  paths.push_back("resources/ui/mob_name_backdrop.png");
+  paths.push_back("resources/ui/mob_name_backdrop_edge.png");
   paths.push_back("resources/mobs/mob_move.png");
   paths.push_back("resources/mobs/mob_explosion.png");
   paths.push_back("resources/mobs/boss_shine.png");

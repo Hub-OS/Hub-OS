@@ -171,6 +171,7 @@ protected:
 
   // MOB
   std::shared_ptr<sf::Font> mobFont; /*!< Name of mob font */
+  sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   Mob* mob; /*!< Mob and mob data player are fighting against */
 
   // States. TODO: Abstract this further into battle state classes 
