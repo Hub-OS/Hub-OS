@@ -23,7 +23,7 @@ include_directories(extern/Swoosh/src)
 include_directories(extern/lua)
 
 add_subdirectory(extern/SFML)
-add_subdirectory(extern/WebApi)
+add_subdirectory(extern/WebAPI)
 
 file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
         "BattleNetwork/*.h"
