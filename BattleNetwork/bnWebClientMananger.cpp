@@ -16,7 +16,7 @@ void WebClientManager::PingThreadHandler()
         }
         else {
             isConnected = client->IsOK();
-        }      
+        }
 
         lock.unlock();
 
@@ -103,7 +103,7 @@ void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account
     // assert(client);
 
     std::shared_ptr<sf::Texture> comboIconTexture = std::make_shared<sf::Texture>();
-    
+
     if (comboIconTexture->loadFromMemory(client->GetServerSettings().comboIconData, client->GetServerSettings().comboIconDataLen)) {
       for (auto&& combo : account.cardCombos) {
         iconTextureCache.insert(std::make_pair(combo.first, comboIconTexture));
@@ -138,7 +138,7 @@ void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account
             textureObject = LOAD_TEXTURE(CHIP_MISSINGDATA);
             cardTextureCache.insert(std::make_pair(card.first,textureObject));
         }
-        
+
         textureObject = std::make_shared<sf::Texture>(); // point to new texture
 
         imageSucceeded = (iconDataLen > 0);
@@ -221,7 +221,7 @@ void WebClientManager::SaveSession(const std::string& outpath)
         out.write(card.c_str(), card_id_len);
       }
     }
-    
+
     // Card properties
     size_t card_props_list_len = this->account.cardProperties.size();
     out.write((char*)&card_props_list_len, sizeof(size_t));
@@ -262,7 +262,7 @@ void WebClientManager::SaveSession(const std::string& outpath)
       auto codes = props->codes;
       size_t codes_len = codes.size();
       out.write((char*)&codes_len, sizeof(size_t));
-      
+
       for (auto&& code : codes) {
         out.write((char*)&code, 1);
       }
@@ -902,8 +902,8 @@ const Battle::Card WebClientManager::MakeBattleCardFromWebComboData(const WebAcc
     props.shortname = combo->name;
     props.action = combo->action;
     props.damage = combo->damage;
-    props.description = 'N/A'; // combos do not have descriptions
-    props.verboseDescription = 'N/A'; // combos do not have descriptions
+    props.description = "N/A"; // combos do not have descriptions
+    props.verboseDescription = "N/A"; // combos do not have descriptions
     props.element = GetElementFromStr(combo->element);
     props.secondaryElement = GetElementFromStr(combo->secondaryElement);
     props.limit = 1; // Doesn't matter

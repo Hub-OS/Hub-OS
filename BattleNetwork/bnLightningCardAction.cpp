@@ -14,8 +14,8 @@
 #define LIGHTNING_IMG "resources/spells/spell_lightning.png"
 #define LIGHTNING_ANI "resources/spells/spell_lightning.animation"
 
-LightningCardAction::LightningCardAction(Character * owner, int damage) 
-  : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster") 
+LightningCardAction::LightningCardAction(Character * owner, int damage)
+  : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster")
 {
   LightningCardAction::damage = damage;
 

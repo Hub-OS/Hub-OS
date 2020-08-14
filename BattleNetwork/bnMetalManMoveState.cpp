@@ -44,7 +44,7 @@ void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
   if (moved) {
     metal.AdoptNextTile();
 
-    auto onFinish = [this, m = &metal]() { 
+    auto onFinish = [this, m = &metal]() {
       m->FinishMove();
         m->GoToNextState();
     };

@@ -4,7 +4,14 @@
 #include <algorithm>
 #include <cctype>
 #include <functional>
+
 using namespace std;
+
+namespace {
+    char tolower_char(char c) {
+        return std::tolower(c);
+    }
+}
 
 URL::URL(const string& url_s) : host(), path(), query(), protocol(), port() {
   std::string url = url_s;
@@ -13,7 +20,7 @@ URL::URL(const string& url_s) : host(), path(), query(), protocol(), port() {
   if (url.find("://") == std::string::npos) {
     url = "http://" + url;
   }
-  
+
   parse(url);
 }
 
@@ -47,13 +54,13 @@ void URL::parse(const string& url_s)
     const string prot_end("://");
     string::const_iterator prot_i = search(url_s.begin(), url_s.end(), prot_end.begin(), prot_end.end());
     protocol.reserve(distance(url_s.begin(), prot_i));
-    transform(url_s.begin(), prot_i, back_inserter(protocol),tolower); // protocol is icase
+    transform(url_s.begin(), prot_i, back_inserter(protocol), &::tolower_char); // protocol is icase
     if (prot_i == url_s.end())
         return;
     advance(prot_i, prot_end.length());
     string::const_iterator path_i = find(prot_i, url_s.end(), '/');
     host.reserve(distance(prot_i, path_i));
-    transform(prot_i, path_i, back_inserter(host), tolower); // host is icase
+    transform(prot_i, path_i, back_inserter(host), &::tolower_char); // host is icase
     string::const_iterator query_i = find(path_i, url_s.end(), '?');
     path.assign(path_i, query_i);
     if (query_i != url_s.end())

@@ -11,12 +11,12 @@
 #include "bnMobHealthUI.h"
 
 /*! \brief This class handles the semantics of spawning a special character type.
- * 
+ *
  * \class SpawnPolicy<T>
- * 
+ *
  * For custom spawning, inherit from this class.
  *
- * Examples: Boss spawner (Alpha has many pieces that need to know about eachother) or 
+ * Examples: Boss spawner (Alpha has many pieces that need to know about eachother) or
  *           CardSpawner (enemy equiped with a card and CardUIComponent at start)
  */
 template<class T>
@@ -40,7 +40,7 @@ protected:
   /**
    * @brief Assigns the intro callback functor
    * @param intro Callback functor
-   * 
+   *
    * Describes how the entity should behave during the intro animation
    */
   void SetIntroCallback(SpawnStateCallback intro) {
@@ -50,7 +50,7 @@ protected:
   /**
    * @brief Assigns the pre-battle callback functor
    * @param ready Callback functor
-   * 
+   *
    * Describes how the entity should behave after all entities are spawned
    */
   void SetReadyCallback(SpawnStateCallback ready) {
@@ -64,35 +64,35 @@ public:
    */
   SpawnPolicy(Mob& mob) { ; }
   virtual ~SpawnPolicy() { ; }
-  
+
   /**
    * @brief Returns the spawned entity
    * @return T*
    */
-  virtual T* GetSpawned() { return generate; }
+  T* GetSpawned() { return generate; }
 
   /**
    * @brief Get the intro functor
    * @return intro functor
    */
-  virtual SpawnStateCallback& GetIntroCallback() { return intro; }
-  
+  SpawnStateCallback& GetIntroCallback() { return intro; }
+
   /**
    * @brief Get the ready functor
    * @return ready functor
    */
-  virtual SpawnStateCallback& GetReadyCallback() { return ready; }
+  SpawnStateCallback& GetReadyCallback() { return ready; }
 };
 
-/*! \brief Spawn a character with a rank 
- *  
+/*! \brief Spawn a character with a rank
+ *
  *  \cass RankedSpawnPolicty<T>
- * 
- * It also registers two specific callbacks in the battle intro: 
+ *
+ * It also registers two specific callbacks in the battle intro:
  * 1) PixelInState and 2) DefaultState
- * For this state, the character will pixelate in. 
+ * For this state, the character will pixelate in.
  * And when the battle begins (cue card select), all character will revert to their DefaultState
- * 
+ *
  * Ranking affect enemy names and allows the programmer to change other aspects such as appearance
  * e.g. Mettaur, Mettaur2, CanodumbRare1, ProgsmanEX, etc...
 */
@@ -108,7 +108,7 @@ protected:
      * @param mob must flag the intro over with FlagNextReady()
      */
     virtual void PrepareCallbacks(Mob &mob) {
-      // This retains the current entity type and stores it in a function. We do this to transform the 
+      // This retains the current entity type and stores it in a function. We do this to transform the
       // unknown type back later and can call the proper state change
       auto pixelStateInvoker = [&mob](Character* character) {
         auto onFinish = [&mob]() { mob.FlagNextReady(); };
@@ -120,15 +120,15 @@ protected:
         }
       };
 
-      auto defaultStateInvoker = [](Character* character) { 
-        T* agent = dynamic_cast<T*>(character); 
+      auto defaultStateInvoker = [](Character* character) {
+        T* agent = dynamic_cast<T*>(character);
         using DefaultState = typename T::DefaultState;
 
         if (agent) { agent->InvokeDefaultState(); }
       };
 
-      SetIntroCallback(pixelStateInvoker);
-      SetReadyCallback(defaultStateInvoker);
+      this->SetIntroCallback(pixelStateInvoker);
+      this->SetReadyCallback(defaultStateInvoker);
     }
 
   public:
@@ -145,7 +145,7 @@ protected:
    * @param mob must flag the intro over with FlagNextReady()
    */
   virtual void PrepareCallbacks(Mob &mob) {
-    // This retains the current entity type and stores it in a function. We do this to transform the 
+    // This retains the current entity type and stores it in a function. We do this to transform the
     // unknown type back later and can call the proper state change
     auto pixelStateInvoker = [&mob](Character* character) {
       auto onFinish = [&mob]() { mob.FlagNextReady(); };
@@ -164,8 +164,8 @@ protected:
       if (agent) { agent->InvokeDefaultState(); }
     };
 
-    SetIntroCallback(pixelStateInvoker);
-    SetReadyCallback(defaultStateInvoker);
+    this->SetIntroCallback(pixelStateInvoker);
+    this->SetReadyCallback(defaultStateInvoker);
   }
 
 public:
@@ -179,9 +179,9 @@ using RankedSpawnPolicy = RankedSpawnPolicy_t< std::is_base_of<BossPatternAI<T>,
 
 
 /*! \brief Special implementations of RankedSpawnPolicy
- * 
+ *
  *  \cass Rank1<T>
- * 
+ *
  * Automatically constructs an entity with Rank1
  * Adds UI component
 */
@@ -190,16 +190,16 @@ template<class T, template <typename> class IntroState=PixelInState>
 class Rank1 : public RankedSpawnPolicy<T, IntroState> {
 public:
   Rank1(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    Spawn(new T(T::Rank::_1));
-    Component* ui = new MobHealthUI(GetSpawned());
-    GetSpawned()->RegisterComponent(ui);
+    this->Spawn(new T(T::Rank::_1));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
 /*! \brief Special implementations of RankedSpawnPolicy
- * 
+ *
  *  \cass Rank2<T>
- * 
+ *
  * Automatically constructs an entity with Rank2
  * Adds UI component
 */
@@ -209,16 +209,16 @@ class Rank2 : public RankedSpawnPolicy<T, IntroState> {
   public:
 
   Rank2(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    Spawn(new T(T::Rank::_2));
-    Component* ui = new MobHealthUI(GetSpawned());
-    GetSpawned()->RegisterComponent(ui);
+    this->Spawn(new T(T::Rank::_2));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
 /*! \brief Special implementations of RankedSpawnPolicy
- * 
+ *
  *  \cass Rank3<T>
- * 
+ *
  * Automatically constructs an entity with Rank3
  * Adds UI component
 */
@@ -227,16 +227,16 @@ class Rank3 : public RankedSpawnPolicy<T, IntroState> {
   public:
 
   Rank3(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    Spawn(new T(T::Rank::_3));
-    Component* ui = new MobHealthUI(GetSpawned());
-    GetSpawned()->RegisterComponent(ui);
+    this->Spawn(new T(T::Rank::_3));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
 /*! \brief Special implementations of RankedSpawnPolicy
- * 
+ *
  *  \cass RankSP<T>
- * 
+ *
  * Automatically constructs an entity with RankSP
  * Adds UI component
 */
@@ -247,16 +247,16 @@ public:
 
   RankSP(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
     Spawn(new T(T::Rank::SP));
-    GetSpawned()->SetName(SP(GetSpawned()->GetName()));
-    Component* ui = new MobHealthUI(GetSpawned());
-    GetSpawned()->RegisterComponent(ui);
+    this->GetSpawned()->SetName(SP(this->GetSpawned()->GetName()));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };
 
 /*! \brief Special implementations of RankedSpawnPolicy
- * 
+ *
  *  \cass RankEX<T>
- * 
+ *
  * Automatically constructs an entity with RankEX
  * Adds UI component
 */
@@ -266,9 +266,9 @@ class RankEX : public RankedSpawnPolicy<T, IntroState> {
 public:
 
   RankEX(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    Spawn(new T(T::Rank::EX));
-    GetSpawned()->SetName(EX(GetSpawned()->GetName()));
-    Component* ui = new MobHealthUI(GetSpawned());
-    GetSpawned()->RegisterComponent(ui);
+    this->Spawn(new T(T::Rank::EX));
+    this->GetSpawned()->SetName(EX(this->GetSpawned()->GetName()));
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
   }
 };

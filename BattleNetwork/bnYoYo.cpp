@@ -7,7 +7,7 @@
 #include "bnAudioResourceManager.h"
 
 YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, _team) {
-  // YoYo float over tiles 
+  // YoYo float over tiles
   SetFloatShoe(true);
 
   SetLayer(0);
@@ -55,7 +55,7 @@ void YoYo::OnUpdate(float _elapsed) {
 
   // When moving, attack tiles normally
   // When stationary, our anim callbacks are
-  // designed to hit exactly 3 times 
+  // designed to hit exactly 3 times
   // like the rhythm of the original games
   if (!IsSliding()) {
     if (tileCount > 0 && startTile == GetTile()) {
@@ -86,7 +86,7 @@ void YoYo::OnUpdate(float _elapsed) {
             hitbox->SetHitboxProperties(GetHitboxProperties());
             GetField()->AddEntity(*hitbox, *GetTile());
 
-            // After we hit 2 more times, reverse the direction 
+            // After we hit 2 more times, reverse the direction
             if (++hitCount == 2) {
               SetDirection(Reverse(direction));
               animation->CancelCallbacks();
@@ -94,7 +94,7 @@ void YoYo::OnUpdate(float _elapsed) {
           }
         });
       }
-    } 
+    }
   }else if (tileCount != 3) {
     // The tile counter updates when it has reached
     // center tile, when count == 2, we were spinning in place

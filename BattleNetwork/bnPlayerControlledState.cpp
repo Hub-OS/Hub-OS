@@ -12,7 +12,7 @@
 PlayerControlledState::PlayerControlledState() : AIState<Player>(), replicator(nullptr)
 {
   isChargeHeld = false;
-  queuedAction = nullptr; 
+  queuedAction = nullptr;
 }
 
 
@@ -136,7 +136,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     player.SlideToTile(true);
   }
 
-  replicator? replicator->SendMoveSignal(direction) : 0;
+  replicator? replicator->SendMoveSignal(direction) : (void(0));
 
   if(player.Move(direction)) {
     bool moved = player.GetNextTile();
@@ -144,12 +144,12 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     if (moved) {
       auto onFinish = [&, this]() {
         player.SetAnimation("PLAYER_MOVED", [p = &player, this]() {
-          p->SetAnimation(PLAYER_IDLE); 
+          p->SetAnimation(PLAYER_IDLE);
           p->FinishMove();
 
           auto t = p->GetTile();
-          
-          replicator? replicator->SendTileSignal(t->GetX(), t->GetY()) : 0;
+
+          replicator? replicator->SendTileSignal(t->GetX(), t->GetY()) : (void(0));
         });
 
         player.AdoptNextTile();
@@ -168,7 +168,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     auto t = player.GetTile();
 
     // we are sliding and have a valid next tile, update remote
-    replicator ? replicator->SendTileSignal(t->GetX(), t->GetY()) : 0;
+    replicator ? replicator->SendTileSignal(t->GetX(), t->GetY()) : (void(0));
   }
 }
 
@@ -176,8 +176,8 @@ void PlayerControlledState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.chargeEffect.SetCharging(false);
   player.queuedAction = nullptr;
-  
-  replicator? replicator->SendChargeSignal(false) : 0;
+
+  replicator? replicator->SendChargeSignal(false) : (void(0));
 
   /* Cancel card actions */
   auto actions = player.GetComponentsDerivedFrom<CardAction>();

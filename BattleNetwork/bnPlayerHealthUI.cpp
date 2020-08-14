@@ -8,10 +8,10 @@ using std::to_string;
 #include "bnBattleScene.h"
 
 PlayerHealthUI::PlayerHealthUI(Player* _player)
-  : player(_player), UIComponent(_player) 
+  : player(_player), UIComponent(_player)
 {
-  
-  // TODO: move this to the preloaded textures      
+
+  // TODO: move this to the preloaded textures
   texture = TEXTURES.LoadTextureFromFile("resources/ui/img_health.png");
   uibox.setTexture(texture);
   uibox.setPosition(3.f, 0.0f);
@@ -66,14 +66,15 @@ void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) con
       row = 22;
     }
 
-    glyphs.setTextureRect(sf::IntRect(col, row, 8, 11));
+    auto glyphIcon = sf::IntRect(col, row, 8, 11);
+    glyphs.setTextureRect(glyphIcon);
     glyphs.setPosition(sf::Vector2f(offsetx-8.f, 6.0f) + sf::Vector2f(uibox.getSprite().getLocalBounds().width*uibox.getScale().x, 0.f));
 
     // Draw using transforms from parent so we can attach this to the card cust
     target.draw(glyphs, this_states);
 
     offsetx += 8.0f*glyphs.getScale().x;
-    
+
     // Move onto the next number
     index++;
   }
@@ -154,7 +155,7 @@ void PlayerHealthUI::OnUpdate(float elapsed) {
     if (currHP > player->GetHealth() || isBurning || isPoisoned || cooldown > 0 || player->GetHealth() <= startHP * 0.5) {
       color = Color::orange;
 
-      // If HP is low, play beep with high priority 
+      // If HP is low, play beep with high priority
       if (player->GetHealth() <= startHP * 0.5 && !isBattleOver) {
         AUDIO.Play(AudioType::LOW_HP, AudioPriority::high);
       }

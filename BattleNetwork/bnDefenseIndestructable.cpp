@@ -5,7 +5,7 @@
 #include "bnHitbox.h"
 #include "bnGuardHit.h"
 
-DefenseIndestructable::DefenseIndestructable(bool breakCollidingObjectOnHit) 
+DefenseIndestructable::DefenseIndestructable(bool breakCollidingObjectOnHit)
   : breakCollidingObjectOnHit(breakCollidingObjectOnHit), DefenseRule(Priority(1), DefenseOrder::always)
 {
 }

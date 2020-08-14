@@ -54,7 +54,7 @@ private:
 
 protected:
   virtual void PrepareCallbacks(Mob &mob) {
-    // This retains the current entity type and stores it in a function. We do this to transform the 
+    // This retains the current entity type and stores it in a function. We do this to transform the
     // unknown type back later and can call the proper state change
     auto pixelStateInvoker = [&mob, this](Character* character) {
       auto onFinish = [&mob]() { mob.FlagNextReady(); };
@@ -78,18 +78,18 @@ protected:
 
 public:
   CardsSpawnPolicy(Mob& mob) : SpawnPolicy<T>(mob) {
-    PrepareCallbacks(mob);
+    this->PrepareCallbacks(mob);
 
-    Spawn(new T(T::Rank::_1));
+    this->Spawn(new T(T::Rank::_1));
 
-    EnemyCardsUI* ui = new EnemyCardsUI(GetSpawned());
-    GetSpawned()->RegisterComponent(ui);
+    EnemyCardsUI* ui = new EnemyCardsUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
 
-    ui->LoadCards(Battle::CardSpawnPolicyCardset().cards);
+    ui->LoadCards(CardSpawnPolicyCardset().cards);
     //mob.DelegateComponent(ui);
 
-    Component* healthui = new MobHealthUI(GetSpawned());
-    GetSpawned()->RegisterComponent(healthui);
+    Component* healthui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(healthui);
     //mob.DelegateComponent(healthui);
   }
 };

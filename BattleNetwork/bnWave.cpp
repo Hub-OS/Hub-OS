@@ -21,7 +21,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
     if (GetTeam() == Team::blue) {
       nextTile = GetField()->GetAt(GetTile()->GetX() - 1, GetTile()->GetY());
       dir = Direction::left;
-    } 
+    }
     else {
       nextTile = GetField()->GetAt(GetTile()->GetX() + 1, GetTile()->GetY());
       dir = Direction::right;

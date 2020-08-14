@@ -93,13 +93,13 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   speedLabel->setString(sf::String(NAVIS.At(currentChosen).GetSpeedString().c_str()));
   attackLabel->setString(sf::String(NAVIS.At(currentChosen).GetAttackString().c_str()));
   hpLabel->setString(sf::String(NAVIS.At(currentChosen).GetHPString().c_str()));
-   
+
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
 
   gotoNextScene = true;
 
-  // Text box 
+  // Text box
   textbox.SetCharactersPerSecond(15);
   textbox.setPosition(UI_RIGHT_POS_MAX + 10, 205);
   textbox.Stop();
@@ -276,7 +276,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
-        // Go to previous mob 
+        // Go to previous mob
         selectInputCooldown = maxSelectInputCooldown;
         currentChosen = static_cast<SelectedNavi>((int)currentChosen - 1);
 
@@ -288,7 +288,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
-        // Go to next mob 
+        // Go to next mob
         selectInputCooldown = maxSelectInputCooldown;
         currentChosen = static_cast<SelectedNavi>((int)currentChosen + 1);
 
@@ -317,7 +317,8 @@ void SelectNaviScene::onUpdate(double elapsed) {
     factor = 125;
 
     int offset = (int)(NAVIS.At(currentChosen).GetElement());
-    element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+    auto iconRect = sf::IntRect(14 * offset, 0, 14, 14);
+    element.setTextureRect(iconRect);
 
     navi.setTexture(NAVIS.At(currentChosen).GetPreviewTexture(), true);
     textbox.SetText(NAVIS.At(currentChosen).GetSpecialDescriptionString());
@@ -346,7 +347,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       else {
         // If the character in the string isn't a space...
         if (naviLabel->getString()[i] != ' ') {
-            
+
           // Choose a random, capital ASCII character
           newstr += (char)(((rand() % (90 - 65)) + 65) + 1);
         }

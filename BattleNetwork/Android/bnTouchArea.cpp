@@ -60,7 +60,7 @@ void TouchArea::privPoll() {
     }
 
     if(m_state == TouchArea::State::DEFAULT) {
-        unsigned int nextFinger = unsigned int(m_touches.size());
+        unsigned int nextFinger = unsigned(m_touches.size());
         if(sf::Touch::isDown(nextFinger)) {
             // Check to see if in rectangle
             sf::Vector2i touchPosition = sf::Touch::getPosition(nextFinger, *ENGINE.GetWindow());

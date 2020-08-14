@@ -2,7 +2,8 @@
 
 #include <SFML/System.hpp>
 #include <SFML/Graphics.hpp>
-#include <array> 
+#include <array>
+#include <memory>
 
 class Mob;
 class BattleItem;
@@ -12,7 +13,7 @@ class BattleItem;
  * @author mav
  * @date 13/05/19
  * @brief BattleResults modal that appears at the end of the BattleScene when Player wins
- * 
+ *
  * Exposes an API to interact with the modal
  */
 class BattleResults {
@@ -36,7 +37,7 @@ private:
   int counterCount; /*!< How many times player countered */
 
   double totalElapsed; /*!< delta time this frame */
-    
+
   std::array<int, 7*6> hideCardMatrix; /*~< blocks are 7x6 block space to uncover at 8x8 pixels*/
   int cardMatrixIndex;
 
@@ -72,30 +73,30 @@ public:
    * @return true if out of view at target destination, false otherwise
    */
   bool IsOutOfView();
-  
+
   /**
    * @brief Query if modal is in view
    * @return true if in view at target destination, false otherwise
    */
   bool IsInView();
-  
+
   /**
    * @brief Offset the modal on screen by delta pixels
    * @param delta
    */
   void Move(sf::Vector2f delta);
-  
+
   /**
    * @brief Update modal and animations
    * @param elapsed in seconds
    */
   void Update(double elapsed);
-  
+
   /**
    * @brief Perform draw steps
    */
   void Draw();
-  
+
   /**
    * @brief Query if BattleRewards modal has completed all rewards
    * @return true if no more rewards, false if there are more the player needs to retrieve
@@ -105,7 +106,7 @@ public:
   /**
    * @brief Get the current reward item
    * @return BattleItem* if an item exists, nullptr if no reward was granted
-   * 
+   *
    * Will update the internal pointer to the next reward or nullptr if no more rewards
    */
   BattleItem* GetReward();

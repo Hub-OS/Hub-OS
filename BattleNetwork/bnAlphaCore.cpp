@@ -157,7 +157,7 @@ void AlphaCore::OnUpdate(float _elapsed) {
   rightShoulder->setPosition(2, -57 - delta);
 
   // keep core exposed if deleted for effect
-  // If the core hp is less that initial hp, we need to 
+  // If the core hp is less that initial hp, we need to
   // 1) regen
   // 2) set the correct animation
   // 3) refresh the sprite
@@ -258,8 +258,8 @@ void AlphaCore::OnDelete() {
 
   Logger::Logf("AlphaCore::OnDelete()");
 
-  leftArm? leftArm->Delete() : 0;
-  rightArm? rightArm->Delete() : 0;
+  leftArm? leftArm->Delete() : (void(0));
+  rightArm? rightArm->Delete() : (void(0));
 
   leftArm = nullptr;
   rightArm = nullptr;
@@ -368,7 +368,7 @@ void AlphaCore::ShootSuperVulcans()
   rightShoulderShoot->Reveal();
 }
 
-AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) 
+AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP)
   : DefenseRule(Priority(0), DefenseOrder::collisionOnly), alphaCoreHP(alphaCoreHP) {}
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 

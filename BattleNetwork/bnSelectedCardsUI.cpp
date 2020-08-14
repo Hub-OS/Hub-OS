@@ -16,7 +16,8 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UICompon
   , player(_player) {
   player->RegisterComponent(this);
   cardCount = curr = 0;
-  icon.setTextureRect(sf::IntRect(0, 0, 14, 14));
+  auto iconRect = sf::IntRect(0, 0, 14, 14);
+  icon.setTextureRect(iconRect);
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
   frame.setTexture(TEXTURES.GetTexture(CHIP_FRAME));
@@ -34,29 +35,29 @@ SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UICompon
 SelectedCardsUI::~SelectedCardsUI() {
 }
 
-void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {    
+void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {
     text.setString("");
     dmg.setString("");
 
     if (player) {
       int cardOrder = 0;
-      
+
       // i = curr so we only see the cards that are left
       for (int i = curr; i < cardCount; i++) {
-        // The first card appears in front 
+        // The first card appears in front
         // But the trick is that we start at i which is a remainder of the whole list
         // We first draw the last card in the list down to i
         int drawOrderIndex = cardCount - i + curr - 1;
 
         if (spread) {
-          // If we spread the cards, this algorithm is simple: 
+          // If we spread the cards, this algorithm is simple:
           // x = (i_drawOrderIndex - curr ) * size of card) - spacing
           // y = Place -121 screen pixels above the user
           sf::Vector2f flat = player->getPosition() + sf::Vector2f(((drawOrderIndex - curr) * 32.0f) - 4.f, -player->GetHeight() - 20.f);
-          
+
           // We want to smoothly move from above the head to the spread position
           double alpha = swoosh::ease::linear(interpolTimeFlat, (double)interpolDur.asSeconds(), 1.0);
-          
+
           // interpolate
           icon.setPosition(((float)alpha*flat) + ((float)(1.0-alpha)*icon.getPosition()));
 
@@ -68,10 +69,10 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           // x = ( ( i - curr ) * spacing ) - spacing
           // y = -121.f - (i - curr) * (-spacing )
           sf::Vector2f dest = player->getPosition() + sf::Vector2f(((i - curr) * 4.0f) - 4.f, -player->GetHeight() - 20.f - (i - curr) * -4.0f);
-          
+
           // We want to smoothly move from the spread position to the stacked position
           double alpha = swoosh::ease::linear(interpolTimeDest, (double)interpolDur.asSeconds(), 1.0);
-          
+
           if (alpha >= 1.0f) {
             if (firstFrame) {
               firstFrame = false;
@@ -101,7 +102,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
 
       // If we have a valid card, update and draw the data
       if (cardCount > 0 && curr < cardCount && selectedCards[curr]) {
-          
+
         // Text sits at the bottom-left of the screen
         text = Text(sf::String(selectedCards[curr]->GetShortName()), *font);
         text.setOrigin(0, 0);
@@ -167,6 +168,6 @@ const bool SelectedCardsUI::UseNextCard() {
 }
 
 void SelectedCardsUI::Inject(BattleScene& scene) {
-  // This component is manually assigned in the battle scene 
+  // This component is manually assigned in the battle scene
   // and does not need injection at this time
 }

@@ -20,5 +20,5 @@ public:
     use = false;
   }
 
-  void operator()() { if (!use) return;  slot ? slot() : 0; }
+  void operator()() { if (!use) return;  slot ? slot() : (void(0)); }
 };

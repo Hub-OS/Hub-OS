@@ -50,8 +50,10 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     // TODO: fully use scene nodes on all card slots and the GUI sprite
     // AddSprite(custSprite);
 
-    icon.setTextureRect(sf::IntRect{ 0,0,14,14 });
-    icon.setScale(sf::Vector2f(2.f, 2.f));
+    auto iconSize = sf::IntRect{ 0,0,14,14 };
+    auto iconScale = sf::Vector2f(2.f, 2.f);
+    icon.setTextureRect(iconSize);
+    icon.setScale(iconScale);
 
     element.setTexture(TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
     element.setScale(2.f, 2.f);
@@ -71,7 +73,9 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
 
     cardCard.setScale(2.f, 2.f);
     cardCard.setPosition(2.f*16.f, 48.f);
-    cardCard.setTextureRect(sf::IntRect{0, 0, 56, 48});
+
+    auto cardRect = sf::IntRect{0, 0, 56, 48};
+    cardCard.setTextureRect(cardRect);
 
     cardNoData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_NODATA));
     cardNoData.setScale(2.f, 2.f);
@@ -251,7 +255,7 @@ bool CardSelectionCust::CursorAction() {
     // End card select
     areCardsReady = true;
   } else {
-    // Does card exist 
+    // Does card exist
     if (cursorPos + (5 * cursorRow) < cardCount) {
       // Queue this card if not selected
       if (queue[cursorPos + (5 * cursorRow)].state == STAGED) {
@@ -323,9 +327,9 @@ bool CardSelectionCust::CursorCancel() {
   }
 
   /*
-    Compatible card states are built upon adding cards from the last available card states. 
-    The only way to "revert" to the last compatible card states is to step through the already selected 
-    card queue and build up the state again. 
+    Compatible card states are built upon adding cards from the last available card states.
+    The only way to "revert" to the last compatible card states is to step through the already selected
+    card queue and build up the state again.
   */
 
 
@@ -337,7 +341,7 @@ bool CardSelectionCust::CursorCancel() {
         if (queue[j].state == VOIDED && code != queue[j].data->GetCode() - 1) continue; // already checked and not a PA sequence
       }
 
-      if (queue[j].state == QUEUED) continue; // skip  
+      if (queue[j].state == QUEUED) continue; // skip
 
       char otherCode = queue[j].data->GetCode();
 
@@ -405,7 +409,7 @@ bool CardSelectionCust::OpenCardDescription()
 
   int index = cursorPos + (5 * cursorRow);
 
-  if (!IsInView() || cardDescriptionTextbox.IsOpen() || 
+  if (!IsInView() || cardDescriptionTextbox.IsOpen() ||
     (cursorPos == 5 && cursorRow == 0) || (index >= cardCount)) return false;
 
   cardDescriptionTextbox.DescribeCard(queue[index].data);
@@ -471,7 +475,7 @@ void CardSelectionCust::GetNextCards() {
 
   for (int i = cardCount; i < cardCap; i++) {
 
-    // The do-while loop ensures that only cards parsed successfully 
+    // The do-while loop ensures that only cards parsed successfully
     // should be used in combat
     do {
       queue[i].data = folder->Next();
@@ -639,7 +643,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       target.draw(label, states);
 
       int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
-        
+
       auto elementRect = sf::IntRect(14 * elementID, 0, 14, 14);
       element.setTextureRect(elementRect);
 
@@ -891,11 +895,11 @@ void CardSelectionCust::Update(float elapsed)
       isDarkCardSelected = false;
     }
     else {
-      // Otherwise check if we are highlighting a dark card 
+      // Otherwise check if we are highlighting a dark card
       int index = cursorPos + (5 * cursorRow);
       isDarkCardSelected = this->queue[index].data->GetClass() == Battle::CardClass::dark;
     }
-  } 
+  }
 
   isInView = IsInView();
 }
@@ -918,7 +922,7 @@ void CardSelectionCust::ClearCards() {
       selectedCards[i] = nullptr; // point away
       (*(selectQueue[i])).data = nullptr;
     }
-  
+
     // Deleted the selected cards array
     if (selectCount > 0) {
       delete[] selectedCards;

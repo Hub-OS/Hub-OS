@@ -1,6 +1,6 @@
 #pragma once
 #include <Swoosh/Timer.h>
-
+#include <memory>
 /*! \brief Represents a cached resource of type T. It knows how frequently it is used.
 */
 template<typename T>
@@ -33,7 +33,7 @@ public:
     return resource.use_count() >= 1;
   }
 
-  /*! \brief returns the resource 
+  /*! \brief returns the resource
     This function also increases the use count and resets
     the "last requested" timer.
   */

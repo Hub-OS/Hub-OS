@@ -70,7 +70,7 @@ template<typename Any>
 void NaviWhiteoutState<Any>::OnEnter(Any& e) {
     e.SetPassthrough(true); // Shoot through dying enemies
 
-    auto paletteSwap = e.GetFirstComponent<PaletteSwap>();
+    auto paletteSwap = e.template GetFirstComponent<PaletteSwap>();
     if (paletteSwap) paletteSwap->Enable(false);
 
     /* Spawn shine artifact */

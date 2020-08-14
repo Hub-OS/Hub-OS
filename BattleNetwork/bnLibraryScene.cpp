@@ -76,7 +76,7 @@ std::string LibraryScene::FormatCardDesc(const std::string && desc)
       perLine = 0;
       wordIndex = -1;
     }
-    
+
     perLine++;
     index++;
   }
@@ -171,8 +171,8 @@ touchPosX = touchPosStartX = -1;
   card.setPosition(83.f, 93.f);
   card.setOrigin(card.getLocalBounds().width / 2.0f, card.getLocalBounds().height / 2.0f);
 
-  cardIcon = sf::Sprite();
-  cardIcon.setTextureRect(sf::IntRect(0, 0, 14, 14));
+  auto iconRect = sf::IntRect(0, 0, 14, 14);
+  cardIcon.setTextureRect(iconRect);
   cardIcon.setScale(2.f, 2.f);
 
   cardRevealTimer.start();
@@ -395,7 +395,8 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
       ENGINE.Draw(cardDesc, false);
 
       int offset = (int)(iter->GetElement());
-      element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
+      auto elementRect = sf::IntRect(14 * offset, 0, 14, 14);
+      element.setTextureRect(elementRect);
       element.setPosition(2.f*25.f, 142.f);
       ENGINE.Draw(element, false);
     }

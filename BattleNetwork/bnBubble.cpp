@@ -7,14 +7,14 @@
 #include "bnAudioResourceManager.h"
 #include "bnSharedHitbox.h"
 
-Bubble::Bubble(Field* _field, Team _team, double speed) 
+Bubble::Bubble(Field* _field, Team _team, double speed)
   : popping(false), Obstacle(_field, _team) {
   SetLayer(-100);
   field = _field;
 
   SetHealth(1);
   SetName("Bubble");
-  
+
   SetTeam(_team);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_BUBBLE));
@@ -32,7 +32,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed)
   animation << "INIT" << onFinish;
 
   AUDIO.Play(AudioType::BUBBLE_SPAWN, AudioPriority::lowest);
-  
+
   // Bubbles can overlap eachother partially
   ShareTileSpace(true);
 

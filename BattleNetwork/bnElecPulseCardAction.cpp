@@ -52,7 +52,7 @@ void ElecPulseCardAction::Execute() {
         elecpulse->SetHitboxProperties(props);
 
         Entity::RemoveCallback& deleteHandler = elecpulse->CreateRemoveCallback();
-        
+
         deleteHandler.Slot([this]() {
             Logger::Log("elecpulse OnDelete() triggered.");
             elecpulse = nullptr;
@@ -78,7 +78,7 @@ void ElecPulseCardAction::OnUpdate(float _elapsed)
 
 void ElecPulseCardAction::EndAction()
 {
-    elecpulse? elecpulse->Delete() : 0;
+    elecpulse? elecpulse->Delete() : (void(0));
 
     GetOwner()->RemoveNode(attachment);
     GetOwner()->FreeComponentByID(GetID());

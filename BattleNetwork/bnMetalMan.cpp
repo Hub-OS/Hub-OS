@@ -56,7 +56,7 @@ MetalMan::MetalMan(Rank _rank)
   }
 
   ShareTileSpace(true); // mega can walk into him on red tiles
-  
+
   hitHeight = 64;
   SetHeight(hitHeight);
 
@@ -101,11 +101,11 @@ bool MetalMan::CanMoveTo(Battle::Tile * next)
 
 void MetalMan::OnUpdate(float _elapsed) {
   // TODO: use StuntDoubles to circumvent teleportaton
-  if (movedByStun) { 
-    Teleport((rand() % 3) + 4, (rand() % 3) + 1); 
-    AdoptNextTile(); 
+  if (movedByStun) {
+    Teleport((rand() % 3) + 4, (rand() % 3) + 1);
+    AdoptNextTile();
     FinishMove();
-    movedByStun = false; 
+    movedByStun = false;
   }
 
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);

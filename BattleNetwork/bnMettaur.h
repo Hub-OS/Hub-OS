@@ -2,6 +2,7 @@
 #include "bnCharacter.h"
 #include "bnMettaurIdleState.h"
 #include "bnAI.h"
+#include "bnAnimationComponent.h"
 #include "bnTextureType.h"
 #include "bnMobHealthUI.h"
 #include "bnTurnOrderTrait.h"
@@ -16,10 +17,10 @@ public:
     using DefaultState = MettaurIdleState;
 
     /**
-   * @brief Loads animations and gives itself a turn ID 
+   * @brief Loads animations and gives itself a turn ID
    */
   Mettaur(Rank _rank = Rank::_1);
-  
+
   /**
    * @brief Removes its turn ID from the list of active mettaurs
    */
@@ -30,7 +31,7 @@ public:
    * @param _elapsed in seconds
    */
   void OnUpdate(float _elapsed) override;
-  
+
   /**
    * @brief Takes damage and flashes white
    * @param props
@@ -39,7 +40,7 @@ public:
   const bool OnHit(const Hit::Properties props) override;
 
   void OnDelete() override;
-  
+
   /**
    * @brief Get the hit height of this entity
    * @return const float

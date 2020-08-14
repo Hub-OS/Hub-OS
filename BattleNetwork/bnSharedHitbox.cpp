@@ -23,9 +23,9 @@ SharedHitbox::~SharedHitbox() {
 
 void SharedHitbox::OnUpdate(float _elapsed) {
   cooldown -= _elapsed;
-  
+
   tile->AffectEntities(this);
-  
+
   if (owner) {
       if (owner->IsDeleted()) {
           Delete();
@@ -44,7 +44,7 @@ bool SharedHitbox::Move(Direction _direction) {
   return false;
 }
 
-void SharedHitbox::Attack(Character* _entity) {  
+void SharedHitbox::Attack(Character* _entity) {
   if(owner) {
     if (_entity->GetID() == owner->GetID()) return;
 

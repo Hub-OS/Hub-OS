@@ -1,9 +1,9 @@
-/*! \brief Custom scene node that acts as a proxy for sf::Sprites 
- * 
+/*! \brief Custom scene node that acts as a proxy for sf::Sprites
+ *
  * Used by sprites that need to conform to a Scene Node system
  * Every Entity instance is a SpriteSceneNode
- * 
- * SpriteSceneNodes are special scene nodes. They can have child nodes with a Z 
+ *
+ * SpriteSceneNodes are special scene nodes. They can have child nodes with a Z
  * order in front of themselves. To achieve this, during the draw, the sprite and
  * its children are sorted by Z. When the sprite scene node is next to draw,
  * the sprite scene node draws the proxied sprite instead. This allows sprites to have
@@ -11,6 +11,8 @@
  * and UI.
  */
 #pragma once
+#include <memory>
+
 #include "bnSceneNode.h"
 #include "bnSmartShader.h"
 
@@ -23,7 +25,7 @@ private:
 public:
   /**
     * \brief Construct new SpriteSceneNode
-    * 
+    *
     * Owns sprite and allocatedSprite will be true
     */
   SpriteProxyNode();
@@ -36,20 +38,20 @@ public:
   SpriteProxyNode(const sf::Texture& texture);
 
   SpriteProxyNode(const SpriteProxyNode& rhs) = delete;
-  
+
   /**
    * @brief Construct SpriteSceneNode from an existing sprite
    * @param rhs sprite to reference
-   * 
+   *
    * Does not own sprite and allocatedSprite will be false
    */
   SpriteProxyNode(sf::Sprite& rhs);
-  
+
   /**
    * @brief If allocatedSprite is true, deletes the sprite
    */
   virtual ~SpriteProxyNode();
-  
+
   /**
    * @brief If allocatedSprite is true, deletes sprite and then points to rhs
    * @param rhs new sprite to proxy
@@ -107,7 +109,7 @@ public:
 
   /**
    * @brief Set sprite texture proxy
-   * @param texture 
+   * @param texture
    * @param resetRect
    */
   void setTexture(const std::shared_ptr<sf::Texture> texture, bool resetRect = true);
@@ -115,7 +117,7 @@ public:
   /**
    * @brief Converts sf::Shader to SmartShader and attaches it.
    * @param _shader
-   * 
+   *
    * Revokes the pre-existing shader
    */
   void SetShader(sf::Shader* _shader);
@@ -123,7 +125,7 @@ public:
   /**
    * @brief Attaches shader
    * @param _shader
-   * 
+   *
    * Revokes the pre-existing shader
    */
   void SetShader(SmartShader& _shader);
@@ -138,12 +140,12 @@ public:
    * @brief Revokes the attached shader
    */
   void RevokeShader();
-  
+
   /**
    * @brief Draws all child scene nodes with respect to parent transformations
    * @param target
    * @param states
-   * 
+   *
    * SpriteSceneNodes can have child nodes in front of them. To achieve this,
    * we sort by Z and if this sprite node is to be drawn, drawns the proxy sprite
    */

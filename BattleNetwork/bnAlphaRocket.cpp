@@ -8,7 +8,7 @@
 #include "bnAudioResourceManager.h"
 
 AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
-  // AlphaRocket float over tiles 
+  // AlphaRocket float over tiles
   SetFloatShoe(true);
   SetTeam(_team);
   ShareTileSpace(true);
@@ -99,7 +99,7 @@ void AlphaRocket::OnDelete()
 
     bool valid = std::find(validXTiles.begin(), validXTiles.end(), t->GetX()) != validXTiles.end()
       && std::find(validYTiles.begin(), validYTiles.end(), t->GetY()) != validXTiles.end();
-    
+
     bool includedValid = false;
 
     // Missile hit the back row, include the right-most column

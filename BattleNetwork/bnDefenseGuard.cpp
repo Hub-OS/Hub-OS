@@ -5,7 +5,7 @@
 #include "bnHitbox.h"
 #include "bnGuardHit.h"
 
-DefenseGuard::DefenseGuard(const DefenseGuard::Callback& callback) 
+DefenseGuard::DefenseGuard(const DefenseGuard::Callback& callback)
   : callback(callback), DefenseRule(Priority(1), DefenseOrder::collisionOnly)
 {
 }

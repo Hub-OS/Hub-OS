@@ -5,6 +5,7 @@
 #include "bnAI.h"
 #include "bnTextureType.h"
 #include "bnStarfishIdleState.h"
+#include "bnAnimationComponent.h"
 
 class Starfish : public Character, public AI<Starfish> {
   friend class StarfishIdleState;
@@ -25,7 +26,7 @@ public:
   const bool OnHit(const Hit::Properties props) override;
 
   void OnDelete() override;
-  
+
   /**
    * @brief Set the hit height for projectiles to play effects at the correct position
    * @return Y offset

@@ -7,7 +7,7 @@
 #include "bnPlayer.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnHitBox.h"
+#include "bnHitbox.h"
 
 #include "bnCardSummonHandler.h"
 #include "bnRollHeart.h"
@@ -46,19 +46,19 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
   /**
    * This is very convoluted and will change with the card summon refactored
    * Essentially we nest callbacks
-   * 
+   *
    * First Roll is IDLE. when the animation ends, we set the animation to MOVE
-   * 
+   *
    * While roll is moving, we find the first enemy in the field.
    * We set our target named `attack`
-   * 
+   *
    * After MOVE is over, we set the animation to ATTACKING
-   * 
-   * If we found a target, we add 3 callbacks to frames 4, 12, and 20 
+   *
+   * If we found a target, we add 3 callbacks to frames 4, 12, and 20
    * to deal damage to the enemy
-   * 
+   *
    * At the animation end, we set the final animation to MOVE
-   * 
+   *
    * At the end of the last MOVE animation, we spawn a heart
    * and request the summon system to remove this entity
    */
@@ -138,7 +138,7 @@ void RollHeal::OnDelete()
 }
 
 void RollHeal::DropHitbox(Battle::Tile* target)
-{   
+{
     auto hitbox = new Hitbox(GetField(), GetTeam());
     hitbox->HighlightTile(Battle::Tile::Highlight::solid);
     hitbox->SetHitboxProperties(GetHitboxProperties());

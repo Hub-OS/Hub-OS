@@ -35,7 +35,7 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
     next = progs.GetField()->GetAt(tile->GetX() - 1, tile->GetY());
 
     if (next) {
-      // Spawn a hurt box 
+      // Spawn a hurt box
       Hitbox* hitbox = new Hitbox(progs.GetField(), progs.GetTeam(), 100);
       auto props = hitbox->GetHitboxProperties();
       props.flags = props.flags | Hit::breaking | Hit::flinch;

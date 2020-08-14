@@ -35,7 +35,7 @@ void MobHealthUI::OnUpdate(float elapsed) {
   if (mob) {
     if (cooldown <= 0) { cooldown = 0; }
     else { cooldown -= elapsed; }
-   
+
     if (healthCounter > mob->GetHealth()) {
       int diff = healthCounter - mob->GetHealth();
 
@@ -51,7 +51,7 @@ void MobHealthUI::OnUpdate(float elapsed) {
       else {
         healthCounter--;
       }
-  
+
       cooldown = 0.5; //seconds
     }
     else if (healthCounter < mob->GetHealth()) {
@@ -98,7 +98,8 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
       int row = (10-number-1);
       int rowStart = row + (row * 10);
 
-      glyphs.setTextureRect(sf::IntRect(0, rowStart, 8, 10));
+      auto glyphsRect = sf::IntRect(0, rowStart, 8, 10);
+      glyphs.setTextureRect(glyphsRect);
       glyphs.setPosition(sf::Vector2f(offsetx, 0.0f) + mob->GetTile()->getPosition());
       glyphs.setColor(color);
 

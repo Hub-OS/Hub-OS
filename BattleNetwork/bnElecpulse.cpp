@@ -4,7 +4,7 @@
 #include "bnElecpulse.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnSharedHitBox.h"
+#include "bnSharedHitbox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
@@ -17,7 +17,7 @@ Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _tea
   progress = 0.0f;
 
   damage = _damage;
-  
+
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
 
   animation = CreateComponent<AnimationComponent>(this);

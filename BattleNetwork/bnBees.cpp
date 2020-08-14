@@ -8,9 +8,9 @@
 #include "bnAudioResourceManager.h"
 
 Bees::Bees(Field* _field, Team _team, int damage)
-  : animation(), elapsed(0), target(nullptr), turnCount(0), 
+  : animation(), elapsed(0), target(nullptr), turnCount(0),
   hitCount(0), shadow(nullptr), leader(nullptr),
-  attackCooldown(0), dropped(), damage(damage), 
+  attackCooldown(0), dropped(), damage(damage),
   madeContact(false),
   Spell(_field, _team) {
   SetLayer(0);
@@ -64,8 +64,8 @@ Bees::Bees(Field* _field, Team _team, int damage)
   }
 }
 
-Bees::Bees(const Bees & leader) 
-  : 
+Bees::Bees(const Bees & leader)
+  :
   animation(leader.animation), elapsed(0), target(leader.target),
   turnCount(leader.turnCount), hitCount(0), shadow(nullptr), leader(const_cast<Bees*>(&leader)),
   attackCooldown(leader.attackCooldown), dropped(), damage(leader.damage),
@@ -246,7 +246,7 @@ void Bees::OnUpdate(float _elapsed) {
   }
 
   attackCooldown = std::max(attackCooldown - (float)elapsed, 0.0f);
- 
+
   if(hitCount >= 5) {
     // Mark us for deletion
     Delete();

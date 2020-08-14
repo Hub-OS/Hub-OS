@@ -66,11 +66,11 @@ public:
     logs.push(_message);
     file << _message << endl;
   }
-  
+
   /**
    * @brief Uses varadic args to print any string format
    * @param fmt string format
-   * @param ... input to match the format 
+   * @param ... input to match the format
    */
   static void Logf(const char* fmt, ...) {
     std::scoped_lock<std::mutex> lock(m);
@@ -111,14 +111,13 @@ public:
     return to_string(number);
   }
 
-  template<>
   static string ToString(const std::string& input) {
       return input;
   }
 
 private:
   Logger() { ; }
-  
+
   /**
    * @brief Dumps queue and closes file
    */

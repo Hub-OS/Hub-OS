@@ -29,7 +29,7 @@ void DefenseAura::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& 
 
   judge.BlockDamage();
 
-  if(callback) { 
-    judge.AddTrigger(callback, std::ref(in), std::ref(owner)); 
+  if(callback) {
+    judge.AddTrigger(callback, std::ref(in), std::ref(owner));
   }
 }

@@ -1,6 +1,8 @@
 #pragma once
-#include "bnComponent.h"
+#include <memory>
 #include <SFML/Graphics.hpp>
+#include "bnComponent.h"
+
 class BattleScene;
 class Entity;
 
