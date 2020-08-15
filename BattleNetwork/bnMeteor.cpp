@@ -8,8 +8,7 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, float _duration) : duration(_duration), Spell(_field, _team) {
-  Meteor::target = target;
+Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, float _duration) : target(target), duration(_duration), Spell(_field, _team) {
   SetLayer(1);
 
   HighlightTile(Battle::Tile::Highlight::flash);
@@ -20,14 +19,18 @@ Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, floa
 
   progress = 0.0f;
 
-  // Which direction to come down from
-  if (GetTeam() == Team::blue) {
-    start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y - 480.0f);
-  }
-  else if (GetTeam() == Team::red) {
-    start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y - 480.0f);
-  }
-  else {
+  if(target) {
+    // Which direction to come down from
+    if (GetTeam() == Team::blue) {
+      start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y - 480.0f);
+    }
+    else if (GetTeam() == Team::red) {
+      start = sf::Vector2f(target->getPosition().x + 480, target->getPosition().y - 480.0f);
+    }
+    else {
+      Delete();
+    }
+  } else {
     Delete();
   }
 

@@ -43,7 +43,7 @@ target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-s
 target_link_libraries(BattleNetwork WebAPI-client)
 target_link_libraries(BattleNetwork Poco::Net)
 
-set_target_properties( BattleNetwork
+set_target_properties(BattleNetwork
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build/$<CONFIG>"
 )

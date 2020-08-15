@@ -10,6 +10,6 @@ endif()
 
 if(NOT MSVC)
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-value")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-value -g3")
 
 endif()

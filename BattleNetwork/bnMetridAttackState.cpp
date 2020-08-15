@@ -6,27 +6,34 @@
 #include "bnMetridIdleState.h"
 #include "bnAnimationComponent.h"
 
-MetridAttackState::MetridAttackState() : AIState<Metrid>() { meteorCooldown = 0; meteorCount = 5; beginAttack = false; }
+MetridAttackState::MetridAttackState()
+: AIState<Metrid>(), meteorCooldown(0), meteorCount(5), beginAttack(false), target(nullptr)
+{}
+
 MetridAttackState::~MetridAttackState() { ; }
 
 void MetridAttackState::OnEnter(Metrid& met) {
   auto animation = met.GetFirstComponent<AnimationComponent>();
 
-  auto onFinish = [this, animation, &met]() {
-    if (met.GetRank() == Metrid::Rank::_1) {
+  auto metPtr = &met;
+
+  Logger::Logf("metPtr addr %s and value is %i", &met, !!metPtr);
+
+  auto onFinish = [this, metPtr]() {
+    auto animation = metPtr->GetFirstComponent<AnimationComponent>();
+
+    if (metPtr->GetRank() == Metrid::Rank::_1) {
       animation->SetAnimation("MOB_HIDDEN_1");
     }
-    else if (met.GetRank() == Metrid::Rank::_2) {
+    else if (metPtr->GetRank() == Metrid::Rank::_2) {
       animation->SetAnimation("MOB_HIDDEN_2");
-      meteorCount = 8;
     }
-    else if (met.GetRank() == Metrid::Rank::_3) {
+    else if (metPtr->GetRank() == Metrid::Rank::_3) {
       animation->SetAnimation("MOB_HIDDEN_3");
-      meteorCount = 11;
     }
 
     animation->SetPlaybackMode(Animator::Mode::Loop);
-    DoAttack(met);
+    DoAttack(*metPtr);
   };
 
   if (met.GetRank() == Metrid::Rank::_1) {
@@ -72,8 +79,9 @@ void MetridAttackState::DoAttack(Metrid& met) {
   if (--meteorCount == 0) {
     animation->CancelCallbacks();
 
-    auto onEnd = [this, m = &met]() {
-      m->ChangeState<MetridIdleState>();
+    auto metPtr = &met;
+    auto onEnd = [this, metPtr]() {
+      metPtr->ChangeState<MetridIdleState>();
     };
 
     if (met.GetRank() == Metrid::Rank::_1) {
