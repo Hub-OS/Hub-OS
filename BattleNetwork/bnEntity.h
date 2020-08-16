@@ -36,6 +36,10 @@ namespace Battle {
 class Field;
 class BattleScene; // forward decl
 
+struct EntityComparitor {
+  bool operator()(Entity* f, Entity* s) const;
+};
+
 class Entity : public SpriteProxyNode {
 public:
   using ID_t = long;

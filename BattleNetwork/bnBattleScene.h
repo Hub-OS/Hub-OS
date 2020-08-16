@@ -29,6 +29,7 @@
 #include "bnCounterHitListener.h"
 #include "bnCharacterDeleteListener.h"
 #include "bnCardSummonHandler.h"
+#include "bnSpriteProxyNode.h"
 
 #include <time.h>
 #include <typeinfo>
@@ -74,7 +75,9 @@ class PlayerHealthUI;
  * This will drastically clean the code up and allow for new custom states. 
  * Custom scenes could include beast-out mode state, dialog state for talking, damage counter state, etc.
  */
-class BattleScene : public swoosh::Activity, public CounterHitListener, public CharacterDeleteListener {
+class BattleScene 
+  : public swoosh::Activity, public CounterHitListener, public CharacterDeleteListener,
+    public CardUseListener {
 protected:
   /*
   Program Advance + labels
@@ -90,6 +93,9 @@ protected:
   float streamVolume{ -1 }; /*! Using this variable also as a state flag */
 
   sf::Sprite programAdvanceSprite; /*!< Sprite for "ProgramAdvanced" graphic */
+
+  SpriteProxyNode counterReveal;
+  Animation counterRevealAnim;
 
   /*
   Mob labels*/
@@ -247,9 +253,12 @@ protected:
    * @param victim who was countered
    * @param aggressor who caused the counter
    */
-  virtual void OnCounter(Character& victim, Character& aggressor);
+  virtual void OnCounter(Character& victim, Character& aggressor) override;
 
-  virtual void OnDeleteEvent(Character& pending);
+  virtual void OnDeleteEvent(Character& pending) override;
+
+  virtual void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override;
+
 
 #ifdef __ANDROID__
   void SetupTouchControls();
@@ -347,9 +356,7 @@ public:
    * @brief State boolean for BattleScene. Query if the battle is over.
    * @return true if isPostBattle is true, otherwise false
    */
-  const bool IsCleared() {
-    return mob->IsCleared();
-  }
+  const bool IsCleared();
 
   /**
    * @brief Query if the battle update loop is ticking.

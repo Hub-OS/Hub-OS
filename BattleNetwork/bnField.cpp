@@ -11,6 +11,7 @@ Field::Field(int _width, int _height)
   : width(_width),
   height(_height),
   pending(),
+  revealCounterFrames(false),
   tiles(vector<vector<Battle::Tile*>>())
   {
   // Moved tile resource acquisition to field so we only them once for all tiles
@@ -274,7 +275,7 @@ void Field::Update(float _elapsed) {
           if(j <= 3) {
             // This tile was originally red
             if(t->GetTeam() == Team::blue) {
-              syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->flickerTeamCooldown);
+              syncRedTeamCooldown = std::max(syncRedTeamCooldown, t->teamCooldown);
 
               if(t->teamCooldown <= 0) {
                 backToRed.insert(backToRed.begin(), j);
@@ -314,7 +315,7 @@ void Field::Update(float _elapsed) {
         else {
             // resync
             for (int i = 0; i < tiles.size(); i++) {
-                tiles[i][p]->flickerTeamCooldown = syncBlueTeamCooldown;
+                tiles[i][p]->flickerTeamCooldown = Battle::Tile::flickerTeamCooldownLength;
             }
         }
     }
@@ -331,7 +332,7 @@ void Field::Update(float _elapsed) {
         else {
             // resync
             for (int i = 0; i < tiles.size(); i++) {
-                tiles[i][p]->flickerTeamCooldown = syncRedTeamCooldown;
+                tiles[i][p]->flickerTeamCooldown = Battle::Tile::flickerTeamCooldownLength;
             }
         }
     }
@@ -464,6 +465,16 @@ void Field::ForgetEntity(Entity::ID_t ID)
 Entity * Field::GetEntity(Entity::ID_t ID)
 {
     return allEntityHash[ID];
+}
+
+void Field::RevealCounterFrames(bool enabled)
+{
+  this->revealCounterFrames = enabled;
+}
+
+const bool Field::DoesRevealCounterFrames() const
+{
+  return this->revealCounterFrames;
 }
 
 Field::queueBucket::queueBucket(int x, int y, Character& d) : x(x), y(y), entity_type(Field::queueBucket::type::character)

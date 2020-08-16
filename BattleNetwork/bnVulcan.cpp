@@ -57,7 +57,7 @@ void Vulcan::OnDelete()
 void Vulcan::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     AUDIO.Play(AudioType::HURT);
-    auto impact = new ParticleImpact(ParticleImpact::Type::YELLOW);
+    auto impact = new ParticleImpact(ParticleImpact::Type::VULCAN);
     impact->SetHeight(_entity->GetHeight());
     field->AddEntity(*impact, *_entity->GetTile());
     Delete();

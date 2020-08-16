@@ -2,7 +2,7 @@
 #include "bnEntity.h"
 #include "bnAIState.h"
 #include "bnAIPriorityLock.h"
-#include "bnExplosion.h"
+#include "bnExplosionSpriteNode.h"
 #include "bnAnimationComponent.h"
 #include "bnShaderResourceManager.h"
 
@@ -26,11 +26,14 @@ template<typename Any>
 class ExplodeState : public AIState<Any>
 {
 protected:
-  Entity* explosion; /*!< The root explosion object */
+  ExplosionSpriteNode* explosion; /*!< The root explosion object */
   sf::Shader* whiteout; /*!< Flash the dying entity white */
   double elapsed;
   int numOfExplosions; /*!< Number of explosions to spawn */
   double playbackSpeed; /*!< how fast the animation should be */
+
+  void CleanupExplosions();
+
 public:
   inline static const int PriorityLevel = 0; // Highest
 
@@ -46,13 +49,28 @@ public:
 #include "bnLogger.h"
 
 template<typename Any>
-ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
-  : numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
+inline void ExplodeState<Any>::CleanupExplosions()
+{
+  if (explosion == nullptr) return;
+
+  for (auto element : explosion->GetChain()) {
+    auto parent = element->GetParent();
+
+    if (parent) {
+      parent->RemoveNode(element);
+    }
+
+    delete element;
+  }
+
+  delete explosion;
   explosion = nullptr;
+}
 
+template<typename Any>
+ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
+  : elapsed(0), explosion(nullptr), numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
-
-  elapsed = 0;
 }
 
 template<typename Any>
@@ -66,17 +84,14 @@ void ExplodeState<Any>::OnEnter(Any& e) {
 
   e.SetPassthrough(true); // Shoot through dying enemies
 
-  /* Spawn an explosion */
-  Battle::Tile* tile = e.GetTile();
-  Field* field = e.GetField();
-  explosion = new Explosion(field, e.GetTeam(), numOfExplosions, playbackSpeed);
-
+  /* explode over the sprite */
+  explosion = new ExplosionSpriteNode(&e, numOfExplosions, playbackSpeed);
+  
   // Define the area relative to origin to spawn explosions around
   // based on a fraction of the current frame's size
   auto area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height / 6.0f);
 
-  ((Explosion*)explosion)->SetOffsetArea(area);
-  field->AddEntity(*(Artifact*)explosion, tile->GetX(), tile->GetY());
+  explosion->SetOffsetArea(area);
 
   auto animation = e.template GetFirstComponent<AnimationComponent>();
 
@@ -84,6 +99,10 @@ void ExplodeState<Any>::OnEnter(Any& e) {
     animation->SetPlaybackSpeed(0);
     animation->CancelCallbacks();
   }
+
+  e.Remove(); // mark this entity from removal of the field
+              // character type entities will be snatched by the battle field
+              // and placed in a separate update loop until the delete animation is completed
 }
 
 template<typename Any>
@@ -101,11 +120,19 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
   /* If root explosion is over, finally remove the entity that entered this state
      This ends the effect
      */
-  if (explosion->WillRemoveLater()) {
-    e.Remove();
+  if (explosion) {
+    explosion->Update(_elapsed);
+
+    if (explosion->IsSequenceComplete()) {
+      Entity::ID_t ID = e.GetID();
+      e.GetTile()->RemoveEntityByID(ID);
+      e.GetField()->ForgetEntity(ID);
+      CleanupExplosions();
+    }
   }
 }
 
 template<typename Any>
 void ExplodeState<Any>::OnLeave(Any& e) {
+  CleanupExplosions();
 }

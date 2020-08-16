@@ -176,10 +176,15 @@ public:
   */
   Entity* GetEntity(Entity::ID_t ID);
 
+  void RevealCounterFrames(bool enabled);
+
+  const bool DoesRevealCounterFrames() const;
+
 private:
 
   bool isTimeFrozen; 
   bool isBattleActive; /*!< State flag if battle is active */
+  bool revealCounterFrames; /*!< Adds color to enemies who can be countered*/
   int width; /*!< col */
   int height; /*!< rows */
   bool isUpdating; /*!< enqueue entities if added in the update loop */

@@ -232,6 +232,7 @@ protected:
 
   int health;
   bool counterable;
+  int counterFrameFlag{ 0 };
   bool canTilePush;
   std::string name;
   double stunCooldown; /*!< Timer until stun is over */

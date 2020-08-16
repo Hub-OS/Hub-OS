@@ -17,7 +17,7 @@ Animation::Animation(const char* _path) : animator(), path(std::string(_path)) {
   Reload();
 }
 
-Animation::Animation(string _path) : animator(), path(_path) {
+Animation::Animation(const string& _path) : animator(), path(_path) {
   Reload();
 }
 

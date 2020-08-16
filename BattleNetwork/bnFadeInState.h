@@ -58,10 +58,12 @@ public:
 #include "bnField.h"
 #include "bnLogger.h"
 
+#define MAX_TIME 0.5f/6.0f
+
 template<typename Any>
 FadeInState<Any>::FadeInState(FinishNotifier onFinish) : AIState<Any>() {
   callback = onFinish;
-  factor = 125.f;
+  factor = MAX_TIME;
 }
 
 template<typename Any>
@@ -78,8 +80,7 @@ void FadeInState<Any>::OnEnter(Any& e) {
 
 template<typename Any>
 void FadeInState<Any>::OnUpdate(float _elapsed, Any& e) {
-  /* If progress is 1, pop state and move onto original state*/
-  factor -= _elapsed * 180.f;
+  factor -= _elapsed;
 
   if (factor <= 0.f) {
     factor = 0.f;
@@ -88,7 +89,7 @@ void FadeInState<Any>::OnUpdate(float _elapsed, Any& e) {
   }
 
 
-  float range = (125.f - factor) / 125.f;
+  float range = (MAX_TIME - factor) / MAX_TIME;
   e.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 }
 

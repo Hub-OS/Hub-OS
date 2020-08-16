@@ -6,18 +6,17 @@
 #include "bnComponent.h"
 #include "bnField.h"
 
+enum class Type : int;
+
 class ParticleImpact : public Artifact {
-private:
-  Animation animation;
-  sf::Sprite fx;
-  sf::Vector2f randOffset;
 public:
-  enum Type {
+  enum class Type : int {
     GREEN,
     BLUE,
     YELLOW,
     FIRE,
-    THIN
+    THIN,
+    VULCAN
   };
 
   /**
@@ -46,4 +45,9 @@ public:
   bool Move(Direction _direction) final override;
 
   void OnSpawn(Battle::Tile& tile) final override;
+
+private:
+  Animation animation;
+  sf::Vector2f randOffset;
+  Type type;
 }; 

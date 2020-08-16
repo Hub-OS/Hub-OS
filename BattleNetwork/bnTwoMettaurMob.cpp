@@ -27,7 +27,7 @@ Mob* TwoMettaurMob::Build() {
   //mob->RegisterRankedReward(3, BattleItem(Battle::Card(72, 99, 'A', 60, Element::none, "Rflctr1", "Defends and reflects", "Press A to bring up a shield that protects you and reflects damage.", 2)));
   //mob->RegisterRankedReward(1, BattleItem(Battle::Card(83, 158, 'K', 0, Element::none, "CrckPanel", "Cracks a panel", "Cracks the tiles in the column immediately in front", 2)));
 
-  int count = 2;
+  int count = 3;
 
   // place a hole somewhere
   field->GetAt( 4 + (rand() % 3), 1 + (rand() % 3))->SetState(TileState::empty);

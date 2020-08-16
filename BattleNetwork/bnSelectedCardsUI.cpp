@@ -38,6 +38,7 @@ SelectedCardsUI::~SelectedCardsUI() {
 void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {
     text.setString("");
     dmg.setString("");
+    multiplier.setString("");
 
     if (player) {
       int cardOrder = 0;
@@ -106,7 +107,6 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         // Text sits at the bottom-left of the screen
         text = Text(sf::String(selectedCards[curr]->GetShortName()), *font);
         text.setOrigin(0, 0);
-        text.setScale(0.8f, 0.8f);
         text.setPosition(3.0f, 290.0f);
         text.setOutlineThickness(2.f);
         text.setOutlineColor(sf::Color(48, 56, 80));
@@ -124,17 +124,27 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
         if (delta != 0 || unmodDamage != 0) {
           dmg = Text(dmgText, *font);
           dmg.setOrigin(0, 0);
-          dmg.setScale(0.8f, 0.8f);
           dmg.setPosition((text.getLocalBounds().width*text.getScale().x) + 13.f, 290.f);
           dmg.setFillColor(sf::Color(225, 140, 0));
           dmg.setOutlineThickness(2.f);
           dmg.setOutlineColor(sf::Color(48, 56, 80));
+        }
+
+        if (multiplierValue) {
+          // add "x N" where N is the multiplier
+          std::string multStr = "x " + std::to_string(multiplierValue);
+          multiplier = Text(sf::String(multStr), *font);
+          multiplier.setOrigin(0, 0);
+          multiplier.setPosition(dmg.getPosition().x + dmg.getLocalBounds().width + 3.0f, 290.0f);
+          multiplier.setOutlineThickness(2.f);
+          multiplier.setOutlineColor(sf::Color(48, 56, 80));
         }
       }
     }
 
     target.draw(text);
     target.draw(dmg);
+    target.draw(multiplier);
 
     UIComponent::draw(target, states);
 };
@@ -161,8 +171,12 @@ const bool SelectedCardsUI::UseNextCard() {
     return false;
   }
 
+  auto card = selectedCards[curr];
+  card->MultiplyDamage(multiplierValue);
+  multiplierValue = 0; // reset 
+
   // Broadcast to all subscribed CardUseListeners
-  Broadcast(*selectedCards[curr], *player, CurrentTime::AsMilli());
+  Broadcast(*card, *player, CurrentTime::AsMilli());
 
   return ++curr;
 }
@@ -170,4 +184,9 @@ const bool SelectedCardsUI::UseNextCard() {
 void SelectedCardsUI::Inject(BattleScene& scene) {
   // This component is manually assigned in the battle scene
   // and does not need injection at this time
+}
+
+void SelectedCardsUI::SetMultiplier(unsigned mult)
+{
+  multiplierValue = mult;
 }

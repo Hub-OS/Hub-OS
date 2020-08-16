@@ -11,7 +11,7 @@
 
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
-#define FRAME3 { 3, 0.3 }
+#define FRAME3 { 3, 0.5 }
 
 #define FRAMES FRAME1, FRAME2, FRAME3
 

@@ -156,7 +156,7 @@ void TextBox::ShowPreviousLine() {
 
 void TextBox::CompleteCurrentBlock()
 {
-  int newCharIndex = message.size() - 1;
+  size_t newCharIndex = message.size() - 1;
   int lastLine = lineIndex + GetNumberOfFittingLines();
 
   if (lastLine < this->lines.size()) {

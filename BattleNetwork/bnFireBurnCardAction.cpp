@@ -7,7 +7,7 @@
 #define PATH "resources/spells/buster_flame.png"
 #define ANIM "resources/spells/buster_flame.animation"
 
-#define WAIT   { 1, 0.15 }
+#define WAIT   { 1, 0.05 }
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
 #define FRAME3 { 3, 0.05 }

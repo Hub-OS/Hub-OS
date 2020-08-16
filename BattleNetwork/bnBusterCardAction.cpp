@@ -37,10 +37,9 @@ void BusterCardAction::Execute() {
   auto owner = GetOwner();
 
   owner->AddNode(attachment2);
-  attachment2->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
-
   attachment2->EnableParentShader(true);
+
+  // only update the flame if we've fired
   attachmentAnim2.Update(0, attachment2->getSprite());
 
   // On shoot frame, drop projectile
@@ -66,9 +65,13 @@ void BusterCardAction::Execute() {
 
     GetOwner()->GetField()->AddEntity(*b, *GetOwner()->GetTile());
     AUDIO.Play(AudioType::BUSTER_PEA);
+
+    attachment->EnableParentShader(false);
+    attachment2->AddNode(attachment);
+    attachmentAnim.Update(0, attachment->getSprite());
   };
 
-  AddAction(1, onFire);
+  AddAction(3, onFire);
 }
 
 BusterCardAction::~BusterCardAction()
@@ -87,8 +90,12 @@ void BusterCardAction::OnUpdate(float _elapsed)
   if (attachment) {
     CardAction::OnUpdate(_elapsed);
 
+    if (isBusterAlive) {
+      // animate muzzle flash after buster fires
+      attachmentAnim.Update(_elapsed, attachment->getSprite());
+    }
+
     attachmentAnim2.Update(_elapsed, attachment2->getSprite());
-    attachmentAnim.Update(_elapsed, attachment->getSprite());
 
     // update node position in the animation
     auto baseOffset = attachmentAnim2.GetPoint("endpoint");

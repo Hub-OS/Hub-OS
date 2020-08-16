@@ -57,14 +57,14 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (player.GetComponentsDerivedFrom<CardAction>().size()) return;
 
   // Are we creating an action this frame?
-  if (INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) {
+  if (INPUTx.Has(EventTypes::RELEASED_USE_CHIP)) {
     auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
     if (cardsUI && cardsUI->UseNextCard()) {
       // If the card used was successful, we may have a card in queue
       QueueAction(player);
       return; // wait one more frame to use
     }
-  } else if (INPUTx.Has(EventTypes::PRESSED_SPECIAL)) {
+  } else if (INPUTx.Has(EventTypes::RELEASED_SPECIAL)) {
     if (replicator) replicator->SendUseSpecialSignal();
     player.UseSpecial();
     QueueAction(player);

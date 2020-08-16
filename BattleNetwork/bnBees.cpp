@@ -238,7 +238,7 @@ void Bees::OnUpdate(float _elapsed) {
         AUDIO.Play(AudioType::HURT, AudioPriority::high);
         auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
         entity->GetField()->AddEntity(*fx, *entity->GetTile());
-        fx->SetHeight(entity->GetHeight() / 2.0f);
+        fx->SetHeight(entity->GetHeight());
         });
     }
     GetField()->AddEntity(*hitbox, *GetTile());

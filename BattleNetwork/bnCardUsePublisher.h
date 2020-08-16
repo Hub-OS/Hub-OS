@@ -21,9 +21,7 @@ private:
 
   std::list<CardUseListener*> listeners; /*!< All subscribers */
 
-  void AddListener(CardUseListener* listener) {
-    listeners.push_back(listener);
-  }
+  void AddListener(CardUseListener* listener);
 
 public:
   virtual ~CardUsePublisher();
@@ -38,12 +36,7 @@ public:
   * @param card being used
   * @param user using the card
   */
-  void Broadcast(Battle::Card& card, Character& user, uint64_t timestamp=0) {
-    std::list<CardUseListener*>::iterator iter = listeners.begin();
+  void Broadcast(Battle::Card& card, Character& user, uint64_t timestamp = 0);
 
-    while (iter != listeners.end()) {
-      (*iter)->OnCardUse(card, user, timestamp);
-      iter++;
-    }
-  }
+  void DropSubscribers();
 };

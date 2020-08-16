@@ -1,0 +1,8 @@
+imagePath="artifact_vulcan_impact.png"
+
+animation state="Default"
+frame duration="0.05" x="74" y="0" w="52" h="20" originx="27" originy="11"
+frame duration="0.05" x="0" y="51" w="62" h="21" originx="30" originy="11"
+frame duration="0.05" x="0" y="28" w="68" h="23" originx="32" originy="12"
+frame duration="0.05" x="0" y="0" w="74" h="28" originx="36" originy="15"
+frame duration="0.05" x="74" y="20" w="38" h="23" originx="1" originy="12"

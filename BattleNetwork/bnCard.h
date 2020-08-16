@@ -166,11 +166,14 @@ namespace Battle {
         }
 
         void ModDamage(int modifier);
+        void MultiplyDamage(unsigned int multiplier);
+        const unsigned GetMultiplier() const;
 
         friend struct Compare;
 
     private:
         Properties props;
         Properties unmodded;
+        unsigned int multiplier{ 0 };
     };
 }

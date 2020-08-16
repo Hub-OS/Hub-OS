@@ -412,6 +412,10 @@ namespace Battle {
 
     UpdateCharacters(_elapsed);
 
+    for (auto&& chars : deletingCharacters) {
+      field->UpdateEntityOnce(chars, _elapsed);
+    }
+
     // Update our tile animation and texture
     if (!isTimeFrozen) {
       if (teamCooldown > 0) {
@@ -471,6 +475,8 @@ namespace Battle {
   }
 
   void Tile::BattleStop() {
+    if (isBattleOver) return;
+
     for (auto&& e : entities) {
         e->OnBattleStop();
     }
@@ -548,7 +554,7 @@ namespace Battle {
 
       auto directional = Direction::none;
 
-      auto notMoving = character->GetNextTile() == nullptr;
+      auto notMoving = character && character->GetNextTile() == nullptr;
 
       switch (GetState()) {
       case TileState::directionDown:
@@ -567,7 +573,7 @@ namespace Battle {
 
       if (directional != Direction::none) {
         if (!character->HasAirShoe() && !character->HasFloatShoe()) {
-          if (!character->IsSliding() && notMoving) {
+          if (notMoving && !character->IsSliding()) {
             character->SlideToTile(true);
             character->Move(directional);
           }
@@ -655,27 +661,28 @@ namespace Battle {
     while (i < entities.size()) {
       auto ptr = entities[i];
 
+      Entity::ID_t ID = ptr->GetID();
+
       // If the entity is marked for removal
       if (ptr->WillRemoveLater()) {
-        ptr->FreeAllComponents();
+        // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
+        Character* character = dynamic_cast<Character*>(ptr);
+        Obstacle* obst = dynamic_cast<Obstacle*>(ptr);
 
-        // free memory
-        Entity::ID_t ID = ptr->GetID();
-
-        if (RemoveEntityByID(ID)) {
-          // TODO: make hash of entity ID to character pointers and then grab character by entity's ID...
-          Character* character = dynamic_cast<Character*>(ptr);
-
-          // We only want to know about character deletions since they are the actors in the battle
-          if (character) {
+        // We only want to know about character deletions since they are the actors in the battle
+        if (character && !obst) {
+          if (deletingCharacters.find(character) == deletingCharacters.end()) {
             field->CharacterDeletePublisher::Broadcast(*character);
-          }
 
+            // ignore this entity - it is dead to us
+            deletingCharacters.insert(character);
+          }
+        } else if (RemoveEntityByID(ID)) {
           // Don't track this entity anymore
           field->ForgetEntity(ID);
           delete ptr;
           continue;
-        } 
+        }
       }  
 
       i++;
@@ -797,11 +804,13 @@ namespace Battle {
     for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
       int request = (int)(*entity)->GetTileHighlightMode();
 
-      if (request > (int)highlightMode) {
-        highlightMode = (Highlight)request;
-      }
+      if (!(*entity)->IsTimeFrozen()) {
+        if (request > (int)highlightMode) {
+          highlightMode = (Highlight)request;
+        }
 
-      field->UpdateEntityOnce(*entity, elapsed);
+        field->UpdateEntityOnce(*entity, elapsed);
+      }
     }
   }
 
@@ -817,9 +826,11 @@ namespace Battle {
   {
     vector<Character*> characters_copy = characters;
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {
-      // Allow user input to move them out of tiles if they are frame perfect
-      field->UpdateEntityOnce(*entity, elapsed);
-      HandleTileBehaviors(*entity);
+      if (!(*entity)->IsTimeFrozen()) {
+        // Allow user input to move them out of tiles if they are frame perfect
+        field->UpdateEntityOnce(*entity, elapsed);
+        HandleTileBehaviors(*entity);
+      }
     }
   }
 }

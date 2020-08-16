@@ -28,7 +28,7 @@ Mettaur::Mettaur(Rank _rank)
     animation->SetAnimation("SP_IDLE");
   }
   else {
-    SetHealth(40);
+    SetHealth(400);
     //Components setup and load
     animation->SetAnimation("IDLE");
   }
@@ -45,6 +45,7 @@ Mettaur::Mettaur(Rank _rank)
 
   virusBody = new DefenseVirusBody();
   AddDefenseRule(virusBody);
+  SetHeight(getSprite().getGlobalBounds().height);
 }
 
 Mettaur::~Mettaur() {

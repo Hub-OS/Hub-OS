@@ -101,4 +101,6 @@ public:
   * @return a reference to the vector of SceneNode*
   */
   std::vector<SceneNode*>& GetChildNodes();
+
+  SceneNode* GetParent();
 };

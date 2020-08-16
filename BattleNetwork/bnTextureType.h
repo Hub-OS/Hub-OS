@@ -35,6 +35,7 @@ enum TextureType {
   MOB_ANYTHING_GOES,
 
   // Battle Misc
+  MISC_COUNTER_REVEAL,
   MISC_MYSTERY_DATA,
   MISC_CUBE,
   MISC_SHADOW,
@@ -69,6 +70,7 @@ enum TextureType {
   SPELL_ALPHA_ROCKET,
   SPELL_BEES,
   SPELL_IMPACT_FX,
+  SPELL_VULCAN_IMPACT_FX,
   SPELL_WIND,
 
   //Card Select 

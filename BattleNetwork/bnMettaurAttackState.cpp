@@ -8,7 +8,9 @@ MettaurAttackState::MettaurAttackState() : AIState<Mettaur>() { ; }
 MettaurAttackState::~MettaurAttackState() { ; }
 
 void MettaurAttackState::OnEnter(Mettaur& met) {
-  auto onFinish = [this, &met]() {DoAttack(met); };
+  auto metPtr = &met;
+  auto onAttack = [this, metPtr]() {DoAttack(*metPtr); };
+  auto onFinish = [this, metPtr]() { metPtr->ChangeState<MettaurIdleState>(); };
 
   auto& animation = *met.GetFirstComponent<AnimationComponent>();
   if (met.GetRank() == Mettaur::Rank::SP) {
@@ -18,8 +20,8 @@ void MettaurAttackState::OnEnter(Mettaur& met) {
     animation.SetAnimation("ATTACK", onFinish);
   }
 
-
-  animation.SetCounterFrameRange(3, 8);
+  animation.AddCallback(10, onAttack, true);
+  animation.SetCounterFrameRange(2, 6);
 }
 
 void MettaurAttackState::OnUpdate(float _elapsed, Mettaur& met) {
@@ -41,6 +43,4 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
     spell->SetDirection(Direction::left);
     met.field->AddEntity(*spell, met.tile->GetX() - 1, met.tile->GetY());
   }
-
-  met.ChangeState<MettaurIdleState>();
 }

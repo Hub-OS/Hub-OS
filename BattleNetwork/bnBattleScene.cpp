@@ -77,6 +77,7 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   // Card UI for player
   cardListener.Subscribe(cardUI);
   summons.Subscribe(cardUI); // Let the scene's card listener know about summon cards
+  this->CardUseListener::Subscribe(cardUI);
 
   /*
   Background for scene*/
@@ -171,6 +172,14 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
 
   counterHit = doubleDelete;
   counterHit.setTexture(*LOAD_TEXTURE(COUNTER_HIT));
+
+  counterRevealAnim = Animation("resources/navis/counter_reveal.animation");
+  counterRevealAnim << "DEFAULT" << Animator::Mode::Loop;
+
+  counterReveal.setTexture(LOAD_TEXTURE(MISC_COUNTER_REVEAL), true);
+  counterReveal.EnableParentShader(false);
+  counterReveal.SetLayer(-100);
+
   /*
   Cards + Card select setup*/
   cards = nullptr;
@@ -348,6 +357,11 @@ void BattleScene::ProcessNewestComponents()
   }
 }
 
+const bool BattleScene::IsCleared()
+{
+   return mob->IsCleared();;
+}
+
 const bool BattleScene::IsBattleActive()
 {
   return !(isBattleRoundOver || (mob->GetRemainingMobCount() == 0) || isPaused || isInCardSelect || !mob->IsSpawningDone() || showSummonBackdrop || isPreBattle || isPostBattle || isChangingForm);
@@ -426,6 +440,17 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 
     comboInfo = counterHit;
     comboInfoTimer.reset();
+
+    field->RevealCounterFrames(true);
+
+    player->AddNode(&counterReveal);
+    
+    auto bounds = player->getLocalBounds();
+
+    // node positions are relative to the parent node's origin
+    counterReveal.setPosition(0, -bounds.height / 4.0f);
+
+    cardUI.SetMultiplier(2);
   }
 }
 
@@ -448,23 +473,31 @@ void BattleScene::OnDeleteEvent(Character & pending)
     return false;
   });
 
-  Logger::Logf("Deleting %s from battle", pending.GetName().c_str());
+  Logger::Logf("Removing %s from battle", pending.GetName().c_str());
   mob->Forget(pending);
+}
+
+void BattleScene::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
+{
+  field->RevealCounterFrames(false);
+  //TODO: play counter reveal used sfx
+  player->RemoveNode(&counterReveal);
 }
 
 void BattleScene::onUpdate(double elapsed) {
   BattleScene::elapsed = elapsed;
 
-  shineAnimation.Update((float)elapsed, shine);
-
   if(!isPaused) {
+    shineAnimation.Update((float)elapsed, shine);
+    counterRevealAnim.Update((float)elapsed, counterReveal.getSprite());
+
     comboInfoTimer.update(elapsed);
     battleStartTimer.update(elapsed); 
     battleEndTimer.update(elapsed);
     multiDeleteTimer.update(elapsed);
     summonTimer.update(elapsed);
     battleTimer.update(elapsed);
-    PAStartTimer.update(elapsed);
+    PAStartTimer.update(elapsed);    
 
     if (!isChangingForm) {
       if (showSummonBackdropTimer < showSummonBackdropLength && !summons.IsSummonActive() && showSummonBackdrop && prevSummonState) {
@@ -600,8 +633,17 @@ void BattleScene::onUpdate(double elapsed) {
 
   isBattleRoundOver = (isPlayerDeleted || isMobDeleted);
 
+  auto blueTeamChars = field->FindEntities([](Entity* e) {
+    return e->GetTeam() == Team::blue && dynamic_cast<Character*>(e);
+  });
+
+  if (mob->IsCleared()) {
+    field->RequestBattleStop();
+    cardUI.DropSubscribers();
+  }
+
   // Check if entire mob is deleted
-  if (mob->IsCleared() && !isPlayerDeleted) {
+  if (mob->IsCleared() && blueTeamChars.empty() && !isPlayerDeleted) {
     if (!isPostBattle && battleEndTimer.getElapsed().asSeconds() < postBattleLength) {
       // Show Enemy Deleted
       isPostBattle = true;
@@ -609,7 +651,6 @@ void BattleScene::onUpdate(double elapsed) {
       AUDIO.StopStream();
       AUDIO.Stream("resources/loops/enemy_deleted.ogg");
       player->ChangeState<PlayerIdleState>();
-      field->RequestBattleStop();
     }
     else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
       isMobDeleted = true;
@@ -772,6 +813,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
     tile->move(ENGINE.GetViewOffset());
 
     if (summons.IsSummonActive() || showSummonBackdrop || isChangingForm) {
+      // TODO: just make tiles inherit SpriteProxyNode class
       SpriteProxyNode* coloredTile = new SpriteProxyNode(*(sf::Sprite*)tile);
       coloredTile->SetShader(&pauseShader);
       pauseShader.setUniform("opacity", (float)backdropOpacity*float(std::max(0.0, (showSummonBackdropTimer / showSummonBackdropLength))));
@@ -842,7 +884,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
 
       while (entitiesIter != allEntities.end()) {
           entity = (*entitiesIter);
-        if (!entity->WillRemoveLater()) {
+
           auto uic = entity->GetComponentsDerivedFrom<UIComponent>();
 
           //Logger::Log("uic size is: " + std::to_string(uic.size()));
@@ -852,9 +894,6 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
           }
 
           entitiesOnRow.push_back(*entitiesIter);
-
-        }
-
           entitiesIter++;
       }
 
@@ -905,29 +944,30 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   // Ensure all entities are sorted by layer
   std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity*b) -> bool { return a->GetLayer() > b->GetLayer(); });
 
-  // draw this row
-  for (auto entity : entitiesOnRow) {
-    entity->move(ENGINE.GetViewOffset());
+  // The game does not show health ui until after spawning is completed
+  if (mob->IsSpawningDone()) {
+    // draw this row
+    for (auto entity : entitiesOnRow) {
+      entity->move(ENGINE.GetViewOffset());
 
-    ENGINE.Draw(entity);
+      ENGINE.Draw(entity);
 
-    entity->move(-ENGINE.GetViewOffset());
+      entity->move(-ENGINE.GetViewOffset());
+    }
+
+    // Draw scene nodes
+    for (auto node : scenenodes) {
+      surface.draw(*node);
+    }
+
+    // Draw ui
+    for (auto node : ui) {
+      surface.draw(*node);
+    }
   }
 
   // prepare for bext row
   entitiesOnRow.clear();
-
-  // Draw scene nodes
-  for (auto node : scenenodes) {
-    surface.draw(*node);
-  }
-
-  // Draw ui
-  //std::cout << "ui size: " << ui.size() << std::endl;
-
-  for (auto node : ui) {
-    surface.draw(*node);
-  }
 
   if (isAnimatingFormChange) {
     surface.draw(shine);
@@ -987,7 +1027,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   float nextLabelHeight = 0;
-  if (!mob->IsCleared() && !mob->IsSpawningDone() || isInCardSelect) {
+  if (!mob->IsCleared() && isInCardSelect) {
     for (int i = 0; i < mob->GetMobCount(); i++) {
       if (mob->GetMobAt(i).IsDeleted())
         continue;
@@ -996,7 +1036,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       sf::Text mobLabel = sf::Text(name, *mobFont);
 
       mobLabel.setOrigin(mobLabel.getLocalBounds().width, 0);
-      mobLabel.setPosition(470.0f, -1.f + nextLabelHeight);
+      mobLabel.setPosition(470.0f, nextLabelHeight);
       mobLabel.setScale(1.0f, 1.0f);
       mobLabel.setOutlineColor(sf::Color(48, 56, 80));
       mobLabel.setOutlineThickness(2.f);
@@ -1004,7 +1044,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       float labelWidth = mobLabel.getGlobalBounds().width;
       float labelHeight = mobLabel.getGlobalBounds().height/2.f;
 
-      mobEdgeSprite.setPosition(470.0f - (labelWidth+20), -5.f + nextLabelHeight + labelHeight);
+      mobEdgeSprite.setPosition(470.0f - (labelWidth+10), -5.f + nextLabelHeight + labelHeight);
       auto edgePos = mobEdgeSprite.getPosition();
 
       mobBackdropSprite.setPosition(edgePos.x + mobEdgeSprite.getGlobalBounds().width, edgePos.y);
@@ -1017,7 +1057,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
       ENGINE.Draw(mobLabel, false);
 
       // make the next label relative to this one
-      nextLabelHeight += mobLabel.getLocalBounds().height;
+      nextLabelHeight += mobLabel.getLocalBounds().height + 10.f;
     }
   }
 

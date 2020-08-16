@@ -75,3 +75,7 @@ std::vector<SceneNode*>& SceneNode::GetChildNodes()
 {
   return childNodes;
 }
+
+SceneNode* SceneNode::GetParent() {
+  return parent;
+}

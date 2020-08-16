@@ -100,6 +100,17 @@ namespace Battle {
       }
     }
 
+    void Card::MultiplyDamage(unsigned int multiplier)
+    {
+      this->multiplier = multiplier;
+      props.damage *= this->multiplier;
+    }
+
+    const unsigned Card::GetMultiplier() const
+    {
+      return multiplier;
+    }
+
     bool Card::Compare::operator()(const Battle::Card & lhs, const Battle::Card & rhs) const noexcept
     {
         return lhs < rhs;;

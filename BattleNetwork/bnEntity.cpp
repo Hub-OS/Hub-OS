@@ -6,6 +6,11 @@
 
 long Entity::numOfIDs = 0;
 
+bool EntityComparitor::operator()(Entity* f, Entity* s) const
+{
+  return f->GetID() < s->GetID();
+}
+
 // First entity ID begins at 1
 Entity::Entity()
   : tile(nullptr),
@@ -39,6 +44,7 @@ Entity::Entity()
 }
 
 Entity::~Entity() {
+  this->FreeAllComponents();
 }
 
 void Entity::Spawn(Battle::Tile & start)

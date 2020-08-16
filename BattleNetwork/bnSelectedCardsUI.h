@@ -61,11 +61,14 @@ public:
    */
   void Inject(BattleScene&) override;
 
+  void SetMultiplier(unsigned mult);
+
 private:
   float elapsed; /*!< Used by draw function, delta time since last update frame */
   Battle::Card** selectedCards; /*!< Current list of cards. */
   int cardCount; /*!< Size of list */
   int curr; /*!< Card cursor index */
+  unsigned multiplierValue{ 0 };
   mutable double interpolTimeFlat; /*!< Interpolation time for spread cards */
   mutable double interpolTimeDest; /*!< Interpolation time for default card stack */
   bool spread; /*!< If true, spread the cards, otherwise stack like the game */
@@ -74,6 +77,7 @@ private:
   Player* player; /*!< Player this component is attached to */
   std::shared_ptr<Font> font; /*!< Card name font */
   mutable Text text; /*!< Text displays card name */
+  mutable Text multiplier;
   mutable Text dmg; /*!< Text displays card damage */
   mutable SpriteProxyNode icon, frame; /*!< Sprite for the card icon and the black border */
 };

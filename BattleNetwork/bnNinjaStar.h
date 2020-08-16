@@ -10,7 +10,8 @@ private:
   sf::Vector2f start; /*!< Start position to interpolate from */
   double progress; /*!< Progress of the animation */
   double duration; /*!< How quickly the animation plays */
-
+  bool changed{ false };
+  AnimationComponent* animation{ nullptr };
 public:
 
   /**

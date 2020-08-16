@@ -6,13 +6,13 @@
 using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/artifact_impact_fx.animation"
+#define VULCAN_PATH   "resources/spells/artifact_vulcan_impact.animation"
 
 ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifact(nullptr)
 {
-  SetLayer(0);
+  SetLayer(-10);
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_IMPACT_FX));
   setScale(2.f, 2.f);
-  fx = getSprite();
 
   //Components setup and load
   animation = Animation(RESOURCE_PATH);
@@ -34,6 +34,11 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifa
   case Type::FIRE:
     animation.SetAnimation("FIRE");
     break;
+  case Type::VULCAN:
+    animation = Animation(VULCAN_PATH);
+    animation.SetAnimation("DEFAULT");
+    setTexture(TEXTURES.GetTexture(TextureType::SPELL_VULCAN_IMPACT_FX));
+    break;
   default:
     animation.SetAnimation("GREEN");
   }
@@ -54,16 +59,23 @@ bool ParticleImpact::Move(Direction _direction)
 }
 
 void ParticleImpact::OnSpawn(Battle::Tile& tile) {
-  //randOffset = sf::Vector2f(float(rand() % 10), float(rand() % 10));
-  //randOffset.x *= rand() % 2 ? -1 : 1;
-  //randOffset.y = randOffset.y - GetHeight();
+  float height = GetHeight();
+
+  if (type == Type::VULCAN) {
+    // stay closer to the body
+    height = GetHeight() / 2.0f;
+  }
+
+  randOffset = sf::Vector2f(float(rand() % 10), float(rand() % static_cast<int>(height)));
+  randOffset.x *= rand() % 2 ? -1 : 1;
+  randOffset.y = randOffset.y - GetHeight();
 }
 
 void ParticleImpact::OnUpdate(float _elapsed) {
   animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
 
-  setPosition(GetTile()->getPosition() + tileOffset + randOffset - sf::Vector2f(0, GetHeight()));
+  setPosition(GetTile()->getPosition() + tileOffset + randOffset);
 }
 
 void ParticleImpact::OnDelete()

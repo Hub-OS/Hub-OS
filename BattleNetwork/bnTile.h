@@ -313,10 +313,12 @@ namespace Battle {
     vector<Artifact*> artifacts; /**< Entity bucket for type Artifacts */
     vector<Spell*> spells; /**< Entity bucket for type Spells */
     vector<Character*> characters; /**< Entity bucket for type Characters */
+
+    set<Character*, EntityComparitor> deletingCharacters;
+
     vector<Entity*> entities; /**< Entity bucket for looping over all entities **/
 
     set<Entity::ID_t> reserved; /**< IDs of entities reserving this tile*/
-
     vector<Entity::ID_t> queuedSpells; /**< IDs of occupying spells that have signaled they are to attack this frame */
     vector<Entity::ID_t> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
 

@@ -146,6 +146,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/mobs/select/random.png");
 
   // Battle misc / Artifacts
+  paths.push_back("resources/navis/counter_reveal.png");
   paths.push_back("resources/mobs/mystery_data/mystery_data.png");
   paths.push_back("resources/mobs/cube/cube.png");
   paths.push_back("resources/mobs/small_shadow.png");
@@ -163,7 +164,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/bubble.png");
   paths.push_back("resources/spells/bubble_trap.png");
   paths.push_back("resources/spells/elecpulse.png");
-  paths.push_back("resources/spells/ninja_star.png");
+  paths.push_back("resources/spells/ninja_star_atlas.png");
   paths.push_back("resources/spells/poof.png");
   paths.push_back("resources/spells/spell_heal.png");
   paths.push_back("resources/spells/areagrab.png");
@@ -180,6 +181,7 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/spells/alpha_rocket.png");
   paths.push_back("resources/spells/spell_bees.png");
   paths.push_back("resources/spells/artifact_impact_fx.png");
+  paths.push_back("resources/spells/artifact_vulcan_impact.png");
   paths.push_back("resources/spells/spell_wind.png");
 
   // Card Select 

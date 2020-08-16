@@ -12,8 +12,10 @@ NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_dur
   
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_NINJA_STAR));
   
-  // Swoosh util sets the texture origin to 50% x and 80% y
-  swoosh::game::setOrigin(getSprite(), 0.5, 0.8);
+  animation = CreateComponent<AnimationComponent>(this);
+  animation->SetPath("resources/spells/ninja_star.animation");
+  animation->Load();
+  animation->SetAnimation("DEFAULT");
   
   setScale(2.f, 2.f);
 
@@ -58,13 +60,18 @@ void NinjaStar::OnUpdate(float _elapsed) {
   if (progress >= duration) {
     // deal damage
     tile->AffectEntities(this);
+
+    if (!changed) {
+      changed = true;
+
+      auto onFinish = [this]() {
+        Delete();
+      };
+
+      animation->SetAnimation("GROUNDED", onFinish);
+    }
   }
   
-  // Let the star linger around for a bit before deleting
-  if (progress > duration*2.0) {
-    Delete();
-  }
-
   progress += _elapsed;
 }
 

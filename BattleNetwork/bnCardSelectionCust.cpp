@@ -897,7 +897,7 @@ void CardSelectionCust::Update(float elapsed)
     else {
       // Otherwise check if we are highlighting a dark card
       int index = cursorPos + (5 * cursorRow);
-      isDarkCardSelected = this->queue[index].data->GetClass() == Battle::CardClass::dark;
+      isDarkCardSelected = this->queue[index].data && this->queue[index].data->GetClass() == Battle::CardClass::dark;
     }
   }
 

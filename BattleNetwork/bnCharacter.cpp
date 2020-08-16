@@ -68,7 +68,7 @@ void Character::Update(float _elapsed) {
 
   // Prevent animations from updating and AI from moving around
   // If during time freeze battle states
-  if (IsTimeFrozen()) return;
+  //if (IsTimeFrozen()) return;
 
   setColor(sf::Color(255, 255, 255, getColor().a));
 
@@ -83,9 +83,11 @@ void Character::Update(float _elapsed) {
       else if(GetHealth() > 0) {
           SetShader(nullptr);
 
-          if (counterable) {
+          counterFrameFlag = (((int)(++counterFrameFlag * 15))) % 2;
+
+          if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag == 0) {
             // Highlight red when the character can be countered
-            setColor(sf::Color(255, 55, 55, getColor().a));
+            setColor(sf::Color(55, 55, 255, getColor().a));
             SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
           }
       }

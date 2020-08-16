@@ -66,7 +66,7 @@ public:
    * @brief Parses file at path and populates FrameList with data
    * @param path relative path from application to file
    */
-  Animation(string path);
+  Animation(const string& path);
 
   Animation(const Animation& rhs);
 
