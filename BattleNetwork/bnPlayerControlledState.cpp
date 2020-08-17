@@ -53,8 +53,16 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     return;
   }
 
-  // Action controls take priority over movement
-  if (player.GetComponentsDerivedFrom<CardAction>().size()) return;
+  // Actions with animation lockout controls take priority over movement
+  auto actions = player.GetComponentsDerivedFrom<CardAction>();
+  bool canMove = true;
+
+  for (auto&& action : actions) {
+    canMove = canMove && action->IsLockoutOver();
+  }
+
+  // One of our active actions are preventing us from moving
+  if (!canMove) return;
 
   // Are we creating an action this frame?
   if (INPUTx.Has(EventTypes::RELEASED_USE_CHIP)) {

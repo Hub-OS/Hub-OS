@@ -36,12 +36,12 @@ void Megaman::OnUpdate(float elapsed)
   Player::OnUpdate(elapsed);
 }
 
-CardAction* Megaman::ExecuteBusterAction()
+CardAction* Megaman::OnExecuteBusterAction()
 {
   return new BusterCardAction(this, false, 1);
 }
 
-CardAction* Megaman::ExecuteChargedBusterAction()
+CardAction* Megaman::OnExecuteChargedBusterAction()
 {
   if (activeForm) {
     return activeForm->OnChargedBusterAction(*this);
@@ -51,7 +51,7 @@ CardAction* Megaman::ExecuteChargedBusterAction()
   }
 }
 
-CardAction* Megaman::ExecuteSpecialAction() {
+CardAction* Megaman::OnExecuteSpecialAction() {
   if (activeForm) {
     return activeForm->OnSpecialAction(*this);
   }

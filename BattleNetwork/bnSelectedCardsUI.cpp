@@ -130,7 +130,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           dmg.setOutlineColor(sf::Color(48, 56, 80));
         }
 
-        if (multiplierValue) {
+        if (multiplierValue != 1) {
           // add "x N" where N is the multiplier
           std::string multStr = "x " + std::to_string(multiplierValue);
           multiplier = Text(sf::String(multStr), *font);
@@ -167,13 +167,26 @@ void SelectedCardsUI::LoadCards(Battle::Card ** incoming, int size) {
 }
 
 const bool SelectedCardsUI::UseNextCard() {
-  if (curr >= cardCount || player->GetComponentsDerivedFrom<CardAction>().size()) {
+  auto actions = player->GetComponentsDerivedFrom<CardAction>();
+  bool hasNextCard = curr < cardCount;
+  bool canUseCard = true;
+
+  // We could be using an ability, just make sure one of these actions are not from a card
+  // Cards cannot be used if another card is still active
+  for (auto&& action : actions) {
+    canUseCard = canUseCard && action->GetLockoutGroup() != ActionLockoutGroup::card;
+  }
+
+  canUseCard = canUseCard && hasNextCard;
+
+  if (!canUseCard) {
     return false;
   }
 
   auto card = selectedCards[curr];
+
   card->MultiplyDamage(multiplierValue);
-  multiplierValue = 0; // reset 
+  multiplierValue = 1; // reset 
 
   // Broadcast to all subscribed CardUseListeners
   Broadcast(*card, *player, CurrentTime::AsMilli());

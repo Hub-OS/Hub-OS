@@ -78,14 +78,15 @@ void Player::Attack() {
   // Queue an action for the controller to fire at the right frame
   // (MMBN has a specific pipeline that accepts INPUTx. This emulates that.)
   if (tile) {
-    chargeEffect.IsFullyCharged() ? queuedAction = ExecuteChargedBusterAction() : queuedAction = ExecuteBusterAction();
+    chargeEffect.IsFullyCharged() ? queuedAction = ExecuteChargedBuster() : queuedAction = ExecuteBuster();
   }
 }
 
 void Player::UseSpecial()
 {
   if (tile) {
-    queuedAction = ExecuteSpecialAction();
+    queuedAction = ExecuteSpecial();
+    queuedAction ? queuedAction->SetLockoutGroup(ActionLockoutGroup::ability) : (void(0));
   }
 }
 
@@ -154,6 +155,33 @@ void Player::EnablePlayerControllerSlideMovementBehavior(bool enable)
 const bool Player::PlayerControllerSlideEnabled() const
 {
   return playerControllerSlide;
+}
+
+CardAction* Player::ExecuteBuster()
+{
+    return OnExecuteBusterAction();
+}
+
+CardAction* Player::ExecuteChargedBuster()
+{
+    return OnExecuteChargedBusterAction();
+}
+
+CardAction* Player::ExecuteSpecial()
+{
+  auto actions = this->GetComponentsDerivedFrom<CardAction>();
+  bool canUse = true;
+
+  // We could be using an ability, make sure we do not use another ability
+  for (auto&& action : actions) {
+    canUse = canUse && action->GetLockoutGroup() != ActionLockoutGroup::ability;
+  }
+
+  if (!canUse) {
+    return nullptr;
+  }
+  
+  return OnExecuteSpecialAction();
 }
 
 void Player::ActivateFormAt(int index)

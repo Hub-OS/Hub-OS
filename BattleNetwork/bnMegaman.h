@@ -10,9 +10,9 @@ public:
   ~Megaman();
 
   virtual void OnUpdate(float elapsed);
-  CardAction* ExecuteBusterAction() final;
-  CardAction* ExecuteChargedBusterAction() final;
-  CardAction* ExecuteSpecialAction() final;
+  CardAction* OnExecuteBusterAction() override final;
+  CardAction* OnExecuteChargedBusterAction() override final;
+  CardAction* OnExecuteSpecialAction() override final;
 };
 
 class TenguCross : public PlayerForm {

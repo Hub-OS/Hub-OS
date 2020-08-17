@@ -60,6 +60,11 @@ void Vulcan::Attack(Character* _entity) {
     auto impact = new ParticleImpact(ParticleImpact::Type::VULCAN);
     impact->SetHeight(_entity->GetHeight());
     field->AddEntity(*impact, *_entity->GetTile());
+
+    auto tile = GetTile();
+    auto next = GetField()->GetAt(tile->GetX() + 1, tile->GetY());
+    next->AffectEntities(this);
+
     Delete();
   }
 }

@@ -31,6 +31,8 @@ BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage)
   attachmentAnim.SetAnimation("DEFAULT");
 
   isBusterAlive = false;
+
+  this->SetLockout(ActionLockoutProperties{ ActionLockoutType::async, 0.5 });
 }
 
 void BusterCardAction::Execute() {

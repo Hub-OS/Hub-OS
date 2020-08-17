@@ -39,17 +39,17 @@ const float Starman::GetHeight() const
   return 140.0f;
 }
 
-CardAction* Starman::ExecuteBusterAction()
+CardAction* Starman::OnExecuteBusterAction()
 {
   return new BusterCardAction(this, false, 1);
 }
 
-CardAction* Starman::ExecuteChargedBusterAction()
+CardAction* Starman::OnExecuteChargedBusterAction()
 {
   return new BusterCardAction(this, true, 10);
 }
 
-CardAction * Starman::ExecuteSpecialAction()
+CardAction* Starman::OnExecuteSpecialAction()
 {
   return nullptr;
 }

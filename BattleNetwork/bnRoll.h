@@ -28,7 +28,7 @@ public:
 
   const float GetHeight() const;
 
-  CardAction* ExecuteSpecialAction() final;
-  CardAction* ExecuteBusterAction() final;
-  CardAction* ExecuteChargedBusterAction() final;
+  CardAction* OnExecuteSpecialAction() override final;
+  CardAction* OnExecuteBusterAction() override final;
+  CardAction* OnExecuteChargedBusterAction() override final;
 };

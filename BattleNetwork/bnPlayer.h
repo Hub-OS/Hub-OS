@@ -107,9 +107,13 @@ public:
   void EnablePlayerControllerSlideMovementBehavior(bool enable = true);
   const bool PlayerControllerSlideEnabled() const;
 
-  virtual CardAction* ExecuteBusterAction() = 0;
-  virtual CardAction* ExecuteChargedBusterAction() = 0;
-  virtual CardAction* ExecuteSpecialAction() = 0;
+  virtual CardAction* OnExecuteBusterAction() = 0;
+  virtual CardAction* OnExecuteChargedBusterAction() = 0;
+  virtual CardAction* OnExecuteSpecialAction() = 0;
+
+  CardAction* ExecuteBuster();
+  CardAction* ExecuteChargedBuster();
+  CardAction* ExecuteSpecial();
 
   void ActivateFormAt(int index); 
   void DeactivateForm();

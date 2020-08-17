@@ -7,6 +7,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnBasicSword.h"
 #include "bnSwordEffect.h"
 
 #include "bnCardSummonHandler.h"
@@ -133,14 +134,32 @@ bool ProtoManSummon::Move(Direction _direction) {
 }
 
 void ProtoManSummon::Attack(Character* _entity) {
-  SwordEffect* effect = new SwordEffect(GetField());
-  effect->SetAnimation("WIDE");
-  GetField()->AddEntity(*effect, *_entity->GetTile());
-  summons->SummonEntity(effect, false);
+  auto field = GetField();
 
-  auto props = GetHitboxProperties();
-  _entity->Hit(props);
+  auto tile = _entity->GetTile();
 
+  SwordEffect* e = new SwordEffect(field);
+  e->SetAnimation("WIDE");
+  field->AddEntity(*e, tile->GetX() + 1, tile->GetY());
+
+  BasicSword* b = new BasicSword(field, GetTeam(), 0);
+  auto props = this->GetHitboxProperties();
+  props.aggressor = summons->GetCaller();
+  b->SetHitboxProperties(props);
+
+  AUDIO.Play(AudioType::SWORD_SWING);
+  field->AddEntity(*b, tile->GetX() + 1,tile->GetY());
+
+  b = new BasicSword(field, GetTeam(), 0);
+  props = this->GetHitboxProperties();
+  props.aggressor = summons->GetCaller();
+  b->SetHitboxProperties(props);
+  field->AddEntity(*b,tile->GetX() + 1, tile->GetY() + 1);
+
+  b = new BasicSword(field, GetTeam(), 0);
+  props = this->GetHitboxProperties();
+  props.aggressor = summons->GetCaller();
+  field->AddEntity(*b, tile->GetX() + 1, tile->GetY() - 1);
 
   AUDIO.Play(AudioType::SWORD_SWING);
 }

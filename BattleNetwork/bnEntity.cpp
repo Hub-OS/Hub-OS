@@ -61,7 +61,7 @@ const float Entity::GetHeight() const {
 }
 
 void Entity::SetHeight(const float height) {
-  Entity::height = height;
+  Entity::height = std::fabs(height);
 }
 
 const bool Entity::IsSuperEffective(Element _other) const {

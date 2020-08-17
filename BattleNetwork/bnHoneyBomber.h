@@ -41,7 +41,7 @@ public:
    * @brief Get the hit height of this entity
    * @return const float
    */
-  const float GetHeight() const;
+  const float GetHeight() const override;
 
 private:
 

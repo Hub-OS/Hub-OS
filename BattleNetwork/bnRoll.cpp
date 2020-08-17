@@ -36,17 +36,17 @@ const float Roll::GetHeight() const
   return 140.0f;
 }
 
-CardAction * Roll::ExecuteSpecialAction()
+CardAction * Roll::OnExecuteSpecialAction()
 {
   return new RecoverCardAction(this, 20);
 }
 
-CardAction* Roll::ExecuteBusterAction()
+CardAction* Roll::OnExecuteBusterAction()
 {
   return new BusterCardAction(this, false, 1);
 }
 
-CardAction* Roll::ExecuteChargedBusterAction()
+CardAction* Roll::OnExecuteChargedBusterAction()
 {
   return new BusterCardAction(this, true, 20);
 }

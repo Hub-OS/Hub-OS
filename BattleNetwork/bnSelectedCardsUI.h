@@ -68,7 +68,7 @@ private:
   Battle::Card** selectedCards; /*!< Current list of cards. */
   int cardCount; /*!< Size of list */
   int curr; /*!< Card cursor index */
-  unsigned multiplierValue{ 0 };
+  unsigned multiplierValue{ 1 };
   mutable double interpolTimeFlat; /*!< Interpolation time for spread cards */
   mutable double interpolTimeDest; /*!< Interpolation time for default card stack */
   bool spread; /*!< If true, spread the cards, otherwise stack like the game */
