@@ -17,8 +17,6 @@ public:
   ~AlphaArm();
 
   void OnUpdate(float _elapsed) override;
-
-  const bool OnHit(const Hit::Properties props) override;
  
   void OnDelete() override;
 

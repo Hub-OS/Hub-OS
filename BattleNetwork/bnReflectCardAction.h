@@ -12,6 +12,7 @@ public:
   ReflectCardAction(Character* owner, int damage);
   ~ReflectCardAction();
   void OnUpdate(float _elapsed);
+  void OnAnimationEnd() override;
   void EndAction();
   void Execute();
 };

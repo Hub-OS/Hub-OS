@@ -22,10 +22,11 @@ void AnimationComponent::OnUpdate(float _elapsed)
   // we check if the owning entity is non-null 
   // we also check if it is a character, because stunned
   // characters do not update
-  if (!GetOwner() || (character && character->IsStunned())) {
+  if (!GetOwner() || (character && character->IsStunned() && stunnedLastFrame)) {
     return;
   }
 
+  stunnedLastFrame = (character && character->IsStunned());
   animation.Update(_elapsed, GetOwner()->getSprite(), speed);
 }
 
@@ -67,7 +68,6 @@ void AnimationComponent::SetAnimation(string state, FrameFinishCallback onFinish
 {
   animation.SetAnimation(state);
   animation << onFinish;
-
   animation.Refresh(GetOwner()->getSprite());
 }
 

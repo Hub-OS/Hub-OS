@@ -80,19 +80,9 @@ bool Bubble::CanMoveTo(Battle::Tile* tile) {
 }
 
 
-const bool Bubble::OnHit(const Hit::Properties props) {
+const bool Bubble::UnknownTeamResolveCollision(const Spell& other) const {
   // don't pop if hit by other bubbles from the same character
-  bool sameAggressor = props.aggressor == GetHitboxProperties().aggressor;
-
-  if (!popping && !sameAggressor) {
-    popping = true;
-
-    Delete();
-
-    return true;
-  }
-
-  return false;
+  return other.GetHitboxProperties().aggressor != GetHitboxProperties().aggressor;
 }
 
 void Bubble::OnCollision() {

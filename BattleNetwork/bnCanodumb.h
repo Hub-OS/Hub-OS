@@ -35,6 +35,5 @@ public:
 
   const float GetHeight() const;
 
-  const bool OnHit(const Hit::Properties props);
   void OnDelete();
 };

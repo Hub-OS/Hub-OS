@@ -576,6 +576,7 @@ namespace Battle {
           if (notMoving && !character->IsSliding()) {
             character->SlideToTile(true);
             character->Move(directional);
+            AUDIO.Play(AudioType::DIR_TILE, AudioPriority::highest);
           }
         }
       }
@@ -721,6 +722,9 @@ namespace Battle {
           if (character.GetTeam() == spell->GetTeam() && !unknownTeams) // Case: prevent friendly fire
             continue;
 
+          //if (unknownTeams && character.UnknownTeamResolveCollision(*spell));
+         //   continue;
+
           character.DefenseCheck(judge, *spell, DefenseOrder::always);
 
           bool alreadyTagged = false;
@@ -734,7 +738,7 @@ namespace Battle {
           }
 
           // Collision here means "we are able to hit" 
-          // either with a hitbox that can peirce a defense or by tangibility
+          // either with a hitbox that can pierce a defense or by tangibility
           auto props = spell->GetHitboxProperties();
           if (!character.HasCollision(props)) continue;
 

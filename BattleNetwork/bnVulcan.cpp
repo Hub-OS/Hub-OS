@@ -9,7 +9,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-#include "bnGuardHit.h"
+#include "bnHitbox.h"
 #include "bnGear.h" 
 
 #define COOLDOWN 40.0f/1000.0f
@@ -61,10 +61,20 @@ void Vulcan::Attack(Character* _entity) {
     impact->SetHeight(_entity->GetHeight());
     field->AddEntity(*impact, *_entity->GetTile());
 
-    auto tile = GetTile();
-    auto next = GetField()->GetAt(tile->GetX() + 1, tile->GetY());
-    next->AffectEntities(this);
+    auto tile = _entity->GetTile();
 
+    auto next = GetField()->GetAt(tile->GetX() + 1, tile->GetY());
+
+    if (next) {
+      impact = new ParticleImpact(ParticleImpact::Type::THIN);
+      impact->SetHeight(_entity->GetHeight()/2.f);
+
+      field->AddEntity(*impact, *next);
+
+      Spell* hitbox = new Hitbox(field, GetTeam(), 0);
+      hitbox->SetHitboxProperties(GetHitboxProperties());
+      field->AddEntity(*hitbox, *next);
+    }
     Delete();
   }
 }

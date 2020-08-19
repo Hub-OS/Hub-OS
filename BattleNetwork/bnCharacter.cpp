@@ -10,6 +10,11 @@
 #include "bnShakingEffect.h"
 #include <Swoosh/Ease.h>
 
+void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
+{
+  statusCallbackHash.insert(std::make_pair(flag, callback));
+}
+
 Character::Character(Rank _rank) :
   health(0),
   maxHealth(0),
@@ -32,6 +37,10 @@ Character::Character(Rank _rank) :
 Character::~Character() {
   // Defense items need to be manually deleted where they are created
   defenses.clear();
+}
+
+void Character::OnHit()
+{
 }
 
 bool Character::IsStunned()
@@ -83,9 +92,9 @@ void Character::Update(float _elapsed) {
       else if(GetHealth() > 0) {
           SetShader(nullptr);
 
-          counterFrameFlag = (((int)(++counterFrameFlag * 15))) % 2;
+          counterFrameFlag = ((int)(++counterFrameFlag) % 5);
 
-          if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag == 0) {
+          if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag != 0) {
             // Highlight red when the character can be countered
             setColor(sf::Color(55, 55, 255, getColor().a));
             SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
@@ -93,7 +102,7 @@ void Character::Update(float _elapsed) {
       }
 
       if (invincibilityCooldown > 0) {
-          // This just blinks every 15 ms
+          // This just blinks every 15 frames
           if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
             Hide();
           }
@@ -112,17 +121,15 @@ void Character::Update(float _elapsed) {
       SetShader(whiteout);
   }
 
-  if (prevThisFrameStun <= 0.0) {
-    // HACKY: If we are stunned this frame, let AI update step once
-    // to turn into their respective hit state animations
-    // TODO at some sort of hooks for status effect instead
-    OnUpdate(_elapsed);
-  } else if (stunCooldown > 0.0) {
+  if(stunCooldown > 0.0 && !IsTimeFrozen()) {
     stunCooldown -= _elapsed;
 
     if (stunCooldown <= 0.0) {
       stunCooldown = 0.0;
     }
+  }
+  else if(stunCooldown <= 0.0) {
+    this->OnUpdate(_elapsed);
   }
 
   Entity::Update(_elapsed);
@@ -206,6 +213,11 @@ const bool Character::Hit(Hit::Properties props) {
   return true;
 }
 
+const bool Character::UnknownTeamResolveCollision(const Spell& other) const
+{
+  return true; // by default unknown vs unknown spells attack eachother
+}
+
 const bool Character::HasCollision(const Hit::Properties & props)
 {
   // Pierce status hits even when passthrough or flinched
@@ -255,8 +267,7 @@ void Character::ResolveFrameBattleDamage()
       GetTile()->SetState(TileState::normal);
     }
 
-    if (OnHit(props)) {
-
+    {
       // Only register counter if:
       // 1. Hit type is impact
       // 2. The character is on a counter frame
@@ -266,6 +277,9 @@ void Character::ResolveFrameBattleDamage()
         if (props.aggressor) {
           frameCounterAggressor = props.aggressor;
         }
+
+        auto func = statusCallbackHash[Hit::impact];
+        func? func() : (void(0));
       }
 
       // Requeue drag if already sliding by drag or in the middle of a move
@@ -277,10 +291,13 @@ void Character::ResolveFrameBattleDamage()
           // Apply directional slide in a moment
           postDragDir = props.drag;
 
-          // requeue counter hits
+          // requeue counter hits, if any (frameCounterAggressor is null when no counter was present)
           append.push({ 0, Hit::impact, Element::none, frameCounterAggressor, Direction::none });
           frameCounterAggressor = nullptr;
         }
+
+        auto func = statusCallbackHash[Hit::drag];
+        func ? func() : (void(0));
 
         // exclude this from the next processing step
         props.drag = Direction::none;
@@ -303,6 +320,7 @@ void Character::ResolveFrameBattleDamage()
         else {
           bool hasSuperArmor = false;
           
+          // TODO: this is a specific (and expensive) check. Is there a way to prioritize this defense rule?
           for (auto&& d : this->defenses) {
             hasSuperArmor = hasSuperArmor || dynamic_cast<DefenseSuperArmor*>(d);
           }
@@ -315,6 +333,9 @@ void Character::ResolveFrameBattleDamage()
             // refresh stun
             stunCooldown = 3.0;
           }
+
+          auto func = statusCallbackHash[Hit::stun];
+          func ? func() : (void(0));
         }
       }
 
@@ -328,6 +349,9 @@ void Character::ResolveFrameBattleDamage()
         }
         else {
           invincibilityCooldown = 2.0; // used as a `flinch` status timer
+
+          auto func = statusCallbackHash[Hit::flinch];
+          func ? func() : (void(0));
         }
       }
 
@@ -337,16 +361,44 @@ void Character::ResolveFrameBattleDamage()
       // Flinch is canceled if retangibility is applied
       if ((props.flags & Hit::retangible) == Hit::retangible) {
         invincibilityCooldown = 0.0;
+
+        auto func = statusCallbackHash[Hit::retangible];
+        func ? func() : (void(0));
       }
 
       // exclude this from the next processing step
       props.flags &= ~Hit::retangible;
 
+      // a re-usable thunk for the next step
+      auto flagCheckThunk = [props, this](const Hit::Flags& toCheck) {
+        if ((props.flags & toCheck) == toCheck) {
+          auto func = statusCallbackHash[toCheck];
+          func ? func() : (void(0));
+        }
+      };
+
+      /*
+      flags already accounted for:
+      - impact
+      - stun
+      - flinch
+      - drag
+      - retangible
+
+      Now check if the rest were triggered and invoke the
+      corresponding status callbacks
+      */
+      flagCheckThunk(Hit::breaking);
+      flagCheckThunk(Hit::freeze);
+      flagCheckThunk(Hit::pierce);
+      flagCheckThunk(Hit::shake);
+      flagCheckThunk(Hit::recoil);
+
       hit = hit || props.damage;
 
       if (hit) {
+        OnHit();
         SetHealth(GetHealth() - tileDamage);
-
         if (GetHealth() == 0) {
           postDragDir = Direction::none; // Cancel slide post-status if blowing up
         }

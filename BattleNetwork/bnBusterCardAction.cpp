@@ -111,18 +111,19 @@ void BusterCardAction::OnUpdate(float _elapsed)
   }
 }
 
+void BusterCardAction::OnAnimationEnd()
+{
+  GetOwner()->RemoveNode(attachment2);
+  attachment2->RemoveNode(attachment);
+
+  attachment = nullptr;
+  attachment2 = nullptr;
+}
+
 void BusterCardAction::EndAction()
 {
-  if (attachment) {
-    GetOwner()->RemoveNode(attachment2);
-    attachment2->RemoveNode(attachment);
-
-    attachment = nullptr;
-    attachment2 = nullptr;
-  }
-
   if (isBusterAlive) return; // Do not end action if buster is still on field
 
   GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  //delete this;
 }

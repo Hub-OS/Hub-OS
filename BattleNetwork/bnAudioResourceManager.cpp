@@ -73,6 +73,9 @@ void AudioResourceManager::Mute(bool status)
 }
 
 void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
+  LoadSource(AudioType::COUNTER_BONUS, "resources/sfx/counter_bonus.ogg"); status++;
+  LoadSource(AudioType::DIR_TILE, "resources/sfx/dir_tile.ogg"); status++;
+  LoadSource(AudioType::FANFARE, "resources/sfx/fanfare.ogg"); status++;
   LoadSource(AudioType::APPEAR, "resources/sfx/appear.ogg"); status++;
   LoadSource(AudioType::AREA_GRAB, "resources/sfx/area_grab.ogg"); status++;
   LoadSource(AudioType::AREA_GRAB_TOUCHDOWN, "resources/sfx/area_grab_touchdown.ogg"); status++;

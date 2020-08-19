@@ -16,6 +16,7 @@ public:
   LightningCardAction(Character* owner, int damage);
   ~LightningCardAction();
   void OnUpdate(float _elapsed);
+  void OnAnimationEnd();
   void EndAction();
   void Execute();
 };

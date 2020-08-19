@@ -130,7 +130,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
           dmg.setOutlineColor(sf::Color(48, 56, 80));
         }
 
-        if (multiplierValue != 1) {
+        if (multiplierValue != 1 && unmodDamage != 0) {
           // add "x N" where N is the multiplier
           std::string multStr = "x " + std::to_string(multiplierValue);
           multiplier = Text(sf::String(multStr), *font);

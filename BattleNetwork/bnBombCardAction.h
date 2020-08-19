@@ -15,6 +15,7 @@ public:
   BombCardAction(Character* owner, int damage);
   ~BombCardAction();
   void OnUpdate(float _elapsed);
+  void OnAnimationEnd() override;
   void EndAction();
   void Execute();
 };

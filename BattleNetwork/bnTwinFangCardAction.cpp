@@ -85,6 +85,10 @@ void TwinFangCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void TwinFangCardAction::OnAnimationEnd()
+{
+}
+
 void TwinFangCardAction::EndAction()
 {
   GetOwner()->FreeComponentByID(GetID());

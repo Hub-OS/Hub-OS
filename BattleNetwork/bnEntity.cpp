@@ -11,6 +11,44 @@ bool EntityComparitor::operator()(Entity* f, Entity* s) const
   return f->GetID() < s->GetID();
 }
 
+void Entity::SortComponents()
+{
+  // Newest components appear first in the list for easy referencing
+  std::sort(components.begin(), components.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
+}
+
+void Entity::ClearPendingComponents()
+{
+  queuedComponents.clear();
+}
+
+void Entity::ReleaseComponentsPendingRemoval()
+{
+  for (auto&& bucket : queuedComponents) {
+    if (bucket.action == ComponentBucket::Status::remove) {
+      auto iter = std::find(components.begin(), components.end(), bucket.pending);
+
+      if (iter != components.end()) {
+        (*iter)->FreeOwner();
+        components.erase(iter);
+      }
+    }
+  }
+}
+
+void Entity::InsertComponentsPendingRegistration()
+{
+  bool sort = queuedComponents.size();
+
+  for (auto&& bucket : queuedComponents) {
+    if (bucket.action == ComponentBucket::Status::add) {
+      components.push_back(bucket.pending);
+    }
+  }
+
+  sort? SortComponents() : (void(0));
+}
+
 // First entity ID begins at 1
 Entity::Entity()
   : tile(nullptr),
@@ -84,17 +122,24 @@ const bool Entity::IsSuperEffective(Element _other) const {
 }
 
 void Entity::Update(float _elapsed) {
-  // Update all components
-  // May change the size of vector during update()
-  auto copy = components;
+  isUpdating = true;
 
-  for (int i = 0; i < copy.size(); i++) {
-    copy[i]->OnUpdate(_elapsed);
+  // Update all components
+  auto iter = components.begin();
+
+  while (iter != components.end()) {
+    (*iter)->OnUpdate(_elapsed);
+    iter++;
   }
 
+  ReleaseComponentsPendingRemoval();
+
   // Do not upate if the entity's current tile pointer is null
-  if (_elapsed <= 0 || !tile)
+  if (_elapsed <= 0 || !tile) {
+    InsertComponentsPendingRegistration();
+    ClearPendingComponents();
     return;
+  }
 
   // Only slide if we have a valid next tile pointer
   if (isSliding && next) {
@@ -185,6 +230,11 @@ void Entity::Update(float _elapsed) {
     tileOffset = sf::Vector2f(0, 0);
     isSliding = false;
   }
+
+  InsertComponentsPendingRegistration();
+  ClearPendingComponents();
+
+  isUpdating = false;
 }
 
 void Entity::SetAlpha(int value)
@@ -485,12 +535,20 @@ void Entity::FreeAllComponents()
 }
 
 void Entity::FreeComponentByID(Component::ID_t ID) {
-  for (int i = 0; i < components.size(); i++) {
-    if (components[i]->GetID() == ID) {
-      components[i]->FreeOwner();
-      components.erase(components.begin() + i);
-      return;
+  auto iter = components.begin();
+  while(iter != components.end()) {
+    auto component = *iter;
+
+    if (component->GetID() == ID) {
+      if (isUpdating) {
+        queuedComponents.insert(queuedComponents.begin(), ComponentBucket{ component, ComponentBucket::Status::remove });
+      }
+      else {
+        components.erase(iter);
+        return;
+      }
     }
+    iter++;
   }
 }
 
@@ -509,10 +567,13 @@ Component* Entity::RegisterComponent(Component* c) {
   if (iter != components.end())
     return *iter;
 
-  components.push_back(c);
-
-  // Newest components appear first in the list for easy referencing
-  std::sort(components.begin(), components.end(), [](Component* a, Component* b) { return a->GetID() > b->GetID(); });
+  if (isUpdating) {
+    queuedComponents.insert(queuedComponents.begin(), ComponentBucket{ c, ComponentBucket::Status::add });
+  }
+  else {
+    components.push_back(c);
+    SortComponents();
+  }
 
   return c;
 }

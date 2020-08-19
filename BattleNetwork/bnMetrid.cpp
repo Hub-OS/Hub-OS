@@ -71,10 +71,6 @@ void Metrid::OnUpdate(float _elapsed) {
   AI<Metrid>::Update(_elapsed);
 }
 
-const bool Metrid::OnHit(const Hit::Properties props) {
-  return true;
-}
-
 const float Metrid::GetHeight() const {
   return hitHeight;
 }

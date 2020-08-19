@@ -29,11 +29,9 @@ public:
   void OnUpdate(float _elapsed);
 
   /**
-   * @brief Takes damage and flashes white
-   * @param props
-   * @return true if hit, false if missed
+   * @brief Honey Bomber animation increases
    */
-  const bool OnHit(const Hit::Properties props);
+  void OnHit();
 
   void OnDelete();
 

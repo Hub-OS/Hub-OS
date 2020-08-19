@@ -1,5 +1,5 @@
 #pragma once
-#include "bnComponent.h"
+#include "bnUIComponent.h"
 #include "bnAnimationComponent.h"
 #include "bnCharacter.h"
 #include "bnSpriteProxyNode.h"
@@ -20,17 +20,18 @@ enum class ActionLockoutGroup : unsigned {
 };
 
 struct ActionLockoutProperties {
-  ActionLockoutType type{ ActionLockoutType::animation };
-  double cooldown{ 0 };
-  ActionLockoutGroup group{ ActionLockoutGroup::none };
+  ActionLockoutType type;
+  double cooldown;
+  ActionLockoutGroup group;
 };
 
 // TODO: This was written before card actions had many sprite nodes involved (like hilt + sword piece)
 // So the constructor, which was written to make card creation easy,
 // has now made it convoluted and difficult. REWRITE THIS CHIP ACTION CONSTRUCTOR!
-class CardAction : public Component {
+class CardAction : public UIComponent {
 private:
-  ActionLockoutProperties lockoutProps;
+  ActionLockoutProperties lockoutProps{};
+  bool animationIsOver{ false };
 
 protected:
   AnimationComponent* anim;
@@ -65,6 +66,7 @@ public:
   virtual void OnUpdate(float _elapsed);
 
   virtual void EndAction() = 0;
+  virtual void OnAnimationEnd() = 0;
 
   void Inject(BattleScene&) final;
 
@@ -72,5 +74,7 @@ public:
   void SetLockoutGroup(const ActionLockoutGroup& group);
 
   const ActionLockoutGroup GetLockoutGroup() const;
+  const ActionLockoutType GetLockoutType() const;
+  const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;
 };

@@ -71,6 +71,10 @@ void VulcanCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void VulcanCardAction::OnAnimationEnd()
+{
+}
+
 void VulcanCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);

@@ -160,7 +160,6 @@ string Animation::ValueOf(string _key, string _line) {
 
 void Animation::Refresh(sf::Sprite& target) {
   Update(0, target);
-  progress = 0;
 }
 
 void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) {

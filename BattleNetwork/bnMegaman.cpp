@@ -341,6 +341,10 @@ void TenguCross::SpecialAction::EndAction()
   delete this;
 }
 
+void TenguCross::SpecialAction::OnAnimationEnd()
+{
+}
+
 
 // ELEC CROSS
 

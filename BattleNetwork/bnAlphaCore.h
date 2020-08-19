@@ -53,7 +53,6 @@ public:
   const float GetHeight() const override;
   void OnSpawn(Battle::Tile& start) override;
 
-  const bool OnHit(const Hit::Properties props) override;
   void OnDelete() override;
   bool CanMoveTo(Battle::Tile* next) override;
 

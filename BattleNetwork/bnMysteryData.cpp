@@ -12,6 +12,12 @@ MysteryData::MysteryData(Field* _field, Team _team) : Character() {
   animation->Reload();
   animation->SetAnimation("SPIN", Animator::Mode::Loop);
   SetHealth(1);
+
+  auto impact = [this]() {
+    SetHealth(0);
+  };
+
+  RegisterStatusCallback(Hit::impact, impact);
 }
 
 MysteryData::~MysteryData() {
@@ -27,15 +33,6 @@ void MysteryData::OnUpdate(float _elapsed) {
   }
 
   setPosition(tile->getPosition().x, tile->getPosition().y);
-}
-
-const bool MysteryData::OnHit(const Hit::Properties props) {
-  if((props.flags & Hit::impact) == Hit::impact) {
-    SetHealth(0);
-    return true;
-  }
-  
-  return false;
 }
 
 void MysteryData::RewardPlayer()

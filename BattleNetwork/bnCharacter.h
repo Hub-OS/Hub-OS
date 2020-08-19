@@ -8,6 +8,7 @@
 
 #include <string>
 #include <queue>
+#include <functional>
 
 using std::string;
 
@@ -23,7 +24,9 @@ class Spell;
 class Character : public virtual Entity, public CounterHitPublisher {
   friend class Field;
   friend class AnimationComponent;
-  
+protected:
+  using StatusCallback = std::function<void()>;
+
 private:
   bool canShareTile; /*!< Some characters can share tiles with others */
   bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
@@ -38,6 +41,8 @@ private:
   sf::Shader* whiteout; /*!< Flash white when hit */
   sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
   bool hit; /*!< Was hit this frame */
+
+  std::map<Hit::Flags, StatusCallback> statusCallbackHash;
 public:
 
   /**
@@ -59,11 +64,11 @@ public:
   virtual ~Character();
   
   /**
-   * @brief Describe what happens to this character when they are hit
-   * @param props
-   * @return true if hit, false if missed
+   * @brief Describe what happens to this character when they are hit by any attack
+   * @note for specific responses to status effects from hitboxes, use RegisterStatusCallback(...)
+   * @see Character::RegisterStatusCallback
    */
-  virtual const bool OnHit(const Hit::Properties props) = 0;
+  virtual void OnHit();
 
   /**
   * The hit routine that happens for every character. Queues status properties and damage
@@ -72,6 +77,8 @@ public:
   * @return Returns false  if IsPassthrough() is true (i-frames), otherwise true
   */
   const bool Hit(Hit::Properties props = Hit::DefaultProperties);
+
+  virtual const bool UnknownTeamResolveCollision(const Spell& other) const;
 
   const bool HasCollision(const Hit::Properties& props);
 
@@ -215,6 +222,8 @@ private:
   float counterSlideDelta;
 
 protected:
+  void RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback& callback);
+
   /**
   * @brief Stun a character for maxCooldown seconds
   * @param maxCooldown

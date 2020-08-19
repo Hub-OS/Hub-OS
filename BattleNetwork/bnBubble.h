@@ -41,7 +41,7 @@ public:
 
   void OnCollision() override;
 
-  const bool OnHit(const Hit::Properties props) override;
+  const bool Bubble::UnknownTeamResolveCollision(const Spell& other) const override final;
 
   void OnDelete() override;
   const float GetHeight() const override;

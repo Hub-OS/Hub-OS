@@ -51,11 +51,6 @@ void Starfish::OnUpdate(float _elapsed) {
   AI<Starfish>::Update(_elapsed);
 }
 
-const bool Starfish::OnHit(const Hit::Properties props) {
-  //  There's no special checks for starfish
-  return true;
-}
-
 const float Starfish::GetHeight() const {
   return hitHeight;
 }

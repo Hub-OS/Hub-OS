@@ -16,6 +16,7 @@ public:
   DarkTornadoCardAction(Character* owner, int damage);
   ~DarkTornadoCardAction();
   void OnUpdate(float _elapsed);
+  void OnAnimationEnd() override;
   void EndAction();
   void Execute();
 }; 

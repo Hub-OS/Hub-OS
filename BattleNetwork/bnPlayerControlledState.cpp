@@ -58,39 +58,48 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   bool canMove = true;
 
   for (auto&& action : actions) {
-    canMove = canMove && action->IsLockoutOver();
+    if (action->GetLockoutType() == ActionLockoutType::async && !action->IsAnimationOver()) {
+      canMove = false;
+      break;
+    }
+    else if(action->GetLockoutType() == ActionLockoutType::animation){
+      canMove = canMove && action->IsLockoutOver();
+    }
   }
 
   // One of our active actions are preventing us from moving
   if (!canMove) return;
 
   // Are we creating an action this frame?
-  if (INPUTx.Has(EventTypes::RELEASED_USE_CHIP)) {
-    auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
-    if (cardsUI && cardsUI->UseNextCard()) {
-      // If the card used was successful, we may have a card in queue
+  if (actions.empty()) {
+    if (INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) {
+      auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
+      if (cardsUI && cardsUI->UseNextCard()) {
+        // If the card used was successful, we may have a card in queue
+        QueueAction(player);
+        return; // wait one more frame to use
+      }
+    }
+    else if (INPUTx.Has(EventTypes::RELEASED_SPECIAL)) {
+      if (replicator) replicator->SendUseSpecialSignal();
+      player.UseSpecial();
       QueueAction(player);
       return; // wait one more frame to use
-    }
-  } else if (INPUTx.Has(EventTypes::RELEASED_SPECIAL)) {
-    if (replicator) replicator->SendUseSpecialSignal();
-    player.UseSpecial();
-    QueueAction(player);
-    return; // wait one more frame to use
-  }    // queue attack based on input behavior (buster or charge?)
-  else if ((!INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld) || INPUTx.Has(EventTypes::RELEASED_SHOOT)) {
-    // This routine is responsible for determining the outcome of the attack
-    player.Attack();
+    }    // queue attack based on input behavior (buster or charge?)
+    else if ((!INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld) || INPUTx.Has(EventTypes::RELEASED_SHOOT)) {
+      // This routine is responsible for determining the outcome of the attack
+      player.Attack();
 
-    if (replicator) {
-      replicator->SendShootSignal();
-      replicator->SendChargeSignal(false);
-    }
+      if (replicator) {
+        replicator->SendShootSignal();
+        replicator->SendChargeSignal(false);
+      }
 
-    QueueAction(player);
-    isChargeHeld = false;
-    player.chargeEffect.SetCharging(false);
-    return; // wait one more frame to use
+      QueueAction(player);
+      isChargeHeld = false;
+      player.chargeEffect.SetCharging(false);
+      return; // wait one more frame to use
+    }
   }
 
   // Movement increments are restricted based on anim speed at this time
@@ -151,11 +160,21 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
     if (moved) {
       auto onFinish = [&, this]() {
-        player.SetAnimation("PLAYER_MOVED", [p = &player, this]() {
-          p->SetAnimation(PLAYER_IDLE);
-          p->FinishMove();
+        auto playerPtr = &player;
+        player.SetAnimation("PLAYER_MOVED", [playerPtr, this]() {
+          playerPtr->SetAnimation(PLAYER_IDLE);
+          playerPtr->FinishMove();
 
-          auto t = p->GetTile();
+          // Player should shoot or execute action on the immediate next tile
+          // Note: I added this check because buster shoots would stay in queue
+          // if the player was pressing the D-pad this frame too
+          if (queuedAction && !playerPtr->IsSliding()) {
+            playerPtr->RegisterComponent(queuedAction);
+            queuedAction->OnExecute();
+            queuedAction = nullptr;
+          }
+
+          auto t = playerPtr->GetTile();
 
           replicator? replicator->SendTileSignal(t->GetX(), t->GetY()) : (void(0));
         });

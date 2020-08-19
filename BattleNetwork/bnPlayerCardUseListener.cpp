@@ -3,6 +3,7 @@
 #include "bnFishy.h"
 #include "bnTile.h"
 #include "bnCannonCardAction.h"
+#include "bnZetaCannonCardAction.h"
 #include "bnAirShotCardAction.h"
 #include "bnTwinFangCardAction.h"
 #include "bnTornadoCardAction.h"
@@ -104,7 +105,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     }
   }
   else if (name == "Zeta Cannon 1") {
-    auto action = new CannonCardAction(player, card.GetDamage(), CannonCardAction::Type::red);
+    auto action = new ZetaCannonCardAction(player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "TwinFang") {

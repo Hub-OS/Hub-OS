@@ -76,6 +76,10 @@ void ElecPulseCardAction::OnUpdate(float _elapsed)
     CardAction::OnUpdate(_elapsed);
 }
 
+void ElecPulseCardAction::OnAnimationEnd()
+{
+}
+
 void ElecPulseCardAction::EndAction()
 {
     elecpulse? elecpulse->Delete() : (void(0));

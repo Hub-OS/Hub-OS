@@ -56,6 +56,10 @@ void BombCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void BombCardAction::OnAnimationEnd()
+{
+}
+
 void BombCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);

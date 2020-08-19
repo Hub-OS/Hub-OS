@@ -93,6 +93,10 @@ void LightningCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void LightningCardAction::OnAnimationEnd()
+{
+}
+
 void LightningCardAction::EndAction()
 {
   anim->CancelCallbacks();

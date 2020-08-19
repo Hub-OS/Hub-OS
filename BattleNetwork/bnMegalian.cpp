@@ -59,10 +59,6 @@ void Megalian::OnUpdate(float _elapsed) {
   AI<Megalian>::Update(_elapsed);
 }
 
-const bool Megalian::OnHit(const Hit::Properties props) {
-  return true;
-}
-
 const float Megalian::GetHeight() const {
   return hitHeight;
 }

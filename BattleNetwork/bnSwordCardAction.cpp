@@ -129,6 +129,10 @@ void SwordCardAction::OnUpdate(float _elapsed)
   attachment->setPosition(baseOffset);
 }
 
+void SwordCardAction::OnAnimationEnd()
+{
+}
+
 void SwordCardAction::EndAction()
 {
   GetOwner()->RemoveNode(hiltAttachment);

@@ -54,11 +54,6 @@ bool Fishy::CanMoveTo(Battle::Tile* tile) {
   return true;
 }
 
-
-const bool Fishy::OnHit(const Hit::Properties props) {
-  return true; // fishy blocks everything
-}
-
 void Fishy::OnDelete()
 {
     Remove();

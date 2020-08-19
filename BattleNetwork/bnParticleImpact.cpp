@@ -60,13 +60,18 @@ bool ParticleImpact::Move(Direction _direction)
 
 void ParticleImpact::OnSpawn(Battle::Tile& tile) {
   float height = GetHeight();
+  float width = 10;
 
   if (type == Type::VULCAN) {
     // stay closer to the body
     height = GetHeight() / 2.0f;
   }
 
-  randOffset = sf::Vector2f(float(rand() % 10), float(rand() % static_cast<int>(height+1)));
+  if (type == Type::THIN) {
+    width = 0;
+  }
+
+  randOffset = sf::Vector2f(float(rand() % static_cast<int>(width+1)), float(rand() % static_cast<int>(height+1)));
   randOffset.x *= rand() % 2 ? -1 : 1;
   randOffset.y = randOffset.y - GetHeight();
 }

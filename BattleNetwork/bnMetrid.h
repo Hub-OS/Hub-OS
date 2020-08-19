@@ -28,13 +28,6 @@ public:
    */
   void OnUpdate(float _elapsed);
 
-  /**
-   * @brief Takes damage and flashes white
-   * @param props
-   * @return true if hit, false if missed
-   */
-  const bool OnHit(const Hit::Properties props);
-
   void OnDelete();
 
   /**

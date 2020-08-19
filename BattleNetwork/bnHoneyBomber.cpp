@@ -63,9 +63,8 @@ void HoneyBomber::OnUpdate(float _elapsed) {
   AI<HoneyBomber>::Update(_elapsed);
 }
 
-const bool HoneyBomber::OnHit(const Hit::Properties props) {
+void HoneyBomber::OnHit() {
   GetFirstComponent<AnimationComponent>()->SetPlaybackSpeed(2.0);
-  return true;
 }
 
 const float HoneyBomber::GetHeight() const {

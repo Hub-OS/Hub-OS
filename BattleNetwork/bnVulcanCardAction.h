@@ -14,7 +14,8 @@ private:
 public:
   VulcanCardAction(Character* owner, int damage);
   ~VulcanCardAction();
-  void OnUpdate(float _elapsed);
-  void EndAction();
-  void Execute();
+  void OnUpdate(float _elapsed) override final;
+  void OnAnimationEnd() override final;
+  void EndAction() override final;
+  void Execute() override final;
 };

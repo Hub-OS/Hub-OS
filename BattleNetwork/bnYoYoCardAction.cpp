@@ -73,6 +73,10 @@ void YoYoCardAction::OnUpdate(float _elapsed)
   }
 }
 
+void YoYoCardAction::OnAnimationEnd()
+{
+}
+
 void YoYoCardAction::EndAction()
 {
   if (yoyo) {

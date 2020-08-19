@@ -22,7 +22,7 @@ namespace Hit {
   const Flags breaking = 0x0080;
   const Flags impact = 0x0100;
   const Flags drag = 0x0200;
-
+  // 0x0400 - 0x8000 remaining = 6 remaining
 
   /**
    * @struct Properties

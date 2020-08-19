@@ -8,11 +8,6 @@ public:
 
   }
 
-  const bool OnHit(const Hit::Properties props) final {
-    // SCRIPTS.callback(character_ID).OnHit(props);
-    return false;
-  }
-
   const float GetHeight() const final {
     // SCRIPTS.callback(character_ID).GetHeight(props);
     return 0;

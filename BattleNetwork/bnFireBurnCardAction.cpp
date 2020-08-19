@@ -74,6 +74,10 @@ void FireBurnCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void FireBurnCardAction::OnAnimationEnd()
+{
+}
+
 void FireBurnCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);

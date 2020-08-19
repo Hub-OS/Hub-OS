@@ -28,13 +28,6 @@ public:
    * @param _elapsed in seconds 
    */
   virtual void OnUpdate(float _elapsed);
-  
-  /**
-   * @brief Any impact damage instantly destroys the mystery data
-   * @param props 
-   * @return true if impact, false if non impact
-   */
-  virtual const bool OnHit(const Hit::Properties props);
 
   virtual void OnDelete() { ; }
 

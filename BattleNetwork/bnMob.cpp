@@ -153,7 +153,7 @@ const bool Mob::NextMobReady() {
 }
 
 const bool Mob::IsSpawningDone() {
-  return (iter == spawn.end() && nextReady);
+  return ((spawn.size() == 0 || iter == spawn.end()) && nextReady);
 }
 
 const bool Mob::IsCleared() {

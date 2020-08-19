@@ -116,10 +116,6 @@ void Gear::OnDelete() {
     Remove();
 }
 
-const bool Gear::OnHit(const Hit::Properties props) {
-  return true;
-}
-
 void Gear::Attack(Character* other) {
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 

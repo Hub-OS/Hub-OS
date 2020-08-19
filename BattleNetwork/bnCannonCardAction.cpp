@@ -80,6 +80,10 @@ void CannonCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void CannonCardAction::OnAnimationEnd()
+{
+}
+
 void CannonCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);

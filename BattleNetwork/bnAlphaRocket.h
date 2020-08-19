@@ -34,8 +34,6 @@ public:
    */
   virtual void Attack(Character* _entity);
 
-  virtual const bool OnHit(const Hit::Properties props);
-
   virtual void OnDelete();
 
   virtual const float GetHeight() const;

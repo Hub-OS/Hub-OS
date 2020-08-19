@@ -67,10 +67,6 @@ void Canodumb::OnUpdate(float _elapsed) {
   AI<Canodumb>::Update(_elapsed);
 }
 
-const bool Canodumb::OnHit(const Hit::Properties props) {
-  return true;
-}
-
 const float Canodumb::GetHeight() const {
   return (float)hitHeight;
 }

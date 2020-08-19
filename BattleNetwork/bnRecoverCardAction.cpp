@@ -44,6 +44,10 @@ void RecoverCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void RecoverCardAction::OnAnimationEnd()
+{
+}
+
 void RecoverCardAction::EndAction()
 {
   GetOwner()->FreeComponentByID(GetID());

@@ -75,6 +75,10 @@ void CrackShotCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void CrackShotCardAction::OnAnimationEnd()
+{
+}
+
 void CrackShotCardAction::EndAction() {
   GetOwner()->RemoveNode(attachment);
   GetOwner()->FreeComponentByID(GetID());

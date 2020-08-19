@@ -46,6 +46,10 @@ void ReflectCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void ReflectCardAction::OnAnimationEnd()
+{
+}
+
 void ReflectCardAction::EndAction()
 {
   GetOwner()->FreeComponentByID(GetID());

@@ -21,7 +21,7 @@ void MettaurAttackState::OnEnter(Mettaur& met) {
   }
 
   animation.AddCallback(10, onAttack, true);
-  animation.SetCounterFrameRange(2, 6);
+  animation.SetCounterFrameRange(6, 11);
 }
 
 void MettaurAttackState::OnUpdate(float _elapsed, Mettaur& met) {

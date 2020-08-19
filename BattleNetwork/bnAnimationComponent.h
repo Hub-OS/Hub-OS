@@ -147,6 +147,7 @@ private:
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */
   double speed; /*!< Playback speed */
+  bool stunnedLastFrame{ false };
   Character* character; /*!< Owner already casted as Character*/
   std::vector<Animation*> overrideList;
 };

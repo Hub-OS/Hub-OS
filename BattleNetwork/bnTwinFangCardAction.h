@@ -15,6 +15,7 @@ public:
   TwinFangCardAction(Character* owner, int damage);
   ~TwinFangCardAction();
   void OnUpdate(float _elapsed) override;
+  void OnAnimationEnd() override;
   void EndAction() override;
   void Execute() override;
 };

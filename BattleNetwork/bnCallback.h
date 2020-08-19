@@ -9,6 +9,9 @@ public:
   Callback() {
   }
 
+  Callback(const decltype(slot)& slot) : slot(slot), use(true) 
+  {}
+
   ~Callback() = default;
 
   void Slot(decltype(slot) slot) {

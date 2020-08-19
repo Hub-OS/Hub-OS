@@ -15,6 +15,7 @@ public:
   AirShotCardAction(Character* owner, int damage);
   ~AirShotCardAction();
   void OnUpdate(float _elapsed);
+  void OnAnimationEnd() override;
   void EndAction();
   void Execute();
 };

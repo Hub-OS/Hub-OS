@@ -225,10 +225,6 @@ void AlphaCore::OnUpdate(float _elapsed) {
   BossPatternAI<AlphaCore>::Update(_elapsed);
 }
 
-const bool AlphaCore::OnHit(const Hit::Properties props) {
-    return true;
-}
-
 const float AlphaCore::GetHeight() const {
   return (float)hitHeight;
 }

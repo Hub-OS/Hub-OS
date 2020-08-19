@@ -209,10 +209,6 @@ void AlphaArm::OnDelete() {
   Remove();
 }
 
-const bool AlphaArm::OnHit(const Hit::Properties props) {
-  return true;
-}
-
 void AlphaArm::Attack(Character* other) {
   Obstacle* isObstacle = dynamic_cast<Obstacle*>(other);
 

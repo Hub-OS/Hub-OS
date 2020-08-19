@@ -81,6 +81,10 @@ void TornadoCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void TornadoCardAction::OnAnimationEnd()
+{
+}
+
 void TornadoCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);

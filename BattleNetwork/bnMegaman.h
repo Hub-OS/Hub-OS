@@ -45,6 +45,7 @@ private:
     // Inherited via CardAction
     void Execute() override;
     void EndAction() override;
+    void OnAnimationEnd() override;
   };
 
 };

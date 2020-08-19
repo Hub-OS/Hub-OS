@@ -17,6 +17,7 @@ public:
   BusterCardAction(Character* owner, bool charged, int damage);
   ~BusterCardAction();
   void OnUpdate(float _elapsed);
+  void OnAnimationEnd();
   void EndAction();
   void Execute();
 };

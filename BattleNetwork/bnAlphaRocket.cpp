@@ -79,11 +79,6 @@ void AlphaRocket::Attack(Character* _entity) {
   }
 }
 
-const bool AlphaRocket::OnHit(const Hit::Properties props)
-{
-  return true;
-}
-
 void AlphaRocket::OnDelete()
 {
   auto adj = field->FindTiles([this](Battle::Tile *t) -> bool {

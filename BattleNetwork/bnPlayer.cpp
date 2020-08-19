@@ -48,6 +48,14 @@ Player::Player()
   playerControllerSlide = false;
   activeForm = nullptr;
   queuedAction = nullptr;
+
+  auto recoil = [this]() {
+    // When movement is interrupted because of a hit, we need to flush the movement state data
+    FinishMove();
+    ChangeState<PlayerHitState>();
+  };
+
+  this->RegisterStatusCallback(Hit::recoil, Callback<void()>{ recoil });
 }
 
 Player::~Player() {
@@ -107,17 +115,8 @@ const float Player::GetHeight() const
   return 101.0f;
 }
 
-const bool Player::OnHit(const Hit::Properties props) {
+void Player::OnHit() {
   hitCount++;
-
-  // Respond to the recoil bit state
-  if ((props.flags & Hit::recoil) == Hit::recoil) {
-    // When movement is interrupted because of a hit, we need to flush the movement state data
-    FinishMove();
-    ChangeState<PlayerHitState>();
-  }
-
-  return true;
 }
 
 int Player::GetMoveCount() const

@@ -15,6 +15,7 @@ public:
   YoYoCardAction(Character* owner, int damage);
   ~YoYoCardAction();
   void OnUpdate(float _elapsed);
+  void OnAnimationEnd() override;
   void EndAction();
   void Execute();
 };

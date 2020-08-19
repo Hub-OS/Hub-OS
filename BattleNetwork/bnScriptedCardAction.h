@@ -22,6 +22,10 @@ public:
     // SCRIPTS.callback(card_name).onUpdate(this);
   }
 
+  void OnAnimationEnd() override {
+
+  }
+
   void EndAction()
   {
     GetOwner()->FreeComponentByID(GetID());

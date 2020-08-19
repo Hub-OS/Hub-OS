@@ -55,6 +55,16 @@ private:
   Component::ID_t lastComponentID; /*!< Entities keep track of new components to run through scene injection later. */
   bool hasSpawned;      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
   float height;         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection*/
+  bool isUpdating{ false };
+
+  /**
+   * @brief Frees one component with the same ID
+   * @param ID ID of the component to remove
+   */
+  void SortComponents();
+  void ClearPendingComponents();
+  void ReleaseComponentsPendingRemoval();
+  void InsertComponentsPendingRegistration();
 public:
   using RemoveCallback = Callback<void()>;
 
@@ -430,6 +440,17 @@ protected:
   Element element;
 
   std::vector<Component*> components; /*!< List of all components attached to this entity*/
+
+  struct ComponentBucket {
+    Component* pending{ nullptr };
+    enum class Status : unsigned {
+      add,
+      remove
+    };
+
+    Status action{ Status::add };
+  };
+  std::list<ComponentBucket> queuedComponents;
   std::vector<RemoveCallback> removeCallbacks;
 
   void SetSlideTime(sf::Time time);

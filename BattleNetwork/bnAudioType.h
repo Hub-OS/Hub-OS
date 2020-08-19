@@ -5,6 +5,9 @@
 */
 enum AudioType {
   // In-battle SFX
+  COUNTER_BONUS,
+  DIR_TILE,
+  FANFARE,
   APPEAR,
   AREA_GRAB,
   AREA_GRAB_TOUCHDOWN,

@@ -82,6 +82,10 @@ void DarkTornadoCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void DarkTornadoCardAction::OnAnimationEnd()
+{
+}
+
 void DarkTornadoCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);

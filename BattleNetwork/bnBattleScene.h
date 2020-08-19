@@ -44,6 +44,7 @@ using sf::Font;
 class Mob;
 class Player;
 class PlayerHealthUI;
+class CounterCombatRule;
 
 /**
  * @class BattleScene
@@ -79,6 +80,10 @@ class BattleScene
   : public swoosh::Activity, public CounterHitListener, public CharacterDeleteListener,
     public CardUseListener {
 protected:
+
+  // Allow this signature to invoke private functions
+  friend class CounterCombatRule;
+
   /*
   Program Advance + labels
   */
@@ -94,8 +99,10 @@ protected:
 
   sf::Sprite programAdvanceSprite; /*!< Sprite for "ProgramAdvanced" graphic */
 
+  // counter stuff
   SpriteProxyNode counterReveal;
   Animation counterRevealAnim;
+  CounterCombatRule* counterCombatRule{ nullptr };
 
   /*
   Mob labels*/
@@ -222,7 +229,7 @@ protected:
   bool showSummonBackdrop; /*!< Dim screen and show new backdrop if applicable */
   double showSummonBackdropLength; /*!< How long the dim should last */
   double showSummonBackdropTimer; /*!< If > 0, the state is in effect else change state */
-    // Special: Load shaders if supported
+   
   double shaderCooldown;
 
   sf::Shader& pauseShader; /*!< Dim screen */
@@ -259,6 +266,7 @@ protected:
 
   virtual void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override;
 
+  void HandleCounterLoss(Character& subject);
 
 #ifdef __ANDROID__
   void SetupTouchControls();

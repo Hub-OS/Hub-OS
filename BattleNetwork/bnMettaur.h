@@ -32,13 +32,6 @@ public:
    */
   void OnUpdate(float _elapsed) override;
 
-  /**
-   * @brief Takes damage and flashes white
-   * @param props
-   * @return true if hit, false if missed
-   */
-  const bool OnHit(const Hit::Properties props) override;
-
   void OnDelete() override;
 
   /**

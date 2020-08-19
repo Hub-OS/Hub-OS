@@ -40,13 +40,6 @@ public:
    * NOTE: Does not matter if either criteria has CanShareTile() enabled, metalman avoids it
    */
   bool CanMoveTo(Battle::Tile * next);
-  
-  /**
-   * @brief If hit while on opponents side, requests a move next frame
-   * @param props hit properties
-   * @return true if hit, false if missed
-   */
-  const bool OnHit(const Hit::Properties props);
 
   void OnDelete();
  

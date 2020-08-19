@@ -45,13 +45,6 @@ public:
    */
   void OnUpdate(float _elapsed);
 
-  /**
-   * @brief Describes what happens when progsman gets hit
-   * @param props the propeties progsman was hit with
-   * @return true if hit, false if missed
-   */
-  const bool OnHit(const Hit::Properties props);
-
   void OnDelete();
 
   /**

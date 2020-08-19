@@ -16,6 +16,7 @@ public:
   CrackShotCardAction(Character* owner, int damage);
   ~CrackShotCardAction();
   void OnUpdate(float _elapsed);
+  void OnAnimationEnd();
   void EndAction();
   void Execute();
 };

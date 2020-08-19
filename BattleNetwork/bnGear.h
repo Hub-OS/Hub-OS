@@ -28,12 +28,6 @@ public:
   void OnUpdate(float _elapsed);
   
   /**
-   * @brief Returns true always
-   * @param props ignored
-   * @return true
-   */
-  const bool OnHit(const Hit::Properties props);
-  /**
    * @brief No special behavior occur when deleted
    */
   void OnDelete();

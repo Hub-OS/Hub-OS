@@ -67,11 +67,9 @@ public:
   void UseSpecial();
 
   /**
-   * @brief Don't take damage if blinking. Responds to recoil props
-   * @param props the hit props
-   * @return true if the player got hit, false if missed
+   * @brief Describe what happens when a player gets hit. Can be overridden.
    */
-  virtual const bool OnHit(const Hit::Properties props);
+  virtual void OnHit();
 
   /**
    * @brief when player is deleted, changes state to delete state and hide charge component

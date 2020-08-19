@@ -47,6 +47,15 @@ ProgsMan::ProgsMan(Rank _rank) : BossPatternAI<ProgsMan>(this), Character(_rank)
   AddState<ProgsManShootState>();
   AddState<ProgsManMoveState>();
   AddState<ProgsManShootState>();
+
+  auto recoil = [this]() {
+    animationComponent->SetAnimation("MOB_HIT");
+    FinishMove();
+    InterruptState<ProgsManHitState>();
+  };
+
+  RegisterStatusCallback(Hit::recoil, Callback<void()>{recoil});
+  RegisterStatusCallback(Hit::stun, Callback<void()>{recoil}); // TODO: should stun auto trigger this?
 }
 
 ProgsMan::~ProgsMan() {
@@ -61,15 +70,6 @@ void ProgsMan::OnUpdate(float _elapsed) {
 void ProgsMan::OnDelete() {
   animationComponent->SetAnimation("MOB_HIT");
   InterruptState<NaviExplodeState<ProgsMan>>(); // freezes animation
-}
-
-const bool ProgsMan::OnHit(const Hit::Properties props) {
-  if ((props.flags & Hit::recoil) == Hit::recoil) {
-    FinishMove();
-    InterruptState<ProgsManHitState>();
-  }
-
-  return true;
 }
 
 const float ProgsMan::GetHeight() const {

@@ -12,6 +12,7 @@
 #include "bnJudgeTreeBackground.h"
 #include "bnPlayerHealthUI.h"
 #include "bnPaletteSwap.h"
+#include "bnCounterCombatRule.h"
 
 // Android only headers
 #include "Android/bnTouchArea.h"
@@ -179,6 +180,8 @@ BattleScene::BattleScene(swoosh::ActivityController& controller, Player* player,
   counterReveal.setTexture(LOAD_TEXTURE(MISC_COUNTER_REVEAL), true);
   counterReveal.EnableParentShader(false);
   counterReveal.SetLayer(-100);
+
+  counterCombatRule = new CounterCombatRule(this);
 
   /*
   Cards + Card select setup*/
@@ -443,14 +446,15 @@ void BattleScene::OnCounter(Character & victim, Character & aggressor)
 
     field->RevealCounterFrames(true);
 
+    // node positions are relative to the parent node's origin
+    auto bounds = player->getLocalBounds();
+    counterReveal.setPosition(0, -bounds.height / 4.0f);
     player->AddNode(&counterReveal);
     
-    auto bounds = player->getLocalBounds();
-
-    // node positions are relative to the parent node's origin
-    counterReveal.setPosition(0, -bounds.height / 4.0f);
-
     cardUI.SetMultiplier(2);
+
+    // when players get hit by impact, battle scene takes back counter blessings
+    player->AddDefenseRule(counterCombatRule);
   }
 }
 
@@ -475,13 +479,26 @@ void BattleScene::OnDeleteEvent(Character & pending)
 
   Logger::Logf("Removing %s from battle", pending.GetName().c_str());
   mob->Forget(pending);
+
+  if (mob->IsCleared()) {
+    AUDIO.StopStream();
+  }
 }
 
 void BattleScene::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
 {
-  field->RevealCounterFrames(false);
-  //TODO: play counter reveal used sfx
-  player->RemoveNode(&counterReveal);
+  HandleCounterLoss(user);
+}
+
+void BattleScene::HandleCounterLoss(Character& subject)
+{
+  if (&subject == player) {
+    player->RemoveNode(&counterReveal);
+    player->RemoveDefenseRule(counterCombatRule);
+    field->RevealCounterFrames(false);
+    cardUI.SetMultiplier(1);
+    AUDIO.Play(AudioType::COUNTER_BONUS, AudioPriority::highest);
+  }
 }
 
 void BattleScene::onUpdate(double elapsed) {
@@ -631,6 +648,7 @@ void BattleScene::onUpdate(double elapsed) {
     battleResults->Update(elapsed);
   }
 
+  bool wasOver = isBattleRoundOver;
   isBattleRoundOver = (isPlayerDeleted || isMobDeleted);
 
   auto blueTeamChars = field->FindEntities([](Entity* e) {
@@ -648,9 +666,8 @@ void BattleScene::onUpdate(double elapsed) {
       // Show Enemy Deleted
       isPostBattle = true;
       battleEndTimer.reset();
-      AUDIO.StopStream();
-      AUDIO.Stream("resources/loops/enemy_deleted.ogg");
       player->ChangeState<PlayerIdleState>();
+      AUDIO.Stream("resources/loops/enemy_deleted.ogg");
     }
     else if(!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
       isMobDeleted = true;
@@ -974,7 +991,7 @@ void BattleScene::onDraw(sf::RenderTexture& surface) {
   }
 
   // cust dissapears when not in battle
-  if (!(isInCardSelect || isPostBattle || mob->IsCleared()))
+  if (!(isInCardSelect || isPostBattle || !mob->IsSpawningDone() || mob->IsCleared()))
     ENGINE.Draw(&customBarSprite);
 
   if (isPaused) {

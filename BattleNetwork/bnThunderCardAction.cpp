@@ -59,6 +59,10 @@ void ThunderCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void ThunderCardAction::OnAnimationEnd()
+{
+}
+
 void ThunderCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);

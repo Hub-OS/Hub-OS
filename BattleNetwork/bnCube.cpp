@@ -32,6 +32,24 @@ Cube::Cube(Field* _field, Team _team)
   props.flags |= Hit::impact | Hit::breaking;
   props.damage = 200;
   SetHitboxProperties(props);
+
+  auto impact = [this]() {
+    AUDIO.Play(AudioType::HURT);
+  };
+
+  // breaking prop is insta-kill
+  auto breaking = [this]() {
+    SetHealth(0);
+  };
+
+
+  auto drag = [this]() {
+    pushedByDrag = true;
+  };
+
+  RegisterStatusCallback(Hit::impact, impact);
+  RegisterStatusCallback(Hit::breaking, breaking);
+  RegisterStatusCallback(Hit::drag, drag);
 }
 
 Cube::~Cube() {
@@ -142,49 +160,6 @@ void Cube::OnDelete() {
 const float Cube::GetHeight() const
 {
   return 64.0f;
-}
-
-const bool Cube::OnHit(const Hit::Properties props) {
-  if (animation->GetAnimationString() == "APPEAR")
-    return false;
-
-  // breaking prop is insta-kill
-  if ((props.flags & Hit::breaking) == Hit::breaking) {
-    SetHealth(0);
-    return true;
-  }
-
-  // Teams cannot accidentally pull cube into their side
-  // TODO: this doesn't work anymore with the new battlestep routines
-  /*if(props.aggressor && (props.flags & Hit::drag) == Hit::drag){
-    if(props.aggressor->GetTeam() == Team::red) {
-      if(props.drag == Direction::left) {
-        // take damage anyway, skipping the Character::ResolveBattleStatus() step
-        SetHealth(GetHealth() - props.damage);
-
-        // Do not resolve battle step damage or extra status information
-        return false;
-      }
-    } else if(props.aggressor->GetTeam() == Team::blue) {
-      if(props.drag == Direction::right) {
-        // take damage anyway, skipping the Character::ResolveBattleStatus() step
-        SetHealth(GetHealth() - props.damage);
-
-        // Do not resolve battle step damage or extra status information
-        return false;
-      }
-    }
-
-    pushedByDrag = true;
-  }*/
-
-  if ((props.flags & Hit::drag) == Hit::drag) {
-    pushedByDrag = true;
-  }
-
-  AUDIO.Play(AudioType::HURT);
-  
-  return true;
 }
 
 void Cube::Attack(Character* other) {

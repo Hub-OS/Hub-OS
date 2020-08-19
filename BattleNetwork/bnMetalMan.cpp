@@ -78,12 +78,22 @@ MetalMan::MetalMan(Rank _rank)
 
   animationComponent->OnUpdate(0);
 
+  virusBody = new DefenseVirusBody();
+  AddDefenseRule(virusBody);
+
   // TODO: take this out
   // multi-move attacks (like punch) will have a destination tile
   movedByStun = false;
 
-  virusBody = new DefenseVirusBody();
-  AddDefenseRule(virusBody);
+  auto stun = [this]() {
+    // TODO: this this code will be moved because this should have a destination tile
+    //       which should automatically move to via combat system
+    if (!Teammate(GetTile()->GetTeam())) {
+      movedByStun = true;
+    }
+  };
+
+  RegisterStatusCallback(Hit::stun, stun);
 }
 
 MetalMan::~MetalMan() {
@@ -118,18 +128,6 @@ void MetalMan::OnUpdate(float _elapsed) {
   hitbox->SetHitboxProperties(props);
 
   field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
-}
-
-const bool MetalMan::OnHit(const Hit::Properties props) {
-  bool result = true;
-
-  if ((props.flags & Hit::stun) == Hit::stun) {
-    if (!Teammate(GetTile()->GetTeam())) {
-      movedByStun = true;
-    }
-  }
-
-  return result;
 }
 
 void MetalMan::OnDelete() {

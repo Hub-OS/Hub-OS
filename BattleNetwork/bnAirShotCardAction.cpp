@@ -61,6 +61,10 @@ void AirShotCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
+void AirShotCardAction::OnAnimationEnd()
+{
+}
+
 void AirShotCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);

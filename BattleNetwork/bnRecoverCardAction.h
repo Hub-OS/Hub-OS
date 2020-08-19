@@ -12,6 +12,7 @@ public:
   RecoverCardAction(Character* owner, int heal);
   ~RecoverCardAction();
   void OnUpdate(float _elapsed);
+  void OnAnimationEnd() override;
   void EndAction();
   void Execute();
 };

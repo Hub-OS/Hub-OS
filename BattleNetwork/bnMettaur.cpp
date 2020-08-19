@@ -66,10 +66,6 @@ void Mettaur::OnUpdate(float _elapsed) {
   AI<Mettaur>::Update(_elapsed);
 }
 
-const bool Mettaur::OnHit(const Hit::Properties props) {
-  return true;
-}
-
 const float Mettaur::GetHeight() const {
   return hitHeight;
 }
