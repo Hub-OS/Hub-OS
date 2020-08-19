@@ -2,6 +2,7 @@
 #include "bnCannonCardAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnDefenseIndestructable.h"
 #include "bnInputManager.h"
 
 ZetaCannonCardAction::ZetaCannonCardAction(Character * owner, int damage) 
@@ -44,7 +45,7 @@ void ZetaCannonCardAction::OnUpdate(float _elapsed)
     //       Also, we do not want to have to allow the programmer to follow these following conditions:
     bool canShoot = owner->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !owner->IsSliding();
 
-    if (canShoot && (firstTime && INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) && actions.size() == 1) {
+    if (canShoot && (firstTime || INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) && actions.size() == 1) {
       auto attack = owner->CreateComponent<CannonCardAction>(owner, damage, CannonCardAction::Type::red);
 
       auto actionProps = ActionLockoutProperties();
@@ -52,6 +53,13 @@ void ZetaCannonCardAction::OnUpdate(float _elapsed)
       actionProps.group = ActionLockoutGroup::card;
       attack->SetLockout(actionProps);
       attack->OnExecute();
+
+      if (firstTime) {
+        firstTime = false;
+        AUDIO.Play(AudioType::COUNTER_BONUS);
+        defense = new DefenseIndestructable(true);
+        owner->AddDefenseRule(defense);
+      }
     }
   }
   timer = std::max(0.0, timer - _elapsed);
@@ -78,6 +86,9 @@ void ZetaCannonCardAction::OnAnimationEnd()
 
 void ZetaCannonCardAction::EndAction()
 {
+  GetOwner()->RemoveDefenseRule(defense);
+  delete defense;
+
   GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

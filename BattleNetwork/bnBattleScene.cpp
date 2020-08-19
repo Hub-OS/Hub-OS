@@ -493,11 +493,13 @@ void BattleScene::OnCardUse(Battle::Card& card, Character& user, long long times
 void BattleScene::HandleCounterLoss(Character& subject)
 {
   if (&subject == player) {
-    player->RemoveNode(&counterReveal);
-    player->RemoveDefenseRule(counterCombatRule);
-    field->RevealCounterFrames(false);
+    if (field->DoesRevealCounterFrames()) {
+      player->RemoveNode(&counterReveal);
+      player->RemoveDefenseRule(counterCombatRule);
+      field->RevealCounterFrames(false);
+      AUDIO.Play(AudioType::COUNTER_BONUS, AudioPriority::highest);
+    }
     cardUI.SetMultiplier(1);
-    AUDIO.Play(AudioType::COUNTER_BONUS, AudioPriority::highest);
   }
 }
 

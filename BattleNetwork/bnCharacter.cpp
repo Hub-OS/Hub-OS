@@ -95,8 +95,10 @@ void Character::Update(float _elapsed) {
           counterFrameFlag = ((int)(++counterFrameFlag) % 5);
 
           if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag != 0) {
-            // Highlight red when the character can be countered
+            // Highlight when the character can be countered
             setColor(sf::Color(55, 55, 255, getColor().a));
+
+            // TODO: how to interop with new shaders like pallete swap?
             SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
           }
       }
@@ -404,7 +406,7 @@ void Character::ResolveFrameBattleDamage()
         }
       }
     }
-  }
+  } // end while-loop
 
   if (!append.empty()) {
     statusQueue = append;
@@ -422,12 +424,6 @@ void Character::ResolveFrameBattleDamage()
     }
   }
 
-  if (frameCounterAggressor) {
-    Broadcast(*this, *frameCounterAggressor);
-    ToggleCounter(false);
-    Stun(2.5); // 150 frames @ 60 fps = 2.5 seconds
-  }
-
   if (GetHealth() == 0) {
 
     while(statusQueue.size() > 0) {
@@ -443,6 +439,10 @@ void Character::ResolveFrameBattleDamage()
       // Slide entity back a few pixels
       counterSlideOffset = sf::Vector2f(50.f, 0.0f);
     }
+  } else if (frameCounterAggressor) {
+    Broadcast(*this, *frameCounterAggressor);
+    ToggleCounter(false);
+    Stun(2.5); // 150 frames @ 60 fps = 2.5 seconds
   }
 }
 

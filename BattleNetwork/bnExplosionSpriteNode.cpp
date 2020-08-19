@@ -27,6 +27,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
   animation.SetAnimation("EXPLODE");
   animation << [this]() {
     this->done = true;
+    this->Hide();
   };
   
   animation.Refresh(getSprite());
@@ -40,7 +41,6 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
   animation << Animator::On(12, 
     [this]() {
       root->IncrementExplosionCount();
-      setColor(sf::Color(0, 0, 0, 0));
     },
     true
   );
@@ -74,6 +74,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
   animation.SetAnimation("EXPLODE");
   animation << [this]() {
     this->done = true;
+    this->Hide();
   };
 
   animation.Refresh(getSprite());

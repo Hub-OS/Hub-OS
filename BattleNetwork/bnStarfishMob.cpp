@@ -29,9 +29,9 @@ Mob* StarfishMob::Build() {
       t->SetState(TileState::ice);
     }
     else {
-      if (t->GetX() == 3) {
-        if (t->GetY() == 1 || t->GetY() == 3) {
-          t->SetState(TileState::directionLeft);
+      if (t->GetX() <= 3) {
+        if (t->GetY() == 2) {
+          t->SetState(TileState::directionRight);
         }
       }
     }

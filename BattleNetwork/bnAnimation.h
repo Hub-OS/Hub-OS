@@ -119,7 +119,7 @@ public:
    * @brief Sets the current animation from a map of FrameLists
    * @param state animation name is the map key
    */
-  void SetAnimation(string state);
+  void SetAnimation(std::string state);
 
   /**
    * @brief Clears the function callbacks in the animator
@@ -145,7 +145,7 @@ public:
    * @param rhs On struct
    * @return Animation& to chain
    */
-  Animation& operator<<(Animator::On rhs);
+  Animation& operator<<(const Animator::On& rhs);
   
   /**
    * @brief Set the animator mode
@@ -158,14 +158,14 @@ public:
    * @brief Set the animation state
    * @param state name to chain
    */
-  Animation& operator<<(std::string state);
+  Animation& operator<<(const std::string& state);
 
   /**
    * @brief Set the onFinish callback
    * @param onFinish the function to call when the animation finishes
    * @warning does not return object. This must be the end of the chain.
    */
-  void operator<<(std::function<void()> onFinish);
+  void operator<<(const std::function<void()>& onFinish);
 
   sf::Vector2f GetPoint(const std::string& pointName);
 
@@ -173,6 +173,7 @@ public:
 
   void SyncAnimation(Animation& other);
 
+  void SetInterruptCallback(const std::function<void()> onInterrupt);
 private:
   /**
    * @brief Strips the key-value from a file format
@@ -187,4 +188,5 @@ protected:
   string currAnimation; /*!< Name of the current animation state */
   float progress; /*!< Current progress of animation */
   std::map<string, FrameList> animations; /*!< Dictionary of FrameLists read from file */
+  std::function<void()> interruptCallback;
 };

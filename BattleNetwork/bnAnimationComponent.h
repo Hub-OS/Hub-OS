@@ -136,7 +136,7 @@ public:
 
   void AddToOverrideList(Animation* other);
   void RemoveFromOverrideList(Animation* other);
-
+  void SetInterruptCallback(const std::function<void()>& onInterrupt);
   /**
    * @brief Force the animation to jump to this frame index 
    * @param index index of the frame

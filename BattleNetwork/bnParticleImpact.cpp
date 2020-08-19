@@ -68,7 +68,7 @@ void ParticleImpact::OnSpawn(Battle::Tile& tile) {
   }
 
   if (type == Type::THIN) {
-    width = 0;
+    width = 0; // TODO: make this an adjustable property like Set/Get Height
   }
 
   randOffset = sf::Vector2f(float(rand() % static_cast<int>(width+1)), float(rand() % static_cast<int>(height+1)));

@@ -1,7 +1,7 @@
-imagePath="JudgementPCbg_compressed.png"
+imagePath="bg.png"
 
 animation state="BG"
-frame duration="0.05" x="0" y="0" w="88" h="64" originx="0" originy="0"
+frame duration="0.15" x="0" y="0" w="88" h="64" originx="0" originy="0"
 frame duration="0.05" x="88" y="0" w="88" h="64" originx="0" originy="0"
 frame duration="0.05" x="0" y="64" w="88" h="64" originx="0" originy="0"
 frame duration="0.05" x="88" y="64" w="88" h="64" originx="0" originy="0"

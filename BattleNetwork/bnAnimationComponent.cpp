@@ -135,6 +135,7 @@ void AnimationComponent::SyncAnimation(Animation & other)
 void AnimationComponent::SyncAnimation(AnimationComponent * other)
 {
   animation.SyncAnimation(other->animation);
+  other->OnUpdate(0);
 }
 
 void AnimationComponent::AddToOverrideList(Animation * other)
@@ -157,6 +158,11 @@ void AnimationComponent::RemoveFromOverrideList(Animation * other)
   if (iter != overrideList.end()) {
     overrideList.erase(iter);
   }
+}
+
+void AnimationComponent::SetInterruptCallback(const std::function<void()>& onInterrupt)
+{
+  animation.SetInterruptCallback(onInterrupt);
 }
 
 void AnimationComponent::SetFrame(const int index)

@@ -67,7 +67,6 @@ void Vulcan::Attack(Character* _entity) {
 
     if (next) {
       impact = new ParticleImpact(ParticleImpact::Type::THIN);
-      impact->SetHeight(_entity->GetHeight()/2.f);
 
       field->AddEntity(*impact, *next);
 

@@ -14,6 +14,7 @@ public:
   mutable sf::Text timerLabel; // on the screen somewhere
   std::shared_ptr<sf::Font> font;
   bool firstTime{ true };
+  DefenseRule* defense{ nullptr };
 public:
 
   ZetaCannonCardAction(Character* owner, int damage);

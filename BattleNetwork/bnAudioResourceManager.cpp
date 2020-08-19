@@ -163,9 +163,6 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   // Highest priority plays over anything that isn't like it
   if (priority == AudioPriority::highest) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
-      if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type]) {
-
-      }
       if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || channels[i].buffer.getBuffer() != &sources[type]) {
         channels[i].buffer.stop();
         channels[i].buffer.setBuffer(sources[type]);

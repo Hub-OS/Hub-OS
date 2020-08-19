@@ -7,11 +7,11 @@
 #include <atomic>
 
 // For more retro experience, decrease available channels.
-#define NUM_OF_CHANNELS 10
+#define NUM_OF_CHANNELS 15
 
 // Prevent duplicate sounds from stacking on same frame
 // Allows duplicate audio samples to play in X ms apart from eachother
-#define AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS 58 // 58ms = ~3.5 frames
+#define AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS 58 // 58ms = ~3.5 frames @ 60fps
 
 /**
   * @class AudioPriority

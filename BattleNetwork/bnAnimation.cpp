@@ -174,6 +174,11 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
     // apply new state to target on same frame
     animator(0, target, animations[currAnimation]);
     progress = 0;
+    
+    if (interruptCallback) {
+      interruptCallback();
+      interruptCallback = nullptr;
+    }
   }
 
   const float duration = animations[currAnimation].GetTotalDuration();
@@ -213,6 +218,11 @@ void Animation::SetFrame(int frame, sf::Sprite& target)
 }
 
 void Animation::SetAnimation(string state) {
+   if (interruptCallback) {
+     interruptCallback();
+     interruptCallback = nullptr;
+   }
+
    RemoveCallbacks();
    progress = 0.0f;
 
@@ -231,6 +241,7 @@ void Animation::SetAnimation(string state) {
 void Animation::RemoveCallbacks()
 {
   animator.Clear();
+  interruptCallback = nullptr;
 }
 
 const std::string Animation::GetAnimationString() const
@@ -244,7 +255,7 @@ FrameList & Animation::GetFrameList(std::string animation)
   return animations[animation];
 }
 
-Animation & Animation::operator<<(Animator::On rhs)
+Animation & Animation::operator<<(const Animator::On& rhs)
 {
   animator << rhs;
   return *this;
@@ -256,12 +267,12 @@ Animation & Animation::operator<<(char rhs)
   return *this;
 }
 
-Animation& Animation::operator<<(std::string state) {
+Animation& Animation::operator<<(const std::string& state) {
   SetAnimation(state);
   return *this;
 }
 
-void Animation::operator<<(std::function<void()> onFinish)
+void Animation::operator<<(const std::function<void()>& onFinish)
 {
   animator << onFinish;
 }
@@ -288,8 +299,13 @@ void Animation::OverrideAnimationFrames(const std::string& animation, std::list 
   animations.emplace(uuid, std::move(animations[animation].MakeNewFromOverrideData(data)));
 }
 
-void Animation::SyncAnimation(Animation & other)
+void Animation::SyncAnimation(Animation& other)
 {
   other.progress = progress;
   other.currAnimation = currAnimation;
+}
+
+void Animation::SetInterruptCallback(const std::function<void()> onInterrupt)
+{
+  interruptCallback = onInterrupt;
 }

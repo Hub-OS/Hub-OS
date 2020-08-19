@@ -29,7 +29,7 @@ void PlayerControlledState::QueueAction(Player & player)
   // We already have one action queued, delete the next one
   if (!queuedAction) {
     queuedAction = action;
-    this->startupDelay = STARTUP_DELAY_LEN;
+    if(replicator) this->startupDelay = STARTUP_DELAY_LEN;
   }
   else {
     delete action;
@@ -122,7 +122,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     }
   }
 
-  bool shouldShoot = INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld == false;
+  bool shouldShoot = INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld == false && actions.empty();
 
 #ifdef __ANDROID__
   shouldShoot = INPUTx.Has(PRESSED_A);
@@ -161,14 +161,14 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     if (moved) {
       auto onFinish = [&, this]() {
         auto playerPtr = &player;
-        player.SetAnimation("PLAYER_MOVED", [playerPtr, this]() {
+        player.SetAnimation("PLAYER_MOVED", [playerPtr, actions, this]() {
           playerPtr->SetAnimation(PLAYER_IDLE);
           playerPtr->FinishMove();
 
           // Player should shoot or execute action on the immediate next tile
           // Note: I added this check because buster shoots would stay in queue
           // if the player was pressing the D-pad this frame too
-          if (queuedAction && !playerPtr->IsSliding()) {
+          if (queuedAction && actions.empty()) {
             playerPtr->RegisterComponent(queuedAction);
             queuedAction->OnExecute();
             queuedAction = nullptr;

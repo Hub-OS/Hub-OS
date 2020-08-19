@@ -520,6 +520,7 @@ namespace Battle {
   {
     // Obstacles cannot be considered
     if (dynamic_cast<Obstacle*>(character)) return;
+    if (isTimeFrozen) return; 
 
     /*
      Special tile rules for directional pads
@@ -527,7 +528,7 @@ namespace Battle {
      and if they are not floating, we push the entity in a specific direction
      */
 
-    if (!isTimeFrozen || !isBattleOver) {
+    if (!isBattleOver) {
       // LAVA & POISON TILES
       if (!character->HasFloatShoe()) {
         if (GetState() == TileState::poison) {
@@ -576,7 +577,12 @@ namespace Battle {
           if (notMoving && !character->IsSliding()) {
             character->SlideToTile(true);
             character->Move(directional);
-            AUDIO.Play(AudioType::DIR_TILE, AudioPriority::highest);
+           
+            // TODO: more evidence that the movement system needs redesigning. 
+            //       I shouldn't have to rely on hacks and strange behavior checks
+            if (character->IsSliding()) {
+              AUDIO.Play(AudioType::DIR_TILE, AudioPriority::highest);
+            }
           }
         }
       }
