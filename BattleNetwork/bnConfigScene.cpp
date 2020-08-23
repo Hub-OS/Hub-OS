@@ -225,7 +225,6 @@ void ConfigScene::onUpdate(double elapsed)
     bool hasRight = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_RIGHT): false) || INPUTx.GetAnyKey() == sf::Keyboard::Right;
 
     if (textbox.IsOpen()) {
-        questionInterface->OnUpdate(elapsed);
         if (textbox.IsEndOfMessage()) {
             if (hasLeft) {
                 questionInterface->SelectYes();

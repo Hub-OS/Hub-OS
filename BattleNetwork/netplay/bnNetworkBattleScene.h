@@ -32,8 +32,9 @@
 #include "../bnCardSummonHandler.h"
 #include "../bnNaviRegistration.h"
 
-
 #include "bnNetPlayFlags.h"
+#include "bnNetPlayConfig.h"
+#include "bnNetPlaySignals.h"
 
 #include <time.h>
 #include <typeinfo>
@@ -50,35 +51,6 @@ using sf::Font;
 class Mob;
 class Player;
 class PlayerHealthUI;
-
-constexpr const std::size_t MAX_BUFFER_LEN = 1024;
-constexpr const uint16_t OBN_PORT = 8765;
-
-/*******************************
-Prototype network stuff
-********************************/
-struct NetPlayConfig {
-  uint16_t myPort{ OBN_PORT };
-  uint16_t remotePort{ OBN_PORT };
-  std::string remoteIP;
-  SelectedNavi myNavi{ 0 };
-};
-
-enum class NetPlaySignals : unsigned int {
-  none = 0,
-  connect,
-  handshake,
-  ready,
-  form,
-  move,
-  hp,
-  tile,
-  chip,
-  loser,
-  shoot,
-  special,
-  charge
-};
 
 class NetworkCardUseListener; // declared bottom of file
 

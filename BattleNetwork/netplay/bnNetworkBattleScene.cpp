@@ -1439,11 +1439,11 @@ void NetworkBattleScene::processIncomingPackets()
     return;
   }
 
-  static char rawBuffer[MAX_BUFFER_LEN] = { 0 };
+  static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
   static int read = 0;
 
   try {
-    read+= client.receiveBytes(rawBuffer, MAX_BUFFER_LEN-1);
+    read+= client.receiveBytes(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN-1);
     if (read > 0) {
       rawBuffer[read] = '\0';
 
@@ -1495,7 +1495,7 @@ void NetworkBattleScene::processIncomingPackets()
     errorCount = 0;
   }
   catch (std::exception& e) {
-    std::cout << "Network exception: " << e.what() << std::endl;
+    Logger::Logf("PVP Network exception: %s", e.what());
     
     if (remoteState.isRemoteConnected) {
       errorCount++;
@@ -1503,5 +1503,5 @@ void NetworkBattleScene::processIncomingPackets()
   }
 
   read = 0;
-  std::memset(rawBuffer, 0, MAX_BUFFER_LEN);
+  std::memset(rawBuffer, 0, NetPlayConfig::MAX_BUFFER_LEN);
 }

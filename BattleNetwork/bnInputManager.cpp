@@ -1,4 +1,5 @@
 #include <SFML/Window.hpp>
+#include <SFML/Window/Clipboard.hpp>
 using sf::Event;
 using sf::Keyboard;
 #include "bnEngine.h"
@@ -37,6 +38,7 @@ void InputManager::SupportConfigSettings(ConfigReader& reader) {
 void InputManager::Update() {
   eventsLastFrame = events;
   events.clear();
+  systemCopyEvent = systemPasteEvent = false;
 
   Event event;
 
@@ -65,6 +67,14 @@ void InputManager::Update() {
 
     if(event.type == sf::Event::KeyPressed) {
       lastkey = event.key.code;
+
+#ifndef __ANDROID__
+      if (event.key.control && event.key.code == sf::Keyboard::V)
+        systemPasteEvent = true;
+
+      if (event.key.control && event.key.code == sf::Keyboard::C)
+        systemCopyEvent = true;
+#endif
     }
 
     for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++) {
@@ -392,6 +402,16 @@ sf::Keyboard::Key InputManager::GetAnyKey()
   return lastkey;
 }
 
+std::string InputManager::GetClipboard()
+{
+    return sf::Clipboard::getString();
+}
+
+void InputManager::SetClipboard(const std::string& data)
+{
+  sf::Clipboard::setString(sf::String(data));
+}
+
 Gamepad InputManager::GetAnyGamepadButton()
 {
   return lastButton;
@@ -553,6 +573,16 @@ void InputManager::BindLoseFocusEvent(std::function<void()> callback)
 const bool InputManager::IsJosytickAvailable() const
 {
   return sf::Joystick::isConnected(GAMEPAD_1);
+}
+
+const bool InputManager::HasSystemCopyEvent() const
+{
+  return systemCopyEvent;
+}
+
+const bool InputManager::HasSystemPasteEvent() const
+{
+  return systemPasteEvent;
 }
 
 ConfigSettings InputManager::GetConfigSettings()

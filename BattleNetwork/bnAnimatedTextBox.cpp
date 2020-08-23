@@ -111,7 +111,7 @@ void AnimatedTextBox::CompleteCurrentBlock() {
 void AnimatedTextBox::DequeMessage() {
   if (messages.size() == 0) return;
 
-  delete *messages.begin();
+  delete *messages.begin(); // TODO: use shared ptrs
   messages.erase(messages.begin());
   animPaths.erase(animPaths.begin());
   mugshots.erase(mugshots.begin());
@@ -124,6 +124,13 @@ void AnimatedTextBox::DequeMessage() {
   textBox.SetText(messages[0]->GetMessage());
 
   isPaused = false; // Begin playing again
+}
+
+void AnimatedTextBox::ClearAllMessages()
+{
+  while (messages.size()) {
+    DequeMessage();
+  }
 }
 
 void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message) {
@@ -143,11 +150,11 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
   message->SetTextBox(this);
 }
 
-void AnimatedTextBox::ReplaceText(std::string text)
+/*void AnimatedTextBox::ReplaceText(std::string text)
 {
     textBox.SetText(text);
     isPaused = false; // start over with new text
-}
+}*/
 
 void AnimatedTextBox::Update(double elapsed) {
   totalTime += elapsed;

@@ -4,12 +4,12 @@
 #include "Android/bnTouchArea.h"
 
 #include "bnMainMenuScene.h"
-#include "Segues/DiamondTileSwipe.h"
 #include "bnCardFolderCollection.h"
 
 #include "Segues/PushIn.h"
 #include "Segues/Checkerboard.h"
 #include "Segues/PixelateBlackWashFade.h"
+#include "Segues/DiamondTileSwipe.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -21,7 +21,7 @@ using namespace swoosh::types;
 #define OBN_NETPLAY 1
 
 #ifdef OBN_NETPLAY
-#include "netplay/bnNetworkBattleScene.h"
+#include "netplay/bnPVPScene.h"
 #endif
 
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
@@ -217,62 +217,10 @@ void MainMenuScene::onUpdate(double elapsed) {
         CardFolder* folder = nullptr;
 
         if (data.GetFolder(0, folder)) {
-#ifndef OBN_NETPLAY
-
-          // Get the navi we selected
-          Player* player = NAVIS.At(currentNavi).GetNavi();
-
-          // Shuffle our folder
-          CardFolder* copy = folder->Clone();
-          copy->Shuffle();
-
-          // Queue screen transition to Battle Scene with a white fade effect
-          // just like the game
-          using effect = segue<WhiteWashFade>;
-          NetPlayConfig config;
-
-          auto fail = [this](const char* msg) {
-            AUDIO.Play(AudioType::CHIP_ERROR);
-            Logger::Log(msg);
-            this->gotoNextScene = false;
-          };
-
-          try {
-            std::ifstream infile("netplay_config.txt");
-
-            if (infile.is_open()) {
-              std::string line;
-              std::getline(infile, line);
-              config.myPort = std::atoi(line.c_str());
-
-              std::getline(infile, line);
-              config.remoteIP = line;
-
-              std::getline(infile, line);
-              config.remotePort = std::atoi(line.c_str());
-
-              config.myNavi = currentNavi;
-
-              infile.close();
-            }
-            else {
-              fail("Cannot launch PVP. netplay_config.txt was not found...");
-            }
-          }
-          catch (std::exception& e) {
-            fail(e.what());
-          }
-
-          if (gotoNextScene) {
-            // if this is still true, we did not fail loading the pvp config...
-            // Play the pre battle rumble sound
-            AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::high);
-
-            // Stop music and go to battle screen 
-            AUDIO.StopStream();
-
-            getController().push<effect::to<NetworkBattleScene>>(player, copy, programAdance, config);
-          }
+#ifdef OBN_NETPLAY
+          AUDIO.Play(AudioType::CHIP_DESC);
+          using effect = segue<PushIn<direction::down>, milliseconds<250>>;
+          getController().push<effect::to<PVPScene>>(currentNavi, *folder, programAdvance);
 #else
           using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
           AUDIO.Play(AudioType::CHIP_DESC);
@@ -281,7 +229,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         }
         else {
           AUDIO.Play(AudioType::CHIP_ERROR); 
-          Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
+          Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
           gotoNextScene = false;
         }
       }

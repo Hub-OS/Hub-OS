@@ -48,6 +48,10 @@ public:
   void Update();
 
   sf::Keyboard::Key GetAnyKey();
+  
+  std::string GetClipboard();
+  void SetClipboard(const std::string& data);
+
   Gamepad GetAnyGamepadButton();
   
   const bool ConvertKeyToString(const sf::Keyboard::Key key, std::string& out);
@@ -139,6 +143,8 @@ public:
   void BindLoseFocusEvent(std::function<void()> callback);
 
   const bool IsJosytickAvailable() const;
+  const bool HasSystemCopyEvent() const;
+  const bool HasSystemPasteEvent() const;
 
   ConfigSettings GetConfigSettings();
 
@@ -148,6 +154,8 @@ private:
 
   bool captureInputBuffer; /*!< Flags input buffer capture state */
   std::string inputBuffer; /*!< The internal input buffer data */
+
+  bool systemCopyEvent{ false }, systemPasteEvent{ false };
 
   float axisXPower, lastAxisXPower;
   float axisYPower, lastAxisYPower;

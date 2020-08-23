@@ -1,4 +1,4 @@
-imagePath="C:/Users/Proto/Downloads/network_menu.png"
+imagePath="pvp_widget.png"
 
 animation state="L"
 frame duration="0.05" x="12" y="3" w="32" h="22" originx="0" originy="0"

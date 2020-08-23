@@ -49,6 +49,8 @@ public:
    * @brief Remove message and mugshot from queue
    */
   void DequeMessage();
+
+  void ClearAllMessages();
   
   /**
    * @brief Adds message and mugshot to queue
@@ -58,7 +60,7 @@ public:
    */
   void EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message);
   
-  void ReplaceText(std::string text);
+  //void ReplaceText(std::string text);
 
   /**
    * @brief Begins closing the textbox
