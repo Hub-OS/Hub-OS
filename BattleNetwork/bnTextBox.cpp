@@ -166,6 +166,8 @@ void TextBox::CompleteCurrentBlock()
   int charactersSkipped = newCharIndex - charIndex;
   double elapsed = static_cast<double>(charactersSkipped) / this->charsPerSecond;
   this->progress += elapsed;
+
+  play = true; // will try and pause once it completes, so we force it to update
 }
 
 void TextBox::SetCharactersPerSecond(const double cps) {

@@ -1,9 +1,3 @@
-#include "bnPVPScene.h"
-#include "bnNetworkBattleScene.h"
-#include "../bnMainMenuScene.h"
-#include "../bnGridBackground.h"
-#include "../bnAudioResourceManager.h"
-
 #include <Swoosh/ActivityController.h>
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
@@ -12,41 +6,67 @@
 #include <Poco/Net/HTTPRequest.h>
 #include <Poco/Net/HTTPResponse.h>
 
+#include "bnPVPScene.h"
+#include "bnNetworkBattleScene.h"
+
+#include "Segues/PushIn.h"
+
+#include "../bnMainMenuScene.h"
+#include "../bnGridBackground.h"
+#include "../bnAudioResourceManager.h"
+
 using namespace Poco;
 using namespace Net;
 using namespace swoosh::types;
 
 std::string PVPScene::myIP = "";
 
-PVPScene::PVPScene(swoosh::ActivityController& controller, size_t selected, CardFolder& folder, PA& pa)
+PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFolder& folder, PA& pa)
   : textbox(sf::Vector2f(4, 250)), selectedNavi(selected), folder(folder), pa(pa),
   uiAnim("resources/pvp_widget.animation"),
   swoosh::Activity(&controller)
 {
+  // network
+  Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), netplayconfig.myPort);
+  client = Poco::Net::DatagramSocket(sa);
+  client.setBlocking(false);
+
   // Sprites
-  ui = sf::Sprite(*LOAD_TEXTURE_FILE("resources/ui/pvp_widget.png"));
-  vs = sf::Sprite(*LOAD_TEXTURE_FILE("resources/ui/vs_text.png"));
-  greenBg = sf::Sprite(*LOAD_TEXTURE(FOLDER_INFO_BG));
+  ui.setTexture(LOAD_TEXTURE_FILE("resources/ui/pvp_widget.png"));
+  vs.setTexture(LOAD_TEXTURE_FILE("resources/ui/vs_text.png"));
+  vsFaded.setTexture(LOAD_TEXTURE_FILE("resources/ui/vs_text.png"));
+  greenBg.setTexture(LOAD_TEXTURE(FOLDER_VIEW_BG));
 
-  navigator = sf::Sprite(*LOAD_TEXTURE(MUG_NAVIGATOR));
-  navigator.setScale(2.f, 2.f);
+  navigator.setTexture(LOAD_TEXTURE(MUG_NAVIGATOR));
+  //navigator.setScale(2.f, 2.f);
 
-  ui.setScale(2.f, 2.f);
+  // NOTE: ui sprites are already at 2x scale
+  // ui.setScale(2.f, 2.f);
 
   float w = controller.getInitialWindowSize().x;
   float h = controller.getInitialWindowSize().y;
   vs.setPosition(w / 2.f, h / 2.f);
   swoosh::game::setOrigin(vs.getSprite(), 0.5, 0.5);
-  vs.setScale(2.f, 2.f);
+  
+  // hide this until it is ready
+  vs.setScale(0.f, 0.f);
+
+  // this is the fadeout VS effect
+  swoosh::game::setOrigin(vsFaded.getSprite(), 0.5, 0.5);
+  vsFaded.setPosition(w / 2.f, h / 2.f);
+  vsFaded.setScale(0.f, 0.f);
 
   greenBg.setScale(2.f, 2.f);
 
   this->gridBG = new GridBackground();
+  gridBG->setColor(sf::Color(0)); // hide until it is ready
 
   clientPreview.setTexture(NAVIS.At(selectedNavi).GetPreviewTexture());
   clientPreview.setScale(2.f, 2.f);
-  swoosh::game::setOrigin(clientPreview.getSprite(), 1.0, 1.0);
-  remotePreview.setScale(2.f, 2.f);
+  clientPreview.setOrigin(clientPreview.getLocalBounds().width, clientPreview.getLocalBounds().height);
+  
+  // flip the remote player
+  remotePreview.setScale(-2.f, 2.f);
 
   // text / font
   font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
@@ -63,24 +83,27 @@ PVPScene::~PVPScene() {
 
 const std::string PVPScene::GetPublicIP()
 {
-  std::string url = "http://api.ipify.org"; // send back public IP in plain text
+  std::string url = "checkip.amazonaws.com"; // send back public IP in plain text
 
-  HTTPClientSession session(url, 80);
-  HTTPRequest request(HTTPRequest::HTTP_GET, "/", HTTPMessage::HTTP_1_1);
-  HTTPResponse response;
+  try {
+    HTTPClientSession session(url);
+    HTTPRequest request(HTTPRequest::HTTP_GET, "/", HTTPMessage::HTTP_1_1);
+    HTTPResponse response;
 
-  session.sendRequest(request);
-  std::istream& rs = session.receiveResponse(response);
+    session.sendRequest(request);
+    std::istream& rs = session.receiveResponse(response);
 
-  if (response.getStatus() != Poco::Net::HTTPResponse::HTTP_UNAUTHORIZED)
-  {
-    return std::string(std::istreambuf_iterator<char>(rs), {});
+    if (response.getStatus() != Poco::Net::HTTPResponse::HTTP_UNAUTHORIZED)
+    {
+      return std::string(std::istreambuf_iterator<char>(rs), {});
+    }
   }
-  else
-  {
-    // failed
-    return "";
+  catch (std::exception& e) {
+    Logger::Logf("PVP Network Exception while obtaining IP: %s", e.what());
   }
+
+  // failed 
+  return "";
 }
 
 void PVPScene::HandleInfoMode()
@@ -120,6 +143,43 @@ void PVPScene::HandleCancel()
   AUDIO.Play(AudioType::CHIP_ERROR);
 }
 
+void PVPScene::HandleGetIPFailure()
+{
+  textbox.ClearAllMessages();
+  Message* help = new Message("Error obtaining your IP");
+  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+  textbox.Open([]() {
+    AUDIO.Play(AudioType::CHIP_ERROR);
+  });
+  textbox.CompleteCurrentBlock();
+}
+
+void PVPScene::HandleCopyEvent()
+{
+  INPUTx.SetClipboard(myIP);
+  AUDIO.Play(AudioType::NEW_GAME);
+
+  textbox.ClearAllMessages();
+  Message* help = new Message("Copied!");
+  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+  textbox.CompleteCurrentBlock();
+}
+
+void PVPScene::HandlePasteEvent()
+{
+  std::string value = INPUTx.GetClipboard();
+
+  if (value != theirIP) {
+    theirIP = value;
+    AUDIO.Play(AudioType::COUNTER_BONUS);
+  }
+
+  textbox.ClearAllMessages();
+  Message* help = new Message("Pasted! Press start to connect.");
+  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+  textbox.CompleteCurrentBlock();
+}
+
 void PVPScene::ProcessIncomingPackets()
 {
   if (!client.poll(Poco::Timespan{ 0 }, Poco::Net::Socket::SELECT_READ)) return;
@@ -127,6 +187,15 @@ void PVPScene::ProcessIncomingPackets()
   static int read = 0;
 
   try {
+    // discover their IP
+    if (theirIP.empty()) {
+      Poco::Net::SocketAddress sender;
+      read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1, sender);
+      rawBuffer[read] = '\0';
+
+      theirIP = std::string(rawBuffer, read);
+    }
+
     read += client.receiveBytes(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1);
     if (read > 0) {
       rawBuffer[read] = '\0';
@@ -147,28 +216,38 @@ void PVPScene::ProcessIncomingPackets()
     }
   }
   catch (std::exception& e) {
-    Logger::Logf("Network exception: %s", e.what());
+    Logger::Logf("PVP Network exception: %s", e.what());
   }
 
   read = 0;
   std::memset(rawBuffer, 0, NetPlayConfig::MAX_BUFFER_LEN);
 }
 
-void PVPScene::SendConnectSignal(const size_t navi)
+void PVPScene::SendConnectSignal(const int navi)
 {
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::connect };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  buffer.append((char*)&navi, sizeof(size_t));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  try {
+    Poco::Buffer<char> buffer{ 0 };
+    NetPlaySignals type{ NetPlaySignals::connect };
+    buffer.append((char*)&type, sizeof(NetPlaySignals));
+    buffer.append((char*)&navi, sizeof(size_t));
+    client.sendBytes(buffer.begin(), (int)buffer.size());
+  }
+  catch (...) {
+    // bad IP?
+  }
 }
 
 void PVPScene::SendHandshakeSignal()
 {
-  Poco::Buffer<char> buffer{ 0 };
-  NetPlaySignals type{ NetPlaySignals::handshake };
-  buffer.append((char*)&type, sizeof(NetPlaySignals));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  try {
+    Poco::Buffer<char> buffer{ 0 };
+    NetPlaySignals type{ NetPlaySignals::handshake };
+    buffer.append((char*)&type, sizeof(NetPlaySignals));
+    client.sendBytes(buffer.begin(), (int)buffer.size());
+  }
+  catch (...) {
+    // bad IP?
+  }
 }
 
 void PVPScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
@@ -180,7 +259,8 @@ void PVPScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
   size_t navi = size_t{ 0 }; std::memcpy(&navi, buffer.begin(), buffer.size());
   auto meta = NAVIS.At(navi);
   this->remotePreview.setTexture(meta.GetPreviewTexture());
-  swoosh::game::setOrigin(remotePreview.getSprite(), 0.0, 1.0);
+  auto height = remotePreview.getSprite().getLocalBounds().height;
+  remotePreview.setOrigin(sf::Vector2f(0, height));
 }
 
 void PVPScene::RecieveHandshakeSignal()
@@ -197,8 +277,15 @@ void PVPScene::onStart() {
     myIP = GetPublicIP();
   }
 
-  // always on info mode first
-  HandleInfoMode();
+  if (myIP.empty()) {
+    // there was a problem
+    HandleGetIPFailure();
+  }
+  else {
+    Logger::Logf("My IP came back as %s", myIP.c_str());
+    // start on info mode first
+    HandleInfoMode();
+  }
 }
 
 void PVPScene::onResume() {
@@ -208,6 +295,14 @@ void PVPScene::onResume() {
 void PVPScene::onUpdate(double elapsed) {
   gridBG->Update(elapsed);
   textbox.Update(elapsed);
+
+  // DEBUG SCENE STUFF
+  if (INPUTx.Has(EventTypes::RELEASED_SPECIAL)) {
+    clientIsReady = remoteIsReady = true;
+    remotePreview.setTexture(clientPreview.getTexture());
+    remotePreview.setOrigin(0, remotePreview.getLocalBounds().height);
+    theirIP = "127.0.0.1";
+  }
 
   if (!infoMode) {
     text.setString(theirIP);
@@ -220,6 +315,7 @@ void PVPScene::onUpdate(double elapsed) {
 
   if (clientIsReady && remoteIsReady && !isInFlashyVSIntro) {
     isInFlashyVSIntro = true;
+    AUDIO.StopStream();
   }
   else if (clientIsReady && !remoteIsReady) {
     if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
@@ -232,28 +328,44 @@ void PVPScene::onUpdate(double elapsed) {
     this->sequenceTimer += elapsed;
 
     double delta = swoosh::ease::linear(sequenceTimer, 0.5, 1.0);
-    greenBg.setColor(sf::Color(255 * (1 - delta)));
+    double amt = 255 * (1 - delta);
+    greenBg.setColor(sf::Color(amt,amt,amt,255));
 
-    if (delta > 1) {
+    // Refresh mob graphic origin every frame as it may change
+    auto size = getController().getVirtualWindowSize();
+
+    if (delta == 1) {
       delta = swoosh::ease::linear(sequenceTimer - 0.5, 0.5, 1.0);
-      float x = static_cast<float>(delta) * 100.0f;
-      float y = 320;
-      sf::Vector2f pos = sf::Vector2f(x, y);
-      clientPreview.setPosition(pos);
+      float x = static_cast<float>(delta) * 160.0f;
 
-      pos = sf::Vector2f(640 - x, y);
-      remotePreview.setPosition(pos);
+      clientPreview.setPosition(delta * float(size.x) * 0.25f, float(size.y));
+      clientPreview.setOrigin(float(clientPreview.getTextureRect().width) * 0.5f, float(clientPreview.getTextureRect().height));
 
-      gridBG->setColor(sf::Color(255 * (delta)));
+      remotePreview.setPosition(size.x - (delta * float(size.x) * 0.25f), float(size.y));
+      remotePreview.setOrigin(float(remotePreview.getTextureRect().width) * 0.5f, float(remotePreview.getTextureRect().height));
 
-      if (delta > 1) {
-        delta = swoosh::ease::linear(sequenceTimer - 1, 0.5, 1.0);
-        float scale = min(2.0f, static_cast<float>(1.0 - delta) * 100.0f);
-        vs.setScale(scale, scale);
+      delta = swoosh::ease::bezierPopIn(sequenceTimer - 0.5, 0.5);
+      float scale = std::fabs(static_cast<float>(1.0 - delta) * 20.0f) + 1.f;
+      vs.setScale(scale, scale);
 
-        if (delta >= 1 && playVS) {
+      if (delta == 1) {
+        // do once
+        if (playVS) {
           playVS = false;
-          AUDIO.Play(AudioType::DARK_CARD);
+          AUDIO.Play(AudioType::CUSTOM_BAR_FULL, AudioPriority::highest);
+        }
+
+        flashState++;
+
+        // make bg appear
+        gridBG->setColor(sf::Color(255, 255, 255, 255));
+
+        if (flashState > 20) {
+          delta = swoosh::ease::linear(sequenceTimer - 1.0, 2.0, 1.0);
+          float scale = static_cast<float>(delta) + 1.f;
+          vsFaded.setScale(scale, scale);
+          amt = 150 * (1 - delta);
+          vsFaded.setColor(sf::Color(255, 255, 255, amt));
         }
       }
     }
@@ -263,6 +375,8 @@ void PVPScene::onUpdate(double elapsed) {
     }
   }
   else if (isInBattleStartup) {
+    leave = true;
+
     // Shuffle our folder
     CardFolder* copy = folder.Clone();
     copy->Shuffle();
@@ -278,36 +392,40 @@ void PVPScene::onUpdate(double elapsed) {
     // Stop music and go to battle screen 
     AUDIO.StopStream();
 
+    // Configure the session
+    config.remoteIP = theirIP;
+
     Player* player = NAVIS.At(selectedNavi).GetNavi();
+
+    // TODO: reuse this connection
+    client.close();
+
     getController().push<effect::to<NetworkBattleScene>>(player, copy, pa, config);
-  } else if(!leave) {
+    // getController().queuePop<effect>(); // for testing animations
+  } else {
     ProcessIncomingPackets();
 
-    if (!handshakeComplete) {
+    if (!handshakeComplete && !theirIP.empty()) {
       // Try reaching out to someone...
       this->SendConnectSignal(selectedNavi);
+    }
+
+    if (remoteIsReady && !clientIsReady) {
+      this->SendHandshakeSignal();
     }
 
     if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
       leave = true;
       AUDIO.Play(AudioType::CHIP_CANCEL);
-      textbox.ClearAllMessages();
-      textbox.Close();
-    }else if (textbox.IsOpen() && INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
-      textbox.DequeMessage();
-      textbox.CompleteCurrentBlock();
+      client.close();
+      using effect = segue<PushIn<direction::up>, milliseconds<500>>;
+      getController().queuePop<effect>();
     }
     else if (INPUTx.HasSystemCopyEvent() && infoMode) {
-      INPUTx.SetClipboard(myIP);
-      AUDIO.Play(AudioType::NEW_GAME);
+      HandleCopyEvent();
     }
     else if (INPUTx.HasSystemPasteEvent() && !infoMode) {
-      std::string value = INPUTx.GetClipboard();
-
-      if (value != theirIP) {
-        theirIP = value;
-        AUDIO.Play(AudioType::COUNTER_BONUS);
-      }
+      HandlePasteEvent();
     }
     else if (INPUTx.Has(EventTypes::PRESSED_SCAN_LEFT) && infoMode) {
       infoMode = false;
@@ -315,31 +433,34 @@ void PVPScene::onUpdate(double elapsed) {
       HandleJoinMode();
     }
     else if (INPUTx.Has(EventTypes::PRESSED_SCAN_RIGHT) && !infoMode) {
-      infoMode = false;
+      infoMode = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       HandleInfoMode();
     } 
     else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && !infoMode && !theirIP.empty()) {
       this->clientIsReady = true;
       HandleReady();
+      AUDIO.Play(AudioType::CHIP_CHOOSE);
     }
-  } else {
-      using effect = segue<WhiteWashFade, milliseconds<500>>;
-      getController().push<effect::to<MainMenuScene>>();
   }
 }
 
 void PVPScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
-  ENGINE.Draw(gridBG);
   ENGINE.Draw(greenBg);
-  ENGINE.Draw(textbox);
+  ENGINE.Draw(gridBG);
 
   // Draw the widget pieces
-  ENGINE.Draw(ui);
+  //ENGINE.Draw(ui);
   //uiAnim.SetAnimation("...")
 
   if (!isInFlashyVSIntro) {
+    ENGINE.Draw(textbox);
+
+    if (infoMode && myIP.empty()) {
+      text.setString(sf::String("ERROR"));
+    }
+
     ENGINE.Draw(text);
 
     if (infoMode) {
@@ -351,7 +472,7 @@ void PVPScene::onDraw(sf::RenderTexture& surface) {
 
     // re-use text object to draw more
     auto pos = text.getPosition();
-    text.setPosition(20, 5);
+    text.setPosition(20, -5);
 
     ENGINE.Draw(text);
     text.setPosition(pos); // revert
@@ -360,5 +481,12 @@ void PVPScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(clientPreview);
     ENGINE.Draw(remotePreview);
     ENGINE.Draw(vs);
+    ENGINE.Draw(vsFaded);
+  }
+
+  if (flashState >= 1 && flashState <= 20) {
+    sf::RectangleShape screen(ENGINE.GetCamera()->GetView().getSize());
+    screen.setFillColor(sf::Color::White);
+    ENGINE.Draw(screen);
   }
 }

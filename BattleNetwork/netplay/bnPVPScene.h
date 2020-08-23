@@ -29,16 +29,17 @@ private:
   bool isInBattleStartup{ false };
   bool infoMode{ true }; // we start here and then allow the player to toggle
   bool handshakeComplete{ false };
-  bool playVS{ false };
+  bool playVS{ true };
   size_t selectionIndex{ 0 }; // 0 = text input field widget
-  size_t& selectedNavi;
+  size_t flashState{ 0 };
+  int selectedNavi;
   CardFolder& folder;
   PA& pa;
   NetPlayConfig netplayconfig;
   Background* gridBG;
   SpriteProxyNode navigator;
   SpriteProxyNode ui;
-  SpriteProxyNode vs;
+  SpriteProxyNode vs, vsFaded;
   SpriteProxyNode greenBg;
   SpriteProxyNode clientPreview;
   SpriteProxyNode remotePreview;
@@ -58,15 +59,18 @@ private:
   void HandleJoinMode();
   void HandleReady();
   void HandleCancel();
+  void HandleGetIPFailure();
+  void HandleCopyEvent();
+  void HandlePasteEvent();
 
   // netplay comm.
   void ProcessIncomingPackets();
-  void SendConnectSignal(const size_t navi);
+  void SendConnectSignal(const int navi);
   void SendHandshakeSignal(); // sent until we recieve a handshake
   void RecieveConnectSignal(const Poco::Buffer<char>&);
   void RecieveHandshakeSignal();
 public:
-  PVPScene(swoosh::ActivityController&, size_t, CardFolder&, PA&);
+  PVPScene(swoosh::ActivityController&, int, CardFolder&, PA&);
   ~PVPScene();
 
   /**

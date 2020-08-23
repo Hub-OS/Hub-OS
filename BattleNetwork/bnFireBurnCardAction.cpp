@@ -76,11 +76,11 @@ void FireBurnCardAction::OnUpdate(float _elapsed)
 
 void FireBurnCardAction::OnAnimationEnd()
 {
+  GetOwner()->RemoveNode(attachment);
 }
 
 void FireBurnCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
   GetOwner()->FreeComponentByID(GetID());
   delete this;
 }

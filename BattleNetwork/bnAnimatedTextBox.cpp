@@ -45,18 +45,20 @@ void AnimatedTextBox::Close() {
 }
 
 
-void AnimatedTextBox::Open() {
+void AnimatedTextBox::Open(const std::function<void()>& onOpen) {
   if (isReady || isOpening) return;
 
   isOpening = true;
 
   animator.SetAnimation("OPEN");
 
-  auto callback = [this]() {
+  auto callback = [this, onOpen]() {
     isClosing = false;
     isPaused = false;
     isOpening = false;
     isReady = true;
+
+    if (onOpen) onOpen();
   };
 
   animator << callback;
@@ -106,6 +108,13 @@ const float AnimatedTextBox::GetFrameHeight() const
 
 void AnimatedTextBox::CompleteCurrentBlock() {
   textBox.CompleteCurrentBlock();
+
+  if (mugAnimator.GetAnimationString() != "IDLE") {
+    mugAnimator.SetAnimation("IDLE");
+    mugAnimator << Animator::Mode::Loop;
+  }
+
+  isPaused = false;
 }
 
 void AnimatedTextBox::DequeMessage() {
@@ -157,8 +166,6 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
 }*/
 
 void AnimatedTextBox::Update(double elapsed) {
-  totalTime += elapsed;
-
   if (isReady && messages.size() > 0) {
 
     int yIndex = (int)(textBox.GetNumberOfLines() % textBox.GetNumberOfFittingLines());

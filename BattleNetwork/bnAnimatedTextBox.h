@@ -70,7 +70,7 @@ public:
   /**
    * @brief Begins opening the textbox
    */
-  void Open();
+  void Open(const std::function<void()>& onOpen = nullptr);
 
   /**
    * @brief Query if the textbox is playing

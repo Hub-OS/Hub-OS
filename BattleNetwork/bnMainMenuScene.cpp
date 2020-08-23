@@ -219,8 +219,8 @@ void MainMenuScene::onUpdate(double elapsed) {
         if (data.GetFolder(0, folder)) {
 #ifdef OBN_NETPLAY
           AUDIO.Play(AudioType::CHIP_DESC);
-          using effect = segue<PushIn<direction::down>, milliseconds<250>>;
-          getController().push<effect::to<PVPScene>>(currentNavi, *folder, programAdvance);
+          using effect = segue<PushIn<direction::down>, milliseconds<500>>;
+          getController().push<effect::to<PVPScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
 #else
           using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
           AUDIO.Play(AudioType::CHIP_DESC);

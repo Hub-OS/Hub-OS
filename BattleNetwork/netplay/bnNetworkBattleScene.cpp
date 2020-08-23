@@ -2,6 +2,7 @@
 #include <chrono>
 
 #include "bnNetworkBattleScene.h"
+#include "../bnMainMenuScene.h"
 #include "bnPlayerInputReplicator.h"
 #include "bnPlayerNetworkState.h"
 #include "bnPlayerNetworkProxy.h"
@@ -91,6 +92,11 @@ void NetworkBattleScene::onUpdate(double elapsed) {
   battleTimer.update(elapsed);
   PAStartTimer.update(elapsed);
 
+  if (remotePlayer && isSceneInFocus) {
+    // TODO: replace with a boolean "isRemoteAddedToField"
+    remotePlayer->ToggleTimeFreeze(false);
+  }
+  
   bool playerFormChangeComplete = !isChangingForm || (isChangingForm && isLeavingFormChange);
   bool remoteFormChangeComplete = !remoteState.remoteIsFormChanging || (remoteState.remoteIsFormChanging && remoteState.remoteIsLeavingFormChange);
   bool formChangeStateIsOver = (playerFormChangeComplete && remoteFormChangeComplete);
@@ -328,12 +334,13 @@ void NetworkBattleScene::onUpdate(double elapsed) {
       this->sendChangedFormSignal(-1); // back to original
     }
 
-    if (remotePlayer && remotePlayer->GetHealth() == 0 && remoteState.remoteFormSelect != -1 && !remoteState.remoteIsFormChanging) {
+    // BAD IDEA B/C What if the remote has not told us we are wrong about their health yet?
+    /*if (remotePlayer && remotePlayer->GetHealth() == 0 && remoteState.remoteFormSelect != -1 && !remoteState.remoteIsFormChanging) {
       // same but for remote
       remoteState.remoteIsFormChanging = true;
       showSummonBackdropTimer = 0;
       backdropOpacity = 1.0f; // full black
-    }
+    }*/
   }
   else {
     battleTimer.pause();
@@ -1100,7 +1107,7 @@ void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
             }
 
             using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
-            getController().queuePop<effect>();
+            getController().queueRewind<effect::to<MainMenuScene>>();
           }
           else {
             battleResults->CursorAction();
@@ -1314,7 +1321,7 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remotePlayer->ChangeState<FadeInState<Player>>(onFinish);
   field->AddEntity(*remotePlayer, remoteState.remoteTileX, remoteState.remoteTileY);
-  remotePlayer->ToggleTimeFreeze(false);
+  remotePlayer->ToggleTimeFreeze(true);
 
   remoteState.remoteHP = remotePlayer->GetHealth();
 
