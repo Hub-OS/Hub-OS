@@ -5,6 +5,7 @@
 #include <Poco/Net/HTTPClientSession.h>
 #include <Poco/Net/HTTPRequest.h>
 #include <Poco/Net/HTTPResponse.h>
+#include <Poco/Net/IPAddress.h>
 
 #include "bnPVPScene.h"
 #include "bnNetworkBattleScene.h"
@@ -23,7 +24,7 @@ std::string PVPScene::myIP = "";
 
 PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFolder& folder, PA& pa)
   : textbox(sf::Vector2f(4, 250)), selectedNavi(selected), folder(folder), pa(pa),
-  uiAnim("resources/pvp_widget.animation"),
+  uiAnim("resources/ui/pvp_widget.animation"),
   swoosh::Activity(&controller)
 {
   // network
@@ -71,7 +72,9 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   // text / font
   font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
   text.setFont(*font);
-  text.setPosition(20.f, 50.0f);
+  text.setPosition(45.f, -5.f); // y starts above the visible screen because sfml fonts are weird
+
+  id.setFont(*font);
 
   // load animation files
   uiAnim.Load();
@@ -95,7 +98,9 @@ const std::string PVPScene::GetPublicIP()
 
     if (response.getStatus() != Poco::Net::HTTPResponse::HTTP_UNAUTHORIZED)
     {
-      return std::string(std::istreambuf_iterator<char>(rs), {});
+      std::string temp = std::string(std::istreambuf_iterator<char>(rs), {});
+      temp.erase(std::remove(temp.begin(), temp.end(), '\n'), temp.end());
+      return temp;
     }
   }
   catch (std::exception& e) {
@@ -156,13 +161,24 @@ void PVPScene::HandleGetIPFailure()
 
 void PVPScene::HandleCopyEvent()
 {
-  INPUTx.SetClipboard(myIP);
-  AUDIO.Play(AudioType::NEW_GAME);
+  std::string value = INPUTx.GetClipboard();
 
-  textbox.ClearAllMessages();
-  Message* help = new Message("Copied!");
-  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
-  textbox.CompleteCurrentBlock();
+  if (value != myIP) {
+    Message* help = nullptr;
+    if (myIP.empty()) {
+      AUDIO.Play(AudioType::CHIP_ERROR);
+      help = new Message("IP addr unavailable");
+    }
+    else {
+      INPUTx.SetClipboard(myIP);
+      AUDIO.Play(AudioType::NEW_GAME);
+      help = new Message("Copied!");
+    }
+
+    textbox.ClearAllMessages();
+    textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+    textbox.CompleteCurrentBlock();
+  }
 }
 
 void PVPScene::HandlePasteEvent()
@@ -170,14 +186,22 @@ void PVPScene::HandlePasteEvent()
   std::string value = INPUTx.GetClipboard();
 
   if (value != theirIP) {
-    theirIP = value;
-    AUDIO.Play(AudioType::COUNTER_BONUS);
-  }
+    Message* help = nullptr;
 
-  textbox.ClearAllMessages();
-  Message* help = new Message("Pasted! Press start to connect.");
-  textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
-  textbox.CompleteCurrentBlock();
+    if (IsValidIPv4(value)) {
+      theirIP = value;
+      AUDIO.Play(AudioType::COUNTER_BONUS);
+      help = new Message("Pasted! Press start to connect.");
+    }
+    else {
+      AUDIO.Play(AudioType::CHIP_ERROR);
+      help = new Message("Bad IP");
+    }
+
+    textbox.ClearAllMessages();
+    textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
+    textbox.CompleteCurrentBlock();
+  }
 }
 
 void PVPScene::ProcessIncomingPackets()
@@ -269,6 +293,107 @@ void PVPScene::RecieveHandshakeSignal()
   this->SendHandshakeSignal();
 }
 
+void PVPScene::DrawIDInputWidget()
+{
+  uiAnim.SetAnimation("ID_START");
+  uiAnim.SetFrame(0, ui.getSprite());
+  ui.setPosition(100, 40);
+  ENGINE.Draw(ui);
+
+  if (infoMode) {
+    id.setString(sf::String(myIP));
+  }
+  else {
+    id.setString(sf::String(theirIP));
+  }
+  id.setPosition(145, 40);
+
+  // restrict the widget from collapsing at text length 0
+  float widgetWidth = std::fmax(id.getLocalBounds().width+10.f, 50);
+
+  uiAnim.SetAnimation("ID_MID");
+  uiAnim.Update(0, ui.getSprite());
+  ui.setScale(widgetWidth, 1.0f);
+  ui.setPosition(140, 40);
+  ENGINE.Draw(ui);
+  ENGINE.Draw(id);
+
+  uiAnim.SetAnimation("ID_END");
+  uiAnim.Update(0, ui.getSprite());
+  ui.setScale(1.f, 1.0f);
+  ui.setPosition(140 + widgetWidth, 40);
+  ENGINE.Draw(ui);
+}
+
+void PVPScene::DrawCopyPasteWidget()
+{
+  std::string state = "ENABLED";
+  std::string clipboard = INPUTx.GetClipboard();
+
+  if (!infoMode && (clipboard.empty() || theirIP == clipboard)) {
+    state = "DISABLED";
+  }
+  else if (!infoMode && theirIP == clipboard) {
+    // also disable if already entered
+    state = "DISABLED";
+  }
+
+  if (infoMode && (myIP.empty() || myIP == clipboard)) {
+    state = "DISABLED";
+  }
+
+  std::string prefix = "BTN_" + state +"_";
+  std::string start = prefix + "START";
+  std::string mid = prefix + "MID";
+  std::string end = prefix + "END";
+
+  std::string icon = "ICO_" + state + "_";
+
+  uiAnim.SetAnimation(start);
+  uiAnim.SetFrame(0, ui.getSprite());
+  ui.setPosition(100, 90);
+  ENGINE.Draw(ui);
+
+  sf::Text widgetText;
+  widgetText.setFont(*font);
+
+  if (infoMode) {
+    widgetText.setString("Copy");
+    icon += "COPY";
+  }
+  else {
+    widgetText.setString("Paste");
+    icon += "PASTE";
+  }
+
+  uiAnim.SetAnimation(icon);
+  uiAnim.SetFrame(0, ui.getSprite());
+  ui.setPosition(102, 92); // offset by 2 pixels to fit inside the frame
+  ENGINE.Draw(ui);
+
+  widgetText.setPosition(145, 83);
+
+  float widgetWidth = widgetText.getLocalBounds().width + 10.f;
+
+  uiAnim.SetAnimation(mid);
+  uiAnim.Update(0, ui.getSprite());
+  ui.setScale(widgetWidth, 1.0f);
+  ui.setPosition(140, 90);
+  ENGINE.Draw(ui);
+  ENGINE.Draw(widgetText);
+
+  uiAnim.SetAnimation(end);
+  uiAnim.Update(0, ui.getSprite());
+  ui.setScale(1.f, 1.0f);
+  ui.setPosition(140 + widgetWidth, 90);
+  ENGINE.Draw(ui);
+}
+
+const bool PVPScene::IsValidIPv4(const std::string& ip) const {
+  Poco::Net::IPAddress temp;
+  return Poco::Net::IPAddress::tryParse(ip, temp);
+}
+
 void PVPScene::onStart() {
   this->isScreenReady = true;
 
@@ -302,13 +427,6 @@ void PVPScene::onUpdate(double elapsed) {
     remotePreview.setTexture(clientPreview.getTexture());
     remotePreview.setOrigin(0, remotePreview.getLocalBounds().height);
     theirIP = "127.0.0.1";
-  }
-
-  if (!infoMode) {
-    text.setString(theirIP);
-  }
-  else {
-    text.setString(myIP);
   }
 
   if (!isScreenReady || leave) return; // don't update our scene if not fully in view from segue
@@ -353,14 +471,15 @@ void PVPScene::onUpdate(double elapsed) {
         if (playVS) {
           playVS = false;
           AUDIO.Play(AudioType::CUSTOM_BAR_FULL, AudioPriority::highest);
+          flashCooldown = 20.0 / 60.0;
         }
 
-        flashState++;
+        flashCooldown -= elapsed;
 
         // make bg appear
         gridBG->setColor(sf::Color(255, 255, 255, 255));
 
-        if (flashState > 20) {
+        if (flashCooldown > 20) {
           delta = swoosh::ease::linear(sequenceTimer - 1.0, 2.0, 1.0);
           float scale = static_cast<float>(delta) + 1.f;
           vsFaded.setScale(scale, scale);
@@ -458,24 +577,31 @@ void PVPScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(textbox);
 
     if (infoMode && myIP.empty()) {
-      text.setString(sf::String("ERROR"));
+      id.setString(sf::String("ERROR"));
     }
-
-    ENGINE.Draw(text);
 
     if (infoMode) {
       text.setString("My Info");
+
+      uiAnim.SetAnimation("L");
+      uiAnim.SetFrame(0, ui.getSprite());
+      ui.setPosition(5, 4);
     }
     else {
       text.setString("Remote");
+
+      uiAnim.SetAnimation("R");
+      uiAnim.SetFrame(0, ui.getSprite());
+      ui.setPosition(130, 4);
     }
 
-    // re-use text object to draw more
-    auto pos = text.getPosition();
-    text.setPosition(20, -5);
-
     ENGINE.Draw(text);
-    text.setPosition(pos); // revert
+
+    // L/R icons
+    ENGINE.Draw(ui);
+
+    this->DrawIDInputWidget();
+    this->DrawCopyPasteWidget();
   }
   else {
     ENGINE.Draw(clientPreview);
@@ -484,7 +610,7 @@ void PVPScene::onDraw(sf::RenderTexture& surface) {
     ENGINE.Draw(vsFaded);
   }
 
-  if (flashState >= 1 && flashState <= 20) {
+  if (flashCooldown > 0) {
     sf::RectangleShape screen(ENGINE.GetCamera()->GetView().getSize());
     screen.setFillColor(sf::Color::White);
     ENGINE.Draw(screen);

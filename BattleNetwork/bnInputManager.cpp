@@ -404,7 +404,7 @@ sf::Keyboard::Key InputManager::GetAnyKey()
 
 std::string InputManager::GetClipboard()
 {
-    return sf::Clipboard::getString();
+  return sf::Clipboard::getString();
 }
 
 void InputManager::SetClipboard(const std::string& data)

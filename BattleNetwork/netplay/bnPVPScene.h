@@ -31,7 +31,7 @@ private:
   bool handshakeComplete{ false };
   bool playVS{ true };
   size_t selectionIndex{ 0 }; // 0 = text input field widget
-  size_t flashState{ 0 };
+  double flashCooldown{ 0 };
   int selectedNavi;
   CardFolder& folder;
   PA& pa;
@@ -49,12 +49,13 @@ private:
   
   static std::string myIP;
   std::string theirIP;
-  sf::Text text;
+  sf::Text text, id;
   std::shared_ptr<sf::Font> font;
   Poco::Net::DatagramSocket client; //!< us
 
   const std::string GetPublicIP(); // TODO: this should be a fetchable value in the web client manager
 
+  // event responses
   void HandleInfoMode();
   void HandleJoinMode();
   void HandleReady();
@@ -69,6 +70,12 @@ private:
   void SendHandshakeSignal(); // sent until we recieve a handshake
   void RecieveConnectSignal(const Poco::Buffer<char>&);
   void RecieveHandshakeSignal();
+
+  // custom drawing
+  void DrawIDInputWidget();
+  void DrawCopyPasteWidget();
+
+  const bool IsValidIPv4(const std::string& ip) const;
 public:
   PVPScene(swoosh::ActivityController&, int, CardFolder&, PA&);
   ~PVPScene();
