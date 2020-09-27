@@ -95,9 +95,10 @@ protected:
 
   float listStepCooldown; /*!< Remaining time inbetween PA list items */
   float listStepCounter; /*!< Max time inbetween PA list items */
+  sf::Sprite programAdvanceSprite; /*!< Sprite for "ProgramAdvanced" graphic */
+
   float streamVolume{ -1 }; /*! Using this variable also as a state flag */
 
-  sf::Sprite programAdvanceSprite; /*!< Sprite for "ProgramAdvanced" graphic */
 
   // counter stuff
   SpriteProxyNode counterReveal;

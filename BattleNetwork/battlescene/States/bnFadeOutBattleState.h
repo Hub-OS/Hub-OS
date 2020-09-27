@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../bnBattleSceneState.h"
 
 // modes for fading out style

@@ -1,4 +1,5 @@
-#include "bnIBattleScene.h"
+#pragma once
+#include "bnBattleSceneBase.h"
 
 class Player; //!< Forward declare
 
@@ -9,7 +10,7 @@ struct PVPBattleProperties {
     int rounds;
 };
 
-class PVPBattleScene final : public IBattleScene {
+class PVPBattleScene final : public BattleSceneBase {
     Player* remotePlayer; // the other person
 
     PVPBattleScene(const PVPBattleProperties& props);

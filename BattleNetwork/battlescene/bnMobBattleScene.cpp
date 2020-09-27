@@ -1,7 +1,7 @@
 #include "bnMobBattleScene.h"
 
 MobBattleScene::MobBattleScene(const MobBattleProperties& props) 
-: IBattleScene(*props.controller, props.player) {
+: BattleSceneBase(*props.controller, props.player) {
     // First, we create all of our scene states
     auto intro = AddState<IntroMobState>();
     auto cardSelect = AddState<CardSelectState>();

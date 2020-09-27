@@ -1,4 +1,5 @@
-#include "bnIBattleScene.h"
+#pragma once
+#include "bnBattleSceneBase.h"
 
 class Player;
 class Mob;
@@ -23,7 +24,7 @@ struct MobBattleProperties {
 /*
     \brief Battle scene configuration for a regular PVE battle
 */
-class MobBattleScene final : public IBattleScene {
+class MobBattleScene final : public BattleSceneBase {
     MobBattleProperties props;
 
     public:
