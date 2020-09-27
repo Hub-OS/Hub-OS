@@ -1,46 +1,54 @@
 #include "bnMobBattleScene.h"
 
-MobBattleScene::MobBattleScene(const MobBattleProperties& props) 
-: BattleSceneBase(*props.controller, props.player) {
-    // First, we create all of our scene states
-    auto intro = AddState<IntroMobState>();
-    auto cardSelect = AddState<CardSelectState>();
-    auto combat = AddState<CombatState>();
-    auto combo = AddState<CardComboState>();
-    auto forms = AddState<TransformationState>();
-    auto battlestart = AddState<BattleStartState>();
-    auto battleover = AddState<BattleOverState>();
-    auto timeFreeze = AddState<TimeFreezeState>();
-    auto reward = AddState<RewardState>();
+#include "States/bnRewardBattleState.h"
+#include "States/bnTimeFreezeBattleState.h"
+#include "States/bnBattleStartBattleState.h"
+#include "States/bnBattleOverBattleState.h"
+#include "States/bnFadeOutBattleState.h"
+#include "States/bnCombatBattleState.h"
+#include "States/bnCharacterTransformBattleState.h"
+#include "States/bnMobIntroBattleState.h"
+#include "States/bnCardSelectBattleState.h"
+#include "States/bnCardComboBattleState.h"
 
-    // reguster the battle scene with this state
-    auto fadeout = AddState<FadeOutState>(FadeOut::black);
-    fadeout->bsPtr = this;
+MobBattleScene::MobBattleScene(const MobBattleProperties& props) 
+: BattleSceneBase(props.controller, props.player) {
+    // First, we create all of our scene states
+    auto intro = AddState<MobIntroBattleState>();
+    auto cardSelect = AddState<CardSelectBattleState>();
+    auto combat = AddState<CombatBattleState>();
+    auto combo = AddState<CardComboBattleState>();
+    auto forms = AddState<CharacterTransformBattleState>();
+    auto battlestart = AddState<BattleStartBattleState>();
+    auto battleover = AddState<BattleOverBattleState>();
+    auto timeFreeze = AddState<TimeFreezeBattleState>();
+    auto reward = AddState<RewardBattleState>();
+    auto fadeout = AddState<FadeOutBattleState>(this, FadeOut::black); // this state requires arguments
 
     // the macro below is the same as this formal C++ notation...
-    /*intro.ChangeOnEvent(cardSelect,     &IntroMobState::IsOver);
-    cardSelect.ChangeOnEvent(battlestart, &CardSelectState::OKIsPressed);
-    battlestart.ChangeOnEvent(combat,     &BattleStartState::IsFinished);
-    battleover.ChangeOnEvent(reward,      &BattleOverState::IsFinished);
-    timeFreeze.ChangeOnEvent(combat,      &TimeFreezeState::IsOver);
-    reward.ChangeOnEvent(fadeout,         &RewardState::OKIsPressed);*/
+    /*intro.ChangeOnEvent(cardSelect,     &IntroMobBattleState::IsOver);
+    cardSelect.ChangeOnEvent(battlestart, &CardSelectBattleState::OKIsPressed);
+    battlestart.ChangeOnEvent(combat,     &BattleStartBattleState::IsFinished);
+    battleover.ChangeOnEvent(reward,      &BattleOverBattleState::IsFinished);
+    timeFreeze.ChangeOnEvent(combat,      &TimeFreezeattleState::IsOver);
+    reward.ChangeOnEvent(fadeout,         &RewardBattleState::OKIsPressed);*/
 
-    //        hange from       , to         , when this is true
-    CHANGE_ON_EVENT(intro      , cardSelect , IsOver);
-    CHANGE_ON_EVENT(cardSelect , battlestart, OKIsPressed);
-    CHANGE_ON_EVENT(battlestart, combat     , IsFinished);
-    CHANGE_ON_EVENT(battleover , reward     , IsFinished);
-    CHANGE_ON_EVENT(timeFreeze , combat     , IsOver);
-    CHANGE_ON_EVENT(reward     , fadeout    , OKIsPressed);
+    //        hange from        ,to          ,when this is true
+    CHANGE_ON_EVENT(intro       ,cardSelect  ,IsOver);
+    CHANGE_ON_EVENT(cardSelect  ,battlestart ,OKIsPressed);
+    CHANGE_ON_EVENT(battlestart ,combat      ,IsFinished);
+    CHANGE_ON_EVENT(battleover  ,reward      ,IsFinished);
+    CHANGE_ON_EVENT(timeFreeze  ,combat      ,IsOver);
+    CHANGE_ON_EVENT(reward      ,fadeout     ,OKIsPressed);
 
     // combat has multiple state interruptions based on events
     // so we chain them together instead of using the macro
-    combat.ChangeOnEvent(battleover, &CombatState::IsCombatOver)
-            .ChangeOnEvent(cardSelect, &CombatState::IsCardGaugeFull)
-            .ChangeOnEvent(timeFreeze, &CombatState::HasTimeFreeze);
+    combat  .ChangeOnEvent(battleover, &CombatBattleState::IsCombatOver)
+            .ChangeOnEvent(cardSelect, &CombatBattleState::IsCardGaugeFull)
+            .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
 
     // this kicks-off the state graph beginning with the intro state
-    this->Start(intro);
+    this->StartStateGraph(intro);
 }
 
 MobBattleScene::~MobBattleScene() {

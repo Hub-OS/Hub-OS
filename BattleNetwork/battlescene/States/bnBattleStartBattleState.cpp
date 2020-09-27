@@ -1,5 +1,5 @@
 #include "bnBattleStartBattleState.h"
 
-bool BattleStartState::IsFinished() {
+bool BattleStartBattleState::IsFinished() {
     return true;
 }

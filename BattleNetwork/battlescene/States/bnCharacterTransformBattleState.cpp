@@ -1,5 +1,5 @@
 #include "bnCharacterTransformBattleState.h"
 
-bool CharacterTransformaBattleState::IsFinished() {
+bool CharacterTransformBattleState::IsFinished() {
     return true;
 }

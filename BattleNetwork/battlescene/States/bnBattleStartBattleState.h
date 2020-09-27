@@ -9,7 +9,7 @@
 
     depending on the type of battle (Round-based PVP? PVE?)
 */
-struct BattleStartState final : public BattleSceneState {
+struct BattleStartBattleState final : public BattleSceneState {
     sf::Sprite battleStart; /*!< "Battle Start" graphic */
     swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
     sf::Vector2f battleStartPos; /*!< Position of battle pre/post graphic on screen */

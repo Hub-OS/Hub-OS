@@ -8,7 +8,7 @@
 /*
     \brief This state handles transformations
 */
-struct CharacterTransformaBattleState final : public BattleSceneState {
+struct CharacterTransformBattleState final : public BattleSceneState {
     Animation shineAnimation;
     sf::Sprite shine;
     int lastSelectedForm{ -1 };
