@@ -15,6 +15,7 @@
 #include "../bnCharacterDeleteListener.h"
 #include "../bnCardUseListener.h"
 #include "../bnComponent.h"
+#include "../bnPA.h"
 #include "../bnMobHealthUI.h"
 #include "../bnAnimation.h"
 #include "../bnCamera.h"
@@ -22,6 +23,8 @@
 #include "../bnPlayerCardUseListener.h"
 #include "../bnEnemyCardUseListener.h"
 #include "../bnSelectedCardsUI.h"
+#include "../bnSelectedCardsUI.h"
+#include "../bnCardSelectionCust.h"
 
 // Battle scene specific classes
 #include "bnBattleSceneState.h"
@@ -32,6 +35,7 @@ class Field;
 class Player;
 class Mob;
 class Player;
+class CardFolder;
 class PlayerHealthUI;
 class CounterCombatRule;
 class Background;
@@ -48,39 +52,56 @@ using sf::Font;
 // If x = 20 frames, then we want a combo hit threshold of 20/60 = 0.3 seconds
 #define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
+struct BattleSceneBaseProps {
+  swoosh::ActivityController& controller;
+  Player& player;
+  CardFolder& folder;
+  Mob& mob;
+  PA& programAdvance;
+};
+
 /**
   @brief BattleSceneBase class provides an API for creating complex states
 */
 class BattleSceneBase : public swoosh::Activity, public CounterHitListener, public CharacterDeleteListener, public CardUseListener {
 private:
-    bool quitting{false}; //!< Determine if we are leaving the battle scene
-
     // general stuff
-    double elapsed{ 0 }; /*!< total time elapsed in battle */
-    int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
-    Field* field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
-    Player* player{ nullptr }; /*!< Pointer to player's selected character */
-    SelectedCardsUI cardUI; /*!< Player's Card UI implementation */
-    PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */
-    EnemyCardUseListener enemyCardListener; /*!< Enemies can use cards now */
-    std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
-    Camera camera; /*!< Camera object - will shake screen */
-    Background* background; /*!< Custom backgrounds provided by Mob data */
-    int randBG; /*!< If background provided by Mob data is nullptr, randomly select one */
-    std::shared_ptr<sf::Font> font; /*!< PAUSE font */
-    sf::Text* pauseLabel; /*!< "PAUSE" text */
-    std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
-    SpriteProxyNode customBarSprite; /*!< Cust gauge sprite */
-    sf::Vector2f customBarPos; /*!< Cust gauge position */
-    std::shared_ptr<sf::Font> mobFont; /*!< Name of mob font */
-    sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
-    Mob* mob; /*!< Mob and mob data player are fighting against */
-    double customProgress{ 0 }; /*!< Cust bar progress */
-    double customDuration; /*!< Cust bar max time */
+    bool quitting{ false }; //!< Determine if we are leaving the battle scene
     bool didDoubleDelete{ false }; /*!< Flag if player double deleted this frame */
     bool didTripleDelete{ false }; /*!< Flag if player tripled deleted this frame */
+    bool isSceneInFocus{ false }; //<! Let us know if transition effects complete
+    bool isPlayerDeleted{ false };
+    bool isPaused{ false };
+    int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
+    int lastMobSize{ 0 }; /*!< used to determine double/triple deletes with frame accuracy */
+    int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
+    int totalCounterDeletions{ 0 }; /*!< Track player's counter-deletions. Used for ranking. */
+    int comboDeleteCounter{ 0 }; /*!< Deletions within 12 frames triggers double or triple deletes. */
+    int randBG; /*!< If background provided by Mob data is nullptr, randomly select one */
+    double elapsed{ 0 }; /*!< total time elapsed in battle */
+    double customProgress{ 0 }; /*!< Cust bar progress */
+    double customDuration; /*!< Cust bar max time */
     double backdropOpacity{ 1.0 };
+    PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */
+    EnemyCardUseListener enemyCardListener; /*!< Enemies can use cards now */
+    SelectedCardsUI cardUI; /*!< Player's Card UI implementation */
+    Camera camera; /*!< Camera object - will shake screen */
+    sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
+    sf::Vector2f customBarPos; /*!< Cust gauge position */
+    SpriteProxyNode customBarSprite; /*!< Cust gauge sprite */
+    PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
+    Field* field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
+    Player* player{ nullptr }; /*!< Pointer to player's selected character */
+    Mob* mob; /*!< Mob and mob data player are fighting against */
+    Background* background; /*!< Custom backgrounds provided by Mob data */
+    sf::Text* pauseLabel; /*!< "PAUSE" text */
+    CounterCombatRule* counterCombatRule{ nullptr }; /*!< Hooks into the player's defense checks to track interrupts */
+    std::shared_ptr<sf::Font> font; /*!< PAUSE font */
+    std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
+    std::shared_ptr<sf::Font> mobFont; /*!< Name of mob font */
     std::vector<SceneNode*> scenenodes; /*!< Scene node system */
+    std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
+    std::vector<Component*> components; /*!< Components injected into the scene */
 
     // counter stuff
     SpriteProxyNode counterReveal;
@@ -88,6 +109,7 @@ private:
     CounterCombatRule* counterCombatRule{ nullptr };
 
     // card stuff
+    CardSelectionCust cardCustGUI; /*!< Card selection GUI that has an API to interact with */
     Battle::Card** cards; /*!< List of Card* the user selects from the card cust */
     int cardCount; /*!< Length of card list */
 
@@ -129,9 +151,11 @@ protected:
       BattleSceneState& state; //!< The battle scene state this node represents
       BattleSceneBase& owner; //!< The scene this state refers to
     public:
-      StateNode(BattleSceneBase& owner, BattleSceneState& state) 
-      : state(state), owner(owner)
-      {}
+      StateNode(BattleSceneBase& owner, BattleSceneState& state)
+        : state(state), owner(owner)
+      {
+        state.scene = &owner;
+      }
     };
 
     /*
@@ -217,6 +241,10 @@ protected:
     */
     const bool IsBattleActive();
 
+    void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override final;
+    void OnCounter(Character& victim, Character& aggressor) override final;
+    void OnDeleteEvent(Character& pending) override final;
+
     /**
       @brief Crude support card filter step
     */
@@ -230,8 +258,8 @@ protected:
 #endif
 
 public:
-
-    BattleSceneBase(swoosh::ActivityController* controller, Player* localPlayer);
+    BattleSceneBase() = delete;
+    BattleSceneBase(const BattleSceneBaseProps& props);
     virtual ~BattleSceneBase();
 
     /*
@@ -257,6 +285,8 @@ public:
     virtual void onUpdate(double elapsed) override;
 
     virtual void onDraw(sf::RenderTexture& surface) override;
+
+    Field* GetField();
 
     /*
         \brief Forces the creation a fadeout state onto the state pointer and goes back to the last scene

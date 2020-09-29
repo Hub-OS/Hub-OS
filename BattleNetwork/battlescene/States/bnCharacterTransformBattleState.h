@@ -5,15 +5,25 @@
 
 #include <SFML/Graphics/Sprite.hpp>
 
+class Player;
+
 /*
     \brief This state handles transformations
 */
 struct CharacterTransformBattleState final : public BattleSceneState {
-    Animation shineAnimation;
-    sf::Sprite shine;
-    int lastSelectedForm{ -1 };
+  using TrackedFormData = std::pair<Player*, int>;
 
-    bool IsFinished() {
-        return true;
-    }
+  int lastSelectedForm{ -1 };
+  double backdropTimer{ 0 };
+  double backdropLength{ 0 };
+  bool isLeavingFormChange{ false };
+  Animation shineAnimation;
+  sf::Sprite shine;
+  std::vector<TrackedFormData> tracking;
+
+  bool IsFinished();
+  void onStart() override;
+  void onUpdate(double elapsed) override;
+
+  CharacterTransformBattleState(std::vector<TrackedFormData> tracking);
 };

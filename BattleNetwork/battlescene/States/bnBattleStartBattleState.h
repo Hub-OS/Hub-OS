@@ -9,12 +9,18 @@
 
     depending on the type of battle (Round-based PVP? PVE?)
 */
+
+class Player;
+
 struct BattleStartBattleState final : public BattleSceneState {
     sf::Sprite battleStart; /*!< "Battle Start" graphic */
     swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
     sf::Vector2f battleStartPos; /*!< Position of battle pre/post graphic on screen */
+    std::vector<Player*> tracked;
+    BattleStartBattleState(std::vector<Player*> tracked);
 
-    bool IsFinished() {
-        return true;
-    }
+    void onStart() override;
+    void onUpdate(double elapsed) override;
+
+    bool IsFinished();
 };

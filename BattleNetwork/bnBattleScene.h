@@ -99,7 +99,6 @@ protected:
 
   float streamVolume{ -1 }; /*! Using this variable also as a state flag */
 
-
   // counter stuff
   SpriteProxyNode counterReveal;
   Animation counterRevealAnim;

@@ -9,4 +9,5 @@ struct CombatBattleState final : public BattleSceneState {
     const bool HasTimeFreeze() const;
     const bool IsCombatOver() const;
     const bool IsCardGaugeFull();
+    void onUpdate(double elapsed) override;
 };

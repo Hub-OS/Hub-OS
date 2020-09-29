@@ -13,7 +13,8 @@ struct BattleOverBattleState final : public BattleSceneState {
     swoosh::Timer battleEndTimer; /*!< How long the end graphic should stay on screen */
     sf::Vector2f battleOverPos; /*!< Position of battle pre/post graphic on screen */
 
-    bool IsFinished() {
-        return true;
-    }
+    BattleOverBattleState();
+    void onStart() override;
+    void onUpdate(double elapsed) override;
+    bool IsFinished();
 };

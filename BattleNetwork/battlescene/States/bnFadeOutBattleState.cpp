@@ -1,9 +1,8 @@
 #include "bnFadeOutBattleState.h"
+#include "../bnBattleSceneBase.h"
 
-FadeOutBattleState::FadeOutBattleState(IBattleScene* bsPtr, const FadeOut& mode) : bsPtr(bsPtr), mode(mode) {}
+FadeOutBattleState::FadeOutBattleState(const FadeOut& mode) : mode(mode) {}
 
 void FadeOutBattleState::onStart() {
-    if(bsPtr) {
-        bsPtr->Quit(mode);
-    }
+  GetScene().Quit(mode);
 }

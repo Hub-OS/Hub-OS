@@ -46,7 +46,7 @@ public:
 
   friend class Field;
   friend class Component;
-  friend class BattleScene;
+  friend class BattleSceneBase;
 
 private:
   ID_t ID;              /*!< IDs are used for tagging during battle & to identify entities in scripting. */
