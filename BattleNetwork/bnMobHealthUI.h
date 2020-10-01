@@ -34,7 +34,7 @@ public:
    * Frees the owner of the component of resource management
    * but still maintains the pointer to the character
    */
-  void Inject(BattleScene& scene) override;
+  void Inject(BattleSceneBase& scene) override;
   
   /**
    * @brief Uses bitmap glyphs to draw game accurate health

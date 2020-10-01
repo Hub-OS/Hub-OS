@@ -77,5 +77,5 @@ public:
    * 
    * @warning Components injected into the battle scene are updated and deleted. Free the owner if injecting.
    */
-  virtual void Inject(BattleScene&) = 0;
+  virtual void Inject(BattleSceneBase&) = 0;
 };

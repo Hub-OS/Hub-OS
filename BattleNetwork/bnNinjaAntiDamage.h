@@ -35,5 +35,5 @@ public:
   /**
    * @brief Not injected into battle scene
    */
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
 };

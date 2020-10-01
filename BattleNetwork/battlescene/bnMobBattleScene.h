@@ -1,5 +1,5 @@
 #pragma once
-#include "bnBattleSceneBase.h"
+#include "battlescene/bnBattleSceneBaseBase.h"
 
 class Player;
 class Mob;

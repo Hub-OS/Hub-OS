@@ -16,7 +16,7 @@ public:
   PaletteSwap(Entity* owner, std::shared_ptr<sf::Texture> base);
   ~PaletteSwap();
   void OnUpdate(float _elapsed) override;
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
   void LoadPaletteTexture(std::string);
   void SetTexture(const std::shared_ptr<sf::Texture>& texture);
   void Revert();

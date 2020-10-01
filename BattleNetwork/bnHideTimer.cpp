@@ -1,6 +1,6 @@
 #include "bnHideTimer.h"
 #include "bnCharacter.h"
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 #include "bnTile.h"
 #include "bnAudioResourceManager.h"
 
@@ -31,7 +31,7 @@ void HideTimer::OnUpdate(float _elapsed) {
   }
 }
 
-void HideTimer::Inject(BattleScene& scene) {
+void HideTimer::Inject(BattleSceneBase& scene) {
   // temporarily remove from character from play
   if (temp) {
     // remove then reserve otherwise the API will also clear the reservation

@@ -1,6 +1,6 @@
 #include "bnCharacterTransformBattleState.h"
 
-#include "../bnBattleSceneBase.h"
+#include "../battlescene/bnBattleSceneBaseBase.h"
 #include "../../bnPlayer.h"
 #include "../../bnSceneNode.h"
 #include "../../bnPaletteSwap.h"

@@ -5,7 +5,7 @@ using std::to_string;
 #include "bnPlayerHealthUI.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 
 PlayerHealthUI::PlayerHealthUI(Player* _player)
   : player(_player), UIComponent(_player)
@@ -31,7 +31,7 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
 PlayerHealthUI::~PlayerHealthUI() {
 }
 
-void PlayerHealthUI::Inject(BattleScene & scene)
+void PlayerHealthUI::Inject(BattleSceneBase& scene)
 {
   bs = &scene;
 }

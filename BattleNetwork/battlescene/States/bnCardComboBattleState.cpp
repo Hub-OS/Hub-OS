@@ -1,6 +1,6 @@
 #include "bnCardComboBattleState.h"
 
-#include "../bnBattleSceneBase.h"
+#include "../battlescene/bnBattleSceneBaseBase.h"
 #include "../../bnTextureResourceManager.h"
 #include "../../bnAudioResourceManager.h"
 

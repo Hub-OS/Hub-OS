@@ -68,7 +68,7 @@ public:
   virtual void EndAction() = 0;
   virtual void OnAnimationEnd() = 0;
 
-  void Inject(BattleScene&) final;
+  void Inject(BattleSceneBase&) final;
 
   void SetLockout(const ActionLockoutProperties& props);
   void SetLockoutGroup(const ActionLockoutGroup& group);

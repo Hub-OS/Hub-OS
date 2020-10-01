@@ -110,7 +110,7 @@ void CardAction::OnUpdate(float _elapsed)
   }
 }
 
-void CardAction::Inject(BattleScene&)
+void CardAction::Inject(BattleSceneBase&)
 {
   // do nothing
 }

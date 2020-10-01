@@ -36,9 +36,9 @@ public:
 
   /**
    * @brief Does not inject into scene. Used by the owner.
-   * @param BattleScene& unused
+   * @param BattleSceneBase& unused
    */
-  void Inject(BattleScene&) override { ; }
+  void Inject(BattleSceneBase&) override { ; }
   
   /**
    * @brief Reconstructs the animation object

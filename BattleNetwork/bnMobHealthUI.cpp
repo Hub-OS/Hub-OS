@@ -2,7 +2,7 @@
 using std::to_string;
 
 #include <Swoosh/Game.h>
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 #include "bnMobHealthUI.h"
 #include "bnCharacter.h"
 #include "bnTextureResourceManager.h"
@@ -70,7 +70,7 @@ void MobHealthUI::OnUpdate(float elapsed) {
   }
 }
 
-void MobHealthUI::Inject(BattleScene & scene)
+void MobHealthUI::Inject(BattleSceneBase& scene)
 {
   scene.Inject(*this);
 }

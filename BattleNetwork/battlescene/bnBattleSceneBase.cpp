@@ -1,4 +1,4 @@
-#include "bnBattleSceneBase.h"
+#include "battlescene/bnBattleSceneBaseBase.h"
 
 #include "../bnTextureResourceManager.h"
 #include "../bnShaderResourceManager.h"

@@ -1,6 +1,6 @@
 #include "bnCardSelectBattleState.h"
 
-#include "../bnBattleSceneBase.h"
+#include "../battlescene/bnBattleSceneBaseBase.h"
 #include "../../bnCard.h"
 #include "../../bnPlayer.h"
 #include "../../bnSelectedCardsUI.h"

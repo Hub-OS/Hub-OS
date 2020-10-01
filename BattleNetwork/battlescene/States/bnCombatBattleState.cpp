@@ -1,6 +1,6 @@
 #include "bnCombatBattleState.h"
 
-#include "../bnBattleSceneBase.h"
+#include "../battlescene/bnBattleSceneBaseBase.h"
 
 #include "../../bnMob.h"
 #include "../../bnTeam.h"

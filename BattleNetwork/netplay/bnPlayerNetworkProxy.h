@@ -16,7 +16,7 @@ public:
 
   void OnUpdate(float) override { }
 
-  void Inject(BattleScene& bs) override {
+  void Inject(BattleSceneBase& bs) override {
     // do nothing
   }
 };

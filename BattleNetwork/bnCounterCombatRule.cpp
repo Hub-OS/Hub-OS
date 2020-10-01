@@ -1,7 +1,7 @@
 #include "bnCounterCombatRule.h"
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 
-CounterCombatRule::CounterCombatRule(BattleScene* battleScene) 
+CounterCombatRule::CounterCombatRule(BattleSceneBase* battleScene) 
   : DefenseRule(Priority(0), DefenseOrder::collisionOnly), battleScene(battleScene) {
 }
 

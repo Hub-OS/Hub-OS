@@ -1,7 +1,7 @@
 #include <string>
 using std::to_string;
 
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 #include "bnPlayer.h"
 #include "bnField.h"
 #include "bnCannon.h"
@@ -78,7 +78,7 @@ const bool EnemyCardsUI::UseNextCard() {
   return ++curr;
 }
 
-void EnemyCardsUI::Inject(BattleScene& scene)
+void EnemyCardsUI::Inject(BattleSceneBase& scene)
 {
   scene.Inject(*((CardUsePublisher*)this));
 }

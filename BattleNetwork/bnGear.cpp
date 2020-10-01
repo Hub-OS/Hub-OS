@@ -20,7 +20,7 @@ Gear::Gear(Field* _field, Team _team, Direction startDir)
   animation->Load();
   animation->SetAnimation("GEAR", Animator::Mode::Loop);
 
-  std::function<void(BattleScene&, Gear&)> battleOverCallback = [this](BattleScene&, Gear&) {
+  std::function<void(BattleSceneBase&, Gear&)> battleOverCallback = [this](BattleSceneBase&, Gear&) {
       stopMoving = true;
   };
 

@@ -59,7 +59,7 @@ public:
   /**
    * @brief nothing
    */
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
 
   void SetMultiplier(unsigned mult);
 

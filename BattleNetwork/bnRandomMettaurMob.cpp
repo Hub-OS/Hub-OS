@@ -70,7 +70,7 @@ Mob* RandomMettaurMob::Build() {
               field->AddEntity(*mystery, tile->GetX(), tile->GetY());
 
               // Callback for the battle over trigger
-              auto callback = [](BattleScene& b, MysteryData& m) {
+              auto callback = [](BattleSceneBase& b, MysteryData& m) {
                 m.RewardPlayer();
               };
 

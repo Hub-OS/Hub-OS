@@ -194,7 +194,7 @@ const bool SelectedCardsUI::UseNextCard() {
   return ++curr;
 }
 
-void SelectedCardsUI::Inject(BattleScene& scene) {
+void SelectedCardsUI::Inject(BattleSceneBase& scene) {
   // This component is manually assigned in the battle scene
   // and does not need injection at this time
 }

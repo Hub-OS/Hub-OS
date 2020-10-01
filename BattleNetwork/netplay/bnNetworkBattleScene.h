@@ -20,7 +20,7 @@
 #include "../bnEngine.h"
 #include "../bnSceneNode.h"
 #include "../bnBattleResults.h"
-#include "../bnBattleScene.h"
+#include "../battlescene/bnBattleSceneBase.h"
 #include "../bnMob.h"
 #include "../bnField.h"
 #include "../bnPlayer.h"
@@ -122,11 +122,11 @@ public:
 };
 
 class NetworkCardUseListener final : public CardUseListener {
-  NetworkBattleScene& bs;
+  NetworkBattleSceneBase& bs;
   Player& client;
 
 public:
-  NetworkCardUseListener(NetworkBattleScene& bs, Player& client)
+  NetworkCardUseListener(NetworkBattleSceneBase& bs, Player& client)
     : bs(bs), client(client), CardUseListener() {
 
   }

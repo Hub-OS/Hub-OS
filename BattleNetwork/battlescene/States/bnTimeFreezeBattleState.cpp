@@ -1,6 +1,6 @@
 #include "bnTimeFreezeBattleState.h"
 
-#include "../bnBattleSceneBase.h"
+#include "../battlescene/bnBattleSceneBaseBase.h"
 
 const bool TimeFreezeBattleState::FadeInBackdrop()
 {

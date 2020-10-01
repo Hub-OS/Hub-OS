@@ -34,7 +34,7 @@ BubbleTrap::BubbleTrap(Character* owner) : willDelete(false), defense(nullptr), 
   animation.Update(0, getSprite());
 }
 
-void BubbleTrap::Inject(BattleScene& bs) {
+void BubbleTrap::Inject(BattleSceneBase& bs) {
 
 }
 

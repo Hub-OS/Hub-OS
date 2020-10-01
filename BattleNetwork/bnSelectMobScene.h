@@ -24,7 +24,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnEngine.h"
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 #include "bnMobFactory.h"
 #include "bnRandomMettaurMob.h"
 #include "bnProgsManBossFight.h"

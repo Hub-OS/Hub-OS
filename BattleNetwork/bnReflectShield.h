@@ -46,7 +46,7 @@ public:
   /**
    * @brief This component does not get injected into the scene
    */
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
   
   /**
    * @brief Updates animation

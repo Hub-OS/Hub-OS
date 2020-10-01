@@ -46,7 +46,7 @@ public:
    * @brief This component does not need to be injected into the scene
    * @param scene
    */
-  void Inject(BattleScene& scene) override;
+  void Inject(BattleSceneBase& scene) override;
 
   /**
    * @brief Uses bitmap glyphs for each number in the health
@@ -69,7 +69,7 @@ private:
   mutable SpriteProxyNode glyphs; /*!< bitmap image object to draw */
   SpriteProxyNode uibox; /*!< the box surrounding the health */
   std::shared_ptr<Texture> texture; /*!< the texture of the box */
-  BattleScene* bs;
+  BattleSceneBase* bs;
 
   /**
    * @class Color

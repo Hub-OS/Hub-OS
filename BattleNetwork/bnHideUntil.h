@@ -21,7 +21,7 @@ public:
 private:
   Battle::Tile* temp;
   Character* owner;
-  BattleScene* scene;
+  BattleSceneBase* scene;
   Callback callback;
 
 public:
@@ -39,5 +39,5 @@ public:
   /**
    * @brief Transfers ownership from entity to the battle scene and removes entity from play
    */
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
 };

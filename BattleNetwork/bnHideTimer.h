@@ -21,7 +21,7 @@ private:
   double duration; /*!< How long to hide a character for */
   float elapsed; /*!< time elapsed in seconds */
   Battle::Tile* temp; /*!< The tile to return the character to */
-  BattleScene* scene; /*!< The battle scene referene */
+  BattleSceneBase* scene; /*!< The battle scene referene */
   std::function<void()> respawn;
 public:
   /**
@@ -38,5 +38,5 @@ public:
   /**
    * @brief Remove ownership from character to the battle scene and remove entity from play
    */
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
 }; 

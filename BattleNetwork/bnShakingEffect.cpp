@@ -1,6 +1,6 @@
 #include "bnShakingEffect.h"
 #include "bnEntity.h"
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 
 ShakingEffect::ShakingEffect(Entity * owner) : Component(owner), 
 privOwner(owner),
@@ -36,7 +36,7 @@ void ShakingEffect::OnUpdate(float _elapsed)
   }
 }
 
-void ShakingEffect::Inject(BattleScene &bscene)
+void ShakingEffect::Inject(BattleSceneBase&bscene)
 {
   bscene.Inject(this);
   ShakingEffect::bscene = &bscene;

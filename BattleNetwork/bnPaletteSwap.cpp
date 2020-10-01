@@ -21,7 +21,7 @@ void PaletteSwap::OnUpdate(float _elapsed)
   GetOwner()->SetShader(paletteSwap);
 }
 
-void PaletteSwap::Inject(BattleScene &)
+void PaletteSwap::Inject(BattleSceneBase&)
 {
 }
 

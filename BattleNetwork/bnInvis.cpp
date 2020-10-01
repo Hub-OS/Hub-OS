@@ -37,6 +37,6 @@ void Invis::OnUpdate(float _elapsed) {
   }
 }
 
-void Invis::Inject(BattleScene&) {
+void Invis::Inject(BattleSceneBase&) {
   // Does not effect battle scene
 }

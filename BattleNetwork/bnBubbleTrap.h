@@ -33,7 +33,7 @@ public:
    * @brief Does not inject into the battle scene
    * 
    */
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
   
   /**
    * @brief Animators bubble. When timer runs out, pops the bubble

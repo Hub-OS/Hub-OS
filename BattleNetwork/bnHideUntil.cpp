@@ -1,6 +1,6 @@
 #include "bnHideUntil.h"
 #include "bnCharacter.h"
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 #include "bnTile.h"
 #include "bnAudioResourceManager.h"
 
@@ -17,7 +17,7 @@ void HideUntil::OnUpdate(float _elapsed) {
   }
 }
 
-void HideUntil::Inject(BattleScene& scene) {
+void HideUntil::Inject(BattleSceneBase& scene) {
   scene.Inject(this);
   this->scene = &scene;
 

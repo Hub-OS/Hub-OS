@@ -7,7 +7,7 @@ class Entity;
 
 class ShakingEffect : public Component {
 private:
-  BattleScene* bscene;
+  BattleSceneBase* bscene;
   Entity* privOwner;
   float shakeDur; /*!< Duration of shake effect */
   double stress; /*!< How much stress to apply to shake */
@@ -18,5 +18,5 @@ public:
   ShakingEffect(Entity* owner);
   ~ShakingEffect();
   void OnUpdate(float _elapsed) override;
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
 };

@@ -5,7 +5,7 @@
 #include "bnAura.h"
 #include "bnLayered.h"
 #include "bnDefenseAura.h"
-#include "bnBattleScene.h"
+#include "battlescene/bnBattleSceneBase.h"
 
 using sf::IntRect;
 
@@ -79,7 +79,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
   animation.Update(0, aura->getSprite());
 }
 
-void Aura::Inject(BattleScene& bs) {
+void Aura::Inject(BattleSceneBase& bs) {
   bs.Inject((Component*)this);
   this->bs = &bs;
 }

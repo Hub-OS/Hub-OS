@@ -3,7 +3,7 @@
 #include "bnNetworkBattleScene.h"
 
 class PlayerInputReplicator final : public Component {
-  NetworkBattleScene* nbs{ nullptr };
+  NetworkBattleSceneBase* nbs{ nullptr };
 
 public:
   PlayerInputReplicator(Entity* owner) : Component(owner) {
@@ -38,8 +38,8 @@ public:
     nbs->sendTileCoordSignal(x, y);
   }
 
-  void Inject(BattleScene& bs) {
-    auto* networkedbs = dynamic_cast<NetworkBattleScene*>(&bs);
+  void Inject(BattleSceneBase& bs) {
+    auto* networkedbs = dynamic_cast<NetworkBattleSceneBase*>(&bs);
     if (networkedbs) {
       nbs = networkedbs;
     }

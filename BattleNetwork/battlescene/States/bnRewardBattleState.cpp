@@ -3,7 +3,7 @@
 #include "../../bnBattleResults.h"
 #include "../../bnPlayer.h"
 #include "../../bnMob.h"
-#include "../bnBattleSceneBase.h"
+#include "../battlescene/bnBattleSceneBaseBase.h"
 
 RewardBattleState::RewardBattleState(Player* player, Mob* mob) : player(player), mob(mob)
 { 

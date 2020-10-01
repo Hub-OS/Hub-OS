@@ -48,5 +48,5 @@ public:
   /**
    * @brief To be implemented: what happens when the Battlescene requests injection
    */
-  virtual void Inject(BattleScene&) = 0;
+  virtual void Inject(BattleSceneBase&) = 0;
 }; 

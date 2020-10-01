@@ -61,7 +61,7 @@ public:
   /**
    * @brief Injects itself as a card publisher into the scene
    */
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
 private:
   std::vector<Battle::Card> selectedCards;
   int cardCount;

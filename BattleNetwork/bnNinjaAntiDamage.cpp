@@ -65,6 +65,6 @@ void NinjaAntiDamage::OnUpdate(float _elapsed) {
   }
 }
 
-void NinjaAntiDamage::Inject(BattleScene&) {
+void NinjaAntiDamage::Inject(BattleSceneBase&) {
   // Does not effect battle scene
 }

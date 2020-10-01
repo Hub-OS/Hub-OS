@@ -1,6 +1,6 @@
 #include "bnBattleStartBattleState.h"
 
-#include "../bnBattleSceneBase.h"
+#include "../battlescene/bnBattleSceneBaseBase.h"
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
 

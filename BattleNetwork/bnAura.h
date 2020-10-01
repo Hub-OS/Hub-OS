@@ -47,7 +47,7 @@ private:
   int startHP; /*!< HP at creation */
   mutable Sprite font; /*!< Aura HP glyphs */
   Character* privOwner; /*!< We wish to track the original owner */
-  BattleScene* bs; /*!< pointer to the battle scene*/
+  BattleSceneBase* bs; /*!< pointer to the battle scene*/
   std::shared_ptr<Texture> fontTextureRef; /*!< reference to the texture set used */
 public:
   /**
@@ -65,7 +65,7 @@ public:
   /**
    * @brief Injects into the scene so the animation updates regardless of battle paused.
    */
-  void Inject(BattleScene&) override;
+  void Inject(BattleSceneBase&) override;
   
   /**
    * @brief If timer or HP is over, remove the components and nodes in this recipe

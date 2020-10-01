@@ -50,7 +50,7 @@ ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Art
   }
 }
 
-void ReflectShield::Inject(BattleScene& bs) {
+void ReflectShield::Inject(BattleSceneBase& bs) {
 
 }
 
