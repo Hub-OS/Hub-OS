@@ -16,5 +16,6 @@ struct BattleOverBattleState final : public BattleSceneState {
     BattleOverBattleState();
     void onStart() override;
     void onUpdate(double elapsed) override;
+    void onDraw(sf::RenderTexture& surface) override;
     bool IsFinished();
 };

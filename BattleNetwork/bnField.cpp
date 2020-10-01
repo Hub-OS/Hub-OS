@@ -221,6 +221,23 @@ std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
   return res;
 }
 
+std::vector<const Entity*> Field::FindEntities(std::function<bool(Entity* e)> query) const
+{
+  std::vector<Entity*> res;
+
+  for (int y = 1; y <= height; y++) {
+    for (int x = 1; x <= width; x++) {
+      Battle::Tile* tile = GetAt(x, y);
+
+      std::vector<Entity*> found = tile->FindEntities(query);
+      res.reserve(res.size() + found.size()); // preallocate memory
+      res.insert(res.end(), found.begin(), found.end());
+    }
+  }
+
+  return res;
+}
+
 void Field::SetAt(int _x, int _y, Team _team) {
   if (_x < 0 || _x > 7) return;
   if (_y < 0 || _y > 4) return;

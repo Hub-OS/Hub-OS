@@ -16,19 +16,19 @@
 #include "../bnGraveyardBackground.h"
 #include "../bnVirusBackground.h"
 
+// Combos are counted if more than one enemy is hit within x frames
+// The game is clocked to display 60 frames per second
+// If x = 20 frames, then we want a combo hit threshold of 20/60 = 0.3 seconds
+#define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
 BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Activity(&props.controller),
   player(&props.player),
   programAdvance(props.programAdvance),
-  didDoubleDelete(false),
-  didTripleDelete(false),
   comboDeleteCounter(0),
   totalCounterMoves(0),
   totalCounterDeletions(0),
-  pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
   whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
   yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
-  customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
   heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
   distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
@@ -145,13 +145,6 @@ BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Ac
   pauseLabel->setOrigin(pauseLabel->getLocalBounds().width / 2, pauseLabel->getLocalBounds().height * 2);
   pauseLabel->setPosition(sf::Vector2f(240.f, 160.f));
 
-  // CHIP CUST GRAPHICS
-  customBarTexture = TEXTURES.LoadTextureFromFile("resources/ui/custom.png");
-  customBarSprite.setTexture(customBarTexture);
-  customBarSprite.setOrigin(customBarSprite.getLocalBounds().width / 2, 0);
-  customBarPos = sf::Vector2f(240.f, 0.f);
-  customBarSprite.setPosition(customBarPos);
-  customBarSprite.setScale(2.f, 2.f);
 
   // Load forms
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
@@ -173,16 +166,9 @@ BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Ac
   // TODO: Load shaders if supported
   shaderCooldown = 0;
 
-  pauseShader.setUniform("texture", sf::Shader::CurrentTexture);
-  pauseShader.setUniform("opacity", 0.25f);
-
   whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
   whiteShader.setUniform("opacity", 0.5f);
   whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
-
-  customBarShader.setUniform("texture", sf::Shader::CurrentTexture);
-  customBarShader.setUniform("factor", 0);
-  customBarSprite.SetShader(&customBarShader);
 
   // Heat distortion effect
   distortionMap.setRepeated(true);
@@ -202,7 +188,17 @@ BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Ac
   isSceneInFocus = false;
 }
 
-BattleSceneBase::~BattleSceneBase() {};
+BattleSceneBase::~BattleSceneBase() {}
+
+const bool BattleSceneBase::DoubleDelete() const
+{
+  return didDoubleDelete;
+}
+const bool BattleSceneBase::TripleDelete() const
+{
+  return didTripleDelete;
+}
+;
 
 const int BattleSceneBase::GetCounterCount() const {
   return totalCounterMoves;
@@ -270,6 +266,16 @@ const bool BattleSceneBase::IsBattleActive()
   return false;
 }
 
+const int BattleSceneBase::ComboDeleteSize()
+{
+  return comboInfoTimer.getElapsed().asSeconds() <= 1.0f ? comboDeleteCounter : 0;
+}
+
+void BattleSceneBase::HighlightTiles(bool enable)
+{
+  this->highlightTiles = enable;
+}
+
 void BattleSceneBase::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
 {
   HandleCounterLoss(user);
@@ -294,7 +300,7 @@ void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int cardCount) {
   Battle::Card* card = nullptr;
 
   // Create a temp card list
-  Battle::Card** newCardList = new Battle::Card * [cardCount];
+  Battle::Card** newCardList = new Battle::Card*[cardCount];
 
   int j = 0;
   for (int i = 0; i < cardCount; ) {
@@ -357,9 +363,30 @@ void BattleSceneBase::StartStateGraph(StateNode& start) {
   this->current->onStart();
 }
 
+void BattleSceneBase::onStart()
+{
+  isSceneInFocus = true;
+
+  // Stream battle music
+  if (mob->HasCustomMusicPath()) {
+    AUDIO.Stream(mob->GetCustomMusicPath(), true);
+  }
+  else {
+    if (!mob->IsBoss()) {
+      sf::Music::TimeSpan span;
+      span.offset = sf::microseconds(84);
+      span.length = sf::seconds(120.0f * 1.20668f);
+
+      AUDIO.Stream("resources/loops/loop_battle.ogg", true, span);
+    }
+    else {
+      AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
+    }
+  }
+}
+
 void BattleSceneBase::onUpdate(double elapsed) {
   this->elapsed = elapsed;
-
 
   camera.Update((float)elapsed);
   background->Update((float)elapsed);
@@ -369,6 +396,15 @@ void BattleSceneBase::onUpdate(double elapsed) {
     comboInfoTimer.update(elapsed);
     multiDeleteTimer.update(elapsed);
     battleTimer.update(elapsed);
+
+    switch (backdropMode) {
+    case backdrop::fadein:
+      backdropOpacity = std::fmin(1.0, backdropOpacity + (backdropFadeSpeed * elapsed));
+      break;
+    case backdrop::fadeout:
+      backdropOpacity = std::fmax(0.0, backdropOpacity - (backdropFadeSpeed * elapsed));
+      break;
+    }
   }
 
   // Register and eject any applicable components
@@ -380,9 +416,37 @@ void BattleSceneBase::onUpdate(double elapsed) {
   }
 
   cardUI.OnUpdate((float)elapsed);
+  cardCustGUI.Update((float)elapsed);
+
+  // Track combo deletes
+  if (lastMobSize != newMobSize && !isPlayerDeleted) {
+    if (multiDeleteTimer.getElapsed() <= sf::seconds(COMBO_HIT_THRESHOLD_SECONDS)) {
+      comboDeleteCounter += lastMobSize - newMobSize;
+
+      if (comboDeleteCounter == 2) {
+        didDoubleDelete = true;
+        comboInfo = doubleDelete;
+        comboInfoTimer.reset();
+      }
+      else if (comboDeleteCounter > 2) {
+        didTripleDelete = true;
+        comboInfo = tripleDelete;
+        comboInfoTimer.reset();
+      }
+    }
+    else if (multiDeleteTimer.getElapsed() > sf::seconds(COMBO_HIT_THRESHOLD_SECONDS)) {
+      comboDeleteCounter = 0;
+    }
+  }
+
+  if (lastMobSize != newMobSize) {
+    // prepare for another enemy deletion
+    multiDeleteTimer.reset();
+  }
+
+  lastMobSize = newMobSize;
 
   // State update
-
   if(!current) return;
 
   current->onUpdate(elapsed);
@@ -399,12 +463,242 @@ void BattleSceneBase::onUpdate(double elapsed) {
 }
 
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
+  ENGINE.SetRenderSurface(surface);
+  ENGINE.Clear();
+  ENGINE.Draw(background);
+
+  auto ui = std::vector<UIComponent*>();
+
+  // First tile pass: draw the tiles
+  Battle::Tile* tile = nullptr;
+
+  auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
+  auto tilesIter = allTiles.begin();
+
+  while (tilesIter != allTiles.end()) {
+    tile = (*tilesIter);
+
+    // Skip edge tiles - they cannot be seen by players
+    if (tile->IsEdgeTile()) {
+      tilesIter++;
+      continue;
+    }
+
+    tile->move(ENGINE.GetViewOffset());
+
+    if (highlightTiles) {
+      ENGINE.Draw(tile);
+    }
+    else {
+      if (tile->IsHighlighted()) {
+        SpriteProxyNode* coloredTile = new SpriteProxyNode(*(sf::Sprite*)tile);
+        coloredTile->SetShader(&yellowShader);
+        ENGINE.Draw(coloredTile);
+        delete coloredTile;
+      }
+      else {
+        ENGINE.Draw(tile);
+      }
+    }
+
+    tile->move(-ENGINE.GetViewOffset());
+    tilesIter++;
+  }
+
+  // Second tile pass: draw the entities and shaders per row and per layer
+  tile = nullptr;
+  tilesIter = allTiles.begin();
+
+  std::vector<Entity*> entitiesOnRow;
+  int lastRow = 0;
+
+  while (tilesIter != allTiles.end()) {
+    if (lastRow != (*tilesIter)->GetY()) {
+      lastRow = (*tilesIter)->GetY();
+
+      // Ensure all entities are sorted by layer
+      std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity* b) -> bool { return a->GetLayer() > b->GetLayer(); });
+
+      // draw this row
+      for (auto entity : entitiesOnRow) {
+        entity->move(ENGINE.GetViewOffset());
+
+        ENGINE.Draw(entity);
+
+        entity->move(-ENGINE.GetViewOffset());
+      }
+
+      // prepare for bext row
+      entitiesOnRow.clear();
+    }
+
+    tile = (*tilesIter);
+    static float totalTime = 0;
+    totalTime += (float)elapsed;
+
+    //heatShader.setUniform("time", totalTime*0.02f);
+    //heatShader.setUniform("distortionFactor", 0.01f);
+    //heatShader.setUniform("riseFactor", 0.1f);
+
+    //heatShader.setUniform("w", tile->GetWidth() - 8.f);
+    //heatShader.setUniform("h", tile->GetHeight()*1.5f);
+
+    //iceShader.setUniform("w", tile->GetWidth() - 8.f);
+    //iceShader.setUniform("h", tile->GetHeight()*0.8f);
+
+    Entity* entity = nullptr;
+
+    auto allEntities = tile->FindEntities([](Entity* e) { return true; });
+    auto entitiesIter = allEntities.begin();
+
+    while (entitiesIter != allEntities.end()) {
+      entity = (*entitiesIter);
+
+      auto uic = entity->GetComponentsDerivedFrom<UIComponent>();
+
+      //Logger::Log("uic size is: " + std::to_string(uic.size()));
+
+      if (!uic.empty()) {
+        ui.insert(ui.begin(), uic.begin(), uic.end());
+      }
+
+      entitiesOnRow.push_back(*entitiesIter);
+      entitiesIter++;
+    }
+
+    /*if (tile->GetState() == TileState::lava) {
+      heatShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x + 3.0f);
+
+      float repos = (float)(tile->getPosition().y - (tile->getTexture()->getSize().y*2.5f));
+      heatShader.setUniform("y", repos);
+
+      surface.display();
+      sf::Texture postprocessing = surface.getTexture(); // Make a copy
+
+      sf::Sprite distortionPost;
+      distortionPost.setTexture(postprocessing);
+
+      surface.clear();
+
+      LayeredDrawable* bake = new LayeredDrawable(distortionPost);
+      bake->SetShader(&heatShader);
+
+      ENGINE.Draw(bake);
+      delete bake;
+    }
+    else if (tile->GetState() == TileState::ice) {
+      iceShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x);
+
+      float repos = (float)(tile->getPosition().y - tile->getTexture()->getSize().y);
+      iceShader.setUniform("y", repos);
+
+      surface.display();
+      sf::Texture postprocessing = surface.getTexture(); // Make a copy
+
+      sf::Sprite reflectionPost;
+      reflectionPost.setTexture(postprocessing);
+
+      surface.clear();
+
+      LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
+      bake->SetShader(&iceShader);
+
+      ENGINE.Draw(bake);
+      delete bake;
+    }*/
+    tilesIter++;
+  }
+
+  // Last row needs to be drawn now that the loop is over
+  // Ensure all entities are sorted by layer
+  std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity* b) -> bool { return a->GetLayer() > b->GetLayer(); });
+
+  // Now that the tiles are drawn, another pass draws the entities in sort-order
+  if (mob->IsSpawningDone()) {
+    // draw this row
+    for (auto entity : entitiesOnRow) {
+      entity->move(ENGINE.GetViewOffset());
+
+      ENGINE.Draw(entity);
+
+      entity->move(-ENGINE.GetViewOffset());
+    }
+
+    // Draw scene nodes
+    for (auto node : scenenodes) {
+      surface.draw(*node);
+    }
+
+    // Draw ui
+    for (auto node : ui) {
+      surface.draw(*node);
+    }
+  }
+
+  // prepare for bext row
+  entitiesOnRow.clear();
+
   if (current) current->onDraw(surface);
+}
+
+bool BattleSceneBase::IsPlayerDeleted() const
+{
+  return isPlayerDeleted;
 }
 
 Field* BattleSceneBase::GetField()
 {
   return field;
+}
+
+const Field* BattleSceneBase::GetField() const
+{
+  return field;
+}
+
+CardSelectionCust& BattleSceneBase::GetCardSelectWidget()
+{
+  return cardCustGUI;
+}
+
+void BattleSceneBase::StartBattleTimer()
+{
+  battleTimer.start();
+}
+
+void BattleSceneBase::StopBattleTimer()
+{
+  battleTimer.pause();
+}
+
+void BattleSceneBase::BroadcastBattleStart()
+{
+  field->RequestBattleStart();
+}
+
+void BattleSceneBase::BroadcastBattleStop()
+{
+  field->RequestBattleStop();
+}
+
+const sf::Time BattleSceneBase::GetElapsedBattleTime() {
+  return battleTimer.getElapsed();
+}
+
+const bool BattleSceneBase::FadeInBackdrop(double speed)
+{
+  backdropMode = backdrop::fadein;
+  backdropFadeSpeed = speed;
+
+  return (backdropOpacity == 0.0);
+}
+
+const bool BattleSceneBase::FadeOutBackdrop(double speed)
+{
+  backdropMode = backdrop::fadeout;
+  backdropFadeSpeed = speed;
+
+  return (backdropOpacity == 1.0);
 }
 
 void BattleSceneBase::Quit(const FadeOut& mode) {
@@ -475,6 +769,17 @@ void BattleSceneBase::Eject(Component::ID_t ID)
   }
 }
 
+const bool BattleSceneBase::IsCleared()
+{
+  return mob->IsCleared();
+}
+
+void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition&& when) {
+  Edge edge{ a, b, std::move(when) };
+  nodeToEdges.insert(std::make_pair(&a.state, edge));
+  nodeToEdges.insert(std::make_pair(&b.state, edge));
+}
+
 void BattleSceneBase::ProcessNewestComponents()
 {
   // effectively returns all of them
@@ -501,15 +806,90 @@ void BattleSceneBase::ProcessNewestComponents()
       }
     }
   }
+
+#ifdef __ANDROID__
+  SetupTouchControls();
+#endif
 }
 
-const bool BattleSceneBase::IsCleared()
-{
-  return mob->IsCleared();
+void BattleSceneBase::onLeave() {
+#ifdef __ANDROID__
+  ShutdownTouchControls();
+#endif
 }
 
-void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition&& when) {
-  Edge edge{a, b, std::move(when)};
-  nodeToEdges.insert(std::make_pair(&a.state, edge));
-  nodeToEdges.insert(std::make_pair(&b.state, edge));
+#ifdef __ANDROID__
+void BattleSceneBase::SetupTouchControls() {
+  /* Android touch areas*/
+  TouchArea& rightSide = TouchArea::create(sf::IntRect(240, 0, 240, 320));
+
+  rightSide.enableExtendedRelease(true);
+  releasedB = false;
+
+  rightSide.onTouch([]() {
+    INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
+    });
+
+  rightSide.onRelease([this](sf::Vector2i delta) {
+    if (!releasedB) {
+      INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
+    }
+
+    releasedB = false;
+
+    });
+
+  rightSide.onDrag([this](sf::Vector2i delta) {
+    if (delta.x < -25 && !releasedB) {
+      INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
+      INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
+      releasedB = true;
+    }
+    });
+
+  rightSide.onDefault([this]() {
+    releasedB = false;
+    });
+
+  TouchArea& custSelectButton = TouchArea::create(sf::IntRect(100, 0, 380, 100));
+  custSelectButton.onTouch([]() {
+    INPUTx.VirtualKeyEvent(InputEvent::PRESSED_START);
+    });
+  custSelectButton.onRelease([](sf::Vector2i delta) {
+    INPUTx.VirtualKeyEvent(InputEvent::RELEASED_START);
+    });
+
+  TouchArea& dpad = TouchArea::create(sf::IntRect(0, 0, 240, 320));
+  dpad.enableExtendedRelease(true);
+  dpad.onDrag([](sf::Vector2i delta) {
+    Logger::Log("dpad delta: " + std::to_string(delta.x) + ", " + std::to_string(delta.y));
+
+    if (delta.x > 30) {
+      INPUTx.VirtualKeyEvent(InputEvent::PRESSED_RIGHT);
+    }
+
+    if (delta.x < -30) {
+      INPUTx.VirtualKeyEvent(InputEvent::PRESSED_LEFT);
+    }
+
+    if (delta.y > 30) {
+      INPUTx.VirtualKeyEvent(InputEvent::PRESSED_DOWN);
+    }
+
+    if (delta.y < -30) {
+      INPUTx.VirtualKeyEvent(InputEvent::PRESSED_UP);
+    }
+    });
+
+  dpad.onRelease([](sf::Vector2i delta) {
+    if (delta.x < -30) {
+      INPUTx.VirtualKeyEvent(InputEvent::RELEASED_LEFT);
+    }
+    });
 }
+
+void BattleSceneBase::ShutdownTouchControls() {
+  TouchArea::free();
+}
+
+#endif

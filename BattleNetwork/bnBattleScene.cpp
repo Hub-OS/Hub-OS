@@ -334,6 +334,7 @@ void BattleScene::Eject(Component::ID_t ID)
 
 void BattleScene::ProcessNewestComponents()
 {
+  /*
   // effectively returns all of them
   auto entities = field->FindEntities([](Entity* e) { return true; });
 
@@ -357,7 +358,7 @@ void BattleScene::ProcessNewestComponents()
         e->lastComponentID = latestID;
       }
     }
-  }
+  }*/
 }
 
 const bool BattleScene::IsCleared()

@@ -47,11 +47,6 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
-// Combos are counted if more than one enemy is hit within x frames
-// The game is clocked to display 60 frames per second
-// If x = 20 frames, then we want a combo hit threshold of 20/60 = 0.3 seconds
-#define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
-
 struct BattleSceneBaseProps {
   swoosh::ActivityController& controller;
   Player& player;
@@ -72,23 +67,24 @@ private:
     bool isSceneInFocus{ false }; //<! Let us know if transition effects complete
     bool isPlayerDeleted{ false };
     bool isPaused{ false };
+    bool highlightTiles{ true };
     int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
-    int lastMobSize{ 0 }; /*!< used to determine double/triple deletes with frame accuracy */
     int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
     int totalCounterDeletions{ 0 }; /*!< Track player's counter-deletions. Used for ranking. */
     int comboDeleteCounter{ 0 }; /*!< Deletions within 12 frames triggers double or triple deletes. */
     int randBG; /*!< If background provided by Mob data is nullptr, randomly select one */
+    int lastMobSize{ 0 };
+    int newMobSize{ 0 };
     double elapsed{ 0 }; /*!< total time elapsed in battle */
     double customProgress{ 0 }; /*!< Cust bar progress */
     double customDuration; /*!< Cust bar max time */
     double backdropOpacity{ 1.0 };
+    double backdropFadeSpeed{ 0.1 }; /*!< per tick */
     PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */
     EnemyCardUseListener enemyCardListener; /*!< Enemies can use cards now */
     SelectedCardsUI cardUI; /*!< Player's Card UI implementation */
     Camera camera; /*!< Camera object - will shake screen */
     sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
-    sf::Vector2f customBarPos; /*!< Cust gauge position */
-    SpriteProxyNode customBarSprite; /*!< Cust gauge sprite */
     PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
     Field* field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
     Player* player{ nullptr }; /*!< Pointer to player's selected character */
@@ -102,7 +98,7 @@ private:
     std::vector<SceneNode*> scenenodes; /*!< Scene node system */
     std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
     std::vector<Component*> components; /*!< Components injected into the scene */
-
+    
     // counter stuff
     SpriteProxyNode counterReveal;
     Animation counterRevealAnim;
@@ -125,14 +121,17 @@ private:
 
     // shader fx
     double shaderCooldown;
-    sf::Shader& pauseShader; /*!< Dim screen */
     sf::Shader& whiteShader; /*!< Fade out white */
     sf::Shader& yellowShader; /*!< Turn tiles yellow */
-    sf::Shader& customBarShader; /*!< Cust gauge shaders */
     sf::Shader& heatShader; /*!< Heat waves and red hue */
     sf::Shader& iceShader; /*!< Reflection in the ice */
     sf::Texture& distortionMap; /*!< Distortion effect pixel sample source */
     sf::Vector2u textureSize; /*!< Size of distorton effect */
+
+    enum class backdrop : int {
+      fadeout = 0,
+      fadein
+    } backdropMode{};
 
 protected:
     using ChangeCondition = BattleSceneState::ChangeCondition;
@@ -216,12 +215,6 @@ protected:
     };
 
 
-    /**
-     * @brief Get the total number of counter moves
-     * @return const int
-     */
-    const int GetCounterCount() const;
-
     void HandleCounterLoss(Character& subject);
 
     /**
@@ -245,11 +238,6 @@ protected:
     void OnCounter(Character& victim, Character& aggressor) override final;
     void OnDeleteEvent(Character& pending) override final;
 
-    /**
-      @brief Crude support card filter step
-    */
-    void FilterSupportCards(Battle::Card** cards, int cardCount);
-
 #ifdef __ANDROID__
     void SetupTouchControls();
     void ShutdownTouchControls();
@@ -261,6 +249,17 @@ public:
     BattleSceneBase() = delete;
     BattleSceneBase(const BattleSceneBaseProps& props);
     virtual ~BattleSceneBase();
+
+    const bool DoubleDelete() const;
+    const bool TripleDelete() const;
+    const int ComboDeleteSize();
+    void HighlightTiles(bool enable);
+
+    /**
+     * @brief Get the total number of counter moves
+     * @return const int
+     */
+    const int GetCounterCount() const;
 
     /*
         \brief Use class type T as the state and perfect-forward arguments to the class 
@@ -282,11 +281,31 @@ public:
     /*
         \brief Update the scene and current state. If any conditions are satisfied, transition to the linked state
     */
+    virtual void onStart() override;
+    virtual void onLeave() override;
     virtual void onUpdate(double elapsed) override;
 
     virtual void onDraw(sf::RenderTexture& surface) override;
 
+    bool IsPlayerDeleted() const;
+
     Field* GetField();
+    const Field* GetField() const;
+    CardSelectionCust& GetCardSelectWidget();
+    void StartBattleTimer();
+    void StopBattleTimer();
+    void BroadcastBattleStart();
+    void BroadcastBattleStop();
+
+    const sf::Time GetElapsedBattleTime();
+
+    const bool FadeInBackdrop(double speed);
+    const bool FadeOutBackdrop(double speed);
+
+    /**
+      @brief Crude support card filter step
+    */
+    void FilterSupportCards(Battle::Card** cards, int cardCount);
 
     /*
         \brief Forces the creation a fadeout state onto the state pointer and goes back to the last scene

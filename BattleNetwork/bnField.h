@@ -97,6 +97,7 @@ public:
    * @return list of Entity* that passed the input function's conditions
    */
   std::vector<Entity*> FindEntities(std::function<bool(Entity* e)> query);
+  std::vector<const Entity*> FindEntities(std::function<bool(Entity* e)> query) const;
 
   /**
    * @brief Set the tile at (x,y) team to _team

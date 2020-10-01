@@ -7,21 +7,30 @@
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
 
-bool CharacterTransformBattleState::IsFinished() {
-    return isLeavingFormChange;
-}
-
-void CharacterTransformBattleState::onStart()
+const bool CharacterTransformBattleState::FadeInBackdrop()
 {
-  this->isLeavingFormChange = true;
+  return GetScene().FadeInBackdrop(0.1);
 }
 
-void CharacterTransformBattleState::onUpdate(double elapsed) {
+const bool CharacterTransformBattleState::FadeOutBackdrop()
+{
+  return GetScene().FadeInBackdrop(0.1);
+}
+
+void CharacterTransformBattleState::UpdateAnimation(double elapsed)
+{
+  bool allCompleted = true;
+
   for (TrackedFormData data : tracking) {
     Player* player = nullptr;
     int index = -1;
+    bool complete = false;
 
-    std::tie(player, index) = data;
+    std::tie(player, index, complete) = data;
+
+    if (complete) continue;
+
+    allCompleted = false;
 
     player->Reveal(); // If flickering, stablizes the sprite for the animation
 
@@ -93,6 +102,30 @@ void CharacterTransformBattleState::onUpdate(double elapsed) {
 
       shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
     }
+  }
+
+  if (allCompleted) {
+    currState = state::fadeout; // we are done
+  }
+}
+
+bool CharacterTransformBattleState::IsFinished() {
+    return state::fadeout == currState && FadeOutBackdrop();
+}
+
+void CharacterTransformBattleState::onStart() {
+  this->isLeavingFormChange = false;
+  currState = state::fadein;
+}
+
+void CharacterTransformBattleState::onUpdate(double elapsed) {
+  switch (currState) {
+  case state::fadein:
+    FadeInBackdrop() ? currState = state::animate : (void)0;
+    break;
+  case state::animate:
+    UpdateAnimation(elapsed);
+    break;
   }
 }
 

@@ -13,6 +13,8 @@ struct BattleSceneState {
     friend class BattleSceneBase;
 
     BattleSceneBase& GetScene() { return *scene; }
+    const BattleSceneBase& GetScene() const { return *scene; }
+
     virtual void onStart() = 0;
     virtual void onEnd() = 0;
     virtual void onUpdate(double elapsed) = 0;

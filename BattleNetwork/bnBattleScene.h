@@ -277,6 +277,8 @@ protected:
 
 public:
 
+  void RestartBattleTimer();
+
   /**
    * @brief Update scene during proper state 
    * @param elapsed in seconds

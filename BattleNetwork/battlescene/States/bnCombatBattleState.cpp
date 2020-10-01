@@ -2,60 +2,115 @@
 
 #include "../bnBattleSceneBase.h"
 
+#include "../../bnMob.h"
 #include "../../bnTeam.h"
 #include "../../bnEntity.h"
 #include "../../bnCharacter.h"
+#include "../../bnInputManager.h"
+#include "../../bnShaderResourceManager.h"
+
+CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*> tracked, double customDuration) 
+  : mob(mob), 
+    tracked(tracked), 
+    customDuration(customDuration),
+    customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
+    pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE))
+{
+  // CHIP CUST GRAPHICS
+  auto customBarTexture = TEXTURES.LoadTextureFromFile("resources/ui/custom.png");
+  customBar.setTexture(customBarTexture);
+  customBar.setOrigin(customBar.getLocalBounds().width / 2, 0);
+  auto customBarPos = sf::Vector2f(240.f, 0.f);
+  customBar.setPosition(customBarPos);
+  customBar.setScale(2.f, 2.f);
+
+  pauseShader.setUniform("texture", sf::Shader::CurrentTexture);
+  pauseShader.setUniform("opacity", 0.25f);
+
+  customBarShader.setUniform("texture", sf::Shader::CurrentTexture);
+  customBarShader.setUniform("factor", 0);
+  customBar.SetShader(&customBarShader);
+}
 
 const bool CombatBattleState::HasTimeFreeze() const {
-    return true;
+  return false;
+  // TODO: mark true when a used chip has TimeFreeze
 }
 
-const bool CombatBattleState::IsCombatOver() const {
-    return true;
+const bool CombatBattleState::PlayerWon() const
+{
+  auto blueTeamChars = GetScene().GetField()->FindEntities([](Entity* e) {
+    return e->GetTeam() == Team::blue && dynamic_cast<Character*>(e);
+  });
+
+  return !PlayerLost() && mob->IsCleared() && blueTeamChars.empty();
 }
 
-const bool CombatBattleState::IsCardGaugeFull() {
-    return true;
+const bool CombatBattleState::PlayerLost() const
+{
+  return GetScene().IsPlayerDeleted();
+}
+
+const bool CombatBattleState::PlayerRequestCardSelect()
+{
+  return this->isGaugeFull && INPUTx.Has(EventTypes::PRESSED_CUST_MENU);
+}
+
+void CombatBattleState::onStart()
+{
+  GetScene().StartBattleTimer();
+}
+
+void CombatBattleState::onEnd()
+{
+  GetScene().StopBattleTimer();
 }
 
 void CombatBattleState::onUpdate(double elapsed)
 {
+  customProgress += elapsed;
+
   GetScene().GetField()->Update((float)elapsed);
 
-  auto blueTeamChars = GetScene().GetField()->FindEntities([](Entity* e) {
-    return e->GetTeam() == Team::blue && dynamic_cast<Character*>(e);
-    });
+  if (INPUTx.Has(EventTypes::PRESSED_PAUSE)) {
+    isPaused = !isPaused;
 
-  if (mob->IsCleared()) {
-    field->RequestBattleStop();
-    cardUI.DropSubscribers();
-  }
-
-  // Check if entire mob is deleted
-  if (mob->IsCleared() && blueTeamChars.empty()) {
-    if (!isPostBattle && battleEndTimer.getElapsed().asSeconds() < postBattleLength) {
-      // Show Enemy Deleted
-
+    if (!isPaused) {
+      ENGINE.RevokeShader();
     }
-    else if (!isBattleRoundOver && battleEndTimer.getElapsed().asSeconds() > postBattleLength) {
-      isMobDeleted = true;
+    else {
+      AUDIO.Play(AudioType::PAUSE);
     }
   }
-  else if (!isPlayerDeleted && mob->NextMobReady() && isSceneInFocus) {
-    Mob::MobData* data = mob->GetNextMob();
 
-    Agent* cast = dynamic_cast<Agent*>(data->mob);
+  if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
+    isGaugeFull = true;
+    AUDIO.Play(AudioType::CUSTOM_BAR_FULL);
+  }
 
-    // Some entities have AI and need targets
-    if (cast) {
-      cast->SetTarget(player);
-    }
+  customBarShader.setUniform("factor", (float)(customProgress / customDuration));
+}
 
-    data->mob->ToggleTimeFreeze(false);
-    field->AddEntity(*data->mob, data->tileX, data->tileY);
-    mobNames.push_back(data->mob->GetName());
+void CombatBattleState::onDraw(sf::RenderTexture& surface)
+{
+  const int comboDeleteSize = GetScene().ComboDeleteSize();
 
-    // Listen for counters
-    CounterHitListener::Subscribe(*data->mob);
+  switch(comboDeleteSize){
+  case 2:
+    ENGINE.Draw(doubleDelete);
+    break;
+  default:
+    ENGINE.Draw(tripleDelete);
+  }
+  
+  ENGINE.Draw(&customBar);
+
+  if (isPaused) {
+    // render on top
+    ENGINE.Draw(pauseLabel, false);
+
+    // apply shader on draw calls below
+    ENGINE.SetShader(&pauseShader);
+    pauseShader.setUniform("opacity", 0.25f);
   }
 }
