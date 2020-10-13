@@ -23,6 +23,10 @@ void BattleOverBattleState::onStart()
   AUDIO.Stream("resources/loops/enemy_deleted.ogg");
 }
 
+void BattleOverBattleState::onEnd()
+{
+}
+
 void BattleOverBattleState::onUpdate(double elapsed)
 {
 }

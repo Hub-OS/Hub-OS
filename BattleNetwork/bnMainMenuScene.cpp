@@ -18,7 +18,7 @@ using sf::Event;
 using sf::Font;
 using namespace swoosh::types;
 
-#define OBN_NETPLAY 1
+//#define OBN_NETPLAY 1
 
 #ifdef OBN_NETPLAY
 #include "netplay/bnPVPScene.h"

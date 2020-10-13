@@ -129,7 +129,15 @@ void CharacterTransformBattleState::onUpdate(double elapsed) {
   }
 }
 
-CharacterTransformBattleState::CharacterTransformBattleState(std::vector<TrackedFormData> tracking) : tracking(tracking)
+void CharacterTransformBattleState::onEnd()
+{
+}
+
+void CharacterTransformBattleState::onDraw(sf::RenderTexture&)
+{
+}
+
+CharacterTransformBattleState::CharacterTransformBattleState(const std::vector<TrackedFormData>& tracking) : tracking(tracking)
 {
   shine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
   shine.setScale(2.f, 2.f);

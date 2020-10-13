@@ -27,9 +27,9 @@ private:
   std::vector<std::function<void(Character*)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
   std::vector<std::function<void(Character*)>> pixelStateInvokers; /*!< Invoke the character's intro tate from the spawn policy */
   std::multimap<int, BattleItem> rewards; /*!< All possible rewards for this mob by rank */
-  bool nextReady; /*!< Signal if mob is ready to spawn the next character */
-  Field* field; /*!< The field to play on */
-  bool isBoss; /*!< Flag to change rank and music */
+  bool nextReady{ true }; /*!< Signal if mob is ready to spawn the next character */
+  Field* field{ nullptr }; /*!< The field to play on */
+  bool isBoss{ false }; /*!< Flag to change rank and music */
   std::string music; /*!< Override with custom music */
   Background* background; /*!< Override with custom background */
 

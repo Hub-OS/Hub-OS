@@ -401,8 +401,14 @@ void SelectMobScene::onUpdate(double elapsed) {
 
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
+      MobBattleProperties props{ 
+        { *player, programAdvance, &selectedFolder, mob->GetField(), mob->GetBackground() },
+        MobBattleProperties::RewardBehavior::take,
+        { mob }
+      };
+
       using effect = segue<WhiteWashFade>;
-      getController().push<effect::to<MobBattleScene>>(player, mob, &selectedFolder, programAdvance);
+      getController().push<effect::to<MobBattleScene>>(props);
     }
   }
 

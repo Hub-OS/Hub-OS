@@ -11,6 +11,7 @@ class Player;
     \brief This state handles transformations
 */
 class CharacterTransformBattleState final : public BattleSceneState {
+public:
   enum class state : int {
     fadein = 0,
     animate,
@@ -19,6 +20,7 @@ class CharacterTransformBattleState final : public BattleSceneState {
 
   using TrackedFormData = std::tuple<Player*, int, bool>;
 
+private:
   int lastSelectedForm{ -1 };
   double backdropTimer{ 0 };
   double backdropLength{ 0 };
@@ -35,6 +37,8 @@ public:
   bool IsFinished();
   void onStart() override;
   void onUpdate(double elapsed) override;
+  void onEnd() override;
+  void onDraw(sf::RenderTexture&);
 
-  CharacterTransformBattleState(std::vector<TrackedFormData> tracking);
+  CharacterTransformBattleState(const std::vector<TrackedFormData>& tracking);
 };

@@ -41,6 +41,18 @@ void MobIntroBattleState::onUpdate(double elapsed)
   }
 }
 
+void MobIntroBattleState::onEnd()
+{
+}
+
+void MobIntroBattleState::onStart()
+{
+}
+
+void MobIntroBattleState::onDraw(sf::RenderTexture&)
+{
+}
+
 const bool MobIntroBattleState::IsOver() {
     return mob->IsSpawningDone();
 }

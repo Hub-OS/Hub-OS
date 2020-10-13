@@ -21,6 +21,10 @@ void BattleStartBattleState::onStart()
   }
 }
 
+void BattleStartBattleState::onEnd()
+{
+}
+
 void BattleStartBattleState::onUpdate(double elapsed)
 {
 

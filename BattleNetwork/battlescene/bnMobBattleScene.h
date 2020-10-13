@@ -21,14 +21,15 @@ struct MobBattleProperties {
     \brief Battle scene configuration for a regular PVE battle
 */
 class MobBattleScene final : public BattleSceneBase {
-    MobBattleProperties props;
+  MobBattleProperties props;
 
-    public:
-    MobBattleScene(const MobBattleProperties& props);
-    ~MobBattleScene();
+  public:
+  MobBattleScene(swoosh::ActivityController& controller, const MobBattleProperties& props);
+  ~MobBattleScene();
 
-    void onExit() override;
-    void onEnter() override;
-    void onResume() override;
-    void onEnd() override;
+  void onStart() override final;
+  void onExit() override;
+  void onEnter() override;
+  void onResume() override;
+  void onEnd() override;
 };

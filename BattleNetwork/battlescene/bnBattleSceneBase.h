@@ -48,11 +48,11 @@ using sf::Event;
 using sf::Font;
 
 struct BattleSceneBaseProps {
-  swoosh::ActivityController& controller;
   Player& player;
-  CardFolder& folder;
-  Mob& mob;
   PA& programAdvance;
+  CardFolder* folder;
+  Field* field;
+  Background* background;
 };
 
 /**
@@ -88,9 +88,9 @@ private:
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
   Field* field{ nullptr }; /*!< Supplied by mob info: the grid to battle on */
   Player* player{ nullptr }; /*!< Pointer to player's selected character */
-  Mob* mob; /*!< Mob and mob data player are fighting against */
-  Background* background; /*!< Custom backgrounds provided by Mob data */
-  sf::Text* pauseLabel; /*!< "PAUSE" text */
+  Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
+  Background* background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
+  sf::Text* pauseLabel{ nullptr }; /*!< "PAUSE" text */
   std::shared_ptr<sf::Font> font; /*!< PAUSE font */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   std::shared_ptr<sf::Font> mobFont; /*!< Name of mob font */
@@ -215,6 +215,7 @@ protected:
     }
   };
 
+  void LoadMob(Mob& mob);
 
   void HandleCounterLoss(Character& subject);
 
@@ -244,7 +245,8 @@ public:
   friend class CounterCombatRule;
 
   BattleSceneBase() = delete;
-  BattleSceneBase(const BattleSceneBaseProps& props);
+  BattleSceneBase(const BattleSceneBase&) = delete;
+  BattleSceneBase(swoosh::ActivityController& controller, const BattleSceneBaseProps& props);
   virtual ~BattleSceneBase();
 
   const bool DoubleDelete() const;

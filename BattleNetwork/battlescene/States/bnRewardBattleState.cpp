@@ -17,7 +17,7 @@
 
 using namespace swoosh::types;
 
-RewardBattleState::RewardBattleState(Player* player, Mob* mob) : player(player), mob(mob)
+RewardBattleState::RewardBattleState(Mob* mob, Player* player) : player(player), mob(mob)
 { 
 }
 
@@ -32,6 +32,10 @@ void RewardBattleState::onStart()
 
 
   battleResults = new BattleResults(GetScene().GetElapsedBattleTime(), moveCount, hitCount, counterCount, doubleDelete, tripleDelete, mob);
+}
+
+void RewardBattleState::onEnd()
+{
 }
 
 void RewardBattleState::onUpdate(double elapsed)

@@ -38,15 +38,9 @@
 #define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
 using namespace swoosh::types;
+using swoosh::ActivityController;
 
-auto BuildMob = []() {
-  Mob* mob = new Mob(new Field(6, 3));
-  mob->SetBackground(new SecretBackground());
-  return mob;
-};
-
-NetworkBattleScene::NetworkBattleScene(const NetworkBattleSceneProps& props) 
-  : BattleSceneBase(props.base) {
+NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props) : BattleSceneBase(controller, props.base) {
   networkCardUseListener = new NetworkCardUseListener(*this, props.base.player);
   networkCardUseListener->Subscribe(this->GetSelectedCardsUI());
 

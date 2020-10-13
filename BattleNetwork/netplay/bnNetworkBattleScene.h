@@ -121,7 +121,7 @@ public:
   /**
    * @brief Construct scene with selected player, generated mob data, and the folder to use
    */
-  NetworkBattleScene(const NetworkBattleSceneProps& props);
+  NetworkBattleScene(swoosh::ActivityController&, const NetworkBattleSceneProps& props);
   
   /**
    * @brief Clears all nodes and components

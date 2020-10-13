@@ -15,6 +15,7 @@
 #include "../bnMainMenuScene.h"
 #include "../bnGridBackground.h"
 #include "../bnAudioResourceManager.h"
+#include "../bnSecretBackground.h"
 
 using namespace Poco;
 using namespace Net;
@@ -44,8 +45,8 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   // NOTE: ui sprites are already at 2x scale
   // ui.setScale(2.f, 2.f);
 
-  float w = controller.getInitialWindowSize().x;
-  float h = controller.getInitialWindowSize().y;
+  float w = static_cast<float>(controller.getInitialWindowSize().x);
+  float h = static_cast<float>(controller.getInitialWindowSize().y);
   vs.setPosition(w / 2.f, h / 2.f);
   swoosh::game::setOrigin(vs.getSprite(), 0.5, 0.5);
   
@@ -281,7 +282,7 @@ void PVPScene::RecieveConnectSignal(const Poco::Buffer<char>& buffer)
   remoteIsReady = true;
 
   size_t navi = size_t{ 0 }; std::memcpy(&navi, buffer.begin(), buffer.size());
-  auto meta = NAVIS.At(navi);
+  auto meta = NAVIS.At(static_cast<int>(navi));
   this->remotePreview.setTexture(meta.GetPreviewTexture());
   auto height = remotePreview.getSprite().getLocalBounds().height;
   remotePreview.setOrigin(sf::Vector2f(0, height));
@@ -309,7 +310,7 @@ void PVPScene::DrawIDInputWidget()
   id.setPosition(145, 40);
 
   // restrict the widget from collapsing at text length 0
-  float widgetWidth = std::fmax(id.getLocalBounds().width+10.f, 50);
+  float widgetWidth = std::fmax(id.getLocalBounds().width+10.f, 50.f);
 
   uiAnim.SetAnimation("ID_MID");
   uiAnim.Update(0, ui.getSprite());
@@ -418,8 +419,8 @@ void PVPScene::onResume() {
 }
 
 void PVPScene::onUpdate(double elapsed) {
-  gridBG->Update(elapsed);
-  textbox.Update(elapsed);
+  gridBG->Update(float(elapsed));
+  textbox.Update(float(elapsed));
 
   // DEBUG SCENE STUFF
   if (INPUTx.Has(EventTypes::RELEASED_SPECIAL)) {
@@ -446,7 +447,7 @@ void PVPScene::onUpdate(double elapsed) {
     this->sequenceTimer += elapsed;
 
     double delta = swoosh::ease::linear(sequenceTimer, 0.5, 1.0);
-    double amt = 255 * (1 - delta);
+    sf::Uint8 amt = sf::Uint8(255 * (1 - delta));
     greenBg.setColor(sf::Color(amt,amt,amt,255));
 
     // Refresh mob graphic origin every frame as it may change
@@ -454,16 +455,16 @@ void PVPScene::onUpdate(double elapsed) {
 
     if (delta == 1) {
       delta = swoosh::ease::linear(sequenceTimer - 0.5, 0.5, 1.0);
-      float x = static_cast<float>(delta) * 160.0f;
+      float x = float(delta) * 160.0f;
 
-      clientPreview.setPosition(delta * float(size.x) * 0.25f, float(size.y));
+      clientPreview.setPosition(float(delta * size.x) * 0.25f, float(size.y));
       clientPreview.setOrigin(float(clientPreview.getTextureRect().width) * 0.5f, float(clientPreview.getTextureRect().height));
 
-      remotePreview.setPosition(size.x - (delta * float(size.x) * 0.25f), float(size.y));
+      remotePreview.setPosition(size.x - float(delta * size.x * 0.25f), float(size.y));
       remotePreview.setOrigin(float(remotePreview.getTextureRect().width) * 0.5f, float(remotePreview.getTextureRect().height));
 
       delta = swoosh::ease::bezierPopIn(sequenceTimer - 0.5, 0.5);
-      float scale = std::fabs(static_cast<float>(1.0 - delta) * 20.0f) + 1.f;
+      float scale = std::fabs(float(1.0 - delta) * 20.0f) + 1.f;
       vs.setScale(scale, scale);
 
       if (delta == 1) {
@@ -483,7 +484,7 @@ void PVPScene::onUpdate(double elapsed) {
           delta = swoosh::ease::linear(sequenceTimer - 1.0, 2.0, 1.0);
           float scale = static_cast<float>(delta) + 1.f;
           vsFaded.setScale(scale, scale);
-          amt = 150 * (1 - delta);
+          amt = sf::Uint8(150 * (1 - delta));
           vsFaded.setColor(sf::Color(255, 255, 255, amt));
         }
       }
@@ -519,8 +520,12 @@ void PVPScene::onUpdate(double elapsed) {
     // TODO: reuse this connection
     client.close();
 
-    getController().push<effect::to<NetworkBattleScene>>(player, copy, pa, config);
-    // getController().queuePop<effect>(); // for testing animations
+    NetworkBattleSceneProps props = {
+      { *player, pa, copy, new Field(6, 3), new SecretBackground() },
+      config
+    };
+
+    getController().push<effect::to<NetworkBattleScene>>(props);
   } else {
     ProcessIncomingPackets();
 

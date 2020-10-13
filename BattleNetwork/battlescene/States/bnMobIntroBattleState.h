@@ -14,6 +14,10 @@ struct MobIntroBattleState final : public BattleSceneState {
   Mob* mob{ nullptr };
 
   void onUpdate(double elapsed) override;
+  void onEnd() override;
+  void onStart() override;
+  void onDraw(sf::RenderTexture&);
+
   const bool IsOver();
   MobIntroBattleState(Mob* mob, std::vector<Player*> tracked);
 };

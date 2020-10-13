@@ -241,6 +241,10 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
   }
 }
 
+void CardSelectBattleState::onEnd()
+{
+}
+
 bool CardSelectBattleState::OKIsPressed() {
   return GetScene().GetCardSelectWidget().IsOutOfView();
 }

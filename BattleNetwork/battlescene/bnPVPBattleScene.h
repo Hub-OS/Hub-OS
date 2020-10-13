@@ -12,7 +12,6 @@ struct PVPBattleProperties {
 class PVPBattleScene final : public BattleSceneBase {
   Player* remotePlayer; // the other person
 
-  PVPBattleScene(const PVPBattleProperties& props);
-
+  PVPBattleScene(swoosh::ActivityController& controller, const PVPBattleProperties& props);
   ~PVPBattleScene();
 };

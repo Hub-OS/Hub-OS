@@ -1,7 +1,8 @@
 #include "bnPVPBattleScene.h"
 
-PVPBattleScene::PVPBattleScene(const PVPBattleProperties& props)
-: BattleSceneBase(props.base) 
+using swoosh::ActivityController;
+
+PVPBattleScene::PVPBattleScene(ActivityController& controller, const PVPBattleProperties& props) : BattleSceneBase(controller, props.base) 
 {}
 
 PVPBattleScene::~PVPBattleScene() 

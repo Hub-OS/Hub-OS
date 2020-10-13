@@ -22,8 +22,10 @@
 #define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
 
 using swoosh::types::segue;
+using swoosh::Activity;
+using swoosh::ActivityController;
 
-BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Activity(&props.controller),
+BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) : Activity(&controller),
   player(&props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -36,17 +38,13 @@ BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Ac
   distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
   cardListener(props.player),
   // cap of 8 cards, 8 cards drawn per turn
-  cardCustGUI(props.folder.Clone(), 8, 8),
+  cardCustGUI(props.folder, 8, 8),
   camera(*ENGINE.GetCamera()),
-  cardUI(player) {
-
-  if (props.mob.GetMobCount() == 0) {
-    Logger::Log(std::string("Warning: Mob was empty when battle started. Mob Type: ") + typeid(mob).name());
-  }
+  cardUI(&props.player) {
 
   /*
   Set Scene*/
-  field = props.mob.GetField();
+  field = props.field;
   CharacterDeleteListener::Subscribe(*field);
 
   player->ChangeState<PlayerIdleState>();
@@ -59,7 +57,7 @@ BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Ac
 
   /*
   Background for scene*/
-  background = mob->GetBackground();
+  background = props.background;
 
   if (!background) {
     int randBG = rand() % 10;
@@ -96,17 +94,9 @@ BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Ac
     }
   }
 
-  components = mob->GetComponents();
-
   PlayerHealthUI* healthUI = new PlayerHealthUI(player);
   cardCustGUI.AddNode(healthUI);
   components.push_back((UIComponent*)healthUI);
-
-  for (auto c : components) {
-    c->Inject(*this);
-  }
-
-  ProcessNewestComponents();
 
   camera = Camera(ENGINE.GetView());
   ENGINE.SetCamera(camera);
@@ -146,7 +136,6 @@ BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Ac
   pauseLabel = new sf::Text("paused", *font);
   pauseLabel->setOrigin(pauseLabel->getLocalBounds().width / 2, pauseLabel->getLocalBounds().height * 2);
   pauseLabel->setPosition(sf::Vector2f(240.f, 160.f));
-
 
   // Load forms
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
@@ -281,6 +270,19 @@ void BattleSceneBase::HighlightTiles(bool enable)
 void BattleSceneBase::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
 {
   HandleCounterLoss(user);
+}
+
+void BattleSceneBase::LoadMob(Mob& mob)
+{
+  this->mob = &mob;
+  auto mobComps = mob.GetComponents();
+  components.insert(components.end(), mobComps.begin(), mobComps.end());
+
+  for (auto c : components) {
+    c->Inject(*this);
+  }
+
+  ProcessNewestComponents();
 }
 
 void BattleSceneBase::HandleCounterLoss(Character& subject)
