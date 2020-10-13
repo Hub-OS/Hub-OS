@@ -1,6 +1,6 @@
 #include "bnTimeFreezeBattleState.h"
 
-#include "../battlescene/bnBattleSceneBaseBase.h"
+#include "../bnBattleSceneBase.h"
 
 const bool TimeFreezeBattleState::FadeInBackdrop()
 {
@@ -41,12 +41,13 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 {
-  sf::Text summonsLabel = sf::Text(summons.GetSummonLabel(), *mobFont);
+  sf::Text summonsLabel = sf::Text("TEXT HERE", font);
 
   double summonSecs = summonTimer.getElapsed().asSeconds() - showSummonBackdropLength;
   double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
 
-  if (summons.GetCallerTeam() == Team::red) {
+  Team team = Team::red;
+  if (team == Team::red) {
     summonsLabel.setPosition(40.0f, 80.f);
   }
   else {
@@ -58,7 +59,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   summonsLabel.setFillColor(sf::Color::White);
   summonsLabel.setOutlineThickness(2.f);
 
-  if (summons.GetCallerTeam() == Team::red) {
+  if (team == Team::red) {
     summonsLabel.setOrigin(0, summonsLabel.getLocalBounds().height);
   }
   else {
@@ -68,9 +69,13 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   ENGINE.Draw(summonsLabel, false);
 
   if (summonSecs >= summonTextLength) {
-    summons.OnEnter();
+    ExecuteSummons();
     showSummonText = false;
   }
+}
+
+void TimeFreezeBattleState::ExecuteSummons()
+{
 }
 
 bool TimeFreezeBattleState::IsOver() {

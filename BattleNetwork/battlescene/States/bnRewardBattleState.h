@@ -13,6 +13,7 @@ struct RewardBattleState final : public BattleSceneState {
   BattleResults* battleResults{ nullptr }; /*!< modal that pops up when player wins */
   Player* player{ nullptr };
   Mob* mob{ nullptr };
+  double elapsed{ 0 };
 
   RewardBattleState(Player* player, Mob* mob);
   void onStart() override;

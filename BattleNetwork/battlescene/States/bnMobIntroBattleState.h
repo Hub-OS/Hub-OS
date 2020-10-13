@@ -4,6 +4,7 @@
 #include <vector>
 
 class Player;
+class Mob;
 
 /* 
     \brief This state will loop and spawn one enemy at a time

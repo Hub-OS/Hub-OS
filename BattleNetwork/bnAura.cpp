@@ -101,7 +101,7 @@ void Aura::OnUpdate(float _elapsed) {
 
   currHP = health;
   
-  if(bs && bs->IsBattleActive() && (!persist || isOver)) {
+  if(!persist || isOver) {
     timer -= _elapsed;
   }
 

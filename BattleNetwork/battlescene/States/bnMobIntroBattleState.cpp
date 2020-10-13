@@ -1,6 +1,6 @@
 #include "bnMobIntroBattleState.h"
 
-#include "../battlescene/bnBattleSceneBaseBase.h"
+#include "../bnBattleSceneBase.h"
 #include "../../bnPlayer.h"
 #include "../../bnMob.h"
 #include "../../bnAgent.h"

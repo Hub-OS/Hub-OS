@@ -1,6 +1,6 @@
 #include "bnCardSelectBattleState.h"
 
-#include "../battlescene/bnBattleSceneBaseBase.h"
+#include "../bnBattleSceneBase.h"
 #include "../../bnCard.h"
 #include "../../bnPlayer.h"
 #include "../../bnSelectedCardsUI.h"
@@ -206,38 +206,38 @@ void CardSelectBattleState::onUpdate(double elapsed)
 void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 {
   float nextLabelHeight = 0;
-  if (!mob->IsCleared() && isInCardSelect) {
-    for (int i = 0; i < mob->GetMobCount(); i++) {
-      if (mob->GetMobAt(i).IsDeleted())
-        continue;
+  auto mobList = GetScene().MobList();
+  for (int i = 0; i < mobList.size(); i++) {
+    const Character& mob = mobList[i].get();
+    if (mob.IsDeleted())
+      continue;
 
-      std::string name = mob->GetMobAt(i).GetName();
-      sf::Text mobLabel = sf::Text(name, *mobFont);
+    std::string name = mob.GetName();
+    sf::Text mobLabel = sf::Text(name, font);
 
-      mobLabel.setOrigin(mobLabel.getLocalBounds().width, 0);
-      mobLabel.setPosition(470.0f, nextLabelHeight);
-      mobLabel.setScale(1.0f, 1.0f);
-      mobLabel.setOutlineColor(sf::Color(48, 56, 80));
-      mobLabel.setOutlineThickness(2.f);
+    mobLabel.setOrigin(mobLabel.getLocalBounds().width, 0);
+    mobLabel.setPosition(470.0f, nextLabelHeight);
+    mobLabel.setScale(1.0f, 1.0f);
+    mobLabel.setOutlineColor(sf::Color(48, 56, 80));
+    mobLabel.setOutlineThickness(2.f);
 
-      float labelWidth = mobLabel.getGlobalBounds().width;
-      float labelHeight = mobLabel.getGlobalBounds().height / 2.f;
+    float labelWidth = mobLabel.getGlobalBounds().width;
+    float labelHeight = mobLabel.getGlobalBounds().height / 2.f;
 
-      mobEdgeSprite.setPosition(470.0f - (labelWidth + 10), -5.f + nextLabelHeight + labelHeight);
-      auto edgePos = mobEdgeSprite.getPosition();
+    mobEdgeSprite.setPosition(470.0f - (labelWidth + 10), -5.f + nextLabelHeight + labelHeight);
+    auto edgePos = mobEdgeSprite.getPosition();
 
-      mobBackdropSprite.setPosition(edgePos.x + mobEdgeSprite.getGlobalBounds().width, edgePos.y);
+    mobBackdropSprite.setPosition(edgePos.x + mobEdgeSprite.getGlobalBounds().width, edgePos.y);
 
-      float scalex = getController().getInitialWindowSize().x - mobBackdropSprite.getPosition().x;
-      mobBackdropSprite.setScale(scalex, 2.f);
+    float scalex = GetScene().getController().getInitialWindowSize().x - mobBackdropSprite.getPosition().x;
+    mobBackdropSprite.setScale(scalex, 2.f);
 
-      ENGINE.Draw(mobEdgeSprite, false);
-      ENGINE.Draw(mobBackdropSprite, false);
-      ENGINE.Draw(mobLabel, false);
+    ENGINE.Draw(mobEdgeSprite, false);
+    ENGINE.Draw(mobBackdropSprite, false);
+    ENGINE.Draw(mobLabel, false);
 
-      // make the next label relative to this one
-      nextLabelHeight += mobLabel.getLocalBounds().height + 10.f;
-    }
+    // make the next label relative to this one
+    nextLabelHeight += mobLabel.getLocalBounds().height + 10.f;
   }
 }
 

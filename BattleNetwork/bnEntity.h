@@ -34,7 +34,7 @@ namespace Battle {
 }
 
 class Field;
-class BattleScene; // forward decl
+class BattleSceneBase; // forward decl
 
 struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;

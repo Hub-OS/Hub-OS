@@ -3,7 +3,19 @@
 #include "../../bnBattleResults.h"
 #include "../../bnPlayer.h"
 #include "../../bnMob.h"
-#include "../battlescene/bnBattleSceneBaseBase.h"
+#include "../../bnInputManager.h"
+#include "../bnBattleSceneBase.h"
+
+#include <Swoosh/Segue.h>
+#include <Segues/BlackWashFade.h>
+#include <Segues/PixelateBlackWashFade.h>
+
+// modals like card cust and battle reward slide in 12px per frame for 10 frames. 60 frames = 1 sec
+// modal slide moves 120px in 1/6th of a second
+// Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
+#define MODAL_SLIDE_PX_PER_SEC 720.0f
+
+using namespace swoosh::types;
 
 RewardBattleState::RewardBattleState(Player* player, Mob* mob) : player(player), mob(mob)
 { 
@@ -24,6 +36,7 @@ void RewardBattleState::onStart()
 
 void RewardBattleState::onUpdate(double elapsed)
 {
+  this->elapsed = elapsed;
   if (battleResults) battleResults->Update(elapsed);
 }
 
@@ -51,7 +64,7 @@ void RewardBattleState::onDraw(sf::RenderTexture& surface)
         }
 
         using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
-        getController().queuePop<effect>();
+        GetController().queuePop<effect>();
       }
       else {
         battleResults->CursorAction();

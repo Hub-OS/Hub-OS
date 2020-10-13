@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Swoosh/Timer.h>
+#include <memory>
 
 #include "../bnBattleSceneState.h"
 #include "../../bnSelectedCardsUI.h"
@@ -12,9 +13,11 @@
 struct CardComboBattleState final : public BattleSceneState {
 
   bool isPAComplete{ false };
+  bool advanceSoundPlay{ false };
   int hasPA{ -1 };
   int paStepIndex{ 0 };
   int* cardCountPtr{ nullptr };
+  double elapsed{ 0 };
   double listStepCooldown{ 0 };
   double listStepCounter{ 0 };
   double PAStartLength{ 0 }; /*!< Total time to animate PA */
@@ -22,7 +25,7 @@ struct CardComboBattleState final : public BattleSceneState {
   PA::Steps paSteps; /*!< Matching steps in a PA */
   swoosh::Timer PAStartTimer; /*!< Time to scale the PA graphic */
   sf::Sprite programAdvanceSprite;
-  sf::Font font;
+  std::shared_ptr<sf::Font> font;
   SelectedCardsUI& ui;
   Battle::Card** cards{ nullptr };
 
@@ -31,5 +34,6 @@ struct CardComboBattleState final : public BattleSceneState {
   void onStart() override;
   void onEnd() override;
   void onUpdate(double elapsed) override;
+  void onDraw(sf::RenderTexture& surface) override;
   bool IsDone();
 };

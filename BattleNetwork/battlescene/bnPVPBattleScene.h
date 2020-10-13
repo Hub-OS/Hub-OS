@@ -1,19 +1,18 @@
 #pragma once
-#include "battlescene/bnBattleSceneBaseBase.h"
+#include "bnBattleSceneBase.h"
 
 class Player; //!< Forward declare
 
 // PVP properties the scene needs
 struct PVPBattleProperties {
-    swoosh::ActivityController* controller{nullptr};
-    Player* player;
-    int rounds;
+  BattleSceneBaseProps base;
+  int rounds;
 };
 
 class PVPBattleScene final : public BattleSceneBase {
-    Player* remotePlayer; // the other person
+  Player* remotePlayer; // the other person
 
-    PVPBattleScene(const PVPBattleProperties& props);
+  PVPBattleScene(const PVPBattleProperties& props);
 
-    ~PVPBattleScene();
+  ~PVPBattleScene();
 };

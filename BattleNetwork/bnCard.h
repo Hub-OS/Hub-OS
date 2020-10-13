@@ -7,7 +7,7 @@
 
 using std::string;
 
-class BattleScene;
+class BattleSceneBase;
 class SelectedCardsUI;
 
 /**

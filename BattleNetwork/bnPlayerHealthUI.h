@@ -21,7 +21,7 @@
 
 class Entity;
 class Player;
-class BattleScene;
+class BattleSceneBase;
 
 using sf::Font;
 using sf::Text;

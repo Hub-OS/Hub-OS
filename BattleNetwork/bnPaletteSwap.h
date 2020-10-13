@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include "bnComponent.h"
 
-class BattleScene;
+class BattleSceneBase;
 class Entity;
 
 class PaletteSwap : public Component {

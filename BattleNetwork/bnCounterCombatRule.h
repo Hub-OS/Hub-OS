@@ -1,6 +1,6 @@
 #pragma once
 #include "bnDefenseRule.h"
-class BattleScene;
+class BattleSceneBase;
 
 class CounterCombatRule final : public DefenseRule {
   BattleSceneBase* battleScene{ nullptr };

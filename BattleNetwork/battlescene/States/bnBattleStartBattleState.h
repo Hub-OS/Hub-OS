@@ -13,14 +13,15 @@
 class Player;
 
 struct BattleStartBattleState final : public BattleSceneState {
-    sf::Sprite battleStart; /*!< "Battle Start" graphic */
-    swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
-    sf::Vector2f battleStartPos; /*!< Position of battle pre/post graphic on screen */
-    std::vector<Player*> tracked;
-    BattleStartBattleState(std::vector<Player*> tracked);
+  double preBattleLength{ 500.0 }; /*!< In milliseconds */
+  sf::Sprite battleStart; /*!< "Battle Start" graphic */
+  swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
+  sf::Vector2f battleStartPos; /*!< Position of battle pre/post graphic on screen */
+  std::vector<Player*> tracked;
+  BattleStartBattleState(std::vector<Player*> tracked);
 
-    void onStart() override;
-    void onUpdate(double elapsed) override;
-    void onDraw(sf::RenderTexture& surface) override;
-    bool IsFinished();
+  void onStart() override;
+  void onUpdate(double elapsed) override;
+  void onDraw(sf::RenderTexture& surface) override;
+  bool IsFinished();
 };

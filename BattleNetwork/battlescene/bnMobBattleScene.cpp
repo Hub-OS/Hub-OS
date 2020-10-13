@@ -12,7 +12,7 @@
 #include "States/bnCardComboBattleState.h"
 
 MobBattleScene::MobBattleScene(const MobBattleProperties& props) 
-: BattleSceneBase(props.controller, props.player) {
+: props(props), BattleSceneBase(props.base) {
     // First, we create all of our scene states
     auto intro = AddState<MobIntroBattleState>();
     auto cardSelect = AddState<CardSelectBattleState>();
@@ -43,8 +43,9 @@ MobBattleScene::MobBattleScene(const MobBattleProperties& props)
 
     // combat has multiple state interruptions based on events
     // so we chain them together instead of using the macro
-    combat  .ChangeOnEvent(battleover, &CombatBattleState::IsCombatOver)
-            .ChangeOnEvent(cardSelect, &CombatBattleState::IsCardGaugeFull)
+    combat  .ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
+            .ChangeOnEvent(battleover, &CombatBattleState::PlayerLost)
+            .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
             .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
 
     // this kicks-off the state graph beginning with the intro state
@@ -53,4 +54,20 @@ MobBattleScene::MobBattleScene(const MobBattleProperties& props)
 
 MobBattleScene::~MobBattleScene() {
 
+}
+
+void MobBattleScene::onExit()
+{
+}
+
+void MobBattleScene::onEnter()
+{
+}
+
+void MobBattleScene::onResume()
+{
+}
+
+void MobBattleScene::onEnd()
+{
 }

@@ -1,9 +1,11 @@
 #pragma once
 
 #include "../bnBattleSceneState.h"
+#include "../../bnCard.h"
 
 #include <vector>
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Font.hpp>
 
 class Player;
 
@@ -24,6 +26,8 @@ class CardSelectBattleState final : public BattleSceneState {
   int cardCount; /*!< Length of card list */
   float streamVolume{ -1.f };
   std::vector<Player*> tracked;
+  sf::Font font;
+  sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   Battle::Card** cards; /*!< List of Card* the user selects from the card cust */
 
 public:

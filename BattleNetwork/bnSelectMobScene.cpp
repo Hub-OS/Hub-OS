@@ -1,5 +1,6 @@
 #include <Swoosh/ActivityController.h>
 #include "bnSelectMobScene.h"
+#include "battlescene/bnMobBattleScene.h"
 #include "Android/bnTouchArea.h"
 
 using namespace swoosh::types;
@@ -401,7 +402,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
       using effect = segue<WhiteWashFade>;
-      getController().push<effect::to<BattleScene>>(player, mob, &selectedFolder, programAdvance);
+      getController().push<effect::to<MobBattleScene>>(player, mob, &selectedFolder, programAdvance);
     }
   }
 

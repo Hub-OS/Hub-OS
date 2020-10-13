@@ -3,8 +3,10 @@
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
 
+#include <Swoosh/Ease.h>
+
 bool BattleOverBattleState::IsFinished() {
-    return true;
+  return battleEndTimer.getElapsed().asMilliseconds() >= postBattleLength;
 }
 
 BattleOverBattleState::BattleOverBattleState()
@@ -17,6 +19,7 @@ BattleOverBattleState::BattleOverBattleState()
 
 void BattleOverBattleState::onStart()
 {
+  battleEndTimer.reset();
   AUDIO.Stream("resources/loops/enemy_deleted.ogg");
 }
 
@@ -30,9 +33,5 @@ void BattleOverBattleState::onDraw(sf::RenderTexture& surface)
   double scale = swoosh::ease::wideParabola(battleEndSecs, postBattleLength, 2.0);
   battleEnd.setScale(2.f, (float)scale * 2.f);
 
-  if (battleEndSecs >= postBattleLength) {
-    isPostBattle = false;
-  }
-
-  ENGINE.Draw(battleEnd);
+  surface.draw(battleEnd);
 }

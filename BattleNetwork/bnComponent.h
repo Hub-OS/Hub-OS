@@ -1,7 +1,7 @@
 #pragma once
 
 class Entity;
-class BattleScene;
+class BattleSceneBase;
 
 /**
  * @class Component
@@ -14,11 +14,28 @@ class BattleScene;
  */
 class Component {
 public:
+  friend class BattleSceneBase;
+
   using ID_t = long;
+
+  enum class lifetimes {
+    local      = 0, // component update tick happens in the attached entitiy 
+    battlestep = 1, // component is injected into the scene and update tick happens during battle steps
+    ui         = 2  // component is injected into the scene and update tick happens every app tick
+  };
 private:
-  Entity* owner; /*!< Who the component is attached to */
+  BattleSceneBase* scene{ nullptr };
   static long numOfComponents; /*!< Resource counter to generate new IDs */
+  lifetimes lifetime{};
+  Entity* owner; /*!< Who the component is attached to */
   ID_t ID; /*!< ID for quick lookups, resource management, and scripting */
+
+protected:
+  /**
+ * @brief Update must be implemented by child class
+ * @param _elapsed in seconds
+ */
+  virtual void OnUpdate(float _elapsed) = 0;
 
 public:
   Component() = delete;
@@ -27,8 +44,8 @@ public:
    * @brief Sets an owner and ID. Increments numOfComponents beforehand.
    * @param owner the entity to attach to
    */
-  Component(Entity* owner) : owner(owner) { ID = ++numOfComponents;  };
-  virtual ~Component() { ; }
+  Component(Entity* owner, lifetimes lifetime = lifetimes::local);
+  virtual ~Component();
 
   Component(Component&& rhs) = delete;
   Component(const Component& rhs) = delete;
@@ -37,7 +54,20 @@ public:
    * @brief Get the owner as an Entity
    * @return Entity*
    */
-  Entity* GetOwner() { return owner;  }
+  Entity* GetOwner();
+
+  /**
+  * @brief Query if this component has been injected into the battle scene's ui or logic loop 
+  */
+
+  const bool Injected();
+
+  BattleSceneBase* Scene();
+
+  /**
+  * @brief Return the type of lifetime this component has
+  */
+  const lifetimes Lifetime();
 
   /**
    * @brief Get the owner as a special type
@@ -52,19 +82,23 @@ public:
    * Useful to identify if an entity has been removed from game but a component
    * needs to act accordingly to this information
    */
-  void FreeOwner() { owner = nullptr; }
+  void FreeOwner();
 
   /**
    * @brief Get the Id of the component
    * @return ID
    */
-  const ID_t GetID() const { return ID; }
+  const ID_t GetID() const;
+
+  void Eject();
 
   /**
-   * @brief Update must be implemented by child class
-   * @param _elapsed in seconds
-   */
-  virtual void OnUpdate(float _elapsed) = 0;
+  * @brief Updates the component during its correct lifetime
+  * 
+  * If a local component, calls onUpdate()
+  * If a battle scene component, ensures that it is injected correctly
+  */
+  void Update(float elapsed);
   
   /**
    * @brief Some components can be injected into the battle routine for custom behavior

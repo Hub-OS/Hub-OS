@@ -3,7 +3,7 @@
 #include "bnNetworkBattleScene.h"
 
 class PlayerInputReplicator final : public Component {
-  NetworkBattleSceneBase* nbs{ nullptr };
+  NetworkBattleScene* nbs{ nullptr };
 
 public:
   PlayerInputReplicator(Entity* owner) : Component(owner) {
@@ -39,7 +39,7 @@ public:
   }
 
   void Inject(BattleSceneBase& bs) {
-    auto* networkedbs = dynamic_cast<NetworkBattleSceneBase*>(&bs);
+    auto* networkedbs = dynamic_cast<NetworkBattleScene*>(&bs);
     if (networkedbs) {
       nbs = networkedbs;
     }

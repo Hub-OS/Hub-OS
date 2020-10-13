@@ -4,7 +4,7 @@
 #include "bnTile.h"
 #include "bnAudioResourceManager.h"
 
-HideTimer::HideTimer(Character* owner, double secs) : scene(nullptr), Component(owner) {
+HideTimer::HideTimer(Character* owner, double secs) : Component(owner, Component::lifetimes::battlestep) {
   duration = secs;
   elapsed = 0;
 
@@ -16,18 +16,11 @@ HideTimer::HideTimer(Character* owner, double secs) : scene(nullptr), Component(
 }
 
 void HideTimer::OnUpdate(float _elapsed) {
-  if(!scene) return;
-
-  if (!scene->IsCleared() && !scene->IsBattleActive()) {
-      return;
-  }
-
   elapsed += _elapsed;
 
   if (elapsed >= duration && temp) {
     respawn();
-    scene->Eject(GetID());
-    delete this;
+    Eject();
   }
 }
 
@@ -35,8 +28,9 @@ void HideTimer::Inject(BattleSceneBase& scene) {
   // temporarily remove from character from play
   if (temp) {
     // remove then reserve otherwise the API will also clear the reservation
-    temp->RemoveEntityByID(GetOwner()->GetID());
-    temp->ReserveEntityByID(GetOwner()->GetID());
+    Entity::ID_t id = GetOwner()->GetID();
+    temp->RemoveEntityByID(id);
+    temp->ReserveEntityByID(id);
 
     GetOwner()->SetTile(nullptr);
   }
@@ -45,5 +39,4 @@ void HideTimer::Inject(BattleSceneBase& scene) {
   // because the character's update loop is only called when they are on the field
   // this way the timer can keep ticking
   scene.Inject(this);
-  this->scene = &scene;
 }

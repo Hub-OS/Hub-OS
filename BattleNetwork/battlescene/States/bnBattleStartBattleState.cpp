@@ -1,6 +1,6 @@
 #include "bnBattleStartBattleState.h"
 
-#include "../battlescene/bnBattleSceneBaseBase.h"
+#include "../bnBattleSceneBase.h"
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
 
@@ -32,12 +32,9 @@ void BattleStartBattleState::onDraw(sf::RenderTexture& surface)
   double scale = swoosh::ease::wideParabola(battleStartSecs, preBattleLength, 2.0);
   battleStart.setScale(2.f, (float)scale * 2.f);
 
-  if (battleStartSecs >= preBattleLength)
-    isPreBattle = false;
-
-  ENGINE.Draw(battleStart);
+  surface.draw(battleStart);
 }
 
 bool BattleStartBattleState::IsFinished() {
-    return true;
+  return battleStartTimer.getElapsed().asMilliseconds() >= preBattleLength;
 }

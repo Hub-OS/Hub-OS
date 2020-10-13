@@ -1,6 +1,6 @@
 #include "bnCombatBattleState.h"
 
-#include "../battlescene/bnBattleSceneBaseBase.h"
+#include "../bnBattleSceneBase.h"
 
 #include "../../bnMob.h"
 #include "../../bnTeam.h"
@@ -111,6 +111,5 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
 
     // apply shader on draw calls below
     ENGINE.SetShader(&pauseShader);
-    pauseShader.setUniform("opacity", 0.25f);
   }
 }

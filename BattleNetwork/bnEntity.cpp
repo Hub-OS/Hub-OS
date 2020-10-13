@@ -128,7 +128,7 @@ void Entity::Update(float _elapsed) {
   auto iter = components.begin();
 
   while (iter != components.end()) {
-    (*iter)->OnUpdate(_elapsed);
+    (*iter)->Update(_elapsed);
     iter++;
   }
 

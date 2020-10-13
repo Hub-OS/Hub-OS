@@ -1,5 +1,5 @@
 #pragma once
-#include "battlescene/bnBattleSceneBaseBase.h"
+#include "bnBattleSceneBase.h"
 
 class Player;
 class Mob;
@@ -8,17 +8,13 @@ class Mob;
     \brief Lots of properties packed into a clean struct
 */
 struct MobBattleProperties {
-    swoosh::ActivityController* controller{nullptr};
-    
-    enum class RewardBehavior : int {
-        take = 0,    //!< One reward at the end of all mobs
-        takeForEach, //!< Each mobs rewards the player
-        none         //!< No rewards given
-    };
-
-    Player* player;
-    std::vector<Mob*> mobs;
-    RewardBehavior reward;
+  BattleSceneBaseProps base;
+  enum class RewardBehavior : int {
+      take = 0,    //!< One reward at the end of all mobs
+      takeForEach, //!< Each mobs rewards the player
+      none         //!< No rewards given
+  } reward{ };
+  std::vector<Mob*> mobs;
 };
 
 /*
@@ -30,4 +26,9 @@ class MobBattleScene final : public BattleSceneBase {
     public:
     MobBattleScene(const MobBattleProperties& props);
     ~MobBattleScene();
+
+    void onExit() override;
+    void onEnter() override;
+    void onResume() override;
+    void onEnd() override;
 };

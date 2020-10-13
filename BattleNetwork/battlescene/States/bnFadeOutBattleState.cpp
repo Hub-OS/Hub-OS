@@ -1,5 +1,5 @@
 #include "bnFadeOutBattleState.h"
-#include "../battlescene/bnBattleSceneBaseBase.h"
+#include "../bnBattleSceneBase.h"
 
 FadeOutBattleState::FadeOutBattleState(const FadeOut& mode) : mode(mode) {}
 

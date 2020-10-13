@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Swoosh/Timer.h>
+#include <SFML/Graphics/Font.hpp>
 
 #include "../bnBattleSceneState.h"
 
@@ -14,17 +15,20 @@ struct TimeFreezeBattleState final : public BattleSceneState {
     fadeout
   } currState{ state::fadein };
 
-  bool showSummonText; /*!< Whether or not TFC label should appear */
-  double summonTextLength; /*!< How long TFC label should stay on screen */
-  bool showSummonBackdrop; /*!< Dim screen and show new backdrop if applicable */
-  double showSummonBackdropLength; /*!< How long the dim should last */
-  double showSummonBackdropTimer; /*!< If > 0, the state is in effect else change state */
+  bool showSummonText{ false }; /*!< Whether or not TFC label should appear */
+  bool showSummonBackdrop{ false }; /*!< Dim screen and show new backdrop if applicable */
+  double summonTextLength{ 1.0 }; /*!< How long TFC label should stay on screen */
+  double showSummonBackdropLength{ 1.0 }; /*!< How long the dim should last */
+  double showSummonBackdropTimer{ 1.0 }; /*!< If > 0, the state is in effect else change state */
+  sf::Font font;
+
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
 
   void onStart() override;
   void onEnd() override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
+  void ExecuteSummons();
   const bool FadeOutBackdrop();
   const bool FadeInBackdrop();
   bool IsOver();

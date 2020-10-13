@@ -8,6 +8,7 @@
 #include <vector>
 #include "bnUIComponent.h"
 #include "bnCardUsePublisher.h"
+#include "bnSpriteProxyNode.h"
 
 using std::ostringstream;
 using std::vector;
@@ -20,7 +21,7 @@ using sf::Drawable;
 class Entity;
 class Player;
 class Card;
-class BattleScene;
+class BattleSceneBase;
 
 class SelectedCardsUI : public CardUsePublisher, public UIComponent {
 public:
@@ -79,5 +80,6 @@ private:
   mutable Text text; /*!< Text displays card name */
   mutable Text multiplier;
   mutable Text dmg; /*!< Text displays card damage */
-  mutable SpriteProxyNode icon, frame; /*!< Sprite for the card icon and the black border */
+  mutable SpriteProxyNode icon;
+  mutable SpriteProxyNode frame; /*!< Sprite for the card icon and the black border */
 };

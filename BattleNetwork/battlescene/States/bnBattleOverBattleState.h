@@ -9,13 +9,14 @@
     This state handles the battle end message that appears
 */
 struct BattleOverBattleState final : public BattleSceneState {
-    sf::Sprite battleEnd;   /*!< "Enemy Deleted" graphic */
-    swoosh::Timer battleEndTimer; /*!< How long the end graphic should stay on screen */
-    sf::Vector2f battleOverPos; /*!< Position of battle pre/post graphic on screen */
+  double postBattleLength{ 500 }; /*!< In milliseconds */
+  sf::Sprite battleEnd;   /*!< "Enemy Deleted" graphic */
+  swoosh::Timer battleEndTimer; /*!< How long the end graphic should stay on screen */
+  sf::Vector2f battleOverPos; /*!< Position of battle pre/post graphic on screen */
 
-    BattleOverBattleState();
-    void onStart() override;
-    void onUpdate(double elapsed) override;
-    void onDraw(sf::RenderTexture& surface) override;
-    bool IsFinished();
+  BattleOverBattleState();
+  void onStart() override;
+  void onUpdate(double elapsed) override;
+  void onDraw(sf::RenderTexture& surface) override;
+  bool IsFinished();
 };

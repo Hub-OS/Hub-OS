@@ -223,7 +223,7 @@ std::vector<Entity*> Field::FindEntities(std::function<bool(Entity* e)> query)
 
 std::vector<const Entity*> Field::FindEntities(std::function<bool(Entity* e)> query) const
 {
-  std::vector<Entity*> res;
+  std::vector<const Entity*> res;
 
   for (int y = 1; y <= height; y++) {
     for (int x = 1; x <= width; x++) {

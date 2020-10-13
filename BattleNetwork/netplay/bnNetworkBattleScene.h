@@ -54,7 +54,12 @@ class PlayerHealthUI;
 
 class NetworkCardUseListener; // declared bottom of file
 
-class NetworkBattleScene final : public BattleScene {
+struct NetworkBattleSceneProps {
+  BattleSceneBaseProps base;
+  NetPlayConfig& netconfig;
+};
+
+class NetworkBattleScene final : public BattleSceneBase {
 private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
@@ -102,17 +107,21 @@ private:
   void processIncomingPackets();
 
 public:
-  using BattleScene::ProcessNewestComponents;
+  using BattleSceneBase::ProcessNewestComponents;
 
   void onUpdate(double elapsed) override final;
   void onDraw(sf::RenderTexture& surface) override final;
+  void onExit() override;
+  void onEnter() override;
+  void onResume() override;
+  void onEnd() override;
 
   void Inject(PlayerInputReplicator& pub);
 
   /**
    * @brief Construct scene with selected player, generated mob data, and the folder to use
    */
-  NetworkBattleScene(swoosh::ActivityController&, Player*, CardFolder*, PA&, const NetPlayConfig&);
+  NetworkBattleScene(const NetworkBattleSceneProps& props);
   
   /**
    * @brief Clears all nodes and components
@@ -122,16 +131,16 @@ public:
 };
 
 class NetworkCardUseListener final : public CardUseListener {
-  NetworkBattleSceneBase& bs;
+  NetworkBattleScene& nbs;
   Player& client;
 
 public:
-  NetworkCardUseListener(NetworkBattleSceneBase& bs, Player& client)
-    : bs(bs), client(client), CardUseListener() {
+  NetworkCardUseListener(NetworkBattleScene& nbs, Player& client)
+    : nbs(nbs), client(client), CardUseListener() {
 
   }
 
   void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override {
-    bs.sendChipUseSignal(card.GetUUID());
+    nbs.sendChipUseSignal(card.GetUUID());
   }
 };

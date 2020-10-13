@@ -1,6 +1,6 @@
 #include "bnCardComboBattleState.h"
 
-#include "../battlescene/bnBattleSceneBaseBase.h"
+#include "../bnBattleSceneBase.h"
 #include "../../bnTextureResourceManager.h"
 #include "../../bnAudioResourceManager.h"
 
@@ -20,6 +20,8 @@ CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvan
   programAdvanceSprite.setScale(2.f, 2.f);
   programAdvanceSprite.setOrigin(0, programAdvanceSprite.getLocalBounds().height / 2.0f);
   programAdvanceSprite.setPosition(40.0f, 58.f);
+
+  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 }
 
 void CardComboBattleState::ShareCardList(Battle::Card** cards, int* listLengthPtr)
@@ -36,10 +38,12 @@ void CardComboBattleState::onStart()
 void CardComboBattleState::onEnd()
 {
   ENGINE.RevokeShader();
+  advanceSoundPlay = false;
 }
 
 void CardComboBattleState::onUpdate(double elapsed)
 {
+  this->elapsed += elapsed;
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
 
   // we're leaving a state
@@ -62,101 +66,10 @@ void CardComboBattleState::onUpdate(double elapsed)
 
     isPAComplete = true;
   }
-  else if (hasPA > -1) {
-    static bool advanceSoundPlay = false;
-    static float increment = 0;
-
-    float nextLabelHeight = 0;
-
-    double PAStartSecs = PAStartTimer.getElapsed().asSeconds();
-    double scale = swoosh::ease::linear(PAStartSecs, PAStartLength, 1.0);
-    programAdvanceSprite.setScale(2.f, (float)scale * 2.f);
-    ENGINE.Draw(programAdvanceSprite, false);
-
-    if (paStepIndex <= (*cardCountPtr) + 1) {
-      for (int i = 0; i < paStepIndex && i < *cardCountPtr; i++) {
-        std::string formatted = cards[i]->GetShortName();
-        formatted.resize(9, ' ');
-        formatted[8] = cards[i]->GetCode();
-
-        sf::Text stepLabel = sf::Text(formatted, font);
-
-        stepLabel.setOrigin(0, 0);
-        stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
-        stepLabel.setScale(1.0f, 1.0f);
-
-        if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
-          if (i < paStepIndex - 1) {
-            stepLabel.setOutlineColor(sf::Color(0, 0, 0));
-            stepLabel.setFillColor(sf::Color(128, 248, 80));
-          }
-          else {
-            stepLabel.setOutlineColor(sf::Color(0, 0, 0));
-            stepLabel.setFillColor(sf::Color(247, 188, 27));
-          }
-        }
-        else {
-          stepLabel.setOutlineColor(sf::Color(48, 56, 80));
-        }
-
-        stepLabel.setOutlineThickness(2.f);
-        ENGINE.Draw(stepLabel, false);
-
-        // make the next label relative to this one
-        nextLabelHeight += stepLabel.getLocalBounds().height;
-      }
-      increment = 0;
-      nextLabelHeight = 0;
-    }
-    else {
-      if (!advanceSoundPlay) {
-        AUDIO.Play(AudioType::PA_ADVANCE);
-        advanceSoundPlay = true;
-      }
-
-      for (int i = 0; i < *cardCountPtr; i++) {
-        std::string formatted = cards[i]->GetShortName();
-        formatted.resize(9, ' ');
-        formatted[8] = cards[i]->GetCode();
-
-        sf::Text stepLabel = sf::Text(formatted, font);
-
-        stepLabel.setOrigin(0, 0);
-        stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
-        stepLabel.setScale(1.0f, 1.0f);
-        stepLabel.setOutlineColor(sf::Color(48, 56, 80));
-        stepLabel.setOutlineThickness(2.f);
-
-        if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
-          if (i == hasPA) {
-            Battle::Card* paCard = programAdvance.GetAdvanceCard();
-
-            sf::Text stepLabel = sf::Text(paCard->GetShortName(), font);
-            stepLabel.setOrigin(0, 0);
-            stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
-            stepLabel.setScale(1.0f, 1.0f);
-
-            stepLabel.setOutlineColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
-            stepLabel.setOutlineThickness(2.f);
-            ENGINE.Draw(stepLabel, false);
-          }
-          else {
-            // make the next label relative to the hidden one and skip drawing
-            nextLabelHeight += stepLabel.getLocalBounds().height;
-
-            continue;
-          }
-
-        }
-        else {
-          ENGINE.Draw(stepLabel, false);
-        }
-
-        // make the next label relative to this one
-        nextLabelHeight += stepLabel.getLocalBounds().height;
-      }
-
-      increment += (float)elapsed * 5.f;
+  else {
+    if (!advanceSoundPlay) {
+      AUDIO.Play(AudioType::PA_ADVANCE);
+      advanceSoundPlay = true;
     }
 
     if (listStepCounter > 0.f) {
@@ -198,7 +111,7 @@ void CardComboBattleState::onUpdate(double elapsed)
         }
 
         // Delete the temp list space
-        // NOTE: We are _not_ deleting the pointers in them
+        // NOTE: We are _not_ deleting the pointers in the list, just the list itself
         delete[] newCardList;
 
         *cardCountPtr = newCardCount;
@@ -218,6 +131,101 @@ void CardComboBattleState::onUpdate(double elapsed)
 
         paStepIndex++;
       }
+    }
+  }
+}
+
+void CardComboBattleState::onDraw(sf::RenderTexture& surface)
+{
+  if (hasPA > -1) {
+    static bool advanceSoundPlay = false;
+    static float increment = 0;
+
+    float nextLabelHeight = 0;
+
+    double PAStartSecs = PAStartTimer.getElapsed().asSeconds();
+    double scale = swoosh::ease::linear(PAStartSecs, PAStartLength, 1.0);
+    programAdvanceSprite.setScale(2.f, (float)scale * 2.f);
+    ENGINE.Draw(programAdvanceSprite, false);
+
+    if (paStepIndex <= (*cardCountPtr) + 1) {
+      for (int i = 0; i < paStepIndex && i < *cardCountPtr; i++) {
+        std::string formatted = cards[i]->GetShortName();
+        formatted.resize(9, ' ');
+        formatted[8] = cards[i]->GetCode();
+
+        sf::Text stepLabel = sf::Text(formatted, *font);
+
+        stepLabel.setOrigin(0, 0);
+        stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
+        stepLabel.setScale(1.0f, 1.0f);
+
+        if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
+          if (i < paStepIndex - 1) {
+            stepLabel.setOutlineColor(sf::Color(0, 0, 0));
+            stepLabel.setFillColor(sf::Color(128, 248, 80));
+          }
+          else {
+            stepLabel.setOutlineColor(sf::Color(0, 0, 0));
+            stepLabel.setFillColor(sf::Color(247, 188, 27));
+          }
+        }
+        else {
+          stepLabel.setOutlineColor(sf::Color(48, 56, 80));
+        }
+
+        stepLabel.setOutlineThickness(2.f);
+        ENGINE.Draw(stepLabel, false);
+
+        // make the next label relative to this one
+        nextLabelHeight += stepLabel.getLocalBounds().height;
+      }
+      increment = 0;
+      nextLabelHeight = 0;
+    }
+    else {
+      for (int i = 0; i < *cardCountPtr; i++) {
+        std::string formatted = cards[i]->GetShortName();
+        formatted.resize(9, ' ');
+        formatted[8] = cards[i]->GetCode();
+
+        sf::Text stepLabel = sf::Text(formatted, *font);
+
+        stepLabel.setOrigin(0, 0);
+        stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
+        stepLabel.setScale(1.0f, 1.0f);
+        stepLabel.setOutlineColor(sf::Color(48, 56, 80));
+        stepLabel.setOutlineThickness(2.f);
+
+        if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
+          if (i == hasPA) {
+            Battle::Card* paCard = programAdvance.GetAdvanceCard();
+
+            sf::Text stepLabel = sf::Text(paCard->GetShortName(), *font);
+            stepLabel.setOrigin(0, 0);
+            stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
+            stepLabel.setScale(1.0f, 1.0f);
+
+            stepLabel.setOutlineColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
+            stepLabel.setOutlineThickness(2.f);
+            ENGINE.Draw(stepLabel, false);
+          }
+          else {
+            // make the next label relative to the hidden one and skip drawing
+            nextLabelHeight += stepLabel.getLocalBounds().height;
+            continue;
+          }
+
+        }
+        else {
+          ENGINE.Draw(stepLabel, false);
+        }
+
+        // make the next label relative to this one
+        nextLabelHeight += stepLabel.getLocalBounds().height;
+      }
+
+      increment += (float)elapsed * 5.f;
     }
   }
 }

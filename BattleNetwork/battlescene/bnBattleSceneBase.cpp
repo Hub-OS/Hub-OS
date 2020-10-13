@@ -1,4 +1,4 @@
-#include "battlescene/bnBattleSceneBaseBase.h"
+#include "bnBattleSceneBase.h"
 
 #include "../bnTextureResourceManager.h"
 #include "../bnShaderResourceManager.h"
@@ -20,6 +20,8 @@
 // The game is clocked to display 60 frames per second
 // If x = 20 frames, then we want a combo hit threshold of 20/60 = 0.3 seconds
 #define COMBO_HIT_THRESHOLD_SECONDS 20.0f/60.0f
+
+using swoosh::types::segue;
 
 BattleSceneBase::BattleSceneBase(const BattleSceneBaseProps& props) : swoosh::Activity(&props.controller),
   player(&props.player),
@@ -410,9 +412,14 @@ void BattleSceneBase::onUpdate(double elapsed) {
   // Register and eject any applicable components
   ProcessNewestComponents();
 
-  // Update components
+  // Update injected components
   for (auto c : components) {
-    c->OnUpdate((float)elapsed);
+    if (c->Lifetime() == Component::lifetimes::ui) {
+      c->Update((float)elapsed);
+    }
+    else if (c->Lifetime() == Component::lifetimes::battlestep && !mob->IsCleared() && !battleTimer.isPaused()) {
+      c->Update((float)elapsed);
+    }
   }
 
   cardUI.OnUpdate((float)elapsed);
@@ -460,6 +467,13 @@ void BattleSceneBase::onUpdate(double elapsed) {
       current->onStart();
     }
   }
+
+  // cleanup pending components
+  for (auto c : deleteComponentsList) {
+    delete c;
+  }
+
+  deleteComponentsList.clear();
 }
 
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
@@ -646,6 +660,11 @@ bool BattleSceneBase::IsPlayerDeleted() const
   return isPlayerDeleted;
 }
 
+Player* BattleSceneBase::GetPlayer()
+{
+  return player;
+}
+
 Field* BattleSceneBase::GetField()
 {
   return field;
@@ -659,6 +678,10 @@ const Field* BattleSceneBase::GetField() const
 CardSelectionCust& BattleSceneBase::GetCardSelectWidget()
 {
   return cardCustGUI;
+}
+
+SelectedCardsUI& BattleSceneBase::GetSelectedCardsUI() {
+  return cardUI;
 }
 
 void BattleSceneBase::StartBattleTimer()
@@ -701,6 +724,17 @@ const bool BattleSceneBase::FadeOutBackdrop(double speed)
   return (backdropOpacity == 1.0);
 }
 
+std::vector<std::reference_wrapper<const Character>> BattleSceneBase::MobList()
+{
+  std::vector<std::reference_wrapper<const Character>> mobList;
+
+  for (int i = 0; i < mob->GetMobCount(); i++) {
+    mobList.push_back(mob->GetMobAt(i));
+  }
+
+  return mobList;
+}
+
 void BattleSceneBase::Quit(const FadeOut& mode) {
   if(quitting) return; 
 
@@ -724,9 +758,9 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
   // activity controller to fadeout with the right
   // visual appearance
   if(mode == FadeOut::white) {
-    getController().queuePop<WhiteWashFade>();
+    getController().queuePop<segue<WhiteWashFade>>();
   } else {
-    getController().queuePop<BlackWashFade>();
+    getController().queuePop<segue<BlackWashFade>>();
   }
 
   quitting = true;
@@ -754,9 +788,8 @@ void BattleSceneBase::Inject(MobHealthUI& other)
 // Default case: no special injection found for the type, just add it to our update loop
 void BattleSceneBase::Inject(Component* other)
 {
-  if (!other) return;
-
   if (other->GetOwner()) other->GetOwner()->FreeComponentByID(other->GetID());
+  other->scene = this;
   components.push_back(other);
 }
 
@@ -765,6 +798,7 @@ void BattleSceneBase::Eject(Component::ID_t ID)
   auto iter = std::find_if(components.begin(), components.end(), [ID](auto in) { return in->GetID() == ID; });
 
   if (iter != components.end()) {
+    deleteComponentsList.push_back(*iter);
     components.erase(iter);
   }
 }
@@ -795,7 +829,13 @@ void BattleSceneBase::ProcessNewestComponents()
         //std::cout << "latestID: " << latestID << " lastComponentID: " << e->lastComponentID << "\n";
 
         for (auto c : e->components) {
-          if (c->GetID() <= e->lastComponentID) break; // Older components are last in order, we're done
+          if (!c) continue;
+
+          // Older components are last in order, we're done
+          if (c->GetID() <= e->lastComponentID) break;
+
+          // Local components are not a part of the battle scene and do not get injected, try next
+          if (c->Lifetime() == Component::lifetimes::local) continue;
 
           // Otherwise inject into scene
           c->Inject(*this);

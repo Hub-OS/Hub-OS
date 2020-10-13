@@ -13,7 +13,7 @@
 #include "bnComponent.h"
 #include "bnSceneNode.h"
 
-class BattleScene;
+class BattleSceneBase;
 
 class UIComponent : public Component, public SceneNode {
 private:
