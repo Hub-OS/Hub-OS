@@ -53,7 +53,7 @@ const bool CombatBattleState::PlayerLost() const
 
 const bool CombatBattleState::PlayerRequestCardSelect()
 {
-  return this->isGaugeFull && INPUTx.Has(EventTypes::PRESSED_CUST_MENU);
+  return !this->isPaused && this->isGaugeFull && INPUTx.Has(EventTypes::PRESSED_CUST_MENU);
 }
 
 void CombatBattleState::onStart()
@@ -67,6 +67,7 @@ void CombatBattleState::onEnd()
 {
   GetScene().StopBattleTimer();
   customProgress = 0;
+  customBarShader.setUniform("factor", 0);
   isGaugeFull = false;
 }
 

@@ -28,7 +28,7 @@ class CardSelectBattleState final : public BattleSceneState {
   int cardCount{ 0 }; /*!< Length of card list */
   float streamVolume{ -1.f };
   std::vector<Player*> tracked;
-  sf::Font font;
+  std::shared_ptr<sf::Font> font;
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   Battle::Card** cards; /*!< List of Card* the user selects from the card cust */
 

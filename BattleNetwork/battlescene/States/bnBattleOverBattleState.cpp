@@ -29,11 +29,12 @@ void BattleOverBattleState::onEnd()
 
 void BattleOverBattleState::onUpdate(double elapsed)
 {
+  battleEndTimer.update(elapsed);
 }
 
 void BattleOverBattleState::onDraw(sf::RenderTexture& surface)
 {
-  double battleEndSecs = battleEndTimer.getElapsed().asSeconds();
+  double battleEndSecs = battleEndTimer.getElapsed().asMilliseconds();
   double scale = swoosh::ease::wideParabola(battleEndSecs, postBattleLength, 2.0);
   battleEnd.setScale(2.f, (float)scale * 2.f);
 

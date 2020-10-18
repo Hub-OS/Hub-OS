@@ -32,7 +32,7 @@ void BattleStartBattleState::onUpdate(double elapsed)
 
 void BattleStartBattleState::onDraw(sf::RenderTexture& surface)
 {
-  double battleStartSecs = battleStartTimer.getElapsed().asSeconds();
+  double battleStartSecs = battleStartTimer.getElapsed().asMilliseconds();
   double scale = swoosh::ease::wideParabola(battleStartSecs, preBattleLength, 2.0);
   battleStart.setScale(2.f, (float)scale * 2.f);
 

@@ -28,7 +28,7 @@ Mettaur::Mettaur(Rank _rank)
     animation->SetAnimation("SP_IDLE");
   }
   else {
-    SetHealth(40);
+    SetHealth(5);
     //Components setup and load
     animation->SetAnimation("IDLE");
   }

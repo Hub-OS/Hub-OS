@@ -180,12 +180,12 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 }
 
 BattleSceneBase::~BattleSceneBase() {
-  for (auto elem : nodeToEdges) {
-    delete elem.second;
-  }
-
   for (auto elem : states) {
     delete elem;
+  }
+
+  for (auto elem : nodeToEdges) {
+    delete elem.second;
   }
 }
 
@@ -757,18 +757,8 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
   // end the current state
   if(current) {
     current->onEnd();
-    delete current;
     current = nullptr;
   }
-
-  // Delete all state transitions
-  nodeToEdges.clear();
-
-  for(auto&& state : states) {
-    delete state;
-  }
-
-  states.clear();
 
   // Depending on the mode, use Swoosh's 
   // activity controller to fadeout with the right

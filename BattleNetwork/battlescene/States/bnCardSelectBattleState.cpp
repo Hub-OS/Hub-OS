@@ -16,6 +16,14 @@ CardSelectBattleState::CardSelectBattleState(std::vector<Player*> tracked) : tra
   heldCardSelectInputCooldown = 0.35f; // 21 frames @ 60fps = 0.35 second
   maxCardSelectInputCooldown = 1 / 12.f; // 5 frames @ 60fps = 1/12th second
   cardSelectInputCooldown = maxCardSelectInputCooldown;
+
+  // Load assets
+  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+  mobBackdropSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_BACKDROP));
+  mobEdgeSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_EDGE));
+
+  mobBackdropSprite.setScale(2.f, 2.f);
+  mobEdgeSprite.setScale(2.f, 2.f);
 }
 
 Battle::Card** CardSelectBattleState::GetCardPtrList()
@@ -227,7 +235,7 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
       continue;
 
     std::string name = mob.GetName();
-    sf::Text mobLabel = sf::Text(sf::String(name), font);
+    sf::Text mobLabel = sf::Text(sf::String(name), *font);
 
     mobLabel.setOrigin(mobLabel.getLocalBounds().width, 0);
     mobLabel.setPosition(470.0f, nextLabelHeight);
