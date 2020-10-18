@@ -95,7 +95,6 @@ void Aura::OnUpdate(float _elapsed) {
     RemoveNode(aura);
     privOwner->RemoveNode(this);
     bs->Eject(GetID());
-    delete this;
     return;
   }
 
@@ -118,7 +117,6 @@ void Aura::OnUpdate(float _elapsed) {
     privOwner->RemoveDefenseRule(defense);
     privOwner->RemoveNode(this);
     bs->Eject(GetID());
-    delete this;
     return;
   }
   else {
@@ -141,7 +139,6 @@ void Aura::OnUpdate(float _elapsed) {
  if (privOwner->WillRemoveLater()) {
    timer = 0;
    bs->Eject(GetID());
-   delete this;
  }
 }
 

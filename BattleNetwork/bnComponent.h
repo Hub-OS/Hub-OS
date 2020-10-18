@@ -26,7 +26,7 @@ public:
 private:
   BattleSceneBase* scene{ nullptr };
   static long numOfComponents; /*!< Resource counter to generate new IDs */
-  lifetimes lifetime{};
+  lifetimes lifetime{lifetimes::local};
   Entity* owner; /*!< Who the component is attached to */
   ID_t ID; /*!< ID for quick lookups, resource management, and scripting */
 

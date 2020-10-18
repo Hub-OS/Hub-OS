@@ -23,6 +23,8 @@ class CardSelectBattleState final : public BattleSceneState {
   double maxCardSelectInputCooldown; /*!< When interacting with Card Cust GUI API, delay input */
   double heldCardSelectInputCooldown; /*!< When holding the directional inputs, when does the sticky key effect trigger*/
   double cardSelectInputCooldown; /*!< Time remaining with delayed input */
+
+  bool formSelected{ false };
   int cardCount{ 0 }; /*!< Length of card list */
   float streamVolume{ -1.f };
   std::vector<Player*> tracked;
@@ -38,5 +40,6 @@ public:
   void onDraw(sf::RenderTexture& surface) override;
   void onEnd() override;
   bool OKIsPressed();
+  bool HasForm();
   CardSelectBattleState(std::vector<Player*> tracked);
 };

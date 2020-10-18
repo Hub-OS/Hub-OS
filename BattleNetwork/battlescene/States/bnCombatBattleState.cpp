@@ -59,19 +59,19 @@ const bool CombatBattleState::PlayerRequestCardSelect()
 void CombatBattleState::onStart()
 {
   GetScene().StartBattleTimer();
+  
+  tracked[0]->ChangeState<PlayerControlledState>();
 }
 
 void CombatBattleState::onEnd()
 {
   GetScene().StopBattleTimer();
+  customProgress = 0;
+  isGaugeFull = false;
 }
 
 void CombatBattleState::onUpdate(double elapsed)
 {
-  customProgress += elapsed;
-
-  GetScene().GetField()->Update((float)elapsed);
-
   if (INPUTx.Has(EventTypes::PRESSED_PAUSE)) {
     isPaused = !isPaused;
 
@@ -82,6 +82,12 @@ void CombatBattleState::onUpdate(double elapsed)
       AUDIO.Play(AudioType::PAUSE);
     }
   }
+
+  if (isPaused) return; // do not update
+
+  customProgress += elapsed;
+
+  GetScene().GetField()->Update((float)elapsed);
 
   if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
     isGaugeFull = true;
@@ -102,7 +108,9 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
   default:
     ENGINE.Draw(tripleDelete);
   }
-  
+
+  ENGINE.Draw(GetScene().GetCardSelectWidget());
+
   ENGINE.Draw(&customBar);
 
   if (isPaused) {

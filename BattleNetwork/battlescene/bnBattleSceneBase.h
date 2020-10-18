@@ -156,6 +156,10 @@ protected:
       state.scene = &owner;
       state.controller = &owner.getController();
     }
+
+    StateNode(const StateNode& rhs) : state(rhs.state), owner(rhs.owner) {
+
+    }
   };
 
   /*
@@ -209,7 +213,7 @@ protected:
       typename Lambda,
       typename = typename std::enable_if<!std::is_member_function_pointer<Lambda>::value>::type
     >
-    StateNodeWrapper& ChangeOnEvent(StateNode& next, const Lambda& when) {
+    StateNodeWrapper& ChangeOnEvent(StateNode& next, Lambda&& when) {
       owner.Link(*this, next, when);
       return *this;
     }
@@ -266,6 +270,11 @@ public:
     */
   const int GetCounterCount() const;
 
+  /**
+    * @brief Query if scene is in focus (segue over)
+    */
+  const bool IsSceneInFocus() const;
+
   /*
       \brief Use class type T as the state and perfect-forward arguments to the class 
       \return StateNodeWrapper<T> structure for easy programming
@@ -275,7 +284,6 @@ public:
     T* ptr = new T(std::forward<decltype(args)>(args)...);
     states.insert(states.begin(), ptr);
     return StateNodeWrapper<T>(*this, *ptr);
-    using Class = T;
   }
 
   /*  
@@ -353,15 +361,22 @@ private:
       \brief Edge represents a link from from state A to state B when a condition is met
   */
   struct Edge {
-    std::reference_wrapper<StateNode> a; 
-    std::reference_wrapper<StateNode> b; 
+    BattleSceneState* a{ nullptr };
+    BattleSceneState* b{ nullptr };
     ChangeCondition when; //!< functor that returns boolean
+
+    Edge(BattleSceneState* a, BattleSceneState* b, ChangeCondition when) : a(a), b(b), when(when)
+    {}
+
+    // `when` uses std::function<> which is not trivially copyable
+    Edge(const Edge& cpy) : a(cpy.a), b(cpy.b), when(cpy.when) 
+    {}
   };
 
-  std::multimap<BattleSceneState*, Edge> nodeToEdges; //!< All edges. Together, they form a graph
+  std::multimap<BattleSceneState*, Edge*> nodeToEdges; //!< All edges. Together, they form a graph
 
   /*
       \brief Creates an edge with a condition and packs it away into the scene graph
   */
-  void Link(StateNode& a, StateNode& b, ChangeCondition&& when);
+  void Link(StateNode& a, StateNode& b, ChangeCondition when);
 };

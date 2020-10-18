@@ -125,5 +125,4 @@ void BusterCardAction::EndAction()
   if (isBusterAlive) return; // Do not end action if buster is still on field
 
   GetOwner()->FreeComponentByID(GetID());
-  //delete this;
 }

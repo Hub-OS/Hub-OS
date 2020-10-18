@@ -7,6 +7,8 @@
 
 void MobIntroBattleState::onUpdate(double elapsed)
 {
+  if (!GetScene().IsSceneInFocus()) return;
+
   Field& field = *GetScene().GetField();
 
   if (mob->NextMobReady()) {
@@ -39,10 +41,13 @@ void MobIntroBattleState::onUpdate(double elapsed)
     // Tell everything to begin battle
     GetScene().BroadcastBattleStart();
   }
+
+  GetScene().GetField()->Update((float)elapsed);
 }
 
 void MobIntroBattleState::onEnd()
 {
+  mob->DefaultState();
 }
 
 void MobIntroBattleState::onStart()
@@ -51,10 +56,11 @@ void MobIntroBattleState::onStart()
 
 void MobIntroBattleState::onDraw(sf::RenderTexture&)
 {
+  ENGINE.Draw(GetScene().GetCardSelectWidget());
 }
 
 const bool MobIntroBattleState::IsOver() {
-    return mob->IsSpawningDone();
+  return mob->IsSpawningDone();
 }
 
 MobIntroBattleState::MobIntroBattleState(Mob* mob, std::vector<Player*> tracked) 

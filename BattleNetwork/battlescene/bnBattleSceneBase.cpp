@@ -179,7 +179,15 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   isSceneInFocus = false;
 }
 
-BattleSceneBase::~BattleSceneBase() {}
+BattleSceneBase::~BattleSceneBase() {
+  for (auto elem : nodeToEdges) {
+    delete elem.second;
+  }
+
+  for (auto elem : states) {
+    delete elem;
+  }
+}
 
 const bool BattleSceneBase::DoubleDelete() const
 {
@@ -193,6 +201,11 @@ const bool BattleSceneBase::TripleDelete() const
 
 const int BattleSceneBase::GetCounterCount() const {
   return totalCounterMoves;
+}
+
+const bool BattleSceneBase::IsSceneInFocus() const
+{
+  return isSceneInFocus;
 }
 
 void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
@@ -460,13 +473,14 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   current->onUpdate(elapsed);
 
-  auto options = nodeToEdges.equal_range(current);
-
-  for(auto iter = options.first; iter != options.second; iter++) {
-    if(iter->second.when()) {
-      current->onEnd();
-      current = &iter->second.b.get().state;
-      current->onStart();
+  for (auto iter = nodeToEdges.begin(); iter != nodeToEdges.end(); iter++) {
+    if (iter->first == current) {
+      if (iter->second->when()) {
+        current->onEnd();
+        current = iter->second->b;
+        current->onStart();
+        break;
+      }
     }
   }
 
@@ -810,10 +824,9 @@ const bool BattleSceneBase::IsCleared()
   return mob->IsCleared();
 }
 
-void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition&& when) {
-  Edge edge{ a, b, std::move(when) };
-  nodeToEdges.insert(std::make_pair(&a.state, edge));
-  nodeToEdges.insert(std::make_pair(&b.state, edge));
+void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {
+
+  nodeToEdges.insert(std::make_pair(&(a.state), new Edge(&(a.state), &(b.state), when)));
 }
 
 void BattleSceneBase::ProcessNewestComponents()
@@ -836,12 +849,10 @@ void BattleSceneBase::ProcessNewestComponents()
           // Older components are last in order, we're done
           if (c->GetID() <= e->lastComponentID) break;
 
-          // Local components are not a part of the battle scene and do not get injected, try next
-          if (c->Lifetime() == Component::lifetimes::local) continue;
-
-          // Otherwise inject into scene
-          c->Inject(*this);
-          // Logger::Log("component ID " + std::to_string(c->GetID()) + " was injected");
+          // Local components are not a part of the battle scene and do not get injected
+          if (c->Lifetime() != Component::lifetimes::local) {
+            c->Inject(*this);
+          }
         }
 
         e->lastComponentID = latestID;

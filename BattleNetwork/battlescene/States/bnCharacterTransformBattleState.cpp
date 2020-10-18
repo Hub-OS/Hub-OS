@@ -21,7 +21,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 {
   bool allCompleted = true;
 
-  for (TrackedFormData data : tracking) {
+  for (TrackedFormData& data : tracking) {
     Player* player = nullptr;
     int index = -1;
     bool complete = false;
@@ -101,6 +101,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       };
 
       shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
+      complete = true;
     }
   }
 

@@ -88,5 +88,4 @@ void CannonCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);
   GetOwner()->FreeComponentByID(GetID());
-  delete this;
 }

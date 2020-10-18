@@ -2,7 +2,7 @@
 #include "bnEntity.h"
 #include "battlescene/bnBattleSceneBase.h"
 
-ShakingEffect::ShakingEffect(Entity * owner) : Component(owner), 
+ShakingEffect::ShakingEffect(Entity * owner) : Component(owner, Component::lifetimes::ui), 
 privOwner(owner),
 shakeDur(0.35f),
 stress(3),
@@ -22,7 +22,7 @@ void ShakingEffect::OnUpdate(float _elapsed)
 
   if (shakeProgress <= shakeDur) {
     // Drop off to zero by end of shake
-    double currStress = stress * (1 - (shakeProgress / shakeDur));
+    double currStress = stress * (1.0 - (shakeProgress / shakeDur));
 
     int randomAngle = int(shakeProgress) * (rand() % 360);
     randomAngle += (150 + (rand() % 60));
@@ -32,7 +32,6 @@ void ShakingEffect::OnUpdate(float _elapsed)
   }
   else {
     bscene->Eject(GetID());
-    delete this;
   }
 }
 

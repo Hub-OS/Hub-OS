@@ -54,7 +54,9 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
 
   //        hange from        ,to          ,when this is true
   CHANGE_ON_EVENT(intro       ,cardSelect  ,IsOver);
+  CHANGE_ON_EVENT(cardSelect  ,forms       ,HasForm);
   CHANGE_ON_EVENT(cardSelect  ,battlestart ,OKIsPressed);
+  CHANGE_ON_EVENT(forms       ,battlestart ,IsFinished);
   CHANGE_ON_EVENT(battlestart ,combat      ,IsFinished);
   CHANGE_ON_EVENT(battleover  ,reward      ,IsFinished);
   CHANGE_ON_EVENT(timeFreeze  ,combat      ,IsOver);

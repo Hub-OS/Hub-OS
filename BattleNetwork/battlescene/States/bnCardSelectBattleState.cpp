@@ -51,7 +51,9 @@ void CardSelectBattleState::onStart()
   cardCust.ResetState();
   cardCust.GetNextCards();
 
+  // Reset state flags
   currState = state::slidein;
+  formSelected = false;
 }
 
 void CardSelectBattleState::onUpdate(double elapsed)
@@ -163,11 +165,22 @@ void CardSelectBattleState::onUpdate(double elapsed)
           cardCount = cardCust.GetCardCount();
           currState = state::slideout;
 
+          Player* player = tracked[0];
+          SelectedCardsUI* ui = player->GetFirstComponent<SelectedCardsUI>();
+
+          if (ui) {
+            ui->LoadCards(cards, cardCount);
+          }
+
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
         }
         else if (performed) {
           if (!cardCust.SelectedNewForm()) {
             AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
+            formSelected = false;
+          }
+          else {
+            formSelected = true;
           }
         }
         else {
@@ -207,13 +220,14 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 {
   float nextLabelHeight = 0;
   auto mobList = GetScene().MobList();
+
   for (int i = 0; i < mobList.size(); i++) {
     const Character& mob = mobList[i].get();
     if (mob.IsDeleted())
       continue;
 
     std::string name = mob.GetName();
-    sf::Text mobLabel = sf::Text(name, font);
+    sf::Text mobLabel = sf::Text(sf::String(name), font);
 
     mobLabel.setOrigin(mobLabel.getLocalBounds().width, 0);
     mobLabel.setPosition(470.0f, nextLabelHeight);
@@ -239,6 +253,8 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
     // make the next label relative to this one
     nextLabelHeight += mobLabel.getLocalBounds().height + 10.f;
   }
+
+  ENGINE.Draw(GetScene().GetCardSelectWidget());
 }
 
 void CardSelectBattleState::onEnd()
@@ -247,4 +263,9 @@ void CardSelectBattleState::onEnd()
 
 bool CardSelectBattleState::OKIsPressed() {
   return GetScene().GetCardSelectWidget().IsOutOfView();
+}
+
+bool CardSelectBattleState::HasForm()
+{
+  return OKIsPressed() && formSelected;
 }

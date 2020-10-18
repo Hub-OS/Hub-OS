@@ -13,7 +13,7 @@
 class Player;
 
 struct BattleStartBattleState final : public BattleSceneState {
-  double preBattleLength{ 500.0 }; /*!< In milliseconds */
+  double preBattleLength{ 1000.0 }; /*!< In milliseconds */
   sf::Sprite battleStart; /*!< "Battle Start" graphic */
   swoosh::Timer battleStartTimer; /*!< How long the start graphic should stay on screen */
   sf::Vector2f battleStartPos; /*!< Position of battle pre/post graphic on screen */
