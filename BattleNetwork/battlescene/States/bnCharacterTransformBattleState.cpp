@@ -9,24 +9,21 @@
 
 const bool CharacterTransformBattleState::FadeInBackdrop()
 {
-  return GetScene().FadeInBackdrop(0.1);
+  return GetScene().FadeInBackdrop(backdropSpeed, 1.0, true);
 }
 
 const bool CharacterTransformBattleState::FadeOutBackdrop()
 {
-  return GetScene().FadeInBackdrop(0.1);
+  return GetScene().FadeOutBackdrop(backdropSpeed);
 }
 
 void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 {
   bool allCompleted = true;
 
-  for (TrackedFormData& data : tracking) {
-    Player* player = nullptr;
-    int index = -1;
-    bool complete = false;
-
-    std::tie(player, index, complete) = data;
+  size_t count = 0;
+  for (auto data : tracking) {
+    auto& [player, index, complete] = *data;
 
     if (complete) continue;
 
@@ -51,58 +48,69 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     if (paletteSwap) paletteSwap->Enable(false);
 
-    if (backdropTimer < backdropLength) {
-      backdropTimer += elapsed;
-    }
-    else if (backdropTimer >= backdropLength) {
-      auto pos = player->getPosition();
-      shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
+    auto pos = player->getPosition();
+    shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
 
-      auto onTransform = [this, player, index, states = childShaderUseStates, originals = originalChildNodes]() {
-        // The next form has a switch based on health
-        // This way dying will cancel the form
-        // TODO: make this a separate function that takes in form index or something...
-        lastSelectedForm = player->GetHealth() == 0 ? -1 : index;
-        player->ActivateFormAt(lastSelectedForm);
-        AUDIO.Play(AudioType::SHINE);
+    auto playerPtr = player;
+    int index_ = index;
+    auto onTransform = [this, playerPtr, index_, states = childShaderUseStates, originals = originalChildNodes]() {
+      // The next form has a switch based on health
+      // This way dying will cancel the form
+      lastSelectedForm = playerPtr->GetHealth() == 0 ? -1 : index_;
+      playerPtr->ActivateFormAt(lastSelectedForm);
+      AUDIO.Play(AudioType::SHINE);
 
-        player->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+      playerPtr->SetShader(SHADERS.GetShader(ShaderType::WHITE));
 
-        // Activating the form will add NEW child nodes onto our character
-        // TODO: There's got to be a more optimal search than this...
-        for (auto child : player->GetChildNodes()) {
-          auto it = std::find_if(originals->begin(), originals->end(), [child](auto in) {
-            return (child == in);
-            });
+      // Activating the form will add NEW child nodes onto our character
+      // TODO: There's got to be a more optimal search than this...
+      for (auto child : playerPtr->GetChildNodes()) {
+        auto it = std::find_if(originals->begin(), originals->end(), [child](auto in) {
+          return (child == in);
+          });
 
-          if (it == originals->end()) {
-            states->push_back(child->IsUsingParentShader());
-            originals->push_back(child);
-            child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
-          }
+        if (it == originals->end()) {
+          states->push_back(child->IsUsingParentShader());
+          originals->push_back(child);
+          child->EnableParentShader(true); // Add new overlays to this list and make them temporarily white as well
         }
-      };
+      }
+    };
 
-      auto onFinish = [this, paletteSwap, states = childShaderUseStates, originals = originalChildNodes]() {
-        isLeavingFormChange = true;
-        if (paletteSwap) paletteSwap->Enable();
+    bool *completePtr = &complete;
+    Animation* animPtr = &shineAnimations[count];
+    auto onFinish = [
+      this, 
+      paletteSwap, 
+      states = childShaderUseStates, 
+      originals = originalChildNodes, 
+      completePtr,
+      animPtr
+    ]() {
+      if (paletteSwap) paletteSwap->Enable();
 
-        unsigned idx = 0;
-        for (auto child : *originals) {
-          if (!child) {
-            idx++; continue;
-          }
-
-          unsigned thisIDX = idx;
-          bool enabled = (*states)[idx++];
-          child->EnableParentShader(enabled);
-          Logger::Logf("Enabling state for child #%i: %s", thisIDX, enabled ? "true" : "false");
+      unsigned idx = 0;
+      for (auto child : *originals) {
+        if (!child) {
+          idx++; continue;
         }
-      };
 
-      shineAnimation << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
-      complete = true;
-    }
+        bool enabled = (*states)[idx++];
+        child->EnableParentShader(enabled);
+        Logger::Logf("Enabling state for child #%i: %s", idx, enabled ? "true" : "false");
+      }
+
+      *completePtr = true; // set tracking data `complete` to true
+    };
+
+    if (shineAnimations[count].GetAnimationString() != "SHINE") {
+      shineAnimations[count] << "SHINE" << Animator::On(10, onTransform) << Animator::On(20, onFinish);
+    } // else, wait it out...
+
+    // update for draw call later
+    frameElapsed = elapsed;
+
+    count++;
   }
 
   if (allCompleted) {
@@ -115,7 +123,6 @@ bool CharacterTransformBattleState::IsFinished() {
 }
 
 void CharacterTransformBattleState::onStart() {
-  this->isLeavingFormChange = false;
   currState = state::fadein;
 }
 
@@ -132,17 +139,39 @@ void CharacterTransformBattleState::onUpdate(double elapsed) {
 
 void CharacterTransformBattleState::onEnd()
 {
+  for (auto&& anims : shineAnimations) {
+    anims.SetAnimation(""); // ends the shine anim
+  }
+
+  frameElapsed = 0;
 }
 
 void CharacterTransformBattleState::onDraw(sf::RenderTexture&)
 {
+  size_t count = 0;
+  for (auto data : tracking) {
+    auto& [player, index, complete] = *data;
+
+    Animation& anim = shineAnimations[count];
+    anim.Update(static_cast<float>(frameElapsed), shine);
+    shine.setPosition(player->getPosition());
+    ENGINE.Draw(shine);
+
+    count++;
+  }
 }
 
-CharacterTransformBattleState::CharacterTransformBattleState(const std::vector<TrackedFormData>& tracking) : tracking(tracking)
+CharacterTransformBattleState::CharacterTransformBattleState(const std::vector<std::shared_ptr<TrackedFormData>> tracking) : tracking(tracking)
 {
   shine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
   shine.setScale(2.f, 2.f);
 
-  shineAnimation = Animation("resources/mobs/boss_shine.animation");
-  shineAnimation.Load();
+  Animation animation = Animation("resources/mobs/boss_shine.animation");
+  animation.Load();
+
+  size_t players = tracking.size();
+  while (players > 0) {
+    shineAnimations.push_back(animation);
+    players--;
+  }
 }

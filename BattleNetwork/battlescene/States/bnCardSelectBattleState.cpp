@@ -11,7 +11,8 @@
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
 
-CardSelectBattleState::CardSelectBattleState(std::vector<Player*> tracked) : tracked(tracked) {
+CardSelectBattleState::CardSelectBattleState(std::vector<Player*> tracked, std::vector<std::shared_ptr<TrackedFormData>> forms)
+  : tracked(tracked), forms(forms) {
   // Selection input delays
   heldCardSelectInputCooldown = 0.35f; // 21 frames @ 60fps = 0.35 second
   maxCardSelectInputCooldown = 1 / 12.f; // 5 frames @ 60fps = 1/12th second
@@ -67,7 +68,7 @@ void CardSelectBattleState::onStart()
 void CardSelectBattleState::onUpdate(double elapsed)
 {
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
-
+  
   if (!cardCust.IsInView() && currState == state::slidein) {
     cardCust.Move(sf::Vector2f(MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
     return;
@@ -164,6 +165,9 @@ void CardSelectBattleState::onUpdate(double elapsed)
       }
 
       if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+        // Todo: this ought to be its own struct now this is unreadable and ugly
+        int& currentForm = std::get<1>(*forms[0]);
+
         bool performed = cardCust.CursorAction();
 
         if (cardCust.AreCardsReady()) {
@@ -178,16 +182,33 @@ void CardSelectBattleState::onUpdate(double elapsed)
 
           if (ui) {
             ui->LoadCards(cards, cardCount);
+            ui->Hide();
           }
 
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
         }
         else if (performed) {
           if (!cardCust.SelectedNewForm()) {
+
             AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
-            formSelected = false;
+
+            // check if this action is a revert
+            if (cardCust.GetSelectedFormIndex() == -1) {
+              // we were selecting a form but not anymore
+              if (currentForm == -1) {
+                formSelected = false; // We are not selecting a form
+                std::get<2>(*forms[0]) = false;
+              }
+              else {
+                formSelected = true;
+                std::get<2>(*forms[0]) = false;
+              }
+            }
           }
           else {
+            // Todo: this ought to be its own struct now this is unreadable and ugly
+            std::get<1>(*forms[0]) = cardCust.GetSelectedFormIndex();
+            std::get<2>(*forms[0]) = false; // force the transform animation to play
             formSelected = true;
           }
         }

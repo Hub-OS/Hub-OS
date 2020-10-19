@@ -18,6 +18,12 @@ void BattleStartBattleState::onStart()
 
   for (Player* player : tracked) {
     player->ChangeState<PlayerIdleState>();
+
+    auto ui = player->GetFirstComponent<SelectedCardsUI>();
+
+    if (ui) {
+      ui->Reveal();
+    }
   }
 }
 

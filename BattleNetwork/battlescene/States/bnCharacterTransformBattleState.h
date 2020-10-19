@@ -22,12 +22,11 @@ public:
 
 private:
   int lastSelectedForm{ -1 };
-  double backdropTimer{ 0 };
-  double backdropLength{ 0 };
-  bool isLeavingFormChange{ false };
-  Animation shineAnimation;
+  double backdropSpeed{ 4.25 }; //!< alpha increase per frame (max 255)
+  double frameElapsed{ 0 };
   sf::Sprite shine;
-  std::vector<TrackedFormData> tracking;
+  std::vector<std::shared_ptr<TrackedFormData>> tracking;
+  std::vector<Animation> shineAnimations;
 
   const bool FadeInBackdrop();
   const bool FadeOutBackdrop();
@@ -40,5 +39,5 @@ public:
   void onEnd() override;
   void onDraw(sf::RenderTexture&);
 
-  CharacterTransformBattleState(const std::vector<TrackedFormData>& tracking);
+  CharacterTransformBattleState(const std::vector<std::shared_ptr<TrackedFormData>> tracking);
 };

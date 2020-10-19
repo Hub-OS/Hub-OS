@@ -4,12 +4,12 @@
 
 const bool TimeFreezeBattleState::FadeInBackdrop()
 {
-  return GetScene().FadeInBackdrop(0.1);
+  return GetScene().FadeInBackdrop(0.1, 0.5, false);
 }
 
 const bool TimeFreezeBattleState::FadeOutBackdrop()
 {
-  return GetScene().FadeInBackdrop(0.1);
+  return GetScene().FadeOutBackdrop(0.1);
 }
 
 void TimeFreezeBattleState::onStart()

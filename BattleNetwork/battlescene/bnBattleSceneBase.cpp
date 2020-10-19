@@ -32,10 +32,12 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   totalCounterMoves(0),
   totalCounterDeletions(0),
   whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
+  backdropShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
   yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
   heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
   distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
+  
   cardListener(props.player),
   // cap of 8 cards, 8 cards drawn per turn
   cardCustGUI(props.folder, 8, 8),
@@ -95,6 +97,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   }
 
   PlayerHealthUI* healthUI = new PlayerHealthUI(player);
+  Inject(healthUI);
+
   cardCustGUI.AddNode(healthUI);
   components.push_back((UIComponent*)healthUI);
 
@@ -151,8 +155,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   customProgress = 0; // in seconds
   customDuration = 10; // 10 seconds
 
-  backdropOpacity = 0.25; // default is 25%
-
   // SHADERS
   // TODO: Load shaders if supported
   shaderCooldown = 0;
@@ -187,6 +189,8 @@ BattleSceneBase::~BattleSceneBase() {
   for (auto elem : nodeToEdges) {
     delete elem.second;
   }
+
+  delete background;
 }
 
 const bool BattleSceneBase::DoubleDelete() const
@@ -376,6 +380,10 @@ void BattleSceneBase::ShutdownTouchControls() {
 #endif
 
 void BattleSceneBase::StartStateGraph(StateNode& start) {
+  // kick-off and align all sprites on the screen
+  field->Update(0);
+
+  // set the current state ptr and kick-off
   this->current = &start.state;
   this->current->onStart();
 }
@@ -408,6 +416,8 @@ void BattleSceneBase::onUpdate(double elapsed) {
   camera.Update((float)elapsed);
   background->Update((float)elapsed);
 
+  backdropShader.setUniform("opacity", (float)backdropOpacity);
+
   if (!isPaused) {
     counterRevealAnim.Update((float)elapsed, counterReveal.getSprite());
     comboInfoTimer.update(elapsed);
@@ -416,10 +426,13 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
     switch (backdropMode) {
     case backdrop::fadein:
-      backdropOpacity = std::fmin(1.0, backdropOpacity + (backdropFadeSpeed * elapsed));
+      backdropOpacity = std::fmin(backdropMaxOpacity, backdropOpacity + (backdropFadeSpeed * elapsed));
       break;
     case backdrop::fadeout:
       backdropOpacity = std::fmax(0.0, backdropOpacity - (backdropFadeSpeed * elapsed));
+      if (backdropOpacity == 0.0) {
+        backdropAffectBG = false; // reset this effect
+      }
       break;
     }
   }
@@ -495,6 +508,18 @@ void BattleSceneBase::onUpdate(double elapsed) {
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
   ENGINE.Clear();
+
+  float tint = 1.0f - backdropOpacity;
+
+  if (!backdropAffectBG) {
+    tint = 1.f;
+  }
+  else if (backdropOpacity > 0) {
+    ENGINE.SetShader(&backdropShader);
+  }
+
+  background->setColor(sf::Color(int(255.f * tint), int(255.f * tint), int(255.f * tint), 255));
+
   ENGINE.Draw(background);
 
   auto ui = std::vector<UIComponent*>();
@@ -661,13 +686,14 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     // Draw ui
     for (auto node : ui) {
-      surface.draw(*node);
+      ENGINE.Draw(*node, false);
     }
   }
 
   // prepare for bext row
   entitiesOnRow.clear();
 
+  // Draw whatever extra state stuff we want to have
   if (current) current->onDraw(surface);
 }
 
@@ -724,12 +750,14 @@ const sf::Time BattleSceneBase::GetElapsedBattleTime() {
   return battleTimer.getElapsed();
 }
 
-const bool BattleSceneBase::FadeInBackdrop(double speed)
+const bool BattleSceneBase::FadeInBackdrop(double speed, double to, bool affectBackground)
 {
   backdropMode = backdrop::fadein;
   backdropFadeSpeed = speed;
+  backdropMaxOpacity = to;
+  backdropAffectBG = affectBackground;
 
-  return (backdropOpacity == 0.0);
+  return (backdropOpacity >= to);
 }
 
 const bool BattleSceneBase::FadeOutBackdrop(double speed)
@@ -737,7 +765,7 @@ const bool BattleSceneBase::FadeOutBackdrop(double speed)
   backdropMode = backdrop::fadeout;
   backdropFadeSpeed = speed;
 
-  return (backdropOpacity == 1.0);
+  return (backdropOpacity == 0.0);
 }
 
 std::vector<std::reference_wrapper<const Character>> BattleSceneBase::MobList()

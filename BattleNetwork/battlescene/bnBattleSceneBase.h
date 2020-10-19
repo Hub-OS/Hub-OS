@@ -68,6 +68,7 @@ private:
   bool isPlayerDeleted{ false };
   bool isPaused{ false };
   bool highlightTiles{ true };
+  bool backdropAffectBG{ false };
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
   int totalCounterMoves{ 0 }; /*!< Track player's counters. Used for ranking. */
   int totalCounterDeletions{ 0 }; /*!< Track player's counter-deletions. Used for ranking. */
@@ -79,7 +80,8 @@ private:
   double customProgress{ 0 }; /*!< Cust bar progress */
   double customDuration; /*!< Cust bar max time */
   double backdropOpacity{ 1.0 };
-  double backdropFadeSpeed{ 0.1 }; /*!< per tick */
+  double backdropFadeSpeed{ 125 }; /*!< x/255 per tick */
+  double backdropMaxOpacity{ 1.0 };
   PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */
   EnemyCardUseListener enemyCardListener; /*!< Enemies can use cards now */
   SelectedCardsUI cardUI; /*!< Player's Card UI implementation */
@@ -125,6 +127,7 @@ private:
   sf::Shader& yellowShader; /*!< Turn tiles yellow */
   sf::Shader& heatShader; /*!< Heat waves and red hue */
   sf::Shader& iceShader; /*!< Reflection in the ice */
+  sf::Shader& backdropShader;
   sf::Texture& distortionMap; /*!< Distortion effect pixel sample source */
   sf::Vector2u textureSize; /*!< Size of distorton effect */
 
@@ -314,7 +317,7 @@ public:
 
   const sf::Time GetElapsedBattleTime();
 
-  const bool FadeInBackdrop(double speed);
+  const bool FadeInBackdrop(double speed, double to, bool affectBackground);
   const bool FadeOutBackdrop(double speed);
 
   std::vector<std::reference_wrapper<const Character>> MobList();

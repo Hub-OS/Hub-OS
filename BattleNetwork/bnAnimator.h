@@ -199,7 +199,8 @@ private:
   
   bool isUpdating; /*!< Flag if in the middle of update */
   bool callbacksAreValid; /*!< Flag for queues. If false, all added callbacks are discarded. */
-  
+  bool clearLater{ false }; //!< if clearing inside a callback, wait until after callback scope ends
+
   void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
 
 public:

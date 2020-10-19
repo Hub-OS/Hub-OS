@@ -396,13 +396,14 @@ void SelectMobScene::onUpdate(double elapsed) {
       // Get the navi we selected
       Player* player = NAVIS.At(selectedNavi).GetNavi();
 
-      // Shuffle our folder
-      selectedFolder.Shuffle();
+      // Shuffle our new folder
+      CardFolder* newFolder = selectedFolder.Clone();
+      newFolder->Shuffle();
 
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
       MobBattleProperties props{ 
-        { *player, programAdvance, &selectedFolder, mob->GetField(), mob->GetBackground() },
+        { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
         MobBattleProperties::RewardBehavior::take,
         { mob }
       };

@@ -6,10 +6,10 @@ imagePath="C:\Users\Bountyhunter\Code\mmbn\BattleNetwork\resources\ui\textbox.pn
 animation state="OPEN"
 frame duration="0.07" x="9" y="6" w="240" h="20" originx="2" originy="11"
 frame duration="0.07" x="8" y="30" w="240" h="41" originx="3" originy="18"
-frame duration="0.07" x="8" y="76" w="240" h="63" originx="3" originy="31"
+frame duration="0.0" x="8" y="76" w="240" h="63" originx="3" originy="31"
 
 animation state="CLOSE"
 frame duration="0.07" x="8" y="76" w="240" h="63" originx="3" originy="31"
 frame duration="0.07" x="8" y="30" w="240" h="41" originx="3" originy="18"
 frame duration="0.07" x="9" y="6" w="240" h="20" originx="2" originy="11"
-frame duration="0.07" x="9" y="6" w="240" h="20" originx="2" originy="11"
+frame duration="0.0" x="9" y="6" w="240" h="20" originx="2" originy="11"

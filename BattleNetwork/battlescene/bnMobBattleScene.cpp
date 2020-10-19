@@ -35,14 +35,17 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   std::vector<Player*> players = { &props.base.player };
 
   // ptr to player, form select index (-1 none), if should transform
-  std::vector<TrackedFormData> trackedForms = { std::make_tuple(&props.base.player, -1, false) }; 
+  // TODO: just make this a struct to use across all states that need it...
+  std::vector<std::shared_ptr<TrackedFormData>> trackedForms = { 
+    std::make_shared<TrackedFormData>(std::make_tuple(&props.base.player, -1, false))
+  }; 
 
   // in seconds
   double battleDuration = 10.0;
 
   // First, we create all of our scene states
   auto intro       = AddState<MobIntroBattleState>(current, players);
-  auto cardSelect  = AddState<CardSelectBattleState>(players);
+  auto cardSelect  = AddState<CardSelectBattleState>(players, trackedForms);
   auto combat      = AddState<CombatBattleState>(current, players, battleDuration);
   auto combo       = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
   auto forms       = AddState<CharacterTransformBattleState>(trackedForms);
@@ -65,7 +68,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   // combat has multiple state interruptions based on events
   // so we chain them together instead of using the macro
   combat  .ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
-          .ChangeOnEvent(battleover, &CombatBattleState::PlayerLost)
+          .ChangeOnEvent(fadeout,    &CombatBattleState::PlayerLost)
           .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
           .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
 

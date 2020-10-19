@@ -261,6 +261,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
 
   // End updating flag
   isUpdating = false;
+
   callbacksAreValid = true;
 
   if (index == 0) {
@@ -348,6 +349,7 @@ void Animator::Clear() {
   callbacksAreValid = false;
   queuedCallbacks.clear(); queuedOnetimeCallbacks.clear(); queuedOnFinish = nullptr;
   nextLoopCallbacks.clear(); callbacks.clear(); onetimeCallbacks.clear(); onFinish = nullptr; playbackMode = 0;
+  clearLater = false;
 }
 
 void Animator::SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence)

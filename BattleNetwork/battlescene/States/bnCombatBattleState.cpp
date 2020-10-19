@@ -16,6 +16,12 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*> tracked, dou
     customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
     pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE))
 {
+  // PAUSE
+  pauseFont = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
+  pauseLabel = sf::Text("paused", *pauseFont);
+  pauseLabel.setOrigin(pauseLabel.getLocalBounds().width / 2, pauseLabel.getLocalBounds().height * 2);
+  pauseLabel.setPosition(sf::Vector2f(240.f, 160.f));
+
   // CHIP CUST GRAPHICS
   auto customBarTexture = TEXTURES.LoadTextureFromFile("resources/ui/custom.png");
   customBar.setTexture(customBarTexture);
@@ -61,6 +67,8 @@ void CombatBattleState::onStart()
   GetScene().StartBattleTimer();
   
   tracked[0]->ChangeState<PlayerControlledState>();
+
+  GetScene().GetField()->ToggleTimeFreeze(false);
 }
 
 void CombatBattleState::onEnd()
@@ -81,6 +89,7 @@ void CombatBattleState::onUpdate(double elapsed)
     }
     else {
       AUDIO.Play(AudioType::PAUSE);
+      ENGINE.SetShader(&pauseShader);
     }
   }
 
@@ -117,8 +126,5 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
   if (isPaused) {
     // render on top
     ENGINE.Draw(pauseLabel, false);
-
-    // apply shader on draw calls below
-    ENGINE.SetShader(&pauseShader);
   }
 }

@@ -24,7 +24,7 @@ public:
    * @brief Attaches this component to the owner
    * @param owner
    */
-  UIComponent(Entity* owner) : Component(owner) { ; }
+  UIComponent(Entity* owner) : Component(owner, Component::lifetimes::ui) { ; }
   ~UIComponent() { ; }
 
   UIComponent(UIComponent&& rhs) = delete;
