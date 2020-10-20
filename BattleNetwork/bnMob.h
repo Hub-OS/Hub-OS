@@ -211,6 +211,8 @@ Mob* Mob::Spawn(int tileX, int tileY) {
   data->tileY = tileY;
   data->index = (unsigned)spawn.size();
 
+  field->GetAt(tileX, tileY)->ReserveEntityByID(data->mob->GetID());
+
   // Use the intro and default state steps provided by the policies
   pixelStateInvokers.push_back(std::move(spawner->GetIntroCallback()));
   defaultStateInvokers.push_back(std::move(spawner->GetReadyCallback()));

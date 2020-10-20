@@ -69,7 +69,7 @@ Mob* TwoMettaurMob::Build() {
           }
         }*/
 
-        if (tile->IsWalkable() && tile->GetTeam() == Team::blue) {
+        if (tile->IsWalkable() && !tile->IsReservedByCharacter() && tile->GetTeam() == Team::blue) {
           if (rand() % 50 > 25 && count-- > 0)
             mob->Spawn<Rank1<Mettaur>>(i + 1, j + 1);
         }

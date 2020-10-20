@@ -1,6 +1,7 @@
 #include "bnCardSelectBattleState.h"
 
 #include "../bnBattleSceneBase.h"
+#include "../../bnCamera.h"
 #include "../../bnCard.h"
 #include "../../bnPlayer.h"
 #include "../../bnSelectedCardsUI.h"
@@ -75,9 +76,6 @@ void CardSelectBattleState::onStart()
 
   AUDIO.Play(AudioType::CUSTOM_SCREEN_OPEN);
 
-  // slide up the screen a hair
-  //camera.MoveCamera(sf::Vector2f(240.f, 140.f), sf::seconds(0.5f));
-
   // Load the next cards
   cardCust.ResetState();
   cardCust.GetNextCards();
@@ -93,11 +91,13 @@ void CardSelectBattleState::onUpdate(double elapsed)
 
   if (!cardCust.IsInView() && currState == state::slidein) {
     cardCust.Move(sf::Vector2f(MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
+    ENGINE.GetCamera()->MoveCamera(sf::Vector2f(240.f, 142.f), sf::seconds(0.1f));
     return;
   }
 
   if (!cardCust.IsOutOfView() && currState == state::slideout) {
     cardCust.Move(sf::Vector2f(-MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
+    ENGINE.GetCamera()->MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.1f));
     return;
   }
 
@@ -205,8 +205,6 @@ void CardSelectBattleState::onUpdate(double elapsed)
           }
 
           CheckFormChanges();
-
-          //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
         }
         else if (performed) {
           // check if this action is form a revert
