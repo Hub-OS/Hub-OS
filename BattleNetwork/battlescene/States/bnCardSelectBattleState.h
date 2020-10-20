@@ -9,7 +9,6 @@
 #include <SFML/Graphics/Font.hpp>
 
 class Player;
-using TrackedFormData = CharacterTransformBattleState::TrackedFormData;
 
 /*
     \brief This state will move the cust GUI and allow the player to select new cards
@@ -27,6 +26,7 @@ class CardSelectBattleState final : public BattleSceneState {
   double cardSelectInputCooldown; /*!< Time remaining with delayed input */
 
   bool formSelected{ false };
+  int currForm{ -1 };
   int cardCount{ 0 }; /*!< Length of card list */
   float streamVolume{ -1.f };
   std::vector<Player*> tracked;
@@ -35,6 +35,8 @@ class CardSelectBattleState final : public BattleSceneState {
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   Battle::Card** cards; /*!< List of Card* the user selects from the card cust */
 
+  // Check if a form change was properly triggered
+  void CheckFormChanges();
 public:
   Battle::Card** GetCardPtrList();
   int& GetCardListLengthAddr();

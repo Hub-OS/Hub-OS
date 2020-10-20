@@ -12,7 +12,6 @@
 #include "States/bnCardSelectBattleState.h"
 #include "States/bnCardComboBattleState.h"
 
-using TrackedFormData = CharacterTransformBattleState::TrackedFormData;
 using namespace swoosh;
 
 MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattleProperties& props)
@@ -37,7 +36,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   // ptr to player, form select index (-1 none), if should transform
   // TODO: just make this a struct to use across all states that need it...
   std::vector<std::shared_ptr<TrackedFormData>> trackedForms = { 
-    std::make_shared<TrackedFormData>(std::make_tuple(&props.base.player, -1, false))
+    std::make_shared<TrackedFormData>(TrackedFormData{&props.base.player, -1, false})
   }; 
 
   // in seconds
@@ -50,12 +49,12 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   auto combo       = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
   auto forms       = AddState<CharacterTransformBattleState>(trackedForms);
   auto battlestart = AddState<BattleStartBattleState>(players);
-  auto battleover  = AddState<BattleOverBattleState>();
+  auto battleover  = AddState<BattleOverBattleState>(players);
   auto timeFreeze  = AddState<TimeFreezeBattleState>();
   auto reward      = AddState<RewardBattleState>(current, &props.base.player);
-  auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black); // this state requires arguments
+  auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
 
-  //        hange from        ,to          ,when this is true
+  //       change from        ,to          ,when this is true
   CHANGE_ON_EVENT(intro       ,cardSelect  ,IsOver);
   CHANGE_ON_EVENT(cardSelect  ,forms       ,HasForm);
   CHANGE_ON_EVENT(cardSelect  ,battlestart ,OKIsPressed);

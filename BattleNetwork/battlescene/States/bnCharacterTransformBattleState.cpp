@@ -48,9 +48,6 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
     if (paletteSwap) paletteSwap->Enable(false);
 
-    auto pos = player->getPosition();
-    shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
-
     auto playerPtr = player;
     int index_ = index;
     auto onTransform = [this, playerPtr, index_, states = childShaderUseStates, originals = originalChildNodes]() {
@@ -154,8 +151,12 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture&)
 
     Animation& anim = shineAnimations[count];
     anim.Update(static_cast<float>(frameElapsed), shine);
-    shine.setPosition(player->getPosition());
-    ENGINE.Draw(shine);
+
+    // re-use the shine graphic for all animating player-types 
+    auto pos = player->getPosition();
+    shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
+
+    ENGINE.Draw(shine, false);
 
     count++;
   }

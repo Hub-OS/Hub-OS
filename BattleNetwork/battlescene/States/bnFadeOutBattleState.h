@@ -8,6 +8,8 @@ enum class FadeOut : int {
     black
 };
 
+class Player;
+
 /* 
     \brief This structure accepts the battle scene as input and asks to quit
     This is a dummy state because the constructor asks the scene in return to use its 
@@ -15,9 +17,10 @@ enum class FadeOut : int {
 */
 class FadeOutBattleState final : public BattleSceneState {
     FadeOut mode;
-
+    double wait{ 2 }; // in seconds
+    std::vector<Player*> tracked;
 public:
-    FadeOutBattleState(const FadeOut& mode);
+    FadeOutBattleState(const FadeOut& mode, std::vector<Player*> tracked);
 
     void onStart() override;
     void onEnd() override;

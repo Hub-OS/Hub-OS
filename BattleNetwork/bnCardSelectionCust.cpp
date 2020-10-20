@@ -131,11 +131,6 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
 CardSelectionCust::~CardSelectionCust() {
   ClearCards();
 
-  for (int i = 0; i < cardCount; i++) {
-    // selectQueue[i] = nullptr;
-    // delete queue[i].data;
-  }
-
   if (cardCount > 0) {
     delete[] queue;
     delete[] selectQueue;
@@ -231,19 +226,17 @@ bool CardSelectionCust::CursorLeft() {
 
 bool CardSelectionCust::CursorAction() {
   if (isInFormSelect) {
-    auto res = true;
-
     thisFrameSelectedForm = formCursorRow;
 
     if (thisFrameSelectedForm == selectedForm) {
-      res = true;
-      selectedForm = thisFrameSelectedForm = -1; // no change
+      thisFrameSelectedForm = -1;
+      selectedForm = -1; // de-select the form
     }
     else {
       formSelectQuitTimer = 0.5f; // 0.5 * 60fps = 30 frames
       selectedForm = thisFrameSelectedForm;
     }
-    return res;
+    return true;
   }
 
   // Should never happen but just in case
@@ -322,6 +315,9 @@ bool CardSelectionCust::CursorCancel() {
       queue[i].state = STAGED;
     }
 
+    // This is also where beastout card would be removed from queue
+    // when beastout is available
+
     emblem.UndoWireEffect();
     return true;
   }
@@ -356,6 +352,7 @@ bool CardSelectionCust::CursorCancel() {
   return true;
 }
 
+// This moves the cursor to OK but does not press it
 bool CardSelectionCust::CursorSelectOK()
 {
   if (isInFormSelect || (cursorPos == 5 && cursorRow == 0)) return false;
@@ -703,7 +700,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   if (isInFormSelect) {
     if (formSelectAnimator.GetAnimationString() == "OPEN") {
       int i = 0;
-      auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddSprite() for all rendered items below
+      auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
 
       for (auto f : formUI) {
         formItemBG.setPosition(offset + 16.f, 16.f + float(i*32.0f));
@@ -890,7 +887,7 @@ void CardSelectionCust::Update(float elapsed)
 
   if (cardCount > 0) {
     // If OK button is highlighted, we are not selecting a dark card
-    // If we are in form select, we are no selecting a dark card
+    // If we are in form select, we are not selecting a dark card
     if (cursorRow == 0 && cursorPos == 5 || isInFormSelect) {
       isDarkCardSelected = false;
     }

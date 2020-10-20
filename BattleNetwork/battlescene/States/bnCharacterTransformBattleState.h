@@ -7,6 +7,14 @@
 
 class Player;
 
+/**
+  @brief Tracks form data so the card select knows when or when not to animate the player
+*/
+struct TrackedFormData {
+  Player* player{ nullptr };
+  int selectedForm{ -1 };
+  bool animationComplete{ false };
+};
 /*
     \brief This state handles transformations
 */
@@ -17,8 +25,6 @@ public:
     animate,
     fadeout
   } currState{ state::fadein };
-
-  using TrackedFormData = std::tuple<Player*, int, bool>;
 
 private:
   int lastSelectedForm{ -1 };

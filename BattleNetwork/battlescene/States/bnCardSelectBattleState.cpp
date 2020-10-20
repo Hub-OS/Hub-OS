@@ -27,6 +27,28 @@ CardSelectBattleState::CardSelectBattleState(std::vector<Player*> tracked, std::
   mobEdgeSprite.setScale(2.f, 2.f);
 }
 
+void CardSelectBattleState::CheckFormChanges()
+{
+  CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
+
+  // Check the form transition values
+  if (formSelected) {
+    int newFormIndex = cardCust.GetSelectedFormIndex();
+    // Check what form we switched to
+    if (currForm == newFormIndex) {
+      // no change
+      formSelected = false;
+      forms[0]->animationComplete = true;
+    }
+    else {
+      // else, update our record and proceed to the animate state
+      currForm = newFormIndex;
+      forms[0]->animationComplete = false;
+      forms[0]->selectedForm = currForm;
+    }
+  }
+}
+
 Battle::Card** CardSelectBattleState::GetCardPtrList()
 {
   return cards;
@@ -68,7 +90,7 @@ void CardSelectBattleState::onStart()
 void CardSelectBattleState::onUpdate(double elapsed)
 {
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
-  
+
   if (!cardCust.IsInView() && currState == state::slidein) {
     cardCust.Move(sf::Vector2f(MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
     return;
@@ -165,9 +187,6 @@ void CardSelectBattleState::onUpdate(double elapsed)
       }
 
       if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
-        // Todo: this ought to be its own struct now this is unreadable and ugly
-        int& currentForm = std::get<1>(*forms[0]);
-
         bool performed = cardCust.CursorAction();
 
         if (cardCust.AreCardsReady()) {
@@ -185,32 +204,20 @@ void CardSelectBattleState::onUpdate(double elapsed)
             ui->Hide();
           }
 
+          CheckFormChanges();
+
           //camera.MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.5f));
         }
         else if (performed) {
-          if (!cardCust.SelectedNewForm()) {
-
-            AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
-
-            // check if this action is a revert
-            if (cardCust.GetSelectedFormIndex() == -1) {
-              // we were selecting a form but not anymore
-              if (currentForm == -1) {
-                formSelected = false; // We are not selecting a form
-                std::get<2>(*forms[0]) = false;
-              }
-              else {
-                formSelected = true;
-                std::get<2>(*forms[0]) = false;
-              }
-            }
+          // check if this action is form a revert
+          if (cardCust.GetSelectedFormIndex() == -1) {
+            AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::highest);
           }
           else {
-            // Todo: this ought to be its own struct now this is unreadable and ugly
-            std::get<1>(*forms[0]) = cardCust.GetSelectedFormIndex();
-            std::get<2>(*forms[0]) = false; // force the transform animation to play
-            formSelected = true;
+            AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
           }
+
+          formSelected = true;
         }
         else {
           AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
@@ -287,10 +294,11 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 }
 
 void CardSelectBattleState::onEnd()
-{
-}
+{ }
 
 bool CardSelectBattleState::OKIsPressed() {
+  // CardGUI goes out of view when OK is pressed
+  // wait for that animation to end before triggering the next state
   return GetScene().GetCardSelectWidget().IsOutOfView();
 }
 

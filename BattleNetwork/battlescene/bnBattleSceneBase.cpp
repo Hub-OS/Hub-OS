@@ -509,7 +509,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
   ENGINE.Clear();
 
-  float tint = 1.0f - backdropOpacity;
+  float tint = 1.0f - static_cast<float>(backdropOpacity);
 
   if (!backdropAffectBG) {
     tint = 1.f;

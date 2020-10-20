@@ -89,10 +89,10 @@ void CardComboBattleState::onUpdate(double elapsed)
         int newCardStart = hasPA;
 
         // Create a temp card list
-        Battle::Card** newCardList = new Battle::Card * [newCardCount];
+        Battle::Card** newCardList = new Battle::Card * [newCardCount] {nullptr};
 
         int j = 0;
-        for (int i = 0; i < *cardCountPtr; ) {
+        for (int i = 0; i < *cardCountPtr && j < newCardCount; ) {
           if (i == hasPA) {
             newCardList[j] = paCard;
             i += (int)paSteps.size();
