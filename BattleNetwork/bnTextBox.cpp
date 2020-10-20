@@ -163,7 +163,7 @@ void TextBox::CompleteCurrentBlock()
     newCharIndex = this->lines[lastLine]-1;
   }
 
-  int charactersSkipped = newCharIndex - charIndex;
+  int charactersSkipped = (int)newCharIndex - charIndex;
   double elapsed = static_cast<double>(charactersSkipped) / this->charsPerSecond;
   this->progress += elapsed;
 
@@ -319,7 +319,7 @@ const bool TextBox::IsEndOfMessage() const {
 
 const bool TextBox::IsEndOfBlock() const
 {
-  int testCharIndex = message.size() - 1;
+  int testCharIndex = static_cast<int>(message.size()) - 1;
   int lastLine = lineIndex + GetNumberOfFittingLines();
 
   if (lastLine < this->lines.size()) {

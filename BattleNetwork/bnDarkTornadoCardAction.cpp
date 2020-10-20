@@ -89,6 +89,5 @@ void DarkTornadoCardAction::OnAnimationEnd()
 void DarkTornadoCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

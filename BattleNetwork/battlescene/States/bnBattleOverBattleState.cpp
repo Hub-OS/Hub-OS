@@ -38,6 +38,9 @@ void BattleOverBattleState::onEnd()
 void BattleOverBattleState::onUpdate(double elapsed)
 {
   battleEndTimer.update(elapsed);
+
+  // finish whatever animations were happening
+  GetScene().GetField()->Update(elapsed);
 }
 
 void BattleOverBattleState::onDraw(sf::RenderTexture& surface)

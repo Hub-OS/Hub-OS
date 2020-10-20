@@ -66,7 +66,5 @@ void ThunderCardAction::OnAnimationEnd()
 void ThunderCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-
-  delete this;
+  Eject();
 }

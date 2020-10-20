@@ -29,8 +29,11 @@ void Entity::ReleaseComponentsPendingRemoval()
       auto iter = std::find(components.begin(), components.end(), bucket.pending);
 
       if (iter != components.end()) {
-        (*iter)->FreeOwner();
+        Component* component = *iter;
         components.erase(iter);
+
+        component->FreeOwner();
+        delete component;
       }
     }
   }
@@ -128,7 +131,11 @@ void Entity::Update(float _elapsed) {
   auto iter = components.begin();
 
   while (iter != components.end()) {
-    (*iter)->Update(_elapsed);
+    // respectfully only update local components
+    // anything shared with the battle scene needs to update those components
+    if ((*iter)->Lifetime() == Component::lifetimes::local) {
+      (*iter)->Update(_elapsed);
+    }
     iter++;
   }
 

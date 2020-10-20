@@ -89,7 +89,6 @@ void CombatBattleState::onUpdate(double elapsed)
     }
     else {
       AUDIO.Play(AudioType::PAUSE);
-      ENGINE.SetShader(&pauseShader);
     }
   }
 
@@ -124,6 +123,8 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
   ENGINE.Draw(&customBar);
 
   if (isPaused) {
+    ENGINE.SetShader(&pauseShader);
+
     // render on top
     ENGINE.Draw(pauseLabel, false);
   }

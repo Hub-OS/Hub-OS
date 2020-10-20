@@ -28,9 +28,8 @@ public:
 
   void EndAction()
   {
-    GetOwner()->FreeComponentByID(GetID());
     // SCRIPTS.callback(card_name).onDestroy(this);
-    delete this;
+    Eject();
   }
 
   void Execute() {

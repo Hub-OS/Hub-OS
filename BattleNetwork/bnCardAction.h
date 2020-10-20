@@ -28,7 +28,7 @@ struct ActionLockoutProperties {
 // TODO: This was written before card actions had many sprite nodes involved (like hilt + sword piece)
 // So the constructor, which was written to make card creation easy,
 // has now made it convoluted and difficult. REWRITE THIS CHIP ACTION CONSTRUCTOR!
-class CardAction : public UIComponent {
+class CardAction : public Component, public SceneNode {
 private:
   ActionLockoutProperties lockoutProps{};
   bool animationIsOver{ false };
@@ -54,7 +54,6 @@ public:
 
   CardAction() = delete;
   CardAction(const CardAction& rhs) = delete;
-
   CardAction(Character* owner, std::string animation, SpriteProxyNode** attachment, std::string nodeName);
 
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
@@ -64,7 +63,7 @@ public:
   void OnExecute();
 
   virtual void OnUpdate(float _elapsed);
-
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
   virtual void EndAction() = 0;
   virtual void OnAnimationEnd() = 0;
 

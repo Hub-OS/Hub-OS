@@ -104,6 +104,5 @@ void LightningCardAction::EndAction()
   delete attack;
 
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

@@ -81,6 +81,5 @@ void FireBurnCardAction::OnAnimationEnd()
 
 void FireBurnCardAction::EndAction()
 {
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

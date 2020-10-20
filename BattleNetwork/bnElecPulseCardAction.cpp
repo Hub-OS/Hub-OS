@@ -83,8 +83,6 @@ void ElecPulseCardAction::OnAnimationEnd()
 void ElecPulseCardAction::EndAction()
 {
     elecpulse? elecpulse->Delete() : (void(0));
-
     GetOwner()->RemoveNode(attachment);
-    GetOwner()->FreeComponentByID(GetID());
-    delete this;
+    Eject();
 }

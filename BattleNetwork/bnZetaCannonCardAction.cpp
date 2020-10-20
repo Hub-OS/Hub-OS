@@ -36,17 +36,17 @@ void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates state
 void ZetaCannonCardAction::OnUpdate(float _elapsed)
 {
   if (timer > 0) {
-    auto owner = GetOwner();
-    auto actions = owner->GetComponentsDerivedFrom<CardAction>();
+    auto user = GetOwner();
+    auto actions = user->GetComponentsDerivedFrom<CardAction>();
 
     // TODO: some sort of event pipeline for actions needs to be restricted
     //       currently, each stacked action will override the current animation and will 
     //       prevent the action from ending correctly (if animation-based)
     //       Also, we do not want to have to allow the programmer to follow these following conditions:
-    bool canShoot = owner->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !owner->IsSliding();
+    bool canShoot = user->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !user->IsSliding();
 
     if (canShoot && (firstTime || INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) && actions.size() == 1) {
-      auto attack = owner->CreateComponent<CannonCardAction>(owner, damage, CannonCardAction::Type::red);
+      auto attack = user->CreateComponent<CannonCardAction>(user, damage, CannonCardAction::Type::red);
 
       auto actionProps = ActionLockoutProperties();
       actionProps.type = ActionLockoutType::animation;
@@ -58,7 +58,7 @@ void ZetaCannonCardAction::OnUpdate(float _elapsed)
         firstTime = false;
         AUDIO.Play(AudioType::COUNTER_BONUS);
         defense = new DefenseIndestructable(true);
-        owner->AddDefenseRule(defense);
+        user->AddDefenseRule(defense);
       }
     }
   }
@@ -89,6 +89,5 @@ void ZetaCannonCardAction::EndAction()
   GetOwner()->RemoveDefenseRule(defense);
   delete defense;
 
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

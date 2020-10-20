@@ -546,10 +546,9 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     }
     else {
       if (tile->IsHighlighted()) {
-        SpriteProxyNode* coloredTile = new SpriteProxyNode(*(sf::Sprite*)tile);
-        coloredTile->SetShader(&yellowShader);
+        SpriteProxyNode coloredTile = SpriteProxyNode(*(sf::Sprite*)tile);
+        coloredTile.SetShader(&yellowShader);
         ENGINE.Draw(coloredTile);
-        delete coloredTile;
       }
       else {
         ENGINE.Draw(tile);
@@ -673,9 +672,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     // draw this row
     for (auto entity : entitiesOnRow) {
       entity->move(ENGINE.GetViewOffset());
-
       ENGINE.Draw(entity);
-
       entity->move(-ENGINE.GetViewOffset());
     }
 
@@ -686,7 +683,9 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     // Draw ui
     for (auto node : ui) {
+      node->move(ENGINE.GetViewOffset());
       ENGINE.Draw(*node, false);
+      node->move(-ENGINE.GetViewOffset());
     }
   }
 
@@ -812,9 +811,10 @@ void BattleSceneBase::Inject(CardUsePublisher& pub)
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
 void BattleSceneBase::Inject(MobHealthUI& other)
 {
-  if (other.GetOwner()) other.GetOwner()->FreeComponentByID(other.GetID()); // We are owned by the scene now
-  SceneNode* node = dynamic_cast<SceneNode*>(&other);
-  scenenodes.push_back(node);
+  // if (other.GetOwner()) other.GetOwner()->FreeComponentByID(other.GetID()); // We are owned by the scene now
+  //SceneNode* node = dynamic_cast<SceneNode*>(&other);
+  //scenenodes.push_back(node);
+  other.scene = this;
   components.push_back(&other);
 }
 
@@ -822,19 +822,34 @@ void BattleSceneBase::Inject(MobHealthUI& other)
 // Default case: no special injection found for the type, just add it to our update loop
 void BattleSceneBase::Inject(Component* other)
 {
-  if (other->GetOwner()) other->GetOwner()->FreeComponentByID(other->GetID());
+  //if (other->GetOwner()) other->GetOwner()->FreeComponentByID(other->GetID());
   other->scene = this;
   components.push_back(other);
 }
 
 void BattleSceneBase::Eject(Component::ID_t ID)
 {
-  auto iter = std::find_if(components.begin(), components.end(), [ID](auto in) { return in->GetID() == ID; });
+  auto iter = std::find_if(components.begin(), components.end(), 
+    [ID](Component* in) { return in->GetID() == ID; }
+  );
 
   if (iter != components.end()) {
-    deleteComponentsList.push_back(*iter);
+    Component* component = *iter;
+    auto iter2 = std::find_if(scenenodes.begin(), scenenodes.end(), 
+      [component](SceneNode* in) { 
+        return reinterpret_cast<uintptr_t>(in) == reinterpret_cast<uintptr_t>(component); 
+      }
+    );
+
+    if (iter2 != scenenodes.end()) {
+      scenenodes.erase(iter2);
+    }
+
+    // deleteComponentsList.push_back(*iter);
     components.erase(iter);
   }
+
+
 }
 
 const bool BattleSceneBase::IsCleared()
@@ -855,7 +870,7 @@ void BattleSceneBase::ProcessNewestComponents()
   for (auto e : entities) {
     if (e->components.size() > 0) {
       // update the ledger
-      // Injects usually removes the owner so this step proceeds the lastComponentID update
+      // this step proceeds the lastComponentID update
       auto latestID = e->components[0]->GetID();
 
       if (e->lastComponentID < latestID) {

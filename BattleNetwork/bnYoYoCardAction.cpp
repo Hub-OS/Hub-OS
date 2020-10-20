@@ -84,8 +84,6 @@ void YoYoCardAction::EndAction()
   }
 
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
   RecallPreviousState();
-
-  delete this;
+  Eject();
 }

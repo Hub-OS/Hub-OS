@@ -98,6 +98,9 @@ void SelectMobScene::onResume() {
     mob = nullptr;
   }
 
+  // fade in from zero
+  mobSpr.setColor(sf::Color(255, 255, 255, 0));
+
   // Fix camera if offset from battle
   ENGINE.SetCamera(camera);
 

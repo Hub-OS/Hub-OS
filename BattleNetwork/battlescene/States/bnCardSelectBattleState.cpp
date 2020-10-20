@@ -207,14 +207,9 @@ void CardSelectBattleState::onUpdate(double elapsed)
           CheckFormChanges();
         }
         else if (performed) {
-          // check if this action is form a revert
-          if (cardCust.GetSelectedFormIndex() == -1) {
-            AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::highest);
-          }
-          else {
-            AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
-          }
+          AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
 
+          // Should probably have a cardCust.IsInFormSelect() to flag this but it works as it is...
           formSelected = true;
         }
         else {

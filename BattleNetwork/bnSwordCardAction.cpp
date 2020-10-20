@@ -137,7 +137,5 @@ void SwordCardAction::EndAction()
 {
   GetOwner()->RemoveNode(hiltAttachment);
   hiltAttachment->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-
-  delete this;
+  Eject();
 }

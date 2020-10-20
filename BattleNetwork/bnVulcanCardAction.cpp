@@ -78,6 +78,5 @@ void VulcanCardAction::OnAnimationEnd()
 void VulcanCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

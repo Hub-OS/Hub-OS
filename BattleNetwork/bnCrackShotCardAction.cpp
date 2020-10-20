@@ -81,6 +81,5 @@ void CrackShotCardAction::OnAnimationEnd()
 
 void CrackShotCardAction::EndAction() {
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

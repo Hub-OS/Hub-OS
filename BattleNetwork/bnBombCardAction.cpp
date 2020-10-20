@@ -63,6 +63,5 @@ void BombCardAction::OnAnimationEnd()
 void BombCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

@@ -1,12 +1,21 @@
 #include "bnCardAction.h"
 
-CardAction::CardAction(Character* owner, std::string animation, SpriteProxyNode** attachment, std::string nodeName)
-  : anim(nullptr), animation(animation), nodeName(nodeName), uuid(), prevState(), attachment(attachment), UIComponent(owner)
+#include "battlescene/bnBattleSceneBase.h"
+
+CardAction::CardAction(Character* user, std::string animation, SpriteProxyNode** attachment, std::string nodeName)
+  : anim(nullptr),
+  animation(animation), 
+  nodeName(nodeName), 
+  uuid(), 
+  prevState(), 
+  attachment(attachment), 
+  SceneNode(),
+  Component(user, Component::lifetimes::battlestep)
 {
-  anim = owner->GetFirstComponent<AnimationComponent>();
+  anim = user->GetFirstComponent<AnimationComponent>();
 
   if (anim) {
-    prepareActionDelegate = [this, owner, animation]() {
+    prepareActionDelegate = [this, animation]() {
       // use the current animation's arrangement, do not overload
       prevState = anim->GetAnimationString();;
       anim->SetAnimation(animation, [this]() {
@@ -110,9 +119,13 @@ void CardAction::OnUpdate(float _elapsed)
   }
 }
 
-void CardAction::Inject(BattleSceneBase&)
+void CardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  SceneNode::draw(target, states);
+};
+
+void CardAction::Inject(BattleSceneBase& scene)
 {
-  // do nothing
+  scene.Inject(this);
 }
 
 void CardAction::SetLockout(const ActionLockoutProperties& props)

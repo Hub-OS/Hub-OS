@@ -88,6 +88,5 @@ void TornadoCardAction::OnAnimationEnd()
 void TornadoCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

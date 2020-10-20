@@ -87,5 +87,5 @@ void CannonCardAction::OnAnimationEnd()
 void CannonCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
+  Eject();
 }

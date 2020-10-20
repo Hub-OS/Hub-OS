@@ -14,7 +14,9 @@
 const std::string RESOURCE_PATH = "resources/mobs/mettaur/mettaur.animation";
 
 Mettaur::Mettaur(Rank _rank)
-  :  AI<Mettaur>(this), TurnOrderTrait<Mettaur>(), Character(_rank) {
+  :  AI<Mettaur>(this), 
+  TurnOrderTrait<Mettaur>(), 
+  Character(_rank) {
   name = "Mettaur";
   SetTeam(Team::blue);
 

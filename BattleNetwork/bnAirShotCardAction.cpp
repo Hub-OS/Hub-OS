@@ -68,6 +68,5 @@ void AirShotCardAction::OnAnimationEnd()
 void AirShotCardAction::EndAction()
 {
   GetOwner()->RemoveNode(attachment);
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

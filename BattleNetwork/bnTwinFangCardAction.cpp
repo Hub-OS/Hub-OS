@@ -91,6 +91,5 @@ void TwinFangCardAction::OnAnimationEnd()
 
 void TwinFangCardAction::EndAction()
 {
-  GetOwner()->FreeComponentByID(GetID());
-  delete this;
+  Eject();
 }

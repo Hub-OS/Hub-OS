@@ -24,6 +24,7 @@ void Component::Eject() {
   if (Injected()) {
     Scene()->Eject(GetID());
   }
+  GetOwner()->FreeComponentByID(GetID());
 }
 
 void Component::Update(float elapsed) {
