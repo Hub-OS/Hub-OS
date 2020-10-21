@@ -74,7 +74,9 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   if (actions.empty()) {
     if (INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) {
       auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
-      if (cardsUI && cardsUI->UseNextCard()) {
+      bool canUseCard = player.GetFirstComponent<AnimationComponent>()->GetAnimationString() == PLAYER_IDLE 
+                        && !player.IsSliding();
+      if (cardsUI && canUseCard && cardsUI->UseNextCard()) {
         // If the card used was successful, we may have a card in queue
         QueueAction(player);
         return; // wait one more frame to use

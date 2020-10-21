@@ -22,8 +22,8 @@ class FadeOutBattleState final : public BattleSceneState {
 public:
     FadeOutBattleState(const FadeOut& mode, std::vector<Player*> tracked);
 
-    void onStart() override;
-    void onEnd() override;
+    void onStart(const BattleSceneState* last) override;
+    void onEnd(const BattleSceneState* next) override;
     void onUpdate(double);
     void onDraw(sf::RenderTexture&);
 };

@@ -18,8 +18,8 @@ struct BattleOverBattleState final : public BattleSceneState {
   std::vector<Player*> tracked;
 
   BattleOverBattleState(std::vector<Player*> tracked);
-  void onStart() override;
-  void onEnd() override;
+  void onStart(const BattleSceneState* last) override;
+  void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
   bool IsFinished();

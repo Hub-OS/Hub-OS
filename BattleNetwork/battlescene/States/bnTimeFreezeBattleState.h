@@ -29,8 +29,10 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
   Character* user{ nullptr };
 
-  void onStart() override;
-  void onEnd() override;
+  TimeFreezeBattleState();
+
+  void onStart(const BattleSceneState* last) override;
+  void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
   void ExecuteTimeFreeze();

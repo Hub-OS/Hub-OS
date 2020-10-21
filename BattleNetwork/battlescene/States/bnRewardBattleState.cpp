@@ -21,7 +21,7 @@ RewardBattleState::RewardBattleState(Mob* mob, Player* player) : player(player),
 { 
 }
 
-void RewardBattleState::onStart()
+void RewardBattleState::onStart(const BattleSceneState*)
 {
   auto battleTime = GetScene().GetElapsedBattleTime();
   int moveCount = player->GetMoveCount();
@@ -35,7 +35,7 @@ void RewardBattleState::onStart()
   battleResults = new BattleResults(GetScene().GetElapsedBattleTime(), moveCount, hitCount, counterCount, doubleDelete, tripleDelete, mob);
 }
 
-void RewardBattleState::onEnd()
+void RewardBattleState::onEnd(const BattleSceneState*)
 {
 }
 

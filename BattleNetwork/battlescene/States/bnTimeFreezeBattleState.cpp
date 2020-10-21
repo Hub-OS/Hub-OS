@@ -15,24 +15,29 @@ const bool TimeFreezeBattleState::FadeOutBackdrop()
   return GetScene().FadeOutBackdrop(backdropInc);
 }
 
-void TimeFreezeBattleState::onStart()
+TimeFreezeBattleState::TimeFreezeBattleState()
 {
-  // Timefreeze is a part of battle, make sure the timer is running
-  GetScene().StartBattleTimer();
-
-  currState = state::fadein;
-  GetScene().GetField()->ToggleTimeFreeze(true);
+  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 }
 
-void TimeFreezeBattleState::onEnd()
+void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
+  GetScene().GetSelectedCardsUI().Hide();
+  GetScene().GetField()->ToggleTimeFreeze(true);
+  summonTimer.reset();
+  summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
+  currState = state::fadein;
+}
+
+void TimeFreezeBattleState::onEnd(const BattleSceneState*)
+{
+  GetScene().GetSelectedCardsUI().Reveal();
   GetScene().GetField()->ToggleTimeFreeze(false);
 }
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
 {
   summonTimer.update(elapsed);
-  GetScene().GetField()->Update((float)elapsed);
 
   switch (currState) {
   case state::fadein:
@@ -49,6 +54,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
     if (summonSecs >= summonTextLength) {
       ExecuteTimeFreeze();
+      currState = state::animate; // animate this attack
     }
   }
   break;
@@ -67,7 +73,6 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 {
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
   sf::Text summonsLabel = sf::Text(sf::String(name), *font);
 
   double summonSecs = summonTimer.getElapsed().asSeconds();
@@ -92,6 +97,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
     summonsLabel.setOrigin(summonsLabel.getLocalBounds().width, summonsLabel.getLocalBounds().height);
   }
 
+  ENGINE.Draw(GetScene().GetCardSelectWidget());
   ENGINE.Draw(summonsLabel, false);
 }
 

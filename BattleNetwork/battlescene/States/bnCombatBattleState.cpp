@@ -62,23 +62,35 @@ const bool CombatBattleState::PlayerRequestCardSelect()
   return !this->isPaused && this->isGaugeFull && INPUTx.Has(EventTypes::PRESSED_CUST_MENU);
 }
 
-void CombatBattleState::onStart()
+void CombatBattleState::onStart(const BattleSceneState* last)
 {
-  GetScene().StartBattleTimer();
-  
-  tracked[0]->ChangeState<PlayerControlledState>();
+  if (this->HandleNextRoundSetup(last)) {
+    GetScene().StartBattleStepTimer();
+    GetScene().GetField()->ToggleTimeFreeze(false);
+    GetScene().HighlightTiles(true); // re-enable tile highlighting
 
-  GetScene().GetField()->ToggleTimeFreeze(false);
+    tracked[0]->ChangeState<PlayerControlledState>();
+    hasTimeFreeze = false;
 
-  hasTimeFreeze = false;
+    // reset bar and related flags
+    customProgress = 0;
+    customBarShader.setUniform("factor", 0);
+    isGaugeFull = false;
+  }
 }
 
-void CombatBattleState::onEnd()
+void CombatBattleState::onEnd(const BattleSceneState* next)
 {
-  GetScene().StopBattleTimer();
-  customProgress = 0;
-  customBarShader.setUniform("factor", 0);
-  isGaugeFull = false;
+  if (this->HandleNextRoundSetup(next)) {
+    GetScene().StopBattleStepTimer();
+    GetScene().HighlightTiles(false);
+
+    // reset bar 
+    customProgress = 0;
+    customBarShader.setUniform("factor", 0);
+  }
+
+  hasTimeFreeze = false; 
 }
 
 void CombatBattleState::onUpdate(double elapsed)
@@ -135,4 +147,17 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
 void CombatBattleState::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
 {
   hasTimeFreeze = card.IsTimeFreeze();
+}
+
+const bool CombatBattleState::HandleNextRoundSetup(const BattleSceneState* state)
+{
+  auto iter = std::find_if(subcombatStates.begin(), subcombatStates.end(),
+    [state](const BattleSceneState* in) {
+      return in == state;
+    }
+  );
+
+  // Only stop battlestep timers and effects for states
+  // that are not part of the combat state list
+  return (iter == subcombatStates.end());
 }

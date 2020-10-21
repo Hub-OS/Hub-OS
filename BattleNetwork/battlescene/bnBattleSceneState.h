@@ -20,8 +20,8 @@ struct BattleSceneState {
 
     ActivityController& GetController() { return *controller; }
     
-    virtual void onStart() = 0;
-    virtual void onEnd() = 0;
+    virtual void onStart(const BattleSceneState* next=nullptr) = 0;
+    virtual void onEnd(const BattleSceneState* last=nullptr) = 0;
     virtual void onUpdate(double elapsed) = 0;
     virtual void onDraw(sf::RenderTexture& surface) = 0;
     virtual ~BattleSceneState(){};

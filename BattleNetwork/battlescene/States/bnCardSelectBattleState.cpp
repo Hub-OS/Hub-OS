@@ -60,7 +60,7 @@ int& CardSelectBattleState::GetCardListLengthAddr()
   return cardCount;
 }
 
-void CardSelectBattleState::onStart()
+void CardSelectBattleState::onStart(const BattleSceneState*)
 {
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
 
@@ -286,7 +286,7 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
   ENGINE.Draw(GetScene().GetCardSelectWidget());
 }
 
-void CardSelectBattleState::onEnd()
+void CardSelectBattleState::onEnd(const BattleSceneState*)
 { }
 
 bool CardSelectBattleState::OKIsPressed() {

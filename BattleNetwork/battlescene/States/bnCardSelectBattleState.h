@@ -40,10 +40,10 @@ class CardSelectBattleState final : public BattleSceneState {
 public:
   Battle::Card** GetCardPtrList();
   int& GetCardListLengthAddr();
-  void onStart() override;
+  void onStart(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
-  void onEnd() override;
+  void onEnd(const BattleSceneState* next) override;
   bool OKIsPressed();
   bool HasForm();
   CardSelectBattleState(std::vector<Player*> tracked, std::vector<std::shared_ptr<TrackedFormData>> forms);

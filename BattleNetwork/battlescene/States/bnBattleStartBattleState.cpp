@@ -12,7 +12,7 @@ BattleStartBattleState::BattleStartBattleState(std::vector<Player*> tracked) : t
   battleStart.setScale(2.f, 2.f);
 }
 
-void BattleStartBattleState::onStart()
+void BattleStartBattleState::onStart(const BattleSceneState*)
 {
   battleStartTimer.reset();
 
@@ -27,7 +27,7 @@ void BattleStartBattleState::onStart()
   }
 }
 
-void BattleStartBattleState::onEnd()
+void BattleStartBattleState::onEnd(const BattleSceneState*)
 {
 }
 

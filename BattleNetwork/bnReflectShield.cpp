@@ -65,6 +65,7 @@ void ReflectShield::OnUpdate(float _elapsed) {
 void ReflectShield::OnDelete()
 {
   Remove();
+  Eject();
 }
 
 bool ReflectShield::Move(Direction _direction)

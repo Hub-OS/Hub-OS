@@ -119,7 +119,7 @@ bool CharacterTransformBattleState::IsFinished() {
     return state::fadeout == currState && FadeOutBackdrop();
 }
 
-void CharacterTransformBattleState::onStart() {
+void CharacterTransformBattleState::onStart(const BattleSceneState*) {
   currState = state::fadein;
 }
 
@@ -134,7 +134,7 @@ void CharacterTransformBattleState::onUpdate(double elapsed) {
   }
 }
 
-void CharacterTransformBattleState::onEnd()
+void CharacterTransformBattleState::onEnd(const BattleSceneState*)
 {
   for (auto&& anims : shineAnimations) {
     anims.SetAnimation(""); // ends the shine anim

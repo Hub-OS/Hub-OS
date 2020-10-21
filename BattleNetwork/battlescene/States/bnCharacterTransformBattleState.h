@@ -40,9 +40,9 @@ private:
 
 public:
   bool IsFinished();
-  void onStart() override;
+  void onStart(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;
-  void onEnd() override;
+  void onEnd(const BattleSceneState* next) override;
   void onDraw(sf::RenderTexture&);
 
   CharacterTransformBattleState(const std::vector<std::shared_ptr<TrackedFormData>> tracking);

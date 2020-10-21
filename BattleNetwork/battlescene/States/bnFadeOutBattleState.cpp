@@ -5,7 +5,7 @@
 
 FadeOutBattleState::FadeOutBattleState(const FadeOut& mode, std::vector<Player*> tracked) : mode(mode), tracked(tracked) {}
 
-void FadeOutBattleState::onStart() {
+void FadeOutBattleState::onStart(const BattleSceneState*) {
   for (auto p : tracked) {
     p->ChangeState<PlayerIdleState>();
   }
@@ -13,7 +13,7 @@ void FadeOutBattleState::onStart() {
   GetScene().GetField()->RequestBattleStop();
 }
 
-void FadeOutBattleState::onEnd()
+void FadeOutBattleState::onEnd(const BattleSceneState*)
 {
 }
 

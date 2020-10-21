@@ -77,8 +77,8 @@ private:
   int lastMobSize{ 0 };
   int newMobSize{ 0 };
   double elapsed{ 0 }; /*!< total time elapsed in battle */
-  double customProgress{ 0 }; /*!< Cust bar progress */
-  double customDuration; /*!< Cust bar max time */
+  double customProgress{ 0 }; /*!< Cust bar progress in seconds */
+  double customDuration{ 10.0 }; /*!< Cust bar max time in seconds */
   double backdropOpacity{ 1.0 };
   double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
@@ -187,9 +187,9 @@ protected:
     }
 
     /*
-        \brief Return the underlining state object pointer as a reference
+      \brief Alternative return the underlining state object as a reference
     */
-    T& operator*() {
+    T& Unwrap() {
       return state;
     }
 
@@ -261,6 +261,11 @@ public:
   const int ComboDeleteSize();
   void HighlightTiles(bool enable);
 
+  const double GetCustomBarProgress() const;
+  const double GetCustomBarDuration() const;
+  void SetCustomBarProgress(double percentage);
+  void SetCustomBarDuration(double maxTimeSeconds);
+
   /**
     * @brief State boolean for BattleScene. Query if the battle is over.
     * @return true if isPostBattle is true, otherwise false
@@ -310,8 +315,8 @@ public:
   const Field* GetField() const;
   CardSelectionCust& GetCardSelectWidget();
   SelectedCardsUI& GetSelectedCardsUI();
-  void StartBattleTimer();
-  void StopBattleTimer();
+  void StartBattleStepTimer();
+  void StopBattleStepTimer();
   void BroadcastBattleStart();
   void BroadcastBattleStop();
 
@@ -358,6 +363,8 @@ public:
 
 private:
   BattleSceneState* current{nullptr}; //!< Pointer to the current battle scene state
+  const BattleSceneState* next{ nullptr };
+  const BattleSceneState* last{ nullptr };
   std::vector<BattleSceneState*> states; //!< List of all battle scene states
 
   /*

@@ -3,6 +3,7 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#include <iterator>
 #include <functional>
 
 using namespace std;

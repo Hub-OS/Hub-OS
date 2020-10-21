@@ -31,8 +31,8 @@ struct CardComboBattleState final : public BattleSceneState {
 
   CardComboBattleState(SelectedCardsUI& ui, PA& programAdvance);
   void ShareCardList(Battle::Card** cards, int* listLengthPtr);
-  void onStart() override;
-  void onEnd() override;
+  void onStart(const BattleSceneState* last) override;
+  void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
   bool IsDone();

@@ -75,6 +75,10 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   auto& ui = this->GetSelectedCardsUI();
   combat->Subscribe(ui);
   timeFreeze->Subscribe(ui);
+  
+  // Some states are part of the combat routine and need to respect
+  // the combat state's timers
+  combat->subcombatStates.push_back(&timeFreeze.Unwrap());
 
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(intro);

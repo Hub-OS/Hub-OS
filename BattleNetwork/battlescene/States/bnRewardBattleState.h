@@ -16,8 +16,8 @@ struct RewardBattleState final : public BattleSceneState {
   double elapsed{ 0 };
 
   RewardBattleState(Mob* mob, Player* player);
-  void onStart() override;
-  void onEnd() override;
+  void onStart(const BattleSceneState* last) override;
+  void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
   bool OKIsPressed();

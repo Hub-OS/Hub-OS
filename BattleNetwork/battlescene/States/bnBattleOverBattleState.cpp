@@ -19,7 +19,7 @@ BattleOverBattleState::BattleOverBattleState(std::vector<Player*> tracked) : tra
   battleEnd.setScale(2.f, 2.f);
 }
 
-void BattleOverBattleState::onStart()
+void BattleOverBattleState::onStart(const BattleSceneState*)
 {
   battleEndTimer.reset();
   AUDIO.Stream("resources/loops/enemy_deleted.ogg");
@@ -31,7 +31,7 @@ void BattleOverBattleState::onStart()
   GetScene().GetField()->RequestBattleStop();
 }
 
-void BattleOverBattleState::onEnd()
+void BattleOverBattleState::onEnd(const BattleSceneState*)
 {
 }
 
@@ -49,5 +49,5 @@ void BattleOverBattleState::onDraw(sf::RenderTexture& surface)
   double scale = swoosh::ease::wideParabola(battleEndSecs, postBattleLength, 2.0);
   battleEnd.setScale(2.f, (float)scale * 2.f);
 
-  surface.draw(battleEnd);
+  ENGINE.Draw(battleEnd);
 }

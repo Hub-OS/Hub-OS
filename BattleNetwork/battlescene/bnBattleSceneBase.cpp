@@ -152,9 +152,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   mobBackdropSprite.setScale(2.f, 2.f);
   mobEdgeSprite.setScale(2.f, 2.f);
 
-  customProgress = 0; // in seconds
-  customDuration = 10; // 10 seconds
-
   // SHADERS
   // TODO: Load shaders if supported
   shaderCooldown = 0;
@@ -282,6 +279,26 @@ const int BattleSceneBase::ComboDeleteSize()
 void BattleSceneBase::HighlightTiles(bool enable)
 {
   this->highlightTiles = enable;
+}
+
+const double BattleSceneBase::GetCustomBarProgress() const
+{
+  return this->customProgress;
+}
+
+const double BattleSceneBase::GetCustomBarDuration() const
+{
+  return this->customDuration;
+}
+
+void BattleSceneBase::SetCustomBarProgress(double percentage)
+{
+  this->customProgress = this->customDuration * percentage;
+}
+
+void BattleSceneBase::SetCustomBarDuration(double maxTimeSeconds)
+{
+  this->customDuration = maxTimeSeconds;
 }
 
 void BattleSceneBase::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
@@ -489,9 +506,12 @@ void BattleSceneBase::onUpdate(double elapsed) {
   for (auto iter = nodeToEdges.begin(); iter != nodeToEdges.end(); iter++) {
     if (iter->first == current) {
       if (iter->second->when()) {
-        current->onEnd();
-        current = iter->second->b;
-        current->onStart();
+        auto temp = iter->second->b;
+        this->last = current;
+        this->next = temp;
+        current->onEnd(this->next);
+        current = temp;
+        current->onStart(this->last);
         break;
       }
     }
@@ -541,7 +561,8 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     tile->move(ENGINE.GetViewOffset());
 
-    if (highlightTiles) {
+    if (highlightTiles == false) {
+      // Draw without highlighting effects
       ENGINE.Draw(tile);
     }
     else {
@@ -725,12 +746,12 @@ SelectedCardsUI& BattleSceneBase::GetSelectedCardsUI() {
   return cardUI;
 }
 
-void BattleSceneBase::StartBattleTimer()
+void BattleSceneBase::StartBattleStepTimer()
 {
   battleTimer.start();
 }
 
-void BattleSceneBase::StopBattleTimer()
+void BattleSceneBase::StopBattleStepTimer()
 {
   battleTimer.pause();
 }

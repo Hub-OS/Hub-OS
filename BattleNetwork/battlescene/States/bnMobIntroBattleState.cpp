@@ -45,12 +45,12 @@ void MobIntroBattleState::onUpdate(double elapsed)
   GetScene().GetField()->Update((float)elapsed);
 }
 
-void MobIntroBattleState::onEnd()
+void MobIntroBattleState::onEnd(const BattleSceneState*)
 {
   mob->DefaultState();
 }
 
-void MobIntroBattleState::onStart()
+void MobIntroBattleState::onStart(const BattleSceneState*)
 {
 }
 

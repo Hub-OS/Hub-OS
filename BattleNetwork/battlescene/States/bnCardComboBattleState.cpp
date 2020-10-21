@@ -30,12 +30,12 @@ void CardComboBattleState::ShareCardList(Battle::Card** cards, int* listLengthPt
   this->cardCountPtr = listLengthPtr;
 }
 
-void CardComboBattleState::onStart()
+void CardComboBattleState::onStart(const BattleSceneState*)
 {
   isPAComplete = false;
 }
 
-void CardComboBattleState::onEnd()
+void CardComboBattleState::onEnd(const BattleSceneState*)
 {
   ENGINE.RevokeShader();
   advanceSoundPlay = false;
