@@ -80,7 +80,7 @@ private:
   double customProgress{ 0 }; /*!< Cust bar progress */
   double customDuration; /*!< Cust bar max time */
   double backdropOpacity{ 1.0 };
-  double backdropFadeSpeed{ 125 }; /*!< x/255 per tick */
+  double backdropFadeIncrements{ 125 }; /*!< x/255 per tick */
   double backdropMaxOpacity{ 1.0 };
   PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */
   EnemyCardUseListener enemyCardListener; /*!< Enemies can use cards now */
@@ -317,8 +317,8 @@ public:
 
   const sf::Time GetElapsedBattleTime();
 
-  const bool FadeInBackdrop(double speed, double to, bool affectBackground);
-  const bool FadeOutBackdrop(double speed);
+  const bool FadeInBackdrop(double amount, double to, bool affectBackground);
+  const bool FadeOutBackdrop(double amount);
 
   std::vector<std::reference_wrapper<const Character>> MobList();
 

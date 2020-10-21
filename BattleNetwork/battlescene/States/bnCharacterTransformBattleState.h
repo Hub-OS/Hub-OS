@@ -28,7 +28,7 @@ public:
 
 private:
   int lastSelectedForm{ -1 };
-  double backdropSpeed{ 4.25 }; //!< alpha increase per frame (max 255)
+  double backdropInc{ 4.25 }; //!< alpha increase per frame (max 255)
   double frameElapsed{ 0 };
   sf::Sprite shine;
   std::vector<std::shared_ptr<TrackedFormData>> tracking;

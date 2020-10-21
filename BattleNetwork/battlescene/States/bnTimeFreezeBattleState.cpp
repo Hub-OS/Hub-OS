@@ -1,19 +1,25 @@
 #include "bnTimeFreezeBattleState.h"
 
 #include "../bnBattleSceneBase.h"
+#include "../../bnCard.h"
+#include "../../bnCardAction.h"
+#include "../../bnCharacter.h"
 
 const bool TimeFreezeBattleState::FadeInBackdrop()
 {
-  return GetScene().FadeInBackdrop(0.1, 0.5, false);
+  return GetScene().FadeInBackdrop(backdropInc, 0.5, true);
 }
 
 const bool TimeFreezeBattleState::FadeOutBackdrop()
 {
-  return GetScene().FadeOutBackdrop(0.1);
+  return GetScene().FadeOutBackdrop(backdropInc);
 }
 
 void TimeFreezeBattleState::onStart()
 {
+  // Timefreeze is a part of battle, make sure the timer is running
+  GetScene().StartBattleTimer();
+
   currState = state::fadein;
   GetScene().GetField()->ToggleTimeFreeze(true);
 }
@@ -25,28 +31,48 @@ void TimeFreezeBattleState::onEnd()
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
 {
+  summonTimer.update(elapsed);
   GetScene().GetField()->Update((float)elapsed);
 
   switch (currState) {
   case state::fadein:
-    FadeInBackdrop() ? currState = state::animate : (void)0;
+  {
+    if (FadeInBackdrop()) {
+      currState = state::display_name;
+      summonTimer.start();
+    }
+  }
     break;
+  case state::display_name:
+  {
+    double summonSecs = summonTimer.getElapsed().asSeconds();
+
+    if (summonSecs >= summonTextLength) {
+      ExecuteTimeFreeze();
+    }
+  }
+  break;
   case state::animate:
-    // start the chip
+    {
+      GetScene().GetField()->Update(elapsed);
+
+      if (user->GetComponentsDerivedFrom<CardAction>().empty()) {
+        user->ToggleTimeFreeze(true); // re-freeze
+        currState = state::fadeout;
+      }
+    }
     break;
   }
-
-  // TODO: when chip is over, switch to the fadeout
 }
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 {
-  sf::Text summonsLabel = sf::Text("TEXT HERE", font);
+  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+  sf::Text summonsLabel = sf::Text(sf::String(name), *font);
 
-  double summonSecs = summonTimer.getElapsed().asSeconds() - showSummonBackdropLength;
+  double summonSecs = summonTimer.getElapsed().asSeconds();
   double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
 
-  Team team = Team::red;
   if (team == Team::red) {
     summonsLabel.setPosition(40.0f, 80.f);
   }
@@ -67,17 +93,21 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   }
 
   ENGINE.Draw(summonsLabel, false);
-
-  if (summonSecs >= summonTextLength) {
-    ExecuteSummons();
-    showSummonText = false;
-  }
 }
 
-void TimeFreezeBattleState::ExecuteSummons()
+void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
+  // start the chip
+  user->ToggleTimeFreeze(false); // animate freely
 }
 
 bool TimeFreezeBattleState::IsOver() {
   return state::fadeout == currState && FadeOutBackdrop();
+}
+
+void TimeFreezeBattleState::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
+{
+  this->name = card.GetShortName();
+  this->team = user.GetTeam();
+  this->user = &user;
 }

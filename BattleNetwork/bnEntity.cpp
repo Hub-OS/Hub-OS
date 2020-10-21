@@ -552,6 +552,7 @@ void Entity::FreeComponentByID(Component::ID_t ID) {
       }
       else {
         components.erase(iter);
+        // delete component;
         return;
       }
     }

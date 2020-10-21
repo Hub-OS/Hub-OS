@@ -6,6 +6,7 @@
 #include "../../bnTeam.h"
 #include "../../bnEntity.h"
 #include "../../bnCharacter.h"
+#include "../../bnCard.h"
 #include "../../bnInputManager.h"
 #include "../../bnShaderResourceManager.h"
 
@@ -39,8 +40,7 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*> tracked, dou
 }
 
 const bool CombatBattleState::HasTimeFreeze() const {
-  return false;
-  // TODO: mark true when a used chip has TimeFreeze
+  return hasTimeFreeze && !isPaused;
 }
 
 const bool CombatBattleState::PlayerWon() const
@@ -69,6 +69,8 @@ void CombatBattleState::onStart()
   tracked[0]->ChangeState<PlayerControlledState>();
 
   GetScene().GetField()->ToggleTimeFreeze(false);
+
+  hasTimeFreeze = false;
 }
 
 void CombatBattleState::onEnd()
@@ -128,4 +130,9 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
     // render on top
     ENGINE.Draw(pauseLabel, false);
   }
+}
+
+void CombatBattleState::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
+{
+  hasTimeFreeze = card.IsTimeFreeze();
 }

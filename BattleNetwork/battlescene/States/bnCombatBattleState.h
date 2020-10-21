@@ -2,6 +2,7 @@
 
 #include "../bnBattleSceneState.h"
 #include "../../bnSpriteProxyNode.h"
+#include "../../bnCardUseListener.h"
 
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/Shader.hpp>
@@ -9,12 +10,17 @@
 class Mob;
 class Player;
 
+namespace Battle {
+  class Card;
+}
+
 /*
     \brief This state will govern combat rules
 */
-struct CombatBattleState final : public BattleSceneState {
+struct CombatBattleState final : public BattleSceneState, public CardUseListener {
   bool isPaused{ false };
   bool isGaugeFull{ false };
+  bool hasTimeFreeze{ false };
   double customProgress{ 0 };
   double customDuration{ 0 };
   Mob* mob{ nullptr };
@@ -36,6 +42,8 @@ struct CombatBattleState final : public BattleSceneState {
   void onEnd() override;
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
+
+  void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override;
 
   CombatBattleState(Mob* mob, std::vector<Player*> tracked, double customDuration);
 };

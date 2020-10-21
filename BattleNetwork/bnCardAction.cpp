@@ -59,6 +59,11 @@ Character* CardAction::GetOwner()
   return GetOwnerAs<Character>();
 }
 
+void CardAction::MakeTimeFreeze()
+{
+  timeFreeze = true;
+}
+
 void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
 {
   if (anim) {
@@ -158,4 +163,9 @@ const bool CardAction::IsLockoutOver() const {
     return animationIsOver;
 
   return lockoutProps.cooldown <= 0;
+}
+
+const bool CardAction::IsTimeFreeze() const
+{
+  return timeFreeze;
 }

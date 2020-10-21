@@ -32,7 +32,7 @@ class CardAction : public Component, public SceneNode {
 private:
   ActionLockoutProperties lockoutProps{};
   bool animationIsOver{ false };
-
+  bool timeFreeze{ false };
 protected:
   AnimationComponent* anim;
   std::string animation, nodeName;
@@ -56,6 +56,7 @@ public:
   CardAction(const CardAction& rhs) = delete;
   CardAction(Character* owner, std::string animation, SpriteProxyNode** attachment, std::string nodeName);
 
+  void MakeTimeFreeze();
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
 
   virtual ~CardAction();
@@ -76,4 +77,5 @@ public:
   const ActionLockoutType GetLockoutType() const;
   const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;
+  const bool IsTimeFreeze() const;
 };

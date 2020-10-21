@@ -71,6 +71,11 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
           .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
           .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
 
+  // Some states need to know about card uses
+  auto& ui = this->GetSelectedCardsUI();
+  combat->Subscribe(ui);
+  timeFreeze->Subscribe(ui);
+
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(intro);
 }

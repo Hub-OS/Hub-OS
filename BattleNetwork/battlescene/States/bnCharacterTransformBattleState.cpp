@@ -9,12 +9,12 @@
 
 const bool CharacterTransformBattleState::FadeInBackdrop()
 {
-  return GetScene().FadeInBackdrop(backdropSpeed, 1.0, true);
+  return GetScene().FadeInBackdrop(backdropInc, 1.0, true);
 }
 
 const bool CharacterTransformBattleState::FadeOutBackdrop()
 {
-  return GetScene().FadeOutBackdrop(backdropSpeed);
+  return GetScene().FadeOutBackdrop(backdropInc);
 }
 
 void CharacterTransformBattleState::UpdateAnimation(double elapsed)

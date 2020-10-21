@@ -426,10 +426,10 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
     switch (backdropMode) {
     case backdrop::fadein:
-      backdropOpacity = std::fmin(backdropMaxOpacity, backdropOpacity + (backdropFadeSpeed * elapsed));
+      backdropOpacity = std::fmin(backdropMaxOpacity, backdropOpacity + (backdropFadeIncrements * elapsed));
       break;
     case backdrop::fadeout:
-      backdropOpacity = std::fmax(0.0, backdropOpacity - (backdropFadeSpeed * elapsed));
+      backdropOpacity = std::fmax(0.0, backdropOpacity - (backdropFadeIncrements * elapsed));
       if (backdropOpacity == 0.0) {
         backdropAffectBG = false; // reset this effect
       }
@@ -749,20 +749,20 @@ const sf::Time BattleSceneBase::GetElapsedBattleTime() {
   return battleTimer.getElapsed();
 }
 
-const bool BattleSceneBase::FadeInBackdrop(double speed, double to, bool affectBackground)
+const bool BattleSceneBase::FadeInBackdrop(double amount, double to, bool affectBackground)
 {
   backdropMode = backdrop::fadein;
-  backdropFadeSpeed = speed;
+  backdropFadeIncrements = amount;
   backdropMaxOpacity = to;
   backdropAffectBG = affectBackground;
 
   return (backdropOpacity >= to);
 }
 
-const bool BattleSceneBase::FadeOutBackdrop(double speed)
+const bool BattleSceneBase::FadeOutBackdrop(double amount)
 {
   backdropMode = backdrop::fadeout;
-  backdropFadeSpeed = speed;
+  backdropFadeIncrements = amount;
 
   return (backdropOpacity == 0.0);
 }
