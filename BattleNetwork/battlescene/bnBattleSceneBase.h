@@ -84,7 +84,7 @@ private:
   double backdropMaxOpacity{ 1.0 };
   PlayerCardUseListener cardListener; /*!< Card use listener handles one card at a time */
   EnemyCardUseListener enemyCardListener; /*!< Enemies can use cards now */
-  SelectedCardsUI cardUI; /*!< Player's Card UI implementation */
+  SelectedCardsUI* cardUI{ nullptr }; /*!< Player's Card UI implementation */
   Camera camera; /*!< Camera object - will shake screen */
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */

@@ -41,8 +41,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   cardListener(props.player),
   // cap of 8 cards, 8 cards drawn per turn
   cardCustGUI(props.folder, 8, 8),
-  camera(*ENGINE.GetCamera()),
-  cardUI(&props.player) {
+  camera(*ENGINE.GetCamera())
+{
 
   /*
   Set Scene*/
@@ -52,10 +52,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   player->ChangeState<PlayerIdleState>();
   player->ToggleTimeFreeze(false);
   field->AddEntity(*player, 2, 2);
-
-  // Card UI for player
-  cardListener.Subscribe(cardUI);
-  this->CardUseListener::Subscribe(cardUI);
 
   /*
   Background for scene*/
@@ -96,11 +92,15 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
     }
   }
 
-  PlayerHealthUI* healthUI = new PlayerHealthUI(player);
-  Inject(healthUI);
 
+  // Card UI for player
+  cardUI = player->CreateComponent<SelectedCardsUI>(player);
+  cardListener.Subscribe(*cardUI);
+  this->CardUseListener::Subscribe(*cardUI);
+
+  // Player UI 
+  auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
   cardCustGUI.AddNode(healthUI);
-  components.push_back((UIComponent*)healthUI);
 
   camera = Camera(ENGINE.GetView());
   ENGINE.SetCamera(camera);
@@ -230,7 +230,7 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
     counterReveal.setPosition(0, -bounds.height / 4.0f);
     player->AddNode(&counterReveal);
 
-    cardUI.SetMultiplier(2);
+    cardUI->SetMultiplier(2);
 
     // when players get hit by impact, battle scene takes back counter blessings
     player->AddDefenseRule(counterCombatRule);
@@ -310,11 +310,12 @@ void BattleSceneBase::LoadMob(Mob& mob)
 {
   this->mob = &mob;
   auto mobComps = mob.GetComponents();
-  components.insert(components.end(), mobComps.begin(), mobComps.end());
 
-  for (auto c : components) {
+  for (auto c : mobComps) {
     c->Inject(*this);
   }
+
+  components.insert(components.end(), mobComps.begin(), mobComps.end());
 
   ProcessNewestComponents();
 }
@@ -328,7 +329,7 @@ void BattleSceneBase::HandleCounterLoss(Character& subject)
       field->RevealCounterFrames(false);
       AUDIO.Play(AudioType::COUNTER_BONUS, AudioPriority::highest);
     }
-    cardUI.SetMultiplier(1);
+    cardUI->SetMultiplier(1);
   }
 }
 
@@ -467,7 +468,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
     }
   }
 
-  cardUI.OnUpdate((float)elapsed);
+  cardUI->OnUpdate((float)elapsed);
   cardCustGUI.Update((float)elapsed);
 
   // Track combo deletes
@@ -743,7 +744,7 @@ CardSelectionCust& BattleSceneBase::GetCardSelectWidget()
 }
 
 SelectedCardsUI& BattleSceneBase::GetSelectedCardsUI() {
-  return cardUI;
+  return *cardUI;
 }
 
 void BattleSceneBase::StartBattleStepTimer()
@@ -827,6 +828,7 @@ void BattleSceneBase::Inject(CardUsePublisher& pub)
   enemyCardListener.Subscribe(pub);
   SceneNode* node = dynamic_cast<SceneNode*>(&pub);
   scenenodes.push_back(node);
+  components.push_back((Component*)&pub);
 }
 
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
