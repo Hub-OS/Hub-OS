@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
 
             WEBCLIENT.ConnectToWebServer(version.data(), URL.data(), port);
 
-//#define LOGIN
+#define LOGIN
 #ifdef LOGIN
             auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
 
