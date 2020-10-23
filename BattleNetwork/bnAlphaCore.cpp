@@ -29,7 +29,7 @@ AlphaCore::AlphaCore(Rank _rank)
   setScale(2.f, 2.f);
 
   SetName("Alpha");
-  SetHealth(2000);
+  SetHealth(500); //SetHealth(2000);
   SetLayer(1);
 
   impervious = false;

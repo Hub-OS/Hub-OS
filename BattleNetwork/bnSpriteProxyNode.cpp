@@ -7,10 +7,11 @@ SpriteProxyNode::SpriteProxyNode() : SceneNode() {
   show = true;
 }
 
-SpriteProxyNode::SpriteProxyNode(const sf::Texture & texture)
+SpriteProxyNode::SpriteProxyNode(const sf::Texture & texture) : SceneNode()
 {
     sprite = new sf::Sprite();
     textureRef = std::make_shared<sf::Texture>(texture);
+    sprite->setTexture(*textureRef);
     allocatedSprite = true;
     show = true;
 }
@@ -18,7 +19,6 @@ SpriteProxyNode::SpriteProxyNode(const sf::Texture & texture)
 SpriteProxyNode::SpriteProxyNode(sf::Sprite& rhs) : SceneNode() {
   allocatedSprite = false;
   sprite = &rhs;
-  textureRef = std::make_shared<sf::Texture>();
   show = true;
 }
 
@@ -30,8 +30,6 @@ void SpriteProxyNode::operator=(sf::Sprite& rhs) {
   if(allocatedSprite) delete sprite;
 
   sprite = &rhs;
-  textureRef = std::make_shared<sf::Texture>();
-
   allocatedSprite = false;
 }
 

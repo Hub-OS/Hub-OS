@@ -200,6 +200,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
           SelectedCardsUI* ui = player->GetFirstComponent<SelectedCardsUI>();
 
           if (ui) {
+            GetScene().FilterSupportCards(cards, cardCount);
             ui->LoadCards(cards, cardCount);
             ui->Hide();
           }

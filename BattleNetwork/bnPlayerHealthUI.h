@@ -69,7 +69,6 @@ private:
   mutable SpriteProxyNode glyphs; /*!< bitmap image object to draw */
   SpriteProxyNode uibox; /*!< the box surrounding the health */
   std::shared_ptr<Texture> texture; /*!< the texture of the box */
-  BattleSceneBase* bs;
 
   /**
    * @class Color

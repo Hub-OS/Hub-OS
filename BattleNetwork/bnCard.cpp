@@ -83,7 +83,7 @@ namespace Battle {
 
   const bool Card::IsTimeFreeze() const
   {
-    return true; // props.timeFreeze;
+    return props.timeFreeze;
   }
 
   const bool Card::IsTaggedAs(const std::string& meta) const

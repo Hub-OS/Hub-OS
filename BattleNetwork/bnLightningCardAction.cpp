@@ -95,14 +95,16 @@ void LightningCardAction::OnUpdate(float _elapsed)
 
 void LightningCardAction::OnAnimationEnd()
 {
+  anim->CancelCallbacks();
+  attachment->RemoveNode(attack);
+  delete attack;
+  attack = nullptr;
+
+  GetOwner()->RemoveNode(attachment);
 }
 
 void LightningCardAction::EndAction()
 {
-  anim->CancelCallbacks();
-  attachment->RemoveNode(attack);
-  delete attack;
-
-  GetOwner()->RemoveNode(attachment);
+  OnAnimationEnd();
   Eject();
 }

@@ -19,7 +19,6 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
   count = 0;
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
 
-  offsetArea = sf::Vector2f(20.f, 0.f);
   SetOffsetArea(offsetArea);
 
   AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
@@ -123,12 +122,10 @@ void ExplosionSpriteNode::Update(float _elapsed) {
     }
   }
 
-  float height = 15.0f;
-
   if(numOfExplosions != 1) {
-    setPosition(offset.x, offset.y-height);
+    setPosition(offset.x, offset.y);
   } else {
-    setPosition(0, -height);
+    setPosition(0,0);
   }
 }
 
@@ -153,7 +150,7 @@ void ExplosionSpriteNode::SetOffsetArea(sf::Vector2f area)
   if (rand() % 10 > 5) randNegY = -1;
 
   randX *= randNegX;
-  randY *= -randY;
+  randY = -randY;
 
   offset = sf::Vector2f((float)randX, (float)randY);
 }

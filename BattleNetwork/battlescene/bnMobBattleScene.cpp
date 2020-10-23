@@ -54,6 +54,27 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   auto reward      = AddState<RewardBattleState>(current, &props.base.player);
   auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
 
+  auto playerLosesInForm = [trackedForms]
+  {
+    const bool changeState = trackedForms[0]->player->GetHealth() == 0 && (trackedForms[0]->selectedForm != -1);
+
+    if (changeState) {
+      trackedForms[0]->selectedForm = -1;
+      trackedForms[0]->animationComplete = false;
+    }
+
+    return changeState;
+  };
+
+  auto formsStatePtr = &forms.Unwrap();
+  auto playerIsDead = [trackedForms, formsStatePtr] {
+    const bool changeState = trackedForms[0]->player->GetHealth() == 0 && formsStatePtr->IsFinished();
+    return changeState;
+  };
+
+  forms.ChangeOnEvent(combat, playerIsDead);
+
+  // Important! State transitions are added in order of priority!
   //       change from        ,to          ,when this is true
   CHANGE_ON_EVENT(intro       ,cardSelect  ,IsOver);
   CHANGE_ON_EVENT(cardSelect  ,forms       ,HasForm);
@@ -67,6 +88,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   // combat has multiple state interruptions based on events
   // so we chain them together instead of using the macro
   combat  .ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
+          .ChangeOnEvent(forms,      playerLosesInForm)
           .ChangeOnEvent(fadeout,    &CombatBattleState::PlayerLost)
           .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
           .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);

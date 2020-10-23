@@ -81,5 +81,6 @@ void FireBurnCardAction::OnAnimationEnd()
 
 void FireBurnCardAction::EndAction()
 {
+  OnAnimationEnd();
   Eject();
 }

@@ -67,6 +67,11 @@ const double AnimationComponent::GetPlaybackSpeed()
 void AnimationComponent::SetAnimation(string state, FrameFinishCallback onFinish)
 {
   animation.SetAnimation(state);
+
+  for (auto&& o : overrideList) {
+    o->SetAnimation(state);
+  }
+
   animation << onFinish;
   animation.Refresh(GetOwner()->getSprite());
 }
@@ -74,6 +79,11 @@ void AnimationComponent::SetAnimation(string state, FrameFinishCallback onFinish
 void AnimationComponent::SetAnimation(string state, char playbackMode, FrameFinishCallback onFinish)
 {
   animation.SetAnimation(state);
+
+  for (auto&& o : overrideList) {
+    o->SetAnimation(state);
+  }
+
   animation << playbackMode << onFinish;
 
   animation.Refresh(GetOwner()->getSprite());
@@ -82,6 +92,10 @@ void AnimationComponent::SetAnimation(string state, char playbackMode, FrameFini
 void AnimationComponent::SetPlaybackMode(char playbackMode)
 {
   animation << playbackMode;
+
+  for (auto&& o : overrideList) {
+    (*o) << playbackMode;
+  }
 }
 
 void AnimationComponent::AddCallback(int frame, FrameCallback onFrame, bool doOnce) {
@@ -111,6 +125,11 @@ void AnimationComponent::CancelCallbacks()
   auto mode = animation.GetMode();
   animation.RemoveCallbacks();
   animation << mode;
+
+  for (auto&& o : overrideList) {
+    o->RemoveCallbacks();
+    (*o) << mode;
+  }
 }
 
 sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
@@ -168,4 +187,9 @@ void AnimationComponent::SetInterruptCallback(const std::function<void()>& onInt
 void AnimationComponent::SetFrame(const int index)
 {
   animation.SetFrame(index, GetOwner()->getSprite());
+
+  for (auto&& o : overrideList) {
+    // TODO: track the override animation's target sprite?
+    // o->SetFrame(index);
+  }
 }

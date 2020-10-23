@@ -15,7 +15,7 @@
 
 class RollHeart : public Spell {
 public:
-  RollHeart(CardSummonHandler* _summons, int _heal);
+  RollHeart(Field* field, Character* user, int _heal);
   ~RollHeart();
 
   /**
@@ -45,8 +45,7 @@ public:
 private:
   int heal; /*!< How much to heal */
   float height; /*!< The start height of the heart */
-  Character* caller; /*!< The character that used the card */
-  CardSummonHandler* summons; /*!< The card summon system */
+  Character* user; /*!< The character that used the card */
   AnimationComponent* animationComponent;
   bool doOnce; /*!< Flag to restore health once */
 };

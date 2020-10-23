@@ -21,6 +21,7 @@
 #include "bnThunderCardAction.h"
 #include "bnElecPulseCardAction.h"
 #include "bnDarkTornadoCardAction.h"
+#include "bnRollCardAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
@@ -180,5 +181,8 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
   }
   else if (name == "Thunder") {
     player->QueueAction(new ThunderCardAction(player, card.GetDamage()));
+  }
+  else if (name == "Roll") {
+    player->QueueAction(new RollCardAction(player, card.GetDamage()));
   }
 }

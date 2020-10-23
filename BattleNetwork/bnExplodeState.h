@@ -89,7 +89,7 @@ void ExplodeState<Any>::OnEnter(Any& e) {
   
   // Define the area relative to origin to spawn explosions around
   // based on a fraction of the current frame's size
-  auto area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height / 6.0f);
+  auto area = sf::Vector2f(e.getLocalBounds().width / 4.0f, e.getLocalBounds().height);
 
   explosion->SetOffsetArea(area);
 

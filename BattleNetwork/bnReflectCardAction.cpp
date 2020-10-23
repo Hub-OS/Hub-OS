@@ -27,9 +27,6 @@ void ReflectCardAction::Execute() {
   // Create a new reflect shield component. This handles the logic for shields.
   ReflectShield* reflect = new ReflectShield(user, damage);
 
-  // Add the component to the player
-  user->RegisterComponent(reflect);
-
   // Play the appear sound
   AUDIO.Play(AudioType::APPEAR);
 

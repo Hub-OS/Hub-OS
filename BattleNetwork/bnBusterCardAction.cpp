@@ -113,14 +113,17 @@ void BusterCardAction::OnUpdate(float _elapsed)
 
 void BusterCardAction::OnAnimationEnd()
 {
-  GetOwner()->RemoveNode(attachment2);
-  attachment2->RemoveNode(attachment);
+  if (attachment2 != nullptr) {
+    GetOwner()->RemoveNode(attachment2);
+    attachment2->RemoveNode(attachment);
 
-  attachment = nullptr;
-  attachment2 = nullptr;
+    attachment = nullptr;
+    attachment2 = nullptr;
+  }
 }
 
 void BusterCardAction::EndAction()
 {
+  OnAnimationEnd();
   Eject();
 }

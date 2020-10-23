@@ -438,6 +438,7 @@ void Character::ResolveFrameBattleDamage()
     if(frameCounterAggressor) {
       // Slide entity back a few pixels
       counterSlideOffset = sf::Vector2f(50.f, 0.0f);
+      Broadcast(*this, *frameCounterAggressor);
     }
   } else if (frameCounterAggressor) {
     Broadcast(*this, *frameCounterAggressor);

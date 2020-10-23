@@ -171,7 +171,7 @@ public:
   }
 
   void OnEnter() { 
-    //std::cout << "Summons onEnter ";
+    /*
 
     Character* summonedBy = queue.GetCaller();
 
@@ -322,6 +322,7 @@ public:
       Aura* aura = new Aura(Aura::Type::BARRIER_10, summonedBy);
       AUDIO.Play(AudioType::APPEAR);
     }
+    */
   }
 
   void OnLeave() { 

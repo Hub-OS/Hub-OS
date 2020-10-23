@@ -31,6 +31,7 @@ CardAction::CardAction(Character* user, std::string animation, SpriteProxyNode**
         this->animationIsOver = true;
       });
 
+      this->animationIsOver = false;
       anim->OnUpdate(0);
       OnUpdate(0); // position to owner...
 
@@ -84,6 +85,8 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       anim->SetInterruptCallback([this]() {
         this->animationIsOver = true;
       });
+
+      this->animationIsOver = false;
       anim->OnUpdate(0);
       OnUpdate(0); // position to owner...
     };
@@ -159,8 +162,9 @@ const bool CardAction::IsAnimationOver() const
 }
 
 const bool CardAction::IsLockoutOver() const {
-  if (lockoutProps.type == ActionLockoutType::animation)
+  if (lockoutProps.type == ActionLockoutType::animation) {
     return animationIsOver;
+  }
 
   return lockoutProps.cooldown <= 0;
 }

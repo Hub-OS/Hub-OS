@@ -11,11 +11,12 @@
 
 #define RESOURCE_PATH "resources/spells/spell_heart.animation"
 
-RollHeart::RollHeart(CardSummonHandler* _summons, int _heal) : heal(_heal), Spell(_summons->GetCaller()->GetField(), _summons->GetCallerTeam())
+RollHeart::RollHeart(Field* field, Character* user, int _heal) 
+  : heal(_heal), 
+  user(user),
+  Spell(field , user->GetTeam())
 {
-  summons = _summons;
-  caller = summons->GetCaller();
-  caller->Reveal();
+  user->Reveal();
   SetLayer(-10);
 
   SetPassthrough(true);
@@ -23,10 +24,6 @@ RollHeart::RollHeart(CardSummonHandler* _summons, int _heal) : heal(_heal), Spel
   HighlightTile(Battle::Tile::Highlight::solid);
 
   height = 200;
-
-  Battle::Tile* _tile = summons->GetCaller()->GetTile();
-
-  field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
   animationComponent = CreateComponent<AnimationComponent>(this);
@@ -56,9 +53,9 @@ void RollHeart::OnUpdate(float _elapsed) {
     doOnce = false;
 
     Delete();
-    caller->SetHealth(caller->GetHealth() + heal);
+    user->SetHealth(user->GetHealth() + heal);
     auto healfx = new ParticleHeal();
-    caller->GetField()->AddEntity(*healfx, tile->GetX(), tile->GetY());
+    user->GetField()->AddEntity(*healfx, tile->GetX(), tile->GetY());
   }
 }
 

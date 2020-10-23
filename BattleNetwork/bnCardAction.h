@@ -10,7 +10,8 @@
 
 enum class ActionLockoutType : unsigned {
   animation,
-  async
+  async,
+  conditional // whenever a condition is true, end the lockout
 };
 
 enum class ActionLockoutGroup : unsigned {

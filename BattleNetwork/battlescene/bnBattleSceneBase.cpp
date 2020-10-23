@@ -25,7 +25,8 @@ using swoosh::types::segue;
 using swoosh::Activity;
 using swoosh::ActivityController;
 
-BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) : Activity(&controller),
+BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) 
+  : Activity(&controller),
   player(&props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -333,7 +334,7 @@ void BattleSceneBase::HandleCounterLoss(Character& subject)
   }
 }
 
-void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int cardCount) {
+void BattleSceneBase::FilterSupportCards(Battle::Card** cards, int& cardCount) {
   // Only remove the support cards in the queue. Increase the previous card damage by their support value.
   int newCardCount = cardCount;
   Battle::Card* card = nullptr;
@@ -825,10 +826,12 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
 // What to do if we inject a card publisher, subscribe it to the main listener
 void BattleSceneBase::Inject(CardUsePublisher& pub)
 {
-  enemyCardListener.Subscribe(pub);
-  SceneNode* node = dynamic_cast<SceneNode*>(&pub);
-  scenenodes.push_back(node);
-  components.push_back((Component*)&pub);
+  //enemyCardListener.Subscribe(pub);
+  //SceneNode* node = dynamic_cast<SceneNode*>(&pub);
+  //scenenodes.push_back(node);
+  //Component* component = (Component*)&pub;
+  //component->scene = this;
+  //components.push_back(component);
 }
 
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack

@@ -9,8 +9,6 @@
 #include "bnSpell.h"
 #include "bnAnimationComponent.h"
 
-class CardSummonHandler;
-
 class RollHeal : public Spell {
 public:
 
@@ -20,7 +18,7 @@ public:
    * Prepares animations callbacks
    * @param heal how much to heal the player with
    */
-  RollHeal(CardSummonHandler* _summons, int heal);
+  RollHeal(Field* field, Team team, Character* user, int heal);
   
   /**
    * @brief Deconstructor
@@ -53,6 +51,6 @@ public:
 private:
   int heal;
   int random;
-  CardSummonHandler* summons;
   AnimationComponent* animationComponent;
+  Character* user{ nullptr };
 };

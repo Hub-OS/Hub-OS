@@ -9,14 +9,13 @@
 #include "bnAudioResourceManager.h"
 #include "bnHitbox.h"
 
-#include "bnCardSummonHandler.h"
 #include "bnRollHeart.h"
 
 #define RESOURCE_PATH "resources/spells/spell_roll.animation"
 
-RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->GetCaller()->GetField(), _summons->GetCaller()->GetTeam())
+RollHeal::RollHeal(Field* field, Team team, Character* user, int _heal) 
+  : Spell(field, team), user(user)
 {
-  summons = _summons;
   SetPassthrough(true);
 
   random = rand() % 20 - 20;
@@ -25,10 +24,6 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
 
   int lr = (team == Team::red) ? 1 : -1;
   setScale(2.0f*lr, 2.0f);
-
-  Battle::Tile* _tile = summons->GetCaller()->GetTile();
-
-  field->AddEntity(*this, _tile->GetX(), _tile->GetY());
 
   AUDIO.Play(AudioType::APPEAR);
 
@@ -69,7 +64,7 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
 
       Battle::Tile* attack = nullptr;
 
-      auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
+      auto allTiles = GetField()->FindTiles([](Battle::Tile* tile) { return true; });
       auto iter = allTiles.begin();
 
       while (iter != allTiles.end()) {
@@ -79,7 +74,7 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
           if (next->ContainsEntityType<Character>() && !next->ContainsEntityType<Obstacle>() && next->GetTeam() != GetTeam()) {
             GetTile()->RemoveEntityByID(GetID());
 
-            Battle::Tile* prev = field->GetAt(next->GetX() - 1, next->GetY());
+            Battle::Tile* prev = GetField()->GetAt(next->GetX() - 1, next->GetY());
             AdoptTile(prev);
 
             attack = next;
@@ -94,7 +89,8 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
       if (found) {
         animationComponent->SetAnimation("ROLL_ATTACKING", [this] {
           animationComponent->SetAnimation("ROLL_MOVE", [this] {
-            summons->SummonEntity(new RollHeart(summons, heal*3));
+            auto heart = new RollHeart(GetField(), this->user, heal*3);
+            GetField()->AddEntity(*heart, *this->user->GetTile());
             Delete();
           });
         });
@@ -105,9 +101,10 @@ RollHeal::RollHeal(CardSummonHandler* _summons, int _heal) : Spell(_summons->Get
           animationComponent->AddCallback(20, [this, attack]() { DropHitbox(attack); }, true);
         }
       }
-      else {
+      else { //no enemies, just heal the player
         animationComponent->SetAnimation("ROLL_MOVE", [this] {
-          summons->SummonEntity(new RollHeart(summons, heal*3));
+          auto heart = new RollHeart(GetField(), this->user, heal * 3);
+          GetField()->AddEntity(*heart, *this->user->GetTile());
           Delete();
         });
       }

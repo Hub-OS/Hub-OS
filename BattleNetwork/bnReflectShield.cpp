@@ -9,12 +9,15 @@ using sf::IntRect;
 
 const std::string RESOURCE_PATH = "resources/spells/reflect_shield.animation";
 
-ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Artifact(nullptr), Component(owner)
+ReflectShield::ReflectShield(Character* owner, int damage) 
+  : damage(damage), 
+  owner(owner),
+  Artifact(owner->GetField())
 {
-  SetLayer(0);
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
-  setScale(2.f, 2.f);
-  shield = getSprite();
+  SetLayer(-1); // stay above characters
+  setScale(sf::Vector2f(2.f, 2.f));
+
   activated = false;
 
   //Components setup and load
@@ -33,12 +36,12 @@ ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Art
 
   // When the animtion ends, remove the defense rule
   auto onEnd = [this]() {
-    GetOwnerAs<Character>()->RemoveDefenseRule(guard);
+    this->owner->RemoveDefenseRule(guard);
   };
 
   // Add end callback, flag for deletion, and remove the component from the owner
   // This way the owner doesn't container a pointer to an invalid address
-  animation << Animator::On(5, onEnd, true) << [this]() { Delete(); GetOwner()->FreeComponentByID(Component::GetID()); };
+  animation << Animator::On(5, onEnd, true) << [this]() { Delete(); };
 
   animation.Update(0, getSprite());
 
@@ -50,22 +53,13 @@ ReflectShield::ReflectShield(Character* owner, int damage) : damage(damage), Art
   }
 }
 
-void ReflectShield::Inject(BattleSceneBase& bs) {
-
-}
-
 void ReflectShield::OnUpdate(float _elapsed) {
-  if (!GetTile()) return;
-
-  setPosition(GetTile()->getPosition());
-
   animation.Update(_elapsed, getSprite());
 }
 
 void ReflectShield::OnDelete()
 {
   Remove();
-  Eject();
 }
 
 bool ReflectShield::Move(Direction _direction)
@@ -81,10 +75,10 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
 
     Direction direction = Direction::none;
 
-    if (GetOwner()->GetTeam() == Team::red) {
+    if (owner.GetTeam() == Team::red) {
       direction = Direction::right;
     }
-    else if (GetOwner()->GetTeam() == Team::blue) {
+    else if (owner.GetTeam() == Team::blue) {
       direction = Direction::left;
     }
 

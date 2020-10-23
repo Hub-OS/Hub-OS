@@ -330,7 +330,7 @@ public:
   /**
     @brief Crude support card filter step
   */
-  void FilterSupportCards(Battle::Card** cards, int cardCount);
+  void FilterSupportCards(Battle::Card** cards, int& cardCount);
 
   /*
       \brief Forces the creation a fadeout state onto the state pointer and goes back to the last scene

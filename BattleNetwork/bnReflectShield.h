@@ -13,19 +13,18 @@
  */
 
 #pragma once
+#include "bnSpriteProxyNode.h"
 #include "bnArtifact.h"
-#include "bnComponent.h"
 #include "bnField.h"
 
-class ReflectShield : virtual public Artifact, virtual public Component
+class ReflectShield : public Artifact
 {
 private:
   DefenseRule* guard; /*!< Adds defense rule to attached entity */
   Animation animation; /*!< Shield animation */
-  sf::Sprite shield; /*!< Shield graphic */
   bool activated; /*!< Flag if effect is active */
   int damage; /*!< Damage the reflect trail deals */
-
+  Character* owner{ nullptr };
 public:
   /**
    * @brief Adds a guard rule to the attached entity for a short time *
@@ -42,11 +41,6 @@ public:
    * @brief Delete guard pointer
    */
   ~ReflectShield();
-  
-  /**
-   * @brief This component does not get injected into the scene
-   */
-  void Inject(BattleSceneBase&) override;
   
   /**
    * @brief Updates animation

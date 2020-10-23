@@ -21,9 +21,6 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   animationComponent->SetPath("resources/mobs/mob_explosion.animation");
   animationComponent->Reload();
 
-  offsetArea = sf::Vector2f(20.f, 0.f);
-  SetOffsetArea(offsetArea);
-
   AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
 
   animationComponent->SetAnimation("EXPLODE");
@@ -107,12 +104,12 @@ void Explosion::OnUpdate(float _elapsed) {
     }
   }
 
-  float height = 15.0f;
-
+  // The first explosion spawns inside of the entity 
+  // all other explosions use the offset to explode around the entity
   if(numOfExplosions != 1) {
-    setPosition((GetTile()->getPosition().x + offset.x), (GetTile()->getPosition().y + offset.y)-height);
+    setPosition((GetTile()->getPosition().x + offset.x), (GetTile()->getPosition().y + offset.y));
   } else {
-    setPosition((GetTile()->getPosition().x), GetTile()->getPosition().y-height);
+    setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
   }
 }
 
@@ -152,7 +149,7 @@ void Explosion::SetOffsetArea(sf::Vector2f area)
   if (rand() % 10 > 5) randNegY = -1;
 
   randX *= randNegX;
-  randY *= -randY;
+  randY = -randY;
 
   offset = sf::Vector2f((float)randX, (float)randY);
 }

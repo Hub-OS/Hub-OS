@@ -33,10 +33,12 @@ PlayerHealthUI::~PlayerHealthUI() {
 
 void PlayerHealthUI::Inject(BattleSceneBase& scene)
 {
-  bs = &scene;
+  scene.Inject(this);
 }
 
 void PlayerHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+  if (this->IsHidden()) return;
+
   auto this_states = states;
   this_states.transform *= getTransform();
 
@@ -89,7 +91,8 @@ HP drop is not 1 unit per frame. It is:
 -3 per frame for anything lower
 */
 void PlayerHealthUI::OnUpdate(float elapsed) {
-  isBattleOver = bs->IsCleared();
+  // if battle is ongoing and valid, play high pitch sound when hp is low
+  isBattleOver = this->Injected()? this->Scene()->IsCleared() : true;
 
   if (player) {
     if (player->WillRemoveLater()) {
