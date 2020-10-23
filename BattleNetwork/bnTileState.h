@@ -18,5 +18,6 @@ enum class TileState : int {
   directionUp = 12,
   directionDown = 13,
   volcano = 14,
-  size = 15
+  hidden = 15, // immutable
+  size = 16
 };

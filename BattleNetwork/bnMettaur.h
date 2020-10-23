@@ -14,7 +14,7 @@ class Mettaur : public Character, public AI<Mettaur>, public TurnOrderTrait<Mett
   friend class MettaurAttackState;
 
 public:
-    using DefaultState = MettaurIdleState;
+  using DefaultState = MettaurIdleState;
 
     /**
    * @brief Loads animations and gives itself a turn ID

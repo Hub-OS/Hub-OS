@@ -197,7 +197,10 @@ namespace Battle {
   }
 
   void Tile::SetState(TileState _state) {
-    if (IsEdgeTile()) return; // edge tiles are immutable
+    if (IsEdgeTile() || _state == TileState::hidden) {
+      state = _state;
+      return;
+    }
 
     if (_state == TileState::broken) {
       if(characters.size() || reserved.size()) {
@@ -216,6 +219,13 @@ namespace Battle {
 
   // Set the right texture based on the team color and state
   void Tile::RefreshTexture() {
+    if (state == TileState::hidden) {
+      animState = "";
+      setScale(sf::Vector2f(0, 0));
+      animation.SetAnimation(animState);
+      return;
+    }
+
     // Hack to toggle between team color without rewriting redundant code
     auto currTeam = team;
     auto otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
@@ -451,6 +461,10 @@ namespace Battle {
       willHighlight = false;
     }
 
+    if (state == TileState::hidden) {
+      willHighlight = false;
+    }
+
     // animation will want to override the sprite's origin. Use setOrigin() to fix this.
     setOrigin(TILE_WIDTH / 2.0f, TILE_HEIGHT / 2.0f);
     highlightMode = Highlight::none;
@@ -484,7 +498,7 @@ namespace Battle {
   }
 
   void Tile::HandleTileBehaviors(Obstacle* obst) {
-    if (!isTimeFrozen || !isBattleOver) {
+    if (!isTimeFrozen || !isBattleOver || !(state == TileState::hidden)) {
 
       // DIRECTIONAL TILES
       auto directional = Direction::none;
@@ -520,7 +534,7 @@ namespace Battle {
   {
     // Obstacles cannot be considered
     if (dynamic_cast<Obstacle*>(character)) return;
-    if (isTimeFrozen) return; 
+    if (isTimeFrozen || state == TileState::hidden) return; 
 
     /*
      Special tile rules for directional pads
@@ -604,6 +618,8 @@ namespace Battle {
 
   std::string Tile::GetAnimState(const TileState state)
   {
+    if (state == TileState::hidden) return "";
+
     std::string str = "row_" + std::to_string(4 - GetY()) + "_";
 
     switch (state) {

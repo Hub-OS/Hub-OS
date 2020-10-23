@@ -100,7 +100,7 @@ void MobHealthUI::draw(sf::RenderTarget & target, sf::RenderStates states) const
 
       auto glyphsRect = sf::IntRect(0, rowStart, 8, 10);
       glyphs.setTextureRect(glyphsRect);
-      glyphs.setPosition(sf::Vector2f(offsetx, 0.0f) + mob->GetTile()->getPosition());
+      glyphs.setPosition(sf::Vector2f(offsetx, 0.0f) + mob->getPosition());
       glyphs.setColor(color);
 
       target.draw(glyphs, this_states);

@@ -57,6 +57,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
   }
 
   this->EnableParentShader(false);
+  Update(0);
 }
 
 ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy) 
@@ -104,6 +105,8 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
     // Last explosion happens behind entities
     SetLayer(1000); // ensure bottom draw
   }
+
+  Update(0);
 }
 
 void ExplosionSpriteNode::Update(float _elapsed) {

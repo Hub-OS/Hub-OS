@@ -20,6 +20,7 @@
 #include "bnMetalManBossFight2.h"
 #include "bnRandomMettaurMob.h"
 #include "bnAlphaBossFight.h"
+#include "bnFalzarMob.h"
 
 /***********************************************************************
 ************    Register your custom mobs here    *********************
@@ -104,5 +105,13 @@ void QueueMobRegistration() {
   info->SetName("Alpha");
   info->SetSpeed(0);
   info->SetAttack(80);
+  info->SetHP(2000);
+
+  info = MOBS.AddClass<FalzarMob>(); // create and register object
+  info->SetDescription("Falzar can flap and fly away. He's a bird.");
+  info->SetPlaceholderTexturePath("resources/mobs/falzar/preview.png");
+  info->SetName("Falzar");
+  info->SetSpeed(10);
+  info->SetAttack(100);
   info->SetHP(2000);
 }
