@@ -750,6 +750,7 @@ std::future<bool> WebClientManager::SendLoginCommand(const char * username, cons
 
         if (result) {
             WebClientManager::username = username;
+            WebClientManager::useGuest = false;
         }
 
         promise->set_value(result);

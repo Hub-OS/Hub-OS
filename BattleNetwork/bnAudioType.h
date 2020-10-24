@@ -54,5 +54,8 @@ enum AudioType {
   NEW_GAME,
   TEXT,
   SHINE,
+  TIME_FREEZE,
+  METEOR,
+  DEFORM,
   AUDIO_TYPE_SIZE
 };

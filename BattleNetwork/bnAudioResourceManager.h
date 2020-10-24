@@ -3,8 +3,11 @@
 #include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/Audio/Sound.hpp>
 #include <SFML/Audio/Music.hpp>
-#include "bnAudioType.h"
 #include <atomic>
+#include <map>
+#include <memory>
+
+#include "bnAudioType.h"
 
 // For more retro experience, decrease available channels.
 #define NUM_OF_CHANNELS 15
@@ -68,6 +71,8 @@ public:
    * @param path path to audio sample
    */
   void LoadSource(AudioType type, const std::string& path);
+
+  std::shared_ptr<sf::SoundBuffer> LoadFromFile(const std::string& path);
   
   /**
    * @brief Play a sound with an audio priority
@@ -76,6 +81,9 @@ public:
    * @return -1 if could not play, otherwise 0
    */
   int Play(AudioType type, AudioPriority priority = AudioPriority::low);
+
+  int Play(std::shared_ptr<sf::SoundBuffer> resource, AudioPriority priority = AudioPriority::low);
+
   int Stream(std::string path, bool loop = false, sf::Music::TimeSpan span = sf::Music::TimeSpan());
   void StopStream();
   void SetStreamVolume(float volume);
@@ -94,6 +102,7 @@ private:
 
   Channel* channels;
   sf::SoundBuffer* sources;
+  std::map<std::string, std::shared_ptr<sf::SoundBuffer>> cached;
   sf::Music stream;
   float channelVolume;
   float streamVolume;

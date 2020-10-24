@@ -45,6 +45,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     if (FadeInBackdrop()) {
       currState = state::display_name;
       summonTimer.start();
+      AUDIO.Play(AudioType::TIME_FREEZE, AudioPriority::highest);
     }
   }
     break;

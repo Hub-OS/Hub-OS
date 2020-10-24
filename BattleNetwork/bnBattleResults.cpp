@@ -269,14 +269,14 @@ void BattleResults::Update(double elapsed)
 void BattleResults::Draw() {
   ENGINE.Draw(resultsSprite, false);
 
-  if(!isRevealed)
-    ENGINE.Draw(pressA, false);
-
   // moves over when there's counter stars
   auto starSpacing = [](int index) -> float { return (19.f*index); };
   auto rankPos = sf::Vector2f((2.f*191.f) - starSpacing(counterCount), 110.f);
 
   if (IsInView()) {
+    if (!isRevealed)
+      ENGINE.Draw(pressA, false);
+
     // Draw shadow
     rank.setPosition(rankPos.x+1.f, rankPos.y+2.f);
 

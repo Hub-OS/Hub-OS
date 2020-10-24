@@ -83,7 +83,6 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   CHANGE_ON_EVENT(battlestart ,combat      ,IsFinished);
   CHANGE_ON_EVENT(battleover  ,reward      ,IsFinished);
   CHANGE_ON_EVENT(timeFreeze  ,combat      ,IsOver);
-  CHANGE_ON_EVENT(reward      ,fadeout     ,OKIsPressed);
 
   // combat has multiple state interruptions based on events
   // so we chain them together instead of using the macro
@@ -112,7 +111,6 @@ MobBattleScene::~MobBattleScene() {
 
 void MobBattleScene::onStart()
 {
-  //LoadMob(*props.mobs.front());
   BattleSceneBase::onStart();
 }
 
@@ -126,6 +124,11 @@ void MobBattleScene::onEnter()
 
 void MobBattleScene::onResume()
 {
+}
+
+void MobBattleScene::onLeave()
+{
+  BattleSceneBase::onLeave();
 }
 
 void MobBattleScene::onEnd()

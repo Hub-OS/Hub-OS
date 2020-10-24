@@ -132,6 +132,12 @@ void AnimationComponent::CancelCallbacks()
   }
 }
 
+void AnimationComponent::OnFinish(const FrameFinishCallback& onFinish)
+{
+  CancelCallbacks();
+  animation << onFinish;
+}
+
 sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
 {
   return animation.GetPoint(pointName);
@@ -179,7 +185,7 @@ void AnimationComponent::RemoveFromOverrideList(Animation * other)
   }
 }
 
-void AnimationComponent::SetInterruptCallback(const std::function<void()>& onInterrupt)
+void AnimationComponent::SetInterruptCallback(const FrameFinishCallback& onInterrupt)
 {
   animation.SetInterruptCallback(onInterrupt);
 }

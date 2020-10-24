@@ -21,6 +21,11 @@ RewardBattleState::RewardBattleState(Mob* mob, Player* player) : player(player),
 { 
 }
 
+RewardBattleState::~RewardBattleState()
+{
+  delete battleResults;
+}
+
 void RewardBattleState::onStart(const BattleSceneState*)
 {
   auto battleTime = GetScene().GetElapsedBattleTime();
@@ -42,7 +47,7 @@ void RewardBattleState::onEnd(const BattleSceneState*)
 void RewardBattleState::onUpdate(double elapsed)
 {
   this->elapsed = elapsed;
-  if (battleResults) battleResults->Update(elapsed);
+  battleResults->Update(elapsed);
 }
 
 void RewardBattleState::onDraw(sf::RenderTexture& surface)
@@ -65,19 +70,14 @@ void RewardBattleState::onDraw(sf::RenderTexture& surface)
             // persistent session storage (aka a save file or cloud database)
             CHIPLIB.AddCard(reward->GetCard());
             delete reward;
-          }
+          } // else if health, zenny, frags... etc
         }
 
-        using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
-        GetController().queuePop<effect>();
+        GetScene().Quit(FadeOut::black);
       }
       else {
         battleResults->CursorAction();
       }
     }
   }
-}
-
-bool RewardBattleState::OKIsPressed() {
-  return true;
 }

@@ -28,6 +28,7 @@ struct CombatBattleState final : public BattleSceneState, public CardUseListener
   sf::Text pauseLabel; /*!< "PAUSE" text */
   sf::Sprite doubleDelete;
   sf::Sprite tripleDelete;
+  sf::Sprite counterHit;
   SpriteProxyNode customBar;
   sf::Shader& customBarShader; /*!< Cust gauge shaders */
   sf::Shader& pauseShader; /*!< Dim screen */

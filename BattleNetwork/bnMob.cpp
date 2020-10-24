@@ -157,14 +157,14 @@ const bool Mob::IsSpawningDone() {
 }
 
 const bool Mob::IsCleared() {
-  for (int i = 0; i < (int)spawn.size(); i++) {
+  /*for (int i = 0; i < (int)spawn.size(); i++) {
     auto mob = spawn[i]->mob;
     if (!mob->WillRemoveLater()) {
       return false;
     }
-  }
+  }*/
 
-  return true;
+  return spawn.empty();
 }
 
 void Mob::FlagNextReady() {

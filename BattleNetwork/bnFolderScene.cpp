@@ -634,7 +634,7 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
   };
 
-  if (questionInterface) delete questionInterface;
+  //if (questionInterface) delete questionInterface;
   questionInterface = new Question("Delete this folder?", onYes, onNo);
 
   textbox.EnqueMessage(

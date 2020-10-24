@@ -37,6 +37,20 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*> tracked, dou
   customBarShader.setUniform("texture", sf::Shader::CurrentTexture);
   customBarShader.setUniform("factor", 0);
   customBar.SetShader(&customBarShader);
+
+  // COMBO DELETE AND COUNTER LABELS
+  auto labelPosition = sf::Vector2f(240.0f, 50.f);
+
+  doubleDelete = sf::Sprite(*LOAD_TEXTURE(DOUBLE_DELETE));
+  doubleDelete.setOrigin(doubleDelete.getLocalBounds().width / 2.0f, doubleDelete.getLocalBounds().height / 2.0f);
+  doubleDelete.setPosition(labelPosition);
+  doubleDelete.setScale(2.f, 2.f);
+
+  tripleDelete = doubleDelete;
+  tripleDelete.setTexture(*LOAD_TEXTURE(TRIPLE_DELETE));
+
+  counterHit = doubleDelete;
+  counterHit.setTexture(*LOAD_TEXTURE(COUNTER_HIT));
 }
 
 const bool CombatBattleState::HasTimeFreeze() const {
@@ -59,7 +73,7 @@ const bool CombatBattleState::PlayerLost() const
 
 const bool CombatBattleState::PlayerRequestCardSelect()
 {
-  return !this->isPaused && this->isGaugeFull && INPUTx.Has(EventTypes::PRESSED_CUST_MENU);
+  return !this->isPaused && this->isGaugeFull && !mob->IsCleared() && INPUTx.Has(EventTypes::PRESSED_CUST_MENU);
 }
 
 void CombatBattleState::onStart(const BattleSceneState* last)
@@ -99,7 +113,15 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
 
 void CombatBattleState::onUpdate(double elapsed)
 {
-  if (INPUTx.Has(EventTypes::PRESSED_PAUSE)) {
+  if (mob->IsCleared()) {
+    auto cardUI = tracked[0]->GetFirstComponent<SelectedCardsUI>();
+
+    if (cardUI) {
+      tracked[0]->FreeComponentByID(cardUI->GetID());
+    }
+  }
+
+  if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !mob->IsCleared()) {
     isPaused = !isPaused;
 
     if (!isPaused) {
@@ -128,17 +150,22 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
 {
   const int comboDeleteSize = GetScene().ComboDeleteSize();
 
-  switch(comboDeleteSize){
-  case 2:
-    ENGINE.Draw(doubleDelete);
-    break;
-  default:
-    ENGINE.Draw(tripleDelete);
+  if (!GetScene().Countered()) {
+    if (comboDeleteSize == 2) {
+      ENGINE.Draw(doubleDelete);
+    } else if(comboDeleteSize > 2) {
+      ENGINE.Draw(tripleDelete);
+    }
+  }
+  else {
+    ENGINE.Draw(counterHit);
   }
 
   ENGINE.Draw(GetScene().GetCardSelectWidget());
 
-  ENGINE.Draw(&customBar);
+  if (!mob->IsCleared()) {
+    ENGINE.Draw(&customBar);
+  }
 
   if (isPaused) {
     ENGINE.SetShader(&pauseShader);
@@ -150,7 +177,9 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
 
 void CombatBattleState::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
 {
-  hasTimeFreeze = card.IsTimeFreeze();
+  if (!mob->IsCleared()) {
+    hasTimeFreeze = card.IsTimeFreeze();
+  }
 }
 
 const bool CombatBattleState::HandleNextRoundSetup(const BattleSceneState* state)

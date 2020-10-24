@@ -122,6 +122,8 @@ public:
    */
   void CancelCallbacks();
 
+  void OnFinish(const FrameFinishCallback& onFinish);
+
   /**
    * @brief Get the (x,y) coordinate of a point from the current frame
    * @param pointName the name of the point in the animation file 
@@ -136,7 +138,7 @@ public:
 
   void AddToOverrideList(Animation* other);
   void RemoveFromOverrideList(Animation* other);
-  void SetInterruptCallback(const std::function<void()>& onInterrupt);
+  void SetInterruptCallback(const FrameFinishCallback& onInterrupt);
   /**
    * @brief Force the animation to jump to this frame index 
    * @param index index of the frame

@@ -19,9 +19,14 @@ public:
   ~VirusBackground();
 
   void Update(float _elapsed) override;
-
+  void ScrollUp();
+  void ScrollLeft();
+  void SetScrollSpeed(const float speed);
 private:
   float x, y;
   float progress;
+  float speed;
+  int lr{ 0 };
+  int ud{ -1 };
 };
 

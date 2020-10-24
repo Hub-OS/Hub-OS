@@ -31,5 +31,6 @@ class MobBattleScene final : public BattleSceneBase {
   void onExit() override;
   void onEnter() override;
   void onResume() override;
+  void onLeave() override;
   void onEnd() override;
 };

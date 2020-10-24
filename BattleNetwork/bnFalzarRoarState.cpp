@@ -5,6 +5,8 @@
 
 FalzarRoarState::FalzarRoarState()
 {
+  roar = AUDIO.LoadFromFile("resources/mobs/falzar/roar.ogg");
+
 }
 
 FalzarRoarState::~FalzarRoarState()
@@ -13,7 +15,7 @@ FalzarRoarState::~FalzarRoarState()
 
 void FalzarRoarState::OnEnter(Falzar& falzar)
 {
-  AUDIO.Play(AudioType::FANFARE, AudioPriority::high);
+  AUDIO.Play(roar, AudioPriority::highest);
 
   animateCount = 0; // reset the animate count
   auto animation = falzar.GetFirstComponent<AnimationComponent>();

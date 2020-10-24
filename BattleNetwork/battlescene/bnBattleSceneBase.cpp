@@ -101,26 +101,15 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   // Player UI 
   auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
+
   cardCustGUI.AddNode(healthUI);
 
   camera = Camera(ENGINE.GetView());
   ENGINE.SetCamera(camera);
 
   /*
-  Other battle labels
+  Counter "reveal" ring
   */
-
-  doubleDelete = sf::Sprite(*LOAD_TEXTURE(DOUBLE_DELETE));
-  doubleDelete.setOrigin(doubleDelete.getLocalBounds().width / 2.0f, doubleDelete.getLocalBounds().height / 2.0f);
-  comboInfoPos = sf::Vector2f(240.0f, 50.f);
-  doubleDelete.setPosition(comboInfoPos);
-  doubleDelete.setScale(2.f, 2.f);
-
-  tripleDelete = doubleDelete;
-  tripleDelete.setTexture(*LOAD_TEXTURE(TRIPLE_DELETE));
-
-  counterHit = doubleDelete;
-  counterHit.setTexture(*LOAD_TEXTURE(COUNTER_HIT));
 
   counterRevealAnim = Animation("resources/navis/counter_reveal.animation");
   counterRevealAnim << "DEFAULT" << Animator::Mode::Loop;
@@ -221,7 +210,7 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
       totalCounterDeletions++;
     }
 
-    comboInfo = counterHit;
+    didCounterHit = true;
     comboInfoTimer.reset();
 
     field->RevealCounterFrames(true);
@@ -257,7 +246,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
     }
 
     return false;
-    });
+  });
 
   Logger::Logf("Removing %s from battle", pending.GetName().c_str());
   mob->Forget(pending);
@@ -275,6 +264,11 @@ const bool BattleSceneBase::IsBattleActive()
 const int BattleSceneBase::ComboDeleteSize()
 {
   return comboInfoTimer.getElapsed().asSeconds() <= 1.0f ? comboDeleteCounter : 0;
+}
+
+const bool BattleSceneBase::Countered()
+{
+  return comboInfoTimer.getElapsed().asSeconds() <= 1.0f && didCounterHit;
 }
 
 void BattleSceneBase::HighlightTiles(bool enable)
@@ -418,7 +412,7 @@ void BattleSceneBase::onStart()
   else {
     if (!mob->IsBoss()) {
       sf::Music::TimeSpan span;
-      span.offset = sf::microseconds(84);
+      span.offset = sf::milliseconds(84);
       span.length = sf::seconds(120.0f * 1.20668f);
 
       AUDIO.Stream("resources/loops/loop_battle.ogg", true, span);
@@ -472,24 +466,30 @@ void BattleSceneBase::onUpdate(double elapsed) {
   cardUI->OnUpdate((float)elapsed);
   cardCustGUI.Update((float)elapsed);
 
+  newMobSize = mob->GetMobCount();
+
+  // State update
+  if(!current) return;
+
+  current->onUpdate(elapsed);
+
   // Track combo deletes
   if (lastMobSize != newMobSize && !isPlayerDeleted) {
+    int counter = lastMobSize - newMobSize;
     if (multiDeleteTimer.getElapsed() <= sf::seconds(COMBO_HIT_THRESHOLD_SECONDS)) {
-      comboDeleteCounter += lastMobSize - newMobSize;
+      comboDeleteCounter += counter;
 
       if (comboDeleteCounter == 2) {
         didDoubleDelete = true;
-        comboInfo = doubleDelete;
         comboInfoTimer.reset();
       }
       else if (comboDeleteCounter > 2) {
         didTripleDelete = true;
-        comboInfo = tripleDelete;
         comboInfoTimer.reset();
       }
     }
     else if (multiDeleteTimer.getElapsed() > sf::seconds(COMBO_HIT_THRESHOLD_SECONDS)) {
-      comboDeleteCounter = 0;
+      comboDeleteCounter = counter;
     }
   }
 
@@ -499,11 +499,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
   }
 
   lastMobSize = newMobSize;
-
-  // State update
-  if(!current) return;
-
-  current->onUpdate(elapsed);
 
   for (auto iter = nodeToEdges.begin(); iter != nodeToEdges.end(); iter++) {
     if (iter->first == current) {

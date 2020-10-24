@@ -122,6 +122,9 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
   LoadSource(AudioType::NEW_GAME, "resources/sfx/new_game.ogg"); status++;
   LoadSource(AudioType::TEXT, "resources/sfx/text.ogg"); status++;
   LoadSource(AudioType::SHINE, "resources/sfx/shine.ogg"); status++;
+  LoadSource(AudioType::METEOR, "resources/sfx/meteor.ogg"); status++;
+  LoadSource(AudioType::TIME_FREEZE, "resources/sfx/timefreeze.ogg"); status++;
+  LoadSource(AudioType::DEFORM, "resources/sfx/deform.ogg"); status++;
 }
 
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
@@ -131,6 +134,23 @@ void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
   } else {
     Logger::Logf("Loaded audio: %s", path.c_str());
   }
+}
+
+std::shared_ptr<sf::SoundBuffer> AudioResourceManager::LoadFromFile(const std::string& path)
+{
+  auto iter = cached.find(path);
+  std::shared_ptr<sf::SoundBuffer> loaded;
+
+  if (iter == cached.end()) {
+    loaded = std::make_shared<sf::SoundBuffer>();
+    loaded->loadFromFile(path);
+    cached.insert(std::make_pair(path, loaded));
+  }
+  else {
+    loaded = iter->second;
+  }
+
+  return loaded;
 }
 
 int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
@@ -202,6 +222,83 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
       if (canOverwrite) {
         channels[i].buffer.stop();
         channels[i].buffer.setBuffer(sources[type]);
+        channels[i].buffer.play();
+        channels[i].priority = priority;
+        return 0;
+      }
+    }
+  }
+
+  // No free channel? Skip playing this sound.
+  return -1;
+}
+
+int AudioResourceManager::Play(std::shared_ptr<sf::SoundBuffer> resource, AudioPriority priority)
+{
+  if (!isEnabled) { return -1; }
+
+  // Annoying sound check. Make sure duplicate sounds are played only by a given amount of offset from the last time it was played.
+  // This prevents amplitude stacking when duplicate sounds are played on the same frame...
+  // NOTE: an audio queue would be a better place for this check. Then play() those sounds that pass the queue filter.
+  if (priority < AudioPriority::high) {
+    for (int i = 0; i < NUM_OF_CHANNELS; i++) {
+      if (channels[i].buffer.getBuffer() == resource.get() && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
+        auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
+        if (howLongPlayed <= AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
+          return -1;
+        }
+      }
+    }
+  }
+
+  // Priorities are LOWEST  (one at a time, if channel available),
+  //                LOW     (any free channels),
+  //                HIGH    (force a channel to play sound, but one at a time, and don't interrupt other high priorities),
+  //                HIGHEST (force a channel to play sound always)
+
+
+  // Highest priority plays over anything that isn't like it
+  if (priority == AudioPriority::highest) {
+    for (int i = 0; i < NUM_OF_CHANNELS; i++) {
+      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || channels[i].buffer.getBuffer() != resource.get()) {
+        channels[i].buffer.stop();
+        channels[i].buffer.setBuffer(*resource);
+        channels[i].buffer.play();
+        channels[i].priority = priority;
+        return 0;
+      }
+    }
+  }
+
+  // For lowest priority or high priority sounds, scan and see if this sound is already playing...
+  // This step is also used as a pre-check for low priority sounds
+  if (priority == AudioPriority::lowest || priority == AudioPriority::high) {
+    for (int i = 0; i < NUM_OF_CHANNELS; i++) {
+      if (channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
+        if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == resource.get()) {
+          // Lowest priority or high priority sounds only play once 
+          return -1;
+        }
+      }
+    }
+  }
+
+  // Play sound based on priortiy rules
+  for (int i = 0; i < NUM_OF_CHANNELS; i++) {
+    if (priority != AudioPriority::high) {
+      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing) {
+        channels[i].buffer.setBuffer(*resource);
+        channels[i].buffer.play();
+        channels[i].priority = priority;
+        return 0;
+      }
+    }
+    else { // HIGH PRIORITY will not overwrite other HIGH priorities unless they have ended
+      bool canOverwrite = channels[i].priority < AudioPriority::high
+        || (channels[i].priority == AudioPriority::high && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing);
+      if (canOverwrite) {
+        channels[i].buffer.stop();
+        channels[i].buffer.setBuffer(*resource);
         channels[i].buffer.play();
         channels[i].priority = priority;
         return 0;

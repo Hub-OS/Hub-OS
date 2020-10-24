@@ -25,7 +25,18 @@ void BattleOverBattleState::onStart(const BattleSceneState*)
   AUDIO.Stream("resources/loops/enemy_deleted.ogg");
 
   for (auto p : tracked) {
-    p->ChangeState<PlayerIdleState>();
+    auto animComponent = p->GetFirstComponent<AnimationComponent>();
+
+    // If animating, let the animation end to look natural
+    if (animComponent) {
+      animComponent->OnFinish([p] {
+        p->ChangeState<PlayerIdleState>();
+      });
+    }
+    else {
+      // Otherwise force state
+      p->ChangeState<PlayerIdleState>();
+    }
   }
 
   GetScene().GetField()->RequestBattleStop();

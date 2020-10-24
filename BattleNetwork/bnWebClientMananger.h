@@ -17,26 +17,29 @@ bool is_ready(const std::future<T>& f) {
 
 class WebClientManager {
 private:
-    std::unique_ptr<WebAccounts::WebClient> client;
+
     std::thread tasksThread; //!< This thread performs api requests when queued by the battle engine
     std::thread pingThread; //!< This thread pings the server to gauge the connection
     std::mutex clientMutex; //!< Mutex for WebClient since it may be accessed by multiple threads...
+    std::condition_variable taskQueueWakeup;
+
+    bool useGuest; //!< If this is true, all session data is saved in a separate guest account binary
+    bool shutdownSignal;
+    bool isWorking;
     bool isConnected; //!< True if pinged heartbeat endpoint successfully in the last invernal
     long heartbeatInterval; //!< The time in milliseconds to ping the web server
     long long since; //!< Last time in milliseconds the API was fetched (how recent are we in sync?)
+    std::string username;
+    WebAccounts::AccountState account;
+    std::unique_ptr<WebAccounts::WebClient> client;
+    std::map<std::string, std::shared_ptr<sf::Texture>> iconTextureCache;
+    std::map<std::string, std::shared_ptr<sf::Texture>> cardTextureCache;
     std::queue<std::function<void()>> taskQueue;
-    std::condition_variable taskQueueWakeup;
-    bool shutdownSignal;
-    bool isWorking;
 
     void PingThreadHandler();
     void QueuedTasksThreadHandler();
     void InitDownloadImageHandler();
-    std::map<std::string, std::shared_ptr<sf::Texture>> iconTextureCache;
-    std::map<std::string, std::shared_ptr<sf::Texture>> cardTextureCache;
-    WebAccounts::AccountState account;
 
-    std::string username;
 public:
     WebClientManager();
     static WebClientManager& GetInstance();

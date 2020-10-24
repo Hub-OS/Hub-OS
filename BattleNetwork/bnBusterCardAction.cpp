@@ -120,6 +120,8 @@ void BusterCardAction::OnAnimationEnd()
     attachment = nullptr;
     attachment2 = nullptr;
   }
+
+  isBusterAlive = false;
 }
 
 void BusterCardAction::EndAction()

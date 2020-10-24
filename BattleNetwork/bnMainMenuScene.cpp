@@ -106,7 +106,9 @@ void MainMenuScene::onStart() {
   }
   else {
     WebAccounts::AccountState account;
-    if (WEBCLIENT.LoadSession("test_save.bin", &account)) {
+    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account) || WEBCLIENT.LoadSession("guest.bin", &account);
+      
+    if(loaded) {
       WEBCLIENT.UseCachedAccount(account);
       WEBCLIENT.CacheTextureData(account);
       data = CardFolderCollection::ReadFromWebAccount(account);

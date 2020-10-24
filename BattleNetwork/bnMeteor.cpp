@@ -85,6 +85,11 @@ void Meteor::Attack(Character* _entity) {
   _entity->Hit(GetHitboxProperties());
 }
 
+void Meteor::OnSpawn(Battle::Tile& start)
+{
+  AUDIO.Play(AudioType::METEOR, AudioPriority::high);
+}
+
 void Meteor::OnDelete()
 {
   Remove();

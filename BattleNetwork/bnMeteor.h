@@ -21,5 +21,6 @@ public:
   void OnUpdate(float _elapsed) override;
   bool Move(Direction _direction) override;
   void Attack(Character* _entity) override;
+  void OnSpawn(Battle::Tile& start) override;
   void OnDelete() override;
 };

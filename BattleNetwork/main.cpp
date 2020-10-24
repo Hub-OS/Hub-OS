@@ -399,6 +399,8 @@ int main(int argc, char** argv) {
     // Cleanup
     ENGINE.Clear();
 
+    if (!ENGINE.Running()) return 1;
+
     // Title screen background
     // This will be loaded from the resource manager AFTER it's ready
     std::shared_ptr<sf::Texture> bg = nullptr;

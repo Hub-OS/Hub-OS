@@ -55,7 +55,13 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       // This way dying will cancel the form
       lastSelectedForm = playerPtr->GetHealth() == 0 ? -1 : index_;
       playerPtr->ActivateFormAt(lastSelectedForm);
-      AUDIO.Play(AudioType::SHINE);
+
+      if (lastSelectedForm == -1) {
+        AUDIO.Play(AudioType::DEFORM);
+      }
+      else {
+        AUDIO.Play(AudioType::SHINE);
+      }
 
       playerPtr->SetShader(SHADERS.GetShader(ShaderType::WHITE));
 
@@ -126,7 +132,9 @@ void CharacterTransformBattleState::onStart(const BattleSceneState*) {
 void CharacterTransformBattleState::onUpdate(double elapsed) {
   switch (currState) {
   case state::fadein:
-    FadeInBackdrop() ? currState = state::animate : (void)0;
+    if (FadeInBackdrop()) {
+      currState = state::animate;
+    }
     break;
   case state::animate:
     UpdateAnimation(elapsed);
@@ -149,14 +157,17 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture&)
   for (auto data : tracking) {
     auto& [player, index, complete] = *data;
 
-    Animation& anim = shineAnimations[count];
-    anim.Update(static_cast<float>(frameElapsed), shine);
+    //if (index == -1 && count++) continue; // increases count for us before continuing
+      Animation& anim = shineAnimations[count];
+      anim.Update(static_cast<float>(frameElapsed), shine);
 
-    // re-use the shine graphic for all animating player-types 
-    auto pos = player->getPosition();
-    shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
+      if (index != -1) {
+      // re-use the shine graphic for all animating player-types 
+      auto pos = player->getPosition();
+      shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
 
-    ENGINE.Draw(shine, false);
+      ENGINE.Draw(shine, false);
+    }
 
     count++;
   }

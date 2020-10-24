@@ -64,6 +64,7 @@ private:
   bool quitting{ false }; //!< Determine if we are leaving the battle scene
   bool didDoubleDelete{ false }; /*!< Flag if player double deleted this frame */
   bool didTripleDelete{ false }; /*!< Flag if player tripled deleted this frame */
+  bool didCounterHit{ false }; /*!< Flag if player countered an enemy this frame */
   bool isSceneInFocus{ false }; //<! Let us know if transition effects complete
   bool isPlayerDeleted{ false };
   bool isPaused{ false };
@@ -112,11 +113,6 @@ private:
   int cardCount; /*!< Length of card list */
 
   // sprites
-  sf::Sprite doubleDelete; /*!< "Double Delete" graphic */
-  sf::Sprite tripleDelete; /*!< "Triple Delete" graphic */
-  sf::Sprite counterHit; /*!< "Counter Hit" graphic */
-  sf::Sprite comboInfo;  /*!< double delete and triple delete placeholder. Only one appears at a time */
-  sf::Vector2f comboInfoPos; /*!< Position of comboInfo on screen */
   swoosh::Timer comboInfoTimer; /*!< How long the info should stay on screen */
   swoosh::Timer multiDeleteTimer; /*!< Deletions start a 12 frame timer to count towards combos */
   swoosh::Timer battleTimer; /*!< Total duration of active battle time */
@@ -259,6 +255,7 @@ public:
   const bool DoubleDelete() const;
   const bool TripleDelete() const;
   const int ComboDeleteSize();
+  const bool Countered();
   void HighlightTiles(bool enable);
 
   const double GetCustomBarProgress() const;
@@ -268,7 +265,7 @@ public:
 
   /**
     * @brief State boolean for BattleScene. Query if the battle is over.
-    * @return true if isPostBattle is true, otherwise false
+    * @return true if all mob enemies are marked as deleted
     */
   const bool IsCleared();
 

@@ -14,9 +14,12 @@ FalzarMob::~FalzarMob() {
 Mob* FalzarMob::Build() {
     Mob* mob = new Mob(field);
     mob->ToggleBossFlag();
-
     mob->StreamCustomMusic("resources/loops/loop_falzar.ogg");
-    mob->SetBackground(new VirusBackground());
+
+    auto bg = new VirusBackground();
+    bg->ScrollUp();
+    bg->SetScrollSpeed(0.25f); // crawl upward slowly
+    mob->SetBackground(bg);
 
     for(int i = 4; i <= 6; i++) {
         for(int j = 1; j <= 3; j++) {
