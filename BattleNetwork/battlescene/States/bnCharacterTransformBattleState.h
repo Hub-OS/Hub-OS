@@ -39,6 +39,7 @@ private:
   void UpdateAnimation(double elapsed);
 
 public:
+  bool Decrossed();
   bool IsFinished();
   void onStart(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;

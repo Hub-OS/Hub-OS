@@ -27,8 +27,23 @@ public:
    * @param name of the folder
    * @return true of found, false otherwise
    */
-  bool HasFolder(std::string name) {
+  bool HasFolder(const std::string& name) {
     return (collection.find(name) != collection.end());
+  }
+
+  /**
+ * @brief Find the index of a folder with the given name
+ * @param name of the folder
+ * @return index of folder (base-0). Otherwise -1 to indicate the folder was not found
+ */
+  int FindFolder(const std::string& name) {
+    for (int i = 0; i < (int)order.size(); i++) {
+      if (name == order[i]) {
+        return i;
+      }
+    }
+
+    return -1;
   }
 
   /**
@@ -36,7 +51,7 @@ public:
    * @param name of the new folder
    * @return true if created, false if folder already exists
    */
-  bool MakeFolder(std::string name) {
+  bool MakeFolder(const std::string& name) {
     if (HasFolder(name)) return false;
 
     collection[name] = new CardFolder();
@@ -52,7 +67,7 @@ public:
  * @return true if deleted, false if folder does not exist
  * @warning THIS IS PERMANENT AND CANNOT UNDO
  */
-  bool DeleteFolder(std::string name) {
+  bool DeleteFolder(const std::string& name) {
     auto iter = collection.find(name);
 
     if (iter != collection.end()) {
@@ -73,7 +88,7 @@ public:
    * @param folder handle to the folder 
    * @return true if loaded, false if the folder was not found
    */
-  bool GetFolder(std::string name, CardFolder*& folder) {
+  bool GetFolder(const std::string& name, CardFolder*& folder) {
     if (!HasFolder(name)) return false;
 
     folder = collection[name];
@@ -101,7 +116,7 @@ public:
    * @brief Get a list of the folder names in order
    * @return std::vector<std::string>
    */
-  std::vector<std::string> GetFolderNames() {
+  std::vector<std::string> GetFolderNames() const {
     std::vector<std::string> v;
     for (int i = 0; i < order.size(); i++) {
       auto iter = collection.find(order[i]);
@@ -117,7 +132,7 @@ public:
    * @param folder folder to change name of
    * @return false if the name already exists or folder is null, true if succeeded
    */
-  bool SetFolderName(std::string name, CardFolder* folder) {
+  bool SetFolderName(const std::string& name, CardFolder* folder) {
     if (!folder) return false;
 
     if (HasFolder(name)) {
@@ -271,7 +286,7 @@ public:
 
           ws << ws.endl(); // space between folders
         }
-      }catch(std::exception& e) {
+      }catch(const std::exception& e) {
         Logger::Log(std::string("Writing card folder collection failed: ") + e.what());
         return false;
       }

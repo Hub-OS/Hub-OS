@@ -11,21 +11,14 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/auras.animation"
 
-Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Component(owner), privOwner(owner), bs(nullptr)
+Aura::Aura(Aura::Type type, Character* owner) : type(type), UIComponent(owner)
 {
   timer = 50; // seconds
   
   auraSprite.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
   aura = new SpriteProxyNode(auraSprite);
-
-  // owner draws -> aura component draws -> aura sprite anim draws
-  owner->RegisterComponent(this);
-  owner->AddNode(this);
-
-  AddNode(aura);
-
-  // Note: need to get rid of artificial scaling by 2. Makes the math awful. No need for it.
-  setPosition(0, -owner->GetHeight() / 2.0f / 2.0f); // divide twice. 1 -> real screen coord 2 -> half of real height
+  setScale(2.f, 2.f);
+  SetLayer(1); // behind player
 
   persist = false;
 
@@ -77,15 +70,17 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), SceneNode(), Compone
 
   animation << Animator::Mode::Loop;
   animation.Update(0, aura->getSprite());
+
+  setPosition(GetOwner()->getPosition());
 }
 
 void Aura::Inject(BattleSceneBase& bs) {
   bs.Inject((Component*)this);
-  this->bs = &bs;
+  AUDIO.Play(AudioType::APPEAR);
 }
 
 void Aura::OnUpdate(float _elapsed) {
-  if (bs == nullptr) {
+  if (!Injected()) {
     return;
   }
 
@@ -93,10 +88,12 @@ void Aura::OnUpdate(float _elapsed) {
   // associated components 
   if (defense->IsReplaced()) {
     RemoveNode(aura);
-    privOwner->RemoveNode(this);
-    bs->Eject(GetID());
+    GetOwner()->RemoveNode(this);
+    Eject();
     return;
   }
+
+  setPosition(GetOwner()->getPosition());
 
   currHP = health;
   
@@ -114,9 +111,12 @@ void Aura::OnUpdate(float _elapsed) {
     Reveal(); // always show regardless of owner
   }
   else if (timer <= 0.0) {
-    privOwner->RemoveDefenseRule(defense);
-    privOwner->RemoveNode(this);
-    bs->Eject(GetID());
+    if (auto character = GetOwnerAs<Character>(); character) {
+      character->RemoveDefenseRule(defense);
+    }
+
+    GetOwner()->RemoveNode(this);
+    Eject();
     return;
   }
   else {
@@ -129,16 +129,16 @@ void Aura::OnUpdate(float _elapsed) {
     }
   }
 
- if (privOwner->GetTile() == nullptr) {
+ if (GetOwner()->GetTile() == nullptr) {
    Hide();
    return;
  }
 
  animation.Update(_elapsed, aura->getSprite());
 
- if (privOwner->WillRemoveLater()) {
+ if (GetOwner()->WillRemoveLater()) {
    timer = 0;
-   bs->Eject(GetID());
+   Eject();
  }
 }
 
@@ -177,8 +177,9 @@ void Aura::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   auto this_states = states;
   this_states.transform *= getTransform();
 
-  this_states.shader = nullptr; // we don't want to apply effects from the owner to this component
-  SceneNode::draw(target, this_states);
+  target.draw(auraSprite, this_states);
+
+  UIComponent::draw(target, this_states);
 
   // Only draw HP font for Barriers. Auras are hidden.
   if (type <= Type::AURA_1000) return;

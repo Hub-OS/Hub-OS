@@ -11,10 +11,10 @@
 
 #define RESOURCE_PATH "resources/spells/spell_heart.animation"
 
-RollHeart::RollHeart(Field* field, Character* user, int _heal) 
+RollHeart::RollHeart(Character* user, int _heal) 
   : heal(_heal), 
   user(user),
-  Spell(field , user->GetTeam())
+  Spell(user->GetField() , user->GetTeam())
 {
   user->Reveal();
   SetLayer(-10);

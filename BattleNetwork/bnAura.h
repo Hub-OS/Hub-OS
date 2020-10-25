@@ -1,6 +1,6 @@
 #pragma once
 #include "bnSceneNode.h"
-#include "bnComponent.h"
+#include "bnUIComponent.h"
 #include "bnField.h"
 
 class DefenseAura;
@@ -18,7 +18,7 @@ class DefenseAura;
  * The other type of Aura is a Barrier. Barrier is similar but each damage recieved takes away from the
  * Barrier's internal HP. When the HP is below or at zero, the Barrier deletes itself.
  */
-class Aura : virtual public SceneNode, virtual public Component
+class Aura : public UIComponent
 {
 public:
   /**
@@ -46,9 +46,7 @@ private:
   int currHP; /*!< HP this frame */
   int startHP; /*!< HP at creation */
   mutable Sprite font; /*!< Aura HP glyphs */
-  Character* privOwner; /*!< We wish to track the original owner */
-  BattleSceneBase* bs; /*!< pointer to the battle scene*/
-  std::shared_ptr<Texture> fontTextureRef; /*!< reference to the texture set used */
+  std::shared_ptr<sf::Texture> fontTextureRef; /*!< reference to the texture set used */
 public:
   /**
    * @brief Create an aura with type and a Character owner

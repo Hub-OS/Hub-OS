@@ -3,6 +3,8 @@
 #include <algorithm>
 
 #include "bnProtoManSummon.h"
+#include "bnCharacter.h"
+#include "bnObstacle.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
@@ -10,20 +12,19 @@
 #include "bnBasicSword.h"
 #include "bnSwordEffect.h"
 
-#include "bnCardSummonHandler.h"
-
 #define RESOURCE_PATH "resources/spells/protoman_summon.animation"
 
-ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->GetCaller()->GetField(), _summons->GetCaller()->GetTeam())
+ProtoManSummon::ProtoManSummon(Character* user, int damage) : 
+  user(user),
+  Spell(user->GetField(), user->GetTeam())
 {
-  summons = _summons;
   SetPassthrough(true);
   random = rand() % 20 - 20;
 
   int lr = (team == Team::red) ? 1 : -1;
   setScale(2.0f*lr, 2.0f);
 
-  Battle::Tile* _tile = summons->GetCaller()->GetTile();
+  Battle::Tile* _tile = user->GetTile();
 
   field->AddEntity(*this, *_tile);
 
@@ -52,8 +53,8 @@ ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->Ge
       
       Battle::Tile* prev = field->GetAt(next->GetX() + step, next->GetY());
 
-      auto characters = prev->FindEntities([_summons](Entity* in) {
-        return _summons->GetCaller() != in && (dynamic_cast<Character*>(in)  && in->GetTeam() != Team::unknown);
+      auto characters = prev->FindEntities([this](Entity* in) {
+        return this->user != in && (dynamic_cast<Character*>(in)  && in->GetTeam() != Team::unknown);
       });
 
       bool blocked = (characters.size() > 0) || !prev->IsWalkable();
@@ -75,9 +76,9 @@ ProtoManSummon::ProtoManSummon(CardSummonHandler* _summons) : Spell(_summons->Ge
   });
 
   auto props = GetHitboxProperties();
-  props.damage = 120;
+  props.damage = damage;
   props.flags |= Hit::flinch;
-  props.aggressor = _summons->GetCaller();
+  props.aggressor = user;
   SetHitboxProperties(props);
 }
 
@@ -113,7 +114,7 @@ void ProtoManSummon::DoAttackStep() {
   else {
     animationComponent->SetAnimation("MOVE", [this] {
       Delete();
-      summons->GetCaller()->Reveal();
+      user->Reveal();
     });
   }
 }
@@ -144,7 +145,7 @@ void ProtoManSummon::Attack(Character* _entity) {
 
   BasicSword* b = new BasicSword(field, GetTeam(), 0);
   auto props = this->GetHitboxProperties();
-  props.aggressor = summons->GetCaller();
+  props.aggressor = user;
   b->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::SWORD_SWING);
@@ -152,13 +153,13 @@ void ProtoManSummon::Attack(Character* _entity) {
 
   b = new BasicSword(field, GetTeam(), 0);
   props = this->GetHitboxProperties();
-  props.aggressor = summons->GetCaller();
+  props.aggressor = user;
   b->SetHitboxProperties(props);
   field->AddEntity(*b,tile->GetX() + 1, tile->GetY() + 1);
 
   b = new BasicSword(field, GetTeam(), 0);
   props = this->GetHitboxProperties();
-  props.aggressor = summons->GetCaller();
+  props.aggressor = user;
   field->AddEntity(*b, tile->GetX() + 1, tile->GetY() - 1);
 
   AUDIO.Play(AudioType::SWORD_SWING);

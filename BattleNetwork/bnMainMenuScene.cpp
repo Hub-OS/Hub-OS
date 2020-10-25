@@ -108,7 +108,7 @@ void MainMenuScene::onStart() {
 
       WEBCLIENT.UseCachedAccount(account);
       WEBCLIENT.CacheTextureData(account);
-      data = CardFolderCollection::ReadFromWebAccount(account);
+      folders = CardFolderCollection::ReadFromWebAccount(account);
       programAdvance = PA::ReadFromWebAccount(account);
     }
 
@@ -124,7 +124,7 @@ void MainMenuScene::onStart() {
     if(loaded) {
       WEBCLIENT.UseCachedAccount(account);
       WEBCLIENT.CacheTextureData(account);
-      data = CardFolderCollection::ReadFromWebAccount(account);
+      folders = CardFolderCollection::ReadFromWebAccount(account);
       programAdvance = PA::ReadFromWebAccount(account);
     }
   }
@@ -139,33 +139,44 @@ void MainMenuScene::onStart() {
 void MainMenuScene::onUpdate(double elapsed) {
     #ifdef __ANDROID__
     if(gotoNextScene)
-        return; // keep the screen looking the same when we come back
+      return; // keep the screen looking the same when we come back
     #endif
 
     if (WEBCLIENT.IsLoggedIn() && accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
-        try {
-            const WebAccounts::AccountState& account = accountCommandResponse.get();
-            Logger::Logf("You have %i folders on your account", account.folders.size());
-            WEBCLIENT.CacheTextureData(account);
-            data = CardFolderCollection::ReadFromWebAccount(account);
-            programAdvance = PA::ReadFromWebAccount(account);
+      try {
+        std::string selectedFolderName{};
 
-            // Replace
-            WEBCLIENT.SaveSession("profile.bin");
+        if (auto names = folders.GetFolderNames(); !names.empty()) {
+          selectedFolderName = names[0];
         }
-        catch (const std::runtime_error& e) {
-            Logger::Logf("Could not fetch account.\nError: %s", e.what());
+
+        const WebAccounts::AccountState& account = accountCommandResponse.get();
+        Logger::Logf("You have %i folders on your account", account.folders.size());
+        WEBCLIENT.CacheTextureData(account);
+        folders = CardFolderCollection::ReadFromWebAccount(account);
+        programAdvance = PA::ReadFromWebAccount(account);
+
+        // preserve our selected folder
+        if (int index = folders.FindFolder(selectedFolderName); index >= 0) {
+          folders.SwapOrder(index, 0); // Select this folder again
         }
+
+        // Replace
+        WEBCLIENT.SaveSession("profile.bin");
+      }
+      catch (const std::runtime_error& e) {
+          Logger::Logf("Could not fetch account.\nError: %s", e.what());
+      }
     }
 
   // update the web connectivity icon
   bool currentConnectivity = WEBCLIENT.IsConnectedToWebServer();
   if (currentConnectivity != lastIsConnectedState) {
     if (WEBCLIENT.IsConnectedToWebServer()) {
-        webAccountAnimator.SetAnimation("OK_CONNECTION");
+       webAccountAnimator.SetAnimation("OK_CONNECTION");
     }
     else {
-        webAccountAnimator.SetAnimation("NO_CONNECTION");
+       webAccountAnimator.SetAnimation("NO_CONNECTION");
     }
 
     lastIsConnectedState = currentConnectivity;
@@ -206,7 +217,7 @@ void MainMenuScene::onUpdate(double elapsed) {
         AUDIO.Play(AudioType::CHIP_DESC);
 
         using effect = segue<PushIn<left>, milliseconds<500>>;
-        getController().push<effect::to<FolderScene>>(data);
+        getController().push<effect::to<FolderScene>>(folders);
       }
 
       // Config Select on PC 
@@ -233,7 +244,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 
         CardFolder* folder = nullptr;
 
-        if (data.GetFolder(0, folder)) {
+        if (folders.GetFolder(0, folder)) {
 #ifdef OBN_NETPLAY
           AUDIO.Play(AudioType::CHIP_DESC);
           using effect = segue<PushIn<direction::down>, milliseconds<500>>;

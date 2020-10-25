@@ -8,7 +8,7 @@
 #include "bnSpell.h"
 #include "bnAnimationComponent.h"
 
-class CardSummonHandler;
+class Character;
 
 class ProtoManSummon : public Spell {
 public:
@@ -17,7 +17,7 @@ public:
    * \brief Scans for enemies. Checks to see if protoman can
    * spawn in front of them. If so, the tile is stored
    * as targets.*/
-  ProtoManSummon(CardSummonHandler* _summons);
+  ProtoManSummon(Character* user, int damage);
   
   /**
    * @brief deconstructor
@@ -63,6 +63,6 @@ public:
 private:
   std::vector<Battle::Tile*> targets; /*!< List of every tile ProtoMan must visit */
   int random;
-  CardSummonHandler* summons;
+  Character* user{ nullptr };
   AnimationComponent* animationComponent;
 };

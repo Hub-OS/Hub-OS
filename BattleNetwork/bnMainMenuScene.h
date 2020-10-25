@@ -56,7 +56,7 @@ private:
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
   bool guestAccount;
 
-  CardFolderCollection data; /*!< TODO: this will be replaced with all saved data */
+  CardFolderCollection folders; /*!< Collection of folders */
   PA programAdvance;
 
   std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/

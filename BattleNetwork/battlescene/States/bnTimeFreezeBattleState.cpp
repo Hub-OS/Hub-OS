@@ -33,6 +33,7 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
 {
   GetScene().GetSelectedCardsUI().Reveal();
   GetScene().GetField()->ToggleTimeFreeze(false);
+  GetScene().HighlightTiles(false);
 }
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
@@ -54,6 +55,8 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     double summonSecs = summonTimer.getElapsed().asSeconds();
 
     if (summonSecs >= summonTextLength) {
+      GetScene().HighlightTiles(true); // re-enable tile highlighting for new entities
+
       ExecuteTimeFreeze();
       currState = state::animate; // animate this attack
     }

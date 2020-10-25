@@ -101,7 +101,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   // Player UI 
   auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
-
   cardCustGUI.AddNode(healthUI);
 
   camera = Camera(ENGINE.GetView());
@@ -701,9 +700,11 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     // Draw ui
     for (auto node : ui) {
-      node->move(ENGINE.GetViewOffset());
-      ENGINE.Draw(*node, false);
-      node->move(-ENGINE.GetViewOffset());
+      if (node->AutoDraw()) {
+        node->move(ENGINE.GetViewOffset());
+        ENGINE.Draw(*node, false);
+        node->move(-ENGINE.GetViewOffset());
+      }
     }
   }
 

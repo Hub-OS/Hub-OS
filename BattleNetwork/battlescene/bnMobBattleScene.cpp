@@ -54,6 +54,18 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   auto reward      = AddState<RewardBattleState>(current, &props.base.player);
   auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
 
+  // Important! State transitions are added in order of priority!
+  //       change from,        to,          when this is true
+  CHANGE_ON_EVENT(intro,       cardSelect,  IsOver);
+  CHANGE_ON_EVENT(cardSelect,  forms,       HasForm);
+  CHANGE_ON_EVENT(cardSelect,  battlestart, OKIsPressed);
+  CHANGE_ON_EVENT(forms,       combat,      Decrossed);
+  CHANGE_ON_EVENT(forms,       battlestart, IsFinished);
+  CHANGE_ON_EVENT(battlestart, combat,      IsFinished);
+  CHANGE_ON_EVENT(battleover,  reward,      IsFinished);
+  CHANGE_ON_EVENT(timeFreeze,  combat,      IsOver);
+
+  // special condition: if lost in combat and had a form, trigger the character transform states
   auto playerLosesInForm = [trackedForms]
   {
     const bool changeState = trackedForms[0]->player->GetHealth() == 0 && (trackedForms[0]->selectedForm != -1);
@@ -65,24 +77,6 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
 
     return changeState;
   };
-
-  auto formsStatePtr = &forms.Unwrap();
-  auto playerIsDead = [trackedForms, formsStatePtr] {
-    const bool changeState = trackedForms[0]->player->GetHealth() == 0 && formsStatePtr->IsFinished();
-    return changeState;
-  };
-
-  forms.ChangeOnEvent(combat, playerIsDead);
-
-  // Important! State transitions are added in order of priority!
-  //       change from        ,to          ,when this is true
-  CHANGE_ON_EVENT(intro       ,cardSelect  ,IsOver);
-  CHANGE_ON_EVENT(cardSelect  ,forms       ,HasForm);
-  CHANGE_ON_EVENT(cardSelect  ,battlestart ,OKIsPressed);
-  CHANGE_ON_EVENT(forms       ,battlestart ,IsFinished);
-  CHANGE_ON_EVENT(battlestart ,combat      ,IsFinished);
-  CHANGE_ON_EVENT(battleover  ,reward      ,IsFinished);
-  CHANGE_ON_EVENT(timeFreeze  ,combat      ,IsOver);
 
   // combat has multiple state interruptions based on events
   // so we chain them together instead of using the macro

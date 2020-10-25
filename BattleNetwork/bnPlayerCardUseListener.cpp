@@ -2,6 +2,7 @@
 
 #include "bnFishy.h"
 #include "bnTile.h"
+#include "bnAura.h"
 #include "bnCannonCardAction.h"
 #include "bnZetaCannonCardAction.h"
 #include "bnAirShotCardAction.h"
@@ -22,6 +23,11 @@
 #include "bnElecPulseCardAction.h"
 #include "bnDarkTornadoCardAction.h"
 #include "bnRollCardAction.h"
+#include "bnProtoManCardAction.h"
+#include "bnCubeCardAction.h"
+#include "bnAuraCardAction.h"
+#include "bnAntiDmgCardAction.h"
+#include "bnAreaGrabCardAction.h"
 #include "bnBasicSword.h"
 #include "bnThunder.h"
 #include "bnInvis.h"
@@ -66,7 +72,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     // Add the component to player
     player->RegisterComponent(invis);
   }
-  else if (name.substr(0,7) == "Rflectr") {
+  else if (name.substr(0, 7) == "Rflectr") {
     auto action = new ReflectCardAction(player, card.GetDamage());
     player->QueueAction(action);
   }
@@ -184,5 +190,20 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
   }
   else if (name == "Roll") {
     player->QueueAction(new RollCardAction(player, card.GetDamage()));
+  }
+  else if (name == "ProtoMan") {
+    player->QueueAction(new ProtoManCardAction(player, card.GetDamage()));
+  }
+  else if (name == "RockCube") {
+    player->QueueAction(new CubeCardAction(player));
+  }
+  else if (name == "AreaGrab") {
+    player->QueueAction(new AreaGrabCardAction(player, 10));
+  }
+  else if (name == "AntiDmg") {
+    player->QueueAction(new AntiDmgCardAction(player, card.GetDamage()));
+  }
+  else if (name == "Barrier") {
+    player->QueueAction(new AuraCardAction(player, Aura::Type::BARRIER_10));
   }
 }

@@ -91,7 +91,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
 
   if (!cardCust.IsInView() && currState == state::slidein) {
     cardCust.Move(sf::Vector2f(MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
-    ENGINE.GetCamera()->MoveCamera(sf::Vector2f(240.f, 142.f), sf::seconds(0.1f));
+    ENGINE.GetCamera()->MoveCamera(sf::Vector2f(240.f, 140.f), sf::seconds(0.1f));
     return;
   }
 

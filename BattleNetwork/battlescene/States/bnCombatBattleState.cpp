@@ -82,12 +82,12 @@ const bool CombatBattleState::PlayerRequestCardSelect()
 
 void CombatBattleState::onStart(const BattleSceneState* last)
 {
+  GetScene().HighlightTiles(true); // re-enable tile highlighting
+
   // tracked[0] should be the client player
   if ((tracked[0]->GetHealth() > 0) && this->HandleNextRoundSetup(last)) {
     GetScene().StartBattleStepTimer();
     GetScene().GetField()->ToggleTimeFreeze(false);
-    GetScene().HighlightTiles(true); // re-enable tile highlighting
-
     tracked[0]->ChangeState<PlayerControlledState>();
 
     hasTimeFreeze = false;
@@ -105,13 +105,13 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
   // then reset our combat and custom progress values
   if (this->HandleNextRoundSetup(next)) {
     GetScene().StopBattleStepTimer();
-    GetScene().HighlightTiles(false);
 
     // reset bar 
     customProgress = 0;
     customBarShader.setUniform("factor", 0);
   }
 
+  GetScene().HighlightTiles(false);
   hasTimeFreeze = false; 
 }
 

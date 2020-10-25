@@ -29,7 +29,6 @@
 #include "../bnEnemyCardUseListener.h"
 #include "../bnCounterHitListener.h"
 #include "../bnCharacterDeleteListener.h"
-#include "../bnCardSummonHandler.h"
 #include "../bnNaviRegistration.h"
 
 #include "bnNetPlayFlags.h"

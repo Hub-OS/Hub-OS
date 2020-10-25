@@ -121,6 +121,11 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
   }
 }
 
+bool CharacterTransformBattleState::Decrossed()
+{
+  return tracking[0]->player->GetHealth() == 0 && IsFinished();
+}
+
 bool CharacterTransformBattleState::IsFinished() {
     return state::fadeout == currState && FadeOutBackdrop();
 }

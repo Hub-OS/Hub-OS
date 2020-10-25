@@ -5,6 +5,8 @@
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnPlayer.h"
+#include "bnCharacter.h"
+#include "bnObstacle.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnHitbox.h"
@@ -89,7 +91,7 @@ RollHeal::RollHeal(Field* field, Team team, Character* user, int _heal)
       if (found) {
         animationComponent->SetAnimation("ROLL_ATTACKING", [this] {
           animationComponent->SetAnimation("ROLL_MOVE", [this] {
-            auto heart = new RollHeart(GetField(), this->user, heal*3);
+            auto heart = new RollHeart(this->user, heal*3);
             GetField()->AddEntity(*heart, *this->user->GetTile());
             Delete();
           });
@@ -103,7 +105,7 @@ RollHeal::RollHeal(Field* field, Team team, Character* user, int _heal)
       }
       else { //no enemies, just heal the player
         animationComponent->SetAnimation("ROLL_MOVE", [this] {
-          auto heart = new RollHeart(GetField(), this->user, heal * 3);
+          auto heart = new RollHeart(this->user, heal * 3);
           GetField()->AddEntity(*heart, *this->user->GetTile());
           Delete();
         });

@@ -9,13 +9,12 @@
 #pragma once
 
 #include "bnSpell.h"
-#include "bnCardSummonHandler.h"
 #include "bnAnimationComponent.h"
 
 
 class RollHeart : public Spell {
 public:
-  RollHeart(Field* field, Character* user, int _heal);
+  RollHeart(Character* user, int _heal);
   ~RollHeart();
 
   /**

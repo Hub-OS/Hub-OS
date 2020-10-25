@@ -17,6 +17,7 @@ class BattleSceneBase;
 
 class UIComponent : public Component, public SceneNode {
 private:
+  bool autodraw{ true }; //!< If false, the scene will not draw it
 
 public:
   UIComponent() = delete;
@@ -49,4 +50,7 @@ public:
    * @brief To be implemented: what happens when the Battlescene requests injection
    */
   virtual void Inject(BattleSceneBase&) = 0;
+
+  void SetAutoDraw(bool enabled);
+  const bool AutoDraw() const;
 }; 
