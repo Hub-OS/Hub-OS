@@ -22,8 +22,7 @@ PlayerNetworkState::~PlayerNetworkState()
 void PlayerNetworkState::QueueAction(Player& player)
 {
   // peek into the player's queued Action property
-  auto action = player.queuedAction;
-  player.queuedAction = nullptr;
+  CardAction* action = player.DequeueAction();
 
   // We already have one action queued, delete the next one
   if (!queuedAction) {
@@ -122,7 +121,10 @@ void PlayerNetworkState::OnUpdate(float _elapsed, Player& player) {
 void PlayerNetworkState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.chargeEffect.SetCharging(false);
-  player.queuedAction = nullptr;
+
+  if (auto queuedAction = player.DequeueAction(); queuedAction) {
+    delete queuedAction;
+  }
 
   /* Cancel card actions */
   auto actions = player.GetComponentsDerivedFrom<CardAction>();

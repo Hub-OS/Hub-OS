@@ -24,7 +24,8 @@ using namespace swoosh::types;
 #include "netplay/bnPVPScene.h"
 #endif
 
-MainMenuScene::MainMenuScene(swoosh::ActivityController& controller) :
+MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestAccount) :
+  guestAccount(guestAccount),
   camera(ENGINE.GetView()),
   lastIsConnectedState(false),
   swoosh::Activity(&controller)
@@ -97,7 +98,20 @@ void MainMenuScene::onStart() {
   // Set the camera back to ours
   ENGINE.SetCamera(camera);
 
+  WebAccounts::AccountState account;
+
   if (WEBCLIENT.IsLoggedIn()) {
+    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account);
+
+    if (loaded) {
+      Logger::Log("Found cached account data");
+
+      WEBCLIENT.UseCachedAccount(account);
+      WEBCLIENT.CacheTextureData(account);
+      data = CardFolderCollection::ReadFromWebAccount(account);
+      programAdvance = PA::ReadFromWebAccount(account);
+    }
+
     Logger::Log("Fetching account data...");
 
     accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
@@ -105,7 +119,6 @@ void MainMenuScene::onStart() {
     Logger::Log("waiting for server...");
   }
   else {
-    WebAccounts::AccountState account;
     bool loaded = WEBCLIENT.LoadSession("profile.bin", &account) || WEBCLIENT.LoadSession("guest.bin", &account);
       
     if(loaded) {
@@ -136,7 +149,9 @@ void MainMenuScene::onUpdate(double elapsed) {
             WEBCLIENT.CacheTextureData(account);
             data = CardFolderCollection::ReadFromWebAccount(account);
             programAdvance = PA::ReadFromWebAccount(account);
-            WEBCLIENT.SaveSession("test_save.bin");
+
+            // Replace
+            WEBCLIENT.SaveSession("profile.bin");
         }
         catch (const std::runtime_error& e) {
             Logger::Logf("Could not fetch account.\nError: %s", e.what());
@@ -307,6 +322,21 @@ void MainMenuScene::onEnter()
 }
 
 void MainMenuScene::onResume() {
+
+  guestAccount = !WEBCLIENT.IsLoggedIn();
+
+  if (!guestAccount) {
+    accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
+  }
+  else {
+    try {
+      WEBCLIENT.SaveSession("guest.bin");
+    }
+    catch (const std::runtime_error& e) {
+      Logger::Logf("Could not fetch account.\nError: %s", e.what());
+    }
+  }
+
   gotoNextScene = false;
 
   ENGINE.SetCamera(camera);

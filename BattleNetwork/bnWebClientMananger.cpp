@@ -99,14 +99,14 @@ void WebClientManager::InitDownloadImageHandler()
 
 void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account)
 {
-    // NOTE: By this step, the client should be valid and non-null ptr
-    // assert(client);
+    // The client should be valid and non-null ptr
+    if (client) {
+      std::shared_ptr<sf::Texture> comboIconTexture = std::make_shared<sf::Texture>();
 
-    std::shared_ptr<sf::Texture> comboIconTexture = std::make_shared<sf::Texture>();
-
-    if (comboIconTexture->loadFromMemory(client->GetServerSettings().comboIconData, client->GetServerSettings().comboIconDataLen)) {
-      for (auto&& combo : account.cardCombos) {
-        iconTextureCache.insert(std::make_pair(combo.first, comboIconTexture));
+      if (comboIconTexture->loadFromMemory(client->GetServerSettings().comboIconData, client->GetServerSettings().comboIconDataLen)) {
+        for (auto&& combo : account.cardCombos) {
+          iconTextureCache.insert(std::make_pair(combo.first, comboIconTexture));
+        }
       }
     }
 
@@ -750,7 +750,6 @@ std::future<bool> WebClientManager::SendLoginCommand(const char * username, cons
 
         if (result) {
             WebClientManager::username = username;
-            WebClientManager::useGuest = false;
         }
 
         promise->set_value(result);

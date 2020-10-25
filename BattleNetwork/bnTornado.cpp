@@ -2,10 +2,14 @@
 #include "bnBusterHit.h"
 #include "bnTile.h"
 #include "bnField.h"
+#include "bnHitbox.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Tornado::Tornado(Field* _field, Team _team, int damage) : damage(damage), Spell(_field, _team) {
+Tornado::Tornado(Field* _field, Team _team, int count, int damage) 
+  : damage(damage), 
+  count(count),
+  Spell(_field, _team) {
   SetLayer(-1);
 
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_TORNADO));
@@ -13,12 +17,31 @@ Tornado::Tornado(Field* _field, Team _team, int damage) : damage(damage), Spell(
 
   //When the animation ends, delete this
   auto onFinish = [this]() {
-    Delete();
+    if (this->count-- <= 0) {
+      Delete();
+    }
+  };
+
+  auto firstFrame = [this]() {
+    Hitbox* hitbox = new Hitbox(GetField(), GetTeam(), this->damage);
+    auto props = GetHitboxProperties();
+    hitbox->SetHitboxProperties(props);
+
+    auto onHit = [this](Character* entity) {
+      if (entity->Hit(GetHitboxProperties())) {
+        AUDIO.Play(AudioType::HURT);
+
+        Artifact* hitfx = new BusterHit(GetField(), BusterHit::Type::CHARGED);
+        GetField()->AddEntity(*hitfx, entity->GetTile()->GetX(), entity->GetTile()->GetY());
+      }
+    };
+
+    hitbox->AddCallback(onHit);
+    GetField()->AddEntity(*hitbox, *GetTile());
   };
 
   animation = Animation("resources/spells/spell_tornado.animation");
-  animation.SetAnimation("DEFAULT");
-  animation << onFinish;
+  animation << "DEFAULT" << Animator::On(1, firstFrame) << Animator::Mode::Loop << onFinish;
   animation.Update(0, getSprite());
 
   HighlightTile(Battle::Tile::Highlight::solid);
@@ -38,8 +61,6 @@ void Tornado::OnUpdate(float _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
   animation.Update(_elapsed, getSprite());
-
-  tile->AffectEntities(this);
 }
 
 bool Tornado::Move(Direction _direction) {
@@ -47,13 +68,7 @@ bool Tornado::Move(Direction _direction) {
 }
 
 void Tornado::Attack(Character* _entity) {
-  if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
 
-    // Todo swap out with normal buster hit fx
-    Artifact* hitfx = new BusterHit(GetField(), BusterHit::Type::CHARGED);
-    GetField()->AddEntity(*hitfx, _entity->GetTile()->GetX(), _entity->GetTile()->GetY());
-  }
 }
 
 void Tornado::OnDelete()

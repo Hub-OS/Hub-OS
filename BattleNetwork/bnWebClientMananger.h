@@ -23,7 +23,6 @@ private:
     std::mutex clientMutex; //!< Mutex for WebClient since it may be accessed by multiple threads...
     std::condition_variable taskQueueWakeup;
 
-    bool useGuest; //!< If this is true, all session data is saved in a separate guest account binary
     bool shutdownSignal;
     bool isWorking;
     bool isConnected; //!< True if pinged heartbeat endpoint successfully in the last invernal

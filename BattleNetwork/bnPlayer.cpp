@@ -47,7 +47,6 @@ Player::Player()
   previous = nullptr;
   playerControllerSlide = false;
   activeForm = nullptr;
-  queuedAction = nullptr;
 
   auto recoil = [this]() {
     // When movement is interrupted because of a hit, we need to flush the movement state data
@@ -84,17 +83,21 @@ void Player::OnUpdate(float _elapsed) {
 
 void Player::Attack() {
   // Queue an action for the controller to fire at the right frame
-  // (MMBN has a specific pipeline that accepts INPUTx. This emulates that.)
   if (tile) {
-    chargeEffect.IsFullyCharged() ? queuedAction = ExecuteChargedBuster() : queuedAction = ExecuteBuster();
+    chargeEffect.IsFullyCharged() ? QueueAction(ExecuteChargedBuster()) : QueueAction(ExecuteBuster());
   }
 }
 
 void Player::UseSpecial()
 {
   if (tile) {
-    queuedAction = ExecuteSpecial();
-    queuedAction ? queuedAction->SetLockoutGroup(ActionLockoutGroup::ability) : (void(0));
+    auto action = ExecuteSpecial();
+    
+    if (action) {
+      action->SetLockoutGroup(ActionLockoutGroup::ability);
+      QueueAction(action);
+    }
+
   }
 }
 
@@ -216,16 +219,6 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
   }
 
   return res;
-}
-
-void Player::QueueAction(CardAction* action)
-{
-  if (queuedAction) {
-    delete action;
-    action = nullptr;
-  }
-
-  queuedAction = action;
 }
 
 bool Player::RegisterForm(PlayerFormMeta * info)

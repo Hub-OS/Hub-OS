@@ -1,6 +1,7 @@
 #include "bnCharacter.h"
 #include "bnDefenseRule.h"
 #include "bnDefenseSuperArmor.h"
+#include "bnCardAction.h"
 #include "bnSpell.h"
 #include "bnTile.h"
 #include "bnField.h"
@@ -70,6 +71,23 @@ void Character::EnableTilePush(bool enabled)
 
 const bool Character::CanTilePush() const {
   return canTilePush;
+}
+
+void Character::QueueAction(CardAction* action)
+{
+  if (queuedAction) {
+    delete action;
+    action = nullptr;
+  }
+
+  queuedAction = action;
+}
+
+CardAction* Character::DequeueAction()
+{
+  CardAction* temp = queuedAction;
+  queuedAction = nullptr;
+  return temp;
 }
 
 void Character::Update(float _elapsed) {
@@ -237,6 +255,11 @@ int Character::GetHealth() const {
 const int Character::GetMaxHealth() const
 {
   return maxHealth;
+}
+
+const bool Character::CanAttack() const
+{
+    return !IsSliding() && queuedAction == nullptr && GetComponentsDerivedFrom<CardAction>().empty();
 }
 
 void Character::ResolveFrameBattleDamage()

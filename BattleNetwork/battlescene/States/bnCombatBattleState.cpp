@@ -6,6 +6,7 @@
 #include "../../bnTeam.h"
 #include "../../bnEntity.h"
 #include "../../bnCharacter.h"
+#include "../../bnObstacle.h"
 #include "../../bnCard.h"
 #include "../../bnInputManager.h"
 #include "../../bnShaderResourceManager.h"
@@ -60,7 +61,10 @@ const bool CombatBattleState::HasTimeFreeze() const {
 const bool CombatBattleState::PlayerWon() const
 {
   auto blueTeamChars = GetScene().GetField()->FindEntities([](Entity* e) {
-    return e->GetTeam() == Team::blue && dynamic_cast<Character*>(e);
+    // check when the enemy has been removed from the field even if the mob
+    // forgot about it
+    // TODO: do not use dynamic casts
+    return e->GetTeam() == Team::blue && dynamic_cast<Character*>(e) && (dynamic_cast<Obstacle*>(e) == nullptr);
   });
 
   return !PlayerLost() && mob->IsCleared() && blueTeamChars.empty();
@@ -113,12 +117,17 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
 
 void CombatBattleState::onUpdate(double elapsed)
 {
-  if (mob->IsCleared()) {
+  
+  if ((mob->IsCleared() || tracked[0]->GetHealth() == 0 )&& !clearedMob) {
     auto cardUI = tracked[0]->GetFirstComponent<SelectedCardsUI>();
 
     if (cardUI) {
       tracked[0]->FreeComponentByID(cardUI->GetID());
     }
+
+    GetScene().BroadcastBattleStop();
+
+    clearedMob = true;
   }
 
   if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !mob->IsCleared()) {

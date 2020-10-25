@@ -6,8 +6,9 @@ class Tornado : public Spell {
 protected:
   Animation animation; /*!< the animation of the shot */
   int damage; /*!< How much damage to deal */
+  int count; /*!< How many times to hit */
 public:
-  Tornado(Field* _field, Team _team, int damage);
+  Tornado(Field* _field, Team _team, int count, int damage);
 
   /**
    * @brief Deconstructor

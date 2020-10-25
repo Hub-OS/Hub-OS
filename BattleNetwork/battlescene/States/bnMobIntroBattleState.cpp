@@ -29,18 +29,6 @@ void MobIntroBattleState::onUpdate(double elapsed)
     // Listen for counters
     GetScene().CounterHitListener::Subscribe(*data->mob);
   }
-  else if (mob->IsSpawningDone()) {
-    for (Player* player : tracked) {
-      // allow the player to be controlled by keys
-      player->ChangeState<PlayerControlledState>();
-    }
-
-    // Move mob characters out of their intro states
-    mob->DefaultState();
-
-    // Tell everything to begin battle
-    GetScene().BroadcastBattleStart();
-  }
 
   GetScene().GetField()->Update((float)elapsed);
 }
@@ -48,6 +36,9 @@ void MobIntroBattleState::onUpdate(double elapsed)
 void MobIntroBattleState::onEnd(const BattleSceneState*)
 {
   mob->DefaultState();
+
+  // Tell everything to begin battle
+  GetScene().BroadcastBattleStart();
 }
 
 void MobIntroBattleState::onStart(const BattleSceneState*)

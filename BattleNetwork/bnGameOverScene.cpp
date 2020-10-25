@@ -48,7 +48,7 @@ void GameOverScene::onUpdate(double elapsed) {
       leave = false;
 
       using effect = segue<WhiteWashFade, milliseconds<500>>;
-      getController().push<effect::to<MainMenuScene>>();
+      getController().push<effect::to<MainMenuScene>>(!WEBCLIENT.IsLoggedIn());
     }
   }
 }

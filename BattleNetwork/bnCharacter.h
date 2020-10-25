@@ -14,6 +14,7 @@ using std::string;
 
 class DefenseRule;
 class Spell;
+class CardAction;
 
 /**
  * @class Character
@@ -32,6 +33,8 @@ private:
   bool slideFromDrag; /*!< In combat, slides from tiles are cancellable. Slide via drag is not. This flag denotes which one we're in. */
   std::vector<DefenseRule*> defenses; /*<! All defense rules sorted by the lowest priority level */
   std::vector<Character*> shareHit; /*!< All characters to share hit damage. Useful for enemies that share hit boxes like stunt doubles */
+  std::vector<Component::ID_t> attacks;
+
   // Statuses are resolved one property at a time
   // until the entire Flag object is equal to 0x00 None
   // Then we process the next status
@@ -40,8 +43,9 @@ private:
 
   sf::Shader* whiteout; /*!< Flash white when hit */
   sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
-  bool hit; /*!< Was hit this frame */
+  CardAction* queuedAction{ nullptr }; /*!< Allow actions to take place through a trusted state */
 
+  bool hit; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
 public:
 
@@ -86,6 +90,9 @@ public:
 
   virtual void OnUpdate(float elapsed) = 0;
 
+  void QueueAction(CardAction* action);
+  CardAction* DequeueAction();
+
   // TODO: move tile behavior out of update loop and into its own rule system for customization
   void Update(float elapsed) override;
   
@@ -108,6 +115,8 @@ public:
    * @return 
    */
   const int GetMaxHealth() const;
+
+  const bool CanAttack() const;
 
   /**
    * @brief Set the health of the character

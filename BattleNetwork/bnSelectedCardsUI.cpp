@@ -103,6 +103,8 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       }
     }
 
+    if (player->CanAttack() == false) return;
+
     // If we have a valid card, update and draw the data
     if (cardCount > 0 && curr < cardCount && selectedCards[curr]) {
 

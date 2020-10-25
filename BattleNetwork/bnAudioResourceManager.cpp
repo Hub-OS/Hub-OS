@@ -181,15 +181,38 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
 
 
   // Highest priority plays over anything that isn't like it
+  // If it can, it will play in the first free channel but it will overwrite a sound if it cannot find one
   if (priority == AudioPriority::highest) {
+    int lastFreeChannel = -1;
+    int lastDifferentChannel = -1;
+
+    auto changeSampleThunk = [this, priority, type](int index) {
+      channels[index].buffer.stop();
+      channels[index].buffer.setBuffer(sources[type]);
+      channels[index].buffer.play();
+      channels[index].priority = priority;
+    };
+
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
-      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || channels[i].buffer.getBuffer() != &sources[type]) {
-        channels[i].buffer.stop();
-        channels[i].buffer.setBuffer(sources[type]);
-        channels[i].buffer.play();
-        channels[i].priority = priority;
-        return 0;
+      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing && lastFreeChannel == -1) {
+        lastFreeChannel = i;
       }
+
+      if (channels[i].buffer.getBuffer() != &sources[type] && lastDifferentChannel == -1) {
+        lastDifferentChannel = i;
+      }
+    }
+
+    if (lastFreeChannel != -1) {
+      changeSampleThunk(lastFreeChannel);
+      return 0;
+    } else if (lastDifferentChannel != -1) {
+      changeSampleThunk(lastDifferentChannel);
+      return 0;
+    }
+    else {
+      // all channels are currently playing the same sound. That must be annoying to hear.
+      return -1;
     }
   }
 
@@ -256,17 +279,40 @@ int AudioResourceManager::Play(std::shared_ptr<sf::SoundBuffer> resource, AudioP
   //                HIGH    (force a channel to play sound, but one at a time, and don't interrupt other high priorities),
   //                HIGHEST (force a channel to play sound always)
 
-
   // Highest priority plays over anything that isn't like it
+  // If it can, it will play in the first free channel but it will overwrite a sound if it cannot find one
   if (priority == AudioPriority::highest) {
+    int lastFreeChannel = -1;
+    int lastDifferentChannel = -1;
+
+    auto changeSampleThunk = [this, priority, resource](int index) {
+      channels[index].buffer.stop();
+      channels[index].buffer.setBuffer(*resource.get());
+      channels[index].buffer.play();
+      channels[index].priority = priority;
+    };
+
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
-      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing || channels[i].buffer.getBuffer() != resource.get()) {
-        channels[i].buffer.stop();
-        channels[i].buffer.setBuffer(*resource);
-        channels[i].buffer.play();
-        channels[i].priority = priority;
-        return 0;
+      if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing && lastFreeChannel == -1) {
+        lastFreeChannel = i;
       }
+
+      if (channels[i].buffer.getBuffer() != resource.get() && lastDifferentChannel == -1) {
+        lastDifferentChannel = i;
+      }
+    }
+
+    if (lastFreeChannel != -1) {
+      changeSampleThunk(lastFreeChannel);
+      return 0;
+    }
+    else if (lastDifferentChannel != -1) {
+      changeSampleThunk(lastDifferentChannel);
+      return 0;
+    }
+    else {
+      // all channels are currently playing the same sound. That must be annoying to hear.
+      return -1;
     }
   }
 

@@ -363,21 +363,21 @@ public:
    * @return null if no component is found, otherwise returns the component
    */
   template<typename ComponentType>
-  ComponentType* GetFirstComponent();
+  ComponentType* GetFirstComponent() const;
 
    /**
    * @brief Get all components that matches the exact Type
    * @return vector of specified components
    */
   template<typename ComponentType>
-  std::vector<ComponentType*> GetComponents();
+  std::vector<ComponentType*> GetComponents() const;
 
   /**
 * @brief Get all components that inherit BaseType
 * @return vector of related components
 */
   template<typename BaseType>
-  std::vector<BaseType*> GetComponentsDerivedFrom();
+  std::vector<BaseType*> GetComponentsDerivedFrom() const;
 
   /**
   * @brief Check if entity is a specialized type
@@ -480,9 +480,9 @@ private:
 };
 
 template<typename ComponentType>
-inline ComponentType* Entity::GetFirstComponent()
+inline ComponentType* Entity::GetFirstComponent() const
 {
-  for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
+  for (vector<Component*>::const_iterator it = components.begin(); it != components.end(); ++it) {
     if (typeid(*(*it)) == typeid(ComponentType)) {
       return dynamic_cast<ComponentType*>(*it);
     }
@@ -492,11 +492,11 @@ inline ComponentType* Entity::GetFirstComponent()
 }
 
 template<typename ComponentType>
-inline std::vector<ComponentType*> Entity::GetComponents()
+inline std::vector<ComponentType*> Entity::GetComponents() const
 {
   auto res = std::vector<ComponentType*>();
 
-  for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
+  for (vector<Component*>::const_iterator it = components.begin(); it != components.end(); ++it) {
     if (typeid(*(*it)) == typeid(ComponentType)) {
       res.push_back(dynamic_cast<ComponentType*>(*it));
     }
@@ -507,11 +507,11 @@ inline std::vector<ComponentType*> Entity::GetComponents()
 
 
 template<typename BaseType>
-inline std::vector<BaseType*> Entity::GetComponentsDerivedFrom()
+inline std::vector<BaseType*> Entity::GetComponentsDerivedFrom() const
 {
   auto res = std::vector<BaseType*>();
 
-  for (vector<Component*>::iterator it = components.begin(); it != components.end(); ++it) {
+  for (vector<Component*>::const_iterator it = components.begin(); it != components.end(); ++it) {
     BaseType* cast = dynamic_cast<BaseType*>(*it);
 
     if (cast) {

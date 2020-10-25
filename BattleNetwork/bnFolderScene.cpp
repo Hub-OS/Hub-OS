@@ -302,7 +302,7 @@ void FolderScene::onUpdate(double elapsed) {
 #endif
 
       if (folderSwitch) {
-        if (collection.GetFolderNames().size() > 0) {
+        if (collection.GetFolderNames().size() > 0 && folderNames.size() > 0) {
           collection.GetFolder(*(folderNames.begin() + currFolderIndex), folder);
 
           numOfCards = folder->GetSize();

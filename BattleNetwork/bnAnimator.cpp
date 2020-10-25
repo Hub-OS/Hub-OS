@@ -133,7 +133,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
   std::vector<Frame>::const_iterator iter = copy.begin();
 
   // While there is time left in the progress loop
-  while (startProgress != 0.f) {
+  while (progress > 0.f) {
     // Increase the index
     index++;
 
@@ -208,7 +208,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
       }
 
       // If the playback mode was set to loop...
-      if ((playbackMode & Mode::Loop) == Mode::Loop && progress > 0.f && &(*iter) == &copy.back()) {
+      if ((playbackMode & Mode::Loop) == Mode::Loop && &(*iter) == &copy.back() && startProgress >= sequence.totalDuration) {
         // But it was also set to bounce, reverse the list and start over
         if ((playbackMode & Mode::Bounce) == Mode::Bounce) {
           reverse(copy.begin(), copy.end());
@@ -220,14 +220,16 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
           iter = copy.begin();
         }
 
-        // Clear any remaining callbacks
-        callbacks.clear();
+        if (callbacksAreValid) {
+          // Clear callbacks
+          callbacks.clear();
 
-        // Enqueue the callbacks for the next go around
-        callbacks = nextLoopCallbacks;
-        nextLoopCallbacks.clear();
+          // Enqueue the callbacks for the next round
+          callbacks = nextLoopCallbacks;
+          nextLoopCallbacks.clear();
 
-        callbacksAreValid = true;
+          // callbacksAreValid = true;
+        }
 
         continue; // Start loop again
       }

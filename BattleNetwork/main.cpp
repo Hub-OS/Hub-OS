@@ -177,53 +177,6 @@ int main(int argc, char** argv) {
     ConfigReader reader("config.ini");
     ConfigSettings configSettings = reader.GetConfigSettings();
 
-    if (configSettings.IsOK()) {
-        const WebServerInfo info = configSettings.GetWebServerInfo();
-        const std::string version = info.version;
-        const std::string URL = info.URL;
-        const int port = info.port;
-        const std::string username = info.user;
-        const std::string password = info.password;
-
-        if (URL.empty() || version.empty() || username.empty() || password.empty()) {
-            Logger::Logf("One or more web server fields are empty in config.");
-        }
-        else {
-
-            Logger::Logf("Connecting to web server @ %s:%i (Version %s)", URL.data(), port, version.data());
-
-            WEBCLIENT.ConnectToWebServer(version.data(), URL.data(), port);
-
-#define LOGIN
-#ifdef LOGIN
-            auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
-
-            Logger::Logf("waiting for server...");
-
-            int timeoutCount = 0;
-            constexpr int MAX_TIMEOUT = 5;
-
-            while (!is_ready(result) && timeoutCount < MAX_TIMEOUT) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                Logger::Logf("timeout %i", ++timeoutCount);
-            }
-
-            if (timeoutCount == MAX_TIMEOUT) {
-                Logger::Logf("Could not communicate with the server. Aborting automatic login.");
-            }
-            else if (is_ready(result)) {
-                bool success = result.get();
-                if (success) {
-                    Logger::Logf("Logged in! Welcome %s!", username.data());
-                }
-                else {
-                    Logger::Logf("Could not authenticate. Aborting automatic login");
-                }
-            }
-#endif
-        }
-    }
-
     // Initialize the engine and log the startup time
     const clock_t begin_time = clock();
     Engine::WindowMode mode = configSettings.IsFullscreen()? Engine::WindowMode::fullscreen : Engine::WindowMode::window;
@@ -336,6 +289,8 @@ int main(int argc, char** argv) {
     float elapsed = 0.0f;
     float speed = 1.0f;
     float messageCooldown = 3;
+
+    bool loginSelected = false;
 
     // We need a render surface to draw to so Swoosh ActivityController
     // can add screen transition effects from the title screen
@@ -708,17 +663,30 @@ int main(int argc, char** argv) {
                         ENGINE.Draw(cursorSprite);
 
                         // Show continue or settings options
-                        startLabel->setString("CONTINUE");
-                        startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-                        startLabel->setPosition(sf::Vector2f(200.0f, 240.f));
-                        ENGINE.Draw(startLabel);
+                        if (loginSelected) {
+                          startLabel->setString("CONTINUE");
+                          startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+                          startLabel->setPosition(sf::Vector2f(200.0f, 240.f));
+                          ENGINE.Draw(startLabel);
 
-                        startLabel->setString("CONFIGURE");
-                        startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
-                        startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
-                        ENGINE.Draw(startLabel);
+                          startLabel->setString("GUEST");
+                          startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+                          startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
+                          ENGINE.Draw(startLabel);
+                        }
+                        else {
+                          startLabel->setString("PLAY");
+                          startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+                          startLabel->setPosition(sf::Vector2f(200.0f, 240.f));
+                          ENGINE.Draw(startLabel);
 
-                        bool shouldStart  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
+                          startLabel->setString("CONFIGURE");
+                          startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+                          startLabel->setPosition(sf::Vector2f(200.0f, 270.f));
+                          ENGINE.Draw(startLabel);
+                        }
+
+                        bool pressedStart  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
                         bool pressedUp    = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUTx.GetAnyKey() == sf::Keyboard::Up;
                         bool pressedDown  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Down;
             
@@ -738,11 +706,21 @@ int main(int argc, char** argv) {
                         }
 
                          #ifdef __ANDROID__
-                        shouldStart = sf::Touch::isDown(0);
+                        pressedStart = sf::Touch::isDown(0);
                         #endif
-                        if (shouldStart) {
+                        if (pressedStart) {
+                          if (loginSelected) {
                             inLoadState = false;
                             AUDIO.Play(AudioType::NEW_GAME);
+                          }
+                          else if(selected == 0) {
+                            loginSelected = true;
+                            AUDIO.Play(AudioType::CHIP_CHOOSE);
+                          }
+                          else {
+                            inLoadState = false;
+                            AUDIO.Play(AudioType::NEW_GAME);
+                          }
                         }
                     }
                 }
@@ -768,7 +746,7 @@ int main(int argc, char** argv) {
         ENGINE.GetWindow()->draw(postprocess, states);
 
         #ifndef __ANDROID__
-        //ENGINE.GetWindow()->draw(mouse, states);
+        ENGINE.GetWindow()->draw(mouse, states);
         #endif
 
         // Finally, everything is drawn to window buffer, display it to screen
@@ -799,9 +777,9 @@ int main(int argc, char** argv) {
     app.push<GameOverScene>();
 
     // We want the next screen to be the main menu screen
-    app.push<MainMenuScene>();
+    app.push<MainMenuScene>(loginSelected && selected > 0);
 
-    if (selected > 0) {
+    if (!loginSelected && selected > 0) {
       app.push<ConfigScene>();
     }
 
@@ -828,6 +806,53 @@ int main(int argc, char** argv) {
     logLabel->setFillColor(sf::Color::Red);
     logLabel->setPosition(296,18);
     logLabel->setStyle(sf::Text::Style::Bold);
+
+    if (configSettings.IsOK() && loginSelected && selected == 0) {
+      const WebServerInfo info = configSettings.GetWebServerInfo();
+      const std::string version = info.version;
+      const std::string URL = info.URL;
+      const int port = info.port;
+      const std::string username = info.user;
+      const std::string password = info.password;
+
+      if (URL.empty() || version.empty() || username.empty() || password.empty()) {
+        Logger::Logf("One or more web server fields are empty in config.");
+      }
+      else {
+
+        Logger::Logf("Connecting to web server @ %s:%i (Version %s)", URL.data(), port, version.data());
+
+        WEBCLIENT.ConnectToWebServer(version.data(), URL.data(), port);
+
+#define LOGIN
+#ifdef LOGIN
+        auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
+
+        Logger::Logf("waiting for server...");
+
+        int timeoutCount = 0;
+        constexpr int MAX_TIMEOUT = 5;
+
+        while (!is_ready(result) && timeoutCount < MAX_TIMEOUT) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+          Logger::Logf("timeout %i", ++timeoutCount);
+        }
+
+        if (timeoutCount == MAX_TIMEOUT) {
+          Logger::Logf("Could not communicate with the server. Aborting automatic login.");
+        }
+        else if (is_ready(result)) {
+          bool success = result.get();
+          if (success) {
+            Logger::Logf("Logged in! Welcome %s!", username.data());
+          }
+          else {
+            Logger::Logf("Could not authenticate. Aborting automatic login");
+          }
+        }
+#endif
+      }
+    }
 
     // Make sure we didn't quit the loop prematurely
     while (ENGINE.Running()) {
@@ -879,7 +904,7 @@ int main(int argc, char** argv) {
         #ifdef __ANDROID__
         ENGINE.GetWindow()->draw(*logLabel, states);
         #else
-        //ENGINE.GetWindow()->draw(mouse, states);
+        ENGINE.GetWindow()->draw(mouse, states);
         #endif
 
         // Add the "loading" spinner

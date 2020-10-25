@@ -54,6 +54,7 @@ private:
   Animation naviAnimator; /*!< Animators navi sprite */
  
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
+  bool guestAccount;
 
   CardFolderCollection data; /*!< TODO: this will be replaced with all saved data */
   PA programAdvance;
@@ -70,7 +71,7 @@ public:
   /**
    * @brief Loads the player's library data and loads graphics
    */
-  MainMenuScene(swoosh::ActivityController&);
+  MainMenuScene(swoosh::ActivityController&, bool guestAccount);
   
   /**
    * @brief Checks input events and listens for select buttons. Segues to new screens.

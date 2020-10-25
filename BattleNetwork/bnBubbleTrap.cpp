@@ -54,9 +54,6 @@ void BubbleTrap::OnUpdate(float _elapsed) {
   setPosition(0.f, y);
 
   animation.Update(_elapsed, getSprite());
-
-  if (willDelete)
-    delete this;
 }
 
 void BubbleTrap::Pop()

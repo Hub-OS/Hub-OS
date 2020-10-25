@@ -21,6 +21,7 @@ struct CombatBattleState final : public BattleSceneState, public CardUseListener
   bool isPaused{ false };
   bool isGaugeFull{ false };
   bool hasTimeFreeze{ false };
+  bool clearedMob{ false };
   double customProgress{ 0 };
   double customDuration{ 0 };
   Mob* mob{ nullptr };

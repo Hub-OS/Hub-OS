@@ -35,7 +35,6 @@ class Player : public Character, public AI<Player> {
   friend class PlayerCardUseListener;
 
 protected:
-  void QueueAction(CardAction* action);
   bool RegisterForm(PlayerFormMeta* info);
 
   template<typename T>
@@ -102,6 +101,7 @@ public:
    */
   void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
 
+  // TODO: these two are hacks and shouldn't belong
   void EnablePlayerControllerSlideMovementBehavior(bool enable = true);
   const bool PlayerControllerSlideEnabled() const;
 
@@ -117,7 +117,6 @@ public:
   void DeactivateForm();
   const std::vector<PlayerFormMeta*> GetForms();
 protected:
-  CardAction* queuedAction; /*!< Allow actions to take place through a trusted state */
   int hitCount; /*!< How many times the player has been hit. Used by score board. */
   string state; /*!< Animation state name */
   bool playerControllerSlide;

@@ -23,8 +23,7 @@ PlayerControlledState::~PlayerControlledState()
 void PlayerControlledState::QueueAction(Player & player)
 {
   // peek into the player's queued Action property
-  auto action = player.queuedAction;
-  player.queuedAction = nullptr;
+  auto action = player.DequeueAction();
 
   // We already have one action queued, delete the next one
   if (!queuedAction) {
@@ -70,13 +69,13 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
   // One of our active actions are preventing us from moving
   if (!canMove) return;
 
+  bool notAnimating = player.GetFirstComponent<AnimationComponent>()->GetAnimationString() == PLAYER_IDLE;
+
   // Are we creating an action this frame?
-  if (actions.empty()) {
+  if (player.CanAttack() && notAnimating) {
     if (INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) {
       auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
-      bool canUseCard = player.GetFirstComponent<AnimationComponent>()->GetAnimationString() == PLAYER_IDLE 
-                        && !player.IsSliding();
-      if (cardsUI && canUseCard && cardsUI->UseNextCard()) {
+      if (cardsUI && cardsUI->UseNextCard()) {
         // If the card used was successful, we may have a card in queue
         QueueAction(player);
         return; // wait one more frame to use
@@ -204,7 +203,10 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 void PlayerControlledState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.chargeEffect.SetCharging(false);
-  player.queuedAction = nullptr;
+  
+  if (auto queuedAction = player.DequeueAction(); queuedAction) {
+    delete queuedAction;
+  }
 
   replicator? replicator->SendChargeSignal(false) : (void(0));
 

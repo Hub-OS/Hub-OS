@@ -48,6 +48,7 @@ void RewardBattleState::onUpdate(double elapsed)
 {
   this->elapsed = elapsed;
   battleResults->Update(elapsed);
+  GetScene().GetField()->Update(elapsed); 
 }
 
 void RewardBattleState::onDraw(sf::RenderTexture& surface)
