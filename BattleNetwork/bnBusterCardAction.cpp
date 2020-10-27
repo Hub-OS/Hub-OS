@@ -9,28 +9,28 @@
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
 BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage) 
-  : CardAction(owner, "PLAYER_SHOOTING", &attachment2, "Buster")
+  : CardAction(*owner, "PLAYER_SHOOTING")
 {
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 
-  attachment2 = new SpriteProxyNode();
-  attachment2->setTexture(owner->getTexture());
-  attachment2->SetLayer(-1);
+  buster = new SpriteProxyNode();
+  buster->setTexture(owner->getTexture());
+  buster->SetLayer(-1);
 
-  attachmentAnim2 = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
-  attachmentAnim2.Reload();
-  attachmentAnim2.SetAnimation("BUSTER");
+  busterAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  busterAnim.SetAnimation("BUSTER");
 
-  attachment = new SpriteProxyNode();
-  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
-  attachment->SetLayer(-1);
+  flare = new SpriteProxyNode();
+  flare->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  flare->SetLayer(-1);
 
-  attachmentAnim = Animation(NODE_ANIM);
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("DEFAULT");
+  flareAnim = Animation(NODE_ANIM);
+  flareAnim.SetAnimation("DEFAULT");
 
   isBusterAlive = false;
+
+  AddAttachment(*owner, "buster", *buster).PrepareAnimation(busterAnim);
 
   this->SetLockout(ActionLockoutProperties{ ActionLockoutType::async, 0.5 });
 }
@@ -38,11 +38,7 @@ BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage)
 void BusterCardAction::Execute() {
   auto owner = GetOwner();
 
-  owner->AddNode(attachment2);
-  attachment2->EnableParentShader(true);
-
-  // only update the flame if we've fired
-  attachmentAnim2.Update(0, attachment2->getSprite());
+  buster->EnableParentShader(true);
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
@@ -63,64 +59,31 @@ void BusterCardAction::Execute() {
     Entity::RemoveCallback& busterRemoved = b->CreateRemoveCallback();
     busterRemoved.Slot([this]() {
       isBusterAlive = false;
+      EndAction();
     });
 
     GetOwner()->GetField()->AddEntity(*b, *GetOwner()->GetTile());
     AUDIO.Play(AudioType::BUSTER_PEA);
 
-    attachment->EnableParentShader(false);
-    attachment2->AddNode(attachment);
-    attachmentAnim.Update(0, attachment->getSprite());
+    AddAttachment(busterAnim, "endpoint", *flare).PrepareAnimation(flareAnim);
   };
 
-  AddAction(3, onFire);
+  AddAnimAction(3, onFire);
 }
 
 BusterCardAction::~BusterCardAction()
 {
-  if (attachment) {
-    delete attachment;
-  }
-
-  if (attachment2) {
-    delete attachment2;
-  }
+  delete buster;
+  delete flare;
 }
 
 void BusterCardAction::OnUpdate(float _elapsed)
 {
-  if (attachment) {
-    CardAction::OnUpdate(_elapsed);
-
-    if (isBusterAlive) {
-      // animate muzzle flash after buster fires
-      attachmentAnim.Update(_elapsed, attachment->getSprite());
-    }
-
-    attachmentAnim2.Update(_elapsed, attachment2->getSprite());
-
-    // update node position in the animation
-    auto baseOffset = attachmentAnim2.GetPoint("endpoint");
-    auto origin = attachment2->getOrigin();
-    baseOffset = baseOffset - origin;
-
-    attachment->setPosition(baseOffset);
-  }
-  else if (!isBusterAlive) {
-    EndAction();
-  }
+  CardAction::Update(_elapsed);
 }
 
 void BusterCardAction::OnAnimationEnd()
 {
-  if (attachment2 != nullptr) {
-    GetOwner()->RemoveNode(attachment2);
-    attachment2->RemoveNode(attachment);
-
-    attachment = nullptr;
-    attachment2 = nullptr;
-  }
-
   isBusterAlive = false;
 }
 

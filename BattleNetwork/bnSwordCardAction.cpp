@@ -15,7 +15,9 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3
 
-SwordCardAction::SwordCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SWORD", &attachment, "HILT"), attachmentAnim(ANIM) {
+SwordCardAction::SwordCardAction(Character * owner, int damage) : 
+  CardAction(*owner, "PLAYER_SWORD"), 
+  attachmentAnim(ANIM) {
   SwordCardAction::damage = damage;
 
   attachmentAnim.Reload();
@@ -41,6 +43,9 @@ SwordCardAction::SwordCardAction(Character * owner, int damage) : CardAction(own
   element = Element::none;
 
   OverrideAnimationFrames({ FRAMES });
+
+  AddAttachment(*owner, "hilt", *attachment).PrepareAnimation(attachmentAnim);
+  AddAttachment(attachment, "endpoint", *)
 }
 
 SwordCardAction::~SwordCardAction()
@@ -77,7 +82,7 @@ void SwordCardAction::Execute() {
       break;
   }
 
-  AddAction(2, onTrigger);
+  AddAnimAction(2, onTrigger);
 
   OnUpdate(0); // position to owner...
 }

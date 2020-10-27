@@ -73,7 +73,7 @@ void TwinFangCardAction::Execute() {
     }
   };
 
-  AddAction(2, onFire);
+  AddAnimAction(2, onFire);
 }
 
 TwinFangCardAction::~TwinFangCardAction()

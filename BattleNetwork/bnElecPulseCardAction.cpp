@@ -11,10 +11,15 @@
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
 
-#define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1 \
-               , FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2
+#define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
+                FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
+                FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, \
+                FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
+                FRAME1, FRAME2, FRAME1, FRAME2
 
-ElecPulseCardAction::ElecPulseCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+ElecPulseCardAction::ElecPulseCardAction(Character * owner, int damage) : 
+  CardAction(*owner, "PLAYER_SHOOTING"), 
+  attachmentAnim(ANIM) {
     ElecPulseCardAction::damage = damage;
 
     overlay.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
@@ -28,6 +33,8 @@ ElecPulseCardAction::ElecPulseCardAction(Character * owner, int damage) : CardAc
     OverrideAnimationFrames({ FRAMES });
 
     elecpulse = nullptr;
+
+    AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
 }
 
 ElecPulseCardAction::~ElecPulseCardAction()
@@ -37,9 +44,7 @@ ElecPulseCardAction::~ElecPulseCardAction()
 void ElecPulseCardAction::Execute() {
     auto owner = GetOwner();
 
-    owner->AddNode(attachment);
     attachment->EnableParentShader(false);
-    attachmentAnim.Update(0, attachment->getSprite());
 
     // On shoot frame, drop projectile`
     auto onFire = [this, owner]() -> void {
@@ -67,12 +72,11 @@ void ElecPulseCardAction::Execute() {
     };
 
 
-    AddAction(2, onFire);
+    AddAnimAction(2, onFire);
 }
 
 void ElecPulseCardAction::OnUpdate(float _elapsed)
 {
-    attachmentAnim.Update(_elapsed, attachment->getSprite());
     CardAction::OnUpdate(_elapsed);
 }
 
@@ -82,7 +86,5 @@ void ElecPulseCardAction::OnAnimationEnd()
 
 void ElecPulseCardAction::EndAction()
 {
-    elecpulse? elecpulse->Delete() : (void(0));
-    GetOwner()->RemoveNode(attachment);
-    Eject();
+  Eject();
 }

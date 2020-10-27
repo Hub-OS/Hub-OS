@@ -287,7 +287,8 @@ CardAction* TomahawkCross::OnSpecialAction(Player& player)
 
 #define FRAMES FRAME1, FRAME2, FRAME3
 
-TenguCross::SpecialAction::SpecialAction(Character* owner) : CardAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
+TenguCross::SpecialAction::SpecialAction(Character* owner) : 
+  CardAction(*owner, "PLAYER_SWORD") {
   overlay.setTexture(*owner->getTexture());
   attachment = new SpriteProxyNode(overlay);
   attachment->SetLayer(-1);
@@ -298,6 +299,8 @@ TenguCross::SpecialAction::SpecialAction(Character* owner) : CardAction(owner, "
   attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("HAND");
+
+  AddAttachment(*owner, "hilt", *attachment).PrepareAnimation(attachmentAnim);
 }
 
 TenguCross::SpecialAction::~SpecialAction()
@@ -307,7 +310,6 @@ TenguCross::SpecialAction::~SpecialAction()
 void TenguCross::SpecialAction::OnUpdate(float _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
 }
 
 void TenguCross::SpecialAction::Execute()
@@ -315,9 +317,6 @@ void TenguCross::SpecialAction::Execute()
   auto owner = GetOwner();
   auto team = owner->GetTeam();
   auto field = owner->GetField();
-
-  owner->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
 
   // On throw frame, spawn projectile
   auto onThrow = [this, owner, team, field]() -> void {
@@ -331,12 +330,11 @@ void TenguCross::SpecialAction::Execute()
     field->AddEntity(*wind, 6, 3);
   };
 
-  AddAction(3, onThrow);
+  AddAnimAction(3, onThrow);
 }
 
 void TenguCross::SpecialAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
   Eject();
 }
 

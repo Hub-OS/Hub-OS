@@ -15,7 +15,10 @@
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME3, FRAME3
 
 
-AirShotCardAction::AirShotCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(NODE_ANIM) {
+AirShotCardAction::AirShotCardAction(Character * owner, int damage) : 
+  attachmentAnim(NODE_ANIM),
+  CardAction(*owner, "PLAYER_SHOOTING")
+{
   AirShotCardAction::damage = damage;
 
   airshot.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
@@ -27,6 +30,8 @@ AirShotCardAction::AirShotCardAction(Character * owner, int damage) : CardAction
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
+
+  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
 }
 
 void AirShotCardAction::Execute() {
@@ -48,7 +53,7 @@ void AirShotCardAction::Execute() {
     GetOwner()->GetField()->AddEntity(*airshot, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
   };
 
-  AddAction(2, onFire);
+  AddAnimAction(2, onFire);
 }
 
 AirShotCardAction::~AirShotCardAction()
@@ -57,7 +62,6 @@ AirShotCardAction::~AirShotCardAction()
 
 void AirShotCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 
@@ -67,6 +71,5 @@ void AirShotCardAction::OnAnimationEnd()
 
 void AirShotCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
   Eject();
 }

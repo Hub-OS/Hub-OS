@@ -61,6 +61,11 @@ public:
    * @return name of animation or empty string if no state
    */
   const std::string GetAnimationString() const;
+
+  /**
+  * @brief Returns the underlyning animation object
+  */
+  Animation& GetAnimationObj();
   
   /**
    * @brief Get animation object's file path used to setup the animation

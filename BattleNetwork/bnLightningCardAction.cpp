@@ -14,8 +14,8 @@
 #define LIGHTNING_IMG "resources/spells/spell_lightning.png"
 #define LIGHTNING_ANI "resources/spells/spell_lightning.animation"
 
-LightningCardAction::LightningCardAction(Character * owner, int damage)
-  : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster")
+LightningCardAction::LightningCardAction(Character * owner, int damage) :
+  CardAction(*owner, "PLAYER_SHOOTING")
 {
   LightningCardAction::damage = damage;
 
@@ -34,6 +34,8 @@ LightningCardAction::LightningCardAction(Character * owner, int damage)
   attackAnim = Animation(LIGHTNING_ANI);
   attackAnim.SetAnimation("DEFAULT");
 
+  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
+
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 }
@@ -41,9 +43,7 @@ LightningCardAction::LightningCardAction(Character * owner, int damage)
 void LightningCardAction::Execute() {
   auto owner = GetOwner();
 
-  owner->AddNode(attachment);
   attachment->EnableParentShader(true);
-  attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
@@ -75,7 +75,7 @@ void LightningCardAction::Execute() {
     this->fired = true;
   };
 
-  AddAction(2, onFire);
+  AddAnimAction(2, onFire);
 }
 
 LightningCardAction::~LightningCardAction()
@@ -84,8 +84,6 @@ LightningCardAction::~LightningCardAction()
 
 void LightningCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
-
   if (fired) {
     attackAnim.Update(_elapsed, attack->getSprite());
   }
@@ -95,12 +93,9 @@ void LightningCardAction::OnUpdate(float _elapsed)
 
 void LightningCardAction::OnAnimationEnd()
 {
-  anim->CancelCallbacks();
   attachment->RemoveNode(attack);
   delete attack;
-  attack = nullptr;
-
-  GetOwner()->RemoveNode(attachment);
+  delete attachment;
 }
 
 void LightningCardAction::EndAction()

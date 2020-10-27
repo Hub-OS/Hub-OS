@@ -57,7 +57,7 @@ void YoYoCardAction::Execute() {
     GetOwner()->GetField()->AddEntity(*y, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
   };
 
-  AddAction(1, onFire);
+  AddAnimAction(1, onFire);
 }
 
 void YoYoCardAction::OnUpdate(float _elapsed)

@@ -256,7 +256,7 @@ namespace Battle {
   }
 
   bool Tile::IsWalkable() const {
-    return (state != TileState::broken && state != TileState::empty && !IsEdgeTile());
+    return (state != TileState::hidden && state != TileState::broken && state != TileState::empty && !IsEdgeTile());
   }
 
   bool Tile::IsCracked() const {

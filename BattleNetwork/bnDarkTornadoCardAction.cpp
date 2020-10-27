@@ -12,11 +12,14 @@
 #define FRAME2 { 2, 0.05 }
 #define FRAME3 { 3, 0.05 }
 
-#define FRAMES FRAME1, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
+#define FRAMES FRAME1, FRAME3, FRAME2, FRAME3, FRAME2, \
+        FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, \
+        FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
 
 DarkTornadoCardAction::DarkTornadoCardAction(Character * owner, int damage) 
-  : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(FAN_ANIM), armIsOut(false), damage(damage) {
+: CardAction(*owner, "PLAYER_SHOOTING"), 
+  attachmentAnim(FAN_ANIM), armIsOut(false), damage(damage) {
   fan.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
   attachment = new SpriteProxyNode(fan);
   attachment->SetLayer(-1);
@@ -58,7 +61,7 @@ void DarkTornadoCardAction::Execute() {
   };
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
-  AddAction(2, [onFire, this]() {
+  AddAnimAction(2, [onFire, this]() {
     AUDIO.Play(AudioType::WIND);
     armIsOut = true;
     onFire();
@@ -67,6 +70,7 @@ void DarkTornadoCardAction::Execute() {
 
 void DarkTornadoCardAction::OnUpdate(float _elapsed)
 {
+  // manually update
   if (armIsOut) {
     attachmentAnim.Update(_elapsed, attachment->getSprite());
   }

@@ -28,7 +28,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
   std::shared_ptr<sf::Font> font;
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
   Character* user{ nullptr };
-
+  CardAction* action{ nullptr };
   TimeFreezeBattleState();
 
   void onStart(const BattleSceneState* last) override;

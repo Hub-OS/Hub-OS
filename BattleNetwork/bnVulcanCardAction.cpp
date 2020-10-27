@@ -60,9 +60,9 @@ void VulcanCardAction::Execute() {
   };
 
 
-  AddAction(2, onFire);
-  AddAction(4, onFire);
-  AddAction(6, onFire);
+  AddAnimAction(2, onFire);
+  AddAnimAction(4, onFire);
+  AddAnimAction(6, onFire);
 }
 
 void VulcanCardAction::OnUpdate(float _elapsed)

@@ -93,10 +93,7 @@ CardAction* Character::DequeueAction()
 void Character::Update(float _elapsed) {
   ResolveFrameBattleDamage();
 
-  // Prevent animations from updating and AI from moving around
-  // If during time freeze battle states
-  //if (IsTimeFrozen()) return;
-
+  // normal color every start frame
   setColor(sf::Color(255, 255, 255, getColor().a));
 
   sf::Vector2f shakeOffset;
@@ -170,10 +167,12 @@ void Character::Update(float _elapsed) {
 
   hit = false;
 
+  // Ensure health is zero if marked for immediate deletion
   if (health <= 0 || IsDeleted()) {
       health = 0;
   }
 
+  // Ensure entity is deleted if health is zero
   if (health == 0) {
       Delete();
   }

@@ -15,14 +15,17 @@
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME3, FRAME3, FRAME3
 
 
-CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardAction::Type type) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(CANNON_ANIM) {
+CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardAction::Type type) 
+  : 
+  CardAction(*owner, "PLAYER_SHOOTING"), 
+  attachmentAnim(CANNON_ANIM) {
   CannonCardAction::damage = damage;
 
   cannon.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
   attachment = new SpriteProxyNode(cannon);
   attachment->SetLayer(-1);
 
-  attachmentAnim.Reload();
+  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
 
   switch (type) {
   case Type::green:
@@ -45,13 +48,8 @@ CannonCardAction::~CannonCardAction()
 }
 
 void CannonCardAction::Execute() {
-  auto owner = GetOwner();
-  owner->AddNode(attachment);
-
-  attachmentAnim.Update(0, attachment->getSprite());
-
   // On shoot frame, drop projectile
-  auto onFire = [this, owner]() -> void {
+  auto onFire = [this]() -> void {
     // Spawn a single cannon instance on the tile in front of the player
     Team team = GetOwner()->GetTeam();
     Cannon* cannon = new Cannon(GetOwner()->GetField(), team, damage);
@@ -71,12 +69,11 @@ void CannonCardAction::Execute() {
     GetOwner()->GetField()->AddEntity(*cannon, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
   };
 
-  AddAction(6, onFire);
+  AddAnimAction(6, onFire);
 }
 
 void CannonCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 
@@ -86,6 +83,5 @@ void CannonCardAction::OnAnimationEnd()
 
 void CannonCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
   Eject();
 }

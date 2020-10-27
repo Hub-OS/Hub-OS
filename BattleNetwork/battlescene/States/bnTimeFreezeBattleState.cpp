@@ -22,11 +22,13 @@ TimeFreezeBattleState::TimeFreezeBattleState()
 
 void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
+
   GetScene().GetSelectedCardsUI().Hide();
   GetScene().GetField()->ToggleTimeFreeze(true); // freeze everything on the field but accept hits
   summonTimer.reset();
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = state::fadein;
+  action = nullptr;
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
@@ -65,9 +67,10 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
   case state::animate:
     {
       GetScene().GetField()->Update(elapsed);
-
-      if (user->GetComponentsDerivedFrom<CardAction>().empty()) {
-        user->ToggleTimeFreeze(true); // re-freeze
+      if (action && action->IsAnimationOver() == false) {
+          action->Update(elapsed);
+      }
+      else{
         currState = state::fadeout;
       }
     }
@@ -108,7 +111,8 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   // start the chip
-  user->ToggleTimeFreeze(false); // player animate freely
+  action = user->GetFirstComponent<CardAction>();
+  action ? action->Execute() : (void)0;
 }
 
 bool TimeFreezeBattleState::IsOver() {

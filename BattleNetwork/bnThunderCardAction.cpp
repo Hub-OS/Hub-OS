@@ -43,7 +43,7 @@ void ThunderCardAction::Execute() {
     GetOwner()->GetField()->AddEntity(*thunder, GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
   };
 
-  AddAction(1, onFire);
+  AddAnimAction(1, onFire);
 }
 
 ThunderCardAction::~ThunderCardAction()

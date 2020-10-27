@@ -13,9 +13,14 @@
 #define FRAME3 { 3, 0.05 }
 
 // TODO: check frame-by-frame anim
-#define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
+#define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
+                FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
+                FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, int damage) 
+  : 
+  CardAction(*owner, "PLAYER_SHOOTING"),
+  attachmentAnim(ANIM) {
   FireBurnCardAction::damage = damage;
   FireBurnCardAction::type = type;
 
@@ -27,6 +32,8 @@ FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, i
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
+
+  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
 }
 
 FireBurnCardAction::~FireBurnCardAction()
@@ -35,9 +42,6 @@ FireBurnCardAction::~FireBurnCardAction()
 
 void FireBurnCardAction::Execute() {
   auto owner = GetOwner();
-
-  owner->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner](int offset) -> void {
@@ -48,14 +52,11 @@ void FireBurnCardAction::Execute() {
     fb->SetHitboxProperties(props);
 
     // update node position in the animation
-    auto baseOffset = anim->GetPoint(nodeName).y - anim->GetPoint("origin").y;
-
-    if (baseOffset < 0) { baseOffset = -baseOffset; }
-
+    auto baseOffset = CalculatePointOffset("buster");
 
     baseOffset *= 2.0f;
 
-    fb->SetHeight(baseOffset);
+    fb->SetHeight(baseOffset.y);
 
     int dir = team == Team::red ? 1 : -1;
 
@@ -63,14 +64,13 @@ void FireBurnCardAction::Execute() {
   };
 
 
-  AddAction(2, [onFire]() { onFire(0); });
-  AddAction(4, [onFire]() { onFire(1); });
-  AddAction(6, [onFire]() { onFire(2); });
+  AddAnimAction(2, [onFire]() { onFire(0); });
+  AddAnimAction(4, [onFire]() { onFire(1); });
+  AddAnimAction(6, [onFire]() { onFire(2); });
 }
 
 void FireBurnCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 

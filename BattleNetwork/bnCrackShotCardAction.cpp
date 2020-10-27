@@ -11,13 +11,17 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3
 
-CrackShotCardAction::CrackShotCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SWORD", &attachment, "HILT") {
+CrackShotCardAction::CrackShotCardAction(Character * owner, int damage) 
+  : 
+  CardAction(*owner, "PLAYER_SWORD") {
   CrackShotCardAction::damage = damage;
 
   overlay.setTexture(*owner->getTexture());
   attachment = new SpriteProxyNode(overlay);
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
+
+  AddAttachment(*owner, "hilt", *attachment).PrepareAnimation(attachmentAnim);
 
   OverrideAnimationFrames({ FRAMES });
 
@@ -32,9 +36,6 @@ CrackShotCardAction::~CrackShotCardAction()
 
 void CrackShotCardAction::Execute() {
   auto owner = GetOwner();
-
-  owner->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
 
   // On throw frame, spawn projectile
   auto onThrow = [this, owner]() -> void {
@@ -66,12 +67,11 @@ void CrackShotCardAction::Execute() {
     }
   };
 
-  AddAction(3, onThrow);
+  AddAnimAction(3, onThrow);
 }
 
 void CrackShotCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 
@@ -80,6 +80,5 @@ void CrackShotCardAction::OnAnimationEnd()
 }
 
 void CrackShotCardAction::EndAction() {
-  GetOwner()->RemoveNode(attachment);
   Eject();
 }

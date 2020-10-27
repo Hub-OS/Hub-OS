@@ -9,7 +9,7 @@
 
 #define PATH "resources/spells/spell_bomb.png"
 
-BombCardAction::BombCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_THROW", &attachment, "Hand") {
+BombCardAction::BombCardAction(Character * owner, int damage) : CardAction(*owner, "PLAYER_THROW") {
   BombCardAction::damage = damage;
 
   overlay.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
@@ -17,6 +17,8 @@ BombCardAction::BombCardAction(Character * owner, int damage) : CardAction(owner
 
   attachment = new SpriteProxyNode(overlay);
   attachment->SetLayer(-1);
+
+  AddAttachment(*owner, "hand", *attachment);
 }
 
 BombCardAction::~BombCardAction()
@@ -48,7 +50,7 @@ void BombCardAction::Execute() {
   };
 
 
-  AddAction(3, onThrow);
+  AddAnimAction(3, onThrow);
 }
 
 void BombCardAction::OnUpdate(float _elapsed)

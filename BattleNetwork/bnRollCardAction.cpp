@@ -3,12 +3,10 @@
 #include "bnSpriteProxyNode.h"
 #include "bnRollHeal.h"
 
-RollCardAction::RollCardAction(Character* owner, int damage) : CardAction(owner, "PLAYER_IDLE", nullptr, ""){
-  this->SetLockout(ActionLockoutProperties{
-    ActionLockoutType::animation,
-    3000, // milliseconds
-    ActionLockoutGroup::card
-  });
+RollCardAction::RollCardAction(Character* owner, int damage) : 
+  CardAction(*owner, "PLAYER_IDLE")
+{
+  this->SetLockout(ActionLockoutProperties{ ActionLockoutType::sequence });
 }
 
 void RollCardAction::Execute() {
@@ -23,7 +21,7 @@ void RollCardAction::Execute() {
   };
 
   onSpawnRoll();
-  //AddAction(0, onSpawnRoll);
+  //AddAnimAction(0, onSpawnRoll);
 }
 
 RollCardAction::~RollCardAction()
