@@ -131,17 +131,29 @@ void CombatBattleState::onUpdate(double elapsed)
   }
 
   if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !mob->IsCleared()) {
-    isPaused = !isPaused;
 
-    if (!isPaused) {
+    if (isPaused) {
+      // unpauses
+
       ENGINE.RevokeShader();
+
+      // Require to stop the battle step timer and all battle-related component updates
+      GetScene().StartBattleStepTimer();
     }
     else {
+      // pauses
+
       AUDIO.Play(AudioType::PAUSE);
+
+      // Require to start the timer again and all battle-related component updates
+      GetScene().StopBattleStepTimer();
     }
+
+    // toggles 
+    isPaused = !isPaused;
   }
 
-  if (isPaused) return; // do not update
+  if (isPaused) return; // do not update anything else
 
   customProgress += elapsed;
 

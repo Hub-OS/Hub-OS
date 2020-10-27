@@ -3,6 +3,9 @@
 #include "battlescene/bnMobBattleScene.h"
 #include "Android/bnTouchArea.h"
 
+constexpr float PIXEL_MAX = 50.0f;
+constexpr float PIXEL_SPEED = 180.0f;
+
 using namespace swoosh::types;
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder, PA& programAdvance) :
@@ -63,7 +66,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   showMob = false;
 
   shader = LOAD_SHADER(TEXEL_PIXEL_BLUR);
-  factor = 125;
+  factor = PIXEL_MAX;
 
   // Current selection index
   mobSelectionIndex = 0;
@@ -90,29 +93,6 @@ SelectMobScene::~SelectMobScene() {
   delete hpLabel;
 
   if (mob) delete mob;
-}
-
-void SelectMobScene::onResume() {
-  if(mob) {
-    delete mob;
-    mob = nullptr;
-  }
-
-  // Fix camera if offset from battle
-  ENGINE.SetCamera(camera);
-
-  // Re-play music
-  AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
-
-  gotoNextScene = false;
-  doOnce = true;
-  showMob = true;
-
-  Logger::Log("SelectMobScene::onResume()");
-
-#ifdef __ANDROID__
-  StartupTouchControls();
-#endif
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
@@ -260,7 +240,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 
   if (prevSelect != mobSelectionIndex || doOnce) {
     doOnce = false;
-    factor = 125;
+    factor = PIXEL_MAX;
 
     // Current mob graphic
     mobSpr.setTexture(mobinfo.GetPlaceholderTexture());
@@ -268,7 +248,7 @@ void SelectMobScene::onUpdate(double elapsed) {
     mobSpr.setOrigin(mobSpr.getLocalBounds().width / 2.f, mobSpr.getLocalBounds().height / 2.f);
 
     textbox.SetText(mobinfo.GetDescriptionString());
-  textbox.Stop();
+    textbox.Stop();
   
     prevSelect = mobSelectionIndex;
   }
@@ -349,7 +329,7 @@ void SelectMobScene::onUpdate(double elapsed) {
    * End scramble effect 
    */
 
-  factor -= (float)elapsed * 180.f;
+  factor -= (float)elapsed * PIXEL_SPEED;
 
   if (factor <= 0.f) {
     factor = 0.f;
@@ -365,10 +345,6 @@ void SelectMobScene::onUpdate(double elapsed) {
       textbox.Play();
     }
   }
-
-  // Mob fades in
-  float range = (125.f - factor) / 125.f;
-  mobSpr.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
 
   // Make a selection
   if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && !gotoNextScene) {
@@ -465,7 +441,6 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   hpLabel->setFillColor(sf::Color::White);
   ENGINE.Draw(hpLabel);
 
-
   // Pixelate the mob texture
   if (mobSpr.getTexture()) {
     sf::IntRect t = mobSpr.getTextureRect();
@@ -474,13 +449,15 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
     shader.SetUniform("y", (float)t.top / (float)size.y);
     shader.SetUniform("w", (float)t.width / (float)size.x);
     shader.SetUniform("h", (float)t.height / (float)size.y);
-    shader.SetUniform("pixel_threshold", (float)(factor / 400.f));
+    shader.SetUniform("pixel_threshold", (float)(factor / PIXEL_MAX));
 
     // Refresh mob graphic origin every frame as it may change
+    float scale = (PIXEL_MAX-factor) / PIXEL_MAX;
+    scale *= 2.f;
+
     mobSpr.setOrigin(mobSpr.getTextureRect().width / 2.f, mobSpr.getTextureRect().height / 2.f);
-    
-    // TODO: This makes the preview not show up?
-    //mobSpr.SetShader(shader);
+    mobSpr.setScale(scale, scale);
+    mobSpr.SetShader(shader);
 
     ENGINE.Draw(mobSpr);
   }
@@ -530,12 +507,32 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   ENGINE.Draw(cursor);
 }
 
+void SelectMobScene::onResume() {
+  if (mob) {
+    delete mob;
+    mob = nullptr;
+  }
+
+  // Fix camera if offset from battle
+  ENGINE.SetCamera(camera);
+
+  // Re-play music
+  AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
+
+  gotoNextScene = false;
+  Logger::Log("SelectMobScene::onResume()");
+
+#ifdef __ANDROID__
+  StartupTouchControls();
+#endif
+}
+
 void SelectMobScene::onStart() {
   textbox.Play();
-  factor = 125;
   doOnce = true;
   showMob = true;
   gotoNextScene = false;
+  factor = PIXEL_MAX;
 
 #ifdef __ANDROID__
   StartupTouchControls();
@@ -558,16 +555,12 @@ void SelectMobScene::onLeave() {
 void SelectMobScene::onExit() {
   textbox.SetText("");
 
-  // fade in from zero next time 
-  mobSpr.setColor(sf::Color(255, 255, 255, 0));
-
   Logger::Log("SelectMobScene::onExit()");
 
 }
 
 void SelectMobScene::onEnter() {
   Logger::Log("SelectMobScene::onEnter()");
-
 }
 
 void SelectMobScene::onEnd() {

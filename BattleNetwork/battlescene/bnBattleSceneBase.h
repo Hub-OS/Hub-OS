@@ -227,12 +227,6 @@ protected:
   */
   void ProcessNewestComponents();
 
-  /**
-    * @brief Query if the battle update loop is ticking.
-    * @return true if the field is not paused
-  */
-  const bool IsBattleActive();
-
   void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override final;
   void OnCounter(Character& victim, Character& aggressor) override final;
   void OnDeleteEvent(Character& pending) override final;

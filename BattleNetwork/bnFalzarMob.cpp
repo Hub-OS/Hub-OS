@@ -18,7 +18,7 @@ Mob* FalzarMob::Build() {
 
     auto bg = new VirusBackground();
     bg->ScrollUp();
-    bg->SetScrollSpeed(0.25f); // crawl upward slowly
+    bg->SetScrollSpeed(0.15f); // crawl upward slowly
     mob->SetBackground(bg);
 
     for(int i = 4; i <= 6; i++) {

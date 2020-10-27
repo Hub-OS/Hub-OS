@@ -32,6 +32,7 @@
  }
 
  sf::Shader* SmartShader::Get() {
+   ApplyUniforms();
    return ref;
  }
 

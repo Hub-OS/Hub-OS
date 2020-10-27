@@ -59,7 +59,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   background = props.background;
 
   if (!background) {
-    int randBG = rand() % 10;
+    int randBG = rand() % 8;
 
     if (randBG == 0) {
       background = new LanBackground();
@@ -68,28 +68,22 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
       background = new GraveyardBackground();
     }
     else if (randBG == 2) {
-      background = new VirusBackground();
-    }
-    else if (randBG == 3) {
       background = new WeatherBackground();
     }
-    else if (randBG == 4) {
+    else if (randBG == 3) {
       background = new RobotBackground();
     }
-    else if (randBG == 5) {
+    else if (randBG == 4) {
       background = new MedicalBackground();
     }
-    else if (randBG == 6) {
+    else if (randBG == 5) {
       background = new ACDCBackground();
     }
-    else if (randBG == 7) {
+    else if (randBG == 6) {
       background = new MiscBackground();
     }
-    else if (randBG == 8) {
+    else if (randBG == 7) {
       background = new JudgeTreeBackground();
-    }
-    else if (randBG == 9) {
-      background = new SecretBackground();
     }
   }
 
@@ -253,11 +247,6 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   if (mob->IsCleared()) {
     AUDIO.StopStream();
   }
-}
-
-const bool BattleSceneBase::IsBattleActive()
-{
-  return false;
 }
 
 const int BattleSceneBase::ComboDeleteSize()
@@ -452,16 +441,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
   // Register and eject any applicable components
   ProcessNewestComponents();
 
-  // Update injected components
-  for (auto c : components) {
-    if (c->Lifetime() == Component::lifetimes::ui) {
-      c->Update((float)elapsed);
-    }
-    else if (c->Lifetime() == Component::lifetimes::battlestep && !mob->IsCleared() && !battleTimer.isPaused()) {
-      c->Update((float)elapsed);
-    }
-  }
-
   cardUI->OnUpdate((float)elapsed);
   cardCustGUI.Update((float)elapsed);
 
@@ -471,6 +450,25 @@ void BattleSceneBase::onUpdate(double elapsed) {
   if(!current) return;
 
   current->onUpdate(elapsed);
+
+  // Update components
+  // TODO: Let the state classes determine when to update battlestep components-
+  //       But let UI components be handled by this base class?
+  //       Reasoning: what may be considered a "battlestep" is ambiguous and tied to the timer anyway
+  for (auto c : components) {
+    if (c->Lifetime() == Component::lifetimes::ui) {
+      c->Update((float)elapsed);
+    }
+    else if (c->Lifetime() == Component::lifetimes::battlestep) {
+      // If the mob isn't cleared, only update when the battle-step timer is going
+      // Otherwise, feel free to update as the battle is over (mob is cleared)
+      bool updateBattleSteps = !mob->IsCleared() && !battleTimer.isPaused();
+      updateBattleSteps = updateBattleSteps || mob->IsCleared();
+      if (updateBattleSteps) {
+        c->Update((float)elapsed);
+      }
+    }
+  }
 
   // Track combo deletes
   if (lastMobSize != newMobSize && !isPlayerDeleted) {
@@ -700,7 +698,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     // Draw ui
     for (auto node : ui) {
-      if (node->AutoDraw()) {
+      if (node->DrawOnUIPass()) {
         node->move(ENGINE.GetViewOffset());
         ENGINE.Draw(*node, false);
         node->move(-ENGINE.GetViewOffset());

@@ -18,11 +18,11 @@ class DefenseAura;
  * The other type of Aura is a Barrier. Barrier is similar but each damage recieved takes away from the
  * Barrier's internal HP. When the HP is below or at zero, the Barrier deletes itself.
  */
-class Aura : public UIComponent
+class Aura : public Component
 {
 public:
   /**
-   * @brief Aura can be weak or strong Auras as well as Barriers */
+ * @brief Aura can be weak or strong Auras as well as Barriers */
   enum class Type : int {
     AURA_100,
     AURA_200,
@@ -32,21 +32,47 @@ public:
     BARRIER_500
   };
 
+  // The Aura draws a barrier or aura graphic and text on the UI pass
+  class VisualFX : public UIComponent {
+    friend class Aura;
+    Type type;
+    int currHP{};
+    Animation animation; /*!< Animation object */
+    SpriteProxyNode* aura{ nullptr }; /*!< The scene node to attach to the entity's scene node */
+    sf::Sprite auraSprite; /*!< the sprite drawn by SpriteSceneNode* aura */
+    mutable Sprite font; /*!< Aura HP glyphs */
+    std::shared_ptr<sf::Texture> fontTextureRef; /*!< reference to the texture set used */
+    double timer{ 0 };
+  public:
+    VisualFX(Entity* owner, Aura::Type type);
+    ~VisualFX();
+
+  /**
+   * @brief Injects into the scene so the animation updates regardless of battle paused.
+   */
+    void Inject(BattleSceneBase&) override;
+
+    void OnUpdate(float _elapsed) override;
+
+   /**
+   * @brief Draws health using glyphs with correct margins
+   * @param target
+   * @param states
+   */
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+  } *fx{ nullptr };
 private:
-  Animation animation; /*!< Animation object */
-  SpriteProxyNode* aura; /*!< The scene node to attach to the entity's scene node */
-  sf::Sprite auraSprite; /*!< the sprite drawn by SpriteSceneNode* aura */
+
   Type type; /*!< Type of aura */
-  DefenseAura* defense; /*!< Defense rule */
-  double timer; /*!< Some aura types delete over time in seconds */
-  int health; /*!< HP of aura */
-  bool persist; /*!< Flag is Barrier goes away over time or if it lingers */
-  bool isOver; /*!< Flag if the aura is fading out */
-  int lastHP; /*!< HP last frame */
-  int currHP; /*!< HP this frame */
-  int startHP; /*!< HP at creation */
-  mutable Sprite font; /*!< Aura HP glyphs */
-  std::shared_ptr<sf::Texture> fontTextureRef; /*!< reference to the texture set used */
+  DefenseAura* defense{ nullptr }; /*!< Defense rule */
+  double timer{ 0 }; /*!< Some aura types delete over time in seconds */
+  int health{}; /*!< HP of aura */
+  bool persist{ false }; /*!< Flag is Barrier goes away over time or if it lingers */
+  bool isOver{ false }; /*!< Flag if the aura is fading out */
+  int lastHP{}; /*!< HP last frame */
+  int currHP{}; /*!< HP this frame */
+  int startHP{}; /*!< HP at creation */
+
 public:
   /**
    * @brief Create an aura with type and a Character owner
@@ -59,11 +85,6 @@ public:
    * @brief Dtor. Deletes aura SceneNodeSprite and defense rule.
    */
   ~Aura();
-
-  /**
-   * @brief Injects into the scene so the animation updates regardless of battle paused.
-   */
-  void Inject(BattleSceneBase&) override;
   
   /**
    * @brief If timer or HP is over, remove the components and nodes in this recipe
@@ -82,13 +103,8 @@ public:
    */
   void OnUpdate(float _elapsed) override;
   
-  /**
-   * @brief Draws health using glyphs with correct margins
-   * @param target
-   * @param states
-   */
-  void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-  
+  void Inject(BattleSceneBase&) override;
+
   /**
    * @brief Query the type of aura
    * @return const Aura::Type

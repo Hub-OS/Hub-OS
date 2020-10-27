@@ -405,11 +405,15 @@ int main(int argc, char** argv) {
 
     // Draw some log info while we wait
     bool inLoadState = true;
+    bool pleaseWait = false;
     bool ready = false;
     bool loadMobs = false;
     bool pressedStart = false;
+    std::future<bool> loginResult; // Signal if login was successful
+    swoosh::Timer timeout;
 
     int selected = 0; // menu options are CONTINUE (0) and CONFIGURE (1)
+    constexpr int MAX_TIMEOUT = 10; // in seconds
 
     // When resources are loaded, flash the screen white
     double shaderCooldown = 2000;  // 2 seconds
@@ -424,7 +428,6 @@ int main(int argc, char** argv) {
         clock.restart();
     
         INPUTx.Update();
-
         // Set title bar to loading %
         float percentage = (float)progress / (float)totalObjects;
         std::string percentageStr = std::to_string((int)(percentage*100));
@@ -436,6 +439,8 @@ int main(int argc, char** argv) {
         // Mouse fades out if not being used
         mouseAlpha -= elapsed/1000.0f;
         mouseAlpha = std::max(0.0, mouseAlpha);
+
+        timeout.update(elapsed / 1000.0f);
 
         // Mouse shows up when touched
         if (mousepos != lastMousepos) {
@@ -660,10 +665,16 @@ int main(int argc, char** argv) {
                             cursorSprite.setPosition(sf::Vector2f(163.0f + offset, 257.f));
                         }
 
-                        ENGINE.Draw(cursorSprite);
-
                         // Show continue or settings options
-                        if (loginSelected) {
+                        if (pleaseWait) {
+                          startLabel->setString("PLEASE WAIT...");
+                          startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
+                          startLabel->setPosition(sf::Vector2f(180.0f, 240.f));
+                          ENGINE.Draw(startLabel);
+
+                        } else if (loginSelected) {
+                          ENGINE.Draw(cursorSprite);
+
                           startLabel->setString("CONTINUE");
                           startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
                           startLabel->setPosition(sf::Vector2f(200.0f, 240.f));
@@ -675,6 +686,8 @@ int main(int argc, char** argv) {
                           ENGINE.Draw(startLabel);
                         }
                         else {
+                          ENGINE.Draw(cursorSprite);
+
                           startLabel->setString("PLAY");
                           startLabel->setOrigin(0.f, startLabel->getLocalBounds().height);
                           startLabel->setPosition(sf::Vector2f(200.0f, 240.f));
@@ -686,40 +699,92 @@ int main(int argc, char** argv) {
                           ENGINE.Draw(startLabel);
                         }
 
-                        bool pressedStart  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
-                        bool pressedUp    = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUTx.GetAnyKey() == sf::Keyboard::Up;
-                        bool pressedDown  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Down;
-            
-                        if (pressedUp) {
+                        if (!pleaseWait) {
+                          bool pressedStart = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
+                          bool pressedUp = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_UP) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Up;
+                          bool pressedDown = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Down;
+
+                          if (pressedUp) {
                             if (selected != 0) {
-                            AUDIO.Play(AudioType::CHIP_SELECT);
+                              AUDIO.Play(AudioType::CHIP_SELECT);
                             }
 
                             selected = 0;
-                        }
-                        else if (pressedDown) {
+                          }
+                          else if (pressedDown) {
                             if (selected != 1) {
-                            AUDIO.Play(AudioType::CHIP_SELECT);
+                              AUDIO.Play(AudioType::CHIP_SELECT);
                             }
 
                             selected = 1;
-                        }
+                          }
 
-                         #ifdef __ANDROID__
-                        pressedStart = sf::Touch::isDown(0);
-                        #endif
-                        if (pressedStart) {
-                          if (loginSelected) {
-                            inLoadState = false;
-                            AUDIO.Play(AudioType::NEW_GAME);
+#ifdef __ANDROID__
+                          pressedStart = sf::Touch::isDown(0);
+#endif
+                          if (pressedStart && !pleaseWait) {
+                            if (loginSelected) {
+                              inLoadState = false;
+                              AUDIO.Play(AudioType::NEW_GAME);
+                            }
+                            else if (selected == 0) {
+                              // We want to login
+                              loginSelected = true;
+                              AUDIO.Play(AudioType::CHIP_CHOOSE);
+
+                              if (configSettings.IsOK()) {
+                                const WebServerInfo info = configSettings.GetWebServerInfo();
+                                const std::string version = info.version;
+                                const std::string URL = info.URL;
+                                const int port = info.port;
+                                const std::string username = info.user;
+                                const std::string password = info.password;
+
+                                if (URL.empty() || version.empty() || username.empty() || password.empty()) {
+                                  Logger::Logf("One or more web server fields are empty in config.");
+                                }
+                                else {
+
+                                  Logger::Logf("Connecting to web server @ %s:%i (Version %s)", URL.data(), port, version.data());
+
+                                  WEBCLIENT.ConnectToWebServer(version.data(), URL.data(), port);
+
+#define LOGIN
+#ifdef LOGIN
+                                  loginResult = WEBCLIENT.SendLoginCommand(username.data(), password.data());
+                                  timeout.start();
+
+                                  Logger::Logf("waiting for server...");
+                                  pleaseWait = true;
+#endif
+                                }
+                              }
+                            }
+                            else {
+                              inLoadState = false;
+                              AUDIO.Play(AudioType::NEW_GAME);
+                            }
                           }
-                          else if(selected == 0) {
-                            loginSelected = true;
-                            AUDIO.Play(AudioType::CHIP_CHOOSE);
+                        }
+                        else {
+                          if (timeout.getElapsed().asSeconds() > MAX_TIMEOUT) {
+                            Logger::Logf("Could not communicate with the server. Aborting automatic login.");
                           }
-                          else {
-                            inLoadState = false;
-                            AUDIO.Play(AudioType::NEW_GAME);
+                          else if (is_ready(loginResult)) {
+                            bool success = loginResult.get();
+                            if (success) {
+                              Logger::Logf("Logged in! Welcome %s!", WEBCLIENT.GetUserName().c_str());
+                              pleaseWait = false;
+                              timeout.reset();
+                              timeout.pause();
+                            }
+                            else {
+                              Logger::Logf("Could not authenticate. Aborting automatic login");
+                              pleaseWait = false;
+                              pressedStart = false;
+                              timeout.reset();
+                              timeout.pause();
+                            }
                           }
                         }
                     }
@@ -806,53 +871,6 @@ int main(int argc, char** argv) {
     logLabel->setFillColor(sf::Color::Red);
     logLabel->setPosition(296,18);
     logLabel->setStyle(sf::Text::Style::Bold);
-
-    if (configSettings.IsOK() && loginSelected && selected == 0) {
-      const WebServerInfo info = configSettings.GetWebServerInfo();
-      const std::string version = info.version;
-      const std::string URL = info.URL;
-      const int port = info.port;
-      const std::string username = info.user;
-      const std::string password = info.password;
-
-      if (URL.empty() || version.empty() || username.empty() || password.empty()) {
-        Logger::Logf("One or more web server fields are empty in config.");
-      }
-      else {
-
-        Logger::Logf("Connecting to web server @ %s:%i (Version %s)", URL.data(), port, version.data());
-
-        WEBCLIENT.ConnectToWebServer(version.data(), URL.data(), port);
-
-#define LOGIN
-#ifdef LOGIN
-        auto result = WEBCLIENT.SendLoginCommand(username.data(), password.data());
-
-        Logger::Logf("waiting for server...");
-
-        int timeoutCount = 0;
-        constexpr int MAX_TIMEOUT = 5;
-
-        while (!is_ready(result) && timeoutCount < MAX_TIMEOUT) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-          Logger::Logf("timeout %i", ++timeoutCount);
-        }
-
-        if (timeoutCount == MAX_TIMEOUT) {
-          Logger::Logf("Could not communicate with the server. Aborting automatic login.");
-        }
-        else if (is_ready(result)) {
-          bool success = result.get();
-          if (success) {
-            Logger::Logf("Logged in! Welcome %s!", username.data());
-          }
-          else {
-            Logger::Logf("Could not authenticate. Aborting automatic login");
-          }
-        }
-#endif
-      }
-    }
 
     // Make sure we didn't quit the loop prematurely
     while (ENGINE.Running()) {

@@ -27,7 +27,7 @@ PlayerHealthUI::PlayerHealthUI(Player* _player)
   isBattleOver = false;
   color = Color::normal;
 
-  SetAutoDraw(false);
+  SetDrawOnUIPass(false);
 }
 
 PlayerHealthUI::~PlayerHealthUI() {

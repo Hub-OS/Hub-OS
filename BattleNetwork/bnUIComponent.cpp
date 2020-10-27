@@ -1,11 +1,11 @@
 #include "bnUIComponent.h"
 
-void UIComponent::SetAutoDraw(bool enabled)
+void UIComponent::SetDrawOnUIPass(bool enabled)
 {
   autodraw = enabled;
 }
 
-const bool UIComponent::AutoDraw() const
+const bool UIComponent::DrawOnUIPass() const
 {
     return autodraw;
 }

@@ -16,10 +16,11 @@
 class BattleSceneBase;
 
 class UIComponent : public Component, public SceneNode {
-private:
-  bool autodraw{ true }; //!< If false, the scene will not draw it
+  bool autodraw{ true };
 
 public:
+
+
   UIComponent() = delete;
   /**
    * @brief Attaches this component to the owner
@@ -51,6 +52,6 @@ public:
    */
   virtual void Inject(BattleSceneBase&) = 0;
 
-  void SetAutoDraw(bool enabled);
-  const bool AutoDraw() const;
+  void SetDrawOnUIPass(bool enabled);
+  const bool DrawOnUIPass() const;
 }; 
