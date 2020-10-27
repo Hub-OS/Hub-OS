@@ -16,7 +16,8 @@
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
 
-VulcanCardAction::VulcanCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(ANIM) {
+VulcanCardAction::VulcanCardAction(Character * owner, int damage) : 
+  CardAction(*owner, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
   VulcanCardAction::damage = damage;
   overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
   attachment = new SpriteProxyNode(overlay);
@@ -26,6 +27,8 @@ VulcanCardAction::VulcanCardAction(Character * owner, int damage) : CardAction(o
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
+
+  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
 }
 
 VulcanCardAction::~VulcanCardAction()
@@ -34,9 +37,6 @@ VulcanCardAction::~VulcanCardAction()
 
 void VulcanCardAction::Execute() {
   auto owner = GetOwner();
-
-  owner->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner]() -> void {
@@ -67,7 +67,6 @@ void VulcanCardAction::Execute() {
 
 void VulcanCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 }
 
@@ -77,6 +76,5 @@ void VulcanCardAction::OnAnimationEnd()
 
 void VulcanCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(attachment);
   Eject();
 }

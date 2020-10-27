@@ -14,9 +14,9 @@
 #define FRAMES FRAME1, FRAME3
 
 
-YoYoCardAction::YoYoCardAction(Character * owner, int damage) 
-  : attachmentAnim(NODE_ANIM), yoyo(nullptr),
-  CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster") {
+YoYoCardAction::YoYoCardAction(Character * owner, int damage) :
+  attachmentAnim(NODE_ANIM), yoyo(nullptr),
+  CardAction(*owner, "PLAYER_SHOOTING") {
   YoYoCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
@@ -29,6 +29,8 @@ YoYoCardAction::YoYoCardAction(Character * owner, int damage)
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
+  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
+
 }
 
 YoYoCardAction::~YoYoCardAction()
@@ -37,9 +39,6 @@ YoYoCardAction::~YoYoCardAction()
 
 void YoYoCardAction::Execute() {
   auto owner = GetOwner();
-
-  owner->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
@@ -62,7 +61,6 @@ void YoYoCardAction::Execute() {
 
 void YoYoCardAction::OnUpdate(float _elapsed)
 {
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
   CardAction::OnUpdate(_elapsed);
 
   if (yoyo && yoyo->WillRemoveLater()) {
@@ -83,7 +81,5 @@ void YoYoCardAction::EndAction()
     yoyo->Delete();
   }
 
-  GetOwner()->RemoveNode(attachment);
-  RecallPreviousState();
   Eject();
 }

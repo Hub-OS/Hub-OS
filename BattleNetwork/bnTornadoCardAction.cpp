@@ -15,8 +15,9 @@
 #define FRAMES FRAME1, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
 
-TornadoCardAction::TornadoCardAction(Character * owner, int damage) 
-  : CardAction(owner, "PLAYER_SHOOTING", &attachment, "Buster"), attachmentAnim(FAN_ANIM), armIsOut(false) {
+TornadoCardAction::TornadoCardAction(Character * owner, int damage) : 
+  CardAction(*owner, "PLAYER_SHOOTING"), 
+  attachmentAnim(FAN_ANIM), armIsOut(false) {
   TornadoCardAction::damage = damage;
   fan.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
   attachment = new SpriteProxyNode(fan);

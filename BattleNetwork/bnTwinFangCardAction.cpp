@@ -12,7 +12,8 @@
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME2, FRAME1, FRAME1
 
 
-TwinFangCardAction::TwinFangCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_SHOOTING", nullptr, "Buster") {
+TwinFangCardAction::TwinFangCardAction(Character * owner, int damage) : 
+  CardAction(*owner, "PLAYER_SHOOTING") {
   TwinFangCardAction::damage = damage;
 
   // add override anims
