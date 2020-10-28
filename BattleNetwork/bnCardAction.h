@@ -35,9 +35,9 @@ public:
   struct Attachment {
     std::reference_wrapper<SpriteProxyNode> spriteProxy;
     std::reference_wrapper<Animation> parentAnim;
-    Animation myAnim;
+    Animation* myAnim{ nullptr };
 
-    void PrepareAnimation(const Animation&);
+    void PrepareAnimation(Animation&);
     void Update(double elapsed);
     void SetOffset(const sf::Vector2f& pos);
     Animation& GetParentAnim();
@@ -60,6 +60,7 @@ public:
 
 private:
   bool animationIsOver{ false };
+  bool started{ false };
   ActionLockoutProperties lockoutProps{};
   std::string animation;
   std::string uuid, prevState;

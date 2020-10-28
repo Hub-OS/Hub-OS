@@ -14,8 +14,7 @@ public:
   };
 
 private:
-  sf::Sprite cannon;
-  SpriteProxyNode* attachment;
+  SpriteProxyNode* attachment{ nullptr };
   Animation attachmentAnim;
   int damage;
   Type type;

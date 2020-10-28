@@ -42,7 +42,6 @@ void BusterCardAction::Execute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    buster->AddNode(flare);
     Team team = this->GetOwner()->GetTeam();
     Buster* b = new Buster(GetOwner()->GetField(), team, charged, damage);
 

@@ -119,13 +119,18 @@ void CardAction::OnExecute()
 {
   // prepare the animation behavior
   prepareActionDelegate();
-
+  started = true;
   // run
   Execute();
 }
 
 CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
   auto iter = attachments.insert(std::make_pair(point, Attachment{ std::ref(node), std::ref(parent) }));
+
+  if (started) {
+    this->GetOwner()->AddNode(&node);
+  }
+
   return iter->second;
 }
 
@@ -133,12 +138,15 @@ CardAction::Attachment& CardAction::AddAttachment(Character& character, const st
   auto animComp = character.GetFirstComponent<AnimationComponent>();
   assert(animComp && "character must have an animation component");
 
+  if (started) {
+    this->GetOwner()->AddNode(&node);
+  }
+
   return AddAttachment(animComp->GetAnimationObj(), point, node);
 }
 
 void CardAction::OnUpdate(float _elapsed)
 {
-
   for (auto& [nodeName, node] : attachments) {
     // update the node's animation
     node.Update(_elapsed);
@@ -221,14 +229,16 @@ const bool CardAction::IsLockoutOver() const {
 //                Attachment Impl               //
 //////////////////////////////////////////////////
 
-void CardAction::Attachment::PrepareAnimation(const Animation& anim)
+void CardAction::Attachment::PrepareAnimation(Animation& anim)
 {
-  this->myAnim = anim;
+  this->myAnim = &anim;
 }
 
 void CardAction::Attachment::Update(double elapsed)
 {
-  this->myAnim.Update(elapsed, spriteProxy.get().getSprite());
+  if (this->myAnim) {
+    this->myAnim->Update(elapsed, spriteProxy.get().getSprite());
+  }
 }
 
 void CardAction::Attachment::SetOffset(const sf::Vector2f& pos)

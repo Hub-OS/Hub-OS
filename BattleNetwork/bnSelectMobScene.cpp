@@ -553,7 +553,7 @@ void SelectMobScene::onLeave() {
 }
 
 void SelectMobScene::onExit() {
-  textbox.SetText("");
+  //textbox.SetText("");
 
   Logger::Log("SelectMobScene::onExit()");
 
