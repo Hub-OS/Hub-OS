@@ -8,6 +8,7 @@
 #include "../../bnCardUseListener.h"
 
 class Character;
+class CardAction;
 namespace Battle { class Card; }
 
 /* 

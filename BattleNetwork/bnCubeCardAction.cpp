@@ -2,7 +2,8 @@
 #include "bnCharacter.h"
 #include "bnCube.h"
 
-CubeCardAction::CubeCardAction(Character* owner) : CardAction(owner, "PLAYER_IDLE", nullptr, ""){
+CubeCardAction::CubeCardAction(Character* owner) : 
+  CardAction(*owner, "PLAYER_IDLE"){
   this->SetLockout(ActionLockoutProperties{
     ActionLockoutType::animation,
     3000, // milliseconds

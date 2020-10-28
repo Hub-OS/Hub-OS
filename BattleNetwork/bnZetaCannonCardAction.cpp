@@ -5,8 +5,9 @@
 #include "bnDefenseIndestructable.h"
 #include "bnInputManager.h"
 
-ZetaCannonCardAction::ZetaCannonCardAction(Character * owner, int damage) 
-  : CardAction(owner, "PLAYER_IDLE", nullptr, ""), damage(damage), font(), timerLabel()
+ZetaCannonCardAction::ZetaCannonCardAction(Character * owner, int damage)  : 
+  CardAction(*owner, "PLAYER_IDLE"), 
+  damage(damage), font(), timerLabel()
 { 
   font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
   timerLabel.setFont(*font);

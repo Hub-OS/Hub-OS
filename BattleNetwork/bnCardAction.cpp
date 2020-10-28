@@ -21,16 +21,17 @@ CardAction::CardAction(Character& user, const std::string& animation)
       // use the current animation's arrangement, do not overload
       prevState = anim->GetAnimationString();;
       anim->SetAnimation(animation, [this]() {
-        //Logger::Log("normal callback fired");
-        RecallPreviousState();
 
         if (this->IsLockoutOver()) {
           EndAction();
         }
+
+        RecallPreviousState();
       });
 
       anim->SetInterruptCallback([this]() {
         this->animationIsOver = true;
+        this->FreeAttachedNodes();
       });
 
       this->animationIsOver = false;
@@ -44,7 +45,8 @@ CardAction::CardAction(Character& user, const std::string& animation)
 CardAction::~CardAction()
 {
   sequence.clear();
-  attachments.clear();
+
+  FreeAttachedNodes();
 }
 
 void CardAction::AddStep(Step* step)
@@ -64,9 +66,7 @@ sf::Vector2f CardAction::CalculatePointOffset(const std::string& point) {
 
 void CardAction::RecallPreviousState()
 {
-  for (auto& [nodeName, node] : attachments) {
-    this->GetOwner()->RemoveNode(&node.spriteProxy.get());
-  }
+  FreeAttachedNodes();
 
   if (anim) {
     anim->SetAnimation(prevState);
@@ -89,20 +89,23 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       for (auto& [nodeName, node] : attachments) {
         this->GetOwner()->AddNode(&node.spriteProxy.get());
       }
-
+      prevState = anim->GetAnimationString();;
       anim->OverrideAnimationFrames(animation, frameData, uuid);
       anim->SetAnimation(uuid, [this]() {
         //Logger::Log("custom callback fired");
 
         anim->SetPlaybackMode(Animator::Mode::Loop);
-        RecallPreviousState();
 
         if (this->IsLockoutOver()) {
           EndAction();
         }
+
+        RecallPreviousState();
+
       });
       anim->SetInterruptCallback([this]() {
         this->animationIsOver = true;
+        this->FreeAttachedNodes();
       });
 
       this->animationIsOver = false;
@@ -181,6 +184,14 @@ void CardAction::SetLockout(const ActionLockoutProperties& props)
 void CardAction::SetLockoutGroup(const ActionLockoutGroup& group)
 {
   lockoutProps.group = group;
+}
+
+void CardAction::FreeAttachedNodes() {
+  for (auto& [nodeName, node] : attachments) {
+    this->GetOwner()->RemoveNode(&node.spriteProxy.get());
+  }
+
+  attachments.clear();
 }
 
 const ActionLockoutGroup CardAction::GetLockoutGroup() const

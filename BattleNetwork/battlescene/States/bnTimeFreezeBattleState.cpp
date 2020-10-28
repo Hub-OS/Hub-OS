@@ -112,7 +112,7 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
   // start the chip
   action = user->GetFirstComponent<CardAction>();
-  action ? action->Execute() : (void)0;
+  action ? action->OnExecute() : (void)0;
 }
 
 bool TimeFreezeBattleState::IsOver() {

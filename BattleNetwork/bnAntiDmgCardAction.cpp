@@ -4,7 +4,7 @@
 
 AntiDmgCardAction::AntiDmgCardAction(Character* owner, int damage) : 
   damage(damage),
-  CardAction(owner, "PLAYER_IDLE", nullptr, ""){
+  CardAction(*owner, "PLAYER_IDLE"){
   this->SetLockout(ActionLockoutProperties{
     ActionLockoutType::animation,
     3000, // milliseconds

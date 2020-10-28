@@ -7,7 +7,9 @@ class SpriteProxyNode;
 class Character;
 class ScriptedCardAction : public CardAction {
 public:
-  ScriptedCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_IDLE", nullptr, "Buster") {
+  ScriptedCardAction(Character * owner, int damage) : 
+    CardAction(*owner, "PLAYER_IDLE") 
+  {
     // SCRIPTS.callback(card_name).onCreate(this);
   }
 

@@ -71,6 +71,7 @@ private:
 
   // Used internally
   void RecallPreviousState();
+  void FreeAttachedNodes();
 
 protected:
   /*user defined */

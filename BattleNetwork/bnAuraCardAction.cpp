@@ -3,7 +3,7 @@
 
 AuraCardAction::AuraCardAction(Character* owner, Aura::Type type) : 
   type(type),
-  CardAction(owner, "PLAYER_IDLE", nullptr, ""){
+  CardAction(*owner, "PLAYER_IDLE"){
   this->SetLockout(ActionLockoutProperties{
     ActionLockoutType::animation,
     3000, // milliseconds

@@ -84,7 +84,7 @@ LightningCardAction::~LightningCardAction()
 
 void LightningCardAction::OnUpdate(float _elapsed)
 {
-  if (fired) {
+  if (fired && attack) {
     attackAnim.Update(_elapsed, attack->getSprite());
   }
 
@@ -93,9 +93,11 @@ void LightningCardAction::OnUpdate(float _elapsed)
 
 void LightningCardAction::OnAnimationEnd()
 {
-  attachment->RemoveNode(attack);
-  delete attack;
-  delete attachment;
+  if (attack) {
+    attachment->RemoveNode(attack);
+    delete attack;
+    attack = nullptr;
+  }
 }
 
 void LightningCardAction::EndAction()

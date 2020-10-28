@@ -10,7 +10,8 @@
 #define FRAMES FRAME1
 
 
-ReflectCardAction::ReflectCardAction(Character * owner, int damage) : CardAction(owner, "PLAYER_IDLE", nullptr, "Buster") {
+ReflectCardAction::ReflectCardAction(Character * owner, int damage) : 
+  CardAction(*owner, "PLAYER_IDLE") {
   ReflectCardAction::damage = damage;
 
   // add override anims

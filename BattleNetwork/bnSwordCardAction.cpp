@@ -16,75 +16,56 @@
 #define FRAMES FRAME1, FRAME2, FRAME3
 
 SwordCardAction::SwordCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_SWORD"), 
-  attachmentAnim(ANIM) {
+  CardAction(*owner, "PLAYER_SWORD")
+  {
   SwordCardAction::damage = damage;
 
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("DEFAULT");
+  blade = new SpriteProxyNode();
+  blade->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  blade->SetLayer(-2);
 
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  attachment = new SpriteProxyNode(overlay);
-  attachment->SetLayer(-2);
+  hilt = new SpriteProxyNode();
+  hilt->setTexture(owner->getTexture());
+  hilt->SetLayer(-1);
+  hilt->EnableParentShader(true);
 
-  hiltAttachment = new SpriteProxyNode();
-  hiltAttachment->setTexture(owner->getTexture());
-  hiltAttachment->SetLayer(-1);
+  bladeAnim = Animation(ANIM);
+  bladeAnim.SetAnimation("DEFAULT");
 
-  hiltAttachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
-  hiltAttachmentAnim.Reload();
-  hiltAttachmentAnim.SetAnimation("HILT");
+  auto userAnim = owner->GetFirstComponent<AnimationComponent>();
+  hiltAnim = Animation(userAnim->GetFilePath());
+  hiltAnim.Reload();
+  hiltAnim.SetAnimation("HILT");
 
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  attachmentAnim = Animation(ANIM);
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("DEFAULT");
+  AddAttachment(userAnim->GetAnimationObj(), "HILT", *hilt).PrepareAnimation(hiltAnim);
+  AddAttachment(hiltAnim, "ENDPOINT", *blade).PrepareAnimation(bladeAnim);
 
   element = Element::none;
 
   OverrideAnimationFrames({ FRAMES });
-
-  AddAttachment(*owner, "hilt", *attachment).PrepareAnimation(attachmentAnim);
-  AddAttachment(attachment, "endpoint", *)
 }
 
 SwordCardAction::~SwordCardAction()
 {
-  if (attachment) {
-    delete attachment;
-  }
-
-  if (hiltAttachment) {
-    delete hiltAttachment;
-  }
+  delete blade, hilt;
 }
 
 void SwordCardAction::Execute() {
-  auto owner = GetOwner();
-  owner->AddNode(hiltAttachment);
-  hiltAttachmentAnim.Update(0, hiltAttachment->getSprite());
-  hiltAttachment->EnableParentShader(true);
-
-  hiltAttachment->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
-
   // On attack frame, drop sword hitbox
-  auto onTrigger = [this, owner]() -> void {
+  auto onTrigger = [this]() -> void {
     OnSpawnHitbox();
   };
 
   switch (GetElement()) {
     case Element::fire:
-      attachment->setColor(sf::Color::Red);
+      blade->setColor(sf::Color::Red);
       break;
     case Element::aqua:
-      attachment->setColor(sf::Color::Green);
+      blade->setColor(sf::Color::Green);
       break;
   }
 
   AddAnimAction(2, onTrigger);
-
-  OnUpdate(0); // position to owner...
 }
 
 void SwordCardAction::OnSpawnHitbox()
@@ -117,21 +98,7 @@ const Element SwordCardAction::GetElement() const
 
 void SwordCardAction::OnUpdate(float _elapsed)
 {
-  hiltAttachmentAnim.Update(_elapsed, hiltAttachment->getSprite());
-  attachmentAnim.Update(_elapsed, attachment->getSprite());
-
-  // update node position in the animation:
-  // Position the hilt
-  auto baseOffset = anim->GetPoint("HILT");
-  auto origin = GetOwner()->getSprite().getOrigin();
-  baseOffset = baseOffset - origin;
-  hiltAttachment->setPosition(baseOffset);
-
-  // position the blade
-  baseOffset = hiltAttachmentAnim.GetPoint("endpoint");
-  origin = hiltAttachment->getOrigin();
-  baseOffset = baseOffset - origin;
-  attachment->setPosition(baseOffset);
+  CardAction::OnUpdate(_elapsed);
 }
 
 void SwordCardAction::OnAnimationEnd()
@@ -140,7 +107,5 @@ void SwordCardAction::OnAnimationEnd()
 
 void SwordCardAction::EndAction()
 {
-  GetOwner()->RemoveNode(hiltAttachment);
-  hiltAttachment->RemoveNode(attachment);
   Eject();
 }

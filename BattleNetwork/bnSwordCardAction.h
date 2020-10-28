@@ -6,13 +6,11 @@
 class SpriteProxyNode;
 class Character;
 
-// TODO: Redesign CardAction!
 class SwordCardAction : public CardAction {
 protected:
-  sf::Sprite overlay;
-  SpriteProxyNode* attachment;
-  SpriteProxyNode* hiltAttachment;
-  Animation attachmentAnim,hiltAttachmentAnim;
+  SpriteProxyNode* blade;
+  SpriteProxyNode* hilt;
+  Animation bladeAnim, hiltAnim;
   int damage;
   Element element;
 public:
