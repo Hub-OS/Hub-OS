@@ -33,7 +33,7 @@ FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, i
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
+  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 FireBurnCardAction::~FireBurnCardAction()

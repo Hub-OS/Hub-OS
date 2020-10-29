@@ -18,7 +18,7 @@ ThunderCardAction::ThunderCardAction(Character * owner, int damage) :
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("BUSTER");
 
-  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
+  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 void ThunderCardAction::Execute() {

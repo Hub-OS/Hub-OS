@@ -32,15 +32,27 @@ struct ActionLockoutProperties {
 
 class CardAction : public Component, public SceneNode {
 public:
-  struct Attachment {
+  class Attachment {
+    using Attachments = std::multimap<std::string, Attachment>;
+
+    bool started{ false };
     std::reference_wrapper<SpriteProxyNode> spriteProxy;
     std::reference_wrapper<Animation> parentAnim;
+    Attachments attachments;
     Animation* myAnim{ nullptr };
 
-    void PrepareAnimation(Animation&);
+  public:
+    friend class CardAction; // Let CardAction inspect our member vars
+
+    Attachment(SpriteProxyNode& parentNode, Animation& parentAnim);
+    ~Attachment();
+
+    Attachment& UseAnimation(Animation&);
     void Update(double elapsed);
     void SetOffset(const sf::Vector2f& pos);
+    void AttachAllPendingNodes();
     Animation& GetParentAnim();
+    Attachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node);
   };
 
   struct Step : public swoosh::ActionItem {

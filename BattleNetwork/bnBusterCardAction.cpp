@@ -30,7 +30,7 @@ BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage)
 
   isBusterAlive = false;
 
-  AddAttachment(*owner, "buster", *buster).PrepareAnimation(busterAnim);
+  busterAttachment = &AddAttachment(*owner, "buster", *buster).UseAnimation(busterAnim);
 
   this->SetLockout(ActionLockoutProperties{ ActionLockoutType::async, 0.5 });
 }
@@ -65,7 +65,7 @@ void BusterCardAction::Execute() {
     GetOwner()->GetField()->AddEntity(*b, *GetOwner()->GetTile());
     AUDIO.Play(AudioType::BUSTER_PEA);
 
-    AddAttachment(busterAnim, "endpoint", *flare).PrepareAnimation(flareAnim);
+    busterAttachment->AddAttachment(busterAnim, "endpoint", *flare).UseAnimation(flareAnim);
   };
 
   AddAnimAction(3, onFire);

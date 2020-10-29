@@ -28,7 +28,7 @@ VulcanCardAction::VulcanCardAction(Character * owner, int damage) :
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
+  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 VulcanCardAction::~VulcanCardAction()

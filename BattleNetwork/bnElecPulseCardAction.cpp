@@ -34,7 +34,7 @@ ElecPulseCardAction::ElecPulseCardAction(Character * owner, int damage) :
 
     elecpulse = nullptr;
 
-    AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
+    AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 ElecPulseCardAction::~ElecPulseCardAction()

@@ -16,6 +16,7 @@ CardAction::CardAction(Character& user, const std::string& animation)
     prepareActionDelegate = [this, animation]() {
       for (auto& [nodeName, node] : attachments) {
         this->GetOwner()->AddNode(&node.spriteProxy.get());
+        node.AttachAllPendingNodes();
       }
 
       // use the current animation's arrangement, do not overload
@@ -88,7 +89,9 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
     prepareActionDelegate = [this, frameData]() {
       for (auto& [nodeName, node] : attachments) {
         this->GetOwner()->AddNode(&node.spriteProxy.get());
+        node.AttachAllPendingNodes();
       }
+
       prevState = anim->GetAnimationString();;
       anim->OverrideAnimationFrames(animation, frameData, uuid);
       anim->SetAnimation(uuid, [this]() {
@@ -229,15 +232,37 @@ const bool CardAction::IsLockoutOver() const {
 //                Attachment Impl               //
 //////////////////////////////////////////////////
 
-void CardAction::Attachment::PrepareAnimation(Animation& anim)
+CardAction::Attachment::Attachment(SpriteProxyNode& parentNode, Animation& parentAnim) :
+  spriteProxy(parentNode), parentAnim(parentAnim)
+{
+}
+
+CardAction::Attachment::~Attachment()
+{
+}
+
+CardAction::Attachment& CardAction::Attachment::UseAnimation(Animation& anim)
 {
   this->myAnim = &anim;
+  return *this;
 }
 
 void CardAction::Attachment::Update(double elapsed)
 {
   if (this->myAnim) {
     this->myAnim->Update(elapsed, spriteProxy.get().getSprite());
+  }
+
+  for (auto& [nodeName, node] : attachments) {
+    // update the node's animation
+    node.Update(elapsed);
+
+    // update the node's position
+    auto baseOffset = node.GetParentAnim().GetPoint(nodeName);
+    auto origin = spriteProxy.get().getSprite().getOrigin();
+    baseOffset = baseOffset - origin;
+
+    node.SetOffset(baseOffset);
   }
 }
 
@@ -246,7 +271,26 @@ void CardAction::Attachment::SetOffset(const sf::Vector2f& pos)
   this->spriteProxy.get().setPosition(pos);
 }
 
+void CardAction::Attachment::AttachAllPendingNodes()
+{
+  for (auto& [nodeName, node] : attachments) {
+    this->spriteProxy.get().AddNode(&node.spriteProxy.get());
+  }
+
+  started = true;
+}
+
 Animation& CardAction::Attachment::GetParentAnim()
 {
   return this->parentAnim;
+}
+
+CardAction::Attachment& CardAction::Attachment::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
+  auto iter = attachments.insert(std::make_pair(point, Attachment( std::ref(node), std::ref(parent) )));
+
+  if (started) {
+    this->spriteProxy.get().AddNode(&node);
+  }
+
+  return iter->second;
 }

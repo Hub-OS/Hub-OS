@@ -300,7 +300,7 @@ TenguCross::SpecialAction::SpecialAction(Character* owner) :
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("HAND");
 
-  AddAttachment(*owner, "hilt", *attachment).PrepareAnimation(attachmentAnim);
+  AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
 }
 
 TenguCross::SpecialAction::~SpecialAction()

@@ -40,7 +40,7 @@ CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardActi
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
+  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 CannonCardAction::~CannonCardAction()

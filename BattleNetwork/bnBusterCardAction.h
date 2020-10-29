@@ -9,6 +9,7 @@ class Character;
 class BusterCardAction : public CardAction {
 private:
   SpriteProxyNode *buster, *flare;
+  Attachment* busterAttachment{ nullptr };
   Animation busterAnim, flareAnim;
   bool charged;
   int damage;

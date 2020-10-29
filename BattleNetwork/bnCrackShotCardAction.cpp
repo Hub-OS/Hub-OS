@@ -21,7 +21,7 @@ CrackShotCardAction::CrackShotCardAction(Character * owner, int damage)
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
 
-  AddAttachment(*owner, "hilt", *attachment).PrepareAnimation(attachmentAnim);
+  AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
 
   OverrideAnimationFrames({ FRAMES });
 

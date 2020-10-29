@@ -34,7 +34,7 @@ LightningCardAction::LightningCardAction(Character * owner, int damage) :
   attackAnim = Animation(LIGHTNING_ANI);
   attackAnim.SetAnimation("DEFAULT");
 
-  AddAttachment(*owner, "buster", *attachment).PrepareAnimation(attachmentAnim);
+  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
