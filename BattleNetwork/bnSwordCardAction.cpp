@@ -37,8 +37,8 @@ SwordCardAction::SwordCardAction(Character * owner, int damage) :
   hiltAnim.Reload();
   hiltAnim.SetAnimation("HILT");
 
-  AddAttachment(userAnim->GetAnimationObj(), "HILT", *hilt).UseAnimation(hiltAnim);
-  AddAttachment(hiltAnim, "ENDPOINT", *blade).UseAnimation(bladeAnim);
+  auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObj(), "HILT", *hilt).UseAnimation(hiltAnim);
+  hiltAttachment.AddAttachment(hiltAnim, "ENDPOINT", *blade).UseAnimation(bladeAnim);
 
   element = Element::none;
 
