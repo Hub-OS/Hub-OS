@@ -50,9 +50,11 @@ CardAction::~CardAction()
   FreeAttachedNodes();
 }
 
-void CardAction::AddStep(Step* step)
+void CardAction::AddStep(Step step)
 {
-  sequence.add(step);
+  // Swooshlib needs pointers so we put these steps in a list and use that address
+  auto iter = stepList.insert(stepList.begin(), step);
+  sequence.add(&(*iter));
 }
 
 void CardAction::AddAnimAction(int frame, const FrameCallback& action) {
@@ -75,7 +77,10 @@ void CardAction::RecallPreviousState()
     OnAnimationEnd();
   }
 
-  animationIsOver = true;
+  // "Animation" for sequences are only complete when the animation sequence is complete
+  if (lockoutProps.type != ActionLockoutType::sequence) {
+    animationIsOver = true;
+  }
 }
 
 Character* CardAction::GetOwner()
@@ -95,8 +100,6 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
       prevState = anim->GetAnimationString();;
       anim->OverrideAnimationFrames(animation, frameData, uuid);
       anim->SetAnimation(uuid, [this]() {
-        //Logger::Log("custom callback fired");
-
         anim->SetPlaybackMode(Animator::Mode::Loop);
 
         if (this->IsLockoutOver()) {
@@ -104,11 +107,13 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
         }
 
         RecallPreviousState();
-
       });
+
       anim->SetInterruptCallback([this]() {
         this->animationIsOver = true;
         this->FreeAttachedNodes();
+
+        // we don't want to recall the previous state because we may be interrupted into a new state...
       });
 
       this->animationIsOver = false;
@@ -165,6 +170,7 @@ void CardAction::OnUpdate(float _elapsed)
   if (lockoutProps.type == ActionLockoutType::sequence) {
     sequence.update(_elapsed);
     if (sequence.isEmpty()) {
+      animationIsOver = true; // animation for sequence is complete
       EndAction();
     }
   }

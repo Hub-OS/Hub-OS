@@ -78,14 +78,14 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       if (cardsUI && cardsUI->UseNextCard()) {
         // If the card used was successful, we may have a card in queue
         QueueAction(player);
-        return; // wait one more frame to use
+        //return; // wait one more frame to use
       }
     }
     else if (INPUTx.Has(EventTypes::RELEASED_SPECIAL)) {
       if (replicator) replicator->SendUseSpecialSignal();
       player.UseSpecial();
       QueueAction(player);
-      return; // wait one more frame to use
+     // return; // wait one more frame to use
     }    // queue attack based on input behavior (buster or charge?)
     else if ((!INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld) || INPUTx.Has(EventTypes::RELEASED_SHOOT)) {
       // This routine is responsible for determining the outcome of the attack
@@ -99,7 +99,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
       QueueAction(player);
       isChargeHeld = false;
       player.chargeEffect.SetCharging(false);
-      return; // wait one more frame to use
+      //return; // wait one more frame to use
     }
   }
 
@@ -108,7 +108,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     return;
 
   static Direction direction = Direction::none;
-  if (!player.IsTimeFrozen()) {
+  //if (!player.IsTimeFrozen()) { // TODO: take out IsTimeFrozen from API
     if (INPUTx.Has(EventTypes::PRESSED_MOVE_UP) || INPUTx.Has(EventTypes::HELD_MOVE_UP)) {
       direction = Direction::up;
     }
@@ -121,7 +121,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     else if (INPUTx.Has(EventTypes::PRESSED_MOVE_RIGHT) || INPUTx.Has(EventTypes::HELD_MOVE_RIGHT)) {
       direction = Direction::right;
     }
-  }
+  //}
 
   bool shouldShoot = INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld == false && actions.empty();
 

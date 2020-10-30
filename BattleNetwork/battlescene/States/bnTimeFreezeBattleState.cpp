@@ -66,13 +66,13 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
   break;
   case state::animate:
     {
-      GetScene().GetField()->Update(elapsed);
       if (action && action->IsAnimationOver() == false) {
           action->Update(elapsed);
       }
       else{
         currState = state::fadeout;
       }
+      GetScene().GetField()->Update(elapsed);
     }
     break;
   }
@@ -110,9 +110,7 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
 void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
-  // start the chip
   action = user->GetFirstComponent<CardAction>();
-  action ? action->OnExecute() : (void)0;
 }
 
 bool TimeFreezeBattleState::IsOver() {

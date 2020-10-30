@@ -6,25 +6,25 @@
 ProtoManCardAction::ProtoManCardAction(Character* owner, int damage) :
   damage(damage),
   CardAction(*owner, "PLAYER_IDLE"){
-  this->SetLockout(ActionLockoutProperties{
-    ActionLockoutType::animation,
-    3000, // milliseconds
-    ActionLockoutGroup::card
-  });
+  this->SetLockout({ ActionLockoutType::sequence });
 }
 
 void ProtoManCardAction::Execute() {
   auto owner = GetOwner();
 
-  // On start of idle frame, spawn
-  auto onSpawn = [this]() -> void {
-    GetOwner()->Hide();
-    auto* proto = new ProtoManSummon(GetOwner(), damage);
+  owner->Hide();
+  auto* proto = new ProtoManSummon(owner, damage);
 
-    GetOwner()->GetField()->AddEntity(*proto, GetOwner()->GetTile()->GetX(), GetOwner()->GetTile()->GetY());
+  owner->GetField()->AddEntity(*proto, owner->GetTile()->GetX(), owner->GetTile()->GetY());
+
+  CardAction::Step protoman;
+  protoman.updateFunc = [proto](double elapsed, Step& step) {
+    if (proto->WillRemoveLater()) {
+      step.markDone();
+    }
   };
 
-  onSpawn();
+  AddStep(protoman);
 }
 
 ProtoManCardAction::~ProtoManCardAction()
@@ -38,6 +38,7 @@ void ProtoManCardAction::OnUpdate(float _elapsed)
 
 void ProtoManCardAction::OnAnimationEnd()
 {
+  // the animation does nothing special on end
 }
 
 void ProtoManCardAction::EndAction()

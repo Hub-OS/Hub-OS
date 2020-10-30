@@ -56,15 +56,15 @@ public:
   };
 
   struct Step : public swoosh::ActionItem {
-    std::function<void(double)> updateFunc;
-    std::function<void(sf::RenderTexture&)> drawFunc;
+    std::function<void(double,Step&)> updateFunc;
+    std::function<void(sf::RenderTexture&,Step&)> drawFunc;
 
     // inherited functions simply invoke the functors
     void update(double elapsed) override {
-      if (updateFunc) updateFunc(elapsed);
+      if (updateFunc) updateFunc(elapsed, *this);
     }
     void draw(sf::RenderTexture& surface) override {
-      if (drawFunc) drawFunc(surface);
+      if (drawFunc) drawFunc(surface, *this);
     }
   };
 
@@ -78,6 +78,7 @@ private:
   std::string uuid, prevState;
   std::function<void()> prepareActionDelegate;
   ActionList sequence;
+  std::list<Step> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
   Character& user;
   Attachments attachments;
   AnimationComponent* anim{ nullptr };
@@ -90,10 +91,10 @@ protected:
   /*user defined */
   virtual void Execute() = 0;
 
-  // For sequences
-  void AddStep(Step* step);
+  // Used by cards that use sequences (like most Time Freeze animations)
+  void AddStep(Step step);
 
-  // For simple animations
+  // Used with basic cards that perform some action
   void AddAnimAction(int frame, const FrameCallback& action);
 
   // For additional visual overlays

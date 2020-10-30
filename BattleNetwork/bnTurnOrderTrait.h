@@ -6,6 +6,11 @@ using namespace std;
 
 template<typename T>
 class TurnOrderTrait {
+public:
+  ~TurnOrderTrait() {
+    RemoveMeFromTurnOrder();
+  }
+
 protected:
 
   TurnOrderTrait() {

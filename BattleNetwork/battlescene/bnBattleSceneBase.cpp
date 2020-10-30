@@ -2,6 +2,7 @@
 
 #include "../bnTextureResourceManager.h"
 #include "../bnShaderResourceManager.h"
+#include "../bnInputManager.h"
 #include "../bnMob.h"
 #include "../bnPlayerHealthUI.h"
 #include "../bnUndernetBackground.h"
@@ -419,23 +420,21 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   backdropShader.setUniform("opacity", (float)backdropOpacity);
 
-  if (!isPaused) {
-    counterRevealAnim.Update((float)elapsed, counterReveal.getSprite());
-    comboInfoTimer.update(elapsed);
-    multiDeleteTimer.update(elapsed);
-    battleTimer.update(elapsed);
+  counterRevealAnim.Update((float)elapsed, counterReveal.getSprite());
+  comboInfoTimer.update(elapsed);
+  multiDeleteTimer.update(elapsed);
+  battleTimer.update(elapsed);
 
-    switch (backdropMode) {
-    case backdrop::fadein:
-      backdropOpacity = std::fmin(backdropMaxOpacity, backdropOpacity + (backdropFadeIncrements * elapsed));
-      break;
-    case backdrop::fadeout:
-      backdropOpacity = std::fmax(0.0, backdropOpacity - (backdropFadeIncrements * elapsed));
-      if (backdropOpacity == 0.0) {
-        backdropAffectBG = false; // reset this effect
-      }
-      break;
+  switch (backdropMode) {
+  case backdrop::fadein:
+    backdropOpacity = std::fmin(backdropMaxOpacity, backdropOpacity + (backdropFadeIncrements * elapsed));
+    break;
+  case backdrop::fadeout:
+    backdropOpacity = std::fmax(0.0, backdropOpacity - (backdropFadeIncrements * elapsed));
+    if (backdropOpacity == 0.0) {
+      backdropAffectBG = false; // reset this effect
     }
+    break;
   }
 
   // Register and eject any applicable components
@@ -445,6 +444,11 @@ void BattleSceneBase::onUpdate(double elapsed) {
   cardCustGUI.Update((float)elapsed);
 
   newMobSize = mob->GetMobCount();
+
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+    Quit(FadeOut::white);
+    AUDIO.StopStream();
+  }
 
   // State update
   if(!current) return;
