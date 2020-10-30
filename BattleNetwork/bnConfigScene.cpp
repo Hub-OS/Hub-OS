@@ -159,6 +159,8 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
     audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
 
     colIndex = 0; maxCols = 3; // [options] [actions] [key]
+
+    setView(sf::Vector2u(480, 320));
 }
 
 void ConfigScene::onUpdate(double elapsed)
@@ -191,7 +193,7 @@ void ConfigScene::onUpdate(double elapsed)
               // transition to the next screen
               using namespace swoosh::types;
               using effect = segue<WhiteWashFade, milliseconds<300>>;
-              getController().queuePop<effect>();
+              getController().pop<effect>();
 
               AUDIO.Play(AudioType::NEW_GAME);
               leave = true;
@@ -201,7 +203,7 @@ void ConfigScene::onUpdate(double elapsed)
               // Just close and leave
               using namespace swoosh::types;
               using effect = segue<BlackWashFade, milliseconds<300>>;
-              getController().queuePop<effect>();
+              getController().pop<effect>();
               leave = true;
 
               textbox.Close();

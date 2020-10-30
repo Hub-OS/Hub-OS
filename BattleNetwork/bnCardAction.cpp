@@ -45,6 +45,7 @@ CardAction::CardAction(Character& user, const std::string& animation)
 
 CardAction::~CardAction()
 {
+  stepList.clear();
   sequence.clear();
 
   FreeAttachedNodes();
@@ -53,8 +54,8 @@ CardAction::~CardAction()
 void CardAction::AddStep(Step step)
 {
   // Swooshlib needs pointers so we put these steps in a list and use that address
-  auto iter = stepList.insert(stepList.begin(), step);
-  sequence.add(&(*iter));
+  auto iter = stepList.insert(stepList.begin(), new Step(step));
+  sequence.add(*iter);
 }
 
 void CardAction::AddAnimAction(int frame, const FrameCallback& action) {
@@ -167,6 +168,8 @@ void CardAction::OnUpdate(float _elapsed)
     node.SetOffset(baseOffset);
   }
 
+  if (!started) return;
+
   if (lockoutProps.type == ActionLockoutType::sequence) {
     sequence.update(_elapsed);
     if (sequence.isEmpty()) {
@@ -232,6 +235,11 @@ const bool CardAction::IsLockoutOver() const {
   }
 
   return lockoutProps.cooldown <= 0;
+}
+
+const bool CardAction::CanExecute() const
+{
+  return started == false;
 }
 
 //////////////////////////////////////////////////

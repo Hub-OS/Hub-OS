@@ -160,6 +160,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   iceShader.setUniform("shine", 0.2f);
 
   isSceneInFocus = false;
+
+  setView(sf::Vector2u(480, 320));
 }
 
 BattleSceneBase::~BattleSceneBase() {
@@ -812,9 +814,9 @@ void BattleSceneBase::Quit(const FadeOut& mode) {
   // activity controller to fadeout with the right
   // visual appearance
   if(mode == FadeOut::white) {
-    getController().queuePop<segue<WhiteWashFade>>();
+    getController().pop<segue<WhiteWashFade>>();
   } else {
-    getController().queuePop<segue<BlackWashFade>>();
+    getController().pop<segue<BlackWashFade>>();
   }
 
   quitting = true;

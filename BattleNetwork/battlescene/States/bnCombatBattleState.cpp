@@ -8,6 +8,7 @@
 #include "../../bnCharacter.h"
 #include "../../bnObstacle.h"
 #include "../../bnCard.h"
+#include "../../bnCardAction.h"
 #include "../../bnInputManager.h"
 #include "../../bnShaderResourceManager.h"
 
@@ -116,8 +117,7 @@ void CombatBattleState::onEnd(const BattleSceneState* next)
 }
 
 void CombatBattleState::onUpdate(double elapsed)
-{
-  
+{  
   if ((mob->IsCleared() || tracked[0]->GetHealth() == 0 )&& !clearedMob) {
     auto cardUI = tracked[0]->GetFirstComponent<SelectedCardsUI>();
 
@@ -157,7 +157,20 @@ void CombatBattleState::onUpdate(double elapsed)
 
   customProgress += elapsed;
 
+  // Update the field. This includes the player.
+  // After this function, the player may have used a card.
   GetScene().GetField()->Update((float)elapsed);
+
+  /**
+    Cards are executed at the end of the battle frame (this combat state update begins the end)
+    After the player controller dequeue's and registers a card action, we must be the authority to execute it
+  */
+  if (!HasTimeFreeze()) {
+    auto actions = tracked[0]->GetComponentsDerivedFrom<CardAction>();
+    if (actions.size() > 0 && actions[0]->CanExecute()) {
+      actions[0]->OnExecute();
+    }
+  }
 
   if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
     isGaugeFull = true;

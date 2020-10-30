@@ -47,8 +47,6 @@ private:
   SelectedNavi prevChosen; /*!< The previous selected navi. Used to start effects. */
   SelectedNavi currentChosen; /*!< The value of naviSelectionIndex if no change, otherwise the user's selection*/
 
-  Camera camera;
-
   double maxSelectInputCooldown; /*!< half of a second input delay */
   double selectInputCooldown;    /*!< count down before registering input */
 

@@ -395,7 +395,7 @@ void NetworkBattleScene::processIncomingPackets()
   if (errorCount > 10) {
     AUDIO.StopStream();
     using effect = segue<PixelateBlackWashFade>;
-    getController().queuePop<effect>();
+    getController().pop<effect>();
     errorCount = 0; // reset for next match
     return;
   }

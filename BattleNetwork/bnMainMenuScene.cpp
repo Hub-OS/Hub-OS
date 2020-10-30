@@ -88,6 +88,8 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
     gotoNextScene = true;
 
     menuSelectionIndex = lastMenuSelectionIndex = 0;
+
+    setView(sf::Vector2u(480, 320));
 }
 
 void MainMenuScene::onStart() {

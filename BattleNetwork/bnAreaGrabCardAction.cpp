@@ -5,22 +5,11 @@
 AreaGrabCardAction::AreaGrabCardAction(Character* owner, int damage) : 
   damage(damage),
   CardAction(*owner, "PLAYER_IDLE"){
-  this->SetLockout(ActionLockoutProperties{
-    ActionLockoutType::animation,
-    3000, // milliseconds
-    ActionLockoutGroup::card
-  });
+  this->SetLockout({ ActionLockoutType::sequence });
 }
 
 void AreaGrabCardAction::Execute() {
   auto owner = GetOwner();
-
-  // On start of idle frame, spawn
-  auto onSpawn = [this]() -> void {
-
-  };
-
-  onSpawn();
 }
 
 AreaGrabCardAction::~AreaGrabCardAction()

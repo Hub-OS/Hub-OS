@@ -306,7 +306,7 @@ void LibraryScene::onUpdate(double elapsed) {
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
       using segue = segue<PushIn<direction::left>, milli<500>>;
-      getController().queuePop<segue>();
+      getController().pop<segue>();
     }
   }
 

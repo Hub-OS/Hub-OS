@@ -51,8 +51,6 @@ private:
   SelectedNavi selectedNavi; /*!< The selected navi */
 
   PA& programAdvance;
-
-  Camera camera;
   
   CardFolder& selectedFolder; /*!< Reference to the selected folder */
 

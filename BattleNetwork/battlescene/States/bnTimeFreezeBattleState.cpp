@@ -71,6 +71,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       }
       else{
         currState = state::fadeout;
+        user->ToggleTimeFreeze(true); // in case the user was animating
       }
       GetScene().GetField()->Update(elapsed);
     }
@@ -110,7 +111,19 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 
 void TimeFreezeBattleState::ExecuteTimeFreeze()
 {
-  action = user->GetFirstComponent<CardAction>();
+  auto actions = user->GetComponentsDerivedFrom<CardAction>();
+
+  if (actions.empty()) return;
+
+  action = actions[0];
+
+  if (action && action->CanExecute()) {
+    action->OnExecute();
+
+    if (action->GetLockoutType() != ActionLockoutType::sequence) {
+      user->ToggleTimeFreeze(false); // unfreeze the user to animate their sequences
+    }
+  }
 }
 
 bool TimeFreezeBattleState::IsOver() {

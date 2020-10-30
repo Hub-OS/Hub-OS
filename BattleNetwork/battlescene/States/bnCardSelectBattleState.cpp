@@ -50,7 +50,7 @@ void CardSelectBattleState::CheckFormChanges()
   }
 }
 
-Battle::Card** CardSelectBattleState::GetCardPtrList()
+Battle::Card**& CardSelectBattleState::GetCardPtrList()
 {
   return cards;
 }
@@ -200,6 +200,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
           SelectedCardsUI* ui = player->GetFirstComponent<SelectedCardsUI>();
 
           if (ui) {
+            
             GetScene().FilterSupportCards(cards, cardCount);
             ui->LoadCards(cards, cardCount);
             ui->Hide();
@@ -273,7 +274,7 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 
     mobBackdropSprite.setPosition(edgePos.x + mobEdgeSprite.getGlobalBounds().width, edgePos.y);
 
-    float scalex = GetScene().getController().getInitialWindowSize().x - mobBackdropSprite.getPosition().x;
+    float scalex = GetScene().getController().getVirtualWindowSize().x - mobBackdropSprite.getPosition().x;
     mobBackdropSprite.setScale(scalex, 2.f);
 
     ENGINE.Draw(mobEdgeSprite, false);
@@ -299,4 +300,9 @@ bool CardSelectBattleState::OKIsPressed() {
 bool CardSelectBattleState::HasForm()
 {
   return OKIsPressed() && formSelected;
+}
+
+const bool CardSelectBattleState::HasCombo()
+{
+    return OKIsPressed() && hasCombo;
 }

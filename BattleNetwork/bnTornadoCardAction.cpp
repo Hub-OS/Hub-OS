@@ -33,14 +33,13 @@ TornadoCardAction::TornadoCardAction(Character * owner, int damage) :
 
 TornadoCardAction::~TornadoCardAction()
 {
+  delete attachment;
 }
 
 void TornadoCardAction::Execute() {
   auto owner = GetOwner();
 
   attachmentAnim.Update(0, attachment->getSprite());
-
-  owner->AddNode(attachment);
 
   auto team = GetOwner()->GetTeam();
   auto tile = GetOwner()->GetTile();
@@ -58,9 +57,10 @@ void TornadoCardAction::Execute() {
   };
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
-  AddAnimAction(2, [onFire, this]() {
+  AddAnimAction(2, [onFire, owner, this]() {
     AUDIO.Play(AudioType::WIND);
     armIsOut = true;
+    owner->AddNode(attachment);
     onFire();
   });
 }

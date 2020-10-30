@@ -12,6 +12,7 @@
  */
 struct CardComboBattleState final : public BattleSceneState {
 
+  bool paChecked{ false };
   bool isPAComplete{ false };
   bool advanceSoundPlay{ false };
   int hasPA{ -1 };
@@ -20,17 +21,17 @@ struct CardComboBattleState final : public BattleSceneState {
   double elapsed{ 0 };
   double listStepCooldown{ 0 };
   double listStepCounter{ 0 };
-  double PAStartLength{ 0 }; /*!< Total time to animate PA */
+  double PAStartLength{ 1 }; /*!< Total time to animate PA */
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
   PA::Steps paSteps; /*!< Matching steps in a PA */
   swoosh::Timer PAStartTimer; /*!< Time to scale the PA graphic */
   sf::Sprite programAdvanceSprite;
   std::shared_ptr<sf::Font> font;
   SelectedCardsUI& ui;
-  Battle::Card** cards{ nullptr };
+  Battle::Card*** cardsListPtr{ nullptr };
 
   CardComboBattleState(SelectedCardsUI& ui, PA& programAdvance);
-  void ShareCardList(Battle::Card** cards, int* listLengthPtr);
+  void ShareCardList(Battle::Card*** cardsPtr, int* listLengthPtr);
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;

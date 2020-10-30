@@ -57,13 +57,17 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   // Important! State transitions are added in order of priority!
   //       change from,        to,          when this is true
   CHANGE_ON_EVENT(intro,       cardSelect,  IsOver);
-  CHANGE_ON_EVENT(cardSelect,  forms,       HasForm);
-  CHANGE_ON_EVENT(cardSelect,  battlestart, OKIsPressed);
+  CHANGE_ON_EVENT(cardSelect,  combo,       OKIsPressed);
+  //CHANGE_ON_EVENT(cardSelect,  forms,       HasForm);
+  CHANGE_ON_EVENT(combo,       battlestart, IsDone);
   CHANGE_ON_EVENT(forms,       combat,      Decrossed);
   CHANGE_ON_EVENT(forms,       battlestart, IsFinished);
   CHANGE_ON_EVENT(battlestart, combat,      IsFinished);
   CHANGE_ON_EVENT(battleover,  reward,      IsFinished);
   CHANGE_ON_EVENT(timeFreeze,  combat,      IsOver);
+
+  // share some values between states
+  combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
 
   // special condition: if lost in combat and had a form, trigger the character transform states
   auto playerLosesInForm = [trackedForms]

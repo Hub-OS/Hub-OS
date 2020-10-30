@@ -10,7 +10,6 @@ using namespace swoosh::types;
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
   naviSelectionIndex(currentNavi),
   currentChosen(currentNavi),
-  camera(ENGINE.GetView()),
   textbox(135, 15),
   swoosh::Activity(&controller) {
 
@@ -106,6 +105,8 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   textbox.Mute(); // no tick sound
 
   elapsed = 0;
+
+  setView(sf::Vector2u(480, 320));
 }
 
 SelectNaviScene::~SelectNaviScene()
@@ -145,28 +146,37 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   // Draw stat box three times for three diff. properties
   float charStat1Max = 10;
 
-  if (UI_TOP_POS < charStat1Max)
+  if (UI_TOP_POS < charStat1Max) {
     charStat.setPosition(UI_RIGHT_POS, charStat1Max);
-  else
+  }
+  else {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
+  }
+
   ENGINE.Draw(charStat);
 
   // 2nd stat box
   float charStat2Max = 10 + UI_SPACING;
 
-  if (UI_TOP_POS < charStat2Max)
+  if (UI_TOP_POS < charStat2Max) {
     charStat.setPosition(UI_RIGHT_POS, charStat2Max);
-  else
+  }
+  else {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
+  }
+
   ENGINE.Draw(charStat);
 
   // 3rd stat box
   float charStat3Max = 10 + (UI_SPACING * 2);
 
-  if (UI_TOP_POS < charStat3Max)
+  if (UI_TOP_POS < charStat3Max) {
     charStat.setPosition(UI_RIGHT_POS, charStat3Max);
-  else
+  }
+  else {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
+  }
+
   ENGINE.Draw(charStat);
 
   // SP. Info box
@@ -228,9 +238,6 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  // TODO: This makes the preview not show up...
-  //navi.SetShader(pixelated);
-
   ENGINE.Draw(navi);
 }
 
@@ -263,7 +270,6 @@ void SelectNaviScene::onEnd()
 void SelectNaviScene::onUpdate(double elapsed) {
   SelectNaviScene::elapsed = elapsed;
 
-  camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
 
   bg->Update((float)elapsed);
@@ -305,7 +311,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
 
-      getController().queuePop<segue<Checkerboard, milliseconds<500>>>();
+      getController().pop<segue<Checkerboard, milliseconds<500>>>();
     }
   }
 

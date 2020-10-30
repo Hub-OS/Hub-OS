@@ -13,6 +13,8 @@ GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::A
   gameOver.setOrigin(gameOver.getLocalBounds().width / 2, gameOver.getLocalBounds().height / 2);
 
   leave = false;
+
+  setView(sf::Vector2u(640, 480));
 }
 
 GameOverScene::~GameOverScene() {

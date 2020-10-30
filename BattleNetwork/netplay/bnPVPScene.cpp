@@ -45,8 +45,8 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   // NOTE: ui sprites are already at 2x scale
   // ui.setScale(2.f, 2.f);
 
-  float w = static_cast<float>(controller.getInitialWindowSize().x);
-  float h = static_cast<float>(controller.getInitialWindowSize().y);
+  float w = static_cast<float>(controller.getVirtualWindowSize().x);
+  float h = static_cast<float>(controller.getVirtualWindowSize().y);
   vs.setPosition(w / 2.f, h / 2.f);
   swoosh::game::setOrigin(vs.getSprite(), 0.5, 0.5);
   
@@ -543,7 +543,7 @@ void PVPScene::onUpdate(double elapsed) {
       AUDIO.Play(AudioType::CHIP_CANCEL);
       client.close();
       using effect = segue<PushIn<direction::up>, milliseconds<500>>;
-      getController().queuePop<effect>();
+      getController().pop<effect>();
     }
     else if (INPUTx.HasSystemCopyEvent() && infoMode) {
       HandleCopyEvent();

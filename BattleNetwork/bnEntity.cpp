@@ -552,7 +552,7 @@ void Entity::FreeComponentByID(Component::ID_t ID) {
       }
       else {
         components.erase(iter);
-        // delete component;
+        // delete component; // TODO: is this needed anymore or is this a mem leak?
         return;
       }
     }

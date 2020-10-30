@@ -27,7 +27,6 @@ using namespace swoosh::types;
 
 FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderCollection& collection) :
   collection(collection),
-  camera(ENGINE.GetView()),
   folderSwitch(true),
   textbox(sf::Vector2f(4, 255)),
   questionInterface(nullptr),
@@ -136,13 +135,13 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   touchPosX = touchPosStartX = 0;
   releasedB = false;
 #endif
+
+  setView(sf::Vector2u(480, 320));
 }
 
 FolderScene::~FolderScene() { ; }
 
 void FolderScene::onStart() {
-  ENGINE.SetCamera(camera);
-
   gotoNextScene = false;
 
 #ifdef __ANDROID__
@@ -154,7 +153,6 @@ void FolderScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
-  camera.Update((float)elapsed);
   folderCursorAnimation.Update((float)elapsed, folderCursor);
   equipAnimation.Update((float)elapsed, folderEquip);
   textbox.Update(elapsed);
@@ -320,7 +318,7 @@ void FolderScene::onUpdate(double elapsed) {
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 
           using segue = segue<PushIn<direction::right>, milli<500>>;
-          getController().queuePop<segue>();
+          getController().pop<segue>();
         } else {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);

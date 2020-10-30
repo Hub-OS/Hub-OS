@@ -852,7 +852,7 @@ int main(int argc, char** argv) {
     app.push<CopyWindow>();
 
     // Zoom out
-    app.queuePop<segue<DiamondTileCircle>>();
+    app.pop<segue<DiamondTileCircle>>();
 
     // Cleanup
     ENGINE.RevokeShader();

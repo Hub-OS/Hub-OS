@@ -34,6 +34,8 @@ void FolderChangeNameScene::ExecuteAction(size_t table, size_t x, size_t y)
       AUDIO.Play(AudioType::CHIP_CHOOSE);
     }
   }
+
+  setView(sf::Vector2u(640, 480));
 }
 
 void FolderChangeNameScene::DoBACK()
@@ -67,7 +69,7 @@ void FolderChangeNameScene::DoEND()
 {
   using namespace swoosh::types;
   using effect = segue<BlackWashFade, milli<500>>;
-  getController().queuePop<effect>();
+  getController().pop<effect>();
 
   AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
   leave = true;
@@ -137,6 +139,8 @@ FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& control
       {"END"}
     }
   };
+
+  setView(sf::Vector2u(480, 320));
 }
 
 FolderChangeNameScene::~FolderChangeNameScene() {

@@ -10,7 +10,6 @@ using namespace swoosh::types;
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder, PA& programAdvance) :
   elapsed(0),
-  camera(ENGINE.GetView()),
   textbox(320, 100, 24, "resources/fonts/NETNAVI_4-6_V3.ttf"),
   selectedFolder(selectedFolder),
   programAdvance(programAdvance),
@@ -83,6 +82,8 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 #endif
 
   mob = nullptr;
+
+  setView(sf::Vector2u(480, 320));
 }
 
 SelectMobScene::~SelectMobScene() {
@@ -101,7 +102,6 @@ void SelectMobScene::onUpdate(double elapsed) {
   // multiplying update by 2 effectively sets playback speed to 200%
   navigatorAnimator.Update(float(elapsed*2.0), navigator.getSprite());
 
-  camera.Update((float)elapsed);
   textbox.Update((float)elapsed);
 
   int prevSelect = mobSelectionIndex;
@@ -142,7 +142,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       using effect = segue<BlackWashFade, milliseconds<500>>;
-      getController().queuePop<effect>();
+      getController().pop<effect>();
     }
   }
 #else
@@ -174,7 +174,7 @@ void SelectMobScene::onUpdate(double elapsed) {
             gotoNextScene = true;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
             using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
-            getController().queuePop<segue>();
+            getController().pop<segue>();
         }
     }
 #endif
@@ -513,8 +513,8 @@ void SelectMobScene::onResume() {
     mob = nullptr;
   }
 
-  // Fix camera if offset from battle
-  ENGINE.SetCamera(camera);
+  // Fix camera if offset from battle?
+  // ENGINE.SetCamera(camera);
 
   // Re-play music
   AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);

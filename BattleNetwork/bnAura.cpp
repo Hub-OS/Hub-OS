@@ -191,7 +191,7 @@ Aura::VisualFX::VisualFX(Entity* owner, Aura::Type type) :
   animation.Update(0, aura->getSprite());
 
   AddNode(aura);
-  this->setPosition(0, -owner->getLocalBounds().height/2.f);
+  this->setPosition(0, -owner->GetHeight() / 2.f / 2.f); // descale from 2.0x upscale and then get the half of the height
 
   // we want to draw relative to the component's owner
   SetDrawOnUIPass(false);

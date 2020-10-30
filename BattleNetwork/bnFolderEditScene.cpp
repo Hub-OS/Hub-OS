@@ -201,6 +201,8 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   totalTimeElapsed = frameElapsed = 0.0;
 
   canInteract = false;
+
+  setView(sf::Vector2u(480, 320));
 }
 
 FolderEditScene::~FolderEditScene() { ; }
@@ -222,6 +224,7 @@ void FolderEditScene::onUpdate(double elapsed) {
   bg.setPosition(offset, 0.f);
   menuLabel->setPosition(offset + 20.0f, 5.f);
 
+  // We need to move the view based on the camera pos
   camera.Update((float)elapsed);
   setView(camera.GetView());
 
@@ -527,7 +530,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
       using namespace swoosh::types;
       using segue = segue<BlackWashFade, milli<500>>;
-      getController().queuePop<segue>();
+      getController().pop<segue>();
     }
   } // end if(gotoLastScene)
   else {

@@ -192,6 +192,11 @@ const bool Cube::DidSpawnCorrectly() const
   return !killLater;
 }
 
+const bool Cube::IsFinishedSpawning() const
+{
+  return finishedSpawn;
+}
+
 void Cube::SetAnimation(std::string animation)
 {
   this->animation->SetAnimation(animation);
@@ -201,7 +206,7 @@ void Cube::OnSpawn(Battle::Tile & start)
 {
   animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/mobs/cube/cube.animation");
-  animation->Reload();
+  animation->Load();
 
   animation->OnUpdate(0);
 
@@ -209,14 +214,16 @@ void Cube::OnSpawn(Battle::Tile & start)
     if (start.GetState() == TileState::ice) {
       animation->SetAnimation("ICE");
       SetElement(Element::ice);
+      finishedSpawn = true;
     }
     else {
       animation->SetAnimation("NORMAL");
+      finishedSpawn = true;
     }
   };
 
   if (!start.IsWalkable() || start.IsReservedByCharacter() || start.ContainsEntityType<Character>()) {
-    animation->SetAnimation("APPEAR", 0);
+    animation->SetAnimation("APPEAR", 0, [this]() { finishedSpawn = true; });
     killLater = true;
   }
   else {

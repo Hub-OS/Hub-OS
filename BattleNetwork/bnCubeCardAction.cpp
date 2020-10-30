@@ -4,25 +4,29 @@
 
 CubeCardAction::CubeCardAction(Character* owner) : 
   CardAction(*owner, "PLAYER_IDLE"){
-  this->SetLockout(ActionLockoutProperties{
-    ActionLockoutType::animation,
-    3000, // milliseconds
-    ActionLockoutGroup::card
-  });
+  this->SetLockout({ ActionLockoutType::sequence });
 }
 
 void CubeCardAction::Execute() {
   auto owner = GetOwner();
+  
+  auto* cube = new Cube(GetOwner()->GetField(), GetOwner()->GetTeam());
+
+  GetOwner()->GetField()->AddEntity(*cube, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 
   // On start of idle frame, spawn
-  auto onSpawn = [this]() -> void {
-    GetOwner()->Hide();
-    auto* cube = new Cube(GetOwner()->GetField(), GetOwner()->GetTeam());
+  AddStep({
+    // update step
+    [cube](double elapsed, Step& self) {
+      if (cube->IsFinishedSpawning()) {
+        if (cube->DidSpawnCorrectly() == false) {
+          cube->Remove();
+        }
 
-    GetOwner()->GetField()->AddEntity(*cube, GetOwner()->GetTile()->GetX()+1, GetOwner()->GetTile()->GetY());
-  };
-
-  onSpawn();
+        self.markDone();
+      }
+    }
+  });
 }
 
 CubeCardAction::~CubeCardAction()
@@ -40,6 +44,5 @@ void CubeCardAction::OnAnimationEnd()
 
 void CubeCardAction::EndAction()
 {
-  GetOwner()->Reveal();
   Eject();
 }

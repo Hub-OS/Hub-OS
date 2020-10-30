@@ -25,6 +25,7 @@ class CardSelectBattleState final : public BattleSceneState {
   double heldCardSelectInputCooldown; /*!< When holding the directional inputs, when does the sticky key effect trigger*/
   double cardSelectInputCooldown; /*!< Time remaining with delayed input */
 
+  bool hasCombo{ false }; 
   bool formSelected{ false };
   int currForm{ -1 };
   int cardCount{ 0 }; /*!< Length of card list */
@@ -38,7 +39,7 @@ class CardSelectBattleState final : public BattleSceneState {
   // Check if a form change was properly triggered
   void CheckFormChanges();
 public:
-  Battle::Card** GetCardPtrList();
+  Battle::Card**& GetCardPtrList();
   int& GetCardListLengthAddr();
   void onStart(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;
@@ -46,5 +47,6 @@ public:
   void onEnd(const BattleSceneState* next) override;
   bool OKIsPressed();
   bool HasForm();
+  const bool HasCombo();
   CardSelectBattleState(std::vector<Player*> tracked, std::vector<std::shared_ptr<TrackedFormData>> forms);
 };

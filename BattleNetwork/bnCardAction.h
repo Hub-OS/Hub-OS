@@ -27,7 +27,7 @@ enum class ActionLockoutGroup : unsigned {
 struct ActionLockoutProperties {
   ActionLockoutType type{};
   double cooldown{};
-  ActionLockoutGroup group{};
+  ActionLockoutGroup group{ ActionLockoutGroup::card };
 };
 
 class CardAction : public Component, public SceneNode {
@@ -55,9 +55,18 @@ public:
     Attachment& AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node);
   };
 
-  struct Step : public swoosh::ActionItem {
-    std::function<void(double,Step&)> updateFunc;
-    std::function<void(sf::RenderTexture&,Step&)> drawFunc;
+  struct Step : public swoosh::BlockingActionItem {
+    using UpdateFunc_t = std::function<void(double, Step&)>;
+    using DrawFunc_t = std::function<void(sf::RenderTexture&, Step&)>;
+    
+    constexpr static auto NoUpdateFunc = [](double, Step&) -> void {};
+    constexpr static auto NoDrawFunc = [](sf::RenderTexture&, Step&) -> void {};
+
+    UpdateFunc_t updateFunc;
+    DrawFunc_t drawFunc;
+
+    Step(const UpdateFunc_t& u = NoUpdateFunc, const DrawFunc_t& d = NoDrawFunc) :
+      updateFunc(u), drawFunc(d) {}
 
     // inherited functions simply invoke the functors
     void update(double elapsed) override {
@@ -78,7 +87,7 @@ private:
   std::string uuid, prevState;
   std::function<void()> prepareActionDelegate;
   ActionList sequence;
-  std::list<Step> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
+  std::list<Step*> stepList; //!< Swooshlib needs pointers so we must copy steps and put them on the heap
   Character& user;
   Attachments attachments;
   AnimationComponent* anim{ nullptr };
@@ -127,6 +136,8 @@ public:
   const ActionLockoutType GetLockoutType() const;
   const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;
+  const bool CanExecute() const;
+
   /** Override get owner to always return a character type */
   Character* GetOwner();
 };

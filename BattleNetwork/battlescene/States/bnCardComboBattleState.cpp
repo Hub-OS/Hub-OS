@@ -24,15 +24,19 @@ CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvan
   font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 }
 
-void CardComboBattleState::ShareCardList(Battle::Card** cards, int* listLengthPtr)
+void CardComboBattleState::ShareCardList(Battle::Card*** cardsPtr, int* listLengthPtr)
 {
-  this->cards = cards;
+  this->cardsListPtr = cardsPtr;
   this->cardCountPtr = listLengthPtr;
 }
 
 void CardComboBattleState::onStart(const BattleSceneState*)
 {
+  paChecked = false;
   isPAComplete = false;
+  hasPA = -1;
+  paStepIndex = 0;
+  listStepCounter = listStepCooldown;
 }
 
 void CardComboBattleState::onEnd(const BattleSceneState*)
@@ -48,23 +52,25 @@ void CardComboBattleState::onUpdate(double elapsed)
 
   // we're leaving a state
   // Start Program Advance checks
-  if (isPAComplete && hasPA == -1) {
+  if (paChecked && hasPA == -1) {
     // Filter and apply support cards
-    GetScene().FilterSupportCards(cards, *cardCountPtr);
+    GetScene().FilterSupportCards(*cardsListPtr, *cardCountPtr);
 
     // Return to game
-    ui.LoadCards(cards, *cardCountPtr);
-  }
-  else if (!isPAComplete) {
+    ui.LoadCards(*cardsListPtr, *cardCountPtr);
 
-    hasPA = programAdvance.FindPA(cards, *cardCountPtr);
+    isPAComplete = true;
+  }
+  else if (!paChecked) {
+
+    hasPA = programAdvance.FindPA(*cardsListPtr, *cardCountPtr);
 
     if (hasPA > -1) {
       paSteps = programAdvance.GetMatchingSteps();
       PAStartTimer.reset();
     }
 
-    isPAComplete = true;
+    paChecked = true;
   }
   else {
     if (!advanceSoundPlay) {
@@ -100,14 +106,14 @@ void CardComboBattleState::onUpdate(double elapsed)
             continue;
           }
 
-          newCardList[j] = cards[i];
+          newCardList[j] = *cardsListPtr[i];
           i++;
           j++;
         }
 
         // Set the new cards
         for (int i = 0; i < newCardCount; i++) {
-          cards[i] = *(newCardList + i);
+          *cardsListPtr[i] = *(newCardList + i);
         }
 
         // Delete the temp list space
@@ -115,6 +121,8 @@ void CardComboBattleState::onUpdate(double elapsed)
         delete[] newCardList;
 
         *cardCountPtr = newCardCount;
+
+        hasPA = -1; // used as state reset flag
       }
       else {
         if (paStepIndex == (*cardCountPtr) + 1) {
@@ -150,9 +158,9 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
 
     if (paStepIndex <= (*cardCountPtr) + 1) {
       for (int i = 0; i < paStepIndex && i < *cardCountPtr; i++) {
-        std::string formatted = cards[i]->GetShortName();
+        std::string formatted = (*cardsListPtr)[i]->GetShortName();
         formatted.resize(9, ' ');
-        formatted[8] = cards[i]->GetCode();
+        formatted[8] = (*cardsListPtr)[i]->GetCode();
 
         sf::Text stepLabel = sf::Text(formatted, *font);
 
@@ -185,9 +193,9 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
     }
     else {
       for (int i = 0; i < *cardCountPtr; i++) {
-        std::string formatted = cards[i]->GetShortName();
+        std::string formatted = (*cardsListPtr)[i]->GetShortName();
         formatted.resize(9, ' ');
-        formatted[8] = cards[i]->GetCode();
+        formatted[8] = (*cardsListPtr)[i]->GetCode();
 
         sf::Text stepLabel = sf::Text(formatted, *font);
 
@@ -225,7 +233,7 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
         nextLabelHeight += stepLabel.getLocalBounds().height;
       }
 
-      increment += (float)elapsed * 5.f;
+      increment += (float)elapsed;
     }
   }
 }

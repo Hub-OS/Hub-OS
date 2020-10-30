@@ -32,7 +32,6 @@
  */
 class FolderScene : public swoosh::Activity {
 private:
-  Camera camera;
   CardFolderCollection& collection; /*!< The entire user collection */
   CardFolder* folder; /*!< Handle to current folder to preview */
   std::vector<std::string> folderNames; /*!< List of all folder names at start */

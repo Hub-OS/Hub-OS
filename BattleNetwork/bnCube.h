@@ -51,12 +51,15 @@ public:
 
   const bool DidSpawnCorrectly() const;
 
+  const bool IsFinishedSpawning() const;
+
 protected:
   static const int numOfAllowedCubesOnField;
 
-  bool killLater;
-  bool pushedByDrag; /*!< Whether or not to keep momentum going*/
-  double timer;
+  bool finishedSpawn{ false };
+  bool killLater{ false };
+  bool pushedByDrag{ false }; /*!< Whether or not to keep momentum going*/
+  double timer{};
   Direction previousDirection;
   DefenseRule* defense;
   AnimationComponent* animation;

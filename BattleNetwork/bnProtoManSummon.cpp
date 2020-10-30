@@ -141,7 +141,7 @@ void ProtoManSummon::Attack(Character* _entity) {
 
   SwordEffect* e = new SwordEffect(field);
   e->SetAnimation("WIDE");
-  field->AddEntity(*e, tile->GetX() + 1, tile->GetY());
+  field->AddEntity(*e, tile->GetX(), tile->GetY());
 
   BasicSword* b = new BasicSword(field, GetTeam(), 0);
   auto props = this->GetHitboxProperties();
@@ -149,18 +149,18 @@ void ProtoManSummon::Attack(Character* _entity) {
   b->SetHitboxProperties(props);
 
   AUDIO.Play(AudioType::SWORD_SWING);
-  field->AddEntity(*b, tile->GetX() + 1,tile->GetY());
+  field->AddEntity(*b, tile->GetX(),tile->GetY());
 
   b = new BasicSword(field, GetTeam(), 0);
   props = this->GetHitboxProperties();
   props.aggressor = user;
   b->SetHitboxProperties(props);
-  field->AddEntity(*b,tile->GetX() + 1, tile->GetY() + 1);
+  field->AddEntity(*b,tile->GetX(), tile->GetY() + 1);
 
   b = new BasicSword(field, GetTeam(), 0);
   props = this->GetHitboxProperties();
   props.aggressor = user;
-  field->AddEntity(*b, tile->GetX() + 1, tile->GetY() - 1);
+  field->AddEntity(*b, tile->GetX(), tile->GetY() - 1);
 
   AUDIO.Play(AudioType::SWORD_SWING);
 }
