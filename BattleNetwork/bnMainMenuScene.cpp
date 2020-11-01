@@ -105,6 +105,7 @@ void MainMenuScene::onStart() {
   if (WEBCLIENT.IsLoggedIn()) {
     bool loaded = WEBCLIENT.LoadSession("profile.bin", &account);
 
+    // Quickly load the session on disk to reduce wait times
     if (loaded) {
       Logger::Log("Found cached account data");
 
@@ -112,15 +113,22 @@ void MainMenuScene::onStart() {
       WEBCLIENT.CacheTextureData(account);
       folders = CardFolderCollection::ReadFromWebAccount(account);
       programAdvance = PA::ReadFromWebAccount(account);
+
+      NaviEquipSelectedFolder();
     }
 
     Logger::Log("Fetching account data...");
 
+    // resent fetch command to get the a latest account info
     accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
 
     Logger::Log("waiting for server...");
   }
   else {
+
+    // If we are not actively online but we have a profile on disk, try to load our previous session
+    // The user may be logging in but has not completed yet and we want to reduce wait times...
+    // Otherwise, use the guest profile
     bool loaded = WEBCLIENT.LoadSession("profile.bin", &account) || WEBCLIENT.LoadSession("guest.bin", &account);
       
     if(loaded) {
@@ -128,6 +136,8 @@ void MainMenuScene::onStart() {
       WEBCLIENT.CacheTextureData(account);
       folders = CardFolderCollection::ReadFromWebAccount(account);
       programAdvance = PA::ReadFromWebAccount(account);
+
+      NaviEquipSelectedFolder();
     }
   }
 
@@ -475,6 +485,22 @@ void MainMenuScene::onEnd() {
 #ifdef __ANDROID__
   ShutdownTouchControls();
 #endif
+}
+
+void MainMenuScene::NaviEquipSelectedFolder()
+{
+  auto naviStr = WEBCLIENT.GetValue("SelectedNavi");
+  if (!naviStr.empty()) {
+    currentNavi = SelectedNavi(atoi(naviStr.c_str()));
+
+    auto folderStr = WEBCLIENT.GetValue("FolderFor:" + naviStr);
+    if (!folderStr.empty()) {
+      // preserve our selected folder
+      if (int index = folders.FindFolder(folderStr); index >= 0) {
+        folders.SwapOrder(index, 0); // Select this folder again
+      }
+    }
+  }
 }
 
 #ifdef __ANDROID__

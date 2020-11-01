@@ -348,9 +348,18 @@ void FolderScene::onUpdate(double elapsed) {
             }
             break;
           case 1: // EQUIP
+          {
             selectedFolderIndex = currFolderIndex;
             collection.SwapOrder(0, selectedFolderIndex);
+
+            // Save this session data
+            auto folderStr = collection.GetFolderNames()[0];
+            auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
+            if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
+            WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
+
             AUDIO.Play(AudioType::PA_ADVANCE);
+          }
             break;
           case 2: // CHANGE NAME
             if (folder) {

@@ -1,5 +1,7 @@
 #include "bnBattleSceneBase.h"
 
+#include <assert.h>
+
 #include "../bnTextureResourceManager.h"
 #include "../bnShaderResourceManager.h"
 #include "../bnInputManager.h"
@@ -837,9 +839,6 @@ void BattleSceneBase::Inject(CardUsePublisher& pub)
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
 void BattleSceneBase::Inject(MobHealthUI& other)
 {
-  // if (other.GetOwner()) other.GetOwner()->FreeComponentByID(other.GetID()); // We are owned by the scene now
-  //SceneNode* node = dynamic_cast<SceneNode*>(&other);
-  //scenenodes.push_back(node);
   other.scene = this;
   components.push_back(&other);
 }
@@ -848,7 +847,11 @@ void BattleSceneBase::Inject(MobHealthUI& other)
 // Default case: no special injection found for the type, just add it to our update loop
 void BattleSceneBase::Inject(Component* other)
 {
-  //if (other->GetOwner()) other->GetOwner()->FreeComponentByID(other->GetID());
+  assert(other && "Component injected was nullptr");
+
+  SceneNode* node = dynamic_cast<SceneNode*>(other);
+  if (node) { scenenodes.push_back(node); }
+
   other->scene = this;
   components.push_back(other);
 }

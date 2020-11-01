@@ -61,6 +61,11 @@ private:
 
   std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
 
+  /**
+  * @brief Equip a folder for the navi that was last used when playing as them
+  */
+  void NaviEquipSelectedFolder();
+
 #ifdef __ANDROID__
 void StartupTouchControls();
 void ShutdownTouchControls();

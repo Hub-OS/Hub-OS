@@ -24,6 +24,8 @@ void ZetaCannonCardAction::Execute() {
 
 void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
+  if (firstTime) return;
+
   auto pos = timerLabel.getPosition();
   auto og = pos;
   timerLabel.setPosition(pos.x + 2, pos.y + 2);
@@ -63,6 +65,9 @@ void ZetaCannonCardAction::OnUpdate(float _elapsed)
       }
     }
   }
+
+  if (firstTime) return;
+
   timer = std::max(0.0, timer - _elapsed);
 
   // Create an output string stream
