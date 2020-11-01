@@ -421,9 +421,9 @@ const bool WebClientManager::LoadSession(const std::string& inpath, WebAccounts:
     // Read version 
     in.read(buffer, version_len);
     std::string versionStr{ buffer, version_len };
-
+    std::string selfVersionStr{ version, version_len };
     // If the version string does not match, abort
-    if (versionStr != std::string(version)) {
+    if(versionStr == selfVersionStr) {
       return false;
     }
 
@@ -761,6 +761,14 @@ WebClientManager::WebClientManager() {
 
     tasksThread = std::thread(&WebClientManager::QueuedTasksThreadHandler, this);
     tasksThread.detach();
+
+    version = new char[version_len] {0};
+    std::strcpy(version, "ONB WEBCLIENT V2.0");
+}
+
+WebClientManager::~WebClientManager()
+{
+  delete[] version;
 }
 
 WebClientManager& WebClientManager::GetInstance() {

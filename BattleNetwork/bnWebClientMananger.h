@@ -22,7 +22,7 @@ private:
   std::mutex clientMutex; //!< Mutex for WebClient since it may be accessed by multiple threads...
   std::condition_variable taskQueueWakeup;
 
-  const char* version{ "ONB WEBCLIENT V2.0\0" }; //!< Session headers must match or client cannot load
+  char* version{ 0 }; //!< Session headers must match or client cannot load
   const size_t version_len{ 256 };
 
   bool shutdownSignal;
@@ -45,6 +45,7 @@ private:
 public:
 
   WebClientManager();
+  ~WebClientManager();
   static WebClientManager& GetInstance();
   void PingInterval(long interval);
   const long GetPingInterval() const;
