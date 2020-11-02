@@ -422,8 +422,9 @@ const bool WebClientManager::LoadSession(const std::string& inpath, WebAccounts:
     in.read(buffer, version_len);
     std::string versionStr{ buffer, version_len };
     std::string selfVersionStr{ version, version_len };
+
     // If the version string does not match, abort
-    if(versionStr == selfVersionStr) {
+    if(versionStr != selfVersionStr) {
       return false;
     }
 

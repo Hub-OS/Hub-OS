@@ -38,8 +38,9 @@ TornadoCardAction::~TornadoCardAction()
 
 void TornadoCardAction::Execute() {
   auto owner = GetOwner();
-
+  
   attachmentAnim.Update(0, attachment->getSprite());
+  owner->AddNode(attachment);
 
   auto team = GetOwner()->GetTeam();
   auto tile = GetOwner()->GetTile();
@@ -60,13 +61,14 @@ void TornadoCardAction::Execute() {
   AddAnimAction(2, [onFire, owner, this]() {
     AUDIO.Play(AudioType::WIND);
     armIsOut = true;
-    owner->AddNode(attachment);
     onFire();
   });
 }
 
 void TornadoCardAction::OnUpdate(float _elapsed)
 {
+  attachment->setPosition(CalculatePointOffset("buster"));
+
   if (armIsOut) {
     attachmentAnim.Update(_elapsed, attachment->getSprite());
   }

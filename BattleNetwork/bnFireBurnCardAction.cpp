@@ -56,7 +56,7 @@ void FireBurnCardAction::Execute() {
 
     baseOffset *= 2.0f;
 
-    fb->SetHeight(baseOffset.y);
+    fb->SetHeight(-baseOffset.y);
 
     int dir = team == Team::red ? 1 : -1;
 
