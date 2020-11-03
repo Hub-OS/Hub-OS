@@ -565,16 +565,17 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     if (highlightTiles == false) {
       // Draw without highlighting effects
-      ENGINE.Draw(tile);
+      tile->RevokeShader();
+      ENGINE.Draw(tile, true);
     }
     else {
       if (tile->IsHighlighted()) {
-        SpriteProxyNode coloredTile = SpriteProxyNode(*(sf::Sprite*)tile);
-        coloredTile.SetShader(&yellowShader);
-        ENGINE.Draw(coloredTile);
+        tile->SetShader(&yellowShader);
+        ENGINE.Draw(tile, false);
       }
       else {
-        ENGINE.Draw(tile);
+        tile->RevokeShader();
+        ENGINE.Draw(tile, true);
       }
     }
 

@@ -55,23 +55,21 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
 
   // Important! State transitions are added in order of priority!
-  //       change from,        to,          when this is true
-  CHANGE_ON_EVENT(intro,       cardSelect,  IsOver);
-  CHANGE_ON_EVENT(cardSelect,  combo,       OKIsPressed);
-  //CHANGE_ON_EVENT(cardSelect,  forms,       HasForm);
-  CHANGE_ON_EVENT(combo,       battlestart, IsDone);
-  CHANGE_ON_EVENT(forms,       combat,      Decrossed);
-  CHANGE_ON_EVENT(forms,       battlestart, IsFinished);
-  CHANGE_ON_EVENT(battlestart, combat,      IsFinished);
-  CHANGE_ON_EVENT(battleover,  reward,      IsFinished);
-  CHANGE_ON_EVENT(timeFreeze,  combat,      IsOver);
+  intro.ChangeOnEvent(cardSelect, &MobIntroBattleState::IsOver);
+  cardSelect.ChangeOnEvent(combo,  &CardSelectBattleState::OKIsPressed);
+  combo.ChangeOnEvent(forms, [cardSelect, combo]() mutable {return combo->IsDone() && cardSelect->HasForm(); });
+  combo.ChangeOnEvent(battlestart, &CardComboBattleState::IsDone);
+  forms.ChangeOnEvent(combat, &CharacterTransformBattleState::Decrossed);
+  forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
+  battlestart.ChangeOnEvent(combat, &BattleStartBattleState::IsFinished);
+  battleover.ChangeOnEvent(reward, &BattleOverBattleState::IsFinished);
+  timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);
 
   // share some values between states
   combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
 
   // special condition: if lost in combat and had a form, trigger the character transform states
-  auto playerLosesInForm = [trackedForms]
-  {
+  auto playerLosesInForm = [trackedForms] {
     const bool changeState = trackedForms[0]->player->GetHealth() == 0 && (trackedForms[0]->selectedForm != -1);
 
     if (changeState) {
@@ -83,7 +81,7 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   };
 
   // combat has multiple state interruptions based on events
-  // so we chain them together instead of using the macro
+  // so we can chain them together
   combat  .ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
           .ChangeOnEvent(forms,      playerLosesInForm)
           .ChangeOnEvent(fadeout,    &CombatBattleState::PlayerLost)
@@ -104,7 +102,11 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
 }
 
 MobBattleScene::~MobBattleScene() {
+  for (auto&& m : props.mobs) {
+    // delete m;
+  }
 
+  props.mobs.clear();
 }
 
 void MobBattleScene::onStart()

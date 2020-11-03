@@ -19,9 +19,10 @@ struct CardComboBattleState final : public BattleSceneState {
   int paStepIndex{ 0 };
   int* cardCountPtr{ nullptr };
   double elapsed{ 0 };
-  double listStepCooldown{ 0 };
+  double increment{ 0 }; /*!< Used to cycle through colors for the PA label */
+  double listStepCooldown{ 0.25 };
   double listStepCounter{ 0 };
-  double PAStartLength{ 1 }; /*!< Total time to animate PA */
+  double PAStartLength{ 0.25 }; /*!< Total time to animate PA in seconds */
   PA& programAdvance; /*!< PA object loads PA database and returns matching PA card from input */
   PA::Steps paSteps; /*!< Matching steps in a PA */
   swoosh::Timer PAStartTimer; /*!< Time to scale the PA graphic */

@@ -30,7 +30,8 @@ Mob* TwoMettaurMob::Build() {
   int count = 3;
 
   // place a hole somewhere
-  field->GetAt( 4 + (rand() % 3), 1 + (rand() % 3))->SetState(TileState::empty);
+  field->GetAt( 4 + (rand() % 3), 1 + (rand() % 3))->SetState(TileState::volcano);
+  field->GetAt(1, 1)->SetState(TileState::volcano);
 
   while (count > 0) {
     for (int i = 0; i < field->GetWidth(); i++) {
@@ -70,8 +71,9 @@ Mob* TwoMettaurMob::Build() {
         }*/
 
         if (tile->IsWalkable() && !tile->IsReservedByCharacter() && tile->GetTeam() == Team::blue) {
-          if (rand() % 50 > 25 && count-- > 0)
+          if (rand() % 50 > 25 && count-- > 0) {
             mob->Spawn<Rank1<Mettaur>>(i + 1, j + 1);
+          }
         }
       }
     }

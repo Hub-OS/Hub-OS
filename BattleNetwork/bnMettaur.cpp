@@ -13,8 +13,8 @@
 
 const std::string RESOURCE_PATH = "resources/mobs/mettaur/mettaur.animation";
 
-Mettaur::Mettaur(Rank _rank)
-  :  AI<Mettaur>(this), 
+Mettaur::Mettaur(Rank _rank) :  
+  AI<Mettaur>(this), 
   TurnOrderTrait<Mettaur>(), 
   Character(_rank) {
   name = "Mettaur";
@@ -30,7 +30,7 @@ Mettaur::Mettaur(Rank _rank)
     animation->SetAnimation("SP_IDLE");
   }
   else {
-    SetHealth(5);
+    SetHealth(40);
     //Components setup and load
     animation->SetAnimation("IDLE");
   }

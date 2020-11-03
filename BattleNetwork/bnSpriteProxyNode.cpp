@@ -108,7 +108,7 @@ void SpriteProxyNode::draw(sf::RenderTarget& target, sf::RenderStates states) co
   if (s) {
     states.shader = s;
   }
-  else if(!IsUsingParentShader()){
+  else if(!IsUsingParentShader()) {
     states.shader = nullptr;
   }
 

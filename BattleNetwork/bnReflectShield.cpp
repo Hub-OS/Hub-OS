@@ -39,9 +39,8 @@ ReflectShield::ReflectShield(Character* owner, int damage)
     this->owner->RemoveDefenseRule(guard);
   };
 
-  // Add end callback, flag for deletion, and remove the component from the owner
-  // This way the owner doesn't container a pointer to an invalid address
-  animation << Animator::On(5, onEnd, true) << [this]() { Delete(); };
+  // Add end callback, flag for deletion
+  animation << Animator::On(2, onEnd, true) << [this]() { Delete(); };
 
   animation.Update(0, getSprite());
 

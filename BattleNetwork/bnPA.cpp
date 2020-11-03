@@ -130,6 +130,8 @@ const int PA::FindPA(Battle::Card ** input, unsigned size)
         }
       }
 
+      if (match) break;
+
       index++;
     }
 

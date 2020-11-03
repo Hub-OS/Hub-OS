@@ -41,7 +41,8 @@ private:
   sf::Text* menuLabel; /*!< "Folder" text on top-left */
 
   // Selection input delays
-  double maxSelectInputCooldown; /*!< Set to half of a second */
+  bool extendedHold{ false }; /*!< 2nd delay pass makes scrolling quicker */
+  double maxSelectInputCooldown; /*!< Set to fraction of a second */
   double selectInputCooldown; /*!< The delay between reading user input */
 
   // Card UI font

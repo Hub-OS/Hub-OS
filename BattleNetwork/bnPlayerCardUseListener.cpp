@@ -188,7 +188,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
   else if (name == "Thunder") {
     player->QueueAction(new ThunderCardAction(player, card.GetDamage()));
   }
-  else if (name == "Roll") {
+  else if (name.substr(0, 4) == "Roll") {
     player->QueueAction(new RollCardAction(player, card.GetDamage()));
   }
   else if (name == "ProtoMan") {

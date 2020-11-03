@@ -299,10 +299,10 @@ bool CardSelectBattleState::OKIsPressed() {
 
 bool CardSelectBattleState::HasForm()
 {
-  return OKIsPressed() && formSelected;
+  return formSelected;
 }
 
 const bool CardSelectBattleState::HasCombo()
 {
-    return OKIsPressed() && hasCombo;
+  return OKIsPressed() && hasCombo;
 }

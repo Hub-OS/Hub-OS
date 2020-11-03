@@ -30,7 +30,9 @@ namespace Battle {
   float Tile::teamCooldownLength = COOLDOWN;
   float Tile::flickerTeamCooldownLength = FLICKER;
 
-  Tile::Tile(int _x, int _y) : animation() {
+  Tile::Tile(int _x, int _y) : 
+    SpriteProxyNode(),
+    animation() {
     totalElapsed = 0;
     x = _x;
     y = _y;
@@ -59,6 +61,30 @@ namespace Battle {
     elapsedBurnTime = burncycle;
 
     highlightMode = Highlight::none;
+
+    volcanoErupt = Animation("resources/tiles/volcano.animation");
+
+    auto resetVolcanoThunk = [this](int seconds) {
+      this->volcanoErupt.SetFrame(1, this->volcanoSprite.getSprite()); // start over
+      volcanoEruptTimer = seconds;
+    };
+
+    if (team == Team::red) {
+      resetVolcanoThunk(4); // red goes first
+    }
+    else {
+      resetVolcanoThunk(8); // then blue
+    }
+
+    // On anim end, reset the timer
+    volcanoErupt << "DEFAULT" << Animator::Mode::Loop << [this, resetVolcanoThunk]() {
+      resetVolcanoThunk(4);
+    };
+
+    volcanoSprite.setTexture(TEXTURES.LoadTextureFromFile("resources/tiles/volcano.png"));
+    volcanoSprite.SetLayer(-1); // in front of tile
+
+    volcanoErupt.Refresh(volcanoSprite.getSprite());
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -92,6 +118,10 @@ namespace Battle {
     burncycle = other.burncycle;
     elapsedBurnTime = other.elapsedBurnTime;
     highlightMode = other.highlightMode;
+
+    volcanoErupt = other.volcanoErupt;
+    volcanoEruptTimer = other.volcanoEruptTimer;
+    volcanoSprite = other.volcanoSprite;
 
     return *this;
   }
@@ -128,6 +158,10 @@ namespace Battle {
     burncycle = other.burncycle;
     elapsedBurnTime = other.elapsedBurnTime;
     highlightMode = other.highlightMode;
+
+    volcanoErupt = other.volcanoErupt;
+    volcanoEruptTimer = other.volcanoEruptTimer;
+    volcanoSprite = other.volcanoSprite;
   }
 
   Tile::~Tile() {
@@ -214,6 +248,13 @@ namespace Battle {
       return;
     }
 
+    if (_state == TileState::volcano) {
+      AddNode(&volcanoSprite);
+    }
+    else {
+      RemoveNode(&volcanoSprite);
+    }
+
     state = _state;
   }
 
@@ -243,10 +284,10 @@ namespace Battle {
     }
 
     if (currTeam == Team::red) {
-      setTexture(*red_team_atlas);
+      setTexture(red_team_atlas);
     }
     else {
-      setTexture(*blue_team_atlas);
+      setTexture(blue_team_atlas);
     }
 
     if (prevAnimState != animState) {
@@ -410,6 +451,16 @@ namespace Battle {
     if (!isTimeFrozen) {
         // LAVA TILES
         elapsedBurnTime -= _elapsed;
+
+        // VOLCANO 
+        volcanoEruptTimer -= _elapsed;
+
+        if (volcanoEruptTimer <= 0) {
+          volcanoErupt.Update(_elapsed, volcanoSprite.getSprite());
+        }
+
+        // set the offset to be at center origin
+        volcanoSprite.setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
     }
 
     CleanupEntities();
@@ -448,7 +499,7 @@ namespace Battle {
     RefreshTexture();
 
     animation.SyncTime(totalElapsed);
-    animation.Refresh(*this);
+    animation.Refresh(this->getSprite());
 
     switch (highlightMode) {
     case Highlight::solid:
@@ -478,6 +529,7 @@ namespace Battle {
     for (auto&& entity : entities) {
       entity->ToggleTimeFreeze(isTimeFrozen);
     }
+    willHighlight = false;
   }
 
   void Tile::BattleStart()

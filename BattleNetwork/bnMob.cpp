@@ -66,18 +66,14 @@ BattleItem* Mob::GetRankedReward(int score) {
 }
 
 void Mob::Cleanup() {
-  for (int i = 0; i < spawn.size(); i++) {
-    delete spawn[i];
-  }
+  //for (int i = 0; i < spawn.size(); i++) {
+  //  delete spawn[i];
+  //}
 
+  /*iter = spawn.end();
   field = nullptr;
   spawn.clear();
-
-  for (Component* c : components) {
-    delete c;
-  }
-
-  components.clear();
+  components.clear();*/
 }
 
 void Mob::KillSwitch() {

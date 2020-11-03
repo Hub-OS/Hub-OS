@@ -2,10 +2,12 @@
 
 class Character;
 class SpriteProxyNode;
+class RollHeart;
 
 class RollCardAction : public CardAction {
 private:
   int damage;
+  RollHeart* heart{ nullptr };
 public:
   RollCardAction(Character* owner, int damage);
   ~RollCardAction();

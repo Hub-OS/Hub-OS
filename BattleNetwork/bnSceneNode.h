@@ -16,7 +16,7 @@ protected:
   SceneNode* parent; /*!< The node this node is a child of */
   bool show; /*!< Flag to hide or display a scene node and its children */
   int layer; /*!< Draw order of this node */
-  bool useParentShader;
+  bool useParentShader{ false }; /*!< Default: use your own internal shader*/
 
 public:
   /**

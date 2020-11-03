@@ -171,14 +171,26 @@ protected:
     public:
     using Class = T;
 
-    StateNodeWrapper(BattleSceneBase& owner, T& state) 
-    : state(state), StateNode(owner, state)
+    StateNodeWrapper(BattleSceneBase& owner, T& state) : 
+      state(state), StateNode(owner, state)
     {}
+
+    StateNodeWrapper(const StateNodeWrapper& copy) :
+      state(copy.state), StateNode(copy.owner, copy.state)
+    {}
+
 
     /* 
         \brief Return the underlining state object as a pointer
     */
     T* operator->() {
+      return &state;
+    }
+
+    /*
+    \brief Return the underlining state object as a const-qualified pointer
+    */
+    const T* operator->() const {
       return &state;
     }
 

@@ -31,8 +31,6 @@ RollHeart::RollHeart(Character* user, int _heal)
   animationComponent->Reload();
   animationComponent->SetAnimation("HEART");
   Update(0);
-
-  doOnce = true;
 }
 
 RollHeart::~RollHeart() {
@@ -48,14 +46,20 @@ void RollHeart::OnUpdate(float _elapsed) {
   
   if (height <= 0) height = 0;
 
-  if (height == 0 && doOnce) {
+  if (height == 0 && !spawnFX) {
     AUDIO.Play(AudioType::RECOVER);
-    doOnce = false;
+    spawnFX = true;
 
-    Delete();
+    this->Hide();
     user->SetHealth(user->GetHealth() + heal);
-    auto healfx = new ParticleHeal();
-    user->GetField()->AddEntity(*healfx, tile->GetX(), tile->GetY());
+    
+    healFX = new ParticleHeal();
+    user->GetField()->AddEntity(*healFX, tile->GetX(), tile->GetY());
+  }
+  else if (spawnFX) {
+    if (healFX->WillRemoveLater()) {
+      Delete();
+    }
   }
 }
 

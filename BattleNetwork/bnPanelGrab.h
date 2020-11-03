@@ -27,6 +27,12 @@ public:
   ~PanelGrab();
 
   /**
+  * @brief Update the sprite position 
+  * @param start The tile to spawn onto
+  */
+  void OnSpawn(Battle::Tile& start) override;
+
+  /**
    * @brief Interpolate from start pos to tile and changes tile team
    * @param _elapsed in seconds
    */

@@ -239,40 +239,51 @@ void FolderEditScene::onUpdate(double elapsed) {
       view = &packView;
     }
 
-    if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
+    if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
 
       if (selectInputCooldown <= 0) {
-        selectInputCooldown = maxSelectInputCooldown;
-        view->currCardIndex--;
-        AUDIO.Play(AudioType::CHIP_SELECT);
-
+        if (!extendedHold) {
+          selectInputCooldown = maxSelectInputCooldown;
+          extendedHold = true;
+        }
+        
+        if (--view->currCardIndex >= 0) {
+          AUDIO.Play(AudioType::CHIP_SELECT);
+          cardRevealTimer.reset();
+        }
+        
         if (view->currCardIndex < view->lastCardOnScreen) {
           --view->lastCardOnScreen;
         }
 
-        cardRevealTimer.reset();
       }
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
+    else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
 
       if (selectInputCooldown <= 0) {
-        selectInputCooldown = maxSelectInputCooldown;
-        view->currCardIndex++;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        if (!extendedHold) {
+          selectInputCooldown = maxSelectInputCooldown;
+          extendedHold = true;
+        }
+        
+        if (++view->currCardIndex < 30) {
+          AUDIO.Play(AudioType::CHIP_SELECT);
+          cardRevealTimer.reset();
+        }
 
         if (view->currCardIndex > view->lastCardOnScreen + view->maxCardsOnScreen - 1) {
           ++view->lastCardOnScreen;
         }
-
-        cardRevealTimer.reset();
       }
     }else if (INPUTx.Has(EventTypes::PRESSED_SCAN_LEFT)) {
+      extendedHold = false;
+
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
@@ -293,6 +304,8 @@ void FolderEditScene::onUpdate(double elapsed) {
       }
     }
     else if (INPUTx.Has(EventTypes::PRESSED_SCAN_RIGHT)) {
+      extendedHold = false;
+
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
@@ -313,6 +326,7 @@ void FolderEditScene::onUpdate(double elapsed) {
     }
     else {
       selectInputCooldown = 0;
+      extendedHold = false;
     }
 
     if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {

@@ -9,82 +9,9 @@
 #define LOWERCASE 1
 #define COMMANDS  2
 
-void FolderChangeNameScene::ExecuteAction(size_t table, size_t x, size_t y)
-{
-  auto entry = this->table[table][y][x];
-
-  if (entry == "NEXT") {
-    DoNEXT();
-  }
-  else if (entry == "BACK") {
-    DoBACK();
-  }
-  else if (entry == "OK") {
-    DoOK();
-  }
-  else if (entry == "END") {
-    DoEND();
-  }
-  else { // it's a letter entry
-    if (letterPos + 1 == 9) { // denotes end of input, reject
-      AUDIO.Play(AudioType::CHIP_ERROR);
-    }
-    else { // not end of input, add latter, and increase letterPos
-      name[letterPos++] = entry[0];
-      letterPos = std::min(letterPos, 8);
-
-      AUDIO.Play(AudioType::CHIP_CHOOSE);
-    }
-  }
-
-  setView(sf::Vector2u(640, 480));
-}
-
-void FolderChangeNameScene::DoBACK()
-{
-  letterPos = std::max(0, letterPos - 1);
-
-}
-
-void FolderChangeNameScene::DoNEXT()
-{
-  letterPos = std::min(letterPos + 1, 8);
-
-}
-
-void FolderChangeNameScene::DoOK()
-{
-  // Take '_' out of names
-  auto copy = name;
-  std::replace(copy.begin(), copy.end(), '_', ' ');
-
-  // Prompt question
-  // TODO
-
-  // Save this session data new folder name
-  auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
-  if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
-  WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderName);
-
-  // Set original variable to new results
-  folderName = copy;
-
-  // Finish
-  DoEND();
-}
-
-void FolderChangeNameScene::DoEND()
-{
-  using namespace swoosh::types;
-  using effect = segue<BlackWashFade, milli<500>>;
-  getController().pop<effect>();
-
-  AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
-  leave = true;
-}
-
-FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& controller, std::string& folderName) : swoosh::Activity(&controller), folderName(folderName) {
-  
+FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& controller, std::string& folderName) : 
+  swoosh::Activity(&controller), folderName(folderName) {
+  elapsed = 0;
   leave = true;
   // folder menu graphic
   bg = sf::Sprite(*LOAD_TEXTURE(FOLDER_CHANGE_NAME_BG));
@@ -153,6 +80,78 @@ FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& control
 
 FolderChangeNameScene::~FolderChangeNameScene() {
 
+}
+
+void FolderChangeNameScene::ExecuteAction(size_t table, size_t x, size_t y)
+{
+  auto entry = this->table[table][y][x];
+
+  if (entry == "NEXT") {
+    DoNEXT();
+  }
+  else if (entry == "BACK") {
+    DoBACK();
+  }
+  else if (entry == "OK") {
+    DoOK();
+  }
+  else if (entry == "END") {
+    DoEND();
+  }
+  else { // it's a letter entry
+    if (letterPos + 1 == 9) { // denotes end of input, reject
+      AUDIO.Play(AudioType::CHIP_ERROR);
+    }
+    else { // not end of input, add latter, and increase letterPos
+      name[letterPos++] = entry[0];
+      letterPos = std::min(letterPos, 8);
+
+      AUDIO.Play(AudioType::CHIP_CHOOSE);
+    }
+  }
+}
+
+void FolderChangeNameScene::DoBACK()
+{
+  letterPos = std::max(0, letterPos - 1);
+
+}
+
+void FolderChangeNameScene::DoNEXT()
+{
+  letterPos = std::min(letterPos + 1, 8);
+
+}
+
+void FolderChangeNameScene::DoOK()
+{
+  // Take '_' out of names
+  auto copy = name;
+  std::replace(copy.begin(), copy.end(), '_', ' ');
+
+  // Prompt question
+  // TODO
+
+  // Save this session data new folder name
+  auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
+  if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
+  WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderName);
+
+  // Set original variable to new results
+  folderName = copy;
+
+  // Finish
+  DoEND();
+}
+
+void FolderChangeNameScene::DoEND()
+{
+  using namespace swoosh::types;
+  using effect = segue<BlackWashFade, milli<500>>;
+  getController().pop<effect>();
+
+  AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+  leave = true;
 }
 
 void FolderChangeNameScene::onStart() {
@@ -298,7 +297,7 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(cursorPieceLeft);
   ENGINE.Draw(cursorPieceRight);
 
-  auto blink = int(elapsed * 3000) % 1000 < 500;
+  bool blink = (int(elapsed * 3000) % 1000) < 500;
 
   for (int i = 0; i < name.size(); i++) {
     if(i == letterPos && blink)

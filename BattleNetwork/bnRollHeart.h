@@ -11,6 +11,7 @@
 #include "bnSpell.h"
 #include "bnAnimationComponent.h"
 
+class ParticleHeal;
 
 class RollHeart : public Spell {
 public:
@@ -46,5 +47,6 @@ private:
   float height; /*!< The start height of the heart */
   Character* user; /*!< The character that used the card */
   AnimationComponent* animationComponent;
-  bool doOnce; /*!< Flag to restore health once */
+  bool spawnFX{ false }; /*!< Flag to restore health once */
+  ParticleHeal* healFX{ nullptr }; /*!< Heal animation effect*/
 };

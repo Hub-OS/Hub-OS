@@ -41,7 +41,7 @@ class Dummy;
 #include "bnDefenseRule.h"
 
 namespace Battle {
-  class Tile : public Sprite {
+  class Tile : public SpriteProxyNode {
   public:
     enum class Highlight : int {
       none = 0,
@@ -323,6 +323,9 @@ namespace Battle {
     vector<Entity::ID_t> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
 
     Animation animation;
+    Animation volcanoErupt;
+    double volcanoEruptTimer{ 4 }; // seconds
+    SpriteProxyNode volcanoSprite;
 
     /**
      * @brief Auxillary function used by all other overloads of AddEntity
