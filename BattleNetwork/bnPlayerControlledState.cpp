@@ -161,9 +161,10 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     bool moved = player.GetNextTile();
 
     if (moved) {
-      auto onFinish = [&, this]() {
-        auto playerPtr = &player;
-        player.SetAnimation("PLAYER_MOVED", [playerPtr, actions, this]() {
+      auto playerPtr = &player;
+
+      auto onFinish = [playerPtr, actions, this]() {
+        playerPtr->SetAnimation("PLAYER_MOVED", [playerPtr, actions, this]() {
           playerPtr->SetAnimation(PLAYER_IDLE);
           playerPtr->FinishMove();
 
@@ -181,7 +182,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
           replicator? replicator->SendTileSignal(t->GetX(), t->GetY()) : (void(0));
         });
 
-        player.AdoptNextTile();
+        playerPtr->AdoptNextTile();
         direction = Direction::none;
       }; // end lambda
       player.GetFirstComponent<AnimationComponent>()->CancelCallbacks();
