@@ -26,13 +26,13 @@ MenuWidget::MenuWidget(const std::string& area)
   infoBoxAnim << "INFO";
   infoBoxAnim.SetFrame(1, infoBox.getSprite());
   AddNode(&infoBox);
-  infoBox.setPosition(179, 63);
+  infoBox.setPosition(180, 52);
 
   optionAnim = Animation("resources/ui/main_menu_ui.animation");
   optionAnim << "SYMBOL";
   optionAnim.SetFrame(1, symbol.getSprite());
   AddNode(&symbol);
-  symbol.setPosition(17, 1);
+  symbol.setPosition(20, 1);
 
   optionAnim << "SELECT";
   optionAnim.SetFrame(1, selectText.getSprite());
@@ -47,10 +47,12 @@ MenuWidget::MenuWidget(const std::string& area)
   optionAnim << "EXIT";
   optionAnim.SetFrame(1, exit.getSprite());
   AddNode(&exit);
+  exit.setPosition(240, 144);
   exit.Hide();
 
   optionAnim << "PET";
   optionAnim.SetFrame(1, icon.getSprite());
+  icon.setPosition(2, 3);
 
   //
   // Load options
@@ -131,6 +133,7 @@ void MenuWidget::QueueOpenTasks()
     if (currState == state::opening) {
       placeText.Reveal();
       selectText.Reveal();
+      exit.Reveal();
 
       for (auto&& opts : options) {
         opts->Reveal();
@@ -139,6 +142,7 @@ void MenuWidget::QueueOpenTasks()
     else if(currState == state::closing) {
       placeText.Hide();
       selectText.Hide();
+      exit.Hide();
 
       for (auto&& opts : options) {
         opts->Hide();
@@ -149,13 +153,13 @@ void MenuWidget::QueueOpenTasks()
   t8f.doTask([=](double elapsed) {
     for (size_t i = 0; i < options.size(); i++) {
       float y = ease::linear(elapsed, (double)frames(12), 1.0);
-      options[i]->setPosition(17, 20 + (y*(i*16)));
+      options[i]->setPosition(36, 26 + (y*(i*16)));
     }
   }).withDuration(frames(12));
 
   t8f.doTask([=](double elapsed) {
     float x = 1.0f-ease::linear(elapsed, (double)frames(6), 1.0);
-    exit.setPosition(140 + (x * 100), exit.getPosition().y);
+    exit.setPosition(130 + (x * 100), exit.getPosition().y);
   }).withDuration(frames(6));
 
   t8f.doTask([=](double elapsed) {
@@ -212,7 +216,7 @@ void MenuWidget::CreateOptions()
   for (auto&& L : list) {
     auto sprite = std::make_shared<SpriteProxyNode>();
     sprite->setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
-    sprite->setPosition(17, 20);
+    sprite->setPosition(36, 26);
     optionAnim << L;
     optionAnim.SetFrame(1, sprite->getSprite());
     options.push_back(sprite);
@@ -247,6 +251,12 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
     // draw all child nodes
     SceneNode::draw(target, states);
+
+    auto pos = areaLabel.getPosition();
+    auto copyAreaLabel = areaLabel;
+    copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
+    copyAreaLabel.setColor(sf::Color(100, 100, 101, 255));
+    target.draw(copyAreaLabel, states);
 
     target.draw(areaLabel, states);
   }
