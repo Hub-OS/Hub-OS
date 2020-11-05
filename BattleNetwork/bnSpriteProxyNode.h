@@ -20,7 +20,7 @@ class SpriteProxyNode : public SceneNode {
 private:
   bool allocatedSprite; /*!< Whether or not SpriteSceneNode owns the sprite pointer */
   mutable SmartShader shader; /*!< Sprites can have shaders attached to them */
-  sf::Sprite* sprite; /*!< Reference to sprite behind proxy */
+  sf::Sprite* sprite{ nullptr }; /*!< Reference to sprite behind proxy */
   std::shared_ptr<sf::Texture> textureRef; /*!< We want to intelligently keep track so the cache doesn't eat it*/
 public:
   /**
@@ -37,7 +37,10 @@ public:
   */
   SpriteProxyNode(const sf::Texture& texture);
 
-  SpriteProxyNode(const SpriteProxyNode& rhs) = delete;
+  /**
+  * \brief Copy ctor
+  */
+  SpriteProxyNode(SpriteProxyNode&& rhs) noexcept;
 
   /**
    * @brief Construct SpriteSceneNode from an existing sprite

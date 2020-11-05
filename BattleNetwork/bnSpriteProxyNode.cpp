@@ -16,6 +16,24 @@ SpriteProxyNode::SpriteProxyNode(const sf::Texture & texture) : SceneNode()
     show = true;
 }
 
+SpriteProxyNode::SpriteProxyNode(SpriteProxyNode&& rhs) noexcept
+{
+  std::swap(allocatedSprite, rhs.allocatedSprite);
+  std::swap(childNodes, rhs.childNodes);
+  std::swap(layer, rhs.layer);
+  std::swap(parent, rhs.parent);
+  std::swap(shader, rhs.shader);
+  std::swap(show, rhs.show);
+  std::swap(sprite, rhs.sprite);
+  std::swap(textureRef, rhs.textureRef);
+  std::swap(useParentShader, rhs.useParentShader);
+  
+  rhs.sprite = nullptr;
+  rhs.allocatedSprite = false;
+  rhs.textureRef.reset();
+
+}
+
 SpriteProxyNode::SpriteProxyNode(sf::Sprite& rhs) : SceneNode() {
   allocatedSprite = false;
   sprite = &rhs;

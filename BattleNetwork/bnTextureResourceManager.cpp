@@ -263,7 +263,6 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/backgrounds/title/prog-pulse.png");
   paths.push_back("resources/backgrounds/game_over/game_over.png");
   paths.push_back("resources/backgrounds/select/battle_select.png");
-  paths.push_back("resources/backgrounds/main_menu/overlay.png");
   paths.push_back("resources/backgrounds/main_menu/ow.png");
   paths.push_back("resources/backgrounds/main_menu/ow2.png");
   paths.push_back("resources/backgrounds/main_menu/arrow.png");

@@ -121,7 +121,11 @@ namespace Battle {
 
     volcanoErupt = other.volcanoErupt;
     volcanoEruptTimer = other.volcanoEruptTimer;
-    volcanoSprite = other.volcanoSprite;
+
+    volcanoSprite.setTexture(other.volcanoSprite.getTexture());
+    volcanoSprite.SetLayer(-1); // in front of tile
+
+    volcanoErupt.Refresh(volcanoSprite.getSprite());
 
     return *this;
   }
@@ -129,39 +133,7 @@ namespace Battle {
 
   Tile::Tile(const Tile & other)
   {
-    x = other.x;
-    y = other.y;
-
-    totalElapsed = other.totalElapsed;
-    team = other.team;
-    state = other.state;
-    RefreshTexture();
-    entities = other.entities;
-    setScale(2.f, 2.f);
-    width = other.width;
-    height = other.height;
-    animState = other.animState;
-    setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
-    willHighlight = other.willHighlight;
-    isTimeFrozen = other.isTimeFrozen;
-    isBattleOver = other.isBattleOver;
-    reserved = other.reserved;
-    characters = other.characters;
-    spells = other.spells;
-    entities = other.entities;
-    brokenCooldown = other.brokenCooldown;
-    teamCooldown = other.teamCooldown;
-    flickerTeamCooldown = other.flickerTeamCooldown;
-    red_team_atlas = other.red_team_atlas;
-    blue_team_atlas = other.blue_team_atlas;
-    animation = other.animation;
-    burncycle = other.burncycle;
-    elapsedBurnTime = other.elapsedBurnTime;
-    highlightMode = other.highlightMode;
-
-    volcanoErupt = other.volcanoErupt;
-    volcanoEruptTimer = other.volcanoEruptTimer;
-    volcanoSprite = other.volcanoSprite;
+    *this = other;
   }
 
   Tile::~Tile() {

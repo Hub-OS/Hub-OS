@@ -15,6 +15,7 @@ BattleStartBattleState::BattleStartBattleState(std::vector<Player*> tracked) : t
 void BattleStartBattleState::onStart(const BattleSceneState*)
 {
   battleStartTimer.reset();
+  battleStartTimer.start();
 
   for (Player* player : tracked) {
     player->ChangeState<PlayerIdleState>();

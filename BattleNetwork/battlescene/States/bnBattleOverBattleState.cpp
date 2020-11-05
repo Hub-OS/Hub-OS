@@ -22,6 +22,7 @@ BattleOverBattleState::BattleOverBattleState(std::vector<Player*> tracked) : tra
 void BattleOverBattleState::onStart(const BattleSceneState*)
 {
   battleEndTimer.reset();
+  battleEndTimer.start();
   AUDIO.Stream("resources/loops/enemy_deleted.ogg");
 
   for (auto p : tracked) {

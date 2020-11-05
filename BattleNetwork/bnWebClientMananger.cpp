@@ -394,7 +394,14 @@ void WebClientManager::SaveSession(const std::string& outpath)
 
 void WebClientManager::SetKey(const std::string& key, const std::string& value)
 {
-  keys.insert(std::make_pair(key, value));
+  auto iter = keys.find(key);
+
+  if (iter != keys.end()) {
+    keys[key] = value;
+  }
+  else {
+    keys.insert(std::make_pair(key, value));
+  }
 }
 
 const std::string WebClientManager::GetValue(const std::string& key)

@@ -192,3 +192,8 @@ private:
  * @brief Shorter to type. Fetches instance of singleton.
  */
 #define ENGINE Engine::GetInstance()
+
+ // frames thunk transforms frames to milliseconds
+static sf::Int32 frames(int frames)  {
+  return (sf::Int32)(1000 * (float(frames) / 60.f));
+};

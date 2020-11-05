@@ -163,6 +163,9 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
 
   isSceneInFocus = false;
 
+  comboInfoTimer.start();
+  multiDeleteTimer.start();
+
   setView(sf::Vector2u(480, 320));
 }
 

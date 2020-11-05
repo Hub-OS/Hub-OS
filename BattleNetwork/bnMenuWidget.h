@@ -14,18 +14,20 @@
 class MenuWidget : public SceneNode {
 public:
   enum class state : unsigned {
-    opening = 0,
+    closed = 0,
     opened,
     closing,
-    closed
+    opening
   };
 private:
   int row{ 0 }; //!< Current row index
   int health{}, maxHealth{}; //!< Health displayed by main character
   int coins{}; //!< Coins held by main character
+  float opacity{}; //!< Background darkens
   bool selectExit{ false }; //!< If exit option is selected
   bool extendedHold{ false }; //!< If player holds the arrow keys down
-  state currState{}; //!< Track all open/close states
+  state currState{}; //!< Track all open/close states. Default is closed
+  std::string areaName; //!< Area name typed out
   std::shared_ptr<sf::Font> font; //!< Used by text
   sf::Text areaLabel; //!< Area name displayed in widget
   swoosh::Timer easeInTimer; //!< Timer used for animations
@@ -33,19 +35,22 @@ private:
   SpriteProxyNode symbol;
   SpriteProxyNode icon;
   SpriteProxyNode exit;
-  SpriteProxyNode cursor;
   SpriteProxyNode infoBox;
   SpriteProxyNode selectText;
   SpriteProxyNode placeText;
-  std::vector<SpriteProxyNode> options;
+  std::vector<std::shared_ptr<SpriteProxyNode>> options;
   Animation infoBoxAnim;
   Animation optionAnim;
+
+  void QueueOpenTasks();
+  void QueueCloseTasks();
+  void CreateOptions();
 
 public:
   /**
    * @brief Constructs main menu widget UI. The programmer must set info params using the public API
    */
-  MenuWidget();
+  MenuWidget(const std::string& area);
 
   /**
    * @brief Deconstructor
@@ -138,11 +143,11 @@ public:
   * @brief Query if the widget is fully opened
   * @return true if the widget is fully opened, false if any other state
   */
-  bool IsOpen();
+  bool IsOpen() const;
 
   /**
   * @brief Query if the widget is fully closed
   * @return true if the widget is fully closed, false if any other state
   */
-  bool IsClosed();
+  bool IsClosed() const;
 };

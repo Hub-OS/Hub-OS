@@ -36,6 +36,8 @@ void CardComboBattleState::onStart(const BattleSceneState*)
   paStepIndex = 0;
   increment = 0;
   listStepCounter = listStepCooldown;
+  PAStartTimer.reset();
+  PAStartTimer.start();
 }
 
 void CardComboBattleState::onEnd(const BattleSceneState*)
