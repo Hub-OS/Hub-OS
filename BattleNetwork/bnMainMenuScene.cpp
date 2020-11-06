@@ -38,7 +38,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
 
     webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
     webAccountIcon.setScale(2.f, 2.f);
-    webAccountIcon.setPosition((getController().getVirtualWindowSize().x-96.0f), getController().getVirtualWindowSize().y - 34.0f);
+    webAccountIcon.setPosition(4, getController().getVirtualWindowSize().y - 40.0f);
     webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
     webAccountAnimator.Load();
     webAccountAnimator.SetAnimation("NO_CONNECTION");
@@ -210,13 +210,35 @@ void MainMenuScene::onUpdate(double elapsed) {
   const auto right = direction::right;
 
   if (!gotoNextScene) {
-    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+    if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
       if (menuWidget.IsClosed()) {
         menuWidget.Open();
+        AUDIO.Play(AudioType::CHIP_DESC);
       }
-      else if(menuWidget.IsOpen()) {
+      else if (menuWidget.IsOpen()) {
         menuWidget.Close();
+        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       }
+    }
+
+    if (menuWidget.IsOpen()) {
+      if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
+        menuWidget.CursorMoveUp()? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+      }
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
+        menuWidget.CursorMoveDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+      }
+      else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+        bool result = menuWidget.ExecuteSelection();
+      }
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) || INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+        menuWidget.SelectExit() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+      }
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+        menuWidget.SelectOptions() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+      }
+    }
+
       /*
       // Folder Select
       if (menuSelectionIndex == 0) {
@@ -292,11 +314,10 @@ void MainMenuScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
   */
-    }
   }
 
   // Allow player to resync with remote account by pressing the pause action
-  if (INPUTx.Has(EventTypes::PRESSED_PAUSE)) {
+  if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT)) {
       accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
   }
 

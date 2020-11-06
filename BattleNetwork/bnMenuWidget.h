@@ -38,12 +38,13 @@ private:
   SpriteProxyNode infoBox;
   SpriteProxyNode selectText;
   SpriteProxyNode placeText;
+  std::vector<std::string> optionsList;
   std::vector<std::shared_ptr<SpriteProxyNode>> options;
   Animation infoBoxAnim;
   Animation optionAnim;
+  Animation exitAnim;
 
-  void QueueOpenTasks();
-  void QueueCloseTasks();
+  void QueueAnimTasks(const state& state);
   void CreateOptions();
 
 public:
@@ -100,8 +101,11 @@ public:
   
   /**
   * @brief Execute the current selection (exit or row options)
+  * @return true status if a selection was executed, false otherwise
+  * 
+  * NOTE: query which selection was made to determine how to respond to the return status
   */
-  void ExecuteSelection();
+  bool ExecuteSelection();
 
   /**
   * @brief Select the exit option

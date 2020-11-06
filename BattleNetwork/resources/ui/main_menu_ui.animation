@@ -73,5 +73,5 @@ animation state="EXIT"
 frame duration="0.05" x="92" y="150" w="80" h="13" originx="0" originy="0"
 
 animation state="EXIT_SELECTED"
-frame duration="0.05" x="92" y="164" w="80" h="13" originx="0" originy="0"
-frame duration="0.05" x="92" y="178" w="80" h="13" originx="0" originy="0"
+frame duration="0.1" x="92" y="164" w="80" h="13" originx="0" originy="0"
+frame duration="0.1" x="92" y="178" w="80" h="13" originx="0" originy="0"

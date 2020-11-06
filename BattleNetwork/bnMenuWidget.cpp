@@ -54,6 +54,8 @@ MenuWidget::MenuWidget(const std::string& area)
   optionAnim.SetFrame(1, icon.getSprite());
   icon.setPosition(2, 3);
 
+  exitAnim = Animation("resources/ui/main_menu_ui.animation") << Animator::Mode::Loop;
+
   //
   // Load options
   //
@@ -62,9 +64,6 @@ MenuWidget::MenuWidget(const std::string& area)
 
   // Set name
   SetArea(area);
-
-  // prepare to be opened
-  QueueOpenTasks();
 }
 
 MenuWidget::~MenuWidget()
@@ -94,11 +93,19 @@ using namespace swoosh;
 - all the folder options have expanded
 - ease in animation is complete
 */
-void MenuWidget::QueueOpenTasks()
+void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 {
   easeInTimer.clear();
-  easeInTimer.reverse(false);
-  easeInTimer.set(0);
+
+  if (state == MenuWidget::state::opening) {
+    easeInTimer.reverse(false);
+    easeInTimer.set(frames(0));
+  }
+  else {
+    easeInTimer.reverse(true);
+    easeInTimer.set(frames(21));
+  }
+
   //
   // Start these task at the beginning
   //
@@ -114,14 +121,18 @@ void MenuWidget::QueueOpenTasks()
     this->banner.setPosition((1.0-x)*-this->banner.getSprite().getLocalBounds().width, 0);
   }).withDuration(frames(8));
 
-  t0f.doTask([=](double elapsed) {
-    if (IsClosed()) {
-      currState = state::opening;
-    }
-    else {
+  if (state == MenuWidget::state::closing) {
+    t0f.doTask([=](double elapsed) {
       currState = state::closed;
-    }
-  });
+    });
+
+    t0f.doTask([=](double elapsed) {
+      for (size_t i = 0; i < options.size(); i++) {
+        float x = ease::linear(elapsed, (double)frames(20), 1.0);
+        options[i]->setPosition(x * (36+options[i]->getLocalBounds().width), options[i]->getPosition().y);
+      }
+    }).withDuration(frames(20));
+  }
 
   //
   // These tasks begin at the 8th frame
@@ -129,8 +140,8 @@ void MenuWidget::QueueOpenTasks()
 
   auto& t8f = easeInTimer.at(frames(8));
 
-  t8f.doTask([=](double elapsed) {
-    if (currState == state::opening) {
+  if (state == MenuWidget::state::opening) {
+    t8f.doTask([=](double elapsed) {
       placeText.Reveal();
       selectText.Reveal();
       exit.Reveal();
@@ -138,28 +149,33 @@ void MenuWidget::QueueOpenTasks()
       for (auto&& opts : options) {
         opts->Reveal();
       }
-    }
-    else if(currState == state::closing) {
+    });
+
+    t8f.doTask([=](double elapsed) {
+      for (size_t i = 0; i < options.size(); i++) {
+        float y = ease::linear(elapsed, (double)frames(12), 1.0);
+        options[i]->setPosition(36, 26 + (y * (i * 16)));
+      }
+    }).withDuration(frames(12));
+  }
+  else {
+    t8f.doTask([=](double elapsed) {
       placeText.Hide();
       selectText.Hide();
       exit.Hide();
 
+      //infobox task handles showing, but we need to hide if closing
+      infoBox.Hide(); 
+
       for (auto&& opts : options) {
         opts->Hide();
       }
-    }
-  });
-
-  t8f.doTask([=](double elapsed) {
-    for (size_t i = 0; i < options.size(); i++) {
-      float y = ease::linear(elapsed, (double)frames(12), 1.0);
-      options[i]->setPosition(36, 26 + (y*(i*16)));
-    }
-  }).withDuration(frames(12));
+    });
+  }
 
   t8f.doTask([=](double elapsed) {
     float x = 1.0f-ease::linear(elapsed, (double)frames(6), 1.0);
-    exit.setPosition(130 + (x * 100), exit.getPosition().y);
+    exit.setPosition(130 + (x * 200), exit.getPosition().y);
   }).withDuration(frames(6));
 
   t8f.doTask([=](double elapsed) {
@@ -176,34 +192,25 @@ void MenuWidget::QueueOpenTasks()
     .at(frames(14))
     .doTask([=](double elapsed) {
     infoBox.Reveal();
-    infoBoxAnim.Update(elapsed, infoBox.getSprite());
+    infoBoxAnim.SyncTime(elapsed/1000.0);
+    infoBoxAnim.Refresh(infoBox.getSprite());
   }).withDuration(frames(4));
 
   //
   // on frame 20 change state flag
   //
-  easeInTimer
-    .at(frames(20))
-    .doTask([=](double elapsed) {
-    if (IsOpen()) {
-      currState = state::closing;
-    }
-    else {
+  if (state == MenuWidget::state::opening) {
+    easeInTimer
+      .at(frames(20))
+      .doTask([=](double elapsed) {
       currState = state::opened;
-    }
-  });
-}
-
-void MenuWidget::QueueCloseTasks()
-{
-  QueueOpenTasks();
-  easeInTimer.reverse(true);
-  easeInTimer.set(frames(21));
+    });
+  }
 }
 
 void MenuWidget::CreateOptions()
 {
-  auto list = {
+  optionsList = {
     "CHIP_FOLDER_LABEL",
     "NAVI_LABEL",
     "CONFIG_LABEL",
@@ -211,9 +218,9 @@ void MenuWidget::CreateOptions()
     "SYNC_LABEL"
   };
 
-  options.reserve(list.size()*2);
+  options.reserve(optionsList.size() * 2);
 
-  for (auto&& L : list) {
+  for (auto&& L : optionsList) {
     auto sprite = std::make_shared<SpriteProxyNode>();
     sprite->setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
     sprite->setPosition(36, 26);
@@ -231,6 +238,21 @@ void MenuWidget::Update(float elapsed)
   easeInTimer.update(elapsed);
 
   // loop over options
+  if (selectExit == false) {
+    for (size_t i = 0; i < optionsList.size(); i++) {
+      if (i == row) {
+        optionAnim << optionsList[i];
+        optionAnim.SetFrame(2, options[i]->getSprite());
+      }
+      else {
+        optionAnim << optionsList[i];
+        optionAnim.SetFrame(1, options[i]->getSprite());
+      }
+    }
+  }
+  else {
+    exitAnim.Update(elapsed, exit.getSprite());
+  }
 }
 
 void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -282,24 +304,33 @@ void MenuWidget::SetMaxHealth(int maxHealth)
   MenuWidget::maxHealth = maxHealth;
 }
 
-void MenuWidget::ExecuteSelection()
+bool MenuWidget::ExecuteSelection()
 {
   if (selectExit) {
     // close
-    QueueCloseTasks();
-    currState = state::closing;
+    QueueAnimTasks(MenuWidget::state::closing);
+    return true;
   }
   else {
     switch (row) {
-      
+      // TODO: actions
     }
   }
+
+  return false;
 }
 
 bool MenuWidget::SelectExit()
 {
   if (!selectExit) {
     selectExit = true;
+    exitAnim << "EXIT_SELECTED" << Animator::Mode::Loop;
+    exitAnim.SetFrame(1, exit.getSprite());
+
+    for (size_t i = 0; i < optionsList.size(); i++) {
+      optionAnim << optionsList[i];
+      optionAnim.SetFrame(1, options[i]->getSprite());
+    }
     return true;
   }
 
@@ -311,6 +342,8 @@ bool MenuWidget::SelectOptions()
   if (selectExit) {
     selectExit = false;
     row = 0;
+    exitAnim << "EXIT";
+    exitAnim.SetFrame(1, exit.getSprite());
     return true;
   }
 
@@ -319,28 +352,35 @@ bool MenuWidget::SelectOptions()
 
 bool MenuWidget::CursorMoveUp()
 {
-  if (!selectExit && --row >= 0) {
+  if (!selectExit ) {
+    if (--row < 0) {
+      row = optionsList.size() - 1;
+    }
+    
     return true;
   }
 
   row = std::max(row, 0);
+
   return false;
 }
 
 bool MenuWidget::CursorMoveDown()
 {
-  if (!selectExit && ++row < options.size()) {
+  if (!selectExit) {
+    row = (row+1u) % (int)optionsList.size();
+
     return true;
   }
 
-  row = std::max(row, (int)options.size()-1);
   return false;
 }
 
 bool MenuWidget::Open()
 {
   if (currState == state::closed) {
-    QueueOpenTasks();
+    currState = state::opening;
+    QueueAnimTasks(currState);
     easeInTimer.start();
     return true;
   }
@@ -351,7 +391,8 @@ bool MenuWidget::Open()
 bool MenuWidget::Close()
 {
   if (currState == state::opened) {
-    QueueCloseTasks();
+    currState = state::closing;
+    QueueAnimTasks(currState);
     easeInTimer.start();
     return true;
   }
