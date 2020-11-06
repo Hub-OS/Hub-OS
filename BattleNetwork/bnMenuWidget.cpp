@@ -4,8 +4,10 @@
 
 #include <Swoosh/Ease.h>
 
-MenuWidget::MenuWidget(const std::string& area)
+MenuWidget::MenuWidget(const std::string& area, const MenuWidget::OptionsList& options) :
+  optionsList(options)
 {
+
   // Load resources
   font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
   areaLabel.setFont(*font);
@@ -128,8 +130,26 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 
     t0f.doTask([=](double elapsed) {
       for (size_t i = 0; i < options.size(); i++) {
+
+        //
+        // labels (menu options)
+        //
+
         float x = ease::linear(elapsed, (double)frames(20), 1.0);
-        options[i]->setPosition(x * (36+options[i]->getLocalBounds().width), options[i]->getPosition().y);
+        float start = 36;
+        float dest = -(options[i]->getLocalBounds().width + start); // our destination
+
+        // lerp to our hiding spot
+        options[i]->setPosition(dest * (1.0f-x) + (x * start), options[i]->getPosition().y);
+
+        //
+        // icons
+        //
+        start = 16;
+        dest = dest - start; // our destination is calculated from the previous label's pos
+
+        // lerp to our hiding spot
+        optionIcons[i]->setPosition(dest * (1.0f - x) + (x * start), optionIcons[i]->getPosition().y);
       }
     }).withDuration(frames(20));
   }
@@ -149,12 +169,17 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
       for (auto&& opts : options) {
         opts->Reveal();
       }
+
+      for (auto&& opts : optionIcons) {
+        opts->Reveal();
+      }
     });
 
     t8f.doTask([=](double elapsed) {
       for (size_t i = 0; i < options.size(); i++) {
         float y = ease::linear(elapsed, (double)frames(12), 1.0);
         options[i]->setPosition(36, 26 + (y * (i * 16)));
+        optionIcons[i]->setPosition(16, 26 + (y * (i * 16)));
       }
     }).withDuration(frames(12));
   }
@@ -168,6 +193,11 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
       infoBox.Hide(); 
 
       for (auto&& opts : options) {
+        opts->Hide();
+      }
+
+
+      for (auto&& opts : optionIcons) {
         opts->Hide();
       }
     });
@@ -210,25 +240,29 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 
 void MenuWidget::CreateOptions()
 {
-  optionsList = {
-    "CHIP_FOLDER_LABEL",
-    "NAVI_LABEL",
-    "CONFIG_LABEL",
-    "MOB_SELECT_LABEL",
-    "SYNC_LABEL"
-  };
-
   options.reserve(optionsList.size() * 2);
+  optionIcons.reserve(optionsList.size() * 2);
 
   for (auto&& L : optionsList) {
+    // label
     auto sprite = std::make_shared<SpriteProxyNode>();
     sprite->setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
     sprite->setPosition(36, 26);
-    optionAnim << L;
+    optionAnim << (L.name + "_LABEL");
     optionAnim.SetFrame(1, sprite->getSprite());
     options.push_back(sprite);
     sprite->Hide();
     AddNode(sprite.get());
+
+    // icon
+    auto iconSpr = std::make_shared<SpriteProxyNode>();
+    iconSpr->setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+    iconSpr->setPosition(36, 26);
+    optionAnim << L.name;
+    optionAnim.SetFrame(1, iconSpr->getSprite());
+    optionIcons.push_back(iconSpr);
+    iconSpr->Hide();
+    AddNode(iconSpr.get());
   }
 }
 
@@ -237,20 +271,37 @@ void MenuWidget::Update(float elapsed)
 {
   easeInTimer.update(elapsed);
 
+  if (!IsOpen()) return;
+
   // loop over options
-  if (selectExit == false) {
-    for (size_t i = 0; i < optionsList.size(); i++) {
-      if (i == row) {
-        optionAnim << optionsList[i];
-        optionAnim.SetFrame(2, options[i]->getSprite());
-      }
-      else {
-        optionAnim << optionsList[i];
-        optionAnim.SetFrame(1, options[i]->getSprite());
-      }
+  for (size_t i = 0; i < optionsList.size(); i++) {
+    if (i == row && selectExit == false) {
+      optionAnim << (optionsList[i].name + "_LABEL");
+      optionAnim.SetFrame(2, options[i]->getSprite());
+
+      // move the icon inwards to the label
+      optionAnim << optionsList[i].name;
+      optionAnim.SetFrame(2, optionIcons[i]->getSprite());
+
+      auto pos = optionIcons[i]->getPosition();
+      float delta = ease::interpolate(0.5f, pos.x, 20.0f + 5.0f);
+      optionIcons[i]->setPosition(delta, pos.y);
+    }
+    else {
+      optionAnim << (optionsList[i].name + "_LABEL");
+      optionAnim.SetFrame(1, options[i]->getSprite());
+
+      // move the icon away from the label
+      optionAnim << optionsList[i].name;
+      optionAnim.SetFrame(1, optionIcons[i]->getSprite());
+
+      auto pos = optionIcons[i]->getPosition();
+      float delta = ease::interpolate(0.5f, pos.x, 16.0f);
+      optionIcons[i]->setPosition(delta, pos.y);
     }
   }
-  else {
+
+  if (selectExit) {
     exitAnim.Update(elapsed, exit.getSprite());
   }
 }
@@ -312,8 +363,11 @@ bool MenuWidget::ExecuteSelection()
     return true;
   }
   else {
-    switch (row) {
-      // TODO: actions
+    auto func = optionsList[row].onSelectFunc;
+
+    if (func) {
+      func();
+      return true;
     }
   }
 
@@ -328,7 +382,10 @@ bool MenuWidget::SelectExit()
     exitAnim.SetFrame(1, exit.getSprite());
 
     for (size_t i = 0; i < optionsList.size(); i++) {
-      optionAnim << optionsList[i];
+      optionAnim << optionsList[i].name;
+      optionAnim.SetFrame(1, optionIcons[i]->getSprite());
+
+      optionAnim << (optionsList[i].name + "_LABEL");
       optionAnim.SetFrame(1, options[i]->getSprite());
     }
     return true;

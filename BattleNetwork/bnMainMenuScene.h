@@ -32,6 +32,7 @@ private:
   // Selection input delays
   double maxSelectInputCooldown; /*!< Maximum delay */
   double selectInputCooldown; /*!< timer to allow key presses again */
+  bool extendedHold{ false };
 
   // menu widget
   MenuWidget menuWidget;
@@ -77,6 +78,11 @@ public:
   MainMenuScene(swoosh::ActivityController&, bool guestAccount);
   
   /**
+  * @brief deconstructor
+  */
+  ~MainMenuScene() { ; }
+
+  /**
    * @brief Checks input events and listens for select buttons. Segues to new screens.
    * @param elapsed in seconds
    */
@@ -118,8 +124,13 @@ public:
    */
   void onEnd();
   
-  /**
-   * @brief deconstructor
-   */
-  virtual ~MainMenuScene() { ; }
+  //
+  // Menu selection callbacks
+  //
+
+  void GotoChipFolder();
+  void GotoNaviSelect();
+  void GotoConfig();
+  void GotoMobSelect();
+  void GotoPVP();
 };

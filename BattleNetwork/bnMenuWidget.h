@@ -19,6 +19,14 @@ public:
     closing,
     opening
   };
+
+  struct Options {
+    std::string name;
+    std::function<void()> onSelectFunc;
+  };
+
+  using OptionsList = std::vector<Options>;
+
 private:
   int row{ 0 }; //!< Current row index
   int health{}, maxHealth{}; //!< Health displayed by main character
@@ -38,8 +46,9 @@ private:
   SpriteProxyNode infoBox;
   SpriteProxyNode selectText;
   SpriteProxyNode placeText;
-  std::vector<std::string> optionsList;
+  OptionsList optionsList;
   std::vector<std::shared_ptr<SpriteProxyNode>> options;
+  std::vector<std::shared_ptr<SpriteProxyNode>> optionIcons;
   Animation infoBoxAnim;
   Animation optionAnim;
   Animation exitAnim;
@@ -51,7 +60,7 @@ public:
   /**
    * @brief Constructs main menu widget UI. The programmer must set info params using the public API
    */
-  MenuWidget(const std::string& area);
+  MenuWidget(const std::string& area, const OptionsList& options);
 
   /**
    * @brief Deconstructor

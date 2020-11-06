@@ -24,12 +24,23 @@ using namespace swoosh::types;
 #include "netplay/bnPVPScene.h"
 #endif
 
+/// \brief Thunk to populate menu options to callbacks
+auto MakeOptions = [] (MainMenuScene* scene) -> MenuWidget::OptionsList {
+  return {
+    { "chip_folder", std::bind(&MainMenuScene::GotoChipFolder, scene) },
+    { "navi",        std::bind(&MainMenuScene::GotoNaviSelect, scene) },
+    { "mob_select",  std::bind(&MainMenuScene::GotoMobSelect, scene) },
+    { "config",      std::bind(&MainMenuScene::GotoConfig, scene) },
+    { "sync",        std::bind(&MainMenuScene::GotoPVP, scene) }
+  };
+};
+
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestAccount) :
   guestAccount(guestAccount),
   camera(ENGINE.GetView()),
   lastIsConnectedState(false),
   showHUD(true),
-  menuWidget("Overworld"),
+  menuWidget("Overworld", MakeOptions(this)),
   swoosh::Activity(&controller)
 {
     // When we reach the menu scene we need to load the player information
@@ -38,7 +49,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
 
     webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
     webAccountIcon.setScale(2.f, 2.f);
-    webAccountIcon.setPosition(4, getController().getVirtualWindowSize().y - 40.0f);
+    webAccountIcon.setPosition(4, getController().getVirtualWindowSize().y - 44.0f);
     webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
     webAccountAnimator.Load();
     webAccountAnimator.SetAnimation("NO_CONNECTION");
@@ -195,19 +206,17 @@ void MainMenuScene::onUpdate(double elapsed) {
   // Draw navi moving
   naviAnimator.Update((float)elapsed, owNavi.getSprite());
 
-  // Move the navi down
+  // Move the navi down each tick
   owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*(float)elapsed, 0));
 
   // TODO: fix this broken camera system! I have no idea why these values are required to look right...
+  // NOTE 11/5/2020: these could be correct and these might be isometric coordinates
   sf::Vector2f camOffset = camera.GetView().getSize();
-  camOffset.x /= 5; // what?
-  camOffset.y /= 3.5; // huh?
+  camOffset.x /= 4.0; // why
+  camOffset.y /= 4.5; // why
 
   // Follow the navi
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
-
-  const auto left = direction::left;
-  const auto right = direction::right;
 
   if (!gotoNextScene) {
     if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
@@ -222,98 +231,52 @@ void MainMenuScene::onUpdate(double elapsed) {
     }
 
     if (menuWidget.IsOpen()) {
-      if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
-        menuWidget.CursorMoveUp()? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+      if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
+        selectInputCooldown -= elapsed;
+
+        if (selectInputCooldown <= 0) {
+          if(!extendedHold) {
+            selectInputCooldown = maxSelectInputCooldown;
+            extendedHold = true;
+          }
+          else {
+            selectInputCooldown = maxSelectInputCooldown / 4.0;
+          }
+
+          menuWidget.CursorMoveUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+        }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
-        menuWidget.CursorMoveDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
+        selectInputCooldown -= elapsed;
+
+        if (selectInputCooldown <= 0) {
+          if (!extendedHold) {
+            selectInputCooldown = maxSelectInputCooldown;
+            extendedHold = true;
+          }
+          else {
+            selectInputCooldown = maxSelectInputCooldown / 4.0;
+          }
+
+          menuWidget.CursorMoveDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+        }
       }
       else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
         bool result = menuWidget.ExecuteSelection();
       }
       else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) || INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+        extendedHold = false;
         menuWidget.SelectExit() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
       }
       else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
         menuWidget.SelectOptions() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+        extendedHold = false;
+      }
+      else {
+        extendedHold = false;
+        selectInputCooldown = 0;
       }
     }
-
-      /*
-      // Folder Select
-      if (menuSelectionIndex == 0) {
-        gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
-
-        using effect = segue<PushIn<left>, milliseconds<500>>;
-        getController().push<effect::to<FolderScene>>(folders);
-      }
-
-      // Config Select on PC
-      if (menuSelectionIndex == 1) {
-        gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
-
-        using effect = segue<DiamondTileSwipe<right>, milliseconds<500>>;
-        getController().push<effect::to<ConfigScene>>();
-      }
-
-      // Navi select
-      if (menuSelectionIndex == 2) {
-        gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
-
-        using effect = segue<Checkerboard, milliseconds<250>>;
-        getController().push<effect::to<SelectNaviScene>>(currentNavi);
-      }
-
-      // Mob select
-      if (menuSelectionIndex == 3) {
-        gotoNextScene = true;
-
-        CardFolder* folder = nullptr;
-
-        if (folders.GetFolder(0, folder)) {
-#ifdef OBN_NETPLAY
-          AUDIO.Play(AudioType::CHIP_DESC);
-          using effect = segue<PushIn<direction::down>, milliseconds<500>>;
-          getController().push<effect::to<PVPScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
-#else
-          using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
-          AUDIO.Play(AudioType::CHIP_DESC);
-          getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdvance);
-#endif
-        }
-        else {
-          AUDIO.Play(AudioType::CHIP_ERROR);
-          Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
-          gotoNextScene = false;
-        }
-      }
-    }
-
-    if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
-      selectInputCooldown -= elapsed;
-
-      if (selectInputCooldown <= 0) {
-        // Go to previous selection
-        selectInputCooldown = maxSelectInputCooldown;
-        menuSelectionIndex--;
-      }
-    }
-    else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
-      selectInputCooldown -= elapsed;
-
-      if (selectInputCooldown <= 0) {
-        // Go to next selection
-        selectInputCooldown = maxSelectInputCooldown;
-        menuSelectionIndex++;
-      }
-    }
-    else {
-      selectInputCooldown = 0;
-    }
-  */
   }
 
   // Allow player to resync with remote account by pressing the pause action
@@ -425,6 +388,65 @@ void MainMenuScene::NaviEquipSelectedFolder()
     currentNavi = SelectedNavi(0);
     WEBCLIENT.SetKey("SelectedNavi", std::to_string(0));
   }
+}
+
+void MainMenuScene::GotoChipFolder()
+{
+  gotoNextScene = true;
+  AUDIO.Play(AudioType::CHIP_DESC);
+
+  using effect = segue<PushIn<direction::left>, milliseconds<500>>;
+  getController().push<effect::to<FolderScene>>(folders);
+}
+
+void MainMenuScene::GotoNaviSelect()
+{
+  // Navi select
+  gotoNextScene = true;
+  AUDIO.Play(AudioType::CHIP_DESC);
+
+  using effect = segue<Checkerboard, milliseconds<250>>;
+  getController().push<effect::to<SelectNaviScene>>(currentNavi);
+}
+
+void MainMenuScene::GotoConfig()
+{
+  // Config Select on PC
+  gotoNextScene = true;
+  AUDIO.Play(AudioType::CHIP_DESC);
+
+  using effect = segue<DiamondTileSwipe<direction::right>, milliseconds<500>>;
+  getController().push<effect::to<ConfigScene>>();
+}
+
+void MainMenuScene::GotoMobSelect()
+{
+
+  gotoNextScene = true;
+
+  CardFolder* folder = nullptr;
+
+  if (folders.GetFolder(0, folder)) {
+#ifdef OBN_NETPLAY
+    AUDIO.Play(AudioType::CHIP_DESC);
+    using effect = segue<PushIn<direction::down>, milliseconds<500>>;
+    getController().push<effect::to<PVPScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
+#else
+    using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
+    AUDIO.Play(AudioType::CHIP_DESC);
+    getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdvance);
+#endif
+  }
+  else {
+    AUDIO.Play(AudioType::CHIP_ERROR);
+    Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
+    gotoNextScene = false;
+  }
+}
+
+void MainMenuScene::GotoPVP()
+{
+  // TODO:
 }
 
 #ifdef __ANDROID__
