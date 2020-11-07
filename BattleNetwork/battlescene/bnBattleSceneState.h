@@ -27,10 +27,10 @@ struct BattleSceneState {
     virtual ~BattleSceneState(){};
 
     using ChangeCondition = std::function<bool()>;
-private:
+
+protected:
   BattleSceneBase* scene{ nullptr };
+
+private:
   ActivityController* controller{ nullptr };
 };
-
-// Handy macro to avoid C++ ugliness
-#define CHANGE_ON_EVENT(from, to, EventFunc) from.ChangeOnEvent(to, &decltype(from)::Class::EventFunc) 

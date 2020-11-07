@@ -8,7 +8,7 @@
 #include <Poco/Net/IPAddress.h>
 
 #include "bnPVPScene.h"
-#include "bnNetworkBattleScene.h"
+#include "battlescene/bnNetworkBattleScene.h"
 
 #include "Segues/PushIn.h"
 
@@ -79,6 +79,8 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
 
   // load animation files
   uiAnim.Load();
+
+  setView(sf::Vector2u(480, 320));
 }
 
 PVPScene::~PVPScene() {

@@ -5,6 +5,7 @@
 
 #include "bnMainMenuScene.h"
 #include "bnCardFolderCollection.h"
+#include "netplay/bnPVPScene.h"
 
 #include "Segues/PushIn.h"
 #include "Segues/Checkerboard.h"
@@ -18,11 +19,6 @@ using sf::Event;
 using sf::Font;
 using namespace swoosh::types;
 
-//#define OBN_NETPLAY 1
-
-#ifdef OBN_NETPLAY
-#include "netplay/bnPVPScene.h"
-#endif
 
 /// \brief Thunk to populate menu options to callbacks
 auto MakeOptions = [] (MainMenuScene* scene) -> MenuWidget::OptionsList {
@@ -43,100 +39,100 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   menuWidget("Overworld", MakeOptions(this)),
   swoosh::Activity(&controller)
 {
-    // When we reach the menu scene we need to load the player information
-    // before proceeding to next sub menus
-    //data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
+  // When we reach the menu scene we need to load the player information
+  // before proceeding to next sub menus
+  //data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
 
-    webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
-    webAccountIcon.setScale(2.f, 2.f);
-    webAccountIcon.setPosition(4, getController().getVirtualWindowSize().y - 44.0f);
-    webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
-    webAccountAnimator.Load();
-    webAccountAnimator.SetAnimation("NO_CONNECTION");
+  webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
+  webAccountIcon.setScale(2.f, 2.f);
+  webAccountIcon.setPosition(4, getController().getVirtualWindowSize().y - 44.0f);
+  webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
+  webAccountAnimator.Load();
+  webAccountAnimator.SetAnimation("NO_CONNECTION");
 
-    // Draws the scrolling background
-    bg = new LanBackground();
+  // Draws the scrolling background
+  bg = new LanBackground();
 
-    // Generate an infinite map with a branch depth of 3, column size of 10
-    // and tile dimensions 47x24
-    map = new Overworld::InfiniteMap(3, 10, 47, 24);
+  // Generate an infinite map with a branch depth of 3, column size of 10
+  // and tile dimensions 47x24
+  map = new Overworld::InfiniteMap(3, 10, 47, 24);
   
-    // Share the camera
-    map->SetCamera(&camera);
+  // Share the camera
+  map->SetCamera(&camera);
 
-    // Show the HUD
-    showHUD = true;
+  // Show the HUD
+  showHUD = true;
 
-    // Selection input delays
-    maxSelectInputCooldown = 0.5; // half of a second
-    selectInputCooldown = maxSelectInputCooldown;
+  // Selection input delays
+  maxSelectInputCooldown = 0.5; // half of a second
+  selectInputCooldown = maxSelectInputCooldown;
 
-    // Keep track of selected navi
-    currentNavi = 0;
+  // Keep track of selected navi
+  currentNavi = 0;
 
-    owNavi.setTexture(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
-    owNavi.setScale(2.f, 2.f);
-    owNavi.setPosition(0, 0.f);
-    naviAnimator = Animation("resources/navis/megaman/megaman.animation");
-    naviAnimator.Reload();
-    naviAnimator.SetAnimation("PLAYER_OW_RD");
-    naviAnimator << Animator::Mode::Loop;
+  owNavi.setTexture(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
+  owNavi.setScale(2.f, 2.f);
+  owNavi.setPosition(0, 0.f);
+  naviAnimator = Animation("resources/navis/megaman/megaman.animation");
+  naviAnimator.Reload();
+  naviAnimator.SetAnimation("PLAYER_OW_RD");
+  naviAnimator << Animator::Mode::Loop;
 
-    // Share the navi sprite
-    // Map will transform navi's ortho position into isometric position
-    map->AddSprite(&owNavi);
+  // Share the navi sprite
+  // Map will transform navi's ortho position into isometric position
+  map->AddSprite(&owNavi);
 
-    ow.setTexture(LOAD_TEXTURE(MAIN_MENU_OW));
-    ow.setScale(2.f, 2.f);
+  ow.setTexture(LOAD_TEXTURE(MAIN_MENU_OW));
+  ow.setScale(2.f, 2.f);
 
-    menuWidget.setScale(2.f, 2.f);
+  menuWidget.setScale(2.f, 2.f);
 
-    gotoNextScene = true;
+  gotoNextScene = true;
 
-    /// WEB ACCOUNT LOADING
+  /// WEB ACCOUNT LOADING
 
-    WebAccounts::AccountState account;
+  WebAccounts::AccountState account;
 
-    if (WEBCLIENT.IsLoggedIn()) {
-      bool loaded = WEBCLIENT.LoadSession("profile.bin", &account);
+  if (WEBCLIENT.IsLoggedIn()) {
+    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account);
 
-      // Quickly load the session on disk to reduce wait times
-      if (loaded) {
-        Logger::Log("Found cached account data");
+    // Quickly load the session on disk to reduce wait times
+    if (loaded) {
+      Logger::Log("Found cached account data");
 
-        WEBCLIENT.UseCachedAccount(account);
-        WEBCLIENT.CacheTextureData(account);
-        folders = CardFolderCollection::ReadFromWebAccount(account);
-        programAdvance = PA::ReadFromWebAccount(account);
+      WEBCLIENT.UseCachedAccount(account);
+      WEBCLIENT.CacheTextureData(account);
+      folders = CardFolderCollection::ReadFromWebAccount(account);
+      programAdvance = PA::ReadFromWebAccount(account);
 
-        NaviEquipSelectedFolder();
-      }
-
-      Logger::Log("Fetching account data...");
-
-      // resent fetch command to get the a latest account info
-      accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
-
-      Logger::Log("waiting for server...");
-    }
-    else {
-
-      // If we are not actively online but we have a profile on disk, try to load our previous session
-      // The user may be logging in but has not completed yet and we want to reduce wait times...
-      // Otherwise, use the guest profile
-      bool loaded = WEBCLIENT.LoadSession("profile.bin", &account) || WEBCLIENT.LoadSession("guest.bin", &account);
-
-      if (loaded) {
-        WEBCLIENT.UseCachedAccount(account);
-        WEBCLIENT.CacheTextureData(account);
-        folders = CardFolderCollection::ReadFromWebAccount(account);
-        programAdvance = PA::ReadFromWebAccount(account);
-
-        NaviEquipSelectedFolder();
-      }
+      NaviEquipSelectedFolder();
     }
 
-    setView(sf::Vector2u(480, 320));
+    Logger::Log("Fetching account data...");
+
+    // resent fetch command to get the a latest account info
+    accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
+
+    Logger::Log("waiting for server...");
+  }
+  else {
+
+    // If we are not actively online but we have a profile on disk, try to load our previous session
+    // The user may be logging in but has not completed yet and we want to reduce wait times...
+    // Otherwise, use the guest profile
+    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account) || WEBCLIENT.LoadSession("guest.bin", &account);
+
+    if (loaded) {
+      WEBCLIENT.UseCachedAccount(account);
+      WEBCLIENT.CacheTextureData(account);
+      folders = CardFolderCollection::ReadFromWebAccount(account);
+      programAdvance = PA::ReadFromWebAccount(account);
+
+      NaviEquipSelectedFolder();
+    }
+  }
+
+  setView(sf::Vector2u(480, 320));
 }
 
 void MainMenuScene::onStart() {
@@ -263,6 +259,10 @@ void MainMenuScene::onUpdate(double elapsed) {
       }
       else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
         bool result = menuWidget.ExecuteSelection();
+
+        if (result && menuWidget.IsOpen() == false) {
+          AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+        }
       }
       else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) || INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
         extendedHold = false;
@@ -354,12 +354,19 @@ void MainMenuScene::onEnd() {
 
 void MainMenuScene::RefreshNaviSprite()
 {
+  auto& meta = NAVIS.At(currentNavi);
+
+  // refresh menu widget too
+  int hp = std::atoi(meta.GetHPString().c_str());
+  menuWidget.SetHealth(hp);
+  menuWidget.SetMaxHealth(hp);
+
   // If coming back from navi select, the navi has changed, update it
-  auto owPath = NAVIS.At(currentNavi).GetOverworldAnimationPath();
+  auto owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
-    owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
-    naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
+    owNavi.setTexture(meta.GetOverworldTexture());
+    naviAnimator = Animation(meta.GetOverworldAnimationPath());
     naviAnimator.Reload();
     naviAnimator.SetAnimation("PLAYER_OW_RD");
     naviAnimator << Animator::Mode::Loop;
@@ -421,21 +428,14 @@ void MainMenuScene::GotoConfig()
 
 void MainMenuScene::GotoMobSelect()
 {
-
   gotoNextScene = true;
 
   CardFolder* folder = nullptr;
 
   if (folders.GetFolder(0, folder)) {
-#ifdef OBN_NETPLAY
-    AUDIO.Play(AudioType::CHIP_DESC);
-    using effect = segue<PushIn<direction::down>, milliseconds<500>>;
-    getController().push<effect::to<PVPScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
-#else
     using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
     AUDIO.Play(AudioType::CHIP_DESC);
     getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdvance);
-#endif
   }
   else {
     AUDIO.Play(AudioType::CHIP_ERROR);
@@ -446,7 +446,20 @@ void MainMenuScene::GotoMobSelect()
 
 void MainMenuScene::GotoPVP()
 {
-  // TODO:
+  gotoNextScene = true;
+
+  CardFolder* folder = nullptr;
+
+  if (folders.GetFolder(0, folder)) {
+    AUDIO.Play(AudioType::CHIP_DESC);
+    using effect = segue<PushIn<direction::down>, milliseconds<500>>;
+    getController().push<effect::to<PVPScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
+  }
+  else {
+    AUDIO.Play(AudioType::CHIP_ERROR);
+    Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
+    gotoNextScene = false;
+  }
 }
 
 #ifdef __ANDROID__

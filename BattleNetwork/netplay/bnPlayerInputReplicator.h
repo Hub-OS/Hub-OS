@@ -1,6 +1,6 @@
 #pragma once
 #include "../bnComponent.h"
-#include "bnNetworkBattleScene.h"
+#include "battlescene/bnNetworkBattleScene.h"
 
 class PlayerInputReplicator final : public Component {
   NetworkBattleScene* nbs{ nullptr };

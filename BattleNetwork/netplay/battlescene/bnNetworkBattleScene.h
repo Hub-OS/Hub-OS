@@ -4,36 +4,36 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Timer.h>
 
-#include "../bnMobHealthUI.h"
-#include "../bnCounterHitListener.h"
-#include "../bnCharacterDeleteListener.h"
-#include "../bnBackground.h"
-#include "../bnLanBackground.h"
-#include "../bnGraveyardBackground.h"
-#include "../bnVirusBackground.h"
-#include "../bnCamera.h"
-#include "../bnInputManager.h"
-#include "../bnCardSelectionCust.h"
-#include "../bnCardFolder.h"
-#include "../bnShaderResourceManager.h"
-#include "../bnPA.h"
-#include "../bnEngine.h"
-#include "../bnSceneNode.h"
-#include "../bnBattleResults.h"
-#include "../battlescene/bnBattleSceneBase.h"
-#include "../bnMob.h"
-#include "../bnField.h"
-#include "../bnPlayer.h"
-#include "../bnSelectedCardsUI.h"
-#include "../bnPlayerCardUseListener.h"
-#include "../bnEnemyCardUseListener.h"
-#include "../bnCounterHitListener.h"
-#include "../bnCharacterDeleteListener.h"
-#include "../bnNaviRegistration.h"
+#include "../../bnMobHealthUI.h"
+#include "../../bnCounterHitListener.h"
+#include "../../bnCharacterDeleteListener.h"
+#include "../../bnBackground.h"
+#include "../../bnLanBackground.h"
+#include "../../bnGraveyardBackground.h"
+#include "../../bnVirusBackground.h"
+#include "../../bnCamera.h"
+#include "../../bnInputManager.h"
+#include "../../bnCardSelectionCust.h"
+#include "../../bnCardFolder.h"
+#include "../../bnShaderResourceManager.h"
+#include "../../bnPA.h"
+#include "../../bnEngine.h"
+#include "../../bnSceneNode.h"
+#include "../../bnBattleResults.h"
+#include "../../battlescene/bnBattleSceneBase.h"
+#include "../../bnMob.h"
+#include "../../bnField.h"
+#include "../../bnPlayer.h"
+#include "../../bnSelectedCardsUI.h"
+#include "../../bnPlayerCardUseListener.h"
+#include "../../bnEnemyCardUseListener.h"
+#include "../../bnCounterHitListener.h"
+#include "../../bnCharacterDeleteListener.h"
+#include "../../bnNaviRegistration.h"
 
-#include "bnNetPlayFlags.h"
-#include "bnNetPlayConfig.h"
-#include "bnNetPlaySignals.h"
+#include "../bnNetPlayFlags.h"
+#include "../bnNetPlayConfig.h"
+#include "../bnNetPlaySignals.h"
 
 #include <time.h>
 #include <typeinfo>
@@ -116,6 +116,9 @@ public:
   void onEnd() override;
 
   void Inject(PlayerInputReplicator& pub);
+
+  const NetPlayFlags& GetRemoteStateFlags();
+
 
   /**
    * @brief Construct scene with selected player, generated mob data, and the folder to use

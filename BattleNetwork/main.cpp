@@ -701,6 +701,8 @@ int main(int argc, char** argv) {
 
                         if (!pleaseWait) {
                           bool pressedStart = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
+                          pressedStart = pressedStart || (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_PAUSE) : false);
+
                           bool pressedUp = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_UP) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Up;
                           bool pressedDown = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Down;
 

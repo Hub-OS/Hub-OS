@@ -13,14 +13,15 @@ MenuWidget::MenuWidget(const std::string& area, const MenuWidget::OptionsList& o
   areaLabel.setFont(*font);
   areaLabel.setPosition(127, 119);
   areaLabel.setScale(sf::Vector2f(0.5f, 0.5f));
+  infoText = areaLabel;
   
   banner.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/menu_overlay.png"));
   symbol.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
   icon.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
   exit.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
   infoBox.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
-  selectText.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
-  placeText.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+  selectTextSpr.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+  placeTextSpr.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
 
   AddNode(&banner);
 
@@ -37,14 +38,14 @@ MenuWidget::MenuWidget(const std::string& area, const MenuWidget::OptionsList& o
   symbol.setPosition(20, 1);
 
   optionAnim << "SELECT";
-  optionAnim.SetFrame(1, selectText.getSprite());
-  AddNode(&selectText);
-  selectText.setPosition(4, 18);
+  optionAnim.SetFrame(1, selectTextSpr.getSprite());
+  AddNode(&selectTextSpr);
+  selectTextSpr.setPosition(4, 18);
 
   optionAnim << "PLACE";
-  optionAnim.SetFrame(1, placeText.getSprite());
-  AddNode(&placeText);
-  placeText.setPosition(120, 111);
+  optionAnim.SetFrame(1, placeTextSpr.getSprite());
+  AddNode(&placeTextSpr);
+  placeTextSpr.setPosition(120, 111);
 
   optionAnim << "EXIT";
   optionAnim.SetFrame(1, exit.getSprite());
@@ -162,8 +163,8 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 
   if (state == MenuWidget::state::opening) {
     t8f.doTask([=](double elapsed) {
-      placeText.Reveal();
-      selectText.Reveal();
+      placeTextSpr.Reveal();
+      selectTextSpr.Reveal();
       exit.Reveal();
 
       for (auto&& opts : options) {
@@ -185,8 +186,8 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
   }
   else {
     t8f.doTask([=](double elapsed) {
-      placeText.Hide();
-      selectText.Hide();
+      placeTextSpr.Hide();
+      selectTextSpr.Hide();
       exit.Hide();
 
       //infobox task handles showing, but we need to hide if closing
@@ -325,13 +326,66 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
     // draw all child nodes
     SceneNode::draw(target, states);
 
-    auto pos = areaLabel.getPosition();
-    auto copyAreaLabel = areaLabel;
-    copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
-    copyAreaLabel.setColor(sf::Color(100, 100, 101, 255));
-    target.draw(copyAreaLabel, states);
+    if (IsOpen()) {
+      auto shadowColor = sf::Color(16, 82, 107, 255);
 
-    target.draw(areaLabel, states);
+      // area text
+      auto pos = areaLabel.getPosition();
+      auto copyAreaLabel = areaLabel;
+      copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
+      copyAreaLabel.setColor(shadowColor);
+      target.draw(copyAreaLabel, states);
+      target.draw(areaLabel, states);
+
+      // hp shadow
+      infoText.setString(sf::String(std::to_string(health)));
+      infoText.setOrigin(infoText.getLocalBounds().width, 0);
+      infoText.setColor(shadowColor);
+      infoText.setPosition(174 + 1, 34 + 1);
+      target.draw(infoText, states);
+
+      // hp text
+      infoText.setPosition(174, 34);
+      infoText.setColor(sf::Color::White);
+      target.draw(infoText, states);
+
+      // "/" shadow
+      infoText.setString(sf::String("/"));
+      infoText.setOrigin(infoText.getLocalBounds().width, 0);
+      infoText.setColor(shadowColor);
+      infoText.setPosition(182 + 1, 34 + 1);
+      target.draw(infoText, states);
+
+      // "/"
+      infoText.setPosition(182, 34);
+      infoText.setColor(sf::Color::White);
+      target.draw(infoText, states);
+
+      // max hp shadow
+      infoText.setString(sf::String(std::to_string(maxHealth)));
+      infoText.setOrigin(infoText.getLocalBounds().width, 0);
+      infoText.setColor(shadowColor);
+      infoText.setOrigin(infoText.getLocalBounds().width, 0);
+      infoText.setPosition(214 + 1, 34 + 1);
+      target.draw(infoText, states);
+
+      // max hp 
+      infoText.setPosition(214, 34);
+      infoText.setColor(sf::Color::White);
+      target.draw(infoText, states);
+
+      // coins shadow
+      infoText.setColor(shadowColor);
+      infoText.setString(sf::String(std::to_string(coins) + "z"));
+      infoText.setOrigin(infoText.getLocalBounds().width, 0);
+      infoText.setPosition(214 + 1, 58 + 1);
+      target.draw(infoText, states);
+
+      // coins
+      infoText.setPosition(214, 58);
+      infoText.setColor(sf::Color::White);
+      target.draw(infoText, states);
+    }
   }
 }
 
@@ -358,9 +412,7 @@ void MenuWidget::SetMaxHealth(int maxHealth)
 bool MenuWidget::ExecuteSelection()
 {
   if (selectExit) {
-    // close
-    QueueAnimTasks(MenuWidget::state::closing);
-    return true;
+    return Close();
   }
   else {
     auto func = optionsList[row].onSelectFunc;

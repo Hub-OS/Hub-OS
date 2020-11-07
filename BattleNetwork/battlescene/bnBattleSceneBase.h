@@ -58,7 +58,12 @@ struct BattleSceneBaseProps {
 /**
   @brief BattleSceneBase class provides an API for creating complex states
 */
-class BattleSceneBase : public swoosh::Activity, public CounterHitListener, public CharacterDeleteListener, public CardUseListener {
+class BattleSceneBase : 
+  public swoosh::Activity, 
+  public CounterHitListener, 
+  public CharacterDeleteListener, 
+  public CardUseListener {
+
 private:
   // general stuff
   bool quitting{ false }; //!< Determine if we are leaving the battle scene

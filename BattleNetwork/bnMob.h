@@ -81,6 +81,15 @@ public:
    */
   const int GetMobCount();
 
+  /**
+   * @brief removes a character from the mob list
+   * 
+   * When the list is empty, the mob has been cleared
+   * We wish to forget about them because the Field class
+   * handles deletion of entities that have spawned
+   * 
+   * @see Field
+   */
   void Forget(Character& character);
 
   /**

@@ -1,6 +1,6 @@
 #pragma once
 #include "../bnAIState.h"
-#include "bnNetworkBattleScene.h"
+#include "battlescene/bnNetworkBattleScene.h"
 #include "bnNetPlayFlags.h"
 
 class PlayerNetworkState : public AIState<Player>

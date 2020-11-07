@@ -402,11 +402,11 @@ void BattleSceneBase::onStart()
   isSceneInFocus = true;
 
   // Stream battle music
-  if (mob->HasCustomMusicPath()) {
+  if (mob && mob->HasCustomMusicPath()) {
     AUDIO.Stream(mob->GetCustomMusicPath(), true);
   }
   else {
-    if (!mob->IsBoss()) {
+    if (mob == nullptr || !mob->IsBoss()) {
       sf::Music::TimeSpan span;
       span.offset = sf::milliseconds(84);
       span.length = sf::seconds(120.0f * 1.20668f);
@@ -450,7 +450,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
   cardUI->OnUpdate((float)elapsed);
   cardCustGUI.Update((float)elapsed);
 
-  newMobSize = mob->GetMobCount();
+  newMobSize = mob? mob->GetMobCount() : 0;
 
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
     Quit(FadeOut::white);
@@ -695,7 +695,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity* b) -> bool { return a->GetLayer() > b->GetLayer(); });
 
   // Now that the tiles are drawn, another pass draws the entities in sort-order
-  if (mob->IsSpawningDone()) {
+  if (mob && mob->IsSpawningDone()) {
     // draw this row
     for (auto entity : entitiesOnRow) {
       entity->move(ENGINE.GetViewOffset());
@@ -887,7 +887,7 @@ void BattleSceneBase::Eject(Component::ID_t ID)
 
 const bool BattleSceneBase::IsCleared()
 {
-  return mob->IsCleared();
+  return mob? mob->IsCleared() : true;
 }
 
 void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {

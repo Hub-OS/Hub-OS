@@ -14,8 +14,9 @@
 
 using namespace swoosh;
 
-MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattleProperties& props)
-: props(props), BattleSceneBase(controller, props.base) {
+MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattleProperties& props) : 
+  props(props), 
+  BattleSceneBase(controller, props.base) {
 
   Mob* current = props.mobs.at(0);
 

@@ -16,6 +16,11 @@ Invis::Invis(Entity* owner) : Component(owner) {
 
 }
 
+Invis::~Invis()
+{
+  delete defense;
+}
+
 void Invis::OnUpdate(float _elapsed) {
   if (elapsed >= duration.asSeconds()) {
     GetOwner()->SetAlpha(255);
@@ -25,10 +30,7 @@ void Invis::OnUpdate(float _elapsed) {
     if (character) {
       character->RemoveDefenseRule(defense);
     }
-
-    delete defense;
     GetOwner()->FreeComponentByID(GetID());
-    delete this; 
   }
   else {
     GetOwner()->SetAlpha(125);

@@ -4,28 +4,25 @@
 #include <chrono>
 
 #include "bnNetworkBattleScene.h"
-#include "../bnMainMenuScene.h"
-#include "bnPlayerInputReplicator.h"
-#include "bnPlayerNetworkState.h"
-#include "bnPlayerNetworkProxy.h"
+#include "../bnPlayerInputReplicator.h"
+#include "../bnPlayerNetworkState.h"
+#include "../bnPlayerNetworkProxy.h"
+#include "../../bnFadeInState.h"
 
-#include "../bnCardLibrary.h"
-#include "../bnGameOverScene.h"
-#include "../bnUndernetBackground.h"
-#include "../bnWeatherBackground.h"
-#include "../bnRobotBackground.h"
-#include "../bnMedicalBackground.h"
-#include "../bnACDCBackground.h"
-#include "../bnMiscBackground.h"
-#include "../bnSecretBackground.h"
-#include "../bnJudgeTreeBackground.h"
-#include "../bnPlayerHealthUI.h"
-#include "../bnPaletteSwap.h"
-#include "../bnWebClientMananger.h"
-#include "../bnFadeInState.h"
+// states 
+#include "states/bnConnectRemoteBattleState.h"
+#include "../../battlescene/States/bnRewardBattleState.h"
+#include "../../battlescene/States/bnTimeFreezeBattleState.h"
+#include "../../battlescene/States/bnBattleStartBattleState.h"
+#include "../../battlescene/States/bnBattleOverBattleState.h"
+#include "../../battlescene/States/bnFadeOutBattleState.h"
+#include "../../battlescene/States/bnCombatBattleState.h"
+#include "../../battlescene/States/bnCharacterTransformBattleState.h"
+#include "../../battlescene/States/bnCardSelectBattleState.h"
+#include "../../battlescene/States/bnCardComboBattleState.h"
 
 // Android only headers
-#include "../Android/bnTouchArea.h"
+#include "../../Android/bnTouchArea.h"
 
 // modals like card cust and battle reward slide in 12px per frame for 10 frames. 60 frames = 1 sec
 // modal slide moves 120px in 1/6th of a second
@@ -40,13 +37,13 @@
 using namespace swoosh::types;
 using swoosh::ActivityController;
 
-NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props) : BattleSceneBase(controller, props.base) {
+NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const NetworkBattleSceneProps& props) : 
+  BattleSceneBase(controller, props.base) {
   networkCardUseListener = new NetworkCardUseListener(*this, props.base.player);
   networkCardUseListener->Subscribe(this->GetSelectedCardsUI());
 
   Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), props.netconfig.myPort); 
   client = Poco::Net::DatagramSocket(sa);
-  //client.bind(sa, true);
   client.setBlocking(false);
 
   remoteAddress = Poco::Net::SocketAddress(props.netconfig.remoteIP, props.netconfig.remotePort);
@@ -56,11 +53,75 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
 
   props.base.player.CreateComponent<PlayerInputReplicator>(&props.base.player);
 
-  remoteShineAnimation = Animation("resources/mobs/boss_shine.animation");
-  remoteShineAnimation.Load();
+  // If playing co-op, add more players to track here
+  std::vector<Player*> players = { &props.base.player, remotePlayer };
 
-  remoteShine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
-  remoteShine.setScale(2.f, 2.f);
+  // ptr to player, form select index (-1 none), if should transform
+  // TODO: just make this a struct to use across all states that need it...
+  std::vector<std::shared_ptr<TrackedFormData>> trackedForms = {
+    std::make_shared<TrackedFormData>(TrackedFormData{&props.base.player, -1, false})
+  };
+
+  // in seconds
+  double battleDuration = 10.0;
+
+  Mob* mob = new Mob(props.base.field);
+
+  // First, we create all of our scene states
+  auto intro = AddState<ConnectRemoteBattleState>(&remotePlayer);
+  auto cardSelect = AddState<CardSelectBattleState>(players, trackedForms);
+  auto combat = AddState<CombatBattleState>(mob, players, battleDuration);
+  auto combo = AddState<CardComboBattleState>(this->GetSelectedCardsUI(), props.base.programAdvance);
+  auto forms = AddState<CharacterTransformBattleState>(trackedForms);
+  auto battlestart = AddState<BattleStartBattleState>(players);
+  auto battleover = AddState<BattleOverBattleState>(players);
+  auto timeFreeze = AddState<TimeFreezeBattleState>();
+  auto fadeout = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
+
+  // Important! State transitions are added in order of priority!
+  intro.ChangeOnEvent(cardSelect, &ConnectRemoteBattleState::IsConnected);
+  cardSelect.ChangeOnEvent(combo, &CardSelectBattleState::OKIsPressed);
+  combo.ChangeOnEvent(forms, [cardSelect, combo]() mutable {return combo->IsDone() && cardSelect->HasForm(); });
+  combo.ChangeOnEvent(battlestart, &CardComboBattleState::IsDone);
+  forms.ChangeOnEvent(combat, &CharacterTransformBattleState::Decrossed);
+  forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
+  battlestart.ChangeOnEvent(combat, &BattleStartBattleState::IsFinished);
+  timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);
+
+  // share some values between states
+  combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
+
+  // special condition: if lost in combat and had a form, trigger the character transform states
+  auto playerLosesInForm = [trackedForms] {
+    const bool changeState = trackedForms[0]->player->GetHealth() == 0 && (trackedForms[0]->selectedForm != -1);
+
+    if (changeState) {
+      trackedForms[0]->selectedForm = -1;
+      trackedForms[0]->animationComplete = false;
+    }
+
+    return changeState;
+  };
+
+  // combat has multiple state interruptions based on events
+  // so we can chain them together
+  combat.ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
+    .ChangeOnEvent(forms, playerLosesInForm)
+    .ChangeOnEvent(fadeout, &CombatBattleState::PlayerLost)
+    .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
+    .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
+
+  // Some states need to know about card uses
+  auto& ui = this->GetSelectedCardsUI();
+  combat->Subscribe(ui);
+  timeFreeze->Subscribe(ui);
+
+  // Some states are part of the combat routine and need to respect
+  // the combat state's timers
+  combat->subcombatStates.push_back(&timeFreeze.Unwrap());
+
+  // this kicks-off the state graph beginning with the intro state
+  this->StartStateGraph(intro);
 }
 
 NetworkBattleScene::~NetworkBattleScene()
@@ -73,9 +134,12 @@ NetworkBattleScene::~NetworkBattleScene()
 
 void NetworkBattleScene::onUpdate(double elapsed) {
   
+  BattleSceneBase::onUpdate(elapsed);
+  processIncomingPackets();
 }
 
 void NetworkBattleScene::onDraw(sf::RenderTexture& surface) {
+  BattleSceneBase::onDraw(surface);
 }
 
 void NetworkBattleScene::onExit()
@@ -96,6 +160,11 @@ void NetworkBattleScene::onEnd()
 
 void NetworkBattleScene::Inject(PlayerInputReplicator& pub)
 {
+}
+
+const NetPlayFlags& NetworkBattleScene::GetRemoteStateFlags()
+{
+  return remoteState;
 }
 
 void NetworkBattleScene::sendHandshakeSignal()
@@ -272,7 +341,6 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   remotePlayer->Character::Update(0);
 
   FinishNotifier onFinish = [this]() {
-    //customProgress = customDuration; // open the cust
   };
 
   remotePlayer->ChangeState<FadeInState<Player>>(onFinish);
@@ -284,7 +352,6 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
   remoteCardUsePublisher = remotePlayer->CreateComponent<SelectedCardsUI>(remotePlayer);
   remoteCardUseListener = new PlayerCardUseListener(*remotePlayer);
   remoteCardUseListener->Subscribe(*remoteCardUsePublisher);
-  //this->summons.Subscribe(*remoteCardUsePublisher);
 
   remotePlayer->CreateComponent<MobHealthUI>(remotePlayer);
   remotePlayer->CreateComponent<PlayerNetworkProxy>(remotePlayer, remoteState);

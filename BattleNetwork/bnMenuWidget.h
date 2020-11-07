@@ -38,14 +38,15 @@ private:
   std::string areaName; //!< Area name typed out
   std::shared_ptr<sf::Font> font; //!< Used by text
   sf::Text areaLabel; //!< Area name displayed in widget
+  mutable sf::Text infoText; //!< Text obj used for all other info
   swoosh::Timer easeInTimer; //!< Timer used for animations
   SpriteProxyNode banner;
   SpriteProxyNode symbol;
   SpriteProxyNode icon;
   SpriteProxyNode exit;
   SpriteProxyNode infoBox;
-  SpriteProxyNode selectText;
-  SpriteProxyNode placeText;
+  SpriteProxyNode selectTextSpr;
+  SpriteProxyNode placeTextSpr;
   OptionsList optionsList;
   std::vector<std::shared_ptr<SpriteProxyNode>> options;
   std::vector<std::shared_ptr<SpriteProxyNode>> optionIcons;

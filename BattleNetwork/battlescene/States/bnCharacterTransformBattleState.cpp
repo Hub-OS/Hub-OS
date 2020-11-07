@@ -38,12 +38,6 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
     std::shared_ptr<std::vector<SceneNode*>> originalChildNodes(new std::vector<SceneNode*>(playerChildNodes.size()));
     std::shared_ptr<std::vector<bool>> childShaderUseStates(new std::vector<bool>(playerChildNodes.size()));
 
-    /*for (auto child : playerChildNodes) {
-      childShaderUseStates->push_back(child->IsUsingParentShader());
-      originalChildNodes->push_back(child);
-      child->EnableParentShader(true);
-    }*/
-
     auto paletteSwap = player->GetFirstComponent<PaletteSwap>();
 
     if (paletteSwap) paletteSwap->Enable(false);
@@ -162,17 +156,16 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture&)
   for (auto data : tracking) {
     auto& [player, index, complete] = *data;
 
-    //if (index == -1 && count++) continue; // increases count for us before continuing
       Animation& anim = shineAnimations[count];
       anim.Update(static_cast<float>(frameElapsed), shine);
 
       if (index != -1) {
-      // re-use the shine graphic for all animating player-types 
-      auto pos = player->getPosition();
-      shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
+        // re-use the shine graphic for all animating player-types 
+        auto pos = player->getPosition();
+        shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
 
-      ENGINE.Draw(shine, false);
-    }
+        ENGINE.Draw(shine, false);
+      }
 
     count++;
   }
