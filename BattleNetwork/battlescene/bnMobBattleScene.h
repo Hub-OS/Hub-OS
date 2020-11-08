@@ -1,5 +1,6 @@
 #pragma once
 #include "bnBattleSceneBase.h"
+#include "States/bnCharacterTransformBattleState.h"
 
 class Player;
 class Mob;
@@ -22,6 +23,8 @@ struct MobBattleProperties {
 */
 class MobBattleScene final : public BattleSceneBase {
   MobBattleProperties props;
+  std::vector<Player*> players;
+  std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
 
   public:
   MobBattleScene(swoosh::ActivityController& controller, const MobBattleProperties& props);

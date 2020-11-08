@@ -12,7 +12,7 @@
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
 
-CardSelectBattleState::CardSelectBattleState(std::vector<Player*> tracked, std::vector<std::shared_ptr<TrackedFormData>> forms)
+CardSelectBattleState::CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms)
   : tracked(tracked), forms(forms) {
   // Selection input delays
   heldCardSelectInputCooldown = 0.35f; // 21 frames @ 60fps = 0.35 second

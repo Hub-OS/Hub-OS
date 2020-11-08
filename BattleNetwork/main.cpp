@@ -28,8 +28,9 @@
 #include "bnAnimator.h"
 #include "bnConfigReader.h"
 #include "bnConfigScene.h"
+#include "cxxopts/cxxopts.hpp"
+#include "netplay/bnNetPlayConfig.h"
 #include "Segues/DiamondTileCircle.h"
-#include "SFML/System.hpp"
 
 #include <time.h>
 #include <queue>
@@ -37,6 +38,7 @@
 #include <cmath>
 #include <Swoosh/ActivityController.h>
 #include <Swoosh/Ease.h>
+#include <SFML/System.hpp>
 
 #define ONB_REGION_JAPAN 0
 #define ONB_ENABLE_PIXELATE_GFX 0
@@ -172,6 +174,14 @@ int main(int argc, char** argv) {
     SHADERS;
     AUDIO;
     WEBCLIENT;
+
+    cxxopts::Options options("ONB", "Open Net Battle Engine");
+    options.add_options()
+      ("d,debug", "Enable debugging")
+      ("p,port", "port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
+      ("r,remotePort", "remote port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)));
+
+    ENGINE.SetCommandLineValues(options.parse(argc, argv));
 
     // try to read the config file
     ConfigReader reader("config.ini");

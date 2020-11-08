@@ -22,6 +22,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
     fadeout
   } currState{ state::fadein };
 
+  long long lockedTimestamp{ 0 };
   double summonTextLength{ 1.0 }; /*!< How long TFC label should stay on screen */
   double backdropInc{ 1.25 }; //!< alpha increase per frame (max 255)
   std::string name;

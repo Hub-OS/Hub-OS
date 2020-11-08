@@ -31,7 +31,7 @@ private:
   double backdropInc{ 4.25 }; //!< alpha increase per frame (max 255)
   double frameElapsed{ 0 };
   sf::Sprite shine;
-  std::vector<std::shared_ptr<TrackedFormData>> tracking;
+  std::vector<std::shared_ptr<TrackedFormData>>& tracking;
   std::vector<Animation> shineAnimations;
 
   const bool FadeInBackdrop();
@@ -46,5 +46,5 @@ public:
   void onEnd(const BattleSceneState* next) override;
   void onDraw(sf::RenderTexture&);
 
-  CharacterTransformBattleState(const std::vector<std::shared_ptr<TrackedFormData>> tracking);
+  CharacterTransformBattleState(std::vector<std::shared_ptr<TrackedFormData>>& tracking);
 };

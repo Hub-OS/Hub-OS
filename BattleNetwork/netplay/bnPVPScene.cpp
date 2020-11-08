@@ -29,6 +29,7 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   swoosh::Activity(&controller)
 {
   // network
+  netplayconfig.myPort = ENGINE.CommandLineValue<int>("port");
   Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), netplayconfig.myPort);
   client = Poco::Net::DatagramSocket(sa);
   client.setBlocking(false);
@@ -397,7 +398,18 @@ const bool PVPScene::IsValidIPv4(const std::string& ip) const {
   return Poco::Net::IPAddress::tryParse(ip, temp);
 }
 
-void PVPScene::onStart() {
+void PVPScene::Reset()
+{
+  leave = false; /*!< Scene state coming/going flag */
+  remoteIsReady = false;
+  clientIsReady = false;
+  isInFlashyVSIntro = false;
+  isInBattleStartup = false;
+  handshakeComplete = false;
+  playVS = true;
+  sequenceTimer = 0.0; // in seconds
+  flashCooldown = 0;
+
   this->isScreenReady = true;
 
   // minor optimzation
@@ -414,9 +426,20 @@ void PVPScene::onStart() {
     // start on info mode first
     HandleInfoMode();
   }
+
+  greenBg.setColor(sf::Color::White);
+}
+
+void PVPScene::onStart() {
+  Reset();
 }
 
 void PVPScene::onResume() {
+  Reset();
+}
+
+void PVPScene::onExit()
+{
 
 }
 

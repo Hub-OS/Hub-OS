@@ -14,7 +14,6 @@ Mob::Mob(Field* _field) {
   nextReady = true;
   field = _field;
   isBoss = false;
-  iter = spawn.end();
   background = nullptr;
 }
 
@@ -77,8 +76,8 @@ void Mob::Cleanup() {
 }
 
 void Mob::KillSwitch() {
-  for (int i = 0; i < spawn.size(); i++) {
-    spawn[i]->mob->SetHealth(0);
+  for (int i = 0; i < tracked.size(); i++) {
+    tracked[i]->SetHealth(0);
   }
 }
 
@@ -87,22 +86,20 @@ Field* Mob::GetField() {
 }
 
 const int Mob::GetMobCount() {
-  return (int)spawn.size();
+  return (int)tracked.size();
 }
 
 void Mob::Forget(Character& character) {
-  if (spawn.empty()) return;
+  if (tracked.empty()) return;
 
-  auto forgetIter = spawn.begin();
-  while(forgetIter != spawn.end()) {
-    if ((*forgetIter)->mob == &character) {
-      spawn.erase(forgetIter);
+  auto forgetIter = tracked.begin();
+  while(forgetIter != tracked.end()) {
+    if ((*forgetIter) == &character) {
+      tracked.erase(forgetIter);
       break; // done
     }
     forgetIter++;
   }
-
-  iter = spawn.end(); // iterator needs to point to new end so IsSpawningDone() is valid
 }
 
 const int Mob::GetRemainingMobCount() {
@@ -138,10 +135,10 @@ const std::string Mob::GetCustomMusicPath() const {
 }
 
 const Character& Mob::GetMobAt(int index) {
-  if (index < 0 || index >= spawn.size()) {
+  if (index < 0 || index >= tracked.size()) {
     throw new std::runtime_error(std::string("Invalid index range for Mob::GetMobAt()"));
   }
-  return *spawn[index]->mob;
+  return *tracked[index];
 }
 
 const bool Mob::NextMobReady() {
@@ -149,7 +146,7 @@ const bool Mob::NextMobReady() {
 }
 
 const bool Mob::IsSpawningDone() {
-  return ((spawn.size() == 0 || iter == spawn.end()) && nextReady);
+  return ((spawn.size() == 0 || spawnIndex >= spawn.size()) && nextReady);
 }
 
 const bool Mob::IsCleared() {
@@ -160,7 +157,7 @@ const bool Mob::IsCleared() {
     }
   }*/
 
-  return spawn.empty();
+  return tracked.empty();
 }
 
 void Mob::FlagNextReady() {
@@ -185,11 +182,15 @@ std::vector<Component*> Mob::GetComponents() {
 }
 
 Mob::MobData* Mob::GetNextMob() {
-  if (iter == spawn.end()) return nullptr;
+  if (spawnIndex >= spawn.size()) return nullptr;
 
   nextReady = false;
-  MobData* data = *(iter);
-  iter++;
+  MobData* data = spawn[spawnIndex++];
   pixelStateInvokers[data->index](data->mob);
   return data;
+}
+
+void Mob::Track(Character& character)
+{
+  tracked.push_back(&character);
 }

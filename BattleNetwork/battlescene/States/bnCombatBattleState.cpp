@@ -12,7 +12,7 @@
 #include "../../bnInputManager.h"
 #include "../../bnShaderResourceManager.h"
 
-CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*> tracked, double customDuration) :
+CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*>& tracked, double customDuration) :
   mob(mob), 
   tracked(tracked), 
   customDuration(customDuration),
@@ -122,7 +122,7 @@ void CombatBattleState::onUpdate(double elapsed)
     auto cardUI = tracked[0]->GetFirstComponent<SelectedCardsUI>();
 
     if (cardUI) {
-      tracked[0]->FreeComponentByID(cardUI->GetID());
+      cardUI->Hide();
     }
 
     GetScene().BroadcastBattleStop();

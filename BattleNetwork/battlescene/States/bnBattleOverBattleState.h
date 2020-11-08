@@ -15,9 +15,9 @@ struct BattleOverBattleState final : public BattleSceneState {
   sf::Sprite battleEnd;   /*!< "Enemy Deleted" graphic */
   swoosh::Timer battleEndTimer; /*!< How long the end graphic should stay on screen */
   sf::Vector2f battleOverPos; /*!< Position of battle pre/post graphic on screen */
-  std::vector<Player*> tracked;
+  std::vector<Player*>& tracked;
 
-  BattleOverBattleState(std::vector<Player*> tracked);
+  BattleOverBattleState(std::vector<Player*>& tracked);
   void onStart(const BattleSceneState* last) override;
   void onEnd(const BattleSceneState* next) override;
   void onUpdate(double elapsed) override;

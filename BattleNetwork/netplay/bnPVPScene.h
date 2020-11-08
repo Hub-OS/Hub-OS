@@ -30,9 +30,10 @@ private:
   bool infoMode{ true }; // we start here and then allow the player to toggle
   bool handshakeComplete{ false };
   bool playVS{ true };
-  size_t selectionIndex{ 0 }; // 0 = text input field widget
+  int selectedNavi{};
+  double sequenceTimer{ 0.0 }; // in seconds
   double flashCooldown{ 0 };
-  int selectedNavi;
+  size_t selectionIndex{ 0 }; // 0 = text input field widget
   CardFolder& folder;
   PA& pa;
   NetPlayConfig netplayconfig;
@@ -45,8 +46,7 @@ private:
   SpriteProxyNode remotePreview;
   Animation uiAnim;
   AnimatedTextBox textbox;
-  double sequenceTimer{ 0.0 }; // in seconds
-  
+
   static std::string myIP;
   std::string theirIP;
   sf::Text text, id;
@@ -76,6 +76,9 @@ private:
   void DrawCopyPasteWidget();
 
   const bool IsValidIPv4(const std::string& ip) const;
+
+  void Reset();
+
 public:
   PVPScene(swoosh::ActivityController&, int, CardFolder&, PA&);
   ~PVPScene();
@@ -92,11 +95,12 @@ public:
   void onUpdate(double elapsed);
   
   void onLeave() { ; }
-  void onExit() { ; }
+
   void onEnter() { ; }
   
   void onResume();
-  
+  void onExit();
+
   /**
    * @brief Draws graphic
    * @param surface

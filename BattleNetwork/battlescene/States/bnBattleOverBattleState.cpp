@@ -11,7 +11,7 @@ bool BattleOverBattleState::IsFinished() {
   return battleEndTimer.getElapsed().asMilliseconds() >= postBattleLength;
 }
 
-BattleOverBattleState::BattleOverBattleState(std::vector<Player*> tracked) : tracked(tracked)
+BattleOverBattleState::BattleOverBattleState(std::vector<Player*>& tracked) : tracked(tracked)
 {
   battleEnd = sf::Sprite(*LOAD_TEXTURE(ENEMY_DELETED));
   battleEnd.setOrigin(battleEnd.getLocalBounds().width / 2.0f, battleEnd.getLocalBounds().height / 2.0f);

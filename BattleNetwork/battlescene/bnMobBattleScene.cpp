@@ -7,7 +7,7 @@
 #include "States/bnBattleOverBattleState.h"
 #include "States/bnFadeOutBattleState.h"
 #include "States/bnCombatBattleState.h"
-#include "States/bnCharacterTransformBattleState.h"
+//#include "States/bnCharacterTransformBattleState.h"
 #include "States/bnMobIntroBattleState.h"
 #include "States/bnCardSelectBattleState.h"
 #include "States/bnCardComboBattleState.h"
@@ -32,11 +32,11 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   }
 
   // If playing co-op, add more players to track here
-  std::vector<Player*> players = { &props.base.player };
+  players = { &props.base.player };
 
   // ptr to player, form select index (-1 none), if should transform
   // TODO: just make this a struct to use across all states that need it...
-  std::vector<std::shared_ptr<TrackedFormData>> trackedForms = { 
+  trackedForms = { 
     std::make_shared<TrackedFormData>(TrackedFormData{&props.base.player, -1, false})
   }; 
 
@@ -70,12 +70,12 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
 
   // special condition: if lost in combat and had a form, trigger the character transform states
-  auto playerLosesInForm = [trackedForms] {
-    const bool changeState = trackedForms[0]->player->GetHealth() == 0 && (trackedForms[0]->selectedForm != -1);
+  auto playerLosesInForm = [this] {
+    const bool changeState = this->trackedForms[0]->player->GetHealth() == 0 && (this->trackedForms[0]->selectedForm != -1);
 
     if (changeState) {
-      trackedForms[0]->selectedForm = -1;
-      trackedForms[0]->animationComplete = false;
+      this->trackedForms[0]->selectedForm = -1;
+      this->trackedForms[0]->animationComplete = false;
     }
 
     return changeState;

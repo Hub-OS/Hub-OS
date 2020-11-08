@@ -28,8 +28,8 @@ using swoosh::types::segue;
 using swoosh::Activity;
 using swoosh::ActivityController;
 
-BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) 
-  : Activity(&controller),
+BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) : 
+  Activity(&controller),
   player(&props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -800,8 +800,10 @@ std::vector<std::reference_wrapper<const Character>> BattleSceneBase::MobList()
 {
   std::vector<std::reference_wrapper<const Character>> mobList;
 
-  for (int i = 0; i < mob->GetMobCount(); i++) {
-    mobList.push_back(mob->GetMobAt(i));
+  if (mob) {
+    for (int i = 0; i < mob->GetMobCount(); i++) {
+      mobList.push_back(mob->GetMobAt(i));
+    }
   }
 
   return mobList;

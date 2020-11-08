@@ -30,6 +30,7 @@
 #include "../../bnCounterHitListener.h"
 #include "../../bnCharacterDeleteListener.h"
 #include "../../bnNaviRegistration.h"
+#include "../../battlescene/States/bnCharacterTransformBattleState.h"
 
 #include "../bnNetPlayFlags.h"
 #include "../bnNetPlayConfig.h"
@@ -47,11 +48,13 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
+struct CombatBattleState;
+struct TimeFreezeBattleState;
+
 class Mob;
 class Player;
 class PlayerHealthUI;
-
-class NetworkCardUseListener; // declared bottom of file
+class NetworkCardUseListener; 
 
 struct NetworkBattleSceneProps {
   BattleSceneBaseProps base;
@@ -63,19 +66,22 @@ private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
 
-  NetworkCardUseListener* networkCardUseListener;
-  Player* remotePlayer{ nullptr };
+  int clientPrevHP{ 1 }; //!< we will send HP signals only when this changes
+  bool handshakeComplete{ false }; //!< Establish a connection with remote player
+  bool isClientReady{ false }; //!< Signal when the client is ready to begin the round
+  SelectedNavi selectedNavi; //!< the type of navi we selected
+  NetworkCardUseListener* networkCardUseListener{ nullptr };
   CardUsePublisher* remoteCardUsePublisher{ nullptr };
   PlayerCardUseListener* remoteCardUseListener{ nullptr };
-  NetPlayFlags remoteState;
-  Animation remoteShineAnimation;
-  sf::Sprite remoteShine;
-  bool isClientReady{ false };
+  NetPlayFlags remoteState; //!< remote state flags to ensure stability
   Poco::Net::DatagramSocket client; //!< us
-  SelectedNavi selectedNavi; //!< the type of navi we selected
-  Poco::Net::SocketAddress remoteAddress;
-  int clientPrevHP{ 1 }; //!< we will send HP signals only when it changes
-  bool handshakeComplete{ false };
+  Poco::Net::SocketAddress remoteAddress; //!< them
+  Player* remotePlayer{ nullptr }; //!< their player pawn
+  Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
+  std::vector<Player*> players; //!< Track all players
+  std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
+  CombatBattleState* combatPtr{ nullptr };
+  TimeFreezeBattleState* timeFreezePtr{ nullptr };
 
   void sendHandshakeSignal(); // sent until we recieve a handshake
   void sendShootSignal();

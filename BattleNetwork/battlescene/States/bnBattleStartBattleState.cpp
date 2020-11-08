@@ -4,7 +4,7 @@
 #include "../../bnAudioResourceManager.h"
 #include "../../bnTextureResourceManager.h"
 
-BattleStartBattleState::BattleStartBattleState(std::vector<Player*> tracked) : tracked(tracked) {
+BattleStartBattleState::BattleStartBattleState(std::vector<Player*>& tracked) : tracked(tracked) {
   battleStart = sf::Sprite(*LOAD_TEXTURE(BATTLE_START));
   battleStart.setOrigin(battleStart.getLocalBounds().width / 2.0f, battleStart.getLocalBounds().height / 2.0f);
   battleStartPos = sf::Vector2f(240.f, 140.f);

@@ -129,6 +129,12 @@ void CharacterTransformBattleState::onStart(const BattleSceneState*) {
 }
 
 void CharacterTransformBattleState::onUpdate(double elapsed) {
+  while (shineAnimations.size() < tracking.size()) {
+    Animation animation = Animation("resources/mobs/boss_shine.animation");
+    animation.Load();
+    shineAnimations.push_back(animation);
+  }
+
   switch (currState) {
   case state::fadein:
     if (FadeInBackdrop()) {
@@ -171,17 +177,8 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture&)
   }
 }
 
-CharacterTransformBattleState::CharacterTransformBattleState(const std::vector<std::shared_ptr<TrackedFormData>> tracking) : tracking(tracking)
+CharacterTransformBattleState::CharacterTransformBattleState(std::vector<std::shared_ptr<TrackedFormData>>& tracking) : tracking(tracking)
 {
   shine = sf::Sprite(*LOAD_TEXTURE(MOB_BOSS_SHINE));
   shine.setScale(2.f, 2.f);
-
-  Animation animation = Animation("resources/mobs/boss_shine.animation");
-  animation.Load();
-
-  size_t players = tracking.size();
-  while (players > 0) {
-    shineAnimations.push_back(animation);
-    players--;
-  }
 }
