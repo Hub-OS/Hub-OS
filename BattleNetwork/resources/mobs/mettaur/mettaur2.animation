@@ -1,4 +1,4 @@
-imagePath="C:/mmbn/net battle engine/Release/resources/mobs/mettaur/mettaur.png"
+imagePath="C:/mmbn/net battle engine/Release/resources/mobs/mettaur/mettaur2.png"
 
 animation state="HIT"
 frame duration="0.07" x="18" y="57" w="35" h="33" originx="15" originy="27"

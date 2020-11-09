@@ -1,4 +1,4 @@
-imagePath="C:/Users/Bountyhunter/Code/mmbn/BattleNetwork/resources/navis/megaman/forms/hawk_cross.png"
+imagePath="C:\Users\mohse\OneDrive\Desktop\hawk_cross.png"
 
 animation state="PLAYER_IDLE"
 frame duration="0.01" x="9" y="10" w="37" h="47" originx="26" originy="15"
