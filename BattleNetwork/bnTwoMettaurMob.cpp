@@ -74,6 +74,21 @@ Mob* TwoMettaurMob::Build() {
           if (rand() % 50 > 25 && count-- > 0) {
             mob->Spawn<Rank1<Mettaur>>(i + 1, j + 1);
           }
+          else if(rand() % 50 > 25 && count-- > 0) {
+            mob->Spawn<Rank2<Mettaur>>(i + 1, j + 1);
+          }
+          else if (rand() % 50 > 25 && count-- > 0) {
+            mob->Spawn<Rank3<Mettaur>>(i + 1, j + 1);
+          }
+          else if (rand() % 50 > 25 && count-- > 0) {
+            mob->Spawn<RankSP<Mettaur>>(i + 1, j + 1);
+          }
+          else if (rand() % 50 > 25 && count-- > 0) {
+            mob->Spawn<RankRare1<Mettaur>>(i + 1, j + 1);
+          }
+          else if (rand() % 50 > 25 && count-- > 0) {
+            mob->Spawn<RankRare2<Mettaur>>(i + 1, j + 1);
+          }
         }
       }
     }

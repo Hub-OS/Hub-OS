@@ -13,12 +13,8 @@ void MettaurAttackState::OnEnter(Mettaur& met) {
   auto onFinish = [this, metPtr]() { metPtr->ChangeState<MettaurIdleState>(); };
 
   auto& animation = *met.GetFirstComponent<AnimationComponent>();
-  if (met.GetRank() == Mettaur::Rank::SP) {
-    animation.SetAnimation("SP_ATTACK", onFinish);
-  }
-  else {
-    animation.SetAnimation("ATTACK", onFinish);
-  }
+
+  animation.SetAnimation("ATTACK", onFinish);
 
   animation.AddCallback(10, onAttack, true);
   animation.SetCounterFrameRange(6, 11);

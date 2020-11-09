@@ -253,6 +253,46 @@ public:
   }
 };
 
+/*! \brief Rare1 implementations of RankedSpawnPolicy
+ *
+ *  \cass RankRare1<T>
+ *
+ * Automatically constructs an entity with Rank Rare1
+ * Adds UI component
+*/
+
+template<class T, template <typename> class IntroState = PixelInState>
+class RankRare1 : public RankedSpawnPolicy<T, IntroState> {
+public:
+
+  RankRare1(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
+    Spawn(new T(T::Rank::Rare1));
+    this->GetSpawned()->SetName(this->GetSpawned()->GetName() + " Rare1");
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
+  }
+};
+
+/*! \brief Rare2 implementations of RankedSpawnPolicy
+ *
+ *  \cass RankRare2<T>
+ *
+ * Automatically constructs an entity with Rank Rare2
+ * Adds UI component
+*/
+
+template<class T, template <typename> class IntroState = PixelInState>
+class RankRare2 : public RankedSpawnPolicy<T, IntroState> {
+public:
+
+  RankRare2(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
+    Spawn(new T(T::Rank::SP));
+    this->GetSpawned()->SetName(this->GetSpawned()->GetName() + " Rare2");
+    Component* ui = new MobHealthUI(this->GetSpawned());
+    this->GetSpawned()->RegisterComponent(ui);
+  }
+};
+
 /*! \brief Special implementations of RankedSpawnPolicy
  *
  *  \cass RankEX<T>

@@ -7,14 +7,10 @@ MettaurIdleState::~MettaurIdleState() { ; }
 
 void MettaurIdleState::OnEnter(Mettaur& met) {
   auto& animation = *met.GetFirstComponent<AnimationComponent>();
-  if (met.GetRank() == Mettaur::Rank::SP) {
-    animation.SetAnimation("SP_IDLE");
-  }
-  else {
-    animation.SetAnimation("IDLE");
-  }
 
-  if (met.GetRank() == Mettaur::Rank::SP) {
+  animation.SetAnimation("IDLE");
+
+  if (met.GetRank() != Mettaur::Rank::_1) {
     cooldown = 0.3f;
   }
 }
