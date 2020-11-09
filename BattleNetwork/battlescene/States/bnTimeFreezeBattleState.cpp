@@ -28,8 +28,6 @@ void TimeFreezeBattleState::onStart(const BattleSceneState*)
   summonTimer.reset();
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = state::fadein;
-  action = nullptr;
-  user = nullptr;
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
@@ -37,6 +35,8 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
   GetScene().GetSelectedCardsUI().Reveal();
   GetScene().GetField()->ToggleTimeFreeze(false);
   GetScene().HighlightTiles(false);
+  action = nullptr;
+  user = nullptr;
 }
 
 void TimeFreezeBattleState::onUpdate(double elapsed)

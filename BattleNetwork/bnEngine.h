@@ -216,7 +216,30 @@ private:
  */
 #define ENGINE Engine::GetInstance()
 
- // frames thunk transforms frames to milliseconds
-static sf::Int32 frames(int frames)  {
-  return (sf::Int32)(1000 * (float(frames) / 60.f));
+struct frame_time_t {
+  using milliseconds = long long;
+  using seconds = double;
+
+  milliseconds milli{};
+
+  seconds asSeconds() {
+    return this->milli / 1000.0;
+  }
+
+  milliseconds asMilli() {
+    return this->milli;
+  }
+
+  operator seconds() {
+    return asSeconds();
+  }
+
+  operator milliseconds() {
+    return asMilli();
+  }
+};
+
+ // frames thunk transforms frames to time
+static frame_time_t frames(int frames)  {
+  return frame_time_t{ (long long)(1000 * (double(frames) / 60.0)) };
 };

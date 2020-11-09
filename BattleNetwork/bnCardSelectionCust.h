@@ -42,6 +42,8 @@ private:
   mutable sf::Sprite cursorBig;   // animated
   mutable sf::Sprite cardLock;
   mutable sf::Sprite formItemBG;
+  mutable sf::Sprite currentFormItem;
+  mutable sf::Sprite lockedInFormItem;
   Animation cursorSmallAnimator;
   Animation cursorBigAnimator;
   Animation formSelectAnimator;
@@ -60,8 +62,10 @@ private:
   mutable sf::Text label;
   mutable CustEmblem emblem;
 
-  int formCursorRow;
-  int selectedForm, thisFrameSelectedForm;
+  int formCursorRow; //!< Cursor row
+  int selectedFormRow; //!< selected form row
+  int selectedFormIndex; //!< Form Index of selection 
+  int lockedInFormIndex; //!< What the card cust has locked our selection in as
   std::vector<sf::Sprite> formUI;
   float formSelectQuitTimer;
   bool playFormSound;
@@ -216,6 +220,9 @@ public:
   const sf::Vector2f GetOffset() const { return custSprite.getPosition() - sf::Vector2f(-custSprite.getTextureRect().width*2.f, 0.f); } // TODO: Get rid. See BattleScene.cpp line 241
 
   void SetPlayerFormOptions(const std::vector<PlayerFormMeta*> forms);
+  void LockInPlayerFormSelection();
+  void ResetPlayerFormSelection();
+  void ErasePlayerFormOption(size_t index);
 
   /**
    * @brief Draws GUI and all child graphics on it

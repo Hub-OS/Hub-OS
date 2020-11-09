@@ -41,6 +41,7 @@ protected:
   PlayerFormMeta* AddForm();
 public:
   using DefaultState = PlayerControlledState;
+  static constexpr int MAX_FORM_SIZE = 5;
 
     /**
    * @brief Loads graphics and adds a charge component
@@ -123,14 +124,13 @@ protected:
   AnimationComponent* animationComponent;
   ChargeEffectSceneNode chargeEffect; /*!< Handles charge effect */
 
-  std::array<PlayerFormMeta*, 5> forms;
-  int formSize;
-  PlayerForm* activeForm;
+  std::vector<PlayerFormMeta*> forms;
+  PlayerForm* activeForm{ nullptr };
 };
 
 template<typename T>
 PlayerFormMeta* Player::AddForm() {
-  PlayerFormMeta* info = new PlayerFormMeta(formSize+1);
+  PlayerFormMeta* info = new PlayerFormMeta(forms.size()+1);
   info->SetFormClass<T>();
   
   if (!RegisterForm(info)) {

@@ -517,6 +517,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
         current->onEnd(this->next);
         current = temp;
         current->onStart(this->last);
+        current->onUpdate(0);
         break;
       }
     }

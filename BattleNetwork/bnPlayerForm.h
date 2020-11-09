@@ -19,13 +19,13 @@ public:
 
 class PlayerFormMeta {
 private:
-  int index;
-  PlayerForm* form;
+  size_t index{};
+  PlayerForm* form{ nullptr };
   std::function<void()> loadFormClass; /*!< Deffered form loading. Only load form class when needed */
   std::string path;
 
 public:
-  PlayerFormMeta(int index);
+  PlayerFormMeta(size_t index);
 
   template<class T> PlayerFormMeta& SetFormClass();
 
@@ -36,6 +36,8 @@ public:
   void ActivateForm(Player& player);
 
   PlayerForm* BuildForm();
+
+  const size_t GetFormIndex() const;
 };
 
 /**

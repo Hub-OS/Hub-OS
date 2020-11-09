@@ -13,13 +13,10 @@
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
-Player::Player()
-  :
+Player::Player() :
   state(PLAYER_IDLE),
   chargeEffect(this),
   AI<Player>(this),
-  formSize(0),
-  forms{ 0 },
   Character(Rank::_1)
 {
   ChangeState<PlayerIdleState>();
@@ -64,7 +61,6 @@ void Player::OnUpdate(float _elapsed) {
   if (GetTile() != nullptr) {
     setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
   }
-
 
   // TODO: is there a way to have custom states and respond to them?
   if (GetFirstComponent<BubbleTrap>()) {
@@ -187,6 +183,8 @@ CardAction* Player::ExecuteSpecial()
 
 void Player::ActivateFormAt(int index)
 {
+  index = index - 1; // base 1 to base 0
+
   if (activeForm) {
     activeForm->OnDeactivate(*this);
     delete activeForm;
@@ -214,7 +212,7 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
 {
   auto res = std::vector<PlayerFormMeta*>();
 
-  for (int i = 0; i < formSize; i++) {
+  for (int i = 0; i < forms.size(); i++) {
     res.push_back(forms[i]);
   }
 
@@ -223,8 +221,7 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
 
 bool Player::RegisterForm(PlayerFormMeta * info)
 {
-  if (formSize >= forms.size() || !info) return false;
-
-  forms[formSize++] = info;
+  if (forms.size() >= Player::MAX_FORM_SIZE || !info) return false;
+  forms.push_back(info);
   return true;
 }

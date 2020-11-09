@@ -113,7 +113,7 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     formCursorAnimator << Animator::Mode::Loop;
 
     formSelectQuitTimer = 0.f; // used to time out the activation
-    thisFrameSelectedForm = selectedForm = -1;
+    selectedFormIndex = selectedFormRow = -1;
 
     formItemBG.setTexture(*LOAD_TEXTURE(CUST_FORM_ITEM_BG));
     formItemBG.setScale(2.f, 2.f);
@@ -226,15 +226,25 @@ bool CardSelectionCust::CursorLeft() {
 
 bool CardSelectionCust::CursorAction() {
   if (isInFormSelect) {
-    thisFrameSelectedForm = formCursorRow;
+    selectedFormIndex = forms[formCursorRow]->GetFormIndex();
 
-    if (thisFrameSelectedForm == selectedForm) {
-      thisFrameSelectedForm = -1;
-      selectedForm = -1; // de-select the form
+    if (selectedFormRow != -1 && selectedFormIndex == forms[selectedFormRow]->GetFormIndex()) {
+      selectedFormRow = -1; // de-select the form
+
+      if (lockedInFormIndex == -1) {
+        currentFormItem = sf::Sprite();
+        selectedFormIndex = -1;
+      }
+      else {
+        selectedFormIndex = lockedInFormIndex;
+        currentFormItem = lockedInFormItem;
+        AUDIO.Play(AudioType::DEFORM);
+      }
     }
     else {
-      formSelectQuitTimer = 0.5f; // 0.5 * 60fps = 30 frames
-      selectedForm = thisFrameSelectedForm;
+      formSelectQuitTimer = frames(30).asSeconds();
+      selectedFormRow = formCursorRow;
+      currentFormItem = formUI[formCursorRow];
     }
     return true;
   }
@@ -514,6 +524,31 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
   }
 }
 
+void CardSelectionCust::ResetPlayerFormSelection()
+{
+  lockedInFormIndex = -1;
+  lockedInFormItem = sf::Sprite();
+}
+
+void CardSelectionCust::LockInPlayerFormSelection()
+{
+  lockedInFormIndex = selectedFormIndex;
+  lockedInFormItem = currentFormItem;
+}
+
+void CardSelectionCust::ErasePlayerFormOption(size_t index)
+{
+  for (int i = 0; i < this->forms.size() && this->formUI.size(); i++) {
+    if (this->forms[i]->GetFormIndex() == index) {
+      this->forms.erase(this->forms.begin() + i);
+      this->formUI.erase(this->formUI.begin() + i);
+    }
+  }
+
+  // reset the row selection pos but keep the form index selection active
+  selectedFormRow = -1;
+}
+
 void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states) const {
   if(IsHidden()) return;
 
@@ -708,12 +743,12 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
         f.setPosition(offset + 16.f, 16.f + float(i*32.0f));
 
-        if (i != selectedForm && i != formCursorRow && selectedForm > -1) {
+        if (i != selectedFormRow && i != formCursorRow && selectedFormRow > -1) {
           auto greyscaleState = states;
           greyscaleState.shader = SHADERS.GetShader(ShaderType::GREYSCALE);
           target.draw(f, greyscaleState);
         }
-        else if (i == selectedForm && selectedForm > -1) {
+        else if (i == selectedFormRow && selectedFormRow > -1) {
           auto aquaMarineState = states;
           aquaMarineState.shader = SHADERS.GetShader(ShaderType::COLORIZE);
           f.setColor(sf::Color(127,255,212));
@@ -740,17 +775,17 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   SceneNode::draw(target, states);
 
   // Reveal the new form icon in the HUD after the flash
-  if (selectedForm != -1 && formSelectQuitTimer <= 1.f/6.f) {
-    auto f = formUI[selectedForm];
-    auto rect = f.getTextureRect();
-    f.setTextureRect(sf::IntRect(rect.left, rect.top, rect.width - 1, rect.height - 1));
-    f.setPosition(sf::Vector2f(4, 36.f));
-    target.draw(f, states);
-    f.setTextureRect(rect);
+  if (formSelectQuitTimer <= frames(10).asSeconds()) {
+    auto rect = currentFormItem.getTextureRect();
+    currentFormItem.setTextureRect(sf::IntRect(rect.left, rect.top, 30, 14));
+    currentFormItem.setPosition(sf::Vector2f(4, 36.f));
+    target.draw(currentFormItem, states);
+    currentFormItem.setTextureRect(rect);
   }
 
-  if (isInFormSelect && formSelectQuitTimer <= 2.f / 6.0f) {
-    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, 2.f / 6.f, 1.f);
+  // draw the white flash
+  if (isInFormSelect && formSelectQuitTimer <= frames(20).asSeconds()) {
+    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, (float)frames(20).asSeconds(), 1.f);
     auto view = ENGINE.GetView();
     sf::RectangleShape screen(view.getSize());
     screen.setFillColor(sf::Color(255, 255, 255, int(delta * 255.f)));
@@ -795,7 +830,7 @@ void CardSelectionCust::Update(float elapsed)
   formCursorAnimator.Update(elapsed, formCursor.getSprite());
   formSelectAnimator.Update(elapsed, formSelect.getSprite());
 
-  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
+  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items...
 
   formCursor.setPosition(offset + 16.f, 12.f + float(formCursorRow*32.f));
   formSelect.setPosition(offset + 88.f, 194.f);
@@ -809,9 +844,8 @@ void CardSelectionCust::Update(float elapsed)
       canInteract = true;
       isInFormSelect = false;
       playFormSound = false;
-      thisFrameSelectedForm = -1;
     }
-    else if (formSelectQuitTimer <= 1.f / 6.f) {
+    else if (formSelectQuitTimer <= frames(10).asSeconds()) {
       formSelectAnimator.SetAnimation("CLOSED");
       cursorPos = cursorRow = formCursorRow = 0;
       if (!playFormSound) {
@@ -949,12 +983,12 @@ const int CardSelectionCust::GetCardCount() {
 
 const int CardSelectionCust::GetSelectedFormIndex()
 {
-  return selectedForm;
+  return selectedFormIndex;
 }
 
 const bool CardSelectionCust::SelectedNewForm()
 {
-  return (thisFrameSelectedForm != -1);
+  return (selectedFormIndex != -1);
 }
 
 bool CardSelectionCust::CanInteract()
@@ -968,7 +1002,8 @@ void CardSelectionCust::ResetState() {
   cursorPos = formCursorRow = 0;
   areCardsReady = false;
   isInFormSelect = false;
-  thisFrameSelectedForm = -1;
+
+  selectedFormIndex = lockedInFormIndex;
 }
 
 bool CardSelectionCust::AreCardsReady() {

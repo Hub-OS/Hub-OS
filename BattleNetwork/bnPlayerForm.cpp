@@ -1,7 +1,9 @@
 #include "bnPlayerForm.h"
 #include "bnPlayer.h"
 
-PlayerFormMeta::PlayerFormMeta(int index) : index(index), path() { ; }
+PlayerFormMeta::PlayerFormMeta(size_t index) : 
+  index(index), path() 
+{ ; }
 
 void PlayerFormMeta::SetUIPath(std::string path) {
   PlayerFormMeta::path = path;
@@ -21,4 +23,9 @@ PlayerForm* PlayerFormMeta::BuildForm() {
   auto res = form;
   form = nullptr;
   return res;
+}
+
+const size_t PlayerFormMeta::GetFormIndex() const
+{
+  return index;
 }
