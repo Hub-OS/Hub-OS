@@ -57,6 +57,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
         auto& widget = GetScene().GetCardSelectWidget();
         widget.LockInPlayerFormSelection();
         widget.ErasePlayerFormOption(lastSelectedForm);
+        GetScene().HandleCounterLoss(*playerPtr);
         AUDIO.Play(AudioType::SHINE);
       }
 

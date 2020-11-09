@@ -211,6 +211,10 @@ void CardAction::FreeAttachedNodes() {
   }
 
   attachments.clear();
+
+  // some animation callbacks will expect to have some attachments,
+  // erase the animation callbacks
+  this->anim->CancelCallbacks();
 }
 
 const ActionLockoutGroup CardAction::GetLockoutGroup() const

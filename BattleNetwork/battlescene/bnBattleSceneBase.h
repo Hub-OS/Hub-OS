@@ -237,8 +237,6 @@ protected:
 
   void LoadMob(Mob& mob);
 
-  void HandleCounterLoss(Character& subject);
-
   /**
   * @brief Scans the entity list for updated components and tries to Inject them if the components require.
   */
@@ -267,6 +265,7 @@ public:
   const bool TripleDelete() const;
   const int ComboDeleteSize();
   const bool Countered();
+  void HandleCounterLoss(Character& subject);
   void HighlightTiles(bool enable);
 
   const double GetCustomBarProgress() const;

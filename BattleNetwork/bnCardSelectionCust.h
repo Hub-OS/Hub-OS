@@ -27,11 +27,15 @@ public:
    * @date 05/05/19
    * @brief Card state bucket
    * 
-   * A card may be SELECTED, QUEUED, AVAILABLE
+   * A card may be voided, staged, queued
    */
   struct Bucket {
     Battle::Card* data;
-    short state;
+    enum class state : short {
+      voided = 0,
+      staged,
+      queued
+    } state;
   };
 
 private:

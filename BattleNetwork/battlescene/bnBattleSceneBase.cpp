@@ -214,17 +214,19 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
     didCounterHit = true;
     comboInfoTimer.reset();
 
-    field->RevealCounterFrames(true);
+    if (player->IsInForm() == false) {
+      field->RevealCounterFrames(true);
 
-    // node positions are relative to the parent node's origin
-    auto bounds = player->getLocalBounds();
-    counterReveal.setPosition(0, -bounds.height / 4.0f);
-    player->AddNode(&counterReveal);
+      // node positions are relative to the parent node's origin
+      auto bounds = player->getLocalBounds();
+      counterReveal.setPosition(0, -bounds.height / 4.0f);
+      player->AddNode(&counterReveal);
 
-    cardUI->SetMultiplier(2);
+      cardUI->SetMultiplier(2);
 
-    // when players get hit by impact, battle scene takes back counter blessings
-    player->AddDefenseRule(counterCombatRule);
+      // when players get hit by impact, battle scene takes back counter blessings
+      player->AddDefenseRule(counterCombatRule);
+    }
   }
 }
 

@@ -208,6 +208,11 @@ void Player::DeactivateForm()
   }
 }
 
+const bool Player::IsInForm() const
+{
+  return (this->activeForm != nullptr);
+}
+
 const std::vector<PlayerFormMeta*> Player::GetForms()
 {
   auto res = std::vector<PlayerFormMeta*>();

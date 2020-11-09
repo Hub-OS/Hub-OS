@@ -116,6 +116,8 @@ public:
 
   void ActivateFormAt(int index); 
   void DeactivateForm();
+  const bool IsInForm() const;
+
   const std::vector<PlayerFormMeta*> GetForms();
 protected:
   int hitCount; /*!< How many times the player has been hit. Used by score board. */

@@ -6,9 +6,6 @@
 #include "bnCardLibrary.h"
 
 #define WILDCARD '*'
-#define VOIDED 0
-#define STAGED 1
-#define QUEUED 2
 
 CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) :
     perTurn(perTurn),
@@ -261,16 +258,16 @@ bool CardSelectionCust::CursorAction() {
     // Does card exist
     if (cursorPos + (5 * cursorRow) < cardCount) {
       // Queue this card if not selected
-      if (queue[cursorPos + (5 * cursorRow)].state == STAGED) {
+      if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::staged) {
         selectQueue[selectCount++] = &queue[cursorPos + (5 * cursorRow)];
-        queue[cursorPos + (5 * cursorRow)].state = QUEUED;
+        queue[cursorPos + (5 * cursorRow)].state = Bucket::state::queued;
 
-        // We can only upload 5 cards to navi...
+        // We can only upload 5 cards to player...
         if (selectCount == 5) {
           for (int i = 0; i < cardCount; i++) {
-            if (queue[i].state == QUEUED) continue;
+            if (queue[i].state == Bucket::state::queued) continue;
 
-            queue[i].state = VOIDED;
+            queue[i].state = Bucket::state::voided;
           }
 
           emblem.CreateWireEffect();
@@ -284,13 +281,13 @@ bool CardSelectionCust::CursorAction() {
           bool isDark = card->GetClass() == Battle::CardClass::dark;
 
           for (int i = 0; i < cardCount; i++) {
-            if (i == cursorPos + (5 * cursorRow) || (queue[i].state == VOIDED) || queue[i].state == QUEUED) continue;
+            if (i == cursorPos + (5 * cursorRow) || (queue[i].state == Bucket::state::voided) || queue[i].state == Bucket::state::queued) continue;
             char otherCode = queue[i].data->GetCode();
             bool isOtherDark = queue[i].data->GetClass() == Battle::CardClass::dark;
             bool isSameCard = (queue[i].data->GetShortName() == queue[cursorPos + (5 * cursorRow)].data->GetShortName());
             bool canPair = (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard);
-            if (isOtherDark == isDark && canPair) { queue[i].state = STAGED; }
-            else { queue[i].state = VOIDED; }
+            if (isOtherDark == isDark && canPair) { queue[i].state = Bucket::state::staged; }
+            else { queue[i].state = Bucket::state::voided; }
           }
 
           emblem.CreateWireEffect();
@@ -317,12 +314,12 @@ bool CardSelectionCust::CursorCancel() {
     return false;// nothing happened
   }
 
-  selectQueue[--selectCount]->state = STAGED;
+  selectQueue[--selectCount]->state = Bucket::state::staged;
 
   if (selectCount == 0) {
     // Everything is selectable again
     for (int i = 0; i < cardCount; i++) {
-      queue[i].state = STAGED;
+      queue[i].state = Bucket::state::staged;
     }
 
     // This is also where beastout card would be removed from queue
@@ -344,17 +341,17 @@ bool CardSelectionCust::CursorCancel() {
 
     for (int j = 0; j < cardCount; j++) {
       if (i > 0) {
-        if (queue[j].state == VOIDED && code != queue[j].data->GetCode() - 1) continue; // already checked and not a PA sequence
+        if (queue[j].state == Bucket::state::voided && code != queue[j].data->GetCode() - 1) continue; // already checked and not a PA sequence
       }
 
-      if (queue[j].state == QUEUED) continue; // skip
+      if (queue[j].state == Bucket::state::queued) continue; // skip
 
       char otherCode = queue[j].data->GetCode();
 
       bool isSameCard = (queue[j].data->GetShortName() == selectQueue[i]->data->GetShortName());
 
-      if (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard) { queue[j].state = STAGED; }
-      else { queue[j].state = VOIDED; }
+      if (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard) { queue[j].state = Bucket::state::staged; }
+      else { queue[j].state = Bucket::state::voided; }
     }
   }
 
@@ -504,7 +501,7 @@ void CardSelectionCust::GetNextCards() {
       // NOTE: IsCardValid() will be used for scripted cards again... for now disable the check
     } while (false /*!CHIPLIB.IsCardValid(*queue[i].data)*/);
 
-    queue[i].state = STAGED;
+    queue[i].state = Bucket::state::staged;
 
     cardCount++;
     perTurn--;
@@ -598,14 +595,14 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     icon.setTexture(WEBCLIENT.GetIconForCard(queue[i].data->GetUUID()));
     icon.SetShader(nullptr);
 
-    if (queue[i].state == 0) {
+    if (queue[i].state == Bucket::state::voided) {
       icon.SetShader(&greyscale);
       auto statesCopy = states;
         statesCopy.shader = &greyscale;
 
       target.draw(icon,statesCopy);
 
-    } else if (queue[i].state == 1) {
+    } else if (queue[i].state == Bucket::state::staged) {
       target.draw(icon, states);
     }
 
@@ -642,7 +639,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
       cardCard.SetShader(nullptr);
 
-      if (!queue[cursorPos + (5 * cursorRow)].state) {
+      if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::voided) {
         cardCard.SetShader(&greyscale);
 
         auto statesCopy = states;
@@ -964,7 +961,7 @@ void CardSelectionCust::ClearCards() {
   // Line up all non-null buckets consequtively
   // Reset bucket state to STAGED
   for (int i = 0; i < cardCount; i++) {
-    queue[i].state = STAGED;
+    queue[i].state = Bucket::state::staged;
     int next = i;
     while (!queue[i].data && next + 1 < cardCount) {
       queue[i].data = queue[next + 1].data;
