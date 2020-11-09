@@ -1,7 +1,7 @@
 imagePath="C:/Users/Proto/Downloads/reflect_shield.png"
 
 animation state="DEFAULT"
-frame duration="2" x="30" y="0" w="23" h="46" originx="0" originy="45"
+frame duration="1.5" x="30" y="0" w="23" h="46" originx="0" originy="45"
 frame duration="0.05" x="108" y="0" w="23" h="46" originx="0" originy="45"
 frame duration="0.05" x="264" y="0" w="23" h="46" originx="0" originy="45"
 frame duration="0.05" x="342" y="0" w="23" h="46" originx="0" originy="45"

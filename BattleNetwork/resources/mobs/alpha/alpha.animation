@@ -1,4 +1,4 @@
-imagePath="C:\Users\Bountyhunter\Code\mmbn\BattleNetwork\resources\mobs\alpha/alpha.png"
+imagePath="C:\Users\Proto\Code\OpenNetBattle\BattleNetwork\resources\mobs\alpha\alpha.png"
 
 animation state="ACID"
 frame duration="0.1" x="39" y="243" w="81" h="59" originx="41" originy="35"

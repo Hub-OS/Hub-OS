@@ -85,7 +85,7 @@ frame duration="0.1" x="480" y="30" w="40" h="30" originx="0" originy="0"
 frame duration="0.1" x="440" y="30" w="40" h="30" originx="0" originy="0"
 
 animation state="row_1_volcano"
-frame duration="0.1" x="600" y="30" w="40" h="30" originx="0" originy="0"
+frame duration="0.05" x="600" y="30" w="40" h="30" originx="0" originy="0"
 
 animation state="row_2_volcano"
 frame duration="0.1" x="640" y="30" w="40" h="30" originx="0" originy="0"
