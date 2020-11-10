@@ -36,6 +36,10 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
     props.aggressor = &met;
     spell->SetHitboxProperties(props);
 
+    if (met.GetRank() == Mettaur::Rank::SP) {
+      spell->CrackTiles(true);
+    }
+
     spell->SetDirection(Direction::left);
     met.field->AddEntity(*spell, met.tile->GetX() - 1, met.tile->GetY());
   }

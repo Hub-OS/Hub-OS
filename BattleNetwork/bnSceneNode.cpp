@@ -58,6 +58,10 @@ void SceneNode::RemoveNode(SceneNode* find) {
 
   auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [find](SceneNode *in) { return in == find; }); 
 
+  if (iter != childNodes.end()) {
+    (*iter)->parent = nullptr;
+  }
+
   childNodes.erase(iter, childNodes.end());
 }
 

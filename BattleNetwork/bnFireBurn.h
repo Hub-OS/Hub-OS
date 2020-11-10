@@ -13,6 +13,7 @@ public:
 protected:
   Animation animation; /*!< the animation of the shot */
   int damage; /*!< How much damage to deal */
+  bool crackTiles{ true };
 public:
   FireBurn(Field* _field, Team _team, Type type, int damage);
 
@@ -44,4 +45,6 @@ public:
   * @brief does nothing
   */
   void OnDelete() override;
+
+  void CrackTiles(bool state);
 };

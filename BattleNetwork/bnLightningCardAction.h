@@ -12,6 +12,7 @@ private:
   Animation attachmentAnim, attackAnim;
   int damage;
   bool fired{ false };
+  bool stun{ true };
 public:
   LightningCardAction(Character* owner, int damage);
   ~LightningCardAction();
@@ -19,4 +20,5 @@ public:
   void OnAnimationEnd();
   void EndAction();
   void Execute();
+  void SetStun(bool stun);
 };

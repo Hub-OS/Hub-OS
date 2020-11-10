@@ -199,7 +199,9 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* HeatCross::OnChargedBusterAction(Player& player)
 {
-  return new FireBurnCardAction(&player, FireBurn::Type::_2, 60);
+  auto* action = new FireBurnCardAction(&player, FireBurn::Type::_2, 60);
+  action->CrackTiles(false);
+  return action;
 }
 
 CardAction* HeatCross::OnSpecialAction(Player& player)
@@ -411,7 +413,9 @@ void ElecCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* ElecCross::OnChargedBusterAction(Player& player)
 {
-  return new LightningCardAction(&player, 50);
+  auto* action = new LightningCardAction(&player, 50);
+  action->SetStun(false);
+  return action;
 }
 
 CardAction* ElecCross::OnSpecialAction(Player& player)

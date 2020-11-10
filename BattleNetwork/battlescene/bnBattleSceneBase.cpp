@@ -550,179 +550,35 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.Draw(background);
 
-  auto ui = std::vector<UIComponent*>();
-
-  // First tile pass: draw the tiles
-  Battle::Tile* tile = nullptr;
+  auto uis = std::vector<UIComponent*>();
 
   auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
-  auto tilesIter = allTiles.begin();
+  
+  for (Battle::Tile* tile : allTiles) {
+    if (tile->IsEdgeTile()) continue;
 
-  while (tilesIter != allTiles.end()) {
-    tile = (*tilesIter);
-
-    // Skip edge tiles - they cannot be seen by players
-    if (tile->IsEdgeTile()) {
-      tilesIter++;
-      continue;
-    }
-
-    tile->move(ENGINE.GetViewOffset());
-
-    if (highlightTiles == false) {
-      // Draw without highlighting effects
-      tile->RevokeShader();
-      ENGINE.Draw(tile, true);
-    }
-    else {
-      if (tile->IsHighlighted()) {
-        tile->SetShader(&yellowShader);
-        ENGINE.Draw(tile, false);
-      }
-      else {
-        tile->RevokeShader();
-        ENGINE.Draw(tile, true);
-      }
-    }
-
-    tile->move(-ENGINE.GetViewOffset());
-    tilesIter++;
+    ENGINE.Draw(tile);
   }
 
-  // Second tile pass: draw the entities and shaders per row and per layer
-  tile = nullptr;
-  tilesIter = allTiles.begin();
+  for (Battle::Tile* tile : allTiles) {
+    auto allEntities = tile->FindEntities([](Entity* ent) { return true; });
+    std::sort(allEntities.begin(), allEntities.end(), [](Entity* A, Entity* B) { return A->GetLayer() > B->GetLayer(); });
 
-  std::vector<Entity*> entitiesOnRow;
-  int lastRow = 0;
-
-  while (tilesIter != allTiles.end()) {
-    if (lastRow != (*tilesIter)->GetY()) {
-      lastRow = (*tilesIter)->GetY();
-
-      // Ensure all entities are sorted by layer
-      std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity* b) -> bool { return a->GetLayer() > b->GetLayer(); });
-
-      // draw this row
-      for (auto entity : entitiesOnRow) {
-        entity->move(ENGINE.GetViewOffset());
-
-        ENGINE.Draw(entity);
-
-        entity->move(-ENGINE.GetViewOffset());
-      }
-
-      // prepare for bext row
-      entitiesOnRow.clear();
-    }
-
-    tile = (*tilesIter);
-    static float totalTime = 0;
-    totalTime += (float)elapsed;
-
-    //heatShader.setUniform("time", totalTime*0.02f);
-    //heatShader.setUniform("distortionFactor", 0.01f);
-    //heatShader.setUniform("riseFactor", 0.1f);
-
-    //heatShader.setUniform("w", tile->GetWidth() - 8.f);
-    //heatShader.setUniform("h", tile->GetHeight()*1.5f);
-
-    //iceShader.setUniform("w", tile->GetWidth() - 8.f);
-    //iceShader.setUniform("h", tile->GetHeight()*0.8f);
-
-    Entity* entity = nullptr;
-
-    auto allEntities = tile->FindEntities([](Entity* e) { return true; });
-    auto entitiesIter = allEntities.begin();
-
-    while (entitiesIter != allEntities.end()) {
-      entity = (*entitiesIter);
-
-      auto uic = entity->GetComponentsDerivedFrom<UIComponent>();
-
-      //Logger::Log("uic size is: " + std::to_string(uic.size()));
+    for (Entity* ent : allEntities) {
+      auto uic = ent->GetComponentsDerivedFrom<UIComponent>();
 
       if (!uic.empty()) {
-        ui.insert(ui.begin(), uic.begin(), uic.end());
+        uis.insert(uis.begin(), uic.begin(), uic.end());
       }
 
-      entitiesOnRow.push_back(*entitiesIter);
-      entitiesIter++;
-    }
-
-    /*if (tile->GetState() == TileState::lava) {
-      heatShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x + 3.0f);
-
-      float repos = (float)(tile->getPosition().y - (tile->getTexture()->getSize().y*2.5f));
-      heatShader.setUniform("y", repos);
-
-      surface.display();
-      sf::Texture postprocessing = surface.getTexture(); // Make a copy
-
-      sf::Sprite distortionPost;
-      distortionPost.setTexture(postprocessing);
-
-      surface.clear();
-
-      LayeredDrawable* bake = new LayeredDrawable(distortionPost);
-      bake->SetShader(&heatShader);
-
-      ENGINE.Draw(bake);
-      delete bake;
-    }
-    else if (tile->GetState() == TileState::ice) {
-      iceShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x);
-
-      float repos = (float)(tile->getPosition().y - tile->getTexture()->getSize().y);
-      iceShader.setUniform("y", repos);
-
-      surface.display();
-      sf::Texture postprocessing = surface.getTexture(); // Make a copy
-
-      sf::Sprite reflectionPost;
-      reflectionPost.setTexture(postprocessing);
-
-      surface.clear();
-
-      LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
-      bake->SetShader(&iceShader);
-
-      ENGINE.Draw(bake);
-      delete bake;
-    }*/
-    tilesIter++;
-  }
-
-  // Last row needs to be drawn now that the loop is over
-  // Ensure all entities are sorted by layer
-  std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity* b) -> bool { return a->GetLayer() > b->GetLayer(); });
-
-  // Now that the tiles are drawn, another pass draws the entities in sort-order
-  if (mob && mob->IsSpawningDone()) {
-    // draw this row
-    for (auto entity : entitiesOnRow) {
-      entity->move(ENGINE.GetViewOffset());
-      ENGINE.Draw(entity);
-      entity->move(-ENGINE.GetViewOffset());
-    }
-
-    // Draw scene nodes
-    for (auto node : scenenodes) {
-      surface.draw(*node);
-    }
-
-    // Draw ui
-    for (auto node : ui) {
-      if (node->DrawOnUIPass()) {
-        node->move(ENGINE.GetViewOffset());
-        ENGINE.Draw(*node, false);
-        node->move(-ENGINE.GetViewOffset());
-      }
+      ENGINE.Draw(ent);
     }
   }
 
-  // prepare for bext row
-  entitiesOnRow.clear();
+  // draw ui on top
+  for (UIComponent* ui : uis) {
+    ENGINE.Draw(ui);
+  }
 
   // Draw whatever extra state stuff we want to have
   if (current) current->onDraw(surface);

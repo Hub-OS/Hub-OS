@@ -210,6 +210,7 @@ class Rank2 : public RankedSpawnPolicy<T, IntroState> {
 
   Rank2(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
     this->Spawn(new T(T::Rank::_2));
+    this->GetSpawned()->SetName(this->GetSpawned()->GetName() + "2");
     Component* ui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);
   }
@@ -228,6 +229,7 @@ class Rank3 : public RankedSpawnPolicy<T, IntroState> {
 
   Rank3(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
     this->Spawn(new T(T::Rank::_3));
+    this->GetSpawned()->SetName(this->GetSpawned()->GetName()+"3");
     Component* ui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);
   }
@@ -286,7 +288,7 @@ class RankRare2 : public RankedSpawnPolicy<T, IntroState> {
 public:
 
   RankRare2(Mob& mob) : RankedSpawnPolicy<T, IntroState>(mob) {
-    Spawn(new T(T::Rank::SP));
+    Spawn(new T(T::Rank::Rare2));
     this->GetSpawned()->SetName(this->GetSpawned()->GetName() + " Rare2");
     Component* ui = new MobHealthUI(this->GetSpawned());
     this->GetSpawned()->RegisterComponent(ui);

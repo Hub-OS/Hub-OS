@@ -305,7 +305,7 @@ namespace Battle {
     Highlight highlightMode;
     bool isTimeFrozen;
     bool isBattleOver;
-
+    bool isBattleStarted{ false };
     double elapsedBurnTime;
     double burncycle;
 

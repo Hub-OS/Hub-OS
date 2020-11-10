@@ -12,6 +12,7 @@ class Wave : public Spell {
 protected:
   AnimationComponent* animation;
   double speed;
+  bool crackTiles{ false };
 public:
   Wave(Field* _field, Team _team, double speed = 1.0);
   ~Wave();
@@ -20,4 +21,5 @@ public:
   bool Move(Direction _direction) override;
   void Attack(Character* _entity) override;
   void OnDelete() override;
+  void CrackTiles(bool state);
 };

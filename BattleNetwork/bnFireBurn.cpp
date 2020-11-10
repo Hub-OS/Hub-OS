@@ -56,7 +56,9 @@ void FireBurn::OnUpdate(float _elapsed) {
   animation.Update(_elapsed, getSprite());
 
   // crack the tile it is on
-  GetTile()->SetState(TileState::cracked);
+  if (crackTiles) {
+    GetTile()->SetState(TileState::cracked);
+  }
 
   tile->AffectEntities(this);
 }
@@ -68,10 +70,17 @@ bool FireBurn::Move(Direction _direction) {
 void FireBurn::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     AUDIO.Play(AudioType::HURT);
+    // X hit effect when hit by fire
+
   }
 }
 
 void FireBurn::OnDelete()
 {
   Remove();
+}
+
+void FireBurn::CrackTiles(bool state)
+{
+  crackTiles = state;
 }

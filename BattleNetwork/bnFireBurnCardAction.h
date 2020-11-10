@@ -13,6 +13,7 @@ private:
   Animation attachmentAnim;
   FireBurn::Type type;
   int damage;
+  bool crackTiles{ true };
 public:
   FireBurnCardAction(Character* owner, FireBurn::Type type, int damage);
   ~FireBurnCardAction();
@@ -20,4 +21,5 @@ public:
   void OnAnimationEnd() override;
   void EndAction();
   void Execute();
+  void CrackTiles(bool state);
 };

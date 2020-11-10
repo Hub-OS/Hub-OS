@@ -66,7 +66,11 @@ void LightningCardAction::Execute() {
       props.aggressor = GetOwnerAs<Character>();
       props.damage = LightningCardAction::damage;
       props.element = Element::elec;
-      props.flags |= Hit::stun;
+
+      if (stun) {
+        props.flags |= Hit::stun;
+      }
+
       hitbox->SetHitboxProperties(props);
       field->AddEntity(*hitbox, col + i, row);
     }
@@ -76,6 +80,11 @@ void LightningCardAction::Execute() {
   };
 
   AddAnimAction(2, onFire);
+}
+
+void LightningCardAction::SetStun(bool stun)
+{
+  this->stun = stun;
 }
 
 LightningCardAction::~LightningCardAction()

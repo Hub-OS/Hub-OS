@@ -65,26 +65,34 @@ namespace Battle {
     volcanoErupt = Animation("resources/tiles/volcano.animation");
 
     auto resetVolcanoThunk = [this](int seconds) {
-      this->volcanoErupt.SetFrame(1, this->volcanoSprite.getSprite()); // start over
-      volcanoEruptTimer = seconds;
+      if (!isBattleOver) {
+        this->volcanoErupt.SetFrame(1, this->volcanoSprite.getSprite()); // start over
+        volcanoEruptTimer = seconds;
+      }
+      else {
+        RemoveNode(&volcanoSprite);
+      }
     };
 
-    if (team == Team::red) {
-      resetVolcanoThunk(4); // red goes first
+    if (team == Team::blue) {
+      resetVolcanoThunk(1); // blue goes first
     }
     else {
-      resetVolcanoThunk(8); // then blue
+      resetVolcanoThunk(2); // then red
     }
 
     // On anim end, reset the timer
     volcanoErupt << "DEFAULT" << Animator::Mode::Loop << [this, resetVolcanoThunk]() {
-      resetVolcanoThunk(4);
+      resetVolcanoThunk(1);
     };
 
     volcanoSprite.setTexture(TEXTURES.LoadTextureFromFile("resources/tiles/volcano.png"));
     volcanoSprite.SetLayer(-1); // in front of tile
 
     volcanoErupt.Refresh(volcanoSprite.getSprite());
+
+    // debugging, I'll make the tiles transparent
+    // setColor(sf::Color(255, 255, 255, 100));
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -109,6 +117,7 @@ namespace Battle {
     entities = other.entities;
     isTimeFrozen = other.isTimeFrozen;
     isBattleOver = other.isBattleOver;
+    isBattleStarted = other.isBattleStarted;
     brokenCooldown = other.brokenCooldown;
     teamCooldown = other.teamCooldown;
     flickerTeamCooldown = other.flickerTeamCooldown;
@@ -328,7 +337,7 @@ namespace Battle {
     }
   }
 
-  // Aux function
+  // Aux function that all AddX() functions call
   void Tile::AddEntity(Entity* _entity) {
     _entity->SetTile(this);
 
@@ -420,7 +429,7 @@ namespace Battle {
     willHighlight = false;
     totalElapsed += _elapsed;
 
-    if (!isTimeFrozen) {
+    if (!isTimeFrozen && isBattleStarted) {
         // LAVA TILES
         elapsedBurnTime -= _elapsed;
 
@@ -510,6 +519,7 @@ namespace Battle {
         e->OnBattleStart();
     }
     isBattleOver = false;
+    isBattleStarted = true;
   }
 
   void Tile::BattleStop() {
