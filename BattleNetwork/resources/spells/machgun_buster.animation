@@ -1,4 +1,4 @@
-imagePath="C:/Users/Proto/Downloads/vulcan_buster.png"
+imagePath="C:/Users/Proto/Downloads/machgun_buster.png"
 
 animation state="FIRE"
 frame duration="0.05" x="35" y="3" w="29" h="19" originx="0" originy="12"

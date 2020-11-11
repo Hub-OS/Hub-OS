@@ -3,6 +3,7 @@
 #include "bnFishy.h"
 #include "bnTile.h"
 #include "bnAura.h"
+#include "bnMachGunCardAction.h"
 #include "bnCannonCardAction.h"
 #include "bnZetaCannonCardAction.h"
 #include "bnAirShotCardAction.h"
@@ -205,5 +206,8 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
   }
   else if (name == "Barrier") {
     player->QueueAction(new AuraCardAction(player, Aura::Type::BARRIER_10));
+  }
+  else if (name.substr(0, 7) == "MachGun") {
+    player->QueueAction(new MachGunCardAction(*player, card.GetDamage()));
   }
 }

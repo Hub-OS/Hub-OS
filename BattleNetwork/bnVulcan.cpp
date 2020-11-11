@@ -66,10 +66,6 @@ void Vulcan::Attack(Character* _entity) {
     auto next = GetField()->GetAt(tile->GetX() + 1, tile->GetY());
 
     if (next) {
-      impact = new ParticleImpact(ParticleImpact::Type::thin);
-
-      field->AddEntity(*impact, *next);
-
       Spell* hitbox = new Hitbox(field, GetTeam(), 0);
       hitbox->SetHitboxProperties(GetHitboxProperties());
       field->AddEntity(*hitbox, *next);
