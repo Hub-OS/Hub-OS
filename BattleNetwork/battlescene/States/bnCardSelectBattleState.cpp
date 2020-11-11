@@ -212,6 +212,9 @@ void CardSelectBattleState::onUpdate(double elapsed)
           AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
 
           // Should probably have a cardCust.IsInFormSelect() to flag this but it works as it is...
+          // This was really annoying to debug so here's a note:
+          // There should be a query for the cardcust if we selected a form, but instead we just set this to true
+          // and then call CheckFormChanges() to manage changing form selections or not.
           formSelected = true;
         }
         else {

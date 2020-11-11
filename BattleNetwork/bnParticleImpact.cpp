@@ -5,8 +5,9 @@
 #include "bnParticleImpact.h"
 using sf::IntRect;
 
-#define RESOURCE_PATH "resources/spells/artifact_impact_fx.animation"
-#define VULCAN_PATH   "resources/spells/artifact_vulcan_impact.animation"
+const std::string RESOURCE_PATH = "resources/spells/artifact_impact_fx.animation";
+const std::string VULCAN_PATH = "resources/spells/artifact_vulcan_impact.animation";
+const std::string VOLCANO_PATH = "resources/spells/volcano_hit.animation";
 
 ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifact(nullptr)
 {
@@ -19,25 +20,30 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifa
   animation.Reload();
 
   switch(type) {
-  case Type::GREEN:
+  case Type::green:
     animation.SetAnimation("GREEN");
     break;
-  case Type::YELLOW:
+  case Type::yellow:
     animation.SetAnimation("YELLOW");
     break;
-  case Type::BLUE:
+  case Type::blue:
     animation.SetAnimation("BLUE");
     break;
-  case Type::THIN:
+  case Type::thin:
     animation.SetAnimation("THIN");
     break;
-  case Type::FIRE:
+  case Type::fire:
     animation.SetAnimation("FIRE");
     break;
-  case Type::VULCAN:
+  case Type::vulcan:
     animation = Animation(VULCAN_PATH);
     animation.SetAnimation("DEFAULT");
     setTexture(TEXTURES.GetTexture(TextureType::SPELL_VULCAN_IMPACT_FX));
+    break;
+  case Type::volcano:
+    animation = Animation(VOLCANO_PATH);
+    animation.SetAnimation("HIT");
+    setTexture(TEXTURES.LoadTextureFromFile("resources/spells/volcano_hit.png"));
     break;
   default:
     animation.SetAnimation("GREEN");
@@ -62,12 +68,12 @@ void ParticleImpact::OnSpawn(Battle::Tile& tile) {
   float height = GetHeight();
   float width = 10;
 
-  if (type == Type::VULCAN) {
+  if (type == Type::vulcan || type == Type::fire || type == Type::volcano) {
     // stay closer to the body
     height = GetHeight() / 2.0f;
   }
 
-  if (type == Type::THIN) {
+  if (type == Type::thin) {
     width = 0; // TODO: make this an adjustable property like Set/Get Height
   }
 

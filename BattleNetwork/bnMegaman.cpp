@@ -5,6 +5,7 @@
 #include "bnFireBurnCardAction.h"
 #include "bnTornadoCardAction.h"
 #include "bnLightningCardAction.h"
+#include "bnTomahawkSwingCardAction.h"
 #include "bnCardAction.h"
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
@@ -63,7 +64,6 @@ CardAction* Megaman::OnExecuteSpecialAction() {
 
 TenguCross::TenguCross()
 {
-  parentAnim = nullptr;
   loaded = false;
 }
 
@@ -92,6 +92,7 @@ void TenguCross::OnActivate(Player& player)
   OnUpdate(0, player);
 
   player.AddNode(overlay);
+  player.SetAirShoe(true);
 
   parentAnim->AddToOverrideList(&overlayAnimation);
 }
@@ -135,7 +136,6 @@ CardAction* TenguCross::OnSpecialAction(Player& player)
 
 HeatCross::HeatCross()
 {
-  parentAnim = nullptr;
   loaded = false;
 }
 
@@ -213,7 +213,6 @@ CardAction* HeatCross::OnSpecialAction(Player& player)
 
 TomahawkCross::TomahawkCross()
 {
-  parentAnim = nullptr;
   loaded = false;
 }
 
@@ -243,8 +242,6 @@ void TomahawkCross::OnActivate(Player& player)
   player.AddNode(overlay);
 
   parentAnim->AddToOverrideList(&overlayAnimation);
-  player.SetAirShoe(true);
-
 }
 
 void TomahawkCross::OnDeactivate(Player & player)
@@ -274,7 +271,7 @@ void TomahawkCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
 {
-  return new CrackShotCardAction(&player, 30);
+  return new TomahawkSwingCardAction(player);
 }
 
 CardAction* TomahawkCross::OnSpecialAction(Player& player)
@@ -349,7 +346,6 @@ void TenguCross::SpecialAction::OnAnimationEnd()
 
 ElecCross::ElecCross()
 {
-  parentAnim = nullptr;
   loaded = false;
 }
 

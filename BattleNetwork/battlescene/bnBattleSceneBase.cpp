@@ -40,7 +40,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
   heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
-  distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
   
   cardListener(props.player),
   // cap of 8 cards, 8 cards drawn per turn
@@ -121,12 +120,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   cards = nullptr;
   cardCount = 0;
 
-  // PAUSE
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  pauseLabel = new sf::Text("paused", *font);
-  pauseLabel->setOrigin(pauseLabel->getLocalBounds().width / 2, pauseLabel->getLocalBounds().height * 2);
-  pauseLabel->setPosition(sf::Vector2f(240.f, 160.f));
-
   // Load forms
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
 
@@ -146,15 +139,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   whiteShader.setUniform("opacity", 0.5f);
   whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
 
-  // Heat distortion effect
-  distortionMap.setRepeated(true);
-  distortionMap.setSmooth(true);
-
   textureSize = getController().getVirtualWindowSize();
-
-  heatShader.setUniform("texture", sf::Shader::CurrentTexture);
-  heatShader.setUniform("distortionMapTexture", distortionMap);
-  heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
 
   iceShader.setUniform("texture", sf::Shader::CurrentTexture);
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
@@ -553,31 +538,47 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   auto uis = std::vector<UIComponent*>();
 
   auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
-  
+  auto viewOffset = ENGINE.GetViewOffset();
+
   for (Battle::Tile* tile : allTiles) {
     if (tile->IsEdgeTile()) continue;
 
+    if (tile->IsHighlighted() && !this->IsCleared()) {
+      tile->SetShader(&yellowShader);
+    }
+    else {
+      tile->RevokeShader();
+    }
+
+    tile->move(viewOffset);
     ENGINE.Draw(tile);
+    tile->move(-viewOffset);
   }
 
   for (Battle::Tile* tile : allTiles) {
     auto allEntities = tile->FindEntities([](Entity* ent) { return true; });
-    std::sort(allEntities.begin(), allEntities.end(), [](Entity* A, Entity* B) { return A->GetLayer() > B->GetLayer(); });
 
     for (Entity* ent : allEntities) {
       auto uic = ent->GetComponentsDerivedFrom<UIComponent>();
+      uis.insert(uis.begin(), uic.begin(), uic.end());
+    }
 
-      if (!uic.empty()) {
-        uis.insert(uis.begin(), uic.begin(), uic.end());
-      }
+    auto nodes = tile->GetChildNodes();
+    nodes.insert(nodes.end(), allEntities.begin(), allEntities.end());
+    std::sort(nodes.begin(), nodes.end(), [](SceneNode* A, SceneNode* B) { return A->GetLayer() > B->GetLayer(); });
 
-      ENGINE.Draw(ent);
+    for (SceneNode* node : nodes) {
+      node->move(viewOffset);
+      ENGINE.Draw(node);
+      node->move(-viewOffset);
     }
   }
 
   // draw ui on top
   for (UIComponent* ui : uis) {
+    ui->move(viewOffset);
     ENGINE.Draw(ui);
+    ui->move(-viewOffset);
   }
 
   // Draw whatever extra state stuff we want to have

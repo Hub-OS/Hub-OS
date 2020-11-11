@@ -12,6 +12,7 @@
 
 #include "bnPlayer.h"
 #include "bnExplosion.h"
+#include "bnVolcanoErupt.h"
 
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -68,6 +69,10 @@ namespace Battle {
       if (!isBattleOver) {
         this->volcanoErupt.SetFrame(1, this->volcanoSprite.getSprite()); // start over
         volcanoEruptTimer = seconds;
+        
+        if (field && state == TileState::volcano) {
+          field->AddEntity(*new VolcanoErupt(field), *this);
+        }
       }
       else {
         RemoveNode(&volcanoSprite);
@@ -82,8 +87,8 @@ namespace Battle {
     }
 
     // On anim end, reset the timer
-    volcanoErupt << "DEFAULT" << Animator::Mode::Loop << [this, resetVolcanoThunk]() {
-      resetVolcanoThunk(1);
+    volcanoErupt << "FLICKER" << Animator::Mode::Loop << [this, resetVolcanoThunk]() {
+      resetVolcanoThunk(1+0.645);
     };
 
     volcanoSprite.setTexture(TEXTURES.LoadTextureFromFile("resources/tiles/volcano.png"));

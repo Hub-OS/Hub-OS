@@ -72,7 +72,6 @@ private:
   bool didCounterHit{ false }; /*!< Flag if player countered an enemy this frame */
   bool isSceneInFocus{ false }; //<! Let us know if transition effects complete
   bool isPlayerDeleted{ false };
-  bool isPaused{ false };
   bool highlightTiles{ true };
   bool backdropAffectBG{ false };
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
@@ -98,8 +97,6 @@ private:
   Player* player{ nullptr }; /*!< Pointer to player's selected character */
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
   Background* background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
-  sf::Text* pauseLabel{ nullptr }; /*!< "PAUSE" text */
-  std::shared_ptr<sf::Font> font; /*!< PAUSE font */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   std::shared_ptr<sf::Font> mobFont; /*!< Name of mob font */
   std::vector<SceneNode*> scenenodes; /*!< Scene node system */
@@ -129,7 +126,6 @@ private:
   sf::Shader& heatShader; /*!< Heat waves and red hue */
   sf::Shader& iceShader; /*!< Reflection in the ice */
   sf::Shader& backdropShader;
-  sf::Texture& distortionMap; /*!< Distortion effect pixel sample source */
   sf::Vector2u textureSize; /*!< Size of distorton effect */
 
   enum class backdrop : int {

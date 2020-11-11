@@ -11,12 +11,13 @@ enum class Type : int;
 class ParticleImpact : public Artifact {
 public:
   enum class Type : int {
-    GREEN,
-    BLUE,
-    YELLOW,
-    FIRE,
-    THIN,
-    VULCAN
+    green,
+    blue,
+    yellow,
+    fire,
+    thin,
+    vulcan,
+    volcano
   };
 
   /**

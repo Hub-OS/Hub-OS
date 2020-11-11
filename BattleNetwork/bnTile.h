@@ -289,7 +289,7 @@ namespace Battle {
 
     float width;
     float height;
-    Field* field;
+    Field* field{ nullptr };
     float teamCooldown;
 
     std::shared_ptr<sf::Texture> red_team_atlas;

@@ -110,7 +110,7 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     formCursorAnimator << Animator::Mode::Loop;
 
     formSelectQuitTimer = 0.f; // used to time out the activation
-    selectedFormIndex = selectedFormRow = -1;
+    selectedFormIndex = selectedFormRow = lockedInFormIndex = -1;
 
     formItemBG.setTexture(*LOAD_TEXTURE(CUST_FORM_ITEM_BG));
     formItemBG.setScale(2.f, 2.f);
