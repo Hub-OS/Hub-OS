@@ -204,8 +204,11 @@ void AlphaArm::OnUpdate(float _elapsed) {
 }
 
 void AlphaArm::OnDelete() {
-  auto fx = new MobMoveEffect(GetField());
-  GetField()->AddEntity(*fx, *GetTile());
+  if (GetTile()) {
+    auto fx = new MobMoveEffect(GetField());
+    GetField()->AddEntity(*fx, *GetTile());
+  }
+
   Remove();
 }
 

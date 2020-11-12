@@ -50,13 +50,14 @@ void FireBurnCardAction::Execute() {
     auto props = fb->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
     fb->SetHitboxProperties(props);
+    fb->CrackTiles(crackTiles);
 
     // update node position in the animation
     auto baseOffset = CalculatePointOffset("buster");
 
     baseOffset *= 2.0f;
 
-    fb->SetHeight(baseOffset.y);
+    fb->SetHeight(-baseOffset.y);
 
     int dir = team == Team::red ? 1 : -1;
 
@@ -67,6 +68,11 @@ void FireBurnCardAction::Execute() {
   AddAnimAction(2, [onFire]() { onFire(0); });
   AddAnimAction(4, [onFire]() { onFire(1); });
   AddAnimAction(6, [onFire]() { onFire(2); });
+}
+
+void FireBurnCardAction::CrackTiles(bool state)
+{
+  crackTiles = state;
 }
 
 void FireBurnCardAction::OnUpdate(float _elapsed)

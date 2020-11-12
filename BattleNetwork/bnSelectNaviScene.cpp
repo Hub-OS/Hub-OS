@@ -403,5 +403,6 @@ void SelectNaviScene::onUpdate(double elapsed) {
     AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
     prevChosen = currentChosen;
     naviSelectionIndex = currentChosen;
+    WEBCLIENT.SetKey("SelectedNavi", std::to_string(naviSelectionIndex));
   }
 }

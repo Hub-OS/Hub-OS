@@ -1,12 +1,13 @@
 #pragma once
+#include <assert.h>
 #include "../bnComponent.h"
-#include "bnNetworkBattleScene.h"
+#include "battlescene/bnNetworkBattleScene.h"
 
 class PlayerInputReplicator final : public Component {
   NetworkBattleScene* nbs{ nullptr };
 
 public:
-  PlayerInputReplicator(Entity* owner) : Component(owner) {
+  PlayerInputReplicator(Entity* owner) : Component(owner, Component::lifetimes::battlestep) {
 
   }
 
@@ -15,26 +16,39 @@ public:
 
   void OnUpdate(float) override { }
 
-  NetPlayFlags& GetNetPlayFlags() { return nbs->remoteState; }
+  NetPlayFlags& GetNetPlayFlags() { 
+    assert(nbs && "Component must be injected into NetworkBattleScene");
+    return nbs->remoteState; 
+  }
 
   void SendShootSignal() {
+    assert(nbs && "Component must be injected into NetworkBattleScene");
+
     nbs->sendShootSignal();
   }
 
   void SendChargeSignal(const bool state) {
+    assert(nbs && "Component must be injected into NetworkBattleScene");
+
     nbs->sendChargeSignal(state);
   }
 
   void SendUseSpecialSignal() {
+    assert(nbs && "Component must be injected into NetworkBattleScene");
+
     nbs->sendUseSpecialSignal();
   }
 
   void SendMoveSignal(Direction dir) {
+    assert(nbs && "Component must be injected into NetworkBattleScene");
+
     if (dir == Direction::none) return;
     nbs->sendMoveSignal(dir);
   }
 
   void SendTileSignal(const int x, const int y) {
+    assert(nbs && "Component must be injected into NetworkBattleScene");
+
     nbs->sendTileCoordSignal(x, y);
   }
 

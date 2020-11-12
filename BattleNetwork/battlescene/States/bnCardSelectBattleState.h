@@ -25,13 +25,14 @@ class CardSelectBattleState final : public BattleSceneState {
   double heldCardSelectInputCooldown; /*!< When holding the directional inputs, when does the sticky key effect trigger*/
   double cardSelectInputCooldown; /*!< Time remaining with delayed input */
 
+  bool pvpMode{ false };
   bool hasCombo{ false }; 
   bool formSelected{ false };
   int currForm{ -1 };
   int cardCount{ 0 }; /*!< Length of card list */
   float streamVolume{ -1.f };
-  std::vector<Player*> tracked;
-  std::vector<std::shared_ptr<TrackedFormData>> forms;
+  std::vector<Player*>& tracked;
+  std::vector<std::shared_ptr<TrackedFormData>>& forms;
   std::shared_ptr<sf::Font> font;
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   Battle::Card** cards; /*!< List of Card* the user selects from the card cust */
@@ -45,8 +46,10 @@ public:
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
   void onEnd(const BattleSceneState* next) override;
+  void EnablePVPMode();
   bool OKIsPressed();
   bool HasForm();
   const bool HasCombo();
-  CardSelectBattleState(std::vector<Player*> tracked, std::vector<std::shared_ptr<TrackedFormData>> forms);
+  void ResetSelectedForm();
+  CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms);
 };

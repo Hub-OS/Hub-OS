@@ -236,7 +236,7 @@ void Bees::OnUpdate(float _elapsed) {
         this->madeContact = true; // we hit something!
 
         AUDIO.Play(AudioType::HURT, AudioPriority::high);
-        auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
+        auto fx = new ParticleImpact(ParticleImpact::Type::green);
         entity->GetField()->AddEntity(*fx, *entity->GetTile());
         fx->SetHeight(entity->GetHeight());
         });

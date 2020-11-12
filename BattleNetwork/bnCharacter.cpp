@@ -9,6 +9,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnAnimationComponent.h"
 #include "bnShakingEffect.h"
+#include "bnBubbleTrap.h"
 #include <Swoosh/Ease.h>
 
 void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
@@ -91,6 +92,8 @@ CardAction* Character::DequeueAction()
 }
 
 void Character::Update(float _elapsed) {
+  hit = false; // reset our hit flag
+
   ResolveFrameBattleDamage();
 
   // normal color every start frame
@@ -101,41 +104,38 @@ void Character::Update(float _elapsed) {
   double prevThisFrameStun = stunCooldown;
 
   if (!hit) {
-      if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
-          SetShader(stun);
+    if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
+      SetShader(stun);
+    }
+    else if(GetHealth() > 0) {
+      SetShader(nullptr);
+
+      counterFrameFlag = ((int)(++counterFrameFlag) % 5);
+
+      if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag != 0) {
+        // Highlight when the character can be countered
+        setColor(sf::Color(55, 55, 255, getColor().a));
+
+        // TODO: how to interop with new shaders like pallete swap?
+        SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
       }
-      else if(GetHealth() > 0) {
-          SetShader(nullptr);
+    }
 
-          counterFrameFlag = ((int)(++counterFrameFlag) % 5);
-
-          if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag != 0) {
-            // Highlight when the character can be countered
-            setColor(sf::Color(55, 55, 255, getColor().a));
-
-            // TODO: how to interop with new shaders like pallete swap?
-            SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
-          }
+    if (invincibilityCooldown > 0) {
+      // This just blinks every 15 frames
+      if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
+        Hide();
+      }
+      else {
+        Reveal();
       }
 
-      if (invincibilityCooldown > 0) {
-          // This just blinks every 15 frames
-          if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
-            Hide();
-          }
-          else {
-            Reveal();
-          }
+      invincibilityCooldown -= _elapsed;
 
-          invincibilityCooldown -= _elapsed;
-
-          if (invincibilityCooldown <= 0) {
-            Reveal();
-          }
+      if (invincibilityCooldown <= 0) {
+        Reveal();
       }
-  }
-  else {
-      SetShader(whiteout);
+    }
   }
 
   if(stunCooldown > 0.0 && !IsTimeFrozen()) {
@@ -165,16 +165,18 @@ void Character::Update(float _elapsed) {
 
   setPosition(getPosition() + shakeOffset);
 
-  hit = false;
+  if (hit) {
+    SetShader(whiteout);
+  }
 
   // Ensure health is zero if marked for immediate deletion
   if (health <= 0 || IsDeleted()) {
-      health = 0;
+    health = 0;
   }
 
   // Ensure entity is deleted if health is zero
   if (health == 0) {
-      Delete();
+    Delete();
   }
 
   // If drag status is over, reset the flag
@@ -215,13 +217,9 @@ const bool Character::Hit(Hit::Properties props) {
   // double the damage independently from tile damage
   bool isSuperEffective = IsSuperEffective(props.element);
 
-  // Show ! super effective symbol on the field
+  // super effective damage is x2
   if (isSuperEffective) {
     props.damage *= 2;
-
-    Artifact *seSymbol = new ElementalDamage(field);
-    seSymbol->SetLayer(-100);
-    field->AddEntity(*seSymbol, tile->GetX(), tile->GetY());
   }
 
   SetHealth(GetHealth() - props.damage);
@@ -275,6 +273,14 @@ void Character::ResolveFrameBattleDamage()
     Hit::Properties& props = statusQueue.front();
     statusQueue.pop();
 
+    // a re-usable thunk for custom status effects
+    auto flagCheckThunk = [props, this](const Hit::Flags& toCheck) {
+      if ((props.flags & toCheck) == toCheck) {
+        auto func = statusCallbackHash[toCheck];
+        func ? func() : (void(0));
+      }
+    };
+
     int tileDamage = 0;
 
     // Calculate elemental damage if the tile the character is on is super effective to it
@@ -302,8 +308,7 @@ void Character::ResolveFrameBattleDamage()
           frameCounterAggressor = props.aggressor;
         }
 
-        auto func = statusCallbackHash[Hit::impact];
-        func? func() : (void(0));
+        flagCheckThunk(Hit::impact);
       }
 
       // Requeue drag if already sliding by drag or in the middle of a move
@@ -320,8 +325,7 @@ void Character::ResolveFrameBattleDamage()
           frameCounterAggressor = nullptr;
         }
 
-        auto func = statusCallbackHash[Hit::drag];
-        func ? func() : (void(0));
+        flagCheckThunk(Hit::drag);
 
         // exclude this from the next processing step
         props.drag = Direction::none;
@@ -358,8 +362,7 @@ void Character::ResolveFrameBattleDamage()
             stunCooldown = 3.0;
           }
 
-          auto func = statusCallbackHash[Hit::stun];
-          func ? func() : (void(0));
+          flagCheckThunk(Hit::stun);
         }
       }
 
@@ -374,8 +377,7 @@ void Character::ResolveFrameBattleDamage()
         else {
           invincibilityCooldown = 2.0; // used as a `flinch` status timer
 
-          auto func = statusCallbackHash[Hit::flinch];
-          func ? func() : (void(0));
+          flagCheckThunk(Hit::flinch);
         }
       }
 
@@ -386,20 +388,19 @@ void Character::ResolveFrameBattleDamage()
       if ((props.flags & Hit::retangible) == Hit::retangible) {
         invincibilityCooldown = 0.0;
 
-        auto func = statusCallbackHash[Hit::retangible];
-        func ? func() : (void(0));
+        flagCheckThunk(Hit::retangible);
       }
 
       // exclude this from the next processing step
       props.flags &= ~Hit::retangible;
 
-      // a re-usable thunk for the next step
-      auto flagCheckThunk = [props, this](const Hit::Flags& toCheck) {
-        if ((props.flags & toCheck) == toCheck) {
-          auto func = statusCallbackHash[toCheck];
-          func ? func() : (void(0));
-        }
-      };
+      if ((props.flags & Hit::bubble) == Hit::bubble) {
+        CreateComponent<BubbleTrap>(this);
+        flagCheckThunk(Hit::bubble);
+      }
+
+      // exclude this from the next processing step 
+      props.flags &= ~Hit::bubble;
 
       /*
       flags already accounted for:
@@ -426,6 +427,8 @@ void Character::ResolveFrameBattleDamage()
         if (GetHealth() == 0) {
           postDragDir = Direction::none; // Cancel slide post-status if blowing up
         }
+        this->OnUpdate(0);
+        HitPublisher::Broadcast(*this, props);
       }
     }
   } // end while-loop
@@ -460,10 +463,10 @@ void Character::ResolveFrameBattleDamage()
     if(frameCounterAggressor) {
       // Slide entity back a few pixels
       counterSlideOffset = sf::Vector2f(50.f, 0.0f);
-      Broadcast(*this, *frameCounterAggressor);
+      CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
     }
   } else if (frameCounterAggressor) {
-    Broadcast(*this, *frameCounterAggressor);
+    CounterHitPublisher::Broadcast(*this, *frameCounterAggressor);
     ToggleCounter(false);
     Stun(2.5); // 150 frames @ 60 fps = 2.5 seconds
   }

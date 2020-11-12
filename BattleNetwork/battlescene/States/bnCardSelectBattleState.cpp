@@ -12,7 +12,7 @@
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
 
-CardSelectBattleState::CardSelectBattleState(std::vector<Player*> tracked, std::vector<std::shared_ptr<TrackedFormData>> forms)
+CardSelectBattleState::CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms)
   : tracked(tracked), forms(forms) {
   // Selection input delays
   heldCardSelectInputCooldown = 0.35f; // 21 frames @ 60fps = 0.35 second
@@ -212,6 +212,9 @@ void CardSelectBattleState::onUpdate(double elapsed)
           AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
 
           // Should probably have a cardCust.IsInFormSelect() to flag this but it works as it is...
+          // This was really annoying to debug so here's a note:
+          // There should be a query for the cardcust if we selected a form, but instead we just set this to true
+          // and then call CheckFormChanges() to manage changing form selections or not.
           formSelected = true;
         }
         else {
@@ -291,6 +294,11 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 void CardSelectBattleState::onEnd(const BattleSceneState*)
 { }
 
+void CardSelectBattleState::EnablePVPMode()
+{
+  pvpMode = true;
+}
+
 bool CardSelectBattleState::OKIsPressed() {
   // CardGUI goes out of view when OK is pressed
   // wait for that animation to end before triggering the next state
@@ -299,10 +307,16 @@ bool CardSelectBattleState::OKIsPressed() {
 
 bool CardSelectBattleState::HasForm()
 {
-  return OKIsPressed() && formSelected;
+  return formSelected;
 }
 
 const bool CardSelectBattleState::HasCombo()
 {
-    return OKIsPressed() && hasCombo;
+  return OKIsPressed() && hasCombo;
+}
+
+void CardSelectBattleState::ResetSelectedForm()
+{
+  currForm = -1;
+  GetScene().GetCardSelectWidget().ResetPlayerFormSelection();
 }

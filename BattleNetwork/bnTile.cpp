@@ -12,6 +12,7 @@
 
 #include "bnPlayer.h"
 #include "bnExplosion.h"
+#include "bnVolcanoErupt.h"
 
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -30,7 +31,9 @@ namespace Battle {
   float Tile::teamCooldownLength = COOLDOWN;
   float Tile::flickerTeamCooldownLength = FLICKER;
 
-  Tile::Tile(int _x, int _y) : animation() {
+  Tile::Tile(int _x, int _y) : 
+    SpriteProxyNode(),
+    animation() {
     totalElapsed = 0;
     x = _x;
     y = _y;
@@ -59,6 +62,42 @@ namespace Battle {
     elapsedBurnTime = burncycle;
 
     highlightMode = Highlight::none;
+
+    volcanoErupt = Animation("resources/tiles/volcano.animation");
+
+    auto resetVolcanoThunk = [this](int seconds) {
+      if (!isBattleOver) {
+        this->volcanoErupt.SetFrame(1, this->volcanoSprite.getSprite()); // start over
+        volcanoEruptTimer = seconds;
+        
+        if (field && state == TileState::volcano) {
+          field->AddEntity(*new VolcanoErupt(field), *this);
+        }
+      }
+      else {
+        RemoveNode(&volcanoSprite);
+      }
+    };
+
+    if (team == Team::blue) {
+      resetVolcanoThunk(1); // blue goes first
+    }
+    else {
+      resetVolcanoThunk(2); // then red
+    }
+
+    // On anim end, reset the timer
+    volcanoErupt << "FLICKER" << Animator::Mode::Loop << [this, resetVolcanoThunk]() {
+      resetVolcanoThunk(2);
+    };
+
+    volcanoSprite.setTexture(TEXTURES.LoadTextureFromFile("resources/tiles/volcano.png"));
+    volcanoSprite.SetLayer(-1); // in front of tile
+
+    volcanoErupt.Refresh(volcanoSprite.getSprite());
+
+    // debugging, I'll make the tiles transparent
+    // setColor(sf::Color(255, 255, 255, 100));
   }
 
   Tile& Tile::operator=(const Tile & other)
@@ -83,6 +122,7 @@ namespace Battle {
     entities = other.entities;
     isTimeFrozen = other.isTimeFrozen;
     isBattleOver = other.isBattleOver;
+    isBattleStarted = other.isBattleStarted;
     brokenCooldown = other.brokenCooldown;
     teamCooldown = other.teamCooldown;
     flickerTeamCooldown = other.flickerTeamCooldown;
@@ -92,6 +132,14 @@ namespace Battle {
     burncycle = other.burncycle;
     elapsedBurnTime = other.elapsedBurnTime;
     highlightMode = other.highlightMode;
+
+    volcanoErupt = other.volcanoErupt;
+    volcanoEruptTimer = other.volcanoEruptTimer;
+
+    volcanoSprite.setTexture(other.volcanoSprite.getTexture());
+    volcanoSprite.SetLayer(-1); // in front of tile
+
+    volcanoErupt.Refresh(volcanoSprite.getSprite());
 
     return *this;
   }
@@ -99,35 +147,7 @@ namespace Battle {
 
   Tile::Tile(const Tile & other)
   {
-    x = other.x;
-    y = other.y;
-
-    totalElapsed = other.totalElapsed;
-    team = other.team;
-    state = other.state;
-    RefreshTexture();
-    entities = other.entities;
-    setScale(2.f, 2.f);
-    width = other.width;
-    height = other.height;
-    animState = other.animState;
-    setPosition(((x - 1) * width) + START_X, ((y - 1) * (height - Y_OFFSET)) + START_Y);
-    willHighlight = other.willHighlight;
-    isTimeFrozen = other.isTimeFrozen;
-    isBattleOver = other.isBattleOver;
-    reserved = other.reserved;
-    characters = other.characters;
-    spells = other.spells;
-    entities = other.entities;
-    brokenCooldown = other.brokenCooldown;
-    teamCooldown = other.teamCooldown;
-    flickerTeamCooldown = other.flickerTeamCooldown;
-    red_team_atlas = other.red_team_atlas;
-    blue_team_atlas = other.blue_team_atlas;
-    animation = other.animation;
-    burncycle = other.burncycle;
-    elapsedBurnTime = other.elapsedBurnTime;
-    highlightMode = other.highlightMode;
+    *this = other;
   }
 
   Tile::~Tile() {
@@ -214,6 +234,13 @@ namespace Battle {
       return;
     }
 
+    if (_state == TileState::volcano) {
+      AddNode(&volcanoSprite);
+    }
+    else {
+      RemoveNode(&volcanoSprite);
+    }
+
     state = _state;
   }
 
@@ -243,10 +270,10 @@ namespace Battle {
     }
 
     if (currTeam == Team::red) {
-      setTexture(*red_team_atlas);
+      setTexture(red_team_atlas);
     }
     else {
-      setTexture(*blue_team_atlas);
+      setTexture(blue_team_atlas);
     }
 
     if (prevAnimState != animState) {
@@ -315,7 +342,7 @@ namespace Battle {
     }
   }
 
-  // Aux function
+  // Aux function that all AddX() functions call
   void Tile::AddEntity(Entity* _entity) {
     _entity->SetTile(this);
 
@@ -407,9 +434,19 @@ namespace Battle {
     willHighlight = false;
     totalElapsed += _elapsed;
 
-    if (!isTimeFrozen) {
+    if (!isTimeFrozen && isBattleStarted) {
         // LAVA TILES
         elapsedBurnTime -= _elapsed;
+
+        // VOLCANO 
+        volcanoEruptTimer -= _elapsed;
+
+        if (volcanoEruptTimer <= 0) {
+          volcanoErupt.Update(_elapsed, volcanoSprite.getSprite());
+        }
+
+        // set the offset to be at center origin
+        volcanoSprite.setPosition(sf::Vector2f(TILE_WIDTH/2.f, 0));
     }
 
     CleanupEntities();
@@ -448,7 +485,7 @@ namespace Battle {
     RefreshTexture();
 
     animation.SyncTime(totalElapsed);
-    animation.Refresh(*this);
+    animation.Refresh(this->getSprite());
 
     switch (highlightMode) {
     case Highlight::solid:
@@ -478,6 +515,7 @@ namespace Battle {
     for (auto&& entity : entities) {
       entity->ToggleTimeFreeze(isTimeFrozen);
     }
+    willHighlight = false;
   }
 
   void Tile::BattleStart()
@@ -486,6 +524,7 @@ namespace Battle {
         e->OnBattleStart();
     }
     isBattleOver = false;
+    isBattleStarted = true;
   }
 
   void Tile::BattleStop() {
@@ -614,6 +653,11 @@ namespace Battle {
     }
 
     return res;
+  }
+
+  int Tile::Distance(Battle::Tile& other)
+  {
+      return std::abs(other.GetX() - GetX()) + std::abs(other.GetY() - GetY());
   }
 
   std::string Tile::GetAnimState(const TileState state)

@@ -37,8 +37,6 @@ CardAction::CardAction(Character& user, const std::string& animation)
 
       this->animationIsOver = false;
       anim->OnUpdate(0);
-      OnUpdate(0); // position to owner...
-
     };
   }
 }
@@ -65,7 +63,7 @@ void CardAction::AddAnimAction(int frame, const FrameCallback& action) {
 sf::Vector2f CardAction::CalculatePointOffset(const std::string& point) {
   assert(this->anim && "Character must have an animation component");
 
-  return  this->anim->GetPoint("origin") - this->anim->GetPoint(point);
+  return  this->anim->GetPoint(point) - this->anim->GetPoint("origin");
 }
 
 void CardAction::RecallPreviousState()
@@ -119,7 +117,6 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
 
       this->animationIsOver = false;
       anim->OnUpdate(0);
-      OnUpdate(0); // position to owner...
     };
   }
 }
@@ -131,6 +128,8 @@ void CardAction::OnExecute()
   started = true;
   // run
   Execute();
+  // Position any new nodes to owner
+  OnUpdate(0);
 }
 
 CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
@@ -212,6 +211,10 @@ void CardAction::FreeAttachedNodes() {
   }
 
   attachments.clear();
+
+  // some animation callbacks will expect to have some attachments,
+  // erase the animation callbacks
+  this->anim->CancelCallbacks();
 }
 
 const ActionLockoutGroup CardAction::GetLockoutGroup() const

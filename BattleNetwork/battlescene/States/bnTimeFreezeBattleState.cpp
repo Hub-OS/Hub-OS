@@ -5,6 +5,12 @@
 #include "../../bnCardAction.h"
 #include "../../bnCharacter.h"
 
+TimeFreezeBattleState::TimeFreezeBattleState()
+{
+  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+  lockedTimestamp = lockedTimestamp = std::numeric_limits<long long>::max();
+}
+
 const bool TimeFreezeBattleState::FadeInBackdrop()
 {
   return GetScene().FadeInBackdrop(backdropInc, 0.5, true);
@@ -15,20 +21,13 @@ const bool TimeFreezeBattleState::FadeOutBackdrop()
   return GetScene().FadeOutBackdrop(backdropInc);
 }
 
-TimeFreezeBattleState::TimeFreezeBattleState()
-{
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-}
-
 void TimeFreezeBattleState::onStart(const BattleSceneState*)
 {
-
   GetScene().GetSelectedCardsUI().Hide();
   GetScene().GetField()->ToggleTimeFreeze(true); // freeze everything on the field but accept hits
   summonTimer.reset();
   summonTimer.pause(); // if returning to this state, make sure the timer is not ticking at first
   currState = state::fadein;
-  action = nullptr;
 }
 
 void TimeFreezeBattleState::onEnd(const BattleSceneState*)
@@ -36,6 +35,8 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
   GetScene().GetSelectedCardsUI().Reveal();
   GetScene().GetField()->ToggleTimeFreeze(false);
   GetScene().HighlightTiles(false);
+  action = nullptr;
+  user = nullptr;
 }
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
@@ -72,6 +73,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
       else{
         currState = state::fadeout;
         user->ToggleTimeFreeze(true); // in case the user was animating
+        lockedTimestamp = std::numeric_limits<long long>::max();
       }
       GetScene().GetField()->Update(elapsed);
     }
@@ -132,7 +134,10 @@ bool TimeFreezeBattleState::IsOver() {
 
 void TimeFreezeBattleState::OnCardUse(Battle::Card& card, Character& user, long long timestamp)
 {
-  this->name = card.GetShortName();
-  this->team = user.GetTeam();
-  this->user = &user;
+  if (card.IsTimeFreeze() && timestamp < lockedTimestamp) {
+    this->name = card.GetShortName();
+    this->team = user.GetTeam();
+    this->user = &user;
+    lockedTimestamp = timestamp;
+  }
 }

@@ -153,7 +153,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
       callbackIter = callbacks.begin();
 
       // step through and execute any callbacks that haven't triggerd up to this frame
-      while (callbacksAreValid && callbackIter != callbackFind && callbackFind != callbacks.end()) {
+      while (callbacksAreValid && callbacks.size() && callbackIter != callbackFind && callbackFind != callbacks.end()) {
         if (callbackIter->second) {
           callbackIter->second();
         }
@@ -172,7 +172,7 @@ void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequen
       }
 
       // If callbacks are ok and the iterator matches the expected frame
-      if (callbacksAreValid && callbackIter == callbackFind && callbackFind != callbacks.end()) {
+      if (callbacksAreValid && callbacks.size() && callbackIter == callbackFind && callbackFind != callbacks.end()) {
         if (callbackIter->second) {
           callbackIter->second();
         }

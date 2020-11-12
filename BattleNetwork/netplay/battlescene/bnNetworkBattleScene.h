@@ -4,36 +4,37 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Timer.h>
 
-#include "../bnMobHealthUI.h"
-#include "../bnCounterHitListener.h"
-#include "../bnCharacterDeleteListener.h"
-#include "../bnBackground.h"
-#include "../bnLanBackground.h"
-#include "../bnGraveyardBackground.h"
-#include "../bnVirusBackground.h"
-#include "../bnCamera.h"
-#include "../bnInputManager.h"
-#include "../bnCardSelectionCust.h"
-#include "../bnCardFolder.h"
-#include "../bnShaderResourceManager.h"
-#include "../bnPA.h"
-#include "../bnEngine.h"
-#include "../bnSceneNode.h"
-#include "../bnBattleResults.h"
-#include "../battlescene/bnBattleSceneBase.h"
-#include "../bnMob.h"
-#include "../bnField.h"
-#include "../bnPlayer.h"
-#include "../bnSelectedCardsUI.h"
-#include "../bnPlayerCardUseListener.h"
-#include "../bnEnemyCardUseListener.h"
-#include "../bnCounterHitListener.h"
-#include "../bnCharacterDeleteListener.h"
-#include "../bnNaviRegistration.h"
+#include "../../bnMobHealthUI.h"
+#include "../../bnCounterHitListener.h"
+#include "../../bnCharacterDeleteListener.h"
+#include "../../bnBackground.h"
+#include "../../bnLanBackground.h"
+#include "../../bnGraveyardBackground.h"
+#include "../../bnVirusBackground.h"
+#include "../../bnCamera.h"
+#include "../../bnInputManager.h"
+#include "../../bnCardSelectionCust.h"
+#include "../../bnCardFolder.h"
+#include "../../bnShaderResourceManager.h"
+#include "../../bnPA.h"
+#include "../../bnEngine.h"
+#include "../../bnSceneNode.h"
+#include "../../bnBattleResults.h"
+#include "../../battlescene/bnBattleSceneBase.h"
+#include "../../bnMob.h"
+#include "../../bnField.h"
+#include "../../bnPlayer.h"
+#include "../../bnSelectedCardsUI.h"
+#include "../../bnPlayerCardUseListener.h"
+#include "../../bnEnemyCardUseListener.h"
+#include "../../bnCounterHitListener.h"
+#include "../../bnCharacterDeleteListener.h"
+#include "../../bnNaviRegistration.h"
+#include "../../battlescene/States/bnCharacterTransformBattleState.h"
 
-#include "bnNetPlayFlags.h"
-#include "bnNetPlayConfig.h"
-#include "bnNetPlaySignals.h"
+#include "../bnNetPlayFlags.h"
+#include "../bnNetPlayConfig.h"
+#include "../bnNetPlaySignals.h"
 
 #include <time.h>
 #include <typeinfo>
@@ -47,11 +48,13 @@ using sf::Clock;
 using sf::Event;
 using sf::Font;
 
+struct CombatBattleState;
+struct TimeFreezeBattleState;
+
 class Mob;
 class Player;
 class PlayerHealthUI;
-
-class NetworkCardUseListener; // declared bottom of file
+class NetworkCardUseListener; 
 
 struct NetworkBattleSceneProps {
   BattleSceneBaseProps base;
@@ -63,19 +66,22 @@ private:
   friend class NetworkCardUseListener;
   friend class PlayerInputReplicator;
 
-  NetworkCardUseListener* networkCardUseListener;
-  Player* remotePlayer{ nullptr };
+  int clientPrevHP{ 1 }; //!< we will send HP signals only when this changes
+  bool handshakeComplete{ false }; //!< Establish a connection with remote player
+  bool isClientReady{ false }; //!< Signal when the client is ready to begin the round
+  SelectedNavi selectedNavi; //!< the type of navi we selected
+  NetworkCardUseListener* networkCardUseListener{ nullptr };
   CardUsePublisher* remoteCardUsePublisher{ nullptr };
   PlayerCardUseListener* remoteCardUseListener{ nullptr };
-  NetPlayFlags remoteState;
-  Animation remoteShineAnimation;
-  sf::Sprite remoteShine;
-  bool isClientReady{ false };
+  NetPlayFlags remoteState; //!< remote state flags to ensure stability
   Poco::Net::DatagramSocket client; //!< us
-  SelectedNavi selectedNavi; //!< the type of navi we selected
-  Poco::Net::SocketAddress remoteAddress;
-  int clientPrevHP{ 1 }; //!< we will send HP signals only when it changes
-  bool handshakeComplete{ false };
+  Poco::Net::SocketAddress remoteAddress; //!< them
+  Player* remotePlayer{ nullptr }; //!< their player pawn
+  Mob* mob{ nullptr }; //!< Our managed mob structure for PVP
+  std::vector<Player*> players; //!< Track all players
+  std::vector<std::shared_ptr<TrackedFormData>> trackedForms;
+  CombatBattleState* combatPtr{ nullptr };
+  TimeFreezeBattleState* timeFreezePtr{ nullptr };
 
   void sendHandshakeSignal(); // sent until we recieve a handshake
   void sendShootSignal();
@@ -108,6 +114,7 @@ private:
 public:
   using BattleSceneBase::ProcessNewestComponents;
 
+  void OnHit(Character& victim, const Hit::Properties& props) override final;
   void onUpdate(double elapsed) override final;
   void onDraw(sf::RenderTexture& surface) override final;
   void onExit() override;
@@ -116,6 +123,9 @@ public:
   void onEnd() override;
 
   void Inject(PlayerInputReplicator& pub);
+
+  const NetPlayFlags& GetRemoteStateFlags();
+
 
   /**
    * @brief Construct scene with selected player, generated mob data, and the folder to use

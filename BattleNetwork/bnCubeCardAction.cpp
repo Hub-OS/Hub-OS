@@ -10,7 +10,7 @@ CubeCardAction::CubeCardAction(Character* owner) :
 void CubeCardAction::Execute() {
   auto owner = GetOwner();
   
-  auto* cube = new Cube(GetOwner()->GetField(), GetOwner()->GetTeam());
+  auto* cube = new Cube(GetOwner()->GetField());
 
   GetOwner()->GetField()->AddEntity(*cube, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 

@@ -30,6 +30,7 @@ Field::Field(int _width, int _height)
       tile->animation = a;
       tile->blue_team_atlas = t_a_b;
       tile->red_team_atlas = t_a_r;
+      tile->useParentShader = true;
       row.push_back(tile);
     }
     tiles.push_back(row);

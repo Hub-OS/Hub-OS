@@ -13,31 +13,46 @@
 
 const std::string RESOURCE_PATH = "resources/mobs/mettaur/mettaur.animation";
 
-Mettaur::Mettaur(Rank _rank)
-  :  AI<Mettaur>(this), 
+Mettaur::Mettaur(Rank _rank) :  
+  AI<Mettaur>(this), 
   TurnOrderTrait<Mettaur>(), 
   Character(_rank) {
   name = "Mettaur";
   SetTeam(Team::blue);
 
   animation = CreateComponent<AnimationComponent>(this);
-  animation->SetPath(RESOURCE_PATH);
-  animation->Reload();
 
-  if (GetRank() == Rank::SP) {
+  if (GetRank() == Rank::_2) {
+    SetHealth(80);
+    setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/mettaur/mettaur2.png"));
+  }
+  else if (GetRank() == Rank::_3) {
+    SetHealth(120);
+    setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/mettaur/mettaur3.png"));
+  } else if (GetRank() == Rank::SP) {
     SetHealth(200);
-    animation->SetPlaybackSpeed(1.2);
-    animation->SetAnimation("SP_IDLE");
+    setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/mettaur/mettaur4.png"));
+  }
+  else if (GetRank() == Rank::Rare1) {
+    SetHealth(300);
+    setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/mettaur/mettaur5.png"));
+  }
+  else if (GetRank() == Rank::Rare2) {
+    SetHealth(500);
+    setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/mettaur/mettaur6.png"));
   }
   else {
-    SetHealth(5);
-    //Components setup and load
-    animation->SetAnimation("IDLE");
+    // Rank 1
+    SetHealth(40);
+    setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/mettaur/mettaur.png"));
   }
 
-  hitHeight = 60;
+  //Components setup and load
+  animation->SetPath(RESOURCE_PATH);
+  animation->Reload();
+  animation->SetAnimation("IDLE");
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_METTAUR));
+  hitHeight = 60;
 
   setScale(2.f, 2.f);
 

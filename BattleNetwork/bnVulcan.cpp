@@ -57,7 +57,7 @@ void Vulcan::OnDelete()
 void Vulcan::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     AUDIO.Play(AudioType::HURT);
-    auto impact = new ParticleImpact(ParticleImpact::Type::VULCAN);
+    auto impact = new ParticleImpact(ParticleImpact::Type::vulcan);
     impact->SetHeight(_entity->GetHeight());
     field->AddEntity(*impact, *_entity->GetTile());
 
@@ -66,10 +66,6 @@ void Vulcan::Attack(Character* _entity) {
     auto next = GetField()->GetAt(tile->GetX() + 1, tile->GetY());
 
     if (next) {
-      impact = new ParticleImpact(ParticleImpact::Type::THIN);
-
-      field->AddEntity(*impact, *next);
-
       Spell* hitbox = new Hitbox(field, GetTeam(), 0);
       hitbox->SetHitboxProperties(GetHitboxProperties());
       field->AddEntity(*hitbox, *next);

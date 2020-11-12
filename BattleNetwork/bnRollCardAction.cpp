@@ -2,6 +2,7 @@
 #include "bnCharacter.h"
 #include "bnSpriteProxyNode.h"
 #include "bnRollHeal.h"
+#include "bnRollHeart.h"
 
 RollCardAction::RollCardAction(Character* owner, int damage) :
   CardAction(*owner, "PLAYER_IDLE"), damage(damage)
@@ -19,19 +20,30 @@ void RollCardAction::Execute() {
   GetOwner()->GetField()->AddEntity(*roll, GetOwner()->GetTile()->GetX(), GetOwner()->GetTile()->GetY());
 
   // step 1 wait for her animation to end
-  CardAction::Step step;
+  CardAction::Step step1;
 
-  step.updateFunc = [roll](double elapsed, Step& self) {
+  step1.updateFunc = [roll](double elapsed, Step& self) {
     if (roll->WillRemoveLater()) {
       self.markDone();
     }
   };
 
-  AddStep(step);
+  AddStep(step1);
 
   // step 2 spawn the heart
+  CardAction::Step step2;
 
-  // step 3 heal players
+  step2.updateFunc = [this](double elapsed, Step& self) {
+    if (!heart) {
+      heart = new RollHeart(this->GetOwner(), damage * 3);
+      this->GetOwner()->GetField()->AddEntity(*heart, *this->GetOwner()->GetTile());
+    }
+    else if (heart->WillRemoveLater()) {
+      self.markDone();
+    }
+  };
+
+  AddStep(step2);
 
   // when steps are over, animation sequence is over and the card ends
 }

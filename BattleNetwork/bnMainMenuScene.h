@@ -2,6 +2,7 @@
 #include <Swoosh/Activity.h>
 
 #include "bnFolderScene.h"
+#include "bnMenuWidget.h"
 #include "bnOverworldMap.h"
 #include "bnInfiniteMap.h"
 #include "bnSelectNaviScene.h"
@@ -31,19 +32,15 @@ private:
   // Selection input delays
   double maxSelectInputCooldown; /*!< Maximum delay */
   double selectInputCooldown; /*!< timer to allow key presses again */
+  bool extendedHold{ false };
 
-  // ui sprite maps
-  SpriteProxyNode ui; /*!< UI loaded as a texture atlas */
-  Animation uiAnimator; /*!< Use animator to represent the different UI buttons */
+  // menu widget
+  MenuWidget menuWidget;
 
   SpriteProxyNode webAccountIcon; /*!< Status icon if connected to web server*/
   Animation webAccountAnimator; /*!< Use animator to represent different statuses */
   bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
 
-  int menuSelectionIndex;; /*!< Current selection */
-  int lastMenuSelectionIndex;
-
-  SpriteProxyNode overlay; /*!< PET */
   SpriteProxyNode ow;
 
   Background* bg; /*!< Background image pointer */
@@ -61,6 +58,13 @@ private:
 
   std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
 
+  void RefreshNaviSprite();
+
+  /**
+  * @brief Equip a folder for the navi that was last used when playing as them
+  */
+  void NaviEquipSelectedFolder();
+
 #ifdef __ANDROID__
 void StartupTouchControls();
 void ShutdownTouchControls();
@@ -73,6 +77,11 @@ public:
    */
   MainMenuScene(swoosh::ActivityController&, bool guestAccount);
   
+  /**
+  * @brief deconstructor
+  */
+  ~MainMenuScene() { ; }
+
   /**
    * @brief Checks input events and listens for select buttons. Segues to new screens.
    * @param elapsed in seconds
@@ -115,8 +124,13 @@ public:
    */
   void onEnd();
   
-  /**
-   * @brief deconstructor
-   */
-  virtual ~MainMenuScene() { ; }
+  //
+  // Menu selection callbacks
+  //
+
+  void GotoChipFolder();
+  void GotoNaviSelect();
+  void GotoConfig();
+  void GotoMobSelect();
+  void GotoPVP();
 };

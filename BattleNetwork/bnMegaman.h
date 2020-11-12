@@ -27,13 +27,13 @@ public:
 
 private:
   bool loaded;
-  AnimationComponent* parentAnim;
+  AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
-  SpriteProxyNode* overlay;
+  SpriteProxyNode* overlay{ nullptr };
 
   class SpecialAction : public CardAction {
     sf::Sprite overlay;
-    SpriteProxyNode* attachment;
+    SpriteProxyNode* attachment{ nullptr };
     Animation attachmentAnim;
 
   public:
@@ -61,10 +61,12 @@ public:
   CardAction* OnSpecialAction(Player&);
 private:
   bool loaded;
-  AnimationComponent* parentAnim;
+  AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
-  SpriteProxyNode* overlay;
+  SpriteProxyNode* overlay{ nullptr };
 };
+
+class DefenseRule; // forward declare
 
 class TomahawkCross : public PlayerForm {
 public:
@@ -76,10 +78,11 @@ public:
   CardAction* OnChargedBusterAction(Player&);
   CardAction* OnSpecialAction(Player&);
 private:
+  DefenseRule* statusGuard{ nullptr };
   bool loaded;
-  AnimationComponent* parentAnim;
+  AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
-  SpriteProxyNode* overlay;
+  SpriteProxyNode* overlay{ nullptr };
 };
 
 class ElecCross : public PlayerForm {
@@ -93,7 +96,7 @@ public:
   CardAction* OnSpecialAction(Player&);
 private:
   bool loaded;
-  AnimationComponent* parentAnim;
+  AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
-  SpriteProxyNode* overlay;
+  SpriteProxyNode* overlay{ nullptr };
 };

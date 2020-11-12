@@ -33,7 +33,7 @@ struct CombatBattleState final : public BattleSceneState, public CardUseListener
   SpriteProxyNode customBar;
   sf::Shader& customBarShader; /*!< Cust gauge shaders */
   sf::Shader& pauseShader; /*!< Dim screen */
-  std::vector<Player*> tracked;
+  std::vector<Player*>& tracked;
   std::vector<const BattleSceneState*> subcombatStates;
   const bool HasTimeFreeze() const;
   const bool PlayerWon() const;
@@ -47,5 +47,5 @@ struct CombatBattleState final : public BattleSceneState, public CardUseListener
   void OnCardUse(Battle::Card& card, Character& user, long long timestamp) override;
   const bool HandleNextRoundSetup(const BattleSceneState* state);
 
-  CombatBattleState(Mob* mob, std::vector<Player*> tracked, double customDuration);
+  CombatBattleState(Mob* mob, std::vector<Player*>& tracked, double customDuration);
 };

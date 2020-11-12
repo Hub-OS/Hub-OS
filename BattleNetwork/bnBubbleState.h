@@ -38,6 +38,7 @@ public:
 template<typename Any>
 BubbleState<Any>::BubbleState()
   : progress(0), prevFloatShoe(false), AIState<Any>() {
+  PriorityLock();
 }
 
 template<typename Any>
@@ -49,16 +50,15 @@ template<typename Any>
 void BubbleState<Any>::OnEnter(Any& e) {
   prevFloatShoe = e.HasFloatShoe(); // Hack: bubble would be otherwise pushed by moving tiles
   e.SetFloatShoe(true);
-  e.PriorityLock(); // prevent any other state from interrupting this 
 }
 
 template<typename Any>
 void BubbleState<Any>::OnUpdate(float _elapsed, Any& e) {
   // Check if bubbletrap is removed from entity
   if (e.template GetFirstComponent<BubbleTrap>() == nullptr) {
-    e.PriorityUnlock();
     e.template ChangeState<typename Any::DefaultState>();
     e.SetFloatShoe(prevFloatShoe);
+    PriorityUnlock();
   }
 
   sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));

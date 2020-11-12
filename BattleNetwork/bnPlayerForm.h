@@ -7,6 +7,7 @@ class Player;
 class CardAction;
 
 class PlayerForm {
+  bool elementalDecross{ true };
 public:
   PlayerForm() = default;
   virtual ~PlayerForm() { ; }
@@ -15,17 +16,19 @@ public:
   virtual void OnUpdate(float elapsed, Player&) = 0;
   virtual CardAction* OnChargedBusterAction(Player&) = 0;
   virtual CardAction* OnSpecialAction(Player&) = 0;
+  void SetElementalDecross(bool state) { elementalDecross = state; }
+  const bool WillElementalHitDecross() const { return elementalDecross; }
 };
 
 class PlayerFormMeta {
 private:
-  int index;
-  PlayerForm* form;
+  size_t index{};
+  PlayerForm* form{ nullptr };
   std::function<void()> loadFormClass; /*!< Deffered form loading. Only load form class when needed */
   std::string path;
 
 public:
-  PlayerFormMeta(int index);
+  PlayerFormMeta(size_t index);
 
   template<class T> PlayerFormMeta& SetFormClass();
 
@@ -36,6 +39,8 @@ public:
   void ActivateForm(Player& player);
 
   PlayerForm* BuildForm();
+
+  const size_t GetFormIndex() const;
 };
 
 /**

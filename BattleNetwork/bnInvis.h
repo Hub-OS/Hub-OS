@@ -20,6 +20,8 @@ public:
    */
   Invis(Entity* owner);
 
+  ~Invis();
+
   /**
    * @brief When under time, set opacity to 50% and pasthrough. Otherwise, restore character.
    * @param _elapsed in seconds

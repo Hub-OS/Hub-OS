@@ -13,13 +13,10 @@
 
 #define RESOURCE_PATH "resources/navis/megaman/megaman.animation"
 
-Player::Player()
-  :
+Player::Player() :
   state(PLAYER_IDLE),
   chargeEffect(this),
   AI<Player>(this),
-  formSize(0),
-  forms{ 0 },
   Character(Rank::_1)
 {
   ChangeState<PlayerIdleState>();
@@ -35,8 +32,6 @@ Player::Player()
 
   SetLayer(0);
   team = Team::red;
-
-  hitCount = 0;
 
   setScale(2.0f, 2.0f);
 
@@ -55,6 +50,12 @@ Player::Player()
   };
 
   this->RegisterStatusCallback(Hit::recoil, Callback<void()>{ recoil });
+
+  auto bubbleState = [this]() {
+    ChangeState<BubbleState<Player>>();
+  };
+
+  this->RegisterStatusCallback(Hit::bubble, Callback<void()>{ bubbleState});
 }
 
 Player::~Player() {
@@ -63,12 +64,6 @@ Player::~Player() {
 void Player::OnUpdate(float _elapsed) {
   if (GetTile() != nullptr) {
     setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
-  }
-
-
-  // TODO: is there a way to have custom states and respond to them?
-  if (GetFirstComponent<BubbleTrap>()) {
-    ChangeState<BubbleState<Player>>();
   }
 
   AI<Player>::Update(_elapsed);
@@ -118,18 +113,9 @@ const float Player::GetHeight() const
   return 101.0f;
 }
 
-void Player::OnHit() {
-  hitCount++;
-}
-
 int Player::GetMoveCount() const
 {
   return Entity::GetMoveCount();
-}
-
-int Player::GetHitCount() const
-{
-  return hitCount;
 }
 
 void Player::SetCharging(bool state)
@@ -187,6 +173,8 @@ CardAction* Player::ExecuteSpecial()
 
 void Player::ActivateFormAt(int index)
 {
+  index = index - 1; // base 1 to base 0
+
   if (activeForm) {
     activeForm->OnDeactivate(*this);
     delete activeForm;
@@ -210,11 +198,16 @@ void Player::DeactivateForm()
   }
 }
 
+const bool Player::IsInForm() const
+{
+  return (this->activeForm != nullptr);
+}
+
 const std::vector<PlayerFormMeta*> Player::GetForms()
 {
   auto res = std::vector<PlayerFormMeta*>();
 
-  for (int i = 0; i < formSize; i++) {
+  for (int i = 0; i < forms.size(); i++) {
     res.push_back(forms[i]);
   }
 
@@ -223,8 +216,7 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
 
 bool Player::RegisterForm(PlayerFormMeta * info)
 {
-  if (formSize >= forms.size() || !info) return false;
-
-  forms[formSize++] = info;
+  if (forms.size() >= Player::MAX_FORM_SIZE || !info) return false;
+  forms.push_back(info);
   return true;
 }

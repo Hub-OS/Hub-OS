@@ -1,7 +1,7 @@
 #include "bnSceneNode.h"
 
 SceneNode::SceneNode() :
-show(true), layer(0), useParentShader(false), parent(nullptr), childNodes() {
+show(true), layer(0), parent(nullptr), childNodes() {
 }
 
 SceneNode::~SceneNode() {
@@ -57,6 +57,10 @@ void SceneNode::RemoveNode(SceneNode* find) {
   if (find == nullptr) return;
 
   auto iter = std::remove_if(childNodes.begin(), childNodes.end(), [find](SceneNode *in) { return in == find; }); 
+
+  if (iter != childNodes.end()) {
+    (*iter)->parent = nullptr;
+  }
 
   childNodes.erase(iter, childNodes.end());
 }

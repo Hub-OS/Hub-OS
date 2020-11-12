@@ -86,6 +86,7 @@ void PlayerNetworkState::OnUpdate(float _elapsed, Player& player) {
   }
 
   if (player.GetFirstComponent<AnimationComponent>()->GetAnimationString() != PLAYER_IDLE || player.IsSliding()) return;
+
   if (player.PlayerControllerSlideEnabled()) {
     player.SlideToTile(true);
   }

@@ -23,11 +23,14 @@ void MobIntroBattleState::onUpdate(double elapsed)
       cast->SetTarget(player);
     }
 
-    data->mob->ToggleTimeFreeze(false);
-    GetScene().GetField()->AddEntity(*data->mob, data->tileX, data->tileY);
+    Character* enemy = data->mob;
 
-    // Listen for counters
-    GetScene().CounterHitListener::Subscribe(*data->mob);
+    enemy->ToggleTimeFreeze(false);
+    GetScene().GetField()->AddEntity(*enemy, data->tileX, data->tileY);
+
+    // Listen for events
+    GetScene().CounterHitListener::Subscribe(*enemy);
+    GetScene().HitListener::Subscribe(*enemy);
   }
 
   GetScene().GetField()->Update((float)elapsed);

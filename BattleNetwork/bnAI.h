@@ -20,12 +20,11 @@
 template<typename CharacterT>
 class AI : public Agent {
 private:
-  AIState<CharacterT>* stateMachine; /*!< State machine responsible for state management */
-  CharacterT* ref; /*!< AI of this instance */
-  bool isUpdating; /*!< Safely ignore any extra Update() requests */
-  AIState<CharacterT>* queuedState;
-  int priorityLevel; 
-  bool priorityLocked;
+  AIState<CharacterT>* stateMachine{ nullptr }; /*!< State machine responsible for state management */
+  AIState<CharacterT>* queuedState{ nullptr }; /*!< State due to change to in the next update */
+  CharacterT* ref{ nullptr }; /*!< AI of this instance */
+  bool isUpdating{ false }; /*!< Safely ignore any extra Update() requests */
+  int priorityLevel{std::numeric_limits<int>::max()};
 public:
   // Used for SFINAE events that require characters with AI
   using IsUsingAI = CharacterT;
@@ -38,7 +37,6 @@ public:
     stateMachine = queuedState = nullptr; 
     ref = _ref;
     isUpdating = false;
-    priorityLocked = false;
     priorityLevel = 999;
   }
   
@@ -53,14 +51,6 @@ public:
     ChangeState<DefaultState>();
   }
 
-  void PriorityLock() {
-    priorityLocked = true;
-  }
-
-  void PriorityUnlock() {
-    priorityLocked = false;
-  }
-
   /**
    * @brief Change to state U. No arguments.
    */
@@ -68,9 +58,17 @@ public:
   void ChangeState() {
     bool change = true;
 
-    if (priorityLocked) {
+    if (stateMachine && stateMachine->locked) {
       if (priorityLevel > U::PriorityLevel) {
-        PriorityUnlock();
+        stateMachine->PriorityUnlock();
+      }
+      else {
+        change = false;
+      }
+    }
+    else if (queuedState && queuedState->locked) {
+      if (priorityLevel > U::PriorityLevel) {
+        queuedState->PriorityUnlock();
       }
       else {
         change = false;
@@ -94,9 +92,17 @@ template<typename U, typename ...Args>
   void ChangeState(Args&&... args) {
     bool change = true;
 
-    if (priorityLocked) {
+    if (stateMachine && stateMachine->locked) {
       if (priorityLevel > U::PriorityLevel) {
-        PriorityUnlock();
+        stateMachine->PriorityUnlock();
+      }
+      else {
+        change = false;
+      }
+    }
+    else if (queuedState && queuedState->locked) {
+      if (priorityLevel > U::PriorityLevel) {
+        queuedState->PriorityUnlock();
       }
       else {
         change = false;

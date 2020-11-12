@@ -155,6 +155,7 @@ private:
   double totalTimeElapsed;
   double frameElapsed;
  
+  bool extendedHold{ false }; //!< If held for a 2nd pass, scroll quickly
   bool canInteract;
 
 #ifdef __ANDROID__

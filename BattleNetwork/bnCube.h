@@ -19,7 +19,7 @@ using sf::Texture;
  */
 class Cube : public Obstacle, public InstanceCountingTrait<Cube> {
 public:
-  Cube(Field* _field, Team _team);
+  Cube(Field* _field);
   ~Cube();
 
   /**

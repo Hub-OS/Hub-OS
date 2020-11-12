@@ -8,9 +8,9 @@
 #define PATH "resources/spells/spell_vulcan.png"
 #define ANIM "resources/spells/spell_vulcan.animation"
 
-#define FRAME1 { 1, 0.05 }
-#define FRAME2 { 2, 0.05 }
-#define FRAME3 { 3, 0.05 }
+#define FRAME1 { 1, 0.1 }
+#define FRAME2 { 2, 0.1 }
+#define FRAME3 { 3, 0.1 }
 
 // TODO: check frame-by-frame anim
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1

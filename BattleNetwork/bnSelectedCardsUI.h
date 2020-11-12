@@ -65,17 +65,17 @@ public:
   void SetMultiplier(unsigned mult);
 
 private:
-  float elapsed; /*!< Used by draw function, delta time since last update frame */
-  Battle::Card** selectedCards; /*!< Current list of cards. */
-  int cardCount; /*!< Size of list */
-  int curr; /*!< Card cursor index */
+  float elapsed{}; /*!< Used by draw function, delta time since last update frame */
+  Battle::Card** selectedCards{ nullptr }; /*!< Current list of cards. */
+  int cardCount{}; /*!< Size of list */
+  int curr{}; /*!< Card cursor index */
   unsigned multiplierValue{ 1 };
-  mutable double interpolTimeFlat; /*!< Interpolation time for spread cards */
-  mutable double interpolTimeDest; /*!< Interpolation time for default card stack */
-  bool spread; /*!< If true, spread the cards, otherwise stack like the game */
-  mutable bool firstFrame; /*!< If true, this UI graphic is being drawn for the first time*/
+  mutable double interpolTimeFlat{}; /*!< Interpolation time for spread cards */
+  mutable double interpolTimeDest{}; /*!< Interpolation time for default card stack */
+  bool spread{ false }; /*!< If true, spread the cards, otherwise stack like the game */
+  mutable bool firstFrame{ true }; /*!< If true, this UI graphic is being drawn for the first time*/
   sf::Time interpolDur; /*!< Max duration for interpolation 0.2 seconds */
-  Player* player; /*!< Player this component is attached to */
+  Player* player{ nullptr }; /*!< Player this component is attached to */
   std::shared_ptr<Font> font; /*!< Card name font */
   mutable Text text; /*!< Text displays card name */
   mutable Text multiplier;

@@ -164,6 +164,9 @@ void WebClientManager::SaveSession(const std::string& outpath)
 {
   std::ofstream out(outpath, std::ios::binary);
   if (out.is_open()) {
+    // Save version number
+    out.write(version, version_len);
+
     // last API fetch
     out.write((char*)&account.lastFetchTimestamp, sizeof(long long));
 
@@ -171,6 +174,19 @@ void WebClientManager::SaveSession(const std::string& outpath)
     size_t username_len = this->username.size();
     out.write((char*)&username_len, sizeof(size_t));
     out.write((char*)this->username.c_str(), this->username.size());
+
+    // Key-Values
+    size_t hash_len = keys.size();
+    out.write((char*)&hash_len, sizeof(size_t));
+    for (auto&& pair : keys) {
+      size_t key_len = pair.first.size();
+      out.write((char*)&key_len, sizeof(size_t));
+      out.write(pair.first.c_str(), key_len);
+
+      size_t value_len = pair.second.size();
+      out.write((char*)&value_len, sizeof(size_t));
+      out.write(pair.second.c_str(), value_len);
+    }
 
     // Card Image Data from Texture Cache
     size_t textureCacheLen = this->cardTextureCache.size();
@@ -376,21 +392,75 @@ void WebClientManager::SaveSession(const std::string& outpath)
   }
 }
 
+void WebClientManager::SetKey(const std::string& key, const std::string& value)
+{
+  auto iter = keys.find(key);
+
+  if (iter != keys.end()) {
+    keys[key] = value;
+  }
+  else {
+    keys.insert(std::make_pair(key, value));
+  }
+}
+
+const std::string WebClientManager::GetValue(const std::string& key)
+{
+  std::string res;
+
+  auto iter = keys.find(key);
+  if (iter != keys.end()) {
+    res = iter->second;
+  }
+
+  return res;
+}
+
 const bool WebClientManager::LoadSession(const std::string& inpath, WebAccounts::AccountState* accountPtr)
 {
   WebAccounts::AccountState& account = *accountPtr;
 
   std::ifstream in(inpath, std::ios::binary);
   if (in.is_open()) {
+    // Re-use this local buffer for the entire load method
+    char buffer[1024] = { 0 };
+
+    // Read version 
+    in.read(buffer, version_len);
+    std::string versionStr{ buffer, version_len };
+    std::string selfVersionStr{ version, version_len };
+
+    // If the version string does not match, abort
+    if(versionStr != selfVersionStr) {
+      return false;
+    }
+
     // last API fetch
     in.read((char*)&account.lastFetchTimestamp, sizeof(long long));
 
     // username
-    char buffer[1024] = { 0 };
     size_t username_len = 0;
     in.read((char*)&username_len, sizeof(size_t));
     in.read(buffer, username_len);
     this->username = std::string(buffer, username_len);
+
+    // Key-Values
+    size_t hash_len = 0;
+    in.read((char*)&hash_len, sizeof(size_t));
+
+    while (hash_len-- > 0) {
+      size_t key_len = 0;
+      in.read((char*)&key_len, sizeof(size_t));
+      in.read(buffer, key_len);
+      std::string key{ buffer, key_len };
+
+      size_t value_len = 0;
+      in.read((char*)&value_len, sizeof(size_t));
+      in.read(buffer, value_len);
+      std::string value{ buffer, value_len };
+
+      keys.insert(std::make_pair(key, value));
+    }
 
     // Card Image Data from Texture Cache
     size_t textureCacheLen = 0;
@@ -699,6 +769,14 @@ WebClientManager::WebClientManager() {
 
     tasksThread = std::thread(&WebClientManager::QueuedTasksThreadHandler, this);
     tasksThread.detach();
+
+    version = new char[version_len] {0};
+    std::strcpy(version, "ONB WEBCLIENT V2.0");
+}
+
+WebClientManager::~WebClientManager()
+{
+  delete[] version;
 }
 
 WebClientManager& WebClientManager::GetInstance() {

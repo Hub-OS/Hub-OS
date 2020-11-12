@@ -41,6 +41,7 @@ protected:
   PlayerFormMeta* AddForm();
 public:
   using DefaultState = PlayerControlledState;
+  static constexpr int MAX_FORM_SIZE = 5;
 
     /**
    * @brief Loads graphics and adds a charge component
@@ -66,11 +67,6 @@ public:
   void UseSpecial();
 
   /**
-   * @brief Describe what happens when a player gets hit. Can be overridden.
-   */
-  virtual void OnHit();
-
-  /**
    * @brief when player is deleted, changes state to delete state and hide charge component
    */
   virtual void OnDelete();
@@ -82,12 +78,7 @@ public:
    * @return int
    */
   int GetMoveCount() const;
-  
-  /**
-   * @brief Get how many times the player has been hit
-   * @return int
-   */
-  int GetHitCount() const;
+
 
   /**
    * @brief Toggles the charge component
@@ -115,22 +106,22 @@ public:
 
   void ActivateFormAt(int index); 
   void DeactivateForm();
+  const bool IsInForm() const;
+
   const std::vector<PlayerFormMeta*> GetForms();
 protected:
-  int hitCount; /*!< How many times the player has been hit. Used by score board. */
   string state; /*!< Animation state name */
   bool playerControllerSlide;
   AnimationComponent* animationComponent;
   ChargeEffectSceneNode chargeEffect; /*!< Handles charge effect */
 
-  std::array<PlayerFormMeta*, 5> forms;
-  int formSize;
-  PlayerForm* activeForm;
+  std::vector<PlayerFormMeta*> forms;
+  PlayerForm* activeForm{ nullptr };
 };
 
 template<typename T>
 PlayerFormMeta* Player::AddForm() {
-  PlayerFormMeta* info = new PlayerFormMeta(formSize+1);
+  PlayerFormMeta* info = new PlayerFormMeta(forms.size()+1);
   info->SetFormClass<T>();
   
   if (!RegisterForm(info)) {

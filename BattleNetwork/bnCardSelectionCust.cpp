@@ -6,9 +6,6 @@
 #include "bnCardLibrary.h"
 
 #define WILDCARD '*'
-#define VOIDED 0
-#define STAGED 1
-#define QUEUED 2
 
 CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) :
     perTurn(perTurn),
@@ -113,7 +110,7 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
     formCursorAnimator << Animator::Mode::Loop;
 
     formSelectQuitTimer = 0.f; // used to time out the activation
-    thisFrameSelectedForm = selectedForm = -1;
+    selectedFormIndex = selectedFormRow = lockedInFormIndex = -1;
 
     formItemBG.setTexture(*LOAD_TEXTURE(CUST_FORM_ITEM_BG));
     formItemBG.setScale(2.f, 2.f);
@@ -226,15 +223,26 @@ bool CardSelectionCust::CursorLeft() {
 
 bool CardSelectionCust::CursorAction() {
   if (isInFormSelect) {
-    thisFrameSelectedForm = formCursorRow;
+    selectedFormIndex = forms[formCursorRow]->GetFormIndex();
 
-    if (thisFrameSelectedForm == selectedForm) {
-      thisFrameSelectedForm = -1;
-      selectedForm = -1; // de-select the form
+    if (selectedFormRow != -1 && selectedFormIndex == forms[selectedFormRow]->GetFormIndex()) {
+      selectedFormRow = -1; // de-select the form
+
+      if (lockedInFormIndex == -1) {
+        currentFormItem = sf::Sprite();
+        selectedFormIndex = -1;
+      }
+      else {
+        selectedFormIndex = lockedInFormIndex;
+        currentFormItem = lockedInFormItem;
+      }
+
+      AUDIO.Play(AudioType::DEFORM);
     }
     else {
-      formSelectQuitTimer = 0.5f; // 0.5 * 60fps = 30 frames
-      selectedForm = thisFrameSelectedForm;
+      formSelectQuitTimer = frames(30).asSeconds();
+      selectedFormRow = formCursorRow;
+      currentFormItem = formUI[formCursorRow];
     }
     return true;
   }
@@ -251,16 +259,16 @@ bool CardSelectionCust::CursorAction() {
     // Does card exist
     if (cursorPos + (5 * cursorRow) < cardCount) {
       // Queue this card if not selected
-      if (queue[cursorPos + (5 * cursorRow)].state == STAGED) {
+      if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::staged) {
         selectQueue[selectCount++] = &queue[cursorPos + (5 * cursorRow)];
-        queue[cursorPos + (5 * cursorRow)].state = QUEUED;
+        queue[cursorPos + (5 * cursorRow)].state = Bucket::state::queued;
 
-        // We can only upload 5 cards to navi...
+        // We can only upload 5 cards to player...
         if (selectCount == 5) {
           for (int i = 0; i < cardCount; i++) {
-            if (queue[i].state == QUEUED) continue;
+            if (queue[i].state == Bucket::state::queued) continue;
 
-            queue[i].state = VOIDED;
+            queue[i].state = Bucket::state::voided;
           }
 
           emblem.CreateWireEffect();
@@ -274,13 +282,13 @@ bool CardSelectionCust::CursorAction() {
           bool isDark = card->GetClass() == Battle::CardClass::dark;
 
           for (int i = 0; i < cardCount; i++) {
-            if (i == cursorPos + (5 * cursorRow) || (queue[i].state == VOIDED) || queue[i].state == QUEUED) continue;
+            if (i == cursorPos + (5 * cursorRow) || (queue[i].state == Bucket::state::voided) || queue[i].state == Bucket::state::queued) continue;
             char otherCode = queue[i].data->GetCode();
             bool isOtherDark = queue[i].data->GetClass() == Battle::CardClass::dark;
             bool isSameCard = (queue[i].data->GetShortName() == queue[cursorPos + (5 * cursorRow)].data->GetShortName());
             bool canPair = (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard);
-            if (isOtherDark == isDark && canPair) { queue[i].state = STAGED; }
-            else { queue[i].state = VOIDED; }
+            if (isOtherDark == isDark && canPair) { queue[i].state = Bucket::state::staged; }
+            else { queue[i].state = Bucket::state::voided; }
           }
 
           emblem.CreateWireEffect();
@@ -307,12 +315,12 @@ bool CardSelectionCust::CursorCancel() {
     return false;// nothing happened
   }
 
-  selectQueue[--selectCount]->state = STAGED;
+  selectQueue[--selectCount]->state = Bucket::state::staged;
 
   if (selectCount == 0) {
     // Everything is selectable again
     for (int i = 0; i < cardCount; i++) {
-      queue[i].state = STAGED;
+      queue[i].state = Bucket::state::staged;
     }
 
     // This is also where beastout card would be removed from queue
@@ -334,17 +342,17 @@ bool CardSelectionCust::CursorCancel() {
 
     for (int j = 0; j < cardCount; j++) {
       if (i > 0) {
-        if (queue[j].state == VOIDED && code != queue[j].data->GetCode() - 1) continue; // already checked and not a PA sequence
+        if (queue[j].state == Bucket::state::voided && code != queue[j].data->GetCode() - 1) continue; // already checked and not a PA sequence
       }
 
-      if (queue[j].state == QUEUED) continue; // skip
+      if (queue[j].state == Bucket::state::queued) continue; // skip
 
       char otherCode = queue[j].data->GetCode();
 
       bool isSameCard = (queue[j].data->GetShortName() == selectQueue[i]->data->GetShortName());
 
-      if (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard) { queue[j].state = STAGED; }
-      else { queue[j].state = VOIDED; }
+      if (code == WILDCARD || otherCode == WILDCARD || otherCode == code || isSameCard) { queue[j].state = Bucket::state::staged; }
+      else { queue[j].state = Bucket::state::voided; }
     }
   }
 
@@ -494,7 +502,7 @@ void CardSelectionCust::GetNextCards() {
       // NOTE: IsCardValid() will be used for scripted cards again... for now disable the check
     } while (false /*!CHIPLIB.IsCardValid(*queue[i].data)*/);
 
-    queue[i].state = STAGED;
+    queue[i].state = Bucket::state::staged;
 
     cardCount++;
     perTurn--;
@@ -512,6 +520,31 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
     ui.setScale(2.f, 2.f);
     formUI.push_back(ui);
   }
+}
+
+void CardSelectionCust::ResetPlayerFormSelection()
+{
+  lockedInFormIndex = selectedFormIndex = -1;
+  lockedInFormItem = currentFormItem = sf::Sprite();
+}
+
+void CardSelectionCust::LockInPlayerFormSelection()
+{
+  lockedInFormIndex = selectedFormIndex;
+  lockedInFormItem = currentFormItem;
+}
+
+void CardSelectionCust::ErasePlayerFormOption(size_t index)
+{
+  for (int i = 0; i < this->forms.size() && this->formUI.size(); i++) {
+    if (this->forms[i]->GetFormIndex() == index) {
+      this->forms.erase(this->forms.begin() + i);
+      this->formUI.erase(this->formUI.begin() + i);
+    }
+  }
+
+  // reset the row selection pos but keep the form index selection active
+  selectedFormRow = -1;
 }
 
 void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states) const {
@@ -563,14 +596,14 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     icon.setTexture(WEBCLIENT.GetIconForCard(queue[i].data->GetUUID()));
     icon.SetShader(nullptr);
 
-    if (queue[i].state == 0) {
+    if (queue[i].state == Bucket::state::voided) {
       icon.SetShader(&greyscale);
       auto statesCopy = states;
         statesCopy.shader = &greyscale;
 
       target.draw(icon,statesCopy);
 
-    } else if (queue[i].state == 1) {
+    } else if (queue[i].state == Bucket::state::staged) {
       target.draw(icon, states);
     }
 
@@ -607,7 +640,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       cardCard.setPosition(sf::Vector2f(offset, 0) + cardCard.getPosition());
       cardCard.SetShader(nullptr);
 
-      if (!queue[cursorPos + (5 * cursorRow)].state) {
+      if (queue[cursorPos + (5 * cursorRow)].state == Bucket::state::voided) {
         cardCard.SetShader(&greyscale);
 
         auto statesCopy = states;
@@ -708,12 +741,12 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
         f.setPosition(offset + 16.f, 16.f + float(i*32.0f));
 
-        if (i != selectedForm && i != formCursorRow && selectedForm > -1) {
+        if (i != selectedFormRow && i != formCursorRow && selectedFormRow > -1) {
           auto greyscaleState = states;
           greyscaleState.shader = SHADERS.GetShader(ShaderType::GREYSCALE);
           target.draw(f, greyscaleState);
         }
-        else if (i == selectedForm && selectedForm > -1) {
+        else if (i == selectedFormRow && selectedFormRow > -1) {
           auto aquaMarineState = states;
           aquaMarineState.shader = SHADERS.GetShader(ShaderType::COLORIZE);
           f.setColor(sf::Color(127,255,212));
@@ -740,17 +773,17 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   SceneNode::draw(target, states);
 
   // Reveal the new form icon in the HUD after the flash
-  if (selectedForm != -1 && formSelectQuitTimer <= 1.f/6.f) {
-    auto f = formUI[selectedForm];
-    auto rect = f.getTextureRect();
-    f.setTextureRect(sf::IntRect(rect.left, rect.top, rect.width - 1, rect.height - 1));
-    f.setPosition(sf::Vector2f(4, 36.f));
-    target.draw(f, states);
-    f.setTextureRect(rect);
+  if (formSelectQuitTimer <= frames(10).asSeconds()) {
+    auto rect = currentFormItem.getTextureRect();
+    currentFormItem.setTextureRect(sf::IntRect(rect.left, rect.top, 30, 14));
+    currentFormItem.setPosition(sf::Vector2f(4, 36.f));
+    target.draw(currentFormItem, states);
+    currentFormItem.setTextureRect(rect);
   }
 
-  if (isInFormSelect && formSelectQuitTimer <= 2.f / 6.0f) {
-    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, 2.f / 6.f, 1.f);
+  // draw the white flash
+  if (isInFormSelect && formSelectQuitTimer <= frames(20).asSeconds()) {
+    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, (float)frames(20).asSeconds(), 1.f);
     auto view = ENGINE.GetView();
     sf::RectangleShape screen(view.getSize());
     screen.setFillColor(sf::Color(255, 255, 255, int(delta * 255.f)));
@@ -795,7 +828,7 @@ void CardSelectionCust::Update(float elapsed)
   formCursorAnimator.Update(elapsed, formCursor.getSprite());
   formSelectAnimator.Update(elapsed, formSelect.getSprite());
 
-  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items below
+  auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddNode() for all rendered items...
 
   formCursor.setPosition(offset + 16.f, 12.f + float(formCursorRow*32.f));
   formSelect.setPosition(offset + 88.f, 194.f);
@@ -809,9 +842,8 @@ void CardSelectionCust::Update(float elapsed)
       canInteract = true;
       isInFormSelect = false;
       playFormSound = false;
-      thisFrameSelectedForm = -1;
     }
-    else if (formSelectQuitTimer <= 1.f / 6.f) {
+    else if (formSelectQuitTimer <= frames(10).asSeconds()) {
       formSelectAnimator.SetAnimation("CLOSED");
       cursorPos = cursorRow = formCursorRow = 0;
       if (!playFormSound) {
@@ -930,7 +962,7 @@ void CardSelectionCust::ClearCards() {
   // Line up all non-null buckets consequtively
   // Reset bucket state to STAGED
   for (int i = 0; i < cardCount; i++) {
-    queue[i].state = STAGED;
+    queue[i].state = Bucket::state::staged;
     int next = i;
     while (!queue[i].data && next + 1 < cardCount) {
       queue[i].data = queue[next + 1].data;
@@ -949,12 +981,12 @@ const int CardSelectionCust::GetCardCount() {
 
 const int CardSelectionCust::GetSelectedFormIndex()
 {
-  return selectedForm;
+  return selectedFormIndex;
 }
 
 const bool CardSelectionCust::SelectedNewForm()
 {
-  return (thisFrameSelectedForm != -1);
+  return (selectedFormIndex != -1);
 }
 
 bool CardSelectionCust::CanInteract()
@@ -968,7 +1000,8 @@ void CardSelectionCust::ResetState() {
   cursorPos = formCursorRow = 0;
   areCardsReady = false;
   isInFormSelect = false;
-  thisFrameSelectedForm = -1;
+
+  selectedFormIndex = lockedInFormIndex;
 }
 
 bool CardSelectionCust::AreCardsReady() {

@@ -182,6 +182,18 @@ RenderWindow* Engine::GetWindow() const {
   return window;
 }
 
+void Engine::SetCommandLineValues(const cxxopts::ParseResult& values)
+{
+  commandline = values.arguments();
+
+  if (commandline.empty()) return;
+
+  Logger::Log("Command line args provided");
+  for (auto&& kv : commandline) {
+    Logger::Logf("%s : %s", kv.key().c_str(), kv.value().c_str());
+  }
+}
+
 Engine::Engine()
 {
 

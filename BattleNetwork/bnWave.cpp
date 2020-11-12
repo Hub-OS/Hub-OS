@@ -31,7 +31,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
         auto* wave = new Wave(GetField(), GetTeam(), Wave::speed);
         wave->SetDirection(dir);
         wave->SetHitboxProperties(GetHitboxProperties());
-
+        wave->CrackTiles(this->crackTiles);
         GetField()->AddEntity(*wave, nextTile->GetX(), nextTile->GetY());
     }
   };
@@ -63,8 +63,10 @@ void Wave::OnUpdate(float _elapsed) {
 
   setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y);
 
-  if (!IsDeleted()) {
-    GetTile()->AffectEntities(this);
+  GetTile()->AffectEntities(this);
+
+  if (crackTiles) {
+    GetTile()->SetState(TileState::cracked);
   }
 }
 
@@ -79,4 +81,9 @@ void Wave::Attack(Character* _entity) {
 void Wave::OnDelete()
 {
   Remove();
+}
+
+void Wave::CrackTiles(bool state)
+{
+  crackTiles = state;
 }

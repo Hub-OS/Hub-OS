@@ -21,16 +21,17 @@ public:
   };
 
 private:
+  size_t spawnIndex{}; /*!< Current character to spawn in the spawn loop*/
+  bool nextReady{ true }; /*!< Signal if mob is ready to spawn the next character */
+  bool isBoss{ false }; /*!< Flag to change rank and music */
+  std::string music; /*!< Override with custom music */
   std::vector<Component*> components; /*!< Components to inject into the battle scene */
   std::vector<MobData*> spawn; /*!< The enemies to spawn and manage */
-  std::vector<MobData*>::iterator iter; /*!< Mobdata iterator */
+  std::vector<Character*> tracked; /*! Enemies that are not spawned through the mob class but need to be considered */
   std::vector<std::function<void(Character*)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
   std::vector<std::function<void(Character*)>> pixelStateInvokers; /*!< Invoke the character's intro tate from the spawn policy */
   std::multimap<int, BattleItem> rewards; /*!< All possible rewards for this mob by rank */
-  bool nextReady{ true }; /*!< Signal if mob is ready to spawn the next character */
   Field* field{ nullptr }; /*!< The field to play on */
-  bool isBoss{ false }; /*!< Flag to change rank and music */
-  std::string music; /*!< Override with custom music */
   Background* background; /*!< Override with custom background */
 
 public:
@@ -81,6 +82,15 @@ public:
    */
   const int GetMobCount();
 
+  /**
+   * @brief removes a character from the mob list
+   * 
+   * When the list is empty, the mob has been cleared
+   * We wish to forget about them because the Field class
+   * handles deletion of entities that have spawned
+   * 
+   * @see Field
+   */
   void Forget(Character& character);
 
   /**
@@ -192,6 +202,8 @@ public:
    */
   template<class CustomSpawnPolicy>
   Mob* Spawn(int tileX, int tileY);
+
+  void Track(Character& character);
 };
 
 template<class CustomSpawnPolicy>
@@ -222,9 +234,7 @@ Mob* Mob::Spawn(int tileX, int tileY) {
 
   // Add the mob spawn data to our list of enemies to spawn
   spawn.push_back(data);
-
-  // Update the iterator so that its valid
-  iter = spawn.begin();
+  tracked.push_back(data->mob);
 
   // Return Mob* to chain
   return this;

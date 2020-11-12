@@ -1,5 +1,7 @@
 #include "bnBattleSceneBase.h"
 
+#include <assert.h>
+
 #include "../bnTextureResourceManager.h"
 #include "../bnShaderResourceManager.h"
 #include "../bnInputManager.h"
@@ -26,8 +28,8 @@ using swoosh::types::segue;
 using swoosh::Activity;
 using swoosh::ActivityController;
 
-BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) 
-  : Activity(&controller),
+BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) : 
+  Activity(&controller),
   player(&props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
@@ -38,7 +40,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
   heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
   iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
-  distortionMap(*TEXTURES.GetTexture(TextureType::HEAT_TEXTURE)),
   
   cardListener(props.player),
   // cap of 8 cards, 8 cards drawn per turn
@@ -119,12 +120,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   cards = nullptr;
   cardCount = 0;
 
-  // PAUSE
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  pauseLabel = new sf::Text("paused", *font);
-  pauseLabel->setOrigin(pauseLabel->getLocalBounds().width / 2, pauseLabel->getLocalBounds().height * 2);
-  pauseLabel->setPosition(sf::Vector2f(240.f, 160.f));
-
   // Load forms
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
 
@@ -144,15 +139,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   whiteShader.setUniform("opacity", 0.5f);
   whiteShader.setUniform("texture", sf::Shader::CurrentTexture);
 
-  // Heat distortion effect
-  distortionMap.setRepeated(true);
-  distortionMap.setSmooth(true);
-
   textureSize = getController().getVirtualWindowSize();
-
-  heatShader.setUniform("texture", sf::Shader::CurrentTexture);
-  heatShader.setUniform("distortionMapTexture", distortionMap);
-  heatShader.setUniform("textureSizeIn", sf::Glsl::Vec2((float)textureSize.x, (float)textureSize.y));
 
   iceShader.setUniform("texture", sf::Shader::CurrentTexture);
   iceShader.setUniform("sceneTexture", sf::Shader::CurrentTexture);
@@ -160,6 +147,11 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   iceShader.setUniform("shine", 0.2f);
 
   isSceneInFocus = false;
+
+  comboInfoTimer.start();
+  multiDeleteTimer.start();
+
+  HitListener::Subscribe(*player);
 
   setView(sf::Vector2u(480, 320));
 }
@@ -209,17 +201,19 @@ void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
     didCounterHit = true;
     comboInfoTimer.reset();
 
-    field->RevealCounterFrames(true);
+    if (player->IsInForm() == false) {
+      field->RevealCounterFrames(true);
 
-    // node positions are relative to the parent node's origin
-    auto bounds = player->getLocalBounds();
-    counterReveal.setPosition(0, -bounds.height / 4.0f);
-    player->AddNode(&counterReveal);
+      // node positions are relative to the parent node's origin
+      auto bounds = player->getLocalBounds();
+      counterReveal.setPosition(0, -bounds.height / 4.0f);
+      player->AddNode(&counterReveal);
 
-    cardUI->SetMultiplier(2);
+      cardUI->SetMultiplier(2);
 
-    // when players get hit by impact, battle scene takes back counter blessings
-    player->AddDefenseRule(counterCombatRule);
+      // when players get hit by impact, battle scene takes back counter blessings
+      player->AddDefenseRule(counterCombatRule);
+    }
   }
 }
 
@@ -397,11 +391,11 @@ void BattleSceneBase::onStart()
   isSceneInFocus = true;
 
   // Stream battle music
-  if (mob->HasCustomMusicPath()) {
+  if (mob && mob->HasCustomMusicPath()) {
     AUDIO.Stream(mob->GetCustomMusicPath(), true);
   }
   else {
-    if (!mob->IsBoss()) {
+    if (mob == nullptr || !mob->IsBoss()) {
       sf::Music::TimeSpan span;
       span.offset = sf::milliseconds(84);
       span.length = sf::seconds(120.0f * 1.20668f);
@@ -445,7 +439,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
   cardUI->OnUpdate((float)elapsed);
   cardCustGUI.Update((float)elapsed);
 
-  newMobSize = mob->GetMobCount();
+  newMobSize = mob? mob->GetMobCount() : 0;
 
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
     Quit(FadeOut::white);
@@ -512,6 +506,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
         current->onEnd(this->next);
         current = temp;
         current->onStart(this->last);
+        current->onUpdate(0);
         break;
       }
     }
@@ -542,178 +537,51 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.Draw(background);
 
-  auto ui = std::vector<UIComponent*>();
-
-  // First tile pass: draw the tiles
-  Battle::Tile* tile = nullptr;
+  auto uis = std::vector<UIComponent*>();
 
   auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
-  auto tilesIter = allTiles.begin();
+  auto viewOffset = ENGINE.GetViewOffset();
 
-  while (tilesIter != allTiles.end()) {
-    tile = (*tilesIter);
+  for (Battle::Tile* tile : allTiles) {
+    if (tile->IsEdgeTile()) continue;
 
-    // Skip edge tiles - they cannot be seen by players
-    if (tile->IsEdgeTile()) {
-      tilesIter++;
-      continue;
-    }
-
-    tile->move(ENGINE.GetViewOffset());
-
-    if (highlightTiles == false) {
-      // Draw without highlighting effects
-      ENGINE.Draw(tile);
+    if (tile->IsHighlighted() && !this->IsCleared()) {
+      tile->SetShader(&yellowShader);
     }
     else {
-      if (tile->IsHighlighted()) {
-        SpriteProxyNode coloredTile = SpriteProxyNode(*(sf::Sprite*)tile);
-        coloredTile.SetShader(&yellowShader);
-        ENGINE.Draw(coloredTile);
-      }
-      else {
-        ENGINE.Draw(tile);
-      }
+      tile->RevokeShader();
     }
 
-    tile->move(-ENGINE.GetViewOffset());
-    tilesIter++;
+    tile->move(viewOffset);
+    ENGINE.Draw(tile);
+    tile->move(-viewOffset);
   }
 
-  // Second tile pass: draw the entities and shaders per row and per layer
-  tile = nullptr;
-  tilesIter = allTiles.begin();
+  for (Battle::Tile* tile : allTiles) {
+    auto allEntities = tile->FindEntities([](Entity* ent) { return true; });
 
-  std::vector<Entity*> entitiesOnRow;
-  int lastRow = 0;
-
-  while (tilesIter != allTiles.end()) {
-    if (lastRow != (*tilesIter)->GetY()) {
-      lastRow = (*tilesIter)->GetY();
-
-      // Ensure all entities are sorted by layer
-      std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity* b) -> bool { return a->GetLayer() > b->GetLayer(); });
-
-      // draw this row
-      for (auto entity : entitiesOnRow) {
-        entity->move(ENGINE.GetViewOffset());
-
-        ENGINE.Draw(entity);
-
-        entity->move(-ENGINE.GetViewOffset());
-      }
-
-      // prepare for bext row
-      entitiesOnRow.clear();
+    for (Entity* ent : allEntities) {
+      auto uic = ent->GetComponentsDerivedFrom<UIComponent>();
+      uis.insert(uis.begin(), uic.begin(), uic.end());
     }
 
-    tile = (*tilesIter);
-    static float totalTime = 0;
-    totalTime += (float)elapsed;
+    auto nodes = tile->GetChildNodes();
+    nodes.insert(nodes.end(), allEntities.begin(), allEntities.end());
+    std::sort(nodes.begin(), nodes.end(), [](SceneNode* A, SceneNode* B) { return A->GetLayer() > B->GetLayer(); });
 
-    //heatShader.setUniform("time", totalTime*0.02f);
-    //heatShader.setUniform("distortionFactor", 0.01f);
-    //heatShader.setUniform("riseFactor", 0.1f);
-
-    //heatShader.setUniform("w", tile->GetWidth() - 8.f);
-    //heatShader.setUniform("h", tile->GetHeight()*1.5f);
-
-    //iceShader.setUniform("w", tile->GetWidth() - 8.f);
-    //iceShader.setUniform("h", tile->GetHeight()*0.8f);
-
-    Entity* entity = nullptr;
-
-    auto allEntities = tile->FindEntities([](Entity* e) { return true; });
-    auto entitiesIter = allEntities.begin();
-
-    while (entitiesIter != allEntities.end()) {
-      entity = (*entitiesIter);
-
-      auto uic = entity->GetComponentsDerivedFrom<UIComponent>();
-
-      //Logger::Log("uic size is: " + std::to_string(uic.size()));
-
-      if (!uic.empty()) {
-        ui.insert(ui.begin(), uic.begin(), uic.end());
-      }
-
-      entitiesOnRow.push_back(*entitiesIter);
-      entitiesIter++;
-    }
-
-    /*if (tile->GetState() == TileState::lava) {
-      heatShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x + 3.0f);
-
-      float repos = (float)(tile->getPosition().y - (tile->getTexture()->getSize().y*2.5f));
-      heatShader.setUniform("y", repos);
-
-      surface.display();
-      sf::Texture postprocessing = surface.getTexture(); // Make a copy
-
-      sf::Sprite distortionPost;
-      distortionPost.setTexture(postprocessing);
-
-      surface.clear();
-
-      LayeredDrawable* bake = new LayeredDrawable(distortionPost);
-      bake->SetShader(&heatShader);
-
-      ENGINE.Draw(bake);
-      delete bake;
-    }
-    else if (tile->GetState() == TileState::ice) {
-      iceShader.setUniform("x", tile->getPosition().x - tile->getTexture()->getSize().x);
-
-      float repos = (float)(tile->getPosition().y - tile->getTexture()->getSize().y);
-      iceShader.setUniform("y", repos);
-
-      surface.display();
-      sf::Texture postprocessing = surface.getTexture(); // Make a copy
-
-      sf::Sprite reflectionPost;
-      reflectionPost.setTexture(postprocessing);
-
-      surface.clear();
-
-      LayeredDrawable* bake = new LayeredDrawable(reflectionPost);
-      bake->SetShader(&iceShader);
-
-      ENGINE.Draw(bake);
-      delete bake;
-    }*/
-    tilesIter++;
-  }
-
-  // Last row needs to be drawn now that the loop is over
-  // Ensure all entities are sorted by layer
-  std::sort(entitiesOnRow.begin(), entitiesOnRow.end(), [](Entity* a, Entity* b) -> bool { return a->GetLayer() > b->GetLayer(); });
-
-  // Now that the tiles are drawn, another pass draws the entities in sort-order
-  if (mob->IsSpawningDone()) {
-    // draw this row
-    for (auto entity : entitiesOnRow) {
-      entity->move(ENGINE.GetViewOffset());
-      ENGINE.Draw(entity);
-      entity->move(-ENGINE.GetViewOffset());
-    }
-
-    // Draw scene nodes
-    for (auto node : scenenodes) {
-      surface.draw(*node);
-    }
-
-    // Draw ui
-    for (auto node : ui) {
-      if (node->DrawOnUIPass()) {
-        node->move(ENGINE.GetViewOffset());
-        ENGINE.Draw(*node, false);
-        node->move(-ENGINE.GetViewOffset());
-      }
+    for (SceneNode* node : nodes) {
+      node->move(viewOffset);
+      ENGINE.Draw(node);
+      node->move(-viewOffset);
     }
   }
 
-  // prepare for bext row
-  entitiesOnRow.clear();
+  // draw ui on top
+  for (UIComponent* ui : uis) {
+    ui->move(viewOffset);
+    ENGINE.Draw(ui);
+    ui->move(-viewOffset);
+  }
 
   // Draw whatever extra state stuff we want to have
   if (current) current->onDraw(surface);
@@ -794,8 +662,10 @@ std::vector<std::reference_wrapper<const Character>> BattleSceneBase::MobList()
 {
   std::vector<std::reference_wrapper<const Character>> mobList;
 
-  for (int i = 0; i < mob->GetMobCount(); i++) {
-    mobList.push_back(mob->GetMobAt(i));
+  if (mob) {
+    for (int i = 0; i < mob->GetMobCount(); i++) {
+      mobList.push_back(mob->GetMobAt(i));
+    }
   }
 
   return mobList;
@@ -837,9 +707,6 @@ void BattleSceneBase::Inject(CardUsePublisher& pub)
 // what to do if we inject a UIComponent, add it to the update and topmost scenenode stack
 void BattleSceneBase::Inject(MobHealthUI& other)
 {
-  // if (other.GetOwner()) other.GetOwner()->FreeComponentByID(other.GetID()); // We are owned by the scene now
-  //SceneNode* node = dynamic_cast<SceneNode*>(&other);
-  //scenenodes.push_back(node);
   other.scene = this;
   components.push_back(&other);
 }
@@ -848,7 +715,11 @@ void BattleSceneBase::Inject(MobHealthUI& other)
 // Default case: no special injection found for the type, just add it to our update loop
 void BattleSceneBase::Inject(Component* other)
 {
-  //if (other->GetOwner()) other->GetOwner()->FreeComponentByID(other->GetID());
+  assert(other && "Component injected was nullptr");
+
+  SceneNode* node = dynamic_cast<SceneNode*>(other);
+  if (node) { scenenodes.push_back(node); }
+
   other->scene = this;
   components.push_back(other);
 }
@@ -880,7 +751,7 @@ void BattleSceneBase::Eject(Component::ID_t ID)
 
 const bool BattleSceneBase::IsCleared()
 {
-  return mob->IsCleared();
+  return mob? mob->IsCleared() : true;
 }
 
 void BattleSceneBase::Link(StateNode& a, StateNode& b, ChangeCondition when) {

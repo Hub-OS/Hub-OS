@@ -8,36 +8,13 @@ template<typename CharacterT>
 class BossPatternAI : public Agent {
 private:
   std::vector<AIState<CharacterT>*> stateMachine; /*!< State machine responsible for state management */
-  AIState<CharacterT>* interruptState;
-  int stateIndex;
-  CharacterT* ref; /*!< AI of this instance */
-  int lock; /*!< Whether or not a state is locked */
-  bool isUpdating, gotoNext, beginInterrupt, endInterrupt;
-protected:
-  /**
-  * @brief State machine can or cannot be changed */
-  enum StateLock {
-    Locked,
-    Unlocked
-  };
-
+  AIState<CharacterT>* interruptState{ nullptr };
+  CharacterT* ref{ nullptr }; /*!< AI of this instance */
+  int stateIndex{};
+  bool isUpdating{}, gotoNext{}, beginInterrupt{}, endInterrupt{};
 public:
   // Used for SFINAE events that require characters with AI
   using IsUsingAI = CharacterT;
-
-  /**
-   * @brief Prevents the AI state to be changed. Must be unlocked to use again.
-   */
-  void LockState() {
-    lock = BossPatternAI<CharacterT>::StateLock::Locked;
-  }
-
-  /**
-   * @brief Allows the AI state to be changed.
-   */
-  void UnlockState() {
-    lock = BossPatternAI<CharacterT>::StateLock::Unlocked;
-  }
 
   /**
    * @brief Construct an AI with the object ref
@@ -46,7 +23,6 @@ public:
   BossPatternAI(CharacterT* _ref) : Agent() {
     interruptState = nullptr;
     ref = _ref;
-    lock = BossPatternAI<CharacterT>::StateLock::Unlocked;
     isUpdating = gotoNext = beginInterrupt = endInterrupt = false;
     stateIndex = 0;
   }
@@ -65,7 +41,7 @@ public:
   }
 
   void InvokeDefaultState() {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
+    if (stateMachine.size() && stateMachine[stateIndex]->locked) {
       return;
     }
 
@@ -82,7 +58,7 @@ public:
   }
 
   void GoToNextState() {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
+    if (stateMachine.size() && stateMachine[stateIndex]->locked) {
       return;
     }
 
@@ -114,7 +90,7 @@ public:
  */
   template<typename U>
   void InterruptState() {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
+    if (stateMachine.size() && stateMachine[stateIndex]->locked) {
       return;
     }
 
@@ -134,7 +110,7 @@ public:
    */
   template<typename U, typename ...Args>
   void InterruptState(Args&&... args) {
-    if (lock == BossPatternAI<CharacterT>::StateLock::Locked) {
+    if (stateMachine.size() && stateMachine[stateIndex]->locked) {
       return;
     }
 

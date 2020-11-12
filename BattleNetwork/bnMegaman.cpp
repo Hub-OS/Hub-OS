@@ -5,6 +5,8 @@
 #include "bnFireBurnCardAction.h"
 #include "bnTornadoCardAction.h"
 #include "bnLightningCardAction.h"
+#include "bnTomahawkSwingCardAction.h"
+#include "bnDefenseStatusGuard.h"
 #include "bnCardAction.h"
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
@@ -63,7 +65,6 @@ CardAction* Megaman::OnExecuteSpecialAction() {
 
 TenguCross::TenguCross()
 {
-  parentAnim = nullptr;
   loaded = false;
 }
 
@@ -92,6 +93,7 @@ void TenguCross::OnActivate(Player& player)
   OnUpdate(0, player);
 
   player.AddNode(overlay);
+  player.SetAirShoe(true);
 
   parentAnim->AddToOverrideList(&overlayAnimation);
 }
@@ -135,7 +137,6 @@ CardAction* TenguCross::OnSpecialAction(Player& player)
 
 HeatCross::HeatCross()
 {
-  parentAnim = nullptr;
   loaded = false;
 }
 
@@ -199,7 +200,9 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* HeatCross::OnChargedBusterAction(Player& player)
 {
-  return new FireBurnCardAction(&player, FireBurn::Type::_2, 60);
+  auto* action = new FireBurnCardAction(&player, FireBurn::Type::_2, 60);
+  action->CrackTiles(false);
+  return action;
 }
 
 CardAction* HeatCross::OnSpecialAction(Player& player)
@@ -211,13 +214,14 @@ CardAction* HeatCross::OnSpecialAction(Player& player)
 
 TomahawkCross::TomahawkCross()
 {
-  parentAnim = nullptr;
   loaded = false;
+  statusGuard = new DefenseStatusGuard();
 }
 
 TomahawkCross::~TomahawkCross()
 {
   delete overlay;
+  delete statusGuard;
 }
 
 void TomahawkCross::OnActivate(Player& player)
@@ -241,8 +245,8 @@ void TomahawkCross::OnActivate(Player& player)
   player.AddNode(overlay);
 
   parentAnim->AddToOverrideList(&overlayAnimation);
-  player.SetAirShoe(true);
 
+  player.AddDefenseRule(statusGuard);
 }
 
 void TomahawkCross::OnDeactivate(Player & player)
@@ -253,6 +257,8 @@ void TomahawkCross::OnDeactivate(Player & player)
 
   parentAnim->RemoveFromOverrideList(&overlayAnimation);
   player.SetAirShoe(false);
+
+  player.RemoveDefenseRule(statusGuard);
 }
 
 void TomahawkCross::OnUpdate(float elapsed, Player& player)
@@ -272,7 +278,7 @@ void TomahawkCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
 {
-  return new CrackShotCardAction(&player, 30);
+  return new TomahawkSwingCardAction(player);
 }
 
 CardAction* TomahawkCross::OnSpecialAction(Player& player)
@@ -347,7 +353,6 @@ void TenguCross::SpecialAction::OnAnimationEnd()
 
 ElecCross::ElecCross()
 {
-  parentAnim = nullptr;
   loaded = false;
 }
 
@@ -411,7 +416,9 @@ void ElecCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* ElecCross::OnChargedBusterAction(Player& player)
 {
-  return new LightningCardAction(&player, 50);
+  auto* action = new LightningCardAction(&player, 50);
+  action->SetStun(false);
+  return action;
 }
 
 CardAction* ElecCross::OnSpecialAction(Player& player)

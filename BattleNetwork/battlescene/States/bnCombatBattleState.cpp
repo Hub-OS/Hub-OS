@@ -12,12 +12,12 @@
 #include "../../bnInputManager.h"
 #include "../../bnShaderResourceManager.h"
 
-CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*> tracked, double customDuration) 
-  : mob(mob), 
-    tracked(tracked), 
-    customDuration(customDuration),
-    customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
-    pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE))
+CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*>& tracked, double customDuration) :
+  mob(mob), 
+  tracked(tracked), 
+  customDuration(customDuration),
+  customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
+  pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE))
 {
   // PAUSE
   pauseFont = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
@@ -122,7 +122,7 @@ void CombatBattleState::onUpdate(double elapsed)
     auto cardUI = tracked[0]->GetFirstComponent<SelectedCardsUI>();
 
     if (cardUI) {
-      tracked[0]->FreeComponentByID(cardUI->GetID());
+      cardUI->Hide();
     }
 
     GetScene().BroadcastBattleStop();

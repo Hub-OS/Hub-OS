@@ -11,15 +11,16 @@
 #include <Segues/WhiteWashFade.h>
 #include <Segues/BlackWashFade.h>
 
-#include "../bnCounterHitListener.h"
-#include "../bnCharacterDeleteListener.h"
-#include "../bnCardUseListener.h"
 #include "../bnComponent.h"
 #include "../bnPA.h"
 #include "../bnMobHealthUI.h"
 #include "../bnAnimation.h"
 #include "../bnCamera.h"
 #include "../bnCounterCombatRule.h"
+#include "../bnCounterHitListener.h"
+#include "../bnHitListener.h"
+#include "../bnCharacterDeleteListener.h"
+#include "../bnCardUseListener.h"
 #include "../bnPlayerCardUseListener.h"
 #include "../bnEnemyCardUseListener.h"
 #include "../bnSelectedCardsUI.h"
@@ -58,7 +59,13 @@ struct BattleSceneBaseProps {
 /**
   @brief BattleSceneBase class provides an API for creating complex states
 */
-class BattleSceneBase : public swoosh::Activity, public CounterHitListener, public CharacterDeleteListener, public CardUseListener {
+class BattleSceneBase : 
+  public swoosh::Activity, 
+  public HitListener,
+  public CounterHitListener, 
+  public CharacterDeleteListener, 
+  public CardUseListener {
+
 private:
   // general stuff
   bool quitting{ false }; //!< Determine if we are leaving the battle scene
@@ -67,7 +74,6 @@ private:
   bool didCounterHit{ false }; /*!< Flag if player countered an enemy this frame */
   bool isSceneInFocus{ false }; //<! Let us know if transition effects complete
   bool isPlayerDeleted{ false };
-  bool isPaused{ false };
   bool highlightTiles{ true };
   bool backdropAffectBG{ false };
   int round{ 0 }; //!< Some scene types repeat battles and need to track rounds
@@ -93,8 +99,6 @@ private:
   Player* player{ nullptr }; /*!< Pointer to player's selected character */
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
   Background* background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
-  sf::Text* pauseLabel{ nullptr }; /*!< "PAUSE" text */
-  std::shared_ptr<sf::Font> font; /*!< PAUSE font */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
   std::shared_ptr<sf::Font> mobFont; /*!< Name of mob font */
   std::vector<SceneNode*> scenenodes; /*!< Scene node system */
@@ -124,7 +128,6 @@ private:
   sf::Shader& heatShader; /*!< Heat waves and red hue */
   sf::Shader& iceShader; /*!< Reflection in the ice */
   sf::Shader& backdropShader;
-  sf::Texture& distortionMap; /*!< Distortion effect pixel sample source */
   sf::Vector2u textureSize; /*!< Size of distorton effect */
 
   enum class backdrop : int {
@@ -171,14 +174,26 @@ protected:
     public:
     using Class = T;
 
-    StateNodeWrapper(BattleSceneBase& owner, T& state) 
-    : state(state), StateNode(owner, state)
+    StateNodeWrapper(BattleSceneBase& owner, T& state) : 
+      state(state), StateNode(owner, state)
     {}
+
+    StateNodeWrapper(const StateNodeWrapper& copy) :
+      state(copy.state), StateNode(copy.owner, copy.state)
+    {}
+
 
     /* 
         \brief Return the underlining state object as a pointer
     */
     T* operator->() {
+      return &state;
+    }
+
+    /*
+    \brief Return the underlining state object as a const-qualified pointer
+    */
+    const T* operator->() const {
       return &state;
     }
 
@@ -220,8 +235,6 @@ protected:
 
   void LoadMob(Mob& mob);
 
-  void HandleCounterLoss(Character& subject);
-
   /**
   * @brief Scans the entity list for updated components and tries to Inject them if the components require.
   */
@@ -250,6 +263,7 @@ public:
   const bool TripleDelete() const;
   const int ComboDeleteSize();
   const bool Countered();
+  void HandleCounterLoss(Character& subject);
   void HighlightTiles(bool enable);
 
   const double GetCustomBarProgress() const;

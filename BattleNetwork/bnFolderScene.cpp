@@ -45,7 +45,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
 
   // Selection input delays
-  maxSelectInputCooldown = 0.5; // half of a second
+  maxSelectInputCooldown = 0.25; // 4th of a second
   selectInputCooldown = maxSelectInputCooldown;
 
   // Card UI font
@@ -218,11 +218,14 @@ void FolderScene::onUpdate(double elapsed) {
 #endif
     }
   } else if (!gotoNextScene) {
-      if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
+      if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
-          selectInputCooldown = maxSelectInputCooldown;
+          if (!extendedHold) {
+            selectInputCooldown = maxSelectInputCooldown;
+            extendedHold = true;
+          }
 
           if (!promptOptions) {
             currCardIndex--;
@@ -232,11 +235,14 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
-          selectInputCooldown = maxSelectInputCooldown;
+          if (!extendedHold) {
+            selectInputCooldown = maxSelectInputCooldown;
+            extendedHold = true;
+          }
 
           if (!promptOptions) {
             currCardIndex++;
@@ -247,6 +253,8 @@ void FolderScene::onUpdate(double elapsed) {
         }
       }
       else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
+        extendedHold = false;
+
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -259,6 +267,8 @@ void FolderScene::onUpdate(double elapsed) {
         }
       }
       else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+        extendedHold = false;
+
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -272,6 +282,7 @@ void FolderScene::onUpdate(double elapsed) {
       }
       else {
         selectInputCooldown = 0;
+        extendedHold = false;
       }
 
       currCardIndex = std::max(0, currCardIndex);
@@ -348,9 +359,18 @@ void FolderScene::onUpdate(double elapsed) {
             }
             break;
           case 1: // EQUIP
+          {
             selectedFolderIndex = currFolderIndex;
             collection.SwapOrder(0, selectedFolderIndex);
+
+            // Save this session data
+            auto folderStr = collection.GetFolderNames()[0];
+            auto naviSelectedStr = WEBCLIENT.GetValue("SelectedNavi");
+            if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
+            WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
+
             AUDIO.Play(AudioType::PA_ADVANCE);
+          }
             break;
           case 2: // CHANGE NAME
             if (folder) {

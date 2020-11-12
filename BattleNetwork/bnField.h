@@ -111,7 +111,7 @@ public:
    * @brief Get the tile at (x,y)
    * @param _x col
    * @param _y row
-   * @return null if x < 1 or x > 6 or y < 1 or y > 3, otherwise returns Tile*
+   * @return null if x < 0 or x > 7 or y < 0 or y > 4, otherwise returns Tile*
    */
   Battle::Tile* GetAt(int _x, int _y) const;
 

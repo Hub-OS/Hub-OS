@@ -5,6 +5,7 @@
 
 #include "bnMainMenuScene.h"
 #include "bnCardFolderCollection.h"
+#include "netplay/bnPVPScene.h"
 
 #include "Segues/PushIn.h"
 #include "Segues/Checkerboard.h"
@@ -18,78 +19,120 @@ using sf::Event;
 using sf::Font;
 using namespace swoosh::types;
 
-//#define OBN_NETPLAY 1
 
-#ifdef OBN_NETPLAY
-#include "netplay/bnPVPScene.h"
-#endif
+/// \brief Thunk to populate menu options to callbacks
+auto MakeOptions = [] (MainMenuScene* scene) -> MenuWidget::OptionsList {
+  return {
+    { "chip_folder", std::bind(&MainMenuScene::GotoChipFolder, scene) },
+    { "navi",        std::bind(&MainMenuScene::GotoNaviSelect, scene) },
+    { "mob_select",  std::bind(&MainMenuScene::GotoMobSelect, scene) },
+    { "config",      std::bind(&MainMenuScene::GotoConfig, scene) },
+    { "sync",        std::bind(&MainMenuScene::GotoPVP, scene) }
+  };
+};
 
 MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestAccount) :
   guestAccount(guestAccount),
   camera(ENGINE.GetView()),
   lastIsConnectedState(false),
+  showHUD(true),
+  menuWidget("Overworld", MakeOptions(this)),
   swoosh::Activity(&controller)
 {
-    // When we reach the menu scene we need to load the player information
-    // before proceeding to next sub menus
-    //data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
+  // When we reach the menu scene we need to load the player information
+  // before proceeding to next sub menus
+  //data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
 
-    webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
-    webAccountIcon.setScale(2.f, 2.f);
-    webAccountIcon.setPosition((getController().getVirtualWindowSize().x-96.0f), getController().getVirtualWindowSize().y - 34.0f);
-    webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
-    webAccountAnimator.Load();
-    webAccountAnimator.SetAnimation("NO_CONNECTION");
+  webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
+  webAccountIcon.setScale(2.f, 2.f);
+  webAccountIcon.setPosition(4, getController().getVirtualWindowSize().y - 44.0f);
+  webAccountAnimator = Animation("resources/ui/webaccount_icon.animation");
+  webAccountAnimator.Load();
+  webAccountAnimator.SetAnimation("NO_CONNECTION");
 
-    // Draws the scrolling background
-    bg = new LanBackground();
+  // Draws the scrolling background
+  bg = new LanBackground();
 
-    // Generate an infinite map with a branch depth of 3, column size of 10
-    // and tile dimensions 47x24
-    map = new Overworld::InfiniteMap(3, 10, 47, 24);
+  // Generate an infinite map with a branch depth of 3, column size of 10
+  // and tile dimensions 47x24
+  map = new Overworld::InfiniteMap(3, 10, 47, 24);
   
-    // Share the camera
-    map->SetCamera(&camera);
+  // Share the camera
+  map->SetCamera(&camera);
 
-    // Show the HUD
-    showHUD = true;
+  // Show the HUD
+  showHUD = true;
 
-    // Selection input delays
-    maxSelectInputCooldown = 0.5; // half of a second
-    selectInputCooldown = maxSelectInputCooldown;
+  // Selection input delays
+  maxSelectInputCooldown = 0.5; // half of a second
+  selectInputCooldown = maxSelectInputCooldown;
 
-    // ui sprite maps
-    ui.setTexture(LOAD_TEXTURE(MAIN_MENU_UI));
-    ui.setScale(2.f, 2.f);
-    uiAnimator = Animation("resources/ui/main_menu_ui.animation");
-    uiAnimator.Reload();
+  // Keep track of selected navi
+  currentNavi = 0;
 
-    // Keep track of selected navi
-    currentNavi = 0;
+  owNavi.setTexture(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
+  owNavi.setScale(2.f, 2.f);
+  owNavi.setPosition(0, 0.f);
+  naviAnimator = Animation("resources/navis/megaman/megaman.animation");
+  naviAnimator.Reload();
+  naviAnimator.SetAnimation("PLAYER_OW_RD");
+  naviAnimator << Animator::Mode::Loop;
 
-    owNavi.setTexture(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
-    owNavi.setScale(2.f, 2.f);
-    owNavi.setPosition(0, 0.f);
-    naviAnimator = Animation("resources/navis/megaman/megaman.animation");
-    naviAnimator.Reload();
-    naviAnimator.SetAnimation("PLAYER_OW_RD");
-    naviAnimator << Animator::Mode::Loop;
+  // Share the navi sprite
+  // Map will transform navi's ortho position into isometric position
+  map->AddSprite(&owNavi);
 
-    // Share the navi sprite
-    // Map will transform navi's ortho position into isometric position
-    map->AddSprite(&owNavi);
+  ow.setTexture(LOAD_TEXTURE(MAIN_MENU_OW));
+  ow.setScale(2.f, 2.f);
 
-    overlay.setTexture(LOAD_TEXTURE(MAIN_MENU));
-    overlay.setScale(2.f, 2.f);
+  menuWidget.setScale(2.f, 2.f);
 
-    ow.setTexture(LOAD_TEXTURE(MAIN_MENU_OW));
-    ow.setScale(2.f, 2.f);
+  gotoNextScene = true;
 
-    gotoNextScene = true;
+  /// WEB ACCOUNT LOADING
 
-    menuSelectionIndex = lastMenuSelectionIndex = 0;
+  WebAccounts::AccountState account;
 
-    setView(sf::Vector2u(480, 320));
+  if (WEBCLIENT.IsLoggedIn()) {
+    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account);
+
+    // Quickly load the session on disk to reduce wait times
+    if (loaded) {
+      Logger::Log("Found cached account data");
+
+      WEBCLIENT.UseCachedAccount(account);
+      WEBCLIENT.CacheTextureData(account);
+      folders = CardFolderCollection::ReadFromWebAccount(account);
+      programAdvance = PA::ReadFromWebAccount(account);
+
+      NaviEquipSelectedFolder();
+    }
+
+    Logger::Log("Fetching account data...");
+
+    // resent fetch command to get the a latest account info
+    accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
+
+    Logger::Log("waiting for server...");
+  }
+  else {
+
+    // If we are not actively online but we have a profile on disk, try to load our previous session
+    // The user may be logging in but has not completed yet and we want to reduce wait times...
+    // Otherwise, use the guest profile
+    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account) || WEBCLIENT.LoadSession("guest.bin", &account);
+
+    if (loaded) {
+      WEBCLIENT.UseCachedAccount(account);
+      WEBCLIENT.CacheTextureData(account);
+      folders = CardFolderCollection::ReadFromWebAccount(account);
+      programAdvance = PA::ReadFromWebAccount(account);
+
+      NaviEquipSelectedFolder();
+    }
+  }
+
+  setView(sf::Vector2u(480, 320));
 }
 
 void MainMenuScene::onStart() {
@@ -99,37 +142,6 @@ void MainMenuScene::onStart() {
   
   // Set the camera back to ours
   ENGINE.SetCamera(camera);
-
-  WebAccounts::AccountState account;
-
-  if (WEBCLIENT.IsLoggedIn()) {
-    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account);
-
-    if (loaded) {
-      Logger::Log("Found cached account data");
-
-      WEBCLIENT.UseCachedAccount(account);
-      WEBCLIENT.CacheTextureData(account);
-      folders = CardFolderCollection::ReadFromWebAccount(account);
-      programAdvance = PA::ReadFromWebAccount(account);
-    }
-
-    Logger::Log("Fetching account data...");
-
-    accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
-
-    Logger::Log("waiting for server...");
-  }
-  else {
-    bool loaded = WEBCLIENT.LoadSession("profile.bin", &account) || WEBCLIENT.LoadSession("guest.bin", &account);
-      
-    if(loaded) {
-      WEBCLIENT.UseCachedAccount(account);
-      WEBCLIENT.CacheTextureData(account);
-      folders = CardFolderCollection::ReadFromWebAccount(account);
-      programAdvance = PA::ReadFromWebAccount(account);
-    }
-  }
 
 #ifdef __ANDROID__
   StartupTouchControls();
@@ -146,22 +158,13 @@ void MainMenuScene::onUpdate(double elapsed) {
 
     if (WEBCLIENT.IsLoggedIn() && accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
       try {
-        std::string selectedFolderName{};
-
-        if (auto names = folders.GetFolderNames(); !names.empty()) {
-          selectedFolderName = names[0];
-        }
-
         const WebAccounts::AccountState& account = accountCommandResponse.get();
         Logger::Logf("You have %i folders on your account", account.folders.size());
         WEBCLIENT.CacheTextureData(account);
         folders = CardFolderCollection::ReadFromWebAccount(account);
         programAdvance = PA::ReadFromWebAccount(account);
 
-        // preserve our selected folder
-        if (int index = folders.FindFolder(selectedFolderName); index >= 0) {
-          folders.SwapOrder(index, 0); // Select this folder again
-        }
+        NaviEquipSelectedFolder();
 
         // Replace
         WEBCLIENT.SaveSession("profile.bin");
@@ -193,117 +196,95 @@ void MainMenuScene::onUpdate(double elapsed) {
   // Loop the bg
   bg->Update((float)elapsed);
 
+  // Update the widget
+  menuWidget.Update((float)elapsed);
+
   // Draw navi moving
   naviAnimator.Update((float)elapsed, owNavi.getSprite());
 
-  // Move the navi down
+  // Move the navi down each tick
   owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*(float)elapsed, 0));
 
   // TODO: fix this broken camera system! I have no idea why these values are required to look right...
+  // NOTE 11/5/2020: these could be correct and these might be isometric coordinates
   sf::Vector2f camOffset = camera.GetView().getSize();
-  camOffset.x /= 5; // what?
-  camOffset.y /= 3.5; // huh?
+  camOffset.x /= 4.0; // why
+  camOffset.y /= 4.5; // why
 
   // Follow the navi
   camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
 
-  const auto left = direction::left;
-  const auto right = direction::right;
-
   if (!gotoNextScene) {
-    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
-
-      // Folder Select
-      if (menuSelectionIndex == 0) {
-        gotoNextScene = true;
+    if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+      if (menuWidget.IsClosed()) {
+        menuWidget.Open();
         AUDIO.Play(AudioType::CHIP_DESC);
-
-        using effect = segue<PushIn<left>, milliseconds<500>>;
-        getController().push<effect::to<FolderScene>>(folders);
       }
-
-      // Config Select on PC 
-      if (menuSelectionIndex == 1) {
-        gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
-
-        using effect = segue<DiamondTileSwipe<right>, milliseconds<500>>;
-        getController().push<effect::to<ConfigScene>>();
+      else if (menuWidget.IsOpen()) {
+        menuWidget.Close();
+        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       }
+    }
 
-      // Navi select
-      if (menuSelectionIndex == 2) {
-        gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+    if (menuWidget.IsOpen()) {
+      if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
+        selectInputCooldown -= elapsed;
 
-        using effect = segue<Checkerboard, milliseconds<250>>;
-        getController().push<effect::to<SelectNaviScene>>(currentNavi);
-      }
+        if (selectInputCooldown <= 0) {
+          if(!extendedHold) {
+            selectInputCooldown = maxSelectInputCooldown;
+            extendedHold = true;
+          }
+          else {
+            selectInputCooldown = maxSelectInputCooldown / 4.0;
+          }
 
-      // Mob select
-      if (menuSelectionIndex == 3) {
-        gotoNextScene = true;
-
-        CardFolder* folder = nullptr;
-
-        if (folders.GetFolder(0, folder)) {
-#ifdef OBN_NETPLAY
-          AUDIO.Play(AudioType::CHIP_DESC);
-          using effect = segue<PushIn<direction::down>, milliseconds<500>>;
-          getController().push<effect::to<PVPScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
-#else
-          using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
-          AUDIO.Play(AudioType::CHIP_DESC);
-          getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdvance);
-#endif
-        }
-        else {
-          AUDIO.Play(AudioType::CHIP_ERROR); 
-          Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
-          gotoNextScene = false;
+          menuWidget.CursorMoveUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
         }
       }
-    }
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
+        selectInputCooldown -= elapsed;
 
-    if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
-      selectInputCooldown -= elapsed;
+        if (selectInputCooldown <= 0) {
+          if (!extendedHold) {
+            selectInputCooldown = maxSelectInputCooldown;
+            extendedHold = true;
+          }
+          else {
+            selectInputCooldown = maxSelectInputCooldown / 4.0;
+          }
 
-      if (selectInputCooldown <= 0) {
-        // Go to previous selection 
-        selectInputCooldown = maxSelectInputCooldown;
-        menuSelectionIndex--;
+          menuWidget.CursorMoveDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+        }
       }
-    }
-    else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
-      selectInputCooldown -= elapsed;
+      else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+        bool result = menuWidget.ExecuteSelection();
 
-      if (selectInputCooldown <= 0) {
-        // Go to next selection 
-        selectInputCooldown = maxSelectInputCooldown;
-        menuSelectionIndex++;
+        if (result && menuWidget.IsOpen() == false) {
+          AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+        }
       }
-    }
-    else {
-      selectInputCooldown = 0;
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) || INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+        extendedHold = false;
+        menuWidget.SelectExit() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+      }
+      else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+        menuWidget.SelectOptions() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+        extendedHold = false;
+      }
+      else {
+        extendedHold = false;
+        selectInputCooldown = 0;
+      }
     }
   }
 
   // Allow player to resync with remote account by pressing the pause action
-  if (INPUTx.Has(EventTypes::PRESSED_PAUSE)) {
+  if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT)) {
       accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
   }
 
-  // Keep menu selection in range
-  menuSelectionIndex = std::max(0, menuSelectionIndex);
-  menuSelectionIndex = std::min(3, menuSelectionIndex);
-
-  if (menuSelectionIndex != lastMenuSelectionIndex) {
-    AUDIO.Play(AudioType::CHIP_SELECT);
-  }
-
   webAccountAnimator.Update((float)elapsed, webAccountIcon.getSprite());
-
-  lastMenuSelectionIndex = menuSelectionIndex;
 }
 
 void MainMenuScene::onLeave() {
@@ -319,19 +300,7 @@ void MainMenuScene::onExit()
 
 void MainMenuScene::onEnter()
 {
-  // If coming back from navi select, the navi has changed, update it
-  auto owPath = NAVIS.At(currentNavi).GetOverworldAnimationPath();
-
-  if (owPath.size()) {
-      owNavi.setTexture(NAVIS.At(currentNavi).GetOverworldTexture());
-      naviAnimator = Animation(NAVIS.At(currentNavi).GetOverworldAnimationPath());
-      naviAnimator.Reload();
-      naviAnimator.SetAnimation("PLAYER_OW_RD");
-      naviAnimator << Animator::Mode::Loop;
-  }
-  else {
-      Logger::Logf("Overworld animation not found for navi at index %i", currentNavi);
-  }
+  RefreshNaviSprite();
 }
 
 void MainMenuScene::onResume() {
@@ -365,102 +334,8 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(bg);
   ENGINE.Draw(map);
 
-  ENGINE.Draw(overlay);
-
   if (showHUD) {
-    uiAnimator.SetAnimation("CHIP_FOLDER");
-
-    if (menuSelectionIndex == 0) {
-      uiAnimator.SetFrame(2, ui.getSprite());
-      ui.setPosition(50.f, 50.f);
-      ENGINE.Draw(ui);
-
-      uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
-      uiAnimator.SetFrame(2, ui.getSprite());
-      ui.setPosition(100.f, 50.f);
-      ENGINE.Draw(ui);
-    }
-    else {
-      uiAnimator.SetFrame(1, ui.getSprite());
-      ui.setPosition(20.f, 50.f);
-      ENGINE.Draw(ui);
-
-      uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
-      uiAnimator.SetFrame(1, ui.getSprite());
-      ui.setPosition(100.f, 50.f);
-      ENGINE.Draw(ui);
-    }
-
-    uiAnimator.SetAnimation("CONFIG");
-
-    if (menuSelectionIndex == 1) {
-      uiAnimator.SetFrame(2, ui.getSprite());
-      ui.setPosition(50.f, 120.f);
-      ENGINE.Draw(ui);
-
-      uiAnimator.SetAnimation("CONFIG_LABEL");
-      uiAnimator.SetFrame(2, ui.getSprite());
-      ui.setPosition(100.f, 120.f);
-      ENGINE.Draw(ui);
-    }
-    else {
-      uiAnimator.SetFrame(1, ui.getSprite());
-      ui.setPosition(20.f, 120.f);
-      ENGINE.Draw(ui);
-
-      uiAnimator.SetAnimation("CONFIG_LABEL");
-      uiAnimator.SetFrame(1, ui.getSprite());
-      ui.setPosition(100.f, 120.f);
-      ENGINE.Draw(ui);
-    }
-
-    uiAnimator.SetAnimation("NAVI");
-
-    if (menuSelectionIndex == 2) {
-      uiAnimator.SetFrame(2, ui.getSprite());
-      ui.setPosition(50.f, 190.f);
-      ENGINE.Draw(ui);
-
-      uiAnimator.SetAnimation("NAVI_LABEL");
-      uiAnimator.SetFrame(2, ui.getSprite());
-      ui.setPosition(100.f, 190.f);
-      ENGINE.Draw(ui);
-    }
-    else {
-      uiAnimator.SetFrame(1, ui.getSprite());
-      ui.setPosition(20.f, 190.f);
-      ENGINE.Draw(ui);
-
-      uiAnimator.SetAnimation("NAVI_LABEL");
-      uiAnimator.SetFrame(1, ui.getSprite());
-      ui.setPosition(100.f, 190.f);
-      ENGINE.Draw(ui);
-    }
-
-    uiAnimator.SetAnimation("MOB_SELECT");
-
-    if (menuSelectionIndex == 3) {
-      uiAnimator.SetFrame(2, ui.getSprite());
-      ui.setPosition(50.f, 260.f);
-      ENGINE.Draw(ui);
-
-      uiAnimator.SetAnimation("MOB_SELECT_LABEL");
-      uiAnimator.SetFrame(2, ui.getSprite());
-      ui.setPosition(100.f, 260.f);
-      ENGINE.Draw(ui);
-    }
-    else {
-      uiAnimator.SetFrame(1, ui.getSprite());
-      ui.setPosition(20.f, 260.f);
-      ENGINE.Draw(ui);
-
-      uiAnimator.SetAnimation("MOB_SELECT_LABEL");
-      uiAnimator.SetFrame(1, ui.getSprite());
-      ui.setPosition(100.f, 260.f);
-      ENGINE.Draw(ui);
-    }
-
-    ENGINE.Draw(ui);
+    ENGINE.Draw(menuWidget);
   }
 
   // Add the web account connection symbol
@@ -475,6 +350,116 @@ void MainMenuScene::onEnd() {
 #ifdef __ANDROID__
   ShutdownTouchControls();
 #endif
+}
+
+void MainMenuScene::RefreshNaviSprite()
+{
+  auto& meta = NAVIS.At(currentNavi);
+
+  // refresh menu widget too
+  int hp = std::atoi(meta.GetHPString().c_str());
+  menuWidget.SetHealth(hp);
+  menuWidget.SetMaxHealth(hp);
+
+  // If coming back from navi select, the navi has changed, update it
+  auto owPath = meta.GetOverworldAnimationPath();
+
+  if (owPath.size()) {
+    owNavi.setTexture(meta.GetOverworldTexture());
+    naviAnimator = Animation(meta.GetOverworldAnimationPath());
+    naviAnimator.Reload();
+    naviAnimator.SetAnimation("PLAYER_OW_RD");
+    naviAnimator << Animator::Mode::Loop;
+  }
+  else {
+    Logger::Logf("Overworld animation not found for navi at index %i", currentNavi);
+  }
+}
+
+void MainMenuScene::NaviEquipSelectedFolder()
+{
+  auto naviStr = WEBCLIENT.GetValue("SelectedNavi");
+  if (!naviStr.empty()) {
+    currentNavi = SelectedNavi(atoi(naviStr.c_str()));
+    RefreshNaviSprite();
+
+    auto folderStr = WEBCLIENT.GetValue("FolderFor:" + naviStr);
+    if (!folderStr.empty()) {
+      // preserve our selected folder
+      if (int index = folders.FindFolder(folderStr); index >= 0) {
+        folders.SwapOrder(index, 0); // Select this folder again
+      }
+    }
+  }
+  else {
+    currentNavi = SelectedNavi(0);
+    WEBCLIENT.SetKey("SelectedNavi", std::to_string(0));
+  }
+}
+
+void MainMenuScene::GotoChipFolder()
+{
+  gotoNextScene = true;
+  AUDIO.Play(AudioType::CHIP_DESC);
+
+  using effect = segue<PushIn<direction::left>, milliseconds<500>>;
+  getController().push<effect::to<FolderScene>>(folders);
+}
+
+void MainMenuScene::GotoNaviSelect()
+{
+  // Navi select
+  gotoNextScene = true;
+  AUDIO.Play(AudioType::CHIP_DESC);
+
+  using effect = segue<Checkerboard, milliseconds<250>>;
+  getController().push<effect::to<SelectNaviScene>>(currentNavi);
+}
+
+void MainMenuScene::GotoConfig()
+{
+  // Config Select on PC
+  gotoNextScene = true;
+  AUDIO.Play(AudioType::CHIP_DESC);
+
+  using effect = segue<DiamondTileSwipe<direction::right>, milliseconds<500>>;
+  getController().push<effect::to<ConfigScene>>();
+}
+
+void MainMenuScene::GotoMobSelect()
+{
+  gotoNextScene = true;
+
+  CardFolder* folder = nullptr;
+
+  if (folders.GetFolder(0, folder)) {
+    using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
+    AUDIO.Play(AudioType::CHIP_DESC);
+    getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdvance);
+  }
+  else {
+    AUDIO.Play(AudioType::CHIP_ERROR);
+    Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
+    gotoNextScene = false;
+  }
+}
+
+void MainMenuScene::GotoPVP()
+{
+  gotoNextScene = true;
+
+  CardFolder* folder = nullptr;
+
+  if (folders.GetFolder(0, folder)) {
+    AUDIO.Play(AudioType::CHIP_DESC);
+    using effect = segue<PushIn<direction::down>, milliseconds<500>>;
+    getController().push<effect::to<PVPScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
+  }
+  else {
+    AUDIO.Play(AudioType::CHIP_ERROR);
+    Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
+    gotoNextScene = false;
+  }
 }
 
 #ifdef __ANDROID__

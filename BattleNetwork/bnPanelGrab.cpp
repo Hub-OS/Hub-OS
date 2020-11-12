@@ -29,6 +29,12 @@ PanelGrab::PanelGrab(Field* _field, Team _team, float _duration) : duration(_dur
 PanelGrab::~PanelGrab() {
 }
 
+void PanelGrab::OnSpawn(Battle::Tile& start)
+{
+  auto startPos = sf::Vector2f(start.getPosition().x, 0);
+  setPosition(startPos);
+}
+
 void PanelGrab::OnUpdate(float _elapsed) {
   if (GetTile()) {
     start = sf::Vector2f(tile->getPosition().x, 0);

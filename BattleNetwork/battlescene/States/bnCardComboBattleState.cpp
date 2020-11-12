@@ -13,9 +13,6 @@ CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvan
   hasPA = -1;
   paStepIndex = 0;
 
-  listStepCooldown = 0.2f;
-  listStepCounter = listStepCooldown;
-
   programAdvanceSprite = sf::Sprite(*LOAD_TEXTURE(PROGRAM_ADVANCE));
   programAdvanceSprite.setScale(2.f, 2.f);
   programAdvanceSprite.setOrigin(0, programAdvanceSprite.getLocalBounds().height / 2.0f);
@@ -32,11 +29,15 @@ void CardComboBattleState::ShareCardList(Battle::Card*** cardsPtr, int* listLeng
 
 void CardComboBattleState::onStart(const BattleSceneState*)
 {
+  advanceSoundPlay = false;
   paChecked = false;
   isPAComplete = false;
   hasPA = -1;
   paStepIndex = 0;
+  increment = 0;
   listStepCounter = listStepCooldown;
+  PAStartTimer.reset();
+  PAStartTimer.start();
 }
 
 void CardComboBattleState::onEnd(const BattleSceneState*)
@@ -47,6 +48,9 @@ void CardComboBattleState::onEnd(const BattleSceneState*)
 
 void CardComboBattleState::onUpdate(double elapsed)
 {
+  increment += elapsed;
+  PAStartTimer.update(elapsed);
+
   this->elapsed += elapsed;
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
 
@@ -68,15 +72,12 @@ void CardComboBattleState::onUpdate(double elapsed)
     if (hasPA > -1) {
       paSteps = programAdvance.GetMatchingSteps();
       PAStartTimer.reset();
+      PAStartTimer.start();
     }
 
     paChecked = true;
   }
-  else {
-    if (!advanceSoundPlay) {
-      AUDIO.Play(AudioType::PA_ADVANCE);
-      advanceSoundPlay = true;
-    }
+  else if(PAStartTimer.getElapsed().asSeconds() > PAStartLength) {
 
     if (listStepCounter > 0.f) {
       listStepCounter -= (float)elapsed;
@@ -85,7 +86,6 @@ void CardComboBattleState::onUpdate(double elapsed)
       // +2 = 1 step for showing PA label and 1 step for showing merged card
       // That's the cards we want to show + 1 + 1 = cardCount + 2
       if (paStepIndex == (*cardCountPtr) + 2) {
-        advanceSoundPlay = false;
 
         Battle::Card* paCard = programAdvance.GetAdvanceCard();
 
@@ -106,18 +106,18 @@ void CardComboBattleState::onUpdate(double elapsed)
             continue;
           }
 
-          newCardList[j] = *cardsListPtr[i];
+          newCardList[j] = (*cardsListPtr)[i];
           i++;
           j++;
         }
 
         // Set the new cards
         for (int i = 0; i < newCardCount; i++) {
-          *cardsListPtr[i] = *(newCardList + i);
+          (*cardsListPtr)[i] = newCardList[i];
         }
 
         // Delete the temp list space
-        // NOTE: We are _not_ deleting the pointers in the list, just the list itself
+        // We are _not_ deleting the pointers in the list, just the list itself
         delete[] newCardList;
 
         *cardCountPtr = newCardCount;
@@ -127,6 +127,12 @@ void CardComboBattleState::onUpdate(double elapsed)
       else {
         if (paStepIndex == (*cardCountPtr) + 1) {
           listStepCounter = listStepCooldown * 2.0f; // Linger on the screen when showing the final PA
+          
+          // play the sound
+          if (!advanceSoundPlay) {
+            AUDIO.Play(AudioType::PA_ADVANCE);
+            advanceSoundPlay = true;
+          }
         }
         else {
           listStepCounter = listStepCooldown * 0.7f; // Quicker about non-PA cards
@@ -146,9 +152,6 @@ void CardComboBattleState::onUpdate(double elapsed)
 void CardComboBattleState::onDraw(sf::RenderTexture& surface)
 {
   if (hasPA > -1) {
-    static bool advanceSoundPlay = false;
-    static float increment = 0;
-
     float nextLabelHeight = 0;
 
     double PAStartSecs = PAStartTimer.getElapsed().asSeconds();
@@ -188,7 +191,6 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
         // make the next label relative to this one
         nextLabelHeight += stepLabel.getLocalBounds().height;
       }
-      increment = 0;
       nextLabelHeight = 0;
     }
     else {
@@ -232,8 +234,6 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
         // make the next label relative to this one
         nextLabelHeight += stepLabel.getLocalBounds().height;
       }
-
-      increment += (float)elapsed;
     }
   }
 }

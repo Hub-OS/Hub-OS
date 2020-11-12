@@ -1,5 +1,6 @@
 #include "bnMobBattleScene.h"
 #include "../bnMob.h"
+#include "../bnElementalDamage.h"
 
 #include "States/bnRewardBattleState.h"
 #include "States/bnTimeFreezeBattleState.h"
@@ -7,15 +8,15 @@
 #include "States/bnBattleOverBattleState.h"
 #include "States/bnFadeOutBattleState.h"
 #include "States/bnCombatBattleState.h"
-#include "States/bnCharacterTransformBattleState.h"
 #include "States/bnMobIntroBattleState.h"
 #include "States/bnCardSelectBattleState.h"
 #include "States/bnCardComboBattleState.h"
 
 using namespace swoosh;
 
-MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattleProperties& props)
-: props(props), BattleSceneBase(controller, props.base) {
+MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattleProperties& props) : 
+  props(props), 
+  BattleSceneBase(controller, props.base) {
 
   Mob* current = props.mobs.at(0);
 
@@ -31,11 +32,11 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   }
 
   // If playing co-op, add more players to track here
-  std::vector<Player*> players = { &props.base.player };
+  players = { &props.base.player };
 
   // ptr to player, form select index (-1 none), if should transform
   // TODO: just make this a struct to use across all states that need it...
-  std::vector<std::shared_ptr<TrackedFormData>> trackedForms = { 
+  trackedForms = { 
     std::make_shared<TrackedFormData>(TrackedFormData{&props.base.player, -1, false})
   }; 
 
@@ -51,41 +52,54 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   auto battlestart = AddState<BattleStartBattleState>(players);
   auto battleover  = AddState<BattleOverBattleState>(players);
   auto timeFreeze  = AddState<TimeFreezeBattleState>();
-  auto reward      = AddState<RewardBattleState>(current, &props.base.player);
+  auto reward      = AddState<RewardBattleState>(current, &props.base.player, &playerHitCount);
   auto fadeout     = AddState<FadeOutBattleState>(FadeOut::black, players); // this state requires arguments
 
   // Important! State transitions are added in order of priority!
-  //       change from,        to,          when this is true
-  CHANGE_ON_EVENT(intro,       cardSelect,  IsOver);
-  CHANGE_ON_EVENT(cardSelect,  combo,       OKIsPressed);
-  //CHANGE_ON_EVENT(cardSelect,  forms,       HasForm);
-  CHANGE_ON_EVENT(combo,       battlestart, IsDone);
-  CHANGE_ON_EVENT(forms,       combat,      Decrossed);
-  CHANGE_ON_EVENT(forms,       battlestart, IsFinished);
-  CHANGE_ON_EVENT(battlestart, combat,      IsFinished);
-  CHANGE_ON_EVENT(battleover,  reward,      IsFinished);
-  CHANGE_ON_EVENT(timeFreeze,  combat,      IsOver);
+  intro.ChangeOnEvent(cardSelect, &MobIntroBattleState::IsOver);
+  cardSelect.ChangeOnEvent(combo,  &CardSelectBattleState::OKIsPressed);
+  combo.ChangeOnEvent(forms, [cardSelect, combo]() mutable {return combo->IsDone() && cardSelect->HasForm(); });
+  combo.ChangeOnEvent(battlestart, &CardComboBattleState::IsDone);
+  forms.ChangeOnEvent(combat, [forms, cardSelect, this]() mutable { 
+    bool triggered = forms->IsFinished() && (GetPlayer()->GetHealth() == 0 || playerDecross); 
+
+    if (triggered) {
+      playerDecross = false; // reset our decross flag
+
+      // update the card select gui and state
+      // since the state has its own records
+      cardSelect->ResetSelectedForm();
+    }
+
+    return triggered; 
+  });
+  forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
+  battlestart.ChangeOnEvent(combat, &BattleStartBattleState::IsFinished);
+  battleover.ChangeOnEvent(reward, &BattleOverBattleState::IsFinished);
+  timeFreeze.ChangeOnEvent(combat, &TimeFreezeBattleState::IsOver);
 
   // share some values between states
   combo->ShareCardList(&cardSelect->GetCardPtrList(), &cardSelect->GetCardListLengthAddr());
 
-  // special condition: if lost in combat and had a form, trigger the character transform states
-  auto playerLosesInForm = [trackedForms]
-  {
-    const bool changeState = trackedForms[0]->player->GetHealth() == 0 && (trackedForms[0]->selectedForm != -1);
+  // special condition: if in combat and should decross, trigger the character transform states
+  auto playerDecrosses = [this, forms] () mutable {
+    bool changeState = this->trackedForms[0]->player->GetHealth() == 0;
+    changeState = changeState || playerDecross;
+    changeState = changeState && (this->trackedForms[0]->selectedForm != -1);
 
     if (changeState) {
-      trackedForms[0]->selectedForm = -1;
-      trackedForms[0]->animationComplete = false;
+      this->trackedForms[0]->selectedForm = -1;
+      this->trackedForms[0]->animationComplete = false;
+      forms->SkipBackdrop();
     }
 
     return changeState;
   };
 
   // combat has multiple state interruptions based on events
-  // so we chain them together instead of using the macro
+  // so we can chain them together
   combat  .ChangeOnEvent(battleover, &CombatBattleState::PlayerWon)
-          .ChangeOnEvent(forms,      playerLosesInForm)
+          .ChangeOnEvent(forms,      playerDecrosses)
           .ChangeOnEvent(fadeout,    &CombatBattleState::PlayerLost)
           .ChangeOnEvent(cardSelect, &CombatBattleState::PlayerRequestCardSelect)
           .ChangeOnEvent(timeFreeze, &CombatBattleState::HasTimeFreeze);
@@ -98,13 +112,35 @@ MobBattleScene::MobBattleScene(ActivityController& controller, const MobBattlePr
   // Some states are part of the combat routine and need to respect
   // the combat state's timers
   combat->subcombatStates.push_back(&timeFreeze.Unwrap());
+  combat->subcombatStates.push_back(&forms.Unwrap());
 
   // this kicks-off the state graph beginning with the intro state
   this->StartStateGraph(intro);
 }
 
 MobBattleScene::~MobBattleScene() {
+  for (auto&& m : props.mobs) {
+    // delete m;
+  }
 
+  props.mobs.clear();
+}
+
+void MobBattleScene::OnHit(Character& victim, const Hit::Properties& props)
+{
+  if (GetPlayer() == &victim && props.damage > 0) {
+    playerHitCount++;
+
+    if (GetPlayer()->IsSuperEffective(props.element)) {
+      playerDecross = true;
+    }
+  }
+
+  if (victim.IsSuperEffective(props.element) && props.damage > 0) {
+    Artifact* seSymbol = new ElementalDamage(GetField());
+    seSymbol->SetLayer(-100);
+    GetField()->AddEntity(*seSymbol, victim.GetTile()->GetX(), victim.GetTile()->GetY());
+  }
 }
 
 void MobBattleScene::onStart()

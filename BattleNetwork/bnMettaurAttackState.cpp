@@ -13,12 +13,8 @@ void MettaurAttackState::OnEnter(Mettaur& met) {
   auto onFinish = [this, metPtr]() { metPtr->ChangeState<MettaurIdleState>(); };
 
   auto& animation = *met.GetFirstComponent<AnimationComponent>();
-  if (met.GetRank() == Mettaur::Rank::SP) {
-    animation.SetAnimation("SP_ATTACK", onFinish);
-  }
-  else {
-    animation.SetAnimation("ATTACK", onFinish);
-  }
+
+  animation.SetAnimation("ATTACK", onFinish);
 
   animation.AddCallback(10, onAttack, true);
   animation.SetCounterFrameRange(6, 11);
@@ -39,6 +35,10 @@ void MettaurAttackState::DoAttack(Mettaur& met) {
     auto props = spell->GetHitboxProperties();
     props.aggressor = &met;
     spell->SetHitboxProperties(props);
+
+    if (met.GetRank() == Mettaur::Rank::SP) {
+      spell->CrackTiles(true);
+    }
 
     spell->SetDirection(Direction::left);
     met.field->AddEntity(*spell, met.tile->GetX() - 1, met.tile->GetY());

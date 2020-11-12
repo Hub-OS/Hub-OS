@@ -7,3 +7,7 @@ PVPBattleScene::PVPBattleScene(ActivityController& controller, const PVPBattlePr
 
 PVPBattleScene::~PVPBattleScene() 
 {}
+
+void PVPBattleScene::OnHit(Character & victim, const Hit::Properties & props)
+{
+}

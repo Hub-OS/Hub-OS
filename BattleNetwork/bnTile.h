@@ -41,7 +41,7 @@ class Dummy;
 #include "bnDefenseRule.h"
 
 namespace Battle {
-  class Tile : public Sprite {
+  class Tile : public SpriteProxyNode {
   public:
     enum class Highlight : int {
       none = 0,
@@ -271,6 +271,11 @@ namespace Battle {
      */
     std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
+    /**
+     * @brief Calculates and returns Manhattan-distance from this tile to the other
+     */
+    int Distance(Battle::Tile& other);
+
   private:
 
     std::string GetAnimState(const TileState state);
@@ -289,7 +294,7 @@ namespace Battle {
 
     float width;
     float height;
-    Field* field;
+    Field* field{ nullptr };
     float teamCooldown;
 
     std::shared_ptr<sf::Texture> red_team_atlas;
@@ -305,7 +310,7 @@ namespace Battle {
     Highlight highlightMode;
     bool isTimeFrozen;
     bool isBattleOver;
-
+    bool isBattleStarted{ false };
     double elapsedBurnTime;
     double burncycle;
 
@@ -323,6 +328,9 @@ namespace Battle {
     vector<Entity::ID_t> taggedSpells; /**< IDs of occupying spells that have already attacked this frame*/
 
     Animation animation;
+    Animation volcanoErupt;
+    double volcanoEruptTimer{ 4 }; // seconds
+    SpriteProxyNode volcanoSprite;
 
     /**
      * @brief Auxillary function used by all other overloads of AddEntity
