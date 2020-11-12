@@ -16,7 +16,7 @@
 Canodumb::Canodumb(Rank _rank)
   :  AI<Canodumb>(this), Character(_rank) {
   SetTeam(Team::blue);
-
+  SetName("Canodumb");
   setTexture(TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
 
@@ -30,17 +30,14 @@ Canodumb::Canodumb(Rank _rank)
   switch (GetRank()) {
   case Rank::_1:
     animation->SetAnimation("IDLE_1");
-    name = "Canodumb";
     health = 60;
     break;
   case Rank::_2:
     animation->SetAnimation("IDLE_2");
-    name = "Canodumb2";
     health = 90;
     break;
   case Rank::_3:
     animation->SetAnimation("IDLE_3");
-    name = "Canodumb3";
     health = 130;
     break;
   }

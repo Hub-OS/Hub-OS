@@ -7,6 +7,7 @@ class Player;
 class CardAction;
 
 class PlayerForm {
+  bool elementalDecross{ true };
 public:
   PlayerForm() = default;
   virtual ~PlayerForm() { ; }
@@ -15,6 +16,8 @@ public:
   virtual void OnUpdate(float elapsed, Player&) = 0;
   virtual CardAction* OnChargedBusterAction(Player&) = 0;
   virtual CardAction* OnSpecialAction(Player&) = 0;
+  void SetElementalDecross(bool state) { elementalDecross = state; }
+  const bool WillElementalHitDecross() const { return elementalDecross; }
 };
 
 class PlayerFormMeta {

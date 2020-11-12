@@ -1,0 +1,8 @@
+imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/spells/gust.png"
+
+animation state="DEFAULT"
+frame duration="0.05" x="0" y="18" w="35" h="24" originx="15" originy="21"
+frame duration="0.05" x="38" y="5" w="47" h="35" originx="21" originy="33"
+frame duration="0.05" x="87" y="2" w="42" h="38" originx="20" originy="36"
+frame duration="0.05" x="133" y="1" w="25" h="17" originx="9" originy="38"
+frame duration="0.05" x="133" y="1" w="25" h="17" originx="2" originy="38"

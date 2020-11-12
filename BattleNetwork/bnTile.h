@@ -271,6 +271,11 @@ namespace Battle {
      */
     std::vector<Entity*> FindEntities(std::function<bool(Entity*e)> query);
 
+    /**
+     * @brief Calculates and returns Manhattan-distance from this tile to the other
+     */
+    int Distance(Battle::Tile& other);
+
   private:
 
     std::string GetAnimState(const TileState state);

@@ -1,0 +1,8 @@
+imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/spells/target.png"
+
+animation state="DEFAULT"
+frame duration="0.05" x="0" y="0" w="30" h="30" originx="15" originy="15"
+
+animation state="BLINK"
+frame duration="0.05" x="32" y="2" w="28" h="28" originx="14" originy="14"
+frame duration="0.05" x="62" y="2" w="28" h="28" originx="14" originy="14"

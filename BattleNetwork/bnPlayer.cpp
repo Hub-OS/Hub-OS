@@ -52,6 +52,12 @@ Player::Player() :
   };
 
   this->RegisterStatusCallback(Hit::recoil, Callback<void()>{ recoil });
+
+  auto bubbleState = [this]() {
+    ChangeState<BubbleState<Player>>();
+  };
+
+  this->RegisterStatusCallback(Hit::bubble, Callback<void()>{ bubbleState});
 }
 
 Player::~Player() {
@@ -60,11 +66,6 @@ Player::~Player() {
 void Player::OnUpdate(float _elapsed) {
   if (GetTile() != nullptr) {
     setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
-  }
-
-  // TODO: is there a way to have custom states and respond to them?
-  if (GetFirstComponent<BubbleTrap>()) {
-    ChangeState<BubbleState<Player>>();
   }
 
   AI<Player>::Update(_elapsed);

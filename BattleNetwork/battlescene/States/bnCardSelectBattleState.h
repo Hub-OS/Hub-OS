@@ -25,6 +25,7 @@ class CardSelectBattleState final : public BattleSceneState {
   double heldCardSelectInputCooldown; /*!< When holding the directional inputs, when does the sticky key effect trigger*/
   double cardSelectInputCooldown; /*!< Time remaining with delayed input */
 
+  bool pvpMode{ false };
   bool hasCombo{ false }; 
   bool formSelected{ false };
   int currForm{ -1 };
@@ -45,6 +46,7 @@ public:
   void onUpdate(double elapsed) override;
   void onDraw(sf::RenderTexture& surface) override;
   void onEnd(const BattleSceneState* next) override;
+  void EnablePVPMode();
   bool OKIsPressed();
   bool HasForm();
   const bool HasCombo();

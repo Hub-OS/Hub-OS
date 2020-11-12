@@ -294,6 +294,11 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
 void CardSelectBattleState::onEnd(const BattleSceneState*)
 { }
 
+void CardSelectBattleState::EnablePVPMode()
+{
+  pvpMode = true;
+}
+
 bool CardSelectBattleState::OKIsPressed() {
   // CardGUI goes out of view when OK is pressed
   // wait for that animation to end before triggering the next state

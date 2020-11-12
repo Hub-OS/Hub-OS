@@ -39,6 +39,10 @@ Bubble::Bubble(Field* _field, Team _team, double speed)
   animation.Update(0, getSprite());
 
   IgnoreCommonAggressor(true);
+
+  auto props = GetHitboxProperties();
+  props.flags |= Hit::bubble;
+  SetHitboxProperties(props);
 }
 
 Bubble::~Bubble() {
@@ -121,7 +125,6 @@ void Bubble::Attack(Character* _entity) {
   }
 
   if (popping) {
-    _entity->CreateComponent<BubbleTrap>(_entity);
     Delete();
   }
 }

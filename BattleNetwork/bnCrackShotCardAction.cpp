@@ -3,6 +3,7 @@
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnParticleImpact.h"
 #include "bnCrackShot.h"
 
 #define FRAME1 { 1, 0.05 }
@@ -61,10 +62,16 @@ void CrackShotCardAction::Execute() {
 
       GetOwner()->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
 
-      AUDIO.Play(AudioType::TOSS_ITEM_LITE);
 
       tile->SetState(TileState::broken);
     }
+
+    if (tile) {
+      auto* fx = new ParticleImpact(ParticleImpact::Type::wind);
+      GetOwner()->GetField()->AddEntity(*fx, tile->GetX(), tile->GetY());
+    }
+
+    AUDIO.Play(AudioType::TOSS_ITEM_LITE);
   };
 
   AddAnimAction(3, onThrow);

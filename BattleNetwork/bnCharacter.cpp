@@ -9,6 +9,7 @@
 #include "bnShaderResourceManager.h"
 #include "bnAnimationComponent.h"
 #include "bnShakingEffect.h"
+#include "bnBubbleTrap.h"
 #include <Swoosh/Ease.h>
 
 void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
@@ -101,41 +102,41 @@ void Character::Update(float _elapsed) {
   double prevThisFrameStun = stunCooldown;
 
   if (!hit) {
-      if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
-          SetShader(stun);
+    if (stunCooldown && (((int)(stunCooldown * 15))) % 2 == 0) {
+      SetShader(stun);
+    }
+    else if(GetHealth() > 0) {
+      SetShader(nullptr);
+
+      counterFrameFlag = ((int)(++counterFrameFlag) % 5);
+
+      if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag != 0) {
+        // Highlight when the character can be countered
+        setColor(sf::Color(55, 55, 255, getColor().a));
+
+        // TODO: how to interop with new shaders like pallete swap?
+        SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
       }
-      else if(GetHealth() > 0) {
-          SetShader(nullptr);
+    }
 
-          counterFrameFlag = ((int)(++counterFrameFlag) % 5);
-
-          if (counterable && field->DoesRevealCounterFrames() && counterFrameFlag != 0) {
-            // Highlight when the character can be countered
-            setColor(sf::Color(55, 55, 255, getColor().a));
-
-            // TODO: how to interop with new shaders like pallete swap?
-            SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
-          }
+    if (invincibilityCooldown > 0) {
+      // This just blinks every 15 frames
+      if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
+        Hide();
+      }
+      else {
+        Reveal();
       }
 
-      if (invincibilityCooldown > 0) {
-          // This just blinks every 15 frames
-          if ((((int)(invincibilityCooldown * 15))) % 2 == 0) {
-            Hide();
-          }
-          else {
-            Reveal();
-          }
+      invincibilityCooldown -= _elapsed;
 
-          invincibilityCooldown -= _elapsed;
-
-          if (invincibilityCooldown <= 0) {
-            Reveal();
-          }
+      if (invincibilityCooldown <= 0) {
+        Reveal();
       }
+    }
   }
   else {
-      SetShader(whiteout);
+    SetShader(whiteout);
   }
 
   if(stunCooldown > 0.0 && !IsTimeFrozen()) {
@@ -169,12 +170,12 @@ void Character::Update(float _elapsed) {
 
   // Ensure health is zero if marked for immediate deletion
   if (health <= 0 || IsDeleted()) {
-      health = 0;
+    health = 0;
   }
 
   // Ensure entity is deleted if health is zero
   if (health == 0) {
-      Delete();
+    Delete();
   }
 
   // If drag status is over, reset the flag
@@ -401,6 +402,13 @@ void Character::ResolveFrameBattleDamage()
         }
       };
 
+      if ((props.flags & Hit::bubble) == Hit::bubble) {
+        CreateComponent<BubbleTrap>(this);
+      }
+
+      // exclude this from the next processing step 
+      props.flags &= ~Hit::bubble;
+
       /*
       flags already accounted for:
       - impact
@@ -417,6 +425,7 @@ void Character::ResolveFrameBattleDamage()
       flagCheckThunk(Hit::pierce);
       flagCheckThunk(Hit::shake);
       flagCheckThunk(Hit::recoil);
+      flagCheckThunk(Hit::bubble);
 
       hit = hit || props.damage;
 

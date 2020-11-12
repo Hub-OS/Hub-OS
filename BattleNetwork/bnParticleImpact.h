@@ -17,7 +17,8 @@ public:
     fire,
     thin,
     vulcan,
-    volcano
+    volcano,
+    wind
   };
 
   /**

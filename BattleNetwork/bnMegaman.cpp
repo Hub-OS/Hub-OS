@@ -6,6 +6,7 @@
 #include "bnTornadoCardAction.h"
 #include "bnLightningCardAction.h"
 #include "bnTomahawkSwingCardAction.h"
+#include "bnDefenseStatusGuard.h"
 #include "bnCardAction.h"
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
@@ -214,11 +215,13 @@ CardAction* HeatCross::OnSpecialAction(Player& player)
 TomahawkCross::TomahawkCross()
 {
   loaded = false;
+  statusGuard = new DefenseStatusGuard();
 }
 
 TomahawkCross::~TomahawkCross()
 {
   delete overlay;
+  delete statusGuard;
 }
 
 void TomahawkCross::OnActivate(Player& player)
@@ -242,6 +245,8 @@ void TomahawkCross::OnActivate(Player& player)
   player.AddNode(overlay);
 
   parentAnim->AddToOverrideList(&overlayAnimation);
+
+  player.AddDefenseRule(statusGuard);
 }
 
 void TomahawkCross::OnDeactivate(Player & player)
@@ -252,6 +257,8 @@ void TomahawkCross::OnDeactivate(Player & player)
 
   parentAnim->RemoveFromOverrideList(&overlayAnimation);
   player.SetAirShoe(false);
+
+  player.RemoveDefenseRule(statusGuard);
 }
 
 void TomahawkCross::OnUpdate(float elapsed, Player& player)

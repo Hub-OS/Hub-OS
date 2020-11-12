@@ -208,6 +208,6 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->QueueAction(new AuraCardAction(player, Aura::Type::BARRIER_10));
   }
   else if (name.substr(0, 7) == "MachGun") {
-    player->QueueAction(new MachGunCardAction(*player, card.GetDamage()));
+    player->QueueAction(new MachGunCardAction(player, card.GetDamage()));
   }
 }

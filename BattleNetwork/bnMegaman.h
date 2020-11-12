@@ -66,6 +66,8 @@ private:
   SpriteProxyNode* overlay{ nullptr };
 };
 
+class DefenseRule; // forward declare
+
 class TomahawkCross : public PlayerForm {
 public:
   TomahawkCross();
@@ -76,6 +78,7 @@ public:
   CardAction* OnChargedBusterAction(Player&);
   CardAction* OnSpecialAction(Player&);
 private:
+  DefenseRule* statusGuard{ nullptr };
   bool loaded;
   AnimationComponent* parentAnim{ nullptr };
   Animation overlayAnimation;
