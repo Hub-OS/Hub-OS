@@ -20,10 +20,9 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*>& tracked, do
   pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE))
 {
   // PAUSE
-  pauseFont = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  pauseLabel = sf::Text("paused", *pauseFont);
-  pauseLabel.setOrigin(pauseLabel.getLocalBounds().width / 2, pauseLabel.getLocalBounds().height * 2);
-  pauseLabel.setPosition(sf::Vector2f(240.f, 160.f));
+  pause.setTexture(*TEXTURES.LoadTextureFromFile("resources/ui/pause.png"));
+  pause.setOrigin(pause.getLocalBounds().width / 2, pause.getLocalBounds().height * 2);
+  pause.setPosition(sf::Vector2f(240.f, 160.f));
 
   // CHIP CUST GRAPHICS
   auto customBarTexture = TEXTURES.LoadTextureFromFile("resources/ui/custom.png");
@@ -205,7 +204,7 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
     ENGINE.SetShader(&pauseShader);
 
     // render on top
-    ENGINE.Draw(pauseLabel, false);
+    ENGINE.Draw(pause, false);
   }
 }
 

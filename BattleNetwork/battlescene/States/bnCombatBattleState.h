@@ -25,8 +25,7 @@ struct CombatBattleState final : public BattleSceneState, public CardUseListener
   double customProgress{ 0 };
   double customDuration{ 0 };
   Mob* mob{ nullptr };
-  std::shared_ptr<sf::Font> pauseFont;
-  sf::Text pauseLabel; /*!< "PAUSE" text */
+  sf::Sprite pause;
   sf::Sprite doubleDelete;
   sf::Sprite tripleDelete;
   sf::Sprite counterHit;
