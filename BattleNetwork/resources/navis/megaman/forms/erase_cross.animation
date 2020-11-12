@@ -1,8 +1,9 @@
-imagePath="C:\mmbn\net battle engine\Release\resources\navis\megaman\forms\elec_cross"
+imagePath="C:\mmbn\net battle engine\Release\resources\navis\megaman\forms\erase_cross"
 
 animation state="PLAYER_IDLE"
 frame duration="0.01" x="24" y="8" w="55" h="59" originx="34" originy="21"
 frame duration="0.01" x="24" y="8" w="55" h="59" originx="34" originy="21"
+frame duration="0.01" x="334" y="8" w="55" h="59" originx="34" originy="21"
 
 animation state="PLAYER_HIT"
 frame duration="0.2" x="125" y="9" w="46" h="61" originx="16" originy="11"
