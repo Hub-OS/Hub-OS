@@ -92,7 +92,7 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
     return change;
   });
 
-  forms.ChangeOnEvent(combat, &CharacterTransformBattleState::Decrossed);
+  //forms.ChangeOnEvent(combat, &CharacterTransformBattleState::Decrossed);
   forms.ChangeOnEvent(battlestart, &CharacterTransformBattleState::IsFinished);
 
   battlestart.ChangeOnEvent(combat, [battlestart, this]() mutable {
@@ -152,6 +152,10 @@ NetworkBattleScene::~NetworkBattleScene()
   delete remoteCardUsePublisher;
   delete networkCardUseListener;
   client.close();
+}
+
+void NetworkBattleScene::OnHit(Character& victim, const Hit::Properties& props)
+{
 }
 
 void NetworkBattleScene::onUpdate(double elapsed) {

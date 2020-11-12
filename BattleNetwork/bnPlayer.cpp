@@ -33,8 +33,6 @@ Player::Player() :
   SetLayer(0);
   team = Team::red;
 
-  hitCount = 0;
-
   setScale(2.0f, 2.0f);
 
   animationComponent = CreateComponent<AnimationComponent>(this);
@@ -115,18 +113,9 @@ const float Player::GetHeight() const
   return 101.0f;
 }
 
-void Player::OnHit() {
-  hitCount++;
-}
-
 int Player::GetMoveCount() const
 {
   return Entity::GetMoveCount();
-}
-
-int Player::GetHitCount() const
-{
-  return hitCount;
 }
 
 void Player::SetCharging(bool state)

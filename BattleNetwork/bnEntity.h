@@ -66,6 +66,7 @@ private:
   void ReleaseComponentsPendingRemoval();
   void InsertComponentsPendingRegistration();
 public:
+
   using RemoveCallback = Callback<void()>;
 
   Entity();

@@ -1,6 +1,7 @@
 #pragma once
 #include "bnEntity.h"
 #include "bnCounterHitPublisher.h"
+#include "bnHitPublisher.h"
 #include "bnDefenseFrameStateJudge.h"
 #include "bnDefenseRule.h"
 #include "bnHitProperties.h"
@@ -22,7 +23,7 @@ class CardAction;
  * @date 05/05/19
  * @brief Characters are mobs, enemies, and players. They have health and can take hits.
  */
-class Character : public virtual Entity, public CounterHitPublisher {
+class Character : public virtual Entity, public CounterHitPublisher, public HitPublisher {
   friend class Field;
   friend class AnimationComponent;
 protected:

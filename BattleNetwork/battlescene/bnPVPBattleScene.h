@@ -11,7 +11,11 @@ struct PVPBattleProperties {
 
 class PVPBattleScene final : public BattleSceneBase {
   Player* remotePlayer; // the other person
+  int clientDamage{};
+  int remoteDamage{};
 
+public:
   PVPBattleScene(swoosh::ActivityController& controller, const PVPBattleProperties& props);
   ~PVPBattleScene();
+  void OnHit(Character& victim, const Hit::Properties& props) override final;
 };

@@ -12,10 +12,10 @@ class MachGunCardAction : public CardAction {
   Animation machgunAnim;
   Entity* target{ nullptr };
   Battle::Tile* targetTile{ nullptr };
-  bool moveUp{ true }, moveOneCol{ true };
+  bool moveUp{ true }, moveOneCol{ false }, firstSpawn{ true };
 
   void FreeTarget();
-  void MoveRectical(Field*);
+  Battle::Tile* MoveRectical(Field*);
 
 public:
   MachGunCardAction(Character* owner, int damage);

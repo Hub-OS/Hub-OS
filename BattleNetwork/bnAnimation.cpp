@@ -167,7 +167,13 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
 
   std::string stateNow = currAnimation;
 
-  animator(progress, target, animations[currAnimation]);
+  if (noAnim == false) {
+    animator(progress, target, animations[currAnimation]);
+  }
+  else {
+    // effectively hide
+    target.setTextureRect(sf::IntRect(0, 0, 0, 0));
+  }
 
   if(currAnimation != stateNow) {
     // it was changed during a callback
@@ -230,8 +236,11 @@ void Animation::SetAnimation(string state) {
 
    auto pos = animations.find(state);
 
+   noAnim = false; // presumptious reset
+
    if (pos == animations.end()) {
      Logger::Log("No animation found in file for " + state);
+     noAnim = true;
    }
 
    // Even if we don't have this animation, switch to it anyway

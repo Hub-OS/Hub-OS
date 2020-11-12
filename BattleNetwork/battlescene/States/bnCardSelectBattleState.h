@@ -50,5 +50,6 @@ public:
   bool OKIsPressed();
   bool HasForm();
   const bool HasCombo();
+  void ResetSelectedForm();
   CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms);
 };

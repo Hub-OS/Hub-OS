@@ -314,3 +314,9 @@ const bool CardSelectBattleState::HasCombo()
 {
   return OKIsPressed() && hasCombo;
 }
+
+void CardSelectBattleState::ResetSelectedForm()
+{
+  currForm = -1;
+  GetScene().GetCardSelectWidget().ResetPlayerFormSelection();
+}

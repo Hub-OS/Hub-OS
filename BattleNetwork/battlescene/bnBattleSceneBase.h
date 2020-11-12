@@ -11,15 +11,16 @@
 #include <Segues/WhiteWashFade.h>
 #include <Segues/BlackWashFade.h>
 
-#include "../bnCounterHitListener.h"
-#include "../bnCharacterDeleteListener.h"
-#include "../bnCardUseListener.h"
 #include "../bnComponent.h"
 #include "../bnPA.h"
 #include "../bnMobHealthUI.h"
 #include "../bnAnimation.h"
 #include "../bnCamera.h"
 #include "../bnCounterCombatRule.h"
+#include "../bnCounterHitListener.h"
+#include "../bnHitListener.h"
+#include "../bnCharacterDeleteListener.h"
+#include "../bnCardUseListener.h"
 #include "../bnPlayerCardUseListener.h"
 #include "../bnEnemyCardUseListener.h"
 #include "../bnSelectedCardsUI.h"
@@ -60,6 +61,7 @@ struct BattleSceneBaseProps {
 */
 class BattleSceneBase : 
   public swoosh::Activity, 
+  public HitListener,
   public CounterHitListener, 
   public CharacterDeleteListener, 
   public CardUseListener {

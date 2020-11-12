@@ -235,8 +235,9 @@ bool CardSelectionCust::CursorAction() {
       else {
         selectedFormIndex = lockedInFormIndex;
         currentFormItem = lockedInFormItem;
-        AUDIO.Play(AudioType::DEFORM);
       }
+
+      AUDIO.Play(AudioType::DEFORM);
     }
     else {
       formSelectQuitTimer = frames(30).asSeconds();
@@ -523,8 +524,8 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
 
 void CardSelectionCust::ResetPlayerFormSelection()
 {
-  lockedInFormIndex = -1;
-  lockedInFormItem = sf::Sprite();
+  lockedInFormIndex = selectedFormIndex = -1;
+  lockedInFormItem = currentFormItem = sf::Sprite();
 }
 
 void CardSelectionCust::LockInPlayerFormSelection()

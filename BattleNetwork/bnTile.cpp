@@ -88,7 +88,7 @@ namespace Battle {
 
     // On anim end, reset the timer
     volcanoErupt << "FLICKER" << Animator::Mode::Loop << [this, resetVolcanoThunk]() {
-      resetVolcanoThunk(1+0.8);
+      resetVolcanoThunk(2);
     };
 
     volcanoSprite.setTexture(TEXTURES.LoadTextureFromFile("resources/tiles/volcano.png"));
@@ -657,7 +657,7 @@ namespace Battle {
 
   int Tile::Distance(Battle::Tile& other)
   {
-      return (other.GetX() - GetX()) + (other.GetY() - GetY());
+      return std::abs(other.GetX() - GetX()) + std::abs(other.GetY() - GetY());
   }
 
   std::string Tile::GetAnimState(const TileState state)

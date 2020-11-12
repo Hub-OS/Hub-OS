@@ -6,6 +6,10 @@
 template<typename T>
 class AI;
 
+// forward decl
+template<typename T>
+class BossPatternAI;
+
 /**
  * @class AIState
  * @author mav
@@ -18,8 +22,12 @@ class AI;
 template<class T>
 class AIState
 {
-  friend class AI<T>;
+  bool locked{ false };
+
 public:
+  friend class AI<T>;
+  friend class BossPatternAI<T>;
+
   /**
    * @brief Ctor
    */
@@ -59,5 +67,23 @@ public:
    * @param context reference object
    */
   virtual void OnLeave(T& context) = 0;
+
+  /**
+  * @brief Locks state so other states cannot change it unless the priority of the new state is higher
+  * 
+  * Sets `locked` to true
+  */
+  void PriorityLock() {
+    locked = true;
+  }
+
+  /**
+  * @brief Unlocks state so other states can change freely
+  *
+  * Sets `locked` to false
+  */
+  void PriorityUnlock() {
+    locked = false;
+  }
 };
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "bnEntity.h"
 #include "bnAIState.h"
-#include "bnAIPriorityLock.h"
 #include "bnExplosionSpriteNode.h"
 #include "bnAnimationComponent.h"
 #include "bnShaderResourceManager.h"
@@ -71,6 +70,7 @@ template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : elapsed(0), explosion(nullptr), numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
+  PriorityLock();
 }
 
 template<typename Any>
@@ -80,8 +80,6 @@ ExplodeState<Any>::~ExplodeState() {
 
 template<typename Any>
 void ExplodeState<Any>::OnEnter(Any& e) {
-  AIPriorityLock<Any> lock(e);
-
   e.SetPassthrough(true); // Shoot through dying enemies
 
   /* explode over the sprite */

@@ -114,6 +114,7 @@ private:
 public:
   using BattleSceneBase::ProcessNewestComponents;
 
+  void OnHit(Character& victim, const Hit::Properties& props) override final;
   void onUpdate(double elapsed) override final;
   void onDraw(sf::RenderTexture& surface) override final;
   void onExit() override;

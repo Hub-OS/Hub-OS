@@ -67,11 +67,6 @@ public:
   void UseSpecial();
 
   /**
-   * @brief Describe what happens when a player gets hit. Can be overridden.
-   */
-  virtual void OnHit();
-
-  /**
    * @brief when player is deleted, changes state to delete state and hide charge component
    */
   virtual void OnDelete();
@@ -83,12 +78,7 @@ public:
    * @return int
    */
   int GetMoveCount() const;
-  
-  /**
-   * @brief Get how many times the player has been hit
-   * @return int
-   */
-  int GetHitCount() const;
+
 
   /**
    * @brief Toggles the charge component
@@ -120,7 +110,6 @@ public:
 
   const std::vector<PlayerFormMeta*> GetForms();
 protected:
-  int hitCount; /*!< How many times the player has been hit. Used by score board. */
   string state; /*!< Animation state name */
   bool playerControllerSlide;
   AnimationComponent* animationComponent;

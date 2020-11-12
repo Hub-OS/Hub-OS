@@ -30,6 +30,7 @@ private:
   int lastSelectedForm{ -1 };
   double backdropInc{ 4.25 }; //!< alpha increase per frame (max 255)
   double frameElapsed{ 0 };
+  bool skipBackdrop{ false };
   sf::Sprite shine;
   std::vector<std::shared_ptr<TrackedFormData>>& tracking;
   std::vector<Animation> shineAnimations;
@@ -39,7 +40,7 @@ private:
   void UpdateAnimation(double elapsed);
 
 public:
-  bool Decrossed();
+  void SkipBackdrop();
   bool IsFinished();
   void onStart(const BattleSceneState* last) override;
   void onUpdate(double elapsed) override;

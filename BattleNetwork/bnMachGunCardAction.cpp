@@ -3,6 +3,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnSuperVulcan.h"
 #include "bnCharacter.h"
+#include "bnObstacle.h"
 
 #define WAIT   { 1, 0.0166 }
 #define FRAME1 { 1, 0.05 }
@@ -40,16 +41,20 @@ void MachGunCardAction::Execute()
     auto* owner = GetOwner();
     auto* field = owner->GetField();
 
-    if (!target) {
-      // find one 
+    if (target == nullptr || target->WillRemoveLater()) {
+      // find the closest
       auto ents = field->FindEntities([owner](Entity* e) {
         Team team = e->GetTeam();
         Character* character = dynamic_cast<Character*>(e);
-        return character && team != owner->GetTeam() && team != Team::unknown;
+        Obstacle* obst = dynamic_cast<Obstacle*>(e);
+        return character && !obst && e->WillRemoveLater() == false 
+               && team != owner->GetTeam() && team != Team::unknown;
       });
 
       if (ents.empty() == false) {
-        std::sort(ents.begin(), ents.end(), [](Entity* A, Entity* B) {return  A->GetTile()->Distance(*B->GetTile()) < 0; });
+        std::sort(ents.begin(), ents.end(), 
+          [owner](Entity* A, Entity* B) { return A->GetTile()->GetX() < B->GetTile()->GetX(); }
+        );
         target = ents[0];
       }
     }
@@ -58,7 +63,14 @@ void MachGunCardAction::Execute()
       targetTile = field->GetAt(target->GetTile()->GetX(), 3);
     }
 
-    this->MoveRectical(field);
+    // We initially spawn the rectical where we want to start
+    // Do note move it around
+    if (!firstSpawn) {
+      targetTile = this->MoveRectical(field);
+    }
+    else {
+      firstSpawn = false;
+    }
 
     // Spawn rectical where the targetTile is positioned which will attack for us
     if (targetTile) {
@@ -86,11 +98,12 @@ void MachGunCardAction::FreeTarget()
   target = nullptr;
 }
 
-void MachGunCardAction::MoveRectical(Field* field)
+Battle::Tile* MachGunCardAction::MoveRectical(Field* field)
 {
+  auto* charTile = target->GetTile();
+
   // Figure out where our last rectical was
-  if (target && targetTile) {
-    auto* charTile = target->GetTile();
+  if (target && targetTile && charTile) {
     Battle::Tile* nextTile = nullptr;
 
     if (moveOneCol && charTile->GetX() != targetTile->GetX()) {
@@ -102,8 +115,7 @@ void MachGunCardAction::MoveRectical(Field* field)
           nextTile = field->GetAt(targetTile->GetX() + 1, targetTile->GetY());
         }
 
-        targetTile = nextTile;
-
+        return nextTile;
       }
       else if (charTile->GetX() > targetTile->GetX()) {
         moveOneCol = false;
@@ -113,8 +125,7 @@ void MachGunCardAction::MoveRectical(Field* field)
           nextTile = field->GetAt(targetTile->GetX() - 1, targetTile->GetY());
         }
 
-        targetTile = nextTile;
-
+        return nextTile;
       }
     } 
     else {
@@ -123,15 +134,17 @@ void MachGunCardAction::MoveRectical(Field* field)
       nextTile = field->GetAt(targetTile->GetX(), targetTile->GetY() + step);
 
       if (nextTile->IsEdgeTile()) {
-        moveUp = !moveUp;
         moveOneCol = true;
-        MoveRectical(field);
+        moveUp = !moveUp;
+        return MoveRectical(field);
       }
       else {
-        targetTile = nextTile;
+        return nextTile;
       }
     }
   }
+
+  return targetTile;
 }
 
 
@@ -154,12 +167,13 @@ Target::~Target()
 
 void Target::OnSpawn(Battle::Tile& start)
 {
-  start.RequestHighlight(Battle::Tile::Highlight::solid);
 }
 
 void Target::OnUpdate(float elapsed)
 {
   attack -= elapsed;
+
+  GetTile()->RequestHighlight(Battle::Tile::Highlight::flash);
 
   if (attack <= 0) {
     auto* vulcan = new SuperVulcan(GetField(), GetTeam(), damage);

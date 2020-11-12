@@ -151,6 +151,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   comboInfoTimer.start();
   multiDeleteTimer.start();
 
+  HitListener::Subscribe(*player);
+
   setView(sf::Vector2u(480, 320));
 }
 

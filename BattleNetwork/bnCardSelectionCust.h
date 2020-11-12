@@ -17,7 +17,7 @@
  * @class CardSelectionCust
  * @author mav
  * @date 05/05/19
- * @brief Cardcust GUI used in battle. Can be interacted through public API.
+ * @brief Cardcust widget used in battle. Can be interacted through public API.
  */
 class CardSelectionCust : public SceneNode {
 public:
