@@ -6,18 +6,11 @@
 #pragma once
 
 #include "bnPlayer.h"
-#include "bnArtifact.h"
-#include "bnPlayerState.h"
-#include "bnTextureType.h"
-#include "bnPlayerHealthUI.h"
-#include "bnChargeEffectSceneNode.h"
 #include "bnAnimationComponent.h"
-#include "bnAI.h"
 #include "bnPlayerControlledState.h"
 #include "bnPlayerIdleState.h"
-#include "bnPlayerHitState.h"
-#include "bnNaviRegistration.h"
 #include "bnAura.h"
+#include "bnArtifact.h"
 
 using sf::IntRect;
 
@@ -50,7 +43,8 @@ public:
   Forte();
   ~Forte();
 
-  const float GetHeight() const final;
-  void OnUpdate(float _elapsed) final;
-  void OnDelete() final;
+  const float GetHeight() const override final;
+  void OnUpdate(float _elapsed) override final;
+  void OnDelete() override final;
+  void OnSpawn(Battle::Tile& start) override final;
 }; 

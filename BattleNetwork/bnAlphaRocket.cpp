@@ -62,9 +62,9 @@ void AlphaRocket::OnUpdate(float _elapsed) {
 
   tile->AffectEntities(this);
 
-  if (tile->ContainsEntityType<Character>()) {
+  /*if (tile->ContainsEntityType<Character>()) {
       Delete();
-  }
+  }*/
 }
 
 // Nothing prevents AlphaRocket from moving over it

@@ -21,6 +21,7 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*>& tracked, do
 {
   // PAUSE
   pause.setTexture(*TEXTURES.LoadTextureFromFile("resources/ui/pause.png"));
+  pause.setScale(2.f, 2.f);
   pause.setOrigin(pause.getLocalBounds().width / 2, pause.getLocalBounds().height * 2);
   pause.setPosition(sf::Vector2f(240.f, 160.f));
 

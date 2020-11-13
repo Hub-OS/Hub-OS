@@ -45,8 +45,6 @@ Forte::Forte() : Player()
 
   SetFloatShoe(true);
 
-  CreateComponent<Aura>(Aura::Type::AURA_200, this);
-
   //aura->setPosition(0, -20.0f);
 
   dropCooldown = COPY_DROP_COOLDOWN;
@@ -54,7 +52,7 @@ Forte::Forte() : Player()
   // Bass slides around lookin pretty slick
   EnablePlayerControllerSlideMovementBehavior(true);
 
-  chargeEffect.SetFullyChargedColor(sf::Color::Green);
+  chargeEffect.SetFullyChargedColor(sf::Color::Magenta);
 }
 
 Forte::~Forte()
@@ -94,6 +92,11 @@ void Forte::OnUpdate(float _elapsed)
 void Forte::OnDelete()
 {
   Player::OnDelete();
+}
+
+void Forte::OnSpawn(Battle::Tile& start)
+{
+  CreateComponent<Aura>(Aura::Type::AURA_200, this);
 }
 
 int Forte::MoveEffect::counter = 0;
