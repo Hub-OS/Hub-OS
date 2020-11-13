@@ -4,8 +4,10 @@
 class Field;
 
 class TomahawkSwingCardAction : public CardAction {
+  int damage{};
+
 public:
-  TomahawkSwingCardAction(Character& owner);
+  TomahawkSwingCardAction(Character& owner, int damage);
   ~TomahawkSwingCardAction();
 
   void Execute() override;

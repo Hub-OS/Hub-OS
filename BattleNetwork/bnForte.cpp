@@ -16,12 +16,12 @@ const std::string RESOURCE_PATH = "resources/navis/forte/forte.animation";
 
 CardAction* Forte::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1);
+  return new BusterCardAction(this, false, 1*GetAtkLevel());
 }
 
 CardAction* Forte::OnExecuteChargedBusterAction()
 {
-  return new VulcanCardAction(this, 30);
+  return new VulcanCardAction(this, 10*GetAtkLevel());
 }
 
 CardAction* Forte::OnExecuteSpecialAction() {
@@ -41,7 +41,7 @@ Forte::Forte() : Player()
 
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
 
-  SetHealth(2000);
+  SetHealth(1000);
 
   SetFloatShoe(true);
 
@@ -96,7 +96,7 @@ void Forte::OnDelete()
 
 void Forte::OnSpawn(Battle::Tile& start)
 {
-  CreateComponent<Aura>(Aura::Type::AURA_200, this);
+  CreateComponent<Aura>(Aura::Type::AURA_100, this)->Persist(false);
 }
 
 int Forte::MoveEffect::counter = 0;

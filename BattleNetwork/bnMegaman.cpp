@@ -19,7 +19,7 @@ Megaman::Megaman() : Player() {
   auto basePallete = TEXTURES.LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
   PaletteSwap* pswap = CreateComponent<PaletteSwap>(this, basePallete);
 
-  SetHealth(300);
+  SetHealth(900);
   SetName("Megaman");
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
@@ -40,7 +40,7 @@ void Megaman::OnUpdate(float elapsed)
 
 CardAction* Megaman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1);
+  return new BusterCardAction(this, false, 1*GetAtkLevel());
 }
 
 CardAction* Megaman::OnExecuteChargedBusterAction()
@@ -49,7 +49,7 @@ CardAction* Megaman::OnExecuteChargedBusterAction()
     return activeForm->OnChargedBusterAction(*this);
   }
   else {
-    return new BusterCardAction(this, true, 10);
+    return new BusterCardAction(this, true, 10*GetAtkLevel());
   }
 }
 
@@ -125,7 +125,7 @@ void TenguCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TenguCross::OnChargedBusterAction(Player& player)
 {
-  return new BusterCardAction(&player, true, 10);
+  return new BusterCardAction(&player, true, 20*player.GetAtkLevel()+40);
 }
 
 CardAction* TenguCross::OnSpecialAction(Player& player)
@@ -200,7 +200,7 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* HeatCross::OnChargedBusterAction(Player& player)
 {
-  auto* action = new FireBurnCardAction(&player, FireBurn::Type::_2, 60);
+  auto* action = new FireBurnCardAction(&player, FireBurn::Type::_2, 20 * player.GetAtkLevel() + 30);
   action->CrackTiles(false);
   return action;
 }
@@ -278,7 +278,7 @@ void TomahawkCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
 {
-  return new TomahawkSwingCardAction(player);
+  return new TomahawkSwingCardAction(player, 20 * player.GetAtkLevel() + 40);
 }
 
 CardAction* TomahawkCross::OnSpecialAction(Player& player)
@@ -416,7 +416,7 @@ void ElecCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* ElecCross::OnChargedBusterAction(Player& player)
 {
-  auto* action = new LightningCardAction(&player, 50);
+  auto* action = new LightningCardAction(&player, 20 * player.GetAtkLevel() + 40);
   action->SetStun(false);
   return action;
 }

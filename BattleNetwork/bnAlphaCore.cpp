@@ -126,7 +126,12 @@ AlphaCore::AlphaCore(Rank _rank) :
 
 AlphaCore::~AlphaCore() {
   delete head;
-  delete acid, side;
+  delete acid;
+  delete side;
+  delete rightShoulder;
+  delete leftShoulder;
+  delete leftShoulderShoot;
+  delete rightShoulderShoot;
 }
 
 void AlphaCore::OnUpdate(float _elapsed) {
@@ -279,25 +284,25 @@ void AlphaCore::OpenShoulderGuns()
   animation.Update(totalElapsed, leftShoulderShoot->getSprite());
 
   animation.SetAnimation("SUPER_VULCAN");
-animation << Animator::Mode::Loop;
-animation.Update(totalElapsed + 0.04f, rightShoulderShoot->getSprite());
+  animation << Animator::Mode::Loop;
+  animation.Update(totalElapsed + 0.04f, rightShoulderShoot->getSprite());
 
-animation.SetAnimation("LEFT_SHOULDER");
-animation.SetFrame(2, leftShoulder->getSprite());
+  animation.SetAnimation("LEFT_SHOULDER");
+  animation.SetFrame(2, leftShoulder->getSprite());
 
-// TODO: WHY CANT MY NODES JUST LINK UP TO THE POINTS?
-auto bounds = leftShoulder->getLocalBounds();
-auto offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
+  // TODO: WHY CANT MY NODES JUST LINK UP TO THE POINTS?
+  auto bounds = leftShoulder->getLocalBounds();
+  auto offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
 
-leftShoulderShoot->setPosition(-offset.x, 0);
+  leftShoulderShoot->setPosition(-offset.x, 0);
 
-animation.SetAnimation("RIGHT_SHOULDER");
-animation.SetFrame(2, rightShoulder->getSprite());
+  animation.SetAnimation("RIGHT_SHOULDER");
+  animation.SetFrame(2, rightShoulder->getSprite());
 
-bounds = rightShoulder->getLocalBounds();
-offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
+  bounds = rightShoulder->getLocalBounds();
+  offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
 
-rightShoulderShoot->setPosition(-offset.x + 10.0f, 5.0f);
+  rightShoulderShoot->setPosition(-offset.x + 10.0f, 5.0f);
 }
 
 void AlphaCore::CloseShoulderGuns()
@@ -364,8 +369,10 @@ void AlphaCore::ShootSuperVulcans()
   rightShoulderShoot->Reveal();
 }
 
-AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP)
-  : DefenseRule(Priority(0), DefenseOrder::collisionOnly), alphaCoreHP(alphaCoreHP) {}
+AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : 
+  DefenseRule(Priority(0), DefenseOrder::collisionOnly), 
+  alphaCoreHP(alphaCoreHP) {}
+
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 
 void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) {
@@ -386,10 +393,8 @@ void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Sp
   }
 }
 
-Hit::Properties & AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties& statuses)
+Hit::Properties& AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties& statuses)
 {
-  statuses.flags &= ~Hit::flinch;
-  statuses.flags &= ~Hit::recoil;
-  statuses.flags &= ~Hit::drag;
+  statuses.flags &= ~(Hit::flinch | Hit::recoil | Hit::drag);
   return statuses;
 }

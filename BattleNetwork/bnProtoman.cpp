@@ -17,16 +17,22 @@ const std::string RESOURCE_PATH = "resources/navis/protoman/protoman.animation";
 
 CardAction* Protoman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 2);
+  return new BusterCardAction(this, false, 1*GetAtkLevel());
 }
 
 CardAction* Protoman::OnExecuteChargedBusterAction()
 {
-  return new WideSwordCardAction(this, 40);
+  return new WideSwordCardAction(this, 20*GetAtkLevel());
 }
 
 CardAction* Protoman::OnExecuteSpecialAction() {
-  return new ReflectCardAction(this, 20);
+  auto* action = new ReflectCardAction(this, 20);
+  action->SetLockout(ActionLockoutProperties{
+    ActionLockoutType::async,
+    frames(500).asSeconds()
+  });
+
+  return action;
 }
 
 Protoman::Protoman() : Player()
@@ -42,7 +48,7 @@ Protoman::Protoman() : Player()
 
   setTexture(TEXTURES.LoadTextureFromFile("resources/navis/protoman/navi_proto_atlas.png"));
 
-  SetHealth(1800);
+  SetHealth(1000);
 
   chargeEffect.SetFullyChargedColor(sf::Color::White);
 }

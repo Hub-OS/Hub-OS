@@ -18,37 +18,109 @@ Falzar::Falzar(Falzar::Rank rank) :
   SetAirShoe(true);
   SetFloatShoe(true);
 
-  animation = CreateComponent<AnimationComponent>(this);
-  animation->SetPath(RESOURCE_PATH);
-  animation->Reload();
+  animation = Animation(RESOURCE_PATH);
 
   if (GetRank() == Rank::EX) {
     SetHealth(6000);
-    animation->SetPlaybackSpeed(1.2);
   }
   else {
     SetHealth(1000);
   }
 
-  animation->SetAnimation("IDLE");
-
-  auto falzarTexture = TEXTURES.LoadTextureFromFile("resources/mobs/falzar/falzar_atlas.png");
-  setTexture(falzarTexture);
-
   setScale(2.f, 2.f);
-
-  animation->OnUpdate(0);
 
   bossBody = new DefenseSuperArmor();
   AddDefenseRule(bossBody);
 
+  // load spritesheet
+  auto falzarTexture = TEXTURES.LoadTextureFromFile("resources/mobs/falzar/chicken_nuggets.png");
+
+  // Prepare the nodes to use their portion of the atlas
+  setTexture(falzarTexture);
+  animation << "BODY";
+  animation.Refresh(getSprite());
+  //AddNode(&body);
+  
+  auto pntOrigin = animation.GetPoint("ORIGIN");
+  auto pntGuardLeft = animation.GetPoint("GUARD_LEFT") - pntOrigin;
+  auto pntGuardRight = animation.GetPoint("GUARD_RIGHT") - pntOrigin;
+  auto pntHead = animation.GetPoint("HEAD") - pntOrigin;
+  auto pntTail = animation.GetPoint("TAIL") - pntOrigin;
+  auto pntLegRight = animation.GetPoint("LEG_RIGHT") - pntOrigin;
+  auto pntLegLeft = animation.GetPoint("LEG_LEFT") - pntOrigin;
+
+  head.setTexture(falzarTexture);
+  animation << "HEAD_RESTING";
+  animation.Refresh(head.getSprite());
+  head.setPosition(pntHead);
+  head.SetLayer(-1);
+  AddNode(&head);
+
+  // left size is in front of falzar (over)
+  guardLeft.setTexture(falzarTexture);
+  animation << "GUARD_LEFT";
+  animation.Refresh(guardLeft.getSprite());
+  guardLeft.setPosition(pntGuardLeft);
+  guardLeft.SetLayer(-1);
+  AddNode(&guardLeft);
+  auto pntWingLeft = animation.GetPoint("WING");
+
+  // right side is under falzar
+  guardRight.setTexture(falzarTexture);
+  animation << "GUARD_RIGHT";
+  animation.Refresh(guardRight.getSprite());
+  guardRight.setPosition(pntGuardRight);
+  guardRight.SetLayer(1);
+  AddNode(&guardRight);
+  auto pntWingRight = animation.GetPoint("WING");
+
+  // left side is over
+  wingLeft.setTexture(falzarTexture);
+  animation << "WING_LEFT";
+  animation.Refresh(wingLeft.getSprite());
+  wingLeft.setPosition(pntWingLeft);
+  wingLeft.SetLayer(-1);
+  AddNode(&wingLeft);
+
+  // right side is under falzar
+  wingRight.setTexture(falzarTexture);
+  animation << "WING_RIGHT";
+  animation.Refresh(wingRight.getSprite());
+  wingRight.setPosition(pntWingRight);
+  wingLeft.SetLayer(1);
+  AddNode(&wingRight);
+
+  tail.setTexture(falzarTexture);
+  animation << "TAIL";
+  animation.Refresh(tail.getSprite());
+  tail.setPosition(pntTail);
+  AddNode(&tail);
+
+  legLeft.setTexture(falzarTexture);
+  animation << "LEG_LEFT";
+  animation.Refresh(legLeft.getSprite());
+  legLeft.setPosition(pntLegLeft);
+  AddNode(&legLeft);
+
+  legRight.setTexture(falzarTexture);
+  animation << "LEG_RIGHT";
+  animation.Refresh(legRight.getSprite());
+  legRight.setPosition(pntLegRight);
+  legRight.SetLayer(-1);
+  AddNode(&legRight);
+
+  shadow.setTexture(falzarTexture);
+  animation << "SHADOW";
+  animation.Refresh(shadow.getSprite());
+
+  // Set the height relative to the body
   SetHeight(getSprite().getGlobalBounds().height);
 
   // Add boss pattern code
   AddState<FalzarIdleState>();
-  AddState<FalzarMoveState>(3);
-  AddState<FalzarRoarState>();
-  AddState<FalzarSpinState>(4);
+  //AddState<FalzarMoveState>(3);
+  //AddState<FalzarRoarState>();
+  //AddState<FalzarSpinState>(4);
 }
 
 Falzar::~Falzar()

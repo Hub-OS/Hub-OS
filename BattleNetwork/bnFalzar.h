@@ -16,8 +16,6 @@ public:
   friend class FalzarMoveState;
   friend class FalzarRoarState;
   friend class FalzarSpinState;
-
-public:
   using DefaultState = FalzarIdleState;
 
   /**
@@ -37,6 +35,10 @@ public:
   // const float GetHeight() const override;
 
 private:
-  AnimationComponent* animation;
+  Animation animation;
   DefenseRule* bossBody;
+  SpriteProxyNode 
+    head, body, guardLeft, guardRight,
+    wingLeft, wingRight, tail, legLeft, legRight,
+    shadow;
 };

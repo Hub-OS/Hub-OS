@@ -15,16 +15,16 @@ const std::string RESOURCE_PATH = "resources/navis/tomahawk/tomahawk.animation";
 
 CardAction* Tomahawkman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 2);
+  return new BusterCardAction(this, false, 1*GetAtkLevel());
 }
 
 CardAction* Tomahawkman::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 20);
+  return new BusterCardAction(this, true, 10*GetAtkLevel());
 }
 
 CardAction* Tomahawkman::OnExecuteSpecialAction() {
-  return new TomahawkSwingCardAction(*this);
+  return new TomahawkSwingCardAction(*this, 10*GetAtkLevel() + 10);
 }
 
 Tomahawkman::Tomahawkman() : Player()
@@ -40,7 +40,7 @@ Tomahawkman::Tomahawkman() : Player()
 
   setTexture(TEXTURES.LoadTextureFromFile("resources/navis/tomahawk/navi_tomahawk_atlas.png"));
 
-  SetHealth(1800);
+  SetHealth(1000);
 
   chargeEffect.SetFullyChargedColor(sf::Color::Green);
 }

@@ -79,13 +79,14 @@ void HubBatchProgram::OnUpdate(float elapsed)
   GetOwner()->SetFloatShoe(true);
   Player* player = GetOwnerAs<Player>();
 
+  /*
   if (player) {
     // player->SetBusterPower(10); // max
     // player->SetSpecialSlot([]{ return new ReflectCardAction(10); });
     if (Injected()) {
       // Scene()->GetCardSelectWidget().SetMaxCardDraw(10);
     }
-  }
+  }*/
 
   anim.Update(elapsed, effect.getSprite());
 }

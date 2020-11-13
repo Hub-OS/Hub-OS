@@ -24,7 +24,7 @@ Starman::Starman() : Player()
 
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_STARMAN_ATLAS));
 
-  SetHealth(1000);
+  SetHealth(1200);
 
   // Starman has FloatShoe enabled
   SetFloatShoe(true);
@@ -41,12 +41,12 @@ const float Starman::GetHeight() const
 
 CardAction* Starman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1);
+  return new BusterCardAction(this, false, 1*GetAtkLevel());
 }
 
 CardAction* Starman::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 10);
+  return new BusterCardAction(this, true, 10*GetAtkLevel());
 }
 
 CardAction* Starman::OnExecuteSpecialAction()

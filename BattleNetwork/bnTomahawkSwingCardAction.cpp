@@ -4,8 +4,9 @@
 #include "bnArtifact.h"
 #include "bnHitbox.h"
 
-TomahawkSwingCardAction::TomahawkSwingCardAction(Character& owner) :
-  CardAction(owner, "PLAYER_CHOP")
+TomahawkSwingCardAction::TomahawkSwingCardAction(Character& owner, int damage) :
+  CardAction(owner, "PLAYER_CHOP"),
+  damage(damage)
 {
 
 }
@@ -23,7 +24,7 @@ void TomahawkSwingCardAction::Execute()
 
     for (auto col : { 1, 2 }) {
       for (auto row : { 1, 0, -1 }) {
-        auto* hitbox = new Hitbox(field, GetOwner()->GetTeam(), 50);
+        auto* hitbox = new Hitbox(field, GetOwner()->GetTeam(), damage);
         auto props = hitbox->GetHitboxProperties();
         props.flags |= Hit::flinch;
         props.aggressor = GetOwner();

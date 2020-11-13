@@ -204,3 +204,8 @@ void AnimationComponent::SetFrame(const int index)
     // o->SetFrame(index);
   }
 }
+
+void AnimationComponent::Refresh()
+{
+  this->OnUpdate(0);
+}

@@ -64,7 +64,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
   : SpriteProxyNode(), animation(ANIM_PATH)
 {
   root = copy.root;
-
+  parent = copy.parent;
   count = 0; // uneeded for this copy
   SetLayer(-1000);
   numOfExplosions = copy.numOfExplosions-1;
@@ -98,7 +98,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
       auto child = new ExplosionSpriteNode(*this);
       child->EnableParentShader(false);
       root->chain.push_back(child);
-      GetParent()->AddNode(child);
+      parent->AddNode(child);
     }, true);
   }
   else {

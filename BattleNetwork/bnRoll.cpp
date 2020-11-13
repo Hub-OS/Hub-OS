@@ -26,7 +26,7 @@ Roll::Roll() : Player()
 
   setTexture(TEXTURES.GetTexture(TextureType::NAVI_ROLL_ATLAS));
 
-  SetHealth(1500);
+  SetHealth(1000);
 
   SetFloatShoe(true);
 }
@@ -38,15 +38,15 @@ const float Roll::GetHeight() const
 
 CardAction * Roll::OnExecuteSpecialAction()
 {
-  return new RecoverCardAction(this, 20);
+  return nullptr;
 }
 
 CardAction* Roll::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1);
+  return new BusterCardAction(this, false, 1*GetAtkLevel());
 }
 
 CardAction* Roll::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 20);
+  return new BusterCardAction(this, true, 10*GetAtkLevel());
 }

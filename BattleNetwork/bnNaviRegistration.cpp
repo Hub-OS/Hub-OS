@@ -39,7 +39,7 @@ NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetSpecialDescription(co
   return *this;
 }
 
-NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetAttack(const int atk)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetAttack(const unsigned atk)
 {
   NaviMeta::atk = atk;
   return *this;
@@ -140,7 +140,9 @@ Player * NaviRegistration::NaviMeta::GetNavi()
   Player* out = navi;
   navi = nullptr;
 
-  loadNaviClass(); // Reload navi and restore HP 
+  loadNaviClass(); // Reload navi (which restores HP)
+
+  out->SetAtkLevel(this->atk);
 
   return out;
 }

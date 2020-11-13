@@ -123,9 +123,9 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
 
     if (explosion->IsSequenceComplete()) {
       Entity::ID_t ID = e.GetID();
+      CleanupExplosions();
       e.GetTile()->RemoveEntityByID(ID);
       e.GetField()->ForgetEntity(ID);
-      CleanupExplosions();
     }
   }
 }

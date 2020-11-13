@@ -33,7 +33,7 @@ void QueuNaviRegistration() {
   rollInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/roll/preview.png"));
   rollInfo->SetOverworldAnimationPath("resources/navis/roll/roll.animation");
   rollInfo->SetSpeed(2);
-  rollInfo->SetAttack(1);
+  rollInfo->SetAttack(2);
   rollInfo->SetChargedAttack(10);
 
   // Register Starman
@@ -42,7 +42,7 @@ void QueuNaviRegistration() {
   starmanInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/starman/preview.png"));
   starmanInfo->SetOverworldAnimationPath("resources/navis/starman/starman.animation");
   starmanInfo->SetSpeed(3);
-  starmanInfo->SetAttack(1);
+  starmanInfo->SetAttack(2);
   starmanInfo->SetChargedAttack(10);
 
   // Register Protoman
@@ -51,8 +51,9 @@ void QueuNaviRegistration() {
   protomanInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/protoman/preview.png"));
   protomanInfo->SetOverworldAnimationPath("resources/navis/protoman/protoman.animation");
   protomanInfo->SetSpeed(3);
-  protomanInfo->SetAttack(2);
+  protomanInfo->SetAttack(1);
   protomanInfo->SetChargedAttack(20);
+  protomanInfo->SetIsSword(true);
 
   // Register Tomahawkman
   auto thawkInfo = NAVIS.AddClass<Tomahawkman>();
@@ -60,7 +61,7 @@ void QueuNaviRegistration() {
   thawkInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/tomahawk/preview.png"));
   thawkInfo->SetOverworldAnimationPath("resources/navis/tomahawk/tomahawk.animation");
   thawkInfo->SetSpeed(2);
-  thawkInfo->SetAttack(2);
+  thawkInfo->SetAttack(1);
   thawkInfo->SetChargedAttack(20);
 
   // Register Forte
@@ -69,6 +70,6 @@ void QueuNaviRegistration() {
   forteInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/forte/preview.png"));
   forteInfo->SetOverworldAnimationPath("resources/navis/forte/forte.animation");
   forteInfo->SetSpeed(2);
-  forteInfo->SetAttack(3);
+  forteInfo->SetAttack(2);
   forteInfo->SetChargedAttack(20);
 }
