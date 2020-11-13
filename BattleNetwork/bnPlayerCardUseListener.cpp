@@ -3,6 +3,7 @@
 #include "bnFishy.h"
 #include "bnTile.h"
 #include "bnAura.h"
+#include "bnHubBatchCardAction.h"
 #include "bnMachGunCardAction.h"
 #include "bnCannonCardAction.h"
 #include "bnZetaCannonCardAction.h"
@@ -209,5 +210,8 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
   }
   else if (name.substr(0, 7) == "MachGun") {
     player->QueueAction(new MachGunCardAction(player, card.GetDamage()));
+  }
+  else if (name == "HubBatch") {
+    player->QueueAction(new HubBatchCardAction(player));
   }
 }
