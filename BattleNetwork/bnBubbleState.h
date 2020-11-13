@@ -54,18 +54,21 @@ void BubbleState<Any>::OnEnter(Any& e) {
 
 template<typename Any>
 void BubbleState<Any>::OnUpdate(float _elapsed, Any& e) {
+  auto* bubbleTrap = e.template GetFirstComponent<BubbleTrap>();
+
   // Check if bubbletrap is removed from entity
-  if (e.template GetFirstComponent<BubbleTrap>() == nullptr) {
+  if (bubbleTrap == nullptr) {
     e.template ChangeState<typename Any::DefaultState>();
     e.SetFloatShoe(prevFloatShoe);
     PriorityUnlock();
   }
+  else {
+    progress = bubbleTrap->GetDuration();
 
-  sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));
-  e.setPosition(e.getPosition() - offset);
-  e.SetAnimation("PLAYER_HIT"); // playing over and over from the start creates a freeze frame effect
-
-  progress += _elapsed;
+    sf::Vector2f offset = sf::Vector2f(0, 5.0f + 10.0f * std::sin((float)progress * 10.0f));
+    e.setPosition(e.getPosition() - offset);
+    e.SetAnimation("PLAYER_HIT"); // playing over and over from the start creates a freeze frame effect
+  }
 }
 
 template<typename Any>

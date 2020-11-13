@@ -19,8 +19,8 @@
 
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
 
-AlphaCore::AlphaCore(Rank _rank)
-  : BossPatternAI<AlphaCore>(this), Character(_rank) {
+AlphaCore::AlphaCore(Rank _rank) : 
+  BossPatternAI<AlphaCore>(this), Character(_rank) {
   Entity::team = Team::blue;
   totalElapsed = 0;
   coreHP = prevCoreHP = 40;

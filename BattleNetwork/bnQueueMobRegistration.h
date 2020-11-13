@@ -107,11 +107,11 @@ void QueueMobRegistration() {
   info->SetAttack(80);
   info->SetHP(2000);
 
-  /*info = MOBS.AddClass<FalzarMob>(); // create and register object
-  info->SetDescription("Falzar can flap and fly away. He's a bird.");
+  info = MOBS.AddClass<FalzarMob>(); // create and register object
+  info->SetDescription("Cybeast Falzar is back and that's no good!");
   info->SetPlaceholderTexturePath("resources/mobs/falzar/preview.png");
   info->SetName("Falzar");
   info->SetSpeed(10);
   info->SetAttack(100);
-  info->SetHP(2000);*/
+  info->SetHP(2000);
 }

@@ -8,7 +8,7 @@ DefenseSuperArmor::~DefenseSuperArmor() { }
 Hit::Properties& DefenseSuperArmor::FilterStatuses(Hit::Properties& statuses)
 {
   // This is all this defense rule does is filter out flinch and recoil flags
-  statuses.flags &= ~Hit::flinch;
+  statuses.flags &= ~(Hit::flinch | Hit::recoil);
 
   return statuses;
 }

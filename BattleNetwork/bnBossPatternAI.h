@@ -95,6 +95,8 @@ public:
     }
 
     if (interruptState) { 
+      if (interruptState->locked) return;
+
       interruptState->OnLeave(*ref);
       delete interruptState;  
     }
@@ -115,6 +117,8 @@ public:
     }
 
     if (interruptState) { 
+      if (interruptState->locked) return;
+
       interruptState->OnLeave(*ref);
       delete interruptState; 
     }

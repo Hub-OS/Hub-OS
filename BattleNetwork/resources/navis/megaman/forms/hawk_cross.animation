@@ -1,4 +1,4 @@
-imagePath="C:\mmbn\net battle engine\Release\resources\navis\megaman\forms\hawk_cross"
+imagePath="C:\Users\Proto\Code\OpenNetBattle\BattleNetwork\resources\navis\megaman\forms\hawk_cross.png"
 
 animation state="PLAYER_IDLE"
 frame duration="0.01" x="24" y="8" w="55" h="59" originx="34" originy="21"
@@ -36,10 +36,10 @@ frame duration="0.05" x="233" y="411" w="67" h="55" originx="34" originy="18"
 frame duration="0.05" x="331" y="416" w="51" h="50" originx="39" originy="15"
 
 animation state="PLAYER_CHOP"
-frame duration="0.05" x="25" y="507" w="49" h="60" originx="24" originy="52"
-frame duration="0.05" x="131" y="504" w="48" h="63" originx="19" originy="55"
-frame duration="0.05" x="230" y="518" w="60" h="50" originx="20" originy="41"
-frame duration="0.05" x="330" y="520" w="50" h="49" originx="20" originy="39"
+frame duration="0.2" x="25" y="507" w="49" h="60" originx="26" originy="19"
+frame duration="0.05" x="131" y="504" w="48" h="63" originx="29" originy="28"
+frame duration="0.05" x="230" y="518" w="60" h="50" originx="33" originy="16"
+frame duration="0.4" x="330" y="520" w="50" h="49" originx="35" originy="16"
 
 animation state="HAND"
 frame duration="0.05" x="470" y="354" w="29" h="15" originx="1" originy="7"

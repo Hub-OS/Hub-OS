@@ -56,7 +56,7 @@ void QueuNaviRegistration() {
 
   // Register Tomahawkman
   auto thawkInfo = NAVIS.AddClass<Tomahawkman>();
-  thawkInfo->SetSpecialDescription("Special navi with natural powers");
+  thawkInfo->SetSpecialDescription("Spec. Axe ability!");
   thawkInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/tomahawk/preview.png"));
   thawkInfo->SetOverworldAnimationPath("resources/navis/tomahawk/tomahawk.animation");
   thawkInfo->SetSpeed(2);

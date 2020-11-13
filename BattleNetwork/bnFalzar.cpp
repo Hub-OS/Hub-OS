@@ -1,5 +1,5 @@
 #include "bnFalzar.h"
-#include "bnExplodeState.h"
+#include "bnNaviExplodeState.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
@@ -10,9 +10,9 @@
 
 const std::string RESOURCE_PATH = "resources/mobs/falzar/falzar.animation";
 
-Falzar::Falzar(Falzar::Rank rank)
-  : BossPatternAI<Falzar>(this),
-    Character(rank) {
+Falzar::Falzar(Falzar::Rank rank) : 
+  BossPatternAI<Falzar>(this),
+  Character(rank) {
   SetName("Falzar");
   SetTeam(Team::blue);
   SetAirShoe(true);
@@ -59,7 +59,7 @@ Falzar::~Falzar()
 
 void Falzar::OnDelete() {
   RemoveDefenseRule(bossBody);
-  InterruptState<ExplodeState<Falzar>>(50, 1.5f);
+  InterruptState<NaviExplodeState<Falzar>>(10, 1.0f);
 }
 
 bool Falzar::CanMoveTo(Battle::Tile* next)

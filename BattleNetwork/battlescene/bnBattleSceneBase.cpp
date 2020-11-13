@@ -452,9 +452,6 @@ void BattleSceneBase::onUpdate(double elapsed) {
   current->onUpdate(elapsed);
 
   // Update components
-  // TODO: Let the state classes determine when to update battlestep components-
-  //       But let UI components be handled by this base class?
-  //       Reasoning: what may be considered a "battlestep" is ambiguous and tied to the timer anyway
   for (auto c : components) {
     if (c->Lifetime() == Component::lifetimes::ui) {
       c->Update((float)elapsed);
@@ -506,7 +503,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
         current->onEnd(this->next);
         current = temp;
         current->onStart(this->last);
-        current->onUpdate(0);
+        current->onUpdate(0); // frame-perfect state visuals
         break;
       }
     }

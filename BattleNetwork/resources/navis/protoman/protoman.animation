@@ -1,4 +1,4 @@
-imagePath="C:\mmbn\net battle engine\Release\resources\navis\protoman\navi_proto_atlas.og.png"
+imagePath="C:\mmbn\net battle engine\Release\resources\navis\protoman\navi_proto_atlas.png"
 
 animation state="PLAYER_IDLE"
 frame duration="0.01" x="29" y="8" w="54" h="59" originx="22" originy="52"
@@ -87,10 +87,10 @@ frame duration="0.15" x="535" y="343" w="20" h="18" originx="15" originy="15"
 
 animation state="PLAYER_OW_RD"
 frame duration="0.1" x="16" y="612" w="44" h="38" originx="30" originy="35"
-frame duration="0.1" x="78" y="612" w="44" h="38" originx="30" originy="35"
-frame duration="0.1" x="137" y="612" w="44" h="38" originx="30" originy="35"
-frame duration="0.1" x="193" y="612" w="44" h="38" originx="30" originy="35"
-frame duration="0.1" x="246" y="611" w="44" h="38" originx="30" originy="35"
+frame duration="0.1" x="78" y="612" w="44" h="38" originx="27" originy="33"
+frame duration="0.1" x="137" y="612" w="44" h="38" originx="31" originy="35"
+frame duration="0.1" x="193" y="612" w="44" h="38" originx="27" originy="35"
+frame duration="0.1" x="246" y="611" w="44" h="38" originx="29" originy="35"
 frame duration="0.1" x="296" y="612" w="44" h="38" originx="30" originy="35"
 
 animation state="BUSTER"
