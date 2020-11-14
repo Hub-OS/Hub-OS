@@ -54,6 +54,7 @@ Falzar::Falzar(Falzar::Rank rank) :
   animation.Refresh(head.getSprite());
   head.setPosition(pntHead);
   head.SetLayer(-1);
+  head.EnableParentShader(true);
   AddNode(&head);
 
   // left size is in front of falzar (over)
@@ -62,6 +63,7 @@ Falzar::Falzar(Falzar::Rank rank) :
   animation.Refresh(guardLeft.getSprite());
   guardLeft.setPosition(pntGuardLeft);
   guardLeft.SetLayer(-1);
+  guardLeft.EnableParentShader(true);
   AddNode(&guardLeft);
   auto pntWingLeft = animation.GetPoint("WING");
 
@@ -71,6 +73,7 @@ Falzar::Falzar(Falzar::Rank rank) :
   animation.Refresh(guardRight.getSprite());
   guardRight.setPosition(pntGuardRight);
   guardRight.SetLayer(1);
+  guardRight.EnableParentShader(true);
   AddNode(&guardRight);
   auto pntWingRight = animation.GetPoint("WING");
 
@@ -80,6 +83,7 @@ Falzar::Falzar(Falzar::Rank rank) :
   animation.Refresh(wingLeft.getSprite());
   wingLeft.setPosition(pntWingLeft);
   wingLeft.SetLayer(-1);
+  wingLeft.EnableParentShader(true);
   AddNode(&wingLeft);
 
   // right side is under falzar
@@ -87,19 +91,22 @@ Falzar::Falzar(Falzar::Rank rank) :
   animation << "WING_RIGHT";
   animation.Refresh(wingRight.getSprite());
   wingRight.setPosition(pntWingRight);
-  wingLeft.SetLayer(1);
+  wingRight.SetLayer(1);
+  wingRight.EnableParentShader(true);
   AddNode(&wingRight);
 
   tail.setTexture(falzarTexture);
   animation << "TAIL";
   animation.Refresh(tail.getSprite());
   tail.setPosition(pntTail);
+  tail.EnableParentShader(true);
   AddNode(&tail);
 
   legLeft.setTexture(falzarTexture);
   animation << "LEG_LEFT";
   animation.Refresh(legLeft.getSprite());
   legLeft.setPosition(pntLegLeft);
+  legLeft.EnableParentShader(true);
   AddNode(&legLeft);
 
   legRight.setTexture(falzarTexture);
@@ -107,6 +114,7 @@ Falzar::Falzar(Falzar::Rank rank) :
   animation.Refresh(legRight.getSprite());
   legRight.setPosition(pntLegRight);
   legRight.SetLayer(-1);
+  legRight.EnableParentShader(true);
   AddNode(&legRight);
 
   shadow.setTexture(falzarTexture);

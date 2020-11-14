@@ -31,7 +31,7 @@ protected:
   int numOfExplosions; /*!< Number of explosions to spawn */
   double playbackSpeed; /*!< how fast the animation should be */
 
-  void CleanupExplosions();
+  void CleanupExplosions(Any& e);
 
 public:
   inline static const int PriorityLevel = 0; // Highest
@@ -46,25 +46,6 @@ public:
 
 #include "bnField.h"
 #include "bnLogger.h"
-
-template<typename Any>
-inline void ExplodeState<Any>::CleanupExplosions()
-{
-  if (explosion == nullptr) return;
-
-  for (auto element : explosion->GetChain()) {
-    auto parent = element->GetParent();
-
-    if (parent) {
-      parent->RemoveNode(element);
-    }
-
-    delete element;
-  }
-
-  delete explosion;
-  explosion = nullptr;
-}
 
 template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
@@ -123,7 +104,7 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
 
     if (explosion->IsSequenceComplete()) {
       Entity::ID_t ID = e.GetID();
-      CleanupExplosions();
+      CleanupExplosions(e);
       e.GetTile()->RemoveEntityByID(ID);
       e.GetField()->ForgetEntity(ID);
     }
@@ -132,5 +113,21 @@ void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
 
 template<typename Any>
 void ExplodeState<Any>::OnLeave(Any& e) {
-  CleanupExplosions();
+  CleanupExplosions(e);
+}
+
+template<typename Any>
+inline void ExplodeState<Any>::CleanupExplosions(Any& e)
+{
+  if (explosion == nullptr) return;
+
+  for (auto element : explosion->GetChain()) {
+    e.RemoveNode(element);
+    delete element;
+  }
+
+  e.RemoveNode(explosion);
+
+  delete explosion;
+  explosion = nullptr;
 }

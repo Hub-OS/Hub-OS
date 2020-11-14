@@ -182,6 +182,8 @@ namespace Battle {
   }
 
   void Tile::SetTeam(Team _team, bool useFlicker) {
+    if (IsEdgeTile() || state == TileState::hidden) return;
+
     // Check if no characters on the opposing team are on this tile
     if (GetTeam() == Team::unknown || GetTeam() != _team) {
       size_t size = FindEntities([this](Entity* in) {
