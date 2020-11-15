@@ -76,7 +76,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->RegisterComponent(invis);
   }
   else if (name.substr(0, 7) == "Rflectr") {
-    auto action = new ReflectCardAction(player, card.GetDamage());
+    auto action = new ReflectCardAction(player, card.GetDamage(), ReflectShield::Type::yellow);
     player->QueueAction(action);
   }
   else if (name == "Fishy") {

@@ -62,9 +62,14 @@ public:
       return;
     }
 
-    gotoNext = true;
+    if (interruptState) {
+      if (interruptState->locked) {
+        return;
+      }
+      endInterrupt = true;
+    }
 
-    if (interruptState) { endInterrupt = true; }
+    gotoNext = true;
   }
 
   /**

@@ -52,7 +52,7 @@ void MobHealthUI::OnUpdate(float elapsed) {
         healthCounter--;
       }
 
-      cooldown = 0.5; //seconds
+      cooldown = frames(10).asSeconds();
     }
     else if (healthCounter < mob->GetHealth()) {
       healthCounter++;

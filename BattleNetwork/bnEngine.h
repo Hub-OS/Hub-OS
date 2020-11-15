@@ -216,30 +216,88 @@ private:
  */
 #define ENGINE Engine::GetInstance()
 
+/**
+* @class frame_time_t
+* @brief struct representing a single frame time. Allows for basic math operations.
+*
+* This struct helps keep the codebase consistent with nomenclature
+* When the game refers to "5 frames of animation" clocked at 60 fps,
+* that is to say "1/12th of a second of animation". When referencing material
+* it's easier to discuss time in terms of frames than it is to discuss fractions of a second.
+* 
+* Because time-sensistive components may need millisecond precision, this struct allows
+* easily operability between either fidelities of time within the same struct.
+*/
 struct frame_time_t {
+  static const unsigned frames_per_second = 60u;
+
   using milliseconds = long long;
   using seconds = double;
 
   milliseconds milli{};
 
-  seconds asSeconds() {
+  seconds asSeconds() const {
     return this->milli / 1000.0;
   }
 
-  milliseconds asMilli() {
+  milliseconds asMilli() const {
     return this->milli;
   }
 
-  operator seconds() {
+  operator seconds() const {
     return asSeconds();
   }
 
-  operator milliseconds() {
+  operator milliseconds() const {
     return asMilli();
+  }
+
+  /// TODO: should we be comparing frames or the precision?
+
+  frame_time_t& operator-=(const frame_time_t& other) {
+    this->milli = this->milli - other.milli;
+    return *this;
+  }
+
+  frame_time_t& operator+=(const frame_time_t& other) {
+    this->milli = this->milli + other.milli;
+    return *this;
+  }
+
+  frame_time_t operator-(const frame_time_t& other) const {
+    return frame_time_t{ this->milli - other.milli };
+  }
+
+  frame_time_t operator+(const frame_time_t& other) const {
+    return frame_time_t{ this->milli + other.milli };
+  }
+
+  bool operator <(const frame_time_t& other) const {
+    return this->milli < other.milli;
+  }
+
+  bool operator <=(const frame_time_t& other) const {
+    return this->milli <= other.milli;
+  }
+
+  bool operator >(const frame_time_t& other) const {
+    return this->milli > other.milli;
+  }
+
+  bool operator >=(const frame_time_t& other) const {
+    return this->milli >= other.milli;
+  }
+
+  bool operator ==(const frame_time_t& other) const {
+    return this->milli == other.milli;
+  }
+
+  bool operator !=(const frame_time_t& other) const {
+    return this->milli != other.milli;
   }
 };
 
- // frames thunk transforms frames to time
+ //!< frames utility method transforms frames to engine time
 static frame_time_t frames(int frames)  {
   return frame_time_t{ (long long)(1000 * (double(frames) / 60.0)) };
 };

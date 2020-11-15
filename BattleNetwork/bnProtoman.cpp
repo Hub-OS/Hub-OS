@@ -26,11 +26,12 @@ CardAction* Protoman::OnExecuteChargedBusterAction()
 }
 
 CardAction* Protoman::OnExecuteSpecialAction() {
-  auto* action = new ReflectCardAction(this, 20);
+  auto* action = new ReflectCardAction(this, 20, ReflectShield::Type::red);
   action->SetLockout(ActionLockoutProperties{
     ActionLockoutType::async,
-    frames(500).asSeconds()
+    frames(40).asSeconds()
   });
+  action->SetDuration(frames(21));
 
   return action;
 }
