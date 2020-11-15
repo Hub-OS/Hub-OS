@@ -1,46 +1,81 @@
-imagePath="falzar_atlas.png"
+imagePath="C:/mmbn/net battle engine/Release/resources/mobs/falzar/chicken_nuggets.png"
 
-animation state="IDLE"
-frame duration="0.1" x="15" y="3" w="155" h="169" originx="39" originy="108"
-frame duration="0.1" x="175" y="1" w="154" h="171" originx="39" originy="113"
-frame duration="0.1" x="334" y="5" w="156" h="170" originx="39" originy="109"
-frame duration="0.1" x="6" y="176" w="163" h="166" originx="46" originy="107"
-frame duration="0.1" x="177" y="176" w="151" h="169" originx="35" originy="107"
-frame duration="0.1" x="334" y="178" w="157" h="168" originx="38" originy="108"
-frame duration="0.1" x="15" y="3" w="155" h="169" originx="39" originy="108"
-frame duration="0.1" x="175" y="1" w="154" h="171" originx="39" originy="113"
-frame duration="0.1" x="334" y="5" w="156" h="170" originx="39" originy="109"
-frame duration="0.1" x="6" y="176" w="163" h="166" originx="46" originy="107"
-frame duration="0.1" x="177" y="176" w="151" h="169" originx="35" originy="107"
-frame duration="0.1" x="334" y="178" w="157" h="168" originx="38" originy="108"
+animation state="Head_Resting"
+frame duration="0.05" x="78" y="62" w="46" h="48" originx="28" originy="32"
 
-animation state="MOVE"
-frame duration="0.05" x="99" y="348" w="156" h="168" originx="40" originy="106"
-frame duration="0.05" x="262" y="349" w="163" h="166" originx="37" originy="105"
-frame duration="0.05" x="431" y="353" w="6" h="5" originx="0" originy="0"
+animation state="Head_screech1"
+frame duration="0.05" x="219" y="63" w="54" h="42" originx="28" originy="33"
 
-animation state="SPIN"
-frame duration="0.05" x="28" y="1374" w="146" h="87" originx="79" originy="55"
-frame duration="0.05" x="179" y="1374" w="139" h="86" originx="80" originy="54"
-frame duration="0.05" x="326" y="1370" w="139" h="95" originx="82" originy="59"
+animation state="Head_screech2"
+frame duration="0.05" x="316" y="55" w="46" h="50" originx="28" originy="35"
 
-animation state="ROAR"
-frame duration="0.05" x="100" y="649" w="158" h="167" originx="37" originy="107"
-frame duration="0.05" x="262" y="651" w="153" h="168" originx="30" originy="107"
+animation state="Head_zoom"
+frame duration="0.05" x="419" y="66" w="54" h="34" originx="0" originy="0"
 
-animation state="CLAW"
-frame duration="0.05" x="211" y="1476" w="79" h="61" originx="0" originy="0"
-frame duration="0.05" x="299" y="1478" w="76" h="60" originx="0" originy="0"
+animation state="Body"
+frame duration="0.05" x="85" y="166" w="64" h="64" originx="54" originy="49"
+point label="guard_left" x="25" y="1"
+point label="Head" x="4" y="13"
+point label="tail" x="54" y="49"
+point label="leg_right" x="29" y="42"
+point label="leg_left" x="47" y="42"
 
-animation state="NEEDLE"
-frame duration="0" x="396" y="1558" w="31" h="32" originx="0" originy="0"
+animation state="guard_left"
+frame duration="0.05" x="109" y="307" w="35" h="37" originx="0" originy="0"
+point label="Wing" x="9" y="9"
 
-animation state="FLAME"
-frame duration="0.05" x="72" y="1556" w="48" h="38" originx="0" originy="0"
-frame duration="0.05" x="122" y="1557" w="48" h="38" originx="0" originy="0"
-frame duration="0.05" x="173" y="1557" w="48" h="38" originx="0" originy="0"
+animation state="Wing_Left"
+frame duration="0.05" x="198" y="259" w="97" h="99" originx="0" originy="74"
 
-animation state="FLAME_BIRD"
-frame duration="0.05" x="229" y="1556" w="45" h="39" originx="26" originy="35"
-frame duration="0.05" x="278" y="1555" w="55" h="40" originx="30" originy="36"
-frame duration="0.05" x="335" y="1554" w="50" h="41" originx="27" originy="37"
+animation state="guard_right"
+frame duration="0.05" x="127" y="437" w="16" h="27" originx="11" originy="16"
+
+animation state="Wing_right"
+frame duration="0.05" x="204" y="406" w="75" h="82" originx="23" originy="68"
+
+animation state="tail"
+frame duration="0.05" x="215" y="178" w="58" h="52" originx="22" originy="3"
+
+animation state="leg_right"
+frame duration="0.05" x="338" y="183" w="44" h="29" originx="39" originy="3"
+
+animation state="leg_left"
+frame duration="0.05" x="429" y="177" w="32" h="40" originx="24" originy="0"
+
+animation state="Wing_right_midswing"
+frame duration="0.05" x="365" y="270" w="68" h="91" originx="0" originy="15"
+
+animation state="Wing_left_midswing"
+frame duration="0.05" x="375" y="412" w="56" h="82" originx="38" originy="21"
+
+animation state="Wing_left_swing"
+frame duration="0.05" x="500" y="271" w="88" h="88" originx="61" originy="3"
+
+animation state="Wing_right_swing"
+frame duration="0.05" x="495" y="427" w="76" h="61" originx="69" originy="4"
+
+animation state="Fireball"
+frame duration="0.05" x="78" y="549" w="47" h="39" originx="0" originy="0"
+frame duration="0.05" x="182" y="551" w="47" h="38" originx="0" originy="0"
+frame duration="0.05" x="287" y="551" w="47" h="37" originx="0" originy="0"
+frame duration="0.05" x="395" y="549" w="47" h="38" originx="0" originy="0"
+frame duration="0.05" x="480" y="549" w="53" h="39" originx="0" originy="0"
+frame duration="0.05" x="579" y="547" w="48" h="40" originx="0" originy="0"
+
+animation state="shadow"
+frame duration="0.05" x="109" y="638" w="80" h="30" originx="0" originy="0"
+
+animation state="Leg_attack"
+frame duration="0.05" x="280" y="620" w="79" h="57" originx="75" originy="3"
+
+animation state="Feather"
+frame duration="0.05" x="451" y="632" w="30" h="30" originx="25" originy="5"
+
+animation state="Tornado1"
+frame duration="0.05" x="117" y="746" w="116" h="88" originx="0" originy="0"
+
+animation state="Tornado2"
+frame duration="0.05" x="258" y="745" w="112" h="86" originx="0" originy="0"
+
+animation state="tornado_particle"
+frame duration="0.05" x="401" y="745" w="102" h="85" originx="0" originy="0"
