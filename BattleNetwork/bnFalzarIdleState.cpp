@@ -13,8 +13,8 @@ FalzarIdleState::~FalzarIdleState()
 void FalzarIdleState::OnEnter(Falzar& falzar)
 {
   auto animation = falzar.GetFirstComponent<AnimationComponent>();
-  animation->SetAnimation("IDLE");
-  animation->SetPlaybackMode(Animator::Mode::Loop);
+  //animation->SetAnimation("IDLE");
+  //animation->SetPlaybackMode(Animator::Mode::Loop);
 
   this->cooldown = 300.0f;
 }

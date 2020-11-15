@@ -123,6 +123,16 @@ void Player::SetCharging(bool state)
   chargeEffect.SetCharging(state);
 }
 
+void Player::SetAtkLevel(unsigned atk)
+{
+  atkLevel = std::min(5u, atk);
+}
+
+const unsigned Player::GetAtkLevel()
+{
+  return atkLevel;
+}
+
 void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
 

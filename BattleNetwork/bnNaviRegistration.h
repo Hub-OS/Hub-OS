@@ -30,7 +30,7 @@ public:
     std::string name; /*!< The net navi's name */
     std::shared_ptr<sf::Texture> overworldTexture; /*!< Texture of overworld animation */
     std::shared_ptr<sf::Texture> previewTexture; /*!< Roster profile picture */
-    int atk; /*!< Attack level of the net navi */
+    unsigned atk; /*!< Attack level of the net navi */
     int chargedAtk; /*!< Charged attack level of the net navi */
     double speed; /*!< The speed of the navi */
     int hp; /*!< The health of the navi */
@@ -73,7 +73,7 @@ public:
      * @param atk attack strength
      * @return NaviMeta& to chain
      */
-    NaviMeta& SetAttack(const int atk);
+    NaviMeta& SetAttack(const unsigned atk);
     
     /**
      * @brief Sets charged attack level to display

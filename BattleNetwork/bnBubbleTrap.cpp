@@ -39,6 +39,38 @@ void BubbleTrap::Inject(BattleSceneBase& bs) {
 }
 
 void BubbleTrap::OnUpdate(float _elapsed) {
+  auto keyTestThunk = [this](const InputEvent& key) {
+    bool pass = false;
+
+    if (INPUTx.Has(key)) {
+      auto iter = std::find(lastFrameStates.begin(), lastFrameStates.end(), key);
+
+      if (iter == lastFrameStates.end()) {
+        lastFrameStates.clear();
+        pass = true;
+      } 
+
+      lastFrameStates.push_back(key);
+    }
+
+    return pass;
+  };
+
+  bool anyKey = keyTestThunk(EventTypes::PRESSED_USE_CHIP);
+  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_CUST_MENU);
+  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_MOVE_DOWN);
+  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_MOVE_UP);
+  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_MOVE_LEFT);
+  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_MOVE_RIGHT);
+  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_SHOOT);
+  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_PAUSE);
+  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_SPECIAL);
+
+  if (anyKey) {
+    duration -= frames(1).asSeconds();
+  }
+
+  duration -= _elapsed;
 
   // either the timer runs out or the defense was popped by an attack
   bool shouldpop = duration <= 0 && animation.GetAnimationString() != "POP";
@@ -47,8 +79,6 @@ void BubbleTrap::OnUpdate(float _elapsed) {
   if (shouldpop) {
     Pop();
   }
-
-  duration -= _elapsed;
 
   auto y = -GetOwnerAs<Character>()->GetHeight() / 4.0f;
   setPosition(0.f, y);
@@ -68,6 +98,11 @@ void BubbleTrap::Pop()
   };
 
   animation << "POP" << onFinish;
+}
+
+const double BubbleTrap::GetDuration() const
+{
+  return duration;
 }
 
 BubbleTrap::~BubbleTrap()

@@ -150,6 +150,8 @@ public:
    * If the index is out of range, sets frame to 0
    */
   void SetFrame(const int index);
+
+  void Refresh();
 private:
   string path; /*!< Path to animation */
   Animation animation; /*!< Animation object */

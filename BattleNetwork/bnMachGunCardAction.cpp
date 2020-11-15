@@ -66,7 +66,7 @@ void MachGunCardAction::Execute()
     // We initially spawn the rectical where we want to start
     // Do note move it around
     if (!firstSpawn) {
-      targetTile = this->MoveRectical(field);
+      targetTile = this->MoveRectical(field, false);
     }
     else {
       firstSpawn = false;
@@ -98,7 +98,7 @@ void MachGunCardAction::FreeTarget()
   target = nullptr;
 }
 
-Battle::Tile* MachGunCardAction::MoveRectical(Field* field)
+Battle::Tile* MachGunCardAction::MoveRectical(Field* field, bool colMove)
 {
   auto* charTile = target->GetTile();
 
@@ -106,9 +106,8 @@ Battle::Tile* MachGunCardAction::MoveRectical(Field* field)
   if (target && targetTile && charTile) {
     Battle::Tile* nextTile = nullptr;
 
-    if (moveOneCol && charTile->GetX() != targetTile->GetX()) {
+    if (colMove && charTile->GetX() != targetTile->GetX()) {
       if (charTile->GetX() < targetTile->GetX()) {
-        moveOneCol = false;
         nextTile = field->GetAt(targetTile->GetX() - 1, targetTile->GetY());
 
         if (nextTile->IsEdgeTile()) {
@@ -118,7 +117,6 @@ Battle::Tile* MachGunCardAction::MoveRectical(Field* field)
         return nextTile;
       }
       else if (charTile->GetX() > targetTile->GetX()) {
-        moveOneCol = false;
         nextTile = field->GetAt(targetTile->GetX() + 1, targetTile->GetY());
 
         if (nextTile->IsEdgeTile()) {
@@ -128,19 +126,18 @@ Battle::Tile* MachGunCardAction::MoveRectical(Field* field)
         return nextTile;
       }
     } 
+ 
+    // If you cannot move left/right keep moving up/down
+    int step = moveUp ? -1 : 1;
+
+    nextTile = field->GetAt(targetTile->GetX(), targetTile->GetY() + step);
+
+    if (nextTile->IsEdgeTile()) {
+      moveUp = !moveUp;
+      return MoveRectical(field, true);
+    }
     else {
-      int step = moveUp ? -1 : 1;
-
-      nextTile = field->GetAt(targetTile->GetX(), targetTile->GetY() + step);
-
-      if (nextTile->IsEdgeTile()) {
-        moveOneCol = true;
-        moveUp = !moveUp;
-        return MoveRectical(field);
-      }
-      else {
-        return nextTile;
-      }
+      return nextTile;
     }
   }
 

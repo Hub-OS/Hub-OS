@@ -62,9 +62,14 @@ public:
       return;
     }
 
-    gotoNext = true;
+    if (interruptState) {
+      if (interruptState->locked) {
+        return;
+      }
+      endInterrupt = true;
+    }
 
-    if (interruptState) { endInterrupt = true; }
+    gotoNext = true;
   }
 
   /**
@@ -95,6 +100,8 @@ public:
     }
 
     if (interruptState) { 
+      if (interruptState->locked) return;
+
       interruptState->OnLeave(*ref);
       delete interruptState;  
     }
@@ -115,6 +122,8 @@ public:
     }
 
     if (interruptState) { 
+      if (interruptState->locked) return;
+
       interruptState->OnLeave(*ref);
       delete interruptState; 
     }

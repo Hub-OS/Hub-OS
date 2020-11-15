@@ -79,12 +79,14 @@ public:
    */
   int GetMoveCount() const;
 
-
   /**
    * @brief Toggles the charge component
    * @param state
    */
   void SetCharging(bool state);
+
+  void SetAtkLevel(unsigned atk);
+  const unsigned GetAtkLevel();
 
   /**
    * @brief Set the animation and on finish callback
@@ -117,6 +119,7 @@ protected:
 
   std::vector<PlayerFormMeta*> forms;
   PlayerForm* activeForm{ nullptr };
+  unsigned atkLevel{ 1 };
 };
 
 template<typename T>

@@ -19,7 +19,20 @@
 
 class ReflectShield : public Artifact
 {
+public:
+  enum class Type : unsigned {
+    yellow = 0,
+    red
+  };
+
 private:
+  enum class State : unsigned {
+    defending = 0,
+    dissolving
+  } state{};
+
+  float duration{};
+  Type type{};
   DefenseRule* guard; /*!< Adds defense rule to attached entity */
   Animation animation; /*!< Shield animation */
   bool activated; /*!< Flag if effect is active */
@@ -35,7 +48,7 @@ public:
    * At the end of the shield animation the rule is dropped and this 
    * component is removed from the owner and then deleted.
    */
-  ReflectShield(Character* owner, int damage);
+  ReflectShield(Character* owner, int damage, Type type);
   
   /**
    * @brief Delete guard pointer
@@ -66,4 +79,6 @@ public:
    * @param owner the owner of the attack
    */
   void DoReflect(Spell& in, Character& owner);
+
+  void SetDuration(const frame_time_t& frames);
 };

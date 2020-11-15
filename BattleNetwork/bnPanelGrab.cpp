@@ -31,12 +31,18 @@ PanelGrab::~PanelGrab() {
 
 void PanelGrab::OnSpawn(Battle::Tile& start)
 {
-  auto startPos = sf::Vector2f(start.getPosition().x, 0);
-  setPosition(startPos);
+  // TODO: tile movement AdoptTile() resets the position of this entity
+  // movement API should be more mature so until then, just hide the panel grab sprite
+  // so the Update() can move it above the grid appropriately
+  //auto startPos = sf::Vector2f(start.getPosition().x, 0);
+  //setPosition(startPos);
+  Hide();
 }
 
 void PanelGrab::OnUpdate(float _elapsed) {
   if (GetTile()) {
+    if (IsHidden()) Reveal();
+
     start = sf::Vector2f(tile->getPosition().x, 0);
 
     double beta = swoosh::ease::linear(progress, duration, 1.0);

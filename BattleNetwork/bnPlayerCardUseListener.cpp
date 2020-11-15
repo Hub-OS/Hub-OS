@@ -3,6 +3,8 @@
 #include "bnFishy.h"
 #include "bnTile.h"
 #include "bnAura.h"
+#include "bnAirHockeyCardAction.h"
+#include "bnHubBatchCardAction.h"
 #include "bnMachGunCardAction.h"
 #include "bnCannonCardAction.h"
 #include "bnZetaCannonCardAction.h"
@@ -74,7 +76,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->RegisterComponent(invis);
   }
   else if (name.substr(0, 7) == "Rflectr") {
-    auto action = new ReflectCardAction(player, card.GetDamage());
+    auto action = new ReflectCardAction(player, card.GetDamage(), ReflectShield::Type::yellow);
     player->QueueAction(action);
   }
   else if (name == "Fishy") {
@@ -209,5 +211,11 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
   }
   else if (name.substr(0, 7) == "MachGun") {
     player->QueueAction(new MachGunCardAction(player, card.GetDamage()));
+  }
+  else if (name == "HubBatch") {
+    player->QueueAction(new HubBatchCardAction(player));
+  }
+  else if (name == "AirHocky") {
+    player->QueueAction(new AirHockeyCardAction(player, card.GetDamage()));
   }
 }

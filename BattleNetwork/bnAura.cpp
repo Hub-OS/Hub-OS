@@ -29,12 +29,15 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Com
     break;
   case Aura::Type::BARRIER_10:
     health = 100;
+    persist = true;
     break;
   case Aura::Type::BARRIER_200:
     health = 200;
+    persist = true;
     break;
   case Aura::Type::BARRIER_500:
     health = 500;
+    persist = true;
     break;
   }
 

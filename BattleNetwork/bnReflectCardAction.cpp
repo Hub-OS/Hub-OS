@@ -3,18 +3,19 @@
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnReflectShield.h"
 
 #define FRAME1 { 1, 1.3f }
 
 #define FRAMES FRAME1
 
 
-ReflectCardAction::ReflectCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_IDLE") {
+ReflectCardAction::ReflectCardAction(Character * owner, int damage, ReflectShield::Type type) :
+  CardAction(*owner, "PLAYER_IDLE"),
+  type(type) 
+{
   ReflectCardAction::damage = damage;
 
-  // add override anims
+  // default override anims
   OverrideAnimationFrames({ FRAMES });
 }
 
@@ -26,7 +27,8 @@ void ReflectCardAction::Execute() {
   auto user = GetOwner();
 
   // Create a new reflect shield component. This handles the logic for shields.
-  ReflectShield* reflect = new ReflectShield(user, damage);
+  ReflectShield* reflect = new ReflectShield(user, damage, type);
+  reflect->SetDuration(this->duration);
 
   // Play the appear sound
   AUDIO.Play(AudioType::APPEAR);
@@ -37,6 +39,16 @@ void ReflectCardAction::Execute() {
   if (tile) {
     user->GetField()->AddEntity(*reflect, tile->GetX(), tile->GetY());
   }
+}
+
+void ReflectCardAction::SetDuration(const frame_time_t& duration)
+{
+  this->duration = duration;
+
+  // add override anims
+  OverrideAnimationFrames({
+    { 1, duration.asSeconds() }
+  });
 }
 
 void ReflectCardAction::OnUpdate(float _elapsed)

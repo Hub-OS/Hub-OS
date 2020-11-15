@@ -32,7 +32,7 @@ MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
 }
 
 void MobMoveEffect::OnUpdate(float _elapsed) {
-  setPosition(GetTile()->getPosition());
+  setPosition(GetTile()->getPosition() + offset);
 
   animation.Update(_elapsed, getSprite());
 }
@@ -45,6 +45,11 @@ void MobMoveEffect::OnDelete()
 bool MobMoveEffect::Move(Direction _direction)
 {
   return false;
+}
+
+void MobMoveEffect::SetOffset(const sf::Vector2f& offset)
+{
+  this->offset = offset;
 }
 
 MobMoveEffect::~MobMoveEffect()

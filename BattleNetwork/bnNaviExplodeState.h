@@ -18,7 +18,7 @@ template<typename Any>
 class NaviExplodeState : public ExplodeState<Any>
 {
 protected:
-  ShineExplosion* shine; /*!< Shine X that appears over navi ranked enemies */
+  ShineExplosion* shine{ nullptr }; /*!< Shine X that appears over navi ranked enemies */
 
 public:
   inline static const int PriorityLevel = 0; // Highest
@@ -60,8 +60,8 @@ public:
 };
 
 template<typename Any>
-NaviExplodeState<Any>::NaviExplodeState(int _numOfExplosions, double _playbackSpeed)
-  : ExplodeState<Any>(_numOfExplosions, _playbackSpeed) {
+NaviExplodeState<Any>::NaviExplodeState(int _numOfExplosions, double _playbackSpeed) : 
+  ExplodeState<Any>(_numOfExplosions, _playbackSpeed) {
 }
 
 template<typename Any>

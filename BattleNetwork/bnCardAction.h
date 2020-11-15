@@ -26,7 +26,7 @@ enum class ActionLockoutGroup : unsigned {
 
 struct ActionLockoutProperties {
   ActionLockoutType type{};
-  double cooldown{};
+  double cooldown{}; // in seconds
   ActionLockoutGroup group{ ActionLockoutGroup::card };
 };
 

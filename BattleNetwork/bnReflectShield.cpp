@@ -9,9 +9,11 @@ using sf::IntRect;
 
 const std::string RESOURCE_PATH = "resources/spells/reflect_shield.animation";
 
-ReflectShield::ReflectShield(Character* owner, int damage) 
-  : damage(damage), 
+ReflectShield::ReflectShield(Character* owner, int damage, Type type) : 
+  damage(damage), 
   owner(owner),
+  type(type),
+  duration(frames(63).asSeconds()),
   Artifact(owner->GetField())
 {
   setTexture(TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
@@ -24,7 +26,16 @@ ReflectShield::ReflectShield(Character* owner, int damage)
   animation = Animation(RESOURCE_PATH);
   animation.Reload();
 
-  animation.SetAnimation("DEFAULT");
+  switch (type) {
+  case Type::red:
+    animation.SetAnimation("RED");
+    break;
+  case Type::yellow:
+  default:
+    animation.SetAnimation("YELLOW");
+  }
+
+  animation.Update(0, getSprite());
 
   // Specify the guard callback when it fails
   DefenseGuard::Callback callback = [this](Spell& in, Character& owner) {
@@ -34,15 +45,6 @@ ReflectShield::ReflectShield(Character* owner, int damage)
   // Build a basic guard rule
   guard = new DefenseGuard(callback);
 
-  // When the animtion ends, remove the defense rule
-  auto onEnd = [this]() {
-    this->owner->RemoveDefenseRule(guard);
-  };
-
-  // Add end callback, flag for deletion
-  animation << Animator::On(2, onEnd, true) << [this]() { Delete(); };
-
-  animation.Update(0, getSprite());
 
   // Add the defense rule to the owner
   owner->AddDefenseRule(guard);
@@ -53,7 +55,26 @@ ReflectShield::ReflectShield(Character* owner, int damage)
 }
 
 void ReflectShield::OnUpdate(float _elapsed) {
+
+  duration -= _elapsed;
+
   animation.Update(_elapsed, getSprite());
+
+  if (duration <= 0 && state == State::defending) {
+    state = State::dissolving;
+
+    animation << "DEFAULT";
+
+    // When the animtion ends, remove the defense rule
+    auto onEnd = [this]() {
+      this->owner->RemoveDefenseRule(guard);
+    };
+
+    // Add end callback, flag for deletion
+    animation << Animator::On(2, onEnd, true) << [this]() { Delete(); };
+
+    animation.Update(0, getSprite());
+  }
 }
 
 void ReflectShield::OnDelete()
@@ -91,6 +112,11 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
     // Only emit a row hit once
     activated = true;
   }
+}
+
+void ReflectShield::SetDuration(const frame_time_t& frames)
+{
+  duration = frames.asSeconds();
 }
 
 ReflectShield::~ReflectShield()

@@ -238,7 +238,7 @@ void Animation::SetAnimation(string state) {
 
    noAnim = false; // presumptious reset
 
-   if (pos == animations.end()) {
+   if (pos == animations.end() && state.empty() == false) {
      Logger::Log("No animation found in file for " + state);
      noAnim = true;
    }

@@ -130,6 +130,15 @@ void Entity::Update(float _elapsed) {
   // Update all components
   auto iter = components.begin();
 
+  sf::Uint8 alpha = getSprite().getColor().a;
+  for (auto* child : GetChildNodes()) {
+    auto* sprite = dynamic_cast<SpriteProxyNode*>(child);
+    if (sprite) {
+      auto color = sprite->getColor();
+      sprite->setColor(sf::Color(color.r, color.g, color.b, alpha));
+    }
+  }
+
   while (iter != components.end()) {
     // respectfully only update local components
     // anything shared with the battle scene needs to update those components
@@ -296,6 +305,38 @@ bool Entity::Move(Direction _direction) {
   else if (_direction == Direction::right) {
     if (tile->GetX() + 1 <= (int)(field->GetWidth()+1)) {
       next = field->GetAt(tile->GetX() + 1, tile->GetY());
+      if (!CanMoveTo(next)) {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::up_left) {
+    if (tile->GetX() - 1 >= 0 && tile->GetY() - 1 >= 0) {
+      next = field->GetAt(tile->GetX() - 1, tile->GetY() - 1);
+      if (!CanMoveTo(next)) {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::up_right) {
+    if (tile->GetX() + 1 <= (int)(field->GetWidth() + 1) && tile->GetY() - 1 >= 0) {
+      next = field->GetAt(tile->GetX() + 1, tile->GetY() - 1);
+      if (!CanMoveTo(next)) {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::down_left) {
+    if (tile->GetX() - 1 >= 0 && tile->GetY() + 1 <= (int)(field->GetHeight() + 1)) {
+      next = field->GetAt(tile->GetX() - 1, tile->GetY() + 1);
+      if (!CanMoveTo(next)) {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::down_right) {
+    if (tile->GetX() + 1 <= (int)(field->GetWidth() + 1) && tile->GetY() + 1 <= (int)(field->GetHeight() + 1)) {
+      next = field->GetAt(tile->GetX() + 1, tile->GetY() + 1);
       if (!CanMoveTo(next)) {
         next = nullptr;
       }

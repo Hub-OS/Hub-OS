@@ -44,7 +44,13 @@ namespace Battle {
       team = Team::blue;
     }
 
-    state = TileState::normal;
+    if (x == 0 || x == 7 || y == 0 || y == 4) {
+      state = TileState::hidden;
+    }
+    else {
+      state = TileState::normal;
+    }
+
     entities = vector<Entity*>();
     setScale(2.f, 2.f);
     width = TILE_WIDTH * getScale().x;
@@ -182,10 +188,16 @@ namespace Battle {
   }
 
   void Tile::SetTeam(Team _team, bool useFlicker) {
+    if (IsEdgeTile() || state == TileState::hidden) return;
+
+    // You cannot steal the player's back columns
+    if (x == 1 || x == 6) return;
+
     // Check if no characters on the opposing team are on this tile
     if (GetTeam() == Team::unknown || GetTeam() != _team) {
-      size_t size = FindEntities([this](Entity* in) {
-        return in->GetTeam() == GetTeam();
+      size_t size = FindEntities([this, _team](Entity* in) {
+        auto* isCharacter = dynamic_cast<Character*>(in);
+        return isCharacter && in->GetTeam() != _team;
       }).size();
 
       if (size == 0 && reserved.size() == 0) {
@@ -283,7 +295,7 @@ namespace Battle {
   }
 
   bool Tile::IsWalkable() const {
-    return (state != TileState::hidden && state != TileState::broken && state != TileState::empty && !IsEdgeTile());
+    return !IsHole() && !IsEdgeTile();
   }
 
   bool Tile::IsCracked() const {
@@ -293,6 +305,11 @@ namespace Battle {
   bool Tile::IsEdgeTile() const
   {
     return GetX() == 0 || GetX() == 7 || GetY() == 0 || GetY() == 4;
+  }
+
+  bool Tile::IsHole() const
+  {
+    return state == TileState::hidden || state == TileState::broken || state == TileState::empty;
   }
 
   bool Tile::IsHighlighted() const {
@@ -658,6 +675,55 @@ namespace Battle {
   int Tile::Distance(Battle::Tile& other)
   {
       return std::abs(other.GetX() - GetX()) + std::abs(other.GetY() - GetY());
+  }
+
+  Tile& Tile::operator+(const Direction& dir)
+  {
+    switch (dir) {
+    case Direction::down:
+    {
+      Tile* next = field->GetAt(x, y + 1);
+      return next ? *next : *this;
+    }
+    case Direction::down_left:
+    {
+      Tile* next = field->GetAt(x - 1, y + 1);
+      return next ? *next : *this;
+    }
+    case Direction::down_right:
+    {
+      Tile* next = field->GetAt(x + 1, y + 1);
+      return next ? *next : *this;
+    }
+    case Direction::left:
+    {
+      Tile* next = field->GetAt(x - 1, y);
+      return next ? *next : *this;
+    }
+    case Direction::right:
+    {
+      Tile* next = field->GetAt(x + 1, y);
+      return next ? *next : *this;
+    }
+    case Direction::up:
+    {
+      Tile* next = field->GetAt(x, y - 1);
+      return next ? *next : *this;
+    }
+    case Direction::up_left:
+    {
+      Tile* next = field->GetAt(x - 1, y - 1);
+      return next ? *next : *this;
+    }
+    case Direction::up_right:
+    {
+      Tile* next = field->GetAt(x + 1, y - 1);
+      return next ? *next : *this;
+    }
+    case Direction::none:
+    default:
+      return *this;
+    }
   }
 
   std::string Tile::GetAnimState(const TileState state)

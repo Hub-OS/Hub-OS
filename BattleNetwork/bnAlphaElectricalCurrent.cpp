@@ -5,7 +5,8 @@
 
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
 
-AlphaElectricCurrent::AlphaElectricCurrent(Field* field, Team team, int count) : countMax(count), count(0), Spell(field, team)
+AlphaElectricCurrent::AlphaElectricCurrent(Field* field, Team team, int count) : 
+  countMax(count), count(0), Spell(field, team)
 {
   setTexture(LOAD_TEXTURE(MOB_ALPHA_ATLAS));
   anim = CreateComponent<AnimationComponent>(this);
@@ -29,6 +30,13 @@ void AlphaElectricCurrent::OnSpawn(Battle::Tile & start)
 {
   auto endTrigger = [this]() {
     count++;
+
+    if (count >= countMax) {
+      Remove();
+
+      // Remove() lags behind 1 frame
+      Hide();
+    }
   };
 
   anim->SetAnimation("ELECTRIC", endTrigger);
@@ -79,10 +87,6 @@ void AlphaElectricCurrent::OnUpdate(float _elapsed)
   // In order to lay ontop of alpha's layer, we keep the spell on top of his position
   // but offset the sprite to be 2 tiles to the left...
   setPosition(tile->getPosition().x + tileOffset.x - (tile->GetWidth()*2.0f), tile->getPosition().y + tileOffset.y - GetHeight());
-
-  if (count >= countMax) {
-    Remove();
-  }
 }
 
 void AlphaElectricCurrent::Attack(Character * _entity)

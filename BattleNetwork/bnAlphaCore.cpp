@@ -19,8 +19,8 @@
 
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
 
-AlphaCore::AlphaCore(Rank _rank)
-  : BossPatternAI<AlphaCore>(this), Character(_rank) {
+AlphaCore::AlphaCore(Rank _rank) : 
+  BossPatternAI<AlphaCore>(this), Character(_rank) {
   Entity::team = Team::blue;
   totalElapsed = 0;
   coreHP = prevCoreHP = 40;
@@ -29,7 +29,7 @@ AlphaCore::AlphaCore(Rank _rank)
   setScale(2.f, 2.f);
 
   SetName("Alpha");
-  SetHealth(500); //SetHealth(2000);
+  SetHealth(2000);
   SetLayer(1);
 
   impervious = false;
@@ -126,7 +126,12 @@ AlphaCore::AlphaCore(Rank _rank)
 
 AlphaCore::~AlphaCore() {
   delete head;
-  delete acid, side;
+  delete acid;
+  delete side;
+  delete rightShoulder;
+  delete leftShoulder;
+  delete leftShoulderShoot;
+  delete rightShoulderShoot;
 }
 
 void AlphaCore::OnUpdate(float _elapsed) {
@@ -279,25 +284,25 @@ void AlphaCore::OpenShoulderGuns()
   animation.Update(totalElapsed, leftShoulderShoot->getSprite());
 
   animation.SetAnimation("SUPER_VULCAN");
-animation << Animator::Mode::Loop;
-animation.Update(totalElapsed + 0.04f, rightShoulderShoot->getSprite());
+  animation << Animator::Mode::Loop;
+  animation.Update(totalElapsed + 0.04f, rightShoulderShoot->getSprite());
 
-animation.SetAnimation("LEFT_SHOULDER");
-animation.SetFrame(2, leftShoulder->getSprite());
+  animation.SetAnimation("LEFT_SHOULDER");
+  animation.SetFrame(2, leftShoulder->getSprite());
 
-// TODO: WHY CANT MY NODES JUST LINK UP TO THE POINTS?
-auto bounds = leftShoulder->getLocalBounds();
-auto offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
+  // TODO: WHY CANT MY NODES JUST LINK UP TO THE POINTS?
+  auto bounds = leftShoulder->getLocalBounds();
+  auto offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
 
-leftShoulderShoot->setPosition(-offset.x, 0);
+  leftShoulderShoot->setPosition(-offset.x, 0);
 
-animation.SetAnimation("RIGHT_SHOULDER");
-animation.SetFrame(2, rightShoulder->getSprite());
+  animation.SetAnimation("RIGHT_SHOULDER");
+  animation.SetFrame(2, rightShoulder->getSprite());
 
-bounds = rightShoulder->getLocalBounds();
-offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
+  bounds = rightShoulder->getLocalBounds();
+  offset = animation.GetPoint("SHOOT") - sf::Vector2f(bounds.left, bounds.top);
 
-rightShoulderShoot->setPosition(-offset.x + 10.0f, 5.0f);
+  rightShoulderShoot->setPosition(-offset.x + 10.0f, 5.0f);
 }
 
 void AlphaCore::CloseShoulderGuns()
@@ -364,8 +369,10 @@ void AlphaCore::ShootSuperVulcans()
   rightShoulderShoot->Reveal();
 }
 
-AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP)
-  : DefenseRule(Priority(0), DefenseOrder::collisionOnly), alphaCoreHP(alphaCoreHP) {}
+AlphaCore::AlphaCoreDefenseRule::AlphaCoreDefenseRule(int& alphaCoreHP) : 
+  DefenseRule(Priority(0), DefenseOrder::collisionOnly), 
+  alphaCoreHP(alphaCoreHP) {}
+
 AlphaCore::AlphaCoreDefenseRule::~AlphaCoreDefenseRule() { }
 
 void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& owner) {
@@ -375,8 +382,18 @@ void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Sp
     judge.BlockImpact();
   }
 
-  alphaCoreHP -= in.GetHitboxProperties().damage;
+  int prevCoreHP = alphaCoreHP;
+
+  // alpha core requires multiple hits to expose
+  alphaCoreHP -= std::min(in.GetHitboxProperties().damage, 20);
+ 
+  // keep alphaCoreHP value at non-negative values
   alphaCoreHP = std::max(0, alphaCoreHP);
+
+  if (std::abs(prevCoreHP - alphaCoreHP) > 20) {
+    // we have exposed another core layer, reset the regen timer
+    alpha->coreRegen = 0;
+  }
 
   // Combat damage happens in real time, however during TFC the core
   // should protect Alpha until it is able to changed to its exposed state
@@ -386,10 +403,8 @@ void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Sp
   }
 }
 
-Hit::Properties & AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties& statuses)
+Hit::Properties& AlphaCore::AlphaCoreDefenseRule::FilterStatuses(Hit::Properties& statuses)
 {
-  statuses.flags &= ~Hit::flinch;
-  statuses.flags &= ~Hit::recoil;
-  statuses.flags &= ~Hit::drag;
+  statuses.flags &= ~(Hit::flinch | Hit::recoil | Hit::drag);
   return statuses;
 }

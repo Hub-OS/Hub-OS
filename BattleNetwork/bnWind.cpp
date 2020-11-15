@@ -30,6 +30,7 @@ void Wind::OnUpdate(float _elapsed) {
     }
 
     SlideToTile(true);
+    SetSlideTime(sf::seconds(frames(4).asSeconds()));
     Move(GetDirection());
   }
 }

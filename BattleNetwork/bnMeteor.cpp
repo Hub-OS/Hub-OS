@@ -36,7 +36,7 @@ Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, floa
 
   auto props = Hit::DefaultProperties;
   props.damage = damage;
-  props.flags |= Hit::impact | Hit::flinch | Hit::recoil | Hit::breaking;
+  props.flags |= Hit::impact | Hit::flinch | Hit::recoil;
   SetHitboxProperties(props);
 }
 

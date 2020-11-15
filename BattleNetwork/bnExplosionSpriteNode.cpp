@@ -8,11 +8,11 @@ using sf::IntRect;
 
 const char* ANIM_PATH = "resources/mobs/mob_explosion.animation";
 
-ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions, double _playbackSpeed) 
-  : SpriteProxyNode(), animation(ANIM_PATH)
+ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions, double _playbackSpeed) : 
+  SpriteProxyNode(), animation(ANIM_PATH), parent(parent)
 {
   root = this;
-  parent->AddNode(this);
+  this->parent->AddNode(this);
   SetLayer(-1000);
   numOfExplosions = _numOfExplosions;
   playbackSpeed = _playbackSpeed;
@@ -51,7 +51,6 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
         auto child = new ExplosionSpriteNode(*this);
         child->EnableParentShader(false);
         chain.push_back(child);
-        parent->AddNode(child);
       }
     }, true);
   }
@@ -64,12 +63,14 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
   : SpriteProxyNode(), animation(ANIM_PATH)
 {
   root = copy.root;
-
+  parent = copy.parent;
   count = 0; // uneeded for this copy
   SetLayer(-1000);
   numOfExplosions = copy.numOfExplosions-1;
   playbackSpeed = copy.playbackSpeed;
   setTexture(LOAD_TEXTURE(MOB_EXPLOSION));
+
+  parent->AddNode(this);
 
   animation.SetAnimation("EXPLODE");
   animation << [this]() {
@@ -98,7 +99,6 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
       auto child = new ExplosionSpriteNode(*this);
       child->EnableParentShader(false);
       root->chain.push_back(child);
-      GetParent()->AddNode(child);
     }, true);
   }
   else {
@@ -112,14 +112,15 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
 void ExplosionSpriteNode::Update(float _elapsed) {
   animation.Update(_elapsed*playbackSpeed, getSprite());
 
-  for (auto element : chain) {
-    element->Update(_elapsed);
-  }
 
   /*
    * Keep root alive until all explosions are completed, then delete root
    */
   if (this == root) {
+    for (auto element : chain) {
+      element->Update(_elapsed);
+    }
+
     if (count == numOfExplosions) {
       return;
     }

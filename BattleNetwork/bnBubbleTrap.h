@@ -3,6 +3,8 @@
 #include "bnComponent.h"
 #include "bnField.h"
 #include "bnDefenseBubbleWrap.h"
+#include "bnInputManager.h"
+#include <vector>
 
 /**
  * @class BubbleTrap
@@ -21,7 +23,7 @@ private:
   double duration; /*!< when this reaches zero, pops */
   DefenseBubbleWrap* defense; /*!< Add BubbleWrapTrap defense rule */
   bool willDelete;
-
+  std::vector<InputEvent> lastFrameStates;
 public:
   /**
    * @brief Attaches to the owner, sets the animation */
@@ -45,4 +47,6 @@ public:
    * @brief Sets the pop animation and deletes self when over
    */
   void Pop();
+
+  const double GetDuration() const;
 };

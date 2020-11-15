@@ -226,6 +226,9 @@ void FolderScene::onUpdate(double elapsed) {
             selectInputCooldown = maxSelectInputCooldown;
             extendedHold = true;
           }
+          else {
+            selectInputCooldown = maxSelectInputCooldown * 0.25;
+          }
 
           if (!promptOptions) {
             currCardIndex--;
@@ -242,6 +245,9 @@ void FolderScene::onUpdate(double elapsed) {
           if (!extendedHold) {
             selectInputCooldown = maxSelectInputCooldown;
             extendedHold = true;
+          }
+          else {
+            selectInputCooldown = maxSelectInputCooldown * 0.25;
           }
 
           if (!promptOptions) {
@@ -291,18 +297,20 @@ void FolderScene::onUpdate(double elapsed) {
       currFolderIndex = std::min((int)folderNames.size() - 1, currFolderIndex);
       optionIndex = std::max(0, optionIndex);
 
-      if (currCardIndex != lastCardIndex 
-        || currFolderIndex != lastFolderIndex 
-        || optionIndex != lastOptionIndex) {
-        AUDIO.Play(AudioType::CHIP_SELECT);
-      }
-
       if (folderNames.size()) {
         optionIndex = std::min(4, optionIndex); // total of 5 options 
       }
       else {
         optionIndex = 0; // "NEW" option only
       }
+
+      if (currCardIndex != lastCardIndex 
+        || currFolderIndex != lastFolderIndex 
+        || optionIndex != lastOptionIndex) {
+        AUDIO.Play(AudioType::CHIP_SELECT);
+      }
+
+
 
 #ifdef __ANDROID__
       if(lastFolderIndex != currFolderIndex) {
@@ -564,7 +572,8 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   folderOptions.setScale(2.0f, scale);
 
 
-  auto y = swoosh::ease::interpolate((float)frameElapsed*7.0f, cursor.getPosition().y, 138.0f + ((optionIndex)*32.0f));
+  // swoosh::ease::interpolate((float)frameElapsed * 7.0f, cursor.getPosition().y, 138.0f + ((optionIndex) * 32.0f));
+  auto y = 138.0f + ((optionIndex) * 32.0f); 
   cursor.setPosition(2.0, y);
 
   if (!folder) return;
