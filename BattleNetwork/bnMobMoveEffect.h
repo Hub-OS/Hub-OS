@@ -7,6 +7,7 @@ class MobMoveEffect : public Artifact {
 private:
   Animation animation;
   sf::Sprite move;
+  sf::Vector2f offset{};
 public:
   /**
    * \brief sets the animation
@@ -35,4 +36,6 @@ public:
    * @return false
    */
   bool Move(Direction _direction) final override;
+
+  void SetOffset(const sf::Vector2f& offset); 
 };

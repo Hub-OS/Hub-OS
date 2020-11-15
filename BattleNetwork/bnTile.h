@@ -149,10 +149,15 @@ namespace Battle {
     bool IsCracked() const;
 
     /**
-   * @brief Query if the tile is an edge tile
-   * @return true if x = {0, 7} or y = {0, 4}
-   */
+     * @brief Query if the tile is an edge tile
+     * @return true if x = {0, 7} or y = {0, 4}
+     */
     bool IsEdgeTile() const;
+
+    /**
+    * @brief Query if the tile state is some kind of hole
+    */
+    bool IsHole() const;
 
     /**
      * @brief Query if the tile should be highlighted in battle
@@ -275,6 +280,14 @@ namespace Battle {
      * @brief Calculates and returns Manhattan-distance from this tile to the other
      */
     int Distance(Battle::Tile& other);
+
+    /**
+    * @brief Tile math easily returns tiles with the directional input enum type
+    *
+    * If the operand tile is an edge tile and the direction would proceed the edge tile,
+    * then the closest edge tile is returned: itself. This ensures any output tile is valid.
+    */
+    Tile& operator+(const Direction& dir);
 
   private:
 

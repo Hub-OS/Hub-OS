@@ -29,7 +29,7 @@ AlphaCore::AlphaCore(Rank _rank) :
   setScale(2.f, 2.f);
 
   SetName("Alpha");
-  SetHealth(500); //SetHealth(2000);
+  SetHealth(2000);
   SetLayer(1);
 
   impervious = false;
@@ -382,8 +382,18 @@ void AlphaCore::AlphaCoreDefenseRule::CanBlock(DefenseFrameStateJudge& judge, Sp
     judge.BlockImpact();
   }
 
-  alphaCoreHP -= in.GetHitboxProperties().damage;
+  int prevCoreHP = alphaCoreHP;
+
+  // alpha core requires multiple hits to expose
+  alphaCoreHP -= std::min(in.GetHitboxProperties().damage, 20);
+ 
+  // keep alphaCoreHP value at non-negative values
   alphaCoreHP = std::max(0, alphaCoreHP);
+
+  if (std::abs(prevCoreHP - alphaCoreHP) > 20) {
+    // we have exposed another core layer, reset the regen timer
+    alpha->coreRegen = 0;
+  }
 
   // Combat damage happens in real time, however during TFC the core
   // should protect Alpha until it is able to changed to its exposed state

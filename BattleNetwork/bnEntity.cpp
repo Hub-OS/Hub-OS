@@ -310,6 +310,38 @@ bool Entity::Move(Direction _direction) {
       }
     }
   }
+  else if (_direction == Direction::up_left) {
+    if (tile->GetX() - 1 >= 0 && tile->GetY() - 1 >= 0) {
+      next = field->GetAt(tile->GetX() - 1, tile->GetY() - 1);
+      if (!CanMoveTo(next)) {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::up_right) {
+    if (tile->GetX() + 1 <= (int)(field->GetWidth() + 1) && tile->GetY() - 1 >= 0) {
+      next = field->GetAt(tile->GetX() + 1, tile->GetY() - 1);
+      if (!CanMoveTo(next)) {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::down_left) {
+    if (tile->GetX() - 1 >= 0 && tile->GetY() + 1 <= (int)(field->GetHeight() + 1)) {
+      next = field->GetAt(tile->GetX() - 1, tile->GetY() + 1);
+      if (!CanMoveTo(next)) {
+        next = nullptr;
+      }
+    }
+  }
+  else if (_direction == Direction::down_right) {
+    if (tile->GetX() + 1 <= (int)(field->GetWidth() + 1) && tile->GetY() + 1 <= (int)(field->GetHeight() + 1)) {
+      next = field->GetAt(tile->GetX() + 1, tile->GetY() + 1);
+      if (!CanMoveTo(next)) {
+        next = nullptr;
+      }
+    }
+  }
 
   // If the next tile pointer is valid and is different from our current tile, we are moving
   if (next && next != tile) {

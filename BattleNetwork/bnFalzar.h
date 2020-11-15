@@ -32,13 +32,21 @@ public:
    * @brief Get the hit height of this entity
    * @return const float
    */
-  // const float GetHeight() const override;
+   // const float GetHeight() const override;
 
 private:
+  float animProgress{};
   Animation animation;
   DefenseRule* bossBody;
-  SpriteProxyNode 
+  SpriteProxyNode
     head, body, guardLeft, guardRight,
     wingLeft, wingRight, tail, legLeft, legRight,
     shadow;
+
+  int testState{};
+  void Idle();
+  void Roar();
+  void MoveAnim();
+  void Flap();
+  void UpdateNodeAnims(float elapsed);
 };

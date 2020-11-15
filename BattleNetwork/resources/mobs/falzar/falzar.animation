@@ -4,7 +4,7 @@ animation state="Head_Resting"
 frame duration="0.05" x="78" y="62" w="46" h="48" originx="28" originy="32"
 
 animation state="Head_screech1"
-frame duration="0.05" x="219" y="63" w="54" h="42" originx="0" originy="0"
+frame duration="0.05" x="219" y="63" w="54" h="42" originx="28" originy="33"
 
 animation state="Head_screech2"
 frame duration="0.05" x="318" y="55" w="40" h="50" originx="0" originy="0"

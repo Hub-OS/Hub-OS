@@ -11,7 +11,7 @@ private:
   sf::Vector2f start; /*!< Where the orb starts */
   double progress;    /*!< Progress from the start to the tile */
   double duration;    /*!< How long the animation should last in seconds */
-  AnimationComponent* animationComponent;
+  AnimationComponent* animationComponent{ nullptr };
 public:
   /**
    * @brief sets the team it will change the tile to and duration of animation 

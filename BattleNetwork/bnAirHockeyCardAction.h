@@ -6,15 +6,15 @@
 class SpriteProxyNode;
 class Character;
 
-class CrackShotCardAction : public CardAction {
+class AirHockeyCardAction : public CardAction {
 private:
   sf::Sprite overlay;
   SpriteProxyNode* attachment{ nullptr };
   Animation attachmentAnim;
   int damage;
 public:
-  CrackShotCardAction(Character* owner, int damage);
-  ~CrackShotCardAction();
+  AirHockeyCardAction(Character* owner, int damage);
+  ~AirHockeyCardAction();
   void OnUpdate(float _elapsed);
   void OnAnimationEnd();
   void EndAction();

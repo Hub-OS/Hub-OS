@@ -95,11 +95,16 @@ void ParticleImpact::OnSpawn(Battle::Tile& tile) {
   randOffset.y = randOffset.y - GetHeight();
 }
 
+void ParticleImpact::SetOffset(const sf::Vector2f& offset)
+{
+  this->offset = offset;
+}
+
 void ParticleImpact::OnUpdate(float _elapsed) {
   animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
 
-  setPosition(GetTile()->getPosition() + tileOffset + randOffset);
+  setPosition(GetTile()->getPosition() + tileOffset + randOffset + offset);
 }
 
 void ParticleImpact::OnDelete()

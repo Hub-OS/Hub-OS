@@ -48,8 +48,11 @@ public:
 
   void OnSpawn(Battle::Tile& tile) final override;
 
+
+  void SetOffset(const sf::Vector2f& offset);
+
 private:
   Animation animation;
-  sf::Vector2f randOffset;
+  sf::Vector2f randOffset, offset;
   Type type;
 }; 
