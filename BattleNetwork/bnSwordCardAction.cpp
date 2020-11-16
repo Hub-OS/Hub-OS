@@ -74,7 +74,6 @@ void SwordCardAction::Execute() {
   }
 
   AddAnimAction(2, onTrigger);
-  //AddAnimAction(3, onTrigger);
 }
 
 void SwordCardAction::OnSpawnHitbox()

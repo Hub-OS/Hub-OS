@@ -18,13 +18,6 @@ CrackShotCardAction::CrackShotCardAction(Character * owner, int damage)
   CardAction(*owner, "PLAYER_SWORD") {
   CrackShotCardAction::damage = damage;
 
-  overlay.setTexture(*owner->getTexture());
-  attachment = new SpriteProxyNode(overlay);
-  attachment->SetLayer(-1);
-  attachment->EnableParentShader(true);
-
-  AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
-
   OverrideAnimationFrames({ FRAMES });
 
   attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
@@ -41,7 +34,6 @@ void CrackShotCardAction::Execute() {
 
   // On throw frame, spawn projectile
   auto onThrow = [this, owner]() -> void {
-
     int step = 1;
 
     if (owner->GetTeam() == Team::blue) {
@@ -75,6 +67,17 @@ void CrackShotCardAction::Execute() {
     AUDIO.Play(AudioType::TOSS_ITEM_LITE);
   };
 
+  auto addHand = [this] {
+    auto* owner = GetOwner();
+    overlay.setTexture(*owner->getTexture());
+    attachment = new SpriteProxyNode(overlay);
+    attachment->SetLayer(-1);
+    attachment->EnableParentShader(true);
+
+    AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
+  };
+
+  AddAnimAction(2, addHand);
   AddAnimAction(4, onThrow);
 }
 
