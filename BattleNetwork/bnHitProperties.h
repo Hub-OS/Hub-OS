@@ -32,21 +32,22 @@ namespace Hit {
    * @brief Hit box information
    */
   struct Properties {
-    int damage;
-    Flags flags;
-    Element element;
-    Character* aggressor;
-    Direction drag; // Used by dragging payload
+    int damage{};
+    Flags flags{ none };
+    Element element{ Element::none };
+    Character* aggressor{ nullptr };
+    Direction drag{ Direction::none }; // Used by dragging payload
 
     Properties() = default;
     Properties(const Properties& rhs) = default;
     ~Properties() = default;
   };
 
-  static constexpr Properties GetDefaultProps() {
-    return Properties{ 0, Flags(Hit::recoil | Hit::impact), Element::none, nullptr, Direction::none };
-  }
-
-  const constexpr Hit::Properties DefaultProperties = Hit::GetDefaultProps();
-
+  const constexpr Hit::Properties DefaultProperties = { 
+    0, 
+    Flags(Hit::recoil | Hit::impact), 
+    Element::none, 
+    nullptr, 
+    Direction::none 
+  };
 }

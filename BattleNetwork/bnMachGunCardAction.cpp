@@ -150,7 +150,7 @@ Battle::Tile* MachGunCardAction::MoveRectical(Field* field, bool colMove)
 Target::Target(Field* field, int damage) :
   Artifact(field),
   damage(damage),
-  attack(frames(10).asSeconds())
+  attack(frames(5).asSeconds())
 {
   setScale(2.f, 2.f);
   setTexture(TEXTURES.LoadTextureFromFile("resources/spells/target.png"));

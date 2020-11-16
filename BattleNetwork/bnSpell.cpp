@@ -8,8 +8,11 @@
 #include "bnTextureResourceManager.h"
 
 
-Spell::Spell(Field* field, Team team) 
-  : heightOffset(0), mode(Battle::Tile::Highlight::none), hitboxProperties(Hit::GetDefaultProps()), Entity() {
+Spell::Spell(Field* field, Team team) : 
+  heightOffset(0), 
+  mode(Battle::Tile::Highlight::none), 
+  hitboxProperties(Hit::DefaultProperties), 
+  Entity() {
   SetFloatShoe(true);
   SetLayer(1);
   SetTeam(team);
