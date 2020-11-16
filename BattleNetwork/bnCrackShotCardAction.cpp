@@ -6,11 +6,12 @@
 #include "bnParticleImpact.h"
 #include "bnCrackShot.h"
 
-#define FRAME1 { 1, 0.05 }
+#define FRAME1 { 1, 0.1666 }
 #define FRAME2 { 2, 0.05 }
-#define FRAME3 { 3, 0.3 }
+#define FRAME3 { 3, 0.05 }
+#define FRAME4 { 4, 0.5 }
 
-#define FRAMES FRAME1, FRAME2, FRAME3
+#define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
 CrackShotCardAction::CrackShotCardAction(Character * owner, int damage) 
   : 
@@ -74,7 +75,7 @@ void CrackShotCardAction::Execute() {
     AUDIO.Play(AudioType::TOSS_ITEM_LITE);
   };
 
-  AddAnimAction(3, onThrow);
+  AddAnimAction(4, onThrow);
 }
 
 void CrackShotCardAction::OnUpdate(float _elapsed)

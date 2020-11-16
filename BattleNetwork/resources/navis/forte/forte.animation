@@ -19,6 +19,7 @@ frame duration="0.01" x="168" y="0" w="48" h="80" originx="26" originy="79"
 frame duration="0.06" x="363" y="72" w="47" h="75" originx="27" originy="74"
 
 animation state="PLAYER_SWORD"
+frame duration="0.166" x="312" y="73" w="49" h="72" originx="27" originy="71"
 frame duration="0.05" x="312" y="145" w="49" h="71" originx="21" originy="68"
 point label="HILT" x="34" y="22"
 frame duration="0.05" x="465" y="0" w="41" h="71" originx="20" originy="68"

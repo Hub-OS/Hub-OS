@@ -9,11 +9,12 @@
 #define PATH "resources/spells/spell_sword_blades.png"
 #define ANIM "resources/spells/spell_sword_blades.animation"
 
-#define FRAME1 { 1, 0.05 }
+#define FRAME1 { 1, 0.1666 }
 #define FRAME2 { 2, 0.05 }
-#define FRAME3 { 3, 0.5 }
+#define FRAME3 { 3, 0.05 }
+#define FRAME4 { 4, 0.5 }
 
-#define FRAMES FRAME1, FRAME2, FRAME3
+#define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
 SwordCardAction::SwordCardAction(Character * owner, int damage) : 
   CardAction(*owner, "PLAYER_SWORD")
@@ -32,13 +33,11 @@ SwordCardAction::SwordCardAction(Character * owner, int damage) :
   bladeAnim = Animation(ANIM);
   bladeAnim.SetAnimation("DEFAULT");
 
-  auto userAnim = owner->GetFirstComponent<AnimationComponent>();
+  auto userAnim = GetOwner()->GetFirstComponent<AnimationComponent>();
+
   hiltAnim = Animation(userAnim->GetFilePath());
   hiltAnim.Reload();
   hiltAnim.SetAnimation("HILT");
-
-  auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObj(), "HILT", *hilt).UseAnimation(hiltAnim);
-  hiltAttachment.AddAttachment(hiltAnim, "ENDPOINT", *blade).UseAnimation(bladeAnim);
 
   element = Element::none;
 
@@ -51,9 +50,18 @@ SwordCardAction::~SwordCardAction()
 }
 
 void SwordCardAction::Execute() {
+  auto onAddSword = [this]() -> void {
+
+  };
+
   // On attack frame, drop sword hitbox
   auto onTrigger = [this]() -> void {
     OnSpawnHitbox();
+
+    auto userAnim = GetOwner()->GetFirstComponent<AnimationComponent>();
+
+    auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObj(), "HILT", *hilt).UseAnimation(hiltAnim);
+    hiltAttachment.AddAttachment(hiltAnim, "ENDPOINT", *blade).UseAnimation(bladeAnim);
   };
 
   switch (GetElement()) {
@@ -66,6 +74,7 @@ void SwordCardAction::Execute() {
   }
 
   AddAnimAction(2, onTrigger);
+  //AddAnimAction(3, onTrigger);
 }
 
 void SwordCardAction::OnSpawnHitbox()

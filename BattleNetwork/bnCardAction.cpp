@@ -137,6 +137,9 @@ CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::
 
   if (started) {
     this->GetOwner()->AddNode(&node);
+
+    // inform any new attachments they can and should attach immediately
+    iter->second.started = true;
   }
 
   return iter->second;
@@ -307,6 +310,9 @@ CardAction::Attachment& CardAction::Attachment::AddAttachment(Animation& parent,
 
   if (started) {
     this->spriteProxy.get().AddNode(&node);
+
+    // inform any new attachments they can and should attach immediately
+    iter->second.started = true;
   }
 
   return iter->second;

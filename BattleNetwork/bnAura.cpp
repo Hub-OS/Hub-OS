@@ -262,12 +262,14 @@ void Aura::VisualFX::Inject(BattleSceneBase& bs) {
 
 void Aura::VisualFX::OnUpdate(float _elapsed)
 {
+  timer += _elapsed;
+
   if (currHP == 0) {
     auraSprite.setColor(sf::Color(255, 255, 255, 50));
   }
   else {
     // flicker
-    if (int(timer * 15000) % 2 == 0) {
+    if (int(timer * 15000) % 3 == 0) {
       Hide();
     }
     else {
