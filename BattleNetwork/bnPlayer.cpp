@@ -118,20 +118,37 @@ int Player::GetMoveCount() const
   return Entity::GetMoveCount();
 }
 
-void Player::SetCharging(bool state)
+void Player::Charge(bool state)
 {
+  frame_time_t maxCharge = CalculateChargeTime(GetChargeLevel());
+  if (activeForm) {
+    maxCharge = activeForm->CalculateChargeTime(GetChargeLevel());
+  }
+
+  chargeEffect.SetMaxChargeTime(maxCharge);
   chargeEffect.SetCharging(state);
 }
 
-void Player::SetAtkLevel(unsigned atk)
+void Player::SetAttackLevel(unsigned lvl)
 {
-  atkLevel = std::min(5u, atk);
+  stats.attack = std::min(PlayerStats::MAX_ATTACK_LEVEL, lvl);
 }
 
-const unsigned Player::GetAtkLevel()
+const unsigned Player::GetAttackLevel()
 {
-  return atkLevel;
+  return stats.attack;
 }
+
+void Player::SetChargeLevel(unsigned lvl)
+{
+  stats.charge = std::min(PlayerStats::MAX_CHARGE_LEVEL, lvl);
+}
+
+const unsigned Player::GetChargeLevel()
+{
+  return stats.charge;
+}
+
 
 void Player::SetAnimation(string _state, std::function<void()> onFinish) {
   state = _state;
@@ -152,6 +169,39 @@ void Player::EnablePlayerControllerSlideMovementBehavior(bool enable)
 const bool Player::PlayerControllerSlideEnabled() const
 {
   return playerControllerSlide;
+}
+
+CardAction* Player::OnExecuteSpecialAction()
+{
+  if (specialOverride) {
+    return specialOverride();
+  }
+
+  return nullptr;
+}
+
+frame_time_t Player::CalculateChargeTime(const unsigned chargeLevel)
+{
+  /**
+  * These values include the 10i+ initial frames
+  * 1 - 100i
+  * 2 - 90i
+  * 3 - 80i
+  * 4 - 70i
+  * 5 - 60i
+  */
+  switch (chargeLevel) {
+  case 1:
+    return frames(90);
+  case 2:
+    return frames(80);
+  case 3:
+    return frames(70);
+  case 4:
+    return frames(60);
+  }
+
+  return frames(50);
 }
 
 CardAction* Player::ExecuteBuster()
@@ -189,6 +239,7 @@ void Player::ActivateFormAt(int index)
     activeForm->OnDeactivate(*this);
     delete activeForm;
     activeForm = nullptr;
+    RevertStats();
   }
 
   if (index >= 0 || index < forms.size()) {
@@ -196,6 +247,7 @@ void Player::ActivateFormAt(int index)
     activeForm = meta->BuildForm();
 
     if (activeForm) {
+      SaveStats();
       activeForm->OnActivate(*this);
     }
   }
@@ -205,6 +257,7 @@ void Player::DeactivateForm()
 {
   if (activeForm) {
     activeForm->OnDeactivate(*this);
+    RevertStats();
   }
 }
 
@@ -222,6 +275,28 @@ const std::vector<PlayerFormMeta*> Player::GetForms()
   }
 
   return res;
+}
+
+ChargeEffectSceneNode& Player::GetChargeComponent()
+{
+  return chargeEffect;
+}
+
+void Player::OverrideSpecialAbility(std::function<CardAction* ()>& func)
+{
+  specialOverride = func;
+}
+
+void Player::SaveStats()
+{
+  savedStats.charge = GetChargeLevel();
+  savedStats.attack = GetAttackLevel();
+}
+
+void Player::RevertStats()
+{
+  SetChargeLevel(savedStats.charge);
+  SetAttackLevel(savedStats.attack);
 }
 
 bool Player::RegisterForm(PlayerFormMeta * info)

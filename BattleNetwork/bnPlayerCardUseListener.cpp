@@ -39,7 +39,7 @@
 
 void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, long long timestamp) {
   // Player charging is cancelled
-  player->SetCharging(false);
+  player->Charge(false);
 
   // Identify the card by the name
   std::string name = card.GetShortName();

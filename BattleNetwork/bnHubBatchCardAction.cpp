@@ -81,7 +81,7 @@ void HubBatchProgram::OnUpdate(float elapsed)
 
   
   if (player) {
-    player->SetAtkLevel(10); // max
+    player->SetAttackLevel(10); // max
     // player->SetSpecialSlot([]{ return new ReflectCardAction(10); });
     if (Injected()) {
       // Scene()->GetCardSelectWidget().SetMaxCardDraw(10);

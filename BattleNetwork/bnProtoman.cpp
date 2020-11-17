@@ -17,12 +17,12 @@ const std::string RESOURCE_PATH = "resources/navis/protoman/protoman.animation";
 
 CardAction* Protoman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAtkLevel());
+  return new BusterCardAction(this, false, 1*GetAttackLevel());
 }
 
 CardAction* Protoman::OnExecuteChargedBusterAction()
 {
-  return new WideSwordCardAction(this, 20*GetAtkLevel());
+  return new WideSwordCardAction(this, 20*GetAttackLevel());
 }
 
 CardAction* Protoman::OnExecuteSpecialAction() {

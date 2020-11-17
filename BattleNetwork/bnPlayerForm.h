@@ -1,4 +1,5 @@
 #pragma once
+#include "bnEngine.h"
 #include "bnAnimation.h"
 #include "bnSpriteProxyNode.h"
 #include <string>
@@ -16,6 +17,7 @@ public:
   virtual void OnUpdate(float elapsed, Player&) = 0;
   virtual CardAction* OnChargedBusterAction(Player&) = 0;
   virtual CardAction* OnSpecialAction(Player&) = 0;
+  virtual frame_time_t CalculateChargeTime(const unsigned) = 0;
   void SetElementalDecross(bool state) { elementalDecross = state; }
   const bool WillElementalHitDecross() const { return elementalDecross; }
 };

@@ -4,27 +4,28 @@
 
 class SpriteProxyNode;
 
-class Megaman : public Player {
+class Megaman final : public Player {
 public:
   Megaman();
   ~Megaman();
 
   virtual void OnUpdate(float elapsed);
-  CardAction* OnExecuteBusterAction() override final;
-  CardAction* OnExecuteChargedBusterAction() override final;
-  CardAction* OnExecuteSpecialAction() override final;
+
+  CardAction* OnExecuteBusterAction() override;
+  CardAction* OnExecuteChargedBusterAction() override;
+  CardAction* OnExecuteSpecialAction() override;
 };
 
-class TenguCross : public PlayerForm {
+class TenguCross final : public PlayerForm {
 public:
   TenguCross();
   ~TenguCross();
-  void OnUpdate(float elapsed, Player&);
-  void OnActivate(Player& player);
-  void OnDeactivate(Player& player);
-  CardAction* OnChargedBusterAction(Player&);
-  CardAction* OnSpecialAction(Player&);
-
+  void OnUpdate(float elapsed, Player&) override;
+  void OnActivate(Player& player) override;
+  void OnDeactivate(Player& player) override;
+  CardAction* OnChargedBusterAction(Player&) override;
+  CardAction* OnSpecialAction(Player&) override;
+  frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
 private:
   bool loaded;
   AnimationComponent* parentAnim{ nullptr };
@@ -50,15 +51,16 @@ private:
 
 };
 
-class HeatCross : public PlayerForm {
+class HeatCross final : public PlayerForm {
 public:
   HeatCross();
   ~HeatCross();
-  void OnUpdate(float elapsed, Player&);
-  void OnActivate(Player& player);
-  void OnDeactivate(Player& player);
-  CardAction* OnChargedBusterAction(Player&);
-  CardAction* OnSpecialAction(Player&);
+  void OnUpdate(float elapsed, Player&) override;
+  void OnActivate(Player& player) override;
+  void OnDeactivate(Player& player) override;
+  CardAction* OnChargedBusterAction(Player&) override;
+  CardAction* OnSpecialAction(Player&) override;
+  frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
 private:
   bool loaded;
   AnimationComponent* parentAnim{ nullptr };
@@ -68,15 +70,16 @@ private:
 
 class DefenseRule; // forward declare
 
-class TomahawkCross : public PlayerForm {
+class TomahawkCross final : public PlayerForm {
 public:
   TomahawkCross();
   ~TomahawkCross();
-  void OnUpdate(float elapsed, Player&);
-  void OnActivate(Player& player);
-  void OnDeactivate(Player& player);
-  CardAction* OnChargedBusterAction(Player&);
-  CardAction* OnSpecialAction(Player&);
+  void OnUpdate(float elapsed, Player&) override;
+  void OnActivate(Player& player) override;
+  void OnDeactivate(Player& player) override;
+  CardAction* OnChargedBusterAction(Player&) override;
+  CardAction* OnSpecialAction(Player&) override;
+  frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
 private:
   DefenseRule* statusGuard{ nullptr };
   bool loaded;
@@ -85,15 +88,16 @@ private:
   SpriteProxyNode* overlay{ nullptr };
 };
 
-class ElecCross : public PlayerForm {
+class ElecCross final : public PlayerForm {
 public:
   ElecCross();
   ~ElecCross();
-  void OnUpdate(float elapsed, Player&);
-  void OnActivate(Player& player);
-  void OnDeactivate(Player& player);
-  CardAction* OnChargedBusterAction(Player&);
-  CardAction* OnSpecialAction(Player&);
+  void OnUpdate(float elapsed, Player&) override;
+  void OnActivate(Player& player) override;
+  void OnDeactivate(Player& player) override;
+  CardAction* OnChargedBusterAction(Player&) override;
+  CardAction* OnSpecialAction(Player&) override;
+  frame_time_t CalculateChargeTime(unsigned chargeLevel) override;
 private:
   bool loaded;
   AnimationComponent* parentAnim{ nullptr };

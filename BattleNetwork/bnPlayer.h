@@ -26,7 +26,15 @@ using sf::IntRect;
 
 class CardAction;
 
+struct PlayerStats {
+  static constexpr unsigned MAX_CHARGE_LEVEL = 5u;
+  static constexpr unsigned MAX_ATTACK_LEVEL = 5u;
+
+  unsigned charge{1}, attack{1};
+};
+
 class Player : public Character, public AI<Player> {
+private:
   friend class PlayerControlledState;
   friend class PlayerNetworkState;
   friend class PlayerIdleState;
@@ -34,14 +42,12 @@ class Player : public Character, public AI<Player> {
   friend class PlayerChangeFormState;
   friend class PlayerCardUseListener;
 
-protected:
-  bool RegisterForm(PlayerFormMeta* info);
+  void SaveStats();
+  void RevertStats();
 
-  template<typename T>
-  PlayerFormMeta* AddForm();
 public:
   using DefaultState = PlayerControlledState;
-  static constexpr int MAX_FORM_SIZE = 5;
+  static constexpr size_t MAX_FORM_SIZE = 5;
 
     /**
    * @brief Loads graphics and adds a charge component
@@ -83,10 +89,13 @@ public:
    * @brief Toggles the charge component
    * @param state
    */
-  void SetCharging(bool state);
+  void Charge(bool state);
 
-  void SetAtkLevel(unsigned atk);
-  const unsigned GetAtkLevel();
+  void SetAttackLevel(unsigned lvl);
+  const unsigned GetAttackLevel();
+
+  void SetChargeLevel(unsigned lvl);
+  const unsigned GetChargeLevel();
 
   /**
    * @brief Set the animation and on finish callback
@@ -100,7 +109,8 @@ public:
 
   virtual CardAction* OnExecuteBusterAction() = 0;
   virtual CardAction* OnExecuteChargedBusterAction() = 0;
-  virtual CardAction* OnExecuteSpecialAction() = 0;
+  virtual CardAction* OnExecuteSpecialAction();
+  virtual frame_time_t CalculateChargeTime(const unsigned changeLevel);
 
   CardAction* ExecuteBuster();
   CardAction* ExecuteChargedBuster();
@@ -111,7 +121,19 @@ public:
   const bool IsInForm() const;
 
   const std::vector<PlayerFormMeta*> GetForms();
+
+  ChargeEffectSceneNode& GetChargeComponent();
+
+  void OverrideSpecialAbility(std::function<CardAction* ()>& func);
+
 protected:
+  // functions
+  bool RegisterForm(PlayerFormMeta* info);
+
+  template<typename T>
+  PlayerFormMeta* AddForm();
+
+  // member vars
   string state; /*!< Animation state name */
   bool playerControllerSlide;
   AnimationComponent* animationComponent;
@@ -119,7 +141,8 @@ protected:
 
   std::vector<PlayerFormMeta*> forms;
   PlayerForm* activeForm{ nullptr };
-  unsigned atkLevel{ 1 };
+  PlayerStats stats{}, savedStats{};
+  std::function<CardAction* ()> specialOverride{};
 };
 
 template<typename T>

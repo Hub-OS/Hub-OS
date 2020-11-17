@@ -295,9 +295,13 @@ struct frame_time_t {
   bool operator !=(const frame_time_t& other) const {
     return this->milli != other.milli;
   }
+
+  static constexpr frame_time_t from_seconds(seconds sec) {
+    return { static_cast<milliseconds>(sec * 1000.0) };
+  }
 };
 
  //!< frames utility method transforms frames to engine time
-static frame_time_t frames(int frames)  {
+static constexpr frame_time_t frames(int frames)  {
   return frame_time_t{ (long long)(1000 * (double(frames) / 60.0)) };
 };

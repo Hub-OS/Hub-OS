@@ -40,7 +40,7 @@ void Megaman::OnUpdate(float elapsed)
 
 CardAction* Megaman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAtkLevel());
+  return new BusterCardAction(this, false, 1*GetAttackLevel());
 }
 
 CardAction* Megaman::OnExecuteChargedBusterAction()
@@ -49,7 +49,7 @@ CardAction* Megaman::OnExecuteChargedBusterAction()
     return activeForm->OnChargedBusterAction(*this);
   }
   else {
-    return new BusterCardAction(this, true, 10*GetAtkLevel());
+    return new BusterCardAction(this, true, 10*GetAttackLevel());
   }
 }
 
@@ -58,10 +58,14 @@ CardAction* Megaman::OnExecuteSpecialAction() {
     return activeForm->OnSpecialAction(*this);
   }
 
-  return nullptr;
+  return Player::OnExecuteSpecialAction();
 }
 
-// CROSSES / FORMS
+///////////////////////////////////////////////
+//            CROSSES / FORMS                //
+///////////////////////////////////////////////
+
+// class TenguCross
 
 TenguCross::TenguCross()
 {
@@ -105,7 +109,6 @@ void TenguCross::OnDeactivate(Player & player)
   pswap->Revert();
 
   parentAnim->RemoveFromOverrideList(&overlayAnimation);
-
 }
 
 void TenguCross::OnUpdate(float elapsed, Player& player)
@@ -125,7 +128,7 @@ void TenguCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TenguCross::OnChargedBusterAction(Player& player)
 {
-  return new BusterCardAction(&player, true, 20*player.GetAtkLevel()+40);
+  return new BusterCardAction(&player, true, 20*player.GetAttackLevel()+40);
 }
 
 CardAction* TenguCross::OnSpecialAction(Player& player)
@@ -133,7 +136,31 @@ CardAction* TenguCross::OnSpecialAction(Player& player)
   return new TenguCross::SpecialAction(&player);
 }
 
-// HEAT CROSS
+frame_time_t TenguCross::CalculateChargeTime(unsigned chargeLevel)
+{
+  /**
+  * These values include the 10i+ initial frames
+  * 1 - 100i
+  * 2 - 90i
+  * 3 - 80i
+  * 4 - 75i
+  * 5 - 70i
+  */
+  switch (chargeLevel) {
+  case 1:
+    return frames(90);
+  case 2:
+    return frames(80);
+  case 3:
+    return frames(70);
+  case 4:
+    return frames(65);
+  }
+
+  return frames(60);
+}
+
+// class HeatCross
 
 HeatCross::HeatCross()
 {
@@ -200,7 +227,7 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* HeatCross::OnChargedBusterAction(Player& player)
 {
-  auto* action = new FireBurnCardAction(&player, FireBurn::Type::_2, 20 * player.GetAtkLevel() + 30);
+  auto* action = new FireBurnCardAction(&player, FireBurn::Type::_2, 20 * player.GetAttackLevel() + 30);
   action->CrackTiles(false);
   return action;
 }
@@ -210,7 +237,31 @@ CardAction* HeatCross::OnSpecialAction(Player& player)
   return nullptr;
 }
 
-// TOMAHAWK CROSS
+frame_time_t HeatCross::CalculateChargeTime(unsigned chargeLevel)
+{
+  /**
+  * These values include the 10i+ initial frames
+  * charge 1 - 70i
+  * 2 - 60i
+  * 3 - 50i
+  * 4 - 45i
+  * 5 - 40i
+  */
+  switch (chargeLevel) {
+  case 1:
+    return frames(60);
+  case 2:
+    return frames(50);
+  case 3:
+    return frames(40);
+  case 4:
+    return frames(35);
+  }
+
+  return frames(30);
+}
+
+// class TomahawkCross
 
 TomahawkCross::TomahawkCross()
 {
@@ -278,7 +329,7 @@ void TomahawkCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
 {
-  return new TomahawkSwingCardAction(player, 20 * player.GetAtkLevel() + 40);
+  return new TomahawkSwingCardAction(player, 20 * player.GetAttackLevel() + 40);
 }
 
 CardAction* TomahawkCross::OnSpecialAction(Player& player)
@@ -286,13 +337,42 @@ CardAction* TomahawkCross::OnSpecialAction(Player& player)
   return nullptr;
 }
 
-// SPECIAL ABILITY IMPLEMENTATIONS
+frame_time_t TomahawkCross::CalculateChargeTime(unsigned chargeLevel)
+{
+  /**
+  * These values include the 10i+ initial frames
+  * 1 - 120i
+  * 2 - 110i
+  * 3 - 100i
+  * 4 - 95i
+  * 5 - 90i
+  */
+
+  switch (chargeLevel) {
+  case 1:
+    return frames(110);
+  case 2:
+    return frames(100);
+  case 3:
+    return frames(90);
+  case 4:
+    return frames(85);
+  }
+
+  return frames(80);
+}
+
+////////////////////////////////////////////////////////////////
+//             SPECIAL ABILITY IMPLEMENTATIONS                //
+////////////////////////////////////////////////////////////////
+
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
 #define FRAME3 { 3, 0.3 }
 
 #define FRAMES FRAME1, FRAME2, FRAME3
 
+// class TenguCross
 TenguCross::SpecialAction::SpecialAction(Character* owner) : 
   CardAction(*owner, "PLAYER_SWORD") {
   overlay.setTexture(*owner->getTexture());
@@ -348,8 +428,7 @@ void TenguCross::SpecialAction::OnAnimationEnd()
 {
 }
 
-
-// ELEC CROSS
+// class ElecCross
 
 ElecCross::ElecCross()
 {
@@ -416,7 +495,7 @@ void ElecCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* ElecCross::OnChargedBusterAction(Player& player)
 {
-  auto* action = new LightningCardAction(&player, 20 * player.GetAtkLevel() + 40);
+  auto* action = new LightningCardAction(&player, 20 * player.GetAttackLevel() + 40);
   action->SetStun(false);
   return action;
 }
@@ -424,4 +503,9 @@ CardAction* ElecCross::OnChargedBusterAction(Player& player)
 CardAction* ElecCross::OnSpecialAction(Player& player)
 {
   return nullptr;
+}
+
+frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
+{
+  return frame_time_t();
 }

@@ -16,16 +16,16 @@ const std::string RESOURCE_PATH = "resources/navis/forte/forte.animation";
 
 CardAction* Forte::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAtkLevel());
+  return new BusterCardAction(this, false, 1*GetAttackLevel());
 }
 
 CardAction* Forte::OnExecuteChargedBusterAction()
 {
-  return new VulcanCardAction(this, 10*GetAtkLevel());
+  return new VulcanCardAction(this, 10*GetAttackLevel());
 }
 
 CardAction* Forte::OnExecuteSpecialAction() {
-  return nullptr;
+  return Player::OnExecuteSpecialAction();
 }
 
 Forte::Forte() : Player()

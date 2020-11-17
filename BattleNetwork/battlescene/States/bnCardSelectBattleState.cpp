@@ -65,7 +65,7 @@ void CardSelectBattleState::onStart(const BattleSceneState*)
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
 
   for (Player* player : tracked) {
-    player->SetCharging(false);
+    player->Charge(false);
     SelectedCardsUI* ui = player->GetFirstComponent<SelectedCardsUI>();
 
     if (ui) {

@@ -38,15 +38,15 @@ const float Roll::GetHeight() const
 
 CardAction * Roll::OnExecuteSpecialAction()
 {
-  return nullptr;
+  return Player::OnExecuteSpecialAction();
 }
 
 CardAction* Roll::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAtkLevel());
+  return new BusterCardAction(this, false, 1*GetAttackLevel());
 }
 
 CardAction* Roll::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 10*GetAtkLevel());
+  return new BusterCardAction(this, true, 10*GetAttackLevel());
 }

@@ -142,7 +142,7 @@ Player * NaviRegistration::NaviMeta::GetNavi()
 
   loadNaviClass(); // Reload navi (which restores HP)
 
-  out->SetAtkLevel(this->atk);
+  out->SetAttackLevel(this->atk);
 
   return out;
 }
