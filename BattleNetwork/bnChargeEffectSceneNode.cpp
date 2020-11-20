@@ -29,7 +29,7 @@ void ChargeEffectSceneNode::Update(float _elapsed) {
 
     chargeCounter += frame_time_t::from_seconds(_elapsed);
 
-    if (chargeCounter >= maxChargeTime) {
+    if (chargeCounter >= maxChargeTime + i10) {
       if (isCharged == false) {
         // We're switching states
         AUDIO.Play(AudioType::BUSTER_CHARGED);

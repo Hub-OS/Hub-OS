@@ -20,12 +20,20 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 #include "bnCardFolderCollection.h"
+
+// overworld
+#include "overworld/bnOverworldActor.h"
+#include "overworld/bnOverworldPlayerController.h"
+
 #include <SFML/Graphics.hpp>
 #include <time.h>
 #include <future>
 
 class MainMenuScene : public swoosh::Activity {
 private:
+  Overworld::Actor actor{ "Test" };
+  Overworld::PlayerController playerController{};
+
   Camera camera; /*!< camera in scene follows megaman */
   bool showHUD; /*!< Toggle HUD. Used in debugging. */
 

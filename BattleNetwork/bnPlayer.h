@@ -104,6 +104,7 @@ public:
   void SetAnimation(string _state, std::function<void()> onFinish = nullptr);
 
   // TODO: these two are hacks and shouldn't belong
+  // TODO: this should change when the movement API changes 11/16/2020
   void EnablePlayerControllerSlideMovementBehavior(bool enable = true);
   const bool PlayerControllerSlideEnabled() const;
 
@@ -124,7 +125,7 @@ public:
 
   ChargeEffectSceneNode& GetChargeComponent();
 
-  void OverrideSpecialAbility(std::function<CardAction* ()>& func);
+  void OverrideSpecialAbility(const std::function<CardAction* ()>& func);
 
 protected:
   // functions

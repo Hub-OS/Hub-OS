@@ -71,7 +71,6 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   currentNavi = 0;
 
   owNavi.setTexture(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
-  owNavi.setScale(2.f, 2.f);
   owNavi.setPosition(0, 0.f);
   naviAnimator = Animation("resources/navis/megaman/megaman.animation");
   naviAnimator.Reload();
@@ -133,15 +132,22 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   }
 
   setView(sf::Vector2u(480, 320));
+
+  // test
+  actor.LoadAnimations("resources/navis/megaman/overworld.animation");
+  actor.setTexture(TEXTURES.LoadTextureFromFile("resources/navis/megaman/overworld.png"));
+  actor.setPosition(200, 20);
+  playerController.ControlActor(actor);
+
+  map->AddSprite(&actor);
+
+  map->setScale(2.f, 2.f);
 }
 
 void MainMenuScene::onStart() {
   // Stop any music already playing
   AUDIO.StopStream();
   AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
-  
-  // Set the camera back to ours
-  ENGINE.SetCamera(camera);
 
 #ifdef __ANDROID__
   StartupTouchControls();
@@ -151,28 +157,38 @@ void MainMenuScene::onStart() {
 }
 
 void MainMenuScene::onUpdate(double elapsed) {
-    #ifdef __ANDROID__
-    if(gotoNextScene)
-      return; // keep the screen looking the same when we come back
-    #endif
+  if (menuWidget.IsClosed()) {
+    playerController.ListenToInputEvents(true);
+  }
+  else {
+    playerController.ListenToInputEvents(false);
+  }
 
-    if (WEBCLIENT.IsLoggedIn() && accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
-      try {
-        const WebAccounts::AccountState& account = accountCommandResponse.get();
-        Logger::Logf("You have %i folders on your account", account.folders.size());
-        WEBCLIENT.CacheTextureData(account);
-        folders = CardFolderCollection::ReadFromWebAccount(account);
-        programAdvance = PA::ReadFromWebAccount(account);
+  playerController.Update(elapsed);
+  actor.Update(elapsed);
 
-        NaviEquipSelectedFolder();
+  #ifdef __ANDROID__
+  if(gotoNextScene)
+    return; // keep the screen looking the same when we come back
+  #endif
 
-        // Replace
-        WEBCLIENT.SaveSession("profile.bin");
-      }
-      catch (const std::runtime_error& e) {
-          Logger::Logf("Could not fetch account.\nError: %s", e.what());
-      }
+  if (WEBCLIENT.IsLoggedIn() && accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
+    try {
+      const WebAccounts::AccountState& account = accountCommandResponse.get();
+      Logger::Logf("You have %i folders on your account", account.folders.size());
+      WEBCLIENT.CacheTextureData(account);
+      folders = CardFolderCollection::ReadFromWebAccount(account);
+      programAdvance = PA::ReadFromWebAccount(account);
+
+      NaviEquipSelectedFolder();
+
+      // Replace
+      WEBCLIENT.SaveSession("profile.bin");
     }
+    catch (const std::runtime_error& e) {
+      Logger::Logf("Could not fetch account.\nError: %s", e.what());
+    }
+  }
 
   // update the web connectivity icon
   bool currentConnectivity = WEBCLIENT.IsConnectedToWebServer();
@@ -205,14 +221,10 @@ void MainMenuScene::onUpdate(double elapsed) {
   // Move the navi down each tick
   owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*(float)elapsed, 0));
 
-  // TODO: fix this broken camera system! I have no idea why these values are required to look right...
-  // NOTE 11/5/2020: these could be correct and these might be isometric coordinates
-  sf::Vector2f camOffset = camera.GetView().getSize();
-  camOffset.x /= 4.0; // why
-  camOffset.y /= 4.5; // why
-
   // Follow the navi
-  camera.PlaceCamera(map->ScreenToWorld(owNavi.getPosition() - sf::Vector2f(0.5, 0.5)) + camOffset);
+  sf::Vector2f pos = map->ScreenToWorld(actor.getPosition());
+  pos = sf::Vector2f(pos.x*map->getScale().x, pos.y*map->getScale().y);
+  camera.PlaceCamera(pos);
 
   if (!gotoNextScene) {
     if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
@@ -301,6 +313,9 @@ void MainMenuScene::onExit()
 void MainMenuScene::onEnter()
 {
   RefreshNaviSprite();
+
+  // Set the camera back to ours
+  ENGINE.SetCamera(camera);
 }
 
 void MainMenuScene::onResume() {
@@ -332,7 +347,11 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
 
   ENGINE.Draw(bg);
+
+  auto offset = ENGINE.GetViewOffset();
+  map->move(offset);
   ENGINE.Draw(map);
+  map->move(-offset);
 
   if (showHUD) {
     ENGINE.Draw(menuWidget);
@@ -340,7 +359,6 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
 
   // Add the web account connection symbol
   ENGINE.Draw(&webAccountIcon);
-
 }
 
 void MainMenuScene::onEnd() {

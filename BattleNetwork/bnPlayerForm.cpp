@@ -15,7 +15,7 @@ const std::string PlayerFormMeta::GetUIPath() const
 }
 
 void PlayerFormMeta::ActivateForm(Player& player) {
-  player.ActivateFormAt(index);
+  player.ActivateFormAt(static_cast<int>(index));
 }
 
 PlayerForm* PlayerFormMeta::BuildForm() {

@@ -282,7 +282,7 @@ ChargeEffectSceneNode& Player::GetChargeComponent()
   return chargeEffect;
 }
 
-void Player::OverrideSpecialAbility(std::function<CardAction* ()>& func)
+void Player::OverrideSpecialAbility(const std::function<CardAction* ()>& func)
 {
   specialOverride = func;
 }

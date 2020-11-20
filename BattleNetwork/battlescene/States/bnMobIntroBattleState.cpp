@@ -40,6 +40,10 @@ void MobIntroBattleState::onEnd(const BattleSceneState*)
 {
   mob->DefaultState();
 
+  for (auto* player : tracked) {
+    player->ChangeState<PlayerControlledState>();
+  }
+
   // Tell everything to begin battle
   GetScene().BroadcastBattleStart();
 }

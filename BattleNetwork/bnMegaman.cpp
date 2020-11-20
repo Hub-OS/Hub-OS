@@ -133,6 +133,7 @@ CardAction* TenguCross::OnChargedBusterAction(Player& player)
 
 CardAction* TenguCross::OnSpecialAction(Player& player)
 {
+  // class TenguCross::SpecialAction is a CardAction implementation
   return new TenguCross::SpecialAction(&player);
 }
 
@@ -234,7 +235,7 @@ CardAction* HeatCross::OnChargedBusterAction(Player& player)
 
 CardAction* HeatCross::OnSpecialAction(Player& player)
 {
-  return nullptr;
+  return player.Player::OnExecuteSpecialAction();
 }
 
 frame_time_t HeatCross::CalculateChargeTime(unsigned chargeLevel)
@@ -334,7 +335,7 @@ CardAction* TomahawkCross::OnChargedBusterAction(Player& player)
 
 CardAction* TomahawkCross::OnSpecialAction(Player& player)
 {
-  return nullptr;
+  return player.Player::OnExecuteSpecialAction();
 }
 
 frame_time_t TomahawkCross::CalculateChargeTime(unsigned chargeLevel)
@@ -360,72 +361,6 @@ frame_time_t TomahawkCross::CalculateChargeTime(unsigned chargeLevel)
   }
 
   return frames(80);
-}
-
-////////////////////////////////////////////////////////////////
-//             SPECIAL ABILITY IMPLEMENTATIONS                //
-////////////////////////////////////////////////////////////////
-
-#define FRAME1 { 1, 0.05 }
-#define FRAME2 { 2, 0.05 }
-#define FRAME3 { 3, 0.3 }
-
-#define FRAMES FRAME1, FRAME2, FRAME3
-
-// class TenguCross
-TenguCross::SpecialAction::SpecialAction(Character* owner) : 
-  CardAction(*owner, "PLAYER_SWORD") {
-  overlay.setTexture(*owner->getTexture());
-  attachment = new SpriteProxyNode(overlay);
-  attachment->SetLayer(-1);
-  attachment->EnableParentShader(true);
-
-  OverrideAnimationFrames({ FRAMES });
-
-  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("HAND");
-
-  AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
-}
-
-TenguCross::SpecialAction::~SpecialAction()
-{
-}
-
-void TenguCross::SpecialAction::OnUpdate(float _elapsed)
-{
-  CardAction::OnUpdate(_elapsed);
-}
-
-void TenguCross::SpecialAction::Execute()
-{
-  auto owner = GetOwner();
-  auto team = owner->GetTeam();
-  auto field = owner->GetField();
-
-  // On throw frame, spawn projectile
-  auto onThrow = [this, owner, team, field]() -> void {
-    auto wind = new Wind(field, team);
-    field->AddEntity(*wind, 6, 1);
-
-    wind = new Wind(field, team);
-    field->AddEntity(*wind, 6, 2);
-
-    wind = new Wind(field, team);
-    field->AddEntity(*wind, 6, 3);
-  };
-
-  AddAnimAction(3, onThrow);
-}
-
-void TenguCross::SpecialAction::EndAction()
-{
-  Eject();
-}
-
-void TenguCross::SpecialAction::OnAnimationEnd()
-{
 }
 
 // class ElecCross
@@ -502,10 +437,96 @@ CardAction* ElecCross::OnChargedBusterAction(Player& player)
 
 CardAction* ElecCross::OnSpecialAction(Player& player)
 {
-  return nullptr;
+  return player.Player::OnExecuteSpecialAction();
 }
 
 frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
 {
-  return frame_time_t();
+  /**
+  * These numbers include the 10i+ startup frames
+  * 1 - 90i
+  * 2 - 80i
+  * 3 - 70i
+  * 4 - 65i
+  * 5 - 60i
+  */
+
+  switch (chargeLevel) {
+  case 1:
+    return frames(80);
+  case 2:
+    return frames(70);
+  case 3:
+    return frames(60);
+  case 4:
+    return frames(55);
+  }
+
+  return frames(50);
+}
+
+////////////////////////////////////////////////////////////////
+//             SPECIAL ABILITY IMPLEMENTATIONS                //
+////////////////////////////////////////////////////////////////
+
+#define FRAME1 { 1, 0.05 }
+#define FRAME2 { 2, 0.05 }
+#define FRAME3 { 3, 0.3 }
+
+#define FRAMES FRAME1, FRAME2, FRAME3
+
+// class TenguCross
+TenguCross::SpecialAction::SpecialAction(Character* owner) : 
+  CardAction(*owner, "PLAYER_SWORD") {
+  overlay.setTexture(*owner->getTexture());
+  attachment = new SpriteProxyNode(overlay);
+  attachment->SetLayer(-1);
+  attachment->EnableParentShader(true);
+
+  OverrideAnimationFrames({ FRAMES });
+
+  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim.Reload();
+  attachmentAnim.SetAnimation("HAND");
+
+  AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
+}
+
+TenguCross::SpecialAction::~SpecialAction()
+{
+}
+
+void TenguCross::SpecialAction::OnUpdate(float _elapsed)
+{
+  CardAction::OnUpdate(_elapsed);
+}
+
+void TenguCross::SpecialAction::Execute()
+{
+  auto owner = GetOwner();
+  auto team = owner->GetTeam();
+  auto field = owner->GetField();
+
+  // On throw frame, spawn projectile
+  auto onThrow = [this, owner, team, field]() -> void {
+    auto wind = new Wind(field, team);
+    field->AddEntity(*wind, 6, 1);
+
+    wind = new Wind(field, team);
+    field->AddEntity(*wind, 6, 2);
+
+    wind = new Wind(field, team);
+    field->AddEntity(*wind, 6, 3);
+  };
+
+  AddAnimAction(3, onThrow);
+}
+
+void TenguCross::SpecialAction::EndAction()
+{
+  Eject();
+}
+
+void TenguCross::SpecialAction::OnAnimationEnd()
+{
 }

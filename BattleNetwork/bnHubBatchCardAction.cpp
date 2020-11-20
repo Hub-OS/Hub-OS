@@ -1,5 +1,5 @@
 #include "bnHubBatchCardAction.h"
-#include "bnCardAction.h"
+#include "bnReflectCardAction.h"
 #include "bnSpriteProxyNode.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
@@ -81,8 +81,9 @@ void HubBatchProgram::OnUpdate(float elapsed)
 
   
   if (player) {
-    player->SetAttackLevel(10); // max
-    // player->SetSpecialSlot([]{ return new ReflectCardAction(10); });
+    player->SetAttackLevel(PlayerStats::MAX_ATTACK_LEVEL); // max
+    player->OverrideSpecialAbility([player]{ return new ReflectCardAction(player, 10, ReflectShield::Type::yellow); });
+    
     if (Injected()) {
       // Scene()->GetCardSelectWidget().SetMaxCardDraw(10);
     }

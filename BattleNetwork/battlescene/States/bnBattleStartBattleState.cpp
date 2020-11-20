@@ -18,8 +18,6 @@ void BattleStartBattleState::onStart(const BattleSceneState*)
   battleStartTimer.start();
 
   for (Player* player : tracked) {
-    player->ChangeState<PlayerIdleState>();
-
     auto ui = player->GetFirstComponent<SelectedCardsUI>();
 
     if (ui) {

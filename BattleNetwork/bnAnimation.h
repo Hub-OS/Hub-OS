@@ -101,7 +101,7 @@ public:
   void SyncTime(float newTime);
 
   /**
-   * @brief Sets progress to 0 and updates sprite. Same as a call to Update(0, target).
+   * @brief Same as a call to Update(0, target).
    * @param target
    */
   void Refresh(sf::Sprite& target);

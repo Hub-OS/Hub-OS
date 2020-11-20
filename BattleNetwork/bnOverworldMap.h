@@ -63,7 +63,7 @@ namespace Overworld {
  * \warning This is poorly written and far from optimized. This should be
  * redesigned and not used as a base for real overworld maps.
  */
-  class Map : public sf::Drawable
+  class Map : public sf::Drawable, public sf::Transformable
   {
   protected:
     std::vector<Tile*> map; /*!< tiles */

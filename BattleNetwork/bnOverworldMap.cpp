@@ -3,7 +3,9 @@
 #include <cmath>
 
 namespace Overworld {
-  Map::Map(int numOfCols, int numOfRows, int tileWidth, int tileHeight) : cols(numOfCols), rows(numOfRows), tileWidth(tileWidth), tileHeight(tileHeight), sf::Drawable() {
+  Map::Map(int numOfCols, int numOfRows, int tileWidth, int tileHeight) : 
+    cols(numOfCols), rows(numOfRows), tileWidth(tileWidth), tileHeight(tileHeight), 
+    sf::Drawable(), sf::Transformable() {
 
     // We must have one for the origin
     sf::Uint8 lighten = 255;
@@ -19,13 +21,13 @@ namespace Overworld {
   void Map::ToggleLighting(bool state) {
     enableLighting = state;
 
-    /*if (!enableLighting) {
+    if (!enableLighting) {
       for (int i = 0; i < lights.size(); i++) {
         delete lights[i];
       }
 
       lights.clear();
-    }*/
+    }
   }
 
   const sf::Vector2f Map::ScreenToWorld(sf::Vector2f screen) const
@@ -68,14 +70,14 @@ namespace Overworld {
 
   void Map::Update(double elapsed)
   {
-	for(auto iter = map.begin(); iter != map.end(); ) {
-		if((*iter)->ShouldRemove()) {
-			delete *iter;
-			iter = map.erase(iter);
-		} else {
-			iter++;
-		}
-	}
+	  for(auto iter = map.begin(); iter != map.end(); ) {
+		  if((*iter)->ShouldRemove()) {
+			  delete *iter;
+			  iter = map.erase(iter);
+		  } else {
+			  iter++;
+		  }
+	  }
 
     std::sort(sprites.begin(), sprites.end(), 
         [](const SpriteProxyNode* sprite, const SpriteProxyNode* other) 
@@ -85,6 +87,8 @@ namespace Overworld {
   }
 
   void Map::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+    states.transform *= this->getTransform();
+
     DrawTiles(target, states);
     DrawSprites(target, states);
   }
@@ -92,206 +96,44 @@ namespace Overworld {
   void Map::DrawTiles(sf::RenderTarget& target, sf::RenderStates states) const {
     for (int i = 0; i < map.size(); i++) {
       sf::Sprite tileSprite(map[i]->GetTexture());
-
-      if (enableLighting) {
-        tileSprite.setColor(sf::Color::Black); // no lighting
-      }
-
-      tileSprite.setScale(2.0f, 2.0f);
-      sf::Vector2f pos = map[i]->GetPos();
+      auto iso = OrthoToIsometric(map[i]->GetPos());
+      tileSprite.setPosition(iso);
 
       if (cam) {
-        sf::View view = cam->GetView();
-        sf::Vector2f offset = IsoToOrthogonal(view.getCenter() - (view.getSize() / 2.0f));
-
-        pos -= offset;
-
-        pos = OrthoToIsometric(pos*2.0f);
-
-        tileSprite.setPosition(pos);
-
-        if (!cam->IsInView(tileSprite)) {
-          continue;
-        }
-      }
-
-      pos = map[i]->GetPos();
-
-      if (cam) {
-        if (lights.size() > 0) {
-          sf::View view = cam->GetView();
-          sf::Vector2i posi = sf::Mouse::getPosition(*ENGINE.GetWindow());
-          sf::Vector2f pos = sf::Vector2f((float)posi.x, (float)posi.y);
-          lights[0]->SetPosition(IsoToOrthogonal(pos + (view.getCenter() - (view.getSize() / 8.0f))));
-        }
-
-        sf::View view = cam->GetView();
-        sf::Vector2f offset = IsoToOrthogonal(view.getCenter() - (view.getSize() / 2.0f));
-
-        pos -= offset;
-      }
-
-      for (int j = 0; j < lights.size() && enableLighting; j++) {
-        sf::View view = cam->GetView();
-        sf::Vector2f offset = IsoToOrthogonal(view.getCenter() - (view.getSize() / 2.0f));
-
-        float deltaX = pos.x - (lights[j]->GetPosition().x - offset.x);
-        float deltaY = pos.y - (lights[j]->GetPosition().y - offset.y);
-
-        float deltaR = sqrt((float)(deltaX*deltaX + deltaY * deltaY));
-        float lightR = (float)(lights[j]->GetRadius()*lights[j]->GetRadius());
-
-        if (deltaR <= lightR) {
-          double dist = (lightR - deltaR) / lightR;
-          sf::Color c = tileSprite.getColor();
-
-          double r = (dist*lights[j]->GetDiffuse().r) + c.r;
-          double g = (dist*lights[j]->GetDiffuse().g) + c.g;
-          double b = (dist*lights[j]->GetDiffuse().b) + c.b;
-
-          r = std::min(255.0, r); g = std::min(255.0, g); b = std::min(255.0, b);
-
-          sf::Color applied((sf::Uint8)r, (sf::Uint8)g, (sf::Uint8)b, 255);
-          tileSprite.setColor(applied);
-        }
-      }
-
-      pos = OrthoToIsometric(pos*2.0f);
-
-      if (cam) {
-        tileSprite.setPosition(pos);
-
-        if (cam->IsInView(tileSprite)) {
+        if (true || cam->IsInView(tileSprite)) {
           target.draw(tileSprite, states);
         }
-      }
-      else {
-        tileSprite.setPosition(pos);
-
-        target.draw(tileSprite, states);
-      }
-    }
-
-    if (cam) {
-      for (int i = 0; i < lights.size() && enableLighting; i++) {
-        sf::Sprite originTest(*TEXTURES.GetTexture(TextureType::LIGHT));
-
-        sf::Vector2f pos = lights[i]->GetPosition();
-
-        sf::View view = cam->GetView();
-        sf::Vector2f offset = IsoToOrthogonal(view.getCenter() - (view.getSize() / 2.0f));
-
-        pos -= offset;
-
-        pos = OrthoToIsometric(pos*2.0f);
-
-        originTest.setPosition(pos);
-        target.draw(originTest);
       }
     }
   }
 
   void Map::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
     for (int i = 0; i < sprites.size(); i++) {
+      auto iso = OrthoToIsometric(sprites[i]->getPosition());
       sf::Sprite tileSprite(*sprites[i]->getTexture());
       tileSprite.setTextureRect(sprites[i]->getSprite().getTextureRect());
-      tileSprite.setPosition(sprites[i]->getPosition());
+      tileSprite.setPosition(iso);
       tileSprite.setOrigin(sprites[i]->getOrigin());
 
-      if (enableLighting) {
-        tileSprite.setColor(sf::Color::Black); // no lighting
-      }
-
-      tileSprite.setScale(2.0f, 2.0f);
-      sf::Vector2f pos = sprites[i]->getPosition();
-
       if (cam) {
-        sf::View view = cam->GetView();
-        sf::Vector2f offset = IsoToOrthogonal(view.getCenter() - (view.getSize() / 2.0f));
-
-        pos -= offset;
-
-        pos = OrthoToIsometric(pos*2.0f);
-
-        tileSprite.setPosition(pos);
-
-        if (!cam->IsInView(tileSprite)) {
-          continue;
-        }
-      }
-
-      pos = sprites[i]->getPosition();
-
-      if (cam) {
-        sf::View view = cam->GetView();
-        sf::Vector2f offset = IsoToOrthogonal(view.getCenter() - (view.getSize() / 2.0f));
-
-        pos -= offset;
-      }
-
-      for (int j = 0; j < lights.size() && enableLighting; j++) {
-        sf::View view = cam->GetView();
-        sf::Vector2f offset = IsoToOrthogonal(view.getCenter() - (view.getSize() / 2.0f));
-
-        float deltaX = pos.x - (lights[j]->GetPosition().x - offset.x);
-        float deltaY = pos.y - (lights[j]->GetPosition().y - offset.y);
-
-        float deltaR = sqrt((float)(deltaX*deltaX + deltaY * deltaY));
-        float lightR = (float)(lights[j]->GetRadius()*lights[j]->GetRadius());
-
-        if (deltaR <= lightR) {
-          double dist = (lightR - deltaR) / lightR;
-          sf::Color c = tileSprite.getColor();
-
-          double r = (dist*lights[j]->GetDiffuse().r) + c.r;
-          double g = (dist*lights[j]->GetDiffuse().g) + c.g;
-          double b = (dist*lights[j]->GetDiffuse().b) + c.b;
-
-          r = std::min(255.0, r); g = std::min(255.0, g); b = std::min(255.0, b);
-
-          sf::Color applied((sf::Uint8)r, (sf::Uint8)g, (sf::Uint8)b, 255);
-          tileSprite.setColor(applied);
-        }
-      }
-
-      pos = OrthoToIsometric(pos*2.0f);
-
-      if (cam) {
-        tileSprite.setPosition(pos);
-
-        if (cam->IsInView(tileSprite)) {
+        if (true || cam->IsInView(tileSprite)) {
           target.draw(tileSprite, states);
         }
-      }
-      else {
-        tileSprite.setPosition(pos);
-
-        target.draw(tileSprite, states);
       }
     }
   }
   const sf::Vector2f Map::OrthoToIsometric(sf::Vector2f ortho) const {
-    sf::Vector2f iso;
-    float tileWidthHalf = (float)(tileWidth / 2);
-    float tileHeightHalf = (float)(tileHeight / 2);
-
-    iso.x = ((ortho.x / (float)tileWidth) - (ortho.y / (float)tileHeight)) * tileWidthHalf;
-    iso.y = ((ortho.x / (float)tileWidth) + (ortho.y / (float)tileHeight)) * tileHeightHalf;
+    sf::Vector2f iso{};
+    iso.x = (ortho.x - ortho.y);
+    iso.y = (ortho.x + ortho.y) * 0.5f;
 
     return iso;
   }
 
   const sf::Vector2f Map::IsoToOrthogonal(sf::Vector2f iso) const {
-    sf::Vector2f ortho;
-
-    float tileWidthHalf = (float)(tileWidth / 2);
-    float tileHeightHalf = (float)(tileHeight / 2);
-
-    ortho.x = (iso.x / tileWidthHalf + iso.y / tileHeightHalf) / 2;
-    ortho.y = (iso.y / tileHeightHalf - (iso.x / tileWidthHalf)) / 2;
-
-    ortho.x *= tileWidth;
-    ortho.y *= tileHeight;
+    sf::Vector2f ortho{};
+    ortho.x = (2.0f * iso.y + iso.x) * 0.5f;
+    ortho.y = (2.0f * iso.y - iso.x) * 0.5f;
 
     return ortho;
   }

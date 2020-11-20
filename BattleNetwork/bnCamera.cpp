@@ -87,11 +87,13 @@ void Camera::OffsetCamera(sf::Vector2f offset)
 bool Camera::IsInView(sf::Sprite& sprite) {
   float camW = focus.getSize().x;
   float camH = focus.getSize().y;
+  float offset_x = focus.getCenter().x - (camW * 0.5f);
+  float offset_y = focus.getCenter().y - (camH * 0.5f);
 
   float spriteW = sprite.getLocalBounds().width  * sprite.getScale().x;
   float spriteH = sprite.getLocalBounds().height * sprite.getScale().y;
-  float spriteX = sprite.getPosition().x;
-  float spriteY = sprite.getPosition().y;
+  float spriteX = sprite.getPosition().x - offset_x;
+  float spriteY = sprite.getPosition().y - offset_y;
 
   return (spriteX+spriteW >= 0 && spriteX-spriteW <= camW && spriteY+spriteH >= 0 && spriteY-spriteH <= camH);
 }

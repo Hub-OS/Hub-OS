@@ -89,7 +89,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
     }
   }
 
-
   // Card UI for player
   cardUI = player->CreateComponent<SelectedCardsUI>(player);
   cardListener.Subscribe(*cardUI);
@@ -562,7 +561,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
       uis.insert(uis.begin(), uic.begin(), uic.end());
     }
 
-    auto nodes = tile->GetChildNodes();
+    auto nodes = std::vector<SceneNode*>();
     nodes.insert(nodes.end(), allEntities.begin(), allEntities.end());
     std::sort(nodes.begin(), nodes.end(), [](SceneNode* A, SceneNode* B) { return A->GetLayer() > B->GetLayer(); });
 
@@ -575,9 +574,11 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
   // draw ui on top
   for (UIComponent* ui : uis) {
-    ui->move(viewOffset);
-    ENGINE.Draw(ui);
-    ui->move(-viewOffset);
+    if (ui->DrawOnUIPass()) {
+      ui->move(viewOffset);
+      ENGINE.Draw(ui);
+      ui->move(-viewOffset);
+    }
   }
 
   // Draw whatever extra state stuff we want to have

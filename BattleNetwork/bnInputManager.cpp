@@ -288,7 +288,7 @@ void InputManager::Update() {
     }
 
     if (axisXPower - lastAxisXPower != 0.f) {
-      if (axisXPower - lastAxisXPower >= -GAMEPAD_1_AXIS_SENSITIVITY) {
+      if (axisXPower > -GAMEPAD_1_AXIS_SENSITIVITY && lastAxisXPower <= -GAMEPAD_1_AXIS_SENSITIVITY) {
         auto action = settings.GetPairedActions(Gamepad::LEFT);
 
         for (auto a : action) {
@@ -296,7 +296,7 @@ void InputManager::Update() {
         }
       }
 
-      if (axisXPower - lastAxisXPower <= GAMEPAD_1_AXIS_SENSITIVITY) {
+      if (axisXPower < GAMEPAD_1_AXIS_SENSITIVITY && lastAxisXPower >= GAMEPAD_1_AXIS_SENSITIVITY) {
         auto action = settings.GetPairedActions(Gamepad::RIGHT);
 
         for (auto a : action) {
@@ -306,7 +306,7 @@ void InputManager::Update() {
     }
 
     if (axisYPower - lastAxisYPower != 0.f) {
-      if (axisYPower - lastAxisYPower >= -GAMEPAD_1_AXIS_SENSITIVITY) {
+      if (axisYPower > -GAMEPAD_1_AXIS_SENSITIVITY && lastAxisYPower <= -GAMEPAD_1_AXIS_SENSITIVITY) {
         auto action = settings.GetPairedActions(Gamepad::DOWN);
 
         for (auto a : action) {
@@ -314,7 +314,7 @@ void InputManager::Update() {
         }
       }
 
-      if (axisYPower - lastAxisYPower <= GAMEPAD_1_AXIS_SENSITIVITY) {
+      if (axisYPower < GAMEPAD_1_AXIS_SENSITIVITY && lastAxisYPower >= GAMEPAD_1_AXIS_SENSITIVITY) {
         auto action = settings.GetPairedActions(Gamepad::UP);
 
         for (auto a : action) {

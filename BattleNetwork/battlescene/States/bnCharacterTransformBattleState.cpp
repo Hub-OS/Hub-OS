@@ -62,6 +62,9 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       lastSelectedForm = playerPtr->GetHealth() == 0 ? -1 : index_;
       playerPtr->ActivateFormAt(lastSelectedForm);
 
+      // Reset the player state
+      playerPtr->ChangeState<PlayerControlledState>();
+
       if (lastSelectedForm == -1) {
         AUDIO.Play(AudioType::DEFORM);
       }
