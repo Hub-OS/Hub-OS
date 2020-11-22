@@ -48,11 +48,9 @@ namespace Overworld {
         tileSprite.setPosition(pos);
 
         if (!cam->IsInView(tileSprite)) {
-          if (pos.x < 0) {
-            if (&(*head) != &(*map[i])) {
-              map[i]->Cleanup();
-              continue;
-            }
+          if (&(*head) != &(*map[i])) {
+            //map[i]->Cleanup();
+            continue;
           }
         }
       }
