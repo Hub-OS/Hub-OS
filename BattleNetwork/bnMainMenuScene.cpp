@@ -53,13 +53,6 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   // Draws the scrolling background
   bg = new LanBackground();
 
-  // Generate an infinite map with a branch depth of 3, column size of 10
-  // and tile dimensions 47x24
-  map = new Overworld::InfiniteMap(3, 10, 47, 24);
-  
-  // Share the camera
-  map->SetCamera(&camera);
-
   // Show the HUD
   showHUD = true;
 
@@ -69,20 +62,6 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
 
   // Keep track of selected navi
   currentNavi = 0;
-
-  owNavi.setTexture(LOAD_TEXTURE(NAVI_MEGAMAN_ATLAS));
-  owNavi.setPosition(0, 0.f);
-  naviAnimator = Animation("resources/navis/megaman/megaman.animation");
-  naviAnimator.Reload();
-  naviAnimator.SetAnimation("PLAYER_OW_RD");
-  naviAnimator << Animator::Mode::Loop;
-
-  // Share the navi sprite
-  // Map will transform navi's ortho position into isometric position
-  map->AddSprite(&owNavi);
-
-  ow.setTexture(LOAD_TEXTURE(MAIN_MENU_OW));
-  ow.setScale(2.f, 2.f);
 
   menuWidget.setScale(2.f, 2.f);
 
@@ -133,15 +112,90 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
 
   setView(sf::Vector2u(480, 320));
 
-  // test
+  // Spawn overworld player
   actor.LoadAnimations("resources/navis/megaman/overworld.animation");
   actor.setTexture(TEXTURES.LoadTextureFromFile("resources/navis/megaman/overworld.png"));
   actor.setPosition(200, 20);
   playerController.ControlActor(actor);
 
-  map->AddSprite(&actor);
+  // Load a map
+  if (!Overworld::Map::LoadFromFile(map, "resources/ow/homepage.txt")) {
+    Logger::Log("Failed to load map homepage.txt");
+  }
+  else {
+    // Place some objects in the scene
+    auto places = map.FindToken("S");;
+    if (places.size()) {
+      actor.setPosition(places[0]);
+    }
 
-  map->setScale(2.f, 2.f);
+    auto trees = map.FindToken("T");
+    auto warps = map.FindToken("W");
+    auto coff  = map.FindToken("C");
+    auto gates = map.FindToken("G");
+
+    auto treeTexture = TEXTURES.LoadTextureFromFile("resources/ow/tree.png");
+    treeAnim = Animation("resources/ow/tree.animation") << "default" << Animator::Mode::Loop;
+    
+    auto warpTexture = TEXTURES.LoadTextureFromFile("resources/ow/warp.png");
+    warpAnim = Animation("resources/ow/warp.animation") << "default" << Animator::Mode::Loop;
+
+    auto gateTexture = TEXTURES.LoadTextureFromFile("resources/ow/gate.png");
+    gateAnim = Animation("resources/ow/gate.animation") << "default" << Animator::Mode::Loop;
+
+    auto coffeeTexture = TEXTURES.LoadTextureFromFile("resources/ow/coffee.png");
+    coffeeAnim = Animation("resources/ow/coffee.animation") << "default" << Animator::Mode::Loop;
+
+    for (auto pos : trees) {
+      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
+      new_tree->setPosition(pos);
+      this->trees.push_back(new_tree);
+      map.AddSprite(&*new_tree, 0);
+
+      // do not walk through trees
+      auto tile = map.GetTileAt(pos);
+      tile.solid = true;
+      map.SetTileAt(pos, tile);
+    }
+
+    for (auto pos : coff) {
+      auto new_coffee = std::make_shared<SpriteProxyNode>(*coffeeTexture);
+      new_coffee->setPosition(pos);
+      this->coffees.push_back(new_coffee);
+      map.AddSprite(&*new_coffee, 0);
+
+      // do not walk through coffee displays
+      auto tile = map.GetTileAt(pos);
+      tile.solid = true;
+      map.SetTileAt(pos, tile);
+    }
+
+    for (auto pos : gates) {
+      auto new_gate = std::make_shared<SpriteProxyNode>(*gateTexture);
+      new_gate->setPosition(pos);
+      this->gates.push_back(new_gate);
+      map.AddSprite(&*new_gate, 0);
+
+      // do not walk through gates
+      auto tile = map.GetTileAt(pos);
+      tile.solid = true;
+      tile.ID = 3; // make red
+      map.SetTileAt(pos, tile);
+    }
+
+    for (auto pos : warps) {
+      auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
+      new_warp->setPosition(pos);
+      this->warps.push_back(new_warp);
+      map.AddSprite(&*new_warp, -1);
+    }
+  }
+
+  // Share the camera
+  map.SetCamera(&camera);
+  map.AddSprite(&actor, 0);
+  map.setScale(2.f, 2.f);
+  menuWidget.SetArea(map.GetName());
 }
 
 void MainMenuScene::onStart() {
@@ -165,7 +219,65 @@ void MainMenuScene::onUpdate(double elapsed) {
   }
 
   playerController.Update(elapsed);
+
+  /**
+  * After updating the actor, we are moved to a new location
+  * We do a post-check to see if we collided with anything marked solid
+  * If so, we adjust the displacement or halt the actor
+  **/
+  auto lastPos = actor.getPosition();
   actor.Update(elapsed);
+  auto newPos = actor.getPosition();
+
+  if (map.GetTileAt(newPos).solid) {
+    auto diff = newPos - lastPos;
+    auto& [first, second] = Split(actor.GetHeading());
+
+    actor.setPosition(lastPos);
+
+    if (second != Direction::none) {
+      actor.setPosition(lastPos);
+
+      auto diffx = diff;
+      diffx.y = 0;
+
+      auto diffy = diff;
+      diff.x = 0;
+
+      if (map.GetTileAt(lastPos + diffx).solid == false) {
+        actor.setPosition(lastPos + diffx);
+      }
+      
+      if (map.GetTileAt(lastPos + diffy).solid == false) {
+        actor.setPosition(lastPos + diffy);
+      }
+    }
+  }
+
+  /**
+  * update all overworld animations
+  */
+  animElapsed += elapsed;
+
+  treeAnim.SyncTime(animElapsed);
+  for (auto& t : trees) {
+    treeAnim.Refresh(t->getSprite());
+  };
+
+  coffeeAnim.SyncTime(animElapsed);
+  for (auto& c : coffees) {
+    coffeeAnim.Refresh(c->getSprite());
+  }
+
+  gateAnim.SyncTime(animElapsed);
+  for (auto& g : gates) {
+    gateAnim.Refresh(g->getSprite());
+  }
+
+  warpAnim.SyncTime(animElapsed);
+  for (auto& w : warps) {
+    warpAnim.Refresh(w->getSprite());
+  }
 
   #ifdef __ANDROID__
   if(gotoNextScene)
@@ -204,7 +316,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   }
 
   // Update the map
-  map->Update((float)elapsed);
+  map.Update((float)elapsed);
 
   // Update the camera
   camera.Update((float)elapsed);
@@ -215,15 +327,9 @@ void MainMenuScene::onUpdate(double elapsed) {
   // Update the widget
   menuWidget.Update((float)elapsed);
 
-  // Draw navi moving
-  naviAnimator.Update((float)elapsed, owNavi.getSprite());
-
-  // Move the navi down each tick
-  owNavi.setPosition(owNavi.getPosition() + sf::Vector2f(50.0f*(float)elapsed, 0));
-
   // Follow the navi
-  sf::Vector2f pos = map->ScreenToWorld(actor.getPosition());
-  pos = sf::Vector2f(pos.x*map->getScale().x, pos.y*map->getScale().y);
+  sf::Vector2f pos = map.ScreenToWorld(actor.getPosition());
+  pos = sf::Vector2f(pos.x*map.getScale().x, pos.y*map.getScale().y);
   camera.PlaceCamera(pos);
 
   if (!gotoNextScene) {
@@ -349,9 +455,9 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(bg);
 
   auto offset = ENGINE.GetViewOffset();
-  map->move(offset);
+  map.move(offset);
   ENGINE.Draw(map);
-  map->move(-offset);
+  map.move(-offset);
 
   if (showHUD) {
     ENGINE.Draw(menuWidget);
@@ -383,11 +489,12 @@ void MainMenuScene::RefreshNaviSprite()
   auto owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
-    owNavi.setTexture(meta.GetOverworldTexture());
+    // TODO: replace with actor
+    /*owNavi.setTexture(meta.GetOverworldTexture());
     naviAnimator = Animation(meta.GetOverworldAnimationPath());
     naviAnimator.Reload();
     naviAnimator.SetAnimation("PLAYER_OW_RD");
-    naviAnimator << Animator::Mode::Loop;
+    naviAnimator << Animator::Mode::Loop;*/
   }
   else {
     Logger::Logf("Overworld animation not found for navi at index %i", currentNavi);

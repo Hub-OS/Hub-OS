@@ -263,17 +263,10 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/backgrounds/title/prog-pulse.png");
   paths.push_back("resources/backgrounds/game_over/game_over.png");
   paths.push_back("resources/backgrounds/select/battle_select.png");
-  paths.push_back("resources/backgrounds/main_menu/ow.png");
-  paths.push_back("resources/backgrounds/main_menu/ow2.png");
-  paths.push_back("resources/backgrounds/main_menu/arrow.png");
   paths.push_back("resources/backgrounds/folder/bg.png");
   paths.push_back("resources/backgrounds/folder/folder_info.png");
   paths.push_back("resources/backgrounds/folder/folder_name.png");
   paths.push_back("resources/backgrounds/select/bg.png");
-
-  // Overworld
-  paths.push_back("resources/backgrounds/main_menu/mr_prog_ow.png");
-  paths.push_back("resources/backgrounds/main_menu/numberman_ow.png");
 
   // other ui / icons
   paths.push_back("resources/ui/aura_numset.png");

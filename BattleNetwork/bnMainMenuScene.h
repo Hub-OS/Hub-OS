@@ -4,7 +4,6 @@
 #include "bnFolderScene.h"
 #include "bnMenuWidget.h"
 #include "bnOverworldMap.h"
-#include "bnInfiniteMap.h"
 #include "bnSelectNaviScene.h"
 #include "bnSelectMobScene.h"
 #include "bnLibraryScene.h"
@@ -49,14 +48,20 @@ private:
   Animation webAccountAnimator; /*!< Use animator to represent different statuses */
   bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
 
-  SpriteProxyNode ow;
-
   Background* bg; /*!< Background image pointer */
-  Overworld::Map* map; /*!< Overworld map pointer */ 
+  Overworld::Map map; /*!< Overworld map */ 
+  std::vector<std::shared_ptr<SpriteProxyNode>> trees;
+  Animation treeAnim;
+  std::vector<std::shared_ptr<SpriteProxyNode>> warps;
+  Animation warpAnim;
+  std::vector<std::shared_ptr<SpriteProxyNode>> coffees;
+  Animation coffeeAnim;
+  std::vector<std::shared_ptr<SpriteProxyNode>> gates;
+  Animation gateAnim;
+
+  double animElapsed{};
 
   SelectedNavi currentNavi; /*!< Current navi selection index */
-  SpriteProxyNode owNavi; /*!< Overworld navi sprite */
-  Animation naviAnimator; /*!< Animators navi sprite */
  
   bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
   bool guestAccount;
