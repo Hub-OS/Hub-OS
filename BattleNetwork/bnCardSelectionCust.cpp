@@ -8,15 +8,15 @@
 #define WILDCARD '*'
 
 CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) :
-    perTurn(perTurn),
-    greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
-    cardDescriptionTextbox(sf::Vector2f(4, 255)),
-    isInView(false),
-    isInFormSelect(false),
-    playFormSound(false),
-    canInteract(true),
-    isDarkCardSelected(false),
-    darkCardShadowAlpha(0)
+  perTurn(perTurn),
+  greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
+  cardDescriptionTextbox({ 4, 255 }),
+  isInView(false),
+  isInFormSelect(false),
+  playFormSound(false),
+  canInteract(true),
+  isDarkCardSelected(false),
+  darkCardShadowAlpha(0)
 {
     frameElapsed = 1;
     folder = _folder;

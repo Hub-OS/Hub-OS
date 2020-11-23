@@ -125,6 +125,12 @@ namespace Overworld {
     const Direction GetHeading() const;
 
     /**
+    * @brief Return the position + heading by 2px
+    * @return vector in front of the actor's heading
+    */
+    sf::Vector2f PositionInFrontOf() const;
+
+    /**
     * @brief Update the actor location and frame
     * @param elapsed Time elapsed in seconds
     * 
@@ -133,5 +139,13 @@ namespace Overworld {
     * based on walk or run speeds.
     */
     void Update(double elapsed);
+
+    /**
+    * @brief Convert direction flags into 2D mathematical vector objects with a length
+    * @param dir The direction to convert
+    * @param length the unit value to set the vector according to the direction
+    * @return vector to be used in geometrical calculations
+    */
+    static sf::Vector2f MakeVectorFromDirection(Direction dir, float length);
   };
 }

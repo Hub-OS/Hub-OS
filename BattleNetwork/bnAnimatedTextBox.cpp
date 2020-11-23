@@ -11,7 +11,7 @@ AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos)
     setPosition(pos);
     setScale(2.0f, 2.0f);
 
-    textSpeed = 1.0;
+    textSpeed = 2.0;
 
     // Load the textbox animation
     animator = Animation("resources/ui/textbox.animation");
@@ -66,7 +66,7 @@ void AnimatedTextBox::Open(const std::function<void()>& onOpen) {
 
 const bool AnimatedTextBox::IsPlaying() const { return !isPaused; }
 const bool AnimatedTextBox::IsOpen() const { return isReady; }
-const bool AnimatedTextBox::IsClosed() const { return !isReady; }
+const bool AnimatedTextBox::IsClosed() const { return !isReady && !isOpening && !isClosing; }
 
 const bool AnimatedTextBox::HasMessage() {
   return (messages.size() > 0);

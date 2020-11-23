@@ -37,6 +37,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   lastIsConnectedState(false),
   showHUD(true),
   menuWidget("Overworld", MakeOptions(this)),
+  textbox({ 4, 255 }),
   swoosh::Activity(&controller)
 {
   // When we reach the menu scene we need to load the player information
@@ -118,84 +119,26 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   actor.setPosition(200, 20);
   playerController.ControlActor(actor);
 
-  // Load a map
-  if (!Overworld::Map::LoadFromFile(map, "resources/ow/homepage.txt")) {
-    Logger::Log("Failed to load map homepage.txt");
-  }
-  else {
-    // Place some objects in the scene
-    auto places = map.FindToken("S");;
-    if (places.size()) {
-      actor.setPosition(places[0]);
-    }
-
-    auto trees = map.FindToken("T");
-    auto warps = map.FindToken("W");
-    auto coff  = map.FindToken("C");
-    auto gates = map.FindToken("G");
-
-    auto treeTexture = TEXTURES.LoadTextureFromFile("resources/ow/tree.png");
-    treeAnim = Animation("resources/ow/tree.animation") << "default" << Animator::Mode::Loop;
-    
-    auto warpTexture = TEXTURES.LoadTextureFromFile("resources/ow/warp.png");
-    warpAnim = Animation("resources/ow/warp.animation") << "default" << Animator::Mode::Loop;
-
-    auto gateTexture = TEXTURES.LoadTextureFromFile("resources/ow/gate.png");
-    gateAnim = Animation("resources/ow/gate.animation") << "default" << Animator::Mode::Loop;
-
-    auto coffeeTexture = TEXTURES.LoadTextureFromFile("resources/ow/coffee.png");
-    coffeeAnim = Animation("resources/ow/coffee.animation") << "default" << Animator::Mode::Loop;
-
-    for (auto pos : trees) {
-      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
-      new_tree->setPosition(pos);
-      this->trees.push_back(new_tree);
-      map.AddSprite(&*new_tree, 0);
-
-      // do not walk through trees
-      auto tile = map.GetTileAt(pos);
-      tile.solid = true;
-      map.SetTileAt(pos, tile);
-    }
-
-    for (auto pos : coff) {
-      auto new_coffee = std::make_shared<SpriteProxyNode>(*coffeeTexture);
-      new_coffee->setPosition(pos);
-      this->coffees.push_back(new_coffee);
-      map.AddSprite(&*new_coffee, 0);
-
-      // do not walk through coffee displays
-      auto tile = map.GetTileAt(pos);
-      tile.solid = true;
-      map.SetTileAt(pos, tile);
-    }
-
-    for (auto pos : gates) {
-      auto new_gate = std::make_shared<SpriteProxyNode>(*gateTexture);
-      new_gate->setPosition(pos);
-      this->gates.push_back(new_gate);
-      map.AddSprite(&*new_gate, 0);
-
-      // do not walk through gates
-      auto tile = map.GetTileAt(pos);
-      tile.solid = true;
-      tile.ID = 3; // make red
-      map.SetTileAt(pos, tile);
-    }
-
-    for (auto pos : warps) {
-      auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
-      new_warp->setPosition(pos);
-      this->warps.push_back(new_warp);
-      map.AddSprite(&*new_warp, -1);
-    }
-  }
-
   // Share the camera
   map.SetCamera(&camera);
   map.AddSprite(&actor, 0);
   map.setScale(2.f, 2.f);
-  menuWidget.SetArea(map.GetName());
+
+  // Load overworld assets
+  this->treeTexture = TEXTURES.LoadTextureFromFile("resources/ow/tree.png");
+  treeAnim = Animation("resources/ow/tree.animation") << "default" << Animator::Mode::Loop;
+
+  this->warpTexture = TEXTURES.LoadTextureFromFile("resources/ow/warp.png");
+  warpAnim = Animation("resources/ow/warp.animation") << "default" << Animator::Mode::Loop;
+
+  this->gateTexture = TEXTURES.LoadTextureFromFile("resources/ow/gate.png");
+  gateAnim = Animation("resources/ow/gate.animation") << "default" << Animator::Mode::Loop;
+
+  this->coffeeTexture = TEXTURES.LoadTextureFromFile("resources/ow/coffee.png");
+  coffeeAnim = Animation("resources/ow/coffee.animation") << "default" << Animator::Mode::Loop;
+
+  // Effectively loads the map
+  ResetMap();
 }
 
 void MainMenuScene::onStart() {
@@ -211,8 +154,12 @@ void MainMenuScene::onStart() {
 }
 
 void MainMenuScene::onUpdate(double elapsed) {
-  if (menuWidget.IsClosed()) {
+  if (menuWidget.IsClosed() && textbox.IsClosed()) {
     playerController.ListenToInputEvents(true);
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
+      this->ResetMap();
+    }
   }
   else {
     playerController.ListenToInputEvents(false);
@@ -251,6 +198,37 @@ void MainMenuScene::onUpdate(double elapsed) {
       if (map.GetTileAt(lastPos + diffy).solid == false) {
         actor.setPosition(lastPos + diffy);
       }
+    }
+  }
+
+  // check to see if talk button was pressed
+  if (textbox.IsClosed()) {
+    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+      // check to see what tile we pressed talk to
+      const Overworld::Map::Tile tile = map.GetTileAt(actor.PositionInFrontOf());
+      if (tile.token == "C") {
+        textbox.EnqueMessage({}, "", new Message("A cafe sign.\nYou feel welcomed."));
+        textbox.Open();
+      }
+      else if (tile.token == "G") {
+        textbox.EnqueMessage({}, "", new Message("Do you know da way?"));
+        textbox.Open();
+      }
+    }
+  }
+  else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+    // continue the conversation if the text is complete
+    if (textbox.IsEndOfMessage()) {
+      textbox.DequeMessage();
+
+      if (!textbox.HasMessage()) {
+        // if there are no more messages, close
+        textbox.Close();
+      }
+    }
+    else {
+      // double tapping talk will complete the block
+      textbox.CompleteCurrentBlock();
     }
   }
 
@@ -327,12 +305,15 @@ void MainMenuScene::onUpdate(double elapsed) {
   // Update the widget
   menuWidget.Update((float)elapsed);
 
+  // Update the textbox
+  textbox.Update(elapsed);
+
   // Follow the navi
   sf::Vector2f pos = map.ScreenToWorld(actor.getPosition());
   pos = sf::Vector2f(pos.x*map.getScale().x, pos.y*map.getScale().y);
   camera.PlaceCamera(pos);
 
-  if (!gotoNextScene) {
+  if (!gotoNextScene && textbox.IsClosed()) {
     if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
       if (menuWidget.IsClosed()) {
         menuWidget.Open();
@@ -465,6 +446,8 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
 
   // Add the web account connection symbol
   ENGINE.Draw(&webAccountIcon);
+
+  ENGINE.Draw(textbox);
 }
 
 void MainMenuScene::onEnd() {
@@ -519,6 +502,103 @@ void MainMenuScene::NaviEquipSelectedFolder()
   else {
     currentNavi = SelectedNavi(0);
     WEBCLIENT.SetKey("SelectedNavi", std::to_string(0));
+  }
+}
+
+void MainMenuScene::ResetMap()
+{
+  // Load a map
+  unsigned lastMapRows = map.GetRows();
+  unsigned lastMapCols = map.GetCols();
+
+  auto result = Overworld::Map::LoadFromFile(map, "resources/ow/homepage.txt");
+
+  if (!result.first) {
+    Logger::Log("Failed to load map homepage.txt");
+  }
+  else {
+    // clear the last tile pointers
+    for (unsigned i = 0; i < lastMapRows; i++) {
+      delete[] tiles[i];
+    }
+
+    if (lastMapRows > 0 && lastMapCols > 0) {
+      delete[] tiles;
+    }
+    
+    // clean up sprites too
+    std::vector<std::shared_ptr<SpriteProxyNode>> nodes;
+    nodes.insert(nodes.end(), trees.begin(), trees.end());
+    nodes.insert(nodes.end(), warps.begin(), warps.end());
+    nodes.insert(nodes.end(), gates.begin(), gates.end());
+    nodes.insert(nodes.end(), coffees.begin(), coffees.end());
+
+    for (auto& node : nodes) {
+      map.RemoveSprite(&*node);
+    }
+
+    trees.clear();
+    warps.clear();
+    gates.clear();
+    coffees.clear();
+
+    // Place some objects in the scene
+    auto places = map.FindToken("S");;
+    if (places.size()) {
+      actor.setPosition(places[0]);
+    }
+
+    auto trees = map.FindToken("T");
+    auto warps = map.FindToken("W");
+    auto coff = map.FindToken("C");
+    auto gates = map.FindToken("G");
+
+    for (auto pos : trees) {
+      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
+      new_tree->setPosition(pos);
+      this->trees.push_back(new_tree);
+      map.AddSprite(&*new_tree, 0);
+
+      // do not walk through trees
+      auto tile = map.GetTileAt(pos);
+      tile.solid = true;
+      map.SetTileAt(pos, tile);
+    }
+
+    for (auto pos : coff) {
+      auto new_coffee = std::make_shared<SpriteProxyNode>(*coffeeTexture);
+      new_coffee->setPosition(pos);
+      this->coffees.push_back(new_coffee);
+      map.AddSprite(&*new_coffee, 0);
+
+      // do not walk through coffee displays
+      auto tile = map.GetTileAt(pos);
+      tile.solid = true;
+      map.SetTileAt(pos, tile);
+    }
+
+    for (auto pos : gates) {
+      auto new_gate = std::make_shared<SpriteProxyNode>(*gateTexture);
+      new_gate->setPosition(pos);
+      this->gates.push_back(new_gate);
+      map.AddSprite(&*new_gate, 0);
+
+      // do not walk through gates
+      auto tile = map.GetTileAt(pos);
+      tile.solid = true;
+      tile.ID = 3; // make red
+      map.SetTileAt(pos, tile);
+    }
+
+    for (auto pos : warps) {
+      auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
+      new_warp->setPosition(pos);
+      this->warps.push_back(new_warp);
+      map.AddSprite(&*new_warp, -1);
+    }
+
+    menuWidget.SetArea(map.GetName());
+    this->tiles = result.second;
   }
 }
 

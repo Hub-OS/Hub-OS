@@ -94,6 +94,11 @@ const Direction Overworld::Actor::GetHeading() const
   return this->heading;
 }
 
+sf::Vector2f Overworld::Actor::PositionInFrontOf() const
+{
+    return getPosition() + MakeVectorFromDirection(GetHeading(), 2.0f);
+}
+
 void Overworld::Actor::Update(double elapsed)
 {
   std::string stateStr = CurrentAnimStr();
@@ -122,29 +127,34 @@ void Overworld::Actor::Update(double elapsed)
     px_per_s = GetWalkSpeed()*elapsed;
   }
 
+  move(MakeVectorFromDirection(GetHeading(), static_cast<float>(px_per_s)));
+}
+
+sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float length)
+{
   sf::Vector2f offset{};
 
-  auto& [a, b] = Split(GetHeading());
+  auto& [a, b] = Split(dir);
 
-  auto updateOffsetThunk = [](const Direction& dir, sf::Vector2f* vec, double value) {
+  auto updateOffsetThunk = [](const Direction& dir, sf::Vector2f* vec, float value) {
     if (dir == Direction::left) {
-      vec->x -= static_cast<float>(value);
+      vec->x -= value;
     }
     else if (dir == Direction::right) {
-      vec->x += static_cast<float>(value);
+      vec->x += value;
     }
     else if (dir == Direction::up) {
-      vec->y -= static_cast<float>(value);
+      vec->y -= value;
     }
     else if (dir == Direction::down) {
-      vec->y += static_cast<float>(value);
+      vec->y += value;
     }
   };
 
-  updateOffsetThunk(a, &offset, px_per_s);
-  updateOffsetThunk(b, &offset, px_per_s);
+  updateOffsetThunk(a, &offset, length);
+  updateOffsetThunk(b, &offset, length);
 
-  move(offset);
+  return offset;
 }
 
 std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)

@@ -175,13 +175,13 @@ namespace Overworld {
 
   const sf::Vector2i Map::GetTileSize() const { return sf::Vector2i(tileWidth, tileHeight); }
 
-  const bool Map::LoadFromFile(Map& map, const std::string& path)
+  const std::pair<bool, Map::Tile**> Map::LoadFromFile(Map& map, const std::string& path)
   {
     std::ifstream file(path.c_str());
 
     if (!file.is_open()) {
       file.close();
-      return false;
+      return { false, nullptr };
     }
 
     std::string line;
@@ -263,7 +263,7 @@ namespace Overworld {
     map.Load(tileset, tiles, cols, rows);
     map.SetName(name);
 
-    return true;
+    return { true, tiles };
   }
   const std::string& Map::GetName() const
   {
@@ -273,5 +273,13 @@ namespace Overworld {
   void Map::SetName(const std::string& name)
   {
     this->name = name;
+  }
+  const unsigned Map::GetCols() const
+  {
+    return this->cols;
+  }
+  const unsigned Map::GetRows() const
+  {
+    return this->rows;
   }
 }

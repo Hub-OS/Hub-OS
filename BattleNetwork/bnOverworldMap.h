@@ -169,9 +169,12 @@ namespace Overworld {
 
     const std::vector<sf::Vector2f> FindToken(const std::string& token);
 
-    static const bool LoadFromFile(Map& map, const std::string& path);
+    static const std::pair<bool, Map::Tile**> LoadFromFile(Map& map, const std::string& path);
 
     const std::string& GetName() const;
     void SetName(const std::string& name);
+
+    const unsigned GetCols() const;
+    const unsigned GetRows() const;
   };
 }

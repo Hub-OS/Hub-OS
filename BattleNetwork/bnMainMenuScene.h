@@ -19,6 +19,7 @@
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 #include "bnCardFolderCollection.h"
+#include "bnAnimatedTextBox.h"
 
 // overworld
 #include "overworld/bnOverworldActor.h"
@@ -50,14 +51,21 @@ private:
 
   Background* bg; /*!< Background image pointer */
   Overworld::Map map; /*!< Overworld map */ 
+  Overworld::Map::Tile** tiles{ nullptr }; /*!< Loaded tiles from file */
   std::vector<std::shared_ptr<SpriteProxyNode>> trees;
   Animation treeAnim;
+  std::shared_ptr<sf::Texture> treeTexture;
   std::vector<std::shared_ptr<SpriteProxyNode>> warps;
   Animation warpAnim;
+  std::shared_ptr<sf::Texture> warpTexture;
   std::vector<std::shared_ptr<SpriteProxyNode>> coffees;
   Animation coffeeAnim;
+  std::shared_ptr<sf::Texture> coffeeTexture;
   std::vector<std::shared_ptr<SpriteProxyNode>> gates;
   Animation gateAnim;
+  std::shared_ptr<sf::Texture> gateTexture;
+
+  AnimatedTextBox textbox;
 
   double animElapsed{};
 
@@ -77,6 +85,8 @@ private:
   * @brief Equip a folder for the navi that was last used when playing as them
   */
   void NaviEquipSelectedFolder();
+
+  void ResetMap();
 
 #ifdef __ANDROID__
 void StartupTouchControls();

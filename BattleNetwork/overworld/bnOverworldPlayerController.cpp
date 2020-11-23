@@ -12,7 +12,7 @@ void Overworld::PlayerController::Update(double elapsed)
 {
   if (actor == nullptr) return;
 
-  bool run = INPUTx.Has(EventTypes::HELD_SHOOT);
+  bool run = INPUTx.Has(EventTypes::HELD_CANCEL);
   std::vector<Direction> inputs;
 
   if (listen) {
