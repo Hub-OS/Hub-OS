@@ -169,8 +169,28 @@ void MainMenuScene::onUpdate(double elapsed) {
   if (menuWidget.IsClosed() && textbox.IsClosed()) {
     playerController.ListenToInputEvents(true);
 
+    auto mousei = sf::Mouse::getPosition(*ENGINE.GetWindow());
+    auto& [row, col] = map.PixelToRowCol(mousei);
+    sf::Vector2f click = { (float)col * map.GetTileSize().x * 0.5f, (float)row * map.GetTileSize().y };
+
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
       this->ResetMap();
+    }
+    else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+      auto tile = map.GetTileAt(click);
+      tile.solid = false;
+      tile.ID++;
+
+      if (tile.ID > 3) tile.ID = 1;
+
+      map.SetTileAt(click, tile);
+    }
+    else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+      auto tile = map.GetTileAt(click);
+      tile.solid = true;
+      tile.ID = 0;
+
+      map.SetTileAt(click, tile);
     }
   }
   else {

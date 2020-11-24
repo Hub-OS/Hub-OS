@@ -4,7 +4,7 @@ animation state="bulbs"
 frame duration="0.1" x="15" y="4" w="43" h="46" originx="20" originy="43"
 
 animation state="bulbs_w_ribbon"
-frame duration="0.1" x="81" y="4" w="43" h="46" originx="20" originy="42"
+frame duration="0.1" x="77" y="0" w="48" h="50" originx="24" originy="46"
 
 animation state="star"
 frame duration="0.2" x="29" y="67" w="13" h="14" originx="6" originy="9"

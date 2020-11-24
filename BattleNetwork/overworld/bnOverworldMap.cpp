@@ -101,7 +101,7 @@ namespace Overworld {
     return Map::Tile{};
   }
 
-  void Map::SetTileAt(const sf::Vector2f pos, const Tile& newTile)
+  void Map::SetTileAt(const sf::Vector2f& pos, const Tile& newTile)
   {
     unsigned x = pos.x / (tileWidth * 0.5f);
     unsigned y = pos.y / tileHeight;
@@ -142,7 +142,7 @@ namespace Overworld {
 
         auto color = tileSprite.getColor();
         
-        auto& [x, y] = PixelToRowCol(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+        auto& [y, x] = PixelToRowCol(sf::Mouse::getPosition(*ENGINE.GetWindow()));
 
         bool hover = (y == i && x == j);
 
@@ -302,7 +302,7 @@ namespace Overworld {
     unsigned x = ortho.x / (tileWidth * 0.5f);
     unsigned y = ortho.y / tileHeight;
 
-    return { x, y };
+    return { y, x };
   }
 
   std::pair<unsigned, unsigned> Map::IsoToRowCol(const sf::Vector2f& iso) const

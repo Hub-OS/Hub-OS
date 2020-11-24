@@ -162,7 +162,7 @@ namespace Overworld {
      */
     const Map::Tile GetTileAt(const sf::Vector2f& pos) const;
 
-    void SetTileAt(const sf::Vector2f pos, const Tile& newTile);
+    void SetTileAt(const sf::Vector2f& pos, const Tile& newTile);
 
     const std::vector<sf::Vector2f> FindToken(const std::string& token);
 
