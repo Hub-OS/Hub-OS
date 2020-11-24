@@ -23,11 +23,11 @@ frame duration="0.1" x="257" y="142" w="56" h="71" originx="28" originy="67"
 frame duration="0.4" x="108" y="69" w="60" h="71" originx="31" originy="67"
 
 animation state="PLAYER_SHOOTING"
-frame duration="0.2" x="171" y="66" w="66" h="73" originx="42" originy="65"
+frame duration="0.033" x="171" y="66" w="66" h="73" originx="42" originy="65"
 point label="Buster" x="46" y="28"
 frame duration="0.033" x="87" y="0" w="84" h="69" originx="36" originy="65"
 point label="Buster" x="41" y="28"
-frame duration="0.033" x="0" y="0" w="87" h="69" originx="38" originy="65"
+frame duration="0.2" x="0" y="0" w="87" h="69" originx="38" originy="65"
 point label="Buster" x="43" y="28"
 
 animation state="PLAYER_SWORD"
