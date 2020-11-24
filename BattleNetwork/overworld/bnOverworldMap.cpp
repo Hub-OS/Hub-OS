@@ -1,6 +1,8 @@
-#include "bnOverworldMap.h"
-#include "bnEngine.h"
 #include <cmath>
+
+#include "bnOverworldMap.h"
+
+#include "../bnEngine.h"
 
 namespace Overworld {
   Map::Map() :
@@ -55,13 +57,13 @@ namespace Overworld {
     lights.push_back(_light);
   }
 
-  void Map::AddSprite(const SpriteProxyNode * _sprite, int layer)
+  void Map::AddSprite(SpriteProxyNode * _sprite, int layer)
   {
     sprites.push_back({ _sprite, layer });
   }
 
   void Map::RemoveSprite(const SpriteProxyNode * _sprite) {
-    auto pos = std::find_if(sprites.begin(), sprites.end(), [_sprite](SpriteLayer in) { return in.node == _sprite; });
+    auto pos = std::find_if(sprites.begin(), sprites.end(), [_sprite](MapSprite in) { return in.node == _sprite; });
 
     if(pos != sprites.end())
       sprites.erase(pos);
@@ -70,8 +72,12 @@ namespace Overworld {
   void Map::Update(double elapsed)
   {
     std::sort(sprites.begin(), sprites.end(), 
-        [](SpriteLayer A, SpriteLayer B)
-      { return std::tie(A.layer, A.node->getPosition().y) < std::tie(B.layer, B.node->getPosition().y); }
+        [](MapSprite A, MapSprite B)
+      { 
+        int A_layer_inv = -A.layer;
+        int B_layer_inv = -B.layer;
+        return std::tie(A_layer_inv, A.node->getPosition().y) < std::tie(B_layer_inv, B.node->getPosition().y);
+      }
     );
 
   }
@@ -131,30 +137,42 @@ namespace Overworld {
         sf::Sprite tileSprite = tileset.Graphic(ID);
         sf::Vector2f pos(j * tileWidth * 0.5f, i * tileHeight);
         auto iso = OrthoToIsometric(pos);
+        iso = sf::Vector2f((int)(std::ceil(iso.x)), (int)(std::floor(iso.y)));
         tileSprite.setPosition(iso);
 
-        if (cam) {
-          if (true || cam->IsInView(tileSprite)) {
-            target.draw(tileSprite, states);
-          }
+        auto color = tileSprite.getColor();
+        
+        auto& [x, y] = PixelToRowCol(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+
+        bool hover = (y == i && x == j);
+
+        if (hover) {
+          tileSprite.setColor({ color.r, color.b, color.g, 60 });
         }
+
+        if (/*cam && cam->IsInView(tileSprite)*/ true) {
+          target.draw(tileSprite, states);
+        }
+
+        tileSprite.setColor(color);
       }
     }
   }
 
   void Map::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
     for (int i = 0; i < sprites.size(); i++) {
-      auto iso = OrthoToIsometric(sprites[i].node->getPosition());
-      sf::Sprite tileSprite(*sprites[i].node->getTexture());
-      tileSprite.setTextureRect(sprites[i].node->getSprite().getTextureRect());
-      tileSprite.setPosition(iso);
-      tileSprite.setOrigin(sprites[i].node->getOrigin());
+      auto ortho = sprites[i].node->getPosition();
+      auto iso = OrthoToIsometric(ortho);
+      iso = sf::Vector2f((int)(std::ceil(iso.x)), (int)(std::floor(iso.y)));
 
-      if (cam) {
-        if (true || cam->IsInView(tileSprite)) {
-          target.draw(tileSprite, states);
-        }
+      auto tileSprite = sprites[i].node;
+      tileSprite->setPosition(iso);
+
+      if (/*cam && cam->IsInView(tileSprite->getSprite())*/ true) {
+        target.draw(*tileSprite, states);
       }
+
+      tileSprite->setPosition(ortho);
     }
   }
   const sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
@@ -265,6 +283,34 @@ namespace Overworld {
 
     return { true, tiles };
   }
+
+  std::pair<unsigned, unsigned> Map::PixelToRowCol(const sf::Vector2i& px) const
+  {
+    // convert it to world coordinates
+    sf::Vector2f world = ENGINE.GetWindow()->mapPixelToCoords(px);
+
+    // consider the point on screen relative to the camera focus
+    auto pos = world - ENGINE.GetViewOffset();
+    
+    // respect the current scale and transform form isometric coordinates
+    return IsoToRowCol({ pos.x / getScale().x, pos.y / getScale().y });
+  }
+
+  std::pair<unsigned, unsigned> Map::OrthoToRowCol(const sf::Vector2f& ortho) const
+  {
+    // divide by the tile size to get the integer grid values
+    unsigned x = ortho.x / (tileWidth * 0.5f);
+    unsigned y = ortho.y / tileHeight;
+
+    return { x, y };
+  }
+
+  std::pair<unsigned, unsigned> Map::IsoToRowCol(const sf::Vector2f& iso) const
+  {
+    // convert from iso to ortho before converting to grid values
+    return OrthoToRowCol(IsoToOrthogonal({ iso.x, iso.y }));
+  }
+
   const std::string& Map::GetName() const
   {
     return name;
@@ -282,4 +328,20 @@ namespace Overworld {
   {
     return this->rows;
   }
+
+  // class Map::Tileset
+
+  const sf::Sprite& Map::Tileset::Graphic(size_t ID) const
+  {
+    auto& item = idToSpriteHash.at(ID);
+    return item.sprite;
+  }
+
+  void Map::Tileset::Register(size_t ID, const sf::Sprite& sprite)
+  {
+    Tileset::Item item{ sprite };
+    idToSpriteHash.insert(std::make_pair(ID, item));
+  }
 }
+
+

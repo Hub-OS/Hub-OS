@@ -11,6 +11,7 @@ namespace Overworld {
   /**
     @brief Overworld::Actor class represents a character that can move, has animations for all movements, and has a name
   */
+  class Map;
 
   class Actor : public SpriteProxyNode {
   public:
@@ -21,6 +22,7 @@ namespace Overworld {
       size = 3
     };
   private:
+    Map* map{ nullptr };
     double animProgress{}; //!< Used to sync movement animations
     double walkSpeed{40}; //!< walk speed as pixels per second. Default 40px/s
     double runSpeed{70}; //!< run speed as pixels per second. Default 70px/s
@@ -139,6 +141,8 @@ namespace Overworld {
     * based on walk or run speeds.
     */
     void Update(double elapsed);
+
+    void CollideWithMap(Map& map);
 
     /**
     * @brief Convert direction flags into 2D mathematical vector objects with a length

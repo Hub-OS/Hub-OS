@@ -251,6 +251,9 @@ void Animation::SetAnimation(string state) {
      Logger::Log("No animation found in file for " + state);
      noAnim = true;
    }
+   else {
+     animator.UpdateCurrentPoints(0, pos->second);
+   }
 
    // Even if we don't have this animation, switch to it anyway
    currAnimation = state;

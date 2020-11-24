@@ -201,8 +201,6 @@ private:
   bool callbacksAreValid; /*!< Flag for queues. If false, all added callbacks are discarded. */
   bool clearLater{ false }; //!< if clearing inside a callback, wait until after callback scope ends
 
-  void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
-
 public:
   inline static const FrameCallback NoCallback = [](){};
 
@@ -300,9 +298,19 @@ public:
 
   /**
    * @brief Manually applies the frame at index
-   * @param frameIndex Base 1 index to apply frame of
+   * @param frameIndex Base 0 index to apply frame of
    * @param target sprite to apply frame to
    * @param sequence frame is pulled from list using index
    */
   void SetFrame(int frameIndex, sf::Sprite& target, FrameList& sequence);
+
+  /**
+ * @brief Updates the internal points hash from the frame list for a given frame
+ * @param frameIndex Base 0 index to apply frame of
+ * @param The frame list
+ * 
+ * Once this function is complete, the currentpoints stored inside the animator
+ * is refreshed with latest data
+ */
+  void UpdateCurrentPoints(int frameIndex, FrameList& sequence);
 };

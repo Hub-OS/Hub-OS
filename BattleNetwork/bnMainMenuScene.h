@@ -3,7 +3,6 @@
 
 #include "bnFolderScene.h"
 #include "bnMenuWidget.h"
-#include "bnOverworldMap.h"
 #include "bnSelectNaviScene.h"
 #include "bnSelectMobScene.h"
 #include "bnLibraryScene.h"
@@ -24,6 +23,7 @@
 // overworld
 #include "overworld/bnOverworldActor.h"
 #include "overworld/bnOverworldPlayerController.h"
+#include "overworld/bnOverworldMap.h"
 
 #include <SFML/Graphics.hpp>
 #include <time.h>
@@ -64,6 +64,11 @@ private:
   std::vector<std::shared_ptr<SpriteProxyNode>> gates;
   Animation gateAnim;
   std::shared_ptr<sf::Texture> gateTexture;
+  std::vector<SpriteProxyNode*> stars;
+  std::vector<SpriteProxyNode*> bulbs;
+  std::vector<SpriteProxyNode*> lights;
+  Animation starAnim, lightsAnim, xmasAnim;
+  std::shared_ptr<sf::Texture> ornamentTexture;
 
   AnimatedTextBox textbox;
 
@@ -86,6 +91,7 @@ private:
   */
   void NaviEquipSelectedFolder();
 
+  void ClearMap(unsigned rows, unsigned cols);
   void ResetMap();
 
 #ifdef __ANDROID__
@@ -103,7 +109,7 @@ public:
   /**
   * @brief deconstructor
   */
-  ~MainMenuScene() { ; }
+  ~MainMenuScene();
 
   /**
    * @brief Checks input events and listens for select buttons. Segues to new screens.

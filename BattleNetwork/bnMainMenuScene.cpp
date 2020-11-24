@@ -117,6 +117,8 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   actor.LoadAnimations("resources/navis/megaman/overworld.animation");
   actor.setTexture(TEXTURES.LoadTextureFromFile("resources/navis/megaman/overworld.png"));
   actor.setPosition(200, 20);
+  actor.CollideWithMap(map);
+
   playerController.ControlActor(actor);
 
   // Share the camera
@@ -137,8 +139,18 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   this->coffeeTexture = TEXTURES.LoadTextureFromFile("resources/ow/coffee.png");
   coffeeAnim = Animation("resources/ow/coffee.animation") << "default" << Animator::Mode::Loop;
 
+  this->ornamentTexture = TEXTURES.LoadTextureFromFile("resources/ow/xmas.png");
+  starAnim = xmasAnim = lightsAnim = Animation("resources/ow/xmas.animation");
+  starAnim << "star" << Animator::Mode::Loop;
+  lightsAnim << "lights" << Animator::Mode::Loop;
+
   // Effectively loads the map
   ResetMap();
+}
+
+MainMenuScene::~MainMenuScene()
+{
+  ClearMap(map.GetRows(), map.GetCols());
 }
 
 void MainMenuScene::onStart() {
@@ -166,40 +178,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   }
 
   playerController.Update(elapsed);
-
-  /**
-  * After updating the actor, we are moved to a new location
-  * We do a post-check to see if we collided with anything marked solid
-  * If so, we adjust the displacement or halt the actor
-  **/
-  auto lastPos = actor.getPosition();
   actor.Update(elapsed);
-  auto newPos = actor.getPosition();
-
-  if (map.GetTileAt(newPos).solid) {
-    auto diff = newPos - lastPos;
-    auto& [first, second] = Split(actor.GetHeading());
-
-    actor.setPosition(lastPos);
-
-    if (second != Direction::none) {
-      actor.setPosition(lastPos);
-
-      auto diffx = diff;
-      diffx.y = 0;
-
-      auto diffy = diff;
-      diff.x = 0;
-
-      if (map.GetTileAt(lastPos + diffx).solid == false) {
-        actor.setPosition(lastPos + diffx);
-      }
-      
-      if (map.GetTileAt(lastPos + diffy).solid == false) {
-        actor.setPosition(lastPos + diffy);
-      }
-    }
-  }
 
   // check to see if talk button was pressed
   if (textbox.IsClosed()) {
@@ -212,6 +191,11 @@ void MainMenuScene::onUpdate(double elapsed) {
       }
       else if (tile.token == "G") {
         textbox.EnqueMessage({}, "", new Message("Do you know da way?"));
+        textbox.Open();
+      }
+      else if (tile.token == "X") {
+        textbox.EnqueMessage({}, "", new Message("An xmas tree program developed by Mars"));
+        textbox.EnqueMessage({}, "", new Message("It really puts you in the holiday spirit!"));
         textbox.Open();
       }
     }
@@ -256,6 +240,29 @@ void MainMenuScene::onUpdate(double elapsed) {
   for (auto& w : warps) {
     warpAnim.Refresh(w->getSprite());
   }
+
+  starAnim.SyncTime(animElapsed);
+  for (auto& s : stars) {
+    starAnim.Refresh(s->getSprite());
+  }
+
+  lightsAnim.SyncTime(animElapsed);
+
+  static std::array<sf::Color,5> rgb = {
+    sf::Color::Cyan,
+    sf::Color{255, 182, 192}, // pinkish red
+    sf::Color::Yellow,
+    sf::Color::White,
+    sf::Color::Magenta
+  };
+
+  size_t inc = animElapsed/0.8; // in seconds to steps
+  size_t offset = 0;
+  for (auto& L : lights) {
+    lightsAnim.Refresh(L->getSprite());
+    L->setColor(rgb[(offset+++inc)%rgb.size()]);
+  }
+  offset = 0;
 
   #ifdef __ANDROID__
   if(gotoNextScene)
@@ -310,7 +317,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 
   // Follow the navi
   sf::Vector2f pos = map.ScreenToWorld(actor.getPosition());
-  pos = sf::Vector2f(pos.x*map.getScale().x, pos.y*map.getScale().y);
+  pos = sf::Vector2f(pos.x*map.getScale().x, (int)std::ceil(pos.y*map.getScale().y+0.5f));
   camera.PlaceCamera(pos);
 
   if (!gotoNextScene && textbox.IsClosed()) {
@@ -505,6 +512,50 @@ void MainMenuScene::NaviEquipSelectedFolder()
   }
 }
 
+void MainMenuScene::ClearMap(unsigned rows, unsigned cols)
+{
+  // cleanup the previous tiles
+  for (unsigned i = 0; i < rows; i++) {
+    delete[] tiles[i];
+  }
+
+  if (rows > 0 && cols > 0) {
+    delete[] tiles;
+  }
+
+  // clean up sprites too
+  std::vector<std::shared_ptr<SpriteProxyNode>> nodes;
+  nodes.insert(nodes.end(), trees.begin(), trees.end());
+  nodes.insert(nodes.end(), warps.begin(), warps.end());
+  nodes.insert(nodes.end(), gates.begin(), gates.end());
+  nodes.insert(nodes.end(), coffees.begin(), coffees.end());
+
+  for (auto& node : nodes) {
+    map.RemoveSprite(&*node);
+  }
+
+  // delete allocated attachments
+  for (auto& node : stars) {
+    delete node;
+  }
+
+  for (auto& node : bulbs) {
+    delete node;
+  }
+
+  for (auto& node : lights) {
+    delete node;
+  }
+
+  trees.clear();
+  lights.clear();
+  warps.clear();
+  gates.clear();
+  coffees.clear();
+  bulbs.clear();
+  stars.clear();
+}
+
 void MainMenuScene::ResetMap()
 {
   // Load a map
@@ -517,30 +568,7 @@ void MainMenuScene::ResetMap()
     Logger::Log("Failed to load map homepage.txt");
   }
   else {
-    // clear the last tile pointers
-    for (unsigned i = 0; i < lastMapRows; i++) {
-      delete[] tiles[i];
-    }
-
-    if (lastMapRows > 0 && lastMapCols > 0) {
-      delete[] tiles;
-    }
-    
-    // clean up sprites too
-    std::vector<std::shared_ptr<SpriteProxyNode>> nodes;
-    nodes.insert(nodes.end(), trees.begin(), trees.end());
-    nodes.insert(nodes.end(), warps.begin(), warps.end());
-    nodes.insert(nodes.end(), gates.begin(), gates.end());
-    nodes.insert(nodes.end(), coffees.begin(), coffees.end());
-
-    for (auto& node : nodes) {
-      map.RemoveSprite(&*node);
-    }
-
-    trees.clear();
-    warps.clear();
-    gates.clear();
-    coffees.clear();
+    ClearMap(lastMapRows, lastMapCols);
 
     // Place some objects in the scene
     auto places = map.FindToken("S");;
@@ -549,22 +577,13 @@ void MainMenuScene::ResetMap()
     }
 
     auto trees = map.FindToken("T");
+    auto treeWBulb = map.FindToken("L");
+    auto xmasTree = map.FindToken("X");
     auto warps = map.FindToken("W");
     auto coff = map.FindToken("C");
     auto gates = map.FindToken("G");
 
-    for (auto pos : trees) {
-      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
-      new_tree->setPosition(pos);
-      this->trees.push_back(new_tree);
-      map.AddSprite(&*new_tree, 0);
-
-      // do not walk through trees
-      auto tile = map.GetTileAt(pos);
-      tile.solid = true;
-      map.SetTileAt(pos, tile);
-    }
-
+    // coffee
     for (auto pos : coff) {
       auto new_coffee = std::make_shared<SpriteProxyNode>(*coffeeTexture);
       new_coffee->setPosition(pos);
@@ -577,6 +596,7 @@ void MainMenuScene::ResetMap()
       map.SetTileAt(pos, tile);
     }
 
+    // gates
     for (auto pos : gates) {
       auto new_gate = std::make_shared<SpriteProxyNode>(*gateTexture);
       new_gate->setPosition(pos);
@@ -590,11 +610,110 @@ void MainMenuScene::ResetMap()
       map.SetTileAt(pos, tile);
     }
 
+    // warps
     for (auto pos : warps) {
       auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
       new_warp->setPosition(pos);
       this->warps.push_back(new_warp);
-      map.AddSprite(&*new_warp, -1);
+      map.AddSprite(&*new_warp, 1);
+    }
+
+    // trees
+    for (auto pos : trees) {
+      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
+      new_tree->setPosition(pos);
+
+      SpriteProxyNode* lights = new SpriteProxyNode();
+      lights->setTexture(ornamentTexture);
+      lights->SetLayer(-1);
+      lights->SetShader(SHADERS.GetShader(ShaderType::COLORIZE));
+
+      xmasAnim << "lights";
+      xmasAnim.Refresh(lights->getSprite());
+      new_tree->AddNode(lights);
+
+      this->trees.push_back(new_tree);
+      this->lights.push_back(lights);
+      map.AddSprite(&*new_tree, 0);
+
+      // do not walk through trees
+      auto tile = map.GetTileAt(pos);
+      tile.solid = true;
+      map.SetTileAt(pos, tile);
+    }
+
+    // tree with xmas bulbs
+    for (auto pos : treeWBulb) {
+      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
+      new_tree->setPosition(pos);
+
+      SpriteProxyNode* bulbs = new SpriteProxyNode();
+      bulbs->setTexture(ornamentTexture);
+      bulbs->SetLayer(-1);
+      xmasAnim << "bulbs";
+      xmasAnim.Refresh(bulbs->getSprite());
+      new_tree->AddNode(bulbs);
+
+      SpriteProxyNode* lights = new SpriteProxyNode();
+      lights->setTexture(ornamentTexture);
+      lights->SetLayer(-1);
+      lights->SetShader(SHADERS.GetShader(ShaderType::COLORIZE));
+      xmasAnim << "lights";
+      xmasAnim.Refresh(lights->getSprite());
+      new_tree->AddNode(lights);
+
+      map.AddSprite(&*new_tree, 0);
+
+      this->trees.push_back(new_tree);
+      this->bulbs.push_back(bulbs);
+      this->lights.push_back(lights);
+
+      // do not walk through trees
+      auto tile = map.GetTileAt(pos);
+      tile.solid = true;
+      map.SetTileAt(pos, tile);
+    }
+
+    // tree with xmas everything
+    for (auto pos : xmasTree) {
+      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
+      new_tree->setPosition(pos);
+
+      SpriteProxyNode* bulbs = new SpriteProxyNode();
+      bulbs->setTexture(ornamentTexture);
+      bulbs->SetLayer(-1);
+      xmasAnim << "bulbs_w_ribbon";
+      xmasAnim.Refresh(bulbs->getSprite());
+      new_tree->AddNode(bulbs);
+
+      SpriteProxyNode* lights = new SpriteProxyNode();
+      lights->setTexture(ornamentTexture);
+      lights->SetLayer(-1);
+      lights->SetShader(SHADERS.GetShader(ShaderType::COLORIZE));
+      xmasAnim << "lights";
+      xmasAnim.Refresh(lights->getSprite());
+      new_tree->AddNode(lights);
+
+      SpriteProxyNode* star = new SpriteProxyNode();
+      star->setTexture(ornamentTexture);
+      star->SetLayer(-1);
+      starAnim.Refresh(star->getSprite());
+      new_tree->AddNode(star);
+      
+      auto offset = treeAnim.GetPoint("top") - treeAnim.GetPoint("origin");
+      star->setPosition(offset);
+
+      map.AddSprite(&*new_tree, 0);
+
+      this->trees.push_back(new_tree);
+      this->bulbs.push_back(bulbs);
+      this->stars.push_back(star);
+      this->lights.push_back(lights);
+
+      // do not walk through trees
+      auto tile = map.GetTileAt(pos);
+      tile.solid = true;
+      map.SetTileAt(pos, tile);
     }
 
     menuWidget.SetArea(map.GetName());

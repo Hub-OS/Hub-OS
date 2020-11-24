@@ -1,5 +1,6 @@
 namespace Overworld {
   class Actor; // namespace Overworld::Actor;
+  class Map;
 
   class PlayerController {
     Overworld::Actor* actor{ nullptr };

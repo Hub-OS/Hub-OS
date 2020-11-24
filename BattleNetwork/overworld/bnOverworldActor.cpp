@@ -1,4 +1,5 @@
 #include "bnOverworldActor.h"
+#include "bnOverworldMap.h"
 
 Overworld::Actor::Actor(const std::string& name) :
   name(name)
@@ -127,7 +128,49 @@ void Overworld::Actor::Update(double elapsed)
     px_per_s = GetWalkSpeed()*elapsed;
   }
 
+  auto lastPos = getPosition();
+
+  // moves in our heading direction
   move(MakeVectorFromDirection(GetHeading(), static_cast<float>(px_per_s)));
+
+  /**
+  * After updating the actor, we are moved to a new location
+  * We do a post-check to see if we collided with anything marked solid
+  * If so, we adjust the displacement or halt the actor
+  **/
+
+  auto newPos = getPosition();
+
+  if (map && map->GetTileAt(newPos).solid) {
+    auto diff = newPos - lastPos;
+    auto& [first, second] = Split(GetHeading());
+
+    setPosition(lastPos);
+
+    if (second != Direction::none) {
+      setPosition(lastPos);
+
+      // split vector into parts and try each individual segment
+      auto diffx = diff;
+      diffx.y = 0;
+
+      auto diffy = diff;
+      diffy.x = 0;
+
+      if (map->GetTileAt(lastPos + diffx).solid == false) {
+        setPosition(lastPos + diffx);
+      }
+
+      if (map->GetTileAt(lastPos + diffy).solid == false) {
+        setPosition(lastPos + diffy);
+      }
+    }
+  }
+}
+
+void Overworld::Actor::CollideWithMap(Map& map)
+{
+  this->map = &map;
 }
 
 sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float length)

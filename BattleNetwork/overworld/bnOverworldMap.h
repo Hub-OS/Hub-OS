@@ -1,10 +1,13 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include "bnTextureResourceManager.h"
-#include "bnCamera.h"
+
 #include "bnOverworldLight.h"
-#include "bnTile.h"
+
+#include "../bnSpriteProxyNode.h"
+#include "../bnTextureResourceManager.h"
+#include "../bnCamera.h"
+
 
 namespace Overworld {
 /*! \brief Incredibly simple overworld map class.
@@ -33,30 +36,24 @@ namespace Overworld {
         sf::Sprite sprite;
       };
 
-      const sf::Sprite& Graphic(size_t ID) const {
-        auto& item = idToSpriteHash.at(ID);
-        return item.sprite;
-      }
+      const sf::Sprite& Graphic(size_t ID) const;
 
-      void Register(size_t ID, const sf::Sprite& sprite) {
-        Tileset::Item item{ sprite };
-        idToSpriteHash.insert(std::make_pair(ID, item));
-      }
+      void Register(size_t ID, const sf::Sprite& sprite);
 
     private:
       std::map<size_t, Item> idToSpriteHash;
     };
 
   protected:
-    struct SpriteLayer {
-      const SpriteProxyNode* node;
+    struct MapSprite {
+      SpriteProxyNode* node{ nullptr };
       int layer{ 0 };
 
     };
     Tile** tiles{ nullptr };
     Tileset tileset{};
     std::vector<Overworld::Light*> lights; /*!< light sources */
-    std::vector<SpriteLayer> sprites; /*!< other sprites in the scene */
+    std::vector<MapSprite> sprites; /*!< other sprites in the scene */
     
     bool enableLighting{ false }; /*!< if true, enables light shading */
 
@@ -131,7 +128,7 @@ namespace Overworld {
      * @brief Add a sprite
      * @param _sprite
      */
-    void AddSprite(const SpriteProxyNode* _sprite, int layer);
+    void AddSprite(SpriteProxyNode* _sprite, int layer);
     
     /**
      * @brief Remove a sprite
@@ -170,6 +167,10 @@ namespace Overworld {
     const std::vector<sf::Vector2f> FindToken(const std::string& token);
 
     static const std::pair<bool, Map::Tile**> LoadFromFile(Map& map, const std::string& path);
+
+    std::pair<unsigned, unsigned> OrthoToRowCol(const sf::Vector2f& ortho) const;
+    std::pair<unsigned, unsigned> IsoToRowCol(const sf::Vector2f& iso) const;
+    std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px) const;
 
     const std::string& GetName() const;
     void SetName(const std::string& name);
