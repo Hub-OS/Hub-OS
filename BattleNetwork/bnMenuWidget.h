@@ -37,6 +37,8 @@ private:
   state currState{}; //!< Track all open/close states. Default is closed
   std::string areaName; //!< Area name typed out
   std::shared_ptr<sf::Font> font; //!< Used by text
+  std::shared_ptr<sf::Texture> iconTexture; //!< If supplying an icon, use this one
+  std::shared_ptr<sf::Texture> widgetTexture; //!< texture used by widget
   sf::Text areaLabel; //!< Area name displayed in widget
   mutable sf::Text infoText; //!< Text obj used for all other info
   swoosh::Timer easeInTimer; //!< Timer used for animations
@@ -106,6 +108,10 @@ public:
   * @param maxHealth Integer of max health to display
   */
   void SetMaxHealth(int maxHealth);
+
+  void UseIconTexture(const std::shared_ptr<sf::Texture> icon);
+
+  void ResetIconTexture();
 
   /// GUI OPS
   

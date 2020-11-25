@@ -15,13 +15,15 @@ MenuWidget::MenuWidget(const std::string& area, const MenuWidget::OptionsList& o
   areaLabel.setScale(sf::Vector2f(0.5f, 0.5f));
   infoText = areaLabel;
   
+  widgetTexture = TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png");
+
   banner.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/menu_overlay.png"));
-  symbol.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
-  icon.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
-  exit.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
-  infoBox.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
-  selectTextSpr.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
-  placeTextSpr.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+  symbol.setTexture(widgetTexture);
+  icon.setTexture(widgetTexture);
+  exit.setTexture(widgetTexture);
+  infoBox.setTexture(widgetTexture);
+  selectTextSpr.setTexture(widgetTexture);
+  placeTextSpr.setTexture(widgetTexture);
 
   AddNode(&banner);
 
@@ -407,6 +409,21 @@ void MenuWidget::SetHealth(int health)
 void MenuWidget::SetMaxHealth(int maxHealth)
 {
   MenuWidget::maxHealth = maxHealth;
+}
+
+void MenuWidget::UseIconTexture(const std::shared_ptr<sf::Texture> iconTexture)
+{
+  this->iconTexture = iconTexture;
+  this->icon.setTexture(iconTexture, true);
+}
+
+void MenuWidget::ResetIconTexture()
+{
+  iconTexture.reset();
+
+  optionAnim << "PET";
+  icon.setTexture(widgetTexture);
+  optionAnim.SetFrame(1, icon.getSprite());
 }
 
 bool MenuWidget::ExecuteSelection()

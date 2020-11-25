@@ -21,8 +21,10 @@ void QueuNaviRegistration() {
   **********************************************************************/
   auto megamanInfo = NAVIS.AddClass<Megaman>();  // Create and register navi info object
   megamanInfo->SetSpecialDescription("Star of the series. Well rounded stats."); // Set property
+  megamanInfo->SetIconTexture(LOAD_TEXTURE_FILE("resources/navis/megaman/mega_face.png"));
   megamanInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/megaman/preview.png"));
-  megamanInfo->SetOverworldAnimationPath("resources/navis/megaman/megaman.animation");
+  megamanInfo->SetOverworldTexture(LOAD_TEXTURE_FILE("resources/navis/megaman/overworld.png"));
+  megamanInfo->SetOverworldAnimationPath("resources/navis/megaman/overworld.animation");
   megamanInfo->SetSpeed(1);
   megamanInfo->SetAttack(1);
   megamanInfo->SetChargedAttack(10);
@@ -30,8 +32,10 @@ void QueuNaviRegistration() {
   // Register Roll
   auto rollInfo = NAVIS.AddClass<Roll>();
   rollInfo->SetSpecialDescription("High HP and quick to recover from hits. FloatShoe enabled.");
+  // rollInfo->SetIconTexture(LOAD_TEXTURE_FILE("resources/navis/roll/roll_face.png"));
   rollInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/roll/preview.png"));
-  rollInfo->SetOverworldAnimationPath("resources/navis/roll/roll.animation");
+  rollInfo->SetOverworldTexture(LOAD_TEXTURE_FILE("resources/navis/roll/overworld.png"));
+  rollInfo->SetOverworldAnimationPath("resources/navis/roll/overworld.animation");
   rollInfo->SetSpeed(2);
   rollInfo->SetAttack(2);
   rollInfo->SetChargedAttack(10);
@@ -39,8 +43,10 @@ void QueuNaviRegistration() {
   // Register Starman
   auto starmanInfo = NAVIS.AddClass<Starman>();
   starmanInfo->SetSpecialDescription("Fastest navi w/ rapid fire");
+  // starmanInfo->SetIconTexture(LOAD_TEXTURE_FILE("resources/navis/starman/starman_face.png"));
   starmanInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/starman/preview.png"));
-  starmanInfo->SetOverworldAnimationPath("resources/navis/starman/starman.animation");
+  starmanInfo->SetOverworldTexture(LOAD_TEXTURE_FILE("resources/navis/starman/starman_OW.png"));
+  starmanInfo->SetOverworldAnimationPath("resources/navis/starman/starman_OW.animation");
   starmanInfo->SetSpeed(3);
   starmanInfo->SetAttack(2);
   starmanInfo->SetChargedAttack(10);
@@ -48,8 +54,10 @@ void QueuNaviRegistration() {
   // Register Protoman
   auto protomanInfo = NAVIS.AddClass<Protoman>();
   protomanInfo->SetSpecialDescription("Elite class navi w/ sword");
+  protomanInfo->SetIconTexture(LOAD_TEXTURE_FILE("resources/navis/protoman/protoman_face.png"));
   protomanInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/protoman/preview.png"));
-  protomanInfo->SetOverworldAnimationPath("resources/navis/protoman/protoman.animation");
+  protomanInfo->SetOverworldTexture(LOAD_TEXTURE_FILE("resources/navis/protoman/protoman_OW.png"));
+  protomanInfo->SetOverworldAnimationPath("resources/navis/protoman/protoman_OW.animation");
   protomanInfo->SetSpeed(3);
   protomanInfo->SetAttack(1);
   protomanInfo->SetChargedAttack(20);
@@ -58,8 +66,10 @@ void QueuNaviRegistration() {
   // Register Tomahawkman
   auto thawkInfo = NAVIS.AddClass<Tomahawkman>();
   thawkInfo->SetSpecialDescription("Spec. Axe ability!");
+  thawkInfo->SetIconTexture(LOAD_TEXTURE_FILE("resources/navis/tomahawk/tomahawk_face.png"));
   thawkInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/tomahawk/preview.png"));
-  thawkInfo->SetOverworldAnimationPath("resources/navis/tomahawk/tomahawk.animation");
+  thawkInfo->SetOverworldTexture(LOAD_TEXTURE_FILE("resources/navis/tomahawk/tomahawk_OW.png"));
+  thawkInfo->SetOverworldAnimationPath("resources/navis/tomahawk/tomahawk_OW.animation");
   thawkInfo->SetSpeed(2);
   thawkInfo->SetAttack(1);
   thawkInfo->SetChargedAttack(20);
@@ -67,8 +77,10 @@ void QueuNaviRegistration() {
   // Register Forte
   auto forteInfo = NAVIS.AddClass<Forte>();
   forteInfo->SetSpecialDescription("Literally too angry to die. Spawns with aura.");
+  //forteInfo->SetIconTexture(LOAD_TEXTURE_FILE("resources/navis/forte/forte_face.png"));
   forteInfo->SetPreviewTexture(LOAD_TEXTURE_FILE("resources/navis/forte/preview.png"));
-  forteInfo->SetOverworldAnimationPath("resources/navis/forte/forte.animation");
+  forteInfo->SetOverworldTexture(LOAD_TEXTURE_FILE("resources/navis/forte/forte_OW.png"));
+  forteInfo->SetOverworldAnimationPath("resources/navis/forte/forte_OW.animation");
   forteInfo->SetSpeed(2);
   forteInfo->SetAttack(2);
   forteInfo->SetChargedAttack(20);

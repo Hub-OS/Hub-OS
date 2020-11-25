@@ -123,8 +123,6 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   setView(sf::Vector2u(480, 320));
 
   // Spawn overworld player
-  actor.LoadAnimations("resources/navis/megaman/overworld.animation");
-  actor.setTexture(TEXTURES.LoadTextureFromFile("resources/navis/megaman/overworld.png"));
   actor.setPosition(200, 20);
   actor.CollideWithMap(map);
   playerController.ControlActor(actor);
@@ -457,7 +455,15 @@ void MainMenuScene::onUpdate(double elapsed) {
       }
       else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) || INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
         extendedHold = false;
-        menuWidget.SelectExit() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+        
+        bool selectedExit = menuWidget.SelectExit();
+        
+        if (!selectedExit) {
+          // already selected, switch to options
+          menuWidget.SelectOptions();
+        }
+
+        AUDIO.Play(AudioType::CHIP_SELECT);
       }
       else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
         menuWidget.SelectOptions() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
@@ -564,12 +570,17 @@ void MainMenuScene::RefreshNaviSprite()
   auto owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
-    // TODO: replace with actor
-    /*owNavi.setTexture(meta.GetOverworldTexture());
-    naviAnimator = Animation(meta.GetOverworldAnimationPath());
-    naviAnimator.Reload();
-    naviAnimator.SetAnimation("PLAYER_OW_RD");
-    naviAnimator << Animator::Mode::Loop;*/
+    actor.setTexture(meta.GetOverworldTexture());
+    actor.LoadAnimations(owPath);
+
+    auto iconTexture = meta.GetIconTexture();
+
+    if (iconTexture) {
+      menuWidget.UseIconTexture(iconTexture);
+    }
+    else {
+      menuWidget.ResetIconTexture();
+    }
   }
   else {
     Logger::Logf("Overworld animation not found for navi at index %i", currentNavi);
@@ -662,7 +673,7 @@ void MainMenuScene::ResetMap()
       actor.setPosition(places[0]);
     }
 
-    auto places2 = map.FindToken("S2");;
+    auto places2 = map.FindToken("P");;
     if (places2.size()) {
       npc.setPosition(places2[0]);
     }

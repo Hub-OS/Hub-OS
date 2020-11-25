@@ -24,10 +24,10 @@ public:
     friend class NaviRegistration;
 
     Player* navi; /*!< The net navi to construct */
-    sf::Sprite symbol; /*!< The net navi's symbol */
     std::string special; /*!< The net navi's special description */
     std::string overworldAnimationPath; /*!< The net navi's overworld animation */
     std::string name; /*!< The net navi's name */
+    std::shared_ptr<sf::Texture> iconTexture; /*!< Icon on the top of the screen */
     std::shared_ptr<sf::Texture> overworldTexture; /*!< Texture of overworld animation */
     std::shared_ptr<sf::Texture> previewTexture; /*!< Roster profile picture */
     unsigned atk; /*!< Attack level of the net navi */
@@ -54,14 +54,7 @@ public:
      * @return NaviMeta& to chain
      */
     template<class T> NaviMeta& SetNaviClass();
-    
-    /**
-     * @brief Set symbol texture and cropped at 15x15 dimensions
-     * @param symbol texture
-     * @return NaviMeta& to chain
-     */
-    NaviMeta& SetSymbolTexture(sf::Texture& symbol);
-    
+   
     /**
      * @brief Sets special description information of the navi
      * @return NaviMeta& to chain
@@ -123,6 +116,19 @@ public:
      */
     NaviMeta& SetPreviewTexture(const std::shared_ptr<Texture> texture);
     
+    /**
+     * @brief Device and face generally of the navi
+     * @param icon texture
+     * @return NaviMeta& to chain
+     */
+    NaviMeta& SetIconTexture(const std::shared_ptr<sf::Texture> icon);
+
+    /**
+     * @brief Gets the icon texture to draw
+     * @return const sf::Texture&
+     */
+    const std::shared_ptr<sf::Texture> GetIconTexture() const;
+
     /**
      * @brief Gets the overworld texture to draw
      * @return const sf::Texture&
@@ -259,7 +265,6 @@ inline NaviRegistration::NaviMeta & NaviRegistration::NaviMeta::SetNaviClass()
     //        and would mofidy the preview in the navi select screen.
     //        Lots has changed since then and this may be useless.
     navi = new T(); 
-    SetOverworldTexture(navi->getTexture()); // TODO: Overworld doesn't need to be stored in the battle object
     hp = navi->GetHealth();
   };
 

@@ -5,7 +5,7 @@
 #include <atomic>
 #include <thread>
 
-NaviRegistration::NaviMeta::NaviMeta() : symbol(), overworldTexture(), previewTexture()
+NaviRegistration::NaviMeta::NaviMeta() : iconTexture(), overworldTexture(), previewTexture()
 {
   navi = nullptr;
   special = "None";
@@ -23,12 +23,9 @@ NaviRegistration::NaviMeta::~NaviMeta()
   }
 }
 
-NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetSymbolTexture(sf::Texture& symbol)
+NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetIconTexture(const std::shared_ptr<sf::Texture> icon)
 {
-  NaviMeta::symbol = sf::Sprite(symbol);
-
-  // Symbols are 15x15
-  NaviMeta::symbol.setTextureRect(sf::IntRect(0, 0, 15, 15));
+  NaviMeta::iconTexture = icon;
 
   return *this;
 }
@@ -85,6 +82,11 @@ NaviRegistration::NaviMeta& NaviRegistration::NaviMeta::SetPreviewTexture(const 
 {
   previewTexture = texture;
   return *this;
+}
+
+const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetIconTexture() const
+{
+  return iconTexture;
 }
 
 const std::shared_ptr<Texture> NaviRegistration::NaviMeta::GetOverworldTexture() const

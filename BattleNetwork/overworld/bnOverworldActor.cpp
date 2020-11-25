@@ -37,6 +37,9 @@ void Overworld::Actor::Face(const Direction& dir)
 
 void Overworld::Actor::LoadAnimations(const std::string& path)
 {
+  validStates.clear();
+  anims.clear();
+
   auto dir_array = {
     Direction::down, Direction::down_left, Direction::down_right,
     Direction::left, Direction::right, Direction::up,
