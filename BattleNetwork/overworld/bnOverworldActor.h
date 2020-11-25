@@ -22,12 +22,18 @@ namespace Overworld {
       size = 3
     };
   private:
+    struct AnimStatePair {
+      MovementState movement;
+      Direction dir;
+    };
+
     Map* map{ nullptr };
     double animProgress{}; //!< Used to sync movement animations
     double walkSpeed{40}; //!< walk speed as pixels per second. Default 40px/s
     double runSpeed{70}; //!< run speed as pixels per second. Default 70px/s
     Direction heading{ Direction::down }; //!< the character's current heading
     std::map<std::string, Animation> anims; //!< Map of animation objects per direction per state
+    std::vector<AnimStatePair> validStates; //!< Map of provided animations states
     MovementState state{}; //!< Current movement state (idle, moving, or running)
     sf::Vector2f pos{}; //!< 2d position in cartesian coordinates
     std::string name{}; //!< name of this character
@@ -37,6 +43,7 @@ namespace Overworld {
     // aux functions
     std::string DirectionAnimStrSuffix(const Direction& dir);
     std::string MovementAnimStrPrefix(const MovementState& state);
+    std::string FindValidAnimState(const Direction& dir, const MovementState& state);
   public:
     /**
     * @brief Construct a character with a name
@@ -142,6 +149,13 @@ namespace Overworld {
     */
     void Update(double elapsed);
 
+    /**
+    * @brief Watch for tile-based collisions with an existing map
+    * @param map to collide with
+    * 
+    * During Update() if the actor is intended to move, it will also check
+    * against tiles to see if it should collide.
+    */
     void CollideWithMap(Map& map);
 
     /**
@@ -151,5 +165,13 @@ namespace Overworld {
     * @return vector to be used in geometrical calculations
     */
     static sf::Vector2f MakeVectorFromDirection(Direction dir, float length);
+
+    /**
+    * @brief Convert 2D mathematical vector objects to a Direction
+    * @param vector to convert
+    * @param threshold. If the vector is below this value, the direction is considered Direction::none
+    * @return Direction to be used in motion and state cases
+    */
+    static Direction MakeDirectionFromVector(const sf::Vector2f& vec, float threshold);
   };
 }

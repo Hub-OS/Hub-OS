@@ -52,6 +52,7 @@
         COLORIZE,
         ADDITIVE,
         PALETTE_SWAP,
+        GRADIENT,
         SHADER_TYPE_SIZE
     };
 #endif

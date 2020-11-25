@@ -16,6 +16,7 @@
 #include "../bnGridBackground.h"
 #include "../bnAudioResourceManager.h"
 #include "../bnSecretBackground.h"
+#include "../bnMessage.h"
 
 using namespace Poco;
 using namespace Net;

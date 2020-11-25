@@ -1,6 +1,6 @@
 imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/navis/generic/generic.png"
 
-animation state="OW_UR_WALK"
+animation state="WALK_UR"
 frame duration="0.1" x="141" y="43" w="18" h="34" originx="9" originy="31"
 frame duration="0.1" x="163" y="43" w="18" h="34" originx="9" originy="31"
 frame duration="0.1" x="183" y="43" w="18" h="34" originx="9" originy="31"
@@ -8,7 +8,7 @@ frame duration="0.1" x="204" y="43" w="18" h="34" originx="9" originy="31"
 frame duration="0.1" x="227" y="43" w="18" h="34" originx="9" originy="31"
 frame duration="0.1" x="248" y="43" w="18" h="34" originx="8" originy="31"
 
-animation state="OW_DR_WALK"
+animation state="WALK_DR"
 frame duration="0.1" x="142" y="79" w="18" h="34" originx="8" originy="31"
 frame duration="0.1" x="164" y="79" w="18" h="34" originx="8" originy="31"
 frame duration="0.1" x="183" y="79" w="18" h="34" originx="9" originy="31"
@@ -16,7 +16,7 @@ frame duration="0.1" x="205" y="79" w="18" h="34" originx="8" originy="31"
 frame duration="0.1" x="227" y="79" w="18" h="34" originx="9" originy="31"
 frame duration="0.1" x="248" y="79" w="18" h="34" originx="8" originy="31"
 
-animation state="OW_U_WALK"
+animation state="WALK_U"
 frame duration="0.1" x="141" y="116" w="18" h="34" originx="10" originy="31"
 frame duration="0.1" x="164" y="116" w="18" h="34" originx="9" originy="31"
 frame duration="0.1" x="184" y="116" w="18" h="34" originx="9" originy="31"
@@ -24,13 +24,13 @@ frame duration="0.1" x="205" y="116" w="18" h="34" originx="9" originy="31"
 frame duration="0.1" x="228" y="116" w="18" h="34" originx="9" originy="31"
 frame duration="0.1" x="248" y="116" w="18" h="34" originx="9" originy="31"
 
-animation state="OW_UR"
+animation state="IDLE_UR"
 frame duration="0.1" x="155" y="4" w="18" h="34" originx="9" originy="31"
 
-animation state="OW_DR"
+animation state="IDLE_DR"
 frame duration="0.1" x="131" y="4" w="18" h="34" originx="9" originy="31"
 
-animation state="OW_U"
+animation state="IDLE_U"
 frame duration="0.1" x="176" y="4" w="18" h="34" originx="9" originy="31"
 
 animation state="PLAYER_IDLE"

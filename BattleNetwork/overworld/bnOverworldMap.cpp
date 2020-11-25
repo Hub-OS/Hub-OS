@@ -137,7 +137,7 @@ namespace Overworld {
         sf::Sprite tileSprite = tileset.Graphic(ID);
         sf::Vector2f pos(j * tileWidth * 0.5f, i * tileHeight);
         auto iso = OrthoToIsometric(pos);
-        iso = sf::Vector2f((int)(std::ceil(iso.x)), (int)(std::floor(iso.y)));
+        iso = sf::Vector2f(iso.x, iso.y);
         tileSprite.setPosition(iso);
 
         auto color = tileSprite.getColor();
@@ -147,7 +147,7 @@ namespace Overworld {
         bool hover = (y == i && x == j);
 
         if (hover) {
-          tileSprite.setColor({ color.r, color.b, color.g, 60 });
+          tileSprite.setColor({ color.r, color.b, color.g, 200 });
         }
 
         if (/*cam && cam->IsInView(tileSprite)*/ true) {
@@ -163,7 +163,7 @@ namespace Overworld {
     for (int i = 0; i < sprites.size(); i++) {
       auto ortho = sprites[i].node->getPosition();
       auto iso = OrthoToIsometric(ortho);
-      iso = sf::Vector2f((int)(std::ceil(iso.x)), (int)(std::floor(iso.y)));
+      iso = sf::Vector2f(iso.x, iso.y);
 
       auto tileSprite = sprites[i].node;
       tileSprite->setPosition(iso);

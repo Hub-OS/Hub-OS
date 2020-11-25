@@ -40,6 +40,7 @@
     iiter iIter = iuniforms.begin();
     fiter fIter = funiforms.begin();
     vfiter vfIter = vfuniforms.begin();
+    coliter colIter = coluniforms.begin();
 
     for (; iIter != iuniforms.end(); iIter++) {
       ref->setUniform(iIter->first, iIter->second);
@@ -52,6 +53,18 @@
     for (; vfIter != vfuniforms.end(); vfIter++) {
       ref->setUniform(vfIter->first, vfIter->second);
     }
+
+    for (; colIter != coluniforms.end(); colIter++) {
+      sf::Color col = colIter->second;
+      ref->setUniform(colIter->first, 
+        sf::Glsl::Vec4{ 
+          col.r/255.f,
+          col.g/255.f, 
+          col.b/255.f, 
+          col.a/255.f 
+        }
+      );
+    }
   }
 
   void SmartShader::ResetUniforms() {
@@ -62,6 +75,7 @@
     iiter iIter = iuniforms.begin();
     fiter fIter = funiforms.begin();
     vfiter vfIter = vfuniforms.begin();
+    coliter colIter = coluniforms.begin();
 
     for (; iIter != iuniforms.end(); iIter++) {
       ref->setUniform(iIter->first, 0);
@@ -75,9 +89,14 @@
       ref->setUniform(vfIter->first, 0.f);
     }
 
+    for (; colIter != coluniforms.end(); colIter++) {
+      ref->setUniform(colIter->first, 0.f);
+    }
+
     iuniforms.clear();
     funiforms.clear();
     vfuniforms.clear();
+    coluniforms.clear();
   }
 
   void SmartShader::SetUniform(std::string uniform, float fvalue) {
@@ -90,6 +109,11 @@
 
   void SmartShader::SetUniform(std::string uniform, const sf::Vector2f& vfvalue) {
     vfuniforms[uniform] = vfvalue;
+  }
+
+  void SmartShader::SetUniform(std::string uniform, const sf::Color& colvalue)
+  {
+    coluniforms[uniform] = colvalue;
   }
 
   void SmartShader::Reset() {

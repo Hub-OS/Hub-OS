@@ -47,15 +47,28 @@ void Overworld::Actor::LoadAnimations(const std::string& path)
     MovementState::idle, MovementState::running, MovementState::walking
   };
 
-  for (auto dir : dir_array) {
-    for (auto state : state_array) {
-      std::string str = MovementAnimStrPrefix(state) + "_" + DirectionAnimStrSuffix(dir);
-      auto& [iter, success] = anims.insert(std::make_pair(str, Animation(path)));
+  auto loadDirectionalAnimationThunk = [=](Direction dir, MovementState state) {
+    std::string str = MovementAnimStrPrefix(state) + "_" + DirectionAnimStrSuffix(dir);
+    Animation anim = Animation(path);
+
+    if (anim.HasAnimation(str)) {
+      auto& [iter, success] = anims.insert(std::make_pair(str, anim));
 
       if (success) {
         iter->second.SetAnimation(str);
         iter->second << Animator::Mode::Loop;
+        validStates.push_back({ state, dir });
       }
+
+      return success;
+    }
+
+    return false;
+  };
+
+  for (auto dir : dir_array) {
+    for (auto state : state_array) {
+      loadDirectionalAnimationThunk(dir, state);
     }
   }
 }
@@ -102,7 +115,13 @@ sf::Vector2f Overworld::Actor::PositionInFrontOf() const
 
 void Overworld::Actor::Update(double elapsed)
 {
-  std::string stateStr = CurrentAnimStr();
+  std::string stateStr = FindValidAnimState(this->heading, this->state);
+
+  // If there is no supplied animation for the next state, ignore it
+  if (!anims.begin()->second.HasAnimation(stateStr)) {
+    stateStr = lastStateStr; 
+  }
+
   animProgress += elapsed;
 
   if (lastStateStr.empty() == false) {
@@ -200,6 +219,28 @@ sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float leng
   return offset;
 }
 
+Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec, float threshold)
+{
+  Direction first = Direction::none;
+  Direction second = Direction::none;
+
+  if (vec.x < -std::fabs(threshold)) {
+    first = Direction::left;
+  }
+  else if (vec.x > std::fabs(threshold)) {
+    first = Direction::right;
+  }
+
+  if (vec.y < -std::fabs(threshold)) {
+    second = Direction::up;
+  }
+  else if (vec.y > std::fabs(threshold)) {
+    second = Direction::down;
+  }
+
+  return Join(first, second);
+}
+
 std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
 {
   switch (state) {
@@ -212,6 +253,116 @@ std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
   }
 
   return "IDLE"; // default is IDLE
+}
+
+std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const MovementState& state)
+{
+  // If we do not have a matching state string, find the next best one:
+  // 1. Try using another vertical direction
+  // 2. Try using another horizontal direction
+  // 3. Try using another movement state
+  // Else bail
+
+  auto hasAnimStateThunk = [this](const Direction& dir, const MovementState& state) {
+    auto iter = std::find_if(validStates.begin(), validStates.end(),
+      [dir, state](const AnimStatePair& pair) {
+        return std::tie(dir, state) == std::tie(pair.dir, pair.movement);
+      });
+
+    return std::tuple{ iter != validStates.end(), dir, state };
+  };
+
+  auto attemptThunk = [](const std::initializer_list<std::tuple<bool, Direction, MovementState>>& ts) {
+    for(auto& item : ts) {
+      if (std::get<0>(item)) {
+        return AnimStatePair{ std::get<2>(item), std::get<1>(item) };
+      }
+    }
+
+    // bad state
+    return AnimStatePair{ MovementState::size, Direction::none };
+  };
+
+  auto str = MovementAnimStrPrefix(state) + "_" + DirectionAnimStrSuffix(Isometric(dir));
+
+  if (anims.begin()->second.HasAnimation(str) == false) {
+    auto& [ud, lr] = Split(Isometric(dir));
+    
+    std::map<Direction, std::initializer_list<std::tuple<bool, Direction, MovementState>>> attempts = {
+      {
+        Direction::left,
+        {
+          hasAnimStateThunk(Direction::up_left, state),
+          hasAnimStateThunk(Direction::down_left, state)
+        }
+      },
+
+      {
+        Direction::up_left,
+        {
+          hasAnimStateThunk(Direction::left, state),
+          hasAnimStateThunk(Direction::up, state)
+        }
+      },
+
+      {
+        Direction::up,
+        {
+          hasAnimStateThunk(Direction::up_left, state),
+          hasAnimStateThunk(Direction::up_right, state)
+        }
+      },
+
+      {
+        Direction::up_right,
+        {
+          hasAnimStateThunk(Direction::right, state),
+          hasAnimStateThunk(Direction::up, state)
+        }
+      },
+
+      {
+        Direction::right,
+        {
+          hasAnimStateThunk(Direction::up_right, state),
+          hasAnimStateThunk(Direction::down_right, state)
+        }
+      },
+
+      {
+        Direction::down_right,
+        {
+          hasAnimStateThunk(Direction::right, state),
+          hasAnimStateThunk(Direction::down, state)
+        }
+      },
+
+      {
+        Direction::down,
+        {
+          hasAnimStateThunk(Direction::down_left, state),
+          hasAnimStateThunk(Direction::down_right, state)
+        }
+      },
+
+      {
+        Direction::down_left,
+        {
+          hasAnimStateThunk(Direction::left, state),
+          hasAnimStateThunk(Direction::down, state)
+        }
+      }
+    };
+
+    AnimStatePair pair = attemptThunk(attempts[Isometric(dir)]);
+
+    // valid pair was found
+    if (pair.dir != Direction::none) {
+      return MovementAnimStrPrefix(pair.movement) + "_" + DirectionAnimStrSuffix(pair.dir);
+    }
+  }
+
+  return str;
 }
 
 std::string Overworld::Actor::DirectionAnimStrSuffix(const Direction& dir)

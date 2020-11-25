@@ -330,3 +330,8 @@ void Animation::SetInterruptCallback(const std::function<void()> onInterrupt)
 {
   interruptCallback = onInterrupt;
 }
+
+const bool Animation::HasAnimation(const std::string& state) const
+{
+  return animations.find(state) != animations.end();
+}

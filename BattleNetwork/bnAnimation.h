@@ -174,6 +174,9 @@ public:
   void SyncAnimation(Animation& other);
 
   void SetInterruptCallback(const std::function<void()> onInterrupt);
+
+  const bool HasAnimation(const std::string& state) const;
+
 private:
   /**
    * @brief Strips the key-value from a file format

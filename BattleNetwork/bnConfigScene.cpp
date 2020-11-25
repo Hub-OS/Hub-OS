@@ -1,6 +1,7 @@
 #include "bnConfigScene.h"
 #include <Swoosh/ActivityController.h>
 #include "Segues/WhiteWashFade.h"
+#include "Segues/BlackWashFade.h"
 #include "bnRobotBackground.h"
 
 // Columns. 

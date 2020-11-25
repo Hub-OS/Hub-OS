@@ -100,6 +100,7 @@ ShaderResourceManager::ShaderResourceManager(void) {
     paths[(int)ShaderType::COLORIZE] = std::string() + "resources/shaders/" + version + "/colorize";
     paths[(int)ShaderType::ADDITIVE] = std::string() + "resources/shaders/" + version + "/additive";
     paths[(int)ShaderType::PALETTE_SWAP] = std::string() + "resources/shaders/" + version + "/palette_swap";
+    paths[(int)ShaderType::GRADIENT] = std::string() + "resources/shaders/" + version + "/color_oscillate";
 }
 
 ShaderResourceManager::~ShaderResourceManager(void) {

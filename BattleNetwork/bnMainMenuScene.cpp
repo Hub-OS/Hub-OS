@@ -4,7 +4,16 @@
 #include "Android/bnTouchArea.h"
 
 #include "bnMainMenuScene.h"
+#include "bnFolderScene.h"
+#include "bnSelectNaviScene.h"
+#include "bnSelectMobScene.h"
+#include "bnLibraryScene.h"
+#include "bnConfigScene.h"
+#include "bnFolderScene.h"
+
 #include "bnCardFolderCollection.h"
+#include "bnLanBackground.h"
+#include "bnXmasBackground.h"
 #include "netplay/bnPVPScene.h"
 
 #include "Segues/PushIn.h"
@@ -52,7 +61,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   webAccountAnimator.SetAnimation("NO_CONNECTION");
 
   // Draws the scrolling background
-  bg = new LanBackground();
+  bg = new XmasBackground(); // new LanBackground();
 
   // Show the HUD
   showHUD = true;
@@ -118,12 +127,18 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   actor.setTexture(TEXTURES.LoadTextureFromFile("resources/navis/megaman/overworld.png"));
   actor.setPosition(200, 20);
   actor.CollideWithMap(map);
-
   playerController.ControlActor(actor);
+
+  // Test npc
+  npc.LoadAnimations("resources/navis/generic/generic.animation");
+  npc.setTexture(TEXTURES.LoadTextureFromFile("resources/navis/generic/generic.png"));
+  npc.CollideWithMap(map);
+  pathController.ControlActor(npc);
 
   // Share the camera
   map.SetCamera(&camera);
   map.AddSprite(&actor, 0);
+  map.AddSprite(&npc, 0);
   map.setScale(2.f, 2.f);
 
   // Load overworld assets
@@ -175,8 +190,22 @@ void MainMenuScene::onUpdate(double elapsed) {
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
       this->ResetMap();
+      map.setScale(2.f, 2.f);
+    } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp) && !scaledmap) {
+      map.setScale(map.getScale() * 1.25f);
+      scaledmap = true;
+    } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown) && !scaledmap) {
+      map.setScale(map.getScale() * 0.75f);
+      scaledmap = true;
     }
-    else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+
+    if (scaledmap
+      && !sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp)
+      && !sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown)) {
+      scaledmap = false;
+    }
+    
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !clicked) {
       auto tile = map.GetTileAt(click);
       tile.solid = false;
       tile.ID++;
@@ -184,13 +213,23 @@ void MainMenuScene::onUpdate(double elapsed) {
       if (tile.ID > 3) tile.ID = 1;
 
       map.SetTileAt(click, tile);
+
+      clicked = true;
     }
-    else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+    else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) && !clicked) {
       auto tile = map.GetTileAt(click);
       tile.solid = true;
       tile.ID = 0;
 
       map.SetTileAt(click, tile);
+
+      clicked = true;
+    }
+    else if (clicked
+      && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)
+      && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
+    {
+      clicked = false;
     }
   }
   else {
@@ -198,7 +237,10 @@ void MainMenuScene::onUpdate(double elapsed) {
   }
 
   playerController.Update(elapsed);
+  pathController.Update(elapsed);
+
   actor.Update(elapsed);
+  npc.Update(elapsed);
 
   // check to see if talk button was pressed
   if (textbox.IsClosed()) {
@@ -245,6 +287,30 @@ void MainMenuScene::onUpdate(double elapsed) {
   for (auto& t : trees) {
     treeAnim.Refresh(t->getSprite());
   };
+
+  static float ribbon_factor = 0;
+  static bool ribbon_bounce = false;
+
+  if (ribbon_factor >= 1.25f) {
+    ribbon_bounce = true;
+  }
+  else if (ribbon_factor <= -0.25f) {
+    ribbon_bounce = false;
+  }
+
+  if (ribbon_bounce) {
+    ribbon_factor -= static_cast<float>(elapsed * 1.6);
+  }
+  else {
+    ribbon_factor += static_cast<float>(elapsed * 1.6);
+  }
+
+  float input_factor = std::min(ribbon_factor, 1.0f);
+  input_factor = std::max(input_factor, 0.0f);
+
+  for (auto& r : ribbons) {
+    r->GetShader().SetUniform("factor", input_factor);
+  }
 
   coffeeAnim.SyncTime(animElapsed);
   for (auto& c : coffees) {
@@ -337,7 +403,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 
   // Follow the navi
   sf::Vector2f pos = map.ScreenToWorld(actor.getPosition());
-  pos = sf::Vector2f(pos.x*map.getScale().x, (int)std::ceil(pos.y*map.getScale().y+0.5f));
+  pos = sf::Vector2f(pos.x*map.getScale().x, pos.y*map.getScale().y);
   camera.PlaceCamera(pos);
 
   if (!gotoNextScene && textbox.IsClosed()) {
@@ -574,6 +640,7 @@ void MainMenuScene::ClearMap(unsigned rows, unsigned cols)
   coffees.clear();
   bulbs.clear();
   stars.clear();
+  ribbons.clear();
 }
 
 void MainMenuScene::ResetMap()
@@ -596,12 +663,30 @@ void MainMenuScene::ResetMap()
       actor.setPosition(places[0]);
     }
 
+    auto places2 = map.FindToken("S2");;
+    if (places2.size()) {
+      npc.setPosition(places2[0]);
+    }
+
     auto trees = map.FindToken("T");
     auto treeWBulb = map.FindToken("L");
     auto xmasTree = map.FindToken("X");
     auto warps = map.FindToken("W");
     auto coff = map.FindToken("C");
     auto gates = map.FindToken("G");
+    auto paths = map.FindToken("#");
+
+    pathController.ClearPoints();
+
+    // paths (NOTE: hacky for demo)
+    int first = 1;
+    for (auto pos : paths) {
+      pathController.AddPoint(pos);
+      if (first-- > 0) {
+        pathController.AddWait(frames(60));
+      }
+    }
+    pathController.AddWait(frames(60));
 
     // coffee
     for (auto pos : coff) {
@@ -702,9 +787,16 @@ void MainMenuScene::ResetMap()
       SpriteProxyNode* bulbs = new SpriteProxyNode();
       bulbs->setTexture(ornamentTexture);
       bulbs->SetLayer(-1);
+      bulbs->SetShader(SHADERS.GetShader(ShaderType::GRADIENT));
+
+      // hard-coded yellow to peach from original ribbon sprite
+      bulbs->GetShader().SetUniform("firstColor", { 248, 72, 4, 255 });
+      bulbs->GetShader().SetUniform("secondColor", { 248, 242, 114, 255 });
+
       xmasAnim << "bulbs_w_ribbon";
       xmasAnim.Refresh(bulbs->getSprite());
       new_tree->AddNode(bulbs);
+      ribbons.push_back(bulbs);
 
       SpriteProxyNode* lights = new SpriteProxyNode();
       lights->setTexture(ornamentTexture);
