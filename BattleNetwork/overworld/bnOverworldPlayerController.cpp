@@ -17,19 +17,19 @@ void Overworld::PlayerController::Update(double elapsed)
 
   if (listen) {
     if (INPUTx.Has(EventTypes::PRESSED_MOVE_LEFT) || INPUTx.Has(EventTypes::HELD_MOVE_LEFT)) {
-      inputs.push_back(Direction::left);
+      inputs.push_back(Direction::down_left);
     }
 
     if (INPUTx.Has(EventTypes::PRESSED_MOVE_RIGHT) || INPUTx.Has(EventTypes::HELD_MOVE_RIGHT)) {
-      inputs.push_back(Direction::right);
+      inputs.push_back(Direction::up_right);
     }
 
     if (INPUTx.Has(EventTypes::PRESSED_MOVE_UP) || INPUTx.Has(EventTypes::HELD_MOVE_UP)) {
-      inputs.push_back(Direction::up);
+      inputs.push_back(Direction::up_left);
     }
 
     if (INPUTx.Has(EventTypes::PRESSED_MOVE_DOWN) || INPUTx.Has(EventTypes::HELD_MOVE_DOWN)) {
-      inputs.push_back(Direction::down);
+      inputs.push_back(Direction::down_right);
     }
   }
 
