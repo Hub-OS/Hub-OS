@@ -208,9 +208,8 @@ void MainMenuScene::onUpdate(double elapsed) {
     if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !clicked) {
       auto tile = map.GetTileAt(click);
       tile.solid = false;
-      tile.ID++;
 
-      if (tile.ID > 3) tile.ID = 1;
+      tile.ID = ((++tile.ID) % map.GetTilesetItemCount()) + 1ull;
 
       map.SetTileAt(click, tile);
 
@@ -698,6 +697,7 @@ void MainMenuScene::ResetMap()
       // do not walk through coffee displays
       auto tile = map.GetTileAt(pos);
       tile.solid = true;
+      tile.ID = 2;
       map.SetTileAt(pos, tile);
     }
 

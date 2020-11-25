@@ -40,6 +40,8 @@ namespace Overworld {
 
       void Register(size_t ID, const sf::Sprite& sprite);
 
+      const size_t size() const;
+
     private:
       std::map<size_t, Item> idToSpriteHash;
     };
@@ -154,6 +156,8 @@ namespace Overworld {
      * @return const sf::Vector2i(tileWidth, tileHeight)
      */
     const sf::Vector2i GetTileSize() const;
+
+    const size_t GetTilesetItemCount() const;
 
     /**
      * @brief Returns a tile at the the pos

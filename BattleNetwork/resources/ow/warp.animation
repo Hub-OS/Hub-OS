@@ -1,8 +1,8 @@
 imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/ow/warp.png"
 
 animation state="default"
-frame duration="0.1" x="0" y="0" w="60" h="32" originx="25" originy="20"
-frame duration="0.1" x="61" y="0" w="60" h="32" originx="25" originy="20"
-frame duration="0.1" x="122" y="0" w="60" h="32" originx="25" originy="20"
-frame duration="0.1" x="183" y="0" w="60" h="32" originx="25" originy="20"
-frame duration="0.1" x="244" y="0" w="60" h="32" originx="25" originy="20"
+frame duration="0.1" x="0" y="0" w="60" h="32" originx="28" originy="20"
+frame duration="0.1" x="61" y="0" w="60" h="32" originx="28" originy="20"
+frame duration="0.1" x="122" y="0" w="60" h="32" originx="28" originy="20"
+frame duration="0.1" x="183" y="0" w="60" h="32" originx="28" originy="20"
+frame duration="0.1" x="244" y="0" w="60" h="32" originx="28" originy="20"

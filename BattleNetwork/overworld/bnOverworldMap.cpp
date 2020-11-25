@@ -7,6 +7,9 @@
 namespace Overworld {
   Map::Map() :
     sf::Drawable(), sf::Transformable() {
+    // NOTE: hard coded tilesets for now
+    tileWidth = 62 + 2.5f; // calculated by hand. the offsets seem important.
+    tileHeight = 32 + 0.5f; // calculated by hand. the offsets seem important.
   }
 
   void Map::Load(Map::Tileset tileset, Map::Tile** tiles, unsigned cols, unsigned rows)
@@ -15,10 +18,6 @@ namespace Overworld {
     this->tiles = tiles;
     this->cols = cols;
     this->rows = rows;
-
-    // NOTE: hard coded tilesets for now
-    tileWidth = 47;
-    tileHeight = 24;
   }
 
   void Map::ToggleLighting(bool state) {
@@ -193,6 +192,11 @@ namespace Overworld {
 
   const sf::Vector2i Map::GetTileSize() const { return sf::Vector2i(tileWidth, tileHeight); }
 
+  const size_t Map::GetTilesetItemCount() const
+  {
+    return tileset.size();
+  }
+
   const std::pair<bool, Map::Tile**> Map::LoadFromFile(Map& map, const std::string& path)
   {
     std::ifstream file(path.c_str());
@@ -262,21 +266,23 @@ namespace Overworld {
 
     // default tileset code for now:
     auto texture = TEXTURES.LoadTextureFromFile("resources/ow/basic_tileset.png");
-    sf::Sprite blue, green, pink;
-    blue.setTexture(*texture);
-    blue.setTextureRect(sf::IntRect{0, 0, 47, 30});
-    blue.setOrigin(sf::Vector2f(23, 5));
-    green.setTexture(*texture);
-    green.setTextureRect(sf::IntRect{47, 0, 47, 30});
-    green.setOrigin(sf::Vector2f(23, 5));
-    pink.setTexture(*texture);
-    pink.setTextureRect(sf::IntRect{94, 0, 47, 30});
-    pink.setOrigin(sf::Vector2f(23, 5));
+ 
+    std::vector<sf::Sprite> items;
+
+    for (size_t index = 0; index < 3; index++) {
+      sf::Sprite item;
+      item.setTexture(*texture);
+      item.setTextureRect(sf::IntRect{ 62 * static_cast<int>(index), 0, 62, 49 });
+      item.setOrigin(sf::Vector2f((map.tileWidth * 0.5f) - 2.0f, 2.0f));
+      items.push_back(item);
+    }
 
     Map::Tileset tileset{};
-    tileset.Register(1, blue);
-    tileset.Register(2, green);
-    tileset.Register(3, pink);
+
+    size_t i = 1;
+    for (auto& item : items) {
+      tileset.Register(i++, item);
+    }
 
     map.Load(tileset, tiles, cols, rows);
     map.SetName(name);
@@ -341,6 +347,10 @@ namespace Overworld {
   {
     Tileset::Item item{ sprite };
     idToSpriteHash.insert(std::make_pair(ID, item));
+  }
+  const size_t Map::Tileset::size() const
+  {
+    return idToSpriteHash.size();
   }
 }
 

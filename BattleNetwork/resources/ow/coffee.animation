@@ -1,7 +1,7 @@
 imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/ow/coffee.png"
 
 animation state="default"
-frame duration="0.1" x="0" y="0" w="32" h="54" originx="16" originy="50"
-frame duration="0.1" x="34" y="0" w="32" h="54" originx="16" originy="50"
-frame duration="0.1" x="68" y="0" w="32" h="54" originx="16" originy="50"
-frame duration="0.1" x="102" y="0" w="32" h="54" originx="16" originy="50"
+frame duration="0.1" x="0" y="0" w="32" h="54" originx="15" originy="49"
+frame duration="0.1" x="34" y="0" w="32" h="54" originx="15" originy="49"
+frame duration="0.1" x="68" y="0" w="32" h="54" originx="15" originy="49"
+frame duration="0.1" x="102" y="0" w="32" h="54" originx="15" originy="49"
