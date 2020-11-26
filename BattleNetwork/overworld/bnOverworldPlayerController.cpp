@@ -31,6 +31,21 @@ void Overworld::PlayerController::Update(double elapsed)
     if (INPUTx.Has(EventTypes::PRESSED_MOVE_DOWN) || INPUTx.Has(EventTypes::HELD_MOVE_DOWN)) {
       inputs.push_back(Direction::down_right);
     }
+
+    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+      Direction facing = actor->GetHeading();
+
+      for (auto other : actor->GetQuadTree()->GetActors()) {
+        if (actor == other) continue;
+
+        auto& [hit, _] = actor->CollidesWith(*other, Actor::MakeVectorFromDirection(facing, 5.0f));
+        if (hit) {
+          actor->Face(facing);
+          other->Interact(*this->actor);
+          return;
+        }
+      }
+    }
   }
 
   Direction dir = Direction::none;

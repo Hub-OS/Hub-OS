@@ -140,86 +140,12 @@ void Overworld::Actor::Update(double elapsed)
     anims[stateStr].Refresh(getSprite());
     lastStateStr = stateStr;
   }
+  
+  if (state != MovementState::idle) {
+    auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed);
 
-  double px_per_s = 0;
-
-  if (state == MovementState::running) {
-    px_per_s = GetRunSpeed()*elapsed;
-  }
-  else if (state == MovementState::walking) {
-    px_per_s = GetWalkSpeed()*elapsed;
-  }
-
-  auto lastPos = getPosition();
-
-  // moves in our heading direction
-  move(MakeVectorFromDirection(GetHeading(), static_cast<float>(px_per_s)));
-
-  /**
-  * After updating the actor, we are moved to a new location
-  * We do a post-check to see if we collided with anything marked solid
-  * If so, we adjust the displacement or halt the actor
-  **/
-
-  auto newPos = getPosition();
-
-  if (currSector) {
-    for (auto actor : currSector->actors) {
-      if (actor == this) continue;
-
-      if (CollidesWith(*actor)) {
-        auto diff = newPos - lastPos;
-        auto& [first, second] = Split(GetHeading());
-
-        setPosition(lastPos);
-
-        if (second != Direction::none) {
-          setPosition(lastPos);
-
-          // split vector into parts and try each individual segment
-          auto diffx = diff;
-          diffx.y = 0;
-
-          auto diffy = diff;
-          diffy.x = 0;
-
-
-          if (CollidesWith(*actor, diffx)) {
-            setPosition(lastPos + diffx);
-          }
-
-          if (CollidesWith(*actor, diffy)) {
-            setPosition(lastPos + diffy);
-          }
-        }
-      }
-    }
-  }
-
-  if (map && map->GetTileAt(newPos).solid) {
-    auto diff = newPos - lastPos;
-    auto& [first, second] = Split(GetHeading());
-
-    setPosition(lastPos);
-
-    if (second != Direction::none) {
-      setPosition(lastPos);
-
-      // split vector into parts and try each individual segment
-      auto diffx = diff;
-      diffx.y = 0;
-
-      auto diffy = diff;
-      diffy.x = 0;
-
-      if (map->GetTileAt(lastPos + diffx).solid == false) {
-        setPosition(lastPos + diffx);
-      }
-
-      if (map->GetTileAt(lastPos + diffy).solid == false) {
-        setPosition(lastPos + diffy);
-      }
-    }
+    // We don't care about success or not, update the best position
+    setPosition(new_pos);
   }
 }
 
@@ -249,18 +175,8 @@ sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float leng
     }
   };
 
-  // The referenced games did not use isometric coordinates
-  // and moved uniformly in screen-space
-  // These 2 cases are quicker in isometric space because it is extremely 
-  // negative or positive for both x and y.
-  bool normalize = dir == Direction::up_right || dir == Direction::down_left;
-
   updateOffsetThunk(a, &offset, length);
   updateOffsetThunk(b, &offset, length);
-
-  if (normalize) {
-    offset *= 0.5f;
-  }
 
   return offset;
 }
@@ -287,9 +203,9 @@ Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec, flo
   return Join(first, second);
 }
 
-void Overworld::Actor::WatchForCollisions(QuadTree& sector)
+void Overworld::Actor::CollideWithQuadTree(QuadTree& sector)
 {
-  this->currSector = &sector;
+  this->quadTree = &sector;
 }
 
 void Overworld::Actor::SetCollisionRadius(double radius)
@@ -297,12 +213,112 @@ void Overworld::Actor::SetCollisionRadius(double radius)
   this->collisionRadius = radius;
 }
 
-const bool Overworld::Actor::CollidesWith(const Actor& actor, const sf::Vector2f& offset)
+void Overworld::Actor::SetInteractCallback(const std::function<void(Actor&)>& func)
 {
-  auto delta = actor.getPosition() - (getPosition() + offset);
-  double distance = std::pow(delta.x, 2.0) + std::pow(delta.y, 2.0);
+  this->onInteractFunc = func;
+}
 
-  return distance < std::pow(actor.collisionRadius + collisionRadius, 2.0);
+void Overworld::Actor::Interact(Actor& with)
+{
+  if (this->onInteractFunc) {
+    this->onInteractFunc(with);
+  }
+}
+
+const std::pair<bool, sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& actor, const sf::Vector2f& offset)
+{
+  auto delta = (getPosition() + offset) - actor.getPosition();
+  float distance = std::sqrt(std::pow(delta.x, 2.0) + std::pow(delta.y, 2.0));
+  float sumOfRadii = actor.collisionRadius + collisionRadius;
+  auto delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
+
+  // suggested point of collision is the edge of the circle
+  auto vec = actor.getPosition() + (delta_unit * static_cast<float>(sumOfRadii));
+
+  // return collision status and point of potential intersection
+  return { distance < sumOfRadii, vec };
+}
+
+const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, MovementState state, double elapsed)
+{
+  double px_per_s = 0;
+
+  if (state == MovementState::running) {
+    px_per_s = GetRunSpeed() * elapsed;
+  }
+  else if (state == MovementState::walking) {
+    px_per_s = GetWalkSpeed() * elapsed;
+  }
+
+  auto currPos = getPosition();
+  auto offset = MakeVectorFromDirection(dir, static_cast<float>(px_per_s));
+  auto newPos = currPos + offset;
+
+  auto& [first, second] = Split(dir);
+
+  /**
+  * Check if colliding with the map
+  * This should be a cheaper check to do first 
+  * before checking neighboring actors
+  */
+  if (map && map->GetTileAt(newPos).solid) {
+    if (second != Direction::none) {
+      // split vector into parts and try each individual segment
+      auto diffx = offset;
+      diffx.y = 0;
+
+      auto diffy = offset;
+      diffy.x = 0;
+
+      newPos = currPos;
+
+      if (map->GetTileAt(currPos + diffx).solid == false) {
+        newPos = currPos + diffx;
+      }
+
+      if (map->GetTileAt(currPos + diffy).solid == false) {
+        newPos = currPos + diffy;
+      }
+
+      return { false, newPos };
+    }
+
+    return { false, currPos }; // Otherwise, we cannot move
+  }
+
+  /**
+  * If we can move forward, check neighboring actors
+  */
+  if (quadTree) {
+    for (auto actor : quadTree->actors) {
+      if (actor == this) continue;
+
+      auto& [hit, circle_edge] = CollidesWith(*actor, offset);
+
+      if (hit) {
+        return { false, circle_edge };
+      }
+    }
+  }
+
+  // The referenced games did not use isometric coordinates
+  // and moved uniformly in screen-space.
+  // These 2 cases are quicker in isometric space because it is extremely 
+  // negative or positive for both x and y.
+  bool normalize = dir == Direction::up_right || dir == Direction::down_left;
+
+  if (normalize) {
+    // If we are clearly moving in these extreme directions, nerf the result
+    newPos = currPos + (offset * 0.5f);
+  }
+
+  // There were no obstructions
+  return { true, newPos };
+}
+
+const Overworld::QuadTree* Overworld::Actor::GetQuadTree()
+{
+  return quadTree;
 }
 
 std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
@@ -455,4 +471,11 @@ std::string Overworld::Actor::DirectionAnimStrSuffix(const Direction& dir)
   }
 
   return "D"; // default is down
+}
+
+// class QuadTree
+
+std::vector<Overworld::Actor*> Overworld::QuadTree::GetActors() const
+{
+  return this->actors;
 }

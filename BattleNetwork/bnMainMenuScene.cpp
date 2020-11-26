@@ -124,9 +124,9 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
 
   // Spawn overworld player
   actor.setPosition(200, 20);
-  actor.SetCollisionRadius(8);
+  actor.SetCollisionRadius(6);
   actor.CollideWithMap(map);
-  actor.WatchForCollisions(quadTree);
+  actor.CollideWithQuadTree(quadTree);
 
   playerController.ControlActor(actor);
 
@@ -134,8 +134,25 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   npc.LoadAnimations("resources/mobs/iceman/iceman_OW.animation");
   npc.setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
   npc.CollideWithMap(map);
-  npc.SetCollisionRadius(8);
-  npc.WatchForCollisions(quadTree);
+  npc.SetCollisionRadius(6);
+  npc.CollideWithQuadTree(quadTree);
+  npc.SetInteractCallback([=](Overworld::Actor& with) {
+    // Interrupt pathing until new condition is met
+    pathController.InterruptUntil([=] {
+      return textbox.IsClosed();
+    });
+    // if player interacted with us
+    if (&with == &actor && textbox.IsClosed()) {
+      // Face them
+      npc.Face(Reverse(with.GetHeading()));
+
+      // Play message
+      sf::Sprite face;
+      face.setTexture(*TEXTURES.LoadTextureFromFile("resources/mobs/iceman/ice_mug.png"));
+      textbox.EnqueMessage(face, "resources/mobs/iceman/mug.animation", new Message("Can't talk! Xmas is only 30 days away!"));
+      textbox.Open();
+    }
+  });
 
   pathController.ControlActor(npc);
 
@@ -243,12 +260,6 @@ void MainMenuScene::onUpdate(double elapsed) {
     playerController.ListenToInputEvents(false);
   }
 
-  playerController.Update(elapsed);
-  pathController.Update(elapsed);
-
-  actor.Update(elapsed);
-  npc.Update(elapsed);
-
   // check to see if talk button was pressed
   if (textbox.IsClosed()) {
     if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
@@ -286,8 +297,17 @@ void MainMenuScene::onUpdate(double elapsed) {
   }
 
   /**
-  * update all overworld animations
+  * update all overworld objects and animations
   */
+
+  // objects
+  playerController.Update(elapsed);
+  pathController.Update(elapsed);
+
+  actor.Update(elapsed);
+  npc.Update(elapsed);
+
+  // animations
   animElapsed += elapsed;
 
   treeAnim.SyncTime(animElapsed);
@@ -569,6 +589,13 @@ void MainMenuScene::onEnd() {
 
 void MainMenuScene::RefreshNaviSprite()
 {
+  static SelectedNavi lastSelectedNavi = 0;
+
+  // Only refresh all data and graphics if this is a new navi
+  if (lastSelectedNavi == currentNavi) return;
+
+  lastSelectedNavi = currentNavi;
+
   auto& meta = NAVIS.At(currentNavi);
 
   // refresh menu widget too

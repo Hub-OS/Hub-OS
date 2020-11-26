@@ -8,6 +8,11 @@ void Overworld::PathController::ControlActor(Actor& actor)
 
 void Overworld::PathController::Update(double elapsed)
 {
+  if (interruptCondition && !interruptCondition()) return;
+
+  // free interrupt condition
+  interruptCondition = nullptr;
+  
   if (actions.isEmpty()) {
     for (auto& command : commands) {
       command();
@@ -15,6 +20,7 @@ void Overworld::PathController::Update(double elapsed)
   }
 
   actions.update(elapsed);
+
 }
 
 void Overworld::PathController::AddPoint(const sf::Vector2f& point)
@@ -40,6 +46,11 @@ void Overworld::PathController::ClearPoints() {
   commands.clear();
 }
 
+void Overworld::PathController::InterruptUntil(const std::function<bool()>& condition)
+{
+  interruptCondition = condition;
+}
+
 // class PathController::MoveToCommand
 
 Overworld::PathController::MoveToCommand::MoveToCommand(Overworld::Actor* actor, const sf::Vector2f& dest) :
@@ -57,7 +68,16 @@ void Overworld::PathController::MoveToCommand::update(double elapsed)
     float mag = std::sqrtf((vec.x * vec.x) + (vec.y * vec.y));
 
     if (mag > 1.f) {
-      actor->Walk(Actor::MakeDirectionFromVector(vec, 0.5f));
+      Direction dir = Actor::MakeDirectionFromVector(vec, 0.5f);
+
+      auto& [success, _] = actor->CanMoveTo(dir, Actor::MovementState::walking, elapsed);
+
+      if (success) {
+        actor->Walk(dir);
+      }
+      else {
+        actor->Face(dir);
+      }
     }
     else {
       markDone();

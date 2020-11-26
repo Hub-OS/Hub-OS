@@ -17,6 +17,8 @@ namespace Overworld {
   // temp class
   struct QuadTree {
     std::vector<Actor*> actors;
+
+    std::vector<Actor*> GetActors() const;
   };
 
   class Actor : public SpriteProxyNode {
@@ -44,8 +46,9 @@ namespace Overworld {
     sf::Vector2f pos{}; //!< 2d position in cartesian coordinates
     std::string name{}; //!< name of this character
     std::string lastStateStr{}; //!< String representing the last frame's state name
+    std::function<void(Actor& with)> onInteractFunc; //!< What happens if an actor interacts with the other
     double collisionRadius{ 1.0 };
-    QuadTree* currSector{ nullptr };
+    QuadTree* quadTree{ nullptr };
 
     // aux functions
     std::string DirectionAnimStrSuffix(const Direction& dir);
@@ -181,8 +184,13 @@ namespace Overworld {
     */
     static Direction MakeDirectionFromVector(const sf::Vector2f& vec, float threshold);
 
-    void WatchForCollisions(QuadTree& sector);
+    void CollideWithQuadTree(QuadTree& sector);
     void SetCollisionRadius(double radius);
-    const bool CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
+    void SetInteractCallback(const std::function<void(Actor&)>& func);
+    void Interact(Actor& with);
+
+    const std::pair<bool, sf::Vector2f> CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
+    const std::pair<bool, sf::Vector2f> CanMoveTo(Direction dir, MovementState state, double elapsed);
+    const QuadTree* GetQuadTree();
   };
 }

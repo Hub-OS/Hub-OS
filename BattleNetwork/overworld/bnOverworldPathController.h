@@ -10,6 +10,7 @@ namespace Overworld {
     Overworld::Actor* actor{ nullptr };
     swoosh::ActionList actions;
     std::vector<std::function<void()>> commands;
+    std::function<bool()> interruptCondition;
   public:
     class MoveToCommand : public swoosh::BlockingActionItem {
     private:
@@ -36,5 +37,6 @@ namespace Overworld {
     void AddPoint(const sf::Vector2f& point);
     void AddWait(const frame_time_t& frames);
     void ClearPoints();
+    void InterruptUntil(const std::function<bool()>& condition);
   };
 }

@@ -75,7 +75,13 @@ namespace Overworld {
       { 
         int A_layer_inv = -A.layer;
         int B_layer_inv = -B.layer;
-        return std::tie(A_layer_inv, A.node->getPosition().y) < std::tie(B_layer_inv, B.node->getPosition().y);
+
+        auto A_pos = A.node->getPosition();
+        auto B_pos = B.node->getPosition();
+        auto A_compare = A_pos.x + A_pos.y;
+        auto B_compare = B_pos.x + B_pos.y;
+
+        return std::tie(A_layer_inv, A_compare) < std::tie(B_layer_inv, B_compare);
       }
     );
 
