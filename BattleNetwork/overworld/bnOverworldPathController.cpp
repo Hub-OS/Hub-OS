@@ -57,7 +57,7 @@ void Overworld::PathController::MoveToCommand::update(double elapsed)
     float mag = std::sqrtf((vec.x * vec.x) + (vec.y * vec.y));
 
     if (mag > 1.f) {
-      actor->Walk(Actor::MakeDirectionFromVector(vec, 1.0f));
+      actor->Walk(Actor::MakeDirectionFromVector(vec, 0.5f));
     }
     else {
       markDone();

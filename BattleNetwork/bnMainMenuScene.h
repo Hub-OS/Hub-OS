@@ -32,6 +32,7 @@ private:
   Overworld::Actor actor{ "Test" }, npc{ "NPC" };
   Overworld::PlayerController playerController{};
   Overworld::PathController pathController{};
+  Overworld::QuadTree quadTree{};
 
   Camera camera; /*!< camera in scene follows megaman */
   bool showHUD; /*!< Toggle HUD. Used in debugging. */

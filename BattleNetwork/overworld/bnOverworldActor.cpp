@@ -163,6 +163,39 @@ void Overworld::Actor::Update(double elapsed)
 
   auto newPos = getPosition();
 
+  if (currSector) {
+    for (auto actor : currSector->actors) {
+      if (actor == this) continue;
+
+      if (CollidesWith(*actor)) {
+        auto diff = newPos - lastPos;
+        auto& [first, second] = Split(GetHeading());
+
+        setPosition(lastPos);
+
+        if (second != Direction::none) {
+          setPosition(lastPos);
+
+          // split vector into parts and try each individual segment
+          auto diffx = diff;
+          diffx.y = 0;
+
+          auto diffy = diff;
+          diffy.x = 0;
+
+
+          if (CollidesWith(*actor, diffx)) {
+            setPosition(lastPos + diffx);
+          }
+
+          if (CollidesWith(*actor, diffy)) {
+            setPosition(lastPos + diffy);
+          }
+        }
+      }
+    }
+  }
+
   if (map && map->GetTileAt(newPos).solid) {
     auto diff = newPos - lastPos;
     auto& [first, second] = Split(GetHeading());
@@ -216,8 +249,18 @@ sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float leng
     }
   };
 
+  // The referenced games did not use isometric coordinates
+  // and moved uniformly in screen-space
+  // These 2 cases are quicker in isometric space because it is extremely 
+  // negative or positive for both x and y.
+  bool normalize = dir == Direction::up_right || dir == Direction::down_left;
+
   updateOffsetThunk(a, &offset, length);
   updateOffsetThunk(b, &offset, length);
+
+  if (normalize) {
+    offset *= 0.5f;
+  }
 
   return offset;
 }
@@ -244,6 +287,24 @@ Direction Overworld::Actor::MakeDirectionFromVector(const sf::Vector2f& vec, flo
   return Join(first, second);
 }
 
+void Overworld::Actor::WatchForCollisions(QuadTree& sector)
+{
+  this->currSector = &sector;
+}
+
+void Overworld::Actor::SetCollisionRadius(double radius)
+{
+  this->collisionRadius = radius;
+}
+
+const bool Overworld::Actor::CollidesWith(const Actor& actor, const sf::Vector2f& offset)
+{
+  auto delta = actor.getPosition() - (getPosition() + offset);
+  double distance = std::pow(delta.x, 2.0) + std::pow(delta.y, 2.0);
+
+  return distance < std::pow(actor.collisionRadius + collisionRadius, 2.0);
+}
+
 std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
 {
   switch (state) {
@@ -260,10 +321,12 @@ std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
 
 std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const MovementState& state)
 {
-  // If we do not have a matching state string, find the next best one:
+  // Some animations do not need to be provided (like cardinal-facing left or right)
+  // when others can be substituted
+  //
+  // If we do not have a matching state animation, find the next best one:
   // 1. Try using another vertical direction
   // 2. Try using another horizontal direction
-  // 3. Try using another movement state
   // Else bail
 
   auto hasAnimStateThunk = [this](const Direction& dir, const MovementState& state) {

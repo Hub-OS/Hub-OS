@@ -124,14 +124,24 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
 
   // Spawn overworld player
   actor.setPosition(200, 20);
+  actor.SetCollisionRadius(8);
   actor.CollideWithMap(map);
+  actor.WatchForCollisions(quadTree);
+
   playerController.ControlActor(actor);
 
   // Test npc
-  npc.LoadAnimations("resources/navis/generic/generic.animation");
-  npc.setTexture(TEXTURES.LoadTextureFromFile("resources/navis/generic/generic.png"));
+  npc.LoadAnimations("resources/mobs/iceman/iceman_OW.animation");
+  npc.setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
   npc.CollideWithMap(map);
+  npc.SetCollisionRadius(8);
+  npc.WatchForCollisions(quadTree);
+
   pathController.ControlActor(npc);
+
+  // Pre-populate the quadtree
+  quadTree.actors.push_back(&actor);
+  quadTree.actors.push_back(&npc);
 
   // Share the camera
   map.SetCamera(&camera);

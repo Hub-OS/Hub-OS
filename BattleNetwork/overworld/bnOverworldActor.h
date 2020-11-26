@@ -13,6 +13,12 @@ namespace Overworld {
   */
   class Map;
 
+  class Actor;
+  // temp class
+  struct QuadTree {
+    std::vector<Actor*> actors;
+  };
+
   class Actor : public SpriteProxyNode {
   public:
     enum class MovementState : unsigned char {
@@ -38,7 +44,8 @@ namespace Overworld {
     sf::Vector2f pos{}; //!< 2d position in cartesian coordinates
     std::string name{}; //!< name of this character
     std::string lastStateStr{}; //!< String representing the last frame's state name
-    // TODO: collision
+    double collisionRadius{ 1.0 };
+    QuadTree* currSector{ nullptr };
 
     // aux functions
     std::string DirectionAnimStrSuffix(const Direction& dir);
@@ -173,5 +180,9 @@ namespace Overworld {
     * @return Direction to be used in motion and state cases
     */
     static Direction MakeDirectionFromVector(const sf::Vector2f& vec, float threshold);
+
+    void WatchForCollisions(QuadTree& sector);
+    void SetCollisionRadius(double radius);
+    const bool CollidesWith(const Actor& actor, const sf::Vector2f& offset = sf::Vector2f{});
   };
 }
