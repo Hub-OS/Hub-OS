@@ -16,6 +16,15 @@
  * are cleaned up.
  */
 
+#include <time.h>
+#include <queue>
+#include <atomic>
+#include <cmath>
+#include <Swoosh/ActivityController.h>
+#include <Swoosh/Ease.h>
+#include <Segues/DiamondTileCircle.h>
+#include <SFML/System.hpp>
+
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
@@ -24,21 +33,12 @@
 #include "bnInputManager.h"
 #include "bnEngine.h"
 #include "bnGameOverScene.h"
-#include "bnMainMenuScene.h"
 #include "bnAnimator.h"
 #include "bnConfigReader.h"
 #include "bnConfigScene.h"
 #include "cxxopts/cxxopts.hpp"
 #include "netplay/bnNetPlayConfig.h"
-#include "Segues/DiamondTileCircle.h"
-
-#include <time.h>
-#include <queue>
-#include <atomic>
-#include <cmath>
-#include <Swoosh/ActivityController.h>
-#include <Swoosh/Ease.h>
-#include <SFML/System.hpp>
+#include "overworld/bnOverworldHomepage.h"
 
 #define ONB_REGION_JAPAN 0
 #define ONB_ENABLE_PIXELATE_GFX 0
@@ -854,7 +854,7 @@ int main(int argc, char** argv) {
     app.push<GameOverScene>();
 
     // We want the next screen to be the main menu screen
-    app.push<MainMenuScene>(loginSelected && selected > 0);
+    app.push<Overworld::Homepage>(loginSelected && selected > 0);
 
     if (!loginSelected && selected > 0) {
       app.push<ConfigScene>();

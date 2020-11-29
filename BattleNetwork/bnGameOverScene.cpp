@@ -1,7 +1,9 @@
-#include "bnGameOverScene.h"
-#include "bnMainMenuScene.h"
-#include "Segues/WhiteWashFade.h"
 #include <Swoosh/ActivityController.h>
+#include <Segues/WhiteWashFade.h>
+
+#include "bnGameOverScene.h"
+#include "overworld/bnOverworldHomepage.h"
+
 
 using namespace swoosh::types;
 
@@ -50,7 +52,7 @@ void GameOverScene::onUpdate(double elapsed) {
       leave = false;
 
       using effect = segue<WhiteWashFade, milliseconds<500>>;
-      getController().push<effect::to<MainMenuScene>>(!WEBCLIENT.IsLoggedIn());
+      getController().push<effect::to<Overworld::Homepage>>(!WEBCLIENT.IsLoggedIn());
     }
   }
 }

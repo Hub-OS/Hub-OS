@@ -6,17 +6,14 @@
 #include <Poco/Net/HTTPRequest.h>
 #include <Poco/Net/HTTPResponse.h>
 #include <Poco/Net/IPAddress.h>
+#include <Segues/PushIn.h>
 
 #include "bnPVPScene.h"
-#include "battlescene/bnNetworkBattleScene.h"
-
-#include "Segues/PushIn.h"
-
-#include "../bnMainMenuScene.h"
 #include "../bnGridBackground.h"
 #include "../bnAudioResourceManager.h"
 #include "../bnSecretBackground.h"
 #include "../bnMessage.h"
+#include "battlescene/bnNetworkBattleScene.h"
 
 using namespace Poco;
 using namespace Net;

@@ -2,8 +2,9 @@
 
 #pragma once
 #include <Swoosh/Activity.h>
+#include <SFML/Graphics.hpp>
+#include <time.h>
 
-#include "bnMainMenuScene.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
@@ -15,14 +16,15 @@
 #include "bnConfigWriter.h"
 #include "bnAnimatedTextBox.h"
 #include "bnMessageQuestion.h"
-#include <SFML/Graphics.hpp>
-#include <time.h>
 
 /*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
     \warning This scene was made in a clear conscious and is in no way an example of good code design.
 
     This could use a redesign (and re-code)
 */
+
+class Background;
+
 class ConfigScene : public swoosh::Activity {
 private:
   ConfigSettings configSettings;

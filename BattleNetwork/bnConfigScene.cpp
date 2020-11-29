@@ -1,8 +1,10 @@
-#include "bnConfigScene.h"
 #include <Swoosh/ActivityController.h>
-#include "Segues/WhiteWashFade.h"
-#include "Segues/BlackWashFade.h"
+#include <Segues/WhiteWashFade.h>
+#include <Segues/BlackWashFade.h>
+
+#include "bnConfigScene.h"
 #include "bnRobotBackground.h"
+#include "bnWebClientMananger.h"
 
 // Columns. 
 const constexpr int OPTIONS   = 0; // First column is top-level menu (option)

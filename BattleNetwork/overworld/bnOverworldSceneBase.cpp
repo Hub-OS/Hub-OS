@@ -1,25 +1,25 @@
 #include <Swoosh/ActivityController.h>
-#include "bnWebClientMananger.h"
+#include <Segues/PushIn.h>
+#include <Segues/Checkerboard.h>
+#include <Segues/PixelateBlackWashFade.h>
+#include <Segues/DiamondTileSwipe.h>
 
-#include "Android/bnTouchArea.h"
+#include "bnOverworldSceneBase.h"
 
-#include "bnMainMenuScene.h"
-#include "bnFolderScene.h"
-#include "bnSelectNaviScene.h"
-#include "bnSelectMobScene.h"
-#include "bnLibraryScene.h"
-#include "bnConfigScene.h"
-#include "bnFolderScene.h"
+#include "../bnWebClientMananger.h"
+#include "../Android/bnTouchArea.h"
 
-#include "bnCardFolderCollection.h"
-#include "bnLanBackground.h"
-#include "bnXmasBackground.h"
-#include "netplay/bnPVPScene.h"
+#include "../bnFolderScene.h"
+#include "../bnSelectNaviScene.h"
+#include "../bnSelectMobScene.h"
+#include "../bnLibraryScene.h"
+#include "../bnConfigScene.h"
+#include "../bnFolderScene.h"
 
-#include "Segues/PushIn.h"
-#include "Segues/Checkerboard.h"
-#include "Segues/PixelateBlackWashFade.h"
-#include "Segues/DiamondTileSwipe.h"
+#include "../bnCardFolderCollection.h"
+#include "../bnLanBackground.h"
+#include "../bnXmasBackground.h"
+#include "../netplay/bnPVPScene.h"
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -30,21 +30,20 @@ using namespace swoosh::types;
 
 
 /// \brief Thunk to populate menu options to callbacks
-auto MakeOptions = [] (MainMenuScene* scene) -> MenuWidget::OptionsList {
+auto MakeOptions = [] (Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
   return {
-    { "chip_folder", std::bind(&MainMenuScene::GotoChipFolder, scene) },
-    { "navi",        std::bind(&MainMenuScene::GotoNaviSelect, scene) },
-    { "mob_select",  std::bind(&MainMenuScene::GotoMobSelect, scene) },
-    { "config",      std::bind(&MainMenuScene::GotoConfig, scene) },
-    { "sync",        std::bind(&MainMenuScene::GotoPVP, scene) }
+    { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
+    { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
+    { "mob_select",  std::bind(&Overworld::SceneBase::GotoMobSelect, scene) },
+    { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) },
+    { "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }
   };
 };
 
-MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestAccount) :
+Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool guestAccount) :
   guestAccount(guestAccount),
   camera(ENGINE.GetView()),
   lastIsConnectedState(false),
-  showHUD(true),
   menuWidget("Overworld", MakeOptions(this)),
   textbox({ 4, 255 }),
   swoosh::Activity(&controller)
@@ -62,9 +61,6 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
 
   // Draws the scrolling background
   bg = new XmasBackground(); // new LanBackground();
-
-  // Show the HUD
-  showHUD = true;
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
@@ -160,12 +156,12 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   ResetMap();
 }
 
-MainMenuScene::~MainMenuScene()
+Overworld::SceneBase::~SceneBase()
 {
   ClearMap(map.GetRows(), map.GetCols());
 }
 
-void MainMenuScene::onStart() {
+void Overworld::SceneBase::onStart() {
   // Stop any music already playing
   AUDIO.StopStream();
   AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
@@ -177,7 +173,7 @@ void MainMenuScene::onStart() {
   gotoNextScene = false;
 }
 
-void MainMenuScene::onUpdate(double elapsed) {
+void Overworld::SceneBase::onUpdate(double elapsed) {
   if (menuWidget.IsClosed() && textbox.IsClosed()) {
     playerController.ListenToInputEvents(true);
 
@@ -524,18 +520,18 @@ void MainMenuScene::onUpdate(double elapsed) {
   webAccountAnimator.Update((float)elapsed, webAccountIcon.getSprite());
 }
 
-void MainMenuScene::onLeave() {
+void Overworld::SceneBase::onLeave() {
     #ifdef __ANDROID__
     ShutdownTouchControls();
     #endif
 }
 
-void MainMenuScene::onExit()
+void Overworld::SceneBase::onExit()
 {
 
 }
 
-void MainMenuScene::onEnter()
+void Overworld::SceneBase::onEnter()
 {
   RefreshNaviSprite();
 
@@ -543,7 +539,7 @@ void MainMenuScene::onEnter()
   ENGINE.SetCamera(camera);
 }
 
-void MainMenuScene::onResume() {
+void Overworld::SceneBase::onResume() {
 
   guestAccount = !WEBCLIENT.IsLoggedIn();
 
@@ -568,7 +564,7 @@ void MainMenuScene::onResume() {
 #endif
 }
 
-void MainMenuScene::onDraw(sf::RenderTexture& surface) {
+void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   ENGINE.SetRenderSurface(surface);
 
   ENGINE.Draw(bg);
@@ -578,9 +574,7 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(map);
   map.move(-offset);
 
-  if (showHUD) {
-    ENGINE.Draw(menuWidget);
-  }
+  ENGINE.Draw(menuWidget);
 
   // Add the web account connection symbol
   ENGINE.Draw(&webAccountIcon);
@@ -588,7 +582,7 @@ void MainMenuScene::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(textbox);
 }
 
-void MainMenuScene::onEnd() {
+void Overworld::SceneBase::onEnd() {
   AUDIO.StopStream();
   ENGINE.RevokeShader();
 
@@ -597,7 +591,7 @@ void MainMenuScene::onEnd() {
 #endif
 }
 
-void MainMenuScene::RefreshNaviSprite()
+void Overworld::SceneBase::RefreshNaviSprite()
 {
   static SelectedNavi lastSelectedNavi = std::numeric_limits<SelectedNavi>::max();
 
@@ -634,7 +628,7 @@ void MainMenuScene::RefreshNaviSprite()
   }
 }
 
-void MainMenuScene::NaviEquipSelectedFolder()
+void Overworld::SceneBase::NaviEquipSelectedFolder()
 {
   auto naviStr = WEBCLIENT.GetValue("SelectedNavi");
   if (!naviStr.empty()) {
@@ -655,7 +649,7 @@ void MainMenuScene::NaviEquipSelectedFolder()
   }
 }
 
-void MainMenuScene::ClearMap(unsigned rows, unsigned cols)
+void Overworld::SceneBase::ClearMap(unsigned rows, unsigned cols)
 {
   // cleanup the previous tiles
   for (unsigned i = 0; i < rows; i++) {
@@ -709,7 +703,7 @@ void MainMenuScene::ClearMap(unsigned rows, unsigned cols)
   ribbons.clear();
 }
 
-void MainMenuScene::ResetMap()
+void Overworld::SceneBase::ResetMap()
 {
   // Load a map
   unsigned lastMapRows = map.GetRows();
@@ -978,7 +972,7 @@ void MainMenuScene::ResetMap()
   }
 }
 
-void MainMenuScene::GotoChipFolder()
+void Overworld::SceneBase::GotoChipFolder()
 {
   gotoNextScene = true;
   AUDIO.Play(AudioType::CHIP_DESC);
@@ -987,7 +981,7 @@ void MainMenuScene::GotoChipFolder()
   getController().push<effect::to<FolderScene>>(folders);
 }
 
-void MainMenuScene::GotoNaviSelect()
+void Overworld::SceneBase::GotoNaviSelect()
 {
   // Navi select
   gotoNextScene = true;
@@ -997,7 +991,7 @@ void MainMenuScene::GotoNaviSelect()
   getController().push<effect::to<SelectNaviScene>>(currentNavi);
 }
 
-void MainMenuScene::GotoConfig()
+void Overworld::SceneBase::GotoConfig()
 {
   // Config Select on PC
   gotoNextScene = true;
@@ -1007,7 +1001,7 @@ void MainMenuScene::GotoConfig()
   getController().push<effect::to<ConfigScene>>();
 }
 
-void MainMenuScene::GotoMobSelect()
+void Overworld::SceneBase::GotoMobSelect()
 {
   gotoNextScene = true;
 
@@ -1025,7 +1019,7 @@ void MainMenuScene::GotoMobSelect()
   }
 }
 
-void MainMenuScene::GotoPVP()
+void Overworld::SceneBase::GotoPVP()
 {
   gotoNextScene = true;
 
