@@ -14,9 +14,9 @@ Overworld::TeleportController::TeleportController()
 
 Overworld::TeleportController::Command& Overworld::TeleportController::TeleportOut(Actor& actor)
 {
-  this->actor->Hide();
 
   auto onStart = [=] {
+    this->actor->Hide();
     AUDIO.Play(AudioType::AREA_GRAB);
   };
 
@@ -43,10 +43,9 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
   auto onSpin = [=] {
     this->actor->Reveal();
     this->actor->SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
-
-    auto cyan = sf::Color::Cyan;
-    this->actor->setColor({ cyan.r, cyan.g, cyan.b, 125 });
+    this->actor->setColor(sf::Color::Cyan);
     this->spin = true;
+    this->spinProgress = 0;
   };
 
   auto onFinish = [=] {
@@ -60,7 +59,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
   this->startPos = start;
   this->actor = &actor;
   this->animComplete = this->walkoutComplete = this->spin = false;
-  this->beamAnim << "TELEPORT_IN" << Animator::On(1, onStart) << Animator::On(3, onSpin) << onFinish;
+  this->beamAnim << "TELEPORT_IN" << Animator::On(2, onStart) << Animator::On(4, onSpin) << onFinish;
   this->beamAnim.Refresh(this->beam.getSprite());
   actor.Hide();
   actor.setPosition(start);
@@ -93,8 +92,12 @@ void Overworld::TeleportController::Update(double elapsed)
     else if (spin) {
       constexpr float _2pi = 2.0f * M_PI;
       constexpr float spin_frames = _2pi/0.25f;
-      float progress = spin_frames * elapsed;
+      float progress = spin_frames * static_cast<float>(elapsed);
       spinProgress += progress;
+
+      auto cyan = sf::Color::Cyan;
+      sf::Uint8 alpha = static_cast<sf::Uint8>(255 * (1.0f - (spinProgress / spin_frames)));
+      this->actor->setColor({ cyan.r, cyan.g, cyan.b, alpha });
 
       actor->Face(Actor::MakeDirectionFromVector({ std::cos(spinProgress), std::sin(spinProgress) }, 0.5f));
     }

@@ -30,7 +30,7 @@ class Background; // forward decl
 
 class MainMenuScene : public swoosh::Activity {
 private:
-  Overworld::Actor actor{ "Test" }, npc{ "NPC" };
+  Overworld::Actor actor{ "You" }, iceman{ "Iceman" }, mrprog{ "Mr. Prog" };
   Overworld::PlayerController playerController{};
   Overworld::PathController pathController{};
   Overworld::TeleportController teleportController{};

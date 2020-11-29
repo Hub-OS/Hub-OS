@@ -128,13 +128,13 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   actor.CollideWithMap(map);
   actor.CollideWithQuadTree(quadTree);
 
-  // Test npc
-  npc.LoadAnimations("resources/mobs/iceman/iceman_OW.animation");
-  npc.setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
-  npc.SetCollisionRadius(6);
-  npc.CollideWithMap(map);
-  npc.CollideWithQuadTree(quadTree);
-  npc.SetInteractCallback([=](Overworld::Actor& with) {
+  // Test iceman
+  iceman.LoadAnimations("resources/mobs/iceman/iceman_OW.animation");
+  iceman.setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
+  iceman.SetCollisionRadius(6);
+  iceman.CollideWithMap(map);
+  iceman.CollideWithQuadTree(quadTree);
+  iceman.SetInteractCallback([=](Overworld::Actor& with) {
     // Interrupt pathing until new condition is met
     pathController.InterruptUntil([=] {
       return textbox.IsClosed();
@@ -142,7 +142,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
     // if player interacted with us
     if (&with == &actor && textbox.IsClosed()) {
       // Face them
-      npc.Face(Reverse(with.GetHeading()));
+      iceman.Face(Reverse(with.GetHeading()));
 
       // Play message
       sf::Sprite face;
@@ -152,16 +152,40 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
     }
   });
 
-  pathController.ControlActor(npc);
+  pathController.ControlActor(iceman);
+
+  // Test Mr Prog
+  mrprog.LoadAnimations("resources/ow/prog/prog_ow.animation");
+  mrprog.setTexture(TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
+  mrprog.SetCollisionRadius(6);
+  mrprog.CollideWithMap(map);
+  mrprog.CollideWithQuadTree(quadTree);
+  mrprog.SetInteractCallback([=](Overworld::Actor& with) {
+    // if player interacted with us
+    if (&with == &actor && textbox.IsClosed()) {
+      // Face them
+      mrprog.Face(Reverse(with.GetHeading()));
+
+      // Play message
+      sf::Sprite face;
+      face.setTexture(*TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
+      textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation", 
+        new Message("This is your homepage! Find an active telepad to take you into cyberspace!")
+      );
+      textbox.Open();
+    }
+    });
 
   // Pre-populate the quadtree
   quadTree.actors.push_back(&actor);
-  quadTree.actors.push_back(&npc);
+  quadTree.actors.push_back(&iceman);
+  quadTree.actors.push_back(&mrprog);
 
   // Share the camera
   map.SetCamera(&camera);
   map.AddSprite(&actor, 0);
-  map.AddSprite(&npc, 0);
+  map.AddSprite(&iceman, 0);
+  map.AddSprite(&mrprog, 0);
   map.AddSprite(&teleportController.GetBeam(), 0);
   map.setScale(2.f, 2.f);
 
@@ -289,6 +313,9 @@ void MainMenuScene::onUpdate(double elapsed) {
         textbox.Close();
       }
     }
+    else if (textbox.IsEndOfBlock()) {
+      textbox.ShowNextLines();
+    }
     else {
       // double tapping talk will complete the block
       textbox.CompleteCurrentBlock();
@@ -334,7 +361,8 @@ void MainMenuScene::onUpdate(double elapsed) {
   }
 
   actor.Update(elapsed);
-  npc.Update(elapsed);
+  iceman.Update(elapsed);
+  mrprog.Update(elapsed);
 
   // animations
   animElapsed += elapsed;
@@ -734,9 +762,15 @@ void MainMenuScene::ResetMap()
     ClearMap(lastMapRows, lastMapCols);
 
     // Place some objects in the scene
-    auto places2 = map.FindToken("P");;
-    if (places2.size()) {
-      npc.setPosition(places2[0]);
+    auto iceman_pos = map.FindToken("I");;
+    if (iceman_pos.size()) {
+      iceman.setPosition(iceman_pos[0]);
+    }
+
+    // Place some objects in the scene
+    auto mrprog_pos = map.FindToken("P");
+    if (mrprog_pos.size()) {
+      mrprog.setPosition(mrprog_pos[0]);
     }
 
     auto trees = map.FindToken("T");
