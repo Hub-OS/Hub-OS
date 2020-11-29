@@ -7,6 +7,7 @@ namespace Overworld {
     bool listen{ true };
   public:
     void ControlActor(Actor& actor);
+    void ReleaseActor();
     void Update(double elapsed);
     void ListenToInputEvents(const bool listen);
   };

@@ -128,13 +128,11 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   actor.CollideWithMap(map);
   actor.CollideWithQuadTree(quadTree);
 
-  playerController.ControlActor(actor);
-
   // Test npc
   npc.LoadAnimations("resources/mobs/iceman/iceman_OW.animation");
   npc.setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
-  npc.CollideWithMap(map);
   npc.SetCollisionRadius(6);
+  npc.CollideWithMap(map);
   npc.CollideWithQuadTree(quadTree);
   npc.SetInteractCallback([=](Overworld::Actor& with) {
     // Interrupt pathing until new condition is met
@@ -164,6 +162,7 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   map.SetCamera(&camera);
   map.AddSprite(&actor, 0);
   map.AddSprite(&npc, 0);
+  map.AddSprite(&teleportController.GetBeam(), 0);
   map.setScale(2.f, 2.f);
 
   // Load overworld assets
@@ -261,7 +260,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   }
 
   // check to see if talk button was pressed
-  if (textbox.IsClosed()) {
+  if (textbox.IsClosed() && menuWidget.IsClosed()) {
     if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
       // check to see what tile we pressed talk to
       const Overworld::Map::Tile tile = map.GetTileAt(actor.PositionInFrontOf());
@@ -296,13 +295,43 @@ void MainMenuScene::onUpdate(double elapsed) {
     }
   }
 
+  // on collision with warps
+  static size_t next_warp = 0;
+  auto playerTile = map.GetTileAt(actor.getPosition());
+  if (playerTile.token == "W" && teleportController.IsComplete()) {
+    auto warps = map.FindToken("W");
+
+    if (warps.size()) {
+      if (++next_warp >= warps.size()) {
+        next_warp = 0;
+      }
+
+      auto teleportToNextWarp = [=] {
+        auto finishTeleport = [=] {
+          playerController.ControlActor(actor);
+        };
+
+        auto& command = teleportController.TeleportIn(actor, warps[next_warp], Direction::up);
+        command.onFinish.Slot(finishTeleport);
+      };
+
+      playerController.ReleaseActor();
+      auto& command = teleportController.TeleportOut(actor);
+      command.onFinish.Slot(teleportToNextWarp);
+    }
+  }
+
   /**
   * update all overworld objects and animations
   */
 
   // objects
-  playerController.Update(elapsed);
   pathController.Update(elapsed);
+
+  if (gotoNextScene == false) {
+    playerController.Update(elapsed);
+    teleportController.Update(elapsed);
+  }
 
   actor.Update(elapsed);
   npc.Update(elapsed);
@@ -589,7 +618,7 @@ void MainMenuScene::onEnd() {
 
 void MainMenuScene::RefreshNaviSprite()
 {
-  static SelectedNavi lastSelectedNavi = 0;
+  static SelectedNavi lastSelectedNavi = std::numeric_limits<SelectedNavi>::max();
 
   // Only refresh all data and graphics if this is a new navi
   if (lastSelectedNavi == currentNavi) return;
@@ -705,11 +734,6 @@ void MainMenuScene::ResetMap()
     ClearMap(lastMapRows, lastMapCols);
 
     // Place some objects in the scene
-    auto places = map.FindToken("S");;
-    if (places.size()) {
-      actor.setPosition(places[0]);
-    }
-
     auto places2 = map.FindToken("P");;
     if (places2.size()) {
       npc.setPosition(places2[0]);
@@ -724,6 +748,7 @@ void MainMenuScene::ResetMap()
     auto paths = map.FindToken("#");
 
     pathController.ClearPoints();
+    playerController.ReleaseActor();
 
     // paths (NOTE: hacky for demo)
     int first = 1;
@@ -764,11 +789,21 @@ void MainMenuScene::ResetMap()
     }
 
     // warps
+    bool firstWarp = true;
     for (auto pos : warps) {
       auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
       new_warp->setPosition(pos);
       this->warps.push_back(new_warp);
       map.AddSprite(&*new_warp, 1);
+
+      if (firstWarp) {
+        auto& command = teleportController.TeleportIn(actor, pos, Direction::up);
+        command.onFinish.Slot([=] {
+          playerController.ControlActor(actor);
+        });
+
+        firstWarp = false;
+      }
     }
 
     // trees

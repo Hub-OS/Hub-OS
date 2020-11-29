@@ -19,6 +19,7 @@
 #include "overworld/bnOverworldActor.h"
 #include "overworld/bnOverworldPlayerController.h"
 #include "overworld/bnOverworldPathController.h"
+#include "overworld/bnOverworldTeleportController.h"
 #include "overworld/bnOverworldMap.h"
 
 #include <SFML/Graphics.hpp>
@@ -32,6 +33,7 @@ private:
   Overworld::Actor actor{ "Test" }, npc{ "NPC" };
   Overworld::PlayerController playerController{};
   Overworld::PathController pathController{};
+  Overworld::TeleportController teleportController{};
   Overworld::QuadTree quadTree{};
 
   Camera camera; /*!< camera in scene follows megaman */

@@ -119,26 +119,27 @@ sf::Vector2f Overworld::Actor::PositionInFrontOf() const
 void Overworld::Actor::Update(double elapsed)
 {
   std::string stateStr = FindValidAnimState(this->heading, this->state);
+  if (!stateStr.empty()) {
+    // If there is no supplied animation for the next state, ignore it
+    if (!anims.begin()->second.HasAnimation(stateStr)) {
+      stateStr = lastStateStr;
+    }
 
-  // If there is no supplied animation for the next state, ignore it
-  if (!anims.begin()->second.HasAnimation(stateStr)) {
-    stateStr = lastStateStr; 
-  }
+    animProgress += elapsed;
 
-  animProgress += elapsed;
+    if (lastStateStr.empty() == false) {
+      anims[lastStateStr].SyncTime(static_cast<float>(animProgress));
+      anims[lastStateStr].Refresh(getSprite());
+    }
 
-  if (lastStateStr.empty() == false) {
-    anims[lastStateStr].SyncTime(static_cast<float>(animProgress));
-    anims[lastStateStr].Refresh(getSprite());
-  }
+    if (lastStateStr != stateStr) {
+      animProgress = 0;
+      anims[stateStr].SyncTime(0);
 
-  if (lastStateStr != stateStr) {
-    animProgress = 0;
-    anims[stateStr].SyncTime(0);
-
-    // we have changed states
-    anims[stateStr].Refresh(getSprite());
-    lastStateStr = stateStr;
+      // we have changed states
+      anims[stateStr].Refresh(getSprite());
+      lastStateStr = stateStr;
+    }
   }
   
   if (state != MovementState::idle) {
@@ -228,7 +229,7 @@ void Overworld::Actor::Interact(Actor& with)
 const std::pair<bool, sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& actor, const sf::Vector2f& offset)
 {
   auto delta = (getPosition() + offset) - actor.getPosition();
-  float distance = std::sqrt(std::pow(delta.x, 2.0) + std::pow(delta.y, 2.0));
+  float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
   float sumOfRadii = actor.collisionRadius + collisionRadius;
   auto delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
 
@@ -337,6 +338,8 @@ std::string Overworld::Actor::MovementAnimStrPrefix(const MovementState& state)
 
 std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const MovementState& state)
 {
+  if (anims.empty()) return "";
+
   // Some animations do not need to be provided (like cardinal-facing left or right)
   // when others can be substituted
   //

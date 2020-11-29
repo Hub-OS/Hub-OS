@@ -15,7 +15,7 @@ public:
   ~Callback() = default;
 
   void Slot(decltype(slot) slot) {
-    Callback::slot = slot;
+    this->slot = slot;
     use = true;
   }
 

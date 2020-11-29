@@ -8,6 +8,17 @@ void Overworld::PlayerController::ControlActor(Actor& actor)
   this->actor = &actor;
 }
 
+void Overworld::PlayerController::ReleaseActor()
+{
+  // stop moving
+  if (this->actor) {
+    this->actor->Face(actor->GetHeading());
+
+    // set to nullptr
+    this->actor = nullptr;
+  }
+}
+
 void Overworld::PlayerController::Update(double elapsed)
 {
   if (actor == nullptr) return;
