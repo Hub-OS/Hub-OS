@@ -30,13 +30,14 @@ class Background; // forward decl
 
 class MainMenuScene : public swoosh::Activity {
 private:
-  Overworld::Actor actor{ "You" }, iceman{ "Iceman" }, mrprog{ "Mr. Prog" };
-  Overworld::PlayerController playerController{};
-  Overworld::PathController pathController{};
+  Overworld::Actor playerActor{ "You" };
   Overworld::TeleportController teleportController{};
+  Overworld::PlayerController playerController{};
+  std::vector<Overworld::Actor> npcs;
+  std::vector<Overworld::PathController> pathControllers{};
   Overworld::QuadTree quadTree{};
 
-  Camera camera; /*!< camera in scene follows megaman */
+  Camera camera; /*!< camera in scene follows player */
   bool showHUD; /*!< Toggle HUD. Used in debugging. */
   bool clicked{ false }, scaledmap{ false };
 

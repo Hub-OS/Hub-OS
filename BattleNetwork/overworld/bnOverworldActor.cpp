@@ -7,6 +7,24 @@ Overworld::Actor::Actor(const std::string& name) :
 
 }
 
+Overworld::Actor::Actor(Actor&& other) noexcept
+{
+  std::swap(map, other.map);
+  std::swap(animProgress, other.animProgress);
+  std::swap(walkSpeed, other.walkSpeed);
+  std::swap(runSpeed, other.runSpeed);
+  std::swap(heading, other.heading);
+  std::swap(anims, other.anims);
+  std::swap(validStates, other.validStates);
+  std::swap(state, other.state);
+  std::swap(pos, other.pos); 
+  std::swap(name, other.name); 
+  std::swap(lastStateStr, other.lastStateStr); 
+  std::swap(onInteractFunc, other.onInteractFunc);
+  std::swap(collisionRadius, other.collisionRadius);
+  std::swap(quadTree, other.quadTree);
+}
+
 Overworld::Actor::~Actor()
 {
 }

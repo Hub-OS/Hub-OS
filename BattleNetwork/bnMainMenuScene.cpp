@@ -123,69 +123,14 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   setView(sf::Vector2u(480, 320));
 
   // Spawn overworld player
-  actor.setPosition(200, 20);
-  actor.SetCollisionRadius(6);
-  actor.CollideWithMap(map);
-  actor.CollideWithQuadTree(quadTree);
-
-  // Test iceman
-  iceman.LoadAnimations("resources/mobs/iceman/iceman_OW.animation");
-  iceman.setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
-  iceman.SetCollisionRadius(6);
-  iceman.CollideWithMap(map);
-  iceman.CollideWithQuadTree(quadTree);
-  iceman.SetInteractCallback([=](Overworld::Actor& with) {
-    // Interrupt pathing until new condition is met
-    pathController.InterruptUntil([=] {
-      return textbox.IsClosed();
-    });
-    // if player interacted with us
-    if (&with == &actor && textbox.IsClosed()) {
-      // Face them
-      iceman.Face(Reverse(with.GetHeading()));
-
-      // Play message
-      sf::Sprite face;
-      face.setTexture(*TEXTURES.LoadTextureFromFile("resources/mobs/iceman/ice_mug.png"));
-      textbox.EnqueMessage(face, "resources/mobs/iceman/mug.animation", new Message("Can't talk! Xmas is only 30 days away!"));
-      textbox.Open();
-    }
-  });
-
-  pathController.ControlActor(iceman);
-
-  // Test Mr Prog
-  mrprog.LoadAnimations("resources/ow/prog/prog_ow.animation");
-  mrprog.setTexture(TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
-  mrprog.SetCollisionRadius(6);
-  mrprog.CollideWithMap(map);
-  mrprog.CollideWithQuadTree(quadTree);
-  mrprog.SetInteractCallback([=](Overworld::Actor& with) {
-    // if player interacted with us
-    if (&with == &actor && textbox.IsClosed()) {
-      // Face them
-      mrprog.Face(Reverse(with.GetHeading()));
-
-      // Play message
-      sf::Sprite face;
-      face.setTexture(*TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
-      textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation", 
-        new Message("This is your homepage! Find an active telepad to take you into cyberspace!")
-      );
-      textbox.Open();
-    }
-    });
-
-  // Pre-populate the quadtree
-  quadTree.actors.push_back(&actor);
-  quadTree.actors.push_back(&iceman);
-  quadTree.actors.push_back(&mrprog);
+  playerActor.setPosition(200, 20);
+  playerActor.SetCollisionRadius(6);
+  playerActor.CollideWithMap(map);
+  playerActor.CollideWithQuadTree(quadTree);
 
   // Share the camera
   map.SetCamera(&camera);
-  map.AddSprite(&actor, 0);
-  map.AddSprite(&iceman, 0);
-  map.AddSprite(&mrprog, 0);
+  map.AddSprite(&playerActor, 0);
   map.AddSprite(&teleportController.GetBeam(), 0);
   map.setScale(2.f, 2.f);
 
@@ -206,6 +151,10 @@ MainMenuScene::MainMenuScene(swoosh::ActivityController& controller, bool guestA
   starAnim = xmasAnim = lightsAnim = Animation("resources/ow/xmas.animation");
   starAnim << "star" << Animator::Mode::Loop;
   lightsAnim << "lights" << Animator::Mode::Loop;
+
+  // reserve 1000 elements so no references are invalidated
+  npcs.reserve(1000);
+  pathControllers.reserve(1000);
 
   // Effectively loads the map
   ResetMap();
@@ -287,7 +236,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   if (textbox.IsClosed() && menuWidget.IsClosed()) {
     if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
       // check to see what tile we pressed talk to
-      const Overworld::Map::Tile tile = map.GetTileAt(actor.PositionInFrontOf());
+      const Overworld::Map::Tile tile = map.GetTileAt(playerActor.PositionInFrontOf());
       if (tile.token == "C") {
         textbox.EnqueMessage({}, "", new Message("A cafe sign.\nYou feel welcomed."));
         textbox.Open();
@@ -324,7 +273,7 @@ void MainMenuScene::onUpdate(double elapsed) {
 
   // on collision with warps
   static size_t next_warp = 0;
-  auto playerTile = map.GetTileAt(actor.getPosition());
+  auto playerTile = map.GetTileAt(playerActor.getPosition());
   if (playerTile.token == "W" && teleportController.IsComplete()) {
     auto warps = map.FindToken("W");
 
@@ -335,15 +284,15 @@ void MainMenuScene::onUpdate(double elapsed) {
 
       auto teleportToNextWarp = [=] {
         auto finishTeleport = [=] {
-          playerController.ControlActor(actor);
+          playerController.ControlActor(playerActor);
         };
 
-        auto& command = teleportController.TeleportIn(actor, warps[next_warp], Direction::up);
+        auto& command = teleportController.TeleportIn(playerActor, warps[next_warp], Direction::up);
         command.onFinish.Slot(finishTeleport);
       };
 
       playerController.ReleaseActor();
-      auto& command = teleportController.TeleportOut(actor);
+      auto& command = teleportController.TeleportOut(playerActor);
       command.onFinish.Slot(teleportToNextWarp);
     }
   }
@@ -353,21 +302,25 @@ void MainMenuScene::onUpdate(double elapsed) {
   */
 
   // objects
-  pathController.Update(elapsed);
+  for (auto& pathController : pathControllers) {
+    pathController.Update(elapsed);
+  }
 
   if (gotoNextScene == false) {
     playerController.Update(elapsed);
     teleportController.Update(elapsed);
   }
 
-  actor.Update(elapsed);
-  iceman.Update(elapsed);
-  mrprog.Update(elapsed);
+  playerActor.Update(elapsed);
+  
+  for (auto& npc : npcs) {
+    npc.Update(elapsed);
+  }
 
   // animations
   animElapsed += elapsed;
 
-  treeAnim.SyncTime(animElapsed);
+  treeAnim.SyncTime((float)animElapsed);
   for (auto& t : trees) {
     treeAnim.Refresh(t->getSprite());
   };
@@ -396,27 +349,27 @@ void MainMenuScene::onUpdate(double elapsed) {
     r->GetShader().SetUniform("factor", input_factor);
   }
 
-  coffeeAnim.SyncTime(animElapsed);
+  coffeeAnim.SyncTime(static_cast<float>(animElapsed));
   for (auto& c : coffees) {
     coffeeAnim.Refresh(c->getSprite());
   }
 
-  gateAnim.SyncTime(animElapsed);
+  gateAnim.SyncTime(static_cast<float>(animElapsed));
   for (auto& g : gates) {
     gateAnim.Refresh(g->getSprite());
   }
 
-  warpAnim.SyncTime(animElapsed);
+  warpAnim.SyncTime(static_cast<float>(animElapsed));
   for (auto& w : warps) {
     warpAnim.Refresh(w->getSprite());
   }
 
-  starAnim.SyncTime(animElapsed);
+  starAnim.SyncTime(static_cast<float>(animElapsed));
   for (auto& s : stars) {
     starAnim.Refresh(s->getSprite());
   }
 
-  lightsAnim.SyncTime(animElapsed);
+  lightsAnim.SyncTime(static_cast<float>(animElapsed));
 
   static std::array<sf::Color,5> rgb = {
     sf::Color::Cyan,
@@ -426,7 +379,7 @@ void MainMenuScene::onUpdate(double elapsed) {
     sf::Color::Magenta
   };
 
-  size_t inc = animElapsed/0.8; // in seconds to steps
+  size_t inc = static_cast<size_t>(animElapsed/0.8); // in seconds to steps
   size_t offset = 0;
   for (auto& L : lights) {
     lightsAnim.Refresh(L->getSprite());
@@ -486,7 +439,7 @@ void MainMenuScene::onUpdate(double elapsed) {
   textbox.Update(elapsed);
 
   // Follow the navi
-  sf::Vector2f pos = map.ScreenToWorld(actor.getPosition());
+  sf::Vector2f pos = map.ScreenToWorld(playerActor.getPosition());
   pos = sf::Vector2f(pos.x*map.getScale().x, pos.y*map.getScale().y);
   camera.PlaceCamera(pos);
 
@@ -664,8 +617,8 @@ void MainMenuScene::RefreshNaviSprite()
   auto owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
-    actor.setTexture(meta.GetOverworldTexture());
-    actor.LoadAnimations(owPath);
+    playerActor.setTexture(meta.GetOverworldTexture());
+    playerActor.LoadAnimations(owPath);
 
     auto iconTexture = meta.GetIconTexture();
 
@@ -713,7 +666,7 @@ void MainMenuScene::ClearMap(unsigned rows, unsigned cols)
     delete[] tiles;
   }
 
-  // clean up sprites too
+  // clean up sprites
   std::vector<std::shared_ptr<SpriteProxyNode>> nodes;
   nodes.insert(nodes.end(), trees.begin(), trees.end());
   nodes.insert(nodes.end(), warps.begin(), warps.end());
@@ -723,6 +676,15 @@ void MainMenuScene::ClearMap(unsigned rows, unsigned cols)
   for (auto& node : nodes) {
     map.RemoveSprite(&*node);
   }
+
+  // clear the actor lists
+  for (auto& npc : npcs) {
+    map.RemoveSprite(&npc);
+  }
+
+  npcs.clear();
+  pathControllers.clear();
+  quadTree.actors.clear();
 
   // delete allocated attachments
   for (auto& node : stars) {
@@ -761,16 +723,83 @@ void MainMenuScene::ResetMap()
   else {
     ClearMap(lastMapRows, lastMapCols);
 
+    // Pre-populate the quadtree with the player
+    quadTree.actors.push_back(&playerActor);
+
     // Place some objects in the scene
     auto iceman_pos = map.FindToken("I");;
-    if (iceman_pos.size()) {
-      iceman.setPosition(iceman_pos[0]);
+    for (auto pos : iceman_pos) {
+      npcs.emplace_back(Overworld::Actor{ "Iceman" });
+      auto* iceman = &npcs.back();
+
+      pathControllers.emplace_back(Overworld::PathController{});
+      auto* pathController = &pathControllers.back();
+
+      // Test iceman
+      iceman->LoadAnimations("resources/mobs/iceman/iceman_OW.animation");
+      iceman->setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
+      iceman->setPosition(pos);
+      iceman->SetCollisionRadius(6);
+      iceman->CollideWithMap(map);
+      iceman->CollideWithQuadTree(quadTree);
+      iceman->SetInteractCallback([=](Overworld::Actor& with) {
+        // Interrupt pathing until new condition is met
+        pathController->InterruptUntil([=] {
+          return textbox.IsClosed();
+          });
+        // if player interacted with us
+        if (&with == &playerActor && textbox.IsClosed()) {
+          // Face them
+          iceman->Face(Reverse(with.GetHeading()));
+
+          // Play message
+          sf::Sprite face;
+          face.setTexture(*TEXTURES.LoadTextureFromFile("resources/mobs/iceman/ice_mug.png"));
+          textbox.EnqueMessage(face, "resources/mobs/iceman/mug.animation", new Message("Can't talk! Xmas is only 30 days away!"));
+          textbox.Open();
+        }
+        });
+
+      pathController->ControlActor(*iceman);
+      map.AddSprite(iceman,0);
+      quadTree.actors.push_back(iceman);
     }
 
     // Place some objects in the scene
     auto mrprog_pos = map.FindToken("P");
-    if (mrprog_pos.size()) {
-      mrprog.setPosition(mrprog_pos[0]);
+    for (auto pos : mrprog_pos) {
+      npcs.emplace_back(Overworld::Actor{ "Mr. Prog" });
+      auto* mrprog = &npcs.back();
+
+      pathControllers.emplace_back(Overworld::PathController{});
+      auto* pathController = &pathControllers.back();
+
+      // Test Mr Prog
+      mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
+      mrprog->setTexture(TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
+      mrprog->setPosition(pos);
+      mrprog->SetCollisionRadius(3);
+      mrprog->CollideWithMap(map);
+      mrprog->CollideWithQuadTree(quadTree);
+      mrprog->SetInteractCallback([=](Overworld::Actor& with) {
+        // if player interacted with us
+        if (&with == &playerActor && textbox.IsClosed()) {
+          // Face them
+          mrprog->Face(Reverse(with.GetHeading()));
+
+          // Play message
+          sf::Sprite face;
+          face.setTexture(*TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
+          textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
+            new Message("This is your homepage! Find an active telepad to take you into cyberspace!")
+          );
+          textbox.Open();
+        }
+      });
+
+      pathController->ControlActor(*mrprog);
+      map.AddSprite(mrprog, 0);
+      quadTree.actors.push_back(mrprog);
     }
 
     auto trees = map.FindToken("T");
@@ -781,18 +810,7 @@ void MainMenuScene::ResetMap()
     auto gates = map.FindToken("G");
     auto paths = map.FindToken("#");
 
-    pathController.ClearPoints();
     playerController.ReleaseActor();
-
-    // paths (NOTE: hacky for demo)
-    int first = 1;
-    for (auto pos : paths) {
-      pathController.AddPoint(pos);
-      if (first-- > 0) {
-        pathController.AddWait(frames(60));
-      }
-    }
-    pathController.AddWait(frames(60));
 
     // coffee
     for (auto pos : coff) {
@@ -831,9 +849,9 @@ void MainMenuScene::ResetMap()
       map.AddSprite(&*new_warp, 1);
 
       if (firstWarp) {
-        auto& command = teleportController.TeleportIn(actor, pos, Direction::up);
+        auto& command = teleportController.TeleportIn(playerActor, pos, Direction::up);
         command.onFinish.Slot([=] {
-          playerController.ControlActor(actor);
+          playerController.ControlActor(playerActor);
         });
 
         firstWarp = false;
@@ -944,6 +962,16 @@ void MainMenuScene::ResetMap()
       tile.solid = true;
       map.SetTileAt(pos, tile);
     }
+
+    // paths (NOTE: hacky for demo)
+    int first = 1;
+    for (auto pos : paths) {
+      pathControllers[0].AddPoint(pos);
+      if (first-- > 0) {
+        pathControllers[0].AddWait(frames(60));
+      }
+    }
+    pathControllers[0].AddWait(frames(60));
 
     menuWidget.SetArea(map.GetName());
     this->tiles = result.second;

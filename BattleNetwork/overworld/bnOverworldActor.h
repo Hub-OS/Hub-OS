@@ -60,7 +60,7 @@ namespace Overworld {
     */
     Actor(const std::string& name);
 
-    Actor(const Actor&) = delete;
+    Actor(Actor&& ) noexcept;
 
     /**
     * @brief Deconstructor
