@@ -366,7 +366,8 @@ void NetworkBattleScene::recieveConnectSignal(const Poco::Buffer<char>& buffer)
 
   remoteState.isRemoteConnected = true;
 
-  SelectedNavi navi = SelectedNavi{ 0 }; std::memcpy(&navi, buffer.begin(), buffer.size());
+  SelectedNavi navi = SelectedNavi{ 0 }; 
+  std::memcpy(&navi, buffer.begin(), buffer.size());
   remoteState.remoteNavi = navi;
 
   Logger::Logf("Recieved connect signal! Remote navi: %i", remoteState.remoteNavi);
@@ -439,7 +440,8 @@ void NetworkBattleScene::recieveMoveSignal(const Poco::Buffer<char>& buffer)
 {
   if (!remoteState.isRemoteConnected) return;
 
-  Direction dir = remoteState.remoteDirection; std::memcpy(&dir, buffer.begin(), buffer.size());
+  Direction dir = remoteState.remoteDirection; 
+  std::memcpy(&dir, buffer.begin(), buffer.size());
 
   if (!GetPlayer()->Teammate(remotePlayer->GetTeam())) {
     if (dir == Direction::left || dir == Direction::right) {
@@ -456,7 +458,9 @@ void NetworkBattleScene::recieveHPSignal(const Poco::Buffer<char>& buffer)
 {
   if (!remoteState.isRemoteConnected) return;
 
-  int hp = remoteState.remoteHP; std::memcpy(&hp, buffer.begin(), buffer.size());
+  int hp = remoteState.remoteHP; 
+  std::memcpy(&hp, buffer.begin(), buffer.size());
+  
   remoteState.remoteHP = hp;
   remotePlayer->SetHealth(hp);
 }
@@ -465,8 +469,11 @@ void NetworkBattleScene::recieveTileCoordSignal(const Poco::Buffer<char>& buffer
 {
   if (!remoteState.isRemoteConnected) return;
 
-  int x = remoteState.remoteTileX; std::memcpy(&x, buffer.begin(), sizeof(int));
-  int y = remoteState.remoteTileX; std::memcpy(&y, (buffer.begin()+sizeof(int)), sizeof(int));
+  int x = remoteState.remoteTileX; 
+  std::memcpy(&x, buffer.begin(), sizeof(int));
+
+  int y = remoteState.remoteTileX; 
+  std::memcpy(&y, (buffer.begin()+sizeof(int)), sizeof(int));
 
   // mirror the x value for remote
   x = (GetField()->GetWidth() - x)+1;

@@ -248,7 +248,7 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CollidesWith(const Actor& 
 {
   auto delta = (getPosition() + offset) - actor.getPosition();
   float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-  float sumOfRadii = actor.collisionRadius + collisionRadius;
+  float sumOfRadii = static_cast<float>(actor.collisionRadius + collisionRadius);
   auto delta_unit = sf::Vector2f(delta.x / distance, delta.y / distance);
 
   // suggested point of collision is the edge of the circle
@@ -280,6 +280,7 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   * This should be a cheaper check to do first 
   * before checking neighboring actors
   */
+
   if (map && map->GetTileAt(newPos).solid) {
     if (second != Direction::none) {
       // split vector into parts and try each individual segment

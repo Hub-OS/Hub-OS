@@ -3,6 +3,11 @@
 #include <Swoosh/Activity.h>
 #include <Swoosh/Ease.h>
 #include <Swoosh/Timer.h>
+#include <time.h>
+#include <typeinfo>
+#include <SFML/Graphics.hpp>
+#include <Poco/Net/DatagramSocket.h>
+#include <Poco/Buffer.h>
 
 #include "../../bnMobHealthUI.h"
 #include "../../bnCounterHitListener.h"
@@ -35,12 +40,6 @@
 #include "../bnNetPlayFlags.h"
 #include "../bnNetPlayConfig.h"
 #include "../bnNetPlaySignals.h"
-
-#include <time.h>
-#include <typeinfo>
-#include <SFML/Graphics.hpp>
-#include <Poco/Net/DatagramSocket.h>
-#include <Poco/Buffer.h>
 
 using sf::RenderWindow;
 using sf::VideoMode;
@@ -99,7 +98,7 @@ private:
   void recieveHandshakeSignal();
   void recieveShootSignal();
   void recieveUseSpecialSignal();
-  void recieveChargeSignal(const Poco::Buffer<char>& buffer);
+  void recieveChargeSignal(const Poco::Buffer<char>&);
   void recieveConnectSignal(const Poco::Buffer<char>&);
   void recieveReadySignal();
   void recieveChangedFormSignal(const Poco::Buffer<char>&);

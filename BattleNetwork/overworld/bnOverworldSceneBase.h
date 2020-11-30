@@ -39,11 +39,14 @@ namespace Overworld {
 
     Camera camera; /*!< camera in scene follows player */
     bool clicked{ false }, scaledmap{ false };
-
+    bool firstTimeLoad{ true };
     // Selection input delays
     double maxSelectInputCooldown; /*!< Maximum delay */
     double selectInputCooldown; /*!< timer to allow key presses again */
     bool extendedHold{ false };
+
+    sf::Vector2f returnPoint{};
+    bool teleportedOut{ false }; /*!< We may return to this area*/
 
     // menu widget
     MenuWidget menuWidget;
@@ -52,27 +55,37 @@ namespace Overworld {
     Animation webAccountAnimator; /*!< Use animator to represent different statuses */
     bool lastIsConnectedState; /*!< Set different animations if the connection has changed */
 
-    Background* bg; /*!< Background image pointer */
+    // Bunch of sprites and their attachments
+    Background* bg{ nullptr }; /*!< Background image pointer */
     Overworld::Map map; /*!< Overworld map */
     Overworld::Map::Tile** tiles{ nullptr }; /*!< Loaded tiles from file */
-    std::vector<std::shared_ptr<SpriteProxyNode>> trees;
-    std::vector<SpriteProxyNode*> ribbons;
-    Animation treeAnim;
-    std::shared_ptr<sf::Texture> treeTexture;
-    std::vector<std::shared_ptr<SpriteProxyNode>> warps;
-    Animation warpAnim;
-    std::shared_ptr<sf::Texture> warpTexture;
-    std::vector<std::shared_ptr<SpriteProxyNode>> coffees;
-    Animation coffeeAnim;
-    std::shared_ptr<sf::Texture> coffeeTexture;
-    std::vector<std::shared_ptr<SpriteProxyNode>> gates;
-    Animation gateAnim;
-    std::shared_ptr<sf::Texture> gateTexture;
-    std::vector<SpriteProxyNode*> stars;
-    std::vector<SpriteProxyNode*> bulbs;
-    std::vector<SpriteProxyNode*> lights;
-    Animation starAnim, lightsAnim, xmasAnim;
-    std::shared_ptr<sf::Texture> ornamentTexture;
+    std::vector<SpriteProxyNode*> ribbons, stars, bulbs, lights;
+
+    std::vector<std::shared_ptr<SpriteProxyNode>> trees, 
+      warps, 
+      netWarps, 
+      homeWarps,
+      coffees, 
+      gates;
+
+    std::shared_ptr<sf::Texture> 
+      treeTexture, 
+      gateTexture, 
+      ornamentTexture, 
+      coffeeTexture, 
+      warpTexture, 
+      homeWarpTexture,
+      netWarpTexture;
+
+    Animation treeAnim,
+      starAnim,
+      lightsAnim,
+      xmasAnim,
+      gateAnim,
+      coffeeAnim,
+      warpAnim,
+      homeWarpAnim,
+      netWarpAnim;
 
     AnimatedTextBox textbox;
 
@@ -88,12 +101,20 @@ namespace Overworld {
 
     std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
 
+    /**
+    * @brief aux function clears the map object
+    */
+    void ClearMap(unsigned rows, unsigned cols);
+
 #ifdef __ANDROID__
     void StartupTouchControls();
     void ShutdownTouchControls();
 #endif
 
   public:
+
+    SceneBase() = delete;
+    SceneBase(const SceneBase&) = delete;
 
     /**
      * @brief Loads the player's library data and loads graphics
@@ -109,43 +130,43 @@ namespace Overworld {
      * @brief Checks input events and listens for select buttons. Segues to new screens.
      * @param elapsed in seconds
      */
-    void onUpdate(double elapsed);
+    virtual void onUpdate(double elapsed) override;
 
     /**
      * @brief Draws the UI
      * @param surface
      */
-    void onDraw(sf::RenderTexture& surface);
+    virtual void onDraw(sf::RenderTexture& surface) override;
 
     /**
      * @brief Stops music, plays new track, reset the camera
      */
-    void onStart();
+    virtual void onStart() override;
 
     /**
      * @brief Does nothing
      */
-    void onLeave();
+    virtual void onLeave() override;
 
     /**
      * @brief Does nothing
      */
-    void onExit();
+    virtual void onExit() override;
 
     /**
      * @brief Checks the selected navi if changed and loads the new images
      */
-    void onEnter();
+    virtual void onEnter() override;
 
     /**
      * @brief Resets the camera
      */
-    void onResume();
+    virtual void onResume() override;
 
     /**
      * @brief Stops the music
      */
-    void onEnd();
+    virtual void onEnd() override;
 
     /**
     * @brief Update's the player sprites according to the most recent selection
@@ -158,14 +179,14 @@ namespace Overworld {
     void NaviEquipSelectedFolder();
 
     /**
-    * @brief Clears the map object
-    */
-    void ClearMap(unsigned rows, unsigned cols);
-
-    /**
     * @brief Effectively reloads the map and sets the scene
     */
     void ResetMap();
+
+    void TeleportUponReturn(const sf::Vector2f& position);
+    const bool HasTeleportedAway() const;
+
+    void SetBackground(Background*);
 
     //
     // Menu selection callbacks
@@ -176,5 +197,25 @@ namespace Overworld {
     void GotoConfig();
     void GotoMobSelect();
     void GotoPVP();
+
+    //
+    // Getters
+    //
+
+    Overworld::QuadTree& GetQuadTree();
+    Camera& GetCamera();
+    Map& GetMap();
+    Actor& GetPlayer();
+    PlayerController& GetPlayerController();
+    TeleportController& GetTeleportControler();
+    SelectedNavi& GetCurrentNavi();
+    Background* GetBackground();
+    AnimatedTextBox& GetTextBox();
+
+    //
+    // Required implementations
+    //
+    virtual const std::pair<bool, Map::Tile**> FetchMapData() = 0;
+    virtual void OnTileCollision(const Map::Tile& tile) = 0;
   };
 }

@@ -2,9 +2,10 @@
 #include "bnOverworldSceneBase.h"
 
 namespace Overworld {
-  class Homepage : public SceneBase {
+  class Homepage final : public SceneBase {
   private:
-    bool scaledmap{ false };
+    bool scaledmap{ false }, clicked{ false };
+    bool guest{ false };
 
   public:
 
@@ -17,5 +18,12 @@ namespace Overworld {
     * @brief deconstructor
     */
     ~Homepage();
+
+    void onUpdate(double elapsed) override;
+    void onDraw(sf::RenderTexture& surface) override;
+    void onStart() override;
+
+    const std::pair<bool, Map::Tile**> FetchMapData() override;
+    void OnTileCollision(const Map::Tile& tile) override;
   };
 }

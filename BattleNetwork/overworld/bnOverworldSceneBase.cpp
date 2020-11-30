@@ -18,7 +18,6 @@
 
 #include "../bnCardFolderCollection.h"
 #include "../bnLanBackground.h"
-#include "../bnXmasBackground.h"
 #include "../netplay/bnPVPScene.h"
 
 using sf::RenderWindow;
@@ -50,7 +49,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 {
   // When we reach the menu scene we need to load the player information
   // before proceeding to next sub menus
-  //data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
+  // data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
 
   webAccountIcon.setTexture(LOAD_TEXTURE(WEBACCOUNT_STATUS));
   webAccountIcon.setScale(2.f, 2.f);
@@ -60,7 +59,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   webAccountAnimator.SetAnimation("NO_CONNECTION");
 
   // Draws the scrolling background
-  bg = new XmasBackground(); // new LanBackground();
+  SetBackground(new LanBackground);
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
@@ -131,19 +130,25 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   map.setScale(2.f, 2.f);
 
   // Load overworld assets
-  this->treeTexture = TEXTURES.LoadTextureFromFile("resources/ow/tree.png");
+  treeTexture = TEXTURES.LoadTextureFromFile("resources/ow/tree.png");
   treeAnim = Animation("resources/ow/tree.animation") << "default" << Animator::Mode::Loop;
 
-  this->warpTexture = TEXTURES.LoadTextureFromFile("resources/ow/warp.png");
+  warpTexture = TEXTURES.LoadTextureFromFile("resources/ow/warp.png");
   warpAnim = Animation("resources/ow/warp.animation") << "default" << Animator::Mode::Loop;
 
-  this->gateTexture = TEXTURES.LoadTextureFromFile("resources/ow/gate.png");
+  netWarpTexture = TEXTURES.LoadTextureFromFile("resources/ow/hp_warp.png");
+  netWarpAnim = Animation("resources/ow/hp_warp.animation") << "off" << Animator::Mode::Loop;
+
+  homeWarpTexture = TEXTURES.LoadTextureFromFile("resources/ow/home_warp.png");
+  homeWarpAnim = Animation("resources/ow/home_warp.animation") << "default" << Animator::Mode::Loop;
+
+  gateTexture = TEXTURES.LoadTextureFromFile("resources/ow/gate.png");
   gateAnim = Animation("resources/ow/gate.animation") << "default" << Animator::Mode::Loop;
 
-  this->coffeeTexture = TEXTURES.LoadTextureFromFile("resources/ow/coffee.png");
+  coffeeTexture = TEXTURES.LoadTextureFromFile("resources/ow/coffee.png");
   coffeeAnim = Animation("resources/ow/coffee.animation") << "default" << Animator::Mode::Loop;
 
-  this->ornamentTexture = TEXTURES.LoadTextureFromFile("resources/ow/xmas.png");
+  ornamentTexture = TEXTURES.LoadTextureFromFile("resources/ow/xmas.png");
   starAnim = xmasAnim = lightsAnim = Animation("resources/ow/xmas.animation");
   starAnim << "star" << Animator::Mode::Loop;
   lightsAnim << "lights" << Animator::Mode::Loop;
@@ -151,9 +156,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   // reserve 1000 elements so no references are invalidated
   npcs.reserve(1000);
   pathControllers.reserve(1000);
-
-  // Effectively loads the map
-  ResetMap();
 }
 
 Overworld::SceneBase::~SceneBase()
@@ -162,67 +164,26 @@ Overworld::SceneBase::~SceneBase()
 }
 
 void Overworld::SceneBase::onStart() {
-  // Stop any music already playing
-  AUDIO.StopStream();
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
-
 #ifdef __ANDROID__
   StartupTouchControls();
 #endif
+
+  // Set the camera back to ours
+  ENGINE.SetCamera(camera);
 
   gotoNextScene = false;
 }
 
 void Overworld::SceneBase::onUpdate(double elapsed) {
+  if (firstTimeLoad) {
+    // Effectively loads the map
+    ResetMap();
+
+    firstTimeLoad = false;
+  }
+
   if (menuWidget.IsClosed() && textbox.IsClosed()) {
     playerController.ListenToInputEvents(true);
-
-    auto mousei = sf::Mouse::getPosition(*ENGINE.GetWindow());
-    auto& [row, col] = map.PixelToRowCol(mousei);
-    sf::Vector2f click = { (float)col * map.GetTileSize().x * 0.5f, (float)row * map.GetTileSize().y };
-
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
-      this->ResetMap();
-      map.setScale(2.f, 2.f);
-    } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp) && !scaledmap) {
-      map.setScale(map.getScale() * 1.25f);
-      scaledmap = true;
-    } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown) && !scaledmap) {
-      map.setScale(map.getScale() * 0.75f);
-      scaledmap = true;
-    }
-
-    if (scaledmap
-      && !sf::Keyboard::isKeyPressed(sf::Keyboard::PageUp)
-      && !sf::Keyboard::isKeyPressed(sf::Keyboard::PageDown)) {
-      scaledmap = false;
-    }
-    
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !clicked) {
-      auto tile = map.GetTileAt(click);
-      tile.solid = false;
-
-      tile.ID = ((++tile.ID) % map.GetTilesetItemCount()) + 1ull;
-
-      map.SetTileAt(click, tile);
-
-      clicked = true;
-    }
-    else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Right) && !clicked) {
-      auto tile = map.GetTileAt(click);
-      tile.solid = true;
-      tile.ID = 0;
-
-      map.SetTileAt(click, tile);
-
-      clicked = true;
-    }
-    else if (clicked
-      && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)
-      && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
-    {
-      clicked = false;
-    }
   }
   else {
     playerController.ListenToInputEvents(false);
@@ -238,7 +199,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
         textbox.Open();
       }
       else if (tile.token == "G") {
-        textbox.EnqueMessage({}, "", new Message("Do you know da way?"));
+        textbox.EnqueMessage({}, "", new Message("The gate needs a key to get through."));
         textbox.Open();
       }
       else if (tile.token == "X") {
@@ -267,30 +228,10 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     }
   }
 
-  // on collision with warps
-  static size_t next_warp = 0;
-  auto playerTile = map.GetTileAt(playerActor.getPosition());
-  if (playerTile.token == "W" && teleportController.IsComplete()) {
-    auto warps = map.FindToken("W");
-
-    if (warps.size()) {
-      if (++next_warp >= warps.size()) {
-        next_warp = 0;
-      }
-
-      auto teleportToNextWarp = [=] {
-        auto finishTeleport = [=] {
-          playerController.ControlActor(playerActor);
-        };
-
-        auto& command = teleportController.TeleportIn(playerActor, warps[next_warp], Direction::up);
-        command.onFinish.Slot(finishTeleport);
-      };
-
-      playerController.ReleaseActor();
-      auto& command = teleportController.TeleportOut(playerActor);
-      command.onFinish.Slot(teleportToNextWarp);
-    }
+  // handle custom tile collision
+  if (HasTeleportedAway() == false) {
+    auto playerTile = map.GetTileAt(playerActor.getPosition());
+    this->OnTileCollision(playerTile);
   }
 
   /**
@@ -358,6 +299,16 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   warpAnim.SyncTime(static_cast<float>(animElapsed));
   for (auto& w : warps) {
     warpAnim.Refresh(w->getSprite());
+  }
+
+  netWarpAnim.SyncTime(static_cast<float>(animElapsed));
+  for (auto& w : netWarps) {
+    netWarpAnim.Refresh(w->getSprite());
+  }
+
+  homeWarpAnim.SyncTime(static_cast<float>(animElapsed));
+  for (auto& h : homeWarps) {
+    homeWarpAnim.Refresh(h->getSprite());
   }
 
   starAnim.SyncTime(static_cast<float>(animElapsed));
@@ -534,9 +485,6 @@ void Overworld::SceneBase::onExit()
 void Overworld::SceneBase::onEnter()
 {
   RefreshNaviSprite();
-
-  // Set the camera back to ours
-  ENGINE.SetCamera(camera);
 }
 
 void Overworld::SceneBase::onResume() {
@@ -558,6 +506,22 @@ void Overworld::SceneBase::onResume() {
   gotoNextScene = false;
 
   ENGINE.SetCamera(camera);
+
+  // if we left this scene for a new OW scene... return to our warp area
+  if (teleportedOut) {
+    playerController.ReleaseActor();
+
+    auto& command = teleportController.TeleportIn(
+      playerActor, 
+      returnPoint, 
+      Reverse(playerActor.GetHeading())
+    );
+
+    command.onFinish.Slot([=] {
+      teleportedOut = false;
+      playerController.ControlActor(playerActor);
+    });
+  }
 
 #ifdef __ANDROID__
   StartupTouchControls();
@@ -583,7 +547,6 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 }
 
 void Overworld::SceneBase::onEnd() {
-  AUDIO.StopStream();
   ENGINE.RevokeShader();
 
 #ifdef __ANDROID__
@@ -709,7 +672,7 @@ void Overworld::SceneBase::ResetMap()
   unsigned lastMapRows = map.GetRows();
   unsigned lastMapCols = map.GetCols();
 
-  auto result = Overworld::Map::LoadFromFile(map, "resources/ow/homepage.txt");
+  auto result = FetchMapData();
 
   if (!result.first) {
     Logger::Log("Failed to load map homepage.txt");
@@ -803,6 +766,11 @@ void Overworld::SceneBase::ResetMap()
     auto coff = map.FindToken("C");
     auto gates = map.FindToken("G");
     auto paths = map.FindToken("#");
+    auto netWarps = map.FindToken("@");
+    auto homeWarps = map.FindToken("H");
+   
+    auto cyberworldWarp = map.FindToken("N");
+    warps.insert(warps.end(), cyberworldWarp.begin(), cyberworldWarp.end());
 
     playerController.ReleaseActor();
 
@@ -835,20 +803,36 @@ void Overworld::SceneBase::ResetMap()
     }
 
     // warps
-    bool firstWarp = true;
     for (auto pos : warps) {
       auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
       new_warp->setPosition(pos);
       this->warps.push_back(new_warp);
       map.AddSprite(&*new_warp, 1);
+    }
+
+    // warp from net back to homepage
+    for (auto pos : homeWarps) {
+      auto new_warp = std::make_shared<SpriteProxyNode>(*homeWarpTexture);
+      new_warp->setPosition(pos);
+      this->homeWarps.push_back(new_warp);
+      map.AddSprite(&*new_warp, 1);
+    }
+
+    // warp from the computer to the net
+    bool firstWarp = true;
+    for (auto pos : netWarps) {
+      auto new_warp = std::make_shared<SpriteProxyNode>(*netWarpTexture);
+      new_warp->setPosition(pos);
+      this->netWarps.push_back(new_warp);
+      map.AddSprite(&*new_warp, 1);
 
       if (firstWarp) {
+        firstWarp = false;
+
         auto& command = teleportController.TeleportIn(playerActor, pos, Direction::up);
         command.onFinish.Slot([=] {
           playerController.ControlActor(playerActor);
         });
-
-        firstWarp = false;
       }
     }
 
@@ -972,6 +956,27 @@ void Overworld::SceneBase::ResetMap()
   }
 }
 
+void Overworld::SceneBase::TeleportUponReturn(const sf::Vector2f& position)
+{
+  teleportedOut = true;
+  returnPoint = position;
+}
+
+const bool Overworld::SceneBase::HasTeleportedAway() const
+{
+  return teleportedOut;
+}
+
+void Overworld::SceneBase::SetBackground(Background* background)
+{
+  if (this->bg) {
+    delete this->bg;
+    this->bg = nullptr;
+  }
+
+  this->bg = background;
+}
+
 void Overworld::SceneBase::GotoChipFolder()
 {
   gotoNextScene = true;
@@ -1037,8 +1042,53 @@ void Overworld::SceneBase::GotoPVP()
   }
 }
 
+Overworld::QuadTree& Overworld::SceneBase::GetQuadTree()
+{
+  return quadTree;
+}
+
+Camera& Overworld::SceneBase::GetCamera()
+{
+  return camera;
+}
+
+Overworld::Map& Overworld::SceneBase::GetMap()
+{
+  return map;
+}
+
+Overworld::Actor& Overworld::SceneBase::GetPlayer()
+{
+  return playerActor;
+}
+
+Overworld::PlayerController& Overworld::SceneBase::GetPlayerController()
+{
+  return playerController;
+}
+
+Overworld::TeleportController& Overworld::SceneBase::GetTeleportControler()
+{
+  return teleportController;
+}
+
+SelectedNavi& Overworld::SceneBase::GetCurrentNavi()
+{
+  return currentNavi;
+}
+
+Background* Overworld::SceneBase::GetBackground()
+{
+  return this->bg;
+}
+
+AnimatedTextBox& Overworld::SceneBase::GetTextBox()
+{
+  return textbox;
+}
+
 #ifdef __ANDROID__
-void MainMenuScene::StartupTouchControls() {
+void Overworld::SceneBase::StartupTouchControls() {
     ui.setScale(2.f,2.f);
 
     uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
@@ -1141,7 +1191,7 @@ void MainMenuScene::StartupTouchControls() {
     });
 }
 
-void MainMenuScene::ShutdownTouchControls() {
+void Overworld::SceneBase::ShutdownTouchControls() {
   TouchArea::free();
 }
 #endif

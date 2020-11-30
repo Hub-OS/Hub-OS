@@ -196,31 +196,27 @@ namespace Overworld {
     return ortho;
   }
 
-  const sf::Vector2i Map::GetTileSize() const { return sf::Vector2i(tileWidth, tileHeight); }
+  const sf::Vector2i Map::GetTileSize() const { return sf::Vector2i(tileWidth * 0.5f, tileHeight); }
 
   const size_t Map::GetTilesetItemCount() const
   {
     return tileset.size();
   }
 
-  const std::pair<bool, Map::Tile**> Map::LoadFromFile(Map& map, const std::string& path)
-  {
-    std::ifstream file(path.c_str());
-
-    if (!file.is_open()) {
-      file.close();
-      return { false, nullptr };
-    }
-
+  const std::pair<bool, Map::Tile**> Map::LoadFromStream(Map& map, std::istringstream& stream) {
     std::string line;
 
     // name of map
-    std::getline(file, line);
+    std::getline(stream, line);
     std::string name = line;
 
     // rows x cols
-    std::getline(file, line);
+    std::getline(stream, line);
     size_t space_index = line.find_first_of(" ");
+
+    if (space_index == std::string::npos) {
+      return { false, nullptr };
+    }
 
     std::string rows_str = line.substr(0, space_index);
     std::string cols_str = line.substr(space_index);
@@ -236,12 +232,12 @@ namespace Overworld {
     size_t index = 0;
 
     // load all tiles
-    while(std::getline(file, line))
+    while (std::getline(stream, line))
     {
       std::stringstream linestream(line);
       std::string value;
 
-      while (getline(linestream, value, ',') && static_cast<unsigned>(index) < rows*cols)
+      while (getline(linestream, value, ',') && static_cast<unsigned>(index) < rows * cols)
       {
         size_t row = index / cols;
         size_t col = index % cols;
@@ -272,7 +268,7 @@ namespace Overworld {
 
     // default tileset code for now:
     auto texture = TEXTURES.LoadTextureFromFile("resources/ow/basic_tileset.png");
- 
+
     std::vector<sf::Sprite> items;
 
     for (size_t index = 0; index < 3; index++) {
@@ -294,6 +290,30 @@ namespace Overworld {
     map.SetName(name);
 
     return { true, tiles };
+  }
+
+  const std::pair<bool, Map::Tile**> Map::LoadFromFile(Map& map, const std::string& path)
+  {
+    std::ifstream file(path.c_str());
+
+    if (!file.is_open()) {
+      file.close();
+      return { false, nullptr };
+    }
+
+    /**
+    Use the file stream contents and copy them into the istringstream 
+    */
+    file.seekg(0, std::ios::end);
+    std::streampos length = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    std::vector<char> buffer(length);
+    file.read(&buffer[0], length);
+
+    std::istringstream iss(std::string(&buffer[0], length));
+
+    return Map::LoadFromStream(map, iss);
   }
 
   std::pair<unsigned, unsigned> Map::PixelToRowCol(const sf::Vector2i& px) const

@@ -10,7 +10,7 @@ struct PVPBattleProperties {
 };
 
 class PVPBattleScene final : public BattleSceneBase {
-  Player* remotePlayer; // the other person
+  Player* remotePlayer{ nullptr }; // the other person
   int clientDamage{};
   int remoteDamage{};
 

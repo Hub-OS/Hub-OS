@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <sstream>
 
 #include "bnOverworldLight.h"
 
@@ -171,6 +172,7 @@ namespace Overworld {
     const std::vector<sf::Vector2f> FindToken(const std::string& token);
 
     static const std::pair<bool, Map::Tile**> LoadFromFile(Map& map, const std::string& path);
+    static const std::pair<bool, Map::Tile**> LoadFromStream(Map& map, std::istringstream& stream);
 
     std::pair<unsigned, unsigned> OrthoToRowCol(const sf::Vector2f& ortho) const;
     std::pair<unsigned, unsigned> IsoToRowCol(const sf::Vector2f& iso) const;

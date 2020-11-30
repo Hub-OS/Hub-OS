@@ -179,7 +179,8 @@ int main(int argc, char** argv) {
     options.add_options()
       ("d,debug", "Enable debugging")
       ("p,port", "port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
-      ("r,remotePort", "remote port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)));
+      ("r,remotePort", "remote port for PVP", cxxopts::value<int>()->default_value(std::to_string(NetPlayConfig::OBN_PORT)))
+      ("w,cyberworld", "ip address of main hub", cxxopts::value<std::string>()->default_value("127.0.0.1"));
 
     ENGINE.SetCommandLineValues(options.parse(argc, argv));
 

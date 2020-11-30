@@ -14,7 +14,7 @@ namespace Overworld {
       enum class state {
         teleport_in = 0,
         teleport_out
-      } state{};
+      } const state{};
 
       Callback<void()> onFinish;
     };
