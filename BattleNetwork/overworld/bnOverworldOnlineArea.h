@@ -7,12 +7,23 @@
 
 namespace Overworld {
   // server expects uint16_t codes
-  enum class OnlineSignals : uint16_t {
-    login = 0,
-    logout,
-    xyz,
-    map,
-    change
+  enum class ClientEvents : uint16_t {
+    login = 0,    // 0 login request
+    user_xyz,     // 1 reporting avatar world location
+    logout,       // 2 logout notification
+    loaded_map,   // 3 avatar loaded map
+    size,
+    unknown = size
+  };
+
+  enum class ServerEvents : uint16_t {
+    login = 0,     // 0
+    hologram_xyz,  // 1
+    hologram_name, // 3
+    time_of_day,   // 4
+    map,           // 5
+    size,
+    unknown = size
   };
 
   struct OnlinePlayer {
@@ -54,6 +65,7 @@ namespace Overworld {
     void sendNaviChangeSignal(const SelectedNavi& navi);
     void sendLoginSignal();
     void sendLogoutSignal();
+    void sendMapRefreshSignal();
     void recieveXYZSignal(const Poco::Buffer<char>&);
     void recieveNaviChangeSignal(const Poco::Buffer<char>&);
     void recieveLoginSignal(const Poco::Buffer<char>&);

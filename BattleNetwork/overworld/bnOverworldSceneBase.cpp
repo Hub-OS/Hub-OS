@@ -229,7 +229,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   // handle custom tile collision
-  if (HasTeleportedAway() == false) {
+  if (!HasTeleportedAway() && teleportController.IsComplete()) {
     auto playerTile = map.GetTileAt(playerActor.getPosition());
     this->OnTileCollision(playerTile);
   }
@@ -556,8 +556,6 @@ void Overworld::SceneBase::onEnd() {
 
 void Overworld::SceneBase::RefreshNaviSprite()
 {
-  static SelectedNavi lastSelectedNavi = std::numeric_limits<SelectedNavi>::max();
-
   // Only refresh all data and graphics if this is a new navi
   if (lastSelectedNavi == currentNavi) return;
 
@@ -774,6 +772,9 @@ void Overworld::SceneBase::ResetMap()
 
     playerController.ReleaseActor();
 
+    // Determine where to spawn the player...
+    bool firstWarp = true;
+
     // coffee
     for (auto pos : coff) {
       auto new_coffee = std::make_shared<SpriteProxyNode>(*coffeeTexture);
@@ -816,10 +817,18 @@ void Overworld::SceneBase::ResetMap()
       new_warp->setPosition(pos);
       this->homeWarps.push_back(new_warp);
       map.AddSprite(&*new_warp, 1);
+
+      if (firstWarp) {
+        firstWarp = false;
+
+        auto& command = teleportController.TeleportIn(playerActor, pos, Direction::up);
+        command.onFinish.Slot([=] {
+          playerController.ControlActor(playerActor);
+          });
+      }
     }
 
     // warp from the computer to the net
-    bool firstWarp = true;
     for (auto pos : netWarps) {
       auto new_warp = std::make_shared<SpriteProxyNode>(*netWarpTexture);
       new_warp->setPosition(pos);

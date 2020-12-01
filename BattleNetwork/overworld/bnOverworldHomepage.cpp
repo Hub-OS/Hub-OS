@@ -42,7 +42,7 @@ void Overworld::Homepage::onUpdate(double elapsed)
     scaledmap = false;
   }
 
-  if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !clicked) {
+  /*if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && !clicked) {
     const size_t tilesetCount = map.GetTilesetItemCount();
     if (tilesetCount > 0) {
       auto tile = map.GetTileAt(click);
@@ -69,7 +69,7 @@ void Overworld::Homepage::onUpdate(double elapsed)
     && !sf::Mouse::isButtonPressed(sf::Mouse::Button::Right))
   {
     clicked = false;
-  }
+  }*/
 
   // do default logic
   SceneBase::onUpdate(elapsed);

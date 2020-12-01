@@ -145,7 +145,7 @@ namespace Overworld {
         iso = sf::Vector2f(iso.x, iso.y);
         tileSprite.setPosition(iso);
 
-        auto color = tileSprite.getColor();
+        /*auto color = tileSprite.getColor();
         
         auto& [y, x] = PixelToRowCol(sf::Mouse::getPosition(*ENGINE.GetWindow()));
 
@@ -153,13 +153,11 @@ namespace Overworld {
 
         if (hover) {
           tileSprite.setColor({ color.r, color.b, color.g, 200 });
-        }
+        }*/
 
         if (/*cam && cam->IsInView(tileSprite)*/ true) {
           target.draw(tileSprite, states);
         }
-
-        tileSprite.setColor(color);
       }
     }
   }

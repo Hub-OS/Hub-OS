@@ -92,6 +92,8 @@ void Overworld::Actor::LoadAnimations(const std::string& path)
       loadDirectionalAnimationThunk(dir, state);
     }
   }
+
+  Update(0); // refresh
 }
 
 void Overworld::Actor::SetWalkSpeed(const double speed)

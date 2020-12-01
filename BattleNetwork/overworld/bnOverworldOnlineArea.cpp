@@ -16,7 +16,7 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
   lastFrameNavi = this->GetCurrentNavi();
 
   int myPort = ENGINE.CommandLineValue<int>("port");
-  Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
+  Poco::Net::SocketAddress sa("127.0.0.1", myPort);
   client = Poco::Net::DatagramSocket(sa);
   client.setBlocking(false);
 
@@ -44,6 +44,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 {
   if (mapBuffer.empty() == false) {
     SceneBase::onUpdate(elapsed);
+    sendXYZSignal();
 
     for (auto player : onlinePlayers) {
       player.second->actor.Update(elapsed);
@@ -54,14 +55,14 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   }
   else {
     loadMapTime.update(elapsed);
+
+    if (loadMapTime.getElapsed() > sf::seconds(5)) {
+      using effect = segue<PixelateBlackWashFade>;
+      getController().pop<effect>();
+    }
   }
 
   this->processIncomingPackets();
-
-  if (loadMapTime.getElapsed() > sf::seconds(5)) {
-    using effect = segue<PixelateBlackWashFade>;
-    getController().pop<effect>();
-  }
 }
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
@@ -75,6 +76,7 @@ void Overworld::OnlineArea::onStart()
 {
   SceneBase::onStart();
   loadMapTime.start();
+  sendLoginSignal();
 }
 
 const std::pair<bool, Overworld::Map::Tile**> Overworld::OnlineArea::FetchMapData()
@@ -126,6 +128,8 @@ void Overworld::OnlineArea::OnTileCollision(const Overworld::Map::Tile& tile)
     auto& command = teleportController->TeleportOut(*playerActor);
 
     auto teleportHome = [=] {
+      TeleportUponReturn(playerActor->getPosition());
+      sendLogoutSignal();
       getController().pop<segue<BlackWashFade>>();
     };
 
@@ -141,42 +145,53 @@ void Overworld::OnlineArea::sendXYZSignal()
   double z = 0;
 
   Poco::Buffer<char> buffer{ 0 };
-  OnlineSignals type{ OnlineSignals::xyz };
-  buffer.append((char*)&type, sizeof(OnlineSignals));
+  ClientEvents type{ ClientEvents::user_xyz };
+  buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&x, sizeof(double));
   buffer.append((char*)&y, sizeof(double));
   buffer.append((char*)&z, sizeof(double));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void Overworld::OnlineArea::sendNaviChangeSignal(const SelectedNavi& navi)
 {
-  Poco::Buffer<char> buffer{ 0 };
-  OnlineSignals type{ OnlineSignals::change };
-  buffer.append((char*)&type, sizeof(OnlineSignals));
+  /*Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::change };
+  buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&navi, sizeof(SelectedNavi));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  client.sendBytes(buffer.begin(), (int)buffer.size());*/
 }
 
 void Overworld::OnlineArea::sendLoginSignal()
 {
-  std::string username = WEBCLIENT.GetUserName() + "\0";
-  std::string password = "\0"; // No servers need passwords at this time
+  std::string username("Maverick\0", 9);
+  std::string password("Nunya\0", 6); // No servers need passwords at this time
 
   Poco::Buffer<char> buffer{ 0 };
-  OnlineSignals type{ OnlineSignals::login };
-  buffer.append((char*)&type, sizeof(OnlineSignals));
+  ClientEvents type{ ClientEvents::login };
+  buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)username.data(), username.length());
   buffer.append((char*)password.data(), password.length());
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void Overworld::OnlineArea::sendLogoutSignal()
 {
   Poco::Buffer<char> buffer{ 0 };
-  OnlineSignals type{ OnlineSignals::logout };
-  buffer.append((char*)&type, sizeof(OnlineSignals));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  ClientEvents type{ ClientEvents::logout };
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+}
+
+void Overworld::OnlineArea::sendMapRefreshSignal()
+{
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::loaded_map };
+  size_t mapID{};
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&mapID, sizeof(size_t));
+  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
 void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
@@ -219,7 +234,12 @@ void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
   std::string user = std::string(buffer.begin()+sizeof(uint16_t), buffer.size()-sizeof(uint16_t));
 
   if (user == this->client.address().toString()) {
+    if (!isConnected) {
+      sendMapRefreshSignal();
+    }
+
     isConnected = true;
+    return;
   }
 
   if (!isConnected) return;
@@ -251,11 +271,16 @@ void Overworld::OnlineArea::recieveLogoutSignal(const Poco::Buffer<char>& buffer
 void Overworld::OnlineArea::recieveMapSignal(const Poco::Buffer<char>& buffer)
 {
   mapBuffer = std::string(buffer.begin(), buffer.size());
+
+  // If we are still invalid after this, there's a problem
+  if (mapBuffer.empty()) {
+    Logger::Logf("Server sent empty map data");
+  }
 }
 
 void Overworld::OnlineArea::processIncomingPackets()
 {
-  if (!client.poll(Poco::Timespan{ 0 }, Poco::Net::Socket::SELECT_READ)) return;
+  if (!client.available()) return;
 
   static int errorCount = 0;
 
@@ -270,29 +295,31 @@ void Overworld::OnlineArea::processIncomingPackets()
   static int read = 0;
 
   try {
-    read += client.receiveBytes(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN - 1);
-    if (read > 0) {
+    Poco::Net::SocketAddress sender;
+    read += client.receiveFrom(rawBuffer, 4048u, sender);
+
+    if (sender == remoteAddress && read > 0) {
       rawBuffer[read] = '\0';
 
-      OnlineSignals sig = *(OnlineSignals*)rawBuffer;
-      size_t sigLen = sizeof(OnlineSignals);
+      ServerEvents sig = *(ServerEvents*)rawBuffer;
+      size_t sigLen = sizeof(ServerEvents);
       Poco::Buffer<char> data{ 0 };
       data.append(rawBuffer + sigLen, size_t(read) - sigLen);
 
       switch (sig) {
-      case OnlineSignals::change:
+      /*case ServerEvents::change:
+        recieveNaviChangeSignal(data);
+        break;*/
+      case ServerEvents::hologram_xyz:
         recieveXYZSignal(data);
         break;
-      case OnlineSignals::xyz:
-        recieveXYZSignal(data);
-        break;
-      case OnlineSignals::login:
+      case ServerEvents::login:
         recieveLoginSignal(data);
         break;
-      case OnlineSignals::logout:
+      /*case ServerEvents::logout
         recieveLogoutSignal(data);
-        break;
-      case OnlineSignals::map:
+        break;*/
+      case ServerEvents::map:
         recieveMapSignal(data);
         break;
       }

@@ -91,10 +91,12 @@ namespace Overworld {
 
     double animElapsed{};
 
-    SelectedNavi currentNavi; /*!< Current navi selection index */
+    /*!< Current navi selection index */
+    SelectedNavi currentNavi{}, 
+      lastSelectedNavi{ std::numeric_limits<SelectedNavi>::max() }; 
 
-    bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
-    bool guestAccount;
+    bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
+    bool guestAccount{ false };
 
     CardFolderCollection folders; /*!< Collection of folders */
     PA programAdvance;
