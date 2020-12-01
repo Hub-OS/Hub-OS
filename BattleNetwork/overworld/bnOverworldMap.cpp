@@ -320,7 +320,7 @@ namespace Overworld {
     sf::Vector2f world = ENGINE.GetWindow()->mapPixelToCoords(px);
 
     // consider the point on screen relative to the camera focus
-    auto pos = world - ENGINE.GetViewOffset();
+    auto pos = world - ENGINE.GetView().getCenter() - cam->GetView().getCenter();
     
     // respect the current scale and transform form isometric coordinates
     return IsoToRowCol({ pos.x / getScale().x, pos.y / getScale().y });

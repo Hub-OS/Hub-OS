@@ -28,7 +28,7 @@ namespace Overworld {
 
   struct OnlinePlayer {
     Overworld::Actor actor{"?"};
-    SelectedNavi currNavi{};
+    SelectedNavi currNavi{std::numeric_limits<SelectedNavi>::max()};
   };
 
   class OnlineArea final : public SceneBase {
@@ -39,7 +39,7 @@ namespace Overworld {
     SelectedNavi lastFrameNavi{};
     std::map<std::string, OnlinePlayer*> onlinePlayers;
     std::string mapBuffer;
-    Timer loadMapTime;
+    Timer loadMapTime, movementTimer;
 
     void RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi);
 

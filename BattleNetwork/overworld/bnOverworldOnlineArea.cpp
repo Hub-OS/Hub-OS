@@ -44,7 +44,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 {
   if (mapBuffer.empty() == false) {
     SceneBase::onUpdate(elapsed);
-    sendXYZSignal();
 
     for (auto player : onlinePlayers) {
       player.second->actor.Update(elapsed);
@@ -52,6 +51,13 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
     loadMapTime.reset();
     loadMapTime.pause();
+
+    movementTimer.update(elapsed);
+
+    if (movementTimer.getElapsed().asSeconds() > 1.f / 5.f) {
+      movementTimer.reset();
+      sendXYZSignal();
+    }
   }
   else {
     loadMapTime.update(elapsed);
@@ -67,7 +73,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 {
-  if (mapBuffer.empty() == false) {
+  if (mapBuffer.empty() == false && isConnected) {
     SceneBase::onDraw(surface);
   }
 }
@@ -76,6 +82,7 @@ void Overworld::OnlineArea::onStart()
 {
   SceneBase::onStart();
   loadMapTime.start();
+  movementTimer.start();
   sendLoginSignal();
 }
 
@@ -198,17 +205,45 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
 
+  std::string user = std::string(buffer.begin());
+
+  // ignore our ip update
+  if (user == this->client.address().toString()) {
+    return;
+  }
+
   double x{}, y{}, z{};
-  std::string user = std::string(buffer.begin(), buffer.size() - 16ll);
-  std::memcpy(&x, buffer.begin(), sizeof(double));
-  std::memcpy(&y, buffer.begin()+ sizeof(double),    sizeof(double));
-  std::memcpy(&z, buffer.begin()+(sizeof(double)*2), sizeof(double));
+  std::memcpy(&x, buffer.begin()+user.size(), sizeof(double));
+  std::memcpy(&y, buffer.begin()+user.size()+sizeof(double),    sizeof(double));
+  std::memcpy(&z, buffer.begin()+user.size()+(sizeof(double)*2), sizeof(double));
 
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
     auto* onlinePlayer = userIter->second;
-    onlinePlayer->actor.setPosition(sf::Vector2f(x, y));
+
+    auto lastPosition = onlinePlayer->actor.getPosition();
+    auto newPosition = sf::Vector2f(x, y);
+    auto diff = newPosition - lastPosition;
+
+    if (diff.x == diff.y == 0) {
+      onlinePlayer->actor.Face(onlinePlayer->actor.GetHeading());
+    }
+    else {
+      onlinePlayer->actor.Walk(Actor::MakeDirectionFromVector(diff, 0.4f));
+    }
+
+    onlinePlayer->actor.setPosition(newPosition);
+  }
+  else {
+    auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
+
+    if (success) {
+      auto& actor = pair->second->actor;
+      RefreshOnlinePlayerSprite(*pair->second, SelectedNavi{ 0 });
+      actor.setPosition(sf::Vector2f(x, y));
+      GetMap().AddSprite(&actor, 0);
+    }
   }
 }
 
@@ -246,6 +281,7 @@ void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
 
   auto userIter = onlinePlayers.find(user);
 
+  // TODO: teleport in
   if (userIter == onlinePlayers.end()) {
     auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
 
@@ -284,9 +320,22 @@ void Overworld::OnlineArea::processIncomingPackets()
 
   static int errorCount = 0;
 
-  if (errorCount > 10) {
-    using effect = segue<PixelateBlackWashFade>;
-    getController().pop<effect>();
+  auto* teleportController = &GetTeleportControler();
+  if (errorCount > 30 && teleportController->IsComplete()) {
+    auto& map = GetMap();
+    auto* playerController = &GetPlayerController();
+    auto* playerActor = &GetPlayer();
+
+    playerController->ReleaseActor();
+    auto& command = teleportController->TeleportOut(*playerActor);
+
+    auto teleportHome = [=] {
+      TeleportUponReturn(playerActor->getPosition());
+      sendLogoutSignal();
+      getController().pop<segue<PixelateBlackWashFade>>();
+    };
+
+    command.onFinish.Slot(teleportHome);
     errorCount = 0; // reset for next instance of scene
     return;
   }
@@ -330,7 +379,7 @@ void Overworld::OnlineArea::processIncomingPackets()
   catch (std::exception& e) {
     Logger::Logf("OnlineArea Network exception: %s", e.what());
 
-    if (isConnected) {
+    if (isConnected && mapBuffer.empty()) {
       errorCount++;
     }
   }
@@ -349,5 +398,6 @@ void Overworld::OnlineArea::RefreshOnlinePlayerSprite(OnlinePlayer& player, Sele
   if (owPath.size()) {
     player.actor.setTexture(meta.GetOverworldTexture());
     player.actor.LoadAnimations(owPath);
+    player.currNavi = navi;
   }
 }

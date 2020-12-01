@@ -168,9 +168,6 @@ void Overworld::SceneBase::onStart() {
   StartupTouchControls();
 #endif
 
-  // Set the camera back to ours
-  ENGINE.SetCamera(camera);
-
   gotoNextScene = false;
 }
 
@@ -533,7 +530,8 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
 
   ENGINE.Draw(bg);
 
-  auto offset = ENGINE.GetViewOffset();
+  auto offset = getView().getCenter() - camera.GetView().getCenter();
+
   map.move(offset);
   ENGINE.Draw(map);
   map.move(-offset);
