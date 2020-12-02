@@ -114,6 +114,13 @@ namespace Overworld {
      */
     const sf::Vector2f ScreenToWorld(sf::Vector2f screen) const;
  
+     /**
+     * @brief Transforms a point in-world to screen cordinates
+     * @param screen vector from world
+     * @return screen coordinates
+     */
+    const sf::Vector2f WorldToScreen(sf::Vector2f screen) const;
+
     /**
      * @brief Deletes tiles and lights.
      */

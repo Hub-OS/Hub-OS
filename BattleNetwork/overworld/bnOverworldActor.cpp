@@ -29,20 +29,22 @@ Overworld::Actor::~Actor()
 {
 }
 
-void Overworld::Actor::Walk(const Direction& dir)
+void Overworld::Actor::Walk(const Direction& dir, bool move)
 {
   if (dir == Direction::none) return;
 
   this->heading = dir;
   this->state = MovementState::walking;
+  this->moveThisFrame = move;
 }
 
-void Overworld::Actor::Run(const Direction& dir)
+void Overworld::Actor::Run(const Direction& dir, bool move)
 {
   if (dir == Direction::none) return;
 
   this->heading = dir;
   this->state = MovementState::running;
+  this->moveThisFrame = move;
 }
 
 void Overworld::Actor::Face(const Direction& dir)
@@ -106,6 +108,11 @@ void Overworld::Actor::SetRunSpeed(const double speed)
   this->runSpeed = speed;
 }
 
+void Overworld::Actor::Rename(const std::string& newName)
+{
+  this->name = newName;
+}
+
 const std::string Overworld::Actor::GetName() const
 {
   return this->name;
@@ -162,11 +169,13 @@ void Overworld::Actor::Update(double elapsed)
     }
   }
   
-  if (state != MovementState::idle) {
+  if (state != MovementState::idle && moveThisFrame) {
     auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed);
 
     // We don't care about success or not, update the best position
     setPosition(new_pos);
+
+    moveThisFrame = false;
   }
 }
 

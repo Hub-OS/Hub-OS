@@ -148,6 +148,11 @@ public:
 
   ConfigSettings GetConfigSettings();
 
+  /**
+  * @brief if any buttons are held ore pressed, fire release events for all
+  */
+  void FlushAllInputEvents();
+
 private:
   sf::Keyboard::Key lastkey;
   Gamepad lastButton;
@@ -156,6 +161,7 @@ private:
   std::string inputBuffer; /*!< The internal input buffer data */
 
   bool systemCopyEvent{ false }, systemPasteEvent{ false };
+  bool hasFocus{ true };
 
   float axisXPower, lastAxisXPower;
   float axisYPower, lastAxisYPower;
@@ -173,7 +179,6 @@ private:
   std::function<void()> onRegainFocus; /*!< How the application should respond to regaining focus */
   std::function<void()> onLoseFocus; /*!< How the application should respond to losing focus */
   std::function<void(int, int)> onResized; /*!< How the application should respond to resized */
-
 };
 
 /**

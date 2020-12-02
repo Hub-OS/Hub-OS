@@ -49,16 +49,22 @@ void InputManager::Update() {
     if (event.type == Event::Closed) {
       onLoseFocus();
       ENGINE.GetWindow()->close();
+      hasFocus = false;
     }
 
     if (event.type == Event::LostFocus) {
       onLoseFocus();
+      hasFocus = false;
+
+      FlushAllInputEvents();
     }
     else if (event.type == Event::GainedFocus) {
       onRegainFocus();
+      hasFocus = true;
     }
     else if (event.type == Event::Resized) {
       onResized(event.size.width, event.size.height);
+      hasFocus = true;
     }
 
     if (event.type == sf::Event::TextEntered && captureInputBuffer) {
@@ -66,6 +72,8 @@ void InputManager::Update() {
     }
 
     if(event.type == sf::Event::KeyPressed) {
+      if (!hasFocus) continue;
+
       lastkey = event.key.code;
 
 #ifndef __ANDROID__
@@ -77,13 +85,13 @@ void InputManager::Update() {
 #endif
     }
 
-    for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++) {
+    for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1) && hasFocus; i++) {
       if (sf::Joystick::isButtonPressed(GAMEPAD_1, i)) {
         lastButton = (decltype(lastButton))i;
       }
     }
 
-    if (sf::Joystick::isConnected(GAMEPAD_1) && settings.IsOK()) {
+    if (sf::Joystick::isConnected(GAMEPAD_1) && settings.IsOK() && hasFocus) {
       for (unsigned int i = 0; i < sf::Joystick::getButtonCount(GAMEPAD_1); i++) {
         if (sf::Joystick::isButtonPressed(GAMEPAD_1, i)) {
           auto action = settings.GetPairedActions((Gamepad)i);
@@ -119,7 +127,7 @@ void InputManager::Update() {
           }
         }
       }
-    } else if (Event::KeyPressed == event.type) {
+    } else if (Event::KeyPressed == event.type && hasFocus) {
       /* Gamepad not connected. Strictly use keyboard events. */
       if (settings.IsOK() && settings.IsKeyboardOK()) {
         auto action = settings.GetPairedActions(event.key.code);
@@ -172,7 +180,7 @@ void InputManager::Update() {
           events.push_back(EventTypes::PRESSED_SCAN_RIGHT);
         }
       }
-    } else if (Event::KeyReleased == event.type) {
+    } else if (Event::KeyReleased == event.type && hasFocus) {
       if (settings.IsOK() && settings.IsKeyboardOK()) {
         auto action = settings.GetPairedActions(event.key.code);
 
@@ -237,7 +245,7 @@ void InputManager::Update() {
   axisXPower = 0.f;
   axisYPower = 0.f;
 
-  if (sf::Joystick::isConnected(GAMEPAD_1)) {
+  if (sf::Joystick::isConnected(GAMEPAD_1) && hasFocus) {
 
     if (sf::Joystick::hasAxis(GAMEPAD_1, sf::Joystick::PovX)) {
       axisXPower = sf::Joystick::getAxisPosition(GAMEPAD_1, sf::Joystick::PovX);
@@ -588,6 +596,27 @@ const bool InputManager::HasSystemPasteEvent() const
 ConfigSettings InputManager::GetConfigSettings()
 {
   return settings;
+}
+
+void InputManager::FlushAllInputEvents()
+{
+  for (auto e : eventsLastFrame) {
+    InputEvent insert = EventTypes::NONE;
+    InputEvent erase = EventTypes::NONE;
+
+    // Search for press keys that have been held and transform them
+    if (e.state == PRESSED || e.state == HELD) {
+      insert = { e.name, RELEASED };
+      erase = e;
+    }
+
+    auto trunc = std::remove(events.begin(), events.end(), erase);
+    events.erase(trunc, events.end());
+
+    if (insert != EventTypes::NONE && std::find(events.begin(), events.end(), insert) == events.end()) {
+      events.push_back(insert); // migrate this release event
+    }
+  }
 }
 
 bool InputManager::Empty() {

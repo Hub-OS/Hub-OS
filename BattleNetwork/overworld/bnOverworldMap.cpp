@@ -37,6 +37,12 @@ namespace Overworld {
     return OrthoToIsometric(screen);
   }
 
+  const sf::Vector2f Map::WorldToScreen(sf::Vector2f screen) const
+  {
+    
+    return IsoToOrthogonal(sf::Vector2f{ screen.x / getScale().x, screen.y / getScale().y });
+  }
+
   Map::~Map() {
     for (int i = 0; i < lights.size(); i++) {
       delete lights[i];

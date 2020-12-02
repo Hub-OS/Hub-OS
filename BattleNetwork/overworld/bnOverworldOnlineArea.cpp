@@ -9,6 +9,7 @@
 #include "../netplay/bnNetPlayConfig.h"
 
 using namespace swoosh::types;
+constexpr float SECONDS_PER_MOVEMENT = 1.f / 5.f;
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool guestAccount) :
   SceneBase(controller, guestAccount)
@@ -26,6 +27,10 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
   client.connect(remoteAddress);
 
   SetBackground(new XmasBackground);
+
+  // load name font stuff
+  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
+  name = sf::Text("", *font);
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -42,19 +47,59 @@ Overworld::OnlineArea::~OnlineArea()
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
+  this->processIncomingPackets();
+
+  auto currentTime = CurrentTime::AsMilli();
+
   if (mapBuffer.empty() == false) {
     SceneBase::onUpdate(elapsed);
 
-    for (auto player : onlinePlayers) {
-      player.second->actor.Update(elapsed);
+    if (lastFrameNavi != GetCurrentNavi()) {
+      lastFrameNavi = GetCurrentNavi();
+      sendNaviChangeSignal(lastFrameNavi);
     }
+
+    for (auto player : onlinePlayers) {
+      player.second->teleportController.Update(elapsed);
+      auto& actor = player.second->actor;
+      auto deltaTime = static_cast<double>(currentTime - player.second->timestamp)/1000.0;
+      auto delta = player.second->endBroadcastPos - player.second->startBroadcastPos;
+      float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+      double expectedTime = (player.second->avgLagTime / static_cast<double>(player.second->packets + 1));
+      auto alpha = ease::linear(deltaTime, expectedTime, 1.0);
+
+      auto newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
+
+      if (distance <= 0.2f) {
+        actor.Face(actor.GetHeading());
+      } else if (distance <= actor.GetWalkSpeed()*expectedTime) {
+        actor.Walk(newHeading, false); // Don't actually move or collide, but animate
+      } else {
+        actor.Run(newHeading, false);
+      }
+
+      auto newPos = player.second->startBroadcastPos + sf::Vector2f(delta.x*alpha, delta.y*alpha);
+      //auto newPos = sf::Vector2f{ ease::interpolate((float)0.5f, lastBroadcastPos.x, lastPosition.x),
+      //               ease::interpolate((float)0.5f, lastBroadcastPos.y, lastPosition.y) };
+      //auto newPos = lastPosition + sf::Vector2f(delta.x * elapsed, delta.y * elapsed);
+
+      actor.setPosition(newPos);
+
+      actor.Update(elapsed);
+    }
+
+    for (auto remove : removePlayers) {
+      onlinePlayers.erase(remove);
+    }
+
+    removePlayers.clear();
 
     loadMapTime.reset();
     loadMapTime.pause();
 
     movementTimer.update(elapsed);
 
-    if (movementTimer.getElapsed().asSeconds() > 1.f / 5.f) {
+    if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
       movementTimer.reset();
       sendXYZSignal();
     }
@@ -67,14 +112,25 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       getController().pop<effect>();
     }
   }
-
-  this->processIncomingPackets();
 }
 
 void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 {
   if (mapBuffer.empty() == false && isConnected) {
     SceneBase::onDraw(surface);
+  }
+
+  for (auto player : onlinePlayers) {
+    if (IsMouseHovering(surface, player.second->actor)) {
+      std::string nameStr = player.second->actor.GetName();
+      auto mousei = sf::Mouse::getPosition(*ENGINE.GetWindow());
+      auto mousef = sf::Vector2f(mousei.x, mousei.y);
+      name.setPosition(mousef);
+      name.setString(sf::String(nameStr.c_str()));
+      name.setOrigin(-10.0f, 0);
+      ENGINE.Draw(name);
+      continue;
+    }
   }
 }
 
@@ -162,17 +218,18 @@ void Overworld::OnlineArea::sendXYZSignal()
 
 void Overworld::OnlineArea::sendNaviChangeSignal(const SelectedNavi& navi)
 {
-  /*Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::change };
+  Poco::Buffer<char> buffer{ 0 };
+  uint16_t form = navi;
+  ClientEvents type{ ClientEvents::avatar_change };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&navi, sizeof(SelectedNavi));
-  client.sendBytes(buffer.begin(), (int)buffer.size());*/
+  buffer.append((char*)&form, sizeof(uint16_t));
+  client.sendBytes(buffer.begin(), (int)buffer.size());
 }
 
 void Overworld::OnlineArea::sendLoginSignal()
 {
-  std::string username("Maverick\0", 9);
-  std::string password("Nunya\0", 6); // No servers need passwords at this time
+  std::string username("James\0", 9);
+  std::string password("\0", 1); // No servers need passwords at this time
 
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::login };
@@ -221,29 +278,40 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
 
   if (userIter != onlinePlayers.end()) {
     auto* onlinePlayer = userIter->second;
-
-    auto lastPosition = onlinePlayer->actor.getPosition();
-    auto newPosition = sf::Vector2f(x, y);
-    auto diff = newPosition - lastPosition;
-
-    if (diff.x == diff.y == 0) {
-      onlinePlayer->actor.Face(onlinePlayer->actor.GetHeading());
-    }
-    else {
-      onlinePlayer->actor.Walk(Actor::MakeDirectionFromVector(diff, 0.4f));
-    }
-
-    onlinePlayer->actor.setPosition(newPosition);
+    onlinePlayer->startBroadcastPos = onlinePlayer->endBroadcastPos;
+    onlinePlayer->endBroadcastPos = sf::Vector2f(x,y);
+    auto previous = onlinePlayer->timestamp;
+    onlinePlayer->timestamp = CurrentTime::AsMilli();
+    onlinePlayer->packets++;
+    onlinePlayer->avgLagTime = onlinePlayer->avgLagTime + (static_cast<double>(onlinePlayer->timestamp - previous) / 1000.0);
   }
   else {
     auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
 
     if (success) {
       auto& actor = pair->second->actor;
+      pair->second->timestamp = CurrentTime::AsMilli();
+      pair->second->startBroadcastPos = sf::Vector2f(x, y);
+      pair->second->endBroadcastPos = sf::Vector2f(x, y);
       RefreshOnlinePlayerSprite(*pair->second, SelectedNavi{ 0 });
-      actor.setPosition(sf::Vector2f(x, y));
+      actor.setPosition(pair->second->endBroadcastPos);
       GetMap().AddSprite(&actor, 0);
     }
+  }
+}
+
+void Overworld::OnlineArea::recieveNameSignal(const Poco::Buffer<char>& buffer)
+{
+  if (!isConnected) return;
+
+  SelectedNavi form{};
+  std::string user = std::string(buffer.begin(), buffer.size());
+  std::string name = std::string(buffer.begin() + user.size(), buffer.size() - user.size());
+
+  auto userIter = onlinePlayers.find(user);
+
+  if (userIter != onlinePlayers.end()) {
+    userIter->second->actor.Rename(name);
   }
 }
 
@@ -251,10 +319,11 @@ void Overworld::OnlineArea::recieveNaviChangeSignal(const Poco::Buffer<char>& bu
 {
   if (!isConnected) return;
 
-  SelectedNavi form{};
-  std::memcpy(&form, buffer.begin(), sizeof(SelectedNavi));
+  uint16_t form{};
+  std::memcpy(&form, buffer.begin(), sizeof(uint16_t));
+  std::string user = std::string(buffer.begin()+sizeof(uint16_t), buffer.size()-sizeof(uint16_t));
 
-  std::string user = std::string(buffer.begin() + sizeof(SelectedNavi), buffer.size() - sizeof(SelectedNavi));
+  if (user == client.address().toString()) return;
 
   auto userIter = onlinePlayers.find(user);
 
@@ -271,22 +340,29 @@ void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
   if (user == this->client.address().toString()) {
     if (!isConnected) {
       sendMapRefreshSignal();
+      sendNaviChangeSignal(GetCurrentNavi());
     }
 
     isConnected = true;
     return;
   }
 
-  if (!isConnected) return;
-
   auto userIter = onlinePlayers.find(user);
 
-  // TODO: teleport in
   if (userIter == onlinePlayers.end()) {
+
     auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
 
     if (success) {
-      GetMap().AddSprite(&(pair->second->actor), 0);
+      auto& actor = pair->second->actor;
+      auto& teleport = pair->second->teleportController;
+      pair->second->timestamp = CurrentTime::AsMilli();
+      pair->second->startBroadcastPos = sf::Vector2f(0, 0); // TODO emit (x,y) from server itself
+      pair->second->endBroadcastPos = sf::Vector2f(0, 0); // TODO emit (x,y) from server itself
+      RefreshOnlinePlayerSprite(*pair->second, SelectedNavi{ 0 });
+      actor.setPosition(pair->second->endBroadcastPos);
+      GetMap().AddSprite(&actor, 0);
+      GetMap().AddSprite(&teleport.GetBeam(), 0);
     }
   }
 }
@@ -299,8 +375,13 @@ void Overworld::OnlineArea::recieveLogoutSignal(const Poco::Buffer<char>& buffer
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
-    GetMap().RemoveSprite(&(userIter->second->actor));
-    onlinePlayers.erase(userIter);
+    auto* actor = &userIter->second->actor;
+    auto* teleport = &userIter->second->teleportController;
+    teleport->TeleportOut(*actor).onFinish.Slot([=] {
+      GetMap().RemoveSprite(actor);
+      GetMap().RemoveSprite(&teleport->GetBeam());
+      removePlayers.push_back(user);
+    });
   }
 }
 
@@ -318,8 +399,6 @@ void Overworld::OnlineArea::processIncomingPackets()
 {
   if (!client.available()) return;
 
-  static int errorCount = 0;
-
   auto* teleportController = &GetTeleportControler();
   if (errorCount > 30 && teleportController->IsComplete()) {
     auto& map = GetMap();
@@ -331,12 +410,10 @@ void Overworld::OnlineArea::processIncomingPackets()
 
     auto teleportHome = [=] {
       TeleportUponReturn(playerActor->getPosition());
-      sendLogoutSignal();
       getController().pop<segue<PixelateBlackWashFade>>();
     };
 
     command.onFinish.Slot(teleportHome);
-    errorCount = 0; // reset for next instance of scene
     return;
   }
 
@@ -356,18 +433,18 @@ void Overworld::OnlineArea::processIncomingPackets()
       data.append(rawBuffer + sigLen, size_t(read) - sigLen);
 
       switch (sig) {
-      /*case ServerEvents::change:
+      case ServerEvents::avatar_change:
         recieveNaviChangeSignal(data);
-        break;*/
+        break;
       case ServerEvents::hologram_xyz:
         recieveXYZSignal(data);
         break;
       case ServerEvents::login:
         recieveLoginSignal(data);
         break;
-      /*case ServerEvents::logout
+      case ServerEvents::logout:
         recieveLogoutSignal(data);
-        break;*/
+        break;
       case ServerEvents::map:
         recieveMapSignal(data);
         break;
@@ -400,4 +477,28 @@ void Overworld::OnlineArea::RefreshOnlinePlayerSprite(OnlinePlayer& player, Sele
     player.actor.LoadAnimations(owPath);
     player.currNavi = navi;
   }
+}
+
+const bool Overworld::OnlineArea::IsMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src)
+{
+
+  // convert it to world coordinates
+  sf::Vector2f world = target.mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()), GetCamera().GetView());
+
+  // consider the point on screen relative to the camera focus
+  //auto mouse = GetMap().WorldToScreen(world);
+
+  auto mouse = world;
+
+  sf::FloatRect bounds = src.getSprite().getLocalBounds();
+  bounds.left += src.getPosition().x - GetCamera().GetView().getCenter().x;
+  bounds.top += src.getPosition().y - GetCamera().GetView().getCenter().y;
+  bounds.left *= GetMap().getScale().x;
+  bounds.top *= GetMap().getScale().y;;
+  bounds.width = bounds.width * GetMap().getScale().x;
+  bounds.height = bounds.height * GetMap().getScale().y;
+
+  Logger::Logf("mouse: {%f, %f} ... bounds: {%f, %f, %f, %f}", mouse.x, mouse.y, bounds.left, bounds.top, bounds.width, bounds.height);
+
+  return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }

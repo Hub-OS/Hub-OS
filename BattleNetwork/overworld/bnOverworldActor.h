@@ -31,14 +31,15 @@ namespace Overworld {
     };
   private:
     struct AnimStatePair {
-      MovementState movement;
-      Direction dir;
+      MovementState movement{};
+      Direction dir{};
     };
 
     Map* map{ nullptr };
     double animProgress{}; //!< Used to sync movement animations
     double walkSpeed{40}; //!< walk speed as pixels per second. Default 40px/s
     double runSpeed{70}; //!< run speed as pixels per second. Default 70px/s
+    bool moveThisFrame{ false }; //!< Tells actor to move in accordance with their states or remain stationairy
     Direction heading{ Direction::down }; //!< the character's current heading
     std::map<std::string, Animation> anims; //!< Map of animation objects per direction per state
     std::vector<AnimStatePair> validStates; //!< Map of provided animations states
@@ -70,14 +71,16 @@ namespace Overworld {
     /**
     * @brief Make the character walk
     * @param dir direction to walk in
+    * @param move if true then move (default), if false remain in place
     */
-    void Walk(const Direction& dir);
+    void Walk(const Direction& dir, bool move=true);
 
     /**
     * @brief Make the character run
     * @param dir direction to run in
+    * @param move if true then move (default), if false remain in place
     */
-    void Run(const Direction& dir);
+    void Run(const Direction& dir, bool move=true);
 
     /**
     * @brief Make the character idle and face a direction
@@ -112,6 +115,13 @@ namespace Overworld {
     * @param speed Pixels per second
     */
     void SetRunSpeed(const double speed);
+
+
+    /**
+    * @brief Replaces the name of the actor with a new name
+    * @param newName of the actor
+    */
+    void Rename(const std::string& newName);
 
     /**
     * @brief Fetch the name of this object
