@@ -102,11 +102,16 @@ namespace Overworld {
 
   const Map::Tile Map::GetTileAt(const sf::Vector2f& pos) const
   {
-    unsigned x = pos.x / (tileWidth * 0.5f);
-    unsigned y = pos.y / tileHeight;
+    float xf = pos.x / (static_cast<float>(tileWidth) * 0.5f);
+    float yf = pos.y / static_cast<float>(tileHeight);
 
-    if (x >= 0 && x < cols && y >= 0 && y < rows) {
-      return tiles[y][x];
+    if (!(xf < 0 || yf < 0)) {
+      int x = static_cast<int>(xf);
+      int y = static_cast<int>(yf);
+
+      if (x >= 0 && x < cols && y >= 0 && y < rows) {
+        return tiles[y][x];
+      }
     }
 
     return Map::Tile{};
@@ -114,8 +119,8 @@ namespace Overworld {
 
   void Map::SetTileAt(const sf::Vector2f& pos, const Tile& newTile)
   {
-    unsigned x = pos.x / (tileWidth * 0.5f);
-    unsigned y = pos.y / tileHeight;
+    int x = pos.x / (static_cast<float>(tileWidth) * 0.5f);
+    int y = pos.y / static_cast<float>(tileHeight);
 
     if (x >= 0 && x < cols && y >= 0 && y < rows) {
       tiles[y][x] = newTile;

@@ -791,6 +791,45 @@ void Overworld::SceneBase::ResetMap()
       quadTree.actors.push_back(mrprog);
     }
 
+    mrprog_pos = map.FindToken("P2");
+    for (auto pos : mrprog_pos) {
+      npcs.emplace_back(Overworld::Actor{ "Mr. Prog" });
+      auto* mrprog = &npcs.back();
+
+      pathControllers.emplace_back(Overworld::PathController{});
+      auto* pathController = &pathControllers.back();
+
+      // Test Mr Prog
+      mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
+      mrprog->setTexture(TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
+      mrprog->setPosition(pos);
+      mrprog->SetCollisionRadius(3);
+      mrprog->CollideWithMap(map);
+      mrprog->CollideWithQuadTree(quadTree);
+      mrprog->SetInteractCallback([=](Overworld::Actor& with) {
+        // if player interacted with us
+        if (&with == &playerActor && textbox.IsClosed()) {
+          // Face them
+          mrprog->Face(Reverse(with.GetHeading()));
+
+          // Play message
+          sf::Sprite face;
+          face.setTexture(*TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
+          textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
+            new Message("This is a bigger area than the one before!")
+          );
+          textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
+            new Message("I can't wait to see how awesome this place turns into!")
+          );
+          textbox.Open();
+        }
+        });
+
+      pathController->ControlActor(*mrprog);
+      map.AddSprite(mrprog, 0);
+      quadTree.actors.push_back(mrprog);
+    }
+
     auto trees = map.FindToken("T");
     auto treeWBulb = map.FindToken("L");
     auto xmasTree = map.FindToken("X");
@@ -803,6 +842,8 @@ void Overworld::SceneBase::ResetMap()
    
     auto cyberworldWarp = map.FindToken("N");
     warps.insert(warps.end(), cyberworldWarp.begin(), cyberworldWarp.end());
+    auto warp2 = map.FindToken("W2");
+    warps.insert(warps.end(), warp2.begin(), warp2.end());
 
     playerController.ReleaseActor();
 

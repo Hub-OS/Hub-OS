@@ -46,6 +46,7 @@ namespace Overworld {
 
   class OnlineArea final : public SceneBase {
   private:
+    std::string ticket; //!< How we are represented on the server
     Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
     bool isConnected{ false };

@@ -106,7 +106,7 @@ void Overworld::EmoteWidget::Update(double elapsed)
     emoteSprites[idx].SetShader(SHADERS.GetShader(ShaderType::GREYSCALE));
     float alpha = radius * NOT_SELECTED_RADIUS;
 
-    if (static_cast<size_t>(currEmote) == idx) {
+    if (static_cast<size_t>(currEmote) == idx && IsOpen()) {
       alpha = radius * SELECTED_RADIUS;
       emoteSprites[idx].SetShader(nullptr);
     }
