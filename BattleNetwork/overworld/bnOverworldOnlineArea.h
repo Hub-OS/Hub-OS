@@ -13,6 +13,7 @@ namespace Overworld {
     logout,       // 2 logout notification
     loaded_map,   // 3 avatar loaded map
     avatar_change,// 4 avatar was switched
+    emote,        // 5 player emoted
     size,
     unknown = size
   };
@@ -25,12 +26,14 @@ namespace Overworld {
     map,           // 5
     logout,        // 6
     avatar_change, // 7
+    emote,         // 8 another player emoted
     size,
     unknown = size
   };
 
   struct OnlinePlayer {
     Overworld::Actor actor{"?"};
+    Overworld::EmoteNode emoteNode;
     TeleportController teleportController{};
     SelectedNavi currNavi{std::numeric_limits<SelectedNavi>::max()};
     sf::Vector2f startBroadcastPos{};
@@ -73,18 +76,21 @@ namespace Overworld {
 
     const std::pair<bool, Map::Tile**> FetchMapData() override;
     void OnTileCollision(const Map::Tile& tile) override;
+    void OnEmoteSelected(Overworld::Emotes emote) override;
 
     void sendXYZSignal();
     void sendNaviChangeSignal(const SelectedNavi& navi);
     void sendLoginSignal();
     void sendLogoutSignal();
     void sendMapRefreshSignal();
+    void sendEmoteSignal(const Overworld::Emotes emote);
     void recieveXYZSignal(const Poco::Buffer<char>&);
     void recieveNameSignal(const Poco::Buffer<char>&);
     void recieveNaviChangeSignal(const Poco::Buffer<char>&);
     void recieveLoginSignal(const Poco::Buffer<char>&);
     void recieveLogoutSignal(const Poco::Buffer<char>&);
     void recieveMapSignal(const Poco::Buffer<char>&);
+    void recieveEmoteSignal(const Poco::Buffer<char>&);
 
     void processIncomingPackets();
 

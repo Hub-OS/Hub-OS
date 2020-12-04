@@ -24,6 +24,7 @@
 #include "bnOverworldPathController.h"
 #include "bnOverworldTeleportController.h"
 #include "bnOverworldMap.h"
+#include "bnEmotes.h"
 
 class Background; // forward decl
 
@@ -31,6 +32,8 @@ namespace Overworld {
   class SceneBase : public swoosh::Activity {
   private:
     Overworld::Actor playerActor{ "You" };
+    Overworld::EmoteWidget emote;
+    Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
     Overworld::PlayerController playerController{};
     std::vector<Overworld::Actor> npcs;
@@ -213,6 +216,11 @@ namespace Overworld {
     SelectedNavi& GetCurrentNavi();
     Background* GetBackground();
     AnimatedTextBox& GetTextBox();
+
+    //
+    // Optional events that can be decorated further
+    //
+    virtual void OnEmoteSelected(Emotes emote);
 
     //
     // Required implementations

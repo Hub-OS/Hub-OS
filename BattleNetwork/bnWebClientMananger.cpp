@@ -134,7 +134,7 @@ void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account
         }
 
         if (!imageSucceeded) {
-            Logger::Logf("Creating image data for card (%s, %s) failed", cardModelIter->first.c_str(), cardModelIter->second->name.c_str());
+            //Logger::Logf("Creating image data for card (%s, %s) failed", cardModelIter->first.c_str(), cardModelIter->second->name.c_str());
             textureObject = LOAD_TEXTURE(CHIP_MISSINGDATA);
             cardTextureCache.insert(std::make_pair(card.first,textureObject));
         }
@@ -153,7 +153,7 @@ void WebClientManager::CacheTextureData(const WebAccounts::AccountState& account
         }
 
         if (!imageSucceeded) {
-            Logger::Logf("Creating icon data for card (%s, %s) failed", cardModelIter->first.c_str(), cardModelIter->second->name.c_str());
+            //Logger::Logf("Creating icon data for card (%s, %s) failed", cardModelIter->first.c_str(), cardModelIter->second->name.c_str());
             textureObject = LOAD_TEXTURE(CHIP_ICON_MISSINGDATA);
             iconTextureCache.insert(std::make_pair(card.first,textureObject));
         }

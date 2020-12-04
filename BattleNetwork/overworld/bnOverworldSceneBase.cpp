@@ -69,7 +69,11 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   currentNavi = 0;
 
   menuWidget.setScale(2.f, 2.f);
+  emote.setScale(2.f, 2.f);
 
+  auto windowSize = getController().getVirtualWindowSize();
+  emote.setPosition(windowSize.x / 2.f, windowSize.y / 2.f);
+  
   gotoNextScene = true;
 
   /// WEB ACCOUNT LOADING
@@ -122,6 +126,9 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   playerActor.SetCollisionRadius(6);
   playerActor.CollideWithMap(map);
   playerActor.CollideWithQuadTree(quadTree);
+  playerActor.AddNode(&emoteNode);
+
+  emoteNode.SetLayer(-100);
 
   // Share the camera
   map.SetCamera(&camera);
@@ -156,6 +163,9 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   // reserve 1000 elements so no references are invalidated
   npcs.reserve(1000);
   pathControllers.reserve(1000);
+
+  // emotes
+  emote.OnSelect(std::bind(&Overworld::SceneBase::OnEmoteSelected, this, std::placeholders::_1));
 }
 
 Overworld::SceneBase::~SceneBase()
@@ -379,6 +389,12 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // Update the widget
   menuWidget.Update((float)elapsed);
 
+  // Update the emote widget
+  emote.Update(elapsed);
+
+  // Update the active emote
+  emoteNode.Update(elapsed);
+
   // Update the textbox
   textbox.Update(elapsed);
 
@@ -388,82 +404,96 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   camera.PlaceCamera(pos);
 
   if (!gotoNextScene && textbox.IsClosed()) {
-    if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
-      if (menuWidget.IsClosed()) {
-        menuWidget.Open();
-        AUDIO.Play(AudioType::CHIP_DESC);
+    // emotes widget
+    if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT)) {
+      if (emote.IsClosed()) {
+        emote.Open();
       }
-      else if (menuWidget.IsOpen()) {
-        menuWidget.Close();
-        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      else if (emote.IsOpen()) {
+        emote.Close();
       }
     }
 
-    if (menuWidget.IsOpen()) {
-      if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
-          if(!extendedHold) {
-            selectInputCooldown = maxSelectInputCooldown;
-            extendedHold = true;
-          }
-          else {
-            selectInputCooldown = maxSelectInputCooldown / 4.0;
-          }
-
-          menuWidget.CursorMoveUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+    if (emote.IsClosed()) {
+      // menu widget
+      if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+        if (menuWidget.IsClosed()) {
+          menuWidget.Open();
+          AUDIO.Play(AudioType::CHIP_DESC);
         }
-      }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
-        selectInputCooldown -= elapsed;
-
-        if (selectInputCooldown <= 0) {
-          if (!extendedHold) {
-            selectInputCooldown = maxSelectInputCooldown;
-            extendedHold = true;
-          }
-          else {
-            selectInputCooldown = maxSelectInputCooldown / 4.0;
-          }
-
-          menuWidget.CursorMoveDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
-        }
-      }
-      else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
-        bool result = menuWidget.ExecuteSelection();
-
-        if (result && menuWidget.IsOpen() == false) {
+        else if (menuWidget.IsOpen()) {
+          menuWidget.Close();
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) || INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
-        extendedHold = false;
-        
-        bool selectedExit = menuWidget.SelectExit();
-        
-        if (!selectedExit) {
-          // already selected, switch to options
-          menuWidget.SelectOptions();
-        }
 
-        AUDIO.Play(AudioType::CHIP_SELECT);
-      }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
-        menuWidget.SelectOptions() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
-        extendedHold = false;
-      }
-      else {
-        extendedHold = false;
-        selectInputCooldown = 0;
+      // menu widget controlls
+      if (menuWidget.IsOpen()) {
+        if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
+          selectInputCooldown -= elapsed;
+
+          if (selectInputCooldown <= 0) {
+            if (!extendedHold) {
+              selectInputCooldown = maxSelectInputCooldown;
+              extendedHold = true;
+            }
+            else {
+              selectInputCooldown = maxSelectInputCooldown / 4.0;
+            }
+
+            menuWidget.CursorMoveUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+          }
+        }
+        else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
+          selectInputCooldown -= elapsed;
+
+          if (selectInputCooldown <= 0) {
+            if (!extendedHold) {
+              selectInputCooldown = maxSelectInputCooldown;
+              extendedHold = true;
+            }
+            else {
+              selectInputCooldown = maxSelectInputCooldown / 4.0;
+            }
+
+            menuWidget.CursorMoveDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+          }
+        }
+        else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+          bool result = menuWidget.ExecuteSelection();
+
+          if (result && menuWidget.IsOpen() == false) {
+            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+          }
+        }
+        else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) || INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+          extendedHold = false;
+
+          bool selectedExit = menuWidget.SelectExit();
+
+          if (!selectedExit) {
+            // already selected, switch to options
+            menuWidget.SelectOptions();
+          }
+
+          AUDIO.Play(AudioType::CHIP_SELECT);
+        }
+        else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+          menuWidget.SelectOptions() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+          extendedHold = false;
+        }
+        else {
+          extendedHold = false;
+          selectInputCooldown = 0;
+        }
       }
     }
   }
 
   // Allow player to resync with remote account by pressing the pause action
-  if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT)) {
+  /*if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT)) {
       accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
-  }
+  }*/
 
   webAccountAnimator.Update((float)elapsed, webAccountIcon.getSprite());
 }
@@ -536,6 +566,7 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   ENGINE.Draw(map);
   map.move(-offset);
 
+  ENGINE.Draw(emote);
   ENGINE.Draw(menuWidget);
 
   // Add the web account connection symbol
@@ -572,6 +603,9 @@ void Overworld::SceneBase::RefreshNaviSprite()
   if (owPath.size()) {
     playerActor.setTexture(meta.GetOverworldTexture());
     playerActor.LoadAnimations(owPath);
+
+    // move the emote above the player's head
+    emoteNode.setPosition(sf::Vector2f(0, -playerActor.getLocalBounds().height - 5));
 
     auto iconTexture = meta.GetIconTexture();
 
@@ -1092,6 +1126,11 @@ Background* Overworld::SceneBase::GetBackground()
 AnimatedTextBox& Overworld::SceneBase::GetTextBox()
 {
   return textbox;
+}
+
+void Overworld::SceneBase::OnEmoteSelected(Emotes emote)
+{ 
+  emoteNode.Emote(emote);
 }
 
 #ifdef __ANDROID__

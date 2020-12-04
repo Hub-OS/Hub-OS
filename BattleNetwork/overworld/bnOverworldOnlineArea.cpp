@@ -2,6 +2,7 @@
 #include <Swoosh/ActivityController.h>
 #include <Segues/PixelateBlackWashFade.h>
 #include <Segues/BlackWashFade.h>
+#include <Poco/Net/NetException.h>
 
 #include "bnOverworldOnlineArea.h"
 #include "../bnXmasBackground.h"
@@ -10,6 +11,7 @@
 
 using namespace swoosh::types;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 5.f;
+constexpr int MAX_ERROR_COUNT = 10;
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool guestAccount) :
   SceneBase(controller, guestAccount)
@@ -17,14 +19,21 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
   lastFrameNavi = this->GetCurrentNavi();
 
   int myPort = ENGINE.CommandLineValue<int>("port");
-  Poco::Net::SocketAddress sa("127.0.0.1", myPort);
+  Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
   client = Poco::Net::DatagramSocket(sa);
   client.setBlocking(false);
 
   int remotePort = ENGINE.CommandLineValue<int>("remotePort");
   std::string cyberworld = ENGINE.CommandLineValue<std::string>("cyberworld");
   remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
-  client.connect(remoteAddress);
+
+  try {
+    client.connect(remoteAddress);
+  }
+  catch (Poco::Net::NetException& e) {
+    Logger::Log(e.message());
+    errorCount = MAX_ERROR_COUNT+1;
+  }
 
   SetBackground(new XmasBackground);
 
@@ -84,8 +93,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       //auto newPos = lastPosition + sf::Vector2f(delta.x * elapsed, delta.y * elapsed);
 
       actor.setPosition(newPos);
-
       actor.Update(elapsed);
+
+      player.second->emoteNode.Update(elapsed);
     }
 
     for (auto remove : removePlayers) {
@@ -150,6 +160,8 @@ const std::pair<bool, Overworld::Map::Tile**> Overworld::OnlineArea::FetchMapDat
 
 void Overworld::OnlineArea::OnTileCollision(const Overworld::Map::Tile& tile)
 {
+  if (errorCount > MAX_ERROR_COUNT) return;
+
   // on collision with warps
   static size_t next_warp = 0;
   auto* teleportController = &GetTeleportControler();
@@ -200,8 +212,16 @@ void Overworld::OnlineArea::OnTileCollision(const Overworld::Map::Tile& tile)
   }
 }
 
+void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
+{
+  SceneBase::OnEmoteSelected(emote);
+  sendEmoteSignal(emote);
+}
+
 void Overworld::OnlineArea::sendXYZSignal()
 {
+  if (errorCount > MAX_ERROR_COUNT) return;
+
   auto vec = GetPlayer().getPosition();
   double x = static_cast<double>(vec.x);
   double y = static_cast<double>(vec.y);
@@ -218,6 +238,8 @@ void Overworld::OnlineArea::sendXYZSignal()
 
 void Overworld::OnlineArea::sendNaviChangeSignal(const SelectedNavi& navi)
 {
+  if (errorCount > MAX_ERROR_COUNT) return;
+
   Poco::Buffer<char> buffer{ 0 };
   uint16_t form = navi;
   ClientEvents type{ ClientEvents::avatar_change };
@@ -228,6 +250,8 @@ void Overworld::OnlineArea::sendNaviChangeSignal(const SelectedNavi& navi)
 
 void Overworld::OnlineArea::sendLoginSignal()
 {
+  if (errorCount > MAX_ERROR_COUNT) return;
+
   std::string username("James\0", 9);
   std::string password("\0", 1); // No servers need passwords at this time
 
@@ -241,6 +265,8 @@ void Overworld::OnlineArea::sendLoginSignal()
 
 void Overworld::OnlineArea::sendLogoutSignal()
 {
+  if (errorCount > MAX_ERROR_COUNT) return;
+
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::logout };
   buffer.append((char*)&type, sizeof(ClientEvents));
@@ -249,6 +275,8 @@ void Overworld::OnlineArea::sendLogoutSignal()
 
 void Overworld::OnlineArea::sendMapRefreshSignal()
 {
+  if (errorCount > MAX_ERROR_COUNT) return;
+
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::loaded_map };
   size_t mapID{};
@@ -258,9 +286,23 @@ void Overworld::OnlineArea::sendMapRefreshSignal()
   client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
+void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
+{
+  if (errorCount > MAX_ERROR_COUNT) return;
+
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::emote };
+  uint8_t val = static_cast<uint8_t>(emote);
+
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&val, sizeof(uint8_t));
+  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+}
+
 void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
+  if (errorCount > MAX_ERROR_COUNT) return;
 
   std::string user = std::string(buffer.begin());
 
@@ -290,6 +332,7 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
 
     if (success) {
       auto& actor = pair->second->actor;
+      pair->second->actor.AddNode(&pair->second->emoteNode);
       pair->second->timestamp = CurrentTime::AsMilli();
       pair->second->startBroadcastPos = sf::Vector2f(x, y);
       pair->second->endBroadcastPos = sf::Vector2f(x, y);
@@ -303,6 +346,7 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
 void Overworld::OnlineArea::recieveNameSignal(const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
+  if (errorCount > MAX_ERROR_COUNT) return;
 
   SelectedNavi form{};
   std::string user = std::string(buffer.begin(), buffer.size());
@@ -318,6 +362,7 @@ void Overworld::OnlineArea::recieveNameSignal(const Poco::Buffer<char>& buffer)
 void Overworld::OnlineArea::recieveNaviChangeSignal(const Poco::Buffer<char>& buffer) 
 {
   if (!isConnected) return;
+  if (errorCount > MAX_ERROR_COUNT) return;
 
   uint16_t form{};
   std::memcpy(&form, buffer.begin(), sizeof(uint16_t));
@@ -334,6 +379,8 @@ void Overworld::OnlineArea::recieveNaviChangeSignal(const Poco::Buffer<char>& bu
 
 void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
 {
+  if (errorCount > MAX_ERROR_COUNT) return;
+
   // Ignore error codes for login signals
   std::string user = std::string(buffer.begin()+sizeof(uint16_t), buffer.size()-sizeof(uint16_t));
 
@@ -356,6 +403,7 @@ void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
     if (success) {
       auto& actor = pair->second->actor;
       auto& teleport = pair->second->teleportController;
+      pair->second->actor.AddNode(&pair->second->emoteNode);
       pair->second->timestamp = CurrentTime::AsMilli();
       pair->second->startBroadcastPos = sf::Vector2f(0, 0); // TODO emit (x,y) from server itself
       pair->second->endBroadcastPos = sf::Vector2f(0, 0); // TODO emit (x,y) from server itself
@@ -370,6 +418,7 @@ void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
 void Overworld::OnlineArea::recieveLogoutSignal(const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
+  if (errorCount > MAX_ERROR_COUNT) return;
 
   std::string user = std::string(buffer.begin(), buffer.size());
   auto userIter = onlinePlayers.find(user);
@@ -387,6 +436,9 @@ void Overworld::OnlineArea::recieveLogoutSignal(const Poco::Buffer<char>& buffer
 
 void Overworld::OnlineArea::recieveMapSignal(const Poco::Buffer<char>& buffer)
 {
+  if (!isConnected) return;
+  if (errorCount > MAX_ERROR_COUNT) return;
+
   mapBuffer = std::string(buffer.begin(), buffer.size());
 
   // If we are still invalid after this, there's a problem
@@ -395,12 +447,31 @@ void Overworld::OnlineArea::recieveMapSignal(const Poco::Buffer<char>& buffer)
   }
 }
 
+void Overworld::OnlineArea::recieveEmoteSignal(const Poco::Buffer<char>& buffer)
+{
+  if (!isConnected) return;
+  if (errorCount > MAX_ERROR_COUNT) return;
+
+  uint8_t emote{};
+  std::memcpy(&emote, buffer.begin(), sizeof(uint8_t));
+  std::string user = std::string(buffer.begin() + sizeof(uint8_t), buffer.size() - sizeof(uint8_t));
+
+  if (user == client.address().toString()) return;
+
+  auto userIter = onlinePlayers.find(user);
+
+  if (userIter != onlinePlayers.end()) {
+    auto& player = userIter->second;
+    player->emoteNode.Emote(static_cast<Overworld::Emotes>(emote));
+  }
+}
+
 void Overworld::OnlineArea::processIncomingPackets()
 {
   if (!client.available()) return;
 
   auto* teleportController = &GetTeleportControler();
-  if (errorCount > 30 && teleportController->IsComplete()) {
+  if (errorCount > MAX_ERROR_COUNT && teleportController->IsComplete()) {
     auto& map = GetMap();
     auto* playerController = &GetPlayerController();
     auto* playerActor = &GetPlayer();
@@ -448,15 +519,19 @@ void Overworld::OnlineArea::processIncomingPackets()
       case ServerEvents::map:
         recieveMapSignal(data);
         break;
+      case ServerEvents::emote:
+        recieveEmoteSignal(data);
+        break;
       }
     }
 
     errorCount = 0;
   }
-  catch (std::exception& e) {
-    Logger::Logf("OnlineArea Network exception: %s", e.what());
+  catch (Poco::Net::NetException& e) {
+    Logger::Logf("OnlineArea Network exception: %s", e.message());
 
-    if (isConnected && mapBuffer.empty()) {
+    // Assume we've connected fine, what other errors continue to occur?
+    if (isConnected && mapBuffer.size()) {
       errorCount++;
     }
   }
@@ -476,6 +551,9 @@ void Overworld::OnlineArea::RefreshOnlinePlayerSprite(OnlinePlayer& player, Sele
     player.actor.setTexture(meta.GetOverworldTexture());
     player.actor.LoadAnimations(owPath);
     player.currNavi = navi;
+
+    // move the emote above the player's head
+    player.emoteNode.setPosition(sf::Vector2f(0, -player.actor.getLocalBounds().height - 5));
   }
 }
 
