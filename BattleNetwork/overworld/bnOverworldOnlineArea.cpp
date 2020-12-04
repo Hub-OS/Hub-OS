@@ -10,8 +10,9 @@
 #include "../netplay/bnNetPlayConfig.h"
 
 using namespace swoosh::types;
-constexpr float SECONDS_PER_MOVEMENT = 1.f / 5.f;
 constexpr int MAX_ERROR_COUNT = 10;
+constexpr float SECONDS_PER_MOVEMENT = 1.f / 5.f;
+constexpr float MAX_TIMEOUT_SECONDS = 5.f;
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool guestAccount) :
   SceneBase(controller, guestAccount)
@@ -40,6 +41,9 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
   // load name font stuff
   font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
   name = sf::Text("", *font);
+
+  loadMapTime.reverse(true);
+  loadMapTime.set(MAX_TIMEOUT_SECONDS*1000);
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -117,7 +121,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
   else {
     loadMapTime.update(elapsed);
 
-    if (loadMapTime.getElapsed() > sf::seconds(5)) {
+    if (loadMapTime.getElapsed().asSeconds() == 0) {
       using effect = segue<PixelateBlackWashFade>;
       getController().pop<effect>();
     }
@@ -128,6 +132,17 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 {
   if (mapBuffer.empty() == false && isConnected) {
     SceneBase::onDraw(surface);
+  }
+  else {
+    auto view = getController().getVirtualWindowSize();
+    int precision = 1;
+
+    name.setPosition(view.x*0.5f, view.y*0.5f);
+    std::string secondsStr = std::to_string(loadMapTime.getElapsed().asSeconds());
+    std::string trimmed = secondsStr.substr(0, secondsStr.find(".") + precision + 1);
+    name.setString(sf::String("Connecting " + trimmed + "s..."));
+    name.setOrigin(name.getLocalBounds().width * 0.5f, name.getLocalBounds().height * 0.5f);
+    ENGINE.Draw(name);
   }
 
   for (auto player : onlinePlayers) {
@@ -381,18 +396,22 @@ void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
 {
   if (errorCount > MAX_ERROR_COUNT) return;
 
-  // Ignore error codes for login signals
-  std::string user = std::string(buffer.begin()+sizeof(uint16_t), buffer.size()-sizeof(uint16_t));
-
-  if (user == this->client.address().toString()) {
-    if (!isConnected) {
-      sendMapRefreshSignal();
-      sendNaviChangeSignal(GetCurrentNavi());
-    }
-
+  if (!isConnected) {
+    sendMapRefreshSignal();
+    sendNaviChangeSignal(GetCurrentNavi());
     isConnected = true;
-    return;
   }
+
+  return;
+}
+
+void Overworld::OnlineArea::recieveAvatarJoinSignal(const Poco::Buffer<char>& buffer)
+{
+  if (!isConnected) return;
+  if (errorCount > MAX_ERROR_COUNT) return;
+
+  // Ignore error codes for login signals
+  std::string user = std::string(buffer.begin() + sizeof(uint16_t), buffer.size() - sizeof(uint16_t));
 
   auto userIter = onlinePlayers.find(user);
 
@@ -522,6 +541,9 @@ void Overworld::OnlineArea::processIncomingPackets()
       case ServerEvents::emote:
         recieveEmoteSignal(data);
         break;
+      case ServerEvents::avatar_join:
+        recieveAvatarJoinSignal(data);
+        break;
       }
     }
 
@@ -553,7 +575,9 @@ void Overworld::OnlineArea::RefreshOnlinePlayerSprite(OnlinePlayer& player, Sele
     player.currNavi = navi;
 
     // move the emote above the player's head
-    player.emoteNode.setPosition(sf::Vector2f(0, -player.actor.getLocalBounds().height - 5));
+    float h = player.actor.getLocalBounds().height;
+    float y = h - (h - player.actor.getOrigin().y);
+    player.emoteNode.setPosition(sf::Vector2f(0, -y));
   }
 }
 
@@ -576,7 +600,7 @@ const bool Overworld::OnlineArea::IsMouseHovering(const sf::RenderTarget& target
   bounds.width = bounds.width * GetMap().getScale().x;
   bounds.height = bounds.height * GetMap().getScale().y;
 
-  Logger::Logf("mouse: {%f, %f} ... bounds: {%f, %f, %f, %f}", mouse.x, mouse.y, bounds.left, bounds.top, bounds.width, bounds.height);
+  // Logger::Logf("mouse: {%f, %f} ... bounds: {%f, %f, %f, %f}", mouse.x, mouse.y, bounds.left, bounds.top, bounds.width, bounds.height);
 
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }

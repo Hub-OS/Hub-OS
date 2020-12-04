@@ -10,6 +10,7 @@ constexpr sf::Int32 EMOJI_DISPLAY_MILI = 5000;
 constexpr float NOT_SELECTED_RADIUS = 0.75f;
 constexpr float SELECTED_RADIUS = 1.0f;
 constexpr float CIRCLE_RADIUS_PX = 25.0f; // in pixels
+
 using namespace swoosh::ease;
 
 Overworld::EmoteNode::EmoteNode()

@@ -21,12 +21,13 @@ namespace Overworld {
   enum class ServerEvents : uint16_t {
     login = 0,     // 0
     hologram_xyz,  // 1
-    hologram_name, // 3
-    time_of_day,   // 4
-    map,           // 5
-    logout,        // 6
-    avatar_change, // 7
-    emote,         // 8 another player emoted
+    hologram_name, // 2
+    time_of_day,   // 3
+    map,           // 4
+    logout,        // 5
+    avatar_change, // 6
+    emote,         // 7
+    avatar_join,   // 8
     size,
     unknown = size
   };
@@ -88,6 +89,7 @@ namespace Overworld {
     void recieveNameSignal(const Poco::Buffer<char>&);
     void recieveNaviChangeSignal(const Poco::Buffer<char>&);
     void recieveLoginSignal(const Poco::Buffer<char>&);
+    void recieveAvatarJoinSignal(const Poco::Buffer<char>&);
     void recieveLogoutSignal(const Poco::Buffer<char>&);
     void recieveMapSignal(const Poco::Buffer<char>&);
     void recieveEmoteSignal(const Poco::Buffer<char>&);
