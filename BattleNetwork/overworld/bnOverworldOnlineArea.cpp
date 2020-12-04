@@ -78,7 +78,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
       player.second->teleportController.Update(elapsed);
       auto& actor = player.second->actor;
 
-      if (player.second->teleportController.IsComplete()) {
+      //if (player.second->teleportController.IsComplete()) {
         auto deltaTime = static_cast<double>(currentTime - player.second->timestamp) / 1000.0;
         auto delta = player.second->endBroadcastPos - player.second->startBroadcastPos;
         float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
@@ -98,7 +98,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
         auto newPos = player.second->startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
         actor.setPosition(newPos);
-      }
+      //}
 
       actor.Update(elapsed);
 
@@ -385,7 +385,7 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
       onlinePlayer->avgLagTime = onlinePlayer->avgLagTime + (static_cast<double>(onlinePlayer->timestamp - previous) / 1000.0);
     };
 
-    if(onlinePlayer->teleportController.IsComplete()) {
+    /*if(onlinePlayer->teleportController.IsComplete()) {
       // we can't possibly have moved this far away without teleporting
       if (distance >= onlinePlayer->actor.GetRunSpeed() * expectedTime * 4.0f) {
         auto action = onlinePlayer->teleportController.TeleportOut(onlinePlayer->actor);
@@ -401,7 +401,10 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
 
       // otherwise just do it now
       updateNetworkPawnPos();
-    }
+    }*/
+
+    // otherwise just do it now
+    updateNetworkPawnPos();
   }
   else {
     auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });

@@ -11,11 +11,18 @@ namespace Overworld {
     sad,
     smug,
     shocked,
+    cob,
+    pvp,
+    zzz,
+    key,
     question,
     alert,
     heart,
     pog,
     gg,
+    lol,
+    yes,
+    no,
     size
   };
 

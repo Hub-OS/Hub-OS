@@ -405,7 +405,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   if (!gotoNextScene && textbox.IsClosed()) {
     // emotes widget
-    if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT)) {
+    if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT) && menuWidget.IsClosed()) {
       if (emote.IsClosed()) {
         emote.Open();
       }

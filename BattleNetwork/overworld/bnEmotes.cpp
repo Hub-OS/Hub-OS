@@ -9,7 +9,7 @@
 constexpr sf::Int32 EMOJI_DISPLAY_MILI = 5000;
 constexpr float NOT_SELECTED_RADIUS = 0.75f;
 constexpr float SELECTED_RADIUS = 1.0f;
-constexpr float CIRCLE_RADIUS_PX = 25.0f; // in pixels
+constexpr float CIRCLE_RADIUS_PX = 44.0f; // in pixels
 
 using namespace swoosh::ease;
 
@@ -28,7 +28,7 @@ Overworld::EmoteNode::~EmoteNode()
 
 void Overworld::EmoteNode::Emote(Overworld::Emotes type)
 {
-  size_t idx = static_cast<size_t>(type);
+  size_t idx = std::min(static_cast<size_t>(type), static_cast<size_t>(Overworld::Emotes::size)-1);
   setTextureRect(sf::IntRect(static_cast<int>(11 * idx), 0, 11, 11));
   timer.set(EMOJI_DISPLAY_MILI);
   timer.start();
@@ -73,6 +73,26 @@ Overworld::EmoteWidget::~EmoteWidget()
 
 void Overworld::EmoteWidget::Update(double elapsed)
 {
+  size_t idx = 0;
+  size_t max = static_cast<size_t>(Emotes::size);
+
+  while (idx < max) {
+    emoteSprites[idx].SetShader(SHADERS.GetShader(ShaderType::GREYSCALE));
+    float alpha = radius * NOT_SELECTED_RADIUS;
+
+    if (static_cast<size_t>(currEmote) == idx && IsOpen()) {
+      alpha = radius * SELECTED_RADIUS;
+      emoteSprites[idx].SetShader(nullptr);
+    }
+    float theta = idx * ((2.f * M_PI) / static_cast<float>(max));
+    sf::Vector2f pos = sf::Vector2f(cos(theta) * alpha, sin(theta) * alpha);
+    auto x = interpolate(0.5f, pos.x, emoteSprites[idx].getPosition().x);
+    auto y = interpolate(0.5f, pos.y, emoteSprites[idx].getPosition().y);
+
+    emoteSprites[idx].setPosition(x, y);
+    idx++;
+  }
+
   if (IsClosed()) return;
 
   Emotes end = static_cast<Emotes>(static_cast<size_t>(Emotes::size) - 1);
@@ -97,26 +117,6 @@ void Overworld::EmoteWidget::Update(double elapsed)
 
   if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
     callback ? callback(currEmote) : void(0);
-  }
-
-  size_t idx = 0;
-  size_t max = static_cast<size_t>(Emotes::size);
-
-  while (idx < max) {
-    emoteSprites[idx].SetShader(SHADERS.GetShader(ShaderType::GREYSCALE));
-    float alpha = radius * NOT_SELECTED_RADIUS;
-
-    if (static_cast<size_t>(currEmote) == idx && IsOpen()) {
-      alpha = radius * SELECTED_RADIUS;
-      emoteSprites[idx].SetShader(nullptr);
-    }
-    float theta = idx * ((2.f * M_PI) / static_cast<float>(max));
-    sf::Vector2f pos = sf::Vector2f(cos(theta) * alpha, sin(theta) * alpha);
-    auto x = interpolate(0.5f, pos.x, emoteSprites[idx].getPosition().x);
-    auto y = interpolate(0.5f, pos.y, emoteSprites[idx].getPosition().y);
-    
-    emoteSprites[idx].setPosition(x,y);
-    idx++;
   }
 }
 
