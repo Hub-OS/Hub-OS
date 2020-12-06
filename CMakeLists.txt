@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
-    
+
 project(BattleNetwork-Engine)
-set (CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD          17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS        OFF)
 
 execute_process(COMMAND git submodule update --init -- extern/Swoosh
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
@@ -35,6 +37,7 @@ file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddFiles.cmake)
 add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
+add_compile_definitions(NOMINMAX)
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
