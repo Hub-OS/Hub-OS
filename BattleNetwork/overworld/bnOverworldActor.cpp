@@ -75,7 +75,7 @@ void Overworld::Actor::LoadAnimations(const std::string& path)
     Animation anim = Animation(path);
 
     if (anim.HasAnimation(str)) {
-      auto& [iter, success] = anims.insert(std::make_pair(str, anim));
+      const auto& [iter, success] = anims.insert(std::make_pair(str, anim));
 
       if (success) {
         iter->second.SetAnimation(str);
@@ -188,7 +188,7 @@ sf::Vector2f Overworld::Actor::MakeVectorFromDirection(Direction dir, float leng
 {
   sf::Vector2f offset{};
 
-  auto& [a, b] = Split(dir);
+  const auto& [a, b] = Split(dir);
 
   auto updateOffsetThunk = [](const Direction& dir, sf::Vector2f* vec, float value) {
     if (dir == Direction::left) {
@@ -284,7 +284,7 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   auto offset = MakeVectorFromDirection(dir, static_cast<float>(px_per_s));
   auto newPos = currPos + offset;
 
-  auto& [first, second] = Split(dir);
+  const auto& [first, second] = Split(dir);
 
   /**
   * Check if colliding with the map
@@ -401,7 +401,7 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
   auto str = MovementAnimStrPrefix(state) + "_" + DirectionAnimStrSuffix(Isometric(dir));
 
   if (anims.begin()->second.HasAnimation(str) == false) {
-    auto& [ud, lr] = Split(Isometric(dir));
+    const auto& [ud, lr] = Split(Isometric(dir));
     
     std::map<Direction, std::initializer_list<std::tuple<bool, Direction, MovementState>>> attempts = {
       {

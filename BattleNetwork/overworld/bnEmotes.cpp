@@ -17,19 +17,26 @@ Overworld::EmoteNode::EmoteNode()
 {
   setTexture(TEXTURES.LoadTextureFromFile("resources/ow/emotes/emotes.png"));
   setOrigin(5.5f, 5.5f);
-  Emote(Overworld::Emotes::happy);
-  timer.reverse(true);
-  Hide();
+  Reset();
 }
 
 Overworld::EmoteNode::~EmoteNode()
 {
 }
 
+void Overworld::EmoteNode::Reset()
+{
+  Emote(Overworld::Emotes::happy);
+  timer.reverse(true);
+  Hide();
+}
+
 void Overworld::EmoteNode::Emote(Overworld::Emotes type)
 {
   size_t idx = std::min(static_cast<size_t>(type), static_cast<size_t>(Overworld::Emotes::size)-1);
-  setTextureRect(sf::IntRect(static_cast<int>(11 * idx), 0, 11, 11));
+
+  sf::IntRect rect = sf::IntRect(static_cast<int>(11 * idx), 0, 11, 11);
+  setTextureRect(rect);
   timer.set(EMOJI_DISPLAY_MILI);
   timer.start();
   Reveal();
@@ -56,7 +63,9 @@ Overworld::EmoteWidget::EmoteWidget() :
     auto& e = emoteSprites[idx];
     e.setTexture(TEXTURES.LoadTextureFromFile("resources/ow/emotes/emotes.png"));
     e.setOrigin(5.5f, 5.5f);
-    e.setTextureRect(sf::IntRect(static_cast<int>(idx * 11), 0, 11, 11));
+
+    sf::IntRect rect = sf::IntRect(static_cast<int>(idx * 11), 0, 11, 11);
+    e.setTextureRect(rect);
 
     float alpha = radius * NOT_SELECTED_RADIUS;
 

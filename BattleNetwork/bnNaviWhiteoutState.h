@@ -60,7 +60,7 @@ public:
 template<typename Any>
 NaviWhiteoutState<Any>::NaviWhiteoutState() : shine(nullptr), factor(125.f), fadeout(false)
 {
-  PriorityLock();
+  AIState<Any>::template PriorityLock();
 }
 
 template<typename Any>

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <SFML/Graphics.hpp>
 #include <time.h>
 #include <future>
@@ -69,7 +70,8 @@ namespace Overworld {
       netWarps, 
       homeWarps,
       coffees, 
-      gates;
+      gates,
+      onlineWarps; // onlineWarp is the warp that takes us online
 
     std::shared_ptr<sf::Texture> 
       treeTexture, 
@@ -88,7 +90,8 @@ namespace Overworld {
       coffeeAnim,
       warpAnim,
       homeWarpAnim,
-      netWarpAnim;
+      netWarpAnim,
+      onlineWarpAnim;
 
     AnimatedTextBox textbox;
 
@@ -216,6 +219,9 @@ namespace Overworld {
     SelectedNavi& GetCurrentNavi();
     Background* GetBackground();
     AnimatedTextBox& GetTextBox();
+    
+    // TODO: temporary, remove
+    void EnableNetWarps(bool enabled);
 
     //
     // Optional events that can be decorated further

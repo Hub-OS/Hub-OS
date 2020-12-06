@@ -22,6 +22,7 @@ namespace Overworld {
     std::queue<Command> sequence;
 
     bool animComplete{ true }, walkoutComplete{ true }, spin{ false };
+    bool mute{ false };
     float spinProgress{};
     frame_time_t walkFrames{};
     Overworld::Actor* actor{ nullptr };
@@ -39,5 +40,6 @@ namespace Overworld {
     void Update(double elapsed);
     const bool IsComplete() const;
     SpriteProxyNode& GetBeam();
+    void EnableSound(bool enable);
   };
 }

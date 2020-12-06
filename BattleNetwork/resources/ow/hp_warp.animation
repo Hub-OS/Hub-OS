@@ -1,6 +1,6 @@
 imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/ow/hp_warp.png"
 
-animation state="default"
+animation state="on"
 frame duration="0.1" x="5" y="2" w="112" h="61" originx="55" originy="26"
 frame duration="0.1" x="125" y="2" w="112" h="61" originx="55" originy="26"
 frame duration="0.1" x="245" y="2" w="112" h="61" originx="55" originy="26"

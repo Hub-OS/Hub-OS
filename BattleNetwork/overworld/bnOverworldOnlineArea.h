@@ -1,4 +1,5 @@
 #pragma once
+
 #include <Poco/Net/DatagramSocket.h>
 #include <Poco/Buffer.h>
 #include <map>
@@ -35,7 +36,7 @@ namespace Overworld {
   struct OnlinePlayer {
     Overworld::Actor actor{"?"};
     Overworld::EmoteNode emoteNode;
-    TeleportController teleportController{};
+    Overworld::TeleportController teleportController{};
     SelectedNavi currNavi{std::numeric_limits<SelectedNavi>::max()};
     sf::Vector2f startBroadcastPos{};
     sf::Vector2f endBroadcastPos{};

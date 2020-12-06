@@ -10,21 +10,24 @@ Overworld::TeleportController::TeleportController()
 {
   beam.setTexture(TEXTURES.LoadTextureFromFile("resources/ow/teleport.png"));
   beamAnim = Animation("resources/ow/teleport.animation");
+  beamAnim.SetFrame(0, beam.getSprite());
 }
 
 Overworld::TeleportController::Command& Overworld::TeleportController::TeleportOut(Actor& actor)
 {
+  this->actor = &actor;
+  this->actor->Hide();
 
   auto onStart = [=] {
-    this->actor->Hide();
-    AUDIO.Play(AudioType::AREA_GRAB);
+    if (!mute) {
+      AUDIO.Play(AudioType::AREA_GRAB);
+    }
   };
 
   auto onFinish = [=] {
     this->animComplete = true;
   };
 
-  this->actor = &actor;
   this->animComplete = false;
   this->beamAnim << "TELEPORT_OUT" << Animator::On(1, onStart) << onFinish;
   this->beamAnim.Refresh(this->beam.getSprite());
@@ -37,7 +40,9 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportO
 Overworld::TeleportController::Command& Overworld::TeleportController::TeleportIn(Actor& actor, const sf::Vector2f& start, Direction dir)
 {
   auto onStart = [=] {
-    AUDIO.Play(AudioType::AREA_GRAB);
+    if (!mute) {
+      AUDIO.Play(AudioType::AREA_GRAB);
+    }
   };
 
   auto onSpin = [=] {
@@ -78,7 +83,7 @@ void Overworld::TeleportController::Update(double elapsed)
   auto& next = sequence.front();
   if (next.state == Command::state::teleport_in) {
     if (animComplete) {
-      if (walkFrames > frames(0)) {
+      if (walkFrames > frames(0) && this->startDir != Direction::none) {
         // walk out for 50 frames
         actor->Walk(this->startDir);
         walkFrames -= frame_time_t::from_seconds(elapsed);
@@ -124,4 +129,9 @@ const bool Overworld::TeleportController::IsComplete() const
 SpriteProxyNode& Overworld::TeleportController::GetBeam()
 {
   return beam;
+}
+
+void Overworld::TeleportController::EnableSound(bool enable)
+{
+  mute = !enable;
 }

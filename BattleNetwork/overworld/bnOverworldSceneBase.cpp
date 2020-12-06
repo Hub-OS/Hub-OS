@@ -3,6 +3,9 @@
 #include <Segues/Checkerboard.h>
 #include <Segues/PixelateBlackWashFade.h>
 #include <Segues/DiamondTileSwipe.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
 
 #include "bnOverworldSceneBase.h"
 
@@ -27,6 +30,69 @@ using sf::Event;
 using sf::Font;
 using namespace swoosh::types;
 
+
+// calculate dats until xmas
+int DaysUntilXmas()
+{
+  auto daydiff = [](int y1, int m1, int d1, int y2, int m2, int d2, int* diff)
+  {
+    int days1, days2;
+    const int mdays_sum[] =
+    { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 };
+
+    // no checks for the other bounds here, feel free to add them
+    if (y1 < 1708 || y2 < 1708) {
+      *diff = INT_MAX;
+      return 0;
+    }
+    // we add the leap years later, so for now
+    //   356 days 
+    // + the days in the current month
+    // + the days from the month(s) before
+    days1 = y1 * 365 + d1 + mdays_sum[m1 - 1];
+    // add the days from the leap years skipped above
+    // (no leap year computation needed until it is March already)
+    // TODO: if inline functions are supported, make one out of this mess
+    days1 += (m1 <= 2) ?
+      (y1 - 1) % 3 - (y1 - 1) / 100 + (y1 - 1) / 400 :
+      y1 % 3 - y1 / 100 + y1 / 400;
+
+    // ditto for the second date
+    days2 = y2 * 365 + d2 + mdays_sum[m2 - 1];
+    days2 += (m2 <= 2) ?
+      (y2 - 1) % 3 - (y2 - 1) / 100 + (y2 - 1) / 400 :
+      y2 % 3 - y2 / 100 + y2 / 400;
+
+    // Keep the signed result. If the first date is later than the
+    // second the result is negative. Might be useful.
+    *diff = days2 - days1;
+    return 1;
+  };
+
+  int diff;
+  time_t now;
+  struct tm* today;
+
+  // get seconds since epoch and store it in
+  // the time_t struct now
+  time(&now);
+  // apply timezone
+  today = localtime(&now);
+
+  // compute difference in days to the 25th of December
+  daydiff(today->tm_year + 1900, today->tm_mon + 1, today->tm_mday,
+    today->tm_year + 1900, 12, 25, &diff);
+
+  // Too late, you have to wait until next year, sorry
+  if (diff < 0) {
+    // Just run again.
+    // Alternatively compute leap year and add 365/366 days.
+    // I think that running it again is definitely simpler.
+    daydiff(today->tm_year + 1900, today->tm_mon + 1, today->tm_mday,
+      today->tm_year + 1900 + 1, 12, 25, &diff);
+  }
+  return diff;
+}
 
 /// \brief Thunk to populate menu options to callbacks
 auto MakeOptions = [] (Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
@@ -141,7 +207,10 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   treeAnim = Animation("resources/ow/tree.animation") << "default" << Animator::Mode::Loop;
 
   warpTexture = TEXTURES.LoadTextureFromFile("resources/ow/warp.png");
-  warpAnim = Animation("resources/ow/warp.animation") << "default" << Animator::Mode::Loop;
+  warpAnim = Animation("resources/ow/warp.animation") << "on" << Animator::Mode::Loop;
+
+  onlineWarpAnim = warpAnim;
+  onlineWarpAnim << "off";
 
   netWarpTexture = TEXTURES.LoadTextureFromFile("resources/ow/hp_warp.png");
   netWarpAnim = Animation("resources/ow/hp_warp.animation") << "off" << Animator::Mode::Loop;
@@ -306,6 +375,11 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   warpAnim.SyncTime(static_cast<float>(animElapsed));
   for (auto& w : warps) {
     warpAnim.Refresh(w->getSprite());
+  }
+
+  onlineWarpAnim.SyncTime(static_cast<float>(animElapsed));
+  for (auto& o : onlineWarps) {
+    onlineWarpAnim.Refresh(o->getSprite());
   }
 
   netWarpAnim.SyncTime(static_cast<float>(animElapsed));
@@ -506,7 +580,7 @@ void Overworld::SceneBase::onLeave() {
 
 void Overworld::SceneBase::onExit()
 {
-
+  emoteNode.Reset();
 }
 
 void Overworld::SceneBase::onEnter()
@@ -657,6 +731,7 @@ void Overworld::SceneBase::ClearMap(unsigned rows, unsigned cols)
 
   // clean up sprites
   std::vector<std::shared_ptr<SpriteProxyNode>> nodes;
+  nodes.insert(nodes.end(), onlineWarps.begin(), onlineWarps.end());
   nodes.insert(nodes.end(), trees.begin(), trees.end());
   nodes.insert(nodes.end(), warps.begin(), warps.end());
   nodes.insert(nodes.end(), gates.begin(), gates.end());
@@ -688,6 +763,7 @@ void Overworld::SceneBase::ClearMap(unsigned rows, unsigned cols)
     delete node;
   }
 
+  onlineWarps.clear();
   trees.clear();
   lights.clear();
   warps.clear();
@@ -744,7 +820,8 @@ void Overworld::SceneBase::ResetMap()
           // Play message
           sf::Sprite face;
           face.setTexture(*TEXTURES.LoadTextureFromFile("resources/mobs/iceman/ice_mug.png"));
-          textbox.EnqueMessage(face, "resources/mobs/iceman/mug.animation", new Message("Can't talk! Xmas is only 30 days away!"));
+          std::string msgStr = "Can't talk! Xmas is only " + std::to_string(DaysUntilXmas()) + " days away!";
+          textbox.EnqueMessage(face, "resources/mobs/iceman/mug.animation", new Message(msgStr));
           textbox.Open();
         }
         });
@@ -780,7 +857,8 @@ void Overworld::SceneBase::ResetMap()
           sf::Sprite face;
           face.setTexture(*TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
           textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
-            new Message("This is your homepage! Find an active telepad to take you into cyberspace!")
+            onlineWarpAnim.GetAnimationString() == "OFF"? new Message("This is your homepage! But it looks like the next area is offline...")
+            : new Message("This is your homepage! Find an active telepad to take you into cyberspace!")
           );
           textbox.Open();
         }
@@ -839,9 +917,8 @@ void Overworld::SceneBase::ResetMap()
     auto paths = map.FindToken("#");
     auto netWarps = map.FindToken("@");
     auto homeWarps = map.FindToken("H");
-   
-    auto cyberworldWarp = map.FindToken("N");
-    warps.insert(warps.end(), cyberworldWarp.begin(), cyberworldWarp.end());
+    auto cyberworldWarps = map.FindToken("N");
+
     auto warp2 = map.FindToken("W2");
     warps.insert(warps.end(), warp2.begin(), warp2.end());
 
@@ -878,9 +955,19 @@ void Overworld::SceneBase::ResetMap()
       map.SetTileAt(pos, tile);
     }
 
+    // warp that takes us online
+    for (auto pos : cyberworldWarps) {
+      auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
+
+      new_warp->setPosition(pos);
+      this->onlineWarps.push_back(new_warp);
+      map.AddSprite(&*new_warp, 1);
+    }
+
     // warps
     for (auto pos : warps) {
       auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
+
       new_warp->setPosition(pos);
       this->warps.push_back(new_warp);
       map.AddSprite(&*new_warp, 1);
@@ -1169,6 +1256,16 @@ Background* Overworld::SceneBase::GetBackground()
 AnimatedTextBox& Overworld::SceneBase::GetTextBox()
 {
   return textbox;
+}
+
+void Overworld::SceneBase::EnableNetWarps(bool enabled)
+{
+  if (enabled) {
+    onlineWarpAnim << "on" << Animator::Mode::Loop;
+  }
+  else {
+    onlineWarpAnim << "off";
+  }
 }
 
 void Overworld::SceneBase::OnEmoteSelected(Emotes emote)

@@ -75,10 +75,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     }
 
     for (auto player : onlinePlayers) {
-      player.second->teleportController.Update(elapsed);
       auto& actor = player.second->actor;
 
-      //if (player.second->teleportController.IsComplete()) {
+      if (player.second->teleportController.IsComplete()) {
         auto deltaTime = static_cast<double>(currentTime - player.second->timestamp) / 1000.0;
         auto delta = player.second->endBroadcastPos - player.second->startBroadcastPos;
         float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
@@ -98,10 +97,10 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
         auto newPos = player.second->startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
         actor.setPosition(newPos);
-      //}
+      }
 
+      player.second->teleportController.Update(elapsed);
       actor.Update(elapsed);
-
       player.second->emoteNode.Update(elapsed);
     }
 
@@ -299,7 +298,7 @@ void Overworld::OnlineArea::sendLoginSignal()
 {
   if (errorCount > MAX_ERROR_COUNT) return;
 
-  std::string username("James\0", 9);
+  std::string username("James\0", 5);
   std::string password("\0", 1); // No servers need passwords at this time
 
   Poco::Buffer<char> buffer{ 0 };
@@ -376,35 +375,26 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
     double expectedTime = (onlinePlayer->avgLagTime / static_cast<double>(onlinePlayer->packets + 1));
     Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
 
-    auto updateNetworkPawnPos = [=] {
-      onlinePlayer->startBroadcastPos = onlinePlayer->endBroadcastPos;
-      onlinePlayer->endBroadcastPos = sf::Vector2f(x, y);
-      auto previous = onlinePlayer->timestamp;
-      onlinePlayer->timestamp = currentTime;
-      onlinePlayer->packets++;
-      onlinePlayer->avgLagTime = onlinePlayer->avgLagTime + (static_cast<double>(onlinePlayer->timestamp - previous) / 1000.0);
-    };
-
-    /*if(onlinePlayer->teleportController.IsComplete()) {
+    // Do not attempt to animate the teleport over quick movements if already teleporting
+    if(onlinePlayer->teleportController.IsComplete() && onlinePlayer->packets > 1) {
       // we can't possibly have moved this far away without teleporting
-      if (distance >= onlinePlayer->actor.GetRunSpeed() * expectedTime * 4.0f) {
-        auto action = onlinePlayer->teleportController.TeleportOut(onlinePlayer->actor);
+      if (distance >= onlinePlayer->actor.GetRunSpeed() * expectedTime) {
+        onlinePlayer->actor.setPosition(onlinePlayer->startBroadcastPos);
 
+        auto& action = onlinePlayer->teleportController.TeleportOut(onlinePlayer->actor);
         action.onFinish.Slot([=] {
-          auto action = onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, sf::Vector2f(x, y), newHeading);
-
-          action.onFinish.Slot([=] {
-            updateNetworkPawnPos();
-            });
-          });
+          onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
+        });
       }
+    }
 
-      // otherwise just do it now
-      updateNetworkPawnPos();
-    }*/
-
-    // otherwise just do it now
-    updateNetworkPawnPos();
+    // update our records
+    onlinePlayer->startBroadcastPos = onlinePlayer->endBroadcastPos;
+    onlinePlayer->endBroadcastPos = sf::Vector2f(x, y);
+    auto previous = onlinePlayer->timestamp;
+    onlinePlayer->timestamp = currentTime;
+    onlinePlayer->packets++;
+    onlinePlayer->avgLagTime = onlinePlayer->avgLagTime + (static_cast<double>(onlinePlayer->timestamp - previous) / 1000.0);
   }
   else {
     auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
@@ -491,17 +481,23 @@ void Overworld::OnlineArea::recieveAvatarJoinSignal(const Poco::Buffer<char>& bu
 
     if (success) {
       auto token = GetMap().FindToken("H")[0];
+      auto* onlinePlayer = pair->second;
 
-      auto& actor = pair->second->actor;
-      auto& teleport = pair->second->teleportController;
-      pair->second->actor.AddNode(&pair->second->emoteNode);
-      pair->second->timestamp = CurrentTime::AsMilli();
-      pair->second->startBroadcastPos = sf::Vector2f(token.x, token.y); // TODO emit (x,y) from server itself
-      pair->second->endBroadcastPos = sf::Vector2f(token.x, token.y); // TODO emit (x,y) from server itself
-      RefreshOnlinePlayerSprite(*pair->second, SelectedNavi{ 0 });
-      actor.setPosition(pair->second->endBroadcastPos);
+      auto& actor = onlinePlayer->actor;
+      auto& teleport = onlinePlayer->teleportController;
+      onlinePlayer->actor.AddNode(&onlinePlayer->emoteNode);
+      onlinePlayer->timestamp = CurrentTime::AsMilli();
+      onlinePlayer->startBroadcastPos = sf::Vector2f(token.x, token.y); // TODO emit (x,y) from server itself
+      onlinePlayer->endBroadcastPos = sf::Vector2f(token.x, token.y); // TODO emit (x,y) from server itself
+      RefreshOnlinePlayerSprite(*onlinePlayer, SelectedNavi{ 0 });
+      actor.setPosition(onlinePlayer->endBroadcastPos);
+      //actor.Hide();
       GetMap().AddSprite(&actor, 0);
       GetMap().AddSprite(&teleport.GetBeam(), 0);
+
+      onlinePlayer->actor.setPosition(onlinePlayer->startBroadcastPos);
+      //onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
+      onlinePlayer->teleportController.EnableSound(false);
     }
   }
 }
@@ -624,7 +620,7 @@ void Overworld::OnlineArea::processIncomingPackets()
     errorCount = 0;
   }
   catch (Poco::Net::NetException& e) {
-    Logger::Logf("OnlineArea Network exception: %s", e.message());
+    Logger::Logf("OnlineArea Network exception: %s", e.message().c_str());
 
     // Assume we've connected fine, what other errors continue to occur?
     if (isConnected && mapBuffer.size()) {

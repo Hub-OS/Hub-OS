@@ -51,7 +51,7 @@ template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : elapsed(0), explosion(nullptr), numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
   whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  PriorityLock();
+  AIState<Any>::template PriorityLock();
 }
 
 template<typename Any>

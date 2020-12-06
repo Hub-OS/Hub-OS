@@ -18,7 +18,6 @@ namespace Overworld {
     question,
     alert,
     heart,
-    pog,
     gg,
     lol,
     yes,
@@ -34,6 +33,7 @@ namespace Overworld {
     EmoteNode();
     ~EmoteNode();
 
+    void Reset();
     void Emote(Emotes type);
     void Update(double elapsed);
   };

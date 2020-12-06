@@ -1,26 +1,102 @@
+#include <Poco/Net/NetException.h>
 #include <Segues/BlackWashFade.h>
 #include "bnOverworldHomepage.h"
 #include "bnOverworldOnlineArea.h"
+#include "../netplay/bnNetPlayConfig.h"
 
 using namespace swoosh::types;
+
+constexpr sf::Int32 PING_SERVER_MILI = 5 * 1000;
 
 Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guestAccount) :
   guest(guestAccount),
   SceneBase(controller, guestAccount)
 {
- 
+  pingServerTimer.reverse(true);
+  pingServerTimer.set(PING_SERVER_MILI);
+  pingServerTimer.start();
 }
 
 Overworld::Homepage::~Homepage()
 {
 }
 
+void Overworld::Homepage::PingRemoteAreaServer()
+{
+  if (pingServerTimer.getElapsed().asMilliseconds() == 0) {
+    auto doSendThunk = [=] {
+      Poco::Buffer<char> buffer{ 0 };
+      buffer.append((char*)&ping, sizeof(uint16_t));
+
+      try {
+        client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+
+        if (client.available()) {
+          char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
+          int read = 0;
+
+          Poco::Net::SocketAddress sender;
+          read += client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
+
+          if (sender == remoteAddress && read > 0) {
+            rawBuffer[read] = '\0';
+
+            if (pong == *(uint16_t*)rawBuffer) {
+              SceneBase::EnableNetWarps(true);
+              isConnected = true;
+            }
+          }
+        }
+      }
+      catch (Poco::Net::NetException& e) {
+        Logger::Logf("Homepage warp could not request ping: %s", e.message().c_str());
+        isConnected = false;
+        reconnecting = false;
+        client.close();
+        SceneBase::EnableNetWarps(false);
+      }
+    };
+
+    if (!reconnecting) {
+      int myPort = ENGINE.CommandLineValue<int>("port");
+      Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
+      client = Poco::Net::DatagramSocket(sa);
+      client.setBlocking(false);
+
+      int remotePort = ENGINE.CommandLineValue<int>("remotePort");
+      std::string cyberworld = ENGINE.CommandLineValue<std::string>("cyberworld");
+      remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
+
+      try {
+        client.connect(remoteAddress);
+        reconnecting = true;
+        doSendThunk();
+      }
+      catch (Poco::Net::NetException& e) {
+        reconnecting = false;
+        Logger::Logf("Error trying to connect to remote address: %s", e.message().c_str());
+      }
+    }
+    else {
+      doSendThunk();
+    }
+
+    pingServerTimer.set(PING_SERVER_MILI);
+  }
+}
+
 void Overworld::Homepage::onUpdate(double elapsed)
 {
+  if(infocus)
+  {
+    pingServerTimer.update(elapsed);
+    PingRemoteAreaServer();
+  }
+
   // Update our logic
   auto& map = GetMap();
   auto mousei = sf::Mouse::getPosition(*ENGINE.GetWindow());
-  auto& [row, col] = map.PixelToRowCol(mousei);
+  const auto& [row, col] = map.PixelToRowCol(mousei);
   sf::Vector2f click = { (float)col * map.GetTileSize().x, (float)row * map.GetTileSize().y };
 
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
@@ -87,6 +163,26 @@ void Overworld::Homepage::onStart()
   // Stop any music already playing
   AUDIO.StopStream();
   AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+
+  SceneBase::EnableNetWarps(false);
+  infocus = true;
+}
+
+void Overworld::Homepage::onResume()
+{
+  SceneBase::onResume();
+  infocus = true;
+}
+
+void Overworld::Homepage::onLeave()
+{
+  infocus = false;
+  
+  // repeat reconnection in case there was a fail that
+  // forced us to return
+  client.close();
+  isConnected = false;
+  reconnecting = false;
 }
 
 const std::pair<bool, Overworld::Map::Tile**> Overworld::Homepage::FetchMapData()
@@ -127,7 +223,7 @@ void Overworld::Homepage::OnTileCollision(const Overworld::Map::Tile& tile)
     }
   }
 
-  if (tile.token == "N" && teleportController->IsComplete()) {
+  if (tile.token == "N" && teleportController->IsComplete() && isConnected) {
     auto& map = GetMap();
     auto* playerController = &GetPlayerController();
     auto* playerActor = &GetPlayer();
@@ -143,7 +239,7 @@ void Overworld::Homepage::OnTileCollision(const Overworld::Map::Tile& tile)
       );
 
       this->TeleportUponReturn(returnPoint);
-
+      client.close();
       getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(guest);
     };
 

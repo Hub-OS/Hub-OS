@@ -199,7 +199,7 @@ void AnimatedTextBox::Update(double elapsed) {
   textBox.Play(!isPaused);
 
   // set the textbox position
-  textBox.setPosition(sf::Vector2f(getPosition().x + 90.0f, getPosition().y - 40.0f));
+  textBox.setPosition(sf::Vector2f(getPosition().x + 100.0f, getPosition().y - 40.0f));
 
   animator.Update((float)elapsed, frame);
 }
@@ -234,6 +234,7 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
     // So we store the state of the object and then calculate the offset, and then
     // restore it when we draw
     // Prime example where scene nodes would come in handy.
+    // TODO: Use SceneNodes now that we have them 12/6/2020
 
     pos += sf::Vector2f(6.0f, 2.0f - sprite.getGlobalBounds().height / 2.0f);
 
