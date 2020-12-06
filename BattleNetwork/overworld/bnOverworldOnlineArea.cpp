@@ -75,13 +75,14 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     }
 
     for (auto player : onlinePlayers) {
+      auto* onlinePlayer = player.second;
       auto& actor = player.second->actor;
 
-      if (player.second->teleportController.IsComplete()) {
-        auto deltaTime = static_cast<double>(currentTime - player.second->timestamp) / 1000.0;
+      if (onlinePlayer->teleportController.IsComplete()) {
+        auto deltaTime = static_cast<double>(currentTime - onlinePlayer->timestamp) / 1000.0;
         auto delta = player.second->endBroadcastPos - player.second->startBroadcastPos;
         float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-        double expectedTime = (player.second->avgLagTime / static_cast<double>(player.second->packets + 1));
+        double expectedTime = CalculatePlayerLag(*onlinePlayer);
         auto alpha = ease::linear(deltaTime, expectedTime, 1.0);
         Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
 
@@ -97,9 +98,6 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
         auto newPos = player.second->startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
         actor.setPosition(newPos);
-      }
-      else {
-        volatile int i = 0;
       }
 
       player.second->teleportController.Update(elapsed);
@@ -369,14 +367,19 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
+
+    // Calculcate the NEXT  frame and see if we're moving too far
     auto* onlinePlayer = userIter->second;
     auto currentTime = CurrentTime::AsMilli();
     auto newPos = sf::Vector2f(x, y);
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer->timestamp) / 1000.0;
     auto delta = onlinePlayer->endBroadcastPos - newPos;
     float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-    double adjustedLagTime = onlinePlayer->avgLagTime + ((currentTime - static_cast<double>(onlinePlayer->timestamp)) / 1000.0);
-    double expectedTime =  adjustedLagTime / static_cast<double>(onlinePlayer->packets + 1 + 1);
+    double incomingLag = (currentTime - static_cast<double>(onlinePlayer->timestamp)) / 1000.0;
+
+    // Adjust the lag time by the lag of this incoming frame
+    double expectedTime = CalculatePlayerLag(*onlinePlayer, incomingLag);
+
     Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
 
     // Do not attempt to animate the teleport over quick movements if already teleporting
@@ -397,7 +400,7 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
     auto previous = onlinePlayer->timestamp;
     onlinePlayer->timestamp = currentTime;
     onlinePlayer->packets++;
-    onlinePlayer->avgLagTime = onlinePlayer->avgLagTime + (static_cast<double>(onlinePlayer->timestamp - previous) / 1000.0);
+    onlinePlayer->lagWindow[onlinePlayer->packets%Overworld::LAG_WINDOW_LEN] = incomingLag;
   }
   else {
     auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
@@ -676,4 +679,24 @@ const bool Overworld::OnlineArea::IsMouseHovering(const sf::RenderTarget& target
   // Logger::Logf("mouse: {%f, %f} ... bounds: {%f, %f, %f, %f}", mouse.x, mouse.y, bounds.left, bounds.top, bounds.width, bounds.height);
 
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
+}
+
+const double Overworld::OnlineArea::CalculatePlayerLag(OnlinePlayer& player, double nextLag)
+{
+  
+  size_t window_len = std::min(player.packets, player.lagWindow.size());
+
+  double avg{ 0 };
+  for (size_t i = 0; i < window_len; i++) {
+    avg = avg + player.lagWindow[i];
+  }
+
+  if (nextLag != 0.0) {
+    avg = nextLag + avg;
+    window_len++;
+  }
+
+  avg = avg / static_cast<double>(window_len);
+
+  return avg;
 }

@@ -7,6 +7,8 @@
 #include "bnOverworldSceneBase.h"
 
 namespace Overworld {
+  constexpr size_t LAG_WINDOW_LEN = 300;
+
   // server expects uint16_t codes
   enum class ClientEvents : uint16_t {
     login = 0,    // 0 login request
@@ -41,7 +43,7 @@ namespace Overworld {
     sf::Vector2f startBroadcastPos{};
     sf::Vector2f endBroadcastPos{};
     long long timestamp{};
-    double avgLagTime{};
+    std::array<double, LAG_WINDOW_LEN> lagWindow{ 0 };
     size_t packets{};
   };
 
@@ -62,6 +64,7 @@ namespace Overworld {
 
     void RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi);
     const bool IsMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src);
+    const double CalculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
   public:
     /**
      * @brief Loads the player's library data and loads graphics
