@@ -98,6 +98,9 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         auto newPos = player.second->startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
         actor.setPosition(newPos);
       }
+      else {
+        volatile int i = 0;
+      }
 
       player.second->teleportController.Update(elapsed);
       actor.Update(elapsed);
@@ -368,19 +371,19 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
   if (userIter != onlinePlayers.end()) {
     auto* onlinePlayer = userIter->second;
     auto currentTime = CurrentTime::AsMilli();
-
+    auto newPos = sf::Vector2f(x, y);
     auto deltaTime = static_cast<double>(currentTime - onlinePlayer->timestamp) / 1000.0;
-    auto delta = onlinePlayer->endBroadcastPos - onlinePlayer->startBroadcastPos;
+    auto delta = onlinePlayer->endBroadcastPos - newPos;
     float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-    double expectedTime = (onlinePlayer->avgLagTime / static_cast<double>(onlinePlayer->packets + 1));
+    double adjustedLagTime = onlinePlayer->avgLagTime + ((currentTime - static_cast<double>(onlinePlayer->timestamp)) / 1000.0);
+    double expectedTime =  adjustedLagTime / static_cast<double>(onlinePlayer->packets + 1 + 1);
     Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
 
     // Do not attempt to animate the teleport over quick movements if already teleporting
     if(onlinePlayer->teleportController.IsComplete() && onlinePlayer->packets > 1) {
       // we can't possibly have moved this far away without teleporting
-      if (distance >= onlinePlayer->actor.GetRunSpeed() * expectedTime) {
-        onlinePlayer->actor.setPosition(onlinePlayer->startBroadcastPos);
-
+      if (distance >= (onlinePlayer->actor.GetRunSpeed() * 2) * expectedTime) {
+        onlinePlayer->actor.setPosition(onlinePlayer->endBroadcastPos);
         auto& action = onlinePlayer->teleportController.TeleportOut(onlinePlayer->actor);
         action.onFinish.Slot([=] {
           onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
@@ -491,12 +494,12 @@ void Overworld::OnlineArea::recieveAvatarJoinSignal(const Poco::Buffer<char>& bu
       onlinePlayer->endBroadcastPos = sf::Vector2f(token.x, token.y); // TODO emit (x,y) from server itself
       RefreshOnlinePlayerSprite(*onlinePlayer, SelectedNavi{ 0 });
       actor.setPosition(onlinePlayer->endBroadcastPos);
-      //actor.Hide();
+      actor.Hide();
       GetMap().AddSprite(&actor, 0);
       GetMap().AddSprite(&teleport.GetBeam(), 0);
 
       onlinePlayer->actor.setPosition(onlinePlayer->startBroadcastPos);
-      //onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
+      onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
       onlinePlayer->teleportController.EnableSound(false);
     }
   }

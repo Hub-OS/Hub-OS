@@ -108,6 +108,7 @@ void Overworld::TeleportController::Update(double elapsed)
     }
   }
   else {
+    // Command::state::teleport_out
     if (animComplete) {
       next.onFinish();
       sequence.pop();
