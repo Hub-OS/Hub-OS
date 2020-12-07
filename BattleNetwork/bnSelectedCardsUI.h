@@ -9,11 +9,10 @@
 #include "bnUIComponent.h"
 #include "bnCardUsePublisher.h"
 #include "bnSpriteProxyNode.h"
+#include "bnText.h"
 
 using std::ostringstream;
 using std::vector;
-using sf::Font;
-using sf::Text;
 using sf::Sprite;
 using sf::Texture;
 using sf::Drawable;
@@ -76,7 +75,7 @@ private:
   mutable bool firstFrame{ true }; /*!< If true, this UI graphic is being drawn for the first time*/
   sf::Time interpolDur; /*!< Max duration for interpolation 0.2 seconds */
   Player* player{ nullptr }; /*!< Player this component is attached to */
-  std::shared_ptr<Font> font; /*!< Card name font */
+  Font font; /*!< Card name font */
   mutable Text text; /*!< Text displays card name */
   mutable Text multiplier;
   mutable Text dmg; /*!< Text displays card damage */

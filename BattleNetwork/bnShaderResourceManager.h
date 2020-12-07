@@ -25,13 +25,7 @@ using std::pair;
 using std::string;
 
 class ShaderResourceManager {
-public:
-  /**
-   * @brief If this is the first call, initializes the resource manager. 
-   * @return Returns reference to shader resource manager.
-   */
-  static ShaderResourceManager& GetInstance();
-  
+public:  
   /**
    * @brief Loads all hard-coded shaders
    * @param status Increases the count after each shader loads
@@ -53,15 +47,10 @@ public:
    */
   sf::Shader* GetShader(ShaderType _ttype);
 
-private:
   ShaderResourceManager();
   ~ShaderResourceManager();
+private:
+  std::mutex mutex;
   vector<string> paths;  /*!< Paths to all shaders. Must be in order of ShaderType @see ShaderType */
   map<ShaderType, sf::Shader*> shaders; /*!< cache */
 };
-
-/*! \brief Shorthand to get instance of the manager */
-#define SHADERS ShaderResourceManager::GetInstance()
-
-/*! \brief Shorthand to get a preloaded shader */
-#define LOAD_SHADER(x) *SHADERS.GetShader(ShaderType::x)

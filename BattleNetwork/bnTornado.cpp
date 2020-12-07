@@ -12,7 +12,7 @@ Tornado::Tornado(Field* _field, Team _team, int count, int damage)
   Spell(_field, _team) {
   SetLayer(-1);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_TORNADO));
+  setTexture(Textures().GetTexture(TextureType::SPELL_TORNADO));
   setScale(2.f, 2.f);
 
   //When the animation ends, delete this

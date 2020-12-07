@@ -22,7 +22,7 @@ BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage)
   busterAnim.SetAnimation("BUSTER");
 
   flare = new SpriteProxyNode();
-  flare->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  flare->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
   flare->SetLayer(-1);
 
   flareAnim = Animation(NODE_ANIM);
@@ -66,6 +66,29 @@ void BusterCardAction::Execute() {
     AUDIO.Play(AudioType::BUSTER_PEA);
 
     busterAttachment->AddAttachment(busterAnim, "endpoint", *flare).UseAnimation(flareAnim);
+}
+
+void BusterCardAction::OnExecute() {
+
+  // On shoot frame, drop projectile
+  auto onFire = [this]() -> void {
+    auto& user = GetUser();
+
+    Buster* b = new Buster(user.GetField(), user.GetTeam(), charged, damage);
+    b->SetDirection(Direction::right);
+    auto props = b->GetHitboxProperties();
+    b->SetHitboxProperties(props);
+
+    auto status = user.GetField()->AddEntity(*b, *user.GetTile());
+
+    if (status != Field::AddEntityStatus::deleted) {
+      Entity::RemoveCallback& busterRemoved = b->CreateRemoveCallback();
+      busterRemoved.Slot([this]() {
+        EndAction();
+      });
+
+      Audio().Play(AudioType::BUSTER_PEA);
+    }
   };
 
   AddAnimAction(3, onFire);
@@ -73,22 +96,15 @@ void BusterCardAction::Execute() {
 
 BusterCardAction::~BusterCardAction()
 {
-  delete buster;
-  delete flare;
 }
 
-void BusterCardAction::OnUpdate(float _elapsed)
+void BusterCardAction::OnEndAction()
 {
-  CardAction::OnUpdate(_elapsed);
+  OnAnimationEnd();
+  Eject();
 }
 
 void BusterCardAction::OnAnimationEnd()
 {
   isBusterAlive = false;
-}
-
-void BusterCardAction::EndAction()
-{
-  OnAnimationEnd();
-  Eject();
 }

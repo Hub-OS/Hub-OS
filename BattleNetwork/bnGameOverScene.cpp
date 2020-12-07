@@ -5,12 +5,10 @@
 #include "overworld/bnOverworldHomepage.h"
 
 
-using namespace swoosh::types;
-
-GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(&controller) {
+GameOverScene::GameOverScene(swoosh::ActivityController& controller) : Scene(&controller) {
   fadeInCooldown = 2.0f;
 
-  gameOver.setTexture(*TEXTURES.GetTexture(TextureType::GAME_OVER));
+  gameOver.setTexture(*Textures().GetTexture(TextureType::GAME_OVER));
   gameOver.setScale(2.f, 2.f);
   gameOver.setOrigin(gameOver.getLocalBounds().width / 2, gameOver.getLocalBounds().height / 2);
 
@@ -24,8 +22,8 @@ GameOverScene::~GameOverScene() {
 }
 
 void GameOverScene::onStart() {
-  AUDIO.StopStream();
-  AUDIO.Stream("resources/loops/game_over.ogg");
+  Audio().StopStream();
+  Audio().Stream("resources/loops/game_over.ogg");
 }
 
 void GameOverScene::onResume() {

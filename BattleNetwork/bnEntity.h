@@ -20,10 +20,11 @@
 #include <functional>
 using std::string;
 
+#include "bnResourceHandle.h"
 #include "bnAnimation.h"
 #include "bnDirection.h"
 #include "bnTeam.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnTextureType.h"
 #include "bnElements.h"
 #include "bnComponent.h"
@@ -40,7 +41,7 @@ struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;
 };
 
-class Entity : public SpriteProxyNode {
+class Entity : public SpriteProxyNode, public ResourceHandle {
 public:
   using ID_t = long;
 

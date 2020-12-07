@@ -8,7 +8,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnDefenseVirusBody.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 const std::string RESOURCE_PATH = "resources/mobs/metrid/metrid.animation";
 
@@ -42,7 +42,7 @@ Metrid::Metrid(Rank _rank)
 
   hitHeight = 60;
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_METRID));
+  setTexture(Textures().GetTexture(TextureType::MOB_METRID));
   setScale(2.f, 2.f);
   animationComponent->SetPlaybackMode(Animator::Mode::Loop);
 

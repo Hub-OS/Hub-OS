@@ -8,8 +8,6 @@
 #include "bnCardUsePublisher.h"
 #include "bnSceneNode.h"
 
-using sf::Font;
-using sf::Text;
 using sf::Sprite;
 using sf::Texture;
 using sf::Drawable;

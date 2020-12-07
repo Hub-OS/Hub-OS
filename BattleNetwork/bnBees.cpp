@@ -15,7 +15,7 @@ Bees::Bees(Field* _field, Team _team, int damage)
   Spell(_field, _team) {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BEES));
+  setTexture(Textures().GetTexture(TextureType::SPELL_BEES));
   setScale(2.f, 2.f);
 
   HighlightTile(Battle::Tile::Highlight::solid);
@@ -74,7 +74,7 @@ Bees::Bees(const Bees & leader)
 {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BEES));
+  setTexture(Textures().GetTexture(TextureType::SPELL_BEES));
   setScale(2.f, 2.f);
 
   HighlightTile(Battle::Tile::Highlight::solid);
@@ -229,6 +229,7 @@ void Bees::OnUpdate(float _elapsed) {
     attackCooldown = 1.80f; // est 3 frames
     auto hitbox = new Hitbox(GetField(), GetTeam());
     hitbox->SetHitboxProperties(GetHitboxProperties());
+
     // all other hitbox events will be ignored after 5 hits
     if (hitCount < 5) {
       hitCount++;
@@ -258,14 +259,8 @@ bool Bees::CanMoveTo(Battle::Tile* tile) {
 }
 
 void Bees::Attack(Character* _entity) {
-  // If entity was successfully hit
-  /*if (hitCount < 5 && _entity->Hit(GetHitboxProperties())) {
-    hitCount++;
-    AUDIO.Play(AudioType::HURT);
-    auto fx = new ParticleImpact(ParticleImpact::Type::GREEN);
-    GetField()->AddEntity(*fx, *GetTile());
-    fx->SetHeight(_entity->GetHeight()/2.0f);
-  }*/
+  // Bees doesn't directly attack, they drop 5 hitboxes
+  // and we track that
 }
 
 void Bees::OnDelete()

@@ -18,12 +18,12 @@ BusterHit::BusterHit(Field* _field, Type type) : Artifact(_field)
   animationComponent = CreateComponent<AnimationComponent>(this);
 
   if (type == Type::CHARGED) {
-    setTexture(TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));
+    setTexture(Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));
     animationComponent->SetPath(CHARGED_RESOURCE_PATH);
 
   }
   else {
-    setTexture(TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT));
+    setTexture(Textures().GetTexture(TextureType::SPELL_BULLET_HIT));
     animationComponent->SetPath(PEA_RESOURCE_PATH);
 
   }

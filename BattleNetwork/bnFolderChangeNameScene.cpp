@@ -9,9 +9,10 @@
 #define LOWERCASE 1
 #define COMMANDS  2
 
-FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& controller, std::string& folderName) : 
-  swoosh::Activity(&controller), folderName(folderName) {
+FolderChangeNameScene::FolderChangeNameScene(ActivityController& controller, std::string& folderName) 
+  : Scene(&controller), folderName(folderName), font(Font::Style::small), nameLabel("", font) {
   elapsed = 0;
+
   leave = true;
   // folder menu graphic
   bg = sf::Sprite(*LOAD_TEXTURE(FOLDER_CHANGE_NAME_BG));
@@ -25,10 +26,7 @@ FolderChangeNameScene::FolderChangeNameScene(swoosh::ActivityController& control
 
   letterPos = cursorPosX = cursorPosY = currTable = 0;
 
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-
-  nameLabel = new sf::Text("", *font);
-  nameLabel->setScale(1.f, 1.f);
+  nameLabel.setScale(1.f, 1.f);
   
   name = std::string(8, '_'); // 8 characters allowed
 
@@ -100,13 +98,13 @@ void FolderChangeNameScene::ExecuteAction(size_t table, size_t x, size_t y)
   }
   else { // it's a letter entry
     if (letterPos + 1 == 9) { // denotes end of input, reject
-      AUDIO.Play(AudioType::CHIP_ERROR);
+      Audio().Play(AudioType::CHIP_ERROR);
     }
     else { // not end of input, add latter, and increase letterPos
       name[letterPos++] = entry[0];
       letterPos = std::min(letterPos, 8);
 
-      AUDIO.Play(AudioType::CHIP_CHOOSE);
+      Audio().Play(AudioType::CHIP_CHOOSE);
     }
   }
 }
@@ -150,7 +148,7 @@ void FolderChangeNameScene::DoEND()
   using effect = segue<BlackWashFade, milli<500>>;
   getController().pop<effect>();
 
-  AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+  Audio().Play(AudioType::CHIP_DESC_CLOSE);
   leave = true;
 }
 
@@ -169,10 +167,10 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
   if (!leave) {
     if (INPUTx.Has(InputEvents::pressed_cancel)) {
       if (letterPos != 0 || name[letterPos] != '_') {
-        AUDIO.Play(AudioType::CHIP_CANCEL);
+        Audio().Play(AudioType::CHIP_CANCEL);
       }
       else {
-        AUDIO.Play(AudioType::CHIP_ERROR);
+        Audio().Play(AudioType::CHIP_ERROR);
       }
       
       if (letterPos + 1 == 9) {
@@ -216,7 +214,7 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
 
   // Check X pos
   if (lastX != cursorPosX) {
-    AUDIO.Play(AudioType::CHIP_SELECT);
+    Audio().Play(AudioType::CHIP_SELECT);
 
     if (cursorPosX < 0) {
       currTable--;
@@ -252,7 +250,7 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
 
   // Check Y pos
   if (lastY != cursorPosY) {
-    AUDIO.Play(AudioType::CHIP_SELECT);
+    Audio().Play(AudioType::CHIP_SELECT);
 
     if (cursorPosY < 0) {
       cursorPosY = 0;
@@ -303,16 +301,16 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
     if(i == letterPos && blink)
       continue;
 
-    nameLabel->setString(name[i]);
-    nameLabel->setPosition((65 + (i*8)) * 2.f, 15 * 2.f);
+    nameLabel.SetString(name[i]);
+    nameLabel.setPosition((65 + (i*8)) * 2.f, 15 * 2.f);
 
     ENGINE.Draw(nameLabel);
   }
 
   // 9th character is a special * asterisk to denote the end of input
   if (letterPos + 1 == 9 && !blink) {
-    nameLabel->setString('*');
-    nameLabel->setPosition((65 + (8 * 8)) * 2.f, 15 * 2.f);
+    nameLabel.SetString('*');
+    nameLabel.setPosition((65 + (8 * 8)) * 2.f, 15 * 2.f);
 
     ENGINE.Draw(nameLabel);
   }

@@ -6,7 +6,7 @@
 #include "bnWave.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnAura.h"
 
 const std::string RESOURCE_PATH = "resources/mobs/megalian/megalian.animation";
@@ -29,7 +29,7 @@ Megalian::Megalian(Rank _rank)
 
   hitHeight = 20;
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
 
   setScale(2.f, 2.f);
 

@@ -2,7 +2,7 @@
 #include <SFML/Window/Clipboard.hpp>
 using sf::Event;
 using sf::Keyboard;
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnInputManager.h"
 
 #if defined(__ANDROID__)

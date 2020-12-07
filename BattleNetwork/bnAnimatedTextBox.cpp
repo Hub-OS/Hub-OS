@@ -2,7 +2,7 @@
 #include <cmath>
 
 AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos)
-    : textArea(), totalTime(0), textBox(280, 40, 24, "resources/fonts/NETNAVI_4-6_V3.ttf") {
+    : textArea(), totalTime(0), textBox(280, 40) {
     textureRef = LOAD_TEXTURE(ANIMATED_TEXT_BOX);
     frame = sf::Sprite(*textureRef);
 
@@ -258,11 +258,10 @@ void AnimatedTextBox::DrawMessage(sf::RenderTarget & target, sf::RenderStates st
   target.draw(textBox, states);
 }
 
-sf::Text AnimatedTextBox::MakeTextObject(const std::string& data)
+Text AnimatedTextBox::MakeTextObject(const std::string& data)
 {
-  sf::Text obj = textBox.GetText();
-  obj.setFont(textBox.GetFont());
-  obj.setString(data);
-
+  Text obj = textBox.GetText();
+  obj.SetString(data);
+  obj.setScale(2.f, 2.f);
   return obj;
 }

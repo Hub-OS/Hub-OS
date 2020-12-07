@@ -1,7 +1,7 @@
 #include "bnUndernetBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include <Swoosh/Ease.h>
 
 #define X_OFFSET 0
@@ -10,8 +10,8 @@
 #define COMPONENT_FRAME_COUNT 2
 #define COMPONENT_WIDTH 240
 #define COMPONENT_HEIGHT 160
-UndernetBackground::UndernetBackground(void)
-  : progress(0.0f), Background(TEXTURES.LoadTextureFromFile("resources/backgrounds/undernet/bg.png"), 240, 180) {
+UndernetBackground::UndernetBackground()
+  : progress(0.0f), Background(Textures().LoadTextureFromFile("resources/scenes/undernet/bg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
   colorIndex = 0;
 
@@ -26,7 +26,7 @@ UndernetBackground::UndernetBackground(void)
   colorDuration = sf::seconds(5);
 }
 
-UndernetBackground::~UndernetBackground(void) {
+UndernetBackground::~UndernetBackground() {
 }
 
 void UndernetBackground::Update(float _elapsed) {

@@ -135,6 +135,8 @@ public:
    * @return (x,y) vector of point or (0,0) if no point found
    */
   sf::Vector2f GetPoint(const std::string& pointName);
+
+  Animation& GetAnimationObject();
   
   void OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string& uuid);
 

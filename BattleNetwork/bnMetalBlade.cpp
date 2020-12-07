@@ -10,7 +10,7 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, 
 
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_METALMAN_ATLAS));
   setScale(2.f, 2.f);
 
   MetalBlade::speed = speed;

@@ -17,7 +17,7 @@ LongSwordCardAction::~LongSwordCardAction()
 
 void LongSwordCardAction::OnSpawnHitbox()
 {
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
   auto field = GetOwner()->GetField();
 
   SwordEffect* e = new SwordEffect(field);
@@ -26,9 +26,10 @@ void LongSwordCardAction::OnSpawnHitbox()
   field->AddEntity(*e, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 
   BasicSword* b = new BasicSword(field, GetOwner()->GetTeam(), damage);
+
   auto props = b->GetHitboxProperties();
   props.element = GetElement();
-  props.aggressor = GetOwnerAs<Character>();
+  props.aggressor = &user;
   b->SetHitboxProperties(props);
 
   field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());

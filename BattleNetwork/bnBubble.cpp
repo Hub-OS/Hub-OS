@@ -17,7 +17,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed)
 
   SetTeam(_team);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BUBBLE));
+  setTexture(Textures().GetTexture(TextureType::SPELL_BUBBLE));
   setScale(2.f, 2.f);
 
   Bubble::speed = speed;
@@ -31,8 +31,8 @@ Bubble::Bubble(Field* _field, Team _team, double speed)
   // Spawn animation and then turns into "FLOAT" which loops forever
   animation << "INIT" << onFinish;
 
-  AUDIO.Play(AudioType::BUBBLE_SPAWN, AudioPriority::lowest);
-
+  Audio().Play(AudioType::BUBBLE_SPAWN, AudioPriority::lowest);
+  
   // Bubbles can overlap eachother partially
   ShareTileSpace(true);
 
@@ -97,7 +97,7 @@ void Bubble::OnDelete()
 {
   auto onFinish = [this]() { Remove(); };
   animation << "POP" << onFinish;
-  AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::lowest);
+  Audio().Play(AudioType::BUBBLE_POP, AudioPriority::lowest);
 }
 
 const float Bubble::GetHeight() const

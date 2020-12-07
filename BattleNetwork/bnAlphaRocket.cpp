@@ -14,7 +14,7 @@ AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
   ShareTileSpace(true);
   SetLayer(-1);
 
-  auto texture = TEXTURES.GetTexture(TextureType::SPELL_ALPHA_ROCKET);
+  auto texture = Textures().GetTexture(TextureType::SPELL_ALPHA_ROCKET);
   setTexture(texture);
   setScale(2.f, 2.f);
 

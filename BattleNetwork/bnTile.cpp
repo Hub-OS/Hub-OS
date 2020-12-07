@@ -268,7 +268,6 @@ namespace Battle {
     // Hack to toggle between team color without rewriting redundant code
     auto currTeam = team;
     auto otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
-
     auto prevAnimState = animState;
 
     ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
@@ -323,7 +322,7 @@ namespace Battle {
 
   bool Tile::IsReservedByCharacter()
   {
-    return (reserved.size() != 0);
+    return (reserved.size() != 0) && (characters.size() != 0);
   }
 
   void Tile::AddEntity(Spell & _entity)
@@ -423,7 +422,7 @@ namespace Battle {
 
     if (doBreakState) {
       SetState(TileState::broken);
-      AUDIO.Play(AudioType::PANEL_CRACK);
+      Audio().Play(AudioType::PANEL_CRACK);
     }
 
     return modified;

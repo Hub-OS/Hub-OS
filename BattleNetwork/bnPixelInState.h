@@ -65,7 +65,7 @@ PixelInState<Any>::PixelInState(FinishNotifier onFinish) : AIState<Any>() {
   callback = onFinish;
   factor = 125.f;
 
-  pixelated = SHADERS.GetShader(ShaderType::TEXEL_PIXEL_BLUR);
+  pixelated = ResourceHandle().Shaders().GetShader(ShaderType::TEXEL_PIXEL_BLUR);
 }
 
 template<typename Any>
@@ -75,7 +75,7 @@ PixelInState<Any>::~PixelInState() {
 template<typename Any>
 void PixelInState<Any>::OnEnter(Any& e) {
   // play swoosh
-  AUDIO.Play(AudioType::APPEAR);
+  e.Audio().Play(AudioType::APPEAR);
 
   e.setColor(sf::Color(255, 255, 255, 0));
 }

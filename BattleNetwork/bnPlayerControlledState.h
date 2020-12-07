@@ -19,7 +19,6 @@ private:
   PlayerInputReplicator* replicator; /*!< Pass actions onto a replicator to handle if requested */
   float startupDelay{ 0 };
 
-  void QueueAction(Player& player);
 public:
 
   /**

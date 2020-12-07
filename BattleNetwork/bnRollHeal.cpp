@@ -25,9 +25,9 @@ RollHeal::RollHeal(Field* field, Team team, Character* user, int _heal)
   int lr = (team == Team::red) ? 1 : -1;
   setScale(2.0f*lr, 2.0f);
 
-  AUDIO.Play(AudioType::APPEAR);
+  Audio().Play(AudioType::APPEAR);
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
+  setTexture(Textures().LoadTextureFromFile("resources/spells/spell_roll.png"), true);
 
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
@@ -136,7 +136,7 @@ void RollHeal::DropHitbox(Battle::Tile* target)
     hitbox->HighlightTile(Battle::Tile::Highlight::solid);
     hitbox->SetHitboxProperties(GetHitboxProperties());
     hitbox->AddCallback([](Character* hit) {
-        AUDIO.Play(AudioType::HURT);
+        ResourceHandle().Audio().Play(AudioType::HURT);
     });
     GetField()->AddEntity(*hitbox, *target);
 }

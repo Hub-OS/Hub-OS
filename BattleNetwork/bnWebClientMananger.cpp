@@ -1,9 +1,11 @@
 #include "bnWebClientMananger.h"
+#include "bnResourceHandle.h"
 #include "bnURLParser.h"
 #include "bnLogger.h"
 #include "bnElements.h"
 #include "bnCardUUIDs.h"
 #include "bnTextureResourceManager.h"
+
 #include <SFML/Network/Http.hpp>
 
 void WebClientManager::PingThreadHandler()

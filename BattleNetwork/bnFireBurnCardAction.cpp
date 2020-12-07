@@ -13,7 +13,7 @@
 #define FRAME3 { 3, 0.05 }
 
 // TODO: check frame-by-frame anim
-#define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
+#define FRAMES  WAIT,   FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
@@ -24,11 +24,15 @@ FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, i
   FireBurnCardAction::damage = damage;
   FireBurnCardAction::type = type;
 
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  attachment = new SpriteProxyNode(overlay);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(Textures().LoadTextureFromFile(PATH));
   attachment->SetLayer(-1);
-  attachmentAnim.Reload();
+
+  attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
+
+  auto& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -39,7 +43,6 @@ FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, i
 FireBurnCardAction::~FireBurnCardAction()
 {
 }
-
 void FireBurnCardAction::Execute() {
   auto owner = GetOwner();
 
@@ -48,7 +51,7 @@ void FireBurnCardAction::Execute() {
     Team team = GetOwner()->GetTeam();
     FireBurn* fb = new FireBurn(GetOwner()->GetField(), team, type, damage);
     auto props = fb->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = &user;
     fb->SetHitboxProperties(props);
     fb->CrackTiles(crackTiles);
 
@@ -85,7 +88,7 @@ void FireBurnCardAction::OnAnimationEnd()
   GetOwner()->RemoveNode(attachment);
 }
 
-void FireBurnCardAction::EndAction()
+void FireBurnCardAction::OnEndAction()
 {
   OnAnimationEnd();
   Eject();

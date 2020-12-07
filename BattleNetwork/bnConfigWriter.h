@@ -8,7 +8,7 @@ Example file contents
 [Discord]
 User="JohnDoe"
 Key="ABCDE"
-[Audio]
+[Audio()]
 Play="1"
 [Net]
 WebServer="battlenetwork.io"

@@ -1,15 +1,15 @@
 #include "bnWeatherBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 #define COMPONENT_WIDTH 256
 #define COMPONENT_HEIGHT 128
 
-#define PATH std::string("resources/backgrounds/weather/")
+#define PATH std::string("resources/scenes/weather/")
 
 WeatherBackground::WeatherBackground()
-  : x(0.0f), y(0.0f), Background(TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
+  : x(0.0f), y(0.0f), Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 
   animation = Animation(PATH + "bg.animation");

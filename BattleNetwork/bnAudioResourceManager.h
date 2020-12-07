@@ -6,8 +6,10 @@
 #include <atomic>
 #include <map>
 #include <memory>
+#include <mutex>
 
 #include "bnAudioType.h"
+
 
 // For more retro experience, decrease available channels.
 #define NUM_OF_CHANNELS 15
@@ -36,18 +38,12 @@ enum class AudioPriority : int {
  * @class AudioResourceManager
  * @author mav
  * @date 06/05/19
- * @brief Singleton loads audio samples
+ * @brief Manager loads Audio() samples
  */
 class AudioResourceManager {
 public:
   /**
-   * @brief If first call, initializes audio resource instance and returns
-   * @return AudioResourceManager&
-   */
-  static AudioResourceManager& GetInstance();
-
-  /**
-   * @brief If true, plays audio. If false, does not play audio
+   * @brief If true, plays Audio(). If false, does not play Audio()
    * @param status
    */
   void EnableAudio(bool status);
@@ -66,17 +62,17 @@ public:
   void LoadAllSources(std::atomic<int> &status);
   
   /**
-   * @brief Loads an audio source at path and map it to enum type
-   * @param type audio enum to map to
-   * @param path path to audio sample
+   * @brief Loads an Audio() source at path and map it to enum type
+   * @param type Audio() enum to map to
+   * @param path path to Audio() sample
    */
   void LoadSource(AudioType type, const std::string& path);
 
   std::shared_ptr<sf::SoundBuffer> LoadFromFile(const std::string& path);
   
   /**
-   * @brief Play a sound with an audio priority
-   * @param type audio to play
+   * @brief Play a sound with an Audio() priority
+   * @param type Audio() to play
    * @param priority describes if and how to interrupt other playing samples
    * @return -1 if could not play, otherwise 0
    */
@@ -100,15 +96,14 @@ private:
     AudioPriority priority{ AudioPriority::lowest };
   };
 
+  std::mutex mutex;
   Channel* channels;
   sf::SoundBuffer* sources;
   std::map<std::string, std::shared_ptr<sf::SoundBuffer>> cached;
   sf::Music stream;
   std::string currStreamPath;
-  float channelVolume;
-  float streamVolume;
-  bool isEnabled;
-  bool muted;
+  float channelVolume{};
+  float streamVolume{};
+  bool isEnabled{true};
+  bool muted{false};
 };
-
-#define AUDIO AudioResourceManager::GetInstance()

@@ -4,7 +4,7 @@
 #include "bnBusterCardAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnLogger.h"
 #include "bnAura.h"
 

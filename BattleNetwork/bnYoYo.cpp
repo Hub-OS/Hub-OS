@@ -12,7 +12,7 @@ YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, 
 
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_YOYO));
+  setTexture(Textures().GetTexture(TextureType::SPELL_YOYO));
   setScale(2.f, 2.f);
 
   YoYo::speed = speed;
@@ -113,6 +113,6 @@ bool YoYo::CanMoveTo(Battle::Tile* tile) {
 
 void YoYo::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT, AudioPriority::highest);
+    Audio().Play(AudioType::HURT, AudioPriority::highest);
   }
 }

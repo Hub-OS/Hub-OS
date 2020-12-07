@@ -33,19 +33,19 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
   animationComponent = CreateComponent<AnimationComponent>(this);
 
   if (_charged) {
-    texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
+    texture = Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
     animationComponent->SetPath("resources/spells/spell_charged_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   } else {
-    texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
+    texture = Textures().GetTexture(TextureType::SPELL_BULLET_HIT);
     animationComponent->SetPath("resources/spells/spell_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   }
   setScale(2.f, 2.f);
 
-  AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::high);
+  Audio().Play(AudioType::BUSTER_PEA, AudioPriority::high);
 
   auto props = Hit::DefaultProperties;
   props.flags = props.flags & ~Hit::recoil;
@@ -108,5 +108,5 @@ void Buster::Attack(Character* _entity) {
   GetField()->AddEntity(*bhit, *GetTile());
 
   Delete();
-  AUDIO.Play(AudioType::HURT);
+  Audio().Play(AudioType::HURT);
 }

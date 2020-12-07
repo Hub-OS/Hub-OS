@@ -150,7 +150,7 @@ void Cube::OnDelete() {
     auto poof = new ParticlePoof();
     GetField()->AddEntity(*poof, *GetTile());
 
-    AUDIO.Play(AudioType::PANEL_CRACK);
+    Audio().Play(AudioType::PANEL_CRACK);
   }
 
   tile->RemoveEntityByID(GetID());

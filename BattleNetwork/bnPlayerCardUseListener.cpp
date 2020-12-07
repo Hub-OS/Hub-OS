@@ -45,7 +45,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
   std::string name = card.GetShortName();
 
   if (name.substr(0, 5) == "Recov") {
-    auto action = new RecoverCardAction(player, card.GetDamage());
+    auto action = new RecoverCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "CrckPanel") {
@@ -62,10 +62,10 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     if (mid) { mid->SetState(TileState::cracked); }
     if (low) { low->SetState(TileState::cracked); }
 
-    AUDIO.Play(AudioType::PANEL_CRACK);
+    ResourceHandle().Audio().Play(AudioType::PANEL_CRACK);
   }
   else if (name == "YoYo") {
-    auto action = new YoYoCardAction(player, card.GetDamage());
+    auto action = new YoYoCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "Invis") {
@@ -119,11 +119,11 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->QueueAction(action);
   }
   else if (name == "TwinFang") {
-    auto action = new TwinFangCardAction(player, card.GetDamage());
+    auto action = new TwinFangCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "Tornado") {
-    auto action = new TornadoCardAction(player, card.GetDamage());
+    auto action = new TornadoCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "DarkTorn") {
@@ -131,20 +131,20 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->QueueAction(action);
   }
   else if (name == "ElecSwrd") {
-    auto action = new ElecSwordCardAction(player, card.GetDamage());
+    auto action = new ElecSwordCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name.substr(0, 7) == "FireBrn") {
     auto type = FireBurn::Type(std::atoi(name.substr(7, 1).c_str()));
-    auto action = new FireBurnCardAction(player, type, card.GetDamage());
+    auto action = new FireBurnCardAction(*player, type, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name.substr(0, 6) == "Vulcan") {
-    auto action = new VulcanCardAction(player, card.GetDamage());
+    auto action = new VulcanCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name.size() >= 6 && name.substr(0, 6) == "Cannon") {
-    auto action = new CannonCardAction(player, card.GetDamage());
+    auto action = new CannonCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "HiCannon") {
@@ -156,31 +156,31 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->QueueAction(action);
   }
   else if (name == "MiniBomb") {
-    auto action = new BombCardAction(player, card.GetDamage());
+    auto action = new BombCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "CrakShot") {
-    auto action = new CrackShotCardAction(player, card.GetDamage());
+    auto action = new CrackShotCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "Sword") {
-    auto action = new SwordCardAction(player, card.GetDamage());
+    auto action = new SwordCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "ElcPuls1") {
-    auto action = new ElecPulseCardAction(player, card.GetDamage());
+    auto action = new ElecPulseCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "LongSwrd") {
-    auto action = new LongSwordCardAction(player, card.GetDamage());
+    auto action = new LongSwordCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "WideSwrd") {
-    auto action = new WideSwordCardAction(player, card.GetDamage());
+    auto action = new WideSwordCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "FireSwrd") {
-    auto action = new LongSwordCardAction(player, card.GetDamage());
+    auto action = new LongSwordCardAction(*player, card.GetDamage());
     action->SetElement(Element::fire);
     player->QueueAction(action);
   }
@@ -189,7 +189,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->QueueAction(action);
   }
   else if (name == "Thunder") {
-    player->QueueAction(new ThunderCardAction(player, card.GetDamage()));
+    player->QueueAction(new ThunderCardAction(*player, card.GetDamage()));
   }
   else if (name.substr(0, 4) == "Roll") {
     player->QueueAction(new RollCardAction(player, card.GetDamage()));

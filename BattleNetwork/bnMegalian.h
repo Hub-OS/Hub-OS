@@ -36,7 +36,7 @@ private:
       animation->SetAnimation("Head1");
       animation->SetPlaybackSpeed(0); 
       setScale(2.f, 2.f);
-      setTexture(TEXTURES.GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
+      setTexture(Textures().GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
       animation->OnUpdate(0);
       SetLayer(-1); // on top of base
       SetHealth(base->GetHealth());
@@ -145,7 +145,7 @@ private:
           Logger::Log("timer: " + std::to_string(timer-5.0) + " adjusted: " + std::to_string(adjusted) + " SetSlideTime: " + std::to_string(250 + (adjusted * 500)));
 
           if(playOnce) {
-            AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+            Audio().Play(AudioType::TOSS_ITEM_LITE);
             playOnce = false;
           }
 

@@ -5,27 +5,27 @@
 #include <SFML/Graphics.hpp>
 #include <time.h>
 
+#include "bnScene.h"
+#include "bnMainMenuScene.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnAnimation.h"
 #include "bnConfigSettings.h"
 #include "bnConfigWriter.h"
 #include "bnAnimatedTextBox.h"
 #include "bnMessageQuestion.h"
 
-/*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
+/*! \brief Config screen lets users set graphics, Audio(), and input settings. It also lets users manage their account.
     \warning This scene was made in a clear conscious and is in no way an example of good code design.
 
     This could use a redesign (and re-code)
 */
-
 class Background;
-
-class ConfigScene : public swoosh::Activity {
+class ConfigScene : public Scene {
 private:
   ConfigSettings configSettings;
   ConfigSettings::KeyboardHash keyHash;
@@ -36,7 +36,7 @@ private:
   // ui sprite maps
   Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
   Animation endBtnAnimator;
-  Animation audioAnimator;
+  Animation AudioAnimator;
   int menuSelectionIndex;; /*!< Current selection */
   int lastMenuSelectionIndex;
   int maxMenuSelectionIndex; 
@@ -45,7 +45,7 @@ private:
 
   sf::Sprite overlay; /*!< PET */
   sf::Sprite gba;
-  sf::Sprite audioBGM,audioSFX;
+  sf::Sprite AudioBGM,AudioSFX;
   sf::Sprite hint;
   sf::Sprite endBtn;
 
@@ -55,8 +55,8 @@ private:
   bool inGamepadList;
   bool inKeyboardList;
   bool inLoginMenu;
-  int audioModeBGM;
-  int audioModeSFX;
+  int AudioModeBGM;
+  int AudioModeSFX;
 
   Background* bg;
 

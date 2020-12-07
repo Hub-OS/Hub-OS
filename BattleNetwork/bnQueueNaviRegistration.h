@@ -8,6 +8,7 @@
 #pragma once
 
 // Register these navis
+#include "bnResourceHandle.h"
 #include "bnMegaman.h"
 #include "bnStarman.h"
 #include "bnProtoman.h"
@@ -16,6 +17,8 @@
 #include "bnForte.h"
 
 void QueuNaviRegistration() {
+  ResourceHandle handle;
+
   /*********************************************************************
   **********            Register megaman            ********************
   **********************************************************************/

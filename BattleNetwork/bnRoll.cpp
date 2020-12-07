@@ -5,7 +5,7 @@
 #include "bnRecoverCardAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnLogger.h"
 #include "bnBusterCardAction.h"
 
@@ -24,7 +24,7 @@ Roll::Roll() : Player()
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(TEXTURES.GetTexture(TextureType::NAVI_ROLL_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::NAVI_ROLL_ATLAS));
 
   SetHealth(1000);
 

@@ -3,7 +3,6 @@
 //
 #include "bnTouchArea.h"
 #include "../bnLogger.h"
-#include "../bnEngine.h"
 
 std::vector<int> TouchArea::m_touches; // We want to be aware of what touches are already owned
 std::vector<TouchArea*> TouchArea::m_instances;

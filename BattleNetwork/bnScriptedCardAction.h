@@ -17,24 +17,24 @@ public:
   {
   }
 
-  void OnUpdate(float _elapsed)
+  void OnUpdate(float _elapsed) override
   {
     CardAction::OnUpdate(_elapsed);
 
-    // SCRIPTS.callback(card_name).onUpdate(this);
+    // SCRIPTS.callback(card_name).OnUpdate(this);
   }
 
   void OnAnimationEnd() override {
 
   }
 
-  void EndAction()
+  void OnEndAction()
   {
     // SCRIPTS.callback(card_name).onDestroy(this);
     Eject();
   }
 
-  void Execute() {
+  void OnExecute() override {
 
   }
 };

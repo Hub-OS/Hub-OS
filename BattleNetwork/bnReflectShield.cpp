@@ -16,10 +16,9 @@ ReflectShield::ReflectShield(Character* owner, int damage, Type type) :
   duration(frames(63).asSeconds()),
   Artifact(owner->GetField())
 {
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
+  setTexture(Textures().GetTexture(TextureType::SPELL_REFLECT_SHIELD));
   SetLayer(-1); // stay above characters
   setScale(sf::Vector2f(2.f, 2.f));
-
   activated = false;
 
   //Components setup and load
@@ -91,7 +90,7 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
 {
   if (!activated) {
 
-    AUDIO.Play(AudioType::GUARD_HIT);
+    Audio().Play(AudioType::GUARD_HIT);
 
     Direction direction = Direction::none;
 

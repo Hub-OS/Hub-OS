@@ -11,7 +11,7 @@
 #include "bnWave.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnExplodeState.h"
 #include "bnDefenseVirusBody.h"
 #include "bnHitbox.h"
@@ -25,7 +25,7 @@ AlphaCore::AlphaCore(Rank _rank) :
   totalElapsed = 0;
   coreHP = prevCoreHP = 40;
   coreRegen = 0;
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_ALPHA_ATLAS));
   setScale(2.f, 2.f);
 
   SetName("Alpha");
@@ -48,40 +48,40 @@ AlphaCore::AlphaCore(Rank _rank) :
 
   acid = new SpriteProxyNode();
   acid->SetLayer(1);
-  acid->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  acid->setTexture(Textures().GetTexture(TextureType::MOB_ALPHA_ATLAS));
   animation.SetAnimation("ACID");
   animation.Update(0, acid->getSprite());
 
   head = new SpriteProxyNode();
-  head->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  head->setTexture(Textures().GetTexture(TextureType::MOB_ALPHA_ATLAS));
   head->SetLayer(-2);
   animation.SetAnimation("HEAD");
   animation.Update(0, head->getSprite());
 
   side = new SpriteProxyNode();
-  side->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  side->setTexture(Textures().GetTexture(TextureType::MOB_ALPHA_ATLAS));
   side->SetLayer(-1);
   animation.SetAnimation("SIDE");
   animation.Update(0, side->getSprite());
 
   leftShoulder = new SpriteProxyNode();
-  leftShoulder->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  leftShoulder->setTexture(Textures().GetTexture(TextureType::MOB_ALPHA_ATLAS));
   leftShoulder->SetLayer(0);
   animation.SetAnimation("LEFT_SHOULDER");
   animation.Update(0, leftShoulder->getSprite());
 
   rightShoulder = new SpriteProxyNode();
-  rightShoulder->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  rightShoulder->setTexture(Textures().GetTexture(TextureType::MOB_ALPHA_ATLAS));
   rightShoulder->SetLayer(-3);
   animation.SetAnimation("RIGHT_SHOULDER");
   animation.Update(0, rightShoulder->getSprite());
 
   rightShoulderShoot= new SpriteProxyNode();
-  rightShoulderShoot->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  rightShoulderShoot->setTexture(Textures().GetTexture(TextureType::MOB_ALPHA_ATLAS));
   rightShoulderShoot->SetLayer(-4);
 
   leftShoulderShoot = new SpriteProxyNode();
-  leftShoulderShoot->setTexture(TEXTURES.GetTexture(TextureType::MOB_ALPHA_ATLAS));
+  leftShoulderShoot->setTexture(Textures().GetTexture(TextureType::MOB_ALPHA_ATLAS));
   leftShoulderShoot->SetLayer(-4);
 
   AddNode(acid);
@@ -265,7 +265,7 @@ void AlphaCore::OnDelete() {
   leftArm = nullptr;
   rightArm = nullptr;
 
-  AUDIO.StopStream();
+  Audio().StopStream();
 
   // Explode if health depleted
   InterruptState<ExplodeState<AlphaCore>>(15, 0.8);

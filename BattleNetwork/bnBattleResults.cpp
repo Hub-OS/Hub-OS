@@ -3,7 +3,7 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnMob.h"
 #include "bnBattleItem.h"
 #include <numeric>
@@ -102,7 +102,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
   // Get reward based on score
   item = mob->GetRankedReward(score);
 
-  resultsSprite = sf::Sprite(*TEXTURES.GetTexture(TextureType::BATTLE_RESULTS_FRAME));
+  resultsSprite = sf::Sprite(*Textures().GetTexture(TextureType::BATTLE_RESULTS_FRAME));
   resultsSprite.setScale(2.f, 2.f);
   resultsSprite.setPosition(-resultsSprite.getTextureRect().width*2.f, 20.f);
 
@@ -112,8 +112,7 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
 
   star = sf::Sprite(*LOAD_TEXTURE(BATTLE_RESULTS_STAR));
   star.setScale(2.f, 2.f);
-  
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+
 
   if (item) {
     rewardCard = sf::Sprite(*WEBCLIENT.GetImageForCard(item->GetUUID()));
@@ -123,44 +122,43 @@ BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount,
     if (item->IsCard()) {
       rewardIsCard = true;
 
-      cardCode.setFont(*font);
       cardCode.setPosition(2.f*114.f, 209.f);
-      cardCode.setString(std::string() + item->GetCardCode());
+      cardCode.SetString(std::string() + item->GetCardCode());
     }
   }
   else {
-    rewardCard = sf::Sprite(*TEXTURES.GetTexture(TextureType::BATTLE_RESULTS_NODATA));
+    rewardCard = sf::Sprite(*Textures().GetTexture(TextureType::BATTLE_RESULTS_NODATA));
   }
 
   rewardCard.setScale(2.f, 2.f);
   rewardCard.setPosition(274.0f, 180.f);
 
-  time.setFont(*font);
   time.setPosition(2.f*192.f, 79.f);
-  time.setString(FormatString(battleLength));
-  time.setOrigin(time.getLocalBounds().width, 0);
+  time.SetString(FormatString(battleLength));
+  time.setOrigin(time.GetLocalBounds().width, 0);
+  time.setScale(2.f, 2.f);
 
-  rank.setFont(*font);
   rank.setPosition(2.f*192.f, 111.f);
+  rank.setScale(2.f, 2.f);
 
-  reward.setFont(*font);
   reward.setPosition(2.f*42.f, 209.f);
+  reward.setScale(2.f, 2.f);
 
   if (item) {
-    reward.setString(item->GetName());
+    reward.SetString(item->GetName());
   }
   else {
-    reward.setString("No Data");
+    reward.SetString("No Data");
   }
 
   if (score > 10) {
-    rank.setString("S");
+    rank.SetString("S");
   }
   else {
-    rank.setString(std::to_string(score));
+    rank.SetString(std::to_string(score));
   }
 
-  rank.setOrigin(rank.getLocalBounds().width, 0);
+  rank.setOrigin(rank.GetLocalBounds().width, 0);
 
   playSoundOnce = false;
 }
@@ -252,7 +250,7 @@ void BattleResults::Update(double elapsed)
   if (isRevealed) {
     if (cardMatrixIndex == hideCardMatrix.size() && !playSoundOnce) {
       playSoundOnce = true;
-      AUDIO.Play(AudioType::ITEM_GET);
+      Audio().Play(AudioType::ITEM_GET);
     }
     else {
       if (cardMatrixIndex < hideCardMatrix.size()) {
@@ -261,7 +259,7 @@ void BattleResults::Update(double elapsed)
     }
 
     if (!playSoundOnce) {
-      AUDIO.Play(AudioType::TEXT, AudioPriority::lowest);
+      Audio().Play(AudioType::TEXT, AudioPriority::lowest);
     }
   }
 }
@@ -281,10 +279,10 @@ void BattleResults::Draw() {
     rank.setPosition(rankPos.x+1.f, rankPos.y+2.f);
 
     if (score > 10) {
-      rank.setFillColor(sf::Color(56, 92, 25));
+      rank.SetColor(sf::Color(56, 92, 25));
     }
     else {
-      rank.setFillColor(sf::Color(80, 72, 88));
+      rank.SetColor(sf::Color(80, 72, 88));
     }
 
     ENGINE.Draw(rank, false);
@@ -293,21 +291,21 @@ void BattleResults::Draw() {
     rank.setPosition(rankPos);
 
     if (score > 10) {
-      rank.setFillColor(sf::Color(176, 228, 24));
+      rank.SetColor(sf::Color(176, 228, 24));
     }
     else {
-      rank.setFillColor(sf::Color(240, 248, 248));
+      rank.SetColor(sf::Color(240, 248, 248));
     }
     ENGINE.Draw(rank, false);
 
     // Draw shadow
     time.setPosition(2.f*192.f, 80.f);
-    time.setFillColor(sf::Color(80, 72, 88));
+    time.SetColor(sf::Color(80, 72, 88));
     ENGINE.Draw(time, false);
 
     // Draw overlay
     time.setPosition(2.f*191.f, 78.f);
-    time.setFillColor(sf::Color(240, 248, 248));
+    time.SetColor(sf::Color(240, 248, 248));
     ENGINE.Draw(time, false);
 
     if (isRevealed) {

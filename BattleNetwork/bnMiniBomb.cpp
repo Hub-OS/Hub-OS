@@ -16,7 +16,7 @@ MiniBomb::MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   damageCooldown = 0;
 
   HighlightTile(Battle::Tile::Highlight::flash);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
+  setTexture(Textures().GetTexture(TextureType::SPELL_MINI_BOMB));
   setScale(2.f, 2.f);
 
   SetLayer(-1);
@@ -35,7 +35,7 @@ MiniBomb::MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
 
   swoosh::game::setOrigin(getSprite(), 0.5, 0.5);
   
-  AUDIO.Play(AudioType::TOSS_ITEM);
+  Audio().Play(AudioType::TOSS_ITEM);
 }
 
 MiniBomb::~MiniBomb(void) {

@@ -1,9 +1,11 @@
 #include <string>
 #include <Swoosh/Ease.h>
+
 #include "bnWebClientMananger.h"
 #include "bnPlayer.h"
 #include "bnField.h"
 #include "bnSelectedCardsUI.h"
+#include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 #include "bnInputManager.h"
 #include "bnCurrentTime.h"
@@ -14,16 +16,15 @@
 using std::to_string;
 
 SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UIComponent(_player)
-  , player(_player) {
+  , player(_player), font(Font::Style::thick), text("", font), dmg("", font) {
+
   cardCount = curr = 0;
   auto iconRect = sf::IntRect(0, 0, 14, 14);
   icon.setTextureRect(iconRect);
   icon.setScale(sf::Vector2f(2.f, 2.f));
 
-  frame.setTexture(TEXTURES.GetTexture(CHIP_FRAME));
+  frame.setTexture(LOAD_TEXTURE(CHIP_FRAME));
   frame.setScale(sf::Vector2f(2.f, 2.f));
-
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
 
   interpolTimeFlat = interpolTimeDest = 0;
   interpolDur = sf::seconds(0.2f);
@@ -38,9 +39,9 @@ SelectedCardsUI::~SelectedCardsUI() {
 void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) const {
   if (this->IsHidden()) return;
 
-  text.setString("");
-  dmg.setString("");
-  multiplier.setString("");
+  text.SetString("");
+  dmg.SetString("");
+  multiplier.SetString("");
 
   if (player) {
     int cardOrder = 0;
@@ -109,7 +110,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     if (cardCount > 0 && curr < cardCount && selectedCards[curr]) {
 
       // Text sits at the bottom-left of the screen
-      text = Text(sf::String(selectedCards[curr]->GetShortName()), *font);
+      text.SetString(selectedCards[curr]->GetShortName()));
       text.setOrigin(0, 0);
       text.setPosition(3.0f, 290.0f);
       text.setOutlineThickness(2.f);
@@ -126,7 +127,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
 
       // attacks that normally show no damage will show if the modifer adds damage
       if (delta != 0 || unmodDamage != 0) {
-        dmg = Text(dmgText, *font);
+        dmg.SetString(dmgText);
         dmg.setOrigin(0, 0);
         dmg.setPosition((text.getLocalBounds().width*text.getScale().x) + 13.f, 290.f);
         dmg.setFillColor(sf::Color(225, 140, 0));
@@ -137,7 +138,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       if (multiplierValue != 1 && unmodDamage != 0) {
         // add "x N" where N is the multiplier
         std::string multStr = "x " + std::to_string(multiplierValue);
-        multiplier = Text(sf::String(multStr), *font);
+        multiplier.SetString(multStr);
         multiplier.setOrigin(0, 0);
         multiplier.setPosition(dmg.getPosition().x + dmg.getLocalBounds().width + 3.0f, 290.0f);
         multiplier.setOutlineThickness(2.f);

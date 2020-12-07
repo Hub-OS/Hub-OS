@@ -15,7 +15,7 @@ public:
   ~ReflectCardAction();
   void OnUpdate(float _elapsed);
   void OnAnimationEnd() override;
-  void EndAction();
-  void Execute();
+  void OnEndAction() override;
+  void OnExecute() override;
   void SetDuration(const frame_time_t& duration);
 };

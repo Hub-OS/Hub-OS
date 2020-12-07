@@ -15,15 +15,18 @@
 // TODO: check frame-by-frame anim
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-
 VulcanCardAction::VulcanCardAction(Character * owner, int damage) : 
   CardAction(*owner, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
   VulcanCardAction::damage = damage;
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  attachment = new SpriteProxyNode(overlay);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(Textures().LoadTextureFromFile(PATH));
   attachment->SetLayer(-1);
-  attachmentAnim.Reload();
+
+  attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
+
+  Animation& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -34,8 +37,7 @@ VulcanCardAction::VulcanCardAction(Character * owner, int damage) :
 VulcanCardAction::~VulcanCardAction()
 {
 }
-
-void VulcanCardAction::Execute() {
+void VulcanCardAction::OnExecute() {
   auto owner = GetOwner();
 
   // On shoot frame, drop projectile
@@ -43,7 +45,7 @@ void VulcanCardAction::Execute() {
     Team team = GetOwner()->GetTeam();
     Vulcan* b = new Vulcan(GetOwner()->GetField(), team, damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = &user;
     b->SetHitboxProperties(props);
 
     int step = 1;
@@ -74,7 +76,7 @@ void VulcanCardAction::OnAnimationEnd()
 {
 }
 
-void VulcanCardAction::EndAction()
+void VulcanCardAction::OnEndAction()
 {
   Eject();
 }

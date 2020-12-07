@@ -6,9 +6,9 @@
  * @warning These have to be in order.
  * @see TextureResourceManager
 */
-enum TextureType {
+enum class TextureType : int {
   //Tiles
-  TILE_ATLAS_BLUE,
+  TILE_ATLAS_BLUE = 0,
   TILE_ATLAS_RED,
 
   //Navis
@@ -175,12 +175,15 @@ enum TextureType {
   LIGHT,
   WEBACCOUNT_STATUS,
   WAITING_SPINNER,
+  SCREEN_BAR,
+  APP_BUTTON_EDGE,
+  APP_BUTTON_MID,
 
   // FONT
   FONT,
 
   // CONFIG UI
-  AUDIO_ICO,
+  Audio_ICO,
   END_BTN,
 
   // Query size of all texture types

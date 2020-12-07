@@ -4,7 +4,7 @@
 #include "bnBuster.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnLogger.h"
 #include "bnVulcanCardAction.h"
 #include "bnBusterCardAction.h"
@@ -39,7 +39,7 @@ Forte::Forte() : Player()
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::NAVI_FORTE_ATLAS));
 
   SetHealth(1000);
 
@@ -104,7 +104,7 @@ int Forte::MoveEffect::counter = 0;
 Forte::MoveEffect::MoveEffect(Field* field) 
   : elapsed(0), index(0), Artifact(field)
 {
-  setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::NAVI_FORTE_ATLAS));
 
   SetLayer(1);
 

@@ -7,7 +7,7 @@
 #include "bnWave.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnDefenseVirusBody.h"
 
 #define RESOURCE_NAME "canodumb"
@@ -17,9 +17,8 @@ Canodumb::Canodumb(Rank _rank)
   :  AI<Canodumb>(this), Character(_rank) {
   SetTeam(Team::blue);
   SetName("Canodumb");
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
-
   SetHealth(health);
 
   //Components setup and load

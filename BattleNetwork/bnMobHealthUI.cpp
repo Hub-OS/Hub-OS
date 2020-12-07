@@ -13,7 +13,7 @@ MobHealthUI::MobHealthUI(Character* _mob)
   healthCounter = mob->GetHealth();
   cooldown = 0;
   color = sf::Color::White;
-  glyphs.setTexture(LOAD_TEXTURE(ENEMY_HP_NUMSET));
+  glyphs.setTexture(ResourceHandle().Textures().GetTexture(TextureType::ENEMY_HP_NUMSET));
   glyphs.setScale(2.f, 2.f);
 
   Entity::RemoveCallback& onDelete = mob->CreateRemoveCallback();

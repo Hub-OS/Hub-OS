@@ -8,7 +8,7 @@
 Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_THUNDER));
+  setTexture(Textures().GetTexture(TextureType::SPELL_THUNDER));
   setScale(2.f, 2.f);
 
   elapsed = 0;
@@ -29,7 +29,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
 
   target = nullptr;
 
-  AUDIO.Play(AudioType::THUNDER);
+  Audio().Play(AudioType::THUNDER);
 
   animation.Update(0, getSprite());
 }

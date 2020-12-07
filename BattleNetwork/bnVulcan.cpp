@@ -18,7 +18,7 @@ Vulcan::Vulcan(Field* _field, Team _team,int damage) : Spell(_field, _team) {
   SetPassthrough(true);
   SetLayer(0);
 
-  AUDIO.Play(AudioType::GUN, AudioPriority::highest);
+  Audio().Play(AudioType::GUN, AudioPriority::highest);
 
   auto props = GetHitboxProperties();
   props.flags = props.flags & ~Hit::recoil;
@@ -56,7 +56,7 @@ void Vulcan::OnDelete()
 
 void Vulcan::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
+    Aduio.Play(AudioType::HURT);
     auto impact = new ParticleImpact(ParticleImpact::Type::vulcan);
     impact->SetHeight(_entity->GetHeight());
     field->AddEntity(*impact, *_entity->GetTile());

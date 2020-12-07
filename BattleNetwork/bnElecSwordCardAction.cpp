@@ -19,6 +19,7 @@ ElecSwordCardAction::ElecSwordCardAction(Character * owner, int damage) :
   ElecSwordCardAction::damage = damage;
   this->SetElement(Element::elec);
   blade->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  blade->setTexture(Textures().LoadTextureFromFile(PATH));
   bladeAnim = Animation(ANIM);
   bladeAnim.Reload();
   bladeAnim.SetAnimation("DEFAULT");

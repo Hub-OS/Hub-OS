@@ -6,7 +6,7 @@
 #include "bnBasicSword.h"
 #include "bnSwordEffect.h"
 
-WideSwordCardAction::WideSwordCardAction(Character * owner, int damage) : SwordCardAction(owner, damage) {
+WideSwordCardAction::WideSwordCardAction(Character& user, int damage) : SwordCardAction(user, damage) {
   WideSwordCardAction::damage = damage;
 }
 
@@ -24,16 +24,16 @@ void WideSwordCardAction::OnSpawnHitbox()
 
   BasicSword* b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
-  props.aggressor = GetOwnerAs<Character>();
+  props.aggressor = &user;
   b->SetHitboxProperties(props);
 
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
   field ->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 
   b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   b->SetHitboxProperties(props);
   field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() + 1);
-
+  
   b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   b->SetHitboxProperties(props);
   field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY() - 1);

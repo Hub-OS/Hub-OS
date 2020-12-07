@@ -7,8 +7,7 @@
 FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(damage), Spell(_field, _team) {
   SetLayer(-1);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_FIREBURN));
-
+  setTexture(Textuures().GetTexture(TextureType::SPELL_FIREBURN));
   setScale(2.f, 2.f);
 
   if (_team == Team::blue) {
@@ -69,9 +68,11 @@ bool FireBurn::Move(Direction _direction) {
 
 void FireBurn::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
     // X hit effect when hit by fire
+    auto fx = new ImpactParticle(GetField(), GetTeam(), ImpactParticle::volcano);
+    GetField()->AddEntity(*fx, *GetTile());
 
+    Audio().Play(AudioType::HURT);
   }
 }
 

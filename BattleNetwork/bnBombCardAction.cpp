@@ -12,32 +12,30 @@
 BombCardAction::BombCardAction(Character * owner, int damage) : CardAction(*owner, "PLAYER_THROW") {
   BombCardAction::damage = damage;
 
-  overlay.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_MINI_BOMB));
-  swoosh::game::setOrigin(overlay, 0.5, 0.5);
-
-  attachment = new SpriteProxyNode(overlay);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(Textures().GetTexture(TextureType::SPELL_MINI_BOMB));
   attachment->SetLayer(-1);
 
   AddAttachment(*owner, "hand", *attachment);
+  swoosh::game::setOrigin(attachment->getSprite(), 0.5, 0.5);
 }
 
 BombCardAction::~BombCardAction()
 {
 }
 
-void BombCardAction::Execute() {
-  auto owner = GetOwner();
-  owner->AddNode(attachment);
-
+void BombCardAction::OnExecute() {
   // On throw frame, spawn projectile
-  auto onThrow = [this, owner]() -> void {
+  auto onThrow = [this]() -> void {
+    auto& owner = GetUser();
+
     attachment->Hide(); // the "bomb" is now airborn - hide the animation overlay
 
-    auto team = GetOwner()->GetTeam();
+    auto team = owner.GetTeam();
     auto duration = 0.5f; // seconds
-    MiniBomb* b = new MiniBomb(GetOwner()->GetField(), team, owner->getPosition() + attachment->getPosition(), duration, damage);
+    MiniBomb* b = new MiniBomb(owner.GetField(), team, owner.getPosition() + attachment->getPosition(), duration, damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = &GetUser();
     b->SetHitboxProperties(props);
 
     int step = 3;
@@ -46,7 +44,7 @@ void BombCardAction::Execute() {
       step = -3;
     }
 
-    GetOwner()->GetField()->AddEntity(*b, GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
+    owner.GetField()->AddEntity(*b, owner.GetTile()->GetX() + step, owner.GetTile()->GetY());
   };
 
 
@@ -62,7 +60,7 @@ void BombCardAction::OnAnimationEnd()
 {
 }
 
-void BombCardAction::EndAction()
+void BombCardAction::OnEndAction()
 {
   GetOwner()->RemoveNode(attachment);
   Eject();

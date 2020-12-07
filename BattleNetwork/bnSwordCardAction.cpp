@@ -16,13 +16,12 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-SwordCardAction::SwordCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_SWORD")
-  {
+SwordCardAction::SwordCardAction(Character& user, int damage) : 
+CardAction(user, "PLAYER_SWORD") {
   SwordCardAction::damage = damage;
 
   blade = new SpriteProxyNode();
-  blade->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  blade->setTexture(Textures().LoadTextureFromFile(PATH));
   blade->SetLayer(-2);
 
   hilt = new SpriteProxyNode();
@@ -34,7 +33,6 @@ SwordCardAction::SwordCardAction(Character * owner, int damage) :
   bladeAnim.SetAnimation("DEFAULT");
 
   auto userAnim = GetOwner()->GetFirstComponent<AnimationComponent>();
-
   hiltAnim = Animation(userAnim->GetFilePath());
   hiltAnim.Reload();
   hiltAnim.SetAnimation("HILT");
@@ -49,11 +47,7 @@ SwordCardAction::~SwordCardAction()
   delete blade, hilt;
 }
 
-void SwordCardAction::Execute() {
-  auto onAddSword = [this]() -> void {
-
-  };
-
+void SwordCardAction::OnExecute() {
   // On attack frame, drop sword hitbox
   auto onTrigger = [this]() -> void {
     OnSpawnHitbox();
@@ -85,11 +79,11 @@ void SwordCardAction::OnSpawnHitbox()
 
   BasicSword* b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
-  props.aggressor = GetOwnerAs<Character>();
+  props.aggressor = &user;
 
   b->SetHitboxProperties(props);
 
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
 
   field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 }
@@ -104,16 +98,11 @@ const Element SwordCardAction::GetElement() const
   return element;
 }
 
-void SwordCardAction::OnUpdate(float _elapsed)
-{
-  CardAction::OnUpdate(_elapsed);
-}
-
 void SwordCardAction::OnAnimationEnd()
 {
 }
 
-void SwordCardAction::EndAction()
+void SwordCardAction::OnEndAction()
 {
   Eject();
 }

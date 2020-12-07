@@ -7,8 +7,8 @@ class SpriteProxyNode;
 class Character;
 class WideSwordCardAction : public SwordCardAction {
 public:
-  WideSwordCardAction(Character* owner, int damage);
+  WideSwordCardAction(Character& owner, int damage);
   ~WideSwordCardAction();
-  void OnSpawnHitbox();
+  void OnSpawnHitbox() override;
 };
 

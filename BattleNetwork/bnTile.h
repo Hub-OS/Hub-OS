@@ -20,6 +20,7 @@
 #include <set>
 #include <algorithm>
 #include <functional>
+
 using sf::RectangleShape;
 using sf::Sprite;
 using std::vector;
@@ -39,9 +40,10 @@ class Dummy;
 #include "bnAnimation.h"
 #include "bnField.h"
 #include "bnDefenseRule.h"
+#include "bnResourceHandle.h"
 
 namespace Battle {
-  class Tile : public SpriteProxyNode {
+  class Tile : public SpriteProxyNode, public ResourceHandle {
   public:
     enum class Highlight : int {
       none = 0,

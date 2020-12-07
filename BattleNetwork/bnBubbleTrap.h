@@ -15,7 +15,7 @@
  * Creates a defense rule to absord first damage and forces this bubble to pop
  * On pop, frees owner and deletes self
  */
-class BubbleTrap : public SpriteProxyNode, public Component
+class BubbleTrap : public SpriteProxyNode, public Component, public ResourceHandle
 {
 private:
   Animation animation;

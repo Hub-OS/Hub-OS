@@ -13,23 +13,29 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-CrackShotCardAction::CrackShotCardAction(Character * owner, int damage) 
-  : 
-  CardAction(*owner, "PLAYER_SWORD") {
+CrackShotCardAction::CrackShotCardAction(Character& user, int damage) : 
+CardAction(user, "PLAYER_SWORD") {
   CrackShotCardAction::damage = damage;
+
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(user.getTexture());
+  attachment->SetLayer(-1);
+  attachment->EnableParentShader(true);
 
   OverrideAnimationFrames({ FRAMES });
 
-  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(anim->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("HAND");
+
+  AddAttachment(anim->GetAnimationObject(), "hilt", *attachment).PrepareAnimation(attachmentAnim);
 }
 
 CrackShotCardAction::~CrackShotCardAction()
 {
 }
 
-void CrackShotCardAction::Execute() {
+void CrackShotCardAction::OnExecute() {
   auto owner = GetOwner();
 
   // On throw frame, spawn projectile
@@ -42,19 +48,20 @@ void CrackShotCardAction::Execute() {
 
     auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
 
-    if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter() && !tile->ContainsEntityType<Character>()) {
-      CrackShot* b = new CrackShot(GetOwner()->GetField(), GetOwner()->GetTeam(), tile);
+    if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter()) {
+      CrackShot* b = new CrackShot(user.GetField(), user.GetTeam(), tile);
       auto props = b->GetHitboxProperties();
       props.damage = damage;
-      props.aggressor = GetOwnerAs<Character>();
+      props.aggressor = &user;
       b->SetHitboxProperties(props);
 
-      auto direction = (owner->GetTeam() == Team::red) ? Direction::right : Direction::left;
+      auto direction = (user.GetTeam() == Team::red) ? Direction::right : Direction::left;
       b->SetDirection(direction);
 
+      user.GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
 
       GetOwner()->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
-
+      Audio().Play(AudioType::TOSS_ITEM_LITE);
 
       tile->SetState(TileState::broken);
     }

@@ -2,6 +2,8 @@
 #include "bnTextBox.h"
 #include "bnAnimation.h"
 #include "bnMessageInterface.h"
+#include "bnResourceHandle.h"
+
 #include <Swoosh/Ease.h>
 
 /**
@@ -20,7 +22,7 @@
  * e.g. Tutorial textbox can dequeue and enqueue the last messages until user says "Dont repeat"
  *      then it can say the last few messages left in queue.
  */
-class AnimatedTextBox : public sf::Drawable, public sf::Transformable {
+class AnimatedTextBox : public sf::Drawable, public sf::Transformable, public ResourceHandle {
 private:
   mutable sf::Sprite frame; /*!< Size is calculated from the frame sprite */ 
   mutable Animation mugAnimator; /*!< Animators the mugshot frames */
@@ -140,5 +142,5 @@ public:
 
   void DrawMessage(sf::RenderTarget& target, sf::RenderStates states) const;
 
-  sf::Text MakeTextObject(const std::string& data = std::string());
+  Text MakeTextObject(const std::string& data = std::string());
 };

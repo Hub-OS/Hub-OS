@@ -23,8 +23,6 @@ class Entity;
 class Player;
 class BattleSceneBase;
 
-using sf::Font;
-using sf::Text;
 using sf::Texture;
 using sf::Drawable;
 using std::vector;

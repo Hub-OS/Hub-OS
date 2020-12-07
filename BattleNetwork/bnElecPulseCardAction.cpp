@@ -11,7 +11,7 @@
 #define FRAME1 { 1, 0.05 }
 #define FRAME2 { 2, 0.05 }
 
-#define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
+#define FRAMES  WAIT,  FRAME2,  FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, \
                 FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
@@ -22,12 +22,14 @@ ElecPulseCardAction::ElecPulseCardAction(Character * owner, int damage) :
   attachmentAnim(ANIM) {
     ElecPulseCardAction::damage = damage;
 
-    overlay.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
-
-    attachment = new SpriteProxyNode(overlay);
+    attachment = new SpriteProxyNode();
+    attachment->setTexture(Textures().GetTexture(TextureType::SPELL_ELEC_PULSE));
     attachment->SetLayer(-1);
-    attachmentAnim.Reload();
+
+    attachmentAnim = Animation(ANIM);
     attachmentAnim.SetAnimation("BUSTER");
+
+    AddAttachment(anim->GetAnimationObject(), "buster", *attachment).PrepareAnimation(attachmentAnim);
 
     // add override anims
     OverrideAnimationFrames({ FRAMES });
@@ -41,41 +43,44 @@ ElecPulseCardAction::~ElecPulseCardAction()
 {
 }
 
-void ElecPulseCardAction::Execute() {
-    auto owner = GetOwner();
+void ElecPulseCardAction::OnExecute() {
+    // On shoot frame, drop projectile
+    auto onFire = [this]() -> void {
+      auto& user = GetUser();
 
     attachment->EnableParentShader(false);
 
     // On shoot frame, drop projectile`
     auto onFire = [this, owner]() -> void {
-        Team team = GetOwner()->GetTeam();
-        elecpulse = new Elecpulse(GetOwner()->GetField(), team, damage);
-        //AUDIO.Play(AudioType::ELECPULSE);
+      Team team = GetOwner()->GetTeam();
+      elecpulse = new Elecpulse(GetOwner()->GetField(), team, damage);
+      Audio().Play(AudioType::ELECPULSE);
 
-        auto props = elecpulse->GetHitboxProperties();
-        props.aggressor = GetOwnerAs<Character>();
-        elecpulse->SetHitboxProperties(props);
+      auto props = elecpulse->GetHitboxProperties();
+      props.aggressor = &user;
+      elecpulse->SetHitboxProperties(props);
 
+      auto status = user.GetField()->AddEntity(*elecpulse, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+
+      if (status != Field::AddEntityStatus::deleted) {
         Entity::RemoveCallback& deleteHandler = elecpulse->CreateRemoveCallback();
-
         deleteHandler.Slot([this]() {
-            Logger::Log("elecpulse OnDelete() triggered.");
-            elecpulse = nullptr;
+          EndAction();
         });
-
         int step = 1;
         if (team != Team::red) {
           step = -1;
         }
 
         GetOwner()->GetField()->AddEntity(*elecpulse, GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
+
     };
 
 
     AddAnimAction(2, onFire);
 }
 
-void ElecPulseCardAction::OnUpdate(float _elapsed)
+void ElecPulseCardAction::OnEndAction()
 {
     CardAction::OnUpdate(_elapsed);
 }

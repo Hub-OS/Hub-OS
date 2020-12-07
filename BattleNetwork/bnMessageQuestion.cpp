@@ -1,5 +1,6 @@
 #include "bnMessageQuestion.h"
 #include "bnInputManager.h"
+#include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
 Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) 
@@ -34,9 +35,11 @@ void Question::ConfirmSelection()
 }
 
 void Question::ExecuteSelection() {
+  ResourceHandle handle;
+
     if (yes) { 
         onYes(); 
-        AUDIO.Play(AudioType::NEW_GAME);
+        handle.Audio().Play(AudioType::NEW_GAME);
     }
     else {
         onNo(); 

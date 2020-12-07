@@ -1,14 +1,14 @@
 #pragma once
 #include <Swoosh/Ease.h>
-#include <Swoosh/Activity.h>
 
+#include "bnScene.h"
 #include "bnCamera.h"
 #include "bnCardFolderCollection.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnAnimation.h"
 #include "bnLanBackground.h"
 #include "bnAnimatedTextBox.h"
@@ -30,15 +30,15 @@
  * If copying, the user is prompted to confirm
  * If editting, the user is taken to the FolderEditScene
  */
-class FolderScene : public swoosh::Activity {
+class FolderScene : public Scene {
 private:
   CardFolderCollection& collection; /*!< The entire user collection */
   CardFolder* folder; /*!< Handle to current folder to preview */
   std::vector<std::string> folderNames; /*!< List of all folder names at start */
 
   // Menu name font
-  std::shared_ptr<sf::Font> font; /*!< Font of the  menu name label*/
-  sf::Text* menuLabel; /*!< "Folder" text on top-left */
+  Font font; /*!< Font of the  menu name label*/
+  Text menuLabel; /*!< "Folder" text on top-left */
 
   // Selection input delays
   bool extendedHold{ false }; /*!< 2nd delay pass makes scrolling quicker */
@@ -46,11 +46,11 @@ private:
   double selectInputCooldown; /*!< The delay between reading user input */
 
   // Card UI font
-  std::shared_ptr<sf::Font> cardFont;
-  sf::Text *cardLabel;
+  Font cardFont;
+  Text cardLabel;
 
-  std::shared_ptr<sf::Font> numberFont;
-  sf::Text *numberLabel;
+  Font numberFont;
+  Text numberLabel;
 
   // folder menu graphics
   sf::Sprite bg;

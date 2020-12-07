@@ -28,9 +28,9 @@ ProtoManSummon::ProtoManSummon(Character* user, int damage) :
 
   field->AddEntity(*this, *_tile);
 
-  AUDIO.Play(AudioType::APPEAR);
+  Audio().Play(AudioType::APPEAR);
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
+  setTexture(Textures().LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
 
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
@@ -162,5 +162,5 @@ void ProtoManSummon::Attack(Character* _entity) {
   props.aggressor = user;
   field->AddEntity(*b, tile->GetX(), tile->GetY() - 1);
 
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
 }

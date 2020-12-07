@@ -1,3 +1,5 @@
+#include <Swoosh/Ease.h>
+
 #include "bnCharacter.h"
 #include "bnDefenseRule.h"
 #include "bnDefenseSuperArmor.h"
@@ -10,7 +12,6 @@
 #include "bnAnimationComponent.h"
 #include "bnShakingEffect.h"
 #include "bnBubbleTrap.h"
-#include <Swoosh/Ease.h>
 
 void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
 {
@@ -32,8 +33,8 @@ Character::Character(Rank _rank) :
   hit(false),
   CounterHitPublisher(), Entity() {
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
+  whiteout = Shaders().GetShader(ShaderType::WHITE);
+  stun = Shaders().GetShader(ShaderType::YELLOW);
 }
 
 Character::~Character() {
@@ -150,6 +151,16 @@ void Character::Update(float _elapsed) {
   }
 
   Entity::Update(_elapsed);
+
+  if (queuedAction && currentAction == nullptr && !GetNextTile()) {
+    currentAction = queuedAction;
+    queuedAction = nullptr;
+    currentAction->OnExecute();
+  }
+
+  if (currentAction) {
+    currentAction->OnUpdate(_elapsed);
+  }
 
   // If the counterSlideOffset has changed from 0, it's due to the character
   // being deleted on a counter frame. Begin animating the counter-delete slide
@@ -570,4 +581,16 @@ void Character::CancelSharedHitboxDamage(Character * to)
 
   if(iter != shareHit.end())
     shareHit.erase(iter);
+}
+
+void Character::QueueAction(CardAction * action)
+{
+  if (queuedAction) delete queuedAction;
+  queuedAction = action;
+}
+
+void Character::EndCurrentAction()
+{
+  if (currentAction) delete currentAction;
+  currentAction = nullptr;
 }

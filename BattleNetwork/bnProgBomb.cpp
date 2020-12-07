@@ -13,7 +13,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   cooldown = 0;
   damageCooldown = 0;
   
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_PROG_BOMB));
+  setTexture(Textures().GetTexture(TextureType::SPELL_PROG_BOMB));
   setScale(2.f, 2.f);
 
   SetLayer(-1);
@@ -32,7 +32,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
   
 
   setOrigin(sf::Vector2f(19, 24) / 2.f);
-  AUDIO.Play(AudioType::TOSS_ITEM);
+  Audio().Play(AudioType::TOSS_ITEM);
 
   HighlightTile(Battle::Tile::Highlight::flash);
 }

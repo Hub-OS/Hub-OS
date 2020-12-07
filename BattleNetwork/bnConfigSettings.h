@@ -47,7 +47,7 @@ public:
   const bool IsKeyboardOK() const;
 
   /**
-   * @brief Check if audio is on or off based on ini file
+   * @brief Check if Audio() is on or off based on ini file
    * @return true if on, false otherwise
    */
   const bool IsAudioEnabled() const;

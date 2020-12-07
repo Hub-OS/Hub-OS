@@ -4,7 +4,6 @@
 #include <sstream>
 
 #include "bnOverworldLight.h"
-
 #include "../bnSpriteProxyNode.h"
 #include "../bnTextureResourceManager.h"
 #include "../bnCamera.h"
@@ -22,7 +21,8 @@ namespace Overworld {
  * The map also supports psuedo lighting by multiplying sprites
  * by the light color. Limit light sources because this is slow.
  */
-  class Map : public sf::Drawable, public sf::Transformable
+  class Map : public sf::Drawable, public sf::Transformable, public ResourceHandle
+
   {
   public:
     struct Tile {

@@ -22,14 +22,14 @@ RecoverCardAction::~RecoverCardAction()
 {
 }
 
-void RecoverCardAction::Execute() {
+void RecoverCardAction::OnExecute() {
   auto user = GetOwner();
 
   // Increase player health
   user->SetHealth(user->GetHealth() + heal);
 
   // Play sound
-  AUDIO.Play(AudioType::RECOVER);
+  Audio().Play(AudioType::RECOVER);
 
   // Add artifact on the same layer as player
   Battle::Tile* tile = user->GetTile();
@@ -40,9 +40,8 @@ void RecoverCardAction::Execute() {
   }
 }
 
-void RecoverCardAction::OnUpdate(float _elapsed)
+void RecoverCardAction::OnEndAction()
 {
-  CardAction::OnUpdate(_elapsed);
 }
 
 void RecoverCardAction::OnAnimationEnd()

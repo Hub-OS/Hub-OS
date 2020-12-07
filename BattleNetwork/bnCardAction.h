@@ -6,9 +6,12 @@
 #include <map>
 
 #include "bnUIComponent.h"
-#include "bnAnimationComponent.h"
 #include "bnCharacter.h"
 #include "bnSpriteProxyNode.h"
+#include "bnResourceHandle.h"
+#include "bnAnimationComponent.h"
+#include "bnCharacter.h"
+
 
 using namespace swoosh;
 
@@ -79,6 +82,7 @@ public:
 
   using Attachments = std::multimap<std::string, Attachment>;
 
+<<<<<<< HEAD
 private:
   bool animationIsOver{ false };
   bool started{ false };

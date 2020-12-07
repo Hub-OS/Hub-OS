@@ -6,9 +6,7 @@ class TwinFang : public Spell {
 public:
   enum class Type : int {
     ABOVE,
-    BELOW,
-    ABOVE_DUD,
-    BELOW_DUD
+    BELOW
   };
 
 protected:

@@ -25,7 +25,8 @@ RollHeart::RollHeart(Character* user, int _heal)
 
   height = 200;
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
+  setTexture(Textures().LoadTextureFromFile("resources/spells/spell_heart.png"), true);
+
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
@@ -47,7 +48,7 @@ void RollHeart::OnUpdate(float _elapsed) {
   if (height <= 0) height = 0;
 
   if (height == 0 && !spawnFX) {
-    AUDIO.Play(AudioType::RECOVER);
+    Audio().Play(AudioType::RECOVER);
     spawnFX = true;
 
     this->Hide();

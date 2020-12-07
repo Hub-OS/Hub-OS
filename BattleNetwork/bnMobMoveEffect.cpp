@@ -11,7 +11,7 @@ using sf::IntRect;
 MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
 {
   SetLayer(-1);
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_MOVE));
+  setTexture(Textures().GetTexture(TextureType::MOB_MOVE));
   setScale(2.f, 2.f);
   move = getSprite();
 

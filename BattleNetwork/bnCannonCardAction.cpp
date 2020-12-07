@@ -14,7 +14,6 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME3, FRAME3, FRAME3
 
-
 CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardAction::Type type) : 
   CardAction(*owner, "PLAYER_SHOOTING"), 
   attachmentAnim(CANNON_ANIM),  
@@ -22,7 +21,7 @@ CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardActi
   CannonCardAction::damage = damage;
   
   attachment = new SpriteProxyNode();
-  attachment->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(CANNON_PATH));
+  attachment->setTexture(Textures().LoadTextureFromFile(CANNON_PATH));
   attachment->SetLayer(-1);
 
   switch (type) {
@@ -39,7 +38,6 @@ CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardActi
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
-
   AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
@@ -47,7 +45,7 @@ CannonCardAction::~CannonCardAction()
 {
 }
 
-void CannonCardAction::Execute() {
+void CannonCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
     // Spawn a single cannon instance on the tile in front of the player
@@ -55,9 +53,10 @@ void CannonCardAction::Execute() {
     Cannon* cannon = new Cannon(GetOwner()->GetField(), team, damage);
     auto props = cannon->GetHitboxProperties();
     props.aggressor = GetOwner();
+
     cannon->SetHitboxProperties(props);
 
-    AUDIO.Play(AudioType::CANNON);
+    Audio().Play(AudioType::CANNON);
 
     if (team == Team::red) {
       cannon->SetDirection(Direction::right);
@@ -66,7 +65,7 @@ void CannonCardAction::Execute() {
       cannon->SetDirection(Direction::left);
     }
 
-    GetOwner()->GetField()->AddEntity(*cannon, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+    user.GetField()->AddEntity(*cannon, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
   };
 
   AddAnimAction(6, onFire);

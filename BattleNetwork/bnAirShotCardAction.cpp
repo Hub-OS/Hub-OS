@@ -14,18 +14,14 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME3, FRAME3
 
-
-AirShotCardAction::AirShotCardAction(Character * owner, int damage) : 
-  attachmentAnim(NODE_ANIM),
-  CardAction(*owner, "PLAYER_SHOOTING")
-{
+AirShotCardAction::AirShotCardAction(Character& user, int damage) : CardAction(user, "PLAYER_SHOOTING") {
   AirShotCardAction::damage = damage;
 
-  airshot.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
-  attachment = new SpriteProxyNode(airshot);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
   attachment->SetLayer(-1);
 
-  attachmentAnim.Reload();
+  attachmentAnim = Animation(NODE_ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
 
   // add override anims
@@ -34,23 +30,21 @@ AirShotCardAction::AirShotCardAction(Character * owner, int damage) :
   AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
-void AirShotCardAction::Execute() {
-  auto owner = GetOwner();
-
-  owner->AddNode(attachment);
-  attachmentAnim.Update(0, attachment->getSprite());
+void AirShotCardAction::OnExecute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    AUDIO.Play(AudioType::SPREADER);
+    auto& user = GetUser();
 
-    AirShot* airshot = new AirShot(GetOwner()->GetField(), GetOwner()->GetTeam(), damage);
+    Audio().Play(AudioType::SPREADER);
+
+    AirShot* airshot = new AirShot(user.GetField(), user.GetTeam(), damage);
     airshot->SetDirection(Direction::right);
     auto props = airshot->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = &user;
     airshot->SetHitboxProperties(props);
 
-    GetOwner()->GetField()->AddEntity(*airshot, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
+    user.GetField()->AddEntity(*airshot, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
   };
 
   AddAnimAction(2, onFire);

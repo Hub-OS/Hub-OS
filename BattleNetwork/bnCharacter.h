@@ -41,6 +41,7 @@ private:
   // Then we process the next status
   // This continues until all statuses are processed
   std::queue<Hit::Properties> statusQueue;
+  CardAction* currentAction, *queuedAction;
 
   sf::Shader* whiteout; /*!< Flash white when hit */
   sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
@@ -225,6 +226,10 @@ public:
   * If the character exists in this entity's shared hit-list, it will remove it
   */
   void CancelSharedHitboxDamage(Character* to);
+
+  void QueueAction(CardAction* action);
+
+  void EndCurrentAction();
 
 private:
   int maxHealth;

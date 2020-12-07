@@ -7,15 +7,23 @@ class SpriteProxyNode;
 class Character;
 class TwinFangCardAction : public CardAction {
 private:
+<<<<<<< HEAD
+=======
   sf::Sprite twinfang;
   SpriteProxyNode* attachment;
   Animation attachmentAnim;
+>>>>>>> development
   int damage;
 public:
-  TwinFangCardAction(Character* owner, int damage);
+  TwinFangCardAction(Character& owner, int damage);
   ~TwinFangCardAction();
+<<<<<<< HEAD
+  void OnExecute();
+  void OnEndAction() override;
+=======
   void OnUpdate(float _elapsed) override;
   void OnAnimationEnd() override;
   void EndAction() override;
   void Execute() override;
+>>>>>>> development
 };

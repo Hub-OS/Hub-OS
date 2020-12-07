@@ -22,7 +22,7 @@ BubbleTrap::BubbleTrap(Character* owner) : willDelete(false), defense(nullptr), 
   }
 
   SetLayer(1);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BUBBLE_TRAP));
+  setTexture(Textures().GetTexture(TextureType::SPELL_BUBBLE_TRAP));
   bubble = getSprite();
 
   //Components setup and load

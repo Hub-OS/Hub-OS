@@ -14,18 +14,17 @@
 
 #define FRAMES FRAME1, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
-
 TornadoCardAction::TornadoCardAction(Character * owner, int damage) : 
   CardAction(*owner, "PLAYER_SHOOTING"), 
   attachmentAnim(FAN_ANIM), armIsOut(false) {
   TornadoCardAction::damage = damage;
-  fan.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
-  attachment = new SpriteProxyNode(fan);
-  attachment->SetLayer(-1);
 
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("DEFAULT");
   attachmentAnim << Animator::Mode::Loop;
+
+  Animation& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -36,7 +35,7 @@ TornadoCardAction::~TornadoCardAction()
   delete attachment;
 }
 
-void TornadoCardAction::Execute() {
+void TornadoCardAction::OnExecute() {
   auto owner = GetOwner();
   
   attachmentAnim.Update(0, attachment->getSprite());
@@ -50,7 +49,7 @@ void TornadoCardAction::Execute() {
   auto onFire = [this, team, tile, field]() -> void {
     Tornado* tornado = new Tornado(field, team, 8, damage);
     auto props = tornado->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = &user;
     tornado->SetHitboxProperties(props);
 
     int step = team == Team::red ? 2 : -2;
@@ -59,7 +58,7 @@ void TornadoCardAction::Execute() {
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
   AddAnimAction(2, [onFire, owner, this]() {
-    AUDIO.Play(AudioType::WIND);
+    Audio().Play(AudioType::WIND);
     armIsOut = true;
     onFire();
   });
@@ -76,11 +75,7 @@ void TornadoCardAction::OnUpdate(float _elapsed)
   CardAction::OnUpdate(_elapsed);
 }
 
-void TornadoCardAction::OnAnimationEnd()
-{
-}
-
-void TornadoCardAction::EndAction()
+void TornadoCardAction::OnEndAction()
 {
   GetOwner()->RemoveNode(attachment);
   Eject();

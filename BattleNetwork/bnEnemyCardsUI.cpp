@@ -11,7 +11,7 @@ using std::to_string;
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnCard.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 EnemyCardsUI::EnemyCardsUI(Character* _owner) : CardUsePublisher(), Component(_owner) {
   cardCount = curr = 0;

@@ -14,6 +14,7 @@ using sf::IntRect;
 Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Component::lifetimes::battlestep)
 {
   timer = 50; // seconds
+
   persist = false;
   isOver = false;
 
@@ -158,7 +159,11 @@ Aura::~Aura()
 Aura::VisualFX::VisualFX(Entity* owner, Aura::Type type) : 
   type(type),
   UIComponent(owner) {
-  auraSprite.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
+    
+  ResourceHandle handle;
+  auraSprite.setTexture(*handle.Textures().GetTexture(TextureType::SPELL_AURA));
+  aura = new SpriteProxyNode(auraSprite);
+
   aura = new SpriteProxyNode(auraSprite);
   SetLayer(1); // behind player
 

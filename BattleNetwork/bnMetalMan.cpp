@@ -4,7 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnNaviExplodeState.h"
 #include "bnMetalManMissileState.h"
 #include "bnMetalManMoveState.h"
@@ -62,7 +62,7 @@ MetalMan::MetalMan(Rank _rank)
 
   healthUI = new MobHealthUI(this);
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
   setScale(2.f, 2.f);
 

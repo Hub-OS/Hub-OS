@@ -13,7 +13,7 @@ const std::string WIND_PATH     = "resources/spells/panel_wind.animation";
 ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifact(nullptr)
 {
   SetLayer(-10);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_IMPACT_FX));
+  setTexture(Textures().GetTexture(TextureType::SPELL_IMPACT_FX));
   setScale(2.f, 2.f);
 
   //Components setup and load

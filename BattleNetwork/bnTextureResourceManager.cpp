@@ -4,90 +4,96 @@
 #include <atomic>
 #include <sstream>
 #include <fstream>
+#include <mutex>
+
 using std::ifstream;
 using std::stringstream;
 
-TextureResourceManager& TextureResourceManager::GetInstance() {
-  static TextureResourceManager instance;
-  return instance;
-}
-
 void TextureResourceManager::LoadAllTextures(std::atomic<int> &status) {
   TextureType textureType = static_cast<TextureType>(0);
-  while (textureType != TEXTURE_TYPE_SIZE) {
+  while (textureType != TextureType::TEXTURE_TYPE_SIZE) {
     status++;
 
     std::shared_ptr<Texture> texture = LoadTextureFromFile(paths[static_cast<int>(textureType)]);
+
+    std::scoped_lock lock(mutex);
+
     textures.insert(pair<TextureType, CachedResource<Texture*>>(textureType, texture));
     textureType = (TextureType)(static_cast<int>(textureType) + 1);
   }
 }
 
+void TextureResourceManager::LoadImmediately(TextureType type)
+{
+  std::scoped_lock lock(mutex);
+
+  // don't fetch it from disk if we already have it
+  if (textures.find(type) != textures.end()) return;
+
+  std::shared_ptr<Texture> texture = LoadTextureFromFile(paths[static_cast<int>(type)]);
+  textures.insert(pair<TextureType, CachedResource<Texture*>>(type, texture));
+}
+
 void TextureResourceManager::HandleExpiredTextureCache()
 {
-    auto iter = texturesFromPath.begin();
-    while (iter != texturesFromPath.end()) {
-        if (iter->second.GetSecondsSinceLastRequest() > 60.0f) {
-            if (iter->second.IsInUse()) {
-                iter++; continue;
-            }
+  std::scoped_lock lock(mutex);
 
-            // 1 minute is long enough
-            Logger::Logf("Texture data %s expired", iter->first.c_str());
-            iter = texturesFromPath.erase(iter);
-            continue;
-        }
+  auto iter = texturesFromPath.begin();
+  while (iter != texturesFromPath.end()) {
+    if (iter->second.GetSecondsSinceLastRequest() > 60.0f) {
+      if (iter->second.IsInUse()) {
+        iter++; continue;
+      }
 
-        iter++;
+      // 1 minute is long enough
+      Logger::Logf("Texture data %s expired", iter->first.c_str());
+      iter = texturesFromPath.erase(iter);
+      continue;
     }
+
+    iter++;
+  }
 }
 
 std::shared_ptr<Texture> TextureResourceManager::LoadTextureFromFile(string _path) {
-    auto iter = texturesFromPath.find(_path);
+  std::scoped_lock lock(mutex);
 
-    if (iter != texturesFromPath.end()) {
-        return iter->second.GetResource();
-    }
+  auto iter = texturesFromPath.find(_path);
 
-    auto pathsIter = std::find(paths.begin(), paths.end(), _path);
+  // check cache first
+  if (iter != texturesFromPath.end()) {
+    return iter->second.GetResource();
+  }
 
-    bool skipCaching = false;
+  auto pathsIter = std::find(paths.begin(), paths.end(), _path);
 
-    if (pathsIter != paths.end()) {
-        skipCaching = true;
-    }
+  bool skipCaching = false;
 
-    std::shared_ptr<Texture> texture = std::make_shared<Texture>();
+  if (pathsIter != paths.end()) {
+    skipCaching = true;
+  }
+
+  std::shared_ptr<Texture> texture = std::make_shared<Texture>();
+  
   if (!texture->loadFromFile(_path)) {
-
     Logger::Logf("Failed loading texture: %s", _path.c_str());
-
   } else {
     Logger::Logf("Loaded texture: %s", _path.c_str());
   }
 
   if (!skipCaching) {
-      texturesFromPath.insert(std::make_pair(_path, texture));
+    texturesFromPath.insert(std::make_pair(_path, texture));
   }
 
   return texture;
 }
 
 std::shared_ptr<Texture> TextureResourceManager::GetTexture(TextureType _ttype) {
+  std::scoped_lock lock(mutex);
   return textures.at(_ttype).GetResource();
 }
 
-std::shared_ptr<Font> TextureResourceManager::LoadFontFromFile(string _path) {
-  std::shared_ptr<Font> font = std::make_shared<Font>();
-  if (!font->loadFromFile(_path)) {
-    Logger::Logf("Failed loading font: %s", _path.c_str());
-  } else {
-    Logger::Logf("Loaded font: %s", _path.c_str());
-  }
-  return font;
-}
-
-TextureResourceManager::TextureResourceManager(void) {
+TextureResourceManager::TextureResourceManager() {
   //-Tiles-
   //Blue tile
   paths.push_back("resources/tiles/tile_atlas_blue.png");
@@ -242,14 +248,14 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/letter_cursor.png");
 
   // Navi Select View
-  paths.push_back("resources/backgrounds/select/glow_sheet.png");
-  paths.push_back("resources/backgrounds/select/pad_base.png");
-  paths.push_back("resources/backgrounds/select/pad_bottom.png");
-  paths.push_back("resources/backgrounds/select/char_name.png");
-  paths.push_back("resources/backgrounds/select/stat.png");
-  paths.push_back("resources/backgrounds/select/element.png");
-  paths.push_back("resources/backgrounds/select/info_box.png");
-  paths.push_back("resources/backgrounds/select/symbol_slots.png");
+  paths.push_back("resources/scenes/select/glow_sheet.png");
+  paths.push_back("resources/scenes/select/pad_base.png");
+  paths.push_back("resources/scenes/select/pad_bottom.png");
+  paths.push_back("resources/scenes/select/char_name.png");
+  paths.push_back("resources/scenes/select/stat.png");
+  paths.push_back("resources/scenes/select/element.png");
+  paths.push_back("resources/scenes/select/info_box.png");
+  paths.push_back("resources/scenes/select/symbol_slots.png");
 
   // Mugshots
   paths.push_back("resources/ui/navigator.png");
@@ -286,14 +292,17 @@ TextureResourceManager::TextureResourceManager(void) {
   paths.push_back("resources/ui/light.png");
   paths.push_back("resources/ui/webaccount_icon.png");
   paths.push_back("resources/ui/spinner.png");
+  paths.push_back("resources/ui/screen_bar.png");
+  paths.push_back("resources/ui/menu_option_edge.png");
+  paths.push_back("resources/ui/menu_option_mid.png");
 
   // font
-  paths.push_back("resources/fonts/all_fonts.png");
+  paths.push_back("resources/fonts/fonts_compressed.png");
 
   // config ui
-  paths.push_back("resources/backgrounds/config/audio.png");
-  paths.push_back("resources/backgrounds/config/end_btn.png");
+  paths.push_back("resources/scenes/config/Audio().png");
+  paths.push_back("resources/scenes/config/end_btn.png");
 }
 
-TextureResourceManager::~TextureResourceManager(void) {
+TextureResourceManager::~TextureResourceManager() {
 }
