@@ -163,12 +163,12 @@ void FolderScene::onUpdate(double elapsed) {
 
   // Prioritize textbox input
   if (textbox.IsOpen() && questionInterface) {
-    if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+    if (INPUTx.Has(InputEvents::pressed_ui_left)) {
       questionInterface->SelectYes();
-    } else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
+    } else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
       questionInterface->SelectNo();
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+    else if (INPUTx.Has(InputEvents::pressed_confirm)) {
       if (!textbox.IsEndOfMessage()) {
         questionInterface->Continue();
       }
@@ -176,7 +176,7 @@ void FolderScene::onUpdate(double elapsed) {
         questionInterface->ConfirmSelection();
       }
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+    else if (INPUTx.Has(InputEvents::pressed_cancel)) {
       questionInterface->SelectNo();
       questionInterface->ConfirmSelection();
     }
@@ -186,7 +186,7 @@ void FolderScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (enterText) {
-    InputEvent  cancelButton = EventTypes::RELEASED_CANCEL;
+    InputEvent  cancelButton = InputEvents::released_cancel;
 
 #ifdef __ANDROID__
     cancelButton = PRESSED_B;
@@ -218,7 +218,7 @@ void FolderScene::onUpdate(double elapsed) {
 #endif
     }
   } else if (!gotoNextScene) {
-      if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
+      if (INPUTx.Has(InputEvents::pressed_ui_up) || INPUTx.Has(InputEvents::held_ui_up)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -238,7 +238,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
+      else if (INPUTx.Has(InputEvents::pressed_ui_down) || INPUTx.Has(InputEvents::held_ui_down)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -258,7 +258,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
+      else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
         extendedHold = false;
 
         selectInputCooldown -= elapsed;
@@ -272,7 +272,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+      else if (INPUTx.Has(InputEvents::pressed_ui_left)) {
         extendedHold = false;
 
         selectInputCooldown -= elapsed;
@@ -329,9 +329,9 @@ void FolderScene::onUpdate(double elapsed) {
         folderSwitch = false;
       }
 
-      InputEvent cancelButton = EventTypes::RELEASED_CANCEL;
+      InputEvent cancelButton = InputEvents::released_cancel;
 
-      if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+      if (INPUTx.Has(InputEvents::pressed_cancel)) {
         if (!promptOptions) {
           gotoNextScene = true;
           AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
@@ -342,12 +342,12 @@ void FolderScene::onUpdate(double elapsed) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         }
-      } else if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+      } else if (INPUTx.Has(InputEvents::pressed_cancel)) {
           if (promptOptions) {
             promptOptions = false;
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
           }
-      } else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+      } else if (INPUTx.Has(InputEvents::pressed_confirm)) {
         if (!promptOptions) {
           promptOptions = true;
           AUDIO.Play(AudioType::CHIP_DESC);

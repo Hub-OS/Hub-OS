@@ -73,7 +73,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   // Are we creating an action this frame?
   if (player.CanAttack() && notAnimating) {
-    if (INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) {
+    if (INPUTx.Has(InputEvents::pressed_use_chip)) {
       auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
       if (cardsUI && cardsUI->UseNextCard()) {
         // If the card used was successful, we may have a card in queue
@@ -81,13 +81,13 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
         //return; // wait one more frame to use
       }
     }
-    else if (INPUTx.Has(EventTypes::RELEASED_SPECIAL)) {
+    else if (INPUTx.Has(InputEvents::released_special)) {
       if (replicator) replicator->SendUseSpecialSignal();
       player.UseSpecial();
       QueueAction(player);
      // return; // wait one more frame to use
     }    // queue attack based on input behavior (buster or charge?)
-    else if ((!INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld) || INPUTx.Has(EventTypes::RELEASED_SHOOT)) {
+    else if ((!INPUTx.Has(InputEvents::held_shoot) && isChargeHeld) || INPUTx.Has(InputEvents::released_shoot)) {
       // This routine is responsible for determining the outcome of the attack
       player.Attack();
 
@@ -109,21 +109,21 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   static Direction direction = Direction::none;
   //if (!player.IsTimeFrozen()) { // TODO: take out IsTimeFrozen from API
-    if (INPUTx.Has(EventTypes::PRESSED_MOVE_UP) || INPUTx.Has(EventTypes::HELD_MOVE_UP)) {
+    if (INPUTx.Has(InputEvents::pressed_move_up) || INPUTx.Has(InputEvents::held_move_up)) {
       direction = Direction::up;
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_MOVE_LEFT) || INPUTx.Has(EventTypes::HELD_MOVE_LEFT)) {
+    else if (INPUTx.Has(InputEvents::pressed_move_left) || INPUTx.Has(InputEvents::held_move_left)) {
       direction = Direction::left;
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_MOVE_DOWN) || INPUTx.Has(EventTypes::HELD_MOVE_DOWN)) {
+    else if (INPUTx.Has(InputEvents::pressed_move_down) || INPUTx.Has(InputEvents::held_move_down)) {
       direction = Direction::down;
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_MOVE_RIGHT) || INPUTx.Has(EventTypes::HELD_MOVE_RIGHT)) {
+    else if (INPUTx.Has(InputEvents::pressed_move_right) || INPUTx.Has(InputEvents::held_move_right)) {
       direction = Direction::right;
     }
   //}
 
-  bool shouldShoot = INPUTx.Has(EventTypes::HELD_SHOOT) && isChargeHeld == false && actions.empty();
+  bool shouldShoot = INPUTx.Has(InputEvents::held_shoot) && isChargeHeld == false && actions.empty();
 
 #ifdef __ANDROID__
   shouldShoot = INPUTx.Has(PRESSED_A);
@@ -135,16 +135,16 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     player.chargeEffect.SetCharging(true);
   }
 
-  if (INPUTx.Has(EventTypes::RELEASED_MOVE_UP)) {
+  if (INPUTx.Has(InputEvents::released_move_up)) {
     direction = Direction::none;
   }
-  else if (INPUTx.Has(EventTypes::RELEASED_MOVE_LEFT)) {
+  else if (INPUTx.Has(InputEvents::released_move_left)) {
     direction = Direction::none;
   }
-  else if (INPUTx.Has(EventTypes::RELEASED_MOVE_DOWN)) {
+  else if (INPUTx.Has(InputEvents::released_move_down)) {
     direction = Direction::none;
   }
-  else if (INPUTx.Has(EventTypes::RELEASED_MOVE_RIGHT)) {
+  else if (INPUTx.Has(InputEvents::released_move_right)) {
     direction = Direction::none;
   }
 

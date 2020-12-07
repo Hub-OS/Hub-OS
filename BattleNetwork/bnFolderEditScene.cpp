@@ -239,7 +239,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       view = &packView;
     }
 
-    if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
+    if (INPUTx.Has(InputEvents::pressed_ui_up) || INPUTx.Has(InputEvents::held_ui_up)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
@@ -261,7 +261,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
       }
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
+    else if (INPUTx.Has(InputEvents::pressed_ui_down) || INPUTx.Has(InputEvents::held_ui_down)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
@@ -281,7 +281,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           ++view->lastCardOnScreen;
         }
       }
-    }else if (INPUTx.Has(EventTypes::PRESSED_SCAN_LEFT)) {
+    }else if (INPUTx.Has(InputEvents::pressed_scan_left)) {
       extendedHold = false;
 
       selectInputCooldown -= elapsed;
@@ -303,7 +303,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         cardRevealTimer.reset();
       }
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_SCAN_RIGHT)) {
+    else if (INPUTx.Has(InputEvents::pressed_scan_right)) {
       extendedHold = false;
 
       selectInputCooldown -= elapsed;
@@ -329,7 +329,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       extendedHold = false;
     }
 
-    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+    if (INPUTx.Has(InputEvents::pressed_confirm)) {
       if (currViewMode == ViewMode::FOLDER) {
         if (folderView.swapCardIndex != -1) {
           if (folderView.swapCardIndex == folderView.currCardIndex) {
@@ -481,12 +481,12 @@ void FolderEditScene::onUpdate(double elapsed) {
         }
       }
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) && currViewMode == ViewMode::FOLDER) {
+    else if (INPUTx.Has(InputEvents::pressed_ui_right) && currViewMode == ViewMode::FOLDER) {
       currViewMode = ViewMode::PACK;
       canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC);
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT) && currViewMode == ViewMode::PACK) {
+    else if (INPUTx.Has(InputEvents::pressed_ui_left) && currViewMode == ViewMode::PACK) {
       currViewMode = ViewMode::FOLDER;
       canInteract = false;
       AUDIO.Play(AudioType::CHIP_DESC);
@@ -524,7 +524,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
     bool gotoLastScene = false;
 
-    if (INPUTx.Has(EventTypes::PRESSED_CANCEL) && canInteract) {
+    if (INPUTx.Has(InputEvents::pressed_cancel) && canInteract) {
       if (packView.swapCardIndex != -1 || folderView.swapCardIndex != -1) {
         AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
         packView.swapCardIndex = folderView.swapCardIndex = -1;

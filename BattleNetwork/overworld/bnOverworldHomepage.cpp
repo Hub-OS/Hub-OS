@@ -160,10 +160,7 @@ void Overworld::Homepage::onStart()
 {
   SceneBase::onStart();
 
-  // Stop any music already playing
-  AUDIO.StopStream();
   AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
-
   SceneBase::EnableNetWarps(false);
   infocus = true;
 }
@@ -171,6 +168,7 @@ void Overworld::Homepage::onStart()
 void Overworld::Homepage::onResume()
 {
   SceneBase::onResume();
+  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
   infocus = true;
 }
 

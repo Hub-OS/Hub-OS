@@ -109,7 +109,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 #ifndef __ANDROID__
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+    if (INPUTx.Has(InputEvents::pressed_ui_left)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -121,7 +121,7 @@ void SelectMobScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
+    else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -137,7 +137,7 @@ void SelectMobScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+    if (INPUTx.Has(InputEvents::pressed_cancel)) {
       // Fade out black and go back to the menu
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
@@ -347,7 +347,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   }
 
   // Make a selection
-  if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && !gotoNextScene) {
+  if (INPUTx.Has(InputEvents::pressed_confirm) && !gotoNextScene) {
     
     if (MOBS.Size() != 0) {
       mob = MOBS.At(mobSelectionIndex).GetMob();

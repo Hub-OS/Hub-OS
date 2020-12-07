@@ -168,6 +168,12 @@ void Overworld::OnlineArea::onStart()
   loadMapTime.start();
   movementTimer.start();
   sendLoginSignal();
+  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+}
+
+void Overworld::OnlineArea::onResume()
+{
+  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
 }
 
 const std::pair<bool, Overworld::Map::Tile**> Overworld::OnlineArea::FetchMapData()

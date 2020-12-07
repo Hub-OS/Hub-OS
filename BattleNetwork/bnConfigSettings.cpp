@@ -24,11 +24,11 @@ const int ConfigSettings::GetMusicLevel() const { return musicLevel; }
 const int ConfigSettings::GetSFXLevel() const { return sfxLevel; }
 
 const bool ConfigSettings::IsKeyboardOK() const { 
-    bool hasUp      = GetPairedInput(EventTypes::PRESSED_UI_UP.name) != sf::Keyboard::Unknown;
-    bool hasDown    = GetPairedInput(EventTypes::PRESSED_UI_DOWN.name) != sf::Keyboard::Unknown;
-    bool hasLeft    = GetPairedInput(EventTypes::PRESSED_UI_LEFT.name) != sf::Keyboard::Unknown;
-    bool hasRight   = GetPairedInput(EventTypes::PRESSED_UI_RIGHT.name) != sf::Keyboard::Unknown;
-    bool hasConfirm = GetPairedInput(EventTypes::PRESSED_CONFIRM.name) != sf::Keyboard::Unknown;
+    bool hasUp      = GetPairedInput(InputEvents::pressed_ui_up.name) != sf::Keyboard::Unknown;
+    bool hasDown    = GetPairedInput(InputEvents::pressed_ui_down.name) != sf::Keyboard::Unknown;
+    bool hasLeft    = GetPairedInput(InputEvents::pressed_ui_left.name) != sf::Keyboard::Unknown;
+    bool hasRight   = GetPairedInput(InputEvents::pressed_ui_right.name) != sf::Keyboard::Unknown;
+    bool hasConfirm = GetPairedInput(InputEvents::pressed_confirm.name) != sf::Keyboard::Unknown;
 
     return hasUp && hasDown && hasLeft && hasRight && hasConfirm;
 }

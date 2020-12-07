@@ -103,43 +103,43 @@ public:
    * @brief Checks input events and listens for select buttons. Segues to new screens.
    * @param elapsed in seconds
    */
-  virtual void onUpdate(double elapsed);
+  void onUpdate(double elapsed);
 
   /**
    * @brief Draws the UI
    * @param surface
    */
-  virtual void onDraw(sf::RenderTexture& surface);
+  void onDraw(sf::RenderTexture& surface);
 
   /**
    * @brief Stops music, plays new track, reset the camera
    */
-  virtual void onStart();
+  void onStart();
 
   /**
    * @brief Music fades out
    */
-  virtual void onLeave();
+  void onLeave();
 
   /**
    * @brief Does nothing
    */
-  virtual void onExit();
+  void onExit();
 
   /**
    * @brief Does nothing
    */
-  virtual void onEnter();
+  void onEnter();
 
   /**
    * @brief Does nothing
    */
-  virtual void onResume();
+  void onResume();
 
   /**
    * @brief Stops the music
    */
-  virtual void onEnd();
+  void onEnd();
 
   /**
    * @brief deconstructor

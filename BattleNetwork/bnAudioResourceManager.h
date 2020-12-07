@@ -104,6 +104,7 @@ private:
   sf::SoundBuffer* sources;
   std::map<std::string, std::shared_ptr<sf::SoundBuffer>> cached;
   sf::Music stream;
+  std::string currStreamPath;
   float channelVolume;
   float streamVolume;
   bool isEnabled;

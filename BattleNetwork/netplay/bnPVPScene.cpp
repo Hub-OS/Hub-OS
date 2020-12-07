@@ -446,7 +446,7 @@ void PVPScene::onUpdate(double elapsed) {
   textbox.Update(float(elapsed));
 
   // DEBUG SCENE STUFF
-  if (INPUTx.Has(EventTypes::RELEASED_SPECIAL)) {
+  if (INPUTx.Has(InputEvents::released_special)) {
     clientIsReady = remoteIsReady = true;
     remotePreview.setTexture(clientPreview.getTexture());
     remotePreview.setOrigin(0, remotePreview.getLocalBounds().height);
@@ -460,7 +460,7 @@ void PVPScene::onUpdate(double elapsed) {
     AUDIO.StopStream();
   }
   else if (clientIsReady && !remoteIsReady) {
-    if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+    if (INPUTx.Has(InputEvents::pressed_cancel)) {
       clientIsReady = false;
       HandleCancel();
     }
@@ -561,7 +561,7 @@ void PVPScene::onUpdate(double elapsed) {
       this->SendHandshakeSignal();
     }
 
-    if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+    if (INPUTx.Has(InputEvents::pressed_cancel)) {
       leave = true;
       AUDIO.Play(AudioType::CHIP_CANCEL);
       client.close();
@@ -574,17 +574,17 @@ void PVPScene::onUpdate(double elapsed) {
     else if (INPUTx.HasSystemPasteEvent() && !infoMode) {
       HandlePasteEvent();
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_SCAN_LEFT) && infoMode) {
+    else if (INPUTx.Has(InputEvents::pressed_scan_left) && infoMode) {
       infoMode = false;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       HandleJoinMode();
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_SCAN_RIGHT) && !infoMode) {
+    else if (INPUTx.Has(InputEvents::pressed_scan_right) && !infoMode) {
       infoMode = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       HandleInfoMode();
     } 
-    else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && !infoMode && !theirIP.empty()) {
+    else if (INPUTx.Has(InputEvents::pressed_confirm) && !infoMode && !theirIP.empty()) {
       this->clientIsReady = true;
       HandleReady();
       AUDIO.Play(AudioType::CHIP_CHOOSE);

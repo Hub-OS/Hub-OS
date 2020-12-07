@@ -56,15 +56,15 @@ void BubbleTrap::OnUpdate(float _elapsed) {
     return pass;
   };
 
-  bool anyKey = keyTestThunk(EventTypes::PRESSED_USE_CHIP);
-  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_CUST_MENU);
-  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_MOVE_DOWN);
-  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_MOVE_UP);
-  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_MOVE_LEFT);
-  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_MOVE_RIGHT);
-  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_SHOOT);
-  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_PAUSE);
-  anyKey = anyKey || keyTestThunk(EventTypes::PRESSED_SPECIAL);
+  bool anyKey = keyTestThunk(InputEvents::pressed_use_chip);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_cust_menu);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_down);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_up);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_left);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_move_right);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_shoot);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_pause);
+  anyKey = anyKey || keyTestThunk(InputEvents::pressed_special);
 
   if (anyKey) {
     duration -= frames(1).asSeconds();

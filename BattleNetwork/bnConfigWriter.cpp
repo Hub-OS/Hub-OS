@@ -28,13 +28,13 @@ void ConfigWriter::Write(std::string path)
   w << "Fullscreen=" << quote("0") << w.endl();
   w << "[Keyboard]" << w.endl();
 
-  for (auto&& a : EventTypes::KEYS) {
+  for (auto&& a : InputEvents::KEYS) {
     w << a << "=" << quote(std::to_string(GetAsciiFromKeyboard(settings.GetPairedInput(a)))) << w.endl();
   }
 
   w << "[Gamepad]" << w.endl();
 
-  for (auto&& a : EventTypes::KEYS) {
+  for (auto&& a : InputEvents::KEYS) {
     w << a << "=" << quote(std::to_string(GetAsciiFromGamepad(settings.GetPairedGamepadButton(a)))) << w.endl();
   }
 }

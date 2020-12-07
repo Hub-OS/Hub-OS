@@ -78,7 +78,7 @@ const bool CombatBattleState::PlayerLost() const
 
 const bool CombatBattleState::PlayerRequestCardSelect()
 {
-  return !this->isPaused && this->isGaugeFull && !mob->IsCleared() && INPUTx.Has(EventTypes::PRESSED_CUST_MENU);
+  return !this->isPaused && this->isGaugeFull && !mob->IsCleared() && INPUTx.Has(InputEvents::pressed_cust_menu);
 }
 
 void CombatBattleState::onStart(const BattleSceneState* last)
@@ -129,7 +129,7 @@ void CombatBattleState::onUpdate(double elapsed)
     clearedMob = true;
   }
 
-  if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !mob->IsCleared()) {
+  if (INPUTx.Has(InputEvents::pressed_pause) && !mob->IsCleared()) {
 
     if (isPaused) {
       // unpauses

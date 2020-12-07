@@ -104,7 +104,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
   if (cardCust.IsInView()) {
     currState = state::select;
 
-    if (INPUTx.Has(EventTypes::PRESSED_SCAN_RIGHT) || INPUTx.Has(EventTypes::PRESSED_SCAN_LEFT)) {
+    if (INPUTx.Has(InputEvents::pressed_scan_right) || INPUTx.Has(InputEvents::pressed_scan_left)) {
       if (cardCust.IsVisible()) {
         cardCust.Hide();
       }
@@ -116,10 +116,10 @@ void CardSelectBattleState::onUpdate(double elapsed)
 
   if (cardCust.CanInteract() && currState == state::select) {
     if (cardCust.IsCardDescriptionTextBoxOpen()) {
-      if (!INPUTx.Has(EventTypes::HELD_QUICK_OPT)) {
+      if (!INPUTx.Has(InputEvents::held_option)) {
         cardCust.CloseCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::lowest) : 1;
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+      else if (INPUTx.Has(InputEvents::pressed_confirm)) {
 
         cardCust.CardDescriptionConfirmQuestion() ? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
         cardCust.ContinueCardDescription();
@@ -127,10 +127,10 @@ void CardSelectBattleState::onUpdate(double elapsed)
 
       cardCust.FastForwardCardDescription(4.0);
 
-      if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+      if (INPUTx.Has(InputEvents::pressed_ui_left)) {
         cardCust.CardDescriptionYes(); //? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
+      else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
         cardCust.CardDescriptionNo(); //? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
       }
     }
@@ -138,7 +138,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
       // there's a wait time between moving ones and moving repeatedly (Sticky keys)
       bool moveCursor = cardSelectInputCooldown <= 0 || cardSelectInputCooldown == heldCardSelectInputCooldown;
 
-      if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT) || INPUTx.Has(EventTypes::HELD_UI_LEFT)) {
+      if (INPUTx.Has(InputEvents::pressed_ui_left) || INPUTx.Has(InputEvents::held_ui_left)) {
         cardSelectInputCooldown -= elapsed;
 
         if (moveCursor) {
@@ -149,7 +149,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
           }
         }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) || INPUTx.Has(EventTypes::HELD_UI_RIGHT)) {
+      else if (INPUTx.Has(InputEvents::pressed_ui_right) || INPUTx.Has(InputEvents::held_ui_right)) {
         cardSelectInputCooldown -= elapsed;
 
         if (moveCursor) {
@@ -160,7 +160,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
           }
         }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
+      else if (INPUTx.Has(InputEvents::pressed_ui_up) || INPUTx.Has(InputEvents::held_ui_up)) {
         cardSelectInputCooldown -= elapsed;
 
         if (moveCursor) {
@@ -171,7 +171,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
           }
         }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
+      else if (INPUTx.Has(InputEvents::pressed_ui_down) || INPUTx.Has(InputEvents::held_ui_down)) {
         cardSelectInputCooldown -= elapsed;
 
         if (moveCursor) {
@@ -186,7 +186,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
         cardSelectInputCooldown = heldCardSelectInputCooldown;
       }
 
-      if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+      if (INPUTx.Has(InputEvents::pressed_confirm)) {
         bool performed = cardCust.CursorAction();
 
         if (cardCust.AreCardsReady()) {
@@ -221,13 +221,13 @@ void CardSelectBattleState::onUpdate(double elapsed)
           AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
         }
       }
-      else if (INPUTx.Has(EventTypes::PRESSED_CANCEL) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+      else if (INPUTx.Has(InputEvents::pressed_cancel) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
         cardCust.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::highest) : 1;
       }
-      else if (INPUTx.Has(EventTypes::HELD_QUICK_OPT)) {
+      else if (INPUTx.Has(InputEvents::held_option)) {
         cardCust.OpenCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::lowest) : 1;
       }
-      else if (INPUTx.Has(EventTypes::HELD_PAUSE)) {
+      else if (INPUTx.Has(InputEvents::held_pause)) {
         cardCust.CursorSelectOK() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::lowest) : 1;;
       }
     }

@@ -347,7 +347,7 @@ int main(int argc, char** argv) {
         // Create a sf::Drawable from the buffer's texture data
         sf::Sprite postprocess(loadSurface.getTexture());
 
-        bool startPressed = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
+        bool startPressed = (INPUTx.IsConfigFileValid() ? INPUTx.Has(InputEvents::pressed_confirm) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
 
         if (startPressed) {
             speed = 5.f;
@@ -587,7 +587,7 @@ int main(int argc, char** argv) {
             ENGINE.Draw(&bgSprite);
 
             // Show the gamepad icon at the top-left if we have joystick support
-            if (INPUTx.IsJosytickAvailable()) {
+            if (INPUTx.IsGamepadAvailable()) {
                 sf::Sprite gamePadICon(*TEXTURES.GetTexture(TextureType::GAMEPAD_SUPPORT_ICON));
                 gamePadICon.setScale(2.f, 2.f);
                 gamePadICon.setPosition(10.f, 5.0f);
@@ -645,7 +645,7 @@ int main(int argc, char** argv) {
                         // Finally everything is loaded, show "Press Start"
                         ENGINE.Draw(startLabel);
 
-                        bool shouldStart = (INPUTx.IsConfigFileValid()? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
+                        bool shouldStart = (INPUTx.IsConfigFileValid()? INPUTx.Has(InputEvents::pressed_confirm) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
 
                         #ifdef __ANDROID__
                         shouldStart = sf::Touch::isDown(0);
@@ -711,11 +711,11 @@ int main(int argc, char** argv) {
                         }
 
                         if (!pleaseWait) {
-                          bool pressedStart = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
-                          pressedStart = pressedStart || (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_PAUSE) : false);
+                          bool pressedStart = (INPUTx.IsConfigFileValid() ? INPUTx.Has(InputEvents::pressed_confirm) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
+                          pressedStart = pressedStart || (INPUTx.IsConfigFileValid() ? INPUTx.Has(InputEvents::pressed_pause) : false);
 
-                          bool pressedUp = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_UP) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Up;
-                          bool pressedDown = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Down;
+                          bool pressedUp = (INPUTx.IsConfigFileValid() ? INPUTx.Has(InputEvents::pressed_ui_up) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Up;
+                          bool pressedDown = (INPUTx.IsConfigFileValid() ? INPUTx.Has(InputEvents::pressed_ui_down) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Down;
 
                           if (pressedUp) {
                             if (selected != 0) {

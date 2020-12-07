@@ -61,7 +61,7 @@ void RewardBattleState::onDraw(sf::RenderTexture& surface)
     battleResults->Move(sf::Vector2f(amount, 0));
   }
   else {
-    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+    if (INPUTx.Has(InputEvents::pressed_confirm)) {
       // Have to hit twice
       if (battleResults->IsFinished()) {
         BattleItem* reward = battleResults->GetReward();

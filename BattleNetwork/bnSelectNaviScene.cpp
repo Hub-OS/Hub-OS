@@ -278,7 +278,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+    if (INPUTx.Has(InputEvents::pressed_ui_left)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -290,7 +290,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT)) {
+    else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -306,7 +306,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+    if (INPUTx.Has(InputEvents::pressed_cancel)) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
@@ -399,7 +399,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   navi.setOrigin(float(navi.getTextureRect().width)*0.5f, float(navi.getTextureRect().height));
 
   // Make a selection
-  if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && currentChosen != naviSelectionIndex) {
+  if (INPUTx.Has(InputEvents::pressed_confirm) && currentChosen != naviSelectionIndex) {
     AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
     prevChosen = currentChosen;
     naviSelectionIndex = currentChosen;

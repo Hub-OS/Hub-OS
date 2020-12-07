@@ -230,7 +230,7 @@ void LibraryScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUTx.Has(EventTypes::PRESSED_UI_UP)) {
+    if (INPUTx.Has(InputEvents::pressed_ui_up)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currCardIndex;
@@ -247,7 +247,7 @@ void LibraryScene::onUpdate(double elapsed) {
         cardRevealTimer.reset();
       }
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN)) {
+    else if (INPUTx.Has(InputEvents::pressed_ui_down)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currCardIndex;
@@ -268,7 +268,7 @@ void LibraryScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsClosed()) {
+    if (INPUTx.Has(InputEvents::pressed_confirm) && textbox.IsClosed()) {
       auto iter = uniqueCards.begin();
       int i = 0;
 
@@ -282,15 +282,15 @@ void LibraryScene::onUpdate(double elapsed) {
       textbox.Open();
       AUDIO.Play(AudioType::CHIP_DESC);
     }
-    else if (INPUTx.Has(EventTypes::RELEASED_CANCEL) && textbox.IsOpen()) {
+    else if (INPUTx.Has(InputEvents::released_cancel) && textbox.IsOpen()) {
       textbox.Close();
       textbox.SetTextSpeed(1.0);
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
     }
-    else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM) && textbox.IsOpen()) {
+    else if (INPUTx.Has(InputEvents::pressed_confirm) && textbox.IsOpen()) {
       textbox.SetTextSpeed(3.0);
     }
-    else if (INPUTx.Has(EventTypes::RELEASED_CONFIRM) && textbox.IsOpen()) {
+    else if (INPUTx.Has(InputEvents::released_confirm) && textbox.IsOpen()) {
       textbox.SetTextSpeed(1.0);
       //textbox.Continue();
     }
@@ -301,7 +301,7 @@ void LibraryScene::onUpdate(double elapsed) {
     lastCardOnScreen = std::max(0, lastCardOnScreen);
     lastCardOnScreen = std::min(numOfCards - 1, lastCardOnScreen);
 
-    if (INPUTx.Has(EventTypes::PRESSED_CANCEL) && textbox.IsClosed()) {
+    if (INPUTx.Has(InputEvents::pressed_cancel) && textbox.IsClosed()) {
       gotoNextScene = true;
       AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
 

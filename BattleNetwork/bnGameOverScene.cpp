@@ -40,7 +40,7 @@ void GameOverScene::onUpdate(double elapsed) {
       fadeInCooldown = 0;
     }
 
-    if (fadeInCooldown == 0 && (sf::Touch::isDown(0) || INPUTx.Has(EventTypes::PRESSED_CONFIRM))) {
+    if (fadeInCooldown == 0 && (sf::Touch::isDown(0) || INPUTx.Has(InputEvents::pressed_confirm))) {
       leave = true;
     }
   } else {

@@ -170,7 +170,7 @@ const bool ConfigReader::ParseKeyboard(std::string buffer) {
       return ParseGamepad(buffer);
     }
 
-    for (auto key : EventTypes::KEYS) {
+    for (auto key : InputEvents::KEYS) {
       if (line.find(key) != std::string::npos) {
         std::string value = ValueOf(key, line);
         auto code = GetKeyCodeFromAscii(std::atoi(value.c_str()));
@@ -196,7 +196,7 @@ const bool ConfigReader::ParseGamepad(std::string buffer) {
 
     Trim(line);
 
-    for (auto key : EventTypes::KEYS) {
+    for (auto key : InputEvents::KEYS) {
       if (line.find(key) != std::string::npos) {
         std::string value = ValueOf(key, line);
         settings.gamepad.insert(std::make_pair(GetGamepadCode(std::atoi(value.c_str())), key));
@@ -222,22 +222,24 @@ ConfigReader::ConfigReader(std::string filepath) {
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Up,    "Move Up"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Right, "Move Right"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Down,  "Move Down"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Down, "Move Down"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Z, "Shoot"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::X, "Use Card"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::S, "Special"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::A, "Cust Menu"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Return, "Pause"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Up, "UI Up"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Down, "UI Down"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Left, "UI Left"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::Down,  "Move Down"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::Z,     "Shoot"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::X,     "Use Card"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::S,     "Special"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::A,     "Cust Menu"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::Return,"Pause"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::Up,    "UI Up"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::Down,  "UI Down"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::Left,  "UI Left"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Right, "UI Right"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::X, "Confirm"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Z, "Cancel"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::X,     "Confirm"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::Z,     "Cancel"));
     settings.keyboard.insert(std::make_pair(sf::Keyboard::Space, "Quick Opt"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::D, "Scan Left"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::F, "Scan Right"));
-    
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::D,     "Scan Left"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::F,     "Scan Right"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::X,     "Run"));
+    settings.keyboard.insert(std::make_pair(sf::Keyboard::Z,     "Interact"));
+
     settings.sfxLevel = settings.musicLevel = 3;
 
     settings.isOK = false; // This can be used as a flag that we're using default controls

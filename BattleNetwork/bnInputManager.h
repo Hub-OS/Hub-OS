@@ -94,6 +94,29 @@ public:
    * Used when leaving input fields
    */
   void EndCaptureInputBuffer();
+
+  /**
+   * @brief Tells input manager to prioritize keyboard bindings
+   */
+  void UseKeyboardControls();
+
+  /**
+  * @brief Tells input manager to prioritize gamepad bindings
+  */
+  void UseGamepadControls();
+
+  /**
+  * @brief Tells input manager to use the gamepad at `index` in the list of gamepads
+  * 
+  * index must be >= 0 and < numOfGamepads
+  */
+  void UseGamepad(size_t index);
+
+  /**
+   * @brief Returns number of available gamepads
+   * @return size_t
+   */
+  const size_t GetGamepadCount() const;
   
   /**
    * @brief Returns the contents of the current captured text
@@ -142,9 +165,11 @@ public:
   */
   void BindLoseFocusEvent(std::function<void()> callback);
 
-  const bool IsJosytickAvailable() const;
+  const bool IsGamepadAvailable() const;
   const bool HasSystemCopyEvent() const;
   const bool HasSystemPasteEvent() const;
+  const bool IsUsingGamepadControls() const;
+  const bool IsUsingKeyboardControls() const;
 
   ConfigSettings GetConfigSettings();
 
@@ -155,16 +180,20 @@ public:
 
 private:
   sf::Keyboard::Key lastkey;
-  Gamepad lastButton;
+  Gamepad lastButton{};
 
-  bool captureInputBuffer; /*!< Flags input buffer capture state */
+  bool captureInputBuffer{}; /*!< Flags input buffer capture state */
   std::string inputBuffer; /*!< The internal input buffer data */
 
   bool systemCopyEvent{ false }, systemPasteEvent{ false };
   bool hasFocus{ true };
+  bool useGamepadControls{ false };
 
-  float axisXPower, lastAxisXPower;
-  float axisYPower, lastAxisYPower;
+  float axisXPower{}, lastAxisXPower{};
+  float axisYPower{}, lastAxisYPower{};
+
+  std::vector<sf::Joystick::Identification> gamepads;
+  size_t currGamepad{};
 
   /**
    * @brief sets all initial input events to false

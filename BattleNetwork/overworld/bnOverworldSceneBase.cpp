@@ -267,7 +267,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   // check to see if talk button was pressed
   if (textbox.IsClosed() && menuWidget.IsClosed()) {
-    if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+    if (INPUTx.Has(InputEvents::pressed_interact)) {
       // check to see what tile we pressed talk to
       const Overworld::Map::Tile tile = map.GetTileAt(playerActor.PositionInFrontOf());
       if (tile.token == "C") {
@@ -285,7 +285,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
       }
     }
   }
-  else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+  else if (INPUTx.Has(InputEvents::pressed_interact)) {
     // continue the conversation if the text is complete
     if (textbox.IsEndOfMessage()) {
       textbox.DequeMessage();
@@ -479,7 +479,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   if (!gotoNextScene && textbox.IsClosed()) {
     // emotes widget
-    if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT) && menuWidget.IsClosed()) {
+    if (INPUTx.Has(InputEvents::pressed_option) && menuWidget.IsClosed()) {
       if (emote.IsClosed()) {
         emote.Open();
       }
@@ -490,7 +490,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
     if (emote.IsClosed()) {
       // menu widget
-      if (INPUTx.Has(EventTypes::PRESSED_PAUSE) && !INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+      if (INPUTx.Has(InputEvents::pressed_pause) && !INPUTx.Has(InputEvents::pressed_cancel)) {
         if (menuWidget.IsClosed()) {
           menuWidget.Open();
           AUDIO.Play(AudioType::CHIP_DESC);
@@ -503,7 +503,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
       // menu widget controlls
       if (menuWidget.IsOpen()) {
-        if (INPUTx.Has(EventTypes::PRESSED_UI_UP) || INPUTx.Has(EventTypes::HELD_UI_UP)) {
+        if (INPUTx.Has(InputEvents::pressed_ui_up) || INPUTx.Has(InputEvents::held_ui_up)) {
           selectInputCooldown -= elapsed;
 
           if (selectInputCooldown <= 0) {
@@ -518,7 +518,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
             menuWidget.CursorMoveUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
           }
         }
-        else if (INPUTx.Has(EventTypes::PRESSED_UI_DOWN) || INPUTx.Has(EventTypes::HELD_UI_DOWN)) {
+        else if (INPUTx.Has(InputEvents::pressed_ui_down) || INPUTx.Has(InputEvents::held_ui_down)) {
           selectInputCooldown -= elapsed;
 
           if (selectInputCooldown <= 0) {
@@ -533,26 +533,35 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
             menuWidget.CursorMoveDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
           }
         }
-        else if (INPUTx.Has(EventTypes::PRESSED_CONFIRM)) {
+        else if (INPUTx.Has(InputEvents::pressed_confirm)) {
           bool result = menuWidget.ExecuteSelection();
 
           if (result && menuWidget.IsOpen() == false) {
             AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
           }
         }
-        else if (INPUTx.Has(EventTypes::PRESSED_UI_RIGHT) || INPUTx.Has(EventTypes::PRESSED_CANCEL)) {
+        else if (INPUTx.Has(InputEvents::pressed_ui_right) || INPUTx.Has(InputEvents::pressed_cancel)) {
           extendedHold = false;
 
-          bool selectedExit = menuWidget.SelectExit();
+          bool exitSelected = !menuWidget.SelectExit();
 
-          if (!selectedExit) {
-            // already selected, switch to options
-            menuWidget.SelectOptions();
+          if (exitSelected) {
+            if (INPUTx.Has(InputEvents::pressed_cancel)) {
+              bool result = menuWidget.ExecuteSelection();
+
+              if (result && menuWidget.IsOpen() == false) {
+                AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+              }
+            }
+            else {
+              // already selected, switch to options
+              menuWidget.SelectOptions();
+            }
           }
 
           AUDIO.Play(AudioType::CHIP_SELECT);
         }
-        else if (INPUTx.Has(EventTypes::PRESSED_UI_LEFT)) {
+        else if (INPUTx.Has(InputEvents::pressed_ui_left)) {
           menuWidget.SelectOptions() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
           extendedHold = false;
         }
@@ -565,7 +574,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   // Allow player to resync with remote account by pressing the pause action
-  /*if (INPUTx.Has(EventTypes::PRESSED_QUICK_OPT)) {
+  /*if (INPUTx.Has(InputEvents::pressed_option)) {
       accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
   }*/
 

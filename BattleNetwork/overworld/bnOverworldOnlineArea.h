@@ -79,6 +79,7 @@ namespace Overworld {
     void onUpdate(double elapsed) override;
     void onDraw(sf::RenderTexture& surface) override;
     void onStart() override;
+    void onResume() override;
 
     const std::pair<bool, Map::Tile**> FetchMapData() override;
     void OnTileCollision(const Map::Tile& tile) override;

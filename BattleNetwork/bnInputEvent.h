@@ -3,24 +3,16 @@
 
 #include <string>
 
-enum InputState {
-  PRESSED,
-  HELD,
-  RELEASED,
-  NONE
+enum class InputState : unsigned char {
+  none = 0,
+  pressed,
+  held,
+  released
 };
 
 struct InputEvent {
   std::string name;
-  InputState state;
-
-  const bool operator==(InputEvent& rhs) {
-    return (rhs.name == name && rhs.state == state);
-  }
-
-  const bool operator!=(InputEvent& rhs) {
-    return !(rhs == *this);
-  }
+  InputState state{};
 
   const bool operator==(const InputEvent& rhs) {
     return (rhs.name == name && rhs.state == state);
@@ -31,67 +23,74 @@ struct InputEvent {
   }
 };
 
-namespace EventTypes {
-  static const InputEvent NONE = { "", InputState::NONE };
+namespace InputEvents {
+  static const InputEvent none{};
 
-  static const InputEvent PRESSED_MOVE_UP    = { "Move Up",    PRESSED };
-  static const InputEvent PRESSED_MOVE_DOWN  = { "Move Down",  PRESSED };
-  static const InputEvent PRESSED_MOVE_LEFT  = { "Move Left",  PRESSED };
-  static const InputEvent PRESSED_MOVE_RIGHT = { "Move Right", PRESSED };
-  static const InputEvent PRESSED_SHOOT      = { "Shoot",      PRESSED };
-  static const InputEvent PRESSED_USE_CHIP   = { "Use Card",   PRESSED };
-  static const InputEvent PRESSED_SPECIAL    = { "Special",    PRESSED };
-  static const InputEvent PRESSED_CUST_MENU  = { "Cust Menu",  PRESSED };
-  static const InputEvent PRESSED_PAUSE      = { "Pause",      PRESSED };
-  static const InputEvent PRESSED_UI_UP      = { "UI Up",      PRESSED };
-  static const InputEvent PRESSED_UI_DOWN    = { "UI Down",    PRESSED };
-  static const InputEvent PRESSED_UI_LEFT    = { "UI Left",    PRESSED };
-  static const InputEvent PRESSED_UI_RIGHT   = { "UI Right",   PRESSED };
-  static const InputEvent PRESSED_CONFIRM    = { "Confirm",    PRESSED };
-  static const InputEvent PRESSED_CANCEL     = { "Cancel",     PRESSED };
-  static const InputEvent PRESSED_QUICK_OPT  = { "Quick Opt",  PRESSED };
-  static const InputEvent PRESSED_SCAN_LEFT  = { "Scan Left",  PRESSED };
-  static const InputEvent PRESSED_SCAN_RIGHT = { "Scan Right", PRESSED };
+  static const InputEvent pressed_move_up    = { "Move Up",    InputState::pressed };
+  static const InputEvent pressed_move_down  = { "Move Down",  InputState::pressed };
+  static const InputEvent pressed_move_left  = { "Move Left",  InputState::pressed };
+  static const InputEvent pressed_move_right = { "Move Right", InputState::pressed };
+  static const InputEvent pressed_shoot      = { "Shoot",      InputState::pressed };
+  static const InputEvent pressed_use_chip   = { "Use Card",   InputState::pressed };
+  static const InputEvent pressed_special    = { "Special",    InputState::pressed };
+  static const InputEvent pressed_cust_menu  = { "Cust Menu",  InputState::pressed };
+  static const InputEvent pressed_pause      = { "Pause",      InputState::pressed };
+  static const InputEvent pressed_ui_up      = { "UI Up",      InputState::pressed };
+  static const InputEvent pressed_ui_down    = { "UI Down",    InputState::pressed };
+  static const InputEvent pressed_ui_left    = { "UI Left",    InputState::pressed };
+  static const InputEvent pressed_ui_right   = { "UI Right",   InputState::pressed };
+  static const InputEvent pressed_confirm    = { "Confirm",    InputState::pressed };
+  static const InputEvent pressed_cancel     = { "Cancel",     InputState::pressed };
+  static const InputEvent pressed_option     = { "Option",     InputState::pressed };
+  static const InputEvent pressed_scan_left  = { "Scan Left",  InputState::pressed };
+  static const InputEvent pressed_scan_right = { "Scan Right", InputState::pressed };
+  static const InputEvent pressed_run        = { "Run",        InputState::pressed };
+  static const InputEvent pressed_interact   = { "Interact",   InputState::pressed };
 
-  static const InputEvent RELEASED_MOVE_UP    = { "Move Up",    RELEASED };
-  static const InputEvent RELEASED_MOVE_DOWN  = { "Move Down",  RELEASED };
-  static const InputEvent RELEASED_MOVE_LEFT  = { "Move Left",  RELEASED };
-  static const InputEvent RELEASED_MOVE_RIGHT = { "Move Right", RELEASED };
-  static const InputEvent RELEASED_SHOOT      = { "Shoot",      RELEASED };
-  static const InputEvent RELEASED_USE_CHIP   = { "Use Card",   RELEASED };
-  static const InputEvent RELEASED_SPECIAL    = { "Special",    RELEASED };
-  static const InputEvent RELEASED_CUST_MENU  = { "Cust Menu",  RELEASED };
-  static const InputEvent RELEASED_PAUSE      = { "Pause",      RELEASED };
-  static const InputEvent RELEASED_UI_UP      = { "UI Up",      RELEASED };
-  static const InputEvent RELEASED_UI_DOWN    = { "UI Down",    RELEASED };
-  static const InputEvent RELEASED_UI_LEFT    = { "UI Left",    RELEASED };
-  static const InputEvent RELEASED_UI_RIGHT   = { "UI Right",   RELEASED };
-  static const InputEvent RELEASED_CONFIRM    = { "Confirm",    RELEASED };
-  static const InputEvent RELEASED_CANCEL     = { "Cancel",     RELEASED };
-  static const InputEvent RELEASED_QUICK_OPT  = { "Quick Opt",  RELEASED };
-  static const InputEvent RELEASED_SCAN_LEFT  = { "Scan Left",  RELEASED };
-  static const InputEvent RELEASED_SCAN_RIGHT = { "Scan Right", RELEASED };
+  static const InputEvent released_move_up    = { "Move Up",    InputState::released };
+  static const InputEvent released_move_down  = { "Move Down",  InputState::released };
+  static const InputEvent released_move_left  = { "Move Left",  InputState::released };
+  static const InputEvent released_move_right = { "Move Right", InputState::released };
+  static const InputEvent released_shoot      = { "Shoot",      InputState::released };
+  static const InputEvent released_use_chip   = { "Use Card",   InputState::released };
+  static const InputEvent released_special    = { "Special",    InputState::released };
+  static const InputEvent released_cust_menu  = { "Cust Menu",  InputState::released };
+  static const InputEvent released_pause      = { "Pause",      InputState::released };
+  static const InputEvent released_ui_up      = { "UI Up",      InputState::released };
+  static const InputEvent released_ui_down    = { "UI Down",    InputState::released };
+  static const InputEvent released_ui_left    = { "UI Left",    InputState::released };
+  static const InputEvent released_ui_right   = { "UI Right",   InputState::released };
+  static const InputEvent released_confirm    = { "Confirm",    InputState::released };
+  static const InputEvent released_cancel     = { "Cancel",     InputState::released };
+  static const InputEvent released_option     = { "Option",     InputState::released };
+  static const InputEvent released_scan_left  = { "Scan Left",  InputState::released };
+  static const InputEvent released_scan_right = { "Scan Right", InputState::released };
+  static const InputEvent released_run        = { "Run",        InputState::released };
+  static const InputEvent released_interact   = { "Interact",   InputState::released };
 
-  static const InputEvent HELD_MOVE_UP        = { "Move Up",    HELD };
-  static const InputEvent HELD_MOVE_DOWN      = { "Move Down",  HELD };
-  static const InputEvent HELD_MOVE_LEFT      = { "Move Left",  HELD };
-  static const InputEvent HELD_MOVE_RIGHT     = { "Move Right", HELD };
-  static const InputEvent HELD_SHOOT          = { "Shoot",      HELD };
-  static const InputEvent HELD_USE_CHIP       = { "Use Card",   HELD };
-  static const InputEvent HELD_SPECIAL        = { "Special",    HELD };
-  static const InputEvent HELD_CUST_MENU      = { "Cust Menu",  HELD };
-  static const InputEvent HELD_PAUSE          = { "Pause",      HELD };
-  static const InputEvent HELD_UI_UP          = { "UI Up",      HELD };
-  static const InputEvent HELD_UI_DOWN        = { "UI Down",    HELD };
-  static const InputEvent HELD_UI_LEFT        = { "UI Left",    HELD };
-  static const InputEvent HELD_UI_RIGHT       = { "UI Right",   HELD };
-  static const InputEvent HELD_CONFIRM        = { "Confirm",    HELD };
-  static const InputEvent HELD_CANCEL         = { "Cancel",     HELD };
-  static const InputEvent HELD_QUICK_OPT      = { "Quick Opt",  HELD };
-  static const InputEvent HELD_SCAN_LEFT      = { "Scan Left",  HELD };
-  static const InputEvent HELD_SCAN_RIGHT     = { "Scan Right", HELD };
+  static const InputEvent held_move_up        = { "Move Up",    InputState::held };
+  static const InputEvent held_move_down      = { "Move Down",  InputState::held };
+  static const InputEvent held_move_left      = { "Move Left",  InputState::held };
+  static const InputEvent held_move_right     = { "Move Right", InputState::held };
+  static const InputEvent held_shoot          = { "Shoot",      InputState::held };
+  static const InputEvent held_use_chip       = { "Use Card",   InputState::held };
+  static const InputEvent held_special        = { "Special",    InputState::held };
+  static const InputEvent held_cust_menu      = { "Cust Menu",  InputState::held };
+  static const InputEvent held_pause          = { "Pause",      InputState::held };
+  static const InputEvent held_ui_up          = { "UI Up",      InputState::held };
+  static const InputEvent held_ui_down        = { "UI Down",    InputState::held };
+  static const InputEvent held_ui_left        = { "UI Left",    InputState::held };
+  static const InputEvent held_ui_right       = { "UI Right",   InputState::held };
+  static const InputEvent held_confirm        = { "Confirm",    InputState::held };
+  static const InputEvent held_cancel         = { "Cancel",     InputState::held };
+  static const InputEvent held_option         = { "Option",     InputState::held };
+  static const InputEvent held_scan_left      = { "Scan Left",  InputState::held };
+  static const InputEvent held_scan_right     = { "Scan Right", InputState::held };
+  static const InputEvent held_run            = { "Run",        InputState::held };
+  static const InputEvent held_interact       = { "Interact",   InputState::held };
 
-  static const std::string KEYS[] = { "Move Up", "Move Down", "Move Left", "Move Right", "Shoot",
-                                    "Use Card", "Special", "Cust Menu", "Pause", "UI Up", "UI Left", "UI Right", 
-                                    "UI Down", "Confirm", "Cancel", "Quick Opt", "Scan Left", "Scan Right" };
+  static const std::string KEYS[] = { "Move Up",  "Move Down", "Move Left", "Move Right", "Shoot",
+                                      "Use Card", "Special",   "Cust Menu", "Pause",      "UI Up", 
+                                      "UI Left",  "UI Right",  "UI Down",   "Confirm",    "Cancel",    
+                                      "Option",   "Scan Left", "Scan Right","Run",        "Interact" };
 };

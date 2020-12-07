@@ -359,6 +359,8 @@ int AudioResourceManager::Play(std::shared_ptr<sf::SoundBuffer> resource, AudioP
 int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpan span) {
   if (!isEnabled) { return -1; }
 
+  if (path == currStreamPath) { return -1; };
+
   // stop previous stream if any 
   stream.stop();
 
@@ -371,6 +373,8 @@ int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpa
   if(loop) {
     stream.setLoopPoints(span);
   }
+
+  currStreamPath = path;
 
   return 0;
 }

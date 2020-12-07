@@ -83,7 +83,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
     configSettings = INPUTx.GetConfigSettings();
 
     // For keyboard keys 
-    for (auto a : EventTypes::KEYS) {
+    for (auto a : InputEvents::KEYS) {
         uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
 
         uiList[ACTIONS].push_back(uiData{ a, sf::Vector2f(), sf::Vector2f(), type });
@@ -109,7 +109,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
 
     // For gamepad keys
 
-    for (auto a : EventTypes::KEYS) {
+    for (auto a : InputEvents::KEYS) {
       uiData::ActionItemType type = uiData::ActionItemType::GAMEPAD;
 
       if (!configSettings.IsOK()) {
@@ -178,7 +178,7 @@ void ConfigScene::onUpdate(double elapsed)
       uiList[0][uiList[0].size()-1].label = "LOGOUT " + WEBCLIENT.GetUserName();
   }
 
-  bool hasConfirmed = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false ) || INPUTx.GetAnyKey() == sf::Keyboard::Enter;
+  bool hasConfirmed = (INPUTx.IsConfigFileValid() ? INPUTx.Has(InputEvents::pressed_confirm) : false ) || INPUTx.GetAnyKey() == sf::Keyboard::Enter;
   bool isInSubmenu = inKeyboardList || inGamepadList;
 
   if (hasConfirmed && isSelectingTopMenu && !leave) {
@@ -219,15 +219,13 @@ void ConfigScene::onUpdate(double elapsed)
   }
   
   if (!leave) {
-    bool hasConfirmed = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Return;
-    
-    bool hasCanceled = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_CANCEL) : false) ||
-      (INPUTx.GetAnyKey() == sf::Keyboard::BackSpace || INPUTx.GetAnyKey() == sf::Keyboard::Escape);
+    bool hasConfirmed = INPUTx.GetAnyKey() == sf::Keyboard::Return;
+    bool hasCanceled = (INPUTx.GetAnyKey() == sf::Keyboard::BackSpace || INPUTx.GetAnyKey() == sf::Keyboard::Escape);
 
-    bool hasUp    = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_UP)   : false) || INPUTx.GetAnyKey() == sf::Keyboard::Up;
-    bool hasDown  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_DOWN) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Down;
-    bool hasLeft  = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_LEFT) : false) || INPUTx.GetAnyKey() == sf::Keyboard::Left;
-    bool hasRight = (INPUTx.IsConfigFileValid() ? INPUTx.Has(EventTypes::PRESSED_UI_RIGHT): false) || INPUTx.GetAnyKey() == sf::Keyboard::Right;
+    bool hasUp    = INPUTx.GetAnyKey() == sf::Keyboard::Up;
+    bool hasDown  = INPUTx.GetAnyKey() == sf::Keyboard::Down;
+    bool hasLeft  = INPUTx.GetAnyKey() == sf::Keyboard::Left;
+    bool hasRight = INPUTx.GetAnyKey() == sf::Keyboard::Right;
 
     if (textbox.IsOpen()) {
         if (textbox.IsEndOfMessage()) {
@@ -273,10 +271,7 @@ void ConfigScene::onUpdate(double elapsed)
       }
     }
     else if (awaitingKey) {
-      if (hasCanceled) {
-        awaitingKey = false;
-      }
-      else if (inKeyboardList) {
+      if (inKeyboardList) {
         auto key = INPUTx.GetAnyKey();
 
         if (key != sf::Keyboard::Unknown) {
@@ -287,7 +282,7 @@ void ConfigScene::onUpdate(double elapsed)
             auto iter = keyHash.begin();
 
             while (iter != keyHash.end()) {
-              if (iter->second == EventTypes::KEYS[menuSelectionIndex]) break;
+              if (iter->second == InputEvents::KEYS[menuSelectionIndex]) break;
               iter++;
             }
 
@@ -295,7 +290,7 @@ void ConfigScene::onUpdate(double elapsed)
               keyHash.erase(iter);
             }
 
-            keyHash.insert(std::make_pair(key, EventTypes::KEYS[menuSelectionIndex]));
+            keyHash.insert(std::make_pair(key, InputEvents::KEYS[menuSelectionIndex]));
 
             std::transform(boundKey.begin(), boundKey.end(), boundKey.begin(), ::toupper);
             boundKeys[menuSelectionIndex].label = boundKey;
@@ -314,7 +309,7 @@ void ConfigScene::onUpdate(double elapsed)
           auto iter = gamepadHash.begin();
 
           while (iter != gamepadHash.end()) {
-            if (iter->second == EventTypes::KEYS[menuSelectionIndex]) break;
+            if (iter->second == InputEvents::KEYS[menuSelectionIndex]) break;
             iter++;
           }
 
@@ -322,7 +317,7 @@ void ConfigScene::onUpdate(double elapsed)
             gamepadHash.erase(iter);
           }
 
-          gamepadHash.insert(std::make_pair(gamepad, EventTypes::KEYS[menuSelectionIndex]));
+          gamepadHash.insert(std::make_pair(gamepad, InputEvents::KEYS[menuSelectionIndex]));
 
           std::string label = "BTN " + std::to_string((int)gamepad);
 

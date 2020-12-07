@@ -48,7 +48,7 @@ void ZetaCannonCardAction::OnUpdate(float _elapsed)
     //       Also, we do not want to have to allow the programmer to follow these following conditions:
     bool canShoot = user->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !user->IsSliding();
 
-    if (canShoot && (firstTime || INPUTx.Has(EventTypes::PRESSED_USE_CHIP)) && actions.size() == 1) {
+    if (canShoot && (firstTime || INPUTx.Has(InputEvents::pressed_use_chip)) && actions.size() == 1) {
       auto attack = user->CreateComponent<CannonCardAction>(user, damage, CannonCardAction::Type::red);
 
       auto actionProps = ActionLockoutProperties();
