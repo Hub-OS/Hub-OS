@@ -262,7 +262,7 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
 
 void Aura::VisualFX::Inject(BattleSceneBase& bs) {
   bs.Inject((Component*)this);
-  AUDIO.Play(AudioType::APPEAR);
+  bs.Audio().Play(AudioType::APPEAR);
 }
 
 void Aura::VisualFX::OnUpdate(float _elapsed)

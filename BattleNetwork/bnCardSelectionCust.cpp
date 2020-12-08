@@ -17,7 +17,7 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   playFormSound(false),
   canInteract(true),
   isDarkCardSelected(false),
-  darkCardShadowAlpha(0)
+  darkCardShadowAlpha(0),
   labelFont(Font::Style::thick),
   codeFont(Font::Style::wide),
   codeFont2(Font::Style::small),
@@ -36,7 +36,7 @@ CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) 
   emblem.setScale(2.f, 2.f);
   emblem.setPosition(194.0f, 14.0f);
 
-  custSprite = sf::Sprite(*Textures().GetTexture(CHIP_SELECT_MENU));
+  custSprite = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_SELECT_MENU));
   custSprite.setScale(2.f, 2.f);
   custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
 
@@ -239,7 +239,7 @@ bool CardSelectionCust::CursorAction() {
         currentFormItem = lockedInFormItem;
       }
 
-      AUDIO.Play(AudioType::DEFORM);
+      Audio().Play(AudioType::DEFORM);
     }
     else {
       formSelectQuitTimer = frames(30).asSeconds();
@@ -614,7 +614,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     smCodeLabel.setPosition(offset + 2.f*(14.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
 
     char code = queue[i].data->GetCode();
-    smCodeLabel.setString(code);
+    smCodeLabel.SetString(code);
     target.draw(smCodeLabel, states);
   }
 
@@ -716,7 +716,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   if (getPosition().x == bounds) {
     // Fade in a screen-wide shadow beneath the card if it is a dark card
-    sf::RectangleShape screen(ENGINE.GetCamera()->GetView().getSize());
+    sf::RectangleShape screen(target.getView().getSize());
     screen.setFillColor(sf::Color(0, 0, 0, darkCardShadowAlpha * 255));
     target.draw(screen);
   }
@@ -783,7 +783,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   // draw the white flash
   if (isInFormSelect && formSelectQuitTimer <= frames(20).asSeconds()) {
     auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, (float)frames(20).asSeconds(), 1.f);
-    auto view = ENGINE.GetView();
+    auto view = target.getView();
     sf::RectangleShape screen(view.getSize());
     screen.setFillColor(sf::Color(255, 255, 255, int(delta * 255.f)));
     target.draw(screen, sf::RenderStates::Default);

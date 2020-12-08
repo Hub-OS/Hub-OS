@@ -5,6 +5,9 @@
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <Swoosh/ActivityController.h>
 
+#include "../bnResourceHandle.h"
+#include "../bnInputHandle.h"
+
 class BattleSceneBase;
 
 using namespace swoosh;
@@ -12,7 +15,7 @@ using namespace swoosh;
 /*
     Interface for Battle Scene States
 */
-struct BattleSceneState {
+struct BattleSceneState : public ResourceHandle, public InputHandle {
     friend class BattleSceneBase;
 
     BattleSceneBase& GetScene() { return *scene; }

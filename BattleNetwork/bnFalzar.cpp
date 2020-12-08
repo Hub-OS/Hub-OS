@@ -6,7 +6,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnDefenseSuperArmor.h"
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include <numeric>
 
 const std::string RESOURCE_PATH = "resources/mobs/falzar/falzar.animation";
@@ -34,7 +34,7 @@ Falzar::Falzar(Falzar::Rank rank) :
   AddDefenseRule(bossBody);
 
   // load spritesheet
-  auto falzarTexture = TEXTURES.LoadTextureFromFile("resources/mobs/falzar/chicken_nuggets.png");
+  auto falzarTexture = Textures().LoadTextureFromFile("resources/mobs/falzar/chicken_nuggets.png");
 
   // Prepare the nodes to use their portion of the atlas
   setTexture(falzarTexture);

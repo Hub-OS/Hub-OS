@@ -91,28 +91,6 @@ public:
   RenderWindow* GetRenderWindow() const;
 
   /**
-   * @brief Store parsed command line values into the engine for easy access
-   * @param values ParseResult object from cxxopts lib
-   */
-  void SetCommandLineValues(const cxxopts::ParseResult& values);
-
-  /**
-   * @brief Returns a value from the command line as type T
-   * @param key String key for the command line arg
-   * @return value for key as type T. If none are found T{} is returned.
-   */
-  template<typename T>
-  const T CommandLineValue(const std::string& key) {
-    for (auto&& keyval : commandline) {
-      if (keyval.key() == key) {
-        return keyval.as<T>();
-      }
-    }
-
-    return T{};
-  }
-
-  /**
    * @brief Sets a post processing effect to be used on the screen
    * @param _shader
    */
@@ -196,14 +174,8 @@ private:
   sf::View original; /*!< Default view created when window launches */
   sf::RenderStates state; /*!< Global GL context information used when drawing*/
   sf::RenderTexture* surface; /*!< The external buffer to draw to */
-  std::vector<cxxopts::KeyValue> commandline; /*!< Values parsed from the command line*/
   std::shared_ptr<Camera> cam; /*!< Camera object */
 };
-
-/**
- * @brief Shorter to type. Fetches instance of singleton.
- */
-#define ENGINE Engine::GetInstance()
 
 /**
 * @class frame_time_t

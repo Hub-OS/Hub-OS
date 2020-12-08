@@ -35,7 +35,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   numberLabel("", numberFont),
   textbox(sf::Vector2f(4, 255)),
   questionInterface(nullptr),
-  Scene(&controller)
+  Scene(controller)
 {
   textbox.SetTextSpeed(2.0f);
 
@@ -162,12 +162,12 @@ void FolderScene::onUpdate(double elapsed) {
 
   // Prioritize textbox input
   if (textbox.IsOpen() && questionInterface) {
-    if (INPUTx.Has(InputEvents::pressed_ui_left)) {
+    if (Input().Has(InputEvents::pressed_ui_left)) {
       questionInterface->SelectYes();
-    } else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
+    } else if (Input().Has(InputEvents::pressed_ui_right)) {
       questionInterface->SelectNo();
     }
-    else if (INPUTx.Has(InputEvents::pressed_confirm)) {
+    else if (Input().Has(InputEvents::pressed_confirm)) {
       if (!textbox.IsEndOfMessage()) {
         questionInterface->Continue();
       }
@@ -175,7 +175,7 @@ void FolderScene::onUpdate(double elapsed) {
         questionInterface->ConfirmSelection();
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_cancel)) {
+    else if (Input().Has(InputEvents::pressed_cancel)) {
       questionInterface->SelectNo();
       questionInterface->ConfirmSelection();
     }
@@ -191,7 +191,7 @@ void FolderScene::onUpdate(double elapsed) {
     cancelButton = PRESSED_B;
 #endif
 
-    if (INPUTx.Has(cancelButton)) {
+    if (Input().Has(cancelButton)) {
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(false);
 #endif
@@ -202,22 +202,22 @@ void FolderScene::onUpdate(double elapsed) {
         folderNames[currFolderIndex] = collection.GetFolderNames()[currFolderIndex];
       }
 
-      INPUTx.EndCaptureInputBuffer();
+      Input().EndCaptureInputBuffer();
     }
     else {
-      std::string buffer = INPUTx.GetInputBuffer();
+      std::string buffer = Input().GetInputBuffer();
 
       buffer = buffer.substr(0, 10);
       folderNames[currFolderIndex] = buffer;
 
-      INPUTx.SetInputBuffer(buffer); // shrink
+      Input().SetInputBuffer(buffer); // shrink
 
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(true);
 #endif
     }
   } else if (!gotoNextScene) {
-      if (INPUTx.Has(InputEvents::pressed_ui_up) || INPUTx.Has(InputEvents::held_ui_up)) {
+      if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -237,7 +237,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_down) || INPUTx.Has(InputEvents::held_ui_down)) {
+      else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -257,7 +257,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
+      else if (Input().Has(InputEvents::pressed_ui_right)) {
         extendedHold = false;
 
         selectInputCooldown -= elapsed;
@@ -271,7 +271,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_left)) {
+      else if (Input().Has(InputEvents::pressed_ui_left)) {
         extendedHold = false;
 
         selectInputCooldown -= elapsed;
@@ -306,7 +306,7 @@ void FolderScene::onUpdate(double elapsed) {
       if (currCardIndex != lastCardIndex 
         || currFolderIndex != lastFolderIndex 
         || optionIndex != lastOptionIndex) {
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
       }
 
 
@@ -330,7 +330,7 @@ void FolderScene::onUpdate(double elapsed) {
 
       InputEvent cancelButton = InputEvents::released_cancel;
 
-      if (INPUTx.Has(InputEvents::pressed_cancel)) {
+      if (Input().Has(InputEvents::pressed_cancel)) {
         if (!promptOptions) {
           gotoNextScene = true;
           Audio().Play(AudioType::CHIP_DESC_CLOSE);
@@ -341,12 +341,12 @@ void FolderScene::onUpdate(double elapsed) {
             promptOptions = false;
             Audio().Play(AudioType::CHIP_DESC_CLOSE);
         }
-      } else if (INPUTx.Has(InputEvents::pressed_cancel)) {
+      } else if (Input().Has(InputEvents::pressed_cancel)) {
           if (promptOptions) {
             promptOptions = false;
             Audio().Play(AudioType::CHIP_DESC_CLOSE);
           }
-      } else if (INPUTx.Has(InputEvents::pressed_confirm)) {
+      } else if (Input().Has(InputEvents::pressed_confirm)) {
         if (!promptOptions) {
           promptOptions = true;
           Audio().Play(AudioType::CHIP_DESC);
@@ -377,6 +377,7 @@ void FolderScene::onUpdate(double elapsed) {
             WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
 
             Audio().Play(AudioType::PA_ADVANCE);
+          }
             break;
           case 2: // CHANGE NAME
             if (folder) {
@@ -402,7 +403,7 @@ void FolderScene::onUpdate(double elapsed) {
               promptOptions = false;
               currFolderIndex--;
               folderSwitch = true;
-            });
+              });
             break;
           }
         }
@@ -483,25 +484,23 @@ void FolderScene::onResume() {
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-
-  ENGINE.Draw(bg);
-  ENGINE.Draw(menuLabel);
+  surface.draw(bg);
+  surface.draw(menuLabel);
 
   if (folderNames.size() > 0) {
     for (int i = 0; i < folderNames.size(); i++) {
       folderBox.setPosition(26.0f + (i*144.0f) - (float)folderOffsetX, 34.0f);
-      ENGINE.Draw(folderBox);
+      surface.draw(folderBox);
 
       cardLabel.SetColor(sf::Color::White);
       cardLabel.SetString(folderNames[i]);
       cardLabel.setOrigin(cardLabel.GetWorldBounds().width / 2.0f, cardLabel.GetWorldBounds().height / 2.0f);
       cardLabel.setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
-      ENGINE.Draw(cardLabel, false);
+      surface.draw(cardLabel);
 
       if (i == selectedFolderIndex) {
         folderEquip.setPosition(25.0f + (i*144.0f) - (float)folderOffsetX, 30.0f);
-        ENGINE.Draw(folderEquip, false);
+        surface.draw(folderEquip);
       }
 
     }
@@ -547,7 +546,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     }
 #endif
 
-    ENGINE.Draw(folderCursor, false);
+    surface.draw(folderCursor);
   }
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
@@ -555,14 +554,14 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   float depth = ((float)(currCardIndex) / (float)numOfCards)*bottom;
   scrollbar.setPosition(436.f, top + depth);
 
-  ENGINE.Draw(scrollbar);
-  ENGINE.Draw(folderOptions);
+  surface.draw(scrollbar);
+  surface.draw(folderOptions);
 
   float scale = 0.0f;
 
   if (promptOptions) {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
-    ENGINE.Draw(cursor);
+    surface.draw(cursor);
   }
   else {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
@@ -589,38 +588,38 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     cardLabel.SetString(folderNames[currFolderIndex]);
     cardLabel.setOrigin(0.f, cardLabel.GetWorldBounds().height / 2.0f);
     cardLabel.setPosition(195.0f, 100.0f);
-    ENGINE.Draw(cardLabel, false);
+    surface.draw(cardLabel);
 
     // Now that we are at the viewing range, draw each card in the list
     for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
       cardIcon.setTexture(*WEBCLIENT.GetIconForCard((*iter)->GetUUID()));
       cardIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
-      ENGINE.Draw(cardIcon, false);
+      surface.draw(cardIcon);
 
       cardLabel.setOrigin(0.0f, 0.0f);
       cardLabel.SetColor(sf::Color::White);
       cardLabel.setPosition(2.f*115.f, 128.0f + (32.f*i));
       cardLabel.SetString((*iter)->GetShortName());
-      ENGINE.Draw(cardLabel, false);
+      surface.draw(cardLabel);
 
 
       int offset = (int)((*iter)->GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f*173.f, 133.0f + (32.f*i));
-      ENGINE.Draw(element, false);
+      surface.draw(element);
 
       cardLabel.setOrigin(0, 0);
       cardLabel.setPosition(2.f*190.f, 128.0f + (32.f*i));
       cardLabel.SetString(std::string() + (*iter)->GetCode());
-      ENGINE.Draw(cardLabel, false);
+      surface.draw(cardLabel);
 
       mbPlaceholder.setPosition(2.f*200.f, 134.0f + (32.f*i));
-      ENGINE.Draw(mbPlaceholder, false);
+      surface.draw(mbPlaceholder);
       iter++;
     }
   }
 
-  ENGINE.Draw(textbox, false);
+  surface.draw(textbox);
 }
 
 void FolderScene::MakeNewFolder() {
@@ -664,7 +663,7 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
   questionInterface = new Question("Delete this folder?", onYes, onNo);
 
   textbox.EnqueMessage(
-    sf::Sprite(*LOAD_TEXTURE(MUG_NAVIGATOR)), 
+    sf::Sprite(*Textures().GetTexture(TextureType::MUG_NAVIGATOR)), 
     "resources/ui/navigator.animation", 
     questionInterface);
 
@@ -685,12 +684,12 @@ void FolderScene::StartupTouchControls() {
     rightSide.enableExtendedRelease(true);
 
     rightSide.onTouch([]() {
-        INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
+        Input().VirtualKeyEvent(InputEvent::RELEASED_A);
     });
 
     rightSide.onRelease([this](sf::Vector2i delta) {
         if(!releasedB) {
-            INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
+            Input().VirtualKeyEvent(InputEvent::PRESSED_A);
         }
 
         releasedB = false;
@@ -698,8 +697,8 @@ void FolderScene::StartupTouchControls() {
 
     rightSide.onDrag([this](sf::Vector2i delta){
         if(delta.x < -25 && !releasedB && !touchStart) {
-            INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
-            INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
+            Input().VirtualKeyEvent(InputEvent::PRESSED_B);
+            Input().VirtualKeyEvent(InputEvent::RELEASED_B);
             releasedB = true;
         }
     });

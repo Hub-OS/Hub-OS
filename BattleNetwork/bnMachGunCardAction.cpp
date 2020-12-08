@@ -17,16 +17,16 @@
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, 
 
-MachGunCardAction::MachGunCardAction(Character* owner, int damage) :
-  CardAction(*owner, "PLAYER_SHOOTING"),
+MachGunCardAction::MachGunCardAction(Character& owner, int damage) :
+  CardAction(owner, "PLAYER_SHOOTING"),
   damage(damage)
 {
-  machgun.setTexture(TEXTURES.LoadTextureFromFile("resources/spells/machgun_buster.png"));
+  machgun.setTexture(Textures().LoadTextureFromFile("resources/spells/machgun_buster.png"));
   machgun.SetLayer(-1);
 
   machgunAnim = Animation("resources/spells/machgun_buster.animation") << "FIRE";
 
-  AddAttachment(*owner, "BUSTER", machgun).UseAnimation(machgunAnim);
+  AddAttachment(owner, "BUSTER", machgun).UseAnimation(machgunAnim);
 
   OverrideAnimationFrames({ FRAMES });
 }
@@ -35,7 +35,7 @@ MachGunCardAction::~MachGunCardAction()
 {
 }
 
-void MachGunCardAction::Execute()
+void MachGunCardAction::OnExecute()
 {
   auto shoot = [this]() {
     auto* owner = GetOwner();
@@ -84,7 +84,7 @@ void MachGunCardAction::Execute()
   }
 }
 
-void MachGunCardAction::EndAction()
+void MachGunCardAction::OnEndAction()
 {
   Eject();
 }
@@ -153,7 +153,7 @@ Target::Target(Field* field, int damage) :
   attack(frames(5).asSeconds())
 {
   setScale(2.f, 2.f);
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/target.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/spells/target.png"));
   anim = Animation("resources/spells/target.animation") << "DEFAULT";
   anim.Update(0, getSprite());
 }

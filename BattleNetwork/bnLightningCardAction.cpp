@@ -14,40 +14,40 @@
 #define LIGHTNING_IMG "resources/spells/spell_lightning.png"
 #define LIGHTNING_ANI "resources/spells/spell_lightning.animation"
 
-LightningCardAction::LightningCardAction(Character * owner, int damage) :
-  CardAction(*owner, "PLAYER_SHOOTING")
+LightningCardAction::LightningCardAction(Character& owner, int damage) :
+  CardAction(owner, "PLAYER_SHOOTING")
 {
   LightningCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(owner->getTexture());
+  attachment->setTexture(owner.getTexture());
   attachment->SetLayer(-1);
 
-  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("BUSTER");
 
   attack = new SpriteProxyNode();
-  attack->setTexture(LOAD_TEXTURE_FILE(LIGHTNING_IMG));
+  attack->setTexture(Textures().LoadTextureFromFile(LIGHTNING_IMG));
   attack->SetLayer(-2);
 
   attackAnim = Animation(LIGHTNING_ANI);
   attackAnim.SetAnimation("DEFAULT");
 
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 }
 
-void LightningCardAction::Execute() {
+void LightningCardAction::OnExecute() {
   auto owner = GetOwner();
 
   attachment->EnableParentShader(true);
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    AUDIO.Play(AudioType::SPREADER);
+    Audio().Play(AudioType::SPREADER);
 
     attachment->AddNode(attack);
     attack->setPosition(attachmentAnim.GetPoint("endpoint"));
@@ -75,7 +75,7 @@ void LightningCardAction::Execute() {
       field->AddEntity(*hitbox, col + i, row);
     }
 
-    AUDIO.Play(AudioType::THUNDER);
+    Audio().Play(AudioType::THUNDER);
     this->fired = true;
   };
 
@@ -109,7 +109,7 @@ void LightningCardAction::OnAnimationEnd()
   }
 }
 
-void LightningCardAction::EndAction()
+void LightningCardAction::OnEndAction()
 {
   OnAnimationEnd();
   Eject();

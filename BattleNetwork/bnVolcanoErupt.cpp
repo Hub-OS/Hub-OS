@@ -13,7 +13,7 @@ VolcanoErupt::VolcanoErupt(Field* field) :
   setScale(2.f, 2.f);
   SetLayer(-1);
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/tiles/volcano.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
 
   auto props = GetHitboxProperties();
   props.damage = 50;

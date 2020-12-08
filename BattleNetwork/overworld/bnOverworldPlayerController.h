@@ -1,8 +1,11 @@
+#pragma once
+#include "../bnInputHandle.h"
+
 namespace Overworld {
   class Actor; // namespace Overworld::Actor;
   class Map;
 
-  class PlayerController {
+  class PlayerController : public InputHandle {
     Overworld::Actor* actor{ nullptr };
     bool listen{ true };
   public:

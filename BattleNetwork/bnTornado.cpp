@@ -29,7 +29,7 @@ Tornado::Tornado(Field* _field, Team _team, int count, int damage)
 
     auto onHit = [this](Character* entity) {
       if (entity->Hit(GetHitboxProperties())) {
-        AUDIO.Play(AudioType::HURT);
+        Audio().Play(AudioType::HURT);
 
         Artifact* hitfx = new BusterHit(GetField(), BusterHit::Type::CHARGED);
         GetField()->AddEntity(*hitfx, entity->GetTile()->GetX(), entity->GetTile()->GetY());

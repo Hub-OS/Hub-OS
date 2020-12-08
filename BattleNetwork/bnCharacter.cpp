@@ -118,7 +118,7 @@ void Character::Update(float _elapsed) {
         setColor(sf::Color(55, 55, 255, getColor().a));
 
         // TODO: how to interop with new shaders like pallete swap?
-        SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
+        SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
       }
     }
 
@@ -155,7 +155,7 @@ void Character::Update(float _elapsed) {
   if (queuedAction && currentAction == nullptr && !GetNextTile()) {
     currentAction = queuedAction;
     queuedAction = nullptr;
-    currentAction->OnExecute();
+    currentAction->Execute();
   }
 
   if (currentAction) {
@@ -581,12 +581,6 @@ void Character::CancelSharedHitboxDamage(Character * to)
 
   if(iter != shareHit.end())
     shareHit.erase(iter);
-}
-
-void Character::QueueAction(CardAction * action)
-{
-  if (queuedAction) delete queuedAction;
-  queuedAction = action;
 }
 
 void Character::EndCurrentAction()

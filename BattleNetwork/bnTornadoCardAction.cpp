@@ -14,8 +14,8 @@
 
 #define FRAMES FRAME1, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
-TornadoCardAction::TornadoCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_SHOOTING"), 
+TornadoCardAction::TornadoCardAction(Character& owner, int damage) : 
+  CardAction(owner, "PLAYER_SHOOTING"), 
   attachmentAnim(FAN_ANIM), armIsOut(false) {
   TornadoCardAction::damage = damage;
 
@@ -23,8 +23,8 @@ TornadoCardAction::TornadoCardAction(Character * owner, int damage) :
   attachmentAnim.SetAnimation("DEFAULT");
   attachmentAnim << Animator::Mode::Loop;
 
-  Animation& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
-  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
+  Animation& userAnim = owner.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  AddAttachment(userAnim, "BUSTER", *attachment).UseAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -46,10 +46,10 @@ void TornadoCardAction::OnExecute() {
   auto field = GetOwner()->GetField();
 
   // On shoot frame, drop projectile
-  auto onFire = [this, team, tile, field]() -> void {
+  auto onFire = [this, team, tile, field, owner]() -> void {
     Tornado* tornado = new Tornado(field, team, 8, damage);
     auto props = tornado->GetHitboxProperties();
-    props.aggressor = &user;
+    props.aggressor = owner;
     tornado->SetHitboxProperties(props);
 
     int step = team == Team::red ? 2 : -2;
@@ -62,6 +62,10 @@ void TornadoCardAction::OnExecute() {
     armIsOut = true;
     onFire();
   });
+}
+
+void TornadoCardAction::OnAnimationEnd()
+{
 }
 
 void TornadoCardAction::OnUpdate(float _elapsed)

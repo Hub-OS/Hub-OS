@@ -54,7 +54,7 @@ void EnemyCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) cons
       sf::Vector2f offset = character->getPosition();
       icon.setPosition(offset + sf::Vector2f(((i - curr) * 2.0f) - 4.f, -58.0f - 63.f - (i - curr) * -2.0f));
 
-      ENGINE.Draw(icon);
+      target.draw(icon);
     }
   }
 

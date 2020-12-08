@@ -16,10 +16,10 @@
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, \
         FRAME3, FRAME2, FRAME3, FRAME2, FRAME3, FRAME2, FRAME3
 
-DarkTornadoCardAction::DarkTornadoCardAction(Character * owner, int damage) 
-: CardAction(*owner, "PLAYER_SHOOTING"), 
+DarkTornadoCardAction::DarkTornadoCardAction(Character& owner, int damage) 
+: CardAction(owner, "PLAYER_SHOOTING"), 
   attachmentAnim(FAN_ANIM), armIsOut(false), damage(damage) {
-  fan.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(FAN_PATH));
+  fan.setTexture(*Textures().LoadTextureFromFile(FAN_PATH));
   attachment = new SpriteProxyNode(fan);
   attachment->SetLayer(-1);
 
@@ -35,7 +35,7 @@ DarkTornadoCardAction::~DarkTornadoCardAction()
 {
 }
 
-void DarkTornadoCardAction::Execute() {
+void DarkTornadoCardAction::OnExecute() {
   auto owner = GetOwner();
 
   attachmentAnim.Update(0, attachment->getSprite());
@@ -49,7 +49,7 @@ void DarkTornadoCardAction::Execute() {
   // On shoot frame, drop projectile
   auto onFire = [this, team, tile, field]() -> void {
     Tornado* tornado = new Tornado(field, team, 8, damage);
-    tornado->setTexture(LOAD_TEXTURE_FILE("resources/spells/spell_tornado_dark.png"));
+    tornado->setTexture(Textures().LoadTextureFromFile("resources/spells/spell_tornado_dark.png"));
 
     auto props = tornado->GetHitboxProperties();
     props.aggressor = GetOwnerAs<Character>();
@@ -61,7 +61,7 @@ void DarkTornadoCardAction::Execute() {
 
   // Spawn a tornado istance 2 tiles in front of the player every x frames 8 times
   AddAnimAction(2, [onFire, owner, this]() {
-    AUDIO.Play(AudioType::WIND);
+    Audio().Play(AudioType::WIND);
     armIsOut = true;
     onFire();
   });
@@ -83,7 +83,7 @@ void DarkTornadoCardAction::OnAnimationEnd()
 {
 }
 
-void DarkTornadoCardAction::EndAction()
+void DarkTornadoCardAction::OnEndAction()
 {
   GetOwner()->RemoveNode(attachment);
   Eject();

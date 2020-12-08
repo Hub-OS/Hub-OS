@@ -2,7 +2,7 @@
 
 #include "bnOverworldMap.h"
 
-#include "../bnEngine.h"
+#include "../bnDrawWindow.h"
 
 namespace Overworld {
   Map::Map() :
@@ -276,7 +276,7 @@ namespace Overworld {
     }
 
     // default tileset code for now:
-    auto texture = TEXTURES.LoadTextureFromFile("resources/ow/basic_tileset.png");
+    auto texture = map.Textures().LoadTextureFromFile("resources/ow/basic_tileset.png");
 
     std::vector<sf::Sprite> items;
 

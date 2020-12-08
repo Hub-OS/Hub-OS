@@ -24,7 +24,7 @@ void WideSwordCardAction::OnSpawnHitbox()
 
   BasicSword* b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
-  props.aggressor = &user;
+  props.aggressor = GetOwner();
   b->SetHitboxProperties(props);
 
   Audio().Play(AudioType::SWORD_SWING);

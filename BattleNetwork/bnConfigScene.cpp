@@ -12,7 +12,7 @@ const constexpr int ACTIONS   = 1; // Second column is actions within that menu
 const constexpr int BOUNDKEYS = 2; // Third column is used for bound keys
 
 ConfigScene::ConfigScene(swoosh::ActivityController &controller) : 
-    textbox(sf::Vector2f(4,250)), Scene(&controller)
+    textbox(sf::Vector2f(4,250)), Scene(controller)
 {
     textbox.SetTextSpeed(4.0);
     isSelectingTopMenu = inGamepadList = inKeyboardList = false;
@@ -80,7 +80,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
 
     actions.clear();
 
-    configSettings = INPUTx.GetConfigSettings();
+    configSettings = Input().GetConfigSettings();
 
     // For keyboard keys 
     for (auto a : InputEvents::KEYS) {
@@ -94,7 +94,7 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
         else {
             std::string keyStr;
 
-            if (INPUTx.ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
+            if (Input().ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
                 keyHash.insert(std::make_pair(configSettings.GetPairedInput(a), a));
 
                 boundKeys.push_back(uiData{ keyStr,  sf::Vector2f(), sf::Vector2f(), type });
@@ -178,7 +178,7 @@ void ConfigScene::onUpdate(double elapsed)
       uiList[0][uiList[0].size()-1].label = "LOGOUT " + WEBCLIENT.GetUserName();
   }
 
-  bool hasConfirmed = (INPUTx.IsConfigFileValid() ? INPUTx.Has(InputEvents::pressed_confirm) : false ) || INPUTx.GetAnyKey() == sf::Keyboard::Enter;
+  bool hasConfirmed = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_confirm) : false ) || Input().GetAnyKey() == sf::Keyboard::Enter;
   bool isInSubmenu = inKeyboardList || inGamepadList;
 
   if (hasConfirmed && isSelectingTopMenu && !leave) {
@@ -190,7 +190,7 @@ void ConfigScene::onUpdate(double elapsed)
               ConfigWriter writer(configSettings);
               writer.Write("config.ini");
               ConfigReader reader("config.ini");
-              INPUTx.SupportConfigSettings(reader);
+              Input().SupportConfigSettings(reader);
               textbox.Close();
 
               // transition to the next screen
@@ -198,7 +198,7 @@ void ConfigScene::onUpdate(double elapsed)
               using effect = segue<WhiteWashFade, milliseconds<300>>;
               getController().pop<effect>();
 
-              AUDIO.Play(AudioType::NEW_GAME);
+              Audio().Play(AudioType::NEW_GAME);
               leave = true;
           };
 
@@ -219,13 +219,13 @@ void ConfigScene::onUpdate(double elapsed)
   }
   
   if (!leave) {
-    bool hasConfirmed = INPUTx.GetAnyKey() == sf::Keyboard::Return;
-    bool hasCanceled = (INPUTx.GetAnyKey() == sf::Keyboard::BackSpace || INPUTx.GetAnyKey() == sf::Keyboard::Escape);
+    bool hasConfirmed = Input().GetAnyKey() == sf::Keyboard::Return;
+    bool hasCanceled = (Input().GetAnyKey() == sf::Keyboard::BackSpace || Input().GetAnyKey() == sf::Keyboard::Escape);
 
-    bool hasUp    = INPUTx.GetAnyKey() == sf::Keyboard::Up;
-    bool hasDown  = INPUTx.GetAnyKey() == sf::Keyboard::Down;
-    bool hasLeft  = INPUTx.GetAnyKey() == sf::Keyboard::Left;
-    bool hasRight = INPUTx.GetAnyKey() == sf::Keyboard::Right;
+    bool hasUp    = Input().GetAnyKey() == sf::Keyboard::Up;
+    bool hasDown  = Input().GetAnyKey() == sf::Keyboard::Down;
+    bool hasLeft  = Input().GetAnyKey() == sf::Keyboard::Left;
+    bool hasRight = Input().GetAnyKey() == sf::Keyboard::Right;
 
     if (textbox.IsOpen()) {
         if (textbox.IsEndOfMessage()) {
@@ -254,7 +254,7 @@ void ConfigScene::onUpdate(double elapsed)
       if (!isInSubmenu) {
         isSelectingTopMenu = true;
         colIndex = menuSelectionIndex = 0;
-        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
       }
       else {
@@ -266,18 +266,18 @@ void ConfigScene::onUpdate(double elapsed)
         colIndex = 0;
 
         isSelectingTopMenu = false;
-        AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+        Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
       }
     }
     else if (awaitingKey) {
       if (inKeyboardList) {
-        auto key = INPUTx.GetAnyKey();
+        auto key = Input().GetAnyKey();
 
         if (key != sf::Keyboard::Unknown) {
           std::string boundKey = "";
 
-          if (INPUTx.ConvertKeyToString(key, boundKey)) {
+          if (Input().ConvertKeyToString(key, boundKey)) {
 
             auto iter = keyHash.begin();
 
@@ -303,7 +303,7 @@ void ConfigScene::onUpdate(double elapsed)
 
       if (inGamepadList) {
         // GAMEPAD
-        auto gamepad = INPUTx.GetAnyGamepadButton();
+        auto gamepad = Input().GetAnyGamepadButton();
 
         if (gamepad != (Gamepad)-1) {
           auto iter = gamepadHash.begin();
@@ -354,7 +354,7 @@ void ConfigScene::onUpdate(double elapsed)
       }
       else {
         menuSelectionIndex--;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
 
       }
     } else if (hasDown && textbox.IsClosed()) {
@@ -363,7 +363,7 @@ void ConfigScene::onUpdate(double elapsed)
       }
       else {
         menuSelectionIndex++;
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
       }
     }
     else if (hasLeft) {
@@ -399,14 +399,14 @@ void ConfigScene::onUpdate(double elapsed)
         inGamepadList = false;
         colIndex = 1;
         menuSelectionIndex = 0; // move the row cursor to the top
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
       }
       else if (menuSelectionIndex == 4 && colIndex == 0) {
         inGamepadList = true;
         inKeyboardList = false;
         colIndex = 1;
         menuSelectionIndex = 0; // move the row cursor to the top
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
       }
       else if (menuSelectionIndex == 5 && colIndex == 0) {
 
@@ -571,31 +571,28 @@ void ConfigScene::onUpdate(double elapsed)
 
 void ConfigScene::onDraw(sf::RenderTexture & surface)
 {
-  ENGINE.SetRenderSurface(surface);
-  ENGINE.Draw(bg);
-
-  ENGINE.Draw(endBtn);
-
-  ENGINE.Draw(AudioBGM);
-  ENGINE.Draw(AudioSFX);
+  surface.draw(*bg);
+  surface.draw(endBtn);
+  surface.draw(AudioBGM);
+  surface.draw(AudioSFX);
 
   // Draw options
-  DrawMenuOptions();
+  DrawMenuOptions(surface);
 
   if (inKeyboardList) {
     // Keyboard keys
-    DrawMappedKeyMenu(boundKeys);
+    DrawMappedKeyMenu(boundKeys, surface);
   }
 
   if (inGamepadList) {
     // Gamepad keys
-    DrawMappedKeyMenu(boundGamepadButtons);
+    DrawMappedKeyMenu(boundGamepadButtons, surface);
   }
 
-  ENGINE.Draw(textbox);
+  surface.draw(textbox);
 }
 
-void ConfigScene::DrawMenuOptions()
+void ConfigScene::DrawMenuOptions(sf::RenderTarget& surface)
 {
   for (int i = 0; i < 3; i++) {
     if (i > 0) {
@@ -640,7 +637,7 @@ void ConfigScene::DrawMenuOptions()
             uiSprite.setColor(sf::Color(10, 165, 255, ui.alpha));
           }
 
-          ENGINE.Draw(uiSprite);
+          surface.draw(uiSprite);
           offset += (int)uiSprite.getLocalBounds().width + 2;
         }
       }
@@ -648,7 +645,7 @@ void ConfigScene::DrawMenuOptions()
   }
 }
 
-void ConfigScene::DrawMappedKeyMenu(std::vector<uiData>& container)
+void ConfigScene::DrawMappedKeyMenu(std::vector<uiData>& container, sf::RenderTarget& surface)
 {
   for (auto ui : container) {
     int offset = 0;
@@ -669,8 +666,7 @@ void ConfigScene::DrawMappedKeyMenu(std::vector<uiData>& container)
 
       offset += (int)uiSprite.getLocalBounds().width + 2;
 
-      ENGINE.Draw(uiSprite);
-
+      surface.draw(uiSprite);
     }
 
     auto totalOffset = offset;
@@ -699,7 +695,7 @@ void ConfigScene::DrawMappedKeyMenu(std::vector<uiData>& container)
         uiSprite.setColor(sf::Color(10, 165, 255, ui.alpha));
       }
 
-      ENGINE.Draw(uiSprite);
+      surface.draw(uiSprite);
       offset += (int)uiSprite.getLocalBounds().width + 2;
     }
   }

@@ -15,7 +15,7 @@ TomahawkSwingCardAction::~TomahawkSwingCardAction()
 {
 }
 
-void TomahawkSwingCardAction::Execute()
+void TomahawkSwingCardAction::OnExecute()
 {
   auto spawn = [this] {
     auto* tile = GetOwner()->GetTile();
@@ -37,7 +37,7 @@ void TomahawkSwingCardAction::Execute()
   AddAnimAction(4, spawn);
 }
 
-void TomahawkSwingCardAction::EndAction()
+void TomahawkSwingCardAction::OnEndAction()
 {
   Eject();
 }
@@ -51,7 +51,7 @@ void TomahawkSwingCardAction::OnAnimationEnd()
 TomahawkEffect::TomahawkEffect(Field* field) : Artifact(field)
 {
   SetLayer(-10); // be on top
-  setTexture(TEXTURES.LoadTextureFromFile("resources/navis/megaman/forms/tomahawk_swing.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/navis/megaman/forms/tomahawk_swing.png"));
   setScale(2.f, 2.f);
 
   //Components setup and load

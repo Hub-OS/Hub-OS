@@ -1,4 +1,5 @@
 #include "bnFireBurn.h"
+#include "bnParticleImpact.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
@@ -7,7 +8,7 @@
 FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(damage), Spell(_field, _team) {
   SetLayer(-1);
 
-  setTexture(Textuures().GetTexture(TextureType::SPELL_FIREBURN));
+  setTexture(Textures().GetTexture(TextureType::SPELL_FIREBURN));
   setScale(2.f, 2.f);
 
   if (_team == Team::blue) {
@@ -69,7 +70,7 @@ bool FireBurn::Move(Direction _direction) {
 void FireBurn::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
     // X hit effect when hit by fire
-    auto fx = new ImpactParticle(GetField(), GetTeam(), ImpactParticle::volcano);
+    auto fx = new ParticleImpact(ParticleImpact::Type::volcano);
     GetField()->AddEntity(*fx, *GetTile());
 
     Audio().Play(AudioType::HURT);

@@ -27,14 +27,14 @@ AirShotCardAction::AirShotCardAction(Character& user, int damage) : CardAction(u
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(user, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 void AirShotCardAction::OnExecute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    auto& user = GetUser();
+    auto& user = *GetOwner();
 
     Audio().Play(AudioType::SPREADER);
 
@@ -63,7 +63,7 @@ void AirShotCardAction::OnAnimationEnd()
 {
 }
 
-void AirShotCardAction::EndAction()
+void AirShotCardAction::OnEndAction()
 {
   Eject();
 }

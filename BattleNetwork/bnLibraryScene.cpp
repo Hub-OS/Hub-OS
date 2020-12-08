@@ -92,7 +92,7 @@ std::string LibraryScene::FormatCardDesc(const std::string && desc)
 }
 
 LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
-  camera(ENGINE.GetView()),
+  camera(getView()),
   textbox(sf::Vector2f(4, 255)),
   font(Font::Style::thick),
   menuLabel("", font),
@@ -102,7 +102,7 @@ LibraryScene::LibraryScene(swoosh::ActivityController &controller) :
   cardDesc("", cardDescFont),
   numberFont(Font::Style::wide),
   numberLabel("", numberFont),
-  Scene(&controller)
+  Scene(controller)
 {
 
   // Menu name font
@@ -203,8 +203,6 @@ void LibraryScene::MakeUniqueCardsFromPack()
 }
 
 void LibraryScene::onStart() {
-  ENGINE.SetCamera(camera);
-
   gotoNextScene = false;
 
 #ifdef __ANDROID__
@@ -228,7 +226,7 @@ void LibraryScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUTx.Has(InputEvents::pressed_ui_up)) {
+    if (Input().Has(InputEvents::pressed_ui_up)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currCardIndex;
@@ -245,7 +243,7 @@ void LibraryScene::onUpdate(double elapsed) {
         cardRevealTimer.reset();
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_down)) {
+    else if (Input().Has(InputEvents::pressed_ui_down)) {
       selectInputCooldown -= elapsed;
 
       prevIndex = currCardIndex;
@@ -266,7 +264,7 @@ void LibraryScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUTx.Has(InputEvents::pressed_confirm) && textbox.IsClosed()) {
+    if (Input().Has(InputEvents::pressed_confirm) && textbox.IsClosed()) {
       auto iter = uniqueCards.begin();
       int i = 0;
 
@@ -280,15 +278,15 @@ void LibraryScene::onUpdate(double elapsed) {
       textbox.Open();
       Audio().Play(AudioType::CHIP_DESC);
     }
-    else if (INPUTx.Has(InputEvents::released_cancel) && textbox.IsOpen()) {
+    else if (Input().Has(InputEvents::released_cancel) && textbox.IsOpen()) {
       textbox.Close();
       textbox.SetTextSpeed(1.0);
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
     }
-    else if (INPUTx.Has(InputEvents::pressed_confirm) && textbox.IsOpen()) {
+    else if (Input().Has(InputEvents::pressed_confirm) && textbox.IsOpen()) {
       textbox.SetTextSpeed(3.0);
     }
-    else if (INPUTx.Has(InputEvents::released_confirm) && textbox.IsOpen()) {
+    else if (Input().Has(InputEvents::released_confirm) && textbox.IsOpen()) {
       textbox.SetTextSpeed(1.0);
       //textbox.Continue();
     }
@@ -299,7 +297,7 @@ void LibraryScene::onUpdate(double elapsed) {
     lastCardOnScreen = std::max(0, lastCardOnScreen);
     lastCardOnScreen = std::min(numOfCards - 1, lastCardOnScreen);
 
-    if (INPUTx.Has(InputEvents::pressed_cancel) && textbox.IsClosed()) {
+    if (Input().Has(InputEvents::pressed_cancel) && textbox.IsClosed()) {
       gotoNextScene = true;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
@@ -331,20 +329,18 @@ void LibraryScene::onResume() {
 }
 
 void LibraryScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
+  surface.draw(bg);
+  surface.draw(menuLabel);
 
-  ENGINE.Draw(bg);
-  ENGINE.Draw(menuLabel);
-
-  ENGINE.Draw(folderDock);
-  ENGINE.Draw(cardHolder);
+  surface.draw(folderDock);
+  surface.draw(cardHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 50.0f; float bottom = 230.0f;
   float depth = ((float)lastCardOnScreen / (float)numOfCards)*bottom;
   scrollbar.setPosition(452.f, top + depth);
 
-  ENGINE.Draw(scrollbar);
+  surface.draw(scrollbar);
 
   if (uniqueCards.size() == 0) return;
 
@@ -359,13 +355,13 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
   for (int i = 0; i < maxCardsOnScreen && lastCardOnScreen + i < numOfCards; i++) {
     cardIcon.setTexture(WEBCLIENT.GetIconForCard(iter->GetUUID()));
     cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
-    ENGINE.Draw(cardIcon, false);
+    surface.draw(cardIcon);
 
     cardLabel.setOrigin(0, 0);
     cardLabel.SetColor(sf::Color::White);
     cardLabel.setPosition(2.f*120.f, 60.0f + (32.f*i));
     cardLabel.SetString(iter->GetShortName());
-    ENGINE.Draw(cardLabel, false);
+    surface.draw(cardLabel);
 
     // Draw cursor
     if (lastCardOnScreen + i == currCardIndex) {
@@ -373,10 +369,10 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
       auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
 
       cursor.setPosition((2.f*90.f) + bounce, y);
-      ENGINE.Draw(cursor);
+      surface.draw(cursor);
 
       card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
-      ENGINE.Draw(card, false);
+      surface.draw(card);
 
       // This draws the currently highlighted card
       if (iter->GetDamage() > 0) {
@@ -385,24 +381,24 @@ void LibraryScene::onDraw(sf::RenderTexture& surface) {
         cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
         cardLabel.setPosition(2.f*(70.f), 135.f);
 
-        ENGINE.Draw(cardLabel, false);
+        surface.draw(cardLabel);
       }
 
       std::string formatted = FormatCardDesc(iter->GetDescription());
       cardDesc.SetString(formatted);
-      ENGINE.Draw(cardDesc, false);
+      surface.draw(cardDesc);
 
       int offset = (int)(iter->GetElement());
       auto elementRect = sf::IntRect(14 * offset, 0, 14, 14);
       element.setTextureRect(elementRect);
       element.setPosition(2.f*25.f, 142.f);
-      ENGINE.Draw(element, false);
+      surface.draw(element);
     }
 
     iter++;
   }
 
-  ENGINE.Draw(textbox);
+  surface.draw(textbox);
 }
 
 void LibraryScene::onEnd() {

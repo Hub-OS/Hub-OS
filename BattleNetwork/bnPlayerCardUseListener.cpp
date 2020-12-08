@@ -76,7 +76,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->RegisterComponent(invis);
   }
   else if (name.substr(0, 7) == "Rflectr") {
-    auto action = new ReflectCardAction(player, card.GetDamage(), ReflectShield::Type::yellow);
+    auto action = new ReflectCardAction(*player, card.GetDamage(), ReflectShield::Type::yellow);
     player->QueueAction(action);
   }
   else if (name == "Fishy") {
@@ -115,7 +115,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     }
   }
   else if (name == "Zeta Cannon 1") {
-    auto action = new ZetaCannonCardAction(player, card.GetDamage());
+    auto action = new ZetaCannonCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "TwinFang") {
@@ -127,7 +127,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->QueueAction(action);
   }
   else if (name == "DarkTorn") {
-    auto action = new DarkTornadoCardAction(player, card.GetDamage());
+    auto action = new DarkTornadoCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "ElecSwrd") {
@@ -148,11 +148,11 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->QueueAction(action);
   }
   else if (name == "HiCannon") {
-    auto action = new CannonCardAction(player, card.GetDamage(), CannonCardAction::Type::blue);
+    auto action = new CannonCardAction(*player, card.GetDamage(), CannonCardAction::Type::blue);
     player->QueueAction(action);
   }
   else if (name == "M-Cannon") {
-    auto action = new CannonCardAction(player, card.GetDamage(), CannonCardAction::Type::red);
+    auto action = new CannonCardAction(*player, card.GetDamage(), CannonCardAction::Type::red);
     player->QueueAction(action);
   }
   else if (name == "MiniBomb") {
@@ -185,37 +185,37 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->QueueAction(action);
   }
   else if (name == "AirShot") {
-    auto action = new AirShotCardAction(player, card.GetDamage());
+    auto action = new AirShotCardAction(*player, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "Thunder") {
     player->QueueAction(new ThunderCardAction(*player, card.GetDamage()));
   }
   else if (name.substr(0, 4) == "Roll") {
-    player->QueueAction(new RollCardAction(player, card.GetDamage()));
+    player->QueueAction(new RollCardAction(*player, card.GetDamage()));
   }
   else if (name == "ProtoMan") {
-    player->QueueAction(new ProtoManCardAction(player, card.GetDamage()));
+    player->QueueAction(new ProtoManCardAction(*player, card.GetDamage()));
   }
   else if (name == "RockCube") {
-    player->QueueAction(new CubeCardAction(player));
+    player->QueueAction(new CubeCardAction(*player));
   }
   else if (name == "AreaGrab") {
-    player->QueueAction(new AreaGrabCardAction(player, 10));
+    player->QueueAction(new AreaGrabCardAction(*player, 10));
   }
   else if (name == "AntiDmg") {
-    player->QueueAction(new AntiDmgCardAction(player, card.GetDamage()));
+    player->QueueAction(new AntiDmgCardAction(*player, card.GetDamage()));
   }
   else if (name == "Barrier") {
-    player->QueueAction(new AuraCardAction(player, Aura::Type::BARRIER_10));
+    player->QueueAction(new AuraCardAction(*player, Aura::Type::BARRIER_10));
   }
   else if (name.substr(0, 7) == "MachGun") {
-    player->QueueAction(new MachGunCardAction(player, card.GetDamage()));
+    player->QueueAction(new MachGunCardAction(*player, card.GetDamage()));
   }
   else if (name == "HubBatch") {
-    player->QueueAction(new HubBatchCardAction(player));
+    player->QueueAction(new HubBatchCardAction(*player));
   }
   else if (name == "AirHocky") {
-    player->QueueAction(new AirHockeyCardAction(player, card.GetDamage()));
+    player->QueueAction(new AirHockeyCardAction(*player, card.GetDamage()));
   }
 }

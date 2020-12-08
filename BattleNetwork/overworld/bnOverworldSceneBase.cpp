@@ -27,7 +27,7 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
+
 using namespace swoosh::types;
 
 
@@ -107,12 +107,13 @@ auto MakeOptions = [] (Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
 
 Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool guestAccount) :
   guestAccount(guestAccount),
-  camera(ENGINE.GetView()),
   lastIsConnectedState(false),
   menuWidget("Overworld", MakeOptions(this)),
   textbox({ 4, 255 }),
-  swoosh::Activity(&controller)
+  camera(controller.getWindow().getView()),
+  Scene(controller)
 {
+
   // When we reach the menu scene we need to load the player information
   // before proceeding to next sub menus
   // data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
@@ -203,28 +204,28 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   map.setScale(2.f, 2.f);
 
   // Load overworld assets
-  treeTexture = TEXTURES.LoadTextureFromFile("resources/ow/tree.png");
+  treeTexture = Textures().LoadTextureFromFile("resources/ow/tree.png");
   treeAnim = Animation("resources/ow/tree.animation") << "default" << Animator::Mode::Loop;
 
-  warpTexture = TEXTURES.LoadTextureFromFile("resources/ow/warp.png");
+  warpTexture = Textures().LoadTextureFromFile("resources/ow/warp.png");
   warpAnim = Animation("resources/ow/warp.animation") << "on" << Animator::Mode::Loop;
 
   onlineWarpAnim = warpAnim;
   onlineWarpAnim << "off";
 
-  netWarpTexture = TEXTURES.LoadTextureFromFile("resources/ow/hp_warp.png");
+  netWarpTexture = Textures().LoadTextureFromFile("resources/ow/hp_warp.png");
   netWarpAnim = Animation("resources/ow/hp_warp.animation") << "off" << Animator::Mode::Loop;
 
-  homeWarpTexture = TEXTURES.LoadTextureFromFile("resources/ow/home_warp.png");
+  homeWarpTexture = Textures().LoadTextureFromFile("resources/ow/home_warp.png");
   homeWarpAnim = Animation("resources/ow/home_warp.animation") << "default" << Animator::Mode::Loop;
 
-  gateTexture = TEXTURES.LoadTextureFromFile("resources/ow/gate.png");
+  gateTexture = Textures().LoadTextureFromFile("resources/ow/gate.png");
   gateAnim = Animation("resources/ow/gate.animation") << "default" << Animator::Mode::Loop;
 
-  coffeeTexture = TEXTURES.LoadTextureFromFile("resources/ow/coffee.png");
+  coffeeTexture = Textures().LoadTextureFromFile("resources/ow/coffee.png");
   coffeeAnim = Animation("resources/ow/coffee.animation") << "default" << Animator::Mode::Loop;
 
-  ornamentTexture = TEXTURES.LoadTextureFromFile("resources/ow/xmas.png");
+  ornamentTexture = Textures().LoadTextureFromFile("resources/ow/xmas.png");
   starAnim = xmasAnim = lightsAnim = Animation("resources/ow/xmas.animation");
   starAnim << "star" << Animator::Mode::Loop;
   lightsAnim << "lights" << Animator::Mode::Loop;
@@ -267,7 +268,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   // check to see if talk button was pressed
   if (textbox.IsClosed() && menuWidget.IsClosed()) {
-    if (INPUTx.Has(InputEvents::pressed_interact)) {
+    if (Input().Has(InputEvents::pressed_interact)) {
       // check to see what tile we pressed talk to
       const Overworld::Map::Tile tile = map.GetTileAt(playerActor.PositionInFrontOf());
       if (tile.token == "C") {
@@ -285,7 +286,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
       }
     }
   }
-  else if (INPUTx.Has(InputEvents::pressed_interact)) {
+  else if (Input().Has(InputEvents::pressed_interact)) {
     // continue the conversation if the text is complete
     if (textbox.IsEndOfMessage()) {
       textbox.DequeMessage();
@@ -479,7 +480,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   if (!gotoNextScene && textbox.IsClosed()) {
     // emotes widget
-    if (INPUTx.Has(InputEvents::pressed_option) && menuWidget.IsClosed()) {
+    if (Input().Has(InputEvents::pressed_option) && menuWidget.IsClosed()) {
       if (emote.IsClosed()) {
         emote.Open();
       }
@@ -490,20 +491,20 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
     if (emote.IsClosed()) {
       // menu widget
-      if (INPUTx.Has(InputEvents::pressed_pause) && !INPUTx.Has(InputEvents::pressed_cancel)) {
+      if (Input().Has(InputEvents::pressed_pause) && !Input().Has(InputEvents::pressed_cancel)) {
         if (menuWidget.IsClosed()) {
           menuWidget.Open();
-          AUDIO.Play(AudioType::CHIP_DESC);
+          Audio().Play(AudioType::CHIP_DESC);
         }
         else if (menuWidget.IsOpen()) {
           menuWidget.Close();
-          AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+          Audio().Play(AudioType::CHIP_DESC_CLOSE);
         }
       }
 
       // menu widget controlls
       if (menuWidget.IsOpen()) {
-        if (INPUTx.Has(InputEvents::pressed_ui_up) || INPUTx.Has(InputEvents::held_ui_up)) {
+        if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
           selectInputCooldown -= elapsed;
 
           if (selectInputCooldown <= 0) {
@@ -515,10 +516,10 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
               selectInputCooldown = maxSelectInputCooldown / 4.0;
             }
 
-            menuWidget.CursorMoveUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+            menuWidget.CursorMoveUp() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
           }
         }
-        else if (INPUTx.Has(InputEvents::pressed_ui_down) || INPUTx.Has(InputEvents::held_ui_down)) {
+        else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
           selectInputCooldown -= elapsed;
 
           if (selectInputCooldown <= 0) {
@@ -530,27 +531,27 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
               selectInputCooldown = maxSelectInputCooldown / 4.0;
             }
 
-            menuWidget.CursorMoveDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+            menuWidget.CursorMoveDown() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
           }
         }
-        else if (INPUTx.Has(InputEvents::pressed_confirm)) {
+        else if (Input().Has(InputEvents::pressed_confirm)) {
           bool result = menuWidget.ExecuteSelection();
 
           if (result && menuWidget.IsOpen() == false) {
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            Audio().Play(AudioType::CHIP_DESC_CLOSE);
           }
         }
-        else if (INPUTx.Has(InputEvents::pressed_ui_right) || INPUTx.Has(InputEvents::pressed_cancel)) {
+        else if (Input().Has(InputEvents::pressed_ui_right) || Input().Has(InputEvents::pressed_cancel)) {
           extendedHold = false;
 
           bool exitSelected = !menuWidget.SelectExit();
 
           if (exitSelected) {
-            if (INPUTx.Has(InputEvents::pressed_cancel)) {
+            if (Input().Has(InputEvents::pressed_cancel)) {
               bool result = menuWidget.ExecuteSelection();
 
               if (result && menuWidget.IsOpen() == false) {
-                AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+                Audio().Play(AudioType::CHIP_DESC_CLOSE);
               }
             }
             else {
@@ -559,10 +560,10 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
             }
           }
 
-          AUDIO.Play(AudioType::CHIP_SELECT);
+          Audio().Play(AudioType::CHIP_SELECT);
         }
-        else if (INPUTx.Has(InputEvents::pressed_ui_left)) {
-          menuWidget.SelectOptions() ? AUDIO.Play(AudioType::CHIP_SELECT) : 0;
+        else if (Input().Has(InputEvents::pressed_ui_left)) {
+          menuWidget.SelectOptions() ? Audio().Play(AudioType::CHIP_SELECT) : 0;
           extendedHold = false;
         }
         else {
@@ -574,7 +575,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   // Allow player to resync with remote account by pressing the pause action
-  /*if (INPUTx.Has(InputEvents::pressed_option)) {
+  /*if (Input().Has(InputEvents::pressed_option)) {
       accountCommandResponse = WEBCLIENT.SendFetchAccountCommand();
   }*/
 
@@ -615,8 +616,6 @@ void Overworld::SceneBase::onResume() {
 
   gotoNextScene = false;
 
-  ENGINE.SetCamera(camera);
-
   // if we left this scene for a new OW scene... return to our warp area
   if (teleportedOut) {
     playerController.ReleaseActor();
@@ -639,28 +638,24 @@ void Overworld::SceneBase::onResume() {
 }
 
 void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-
-  ENGINE.Draw(bg);
+  surface.draw(*bg);
 
   auto offset = getView().getCenter() - camera.GetView().getCenter();
 
   map.move(offset);
-  ENGINE.Draw(map);
+  surface.draw(map);
   map.move(-offset);
 
-  ENGINE.Draw(emote);
-  ENGINE.Draw(menuWidget);
+  surface.draw(emote);
+  surface.draw(menuWidget);
 
   // Add the web account connection symbol
-  ENGINE.Draw(&webAccountIcon);
+  surface.draw(webAccountIcon);
 
-  ENGINE.Draw(textbox);
+  surface.draw(textbox);
 }
 
 void Overworld::SceneBase::onEnd() {
-  ENGINE.RevokeShader();
-
 #ifdef __ANDROID__
   ShutdownTouchControls();
 #endif
@@ -811,7 +806,7 @@ void Overworld::SceneBase::ResetMap()
 
       // Test iceman
       iceman->LoadAnimations("resources/mobs/iceman/iceman_OW.animation");
-      iceman->setTexture(TEXTURES.LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
+      iceman->setTexture(Textures().LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
       iceman->setPosition(pos);
       iceman->SetCollisionRadius(6);
       iceman->CollideWithMap(map);
@@ -828,7 +823,7 @@ void Overworld::SceneBase::ResetMap()
 
           // Play message
           sf::Sprite face;
-          face.setTexture(*TEXTURES.LoadTextureFromFile("resources/mobs/iceman/ice_mug.png"));
+          face.setTexture(*Textures().LoadTextureFromFile("resources/mobs/iceman/ice_mug.png"));
           std::string msgStr = "Can't talk! Xmas is only " + std::to_string(DaysUntilXmas()) + " days away!";
           textbox.EnqueMessage(face, "resources/mobs/iceman/mug.animation", new Message(msgStr));
           textbox.Open();
@@ -851,7 +846,7 @@ void Overworld::SceneBase::ResetMap()
 
       // Test Mr Prog
       mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
-      mrprog->setTexture(TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
+      mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
       mrprog->setPosition(pos);
       mrprog->SetCollisionRadius(3);
       mrprog->CollideWithMap(map);
@@ -864,7 +859,7 @@ void Overworld::SceneBase::ResetMap()
 
           // Play message
           sf::Sprite face;
-          face.setTexture(*TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
+          face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
           textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
             onlineWarpAnim.GetAnimationString() == "OFF"? new Message("This is your homepage! But it looks like the next area is offline...")
             : new Message("This is your homepage! Find an active telepad to take you into cyberspace!")
@@ -888,7 +883,7 @@ void Overworld::SceneBase::ResetMap()
 
       // Test Mr Prog
       mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
-      mrprog->setTexture(TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
+      mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
       mrprog->setPosition(pos);
       mrprog->SetCollisionRadius(3);
       mrprog->CollideWithMap(map);
@@ -901,7 +896,7 @@ void Overworld::SceneBase::ResetMap()
 
           // Play message
           sf::Sprite face;
-          face.setTexture(*TEXTURES.LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
+          face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
           textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
             new Message("This is a bigger area than the one before!")
           );
@@ -1024,7 +1019,7 @@ void Overworld::SceneBase::ResetMap()
       SpriteProxyNode* lights = new SpriteProxyNode();
       lights->setTexture(ornamentTexture);
       lights->SetLayer(-1);
-      lights->SetShader(SHADERS.GetShader(ShaderType::COLORIZE));
+      lights->SetShader(Shaders().GetShader(ShaderType::COLORIZE));
 
       xmasAnim << "lights";
       xmasAnim.Refresh(lights->getSprite());
@@ -1055,7 +1050,7 @@ void Overworld::SceneBase::ResetMap()
       SpriteProxyNode* lights = new SpriteProxyNode();
       lights->setTexture(ornamentTexture);
       lights->SetLayer(-1);
-      lights->SetShader(SHADERS.GetShader(ShaderType::COLORIZE));
+      lights->SetShader(Shaders().GetShader(ShaderType::COLORIZE));
       xmasAnim << "lights";
       xmasAnim.Refresh(lights->getSprite());
       new_tree->AddNode(lights);
@@ -1080,7 +1075,7 @@ void Overworld::SceneBase::ResetMap()
       SpriteProxyNode* bulbs = new SpriteProxyNode();
       bulbs->setTexture(ornamentTexture);
       bulbs->SetLayer(-1);
-      bulbs->SetShader(SHADERS.GetShader(ShaderType::GRADIENT));
+      bulbs->SetShader(Shaders().GetShader(ShaderType::GRADIENT));
 
       // hard-coded yellow to peach from original ribbon sprite
       bulbs->GetShader().SetUniform("firstColor", { 248, 72, 4, 255 });
@@ -1094,7 +1089,7 @@ void Overworld::SceneBase::ResetMap()
       SpriteProxyNode* lights = new SpriteProxyNode();
       lights->setTexture(ornamentTexture);
       lights->SetLayer(-1);
-      lights->SetShader(SHADERS.GetShader(ShaderType::COLORIZE));
+      lights->SetShader(Shaders().GetShader(ShaderType::COLORIZE));
       xmasAnim << "lights";
       xmasAnim.Refresh(lights->getSprite());
       new_tree->AddNode(lights);
@@ -1160,7 +1155,7 @@ void Overworld::SceneBase::SetBackground(Background* background)
 void Overworld::SceneBase::GotoChipFolder()
 {
   gotoNextScene = true;
-  AUDIO.Play(AudioType::CHIP_DESC);
+  Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<PushIn<direction::left>, milliseconds<500>>;
   getController().push<effect::to<FolderScene>>(folders);
@@ -1170,7 +1165,7 @@ void Overworld::SceneBase::GotoNaviSelect()
 {
   // Navi select
   gotoNextScene = true;
-  AUDIO.Play(AudioType::CHIP_DESC);
+  Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<Checkerboard, milliseconds<250>>;
   getController().push<effect::to<SelectNaviScene>>(currentNavi);
@@ -1180,7 +1175,7 @@ void Overworld::SceneBase::GotoConfig()
 {
   // Config Select on PC
   gotoNextScene = true;
-  AUDIO.Play(AudioType::CHIP_DESC);
+  Audio().Play(AudioType::CHIP_DESC);
 
   using effect = segue<DiamondTileSwipe<direction::right>, milliseconds<500>>;
   getController().push<effect::to<ConfigScene>>();
@@ -1194,11 +1189,11 @@ void Overworld::SceneBase::GotoMobSelect()
 
   if (folders.GetFolder(0, folder)) {
     using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
-    AUDIO.Play(AudioType::CHIP_DESC);
+    Audio().Play(AudioType::CHIP_DESC);
     getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdvance);
   }
   else {
-    AUDIO.Play(AudioType::CHIP_ERROR);
+    Audio().Play(AudioType::CHIP_ERROR);
     Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
     gotoNextScene = false;
   }
@@ -1211,12 +1206,12 @@ void Overworld::SceneBase::GotoPVP()
   CardFolder* folder = nullptr;
 
   if (folders.GetFolder(0, folder)) {
-    AUDIO.Play(AudioType::CHIP_DESC);
+    Audio().Play(AudioType::CHIP_DESC);
     using effect = segue<PushIn<direction::down>, milliseconds<500>>;
     getController().push<effect::to<PVPScene>>(static_cast<int>(currentNavi), *folder, programAdvance);
   }
   else {
-    AUDIO.Play(AudioType::CHIP_ERROR);
+    Audio().Play(AudioType::CHIP_ERROR);
     Logger::Log("Cannot proceed to battles. You need 1 folder minimum.");
     gotoNextScene = false;
   }
@@ -1298,7 +1293,7 @@ void Overworld::SceneBase::StartupTouchControls() {
         Logger::Log("folder released");
 
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
@@ -1324,7 +1319,7 @@ void Overworld::SceneBase::StartupTouchControls() {
         Logger::Log("library released");
 
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
 
         using swoosh::intent::direction;
         using segue = swoosh::intent::segue<PushIn<direction::right>>;
@@ -1346,7 +1341,7 @@ void Overworld::SceneBase::StartupTouchControls() {
 
     naviBtn.onRelease([this](sf::Vector2i delta) {
         gotoNextScene = true;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
         using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>;
         using intent = segue::to<SelectNaviScene>;
         getController().push<intent>(currentNavi);
@@ -1370,12 +1365,12 @@ void Overworld::SceneBase::StartupTouchControls() {
         CardFolder* folder = nullptr;
 
         if (data.GetFolder("Default", folder)) {
-          AUDIO.Play(AudioType::CHIP_DESC);
+          Audio().Play(AudioType::CHIP_DESC);
           using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
           getController().push<segue>(currentNavi, *folder);
         }
         else {
-          AUDIO.Play(AudioType::CHIP_ERROR);
+          Audio().Play(AudioType::CHIP_ERROR);
           Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
           gotoNextScene = false;
         }

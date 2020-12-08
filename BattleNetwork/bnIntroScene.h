@@ -12,7 +12,7 @@ class IntroScene : public Scene {
   bool inMessageState;
   float messageCooldown, speed;
 public:
-  IntroScene(ActivityController* controller);
+  IntroScene(ActivityController& controller);
 
   void onStart() override;
   void onUpdate(double elapsed) override;

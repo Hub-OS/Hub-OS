@@ -13,12 +13,9 @@ using sf::Keyboard;
 
 #define GAMEPAD_AXIS_SENSITIVITY 30.f
 
-InputManager& InputManager::GetInstance() {
-  static InputManager instance;
-  return instance;
-}
-
-InputManager::InputManager()  : settings() {
+InputManager::InputManager(sf::Window& win)  : 
+  window(win),
+  settings() {
   lastkey = sf::Keyboard::Key::Unknown;
   lastButton = (decltype(lastButton))-1;
   lastAxisXPower = axisXPower = lastAxisYPower = axisYPower = 0.f;
@@ -44,10 +41,10 @@ void InputManager::Update() {
   lastkey = sf::Keyboard::Key::Unknown;
   lastButton = (decltype(lastButton))-1;
 
-  while (ENGINE.GetWindow()->pollEvent(event)) {
+  while (window.pollEvent(event)) {
     if (event.type == Event::Closed) {
       onLoseFocus();
-      ENGINE.GetWindow()->close();
+      window.close();
       hasFocus = false;
     } else if (event.type == Event::LostFocus) {
       onLoseFocus();

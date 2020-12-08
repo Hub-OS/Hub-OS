@@ -66,14 +66,14 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
       playerPtr->ChangeState<PlayerControlledState>();
 
       if (lastSelectedForm == -1) {
-        AUDIO.Play(AudioType::DEFORM);
+        Audio().Play(AudioType::DEFORM);
       }
       else {
         auto& widget = GetScene().GetCardSelectWidget();
         widget.LockInPlayerFormSelection();
         widget.ErasePlayerFormOption(lastSelectedForm);
         GetScene().HandleCounterLoss(*playerPtr);
-        AUDIO.Play(AudioType::SHINE);
+        Audio().Play(AudioType::SHINE);
       }
 
       // Activating the form will add NEW child nodes onto our character
@@ -90,7 +90,7 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
         }
       }
 
-      playerPtr->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+      playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));
     };
 
     bool* completePtr = &complete;
@@ -120,9 +120,9 @@ void CharacterTransformBattleState::UpdateAnimation(double elapsed)
 
       if (index == -1) {
         // If decross, turn white immediately
-        shineAnimations[count] << Animator::On(1, [playerPtr, collectChildNodes] {      
+        shineAnimations[count] << Animator::On(1, [=] {      
           collectChildNodes();
-          playerPtr->SetShader(SHADERS.GetShader(ShaderType::WHITE));
+          playerPtr->SetShader(Shaders().GetShader(ShaderType::WHITE));
           }) << Animator::On(10, onTransform);
       }
       else {
@@ -198,7 +198,7 @@ void CharacterTransformBattleState::onEnd(const BattleSceneState*)
   frameElapsed = 0;
 }
 
-void CharacterTransformBattleState::onDraw(sf::RenderTexture&)
+void CharacterTransformBattleState::onDraw(sf::RenderTexture& surface)
 {
   size_t count = 0;
   for (auto data : tracking) {
@@ -212,7 +212,7 @@ void CharacterTransformBattleState::onDraw(sf::RenderTexture&)
         auto pos = player->getPosition();
         shine.setPosition(pos.x + 16.0f, pos.y - player->GetHeight() / 4.0f);
 
-        ENGINE.Draw(shine, false);
+        surface.draw(shine);
       }
 
     count++;

@@ -9,6 +9,7 @@
 #include "bnUIComponent.h"
 #include "bnCardUsePublisher.h"
 #include "bnSpriteProxyNode.h"
+#include "bnInputHandle.h"
 #include "bnText.h"
 
 using std::ostringstream;
@@ -22,7 +23,7 @@ class Player;
 class Card;
 class BattleSceneBase;
 
-class SelectedCardsUI : public CardUsePublisher, public UIComponent {
+class SelectedCardsUI : public CardUsePublisher, public UIComponent, public InputHandle {
 public:
   /**
    * \brief Loads the graphics and sets spread duration to .2 seconds

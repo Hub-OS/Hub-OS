@@ -7,7 +7,7 @@
 AirHockey::AirHockey(Field* field, Team team, int damage, int moveCount) :
   Spell(field, team), damage(damage), moveCount(moveCount)
 {
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/puck.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/spells/puck.png"));
   setOrigin(getLocalBounds().width / 2.f, 16.f);
   setScale(2.f, 2.f);
 
@@ -77,7 +77,7 @@ void AirHockey::OnUpdate(float _elapsed)
 void AirHockey::Attack(Character* _entity)
 {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
+    Audio().Play(AudioType::HURT);
   }
 }
 

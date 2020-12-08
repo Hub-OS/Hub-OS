@@ -13,10 +13,10 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  AirHockeyCardAction(Character* owner, int damage);
+  AirHockeyCardAction(Character& owner, int damage);
   ~AirHockeyCardAction();
   void OnUpdate(float _elapsed);
   void OnAnimationEnd();
-  void EndAction();
-  void Execute();
+  void OnEndAction();
+  void OnExecute();
 };

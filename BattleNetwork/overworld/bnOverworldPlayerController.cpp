@@ -23,27 +23,27 @@ void Overworld::PlayerController::Update(double elapsed)
 {
   if (actor == nullptr) return;
 
-  bool run = INPUTx.Has(InputEvents::held_run);
+  bool run = Input().Has(InputEvents::held_run);
   std::vector<Direction> inputs;
 
   if (listen) {
-    if (INPUTx.Has(InputEvents::pressed_move_left) || INPUTx.Has(InputEvents::held_move_left)) {
+    if (Input().Has(InputEvents::pressed_move_left) || Input().Has(InputEvents::held_move_left)) {
       inputs.push_back(Direction::down_left);
     }
 
-    if (INPUTx.Has(InputEvents::pressed_move_right) || INPUTx.Has(InputEvents::held_move_right)) {
+    if (Input().Has(InputEvents::pressed_move_right) || Input().Has(InputEvents::held_move_right)) {
       inputs.push_back(Direction::up_right);
     }
 
-    if (INPUTx.Has(InputEvents::pressed_move_up) || INPUTx.Has(InputEvents::held_move_up)) {
+    if (Input().Has(InputEvents::pressed_move_up) || Input().Has(InputEvents::held_move_up)) {
       inputs.push_back(Direction::up_left);
     }
 
-    if (INPUTx.Has(InputEvents::pressed_move_down) || INPUTx.Has(InputEvents::held_move_down)) {
+    if (Input().Has(InputEvents::pressed_move_down) || Input().Has(InputEvents::held_move_down)) {
       inputs.push_back(Direction::down_right);
     }
 
-    if (INPUTx.Has(InputEvents::pressed_interact)) {
+    if (Input().Has(InputEvents::pressed_interact)) {
       Direction facing = actor->GetHeading();
 
       for (auto other : actor->GetQuadTree()->GetActors()) {

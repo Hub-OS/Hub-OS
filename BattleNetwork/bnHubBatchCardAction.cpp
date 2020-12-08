@@ -12,8 +12,8 @@
 #define FRAMES FRAME1
 
 
-HubBatchCardAction::HubBatchCardAction(Character* owner) :
-  CardAction(*owner, "PLAYER_IDLE") {
+HubBatchCardAction::HubBatchCardAction(Character& owner) :
+  CardAction(owner, "PLAYER_IDLE") {
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -23,9 +23,9 @@ HubBatchCardAction::~HubBatchCardAction()
 {
 }
 
-void HubBatchCardAction::Execute() {
+void HubBatchCardAction::OnExecute() {
   // Play sound
-  AUDIO.Play(AudioType::RECOVER);
+  Audio().Play(AudioType::RECOVER);
 
   // Add hubbatchprogram compontent
   GetOwner()->CreateComponent<HubBatchProgram>(GetOwner());
@@ -40,7 +40,7 @@ void HubBatchCardAction::OnAnimationEnd()
 {
 }
 
-void HubBatchCardAction::EndAction()
+void HubBatchCardAction::OnEndAction()
 {
   Eject();
 }
@@ -51,7 +51,7 @@ HubBatchProgram::HubBatchProgram(Character* owner) :
   Component(owner, Component::lifetimes::battlestep)
 {
   anim = Animation("resources/spells/hub_batch.animation");
-  effect.setTexture(TEXTURES.LoadTextureFromFile("resources/spells/hub_batch.png"));
+  effect.setTexture(owner->Textures().LoadTextureFromFile("resources/spells/hub_batch.png"));
 
   anim << "DEFAULT" << [this] {
     effect.Hide();

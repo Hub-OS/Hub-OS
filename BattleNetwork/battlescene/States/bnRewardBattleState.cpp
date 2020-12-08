@@ -54,14 +54,14 @@ void RewardBattleState::onUpdate(double elapsed)
 
 void RewardBattleState::onDraw(sf::RenderTexture& surface)
 {
-  battleResults->Draw();
+  battleResults->Draw(surface);
 
   if (!battleResults->IsInView()) {
     float amount = MODAL_SLIDE_PX_PER_SEC * (float)elapsed;
     battleResults->Move(sf::Vector2f(amount, 0));
   }
   else {
-    if (INPUTx.Has(InputEvents::pressed_confirm)) {
+    if (Input().Has(InputEvents::pressed_confirm)) {
       // Have to hit twice
       if (battleResults->IsFinished()) {
         BattleItem* reward = battleResults->GetReward();

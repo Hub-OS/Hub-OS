@@ -24,11 +24,15 @@ CardAction(user, "PLAYER_SWORD") {
 
   OverrideAnimationFrames({ FRAMES });
 
-  attachmentAnim = Animation(anim->GetFilePath());
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("HAND");
+  auto* anim = user.GetFirstComponent<AnimationComponent>();
 
-  AddAttachment(anim->GetAnimationObject(), "hilt", *attachment).PrepareAnimation(attachmentAnim);
+  if (anim) {
+    attachmentAnim = Animation(anim->GetFilePath());
+    attachmentAnim.Reload();
+    attachmentAnim.SetAnimation("HAND");
+
+    AddAttachment(anim->GetAnimationObject(), "hilt", *attachment).UseAnimation(attachmentAnim);
+  }
 }
 
 CrackShotCardAction::~CrackShotCardAction()
@@ -49,16 +53,16 @@ void CrackShotCardAction::OnExecute() {
     auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
 
     if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter()) {
-      CrackShot* b = new CrackShot(user.GetField(), user.GetTeam(), tile);
+      CrackShot* b = new CrackShot(owner->GetField(), owner->GetTeam(), tile);
       auto props = b->GetHitboxProperties();
       props.damage = damage;
-      props.aggressor = &user;
+      props.aggressor = owner;
       b->SetHitboxProperties(props);
 
-      auto direction = (user.GetTeam() == Team::red) ? Direction::right : Direction::left;
+      auto direction = (owner->GetTeam() == Team::red) ? Direction::right : Direction::left;
       b->SetDirection(direction);
 
-      user.GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
+      owner->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
 
       GetOwner()->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
       Audio().Play(AudioType::TOSS_ITEM_LITE);
@@ -71,7 +75,7 @@ void CrackShotCardAction::OnExecute() {
       GetOwner()->GetField()->AddEntity(*fx, tile->GetX(), tile->GetY());
     }
 
-    AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+    Audio().Play(AudioType::TOSS_ITEM_LITE);
   };
 
   auto addHand = [this] {
@@ -97,6 +101,6 @@ void CrackShotCardAction::OnAnimationEnd()
 {
 }
 
-void CrackShotCardAction::EndAction() {
+void CrackShotCardAction::OnEndAction() {
   Eject();
 }

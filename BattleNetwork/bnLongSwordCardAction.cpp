@@ -6,7 +6,7 @@
 #include "bnBasicSword.h"
 #include "bnSwordEffect.h"
 
-LongSwordCardAction::LongSwordCardAction(Character * owner, int damage) : 
+LongSwordCardAction::LongSwordCardAction(Character& owner, int damage) : 
   SwordCardAction(owner, damage) {
   LongSwordCardAction::damage = damage;
 }
@@ -29,7 +29,7 @@ void LongSwordCardAction::OnSpawnHitbox()
 
   auto props = b->GetHitboxProperties();
   props.element = GetElement();
-  props.aggressor = &user;
+  props.aggressor = GetOwner();
   b->SetHitboxProperties(props);
 
   field->AddEntity(*b, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());

@@ -18,7 +18,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   attackLabel("1", font),
   speedLabel("1", font),
   menuLabel("1", font),
-  Scene(&controller) {
+  Scene(controller) {
 
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
@@ -108,9 +108,7 @@ SelectNaviScene::~SelectNaviScene()
 }
 
 void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-
-  ENGINE.Draw(bg);
+  surface.draw(*bg);
 
   // Navi preview shadow
   auto originalPosition = navi.getPosition();
@@ -119,17 +117,17 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   // Make the shadow begin on the other side of the window by an arbitrary offset
   navi.setPosition(-20.0f + getController().getVirtualWindowSize().x - navi.getPosition().x, navi.getPosition().y);
   navi.setColor(sf::Color::Black);
-  ENGINE.Draw(navi);
+  surface.draw(navi);
 
   // End 'hack' by restoring original position and color values
   navi.setPosition(originalPosition);
   navi.setColor(originalColor);
 
   charName.setPosition(UI_LEFT_POS, charName.getPosition().y);
-  ENGINE.Draw(charName);
+  surface.draw(charName);
 
   charElement.setPosition(UI_LEFT_POS, charElement.getPosition().y);
-  ENGINE.Draw(charElement);
+  surface.draw(charElement);
 
   // Draw stat box three times for three diff. properties
   float charStat1Max = 10;
@@ -141,7 +139,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
 
-  ENGINE.Draw(charStat);
+  surface.draw(charStat);
 
   // 2nd stat box
   float charStat2Max = 10 + UI_SPACING;
@@ -153,7 +151,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
 
-  ENGINE.Draw(charStat);
+  surface.draw(charStat);
 
   // 3rd stat box
   float charStat3Max = 10 + (UI_SPACING * 2);
@@ -165,11 +163,11 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
 
-  ENGINE.Draw(charStat);
+  surface.draw(charStat);
 
   // SP. Info box
   charInfo.setPosition(UI_RIGHT_POS, charInfo.getPosition().y);
-  ENGINE.Draw(charInfo);
+  surface.draw(charInfo);
 
   // Update UI slide in
   if (!gotoNextScene) {
@@ -190,12 +188,12 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
         UI_TOP_POS = UI_TOP_POS_MAX;
 
         // Draw labels
-        ENGINE.Draw(naviLabel);
-        ENGINE.Draw(hpLabel);
-        ENGINE.Draw(speedLabel);
-        ENGINE.Draw(attackLabel);
-        ENGINE.Draw(textbox);
-        ENGINE.Draw(element);
+        surface.draw(naviLabel);
+        surface.draw(hpLabel);
+        surface.draw(speedLabel);
+        surface.draw(attackLabel);
+        surface.draw(textbox);
+        surface.draw(element);
 
         textbox.Play();
       }
@@ -226,7 +224,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  ENGINE.Draw(navi);
+  surface.draw(navi);
 }
 
 void SelectNaviScene::onStart()
@@ -266,7 +264,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUTx.Has(InputEvents::pressed_ui_left)) {
+    if (Input().Has(InputEvents::pressed_ui_left)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -278,7 +276,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
+    else if (Input().Has(InputEvents::pressed_ui_right)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -294,7 +292,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUTx.Has(InputEvents::pressed_cancel)) {
+    if (Input().Has(InputEvents::pressed_cancel)) {
       gotoNextScene = true;
       Audio().Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
@@ -386,7 +384,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
   navi.setOrigin(float(navi.getTextureRect().width)*0.5f, float(navi.getTextureRect().height));
 
   // Make a selection
-  if (INPUT.Has(InputEvents::pressed_confirm) && currentChosen != naviSelectionIndex) {
+  if (Input().Has(InputEvents::pressed_confirm) && currentChosen != naviSelectionIndex) {
     Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
     prevChosen = currentChosen;
     naviSelectionIndex = currentChosen;

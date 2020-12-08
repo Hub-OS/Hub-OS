@@ -10,7 +10,6 @@
 #define COMPONENT_WIDTH 128
 #define COMPONENT_HEIGHT 128
 
-<<<<<<< HEAD
 VirusBackground::VirusBackground(void)
   : x(0.0f), 
   y(0), 

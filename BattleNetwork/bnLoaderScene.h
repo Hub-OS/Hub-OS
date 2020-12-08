@@ -26,7 +26,7 @@ private:
 
   void ExecuteTasks();
 public:
-  LoaderScene(swoosh::ActivityController* controller, TaskGroup&& tasks);
+  LoaderScene(swoosh::ActivityController& controller, TaskGroup&& tasks);
   virtual ~LoaderScene();
 
   const bool IsComplete() const;

@@ -9,8 +9,11 @@
 #define LOWERCASE 1
 #define COMMANDS  2
 
-FolderChangeNameScene::FolderChangeNameScene(ActivityController& controller, std::string& folderName) 
-  : Scene(&controller), folderName(folderName), font(Font::Style::small), nameLabel("", font) {
+FolderChangeNameScene::FolderChangeNameScene(ActivityController& controller, std::string& folderName) : 
+  Scene(controller), 
+  folderName(folderName), 
+  font(Font::Style::small), 
+  nameLabel("", font) {
   elapsed = 0;
 
   leave = true;
@@ -165,7 +168,7 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
   auto lastY = cursorPosY;
 
   if (!leave) {
-    if (INPUTx.Has(InputEvents::pressed_cancel)) {
+    if (Input().Has(InputEvents::pressed_cancel)) {
       if (letterPos != 0 || name[letterPos] != '_') {
         Audio().Play(AudioType::CHIP_CANCEL);
       }
@@ -181,31 +184,31 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
         letterPos = std::max(0, letterPos);
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_left)) {
+    else if (Input().Has(InputEvents::pressed_ui_left)) {
     cursorPosX--;
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
+    else if (Input().Has(InputEvents::pressed_ui_right)) {
     cursorPosX++;
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_up)) {
+    else if (Input().Has(InputEvents::pressed_ui_up)) {
     cursorPosY--;
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_down)) {
+    else if (Input().Has(InputEvents::pressed_ui_down)) {
     cursorPosY++;
     }
-    else if (INPUTx.Has(InputEvents::pressed_scan_left)) {
+    else if (Input().Has(InputEvents::pressed_scan_left)) {
       DoBACK();
     }
-    else if (INPUTx.Has(InputEvents::pressed_scan_right)) {
+    else if (Input().Has(InputEvents::pressed_scan_right)) {
       DoNEXT();
     }
-    else if (INPUTx.Has(InputEvents::pressed_option)) {
+    else if (Input().Has(InputEvents::pressed_option)) {
       // hard coded, if columns change this must change too
       cursorPosX = 0;
       cursorPosY = 2;
       currTable = 2;
     }
-    else if (INPUTx.Has(InputEvents::pressed_confirm)) {
+    else if (Input().Has(InputEvents::pressed_confirm)) {
       executeAction = true;
     }
   }
@@ -290,10 +293,9 @@ void FolderChangeNameScene::onUpdate(double elapsed) {
 }
 
 void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-  ENGINE.Draw(bg);
-  ENGINE.Draw(cursorPieceLeft);
-  ENGINE.Draw(cursorPieceRight);
+  surface.draw(bg);
+  surface.draw(cursorPieceLeft);
+  surface.draw(cursorPieceRight);
 
   bool blink = (int(elapsed * 3000) % 1000) < 500;
 
@@ -304,7 +306,7 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
     nameLabel.SetString(name[i]);
     nameLabel.setPosition((65 + (i*8)) * 2.f, 15 * 2.f);
 
-    ENGINE.Draw(nameLabel);
+    surface.draw(nameLabel);
   }
 
   // 9th character is a special * asterisk to denote the end of input
@@ -312,6 +314,6 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
     nameLabel.SetString('*');
     nameLabel.setPosition((65 + (8 * 8)) * 2.f, 15 * 2.f);
 
-    ENGINE.Draw(nameLabel);
+    surface.draw(nameLabel);
   }
 }

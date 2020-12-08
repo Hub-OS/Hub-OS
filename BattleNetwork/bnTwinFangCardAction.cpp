@@ -11,8 +11,8 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME2, FRAME1, FRAME1
 
-TwinFangCardAction::TwinFangCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_SHOOTING") {
+TwinFangCardAction::TwinFangCardAction(Character& owner, int damage) : 
+  CardAction(owner, "PLAYER_SHOOTING") {
   TwinFangCardAction::damage = damage;
 
   // add override anims
@@ -22,39 +22,34 @@ TwinFangCardAction::TwinFangCardAction(Character * owner, int damage) :
 void TwinFangCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
-    auto& user = GetUser();
+    auto user = GetOwner();
 
-    auto tile = GetUser().GetTile();
+    auto tile = user->GetTile();
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
     if (tile->GetY() != 0) {
-      TwinFang* twinfang = new TwinFang(user.GetField(), user.GetTeam(), TwinFang::Type::ABOVE, damage);
+      TwinFang* twinfang = new TwinFang(user->GetField(), user->GetTeam(), TwinFang::Type::ABOVE, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = &user;
+      props.aggressor = user;
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 
-      GetUser().GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() - 1);
+      user->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() - 1);
     }
 
     if (tile->GetY() != 4) {
-      TwinFang* twinfang = new TwinFang(user.GetField(), user.GetTeam(), TwinFang::Type::BELOW, damage);
+      TwinFang* twinfang = new TwinFang(user->GetField(), user->GetTeam(), TwinFang::Type::BELOW, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = &user;
+      props.aggressor = user;
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 
-      GetUser().GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() + 1);
+      user->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() + 1);
     }
   };
 
   AddAnimAction(2, onFire);
-}
-
-void TwinFangCardAction::OnEndAction()
-{
-  // do nothing special
 }
 
 void TwinFangCardAction::OnUpdate(float _elapsed)
@@ -66,7 +61,7 @@ void TwinFangCardAction::OnAnimationEnd()
 {
 }
 
-void TwinFangCardAction::EndAction()
+void TwinFangCardAction::OnEndAction()
 {
   Eject();
 }

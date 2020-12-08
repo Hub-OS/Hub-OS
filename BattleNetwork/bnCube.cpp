@@ -34,7 +34,7 @@ Cube::Cube(Field* _field)
   SetHitboxProperties(props);
 
   auto impact = [this]() {
-    AUDIO.Play(AudioType::HURT);
+    Audio().Play(AudioType::HURT);
   };
 
   // breaking prop is insta-kill

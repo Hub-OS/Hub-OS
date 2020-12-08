@@ -7,22 +7,21 @@
 #include "../bnSpriteProxyNode.h"
 #include "../bnTextureResourceManager.h"
 #include "../bnCamera.h"
-
+#include "../bnResourceHandle.h"
 
 namespace Overworld {
-/*! \brief Incredibly simple overworld map class.
- * 
- * This generates a WxH isometric map. 
- * 
- * It sorts all sprites by Y and gives illusion of depth
- * 
- * If something it outside of the camera view, it is not drawn
- * 
- * The map also supports psuedo lighting by multiplying sprites
- * by the light color. Limit light sources because this is slow.
- */
+  /*! \brief Incredibly simple overworld map class.
+   * 
+   * This generates a WxH isometric map. 
+   * 
+   * It sorts all sprites by Y and gives illusion of depth
+   * 
+   * If something it outside of the camera view, it is not drawn
+   * 
+   * The map also supports psuedo lighting by multiplying sprites
+   * by the light color. Limit light sources because this is slow.
+   */
   class Map : public sf::Drawable, public sf::Transformable, public ResourceHandle
-
   {
   public:
     struct Tile {

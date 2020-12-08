@@ -87,7 +87,7 @@ void Meteor::Attack(Character* _entity) {
 
 void Meteor::OnSpawn(Battle::Tile& start)
 {
-  AUDIO.Play(AudioType::METEOR, AudioPriority::high);
+  Audio().Play(AudioType::METEOR, AudioPriority::high);
 }
 
 void Meteor::OnDelete()

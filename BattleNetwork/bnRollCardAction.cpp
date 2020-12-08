@@ -4,13 +4,13 @@
 #include "bnRollHeal.h"
 #include "bnRollHeart.h"
 
-RollCardAction::RollCardAction(Character* owner, int damage) :
-  CardAction(*owner, "PLAYER_IDLE"), damage(damage)
+RollCardAction::RollCardAction(Character& owner, int damage) :
+  CardAction(owner, "PLAYER_IDLE"), damage(damage)
 {
   this->SetLockout(ActionLockoutProperties{ ActionLockoutType::sequence });
 }
 
-void RollCardAction::Execute() {
+void RollCardAction::OnExecute() {
   auto owner = GetOwner();
 
   // On start of idle frame, spawn roll
@@ -61,7 +61,7 @@ void RollCardAction::OnAnimationEnd()
 {
 }
 
-void RollCardAction::EndAction()
+void RollCardAction::OnEndAction()
 {
   GetOwner()->Reveal();
   Eject();

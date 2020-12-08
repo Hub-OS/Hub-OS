@@ -4,7 +4,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include "bnLogger.h"
 #include "bnBusterCardAction.h"
 #include "bnReflectCardAction.h"
@@ -17,16 +17,16 @@ const std::string RESOURCE_PATH = "resources/navis/protoman/protoman.animation";
 
 CardAction* Protoman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  return new BusterCardAction(*this, false, 1*GetAttackLevel());
 }
 
 CardAction* Protoman::OnExecuteChargedBusterAction()
 {
-  return new WideSwordCardAction(this, 20*GetAttackLevel());
+  return new WideSwordCardAction(*this, 20*GetAttackLevel());
 }
 
 CardAction* Protoman::OnExecuteSpecialAction() {
-  auto* action = new ReflectCardAction(this, 20, ReflectShield::Type::red);
+  auto* action = new ReflectCardAction(*this, 20, ReflectShield::Type::red);
   action->SetLockout(ActionLockoutProperties{
     ActionLockoutType::async,
     frames(40).asSeconds()
@@ -47,7 +47,7 @@ Protoman::Protoman() : Player()
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/navis/protoman/navi_proto_atlas.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/navis/protoman/navi_proto_atlas.png"));
 
   SetHealth(1000);
 

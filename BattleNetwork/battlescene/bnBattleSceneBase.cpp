@@ -28,24 +28,25 @@ using swoosh::types::segue;
 using swoosh::Activity;
 using swoosh::ActivityController;
 
-BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) : 
-  Activity(&controller),
+BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSceneBaseProps& props) :
+  Scene(controller),
   player(&props.player),
   programAdvance(props.programAdvance),
   comboDeleteCounter(0),
   totalCounterMoves(0),
   totalCounterDeletions(0),
-  whiteShader(*SHADERS.GetShader(ShaderType::WHITE_FADE)),
-  backdropShader(*SHADERS.GetShader(ShaderType::BLACK_FADE)),
-  yellowShader(*SHADERS.GetShader(ShaderType::YELLOW)),
-  heatShader(*SHADERS.GetShader(ShaderType::SPOT_DISTORTION)),
-  iceShader(*SHADERS.GetShader(ShaderType::SPOT_REFLECTION)),
-  
+  whiteShader(*Shaders().GetShader(ShaderType::WHITE_FADE)),
+  backdropShader(*Shaders().GetShader(ShaderType::BLACK_FADE)),
+  yellowShader(*Shaders().GetShader(ShaderType::YELLOW)),
+  heatShader(*Shaders().GetShader(ShaderType::SPOT_DISTORTION)),
+  iceShader(*Shaders().GetShader(ShaderType::SPOT_REFLECTION)),
   cardListener(props.player),
   // cap of 8 cards, 8 cards drawn per turn
   cardCustGUI(props.folder, 8, 8),
-  camera(*ENGINE.GetCamera())
+  mobFont(Font::Style::thick),
+  camera(sf::View())
 {
+  //camera(*ENGINE.GetCamera());
 
   /*
   Set Scene*/
@@ -98,9 +99,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   auto healthUI = player->CreateComponent<PlayerHealthUI>(player);
   cardCustGUI.AddNode(healthUI);
 
-  camera = Camera(ENGINE.GetView());
-  ENGINE.SetCamera(camera);
-
   /*
   Counter "reveal" ring
   */
@@ -123,7 +121,6 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   cardCustGUI.SetPlayerFormOptions(player->GetForms());
 
   // MOB UI
-  mobFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
   mobBackdropSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_BACKDROP));
   mobEdgeSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_EDGE));
 
@@ -188,7 +185,7 @@ const bool BattleSceneBase::IsSceneInFocus() const
 
 void BattleSceneBase::OnCounter(Character& victim, Character& aggressor)
 {
-  AUDIO.Play(AudioType::COUNTER, AudioPriority::highest);
+  Audio().Play(AudioType::COUNTER, AudioPriority::highest);
 
   if (&aggressor == player) {
     totalCounterMoves++;
@@ -241,7 +238,7 @@ void BattleSceneBase::OnDeleteEvent(Character& pending)
   mob->Forget(pending);
 
   if (mob->IsCleared()) {
-    AUDIO.StopStream();
+    Audio().StopStream();
   }
 }
 
@@ -306,7 +303,7 @@ void BattleSceneBase::HandleCounterLoss(Character& subject)
       player->RemoveNode(&counterReveal);
       player->RemoveDefenseRule(counterCombatRule);
       field->RevealCounterFrames(false);
-      AUDIO.Play(AudioType::COUNTER_BONUS, AudioPriority::highest);
+      Audio().Play(AudioType::COUNTER_BONUS, AudioPriority::highest);
     }
     cardUI->SetMultiplier(1);
   }
@@ -391,7 +388,7 @@ void BattleSceneBase::onStart()
 
   // Stream battle music
   if (mob && mob->HasCustomMusicPath()) {
-    AUDIO.Stream(mob->GetCustomMusicPath(), true);
+    Audio().Stream(mob->GetCustomMusicPath(), true);
   }
   else {
     if (mob == nullptr || !mob->IsBoss()) {
@@ -399,10 +396,10 @@ void BattleSceneBase::onStart()
       span.offset = sf::milliseconds(84);
       span.length = sf::seconds(120.0f * 1.20668f);
 
-      AUDIO.Stream("resources/loops/loop_battle.ogg", true, span);
+      Audio().Stream("resources/loops/loop_battle.ogg", true, span);
     }
     else {
-      AUDIO.Stream("resources/loops/loop_boss_battle.ogg", true);
+      Audio().Stream("resources/loops/loop_boss_battle.ogg", true);
     }
   }
 }
@@ -442,7 +439,7 @@ void BattleSceneBase::onUpdate(double elapsed) {
 
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
     Quit(FadeOut::white);
-    AUDIO.StopStream();
+    Audio().StopStream();
   }
 
   // State update
@@ -517,26 +514,23 @@ void BattleSceneBase::onUpdate(double elapsed) {
 }
 
 void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-  ENGINE.Clear();
-
   float tint = 1.0f - static_cast<float>(backdropOpacity);
 
   if (!backdropAffectBG) {
     tint = 1.f;
   }
   else if (backdropOpacity > 0) {
-    ENGINE.SetShader(&backdropShader);
+    //getController().Postprocessing(&backdropShader);
   }
 
   background->setColor(sf::Color(int(255.f * tint), int(255.f * tint), int(255.f * tint), 255));
 
-  ENGINE.Draw(background);
+  surface.draw(*background);
 
   auto uis = std::vector<UIComponent*>();
 
   auto allTiles = field->FindTiles([](Battle::Tile* tile) { return true; });
-  auto viewOffset = ENGINE.GetViewOffset();
+  auto viewOffset = getController().CameraViewOffset(camera);
 
   for (Battle::Tile* tile : allTiles) {
     if (tile->IsEdgeTile()) continue;
@@ -549,7 +543,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
     }
 
     tile->move(viewOffset);
-    ENGINE.Draw(tile);
+    surface.draw(*tile);
     tile->move(-viewOffset);
   }
 
@@ -567,7 +561,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
 
     for (SceneNode* node : nodes) {
       node->move(viewOffset);
-      ENGINE.Draw(node);
+      surface.draw(*node);
       node->move(-viewOffset);
     }
   }
@@ -576,7 +570,7 @@ void BattleSceneBase::onDraw(sf::RenderTexture& surface) {
   for (UIComponent* ui : uis) {
     if (ui->DrawOnUIPass()) {
       ui->move(viewOffset);
-      ENGINE.Draw(ui);
+      surface.draw(*ui);
       ui->move(-viewOffset);
     }
   }
@@ -612,6 +606,11 @@ CardSelectionCust& BattleSceneBase::GetCardSelectWidget()
 
 SelectedCardsUI& BattleSceneBase::GetSelectedCardsUI() {
   return *cardUI;
+}
+
+Camera& BattleSceneBase::GetCamera()
+{
+  return camera;
 }
 
 void BattleSceneBase::StartBattleStepTimer()

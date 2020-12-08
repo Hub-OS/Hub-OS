@@ -1,5 +1,5 @@
 #pragma once
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include "bnAnimation.h"
 #include "bnSpriteProxyNode.h"
 #include <string>

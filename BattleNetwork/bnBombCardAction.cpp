@@ -9,14 +9,15 @@
 
 #define PATH "resources/spells/spell_bomb.png"
 
-BombCardAction::BombCardAction(Character * owner, int damage) : CardAction(*owner, "PLAYER_THROW") {
+BombCardAction::BombCardAction(Character& owner, int damage) : 
+  CardAction(owner, "PLAYER_THROW") {
   BombCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
   attachment->setTexture(Textures().GetTexture(TextureType::SPELL_MINI_BOMB));
   attachment->SetLayer(-1);
 
-  AddAttachment(*owner, "hand", *attachment);
+  AddAttachment(owner, "hand", *attachment);
   swoosh::game::setOrigin(attachment->getSprite(), 0.5, 0.5);
 }
 
@@ -27,15 +28,15 @@ BombCardAction::~BombCardAction()
 void BombCardAction::OnExecute() {
   // On throw frame, spawn projectile
   auto onThrow = [this]() -> void {
-    auto& owner = GetUser();
+    auto* owner = GetOwner();
 
     attachment->Hide(); // the "bomb" is now airborn - hide the animation overlay
 
-    auto team = owner.GetTeam();
+    auto team = owner->GetTeam();
     auto duration = 0.5f; // seconds
-    MiniBomb* b = new MiniBomb(owner.GetField(), team, owner.getPosition() + attachment->getPosition(), duration, damage);
+    MiniBomb* b = new MiniBomb(owner->GetField(), team, owner->getPosition() + attachment->getPosition(), duration, damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = &GetUser();
+    props.aggressor = owner;
     b->SetHitboxProperties(props);
 
     int step = 3;
@@ -44,7 +45,7 @@ void BombCardAction::OnExecute() {
       step = -3;
     }
 
-    owner.GetField()->AddEntity(*b, owner.GetTile()->GetX() + step, owner.GetTile()->GetY());
+    owner->GetField()->AddEntity(*b, owner->GetTile()->GetX() + step, owner->GetTile()->GetY());
   };
 
 

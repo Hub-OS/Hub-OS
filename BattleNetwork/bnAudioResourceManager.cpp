@@ -125,7 +125,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
   std::scoped_lock lock(mutex);
 
-  if (!sources[static_cast<int>(type)].loadFromFile(path)) {
+  if (!sources[static_cast<size_t>(type)].loadFromFile(path)) {
     Logger::Logf("Failed loading Audio(): %s\n", path.c_str());
 
   } else {
@@ -166,7 +166,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getBuffer() == &sources[static_cast<size_t>(type)] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
         auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
-        if (howLongPlayed <= Audio_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
+        if (howLongPlayed <= AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
           return -1;
         }
       }
@@ -186,7 +186,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
 
     auto changeSampleThunk = [this, priority, type](int index) {
       channels[index].buffer.stop();
-      channels[index].buffer.setBuffer(sources[type]);
+      channels[index].buffer.setBuffer(sources[static_cast<size_t>(type)]);
       channels[index].buffer.play();
       channels[index].priority = priority;
     };
@@ -196,7 +196,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
         lastFreeChannel = i;
       }
 
-      if (channels[i].buffer.getBuffer() != &sources[type] && lastDifferentChannel == -1) {
+      if (channels[i].buffer.getBuffer() != &sources[static_cast<size_t>(type)] && lastDifferentChannel == -1) {
         lastDifferentChannel = i;
       }
     }
@@ -231,7 +231,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     if (priority != AudioPriority::high) {
       if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing) {
-        channels[i].buffer.setBuffer(sources[type]);
+        channels[i].buffer.setBuffer(sources[static_cast<size_t>(type)]);
         channels[i].buffer.play();
         channels[i].priority = priority;
         return 0;

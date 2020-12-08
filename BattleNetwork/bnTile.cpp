@@ -97,7 +97,7 @@ namespace Battle {
       resetVolcanoThunk(2);
     };
 
-    volcanoSprite.setTexture(TEXTURES.LoadTextureFromFile("resources/tiles/volcano.png"));
+    volcanoSprite.setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
     volcanoSprite.SetLayer(-1); // in front of tile
 
     volcanoErupt.Refresh(volcanoSprite.getSprite());
@@ -650,7 +650,7 @@ namespace Battle {
             // TODO: more evidence that the movement system needs redesigning. 
             //       I shouldn't have to rely on hacks and strange behavior checks
             if (character->IsSliding()) {
-              AUDIO.Play(AudioType::DIR_TILE, AudioPriority::highest);
+              Audio().Play(AudioType::DIR_TILE, AudioPriority::highest);
             }
           }
         }

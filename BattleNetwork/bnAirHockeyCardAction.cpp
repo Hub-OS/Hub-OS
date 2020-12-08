@@ -13,18 +13,18 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-AirHockeyCardAction::AirHockeyCardAction(Character* owner, int damage) :
-  CardAction(*owner, "PLAYER_SWORD") {
+AirHockeyCardAction::AirHockeyCardAction(Character& owner, int damage) :
+  CardAction(owner, "PLAYER_SWORD") {
   AirHockeyCardAction::damage = damage;
 
-  overlay.setTexture(*owner->getTexture());
+  overlay.setTexture(*owner.getTexture());
   attachment = new SpriteProxyNode(overlay);
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
 
   OverrideAnimationFrames({ FRAMES });
 
-  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("HAND");
 }
@@ -33,7 +33,7 @@ AirHockeyCardAction::~AirHockeyCardAction()
 {
 }
 
-void AirHockeyCardAction::Execute() {
+void AirHockeyCardAction::OnExecute() {
   auto owner = GetOwner();
 
   auto onHand = [owner, this] {
@@ -65,7 +65,7 @@ void AirHockeyCardAction::Execute() {
       GetOwner()->GetField()->AddEntity(*fx, *GetOwner()->GetTile());
     }
 
-    AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+    Audio().Play(AudioType::TOSS_ITEM_LITE);
   };
 
   AddAnimAction(2, onHand);
@@ -81,6 +81,6 @@ void AirHockeyCardAction::OnAnimationEnd()
 {
 }
 
-void AirHockeyCardAction::EndAction() {
+void AirHockeyCardAction::OnEndAction() {
   Eject();
 }

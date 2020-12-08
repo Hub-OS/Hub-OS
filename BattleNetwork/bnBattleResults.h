@@ -99,7 +99,7 @@ public:
   /**
    * @brief Perform draw steps
    */
-  void Draw();
+  void Draw(sf::RenderTarget& surface);
 
   /**
    * @brief Query if BattleRewards modal has completed all rewards

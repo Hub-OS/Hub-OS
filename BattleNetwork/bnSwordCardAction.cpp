@@ -25,7 +25,7 @@ CardAction(user, "PLAYER_SWORD") {
   blade->SetLayer(-2);
 
   hilt = new SpriteProxyNode();
-  hilt->setTexture(owner->getTexture());
+  hilt->setTexture(user.getTexture());
   hilt->SetLayer(-1);
   hilt->EnableParentShader(true);
 
@@ -79,7 +79,7 @@ void SwordCardAction::OnSpawnHitbox()
 
   BasicSword* b = new BasicSword(field, GetOwner()->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
-  props.aggressor = &user;
+  props.aggressor = GetOwner();
 
   b->SetHitboxProperties(props);
 

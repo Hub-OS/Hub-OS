@@ -6,7 +6,7 @@ class Text :
   public SceneNode
 {
 private:
-  Font& font;
+  mutable Font font;
   float letterSpacing, lineSpacing;
   std::string message;
   sf::Color color;
@@ -21,13 +21,14 @@ private:
   void UpdateGeometry() const;
 
 public:
-  Text(Font& font);
-  Text(const std::string message, Font& font);
+  Text(const Font& font);
+  Text(const std::string message, const Font& font);
   Text(const Text& rhs);
   Text& operator=(const Text& rhs) = default;
   virtual ~Text();
 
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+  void SetFont(const Font& font);
   void SetString(const std::string message);
   void SetString(char c);
   void SetColor(const sf::Color& color);

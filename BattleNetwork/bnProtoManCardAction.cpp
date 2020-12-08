@@ -3,13 +3,13 @@
 #include "bnSpriteProxyNode.h"
 #include "bnProtoManSummon.h"
 
-ProtoManCardAction::ProtoManCardAction(Character* owner, int damage) :
+ProtoManCardAction::ProtoManCardAction(Character& owner, int damage) :
   damage(damage),
-  CardAction(*owner, "PLAYER_IDLE"){
+  CardAction(owner, "PLAYER_IDLE"){
   this->SetLockout({ ActionLockoutType::sequence });
 }
 
-void ProtoManCardAction::Execute() {
+void ProtoManCardAction::OnExecute() {
   auto owner = GetOwner();
 
   owner->Hide();
@@ -41,7 +41,7 @@ void ProtoManCardAction::OnAnimationEnd()
   // the animation does nothing special on end
 }
 
-void ProtoManCardAction::EndAction()
+void ProtoManCardAction::OnEndAction()
 {
   GetOwner()->Reveal();
   Eject();

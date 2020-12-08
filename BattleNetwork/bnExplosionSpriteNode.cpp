@@ -21,7 +21,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(SceneNode* parent, int _numOfExplosions
 
   SetOffsetArea(offsetArea);
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
+  Audio().Play(AudioType::EXPLODE, AudioPriority::low);
 
   animation.SetAnimation("EXPLODE");
   animation << [this]() {
@@ -82,7 +82,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
 
   SetOffsetArea(copy.offsetArea);
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
+  Audio().Play(AudioType::EXPLODE, AudioPriority::low);
 
   /**
    * Tell root to increment explosion count on frame 12

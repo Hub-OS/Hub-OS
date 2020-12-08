@@ -27,7 +27,7 @@ struct CardComboBattleState final : public BattleSceneState {
   PA::Steps paSteps; /*!< Matching steps in a PA */
   swoosh::Timer PAStartTimer; /*!< Time to scale the PA graphic */
   sf::Sprite programAdvanceSprite;
-  std::shared_ptr<sf::Font> font;
+  Font font;
   SelectedCardsUI& ui;
   Battle::Card*** cardsListPtr{ nullptr };
 

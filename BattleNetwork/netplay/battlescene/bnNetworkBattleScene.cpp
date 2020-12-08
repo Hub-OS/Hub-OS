@@ -42,12 +42,12 @@ NetworkBattleScene::NetworkBattleScene(ActivityController& controller, const Net
   networkCardUseListener = new NetworkCardUseListener(*this, props.base.player);
   networkCardUseListener->Subscribe(this->GetSelectedCardsUI());
 
-  props.netconfig.myPort = ENGINE.CommandLineValue<int>("port");
+  props.netconfig.myPort = getController().CommandLineValue<int>("port");
   Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), props.netconfig.myPort); 
   client = Poco::Net::DatagramSocket(sa);
   client.setBlocking(false);
 
-  props.netconfig.remotePort = ENGINE.CommandLineValue<int>("remotePort");
+  props.netconfig.remotePort = getController().CommandLineValue<int>("remotePort");
   remoteAddress = Poco::Net::SocketAddress(props.netconfig.remoteIP, props.netconfig.remotePort);
   client.connect(remoteAddress);
 
@@ -514,7 +514,7 @@ void NetworkBattleScene::processIncomingPackets()
   static int errorCount = 0;
 
   if (errorCount > 10) {
-    AUDIO.StopStream();
+    Audio().StopStream();
     using effect = segue<PixelateBlackWashFade>;
     getController().pop<effect>();
     errorCount = 0; // reset for next match

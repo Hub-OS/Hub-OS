@@ -1,9 +1,10 @@
 #pragma once
 
-#include "../bnBattleSceneState.h"
-
 #include <SFML/Graphics/Sprite.hpp>
 #include <Swoosh/Timer.h>
+
+#include "../bnBattleSceneState.h"
+#include "../../bnResourceHandle.h"
 
 class Player;
 

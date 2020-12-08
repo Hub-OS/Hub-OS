@@ -2,9 +2,9 @@
 #include "bnCharacter.h"
 #include "bnDefenseAntiDamage.h"
 
-AntiDmgCardAction::AntiDmgCardAction(Character* owner, int damage) : 
+AntiDmgCardAction::AntiDmgCardAction(Character& owner, int damage) : 
   damage(damage),
-  CardAction(*owner, "PLAYER_IDLE"){
+  CardAction(owner, "PLAYER_IDLE"){
   this->SetLockout(ActionLockoutProperties{
     ActionLockoutType::animation,
     3000, // milliseconds
@@ -12,7 +12,7 @@ AntiDmgCardAction::AntiDmgCardAction(Character* owner, int damage) :
   });
 }
 
-void AntiDmgCardAction::Execute() {
+void AntiDmgCardAction::OnExecute() {
   auto owner = GetOwner();
 }
 
@@ -29,7 +29,7 @@ void AntiDmgCardAction::OnAnimationEnd()
 {
 }
 
-void AntiDmgCardAction::EndAction()
+void AntiDmgCardAction::OnEndAction()
 {
   GetOwner()->Reveal();
   Eject();

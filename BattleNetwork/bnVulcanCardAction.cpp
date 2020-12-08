@@ -15,8 +15,8 @@
 // TODO: check frame-by-frame anim
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-VulcanCardAction::VulcanCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
+VulcanCardAction::VulcanCardAction(Character& owner, int damage) : 
+  CardAction(owner, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
   VulcanCardAction::damage = damage;
   attachment = new SpriteProxyNode();
   attachment->setTexture(Textures().LoadTextureFromFile(PATH));
@@ -25,13 +25,13 @@ VulcanCardAction::VulcanCardAction(Character * owner, int damage) :
   attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
 
-  Animation& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
-  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
+  Animation& userAnim = owner.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  AddAttachment(userAnim, "BUSTER", *attachment).UseAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 VulcanCardAction::~VulcanCardAction()
@@ -45,7 +45,7 @@ void VulcanCardAction::OnExecute() {
     Team team = GetOwner()->GetTeam();
     Vulcan* b = new Vulcan(GetOwner()->GetField(), team, damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = &user;
+    props.aggressor = owner;
     b->SetHitboxProperties(props);
 
     int step = 1;

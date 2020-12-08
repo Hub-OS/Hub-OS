@@ -1,7 +1,7 @@
 #include "bnIntroScene.h"
 #include "bnInputManager.h"
 
-IntroScene::IntroScene(ActivityController * controller) 
+IntroScene::IntroScene(ActivityController& controller) 
   : 
   startFont(Font::Style::thick),
   message(startFont),
@@ -41,7 +41,7 @@ void IntroScene::onUpdate(double elapsed)
   message.SetColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
   messageCooldown -= elapsed * speed;
 
-  bool startPressed = (INPUT.IsConfigFileValid() ? INPUT.Has(EventTypes::PRESSED_CONFIRM) : false) || INPUT.GetAnyKey() == sf::Keyboard::Return;
+  bool startPressed = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_confirm) : false) || Input().GetAnyKey() == sf::Keyboard::Return;
 
   if (startPressed) {
     speed = 5.f;

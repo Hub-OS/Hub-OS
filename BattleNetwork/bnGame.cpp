@@ -1,13 +1,19 @@
-#include "bnGame.h"
+#include <time.h>
+#include <queue>
+#include <atomic>
+#include <cmath>
+#include <Swoosh/ActivityController.h>
+#include <Swoosh/Ease.h>
 
+#include "bnGame.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
+#include "bnInputManager.h"
 #include "bnWebClientMananger.h"
 #include "bnNaviRegistration.h"
 #include "bnInputManager.h"
 #include "bnGameOverScene.h"
-#include "bnMainMenuScene.h"
 #include "bnFakeScene.h"
 #include "bnConfigReader.h"
 #include "bnConfigScene.h"
@@ -17,16 +23,9 @@
 #include "bnQueueMobRegistration.h"
 #include "bnQueueNaviRegistration.h"
 #include "bnResourceHandle.h"
-#include "bnTaskGroup.h"
-
+#include "bnInputHandle.h"
+#include "overworld/bnOverworldHomepage.h"
 #include "SFML/System.hpp"
-
-#include <time.h>
-#include <queue>
-#include <atomic>
-#include <cmath>
-#include <Swoosh/ActivityController.h>
-#include <Swoosh/Ease.h>
 
 Game::Game() 
   : window(), 
@@ -35,12 +34,16 @@ Game::Game()
   textureManager(),
   audioManager(),
   shaderManager(),
+  inputManager(*window.GetRenderWindow()),
   ActivityController(*window.GetRenderWindow()) {
 
   // Link the resource handle to use all the manangers created by the game
   ResourceHandle::audio    = &audioManager;
   ResourceHandle::textures = &textureManager;
   ResourceHandle::shaders  = &shaderManager;
+
+  // Link i/o handle to use all the managers created by the game
+  InputHandle::input = &inputManager;
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
@@ -54,7 +57,18 @@ Game::~Game() {
 
 }
 
-void Game::Boot()
+void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
+  commandline = values.arguments();
+
+  if (commandline.empty()) return;
+
+  Logger::Log("Command line args provided");
+  for (auto&& kv : commandline) {
+    Logger::Logf("%s : %s", kv.key().c_str(), kv.value().c_str());
+  }
+}
+
+TaskGroup&& Game::Boot(const cxxopts::ParseResult& values)
 {
   // Load font symbols for use across the entire engine...
   textureManager.LoadImmediately(TextureType::FONT);
@@ -69,14 +83,12 @@ void Game::Boot()
 
   atomic<int> progress(0);
 
+  // does shaders too
   Callback<void()> graphics;
   graphics.Slot(std::bind(&Game::RunGraphicsInit, this, &progress));
 
-  Callback<void()> Audio();
-  Audio().Slot(std::bind(&Game::RunAudioInit, this, &progress));
-
-  Callback<void()> shaders;
-  //Callback<void> scripts;
+  Callback<void()> audio;
+  audio.Slot(std::bind(&Game::RunAudioInit, this, &progress));
 
   Callback<void()> navis;
   navis.Slot(std::bind(&Game::RunNaviInit, this, &progress));
@@ -84,18 +96,20 @@ void Game::Boot()
   Callback<void()> mobs;
   mobs.Slot(std::bind(&Game::RunMobInit, this, &progress));
 
+  // TODO:
+  //Callback<void> scripts;
+
   TaskGroup tasks;
-  tasks.AddTask("Init graphics", graphics);
-  tasks.AddTask("Init Audio()", Audio());
-  tasks.AddTask("Init shaders", shaders);
+  tasks.AddTask("Init graphics and shaders", graphics);
+  tasks.AddTask("Init audio", audio);
   tasks.AddTask("Load Navis", navis);
   tasks.AddTask("Load mobs", mobs);
 
   // Tell the input event loop how to behave when the app loses and regains focus
-  INPUT.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
-  INPUT.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
-  //INPUT.BindResizedEvent(std::bind(&Game::Resize, this));
-  INPUT.SupportConfigSettings(reader);
+  inputManager.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
+  inputManager.BindRegainFocusEvent(std::bind(&Game::GainFocus, this));
+  inputManager.BindResizedEvent(std::bind(&Game::Resize, this, std::placeholders::_1, std::placeholders::_2));
+  inputManager.SupportConfigSettings(reader);
 
   if (configSettings.IsOK()) {
     // If the file is good, use the Audio() and 
@@ -117,11 +131,13 @@ void Game::Boot()
   spinner.setPosition(float(window.GetView().getSize().x - 64), float(window.GetView().getSize().y - 50));
 
   spinnerAnimator = Animation("resources/ui/spinner.animation") << "SPIN" << Animator::Mode::Loop;
+
+  return std::move(tasks);
 }
 
-void Game::Poll()
+void Game::Run()
 {
-  Clock clock;
+  sf::Clock clock;
   float elapsed = 0.0f;
   float speed = 1.0f;
   float messageCooldown = 3;
@@ -132,7 +148,7 @@ void Game::Poll()
     clock.restart();
 
     // Poll input
-    INPUT.Update();
+    inputManager.Update();
 
     // Prepare for next draw calls
     window.Clear();
@@ -142,6 +158,21 @@ void Game::Poll()
 void Game::SetWindowMode(DrawWindow::WindowMode mode)
 {
   windowMode = mode;
+}
+
+void Game::Postprocess(ShaderType shaderType)
+{
+  this->postprocess = shaderManager.GetShader(shaderType);
+}
+
+void Game::NoPostprocess()
+{
+  this->postprocess = nullptr;
+}
+
+const sf::Vector2f Game::CameraViewOffset(Camera& camera)
+{
+  return window.GetView().getCenter() - camera.GetView().getCenter();
 }
 
 void Game::LoadConfigSettings()

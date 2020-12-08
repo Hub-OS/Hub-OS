@@ -14,8 +14,8 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME3, FRAME3, FRAME3
 
-CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardAction::Type type) : 
-  CardAction(*owner, "PLAYER_SHOOTING"), 
+CannonCardAction::CannonCardAction(Character& owner, int damage, CannonCardAction::Type type) : 
+  CardAction(owner, "PLAYER_SHOOTING"), 
   attachmentAnim(CANNON_ANIM),  
   type(type) {
   CannonCardAction::damage = damage;
@@ -38,7 +38,7 @@ CannonCardAction::CannonCardAction(Character * owner, int damage, CannonCardActi
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 CannonCardAction::~CannonCardAction()
@@ -48,6 +48,8 @@ CannonCardAction::~CannonCardAction()
 void CannonCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
+    Character& user = *GetOwner();
+
     // Spawn a single cannon instance on the tile in front of the player
     Team team = GetOwner()->GetTeam();
     Cannon* cannon = new Cannon(GetOwner()->GetField(), team, damage);
@@ -80,7 +82,7 @@ void CannonCardAction::OnAnimationEnd()
 {
 }
 
-void CannonCardAction::EndAction()
+void CannonCardAction::OnEndAction()
 {
   Eject();
 }

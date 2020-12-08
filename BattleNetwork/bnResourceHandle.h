@@ -6,7 +6,6 @@ class TextureResourceManager;
 class AudioResourceManager;
 class FileResourceManager;
 class ShaderResourceManager;
-class InputMananger;
 
 class ResourceHandle {
   friend class Game;
@@ -16,7 +15,6 @@ private:
   static AudioResourceManager* audio;
   static ShaderResourceManager* shaders;
   //static FileResourceMananger* files;
-  //static InputManager* input;
 
 public:
   TextureResourceManager& Textures() { 

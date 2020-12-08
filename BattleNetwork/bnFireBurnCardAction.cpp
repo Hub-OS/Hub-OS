@@ -17,9 +17,9 @@
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, int damage) 
+FireBurnCardAction::FireBurnCardAction(Character& owner, FireBurn::Type type, int damage) 
   : 
-  CardAction(*owner, "PLAYER_SHOOTING"),
+  CardAction(owner, "PLAYER_SHOOTING"),
   attachmentAnim(ANIM) {
   FireBurnCardAction::damage = damage;
   FireBurnCardAction::type = type;
@@ -31,19 +31,16 @@ FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, i
   attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
 
-  auto& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
-  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
-
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 FireBurnCardAction::~FireBurnCardAction()
 {
 }
-void FireBurnCardAction::Execute() {
+void FireBurnCardAction::OnExecute() {
   auto owner = GetOwner();
 
   // On shoot frame, drop projectile
@@ -51,7 +48,7 @@ void FireBurnCardAction::Execute() {
     Team team = GetOwner()->GetTeam();
     FireBurn* fb = new FireBurn(GetOwner()->GetField(), team, type, damage);
     auto props = fb->GetHitboxProperties();
-    props.aggressor = &user;
+    props.aggressor = owner;
     fb->SetHitboxProperties(props);
     fb->CrackTiles(crackTiles);
 

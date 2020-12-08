@@ -40,7 +40,7 @@ void Megaman::OnUpdate(float elapsed)
 
 CardAction* Megaman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  return new BusterCardAction(*this, false, 1*GetAttackLevel());
 }
 
 CardAction* Megaman::OnExecuteChargedBusterAction()
@@ -49,7 +49,7 @@ CardAction* Megaman::OnExecuteChargedBusterAction()
     return activeForm->OnChargedBusterAction(*this);
   }
   else {
-    return new BusterCardAction(this, true, 10*GetAttackLevel());
+    return new BusterCardAction(*this, true, 10*GetAttackLevel());
   }
 }
 
@@ -130,13 +130,13 @@ void TenguCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TenguCross::OnChargedBusterAction(Player& player)
 {
-  return new BusterCardAction(&player, true, 20*player.GetAttackLevel()+40);
+  return new BusterCardAction(player, true, 20*player.GetAttackLevel()+40);
 }
 
 CardAction* TenguCross::OnSpecialAction(Player& player)
 {
   // class TenguCross::SpecialAction is a CardAction implementation
-  return new TenguCross::SpecialAction(&player);
+  return new TenguCross::SpecialAction(player);
 }
 
 frame_time_t TenguCross::CalculateChargeTime(unsigned chargeLevel)
@@ -232,7 +232,7 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* HeatCross::OnChargedBusterAction(Player& player)
 {
-  auto* action = new FireBurnCardAction(&player, FireBurn::Type::_2, 20 * player.GetAttackLevel() + 30);
+  auto* action = new FireBurnCardAction(player, FireBurn::Type::_2, 20 * player.GetAttackLevel() + 30);
   action->CrackTiles(false);
   return action;
 }
@@ -385,7 +385,7 @@ void ElecCross::OnActivate(Player& player)
 {
   overlayAnimation = Animation("resources/navis/megaman/forms/elec_cross.animation");
   overlayAnimation.Load();
-  auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/elec_cross.png");
+  auto cross = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/elec_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
@@ -436,7 +436,7 @@ void ElecCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* ElecCross::OnChargedBusterAction(Player& player)
 {
-  auto* action = new LightningCardAction(&player, 20 * player.GetAttackLevel() + 40);
+  auto* action = new LightningCardAction(player, 20 * player.GetAttackLevel() + 40);
   action->SetStun(false);
   return action;
 }
@@ -482,9 +482,9 @@ frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
 #define FRAMES FRAME1, FRAME2, FRAME3
 
 // class TenguCross
-TenguCross::SpecialAction::SpecialAction(Character* owner) : 
-  CardAction(*owner, "PLAYER_SWORD") {
-  overlay.setTexture(*owner->getTexture());
+TenguCross::SpecialAction::SpecialAction(Character& owner) : 
+  CardAction(owner, "PLAYER_SWORD") {
+  overlay.setTexture(*owner.getTexture());
   attachment = new SpriteProxyNode(overlay);
 
   attachment->SetLayer(-1);
@@ -492,15 +492,14 @@ TenguCross::SpecialAction::SpecialAction(Character* owner) :
 
   OverrideAnimationFrames({ FRAMES });
 
-  attachmentAnim = Animation(anim->GetFilePath());
+  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.SetAnimation("HAND");
 
-  AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "hilt", *attachment).UseAnimation(attachmentAnim);
 }
 
 TenguCross::SpecialAction::~SpecialAction()
 {
-  CardAction::OnUpdate(_elapsed);
 }
 
 void TenguCross::SpecialAction::OnExecute()
@@ -510,7 +509,7 @@ void TenguCross::SpecialAction::OnExecute()
   auto field = owner->GetField();
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, &user, team, field]() -> void {
+  auto onThrow = [this, team, field]() -> void {
     auto wind = new Wind(field, team);
     field->AddEntity(*wind, 6, 1);
 

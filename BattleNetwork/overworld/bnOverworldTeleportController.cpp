@@ -3,12 +3,12 @@
 
 #include "bnOverworldTeleportController.h"
 #include "bnOverworldActor.h"
-#include "../bnShaderResourceManager.h"
 #include "../bnAudioResourceManager.h"
+#include "../bnShaderResourceManager.h"
 
 Overworld::TeleportController::TeleportController()
 {
-  beam.setTexture(TEXTURES.LoadTextureFromFile("resources/ow/teleport.png"));
+  beam.setTexture(Textures().LoadTextureFromFile("resources/ow/teleport.png"));
   beamAnim = Animation("resources/ow/teleport.animation");
   beamAnim.SetFrame(0, beam.getSprite());
 }
@@ -20,7 +20,7 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportO
 
   auto onStart = [=] {
     if (!mute) {
-      AUDIO.Play(AudioType::AREA_GRAB);
+      Audio().Play(AudioType::AREA_GRAB);
     }
   };
 
@@ -41,13 +41,13 @@ Overworld::TeleportController::Command& Overworld::TeleportController::TeleportI
 {
   auto onStart = [=] {
     if (!mute) {
-      AUDIO.Play(AudioType::AREA_GRAB);
+      Audio().Play(AudioType::AREA_GRAB);
     }
   };
 
   auto onSpin = [=] {
     this->actor->Reveal();
-    this->actor->SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
+    this->actor->SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
     this->actor->setColor(sf::Color::Cyan);
     this->spin = true;
     this->spinProgress = 0;
@@ -95,7 +95,7 @@ void Overworld::TeleportController::Update(double elapsed)
       }
     }
     else if (spin) {
-      constexpr float _2pi = 2.0f * M_PI;
+      constexpr float _2pi = static_cast<float>(2.0f * M_PI);
       constexpr float spin_frames = _2pi/0.25f;
       float progress = spin_frames * static_cast<float>(elapsed);
       spinProgress += progress;

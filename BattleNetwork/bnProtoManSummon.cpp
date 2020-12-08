@@ -148,7 +148,7 @@ void ProtoManSummon::Attack(Character* _entity) {
   props.aggressor = user;
   b->SetHitboxProperties(props);
 
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
   field->AddEntity(*b, tile->GetX(),tile->GetY());
 
   b = new BasicSword(field, GetTeam(), 0);

@@ -13,9 +13,9 @@ constexpr float CIRCLE_RADIUS_PX = 44.0f; // in pixels
 
 using namespace swoosh::ease;
 
-Overworld::EmoteNode::EmoteNode()
+Overworld::EmoteNode::EmoteNode() : ResourceHandle()
 {
-  setTexture(TEXTURES.LoadTextureFromFile("resources/ow/emotes/emotes.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/ow/emotes/emotes.png"));
   setOrigin(5.5f, 5.5f);
   Reset();
 }
@@ -61,7 +61,7 @@ Overworld::EmoteWidget::EmoteWidget() :
 
   while (idx < max) {
     auto& e = emoteSprites[idx];
-    e.setTexture(TEXTURES.LoadTextureFromFile("resources/ow/emotes/emotes.png"));
+    e.setTexture(Textures().LoadTextureFromFile("resources/ow/emotes/emotes.png"));
     e.setOrigin(5.5f, 5.5f);
 
     sf::IntRect rect = sf::IntRect(static_cast<int>(idx * 11), 0, 11, 11);
@@ -86,7 +86,7 @@ void Overworld::EmoteWidget::Update(double elapsed)
   size_t max = static_cast<size_t>(Emotes::size);
 
   while (idx < max) {
-    emoteSprites[idx].SetShader(SHADERS.GetShader(ShaderType::GREYSCALE));
+    emoteSprites[idx].SetShader(Shaders().GetShader(ShaderType::GREYSCALE));
     float alpha = radius * NOT_SELECTED_RADIUS;
 
     if (static_cast<size_t>(currEmote) == idx && IsOpen()) {
@@ -106,7 +106,7 @@ void Overworld::EmoteWidget::Update(double elapsed)
 
   Emotes end = static_cast<Emotes>(static_cast<size_t>(Emotes::size) - 1);
 
-  if (INPUTx.Has(InputEvents::pressed_scan_left)) {
+  if (Input().Has(InputEvents::pressed_scan_left)) {
     if (currEmote == Emotes{ 0 }) {
       currEmote = end;
     }
@@ -115,7 +115,7 @@ void Overworld::EmoteWidget::Update(double elapsed)
     }
   }
 
-  if (INPUTx.Has(InputEvents::pressed_scan_right)) {
+  if (Input().Has(InputEvents::pressed_scan_right)) {
     if (currEmote == end) {
       currEmote = Emotes{ 0 };
     }
@@ -124,7 +124,7 @@ void Overworld::EmoteWidget::Update(double elapsed)
     }
   }
 
-  if (INPUTx.Has(InputEvents::pressed_confirm)) {
+  if (Input().Has(InputEvents::pressed_confirm)) {
     callback ? callback(currEmote) : void(0);
   }
 }

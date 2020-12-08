@@ -10,8 +10,8 @@ public:
   TomahawkSwingCardAction(Character& owner, int damage);
   ~TomahawkSwingCardAction();
 
-  void Execute() override;
-  void EndAction() override;
+  void OnExecute() override;
+  void OnEndAction() override;
   void OnAnimationEnd() override;
 };
 

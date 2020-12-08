@@ -1,11 +1,11 @@
 #pragma once
+#include <vector>
+
 #include "bnArtifact.h"
 #include "bnComponent.h"
 #include "bnField.h"
 #include "bnDefenseBubbleWrap.h"
-#include "bnInputManager.h"
-#include <vector>
-
+#include "bnInputHandle.h"
 /**
  * @class BubbleTrap
  * @author mav
@@ -15,7 +15,7 @@
  * Creates a defense rule to absord first damage and forces this bubble to pop
  * On pop, frees owner and deletes self
  */
-class BubbleTrap : public SpriteProxyNode, public Component, public ResourceHandle
+class BubbleTrap : public SpriteProxyNode, public Component, public ResourceHandle, public InputHandle
 {
 private:
   Animation animation;

@@ -1,23 +1,24 @@
 #include "bnMenuWidget.h"
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include "bnTextureResourceManager.h"
 
 #include <Swoosh/Ease.h>
 
 MenuWidget::MenuWidget(const std::string& area, const MenuWidget::OptionsList& options) :
-  optionsList(options)
+  optionsList(options),
+  font(Font::Style::small),
+  infoText(font),
+  areaLabel(font)
 {
-
   // Load resources
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
-  areaLabel.setFont(*font);
+  areaLabel.SetFont(font);
   areaLabel.setPosition(127, 119);
   areaLabel.setScale(sf::Vector2f(0.5f, 0.5f));
   infoText = areaLabel;
   
-  widgetTexture = TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png");
+  widgetTexture = Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png");
 
-  banner.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/menu_overlay.png"));
+  banner.setTexture(Textures().LoadTextureFromFile("resources/ui/menu_overlay.png"));
   symbol.setTexture(widgetTexture);
   icon.setTexture(widgetTexture);
   exit.setTexture(widgetTexture);
@@ -214,7 +215,7 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
   t8f.doTask([=](double elapsed) {
     size_t offset = 12 * ease::linear(elapsed, (double)frames(2).asMilli(), 1.0);
     std::string substr = areaName.substr(0, offset);
-    areaLabel.setString(sf::String(substr));
+    areaLabel.SetString(substr);
   }).withDuration(frames(2).asMilli());
 
   //
@@ -249,7 +250,7 @@ void MenuWidget::CreateOptions()
   for (auto&& L : optionsList) {
     // label
     auto sprite = std::make_shared<SpriteProxyNode>();
-    sprite->setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+    sprite->setTexture(Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png"));
     sprite->setPosition(36, 26);
     optionAnim << (L.name + "_LABEL");
     optionAnim.SetFrame(1, sprite->getSprite());
@@ -259,7 +260,7 @@ void MenuWidget::CreateOptions()
 
     // icon
     auto iconSpr = std::make_shared<SpriteProxyNode>();
-    iconSpr->setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+    iconSpr->setTexture(Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png"));
     iconSpr->setPosition(36, 26);
     optionAnim << L.name;
     optionAnim.SetFrame(1, iconSpr->getSprite());
@@ -320,7 +321,7 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
   }
   else {
     // draw black square to darken bg
-    auto view = ENGINE.GetView();
+    auto view = target.getView();
     sf::RectangleShape screen(view.getSize());
     screen.setFillColor(sf::Color(0, 0, 0, int(opacity * 255.f * 0.5f)));
     target.draw(screen, sf::RenderStates::Default);
@@ -335,57 +336,57 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
       auto pos = areaLabel.getPosition();
       auto copyAreaLabel = areaLabel;
       copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
-      copyAreaLabel.setColor(shadowColor);
+      copyAreaLabel.SetColor(shadowColor);
       target.draw(copyAreaLabel, states);
       target.draw(areaLabel, states);
 
       // hp shadow
-      infoText.setString(sf::String(std::to_string(health)));
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
-      infoText.setColor(shadowColor);
+      infoText.SetString(std::to_string(health));
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
+      infoText.SetColor(shadowColor);
       infoText.setPosition(174 + 1, 34 + 1);
       target.draw(infoText, states);
 
       // hp text
       infoText.setPosition(174, 34);
-      infoText.setColor(sf::Color::White);
+      infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
 
       // "/" shadow
-      infoText.setString(sf::String("/"));
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
-      infoText.setColor(shadowColor);
+      infoText.SetString("/");
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
+      infoText.SetColor(shadowColor);
       infoText.setPosition(182 + 1, 34 + 1);
       target.draw(infoText, states);
 
       // "/"
       infoText.setPosition(182, 34);
-      infoText.setColor(sf::Color::White);
+      infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
 
       // max hp shadow
-      infoText.setString(sf::String(std::to_string(maxHealth)));
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
-      infoText.setColor(shadowColor);
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
+      infoText.SetString(std::to_string(maxHealth));
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
+      infoText.SetColor(shadowColor);
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
       infoText.setPosition(214 + 1, 34 + 1);
       target.draw(infoText, states);
 
       // max hp 
       infoText.setPosition(214, 34);
-      infoText.setColor(sf::Color::White);
+      infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
 
       // coins shadow
-      infoText.setColor(shadowColor);
-      infoText.setString(sf::String(std::to_string(coins) + "z"));
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
+      infoText.SetColor(shadowColor);
+      infoText.SetString(std::to_string(coins) + "z");
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
       infoText.setPosition(214 + 1, 58 + 1);
       target.draw(infoText, states);
 
       // coins
       infoText.setPosition(214, 58);
-      infoText.setColor(sf::Color::White);
+      infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
     }
   }

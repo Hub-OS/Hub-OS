@@ -58,13 +58,13 @@ void Overworld::Homepage::PingRemoteAreaServer()
     };
 
     if (!reconnecting) {
-      int myPort = ENGINE.CommandLineValue<int>("port");
+      int myPort = getController().CommandLineValue<int>("port");
       Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
       client = Poco::Net::DatagramSocket(sa);
       client.setBlocking(false);
 
-      int remotePort = ENGINE.CommandLineValue<int>("remotePort");
-      std::string cyberworld = ENGINE.CommandLineValue<std::string>("cyberworld");
+      int remotePort = getController().CommandLineValue<int>("remotePort");
+      std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
       remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
 
       try {
@@ -95,8 +95,8 @@ void Overworld::Homepage::onUpdate(double elapsed)
 
   // Update our logic
   auto& map = GetMap();
-  auto mousei = sf::Mouse::getPosition(*ENGINE.GetWindow());
-  const auto& [row, col] = map.PixelToRowCol(mousei);
+  auto mousei = sf::Mouse::getPosition(getController().getWindow());
+  const auto [row, col] = map.PixelToRowCol(mousei);
   sf::Vector2f click = { (float)col * map.GetTileSize().x, (float)row * map.GetTileSize().y };
 
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
@@ -160,7 +160,7 @@ void Overworld::Homepage::onStart()
 {
   SceneBase::onStart();
 
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+  Audio().Stream("resources/loops/loop_overworld.ogg", false);
   SceneBase::EnableNetWarps(false);
   infocus = true;
 }
@@ -168,7 +168,7 @@ void Overworld::Homepage::onStart()
 void Overworld::Homepage::onResume()
 {
   SceneBase::onResume();
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+  Audio().Stream("resources/loops/loop_overworld.ogg", false);
   infocus = true;
 }
 

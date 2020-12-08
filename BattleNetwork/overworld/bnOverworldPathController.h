@@ -1,6 +1,6 @@
 #include <Swoosh/ActionList.h>
 
-#include "../bnEngine.h"
+#include "../bnDrawWindow.h"
 
 namespace Overworld {
   class Actor; // namespace Overworld::Actor;

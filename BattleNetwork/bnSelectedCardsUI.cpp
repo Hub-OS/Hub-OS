@@ -15,8 +15,15 @@
 
 using std::to_string;
 
-SelectedCardsUI::SelectedCardsUI(Player* _player) : CardUsePublisher(), UIComponent(_player)
-  , player(_player), font(Font::Style::thick), text("", font), dmg("", font) {
+SelectedCardsUI::SelectedCardsUI(Player* _player) : 
+  CardUsePublisher(), 
+  UIComponent(_player), 
+  player(_player), 
+  font(Font::Style::thick), 
+  text(font), 
+  dmg(font),
+  multiplier(font)
+{
 
   cardCount = curr = 0;
   auto iconRect = sf::IntRect(0, 0, 14, 14);
@@ -110,11 +117,10 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
     if (cardCount > 0 && curr < cardCount && selectedCards[curr]) {
 
       // Text sits at the bottom-left of the screen
-      text.SetString(selectedCards[curr]->GetShortName()));
+      text.SetString(selectedCards[curr]->GetShortName());
       text.setOrigin(0, 0);
       text.setPosition(3.0f, 290.0f);
-      text.setOutlineThickness(2.f);
-      text.setOutlineColor(sf::Color(48, 56, 80));
+      text.SetColor(sf::Color::White);
 
       // Text sits at the bottom-left of the screen
       int unmodDamage = selectedCards[curr]->GetUnmoddedProps().damage;
@@ -129,20 +135,16 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
       if (delta != 0 || unmodDamage != 0) {
         dmg.SetString(dmgText);
         dmg.setOrigin(0, 0);
-        dmg.setPosition((text.getLocalBounds().width*text.getScale().x) + 13.f, 290.f);
-        dmg.setFillColor(sf::Color(225, 140, 0));
-        dmg.setOutlineThickness(2.f);
-        dmg.setOutlineColor(sf::Color(48, 56, 80));
-      }
+        dmg.setPosition((text.GetLocalBounds().width*text.getScale().x) + 13.f, 290.f);
+        dmg.SetColor(sf::Color(225, 140, 0));      }
 
       if (multiplierValue != 1 && unmodDamage != 0) {
         // add "x N" where N is the multiplier
         std::string multStr = "x " + std::to_string(multiplierValue);
         multiplier.SetString(multStr);
         multiplier.setOrigin(0, 0);
-        multiplier.setPosition(dmg.getPosition().x + dmg.getLocalBounds().width + 3.0f, 290.0f);
-        multiplier.setOutlineThickness(2.f);
-        multiplier.setOutlineColor(sf::Color(48, 56, 80));
+        multiplier.setPosition(dmg.getPosition().x + dmg.GetLocalBounds().width + 3.0f, 290.0f);
+        multiplier.SetColor(sf::Color::White);
       }
     }
   }
@@ -155,7 +157,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
 };
 
 void SelectedCardsUI::OnUpdate(float _elapsed) {
-  if (INPUTx.Has(InputEvents::held_option)) {
+  if (Input().Has(InputEvents::held_option)) {
     spread = true;
   }
   else {

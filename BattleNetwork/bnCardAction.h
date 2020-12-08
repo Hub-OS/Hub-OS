@@ -33,7 +33,7 @@ struct ActionLockoutProperties {
   ActionLockoutGroup group{ ActionLockoutGroup::card };
 };
 
-class CardAction : public Component, public SceneNode {
+class CardAction : public Component, public SceneNode, public ResourceHandle {
 public:
   class Attachment {
     using Attachments = std::multimap<std::string, Attachment>;
@@ -82,7 +82,6 @@ public:
 
   using Attachments = std::multimap<std::string, Attachment>;
 
-<<<<<<< HEAD
 private:
   bool animationIsOver{ false };
   bool started{ false };
@@ -101,9 +100,6 @@ private:
   void FreeAttachedNodes();
 
 protected:
-  /*user defined */
-  virtual void Execute() = 0;
-
   // Used by cards that use sequences (like most Time Freeze animations)
   void AddStep(Step step);
 
@@ -125,16 +121,12 @@ public:
   CardAction(Character& owner, const std::string& animation = "PLAYER_IDLE");
   virtual ~CardAction();
 
-  virtual void OnUpdate(float _elapsed);
-  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-  virtual void EndAction() = 0;
-  virtual void OnAnimationEnd() = 0;
-
   void Inject(BattleSceneBase&) final;
   void SetLockout(const ActionLockoutProperties& props);
   void SetLockoutGroup(const ActionLockoutGroup& group);
   void OverrideAnimationFrames(std::list<OverrideFrame> frameData);
-  void OnExecute();
+  void Execute();
+  void EndAction();
 
   const ActionLockoutGroup GetLockoutGroup() const;
   const ActionLockoutType GetLockoutType() const;
@@ -144,4 +136,12 @@ public:
 
   /** Override get owner to always return a character type */
   Character* GetOwner();
+
+  virtual void OnUpdate(float _elapsed);
+  virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
+
+protected:
+  virtual void OnEndAction() = 0;
+  virtual void OnAnimationEnd() = 0;
+  virtual void OnExecute() = 0;
 };

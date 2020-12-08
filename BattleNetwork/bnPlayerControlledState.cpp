@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-PlayerControlledState::PlayerControlledState() : AIState<Player>(), replicator(nullptr)
+PlayerControlledState::PlayerControlledState() : AIState<Player>(), InputHandle(), replicator(nullptr)
 {
   isChargeHeld = false;
   queuedAction = nullptr;
@@ -34,7 +34,7 @@ void PlayerControlledState::QueueAction(Player & player)
     delete action;
   }
 
-  player.chargeEffect.SetCharging(false);
+  player.GetChargeComponent().SetCharging(false);
   if (replicator) replicator->SendChargeSignal(false);
 
   isChargeHeld = false;
@@ -173,7 +173,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
           // if the player was pressing the D-pad this frame too
           if (queuedAction && actions.empty()) {
             playerPtr->RegisterComponent(queuedAction);
-            queuedAction->OnExecute();
+            queuedAction->Execute();
             queuedAction = nullptr;
           }
 

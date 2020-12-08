@@ -18,11 +18,11 @@ class MachGunCardAction : public CardAction {
   Battle::Tile* MoveRectical(Field*, bool columnMove);
 
 public:
-  MachGunCardAction(Character* owner, int damage);
+  MachGunCardAction(Character& owner, int damage);
   ~MachGunCardAction();
 
-  void Execute() override;
-  void EndAction() override;
+  void OnExecute() override;
+  void OnEndAction() override;
   void OnAnimationEnd() override;
 };
 

@@ -2,13 +2,13 @@
 #include "bnCharacter.h"
 #include "bnPanelGrab.h"
 
-AreaGrabCardAction::AreaGrabCardAction(Character* owner, int damage) : 
+AreaGrabCardAction::AreaGrabCardAction(Character& owner, int damage) : 
   damage(damage),
-  CardAction(*owner, "PLAYER_IDLE"){
+  CardAction(owner, "PLAYER_IDLE"){
   this->SetLockout({ ActionLockoutType::sequence });
 }
 
-void AreaGrabCardAction::Execute() {
+void AreaGrabCardAction::OnExecute() {
   auto owner = GetOwner();
   Field* f = owner->GetField();
   PanelGrab** grab = new PanelGrab * [3];
@@ -104,7 +104,7 @@ void AreaGrabCardAction::OnAnimationEnd()
 {
 }
 
-void AreaGrabCardAction::EndAction()
+void AreaGrabCardAction::OnEndAction()
 {
   GetOwner()->Reveal();
   Eject();

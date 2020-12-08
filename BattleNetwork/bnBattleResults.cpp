@@ -48,8 +48,26 @@
     3 = +3
     */
 
-BattleResults::BattleResults(sf::Time battleLength, int moveCount, int hitCount, int counterCount, bool doubleDelete, bool tripleDelete, Mob *mob) 
-: cardMatrixIndex(0), isRevealed(false), playSoundOnce(false), rewardIsCard(false), item(nullptr), score(0), counterCount(0), totalElapsed(0)
+BattleResults::BattleResults(sf::Time battleLength, 
+  int moveCount,
+  int hitCount, 
+  int counterCount, 
+  bool doubleDelete, 
+  bool tripleDelete,
+  Mob *mob) : 
+  cardMatrixIndex(0), 
+  isRevealed(false),
+  playSoundOnce(false),
+  rewardIsCard(false), 
+  item(nullptr), 
+  score(0), 
+  counterCount(0),
+  totalElapsed(0),
+  font(Font::Style::small),
+  time(font), 
+  rank(font), 
+  reward(font), 
+  cardCode(font)
 {
   this->counterCount = std::min(3, counterCount);
   this->counterCount = std::max(0, this->counterCount);
@@ -264,8 +282,8 @@ void BattleResults::Update(double elapsed)
   }
 }
 
-void BattleResults::Draw() {
-  ENGINE.Draw(resultsSprite, false);
+void BattleResults::Draw(sf::RenderTarget& surface) {
+  surface.draw(resultsSprite);
 
   // moves over when there's counter stars
   auto starSpacing = [](int index) -> float { return (19.f*index); };
@@ -273,7 +291,7 @@ void BattleResults::Draw() {
 
   if (IsInView()) {
     if (!isRevealed)
-      ENGINE.Draw(pressA, false);
+      surface.draw(pressA);
 
     // Draw shadow
     rank.setPosition(rankPos.x+1.f, rankPos.y+2.f);
@@ -285,7 +303,7 @@ void BattleResults::Draw() {
       rank.SetColor(sf::Color(80, 72, 88));
     }
 
-    ENGINE.Draw(rank, false);
+    surface.draw(rank);
 
     // Draw overlay
     rank.setPosition(rankPos);
@@ -296,20 +314,20 @@ void BattleResults::Draw() {
     else {
       rank.SetColor(sf::Color(240, 248, 248));
     }
-    ENGINE.Draw(rank, false);
+    surface.draw(rank);
 
     // Draw shadow
     time.setPosition(2.f*192.f, 80.f);
     time.SetColor(sf::Color(80, 72, 88));
-    ENGINE.Draw(time, false);
+    surface.draw(time);
 
     // Draw overlay
     time.setPosition(2.f*191.f, 78.f);
     time.SetColor(sf::Color(240, 248, 248));
-    ENGINE.Draw(time, false);
+    surface.draw(time);
 
     if (isRevealed) {
-      ENGINE.Draw(rewardCard, false);
+      surface.draw(rewardCard);
 
       sf::RectangleShape c(sf::Vector2f(8 * 2, 8 * 2));
       c.setFillColor(sf::Color::Black);
@@ -323,22 +341,22 @@ void BattleResults::Draw() {
           offset = 2.0f * offset;
 
           c.setPosition(rewardCard.getPosition() + offset);
-          ENGINE.Draw(c, false);
+          surface.draw(c);
         }
       }
 
       if (IsFinished()) {
-        ENGINE.Draw(reward, false);
+        surface.draw(reward);
 
         if (rewardIsCard) {
-          ENGINE.Draw(cardCode, false);
+          surface.draw(cardCode);
         }
       }
     }
 
     for (int i = 0; i < counterCount; i++) {
       star.setPosition(rankPos.x + starSpacing(i) + (starSpacing(1) / 2.0f), rankPos.y + 16.0f);
-      ENGINE.Draw(star, false);
+      surface.draw(star);
     }
   }
 }

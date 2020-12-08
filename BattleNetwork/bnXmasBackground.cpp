@@ -1,7 +1,7 @@
 #include "bnXmasBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 
 #define COMPONENT_WIDTH 32
 #define COMPONENT_HEIGHT 48
@@ -9,7 +9,7 @@
 #define PATH std::string("resources/backgrounds/xmas/")
 
 XmasBackground::XmasBackground()
-  : x(0.0f), y(0.0f), Background(TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
+  : x(0.0f), y(0.0f), Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 
   animation = Animation(PATH + "bg.animation");

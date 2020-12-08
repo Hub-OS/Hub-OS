@@ -17,4 +17,5 @@ public:
   void OnUpdate(float _elapsed) override;
   void OnEndAction() override;
   void OnExecute() override;
+  void OnAnimationEnd() override;
 }; 

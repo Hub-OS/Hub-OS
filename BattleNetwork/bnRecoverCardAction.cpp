@@ -10,8 +10,8 @@
 #define FRAMES FRAME1
 
 
-RecoverCardAction::RecoverCardAction(Character * owner, int heal) : 
-  CardAction(*owner, "PLAYER_IDLE") {
+RecoverCardAction::RecoverCardAction(Character& owner, int heal) : 
+  CardAction(owner, "PLAYER_IDLE") {
   RecoverCardAction::heal = heal;
 
   // add override anims
@@ -40,15 +40,11 @@ void RecoverCardAction::OnExecute() {
   }
 }
 
-void RecoverCardAction::OnEndAction()
-{
-}
-
 void RecoverCardAction::OnAnimationEnd()
 {
 }
 
-void RecoverCardAction::EndAction()
+void RecoverCardAction::OnEndAction()
 {
   Eject();
 }

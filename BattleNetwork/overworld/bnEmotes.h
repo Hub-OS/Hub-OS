@@ -1,5 +1,7 @@
 #pragma once
 #include <Swoosh/Timer.h>
+#include "../bnInputHandle.h"
+#include "../bnResourceHandle.h"
 #include "../bnSpriteProxyNode.h"
 #include "../bnCallback.h"
 
@@ -25,7 +27,7 @@ namespace Overworld {
     size
   };
 
-  class EmoteNode : public SpriteProxyNode {
+  class EmoteNode : public SpriteProxyNode, public ResourceHandle {
     Emotes currEmote{};
     swoosh::Timer timer{};
   public:
@@ -38,7 +40,11 @@ namespace Overworld {
     void Update(double elapsed);
   };
 
-  class EmoteWidget : public sf::Drawable, public sf::Transformable {
+  class EmoteWidget : 
+    public sf::Drawable, 
+    public sf::Transformable, 
+    public ResourceHandle, 
+    public InputHandle {
     float radius{ 25.0f }; //!< in pixels
     Emotes currEmote{};
     SpriteProxyNode emoteSprites[static_cast<size_t>(Emotes::size)];

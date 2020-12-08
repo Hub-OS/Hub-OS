@@ -105,7 +105,7 @@ void Text::UpdateGeometry() const
   geometryDirty = false;
 }
 
-Text::Text(Font & font) : font(font), message(""), geometryDirty(true)
+Text::Text(const Font& font) : font(font), message(""), geometryDirty(true)
 {
   letterSpacing = (font.GetWhiteSpaceWidth() / 3.0f) + 1.0f;
   lineSpacing = 1.0f;
@@ -113,7 +113,7 @@ Text::Text(Font & font) : font(font), message(""), geometryDirty(true)
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
 }
 
-Text::Text(const std::string message, Font & font) : font(font), message(message), geometryDirty(true)
+Text::Text(const std::string message, const Font& font) : font(font), message(message), geometryDirty(true)
 {
   letterSpacing = (font.GetWhiteSpaceWidth()/3.0f) + 1.0f;
   lineSpacing = 1.0f;
@@ -121,7 +121,7 @@ Text::Text(const std::string message, Font & font) : font(font), message(message
   vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
 }
 
-Text::Text(const Text & rhs) : font(rhs.font)
+Text::Text(const Text& rhs) : font(rhs.font)
 {
   letterSpacing = rhs.letterSpacing;
   lineSpacing = rhs.lineSpacing;
@@ -144,6 +144,11 @@ void Text::draw(sf::RenderTarget & target, sf::RenderStates states) const
   states.texture = &font.GetTexture();
 
   target.draw(vertices, states);
+}
+
+void Text::SetFont(const Font& font)
+{
+  this->font = font;
 }
 
 void Text::SetString(const std::string message)

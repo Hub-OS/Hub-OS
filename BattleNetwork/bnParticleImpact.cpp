@@ -39,17 +39,17 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifa
   case Type::vulcan:
     animation = Animation(VULCAN_PATH);
     animation.SetAnimation("DEFAULT");
-    setTexture(TEXTURES.GetTexture(TextureType::SPELL_VULCAN_IMPACT_FX));
+    setTexture(Textures().GetTexture(TextureType::SPELL_VULCAN_IMPACT_FX));
     break;
   case Type::volcano:
     animation = Animation(VOLCANO_PATH);
     animation.SetAnimation("HIT");
-    setTexture(TEXTURES.LoadTextureFromFile("resources/spells/volcano_hit.png"));
+    setTexture(Textures().LoadTextureFromFile("resources/spells/volcano_hit.png"));
     break;
   case Type::wind:
     animation = Animation(WIND_PATH);
     animation.SetAnimation("DEFAULT");
-    setTexture(TEXTURES.LoadTextureFromFile("resources/spells/panel_wind.png"));
+    setTexture(Textures().LoadTextureFromFile("resources/spells/panel_wind.png"));
     break;
   default:
     animation.SetAnimation("GREEN");

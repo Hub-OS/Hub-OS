@@ -1,21 +1,23 @@
+#include <Segues/DiamondTileCircle.h>
 #include "bnTitleScene.h"
+#include "bnConfigScene.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "overworld/bnOverworldHomepage.h"
 
-TitleScene::TitleScene(swoosh::ActivityController * controller, TaskGroup&& tasks)
-  : 
+using namespace swoosh::types;
+
+TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks) : 
   startFont(Font::Style::thick),
   font(Font::Style::small),
   logLabel(font),
   startLabel(startFont),
-  selected(0),
   inLoadState(true),
   ready(false),
   loadMobs(false),
   LoaderScene(controller, std::move(tasks))
 {
-
     // Title screen logo based on region
 #if ONB_REGION_JAPAN
     std::shared_ptr<sf::Texture> logo = Textures().LoadTextureFromFile("resources/scenes/title/tile.png");
@@ -23,28 +25,27 @@ TitleScene::TitleScene(swoosh::ActivityController * controller, TaskGroup&& task
     std::shared_ptr<sf::Texture> logo = Textures().LoadTextureFromFile("resources/scenes/title/tile_en.png");
 #endif
 
+  logoSprite.setTexture(logo);
+  logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);
+  sf::Vector2f logoPos = sf::Vector2f(240.f, 160.f);
+  logoSprite.setPosition(logoPos);
 
-    logoSprite.setTexture(logo);
-    logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);
-    sf::Vector2f logoPos = sf::Vector2f(240.f, 160.f);
-    logoSprite.setPosition(logoPos);
+  // Log output text
+  font = Font(Font::Style::small);
+  logLabel.setOrigin(0.f, logLabel.GetLocalBounds().height);
+  logLabel.setScale(2.f, 2.f);
 
-    // Log output text
-    font = Font(Font::Style::small);
-    logLabel.setOrigin(0.f, logLabel.GetLocalBounds().height);
-    logLabel.setScale(2.f, 2.f);
+  // Press Start text
+  startFont = Font(Font::Style::thick);
 
-    // Press Start text
-    startFont = Font(Font::Style::thick);
+  startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
+  startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
+  startLabel.setScale(2.f, 2.f);
 
-    startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
-    startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
-    startLabel.setScale(2.f, 2.f);
-
-    // When progress is equal to the totalObject count, we are 100% ready
-    totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE;
-    totalObjects += (unsigned)AudioType::AUDIO_TYPE_SIZE;
-    totalObjects += (unsigned)ShaderType::SHADER_TYPE_SIZE;
+  // When progress is equal to the totalObject count, we are 100% ready
+  totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE;
+  totalObjects += (unsigned)AudioType::AUDIO_TYPE_SIZE;
+  totalObjects += (unsigned)ShaderType::SHADER_TYPE_SIZE;
 }
 
 void TitleScene::onStart()
@@ -64,7 +65,7 @@ void TitleScene::onUpdate(double elapsed)
     doOnce = false;
 
 #if defined(__ANDROID__)
-    startLabel.SetString("TAP STRING");
+    startLabel.SetString("TAP SCREEN");
 #else
     startLabel.SetString("PRESS START");
 #endif
@@ -74,6 +75,24 @@ void TitleScene::onUpdate(double elapsed)
   startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
   startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
   startLabel.setScale(2.f, 2.f);
+
+  if (Input().Has(InputEvents::pressed_confirm)) {
+    if (!pressedStart) {
+      pressedStart = true;
+    }
+    else {
+
+      // We want the next screen to be the main menu screen
+      getController().push<Overworld::Homepage>(loginSelected);
+
+      if (!loginSelected) {
+        getController().push<ConfigScene>();
+      }
+
+      // Zoom out and start a segue effect
+      getController().pop<segue<DiamondTileCircle>>();
+    }
+  }
 }
 
 void TitleScene::onLeave()
@@ -96,6 +115,9 @@ void TitleScene::onResume()
 
 void TitleScene::onDraw(sf::RenderTexture & surface)
 {
+  surface.draw(bgSprite);
+  surface.draw(logoSprite);
+  surface.draw(startLabel);
 }
 
 void TitleScene::onEnd()

@@ -8,25 +8,18 @@ class SpriteProxyNode;
 class Character;
 class BusterCardAction : public CardAction {
 private:
-  SpriteProxyNode *buster, *flare;
-<<<<<<< HEAD
+  SpriteProxyNode* buster{ nullptr }, * flare{ nullptr };
   Attachment* busterAttachment{ nullptr };
-=======
->>>>>>> menu-refactor
   Animation busterAnim, flareAnim;
-  bool charged;
-  int damage;
-  bool isBusterAlive;
+  bool charged{};
+  int damage{};
+  bool isBusterAlive{};
 public:
   BusterCardAction(Character& user, bool charged, int damage);
   ~BusterCardAction();
-<<<<<<< HEAD
+
   void OnUpdate(float _elapsed);
   void OnAnimationEnd();
-  void EndAction();
-  void Execute();
-=======
-  void OnEndAction() override;
-  void OnExecute() override;
->>>>>>> menu-refactor
+  void OnEndAction();
+  void OnExecute();
 };

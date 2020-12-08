@@ -13,9 +13,9 @@
 
 #define FRAMES FRAME1, FRAME3
 
-YoYoCardAction::YoYoCardAction(Character * owner, int damage) :
+YoYoCardAction::YoYoCardAction(Character& owner, int damage) :
   attachmentAnim(NODE_ANIM), yoyo(nullptr),
-  CardAction(*owner, "PLAYER_SHOOTING") {
+  CardAction(owner, "PLAYER_SHOOTING") {
   YoYoCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
@@ -25,13 +25,10 @@ YoYoCardAction::YoYoCardAction(Character * owner, int damage) :
   attachmentAnim = Animation(NODE_ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
 
-  Animation& userAnim = user.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
-  AddAttachment(userAnim, "BUSTER", *attachment).PrepareAnimation(attachmentAnim);
-
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
 
 }
 
@@ -43,8 +40,7 @@ void YoYoCardAction::OnExecute() {
   auto owner = GetOwner();
 
   // On shoot frame, drop projectile
-  auto onFire = [this]() -> void {
-    auto& user = GetUser();
+  auto onFire = [this, owner]() -> void {
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
     Team team = GetOwner()->GetTeam();
@@ -52,10 +48,10 @@ void YoYoCardAction::OnExecute() {
 
     y->SetDirection(team == Team::red? Direction::right : Direction::left);
     auto props = y->GetHitboxProperties();
-    props.aggressor = &user;
+    props.aggressor = owner;
     y->SetHitboxProperties(props);
     yoyo = y;
-    GetUser().GetField()->AddEntity(*y, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
+    owner->GetField()->AddEntity(*y, owner->GetTile()->GetX() + 1, owner->GetTile()->GetY());
   };
 
   AddAnimAction(1, onFire);
@@ -68,7 +64,7 @@ void YoYoCardAction::OnUpdate(float _elapsed)
   if (yoyo && yoyo->WillRemoveLater()) {
     yoyo = nullptr;
 
-    RecallPreviousState();
+    GetOwner()->GetFirstComponent<AnimationComponent>()->SetAnimation("PLAYER_IDLE");
     EndAction();
   }
 }

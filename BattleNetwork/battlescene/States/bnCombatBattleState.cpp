@@ -16,17 +16,17 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*>& tracked, do
   mob(mob), 
   tracked(tracked), 
   customDuration(customDuration),
-  customBarShader(*SHADERS.GetShader(ShaderType::CUSTOM_BAR)),
-  pauseShader(*SHADERS.GetShader(ShaderType::BLACK_FADE))
+  customBarShader(*Shaders().GetShader(ShaderType::CUSTOM_BAR)),
+  pauseShader(*Shaders().GetShader(ShaderType::BLACK_FADE))
 {
   // PAUSE
-  pause.setTexture(*TEXTURES.LoadTextureFromFile("resources/ui/pause.png"));
+  pause.setTexture(*Textures().LoadTextureFromFile("resources/ui/pause.png"));
   pause.setScale(2.f, 2.f);
   pause.setOrigin(pause.getLocalBounds().width / 2, pause.getLocalBounds().height * 2);
   pause.setPosition(sf::Vector2f(240.f, 160.f));
 
   // CHIP CUST GRAPHICS
-  auto customBarTexture = TEXTURES.LoadTextureFromFile("resources/ui/custom.png");
+  auto customBarTexture = Textures().LoadTextureFromFile("resources/ui/custom.png");
   customBar.setTexture(customBarTexture);
   customBar.setOrigin(customBar.getLocalBounds().width / 2, 0);
   auto customBarPos = sf::Vector2f(240.f, 0.f);
@@ -78,7 +78,7 @@ const bool CombatBattleState::PlayerLost() const
 
 const bool CombatBattleState::PlayerRequestCardSelect()
 {
-  return !this->isPaused && this->isGaugeFull && !mob->IsCleared() && INPUTx.Has(InputEvents::pressed_cust_menu);
+  return !this->isPaused && this->isGaugeFull && !mob->IsCleared() && Input().Has(InputEvents::pressed_cust_menu);
 }
 
 void CombatBattleState::onStart(const BattleSceneState* last)
@@ -129,12 +129,11 @@ void CombatBattleState::onUpdate(double elapsed)
     clearedMob = true;
   }
 
-  if (INPUTx.Has(InputEvents::pressed_pause) && !mob->IsCleared()) {
+  if (Input().Has(InputEvents::pressed_pause) && !mob->IsCleared()) {
 
     if (isPaused) {
       // unpauses
-
-      ENGINE.RevokeShader();
+      //ENGINE.RevokeShader();
 
       // Require to stop the battle step timer and all battle-related component updates
       GetScene().StartBattleStepTimer();
@@ -142,7 +141,7 @@ void CombatBattleState::onUpdate(double elapsed)
     else {
       // pauses
 
-      AUDIO.Play(AudioType::PAUSE);
+      Audio().Play(AudioType::PAUSE);
 
       // Require to start the timer again and all battle-related component updates
       GetScene().StopBattleStepTimer();
@@ -167,13 +166,13 @@ void CombatBattleState::onUpdate(double elapsed)
   if (!HasTimeFreeze()) {
     auto actions = tracked[0]->GetComponentsDerivedFrom<CardAction>();
     if (actions.size() > 0 && actions[0]->CanExecute()) {
-      actions[0]->OnExecute();
+      actions[0]->Execute();
     }
   }
 
   if (customProgress / customDuration >= 1.0 && !isGaugeFull) {
     isGaugeFull = true;
-    AUDIO.Play(AudioType::CUSTOM_BAR_FULL);
+    Audio().Play(AudioType::CUSTOM_BAR_FULL);
   }
 
   customBarShader.setUniform("factor", (float)(customProgress / customDuration));
@@ -185,26 +184,26 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
 
   if (!GetScene().Countered()) {
     if (comboDeleteSize == 2) {
-      ENGINE.Draw(doubleDelete);
+      surface.draw(doubleDelete);
     } else if(comboDeleteSize > 2) {
-      ENGINE.Draw(tripleDelete);
+      surface.draw(tripleDelete);
     }
   }
   else {
-    ENGINE.Draw(counterHit);
+    surface.draw(counterHit);
   }
 
-  ENGINE.Draw(GetScene().GetCardSelectWidget());
+  surface.draw(GetScene().GetCardSelectWidget());
 
   if (!mob->IsCleared()) {
-    ENGINE.Draw(&customBar);
+    surface.draw(customBar);
   }
 
   if (isPaused) {
-    ENGINE.SetShader(&pauseShader);
+    //ENGINE.SetShader(&pauseShader);
 
     // render on top
-    ENGINE.Draw(pause, false);
+    surface.draw(pause);
   }
 }
 

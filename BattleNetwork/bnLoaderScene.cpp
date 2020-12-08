@@ -12,8 +12,8 @@ void LoaderScene::ExecuteTasks()
   }
 }
 
-LoaderScene::LoaderScene(swoosh::ActivityController * controller, TaskGroup && tasks)
-: tasks(std::move(tasks)),
+LoaderScene::LoaderScene(swoosh::ActivityController& controller, TaskGroup && tasks) : 
+  tasks(std::move(tasks)),
   Scene(controller) {
   completion = 0;
 }

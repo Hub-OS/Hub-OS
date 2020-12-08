@@ -23,7 +23,7 @@ void BattleOverBattleState::onStart(const BattleSceneState*)
 {
   battleEndTimer.reset();
   battleEndTimer.start();
-  AUDIO.Stream("resources/loops/enemy_deleted.ogg");
+  Audio().Stream("resources/loops/enemy_deleted.ogg");
 
   for (auto p : tracked) {
     auto animComponent = p->GetFirstComponent<AnimationComponent>();
@@ -61,5 +61,5 @@ void BattleOverBattleState::onDraw(sf::RenderTexture& surface)
   double scale = swoosh::ease::wideParabola(battleEndSecs, postBattleLength, 2.0);
   battleEnd.setScale(2.f, (float)scale * 2.f);
 
-  ENGINE.Draw(battleEnd);
+  surface.draw(battleEnd);
 }

@@ -12,8 +12,6 @@
 #include <time.h>
 #include <SFML/Graphics.hpp>
 
-#include <Swoosh/Activity.h>
-
 #include "bnMobRegistration.h"
 #include "bnNaviRegistration.h"
 #include "bnTextBox.h"
@@ -27,13 +25,14 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include "battlescene/bnBattleSceneBase.h"
 #include "bnMobFactory.h"
 #include "bnRandomMettaurMob.h"
 #include "bnProgsManBossFight.h"
 #include "bnTwoMettaurMob.h"
 #include "bnCanodumbMob.h"
+#include "bnScene.h"
 
 #include "Segues/CrossZoom.h" // <-- GPU intensive and runs slowly on old hardware
 #include "Segues/WhiteWashFade.h"

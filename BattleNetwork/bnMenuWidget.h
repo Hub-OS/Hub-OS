@@ -1,9 +1,13 @@
+#pragma once
+#include <Swoosh/Timer.h>
+#include <Swoosh/Ease.h>
+
 #include "bnSceneNode.h"
 #include "bnSpriteProxyNode.h"
 #include "bnAnimation.h"
-
-#include <Swoosh/Timer.h>
-#include <Swoosh/Ease.h>
+#include "bnResourceHandle.h"
+#include "bnFont.h"
+#include "bnText.h"
 
 /**
  * @class MenuWidget
@@ -11,7 +15,7 @@
  * @date 11/04/20
  * @brief MenuWidget used in over-world hub. Can be interacted through public API.
  */
-class MenuWidget : public SceneNode {
+class MenuWidget : public SceneNode, public ResourceHandle {
 public:
   enum class state : unsigned {
     closed = 0,
@@ -36,11 +40,11 @@ private:
   bool extendedHold{ false }; //!< If player holds the arrow keys down
   state currState{}; //!< Track all open/close states. Default is closed
   std::string areaName; //!< Area name typed out
-  std::shared_ptr<sf::Font> font; //!< Used by text
+  Font font; //!< Used by text
   std::shared_ptr<sf::Texture> iconTexture; //!< If supplying an icon, use this one
   std::shared_ptr<sf::Texture> widgetTexture; //!< texture used by widget
-  sf::Text areaLabel; //!< Area name displayed in widget
-  mutable sf::Text infoText; //!< Text obj used for all other info
+  Text areaLabel; //!< Area name displayed in widget
+  mutable Text infoText; //!< Text obj used for all other info
   swoosh::Timer easeInTimer; //!< Timer used for animations
   SpriteProxyNode banner;
   SpriteProxyNode symbol;

@@ -1,9 +1,9 @@
 #pragma once
+#include <memory>
 #include "bnLoaderScene.h"
 #include "bnSpriteProxyNode.h"
 #include "bnFont.h"
 #include "bnText.h"
-#include <memory>
 
 class TitleScene final : public LoaderScene {
 private:
@@ -24,10 +24,10 @@ private:
   bool ready = false;
   bool loadMobs = false;
   bool pressedStart = false;
+  bool loginSelected = true;
 
-  int selected; // menu options are CONTINUE (0) and CONFIGURE (1)
 public:
-  TitleScene(swoosh::ActivityController* controller, TaskGroup&& tasks);
+  TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks);
   void onStart() override;
   void onUpdate(double elapsed) override;
   void onLeave() override;

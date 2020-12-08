@@ -8,6 +8,7 @@
 #include <SFML/Graphics.hpp>
 #include <functional>
 #include <vector>
+#include "../bnDrawWindow.h"
 
 class TouchArea {
 public:
@@ -40,7 +41,7 @@ private:
 
     void reset();
     void releaseTouch();
-    void privPoll();
+    void privPoll(RenderWindow& window);
 
 public:
     TouchArea() = delete;
@@ -56,7 +57,7 @@ public:
     static TouchArea& create(const sf::IntRect&  source);
     static TouchArea& create(const sf::IntRect&& source);
     static void free();
-    static void poll();
+    static void poll(RenderWindow& window);
 
     const State getState() const;
     const int getTouchIndex() const;

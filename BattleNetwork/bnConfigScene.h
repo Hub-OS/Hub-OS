@@ -6,7 +6,6 @@
 #include <time.h>
 
 #include "bnScene.h"
-#include "bnMainMenuScene.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
@@ -90,8 +89,8 @@ private:
   void StartupTouchControls();
   void ShutdownTouchControls();
 #endif
-  void DrawMenuOptions();
-  void DrawMappedKeyMenu(std::vector<uiData>& container);
+  void DrawMenuOptions(sf::RenderTarget& surface);
+  void DrawMappedKeyMenu(std::vector<uiData>& container, sf::RenderTarget& surface);
 public:
 
   /**

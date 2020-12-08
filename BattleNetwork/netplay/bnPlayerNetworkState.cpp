@@ -76,7 +76,7 @@ void PlayerNetworkState::OnUpdate(float _elapsed, Player& player) {
   bool shouldShoot = netflags.remoteCharge && isChargeHeld == false;
 
 #ifdef __ANDROID__
-  shouldShoot = INPUTx.Has(PRESSED_A);
+  shouldShoot = Input().Has(PRESSED_A);
 #endif
 
   if (shouldShoot) {
@@ -111,7 +111,7 @@ void PlayerNetworkState::OnUpdate(float _elapsed, Player& player) {
   }
   else if (queuedAction && !player.IsSliding()) {
     player.RegisterComponent(queuedAction);
-    queuedAction->OnExecute();
+    queuedAction->Execute();
     queuedAction = nullptr;
 
     player.chargeEffect.SetCharging(false);

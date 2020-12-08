@@ -6,6 +6,7 @@
 #include "../bnBattleSceneState.h"
 #include "../../bnTeam.h"
 #include "../../bnCardUseListener.h"
+#include "../../bnFont.h"
 
 class Character;
 class CardAction;
@@ -27,7 +28,7 @@ struct TimeFreezeBattleState final : public BattleSceneState, CardUseListener {
   double backdropInc{ 1.25 }; //!< alpha increase per frame (max 255)
   std::string name;
   Team team{ Team::unknown };
-  std::shared_ptr<sf::Font> font;
+  Font font;
   swoosh::Timer summonTimer; /*!< Timer for TFC label to appear at top */
   Character* user{ nullptr };
   CardAction* action{ nullptr };

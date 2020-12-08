@@ -172,8 +172,8 @@ private:
   void ShutdownTouchControls();
 #endif
 
-  void DrawFolder();
-  void DrawLibrary();
+  void DrawFolder(sf::RenderTarget& surface);
+  void DrawLibrary(sf::RenderTarget& surface);
 
 public:
   std::string FormatCardDesc(const std::string&& desc);

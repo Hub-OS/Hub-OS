@@ -5,26 +5,21 @@
 #include "bnAudioResourceManager.h"
 #include "bnThunder.h"
 
-ThunderCardAction::ThunderCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_SHOOTING"),
-  attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
+ThunderCardAction::ThunderCardAction(Character& owner, int damage) :
+  CardAction(owner, "PLAYER_SHOOTING"),
+  attachmentAnim(owner.GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   ThunderCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(user.getTexture());
+  attachment->setTexture(owner.getTexture());
   attachment->SetLayer(-1);
   attachment->EnableParentShader();
 
-  attachmentAnim = Animation(user.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.Reload();
   attachmentAnim.SetAnimation("BUSTER");
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
-
-void ThunderCardAction::Execute() {
-  auto owner = GetOwner();
-
-  attachment->EnableParentShader();
 
 void ThunderCardAction::OnExecute() {
   // On shoot frame, drop projectile
@@ -34,7 +29,7 @@ void ThunderCardAction::OnExecute() {
     auto* thunder = new Thunder(GetOwner()->GetField(), team);
     auto props = thunder->GetHitboxProperties();
     props.damage = damage;
-    props.aggressor = &user;
+    props.aggressor = GetOwner();
     thunder->SetHitboxProperties(props);
 
     int step = 1;

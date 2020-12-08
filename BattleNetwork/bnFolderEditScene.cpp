@@ -86,12 +86,12 @@ std::string FolderEditScene::FormatCardDesc(const std::string && desc)
 }
 
 FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFolder& folder) :
-  swoosh::Activity(&controller)
+  Scene(controller),
   camera(sf::View(sf::Vector2f(240, 160), 
     sf::Vector2f(480, 320))), 
   folder(folder), 
   hasFolderChanged(false),
-  card()
+  card(),
   font(Font::Style::small),
   menuLabel("", font),
   cardFont(Font::Style::wide),
@@ -99,8 +99,7 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
   cardDescFont(Font::Style::thick),
   cardDesc("", cardDescFont),
   numberFont(Font::Style::small),
-  numberLabel("", numberFont),
-  Scene(&controller)
+  numberLabel("", numberFont)
 {
   // Move card data into their appropriate containers for easier management
   PlaceFolderDataIntoCardSlots();
@@ -210,8 +209,6 @@ FolderEditScene::FolderEditScene(swoosh::ActivityController &controller, CardFol
 FolderEditScene::~FolderEditScene() { ; }
 
 void FolderEditScene::onStart() {
-  ENGINE.SetCamera(camera);
-
   canInteract = true;
 }
 
@@ -241,7 +238,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       view = &packView;
     }
 
-    if (INPUTx.Has(InputEvents::pressed_ui_up) || INPUTx.Has(InputEvents::held_ui_up)) {
+    if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
@@ -263,7 +260,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_down) || INPUTx.Has(InputEvents::held_ui_down)) {
+    else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
       selectInputCooldown -= elapsed;
 
       view->prevIndex = view->currCardIndex;
@@ -283,7 +280,7 @@ void FolderEditScene::onUpdate(double elapsed) {
           ++view->lastCardOnScreen;
         }
       }
-    }else if (INPUTx.Has(InputEvents::pressed_scan_left)) {
+    }else if (Input().Has(InputEvents::pressed_scan_left)) {
       extendedHold = false;
 
       selectInputCooldown -= elapsed;
@@ -305,7 +302,7 @@ void FolderEditScene::onUpdate(double elapsed) {
         cardRevealTimer.reset();
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_scan_right)) {
+    else if (Input().Has(InputEvents::pressed_scan_right)) {
       extendedHold = false;
 
       selectInputCooldown -= elapsed;
@@ -331,7 +328,7 @@ void FolderEditScene::onUpdate(double elapsed) {
       extendedHold = false;
     }
 
-    if (INPUTx.Has(InputEvents::pressed_confirm)) {
+    if (Input().Has(InputEvents::pressed_confirm)) {
       if (currViewMode == ViewMode::FOLDER) {
         if (folderView.swapCardIndex != -1) {
           if (folderView.swapCardIndex == folderView.currCardIndex) {
@@ -483,12 +480,12 @@ void FolderEditScene::onUpdate(double elapsed) {
         }
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_right) && currViewMode == ViewMode::FOLDER) {
+    else if (Input().Has(InputEvents::pressed_ui_right) && currViewMode == ViewMode::FOLDER) {
       currViewMode = ViewMode::PACK;
       canInteract = false;
       Audio().Play(AudioType::CHIP_DESC);
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_left) && currViewMode == ViewMode::PACK) {
+    else if (Input().Has(InputEvents::pressed_ui_left) && currViewMode == ViewMode::PACK) {
       currViewMode = ViewMode::FOLDER;
       canInteract = false;
       Audio().Play(AudioType::CHIP_DESC);
@@ -526,7 +523,7 @@ void FolderEditScene::onUpdate(double elapsed) {
 
     bool gotoLastScene = false;
 
-    if (INPUTx.Has(InputEvents::pressed_cancel) && canInteract) {
+    if (Input().Has(InputEvents::pressed_cancel) && canInteract) {
       if (packView.swapCardIndex != -1 || folderView.swapCardIndex != -1) {
         Audio().Play(AudioType::CHIP_DESC_CLOSE);
         packView.swapCardIndex = folderView.swapCardIndex = -1;
@@ -594,14 +591,12 @@ void FolderEditScene::onResume() {
 }
 
 void FolderEditScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-
-  ENGINE.Draw(bg);
-  ENGINE.Draw(menuLabel);
+  surface.draw(bg);
+  surface.draw(menuLabel);
 
   float scale = 0.0f;
 
-  ENGINE.Draw(folderCardCountBox);
+  surface.draw(folderCardCountBox);
 
   if(int(0.5+folderCardCountBox.getScale().y) == 2) {
     auto nonempty = (decltype(folderCardSlots))(folderCardSlots.size());
@@ -621,14 +616,14 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
       cardLabel.SetColor(sf::Color::White);
     }
 
-    ENGINE.Draw(cardLabel, false);
+    surface.draw(cardLabel);
 
     // Draw max
     cardLabel.SetString(std::string("/ 30")); // will print "# / 30"
     cardLabel.setOrigin(0, 0);;
     cardLabel.setPosition(415.f, 1.f);
 
-    ENGINE.Draw(cardLabel, false);
+    surface.draw(cardLabel);
 
     // reset, we use this label everywhere in this scene...
     cardLabel.SetColor(sf::Color::White);
@@ -647,26 +642,26 @@ void FolderEditScene::onDraw(sf::RenderTexture& surface) {
 
   folderCardCountBox.setScale(2.0f, scale);
 
-  DrawFolder();
-  DrawLibrary();
+  DrawFolder(surface);
+  DrawLibrary(surface);
 }
 
-void FolderEditScene::DrawFolder() {
+void FolderEditScene::DrawFolder(sf::RenderTarget& surface) {
   cardDesc.setPosition(sf::Vector2f(20.f, 185.0f));
   scrollbar.setPosition(410.f, 60.f);
   cardHolder.setPosition(4.f, 35.f);
   element.setPosition(2.f*25.f, 146.f);
   card.setPosition(83.f, 93.f);
 
-  ENGINE.Draw(folderDock);
-  ENGINE.Draw(cardHolder);
+  surface.draw(folderDock);
+  surface.draw(cardHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 50.0f; float bottom = 230.0f;
   float depth = ((float)folderView.lastCardOnScreen / (float)folderView.numOfCards)*bottom;
   scrollbar.setPosition(452.f, top + depth);
 
-  ENGINE.Draw(scrollbar);
+  surface.draw(scrollbar);
 
   // Move the card library iterator to the current highlighted card
   auto iter = folderCardSlots.begin();
@@ -682,26 +677,26 @@ void FolderEditScene::DrawFolder() {
     if (!iter->IsEmpty()) {
       cardIcon.setTexture(*WEBCLIENT.GetIconForCard(copy.GetUUID()));
       cardIcon.setPosition(2.f*104.f, 65.0f + (32.f*i));
-      ENGINE.Draw(cardIcon, false);
+      surface.draw(cardIcon);
 
       cardLabel.SetColor(sf::Color::White);
       cardLabel.setPosition(2.f*120.f, 60.0f + (32.f*i));
       cardLabel.SetString(copy.GetShortName());
-      ENGINE.Draw(cardLabel, false);
+      surface.draw(cardLabel);
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f*183.f, 65.0f + (32.f*i));
-      ENGINE.Draw(element, false);
+      surface.draw(element);
 
       cardLabel.setOrigin(0, 0);
       cardLabel.setPosition(2.f*200.f, 60.0f + (32.f*i));
       cardLabel.SetString(std::string() + copy.GetCode());
-      ENGINE.Draw(cardLabel, false);
+      surface.draw(cardLabel);
 
       //Draw MB
       mbPlaceholder.setPosition(2.f*210.f, 67.0f + (32.f*i));
-      ENGINE.Draw(mbPlaceholder, false);
+      surface.draw(mbPlaceholder);
     }
 
     // Draw cursor
@@ -710,13 +705,13 @@ void FolderEditScene::DrawFolder() {
       auto bounce = std::sin((float)totalTimeElapsed*10.0f)*5.0f;
 
       folderCursor.setPosition((2.f*90.f) + bounce, y);
-      ENGINE.Draw(folderCursor);
+      surface.draw(folderCursor);
 
       if (!iter->IsEmpty()) {
 
         card.setTexture(*WEBCLIENT.GetImageForCard(copy.GetUUID()));
         card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
-        ENGINE.Draw(card, false);
+        surface.draw(card);
 
         // This draws the currently highlighted card
         if (copy.GetDamage() > 0) {
@@ -725,23 +720,23 @@ void FolderEditScene::DrawFolder() {
           cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
           cardLabel.setPosition(2.f*(70.f), 135.f);
 
-          ENGINE.Draw(cardLabel, false);
+          surface.draw(cardLabel);
         }
 
         cardLabel.setOrigin(0, 0);
         cardLabel.SetColor(sf::Color::Yellow);
         cardLabel.setPosition(2.f*14.f, 135.f);
         cardLabel.SetString(std::string() + copy.GetCode());
-        ENGINE.Draw(cardLabel, false);
+        surface.draw(cardLabel);
 
         std::string formatted = FormatCardDesc(copy.GetDescription());
         cardDesc.SetString(formatted);
-        ENGINE.Draw(cardDesc, false);
+        surface.draw(cardDesc);
 
         int offset = (int)(copy.GetElement());
         element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
         element.setPosition(2.f*25.f, 142.f);
-        ENGINE.Draw(element, false);
+        surface.draw(element);
       }
     }
     
@@ -750,7 +745,7 @@ void FolderEditScene::DrawFolder() {
 
       folderSwapCursor.setPosition((2.f*95.f) + 2.0f, y);
       folderSwapCursor.setColor(sf::Color(255, 255, 255, 200));
-      ENGINE.Draw(folderSwapCursor);
+      surface.draw(folderSwapCursor);
       folderSwapCursor.setColor(sf::Color::White);
     }
 
@@ -758,21 +753,21 @@ void FolderEditScene::DrawFolder() {
   }
 }
 
-void FolderEditScene::DrawLibrary() {
+void FolderEditScene::DrawLibrary(sf::RenderTarget& surface) {
   cardDesc.setPosition(sf::Vector2f(326.f + 480.f, 185.0f));
   cardHolder.setPosition(310.f + 480.f, 35.f);
   element.setPosition(400.f + 2.f*20.f + 480.f, 146.f);
   card.setPosition(389.f + 480.f, 93.f);
 
-  ENGINE.Draw(packDock);
-  ENGINE.Draw(cardHolder);
+  surface.draw(packDock);
+  surface.draw(cardHolder);
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
   float top = 50.0f; float bottom = 230.0f;
   float depth = ((float)packView.lastCardOnScreen / (float)packView.numOfCards)*bottom;
   scrollbar.setPosition(292.f + 480.f, top + depth);
 
-  ENGINE.Draw(scrollbar);
+  surface.draw(scrollbar);
 
   if (packView.numOfCards == 0) return;
 
@@ -790,33 +785,33 @@ void FolderEditScene::DrawLibrary() {
 
     cardIcon.setTextureRect(sf::IntRect{ 0,0,16,16 });
     cardIcon.setPosition(19.f + 480.f, 65.0f + (32.f*i));
-    ENGINE.Draw(cardIcon, false);
+    surface.draw(cardIcon);
 
     cardLabel.SetColor(sf::Color::White);
     cardLabel.setPosition(50.f + 480.f, 60.0f + (32.f*i));
     cardLabel.SetString(copy.GetShortName());
-    ENGINE.Draw(cardLabel, false);
+    surface.draw(cardLabel);
 
 
     int offset = (int)(copy.GetElement());
     element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
     element.setPosition(163.0f + 480.f, 65.0f + (32.f*i));
-    ENGINE.Draw(element, false);
+    surface.draw(element);
 
     cardLabel.setOrigin(0, 0);
     cardLabel.setPosition(196.f + 480.f, 60.0f + (32.f*i));
     cardLabel.SetString(std::string() + copy.GetCode());
-    ENGINE.Draw(cardLabel, false);
+    surface.draw(cardLabel);
 
     // Draw count in pack
     cardLabel.setOrigin(0, 0);
     cardLabel.setPosition(275.f + 480.f, 60.0f + (32.f*i));
     cardLabel.SetString(std::to_string(count));
-    ENGINE.Draw(cardLabel, false);
+    surface.draw(cardLabel);
 
     //Draw MB
     mbPlaceholder.setPosition(220.f + 480.f, 67.0f + (32.f*i));
-    ENGINE.Draw(mbPlaceholder, false);
+    surface.draw(mbPlaceholder);
 
     // Draw cursor
     if (packView.lastCardOnScreen + i == packView.currCardIndex) {
@@ -824,12 +819,12 @@ void FolderEditScene::DrawLibrary() {
       auto bounce = std::sin((float)totalTimeElapsed*10.0f)*2.0f;
 
       packCursor.setPosition(bounce + 480.f + 2.f, y);
-      ENGINE.Draw(packCursor);
+      surface.draw(packCursor);
 
       card.setTexture(*WEBCLIENT.GetImageForCard(packCardBuckets[packView.currCardIndex].ViewCard().GetUUID()));
       card.setTextureRect(sf::IntRect{ 0,0,56,48 });
       card.setScale((float)swoosh::ease::linear(cardRevealTimer.getElapsed().asSeconds(), 0.25f, 1.0f)*2.0f, 2.0f);
-      ENGINE.Draw(card, false);
+      surface.draw(card);
 
       // This draws the currently highlighted card
       if (copy.GetDamage() > 0) {
@@ -838,23 +833,23 @@ void FolderEditScene::DrawLibrary() {
         cardLabel.setOrigin(cardLabel.GetLocalBounds().width + cardLabel.GetLocalBounds().left, 0);
         cardLabel.setPosition(2.f*(223.f) + 480.f, 135.f);
 
-        ENGINE.Draw(cardLabel, false);
+        surface.draw(cardLabel);
       }
 
       cardLabel.setOrigin(0, 0);
       cardLabel.SetColor(sf::Color::Yellow);
       cardLabel.setPosition(2.f*167.f + 480.f, 135.f);
       cardLabel.SetString(std::string() + copy.GetCode());
-      ENGINE.Draw(cardLabel, false);
+      surface.draw(cardLabel);
 
       std::string formatted = FormatCardDesc(copy.GetDescription());
       cardDesc.SetString(formatted);
-      ENGINE.Draw(cardDesc, false);
+      surface.draw(cardDesc);
 
       int offset = (int)(copy.GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
       element.setPosition(2.f*179.f + 480.f, 142.f);
-      ENGINE.Draw(element, false);
+      surface.draw(element);
     }
     
     if (packView.lastCardOnScreen + i == packView.swapCardIndex && (int(totalTimeElapsed*1000) % 2 == 0)) {
@@ -862,7 +857,7 @@ void FolderEditScene::DrawLibrary() {
 
       packSwapCursor.setPosition(485.f + 2.f + 2.f, y);
       packSwapCursor.setColor(sf::Color(255, 255, 255, 200));
-      ENGINE.Draw(packSwapCursor);
+      surface.draw(packSwapCursor);
       packSwapCursor.setColor(sf::Color::White);
     }
 
