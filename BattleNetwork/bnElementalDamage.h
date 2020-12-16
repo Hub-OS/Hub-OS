@@ -14,7 +14,7 @@ class ElementalDamage : public Artifact
 {
 private:
   AnimationComponent animationComponent;
-  float progress;
+  double progress;
 
 public:
   ElementalDamage(Field* field);

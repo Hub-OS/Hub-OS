@@ -7,7 +7,7 @@ class ProgsMan;
 class ProgsManIdleState : public AIState<ProgsMan>
 {
 private:
-  float cooldown; /*!< Time left before changing states */
+  double cooldown; /*!< Time left before changing states */
   float initialCooldown; /*!< Cooldown used in this state's constructor */
 public:
   /**

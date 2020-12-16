@@ -88,8 +88,8 @@ void FadeInState<Any>::OnUpdate(double _elapsed, Any& e) {
     if (callback) { callback(); callback = nullptr; /* do once */ }
   }
 
-  float range = (MAX_TIME - factor) / MAX_TIME;
-  e.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
+  double range = (MAX_TIME - factor) / MAX_TIME;
+  e.setColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(255 * range)));
 }
 
 template<typename Any>

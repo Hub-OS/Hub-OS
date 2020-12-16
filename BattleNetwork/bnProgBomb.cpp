@@ -10,9 +10,7 @@
 
 ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration) : Spell(_field, _team) {
   SetLayer(0);
-  cooldown = 0;
-  damageCooldown = 0;
-  
+
   setTexture(Textures().GetTexture(TextureType::SPELL_PROG_BOMB));
   setScale(2.f, 2.f);
 
@@ -43,15 +41,15 @@ ProgBomb::~ProgBomb(void) {
 void ProgBomb::OnUpdate(double _elapsed) {
   arcProgress += _elapsed;
 
-  double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0f));
-  double beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0f));
+  double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0));
+  double beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0));
 
-  double posX = (beta * tile->getPosition().x) + ((1.0f - beta)*start.x);
+  double posX = (beta * tile->getPosition().x) + ((1.0 - beta)*start.x);
   double height = -(alpha * 120.0);
-  double posY = height + (beta * tile->getPosition().y) + ((1.0f - beta)*start.y);
+  double posY = height + (beta * tile->getPosition().y) + ((1.0 - beta)*start.y);
 
-  setPosition((float)posX, (float)posY);
-  setRotation(-(arcProgress / arcDuration)*90.0f);
+  setPosition(static_cast<float>(posX), static_cast<float>(posY));
+  setRotation(-static_cast<float>(arcProgress / arcDuration)*90.0f);
   Reveal();
 
   // When at the end of the arc

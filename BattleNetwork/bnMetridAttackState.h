@@ -13,7 +13,7 @@ class MetridAttackState : public AIState<Metrid>
 {
 private:
   int meteorCount;
-  float meteorCooldown;
+  double meteorCooldown;
   bool beginAttack;
   Battle::Tile* target;
 

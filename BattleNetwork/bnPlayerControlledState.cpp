@@ -28,7 +28,7 @@ void PlayerControlledState::QueueAction(Player & player)
   // We already have one action queued, delete the next one
   if (!queuedAction) {
     queuedAction = action;
-    if(replicator) this->startupDelay = STARTUP_DELAY_LEN;
+    if(replicator) this->startupDelay = seconds_cast<double>(STARTUP_DELAY_LEN);
   }
   else {
     delete action;
@@ -47,7 +47,7 @@ void PlayerControlledState::OnEnter(Player& player) {
 
 void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Action startup time and actions themselves prevent player input
-  if (this->startupDelay > 0.f) {
+  if (this->startupDelay > 0) {
     this->startupDelay -= _elapsed;
     return;
   }

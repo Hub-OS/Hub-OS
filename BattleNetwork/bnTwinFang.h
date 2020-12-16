@@ -13,7 +13,7 @@ protected:
   AnimationComponent* animation;
   bool spreadOut, onEdgeOfMap;
   float spreadOffset;
-  float flickeroutTimer;
+  double flickeroutTimer;
   Type type;
 
 public:

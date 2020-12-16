@@ -25,6 +25,6 @@ public:
 
 private:
   float x, y;
-  float progress;
+  double progress;
 };
 

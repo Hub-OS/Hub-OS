@@ -39,7 +39,7 @@ void Camera::Update(double elapsed) {
   }
   else {  
     // Otherwise calculate the delta
-    sf::Vector2f delta = (dest - origin) * (progress / dur.asMilliseconds()) + origin;
+    sf::Vector2f delta = (dest - origin) * static_cast<float>(static_cast<sf::Int32>(progress) / dur.asMilliseconds()) + origin;
     PlaceCamera(delta);
   }
 

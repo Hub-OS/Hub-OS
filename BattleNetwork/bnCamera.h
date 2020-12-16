@@ -9,16 +9,16 @@
  */
 class Camera
 {
-sf::Vector2f dest; /*!< Camera destination if moving */
-sf::Vector2f origin; /*!< Camera' origin */
-sf::Time dur; /*!< Duration of movement */
-sf::Time shakeDur; /*!< Duration of shake effect */
-double stress; /*!< How much stress to apply to shake */
-sf::View focus; /*!< SFML view of camera center */
-sf::View init; /*!< Initial view */
-float progress; /*!< Progress of movement */
-float shakeProgress; /*!< Progress of shake effect */
-bool isShaking; /*!< Flag for shaking camera */
+  bool isShaking; /*!< Flag for shaking camera */
+  double progress; /*!< Progress of movement */
+  double shakeProgress; /*!< Progress of shake effect */
+  double stress; /*!< How much stress to apply to shake */
+  sf::Vector2f dest; /*!< Camera destination if moving */
+  sf::Vector2f origin; /*!< Camera' origin */
+  sf::Time dur; /*!< Duration of movement */
+  sf::Time shakeDur; /*!< Duration of shake effect */
+  sf::View focus; /*!< SFML view of camera center */
+  sf::View init; /*!< Initial view */
 
 public:
   /**

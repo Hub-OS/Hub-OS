@@ -21,7 +21,7 @@ RollHeart::RollHeart(Character* user, int _heal)
 
   SetPassthrough(true);
 
-  HighlightTile(Battle::Tile::Highlight::solid);
+  HighlightTile(Battle::Tile::Highlight::none);
 
   height = 200;
 
@@ -43,7 +43,7 @@ void RollHeart::OnUpdate(double _elapsed) {
     setPosition(tile->getPosition().x, tile->getPosition().y - height - 10.0f);
   }
 
-  height -= _elapsed * 300.f;
+  height -= static_cast<float>(_elapsed * 300.0);
   
   if (height <= 0) height = 0;
 

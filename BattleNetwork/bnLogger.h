@@ -77,14 +77,14 @@ public:
 
     int size = 512;
     char* buffer = 0;
-    buffer = new char[size];
+    buffer = new char[static_cast<size_t>(size)];
     va_list vl;
     va_start(vl, fmt);
     int nsize = vsnprintf(buffer, size, fmt, vl);
     if (size <= nsize) {
       delete[] buffer;
       buffer = 0;
-      buffer = new char[nsize + 1];
+      buffer = new char[static_cast<size_t>(nsize) + 1];
       nsize = vsnprintf(buffer, size, fmt, vl);
     }
     std::string ret(buffer);

@@ -12,8 +12,6 @@
 
 MiniBomb::MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration, int damage) : Spell(_field, _team) {
   SetLayer(0);
-  cooldown = 0;
-  damageCooldown = 0;
 
   HighlightTile(Battle::Tile::Highlight::flash);
   setTexture(Textures().GetTexture(TextureType::SPELL_MINI_BOMB));
@@ -44,15 +42,15 @@ MiniBomb::~MiniBomb(void) {
 void MiniBomb::OnUpdate(double _elapsed) {
   arcProgress += _elapsed;
 
-  double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0f));
-  double beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0f));
+  double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0));
+  double beta = double(swoosh::ease::linear(arcProgress, arcDuration, 1.0));
 
   double posX = (beta * tile->getPosition().x) + ((1.0f - beta)*start.x);
   double height = -(alpha * 120.0);
   double posY = height + (beta * tile->getPosition().y) + ((1.0f - beta)*start.y);
 
   setPosition((float)posX, (float)posY);
-  setRotation(-(arcProgress / arcDuration)*90.0f);
+  setRotation(-static_cast<float>(arcProgress / arcDuration)*90.0f);
 
   // When at the end of the arc
   if (arcProgress >= arcDuration) {

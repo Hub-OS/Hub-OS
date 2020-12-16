@@ -25,7 +25,7 @@ void RobotBackground::Update(double _elapsed) {
 
   animation.Update(_elapsed, dummy);
 
-  y -= 0.5f * _elapsed;
+  y -= static_cast<float>(0.5 * _elapsed);
 
   if (y < 0) y = 1;
 

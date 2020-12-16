@@ -19,7 +19,7 @@ namespace Battle {
 class HideTimer : public Component {
 private:
   double duration; /*!< How long to hide a character for */
-  float elapsed; /*!< time elapsed in seconds */
+  double elapsed; /*!< time elapsed in seconds */
   Battle::Tile* temp; /*!< The tile to return the character to */
   std::function<void()> respawn;
 public:

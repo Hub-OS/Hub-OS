@@ -5,7 +5,7 @@ class HoneyBomber;
 
 class HoneyBomberIdleState : public AIState<HoneyBomber>
 {
-  float cooldown; /*!< How long to wait before moving */
+  double cooldown; /*!< How long to wait before moving */
 public:
 
   /**

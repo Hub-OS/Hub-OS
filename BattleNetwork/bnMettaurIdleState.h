@@ -5,7 +5,7 @@ class Mettaur;
 
 class MettaurIdleState : public AIState<Mettaur>
 {
-  float cooldown; /*!< How long to wait before moving */
+  double cooldown; /*!< How long to wait before moving */
 public:
 
   /**

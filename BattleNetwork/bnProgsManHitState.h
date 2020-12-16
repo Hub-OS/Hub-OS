@@ -8,7 +8,7 @@ class ProgsMan;
 class ProgsManHitState : public AIState<ProgsMan>
 {
 private:
-  float cooldown; /*!< Time left before changing states */
+  double cooldown; /*!< Time left before changing states */
 
 public:
   /**

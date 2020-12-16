@@ -31,7 +31,7 @@ private:
     dissolving
   } state{};
 
-  float duration{};
+  double duration{};
   Type type{};
   DefenseRule* guard; /*!< Adds defense rule to attached entity */
   Animation animation; /*!< Shield animation */

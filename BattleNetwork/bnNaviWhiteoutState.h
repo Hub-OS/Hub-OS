@@ -104,14 +104,14 @@ void NaviWhiteoutState<Any>::OnUpdate(double _elapsed, Any& e) {
     float range = factor / 125.f;
 
     // this sets the alpha channel
-    e.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
+    e.setColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(255 * range)));
 
     // this makes all pixels white
     e.SetShader(e.Shaders().GetShader(ShaderType::WHITE));
 
     if (!fadeout) return;
 
-    factor -= _elapsed * 180.f;
+    factor -= static_cast<float>(_elapsed) * 180.f;
 
     if (factor <= 0.f) {
         factor = 0.f;

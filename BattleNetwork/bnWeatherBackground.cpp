@@ -25,8 +25,8 @@ void WeatherBackground::Update(double _elapsed) {
  
   animation.Update(_elapsed, dummy);
 
-  y -= 0.1f * _elapsed;
-  x -= 0.1f *_elapsed;
+  y -= static_cast<float>(0.1 * _elapsed);
+  x -= static_cast<float>(0.1 * _elapsed);
 
   if (x < 0) x = 1;
   if (y < 0) y = 1;

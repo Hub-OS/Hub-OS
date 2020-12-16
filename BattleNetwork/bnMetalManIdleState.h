@@ -6,7 +6,7 @@ class MetalMan;
 class MetalManIdleState : public AIState<MetalMan>
 {
 private:
-  float cooldown; /*!< Timer to change states */
+  double cooldown; /*!< Timer to change states */
 
 public:
   /**

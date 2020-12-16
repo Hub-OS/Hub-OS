@@ -32,7 +32,7 @@ public:
 
 private:
   float x, y; /*!< Unused */
-  float progress; /*!< Used to progress animation and loop */
+  double progress; /*!< Used to progress animation and loop */
 };
 
 #pragma once

@@ -19,11 +19,11 @@ GraveyardBackground::~GraveyardBackground() {
 }
 
 void GraveyardBackground::Update(double _elapsed) {
-  progress += 0.1f * _elapsed;
-  if (progress >= 1.f) progress = 0.0f;
+  progress += 0.1 * _elapsed;
+  if (progress >= 1.0) progress = 0.00;
 
   // crawls
-  x += 0.05f *_elapsed;
+  x += static_cast<float>(0.05 *_elapsed);
 
   if (x > 1) x = 0;
   if (y > 1) y = 0;

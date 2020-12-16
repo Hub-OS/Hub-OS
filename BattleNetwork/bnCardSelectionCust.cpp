@@ -585,10 +585,10 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   target.draw(emblem, states);
   emblem.setPosition(lastEmblemPos);
 
-  auto x = swoosh::ease::interpolate(frameElapsed*25, offset + (double)(2.f*(16.0f + ((float)cursorPos*16.0f))), (double)cursorSmall.getPosition().x);
-  auto y = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(113.f + ((float)cursorRow*24.f))), (double)cursorSmall.getPosition().y);
+  float x = swoosh::ease::interpolate(static_cast<float>(frameElapsed*25), offset + static_cast<float>((2.f*(16.0f + (cursorPos*16.0f)))), cursorSmall.getPosition().x);
+  float y = swoosh::ease::interpolate(static_cast<float>(frameElapsed * 25), static_cast<float>(2.f*(113.f + (cursorRow*24.f))), cursorSmall.getPosition().y);
 
-  cursorSmall.setPosition((float)x, (float)y); // TODO: Make this relative to cust instead of screen. hint: scene nodes
+  cursorSmall.setPosition(x, y); // TODO: Make this relative to cust instead of screen. hint: scene nodes
 
   int row = 0;
   for (int i = 0; i < cardCount; i++) {
@@ -782,10 +782,10 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   // draw the white flash
   if (isInFormSelect && formSelectQuitTimer <= seconds_cast<float>(frames(20))) {
-    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, seconds_cast<float>(frames(20)), 1.f);
-    auto view = target.getView();
+    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, seconds_cast<double>(frames(20)), 1.0);
+    const auto& view = target.getView();
     sf::RectangleShape screen(view.getSize());
-    screen.setFillColor(sf::Color(255, 255, 255, int(delta * 255.f)));
+    screen.setFillColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(delta * 255.0)));
     target.draw(screen, sf::RenderStates::Default);
   }
 }
@@ -870,7 +870,9 @@ void CardSelectionCust::Update(double elapsed)
 
 Battle::Card** CardSelectionCust::GetCards() {
   // Allocate selected cards list
-  selectedCards = (Battle::Card**)malloc(sizeof(Battle::Card*)*selectCount);
+  size_t sz = sizeof(Battle::Card*) * selectCount;
+
+  selectedCards = (Battle::Card**)malloc(sz);
 
   // Point to selected queue
   for (int i = 0; i < selectCount; i++) {

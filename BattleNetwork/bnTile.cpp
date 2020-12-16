@@ -22,14 +22,14 @@
 #define TILE_HEIGHT 30.0f
 #define START_X 0.0f
 #define START_Y 144.f
-#define COOLDOWN 10.f
-#define FLICKER 3.0f
 #define Y_OFFSET 10.0f
+#define COOLDOWN 10.0
+#define FLICKER 3.0
 
 namespace Battle {
-  float Tile::brokenCooldownLength = COOLDOWN;
-  float Tile::teamCooldownLength = COOLDOWN;
-  float Tile::flickerTeamCooldownLength = FLICKER;
+  double Tile::brokenCooldownLength = COOLDOWN;
+  double Tile::teamCooldownLength = COOLDOWN;
+  double Tile::flickerTeamCooldownLength = FLICKER;
 
   Tile::Tile(int _x, int _y) : 
     SpriteProxyNode(),
@@ -482,17 +482,17 @@ namespace Battle {
     // Update our tile animation and texture
     if (!isTimeFrozen) {
       if (teamCooldown > 0) {
-        teamCooldown -= 1.0f * _elapsed;
+        teamCooldown -= 1.0 * _elapsed;
         if (teamCooldown < 0) teamCooldown = 0;
       }
 
       if (flickerTeamCooldown > 0) {
-        flickerTeamCooldown -= 1.0f * _elapsed;
+        flickerTeamCooldown -= 1.0 * _elapsed;
         if (flickerTeamCooldown < 0) flickerTeamCooldown = 0;
       }
 
       if (state == TileState::broken) {
-        brokenCooldown -= 1.0f * _elapsed;
+        brokenCooldown -= 1.0f* _elapsed;
 
         if (brokenCooldown < 0) { brokenCooldown = 0; state = TileState::normal; }
       }
@@ -588,7 +588,7 @@ namespace Battle {
   void Tile::HandleTileBehaviors(Character* character)
   {
     // Obstacles cannot be considered
-    if (dynamic_cast<Obstacle*>(character)) return;
+    if (!character || dynamic_cast<Obstacle*>(character)) return;
     if (isTimeFrozen || state == TileState::hidden) return; 
 
     /*

@@ -11,8 +11,7 @@ class Starfish;
 
 class StarfishIdleState : public AIState<Starfish>
 {
-
-  float cooldown; /*!< Seconds before moving to next state */
+  double cooldown; /*!< Seconds before moving to next state */
 public:
   StarfishIdleState();
   ~StarfishIdleState();

@@ -37,7 +37,10 @@ file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddFiles.cmake)
 add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
+
 add_compile_definitions(NOMINMAX)
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS)
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})

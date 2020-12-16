@@ -5,10 +5,8 @@ class ProgBomb : public Spell {
 private:
   int random;
   sf::Vector2f start;
-  float arcDuration;
-  float arcProgress;
-  float cooldown;
-  float damageCooldown;
+  double arcDuration;
+  double arcProgress;
 public:
   ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration);
   ~ProgBomb();

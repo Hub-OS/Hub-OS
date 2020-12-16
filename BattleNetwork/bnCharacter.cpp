@@ -165,7 +165,7 @@ void Character::Update(double _elapsed) {
   // If the counterSlideOffset has changed from 0, it's due to the character
   // being deleted on a counter frame. Begin animating the counter-delete slide
   if (counterSlideOffset.x != 0 || counterSlideOffset.y != 0) {
-    counterSlideDelta += _elapsed;
+    counterSlideDelta += static_cast<float>(_elapsed);
     
     auto delta = swoosh::ease::linear(counterSlideDelta, 0.10f, 1.0f);
     auto offset = delta * counterSlideOffset;

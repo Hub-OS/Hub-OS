@@ -310,17 +310,17 @@ namespace Battle {
     float width;
     float height;
     Field* field{ nullptr };
-    float teamCooldown;
+    double teamCooldown;
 
     std::shared_ptr<sf::Texture> red_team_atlas;
     std::shared_ptr<sf::Texture> blue_team_atlas;
 
-    static float teamCooldownLength;
-    float brokenCooldown;
-    static float brokenCooldownLength;
-    float flickerTeamCooldown;
-    static float flickerTeamCooldownLength;
-    float totalElapsed;
+    static double teamCooldownLength;
+    double brokenCooldown;
+    static double brokenCooldownLength;
+    double flickerTeamCooldown;
+    static double flickerTeamCooldownLength;
+    double totalElapsed;
     bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
     Highlight highlightMode;
     bool isTimeFrozen;

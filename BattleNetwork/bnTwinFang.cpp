@@ -53,14 +53,14 @@ void TwinFang::OnUpdate(double _elapsed) {
   if (!spreadOut) {
     // quickly spread out before firing across the map
     if (spreadOffset > 0) {
-      spreadOffset -= 160.0f*_elapsed;
+      spreadOffset -= 160.0f*static_cast<float>(_elapsed);
 
       if (spreadOffset <= 0) {
         spreadOut = true;
       }
     }
     else if (spreadOffset < 0) {
-      spreadOffset += 160.0f*_elapsed;
+      spreadOffset += 160.0f*static_cast<float>(_elapsed);
 
       if (spreadOffset >= 0) {
         spreadOut = true;
@@ -69,7 +69,7 @@ void TwinFang::OnUpdate(double _elapsed) {
   }
   else {
     if (onEdgeOfMap) {
-      if (int(flickeroutTimer * 1000) % 3 == 0) {
+      if (static_cast<int>(flickeroutTimer * 1000) % 3 == 0) {
         Hide();
       }
       else {

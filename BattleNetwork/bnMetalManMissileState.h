@@ -5,8 +5,8 @@ class MetalMan;
 class MetalManMissileState : public AIState<MetalMan>
 {
 private:
-  float cooldown;
-  float lastMissileTimestamp;
+  double cooldown;
+  double lastMissileTimestamp;
   int missiles, missileIndex;
 
 public:

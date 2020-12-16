@@ -109,7 +109,7 @@ namespace Overworld {
       int x = static_cast<int>(xf);
       int y = static_cast<int>(yf);
 
-      if (x >= 0 && x < static_cast<int>(cols) && y >= 0 && static_cast<int>(y) < rows) {
+      if (x >= 0 && x < static_cast<int>(cols) && y >= 0 && y < static_cast<int>(rows)) {
         return tiles[y][x];
       }
     }

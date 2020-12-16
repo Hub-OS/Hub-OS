@@ -27,10 +27,10 @@ void VirusBackground::Update(double _elapsed) {
   if (progress >= 1.0) progress = 0.0;
 
   if (lr == 0) {
-    x += 1 * _elapsed * speed;
+    x += static_cast<float>(1 * _elapsed * speed);
   }
   else if (ud == 0) {
-    y += 1 * _elapsed * speed;
+    y += static_cast<float>(1 * _elapsed * speed);
   }
 
   if (x > 1) x = 0;

@@ -275,8 +275,8 @@ void Field::Update(double _elapsed) {
   std::list<int> backToRed;
   std::list<int> backToBlue;
 
-  float syncBlueTeamCooldown = 0;
-  float syncRedTeamCooldown = 0;
+  double syncBlueTeamCooldown = 0;
+  double syncRedTeamCooldown = 0;
 
   for (int i = 0; i < tiles.size(); i++) {
       for (int j = 0; j < tiles[i].size(); j++) {
