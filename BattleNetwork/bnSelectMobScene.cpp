@@ -21,8 +21,6 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   textbox(320, 100),
   Scene(controller)
 {
-  //   camera(ENGINE.GetView()),
-
   selectedNavi = navi;
 
   // Menu name font
@@ -99,7 +97,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   SelectMobScene::elapsed += elapsed;
 
   // multiplying update by 2 effectively sets playback speed to 200%
-  navigatorAnimator.Update(float(elapsed*2.0), navigator.getSprite());
+  navigatorAnimator.Update(double(elapsed*2.0), navigator.getSprite());
 
   textbox.Update((float)elapsed);
 
@@ -510,9 +508,6 @@ void SelectMobScene::onResume() {
     delete mob;
     mob = nullptr;
   }
-
-  // Fix camera if offset from battle?
-  // ENGINE.SetCamera(camera);
 
   // Re-play music
   Audio().Stream("resources/loops/loop_navi_customizer.ogg", true);

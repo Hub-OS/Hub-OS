@@ -28,7 +28,7 @@ Camera::~Camera()
 {
 }
 
-void Camera::Update(float elapsed) {
+void Camera::Update(double elapsed) {
   // Compare as milliseconds
   progress += elapsed*1000;
   shakeProgress += elapsed*1000;

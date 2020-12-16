@@ -33,7 +33,7 @@ Megaman::~Megaman()
 {
 }
 
-void Megaman::OnUpdate(float elapsed)
+void Megaman::OnUpdate(double elapsed)
 {
   Player::OnUpdate(elapsed);
 }
@@ -113,7 +113,7 @@ void TenguCross::OnDeactivate(Player & player)
   parentAnim->RemoveFromOverrideList(&overlayAnimation);
 }
 
-void TenguCross::OnUpdate(float elapsed, Player& player)
+void TenguCross::OnUpdate(double elapsed, Player& player)
 {
   parentAnim->SyncAnimation(overlayAnimation);
   overlayAnimation.Refresh(overlay->getSprite());
@@ -215,7 +215,7 @@ void HeatCross::OnDeactivate(Player & player)
 
 }
 
-void HeatCross::OnUpdate(float elapsed, Player& player)
+void HeatCross::OnUpdate(double elapsed, Player& player)
 {
   overlay->setColor(player.getColor());
 
@@ -319,7 +319,7 @@ void TomahawkCross::OnDeactivate(Player & player)
   player.RemoveDefenseRule(statusGuard);
 }
 
-void TomahawkCross::OnUpdate(float elapsed, Player& player)
+void TomahawkCross::OnUpdate(double elapsed, Player& player)
 {
   overlay->setColor(player.getColor());
 
@@ -419,7 +419,7 @@ void ElecCross::OnDeactivate(Player& player)
 
 }
 
-void ElecCross::OnUpdate(float elapsed, Player& player)
+void ElecCross::OnUpdate(double elapsed, Player& player)
 {
   overlay->setColor(player.getColor());
 

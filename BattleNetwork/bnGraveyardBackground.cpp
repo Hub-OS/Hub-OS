@@ -18,7 +18,7 @@ GraveyardBackground::GraveyardBackground()
 GraveyardBackground::~GraveyardBackground() {
 }
 
-void GraveyardBackground::Update(float _elapsed) {
+void GraveyardBackground::Update(double _elapsed) {
   progress += 0.1f * _elapsed;
   if (progress >= 1.f) progress = 0.0f;
 

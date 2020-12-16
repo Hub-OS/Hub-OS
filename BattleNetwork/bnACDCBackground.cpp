@@ -21,12 +21,12 @@ ACDCBackground::ACDCBackground()
 ACDCBackground::~ACDCBackground() {
 }
 
-void ACDCBackground::Update(float _elapsed) {
+void ACDCBackground::Update(double _elapsed) {
 
   animation.Update(_elapsed, dummy);
 
-  y -= 0.25f * _elapsed;
-  x -= 0.25f *_elapsed;
+  y -= 0.25f * static_cast<float>(_elapsed);
+  x -= 0.25f * static_cast<float>(_elapsed);
 
   if (x < 0) x = 1;
   if (y < 0) y = 1;

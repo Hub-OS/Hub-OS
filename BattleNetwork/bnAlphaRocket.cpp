@@ -37,7 +37,7 @@ AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
 AlphaRocket::~AlphaRocket() {
 }
 
-void AlphaRocket::OnUpdate(float _elapsed) {
+void AlphaRocket::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   if (GetDirection() == Direction::left) {
@@ -119,7 +119,7 @@ void AlphaRocket::OnDelete()
     GetField()->AddEntity(*box, t->GetX(), t->GetY());
     GetField()->AddEntity(*exp, t->GetX(), t->GetY());
 
-    ENGINE.GetCamera()->ShakeCamera(10, sf::seconds(1));
+    EventBus().Emit(&Camera::ShakeCamera, 10, sf::seconds(1));
   }
 
   Remove();

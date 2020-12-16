@@ -48,7 +48,7 @@ public:
      * @param _elapsed in seconds
      * @param e entity
      */
-    void OnUpdate(float _elapsed, Any& e);
+    void OnUpdate(double _elapsed, Any& e);
 
     /**
      * @brief Calls when leaving the state
@@ -100,7 +100,7 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
 }
 
 template<typename Any>
-void NaviWhiteoutState<Any>::OnUpdate(float _elapsed, Any& e) {
+void NaviWhiteoutState<Any>::OnUpdate(double _elapsed, Any& e) {
     float range = factor / 125.f;
 
     // this sets the alpha channel

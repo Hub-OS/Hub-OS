@@ -32,7 +32,7 @@ void BattleStartBattleState::onEnd(const BattleSceneState*)
 
 void BattleStartBattleState::onUpdate(double elapsed)
 {
-  battleStartTimer.update(elapsed);
+  battleStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
 }
 
 void BattleStartBattleState::onDraw(sf::RenderTexture& surface)

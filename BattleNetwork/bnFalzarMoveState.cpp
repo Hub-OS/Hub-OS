@@ -19,7 +19,7 @@ void FalzarMoveState::OnEnter(Falzar& falzar)
   animation->SetAnimation("MOVE", [this, falzarPtr] {this->OnMoveComplete(*falzarPtr); });
 }
 
-void FalzarMoveState::OnUpdate(float _elapsed, Falzar&)
+void FalzarMoveState::OnUpdate(double _elapsed, Falzar&)
 {
 }
 

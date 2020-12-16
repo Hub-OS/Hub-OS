@@ -14,12 +14,13 @@ public:
   BasicSword(Field* _field, Team _team, int damage);
   virtual ~BasicSword();
 
-  virtual void OnUpdate(float _elapsed) override;
+  virtual void OnUpdate(double _elapsed) override;
   virtual bool Move(Direction _direction) override;
   virtual void Attack(Character* _entity) override;
   virtual void OnDelete() override;
 private:
   int damage;
-  float cooldown, hitHeight;
+  double cooldown;
+  float hitHeight;
   bool hit;
 };

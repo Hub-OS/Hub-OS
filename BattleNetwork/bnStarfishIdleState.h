@@ -28,7 +28,7 @@ public:
    * @param _elapsed in seconds
    * @param star the agent to update
    */
-  void OnUpdate(float _elapsed, Starfish& star);
+  void OnUpdate(double _elapsed, Starfish& star);
   
   /**
    * @brief Does nothing

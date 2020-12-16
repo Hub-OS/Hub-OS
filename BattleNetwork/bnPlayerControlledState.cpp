@@ -45,7 +45,7 @@ void PlayerControlledState::OnEnter(Player& player) {
   replicator = player.GetFirstComponent<PlayerInputReplicator>();
 }
 
-void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
+void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Action startup time and actions themselves prevent player input
   if (this->startupDelay > 0.f) {
     this->startupDelay -= _elapsed;

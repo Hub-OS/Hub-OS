@@ -29,7 +29,7 @@ CardAction* Protoman::OnExecuteSpecialAction() {
   auto* action = new ReflectCardAction(*this, 20, ReflectShield::Type::red);
   action->SetLockout(ActionLockoutProperties{
     ActionLockoutType::async,
-    frames(40).asSeconds()
+    seconds_cast<double>(frames(40))
   });
   action->SetDuration(frames(21));
 
@@ -63,7 +63,7 @@ const float Protoman::GetHeight() const
   return 100.0f;
 }
 
-void Protoman::OnUpdate(float _elapsed)
+void Protoman::OnUpdate(double _elapsed)
 {
   // Continue with the parent class routine
   Player::OnUpdate(_elapsed);

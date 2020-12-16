@@ -20,7 +20,7 @@ void MettaurAttackState::OnEnter(Mettaur& met) {
   animation.SetCounterFrameRange(6, 11);
 }
 
-void MettaurAttackState::OnUpdate(float _elapsed, Mettaur& met) {
+void MettaurAttackState::OnUpdate(double _elapsed, Mettaur& met) {
   /* Nothing, just wait the animation out*/
 }
 

@@ -14,7 +14,7 @@ public:
   Cannon(Field* _field, Team _team, int damage);
   ~Cannon();
 
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   bool CanMoveTo(Battle::Tile* next) override;
   void Attack(Character* _entity) override;
   void OnDelete() override;
@@ -22,6 +22,7 @@ public:
 private:
   int damage;
   int random;
-  float cooldown, progress, hitHeight;
+  double cooldown, progress;
+  float hitHeight;
   bool hit;
 };

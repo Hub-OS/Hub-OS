@@ -28,7 +28,7 @@ public:
    * @brief When the animation ends, it deletes itself
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   /**
   * @brief Removes Guard Hit from play

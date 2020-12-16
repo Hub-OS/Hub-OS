@@ -21,7 +21,7 @@ SharedHitbox::SharedHitbox(Spell* owner, float duration) : owner(owner), Spell(o
 SharedHitbox::~SharedHitbox() {
 }
 
-void SharedHitbox::OnUpdate(float _elapsed) {
+void SharedHitbox::OnUpdate(double _elapsed) {
   cooldown -= _elapsed;
 
   tile->AffectEntities(this);

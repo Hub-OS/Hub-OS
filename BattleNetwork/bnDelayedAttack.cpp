@@ -11,7 +11,7 @@ DelayedAttack::~DelayedAttack()
 {
 }
 
-void DelayedAttack::OnUpdate(float elapsed)
+void DelayedAttack::OnUpdate(double elapsed)
 {
     duration -= elapsed;
 

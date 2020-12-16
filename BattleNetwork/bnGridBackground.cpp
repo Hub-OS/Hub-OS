@@ -18,7 +18,7 @@ GridBackground::GridBackground()
 GridBackground::~GridBackground() {
 }
 
-void GridBackground::Update(float _elapsed) {
+void GridBackground::Update(double _elapsed) {
   progress += 1.0f * _elapsed;
   if (progress >= 1.f) progress = 0.0f;
 

@@ -25,11 +25,11 @@ LanBackground::LanBackground()
 LanBackground::~LanBackground(void) {
 }
 
-void LanBackground::Update(float _elapsed) {
+void LanBackground::Update(double _elapsed) {
   animation.Update(_elapsed, dummy);
 
-  y -= 0.3f * _elapsed;
-  x -= 0.3f * _elapsed;
+  y -= 0.3f * static_cast<float>(_elapsed);
+  x -= 0.3f * static_cast<float>(_elapsed);
 
   if (x < 0) {
     x = 1;

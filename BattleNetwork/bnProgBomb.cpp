@@ -40,7 +40,7 @@ ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _dura
 ProgBomb::~ProgBomb(void) {
 }
 
-void ProgBomb::OnUpdate(float _elapsed) {
+void ProgBomb::OnUpdate(double _elapsed) {
   arcProgress += _elapsed;
 
   double alpha = double(swoosh::ease::wideParabola(arcProgress, arcDuration, 1.0f));

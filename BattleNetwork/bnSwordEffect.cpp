@@ -32,7 +32,7 @@ SwordEffect::SwordEffect(Field* field) : Artifact(field)
   animation->SetFrame(0);
 }
 
-void SwordEffect::OnUpdate(float _elapsed) {
+void SwordEffect::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition());
 }
 

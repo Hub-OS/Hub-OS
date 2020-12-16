@@ -21,7 +21,7 @@ ShineExplosion::ShineExplosion(Field* _field, Team _team) : Artifact(_field)
   animationComponent->OnUpdate(0.0f);
 }
 
-void ShineExplosion::OnUpdate(float _elapsed) {
+void ShineExplosion::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x, GetTile()->getPosition().y - 30.f);
 }
 

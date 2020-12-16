@@ -14,7 +14,7 @@ private:
 public:
   TornadoCardAction(Character& owner, int damage);
   ~TornadoCardAction();
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   void OnEndAction() override;
   void OnExecute() override;
   void OnAnimationEnd() override;

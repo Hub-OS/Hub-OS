@@ -71,7 +71,7 @@ TomahawkEffect::TomahawkEffect(Field* field) : Artifact(field)
   animation->SetFrame(0);
 }
 
-void TomahawkEffect::OnUpdate(float _elapsed) {
+void TomahawkEffect::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition());
 }
 

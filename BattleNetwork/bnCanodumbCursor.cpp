@@ -52,13 +52,13 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _pa
   elapsedTime = 0;
 }
 
-void CanodumbCursor::OnUpdate(float _elapsed) {
+void CanodumbCursor::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
   movecooldown -= _elapsed;
   elapsedTime += _elapsed;
 
-  auto delta = swoosh::ease::bezierPopIn(elapsedTime, .125f);
+  float delta = swoosh::ease::bezierPopIn(static_cast<float>(elapsedTime), .125f);
   setScale(delta*2.f, delta*2.f);
 
   if (movecooldown <= 0) {

@@ -50,7 +50,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
   animation->AddCallback(2, onAttack, true);
 }
 
-void CanodumbAttackState::OnUpdate(float _elapsed, Canodumb& can) {
+void CanodumbAttackState::OnUpdate(double _elapsed, Canodumb& can) {
 }
 
 void CanodumbAttackState::OnLeave(Canodumb& can) {

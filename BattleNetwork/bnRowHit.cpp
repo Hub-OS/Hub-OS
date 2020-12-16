@@ -28,7 +28,7 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_f
 RowHit::~RowHit() {
 }
 
-void RowHit::OnUpdate(float _elapsed) {
+void RowHit::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
   animation.Update(_elapsed, getSprite());

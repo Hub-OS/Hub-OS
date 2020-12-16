@@ -89,13 +89,13 @@ public:
 
   void ResolveFrameBattleDamage();
 
-  virtual void OnUpdate(float elapsed) = 0;
+  virtual void OnUpdate(double elapsed) = 0;
 
   void QueueAction(CardAction* action);
   CardAction* DequeueAction();
 
   // TODO: move tile behavior out of update loop and into its own rule system for customization
-  void Update(float elapsed) override;
+  void Update(double elapsed) override;
   
   /**
   * @brief Default characters cannot move onto occupied, broken, or empty tiles

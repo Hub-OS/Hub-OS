@@ -219,10 +219,10 @@ void LibraryScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
-  cardRevealTimer.update(elapsed);
-  easeInTimer.update(elapsed);
-  camera.Update((float)elapsed);
-  textbox.Update((float)elapsed);
+  cardRevealTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  easeInTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  camera.Update(elapsed);
+  textbox.Update(elapsed);
 
   // Scene keyboard controls
   if (!gotoNextScene) {

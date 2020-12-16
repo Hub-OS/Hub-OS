@@ -33,9 +33,9 @@ public:
    * @brief Implement OnUpdate required
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed) = 0;
+  virtual void OnUpdate(double _elapsed) = 0;
 
-  void Update(float _elapsed);
+  void Update(double _elapsed);
 
   /**
    * @brief Describes how the spell attacks characters

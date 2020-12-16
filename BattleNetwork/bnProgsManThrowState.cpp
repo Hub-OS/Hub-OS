@@ -47,7 +47,7 @@ void ProgsManThrowState::OnLeave(ProgsMan& progs) {
 
 }
 
-void ProgsManThrowState::OnUpdate(float _elapsed, ProgsMan& progs) {
+void ProgsManThrowState::OnUpdate(double _elapsed, ProgsMan& progs) {
   if(progs.GetTarget() && progs.GetTarget()->GetTile()) {
     lastTargetPos = progs.GetTarget()->GetTile();
   }

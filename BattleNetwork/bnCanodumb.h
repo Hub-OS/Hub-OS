@@ -31,7 +31,7 @@ public:
    * @brief When health is low, deletes. Updates AI
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
 
   const float GetHeight() const;
 

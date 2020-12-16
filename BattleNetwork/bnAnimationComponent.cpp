@@ -16,7 +16,7 @@ AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
 AnimationComponent::~AnimationComponent() {
 }
 
-void AnimationComponent::OnUpdate(float _elapsed)
+void AnimationComponent::OnUpdate(double _elapsed)
 {
   // Since animations can be used on non-characters
   // we check if the owning entity is non-null 

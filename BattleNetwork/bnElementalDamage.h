@@ -24,7 +24,7 @@ public:
    * @brief Grow and shrink quickly. Appear over the sprite.
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   bool Move(Direction _direction) override;
 

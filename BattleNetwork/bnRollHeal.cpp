@@ -111,7 +111,7 @@ RollHeal::RollHeal(Field* field, Team team, Character* user, int _heal)
 RollHeal::~RollHeal() {
 }
 
-void RollHeal::OnUpdate(float _elapsed) {
+void RollHeal::OnUpdate(double _elapsed) {
   if (tile != nullptr) {
     setPosition(tile->getPosition());
   }

@@ -16,7 +16,7 @@ Artifact::Artifact(Field* _field) {
 Artifact::~Artifact() {
 }
 
-void Artifact::Update(float elapsed) {
+void Artifact::Update(double elapsed) {
   if (IsTimeFrozen()) return;
   Entity::Update(elapsed);
   OnUpdate(elapsed);

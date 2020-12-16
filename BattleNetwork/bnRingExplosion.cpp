@@ -33,7 +33,7 @@ RingExplosion::RingExplosion(Field* field) : Artifact(field)
 
 }
 
-void RingExplosion::OnUpdate(float _elapsed) {
+void RingExplosion::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition());
 
   animation.Update(_elapsed, getSprite());

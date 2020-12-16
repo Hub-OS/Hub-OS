@@ -21,7 +21,7 @@ WeatherBackground::WeatherBackground()
 WeatherBackground::~WeatherBackground() {
 }
 
-void WeatherBackground::Update(float _elapsed) {
+void WeatherBackground::Update(double _elapsed) {
  
   animation.Update(_elapsed, dummy);
 

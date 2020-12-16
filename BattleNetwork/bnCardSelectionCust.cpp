@@ -225,7 +225,7 @@ bool CardSelectionCust::CursorLeft() {
 
 bool CardSelectionCust::CursorAction() {
   if (isInFormSelect) {
-    selectedFormIndex = forms[formCursorRow]->GetFormIndex();
+    selectedFormIndex = static_cast<int>(forms[formCursorRow]->GetFormIndex());
 
     if (selectedFormRow != -1 && selectedFormIndex == forms[selectedFormRow]->GetFormIndex()) {
       selectedFormRow = -1; // de-select the form
@@ -242,7 +242,7 @@ bool CardSelectionCust::CursorAction() {
       Audio().Play(AudioType::DEFORM);
     }
     else {
-      formSelectQuitTimer = frames(30).asSeconds();
+      formSelectQuitTimer = seconds_cast<float>(frames(30));
       selectedFormRow = formCursorRow;
       currentFormItem = formUI[formCursorRow];
     }
@@ -717,7 +717,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   if (getPosition().x == bounds) {
     // Fade in a screen-wide shadow beneath the card if it is a dark card
     sf::RectangleShape screen(target.getView().getSize());
-    screen.setFillColor(sf::Color(0, 0, 0, darkCardShadowAlpha * 255));
+    screen.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(darkCardShadowAlpha * 255)));
     target.draw(screen);
   }
 
@@ -772,7 +772,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   SceneNode::draw(target, states);
 
   // Reveal the new form icon in the HUD after the flash
-  if (formSelectQuitTimer <= frames(10).asSeconds()) {
+  if (formSelectQuitTimer <= seconds_cast<float>(frames(10))) {
     auto rect = currentFormItem.getTextureRect();
     currentFormItem.setTextureRect(sf::IntRect(rect.left, rect.top, 30, 14));
     currentFormItem.setPosition(sf::Vector2f(4, 36.f));
@@ -781,8 +781,8 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   }
 
   // draw the white flash
-  if (isInFormSelect && formSelectQuitTimer <= frames(20).asSeconds()) {
-    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, (float)frames(20).asSeconds(), 1.f);
+  if (isInFormSelect && formSelectQuitTimer <= seconds_cast<float>(frames(20))) {
+    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, seconds_cast<float>(frames(20)), 1.f);
     auto view = target.getView();
     sf::RectangleShape screen(view.getSize());
     screen.setFillColor(sf::Color(255, 255, 255, int(delta * 255.f)));
@@ -791,7 +791,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 }
 
 
-void CardSelectionCust::Update(float elapsed)
+void CardSelectionCust::Update(double elapsed)
 {
   if (IsHidden()) {
     canInteract = false;
@@ -810,10 +810,10 @@ void CardSelectionCust::Update(float elapsed)
   }
   else {
     if (isDarkCardSelected) {
-      darkCardShadowAlpha = std::min(darkCardShadowAlpha + elapsed, 0.3f);
+      darkCardShadowAlpha = std::min(darkCardShadowAlpha + static_cast<float>(elapsed), 0.3f);
     }
     else {
-      darkCardShadowAlpha = std::max(darkCardShadowAlpha - elapsed, 0.0f);
+      darkCardShadowAlpha = std::max(darkCardShadowAlpha - static_cast<float>(elapsed), 0.0f);
     }
   }
 
@@ -842,7 +842,7 @@ void CardSelectionCust::Update(float elapsed)
       isInFormSelect = false;
       playFormSound = false;
     }
-    else if (formSelectQuitTimer <= frames(10).asSeconds()) {
+    else if (formSelectQuitTimer <= seconds_cast<float>(frames(10))) {
       formSelectAnimator.SetAnimation("CLOSED");
       cursorPos = cursorRow = formCursorRow = 0;
       if (!playFormSound) {
@@ -851,70 +851,6 @@ void CardSelectionCust::Update(float elapsed)
       }
     }
   }
-
-#ifdef __ANDROID__
-  sf::Vector2i touchPosition = sf::Touch::getPosition(0, *ENGINE.GetWindow());
-  sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetDefaultView());
-  sf::Vector2i iCoords = sf::Vector2i((int)coords.x, (int)coords.y);
-  touchPosition = iCoords;
-
-  int row = 0;
-  for (int i = 0; i < cardCount; i++) {
-    if (i > 4) {
-      row = 1;
-    }
-    if (IsInView()) {
-        float offset = 0;//-custSprite.getTextureRect().width*2.f; // this will be uneccessary once we use AddNode() for all rendered items below
-
-        icon.setPosition(offset + 2.f*(9.0f + ((float)(i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
-
-        sf::IntRect iconSubFrame = Textures().GetIconRectFromID(queue[i].data->GetIconID());
-        icon.setTextureRect(iconSubFrame);
-
-        sf::FloatRect bounds = sf::FloatRect(icon.getPosition().x, icon.getPosition().y-1, 18, 18);
-
-        bool touched = (touchPosition.x >= bounds.left && touchPosition.x <= bounds.left + bounds.width && touchPosition.y >= bounds.top && touchPosition.y <= bounds.top + bounds.height);
-
-        if (touched && sf::Touch::isDown(0) && queue[i].state != 0) {
-        cursorRow = row;
-        cursorPos = i % 5;
-        CursorAction();
-      }
-    }
-  }
-
-  sf::FloatRect deselect = sf::FloatRect();
-  deselect.left = 2 * 97.f;
-  deselect.top = 2.f*25.0f;
-  deselect.width = 16;
-  deselect.height = 2.f*(25.0f + (selectCount*8.0f));
-
-  bool touched = (touchPosition.x >= deselect.left && touchPosition.x <= deselect.left + deselect.width && touchPosition.y >= deselect.top && touchPosition.y <= deselect.top + deselect.height);
-
-  static bool tap = false;
-
-  if(touched && sf::Touch::isDown(0) && !tap) {
-      CursorCancel();
-      tap = true;
-  }
-
-  if(!sf::Touch::isDown(0)) {
-      tap = false;
-  }
-
-  cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*110.f));
-  sf::FloatRect OK = sf::FloatRect(cursorBig.getPosition().x-20.0f, cursorBig.getPosition().y-5.0f, cursorBig.getGlobalBounds().width, cursorBig.getGlobalBounds().height);
-  touched = (touchPosition.x >= OK.left && touchPosition.x <= OK.left + OK.width && touchPosition.y >= OK.top && touchPosition.y <= OK.top + OK.height);
-
-  if(touched && sf::Touch::isDown(0) && !tap) {
-    cursorRow = 0;
-    cursorPos = 5;
-
-    areCardsReady = true;
-    tap = true;
- }
-
-#endif
 
   if (cardCount > 0) {
     // If OK button is highlighted, we are not selecting a dark card

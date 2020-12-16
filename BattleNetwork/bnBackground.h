@@ -115,7 +115,7 @@ public:
    * @brief Implement for custom animated backgrounds
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed) = 0;
+  virtual void Update(double _elapsed) = 0;
 
   /**
    * @brief Draw the animated background with applied values

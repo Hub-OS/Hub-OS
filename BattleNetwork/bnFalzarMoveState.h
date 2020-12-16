@@ -19,7 +19,7 @@ public:
    */
   ~FalzarMoveState();
   void OnEnter(Falzar&);
-  void OnUpdate(float _elapsed, Falzar&);
+  void OnUpdate(double _elapsed, Falzar&);
   void OnLeave(Falzar&);
   void OnMoveComplete(Falzar&);
   void OnFinishIdle(Falzar&);

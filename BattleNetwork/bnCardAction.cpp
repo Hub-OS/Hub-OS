@@ -161,7 +161,7 @@ CardAction::Attachment& CardAction::AddAttachment(Character& character, const st
   return AddAttachment(animComp->GetAnimationObj(), point, node);
 }
 
-void CardAction::OnUpdate(float _elapsed)
+void CardAction::OnUpdate(double _elapsed)
 {
   for (auto& [nodeName, node] : attachments) {
     // update the node's animation

@@ -40,7 +40,7 @@ public:
    * @param _elapsed
    * @param met
    */
-  void OnUpdate(float _elapsed, Metrid& met);
+  void OnUpdate(double _elapsed, Metrid& met);
 
   /**
    * @brief Does nothing

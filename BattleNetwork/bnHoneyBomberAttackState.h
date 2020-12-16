@@ -12,7 +12,7 @@ class HoneyBomberAttackState : public AIState<HoneyBomber>
 {
 private:
   int beeCount;
-  float attackCooldown, spawnCooldown;
+  double attackCooldown, spawnCooldown;
   Bees* lastBee;
 public:
 
@@ -37,7 +37,7 @@ public:
    * @param _elapsed
    * @param honey
    */
-  void OnUpdate(float _elapsed, HoneyBomber& honey);
+  void OnUpdate(double _elapsed, HoneyBomber& honey);
 
   /**
    * @brief Does nothing

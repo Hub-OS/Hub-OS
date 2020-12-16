@@ -105,27 +105,27 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 
   if (state == MenuWidget::state::opening) {
     easeInTimer.reverse(false);
-    easeInTimer.set(frames(0).asMilli());
+    easeInTimer.set(frames(0));
   }
   else {
     easeInTimer.reverse(true);
-    easeInTimer.set(frames(21).asMilli());
+    easeInTimer.set(frames(21));
   }
 
   //
   // Start these task at the beginning
   //
 
-  auto& t0f = easeInTimer.at(frames(0).asMilli());
+  auto& t0f = easeInTimer.at(frames(0));
   
   t0f.doTask([=](double elapsed) {
-      this->opacity = ease::linear(elapsed, (double)frames(14), 1.0);
-  }).withDuration(frames(14).asMilli());
+      this->opacity = ease::linear(static_cast<float>(elapsed), seconds_cast<float>(frames(14)), 1.0f);
+  }).withDuration(frames(14));
 
   t0f.doTask([=](double elapsed) {
-    double x = ease::linear(elapsed, (double)frames(8).asMilli(), 1.0);
-    this->banner.setPosition((1.0-x)*-this->banner.getSprite().getLocalBounds().width, 0);
-  }).withDuration(frames(8).asMilli());
+    float x = ease::linear(static_cast<float>(elapsed), milli_cast<float>(frames(8)), 1.0f);
+    this->banner.setPosition((1.0f-x)*-this->banner.getSprite().getLocalBounds().width, 0);
+  }).withDuration(frames(8));
 
   if (state == MenuWidget::state::closing) {
     t0f.doTask([=](double elapsed) {
@@ -139,7 +139,7 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
         // labels (menu options)
         //
 
-        float x = ease::linear(elapsed, (double)frames(20).asMilli(), 1.0);
+        float x = ease::linear(static_cast<float>(elapsed), seconds_cast<float>(frames(20)), 1.0f);
         float start = 36;
         float dest = -(options[i]->getLocalBounds().width + start); // our destination
 
@@ -155,14 +155,14 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
         // lerp to our hiding spot
         optionIcons[i]->setPosition(dest * (1.0f - x) + (x * start), optionIcons[i]->getPosition().y);
       }
-    }).withDuration(frames(20).asMilli());
+    }).withDuration(frames(20));
   }
 
   //
   // These tasks begin at the 8th frame
   //
 
-  auto& t8f = easeInTimer.at(frames(8).asMilli());
+  auto& t8f = easeInTimer.at(frames(8));
 
   if (state == MenuWidget::state::opening) {
     t8f.doTask([=](double elapsed) {
@@ -181,11 +181,11 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 
     t8f.doTask([=](double elapsed) {
       for (size_t i = 0; i < options.size(); i++) {
-        float y = ease::linear(elapsed, (double)frames(12).asMilli(), 1.0);
+        float y = static_cast<float>(ease::linear(elapsed, milli_cast<double>(frames(12)), 1.0));
         options[i]->setPosition(36, 26 + (y * (i * 16)));
         optionIcons[i]->setPosition(16, 26 + (y * (i * 16)));
       }
-    }).withDuration(frames(12).asMilli());
+    }).withDuration(frames(12));
   }
   else {
     t8f.doTask([=](double elapsed) {
@@ -208,34 +208,34 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
   }
 
   t8f.doTask([=](double elapsed) {
-    float x = 1.0f-ease::linear(elapsed, (double)frames(6).asMilli(), 1.0);
+    float x = 1.0f-ease::linear(static_cast<float>(elapsed), milli_cast<float>(frames(6)), 1.0f);
     exit.setPosition(130 + (x * 200), exit.getPosition().y);
-  }).withDuration(frames(6).asMilli());
+  }).withDuration(frames(6));
 
   t8f.doTask([=](double elapsed) {
-    size_t offset = 12 * ease::linear(elapsed, (double)frames(2).asMilli(), 1.0);
+    size_t offset = static_cast<size_t>(12 * ease::linear(elapsed, milli_cast<double>(frames(2)), 1.0));
     std::string substr = areaName.substr(0, offset);
     areaLabel.SetString(substr);
-  }).withDuration(frames(2).asMilli());
+  }).withDuration(frames(2));
 
   //
   // These tasks begin on the 14th frame
   //
 
   easeInTimer
-    .at(frames(14).asMilli())
+    .at(time_cast<sf::Time>(frames(14)))
     .doTask([=](double elapsed) {
     infoBox.Reveal();
-    infoBoxAnim.SyncTime(elapsed/1000.0);
+    infoBoxAnim.SyncTime(static_cast<float>(elapsed)/1000.0f);
     infoBoxAnim.Refresh(infoBox.getSprite());
-  }).withDuration(frames(4).asMilli());
+  }).withDuration(frames(4));
 
   //
   // on frame 20 change state flag
   //
   if (state == MenuWidget::state::opening) {
     easeInTimer
-      .at(frames(20).asMilli())
+      .at(frames(20))
       .doTask([=](double elapsed) {
       currState = state::opened;
     });
@@ -271,9 +271,9 @@ void MenuWidget::CreateOptions()
 }
 
 
-void MenuWidget::Update(float elapsed)
+void MenuWidget::Update(double elapsed)
 {
-  easeInTimer.update(elapsed);
+  easeInTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   if (!IsOpen()) return;
 
@@ -481,7 +481,7 @@ bool MenuWidget::CursorMoveUp()
 {
   if (!selectExit ) {
     if (--row < 0) {
-      row = optionsList.size() - 1;
+      row = static_cast<int>(optionsList.size() - 1);
     }
     
     return true;

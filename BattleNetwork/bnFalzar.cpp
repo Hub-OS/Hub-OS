@@ -384,7 +384,7 @@ void Falzar::Flap()
   legRight.EnableParentShader(true);
 }
 
-void Falzar::UpdateNodeAnims(float elapsed)
+void Falzar::UpdateNodeAnims(double elapsed)
 {
   animProgress += elapsed;
 
@@ -420,7 +420,7 @@ void Falzar::UpdateNodeAnims(float elapsed)
   }
 }
 
-void Falzar::OnUpdate(float _elapsed) {
+void Falzar::OnUpdate(double _elapsed) {
   BossPatternAI<Falzar>::Update(_elapsed);
   UpdateNodeAnims(_elapsed);
   setPosition(tile->getPosition() + tileOffset);

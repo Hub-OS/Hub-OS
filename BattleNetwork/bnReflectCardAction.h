@@ -13,7 +13,7 @@ class ReflectCardAction : public CardAction {
 public:
   ReflectCardAction(Character& owner, int damage, ReflectShield::Type type);
   ~ReflectCardAction();
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd() override;
   void OnEndAction() override;
   void OnExecute() override;

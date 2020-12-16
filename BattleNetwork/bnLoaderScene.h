@@ -2,7 +2,7 @@
 
 #include <list>
 #include <string>
-#include <thread>>
+#include <thread>
 
 #include "bnTaskGroup.h"
 #include "bnScene.h"

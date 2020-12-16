@@ -16,11 +16,11 @@ using sf::IntRect;
 
 class Forte : public Player {
 private:
-  float dropCooldown;
+  double dropCooldown;
 
   class MoveEffect : public Artifact {
     friend class Forte;
-    float elapsed;
+    double elapsed;
     static int counter;
     int index;
     AnimationComponent* animationComponent;
@@ -29,7 +29,7 @@ private:
     MoveEffect(Field* field);
     ~MoveEffect();
 
-    void OnUpdate(float _elapsed) override;
+    void OnUpdate(double _elapsed) override;
     void OnDelete() override;
   };
   
@@ -44,7 +44,7 @@ public:
   ~Forte();
 
   const float GetHeight() const override final;
-  void OnUpdate(float _elapsed) override final;
+  void OnUpdate(double _elapsed) override final;
   void OnDelete() override final;
   void OnSpawn(Battle::Tile& start) override final;
 }; 

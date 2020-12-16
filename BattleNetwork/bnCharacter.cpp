@@ -92,7 +92,7 @@ CardAction* Character::DequeueAction()
   return temp;
 }
 
-void Character::Update(float _elapsed) {
+void Character::Update(double _elapsed) {
   hit = false; // reset our hit flag
 
   ResolveFrameBattleDamage();

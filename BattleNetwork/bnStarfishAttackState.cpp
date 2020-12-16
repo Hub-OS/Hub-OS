@@ -26,7 +26,7 @@ void StarfishAttackState::OnEnter(Starfish& star) {
   animation->SetCounterFrameRange(1, 2);
 }
 
-void StarfishAttackState::OnUpdate(float _elapsed, Starfish& star) {
+void StarfishAttackState::OnUpdate(double _elapsed, Starfish& star) {
 }
 
 void StarfishAttackState::OnLeave(Starfish& star) {

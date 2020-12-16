@@ -14,6 +14,6 @@ public:
   ~MetalManMissileState();
 
   void OnEnter(MetalMan& p);
-  void OnUpdate(float _elapsed, MetalMan& p);
+  void OnUpdate(double _elapsed, MetalMan& p);
   void OnLeave(MetalMan& p);
 };

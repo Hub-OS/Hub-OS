@@ -29,7 +29,7 @@ void MetalManMissileState::OnEnter(MetalMan& metal) {
   metal.GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", Animator::Mode::Loop);
 }
 
-void MetalManMissileState::OnUpdate(float _elapsed, MetalMan& metal) {
+void MetalManMissileState::OnUpdate(double _elapsed, MetalMan& metal) {
   //if (metal.GetHealth() > metal.GetMaxHealth() / 2) {
   //  metal.GoToNextState();
   //  return;

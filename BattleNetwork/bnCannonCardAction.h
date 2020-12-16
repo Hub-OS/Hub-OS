@@ -23,7 +23,7 @@ public:
   CannonCardAction(Character& user, int damage, Type type = Type::green);
   ~CannonCardAction();
 
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd() override;
   void OnEndAction();
   void OnExecute();

@@ -16,7 +16,7 @@ private:
 public:
   LightningCardAction(Character& owner, int damage);
   ~LightningCardAction();
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd();
   void OnEndAction();
   void OnExecute();

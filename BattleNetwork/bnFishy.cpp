@@ -34,7 +34,7 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
 Fishy::~Fishy() {
 }
 
-void Fishy::OnUpdate(float _elapsed) {
+void Fishy::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x - 40.0f, tile->getPosition().y + tileOffset.y - 120.0f);
 
   if (GetTile()->GetX() == 6) {

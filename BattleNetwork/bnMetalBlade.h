@@ -34,7 +34,7 @@ public:
    * @brief Moves left/right depending on team. Makes U-Turn at end of field.
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Deals hitbox damage

@@ -9,7 +9,7 @@ public:
   Megaman();
   ~Megaman();
 
-  virtual void OnUpdate(float elapsed);
+  virtual void OnUpdate(double elapsed);
 
   CardAction* OnExecuteBusterAction() override;
   CardAction* OnExecuteChargedBusterAction() override;
@@ -20,7 +20,7 @@ class TenguCross final : public PlayerForm {
 public:
   TenguCross();
   ~TenguCross();
-  void OnUpdate(float elapsed, Player&) override;
+  void OnUpdate(double elapsed, Player&) override;
   void OnActivate(Player& player) override;
   void OnDeactivate(Player& player) override;
   CardAction* OnChargedBusterAction(Player&) override;
@@ -53,7 +53,7 @@ class HeatCross final : public PlayerForm {
 public:
   HeatCross();
   ~HeatCross();
-  void OnUpdate(float elapsed, Player&) override;
+  void OnUpdate(double elapsed, Player&) override;
   void OnActivate(Player& player) override;
   void OnDeactivate(Player& player) override;
   CardAction* OnChargedBusterAction(Player&) override;
@@ -72,7 +72,7 @@ class TomahawkCross final : public PlayerForm {
 public:
   TomahawkCross();
   ~TomahawkCross();
-  void OnUpdate(float elapsed, Player&) override;
+  void OnUpdate(double elapsed, Player&) override;
   void OnActivate(Player& player) override;
   void OnDeactivate(Player& player) override;
   CardAction* OnChargedBusterAction(Player&) override;
@@ -90,7 +90,7 @@ class ElecCross final : public PlayerForm {
 public:
   ElecCross();
   ~ElecCross();
-  void OnUpdate(float elapsed, Player&) override;
+  void OnUpdate(double elapsed, Player&) override;
   void OnActivate(Player& player) override;
   void OnDeactivate(Player& player) override;
   CardAction* OnChargedBusterAction(Player&) override;

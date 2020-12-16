@@ -61,7 +61,7 @@ ProgsMan::ProgsMan(Rank _rank) : BossPatternAI<ProgsMan>(this), Character(_rank)
 ProgsMan::~ProgsMan() {
 }
 
-void ProgsMan::OnUpdate(float _elapsed) {
+void ProgsMan::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
   BossPatternAI<ProgsMan>::Update(_elapsed);

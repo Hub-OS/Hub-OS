@@ -56,7 +56,7 @@ void HoneyBomber::OnDelete() {
   RemoveMeFromTurnOrder();
 }
 
-void HoneyBomber::OnUpdate(float _elapsed) {
+void HoneyBomber::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - GetHeight());
   setPosition(getPosition() + tileOffset);
 

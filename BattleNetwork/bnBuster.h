@@ -18,7 +18,7 @@ public:
   Buster(Field* _field, Team _team, bool _charged, int damage);
   ~Buster() override;
 
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   bool CanMoveTo(Battle::Tile* next) override;
 
@@ -35,7 +35,7 @@ private:
   bool spawnGuard;
   Character* contact;
   int damage;
-  float cooldown;
+  double cooldown{};
   float random; // offset
   float hitHeight;
   std::shared_ptr<sf::Texture> texture;

@@ -43,7 +43,7 @@ Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, floa
 Meteor::~Meteor() {
 }
 
-void Meteor::OnUpdate(float _elapsed) {
+void Meteor::OnUpdate(double _elapsed) {
   if (GetTeam() == Team::blue) {
     setScale(-2.f, 2.f);
     swoosh::game::setOrigin(getSprite(), 1.0, 1.0);
@@ -66,7 +66,7 @@ void Meteor::OnUpdate(float _elapsed) {
     tile->AffectEntities(this);
 
     if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
-      ENGINE.GetCamera()->ShakeCamera(5, sf::seconds(0.5));
+      EventBus().Emit(&Camera::ShakeCamera, 5, sf::seconds(0.5));
 
       field->AddEntity(*(new RingExplosion(field)), *GetTile());
     }

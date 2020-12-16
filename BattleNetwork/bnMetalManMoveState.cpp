@@ -15,7 +15,7 @@ void MetalManMoveState::OnEnter(MetalMan& metal) {
   isMoving = false;
 }
 
-void MetalManMoveState::OnUpdate(float _elapsed, MetalMan& metal) {
+void MetalManMoveState::OnUpdate(double _elapsed, MetalMan& metal) {
   if (isMoving || !metal.GetTarget() || !metal.GetTarget()->GetTile()) return; // We're already moving (animations take time)
 
   nextDirection = Direction::none;

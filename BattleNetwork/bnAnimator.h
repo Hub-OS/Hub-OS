@@ -29,14 +29,14 @@ struct OverrideFrame {
  * @brief Lightweight frame is just an integer rect, duration (in seconds), an origin, and points
  */
 struct Frame {
-  float duration;
+  double duration;
   sf::IntRect subregion;
   bool applyOrigin;
   sf::Vector2f origin;
   
   PointHash points;
 
-  Frame(float duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin) 
+  Frame(double duration, sf::IntRect subregion, bool applyOrigin, sf::Vector2f origin) 
   : duration(duration), subregion(subregion), applyOrigin(applyOrigin), origin(origin) {
     points["ORIGIN"] = origin;
   }
@@ -84,7 +84,7 @@ struct Frame {
  */
 class FrameList {
   std::vector<Frame> frames;
-  float totalDuration; /*!< Sum of all frame durations */
+  double totalDuration; /*!< Sum of all frame durations */
 
 public:
   friend class Animator;
@@ -116,7 +116,7 @@ public:
    * @param dur duration of frame in seconds
    * @param sub int rectangle defining the frame from a texture sheet
    */
-  void Add(float dur, sf::IntRect sub) {
+  void Add(double dur, sf::IntRect sub) {
     frames.emplace_back(std::move(Frame(dur, sub, false, sf::Vector2f(0,0) )));
     totalDuration += dur;
   }
@@ -127,7 +127,7 @@ public:
    * @param sub int rectangle defininf the frame from a texture sheet
    * @param origin origin of frame
    */
-  void Add(float dur, sf::IntRect sub, sf::Vector2f origin) {
+  void Add(double dur, sf::IntRect sub, sf::Vector2f origin) {
     frames.emplace_back(std::move(Frame(dur, sub, true, origin)));
     totalDuration += dur;
   }
@@ -162,7 +162,7 @@ public:
    * @brief Get the total duration for the list of frames
    * @return const float
    */
-  const float GetTotalDuration() const { return totalDuration; }
+  const double GetTotalDuration() const { return totalDuration; }
 
   /**
    * @brief Query if frame list is empty
@@ -274,7 +274,7 @@ public:
    * @param target sprite to apply frames to
    * @param sequence list of frames
    */
-  void operator() (float progress, sf::Sprite& target, FrameList& sequence);
+  void operator() (double progress, sf::Sprite& target, FrameList& sequence);
   
   /**
    * @brief Applies a callback

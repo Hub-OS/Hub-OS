@@ -182,7 +182,7 @@ namespace Overworld {
 
     std::pair<unsigned, unsigned> OrthoToRowCol(const sf::Vector2f& ortho) const;
     std::pair<unsigned, unsigned> IsoToRowCol(const sf::Vector2f& iso) const;
-    std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px) const;
+    std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const;
 
     const std::string& GetName() const;
     void SetName(const std::string& name);

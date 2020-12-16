@@ -93,7 +93,7 @@ HP drop is not 1 unit per frame. It is:
 ~5 per frame if difference is 99-40 range
 -3 per frame for anything lower
 */
-void PlayerHealthUI::OnUpdate(float elapsed) {
+void PlayerHealthUI::OnUpdate(double elapsed) {
   // if battle is ongoing and valid, play high pitch sound when hp is low
   isBattleOver = this->Injected()? this->Scene()->IsCleared() : true;
 

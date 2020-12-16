@@ -49,7 +49,7 @@ FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(da
 FireBurn::~FireBurn() {
 }
 
-void FireBurn::OnUpdate(float _elapsed) {
+void FireBurn::OnUpdate(double _elapsed) {
   auto xoffset = 38.0f; // the flames come out a little from the origin
   setPosition(tile->getPosition().x + xoffset, tile->getPosition().y);
 

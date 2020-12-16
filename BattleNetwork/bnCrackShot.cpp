@@ -35,7 +35,7 @@ CrackShot::CrackShot(Field* _field, Team _team, Battle::Tile* tile) : Spell(_fie
 CrackShot::~CrackShot() {
 }
 
-void CrackShot::OnUpdate(float _elapsed) {
+void CrackShot::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   if (GetDirection() == Direction::left) {

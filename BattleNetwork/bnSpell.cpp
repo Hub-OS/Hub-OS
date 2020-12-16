@@ -22,7 +22,7 @@ Spell::Spell(Field* field, Team team) :
 Spell::~Spell() {
 }
 
-void Spell::Update(float _elapsed) {
+void Spell::Update(double _elapsed) {
   if (IsTimeFrozen()) return;
 
   Entity::Update(_elapsed);

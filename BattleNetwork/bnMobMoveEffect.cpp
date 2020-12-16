@@ -31,7 +31,7 @@ MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
 
 }
 
-void MobMoveEffect::OnUpdate(float _elapsed) {
+void MobMoveEffect::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition() + offset);
 
   animation.Update(_elapsed, getSprite());

@@ -216,8 +216,8 @@ void FolderEditScene::onUpdate(double elapsed) {
   frameElapsed = elapsed;
   totalTimeElapsed += elapsed;
 
-  cardRevealTimer.update(elapsed);
-  easeInTimer.update(elapsed);
+  cardRevealTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  easeInTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   auto offset = camera.GetView().getCenter().x - 240;
   bg.setPosition(offset, 0.f);

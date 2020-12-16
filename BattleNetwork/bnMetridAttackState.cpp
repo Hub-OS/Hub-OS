@@ -49,7 +49,7 @@ void MetridAttackState::OnEnter(Metrid& met) {
   }
 }
 
-void MetridAttackState::OnUpdate(float _elapsed, Metrid& met) {
+void MetridAttackState::OnUpdate(double _elapsed, Metrid& met) {
   if (met.GetTarget()) {
     auto last = met.GetTarget()->GetTile();
 

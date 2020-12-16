@@ -35,6 +35,6 @@ public:
   ~Target();
 
   void OnSpawn(Battle::Tile& start) override;
-  void OnUpdate(float elapsed) override;
+  void OnUpdate(double elapsed) override;
   void OnDelete() override;
 };

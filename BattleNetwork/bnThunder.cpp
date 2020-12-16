@@ -37,7 +37,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
 Thunder::~Thunder(void) {
 }
 
-void Thunder::OnUpdate(float _elapsed) {
+void Thunder::OnUpdate(double _elapsed) {
 
   if (elapsed > timeout.asSeconds()) {
     Delete();

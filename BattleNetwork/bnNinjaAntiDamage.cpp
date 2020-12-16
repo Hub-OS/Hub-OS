@@ -57,7 +57,7 @@ NinjaAntiDamage::~NinjaAntiDamage() {
   delete defense;
 }
 
-void NinjaAntiDamage::OnUpdate(float _elapsed) {
+void NinjaAntiDamage::OnUpdate(double _elapsed) {
   if (!(added || GetOwner()->GetComponentsDerivedFrom<CardAction>().size())) {
     // Add the defense rule to the owner of this component
     GetOwnerAs<Character>()->AddDefenseRule(defense);

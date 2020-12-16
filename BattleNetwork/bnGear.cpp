@@ -76,7 +76,7 @@ bool Gear::CanMoveTo(Battle::Tile * next)
   return false;
 }
 
-void Gear::OnUpdate(float _elapsed) {
+void Gear::OnUpdate(double _elapsed) {
   if (tileStartTeam == Team::unknown && tile) {
     tileStartTeam = tile->GetTeam();
   }

@@ -27,7 +27,7 @@ void AlphaClawSwipeState::OnEnter(AlphaCore& a) {
   SpawnRightArm(a);
 }
 
-void AlphaClawSwipeState::OnUpdate(float _elapsed, AlphaCore& a) {
+void AlphaClawSwipeState::OnUpdate(double _elapsed, AlphaCore& a) {
   if (a.GetTarget() && last != a.GetTarget()->GetTile()) {
     if (a.GetTarget()->GetTile()) {
       last = a.GetTarget()->GetTile();

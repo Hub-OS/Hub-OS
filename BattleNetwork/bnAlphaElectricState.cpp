@@ -30,7 +30,7 @@ void AlphaElectricState::OnEnter(AlphaCore& a) {
   anim->SetAnimation("CORE_ATTACK1", onFinish);
 }
 
-void AlphaElectricState::OnUpdate(float _elapsed, AlphaCore& a) {
+void AlphaElectricState::OnUpdate(double _elapsed, AlphaCore& a) {
   if (current) {
     if (current->WillRemoveLater()) {
       AnimationComponent* anim = a.GetFirstComponent<AnimationComponent>();

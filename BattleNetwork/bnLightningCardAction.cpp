@@ -91,7 +91,7 @@ LightningCardAction::~LightningCardAction()
 {
 }
 
-void LightningCardAction::OnUpdate(float _elapsed)
+void LightningCardAction::OnUpdate(double _elapsed)
 {
   if (fired && attack) {
     attackAnim.Update(_elapsed, attack->getSprite());

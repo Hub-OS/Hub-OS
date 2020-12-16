@@ -36,7 +36,7 @@ const unsigned TaskGroup::GetTaskNumber() const
 
 const unsigned TaskGroup::GetTotalTasks() const
 {
-  return tasks.size();
+  return static_cast<unsigned>(tasks.size());
 }
 
 void TaskGroup::AddTask(const std::string & name, const Callback<void()>& task)

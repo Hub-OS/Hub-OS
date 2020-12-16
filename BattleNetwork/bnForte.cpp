@@ -64,7 +64,7 @@ const float Forte::GetHeight() const
   return 160.0f;
 }
 
-void Forte::OnUpdate(float _elapsed)
+void Forte::OnUpdate(double _elapsed)
 {
   dropCooldown -= _elapsed;
 
@@ -124,14 +124,14 @@ Forte::MoveEffect::~MoveEffect()
 {
 }
 
-void Forte::MoveEffect::OnUpdate(float _elapsed)
+void Forte::MoveEffect::OnUpdate(double _elapsed)
 {
   elapsed += _elapsed;
-  auto delta = 1.0f - swoosh::ease::linear(elapsed, 0.1f, 1.0f);
+  auto delta = 1.0 - swoosh::ease::linear(elapsed, 0.1, 1.0);
 
-  SetAlpha(int(delta*125));
+  SetAlpha(static_cast<int>(delta*125));
 
-  if (delta <= 0.0f) {
+  if (delta <= 0.0) {
     Delete();
   }
 }

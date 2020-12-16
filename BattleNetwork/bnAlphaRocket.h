@@ -26,7 +26,7 @@ public:
    * @brief Moves in one direction
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  virtual void OnUpdate(double _elapsed);
 
   /**
    * @brief Deals hitbox damage, exploding, and dropping hitboxes on 3 rows and columns adjacent

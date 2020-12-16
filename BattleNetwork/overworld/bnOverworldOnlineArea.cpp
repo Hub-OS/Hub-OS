@@ -12,7 +12,7 @@
 using namespace swoosh::types;
 constexpr int MAX_ERROR_COUNT = 10;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 5.f;
-constexpr float MAX_TIMEOUT_SECONDS = 5.f;
+constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool guestAccount) :
   font(Font::Style::small),
@@ -41,7 +41,7 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
   SetBackground(new XmasBackground);
 
   loadMapTime.reverse(true);
-  loadMapTime.set(MAX_TIMEOUT_SECONDS*1000);
+  loadMapTime.set(sf::seconds(MAX_TIMEOUT_SECONDS));
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -81,7 +81,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         auto delta = player.second->endBroadcastPos - player.second->startBroadcastPos;
         float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
         double expectedTime = CalculatePlayerLag(*onlinePlayer);
-        auto alpha = ease::linear(deltaTime, expectedTime, 1.0);
+        float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
         Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
 
         if (distance <= 0.2f) {
@@ -112,7 +112,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     loadMapTime.reset();
     loadMapTime.pause();
 
-    movementTimer.update(elapsed);
+    movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
     if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
       movementTimer.reset();
@@ -120,7 +120,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     }
   }
   else {
-    loadMapTime.update(elapsed);
+    loadMapTime.update(sf::seconds(static_cast<float>(elapsed)));
 
     if (loadMapTime.getElapsed().asSeconds() == 0) {
       using effect = segue<PixelateBlackWashFade>;
@@ -150,7 +150,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     if (IsMouseHovering(surface, player.second->actor)) {
       std::string nameStr = player.second->actor.GetName();
       auto mousei = sf::Mouse::getPosition(getController().getWindow());
-      auto mousef = sf::Vector2f(mousei.x, mousei.y);
+      auto mousef = sf::Vector2f(static_cast<float>(mousei.x), static_cast<float>(mousei.y));
       name.setPosition(mousef);
       name.SetString(nameStr.c_str());
       name.setOrigin(-10.0f, 0);

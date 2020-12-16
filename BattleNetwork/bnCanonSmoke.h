@@ -22,7 +22,7 @@ public:
    * @brief animates smoke
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   void OnDelete() override;
   

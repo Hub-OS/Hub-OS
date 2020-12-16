@@ -17,7 +17,7 @@ public:
   Wave(Field* _field, Team _team, double speed = 1.0);
   ~Wave();
 
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   bool Move(Direction _direction) override;
   void Attack(Character* _entity) override;
   void OnDelete() override;

@@ -50,7 +50,7 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center)
   Audio().Play(AudioType::GUARD_HIT);
 }
 
-void GuardHit::OnUpdate(float _elapsed) {
+void GuardHit::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x + w, (tile->getPosition().y + tileOffset.y) - h);
 }
 

@@ -441,8 +441,8 @@ void PVPScene::onExit()
 }
 
 void PVPScene::onUpdate(double elapsed) {
-  gridBG->Update(float(elapsed));
-  textbox.Update(float(elapsed));
+  gridBG->Update(double(elapsed));
+  textbox.Update(double(elapsed));
 
   // DEBUG SCENE STUFF
   if (Input().Has(InputEvents::released_special)) {
@@ -637,8 +637,8 @@ void PVPScene::onDraw(sf::RenderTexture& surface) {
   }
 
   if (flashCooldown > 0) {
-    sf::Vector2u winSize = getController().getVirtualWindowSize();
-    sf::Vector2f size = sf::Vector2f(winSize.x, winSize.y);
+    const sf::Vector2u winSize = getController().getVirtualWindowSize();
+    sf::Vector2f size = sf::Vector2f(static_cast<float>(winSize.x), static_cast<float>(winSize.y));
     sf::RectangleShape screen(size);
     screen.setFillColor(sf::Color::White);
     surface.draw(screen);

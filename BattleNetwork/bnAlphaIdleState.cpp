@@ -7,10 +7,10 @@ AlphaIdleState::AlphaIdleState() : AIState<AlphaCore>(), cooldown(2.83f) { ; }
 AlphaIdleState::~AlphaIdleState() { ; }
 
 void AlphaIdleState::OnEnter(AlphaCore& a) {
-  cooldown = 2.83f;
+  cooldown = 2.83;
 }
 
-void AlphaIdleState::OnUpdate(float _elapsed, AlphaCore& a) {
+void AlphaIdleState::OnUpdate(double _elapsed, AlphaCore& a) {
   cooldown -= _elapsed;
 
   if (cooldown <= 0) {

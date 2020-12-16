@@ -93,7 +93,7 @@ Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
   }
 }
 
-void Explosion::OnUpdate(float _elapsed) {
+void Explosion::OnUpdate(double _elapsed) {
   /*
    * Keep root alive until all explosions are completed, then delete root
    */

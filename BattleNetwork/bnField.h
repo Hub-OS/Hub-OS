@@ -11,6 +11,7 @@ class Character;
 class Spell;
 class Obstacle;
 class Artifact;
+class Scene;
 
 namespace Battle {
   class Tile;
@@ -20,6 +21,8 @@ namespace Battle {
 
 class Field : public CharacterDeletePublisher{
 public:
+  friend class Entity;
+
   enum class AddEntityStatus {
     queued,
     added,
@@ -35,6 +38,11 @@ public:
    * @brief Deletes tiles
    */
   ~Field();
+
+  /**
+   * @brief sets the scene to this field for event emitters
+   */
+  void SetScene(const Scene* scene);
 
   /**
    * @brief Get the columns
@@ -119,7 +127,7 @@ public:
    * @brief Updates all tiles
    * @param _elapsed in seconds
    */
-  void Update(float _elapsed);
+  void Update(double _elapsed);
   
   /**
    * @brief Propagates the state to all tiles for specific behavior
@@ -165,7 +173,7 @@ public:
   * Because entities update on a per-tile basis, we need to ensure an entity spanning multiple tiles
   * Is only ever updated once.
   */
-  void UpdateEntityOnce(Entity* entity, const float elapsed);
+  void UpdateEntityOnce(Entity* entity, const double elapsed);
 
   /**
   * @brief removes the ID from allEntityHash
@@ -182,13 +190,13 @@ public:
   const bool DoesRevealCounterFrames() const;
 
 private:
-
   bool isTimeFrozen; 
   bool isBattleActive; /*!< State flag if battle is active */
   bool revealCounterFrames; /*!< Adds color to enemies who can be countered*/
   int width; /*!< col */
   int height; /*!< rows */
   bool isUpdating; /*!< enqueue entities if added in the update loop */
+  const Scene* scene{ nullptr };
 
   // Since we don't want to invalidate our entity lists while updating,
   // we create a pending queue of entities and tag them by type so later

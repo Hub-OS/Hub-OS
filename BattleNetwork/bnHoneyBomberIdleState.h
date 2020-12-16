@@ -31,7 +31,7 @@ public:
    * @param _elapsed in seconds
    * @param honey
    */
-  void OnUpdate(float _elapsed, HoneyBomber& honey);
+  void OnUpdate(double _elapsed, HoneyBomber& honey);
 
   /**
    * @brief Does nothing

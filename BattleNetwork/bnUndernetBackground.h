@@ -18,7 +18,7 @@ public:
   UndernetBackground();
   ~UndernetBackground();
 
-  void Update(float _elapsed) override;
+  void Update(double _elapsed) override;
 
 private:
   float progress; /**< Animation progress */

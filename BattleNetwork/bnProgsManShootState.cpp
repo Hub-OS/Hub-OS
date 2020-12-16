@@ -36,6 +36,6 @@ void ProgsManShootState::OnLeave(ProgsMan& progs) {
 
 }
 
-void ProgsManShootState::OnUpdate(float _elapsed, ProgsMan& progs) {
+void ProgsManShootState::OnUpdate(double _elapsed, ProgsMan& progs) {
 
 }

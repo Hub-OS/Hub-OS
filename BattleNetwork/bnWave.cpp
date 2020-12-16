@@ -57,7 +57,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
 Wave::~Wave() {
 }
 
-void Wave::OnUpdate(float _elapsed) {
+void Wave::OnUpdate(double _elapsed) {
   int lr = (GetDirection() == Direction::left) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 

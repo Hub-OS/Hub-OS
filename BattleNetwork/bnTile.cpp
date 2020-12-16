@@ -446,7 +446,7 @@ namespace Battle {
     queuedSpells.push_back(caller->GetID());
   }
 
-  void Tile::Update(float _elapsed) {
+  void Tile::Update(double _elapsed) {
     willHighlight = false;
     totalElapsed += _elapsed;
 
@@ -933,7 +933,7 @@ namespace Battle {
     queuedSpells.clear();
   }
 
-  void Tile::UpdateSpells(const float elapsed)
+  void Tile::UpdateSpells(const double elapsed)
   {
     vector<Spell*> spells_copy = spells;
     for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
@@ -949,7 +949,7 @@ namespace Battle {
     }
   }
 
-  void Tile::UpdateArtifacts(const float elapsed)
+  void Tile::UpdateArtifacts(const double elapsed)
   {
     vector<Artifact*> artifacts_copy = artifacts;
     for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
@@ -957,7 +957,7 @@ namespace Battle {
     }
   }
 
-  void Tile::UpdateCharacters(const float elapsed)
+  void Tile::UpdateCharacters(const double elapsed)
   {
     vector<Character*> characters_copy = characters;
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {

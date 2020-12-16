@@ -43,7 +43,7 @@ public:
    * @brief If root increment count is size of numOfExplosions, delete and stop the chain 
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   void OnDelete() override;
   

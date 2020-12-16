@@ -41,7 +41,7 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
 {
-  summonTimer.update(elapsed);
+  summonTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   switch (currState) {
   case state::fadein:

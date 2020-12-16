@@ -37,7 +37,7 @@ void PlayerNetworkState::OnEnter(Player& player) {
   player.SetAnimation(PLAYER_IDLE);
 }
 
-void PlayerNetworkState::OnUpdate(float _elapsed, Player& player) {
+void PlayerNetworkState::OnUpdate(double _elapsed, Player& player) {
   QueueAction(player);
 
   // Action controls take priority over movement

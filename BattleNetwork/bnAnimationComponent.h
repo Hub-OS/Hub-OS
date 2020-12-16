@@ -32,7 +32,7 @@ public:
    * @brief Delegates work to animation object
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   /**
    * @brief Does not inject into scene. Used by the owner.

@@ -120,7 +120,7 @@ Bees::~Bees() {
   delete shadow;
 }
 
-void Bees::OnUpdate(float _elapsed) {
+void Bees::OnUpdate(double _elapsed) {
   elapsed += _elapsed;
 
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - 60.0f);

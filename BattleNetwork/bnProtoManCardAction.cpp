@@ -31,7 +31,7 @@ ProtoManCardAction::~ProtoManCardAction()
 {
 }
 
-void ProtoManCardAction::OnUpdate(float _elapsed)
+void ProtoManCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }

@@ -17,7 +17,7 @@ public:
   {
   }
 
-  void OnUpdate(float _elapsed) override
+  void OnUpdate(double _elapsed) override
   {
     CardAction::OnUpdate(_elapsed);
 

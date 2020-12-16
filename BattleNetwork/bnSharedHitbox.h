@@ -32,7 +32,7 @@ public:
    * @brief Removes itself if time is up or the original source is deleted
    * @param _elapsed in seconds
    */
-   void OnUpdate(float _elapsed) override;
+   void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Does not move

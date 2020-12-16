@@ -21,7 +21,7 @@ public:
    * @param _elapsed
    * @param player player entity
    */
-  void OnUpdate(float _elapsed, Player& player);
+  void OnUpdate(double _elapsed, Player& player);
   
   /**
    * @brief does nothing

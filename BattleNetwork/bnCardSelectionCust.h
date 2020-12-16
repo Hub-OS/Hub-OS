@@ -72,7 +72,7 @@ private:
   int selectedFormIndex; //!< Form Index of selection 
   int lockedInFormIndex; //!< What the card cust has locked our selection in as
   std::vector<sf::Sprite> formUI;
-  float formSelectQuitTimer;
+  double formSelectQuitTimer;
   bool playFormSound;
 
   int cardCount; /*!< How many cards are listed in the GUI */
@@ -240,7 +240,7 @@ public:
    * @brief Animators cursors and textbox animations
    * @param elapsed in seconds
    */
-  void Update(float elapsed);
+  void Update(double elapsed);
 
   /**
    * @brief Confirm question selection for textbox 

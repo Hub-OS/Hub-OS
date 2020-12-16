@@ -82,7 +82,7 @@ void AlphaElectricCurrent::OnSpawn(Battle::Tile & start)
 }
 
 
-void AlphaElectricCurrent::OnUpdate(float _elapsed)
+void AlphaElectricCurrent::OnUpdate(double _elapsed)
 {
   // In order to lay ontop of alpha's layer, we keep the spell on top of his position
   // but offset the sprite to be 2 tiles to the left...

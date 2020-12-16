@@ -26,7 +26,7 @@ CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
 
 }
 
-void CanonSmoke::OnUpdate(float _elapsed) {
+void CanonSmoke::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x + 14.0f, tile->getPosition().y + tileOffset.y - 65.0f);
 }
 

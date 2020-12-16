@@ -17,7 +17,7 @@ private:
   CanodumbCursor* cursor; /*!< Spawned to find enemies to attack */
   Canodumb* can;
   Entity::RemoveCallback freeCursorCallback;
-  friend void CanodumbCursor::OnUpdate(float _elapsed);
+  friend void CanodumbCursor::OnUpdate(double _elapsed);
   friend CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _parent);
 
   void Attack();
@@ -39,7 +39,7 @@ public:
    * @param _elapsed in seconds
    * @param can canodumb
    */
-  void OnUpdate(float _elapsed, Canodumb& can) override;
+  void OnUpdate(double _elapsed, Canodumb& can) override;
   
   /**
    * @brief Deletes any existing cursors 

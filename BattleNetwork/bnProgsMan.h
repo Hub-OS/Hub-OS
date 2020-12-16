@@ -43,7 +43,7 @@ public:
    * 
    * When health is zero, changes to NaviExplosion state
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
 
   void OnDelete();
 

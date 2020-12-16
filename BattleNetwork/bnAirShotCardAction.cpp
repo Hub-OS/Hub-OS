@@ -54,7 +54,7 @@ AirShotCardAction::~AirShotCardAction()
 {
 }
 
-void AirShotCardAction::OnUpdate(float _elapsed)
+void AirShotCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }

@@ -11,7 +11,7 @@
 
 #include "bnGear.h" 
 
-#define COOLDOWN 40.0f/1000.0f
+#define COOLDOWN 40.0/1000.0
 
 Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_field, _team) {
   SetPassthrough(true);
@@ -59,7 +59,7 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
 Buster::~Buster() {
 }
 
-void Buster::OnUpdate(float _elapsed) {
+void Buster::OnUpdate(double _elapsed) {
   GetTile()->AffectEntities(this);
 
   cooldown += _elapsed;

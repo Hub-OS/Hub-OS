@@ -33,7 +33,7 @@ RockDebris::RockDebris(RockDebris::Type type, double intensity) : Artifact(nullp
   }
 }
 
-void RockDebris::OnUpdate(float _elapsed) {
+void RockDebris::OnUpdate(double _elapsed) {
   progress += _elapsed;
 
   // Alpha is a path along a parabola 

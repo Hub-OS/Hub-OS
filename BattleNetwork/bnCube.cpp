@@ -97,7 +97,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
   return false;
 }
 
-void Cube::OnUpdate(float _elapsed) {
+void Cube::OnUpdate(double _elapsed) {
   // We couldn't spawn correctly
   if (animation->GetAnimationString() == "APPEAR") return;
 

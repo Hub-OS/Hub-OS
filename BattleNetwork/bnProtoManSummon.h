@@ -28,7 +28,7 @@ public:
    * @brief Updates position and animation
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Protoman teleports and doesn't use this

@@ -6,7 +6,7 @@
 #include "bnAnimationComponent.h"
 
 HoneyBomberAttackState::HoneyBomberAttackState() 
-: beeCount(3), attackCooldown(0.4f), spawnCooldown(0.4f), lastBee(nullptr), AIState<HoneyBomber>() { 
+: beeCount(3), attackCooldown(0.4), spawnCooldown(0.4), lastBee(nullptr), AIState<HoneyBomber>() { 
 }
 
 HoneyBomberAttackState::~HoneyBomberAttackState() { ; }
@@ -17,15 +17,15 @@ void HoneyBomberAttackState::OnEnter(HoneyBomber& honey) {
   animation->SetAnimation("ATTACK", Animator::Mode::Loop);
 }
 
-void HoneyBomberAttackState::OnUpdate(float _elapsed, HoneyBomber& honey) {
+void HoneyBomberAttackState::OnUpdate(double _elapsed, HoneyBomber& honey) {
   attackCooldown -= _elapsed;
 
-  if (attackCooldown > 0.f) return;
+  if (attackCooldown > 0) return;
 
   spawnCooldown -= _elapsed;
 
   bool canAttack = !honey.GetField()->GetAt(honey.GetTile()->GetX() - 1, honey.GetTile()->GetY())->ContainsEntityType<Bees>();
-  canAttack = canAttack && spawnCooldown <= 0.f;
+  canAttack = canAttack && spawnCooldown <= 0;
 
   // we do not want null leaders
   if (lastBee && lastBee->IsDeleted()) {
@@ -34,7 +34,7 @@ void HoneyBomberAttackState::OnUpdate(float _elapsed, HoneyBomber& honey) {
 
   if (canAttack) {
       DoAttack(honey);
-      spawnCooldown = 0.4f; // reset wait time inbetween spawns
+      spawnCooldown = 0.4; // reset wait time inbetween spawns
   }
 }
 

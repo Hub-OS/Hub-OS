@@ -30,7 +30,7 @@ public:
    * @brief Does nothing
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Not injected into battle scene

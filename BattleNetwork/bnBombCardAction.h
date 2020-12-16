@@ -13,7 +13,7 @@ private:
 public:
   BombCardAction(Character& user, int damage);
   ~BombCardAction();
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd() override;
   void OnEndAction() override;
   void OnExecute() override;

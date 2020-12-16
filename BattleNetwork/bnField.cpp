@@ -7,8 +7,8 @@
 
 constexpr auto TILE_ANIMATION_PATH = "resources/tiles/tiles.animation";
 
-Field::Field(int _width, int _height)
-  : width(_width),
+Field::Field(int _width, int _height) :
+  width(_width),
   height(_height),
   pending(),
   revealCounterFrames(false),
@@ -69,6 +69,11 @@ Field::~Field() {
     tiles[i].clear();
   }
   tiles.clear();
+}
+
+void Field::SetScene(const Scene* scene)
+{
+  this->scene = scene;
 }
 
 int Field::GetWidth() const {
@@ -255,7 +260,7 @@ Battle::Tile* Field::GetAt(int _x, int _y) const {
   return tiles[_y][_x];
 }
 
-void Field::Update(float _elapsed) {
+void Field::Update(double _elapsed) {
   // This is a state flag that decides if entities added this update tick will be
   // put into a pending queue bucket or added directly onto the field
   isUpdating = true;
@@ -468,7 +473,7 @@ const bool Field::HasPendingEntities() const
     return pending.size();
 }
 
-void Field::UpdateEntityOnce(Entity * entity, const float elapsed)
+void Field::UpdateEntityOnce(Entity *entity, const double elapsed)
 {
     if(entity == nullptr || updatedEntities.find(entity->GetID()) != updatedEntities.end())
         return;

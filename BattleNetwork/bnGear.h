@@ -25,7 +25,7 @@ public:
    * 
    * if battle is not activive, does not move
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   
   /**
    * @brief No special behavior occur when deleted

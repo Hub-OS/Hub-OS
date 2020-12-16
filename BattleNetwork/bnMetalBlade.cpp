@@ -33,7 +33,7 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, 
 MetalBlade::~MetalBlade() {
 }
 
-void MetalBlade::OnUpdate(float _elapsed) {
+void MetalBlade::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   animation->SetPlaybackSpeed(speed);

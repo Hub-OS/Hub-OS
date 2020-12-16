@@ -20,7 +20,7 @@ public:
   ~NoState();
 
   void OnEnter(Any& e);
-  void OnUpdate(float _elapsed, Any& e);
+  void OnUpdate(double _elapsed, Any& e);
   void OnLeave(Any& e);
 };
 
@@ -36,7 +36,7 @@ template<typename Any>
 void NoState<Any>::OnEnter(Any& e) { }
 
 template<typename Any>
-void NoState<Any>::OnUpdate(float _elapsed, Any& e) { }
+void NoState<Any>::OnUpdate(double _elapsed, Any& e) { }
 
 template<typename Any>
 void NoState<Any>::OnLeave(Any& e) { }

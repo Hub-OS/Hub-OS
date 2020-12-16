@@ -156,7 +156,7 @@ void SelectedCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) c
   UIComponent::draw(target, states);
 };
 
-void SelectedCardsUI::OnUpdate(float _elapsed) {
+void SelectedCardsUI::OnUpdate(double _elapsed) {
   if (Input().Has(InputEvents::held_option)) {
     spread = true;
   }

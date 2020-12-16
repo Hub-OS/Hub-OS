@@ -16,7 +16,7 @@ public:
   CrackShotCardAction(Character& owner, int damage);
   ~CrackShotCardAction();
 
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd();
   void OnEndAction() override;
   void OnExecute() override;

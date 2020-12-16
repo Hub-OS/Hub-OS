@@ -52,7 +52,7 @@ void TwinFangCardAction::OnExecute() {
   AddAnimAction(2, onFire);
 }
 
-void TwinFangCardAction::OnUpdate(float _elapsed)
+void TwinFangCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }

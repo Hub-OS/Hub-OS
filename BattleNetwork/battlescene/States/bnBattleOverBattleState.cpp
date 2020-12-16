@@ -49,7 +49,7 @@ void BattleOverBattleState::onEnd(const BattleSceneState*)
 
 void BattleOverBattleState::onUpdate(double elapsed)
 {
-  battleEndTimer.update(elapsed);
+  battleEndTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   // finish whatever animations were happening
   GetScene().GetField()->Update(elapsed);

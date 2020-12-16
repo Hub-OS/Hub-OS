@@ -57,7 +57,7 @@ Tornado::Tornado(Field* _field, Team _team, int count, int damage)
 Tornado::~Tornado() {
 }
 
-void Tornado::OnUpdate(float _elapsed) {
+void Tornado::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
   animation.Update(_elapsed, getSprite());

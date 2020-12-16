@@ -32,7 +32,7 @@ SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : Spell(_field, 
 SuperVulcan::~SuperVulcan() {
 }
 
-void SuperVulcan::OnUpdate(float _elapsed) {
+void SuperVulcan::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
   animation.Update(_elapsed, getSprite());

@@ -22,9 +22,9 @@ VirusBackground::VirusBackground(void)
 VirusBackground::~VirusBackground() {
 }
 
-void VirusBackground::Update(float _elapsed) {
-  progress += 0.5f * _elapsed;
-  if (progress >= 1.f) progress = 0.0f;
+void VirusBackground::Update(double _elapsed) {
+  progress += 0.5 * _elapsed;
+  if (progress >= 1.0) progress = 0.0;
 
   if (lr == 0) {
     x += 1 * _elapsed * speed;
@@ -36,10 +36,10 @@ void VirusBackground::Update(float _elapsed) {
   if (x > 1) x = 0;
   if (y > 1) y = 0;
 
-  int frame = (int)(progress * COMPONENT_FRAME_COUNT);
+  int frame = static_cast<int>(progress * COMPONENT_FRAME_COUNT);
 
   Wrap(sf::Vector2f(x, y));
-  TextureOffset(sf::Vector2f((float)(frame*COMPONENT_WIDTH), 0));
+  TextureOffset(sf::Vector2f(static_cast<float>(frame*COMPONENT_WIDTH), 0));
 
 }
 
@@ -55,7 +55,7 @@ void VirusBackground::ScrollLeft()
   lr = 0;
 }
 
-void VirusBackground::SetScrollSpeed(const float speed)
+void VirusBackground::SetScrollSpeed(const double speed)
 {
   this->speed = speed;
 }

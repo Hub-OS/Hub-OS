@@ -109,7 +109,7 @@ ExplosionSpriteNode::ExplosionSpriteNode(const ExplosionSpriteNode& copy)
   Update(0);
 }
 
-void ExplosionSpriteNode::Update(float _elapsed) {
+void ExplosionSpriteNode::Update(double _elapsed) {
   animation.Update(_elapsed*playbackSpeed, getSprite());
 
 

@@ -50,7 +50,7 @@ void YoYo::OnSpawn(Battle::Tile& start) {
   startTile = &start;
 }
 
-void YoYo::OnUpdate(float _elapsed) {
+void YoYo::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   // When moving, attack tiles normally

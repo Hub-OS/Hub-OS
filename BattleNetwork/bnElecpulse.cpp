@@ -56,7 +56,7 @@ void Elecpulse::OnSpawn(Battle::Tile & start)
   field->AddEntity(*shared, *bottom);
 }
 
-void Elecpulse::OnUpdate(float _elapsed) {
+void Elecpulse::OnUpdate(double _elapsed) {
   GetTile()->AffectEntities(this);
 
   setPosition(tile->getPosition()+sf::Vector2f(70.0f, -60.0f));

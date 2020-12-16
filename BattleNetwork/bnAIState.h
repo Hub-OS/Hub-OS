@@ -43,7 +43,7 @@ public:
    * @param _elapsed in seconds
    * @param context the referenced AI object
    */
-  void Update(float _elapsed, T& context) {
+  void Update(double _elapsed, T& context) {
     OnUpdate(_elapsed, context);
   }
 
@@ -60,7 +60,7 @@ public:
    * @param _elapsed in seconds
    * @param context reference object
    */
-  virtual void OnUpdate(float _elapsed, T& context) = 0;
+  virtual void OnUpdate(double _elapsed, T& context) = 0;
   
   /**
    * @brief Prepare the reference object for the next state, when state changes

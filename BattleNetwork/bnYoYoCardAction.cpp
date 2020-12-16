@@ -57,7 +57,7 @@ void YoYoCardAction::OnExecute() {
   AddAnimAction(1, onFire);
 }
 
-void YoYoCardAction::OnUpdate(float _elapsed)
+void YoYoCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 

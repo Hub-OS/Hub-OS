@@ -36,7 +36,7 @@ public:
   * @brief Spreads outwards on a target tile and then moves across the field
   * @param _elapsed float of elapsed time in seconds
   */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   /**
    * @brief Deals hitbox damage

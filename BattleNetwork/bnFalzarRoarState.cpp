@@ -33,7 +33,7 @@ void FalzarRoarState::OnEnter(Falzar& falzar)
   animation->SetPlaybackMode(Animator::Mode::Loop);
 }
 
-void FalzarRoarState::OnUpdate(float _elapsed, Falzar&)
+void FalzarRoarState::OnUpdate(double _elapsed, Falzar&)
 {
 }
 

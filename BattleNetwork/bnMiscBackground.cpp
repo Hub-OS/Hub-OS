@@ -21,7 +21,7 @@ MiscBackground::MiscBackground()
 MiscBackground::~MiscBackground() {
 }
 
-void MiscBackground::Update(float _elapsed) {
+void MiscBackground::Update(double _elapsed) {
 
   animation.Update(_elapsed, dummy);
 

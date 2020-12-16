@@ -24,7 +24,7 @@ EnemyCardsUI::EnemyCardsUI(Character* _owner) : CardUsePublisher(), Component(_o
 EnemyCardsUI::~EnemyCardsUI() {
 }
 
-void EnemyCardsUI::OnUpdate(float _elapsed) {
+void EnemyCardsUI::OnUpdate(double _elapsed) {
   if (GetOwner() && GetOwner()->GetTile() && !GetOwner()->IsDeleted() && !GetOwner()->IsTimeFrozen()) {
     Agent* agent = GetOwnerAs<Agent>();
 

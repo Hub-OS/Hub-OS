@@ -37,7 +37,7 @@ RollHeart::RollHeart(Character* user, int _heal)
 RollHeart::~RollHeart() {
 }
 
-void RollHeart::OnUpdate(float _elapsed) {
+void RollHeart::OnUpdate(double _elapsed) {
 
   if (tile != nullptr) {
     setPosition(tile->getPosition().x, tile->getPosition().y - height - 10.0f);

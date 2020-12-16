@@ -78,7 +78,7 @@ public:
    * @brief Animators cursors and all animations
    * @param elapsed in seconds
    */
-  void Update(float elapsed);
+  void Update(double elapsed);
 
   /**
    * @brief Draws GUI and all child graphics on it

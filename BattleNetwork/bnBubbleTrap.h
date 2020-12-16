@@ -41,7 +41,7 @@ public:
    * @brief Animators bubble. When timer runs out, pops the bubble
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   /**
    * @brief Sets the pop animation and deletes self when over

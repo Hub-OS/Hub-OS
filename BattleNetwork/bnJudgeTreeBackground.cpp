@@ -21,12 +21,12 @@ JudgeTreeBackground::JudgeTreeBackground()
 JudgeTreeBackground::~JudgeTreeBackground() {
 }
 
-void JudgeTreeBackground::Update(float _elapsed) {
+void JudgeTreeBackground::Update(double _elapsed) {
 
   animation.Update(_elapsed, dummy);
 
-  y += 0.25f * _elapsed;
-  x += 0.25f *_elapsed;
+  y += 0.25f * static_cast<float>(_elapsed);
+  x += 0.25f * static_cast<float>(_elapsed);
 
   if (x > 1) x = 0;
   if (y > 1) y = 0;

@@ -36,7 +36,7 @@ public:
    * @brief Randomly uses a card if the scene is active
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Draws cards stacked

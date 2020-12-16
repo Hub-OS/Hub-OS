@@ -50,7 +50,7 @@ public:
    * @param _elapsed in seconds
    * @param e entity
    */
-  void OnUpdate(float _elapsed, Any& e);
+  void OnUpdate(double _elapsed, Any& e);
   
   /**
    * @brief Calls ExplodeState<Any>::OnLeave(e)
@@ -88,7 +88,7 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
 }
 
 template<typename Any>
-void NaviExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
+void NaviExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
   ExplodeState<Any>::OnUpdate(_elapsed, e);
 
   if (e.WillRemoveLater()) {

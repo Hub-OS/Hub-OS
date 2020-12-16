@@ -47,7 +47,10 @@ Game::Game()
 
   // Use the engine's window settings for this platform to create a properly 
   // sized render surface...
-  loadSurface.create(window.GetView().getSize().x, window.GetView().getSize().y, window.GetRenderWindow()->getSettings());
+  unsigned int win_x = static_cast<unsigned int>(window.GetView().getSize().x);
+  unsigned int win_y = static_cast<unsigned int>(window.GetView().getSize().y);
+
+  loadSurface.create(win_x, win_y, window.GetRenderWindow()->getSettings());
 
   // Use our external render surface as the game's screen
   window.SetRenderSurface(loadSurface);

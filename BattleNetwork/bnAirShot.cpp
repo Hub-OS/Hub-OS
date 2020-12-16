@@ -41,7 +41,7 @@ AirShot::AirShot(Field* _field, Team _team, int _damage) : Spell(_field, _team) 
 AirShot::~AirShot() {
 }
 
-void AirShot::OnUpdate(float _elapsed) {
+void AirShot::OnUpdate(double _elapsed) {
   GetTile()->AffectEntities(this);
 
   cooldown += _elapsed;

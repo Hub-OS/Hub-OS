@@ -51,7 +51,7 @@ void CardComboBattleState::onEnd(const BattleSceneState*)
 void CardComboBattleState::onUpdate(double elapsed)
 {
   increment += elapsed;
-  PAStartTimer.update(elapsed);
+  PAStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   this->elapsed += elapsed;
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();

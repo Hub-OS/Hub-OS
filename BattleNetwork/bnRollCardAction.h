@@ -11,7 +11,7 @@ private:
 public:
   RollCardAction(Character& owner, int damage);
   ~RollCardAction();
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd() override;
   void OnEndAction();
   void OnExecute();

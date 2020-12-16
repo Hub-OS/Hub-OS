@@ -15,7 +15,7 @@ void MettaurIdleState::OnEnter(Mettaur& met) {
   }
 }
 
-void MettaurIdleState::OnUpdate(float _elapsed, Mettaur& met) {
+void MettaurIdleState::OnUpdate(double _elapsed, Mettaur& met) {
   if (!met.IsMyTurn())
     return;
 

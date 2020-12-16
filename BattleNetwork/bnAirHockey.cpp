@@ -28,7 +28,7 @@ AirHockey::~AirHockey()
 {
 }
 
-void AirHockey::OnUpdate(float _elapsed)
+void AirHockey::OnUpdate(double _elapsed)
 {
   // puck does not spawn hitbox on broken or empty tiles
   bool isOverHole = GetTile()->IsHole();
@@ -49,7 +49,7 @@ void AirHockey::OnUpdate(float _elapsed)
 
       //try moving
       SlideToTile(true);
-      SetSlideTime(sf::seconds(frames(4).asSeconds()));
+      SetSlideTime(frames(4));
       Move(dir);
 
       if (reflecting) {
@@ -57,7 +57,7 @@ void AirHockey::OnUpdate(float _elapsed)
         // CanMoveTo() and `reflecting`
         // was set to true to signal this
         SlideToTile(true);
-        SetSlideTime(sf::seconds(frames(4).asSeconds()));
+        SetSlideTime(frames(4));
         Move(dir);
         reflecting = false;
       }

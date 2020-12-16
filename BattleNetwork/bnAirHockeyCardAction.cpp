@@ -72,7 +72,7 @@ void AirHockeyCardAction::OnExecute() {
   AddAnimAction(3, onThrow);
 }
 
-void AirHockeyCardAction::OnUpdate(float _elapsed)
+void AirHockeyCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }

@@ -60,7 +60,7 @@ private:
 
     virtual ~Head() { delete copout;  }
 
-    virtual void OnUpdate(float _elapsed) { 
+    virtual void OnUpdate(double _elapsed) { 
       progress += _elapsed;
       if (!base || !base->GetHealth()) {
         if (int(progress * 1000) % 2 == 0) {
@@ -204,7 +204,7 @@ public:
    * @brief Uses AI state to move around. Deletes when health is below zero.
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  virtual void OnUpdate(double _elapsed);
 
   virtual void OnDelete();
 

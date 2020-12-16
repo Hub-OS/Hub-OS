@@ -124,7 +124,7 @@ void ProtoManSummon::OnDelete()
   Remove();
 }
 
-void ProtoManSummon::OnUpdate(float _elapsed) {
+void ProtoManSummon::OnUpdate(double _elapsed) {
   if (tile != nullptr) {
     setPosition(tile->getPosition());
   }

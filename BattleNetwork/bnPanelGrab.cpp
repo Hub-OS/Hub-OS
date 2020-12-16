@@ -39,7 +39,7 @@ void PanelGrab::OnSpawn(Battle::Tile& start)
   Hide();
 }
 
-void PanelGrab::OnUpdate(float _elapsed) {
+void PanelGrab::OnUpdate(double _elapsed) {
   if (GetTile()) {
     if (IsHidden()) Reveal();
 

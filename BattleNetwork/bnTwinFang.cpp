@@ -45,7 +45,7 @@ TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_f
 TwinFang::~TwinFang() {
 }
 
-void TwinFang::OnUpdate(float _elapsed) {
+void TwinFang::OnUpdate(double _elapsed) {
   auto height = 50.0f;
 
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y - height + spreadOffset);

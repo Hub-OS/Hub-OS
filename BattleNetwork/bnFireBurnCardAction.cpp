@@ -75,7 +75,7 @@ void FireBurnCardAction::CrackTiles(bool state)
   crackTiles = state;
 }
 
-void FireBurnCardAction::OnUpdate(float _elapsed)
+void FireBurnCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }

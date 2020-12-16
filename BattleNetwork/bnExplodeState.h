@@ -40,7 +40,7 @@ public:
   virtual ~ExplodeState();
 
   void OnEnter(Any& e);
-  void OnUpdate(float _elapsed, Any& e);
+  void OnUpdate(double _elapsed, Any& e);
   void OnLeave(Any& e);
 };
 
@@ -86,7 +86,7 @@ void ExplodeState<Any>::OnEnter(Any& e) {
 }
 
 template<typename Any>
-void ExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
+void ExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
   elapsed += _elapsed;
 
   /* freeze frame, flash white */

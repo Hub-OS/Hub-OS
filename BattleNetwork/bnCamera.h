@@ -31,7 +31,7 @@ public:
    * @brief Moves camera to destination and shakes camera if applicable
    * @param elapsed in seconds
    */
-  void Update(float elapsed);
+  void Update(double elapsed);
   
   /**
    * @brief Move camera linearly to destination over time

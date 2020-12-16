@@ -48,7 +48,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed)
 Bubble::~Bubble() {
 }
 
-void Bubble::OnUpdate(float _elapsed) {
+void Bubble::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   animation.Update(_elapsed*(float)speed, getSprite());

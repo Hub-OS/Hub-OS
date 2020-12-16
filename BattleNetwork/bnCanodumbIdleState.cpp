@@ -45,7 +45,7 @@ void CanodumbIdleState::OnEnter(Canodumb& can) {
   }
 }
 
-void CanodumbIdleState::OnUpdate(float _elapsed, Canodumb& can) {
+void CanodumbIdleState::OnUpdate(double _elapsed, Canodumb& can) {
   if (can.GetTarget() && can.GetTarget()->GetTile()) {
     if (can.GetTarget()->GetTile()->GetY() == can.GetTile()->GetY() && !can.GetTarget()->IsPassthrough()) {
       // Spawn tracking cursor object

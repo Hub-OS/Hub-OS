@@ -42,7 +42,7 @@ void BubbleTrap::Inject(BattleSceneBase& bs) {
 
 }
 
-void BubbleTrap::OnUpdate(float _elapsed) {
+void BubbleTrap::OnUpdate(double _elapsed) {
   auto keyTestThunk = [this](const InputEvent& key) {
     bool pass = false;
 
@@ -71,7 +71,7 @@ void BubbleTrap::OnUpdate(float _elapsed) {
   anyKey = anyKey || keyTestThunk(InputEvents::pressed_special);
 
   if (anyKey) {
-    duration -= frames(1).asSeconds();
+    duration -= seconds_cast<double>(frames(1));
   }
 
   duration -= _elapsed;

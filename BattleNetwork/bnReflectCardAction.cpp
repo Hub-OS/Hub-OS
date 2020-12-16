@@ -36,11 +36,11 @@ void ReflectCardAction::SetDuration(const frame_time_t& duration)
 
   // add override anims
   OverrideAnimationFrames({
-    { 1, duration.asSeconds() }
+    { 1, seconds_cast<float>(duration) }
   });
 }
 
-void ReflectCardAction::OnUpdate(float _elapsed)
+void ReflectCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }

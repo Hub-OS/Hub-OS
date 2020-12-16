@@ -55,7 +55,7 @@ const float Tomahawkman::GetHeight() const
   return 100.0f;
 }
 
-void Tomahawkman::OnUpdate(float _elapsed)
+void Tomahawkman::OnUpdate(double _elapsed)
 {
   // Continue with the parent class routine
   Player::OnUpdate(_elapsed);

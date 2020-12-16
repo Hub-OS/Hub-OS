@@ -18,7 +18,7 @@ AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
   SetDirection(Direction::left);
   SetHealth(999);
   ShareTileSpace(true);
-  SetSlideTime(sf::seconds(0.1333f)); // 8 frames
+  SetSlideTime(time_cast<sf::Time>(frames(8))); // 8 frames
   SetName("AlphaArm");
   Hit::Properties props = Hit::DefaultProperties;
   props.flags |= Hit::recoil | Hit::breaking;
@@ -99,11 +99,11 @@ bool AlphaArm::CanMoveTo(Battle::Tile * next)
   return true;
 }
 
-void AlphaArm::OnUpdate(float _elapsed) {
+void AlphaArm::OnUpdate(double _elapsed) {
   if (isFinished) { Delete(); }
 
   totalElapsed += _elapsed;
-  float delta = std::sin(10.0f*totalElapsed+1.0f);
+  float delta = std::sin(10.0f*static_cast<float>(totalElapsed)+1.0f);
 
   if (canChangeTileState) {
     // golden claw
@@ -132,7 +132,8 @@ void AlphaArm::OnUpdate(float _elapsed) {
 
       blueShadow->Reveal();
 
-      delta = (1.0f - swoosh::ease::linear(totalElapsed - 1.0f, 0.12f, 1.0f)) * GetTile()->GetHeight();
+      delta = (1.0f - swoosh::ease::linear(static_cast<float>(totalElapsed) - 1.0f, 0.12f, 1.0f));
+      delta *= GetTile()->GetHeight();
 
       if (totalElapsed - 1.0f > 0.12f) {
         // May have just finished moving
@@ -244,7 +245,7 @@ const bool AlphaArm::IsSwiping() const
   return isSwiping;
 }
 
-void AlphaArm::SyncElapsedTime(const float elapsedTime)
+void AlphaArm::SyncElapsedTime(const double elapsedTime)
 {
   // the claws get out of sync, we must sync them up
   totalElapsed = elapsedTime;

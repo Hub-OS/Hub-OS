@@ -27,7 +27,7 @@ public:
   Obstacle(Field* _field, Team _team);
   virtual ~Obstacle();
 
-  void Update(float _elapsed) final override;
+  void Update(double _elapsed) final override;
 
   /**
    * @brief Uses the Character::CanMoveTo() default function to follow typical character movement rules

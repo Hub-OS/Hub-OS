@@ -52,7 +52,7 @@ namespace Battle {
     };
 
     friend Field::Field(int _width, int _height);
-    friend void Field::Update(float _elapsed);
+    friend void Field::Update(double _elapsed);
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.
@@ -248,7 +248,7 @@ namespace Battle {
      * @brief Updates all entities occupying this tile
      * @param _elapsed in seconds
      */
-    void Update(float _elapsed);
+    void Update(double _elapsed);
 
     /**
      * @brief Triggers this tile and all entities to behave as if time is frozen
@@ -297,9 +297,9 @@ namespace Battle {
 
     void CleanupEntities();
     void ExecuteAllSpellAttacks();
-    void UpdateSpells(const float elapsed);
-    void UpdateArtifacts(const float elapsed);
-    void UpdateCharacters(const float elapsed);
+    void UpdateSpells(const double elapsed);
+    void UpdateArtifacts(const double elapsed);
+    void UpdateCharacters(const double elapsed);
 
     int x; /**< Column number*/
     int y; /**< Row number*/

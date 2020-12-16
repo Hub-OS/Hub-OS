@@ -33,7 +33,7 @@ public:
    * @param _elapsed
    * @param player
    */
-  void OnUpdate(float _elapsed, Player& player);
+  void OnUpdate(double _elapsed, Player& player);
 
   /**
    * @brief Sets player entity charge component to false

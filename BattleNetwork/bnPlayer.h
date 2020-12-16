@@ -63,7 +63,7 @@ public:
    * @brief Polls for interrupted states and fires delete state when deleted
    * @param _elapsed for secs
    */
-  virtual void OnUpdate(float _elapsed);
+  virtual void OnUpdate(double _elapsed);
   
   /**
    * @brief Fires a buster

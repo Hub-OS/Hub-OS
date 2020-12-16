@@ -198,7 +198,7 @@ private:
   float axisYPower{}, lastAxisYPower{};
 
   std::vector<sf::Joystick::Identification> gamepads;
-  size_t currGamepad{};
+  unsigned int currGamepad{};
   
   vector<InputEvent> events; /*!< Current event list */
   vector<InputEvent> eventsLastFrame; /*!< The even list prior to this update */

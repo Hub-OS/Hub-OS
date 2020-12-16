@@ -12,7 +12,7 @@ public:
 
   ~DelayedAttack();
 
-  void OnUpdate(float elapsed) override;
+  void OnUpdate(double elapsed) override;
 
   void Attack(Character* _entity) override;
 

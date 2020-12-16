@@ -23,7 +23,7 @@ public:
   ChargeEffectSceneNode(Entity* _entity);
   ~ChargeEffectSceneNode();
 
-  void Update(float _elapsed);
+  void Update(double _elapsed);
   
   /**
    * @brief If true, the component begins to charge. Otherwise, cancels charge

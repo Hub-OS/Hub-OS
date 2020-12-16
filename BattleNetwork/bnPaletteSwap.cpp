@@ -14,7 +14,7 @@ PaletteSwap::~PaletteSwap()
 {
 }
 
-void PaletteSwap::OnUpdate(float _elapsed)
+void PaletteSwap::OnUpdate(double _elapsed)
 {
   if (!enabled) return;
   if (GetOwner()->GetShader().Get() == paletteSwap) return;

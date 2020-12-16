@@ -6,7 +6,7 @@
 #include "../bnInputManager.h"
 #include "../bnShaderResourceManager.h"
 
-constexpr sf::Int32 EMOJI_DISPLAY_MILI = 5000;
+constexpr sf::Int32 EMOJI_DISPLAY_MILI = 5;
 constexpr float NOT_SELECTED_RADIUS = 0.75f;
 constexpr float SELECTED_RADIUS = 1.0f;
 constexpr float CIRCLE_RADIUS_PX = 44.0f; // in pixels
@@ -37,14 +37,14 @@ void Overworld::EmoteNode::Emote(Overworld::Emotes type)
 
   sf::IntRect rect = sf::IntRect(static_cast<int>(11 * idx), 0, 11, 11);
   setTextureRect(rect);
-  timer.set(EMOJI_DISPLAY_MILI);
+  timer.set(sf::milliseconds(EMOJI_DISPLAY_MILI));
   timer.start();
   Reveal();
 }
 
 void Overworld::EmoteNode::Update(double elapsed)
 {
-  timer.update(elapsed);
+  timer.update(sf::seconds(static_cast<float>(elapsed)));
 
   if (timer.getElapsed().asMilliseconds() == 0) {
     Hide();
@@ -69,7 +69,7 @@ Overworld::EmoteWidget::EmoteWidget() :
 
     float alpha = radius * NOT_SELECTED_RADIUS;
 
-    float theta = idx * ((2.f * M_PI) / static_cast<float>(max));
+    float theta = idx * ((2.f * static_cast<float>(M_PI)) / static_cast<float>(max));
     sf::Vector2f pos = sf::Vector2f(cos(theta) * alpha, sin(theta) * alpha);
     emoteSprites[idx].setPosition(pos.x, pos.y);
     idx++;
@@ -93,7 +93,7 @@ void Overworld::EmoteWidget::Update(double elapsed)
       alpha = radius * SELECTED_RADIUS;
       emoteSprites[idx].SetShader(nullptr);
     }
-    float theta = idx * ((2.f * M_PI) / static_cast<float>(max));
+    float theta = static_cast<float>(idx * ((2.f * M_PI) / static_cast<float>(max)));
     sf::Vector2f pos = sf::Vector2f(cos(theta) * alpha, sin(theta) * alpha);
     auto x = interpolate(0.5f, pos.x, emoteSprites[idx].getPosition().x);
     auto y = interpolate(0.5f, pos.y, emoteSprites[idx].getPosition().y);

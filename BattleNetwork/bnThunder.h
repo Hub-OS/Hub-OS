@@ -31,7 +31,7 @@ public:
    * @brief If target is null, query the field for all character enemies and track the closest one
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Attacks enemy entities. If succesful, thunder is deleted.

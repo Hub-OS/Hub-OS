@@ -11,6 +11,7 @@ using std::vector;
 #include "cxxopts/cxxopts.hpp"
 #include "bnCamera.h"
 #include "bnLayered.h"
+#include "bnFrameTimeUtils.h"
 
 /**
  * @class DrawWindow
@@ -28,8 +29,6 @@ public:
     window,
     fullscreen
   };
-
-  friend class ActivityManager;
   
   /**
  * @brief sets camera to nullptr
@@ -175,94 +174,4 @@ private:
   sf::RenderStates state; /*!< Global GL context information used when drawing*/
   sf::RenderTexture* surface; /*!< The external buffer to draw to */
   std::shared_ptr<Camera> cam; /*!< Camera object */
-};
-
-/**
-* @class frame_time_t
-* @brief struct representing a single frame time. Allows for basic math operations.
-*
-* This struct helps keep the codebase consistent with nomenclature
-* When the game refers to "5 frames of animation" clocked at 60 fps,
-* that is to say "1/12th of a second of animation". When referencing material
-* it's easier to discuss time in terms of frames than it is to discuss fractions of a second.
-* 
-* Because time-sensistive components may need millisecond precision, this struct allows
-* easily operability between either fidelities of time within the same struct.
-*/
-struct frame_time_t {
-  static const unsigned frames_per_second = 60u;
-
-  using milliseconds = long long;
-  using seconds = double;
-
-  milliseconds milli{};
-
-  seconds asSeconds() const {
-    return this->milli / 1000.0;
-  }
-
-  milliseconds asMilli() const {
-    return this->milli;
-  }
-
-  operator seconds() const {
-    return asSeconds();
-  }
-
-  operator milliseconds() const {
-    return asMilli();
-  }
-
-  /// TODO: should we be comparing frames or the precision?
-
-  frame_time_t& operator-=(const frame_time_t& other) {
-    this->milli = this->milli - other.milli;
-    return *this;
-  }
-
-  frame_time_t& operator+=(const frame_time_t& other) {
-    this->milli = this->milli + other.milli;
-    return *this;
-  }
-
-  frame_time_t operator-(const frame_time_t& other) const {
-    return frame_time_t{ this->milli - other.milli };
-  }
-
-  frame_time_t operator+(const frame_time_t& other) const {
-    return frame_time_t{ this->milli + other.milli };
-  }
-
-  bool operator <(const frame_time_t& other) const {
-    return this->milli < other.milli;
-  }
-
-  bool operator <=(const frame_time_t& other) const {
-    return this->milli <= other.milli;
-  }
-
-  bool operator >(const frame_time_t& other) const {
-    return this->milli > other.milli;
-  }
-
-  bool operator >=(const frame_time_t& other) const {
-    return this->milli >= other.milli;
-  }
-
-  bool operator ==(const frame_time_t& other) const {
-    return this->milli == other.milli;
-  }
-
-  bool operator !=(const frame_time_t& other) const {
-    return this->milli != other.milli;
-  }
-
-  static constexpr frame_time_t from_seconds(seconds sec) {
-    return { static_cast<milliseconds>(sec * 1000.0) };
-  }
-};
-
- //!< frames utility method transforms frames to engine time
-static constexpr frame_time_t frames(int frames)  {
-  return frame_time_t{ (long long)(1000 * (double(frames) / 60.0)) };
 };

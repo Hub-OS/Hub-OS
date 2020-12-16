@@ -86,7 +86,7 @@ void Overworld::TeleportController::Update(double elapsed)
       if (walkFrames > frames(0) && this->startDir != Direction::none) {
         // walk out for 50 frames
         actor->Walk(this->startDir);
-        walkFrames -= frame_time_t::from_seconds(elapsed);
+        walkFrames -= from_seconds(elapsed);
       }
       else {
         this->walkoutComplete = true;

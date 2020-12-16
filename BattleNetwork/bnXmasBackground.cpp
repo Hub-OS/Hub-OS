@@ -21,7 +21,7 @@ XmasBackground::XmasBackground()
 XmasBackground::~XmasBackground() {
 }
 
-void XmasBackground::Update(float _elapsed) {
+void XmasBackground::Update(double _elapsed) {
 
   animation.Update(_elapsed, dummy);
 

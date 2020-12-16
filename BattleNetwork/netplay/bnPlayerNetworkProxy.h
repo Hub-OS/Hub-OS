@@ -14,7 +14,7 @@ public:
 
   NetPlayFlags& GetNetPlayFlags() { return npf; }
 
-  void OnUpdate(float) override { }
+  void OnUpdate(double) override { }
 
   void Inject(BattleSceneBase& bs) override {
     // do nothing

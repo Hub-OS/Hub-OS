@@ -42,7 +42,7 @@ public:
    * @brief Hold START to spread the cards out
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Set the cards array and size. Updates card cursor to 0.
@@ -65,7 +65,7 @@ public:
   void SetMultiplier(unsigned mult);
 
 private:
-  float elapsed{}; /*!< Used by draw function, delta time since last update frame */
+  double elapsed{}; /*!< Used by draw function, delta time since last update frame */
   Battle::Card** selectedCards{ nullptr }; /*!< Current list of cards. */
   int cardCount{}; /*!< Size of list */
   int curr{}; /*!< Card cursor index */

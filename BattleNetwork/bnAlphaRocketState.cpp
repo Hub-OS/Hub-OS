@@ -43,7 +43,7 @@ void AlphaRocketState::OnEnter(AlphaCore& a) {
   anim->SetAnimation("CORE_ATTACK2", onFinish);
 }
 
-void AlphaRocketState::OnUpdate(float _elapsed, AlphaCore& a) {
+void AlphaRocketState::OnUpdate(double _elapsed, AlphaCore& a) {
   if (launched) {
     a.GoToNextState();
   }

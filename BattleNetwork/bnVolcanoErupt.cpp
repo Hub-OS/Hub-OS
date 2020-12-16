@@ -25,7 +25,7 @@ VolcanoErupt::~VolcanoErupt()
 {
 }
 
-void VolcanoErupt::OnUpdate(float elapsed)
+void VolcanoErupt::OnUpdate(double elapsed)
 {
   eruptAnim.Update(elapsed, getSprite());
   GetTile()->AffectEntities(this);

@@ -13,7 +13,7 @@ ReflectShield::ReflectShield(Character* owner, int damage, Type type) :
   damage(damage), 
   owner(owner),
   type(type),
-  duration(frames(63).asSeconds()),
+  duration(seconds_cast<float>(frames(63))),
   Artifact(owner->GetField())
 {
   setTexture(Textures().GetTexture(TextureType::SPELL_REFLECT_SHIELD));
@@ -53,7 +53,7 @@ ReflectShield::ReflectShield(Character* owner, int damage, Type type) :
   }
 }
 
-void ReflectShield::OnUpdate(float _elapsed) {
+void ReflectShield::OnUpdate(double _elapsed) {
 
   duration -= _elapsed;
 
@@ -115,7 +115,7 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
 
 void ReflectShield::SetDuration(const frame_time_t& frames)
 {
-  duration = frames.asSeconds();
+  duration = seconds_cast<float>(frames);
 }
 
 ReflectShield::~ReflectShield()

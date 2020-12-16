@@ -13,5 +13,5 @@ SecretBackground::SecretBackground()
 SecretBackground::~SecretBackground() {
 }
 
-void SecretBackground::Update(float _elapsed) {
+void SecretBackground::Update(double _elapsed) {
 }

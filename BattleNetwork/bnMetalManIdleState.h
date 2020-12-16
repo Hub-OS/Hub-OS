@@ -30,7 +30,7 @@ public:
    * @param _elapsed
    * @param m
    */
-  void OnUpdate(float _elapsed, MetalMan& m);
+  void OnUpdate(double _elapsed, MetalMan& m);
   
   /**
    * @brief Does nothing

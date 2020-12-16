@@ -24,7 +24,7 @@ public:
 
   bool CanMoveTo(Battle::Tile* tile);
 
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
 
   void Attack(Character* _entity);
 

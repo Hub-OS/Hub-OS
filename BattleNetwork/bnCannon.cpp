@@ -10,7 +10,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-#define COOLDOWN 40.0f/1000.0f
+#define COOLDOWN 40.0/1000.0
 
 Cannon::Cannon(Field* _field, Team _team, int _damage) : Spell(_field, _team){
   SetPassthrough(true);
@@ -36,7 +36,7 @@ Cannon::Cannon(Field* _field, Team _team, int _damage) : Spell(_field, _team){
 Cannon::~Cannon() {
 }
 
-void Cannon::OnUpdate(float _elapsed) {
+void Cannon::OnUpdate(double _elapsed) {
   if (hit) {
       Delete();
     return;

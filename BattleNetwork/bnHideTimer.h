@@ -32,7 +32,7 @@ public:
    * @brief When time is up, eject component from battle scene loop and add entity back
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Remove ownership from character to the battle scene and remove entity from play

@@ -15,7 +15,7 @@ public:
   ThunderCardAction(Character& owner, int damage);
   ~ThunderCardAction();
 
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd() override;
   void OnEndAction();
   void OnExecute();

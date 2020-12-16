@@ -31,7 +31,7 @@ public:
    * @param _elapsed in seconds
    * @param p progsman entity
    */
-  void OnUpdate(float _elapsed, ProgsMan& p);
+  void OnUpdate(double _elapsed, ProgsMan& p);
   
   /**
    * @brief Does nothing

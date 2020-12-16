@@ -6,14 +6,14 @@
 
 using namespace swoosh::types;
 
-constexpr sf::Int32 PING_SERVER_MILI = 5 * 1000;
+constexpr sf::Int32 PING_SERVER_MILI = 5;
 
 Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guestAccount) :
   guest(guestAccount),
   SceneBase(controller, guestAccount)
 {
   pingServerTimer.reverse(true);
-  pingServerTimer.set(PING_SERVER_MILI);
+  pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
   pingServerTimer.start();
 }
 
@@ -81,7 +81,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
       doSendThunk();
     }
 
-    pingServerTimer.set(PING_SERVER_MILI);
+    pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
   }
 }
 
@@ -89,14 +89,15 @@ void Overworld::Homepage::onUpdate(double elapsed)
 {
   if(infocus)
   {
-    pingServerTimer.update(elapsed);
+    pingServerTimer.update(sf::seconds(static_cast<float>(elapsed)));
     PingRemoteAreaServer();
   }
 
   // Update our logic
   auto& map = GetMap();
-  auto mousei = sf::Mouse::getPosition(getController().getWindow());
-  const auto [row, col] = map.PixelToRowCol(mousei);
+  auto& window = getController().getWindow();
+  auto mousei = sf::Mouse::getPosition(window);
+  const auto& [row, col] = map.PixelToRowCol(mousei, window);
   sf::Vector2f click = { (float)col * map.GetTileSize().x, (float)row * map.GetTileSize().y };
 
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
@@ -231,10 +232,11 @@ void Overworld::Homepage::OnTileCollision(const Overworld::Map::Tile& tile)
       auto idx = map.OrthoToRowCol(playerActor->getPosition());
 
       // return at the center origin of this tile
-      sf::Vector2f returnPoint = sf::Vector2f(
-        idx.second * map.GetTileSize().x  + (map.GetTileSize().x * 0.5f), 
-        idx.first * map.GetTileSize().y + (map.GetTileSize().y * 0.5)
-      );
+      float x = static_cast<float>(idx.second * map.GetTileSize().x + (map.GetTileSize().x * 0.5f));
+
+      float y = static_cast<float>(idx.first * map.GetTileSize().y + (map.GetTileSize().y * 0.5f));
+
+      sf::Vector2f returnPoint = sf::Vector2f(x,y);
 
       this->TeleportUponReturn(returnPoint);
       client.close();

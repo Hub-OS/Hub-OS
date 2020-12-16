@@ -47,7 +47,7 @@ NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_dur
 NinjaStar::~NinjaStar() {
 }
 
-void NinjaStar::OnUpdate(float _elapsed) {
+void NinjaStar::OnUpdate(double _elapsed) {
   double beta = swoosh::ease::linear(progress, duration, 1.0);
 
   // interpolate from top of screen to the target tile spot

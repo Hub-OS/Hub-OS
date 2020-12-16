@@ -17,7 +17,7 @@ public:
 
   }
 
-  void OnUpdate(float elapsed) final {
+  void OnUpdate(double elapsed) final {
 
   }
 };

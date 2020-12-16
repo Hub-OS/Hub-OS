@@ -15,7 +15,7 @@ class HoneyBomberMoveState : public AIState<HoneyBomber>
 private:
   bool isMoving; /*!< Whether or not move animation is playing */
   int moveCount; /*!< 4 counts down to 0 before attacking*/
-  float cooldown; /*!< wait before moving again*/
+  double cooldown; /*!< wait before moving again*/
 public:
 
   /**
@@ -39,7 +39,7 @@ public:
    * @param _elapsed in seconds
    * @param honey
    */
-  void OnUpdate(float _elapsed, HoneyBomber& honey);
+  void OnUpdate(double _elapsed, HoneyBomber& honey);
 
   /**
    * @brief Does nothing

@@ -161,7 +161,7 @@ void Animation::Refresh(sf::Sprite& target) {
   Update(0, target);
 }
 
-void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) {
+void Animation::Update(double elapsed, sf::Sprite& target, double playbackSpeed) {
   progress += elapsed * (float)std::fabs(playbackSpeed);
 
   std::string stateNow = currAnimation;
@@ -186,9 +186,9 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
     }
   }
 
-  const float duration = animations[currAnimation].GetTotalDuration();
+  const double duration = animations[currAnimation].GetTotalDuration();
 
-  if(duration <= 0.f) return;
+  if(duration <= 0.) return;
 
   // Since we are manually keeping track of the progress, we must account for the animator's loop mode
   while (progress > duration && (animator.GetMode() & Animator::Mode::Loop) == Animator::Mode::Loop) {
@@ -196,11 +196,11 @@ void Animation::Update(float elapsed, sf::Sprite& target, double playbackSpeed) 
   }
 }
 
-void Animation::SyncTime(float newTime)
+void Animation::SyncTime(double newTime)
 {
   progress = newTime;
 
-  const float duration = animations[currAnimation].GetTotalDuration();
+  const double duration = animations[currAnimation].GetTotalDuration();
 
   if (duration <= 0.f) return;
 

@@ -18,7 +18,7 @@ void MetridMoveState::OnEnter(Metrid& met) {
   }
 }
 
-void MetridMoveState::OnUpdate(float _elapsed, Metrid& met) {
+void MetridMoveState::OnUpdate(double _elapsed, Metrid& met) {
   if (isMoving) return; // We're already moving (animations take time)
 
   cooldown -= _elapsed;

@@ -33,7 +33,7 @@ CubeCardAction::~CubeCardAction()
 {
 }
 
-void CubeCardAction::OnUpdate(float _elapsed)
+void CubeCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }

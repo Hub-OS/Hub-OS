@@ -16,7 +16,7 @@ ShakingEffect::~ShakingEffect()
 {
 }
 
-void ShakingEffect::OnUpdate(float _elapsed)
+void ShakingEffect::OnUpdate(double _elapsed)
 {
   shakeProgress += _elapsed;
 

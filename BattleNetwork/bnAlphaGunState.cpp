@@ -15,7 +15,7 @@ void AlphaGunState::OnEnter(AlphaCore& a) {
   last = a.GetTarget()? a.GetTarget()->GetTile() : nullptr;
 }
 
-void AlphaGunState::OnUpdate(float _elapsed, AlphaCore& a) {
+void AlphaGunState::OnUpdate(double _elapsed, AlphaCore& a) {
   cooldown -= _elapsed;
 
   if (cooldown <= 0) {

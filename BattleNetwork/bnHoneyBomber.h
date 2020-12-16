@@ -26,7 +26,7 @@ public:
    * @brief Uses AI state to move around. Deletes when health is below zero.
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
 
   /**
    * @brief Honey Bomber animation increases

@@ -675,7 +675,7 @@ void InputManager::UseGamepadControls()
 
 void InputManager::UseGamepad(size_t index)
 {
-  currGamepad = index;
+  currGamepad = static_cast<unsigned int>(index);
 }
 
 const size_t InputManager::GetGamepadCount() const

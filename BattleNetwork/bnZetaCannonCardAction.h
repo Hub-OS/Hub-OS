@@ -20,7 +20,7 @@ public:
 
   ZetaCannonCardAction(Character& owner, int damage);
   ~ZetaCannonCardAction();
-  void OnUpdate(float _elapsed) override final;
+  void OnUpdate(double _elapsed) override final;
   void OnAnimationEnd() override final;
   void OnEndAction() override final;
   void OnExecute() override final;

@@ -39,7 +39,7 @@ void IntroScene::onUpdate(double elapsed)
   float alpha = std::min((messageCooldown)*255.f, 255.f);
   alertSprite.setColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
   message.SetColor(sf::Color((sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)255.f, (sf::Uint8)alpha));
-  messageCooldown -= elapsed * speed;
+  messageCooldown -= static_cast<float>(elapsed) * speed;
 
   bool startPressed = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_confirm) : false) || Input().GetAnyKey() == sf::Keyboard::Return;
 

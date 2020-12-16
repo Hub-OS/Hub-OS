@@ -36,7 +36,7 @@ void PlayerHitState::OnEnter(Player& player) {
   player.Audio().Play(AudioType::HURT, AudioPriority::lowest);
 }
 
-void PlayerHitState::OnUpdate(float _elapsed, Player& player) {
+void PlayerHitState::OnUpdate(double _elapsed, Player& player) {
 }
 
 void PlayerHitState::OnLeave(Player& player) {

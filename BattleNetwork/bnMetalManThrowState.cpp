@@ -25,7 +25,7 @@ void MetalManThrowState::OnEnter(MetalMan& metal) {
 void MetalManThrowState::OnLeave(MetalMan& metal) {
 }
 
-void MetalManThrowState::OnUpdate(float _elapsed, MetalMan& metal) {
+void MetalManThrowState::OnUpdate(double _elapsed, MetalMan& metal) {
 
 }
 

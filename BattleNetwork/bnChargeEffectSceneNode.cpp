@@ -19,7 +19,7 @@ ChargeEffectSceneNode::ChargeEffectSceneNode(Entity* _entity) {
 ChargeEffectSceneNode::~ChargeEffectSceneNode() {
 }
 
-void ChargeEffectSceneNode::Update(float _elapsed) {
+void ChargeEffectSceneNode::Update(double _elapsed) {
   if (!charging) {
     chargeCounter = frames(0);
     setScale(0.0f, 0.0f);
@@ -27,7 +27,7 @@ void ChargeEffectSceneNode::Update(float _elapsed) {
     isPartiallyCharged = false;
   } else {
 
-    chargeCounter += frame_time_t::from_seconds(_elapsed);
+    chargeCounter += from_seconds(_elapsed);
 
     if (chargeCounter >= maxChargeTime + i10) {
       if (isCharged == false) {

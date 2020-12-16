@@ -13,6 +13,6 @@ public:
   ~TwinFangCardAction();
   void OnExecute();
   void OnEndAction() override;
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   void OnAnimationEnd() override;
 };

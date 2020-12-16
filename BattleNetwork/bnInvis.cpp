@@ -21,7 +21,7 @@ Invis::~Invis()
   delete defense;
 }
 
-void Invis::OnUpdate(float _elapsed) {
+void Invis::OnUpdate(double _elapsed) {
   if (elapsed >= duration.asSeconds()) {
     GetOwner()->SetAlpha(255);
     GetOwner()->SetPassthrough(false); 

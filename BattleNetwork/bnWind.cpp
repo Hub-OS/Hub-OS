@@ -16,7 +16,7 @@ Wind::Wind(Field* _field, Team _team) :Spell(_field, _team) {
 Wind::~Wind() {
 }
 
-void Wind::OnUpdate(float _elapsed) {
+void Wind::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition() + tileOffset);
 
   // Strike panel and leave
@@ -30,7 +30,7 @@ void Wind::OnUpdate(float _elapsed) {
     }
 
     SlideToTile(true);
-    SetSlideTime(sf::seconds(frames(4).asSeconds()));
+    SetSlideTime(time_cast<sf::Time>(frames(4)));
     Move(GetDirection());
   }
 }

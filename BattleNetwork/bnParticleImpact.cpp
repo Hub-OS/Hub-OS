@@ -100,7 +100,7 @@ void ParticleImpact::SetOffset(const sf::Vector2f& offset)
   this->offset = offset;
 }
 
-void ParticleImpact::OnUpdate(float _elapsed) {
+void ParticleImpact::OnUpdate(double _elapsed) {
   animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
 

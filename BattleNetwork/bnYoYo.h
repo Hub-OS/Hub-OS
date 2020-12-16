@@ -37,7 +37,7 @@ public:
    * @brief Counts tile movements to max 3 and then returns to owner tile
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
 
   /**
    * @brief Deals hitbox damage

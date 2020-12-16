@@ -31,7 +31,7 @@ ParticleHeal::ParticleHeal() : Artifact(nullptr)
 
 }
 
-void ParticleHeal::OnUpdate(float _elapsed) {
+void ParticleHeal::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition());
 
   animation.Update(_elapsed, getSprite());

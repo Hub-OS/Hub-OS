@@ -38,7 +38,7 @@ void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates state
   target.draw(timerLabel);
 }
 
-void ZetaCannonCardAction::OnUpdate(float _elapsed)
+void ZetaCannonCardAction::OnUpdate(double _elapsed)
 {
   if (timer > 0) {
     auto user = GetOwner();
@@ -51,7 +51,7 @@ void ZetaCannonCardAction::OnUpdate(float _elapsed)
     bool canShoot = user->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !user->IsSliding();
 
     if (canShoot && (firstTime || Input().Has(InputEvents::pressed_use_chip)) && actions.size() == 1) {
-      auto attack = user->CreateComponent<CannonCardAction>(user, damage, CannonCardAction::Type::red);
+      auto attack = user->CreateComponent<CannonCardAction>(*user, damage, CannonCardAction::Type::red);
 
       auto actionProps = ActionLockoutProperties();
       actionProps.type = ActionLockoutType::animation;

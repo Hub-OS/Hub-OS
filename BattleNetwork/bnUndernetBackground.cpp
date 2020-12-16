@@ -29,7 +29,7 @@ UndernetBackground::UndernetBackground()
 UndernetBackground::~UndernetBackground() {
 }
 
-void UndernetBackground::Update(float _elapsed) {
+void UndernetBackground::Update(double _elapsed) {
   // arbitrary values here: roughly 10 steps per frame
   progress += 10.0f * _elapsed;
   if (progress >= 1.f) progress = 0.0f;

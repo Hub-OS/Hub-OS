@@ -21,7 +21,7 @@ RobotBackground::RobotBackground()
 RobotBackground::~RobotBackground() {
 }
 
-void RobotBackground::Update(float _elapsed) {
+void RobotBackground::Update(double _elapsed) {
 
   animation.Update(_elapsed, dummy);
 

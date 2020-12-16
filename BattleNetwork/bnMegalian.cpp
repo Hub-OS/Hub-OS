@@ -47,7 +47,7 @@ void Megalian::OnDelete() {
   ChangeState<ExplodeState<Megalian>>(2);
 }
 
-void Megalian::OnUpdate(float _elapsed) {
+void Megalian::OnUpdate(double _elapsed) {
   if (!head) {
     head = new Head(this);
     GetField()->AddEntity(*head, tile->GetX(), tile->GetY());

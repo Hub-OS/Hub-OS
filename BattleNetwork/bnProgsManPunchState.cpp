@@ -24,7 +24,7 @@ void ProgsManPunchState::OnEnter(ProgsMan& progs) {
 void ProgsManPunchState::OnLeave(ProgsMan& progs) {
 }
 
-void ProgsManPunchState::OnUpdate(float _elapsed, ProgsMan& progs) {
+void ProgsManPunchState::OnUpdate(double _elapsed, ProgsMan& progs) {
 
 }
 

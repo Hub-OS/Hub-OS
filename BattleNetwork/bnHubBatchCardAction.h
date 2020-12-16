@@ -13,7 +13,7 @@ class HubBatchCardAction : public CardAction {
 public:
   HubBatchCardAction(Character& owner);
   ~HubBatchCardAction();
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd() override;
   void OnEndAction() override;
   void OnExecute() override;
@@ -26,6 +26,6 @@ class HubBatchProgram : public Component {
 public:
   HubBatchProgram(Character* owner);
   ~HubBatchProgram();
-  void OnUpdate(float elapsed) override;
+  void OnUpdate(double elapsed) override;
   void Inject(BattleSceneBase&) override;
 };

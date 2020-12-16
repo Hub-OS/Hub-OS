@@ -15,7 +15,7 @@ void PlayerIdleState::OnEnter(Player& player) {
   player.SetAnimation(PLAYER_IDLE);
 }
 
-void PlayerIdleState::OnUpdate(float _elapsed, Player& player) {
+void PlayerIdleState::OnUpdate(double _elapsed, Player& player) {
   /* silence is golden */
 }
 

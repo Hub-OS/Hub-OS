@@ -31,7 +31,7 @@ Vulcan::Vulcan(Field* _field, Team _team,int damage) : Spell(_field, _team) {
 Vulcan::~Vulcan() {
 }
 
-void Vulcan::OnUpdate(float _elapsed) {
+void Vulcan::OnUpdate(double _elapsed) {
   // Strike panel and leave
   GetTile()->AffectEntities(this);
 

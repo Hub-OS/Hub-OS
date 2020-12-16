@@ -35,7 +35,7 @@ BusterHit::BusterHit(Field* _field, Type type) : Artifact(_field)
   setScale(2.f, 2.f);
 }
 
-void BusterHit::OnUpdate(float _elapsed) {
+void BusterHit::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition() + offset);
 }
 

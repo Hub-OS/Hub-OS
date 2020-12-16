@@ -134,23 +134,23 @@ AlphaCore::~AlphaCore() {
   delete rightShoulderShoot;
 }
 
-void AlphaCore::OnUpdate(float _elapsed) {
+void AlphaCore::OnUpdate(double _elapsed) {
   totalElapsed += _elapsed;
 
   if (leftArm && rightArm) {
-    leftArm->SyncElapsedTime(totalElapsed + 1.0f);
-    rightArm->SyncElapsedTime(totalElapsed + 1.0f);
+    leftArm->SyncElapsedTime(totalElapsed + 1.0);
+    rightArm->SyncElapsedTime(totalElapsed + 1.0);
   }
 
-  float delta = std::sin(10*totalElapsed)*0.5f;
+  float delta = std::sin(10*static_cast<float>(totalElapsed))*0.5f;
   head->setPosition(-10, -48 - delta);
   side->setPosition(6, -54 - delta);
 
   // shoulders lag behind
-  delta = std::sin(10 * totalElapsed+1.5f)*0.5f;
+  delta = std::sin(10 * static_cast<float>(totalElapsed)+1.5f)*0.5f;
 
   if (shootSuperVulcans) {
-    delta = std::sin(50 * totalElapsed + 1.5f);
+    delta = std::sin(50 * static_cast<float>(totalElapsed) + 1.5f);
   }
 
   leftShoulder->setPosition(-21, -62 - delta);

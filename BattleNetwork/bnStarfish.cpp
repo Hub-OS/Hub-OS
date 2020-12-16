@@ -46,7 +46,7 @@ Starfish::~Starfish() {
 
 }
 
-void Starfish::OnUpdate(float _elapsed) {
+void Starfish::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
   AI<Starfish>::Update(_elapsed);
 }

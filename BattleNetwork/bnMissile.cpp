@@ -48,7 +48,7 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
 Missile::~Missile() {
 }
 
-void Missile::OnUpdate(float _elapsed) {
+void Missile::OnUpdate(double _elapsed) {
     setScale(2.f, 2.f);
 
     if(!goingUp) {

@@ -57,7 +57,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Com
   owner->AddNode(fx);
 }
 
-void Aura::OnUpdate(float _elapsed) {
+void Aura::OnUpdate(double _elapsed) {
   if (Injected() == false) return;
 
   // If the aura has been replaced by another defense rule, remove all
@@ -265,7 +265,7 @@ void Aura::VisualFX::Inject(BattleSceneBase& bs) {
   bs.Audio().Play(AudioType::APPEAR);
 }
 
-void Aura::VisualFX::OnUpdate(float _elapsed)
+void Aura::VisualFX::OnUpdate(double _elapsed)
 {
   timer += _elapsed;
 

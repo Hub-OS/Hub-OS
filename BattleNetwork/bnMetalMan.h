@@ -30,7 +30,7 @@ public:
    * @brief Forces a move on metalman if he was stunned. Updates AI. Explodes when health is zero.
    * @param _elapsed in seconds
     */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   
   /**
    * @brief If the next tile does not contain obstacles or characters, Metalman can move to it

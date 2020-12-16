@@ -20,7 +20,7 @@ AntiDmgCardAction::~AntiDmgCardAction()
 {
 }
 
-void AntiDmgCardAction::OnUpdate(float _elapsed)
+void AntiDmgCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }

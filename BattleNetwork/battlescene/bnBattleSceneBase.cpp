@@ -46,12 +46,11 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   mobFont(Font::Style::thick),
   camera(sf::View())
 {
-  //camera(*ENGINE.GetCamera());
-
   /*
   Set Scene*/
   field = props.field;
   CharacterDeleteListener::Subscribe(*field);
+  field->SetScene(this); // event emitters during battle needs the active scene
 
   player->ChangeState<PlayerIdleState>();
   player->ToggleTimeFreeze(false);
@@ -413,9 +412,9 @@ void BattleSceneBase::onUpdate(double elapsed) {
   backdropShader.setUniform("opacity", (float)backdropOpacity);
 
   counterRevealAnim.Update((float)elapsed, counterReveal.getSprite());
-  comboInfoTimer.update(elapsed);
-  multiDeleteTimer.update(elapsed);
-  battleTimer.update(elapsed);
+  comboInfoTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  multiDeleteTimer.update(sf::seconds(static_cast<float>(elapsed)));
+  battleTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   switch (backdropMode) {
   case backdrop::fadein:

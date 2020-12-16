@@ -150,7 +150,7 @@ Battle::Tile* MachGunCardAction::MoveRectical(Field* field, bool colMove)
 Target::Target(Field* field, int damage) :
   Artifact(field),
   damage(damage),
-  attack(frames(5).asSeconds())
+  attack(seconds_cast<double>(frames(5)))
 {
   setScale(2.f, 2.f);
   setTexture(Textures().LoadTextureFromFile("resources/spells/target.png"));
@@ -166,7 +166,7 @@ void Target::OnSpawn(Battle::Tile& start)
 {
 }
 
-void Target::OnUpdate(float elapsed)
+void Target::OnUpdate(double elapsed)
 {
   attack -= elapsed;
 

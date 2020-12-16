@@ -67,7 +67,7 @@ void DarkTornadoCardAction::OnExecute() {
   });
 }
 
-void DarkTornadoCardAction::OnUpdate(float _elapsed)
+void DarkTornadoCardAction::OnUpdate(double _elapsed)
 {
   attachment->setPosition(CalculatePointOffset("buster"));
 

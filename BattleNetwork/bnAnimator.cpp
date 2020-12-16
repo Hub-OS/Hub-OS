@@ -52,8 +52,8 @@ void Animator::UpdateCurrentPoints(int frameIndex, FrameList& sequence) {
   currentPoints = sequence.frames[frameIndex].points;
 }
 
-void Animator::operator() (float progress, sf::Sprite& target, FrameList& sequence) {
-  float startProgress = progress;
+void Animator::operator() (double progress, sf::Sprite& target, FrameList& sequence) {
+  double startProgress = progress;
 
   // If we did not progress while in an update, do not merge the queues and ignore this request 
   // All we wish to do is re-adjust the origin if applicable

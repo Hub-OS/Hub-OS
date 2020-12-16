@@ -18,7 +18,7 @@ ElementalDamage::ElementalDamage(Field* field) : Artifact(field), animationCompo
   progress = 0;
 }
 
-void ElementalDamage::OnUpdate(float _elapsed) {
+void ElementalDamage::OnUpdate(double _elapsed) {
   progress += _elapsed;
 
   auto alpha = swoosh::ease::wideParabola(progress, 0.5f, 4.0f);

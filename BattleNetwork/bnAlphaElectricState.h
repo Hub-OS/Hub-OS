@@ -19,6 +19,6 @@ public:
   ~AlphaElectricState();
 
   void OnEnter(AlphaCore& a);
-  void OnUpdate(float _elapsed, AlphaCore& a);
+  void OnUpdate(double _elapsed, AlphaCore& a);
   void OnLeave(AlphaCore& a);
 };

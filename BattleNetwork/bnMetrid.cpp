@@ -64,7 +64,7 @@ void Metrid::OnDelete() {
   RemoveMeFromTurnOrder();
 }
 
-void Metrid::OnUpdate(float _elapsed) {
+void Metrid::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
   setPosition(getPosition() + tileOffset);
 

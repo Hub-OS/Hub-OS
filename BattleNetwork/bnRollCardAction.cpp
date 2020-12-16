@@ -52,7 +52,7 @@ RollCardAction::~RollCardAction()
 {
 }
 
-void RollCardAction::OnUpdate(float _elapsed)
+void RollCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }

@@ -137,7 +137,7 @@ public:
   /** Override get owner to always return a character type */
   Character* GetOwner();
 
-  virtual void OnUpdate(float _elapsed);
+  virtual void OnUpdate(double _elapsed);
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
 protected:

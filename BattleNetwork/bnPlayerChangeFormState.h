@@ -13,7 +13,7 @@ public:
   ~PlayerChangeFormState();
 
   void OnEnter(Player& player);
-  void OnUpdate(float _elapsed, Player& player);
+  void OnUpdate(double _elapsed, Player& player);
   void OnLeave(Player& player);
 };
 
