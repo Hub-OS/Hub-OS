@@ -118,6 +118,6 @@ void ScriptResourceManager::AddToPaths(FileMeta pathInfo)
   paths.push_back(pathInfo);
 }
 
-void ScriptResourceManager::LoadAllSCripts(std::atomic<int>& status)
+void ScriptResourceManager::LoadAllScripts(std::atomic<int>& status)
 {
 }

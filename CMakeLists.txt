@@ -18,8 +18,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 
 find_package(Poco REQUIRED Foundation Net)
 find_package(sol2 CONFIG REQUIRED)
-
-include_directories(extern/Swoosh/src)
+find_package(lua REQUIRED)
 
 add_subdirectory(extern/SFML)
 add_subdirectory(extern/WebAPI)
@@ -38,7 +37,8 @@ add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
 add_compile_definitions(NOMINMAX)
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS)
-add_compile_definitions(SOL_ALL_SAFETIES_ON)
+add_compile_definitions(SOL_ALL_SAFETIES_ON=1)
+add_compile_definitions(SOL_USING_CXX_LUA=1)
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
@@ -46,7 +46,11 @@ source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
 target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
 target_link_libraries(BattleNetwork WebAPI-client)
 target_link_libraries(BattleNetwork Poco::Net)
-target_link_libraries(BattleNetwork PRIVATE sol2::sol2)
+target_link_libraries(BattleNetwork ${LUA_LIBRARIES})
+target_link_libraries(BattleNetwork sol2::sol2)
+
+target_include_directories(BattleNetwork PRIVATE extern/Swoosh/src)
+target_include_directories(BattleNetwork PRIVATE ${LUA_INCLUDE_DIR})
 
 set_target_properties(BattleNetwork
     PROPERTIES
