@@ -8,9 +8,6 @@ set(CMAKE_CXX_EXTENSIONS        OFF)
 execute_process(COMMAND git submodule update --init -- extern/Swoosh
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-execute_process(COMMAND git submodule update --init -- extern/lua
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
 execute_process(COMMAND git submodule update --init -- extern/SFML
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -20,9 +17,9 @@ execute_process(COMMAND git submodule update --init -- extern/WebAPI
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 
 find_package(Poco REQUIRED Foundation Net)
+find_package(sol2 CONFIG REQUIRED)
 
 include_directories(extern/Swoosh/src)
-include_directories(extern/lua)
 
 add_subdirectory(extern/SFML)
 add_subdirectory(extern/WebAPI)
@@ -41,6 +38,7 @@ add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
 add_compile_definitions(NOMINMAX)
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 add_compile_definitions(_WINSOCK_DEPRECATED_NO_WARNINGS)
+add_compile_definitions(SOL_ALL_SAFETIES_ON)
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
@@ -48,6 +46,7 @@ source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
 target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
 target_link_libraries(BattleNetwork WebAPI-client)
 target_link_libraries(BattleNetwork Poco::Net)
+target_link_libraries(BattleNetwork PRIVATE sol2::sol2)
 
 set_target_properties(BattleNetwork
     PROPERTIES
