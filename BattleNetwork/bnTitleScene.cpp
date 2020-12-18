@@ -43,9 +43,9 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   startLabel.setScale(2.f, 2.f);
 
   // When progress is equal to the totalObject count, we are 100% ready
-  totalObjects = (unsigned)TextureType::TEXTURE_TYPE_SIZE;
-  totalObjects += (unsigned)AudioType::AUDIO_TYPE_SIZE;
-  totalObjects += (unsigned)ShaderType::SHADER_TYPE_SIZE;
+  totalObjects = static_cast<unsigned>(TextureType::TEXTURE_TYPE_SIZE);
+  totalObjects += static_cast<unsigned>(AudioType::AUDIO_TYPE_SIZE);
+  totalObjects += static_cast<unsigned>(ShaderType::SHADER_TYPE_SIZE);
 }
 
 void TitleScene::onStart()
@@ -76,22 +76,16 @@ void TitleScene::onUpdate(double elapsed)
   startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
   startLabel.setScale(2.f, 2.f);
 
-  if (Input().Has(InputEvents::pressed_confirm)) {
-    if (!pressedStart) {
-      pressedStart = true;
-    }
-    else {
+  if (Input().Has(InputEvents::pressed_confirm) && !pressedStart) {
+    // We want the next screen to be the main menu screen
+    getController().push<Overworld::Homepage>(loginSelected);
 
-      // We want the next screen to be the main menu screen
-      getController().push<Overworld::Homepage>(loginSelected);
+    /*if (!loginSelected) {
+      getController().push<ConfigScene>();
+    }*/
 
-      if (!loginSelected) {
-        getController().push<ConfigScene>();
-      }
-
-      // Zoom out and start a segue effect
-      getController().pop<segue<DiamondTileCircle>>();
-    }
+    // Zoom out and start a segue effect
+    //getController().pop<segue<DiamondTileCircle>>();
   }
 }
 
@@ -128,10 +122,12 @@ void TitleScene::onTaskBegin(const std::string & taskName, float progress)
 {
   startLabel.SetString("Working..." + taskName);
 
-  Logger::Logf("[%.2f] Began task %s", taskName.c_str(), progress);
+  Logger::Logf("[%.2f] Began task %s", progress, taskName.c_str());
 }
 
 void TitleScene::onTaskComplete(const std::string & taskName, float progress)
 {
-  Logger::Logf("[%.2f] Completed task %s", taskName.c_str(), progress);
+  startLabel.SetString("Completed..." + taskName);
+
+  Logger::Logf("[%.2f] Completed task %s", progress, taskName.c_str());
 }

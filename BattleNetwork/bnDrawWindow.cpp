@@ -155,6 +155,13 @@ void DrawWindow::Clear() {
   window->clear();
 }
 
+void DrawWindow::Display()
+{
+  if (window) {
+    window->display();
+  }
+}
+
 RenderWindow* DrawWindow::GetRenderWindow() const {
   return window;
 }

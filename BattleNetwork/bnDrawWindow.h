@@ -82,6 +82,11 @@ public:
    * @brief Dump the contents of the render window for a fresh redraw next frame
    */
   void Clear();
+
+  /**
+ * @brief Posts the contents of the frame buffer into the player's window
+ */
+  void Display();
   
   /**
    * @brief Get the RenderWindow used by the app

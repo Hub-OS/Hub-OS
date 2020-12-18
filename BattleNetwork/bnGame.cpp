@@ -71,7 +71,7 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
   }
 }
 
-TaskGroup&& Game::Boot(const cxxopts::ParseResult& values)
+TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 {
   // Load font symbols for use across the entire engine...
   textureManager.LoadImmediately(TextureType::FONT);
@@ -107,10 +107,10 @@ TaskGroup&& Game::Boot(const cxxopts::ParseResult& values)
   //Callback<void> scripts;
 
   TaskGroup tasks;
-  tasks.AddTask("Init graphics and shaders", graphics);
-  tasks.AddTask("Init audio", audio);
-  tasks.AddTask("Load Navis", navis);
-  tasks.AddTask("Load mobs", mobs);
+  tasks.AddTask("Init graphics and shaders", std::move(graphics));
+  tasks.AddTask("Init audio", std::move(audio));
+  tasks.AddTask("Load Navis", std::move(navis));
+  tasks.AddTask("Load mobs", std::move(mobs));
 
   // Tell the input event loop how to behave when the app loses and regains focus
   inputManager.BindLoseFocusEvent(std::bind(&Game::LoseFocus, this));
@@ -139,7 +139,7 @@ TaskGroup&& Game::Boot(const cxxopts::ParseResult& values)
 
   spinnerAnimator = Animation("resources/ui/spinner.animation") << "SPIN" << Animator::Mode::Loop;
 
-  return std::move(tasks);
+  return tasks;
 }
 
 void Game::Run()
@@ -159,6 +159,8 @@ void Game::Run()
 
     this->update(static_cast<double>(elapsed));
     this->draw();
+
+    window.Display();
 
     // Prepare for next draw calls
     window.Clear();

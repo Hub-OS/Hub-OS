@@ -21,7 +21,6 @@ class TaskGroup;
 class LoaderScene : public Scene {
 private:
   TaskGroup tasks;
-  double completion;
   std::thread taskThread;
 
   void ExecuteTasks();

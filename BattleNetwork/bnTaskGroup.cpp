@@ -1,6 +1,6 @@
 #include "bnTaskGroup.h"
 
-TaskGroup::TaskGroup(TaskGroup && other)
+TaskGroup::TaskGroup(TaskGroup && other) noexcept
 {
   tasks = std::move(other.tasks);
   currentTask = std::move(other.currentTask);
@@ -21,7 +21,9 @@ void TaskGroup::DoNextTask()
 
   currentTask++;
 
-  tasks.begin()->second();
+  if (tasks.size()) {
+    tasks.begin()->second();
+  }
 }
 
 const std::string & TaskGroup::GetTaskName() const
@@ -39,7 +41,7 @@ const unsigned TaskGroup::GetTotalTasks() const
   return static_cast<unsigned>(tasks.size());
 }
 
-void TaskGroup::AddTask(const std::string & name, const Callback<void()>& task)
+void TaskGroup::AddTask(const std::string & name, Callback<void()>&& task)
 {
-  tasks.insert(tasks.begin(), std::make_pair(name, task));
+  tasks.insert(tasks.end(), std::make_pair(name, std::move(task)));
 }

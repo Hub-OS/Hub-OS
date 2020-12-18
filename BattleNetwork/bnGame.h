@@ -78,7 +78,7 @@ public:
    * @brief Load all resources required by game
    * @param values command-line values as ParseResult object from cxxopts lib
    */
-  TaskGroup&& Boot(const cxxopts::ParseResult& values);
+  TaskGroup Boot(const cxxopts::ParseResult& values);
 
   void Run();
   void SetWindowMode(DrawWindow::WindowMode mode);
