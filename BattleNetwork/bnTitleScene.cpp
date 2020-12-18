@@ -76,7 +76,9 @@ void TitleScene::onUpdate(double elapsed)
   startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
   startLabel.setScale(2.f, 2.f);
 
-  if (Input().Has(InputEvents::pressed_confirm) && !pressedStart) {
+  if (Input().GetAnyKey() == sf::Keyboard::Enter && !pressedStart) {
+    pressedStart = true;
+
     // We want the next screen to be the main menu screen
     getController().push<Overworld::Homepage>(loginSelected);
 

@@ -17,11 +17,13 @@
 #include "bnConfigWriter.h"
 #include "bnAnimatedTextBox.h"
 #include "bnMessageQuestion.h"
+#include "bnFont.h"
+#include "bnText.h"
 
-/*! \brief Config screen lets users set graphics, Audio(), and input settings. It also lets users manage their account.
+/*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
     \warning This scene was made in a clear conscious and is in no way an example of good code design.
 
-    This could use a redesign (and re-code)
+    This could use a redesign
 */
 class Background;
 class ConfigScene : public Scene {
@@ -33,9 +35,9 @@ private:
   AnimatedTextBox textbox;
 
   // ui sprite maps
-  Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
   Animation endBtnAnimator;
-  Animation AudioAnimator;
+  Animation audioAnimator;
+  Text label;
   int menuSelectionIndex;; /*!< Current selection */
   int lastMenuSelectionIndex;
   int maxMenuSelectionIndex; 
@@ -44,7 +46,7 @@ private:
 
   sf::Sprite overlay; /*!< PET */
   sf::Sprite gba;
-  sf::Sprite AudioBGM,AudioSFX;
+  sf::Sprite audioBGM,audioSFX;
   sf::Sprite hint;
   sf::Sprite endBtn;
 
@@ -54,12 +56,10 @@ private:
   bool inGamepadList;
   bool inKeyboardList;
   bool inLoginMenu;
-  int AudioModeBGM;
-  int AudioModeSFX;
+  int audioModeBGM;
+  int audioModeSFX;
 
   Background* bg;
-
-  sf::Sprite uiSprite;
 
   struct uiData {
     std::string label;
@@ -70,7 +70,7 @@ private:
       GAMEPAD,
       DISABLED
     } type;
-    int alpha;
+    int alpha{255};
 
     uiData() = default;
     uiData(const uiData& rhs) = default;

@@ -183,7 +183,7 @@ enum class TextureType : int {
   FONT,
 
   // CONFIG UI
-  Audio_ICO,
+  AUDIO_ICO,
   END_BTN,
 
   // Query size of all texture types

@@ -12,158 +12,151 @@ const constexpr int ACTIONS   = 1; // Second column is actions within that menu
 const constexpr int BOUNDKEYS = 2; // Third column is used for bound keys
 
 ConfigScene::ConfigScene(swoosh::ActivityController &controller) : 
-    textbox(sf::Vector2f(4,250)), Scene(controller)
+  textbox(sf::Vector2f(4,250)), 
+  label(Font::Style::thin),
+  Scene(controller)
 {
-    textbox.SetTextSpeed(4.0);
-    isSelectingTopMenu = inGamepadList = inKeyboardList = false;
+  textbox.SetTextSpeed(4.0);
+  isSelectingTopMenu = inGamepadList = inKeyboardList = false;
 
-    // Draws the scrolling background
-    bg = new RobotBackground();
+  // Draws the scrolling background
+  bg = new RobotBackground();
 
-    // dim
-    bg->setColor(sf::Color(120, 120, 120));
+  // dim
+  bg->setColor(sf::Color(120, 120, 120));
 
-    uiAnimator = Animation("resources/fonts/fonts.animation");
-    uiAnimator.Load();
+  endBtnAnimator = Animation("resources/scenes/config/end_btn.animation");
+  endBtnAnimator.Load();
 
-    endBtnAnimator = Animation("resources/scenes/config/end_btn.animation");
-    endBtnAnimator.Load();
+  audioAnimator = Animation("resources/scenes/config/audio.animation");
+  audioAnimator.Load();
 
-    AudioAnimator = Animation("resources/scenes/config/Audio().animation");
-    AudioAnimator.Load();
+  // Audio() button
+  audioBGM =  sf::Sprite(*LOAD_TEXTURE(Audio_ICO));
+  audioBGM.setScale(2.f, 2.f);
 
-    auto sprite = sf::Sprite(*LOAD_TEXTURE(FONT));
-    sprite.setScale(2.f, 2.f);
+  audioAnimator.SetAnimation("DEFAULT");
+  audioAnimator.Update(4, audioBGM);
+  audioBGM.setPosition(2*3, 2*140);
 
-    uiSprite = sprite;
+  audioSFX = audioBGM;
+  audioAnimator.SetAnimation("DEFAULT");
+  audioAnimator.Update(4, audioBGM);
+  audioSFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
 
-    // Audio() button
-    AudioBGM =  sf::Sprite(*LOAD_TEXTURE(Audio_ICO));
-    AudioBGM.setScale(2.f, 2.f);
+  // end button
+  endBtn = sf::Sprite(*LOAD_TEXTURE(END_BTN));;
+  endBtn.setScale(2.f, 2.f);
+  endBtnAnimator.SetAnimation("BLINK");
+  endBtnAnimator.SetFrame(1, endBtn);
+  endBtn.setPosition(2*180, 2*10);
 
-    AudioAnimator.SetAnimation("DEFAULT");
-    AudioAnimator.Update(4, AudioBGM);
-    AudioBGM.setPosition(2*3, 2*140);
+  // ui sprite maps
+  // ascii 58 - 96
+  std::list<std::string> actions;
 
-    AudioSFX = AudioBGM;
-    AudioAnimator.SetAnimation("DEFAULT");
-    AudioAnimator.Update(4, AudioBGM);
-    AudioSFX.setPosition(2 * 6 + 2 * 16, 2 * 140);
+  actions.push_back("Audio_BGM");
+  actions.push_back("Audio_SFX");
+  actions.push_back("SHADERS: ON");
+  actions.push_back("MY KEYBOARD");
+  actions.push_back("MY GAMEPAD");
+  actions.push_back("LOGIN");
 
-    // end button
-    endBtn = sf::Sprite(*LOAD_TEXTURE(END_BTN));;
-    endBtn.setScale(2.f, 2.f);
-    endBtnAnimator.SetAnimation("BLINK");
-    endBtnAnimator.SetFrame(1, endBtn);
-    endBtn.setPosition(2*180, 2*10);
+  for (auto& a : actions) {
+    uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
 
-    // ui sprite maps
-    // ascii 58 - 96
-    std::list<std::string> actions;
-
-    actions.push_back("Audio_BGM");
-    actions.push_back("Audio_SFX");
-    actions.push_back("SHADERS: ON");
-    actions.push_back("MY KEYBOARD");
-    actions.push_back("MY GAMEPAD");
-    actions.push_back("LOGIN");
-
-    for (auto a : actions) {
-        uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
-
-        if (a == "SHADERS: ON") {
-            type = uiData::ActionItemType::DISABLED;
-        }
-
-        uiList[OPTIONS].push_back(uiData{a, sf::Vector2f(), sf::Vector2f(), type });
+    if (a == "SHADERS: ON") {
+        type = uiData::ActionItemType::DISABLED;
     }
 
-    actions.clear();
+    uiList[OPTIONS].push_back({ a, sf::Vector2f(), sf::Vector2f(), type });
+  }
 
-    configSettings = Input().GetConfigSettings();
+  actions.clear();
 
-    // For keyboard keys 
-    for (auto a : InputEvents::KEYS) {
-        uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
+  configSettings = Input().GetConfigSettings();
 
-        uiList[ACTIONS].push_back(uiData{ a, sf::Vector2f(), sf::Vector2f(), type });
+  // For keyboard keys 
+  for (auto a : InputEvents::KEYS) {
+    uiData::ActionItemType type = uiData::ActionItemType::KEYBOARD;
 
-        if (!configSettings.IsOK()) {
-            boundKeys.push_back(uiData{ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
-        }
-        else {
-            std::string keyStr;
+    uiList[ACTIONS].push_back({ a, sf::Vector2f(), sf::Vector2f(), type });
 
-            if (Input().ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
-                keyHash.insert(std::make_pair(configSettings.GetPairedInput(a), a));
-
-                boundKeys.push_back(uiData{ keyStr,  sf::Vector2f(), sf::Vector2f(), type });
-            }
-            else {
-                boundKeys.push_back(uiData{ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
-            }
-        }
+    if (!configSettings.IsOK()) {
+      boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
     }
-  
-    maxMenuSelectionIndex += (int)actions.size();
+    else {
+      std::string keyStr;
 
-    // For gamepad keys
+      if (Input().ConvertKeyToString(configSettings.GetPairedInput(a), keyStr)) {
+        keyHash.insert(std::make_pair(configSettings.GetPairedInput(a), a));
 
-    for (auto a : InputEvents::KEYS) {
-      uiData::ActionItemType type = uiData::ActionItemType::GAMEPAD;
-
-      if (!configSettings.IsOK()) {
-          boundGamepadButtons.push_back(uiData{ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
+        boundKeys.push_back({ keyStr,  sf::Vector2f(), sf::Vector2f(), type });
       }
       else {
-          auto gamepadCode = configSettings.GetPairedGamepadButton(a);
-          gamepadHash.insert(std::make_pair(gamepadCode, a));
-
-          if (gamepadCode != Gamepad::BAD_CODE) {
-              std::string label = "BTN " + std::to_string((int)gamepadCode);
-
-              switch (gamepadCode) {
-              case Gamepad::DOWN:
-                  label = "-Y AXIS";
-                  break;
-              case Gamepad::UP:
-                  label = "+Y AXIS";
-                  break;
-              case Gamepad::LEFT:
-                  label = "-X AXIS";
-                  break;
-              case Gamepad::RIGHT:
-                  label = "+X AXIS";
-                  break;
-              case Gamepad::BAD_CODE:
-                  label = "BAD_CODE";
-                  break;
-              }
-
-              boundGamepadButtons.push_back(uiData{ label,  sf::Vector2f(), sf::Vector2f(), type });
-          }
-          else {
-            boundGamepadButtons.push_back(uiData{ "NO KEY",  sf::Vector2f(), sf::Vector2f(), type });
-          }
+        boundKeys.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type });
       }
     }
+  }
+  
+  maxMenuSelectionIndex += (int)actions.size();
 
-    leave = false;
-    awaitingKey = false;
-    gotoNextScene = true; // true when entering or leaving, prevents user from interacting with scene
+  // For gamepad keys
+  for (auto a : InputEvents::KEYS) {
+    uiData::ActionItemType type = uiData::ActionItemType::GAMEPAD;
 
-    menuSelectionIndex = lastMenuSelectionIndex = 1; // select first item
+    if (!configSettings.IsOK()) {
+      boundGamepadButtons.push_back({ "NO KEY", sf::Vector2f(), sf::Vector2f(), type, 255 });
+    }
+    else {
+      auto gamepadCode = configSettings.GetPairedGamepadButton(a);
+      gamepadHash.insert(std::make_pair(gamepadCode, a));
 
-    AudioModeBGM = configSettings.GetMusicLevel();
-    AudioModeSFX = configSettings.GetSFXLevel();
+      if (gamepadCode != Gamepad::BAD_CODE) {
+        std::string label = "BTN " + std::to_string((int)gamepadCode);
 
-    AudioAnimator.SetAnimation("DEFAULT");
-    AudioAnimator.SetFrame(AudioModeBGM + 1, AudioBGM);
-    AudioAnimator.SetFrame(AudioModeSFX + 1, AudioSFX);
+        switch (gamepadCode) {
+        case Gamepad::DOWN:
+          label = "-Y AXIS";
+          break;
+        case Gamepad::UP:
+          label = "+Y AXIS";
+          break;
+        case Gamepad::LEFT:
+          label = "-X AXIS";
+          break;
+        case Gamepad::RIGHT:
+          label = "+X AXIS";
+          break;
+        case Gamepad::BAD_CODE:
+          label = "BAD_CODE";
+          break;
+        }
 
-    colIndex = 0; maxCols = 3; // [options] [actions] [key]
+        boundGamepadButtons.push_back({ label,  sf::Vector2f(), sf::Vector2f(), type });
+      }
+      else {
+        boundGamepadButtons.push_back({ "NO KEY",  sf::Vector2f(), sf::Vector2f(), type });
+      }
+    }
+  }
 
-    setView(sf::Vector2u(480, 320));
+  leave = false;
+  awaitingKey = false;
+  gotoNextScene = true; // true when entering or leaving, prevents user from interacting with scene
+
+  menuSelectionIndex = lastMenuSelectionIndex = 1; // select first item
+
+  audioModeBGM = configSettings.GetMusicLevel();
+  audioModeSFX = configSettings.GetSFXLevel();
+
+  audioAnimator.SetAnimation("DEFAULT");
+  audioAnimator.SetFrame(audioModeBGM + 1, audioBGM);
+  audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
+
+  colIndex = 0; maxCols = 3; // [options] [actions] [key]
+
+  setView(sf::Vector2u(480, 320));
 }
 
 void ConfigScene::onUpdate(double elapsed)
@@ -172,50 +165,50 @@ void ConfigScene::onUpdate(double elapsed)
   bg->Update((float)elapsed);
 
   if (!WEBCLIENT.IsLoggedIn()) {
-      uiList[0][uiList[0].size()-1].label = "LOGIN";
+    uiList[0][uiList[0].size()-1].label = "LOGIN";
   }
   else {
-      uiList[0][uiList[0].size()-1].label = "LOGOUT " + WEBCLIENT.GetUserName();
+    uiList[0][uiList[0].size()-1].label = "LOGOUT " + WEBCLIENT.GetUserName();
   }
 
   bool hasConfirmed = (Input().IsConfigFileValid() ? Input().Has(InputEvents::pressed_confirm) : false ) || Input().GetAnyKey() == sf::Keyboard::Enter;
   bool isInSubmenu = inKeyboardList || inGamepadList;
 
   if (hasConfirmed && isSelectingTopMenu && !leave) {
-      if (textbox.IsClosed()) {
-          auto onYes = [this]() {
-              // Save before leaving
-              configSettings.SetKeyboardHash(keyHash);
-              configSettings.SetGamepadHash(gamepadHash);
-              ConfigWriter writer(configSettings);
-              writer.Write("config.ini");
-              ConfigReader reader("config.ini");
-              Input().SupportConfigSettings(reader);
-              textbox.Close();
+    if (textbox.IsClosed()) {
+      auto onYes = [this]() {
+        // Save before leaving
+        configSettings.SetKeyboardHash(keyHash);
+        configSettings.SetGamepadHash(gamepadHash);
+        ConfigWriter writer(configSettings);
+        writer.Write("config.ini");
+        ConfigReader reader("config.ini");
+        Input().SupportConfigSettings(reader);
+        textbox.Close();
 
-              // transition to the next screen
-              using namespace swoosh::types;
-              using effect = segue<WhiteWashFade, milliseconds<300>>;
-              getController().pop<effect>();
+        // transition to the next screen
+        using namespace swoosh::types;
+        using effect = segue<WhiteWashFade, milliseconds<300>>;
+        getController().pop<effect>();
 
-              Audio().Play(AudioType::NEW_GAME);
-              leave = true;
-          };
+        Audio().Play(AudioType::NEW_GAME);
+        leave = true;
+      };
 
-          auto onNo = [this]() {
-              // Just close and leave
-              using namespace swoosh::types;
-              using effect = segue<BlackWashFade, milliseconds<300>>;
-              getController().pop<effect>();
-              leave = true;
+      auto onNo = [this]() {
+        // Just close and leave
+        using namespace swoosh::types;
+        using effect = segue<BlackWashFade, milliseconds<300>>;
+        getController().pop<effect>();
+        leave = true;
 
-              textbox.Close();
-          };
-          questionInterface = new Question("Overwite your config settings?", onYes, onNo);
-          textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
-          textbox.Open();
-          Audio().Play(AudioType::CHIP_DESC);
-      }
+        textbox.Close();
+      };
+      questionInterface = new Question("Overwite your config settings?", onYes, onNo);
+      textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
+      textbox.Open();
+      Audio().Play(AudioType::CHIP_DESC);
+    }
   }
   
   if (!leave) {
@@ -228,28 +221,28 @@ void ConfigScene::onUpdate(double elapsed)
     bool hasRight = Input().GetAnyKey() == sf::Keyboard::Right;
 
     if (textbox.IsOpen()) {
-        if (textbox.IsEndOfMessage()) {
-            if (hasLeft) {
-                questionInterface->SelectYes();
-            }
-            else if (hasRight) {
-                questionInterface->SelectNo();
-            }
-            else if (hasCanceled) {
-                questionInterface->Cancel();
-            }
-            else if (hasConfirmed) {
-                questionInterface->ConfirmSelection();
-            }
+      if (textbox.IsEndOfMessage()) {
+        if (hasLeft) {
+          questionInterface->SelectYes();
+        }
+        else if (hasRight) {
+          questionInterface->SelectNo();
+        }
+        else if (hasCanceled) {
+          questionInterface->Cancel();
         }
         else if (hasConfirmed) {
-          if (!textbox.IsPlaying()) {
-            questionInterface->Continue();
-          }
-          else {
-            textbox.CompleteCurrentBlock();
-          }
+          questionInterface->ConfirmSelection();
         }
+      }
+      else if (hasConfirmed) {
+        if (!textbox.IsPlaying()) {
+          questionInterface->Continue();
+        }
+        else {
+          textbox.CompleteCurrentBlock();
+        }
+      }
     } else if (hasCanceled && !awaitingKey) {
       if (!isInSubmenu) {
         isSelectingTopMenu = true;
@@ -375,19 +368,19 @@ void ConfigScene::onUpdate(double elapsed)
     else if (hasConfirmed && !isSelectingTopMenu) {
       // bg audio
       if (menuSelectionIndex == 0 && colIndex == 0) {
-        AudioModeBGM = (AudioModeBGM+1) % 4;
-        Audio().SetStreamVolume (((AudioModeBGM)/3.0f)*100.0f);
-        AudioAnimator.SetAnimation("DEFAULT");
-        AudioAnimator.SetFrame(AudioModeBGM + 1, AudioBGM);
-        configSettings.SetMusicLevel(AudioModeBGM);
+        audioModeBGM = (audioModeBGM+1) % 4;
+        Audio().SetStreamVolume (((audioModeBGM)/3.0f)*100.0f);
+        audioAnimator.SetAnimation("DEFAULT");
+        audioAnimator.SetFrame(audioModeBGM + 1, audioBGM);
+        configSettings.SetMusicLevel(audioModeBGM);
       }
       else if (menuSelectionIndex == 1 && colIndex == 0) {
-        AudioModeSFX = (AudioModeSFX + 1) % 4;
-        Audio().SetChannelVolume(((AudioModeSFX) / 3.0f)*100.0f);
-        AudioAnimator.SetAnimation("DEFAULT");
-        AudioAnimator.SetFrame(AudioModeSFX + 1, AudioSFX);
+        audioModeSFX = (audioModeSFX + 1) % 4;
+        Audio().SetChannelVolume(((audioModeSFX) / 3.0f)*100.0f);
+        audioAnimator.SetAnimation("DEFAULT");
+        audioAnimator.SetFrame(audioModeSFX + 1, audioSFX);
         Audio().Play(AudioType::BUSTER_PEA);
-        configSettings.SetSFXLevel(AudioModeSFX);
+        configSettings.SetSFXLevel(audioModeSFX);
       }
       else if (menuSelectionIndex == 2 && colIndex == 0) {
         // TODO: Shader Toggle
@@ -409,33 +402,32 @@ void ConfigScene::onUpdate(double elapsed)
         Audio().Play(AudioType::CHIP_SELECT);
       }
       else if (menuSelectionIndex == 5 && colIndex == 0) {
+        if (WEBCLIENT.IsLoggedIn()) {
+          if (textbox.IsClosed()) {
+            auto onYes = [this]() {
+              Logger::Log("SendLogoutCommand");
+              WEBCLIENT.SendLogoutCommand();
+              textbox.Close();
+            };
 
-          if (WEBCLIENT.IsLoggedIn()) {
-              if (textbox.IsClosed()) {
-                  auto onYes = [this]() {
-                      Logger::Log("SendLogoutCommand");
-                      WEBCLIENT.SendLogoutCommand();
-                      textbox.Close();
-                  };
-
-                  auto onNo = [this]() {
-                      textbox.Close();
-                      Audio().Play(AudioType::CHIP_DESC_CLOSE);
-                  };
-                  questionInterface = new Question("Are you sure you want to logout?", onYes, onNo);
-                  textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
-                  textbox.Open();
-                  Audio().Play(AudioType::CHIP_DESC);
-              }
+            auto onNo = [this]() {
+              textbox.Close();
+              Audio().Play(AudioType::CHIP_DESC_CLOSE);
+            };
+            questionInterface = new Question("Are you sure you want to logout?", onYes, onNo);
+            textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
+            textbox.Open();
+            Audio().Play(AudioType::CHIP_DESC);
           }
-          else {
-              // TODO: Show the login prompt
-              inLoginMenu = true;
-              inGamepadList = false;
-              inKeyboardList = false;
-              colIndex = 0;
-              menuSelectionIndex = 0;
-          }
+        }
+        else {
+          // TODO: Show the login prompt
+          inLoginMenu = true;
+          inGamepadList = false;
+          inKeyboardList = false;
+          colIndex = 0;
+          menuSelectionIndex = 0;
+        }
       }
       else if(!awaitingKey) {
         awaitingKey = true;
@@ -472,7 +464,7 @@ void ConfigScene::onUpdate(double elapsed)
   lastMenuSelectionIndex = menuSelectionIndex;
 
   for (int j = 0; j < maxCols; j++) {
-    std::vector<uiData>* container = &boundKeys;
+    std::vector<ConfigScene::uiData>* container = &boundKeys;
     
     if (inGamepadList) {
       container = &boundGamepadButtons;
@@ -573,8 +565,8 @@ void ConfigScene::onDraw(sf::RenderTexture & surface)
 {
   surface.draw(*bg);
   surface.draw(endBtn);
-  surface.draw(AudioBGM);
-  surface.draw(AudioSFX);
+  surface.draw(audioBGM);
+  surface.draw(audioSFX);
 
   // Draw options
   DrawMenuOptions(surface);
@@ -602,44 +594,35 @@ void ConfigScene::DrawMenuOptions(sf::RenderTarget& surface)
 
     for (auto ui : uiList[i]) {
       if (ui.label == "Audio_BGM") {
-        AudioBGM.setScale(ui.scale);
-        AudioBGM.setPosition(ui.position.x, ui.position.y);
-        AudioBGM.setColor(sf::Color(255, 0, 255, ui.alpha));
+        audioBGM.setScale(ui.scale);
+        audioBGM.setPosition(ui.position.x, ui.position.y);
+        audioBGM.setColor(sf::Color(255, 0, 255, ui.alpha));
+        surface.draw(audioBGM);
 
       }
       else if (ui.label == "Audio_SFX") {
-        AudioSFX.setScale(ui.scale);
-        AudioSFX.setPosition(ui.position.x, ui.position.y);
-        AudioSFX.setColor(sf::Color(10, 165, 255, ui.alpha));
-
+        audioSFX.setScale(ui.scale);
+        audioSFX.setPosition(ui.position.x, ui.position.y);
+        audioSFX.setColor(sf::Color(10, 165, 255, ui.alpha));
+        surface.draw(audioSFX);
       }
       else {
         int offset = 0;
-        for (auto c : ui.label) {
-          if (c == ' ') {
-            offset += 11; continue;
-          }
+        label.SetString(ui.label);
+        label.setScale(ui.scale);
+        label.setPosition(2.f * (ui.position.x + offset), ui.position.y);
 
-          std::string sc = "SMALL_";
-          sc += c;
-          uiAnimator.SetAnimation(sc);
-          uiAnimator.SetFrame(1, uiSprite);
-          uiSprite.setScale(ui.scale);
-          uiSprite.setPosition(2.f*(ui.position.x + offset), ui.position.y);
-
-          if (ui.type == uiData::ActionItemType::KEYBOARD) {
-            uiSprite.setColor(sf::Color(255, 165, 0, ui.alpha));
-          }
-          else if (ui.type == uiData::ActionItemType::DISABLED) {
-            uiSprite.setColor(sf::Color(255, 0, 0, ui.alpha));
-          }
-          else {
-            uiSprite.setColor(sf::Color(10, 165, 255, ui.alpha));
-          }
-
-          surface.draw(uiSprite);
-          offset += (int)uiSprite.getLocalBounds().width + 2;
+        if (ui.type == uiData::ActionItemType::KEYBOARD) {
+          label.SetColor(sf::Color(255, 165, 0, ui.alpha));
         }
+        else if (ui.type == uiData::ActionItemType::DISABLED) {
+          label.SetColor(sf::Color(255, 0, 0, ui.alpha));
+        }
+        else {
+          label.SetColor(sf::Color(10, 165, 255, ui.alpha));
+        }
+
+        surface.draw(label);
       }
     }
   }
@@ -647,57 +630,22 @@ void ConfigScene::DrawMenuOptions(sf::RenderTarget& surface)
 
 void ConfigScene::DrawMappedKeyMenu(std::vector<uiData>& container, sf::RenderTarget& surface)
 {
-  for (auto ui : container) {
-    int offset = 0;
+  for (auto& ui : container) {
+    label.SetString(ui.label);
+    label.setScale(ui.scale);
 
-    for (auto c : ui.label) {
-      if (c == ' ') {
-        offset += 11; continue;
-      }
-
-      std::string sc = "SMALL_";
-      sc += c;
-
-      uiAnimator.SetAnimation(sc);
-
-      uiAnimator.SetFrame(1, uiSprite);
-      uiSprite.setScale(ui.scale);
-      uiSprite.setPosition(2.f*(ui.position.x + offset), ui.position.y);
-
-      offset += (int)uiSprite.getLocalBounds().width + 2;
-
-      surface.draw(uiSprite);
+    if (ui.type == uiData::ActionItemType::KEYBOARD) {
+      label.SetColor(sf::Color(255, 165, 0, ui.alpha));
+    }
+    else {
+      label.SetColor(sf::Color(10, 165, 255, ui.alpha));
     }
 
-    auto totalOffset = offset;
-    offset = 0;
+    auto totalOffset = label.GetLocalBounds().width;
+    label.setPosition((ui.position.x + 2.0f * (- totalOffset)), ui.position.y);
 
-    // 2nd pass for right alignment adjustment
-    for (auto c : ui.label) {
-      if (c == ' ') {
-        offset += 11;
-        continue;
-      }
 
-      std::string sc = "SMALL_";
-      sc += c;
-
-      uiAnimator.SetAnimation(sc);
-
-      uiAnimator.SetFrame(1, uiSprite);
-      uiSprite.setScale(ui.scale);
-      uiSprite.setPosition((ui.position.x + 2.0f*(offset - totalOffset)), ui.position.y);
-
-      if (ui.type == uiData::ActionItemType::KEYBOARD) {
-        uiSprite.setColor(sf::Color(255, 165, 0, ui.alpha));
-      }
-      else {
-        uiSprite.setColor(sf::Color(10, 165, 255, ui.alpha));
-      }
-
-      surface.draw(uiSprite);
-      offset += (int)uiSprite.getLocalBounds().width + 2;
-    }
+    surface.draw(label);
   }
 }
 
