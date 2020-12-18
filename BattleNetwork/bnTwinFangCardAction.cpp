@@ -19,6 +19,10 @@ TwinFangCardAction::TwinFangCardAction(Character& owner, int damage) :
   OverrideAnimationFrames({ FRAMES });
 }
 
+TwinFangCardAction::~TwinFangCardAction()
+{
+}
+
 void TwinFangCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {

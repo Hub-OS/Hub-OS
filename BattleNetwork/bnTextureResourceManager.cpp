@@ -16,7 +16,7 @@ void TextureResourceManager::LoadAllTextures(std::atomic<int> &status) {
 
     std::shared_ptr<Texture> texture = LoadTextureFromFile(paths[static_cast<int>(textureType)]);
 
-    std::scoped_lock lock(mutex);
+    //std::scoped_lock lock(mutex);
 
     textures.insert(pair<TextureType, CachedResource<Texture*>>(textureType, texture));
     textureType = (TextureType)(static_cast<int>(textureType) + 1);
@@ -25,7 +25,7 @@ void TextureResourceManager::LoadAllTextures(std::atomic<int> &status) {
 
 void TextureResourceManager::LoadImmediately(TextureType type)
 {
-  std::scoped_lock lock(mutex);
+  //std::scoped_lock lock(mutex);
 
   // don't fetch it from disk if we already have it
   if (textures.find(type) != textures.end()) return;
@@ -36,7 +36,7 @@ void TextureResourceManager::LoadImmediately(TextureType type)
 
 void TextureResourceManager::HandleExpiredTextureCache()
 {
-  std::scoped_lock lock(mutex);
+  // std::scoped_lock lock(mutex);
 
   auto iter = texturesFromPath.begin();
   while (iter != texturesFromPath.end()) {
@@ -56,7 +56,7 @@ void TextureResourceManager::HandleExpiredTextureCache()
 }
 
 std::shared_ptr<Texture> TextureResourceManager::LoadTextureFromFile(string _path) {
-  std::scoped_lock lock(mutex);
+  //std::scoped_lock lock(mutex);
 
   auto iter = texturesFromPath.find(_path);
 
@@ -89,7 +89,7 @@ std::shared_ptr<Texture> TextureResourceManager::LoadTextureFromFile(string _pat
 }
 
 std::shared_ptr<Texture> TextureResourceManager::GetTexture(TextureType _ttype) {
-  std::scoped_lock lock(mutex);
+  //std::scoped_lock lock(mutex);
   return textures.at(_ttype).GetResource();
 }
 

@@ -16,7 +16,6 @@ public:
     ElecPulseCardAction(Character& owner, int damage);
     ~ElecPulseCardAction();
 
-    void OnUpdate(double _elapsed);
     void OnAnimationEnd() override;
     void OnEndAction();
     void OnExecute();

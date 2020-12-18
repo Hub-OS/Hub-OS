@@ -47,8 +47,8 @@ private:
   ShaderResourceManager shaderManager;
   InputManager inputManager;
 
-  DrawWindow window;
-  bool showScreenBars;
+  DrawWindow& window;
+  bool showScreenBars{};
   ConfigReader reader;
   ConfigSettings configSettings;
 
@@ -56,7 +56,7 @@ private:
   SpriteProxyNode mouse;
   sf::Vector2f lastMousepos;
   Animation mouseAnimation;
-  double mouseAlpha;
+  double mouseAlpha{};
 
   // loading spinner
   SpriteProxyNode spinner;
@@ -70,7 +70,7 @@ private:
   // can add screen transition effects from the title screen
   sf::RenderTexture loadSurface;
 public:
-  Game();
+  Game(DrawWindow& window);
   Game(const Game&) = delete;
   ~Game();
 
@@ -108,7 +108,7 @@ public:
     return T{};
   }
 private:
-  DrawWindow::WindowMode windowMode;
+  DrawWindow::WindowMode windowMode{};
 
   void LoadConfigSettings();
 

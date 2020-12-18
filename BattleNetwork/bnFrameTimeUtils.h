@@ -3,6 +3,6 @@
 #include "frame_time_t.h"
 
 template<>
-const sf::Time time_cast(const frame_time_t& rhs) {
+inline const sf::Time time_cast(const frame_time_t& rhs) {
   return sf::seconds(static_cast<float>(rhs.asSeconds().value));
 }

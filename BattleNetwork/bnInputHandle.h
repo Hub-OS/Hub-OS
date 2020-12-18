@@ -23,5 +23,3 @@ public:
     return *input;
   }
 };
-
-InputManager* InputHandle::input = nullptr;

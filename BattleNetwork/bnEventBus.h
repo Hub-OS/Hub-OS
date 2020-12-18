@@ -45,7 +45,7 @@ namespace {
 
 class EventBus final {
   //!< Recievers represents all channels and objects lists that may recieve events
-  static std::map<const Scene*, std::map<std::string, std::vector<std::any>>> receivers;
+  static inline std::map<const Scene*, std::map<std::string, std::vector<std::any>>> receivers;
 
 public:
   class Channel {
@@ -198,6 +198,3 @@ public:
     }
   };
 };
-
-// static variable initialization
-std::map<const Scene*, std::map<std::string, std::vector<std::any>>> EventBus::receivers{};

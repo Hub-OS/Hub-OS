@@ -27,7 +27,7 @@
 ************    Register your custom mobs here    *********************
 ************************************************************************/
 
-void QueueMobRegistration() {
+static inline void QueueMobRegistration() {
   auto info = MOBS.AddClass<TwoMettaurMob>();  // Create and register mob info object
   info->SetDescription("Tutorial ranked mettaurs, you got this!"); // Set property
   info->SetPlaceholderTexturePath("resources/mobs/mettaur/preview.png");

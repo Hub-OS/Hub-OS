@@ -123,7 +123,7 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
 }
 
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
-  std::scoped_lock lock(mutex);
+  //std::scoped_lock lock(mutex);
 
   if (!sources[static_cast<size_t>(type)].loadFromFile(path)) {
     Logger::Logf("Failed loading Audio(): %s\n", path.c_str());
@@ -157,7 +157,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
     return -1;
   }
 
-  std::scoped_lock lock(mutex);
+  //std::scoped_lock lock(mutex);
 
   // Annoying sound check. Make sure duplicate sounds are played only by a given amount of offset from the last time it was played.
   // This prevents amplitude stacking when duplicate sounds are played on the same frame...
@@ -359,7 +359,7 @@ int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpa
 
   if (path == currStreamPath) { return -1; };
 
-  std::scoped_lock lock(mutex);
+  //std::scoped_lock lock(mutex);
 
   // stop previous stream if any 
   stream.stop();
@@ -380,18 +380,18 @@ int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpa
 }
 
 void AudioResourceManager::StopStream() {
-  std::scoped_lock lock(mutex);
+  //std::scoped_lock lock(mutex);
   stream.stop();
 }
 
 void AudioResourceManager::SetStreamVolume(float volume) {
-  std::scoped_lock lock(mutex);
+  //std::scoped_lock lock(mutex);
   stream.setVolume(volume);
   streamVolume = volume;
 }
 
 void AudioResourceManager::SetChannelVolume(float volume) {
-  std::scoped_lock lock(mutex);
+  //std::scoped_lock lock(mutex);
 
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     channels[i].buffer.setVolume(volume);

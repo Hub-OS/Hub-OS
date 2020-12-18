@@ -29,7 +29,7 @@ public:
 
   virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
   void SetFont(const Font& font);
-  void SetString(const std::string message);
+  void SetString(const std::string& message);
   void SetString(char c);
   void SetColor(const sf::Color& color);
   void SetLetterSpacing(float spacing);

@@ -11,6 +11,7 @@ private:
 public:
   TwinFangCardAction(Character& owner, int damage);
   ~TwinFangCardAction();
+
   void OnExecute();
   void OnEndAction() override;
   void OnUpdate(double _elapsed) override;

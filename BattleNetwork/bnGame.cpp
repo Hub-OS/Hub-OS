@@ -27,8 +27,8 @@
 #include "overworld/bnOverworldHomepage.h"
 #include "SFML/System.hpp"
 
-Game::Game() 
-  : window(), 
+Game::Game(DrawWindow& window) : 
+  window(window), 
   reader("config.ini"),
   configSettings(),
   textureManager(),
@@ -78,9 +78,13 @@ TaskGroup&& Game::Boot(const cxxopts::ParseResult& values)
 
   // Initialize the engine and log the startup time
   const clock_t begin_time = clock();
+
+  /**
+  * TODO
   DrawWindow::WindowMode mode = configSettings.IsFullscreen() ? DrawWindow::WindowMode::fullscreen : DrawWindow::WindowMode::window;
 
   window.Initialize(windowMode);
+  */
 
   Logger::Logf("Engine initialized: %f secs", float(clock() - begin_time) / CLOCKS_PER_SEC);
 
@@ -153,8 +157,13 @@ void Game::Run()
     // Poll input
     inputManager.Update();
 
+    this->update(static_cast<double>(elapsed));
+    this->draw();
+
     // Prepare for next draw calls
     window.Clear();
+
+    elapsed = clock.getElapsedTime().asSeconds();
   }
 }
 
@@ -230,6 +239,7 @@ void Game::LoadConfigSettings()
 
 void Game::RunNaviInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
+  QueuNaviRegistration(); // Queues navis to be loaded later
 
   NAVIS.LoadAllNavis(*progress);
 
@@ -238,6 +248,7 @@ void Game::RunNaviInit(std::atomic<int>* progress) {
 
 void Game::RunMobInit(std::atomic<int>* progress) {
   clock_t begin_time = clock();
+  QueueMobRegistration(); // Queues mobs to be loaded later
 
   MOBS.LoadAllMobs(*progress);
 

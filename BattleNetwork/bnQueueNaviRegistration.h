@@ -17,7 +17,7 @@
 #include "bnRoll.h"
 #include "bnForte.h"
 
-void QueuNaviRegistration() {
+static inline void QueuNaviRegistration() {
   ResourceHandle handle;
 
   /*********************************************************************

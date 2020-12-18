@@ -151,7 +151,7 @@ void Text::SetFont(const Font& font)
   this->font = font;
 }
 
-void Text::SetString(const std::string message)
+void Text::SetString(const std::string& message)
 {
   geometryDirty |= Text::message != message;
   Text::message = message;
