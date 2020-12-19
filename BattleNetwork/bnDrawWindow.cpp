@@ -32,7 +32,7 @@ void DrawWindow::Initialize(DrawWindow::WindowMode mode) {
 
   Resize((int)view.getSize().x, (int)view.getSize().y);
 
-  window->setFramerateLimit(60);
+  window->setFramerateLimit(frame_time_t::frames_per_second);
   window->setMouseCursorVisible(false); // Hide cursor
 
   window->setIcon(sfml_icon.width, sfml_icon.height, sfml_icon.pixel_data);

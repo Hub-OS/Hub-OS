@@ -1,29 +1,31 @@
 #include "bnAnimatedTextBox.h"
 #include <cmath>
 
-AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos)
-    : textArea(), totalTime(0), textBox(280, 40) {
-    textureRef = LOAD_TEXTURE(ANIMATED_TEXT_BOX);
-    frame = sf::Sprite(*textureRef);
+AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) : 
+  textArea(), 
+  totalTime(0), 
+  textBox(280, 40) {
+  textureRef = LOAD_TEXTURE(ANIMATED_TEXT_BOX);
+  frame = sf::Sprite(*textureRef);
 
-    // set the textbox positions
-    textBox.setPosition(sf::Vector2f(getPosition().x + 90.0f, getPosition().y - 40.0f));
-    setPosition(pos);
-    setScale(2.0f, 2.0f);
+  // set the textbox positions
+  textBox.setPosition(sf::Vector2f(getPosition().x + 90.0f, getPosition().y - 40.0f));
+  setPosition(pos);
+  setScale(2.0f, 2.0f);
 
-    textSpeed = 2.0;
+  textSpeed = 2.0;
 
-    // Load the textbox animation
-    animator = Animation("resources/ui/textbox.animation");
-    animator.Reload();
+  // Load the textbox animation
+  animator = Animation("resources/ui/textbox.animation");
+  animator.Reload();
 
-    isPaused = true;
-    isReady = false;
-    isOpening = false;
-    isClosing = false;
+  isPaused = true;
+  isReady = false;
+  isOpening = false;
+  isClosing = false;
 
-    textBox.SetTextFillColor(sf::Color::Black);
-  }
+  textBox.SetTextFillColor(sf::Color::Black);
+}
 
 AnimatedTextBox::~AnimatedTextBox() { }
 

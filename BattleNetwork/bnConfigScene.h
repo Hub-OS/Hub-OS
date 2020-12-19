@@ -38,11 +38,11 @@ private:
   Animation endBtnAnimator;
   Animation audioAnimator;
   Text label;
-  int menuSelectionIndex;; /*!< Current selection */
-  int lastMenuSelectionIndex;
-  int maxMenuSelectionIndex; 
-  int colIndex;
-  int maxCols;
+  int menuSelectionIndex{}; /*!< Current selection */
+  int lastMenuSelectionIndex{};
+  int maxMenuSelectionIndex{};
+  int colIndex{};
+  int maxCols{};
 
   sf::Sprite overlay; /*!< PET */
   sf::Sprite gba;
@@ -50,14 +50,13 @@ private:
   sf::Sprite hint;
   sf::Sprite endBtn;
 
-  bool leave; // ?
-  bool awaitingKey;
-  bool isSelectingTopMenu;
-  bool inGamepadList;
-  bool inKeyboardList;
-  bool inLoginMenu;
-  int audioModeBGM;
-  int audioModeSFX;
+  bool leave{};
+  bool awaitingKey{};
+  bool isSelectingTopMenu{ true };
+  bool inGamepadList{};
+  bool inKeyboardList{};
+  int audioModeBGM{};
+  int audioModeSFX{};
 
   Background* bg;
 
@@ -66,9 +65,9 @@ private:
     sf::Vector2f position;
     sf::Vector2f scale;
     enum class ActionItemType : int {
-      KEYBOARD,
-      GAMEPAD,
-      DISABLED
+      keyboard,
+      gamepad,
+      disabled
     } type;
     int alpha{255};
 
@@ -76,6 +75,12 @@ private:
     uiData(const uiData& rhs) = default;
     ~uiData() = default;
   };
+
+  enum class State : unsigned char {
+    menu = 0,
+    gamepad_select,
+    login
+  } currState{ State::menu };
 
   int menuDivideIndex;
 
@@ -91,6 +96,23 @@ private:
 #endif
   void DrawMenuOptions(sf::RenderTarget& surface);
   void DrawMappedKeyMenu(std::vector<uiData>& container, sf::RenderTarget& surface);
+
+  void DrawMenuState(sf::RenderTarget& surface);
+  void UpdateMenuState(double elapsed);
+
+  void DrawGamepadState(sf::RenderTarget& surface);
+  void UpdateGamepadState(double elapsed);
+
+  void DrawLoginState(sf::RenderTarget& surface);
+  void UpdateLoginState(double elapsed);
+
+  const bool HasConfirmed() const;
+  const bool HasCancelled() const;
+  const bool HasUpButton() const;
+  const bool HasDownButton() const;
+  const bool HasLeftButton() const;
+  const bool HasRightButton() const;
+
 public:
 
   /**

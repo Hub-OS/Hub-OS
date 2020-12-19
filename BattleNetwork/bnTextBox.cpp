@@ -2,9 +2,30 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
+TextBox::TextBox(int width, int height) : 
+  font(Font::Style::thin), 
+  text("", font) {
+  message = "";
+  areaWidth = width;
+  areaHeight = height;
+  charsPerSecond = 10;
+  charIndex = 0;
+  play = true;
+  mute = false;
+  progress = 0;
+  fillColor = sf::Color::Black;
+  outlineColor = sf::Color::White;
+  lineIndex = 0;
+  numberOfFittingLines = 1;
+  text.setScale(2.f, 2.f);
+}
+
+TextBox::~TextBox() {
+}
+
 void TextBox::FormatToFit() {
   if (message.empty())
-      return;
+    return;
 
   message = replace(message, "\\n", "\n"); // replace all ascii "\n" to carriage return char '\n'
 
@@ -22,7 +43,7 @@ void TextBox::FormatToFit() {
   while (index < message.size()) {
     if (message[index] != ' ' && message[index] != '\n') {
       if (wordIndex == -1) { // only mark the beginning of a word
-          wordIndex = index;
+        wordIndex = index;
       }
     }
     else {
@@ -81,24 +102,6 @@ std::string TextBox::replace(std::string str, const std::string& from, const std
   return str;
 }
 
-TextBox::TextBox(int width, int height) : font(Font::Style::thin), text("", font) {
-  message = "";
-  areaWidth = width;
-  areaHeight = height;
-  charsPerSecond = 10;
-  charIndex = 0;
-  play = true;
-  mute = false;
-  progress = 0;
-  fillColor = sf::Color::White;
-  outlineColor = sf::Color::White;
-  lineIndex = 0;
-  numberOfFittingLines = 1;
-  text.setScale(2.f, 2.f);
-}
-
-TextBox::~TextBox() {
-}
 
 const Text& TextBox::GetText() const { return text; }
 

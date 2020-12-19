@@ -18,12 +18,15 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   loadMobs(false),
   LoaderScene(controller, std::move(tasks))
 {
-    // Title screen logo based on region
+  // Title screen logo based on region
 #if ONB_REGION_JAPAN
-    std::shared_ptr<sf::Texture> logo = Textures().LoadTextureFromFile("resources/scenes/title/tile.png");
+  std::shared_ptr<sf::Texture> logo = Textures().LoadTextureFromFile("resources/scenes/title/tile.png");
 #else
-    std::shared_ptr<sf::Texture> logo = Textures().LoadTextureFromFile("resources/scenes/title/tile_en.png");
+  std::shared_ptr<sf::Texture> logo = Textures().LoadTextureFromFile("resources/scenes/title/tile_en.png");
 #endif
+
+  bgSprite.setTexture(Textures().LoadTextureFromFile("resources/scenes/title/bg_blue.png"));
+  bgSprite.setScale(2.f, 2.f);
 
   logoSprite.setTexture(logo);
   logoSprite.setOrigin(logoSprite.getLocalBounds().width / 2, logoSprite.getLocalBounds().height / 2);
@@ -46,6 +49,8 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   totalObjects = static_cast<unsigned>(TextureType::TEXTURE_TYPE_SIZE);
   totalObjects += static_cast<unsigned>(AudioType::AUDIO_TYPE_SIZE);
   totalObjects += static_cast<unsigned>(ShaderType::SHADER_TYPE_SIZE);
+
+  setView(sf::Vector2u(480, 320));
 }
 
 void TitleScene::onStart()
@@ -59,9 +64,17 @@ void TitleScene::onStart()
 
 void TitleScene::onUpdate(double elapsed)
 {
+  // update label position
+  startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
+  startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
+  startLabel.setScale(2.f, 2.f);
+
+  // If not ready, do no proceed past this point!
+  if (IsComplete() == false) return;
+
   static bool doOnce = true;
 
-  if (IsComplete() && doOnce) {
+  if (doOnce) {
     doOnce = false;
 
 #if defined(__ANDROID__)
@@ -70,11 +83,6 @@ void TitleScene::onUpdate(double elapsed)
     startLabel.SetString("PRESS START");
 #endif
   }
-
-  // update label position
-  startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
-  startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
-  startLabel.setScale(2.f, 2.f);
 
   if (Input().GetAnyKey() == sf::Keyboard::Enter && !pressedStart) {
     pressedStart = true;

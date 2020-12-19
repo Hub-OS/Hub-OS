@@ -25,7 +25,7 @@ struct WebServerInfo {
 };
 
 /*! \brief easy to cast in with some special codes for joystick x/y axis */
-enum Gamepad { BAD_CODE = -1, UP = 5555, LEFT = 5556, RIGHT = 5557, DOWN = 5558 };
+enum class Gamepad : signed { BAD_CODE = -1, UP = 5555, LEFT = 5556, RIGHT = 5557, DOWN = 5558 };
 
 struct ConfigSettings {
 public:

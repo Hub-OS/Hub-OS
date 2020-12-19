@@ -152,12 +152,21 @@ void Game::Run()
   bool inMessageState = true;
 
   while (window.Running()) {
+    float FPS = 0.f;
+
+    FPS = (float)(1.0 / (float)elapsed);
+    std::string fpsStr = std::to_string(FPS);
+    fpsStr.resize(4);
+    getWindow().setTitle(sf::String(std::string("FPS: ") + fpsStr));
+
     clock.restart();
+
+    textureManager.HandleExpiredTextureCache();
 
     // Poll input
     inputManager.Update();
 
-    this->update(static_cast<double>(elapsed));
+    this->update(1.0/static_cast<double>(frame_time_t::frames_per_second));
     this->draw();
 
     window.Display();
