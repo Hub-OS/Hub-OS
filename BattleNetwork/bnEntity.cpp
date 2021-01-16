@@ -2,6 +2,7 @@
 #include "bnComponent.h"
 #include "bnTile.h"
 #include "bnField.h"
+#include <cmath>
 #include <Swoosh/Ease.h>
 
 long Entity::numOfIDs = 0;

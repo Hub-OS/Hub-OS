@@ -1,5 +1,6 @@
 #include "bnOverworldPathController.h"
 #include "bnOverworldActor.h"
+#include <cmath>
 
 void Overworld::PathController::ControlActor(Actor& actor)
 {
@@ -65,7 +66,7 @@ void Overworld::PathController::MoveToCommand::update(double elapsed)
 {
   if (actor) {
     auto vec = dest - actor->getPosition();
-    float mag = std::sqrtf((vec.x * vec.x) + (vec.y * vec.y));
+    float mag = std::sqrt((vec.x * vec.x) + (vec.y * vec.y));
 
     if (mag > 1.f) {
       Direction dir = Actor::MakeDirectionFromVector(vec, 0.5f);

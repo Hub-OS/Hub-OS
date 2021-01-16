@@ -1,3 +1,4 @@
+#include <cmath>
 #include <Swoosh/ActivityController.h>
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>

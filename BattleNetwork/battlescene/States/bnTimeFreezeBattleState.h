@@ -3,6 +3,7 @@
 #include <Swoosh/Timer.h>
 #include <SFML/Graphics/Font.hpp>
 
+#include <memory>
 #include "../bnBattleSceneState.h"
 #include "../../bnTeam.h"
 #include "../../bnCardUseListener.h"

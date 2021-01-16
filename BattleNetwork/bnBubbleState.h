@@ -38,7 +38,7 @@ public:
 template<typename Any>
 BubbleState<Any>::BubbleState()
   : progress(0), prevFloatShoe(false), AIState<Any>() {
-  AIState<Any>::template PriorityLock();
+  this->PriorityLock();
 }
 
 template<typename Any>
@@ -60,7 +60,7 @@ void BubbleState<Any>::OnUpdate(float _elapsed, Any& e) {
   if (bubbleTrap == nullptr) {
     e.template ChangeState<typename Any::DefaultState>();
     e.SetFloatShoe(prevFloatShoe);
-    AIState<Any>::template PriorityUnlock();
+    this->PriorityUnlock();
   }
   else {
     progress = bubbleTrap->GetDuration();

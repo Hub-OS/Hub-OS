@@ -1,5 +1,6 @@
 #include "bnOverworldActor.h"
 #include "bnOverworldMap.h"
+#include <cmath>
 
 Overworld::Actor::Actor(const std::string& name) :
   name(name)

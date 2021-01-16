@@ -3,6 +3,7 @@
 #include "../bnBattleSceneState.h"
 #include "../../bnAnimation.h"
 
+#include <memory>
 #include <SFML/Graphics/Sprite.hpp>
 
 class Player;
