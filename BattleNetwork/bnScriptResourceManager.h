@@ -9,6 +9,9 @@
 #include <iostream>
 #include <atomic>
 
+#ifdef __unix__
+#define LUA_USE_POSIX 1
+#endif
 #define SOL_ALL_SAFETIES_ON 1
 #define SOL_USING_CXX_LUA 1
 #include "sol/sol.hpp"
