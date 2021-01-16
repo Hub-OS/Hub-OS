@@ -4,6 +4,8 @@
 #include "bnElements.h"
 #include "bnCardUUIDs.h"
 #include "bnTextureResourceManager.h"
+#include <cstring>
+#include <mutex>
 #include <SFML/Network/Http.hpp>
 
 void WebClientManager::PingThreadHandler()
