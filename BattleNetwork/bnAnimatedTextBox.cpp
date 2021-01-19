@@ -9,7 +9,7 @@ AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) :
   frame = sf::Sprite(*textureRef);
 
   // set the textbox positions
-  textBox.setPosition(sf::Vector2f(getPosition().x + 90.0f, getPosition().y - 40.0f));
+  //textBox.setPosition(sf::Vector2f(45.0f, 20.0f));
   setPosition(pos);
   setScale(2.0f, 2.0f);
 
@@ -249,7 +249,7 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
       sprite.setPosition(oldpos);
     }
 
-    states.transform = getTransform();
+    //states.transform = getTransform();
 
     messages.front()->OnDraw(target, states);
   }

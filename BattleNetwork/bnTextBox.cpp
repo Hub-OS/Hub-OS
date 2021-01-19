@@ -13,11 +13,8 @@ TextBox::TextBox(int width, int height) :
   play = true;
   mute = false;
   progress = 0;
-  fillColor = sf::Color::Black;
-  outlineColor = sf::Color::White;
   lineIndex = 0;
   numberOfFittingLines = 1;
-  text.setScale(2.f, 2.f);
 }
 
 TextBox::~TextBox() {
@@ -108,11 +105,11 @@ const Text& TextBox::GetText() const { return text; }
 const Font& TextBox::GetFont() const { return font; }
 
 void TextBox::SetTextFillColor(sf::Color color) {
-  fillColor = color;
+  text.SetColor(color);
 }
 
 void TextBox::SetTextOutlineColor(sf::Color color) {
-  outlineColor = color;
+  // outlineColor = color;
 }
 
 void TextBox::SetTextColor(sf::Color color) {
@@ -335,12 +332,6 @@ void TextBox::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
   // apply the transform
   states.transform *= getTransform();
-
-  //text.setPosition(getPosition());
-  text.setScale(2.f, 2.f);
-  // text.setRotation(getRotation());
-  text.SetColor(fillColor);
-  // text.SetOutlineColor(outlineColor); // todo?
 
   target.draw(text, states);
 }

@@ -25,8 +25,6 @@ private:
   bool play; /**< If true, types out message. If false, pauses. */
   bool mute; /**< Enables a sound to play every time a character is printed */
   int charSize; /**< Font size */
-  sf::Color fillColor; /**< Fill color of text */
-  sf::Color outlineColor; /**< Outline color of text */
 
   /**
    * @brief Takes the input message and finds where the text breaks to form new lines
