@@ -17,6 +17,7 @@ extern/*
 *.user
 *.userosscache
 *.sln.docstates
+local.properties
 
 # Mac binaries
 *.app
@@ -364,6 +365,7 @@ healthchecksdb
 
 # Visual studio created files 
 .vs/
+.vscode/
 
 .idea/
 

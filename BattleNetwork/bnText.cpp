@@ -1,4 +1,5 @@
 #include "bnText.h"
+#include <cmath>
 
 void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char letter) const
 {

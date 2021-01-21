@@ -6,6 +6,7 @@
 #include "bnCardUUIDs.h"
 #include "bnTextureResourceManager.h"
 
+#include <cstring>
 #include <SFML/Network/Http.hpp>
 
 void WebClientManager::PingThreadHandler()

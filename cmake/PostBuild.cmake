@@ -39,9 +39,9 @@ if(WIN32 OR UNIX)
         COMMAND ${CMAKE_COMMAND}
         ARGS -E copy_if_different 
         
-        "${PROJECT_SOURCE_DIR}/BattleNetwork/config.ini"
+        "${PROJECT_SOURCE_DIR}/BattleNetwork/config.ini.template"
         
-        "$<TARGET_FILE_DIR:BattleNetwork>/"
+        "$<TARGET_FILE_DIR:BattleNetwork>/config.ini"
         
         COMMENT "Copying config.ini\n"
     )
