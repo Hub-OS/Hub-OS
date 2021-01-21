@@ -65,16 +65,16 @@ void Overworld::Homepage::PingRemoteAreaServer()
 
       int remotePort = getController().CommandLineValue<int>("remotePort");
       std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
-      remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
 
       try {
+        remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
         client.connect(remoteAddress);
         reconnecting = true;
         doSendThunk();
       }
       catch (Poco::Net::NetException& e) {
         reconnecting = false;
-        Logger::Logf("Error trying to connect to remote address: %s", e.message().c_str());
+        Logger::Logf("Error trying to connect to remote address: %s", e.what());
       }
     }
     else {

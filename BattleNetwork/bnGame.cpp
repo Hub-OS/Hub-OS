@@ -73,6 +73,8 @@ void Game::SetCommandLineValues(const cxxopts::ParseResult& values) {
 
 TaskGroup Game::Boot(const cxxopts::ParseResult& values)
 {
+  SetCommandLineValues(values);
+
   // Load font symbols for use across the entire engine...
   textureManager.LoadImmediately(TextureType::FONT);
 
