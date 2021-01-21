@@ -57,7 +57,7 @@ protected:
     occuranceX = std::max(occuranceX, (unsigned)1);
     occuranceY = std::max(occuranceY, (unsigned)1);
 
-    vertices.resize(static_cast<size_t>(occuranceX * occuranceY * unsigned int(6)));
+    vertices.resize(static_cast<size_t>(occuranceX * occuranceY * (unsigned int)6));
 
     textureRect = sf::IntRect(0, 0, textureSize.x, textureSize.y);
 
