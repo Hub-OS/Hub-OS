@@ -12,19 +12,20 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   elapsed(0),
   selectedFolder(selectedFolder),
   programAdvance(programAdvance),
-  font(Font::Style::thick),
-  mobLabel("No Data", font),
-  attackLabel("1", font),
-  speedLabel("1", font),
-  hpLabel("1", font),
-  menuLabel("", font),
+  font(Font::Style::wide),
+  menuLabel("BATTLE SELECT", font),
+  uiFont(Font::Style::thick),
+  mobLabel("No Data", uiFont),
+  attackLabel("1", uiFont),
+  speedLabel("1", uiFont),
+  hpLabel("1", uiFont),
   textbox(320, 100),
   Scene(controller)
 {
   selectedNavi = navi;
 
   // Menu name font
-  menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
   menuLabel.setScale(2.f, 2.f);
 
   navigator.setTexture(LOAD_TEXTURE(MUG_NAVIGATOR));
@@ -44,16 +45,9 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   selectInputCooldown = maxSelectInputCooldown;
 
   // MOB UI font
-  mobLabel.setPosition(sf::Vector2f(100.f, 45.0f));
   mobLabel.setScale(2.f, 2.f);
-
-  attackLabel.setPosition(325.f, 30.f);
   attackLabel.setScale(2.f, 2.f);
-
-  speedLabel.setPosition(325.f, 45.f);
   speedLabel.setScale(2.f, 2.f);
-
-  hpLabel.setPosition(325.f, 60.f);
   hpLabel.setScale(2.f, 2.f);
 
   maxNumberCooldown = 0.5;
@@ -406,34 +400,34 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   surface.draw(menuLabel);
 
   // Draw mob name with shadow
-  mobLabel.setPosition(sf::Vector2f(30.f, 30.0f));
+  mobLabel.setPosition(sf::Vector2f(30.f, 38.0f));
   mobLabel.SetColor(sf::Color(138, 138, 138));
   surface.draw(mobLabel);
-  mobLabel.setPosition(sf::Vector2f(30.f, 28.0f));
+  mobLabel.setPosition(sf::Vector2f(30.f, 36.0f));
   mobLabel.SetColor(sf::Color::White);
   surface.draw(mobLabel);
 
   // Draw attack rating with shadow
-  attackLabel.setPosition(382.f, 80.f);
+  attackLabel.setPosition(382.f, 88.f);
   attackLabel.SetColor(sf::Color(88, 88, 88));
   surface.draw(attackLabel);
-  attackLabel.setPosition(380.f, 78.f);
+  attackLabel.setPosition(380.f, 86.f);
   attackLabel.SetColor(sf::Color::White);
   surface.draw(attackLabel);
 
   // Draw speed rating with shadow
-  speedLabel.setPosition(382.f, 112.f);
+  speedLabel.setPosition(382.f, 120.f);
   speedLabel.SetColor(sf::Color(88, 88, 88));
   surface.draw(speedLabel);
-  speedLabel.setPosition(380.f, 110.f);
+  speedLabel.setPosition(380.f, 118.f);
   speedLabel.SetColor(sf::Color::White);
   surface.draw(speedLabel);
 
   // Draw hp
-  hpLabel.setPosition(382.f, 144.f);
+  hpLabel.setPosition(382.f, 152.f);
   hpLabel.SetColor(sf::Color(88, 88, 88));
   surface.draw(hpLabel);
-  hpLabel.setPosition(380.f, 142.f);
+  hpLabel.setPosition(380.f, 150.f);
   hpLabel.SetColor(sf::Color::White);
   surface.draw(hpLabel);
 
