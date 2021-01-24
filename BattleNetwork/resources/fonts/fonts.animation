@@ -1106,7 +1106,7 @@ animation state="THIN_LOWER_F"
 frame duration="0.05" x="959" y="85" w="6" h="12" originx="0" originy="0"
 
 animation state="THIN_LOWER_G"
-frame duration="0.05" x="979" y="84" w="7" h="13" originx="0" originy="0"
+frame duration="0.05" x="979" y="85" w="7" h="13" originx="0" originy="0"
 
 animation state="THIN_LOWER_H"
 frame duration="0.05" x="999" y="85" w="7" h="12" originx="0" originy="0"
@@ -1121,7 +1121,7 @@ animation state="THIN_LOWER_K"
 frame duration="0.05" x="858" y="105" w="7" h="12" originx="0" originy="0"
 
 animation state="THIN_LOWER_L"
-frame duration="0.05" x="878" y="105" w="4" h="12" originx="0" originy="0"
+frame duration="0.05" x="878" y="106" w="4" h="12" originx="0" originy="0"
 
 animation state="THIN_LOWER_M"
 frame duration="0.05" x="899" y="105" w="7" h="12" originx="0" originy="0"
@@ -1160,7 +1160,7 @@ animation state="THIN_LOWER_X"
 frame duration="0.05" x="919" y="125" w="7" h="12" originx="0" originy="0"
 
 animation state="THIN_LOWER_Y"
-frame duration="0.05" x="939" y="124" w="7" h="13" originx="0" originy="0"
+frame duration="0.05" x="939" y="123" w="7" h="14" originx="0" originy="0"
 
 animation state="THIN_LOWER_Z"
 frame duration="0.05" x="959" y="125" w="7" h="12" originx="0" originy="0"
@@ -1175,7 +1175,7 @@ animation state="THIN_/"
 frame duration="0.05" x="1019" y="125" w="7" h="12" originx="0" originy="0"
 
 animation state="THIN_."
-frame duration="0.05" x="1045" y="120" w="5" h="12" originx="0" originy="0"
+frame duration="0.05" x="1045" y="121" w="5" h="13" originx="0" originy="0"
 
 animation state="THIN_?"
 frame duration="0.05" x="1056" y="125" w="7" h="12" originx="0" originy="0"

@@ -159,12 +159,14 @@ void InputManager::Update() {
           events.push_back(InputEvents::pressed_ui_right);
         }
         else if (Keyboard::X == event.key.code) {
-          events.push_back(InputEvents::pressed_confirm);
-          events.push_back(InputEvents::pressed_use_chip);
-        }
-        else if (Keyboard::Z == event.key.code) {
           events.push_back(InputEvents::pressed_cancel);
           events.push_back(InputEvents::pressed_shoot);
+          events.push_back(InputEvents::pressed_run);
+        }
+        else if (Keyboard::Z == event.key.code) {
+          events.push_back(InputEvents::pressed_confirm);
+          events.push_back(InputEvents::pressed_use_chip);
+          events.push_back(InputEvents::pressed_interact);
         }
         else if (Keyboard::Space == event.key.code) {
           events.push_back(InputEvents::pressed_cust_menu);
@@ -214,12 +216,14 @@ void InputManager::Update() {
           events.push_back(InputEvents::released_ui_right);
         }
         else if (Keyboard::X == event.key.code) {
-          events.push_back(InputEvents::released_confirm);
-          events.push_back(InputEvents::released_use_chip);
-        }
-        else if (Keyboard::Z == event.key.code) {
           events.push_back(InputEvents::released_cancel);
           events.push_back(InputEvents::released_shoot);
+          events.push_back(InputEvents::released_run);
+        }
+        else if (Keyboard::Z == event.key.code) {
+          events.push_back(InputEvents::released_confirm);
+          events.push_back(InputEvents::released_use_chip);
+          events.push_back(InputEvents::released_interact);
         }
         else if (Keyboard::Space == event.key.code) {
           events.push_back(InputEvents::released_cust_menu);

@@ -1202,7 +1202,6 @@ void Overworld::SceneBase::GotoMobSelect()
 void Overworld::SceneBase::GotoPVP()
 {
   gotoNextScene = true;
-
   CardFolder* folder = nullptr;
 
   if (folders.GetFolder(0, folder)) {

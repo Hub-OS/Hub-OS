@@ -38,9 +38,9 @@ namespace Overworld {
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
     Overworld::PlayerController playerController{};
+    Overworld::QuadTree quadTree{};
     std::vector<Overworld::Actor> npcs;
     std::vector<Overworld::PathController> pathControllers{};
-    Overworld::QuadTree quadTree{};
 
     Camera camera; /*!< camera in scene follows player */
     bool clicked{ false }, scaledmap{ false };

@@ -6,7 +6,7 @@
 #include "../bnInputManager.h"
 #include "../bnShaderResourceManager.h"
 
-constexpr sf::Int32 EMOJI_DISPLAY_MILI = 5;
+constexpr sf::Int32 EMOJI_DISPLAY_MILI = 5000;
 constexpr float NOT_SELECTED_RADIUS = 0.75f;
 constexpr float SELECTED_RADIUS = 1.0f;
 constexpr float CIRCLE_RADIUS_PX = 44.0f; // in pixels
