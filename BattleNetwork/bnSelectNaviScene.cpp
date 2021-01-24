@@ -10,8 +10,8 @@ using namespace swoosh::types;
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
   naviSelectionIndex(currentNavi),
   currentChosen(currentNavi),
-  textbox(135, 15),
   font(Font::Style::small),
+  textbox(135, 15, font),
   naviFont(Font::Style::thick),
   naviLabel("No Data", naviFont),
   hpLabel("1", font),
@@ -29,16 +29,16 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   selectInputCooldown = maxSelectInputCooldown;
 
   // NAVI UI font
-  naviLabel.setPosition(30.f, 18.f);
+  naviLabel.setPosition(30.f, 22.f);
   naviLabel.setScale(2.0f, 2.0f);
 
-  attackLabel.setPosition(335.f, 15.f);
+  attackLabel.setPosition(335.f, 24.f);
   attackLabel.setScale(2.0f, 2.0f);
 
-  speedLabel.setPosition(335.f, 70.f);
+  speedLabel.setPosition(335.f, 78.f);
   speedLabel.setScale(2.0f, 2.0f);
 
-  hpLabel.setPosition(sf::Vector2f(335.f, 125.0f));
+  hpLabel.setPosition(335.f, 132.0f);
   hpLabel.setScale(2.0f, 2.0f);
 
   maxNumberCooldown = 0.5;
@@ -95,6 +95,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   textbox.SetCharactersPerSecond(15);
   textbox.setPosition(UI_RIGHT_POS_MAX + 10, 205);
   textbox.Stop();
+  // textbox.
   textbox.Mute(); // no tick sound
 
   elapsed = 0;
