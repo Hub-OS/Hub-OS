@@ -12,7 +12,7 @@
 FolderChangeNameScene::FolderChangeNameScene(ActivityController& controller, std::string& folderName) : 
   Scene(controller), 
   folderName(folderName), 
-  font(Font::Style::small), 
+  font(Font::Style::thin), 
   nameLabel("", font) {
   elapsed = 0;
 
@@ -29,7 +29,7 @@ FolderChangeNameScene::FolderChangeNameScene(ActivityController& controller, std
 
   letterPos = cursorPosX = cursorPosY = currTable = 0;
 
-  nameLabel.setScale(1.f, 1.f);
+  nameLabel.setScale(2.f, 2.f);
   
   name = std::string(8, '_'); // 8 characters allowed
 
@@ -298,13 +298,14 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
   surface.draw(cursorPieceRight);
 
   bool blink = (int(elapsed * 3000) % 1000) < 500;
+  float labelTop = 18 * 2.f;
 
   for (int i = 0; i < name.size(); i++) {
     if(i == letterPos && blink)
       continue;
 
     nameLabel.SetString(name[i]);
-    nameLabel.setPosition((65 + (i*8)) * 2.f, 15 * 2.f);
+    nameLabel.setPosition((65 + (i*8)) * 2.f, labelTop);
 
     surface.draw(nameLabel);
   }
@@ -312,7 +313,7 @@ void FolderChangeNameScene::onDraw(sf::RenderTexture& surface) {
   // 9th character is a special * asterisk to denote the end of input
   if (letterPos + 1 == 9 && !blink) {
     nameLabel.SetString('*');
-    nameLabel.setPosition((65 + (8 * 8)) * 2.f, 15 * 2.f);
+    nameLabel.setPosition((65 + (8 * 8)) * 2.f, labelTop);
 
     surface.draw(nameLabel);
   }
