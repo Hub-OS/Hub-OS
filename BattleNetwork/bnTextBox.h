@@ -47,6 +47,7 @@ public:
    * @param height in pixels
    */
    TextBox(int width, int height);
+   TextBox(int width, int height, const Font& font);
 
   ~TextBox();
 

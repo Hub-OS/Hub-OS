@@ -27,9 +27,9 @@ using namespace swoosh::types;
 FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderCollection& collection) :
   collection(collection),
   folderSwitch(true),
-  font(Font::Style::thick),
-  menuLabel("", font),
-  cardFont(Font::Style::small),
+  font(Font::Style::wide),
+  menuLabel("CHIP FOLDER", font),
+  cardFont(Font::Style::thick),
   cardLabel("", cardFont),
   numberFont(Font::Style::thick),
   numberLabel("", numberFont),
@@ -44,7 +44,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   gotoNextScene = true;
 
   // Menu name
-  menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
   menuLabel.setScale(2.f, 2.f);
 
   // Selection input delays
@@ -490,17 +490,18 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
   if (folderNames.size() > 0) {
     for (int i = 0; i < folderNames.size(); i++) {
-      folderBox.setPosition(26.0f + (i*144.0f) - (float)folderOffsetX, 34.0f);
+      float folderLeft = 26.0f + (i*144.0f) - (float)folderOffsetX;
+      folderBox.setPosition(folderLeft, 34.0f);
       surface.draw(folderBox);
 
       cardLabel.SetColor(sf::Color::White);
       cardLabel.SetString(folderNames[i]);
-      cardLabel.setOrigin(cardLabel.GetWorldBounds().width / 2.0f, cardLabel.GetWorldBounds().height / 2.0f);
-      cardLabel.setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
+      cardLabel.setOrigin(0.0f, 0.0f);
+      cardLabel.setPosition(folderLeft + 12.0f, 54.0f);
       surface.draw(cardLabel);
 
       if (i == selectedFolderIndex) {
-        folderEquip.setPosition(25.0f + (i*144.0f) - (float)folderOffsetX, 30.0f);
+        folderEquip.setPosition(folderLeft - 2.0f, 30.0f);
         surface.draw(folderEquip);
       }
 
@@ -589,34 +590,32 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
     cardLabel.SetColor(sf::Color::White);
     cardLabel.SetString(folderNames[currFolderIndex]);
-    cardLabel.setOrigin(0.f, cardLabel.GetWorldBounds().height / 2.0f);
-    cardLabel.setPosition(195.0f, 100.0f);
+    cardLabel.setOrigin(0.f, 0.f);
+    cardLabel.setPosition(195.0f, 102.0f);
     surface.draw(cardLabel);
 
     // Now that we are at the viewing range, draw each card in the list
     for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
+      float cardIconY = 132.0f + (32.f*i);
+
       cardIcon.setTexture(*WEBCLIENT.GetIconForCard((*iter)->GetUUID()));
-      cardIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
+      cardIcon.setPosition(2.f*99.f, cardIconY);
       surface.draw(cardIcon);
 
-      cardLabel.setOrigin(0.0f, 0.0f);
-      cardLabel.SetColor(sf::Color::White);
-      cardLabel.setPosition(2.f*115.f, 128.0f + (32.f*i));
+      cardLabel.setPosition(2.f*115.f, cardIconY + 4.0f);
       cardLabel.SetString((*iter)->GetShortName());
       surface.draw(cardLabel);
 
-
       int offset = (int)((*iter)->GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-      element.setPosition(2.f*173.f, 133.0f + (32.f*i));
+      element.setPosition(2.f*173.f, cardIconY);
       surface.draw(element);
 
-      cardLabel.setOrigin(0, 0);
-      cardLabel.setPosition(2.f*190.f, 128.0f + (32.f*i));
+      cardLabel.setPosition(2.f*190.f, cardIconY + 4.0f);
       cardLabel.SetString(std::string() + (*iter)->GetCode());
       surface.draw(cardLabel);
 
-      mbPlaceholder.setPosition(2.f*200.f, 134.0f + (32.f*i));
+      mbPlaceholder.setPosition(2.f*200.f, cardIconY + 2.0f);
       surface.draw(mbPlaceholder);
       iter++;
     }

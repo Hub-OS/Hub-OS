@@ -60,7 +60,8 @@ private:
   double maxSelectInputCooldown; /*!< Maximum time for input delay */
   double selectInputCooldown; /*!< Remaining time for input delay */
   double elapsed; /*!< delta seconds since last frame */
-
+  
+  Font uiFont; /*!< UI font */
   Text mobLabel; /*!< name */
   Text attackLabel; /*!< power */
   Text speedLabel; /*!< mob speed */

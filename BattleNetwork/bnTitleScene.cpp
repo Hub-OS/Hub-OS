@@ -41,8 +41,7 @@ TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks
   // Press Start text
   startFont = Font(Font::Style::thick);
 
-  startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
-  startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
+  startLabel.setPosition(sf::Vector2f(240.0f, 240.f));
   startLabel.setScale(2.f, 2.f);
 
   // When progress is equal to the totalObject count, we are 100% ready
@@ -64,11 +63,6 @@ void TitleScene::onStart()
 
 void TitleScene::onUpdate(double elapsed)
 {
-  // update label position
-  startLabel.setOrigin(0.f, startLabel.GetLocalBounds().height);
-  startLabel.setPosition(sf::Vector2f(180.0f, 240.f));
-  startLabel.setScale(2.f, 2.f);
-
   // If not ready, do no proceed past this point!
   if (IsComplete() == false) return;
 
@@ -119,6 +113,10 @@ void TitleScene::onResume()
 
 void TitleScene::onDraw(sf::RenderTexture & surface)
 {
+  // update label position
+  auto bounds = startLabel.GetLocalBounds();
+  startLabel.setOrigin(bounds.width / 2.0f, bounds.height);
+  
   surface.draw(bgSprite);
   surface.draw(logoSprite);
   surface.draw(startLabel);

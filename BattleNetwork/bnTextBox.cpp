@@ -2,9 +2,13 @@
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
-TextBox::TextBox(int width, int height) : 
-  font(Font::Style::thin), 
+TextBox::TextBox(int width, int height) :
+  TextBox::TextBox(width, height, Font::Style::thin) { } 
+
+TextBox::TextBox(int width, int height, const Font& font) : 
+  font(font), 
   text("", font) {
+  text.scale(2.0f, 2.0f);
   message = "";
   areaWidth = width;
   areaHeight = height;
