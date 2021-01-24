@@ -44,7 +44,7 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   // cap of 8 cards, 8 cards drawn per turn
   cardCustGUI(props.folder, 8, 8),
   mobFont(Font::Style::thick),
-  camera(sf::View())
+  camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) })
 {
   /*
   Set Scene*/

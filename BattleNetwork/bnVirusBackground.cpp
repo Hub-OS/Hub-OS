@@ -15,7 +15,7 @@ VirusBackground::VirusBackground(void)
   y(0), 
   speed(0.0f),
   progress(0.0f), 
-  Background(Textures().LoadTextureFromFile("resources/backgrounds/virus/fg.png"), 240, 180) {
+  Background(Textures().LoadTextureFromFile("resources/scenes/virus/fg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 }
 

@@ -173,10 +173,10 @@ public:
   // TODO: make this private again
   const sf::Vector2f GetViewOffset(); // for drawing 
 private:
-  RenderWindow* window; /*!< Window created when app launches */
+  RenderWindow* window{ nullptr }; /*!< Window created when app launches */
   sf::View view; /*!< Default view created when window launches */
   sf::View original; /*!< Default view created when window launches */
   sf::RenderStates state; /*!< Global GL context information used when drawing*/
-  sf::RenderTexture* surface; /*!< The external buffer to draw to */
+  sf::RenderTexture* surface{ nullptr }; /*!< The external buffer to draw to */
   std::shared_ptr<Camera> cam; /*!< Camera object */
 };

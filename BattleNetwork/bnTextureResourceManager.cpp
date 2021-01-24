@@ -240,6 +240,7 @@ TextureResourceManager::TextureResourceManager() {
   paths.push_back("resources/ui/folder_name.png");
   paths.push_back("resources/ui/folder_cursor.png");
   paths.push_back("resources/ui/folder_options.png");
+  paths.push_back("resources/ui/folder_new.png");
   paths.push_back("resources/ui/folder_size.png");
   paths.push_back("resources/ui/folder_textbox.png");
   paths.push_back("resources/ui/mb_placeholder.png");
@@ -265,14 +266,14 @@ TextureResourceManager::TextureResourceManager() {
   paths.push_back("resources/ui/textbox_cursor.png");
 
   // Background/foreground
-  paths.push_back("resources/backgrounds/title/bg_blue.png");
-  paths.push_back("resources/backgrounds/title/prog-pulse.png");
-  paths.push_back("resources/backgrounds/game_over/game_over.png");
-  paths.push_back("resources/backgrounds/select/battle_select.png");
-  paths.push_back("resources/backgrounds/folder/bg.png");
-  paths.push_back("resources/backgrounds/folder/folder_info.png");
-  paths.push_back("resources/backgrounds/folder/folder_name.png");
-  paths.push_back("resources/backgrounds/select/bg.png");
+  paths.push_back("resources/scenes/title/bg_blue.png");
+  paths.push_back("resources/scenes/title/prog-pulse.png");
+  paths.push_back("resources/scenes/game_over/game_over.png");
+  paths.push_back("resources/scenes/select/battle_select.png");
+  paths.push_back("resources/scenes/folder/bg.png");
+  paths.push_back("resources/scenes/folder/folder_info.png");
+  paths.push_back("resources/scenes/folder/folder_name.png");
+  paths.push_back("resources/scenes/select/bg.png");
 
   // other ui / icons
   paths.push_back("resources/ui/aura_numset.png");

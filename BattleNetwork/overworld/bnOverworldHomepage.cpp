@@ -57,6 +57,9 @@ void Overworld::Homepage::PingRemoteAreaServer()
       }
     };
 
+    // stops pinging server while I'm working...
+    return;
+
     if (!reconnecting) {
       int myPort = getController().CommandLineValue<int>("port");
       Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);

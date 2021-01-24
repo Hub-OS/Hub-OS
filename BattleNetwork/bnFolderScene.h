@@ -33,7 +33,7 @@
 class FolderScene : public Scene {
 private:
   CardFolderCollection& collection; /*!< The entire user collection */
-  CardFolder* folder; /*!< Handle to current folder to preview */
+  CardFolder* folder{ nullptr }; /*!< Handle to current folder to preview */
   std::vector<std::string> folderNames; /*!< List of all folder names at start */
 
   // Menu name font
@@ -42,8 +42,8 @@ private:
 
   // Selection input delays
   bool extendedHold{ false }; /*!< 2nd delay pass makes scrolling quicker */
-  double maxSelectInputCooldown; /*!< Set to fraction of a second */
-  double selectInputCooldown; /*!< The delay between reading user input */
+  double maxSelectInputCooldown{}; /*!< Set to fraction of a second */
+  double selectInputCooldown{}; /*!< The delay between reading user input */
 
   // Card UI font
   Font cardFont;
@@ -68,38 +68,38 @@ private:
   Animation folderCursorAnimation; /*!< Flashes */
 
   AnimatedTextBox textbox;
-  Question* questionInterface;
+  Question* questionInterface{ nullptr };
 
-  int currFolderIndex;
-  int selectedFolderIndex;
-  int lastFolderIndex;
+  int currFolderIndex{};
+  int selectedFolderIndex{};
+  int lastFolderIndex{};
 
-  int maxCardsOnScreen; /*!< The number of cards to display max in box area */
-  int currCardIndex; /*!< Current index in current folder */
-  int numOfCards; /*!< Number of cards in current folder */
+  int maxCardsOnScreen{}; /*!< The number of cards to display max in box area */
+  int currCardIndex{}; /*!< Current index in current folder */
+  int numOfCards{}; /*!< Number of cards in current folder */
 
-  double totalTimeElapsed;
-  double frameElapsed;
-  double folderOffsetX;
+  double totalTimeElapsed{};
+  double frameElapsed{};
+  double folderOffsetX{};
 
-  bool gotoNextScene; /*!< If true, user cannot interact */
-  bool folderSwitch; /*!< If a folder at currIndex was changed or index was changed*/
+  bool gotoNextScene{}; /*!< If true, user cannot interact */
+  bool folderSwitch{}; /*!< If a folder at currIndex was changed or index was changed*/
 
-  int optionIndex; /*!< Index for menu state options when at the prompt menu */
-  bool promptOptions; /*!< Flag for menu state when selecting a folder to edit */
-  bool enterText; /*!< Flag for user state when editting folders */
+  int optionIndex{}; /*!< Index for menu state options when at the prompt menu */
+  bool promptOptions{}; /*!< Flag for menu state when selecting a folder to edit */
+  bool enterText{}; /*!< Flag for user state when editting folders */
 
 #ifdef __ANDROID__
-    bool canSwipe;
-    bool touchStart;
+  bool canSwipe{};
+  bool touchStart{};
 
-    int touchPosX;
-    int touchPosStartX;
+  int touchPosX{};
+  int touchPosStartX{};
 
-    bool releasedB;
+  bool releasedB{};
 
-    void StartupTouchControls();
-    void ShutdownTouchControls();
+  void StartupTouchControls();
+  void ShutdownTouchControls();
 #endif
 
   void MakeNewFolder();

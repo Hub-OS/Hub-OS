@@ -11,8 +11,9 @@ void ShaderResourceManager::LoadAllShaders(std::atomic<int> &status) {
   while (shaderType != ShaderType::SHADER_TYPE_SIZE)
   {
     status++;
-
-    sf::Shader* shader = LoadShaderFromFile(paths[static_cast<int>(shaderType)]);
+    const int to_int = static_cast<int>(shaderType);
+    Logger::Logf("Attemping to load shader type %i with path %s", to_int, paths[to_int].c_str());
+    sf::Shader* shader = LoadShaderFromFile(paths[to_int]);
 
     std::scoped_lock lock(mutex);
 
@@ -95,6 +96,7 @@ ShaderResourceManager::ShaderResourceManager() {
   paths[(int)ShaderType::COLORIZE] = std::string() + "resources/shaders/" + version + "/colorize";
   paths[(int)ShaderType::ADDITIVE] = std::string() + "resources/shaders/" + version + "/additive";
   paths[(int)ShaderType::PALETTE_SWAP] = std::string() + "resources/shaders/" + version + "/palette_swap";
+  paths[(int)ShaderType::GRADIENT] = std::string() + "resources/shaders/" + version + "/color_oscillate";
 }
 
 ShaderResourceManager::~ShaderResourceManager() {

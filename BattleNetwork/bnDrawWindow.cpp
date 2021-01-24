@@ -168,7 +168,7 @@ RenderWindow* DrawWindow::GetRenderWindow() const {
 
 DrawWindow::DrawWindow()
 {
-  window = nullptr;
+  Initialize(WindowMode::window);
 }
 
 DrawWindow::~DrawWindow() {

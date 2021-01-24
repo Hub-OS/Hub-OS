@@ -6,7 +6,7 @@
 #define COMPONENT_WIDTH 32
 #define COMPONENT_HEIGHT 48
 
-#define PATH std::string("resources/backgrounds/xmas/")
+#define PATH std::string("resources/scenes/xmas/")
 
 XmasBackground::XmasBackground()
   : x(0.0f), y(0.0f), Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180) {

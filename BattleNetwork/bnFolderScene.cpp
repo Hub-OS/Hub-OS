@@ -71,7 +71,8 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   folderBox = sf::Sprite(*LOAD_TEXTURE(FOLDER_BOX));
   folderBox.setScale(2.f, 2.f);
 
-  folderOptions = sf::Sprite(*LOAD_TEXTURE(FOLDER_OPTIONS));
+  const auto folderOptionsTex = collection.GetFolderNames().empty() ? LOAD_TEXTURE(FOLDER_OPTIONS_NEW) : LOAD_TEXTURE(FOLDER_OPTIONS);
+  folderOptions = sf::Sprite(*folderOptionsTex);
   folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
   folderOptions.setPosition(98.0f, 210.0f);
   folderOptions.setScale(2.f, 0.f); // hide on start
@@ -410,7 +411,7 @@ void FolderScene::onUpdate(double elapsed) {
         else {
           MakeNewFolder();
           promptOptions = false;
-          currFolderIndex = (int)folderNames.size() - 1;
+          currFolderIndex = std::max(0, static_cast<int>(folderNames.size() - 1));
           folderSwitch = true;
         }
       }
@@ -531,8 +532,11 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       }
     }
 #else 
-    auto x = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().x,
-      98.0f + (std::min(2, currFolderIndex) * 144.0f));
+    auto x = swoosh::ease::interpolate(
+      (float)frameElapsed * 7.f, folderCursor.getPosition().x,
+      98.0f + (std::min(2, currFolderIndex) * 144.0f)
+    );
+
     folderCursor.setPosition(x, 68.0f);
 
     if (currFolderIndex > 2) {
@@ -576,7 +580,6 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
   if (!folder) return;
   if (folder->GetSize() != 0) {
-
     // Move the card library iterator to the current highlighted card
     CardFolder::Iter iter = folder->Begin();
 

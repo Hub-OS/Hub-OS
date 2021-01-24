@@ -9,12 +9,12 @@
  */
 class Camera
 {
-  bool isShaking; /*!< Flag for shaking camera */
-  double progress; /*!< Progress of movement */
-  double shakeProgress; /*!< Progress of shake effect */
-  double stress; /*!< How much stress to apply to shake */
-  sf::Vector2f dest; /*!< Camera destination if moving */
-  sf::Vector2f origin; /*!< Camera' origin */
+  bool isShaking{ false }; /*!< Flag for shaking camera */
+  double progress{}; /*!< Progress of movement */
+  double shakeProgress{}; /*!< Progress of shake effect */
+  double stress{}; /*!< How much stress to apply to shake */
+  sf::Vector2f dest{}; /*!< Camera destination if moving */
+  sf::Vector2f origin{}; /*!< Camera' origin */
   sf::Time dur; /*!< Duration of movement */
   sf::Time shakeDur; /*!< Duration of shake effect */
   sf::View focus; /*!< SFML view of camera center */

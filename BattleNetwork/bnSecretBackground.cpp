@@ -3,7 +3,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnDrawWindow.h"
 
-#define PATH std::string("resources/backgrounds/secret/")
+#define PATH std::string("resources/scenes/secret/")
 
 SecretBackground::SecretBackground()
   : x(0.0f), y(0.0f), Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 160) {
