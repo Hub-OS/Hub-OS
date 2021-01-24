@@ -50,7 +50,7 @@ public:
 template<typename Any>
 ExplodeState<Any>::ExplodeState(int _numOfExplosions, double _playbackSpeed) 
   : elapsed(0), explosion(nullptr), numOfExplosions(_numOfExplosions), playbackSpeed(_playbackSpeed), AIState<Any>() {
-  AIState<Any>::template PriorityLock();
+  this->PriorityLock();
 }
 
 template<typename Any>

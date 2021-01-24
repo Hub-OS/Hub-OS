@@ -1,4 +1,7 @@
 #pragma once
+
+#include "template_helpers.h"
+
 /**
 * @class frame_time_t
 * @brief struct representing a single frame time. Allows for basic math operations.
@@ -41,9 +44,7 @@ struct frame_time_t {
   }
 
   template<typename T>
-  operator T() const {
-    return time_cast<T>(*this);
-  }
+  operator T() const;
 
   /// TODO: should we be comparing frames or the precision?
 
@@ -113,5 +114,10 @@ const T milli_cast(const frame_time_t& rhs) {
 
 template<typename T>
 const T time_cast(const frame_time_t& rhs) {
-  static_assert(false, "no cast available for frame_time_cast");
+  static_assert(!is_template_parsed<T>(), "no cast available for frame_time_cast");
+}
+
+template<typename T>
+frame_time_t::operator T() const {
+  return time_cast<T>(*this);
 }

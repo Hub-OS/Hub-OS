@@ -102,7 +102,7 @@ public:
    * @brief Set sprite rect proxy
    * @param rect
    */
-  void setTextureRect(sf::IntRect& rect);
+  void setTextureRect(const sf::IntRect& rect);
 
   /**
    * @brief Get sprite local bounds proxy
