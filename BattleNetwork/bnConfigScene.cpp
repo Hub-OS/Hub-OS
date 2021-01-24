@@ -226,7 +226,7 @@ void ConfigScene::onUpdate(double elapsed)
 
         textbox.Close();
       };
-      questionInterface = new Question("Overwite your config settings?", onYes, onNo);
+      questionInterface = new Question("Overwrite your config settings?", onYes, onNo);
       textbox.EnqueMessage(sf::Sprite(), "", questionInterface);
       textbox.Open();
       Audio().Play(AudioType::CHIP_DESC);
