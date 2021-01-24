@@ -14,10 +14,12 @@ private:
   Font font, startFont;
   Text logLabel, startLabel;
   std::vector<std::string> logs;
-  unsigned totalObjects;
+  unsigned totalObjects{};
+  unsigned ellipsis{};
   std::atomic<int> progress;
   std::atomic<int> navisLoaded;
   std::atomic<int> mobsLoaded;
+  std::string taskStr;
 
   // Status flags
   bool inLoadState = true;
@@ -26,6 +28,7 @@ private:
   bool pressedStart = false;
   bool loginSelected = true;
 
+  void CenterLabel();
 public:
   TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks);
   void onStart() override;

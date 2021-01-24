@@ -8,7 +8,14 @@
 
 using namespace swoosh::types;
 
-TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks) : 
+void TitleScene::CenterLabel()
+{
+  // update label position
+  auto bounds = startLabel.GetLocalBounds();
+  startLabel.setOrigin(bounds.width / 2.0f, bounds.height);
+}
+
+TitleScene::TitleScene(swoosh::ActivityController& controller, TaskGroup&& tasks) :
   startFont(Font::Style::thick),
   font(Font::Style::small),
   logLabel(font),
@@ -64,7 +71,12 @@ void TitleScene::onStart()
 void TitleScene::onUpdate(double elapsed)
 {
   // If not ready, do no proceed past this point!
-  if (IsComplete() == false) return;
+  if (IsComplete() == false) {
+    ellipsis = (ellipsis + 1) % 6;
+    auto dots = std::string(static_cast<size_t>(ellipsis) + 1, '.');
+    startLabel.SetString(taskStr + dots);
+    return;
+  }
 
   static bool doOnce = true;
 
@@ -76,6 +88,7 @@ void TitleScene::onUpdate(double elapsed)
 #else
     startLabel.SetString("PRESS START");
 #endif
+    CenterLabel();
   }
 
   if (Input().GetAnyKey() == sf::Keyboard::Enter && !pressedStart) {
@@ -113,10 +126,6 @@ void TitleScene::onResume()
 
 void TitleScene::onDraw(sf::RenderTexture & surface)
 {
-  // update label position
-  auto bounds = startLabel.GetLocalBounds();
-  startLabel.setOrigin(bounds.width / 2.0f, bounds.height);
-  
   surface.draw(bgSprite);
   surface.draw(logoSprite);
   surface.draw(startLabel);
@@ -128,14 +137,14 @@ void TitleScene::onEnd()
 
 void TitleScene::onTaskBegin(const std::string & taskName, float progress)
 {
-  startLabel.SetString("Working..." + taskName);
+  taskStr = taskName;
+  startLabel.SetString(taskName);
+  CenterLabel();
 
   Logger::Logf("[%.2f] Began task %s", progress, taskName.c_str());
 }
 
 void TitleScene::onTaskComplete(const std::string & taskName, float progress)
 {
-  startLabel.SetString("Completed..." + taskName);
-
   Logger::Logf("[%.2f] Completed task %s", progress, taskName.c_str());
 }

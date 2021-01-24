@@ -71,11 +71,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   folderBox = sf::Sprite(*LOAD_TEXTURE(FOLDER_BOX));
   folderBox.setScale(2.f, 2.f);
 
-  const auto folderOptionsTex = collection.GetFolderNames().empty() ? LOAD_TEXTURE(FOLDER_OPTIONS_NEW) : LOAD_TEXTURE(FOLDER_OPTIONS);
-  folderOptions = sf::Sprite(*folderOptionsTex);
-  folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
-  folderOptions.setPosition(98.0f, 210.0f);
-  folderOptions.setScale(2.f, 0.f); // hide on start
+  RefreshOptions();
 
   folderCursor = sf::Sprite(*LOAD_TEXTURE(FOLDER_BOX_CURSOR));
   folderCursor.setScale(2.f, 2.f);
@@ -292,9 +288,9 @@ void FolderScene::onUpdate(double elapsed) {
       }
 
       currCardIndex = std::max(0, currCardIndex);
-      currCardIndex = std::min(numOfCards - 1, currCardIndex);
+      currCardIndex = std::min(std::max(0, numOfCards - 1), currCardIndex);
       currFolderIndex = std::max(0, currFolderIndex);
-      currFolderIndex = std::min((int)folderNames.size() - 1, currFolderIndex);
+      currFolderIndex = std::min(std::max(0, static_cast<int>(folderNames.size()) - 1), currFolderIndex);
       optionIndex = std::max(0, optionIndex);
 
       if (folderNames.size()) {
@@ -309,8 +305,6 @@ void FolderScene::onUpdate(double elapsed) {
         || optionIndex != lastOptionIndex) {
         Audio().Play(AudioType::CHIP_SELECT);
       }
-
-
 
 #ifdef __ANDROID__
       if(lastFolderIndex != currFolderIndex) {
@@ -636,13 +630,14 @@ void FolderScene::MakeNewFolder() {
   }
 
   folderNames = collection.GetFolderNames();
+
+  RefreshOptions();
 }
 
 void FolderScene::DeleteFolder(std::function<void()> onSuccess)
 {
   if (!folderNames.size()) {
     Audio().Play(AudioType::CHIP_ERROR);
-
     return;
   }
 
@@ -650,6 +645,8 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     if (collection.DeleteFolder(folderNames[currFolderIndex])) {
       onSuccess();
       folderNames = collection.GetFolderNames();
+
+      RefreshOptions();
     }
 
     textbox.Close();
@@ -670,6 +667,21 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     questionInterface);
 
   textbox.Open();
+}
+
+void FolderScene::RefreshOptions()
+{
+  const bool emptyCollection = collection.GetFolderNames().empty();
+  const auto folderOptionsTex = emptyCollection ? LOAD_TEXTURE(FOLDER_OPTIONS_NEW) : LOAD_TEXTURE(FOLDER_OPTIONS);
+  folderOptions = sf::Sprite(*folderOptionsTex);
+  folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
+
+  if (emptyCollection) {
+    folderOptions.setPosition(98.0f, 145.0f);
+}
+  else {
+    folderOptions.setPosition(98.0f, 210.0f);
+  }
 }
 
 void FolderScene::onEnd() {

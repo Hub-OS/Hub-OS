@@ -104,7 +104,7 @@ private:
 
   void MakeNewFolder();
   void DeleteFolder(std::function<void()> onSuccess);
-
+  void RefreshOptions();
 public:  
 
   void onLeave() override;
