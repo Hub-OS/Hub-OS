@@ -5,6 +5,7 @@
 TextBox::TextBox(int width, int height) : 
   font(Font::Style::thin), 
   text("", font) {
+  text.scale(2.0f, 2.0f);
   message = "";
   areaWidth = width;
   areaHeight = height;
