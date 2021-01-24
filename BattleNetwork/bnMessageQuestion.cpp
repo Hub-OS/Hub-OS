@@ -9,6 +9,7 @@ Question::Question(std::string message, std::function<void()> onYes, std::functi
   Question::onYes = onYes;
   isQuestionReady = false;
   selectCursor.setTexture(LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  selectCursor.scale(2.0f, 2.0f);
   elapsed = 0;
   yes = canceled = false;
 }
@@ -50,7 +51,7 @@ void Question::ExecuteSelection() {
 }
 
 void Question::OnUpdate(double elapsed) {
-    Question::elapsed = elapsed;;
+    Question::elapsed = elapsed;
 
     isQuestionReady = GetTextBox()->IsEndOfMessage();
 
@@ -68,21 +69,16 @@ void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
     // We added "YES NO" to the last row of the message box
     // So it is visible when the message box is done printing.
     // Find out how many rows there are and place arrows to fit the text.
-    float cursorY = -20.0f;
     int numOfFitLines = GetTextBox()->GetNumberOfFittingLines();
+    int cursorY = (3 - numOfFitLines) * -24.0f - 20.0f;
 
-    if (numOfFitLines == 2) {
-        cursorY = -8.0f;
-    }
-    else if (numOfFitLines == 3) {
-        cursorY = 6.0f;
-    }
+    float textBoxBottom = GetTextBox()->getPosition().y + GetTextBox()->GetFrameHeight() / 2.0f;
 
     if (yes) {
-        selectCursor.setPosition(62.0f, cursorY);
+        selectCursor.setPosition(142.0f, textBoxBottom + cursorY);
     }
     else {
-        selectCursor.setPosition(140.0f, cursorY);
+        selectCursor.setPosition(314.0f, textBoxBottom + cursorY);
     }
 
     if (isQuestionReady) {
