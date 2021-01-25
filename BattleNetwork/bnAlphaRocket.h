@@ -8,7 +8,7 @@ protected:
   double speed;
 public:
 
-  AlphaRocket(Field* _field, Team _team);
+  AlphaRocket(Team _team);
 
   /**
    * @brief deconstructor

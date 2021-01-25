@@ -63,7 +63,7 @@ void HoneyBomberAttackState::DoAttack(HoneyBomber& honey) {
     if (lastBee) {
       bee = lastBee = new Bees(*lastBee);
     } else {
-      bee = new Bees(honey.GetField(), honey.GetTeam(), damage);
+      bee = new Bees(honey.GetTeam(), damage);
       lastBee = bee;
     }
 

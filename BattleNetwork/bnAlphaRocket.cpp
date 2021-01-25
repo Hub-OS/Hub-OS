@@ -7,7 +7,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
+AlphaRocket::AlphaRocket(Team _team) : Obstacle(_team)  {
   // AlphaRocket float over tiles
   SetFloatShoe(true);
   SetTeam(_team);
@@ -111,8 +111,8 @@ void AlphaRocket::OnDelete()
   });
 
   for (auto t : adj) {
-    Hitbox* box = new Hitbox(GetField(), GetTeam(), 200);
-    Explosion* exp = new Explosion(GetField(), GetTeam());
+    Hitbox* box = new Hitbox(GetTeam(), 200);
+    Explosion* exp = new Explosion();
 
     box->SetHitboxProperties(GetHitboxProperties());
 

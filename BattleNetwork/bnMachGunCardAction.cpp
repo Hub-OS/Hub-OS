@@ -74,7 +74,7 @@ void MachGunCardAction::OnExecute()
 
     // Spawn rectical where the targetTile is positioned which will attack for us
     if (targetTile) {
-      field->AddEntity(*new Target(field, this->damage), *targetTile);
+      field->AddEntity(*new Target(this->damage), *targetTile);
     }
   };
 
@@ -147,8 +147,8 @@ Battle::Tile* MachGunCardAction::MoveRectical(Field* field, bool colMove)
 
 // class Target : public Artifact
 
-Target::Target(Field* field, int damage) :
-  Artifact(field),
+Target::Target(int damage) :
+  Artifact(),
   damage(damage),
   attack(seconds_cast<double>(frames(5)))
 {
@@ -173,7 +173,7 @@ void Target::OnUpdate(double elapsed)
   GetTile()->RequestHighlight(Battle::Tile::Highlight::flash);
 
   if (attack <= 0) {
-    auto* vulcan = new SuperVulcan(GetField(), GetTeam(), damage);
+    auto* vulcan = new SuperVulcan(GetTeam(), damage);
     GetField()->AddEntity(*vulcan, *GetTile());
     this->Remove();
   }

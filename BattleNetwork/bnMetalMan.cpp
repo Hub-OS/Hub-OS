@@ -122,7 +122,7 @@ void MetalMan::OnUpdate(double _elapsed) {
 
   BossPatternAI<MetalMan>::Update(_elapsed);
 
-  Hitbox* hitbox = new Hitbox(GetField(), GetTeam(), 40);
+  Hitbox* hitbox = new Hitbox(GetTeam(), 40);
   auto props = hitbox->GetHitboxProperties();
   props.flags |= Hit::impact | Hit::recoil | Hit::flinch;
   hitbox->SetHitboxProperties(props);

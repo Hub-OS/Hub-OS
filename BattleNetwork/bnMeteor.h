@@ -15,7 +15,7 @@ private:
   double duration;
 
 public:
-  Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, float _duration);
+  Meteor(Team _team, Battle::Tile* target, int damage, float _duration);
   ~Meteor();
 
   void OnUpdate(double _elapsed) override;

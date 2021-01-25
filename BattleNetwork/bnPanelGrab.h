@@ -19,7 +19,7 @@ public:
    * @param _team team it will change tile to
    * @param _duration length of the animation
    */
-  PanelGrab(Field* _field, Team _team, float _duration);
+  PanelGrab(Team _team,float _duration);
   
   /**
    * @brief deconstructor

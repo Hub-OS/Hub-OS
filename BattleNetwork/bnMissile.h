@@ -16,7 +16,7 @@ private:
     AnimationComponent* anim;
 
 public:
-    Missile(Field* _field, Team _team, Battle::Tile* target, float _duration);
+    Missile(Team _team,Battle::Tile* target, float _duration);
     ~Missile();
 
     void OnUpdate(double _elapsed) override;

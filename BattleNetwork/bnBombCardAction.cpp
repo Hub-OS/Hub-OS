@@ -34,7 +34,7 @@ void BombCardAction::OnExecute() {
 
     auto team = owner->GetTeam();
     auto duration = 0.5f; // seconds
-    MiniBomb* b = new MiniBomb(owner->GetField(), team, owner->getPosition() + attachment->getPosition(), duration, damage);
+    MiniBomb* b = new MiniBomb(team, owner->getPosition() + attachment->getPosition(), duration, damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = owner;
     b->SetHitboxProperties(props);

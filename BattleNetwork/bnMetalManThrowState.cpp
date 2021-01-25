@@ -30,7 +30,7 @@ void MetalManThrowState::OnUpdate(double _elapsed, MetalMan& metal) {
 }
 
 void MetalManThrowState::Attack(MetalMan& metal) {
-  Spell* blade = new MetalBlade(metal.GetField(), metal.GetTeam(), 1.0);
+  Spell* blade = new MetalBlade(metal.GetTeam(), 1.0);
   auto props = blade->GetHitboxProperties();
   props.aggressor = &metal;
   blade->SetHitboxProperties(props);

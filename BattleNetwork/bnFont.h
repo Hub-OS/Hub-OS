@@ -18,11 +18,11 @@ public:
   } style;
 
 private:
-  Animation animation;
-  char letter;
-  sf::IntRect texcoords;
-  sf::IntRect letterATexcoords;
-  sf::Vector2f origin;
+  Animation animation{};
+  char letter{ 'A' };
+  sf::IntRect texcoords{};
+  sf::IntRect letterATexcoords{};
+  sf::Vector2f origin{};
   void ApplyStyle();
 
 public:

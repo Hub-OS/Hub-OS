@@ -4,9 +4,8 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
+Fishy::Fishy(Team _team, double speed) : Obstacle(team) {
   SetLayer(0);
-  field = _field;
   hit = false;
   
   setTexture(Textures().LoadTextureFromFile("resources/spells/fishy_temp.png"));

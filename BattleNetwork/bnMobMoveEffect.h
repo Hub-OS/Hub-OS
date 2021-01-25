@@ -12,7 +12,7 @@ public:
   /**
    * \brief sets the animation
    */
-  MobMoveEffect(Field* field);
+  MobMoveEffect();
 
   /**
    * @brief deconstructor

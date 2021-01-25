@@ -2,8 +2,8 @@
 #include "bnParticleImpact.h"
 #include "bnTextureResourceManager.h"
 
-VolcanoErupt::VolcanoErupt(Field* field) :
-  Spell(field, Team::unknown)
+VolcanoErupt::VolcanoErupt() :
+  Spell(Team::unknown)
 {
   eruptAnim = Animation("resources/tiles/volcano.animation");
   eruptAnim << "ERUPT"  << [this]() {

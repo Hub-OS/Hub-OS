@@ -6,10 +6,10 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Tornado::Tornado(Field* _field, Team _team, int count, int damage) 
-  : damage(damage), 
+Tornado::Tornado(Team _team, int count, int damage) : 
+  damage(damage), 
   count(count),
-  Spell(_field, _team) {
+  Spell(_team) {
   SetLayer(-1);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_TORNADO));
@@ -23,7 +23,7 @@ Tornado::Tornado(Field* _field, Team _team, int count, int damage)
   };
 
   auto firstFrame = [this]() {
-    Hitbox* hitbox = new Hitbox(GetField(), GetTeam(), this->damage);
+    Hitbox* hitbox = new Hitbox(GetTeam(), this->damage);
     auto props = GetHitboxProperties();
     hitbox->SetHitboxProperties(props);
 
@@ -31,7 +31,7 @@ Tornado::Tornado(Field* _field, Team _team, int count, int damage)
       if (entity->Hit(GetHitboxProperties())) {
         Audio().Play(AudioType::HURT);
 
-        Artifact* hitfx = new BusterHit(GetField(), BusterHit::Type::CHARGED);
+        Artifact* hitfx = new BusterHit(BusterHit::Type::CHARGED);
         GetField()->AddEntity(*hitfx, entity->GetTile()->GetX(), entity->GetTile()->GetY());
       }
     };

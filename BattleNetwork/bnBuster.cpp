@@ -13,7 +13,7 @@
 
 #define COOLDOWN 40.0/1000.0
 
-Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_field, _team) {
+Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_team) {
   SetPassthrough(true);
   SetLayer(-100);
 
@@ -103,7 +103,7 @@ void Buster::Attack(Character* _entity) {
     hitHeight /= 2;
   }
 
-  auto bhit = new BusterHit(GetField(), isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
+  auto bhit = new BusterHit(isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
   bhit->SetOffset({ random, GetHeight() + hitHeight });
   GetField()->AddEntity(*bhit, *GetTile());
 

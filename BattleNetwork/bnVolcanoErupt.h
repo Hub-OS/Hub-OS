@@ -4,7 +4,7 @@ class VolcanoErupt : public Spell {
   Animation eruptAnim;
 
 public:
-  VolcanoErupt(Field* field);
+  VolcanoErupt();
   ~VolcanoErupt();
 
   void OnUpdate(double elapsed) override;

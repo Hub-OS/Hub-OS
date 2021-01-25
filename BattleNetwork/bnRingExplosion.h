@@ -11,7 +11,7 @@ public:
   /**
    * \brief sets the animation
    */
-  RingExplosion(Field* field);
+  RingExplosion();
 
   /**
    * @brief deconstructor

@@ -49,20 +49,21 @@ void AirHockeyCardAction::OnExecute() {
       step = -1;
     }
 
-    auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
+    auto& field = *GetOwner()->GetField();
+    auto tile = field.GetAt(GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
 
     if (tile) {
-      AirHockey* b = new AirHockey(GetOwner()->GetField(), GetOwner()->GetTeam(), this->damage, 10);
+      AirHockey* b = new AirHockey(&field, GetOwner()->GetTeam(), this->damage, 10);
       auto props = b->GetHitboxProperties();
       props.aggressor = GetOwnerAs<Character>();
       b->SetHitboxProperties(props);
 
-      GetOwner()->GetField()->AddEntity(*b, tile->GetX(), tile->GetY());
+      field.AddEntity(*b, tile->GetX(), tile->GetY());
     }
 
     if (tile == nullptr) {
-      auto* fx = new MobMoveEffect(GetOwner()->GetField());
-      GetOwner()->GetField()->AddEntity(*fx, *GetOwner()->GetTile());
+      auto* fx = new MobMoveEffect();
+      field.AddEntity(*fx, *GetOwner()->GetTile());
     }
 
     Audio().Play(AudioType::TOSS_ITEM_LITE);

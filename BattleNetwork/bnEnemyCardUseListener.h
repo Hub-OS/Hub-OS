@@ -47,7 +47,7 @@ public:
       //user.SetCloakTimer(20); // TODO: make this a time-based component
     }
     else if (name == "Cannon") {
-      Cannon* cannon = new Cannon(user.GetField(), user.GetTeam(), card.GetDamage());
+      Cannon* cannon = new Cannon(user.GetTeam(), card.GetDamage());
 
       Audio().Play(AudioType::CANNON);
 
@@ -56,15 +56,15 @@ public:
       user.GetField()->AddEntity(*cannon, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
     }
     else if (name == "Swrd") {
-      BasicSword* sword = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
+      BasicSword* sword = new BasicSword(user.GetTeam(), card.GetDamage());
 
       Audio().Play(AudioType::SWORD_SWING);
 
       user.GetField()->AddEntity(*sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
     }
     else if (name == "LongSwrd") {
-      BasicSword* sword = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
-      BasicSword* sword2 = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
+      BasicSword* sword = new BasicSword(user.GetTeam(), card.GetDamage());
+      BasicSword* sword2 = new BasicSword(user.GetTeam(), card.GetDamage());
 
       Audio().Play(AudioType::SWORD_SWING);
 
@@ -77,8 +77,8 @@ public:
       }
     }
     else if (name == "WideSwrd") {
-      BasicSword* sword = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
-      BasicSword* sword2 = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
+      BasicSword* sword = new BasicSword(user.GetTeam(), card.GetDamage());
+      BasicSword* sword2 = new BasicSword(user.GetTeam(), card.GetDamage());
 
       Audio().Play(AudioType::SWORD_SWING);
 

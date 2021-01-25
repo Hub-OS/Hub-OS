@@ -8,7 +8,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/spell_heal.animation"
 
-ParticleHeal::ParticleHeal() : Artifact(nullptr)
+ParticleHeal::ParticleHeal() : Artifact()
 {
   SetLayer(0);
   setTexture(Textures().GetTexture(TextureType::SPELL_HEAL));

@@ -46,7 +46,7 @@ void FireBurnCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this, owner](int offset) -> void {
     Team team = GetOwner()->GetTeam();
-    FireBurn* fb = new FireBurn(GetOwner()->GetField(), team, type, damage);
+    FireBurn* fb = new FireBurn(team, type, damage);
     auto props = fb->GetHitboxProperties();
     props.aggressor = owner;
     fb->SetHitboxProperties(props);

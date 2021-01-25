@@ -8,7 +8,7 @@ protected:
   int damage; /*!< How much damage to deal */
   int count; /*!< How many times to hit */
 public:
-  Tornado(Field* _field, Team _team, int count, int damage);
+  Tornado(Team _team,int count, int damage);
 
   /**
    * @brief Deconstructor

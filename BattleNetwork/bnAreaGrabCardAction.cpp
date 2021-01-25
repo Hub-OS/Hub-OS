@@ -14,7 +14,7 @@ void AreaGrabCardAction::OnExecute() {
   PanelGrab** grab = new PanelGrab * [3];
 
   for (int i = 0; i < 3; i++) {
-    grab[i] = new PanelGrab(f, owner->GetTeam(), 0.25f);
+    grab[i] = new PanelGrab(owner->GetTeam(), 0.25f);
   }
 
   Battle::Tile** tile = new Battle::Tile * [3];

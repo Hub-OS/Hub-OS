@@ -8,7 +8,7 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duration) : duration(_duration), Spell(_field, _team) {
+Missile::Missile(Team _team,Battle::Tile* target, float _duration) : duration(_duration), Spell(_team) {
     Missile::target = target;
     SetLayer(1);
 
@@ -66,8 +66,7 @@ void Missile::OnUpdate(double _elapsed) {
                 tile->AffectEntities(this);
 
                 if(tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
-                    field->AddEntity(*(new RingExplosion(field)),
-                                           *GetTile());
+                    field->AddEntity(*(new RingExplosion), *GetTile());
                 }
 
                 Delete();

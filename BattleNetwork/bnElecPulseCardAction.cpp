@@ -50,7 +50,7 @@ void ElecPulseCardAction::OnExecute() {
     // On shoot frame, drop projectile`
     auto onFire = [this, owner]() -> void {
       Team team = GetOwner()->GetTeam();
-      elecpulse = new Elecpulse(GetOwner()->GetField(), team, damage);
+      elecpulse = new Elecpulse(team, damage);
       Audio().Play(AudioType::ELECPULSE);
 
       auto props = elecpulse->GetHitboxProperties();

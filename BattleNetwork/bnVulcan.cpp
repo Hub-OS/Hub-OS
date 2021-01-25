@@ -14,7 +14,7 @@
 
 #define COOLDOWN 40.0f/1000.0f
 
-Vulcan::Vulcan(Field* _field, Team _team,int damage) : Spell(_field, _team) {
+Vulcan::Vulcan(Team _team, int damage) : Spell(_team) {
   SetPassthrough(true);
   SetLayer(0);
 
@@ -66,7 +66,7 @@ void Vulcan::Attack(Character* _entity) {
     auto next = GetField()->GetAt(tile->GetX() + 1, tile->GetY());
 
     if (next) {
-      Spell* hitbox = new Hitbox(field, GetTeam(), 0);
+      Spell* hitbox = new Hitbox(GetTeam(), 0);
       hitbox->SetHitboxProperties(GetHitboxProperties());
       field->AddEntity(*hitbox, *next);
     }

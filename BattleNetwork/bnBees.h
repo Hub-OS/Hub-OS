@@ -18,7 +18,7 @@ protected:
   float attackCooldown; 
   std::list<Hitbox*> dropped;
 public:
-  Bees(Field* _field, Team _team, int damage);
+  Bees(Team _team,int damage);
   Bees(const Bees& leader);
   ~Bees();
 

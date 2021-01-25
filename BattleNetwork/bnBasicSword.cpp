@@ -16,10 +16,10 @@
 #define BULLET_ANIMATION_WIDTH 30
 #define BULLET_ANIMATION_HEIGHT 27
 
-BasicSword::BasicSword(Field* _field, Team _team, int _damage) : 
+BasicSword::BasicSword(Team _team,int _damage) : 
   damage(_damage),
   hitHeight(0),
-  Spell(_field, _team){
+  Spell(_team){
   hit = false;
   cooldown = 0;
 

@@ -8,7 +8,10 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, float _duration) : target(target), duration(_duration), Spell(_field, _team) {
+Meteor::Meteor(Team _team, Battle::Tile* target, int damage, float _duration) : 
+  target(target), 
+  duration(_duration), 
+  Spell(_team) {
   SetLayer(1);
 
   HighlightTile(Battle::Tile::Highlight::flash);
@@ -68,7 +71,7 @@ void Meteor::OnUpdate(double _elapsed) {
     if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
       EventBus().Emit(&Camera::ShakeCamera, 5, sf::seconds(0.5));
 
-      field->AddEntity(*(new RingExplosion(field)), *GetTile());
+      field->AddEntity(*(new RingExplosion), *GetTile());
     }
 
     Delete();

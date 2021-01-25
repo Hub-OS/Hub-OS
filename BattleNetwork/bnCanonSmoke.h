@@ -15,7 +15,7 @@ private:
   AnimationComponent* animationComponent;
 
 public:
-  CanonSmoke(Field* _field);
+  CanonSmoke();
   ~CanonSmoke();
 
   /**

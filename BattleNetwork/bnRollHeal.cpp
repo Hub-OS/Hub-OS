@@ -13,8 +13,9 @@
 
 #define RESOURCE_PATH "resources/spells/spell_roll.animation"
 
-RollHeal::RollHeal(Field* field, Team team, Character* user, int _heal) 
-  : Spell(field, team), user(user)
+RollHeal::RollHeal(Team team, Character* user, int _heal) : 
+  Spell(team), 
+  user(user)
 {
   SetPassthrough(true);
 
@@ -132,7 +133,7 @@ void RollHeal::OnDelete()
 
 void RollHeal::DropHitbox(Battle::Tile* target)
 {
-    auto hitbox = new Hitbox(GetField(), GetTeam());
+    auto hitbox = new Hitbox(GetTeam());
     hitbox->HighlightTile(Battle::Tile::Highlight::solid);
     hitbox->SetHitboxProperties(GetHitboxProperties());
     hitbox->AddCallback([](Character* hit) {

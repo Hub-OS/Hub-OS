@@ -16,7 +16,7 @@ protected:
   double speed;
   bool hit;
 public:
-  Fishy(Field* _field, Team _team, double speed = 1.0);
+  Fishy(Team _team,double speed = 1.0);
 
   virtual ~Fishy();
   

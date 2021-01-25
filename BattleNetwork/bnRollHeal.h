@@ -18,7 +18,7 @@ public:
    * Prepares animations callbacks
    * @param heal how much to heal the player with
    */
-  RollHeal(Field* field, Team team, Character* user, int heal);
+  RollHeal(Team team, Character* user, int heal);
   
   /**
    * @brief Deconstructor

@@ -11,7 +11,7 @@
  */
 class Cannon : public Spell {
 public:
-  Cannon(Field* _field, Team _team, int damage);
+  Cannon(Team _team,int damage);
   ~Cannon();
 
   void OnUpdate(double _elapsed) override;

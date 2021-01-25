@@ -4,7 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-SuperVulcan::SuperVulcan(Field* _field, Team _team, int damage) : Spell(_field, _team) {
+SuperVulcan::SuperVulcan(Team _team, int damage) : Spell(_team) {
   SetLayer(1);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_SUPER_VULCAN));

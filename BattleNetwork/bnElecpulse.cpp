@@ -8,7 +8,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _team) {
+Elecpulse::Elecpulse(Team _team, int _damage) : Spell(_team) {
   SetLayer(0);
   SetPassthrough(true);
   SetElement(Element::elec);

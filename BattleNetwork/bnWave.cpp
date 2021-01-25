@@ -5,7 +5,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
+Wave::Wave(Team _team, double speed) : Spell(_team) {
   SetLayer(0);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_WAVE));
@@ -28,7 +28,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
     }
 
     if(nextTile && nextTile->IsWalkable() && !nextTile->IsEdgeTile()) {
-        auto* wave = new Wave(GetField(), GetTeam(), Wave::speed);
+        auto* wave = new Wave(GetTeam(), Wave::speed);
         wave->SetDirection(dir);
         wave->SetHitboxProperties(GetHitboxProperties());
         wave->CrackTiles(this->crackTiles);

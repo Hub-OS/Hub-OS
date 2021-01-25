@@ -102,8 +102,8 @@ AlphaCore::AlphaCore(Rank _rank) :
   AddDefenseRule(defense);
 
   // arms
-  rightArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::RIGHT_IDLE);
-  leftArm = new AlphaArm(nullptr, GetTeam(), AlphaArm::Type::LEFT_IDLE);
+  rightArm = new AlphaArm(GetTeam(), AlphaArm::Type::RIGHT_IDLE);
+  leftArm = new AlphaArm(GetTeam(), AlphaArm::Type::LEFT_IDLE);
 
   // Setup AI pattern
   AddState<AlphaIdleState>();
@@ -322,7 +322,7 @@ void AlphaCore::HideLeftArm()
 {
   if (!leftArm) return;
 
-  auto fx = new MobMoveEffect(GetField());
+  auto fx = new MobMoveEffect();
   GetField()->AddEntity(*fx, leftArm->GetTile()->GetX(), leftArm->GetTile()->GetY());
   leftArm->GetTile()->ReserveEntityByID(leftArm->GetID());
   leftArm->GetTile()->RemoveEntityByID(leftArm->GetID());
@@ -333,7 +333,7 @@ void AlphaCore::RevealLeftArm()
   if (!leftArm) return;
 
   GetField()->AddEntity((*leftArm), GetTile()->GetX(), GetTile()->GetY() + 1);
-  auto fx = new MobMoveEffect(GetField());
+  auto fx = new MobMoveEffect();
   GetField()->AddEntity(*fx, GetTile()->GetX(), GetTile()->GetY() + 1);
 }
 
@@ -341,7 +341,7 @@ void AlphaCore::HideRightArm()
 {
   if (!rightArm) return;
 
-  auto fx = new MobMoveEffect(GetField());
+  auto fx = new MobMoveEffect();
   GetField()->AddEntity(*fx, rightArm->GetTile()->GetX(), rightArm->GetTile()->GetY());
   rightArm->GetTile()->ReserveEntityByID(rightArm->GetID());
   rightArm->GetTile()->RemoveEntityByID(rightArm->GetID());
@@ -352,7 +352,7 @@ void AlphaCore::RevealRightArm()
   if (!rightArm) return;
 
   GetField()->AddEntity((*rightArm), GetTile()->GetX() - 1, GetTile()->GetY() - 1);
-  auto fx = new MobMoveEffect(GetField());
+  auto fx = new MobMoveEffect();
   GetField()->AddEntity(*fx, GetTile()->GetX() - 1, GetTile()->GetY() - 1);
 }
 

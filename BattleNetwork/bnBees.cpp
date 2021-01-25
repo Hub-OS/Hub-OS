@@ -7,12 +7,20 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Bees::Bees(Field* _field, Team _team, int damage)
-  : animation(), elapsed(0), target(nullptr), turnCount(0),
-  hitCount(0), shadow(nullptr), leader(nullptr),
-  attackCooldown(0), dropped(), damage(damage),
+Bees::Bees(Team _team,int damage)
+  : 
+  animation(), 
+  elapsed(0), 
+  target(nullptr), 
+  turnCount(0),
+  hitCount(0), 
+  shadow(nullptr), 
+  leader(nullptr),
+  attackCooldown(0), 
+  dropped(), 
+  damage(damage),
   madeContact(false),
-  Spell(_field, _team) {
+  Spell(_team) {
   SetLayer(0);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_BEES));
@@ -66,11 +74,18 @@ Bees::Bees(Field* _field, Team _team, int damage)
 
 Bees::Bees(const Bees & leader)
   :
-  animation(leader.animation), elapsed(0), target(leader.target),
-  turnCount(leader.turnCount), hitCount(0), shadow(nullptr), leader(const_cast<Bees*>(&leader)),
-  attackCooldown(leader.attackCooldown), dropped(), damage(leader.damage),
+  animation(leader.animation), 
+  elapsed(0), 
+  target(leader.target),
+  turnCount(leader.turnCount), 
+  hitCount(0), 
+  shadow(nullptr), 
+  leader(const_cast<Bees*>(&leader)),
+  attackCooldown(leader.attackCooldown), 
+  dropped(), 
+  damage(leader.damage),
   madeContact(false),
-  Spell(leader.GetField(), leader.GetTeam())
+  Spell(leader.GetTeam())
 {
   SetLayer(0);
 
@@ -227,7 +242,7 @@ void Bees::OnUpdate(double _elapsed) {
   if (target && GetTile() == target->GetTile() && attackCooldown == 0) {
     // Try to attack 5 times
     attackCooldown = 1.80f; // est 3 frames
-    auto hitbox = new Hitbox(GetField(), GetTeam());
+    auto hitbox = new Hitbox(GetTeam());
     hitbox->SetHitboxProperties(GetHitboxProperties());
 
     // all other hitbox events will be ignored after 5 hits

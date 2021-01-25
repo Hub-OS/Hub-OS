@@ -4,7 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-CrackShot::CrackShot(Field* _field, Team _team, Battle::Tile* tile) : Spell(_field, _team) {
+CrackShot::CrackShot(Team _team,Battle::Tile* tile) : Spell(_team) {
   // Blades float over tiles 
   SetFloatShoe(true);
 

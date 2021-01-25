@@ -20,7 +20,7 @@ public:
   /**
    * @brief Sets the layer to 1 (underneath characters, layer = 0) and enables FloatShoe
    */
-  Spell(Field* field, Team team);
+  Spell(Team team);
   virtual ~Spell();
 
   /**

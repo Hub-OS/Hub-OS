@@ -14,7 +14,7 @@ ReflectShield::ReflectShield(Character* owner, int damage, Type type) :
   owner(owner),
   type(type),
   duration(seconds_cast<float>(frames(63))),
-  Artifact(owner->GetField())
+  Artifact()
 {
   setTexture(Textures().GetTexture(TextureType::SPELL_REFLECT_SHIELD));
   SetLayer(-1); // stay above characters
@@ -103,7 +103,7 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
 
     Field* field = owner.GetField();
 
-    Spell* rowhit = new RowHit(field, owner.GetTeam(), damage);
+    Spell* rowhit = new RowHit(owner.GetTeam(), damage);
     rowhit->SetDirection(direction);
 
     field->AddEntity(*rowhit, owner.GetTile()->GetX() + 1, owner.GetTile()->GetY());

@@ -16,7 +16,7 @@ protected:
   double speed;
   bool popping;
 public:
-  Bubble(Field* _field, Team _team, double speed = 1.0);
+  Bubble(Team _team,double speed = 1.0);
 
   ~Bubble();
   

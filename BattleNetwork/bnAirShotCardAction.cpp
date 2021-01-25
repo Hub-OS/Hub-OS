@@ -38,7 +38,7 @@ void AirShotCardAction::OnExecute() {
 
     Audio().Play(AudioType::SPREADER);
 
-    AirShot* airshot = new AirShot(user.GetField(), user.GetTeam(), damage);
+    AirShot* airshot = new AirShot(user.GetTeam(), damage);
     airshot->SetDirection(Direction::right);
     auto props = airshot->GetHitboxProperties();
     props.aggressor = &user;

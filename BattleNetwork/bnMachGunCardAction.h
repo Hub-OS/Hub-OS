@@ -31,7 +31,7 @@ class Target : public Artifact {
   double attack{}; //!< in seconds
   int damage{};
 public:
-  Target(Field*, int damage);
+  Target(int damage);
   ~Target();
 
   void OnSpawn(Battle::Tile& start) override;

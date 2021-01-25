@@ -18,7 +18,7 @@ protected:
 
 public:
 
-  TwinFang(Field* _field, Team _team, Type _type, int damage);
+  TwinFang(Team _team,Type _type, int damage);
 
   /**
    * @brief deconstructor

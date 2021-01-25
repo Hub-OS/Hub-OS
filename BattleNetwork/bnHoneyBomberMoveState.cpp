@@ -51,8 +51,8 @@ void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
 
   if (moved) {
 
-    auto fx = new MobMoveEffect(honey.GetField());
-    honey.GetField()->AddEntity(*fx, honey.GetTile()->GetX(), honey.GetTile()->GetY());
+    auto fx = new MobMoveEffect();
+    honey.GetField()->AddEntity(*fx, *honey.GetTile());
 
     honey.AdoptNextTile();
     honey.FinishMove();

@@ -8,7 +8,7 @@ public:
 protected:
   Animation animation; /*!< the animation of the shot */
 public:
-  SuperVulcan(Field* _field, Team _team, int damage);
+  SuperVulcan(Team _team, int damage);
 
   /**
    * @brief Deconstructor

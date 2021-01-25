@@ -97,7 +97,7 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
       * in its original place and then removes itself from the component
       * owner
       */
-    Fishy* fishy = new Fishy(player->GetField(), player->GetTeam(), 1.0);
+    Fishy* fishy = new Fishy(player->GetTeam(), 1.0);
     fishy->SetDirection(Direction::right);
 
     // Condition to end hide

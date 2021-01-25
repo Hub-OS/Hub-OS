@@ -10,7 +10,9 @@ const std::string VULCAN_PATH   = "resources/spells/artifact_vulcan_impact.anima
 const std::string VOLCANO_PATH  = "resources/spells/volcano_hit.animation";
 const std::string WIND_PATH     = "resources/spells/panel_wind.animation";
 
-ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifact(nullptr)
+ParticleImpact::ParticleImpact(ParticleImpact::Type type) :
+  randOffset(), 
+  Artifact()
 {
   SetLayer(-10);
   setTexture(Textures().GetTexture(TextureType::SPELL_IMPACT_FX));

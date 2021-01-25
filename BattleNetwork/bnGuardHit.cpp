@@ -11,11 +11,14 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/guard_hit.animation"
 
-GuardHit::GuardHit(Field* _field, Character* hit, bool center) 
-  : w(0), h(0), center(true), Artifact(_field)
+GuardHit::GuardHit(Character* hit, bool center) 
+  : 
+  w(0), 
+  h(0), 
+  center(true), 
+  Artifact()
 {
   SetLayer(0);
-  field = _field;
   team = Team::unknown;
 
   if (!center) {

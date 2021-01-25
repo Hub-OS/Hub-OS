@@ -9,7 +9,9 @@
 
 using sf::IntRect;
 
-ElementalDamage::ElementalDamage(Field* field) : Artifact(field), animationComponent(this)
+ElementalDamage::ElementalDamage(Field* field) : 
+  Artifact(), 
+  animationComponent(this)
 {
   SetLayer(0);
   setTexture(LOAD_TEXTURE(ELEMENT_ALERT));

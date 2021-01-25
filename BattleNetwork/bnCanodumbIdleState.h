@@ -18,7 +18,7 @@ private:
   Canodumb* can;
   Entity::RemoveCallback freeCursorCallback;
   friend void CanodumbCursor::OnUpdate(double _elapsed);
-  friend CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _parent);
+  friend CanodumbCursor::CanodumbCursor(CanodumbIdleState* _parent);
 
   void Attack();
   void FreeCursor();

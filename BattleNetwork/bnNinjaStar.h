@@ -19,7 +19,7 @@ public:
    * @@param _team Team of ninja star
    * @param _duration of the animation
    */
-  NinjaStar(Field* _field, Team _team, float _duration);
+  NinjaStar(Team _team,float _duration);
   
   /**
    * @brief deconstructor

@@ -17,7 +17,7 @@ public:
 
 class TomahawkEffect : public Artifact {
 public:
-  TomahawkEffect(Field* field);
+  TomahawkEffect();
   ~TomahawkEffect();
   void OnUpdate(double elapsed) override;
   void OnDelete() override;

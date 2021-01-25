@@ -9,9 +9,12 @@
 
 const int Cube::numOfAllowedCubesOnField = 2;
 
-Cube::Cube(Field* _field)
-  : killLater(false), pushedByDrag(false), animation(nullptr),
-  Obstacle(field, Team::unknown), InstanceCountingTrait<Cube>() {
+Cube::Cube(Field* _field) : 
+  killLater(false), 
+  pushedByDrag(false), 
+  animation(nullptr),
+  Obstacle(Team::unknown), 
+  InstanceCountingTrait<Cube>() {
   setTexture(LOAD_TEXTURE(MISC_CUBE));
   setScale(2.f, 2.f);
   SetFloatShoe(false);

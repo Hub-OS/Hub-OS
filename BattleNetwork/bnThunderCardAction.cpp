@@ -26,7 +26,7 @@ void ThunderCardAction::OnExecute() {
   auto onFire = [this]() -> void {
 
     Team team = GetOwner()->GetTeam();
-    auto* thunder = new Thunder(GetOwner()->GetField(), team);
+    auto* thunder = new Thunder(team);
     auto props = thunder->GetHitboxProperties();
     props.damage = damage;
     props.aggressor = GetOwner();

@@ -53,7 +53,7 @@ void CrackShotCardAction::OnExecute() {
     auto tile = GetOwner()->GetField()->GetAt(GetOwner()->GetTile()->GetX() + step, GetOwner()->GetTile()->GetY());
 
     if (tile && tile->IsWalkable() && !tile->IsReservedByCharacter()) {
-      CrackShot* b = new CrackShot(owner->GetField(), owner->GetTeam(), tile);
+      CrackShot* b = new CrackShot(owner->GetTeam(), tile);
       auto props = b->GetHitboxProperties();
       props.damage = damage;
       props.aggressor = owner;

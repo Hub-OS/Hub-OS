@@ -25,7 +25,7 @@ private:
   // Frame select through animation system
   AnimationComponent* animationComponent;
 public:
-  CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _parentState);
+  CanodumbCursor(CanodumbIdleState* _parentState);
   ~CanodumbCursor();
   
   /**

@@ -24,7 +24,7 @@ private:
     double progress;
     DefenseRule* copout;
   public:
-    Head(Megalian* belongsTo) : base(belongsTo), Obstacle(belongsTo->GetField(), belongsTo->GetTeam()) {
+    Head(Megalian* belongsTo) : base(belongsTo), Obstacle(belongsTo->GetTeam()) {
       SetFloatShoe(true);
       SetTeam(base->GetTeam());
       SharedHitboxDamage(base);

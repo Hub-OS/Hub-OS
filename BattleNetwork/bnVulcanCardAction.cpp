@@ -43,7 +43,7 @@ void VulcanCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this, owner]() -> void {
     Team team = GetOwner()->GetTeam();
-    Vulcan* b = new Vulcan(GetOwner()->GetField(), team, damage);
+    Vulcan* b = new Vulcan(team, damage);
     auto props = b->GetHitboxProperties();
     props.aggressor = owner;
     b->SetHitboxProperties(props);

@@ -48,7 +48,7 @@ void DarkTornadoCardAction::OnExecute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this, team, tile, field]() -> void {
-    Tornado* tornado = new Tornado(field, team, 8, damage);
+    Tornado* tornado = new Tornado(team, 8, damage);
     tornado->setTexture(Textures().LoadTextureFromFile("resources/spells/spell_tornado_dark.png"));
 
     auto props = tornado->GetHitboxProperties();

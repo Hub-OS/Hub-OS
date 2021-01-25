@@ -5,7 +5,7 @@
 class Vulcan : public Spell {
 public:
 
-  Vulcan(Field* _field, Team _team, int _damage);
+  Vulcan(Team _team,int _damage);
   ~Vulcan();
 
   void OnUpdate(double _elapsed) override;

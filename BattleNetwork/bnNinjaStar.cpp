@@ -7,7 +7,7 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_duration), Spell(_field, _team) {
+NinjaStar::NinjaStar(Team _team, float _duration) : duration(_duration), Spell(_team) {
   SetLayer(0);;
   
   setTexture(Textures().GetTexture(TextureType::SPELL_NINJA_STAR));

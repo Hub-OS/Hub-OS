@@ -8,7 +8,8 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/mob_move.animation"
 
-MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
+MobMoveEffect::MobMoveEffect() :
+  Artifact()
 {
   SetLayer(-1);
   setTexture(Textures().GetTexture(TextureType::MOB_MOVE));

@@ -8,7 +8,7 @@ protected:
   double speed; 
 public:
 
-  CrackShot(Field* _field, Team _team, Battle::Tile* t);
+  CrackShot(Team _team,Battle::Tile* t);
 
   /**
    * @brief deconstructor

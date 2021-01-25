@@ -21,7 +21,7 @@ public:
   /**
    * @brief Load the animation and set position
    */
-  GuardHit(Field* _field, Character* hit, bool center = false);
+  GuardHit(Character* hit, bool center = false);
   ~GuardHit();
 
   /**

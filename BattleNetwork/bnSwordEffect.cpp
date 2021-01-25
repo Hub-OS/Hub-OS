@@ -9,7 +9,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/spell_sword_slashes.animation"
 
-SwordEffect::SwordEffect(Field* field) : Artifact(field)
+SwordEffect::SwordEffect() : Artifact()
 {
   SetLayer(0);
   setTexture(Textures().GetTexture(TextureType::SPELL_SWORD));

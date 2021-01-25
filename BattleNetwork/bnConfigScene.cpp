@@ -13,8 +13,7 @@ const constexpr int ACTIONS   = 1; // Second column is actions within that menu
 const constexpr int BOUNDKEYS = 2; // Third column is used for bound keys
 
 // Top-level menu items
-SMART_ENUM(
-  MenuItems,
+SMART_ENUM(MenuItems,
   audio_bg,
   audio_sfx,
   shaders,

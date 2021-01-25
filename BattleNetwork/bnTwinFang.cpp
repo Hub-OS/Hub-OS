@@ -4,7 +4,9 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_field, _team), type(_type) {
+TwinFang::TwinFang(Team _team,Type _type, int damage) : 
+  Spell(_team), 
+  type(_type) {
   // Blades float over tiles 
   SetFloatShoe(true);
   SetAirShoe(true);

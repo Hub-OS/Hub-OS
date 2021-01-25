@@ -14,7 +14,7 @@ class AlphaElectricCurrent : public Spell {
   int count;
   int countMax;
 public:
-  AlphaElectricCurrent(Field* field, Team team, int count);
+  AlphaElectricCurrent(Team team, int count);
   ~AlphaElectricCurrent();
 
   // Inherited via Spell

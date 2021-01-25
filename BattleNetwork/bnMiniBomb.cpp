@@ -10,7 +10,7 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-MiniBomb::MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration, int damage) : Spell(_field, _team) {
+MiniBomb::MiniBomb(Team _team,sf::Vector2f startPos, float _duration, int damage) : Spell(_team) {
   SetLayer(0);
 
   HighlightTile(Battle::Tile::Highlight::flash);
@@ -57,12 +57,12 @@ void MiniBomb::OnUpdate(double _elapsed) {
     // update tile to target tile 
     if (tile->IsWalkable()) {
       tile->AffectEntities(this);
-      Artifact* explosion = new Explosion(GetField(), GetTeam());
+      Artifact* explosion = new Explosion();
       GetField()->AddEntity(*explosion, tile->GetX(), tile->GetY());
       Delete();
     }
     else {
-      auto fx = new MobMoveEffect(GetField());
+      auto fx = new MobMoveEffect();
       GetField()->AddEntity(*fx, *GetTile());
       Delete();
     }

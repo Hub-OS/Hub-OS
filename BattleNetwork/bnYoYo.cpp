@@ -6,7 +6,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, _team) {
+YoYo::YoYo(Team _team, int damage, double speed) : Spell(_team) {
   // YoYo float over tiles
   SetFloatShoe(true);
 
@@ -41,7 +41,7 @@ YoYo::~YoYo() {
 
 void YoYo::OnDelete() {
   if (startTile && startTile != GetTile()) {
-    GetField()->AddEntity(*new Explosion(GetField(), GetTeam(), 1), *GetTile());
+    GetField()->AddEntity(*new Explosion, *GetTile());
   }
   Remove();
 }
@@ -82,7 +82,7 @@ void YoYo::OnUpdate(double _elapsed) {
         animation->AddCallback(3, [this, direction]() {
           // First, let the slide finish for this final tile...
           if (!IsSliding()) {
-            auto hitbox = new Hitbox(GetField(), GetTeam());
+            auto hitbox = new Hitbox(GetTeam());
             hitbox->SetHitboxProperties(GetHitboxProperties());
             GetField()->AddEntity(*hitbox, *GetTile());
 

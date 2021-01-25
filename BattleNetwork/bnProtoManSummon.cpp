@@ -16,7 +16,7 @@
 
 ProtoManSummon::ProtoManSummon(Character* user, int damage) : 
   user(user),
-  Spell(user->GetField(), user->GetTeam())
+  Spell(user->GetTeam())
 {
   SetPassthrough(true);
   random = rand() % 20 - 20;
@@ -139,11 +139,11 @@ void ProtoManSummon::Attack(Character* _entity) {
 
   auto tile = _entity->GetTile();
 
-  SwordEffect* e = new SwordEffect(field);
+  SwordEffect* e = new SwordEffect;
   e->SetAnimation("WIDE");
   field->AddEntity(*e, tile->GetX(), tile->GetY());
 
-  BasicSword* b = new BasicSword(field, GetTeam(), 0);
+  BasicSword* b = new BasicSword(GetTeam(), 0);
   auto props = this->GetHitboxProperties();
   props.aggressor = user;
   b->SetHitboxProperties(props);
@@ -151,13 +151,13 @@ void ProtoManSummon::Attack(Character* _entity) {
   Audio().Play(AudioType::SWORD_SWING);
   field->AddEntity(*b, tile->GetX(),tile->GetY());
 
-  b = new BasicSword(field, GetTeam(), 0);
+  b = new BasicSword(GetTeam(), 0);
   props = this->GetHitboxProperties();
   props.aggressor = user;
   b->SetHitboxProperties(props);
   field->AddEntity(*b,tile->GetX(), tile->GetY() + 1);
 
-  b = new BasicSword(field, GetTeam(), 0);
+  b = new BasicSword(GetTeam(), 0);
   props = this->GetHitboxProperties();
   props.aggressor = user;
   field->AddEntity(*b, tile->GetX(), tile->GetY() - 1);

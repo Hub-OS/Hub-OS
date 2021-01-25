@@ -9,7 +9,7 @@ public:
   /**
    * @brief loads the animation and adds a callback to delete when finished
    */
-  SwordEffect(Field* field);
+  SwordEffect();
   ~SwordEffect();
 
   /**

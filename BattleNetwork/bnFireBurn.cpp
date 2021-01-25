@@ -5,7 +5,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(damage), Spell(_field, _team) {
+FireBurn::FireBurn(Team _team, Type type, int damage) : damage(damage), Spell(_team) {
   SetLayer(-1);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_FIREBURN));

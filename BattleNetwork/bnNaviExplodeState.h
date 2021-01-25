@@ -76,7 +76,7 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
   /* Spawn shine artifact */
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
-  shine = new ShineExplosion(field, e.GetTeam());
+  shine = new ShineExplosion();
   field->AddEntity(*shine, tile->GetX(), tile->GetY());
 
   auto animation = e.template GetFirstComponent<AnimationComponent>();

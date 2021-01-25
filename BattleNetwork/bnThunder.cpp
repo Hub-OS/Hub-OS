@@ -5,7 +5,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
+Thunder::Thunder(Team _team) : Spell(_team) {
   SetLayer(0);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_THUNDER));

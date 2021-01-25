@@ -4,7 +4,7 @@
 class Wind : public Spell {
 public:
 
-  Wind(Field* _field, Team _team);
+  Wind(Team _team);
   ~Wind();
 
   void OnUpdate(double _elapsed) override;

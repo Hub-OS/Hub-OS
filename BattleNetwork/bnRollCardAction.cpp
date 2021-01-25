@@ -15,7 +15,7 @@ void RollCardAction::OnExecute() {
 
   // On start of idle frame, spawn roll
   GetOwner()->Hide();
-  auto* roll = new RollHeal(GetOwner()->GetField(), GetOwner()->GetTeam(), GetOwner(), damage);
+  auto* roll = new RollHeal(GetOwner()->GetTeam(), GetOwner(), damage);
 
   GetOwner()->GetField()->AddEntity(*roll, GetOwner()->GetTile()->GetX(), GetOwner()->GetTile()->GetY());
 

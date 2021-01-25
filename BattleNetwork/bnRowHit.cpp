@@ -4,7 +4,9 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_field, _team) {
+RowHit::RowHit(Team _team, int damage) : 
+  damage(damage), 
+  Spell(_team) {
   SetLayer(0);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));
@@ -16,7 +18,7 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_f
   };
 
   auto onFrameTwo = [this]() {
-    field->AddEntity(*new RowHit(field, GetTeam(), RowHit::damage), tile->GetX() + 1, tile->GetY());
+    field->AddEntity(*new RowHit(GetTeam(), RowHit::damage), tile->GetX() + 1, tile->GetY());
   };
 
   animation = Animation("resources/spells/spell_charged_bullet_hit.animation");

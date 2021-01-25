@@ -35,7 +35,7 @@ public:
   /**
    * @brief Create an explosion chain effect with numOfExplosions=1 and playbackSpeed=0.55 defaults
    */
-  Explosion(Field* _field, Team _team, int _numOfExplosions=1, double _playbackSpeed=0.55);
+  Explosion(int _numOfExplosions=1, double _playbackSpeed=0.55);
   
   ~Explosion();
 

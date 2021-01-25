@@ -17,7 +17,7 @@
 #define BULLET_ANIMATION_WIDTH 30
 #define BULLET_ANIMATION_HEIGHT 27
 
-AirShot::AirShot(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
+AirShot::AirShot(Team _team,int _damage) : Spell(_team) {
   SetPassthrough(true);
   SetFloatShoe(true);
 

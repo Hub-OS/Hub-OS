@@ -17,7 +17,7 @@ protected:
   Entity* target; /**< The current enemy to approach */
 
 public:
-  Thunder(Field* _field, Team _team);
+  Thunder(Team _team);
   ~Thunder();
   
   /**

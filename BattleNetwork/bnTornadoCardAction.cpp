@@ -47,7 +47,7 @@ void TornadoCardAction::OnExecute() {
 
   // On shoot frame, drop projectile
   auto onFire = [this, team, tile, field, owner]() -> void {
-    Tornado* tornado = new Tornado(field, team, 8, damage);
+    Tornado* tornado = new Tornado(team, 8, damage);
     auto props = tornado->GetHitboxProperties();
     props.aggressor = owner;
     tornado->SetHitboxProperties(props);

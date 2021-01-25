@@ -74,10 +74,10 @@ void SwordCardAction::OnSpawnHitbox()
 {
   auto field = GetOwner()->GetField();
 
-  SwordEffect* e = new SwordEffect(field);
+  SwordEffect* e = new SwordEffect;
   field->AddEntity(*e, GetOwner()->GetTile()->GetX() + 1, GetOwner()->GetTile()->GetY());
 
-  BasicSword* b = new BasicSword(field, GetOwner()->GetTeam(), damage);
+  BasicSword* b = new BasicSword(GetOwner()->GetTeam(), damage);
   auto props = b->GetHitboxProperties();
   props.aggressor = GetOwner();
 

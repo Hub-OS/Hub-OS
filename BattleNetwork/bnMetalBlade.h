@@ -16,7 +16,7 @@ public:
    * 
    * Speed modifier changes sliding/gliding time
    */
-  MetalBlade(Field* _field, Team _team, double speed = 1.0);
+  MetalBlade(Team _team,double speed = 1.0);
   
   /**
    * @brief deconstructor

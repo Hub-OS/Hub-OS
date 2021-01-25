@@ -13,7 +13,7 @@ public:
     LEFT_IDLE, RIGHT_IDLE, LEFT_SWIPE, RIGHT_SWIPE
   } type;
 
-  AlphaArm(Field * _field, Team _team, AlphaArm::Type type);
+  AlphaArm(Team _team, AlphaArm::Type type);
   ~AlphaArm();
 
   void OnUpdate(double _elapsed) override;

@@ -3,7 +3,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include <Swoosh/Game.h>
-Wind::Wind(Field* _field, Team _team) :Spell(_field, _team) {
+Wind::Wind(Team _team) : Spell(_team) {
   SetPassthrough(true);
   SetLayer(-1);
   SetDirection(_team == Team::blue ? Direction::right : Direction::left);

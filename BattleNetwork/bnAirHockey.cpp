@@ -5,7 +5,9 @@
 #include "bnTextureResourceManager.h"
 
 AirHockey::AirHockey(Field* field, Team team, int damage, int moveCount) :
-  Spell(field, team), damage(damage), moveCount(moveCount)
+  Spell(team), 
+  damage(damage), 
+  moveCount(moveCount)
 {
   setTexture(Textures().LoadTextureFromFile("resources/spells/puck.png"));
   setOrigin(getLocalBounds().width / 2.f, 16.f);
@@ -104,9 +106,13 @@ void AirHockey::OnSpawn(Battle::Tile& start)
 
 void AirHockey::OnDelete()
 {
-  auto* fx = new MobMoveEffect(GetField());
-  GetField()->AddEntity(*fx, *GetTile());
-  fx->SetOffset(tileOffset);
+  auto* fx = new MobMoveEffect();
+  auto result = GetField()->AddEntity(*fx, *GetTile());
+
+  if (result != Field::AddEntityStatus::deleted) {
+    fx->SetOffset(tileOffset);
+  }
+
   Remove();
 }
 

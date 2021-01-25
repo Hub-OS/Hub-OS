@@ -10,7 +10,12 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/cube/cube.animation"
 
-RockDebris::RockDebris(RockDebris::Type type, double intensity) : Artifact(nullptr), type(type), intensity(intensity), duration(0.5), progress(0)
+RockDebris::RockDebris(RockDebris::Type type, double intensity) : 
+  Artifact(), 
+  type(type), 
+  intensity(intensity), 
+  duration(0.5), 
+  progress(0)
 {
   SetLayer(0);
   setTexture(Textures().GetTexture(TextureType::MISC_CUBE));

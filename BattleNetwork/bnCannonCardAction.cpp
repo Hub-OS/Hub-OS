@@ -52,7 +52,7 @@ void CannonCardAction::OnExecute() {
 
     // Spawn a single cannon instance on the tile in front of the player
     Team team = GetOwner()->GetTeam();
-    Cannon* cannon = new Cannon(GetOwner()->GetField(), team, damage);
+    Cannon* cannon = new Cannon(team, damage);
     auto props = cannon->GetHitboxProperties();
     props.aggressor = GetOwner();
 

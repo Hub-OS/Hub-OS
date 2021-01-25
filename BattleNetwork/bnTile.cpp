@@ -77,7 +77,7 @@ namespace Battle {
         volcanoEruptTimer = seconds;
         
         if (field && state == TileState::volcano) {
-          field->AddEntity(*new VolcanoErupt(field), *this);
+          field->AddEntity(*new VolcanoErupt, *this);
         }
       }
       else {
@@ -613,7 +613,7 @@ namespace Battle {
 
         if (GetState() == TileState::lava && character->GetElement() != Element::fire) {
           if (character->Hit(Hit::Properties({ 50, Hit::pierce | Hit::flinch, Element::fire, nullptr, Direction::none }))) {
-            Artifact* explosion = new Explosion(field, GetTeam(), 1);
+            Artifact* explosion = new Explosion;
             field->AddEntity(*explosion, GetX(), GetY());
             SetState(TileState::normal);
           }

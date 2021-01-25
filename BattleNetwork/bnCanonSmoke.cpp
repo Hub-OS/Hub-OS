@@ -8,7 +8,7 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
-CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
+CanonSmoke::CanonSmoke(): Artifact()
 {
   SetLayer(0);
 

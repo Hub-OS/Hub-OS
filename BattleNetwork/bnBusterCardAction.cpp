@@ -43,7 +43,7 @@ void BusterCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
     Team team = this->GetOwner()->GetTeam();
-    Buster* b = new Buster(GetOwner()->GetField(), team, charged, damage);
+    Buster* b = new Buster(team, charged, damage);
 
     if (team == Team::red) {
       b->SetDirection(Direction::right);

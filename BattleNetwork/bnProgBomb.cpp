@@ -8,7 +8,7 @@
 #include <cmath>
 #include <Swoosh/Ease.h>
 
-ProgBomb::ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration) : Spell(_field, _team) {
+ProgBomb::ProgBomb(Team _team, sf::Vector2f startPos, float _duration) : Spell(_team) {
   SetLayer(0);
 
   setTexture(Textures().GetTexture(TextureType::SPELL_PROG_BOMB));
@@ -56,7 +56,7 @@ void ProgBomb::OnUpdate(double _elapsed) {
   if (arcProgress >= arcDuration) {
     // update tile to target tile 
     tile->AffectEntities(this);
-    Artifact* explosion = new Explosion(GetField(), GetTeam());
+    Artifact* explosion = new Explosion();
     GetField()->AddEntity(*explosion, tile->GetX(), tile->GetY());
     Delete();
   }

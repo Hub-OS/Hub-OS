@@ -2,9 +2,10 @@
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 
-Obstacle::Obstacle(Field* _field, Team _team) 
-  : ignoreCommonAggressor(false), Spell(_field, _team), Character()  {
-  field = _field;
+Obstacle::Obstacle(Team _team) : 
+  ignoreCommonAggressor(false), 
+  Spell(_team), 
+  Character()  {
   team = _team;
 
   SetFloatShoe(true);

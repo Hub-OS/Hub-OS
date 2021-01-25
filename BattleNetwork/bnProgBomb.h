@@ -8,7 +8,7 @@ private:
   double arcDuration;
   double arcProgress;
 public:
-  ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration);
+  ProgBomb(Team _team,sf::Vector2f startPos, float _duration);
   ~ProgBomb();
 
   void OnUpdate(double _elapsed) override;

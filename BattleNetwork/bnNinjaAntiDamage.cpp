@@ -33,7 +33,7 @@ NinjaAntiDamage::NinjaAntiDamage(Entity* owner) : Component(owner) {
     // If there's a tile
     if (tile) {
       // Add ninja star spell targetting the aggressor's tile
-      owner.GetField()->AddEntity(*new NinjaStar(owner.GetField(), owner.GetTeam(), 0.2f), tile->GetX(), tile->GetY());
+      owner.GetField()->AddEntity(*new NinjaStar(owner.GetTeam(), 0.2f), tile->GetX(), tile->GetY());
     }
 
     // Remove the anti damage rule from the owner

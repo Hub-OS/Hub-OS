@@ -24,7 +24,7 @@ void AlphaRocketState::OnEnter(AlphaCore& a) {
     alpha->EnableImpervious(false);
     alpha->GoToNextState();
 
-    AlphaRocket* rocket = new AlphaRocket(alpha->GetField(), alpha->GetTeam());
+    AlphaRocket* rocket = new AlphaRocket(alpha->GetTeam());
     auto props = rocket->GetHitboxProperties();
     props.aggressor = alpha;
     rocket->SetHitboxProperties(props);

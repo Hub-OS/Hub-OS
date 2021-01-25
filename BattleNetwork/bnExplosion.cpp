@@ -6,12 +6,11 @@
 
 using sf::IntRect;
 
-Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _playbackSpeed) : Artifact(_field)
+Explosion::Explosion(int _numOfExplosions, double _playbackSpeed) : 
+  Artifact()
 {
   root = this;
   SetLayer(-1000);
-  field = _field;
-  team = _team;
   numOfExplosions = _numOfExplosions;
   playbackSpeed = _playbackSpeed;
   count = 0;
@@ -39,7 +38,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   }, true);
 
   if (_numOfExplosions > 1) {
-    animationComponent->AddCallback(8, [this, _field, _team, _numOfExplosions]() {
+    animationComponent->AddCallback(8, [this, _numOfExplosions]() {
       GetField()->AddEntity(*new Explosion(*this), *GetTile());
     }, true);
   }
@@ -47,7 +46,7 @@ Explosion::Explosion(Field* _field, Team _team, int _numOfExplosions, double _pl
   RegisterComponent(animationComponent);
 }
 
-Explosion::Explosion(const Explosion & copy) : Artifact(copy.GetField())
+Explosion::Explosion(const Explosion & copy) : Artifact()
 {
   root = copy.root;
 

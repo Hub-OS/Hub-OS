@@ -78,7 +78,7 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
     /* Spawn shine artifact */
     Battle::Tile* tile = e.GetTile();
     Field* field = e.GetField();
-    shine = new ShineExplosion(field, e.GetTeam());
+    shine = new ShineExplosion();
 
     // ShineExplosion loops, we just want to play once and delete
     auto animComponent = shine->GetFirstComponent<AnimationComponent>();

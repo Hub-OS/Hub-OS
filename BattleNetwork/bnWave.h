@@ -14,7 +14,7 @@ protected:
   double speed;
   bool crackTiles{ false };
 public:
-  Wave(Field* _field, Team _team, double speed = 1.0);
+  Wave(Team _team,double speed = 1.0);
   ~Wave();
 
   void OnUpdate(double _elapsed) override;

@@ -19,7 +19,7 @@ public:
    *
    * Speed modifier changes sliding/gliding time
    */
-  YoYo(Field* _field, Team _team, int damage, double speed = 1.0);
+  YoYo(Team _team,int damage, double speed = 1.0);
 
   /**
    * @brief deconstructor

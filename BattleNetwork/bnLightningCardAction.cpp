@@ -60,7 +60,7 @@ void LightningCardAction::OnExecute() {
     int row = GetOwner()->GetTile()->GetY();
 
     for (int i = 1; i < 6; i++) {
-      auto hitbox = new Hitbox(field, team, LightningCardAction::damage);
+      auto hitbox = new Hitbox(team, LightningCardAction::damage);
       hitbox->HighlightTile(Battle::Tile::Highlight::solid);
       auto props = hitbox->GetHitboxProperties();
       props.aggressor = GetOwnerAs<Character>();

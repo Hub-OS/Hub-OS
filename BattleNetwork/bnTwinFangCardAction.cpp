@@ -33,7 +33,7 @@ void TwinFangCardAction::OnExecute() {
     Audio().Play(AudioType::TOSS_ITEM_LITE);
 
     if (tile->GetY() != 0) {
-      TwinFang* twinfang = new TwinFang(user->GetField(), user->GetTeam(), TwinFang::Type::ABOVE, damage);
+      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::ABOVE, damage);
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = user;
       twinfang->SetHitboxProperties(props);
@@ -43,7 +43,7 @@ void TwinFangCardAction::OnExecute() {
     }
 
     if (tile->GetY() != 4) {
-      TwinFang* twinfang = new TwinFang(user->GetField(), user->GetTeam(), TwinFang::Type::BELOW, damage);
+      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::BELOW, damage);
       auto props = twinfang->GetHitboxProperties();
       props.aggressor = user;
       twinfang->SetHitboxProperties(props);

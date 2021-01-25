@@ -29,7 +29,7 @@ void MysteryData::OnUpdate(double _elapsed) {
 
   if (GetHealth() == 0) {
     Delete();
-    field->AddEntity(*new Explosion(field, team), *GetTile());
+    field->AddEntity(*new Explosion, *GetTile());
   }
 
   setPosition(tile->getPosition().x, tile->getPosition().y);

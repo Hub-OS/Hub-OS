@@ -23,8 +23,8 @@ void DefenseAura::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character& 
   if ((in.GetHitboxProperties().flags & Hit::impact) != Hit::impact) return;
 
   // weak obstacles will break
-  auto hitbox = new Hitbox(owner.GetField(), owner.GetTeam(), 0);
-  owner.GetField()->AddEntity(*hitbox, owner.GetTile()->GetX(), owner.GetTile()->GetY());
+  auto hitbox = new Hitbox(owner.GetTeam(), 0);
+  owner.GetField()->AddEntity(*hitbox, *owner.GetTile());
 
 
   judge.BlockDamage();

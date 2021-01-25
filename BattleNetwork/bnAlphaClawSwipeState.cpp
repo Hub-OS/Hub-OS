@@ -69,7 +69,7 @@ void AlphaClawSwipeState::OnLeave(AlphaCore& a) {
 void AlphaClawSwipeState::SpawnLeftArm(AlphaCore& a) {
     a.HideLeftArm();
 
-    leftArm = new AlphaArm(nullptr, a.GetTeam(), AlphaArm::Type::LEFT_SWIPE);
+    leftArm = new AlphaArm(a.GetTeam(), AlphaArm::Type::LEFT_SWIPE);
 
     Entity::RemoveCallback& cb = leftArm->CreateRemoveCallback();
     cb.Slot([this, alphaCore = &a]() {
@@ -94,7 +94,7 @@ void AlphaClawSwipeState::SpawnLeftArm(AlphaCore& a) {
 void AlphaClawSwipeState::SpawnRightArm(AlphaCore& a) {
 
     // spawn right claw
-    rightArm = new AlphaArm(nullptr, a.GetTeam(), AlphaArm::Type::RIGHT_SWIPE);
+    rightArm = new AlphaArm(a.GetTeam(), AlphaArm::Type::RIGHT_SWIPE);
 
     Entity::RemoveCallback& cb = rightArm->CreateRemoveCallback();
     cb.Slot([this, alphaCore=&a]() {

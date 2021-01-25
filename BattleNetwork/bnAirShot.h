@@ -10,7 +10,7 @@
  */
 class AirShot : public Spell {
 public:
-  AirShot(Field* _field, Team _team, int damage);
+  AirShot(Team _team,int damage);
   ~AirShot();
   void OnUpdate(double _elapsed) override;
   void Attack(Character* _entity) override;

@@ -8,10 +8,9 @@ using sf::IntRect;
 #define CHARGED_RESOURCE_PATH "resources/spells/spell_charged_bullet_hit.animation"
 #define PEA_RESOURCE_PATH "resources/spells/spell_bullet_hit.animation"
 
-BusterHit::BusterHit(Field* _field, Type type) : Artifact(_field)
+BusterHit::BusterHit(Type type) : Artifact()
 {
   SetLayer(0);
-  field = _field;
 
   //Components setup and load
   auto onFinish = [&]() { Delete();  };

@@ -16,7 +16,7 @@ using sf::Texture;
  */
 class Gear : public Obstacle {
 public:
-  Gear(Field * _field, Team _team, Direction startDir);
+  Gear(Team _team, Direction startDir);
   ~Gear();
 
   /**

@@ -7,8 +7,7 @@ using sf::Texture;
  */
 class Artifact : public Entity {
 public:
-  Artifact() = delete;
-  Artifact(Field* _field);
+  Artifact();
   virtual ~Artifact();
 
   virtual void OnUpdate(double _elapsed) = 0;

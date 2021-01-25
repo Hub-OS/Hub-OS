@@ -101,8 +101,10 @@ void Forte::OnSpawn(Battle::Tile& start)
 
 int Forte::MoveEffect::counter = 0;
 
-Forte::MoveEffect::MoveEffect(Field* field) 
-  : elapsed(0), index(0), Artifact(field)
+Forte::MoveEffect::MoveEffect(Field* field) : 
+  elapsed(0), 
+  index(0), 
+  Artifact()
 {
   setTexture(Textures().GetTexture(TextureType::NAVI_FORTE_ATLAS));
 

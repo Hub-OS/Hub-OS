@@ -20,7 +20,7 @@ void ProgsManThrowState::OnEnter(ProgsMan& progs) {
     // Spawn the bomb with the sprite position where Progsman is
     auto startPos = progs.GetTile()->getPosition();
     startPos.y -= 60.0f;
-    ProgBomb* bomb = new ProgBomb(progs.GetField(), progs.GetTeam(), startPos, 1);
+    ProgBomb* bomb = new ProgBomb(progs.GetTeam(), startPos, 1);
 
     // Assign progsman as the owner of this spell
     auto props = bomb->GetHitboxProperties();

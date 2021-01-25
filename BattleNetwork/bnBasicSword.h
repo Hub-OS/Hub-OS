@@ -11,7 +11,7 @@
  */
 class BasicSword : public Spell {
 public:
-  BasicSword(Field* _field, Team _team, int damage);
+  BasicSword(Team _team,int damage);
   virtual ~BasicSword();
 
   virtual void OnUpdate(double _elapsed) override;

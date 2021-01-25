@@ -12,7 +12,7 @@
 
 #define COOLDOWN 40.0/1000.0
 
-Cannon::Cannon(Field* _field, Team _team, int _damage) : Spell(_field, _team){
+Cannon::Cannon(Team _team,int _damage) : Spell(_team){
   SetPassthrough(true);
 
   hit = false;

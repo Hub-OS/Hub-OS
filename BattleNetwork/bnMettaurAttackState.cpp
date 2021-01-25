@@ -30,7 +30,7 @@ void MettaurAttackState::OnLeave(Mettaur& met) {
 
 void MettaurAttackState::DoAttack(Mettaur& met) {
   if (met.GetField()->GetAt(met.tile->GetX() - 1, met.tile->GetY())->IsWalkable()) {
-    Wave* spell = new Wave(met.field, met.team, (met.GetRank() == Mettaur::Rank::SP)? 1.2 : 1.0);
+    Wave* spell = new Wave(met.team, (met.GetRank() == Mettaur::Rank::SP)? 1.2 : 1.0);
 
     auto props = spell->GetHitboxProperties();
     props.aggressor = &met;

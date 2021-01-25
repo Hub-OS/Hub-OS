@@ -24,7 +24,7 @@ private:
   bool ignoreCommonAggressor;
 
 public:
-  Obstacle(Field* _field, Team _team);
+  Obstacle(Team _team);
   virtual ~Obstacle();
 
   void Update(double _elapsed) final override;

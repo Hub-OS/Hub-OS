@@ -13,7 +13,7 @@ public:
   /**
    * @brief Loads the shine texture and animation. Sets the layer to 0*
    */
-  ShineExplosion(Field* _field, Team _team);
+  ShineExplosion();
   ~ShineExplosion();
 
   /**

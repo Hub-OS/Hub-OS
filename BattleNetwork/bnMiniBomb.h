@@ -9,7 +9,7 @@ private:
   double arcProgress;
 
 public:
-  MiniBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration, int damage);
+  MiniBomb(Team _team,sf::Vector2f startPos, float _duration, int damage);
   ~MiniBomb();
 
   void OnUpdate(double _elapsed) override;

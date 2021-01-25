@@ -10,8 +10,8 @@
 
 #define RESOURCE_PATH "resources/mobs/alpha/alpha.animation"
 
-AlphaArm::AlphaArm(Field* _field, Team _team, AlphaArm::Type type)
-  : Obstacle(_field, _team), isMoving(false), canChangeTileState(false), type(type) {
+AlphaArm::AlphaArm(Team _team, AlphaArm::Type type)
+  : Obstacle(_team), isMoving(false), canChangeTileState(false), type(type) {
   setScale(2.f, 2.f);
   SetFloatShoe(true);
   SetTeam(_team);
@@ -206,7 +206,7 @@ void AlphaArm::OnUpdate(double _elapsed) {
 
 void AlphaArm::OnDelete() {
   if (GetTile()) {
-    auto fx = new MobMoveEffect(GetField());
+    auto fx = new MobMoveEffect();
     GetField()->AddEntity(*fx, *GetTile());
   }
 

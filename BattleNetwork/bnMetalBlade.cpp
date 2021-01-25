@@ -4,7 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, _team) {
+MetalBlade::MetalBlade(Team _team, double speed) : Spell(_team) {
   // Blades float over tiles 
   SetFloatShoe(true);
 

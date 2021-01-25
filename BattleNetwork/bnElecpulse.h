@@ -10,7 +10,7 @@
  */
 class Elecpulse : public Spell {
 public:
-  Elecpulse(Field* _field, Team _team, int damage);
+  Elecpulse(Team _team,int damage);
   ~Elecpulse();
 
   void OnSpawn(Battle::Tile& start) override;

@@ -8,7 +8,8 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/ring_explosion.animation"
 
-RingExplosion::RingExplosion(Field* field) : Artifact(field)
+RingExplosion::RingExplosion() : 
+  Artifact()
 {
   SetLayer(0);
   setTexture(Textures().GetTexture(TextureType::SPELL_RING_EXPLOSION));

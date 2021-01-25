@@ -26,11 +26,11 @@ private:
   sf::Sprite rewardCard; /*!< Reward card graphics */
   sf::Sprite pressA; /*!< Press A sprite */
   sf::Sprite star; /*!< Counter stars */
+  Font font{ Font::Style::small };
   Text time; /*!< Formatted time label */
   Text rank; /*!< Battle scored rank */
   Text reward; /*!< Name of reward */
   Text cardCode; /*!< Code for cards */
-  Font font;
 
   bool isRevealed; /*!< Flag if modal is revealed */
   bool playSoundOnce; /*!< Flag to play sounds once */

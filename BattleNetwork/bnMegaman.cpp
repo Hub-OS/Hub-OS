@@ -510,13 +510,13 @@ void TenguCross::SpecialAction::OnExecute()
 
   // On throw frame, spawn projectile
   auto onThrow = [this, team, field]() -> void {
-    auto wind = new Wind(field, team);
+    auto wind = new Wind(team);
     field->AddEntity(*wind, 6, 1);
 
-    wind = new Wind(field, team);
+    wind = new Wind(team);
     field->AddEntity(*wind, 6, 2);
 
-    wind = new Wind(field, team);
+    wind = new Wind(team);
     field->AddEntity(*wind, 6, 3);
   };
 
