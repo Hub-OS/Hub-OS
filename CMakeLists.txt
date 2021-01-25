@@ -5,10 +5,9 @@ set(CMAKE_CXX_STANDARD          17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS        OFF)
 
-execute_process(COMMAND git submodule update --init -- extern/Swoosh
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+include(FindLua)
 
-execute_process(COMMAND git submodule update --init -- extern/lua
+execute_process(COMMAND git submodule update --init -- extern/Swoosh
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 execute_process(COMMAND git submodule update --init -- extern/SFML
@@ -21,9 +20,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 
 find_package(Poco REQUIRED Foundation Net)
 find_package(Threads REQUIRED)
+find_package(lua REQUIRED)
+find_package(sol2 REQUIRED)
 
 include_directories(extern/Swoosh/src)
-include_directories(extern/lua)
 
 add_subdirectory(extern/SFML)
 add_subdirectory(extern/WebAPI)
@@ -43,10 +43,14 @@ add_compile_definitions(NOMINMAX)
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
 
+target_compile_definitions(BattleNetwork PRIVATE SOL_ALL_SAFETIES_ON)
+target_include_directories(BattleNetwork PRIVATE ${LUA_INCLUDE_DIR})
 target_link_libraries(BattleNetwork sfml-graphics sfml-audio sfml-network sfml-system sfml-window)
 target_link_libraries(BattleNetwork WebAPI-client)
 target_link_libraries(BattleNetwork Poco::Net Poco::Foundation)
 target_link_libraries(BattleNetwork Threads::Threads)
+target_link_libraries(BattleNetwork ${LUA_LIBRARIES})
+target_link_libraries(BattleNetwork sol2::sol2)
 
 set_target_properties(BattleNetwork
     PROPERTIES
