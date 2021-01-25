@@ -19,7 +19,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   attackLabel("1", uiFont),
   speedLabel("1", uiFont),
   hpLabel("1", uiFont),
-  textbox(320, 100),
+  textbox(360, 100),
   Scene(controller)
 {
   selectedNavi = navi;

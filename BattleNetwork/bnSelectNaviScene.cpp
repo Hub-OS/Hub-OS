@@ -11,7 +11,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   naviSelectionIndex(currentNavi),
   currentChosen(currentNavi),
   font(Font::Style::small),
-  textbox(135, 15, font),
+  textbox(140, 20, font),
   naviFont(Font::Style::thick),
   naviLabel("No Data", naviFont),
   hpLabel("1", font),

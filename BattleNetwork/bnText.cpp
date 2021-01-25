@@ -4,8 +4,8 @@
 void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char letter) const
 {
   font.SetLetter(letter);
-  auto texcoords = font.GetTextureCoords();
-
+  const auto texcoords = font.GetTextureCoords();
+  const auto origin = font.GetOrigin();
   const sf::Texture& texture = font.GetTexture();
   float width  = static_cast<float>(texture.getSize().x);
   float height = static_cast<float>(texture.getSize().y);
@@ -25,6 +25,8 @@ void Text::AddLetterQuad(sf::Vector2f position, const sf::Color & color, char le
   float v1 = static_cast<float>(texcoords.top);
   float u2 = static_cast<float>(texcoords.left + texcoords.width);
   float v2 = static_cast<float>(texcoords.top + texcoords.height);
+
+  position -= origin;
 
   vertices.append(sf::Vertex(sf::Vector2f(position.x, position.y + bottom), color, sf::Vector2f(u1, v2)));
   vertices.append(sf::Vertex(sf::Vector2f(position.x, position.y), color, sf::Vector2f(u1, v1)));

@@ -24,7 +24,7 @@ static inline void QueuNaviRegistration() {
   **********            Register megaman            ********************
   **********************************************************************/
   auto megamanInfo = NAVIS.AddClass<Megaman>();  // Create and register navi info object
-  megamanInfo->SetSpecialDescription("Star of the series. Well rounded stats."); // Set property
+  megamanInfo->SetSpecialDescription("Well rounded stats"); // Set property
   megamanInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/megaman/mega_face.png"));
   megamanInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/megaman/preview.png"));
   megamanInfo->SetOverworldTexture(handle.Textures().LoadTextureFromFile("resources/navis/megaman/overworld.png"));
@@ -35,7 +35,7 @@ static inline void QueuNaviRegistration() {
 
   // Register Roll
   auto rollInfo = NAVIS.AddClass<Roll>();
-  rollInfo->SetSpecialDescription("High HP and quick to recover from hits. FloatShoe enabled.");
+  rollInfo->SetSpecialDescription("High HP w/ FloatShoe enabled.");
   // rollInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/roll_face.png"));
   rollInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/preview.png"));
   rollInfo->SetOverworldTexture(handle.Textures().LoadTextureFromFile("resources/navis/roll/overworld.png"));
@@ -80,7 +80,7 @@ static inline void QueuNaviRegistration() {
 
   // Register Forte
   auto forteInfo = NAVIS.AddClass<Forte>();
-  forteInfo->SetSpecialDescription("Literally too angry to die. Spawns with aura.");
+  forteInfo->SetSpecialDescription("Too angry to die. Spawns w/ aura");
   //forteInfo->SetIconTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/forte_face.png"));
   forteInfo->SetPreviewTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/preview.png"));
   forteInfo->SetOverworldTexture(handle.Textures().LoadTextureFromFile("resources/navis/forte/forte_OW.png"));

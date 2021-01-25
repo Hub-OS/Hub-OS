@@ -22,6 +22,7 @@ private:
   char letter;
   sf::IntRect texcoords;
   sf::IntRect letterATexcoords;
+  sf::Vector2f origin;
   void ApplyStyle();
 
 public:
@@ -32,6 +33,7 @@ public:
   void SetLetter(char letter);
   const sf::Texture& GetTexture() const;
   const sf::IntRect GetTextureCoords() const;
+  const sf::Vector2f GetOrigin() const;
   const float GetLetterHeight() const;
   const float GetLetterWidth() const;
   const float GetWhiteSpaceWidth() const;

@@ -41,8 +41,10 @@ void Font::ApplyStyle()
   if (list.IsEmpty()) {
     list = animation.GetFrameList("SMALL_A");
   }
-   
-  texcoords = list.GetFrame(0).subregion;
+  
+  auto& frame = list.GetFrame(0);
+  texcoords = frame.subregion;
+  origin = frame.origin;
 }
 
 Font::Font(const Style & style) 
@@ -79,6 +81,11 @@ const sf::Texture & Font::GetTexture() const
 const sf::IntRect Font::GetTextureCoords() const
 {
   return texcoords;
+}
+
+const sf::Vector2f Font::GetOrigin() const
+{
+  return origin;
 }
 
 const float Font::GetLetterWidth() const
