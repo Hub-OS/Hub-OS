@@ -20,14 +20,16 @@
 #include <functional>
 using std::string;
 
+#include "bnResourceHandle.h"
 #include "bnAnimation.h"
 #include "bnDirection.h"
 #include "bnTeam.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnTextureType.h"
 #include "bnElements.h"
 #include "bnComponent.h"
 #include "bnCallback.h"
+#include "bnEventBus.h"
 
 namespace Battle {
   class Tile;
@@ -40,7 +42,7 @@ struct EntityComparitor {
   bool operator()(Entity* f, Entity* s) const;
 };
 
-class Entity : public SpriteProxyNode {
+class Entity : public SpriteProxyNode, public ResourceHandle {
 public:
   using ID_t = long;
 
@@ -54,8 +56,9 @@ private:
   int alpha;            /*!< Control the transparency of an entity. */
   Component::ID_t lastComponentID; /*!< Entities keep track of new components to run through scene injection later. */
   bool hasSpawned;      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
-  float height;         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection*/
-  bool isUpdating{ false };
+  float height;         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
+  bool isUpdating{ false }; /*!< If an entity has updated once this frame, skip some update routines */
+  EventBus::Channel channel; /*!< Our event bus channel to emit events */
 
   /**
    * @brief Frees one component with the same ID
@@ -117,7 +120,7 @@ public:
    * 
    * @param _elapsed Amount of time elapsed since last frame in seconds.
    */
-  virtual void Update(float _elapsed);
+  virtual void Update(double _elapsed);
   
   /**
    * @brief Virtual. Move to another tile given a direction.
@@ -408,6 +411,12 @@ public:
    * All attached components owner pointer will be null
    */
   void FreeAllComponents();
+
+  /**
+  * @brief Returns a channel in the EventBus
+  * @return Returns the channel as const reference
+  */
+  const EventBus::Channel& EventBus() const;
   
   /**
    * @brief Frees one component with the same ID
@@ -416,7 +425,7 @@ public:
   void FreeComponentByID(Component::ID_t ID);
 
   /**
-   * @brief Hit height ca be overwritten to deduce from sprite bounds
+   * @brief Hit height can be overwritten to deduce from sprite bounds
    * @return float
    */
   virtual const float GetHeight() const;

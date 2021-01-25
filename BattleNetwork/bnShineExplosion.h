@@ -13,14 +13,14 @@ public:
   /**
    * @brief Loads the shine texture and animation. Sets the layer to 0*
    */
-  ShineExplosion(Field* _field, Team _team);
+  ShineExplosion();
   ~ShineExplosion();
 
   /**
    * @brief Loops animations
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
   * @brief Removes shine explosion from play

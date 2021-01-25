@@ -2,14 +2,14 @@
 
 #include "bnOverworldMap.h"
 
-#include "../bnEngine.h"
+#include "../bnDrawWindow.h"
 
 namespace Overworld {
   Map::Map() :
     sf::Drawable(), sf::Transformable() {
     // NOTE: hard coded tilesets for now
-    tileWidth = 62 + 2.5f; // calculated by hand. the offsets seem important.
-    tileHeight = 32 + 0.5f; // calculated by hand. the offsets seem important.
+    tileWidth = static_cast<int>(62 + 2.5f); // calculated by hand. the offsets seem important.
+    tileHeight = static_cast<int>(32 + 0.5f); // calculated by hand. the offsets seem important.
   }
 
   void Map::Load(Map::Tileset tileset, Map::Tile** tiles, unsigned cols, unsigned rows)
@@ -109,7 +109,7 @@ namespace Overworld {
       int x = static_cast<int>(xf);
       int y = static_cast<int>(yf);
 
-      if (x >= 0 && x < cols && y >= 0 && y < rows) {
+      if (x >= 0 && x < static_cast<int>(cols) && y >= 0 && y < static_cast<int>(rows)) {
         return tiles[y][x];
       }
     }
@@ -119,10 +119,10 @@ namespace Overworld {
 
   void Map::SetTileAt(const sf::Vector2f& pos, const Tile& newTile)
   {
-    int x = pos.x / (static_cast<float>(tileWidth) * 0.5f);
-    int y = pos.y / static_cast<float>(tileHeight);
+    int x = static_cast<int>(pos.x / (static_cast<float>(tileWidth) * 0.5f));
+    int y = static_cast<int>(pos.y / static_cast<float>(tileHeight));
 
-    if (x >= 0 && x < cols && y >= 0 && y < rows) {
+    if (x >= 0 && x < static_cast<int>(cols) && y >= 0 && y < static_cast<int>(rows)) {
       tiles[y][x] = newTile;
     }
   }
@@ -151,7 +151,7 @@ namespace Overworld {
         if (ID == 0) continue; // reserved for empty tile
 
         sf::Sprite tileSprite = tileset.Graphic(ID);
-        sf::Vector2f pos(j * tileWidth * 0.5f, i * tileHeight);
+        sf::Vector2f pos(static_cast<float>(j * tileWidth * 0.5f), static_cast<float>(i * tileHeight));
         auto iso = OrthoToIsometric(pos);
         iso = sf::Vector2f(iso.x, iso.y);
         tileSprite.setPosition(iso);
@@ -205,7 +205,7 @@ namespace Overworld {
     return ortho;
   }
 
-  const sf::Vector2i Map::GetTileSize() const { return sf::Vector2i(tileWidth * 0.5f, tileHeight); }
+  const sf::Vector2i Map::GetTileSize() const { return sf::Vector2i(static_cast<int>(tileWidth * 0.5f), tileHeight); }
 
   const size_t Map::GetTilesetItemCount() const
   {
@@ -276,7 +276,7 @@ namespace Overworld {
     }
 
     // default tileset code for now:
-    auto texture = TEXTURES.LoadTextureFromFile("resources/ow/basic_tileset.png");
+    auto texture = map.Textures().LoadTextureFromFile("resources/ow/basic_tileset.png");
 
     std::vector<sf::Sprite> items;
 
@@ -325,13 +325,13 @@ namespace Overworld {
     return Map::LoadFromStream(map, iss);
   }
 
-  std::pair<unsigned, unsigned> Map::PixelToRowCol(const sf::Vector2i& px) const
+  std::pair<unsigned, unsigned> Map::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const
   {
     // convert it to world coordinates
-    sf::Vector2f world = ENGINE.GetWindow()->mapPixelToCoords(px);
+    sf::Vector2f world = window.mapPixelToCoords(px);
 
     // consider the point on screen relative to the camera focus
-    auto pos = world - ENGINE.GetView().getCenter() - cam->GetView().getCenter();
+    auto pos = world - window.getView().getCenter() - cam->GetView().getCenter();
     
     // respect the current scale and transform form isometric coordinates
     return IsoToRowCol({ pos.x / getScale().x, pos.y / getScale().y });
@@ -340,8 +340,8 @@ namespace Overworld {
   std::pair<unsigned, unsigned> Map::OrthoToRowCol(const sf::Vector2f& ortho) const
   {
     // divide by the tile size to get the integer grid values
-    unsigned x = ortho.x / (tileWidth * 0.5f);
-    unsigned y = ortho.y / tileHeight;
+    unsigned x = static_cast<unsigned>(ortho.x / (tileWidth * 0.5f));
+    unsigned y = static_cast<unsigned>(ortho.y / tileHeight);
 
     return { y, x };
   }

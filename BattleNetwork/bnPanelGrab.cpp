@@ -5,15 +5,15 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-PanelGrab::PanelGrab(Field* _field, Team _team, float _duration) : duration(_duration), Spell(_field, _team) {
+PanelGrab::PanelGrab(Team _team, float _duration) : duration(_duration), Spell(_team) {
   SetLayer(0);
   
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_AREAGRAB));
+  setTexture(Textures().GetTexture(TextureType::SPELL_AREAGRAB));
   setScale(2.f, 2.f);
 
   progress = 0.0f;
 
-  AUDIO.Play(AudioType::AREA_GRAB, AudioPriority::lowest);
+  Audio().Play(AudioType::AREA_GRAB, AudioPriority::lowest);
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath("resources/spells/areagrab.animation");
   animationComponent->Reload();
@@ -39,7 +39,7 @@ void PanelGrab::OnSpawn(Battle::Tile& start)
   Hide();
 }
 
-void PanelGrab::OnUpdate(float _elapsed) {
+void PanelGrab::OnUpdate(double _elapsed) {
   if (GetTile()) {
     if (IsHidden()) Reveal();
 
@@ -63,7 +63,7 @@ void PanelGrab::OnUpdate(float _elapsed) {
 
       // Show the panel grab spread animation
       if (animationComponent->GetAnimationString() != "HIT") {
-        AUDIO.Play(AudioType::AREA_GRAB_TOUCHDOWN, AudioPriority::lowest);
+        Audio().Play(AudioType::AREA_GRAB_TOUCHDOWN, AudioPriority::lowest);
         animationComponent->SetAnimation("HIT");
       }
     }

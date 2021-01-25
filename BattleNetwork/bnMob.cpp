@@ -1,6 +1,5 @@
 #include "bnMob.h"
 
-#pragma once
 #include "bnComponent.h"
 #include "bnCharacter.h"
 #include "bnBattleItem.h"

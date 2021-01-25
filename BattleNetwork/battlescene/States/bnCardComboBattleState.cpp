@@ -6,7 +6,10 @@
 
 #include <SFML/Graphics/Font.hpp>
 
-CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvance) : ui(ui), font(), programAdvance(programAdvance) {
+CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvance) : 
+  ui(ui), 
+  font(Font::Style::small), 
+  programAdvance(programAdvance) {
   /*
   Program Advance + labels
   */
@@ -18,7 +21,7 @@ CardComboBattleState::CardComboBattleState(SelectedCardsUI& ui, PA& programAdvan
   programAdvanceSprite.setOrigin(0, programAdvanceSprite.getLocalBounds().height / 2.0f);
   programAdvanceSprite.setPosition(40.0f, 58.f);
 
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
+  font = Font(Font::Style::thick);
 }
 
 void CardComboBattleState::ShareCardList(Battle::Card*** cardsPtr, int* listLengthPtr)
@@ -42,14 +45,13 @@ void CardComboBattleState::onStart(const BattleSceneState*)
 
 void CardComboBattleState::onEnd(const BattleSceneState*)
 {
-  ENGINE.RevokeShader();
   advanceSoundPlay = false;
 }
 
 void CardComboBattleState::onUpdate(double elapsed)
 {
   increment += elapsed;
-  PAStartTimer.update(elapsed);
+  PAStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   this->elapsed += elapsed;
   CardSelectionCust& cardCust = GetScene().GetCardSelectWidget();
@@ -130,7 +132,7 @@ void CardComboBattleState::onUpdate(double elapsed)
           
           // play the sound
           if (!advanceSoundPlay) {
-            AUDIO.Play(AudioType::PA_ADVANCE);
+            Audio().Play(AudioType::PA_ADVANCE);
             advanceSoundPlay = true;
           }
         }
@@ -140,7 +142,7 @@ void CardComboBattleState::onUpdate(double elapsed)
 
         if (paStepIndex >= hasPA && paStepIndex <= hasPA + paSteps.size() - 1) {
           listStepCounter = listStepCooldown; // Take our time with the PA cards
-          AUDIO.Play(AudioType::POINT_SFX);
+          Audio().Play(AudioType::POINT_SFX);
         }
 
         paStepIndex++;
@@ -157,7 +159,7 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
     double PAStartSecs = PAStartTimer.getElapsed().asSeconds();
     double scale = swoosh::ease::linear(PAStartSecs, PAStartLength, 1.0);
     programAdvanceSprite.setScale(2.f, (float)scale * 2.f);
-    ENGINE.Draw(programAdvanceSprite, false);
+    surface.draw(programAdvanceSprite);
 
     if (paStepIndex <= (*cardCountPtr) + 1) {
       for (int i = 0; i < paStepIndex && i < *cardCountPtr; i++) {
@@ -165,7 +167,7 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
         formatted.resize(9, ' ');
         formatted[8] = (*cardsListPtr)[i]->GetCode();
 
-        sf::Text stepLabel = sf::Text(formatted, *font);
+        Text stepLabel = Text(formatted, font);
 
         stepLabel.setOrigin(0, 0);
         stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
@@ -173,23 +175,20 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
 
         if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
           if (i < paStepIndex - 1) {
-            stepLabel.setOutlineColor(sf::Color(0, 0, 0));
-            stepLabel.setFillColor(sf::Color(128, 248, 80));
+            stepLabel.SetColor(sf::Color(128, 248, 80));
           }
           else {
-            stepLabel.setOutlineColor(sf::Color(0, 0, 0));
-            stepLabel.setFillColor(sf::Color(247, 188, 27));
+            stepLabel.SetColor(sf::Color(247, 188, 27));
           }
         }
         else {
-          stepLabel.setOutlineColor(sf::Color(48, 56, 80));
+          stepLabel.SetColor(sf::Color(48, 56, 80));
         }
 
-        stepLabel.setOutlineThickness(2.f);
-        ENGINE.Draw(stepLabel, false);
+        surface.draw(stepLabel);
 
         // make the next label relative to this one
-        nextLabelHeight += stepLabel.getLocalBounds().height;
+        nextLabelHeight += stepLabel.GetLocalBounds().height;
       }
       nextLabelHeight = 0;
     }
@@ -199,40 +198,38 @@ void CardComboBattleState::onDraw(sf::RenderTexture& surface)
         formatted.resize(9, ' ');
         formatted[8] = (*cardsListPtr)[i]->GetCode();
 
-        sf::Text stepLabel = sf::Text(formatted, *font);
+        Text stepLabel = Text(formatted, font);
 
         stepLabel.setOrigin(0, 0);
         stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
         stepLabel.setScale(1.0f, 1.0f);
-        stepLabel.setOutlineColor(sf::Color(48, 56, 80));
-        stepLabel.setOutlineThickness(2.f);
+        stepLabel.SetColor(sf::Color(48, 56, 80));
 
         if (i >= hasPA && i <= hasPA + paSteps.size() - 1) {
           if (i == hasPA) {
             Battle::Card* paCard = programAdvance.GetAdvanceCard();
 
-            sf::Text stepLabel = sf::Text(paCard->GetShortName(), *font);
+            Text stepLabel = Text(paCard->GetShortName(), font);
             stepLabel.setOrigin(0, 0);
             stepLabel.setPosition(40.0f, 80.f + (nextLabelHeight * 2.f));
             stepLabel.setScale(1.0f, 1.0f);
 
-            stepLabel.setOutlineColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
-            stepLabel.setOutlineThickness(2.f);
-            ENGINE.Draw(stepLabel, false);
+            stepLabel.SetColor(sf::Color((sf::Uint32)(sin(increment) * 255), (sf::Uint32)(cos(increment + 90 * (22.f / 7.f)) * 255), (sf::Uint32)(sin(increment + 180 * (22.f / 7.f)) * 255)));
+            surface.draw(stepLabel);
           }
           else {
             // make the next label relative to the hidden one and skip drawing
-            nextLabelHeight += stepLabel.getLocalBounds().height;
+            nextLabelHeight += stepLabel.GetLocalBounds().height;
             continue;
           }
 
         }
         else {
-          ENGINE.Draw(stepLabel, false);
+          surface.draw(stepLabel);
         }
 
         // make the next label relative to this one
-        nextLabelHeight += stepLabel.getLocalBounds().height;
+        nextLabelHeight += stepLabel.GetLocalBounds().height;
       }
     }
   }

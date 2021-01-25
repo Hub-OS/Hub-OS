@@ -10,8 +10,8 @@
 #define FRAMES FRAME1
 
 
-RecoverCardAction::RecoverCardAction(Character * owner, int heal) : 
-  CardAction(*owner, "PLAYER_IDLE") {
+RecoverCardAction::RecoverCardAction(Character& owner, int heal) : 
+  CardAction(owner, "PLAYER_IDLE") {
   RecoverCardAction::heal = heal;
 
   // add override anims
@@ -22,14 +22,14 @@ RecoverCardAction::~RecoverCardAction()
 {
 }
 
-void RecoverCardAction::Execute() {
+void RecoverCardAction::OnExecute() {
   auto user = GetOwner();
 
   // Increase player health
   user->SetHealth(user->GetHealth() + heal);
 
   // Play sound
-  AUDIO.Play(AudioType::RECOVER);
+  Audio().Play(AudioType::RECOVER);
 
   // Add artifact on the same layer as player
   Battle::Tile* tile = user->GetTile();
@@ -40,16 +40,11 @@ void RecoverCardAction::Execute() {
   }
 }
 
-void RecoverCardAction::OnUpdate(float _elapsed)
-{
-  CardAction::OnUpdate(_elapsed);
-}
-
 void RecoverCardAction::OnAnimationEnd()
 {
 }
 
-void RecoverCardAction::EndAction()
+void RecoverCardAction::OnEndAction()
 {
   Eject();
 }

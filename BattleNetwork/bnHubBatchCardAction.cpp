@@ -12,8 +12,8 @@
 #define FRAMES FRAME1
 
 
-HubBatchCardAction::HubBatchCardAction(Character* owner) :
-  CardAction(*owner, "PLAYER_IDLE") {
+HubBatchCardAction::HubBatchCardAction(Character& owner) :
+  CardAction(owner, "PLAYER_IDLE") {
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
@@ -23,15 +23,15 @@ HubBatchCardAction::~HubBatchCardAction()
 {
 }
 
-void HubBatchCardAction::Execute() {
+void HubBatchCardAction::OnExecute() {
   // Play sound
-  AUDIO.Play(AudioType::RECOVER);
+  Audio().Play(AudioType::RECOVER);
 
   // Add hubbatchprogram compontent
   GetOwner()->CreateComponent<HubBatchProgram>(GetOwner());
 }
 
-void HubBatchCardAction::OnUpdate(float _elapsed)
+void HubBatchCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }
@@ -40,7 +40,7 @@ void HubBatchCardAction::OnAnimationEnd()
 {
 }
 
-void HubBatchCardAction::EndAction()
+void HubBatchCardAction::OnEndAction()
 {
   Eject();
 }
@@ -51,7 +51,7 @@ HubBatchProgram::HubBatchProgram(Character* owner) :
   Component(owner, Component::lifetimes::battlestep)
 {
   anim = Animation("resources/spells/hub_batch.animation");
-  effect.setTexture(TEXTURES.LoadTextureFromFile("resources/spells/hub_batch.png"));
+  effect.setTexture(owner->Textures().LoadTextureFromFile("resources/spells/hub_batch.png"));
 
   anim << "DEFAULT" << [this] {
     effect.Hide();
@@ -74,7 +74,7 @@ HubBatchProgram::~HubBatchProgram()
   delete superarmor;
 }
 
-void HubBatchProgram::OnUpdate(float elapsed)
+void HubBatchProgram::OnUpdate(double elapsed)
 {
   GetOwner()->SetFloatShoe(true);
   Player* player = GetOwnerAs<Player>();
@@ -82,7 +82,7 @@ void HubBatchProgram::OnUpdate(float elapsed)
   
   if (player) {
     player->SetAttackLevel(PlayerStats::MAX_ATTACK_LEVEL); // max
-    player->OverrideSpecialAbility([player]{ return new ReflectCardAction(player, 10, ReflectShield::Type::yellow); });
+    player->OverrideSpecialAbility([player]{ return new ReflectCardAction(*player, 10, ReflectShield::Type::yellow); });
     
     if (Injected()) {
       // Scene()->GetCardSelectWidget().SetMaxCardDraw(10);

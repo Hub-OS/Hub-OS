@@ -5,6 +5,10 @@
 #include <array>
 #include <memory>
 
+#include "bnResourceHandle.h"
+#include "bnText.h"
+#include "bnFont.h"
+
 class Mob;
 class BattleItem;
 
@@ -16,17 +20,17 @@ class BattleItem;
  *
  * Exposes an API to interact with the modal
  */
-class BattleResults {
+class BattleResults : public ResourceHandle {
 private:
   sf::Sprite resultsSprite; /*!< This modals graphic */
-  sf::Text time; /*!< Formatted time label */
-  sf::Text rank; /*!< Battle scored rank */
-  sf::Text reward; /*!< Name of reward */
-  sf::Text cardCode; /*!< Code for cards */
   sf::Sprite rewardCard; /*!< Reward card graphics */
   sf::Sprite pressA; /*!< Press A sprite */
   sf::Sprite star; /*!< Counter stars */
-  std::shared_ptr<sf::Font> font;
+  Font font{ Font::Style::small };
+  Text time; /*!< Formatted time label */
+  Text rank; /*!< Battle scored rank */
+  Text reward; /*!< Name of reward */
+  Text cardCode; /*!< Code for cards */
 
   bool isRevealed; /*!< Flag if modal is revealed */
   bool playSoundOnce; /*!< Flag to play sounds once */
@@ -95,7 +99,7 @@ public:
   /**
    * @brief Perform draw steps
    */
-  void Draw();
+  void Draw(sf::RenderTarget& surface);
 
   /**
    * @brief Query if BattleRewards modal has completed all rewards

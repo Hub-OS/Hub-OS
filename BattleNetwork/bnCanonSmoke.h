@@ -15,14 +15,14 @@ private:
   AnimationComponent* animationComponent;
 
 public:
-  CanonSmoke(Field* _field);
+  CanonSmoke();
   ~CanonSmoke();
 
   /**
    * @brief animates smoke
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   void OnDelete() override;
   

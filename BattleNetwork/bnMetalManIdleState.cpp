@@ -16,7 +16,7 @@ void MetalManIdleState::OnEnter(MetalMan& metal) {
   metal.GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", Animator::Mode::Loop);
 }
 
-void MetalManIdleState::OnUpdate(float _elapsed, MetalMan& metal) {
+void MetalManIdleState::OnUpdate(double _elapsed, MetalMan& metal) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {

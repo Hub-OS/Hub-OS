@@ -10,18 +10,23 @@ using namespace swoosh::types;
 
 SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder, PA& programAdvance) :
   elapsed(0),
-  textbox(320, 100, 24, "resources/fonts/NETNAVI_4-6_V3.ttf"),
   selectedFolder(selectedFolder),
   programAdvance(programAdvance),
-  swoosh::Activity(&controller)
+  font(Font::Style::wide),
+  menuLabel("BATTLE SELECT", font),
+  uiFont(Font::Style::thick),
+  mobLabel("No Data", uiFont),
+  attackLabel("1", uiFont),
+  speedLabel("1", uiFont),
+  hpLabel("1", uiFont),
+  textbox(360, 100),
+  Scene(controller)
 {
   selectedNavi = navi;
 
   // Menu name font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  menuLabel = new sf::Text("BATTLE SELECT", *font);
-  menuLabel->setCharacterSize(15);
-  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
+  menuLabel.setScale(2.f, 2.f);
 
   navigator.setTexture(LOAD_TEXTURE(MUG_NAVIGATOR));
   navigator.setScale(2.0f, 2.0f);
@@ -40,18 +45,10 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   selectInputCooldown = maxSelectInputCooldown;
 
   // MOB UI font
-  mobFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  mobLabel = new sf::Text("", *mobFont);
-  mobLabel->setPosition(sf::Vector2f(100.f, 45.0f));
-
-  attackLabel = new sf::Text("", *mobFont);
-  attackLabel->setPosition(325.f, 30.f);
-
-  speedLabel = new sf::Text("", *mobFont);
-  speedLabel->setPosition(325.f, 45.f);
-
-  hpLabel = new sf::Text("", *mobFont);
-  hpLabel->setPosition(325.f, 60.f);
+  mobLabel.setScale(2.f, 2.f);
+  attackLabel.setScale(2.f, 2.f);
+  speedLabel.setScale(2.f, 2.f);
+  hpLabel.setScale(2.f, 2.f);
 
   maxNumberCooldown = 0.5;
   numberCooldown = maxNumberCooldown; // half a second
@@ -64,8 +61,8 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   doOnce = false; // wait until the scene starts or resumes
   showMob = false;
 
-  shader = LOAD_SHADER(TEXEL_PIXEL_BLUR);
   factor = PIXEL_MAX;
+  shader = Shaders().GetShader(ShaderType::TEXEL_PIXEL_BLUR);
 
   // Current selection index
   mobSelectionIndex = 0;
@@ -87,12 +84,6 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 }
 
 SelectMobScene::~SelectMobScene() {
-  delete mobLabel;
-  delete attackLabel;
-  delete speedLabel;
-  delete menuLabel;
-  delete hpLabel;
-
   if (mob) delete mob;
 }
 
@@ -100,7 +91,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   SelectMobScene::elapsed += elapsed;
 
   // multiplying update by 2 effectively sets playback speed to 200%
-  navigatorAnimator.Update(float(elapsed*2.0), navigator.getSprite());
+  navigatorAnimator.Update(double(elapsed*2.0), navigator.getSprite());
 
   textbox.Update((float)elapsed);
 
@@ -109,7 +100,7 @@ void SelectMobScene::onUpdate(double elapsed) {
 #ifndef __ANDROID__
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUTx.Has(InputEvents::pressed_ui_left)) {
+    if (Input().Has(InputEvents::pressed_ui_left)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -121,7 +112,7 @@ void SelectMobScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
+    else if (Input().Has(InputEvents::pressed_ui_right)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -137,10 +128,11 @@ void SelectMobScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUTx.Has(InputEvents::pressed_cancel)) {
+    if (Input().Has(InputEvents::pressed_cancel)) {
       // Fade out black and go back to the menu
       gotoNextScene = true;
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
+
       using effect = segue<BlackWashFade, milliseconds<500>>;
       getController().pop<effect>();
     }
@@ -169,10 +161,10 @@ void SelectMobScene::onUpdate(double elapsed) {
             numberCooldown = maxNumberCooldown;
         }
 
-        if (INPUTx.Has(PRESSED_B)) {
+        if (Input().Has(PRESSED_B)) {
             // Fade out black and go back to the menu
             gotoNextScene = true;
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            Audio().Play(AudioType::CHIP_DESC_CLOSE);
             using segue = swoosh::intent::segue<BlackWashFade, swoosh::intent::milli<500>>;
             getController().pop<segue>();
         }
@@ -186,10 +178,10 @@ void SelectMobScene::onUpdate(double elapsed) {
   // Grab the mob info object from this index
   auto& mobinfo = MOBS.At(mobSelectionIndex);
 
-  mobLabel->setString(mobinfo.GetName());
-  hpLabel->setString(mobinfo.GetHPString());
-  speedLabel->setString(mobinfo.GetSpeedString());
-  attackLabel->setString(mobinfo.GetAttackString());
+  mobLabel.SetString(mobinfo.GetName());
+  hpLabel.SetString(mobinfo.GetHPString());
+  speedLabel.SetString(mobinfo.GetSpeedString());
+  attackLabel.SetString(mobinfo.GetAttackString());
 
 #ifdef __ANDROID__
   if(canSwipe) {
@@ -265,15 +257,15 @@ void SelectMobScene::onUpdate(double elapsed) {
     numberCooldown -= (float)elapsed;
     std::string newstr;
 
-    for (int i = 0; i < mobLabel->getString().getSize(); i++) {
+    for (int i = 0; i < mobLabel.GetString().length(); i++) {
       double progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
-      double index = progress * mobLabel->getString().getSize();
+      double index = progress * mobLabel.GetString().length();
 
       if (i < (int)index) {
-        newstr += mobLabel->getString()[i];
+        newstr += mobLabel.GetString()[i];
       }
       else {
-        if (mobLabel->getString()[i] != ' ') {
+        if (mobLabel.GetString()[i] != ' ') {
           newstr += (char)(((rand() % (90 - 65)) + 65) + 1);
         }
         else {
@@ -318,10 +310,10 @@ void SelectMobScene::onUpdate(double elapsed) {
       count--;
     }
 
-    attackLabel->setString(std::to_string(randAttack));
-    speedLabel->setString(std::to_string(randSpeed));
-    hpLabel->setString(std::to_string(randHP));
-    mobLabel->setString(sf::String(newstr));
+    attackLabel.SetString(std::to_string(randAttack));
+    speedLabel.SetString(std::to_string(randSpeed));
+    hpLabel.SetString(std::to_string(randHP));
+    mobLabel.SetString(sf::String(newstr));
   }
 
   
@@ -347,7 +339,7 @@ void SelectMobScene::onUpdate(double elapsed) {
   }
 
   // Make a selection
-  if (INPUTx.Has(InputEvents::pressed_confirm) && !gotoNextScene) {
+  if (Input().Has(InputEvents::pressed_confirm) && !gotoNextScene) {
     
     if (MOBS.Size() != 0) {
       mob = MOBS.At(mobSelectionIndex).GetMob();
@@ -358,16 +350,16 @@ void SelectMobScene::onUpdate(double elapsed) {
       // data is invalid
       gotoNextScene = false;
 
-      AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
+      Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
     }
     else {
       gotoNextScene = true;
 
       // Play the pre battle rumble sound
-      AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::high);
+      Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
       // Stop music and go to battle screen 
-      AUDIO.StopStream();
+      Audio().StopStream();
 
       // Get the navi we selected
       Player* player = NAVIS.At(selectedNavi).GetNavi();
@@ -404,42 +396,40 @@ void SelectMobScene::onUpdate(double elapsed) {
 }
 
 void SelectMobScene::onDraw(sf::RenderTexture & surface) {
-  ENGINE.SetRenderSurface(surface);
-
-  ENGINE.Draw(bg);
-  ENGINE.Draw(menuLabel);
+  surface.draw(bg);
+  surface.draw(menuLabel);
 
   // Draw mob name with shadow
-  mobLabel->setPosition(sf::Vector2f(30.f, 30.0f));
-  mobLabel->setFillColor(sf::Color(138, 138, 138));
-  ENGINE.Draw(mobLabel);
-  mobLabel->setPosition(sf::Vector2f(30.f, 28.0f));
-  mobLabel->setFillColor(sf::Color::White);
-  ENGINE.Draw(mobLabel);
+  mobLabel.setPosition(sf::Vector2f(30.f, 38.0f));
+  mobLabel.SetColor(sf::Color(138, 138, 138));
+  surface.draw(mobLabel);
+  mobLabel.setPosition(sf::Vector2f(30.f, 36.0f));
+  mobLabel.SetColor(sf::Color::White);
+  surface.draw(mobLabel);
 
   // Draw attack rating with shadow
-  attackLabel->setPosition(382.f, 80.f);
-  attackLabel->setFillColor(sf::Color(88, 88, 88));
-  ENGINE.Draw(attackLabel);
-  attackLabel->setPosition(380.f, 78.f);
-  attackLabel->setFillColor(sf::Color::White);
-  ENGINE.Draw(attackLabel);
+  attackLabel.setPosition(382.f, 88.f);
+  attackLabel.SetColor(sf::Color(88, 88, 88));
+  surface.draw(attackLabel);
+  attackLabel.setPosition(380.f, 86.f);
+  attackLabel.SetColor(sf::Color::White);
+  surface.draw(attackLabel);
 
   // Draw speed rating with shadow
-  speedLabel->setPosition(382.f, 112.f);
-  speedLabel->setFillColor(sf::Color(88, 88, 88));
-  ENGINE.Draw(speedLabel);
-  speedLabel->setPosition(380.f, 110.f);
-  speedLabel->setFillColor(sf::Color::White);
-  ENGINE.Draw(speedLabel);
+  speedLabel.setPosition(382.f, 120.f);
+  speedLabel.SetColor(sf::Color(88, 88, 88));
+  surface.draw(speedLabel);
+  speedLabel.setPosition(380.f, 118.f);
+  speedLabel.SetColor(sf::Color::White);
+  surface.draw(speedLabel);
 
   // Draw hp
-  hpLabel->setPosition(382.f, 144.f);
-  hpLabel->setFillColor(sf::Color(88, 88, 88));
-  ENGINE.Draw(hpLabel);
-  hpLabel->setPosition(380.f, 142.f);
-  hpLabel->setFillColor(sf::Color::White);
-  ENGINE.Draw(hpLabel);
+  hpLabel.setPosition(382.f, 152.f);
+  hpLabel.SetColor(sf::Color(88, 88, 88));
+  surface.draw(hpLabel);
+  hpLabel.setPosition(380.f, 150.f);
+  hpLabel.SetColor(sf::Color::White);
+  surface.draw(hpLabel);
 
   // Pixelate the mob texture
   if (mobSpr.getTexture()) {
@@ -459,11 +449,11 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
     mobSpr.setScale(scale, scale);
     mobSpr.SetShader(shader);
 
-    ENGINE.Draw(mobSpr);
+    surface.draw(mobSpr);
   }
 
-  ENGINE.Draw(textbox);
-  ENGINE.Draw(navigator);
+  surface.draw(textbox);
+  surface.draw(navigator);
 
   // Draw the LEFT cursor
   if (mobSelectionIndex > 0) {
@@ -484,7 +474,7 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   cursor.setScale(-2.f, 2.f);
   
   // Draw left cursor
-  ENGINE.Draw(cursor);
+  surface.draw(cursor);
 
   // Draw the RIGHT cursor
   if (mobSelectionIndex < (int)(MOBS.Size() - 1)) {
@@ -504,7 +494,7 @@ void SelectMobScene::onDraw(sf::RenderTexture & surface) {
   cursor.setScale(2.f, 2.f);
   
   // Draw the right cursor
-  ENGINE.Draw(cursor);
+  surface.draw(cursor);
 }
 
 void SelectMobScene::onResume() {
@@ -513,11 +503,8 @@ void SelectMobScene::onResume() {
     mob = nullptr;
   }
 
-  // Fix camera if offset from battle?
-  // ENGINE.SetCamera(camera);
-
   // Re-play music
-  AUDIO.Stream("resources/loops/loop_navi_customizer.ogg", true);
+  Audio().Stream("resources/loops/loop_navi_customizer.ogg", true);
 
   gotoNextScene = false;
   Logger::Log("SelectMobScene::onResume()");

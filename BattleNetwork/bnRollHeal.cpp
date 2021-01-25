@@ -13,8 +13,9 @@
 
 #define RESOURCE_PATH "resources/spells/spell_roll.animation"
 
-RollHeal::RollHeal(Field* field, Team team, Character* user, int _heal) 
-  : Spell(field, team), user(user)
+RollHeal::RollHeal(Team team, Character* user, int _heal) : 
+  Spell(team), 
+  user(user)
 {
   SetPassthrough(true);
 
@@ -25,9 +26,9 @@ RollHeal::RollHeal(Field* field, Team team, Character* user, int _heal)
   int lr = (team == Team::red) ? 1 : -1;
   setScale(2.0f*lr, 2.0f);
 
-  AUDIO.Play(AudioType::APPEAR);
+  Audio().Play(AudioType::APPEAR);
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_roll.png"), true);
+  setTexture(Textures().LoadTextureFromFile("resources/spells/spell_roll.png"), true);
 
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
@@ -111,7 +112,7 @@ RollHeal::RollHeal(Field* field, Team team, Character* user, int _heal)
 RollHeal::~RollHeal() {
 }
 
-void RollHeal::OnUpdate(float _elapsed) {
+void RollHeal::OnUpdate(double _elapsed) {
   if (tile != nullptr) {
     setPosition(tile->getPosition());
   }
@@ -132,11 +133,11 @@ void RollHeal::OnDelete()
 
 void RollHeal::DropHitbox(Battle::Tile* target)
 {
-    auto hitbox = new Hitbox(GetField(), GetTeam());
+    auto hitbox = new Hitbox(GetTeam());
     hitbox->HighlightTile(Battle::Tile::Highlight::solid);
     hitbox->SetHitboxProperties(GetHitboxProperties());
     hitbox->AddCallback([](Character* hit) {
-        AUDIO.Play(AudioType::HURT);
+        ResourceHandle().Audio().Play(AudioType::HURT);
     });
     GetField()->AddEntity(*hitbox, *target);
 }

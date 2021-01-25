@@ -1,8 +1,7 @@
 #include "bnCardAction.h"
 #include "battlescene/bnBattleSceneBase.h"
 
-CardAction::CardAction(Character& user, const std::string& animation)
-  : 
+CardAction::CardAction(Character& user, const std::string& animation) : 
   user(user),
   animation(animation), 
   anim(user.GetFirstComponent<AnimationComponent>()),
@@ -10,6 +9,7 @@ CardAction::CardAction(Character& user, const std::string& animation)
   prevState(), 
   attachments(), 
   SceneNode(),
+  ResourceHandle(),
   Component(&user, Component::lifetimes::battlestep)
 {
   if (anim) {
@@ -24,7 +24,7 @@ CardAction::CardAction(Character& user, const std::string& animation)
       anim->SetAnimation(animation, [this]() {
 
         if (this->IsLockoutOver()) {
-          EndAction();
+          OnEndAction();
         }
 
         RecallPreviousState();
@@ -102,7 +102,7 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
         anim->SetPlaybackMode(Animator::Mode::Loop);
 
         if (this->IsLockoutOver()) {
-          EndAction();
+          OnEndAction();
         }
 
         RecallPreviousState();
@@ -121,15 +121,20 @@ void CardAction::OverrideAnimationFrames(std::list<OverrideFrame> frameData)
   }
 }
 
-void CardAction::OnExecute()
+void CardAction::Execute()
 {
   // prepare the animation behavior
   prepareActionDelegate();
   started = true;
   // run
-  Execute();
+  OnExecute();
   // Position any new nodes to owner
   OnUpdate(0);
+}
+
+void CardAction::EndAction()
+{
+  this->OnEndAction();
 }
 
 CardAction::Attachment& CardAction::AddAttachment(Animation& parent, const std::string& point, SpriteProxyNode& node) {
@@ -156,7 +161,7 @@ CardAction::Attachment& CardAction::AddAttachment(Character& character, const st
   return AddAttachment(animComp->GetAnimationObj(), point, node);
 }
 
-void CardAction::OnUpdate(float _elapsed)
+void CardAction::OnUpdate(double _elapsed)
 {
   for (auto& [nodeName, node] : attachments) {
     // update the node's animation
@@ -176,7 +181,7 @@ void CardAction::OnUpdate(float _elapsed)
     sequence.update(_elapsed);
     if (sequence.isEmpty()) {
       animationIsOver = true; // animation for sequence is complete
-      EndAction();
+      OnEndAction();
     }
   }
   else {
@@ -184,7 +189,7 @@ void CardAction::OnUpdate(float _elapsed)
     lockoutProps.cooldown = std::max(lockoutProps.cooldown, 0.0);
 
     if (IsLockoutOver()) {
-      EndAction();
+      OnEndAction();
     }
   }
 }

@@ -9,6 +9,6 @@ endif()
 
 if(NOT MSVC)
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-value -g3")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-value -Wno-inconsistent-missing-override -Wno-switch -g3")
 
 endif()

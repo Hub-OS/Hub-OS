@@ -3,7 +3,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include "bnLogger.h"
 #include "bnBusterCardAction.h"
 #include "bnTomahawkSwingCardAction.h"
@@ -15,12 +15,12 @@ const std::string RESOURCE_PATH = "resources/navis/tomahawk/tomahawk.animation";
 
 CardAction* Tomahawkman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  return new BusterCardAction(*this, false, 1*GetAttackLevel());
 }
 
 CardAction* Tomahawkman::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 10*GetAttackLevel());
+  return new BusterCardAction(*this, true, 10*GetAttackLevel());
 }
 
 CardAction* Tomahawkman::OnExecuteSpecialAction() {
@@ -38,7 +38,7 @@ Tomahawkman::Tomahawkman() : Player()
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/navis/tomahawk/navi_tomahawk_atlas.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/navis/tomahawk/navi_tomahawk_atlas.png"));
 
   SetHealth(1000);
 
@@ -55,7 +55,7 @@ const float Tomahawkman::GetHeight() const
   return 100.0f;
 }
 
-void Tomahawkman::OnUpdate(float _elapsed)
+void Tomahawkman::OnUpdate(double _elapsed)
 {
   // Continue with the parent class routine
   Player::OnUpdate(_elapsed);

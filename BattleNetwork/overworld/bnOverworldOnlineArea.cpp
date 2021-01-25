@@ -12,20 +12,22 @@
 using namespace swoosh::types;
 constexpr int MAX_ERROR_COUNT = 10;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 5.f;
-constexpr float MAX_TIMEOUT_SECONDS = 5.f;
+constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool guestAccount) :
+  font(Font::Style::small),
+  name(font),
   SceneBase(controller, guestAccount)
 {
   lastFrameNavi = this->GetCurrentNavi();
 
-  int myPort = ENGINE.CommandLineValue<int>("port");
+  int myPort = getController().CommandLineValue<int>("port");
   Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
   client = Poco::Net::DatagramSocket(sa);
   client.setBlocking(false);
 
-  int remotePort = ENGINE.CommandLineValue<int>("remotePort");
-  std::string cyberworld = ENGINE.CommandLineValue<std::string>("cyberworld");
+  int remotePort = getController().CommandLineValue<int>("remotePort");
+  std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
   remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
 
   try {
@@ -38,12 +40,8 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
 
   SetBackground(new XmasBackground);
 
-  // load name font stuff
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
-  name = sf::Text("", *font);
-
   loadMapTime.reverse(true);
-  loadMapTime.set(MAX_TIMEOUT_SECONDS*1000);
+  loadMapTime.set(sf::seconds(MAX_TIMEOUT_SECONDS));
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -83,7 +81,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         auto delta = player.second->endBroadcastPos - player.second->startBroadcastPos;
         float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
         double expectedTime = CalculatePlayerLag(*onlinePlayer);
-        auto alpha = ease::linear(deltaTime, expectedTime, 1.0);
+        float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
         Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
 
         if (distance <= 0.2f) {
@@ -114,7 +112,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     loadMapTime.reset();
     loadMapTime.pause();
 
-    movementTimer.update(elapsed);
+    movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
     if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
       movementTimer.reset();
@@ -122,7 +120,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     }
   }
   else {
-    loadMapTime.update(elapsed);
+    loadMapTime.update(sf::seconds(static_cast<float>(elapsed)));
 
     if (loadMapTime.getElapsed().asSeconds() == 0) {
       using effect = segue<PixelateBlackWashFade>;
@@ -143,20 +141,20 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     name.setPosition(view.x*0.5f, view.y*0.5f);
     std::string secondsStr = std::to_string(loadMapTime.getElapsed().asSeconds());
     std::string trimmed = secondsStr.substr(0, secondsStr.find(".") + precision + 1);
-    name.setString(sf::String("Connecting " + trimmed + "s..."));
-    name.setOrigin(name.getLocalBounds().width * 0.5f, name.getLocalBounds().height * 0.5f);
-    ENGINE.Draw(name);
+    name.SetString("Connecting " + trimmed + "s...");
+    name.setOrigin(name.GetLocalBounds().width * 0.5f, name.GetLocalBounds().height * 0.5f);
+    surface.draw(name);
   }
 
   for (auto player : onlinePlayers) {
     if (IsMouseHovering(surface, player.second->actor)) {
       std::string nameStr = player.second->actor.GetName();
-      auto mousei = sf::Mouse::getPosition(*ENGINE.GetWindow());
-      auto mousef = sf::Vector2f(mousei.x, mousei.y);
+      auto mousei = sf::Mouse::getPosition(getController().getWindow());
+      auto mousef = sf::Vector2f(static_cast<float>(mousei.x), static_cast<float>(mousei.y));
       name.setPosition(mousef);
-      name.setString(sf::String(nameStr.c_str()));
+      name.SetString(nameStr.c_str());
       name.setOrigin(-10.0f, 0);
-      ENGINE.Draw(name);
+      surface.draw(name);
       continue;
     }
   }
@@ -168,12 +166,12 @@ void Overworld::OnlineArea::onStart()
   loadMapTime.start();
   movementTimer.start();
   sendLoginSignal();
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+  Audio().Stream("resources/loops/loop_overworld.ogg", false);
 }
 
 void Overworld::OnlineArea::onResume()
 {
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+  Audio().Stream("resources/loops/loop_overworld.ogg", false);
 }
 
 const std::pair<bool, Overworld::Map::Tile**> Overworld::OnlineArea::FetchMapData()
@@ -365,10 +363,14 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
     return;
   }
 
-  double x{}, y{}, z{};
-  std::memcpy(&x, buffer.begin()+user.size(), sizeof(double));
-  std::memcpy(&y, buffer.begin()+user.size()+sizeof(double),    sizeof(double));
-  std::memcpy(&z, buffer.begin()+user.size()+(sizeof(double)*2), sizeof(double));
+  double xd{}, yd{}, zd{};
+  std::memcpy(&xd, buffer.begin()+user.size(), sizeof(double));
+  std::memcpy(&yd, buffer.begin()+user.size()+sizeof(double),    sizeof(double));
+  std::memcpy(&zd, buffer.begin()+user.size()+(sizeof(double)*2), sizeof(double));
+
+  float x = static_cast<float>(xd);
+  float y = static_cast<float>(yd);
+  float z = static_cast<float>(zd);
 
   auto userIter = onlinePlayers.find(user);
 
@@ -667,7 +669,7 @@ const bool Overworld::OnlineArea::IsMouseHovering(const sf::RenderTarget& target
 {
 
   // convert it to world coordinates
-  sf::Vector2f world = target.mapPixelToCoords(sf::Mouse::getPosition(*ENGINE.GetWindow()), GetCamera().GetView());
+  sf::Vector2f world = target.mapPixelToCoords(sf::Mouse::getPosition(getController().getWindow()), GetCamera().GetView());
 
   // consider the point on screen relative to the camera focus
   //auto mouse = GetMap().WorldToScreen(world);

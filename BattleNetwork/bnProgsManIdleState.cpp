@@ -18,7 +18,7 @@ void ProgsManIdleState::OnEnter(ProgsMan& progs) {
   cooldown = initialCooldown;
 }
 
-void ProgsManIdleState::OnUpdate(float _elapsed, ProgsMan& progs) {
+void ProgsManIdleState::OnUpdate(double _elapsed, ProgsMan& progs) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {

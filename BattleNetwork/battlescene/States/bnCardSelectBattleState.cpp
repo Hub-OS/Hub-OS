@@ -4,6 +4,7 @@
 #include "../../bnCamera.h"
 #include "../../bnCard.h"
 #include "../../bnPlayer.h"
+#include "../../bnText.h"
 #include "../../bnSelectedCardsUI.h"
 #include "../../bnInputManager.h"
 
@@ -12,15 +13,17 @@
 // Per 1 second that is 6*120px in 6*1/6 of a sec = 720px in 1 sec
 #define MODAL_SLIDE_PX_PER_SEC 720.0f
 
-CardSelectBattleState::CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms)
-  : tracked(tracked), forms(forms) {
+CardSelectBattleState::CardSelectBattleState(std::vector<Player*>& tracked, std::vector<std::shared_ptr<TrackedFormData>>& forms) : 
+  tracked(tracked), 
+  forms(forms),
+  font(Font::Style::thick)
+{
   // Selection input delays
   heldCardSelectInputCooldown = 0.35f; // 21 frames @ 60fps = 0.35 second
   maxCardSelectInputCooldown = 1 / 12.f; // 5 frames @ 60fps = 1/12th second
   cardSelectInputCooldown = maxCardSelectInputCooldown;
 
   // Load assets
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
   mobBackdropSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_BACKDROP));
   mobEdgeSprite = sf::Sprite(*LOAD_TEXTURE(MOB_NAME_EDGE));
 
@@ -74,7 +77,7 @@ void CardSelectBattleState::onStart(const BattleSceneState*)
     }
   }
 
-  AUDIO.Play(AudioType::CUSTOM_SCREEN_OPEN);
+  Audio().Play(AudioType::CUSTOM_SCREEN_OPEN);
 
   // Load the next cards
   cardCust.ResetState();
@@ -91,20 +94,20 @@ void CardSelectBattleState::onUpdate(double elapsed)
 
   if (!cardCust.IsInView() && currState == state::slidein) {
     cardCust.Move(sf::Vector2f(MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
-    ENGINE.GetCamera()->MoveCamera(sf::Vector2f(240.f, 140.f), sf::seconds(0.1f));
+    GetScene().GetCamera().MoveCamera(sf::Vector2f(240.f, 140.f), sf::seconds(0.1f));
     return;
   }
 
   if (!cardCust.IsOutOfView() && currState == state::slideout) {
     cardCust.Move(sf::Vector2f(-MODAL_SLIDE_PX_PER_SEC * (float)elapsed, 0));
-    ENGINE.GetCamera()->MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.1f));
+    GetScene().GetCamera().MoveCamera(sf::Vector2f(240.f, 160.f), sf::seconds(0.1f));
     return;
   }
 
   if (cardCust.IsInView()) {
     currState = state::select;
 
-    if (INPUTx.Has(InputEvents::pressed_scan_right) || INPUTx.Has(InputEvents::pressed_scan_left)) {
+    if (Input().Has(InputEvents::pressed_scan_right) || Input().Has(InputEvents::pressed_scan_left)) {
       if (cardCust.IsVisible()) {
         cardCust.Hide();
       }
@@ -116,66 +119,66 @@ void CardSelectBattleState::onUpdate(double elapsed)
 
   if (cardCust.CanInteract() && currState == state::select) {
     if (cardCust.IsCardDescriptionTextBoxOpen()) {
-      if (!INPUTx.Has(InputEvents::held_option)) {
-        cardCust.CloseCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::lowest) : 1;
+      if (!Input().Has(InputEvents::held_option)) {
+        cardCust.CloseCardDescription() ? Audio().Play(AudioType::CHIP_DESC_CLOSE, AudioPriority::lowest) : 1;
       }
-      else if (INPUTx.Has(InputEvents::pressed_confirm)) {
+      else if (Input().Has(InputEvents::pressed_confirm)) {
 
-        cardCust.CardDescriptionConfirmQuestion() ? AUDIO.Play(AudioType::CHIP_CHOOSE) : 1;
+        cardCust.CardDescriptionConfirmQuestion() ? Audio().Play(AudioType::CHIP_CHOOSE) : 1;
         cardCust.ContinueCardDescription();
       }
 
       cardCust.FastForwardCardDescription(4.0);
 
-      if (INPUTx.Has(InputEvents::pressed_ui_left)) {
-        cardCust.CardDescriptionYes(); //? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+      if (Input().Has(InputEvents::pressed_ui_left)) {
+        cardCust.CardDescriptionYes(); //? Audio().Play(AudioType::CHIP_SELECT) : 1;;
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
-        cardCust.CardDescriptionNo(); //? AUDIO.Play(AudioType::CHIP_SELECT) : 1;;
+      else if (Input().Has(InputEvents::pressed_ui_right)) {
+        cardCust.CardDescriptionNo(); //? Audio().Play(AudioType::CHIP_SELECT) : 1;;
       }
     }
     else {
       // there's a wait time between moving ones and moving repeatedly (Sticky keys)
       bool moveCursor = cardSelectInputCooldown <= 0 || cardSelectInputCooldown == heldCardSelectInputCooldown;
 
-      if (INPUTx.Has(InputEvents::pressed_ui_left) || INPUTx.Has(InputEvents::held_ui_left)) {
+      if (Input().Has(InputEvents::pressed_ui_left) || Input().Has(InputEvents::held_ui_left)) {
         cardSelectInputCooldown -= elapsed;
 
         if (moveCursor) {
-          cardCust.CursorLeft() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          cardCust.CursorLeft() ? Audio().Play(AudioType::CHIP_SELECT) : 1;
 
           if (cardSelectInputCooldown <= 0) {
             cardSelectInputCooldown = maxCardSelectInputCooldown; // sticky key time
           }
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_right) || INPUTx.Has(InputEvents::held_ui_right)) {
+      else if (Input().Has(InputEvents::pressed_ui_right) || Input().Has(InputEvents::held_ui_right)) {
         cardSelectInputCooldown -= elapsed;
 
         if (moveCursor) {
-          cardCust.CursorRight() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          cardCust.CursorRight() ? Audio().Play(AudioType::CHIP_SELECT) : 1;
 
           if (cardSelectInputCooldown <= 0) {
             cardSelectInputCooldown = maxCardSelectInputCooldown; // sticky key time
           }
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_up) || INPUTx.Has(InputEvents::held_ui_up)) {
+      else if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
         cardSelectInputCooldown -= elapsed;
 
         if (moveCursor) {
-          cardCust.CursorUp() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          cardCust.CursorUp() ? Audio().Play(AudioType::CHIP_SELECT) : 1;
 
           if (cardSelectInputCooldown <= 0) {
             cardSelectInputCooldown = maxCardSelectInputCooldown; // sticky key time
           }
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_down) || INPUTx.Has(InputEvents::held_ui_down)) {
+      else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
         cardSelectInputCooldown -= elapsed;
 
         if (moveCursor) {
-          cardCust.CursorDown() ? AUDIO.Play(AudioType::CHIP_SELECT) : 1;
+          cardCust.CursorDown() ? Audio().Play(AudioType::CHIP_SELECT) : 1;
 
           if (cardSelectInputCooldown <= 0) {
             cardSelectInputCooldown = maxCardSelectInputCooldown; // sticky key time
@@ -186,11 +189,11 @@ void CardSelectBattleState::onUpdate(double elapsed)
         cardSelectInputCooldown = heldCardSelectInputCooldown;
       }
 
-      if (INPUTx.Has(InputEvents::pressed_confirm)) {
+      if (Input().Has(InputEvents::pressed_confirm)) {
         bool performed = cardCust.CursorAction();
 
         if (cardCust.AreCardsReady()) {
-          AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
+          Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::high);
 
           cards = cardCust.GetCards();
           cardCount = cardCust.GetCardCount();
@@ -209,7 +212,7 @@ void CardSelectBattleState::onUpdate(double elapsed)
           CheckFormChanges();
         }
         else if (performed) {
-          AUDIO.Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
+          Audio().Play(AudioType::CHIP_CHOOSE, AudioPriority::highest);
 
           // Should probably have a cardCust.IsInFormSelect() to flag this but it works as it is...
           // This was really annoying to debug so here's a note:
@@ -218,17 +221,17 @@ void CardSelectBattleState::onUpdate(double elapsed)
           formSelected = true;
         }
         else {
-          AUDIO.Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
+          Audio().Play(AudioType::CHIP_ERROR, AudioPriority::lowest);
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_cancel) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
-        cardCust.CursorCancel() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::highest) : 1;
+      else if (Input().Has(InputEvents::pressed_cancel) || sf::Mouse::isButtonPressed(sf::Mouse::Button::Right)) {
+        cardCust.CursorCancel() ? Audio().Play(AudioType::CHIP_CANCEL, AudioPriority::highest) : 1;
       }
-      else if (INPUTx.Has(InputEvents::held_option)) {
-        cardCust.OpenCardDescription() ? AUDIO.Play(AudioType::CHIP_DESC, AudioPriority::lowest) : 1;
+      else if (Input().Has(InputEvents::held_option)) {
+        cardCust.OpenCardDescription() ? Audio().Play(AudioType::CHIP_DESC, AudioPriority::lowest) : 1;
       }
-      else if (INPUTx.Has(InputEvents::held_pause)) {
-        cardCust.CursorSelectOK() ? AUDIO.Play(AudioType::CHIP_CANCEL, AudioPriority::lowest) : 1;;
+      else if (Input().Has(InputEvents::held_pause)) {
+        cardCust.CursorSelectOK() ? Audio().Play(AudioType::CHIP_CANCEL, AudioPriority::lowest) : 1;;
       }
     }
   }
@@ -236,15 +239,15 @@ void CardSelectBattleState::onUpdate(double elapsed)
   // Play the WHRR WHRR sound when dark cards are highlighted
   if (cardCust.IsDarkCardSelected()) {
     if (streamVolume == -1) {
-      streamVolume = AUDIO.GetStreamVolume();
-      AUDIO.SetStreamVolume(streamVolume / 2.f);
+      streamVolume = Audio().GetStreamVolume();
+      Audio().SetStreamVolume(streamVolume / 2.f);
     }
 
-    AUDIO.Play(AudioType::DARK_CARD, AudioPriority::high);
+    Audio().Play(AudioType::DARK_CARD, AudioPriority::high);
   }
   else {
     if (streamVolume != -1) {
-      AUDIO.SetStreamVolume(streamVolume);
+      Audio().SetStreamVolume(streamVolume);
       streamVolume = -1.f;
     }
   }
@@ -261,16 +264,15 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
       continue;
 
     std::string name = mob.GetName();
-    sf::Text mobLabel = sf::Text(sf::String(name), *font);
+    Text mobLabel = Text(name, font);
 
-    mobLabel.setOrigin(mobLabel.getLocalBounds().width, 0);
+    mobLabel.setOrigin(mobLabel.GetLocalBounds().width, 0);
     mobLabel.setPosition(470.0f, nextLabelHeight);
     mobLabel.setScale(1.0f, 1.0f);
-    mobLabel.setOutlineColor(sf::Color(48, 56, 80));
-    mobLabel.setOutlineThickness(2.f);
+    mobLabel.SetColor(sf::Color(48, 56, 80));
 
-    float labelWidth = mobLabel.getGlobalBounds().width;
-    float labelHeight = mobLabel.getGlobalBounds().height / 2.f;
+    float labelWidth = mobLabel.GetWorldBounds().width;
+    float labelHeight = mobLabel.GetWorldBounds().height / 2.f;
 
     mobEdgeSprite.setPosition(470.0f - (labelWidth + 10), -5.f + nextLabelHeight + labelHeight);
     auto edgePos = mobEdgeSprite.getPosition();
@@ -280,15 +282,15 @@ void CardSelectBattleState::onDraw(sf::RenderTexture& surface)
     float scalex = GetScene().getController().getVirtualWindowSize().x - mobBackdropSprite.getPosition().x;
     mobBackdropSprite.setScale(scalex, 2.f);
 
-    ENGINE.Draw(mobEdgeSprite, false);
-    ENGINE.Draw(mobBackdropSprite, false);
-    ENGINE.Draw(mobLabel, false);
+    surface.draw(mobEdgeSprite);
+    surface.draw(mobBackdropSprite);
+    surface.draw(mobLabel);
 
     // make the next label relative to this one
-    nextLabelHeight += mobLabel.getLocalBounds().height + 10.f;
+    nextLabelHeight += mobLabel.GetLocalBounds().height + 10.f;
   }
 
-  ENGINE.Draw(GetScene().GetCardSelectWidget());
+  surface.draw(GetScene().GetCardSelectWidget());
 }
 
 void CardSelectBattleState::onEnd(const BattleSceneState*)

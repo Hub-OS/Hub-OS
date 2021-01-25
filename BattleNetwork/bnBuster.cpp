@@ -11,9 +11,9 @@
 
 #include "bnGear.h" 
 
-#define COOLDOWN 40.0f/1000.0f
+#define COOLDOWN 40.0/1000.0
 
-Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_field, _team) {
+Buster::Buster(Team _team, bool _charged, int damage) : isCharged(_charged), Spell(_team) {
   SetPassthrough(true);
   SetLayer(-100);
 
@@ -33,19 +33,19 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
   animationComponent = CreateComponent<AnimationComponent>(this);
 
   if (_charged) {
-    texture = TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
+    texture = Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT);
     animationComponent->SetPath("resources/spells/spell_charged_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   } else {
-    texture = TEXTURES.GetTexture(TextureType::SPELL_BULLET_HIT);
+    texture = Textures().GetTexture(TextureType::SPELL_BULLET_HIT);
     animationComponent->SetPath("resources/spells/spell_bullet_hit.animation");
     animationComponent->Reload();
     animationComponent->SetAnimation("HIT");
   }
   setScale(2.f, 2.f);
 
-  AUDIO.Play(AudioType::BUSTER_PEA, AudioPriority::high);
+  Audio().Play(AudioType::BUSTER_PEA, AudioPriority::high);
 
   auto props = Hit::DefaultProperties;
   props.flags = props.flags & ~Hit::recoil;
@@ -59,7 +59,7 @@ Buster::Buster(Field* _field, Team _team, bool _charged, int damage) : isCharged
 Buster::~Buster() {
 }
 
-void Buster::OnUpdate(float _elapsed) {
+void Buster::OnUpdate(double _elapsed) {
   GetTile()->AffectEntities(this);
 
   cooldown += _elapsed;
@@ -103,10 +103,10 @@ void Buster::Attack(Character* _entity) {
     hitHeight /= 2;
   }
 
-  auto bhit = new BusterHit(GetField(), isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
+  auto bhit = new BusterHit(isCharged ? BusterHit::Type::CHARGED : BusterHit::Type::PEA);
   bhit->SetOffset({ random, GetHeight() + hitHeight });
   GetField()->AddEntity(*bhit, *GetTile());
 
   Delete();
-  AUDIO.Play(AudioType::HURT);
+  Audio().Play(AudioType::HURT);
 }

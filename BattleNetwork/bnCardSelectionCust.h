@@ -1,17 +1,18 @@
 #pragma once
 
-#include "Swoosh/Ease.h"
-
-#include <SFML/Graphics.hpp>
+#include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnCardFolder.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnAnimation.h"
 #include "bnCardDescriptionTextbox.h"
 #include "bnCustEmblem.h"
 #include "bnSceneNode.h"
 #include "bnPlayerForm.h"
+
+#include <SFML/Graphics.hpp>
+#include <Swoosh/Ease.h>
 
 /**
  * @class CardSelectionCust
@@ -19,7 +20,7 @@
  * @date 05/05/19
  * @brief Cardcust widget used in battle. Can be interacted through public API.
  */
-class CardSelectionCust : public SceneNode {
+class CardSelectionCust : public SceneNode, public ResourceHandle {
 public:
   /**
    * @struct Bucket
@@ -60,10 +61,10 @@ private:
   mutable SpriteProxyNode formSelect;
   mutable SpriteProxyNode formCursor;
   sf::Shader& greyscale;
-  std::shared_ptr<sf::Font> labelFont;
-  std::shared_ptr<sf::Font> codeFont;
-  mutable sf::Text smCodeLabel;
-  mutable sf::Text label;
+  Font labelFont;
+  Font codeFont, codeFont2;
+  mutable Text smCodeLabel;
+  mutable Text label;
   mutable CustEmblem emblem;
 
   int formCursorRow; //!< Cursor row
@@ -71,7 +72,7 @@ private:
   int selectedFormIndex; //!< Form Index of selection 
   int lockedInFormIndex; //!< What the card cust has locked our selection in as
   std::vector<sf::Sprite> formUI;
-  float formSelectQuitTimer;
+  double formSelectQuitTimer;
   bool playFormSound;
 
   int cardCount; /*!< How many cards are listed in the GUI */
@@ -239,7 +240,7 @@ public:
    * @brief Animators cursors and textbox animations
    * @param elapsed in seconds
    */
-  void Update(float elapsed);
+  void Update(double elapsed);
 
   /**
    * @brief Confirm question selection for textbox 

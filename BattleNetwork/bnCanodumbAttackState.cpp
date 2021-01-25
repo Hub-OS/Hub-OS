@@ -16,11 +16,11 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
   auto onFinish = [&can]() { can.ChangeState<CanodumbIdleState>(); };
 
   auto onAttack = [&can]() { 
-    CanonSmoke* smoke = new CanonSmoke(can.GetField());
+    CanonSmoke* smoke = new CanonSmoke;
     can.GetField()->AddEntity(*smoke, can.GetTile()->GetX() - 1, can.GetTile()->GetY()); 
 
     if (can.GetField()->GetAt(can.tile->GetX() - 1, can.tile->GetY())) {
-        Spell* spell = new Cannon(can.field, can.team, 10);
+        Spell* spell = new Cannon(can.team, 10);
         spell->SetDirection(Direction::left);
         auto props = spell->GetHitboxProperties();
         props.aggressor = &can;
@@ -28,7 +28,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
 
         can.field->AddEntity(*spell, can.tile->GetX() - 1, can.tile->GetY());
 
-        AUDIO.Play(AudioType::CANNON);
+        can.Audio().Play(AudioType::CANNON);
     }
   };
 
@@ -50,7 +50,7 @@ void CanodumbAttackState::OnEnter(Canodumb& can) {
   animation->AddCallback(2, onAttack, true);
 }
 
-void CanodumbAttackState::OnUpdate(float _elapsed, Canodumb& can) {
+void CanodumbAttackState::OnUpdate(double _elapsed, Canodumb& can) {
 }
 
 void CanodumbAttackState::OnLeave(Canodumb& can) {

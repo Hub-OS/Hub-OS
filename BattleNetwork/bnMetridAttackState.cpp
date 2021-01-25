@@ -49,7 +49,7 @@ void MetridAttackState::OnEnter(Metrid& met) {
   }
 }
 
-void MetridAttackState::OnUpdate(float _elapsed, Metrid& met) {
+void MetridAttackState::OnUpdate(double _elapsed, Metrid& met) {
   if (met.GetTarget()) {
     auto last = met.GetTarget()->GetTile();
 
@@ -109,7 +109,7 @@ void MetridAttackState::DoAttack(Metrid& met) {
       meteorCooldown = 0.4f;
     }
 
-    auto meteor = new Meteor(met.GetField(), met.GetTeam(), target, damage, 0.4f);
+    auto meteor = new Meteor(met.GetTeam(), target, damage, 0.4f);
     auto props = meteor->GetHitboxProperties();
     props.aggressor = &met;
     meteor->SetHitboxProperties(props);

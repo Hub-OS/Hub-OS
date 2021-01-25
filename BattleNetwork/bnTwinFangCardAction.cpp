@@ -11,77 +11,52 @@
 
 #define FRAMES FRAME1, FRAME1, FRAME1, FRAME1, FRAME2, FRAME3, FRAME2, FRAME1, FRAME1
 
-
-TwinFangCardAction::TwinFangCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_SHOOTING") {
+TwinFangCardAction::TwinFangCardAction(Character& owner, int damage) : 
+  CardAction(owner, "PLAYER_SHOOTING") {
   TwinFangCardAction::damage = damage;
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 }
 
-void TwinFangCardAction::Execute() {
-  auto owner = GetOwner();
+TwinFangCardAction::~TwinFangCardAction()
+{
+}
 
+void TwinFangCardAction::OnExecute() {
   // On shoot frame, drop projectile
-  auto onFire = [this, owner]() -> void {
-    auto tile = GetOwner()->GetTile();
+  auto onFire = [this]() -> void {
+    auto user = GetOwner();
 
-    AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+    auto tile = user->GetTile();
 
-    /**
-    
-    These duds were written before the grid was surrounded by invisible tiles
-    The original games have invisible tiles for items that appear to float or go off the stage
-    This can now be re-written to not need twin fang dud objects...
-    */
-    if (tile->GetY() != 1) {
-      TwinFang* twinfang = new TwinFang(GetOwner()->GetField(), GetOwner()->GetTeam(), TwinFang::Type::ABOVE, damage);
+    Audio().Play(AudioType::TOSS_ITEM_LITE);
+
+    if (tile->GetY() != 0) {
+      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::ABOVE, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = GetOwnerAs<Character>();
+      props.aggressor = user;
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 
-      GetOwner()->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() - 1);
-    }
-    else { // TwinFang floats above the scene
-      TwinFang* twinfang = new TwinFang(GetOwner()->GetField(), GetOwner()->GetTeam(), TwinFang::Type::ABOVE_DUD, damage);
-      auto props = twinfang->GetHitboxProperties();
-      props.aggressor = GetOwnerAs<Character>();
-      twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(Direction::right);
-
-      GetOwner()->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY());
+      user->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() - 1);
     }
 
-    if (tile->GetY() != 3) {
-      TwinFang* twinfang = new TwinFang(GetOwner()->GetField(), GetOwner()->GetTeam(), TwinFang::Type::BELOW, damage);
+    if (tile->GetY() != 4) {
+      TwinFang* twinfang = new TwinFang(user->GetTeam(), TwinFang::Type::BELOW, damage);
       auto props = twinfang->GetHitboxProperties();
-      props.aggressor = GetOwnerAs<Character>();
+      props.aggressor = user;
       twinfang->SetHitboxProperties(props);
       twinfang->SetDirection(Direction::right);
 
-      GetOwner()->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() + 1);
-    }
-    else { // TwinFang floats below the scene
-      TwinFang* twinfang = new TwinFang(GetOwner()->GetField(), GetOwner()->GetTeam(), TwinFang::Type::BELOW_DUD, damage);
-      auto props = twinfang->GetHitboxProperties();
-      props.aggressor = GetOwnerAs<Character>();
-      twinfang->SetHitboxProperties(props);
-      twinfang->SetDirection(Direction::right);
-
-      GetOwner()->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY());
+      user->GetField()->AddEntity(*twinfang, tile->GetX(), tile->GetY() + 1);
     }
   };
 
   AddAnimAction(2, onFire);
 }
 
-TwinFangCardAction::~TwinFangCardAction()
-{
-}
-
-void TwinFangCardAction::OnUpdate(float _elapsed)
+void TwinFangCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }
@@ -90,7 +65,7 @@ void TwinFangCardAction::OnAnimationEnd()
 {
 }
 
-void TwinFangCardAction::EndAction()
+void TwinFangCardAction::OnEndAction()
 {
   Eject();
 }

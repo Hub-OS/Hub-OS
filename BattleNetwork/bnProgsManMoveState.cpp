@@ -14,7 +14,7 @@ ProgsManMoveState::~ProgsManMoveState() { ; }
 void ProgsManMoveState::OnEnter(ProgsMan& progs) {
 }
 
-void ProgsManMoveState::OnUpdate(float _elapsed, ProgsMan& progs) {
+void ProgsManMoveState::OnUpdate(double _elapsed, ProgsMan& progs) {
   if (isMoving) return; // We're already moving (animations take time)
 
   nextDirection = Direction::none;

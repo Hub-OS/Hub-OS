@@ -16,7 +16,7 @@ using sf::Texture;
  */
 class Gear : public Obstacle {
 public:
-  Gear(Field * _field, Team _team, Direction startDir);
+  Gear(Team _team, Direction startDir);
   ~Gear();
 
   /**
@@ -25,7 +25,7 @@ public:
    * 
    * if battle is not activive, does not move
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   
   /**
    * @brief No special behavior occur when deleted

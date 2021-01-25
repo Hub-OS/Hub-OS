@@ -7,7 +7,7 @@ class AlphaGunState : public AIState<AlphaCore>
 {
 private:
   // in seconds
-  float cooldown{};
+  double cooldown{};
   int count{};
   Battle::Tile* last{ nullptr };
 public:
@@ -15,6 +15,6 @@ public:
   ~AlphaGunState();
 
   void OnEnter(AlphaCore& a) override;
-  void OnUpdate(float _elapsed, AlphaCore& a) override;
+  void OnUpdate(double _elapsed, AlphaCore& a) override;
   void OnLeave(AlphaCore& a) override;
 };

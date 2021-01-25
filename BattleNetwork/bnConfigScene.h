@@ -5,27 +5,28 @@
 #include <SFML/Graphics.hpp>
 #include <time.h>
 
+#include "bnScene.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnAnimation.h"
 #include "bnConfigSettings.h"
 #include "bnConfigWriter.h"
 #include "bnAnimatedTextBox.h"
 #include "bnMessageQuestion.h"
+#include "bnFont.h"
+#include "bnText.h"
 
 /*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
     \warning This scene was made in a clear conscious and is in no way an example of good code design.
 
-    This could use a redesign (and re-code)
+    This could use a redesign
 */
-
 class Background;
-
-class ConfigScene : public swoosh::Activity {
+class ConfigScene : public Scene {
 private:
   ConfigSettings configSettings;
   ConfigSettings::KeyboardHash keyHash;
@@ -34,14 +35,14 @@ private:
   AnimatedTextBox textbox;
 
   // ui sprite maps
-  Animation uiAnimator; /*!< Use animator to represet the different UI buttons */
   Animation endBtnAnimator;
   Animation audioAnimator;
-  int menuSelectionIndex;; /*!< Current selection */
-  int lastMenuSelectionIndex;
-  int maxMenuSelectionIndex; 
-  int colIndex;
-  int maxCols;
+  Text label;
+  int menuSelectionIndex{}; /*!< Current selection */
+  int lastMenuSelectionIndex{};
+  int maxMenuSelectionIndex{};
+  int colIndex{};
+  int maxCols{};
 
   sf::Sprite overlay; /*!< PET */
   sf::Sprite gba;
@@ -49,34 +50,37 @@ private:
   sf::Sprite hint;
   sf::Sprite endBtn;
 
-  bool leave; // ?
-  bool awaitingKey;
-  bool isSelectingTopMenu;
-  bool inGamepadList;
-  bool inKeyboardList;
-  bool inLoginMenu;
-  int audioModeBGM;
-  int audioModeSFX;
+  bool leave{};
+  bool awaitingKey{};
+  bool isSelectingTopMenu{ true };
+  bool inGamepadList{};
+  bool inKeyboardList{};
+  int audioModeBGM{};
+  int audioModeSFX{};
 
   Background* bg;
-
-  sf::Sprite uiSprite;
 
   struct uiData {
     std::string label;
     sf::Vector2f position;
     sf::Vector2f scale;
     enum class ActionItemType : int {
-      KEYBOARD,
-      GAMEPAD,
-      DISABLED
+      keyboard,
+      gamepad,
+      disabled
     } type;
-    int alpha;
+    int alpha{255};
 
     uiData() = default;
     uiData(const uiData& rhs) = default;
     ~uiData() = default;
   };
+
+  enum class State : unsigned char {
+    menu = 0,
+    gamepad_select,
+    login
+  } currState{ State::menu };
 
   int menuDivideIndex;
 
@@ -90,8 +94,25 @@ private:
   void StartupTouchControls();
   void ShutdownTouchControls();
 #endif
-  void DrawMenuOptions();
-  void DrawMappedKeyMenu(std::vector<uiData>& container);
+  void DrawMenuOptions(sf::RenderTarget& surface);
+  void DrawMappedKeyMenu(std::vector<uiData>& container, sf::RenderTarget& surface);
+
+  void DrawMenuState(sf::RenderTarget& surface);
+  void UpdateMenuState(double elapsed);
+
+  void DrawGamepadState(sf::RenderTarget& surface);
+  void UpdateGamepadState(double elapsed);
+
+  void DrawLoginState(sf::RenderTarget& surface);
+  void UpdateLoginState(double elapsed);
+
+  const bool HasConfirmed() const;
+  const bool HasCancelled() const;
+  const bool HasUpButton() const;
+  const bool HasDownButton() const;
+  const bool HasLeftButton() const;
+  const bool HasRightButton() const;
+
 public:
 
   /**

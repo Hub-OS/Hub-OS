@@ -16,12 +16,12 @@
 #include "bnPaletteSwap.h"
 
 Megaman::Megaman() : Player() {
-  auto basePallete = TEXTURES.LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
+  auto basePallete = Textures().LoadTextureFromFile("resources/navis/megaman/forms/base.palette.png");
   PaletteSwap* pswap = CreateComponent<PaletteSwap>(this, basePallete);
 
   SetHealth(900);
   SetName("Megaman");
-  setTexture(TEXTURES.GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::NAVI_MEGAMAN_ATLAS));
 
   AddForm<TenguCross>()->SetUIPath("resources/navis/megaman/forms/tengu_entry.png");
   AddForm<HeatCross>()->SetUIPath("resources/navis/megaman/forms/heat_entry.png");
@@ -33,14 +33,14 @@ Megaman::~Megaman()
 {
 }
 
-void Megaman::OnUpdate(float elapsed)
+void Megaman::OnUpdate(double elapsed)
 {
   Player::OnUpdate(elapsed);
 }
 
 CardAction* Megaman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  return new BusterCardAction(*this, false, 1*GetAttackLevel());
 }
 
 CardAction* Megaman::OnExecuteChargedBusterAction()
@@ -49,7 +49,7 @@ CardAction* Megaman::OnExecuteChargedBusterAction()
     return activeForm->OnChargedBusterAction(*this);
   }
   else {
-    return new BusterCardAction(this, true, 10*GetAttackLevel());
+    return new BusterCardAction(*this, true, 10*GetAttackLevel());
   }
 }
 
@@ -79,9 +79,11 @@ TenguCross::~TenguCross()
 
 void TenguCross::OnActivate(Player& player)
 {
+  ResourceHandle handle;
+
   overlayAnimation = Animation("resources/navis/megaman/forms/tengu_cross.animation");
   overlayAnimation.Load();
-  auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/tengu_cross.png");
+  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/tengu_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
@@ -111,7 +113,7 @@ void TenguCross::OnDeactivate(Player & player)
   parentAnim->RemoveFromOverrideList(&overlayAnimation);
 }
 
-void TenguCross::OnUpdate(float elapsed, Player& player)
+void TenguCross::OnUpdate(double elapsed, Player& player)
 {
   parentAnim->SyncAnimation(overlayAnimation);
   overlayAnimation.Refresh(overlay->getSprite());
@@ -128,13 +130,13 @@ void TenguCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* TenguCross::OnChargedBusterAction(Player& player)
 {
-  return new BusterCardAction(&player, true, 20*player.GetAttackLevel()+40);
+  return new BusterCardAction(player, true, 20*player.GetAttackLevel()+40);
 }
 
 CardAction* TenguCross::OnSpecialAction(Player& player)
 {
   // class TenguCross::SpecialAction is a CardAction implementation
-  return new TenguCross::SpecialAction(&player);
+  return new TenguCross::SpecialAction(player);
 }
 
 frame_time_t TenguCross::CalculateChargeTime(unsigned chargeLevel)
@@ -175,9 +177,11 @@ HeatCross::~HeatCross()
 
 void HeatCross::OnActivate(Player& player)
 {
+  ResourceHandle handle;
+
   overlayAnimation = Animation("resources/navis/megaman/forms/heat_cross.animation");
   overlayAnimation.Load();
-  auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/heat_cross.png");
+  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/heat_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
@@ -211,7 +215,7 @@ void HeatCross::OnDeactivate(Player & player)
 
 }
 
-void HeatCross::OnUpdate(float elapsed, Player& player)
+void HeatCross::OnUpdate(double elapsed, Player& player)
 {
   overlay->setColor(player.getColor());
 
@@ -228,7 +232,7 @@ void HeatCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* HeatCross::OnChargedBusterAction(Player& player)
 {
-  auto* action = new FireBurnCardAction(&player, FireBurn::Type::_2, 20 * player.GetAttackLevel() + 30);
+  auto* action = new FireBurnCardAction(player, FireBurn::Type::_2, 20 * player.GetAttackLevel() + 30);
   action->CrackTiles(false);
   return action;
 }
@@ -278,9 +282,11 @@ TomahawkCross::~TomahawkCross()
 
 void TomahawkCross::OnActivate(Player& player)
 {
+  ResourceHandle handle;
+
   overlayAnimation = Animation("resources/navis/megaman/forms/hawk_cross.animation");
   overlayAnimation.Load();
-  auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/hawk_cross.png");
+  auto cross = handle.Textures().LoadTextureFromFile("resources/navis/megaman/forms/hawk_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
@@ -313,7 +319,7 @@ void TomahawkCross::OnDeactivate(Player & player)
   player.RemoveDefenseRule(statusGuard);
 }
 
-void TomahawkCross::OnUpdate(float elapsed, Player& player)
+void TomahawkCross::OnUpdate(double elapsed, Player& player)
 {
   overlay->setColor(player.getColor());
 
@@ -379,7 +385,7 @@ void ElecCross::OnActivate(Player& player)
 {
   overlayAnimation = Animation("resources/navis/megaman/forms/elec_cross.animation");
   overlayAnimation.Load();
-  auto cross = TextureResourceManager::GetInstance().LoadTextureFromFile("resources/navis/megaman/forms/elec_cross.png");
+  auto cross = player.Textures().LoadTextureFromFile("resources/navis/megaman/forms/elec_cross.png");
   overlay = new SpriteProxyNode();
   overlay->setTexture(cross);
   overlay->SetLayer(-1);
@@ -413,7 +419,7 @@ void ElecCross::OnDeactivate(Player& player)
 
 }
 
-void ElecCross::OnUpdate(float elapsed, Player& player)
+void ElecCross::OnUpdate(double elapsed, Player& player)
 {
   overlay->setColor(player.getColor());
 
@@ -430,7 +436,7 @@ void ElecCross::OnUpdate(float elapsed, Player& player)
 
 CardAction* ElecCross::OnChargedBusterAction(Player& player)
 {
-  auto* action = new LightningCardAction(&player, 20 * player.GetAttackLevel() + 40);
+  auto* action = new LightningCardAction(player, 20 * player.GetAttackLevel() + 40);
   action->SetStun(false);
   return action;
 }
@@ -476,53 +482,48 @@ frame_time_t ElecCross::CalculateChargeTime(unsigned chargeLevel)
 #define FRAMES FRAME1, FRAME2, FRAME3
 
 // class TenguCross
-TenguCross::SpecialAction::SpecialAction(Character* owner) : 
-  CardAction(*owner, "PLAYER_SWORD") {
-  overlay.setTexture(*owner->getTexture());
+TenguCross::SpecialAction::SpecialAction(Character& owner) : 
+  CardAction(owner, "PLAYER_SWORD") {
+  overlay.setTexture(*owner.getTexture());
   attachment = new SpriteProxyNode(overlay);
+
   attachment->SetLayer(-1);
   attachment->EnableParentShader(true);
 
   OverrideAnimationFrames({ FRAMES });
 
-  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
-  attachmentAnim.Reload();
+  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
   attachmentAnim.SetAnimation("HAND");
 
-  AddAttachment(*owner, "hilt", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "hilt", *attachment).UseAnimation(attachmentAnim);
 }
 
 TenguCross::SpecialAction::~SpecialAction()
 {
 }
 
-void TenguCross::SpecialAction::OnUpdate(float _elapsed)
-{
-  CardAction::OnUpdate(_elapsed);
-}
-
-void TenguCross::SpecialAction::Execute()
+void TenguCross::SpecialAction::OnExecute()
 {
   auto owner = GetOwner();
   auto team = owner->GetTeam();
   auto field = owner->GetField();
 
   // On throw frame, spawn projectile
-  auto onThrow = [this, owner, team, field]() -> void {
-    auto wind = new Wind(field, team);
+  auto onThrow = [this, team, field]() -> void {
+    auto wind = new Wind(team);
     field->AddEntity(*wind, 6, 1);
 
-    wind = new Wind(field, team);
+    wind = new Wind(team);
     field->AddEntity(*wind, 6, 2);
 
-    wind = new Wind(field, team);
+    wind = new Wind(team);
     field->AddEntity(*wind, 6, 3);
   };
 
   AddAnimAction(3, onThrow);
 }
 
-void TenguCross::SpecialAction::EndAction()
+void TenguCross::SpecialAction::OnEndAction()
 {
   Eject();
 }

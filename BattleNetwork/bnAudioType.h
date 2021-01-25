@@ -3,7 +3,7 @@
 * @warning These have to be in order.
 * @see AudioResourceManager
 */
-enum AudioType {
+enum class AudioType : int {
   // In-battle SFX
   COUNTER_BONUS,
   DIR_TILE,

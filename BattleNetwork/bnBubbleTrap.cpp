@@ -1,5 +1,6 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
+#include "bnInputManager.h"
 #include "bnField.h"
 #include "bnRowHit.h"
 #include "bnDefenseBubbleWrap.h"
@@ -9,7 +10,10 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/bubble_trap.animation"
 
-BubbleTrap::BubbleTrap(Character* owner) : willDelete(false), defense(nullptr), duration(3), SpriteProxyNode(), Component(owner)
+BubbleTrap::BubbleTrap(Character* owner) : 
+  willDelete(false), defense(nullptr), duration(3), 
+  ResourceHandle(), InputHandle(),
+  SpriteProxyNode(), Component(owner)
 {
   if (owner->IsDeleted()) {
     GetOwner()->FreeComponentByID(Component::GetID());
@@ -22,7 +26,7 @@ BubbleTrap::BubbleTrap(Character* owner) : willDelete(false), defense(nullptr), 
   }
 
   SetLayer(1);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BUBBLE_TRAP));
+  setTexture(Textures().GetTexture(TextureType::SPELL_BUBBLE_TRAP));
   bubble = getSprite();
 
   //Components setup and load
@@ -38,11 +42,11 @@ void BubbleTrap::Inject(BattleSceneBase& bs) {
 
 }
 
-void BubbleTrap::OnUpdate(float _elapsed) {
+void BubbleTrap::OnUpdate(double _elapsed) {
   auto keyTestThunk = [this](const InputEvent& key) {
     bool pass = false;
 
-    if (INPUTx.Has(key)) {
+    if (Input().Has(key)) {
       auto iter = std::find(lastFrameStates.begin(), lastFrameStates.end(), key);
 
       if (iter == lastFrameStates.end()) {
@@ -67,7 +71,7 @@ void BubbleTrap::OnUpdate(float _elapsed) {
   anyKey = anyKey || keyTestThunk(InputEvents::pressed_special);
 
   if (anyKey) {
-    duration -= frames(1).asSeconds();
+    duration -= seconds_cast<double>(frames(1));
   }
 
   duration -= _elapsed;

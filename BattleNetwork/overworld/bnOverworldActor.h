@@ -2,7 +2,7 @@
 #include "../bnSpriteProxyNode.h"
 #include "../bnDirection.h"
 #include "../bnAnimation.h"
-#include "../bnEngine.h"
+#include "../bnDrawWindow.h"
 
 #include <map>
 

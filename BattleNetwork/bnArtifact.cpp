@@ -7,8 +7,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 
-Artifact::Artifact(Field* _field) {
-  SetField(_field);
+Artifact::Artifact() {
   SetTeam(Team::unknown);
   SetPassthrough(true);
 }
@@ -16,7 +15,7 @@ Artifact::Artifact(Field* _field) {
 Artifact::~Artifact() {
 }
 
-void Artifact::Update(float elapsed) {
+void Artifact::Update(double elapsed) {
   if (IsTimeFrozen()) return;
   Entity::Update(elapsed);
   OnUpdate(elapsed);

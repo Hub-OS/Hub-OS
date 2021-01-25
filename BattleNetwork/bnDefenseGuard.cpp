@@ -24,8 +24,8 @@ void DefenseGuard::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Character&
     if ((props.flags & Hit::impact) == Hit::impact) {
       judge.AddTrigger(callback, std::ref(in), std::ref(owner));
       judge.BlockImpact();
-      owner.GetField()->AddEntity(*new GuardHit(owner.GetField(), &owner, true), owner.GetTile()->GetX(), owner.GetTile()->GetY());
-      owner.GetField()->AddEntity(*new Hitbox(owner.GetField(), owner.GetTeam(), 0), owner.GetTile()->GetX(), owner.GetTile()->GetY());
+      owner.GetField()->AddEntity(*new GuardHit(&owner, true), *owner.GetTile());
+      owner.GetField()->AddEntity(*new Hitbox(owner.GetTeam(), 0), *owner.GetTile());
     }
   }
   else if((props.flags & Hit::impact) == Hit::impact){

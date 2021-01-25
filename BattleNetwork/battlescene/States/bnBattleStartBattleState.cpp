@@ -32,7 +32,7 @@ void BattleStartBattleState::onEnd(const BattleSceneState*)
 
 void BattleStartBattleState::onUpdate(double elapsed)
 {
-  battleStartTimer.update(elapsed);
+  battleStartTimer.update(sf::seconds(static_cast<float>(elapsed)));
 }
 
 void BattleStartBattleState::onDraw(sf::RenderTexture& surface)
@@ -41,8 +41,8 @@ void BattleStartBattleState::onDraw(sf::RenderTexture& surface)
   double scale = swoosh::ease::wideParabola(battleStartSecs, preBattleLength, 2.0);
   battleStart.setScale(2.f, (float)scale * 2.f);
 
-  ENGINE.Draw(GetScene().GetCardSelectWidget());
-  ENGINE.Draw(battleStart);
+  surface.draw(GetScene().GetCardSelectWidget());
+  surface.draw(battleStart);
 }
 
 bool BattleStartBattleState::IsFinished() {

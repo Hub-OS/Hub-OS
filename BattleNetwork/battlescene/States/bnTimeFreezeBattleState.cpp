@@ -5,9 +5,9 @@
 #include "../../bnCardAction.h"
 #include "../../bnCharacter.h"
 
-TimeFreezeBattleState::TimeFreezeBattleState()
+TimeFreezeBattleState::TimeFreezeBattleState() :
+  font(Font::Style::thick)
 {
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
   lockedTimestamp = lockedTimestamp = std::numeric_limits<long long>::max();
 }
 
@@ -41,7 +41,7 @@ void TimeFreezeBattleState::onEnd(const BattleSceneState*)
 
 void TimeFreezeBattleState::onUpdate(double elapsed)
 {
-  summonTimer.update(elapsed);
+  summonTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   switch (currState) {
   case state::fadein:
@@ -49,7 +49,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
     if (FadeInBackdrop()) {
       currState = state::display_name;
       summonTimer.start();
-      AUDIO.Play(AudioType::TIME_FREEZE, AudioPriority::highest);
+      Audio().Play(AudioType::TIME_FREEZE, AudioPriority::highest);
     }
   }
     break;
@@ -83,7 +83,7 @@ void TimeFreezeBattleState::onUpdate(double elapsed)
 
 void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
 {
-  sf::Text summonsLabel = sf::Text(sf::String(name), *font);
+  Text summonsLabel = Text(name, font);
 
   double summonSecs = summonTimer.getElapsed().asSeconds();
   double scale = swoosh::ease::wideParabola(summonSecs, summonTextLength, 3.0);
@@ -96,19 +96,17 @@ void TimeFreezeBattleState::onDraw(sf::RenderTexture& surface)
   }
 
   summonsLabel.setScale(1.0f, (float)scale);
-  summonsLabel.setOutlineColor(sf::Color::Black);
-  summonsLabel.setFillColor(sf::Color::White);
-  summonsLabel.setOutlineThickness(2.f);
+  summonsLabel.SetColor(sf::Color::White);
 
   if (team == Team::red) {
-    summonsLabel.setOrigin(0, summonsLabel.getLocalBounds().height);
+    summonsLabel.setOrigin(0, summonsLabel.GetLocalBounds().height);
   }
   else {
-    summonsLabel.setOrigin(summonsLabel.getLocalBounds().width, summonsLabel.getLocalBounds().height);
+    summonsLabel.setOrigin(summonsLabel.GetLocalBounds().width, summonsLabel.GetLocalBounds().height);
   }
 
-  ENGINE.Draw(GetScene().GetCardSelectWidget());
-  ENGINE.Draw(summonsLabel, false);
+  surface.draw(GetScene().GetCardSelectWidget());
+  surface.draw(summonsLabel);
 }
 
 void TimeFreezeBattleState::ExecuteTimeFreeze()
@@ -120,7 +118,7 @@ void TimeFreezeBattleState::ExecuteTimeFreeze()
   action = actions[0];
 
   if (action && action->CanExecute()) {
-    action->OnExecute();
+    action->Execute();
 
     if (action->GetLockoutType() != ActionLockoutType::sequence) {
       user->ToggleTimeFreeze(false); // unfreeze the user to animate their sequences

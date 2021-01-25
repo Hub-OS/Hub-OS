@@ -4,13 +4,12 @@
 #include "bnGameOverScene.h"
 #include "overworld/bnOverworldHomepage.h"
 
-
 using namespace swoosh::types;
 
-GameOverScene::GameOverScene(swoosh::ActivityController& controller) : swoosh::Activity(&controller) {
+GameOverScene::GameOverScene(swoosh::ActivityController& controller) : Scene(controller) {
   fadeInCooldown = 2.0f;
 
-  gameOver.setTexture(*TEXTURES.GetTexture(TextureType::GAME_OVER));
+  gameOver.setTexture(*Textures().GetTexture(TextureType::GAME_OVER));
   gameOver.setScale(2.f, 2.f);
   gameOver.setOrigin(gameOver.getLocalBounds().width / 2, gameOver.getLocalBounds().height / 2);
 
@@ -24,8 +23,8 @@ GameOverScene::~GameOverScene() {
 }
 
 void GameOverScene::onStart() {
-  AUDIO.StopStream();
-  AUDIO.Stream("resources/loops/game_over.ogg");
+  Audio().StopStream();
+  Audio().Stream("resources/loops/game_over.ogg");
 }
 
 void GameOverScene::onResume() {
@@ -40,7 +39,7 @@ void GameOverScene::onUpdate(double elapsed) {
       fadeInCooldown = 0;
     }
 
-    if (fadeInCooldown == 0 && (sf::Touch::isDown(0) || INPUTx.Has(InputEvents::pressed_confirm))) {
+    if (fadeInCooldown == 0 && (sf::Touch::isDown(0) || Input().Has(InputEvents::pressed_confirm))) {
       leave = true;
     }
   } else {
@@ -58,10 +57,8 @@ void GameOverScene::onUpdate(double elapsed) {
 }
 
 void GameOverScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-
   sf::Vector2f logoPos = (sf::Vector2f)((sf::Vector2i)getController().getVirtualWindowSize() / 2);
   gameOver.setPosition(logoPos);
   gameOver.setColor(sf::Color(255, 255, 255, (sf::Uint32)(255 * (1.0f-(fadeInCooldown / 2.f)))));
-  ENGINE.Draw(gameOver);
+  surface.draw(gameOver);
 }

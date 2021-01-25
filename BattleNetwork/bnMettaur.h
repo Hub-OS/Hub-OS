@@ -30,7 +30,7 @@ public:
    * @brief Uses AI state to move around. Deletes when health is below zero.
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   void OnDelete() override;
 

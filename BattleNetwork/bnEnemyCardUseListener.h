@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bnAudioResourceManager.h"
+#include "bnResourceHandle.h"
 #include "bnCardUseListener.h"
 #include "bnCharacter.h"
 #include "bnTile.h"
@@ -18,7 +18,7 @@
  * No comments because it is a carbon copy of PlayerCardUseListener
  * and needs to be removed from the engine.
  */
-class EnemyCardUseListener : public CardUseListener {
+class EnemyCardUseListener : public CardUseListener, public ResourceHandle {
 private:
  
 public:
@@ -29,7 +29,7 @@ public:
 
     if (name.substr(0, 5) == "Recov") {
       user.SetHealth(user.GetHealth() + card.GetDamage());
-      AUDIO.Play(AudioType::RECOVER);
+      Audio().Play(AudioType::RECOVER);
     }
     else if (name == "CrckPanel") {
       Battle::Tile* top = user.GetField()->GetAt(user.GetTile()->GetX() - 1, 1);
@@ -40,33 +40,33 @@ public:
       if (mid) { mid->SetState(TileState::cracked); }
       if (low) { low->SetState(TileState::cracked); }
 
-      AUDIO.Play(AudioType::PANEL_CRACK);
+      Audio().Play(AudioType::PANEL_CRACK);
     }
     else if (name == "Invis") {
-      AUDIO.Play(AudioType::INVISIBLE);
+      Audio().Play(AudioType::INVISIBLE);
       //user.SetCloakTimer(20); // TODO: make this a time-based component
     }
     else if (name == "Cannon") {
-      Cannon* cannon = new Cannon(user.GetField(), user.GetTeam(), card.GetDamage());
+      Cannon* cannon = new Cannon(user.GetTeam(), card.GetDamage());
 
-      AUDIO.Play(AudioType::CANNON);
+      Audio().Play(AudioType::CANNON);
 
       cannon->SetDirection(Direction::left);
 
       user.GetField()->AddEntity(*cannon, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
     }
     else if (name == "Swrd") {
-      BasicSword* sword = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
+      BasicSword* sword = new BasicSword(user.GetTeam(), card.GetDamage());
 
-      AUDIO.Play(AudioType::SWORD_SWING);
+      Audio().Play(AudioType::SWORD_SWING);
 
       user.GetField()->AddEntity(*sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());
     }
     else if (name == "LongSwrd") {
-      BasicSword* sword = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
-      BasicSword* sword2 = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
+      BasicSword* sword = new BasicSword(user.GetTeam(), card.GetDamage());
+      BasicSword* sword2 = new BasicSword(user.GetTeam(), card.GetDamage());
 
-      AUDIO.Play(AudioType::SWORD_SWING);
+      Audio().Play(AudioType::SWORD_SWING);
 
       if (user.GetField()->GetAt(user.GetTile()->GetX() - 1, user.GetTile()->GetY())) {
         user.GetField()->AddEntity(*sword, user.GetTile()->GetX() - 1, user.GetTile()->GetY());
@@ -77,10 +77,10 @@ public:
       }
     }
     else if (name == "WideSwrd") {
-      BasicSword* sword = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
-      BasicSword* sword2 = new BasicSword(user.GetField(), user.GetTeam(), card.GetDamage());
+      BasicSword* sword = new BasicSword(user.GetTeam(), card.GetDamage());
+      BasicSword* sword2 = new BasicSword(user.GetTeam(), card.GetDamage());
 
-      AUDIO.Play(AudioType::SWORD_SWING);
+      Audio().Play(AudioType::SWORD_SWING);
 
       if (user.GetField()->GetAt(user.GetTile()->GetX() + 1, user.GetTile()->GetY())) {
         user.GetField()->AddEntity(*sword, user.GetTile()->GetX() + 1, user.GetTile()->GetY());

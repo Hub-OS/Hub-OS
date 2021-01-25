@@ -17,16 +17,16 @@
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                       FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, 
 
-MachGunCardAction::MachGunCardAction(Character* owner, int damage) :
-  CardAction(*owner, "PLAYER_SHOOTING"),
+MachGunCardAction::MachGunCardAction(Character& owner, int damage) :
+  CardAction(owner, "PLAYER_SHOOTING"),
   damage(damage)
 {
-  machgun.setTexture(TEXTURES.LoadTextureFromFile("resources/spells/machgun_buster.png"));
+  machgun.setTexture(Textures().LoadTextureFromFile("resources/spells/machgun_buster.png"));
   machgun.SetLayer(-1);
 
   machgunAnim = Animation("resources/spells/machgun_buster.animation") << "FIRE";
 
-  AddAttachment(*owner, "BUSTER", machgun).UseAnimation(machgunAnim);
+  AddAttachment(owner, "BUSTER", machgun).UseAnimation(machgunAnim);
 
   OverrideAnimationFrames({ FRAMES });
 }
@@ -35,7 +35,7 @@ MachGunCardAction::~MachGunCardAction()
 {
 }
 
-void MachGunCardAction::Execute()
+void MachGunCardAction::OnExecute()
 {
   auto shoot = [this]() {
     auto* owner = GetOwner();
@@ -74,7 +74,7 @@ void MachGunCardAction::Execute()
 
     // Spawn rectical where the targetTile is positioned which will attack for us
     if (targetTile) {
-      field->AddEntity(*new Target(field, this->damage), *targetTile);
+      field->AddEntity(*new Target(this->damage), *targetTile);
     }
   };
 
@@ -84,7 +84,7 @@ void MachGunCardAction::Execute()
   }
 }
 
-void MachGunCardAction::EndAction()
+void MachGunCardAction::OnEndAction()
 {
   Eject();
 }
@@ -147,13 +147,13 @@ Battle::Tile* MachGunCardAction::MoveRectical(Field* field, bool colMove)
 
 // class Target : public Artifact
 
-Target::Target(Field* field, int damage) :
-  Artifact(field),
+Target::Target(int damage) :
+  Artifact(),
   damage(damage),
-  attack(frames(5).asSeconds())
+  attack(seconds_cast<double>(frames(5)))
 {
   setScale(2.f, 2.f);
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/target.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/spells/target.png"));
   anim = Animation("resources/spells/target.animation") << "DEFAULT";
   anim.Update(0, getSprite());
 }
@@ -166,14 +166,14 @@ void Target::OnSpawn(Battle::Tile& start)
 {
 }
 
-void Target::OnUpdate(float elapsed)
+void Target::OnUpdate(double elapsed)
 {
   attack -= elapsed;
 
   GetTile()->RequestHighlight(Battle::Tile::Highlight::flash);
 
   if (attack <= 0) {
-    auto* vulcan = new SuperVulcan(GetField(), GetTeam(), damage);
+    auto* vulcan = new SuperVulcan(GetTeam(), damage);
     GetField()->AddEntity(*vulcan, *GetTile());
     this->Remove();
   }

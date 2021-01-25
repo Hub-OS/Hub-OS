@@ -4,7 +4,9 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_field, _team), type(_type) {
+TwinFang::TwinFang(Team _team,Type _type, int damage) : 
+  Spell(_team), 
+  type(_type) {
   // Blades float over tiles 
   SetFloatShoe(true);
   SetAirShoe(true);
@@ -16,17 +18,11 @@ TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_f
   case Type::BELOW:
     spreadOffset = -40.0f;
     break;
-  case Type::ABOVE_DUD:
-    spreadOffset = +40.0f;
-    break;
-  case Type::BELOW_DUD:
-    spreadOffset = -40.0f;
-    break;
   }
 
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_TWIN_FANG));
+  setTexture(Textures().GetTexture(TextureType::SPELL_TWIN_FANG));
   setScale(2.f, 2.f);
 
   // Twin fang move from tile to tile in 4 frames
@@ -51,29 +47,22 @@ TwinFang::TwinFang(Field* _field, Team _team, Type _type, int damage) : Spell(_f
 TwinFang::~TwinFang() {
 }
 
-void TwinFang::OnUpdate(float _elapsed) {
+void TwinFang::OnUpdate(double _elapsed) {
   auto height = 50.0f;
-
-  if (type == Type::ABOVE_DUD) {
-    height += 40.0f;
-  }
-  else if (type == Type::BELOW_DUD) {
-    height -= 40.0f;
-  }
 
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y - height + spreadOffset);
 
   if (!spreadOut) {
     // quickly spread out before firing across the map
     if (spreadOffset > 0) {
-      spreadOffset -= 160.0f*_elapsed;
+      spreadOffset -= 160.0f*static_cast<float>(_elapsed);
 
       if (spreadOffset <= 0) {
         spreadOut = true;
       }
     }
     else if (spreadOffset < 0) {
-      spreadOffset += 160.0f*_elapsed;
+      spreadOffset += 160.0f*static_cast<float>(_elapsed);
 
       if (spreadOffset >= 0) {
         spreadOut = true;
@@ -82,7 +71,7 @@ void TwinFang::OnUpdate(float _elapsed) {
   }
   else {
     if (onEdgeOfMap) {
-      if (int(flickeroutTimer * 1000) % 3 == 0) {
+      if (static_cast<int>(flickeroutTimer * 1000) % 3 == 0) {
         Hide();
       }
       else {
@@ -111,10 +100,8 @@ void TwinFang::OnUpdate(float _elapsed) {
       }
     }
   }
-
-  if (type != Type::ABOVE_DUD && type != Type::BELOW_DUD) {
-    tile->AffectEntities(this);
-  }
+  
+  tile->AffectEntities(this);
 }
 
 // This attack flies through the air

@@ -8,12 +8,12 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duration) : duration(_duration), Spell(_field, _team) {
+Missile::Missile(Team _team,Battle::Tile* target, float _duration) : duration(_duration), Spell(_team) {
     Missile::target = target;
     SetLayer(1);
 
     goingUp = true;
-    setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
+    setTexture(Textures().GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
     anim = CreateComponent<AnimationComponent>(this);
     anim->SetPath("resources/mobs/metalman/metalman.animation");
@@ -35,7 +35,7 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
         Delete();
     }
 
-    AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+    Audio().Play(AudioType::TOSS_ITEM_LITE);
 
     auto props = Hit::DefaultProperties;
     props.damage = 100;
@@ -48,7 +48,7 @@ Missile::Missile(Field* _field, Team _team, Battle::Tile* target, float _duratio
 Missile::~Missile() {
 }
 
-void Missile::OnUpdate(float _elapsed) {
+void Missile::OnUpdate(double _elapsed) {
     setScale(2.f, 2.f);
 
     if(!goingUp) {
@@ -66,8 +66,7 @@ void Missile::OnUpdate(float _elapsed) {
                 tile->AffectEntities(this);
 
                 if(tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
-                    field->AddEntity(*(new RingExplosion(field)),
-                                           *GetTile());
+                    field->AddEntity(*(new RingExplosion), *GetTile());
                 }
 
                 Delete();

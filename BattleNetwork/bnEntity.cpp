@@ -80,7 +80,8 @@ Entity::Entity()
   lastComponentID(0),
   height(0),
   moveCount(0),
-  alpha(255)
+  alpha(255),
+  channel(nullptr)
 {
   ID = ++Entity::numOfIDs;
 }
@@ -125,7 +126,7 @@ const bool Entity::IsSuperEffective(Element _other) const {
   return false;
 }
 
-void Entity::Update(float _elapsed) {
+void Entity::Update(double _elapsed) {
   isUpdating = true;
 
   // Update all components
@@ -440,7 +441,9 @@ const bool Entity::IsSliding() const
 }
 
 void Entity::SetField(Field* _field) {
+  assert(_field && "field was nullptr");
   field = _field;
+  channel = EventBus::Channel(_field->scene);
 }
 
 Field* Entity::GetField() const {
@@ -581,6 +584,11 @@ void Entity::FreeAllComponents()
   }
 
   components.clear();
+}
+
+const EventBus::Channel& Entity::EventBus() const
+{
+  return channel;
 }
 
 void Entity::FreeComponentByID(Component::ID_t ID) {

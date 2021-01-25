@@ -16,10 +16,10 @@ void FalzarIdleState::OnEnter(Falzar& falzar)
   //animation->SetAnimation("IDLE");
   //animation->SetPlaybackMode(Animator::Mode::Loop);
 
-  this->cooldown = 300.0f;
+  this->cooldown = 300.0;
 }
 
-void FalzarIdleState::OnUpdate(float _elapsed, Falzar& falzar)
+void FalzarIdleState::OnUpdate(double _elapsed, Falzar& falzar)
 {
   cooldown -= _elapsed;
 

@@ -22,7 +22,7 @@
 #include "../../bnCardFolder.h"
 #include "../../bnShaderResourceManager.h"
 #include "../../bnPA.h"
-#include "../../bnEngine.h"
+#include "../../bnDrawWindow.h"
 #include "../../bnSceneNode.h"
 #include "../../bnBattleResults.h"
 #include "../../battlescene/bnBattleSceneBase.h"
@@ -45,7 +45,6 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 struct CombatBattleState;
 struct TimeFreezeBattleState;

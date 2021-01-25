@@ -10,7 +10,7 @@ Example file contents
 [Discord]
 User="JohnDoe"
 Key="ABCDE"
-[Audio]
+[Audio()]
 Play="1"
 [Net]
 uPNP="0"
@@ -92,12 +92,12 @@ private:
    * @param buffer file contents
    * @return true if rest of contents are good, false if malformed
    * 
-   * Expects [Audio] to be next
+   * Expects [Audio()] to be next
    */
   const bool ParseDiscord(std::string buffer);
 
   /**
-   * @brief Parse [Audio] 
+   * @brief Parse [Audio()] 
    * @param buffer file contents
    * @return true if file is good, false if malformed
    * 

@@ -2,7 +2,7 @@
 #include <SFML/Window/Clipboard.hpp>
 using sf::Event;
 using sf::Keyboard;
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnInputManager.h"
 
 #if defined(__ANDROID__)
@@ -13,12 +13,9 @@ using sf::Keyboard;
 
 #define GAMEPAD_AXIS_SENSITIVITY 30.f
 
-InputManager& InputManager::GetInstance() {
-  static InputManager instance;
-  return instance;
-}
-
-InputManager::InputManager()  : settings() {
+InputManager::InputManager(sf::Window& win)  : 
+  window(win),
+  settings() {
   lastkey = sf::Keyboard::Key::Unknown;
   lastButton = (decltype(lastButton))-1;
   lastAxisXPower = axisXPower = lastAxisYPower = axisYPower = 0.f;
@@ -44,10 +41,10 @@ void InputManager::Update() {
   lastkey = sf::Keyboard::Key::Unknown;
   lastButton = (decltype(lastButton))-1;
 
-  while (ENGINE.GetWindow()->pollEvent(event)) {
+  while (window.pollEvent(event)) {
     if (event.type == Event::Closed) {
       onLoseFocus();
-      ENGINE.GetWindow()->close();
+      window.close();
       hasFocus = false;
     } else if (event.type == Event::LostFocus) {
       onLoseFocus();
@@ -162,12 +159,14 @@ void InputManager::Update() {
           events.push_back(InputEvents::pressed_ui_right);
         }
         else if (Keyboard::X == event.key.code) {
-          events.push_back(InputEvents::pressed_confirm);
-          events.push_back(InputEvents::pressed_use_chip);
-        }
-        else if (Keyboard::Z == event.key.code) {
           events.push_back(InputEvents::pressed_cancel);
           events.push_back(InputEvents::pressed_shoot);
+          events.push_back(InputEvents::pressed_run);
+        }
+        else if (Keyboard::Z == event.key.code) {
+          events.push_back(InputEvents::pressed_confirm);
+          events.push_back(InputEvents::pressed_use_chip);
+          events.push_back(InputEvents::pressed_interact);
         }
         else if (Keyboard::Space == event.key.code) {
           events.push_back(InputEvents::pressed_cust_menu);
@@ -217,12 +216,14 @@ void InputManager::Update() {
           events.push_back(InputEvents::released_ui_right);
         }
         else if (Keyboard::X == event.key.code) {
-          events.push_back(InputEvents::released_confirm);
-          events.push_back(InputEvents::released_use_chip);
-        }
-        else if (Keyboard::Z == event.key.code) {
           events.push_back(InputEvents::released_cancel);
           events.push_back(InputEvents::released_shoot);
+          events.push_back(InputEvents::released_run);
+        }
+        else if (Keyboard::Z == event.key.code) {
+          events.push_back(InputEvents::released_confirm);
+          events.push_back(InputEvents::released_use_chip);
+          events.push_back(InputEvents::released_interact);
         }
         else if (Keyboard::Space == event.key.code) {
           events.push_back(InputEvents::released_cust_menu);
@@ -678,7 +679,7 @@ void InputManager::UseGamepadControls()
 
 void InputManager::UseGamepad(size_t index)
 {
-  currGamepad = index;
+  currGamepad = static_cast<unsigned int>(index);
 }
 
 const size_t InputManager::GetGamepadCount() const

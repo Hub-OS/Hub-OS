@@ -5,10 +5,10 @@
 class Vulcan : public Spell {
 public:
 
-  Vulcan(Field* _field, Team _team, int _damage);
+  Vulcan(Team _team,int _damage);
   ~Vulcan();
 
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   bool CanMoveTo(Battle::Tile* next) override;
 

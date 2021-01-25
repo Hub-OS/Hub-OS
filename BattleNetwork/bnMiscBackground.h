@@ -22,7 +22,7 @@ public:
   MiscBackground();
   ~MiscBackground();
 
-  void Update(float _elapsed) override;
+  void Update(double _elapsed) override;
 
 private:
   float x, y;

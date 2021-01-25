@@ -102,7 +102,7 @@ Overworld::PathController::WaitCommand::WaitCommand(Overworld::Actor* actor, con
 
 void Overworld::PathController::WaitCommand::update(double elapsed)
 {
-  frames -= frame_time_t::from_seconds(elapsed);
+  frames -= from_seconds(elapsed);
 
   if (frames <= ::frames(0)) {
     markDone();

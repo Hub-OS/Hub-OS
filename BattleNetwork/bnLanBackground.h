@@ -21,7 +21,7 @@ public:
    * @brief Texture wraps the frame and sets frame based on time
    * @param _elapsed in seconds
    */
-  void Update(float _elapsed) override;
+  void Update(double _elapsed) override;
 
 private:
 

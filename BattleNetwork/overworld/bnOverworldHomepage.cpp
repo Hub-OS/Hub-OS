@@ -6,14 +6,14 @@
 
 using namespace swoosh::types;
 
-constexpr sf::Int32 PING_SERVER_MILI = 5 * 1000;
+constexpr sf::Int32 PING_SERVER_MILI = 5;
 
 Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guestAccount) :
   guest(guestAccount),
   SceneBase(controller, guestAccount)
 {
   pingServerTimer.reverse(true);
-  pingServerTimer.set(PING_SERVER_MILI);
+  pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
   pingServerTimer.start();
 }
 
@@ -57,31 +57,34 @@ void Overworld::Homepage::PingRemoteAreaServer()
       }
     };
 
+    // stops pinging server while I'm working...
+    return;
+
     if (!reconnecting) {
-      int myPort = ENGINE.CommandLineValue<int>("port");
+      int myPort = getController().CommandLineValue<int>("port");
       Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
       client = Poco::Net::DatagramSocket(sa);
       client.setBlocking(false);
 
-      int remotePort = ENGINE.CommandLineValue<int>("remotePort");
-      std::string cyberworld = ENGINE.CommandLineValue<std::string>("cyberworld");
-      remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
+      int remotePort = getController().CommandLineValue<int>("remotePort");
+      std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
 
       try {
+        remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
         client.connect(remoteAddress);
         reconnecting = true;
         doSendThunk();
       }
       catch (Poco::Net::NetException& e) {
         reconnecting = false;
-        Logger::Logf("Error trying to connect to remote address: %s", e.message().c_str());
+        Logger::Logf("Error trying to connect to remote address: %s", e.what());
       }
     }
     else {
       doSendThunk();
     }
 
-    pingServerTimer.set(PING_SERVER_MILI);
+    pingServerTimer.set(sf::milliseconds(PING_SERVER_MILI));
   }
 }
 
@@ -89,14 +92,15 @@ void Overworld::Homepage::onUpdate(double elapsed)
 {
   if(infocus)
   {
-    pingServerTimer.update(elapsed);
+    pingServerTimer.update(sf::seconds(static_cast<float>(elapsed)));
     PingRemoteAreaServer();
   }
 
   // Update our logic
   auto& map = GetMap();
-  auto mousei = sf::Mouse::getPosition(*ENGINE.GetWindow());
-  const auto& [row, col] = map.PixelToRowCol(mousei);
+  auto& window = getController().getWindow();
+  auto mousei = sf::Mouse::getPosition(window);
+  const auto& [row, col] = map.PixelToRowCol(mousei, window);
   sf::Vector2f click = { (float)col * map.GetTileSize().x, (float)row * map.GetTileSize().y };
 
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Home)) {
@@ -160,7 +164,7 @@ void Overworld::Homepage::onStart()
 {
   SceneBase::onStart();
 
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+  Audio().Stream("resources/loops/loop_overworld.ogg", false);
   SceneBase::EnableNetWarps(false);
   infocus = true;
 }
@@ -168,7 +172,7 @@ void Overworld::Homepage::onStart()
 void Overworld::Homepage::onResume()
 {
   SceneBase::onResume();
-  AUDIO.Stream("resources/loops/loop_overworld.ogg", false);
+  Audio().Stream("resources/loops/loop_overworld.ogg", false);
   infocus = true;
 }
 
@@ -231,10 +235,11 @@ void Overworld::Homepage::OnTileCollision(const Overworld::Map::Tile& tile)
       auto idx = map.OrthoToRowCol(playerActor->getPosition());
 
       // return at the center origin of this tile
-      sf::Vector2f returnPoint = sf::Vector2f(
-        idx.second * map.GetTileSize().x  + (map.GetTileSize().x * 0.5f), 
-        idx.first * map.GetTileSize().y + (map.GetTileSize().y * 0.5)
-      );
+      float x = static_cast<float>(idx.second * map.GetTileSize().x + (map.GetTileSize().x * 0.5f));
+
+      float y = static_cast<float>(idx.first * map.GetTileSize().y + (map.GetTileSize().y * 0.5f));
+
+      sf::Vector2f returnPoint = sf::Vector2f(x,y);
 
       this->TeleportUponReturn(returnPoint);
       client.close();

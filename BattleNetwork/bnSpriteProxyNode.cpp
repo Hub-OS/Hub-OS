@@ -77,7 +77,7 @@ const sf::IntRect& SpriteProxyNode::getTextureRect() {
   return sprite->getTextureRect();
 }
 
-void SpriteProxyNode::setTextureRect(sf::IntRect& rect) {
+void SpriteProxyNode::setTextureRect(const sf::IntRect& rect) {
   sprite->setTextureRect(rect);
 }
 

@@ -5,10 +5,10 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
+Thunder::Thunder(Team _team) : Spell(_team) {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_THUNDER));
+  setTexture(Textures().GetTexture(TextureType::SPELL_THUNDER));
   setScale(2.f, 2.f);
 
   elapsed = 0;
@@ -29,7 +29,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
 
   target = nullptr;
 
-  AUDIO.Play(AudioType::THUNDER);
+  Audio().Play(AudioType::THUNDER);
 
   animation.Update(0, getSprite());
 }
@@ -37,7 +37,7 @@ Thunder::Thunder(Field* _field, Team _team) : Spell(_field, _team) {
 Thunder::~Thunder(void) {
 }
 
-void Thunder::OnUpdate(float _elapsed) {
+void Thunder::OnUpdate(double _elapsed) {
 
   if (elapsed > timeout.asSeconds()) {
     Delete();

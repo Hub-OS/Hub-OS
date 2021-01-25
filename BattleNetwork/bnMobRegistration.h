@@ -12,6 +12,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnField.h"
 #include "bnMobFactory.h"
+#include "bnResourceHandle.h"
 
 class Mob;
 
@@ -213,7 +214,7 @@ inline MobRegistration::MobMeta & MobRegistration::MobMeta::SetMobClass()
     mobFactory = new T(new Field(6, 3));
 
     if (!placeholderTexture) {
-      placeholderTexture = TEXTURES.LoadTextureFromFile(GetPlaceholderTexturePath());
+      placeholderTexture = ResourceHandle().Textures().LoadTextureFromFile(GetPlaceholderTexturePath());
     }
   };
 

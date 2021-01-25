@@ -11,7 +11,7 @@ public:
   /**
    * \brief sets the animation
    */
-  RingExplosion(Field* field);
+  RingExplosion();
 
   /**
    * @brief deconstructor
@@ -22,7 +22,7 @@ public:
    * @brief plays the animation and deletes when finished
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
 
   /**
    * @brief removes the ring explosion from play

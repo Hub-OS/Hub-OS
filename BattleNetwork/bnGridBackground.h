@@ -28,11 +28,11 @@ public:
    * @brief Loops through the animation
    * @param _elapsed in seconds
    */
-  void Update(float _elapsed) override;
+  void Update(double _elapsed) override;
 
 private:
   float x, y; /*!< Unused */
-  float progress; /*!< Used to progress animation and loop */
+  double progress; /*!< Used to progress animation and loop */
 };
 
 #pragma once

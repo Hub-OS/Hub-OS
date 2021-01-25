@@ -4,7 +4,7 @@
 #include "bnBusterCardAction.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnLogger.h"
 #include "bnAura.h"
 
@@ -61,7 +61,7 @@ Player::Player() :
 Player::~Player() {
 }
 
-void Player::OnUpdate(float _elapsed) {
+void Player::OnUpdate(double _elapsed) {
   if (GetTile() != nullptr) {
     setPosition(tileOffset.x + GetTile()->getPosition().x, tileOffset.y + GetTile()->getPosition().y);
   }

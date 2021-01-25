@@ -14,7 +14,7 @@ public:
   ~PlayerInputReplicator() {
   }
 
-  void OnUpdate(float) override { }
+  void OnUpdate(double) override { }
 
   NetPlayFlags& GetNetPlayFlags() { 
     assert(nbs && "Component must be injected into NetworkBattleScene");

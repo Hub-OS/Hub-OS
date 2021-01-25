@@ -13,42 +13,42 @@
 #define FRAME3 { 3, 0.05 }
 
 // TODO: check frame-by-frame anim
-#define FRAMES WAIT, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
+#define FRAMES  WAIT,   FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, \
                 FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-FireBurnCardAction::FireBurnCardAction(Character * owner, FireBurn::Type type, int damage) 
+FireBurnCardAction::FireBurnCardAction(Character& owner, FireBurn::Type type, int damage) 
   : 
-  CardAction(*owner, "PLAYER_SHOOTING"),
+  CardAction(owner, "PLAYER_SHOOTING"),
   attachmentAnim(ANIM) {
   FireBurnCardAction::damage = damage;
   FireBurnCardAction::type = type;
 
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  attachment = new SpriteProxyNode(overlay);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(Textures().LoadTextureFromFile(PATH));
   attachment->SetLayer(-1);
-  attachmentAnim.Reload();
+
+  attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 FireBurnCardAction::~FireBurnCardAction()
 {
 }
-
-void FireBurnCardAction::Execute() {
+void FireBurnCardAction::OnExecute() {
   auto owner = GetOwner();
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner](int offset) -> void {
     Team team = GetOwner()->GetTeam();
-    FireBurn* fb = new FireBurn(GetOwner()->GetField(), team, type, damage);
+    FireBurn* fb = new FireBurn(team, type, damage);
     auto props = fb->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = owner;
     fb->SetHitboxProperties(props);
     fb->CrackTiles(crackTiles);
 
@@ -75,7 +75,7 @@ void FireBurnCardAction::CrackTiles(bool state)
   crackTiles = state;
 }
 
-void FireBurnCardAction::OnUpdate(float _elapsed)
+void FireBurnCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }
@@ -85,7 +85,7 @@ void FireBurnCardAction::OnAnimationEnd()
   GetOwner()->RemoveNode(attachment);
 }
 
-void FireBurnCardAction::EndAction()
+void FireBurnCardAction::OnEndAction()
 {
   OnAnimationEnd();
   Eject();

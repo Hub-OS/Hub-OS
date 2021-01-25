@@ -10,11 +10,11 @@
  */
 class Elecpulse : public Spell {
 public:
-  Elecpulse(Field* _field, Team _team, int damage);
+  Elecpulse(Team _team,int damage);
   ~Elecpulse();
 
   void OnSpawn(Battle::Tile& start) override;
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   void OnDelete() override;
   bool Move(Direction _direction) override;
   void Attack(Character* _entity) override;

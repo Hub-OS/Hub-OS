@@ -7,7 +7,9 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-SharedHitbox::SharedHitbox(Spell* owner, float duration) : owner(owner), Spell(owner->GetField(), owner->GetTeam()) {
+SharedHitbox::SharedHitbox(Spell* owner, float duration) : 
+  owner(owner), 
+  Spell(owner->GetTeam()) {
   cooldown = duration;
   SetHitboxProperties(owner->GetHitboxProperties());
   keepAlive = (duration == 0.0f);
@@ -21,7 +23,7 @@ SharedHitbox::SharedHitbox(Spell* owner, float duration) : owner(owner), Spell(o
 SharedHitbox::~SharedHitbox() {
 }
 
-void SharedHitbox::OnUpdate(float _elapsed) {
+void SharedHitbox::OnUpdate(double _elapsed) {
   cooldown -= _elapsed;
 
   tile->AffectEntities(this);

@@ -1,11 +1,6 @@
 #include "bnAudioResourceManager.h"
 #include "bnLogger.h"
 
-AudioResourceManager& AudioResourceManager::GetInstance() {
-  static AudioResourceManager instance;
-  return instance;
-}
-
 AudioResourceManager::AudioResourceManager() {
   isEnabled = true;
 
@@ -15,9 +10,9 @@ AudioResourceManager::AudioResourceManager() {
     channels[i].buffer = sf::Sound();
   }
 
-  sources = new sf::SoundBuffer[AudioType::AUDIO_TYPE_SIZE];
+  sources = new sf::SoundBuffer[static_cast<size_t>(AudioType::AUDIO_TYPE_SIZE)];
 
-  for (int i = 0; i < AUDIO_TYPE_SIZE; i++) {
+  for (int i = 0; i < static_cast<size_t>(AudioType::AUDIO_TYPE_SIZE); i++) {
     sources[i] = sf::SoundBuffer();
   }
 
@@ -128,11 +123,13 @@ void AudioResourceManager::LoadAllSources(std::atomic<int> &status) {
 }
 
 void AudioResourceManager::LoadSource(AudioType type, const std::string& path) {
-  if (!sources[type].loadFromFile(path)) {
-    Logger::Logf("Failed loading audio: %s\n", path.c_str());
+  //std::scoped_lock lock(mutex);
+
+  if (!sources[static_cast<size_t>(type)].loadFromFile(path)) {
+    Logger::Logf("Failed loading Audio(): %s\n", path.c_str());
 
   } else {
-    Logger::Logf("Loaded audio: %s", path.c_str());
+    Logger::Logf("Loaded Audio(): %s", path.c_str());
   }
 }
 
@@ -160,12 +157,14 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
     return -1;
   }
 
+  //std::scoped_lock lock(mutex);
+
   // Annoying sound check. Make sure duplicate sounds are played only by a given amount of offset from the last time it was played.
   // This prevents amplitude stacking when duplicate sounds are played on the same frame...
-  // NOTE: an audio queue would be a better place for this check. Then play() those sounds that pass the queue filter.
+  // NOTE: an Audio() queue would be a better place for this check. Then play() those sounds that pass the queue filter.
   if (priority < AudioPriority::high) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
-      if (channels[i].buffer.getBuffer() == &sources[type] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
+      if (channels[i].buffer.getBuffer() == &sources[static_cast<size_t>(type)] && channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
         auto howLongPlayed = channels[i].buffer.getPlayingOffset().asMilliseconds();
         if (howLongPlayed <= AUDIO_DUPLICATES_ALLOWED_IN_X_MILLISECONDS) {
           return -1;
@@ -179,7 +178,6 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   //                HIGH    (force a channel to play sound, but one at a time, and don't interrupt other high priorities),
   //                HIGHEST (force a channel to play sound always)
 
-
   // Highest priority plays over anything that isn't like it
   // If it can, it will play in the first free channel but it will overwrite a sound if it cannot find one
   if (priority == AudioPriority::highest) {
@@ -188,7 +186,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
 
     auto changeSampleThunk = [this, priority, type](int index) {
       channels[index].buffer.stop();
-      channels[index].buffer.setBuffer(sources[type]);
+      channels[index].buffer.setBuffer(sources[static_cast<size_t>(type)]);
       channels[index].buffer.play();
       channels[index].priority = priority;
     };
@@ -198,7 +196,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
         lastFreeChannel = i;
       }
 
-      if (channels[i].buffer.getBuffer() != &sources[type] && lastDifferentChannel == -1) {
+      if (channels[i].buffer.getBuffer() != &sources[static_cast<size_t>(type)] && lastDifferentChannel == -1) {
         lastDifferentChannel = i;
       }
     }
@@ -221,7 +219,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   if (priority == AudioPriority::lowest || priority == AudioPriority::high) {
     for (int i = 0; i < NUM_OF_CHANNELS; i++) {
       if (channels[i].buffer.getStatus() == sf::SoundSource::Status::Playing) {
-        if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[type]) {
+        if ((sf::SoundBuffer*)channels[i].buffer.getBuffer() == &sources[static_cast<size_t>(type)]) {
           // Lowest priority or high priority sounds only play once 
           return -1;
         }
@@ -233,7 +231,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     if (priority != AudioPriority::high) {
       if (channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing) {
-        channels[i].buffer.setBuffer(sources[type]);
+        channels[i].buffer.setBuffer(sources[static_cast<size_t>(type)]);
         channels[i].buffer.play();
         channels[i].priority = priority;
         return 0;
@@ -244,7 +242,7 @@ int AudioResourceManager::Play(AudioType type, AudioPriority priority) {
         ||(channels[i].priority == AudioPriority::high && channels[i].buffer.getStatus() != sf::SoundSource::Status::Playing);
       if (canOverwrite) {
         channels[i].buffer.stop();
-        channels[i].buffer.setBuffer(sources[type]);
+        channels[i].buffer.setBuffer(sources[static_cast<size_t>(type)]);
         channels[i].buffer.play();
         channels[i].priority = priority;
         return 0;
@@ -361,6 +359,8 @@ int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpa
 
   if (path == currStreamPath) { return -1; };
 
+  //std::scoped_lock lock(mutex);
+
   // stop previous stream if any 
   stream.stop();
 
@@ -380,15 +380,19 @@ int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpa
 }
 
 void AudioResourceManager::StopStream() {
+  //std::scoped_lock lock(mutex);
   stream.stop();
 }
 
 void AudioResourceManager::SetStreamVolume(float volume) {
+  //std::scoped_lock lock(mutex);
   stream.setVolume(volume);
   streamVolume = volume;
 }
 
 void AudioResourceManager::SetChannelVolume(float volume) {
+  //std::scoped_lock lock(mutex);
+
   for (int i = 0; i < NUM_OF_CHANNELS; i++) {
     channels[i].buffer.setVolume(volume);
   }

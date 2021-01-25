@@ -22,7 +22,7 @@ public:
    * @brief Descend and then heal the player
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief does not move

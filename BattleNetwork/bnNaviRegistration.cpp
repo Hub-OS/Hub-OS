@@ -129,7 +129,7 @@ const Element NaviRegistration::NaviMeta::GetElement() const
 
 const std::string NaviRegistration::NaviMeta::GetAttackString() const
 {
-  return std::to_string(atk) + " - " + std::to_string(chargedAtk) + " charged";
+  return std::to_string(atk) + "-" + std::to_string(chargedAtk) + " charged";
 }
 
 const std::string NaviRegistration::NaviMeta::GetSpecialDescriptionString() const

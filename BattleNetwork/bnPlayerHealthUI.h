@@ -23,8 +23,6 @@ class Entity;
 class Player;
 class BattleSceneBase;
 
-using sf::Font;
-using sf::Text;
 using sf::Texture;
 using sf::Drawable;
 using std::vector;
@@ -59,7 +57,7 @@ public:
    * @brief Quickly depletes health based on game rules and beeps if health is low
    * @param elapsed in seconds
    */
-  void OnUpdate(float elapsed) override;
+  void OnUpdate(double elapsed) override;
 
 private:
   int lastHP; /*!< HP of target last frame */

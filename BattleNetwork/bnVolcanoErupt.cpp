@@ -2,8 +2,8 @@
 #include "bnParticleImpact.h"
 #include "bnTextureResourceManager.h"
 
-VolcanoErupt::VolcanoErupt(Field* field) :
-  Spell(field, Team::unknown)
+VolcanoErupt::VolcanoErupt() :
+  Spell(Team::unknown)
 {
   eruptAnim = Animation("resources/tiles/volcano.animation");
   eruptAnim << "ERUPT"  << [this]() {
@@ -13,7 +13,7 @@ VolcanoErupt::VolcanoErupt(Field* field) :
   setScale(2.f, 2.f);
   SetLayer(-1);
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/tiles/volcano.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
 
   auto props = GetHitboxProperties();
   props.damage = 50;
@@ -25,7 +25,7 @@ VolcanoErupt::~VolcanoErupt()
 {
 }
 
-void VolcanoErupt::OnUpdate(float elapsed)
+void VolcanoErupt::OnUpdate(double elapsed)
 {
   eruptAnim.Update(elapsed, getSprite());
   GetTile()->AffectEntities(this);

@@ -14,7 +14,9 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
-CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _parentState) : Artifact(_field), target(nullptr) {
+CanodumbCursor::CanodumbCursor(CanodumbIdleState* _parentState) :
+  Artifact(), 
+  target(nullptr) {
   SetFloatShoe(true);
 
   animationComponent = new AnimationComponent(this);
@@ -26,7 +28,7 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _pa
   SetLayer(0);
   direction = Direction::left;
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
 
   //Components setup and load
@@ -51,13 +53,13 @@ CanodumbCursor::CanodumbCursor(Field* _field, Team _team, CanodumbIdleState* _pa
   elapsedTime = 0;
 }
 
-void CanodumbCursor::OnUpdate(float _elapsed) {
+void CanodumbCursor::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y);
 
   movecooldown -= _elapsed;
   elapsedTime += _elapsed;
 
-  auto delta = swoosh::ease::bezierPopIn(elapsedTime, .125f);
+  float delta = swoosh::ease::bezierPopIn(static_cast<float>(elapsedTime), .125f);
   setScale(delta*2.f, delta*2.f);
 
   if (movecooldown <= 0) {

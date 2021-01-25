@@ -30,7 +30,7 @@ public:
    * Attacks based on RNG and if player is on the back row, he will throw blades
    * Randomly Metalman will teleport to tile in front of player and punch the ground
    */
-  void OnUpdate(float _elapsed, MetalMan& m);
+  void OnUpdate(double _elapsed, MetalMan& m);
   
   /**
    * @brief does nothing

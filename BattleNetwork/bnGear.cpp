@@ -5,8 +5,11 @@
 #include "bnShaderResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Gear::Gear(Field* _field, Team _team, Direction startDir) 
-    : startDir(startDir), stopMoving(false), Obstacle(field, team) {
+Gear::Gear(Team _team,Direction startDir) 
+    : 
+  startDir(startDir), 
+  stopMoving(false), 
+  Obstacle(team) {
   setTexture(LOAD_TEXTURE(MOB_METALMAN_ATLAS));
   setScale(2.f, 2.f);
   SetFloatShoe(false);
@@ -76,7 +79,7 @@ bool Gear::CanMoveTo(Battle::Tile * next)
   return false;
 }
 
-void Gear::OnUpdate(float _elapsed) {
+void Gear::OnUpdate(double _elapsed) {
   if (tileStartTeam == Team::unknown && tile) {
     tileStartTeam = tile->GetTeam();
   }

@@ -2,13 +2,15 @@
 #include "bnEntity.h"
 #include "battlescene/bnBattleSceneBase.h"
 
-ShakingEffect::ShakingEffect(Entity * owner) : Component(owner, Component::lifetimes::ui), 
-privOwner(owner),
-shakeDur(0.35f),
-stress(3),
-shakeProgress(0),
-startPos(privOwner->getPosition()),
-bscene(nullptr)
+ShakingEffect::ShakingEffect(Entity * owner) : 
+  privOwner(owner),
+  shakeDur(0.35f),
+  stress(3),
+  shakeProgress(0),
+  startPos(privOwner->getPosition()),
+  bscene(nullptr),
+  isShaking(false),
+  Component(owner, Component::lifetimes::ui)
 {
 }
 
@@ -16,7 +18,7 @@ ShakingEffect::~ShakingEffect()
 {
 }
 
-void ShakingEffect::OnUpdate(float _elapsed)
+void ShakingEffect::OnUpdate(double _elapsed)
 {
   shakeProgress += _elapsed;
 
@@ -24,10 +26,10 @@ void ShakingEffect::OnUpdate(float _elapsed)
     // Drop off to zero by end of shake
     double currStress = stress * (1.0 - (shakeProgress / shakeDur));
 
-    int randomAngle = int(shakeProgress) * (rand() % 360);
+    int randomAngle = static_cast<int>(shakeProgress) * (rand() % 360);
     randomAngle += (150 + (rand() % 60));
 
-    auto shakeOffset = sf::Vector2f(std::sin((float)randomAngle) * float(currStress), std::cos((float)randomAngle) * float(currStress));
+    auto shakeOffset = sf::Vector2f(std::sin(static_cast<float>(randomAngle * currStress)), std::cos(static_cast<float>(randomAngle * currStress)));
     privOwner->setPosition(startPos + shakeOffset);
   }
   else {

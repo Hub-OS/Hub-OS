@@ -11,7 +11,8 @@
 
 class SmartShader
 {
-  friend class Engine;
+  friend class DrawWindow;
+
 private:
   sf::Shader* ref; /*!< Pointer to shader object */
   std::map<std::string, int>    iuniforms; /*!< lookup of integer uniforms */

@@ -4,13 +4,13 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-CrackShot::CrackShot(Field* _field, Team _team, Battle::Tile* tile) : Spell(_field, _team) {
+CrackShot::CrackShot(Team _team,Battle::Tile* tile) : Spell(_team) {
   // Blades float over tiles 
   SetFloatShoe(true);
 
   SetLayer(-1);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_CRACKSHOT));
+  setTexture(Textures().GetTexture(TextureType::SPELL_CRACKSHOT));
   setScale(2.f, 2.f);
 
   // 8 frames = 0.1 seconds
@@ -35,7 +35,7 @@ CrackShot::CrackShot(Field* _field, Team _team, Battle::Tile* tile) : Spell(_fie
 CrackShot::~CrackShot() {
 }
 
-void CrackShot::OnUpdate(float _elapsed) {
+void CrackShot::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   if (GetDirection() == Direction::left) {

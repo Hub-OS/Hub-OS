@@ -1,7 +1,8 @@
 #include "bnDelayedAttack.h"
 
-DelayedAttack::DelayedAttack(Spell * next, Battle::Tile::Highlight highlightMode, double seconds) : duration(seconds),
-Spell(next->GetField(), next->GetTeam()) {
+DelayedAttack::DelayedAttack(Spell * next, Battle::Tile::Highlight highlightMode, double seconds) : 
+  duration(seconds),
+  Spell(next->GetTeam()) {
     HighlightTile(highlightMode);
     SetFloatShoe(true);
     DelayedAttack::next = next;
@@ -11,7 +12,7 @@ DelayedAttack::~DelayedAttack()
 {
 }
 
-void DelayedAttack::OnUpdate(float elapsed)
+void DelayedAttack::OnUpdate(double elapsed)
 {
     duration -= elapsed;
 

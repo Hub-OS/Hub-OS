@@ -52,7 +52,7 @@ public:
    */
     void Inject(BattleSceneBase&) override;
 
-    void OnUpdate(float _elapsed) override;
+    void OnUpdate(double _elapsed) override;
 
    /**
    * @brief Draws health using glyphs with correct margins
@@ -101,7 +101,7 @@ public:
    * If the player is off of the field, toggle Hide
    * If the plaer is back on the field, Show
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   void Inject(BattleSceneBase&) override;
 

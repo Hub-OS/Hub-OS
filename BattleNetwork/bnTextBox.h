@@ -3,15 +3,17 @@
 
 #pragma once
 
-#include "bnTextureResourceManager.h"
-#include "bnAudioResourceManager.h"
 #include <SFML/Graphics.hpp>
 #include <memory>
 
-class TextBox : public sf::Drawable, public sf::Transformable {
+#include "bnText.h"
+#include "bnFont.h"
+#include "bnResourceHandle.h"
+
+class TextBox : public sf::Drawable, public sf::Transformable, public ResourceHandle {
 private:
-  std::shared_ptr<sf::Font> font;
-  mutable sf::Text text;
+  Font font;
+  mutable Text text;
   double charsPerSecond; /**< default is 10 cps */
   double progress; /**< Total elapsed time */
   int areaWidth, areaHeight;
@@ -23,8 +25,6 @@ private:
   bool play; /**< If true, types out message. If false, pauses. */
   bool mute; /**< Enables a sound to play every time a character is printed */
   int charSize; /**< Font size */
-  sf::Color fillColor; /**< Fill color of text */
-  sf::Color outlineColor; /**< Outline color of text */
 
   /**
    * @brief Takes the input message and finds where the text breaks to form new lines
@@ -45,24 +45,23 @@ public:
    * @brief Creates a textbox area of width x height, default font size 15, and hard-coded font path
    * @param width in pixels
    * @param height in pixels
-   * @param characterSize font size
-   * @param fontPath default "resources/fonts/dr_cain_terminal.ttf"
    */
-   TextBox(int width, int height, int characterSize = 15, std::string fontPath = "resources/fonts/dr_cain_terminal.ttf");
+   TextBox(int width, int height);
+   TextBox(int width, int height, const Font& font);
 
   ~TextBox();
 
   /**
-   * @brief Get reference to sf::Text object
-   * @return sf::Text&
+   * @brief Get reference to Text object
+   * @return Text&
    */
-  const sf::Text& GetText() const;
+  const Text& GetText() const;
 
   /**
- * @brief Get reference to sf::Font object
- * @return sf::Font&
+ * @brief Get reference to Font object
+ * @return Font&
  */
-  const sf::Font& GetFont() const;
+  const Font& GetFont() const;
 
   /**
    * @brief Set text fill color
@@ -83,13 +82,13 @@ public:
   void SetTextColor(sf::Color color);
 
   /**
-   * @brief Disables audio
+   * @brief Disables Audio()
    * @param enabled Default is true
    */
   void Mute(bool enabled = true);
 
   /**
-   * @brief Enables audio
+   * @brief Enables Audio()
    */
   void Unmute();
 

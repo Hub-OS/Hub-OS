@@ -32,7 +32,7 @@ public:
    * @brief Removes itself if time is up or the original source is deleted
    * @param _elapsed in seconds
    */
-   void OnUpdate(float _elapsed) override;
+   void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Does not move
@@ -52,7 +52,7 @@ public:
   const float GetHeight() const override;
   
 private:
-  float cooldown; /*< When cooldown reaches zero, this hitbox removes */
+  double cooldown; /*< When cooldown reaches zero, this hitbox removes */
   bool keepAlive; /*!< If duration is not set, the hitbox stays alive for long as the owner stays alive*/
   Spell* owner; /*!< When this hitbox is hit, the owner is hit */
 };

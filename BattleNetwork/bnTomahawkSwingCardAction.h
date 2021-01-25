@@ -10,15 +10,15 @@ public:
   TomahawkSwingCardAction(Character& owner, int damage);
   ~TomahawkSwingCardAction();
 
-  void Execute() override;
-  void EndAction() override;
+  void OnExecute() override;
+  void OnEndAction() override;
   void OnAnimationEnd() override;
 };
 
 class TomahawkEffect : public Artifact {
 public:
-  TomahawkEffect(Field* field);
+  TomahawkEffect();
   ~TomahawkEffect();
-  void OnUpdate(float elapsed) override;
+  void OnUpdate(double elapsed) override;
   void OnDelete() override;
 };

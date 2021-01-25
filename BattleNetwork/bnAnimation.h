@@ -93,12 +93,12 @@ public:
    * @param target sprite to apply to
    * @param playbackSpeed virtually simulate speed
    */
-  void Update(float _elapsed, sf::Sprite& target, double playbackSpeed = 1.0);
+  void Update(double _elapsed, sf::Sprite& target, double playbackSpeed = 1.0);
   
   /**
    * @brief Syncs the animation elapsed counter to one provided
    */
-  void SyncTime(float newTime);
+  void SyncTime(double newTime);
 
   /**
    * @brief Same as a call to Update(0, target).
@@ -190,7 +190,7 @@ protected:
   Animator animator; /*!< Internal animator to delegate most of the work to */
   string path; /*!< Path to the animation file */
   string currAnimation; /*!< Name of the current animation state */
-  float progress; /*!< Current progress of animation */
+  double progress; /*!< Current progress of animation */
   std::map<string, FrameList> animations; /*!< Dictionary of FrameLists read from file */
   std::function<void()> interruptCallback;
 };

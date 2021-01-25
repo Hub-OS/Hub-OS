@@ -14,6 +14,7 @@ using sf::IntRect;
 Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Component::lifetimes::battlestep)
 {
   timer = 50; // seconds
+
   persist = false;
   isOver = false;
 
@@ -56,7 +57,7 @@ Aura::Aura(Aura::Type type, Character* owner) : type(type), Component(owner, Com
   owner->AddNode(fx);
 }
 
-void Aura::OnUpdate(float _elapsed) {
+void Aura::OnUpdate(double _elapsed) {
   if (Injected() == false) return;
 
   // If the aura has been replaced by another defense rule, remove all
@@ -158,7 +159,11 @@ Aura::~Aura()
 Aura::VisualFX::VisualFX(Entity* owner, Aura::Type type) : 
   type(type),
   UIComponent(owner) {
-  auraSprite.setTexture(*TEXTURES.GetTexture(TextureType::SPELL_AURA));
+    
+  ResourceHandle handle;
+  auraSprite.setTexture(*handle.Textures().GetTexture(TextureType::SPELL_AURA));
+  aura = new SpriteProxyNode(auraSprite);
+
   aura = new SpriteProxyNode(auraSprite);
   SetLayer(1); // behind player
 
@@ -257,10 +262,10 @@ void Aura::VisualFX::draw(sf::RenderTarget& target, sf::RenderStates states) con
 
 void Aura::VisualFX::Inject(BattleSceneBase& bs) {
   bs.Inject((Component*)this);
-  AUDIO.Play(AudioType::APPEAR);
+  bs.Audio().Play(AudioType::APPEAR);
 }
 
-void Aura::VisualFX::OnUpdate(float _elapsed)
+void Aura::VisualFX::OnUpdate(double _elapsed)
 {
   timer += _elapsed;
 

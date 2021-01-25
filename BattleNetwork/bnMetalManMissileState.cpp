@@ -29,7 +29,7 @@ void MetalManMissileState::OnEnter(MetalMan& metal) {
   metal.GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", Animator::Mode::Loop);
 }
 
-void MetalManMissileState::OnUpdate(float _elapsed, MetalMan& metal) {
+void MetalManMissileState::OnUpdate(double _elapsed, MetalMan& metal) {
   //if (metal.GetHealth() > metal.GetMaxHealth() / 2) {
   //  metal.GoToNextState();
   //  return;
@@ -46,7 +46,7 @@ void MetalManMissileState::OnUpdate(float _elapsed, MetalMan& metal) {
             tile = metal.GetField()->GetAt(1 + (rand() % 3), 1 + (rand() % 3));
         }
 
-        auto missile = new Missile(metal.GetField(), metal.GetTeam(), tile, 0.4f);
+        auto missile = new Missile(metal.GetTeam(), tile, 0.4f);
         auto props = missile->GetHitboxProperties();
         props.aggressor = &metal;
         missile->SetHitboxProperties(props);

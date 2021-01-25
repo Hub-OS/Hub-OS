@@ -2,6 +2,7 @@
 
 #pragma once
 #include "bnAIState.h"
+#include "bnInputHandle.h"
 
 class Tile;
 class Player;
@@ -9,17 +10,18 @@ class InputManager;
 class CardAction;
 class PlayerInputReplicator;
 
-constexpr const float STARTUP_DELAY_LEN { 5.0f / 60.f }; // 5 frame startup delay out of 60fps
+constexpr const auto STARTUP_DELAY_LEN { frames(5) }; // 5 frame startup delay out of 60fps
 
-class PlayerControlledState : public AIState<Player>
+class PlayerControlledState : public AIState<Player>, public InputHandle
 {
 private:  
   bool isChargeHeld; /*!< Flag if player is holding down shoot button */
   CardAction* queuedAction; /*!< Movement takes priority. If there is an action queued, fire on next best frame*/
   PlayerInputReplicator* replicator; /*!< Pass actions onto a replicator to handle if requested */
-  float startupDelay{ 0 };
+  double startupDelay{ 0 };
 
   void QueueAction(Player& player);
+
 public:
 
   /**
@@ -43,7 +45,7 @@ public:
    * @param _elapsed
    * @param player
    */
-  void OnUpdate(float _elapsed, Player& player);
+  void OnUpdate(double _elapsed, Player& player);
   
   /**
    * @brief Sets player entity charge component to false

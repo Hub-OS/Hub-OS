@@ -18,7 +18,7 @@ public:
    * Prepares animations callbacks
    * @param heal how much to heal the player with
    */
-  RollHeal(Field* field, Team team, Character* user, int heal);
+  RollHeal(Team team, Character* user, int heal);
   
   /**
    * @brief Deconstructor
@@ -29,7 +29,7 @@ public:
    * @brief Updates the animation
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Does not move

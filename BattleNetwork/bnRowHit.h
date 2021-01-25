@@ -13,7 +13,7 @@ public:
   /**
    * @brief Sets the animation with 2 callbacks: spawn another RowHit and delete on animation end
    */
-  RowHit(Field* _field, Team _team,int damage);
+  RowHit(Team _team,int damage);
   
   /**
    * @brief Deconstructor
@@ -24,7 +24,7 @@ public:
    * @brief Attack the tile and animate
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Does not move

@@ -9,11 +9,11 @@
 #include "bnUIComponent.h"
 #include "bnCardUsePublisher.h"
 #include "bnSpriteProxyNode.h"
+#include "bnInputHandle.h"
+#include "bnText.h"
 
 using std::ostringstream;
 using std::vector;
-using sf::Font;
-using sf::Text;
 using sf::Sprite;
 using sf::Texture;
 using sf::Drawable;
@@ -23,7 +23,7 @@ class Player;
 class Card;
 class BattleSceneBase;
 
-class SelectedCardsUI : public CardUsePublisher, public UIComponent {
+class SelectedCardsUI : public CardUsePublisher, public UIComponent, public InputHandle {
 public:
   /**
    * \brief Loads the graphics and sets spread duration to .2 seconds
@@ -42,7 +42,7 @@ public:
    * @brief Hold START to spread the cards out
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Set the cards array and size. Updates card cursor to 0.
@@ -65,7 +65,7 @@ public:
   void SetMultiplier(unsigned mult);
 
 private:
-  float elapsed{}; /*!< Used by draw function, delta time since last update frame */
+  double elapsed{}; /*!< Used by draw function, delta time since last update frame */
   Battle::Card** selectedCards{ nullptr }; /*!< Current list of cards. */
   int cardCount{}; /*!< Size of list */
   int curr{}; /*!< Card cursor index */
@@ -76,7 +76,7 @@ private:
   mutable bool firstFrame{ true }; /*!< If true, this UI graphic is being drawn for the first time*/
   sf::Time interpolDur; /*!< Max duration for interpolation 0.2 seconds */
   Player* player{ nullptr }; /*!< Player this component is attached to */
-  std::shared_ptr<Font> font; /*!< Card name font */
+  Font font; /*!< Card name font */
   mutable Text text; /*!< Text displays card name */
   mutable Text multiplier;
   mutable Text dmg; /*!< Text displays card damage */

@@ -13,13 +13,12 @@ ReflectShield::ReflectShield(Character* owner, int damage, Type type) :
   damage(damage), 
   owner(owner),
   type(type),
-  duration(frames(63).asSeconds()),
-  Artifact(owner->GetField())
+  duration(seconds_cast<float>(frames(63))),
+  Artifact()
 {
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_REFLECT_SHIELD));
+  setTexture(Textures().GetTexture(TextureType::SPELL_REFLECT_SHIELD));
   SetLayer(-1); // stay above characters
   setScale(sf::Vector2f(2.f, 2.f));
-
   activated = false;
 
   //Components setup and load
@@ -54,7 +53,7 @@ ReflectShield::ReflectShield(Character* owner, int damage, Type type) :
   }
 }
 
-void ReflectShield::OnUpdate(float _elapsed) {
+void ReflectShield::OnUpdate(double _elapsed) {
 
   duration -= _elapsed;
 
@@ -91,7 +90,7 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
 {
   if (!activated) {
 
-    AUDIO.Play(AudioType::GUARD_HIT);
+    Audio().Play(AudioType::GUARD_HIT);
 
     Direction direction = Direction::none;
 
@@ -104,7 +103,7 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
 
     Field* field = owner.GetField();
 
-    Spell* rowhit = new RowHit(field, owner.GetTeam(), damage);
+    Spell* rowhit = new RowHit(owner.GetTeam(), damage);
     rowhit->SetDirection(direction);
 
     field->AddEntity(*rowhit, owner.GetTile()->GetX() + 1, owner.GetTile()->GetY());
@@ -116,7 +115,7 @@ void ReflectShield::DoReflect(Spell& in, Character& owner)
 
 void ReflectShield::SetDuration(const frame_time_t& frames)
 {
-  duration = frames.asSeconds();
+  duration = seconds_cast<float>(frames);
 }
 
 ReflectShield::~ReflectShield()

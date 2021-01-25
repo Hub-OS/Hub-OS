@@ -15,7 +15,7 @@ void HoneyBomberIdleState::OnEnter(HoneyBomber& honey) {
   animation->SetPlaybackMode(Animator::Mode::Loop);
 }
 
-void HoneyBomberIdleState::OnUpdate(float _elapsed, HoneyBomber& honey) {
+void HoneyBomberIdleState::OnUpdate(double _elapsed, HoneyBomber& honey) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {

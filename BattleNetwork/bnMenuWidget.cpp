@@ -1,23 +1,24 @@
 #include "bnMenuWidget.h"
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include "bnTextureResourceManager.h"
 
 #include <Swoosh/Ease.h>
 
 MenuWidget::MenuWidget(const std::string& area, const MenuWidget::OptionsList& options) :
-  optionsList(options)
+  optionsList(options),
+  font(Font::Style::thick),
+  infoText(font),
+  areaLabel(font)
 {
-
   // Load resources
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthin_regular.ttf");
-  areaLabel.setFont(*font);
+  areaLabel.SetFont(font);
   areaLabel.setPosition(127, 119);
-  areaLabel.setScale(sf::Vector2f(0.5f, 0.5f));
+  //areaLabel.setScale(sf::Vector2f(2.0f, 2.0f));
   infoText = areaLabel;
   
-  widgetTexture = TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png");
+  widgetTexture = Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png");
 
-  banner.setTexture(TEXTURES.LoadTextureFromFile("resources/ui/menu_overlay.png"));
+  banner.setTexture(Textures().LoadTextureFromFile("resources/ui/menu_overlay.png"));
   symbol.setTexture(widgetTexture);
   icon.setTexture(widgetTexture);
   exit.setTexture(widgetTexture);
@@ -104,27 +105,27 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 
   if (state == MenuWidget::state::opening) {
     easeInTimer.reverse(false);
-    easeInTimer.set(frames(0).asMilli());
+    easeInTimer.set(frames(0));
   }
   else {
     easeInTimer.reverse(true);
-    easeInTimer.set(frames(21).asMilli());
+    easeInTimer.set(frames(21));
   }
 
   //
   // Start these task at the beginning
   //
 
-  auto& t0f = easeInTimer.at(frames(0).asMilli());
+  auto& t0f = easeInTimer.at(frames(0));
   
   t0f.doTask([=](double elapsed) {
-      this->opacity = ease::linear(elapsed, (double)frames(14), 1.0);
-  }).withDuration(frames(14).asMilli());
+      this->opacity = ease::linear(static_cast<float>(elapsed), seconds_cast<float>(frames(14)), 1.0f);
+  }).withDuration(frames(14));
 
   t0f.doTask([=](double elapsed) {
-    double x = ease::linear(elapsed, (double)frames(8).asMilli(), 1.0);
-    this->banner.setPosition((1.0-x)*-this->banner.getSprite().getLocalBounds().width, 0);
-  }).withDuration(frames(8).asMilli());
+    float x = ease::linear(static_cast<float>(elapsed), milli_cast<float>(frames(8)), 1.0f);
+    this->banner.setPosition((1.0f-x)*-this->banner.getSprite().getLocalBounds().width, 0);
+  }).withDuration(frames(8));
 
   if (state == MenuWidget::state::closing) {
     t0f.doTask([=](double elapsed) {
@@ -138,7 +139,7 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
         // labels (menu options)
         //
 
-        float x = ease::linear(elapsed, (double)frames(20).asMilli(), 1.0);
+        float x = ease::linear(static_cast<float>(elapsed), seconds_cast<float>(frames(20)), 1.0f);
         float start = 36;
         float dest = -(options[i]->getLocalBounds().width + start); // our destination
 
@@ -154,14 +155,14 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
         // lerp to our hiding spot
         optionIcons[i]->setPosition(dest * (1.0f - x) + (x * start), optionIcons[i]->getPosition().y);
       }
-    }).withDuration(frames(20).asMilli());
+    }).withDuration(frames(20));
   }
 
   //
   // These tasks begin at the 8th frame
   //
 
-  auto& t8f = easeInTimer.at(frames(8).asMilli());
+  auto& t8f = easeInTimer.at(frames(8));
 
   if (state == MenuWidget::state::opening) {
     t8f.doTask([=](double elapsed) {
@@ -180,11 +181,11 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
 
     t8f.doTask([=](double elapsed) {
       for (size_t i = 0; i < options.size(); i++) {
-        float y = ease::linear(elapsed, (double)frames(12).asMilli(), 1.0);
+        float y = static_cast<float>(ease::linear(elapsed, milli_cast<double>(frames(12)), 1.0));
         options[i]->setPosition(36, 26 + (y * (i * 16)));
         optionIcons[i]->setPosition(16, 26 + (y * (i * 16)));
       }
-    }).withDuration(frames(12).asMilli());
+    }).withDuration(frames(12));
   }
   else {
     t8f.doTask([=](double elapsed) {
@@ -207,34 +208,40 @@ void MenuWidget::QueueAnimTasks(const MenuWidget::state& state)
   }
 
   t8f.doTask([=](double elapsed) {
-    float x = 1.0f-ease::linear(elapsed, (double)frames(6).asMilli(), 1.0);
+    float x = 1.0f-ease::linear(static_cast<float>(elapsed), milli_cast<float>(frames(6)), 1.0f);
     exit.setPosition(130 + (x * 200), exit.getPosition().y);
-  }).withDuration(frames(6).asMilli());
+  }).withDuration(frames(6));
 
   t8f.doTask([=](double elapsed) {
-    size_t offset = 12 * ease::linear(elapsed, (double)frames(2).asMilli(), 1.0);
-    std::string substr = areaName.substr(0, offset);
-    areaLabel.setString(sf::String(substr));
-  }).withDuration(frames(2).asMilli());
+    std::string printName = areaName;
+
+    while (printName.size() < 12) {
+      printName += "_"; // add underscore brackets to output text
+    }
+
+    size_t offset = static_cast<size_t>(12 * ease::linear(elapsed, milli_cast<double>(frames(2)), 1.0));
+    std::string substr = printName.substr(0, offset);
+    areaLabel.SetString(substr);
+  }).withDuration(frames(2));
 
   //
   // These tasks begin on the 14th frame
   //
 
   easeInTimer
-    .at(frames(14).asMilli())
+    .at(time_cast<sf::Time>(frames(14)))
     .doTask([=](double elapsed) {
     infoBox.Reveal();
-    infoBoxAnim.SyncTime(elapsed/1000.0);
+    infoBoxAnim.SyncTime(static_cast<float>(elapsed)/1000.0f);
     infoBoxAnim.Refresh(infoBox.getSprite());
-  }).withDuration(frames(4).asMilli());
+  }).withDuration(frames(4));
 
   //
   // on frame 20 change state flag
   //
   if (state == MenuWidget::state::opening) {
     easeInTimer
-      .at(frames(20).asMilli())
+      .at(frames(20))
       .doTask([=](double elapsed) {
       currState = state::opened;
     });
@@ -249,7 +256,7 @@ void MenuWidget::CreateOptions()
   for (auto&& L : optionsList) {
     // label
     auto sprite = std::make_shared<SpriteProxyNode>();
-    sprite->setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+    sprite->setTexture(Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png"));
     sprite->setPosition(36, 26);
     optionAnim << (L.name + "_LABEL");
     optionAnim.SetFrame(1, sprite->getSprite());
@@ -259,7 +266,7 @@ void MenuWidget::CreateOptions()
 
     // icon
     auto iconSpr = std::make_shared<SpriteProxyNode>();
-    iconSpr->setTexture(TEXTURES.LoadTextureFromFile("resources/ui/main_menu_ui.png"));
+    iconSpr->setTexture(Textures().LoadTextureFromFile("resources/ui/main_menu_ui.png"));
     iconSpr->setPosition(36, 26);
     optionAnim << L.name;
     optionAnim.SetFrame(1, iconSpr->getSprite());
@@ -270,9 +277,9 @@ void MenuWidget::CreateOptions()
 }
 
 
-void MenuWidget::Update(float elapsed)
+void MenuWidget::Update(double elapsed)
 {
-  easeInTimer.update(elapsed);
+  easeInTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
   if (!IsOpen()) return;
 
@@ -320,7 +327,7 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
   }
   else {
     // draw black square to darken bg
-    auto view = ENGINE.GetView();
+    const auto& view = target.getView();
     sf::RectangleShape screen(view.getSize());
     screen.setFillColor(sf::Color(0, 0, 0, int(opacity * 255.f * 0.5f)));
     target.draw(screen, sf::RenderStates::Default);
@@ -335,57 +342,57 @@ void MenuWidget::draw(sf::RenderTarget& target, sf::RenderStates states) const
       auto pos = areaLabel.getPosition();
       auto copyAreaLabel = areaLabel;
       copyAreaLabel.setPosition(pos.x + 1, pos.y + 1);
-      copyAreaLabel.setColor(shadowColor);
+      copyAreaLabel.SetColor(shadowColor);
       target.draw(copyAreaLabel, states);
       target.draw(areaLabel, states);
 
       // hp shadow
-      infoText.setString(sf::String(std::to_string(health)));
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
-      infoText.setColor(shadowColor);
-      infoText.setPosition(174 + 1, 34 + 1);
+      infoText.SetString(std::to_string(health));
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
+      infoText.SetColor(shadowColor);
+      infoText.setPosition(174 + 1, 36 + 1);
       target.draw(infoText, states);
 
       // hp text
-      infoText.setPosition(174, 34);
-      infoText.setColor(sf::Color::White);
+      infoText.setPosition(174, 36);
+      infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
 
       // "/" shadow
-      infoText.setString(sf::String("/"));
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
-      infoText.setColor(shadowColor);
-      infoText.setPosition(182 + 1, 34 + 1);
+      infoText.SetString("/");
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
+      infoText.SetColor(shadowColor);
+      infoText.setPosition(182 + 1, 36 + 1);
       target.draw(infoText, states);
 
       // "/"
-      infoText.setPosition(182, 34);
-      infoText.setColor(sf::Color::White);
+      infoText.setPosition(182, 36);
+      infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
 
       // max hp shadow
-      infoText.setString(sf::String(std::to_string(maxHealth)));
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
-      infoText.setColor(shadowColor);
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
-      infoText.setPosition(214 + 1, 34 + 1);
+      infoText.SetString(std::to_string(maxHealth));
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
+      infoText.SetColor(shadowColor);
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
+      infoText.setPosition(214 + 1, 36 + 1);
       target.draw(infoText, states);
 
       // max hp 
-      infoText.setPosition(214, 34);
-      infoText.setColor(sf::Color::White);
+      infoText.setPosition(214, 36);
+      infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
 
       // coins shadow
-      infoText.setColor(shadowColor);
-      infoText.setString(sf::String(std::to_string(coins) + "z"));
-      infoText.setOrigin(infoText.getLocalBounds().width, 0);
-      infoText.setPosition(214 + 1, 58 + 1);
+      infoText.SetColor(shadowColor);
+      infoText.SetString(std::to_string(coins) + "z");
+      infoText.setOrigin(infoText.GetLocalBounds().width, 0);
+      infoText.setPosition(214 + 1, 60 + 1);
       target.draw(infoText, states);
 
       // coins
-      infoText.setPosition(214, 58);
-      infoText.setColor(sf::Color::White);
+      infoText.setPosition(214, 60);
+      infoText.SetColor(sf::Color::White);
       target.draw(infoText, states);
     }
   }
@@ -480,7 +487,7 @@ bool MenuWidget::CursorMoveUp()
 {
   if (!selectExit ) {
     if (--row < 0) {
-      row = optionsList.size() - 1;
+      row = static_cast<int>(optionsList.size() - 1);
     }
     
     return true;

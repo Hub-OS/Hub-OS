@@ -1,0 +1,17 @@
+imagePath="C:/Users/Proto/Code/OpenNetBattle/BattleNetwork/resources/mobs/barky/atlas.png"
+
+animation state="IDLE"
+frame duration="0.1" x="12" y="62" w="25" h="24" originx="13" originy="23"
+frame duration="0.1" x="60" y="60" w="25" h="24" originx="13" originy="23"
+frame duration="0.1" x="108" y="60" w="25" h="24" originx="13" originy="23"
+frame duration="0.1" x="156" y="62" w="25" h="24" originx="13" originy="23"
+
+animation state="ATTACK"
+frame duration="0.2" x="11" y="17" w="25" h="24" originx="13" originy="23"
+frame duration="0.05" x="51" y="17" w="34" h="24" originx="22" originy="23"
+frame duration="0.05" x="98" y="2" w="34" h="39" originx="22" originy="38"
+frame duration="0.2" x="144" y="0" w="34" h="43" originx="22" originy="42"
+frame duration="0.05" x="193" y="19" w="30" h="24" originx="18" originy="23"
+frame duration="0.05" x="241" y="19" w="30" h="24" originx="18" originy="23"
+frame duration="0.1" x="290" y="18" w="30" h="24" originx="18" originy="23"
+frame duration="0.1" x="345" y="17" w="25" h="24" originx="13" originy="23"

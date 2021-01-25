@@ -6,7 +6,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnNaviExplodeState.h"
 
 #define RESOURCE_PATH "resources/mobs/progsman/progsman.animation"
@@ -20,7 +20,7 @@ ProgsMan::ProgsMan(Rank _rank) : BossPatternAI<ProgsMan>(this), Character(_rank)
     SetHealth(2500);
   }
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_PROGSMAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_PROGSMAN_ATLAS));
   setScale(2.f, 2.f);
 
   SetHealth(health);
@@ -61,7 +61,7 @@ ProgsMan::ProgsMan(Rank _rank) : BossPatternAI<ProgsMan>(this), Character(_rank)
 ProgsMan::~ProgsMan() {
 }
 
-void ProgsMan::OnUpdate(float _elapsed) {
+void ProgsMan::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
 
   BossPatternAI<ProgsMan>::Update(_elapsed);

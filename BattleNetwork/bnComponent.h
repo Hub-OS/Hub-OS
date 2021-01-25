@@ -35,7 +35,7 @@ protected:
  * @brief Update must be implemented by child class
  * @param _elapsed in seconds
  */
-  virtual void OnUpdate(float _elapsed) = 0;
+  virtual void OnUpdate(double _elapsed) = 0;
 
 public:
   Component() = delete;
@@ -98,7 +98,7 @@ public:
   * If a local component, calls onUpdate()
   * If a battle scene component, ensures that it is injected correctly
   */
-  void Update(float elapsed);
+  void Update(double elapsed);
   
   /**
    * @brief Some components can be injected into the battle routine for custom behavior

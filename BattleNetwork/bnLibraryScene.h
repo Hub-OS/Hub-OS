@@ -1,13 +1,13 @@
 #pragma once
 #include <Swoosh/Ease.h>
-#include <Swoosh/Activity.h>
 
+#include "bnScene.h"
 #include "bnCamera.h"
 #include "bnInputManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnCard.h"
 #include "bnAnimation.h"
 #include "bnAnimatedTextBox.h"
@@ -17,25 +17,25 @@
 /*! \brief Library scene shows a list of unique card data collected by the player 
     \warning no longer used. may not work.
 */
-class LibraryScene : public swoosh::Activity {
+class LibraryScene : public Scene {
 private:
   Camera camera;
   AnimatedTextBox textbox; /*!< Display extra card info*/
 
-  std::shared_ptr<sf::Font> font; /*!< Menu name font */
-  sf::Text* menuLabel; /*!< The menu text */
+  Font font; /*!< Menu name font */
+  Text menuLabel; /*!< The menu text */
 
   double maxSelectInputCooldown; /*!< Max time to delay input */
   double selectInputCooldown; /*!< Current time left in input delay */
 
-  std::shared_ptr<sf::Font> cardFont; /*!< Card font */
-  sf::Text *cardLabel; /*!< Card text */
+  Font cardFont; /*!< Card font */
+  Text cardLabel; /*!< Card text */
 
-  std::shared_ptr<sf::Font> numberFont; /*!< Font for numbers */
-  sf::Text *numberLabel; /*!< Numbers as text */
+  Font numberFont; /*!< Font for numbers */
+  Text numberLabel; /*!< Numbers as text */
 
-  std::shared_ptr<sf::Font> cardDescFont; /*!< Font used for card desc */
-  sf::Text* cardDesc; /*!< Actual card desc */
+  Font cardDescFont; /*!< Font used for card desc */
+  Text cardDesc; /*!< Actual card desc */
 
   SpriteProxyNode bg; /*!< Background for this scene */
   SpriteProxyNode folderDock; /*!< Area where folder list appears */

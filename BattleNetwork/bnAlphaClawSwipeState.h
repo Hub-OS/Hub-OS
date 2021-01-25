@@ -18,6 +18,6 @@ public:
   ~AlphaClawSwipeState();
 
   void OnEnter(AlphaCore& a) override;
-  void OnUpdate(float _elapsed, AlphaCore& a) override;
+  void OnUpdate(double _elapsed, AlphaCore& a) override;
   void OnLeave(AlphaCore& a) override;
 };

@@ -2,26 +2,27 @@
 #include "bnCardAction.h"
 #include "bnAnimation.h"
 #include "bnUIComponent.h"
-
-#include <SFML/Graphics.hpp>
+#include "bnInputHandle.h"
+#include "bnFont.h"
+#include "bnText.h"
 
 class SpriteProxyNode;
 class Character;
-class ZetaCannonCardAction : public CardAction {
+class ZetaCannonCardAction : public CardAction, public InputHandle {
 public:
   int damage{ 0 };
   double timer{ 5.0 }; // 5 seconds
-  mutable sf::Text timerLabel; // on the screen somewhere
-  std::shared_ptr<sf::Font> font;
+  mutable Text timerLabel; // on the screen somewhere
+  Font font;
   bool firstTime{ true };
   DefenseRule* defense{ nullptr };
 public:
 
-  ZetaCannonCardAction(Character* owner, int damage);
+  ZetaCannonCardAction(Character& owner, int damage);
   ~ZetaCannonCardAction();
-  void OnUpdate(float _elapsed) override final;
+  void OnUpdate(double _elapsed) override final;
   void OnAnimationEnd() override final;
-  void EndAction() override final;
-  void Execute() override final;
+  void OnEndAction() override final;
+  void OnExecute() override final;
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override final;
 };

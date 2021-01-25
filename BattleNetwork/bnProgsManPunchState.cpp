@@ -24,7 +24,7 @@ void ProgsManPunchState::OnEnter(ProgsMan& progs) {
 void ProgsManPunchState::OnLeave(ProgsMan& progs) {
 }
 
-void ProgsManPunchState::OnUpdate(float _elapsed, ProgsMan& progs) {
+void ProgsManPunchState::OnUpdate(double _elapsed, ProgsMan& progs) {
 
 }
 
@@ -36,7 +36,7 @@ void ProgsManPunchState::Attack(ProgsMan& progs) {
 
     if (next) {
       // Spawn a hurt box
-      Hitbox* hitbox = new Hitbox(progs.GetField(), progs.GetTeam(), 100);
+      Hitbox* hitbox = new Hitbox(progs.GetTeam(), 100);
       auto props = hitbox->GetHitboxProperties();
       props.flags = props.flags | Hit::breaking | Hit::flinch;
       props.aggressor = &progs;

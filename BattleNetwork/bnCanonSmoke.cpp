@@ -8,13 +8,13 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/canodumb/canodumb.animation"
 
-CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
+CanonSmoke::CanonSmoke(): Artifact()
 {
   SetLayer(0);
 
   animationComponent = CreateComponent<AnimationComponent>(this);
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_CANODUMB_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_CANODUMB_ATLAS));
   setScale(2.f, 2.f);
 
   //Components setup and load
@@ -26,7 +26,7 @@ CanonSmoke::CanonSmoke(Field* _field) : Artifact(_field)
 
 }
 
-void CanonSmoke::OnUpdate(float _elapsed) {
+void CanonSmoke::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x + 14.0f, tile->getPosition().y + tileOffset.y - 65.0f);
 }
 

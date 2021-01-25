@@ -34,7 +34,7 @@ public:
    * @brief When query stored in callback() is true, adds the entity back into the scene
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Transfers ownership from entity to the battle scene and removes entity from play

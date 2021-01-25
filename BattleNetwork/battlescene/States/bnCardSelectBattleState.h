@@ -1,12 +1,11 @@
 #pragma once
+#include <vector>
+#include <SFML/Graphics/Sprite.hpp>
 
 #include "../bnBattleSceneState.h"
 #include "bnCharacterTransformBattleState.h"
 #include "../../bnCard.h"
-
-#include <vector>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Font.hpp>
+#include "../../bnFont.h"
 
 class Player;
 
@@ -33,7 +32,7 @@ class CardSelectBattleState final : public BattleSceneState {
   float streamVolume{ -1.f };
   std::vector<Player*>& tracked;
   std::vector<std::shared_ptr<TrackedFormData>>& forms;
-  std::shared_ptr<sf::Font> font;
+  Font font;
   sf::Sprite mobEdgeSprite, mobBackdropSprite; /*!< name backdrop images*/
   Battle::Card** cards; /*!< List of Card* the user selects from the card cust */
 

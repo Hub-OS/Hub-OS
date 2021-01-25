@@ -11,7 +11,7 @@ using std::to_string;
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnCard.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 EnemyCardsUI::EnemyCardsUI(Character* _owner) : CardUsePublisher(), Component(_owner) {
   cardCount = curr = 0;
@@ -24,7 +24,7 @@ EnemyCardsUI::EnemyCardsUI(Character* _owner) : CardUsePublisher(), Component(_o
 EnemyCardsUI::~EnemyCardsUI() {
 }
 
-void EnemyCardsUI::OnUpdate(float _elapsed) {
+void EnemyCardsUI::OnUpdate(double _elapsed) {
   if (GetOwner() && GetOwner()->GetTile() && !GetOwner()->IsDeleted() && !GetOwner()->IsTimeFrozen()) {
     Agent* agent = GetOwnerAs<Agent>();
 
@@ -54,7 +54,7 @@ void EnemyCardsUI::draw(sf::RenderTarget & target, sf::RenderStates states) cons
       sf::Vector2f offset = character->getPosition();
       icon.setPosition(offset + sf::Vector2f(((i - curr) * 2.0f) - 4.f, -58.0f - 63.f - (i - curr) * -2.0f));
 
-      ENGINE.Draw(icon);
+      target.draw(icon);
     }
   }
 

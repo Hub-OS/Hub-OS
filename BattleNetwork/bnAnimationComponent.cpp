@@ -16,7 +16,7 @@ AnimationComponent::AnimationComponent(Entity* _entity) : Component(_entity) {
 AnimationComponent::~AnimationComponent() {
 }
 
-void AnimationComponent::OnUpdate(float _elapsed)
+void AnimationComponent::OnUpdate(double _elapsed)
 {
   // Since animations can be used on non-characters
   // we check if the owning entity is non-null 
@@ -146,6 +146,11 @@ void AnimationComponent::OnFinish(const FrameFinishCallback& onFinish)
 sf::Vector2f AnimationComponent::GetPoint(const std::string & pointName)
 {
   return animation.GetPoint(pointName);
+}
+
+Animation & AnimationComponent::GetAnimationObject()
+{
+  return animation;
 }
 
 void AnimationComponent::OverrideAnimationFrames(const std::string& animation, std::list<OverrideFrame> data, std::string & uuid)

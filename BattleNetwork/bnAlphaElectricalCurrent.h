@@ -14,12 +14,12 @@ class AlphaElectricCurrent : public Spell {
   int count;
   int countMax;
 public:
-  AlphaElectricCurrent(Field* field, Team team, int count);
+  AlphaElectricCurrent(Team team, int count);
   ~AlphaElectricCurrent();
 
   // Inherited via Spell
   void OnSpawn(Battle::Tile& start) override;
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   void Attack(Character * _entity) override;
   void OnDelete() override;
 };

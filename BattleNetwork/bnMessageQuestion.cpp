@@ -1,13 +1,15 @@
 #include "bnMessageQuestion.h"
 #include "bnInputManager.h"
+#include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
 
-Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) 
-    : Message(message + "\n    YES        NO") {
+Question::Question(std::string message, std::function<void()> onYes, std::function<void()> onNo) : 
+  Message(message + "\n    YES        NO") {
   Question::onNo = onNo;
   Question::onYes = onYes;
   isQuestionReady = false;
   selectCursor.setTexture(LOAD_TEXTURE(TEXT_BOX_CURSOR));
+  selectCursor.scale(2.0f, 2.0f);
   elapsed = 0;
   yes = canceled = false;
 }
@@ -21,73 +23,70 @@ const bool Question::SelectNo() { if (!isQuestionReady) return false; else yes =
 
 void Question::Cancel()
 {
-    if (!isQuestionReady) return;
-    SelectNo();
-    canceled = true; // wait one more frame
+  if (!isQuestionReady) return;
+  SelectNo();
+  canceled = true; // wait one more frame
 }
 
 void Question::ConfirmSelection()
 {
-    if (!isQuestionReady) return;
-    ExecuteSelection();
-    GetTextBox()->DequeMessage();
+  if (!isQuestionReady) return;
+  ExecuteSelection();
+  GetTextBox()->DequeMessage();
 }
 
 void Question::ExecuteSelection() {
-    if (yes) { 
-        onYes(); 
-        AUDIO.Play(AudioType::NEW_GAME);
-    }
-    else {
-        onNo(); 
-    }
+  ResourceHandle handle;
 
-    canceled = false; // reset
-    isQuestionReady = false; // reset 
+  if (yes) { 
+      onYes(); 
+      handle.Audio().Play(AudioType::NEW_GAME);
+  }
+  else {
+      onNo(); 
+  }
+
+  canceled = false; // reset
+  isQuestionReady = false; // reset 
 }
 
 void Question::OnUpdate(double elapsed) {
-    Question::elapsed = elapsed;;
+  Question::elapsed = elapsed;
 
-    isQuestionReady = GetTextBox()->IsEndOfMessage();
+  isQuestionReady = GetTextBox()->IsEndOfMessage();
 
-    Message::OnUpdate(elapsed);
+  Message::OnUpdate(elapsed);
 
-    if (canceled) {
-        SelectNo();
-        ExecuteSelection();
-        return;
-    }
+  if (canceled) {
+      SelectNo();
+      ExecuteSelection();
+      return;
+  }
 }
 
 void Question::OnDraw(sf::RenderTarget& target, sf::RenderStates states) {
 
-    // We added "YES NO" to the last row of the message box
-    // So it is visible when the message box is done printing.
-    // Find out how many rows there are and place arrows to fit the text.
-    float cursorY = -20.0f;
-    int numOfFitLines = GetTextBox()->GetNumberOfFittingLines();
+  // We added "YES NO" to the last row of the message box
+  // So it is visible when the message box is done printing.
+  // Find out how many rows there are and place arrows to fit the text.
+  int numOfFitLines = GetTextBox()->GetNumberOfFittingLines();
+  int cursorY = static_cast<int>((3 - numOfFitLines) * -24.0f - 20.0f);
 
-    if (numOfFitLines == 2) {
-        cursorY = -8.0f;
-    }
-    else if (numOfFitLines == 3) {
-        cursorY = 6.0f;
-    }
+  float textBoxBottom = GetTextBox()->getPosition().y + GetTextBox()->GetFrameHeight() / 2.0f;
 
-    if (yes) {
-        selectCursor.setPosition(62.0f, cursorY);
-    }
-    else {
-        selectCursor.setPosition(140.0f, cursorY);
-    }
+  if (yes) {
+      selectCursor.setPosition(142.0f, textBoxBottom + cursorY);
+  }
+  else {
+      selectCursor.setPosition(314.0f, textBoxBottom + cursorY);
+  }
 
-    if (isQuestionReady) {
-        // Draw the Yes / No and a cursor
-        target.draw(selectCursor,states);
-    }
+  if (isQuestionReady) {
+      // Draw the Yes / No and a cursor
+      target.draw(selectCursor,states);
+  }
 
-    Message::OnDraw(target, states);
+  Message::OnDraw(target, states);
 }
 
 void Question::SetTextBox(AnimatedTextBox * parent){

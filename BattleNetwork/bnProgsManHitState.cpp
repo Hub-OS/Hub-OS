@@ -17,7 +17,7 @@ void ProgsManHitState::OnEnter(ProgsMan& progs) {
   anim->SetAnimation("HIT");
 }
 
-void ProgsManHitState::OnUpdate(float _elapsed, ProgsMan& progs) {
+void ProgsManHitState::OnUpdate(double _elapsed, ProgsMan& progs) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {

@@ -19,7 +19,7 @@ public:
    * @@param _team Team of ninja star
    * @param _duration of the animation
    */
-  NinjaStar(Field* _field, Team _team, float _duration);
+  NinjaStar(Team _team,float _duration);
   
   /**
    * @brief deconstructor
@@ -30,7 +30,7 @@ public:
    * @brief Interpol. from start to tile attacking entites on the tile when anim finishes
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Does not move across tiles

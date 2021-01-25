@@ -24,7 +24,7 @@ private:
     double progress;
     DefenseRule* copout;
   public:
-    Head(Megalian* belongsTo) : base(belongsTo), Obstacle(belongsTo->GetField(), belongsTo->GetTeam()) {
+    Head(Megalian* belongsTo) : base(belongsTo), Obstacle(belongsTo->GetTeam()) {
       SetFloatShoe(true);
       SetTeam(base->GetTeam());
       SharedHitboxDamage(base);
@@ -36,7 +36,7 @@ private:
       animation->SetAnimation("Head1");
       animation->SetPlaybackSpeed(0); 
       setScale(2.f, 2.f);
-      setTexture(TEXTURES.GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
+      setTexture(Textures().GetTexture(TextureType::MOB_MEGALIAN_ATLAS));
       animation->OnUpdate(0);
       SetLayer(-1); // on top of base
       SetHealth(base->GetHealth());
@@ -60,7 +60,7 @@ private:
 
     virtual ~Head() { delete copout;  }
 
-    virtual void OnUpdate(float _elapsed) { 
+    virtual void OnUpdate(double _elapsed) { 
       progress += _elapsed;
       if (!base || !base->GetHealth()) {
         if (int(progress * 1000) % 2 == 0) {
@@ -145,7 +145,7 @@ private:
           Logger::Log("timer: " + std::to_string(timer-5.0) + " adjusted: " + std::to_string(adjusted) + " SetSlideTime: " + std::to_string(250 + (adjusted * 500)));
 
           if(playOnce) {
-            AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+            Audio().Play(AudioType::TOSS_ITEM_LITE);
             playOnce = false;
           }
 
@@ -204,7 +204,7 @@ public:
    * @brief Uses AI state to move around. Deletes when health is below zero.
    * @param _elapsed in seconds
    */
-  virtual void OnUpdate(float _elapsed);
+  virtual void OnUpdate(double _elapsed);
 
   virtual void OnDelete();
 

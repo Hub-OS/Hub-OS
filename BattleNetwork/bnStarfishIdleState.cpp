@@ -11,7 +11,7 @@ void StarfishIdleState::OnEnter(Starfish& star) {
   star.GetFirstComponent<AnimationComponent>()->SetAnimation("IDLE", Animator::Mode::Loop);
 }
 
-void StarfishIdleState::OnUpdate(float _elapsed, Starfish& star) {
+void StarfishIdleState::OnUpdate(double _elapsed, Starfish& star) {
   if (cooldown < 0) {
     // Attack 3 times
     star.ChangeState<StarfishAttackState>(3);

@@ -6,7 +6,7 @@ class MetalMan;
 class MetalManIdleState : public AIState<MetalMan>
 {
 private:
-  float cooldown; /*!< Timer to change states */
+  double cooldown; /*!< Timer to change states */
 
 public:
   /**
@@ -30,7 +30,7 @@ public:
    * @param _elapsed
    * @param m
    */
-  void OnUpdate(float _elapsed, MetalMan& m);
+  void OnUpdate(double _elapsed, MetalMan& m);
   
   /**
    * @brief Does nothing

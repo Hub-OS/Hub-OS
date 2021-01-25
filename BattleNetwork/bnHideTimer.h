@@ -19,7 +19,7 @@ namespace Battle {
 class HideTimer : public Component {
 private:
   double duration; /*!< How long to hide a character for */
-  float elapsed; /*!< time elapsed in seconds */
+  double elapsed; /*!< time elapsed in seconds */
   Battle::Tile* temp; /*!< The tile to return the character to */
   std::function<void()> respawn;
 public:
@@ -32,7 +32,7 @@ public:
    * @brief When time is up, eject component from battle scene loop and add entity back
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Remove ownership from character to the battle scene and remove entity from play

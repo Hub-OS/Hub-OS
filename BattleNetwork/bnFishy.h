@@ -16,7 +16,7 @@ protected:
   double speed;
   bool hit;
 public:
-  Fishy(Field* _field, Team _team, double speed = 1.0);
+  Fishy(Team _team,double speed = 1.0);
 
   virtual ~Fishy();
   
@@ -31,7 +31,7 @@ public:
    * @brief Slides across screen attacking tiles. At end of field, deletes.
    * @param _elapsed in second
    */
-  virtual void OnUpdate(float _elapsed);
+  virtual void OnUpdate(double _elapsed);
   
   /**
    * @brief Deal flinch and recoil damage

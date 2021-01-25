@@ -31,7 +31,7 @@ private:
     dissolving
   } state{};
 
-  float duration{};
+  double duration{};
   Type type{};
   DefenseRule* guard; /*!< Adds defense rule to attached entity */
   Animation animation; /*!< Shield animation */
@@ -59,7 +59,7 @@ public:
    * @brief Updates animation
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Removes reflect shield from play

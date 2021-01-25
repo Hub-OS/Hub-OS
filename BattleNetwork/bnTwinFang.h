@@ -6,21 +6,19 @@ class TwinFang : public Spell {
 public:
   enum class Type : int {
     ABOVE,
-    BELOW,
-    ABOVE_DUD,
-    BELOW_DUD
+    BELOW
   };
 
 protected:
   AnimationComponent* animation;
   bool spreadOut, onEdgeOfMap;
   float spreadOffset;
-  float flickeroutTimer;
+  double flickeroutTimer;
   Type type;
 
 public:
 
-  TwinFang(Field* _field, Team _team, Type _type, int damage);
+  TwinFang(Team _team,Type _type, int damage);
 
   /**
    * @brief deconstructor
@@ -38,7 +36,7 @@ public:
   * @brief Spreads outwards on a target tile and then moves across the field
   * @param _elapsed float of elapsed time in seconds
   */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   /**
    * @brief Deals hitbox damage

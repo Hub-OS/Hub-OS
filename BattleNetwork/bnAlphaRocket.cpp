@@ -7,14 +7,14 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
+AlphaRocket::AlphaRocket(Team _team) : Obstacle(_team)  {
   // AlphaRocket float over tiles
   SetFloatShoe(true);
   SetTeam(_team);
   ShareTileSpace(true);
   SetLayer(-1);
 
-  auto texture = TEXTURES.GetTexture(TextureType::SPELL_ALPHA_ROCKET);
+  auto texture = Textures().GetTexture(TextureType::SPELL_ALPHA_ROCKET);
   setTexture(texture);
   setScale(2.f, 2.f);
 
@@ -37,7 +37,7 @@ AlphaRocket::AlphaRocket(Field* _field, Team _team) : Obstacle(_field, _team)  {
 AlphaRocket::~AlphaRocket() {
 }
 
-void AlphaRocket::OnUpdate(float _elapsed) {
+void AlphaRocket::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   if (GetDirection() == Direction::left) {
@@ -111,15 +111,15 @@ void AlphaRocket::OnDelete()
   });
 
   for (auto t : adj) {
-    Hitbox* box = new Hitbox(GetField(), GetTeam(), 200);
-    Explosion* exp = new Explosion(GetField(), GetTeam());
+    Hitbox* box = new Hitbox(GetTeam(), 200);
+    Explosion* exp = new Explosion();
 
     box->SetHitboxProperties(GetHitboxProperties());
 
     GetField()->AddEntity(*box, t->GetX(), t->GetY());
     GetField()->AddEntity(*exp, t->GetX(), t->GetY());
 
-    ENGINE.GetCamera()->ShakeCamera(10, sf::seconds(1));
+    EventBus().Emit(&Camera::ShakeCamera, 10, sf::seconds(1));
   }
 
   Remove();

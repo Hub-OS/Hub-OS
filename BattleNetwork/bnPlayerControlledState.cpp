@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-PlayerControlledState::PlayerControlledState() : AIState<Player>(), replicator(nullptr)
+PlayerControlledState::PlayerControlledState() : AIState<Player>(), InputHandle(), replicator(nullptr)
 {
   isChargeHeld = false;
   queuedAction = nullptr;
@@ -28,13 +28,13 @@ void PlayerControlledState::QueueAction(Player & player)
   // We already have one action queued, delete the next one
   if (!queuedAction) {
     queuedAction = action;
-    if(replicator) this->startupDelay = STARTUP_DELAY_LEN;
+    if(replicator) this->startupDelay = seconds_cast<double>(STARTUP_DELAY_LEN);
   }
   else {
     delete action;
   }
 
-  player.chargeEffect.SetCharging(false);
+  player.GetChargeComponent().SetCharging(false);
   if (replicator) replicator->SendChargeSignal(false);
 
   isChargeHeld = false;
@@ -45,9 +45,9 @@ void PlayerControlledState::OnEnter(Player& player) {
   replicator = player.GetFirstComponent<PlayerInputReplicator>();
 }
 
-void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
+void PlayerControlledState::OnUpdate(double _elapsed, Player& player) {
   // Action startup time and actions themselves prevent player input
-  if (this->startupDelay > 0.f) {
+  if (this->startupDelay > 0) {
     this->startupDelay -= _elapsed;
     return;
   }
@@ -73,7 +73,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   // Are we creating an action this frame?
   if (player.CanAttack() && notAnimating) {
-    if (INPUTx.Has(InputEvents::pressed_use_chip)) {
+    if (Input().Has(InputEvents::pressed_use_chip)) {
       auto cardsUI = player.GetFirstComponent<SelectedCardsUI>();
       if (cardsUI && cardsUI->UseNextCard()) {
         // If the card used was successful, we may have a card in queue
@@ -81,13 +81,13 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
         //return; // wait one more frame to use
       }
     }
-    else if (INPUTx.Has(InputEvents::released_special)) {
+    else if (Input().Has(InputEvents::released_special)) {
       if (replicator) replicator->SendUseSpecialSignal();
       player.UseSpecial();
       QueueAction(player);
      // return; // wait one more frame to use
     }    // queue attack based on input behavior (buster or charge?)
-    else if ((!INPUTx.Has(InputEvents::held_shoot) && isChargeHeld) || INPUTx.Has(InputEvents::released_shoot)) {
+    else if ((!Input().Has(InputEvents::held_shoot) && isChargeHeld) || Input().Has(InputEvents::released_shoot)) {
       // This routine is responsible for determining the outcome of the attack
       player.Attack();
 
@@ -109,24 +109,24 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 
   static Direction direction = Direction::none;
   //if (!player.IsTimeFrozen()) { // TODO: take out IsTimeFrozen from API
-    if (INPUTx.Has(InputEvents::pressed_move_up) || INPUTx.Has(InputEvents::held_move_up)) {
+    if (Input().Has(InputEvents::pressed_move_up) || Input().Has(InputEvents::held_move_up)) {
       direction = Direction::up;
     }
-    else if (INPUTx.Has(InputEvents::pressed_move_left) || INPUTx.Has(InputEvents::held_move_left)) {
+    else if (Input().Has(InputEvents::pressed_move_left) || Input().Has(InputEvents::held_move_left)) {
       direction = Direction::left;
     }
-    else if (INPUTx.Has(InputEvents::pressed_move_down) || INPUTx.Has(InputEvents::held_move_down)) {
+    else if (Input().Has(InputEvents::pressed_move_down) || Input().Has(InputEvents::held_move_down)) {
       direction = Direction::down;
     }
-    else if (INPUTx.Has(InputEvents::pressed_move_right) || INPUTx.Has(InputEvents::held_move_right)) {
+    else if (Input().Has(InputEvents::pressed_move_right) || Input().Has(InputEvents::held_move_right)) {
       direction = Direction::right;
     }
   //}
 
-  bool shouldShoot = INPUTx.Has(InputEvents::held_shoot) && isChargeHeld == false && actions.empty();
+  bool shouldShoot = Input().Has(InputEvents::held_shoot) && isChargeHeld == false && actions.empty();
 
 #ifdef __ANDROID__
-  shouldShoot = INPUTx.Has(PRESSED_A);
+  shouldShoot = Input().Has(PRESSED_A);
 #endif
 
   if (shouldShoot) {
@@ -135,16 +135,16 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
     player.chargeEffect.SetCharging(true);
   }
 
-  if (INPUTx.Has(InputEvents::released_move_up)) {
+  if (Input().Has(InputEvents::released_move_up)) {
     direction = Direction::none;
   }
-  else if (INPUTx.Has(InputEvents::released_move_left)) {
+  else if (Input().Has(InputEvents::released_move_left)) {
     direction = Direction::none;
   }
-  else if (INPUTx.Has(InputEvents::released_move_down)) {
+  else if (Input().Has(InputEvents::released_move_down)) {
     direction = Direction::none;
   }
-  else if (INPUTx.Has(InputEvents::released_move_right)) {
+  else if (Input().Has(InputEvents::released_move_right)) {
     direction = Direction::none;
   }
 
@@ -173,7 +173,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
           // if the player was pressing the D-pad this frame too
           if (queuedAction && actions.empty()) {
             playerPtr->RegisterComponent(queuedAction);
-            queuedAction->OnExecute();
+            queuedAction->Execute();
             queuedAction = nullptr;
           }
 
@@ -204,7 +204,7 @@ void PlayerControlledState::OnUpdate(float _elapsed, Player& player) {
 void PlayerControlledState::OnLeave(Player& player) {
   /* Navis lose charge when we leave this state */
   player.chargeEffect.SetCharging(false);
-  
+
   if (auto queuedAction = player.DequeueAction(); queuedAction) {
     delete queuedAction;
   }

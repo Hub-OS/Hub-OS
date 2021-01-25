@@ -48,7 +48,7 @@ public:
      * @param _elapsed in seconds
      * @param e entity
      */
-    void OnUpdate(float _elapsed, Any& e);
+    void OnUpdate(double _elapsed, Any& e);
 
     /**
      * @brief Calls when leaving the state
@@ -78,7 +78,7 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
     /* Spawn shine artifact */
     Battle::Tile* tile = e.GetTile();
     Field* field = e.GetField();
-    shine = new ShineExplosion(field, e.GetTeam());
+    shine = new ShineExplosion();
 
     // ShineExplosion loops, we just want to play once and delete
     auto animComponent = shine->GetFirstComponent<AnimationComponent>();
@@ -86,7 +86,7 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
     animComponent->SetAnimation(animStr, [this]() {
         shine->Remove();
         fadeout = true;
-        AUDIO.Play(AudioType::DELETED);
+        ResourceHandle().Audio().Play(AudioType::DELETED);
     });
 
     field->AddEntity(*shine, tile->GetX(), tile->GetY());
@@ -100,18 +100,18 @@ void NaviWhiteoutState<Any>::OnEnter(Any& e) {
 }
 
 template<typename Any>
-void NaviWhiteoutState<Any>::OnUpdate(float _elapsed, Any& e) {
+void NaviWhiteoutState<Any>::OnUpdate(double _elapsed, Any& e) {
     float range = factor / 125.f;
 
     // this sets the alpha channel
-    e.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
+    e.setColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(255 * range)));
 
     // this makes all pixels white
-    e.SetShader(SHADERS.GetShader(ShaderType::WHITE));
+    e.SetShader(e.Shaders().GetShader(ShaderType::WHITE));
 
     if (!fadeout) return;
 
-    factor -= _elapsed * 180.f;
+    factor -= static_cast<float>(_elapsed) * 180.f;
 
     if (factor <= 0.f) {
         factor = 0.f;

@@ -23,12 +23,15 @@ using std::vector;
  */
 class InputManager {
 public:
+
   /**
-   * @brief Get the singleton instance. If first call, initializes itself.
-   * @return InputManager&
-   */
-  static InputManager& GetInstance();
-  
+  * @brief sets all initial input events to false
+  */
+  InputManager(sf::Window& win);
+
+  // no copies
+  InputManager(const InputManager&) = delete;
+
   /**
    * @brief Frees config pointer
    */
@@ -180,6 +183,8 @@ public:
 
 private:
   sf::Keyboard::Key lastkey;
+  sf::Window& window;
+
   Gamepad lastButton{};
 
   bool captureInputBuffer{}; /*!< Flags input buffer capture state */
@@ -193,12 +198,7 @@ private:
   float axisYPower{}, lastAxisYPower{};
 
   std::vector<sf::Joystick::Identification> gamepads;
-  size_t currGamepad{};
-
-  /**
-   * @brief sets all initial input events to false
-   */
-  InputManager();
+  unsigned int currGamepad{};
   
   vector<InputEvent> events; /*!< Current event list */
   vector<InputEvent> eventsLastFrame; /*!< The even list prior to this update */

@@ -1,5 +1,5 @@
 #pragma once
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include "bnAnimation.h"
 #include "bnSpriteProxyNode.h"
 #include <string>
@@ -14,7 +14,7 @@ public:
   virtual ~PlayerForm() { ; }
   virtual void OnActivate(Player&) = 0;
   virtual void OnDeactivate(Player&) = 0;
-  virtual void OnUpdate(float elapsed, Player&) = 0;
+  virtual void OnUpdate(double elapsed, Player&) = 0;
   virtual CardAction* OnChargedBusterAction(Player&) = 0;
   virtual CardAction* OnSpecialAction(Player&) = 0;
   virtual frame_time_t CalculateChargeTime(const unsigned) = 0;

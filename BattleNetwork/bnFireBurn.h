@@ -15,7 +15,7 @@ protected:
   int damage; /*!< How much damage to deal */
   bool crackTiles{ true };
 public:
-  FireBurn(Field* _field, Team _team, Type type, int damage);
+  FireBurn(Team _team,Type type, int damage);
 
   /**
    * @brief Deconstructor
@@ -26,7 +26,7 @@ public:
    * @brief Attack the tile and animate
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   /**
    * @brief Does not move

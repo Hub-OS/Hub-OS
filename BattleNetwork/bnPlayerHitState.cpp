@@ -33,10 +33,10 @@ void PlayerHitState::OnEnter(Player& player) {
     }
   };
   player.SetAnimation(PLAYER_HIT,onFinished);
-  AUDIO.Play(AudioType::HURT, AudioPriority::lowest);
+  player.Audio().Play(AudioType::HURT, AudioPriority::lowest);
 }
 
-void PlayerHitState::OnUpdate(float _elapsed, Player& player) {
+void PlayerHitState::OnUpdate(double _elapsed, Player& player) {
 }
 
 void PlayerHitState::OnLeave(Player& player) {

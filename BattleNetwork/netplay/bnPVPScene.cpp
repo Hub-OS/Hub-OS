@@ -22,24 +22,29 @@ using namespace swoosh::types;
 
 std::string PVPScene::myIP = "";
 
-PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFolder& folder, PA& pa)
-  : textbox(sf::Vector2f(4, 250)), selectedNavi(selected), folder(folder), pa(pa),
+PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFolder& folder, PA& pa) : 
+  textbox(sf::Vector2f(4, 250)), 
+  selectedNavi(selected), 
+  folder(folder), pa(pa),
   uiAnim("resources/ui/pvp_widget.animation"),
-  swoosh::Activity(&controller)
+  font(Font::Style::thick),
+  text(font),
+  id(font),
+  Scene(controller)
 {
   // network
-  netplayconfig.myPort = ENGINE.CommandLineValue<int>("port");
+  netplayconfig.myPort = getController().CommandLineValue<int>("port");
   Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), netplayconfig.myPort);
   client = Poco::Net::DatagramSocket(sa);
   client.setBlocking(false);
 
   // Sprites
-  ui.setTexture(LOAD_TEXTURE_FILE("resources/ui/pvp_widget.png"));
-  vs.setTexture(LOAD_TEXTURE_FILE("resources/ui/vs_text.png"));
-  vsFaded.setTexture(LOAD_TEXTURE_FILE("resources/ui/vs_text.png"));
-  greenBg.setTexture(LOAD_TEXTURE(FOLDER_VIEW_BG));
+  ui.setTexture(Textures().LoadTextureFromFile("resources/ui/pvp_widget.png"));
+  vs.setTexture(Textures().LoadTextureFromFile("resources/ui/vs_text.png"));
+  vsFaded.setTexture(Textures().LoadTextureFromFile("resources/ui/vs_text.png"));
+  greenBg.setTexture(Textures().GetTexture(TextureType::FOLDER_VIEW_BG));
 
-  navigator.setTexture(LOAD_TEXTURE(MUG_NAVIGATOR));
+  navigator.setTexture(Textures().GetTexture(TextureType::MUG_NAVIGATOR));
   //navigator.setScale(2.f, 2.f);
 
   // NOTE: ui sprites are already at 2x scale
@@ -71,11 +76,7 @@ PVPScene::PVPScene(swoosh::ActivityController& controller, int selected, CardFol
   remotePreview.setScale(-2.f, 2.f);
 
   // text / font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  text.setFont(*font);
   text.setPosition(45.f, -5.f); // y starts above the visible screen because sfml fonts are weird
-
-  id.setFont(*font);
 
   // load animation files
   uiAnim.Load();
@@ -148,7 +149,7 @@ void PVPScene::HandleCancel()
   textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
   textbox.Open();
   textbox.CompleteCurrentBlock();
-  AUDIO.Play(AudioType::CHIP_ERROR);
+  Audio().Play(AudioType::CHIP_ERROR);
 }
 
 void PVPScene::HandleGetIPFailure()
@@ -156,25 +157,25 @@ void PVPScene::HandleGetIPFailure()
   textbox.ClearAllMessages();
   Message* help = new Message("Error obtaining your IP");
   textbox.EnqueMessage(navigator.getSprite(), "resources/ui/navigator.animation", help);
-  textbox.Open([]() {
-    AUDIO.Play(AudioType::CHIP_ERROR);
+  textbox.Open([=]() {
+    Audio().Play(AudioType::CHIP_ERROR);
   });
   textbox.CompleteCurrentBlock();
 }
 
 void PVPScene::HandleCopyEvent()
 {
-  std::string value = INPUTx.GetClipboard();
+  std::string value = Input().GetClipboard();
 
   if (value != myIP) {
     Message* help = nullptr;
     if (myIP.empty()) {
-      AUDIO.Play(AudioType::CHIP_ERROR);
+      Audio().Play(AudioType::CHIP_ERROR);
       help = new Message("IP addr unavailable");
     }
     else {
-      INPUTx.SetClipboard(myIP);
-      AUDIO.Play(AudioType::NEW_GAME);
+      Input().SetClipboard(myIP);
+      Audio().Play(AudioType::NEW_GAME);
       help = new Message("Copied!");
     }
 
@@ -186,18 +187,18 @@ void PVPScene::HandleCopyEvent()
 
 void PVPScene::HandlePasteEvent()
 {
-  std::string value = INPUTx.GetClipboard();
+  std::string value = Input().GetClipboard();
 
   if (value != theirIP) {
     Message* help = nullptr;
 
     if (IsValidIPv4(value)) {
       theirIP = value;
-      AUDIO.Play(AudioType::COUNTER_BONUS);
+      Audio().Play(AudioType::COUNTER_BONUS);
       help = new Message("Pasted! Press start to connect.");
     }
     else {
-      AUDIO.Play(AudioType::CHIP_ERROR);
+      Audio().Play(AudioType::CHIP_ERROR);
       help = new Message("Bad IP");
     }
 
@@ -296,42 +297,42 @@ void PVPScene::RecieveHandshakeSignal()
   this->SendHandshakeSignal();
 }
 
-void PVPScene::DrawIDInputWidget()
+void PVPScene::DrawIDInputWidget(sf::RenderTexture& surface)
 {
   uiAnim.SetAnimation("ID_START");
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(100, 40);
-  ENGINE.Draw(ui);
+  surface.draw(ui);
 
   if (infoMode) {
-    id.setString(sf::String(myIP));
+    id.SetString(sf::String(myIP));
   }
   else {
-    id.setString(sf::String(theirIP));
+    id.SetString(sf::String(theirIP));
   }
   id.setPosition(145, 40);
 
   // restrict the widget from collapsing at text length 0
-  float widgetWidth = std::fmax(id.getLocalBounds().width+10.f, 50.f);
+  float widgetWidth = std::fmax(id.GetLocalBounds().width+10.f, 50.f);
 
   uiAnim.SetAnimation("ID_MID");
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(widgetWidth, 1.0f);
   ui.setPosition(140, 40);
-  ENGINE.Draw(ui);
-  ENGINE.Draw(id);
+  surface.draw(ui);
+  surface.draw(id);
 
   uiAnim.SetAnimation("ID_END");
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(1.f, 1.0f);
   ui.setPosition(140 + widgetWidth, 40);
-  ENGINE.Draw(ui);
+  surface.draw(ui);
 }
 
-void PVPScene::DrawCopyPasteWidget()
+void PVPScene::DrawCopyPasteWidget(sf::RenderTexture& surface)
 {
   std::string state = "ENABLED";
-  std::string clipboard = INPUTx.GetClipboard();
+  std::string clipboard = Input().GetClipboard();
 
   if (!infoMode && (clipboard.empty() || theirIP == clipboard)) {
     state = "DISABLED";
@@ -355,41 +356,39 @@ void PVPScene::DrawCopyPasteWidget()
   uiAnim.SetAnimation(start);
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(100, 90);
-  ENGINE.Draw(ui);
 
-  sf::Text widgetText;
-  widgetText.setFont(*font);
+  Text widgetText(font);
 
   if (infoMode) {
-    widgetText.setString("Copy");
+    widgetText.SetString("Copy");
     icon += "COPY";
   }
   else {
-    widgetText.setString("Paste");
+    widgetText.SetString("Paste");
     icon += "PASTE";
   }
 
   uiAnim.SetAnimation(icon);
   uiAnim.SetFrame(0, ui.getSprite());
   ui.setPosition(102, 92); // offset by 2 pixels to fit inside the frame
-  ENGINE.Draw(ui);
+  surface.draw(ui);
 
   widgetText.setPosition(145, 83);
 
-  float widgetWidth = widgetText.getLocalBounds().width + 10.f;
+  float widgetWidth = widgetText.GetLocalBounds().width + 10.f;
 
   uiAnim.SetAnimation(mid);
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(widgetWidth, 1.0f);
   ui.setPosition(140, 90);
-  ENGINE.Draw(ui);
-  ENGINE.Draw(widgetText);
+  surface.draw(ui);
+  surface.draw(widgetText);
 
   uiAnim.SetAnimation(end);
   uiAnim.Update(0, ui.getSprite());
   ui.setScale(1.f, 1.0f);
   ui.setPosition(140 + widgetWidth, 90);
-  ENGINE.Draw(ui);
+  surface.draw(ui);
 }
 
 const bool PVPScene::IsValidIPv4(const std::string& ip) const {
@@ -443,11 +442,11 @@ void PVPScene::onExit()
 }
 
 void PVPScene::onUpdate(double elapsed) {
-  gridBG->Update(float(elapsed));
-  textbox.Update(float(elapsed));
+  gridBG->Update(double(elapsed));
+  textbox.Update(double(elapsed));
 
   // DEBUG SCENE STUFF
-  if (INPUTx.Has(InputEvents::released_special)) {
+  if (Input().Has(InputEvents::released_special)) {
     clientIsReady = remoteIsReady = true;
     remotePreview.setTexture(clientPreview.getTexture());
     remotePreview.setOrigin(0, remotePreview.getLocalBounds().height);
@@ -458,10 +457,10 @@ void PVPScene::onUpdate(double elapsed) {
 
   if (clientIsReady && remoteIsReady && !isInFlashyVSIntro) {
     isInFlashyVSIntro = true;
-    AUDIO.StopStream();
+    Audio().StopStream();
   }
   else if (clientIsReady && !remoteIsReady) {
-    if (INPUTx.Has(InputEvents::pressed_cancel)) {
+    if (Input().Has(InputEvents::pressed_cancel)) {
       clientIsReady = false;
       HandleCancel();
     }
@@ -495,7 +494,7 @@ void PVPScene::onUpdate(double elapsed) {
         // do once
         if (playVS) {
           playVS = false;
-          AUDIO.Play(AudioType::CUSTOM_BAR_FULL, AudioPriority::highest);
+          Audio().Play(AudioType::CUSTOM_BAR_FULL, AudioPriority::highest);
           flashCooldown = 20.0 / 60.0;
         }
 
@@ -531,10 +530,10 @@ void PVPScene::onUpdate(double elapsed) {
     NetPlayConfig config;
 
     // Play the pre battle sound
-    AUDIO.Play(AudioType::PRE_BATTLE, AudioPriority::high);
+    Audio().Play(AudioType::PRE_BATTLE, AudioPriority::high);
 
     // Stop music and go to battle screen 
-    AUDIO.StopStream();
+    Audio().StopStream();
 
     // Configure the session
     config.remoteIP = theirIP;
@@ -562,86 +561,89 @@ void PVPScene::onUpdate(double elapsed) {
       this->SendHandshakeSignal();
     }
 
-    if (INPUTx.Has(InputEvents::pressed_cancel)) {
+    if (Input().Has(InputEvents::pressed_cancel)) {
       leave = true;
-      AUDIO.Play(AudioType::CHIP_CANCEL);
+      Audio().Play(AudioType::CHIP_CANCEL);
       client.close();
       using effect = segue<PushIn<direction::up>, milliseconds<500>>;
       getController().pop<effect>();
     }
-    else if (INPUTx.HasSystemCopyEvent() && infoMode) {
+    else if (Input().HasSystemCopyEvent() && infoMode) {
       HandleCopyEvent();
     }
-    else if (INPUTx.HasSystemPasteEvent() && !infoMode) {
+    else if (Input().HasSystemPasteEvent() && !infoMode) {
       HandlePasteEvent();
     }
-    else if (INPUTx.Has(InputEvents::pressed_scan_left) && infoMode) {
+    else if (Input().Has(InputEvents::pressed_scan_left) && infoMode) {
       infoMode = false;
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
       HandleJoinMode();
     }
-    else if (INPUTx.Has(InputEvents::pressed_scan_right) && !infoMode) {
+    else if (Input().Has(InputEvents::pressed_scan_right) && !infoMode) {
       infoMode = true;
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
       HandleInfoMode();
     } 
-    else if (INPUTx.Has(InputEvents::pressed_confirm) && !infoMode && !theirIP.empty()) {
+    else if (Input().Has(InputEvents::pressed_confirm) && !infoMode && !theirIP.empty()) {
       this->clientIsReady = true;
       HandleReady();
-      AUDIO.Play(AudioType::CHIP_CHOOSE);
+      Audio().Play(AudioType::CHIP_CHOOSE);
     }
   }
 }
 
 void PVPScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-  ENGINE.Draw(greenBg);
-  ENGINE.Draw(gridBG);
+  surface.draw(greenBg);
+  surface.draw(*gridBG);
 
   // Draw the widget pieces
-  //ENGINE.Draw(ui);
+  //surface.draw(ui);
   //uiAnim.SetAnimation("...")
 
   if (!isInFlashyVSIntro) {
-    ENGINE.Draw(textbox);
+    surface.draw(textbox);
 
     if (infoMode && myIP.empty()) {
-      id.setString(sf::String("ERROR"));
+      id.SetString("ERROR");
     }
 
     if (infoMode) {
-      text.setString("My Info");
+      text.SetString("My Info");
 
       uiAnim.SetAnimation("L");
       uiAnim.SetFrame(0, ui.getSprite());
       ui.setPosition(5, 4);
     }
     else {
-      text.setString("Remote");
+      text.SetString("Remote");
 
       uiAnim.SetAnimation("R");
       uiAnim.SetFrame(0, ui.getSprite());
       ui.setPosition(130, 4);
     }
 
-    ENGINE.Draw(text);
+    surface.draw(text);
 
     // L/R icons
-    ENGINE.Draw(ui);
+    surface.draw(ui);
 
-    this->DrawIDInputWidget();
-    this->DrawCopyPasteWidget();
+    this->DrawIDInputWidget(surface);
+    this->DrawCopyPasteWidget(surface);
   }
   else {
-    ENGINE.Draw(clientPreview);
-    ENGINE.Draw(remotePreview);
-    ENGINE.Draw(vs);
-    ENGINE.Draw(vsFaded);
+    surface.draw(clientPreview);
+    surface.draw(remotePreview);
+    surface.draw(vs);
+    surface.draw(vsFaded);
   }
 
   if (flashCooldown > 0) {
-    sf::RectangleShape screen(ENGINE.GetCamera()->GetView().getSize());
+    const sf::Vector2u winSize = getController().getVirtualWindowSize();
+    sf::Vector2f size = sf::Vector2f(static_cast<float>(winSize.x), static_cast<float>(winSize.y));
+    sf::RectangleShape screen(size);
     screen.setFillColor(sf::Color::White);
-    ENGINE.Draw(screen);
+    surface.draw(screen);
   }
+
+  surface.draw(ui);
 }

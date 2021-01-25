@@ -24,7 +24,7 @@ void AlphaRocketState::OnEnter(AlphaCore& a) {
     alpha->EnableImpervious(false);
     alpha->GoToNextState();
 
-    AlphaRocket* rocket = new AlphaRocket(alpha->GetField(), alpha->GetTeam());
+    AlphaRocket* rocket = new AlphaRocket(alpha->GetTeam());
     auto props = rocket->GetHitboxProperties();
     props.aggressor = alpha;
     rocket->SetHitboxProperties(props);
@@ -43,7 +43,7 @@ void AlphaRocketState::OnEnter(AlphaCore& a) {
   anim->SetAnimation("CORE_ATTACK2", onFinish);
 }
 
-void AlphaRocketState::OnUpdate(float _elapsed, AlphaCore& a) {
+void AlphaRocketState::OnUpdate(double _elapsed, AlphaCore& a) {
   if (launched) {
     a.GoToNextState();
   }

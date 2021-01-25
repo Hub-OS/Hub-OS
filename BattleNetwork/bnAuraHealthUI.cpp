@@ -55,7 +55,7 @@ void AuraHealthUI::draw(sf::RenderTarget& target, sf::RenderStates states) const
   UIComponent::draw(target, states);
 }
 
-void AuraHealthUI::Update(float elapsed) {
+void AuraHealthUI::Update(double elapsed) {
 
   if (GetOwner()) {
     currHP = GetOwnerAs<Character>()->GetHealth();

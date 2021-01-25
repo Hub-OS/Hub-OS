@@ -5,7 +5,7 @@
 class Falzar;
 
 class FalzarIdleState : public AIState<Falzar> {
-  float cooldown{ 2.f }; /*!< How long to wait before moving */
+  double cooldown{ 2 }; /*!< How long to wait before moving */
 public:
 
   /**
@@ -31,7 +31,7 @@ public:
    * @param _elapsed in seconds
    * @param falzar
    */
-  void OnUpdate(float _elapsed, Falzar&);
+  void OnUpdate(double _elapsed, Falzar&);
 
   /**
    * @brief Does nothing

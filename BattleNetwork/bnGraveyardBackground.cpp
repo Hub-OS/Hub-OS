@@ -1,7 +1,7 @@
 #include "bnGraveyardBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 #define X_OFFSET 0
 #define Y_OFFSET 0
@@ -11,19 +11,19 @@
 #define COMPONENT_HEIGHT 32
 
 GraveyardBackground::GraveyardBackground()
-  : x(0.0f), y(0.0f), progress(0.0f), Background(TEXTURES.LoadTextureFromFile("resources/backgrounds/grave/fg.png"), 240, 180) {
+  : x(0.0f), y(0.0f), progress(0.0f), Background(Textures().LoadTextureFromFile("resources/scenes/grave/fg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 }
 
 GraveyardBackground::~GraveyardBackground() {
 }
 
-void GraveyardBackground::Update(float _elapsed) {
-  progress += 0.1f * _elapsed;
-  if (progress >= 1.f) progress = 0.0f;
+void GraveyardBackground::Update(double _elapsed) {
+  progress += 0.1 * _elapsed;
+  if (progress >= 1.0) progress = 0.00;
 
   // crawls
-  x += 0.05f *_elapsed;
+  x += static_cast<float>(0.05 *_elapsed);
 
   if (x > 1) x = 0;
   if (y > 1) y = 0;

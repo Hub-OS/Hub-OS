@@ -8,7 +8,7 @@ MegalianIdleState::~MegalianIdleState() { ; }
 void MegalianIdleState::OnEnter(Megalian& m) {
 }
 
-void MegalianIdleState::OnUpdate(float _elapsed, Megalian& m) {
+void MegalianIdleState::OnUpdate(double _elapsed, Megalian& m) {
   /* Nothing, just wait the animation out*/
 }
 

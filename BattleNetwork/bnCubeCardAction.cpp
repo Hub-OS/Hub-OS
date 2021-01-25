@@ -2,12 +2,12 @@
 #include "bnCharacter.h"
 #include "bnCube.h"
 
-CubeCardAction::CubeCardAction(Character* owner) : 
-  CardAction(*owner, "PLAYER_IDLE"){
+CubeCardAction::CubeCardAction(Character& owner) : 
+  CardAction(owner, "PLAYER_IDLE"){
   this->SetLockout({ ActionLockoutType::sequence });
 }
 
-void CubeCardAction::Execute() {
+void CubeCardAction::OnExecute() {
   auto owner = GetOwner();
   
   auto* cube = new Cube(GetOwner()->GetField());
@@ -33,7 +33,7 @@ CubeCardAction::~CubeCardAction()
 {
 }
 
-void CubeCardAction::OnUpdate(float _elapsed)
+void CubeCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }
@@ -42,7 +42,7 @@ void CubeCardAction::OnAnimationEnd()
 {
 }
 
-void CubeCardAction::EndAction()
+void CubeCardAction::OnEndAction()
 {
   Eject();
 }

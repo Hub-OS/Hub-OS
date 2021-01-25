@@ -5,15 +5,13 @@ class ProgBomb : public Spell {
 private:
   int random;
   sf::Vector2f start;
-  float arcDuration;
-  float arcProgress;
-  float cooldown;
-  float damageCooldown;
+  double arcDuration;
+  double arcProgress;
 public:
-  ProgBomb(Field* _field, Team _team, sf::Vector2f startPos, float _duration);
+  ProgBomb(Team _team,sf::Vector2f startPos, float _duration);
   ~ProgBomb();
 
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   bool Move(Direction _direction) override;
   void Attack(Character* _entity) override;
   void OnDelete() override;

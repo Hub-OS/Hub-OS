@@ -1,7 +1,7 @@
 #include "bnGridBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 #define X_OFFSET 0
 #define Y_OFFSET 0
@@ -18,12 +18,12 @@ GridBackground::GridBackground()
 GridBackground::~GridBackground() {
 }
 
-void GridBackground::Update(float _elapsed) {
-  progress += 1.0f * _elapsed;
-  if (progress >= 1.f) progress = 0.0f;
+void GridBackground::Update(double _elapsed) {
+  progress += 1.0 * _elapsed;
+  if (progress >= 1.0) progress = 0;
 
 #ifndef __ANDROID__
-  int frame = (int)(progress * COMPONENT_FRAME_COUNT);
+  int frame = static_cast<int>(progress * COMPONENT_FRAME_COUNT);
 #else
   int frame = 0;
 #endif

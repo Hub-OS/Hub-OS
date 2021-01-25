@@ -11,11 +11,14 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/guard_hit.animation"
 
-GuardHit::GuardHit(Field* _field, Character* hit, bool center) 
-  : w(0), h(0), center(true), Artifact(_field)
+GuardHit::GuardHit(Character* hit, bool center) 
+  : 
+  w(0), 
+  h(0), 
+  center(true), 
+  Artifact()
 {
   SetLayer(0);
-  field = _field;
   team = Team::unknown;
 
   if (!center) {
@@ -35,7 +38,7 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center)
     h = (float)(std::floor(hit->GetHeight()/2.0f));
   }
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_GUARD_HIT));
+  setTexture(Textures().GetTexture(TextureType::SPELL_GUARD_HIT));
   setScale(2.f, 2.f);
 
   //Components setup and load
@@ -47,10 +50,10 @@ GuardHit::GuardHit(Field* _field, Character* hit, bool center)
   animationComponent->SetAnimation("DEFAULT", onFinish);
   animationComponent->OnUpdate(0);
 
-  AUDIO.Play(AudioType::GUARD_HIT);
+  Audio().Play(AudioType::GUARD_HIT);
 }
 
-void GuardHit::OnUpdate(float _elapsed) {
+void GuardHit::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x + w, (tile->getPosition().y + tileOffset.y) - h);
 }
 

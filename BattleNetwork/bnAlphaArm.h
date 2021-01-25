@@ -13,10 +13,10 @@ public:
     LEFT_IDLE, RIGHT_IDLE, LEFT_SWIPE, RIGHT_SWIPE
   } type;
 
-  AlphaArm(Field * _field, Team _team, AlphaArm::Type type);
+  AlphaArm(Team _team, AlphaArm::Type type);
   ~AlphaArm();
 
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
  
   void OnDelete() override;
 
@@ -28,7 +28,7 @@ public:
 
   const bool IsSwiping() const;
 
-  void SyncElapsedTime(const float elapsedTime);
+  void SyncElapsedTime(const double elapsedTime);
 
   void LeftArmChangesTileState();
   void RightArmChangesTileTeam();
@@ -39,11 +39,11 @@ private:
   TileState changeState;
   Direction startDir;
   bool hit, isMoving, canChangeTileState;
-  float totalElapsed;
+  double totalElapsed;
   SpriteProxyNode* shadow;
   SpriteProxyNode* blueShadow;
   std::vector<sf::Vector2f> blueArmShadowPos;
   int blueArmShadowPosIdx;
-  float blueShadowTimer; // 1/60 of a second = 1 frame
+  double blueShadowTimer; // 1/60 of a second = 1 frame
   bool isSwiping, isFinished;
 };

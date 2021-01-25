@@ -10,44 +10,36 @@ using namespace swoosh::types;
 SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, SelectedNavi& currentNavi) :
   naviSelectionIndex(currentNavi),
   currentChosen(currentNavi),
-  textbox(135, 15),
-  swoosh::Activity(&controller) {
+  font(Font::Style::small),
+  textbox(140, 20, font),
+  naviFont(Font::Style::thick),
+  naviLabel("No Data", naviFont),
+  hpLabel("1", font),
+  attackLabel("1", font),
+  speedLabel("1", font),
+  menuLabel("1", font),
+  Scene(controller) {
 
   // Menu name font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  menuLabel = new sf::Text("BATTLE SELECT", *font);
-  menuLabel->setCharacterSize(15);
-  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setPosition(sf::Vector2f(20.f, 5.0f));
+  menuLabel.setScale(2.f, 2.f);
 
   // Selection input delays
   maxSelectInputCooldown = 0.5; // half of a second
   selectInputCooldown = maxSelectInputCooldown;
 
   // NAVI UI font
-  naviFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  naviLabel = new sf::Text("No Data", *naviFont);
-  naviLabel->setPosition(30.f, 18.f);
-  naviLabel->setOutlineColor(sf::Color(48, 56, 80));
-  naviLabel->setOutlineThickness(2.f);
-  naviLabel->setScale(0.8f, 0.8f);
+  naviLabel.setPosition(30.f, 22.f);
+  naviLabel.setScale(2.0f, 2.0f);
 
-  attackLabel = new sf::Text("1", *naviFont);
-  attackLabel->setPosition(335.f, 15.f);
-  attackLabel->setOutlineColor(sf::Color(48, 56, 80));
-  attackLabel->setOutlineThickness(2.f);
-  attackLabel->setScale(0.8f, 0.8f);
+  attackLabel.setPosition(335.f, 24.f);
+  attackLabel.setScale(2.0f, 2.0f);
 
-  speedLabel = new sf::Text("1", *naviFont);
-  speedLabel->setPosition(335.f, 70.f);
-  speedLabel->setOutlineColor(sf::Color(48, 56, 80));
-  speedLabel->setOutlineThickness(2.f);
-  speedLabel->setScale(0.8f, 0.8f);
+  speedLabel.setPosition(335.f, 78.f);
+  speedLabel.setScale(2.0f, 2.0f);
 
-  hpLabel = new sf::Text("20", *naviFont);
-  hpLabel->setOutlineColor(sf::Color(48, 56, 80));
-  hpLabel->setPosition(sf::Vector2f(335.f, 125.0f));
-  hpLabel->setOutlineThickness(2.f);
-  hpLabel->setScale(0.8f, 0.8f);
+  hpLabel.setPosition(335.f, 132.0f);
+  hpLabel.setScale(2.0f, 2.0f);
 
   maxNumberCooldown = 0.5;
   numberCooldown = maxNumberCooldown; // half a second
@@ -77,7 +69,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   charInfo.setScale(2.f, 2.f);
   charInfo.setPosition(UI_RIGHT_POS, 170);
 
-  element.setTexture(TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
+  element.setTexture(Textures().GetTexture(TextureType::ELEMENT_ICON));
   element.setScale(2.f, 2.f);
   element.setPosition(UI_LEFT_POS_MAX + 15.f, 90);
 
@@ -88,11 +80,12 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   navi.setPosition(100.f, 150.f);
 
   navi.setTexture(NAVIS.At(currentChosen).GetPreviewTexture());
-  naviLabel->setString(sf::String(NAVIS.At(currentChosen).GetName().c_str()));
-  speedLabel->setString(sf::String(NAVIS.At(currentChosen).GetSpeedString().c_str()));
-  attackLabel->setString(sf::String(NAVIS.At(currentChosen).GetAttackString().c_str()));
-  hpLabel->setString(sf::String(NAVIS.At(currentChosen).GetHPString().c_str()));
 
+  naviLabel.SetString(sf::String(NAVIS.At(currentChosen).GetName().c_str()));
+  speedLabel.SetString(sf::String(NAVIS.At(currentChosen).GetSpeedString().c_str()));
+  attackLabel.SetString(sf::String(NAVIS.At(currentChosen).GetAttackString().c_str()));
+  hpLabel.SetString(sf::String(NAVIS.At(currentChosen).GetHPString().c_str()));
+  
   // Distortion effect
   factor = MAX_PIXEL_FACTOR;
 
@@ -102,6 +95,7 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   textbox.SetCharactersPerSecond(15);
   textbox.setPosition(UI_RIGHT_POS_MAX + 10, 205);
   textbox.Stop();
+  // textbox.
   textbox.Mute(); // no tick sound
 
   elapsed = 0;
@@ -111,18 +105,11 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
 
 SelectNaviScene::~SelectNaviScene()
 {
-  delete naviLabel;
-  delete attackLabel;
-  delete speedLabel;
-  delete menuLabel;
-  delete hpLabel;
   delete bg;
 }
 
 void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-
-  ENGINE.Draw(bg);
+  surface.draw(*bg);
 
   // Navi preview shadow
   auto originalPosition = navi.getPosition();
@@ -131,17 +118,17 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   // Make the shadow begin on the other side of the window by an arbitrary offset
   navi.setPosition(-20.0f + getController().getVirtualWindowSize().x - navi.getPosition().x, navi.getPosition().y);
   navi.setColor(sf::Color::Black);
-  ENGINE.Draw(navi);
+  surface.draw(navi);
 
   // End 'hack' by restoring original position and color values
   navi.setPosition(originalPosition);
   navi.setColor(originalColor);
 
   charName.setPosition(UI_LEFT_POS, charName.getPosition().y);
-  ENGINE.Draw(charName);
+  surface.draw(charName);
 
   charElement.setPosition(UI_LEFT_POS, charElement.getPosition().y);
-  ENGINE.Draw(charElement);
+  surface.draw(charElement);
 
   // Draw stat box three times for three diff. properties
   float charStat1Max = 10;
@@ -153,7 +140,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
 
-  ENGINE.Draw(charStat);
+  surface.draw(charStat);
 
   // 2nd stat box
   float charStat2Max = 10 + UI_SPACING;
@@ -165,7 +152,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
 
-  ENGINE.Draw(charStat);
+  surface.draw(charStat);
 
   // 3rd stat box
   float charStat3Max = 10 + (UI_SPACING * 2);
@@ -177,11 +164,11 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     charStat.setPosition(UI_RIGHT_POS, UI_TOP_POS);
   }
 
-  ENGINE.Draw(charStat);
+  surface.draw(charStat);
 
   // SP. Info box
   charInfo.setPosition(UI_RIGHT_POS, charInfo.getPosition().y);
-  ENGINE.Draw(charInfo);
+  surface.draw(charInfo);
 
   // Update UI slide in
   if (!gotoNextScene) {
@@ -202,12 +189,12 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
         UI_TOP_POS = UI_TOP_POS_MAX;
 
         // Draw labels
-        ENGINE.Draw(naviLabel);
-        ENGINE.Draw(hpLabel);
-        ENGINE.Draw(speedLabel);
-        ENGINE.Draw(attackLabel);
-        ENGINE.Draw(textbox);
-        ENGINE.Draw(element);
+        surface.draw(naviLabel);
+        surface.draw(hpLabel);
+        surface.draw(speedLabel);
+        surface.draw(attackLabel);
+        surface.draw(textbox);
+        surface.draw(element);
 
         textbox.Play();
       }
@@ -238,7 +225,7 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
     }
   }
 
-  ENGINE.Draw(navi);
+  surface.draw(navi);
 }
 
 void SelectNaviScene::onStart()
@@ -278,7 +265,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
 
   // Scene keyboard controls
   if (!gotoNextScene) {
-    if (INPUTx.Has(InputEvents::pressed_ui_left)) {
+    if (Input().Has(InputEvents::pressed_ui_left)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -290,7 +277,7 @@ void SelectNaviScene::onUpdate(double elapsed) {
         numberCooldown = maxNumberCooldown;
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
+    else if (Input().Has(InputEvents::pressed_ui_right)) {
       selectInputCooldown -= elapsed;
 
       if (selectInputCooldown <= 0) {
@@ -306,9 +293,9 @@ void SelectNaviScene::onUpdate(double elapsed) {
       selectInputCooldown = 0;
     }
 
-    if (INPUTx.Has(InputEvents::pressed_cancel)) {
+    if (Input().Has(InputEvents::pressed_cancel)) {
       gotoNextScene = true;
-      AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+      Audio().Play(AudioType::CHIP_DESC_CLOSE);
       textbox.Mute();
 
       getController().pop<segue<Checkerboard, milliseconds<500>>>();
@@ -332,28 +319,27 @@ void SelectNaviScene::onUpdate(double elapsed) {
   }
 
   // This goes here because the jumbling effect may finish and we need to see proper values
-  naviLabel->setString(sf::String(NAVIS.At(currentChosen).GetName()));
-  speedLabel->setString(sf::String(NAVIS.At(currentChosen).GetSpeedString()));
-  attackLabel->setString(sf::String(NAVIS.At(currentChosen).GetAttackString()));
-  hpLabel->setString(sf::String(NAVIS.At(currentChosen).GetHPString()));
+  naviLabel.SetString(sf::String(NAVIS.At(currentChosen).GetName()));
+  speedLabel.SetString(sf::String(NAVIS.At(currentChosen).GetSpeedString()));
+  attackLabel.SetString(sf::String(NAVIS.At(currentChosen).GetAttackString()));
+  hpLabel.SetString(sf::String(NAVIS.At(currentChosen).GetHPString()));
 
   // This just scrambles the letters
   if (numberCooldown > 0) {
     numberCooldown -= (float)elapsed;
     std::string newstr;
 
-    for (int i = 0; i < naviLabel->getString().getSize(); i++) {
+    for (int i = 0; i < naviLabel.GetString().length(); i++) {
       double progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
-      double index = progress * naviLabel->getString().getSize();
+      double index = progress * naviLabel.GetString().length();
 
       if (i < (int)index) {
         // Choose the unscrambled character from the original string
-        newstr += naviLabel->getString()[i];
+        newstr += naviLabel.GetString()[i];
       }
       else {
         // If the character in the string isn't a space...
-        if (naviLabel->getString()[i] != ' ') {
-
+        if (naviLabel.GetString()[i] != ' ') {
           // Choose a random, capital ASCII character
           newstr += (char)(((rand() % (90 - 65)) + 65) + 1);
         }
@@ -366,9 +352,9 @@ void SelectNaviScene::onUpdate(double elapsed) {
     int randAttack = rand() % 10;
     int randSpeed = rand() % 10;
 
-    //attackLabel->setString(std::to_string(randAttack));
-    //speedLabel->setString(std::to_string(randSpeed));
-    naviLabel->setString(sf::String(newstr));
+    //attackLabel.SetString(std::to_string(randAttack));
+    //speedLabel.SetString(std::to_string(randSpeed));
+    naviLabel.SetString(sf::String(newstr));
   }
 
   float progress = (maxNumberCooldown - numberCooldown) / maxNumberCooldown;
@@ -399,8 +385,8 @@ void SelectNaviScene::onUpdate(double elapsed) {
   navi.setOrigin(float(navi.getTextureRect().width)*0.5f, float(navi.getTextureRect().height));
 
   // Make a selection
-  if (INPUTx.Has(InputEvents::pressed_confirm) && currentChosen != naviSelectionIndex) {
-    AUDIO.Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
+  if (Input().Has(InputEvents::pressed_confirm) && currentChosen != naviSelectionIndex) {
+    Audio().Play(AudioType::CHIP_CONFIRM, AudioPriority::low);
     prevChosen = currentChosen;
     naviSelectionIndex = currentChosen;
     WEBCLIENT.SetKey("SelectedNavi", std::to_string(naviSelectionIndex));

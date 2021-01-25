@@ -28,7 +28,7 @@ public:
   virtual ~BubbleState();
 
   void OnEnter(Any& e) override;
-  void OnUpdate(float _elapsed, Any& e) override;
+  void OnUpdate(double _elapsed, Any& e) override;
   void OnLeave(Any& e) override;
 };
 
@@ -53,7 +53,7 @@ void BubbleState<Any>::OnEnter(Any& e) {
 }
 
 template<typename Any>
-void BubbleState<Any>::OnUpdate(float _elapsed, Any& e) {
+void BubbleState<Any>::OnUpdate(double _elapsed, Any& e) {
   auto* bubbleTrap = e.template GetFirstComponent<BubbleTrap>();
 
   // Check if bubbletrap is removed from entity
@@ -75,6 +75,6 @@ template<typename Any>
 void BubbleState<Any>::OnLeave(Any& e) {
   //std::cout << "left bubblestate" << std::endl;
 
-  AUDIO.Play(AudioType::BUBBLE_POP);
+  ResourceHandle().Audio().Play(AudioType::BUBBLE_POP);
   e.FinishMove(); // any movement ops need to be reset
 }

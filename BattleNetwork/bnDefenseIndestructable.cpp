@@ -26,7 +26,7 @@ void DefenseIndestructable::CanBlock(DefenseFrameStateJudge& judge, Spell& in, C
 
   // Only drop gaurd effect as a response to attacks that can do impact damage > 0
   if (in.GetHitboxProperties().damage > 0 && (in.GetHitboxProperties().flags & Hit::impact) != 0) {
-    owner.GetField()->AddEntity(*new GuardHit(owner.GetField(), &owner, true), *owner.GetTile());
+    owner.GetField()->AddEntity(*new GuardHit(&owner, true), *owner.GetTile());
     judge.BlockDamage();
   }
 

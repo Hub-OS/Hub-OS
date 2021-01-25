@@ -4,10 +4,12 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_field, _team) {
+RowHit::RowHit(Team _team, int damage) : 
+  damage(damage), 
+  Spell(_team) {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));
+  setTexture(Textures().GetTexture(TextureType::SPELL_CHARGED_BULLET_HIT));
   setScale(2.f, 2.f);
 
   //When the animation ends, delete this
@@ -16,7 +18,7 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_f
   };
 
   auto onFrameTwo = [this]() {
-    field->AddEntity(*new RowHit(field, GetTeam(), RowHit::damage), tile->GetX() + 1, tile->GetY());
+    field->AddEntity(*new RowHit(GetTeam(), RowHit::damage), tile->GetX() + 1, tile->GetY());
   };
 
   animation = Animation("resources/spells/spell_charged_bullet_hit.animation");
@@ -28,7 +30,7 @@ RowHit::RowHit(Field* _field, Team _team, int damage) : damage(damage), Spell(_f
 RowHit::~RowHit() {
 }
 
-void RowHit::OnUpdate(float _elapsed) {
+void RowHit::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
   animation.Update(_elapsed, getSprite());

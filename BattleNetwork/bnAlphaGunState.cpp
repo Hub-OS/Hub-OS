@@ -15,14 +15,14 @@ void AlphaGunState::OnEnter(AlphaCore& a) {
   last = a.GetTarget()? a.GetTarget()->GetTile() : nullptr;
 }
 
-void AlphaGunState::OnUpdate(float _elapsed, AlphaCore& a) {
+void AlphaGunState::OnUpdate(double _elapsed, AlphaCore& a) {
   cooldown -= _elapsed;
 
   if (cooldown <= 0) {
     a.ShootSuperVulcans();
 
     if (last) {
-      auto v = new SuperVulcan(a.GetField(), a.GetTeam(), 40);
+      auto v = new SuperVulcan(a.GetTeam(), 40);
       auto d = new DelayedAttack(v, Battle::Tile::Highlight::flash, 0.25);
       a.GetField()->AddEntity(*d, last->GetX(), last->GetY());
     }

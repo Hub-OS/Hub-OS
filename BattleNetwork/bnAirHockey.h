@@ -11,7 +11,7 @@ public:
   AirHockey(Field* field, Team team, int damage, int moveCount);
   ~AirHockey();
 
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   void Attack(Character* _entity) override;
   bool CanMoveTo(Battle::Tile* next) override;
   void OnSpawn(Battle::Tile& start) override;

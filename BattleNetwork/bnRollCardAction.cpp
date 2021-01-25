@@ -4,18 +4,18 @@
 #include "bnRollHeal.h"
 #include "bnRollHeart.h"
 
-RollCardAction::RollCardAction(Character* owner, int damage) :
-  CardAction(*owner, "PLAYER_IDLE"), damage(damage)
+RollCardAction::RollCardAction(Character& owner, int damage) :
+  CardAction(owner, "PLAYER_IDLE"), damage(damage)
 {
   this->SetLockout(ActionLockoutProperties{ ActionLockoutType::sequence });
 }
 
-void RollCardAction::Execute() {
+void RollCardAction::OnExecute() {
   auto owner = GetOwner();
 
   // On start of idle frame, spawn roll
   GetOwner()->Hide();
-  auto* roll = new RollHeal(GetOwner()->GetField(), GetOwner()->GetTeam(), GetOwner(), damage);
+  auto* roll = new RollHeal(GetOwner()->GetTeam(), GetOwner(), damage);
 
   GetOwner()->GetField()->AddEntity(*roll, GetOwner()->GetTile()->GetX(), GetOwner()->GetTile()->GetY());
 
@@ -52,7 +52,7 @@ RollCardAction::~RollCardAction()
 {
 }
 
-void RollCardAction::OnUpdate(float _elapsed)
+void RollCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }
@@ -61,7 +61,7 @@ void RollCardAction::OnAnimationEnd()
 {
 }
 
-void RollCardAction::EndAction()
+void RollCardAction::OnEndAction()
 {
   GetOwner()->Reveal();
   Eject();

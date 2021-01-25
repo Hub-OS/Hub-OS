@@ -13,10 +13,11 @@ private:
   Animation attachmentAnim;
   int damage;
 public:
-  CrackShotCardAction(Character* owner, int damage);
+  CrackShotCardAction(Character& owner, int damage);
   ~CrackShotCardAction();
-  void OnUpdate(float _elapsed);
+
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd();
-  void EndAction();
-  void Execute();
+  void OnEndAction() override;
+  void OnExecute() override;
 };

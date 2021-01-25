@@ -22,14 +22,14 @@
 #define TILE_HEIGHT 30.0f
 #define START_X 0.0f
 #define START_Y 144.f
-#define COOLDOWN 10.f
-#define FLICKER 3.0f
 #define Y_OFFSET 10.0f
+#define COOLDOWN 10.0
+#define FLICKER 3.0
 
 namespace Battle {
-  float Tile::brokenCooldownLength = COOLDOWN;
-  float Tile::teamCooldownLength = COOLDOWN;
-  float Tile::flickerTeamCooldownLength = FLICKER;
+  double Tile::brokenCooldownLength = COOLDOWN;
+  double Tile::teamCooldownLength = COOLDOWN;
+  double Tile::flickerTeamCooldownLength = FLICKER;
 
   Tile::Tile(int _x, int _y) : 
     SpriteProxyNode(),
@@ -77,7 +77,7 @@ namespace Battle {
         volcanoEruptTimer = seconds;
         
         if (field && state == TileState::volcano) {
-          field->AddEntity(*new VolcanoErupt(field), *this);
+          field->AddEntity(*new VolcanoErupt, *this);
         }
       }
       else {
@@ -97,7 +97,7 @@ namespace Battle {
       resetVolcanoThunk(2);
     };
 
-    volcanoSprite.setTexture(TEXTURES.LoadTextureFromFile("resources/tiles/volcano.png"));
+    volcanoSprite.setTexture(Textures().LoadTextureFromFile("resources/tiles/volcano.png"));
     volcanoSprite.SetLayer(-1); // in front of tile
 
     volcanoErupt.Refresh(volcanoSprite.getSprite());
@@ -268,7 +268,6 @@ namespace Battle {
     // Hack to toggle between team color without rewriting redundant code
     auto currTeam = team;
     auto otherTeam = (team == Team::unknown) ? Team::unknown : (team == Team::red) ? Team::blue : Team::red;
-
     auto prevAnimState = animState;
 
     ((int)(flickerTeamCooldown * 100) % 2 == 0 && flickerTeamCooldown <= flickerTeamCooldownLength) ? currTeam : currTeam = otherTeam;
@@ -323,7 +322,7 @@ namespace Battle {
 
   bool Tile::IsReservedByCharacter()
   {
-    return (reserved.size() != 0);
+    return (reserved.size() != 0) && (characters.size() != 0);
   }
 
   void Tile::AddEntity(Spell & _entity)
@@ -423,7 +422,7 @@ namespace Battle {
 
     if (doBreakState) {
       SetState(TileState::broken);
-      AUDIO.Play(AudioType::PANEL_CRACK);
+      Audio().Play(AudioType::PANEL_CRACK);
     }
 
     return modified;
@@ -447,7 +446,7 @@ namespace Battle {
     queuedSpells.push_back(caller->GetID());
   }
 
-  void Tile::Update(float _elapsed) {
+  void Tile::Update(double _elapsed) {
     willHighlight = false;
     totalElapsed += _elapsed;
 
@@ -483,17 +482,17 @@ namespace Battle {
     // Update our tile animation and texture
     if (!isTimeFrozen) {
       if (teamCooldown > 0) {
-        teamCooldown -= 1.0f * _elapsed;
+        teamCooldown -= 1.0 * _elapsed;
         if (teamCooldown < 0) teamCooldown = 0;
       }
 
       if (flickerTeamCooldown > 0) {
-        flickerTeamCooldown -= 1.0f * _elapsed;
+        flickerTeamCooldown -= 1.0 * _elapsed;
         if (flickerTeamCooldown < 0) flickerTeamCooldown = 0;
       }
 
       if (state == TileState::broken) {
-        brokenCooldown -= 1.0f * _elapsed;
+        brokenCooldown -= 1.0f* _elapsed;
 
         if (brokenCooldown < 0) { brokenCooldown = 0; state = TileState::normal; }
       }
@@ -589,7 +588,7 @@ namespace Battle {
   void Tile::HandleTileBehaviors(Character* character)
   {
     // Obstacles cannot be considered
-    if (dynamic_cast<Obstacle*>(character)) return;
+    if (!character || dynamic_cast<Obstacle*>(character)) return;
     if (isTimeFrozen || state == TileState::hidden) return; 
 
     /*
@@ -614,7 +613,7 @@ namespace Battle {
 
         if (GetState() == TileState::lava && character->GetElement() != Element::fire) {
           if (character->Hit(Hit::Properties({ 50, Hit::pierce | Hit::flinch, Element::fire, nullptr, Direction::none }))) {
-            Artifact* explosion = new Explosion(field, GetTeam(), 1);
+            Artifact* explosion = new Explosion;
             field->AddEntity(*explosion, GetX(), GetY());
             SetState(TileState::normal);
           }
@@ -651,7 +650,7 @@ namespace Battle {
             // TODO: more evidence that the movement system needs redesigning. 
             //       I shouldn't have to rely on hacks and strange behavior checks
             if (character->IsSliding()) {
-              AUDIO.Play(AudioType::DIR_TILE, AudioPriority::highest);
+              Audio().Play(AudioType::DIR_TILE, AudioPriority::highest);
             }
           }
         }
@@ -934,7 +933,7 @@ namespace Battle {
     queuedSpells.clear();
   }
 
-  void Tile::UpdateSpells(const float elapsed)
+  void Tile::UpdateSpells(const double elapsed)
   {
     vector<Spell*> spells_copy = spells;
     for (vector<Spell*>::iterator entity = spells_copy.begin(); entity != spells_copy.end(); entity++) {
@@ -950,7 +949,7 @@ namespace Battle {
     }
   }
 
-  void Tile::UpdateArtifacts(const float elapsed)
+  void Tile::UpdateArtifacts(const double elapsed)
   {
     vector<Artifact*> artifacts_copy = artifacts;
     for (vector<Artifact*>::iterator entity = artifacts_copy.begin(); entity != artifacts_copy.end(); entity++) {
@@ -958,7 +957,7 @@ namespace Battle {
     }
   }
 
-  void Tile::UpdateCharacters(const float elapsed)
+  void Tile::UpdateCharacters(const double elapsed)
   {
     vector<Character*> characters_copy = characters;
     for (vector<Character*>::iterator entity = characters_copy.begin(); entity != characters_copy.end(); entity++) {

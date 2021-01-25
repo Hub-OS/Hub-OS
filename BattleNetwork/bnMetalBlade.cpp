@@ -4,13 +4,13 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, _team) {
+MetalBlade::MetalBlade(Team _team, double speed) : Spell(_team) {
   // Blades float over tiles 
   SetFloatShoe(true);
 
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_METALMAN_ATLAS));
   setScale(2.f, 2.f);
 
   MetalBlade::speed = speed;
@@ -33,7 +33,7 @@ MetalBlade::MetalBlade(Field* _field, Team _team, double speed) : Spell(_field, 
 MetalBlade::~MetalBlade() {
 }
 
-void MetalBlade::OnUpdate(float _elapsed) {
+void MetalBlade::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   animation->SetPlaybackSpeed(speed);

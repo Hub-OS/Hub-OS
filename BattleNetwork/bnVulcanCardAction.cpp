@@ -15,35 +15,37 @@
 // TODO: check frame-by-frame anim
 #define FRAMES FRAME1, FRAME2, FRAME1, FRAME2, FRAME1, FRAME2, FRAME1
 
-
-VulcanCardAction::VulcanCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
+VulcanCardAction::VulcanCardAction(Character& owner, int damage) : 
+  CardAction(owner, "PLAYER_SHOOTING"), attachmentAnim(ANIM) {
   VulcanCardAction::damage = damage;
-  overlay.setTexture(*TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
-  attachment = new SpriteProxyNode(overlay);
+  attachment = new SpriteProxyNode();
+  attachment->setTexture(Textures().LoadTextureFromFile(PATH));
   attachment->SetLayer(-1);
-  attachmentAnim.Reload();
+
+  attachmentAnim = Animation(ANIM);
   attachmentAnim.SetAnimation("DEFAULT");
+
+  Animation& userAnim = owner.GetFirstComponent<AnimationComponent>()->GetAnimationObject();
+  AddAttachment(userAnim, "BUSTER", *attachment).UseAnimation(attachmentAnim);
 
   // add override anims
   OverrideAnimationFrames({ FRAMES });
 
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
+  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
 }
 
 VulcanCardAction::~VulcanCardAction()
 {
 }
-
-void VulcanCardAction::Execute() {
+void VulcanCardAction::OnExecute() {
   auto owner = GetOwner();
 
   // On shoot frame, drop projectile
   auto onFire = [this, owner]() -> void {
     Team team = GetOwner()->GetTeam();
-    Vulcan* b = new Vulcan(GetOwner()->GetField(), team, damage);
+    Vulcan* b = new Vulcan(team, damage);
     auto props = b->GetHitboxProperties();
-    props.aggressor = GetOwnerAs<Character>();
+    props.aggressor = owner;
     b->SetHitboxProperties(props);
 
     int step = 1;
@@ -65,7 +67,7 @@ void VulcanCardAction::Execute() {
   AddAnimAction(6, onFire);
 }
 
-void VulcanCardAction::OnUpdate(float _elapsed)
+void VulcanCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
 }
@@ -74,7 +76,7 @@ void VulcanCardAction::OnAnimationEnd()
 {
 }
 
-void VulcanCardAction::EndAction()
+void VulcanCardAction::OnEndAction()
 {
   Eject();
 }

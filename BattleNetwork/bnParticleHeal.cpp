@@ -8,10 +8,10 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/spell_heal.animation"
 
-ParticleHeal::ParticleHeal() : Artifact(nullptr)
+ParticleHeal::ParticleHeal() : Artifact()
 {
   SetLayer(0);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_HEAL));
+  setTexture(Textures().GetTexture(TextureType::SPELL_HEAL));
   setScale(2.f, 2.f);
   fx = getSprite();
 
@@ -31,7 +31,7 @@ ParticleHeal::ParticleHeal() : Artifact(nullptr)
 
 }
 
-void ParticleHeal::OnUpdate(float _elapsed) {
+void ParticleHeal::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition());
 
   animation.Update(_elapsed, getSprite());

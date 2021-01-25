@@ -11,6 +11,7 @@
 #include <Segues/WhiteWashFade.h>
 #include <Segues/BlackWashFade.h>
 
+#include "../bnScene.h"
 #include "../bnComponent.h"
 #include "../bnPA.h"
 #include "../bnMobHealthUI.h"
@@ -46,26 +47,24 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 struct BattleSceneBaseProps {
   Player& player;
   PA& programAdvance;
-  CardFolder* folder;
-  Field* field;
-  Background* background;
+  CardFolder* folder{ nullptr };
+  Field* field{ nullptr };
+  Background* background{ nullptr };
 };
 
 /**
   @brief BattleSceneBase class provides an API for creating complex states
 */
 class BattleSceneBase : 
-  public swoosh::Activity, 
+  public Scene, 
   public HitListener,
   public CounterHitListener, 
   public CharacterDeleteListener, 
   public CardUseListener {
-
 private:
   // general stuff
   bool quitting{ false }; //!< Determine if we are leaving the battle scene
@@ -100,7 +99,7 @@ private:
   Mob* mob{ nullptr }; /*!< Mob and mob data player are fighting against */
   Background* background{ nullptr }; /*!< Custom backgrounds provided by Mob data */
   std::shared_ptr<sf::Texture> customBarTexture; /*!< Cust gauge image */
-  std::shared_ptr<sf::Font> mobFont; /*!< Name of mob font */
+  Font mobFont; /*!< Name of mob font */
   std::vector<SceneNode*> scenenodes; /*!< Scene node system */
   std::vector<std::string> mobNames; /*!< List of every non-deleted mob spawned */
   std::vector<Component*> components; /*!< Components injected into the scene */
@@ -320,6 +319,7 @@ public:
   const Field* GetField() const;
   CardSelectionCust& GetCardSelectWidget();
   SelectedCardsUI& GetSelectedCardsUI();
+  Camera& GetCamera();
   void StartBattleStepTimer();
   void StopBattleStepTimer();
   void BroadcastBattleStart();

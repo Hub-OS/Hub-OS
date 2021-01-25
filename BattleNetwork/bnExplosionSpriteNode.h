@@ -1,8 +1,11 @@
 #pragma once
+#include <vector>
+
 #include "bnSpriteProxyNode.h"
 #include "bnAnimation.h"
-#include <vector>
-class ExplosionSpriteNode : public SpriteProxyNode
+#include "bnResourceHandle.h"
+
+class ExplosionSpriteNode : public SpriteProxyNode, public ResourceHandle
 {
 private:
   SceneNode* parent{ nullptr };
@@ -35,7 +38,7 @@ public:
    * @brief If root increment count is size of numOfExplosions, delete and stop the chain 
    * @param _elapsed in seconds
    */
-  void Update(float _elapsed);
+  void Update(double _elapsed);
 
   /**
    * @brief Used by root. Increment the number of explosions

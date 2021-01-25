@@ -1,4 +1,5 @@
 #include "bnCardSelectionCust.h"
+#include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnInputManager.h"
@@ -9,119 +10,120 @@
 
 CardSelectionCust::CardSelectionCust(CardFolder* _folder, int cap, int perTurn) :
   perTurn(perTurn),
-  greyscale(*SHADERS.GetShader(ShaderType::GREYSCALE)),
+  greyscale(*Shaders().GetShader(ShaderType::GREYSCALE)),
   cardDescriptionTextbox({ 4, 255 }),
   isInView(false),
   isInFormSelect(false),
   playFormSound(false),
   canInteract(true),
   isDarkCardSelected(false),
-  darkCardShadowAlpha(0)
+  darkCardShadowAlpha(0),
+  labelFont(Font::Style::thick),
+  codeFont(Font::Style::wide),
+  codeFont2(Font::Style::small),
+  label("", labelFont),
+  smCodeLabel("?", codeFont)
 {
-    frameElapsed = 1;
-    folder = _folder;
-    cap = std::min(cap, 8);
-    cardCap = cap;
-    queue = new Bucket[cardCap];
-    selectQueue = new Bucket*[cardCap];
+  frameElapsed = 1;
+  folder = _folder;
+  cap = std::min(cap, 8);
+  cardCap = cap;
+  queue = new Bucket[cardCap];
+  selectQueue = new Bucket*[cardCap];
 
-    cardCount = selectCount = cursorPos = cursorRow = 0;
+  cardCount = selectCount = cursorPos = cursorRow = 0;
 
-    emblem.setScale(2.f, 2.f);
-    emblem.setPosition(194.0f, 14.0f);
+  emblem.setScale(2.f, 2.f);
+  emblem.setPosition(194.0f, 14.0f);
 
-    custSprite = sf::Sprite(*LOAD_TEXTURE(CHIP_SELECT_MENU));
-    custSprite.setScale(2.f, 2.f);
-    custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
+  custSprite = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_SELECT_MENU));
+  custSprite.setScale(2.f, 2.f);
+  custSprite.setPosition(-custSprite.getTextureRect().width*2.f, 0);
 
-    custDarkCardOverlay = sf::Sprite(*LOAD_TEXTURE(CHIP_SELECT_DARK_OVERLAY));
-    custDarkCardOverlay.setScale(2.f, 2.f);
-    custDarkCardOverlay.setPosition(custSprite.getPosition());
+  custDarkCardOverlay = sf::Sprite(*LOAD_TEXTURE(CHIP_SELECT_DARK_OVERLAY));
+  custDarkCardOverlay.setScale(2.f, 2.f);
+  custDarkCardOverlay.setPosition(custSprite.getPosition());
 
-    custMegaCardOverlay = custDarkCardOverlay;
-    custMegaCardOverlay.setTexture(*LOAD_TEXTURE(CHIP_SELECT_MEGA_OVERLAY));
+  custMegaCardOverlay = custDarkCardOverlay;
+  custMegaCardOverlay.setTexture(*LOAD_TEXTURE(CHIP_SELECT_MEGA_OVERLAY));
 
-    custGigaCardOverlay = custDarkCardOverlay;
-    custGigaCardOverlay.setTexture(*LOAD_TEXTURE(CHIP_SELECT_GIGA_OVERLAY));
+  custGigaCardOverlay = custDarkCardOverlay;
+  custGigaCardOverlay.setTexture(*LOAD_TEXTURE(CHIP_SELECT_GIGA_OVERLAY));
 
-    // TODO: fully use scene nodes on all card slots and the GUI sprite
-    // AddSprite(custSprite);
+  // TODO: fully use scene nodes on all card slots and the GUI sprite
+  // AddSprite(custSprite);
 
-    auto iconSize = sf::IntRect{ 0,0,14,14 };
-    auto iconScale = sf::Vector2f(2.f, 2.f);
-    icon.setTextureRect(iconSize);
-    icon.setScale(iconScale);
+  auto iconSize = sf::IntRect{ 0,0,14,14 };
+  auto iconScale = sf::Vector2f(2.f, 2.f);
+  icon.setTextureRect(iconSize);
+  icon.setScale(iconScale);
 
-    element.setTexture(TEXTURES.GetTexture(TextureType::ELEMENT_ICON));
-    element.setScale(2.f, 2.f);
-    element.setPosition(2.f*25.f, 146.f);
+  element.setTexture(Textures().GetTexture(TextureType::ELEMENT_ICON));
+  element.setScale(2.f, 2.f);
+  element.setPosition(2.f*25.f, 146.f);
 
-    cursorSmall = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CURSOR_SMALL));
-    cursorSmall.setScale(sf::Vector2f(2.f, 2.f));
+  cursorSmall = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_CURSOR_SMALL));
+  cursorSmall.setScale(sf::Vector2f(2.f, 2.f));
 
-    cursorBig = sf::Sprite(*TEXTURES.GetTexture(TextureType::CHIP_CURSOR_BIG));
-    cursorBig.setScale(sf::Vector2f(2.f, 2.f));
+  cursorBig = sf::Sprite(*Textures().GetTexture(TextureType::CHIP_CURSOR_BIG));
+  cursorBig.setScale(sf::Vector2f(2.f, 2.f));
 
-    // never moves
-    cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*122.f));
+  // never moves
+  cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*122.f));
 
-    cardLock = sf::Sprite(*LOAD_TEXTURE(CHIP_LOCK));
-    cardLock.setScale(sf::Vector2f(2.f, 2.f));
+  cardLock = sf::Sprite(*LOAD_TEXTURE(CHIP_LOCK));
+  cardLock.setScale(sf::Vector2f(2.f, 2.f));
 
-    cardCard.setScale(2.f, 2.f);
-    cardCard.setPosition(2.f*16.f, 48.f);
+  cardCard.setScale(2.f, 2.f);
+  cardCard.setPosition(2.f*16.f, 48.f);
+  cardCard.setTextureRect(sf::IntRect{0, 0, 56, 48});
 
-    auto cardRect = sf::IntRect{0, 0, 56, 48};
-    cardCard.setTextureRect(cardRect);
+  cardNoData.setTexture(Textures().GetTexture(TextureType::CHIP_NODATA));
+  cardNoData.setScale(2.f, 2.f);
+  cardNoData.setPosition(2.f*16.f, 48.f);
 
-    cardNoData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_NODATA));
-    cardNoData.setScale(2.f, 2.f);
-    cardNoData.setPosition(2.f*16.f, 48.f);
+  cardSendData.setTexture(Textures().GetTexture(TextureType::CHIP_SENDDATA));
+  cardSendData.setScale(2.f, 2.f);
+  cardSendData.setPosition(2.f*16.f, 48.f);
 
-    cardSendData.setTexture(TEXTURES.GetTexture(TextureType::CHIP_SENDDATA));
-    cardSendData.setScale(2.f, 2.f);
-    cardSendData.setPosition(2.f*16.f, 48.f);
+  smCodeLabel.SetColor(sf::Color::Yellow);
 
-    labelFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-    label.setFont(*labelFont);
+  cursorSmallAnimator = Animation("resources/ui/cursor_small.animation");
+  cursorSmallAnimator.Reload();
+  cursorSmallAnimator.SetAnimation("BLINK");
+  cursorSmallAnimator << Animator::Mode::Loop;
 
-    codeFont = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-    smCodeLabel.setFont(*codeFont);
-    smCodeLabel.setCharacterSize(12);
-    smCodeLabel.setFillColor(sf::Color::Yellow);
+  cursorBigAnimator = Animation("resources/ui/cursor_big.animation");
+  cursorBigAnimator.Reload();
+  cursorBigAnimator.SetAnimation("BLINK");
+  cursorBigAnimator << Animator::Mode::Loop;
 
-    cursorSmallAnimator = Animation("resources/ui/cursor_small.animation");
-    cursorSmallAnimator.Reload();
-    cursorSmallAnimator.SetAnimation("BLINK");
-    cursorSmallAnimator << Animator::Mode::Loop;
+  formSelectAnimator = Animation("resources/ui/form_select.animation");
+  formSelectAnimator.Reload();
+  formSelectAnimator.SetAnimation("CLOSED");
 
-    cursorBigAnimator = Animation("resources/ui/cursor_big.animation");
-    cursorBigAnimator.Reload();
-    cursorBigAnimator.SetAnimation("BLINK");
-    cursorBigAnimator << Animator::Mode::Loop;
+  formCursorAnimator = Animation("resources/ui/form_cursor.animation");
+  formCursorAnimator.Reload();
+  formCursorAnimator.SetAnimation("BLINK");
+  formCursorAnimator << Animator::Mode::Loop;
 
-    formSelectAnimator = Animation("resources/ui/form_select.animation");
-    formSelectAnimator.Reload();
-    formSelectAnimator.SetAnimation("CLOSED");
+  formSelectQuitTimer = 0.f; // used to time out the activation
+  selectedFormIndex = selectedFormRow = lockedInFormIndex = -1;
 
-    formCursorAnimator = Animation("resources/ui/form_cursor.animation");
-    formCursorAnimator.Reload();
-    formCursorAnimator.SetAnimation("BLINK");
-    formCursorAnimator << Animator::Mode::Loop;
+  formSelectQuitTimer = 0.f; // used to time out the activation
 
-    formSelectQuitTimer = 0.f; // used to time out the activation
-    selectedFormIndex = selectedFormRow = lockedInFormIndex = -1;
+  formItemBG.setTexture(*LOAD_TEXTURE(CUST_FORM_ITEM_BG));
+  formItemBG.setScale(2.f, 2.f);
 
-    formItemBG.setTexture(*LOAD_TEXTURE(CUST_FORM_ITEM_BG));
-    formItemBG.setScale(2.f, 2.f);
+  formSelect.setTexture(LOAD_TEXTURE(CUST_FORM_SELECT));
+  formCursor.setTexture(LOAD_TEXTURE(CUST_FORM_CURSOR));
 
-    formSelect.setTexture(LOAD_TEXTURE(CUST_FORM_SELECT));
-    formCursor.setTexture(LOAD_TEXTURE(CUST_FORM_CURSOR));
+  formSelect.setScale(2.f, 2.f);
+  formCursor.setScale(2.f, 2.f);
 
-    formSelect.setScale(2.f, 2.f);
-    formCursor.setScale(2.f, 2.f);
-
-    //setScale(0.5f, 0.5); // testing transforms
+  //setScale(0.5f, 0.5); // testing transforms
+  label.setScale(2.f, 2.f);
+  smCodeLabel.setScale(2.f, 2.f);
 }
 
 
@@ -159,7 +161,7 @@ bool CardSelectionCust::CursorUp() {
         formSelectAnimator << "OPENING" << onEnd;
         isInFormSelect = true;
         cursorPos = cursorRow = 0;
-        AUDIO.Play(AudioType::CHIP_DESC);
+        Audio().Play(AudioType::CHIP_DESC);
       }
       return false;
     }
@@ -223,7 +225,7 @@ bool CardSelectionCust::CursorLeft() {
 
 bool CardSelectionCust::CursorAction() {
   if (isInFormSelect) {
-    selectedFormIndex = forms[formCursorRow]->GetFormIndex();
+    selectedFormIndex = static_cast<int>(forms[formCursorRow]->GetFormIndex());
 
     if (selectedFormRow != -1 && selectedFormIndex == forms[selectedFormRow]->GetFormIndex()) {
       selectedFormRow = -1; // de-select the form
@@ -237,10 +239,10 @@ bool CardSelectionCust::CursorAction() {
         currentFormItem = lockedInFormItem;
       }
 
-      AUDIO.Play(AudioType::DEFORM);
+      Audio().Play(AudioType::DEFORM);
     }
     else {
-      formSelectQuitTimer = frames(30).asSeconds();
+      formSelectQuitTimer = seconds_cast<float>(frames(30));
       selectedFormRow = formCursorRow;
       currentFormItem = formUI[formCursorRow];
     }
@@ -516,7 +518,7 @@ void CardSelectionCust::SetPlayerFormOptions(const std::vector<PlayerFormMeta*> 
   for (auto&& f : forms) {
     this->forms.push_back(f);
     sf::Sprite ui;
-    ui.setTexture(*TEXTURES.LoadTextureFromFile(f->GetUIPath()));
+    ui.setTexture(*Textures().LoadTextureFromFile(f->GetUIPath()));
     ui.setScale(2.f, 2.f);
     formUI.push_back(ui);
   }
@@ -550,6 +552,8 @@ void CardSelectionCust::ErasePlayerFormOption(size_t index)
 void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states) const {
   if(IsHidden()) return;
 
+  ResourceHandle handle;
+
   states.transform = getTransform();
 
   auto offset = -custSprite.getTextureRect().width*2.f; // TODO: this will be uneccessary once we use AddSprite() for all rendered items below
@@ -581,10 +585,10 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   target.draw(emblem, states);
   emblem.setPosition(lastEmblemPos);
 
-  auto x = swoosh::ease::interpolate(frameElapsed*25, offset + (double)(2.f*(16.0f + ((float)cursorPos*16.0f))), (double)cursorSmall.getPosition().x);
-  auto y = swoosh::ease::interpolate(frameElapsed*25, (double)(2.f*(113.f + ((float)cursorRow*24.f))), (double)cursorSmall.getPosition().y);
+  float x = swoosh::ease::interpolate(static_cast<float>(frameElapsed*25), offset + static_cast<float>((2.f*(16.0f + (cursorPos*16.0f)))), cursorSmall.getPosition().x);
+  float y = swoosh::ease::interpolate(static_cast<float>(frameElapsed * 25), static_cast<float>(2.f*(113.f + (cursorRow*24.f))), cursorSmall.getPosition().y);
 
-  cursorSmall.setPosition((float)x, (float)y); // TODO: Make this relative to cust instead of screen. hint: scene nodes
+  cursorSmall.setPosition(x, y); // TODO: Make this relative to cust instead of screen. hint: scene nodes
 
   int row = 0;
   for (int i = 0; i < cardCount; i++) {
@@ -610,8 +614,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
     smCodeLabel.setPosition(offset + 2.f*(14.0f + ((i % 5)*16.0f)), 2.f*(120.f + (row*24.0f)));
 
     char code = queue[i].data->GetCode();
-
-    smCodeLabel.setString(code);
+    smCodeLabel.SetString(code);
     target.draw(smCodeLabel, states);
   }
 
@@ -628,9 +631,6 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
 
   if ((cursorPos < 5 && cursorRow == 0) || (cursorPos < 3 && cursorRow == 1)) {
-    // Draw the selected card info
-    label.setFillColor(sf::Color::White);
-
 
     if (cursorPos + (5 * cursorRow) < cardCount) {
       // Draw the selected card card
@@ -653,23 +653,22 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
       }
 
       cardCard.setPosition(lastPos);
-
       label.setPosition(offset + 2.f*16.f, 16.f);
-      label.setString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
+      label.SetString(queue[cursorPos + (5 * cursorRow)].data->GetShortName());
       target.draw(label, states);
 
       // the order here is very important:
       if (queue[cursorPos + (5 * cursorRow)].data->GetDamage() > 0) {
-        label.setString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
-        label.setOrigin(label.getLocalBounds().width+label.getLocalBounds().left, 0);
+        label.SetString(std::to_string(queue[cursorPos + (5 * cursorRow)].data->GetDamage()));
+        label.setOrigin(label.GetLocalBounds().width+label.GetLocalBounds().left, 0);
         label.setPosition(offset + 2.f*(70.f), 143.f);
         target.draw(label, states);
       }
 
       label.setOrigin(0, 0);
       label.setPosition(offset + 2.f*16.f, 143.f);
-      label.setString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
-      label.setFillColor(sf::Color(225, 180, 0));
+      label.SetString(std::string() + queue[cursorPos + (5 * cursorRow)].data->GetCode());
+      label.SetColor(sf::Color(225, 180, 0));
       target.draw(label, states);
 
       int elementID = (int)(queue[cursorPos + (5 * cursorRow)].data->GetElement());
@@ -717,8 +716,8 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
   if (getPosition().x == bounds) {
     // Fade in a screen-wide shadow beneath the card if it is a dark card
-    sf::RectangleShape screen(ENGINE.GetCamera()->GetView().getSize());
-    screen.setFillColor(sf::Color(0, 0, 0, darkCardShadowAlpha * 255));
+    sf::RectangleShape screen(target.getView().getSize());
+    screen.setFillColor(sf::Color(0, 0, 0, static_cast<sf::Uint8>(darkCardShadowAlpha * 255)));
     target.draw(screen);
   }
 
@@ -743,12 +742,12 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
 
         if (i != selectedFormRow && i != formCursorRow && selectedFormRow > -1) {
           auto greyscaleState = states;
-          greyscaleState.shader = SHADERS.GetShader(ShaderType::GREYSCALE);
+          greyscaleState.shader = handle.Shaders().GetShader(ShaderType::GREYSCALE);
           target.draw(f, greyscaleState);
         }
         else if (i == selectedFormRow && selectedFormRow > -1) {
           auto aquaMarineState = states;
-          aquaMarineState.shader = SHADERS.GetShader(ShaderType::COLORIZE);
+          aquaMarineState.shader = handle.Shaders().GetShader(ShaderType::COLORIZE);
           f.setColor(sf::Color(127,255,212));
           target.draw(f, aquaMarineState);
           f.setColor(sf::Color::White); // back to normal after draw to texture
@@ -773,7 +772,7 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   SceneNode::draw(target, states);
 
   // Reveal the new form icon in the HUD after the flash
-  if (formSelectQuitTimer <= frames(10).asSeconds()) {
+  if (formSelectQuitTimer <= seconds_cast<float>(frames(10))) {
     auto rect = currentFormItem.getTextureRect();
     currentFormItem.setTextureRect(sf::IntRect(rect.left, rect.top, 30, 14));
     currentFormItem.setPosition(sf::Vector2f(4, 36.f));
@@ -782,17 +781,17 @@ void CardSelectionCust::draw(sf::RenderTarget & target, sf::RenderStates states)
   }
 
   // draw the white flash
-  if (isInFormSelect && formSelectQuitTimer <= frames(20).asSeconds()) {
-    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, (float)frames(20).asSeconds(), 1.f);
-    auto view = ENGINE.GetView();
+  if (isInFormSelect && formSelectQuitTimer <= seconds_cast<float>(frames(20))) {
+    auto delta = swoosh::ease::wideParabola(formSelectQuitTimer, seconds_cast<double>(frames(20)), 1.0);
+    const auto& view = target.getView();
     sf::RectangleShape screen(view.getSize());
-    screen.setFillColor(sf::Color(255, 255, 255, int(delta * 255.f)));
+    screen.setFillColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(delta * 255.0)));
     target.draw(screen, sf::RenderStates::Default);
   }
 }
 
 
-void CardSelectionCust::Update(float elapsed)
+void CardSelectionCust::Update(double elapsed)
 {
   if (IsHidden()) {
     canInteract = false;
@@ -811,10 +810,10 @@ void CardSelectionCust::Update(float elapsed)
   }
   else {
     if (isDarkCardSelected) {
-      darkCardShadowAlpha = std::min(darkCardShadowAlpha + elapsed, 0.3f);
+      darkCardShadowAlpha = std::min(darkCardShadowAlpha + static_cast<float>(elapsed), 0.3f);
     }
     else {
-      darkCardShadowAlpha = std::max(darkCardShadowAlpha - elapsed, 0.0f);
+      darkCardShadowAlpha = std::max(darkCardShadowAlpha - static_cast<float>(elapsed), 0.0f);
     }
   }
 
@@ -843,79 +842,15 @@ void CardSelectionCust::Update(float elapsed)
       isInFormSelect = false;
       playFormSound = false;
     }
-    else if (formSelectQuitTimer <= frames(10).asSeconds()) {
+    else if (formSelectQuitTimer <= seconds_cast<float>(frames(10))) {
       formSelectAnimator.SetAnimation("CLOSED");
       cursorPos = cursorRow = formCursorRow = 0;
       if (!playFormSound) {
         playFormSound = true;
-        AUDIO.Play(AudioType::PA_ADVANCE, AudioPriority::highest);
+        Audio().Play(AudioType::PA_ADVANCE, AudioPriority::highest);
       }
     }
   }
-
-#ifdef __ANDROID__
-  sf::Vector2i touchPosition = sf::Touch::getPosition(0, *ENGINE.GetWindow());
-  sf::Vector2f coords = ENGINE.GetWindow()->mapPixelToCoords(touchPosition, ENGINE.GetDefaultView());
-  sf::Vector2i iCoords = sf::Vector2i((int)coords.x, (int)coords.y);
-  touchPosition = iCoords;
-
-  int row = 0;
-  for (int i = 0; i < cardCount; i++) {
-    if (i > 4) {
-      row = 1;
-    }
-    if (IsInView()) {
-        float offset = 0;//-custSprite.getTextureRect().width*2.f; // this will be uneccessary once we use AddNode() for all rendered items below
-
-        icon.setPosition(offset + 2.f*(9.0f + ((float)(i%5)*16.0f)), 2.f*(105.f + (row*24.0f)) );
-
-        sf::IntRect iconSubFrame = TEXTURES.GetIconRectFromID(queue[i].data->GetIconID());
-        icon.setTextureRect(iconSubFrame);
-
-        sf::FloatRect bounds = sf::FloatRect(icon.getPosition().x, icon.getPosition().y-1, 18, 18);
-
-        bool touched = (touchPosition.x >= bounds.left && touchPosition.x <= bounds.left + bounds.width && touchPosition.y >= bounds.top && touchPosition.y <= bounds.top + bounds.height);
-
-        if (touched && sf::Touch::isDown(0) && queue[i].state != 0) {
-        cursorRow = row;
-        cursorPos = i % 5;
-        CursorAction();
-      }
-    }
-  }
-
-  sf::FloatRect deselect = sf::FloatRect();
-  deselect.left = 2 * 97.f;
-  deselect.top = 2.f*25.0f;
-  deselect.width = 16;
-  deselect.height = 2.f*(25.0f + (selectCount*8.0f));
-
-  bool touched = (touchPosition.x >= deselect.left && touchPosition.x <= deselect.left + deselect.width && touchPosition.y >= deselect.top && touchPosition.y <= deselect.top + deselect.height);
-
-  static bool tap = false;
-
-  if(touched && sf::Touch::isDown(0) && !tap) {
-      CursorCancel();
-      tap = true;
-  }
-
-  if(!sf::Touch::isDown(0)) {
-      tap = false;
-  }
-
-  cursorBig.setPosition(sf::Vector2f(2.f*104.f, 2.f*110.f));
-  sf::FloatRect OK = sf::FloatRect(cursorBig.getPosition().x-20.0f, cursorBig.getPosition().y-5.0f, cursorBig.getGlobalBounds().width, cursorBig.getGlobalBounds().height);
-  touched = (touchPosition.x >= OK.left && touchPosition.x <= OK.left + OK.width && touchPosition.y >= OK.top && touchPosition.y <= OK.top + OK.height);
-
-  if(touched && sf::Touch::isDown(0) && !tap) {
-    cursorRow = 0;
-    cursorPos = 5;
-
-    areCardsReady = true;
-    tap = true;
- }
-
-#endif
 
   if (cardCount > 0) {
     // If OK button is highlighted, we are not selecting a dark card
@@ -935,7 +870,9 @@ void CardSelectionCust::Update(float elapsed)
 
 Battle::Card** CardSelectionCust::GetCards() {
   // Allocate selected cards list
-  selectedCards = (Battle::Card**)malloc(sizeof(Battle::Card*)*selectCount);
+  size_t sz = sizeof(Battle::Card*) * selectCount;
+
+  selectedCards = (Battle::Card**)malloc(sz);
 
   // Point to selected queue
   for (int i = 0; i < selectCount; i++) {

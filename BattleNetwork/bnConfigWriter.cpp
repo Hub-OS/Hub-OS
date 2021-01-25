@@ -15,7 +15,7 @@ void ConfigWriter::Write(std::string path)
   w << "[Discord]" << w.endl();
   w << "User=" << quote(settings.GetDiscordInfo().user) << w.endl();
   w << "Key=" << quote(settings.GetDiscordInfo().key) << w.endl();
-  w << "[Audio]" << w.endl();
+  w << "[Audio()]" << w.endl();
   w << "Music=" << quote(std::to_string(settings.GetMusicLevel())) << w.endl();
   w << "SFX=" << quote(std::to_string(settings.GetSFXLevel())) << w.endl();
   w << "[Net]" << w.endl();

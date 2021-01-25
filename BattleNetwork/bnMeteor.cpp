@@ -8,12 +8,15 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, float _duration) : target(target), duration(_duration), Spell(_field, _team) {
+Meteor::Meteor(Team _team, Battle::Tile* target, int damage, float _duration) : 
+  target(target), 
+  duration(_duration), 
+  Spell(_team) {
   SetLayer(1);
 
   HighlightTile(Battle::Tile::Highlight::flash);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_METEOR));
+  setTexture(Textures().GetTexture(TextureType::SPELL_METEOR));
 
   setScale(0.f, 0.f);
 
@@ -43,7 +46,7 @@ Meteor::Meteor(Field* _field, Team _team, Battle::Tile* target, int damage, floa
 Meteor::~Meteor() {
 }
 
-void Meteor::OnUpdate(float _elapsed) {
+void Meteor::OnUpdate(double _elapsed) {
   if (GetTeam() == Team::blue) {
     setScale(-2.f, 2.f);
     swoosh::game::setOrigin(getSprite(), 1.0, 1.0);
@@ -66,9 +69,9 @@ void Meteor::OnUpdate(float _elapsed) {
     tile->AffectEntities(this);
 
     if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
-      ENGINE.GetCamera()->ShakeCamera(5, sf::seconds(0.5));
+      EventBus().Emit(&Camera::ShakeCamera, 5, sf::seconds(0.5));
 
-      field->AddEntity(*(new RingExplosion(field)), *GetTile());
+      field->AddEntity(*(new RingExplosion), *GetTile());
     }
 
     Delete();
@@ -87,7 +90,7 @@ void Meteor::Attack(Character* _entity) {
 
 void Meteor::OnSpawn(Battle::Tile& start)
 {
-  AUDIO.Play(AudioType::METEOR, AudioPriority::high);
+  Audio().Play(AudioType::METEOR, AudioPriority::high);
 }
 
 void Meteor::OnDelete()

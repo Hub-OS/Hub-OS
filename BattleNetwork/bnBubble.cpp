@@ -7,17 +7,16 @@
 #include "bnAudioResourceManager.h"
 #include "bnSharedHitbox.h"
 
-Bubble::Bubble(Field* _field, Team _team, double speed)
-  : popping(false), Obstacle(_field, _team) {
+Bubble::Bubble(Team _team,double speed)
+  : popping(false), Obstacle(_team) {
   SetLayer(-100);
-  field = _field;
 
   SetHealth(1);
   SetName("Bubble");
 
   SetTeam(_team);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_BUBBLE));
+  setTexture(Textures().GetTexture(TextureType::SPELL_BUBBLE));
   setScale(2.f, 2.f);
 
   Bubble::speed = speed;
@@ -31,8 +30,8 @@ Bubble::Bubble(Field* _field, Team _team, double speed)
   // Spawn animation and then turns into "FLOAT" which loops forever
   animation << "INIT" << onFinish;
 
-  AUDIO.Play(AudioType::BUBBLE_SPAWN, AudioPriority::lowest);
-
+  Audio().Play(AudioType::BUBBLE_SPAWN, AudioPriority::lowest);
+  
   // Bubbles can overlap eachother partially
   ShareTileSpace(true);
 
@@ -48,7 +47,7 @@ Bubble::Bubble(Field* _field, Team _team, double speed)
 Bubble::~Bubble() {
 }
 
-void Bubble::OnUpdate(float _elapsed) {
+void Bubble::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   animation.Update(_elapsed*(float)speed, getSprite());
@@ -97,7 +96,7 @@ void Bubble::OnDelete()
 {
   auto onFinish = [this]() { Remove(); };
   animation << "POP" << onFinish;
-  AUDIO.Play(AudioType::BUBBLE_POP, AudioPriority::lowest);
+  Audio().Play(AudioType::BUBBLE_POP, AudioPriority::lowest);
 }
 
 const float Bubble::GetHeight() const

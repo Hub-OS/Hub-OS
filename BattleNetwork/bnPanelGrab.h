@@ -19,7 +19,7 @@ public:
    * @param _team team it will change tile to
    * @param _duration length of the animation
    */
-  PanelGrab(Field* _field, Team _team, float _duration);
+  PanelGrab(Team _team,float _duration);
   
   /**
    * @brief deconstructor
@@ -36,7 +36,7 @@ public:
    * @brief Interpolate from start pos to tile and changes tile team
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief PanelGrab does not move across field

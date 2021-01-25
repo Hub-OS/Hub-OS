@@ -4,12 +4,11 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
+Fishy::Fishy(Team _team, double speed) : Obstacle(team) {
   SetLayer(0);
-  field = _field;
   hit = false;
   
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/fishy_temp.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/spells/fishy_temp.png"));
   setScale(2.f, 2.f);
   // why do we need to do this??
   // The super constructor is failing to set this value
@@ -21,7 +20,7 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
   SetSlideTime(sf::seconds(0.1f));
   SetHealth(1);
 
-  AUDIO.Play(AudioType::TOSS_ITEM_LITE, AudioPriority::lowest);
+  Audio().Play(AudioType::TOSS_ITEM_LITE, AudioPriority::lowest);
 
   Hit::Properties props;
   props.damage = 80;
@@ -34,7 +33,7 @@ Fishy::Fishy(Field* _field, Team _team, double speed) : Obstacle(field, team) {
 Fishy::~Fishy() {
 }
 
-void Fishy::OnUpdate(float _elapsed) {
+void Fishy::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x - 40.0f, tile->getPosition().y + tileOffset.y - 120.0f);
 
   if (GetTile()->GetX() == 6) {

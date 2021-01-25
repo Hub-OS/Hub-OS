@@ -43,7 +43,7 @@ const bool ConfigReader::ParseDiscord(std::string buffer) {
     Trim(line);
 
 
-    if (line.find("[Audio]") != std::string::npos) {
+    if (line.find("[Audio()]") != std::string::npos) {
         return ParseAudio(buffer);
     }
 
@@ -217,31 +217,8 @@ ConfigReader::ConfigReader(std::string filepath) {
   // We need SOME values
   // Provide default layout
   if (!settings.keyboard.size() || !settings.isOK) {
-    Logger::Log("config settings was not OK. Switching to default key layout.");
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Left,  "Move Left"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Up,    "Move Up"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Right, "Move Right"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Down,  "Move Down"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Down,  "Move Down"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Z,     "Shoot"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::X,     "Use Card"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::S,     "Special"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::A,     "Cust Menu"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Return,"Pause"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Up,    "UI Up"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Down,  "UI Down"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Left,  "UI Left"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Right, "UI Right"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::X,     "Confirm"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Z,     "Cancel"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Space, "Quick Opt"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::D,     "Scan Left"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::F,     "Scan Right"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::X,     "Run"));
-    settings.keyboard.insert(std::make_pair(sf::Keyboard::Z,     "Interact"));
-
+    Logger::Log("config settings was not OK. Will use internal default key layout.");
     settings.sfxLevel = settings.musicLevel = 3;
-
     settings.isOK = false; // This can be used as a flag that we're using default controls
   }
   else {

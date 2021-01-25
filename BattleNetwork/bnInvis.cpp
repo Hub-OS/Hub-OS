@@ -6,7 +6,7 @@
 Invis::Invis(Entity* owner) : Component(owner) {
   duration = sf::seconds(15);
   elapsed = 0;
-  AUDIO.Play(AudioType::INVISIBLE);
+  ResourceHandle().Audio().Play(AudioType::INVISIBLE);
   defense = new DefenseInvis();
   
   auto character = GetOwnerAs<Character>();
@@ -21,7 +21,7 @@ Invis::~Invis()
   delete defense;
 }
 
-void Invis::OnUpdate(float _elapsed) {
+void Invis::OnUpdate(double _elapsed) {
   if (elapsed >= duration.asSeconds()) {
     GetOwner()->SetAlpha(255);
     GetOwner()->SetPassthrough(false); 

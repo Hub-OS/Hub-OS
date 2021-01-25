@@ -58,8 +58,8 @@ namespace Overworld {
     std::list<std::string> removePlayers;
     std::string mapBuffer;
     Timer loadMapTime, movementTimer;
-    std::shared_ptr<sf::Font> font;
-    sf::Text name;
+    Font font;
+    Text name;
     size_t errorCount{};
 
     void RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi);

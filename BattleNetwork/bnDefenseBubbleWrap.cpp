@@ -29,8 +29,8 @@ void DefenseBubbleWrap::CanBlock(DefenseFrameStateJudge& judge, Spell& in, Chara
   if ((in.GetHitboxProperties().flags & Hit::impact) == 0) return;
 
   // weak obstacles will break like other bubbles
-  auto hitbox = new Hitbox(owner.GetField(), owner.GetTeam(), 0);
-  owner.GetField()->AddEntity(*hitbox, owner.GetTile()->GetX(), owner.GetTile()->GetY());
+  auto hitbox = new Hitbox(owner.GetTeam(), 0);
+  owner.GetField()->AddEntity(*hitbox, *owner.GetTile());
 
   auto props = in.GetHitboxProperties();
   if ((props.flags & Hit::impact) == Hit::impact) {

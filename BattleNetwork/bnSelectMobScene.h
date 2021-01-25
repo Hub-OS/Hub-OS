@@ -9,6 +9,8 @@
  */
 
 #pragma once
+#include <time.h>
+#include <SFML/Graphics.hpp>
 
 #include "bnMobRegistration.h"
 #include "bnNaviRegistration.h"
@@ -23,18 +25,15 @@
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include "battlescene/bnBattleSceneBase.h"
 #include "bnMobFactory.h"
 #include "bnRandomMettaurMob.h"
 #include "bnProgsManBossFight.h"
 #include "bnTwoMettaurMob.h"
 #include "bnCanodumbMob.h"
+#include "bnScene.h"
 
-#include <time.h>
-#include <SFML/Graphics.hpp>
-
-#include <Swoosh/Activity.h>
 #include "Segues/CrossZoom.h" // <-- GPU intensive and runs slowly on old hardware
 #include "Segues/WhiteWashFade.h"
 #include "Segues/BlackWashFade.h"
@@ -43,9 +42,8 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
-class SelectMobScene : public swoosh::Activity
+class SelectMobScene : public Scene
 {
 private:
   SelectedNavi selectedNavi; /*!< The selected navi */
@@ -56,18 +54,18 @@ private:
 
   Mob* mob; /*!< Pointer to the mob data */
 
-  std::shared_ptr<sf::Font> font; /*!< Menu title font */
-  sf::Text* menuLabel; /*!< "Mob Select" */
+  Font font; /*!< Menu title font */
+  Text menuLabel; /*!< "Mob Select" */
 
   double maxSelectInputCooldown; /*!< Maximum time for input delay */
   double selectInputCooldown; /*!< Remaining time for input delay */
   double elapsed; /*!< delta seconds since last frame */
-
-  std::shared_ptr<sf::Font> mobFont; /*!< font for mob data */
-  sf::Text *mobLabel; /*!< name */
-  sf::Text *attackLabel; /*!< power */
-  sf::Text *speedLabel; /*!< mob speed */
-  sf::Text *hpLabel; /*!< mob total health */
+  
+  Font uiFont; /*!< UI font */
+  Text mobLabel; /*!< name */
+  Text attackLabel; /*!< power */
+  Text speedLabel; /*!< mob speed */
+  Text hpLabel; /*!< mob total health */
 
   float maxNumberCooldown; /*!< Maximum time for the scramble effect */
   float numberCooldown; /*!< Remaining time for scramble effect */
@@ -123,43 +121,43 @@ public:
    * @brief sets gotoNextScene to false, allowing the user to interact
    * If mob is non null (from battling), deletes the mob
    */
-  virtual void onResume();
+  void onResume() override;
   
   /**
    * @brief Animators and accepts user input: LEFt/RIGHT A to battle, B to return
    * @param elapsed
    */
-  virtual void onUpdate(double elapsed);
+  void onUpdate(double elapsed) override;
   
   /**
    * @brief Draws the scene
    * @param surface
    */
-  virtual void onDraw(sf::RenderTexture& surface);
+  void onDraw(sf::RenderTexture& surface) override;
   
   /**
    * @brief Unpauses textbox, triggers special effects to perform again
    */
-  virtual void onStart();
+  void onStart() override;
   
   /**
    * @brief Pauses text box
    */
-  virtual void onLeave();
+  void onLeave() override;
   
   /**
    * @brief Clears the text box
    */
-  virtual void onExit();
+  void onExit() override;
   
   /**
    * @brief nothing
    */
-  virtual void onEnter();
+  void onEnter() override;
   
   /**
    * @brief nothing
    */
-  virtual void onEnd();
+  void onEnd() override;
 };
 

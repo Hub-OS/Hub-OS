@@ -5,31 +5,28 @@
 #include "bnAudioResourceManager.h"
 #include "bnThunder.h"
 
-ThunderCardAction::ThunderCardAction(Character * owner, int damage) : 
-  CardAction(*owner, "PLAYER_SHOOTING"),
-  attachmentAnim(owner->GetFirstComponent<AnimationComponent>()->GetFilePath()) {
+ThunderCardAction::ThunderCardAction(Character& owner, int damage) :
+  CardAction(owner, "PLAYER_SHOOTING"),
+  attachmentAnim(owner.GetFirstComponent<AnimationComponent>()->GetFilePath()) {
   ThunderCardAction::damage = damage;
 
   attachment = new SpriteProxyNode();
-  attachment->setTexture(owner->getTexture());
+  attachment->setTexture(owner.getTexture());
   attachment->SetLayer(-1);
-
-  attachmentAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
-  attachmentAnim.Reload();
-  attachmentAnim.SetAnimation("BUSTER");
-
-  AddAttachment(*owner, "buster", *attachment).UseAnimation(attachmentAnim);
-}
-
-void ThunderCardAction::Execute() {
-  auto owner = GetOwner();
-
   attachment->EnableParentShader();
 
+  attachmentAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
+  attachmentAnim.Reload();
+  attachmentAnim.SetAnimation("BUSTER");
+  AddAttachment(owner, "buster", *attachment).UseAnimation(attachmentAnim);
+}
+
+void ThunderCardAction::OnExecute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
+
     Team team = GetOwner()->GetTeam();
-    auto* thunder = new Thunder(GetOwner()->GetField(), team);
+    auto* thunder = new Thunder(team);
     auto props = thunder->GetHitboxProperties();
     props.damage = damage;
     props.aggressor = GetOwner();
@@ -54,16 +51,11 @@ ThunderCardAction::~ThunderCardAction()
   }
 }
 
-void ThunderCardAction::OnUpdate(float _elapsed)
-{
-  CardAction::OnUpdate(_elapsed);
-}
-
 void ThunderCardAction::OnAnimationEnd()
 {
 }
 
-void ThunderCardAction::EndAction()
+void ThunderCardAction::OnEndAction()
 {
   Eject();
 }

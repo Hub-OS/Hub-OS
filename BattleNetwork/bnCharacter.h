@@ -44,7 +44,7 @@ private:
 
   sf::Shader* whiteout; /*!< Flash white when hit */
   sf::Shader* stun;     /*!< Flicker yellow with luminance values when stun */
-  CardAction* queuedAction{ nullptr }; /*!< Allow actions to take place through a trusted state */
+  CardAction* queuedAction{ nullptr }, *currentAction{ nullptr }; /*!< Allow actions to take place through a trusted state */
 
   bool hit; /*!< Was hit this frame */
   std::map<Hit::Flags, StatusCallback> statusCallbackHash;
@@ -89,13 +89,13 @@ public:
 
   void ResolveFrameBattleDamage();
 
-  virtual void OnUpdate(float elapsed) = 0;
+  virtual void OnUpdate(double elapsed) = 0;
 
   void QueueAction(CardAction* action);
   CardAction* DequeueAction();
 
   // TODO: move tile behavior out of update loop and into its own rule system for customization
-  void Update(float elapsed) override;
+  void Update(double elapsed) override;
   
   /**
   * @brief Default characters cannot move onto occupied, broken, or empty tiles
@@ -225,6 +225,8 @@ public:
   * If the character exists in this entity's shared hit-list, it will remove it
   */
   void CancelSharedHitboxDamage(Character* to);
+
+  void EndCurrentAction();
 
 private:
   int maxHealth;

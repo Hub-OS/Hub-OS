@@ -7,7 +7,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Hitbox::Hitbox(Field* _field, Team _team, int _damage) : Spell(_field, _team) {
+Hitbox::Hitbox(Team _team, int _damage) : Spell(_team) {
   hit = false;
   damage = _damage;
 
@@ -27,7 +27,7 @@ void Hitbox::OnSpawn(Battle::Tile & start)
 
 }
 
-void Hitbox::OnUpdate(float _elapsed) {
+void Hitbox::OnUpdate(double _elapsed) {
   tile->AffectEntities(this);
   Delete();
 }

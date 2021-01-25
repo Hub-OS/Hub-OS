@@ -8,17 +8,18 @@ class SpriteProxyNode;
 class Character;
 class BusterCardAction : public CardAction {
 private:
-  SpriteProxyNode *buster, *flare;
+  SpriteProxyNode* buster{ nullptr }, * flare{ nullptr };
   Attachment* busterAttachment{ nullptr };
   Animation busterAnim, flareAnim;
-  bool charged;
-  int damage;
-  bool isBusterAlive;
+  bool charged{};
+  int damage{};
+  bool isBusterAlive{};
 public:
-  BusterCardAction(Character* owner, bool charged, int damage);
+  BusterCardAction(Character& user, bool charged, int damage);
   ~BusterCardAction();
-  void OnUpdate(float _elapsed);
+
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd();
-  void EndAction();
-  void Execute();
+  void OnEndAction();
+  void OnExecute();
 };

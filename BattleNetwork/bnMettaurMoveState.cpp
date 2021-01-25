@@ -12,7 +12,7 @@ MettaurMoveState::~MettaurMoveState() { ; }
 void MettaurMoveState::OnEnter(Mettaur& met) {
 }
 
-void MettaurMoveState::OnUpdate(float _elapsed, Mettaur& met) {
+void MettaurMoveState::OnUpdate(double _elapsed, Mettaur& met) {
   if (isMoving) return; // We're already moving (animations take time)
 
   Battle::Tile* temp = met.tile;

@@ -8,7 +8,7 @@
 #include "bnTextureResourceManager.h"
 
 
-Spell::Spell(Field* field, Team team) : 
+Spell::Spell(Team team) : 
   heightOffset(0), 
   mode(Battle::Tile::Highlight::none), 
   hitboxProperties(Hit::DefaultProperties), 
@@ -16,13 +16,12 @@ Spell::Spell(Field* field, Team team) :
   SetFloatShoe(true);
   SetLayer(1);
   SetTeam(team);
-  SetField(field);
 }
 
 Spell::~Spell() {
 }
 
-void Spell::Update(float _elapsed) {
+void Spell::Update(double _elapsed) {
   if (IsTimeFrozen()) return;
 
   Entity::Update(_elapsed);

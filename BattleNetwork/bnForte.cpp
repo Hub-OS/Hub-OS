@@ -4,7 +4,7 @@
 #include "bnBuster.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnLogger.h"
 #include "bnVulcanCardAction.h"
 #include "bnBusterCardAction.h"
@@ -16,12 +16,12 @@ const std::string RESOURCE_PATH = "resources/navis/forte/forte.animation";
 
 CardAction* Forte::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  return new BusterCardAction(*this, false, 1*GetAttackLevel());
 }
 
 CardAction* Forte::OnExecuteChargedBusterAction()
 {
-  return new VulcanCardAction(this, 10*GetAttackLevel());
+  return new VulcanCardAction(*this, 10*GetAttackLevel());
 }
 
 CardAction* Forte::OnExecuteSpecialAction() {
@@ -39,7 +39,7 @@ Forte::Forte() : Player()
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::NAVI_FORTE_ATLAS));
 
   SetHealth(1000);
 
@@ -64,7 +64,7 @@ const float Forte::GetHeight() const
   return 160.0f;
 }
 
-void Forte::OnUpdate(float _elapsed)
+void Forte::OnUpdate(double _elapsed)
 {
   dropCooldown -= _elapsed;
 
@@ -101,10 +101,12 @@ void Forte::OnSpawn(Battle::Tile& start)
 
 int Forte::MoveEffect::counter = 0;
 
-Forte::MoveEffect::MoveEffect(Field* field) 
-  : elapsed(0), index(0), Artifact(field)
+Forte::MoveEffect::MoveEffect(Field* field) : 
+  elapsed(0), 
+  index(0), 
+  Artifact()
 {
-  setTexture(TEXTURES.GetTexture(TextureType::NAVI_FORTE_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::NAVI_FORTE_ATLAS));
 
   SetLayer(1);
 
@@ -124,14 +126,14 @@ Forte::MoveEffect::~MoveEffect()
 {
 }
 
-void Forte::MoveEffect::OnUpdate(float _elapsed)
+void Forte::MoveEffect::OnUpdate(double _elapsed)
 {
   elapsed += _elapsed;
-  auto delta = 1.0f - swoosh::ease::linear(elapsed, 0.1f, 1.0f);
+  auto delta = 1.0 - swoosh::ease::linear(elapsed, 0.1, 1.0);
 
-  SetAlpha(int(delta*125));
+  SetAlpha(static_cast<int>(delta*125));
 
-  if (delta <= 0.0f) {
+  if (delta <= 0.0) {
     Delete();
   }
 }

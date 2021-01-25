@@ -1,5 +1,11 @@
 #pragma once
-#include "../bnEngine.h"
+#include <Swoosh/Activity.h>
+#include <Poco/Net/DatagramSocket.h>
+#include <Poco/Buffer.h>
+
+#include "../bnFont.h"
+#include "../bnText.h"
+#include "../bnDrawWindow.h"
 #include "../bnAudioResourceManager.h"
 #include "../bnTextureResourceManager.h"
 #include "../bnBackground.h"
@@ -7,19 +13,16 @@
 #include "../bnPA.h"
 #include "../bnAnimatedTextBox.h"
 #include "../bnCardFolder.h" 
+#include "../bnScene.h"
 
 #include "bnNetPlayConfig.h"
-
-#include <Swoosh/Activity.h>
-#include <Poco/Net/DatagramSocket.h>
-#include <Poco/Buffer.h>
 /**
  * @class PVPScene
  * @author mav
  * @date 08/22/2020
  * @brief Connect with a remote and battle eachother
  */
-class PVPScene : public swoosh::Activity {
+class PVPScene : public Scene {
 private:
   bool isScreenReady{ false };
   bool leave{ false }; /*!< Scene state coming/going flag */
@@ -49,8 +52,8 @@ private:
 
   static std::string myIP;
   std::string theirIP;
-  sf::Text text, id;
-  std::shared_ptr<sf::Font> font;
+  Text text, id;
+  Font font;
   Poco::Net::DatagramSocket client; //!< us
 
   const std::string GetPublicIP(); // TODO: this should be a fetchable value in the web client manager
@@ -72,8 +75,8 @@ private:
   void RecieveHandshakeSignal();
 
   // custom drawing
-  void DrawIDInputWidget();
-  void DrawCopyPasteWidget();
+  void DrawIDInputWidget(sf::RenderTexture& surface);
+  void DrawCopyPasteWidget(sf::RenderTexture& surface);
 
   const bool IsValidIPv4(const std::string& ip) const;
 

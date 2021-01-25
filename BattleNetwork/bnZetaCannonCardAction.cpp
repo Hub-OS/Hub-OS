@@ -5,12 +5,14 @@
 #include "bnDefenseIndestructable.h"
 #include "bnInputManager.h"
 
-ZetaCannonCardAction::ZetaCannonCardAction(Character * owner, int damage)  : 
-  CardAction(*owner, "PLAYER_IDLE"), 
-  damage(damage), font(), timerLabel()
+ZetaCannonCardAction::ZetaCannonCardAction(Character& owner, int damage)  : 
+  CardAction(owner, "PLAYER_IDLE"), 
+  InputHandle(),
+  damage(damage), 
+  font(Font::Style::small), 
+  timerLabel(font)
 { 
-  font = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  timerLabel.setFont(*font);
+  timerLabel.SetFont(font);
   timerLabel.setPosition(20.f, 50.0f);
   timerLabel.setScale(1.f, 1.f);
   this->SetLockout(ActionLockoutProperties{ActionLockoutType::async, timer});
@@ -19,7 +21,7 @@ ZetaCannonCardAction::ZetaCannonCardAction(Character * owner, int damage)  :
 ZetaCannonCardAction::~ZetaCannonCardAction()
 { }
 
-void ZetaCannonCardAction::Execute() {
+void ZetaCannonCardAction::OnExecute() {
 }
 
 void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -29,14 +31,14 @@ void ZetaCannonCardAction::draw(sf::RenderTarget& target, sf::RenderStates state
   auto pos = timerLabel.getPosition();
   auto og = pos;
   timerLabel.setPosition(pos.x + 2, pos.y + 2);
-  timerLabel.setFillColor(sf::Color::Black);
+  timerLabel.SetColor(sf::Color::Black);
   target.draw(timerLabel);
   timerLabel.setPosition(og);
-  timerLabel.setFillColor(sf::Color::White);
+  timerLabel.SetColor(sf::Color::White);
   target.draw(timerLabel);
 }
 
-void ZetaCannonCardAction::OnUpdate(float _elapsed)
+void ZetaCannonCardAction::OnUpdate(double _elapsed)
 {
   if (timer > 0) {
     auto user = GetOwner();
@@ -48,8 +50,8 @@ void ZetaCannonCardAction::OnUpdate(float _elapsed)
     //       Also, we do not want to have to allow the programmer to follow these following conditions:
     bool canShoot = user->GetFirstComponent<AnimationComponent>()->GetAnimationString() == "PLAYER_IDLE" && !user->IsSliding();
 
-    if (canShoot && (firstTime || INPUTx.Has(InputEvents::pressed_use_chip)) && actions.size() == 1) {
-      auto attack = user->CreateComponent<CannonCardAction>(user, damage, CannonCardAction::Type::red);
+    if (canShoot && (firstTime || Input().Has(InputEvents::pressed_use_chip)) && actions.size() == 1) {
+      auto attack = user->CreateComponent<CannonCardAction>(*user, damage, CannonCardAction::Type::red);
 
       auto actionProps = ActionLockoutProperties();
       actionProps.type = ActionLockoutType::animation;
@@ -59,7 +61,7 @@ void ZetaCannonCardAction::OnUpdate(float _elapsed)
 
       if (firstTime) {
         firstTime = false;
-        AUDIO.Play(AudioType::COUNTER_BONUS);
+        Audio().Play(AudioType::COUNTER_BONUS);
         defense = new DefenseIndestructable(true);
         user->AddDefenseRule(defense);
       }
@@ -81,7 +83,7 @@ void ZetaCannonCardAction::OnUpdate(float _elapsed)
 
   // Set timer
   std::string string = "Z-Cannon 1: " + timeString;
-  timerLabel.setString(sf::String(string));
+  timerLabel.SetString(string);
 
   CardAction::OnUpdate(_elapsed);
 }
@@ -90,7 +92,7 @@ void ZetaCannonCardAction::OnAnimationEnd()
 {
 }
 
-void ZetaCannonCardAction::EndAction()
+void ZetaCannonCardAction::OnEndAction()
 {
   GetOwner()->RemoveDefenseRule(defense);
   delete defense;

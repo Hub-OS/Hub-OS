@@ -10,10 +10,12 @@ const std::string VULCAN_PATH   = "resources/spells/artifact_vulcan_impact.anima
 const std::string VOLCANO_PATH  = "resources/spells/volcano_hit.animation";
 const std::string WIND_PATH     = "resources/spells/panel_wind.animation";
 
-ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifact(nullptr)
+ParticleImpact::ParticleImpact(ParticleImpact::Type type) :
+  randOffset(), 
+  Artifact()
 {
   SetLayer(-10);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_IMPACT_FX));
+  setTexture(Textures().GetTexture(TextureType::SPELL_IMPACT_FX));
   setScale(2.f, 2.f);
 
   //Components setup and load
@@ -39,17 +41,17 @@ ParticleImpact::ParticleImpact(ParticleImpact::Type type) : randOffset(), Artifa
   case Type::vulcan:
     animation = Animation(VULCAN_PATH);
     animation.SetAnimation("DEFAULT");
-    setTexture(TEXTURES.GetTexture(TextureType::SPELL_VULCAN_IMPACT_FX));
+    setTexture(Textures().GetTexture(TextureType::SPELL_VULCAN_IMPACT_FX));
     break;
   case Type::volcano:
     animation = Animation(VOLCANO_PATH);
     animation.SetAnimation("HIT");
-    setTexture(TEXTURES.LoadTextureFromFile("resources/spells/volcano_hit.png"));
+    setTexture(Textures().LoadTextureFromFile("resources/spells/volcano_hit.png"));
     break;
   case Type::wind:
     animation = Animation(WIND_PATH);
     animation.SetAnimation("DEFAULT");
-    setTexture(TEXTURES.LoadTextureFromFile("resources/spells/panel_wind.png"));
+    setTexture(Textures().LoadTextureFromFile("resources/spells/panel_wind.png"));
     break;
   default:
     animation.SetAnimation("GREEN");
@@ -100,7 +102,7 @@ void ParticleImpact::SetOffset(const sf::Vector2f& offset)
   this->offset = offset;
 }
 
-void ParticleImpact::OnUpdate(float _elapsed) {
+void ParticleImpact::OnUpdate(double _elapsed) {
   animation.Update(_elapsed, getSprite());
   Entity::Update(_elapsed);
 

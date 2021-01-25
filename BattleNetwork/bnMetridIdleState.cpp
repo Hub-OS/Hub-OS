@@ -25,7 +25,7 @@ void MetridIdleState::OnEnter(Metrid& met) {
   animation->SetPlaybackMode(Animator::Mode::Loop);
 }
 
-void MetridIdleState::OnUpdate(float _elapsed, Metrid& met) {
+void MetridIdleState::OnUpdate(double _elapsed, Metrid& met) {
   cooldown -= _elapsed;
 
   if (cooldown < 0) {

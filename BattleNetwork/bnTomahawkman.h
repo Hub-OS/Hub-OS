@@ -24,6 +24,6 @@ public:
   ~Tomahawkman();
 
   const float GetHeight() const final;
-  void OnUpdate(float _elapsed) final;
+  void OnUpdate(double _elapsed) final;
   void OnDelete() final;
 };

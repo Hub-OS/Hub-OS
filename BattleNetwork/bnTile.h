@@ -20,6 +20,7 @@
 #include <set>
 #include <algorithm>
 #include <functional>
+
 using sf::RectangleShape;
 using sf::Sprite;
 using std::vector;
@@ -39,9 +40,10 @@ class Dummy;
 #include "bnAnimation.h"
 #include "bnField.h"
 #include "bnDefenseRule.h"
+#include "bnResourceHandle.h"
 
 namespace Battle {
-  class Tile : public SpriteProxyNode {
+  class Tile : public SpriteProxyNode, public ResourceHandle {
   public:
     enum class Highlight : int {
       none = 0,
@@ -50,7 +52,7 @@ namespace Battle {
     };
 
     friend Field::Field(int _width, int _height);
-    friend void Field::Update(float _elapsed);
+    friend void Field::Update(double _elapsed);
 
     /**
     * \brief Base 1. Creates a tile at column x and row y.
@@ -246,7 +248,7 @@ namespace Battle {
      * @brief Updates all entities occupying this tile
      * @param _elapsed in seconds
      */
-    void Update(float _elapsed);
+    void Update(double _elapsed);
 
     /**
      * @brief Triggers this tile and all entities to behave as if time is frozen
@@ -295,9 +297,9 @@ namespace Battle {
 
     void CleanupEntities();
     void ExecuteAllSpellAttacks();
-    void UpdateSpells(const float elapsed);
-    void UpdateArtifacts(const float elapsed);
-    void UpdateCharacters(const float elapsed);
+    void UpdateSpells(const double elapsed);
+    void UpdateArtifacts(const double elapsed);
+    void UpdateCharacters(const double elapsed);
 
     int x; /**< Column number*/
     int y; /**< Row number*/
@@ -308,17 +310,17 @@ namespace Battle {
     float width;
     float height;
     Field* field{ nullptr };
-    float teamCooldown;
+    double teamCooldown;
 
     std::shared_ptr<sf::Texture> red_team_atlas;
     std::shared_ptr<sf::Texture> blue_team_atlas;
 
-    static float teamCooldownLength;
-    float brokenCooldown;
-    static float brokenCooldownLength;
-    float flickerTeamCooldown;
-    static float flickerTeamCooldownLength;
-    float totalElapsed;
+    static double teamCooldownLength;
+    double brokenCooldown;
+    static double brokenCooldownLength;
+    double flickerTeamCooldown;
+    static double flickerTeamCooldownLength;
+    double totalElapsed;
     bool willHighlight; /**< Highlights when there is a spell occupied in this tile */
     Highlight highlightMode;
     bool isTimeFrozen;

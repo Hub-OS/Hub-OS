@@ -18,7 +18,7 @@ public:
   /**
    * @brief disables tile highlighting by default
    */
-  Hitbox(Field* _field, Team _team, int damage = 0);
+  Hitbox(Team _team, int damage = 0);
   
   /**
    * @brief deconstructor
@@ -31,7 +31,7 @@ public:
    * @brief Attacks tile and deletes itself
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief Does not move

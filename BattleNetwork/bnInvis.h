@@ -12,7 +12,7 @@
 class Invis : public Component {
 private:
   sf::Time duration; /*!< Set to 15 seconds */
-  float elapsed; /*!< Time passed in seconds */
+  double elapsed; /*!< Time passed in seconds */
   DefenseInvis* defense;
 public:
   /**
@@ -26,7 +26,7 @@ public:
    * @brief When under time, set opacity to 50% and pasthrough. Otherwise, restore character.
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief does not inject

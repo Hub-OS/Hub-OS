@@ -16,7 +16,7 @@
 
 ProtoManSummon::ProtoManSummon(Character* user, int damage) : 
   user(user),
-  Spell(user->GetField(), user->GetTeam())
+  Spell(user->GetTeam())
 {
   SetPassthrough(true);
   random = rand() % 20 - 20;
@@ -28,9 +28,9 @@ ProtoManSummon::ProtoManSummon(Character* user, int damage) :
 
   field->AddEntity(*this, *_tile);
 
-  AUDIO.Play(AudioType::APPEAR);
+  Audio().Play(AudioType::APPEAR);
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
+  setTexture(Textures().LoadTextureFromFile("resources/spells/protoman_summon.png"), true);
 
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
@@ -124,7 +124,7 @@ void ProtoManSummon::OnDelete()
   Remove();
 }
 
-void ProtoManSummon::OnUpdate(float _elapsed) {
+void ProtoManSummon::OnUpdate(double _elapsed) {
   if (tile != nullptr) {
     setPosition(tile->getPosition());
   }
@@ -139,28 +139,28 @@ void ProtoManSummon::Attack(Character* _entity) {
 
   auto tile = _entity->GetTile();
 
-  SwordEffect* e = new SwordEffect(field);
+  SwordEffect* e = new SwordEffect;
   e->SetAnimation("WIDE");
   field->AddEntity(*e, tile->GetX(), tile->GetY());
 
-  BasicSword* b = new BasicSword(field, GetTeam(), 0);
+  BasicSword* b = new BasicSword(GetTeam(), 0);
   auto props = this->GetHitboxProperties();
   props.aggressor = user;
   b->SetHitboxProperties(props);
 
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
   field->AddEntity(*b, tile->GetX(),tile->GetY());
 
-  b = new BasicSword(field, GetTeam(), 0);
+  b = new BasicSword(GetTeam(), 0);
   props = this->GetHitboxProperties();
   props.aggressor = user;
   b->SetHitboxProperties(props);
   field->AddEntity(*b,tile->GetX(), tile->GetY() + 1);
 
-  b = new BasicSword(field, GetTeam(), 0);
+  b = new BasicSword(GetTeam(), 0);
   props = this->GetHitboxProperties();
   props.aggressor = user;
   field->AddEntity(*b, tile->GetX(), tile->GetY() - 1);
 
-  AUDIO.Play(AudioType::SWORD_SWING);
+  Audio().Play(AudioType::SWORD_SWING);
 }

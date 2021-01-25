@@ -19,7 +19,7 @@ public:
    *
    * Speed modifier changes sliding/gliding time
    */
-  YoYo(Field* _field, Team _team, int damage, double speed = 1.0);
+  YoYo(Team _team,int damage, double speed = 1.0);
 
   /**
    * @brief deconstructor
@@ -37,7 +37,7 @@ public:
    * @brief Counts tile movements to max 3 and then returns to owner tile
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
 
   /**
    * @brief Deals hitbox damage

@@ -4,7 +4,7 @@
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnDrawWindow.h"
 #include "bnLogger.h"
 #include "bnBusterCardAction.h"
 #include "bnReflectCardAction.h"
@@ -17,19 +17,19 @@ const std::string RESOURCE_PATH = "resources/navis/protoman/protoman.animation";
 
 CardAction* Protoman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  return new BusterCardAction(*this, false, 1*GetAttackLevel());
 }
 
 CardAction* Protoman::OnExecuteChargedBusterAction()
 {
-  return new WideSwordCardAction(this, 20*GetAttackLevel());
+  return new WideSwordCardAction(*this, 20*GetAttackLevel());
 }
 
 CardAction* Protoman::OnExecuteSpecialAction() {
-  auto* action = new ReflectCardAction(this, 20, ReflectShield::Type::red);
+  auto* action = new ReflectCardAction(*this, 20, ReflectShield::Type::red);
   action->SetLockout(ActionLockoutProperties{
     ActionLockoutType::async,
-    frames(40).asSeconds()
+    seconds_cast<double>(frames(40))
   });
   action->SetDuration(frames(21));
 
@@ -47,7 +47,7 @@ Protoman::Protoman() : Player()
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/navis/protoman/navi_proto_atlas.png"));
+  setTexture(Textures().LoadTextureFromFile("resources/navis/protoman/navi_proto_atlas.png"));
 
   SetHealth(1000);
 
@@ -63,7 +63,7 @@ const float Protoman::GetHeight() const
   return 100.0f;
 }
 
-void Protoman::OnUpdate(float _elapsed)
+void Protoman::OnUpdate(double _elapsed)
 {
   // Continue with the parent class routine
   Player::OnUpdate(_elapsed);

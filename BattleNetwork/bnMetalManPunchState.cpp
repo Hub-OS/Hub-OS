@@ -69,7 +69,7 @@ void MetalManPunchState::OnLeave(MetalMan& metal) {
 
 }
 
-void MetalManPunchState::OnUpdate(float _elapsed, MetalMan& metal) {
+void MetalManPunchState::OnUpdate(double _elapsed, MetalMan& metal) {
 
 }
 
@@ -79,7 +79,7 @@ void MetalManPunchState::Attack(MetalMan& metal) {
   if (tile) {
     Entity* next = nullptr;
 
-    Hitbox* hitbox = new Hitbox(metal.field, metal.GetTeam(), 100);
+    Hitbox* hitbox = new Hitbox(metal.GetTeam(), 100);
     auto props = hitbox->GetHitboxProperties();
     props.flags |= Hit::flinch;
     props.aggressor = &metal;
@@ -88,8 +88,8 @@ void MetalManPunchState::Attack(MetalMan& metal) {
     metal.field->AddEntity(*hitbox, tile->GetX(), tile->GetY());
 
     if (tile->GetState() != TileState::empty && tile->GetState() != TileState::broken) {
-      ENGINE.GetCamera()->ShakeCamera(5.0, sf::seconds(0.5));
-      AUDIO.Play(AudioType::PANEL_CRACK);
+      metal.EventBus().Emit(&Camera::ShakeCamera, 5.0, sf::seconds(0.5));
+      metal.Audio().Play(AudioType::PANEL_CRACK);
 
       if (tile->GetState() == TileState::cracked) {
         tile->SetState(TileState::broken);

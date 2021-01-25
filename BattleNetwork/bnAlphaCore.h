@@ -16,7 +16,7 @@ class AlphaCore : public Character, public BossPatternAI<AlphaCore> {
   AnimationComponent* animationComponent;
   SpriteProxyNode *acid, *head, *side, *leftShoulder, *rightShoulder, *leftShoulderShoot, *rightShoulderShoot;
   Animation animation;
-  float totalElapsed, coreRegen;
+  double totalElapsed, coreRegen;
   float hitHeight;
   int coreHP, prevCoreHP;
 
@@ -49,7 +49,7 @@ public:
    * @brief When health is low, deletes. Updates AI
    * @param _elapsed
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   const float GetHeight() const override;
   void OnSpawn(Battle::Tile& start) override;
 

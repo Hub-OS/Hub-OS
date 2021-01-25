@@ -20,7 +20,7 @@ template<typename Any>
 class FadeInState : public AIState<Any>
 {
 private:
-  float factor; /*!< Strength of the pixelate effect. Set to 125 */
+  double factor; /*!< Strength of the pixelate effect. Set to 125 */
   FinishNotifier callback; /*!< Callback when intro effect finished */
 public:
   inline static const int PriorityLevel = 2;
@@ -46,7 +46,7 @@ public:
    * @param _elapsed in seconds
    * @param e entity
    */
-  void OnUpdate(float _elapsed, Any& e);
+  void OnUpdate(double _elapsed, Any& e);
 
   /**
    * @brief Revokes the pixelate shader from the entity
@@ -58,7 +58,7 @@ public:
 #include "bnField.h"
 #include "bnLogger.h"
 
-#define MAX_TIME 0.5f // in seconds
+#define MAX_TIME 0.5 // in seconds
 
 template<typename Any>
 FadeInState<Any>::FadeInState(FinishNotifier onFinish) : AIState<Any>() {
@@ -72,24 +72,24 @@ FadeInState<Any>::~FadeInState() {
 
 template<typename Any>
 void FadeInState<Any>::OnEnter(Any& e) {
-  // play swoosh
-  AUDIO.Play(AudioType::APPEAR);
+  // play iconic fade in sound
+  e.Audio().Play(AudioType::APPEAR);
 
   e.setColor(sf::Color(255, 255, 255, 0));
 }
 
 template<typename Any>
-void FadeInState<Any>::OnUpdate(float _elapsed, Any& e) {
+void FadeInState<Any>::OnUpdate(double _elapsed, Any& e) {
   factor -= _elapsed;
 
-  if (factor <= 0.f) {
-    factor = 0.f;
+  if (factor <= 0) {
+    factor = 0;
 
     if (callback) { callback(); callback = nullptr; /* do once */ }
   }
 
-  float range = (MAX_TIME - factor) / MAX_TIME;
-  e.setColor(sf::Color(255, 255, 255, (sf::Uint8)(255 * range)));
+  double range = (MAX_TIME - factor) / MAX_TIME;
+  e.setColor(sf::Color(255, 255, 255, static_cast<sf::Uint8>(255 * range)));
 }
 
 template<typename Any>

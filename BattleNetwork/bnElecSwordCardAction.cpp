@@ -14,11 +14,12 @@
 
 #define FRAMES FRAME1, FRAME2, FRAME3, FRAME4
 
-ElecSwordCardAction::ElecSwordCardAction(Character * owner, int damage) : 
+ElecSwordCardAction::ElecSwordCardAction(Character& owner, int damage) : 
   LongSwordCardAction(owner, damage) {
   ElecSwordCardAction::damage = damage;
   this->SetElement(Element::elec);
-  blade->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(PATH));
+  blade->setTexture(Textures().LoadTextureFromFile(PATH));
+  blade->setTexture(Textures().LoadTextureFromFile(PATH));
   bladeAnim = Animation(ANIM);
   bladeAnim.Reload();
   bladeAnim.SetAnimation("DEFAULT");

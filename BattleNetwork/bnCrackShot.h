@@ -8,7 +8,7 @@ protected:
   double speed; 
 public:
 
-  CrackShot(Field* _field, Team _team, Battle::Tile* t);
+  CrackShot(Team _team,Battle::Tile* t);
 
   /**
    * @brief deconstructor
@@ -26,7 +26,7 @@ public:
    * @brief Moves in one direction
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   /**
    * @brief Deals hitbox damage

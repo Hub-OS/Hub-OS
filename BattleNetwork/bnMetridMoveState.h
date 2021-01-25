@@ -16,7 +16,7 @@ class MetridMoveState : public AIState<Metrid>
 private:
   bool isMoving; /*!< Whether or not move animation is playing */
   int moveCount; /*!< 5 counts down to 0 before attacking*/
-  float cooldown; /*!< wait before moving again*/
+  double cooldown; /*!< wait before moving again*/
 public:
 
   /**
@@ -40,7 +40,7 @@ public:
    * @param _elapsed in seconds
    * @param met
    */
-  void OnUpdate(float _elapsed, Metrid& met);
+  void OnUpdate(double _elapsed, Metrid& met);
 
   /**
    * @brief Does nothing

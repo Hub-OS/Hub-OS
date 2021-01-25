@@ -1,3 +1,5 @@
+#include <Swoosh/Ease.h>
+
 #include "bnCharacter.h"
 #include "bnDefenseRule.h"
 #include "bnDefenseSuperArmor.h"
@@ -10,7 +12,6 @@
 #include "bnAnimationComponent.h"
 #include "bnShakingEffect.h"
 #include "bnBubbleTrap.h"
-#include <Swoosh/Ease.h>
 
 void Character::RegisterStatusCallback(const Hit::Flags& flag, const StatusCallback &callback)
 {
@@ -32,8 +33,8 @@ Character::Character(Rank _rank) :
   hit(false),
   CounterHitPublisher(), Entity() {
 
-  whiteout = SHADERS.GetShader(ShaderType::WHITE);
-  stun = SHADERS.GetShader(ShaderType::YELLOW);
+  whiteout = Shaders().GetShader(ShaderType::WHITE);
+  stun = Shaders().GetShader(ShaderType::YELLOW);
 }
 
 Character::~Character() {
@@ -91,7 +92,7 @@ CardAction* Character::DequeueAction()
   return temp;
 }
 
-void Character::Update(float _elapsed) {
+void Character::Update(double _elapsed) {
   hit = false; // reset our hit flag
 
   ResolveFrameBattleDamage();
@@ -117,7 +118,7 @@ void Character::Update(float _elapsed) {
         setColor(sf::Color(55, 55, 255, getColor().a));
 
         // TODO: how to interop with new shaders like pallete swap?
-        SetShader(SHADERS.GetShader(ShaderType::ADDITIVE));
+        SetShader(Shaders().GetShader(ShaderType::ADDITIVE));
       }
     }
 
@@ -151,10 +152,20 @@ void Character::Update(float _elapsed) {
 
   Entity::Update(_elapsed);
 
+  if (queuedAction && currentAction == nullptr && !GetNextTile()) {
+    currentAction = queuedAction;
+    queuedAction = nullptr;
+    currentAction->Execute();
+  }
+
+  if (currentAction) {
+    currentAction->OnUpdate(_elapsed);
+  }
+
   // If the counterSlideOffset has changed from 0, it's due to the character
   // being deleted on a counter frame. Begin animating the counter-delete slide
   if (counterSlideOffset.x != 0 || counterSlideOffset.y != 0) {
-    counterSlideDelta += _elapsed;
+    counterSlideDelta += static_cast<float>(_elapsed);
     
     auto delta = swoosh::ease::linear(counterSlideDelta, 0.10f, 1.0f);
     auto offset = delta * counterSlideOffset;
@@ -570,4 +581,10 @@ void Character::CancelSharedHitboxDamage(Character * to)
 
   if(iter != shareHit.end())
     shareHit.erase(iter);
+}
+
+void Character::EndCurrentAction()
+{
+  if (currentAction) delete currentAction;
+  currentAction = nullptr;
 }

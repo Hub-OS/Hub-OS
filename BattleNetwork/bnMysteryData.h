@@ -27,7 +27,7 @@ public:
    * @brief When health is zero, spawn an explosion effect and delete
    * @param _elapsed in seconds 
    */
-  virtual void OnUpdate(float _elapsed);
+  virtual void OnUpdate(double _elapsed);
 
   virtual void OnDelete() { ; }
 

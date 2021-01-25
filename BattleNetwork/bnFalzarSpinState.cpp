@@ -19,10 +19,10 @@ void FalzarSpinState::OnEnter(Falzar& falzar)
   animation->SetPlaybackMode(Animator::Mode::Loop);
   
   // replace with drill sfx?
-  AUDIO.Play(AudioType::INVISIBLE);
+  falzar.Audio().Play(AudioType::INVISIBLE);
 }
 
-void FalzarSpinState::OnUpdate(float _elapsed, Falzar& falzar)
+void FalzarSpinState::OnUpdate(double _elapsed, Falzar& falzar)
 {
   // TODO: hacky slide/movement code on stream
   // improve movement API
@@ -34,7 +34,7 @@ void FalzarSpinState::OnUpdate(float _elapsed, Falzar& falzar)
 
     if (!falzar.IsSliding()) {
       // replace with drill sfx?
-      AUDIO.Play(AudioType::INVISIBLE);
+      falzar.Audio().Play(AudioType::INVISIBLE);
 
       spinCount++;
 

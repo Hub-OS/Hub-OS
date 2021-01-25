@@ -2,8 +2,6 @@
 #include <SFML/Graphics.hpp>
 #include "bnUIComponent.h"
 #include "bnSpriteProxyNode.h"
-using sf::Font;
-using sf::Text;
 class Character;
 
 /*! \brief Similar to PlayerHealthUI but draws under the mob */
@@ -25,7 +23,7 @@ public:
    * @brief Dials health to the mob's current health and colorizes
    * @param elapsed
    */
-  void OnUpdate(float elapsed) override;
+  void OnUpdate(double elapsed) override;
   
   /**
    * @brief UI is drawn lest and must be injected into the battle scene

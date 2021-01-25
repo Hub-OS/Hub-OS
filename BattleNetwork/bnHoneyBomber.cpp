@@ -5,7 +5,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnDefenseVirusBody.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 const std::string RESOURCE_PATH = "resources/mobs/honeybomber/honeybomber.animation";
 
@@ -26,7 +26,7 @@ HoneyBomber::HoneyBomber(Rank _rank)
   animationComponent->SetAnimation("IDLE");
   animationComponent->SetPlaybackMode(Animator::Mode::Loop);
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_HONEYBOMBER_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_HONEYBOMBER_ATLAS));
   setScale(2.f, 2.f);
   animationComponent->OnUpdate(0);
 
@@ -56,7 +56,7 @@ void HoneyBomber::OnDelete() {
   RemoveMeFromTurnOrder();
 }
 
-void HoneyBomber::OnUpdate(float _elapsed) {
+void HoneyBomber::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - GetHeight());
   setPosition(getPosition() + tileOffset);
 

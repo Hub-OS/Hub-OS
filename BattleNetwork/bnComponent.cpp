@@ -27,7 +27,7 @@ void Component::Eject() {
   GetOwner()->FreeComponentByID(GetID());
 }
 
-void Component::Update(float elapsed) {
+void Component::Update(double elapsed) {
   if (Lifetime() == lifetimes::local) {
     this->OnUpdate(elapsed);
   }

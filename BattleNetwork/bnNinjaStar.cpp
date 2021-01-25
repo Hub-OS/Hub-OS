@@ -7,10 +7,10 @@
 #include <Swoosh/Ease.h>
 #include <Swoosh/Game.h>
 
-NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_duration), Spell(_field, _team) {
+NinjaStar::NinjaStar(Team _team, float _duration) : duration(_duration), Spell(_team) {
   SetLayer(0);;
   
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_NINJA_STAR));
+  setTexture(Textures().GetTexture(TextureType::SPELL_NINJA_STAR));
   
   animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/ninja_star.animation");
@@ -34,7 +34,7 @@ NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_dur
     Delete();
   }
 
-  AUDIO.Play(AudioType::TOSS_ITEM_LITE);
+  Audio().Play(AudioType::TOSS_ITEM_LITE);
 
   auto props = Hit::DefaultProperties;
   
@@ -47,7 +47,7 @@ NinjaStar::NinjaStar(Field* _field, Team _team, float _duration) : duration(_dur
 NinjaStar::~NinjaStar() {
 }
 
-void NinjaStar::OnUpdate(float _elapsed) {
+void NinjaStar::OnUpdate(double _elapsed) {
   double beta = swoosh::ease::linear(progress, duration, 1.0);
 
   // interpolate from top of screen to the target tile spot

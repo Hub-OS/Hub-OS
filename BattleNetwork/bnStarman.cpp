@@ -4,7 +4,7 @@
 #include "bnBuster.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnLogger.h"
 #include "bnBusterCardAction.h"
 
@@ -22,7 +22,7 @@ Starman::Starman() : Player()
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
 
-  setTexture(TEXTURES.GetTexture(TextureType::NAVI_STARMAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::NAVI_STARMAN_ATLAS));
 
   SetHealth(1200);
 
@@ -41,12 +41,12 @@ const float Starman::GetHeight() const
 
 CardAction* Starman::OnExecuteBusterAction()
 {
-  return new BusterCardAction(this, false, 1*GetAttackLevel());
+  return new BusterCardAction(*this, false, 1*GetAttackLevel());
 }
 
 CardAction* Starman::OnExecuteChargedBusterAction()
 {
-  return new BusterCardAction(this, true, 10*GetAttackLevel());
+  return new BusterCardAction(*this, true, 10*GetAttackLevel());
 }
 
 CardAction* Starman::OnExecuteSpecialAction()

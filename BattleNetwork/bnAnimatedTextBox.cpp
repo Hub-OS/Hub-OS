@@ -1,29 +1,31 @@
 #include "bnAnimatedTextBox.h"
 #include <cmath>
 
-AnimatedTextBox::AnimatedTextBox(sf::Vector2f pos)
-    : textArea(), totalTime(0), textBox(280, 40, 24, "resources/fonts/NETNAVI_4-6_V3.ttf") {
-    textureRef = LOAD_TEXTURE(ANIMATED_TEXT_BOX);
-    frame = sf::Sprite(*textureRef);
+AnimatedTextBox::AnimatedTextBox(const sf::Vector2f& pos) : 
+  textArea(), 
+  totalTime(0), 
+  textBox(280, 40) {
+  textureRef = LOAD_TEXTURE(ANIMATED_TEXT_BOX);
+  frame = sf::Sprite(*textureRef);
 
-    // set the textbox positions
-    textBox.setPosition(sf::Vector2f(getPosition().x + 90.0f, getPosition().y - 40.0f));
-    setPosition(pos);
-    setScale(2.0f, 2.0f);
+  // set the textbox positions
+  //textBox.setPosition(sf::Vector2f(45.0f, 20.0f));
+  setPosition(pos);
+  setScale(2.0f, 2.0f);
 
-    textSpeed = 2.0;
+  textSpeed = 2.0;
 
-    // Load the textbox animation
-    animator = Animation("resources/ui/textbox.animation");
-    animator.Reload();
+  // Load the textbox animation
+  animator = Animation("resources/ui/textbox.animation");
+  animator.Reload();
 
-    isPaused = true;
-    isReady = false;
-    isOpening = false;
-    isClosing = false;
+  isPaused = true;
+  isReady = false;
+  isOpening = false;
+  isClosing = false;
 
-    textBox.SetTextFillColor(sf::Color::Black);
-  }
+  textBox.SetTextFillColor(sf::Color::Black);
+}
 
 AnimatedTextBox::~AnimatedTextBox() { }
 
@@ -247,7 +249,7 @@ void AnimatedTextBox::draw(sf::RenderTarget& target, sf::RenderStates states) co
       sprite.setPosition(oldpos);
     }
 
-    states.transform = getTransform();
+    //states.transform = getTransform();
 
     messages.front()->OnDraw(target, states);
   }
@@ -258,11 +260,10 @@ void AnimatedTextBox::DrawMessage(sf::RenderTarget & target, sf::RenderStates st
   target.draw(textBox, states);
 }
 
-sf::Text AnimatedTextBox::MakeTextObject(const std::string& data)
+Text AnimatedTextBox::MakeTextObject(const std::string& data)
 {
-  sf::Text obj = textBox.GetText();
-  obj.setFont(textBox.GetFont());
-  obj.setString(data);
-
+  Text obj = textBox.GetText();
+  obj.SetString(data);
+  obj.setScale(2.f, 2.f);
   return obj;
 }

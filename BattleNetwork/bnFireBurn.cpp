@@ -1,14 +1,14 @@
 #include "bnFireBurn.h"
+#include "bnParticleImpact.h"
 #include "bnTile.h"
 #include "bnField.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(damage), Spell(_field, _team) {
+FireBurn::FireBurn(Team _team, Type type, int damage) : damage(damage), Spell(_team) {
   SetLayer(-1);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_FIREBURN));
-
+  setTexture(Textures().GetTexture(TextureType::SPELL_FIREBURN));
   setScale(2.f, 2.f);
 
   if (_team == Team::blue) {
@@ -49,7 +49,7 @@ FireBurn::FireBurn(Field* _field, Team _team, Type type, int damage) : damage(da
 FireBurn::~FireBurn() {
 }
 
-void FireBurn::OnUpdate(float _elapsed) {
+void FireBurn::OnUpdate(double _elapsed) {
   auto xoffset = 38.0f; // the flames come out a little from the origin
   setPosition(tile->getPosition().x + xoffset, tile->getPosition().y);
 
@@ -69,9 +69,11 @@ bool FireBurn::Move(Direction _direction) {
 
 void FireBurn::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
     // X hit effect when hit by fire
+    auto fx = new ParticleImpact(ParticleImpact::Type::volcano);
+    GetField()->AddEntity(*fx, *GetTile());
 
+    Audio().Play(AudioType::HURT);
   }
 }
 

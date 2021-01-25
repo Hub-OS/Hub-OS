@@ -1,15 +1,15 @@
 #include "bnMedicalBackground.h"
 #include "bnLogger.h"
 #include "bnTextureResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 
 #define COMPONENT_WIDTH 64
 #define COMPONENT_HEIGHT 64
 
-#define PATH std::string("resources/backgrounds/medical/")
+#define PATH std::string("resources/scenes/medical/")
 
 MedicalBackground::MedicalBackground()
-  : x(0.0f), y(0.0f), Background(TEXTURES.LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
+  : x(0.0f), y(0.0f), Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 
   animation = Animation(PATH + "bg.animation");
@@ -21,12 +21,12 @@ MedicalBackground::MedicalBackground()
 MedicalBackground::~MedicalBackground() {
 }
 
-void MedicalBackground::Update(float _elapsed) {
+void MedicalBackground::Update(double _elapsed) {
 
   animation.Update(_elapsed, dummy);
 
-  y -= 0.25f * _elapsed;
-  x -= 0.25f *_elapsed;
+  y -= 0.25f * static_cast<float>(_elapsed);
+  x -= 0.25f * static_cast<float>(_elapsed);
 
   if (x < 0) x = 1;
   if (y < 0) y = 1;

@@ -4,10 +4,10 @@
 class Wind : public Spell {
 public:
 
-  Wind(Field* _field, Team _team);
+  Wind(Team _team);
   ~Wind();
 
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   bool CanMoveTo(Battle::Tile* next) override;
 

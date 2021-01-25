@@ -11,11 +11,11 @@ class ReflectCardAction : public CardAction {
   int damage;
   ReflectShield::Type type;
 public:
-  ReflectCardAction(Character* owner, int damage, ReflectShield::Type type);
+  ReflectCardAction(Character& owner, int damage, ReflectShield::Type type);
   ~ReflectCardAction();
-  void OnUpdate(float _elapsed);
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd() override;
-  void EndAction();
-  void Execute();
+  void OnEndAction() override;
+  void OnExecute() override;
   void SetDuration(const frame_time_t& duration);
 };

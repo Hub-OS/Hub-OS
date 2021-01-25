@@ -8,21 +8,21 @@
 #define NODE_PATH "resources/spells/buster_shoot.png"
 #define NODE_ANIM "resources/spells/buster_shoot.animation"
 
-BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage) 
-  : CardAction(*owner, "PLAYER_SHOOTING")
+BusterCardAction::BusterCardAction(Character& owner, bool charged, int damage) 
+  : CardAction(owner, "PLAYER_SHOOTING")
 {
   BusterCardAction::damage = damage;
   BusterCardAction::charged = charged;
 
   buster = new SpriteProxyNode();
-  buster->setTexture(owner->getTexture());
+  buster->setTexture(owner.getTexture());
   buster->SetLayer(-1);
 
-  busterAnim = Animation(owner->GetFirstComponent<AnimationComponent>()->GetFilePath());
+  busterAnim = Animation(owner.GetFirstComponent<AnimationComponent>()->GetFilePath());
   busterAnim.SetAnimation("BUSTER");
 
   flare = new SpriteProxyNode();
-  flare->setTexture(TextureResourceManager::GetInstance().LoadTextureFromFile(NODE_PATH));
+  flare->setTexture(Textures().LoadTextureFromFile(NODE_PATH));
   flare->SetLayer(-1);
 
   flareAnim = Animation(NODE_ANIM);
@@ -30,12 +30,12 @@ BusterCardAction::BusterCardAction(Character * owner, bool charged, int damage)
 
   isBusterAlive = false;
 
-  busterAttachment = &AddAttachment(*owner, "buster", *buster).UseAnimation(busterAnim);
+  busterAttachment = &AddAttachment(owner, "buster", *buster).UseAnimation(busterAnim);
 
   this->SetLockout(ActionLockoutProperties{ ActionLockoutType::async, 0.5 });
 }
 
-void BusterCardAction::Execute() {
+void BusterCardAction::OnExecute() {
   auto owner = GetOwner();
 
   buster->EnableParentShader(true);
@@ -43,7 +43,7 @@ void BusterCardAction::Execute() {
   // On shoot frame, drop projectile
   auto onFire = [this]() -> void {
     Team team = this->GetOwner()->GetTeam();
-    Buster* b = new Buster(GetOwner()->GetField(), team, charged, damage);
+    Buster* b = new Buster(team, charged, damage);
 
     if (team == Team::red) {
       b->SetDirection(Direction::right);
@@ -59,36 +59,34 @@ void BusterCardAction::Execute() {
     Entity::RemoveCallback& busterRemoved = b->CreateRemoveCallback();
     busterRemoved.Slot([this]() {
       isBusterAlive = false;
-      EndAction();
-    });
+      OnEndAction();
+      });
 
     GetOwner()->GetField()->AddEntity(*b, *GetOwner()->GetTile());
-    AUDIO.Play(AudioType::BUSTER_PEA);
+    Audio().Play(AudioType::BUSTER_PEA);
 
     busterAttachment->AddAttachment(busterAnim, "endpoint", *flare).UseAnimation(flareAnim);
   };
 
-  AddAnimAction(3, onFire);
+  AddAnimAction(2, onFire);
 }
 
 BusterCardAction::~BusterCardAction()
 {
-  delete buster;
-  delete flare;
 }
 
-void BusterCardAction::OnUpdate(float _elapsed)
+void BusterCardAction::OnUpdate(double _elapsed)
 {
   CardAction::OnUpdate(_elapsed);
+}
+
+void BusterCardAction::OnEndAction()
+{
+  OnAnimationEnd();
+  Eject();
 }
 
 void BusterCardAction::OnAnimationEnd()
 {
   isBusterAlive = false;
-}
-
-void BusterCardAction::EndAction()
-{
-  OnAnimationEnd();
-  Eject();
 }

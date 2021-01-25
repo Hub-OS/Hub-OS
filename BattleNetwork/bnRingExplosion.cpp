@@ -8,10 +8,11 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/ring_explosion.animation"
 
-RingExplosion::RingExplosion(Field* field) : Artifact(field)
+RingExplosion::RingExplosion() : 
+  Artifact()
 {
   SetLayer(0);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_RING_EXPLOSION));
+  setTexture(Textures().GetTexture(TextureType::SPELL_RING_EXPLOSION));
   setScale(2.f, 2.f);
   poof = getSprite();
 
@@ -25,7 +26,7 @@ RingExplosion::RingExplosion(Field* field) : Artifact(field)
     Delete();
   };
 
-  AUDIO.Play(AudioType::EXPLODE, AudioPriority::low);
+  Audio().Play(AudioType::EXPLODE, AudioPriority::low);
 
   animation << onEnd;
 
@@ -33,7 +34,7 @@ RingExplosion::RingExplosion(Field* field) : Artifact(field)
 
 }
 
-void RingExplosion::OnUpdate(float _elapsed) {
+void RingExplosion::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition());
 
   animation.Update(_elapsed, getSprite());

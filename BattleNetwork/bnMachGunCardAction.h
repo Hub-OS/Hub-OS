@@ -18,11 +18,11 @@ class MachGunCardAction : public CardAction {
   Battle::Tile* MoveRectical(Field*, bool columnMove);
 
 public:
-  MachGunCardAction(Character* owner, int damage);
+  MachGunCardAction(Character& owner, int damage);
   ~MachGunCardAction();
 
-  void Execute() override;
-  void EndAction() override;
+  void OnExecute() override;
+  void OnEndAction() override;
   void OnAnimationEnd() override;
 };
 
@@ -31,10 +31,10 @@ class Target : public Artifact {
   double attack{}; //!< in seconds
   int damage{};
 public:
-  Target(Field*, int damage);
+  Target(int damage);
   ~Target();
 
   void OnSpawn(Battle::Tile& start) override;
-  void OnUpdate(float elapsed) override;
+  void OnUpdate(double elapsed) override;
   void OnDelete() override;
 };

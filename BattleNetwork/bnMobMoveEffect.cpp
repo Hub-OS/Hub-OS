@@ -8,10 +8,11 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/mobs/mob_move.animation"
 
-MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
+MobMoveEffect::MobMoveEffect() :
+  Artifact()
 {
   SetLayer(-1);
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_MOVE));
+  setTexture(Textures().GetTexture(TextureType::MOB_MOVE));
   setScale(2.f, 2.f);
   move = getSprite();
 
@@ -31,7 +32,7 @@ MobMoveEffect::MobMoveEffect(Field* field) : Artifact(field)
 
 }
 
-void MobMoveEffect::OnUpdate(float _elapsed) {
+void MobMoveEffect::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition() + offset);
 
   animation.Update(_elapsed, getSprite());

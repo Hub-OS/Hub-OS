@@ -11,21 +11,22 @@
 
 #define RESOURCE_PATH "resources/spells/spell_heart.animation"
 
-RollHeart::RollHeart(Character* user, int _heal) 
-  : heal(_heal), 
+RollHeart::RollHeart(Character* user, int _heal) : 
+  heal(_heal), 
   user(user),
-  Spell(user->GetField() , user->GetTeam())
+  Spell(user->GetTeam())
 {
   user->Reveal();
   SetLayer(-10);
 
   SetPassthrough(true);
 
-  HighlightTile(Battle::Tile::Highlight::solid);
+  HighlightTile(Battle::Tile::Highlight::none);
 
   height = 200;
 
-  setTexture(TEXTURES.LoadTextureFromFile("resources/spells/spell_heart.png"), true);
+  setTexture(Textures().LoadTextureFromFile("resources/spells/spell_heart.png"), true);
+
   animationComponent = CreateComponent<AnimationComponent>(this);
   animationComponent->SetPath(RESOURCE_PATH);
   animationComponent->Reload();
@@ -36,18 +37,18 @@ RollHeart::RollHeart(Character* user, int _heal)
 RollHeart::~RollHeart() {
 }
 
-void RollHeart::OnUpdate(float _elapsed) {
+void RollHeart::OnUpdate(double _elapsed) {
 
   if (tile != nullptr) {
     setPosition(tile->getPosition().x, tile->getPosition().y - height - 10.0f);
   }
 
-  height -= _elapsed * 300.f;
+  height -= static_cast<float>(_elapsed * 300.0);
   
   if (height <= 0) height = 0;
 
   if (height == 0 && !spawnFX) {
-    AUDIO.Play(AudioType::RECOVER);
+    Audio().Play(AudioType::RECOVER);
     spawnFX = true;
 
     this->Hide();

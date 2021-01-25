@@ -16,7 +16,7 @@ protected:
   double speed;
   bool popping;
 public:
-  Bubble(Field* _field, Team _team, double speed = 1.0);
+  Bubble(Team _team,double speed = 1.0);
 
   ~Bubble();
   
@@ -31,7 +31,7 @@ public:
    * @brief Continues to slide until it reaches the end of its path
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
   
   /**
    * @brief If an obstacle, deals damage and pops. If character, tries adding a bubble trap component and pops.

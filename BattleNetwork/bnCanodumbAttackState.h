@@ -15,7 +15,7 @@ public:
   ~CanodumbAttackState();
 
   void OnEnter(Canodumb& can) override;
-  void OnUpdate(float _elapsed, Canodumb& can) override;
+  void OnUpdate(double _elapsed, Canodumb& can) override;
   void OnLeave(Canodumb& can) override;
 };
 

@@ -5,10 +5,10 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
+Wave::Wave(Team _team, double speed) : Spell(_team) {
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_WAVE));
+  setTexture(Textures().GetTexture(TextureType::SPELL_WAVE));
   Wave::speed = speed;
 
   //Components setup and load
@@ -28,7 +28,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
     }
 
     if(nextTile && nextTile->IsWalkable() && !nextTile->IsEdgeTile()) {
-        auto* wave = new Wave(GetField(), GetTeam(), Wave::speed);
+        auto* wave = new Wave(GetTeam(), Wave::speed);
         wave->SetDirection(dir);
         wave->SetHitboxProperties(GetHitboxProperties());
         wave->CrackTiles(this->crackTiles);
@@ -49,7 +49,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
   props.flags |= Hit::flinch;
   SetHitboxProperties(props);
 
-  AUDIO.Play(AudioType::WAVE);
+  Audio().Play(AudioType::WAVE);
 
   HighlightTile(Battle::Tile::Highlight::solid);
 }
@@ -57,7 +57,7 @@ Wave::Wave(Field* _field, Team _team, double speed) : Spell(_field, _team) {
 Wave::~Wave() {
 }
 
-void Wave::OnUpdate(float _elapsed) {
+void Wave::OnUpdate(double _elapsed) {
   int lr = (GetDirection() == Direction::left) ? 1 : -1;
   setScale(2.f*(float)lr, 2.f);
 

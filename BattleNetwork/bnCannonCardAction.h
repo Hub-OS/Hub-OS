@@ -20,10 +20,11 @@ private:
   Type type;
 public:
 
-  CannonCardAction(Character* owner, int damage, Type type = Type::green);
+  CannonCardAction(Character& user, int damage, Type type = Type::green);
   ~CannonCardAction();
-  void OnUpdate(float _elapsed);
+
+  void OnUpdate(double _elapsed);
   void OnAnimationEnd() override;
-  void EndAction();
-  void Execute();
+  void OnEndAction();
+  void OnExecute();
 };

@@ -8,7 +8,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _team) {
+Elecpulse::Elecpulse(Team _team, int _damage) : Spell(_team) {
   SetLayer(0);
   SetPassthrough(true);
   SetElement(Element::elec);
@@ -18,7 +18,7 @@ Elecpulse::Elecpulse(Field* _field, Team _team, int _damage) : Spell(field, _tea
 
   damage = _damage;
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_ELEC_PULSE));
+  setTexture(Textures().GetTexture(TextureType::SPELL_ELEC_PULSE));
 
   animation = CreateComponent<AnimationComponent>(this);
   animation->SetPath("resources/spells/elecpulse.animation");
@@ -56,7 +56,7 @@ void Elecpulse::OnSpawn(Battle::Tile & start)
   field->AddEntity(*shared, *bottom);
 }
 
-void Elecpulse::OnUpdate(float _elapsed) {
+void Elecpulse::OnUpdate(double _elapsed) {
   GetTile()->AffectEntities(this);
 
   setPosition(tile->getPosition()+sf::Vector2f(70.0f, -60.0f));

@@ -31,7 +31,7 @@ public:
    * @param _elapsed in seconds
    * @param met
    */
-  void OnUpdate(float _elapsed, Megalian& m);
+  void OnUpdate(double _elapsed, Megalian& m);
 
   /**
    * @brief Does nothing

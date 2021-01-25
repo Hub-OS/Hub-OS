@@ -29,7 +29,7 @@ public:
    * @param _elapsed
    * @param met
    */
-  void OnUpdate(float _elapsed, Mettaur& met);
+  void OnUpdate(double _elapsed, Mettaur& met);
   
   /**
    * @brief Passes control to next mettaur in the list

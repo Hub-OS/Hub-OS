@@ -10,10 +10,10 @@ HoneyBomberMoveState::HoneyBomberMoveState() : isMoving(false), moveCount(3), co
 HoneyBomberMoveState::~HoneyBomberMoveState() { ; }
 
 void HoneyBomberMoveState::OnEnter(HoneyBomber& honey) {
-  cooldown = 0.6f;
+  cooldown = 0.6;
 }
 
-void HoneyBomberMoveState::OnUpdate(float _elapsed, HoneyBomber& honey) {
+void HoneyBomberMoveState::OnUpdate(double _elapsed, HoneyBomber& honey) {
   if (isMoving) return; // We're already moving (animations take time)
 
   cooldown -= _elapsed;
@@ -51,8 +51,8 @@ void HoneyBomberMoveState::OnUpdate(float _elapsed, HoneyBomber& honey) {
 
   if (moved) {
 
-    auto fx = new MobMoveEffect(honey.GetField());
-    honey.GetField()->AddEntity(*fx, honey.GetTile()->GetX(), honey.GetTile()->GetY());
+    auto fx = new MobMoveEffect();
+    honey.GetField()->AddEntity(*fx, *honey.GetTile());
 
     honey.AdoptNextTile();
     honey.FinishMove();

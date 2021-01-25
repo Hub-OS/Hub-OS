@@ -9,14 +9,14 @@ public:
   /**
    * @brief loads the animation and adds a callback to delete when finished
    */
-  SwordEffect(Field* field);
+  SwordEffect();
   ~SwordEffect();
 
   /**
    * @brief Update the effect animation
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) override;
+  void OnUpdate(double _elapsed) override;
 
   /**
    * @brief Removes sword effect from play

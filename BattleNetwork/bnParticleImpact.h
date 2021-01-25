@@ -35,7 +35,7 @@ public:
    * @brief plays the animation and deletes when finished
    * @param _elapsed in seconds
    */
-  void OnUpdate(float _elapsed) final override;
+  void OnUpdate(double _elapsed) final override;
 
   void OnDelete() final override;
 

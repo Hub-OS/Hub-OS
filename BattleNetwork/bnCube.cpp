@@ -9,9 +9,12 @@
 
 const int Cube::numOfAllowedCubesOnField = 2;
 
-Cube::Cube(Field* _field)
-  : killLater(false), pushedByDrag(false), animation(nullptr),
-  Obstacle(field, Team::unknown), InstanceCountingTrait<Cube>() {
+Cube::Cube(Field* _field) : 
+  killLater(false), 
+  pushedByDrag(false), 
+  animation(nullptr),
+  Obstacle(Team::unknown), 
+  InstanceCountingTrait<Cube>() {
   setTexture(LOAD_TEXTURE(MISC_CUBE));
   setScale(2.f, 2.f);
   SetFloatShoe(false);
@@ -34,7 +37,7 @@ Cube::Cube(Field* _field)
   SetHitboxProperties(props);
 
   auto impact = [this]() {
-    AUDIO.Play(AudioType::HURT);
+    Audio().Play(AudioType::HURT);
   };
 
   // breaking prop is insta-kill
@@ -97,7 +100,7 @@ bool Cube::CanMoveTo(Battle::Tile * next)
   return false;
 }
 
-void Cube::OnUpdate(float _elapsed) {
+void Cube::OnUpdate(double _elapsed) {
   // We couldn't spawn correctly
   if (animation->GetAnimationString() == "APPEAR") return;
 
@@ -150,7 +153,7 @@ void Cube::OnDelete() {
     auto poof = new ParticlePoof();
     GetField()->AddEntity(*poof, *GetTile());
 
-    AUDIO.Play(AudioType::PANEL_CRACK);
+    Audio().Play(AudioType::PANEL_CRACK);
   }
 
   tile->RemoveEntityByID(GetID());

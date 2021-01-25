@@ -6,13 +6,13 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-Tornado::Tornado(Field* _field, Team _team, int count, int damage) 
-  : damage(damage), 
+Tornado::Tornado(Team _team, int count, int damage) : 
+  damage(damage), 
   count(count),
-  Spell(_field, _team) {
+  Spell(_team) {
   SetLayer(-1);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_TORNADO));
+  setTexture(Textures().GetTexture(TextureType::SPELL_TORNADO));
   setScale(2.f, 2.f);
 
   //When the animation ends, delete this
@@ -23,15 +23,15 @@ Tornado::Tornado(Field* _field, Team _team, int count, int damage)
   };
 
   auto firstFrame = [this]() {
-    Hitbox* hitbox = new Hitbox(GetField(), GetTeam(), this->damage);
+    Hitbox* hitbox = new Hitbox(GetTeam(), this->damage);
     auto props = GetHitboxProperties();
     hitbox->SetHitboxProperties(props);
 
     auto onHit = [this](Character* entity) {
       if (entity->Hit(GetHitboxProperties())) {
-        AUDIO.Play(AudioType::HURT);
+        Audio().Play(AudioType::HURT);
 
-        Artifact* hitfx = new BusterHit(GetField(), BusterHit::Type::CHARGED);
+        Artifact* hitfx = new BusterHit(BusterHit::Type::CHARGED);
         GetField()->AddEntity(*hitfx, entity->GetTile()->GetX(), entity->GetTile()->GetY());
       }
     };
@@ -57,7 +57,7 @@ Tornado::Tornado(Field* _field, Team _team, int count, int damage)
 Tornado::~Tornado() {
 }
 
-void Tornado::OnUpdate(float _elapsed) {
+void Tornado::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x, tile->getPosition().y - 20.0f);
 
   animation.Update(_elapsed, getSprite());

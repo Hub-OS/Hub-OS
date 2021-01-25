@@ -8,7 +8,7 @@
 #include "bnWave.h"
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnDefenseVirusBody.h"
 
 #define RESOURCE_PATH "resources/mobs/starfish/starfish.animation"
@@ -30,7 +30,7 @@ Starfish::Starfish(Rank _rank)
 
   hitHeight = 60;
 
-  setTexture(TEXTURES.GetTexture(textureType));
+  setTexture(Textures().GetTexture(textureType));
   setScale(2.f, 2.f);
 
   SetHealth(health);
@@ -46,7 +46,7 @@ Starfish::~Starfish() {
 
 }
 
-void Starfish::OnUpdate(float _elapsed) {
+void Starfish::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
   AI<Starfish>::Update(_elapsed);
 }

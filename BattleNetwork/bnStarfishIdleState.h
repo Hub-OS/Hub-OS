@@ -11,8 +11,7 @@ class Starfish;
 
 class StarfishIdleState : public AIState<Starfish>
 {
-
-  float cooldown; /*!< Seconds before moving to next state */
+  double cooldown; /*!< Seconds before moving to next state */
 public:
   StarfishIdleState();
   ~StarfishIdleState();
@@ -28,7 +27,7 @@ public:
    * @param _elapsed in seconds
    * @param star the agent to update
    */
-  void OnUpdate(float _elapsed, Starfish& star);
+  void OnUpdate(double _elapsed, Starfish& star);
   
   /**
    * @brief Does nothing

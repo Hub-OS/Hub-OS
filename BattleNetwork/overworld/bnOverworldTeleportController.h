@@ -4,12 +4,13 @@
 #include "../bnSpriteProxyNode.h"
 #include "../bnAnimation.h"
 #include "../bnCallback.h"
-#include "../bnEngine.h"
+#include "../bnDrawWindow.h"
+#include "../bnResourceHandle.h"
 
 namespace Overworld {
   class Actor; // namespace Overworld::Actor;
 
-  class TeleportController {
+  class TeleportController : public ResourceHandle{
     struct Command {
       enum class state {
         teleport_in = 0,

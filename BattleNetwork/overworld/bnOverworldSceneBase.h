@@ -6,6 +6,7 @@
 #include <Swoosh/Activity.h>
 #include <Swoosh/ActivityController.h>
 
+#include "../bnScene.h"
 #include "../bnMenuWidget.h"
 #include "../bnCamera.h"
 #include "../bnInputManager.h"
@@ -14,7 +15,7 @@
 #include "../bnTextureResourceManager.h"
 #include "../bnNaviRegistration.h"
 #include "../bnPA.h"
-#include "../bnEngine.h"
+#include "../bnDrawWindow.h"
 #include "../bnAnimation.h"
 #include "../bnCardFolderCollection.h"
 #include "../bnAnimatedTextBox.h"
@@ -30,16 +31,16 @@
 class Background; // forward decl
 
 namespace Overworld {
-  class SceneBase : public swoosh::Activity {
+  class SceneBase : public Scene {
   private:
     Overworld::Actor playerActor{ "You" };
     Overworld::EmoteWidget emote;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
     Overworld::PlayerController playerController{};
+    Overworld::QuadTree quadTree{};
     std::vector<Overworld::Actor> npcs;
     std::vector<Overworld::PathController> pathControllers{};
-    Overworld::QuadTree quadTree{};
 
     Camera camera; /*!< camera in scene follows player */
     bool clicked{ false }, scaledmap{ false };

@@ -9,7 +9,9 @@
 
 using sf::IntRect;
 
-ElementalDamage::ElementalDamage(Field* field) : Artifact(field), animationComponent(this)
+ElementalDamage::ElementalDamage(Field* field) : 
+  Artifact(), 
+  animationComponent(this)
 {
   SetLayer(0);
   setTexture(LOAD_TEXTURE(ELEMENT_ALERT));
@@ -18,12 +20,12 @@ ElementalDamage::ElementalDamage(Field* field) : Artifact(field), animationCompo
   progress = 0;
 }
 
-void ElementalDamage::OnUpdate(float _elapsed) {
+void ElementalDamage::OnUpdate(double _elapsed) {
   progress += _elapsed;
 
-  auto alpha = swoosh::ease::wideParabola(progress, 0.5f, 4.0f);
+  float alpha = swoosh::ease::wideParabola(static_cast<float>(progress), 0.5f, 4.0f);
 
-  if (progress > 1.0f) {
+  if (progress > 1.0) {
     Delete();
   }
 

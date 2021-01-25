@@ -4,7 +4,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
-#include "bnEngine.h"
+#include "bnGame.h"
 #include "bnNaviExplodeState.h"
 #include "bnMetalManMissileState.h"
 #include "bnMetalManMoveState.h"
@@ -62,7 +62,7 @@ MetalMan::MetalMan(Rank _rank)
 
   healthUI = new MobHealthUI(this);
 
-  setTexture(TEXTURES.GetTexture(TextureType::MOB_METALMAN_ATLAS));
+  setTexture(Textures().GetTexture(TextureType::MOB_METALMAN_ATLAS));
 
   setScale(2.f, 2.f);
 
@@ -109,7 +109,7 @@ bool MetalMan::CanMoveTo(Battle::Tile * next)
   return false;
 }
 
-void MetalMan::OnUpdate(float _elapsed) {
+void MetalMan::OnUpdate(double _elapsed) {
   // TODO: use StuntDoubles to circumvent teleportaton
   if (movedByStun) {
     Teleport((rand() % 3) + 4, (rand() % 3) + 1);
@@ -122,7 +122,7 @@ void MetalMan::OnUpdate(float _elapsed) {
 
   BossPatternAI<MetalMan>::Update(_elapsed);
 
-  Hitbox* hitbox = new Hitbox(GetField(), GetTeam(), 40);
+  Hitbox* hitbox = new Hitbox(GetTeam(), 40);
   auto props = hitbox->GetHitboxProperties();
   props.flags |= Hit::impact | Hit::recoil | Hit::flinch;
   hitbox->SetHitboxProperties(props);

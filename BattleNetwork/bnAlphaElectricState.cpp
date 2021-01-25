@@ -30,7 +30,7 @@ void AlphaElectricState::OnEnter(AlphaCore& a) {
   anim->SetAnimation("CORE_ATTACK1", onFinish);
 }
 
-void AlphaElectricState::OnUpdate(float _elapsed, AlphaCore& a) {
+void AlphaElectricState::OnUpdate(double _elapsed, AlphaCore& a) {
   if (current) {
     if (current->WillRemoveLater()) {
       AnimationComponent* anim = a.GetFirstComponent<AnimationComponent>();
@@ -53,7 +53,7 @@ void AlphaElectricState::OnUpdate(float _elapsed, AlphaCore& a) {
   if (!ready) return;
 
   int count = a.GetRank() == AlphaCore::Rank::EX ? 10 : 7;
-  current = new AlphaElectricCurrent(a.GetField(), a.GetTeam(), count);
+  current = new AlphaElectricCurrent(a.GetTeam(), count);
   auto props = current->GetHitboxProperties();
   props.aggressor = &a;
   current->SetHitboxProperties(props);

@@ -14,11 +14,11 @@
 
 #define COOLDOWN 40.0f/1000.0f
 
-Vulcan::Vulcan(Field* _field, Team _team,int damage) : Spell(_field, _team) {
+Vulcan::Vulcan(Team _team, int damage) : Spell(_team) {
   SetPassthrough(true);
   SetLayer(0);
 
-  AUDIO.Play(AudioType::GUN, AudioPriority::highest);
+  Audio().Play(AudioType::GUN, AudioPriority::highest);
 
   auto props = GetHitboxProperties();
   props.flags = props.flags & ~Hit::recoil;
@@ -31,7 +31,7 @@ Vulcan::Vulcan(Field* _field, Team _team,int damage) : Spell(_field, _team) {
 Vulcan::~Vulcan() {
 }
 
-void Vulcan::OnUpdate(float _elapsed) {
+void Vulcan::OnUpdate(double _elapsed) {
   // Strike panel and leave
   GetTile()->AffectEntities(this);
 
@@ -56,7 +56,7 @@ void Vulcan::OnDelete()
 
 void Vulcan::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT);
+    Audio().Play(AudioType::HURT);
     auto impact = new ParticleImpact(ParticleImpact::Type::vulcan);
     impact->SetHeight(_entity->GetHeight());
     field->AddEntity(*impact, *_entity->GetTile());
@@ -66,7 +66,7 @@ void Vulcan::Attack(Character* _entity) {
     auto next = GetField()->GetAt(tile->GetX() + 1, tile->GetY());
 
     if (next) {
-      Spell* hitbox = new Hitbox(field, GetTeam(), 0);
+      Spell* hitbox = new Hitbox(GetTeam(), 0);
       hitbox->SetHitboxProperties(GetHitboxProperties());
       field->AddEntity(*hitbox, *next);
     }

@@ -16,10 +16,10 @@ private:
     AnimationComponent* anim;
 
 public:
-    Missile(Field* _field, Team _team, Battle::Tile* target, float _duration);
+    Missile(Team _team,Battle::Tile* target, float _duration);
     ~Missile();
 
-    void OnUpdate(float _elapsed) override;
+    void OnUpdate(double _elapsed) override;
     void OnDelete() override;
     bool Move(Direction _direction) override;
     void Attack(Character* _entity) override;

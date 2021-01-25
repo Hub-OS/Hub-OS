@@ -6,13 +6,13 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 
-YoYo::YoYo(Field* _field, Team _team, int damage, double speed) : Spell(_field, _team) {
+YoYo::YoYo(Team _team, int damage, double speed) : Spell(_team) {
   // YoYo float over tiles
   SetFloatShoe(true);
 
   SetLayer(0);
 
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_YOYO));
+  setTexture(Textures().GetTexture(TextureType::SPELL_YOYO));
   setScale(2.f, 2.f);
 
   YoYo::speed = speed;
@@ -41,7 +41,7 @@ YoYo::~YoYo() {
 
 void YoYo::OnDelete() {
   if (startTile && startTile != GetTile()) {
-    GetField()->AddEntity(*new Explosion(GetField(), GetTeam(), 1), *GetTile());
+    GetField()->AddEntity(*new Explosion, *GetTile());
   }
   Remove();
 }
@@ -50,7 +50,7 @@ void YoYo::OnSpawn(Battle::Tile& start) {
   startTile = &start;
 }
 
-void YoYo::OnUpdate(float _elapsed) {
+void YoYo::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition().x + tileOffset.x, GetTile()->getPosition().y + tileOffset.y);
 
   // When moving, attack tiles normally
@@ -82,7 +82,7 @@ void YoYo::OnUpdate(float _elapsed) {
         animation->AddCallback(3, [this, direction]() {
           // First, let the slide finish for this final tile...
           if (!IsSliding()) {
-            auto hitbox = new Hitbox(GetField(), GetTeam());
+            auto hitbox = new Hitbox(GetTeam());
             hitbox->SetHitboxProperties(GetHitboxProperties());
             GetField()->AddEntity(*hitbox, *GetTile());
 
@@ -113,6 +113,6 @@ bool YoYo::CanMoveTo(Battle::Tile* tile) {
 
 void YoYo::Attack(Character* _entity) {
   if (_entity->Hit(GetHitboxProperties())) {
-    AUDIO.Play(AudioType::HURT, AudioPriority::highest);
+    Audio().Play(AudioType::HURT, AudioPriority::highest);
   }
 }

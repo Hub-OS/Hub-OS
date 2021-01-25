@@ -7,12 +7,11 @@ using sf::Texture;
  */
 class Artifact : public Entity {
 public:
-  Artifact() = delete;
-  Artifact(Field* _field);
+  Artifact();
   virtual ~Artifact();
 
-  virtual void OnUpdate(float _elapsed) = 0;
+  virtual void OnUpdate(double _elapsed) = 0;
   virtual void OnDelete() = 0;
-  virtual void Update(float _elapsed) final;
+  virtual void Update(double _elapsed) final;
   virtual void AdoptTile(Battle::Tile* tile) final;
 };

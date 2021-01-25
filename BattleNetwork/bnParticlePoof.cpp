@@ -8,10 +8,11 @@ using sf::IntRect;
 
 #define RESOURCE_PATH "resources/spells/poof.animation"
 
-ParticlePoof::ParticlePoof() : Artifact(nullptr)
+ParticlePoof::ParticlePoof() : 
+  Artifact()
 {
   SetLayer(0);
-  setTexture(TEXTURES.GetTexture(TextureType::SPELL_POOF));
+  setTexture(Textures().GetTexture(TextureType::SPELL_POOF));
   setScale(2.f, 2.f);
   poof = getSprite();
 
@@ -31,7 +32,7 @@ ParticlePoof::ParticlePoof() : Artifact(nullptr)
 
 }
 
-void ParticlePoof::OnUpdate(float _elapsed) {
+void ParticlePoof::OnUpdate(double _elapsed) {
   setPosition(GetTile()->getPosition());
 
   animation.Update(_elapsed, getSprite());

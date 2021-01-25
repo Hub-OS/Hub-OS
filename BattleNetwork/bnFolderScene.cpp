@@ -19,7 +19,6 @@ using sf::RenderWindow;
 using sf::VideoMode;
 using sf::Clock;
 using sf::Event;
-using sf::Font;
 
 using namespace swoosh::types;
 
@@ -28,9 +27,15 @@ using namespace swoosh::types;
 FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderCollection& collection) :
   collection(collection),
   folderSwitch(true),
+  font(Font::Style::wide),
+  menuLabel("CHIP FOLDER", font),
+  cardFont(Font::Style::thick),
+  cardLabel("", cardFont),
+  numberFont(Font::Style::thick),
+  numberLabel("", numberFont),
   textbox(sf::Vector2f(4, 255)),
   questionInterface(nullptr),
-  swoosh::Activity(&controller)
+  Scene(controller)
 {
   textbox.SetTextSpeed(2.0f);
 
@@ -38,28 +43,22 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   enterText = false;
   gotoNextScene = true;
 
-  // Menu name font
-  font = TEXTURES.LoadFontFromFile("resources/fonts/dr_cain_terminal.ttf");
-  menuLabel = new sf::Text("Folders", *font);
-  menuLabel->setCharacterSize(15);
-  menuLabel->setPosition(sf::Vector2f(20.f, 5.0f));
+  // Menu name
+  menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
+  menuLabel.setScale(2.f, 2.f);
 
   // Selection input delays
   maxSelectInputCooldown = 0.25; // 4th of a second
   selectInputCooldown = maxSelectInputCooldown;
 
   // Card UI font
-  cardFont = TEXTURES.LoadFontFromFile("resources/fonts/mmbnthick_regular.ttf");
-  cardLabel = new sf::Text("", *cardFont);
-  cardLabel->setPosition(275.f, 15.f);
+  cardLabel.setPosition(275.f, 15.f);
+  cardLabel.setScale(2.f, 2.f);
 
-  numberFont = TEXTURES.LoadFontFromFile("resources/fonts/mgm_nbr_pheelbert.ttf");
-  numberLabel = new sf::Text("", *numberFont);
-  numberLabel->setOutlineColor(sf::Color(48, 56, 80));
-  numberLabel->setOutlineThickness(2.f);
-  numberLabel->setScale(0.8f, 0.8f);
-  numberLabel->setOrigin(numberLabel->getLocalBounds().width, 0);
-  numberLabel->setPosition(sf::Vector2f(170.f, 28.0f));
+  numberLabel.SetColor(sf::Color(48, 56, 80));
+  numberLabel.setScale(2.f, 2.f);
+  numberLabel.setOrigin(numberLabel.GetWorldBounds().width, 0);
+  numberLabel.setPosition(sf::Vector2f(170.f, 28.0f));
 
   // folder menu graphic
   bg = sf::Sprite(*LOAD_TEXTURE(FOLDER_INFO_BG));
@@ -72,10 +71,7 @@ FolderScene::FolderScene(swoosh::ActivityController &controller, CardFolderColle
   folderBox = sf::Sprite(*LOAD_TEXTURE(FOLDER_BOX));
   folderBox.setScale(2.f, 2.f);
 
-  folderOptions = sf::Sprite(*LOAD_TEXTURE(FOLDER_OPTIONS));
-  folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
-  folderOptions.setPosition(98.0f, 210.0f);
-  folderOptions.setScale(2.f, 0.f); // hide on start
+  RefreshOptions();
 
   folderCursor = sf::Sprite(*LOAD_TEXTURE(FOLDER_BOX_CURSOR));
   folderCursor.setScale(2.f, 2.f);
@@ -163,12 +159,12 @@ void FolderScene::onUpdate(double elapsed) {
 
   // Prioritize textbox input
   if (textbox.IsOpen() && questionInterface) {
-    if (INPUTx.Has(InputEvents::pressed_ui_left)) {
+    if (Input().Has(InputEvents::pressed_ui_left)) {
       questionInterface->SelectYes();
-    } else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
+    } else if (Input().Has(InputEvents::pressed_ui_right)) {
       questionInterface->SelectNo();
     }
-    else if (INPUTx.Has(InputEvents::pressed_confirm)) {
+    else if (Input().Has(InputEvents::pressed_confirm)) {
       if (!textbox.IsEndOfMessage()) {
         questionInterface->Continue();
       }
@@ -176,7 +172,7 @@ void FolderScene::onUpdate(double elapsed) {
         questionInterface->ConfirmSelection();
       }
     }
-    else if (INPUTx.Has(InputEvents::pressed_cancel)) {
+    else if (Input().Has(InputEvents::pressed_cancel)) {
       questionInterface->SelectNo();
       questionInterface->ConfirmSelection();
     }
@@ -192,7 +188,7 @@ void FolderScene::onUpdate(double elapsed) {
     cancelButton = PRESSED_B;
 #endif
 
-    if (INPUTx.Has(cancelButton)) {
+    if (Input().Has(cancelButton)) {
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(false);
 #endif
@@ -203,22 +199,22 @@ void FolderScene::onUpdate(double elapsed) {
         folderNames[currFolderIndex] = collection.GetFolderNames()[currFolderIndex];
       }
 
-      INPUTx.EndCaptureInputBuffer();
+      Input().EndCaptureInputBuffer();
     }
     else {
-      std::string buffer = INPUTx.GetInputBuffer();
+      std::string buffer = Input().GetInputBuffer();
 
       buffer = buffer.substr(0, 10);
       folderNames[currFolderIndex] = buffer;
 
-      INPUTx.SetInputBuffer(buffer); // shrink
+      Input().SetInputBuffer(buffer); // shrink
 
 #ifdef __ANDROID__
         sf::Keyboard::setVirtualKeyboardVisible(true);
 #endif
     }
   } else if (!gotoNextScene) {
-      if (INPUTx.Has(InputEvents::pressed_ui_up) || INPUTx.Has(InputEvents::held_ui_up)) {
+      if (Input().Has(InputEvents::pressed_ui_up) || Input().Has(InputEvents::held_ui_up)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -238,7 +234,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_down) || INPUTx.Has(InputEvents::held_ui_down)) {
+      else if (Input().Has(InputEvents::pressed_ui_down) || Input().Has(InputEvents::held_ui_down)) {
         selectInputCooldown -= elapsed;
 
         if (selectInputCooldown <= 0) {
@@ -258,7 +254,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_right)) {
+      else if (Input().Has(InputEvents::pressed_ui_right)) {
         extendedHold = false;
 
         selectInputCooldown -= elapsed;
@@ -272,7 +268,7 @@ void FolderScene::onUpdate(double elapsed) {
           }
         }
       }
-      else if (INPUTx.Has(InputEvents::pressed_ui_left)) {
+      else if (Input().Has(InputEvents::pressed_ui_left)) {
         extendedHold = false;
 
         selectInputCooldown -= elapsed;
@@ -292,9 +288,9 @@ void FolderScene::onUpdate(double elapsed) {
       }
 
       currCardIndex = std::max(0, currCardIndex);
-      currCardIndex = std::min(numOfCards - 1, currCardIndex);
+      currCardIndex = std::min(std::max(0, numOfCards - 1), currCardIndex);
       currFolderIndex = std::max(0, currFolderIndex);
-      currFolderIndex = std::min((int)folderNames.size() - 1, currFolderIndex);
+      currFolderIndex = std::min(std::max(0, static_cast<int>(folderNames.size()) - 1), currFolderIndex);
       optionIndex = std::max(0, optionIndex);
 
       if (folderNames.size()) {
@@ -307,10 +303,8 @@ void FolderScene::onUpdate(double elapsed) {
       if (currCardIndex != lastCardIndex 
         || currFolderIndex != lastFolderIndex 
         || optionIndex != lastOptionIndex) {
-        AUDIO.Play(AudioType::CHIP_SELECT);
+        Audio().Play(AudioType::CHIP_SELECT);
       }
-
-
 
 #ifdef __ANDROID__
       if(lastFolderIndex != currFolderIndex) {
@@ -331,39 +325,39 @@ void FolderScene::onUpdate(double elapsed) {
 
       InputEvent cancelButton = InputEvents::released_cancel;
 
-      if (INPUTx.Has(InputEvents::pressed_cancel)) {
+      if (Input().Has(InputEvents::pressed_cancel)) {
         if (!promptOptions) {
           gotoNextScene = true;
-          AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+          Audio().Play(AudioType::CHIP_DESC_CLOSE);
 
           using segue = segue<PushIn<direction::right>, milli<500>>;
           getController().pop<segue>();
         } else {
             promptOptions = false;
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            Audio().Play(AudioType::CHIP_DESC_CLOSE);
         }
-      } else if (INPUTx.Has(InputEvents::pressed_cancel)) {
+      } else if (Input().Has(InputEvents::pressed_cancel)) {
           if (promptOptions) {
             promptOptions = false;
-            AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+            Audio().Play(AudioType::CHIP_DESC_CLOSE);
           }
-      } else if (INPUTx.Has(InputEvents::pressed_confirm)) {
+      } else if (Input().Has(InputEvents::pressed_confirm)) {
         if (!promptOptions) {
           promptOptions = true;
-          AUDIO.Play(AudioType::CHIP_DESC);
+          Audio().Play(AudioType::CHIP_DESC);
         }
         else if(folderNames.size()) {
           switch (optionIndex) {
           case 0: // EDIT
             if (folder) {
+              Audio().Play(AudioType::CHIP_CONFIRM);
+
               using effect = segue<BlackWashFade, milli<500>>;
               getController().push<effect::to<FolderEditScene>>(*folder);
-
-              AUDIO.Play(AudioType::CHIP_CONFIRM);
               gotoNextScene = true;
             }
             else {
-              AUDIO.Play(AudioType::CHIP_ERROR);
+              Audio().Play(AudioType::CHIP_ERROR);
             }
             break;
           case 1: // EQUIP
@@ -377,18 +371,19 @@ void FolderScene::onUpdate(double elapsed) {
             if (naviSelectedStr.empty()) naviSelectedStr = "0"; // We must have a key for the selected navi
             WEBCLIENT.SetKey("FolderFor:" + naviSelectedStr, folderStr);
 
-            AUDIO.Play(AudioType::PA_ADVANCE);
+            Audio().Play(AudioType::PA_ADVANCE);
           }
             break;
           case 2: // CHANGE NAME
             if (folder) {
+              Audio().Play(AudioType::CHIP_CONFIRM);
               using effect = segue<BlackWashFade, milli<500>>;
               getController().push<effect::to<FolderChangeNameScene>>(folderNames[currFolderIndex]);
-              AUDIO.Play(AudioType::CHIP_CONFIRM);
+
               gotoNextScene = true;
             }
             else {
-              AUDIO.Play(AudioType::CHIP_ERROR);
+              Audio().Play(AudioType::CHIP_ERROR);
             }
             break;
           case 3: // NEW 
@@ -403,14 +398,14 @@ void FolderScene::onUpdate(double elapsed) {
               promptOptions = false;
               currFolderIndex--;
               folderSwitch = true;
-            });
+              });
             break;
           }
         }
         else {
           MakeNewFolder();
           promptOptions = false;
-          currFolderIndex = (int)folderNames.size() - 1;
+          currFolderIndex = std::max(0, static_cast<int>(folderNames.size() - 1));
           folderSwitch = true;
         }
       }
@@ -484,25 +479,24 @@ void FolderScene::onResume() {
 }
 
 void FolderScene::onDraw(sf::RenderTexture& surface) {
-  ENGINE.SetRenderSurface(surface);
-
-  ENGINE.Draw(bg);
-  ENGINE.Draw(menuLabel);
+  surface.draw(bg);
+  surface.draw(menuLabel);
 
   if (folderNames.size() > 0) {
     for (int i = 0; i < folderNames.size(); i++) {
-      folderBox.setPosition(26.0f + (i*144.0f) - (float)folderOffsetX, 34.0f);
-      ENGINE.Draw(folderBox);
+      float folderLeft = 26.0f + (i*144.0f) - (float)folderOffsetX;
+      folderBox.setPosition(folderLeft, 34.0f);
+      surface.draw(folderBox);
 
-      cardLabel->setFillColor(sf::Color::White);
-      cardLabel->setString(folderNames[i]);
-      cardLabel->setOrigin(cardLabel->getGlobalBounds().width / 2.0f, cardLabel->getGlobalBounds().height / 2.0f);
-      cardLabel->setPosition(95.0f + (i*144.0f) - (float)folderOffsetX, 50.0f);
-      ENGINE.Draw(cardLabel, false);
+      cardLabel.SetColor(sf::Color::White);
+      cardLabel.SetString(folderNames[i]);
+      cardLabel.setOrigin(0.0f, 0.0f);
+      cardLabel.setPosition(folderLeft + 12.0f, 54.0f);
+      surface.draw(cardLabel);
 
       if (i == selectedFolderIndex) {
-        folderEquip.setPosition(25.0f + (i*144.0f) - (float)folderOffsetX, 30.0f);
-        ENGINE.Draw(folderEquip, false);
+        folderEquip.setPosition(folderLeft - 2.0f, 30.0f);
+        surface.draw(folderEquip);
       }
 
     }
@@ -533,8 +527,11 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       }
     }
 #else 
-    auto x = swoosh::ease::interpolate((float)frameElapsed * 7.f, folderCursor.getPosition().x,
-      98.0f + (std::min(2, currFolderIndex) * 144.0f));
+    auto x = swoosh::ease::interpolate(
+      (float)frameElapsed * 7.f, folderCursor.getPosition().x,
+      98.0f + (std::min(2, currFolderIndex) * 144.0f)
+    );
+
     folderCursor.setPosition(x, 68.0f);
 
     if (currFolderIndex > 2) {
@@ -548,7 +545,7 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
     }
 #endif
 
-    ENGINE.Draw(folderCursor, false);
+    surface.draw(folderCursor);
   }
 
   // ScrollBar limits: Top to bottom screen position when selecting first and last card respectively
@@ -556,14 +553,14 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
   float depth = ((float)(currCardIndex) / (float)numOfCards)*bottom;
   scrollbar.setPosition(436.f, top + depth);
 
-  ENGINE.Draw(scrollbar);
-  ENGINE.Draw(folderOptions);
+  surface.draw(scrollbar);
+  surface.draw(folderOptions);
 
   float scale = 0.0f;
 
   if (promptOptions) {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 2.0f, folderOptions.getScale().y);
-    ENGINE.Draw(cursor);
+    surface.draw(cursor);
   }
   else {
     scale = swoosh::ease::interpolate((float)frameElapsed*4.0f, 0.0f, folderOptions.getScale().y);
@@ -578,7 +575,6 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
 
   if (!folder) return;
   if (folder->GetSize() != 0) {
-
     // Move the card library iterator to the current highlighted card
     CardFolder::Iter iter = folder->Begin();
 
@@ -586,46 +582,44 @@ void FolderScene::onDraw(sf::RenderTexture& surface) {
       iter++;
     }
 
-    cardLabel->setFillColor(sf::Color::White);
-    cardLabel->setString(folderNames[currFolderIndex]);
-    cardLabel->setOrigin(0.f, cardLabel->getGlobalBounds().height / 2.0f);
-    cardLabel->setPosition(195.0f, 100.0f);
-    ENGINE.Draw(cardLabel, false);
+    cardLabel.SetColor(sf::Color::White);
+    cardLabel.SetString(folderNames[currFolderIndex]);
+    cardLabel.setOrigin(0.f, 0.f);
+    cardLabel.setPosition(195.0f, 102.0f);
+    surface.draw(cardLabel);
 
     // Now that we are at the viewing range, draw each card in the list
     for (int i = 0; i < maxCardsOnScreen && currCardIndex + i < numOfCards; i++) {
+      float cardIconY = 132.0f + (32.f*i);
+
       cardIcon.setTexture(*WEBCLIENT.GetIconForCard((*iter)->GetUUID()));
-      cardIcon.setPosition(2.f*99.f, 133.0f + (32.f*i));
-      ENGINE.Draw(cardIcon, false);
+      cardIcon.setPosition(2.f*99.f, cardIconY);
+      surface.draw(cardIcon);
 
-      cardLabel->setOrigin(0.0f, 0.0f);
-      cardLabel->setFillColor(sf::Color::White);
-      cardLabel->setPosition(2.f*115.f, 128.0f + (32.f*i));
-      cardLabel->setString((*iter)->GetShortName());
-      ENGINE.Draw(cardLabel, false);
-
+      cardLabel.setPosition(2.f*115.f, cardIconY + 4.0f);
+      cardLabel.SetString((*iter)->GetShortName());
+      surface.draw(cardLabel);
 
       int offset = (int)((*iter)->GetElement());
       element.setTextureRect(sf::IntRect(14 * offset, 0, 14, 14));
-      element.setPosition(2.f*173.f, 133.0f + (32.f*i));
-      ENGINE.Draw(element, false);
+      element.setPosition(2.f*173.f, cardIconY);
+      surface.draw(element);
 
-      cardLabel->setOrigin(0, 0);
-      cardLabel->setPosition(2.f*190.f, 128.0f + (32.f*i));
-      cardLabel->setString(std::string() + (*iter)->GetCode());
-      ENGINE.Draw(cardLabel, false);
+      cardLabel.setPosition(2.f*190.f, cardIconY + 4.0f);
+      cardLabel.SetString(std::string() + (*iter)->GetCode());
+      surface.draw(cardLabel);
 
-      mbPlaceholder.setPosition(2.f*200.f, 134.0f + (32.f*i));
-      ENGINE.Draw(mbPlaceholder, false);
+      mbPlaceholder.setPosition(2.f*200.f, cardIconY + 2.0f);
+      surface.draw(mbPlaceholder);
       iter++;
     }
   }
 
-  ENGINE.Draw(textbox, false);
+  surface.draw(textbox);
 }
 
 void FolderScene::MakeNewFolder() {
-  AUDIO.Play(AudioType::CHIP_CONFIRM); 
+  Audio().Play(AudioType::CHIP_CONFIRM); 
 
   std::string name = "NewFldr";
   int i = 0;
@@ -636,13 +630,14 @@ void FolderScene::MakeNewFolder() {
   }
 
   folderNames = collection.GetFolderNames();
+
+  RefreshOptions();
 }
 
 void FolderScene::DeleteFolder(std::function<void()> onSuccess)
 {
   if (!folderNames.size()) {
-    AUDIO.Play(AudioType::CHIP_ERROR);
-
+    Audio().Play(AudioType::CHIP_ERROR);
     return;
   }
 
@@ -650,32 +645,46 @@ void FolderScene::DeleteFolder(std::function<void()> onSuccess)
     if (collection.DeleteFolder(folderNames[currFolderIndex])) {
       onSuccess();
       folderNames = collection.GetFolderNames();
+
+      RefreshOptions();
     }
 
     textbox.Close();
-    AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+    Audio().Play(AudioType::CHIP_DESC_CLOSE);
   };
 
   auto onNo = [this]() {
     textbox.Close();
-    AUDIO.Play(AudioType::CHIP_DESC_CLOSE);
+    Audio().Play(AudioType::CHIP_DESC_CLOSE);
   };
 
   //if (questionInterface) delete questionInterface;
   questionInterface = new Question("Delete this folder?", onYes, onNo);
 
   textbox.EnqueMessage(
-    sf::Sprite(*LOAD_TEXTURE(MUG_NAVIGATOR)), 
+    sf::Sprite(*Textures().GetTexture(TextureType::MUG_NAVIGATOR)), 
     "resources/ui/navigator.animation", 
     questionInterface);
 
   textbox.Open();
 }
 
-void FolderScene::onEnd() {
-  delete menuLabel;
-  delete numberLabel;
+void FolderScene::RefreshOptions()
+{
+  const bool emptyCollection = collection.GetFolderNames().empty();
+  const auto folderOptionsTex = emptyCollection ? LOAD_TEXTURE(FOLDER_OPTIONS_NEW) : LOAD_TEXTURE(FOLDER_OPTIONS);
+  folderOptions = sf::Sprite(*folderOptionsTex);
+  folderOptions.setOrigin(folderOptions.getGlobalBounds().width / 2.0f, folderOptions.getGlobalBounds().height / 2.0f);
 
+  if (emptyCollection) {
+    folderOptions.setPosition(98.0f, 145.0f);
+}
+  else {
+    folderOptions.setPosition(98.0f, 210.0f);
+  }
+}
+
+void FolderScene::onEnd() {
 #ifdef __ANDROID__
     ShutdownTouchControls();
 #endif
@@ -689,12 +698,12 @@ void FolderScene::StartupTouchControls() {
     rightSide.enableExtendedRelease(true);
 
     rightSide.onTouch([]() {
-        INPUTx.VirtualKeyEvent(InputEvent::RELEASED_A);
+        Input().VirtualKeyEvent(InputEvent::RELEASED_A);
     });
 
     rightSide.onRelease([this](sf::Vector2i delta) {
         if(!releasedB) {
-            INPUTx.VirtualKeyEvent(InputEvent::PRESSED_A);
+            Input().VirtualKeyEvent(InputEvent::PRESSED_A);
         }
 
         releasedB = false;
@@ -702,8 +711,8 @@ void FolderScene::StartupTouchControls() {
 
     rightSide.onDrag([this](sf::Vector2i delta){
         if(delta.x < -25 && !releasedB && !touchStart) {
-            INPUTx.VirtualKeyEvent(InputEvent::PRESSED_B);
-            INPUTx.VirtualKeyEvent(InputEvent::RELEASED_B);
+            Input().VirtualKeyEvent(InputEvent::PRESSED_B);
+            Input().VirtualKeyEvent(InputEvent::RELEASED_B);
             releasedB = true;
         }
     });

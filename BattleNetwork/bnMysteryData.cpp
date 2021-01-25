@@ -24,12 +24,12 @@ MysteryData::~MysteryData() {
 
 }
 
-void MysteryData::OnUpdate(float _elapsed) {
+void MysteryData::OnUpdate(double _elapsed) {
   if (tile == nullptr) return;
 
   if (GetHealth() == 0) {
     Delete();
-    field->AddEntity(*new Explosion(field, team), *GetTile());
+    field->AddEntity(*new Explosion, *GetTile());
   }
 
   setPosition(tile->getPosition().x, tile->getPosition().y);

@@ -50,7 +50,7 @@ public:
    * @param _elapsed in seconds
    * @param e entity
    */
-  void OnUpdate(float _elapsed, Any& e);
+  void OnUpdate(double _elapsed, Any& e);
   
   /**
    * @brief Calls ExplodeState<Any>::OnLeave(e)
@@ -76,7 +76,7 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
   /* Spawn shine artifact */
   Battle::Tile* tile = e.GetTile();
   Field* field = e.GetField();
-  shine = new ShineExplosion(field, e.GetTeam());
+  shine = new ShineExplosion();
   field->AddEntity(*shine, tile->GetX(), tile->GetY());
 
   auto animation = e.template GetFirstComponent<AnimationComponent>();
@@ -88,7 +88,7 @@ void NaviExplodeState<Any>::OnEnter(Any& e) {
 }
 
 template<typename Any>
-void NaviExplodeState<Any>::OnUpdate(float _elapsed, Any& e) {
+void NaviExplodeState<Any>::OnUpdate(double _elapsed, Any& e) {
   ExplodeState<Any>::OnUpdate(_elapsed, e);
 
   if (e.WillRemoveLater()) {

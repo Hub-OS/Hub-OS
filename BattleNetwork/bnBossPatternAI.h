@@ -138,7 +138,7 @@ public:
    *
    * If a change state request is made inside of a state, change to that state at end of update
    */
-  void Update(float _elapsed) {
+  void Update(double _elapsed) {
     if (isUpdating) return; // Prevent crashes from updating inside an active state
 
     isUpdating = true;

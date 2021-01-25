@@ -5,7 +5,7 @@ class Metrid;
 
 class MetridIdleState : public AIState<Metrid>
 {
-  float cooldown; /*!< How long to wait before moving */
+  double cooldown; /*!< How long to wait before moving */
 public:
 
   /**
@@ -31,7 +31,7 @@ public:
    * @param _elapsed in seconds
    * @param met
    */
-  void OnUpdate(float _elapsed, Metrid& met);
+  void OnUpdate(double _elapsed, Metrid& met);
 
   /**
    * @brief Does nothing
