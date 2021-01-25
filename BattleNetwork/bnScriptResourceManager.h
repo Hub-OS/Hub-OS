@@ -12,8 +12,6 @@
 #ifdef __unix__
 #define LUA_USE_POSIX 1
 #endif
-#define SOL_ALL_SAFETIES_ON 1
-#define SOL_USING_CXX_LUA 1
 #include <sol/sol.hpp>
 
 class ScriptResourceManager {
@@ -55,8 +53,5 @@ public:
  * @brief Loads all scripts
  * @param status Increases the count after each shader loads
  */
-  void LoadAllSCripts(std::atomic<int> &status);
+  void LoadAllScripts(std::atomic<int> &status);
 };
-
-/*! \brief Shorthand to get instance of the manager */
-#define SCRIPTS ScriptResourceManager::GetInstance()

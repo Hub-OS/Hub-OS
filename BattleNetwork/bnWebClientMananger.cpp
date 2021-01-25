@@ -5,13 +5,8 @@
 #include "bnElements.h"
 #include "bnCardUUIDs.h"
 #include "bnTextureResourceManager.h"
-<<<<<<< HEAD
 #include <cstring>
 #include <mutex>
-=======
-
-#include <cstring>
->>>>>>> feature/no_singletons
 #include <SFML/Network/Http.hpp>
 
 void WebClientManager::PingThreadHandler()

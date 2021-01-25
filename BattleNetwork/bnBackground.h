@@ -1,7 +1,7 @@
 #pragma once
 
 #include "bnShaderResourceManager.h"
-#include "bnTextureResourceManager.h"
+#include "bnResourceHandle.h"
 #include "bnSmartShader.h"
 
 #include <cmath>
@@ -16,7 +16,7 @@
  * the screen
  */
 
-class Background : public sf::Drawable, public sf::Transformable
+class Background : public sf::Drawable, public sf::Transformable, public ResourceHandle
 {
 protected:
   /**
@@ -106,7 +106,7 @@ public:
 
       FillScreen(textureSize);
 
-      textureWrap = SHADERS.GetShader(ShaderType::TEXEL_TEXTURE_WRAP);
+      textureWrap = Shaders().GetShader(ShaderType::TEXEL_TEXTURE_WRAP);
   }
 
   ~Background() { ;  }
@@ -115,7 +115,7 @@ public:
    * @brief Implement for custom animated backgrounds
    * @param _elapsed in seconds
    */
-  virtual void Update(float _elapsed) = 0;
+  virtual void Update(double _elapsed) = 0;
 
   /**
    * @brief Draw the animated background with applied values
