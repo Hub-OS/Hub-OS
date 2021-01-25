@@ -91,14 +91,14 @@ namespace Overworld {
     void sendLogoutSignal();
     void sendMapRefreshSignal();
     void sendEmoteSignal(const Overworld::Emotes emote);
-    void recieveXYZSignal(const Poco::Buffer<char>&);
-    void recieveNameSignal(const Poco::Buffer<char>&);
-    void recieveNaviChangeSignal(const Poco::Buffer<char>&);
-    void recieveLoginSignal(const Poco::Buffer<char>&);
-    void recieveAvatarJoinSignal(const Poco::Buffer<char>&);
-    void recieveLogoutSignal(const Poco::Buffer<char>&);
-    void recieveMapSignal(const Poco::Buffer<char>&);
-    void recieveEmoteSignal(const Poco::Buffer<char>&);
+    void receiveXYZSignal(const Poco::Buffer<char>&);
+    void receiveNameSignal(const Poco::Buffer<char>&);
+    void receiveNaviChangeSignal(const Poco::Buffer<char>&);
+    void receiveLoginSignal(const Poco::Buffer<char>&);
+    void receiveAvatarJoinSignal(const Poco::Buffer<char>&);
+    void receiveLogoutSignal(const Poco::Buffer<char>&);
+    void receiveMapSignal(const Poco::Buffer<char>&);
+    void receiveEmoteSignal(const Poco::Buffer<char>&);
 
     void processIncomingPackets();
 

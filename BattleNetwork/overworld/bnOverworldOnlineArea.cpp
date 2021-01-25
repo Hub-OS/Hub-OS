@@ -350,7 +350,7 @@ void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
   client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 }
 
-void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveXYZSignal(const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
@@ -427,7 +427,7 @@ void Overworld::OnlineArea::recieveXYZSignal(const Poco::Buffer<char>& buffer)
   }
 }
 
-void Overworld::OnlineArea::recieveNameSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveNameSignal(const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
@@ -443,7 +443,7 @@ void Overworld::OnlineArea::recieveNameSignal(const Poco::Buffer<char>& buffer)
   }
 }
 
-void Overworld::OnlineArea::recieveNaviChangeSignal(const Poco::Buffer<char>& buffer) 
+void Overworld::OnlineArea::receiveNaviChangeSignal(const Poco::Buffer<char>& buffer) 
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
@@ -461,7 +461,7 @@ void Overworld::OnlineArea::recieveNaviChangeSignal(const Poco::Buffer<char>& bu
   }
 }
 
-void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveLoginSignal(const Poco::Buffer<char>& buffer)
 {
   if (errorCount > MAX_ERROR_COUNT) return;
 
@@ -477,7 +477,7 @@ void Overworld::OnlineArea::recieveLoginSignal(const Poco::Buffer<char>& buffer)
   return;
 }
 
-void Overworld::OnlineArea::recieveAvatarJoinSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveAvatarJoinSignal(const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
@@ -516,7 +516,7 @@ void Overworld::OnlineArea::recieveAvatarJoinSignal(const Poco::Buffer<char>& bu
   }
 }
 
-void Overworld::OnlineArea::recieveLogoutSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveLogoutSignal(const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
@@ -535,7 +535,7 @@ void Overworld::OnlineArea::recieveLogoutSignal(const Poco::Buffer<char>& buffer
   }
 }
 
-void Overworld::OnlineArea::recieveMapSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveMapSignal(const Poco::Buffer<char>& buffer)
 {
   if (errorCount > MAX_ERROR_COUNT) return;
 
@@ -550,7 +550,7 @@ void Overworld::OnlineArea::recieveMapSignal(const Poco::Buffer<char>& buffer)
   }
 }
 
-void Overworld::OnlineArea::recieveEmoteSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveEmoteSignal(const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
@@ -608,25 +608,25 @@ void Overworld::OnlineArea::processIncomingPackets()
 
       switch (sig) {
       case ServerEvents::avatar_change:
-        recieveNaviChangeSignal(data);
+        receiveNaviChangeSignal(data);
         break;
       case ServerEvents::hologram_xyz:
-        recieveXYZSignal(data);
+        receiveXYZSignal(data);
         break;
       case ServerEvents::login:
-        recieveLoginSignal(data);
+        receiveLoginSignal(data);
         break;
       case ServerEvents::logout:
-        recieveLogoutSignal(data);
+        receiveLogoutSignal(data);
         break;
       case ServerEvents::map:
-        recieveMapSignal(data);
+        receiveMapSignal(data);
         break;
       case ServerEvents::emote:
-        recieveEmoteSignal(data);
+        receiveEmoteSignal(data);
         break;
       case ServerEvents::avatar_join:
-        recieveAvatarJoinSignal(data);
+        receiveAvatarJoinSignal(data);
         break;
       }
     }
