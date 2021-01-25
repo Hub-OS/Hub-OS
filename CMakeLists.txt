@@ -20,7 +20,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 
 find_package(Poco REQUIRED Foundation Net)
 find_package(Threads REQUIRED)
-find_package(lua REQUIRED)
+find_package(Lua REQUIRED)
 find_package(sol2 REQUIRED)
 
 include_directories(extern/Swoosh/src)
