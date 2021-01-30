@@ -19,6 +19,7 @@
 #include "bnMessageQuestion.h"
 #include "bnFont.h"
 #include "bnText.h"
+#include "bnWidget.h"
 
 /*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
     \warning This scene was made in a clear conscious and is in no way an example of good code design.
@@ -26,86 +27,51 @@
     This could use a redesign
 */
 class Background;
-class ConfigScene : public Scene {
+class ConfigScene final : public Scene {
 private:
+  // scene states
+  enum class states : unsigned {
+    top_menu = 0,
+    gamepad,
+    keyboard,
+    login
+  } currState{ 0 };
+
+  // member variables
+  int audioModeBGM{};
+  int audioModeSFX{};
+  bool leave{};
+  bool awaitingKey{};
+  bool interactive{ false }; /*!< If false, player cannot interact with screen yet */
   ConfigSettings configSettings;
   ConfigSettings::KeyboardHash keyHash;
   ConfigSettings::GamepadHash gamepadHash;
-
-  AnimatedTextBox textbox;
-
-  // ui sprite maps
   Animation endBtnAnimator;
   Animation audioAnimator;
+  Animation lightAnimator;
   Text label;
-  int menuSelectionIndex{}; /*!< Current selection */
-  int lastMenuSelectionIndex{};
-  int maxMenuSelectionIndex{};
-  int colIndex{};
-  int maxCols{};
-
+  AnimatedTextBox textbox;
   sf::Sprite overlay; /*!< PET */
   sf::Sprite gba;
   sf::Sprite audioBGM,audioSFX;
   sf::Sprite hint;
   sf::Sprite endBtn;
-
-  bool leave{};
-  bool awaitingKey{};
-  bool isSelectingTopMenu{ true };
-  bool inGamepadList{};
-  bool inKeyboardList{};
-  int audioModeBGM{};
-  int audioModeSFX{};
-
-  Background* bg;
-
-  struct uiData {
-    std::string label;
-    sf::Vector2f position;
-    sf::Vector2f scale;
-    enum class ActionItemType : int {
-      keyboard,
-      gamepad,
-      disabled
-    } type;
-    int alpha{255};
-
-    uiData() = default;
-    uiData(const uiData& rhs) = default;
-    ~uiData() = default;
-  };
-
-  enum class State : unsigned char {
-    menu = 0,
-    gamepad_select,
-    login
-  } currState{ State::menu };
-
-  int menuDivideIndex;
-
-  std::vector<uiData> uiList[3], boundKeys, boundGamepadButtons;
-
-  bool gotoNextScene; /*!< If true, player cannot interact with screen yet */
-
-  Question* questionInterface;
+  sf::Sprite authWidget, light;
+  Question* questionInterface{ nullptr };
+  Background* bg{ nullptr };
 
 #ifdef __ANDROID__
   void StartupTouchControls();
   void ShutdownTouchControls();
 #endif
-  void DrawMenuOptions(sf::RenderTarget& surface);
-  void DrawMappedKeyMenu(std::vector<uiData>& container, sf::RenderTarget& surface);
 
-  void DrawMenuState(sf::RenderTarget& surface);
-  void UpdateMenuState(double elapsed);
-
-  void DrawGamepadState(sf::RenderTarget& surface);
-  void UpdateGamepadState(double elapsed);
-
-  void DrawLoginState(sf::RenderTarget& surface);
-  void UpdateLoginState(double elapsed);
-
+  /*
+    the following use direct keyboard events as 
+    opposed to config bindings because the 
+    configuration may be invalid or the user
+    wishes to change them so make this easy for
+    them to do
+    */
   const bool HasConfirmed() const;
   const bool HasCancelled() const;
   const bool HasUpButton() const;
@@ -165,5 +131,5 @@ public:
   /**
    * @brief deconstructor
    */
-  virtual ~ConfigScene() { ; }
+  ~ConfigScene();
 };

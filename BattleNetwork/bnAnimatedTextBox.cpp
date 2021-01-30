@@ -161,6 +161,10 @@ void AnimatedTextBox::EnqueMessage(sf::Sprite speaker, std::string animationPath
   message->SetTextBox(this);
 }
 
+void AnimatedTextBox::EnqueMessage(MessageInterface* message) {
+  EnqueMessage({}, {}, message);
+}
+
 /*void AnimatedTextBox::ReplaceText(std::string text)
 {
     textBox.SetText(text);

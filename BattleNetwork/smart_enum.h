@@ -16,6 +16,7 @@ if(isspace(str[i])) continue; \
         strings.push_back(temp.str()); \
         temp.str(std::string());\
         } \
+        else if(str[i] == '_') temp << " "; \
         else temp<< str[i]; \
 } \
 strings.push_back(temp.str()); \
