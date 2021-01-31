@@ -56,7 +56,6 @@ void Overworld::PacketShipper::Send(
     data.append(4);
     data.append((char *)&nextReliableOrdered, sizeof(nextReliableOrdered));
     data.append(body);
-    Logger::Logf("%d", body.size());
 
     socket.sendTo(data.begin(), (int)data.size(), socketAddress);
 
