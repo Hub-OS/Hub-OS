@@ -1,0 +1,37 @@
+#include "bnBufferReader.h"
+
+Overworld::BufferReader::BufferReader()
+{
+  offset = 0;
+}
+
+size_t Overworld::BufferReader::GetOffset()
+{
+  return offset;
+}
+
+void Overworld::BufferReader::Skip(size_t n)
+{
+  offset += n;
+}
+
+std::string Overworld::BufferReader::ReadString(const Poco::Buffer<char> &buffer)
+{
+  auto iter = buffer.begin();
+
+  for (auto i = offset; i < buffer.size(); i++)
+  {
+    if (*(iter + i) == '\0')
+    {
+      auto length = i - offset;
+      auto result = std::string(iter + offset, length);
+
+      // + 1 for the null terminator
+      offset += length + 1;
+
+      return result;
+    }
+  }
+
+  return "";
+}

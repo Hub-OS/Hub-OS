@@ -26,6 +26,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
   if (pingServerTimer.getElapsed().asMilliseconds() == 0) {
     auto doSendThunk = [=] {
       Poco::Buffer<char> buffer{ 0 };
+      buffer.append((char)Reliability::Unreliable);
       buffer.append((char*)&ping, sizeof(uint16_t));
 
       try {
@@ -41,7 +42,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
           if (sender == remoteAddress && read > 0) {
             rawBuffer[read] = '\0';
 
-            if (pong == *(uint16_t*)rawBuffer) {
+            if (pong == *(uint16_t*)(rawBuffer + 1)) {
               SceneBase::EnableNetWarps(true);
               isConnected = true;
             }
@@ -56,9 +57,6 @@ void Overworld::Homepage::PingRemoteAreaServer()
         SceneBase::EnableNetWarps(false);
       }
     };
-
-    // stops pinging server while I'm working...
-    return;
 
     if (!reconnecting) {
       int myPort = getController().CommandLineValue<int>("port");

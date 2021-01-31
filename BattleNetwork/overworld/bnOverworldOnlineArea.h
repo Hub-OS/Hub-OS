@@ -5,35 +5,12 @@
 #include <map>
 
 #include "bnOverworldSceneBase.h"
+#include "bnPacketShipper.h"
+#include "bnPacketSorter.h"
+#include "bnBufferReader.h"
 
 namespace Overworld {
   constexpr size_t LAG_WINDOW_LEN = 300;
-
-  // server expects uint16_t codes
-  enum class ClientEvents : uint16_t {
-    login = 0,    // 0 login request
-    user_xyz,     // 1 reporting avatar world location
-    logout,       // 2 logout notification
-    loaded_map,   // 3 avatar loaded map
-    avatar_change,// 4 avatar was switched
-    emote,        // 5 player emoted
-    size,
-    unknown = size
-  };
-
-  enum class ServerEvents : uint16_t {
-    login = 0,     // 0
-    hologram_xyz,  // 1
-    hologram_name, // 2
-    time_of_day,   // 3
-    map,           // 4
-    logout,        // 5
-    avatar_change, // 6
-    emote,         // 7
-    avatar_join,   // 8
-    size,
-    unknown = size
-  };
 
   struct OnlinePlayer {
     Overworld::Actor actor{"?"};
@@ -53,6 +30,8 @@ namespace Overworld {
     Poco::Net::DatagramSocket client; //!< us
     Poco::Net::SocketAddress remoteAddress; //!< server
     bool isConnected{ false };
+    PacketShipper packetShipper;
+    PacketSorter packetSorter;
     SelectedNavi lastFrameNavi{};
     std::map<std::string, OnlinePlayer*> onlinePlayers;
     std::list<std::string> removePlayers;
@@ -91,14 +70,14 @@ namespace Overworld {
     void sendLogoutSignal();
     void sendMapRefreshSignal();
     void sendEmoteSignal(const Overworld::Emotes emote);
-    void receiveXYZSignal(const Poco::Buffer<char>&);
-    void receiveNameSignal(const Poco::Buffer<char>&);
-    void receiveNaviChangeSignal(const Poco::Buffer<char>&);
-    void receiveLoginSignal(const Poco::Buffer<char>&);
-    void receiveAvatarJoinSignal(const Poco::Buffer<char>&);
-    void receiveLogoutSignal(const Poco::Buffer<char>&);
-    void receiveMapSignal(const Poco::Buffer<char>&);
-    void receiveEmoteSignal(const Poco::Buffer<char>&);
+    void receiveXYZSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviChangeSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveAvatarJoinSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveLogoutSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
 
     void processIncomingPackets();
 

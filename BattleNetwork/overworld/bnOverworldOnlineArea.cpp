@@ -17,7 +17,13 @@ constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool guestAccount) :
   font(Font::Style::small),
   name(font),
-  SceneBase(controller, guestAccount)
+  SceneBase(controller, guestAccount),
+  remoteAddress(Poco::Net::SocketAddress(
+    getController().CommandLineValue<std::string>("cyberworld"),
+    getController().CommandLineValue<int>("remotePort")
+  )),
+  packetShipper(remoteAddress),
+  packetSorter(remoteAddress)
 {
   lastFrameNavi = this->GetCurrentNavi();
 
@@ -25,10 +31,6 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
   Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
   client = Poco::Net::DatagramSocket(sa);
   client.setBlocking(false);
-
-  int remotePort = getController().CommandLineValue<int>("remotePort");
-  std::string cyberworld = getController().CommandLineValue<std::string>("cyberworld");
-  remoteAddress = Poco::Net::SocketAddress(cyberworld, remotePort);
 
   try {
     client.connect(remoteAddress);
@@ -284,7 +286,7 @@ void Overworld::OnlineArea::sendXYZSignal()
   buffer.append((char*)&x, sizeof(double));
   buffer.append((char*)&y, sizeof(double));
   buffer.append((char*)&z, sizeof(double));
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+  packetShipper.Send(client, Reliability::UnreliableSequenced, buffer);
 }
 
 void Overworld::OnlineArea::sendNaviChangeSignal(const SelectedNavi& navi)
@@ -296,7 +298,7 @@ void Overworld::OnlineArea::sendNaviChangeSignal(const SelectedNavi& navi)
   ClientEvents type{ ClientEvents::avatar_change };
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&form, sizeof(uint16_t));
-  client.sendBytes(buffer.begin(), (int)buffer.size());
+  packetShipper.Send(client, Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendLoginSignal()
@@ -311,7 +313,7 @@ void Overworld::OnlineArea::sendLoginSignal()
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)username.data(), username.length());
   buffer.append((char*)password.data(), password.length());
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendLogoutSignal()
@@ -321,7 +323,7 @@ void Overworld::OnlineArea::sendLogoutSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::logout };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendMapRefreshSignal()
@@ -334,7 +336,7 @@ void Overworld::OnlineArea::sendMapRefreshSignal()
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&mapID, sizeof(size_t));
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
 void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
@@ -347,26 +349,25 @@ void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
 
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)&val, sizeof(uint8_t));
-  client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
+  packetShipper.Send(client, Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::receiveXYZSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveXYZSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
   if (mapBuffer.empty()) return;
 
-  std::string user = std::string(buffer.begin());
+  std::string user = reader.ReadString(buffer);
 
   // ignore our ip update
   if (user == ticket) {
     return;
   }
 
-  double xd{}, yd{}, zd{};
-  std::memcpy(&xd, buffer.begin()+user.size(), sizeof(double));
-  std::memcpy(&yd, buffer.begin()+user.size()+sizeof(double),    sizeof(double));
-  std::memcpy(&zd, buffer.begin()+user.size()+(sizeof(double)*2), sizeof(double));
+  double xd = reader.Read<double>(buffer);
+  double yd = reader.Read<double>(buffer);
+  double zd = reader.Read<double>(buffer);
 
   float x = static_cast<float>(xd);
   float y = static_cast<float>(yd);
@@ -427,14 +428,14 @@ void Overworld::OnlineArea::receiveXYZSignal(const Poco::Buffer<char>& buffer)
   }
 }
 
-void Overworld::OnlineArea::receiveNameSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
 
   SelectedNavi form{};
-  std::string user = std::string(buffer.begin(), buffer.size());
-  std::string name = std::string(buffer.begin() + user.size(), buffer.size() - user.size());
+  std::string user = reader.ReadString(buffer);
+  std::string name = reader.ReadString(buffer);
 
   auto userIter = onlinePlayers.find(user);
 
@@ -443,14 +444,13 @@ void Overworld::OnlineArea::receiveNameSignal(const Poco::Buffer<char>& buffer)
   }
 }
 
-void Overworld::OnlineArea::receiveNaviChangeSignal(const Poco::Buffer<char>& buffer) 
+void Overworld::OnlineArea::receiveNaviChangeSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) 
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
 
-  uint16_t form{};
-  std::memcpy(&form, buffer.begin(), sizeof(uint16_t));
-  std::string user = std::string(buffer.begin()+sizeof(uint16_t), buffer.size()-sizeof(uint16_t));
+  uint16_t form = reader.Read<uint16_t>(buffer);
+  std::string user = reader.ReadString(buffer);
 
   if (user == ticket) return;
 
@@ -461,7 +461,7 @@ void Overworld::OnlineArea::receiveNaviChangeSignal(const Poco::Buffer<char>& bu
   }
 }
 
-void Overworld::OnlineArea::receiveLoginSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   if (errorCount > MAX_ERROR_COUNT) return;
 
@@ -471,19 +471,21 @@ void Overworld::OnlineArea::receiveLoginSignal(const Poco::Buffer<char>& buffer)
     isConnected = true;
 
     // Ignore error codes for login signals
-    this->ticket = std::string(buffer.begin() + sizeof(uint16_t), buffer.size() - sizeof(uint16_t));
+    reader.Skip(sizeof(uint16_t));
+
+    this->ticket = reader.ReadString(buffer);
   }
 
   return;
 }
 
-void Overworld::OnlineArea::receiveAvatarJoinSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveAvatarJoinSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
   if (mapBuffer.empty()) return;
 
-  std::string user = std::string(buffer.begin(), buffer.size());
+  std::string user = reader.ReadString(buffer);
 
   if (user == ticket) return;
 
@@ -516,12 +518,12 @@ void Overworld::OnlineArea::receiveAvatarJoinSignal(const Poco::Buffer<char>& bu
   }
 }
 
-void Overworld::OnlineArea::receiveLogoutSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveLogoutSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
 
-  std::string user = std::string(buffer.begin(), buffer.size());
+  std::string user = reader.ReadString(buffer);
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
@@ -535,11 +537,11 @@ void Overworld::OnlineArea::receiveLogoutSignal(const Poco::Buffer<char>& buffer
   }
 }
 
-void Overworld::OnlineArea::receiveMapSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   if (errorCount > MAX_ERROR_COUNT) return;
 
-  mapBuffer = std::string(buffer.begin(), buffer.size());
+  mapBuffer = reader.ReadString(buffer);
 
   // If we are still invalid after this, there's a problem
   if (mapBuffer.empty()) {
@@ -550,14 +552,13 @@ void Overworld::OnlineArea::receiveMapSignal(const Poco::Buffer<char>& buffer)
   }
 }
 
-void Overworld::OnlineArea::receiveEmoteSignal(const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   if (!isConnected) return;
   if (errorCount > MAX_ERROR_COUNT) return;
 
-  uint8_t emote{};
-  std::memcpy(&emote, buffer.begin(), sizeof(uint8_t));
-  std::string user = std::string(buffer.begin() + sizeof(uint8_t), buffer.size() - sizeof(uint8_t));
+  uint8_t emote = reader.Read<uint8_t>(buffer);
+  std::string user = reader.ReadString(buffer);
 
   if (user == ticket) return;
 
@@ -592,41 +593,51 @@ void Overworld::OnlineArea::processIncomingPackets()
   }
 
   static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
-  static int read = 0;
 
   try {
+    packetShipper.ResendBackedUpPackets(client);
+
     Poco::Net::SocketAddress sender;
-    read += client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
+    int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
 
-    if (sender == remoteAddress && read > 0) {
-      rawBuffer[read] = '\0';
+    if (sender != remoteAddress || read == 0) {
+      return;
+    }
 
-      ServerEvents sig = *(ServerEvents*)rawBuffer;
-      size_t sigLen = sizeof(ServerEvents);
-      Poco::Buffer<char> data{ 0 };
-      data.append(rawBuffer + sigLen, size_t(read) - sigLen);
+    Poco::Buffer<char> packet{ 0 };
+    packet.append(rawBuffer, size_t(read));
+
+    auto packetBodies = packetSorter.SortPacket(client, packet);
+
+    for (auto &data : packetBodies) {
+      BufferReader reader;
+
+      auto sig = reader.Read<ServerEvents>(data);
 
       switch (sig) {
+      case ServerEvents::ack:
+        packetShipper.Acknowledged(reader.Read<Reliability>(data), reader.Read<size_t>(data));
+        break;
       case ServerEvents::avatar_change:
-        receiveNaviChangeSignal(data);
+        receiveNaviChangeSignal(reader, data);
         break;
       case ServerEvents::hologram_xyz:
-        receiveXYZSignal(data);
+        receiveXYZSignal(reader, data);
         break;
       case ServerEvents::login:
-        receiveLoginSignal(data);
+        receiveLoginSignal(reader, data);
         break;
       case ServerEvents::logout:
-        receiveLogoutSignal(data);
+        receiveLogoutSignal(reader, data);
         break;
       case ServerEvents::map:
-        receiveMapSignal(data);
+        receiveMapSignal(reader, data);
         break;
       case ServerEvents::emote:
-        receiveEmoteSignal(data);
+        receiveEmoteSignal(reader, data);
         break;
       case ServerEvents::avatar_join:
-        receiveAvatarJoinSignal(data);
+        receiveAvatarJoinSignal(reader, data);
         break;
       }
     }
@@ -641,9 +652,6 @@ void Overworld::OnlineArea::processIncomingPackets()
       errorCount++;
     }
   }
-
-  read = 0;
-  std::memset(rawBuffer, 0, NetPlayConfig::MAX_BUFFER_LEN);
 }
 
 void Overworld::OnlineArea::RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi)
