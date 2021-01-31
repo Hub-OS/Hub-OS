@@ -16,31 +16,30 @@ namespace Overworld
   // server expects uint16_t codes
   enum class ClientEvents : uint16_t
   {
-    login = 0,     // 0 login request
-    user_xyz,      // 1 reporting avatar world location
-    logout,        // 2 logout notification
-    loaded_map,    // 3 avatar loaded map
-    avatar_change, // 4 avatar was switched
-    emote,         // 5 player emoted
-    ping,          // 6
-    ack,           // 7 acknowledge packet
+    ping = 0,      // 0
+    ack,           // 1 acknowledge packet
+    login,         // 2 login request
+    logout,        // 3 logout notification
+    loaded_map,    // 4 avatar loaded map
+    user_xyz,      // 5 reporting avatar world location
+    avatar_change, // 6 avatar was switched
+    emote,         // 7 player emoted
     size,
     unknown = size
   };
 
   enum class ServerEvents : uint16_t
   {
-    login = 0,     // 0
-    hologram_xyz,  // 1
-    hologram_name, // 2
-    time_of_day,   // 3
-    map,           // 4
+    pong = 0,      // 0
+    ack,           // 1
+    login,         // 2
+    map,           // 3
+    avatar_join,   // 4
     logout,        // 5
-    avatar_change, // 6
-    emote,         // 7
-    avatar_join,   // 8
-    pong,          // 9
-    ack,           // 10
+    hologram_name, // 6
+    hologram_xyz,  // 7
+    avatar_change, // 8
+    emote,         // 9
     size,
     unknown = size
   };
