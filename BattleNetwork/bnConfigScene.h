@@ -19,7 +19,7 @@
 #include "bnMessageQuestion.h"
 #include "bnFont.h"
 #include "bnText.h"
-#include "bnWidget.h"
+#include "widgets/bnButton.h"
 
 /*! \brief Config screen lets users set graphics, audio, and input settings. It also lets users manage their account.
     \warning This scene was made in a clear conscious and is in no way an example of good code design.
@@ -57,9 +57,9 @@ private:
   sf::Sprite hint;
   sf::Sprite endBtn;
   sf::Sprite authWidget, light;
-  Question* questionInterface{ nullptr };
   Background* bg{ nullptr };
-
+  Question* questionInterface{ nullptr };
+  std::shared_ptr<Widget> menu;
 #ifdef __ANDROID__
   void StartupTouchControls();
   void ShutdownTouchControls();
@@ -78,7 +78,6 @@ private:
   const bool HasDownButton() const;
   const bool HasLeftButton() const;
   const bool HasRightButton() const;
-
 public:
 
   /**

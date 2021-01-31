@@ -1,13 +1,43 @@
 #include "bnWidget.h"
 
-sf::Vector2f Widget::GetBounds()
+Widget::Widget(std::shared_ptr<Widget> parent) : parent(parent)
 {
-  return container.getSize();
+  // initial state values
+  currState = states::inactive;
+  container.setFillColor(bg);
+  container.setOutlineColor(sf::Color::Blue);
+  container.setOutlineThickness(1.0f);
 }
 
-std::weak_ptr<Widget> Widget::GetOpenedSubmenu()
+std::pair<bool, size_t> Widget::GetActiveSubmenuIndex()
 {
-  return this->open;
+  if (currState == states::opened) {
+    return { true, submenuIndex };
+  }
+
+  return { false,{} };
+}
+
+std::shared_ptr<Widget> Widget::GetParentWidget()
+{
+  return parent;
+}
+
+std::shared_ptr<Widget> Widget::GetDeepestSubmenu()
+{
+  auto recent = this->open;
+
+  while (recent) {
+    auto next = recent->GetDeepestSubmenu();
+    if (next) {
+      recent = next;
+    }
+    else {
+      break;
+    }
+  }
+
+  return recent;
 }
 
 const unsigned Widget::CountSubmenus() const
@@ -15,40 +45,49 @@ const unsigned Widget::CountSubmenus() const
   return submenus.size();
 }
 
-void Widget::SelectSubmenu(unsigned at)
+void Widget::SelectSubmenu(size_t at)
 {
   if (at < submenus.size()) {
     open = submenus.at(at).submenu;
+    open->Active();
+    submenuIndex = at;
   }
+}
+
+void Widget::AddSubmenu(Direction openDir, std::shared_ptr<Widget> item)
+{
+  submenus.push_back(Widget::item{ openDir, item });
 }
 
 void Widget::draw(sf::RenderTarget& target, sf::RenderStates states) const {
   states.transform *= getTransform();
 
-  if (dirty) {
+  if (true || dirty) {
     RecalculateContainer();
   }
+
+  const auto& bounds = container.getSize();
 
   target.draw(container, states);
   SceneNode::draw(target, states);
 
-  sf::Vector2f offset = container.getSize();
+  sf::Vector2f offset = {};
 
   // draw options if any
   if (currState == states::opened) {
     for (auto& item : this->submenus) {
       switch (item.dir) {
       case Direction::up:
-        offset += { 0, -item.submenu->GetBounds().y };
+        offset += { 0, -bounds.y };
         break;
       case Direction::down:
-        offset += { 0, item.submenu->GetBounds().y };
+        offset += { 0, bounds.y };
         break;
       case Direction::left:
-        offset += { -item.submenu->GetBounds().x, 0 };
+        offset += { -bounds.x, 0 };
         break;
       case Direction::right:
-        offset += { item.submenu->GetBounds().x, 0 };
+        offset += { bounds.x, 0 };
         break;
       default:
         // do nothing
@@ -84,23 +123,32 @@ void Widget::SetOpenedColor(const sf::Color& color)
 
 void Widget::Open()
 {
-  if (currState != states::opened) {
-    currState = states::opened;
-    container.setFillColor(bgOpen);
-
-    if (!submenus.empty()) {
+  if (!submenus.empty()) {
+    if (currState != states::opened) {
+      currState = states::opened;
+      container.setFillColor(bgOpen);
       open = submenus.at(0).submenu;
+      open->Active();
+      OnOpen();
     }
-    OnOpen();
   }
 }
 
 void Widget::Close()
 {
   if (currState == states::opened) {
-    open.reset();
+    if (open) {
+      open->Close();
+      open.reset();
+    }
     OnClose();
-    Active();
+    Inactive();
+  }
+  else {
+    if (parent) {
+      parent->open.reset();
+      parent->Close();
+    }
   }
 }
 
@@ -118,6 +166,7 @@ void Widget::Inactive()
   if (currState != states::inactive) {
     currState = states::inactive;
     container.setFillColor(bg);
+    open.reset();
     OnInactive();
   }
 }
@@ -150,11 +199,10 @@ void Widget::RecalculateContainer() const
   
   sf::Vector2f sz{ 1.f, 1.f };
 
-  if (content) {
-    auto rect = content->CalculateBounds();
-    sz.x = rect.width + padding.left + padding.right;
-    sz.y = rect.height + padding.up + padding.down;
-  }
+  auto rect = CalculateBounds();
+  sz.x = rect.width + padding.left + padding.right;
+  sz.y = rect.height + padding.up + padding.down;
+
   container.setSize(sz);
   container.setPosition(sf::Vector2f(-padding.left, -padding.up));
 }

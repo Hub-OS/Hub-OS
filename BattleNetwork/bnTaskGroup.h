@@ -4,7 +4,7 @@
 
 class TaskGroup {
   std::list<std::pair<std::string, Callback<void()>>> tasks;
-  unsigned currentTask{};
+  unsigned currentTask{}, maxTasks{};
 public:
   TaskGroup() = default;
   TaskGroup(TaskGroup&& other) noexcept;

@@ -95,7 +95,8 @@ void TitleScene::onUpdate(double elapsed)
     pressedStart = true;
 
     // We want the next screen to be the main menu screen
-    getController().push<Overworld::Homepage>(loginSelected);
+    using tx = segue<DiamondTileCircle>::to<Overworld::Homepage>;
+    getController().push<tx>(loginSelected);
 
     /*if (!loginSelected) {
       getController().push<ConfigScene>();

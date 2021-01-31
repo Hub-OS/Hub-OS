@@ -132,9 +132,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   maxSelectInputCooldown = 0.5; // half of a second
   selectInputCooldown = maxSelectInputCooldown;
 
-  // Keep track of selected navi
-  currentNavi = 0;
-
   menuWidget.setScale(2.f, 2.f);
   emote.setScale(2.f, 2.f);
 

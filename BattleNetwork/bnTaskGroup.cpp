@@ -2,8 +2,9 @@
 
 TaskGroup::TaskGroup(TaskGroup && other) noexcept
 {
-  tasks = std::move(other.tasks);
-  currentTask = std::move(other.currentTask);
+  std::swap(tasks, other.tasks);
+  std::swap(currentTask, other.currentTask);
+  std::swap(maxTasks, other.maxTasks);
   other.tasks.clear();
   other.currentTask = 0;
 }
@@ -38,10 +39,11 @@ const unsigned TaskGroup::GetTaskNumber() const
 
 const unsigned TaskGroup::GetTotalTasks() const
 {
-  return static_cast<unsigned>(tasks.size());
+  return maxTasks;
 }
 
 void TaskGroup::AddTask(const std::string & name, Callback<void()>&& task)
 {
   tasks.insert(tasks.end(), std::make_pair(name, std::move(task)));
+  maxTasks++;
 }

@@ -6,8 +6,8 @@
 #include "bnRobotBackground.h"
 #include "bnWebClientMananger.h"
 
-ConfigScene::ConfigScene(swoosh::ActivityController &controller) : 
-  textbox(sf::Vector2f(4,250)), 
+ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
+  textbox(sf::Vector2f(4, 250)),
   label(Font::Style::thin),
   Scene(controller)
 {
@@ -55,6 +55,23 @@ ConfigScene::ConfigScene(swoosh::ActivityController &controller) :
   configSettings = Input().GetConfigSettings();
 
   setView(sf::Vector2u(480, 320));
+
+  auto imgBtn = std::make_shared<Button>(nullptr, "I have a picture");
+  imgBtn->SetImage("resources/ui/zenny.png");
+
+
+  auto layout = std::make_shared<VerticalLayout>(imgBtn, 200.0f);
+  layout->AddWidget(std::make_shared<Button>(layout, "Click me"));
+  layout->AddWidget(std::make_shared<Button>(layout, "No, me"));
+
+  auto aaaa = std::make_shared<Button>(layout, "aaAAaaAAA");
+  layout->AddWidget(aaaa);
+
+  aaaa->AddSubmenu(Direction::right, std::make_shared<Button>(aaaa, ".... pick me!"));
+
+  imgBtn->AddSubmenu(Direction::down, layout);
+  
+  menu = imgBtn;
 }
 
 void ConfigScene::onUpdate(double elapsed)
@@ -92,6 +109,51 @@ void ConfigScene::onUpdate(double elapsed)
   }
   else {
     // uiList[0][static_cast<size_t>(MenuItems::account)].label = "LOGOUT " + WEBCLIENT.GetUserName();
+  }
+
+  if (HasUpButton()) {
+    auto opened = menu->GetDeepestSubmenu();
+
+    if (!opened) {
+      opened = menu;
+    }
+
+    const auto& [valid, index] = opened->GetActiveSubmenuIndex();
+    
+    if (valid && index > 0) {
+      opened->SelectSubmenu(index - 1);
+    }
+  }
+
+  if (HasDownButton()) {
+    auto opened = menu->GetDeepestSubmenu();
+
+    if (!opened) {
+      opened = menu;
+    }
+
+    const auto& [valid, index] = opened->GetActiveSubmenuIndex();
+
+    if (valid && index < opened->CountSubmenus()) {
+      opened->SelectSubmenu(index + 1);
+    }
+  }
+
+  if (HasRightButton()) {
+    auto opened = menu->GetDeepestSubmenu();
+    if (!opened) {
+      menu->Open();
+    }
+    else {
+      opened->Open();
+    }
+  }
+
+  if (HasLeftButton()) {
+    auto opened = menu->GetDeepestSubmenu();
+    if (opened) {
+      opened->Close();
+    }
   }
 
   if (HasConfirmed() && /*isSelectingTopMenu &&*/ !leave) {
@@ -145,6 +207,7 @@ void ConfigScene::onUpdate(double elapsed)
 void ConfigScene::onDraw(sf::RenderTexture & surface)
 {
   surface.draw(textbox);
+  surface.draw(*menu);
 }
 
 const bool ConfigScene::HasConfirmed() const
