@@ -5,9 +5,6 @@
 #include "bnOverworldSceneBase.h"
 
 namespace Overworld {
-  // magic codes used by server
-  constexpr uint16_t ping{6}, pong{9};
-
   class Homepage final : public SceneBase {
   private:
     bool scaledmap{ false }, clicked{ false };

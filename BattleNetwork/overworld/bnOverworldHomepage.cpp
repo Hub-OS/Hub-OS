@@ -27,7 +27,9 @@ void Overworld::Homepage::PingRemoteAreaServer()
     auto doSendThunk = [=] {
       Poco::Buffer<char> buffer{ 0 };
       buffer.append((char)Reliability::Unreliable);
-      buffer.append((char*)&ping, sizeof(uint16_t));
+
+      auto clientEvent = ClientEvents::ping;
+      buffer.append((char*)&clientEvent, sizeof(uint16_t));
 
       try {
         client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
@@ -42,7 +44,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
           if (sender == remoteAddress && read > 0) {
             rawBuffer[read] = '\0';
 
-            if (pong == *(uint16_t*)(rawBuffer + 1)) {
+            if (ServerEvents::pong == *(ServerEvents*)(rawBuffer + 1)) {
               SceneBase::EnableNetWarps(true);
               isConnected = true;
             }
