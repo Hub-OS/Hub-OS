@@ -276,16 +276,16 @@ void Overworld::OnlineArea::sendXYZSignal()
   if (errorCount > MAX_ERROR_COUNT) return;
 
   auto vec = GetPlayer().getPosition();
-  double x = static_cast<double>(vec.x);
-  double y = static_cast<double>(vec.y);
-  double z = 0;
+  float x = vec.x;
+  float y = vec.y;
+  float z = 0;
 
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::user_xyz };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&x, sizeof(double));
-  buffer.append((char*)&y, sizeof(double));
-  buffer.append((char*)&z, sizeof(double));
+  buffer.append((char*)&x, sizeof(float));
+  buffer.append((char*)&y, sizeof(float));
+  buffer.append((char*)&z, sizeof(float));
   packetShipper.Send(client, Reliability::UnreliableSequenced, buffer);
 }
 
@@ -365,13 +365,9 @@ void Overworld::OnlineArea::receiveXYZSignal(BufferReader& reader, const Poco::B
     return;
   }
 
-  double xd = reader.Read<double>(buffer);
-  double yd = reader.Read<double>(buffer);
-  double zd = reader.Read<double>(buffer);
-
-  float x = static_cast<float>(xd);
-  float y = static_cast<float>(yd);
-  float z = static_cast<float>(zd);
+  float x = reader.Read<float>(buffer);
+  float y = reader.Read<float>(buffer);
+  float z = reader.Read<float>(buffer);
 
   auto userIter = onlinePlayers.find(user);
 
