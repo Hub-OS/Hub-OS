@@ -10,6 +10,7 @@ Overworld::TeleportController::TeleportController()
 {
   beam.setTexture(Textures().LoadTextureFromFile("resources/ow/teleport.png"));
   beamAnim = Animation("resources/ow/teleport.animation");
+  beamAnim.SetAnimation("teleport_in");
   beamAnim.SetFrame(0, beam.getSprite());
 }
 
