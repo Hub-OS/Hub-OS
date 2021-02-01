@@ -65,20 +65,20 @@ namespace Overworld {
     void OnTileCollision(const Map::Tile& tile) override;
     void OnEmoteSelected(Overworld::Emotes emote) override;
 
-    void sendXYZSignal();
-    void sendNaviChangeSignal(const SelectedNavi& navi);
     void sendLoginSignal();
     void sendLogoutSignal();
     void sendReadySignal();
+    void sendPositionSignal();
+    void sendAvatarChangeSignal(const SelectedNavi& navi);
     void sendEmoteSignal(const Overworld::Emotes emote);
-    void receiveXYZSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveNaviChangeSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveAvatarJoinSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveLogoutSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
-    void receiveEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
 
     void processIncomingPackets();
 

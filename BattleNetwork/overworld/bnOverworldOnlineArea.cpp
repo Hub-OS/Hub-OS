@@ -70,7 +70,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
     if (lastFrameNavi != GetCurrentNavi()) {
       lastFrameNavi = GetCurrentNavi();
-      sendNaviChangeSignal(lastFrameNavi);
+      sendAvatarChangeSignal(lastFrameNavi);
     }
 
     for (auto player : onlinePlayers) {
@@ -117,7 +117,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
     if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
       movementTimer.reset();
-      sendXYZSignal();
+      sendPositionSignal();
     }
   }
   else {
@@ -139,7 +139,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     auto view = getController().getVirtualWindowSize();
     int precision = 1;
 
-    name.setPosition(view.x*0.5f, view.y*0.5f);
+    name.setPosition(view.x * 0.5f, view.y * 0.5f);
     std::string secondsStr = std::to_string(loadMapTime.getElapsed().asSeconds());
     std::string trimmed = secondsStr.substr(0, secondsStr.find(".") + precision + 1);
     name.SetString("Connecting " + trimmed + "s...");
@@ -248,7 +248,7 @@ void Overworld::OnlineArea::OnTileCollision(const Overworld::Map::Tile& tile)
     auto& map = GetMap();
     auto* playerController = &GetPlayerController();
     auto* playerActor = &GetPlayer();
-   
+
     playerController->ReleaseActor();
     auto& command = teleportController->TeleportOut(*playerActor);
 
@@ -266,32 +266,6 @@ void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
 {
   SceneBase::OnEmoteSelected(emote);
   sendEmoteSignal(emote);
-}
-
-void Overworld::OnlineArea::sendXYZSignal()
-{
-  auto vec = GetPlayer().getPosition();
-  float x = vec.x;
-  float y = vec.y;
-  float z = 0;
-
-  Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::user_xyz };
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&x, sizeof(float));
-  buffer.append((char*)&y, sizeof(float));
-  buffer.append((char*)&z, sizeof(float));
-  packetShipper.Send(client, Reliability::UnreliableSequenced, buffer);
-}
-
-void Overworld::OnlineArea::sendNaviChangeSignal(const SelectedNavi& navi)
-{
-  Poco::Buffer<char> buffer{ 0 };
-  uint16_t form = navi;
-  ClientEvents type{ ClientEvents::avatar_change };
-  buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&form, sizeof(uint16_t));
-  packetShipper.Send(client, Reliability::Reliable, buffer);
 }
 
 void Overworld::OnlineArea::sendLoginSignal()
@@ -328,6 +302,32 @@ void Overworld::OnlineArea::sendReadySignal()
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
+void Overworld::OnlineArea::sendPositionSignal()
+{
+  auto vec = GetPlayer().getPosition();
+  float x = vec.x;
+  float y = vec.y;
+  float z = 0;
+
+  Poco::Buffer<char> buffer{ 0 };
+  ClientEvents type{ ClientEvents::position };
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&x, sizeof(float));
+  buffer.append((char*)&y, sizeof(float));
+  buffer.append((char*)&z, sizeof(float));
+  packetShipper.Send(client, Reliability::UnreliableSequenced, buffer);
+}
+
+void Overworld::OnlineArea::sendAvatarChangeSignal(const SelectedNavi& navi)
+{
+  Poco::Buffer<char> buffer{ 0 };
+  uint16_t form = navi;
+  ClientEvents type{ ClientEvents::avatar_change };
+  buffer.append((char*)&type, sizeof(ClientEvents));
+  buffer.append((char*)&form, sizeof(uint16_t));
+  packetShipper.Send(client, Reliability::Reliable, buffer);
+}
+
 void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
 {
   Poco::Buffer<char> buffer{ 0 };
@@ -339,88 +339,6 @@ void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
   packetShipper.Send(client, Reliability::Reliable, buffer);
 }
 
-void Overworld::OnlineArea::receiveXYZSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
-{
-  if (mapBuffer.empty()) return;
-
-  std::string user = reader.ReadString(buffer);
-
-  // ignore our ip update
-  if (user == ticket) {
-    return;
-  }
-
-  float x = reader.Read<float>(buffer);
-  float y = reader.Read<float>(buffer);
-  float z = reader.Read<float>(buffer);
-
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter != onlinePlayers.end()) {
-
-    // Calculcate the NEXT  frame and see if we're moving too far
-    auto* onlinePlayer = userIter->second;
-    auto currentTime = CurrentTime::AsMilli();
-    auto newPos = sf::Vector2f(x, y);
-    auto deltaTime = static_cast<double>(currentTime - onlinePlayer->timestamp) / 1000.0;
-    auto delta = onlinePlayer->endBroadcastPos - newPos;
-    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-    double incomingLag = (currentTime - static_cast<double>(onlinePlayer->timestamp)) / 1000.0;
-
-    // Adjust the lag time by the lag of this incoming frame
-    double expectedTime = CalculatePlayerLag(*onlinePlayer, incomingLag);
-
-    Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
-
-    // Do not attempt to animate the teleport over quick movements if already teleporting
-    if(onlinePlayer->teleportController.IsComplete() && onlinePlayer->packets > 1) {
-      // we can't possibly have moved this far away without teleporting
-      if (distance >= (onlinePlayer->actor.GetRunSpeed() * 2) * expectedTime) {
-        onlinePlayer->actor.setPosition(onlinePlayer->endBroadcastPos);
-        auto& action = onlinePlayer->teleportController.TeleportOut(onlinePlayer->actor);
-        action.onFinish.Slot([=] {
-          onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
-        });
-      }
-    }
-
-    // update our records
-    onlinePlayer->startBroadcastPos = onlinePlayer->endBroadcastPos;
-    onlinePlayer->endBroadcastPos = sf::Vector2f(x, y);
-    auto previous = onlinePlayer->timestamp;
-    onlinePlayer->timestamp = currentTime;
-    onlinePlayer->packets++;
-    onlinePlayer->lagWindow[onlinePlayer->packets%Overworld::LAG_WINDOW_LEN] = incomingLag;
-  }
-}
-
-void Overworld::OnlineArea::receiveNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
-{
-  SelectedNavi form{};
-  std::string user = reader.ReadString(buffer);
-  std::string name = reader.ReadString(buffer);
-
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter != onlinePlayers.end()) {
-    userIter->second->actor.Rename(name);
-  }
-}
-
-void Overworld::OnlineArea::receiveNaviChangeSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) 
-{
-  uint16_t form = reader.Read<uint16_t>(buffer);
-  std::string user = reader.ReadString(buffer);
-
-  if (user == ticket) return;
-
-  auto userIter = onlinePlayers.find(user);
-
-  if (userIter != onlinePlayers.end()) {
-    RefreshOnlinePlayerSprite(*userIter->second, form);
-  }
-}
-
 void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   sendReadySignal();
@@ -429,7 +347,17 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   this->ticket = reader.ReadString(buffer);
 }
 
-void Overworld::OnlineArea::receiveAvatarJoinSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  mapBuffer = reader.ReadString(buffer);
+
+  // If we are still invalid after this, there's a problem
+  if (mapBuffer.empty()) {
+    Logger::Logf("Server sent empty map data");
+  }
+}
+
+void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
   std::string name = reader.ReadString(buffer);
@@ -471,7 +399,7 @@ void Overworld::OnlineArea::receiveAvatarJoinSignal(BufferReader& reader, const 
   }
 }
 
-void Overworld::OnlineArea::receiveLogoutSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   std::string user = reader.ReadString(buffer);
   auto userIter = onlinePlayers.find(user);
@@ -487,17 +415,88 @@ void Overworld::OnlineArea::receiveLogoutSignal(BufferReader& reader, const Poco
   }
 }
 
-void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveNaviSetNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  mapBuffer = reader.ReadString(buffer);
+  std::string user = reader.ReadString(buffer);
+  std::string name = reader.ReadString(buffer);
 
-  // If we are still invalid after this, there's a problem
-  if (mapBuffer.empty()) {
-    Logger::Logf("Server sent empty map data");
+  auto userIter = onlinePlayers.find(user);
+
+  if (userIter != onlinePlayers.end()) {
+    userIter->second->actor.Rename(name);
   }
 }
 
-void Overworld::OnlineArea::receiveEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  if (mapBuffer.empty()) return;
+
+  std::string user = reader.ReadString(buffer);
+
+  // ignore our ip update
+  if (user == ticket) {
+    return;
+  }
+
+  float x = reader.Read<float>(buffer);
+  float y = reader.Read<float>(buffer);
+  float z = reader.Read<float>(buffer);
+
+  auto userIter = onlinePlayers.find(user);
+
+  if (userIter != onlinePlayers.end()) {
+
+    // Calculcate the NEXT  frame and see if we're moving too far
+    auto* onlinePlayer = userIter->second;
+    auto currentTime = CurrentTime::AsMilli();
+    auto newPos = sf::Vector2f(x, y);
+    auto deltaTime = static_cast<double>(currentTime - onlinePlayer->timestamp) / 1000.0;
+    auto delta = onlinePlayer->endBroadcastPos - newPos;
+    float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
+    double incomingLag = (currentTime - static_cast<double>(onlinePlayer->timestamp)) / 1000.0;
+
+    // Adjust the lag time by the lag of this incoming frame
+    double expectedTime = CalculatePlayerLag(*onlinePlayer, incomingLag);
+
+    Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
+
+    // Do not attempt to animate the teleport over quick movements if already teleporting
+    if (onlinePlayer->teleportController.IsComplete() && onlinePlayer->packets > 1) {
+      // we can't possibly have moved this far away without teleporting
+      if (distance >= (onlinePlayer->actor.GetRunSpeed() * 2) * expectedTime) {
+        onlinePlayer->actor.setPosition(onlinePlayer->endBroadcastPos);
+        auto& action = onlinePlayer->teleportController.TeleportOut(onlinePlayer->actor);
+        action.onFinish.Slot([=] {
+          onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
+        });
+      }
+    }
+
+    // update our records
+    onlinePlayer->startBroadcastPos = onlinePlayer->endBroadcastPos;
+    onlinePlayer->endBroadcastPos = sf::Vector2f(x, y);
+    auto previous = onlinePlayer->timestamp;
+    onlinePlayer->timestamp = currentTime;
+    onlinePlayer->packets++;
+    onlinePlayer->lagWindow[onlinePlayer->packets % Overworld::LAG_WINDOW_LEN] = incomingLag;
+  }
+}
+
+void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
+{
+  uint16_t form = reader.Read<uint16_t>(buffer);
+  std::string user = reader.ReadString(buffer);
+
+  if (user == ticket) return;
+
+  auto userIter = onlinePlayers.find(user);
+
+  if (userIter != onlinePlayers.end()) {
+    RefreshOnlinePlayerSprite(*userIter->second, form);
+  }
+}
+
+void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   uint8_t emote = reader.Read<uint8_t>(buffer);
   std::string user = reader.ReadString(buffer);
@@ -516,7 +515,7 @@ void Overworld::OnlineArea::processIncomingPackets()
 {
   auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
     std::chrono::steady_clock::now() - packetSorter.GetLastMessageTime()
-  );
+    );
 
   if (timeDifference.count() > 5) {
     Leave();
@@ -542,7 +541,7 @@ void Overworld::OnlineArea::processIncomingPackets()
 
     auto packetBodies = packetSorter.SortPacket(client, packet);
 
-    for (auto &data : packetBodies) {
+    for (auto& data : packetBodies) {
       BufferReader reader;
 
       auto sig = reader.Read<ServerEvents>(data);
@@ -551,26 +550,29 @@ void Overworld::OnlineArea::processIncomingPackets()
       case ServerEvents::ack:
         packetShipper.Acknowledged(reader.Read<Reliability>(data), reader.Read<uint64_t>(data));
         break;
-      case ServerEvents::avatar_change:
-        receiveNaviChangeSignal(reader, data);
-        break;
-      case ServerEvents::hologram_xyz:
-        receiveXYZSignal(reader, data);
-        break;
       case ServerEvents::login:
         receiveLoginSignal(reader, data);
-        break;
-      case ServerEvents::logout:
-        receiveLogoutSignal(reader, data);
         break;
       case ServerEvents::map:
         receiveMapSignal(reader, data);
         break;
-      case ServerEvents::emote:
-        receiveEmoteSignal(reader, data);
+      case ServerEvents::navi_connected:
+        receiveNaviConnectedSignal(reader, data);
         break;
-      case ServerEvents::avatar_join:
-        receiveAvatarJoinSignal(reader, data);
+      case ServerEvents::navi_disconnect:
+        receiveNaviDisconnectedSignal(reader, data);
+        break;
+      case ServerEvents::navi_set_name:
+        receiveNaviSetNameSignal(reader, data);
+        break;
+      case ServerEvents::navi_move_to:
+        receiveNaviMoveSignal(reader, data);
+        break;
+      case ServerEvents::navi_set_avatar:
+        receiveNaviSetAvatarSignal(reader, data);
+        break;
+      case ServerEvents::navi_emote:
+        receiveNaviEmoteSignal(reader, data);
         break;
       }
     }
@@ -606,7 +608,7 @@ void Overworld::OnlineArea::RefreshOnlinePlayerSprite(OnlinePlayer& player, Sele
 {
   if (player.currNavi == navi) return;
 
-  auto & meta = NAVIS.At(navi);
+  auto& meta = NAVIS.At(navi);
   auto owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
@@ -647,7 +649,7 @@ const bool Overworld::OnlineArea::IsMouseHovering(const sf::RenderTarget& target
 
 const double Overworld::OnlineArea::CalculatePlayerLag(OnlinePlayer& player, double nextLag)
 {
-  
+
   size_t window_len = std::min(player.packets, player.lagWindow.size());
 
   double avg{ 0 };

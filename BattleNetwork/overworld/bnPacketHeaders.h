@@ -25,7 +25,7 @@ namespace Overworld
     login,         // 2 login request
     logout,        // 3 logout notification
     ready,         // 4 avatar loaded map
-    user_xyz,      // 5 reporting avatar world location
+    position,      // 5 reporting avatar world location
     avatar_change, // 6 avatar was switched
     emote,         // 7 player emoted
     size,
@@ -34,16 +34,16 @@ namespace Overworld
 
   enum class ServerEvents : uint16_t
   {
-    pong = 0,      // 0
-    ack,           // 1
-    login,         // 2
-    map,           // 3
-    avatar_join,   // 4
-    logout,        // 5
-    hologram_name, // 6
-    hologram_xyz,  // 7
-    avatar_change, // 8
-    emote,         // 9
+    pong = 0,        // 0
+    ack,             // 1
+    login,           // 2
+    map,             // 3
+    navi_connected,  // 4
+    navi_disconnect, // 5
+    navi_set_name,   // 6
+    navi_move_to,    // 7
+    navi_set_avatar, // 8
+    navi_emote,      // 9
     size,
     unknown = size
   };
