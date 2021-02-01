@@ -58,7 +58,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
         }
       }
       catch (Poco::Net::NetException& e) {
-        Logger::Logf("Homepage warp could not request ping: %s", e.message().c_str());
+        Logger::Logf("Homepage warp could not request ping: %s", e.what());
         isConnected = false;
         reconnecting = false;
         client.close();

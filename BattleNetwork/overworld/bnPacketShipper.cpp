@@ -1,6 +1,7 @@
 #include "bnPacketShipper.h"
 
 #include "../bnLogger.h"
+#include <Poco/Net/NetException.h>
 #include <algorithm>
 
 Overworld::PacketShipper::PacketShipper(Poco::Net::SocketAddress socketAddress)
@@ -9,6 +10,11 @@ Overworld::PacketShipper::PacketShipper(Poco::Net::SocketAddress socketAddress)
   nextUnreliableSequenced = 0;
   nextReliable = 0;
   nextReliableOrdered = 0;
+  failed = false;
+}
+
+bool Overworld::PacketShipper::HasFailed() {
+  return failed;
 }
 
 void Overworld::PacketShipper::Send(
@@ -24,7 +30,7 @@ void Overworld::PacketShipper::Send(
     data.append(0);
     data.append(body);
 
-    socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+    sendSafe(socket, data);
     break;
   // ignore old packets
   case Reliability::UnreliableSequenced:
@@ -32,7 +38,7 @@ void Overworld::PacketShipper::Send(
     data.append((char *)&nextUnreliableSequenced, sizeof(nextUnreliableSequenced));
     data.append(body);
 
-    socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+    sendSafe(socket, data);
 
     nextUnreliableSequenced += 1;
     break;
@@ -41,7 +47,7 @@ void Overworld::PacketShipper::Send(
     data.append((char *)&nextReliable, sizeof(nextReliable));
     data.append(body);
 
-    socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+    sendSafe(socket, data);
 
     backedUpReliable.push_back(BackedUpPacket{
         .id = nextReliable,
@@ -57,7 +63,7 @@ void Overworld::PacketShipper::Send(
     data.append((char *)&nextReliableOrdered, sizeof(nextReliableOrdered));
     data.append(body);
 
-    socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+    sendSafe(socket, data);
 
     backedUpReliableOrdered.push_back(BackedUpPacket{
         .id = nextReliableOrdered,
@@ -84,7 +90,6 @@ void Overworld::PacketShipper::ResendBackedUpPackets(Poco::Net::DatagramSocket &
     }
 
     auto data = backedUpPacket.data;
-    socket.sendTo(data.begin(), (int)data.size(), socketAddress);
   }
 
   for (auto &backedUpPacket : backedUpReliableOrdered)
@@ -97,6 +102,21 @@ void Overworld::PacketShipper::ResendBackedUpPackets(Poco::Net::DatagramSocket &
 
     auto data = backedUpPacket.data;
     socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+  }
+}
+
+void Overworld::PacketShipper::sendSafe(
+    Poco::Net::DatagramSocket &socket,
+    const Poco::Buffer<char> &data)
+{
+  try
+  {
+    socket.sendTo(data.begin(), (int)data.size(), socketAddress);
+  }
+  catch (Poco::Net::NetException &e)
+  {
+    Logger::Logf("Network exception: %s", e.what());
+    failed = true;
   }
 }
 

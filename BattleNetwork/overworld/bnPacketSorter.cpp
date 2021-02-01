@@ -9,12 +9,20 @@ Overworld::PacketSorter::PacketSorter(Poco::Net::SocketAddress socketAddress)
   nextReliable = 0;
   nextUnreliableSequenced = 0;
   nextReliableOrdered = 0;
+  lastMessageTime = std::chrono::steady_clock::now();
+}
+
+std::chrono::time_point<std::chrono::steady_clock> Overworld::PacketSorter::GetLastMessageTime()
+{
+  return lastMessageTime;
 }
 
 std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
     Poco::Net::DatagramSocket &socket,
     Poco::Buffer<char> packet)
 {
+  lastMessageTime = std::chrono::steady_clock::now();
+
   BufferReader reader;
 
   Reliability reliability = reader.Read<Reliability>(packet);
