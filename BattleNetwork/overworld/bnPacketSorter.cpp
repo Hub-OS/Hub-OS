@@ -18,8 +18,8 @@ std::chrono::time_point<std::chrono::steady_clock> Overworld::PacketSorter::GetL
 }
 
 std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
-    Poco::Net::DatagramSocket &socket,
-    Poco::Buffer<char> packet)
+  Poco::Net::DatagramSocket& socket,
+  Poco::Buffer<char> packet)
 {
   lastMessageTime = std::chrono::steady_clock::now();
 
@@ -34,7 +34,7 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
   switch (reliability)
   {
   case Reliability::Unreliable:
-    return {data};
+    return { data };
   case Reliability::UnreliableSequenced:
     if (id < nextUnreliableSequenced)
     {
@@ -44,7 +44,7 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
 
     nextUnreliableSequenced = id + 1;
 
-    return {data};
+    return { data };
   case Reliability::Reliable:
     sendAck(socket, reliability, id);
 
@@ -53,7 +53,7 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
       // expected
       nextReliable += 1;
 
-      return {data};
+      return { data };
     }
     else if (id > nextReliable)
     {
@@ -65,7 +65,7 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
 
       nextReliable = id + 1;
 
-      return {data};
+      return { data };
     }
     else
     {
@@ -77,7 +77,7 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
         // one of the missing packets
         missingReliable.erase(iter);
 
-        return {data};
+        return { data };
       }
     }
 
@@ -92,7 +92,7 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
 
       nextReliableOrdered += 1;
 
-      for (auto &backedUpPacket : backedUpOrderedPackets)
+      for (auto& backedUpPacket : backedUpOrderedPackets)
       {
         if (backedUpPacket.id != nextReliableOrdered)
         {
@@ -111,9 +111,9 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
 
       backedUpOrderedPackets = backedUpPackets;
 
-      std::vector<Poco::Buffer<char>> packets{data};
+      std::vector<Poco::Buffer<char>> packets{ data };
 
-      for (auto &backedUpPacket : freedPackets)
+      for (auto& backedUpPacket : freedPackets)
       {
         packets.push_back(backedUpPacket.data);
       }
@@ -126,7 +126,7 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
       auto i = 0;
       auto shouldInsert = true;
 
-      for (auto &backedUpPacket : backedUpOrderedPackets)
+      for (auto& backedUpPacket : backedUpOrderedPackets)
       {
         if (backedUpPacket.id == id)
         {
@@ -143,11 +143,11 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
       if (shouldInsert)
       {
         backedUpOrderedPackets.emplace(
-            backedUpOrderedPackets.begin() + i,
-            BackedUpPacket{
-                id,
-                data,
-            });
+          backedUpOrderedPackets.begin() + i,
+          BackedUpPacket{
+              id,
+              data,
+          });
       }
 
       // can't use this packet until we recieve earlier packets
@@ -163,15 +163,15 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
   return {};
 }
 
-void Overworld::PacketSorter::sendAck(Poco::Net::DatagramSocket &socket, Reliability reliability, uint64_t id)
+void Overworld::PacketSorter::sendAck(Poco::Net::DatagramSocket& socket, Reliability reliability, uint64_t id)
 {
-  Poco::Buffer<char> data{0};
+  Poco::Buffer<char> data{ 0 };
   data.append((char)Reliability::Unreliable);
 
   ClientEvents clientEvent = ClientEvents::ack;
-  data.append((char *)&clientEvent, sizeof(uint16_t));
+  data.append((char*)&clientEvent, sizeof(uint16_t));
   data.append((char)reliability);
-  data.append((char *)&id, sizeof(id));
+  data.append((char*)&id, sizeof(id));
 
   socket.sendTo(data.begin(), (int)data.size(), socketAddress);
 }

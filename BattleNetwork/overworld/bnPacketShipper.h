@@ -26,7 +26,7 @@ namespace Overworld
     std::vector<BackedUpPacket> backedUpReliableOrdered;
     bool failed;
 
-    void sendSafe(Poco::Net::DatagramSocket &socket, const Poco::Buffer<char> &data);
+    void sendSafe(Poco::Net::DatagramSocket& socket, const Poco::Buffer<char>& data);
     void acknowledgedReliable(uint64_t id);
     void acknowledgedReliableOrdered(uint64_t id);
 
@@ -34,8 +34,8 @@ namespace Overworld
     PacketShipper(Poco::Net::SocketAddress socketAddress);
 
     bool HasFailed();
-    void Send(Poco::Net::DatagramSocket &socket, Reliability Reliability, const Poco::Buffer<char> body);
-    void ResendBackedUpPackets(Poco::Net::DatagramSocket &socket);
+    void Send(Poco::Net::DatagramSocket& socket, Reliability Reliability, const Poco::Buffer<char> body);
+    void ResendBackedUpPackets(Poco::Net::DatagramSocket& socket);
     void Acknowledged(Reliability reliability, uint64_t id);
   };
 } // namespace Overworld

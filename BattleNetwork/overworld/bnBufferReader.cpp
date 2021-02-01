@@ -15,7 +15,7 @@ void Overworld::BufferReader::Skip(size_t n)
   offset += n;
 }
 
-std::string Overworld::BufferReader::ReadString(const Poco::Buffer<char> &buffer)
+std::string Overworld::BufferReader::ReadString(const Poco::Buffer<char>& buffer)
 {
   auto iter = buffer.begin();
 
