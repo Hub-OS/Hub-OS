@@ -311,10 +311,11 @@ void Overworld::OnlineArea::sendLoginSignal()
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::login };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)username.data(), username.length());
+  buffer.append(username.data(), username.length());
   buffer.append(0);
-  buffer.append((char*)password.data(), password.length());
+  buffer.append(password.data(), password.length());
   buffer.append(0);
+  buffer.append((char*)&GetCurrentNavi(), sizeof(uint16_t));
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
@@ -328,12 +329,12 @@ void Overworld::OnlineArea::sendLogoutSignal()
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
-void Overworld::OnlineArea::sendMapRefreshSignal()
+void Overworld::OnlineArea::sendReadySignal()
 {
   if (errorCount > MAX_ERROR_COUNT) return;
 
   Poco::Buffer<char> buffer{ 0 };
-  ClientEvents type{ ClientEvents::loaded_map };
+  ClientEvents type{ ClientEvents::ready };
   size_t mapID{};
 
   buffer.append((char*)&type, sizeof(ClientEvents));
@@ -449,12 +450,8 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   if (errorCount > MAX_ERROR_COUNT) return;
 
   if (!isConnected) {
-    sendMapRefreshSignal();
-    sendNaviChangeSignal(GetCurrentNavi());
+    sendReadySignal();
     isConnected = true;
-
-    // Ignore error codes for login signals
-    reader.Skip(sizeof(uint16_t));
 
     this->ticket = reader.ReadString(buffer);
   }
@@ -536,9 +533,6 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
   // If we are still invalid after this, there's a problem
   if (mapBuffer.empty()) {
     Logger::Logf("Server sent empty map data");
-  }
-  else {
-    sendLoginSignal();
   }
 }
 

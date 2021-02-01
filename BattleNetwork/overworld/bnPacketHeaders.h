@@ -20,7 +20,7 @@ namespace Overworld
     ack,           // 1 acknowledge packet
     login,         // 2 login request
     logout,        // 3 logout notification
-    loaded_map,    // 4 avatar loaded map
+    ready,         // 4 avatar loaded map
     user_xyz,      // 5 reporting avatar world location
     avatar_change, // 6 avatar was switched
     emote,         // 7 player emoted

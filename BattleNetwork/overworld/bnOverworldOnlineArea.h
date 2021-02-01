@@ -68,7 +68,7 @@ namespace Overworld {
     void sendNaviChangeSignal(const SelectedNavi& navi);
     void sendLoginSignal();
     void sendLogoutSignal();
-    void sendMapRefreshSignal();
+    void sendReadySignal();
     void sendEmoteSignal(const Overworld::Emotes emote);
     void receiveXYZSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNameSignal(BufferReader& reader, const Poco::Buffer<char>&);
