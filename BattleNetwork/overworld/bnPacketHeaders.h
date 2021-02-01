@@ -1,9 +1,13 @@
 #pragma once
 
 #include <stdint.h>
+#include <string>
 
 namespace Overworld
 {
+  const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server";
+  const uint64_t VERSION_ITERATION = 0;
+
   enum class Reliability : char
   {
     Unreliable = 0,

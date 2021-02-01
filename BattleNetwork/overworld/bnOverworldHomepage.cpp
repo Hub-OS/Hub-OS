@@ -34,21 +34,27 @@ void Overworld::Homepage::PingRemoteAreaServer()
       try {
         client.sendTo(buffer.begin(), (int)buffer.size(), remoteAddress);
 
-        if (client.available()) {
-          char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
-          int read = 0;
+        if (!client.available()) return;
 
-          Poco::Net::SocketAddress sender;
-          read += client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
+        char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
 
-          if (sender == remoteAddress && read > 0) {
-            rawBuffer[read] = '\0';
+        Poco::Net::SocketAddress sender;
+        int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
 
-            if (ServerEvents::pong == *(ServerEvents*)(rawBuffer + 1)) {
-              SceneBase::EnableNetWarps(true);
-              isConnected = true;
-            }
-          }
+        if (sender != remoteAddress || read == 0) return;
+
+        Poco::Buffer<char> packet{ 0 };
+        packet.append(rawBuffer, size_t(read));
+
+        BufferReader reader;
+        reader.Skip(1);
+        auto sig = reader.Read<ServerEvents>(packet);
+        auto version = reader.ReadString(packet);
+        auto iteration = reader.Read<uint64_t>(packet);
+
+        if (sig == ServerEvents::pong && version == VERSION_ID && iteration == VERSION_ITERATION) {
+          SceneBase::EnableNetWarps(true);
+          isConnected = true;
         }
       }
       catch (Poco::Net::NetException& e) {
