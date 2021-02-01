@@ -19,7 +19,7 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
 
   Reliability reliability = reader.Read<Reliability>(packet);
   auto isPureUnreliable = reliability == Reliability::Unreliable;
-  auto id = isPureUnreliable ? 0 : reader.Read<size_t>(packet);
+  auto id = isPureUnreliable ? 0 : reader.Read<uint64_t>(packet);
   auto dataOffset = reader.GetOffset();
   auto data = Poco::Buffer<char>(packet.begin() + dataOffset, packet.size() - dataOffset);
 
@@ -155,7 +155,7 @@ std::vector<Poco::Buffer<char>> Overworld::PacketSorter::SortPacket(
   return {};
 }
 
-void Overworld::PacketSorter::sendAck(Poco::Net::DatagramSocket &socket, Reliability reliability, size_t id)
+void Overworld::PacketSorter::sendAck(Poco::Net::DatagramSocket &socket, Reliability reliability, uint64_t id)
 {
   Poco::Buffer<char> data{0};
   data.append((char)Reliability::Unreliable);

@@ -13,26 +13,26 @@ namespace Overworld
   private:
     struct BackedUpPacket
     {
-      size_t id;
+      uint64_t id;
       std::chrono::time_point<std::chrono::steady_clock> creationTime;
       Poco::Buffer<char> data;
     };
 
     Poco::Net::SocketAddress socketAddress;
-    size_t nextUnreliableSequenced;
-    size_t nextReliable;
-    size_t nextReliableOrdered;
+    uint64_t nextUnreliableSequenced;
+    uint64_t nextReliable;
+    uint64_t nextReliableOrdered;
     std::vector<BackedUpPacket> backedUpReliable;
     std::vector<BackedUpPacket> backedUpReliableOrdered;
 
-    void acknowledgedReliable(size_t id);
-    void acknowledgedReliableOrdered(size_t id);
+    void acknowledgedReliable(uint64_t id);
+    void acknowledgedReliableOrdered(uint64_t id);
 
   public:
     PacketShipper(Poco::Net::SocketAddress socketAddress);
 
     void Send(Poco::Net::DatagramSocket &socket, Reliability Reliability, const Poco::Buffer<char> body);
     void ResendBackedUpPackets(Poco::Net::DatagramSocket &socket);
-    void Acknowledged(Reliability reliability, size_t id);
+    void Acknowledged(Reliability reliability, uint64_t id);
   };
 } // namespace Overworld

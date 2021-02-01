@@ -333,12 +333,11 @@ void Overworld::OnlineArea::sendReadySignal()
 {
   if (errorCount > MAX_ERROR_COUNT) return;
 
-  Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::ready };
-  size_t mapID{};
 
+  Poco::Buffer<char> buffer{ 0 };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&mapID, sizeof(size_t));
+
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
@@ -600,7 +599,7 @@ void Overworld::OnlineArea::processIncomingPackets()
 
       switch (sig) {
       case ServerEvents::ack:
-        packetShipper.Acknowledged(reader.Read<Reliability>(data), reader.Read<size_t>(data));
+        packetShipper.Acknowledged(reader.Read<Reliability>(data), reader.Read<uint64_t>(data));
         break;
       case ServerEvents::avatar_change:
         receiveNaviChangeSignal(reader, data);

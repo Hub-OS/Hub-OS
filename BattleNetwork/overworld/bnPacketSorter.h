@@ -13,18 +13,18 @@ namespace Overworld
   private:
     struct BackedUpPacket
     {
-      size_t id;
+      uint64_t id;
       Poco::Buffer<char> data;
     };
 
     Poco::Net::SocketAddress socketAddress;
-    size_t nextReliable;
-    size_t nextUnreliableSequenced;
-    size_t nextReliableOrdered;
-    std::vector<size_t> missingReliable;
+    uint64_t nextReliable;
+    uint64_t nextUnreliableSequenced;
+    uint64_t nextReliableOrdered;
+    std::vector<uint64_t> missingReliable;
     std::vector<BackedUpPacket> backedUpOrderedPackets;
 
-    void sendAck(Poco::Net::DatagramSocket &socket, Reliability Reliability, size_t id);
+    void sendAck(Poco::Net::DatagramSocket &socket, Reliability Reliability, uint64_t id);
 
   public:
     PacketSorter(Poco::Net::SocketAddress socketAddress);
