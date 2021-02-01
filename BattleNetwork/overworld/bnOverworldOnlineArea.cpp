@@ -409,21 +409,6 @@ void Overworld::OnlineArea::receiveXYZSignal(BufferReader& reader, const Poco::B
     onlinePlayer->packets++;
     onlinePlayer->lagWindow[onlinePlayer->packets%Overworld::LAG_WINDOW_LEN] = incomingLag;
   }
-  else {
-    auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
-
-    if (success) {
-      auto& actor = pair->second->actor;
-      pair->second->actor.AddNode(&pair->second->emoteNode);
-      pair->second->timestamp = CurrentTime::AsMilli();
-      pair->second->startBroadcastPos = sf::Vector2f(x, y);
-      pair->second->endBroadcastPos = sf::Vector2f(x, y);
-      RefreshOnlinePlayerSprite(*pair->second, SelectedNavi{ 0 });
-      actor.setPosition(pair->second->endBroadcastPos);
-      GetMap().AddSprite(&actor, 0);
-      GetMap().AddSprite(&pair->second->teleportController.GetBeam(), 0);
-    }
-  }
 }
 
 void Overworld::OnlineArea::receiveNameSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -484,35 +469,42 @@ void Overworld::OnlineArea::receiveAvatarJoinSignal(BufferReader& reader, const 
   if (mapBuffer.empty()) return;
 
   std::string user = reader.ReadString(buffer);
+  std::string name = reader.ReadString(buffer);
+  float x = reader.Read<float>(buffer);
+  float y = reader.Read<float>(buffer);
+  float z = reader.Read<float>(buffer);
+  bool warp_in = reader.Read<bool>(buffer);
+
+  auto pos = sf::Vector2f(x, y);
 
   if (user == ticket) return;
 
   auto userIter = onlinePlayers.find(user);
 
-  if (userIter == onlinePlayers.end()) {
+  if (userIter != onlinePlayers.end()) return;
 
-    auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
+  auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
 
-    if (success) {
-      auto token = GetMap().FindToken("H")[0];
-      auto* onlinePlayer = pair->second;
+  if (!success) return;
 
-      auto& actor = onlinePlayer->actor;
-      auto& teleport = onlinePlayer->teleportController;
-      onlinePlayer->actor.AddNode(&onlinePlayer->emoteNode);
-      onlinePlayer->timestamp = CurrentTime::AsMilli();
-      onlinePlayer->startBroadcastPos = sf::Vector2f(token.x, token.y); // TODO emit (x,y) from server itself
-      onlinePlayer->endBroadcastPos = sf::Vector2f(token.x, token.y); // TODO emit (x,y) from server itself
-      RefreshOnlinePlayerSprite(*onlinePlayer, SelectedNavi{ 0 });
-      actor.setPosition(onlinePlayer->endBroadcastPos);
-      actor.Hide();
-      GetMap().AddSprite(&actor, 0);
-      GetMap().AddSprite(&teleport.GetBeam(), 0);
+  auto* onlinePlayer = pair->second;
+  onlinePlayer->timestamp = CurrentTime::AsMilli();
+  onlinePlayer->startBroadcastPos = pos;
+  onlinePlayer->endBroadcastPos = pos;
 
-      onlinePlayer->actor.setPosition(onlinePlayer->startBroadcastPos);
-      onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
-      onlinePlayer->teleportController.EnableSound(false);
-    }
+  auto& actor = onlinePlayer->actor;
+  actor.AddNode(&onlinePlayer->emoteNode);
+  actor.Rename(name);
+  actor.setPosition(pos);
+  RefreshOnlinePlayerSprite(*onlinePlayer, SelectedNavi{ 0 });
+  GetMap().AddSprite(&actor, 0);
+
+  auto& teleportController = onlinePlayer->teleportController;
+  teleportController.EnableSound(false);
+  GetMap().AddSprite(&teleportController.GetBeam(), 0);
+
+  if (warp_in) {
+    teleportController.TeleportIn(actor, pos, Direction::none);
   }
 }
 
