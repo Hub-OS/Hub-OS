@@ -305,14 +305,16 @@ void Overworld::OnlineArea::sendLoginSignal()
 {
   if (errorCount > MAX_ERROR_COUNT) return;
 
-  std::string username("James\0", 5);
-  std::string password("\0", 1); // No servers need passwords at this time
+  std::string username = "James";
+  std::string password = ""; // No servers need passwords at this time
 
   Poco::Buffer<char> buffer{ 0 };
   ClientEvents type{ ClientEvents::login };
   buffer.append((char*)&type, sizeof(ClientEvents));
   buffer.append((char*)username.data(), username.length());
+  buffer.append(0);
   buffer.append((char*)password.data(), password.length());
+  buffer.append(0);
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
