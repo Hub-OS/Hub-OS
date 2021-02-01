@@ -518,7 +518,7 @@ void Overworld::OnlineArea::processIncomingPackets()
     );
 
   if (timeDifference.count() > 5) {
-    Leave();
+    TryLeave();
     return;
   }
 
@@ -580,11 +580,11 @@ void Overworld::OnlineArea::processIncomingPackets()
   catch (Poco::Net::NetException& e) {
     Logger::Logf("OnlineArea Network exception: %s", e.what());
 
-    Leave();
+    TryLeave();
   }
 }
 
-void Overworld::OnlineArea::Leave() {
+void Overworld::OnlineArea::TryLeave() {
   auto* teleportController = &GetTeleportControler();
 
   if (teleportController->IsComplete()) {

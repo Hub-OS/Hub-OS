@@ -41,7 +41,7 @@ namespace Overworld {
     Text name;
     size_t errorCount{};
 
-    void Leave();
+    void TryLeave();
     void RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi);
     const bool IsMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src);
     const double CalculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
