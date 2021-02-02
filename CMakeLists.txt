@@ -35,6 +35,8 @@ file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
 	"BattleNetwork/netplay/*.cpp"
 	"BattleNetwork/widgets/*.h"
 	"BattleNetwork/widgets/*.cpp"
+        "BattleNetwork/bindings/*.h"
+        "BattleNetwork/bindings/*.cpp"
         "BattleNetwork/mmbn.ico.c"
         )
 

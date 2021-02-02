@@ -19,7 +19,6 @@
 #include "bnConfigScene.h"
 #include "bnFont.h"
 #include "bnText.h"
-#include "bnAppButton.h"
 #include "bnQueueMobRegistration.h"
 #include "bnQueueNaviRegistration.h"
 #include "bnResourceHandle.h"

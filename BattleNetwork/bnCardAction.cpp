@@ -235,6 +235,11 @@ const ActionLockoutType CardAction::GetLockoutType() const
   return lockoutProps.type;
 }
 
+const std::string& CardAction::GetAnimState() const
+{
+  return this->animation;
+}
+
 const bool CardAction::IsAnimationOver() const
 {
   return this->animationIsOver;

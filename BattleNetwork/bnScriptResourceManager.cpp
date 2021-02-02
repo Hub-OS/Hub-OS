@@ -7,8 +7,13 @@
 #include "bnElements.h"
 
 #include "bnNaviRegistration.h"
-#include "bnScriptedCardAction.h"
-#include "bnScriptedPlayer.h"
+#include "bindings/bnScriptedCardAction.h"
+#include "bindings/bnScriptedPlayer.h"
+
+// temporary proof of concept includes...
+#include "bnBusterCardAction.h"
+#include "bnSwordCardAction.h"
+#include "bnBombCardAction.h"
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.open_libraries(sol::lib::base);
@@ -19,6 +24,24 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
 
   auto animation_record = battle_namespace.new_usertype<AnimationComponent>("Animation",
     "SetPath", &AnimationComponent::SetPath
+  );
+
+  auto busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
+    sol::call_constructor, sol::factories([](Character& character, bool charged, int dmg) -> auto {
+      return std::make_shared<BusterCardAction>(character, charged, dmg);
+    })
+  );
+
+  auto swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
+    sol::call_constructor,sol::factories([](Character& character, int dmg) -> auto {
+      return std::make_shared<SwordCardAction>(character, dmg);
+    })
+  );
+
+  auto bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
+    sol::call_constructor, sol::factories([](Character& character, int dmg) -> auto {
+      return std::make_shared<BombCardAction>(character, dmg);
+    })
   );
 
   auto player_record = battle_namespace.new_usertype<ScriptedPlayer>("ScriptedPlayer",
@@ -33,23 +56,43 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   auto textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
-    "LoadTextureFromFile", &TextureResourceManager::LoadTextureFromFile
+    "LoadFile", &TextureResourceManager::LoadTextureFromFile
   );
 
   auto audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
-    "LoadAudioFromFile", &AudioResourceManager::LoadFromFile
+    "LoadFile", &AudioResourceManager::LoadFromFile
   );
 
   auto shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
-    "LoadShaderFromFile", &ShaderResourceManager::LoadShaderFromFile
+    "LoadFile", &ShaderResourceManager::LoadShaderFromFile
   );
 
+  // make resource handle metatable
   auto resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
     sol::constructors<ResourceHandle()>(),
     "Textures", sol::property(sol::resolve<TextureResourceManager& ()>(&ResourceHandle::Textures)),
     "Audio", sol::property(sol::resolve<AudioResourceManager& ()>(&ResourceHandle::Audio)),
     "Shaders", sol::property(sol::resolve<ShaderResourceManager& ()>(&ResourceHandle::Shaders))
   );
+
+  // make loading resources easier
+  // DOESNT WORK??
+  /*state.script(
+    "-- Shorthand load texture"
+    "function LoadTexture(path)"
+    "  return Engine.ResourceHandle.new().Textures:LoadFile(path)"
+    "end"
+
+    "-- Shorthand load audio"
+    "function LoadAudio(path)"
+    "  return Engine.ResourceHandle.new().Audio:LoadFile(path)"
+    "end"
+
+    "-- Shorthand load shader"
+    "function LoadShader(path)"
+    "  return Engine.ResourceHandle.new().Shaders:LoadFile(path)"
+    "end"
+  );*/
 
   // make meta object info metatable
   auto navimeta_table = engine_namespace.new_usertype<NaviRegistration::NaviMeta>("NaviMeta",
@@ -162,9 +205,10 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   */
 }
 
-void ScriptResourceManager::AddToPaths(FileMeta pathInfo)
+ScriptResourceManager& ScriptResourceManager::GetInstance()
 {
-  paths.push_back(pathInfo);
+    static ScriptResourceManager instance;
+    return instance;
 }
 
 ScriptResourceManager::~ScriptResourceManager()
@@ -174,10 +218,6 @@ ScriptResourceManager::~ScriptResourceManager()
     delete ptr;
   }
   states.clear();
-}
-
-void ScriptResourceManager::LoadAllScripts(std::atomic<int>& status)
-{
 }
 
 ScriptResourceManager::LoadScriptResult ScriptResourceManager::LoadScript(const std::string& path)
