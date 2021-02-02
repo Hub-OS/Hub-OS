@@ -2,15 +2,23 @@
 #include "../bnText.h"
 #include "../bnWidget.h"
 
-class Button final : public Widget {
+class Button final : public Widget, std::enable_shared_from_this<Button> {
   mutable SpriteProxyNode img;
   mutable Text label;
+  Widget::Layout* btnLayout{ nullptr };
+
+  class ButtonLayout final : public Widget::Layout {
+    Button* btn{ nullptr };
+
+  public:
+    ButtonLayout(Button* btn);
+    const sf::FloatRect CalculateBounds() const;
+  };
 
 public:
-  Button(std::shared_ptr<Widget> parent, const std::string& labelStr);
+  Button(const std::string& labelStr);
   ~Button();
 
-  const sf::FloatRect CalculateBounds() const override;
   void SetLabel(const std::string& labelStr);
   void SetImage(const std::string& path);
   void ClearImage();

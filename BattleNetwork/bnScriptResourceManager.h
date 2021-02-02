@@ -32,13 +32,18 @@ public:
     }
   };
 
+  struct LoadScriptResult {
+    sol::protected_function_result result;
+    sol::state* state{ nullptr };
+  };
+
 private:
   std::vector<FileMeta> paths; /*!< Scripts to load */
+  std::vector<sol::state*> states;
   std::map<std::string, ScriptMetaType> nameToTypeHash; /*!< Script name to type hash */
-  std::map<std::string, sol::table> scriptTableHash; /*!< Script name to sol table hash */
-  sol::state luaState;
+  std::map<std::string, LoadScriptResult> scriptTableHash; /*!< Script name to sol table hash */
 
-  void ConfigureEnvironment();
+  void ConfigureEnvironment(sol::state& state);
 
 public:
   void AddToPaths(FileMeta pathInfo);
@@ -49,9 +54,13 @@ public:
     return instance;
   }
 
+  ~ScriptResourceManager();
+
   /**
  * @brief Loads all scripts
- * @param status Increases the count after each shader loads
+ * @param status Increases the count after each script loads
  */
   void LoadAllScripts(std::atomic<int> &status);
+
+  LoadScriptResult LoadScript(const std::string& path);
 };

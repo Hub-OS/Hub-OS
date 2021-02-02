@@ -4,8 +4,9 @@
 
 class TextureResourceManager;
 class AudioResourceManager;
-class FileResourceManager;
 class ShaderResourceManager;
+class ScriptResourceManager;
+//class FileResourceManager;
 
 class ResourceHandle {
   friend class Game;
@@ -14,9 +15,15 @@ private:
   static TextureResourceManager* textures;
   static AudioResourceManager* audio;
   static ShaderResourceManager* shaders;
-  //static FileResourceMananger* files;
+  static ScriptResourceManager* scripts;
+  //static FileResourceManager* files;
 
 public:
+
+  //
+  // standard functions
+  //
+
   TextureResourceManager& Textures() { 
     assert(textures != nullptr && "texture resource manager was nullptr!");  
     return *textures; 
@@ -31,7 +38,14 @@ public:
     return *shaders; 
   }
 
+  ScriptResourceManager& Scripts() {
+    assert(scripts != nullptr && "script resource manager was nullptr!");
+    return *scripts;
+  }
+
+  //
   // const-qualified functions
+  //
 
   TextureResourceManager& Textures() const {
     assert(textures != nullptr && "texture resource manager was nullptr!");
@@ -45,5 +59,10 @@ public:
   ShaderResourceManager& Shaders() const {
     assert(shaders != nullptr && "shader resource manager was nullptr!");
     return *shaders;
+  }
+
+  ScriptResourceManager& Scripts() const {
+    assert(scripts != nullptr && "script resource manager was nullptr!");
+    return *scripts;
   }
 };

@@ -11,6 +11,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
+#include "bnScriptResourceManager.h"
 #include "bnInputManager.h"
 #include "cxxopts/cxxopts.hpp"
 
@@ -45,6 +46,7 @@ private:
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
+  ScriptResourceManager scriptManager;
   InputManager inputManager;
 
   DrawWindow& window;

@@ -56,20 +56,27 @@ ConfigScene::ConfigScene(swoosh::ActivityController& controller) :
 
   setView(sf::Vector2u(480, 320));
 
-  auto imgBtn = std::make_shared<Button>(nullptr, "I have a picture");
+  auto imgBtn = new Button("I have a picture");
   imgBtn->SetImage("resources/ui/zenny.png");
 
+  auto imgOnly = new Button("");
+  imgOnly->SetImage("resources/ui/card_select.png");
 
-  auto layout = std::make_shared<VerticalLayout>(imgBtn, 200.0f);
-  layout->AddWidget(std::make_shared<Button>(layout, "Click me"));
-  layout->AddWidget(std::make_shared<Button>(layout, "No, me"));
+  auto widget = new Widget;
+  auto layout = new VerticalLayout(widget, 200.0f);
 
-  auto aaaa = std::make_shared<Button>(layout, "aaAAaaAAA");
-  layout->AddWidget(aaaa);
+  widget->AddWidget(new Button("Click me"));
+  widget->AddWidget(new Button("No, me"));
 
-  aaaa->AddSubmenu(Direction::right, std::make_shared<Button>(aaaa, ".... pick me!"));
 
-  imgBtn->AddSubmenu(Direction::down, layout);
+  auto aaaa = new Button("aaAAaaAAA");
+  auto pick = new Button(".... pick me!");
+  aaaa->AddSubmenu(Direction::right, pick);
+  pick->AddSubmenu(Direction::down, imgOnly);
+  
+  widget->AddWidget(aaaa);
+ 
+  imgBtn->AddSubmenu(Direction::down, widget);
   
   menu = imgBtn;
 }
@@ -111,52 +118,55 @@ void ConfigScene::onUpdate(double elapsed)
     // uiList[0][static_cast<size_t>(MenuItems::account)].label = "LOGOUT " + WEBCLIENT.GetUserName();
   }
 
+  if (HasRightButton()) {
+    auto opened = menu->GetDeepestSubmenu();
+    auto parent = opened->GetParentWidget();
+
+    size_t index = opened->GetSelectedChildIndex();
+    opened->SelectChild(index + 1);
+  }
+
+  if (HasLeftButton()) {
+    auto opened = menu->GetDeepestSubmenu();
+    auto parent = opened->GetParentWidget();
+
+    size_t index = opened->GetSelectedChildIndex();
+    opened->SelectChild(index - 1);
+  }
+
   if (HasUpButton()) {
     auto opened = menu->GetDeepestSubmenu();
-
-    if (!opened) {
-      opened = menu;
-    }
-
-    const auto& [valid, index] = opened->GetActiveSubmenuIndex();
-    
-    if (valid && index > 0) {
-      opened->SelectSubmenu(index - 1);
+    auto parent = opened->GetParentWidget();
+    if (parent) {
+      parent->Close();
+      parent->Active();
     }
   }
 
   if (HasDownButton()) {
     auto opened = menu->GetDeepestSubmenu();
-
-    if (!opened) {
-      opened = menu;
-    }
-
-    const auto& [valid, index] = opened->GetActiveSubmenuIndex();
-
-    if (valid && index < opened->CountSubmenus()) {
-      opened->SelectSubmenu(index + 1);
-    }
-  }
-
-  if (HasRightButton()) {
-    auto opened = menu->GetDeepestSubmenu();
-    if (!opened) {
-      menu->Open();
-    }
-    else {
+    if (opened->IsOpen() == false && opened->CountSubmenus()) {
       opened->Open();
     }
-  }
+    else {
+      size_t selected = opened->GetSelectedChildIndex();
+      auto child = opened->GetChild(selected);
 
-  if (HasLeftButton()) {
-    auto opened = menu->GetDeepestSubmenu();
-    if (opened) {
-      opened->Close();
+      if (child) {
+        if (child->IsActive()) {
+          child->Open();
+        }
+        else {
+          opened->SelectChild(selected);
+        }
+      }
+      else {
+        opened->Active();
+      }
     }
   }
 
-  if (HasConfirmed() && /*isSelectingTopMenu &&*/ !leave) {
+  if (false && HasConfirmed() && /*isSelectingTopMenu &&*/ !leave) {
     if (textbox.IsClosed()) {
       auto onYes = [this]() {
         // Save before leaving

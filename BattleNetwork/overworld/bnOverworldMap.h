@@ -62,7 +62,7 @@ namespace Overworld {
     unsigned cols{}, rows{}; /*!< map is made out of Cols x Rows tiles */
     int tileWidth{}, tileHeight{}; /*!< tile dimensions */
     Camera* cam{ nullptr }; /*!< camera */
-    std::string name;
+    std::string name, background;
 
     /**
      * @brief Transforms an ortho vector into an isometric vector
@@ -185,8 +185,9 @@ namespace Overworld {
     std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const;
 
     const std::string& GetName() const;
+    const std::string& GetBackgroundValue() const;
     void SetName(const std::string& name);
-
+    void SetBackgroundValue(const std::string& value);
     const unsigned GetCols() const;
     const unsigned GetRows() const;
   };

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <filesystem>
+
 // Register these navis
 #include "bnResourceHandle.h"
 #include "bnTextureResourceManager.h"
@@ -16,6 +18,7 @@
 #include "bnTomahawkman.h"
 #include "bnRoll.h"
 #include "bnForte.h"
+#include "bnScriptedPlayer.h"
 
 static inline void QueuNaviRegistration() {
   ResourceHandle handle;
@@ -88,4 +91,24 @@ static inline void QueuNaviRegistration() {
   forteInfo->SetSpeed(2);
   forteInfo->SetAttack(2);
   forteInfo->SetChargedAttack(20);
+
+  // Script resource manager load scripts from designated folder "resources/mods/players"
+  std::string path = "resources/mods/players";
+  for (const auto& entry : std::filesystem::directory_iterator(path)) {
+    const auto& path = entry.path();
+    std::string characterName = path.filename().string();
+    auto res = handle.Scripts().LoadScript(path.string() + "/entry.lua");
+
+    if (res.result.valid()) {
+      sol::state& state = *res.state;
+      auto customInfo = NAVIS.AddClass<ScriptedPlayer>(state);
+
+      // run script on meta info object
+      state["load_info"](customInfo);
+    }
+    else {
+      sol::error error = res.result;
+      Logger::Logf("Failed to load player mod %s. Reason: %s", path.string().c_str(), error.what());
+    }
+  }
 }

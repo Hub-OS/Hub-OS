@@ -18,9 +18,19 @@
 #include "../bnLibraryScene.h"
 #include "../bnConfigScene.h"
 #include "../bnFolderScene.h"
-
 #include "../bnCardFolderCollection.h"
 #include "../bnLanBackground.h"
+#include "../bnACDCBackground.h"
+#include "../bnGraveyardBackground.h"
+#include "../bnVirusBackground.h"
+#include "../bnMedicalBackground.h"
+#include "../bnJudgeTreeBackground.h"
+#include "../bnMiscBackground.h"
+#include "../bnRobotBackground.h"
+#include "../bnSecretBackground.h"
+#include "../bnUndernetBackground.h"
+#include "../bnWeatherBackground.h"
+
 #include "../netplay/bnPVPScene.h"
 
 using sf::RenderWindow;
@@ -676,7 +686,9 @@ void Overworld::SceneBase::RefreshNaviSprite()
   auto owPath = meta.GetOverworldAnimationPath();
 
   if (owPath.size()) {
-    playerActor.setTexture(meta.GetOverworldTexture());
+    if (auto tex = meta.GetOverworldTexture()) {
+      playerActor.setTexture(tex);
+    }
     playerActor.LoadAnimations(owPath);
 
     // move the emote above the player's head
@@ -775,6 +787,50 @@ void Overworld::SceneBase::ClearMap(unsigned rows, unsigned cols)
   ribbons.clear();
 }
 
+void Overworld::SceneBase::LoadBackground(const std::string& value)
+{
+  std::string str = value;
+  std::transform(str.begin(), str.end(), str.begin(), [](auto in) {
+    return std::tolower(in);
+   });
+  
+  if (value == "undernet") {
+    SetBackground(new UndernetBackground);
+  }
+  else if (value == "robot") {
+    SetBackground(new RobotBackground);
+  }
+  else if (value == "misc") {
+    SetBackground(new MiscBackground);
+  }
+  else if (value == "grave") {
+    SetBackground(new GraveyardBackground);
+  }
+  else if (value == "weather") {
+    SetBackground(new WeatherBackground);
+  } 
+  else if(value == "medical") {
+    SetBackground(new MedicalBackground);
+  }
+  else if (value == "acdc") {
+    SetBackground(new ACDCBackground);
+  } 
+  else if (value == "virus") {
+    SetBackground(new VirusBackground);
+  }
+  else if (value == "judge") {
+    SetBackground(new JudgeTreeBackground);
+  }
+  else if (value == "secret") {
+    SetBackground(new SecretBackground);
+  }
+  else {
+    SetBackground(new LanBackground);
+  }
+
+  // TODO: else if (isPNG(value)) { WriteToDisc(".areaname.png.value"); /* should cache too */ }
+}
+
 void Overworld::SceneBase::ResetMap()
 {
   // Load a map
@@ -787,6 +843,8 @@ void Overworld::SceneBase::ResetMap()
     Logger::Log("Failed to load map homepage.txt");
   }
   else {
+    LoadBackground(map.GetBackgroundValue());
+
     ClearMap(lastMapRows, lastMapCols);
 
     // Pre-populate the quadtree with the player

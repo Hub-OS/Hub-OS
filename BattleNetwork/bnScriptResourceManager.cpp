@@ -1,47 +1,95 @@
 #include "bnScriptResourceManager.h"
+#include "bnAudioResourceManager.h"
+#include "bnTextureResourceManager.h"
+#include "bnShaderResourceManager.h"
+#include "bnResourceHandle.h"
 #include "bnEntity.h"
-#include "bnScriptedCharacter.h"
 #include "bnElements.h"
+
+#include "bnNaviRegistration.h"
 #include "bnScriptedCardAction.h"
+#include "bnScriptedPlayer.h"
 
-void ScriptResourceManager::ConfigureEnvironment() {
-  luaState.open_libraries(sol::lib::base);
+void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
+  state.open_libraries(sol::lib::base);
 
-  auto battle_namespace = luaState.create_table("Battle");
+  auto battle_namespace = state.create_table("Battle");
+  auto overworld_namespace = state.create_table("Overworld");
+  auto engine_namespace = state.create_table("Engine");
 
-  // make usertype metatable
-  auto character_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
-    sol::constructors<ScriptedCharacter(Character::Rank)>(),
-    sol::base_classes, sol::bases<Entity>(),
-    "GetName", &Character::GetName,
-    "GetID", &Entity::GetID,
-    "GetHealth", &Character::GetHealth,
-    "GetMaxHealth", &Character::GetMaxHealth,
-    "SetHealth", &Character::SetHealth
-    );
+  auto animation_record = battle_namespace.new_usertype<AnimationComponent>("Animation",
+    "SetPath", &AnimationComponent::SetPath
+  );
 
-  // TODO: register animation callback methods
+  auto player_record = battle_namespace.new_usertype<ScriptedPlayer>("ScriptedPlayer",
+    "GetName", &ScriptedPlayer::GetName,
+    "GetID", &ScriptedPlayer::GetID,
+    "GetHealth", &ScriptedPlayer::GetHealth,
+    "GetMaxHealth", &ScriptedPlayer::GetMaxHealth,
+    "SetName", &ScriptedPlayer::SetName,
+    "SetHealth", &ScriptedPlayer::SetHealth,
+    "SetTexture", &ScriptedPlayer::setTexture,
+    "GetAnimation", &ScriptedPlayer::GetAnimationComponent
+  );
+
+  auto textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
+    "LoadTextureFromFile", &TextureResourceManager::LoadTextureFromFile
+  );
+
+  auto audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
+    "LoadAudioFromFile", &AudioResourceManager::LoadFromFile
+  );
+
+  auto shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
+    "LoadShaderFromFile", &ShaderResourceManager::LoadShaderFromFile
+  );
+
+  auto resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
+    sol::constructors<ResourceHandle()>(),
+    "Textures", sol::property(sol::resolve<TextureResourceManager& ()>(&ResourceHandle::Textures)),
+    "Audio", sol::property(sol::resolve<AudioResourceManager& ()>(&ResourceHandle::Audio)),
+    "Shaders", sol::property(sol::resolve<ShaderResourceManager& ()>(&ResourceHandle::Shaders))
+  );
+
+  // make meta object info metatable
+  auto navimeta_table = engine_namespace.new_usertype<NaviRegistration::NaviMeta>("NaviMeta",
+    "SetSpecialDescription", &NaviRegistration::NaviMeta::SetSpecialDescription,
+    "SetAttack", &NaviRegistration::NaviMeta::SetAttack,
+    "SetChargedAttack", &NaviRegistration::NaviMeta::SetChargedAttack,
+    "SetSpeed", &NaviRegistration::NaviMeta::SetSpeed,
+    "SetHP", &NaviRegistration::NaviMeta::SetHP,
+    "SetIsSword", &NaviRegistration::NaviMeta::SetIsSword,
+    "SetOverworldAnimationPath", &NaviRegistration::NaviMeta::SetOverworldAnimationPath,
+    "SetOverworldTexture", &NaviRegistration::NaviMeta::SetOverworldTexture,
+    "SetPreviewTexture", &NaviRegistration::NaviMeta::SetPreviewTexture,
+    "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
+  );
+
   auto card_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
     sol::constructors<ScriptedCardAction(Character&, int)>(),
     sol::base_classes, sol::bases<CardAction>()
-    );
+  );
 
-  auto elements_table = battle_namespace.new_enum("Element");
-  elements_table["FIRE"] = Element::fire;
-  elements_table["AQUA"] = Element::aqua;
-  elements_table["ELEC"] = Element::elec;
-  elements_table["WOOD"] = Element::wood;
-  elements_table["SWORD"] = Element::sword;
-  elements_table["WIND"] = Element::wind;
-  elements_table["CURSOR"] = Element::cursor;
-  elements_table["SUMMON"] = Element::summon;
-  elements_table["PLUS"] = Element::plus;
-  elements_table["BREAK"] = Element::breaker;
-  elements_table["NONE"] = Element::none;
-  elements_table["ICE"] = Element::ice;
+  auto elements_table = battle_namespace.new_enum("Element",
+    "FIRE", Element::fire,
+    "AQUA", Element::aqua,
+    "ELEC", Element::elec,
+    "WOOD", Element::wood,
+    "SWORD", Element::sword,
+    "WIND", Element::wind,
+    "CURSOR", Element::cursor,
+    "SUMMON", Element::summon,
+    "PLUS", Element::plus,
+    "BREAK", Element::breaker,
+    "NONE", Element::none,
+    "ICE", Element::ice
+  );
 
+
+  /*
+  * // Script for field class support
   try {
-    luaState.script(
+    state.script(
       "--[[This system EXPECTS type Entity to have a GetID() function"
       "call to return a unique identifier"
       "--]]"
@@ -111,6 +159,7 @@ void ScriptResourceManager::ConfigureEnvironment() {
   catch (const sol::error& err) {
     Logger::Logf("[ShaderResourceManager] Something went wrong while configuring the environment: thrown error, %s", err.what());
   }
+  */
 }
 
 void ScriptResourceManager::AddToPaths(FileMeta pathInfo)
@@ -118,6 +167,32 @@ void ScriptResourceManager::AddToPaths(FileMeta pathInfo)
   paths.push_back(pathInfo);
 }
 
+ScriptResourceManager::~ScriptResourceManager()
+{
+  scriptTableHash.clear();
+  for (auto ptr : states) {
+    delete ptr;
+  }
+  states.clear();
+}
+
 void ScriptResourceManager::LoadAllScripts(std::atomic<int>& status)
 {
+}
+
+ScriptResourceManager::LoadScriptResult ScriptResourceManager::LoadScript(const std::string& path)
+{
+  auto iter = scriptTableHash.find(path);
+
+  if (iter != scriptTableHash.end()) {
+    return iter->second;
+  }
+
+  sol::state* lua = new sol::state;
+  ConfigureEnvironment(*lua);
+  states.push_back(lua);
+
+  const auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
+  auto pair = scriptTableHash.insert({ path, {load_result, lua} });
+  return pair.first->second;
 }

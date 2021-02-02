@@ -59,7 +59,7 @@ private:
   sf::Sprite authWidget, light;
   Background* bg{ nullptr };
   Question* questionInterface{ nullptr };
-  std::shared_ptr<Widget> menu;
+  Widget* menu{ nullptr };
 #ifdef __ANDROID__
   void StartupTouchControls();
   void ShutdownTouchControls();

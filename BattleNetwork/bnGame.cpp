@@ -41,6 +41,7 @@ Game::Game(DrawWindow& window) :
   ResourceHandle::audio    = &audioManager;
   ResourceHandle::textures = &textureManager;
   ResourceHandle::shaders  = &shaderManager;
+  ResourceHandle::scripts  = &scriptManager;
 
   // Link i/o handle to use all the managers created by the game
   InputHandle::input = &inputManager;
