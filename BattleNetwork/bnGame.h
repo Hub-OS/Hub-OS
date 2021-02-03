@@ -46,7 +46,9 @@ private:
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
-  ScriptResourceManager scriptManager;
+#ifdef BN_MOD_SUPPORT 
+  ScriptResourceManager scriptManager; 
+#endif
   InputManager inputManager;
 
   DrawWindow& window;

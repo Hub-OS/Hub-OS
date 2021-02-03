@@ -1243,9 +1243,10 @@ void Overworld::SceneBase::GotoMobSelect()
   CardFolder* folder = nullptr;
 
   if (folders.GetFolder(0, folder)) {
+    SelectMobScene::Properties props{ currentNavi, *folder, programAdvance, GetBackground()->Clone() };
     using effect = segue<PixelateBlackWashFade, milliseconds<500>>;
     Audio().Play(AudioType::CHIP_DESC);
-    getController().push<effect::to<SelectMobScene>>(currentNavi, *folder, programAdvance);
+    getController().push<effect::to<SelectMobScene>>(props);
   }
   else {
     Audio().Play(AudioType::CHIP_ERROR);

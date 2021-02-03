@@ -114,6 +114,10 @@ bool Mob::IsBoss() {
 }
 
 void Mob::SetBackground(Background* background) {
+  if (Mob::background) {
+    delete Mob::background;
+  }
+
   Mob::background = background;
 }
 

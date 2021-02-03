@@ -15,7 +15,7 @@ using std::vector;
  * @date 06/21/10
  * @brief secret area background
  */
-class SecretBackground final : public Background
+class SecretBackground final : public IBackground<SecretBackground>
 {
 public:
   SecretBackground();

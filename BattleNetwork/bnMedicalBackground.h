@@ -16,7 +16,7 @@ using std::vector;
  * @date 09/21/19
  * @brief pills animate
  */
-class MedicalBackground final : public Background
+class MedicalBackground final : public IBackground<MedicalBackground>
 {
 public:
   MedicalBackground();

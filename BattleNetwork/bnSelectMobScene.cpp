@@ -8,10 +8,11 @@ constexpr float PIXEL_SPEED = 180.0f;
 
 using namespace swoosh::types;
 
-SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedNavi navi, CardFolder& selectedFolder, PA& programAdvance) :
+SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, const SelectMobScene::Properties& props) :
   elapsed(0),
-  selectedFolder(selectedFolder),
-  programAdvance(programAdvance),
+  selectedFolder(props.folder),
+  selectedNavi(props.navi),
+  programAdvance(props.pa),
   font(Font::Style::wide),
   menuLabel("BATTLE SELECT", font),
   uiFont(Font::Style::thick),
@@ -20,9 +21,9 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
   speedLabel("1", uiFont),
   hpLabel("1", uiFont),
   textbox(360, 100),
+  props(props),
   Scene(controller)
 {
-  selectedNavi = navi;
 
   // Menu name font
   menuLabel.setPosition(sf::Vector2f(20.f, 8.0f));
@@ -85,6 +86,7 @@ SelectMobScene::SelectMobScene(swoosh::ActivityController& controller, SelectedN
 
 SelectMobScene::~SelectMobScene() {
   if (mob) delete mob;
+  if (props.background) delete props.background;
 }
 
 void SelectMobScene::onUpdate(double elapsed) {
@@ -370,8 +372,10 @@ void SelectMobScene::onUpdate(double elapsed) {
 
       // Queue screen transition to Battle Scene with a white fade effect
       // just like the game
+      mob->SetBackground(props.background);
+
       MobBattleProperties props{ 
-        { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground() },
+        { *player, programAdvance, newFolder, mob->GetField(), mob->GetBackground()->Clone() },
         MobBattleProperties::RewardBehavior::take,
         { mob }
       };

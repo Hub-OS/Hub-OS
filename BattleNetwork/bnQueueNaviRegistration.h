@@ -18,7 +18,10 @@
 #include "bnTomahawkman.h"
 #include "bnRoll.h"
 #include "bnForte.h"
+
+#ifdef BN_MOD_SUPPORT
 #include "bindings/bnScriptedPlayer.h"
+#endif
 
 static inline void QueuNaviRegistration() {
   ResourceHandle handle;
@@ -92,6 +95,7 @@ static inline void QueuNaviRegistration() {
   forteInfo->SetAttack(2);
   forteInfo->SetChargedAttack(20);
 
+#ifdef BN_MOD_SUPPORT
   // Script resource manager load scripts from designated folder "resources/mods/players"
   std::string path = "resources/mods/players";
   for (const auto& entry : std::filesystem::directory_iterator(path)) {
@@ -113,4 +117,5 @@ static inline void QueuNaviRegistration() {
       Logger::Logf("Failed to load player mod %s. Reason: %s", characterName.c_str(), error.what());
     }
   }
+#endif
 }

@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnScriptedPlayer.h"
 #include "../bnCardAction.h"
 
@@ -14,6 +15,11 @@ ScriptedPlayer::ScriptedPlayer(sol::state& script) :
   script["battle_init"](this);
 
   animationComponent->Reload();
+}
+
+void ScriptedPlayer::SetChargePosition(const float x, const float y)
+{
+  chargeEffect.setPosition({ x,y });
 }
 
 void ScriptedPlayer::SetFullyChargeColor(const sf::Color& color)
@@ -38,7 +44,8 @@ AnimationComponent& ScriptedPlayer::GetAnimationComponent()
 
 CardAction * ScriptedPlayer::OnExecuteSpecialAction()
 {
-  sol::object obj = script["execute_special_attack"](this);
+  Character& character = *this;
+  sol::object obj = script["execute_special_attack"](character);
 
   if (obj.valid()) {
     auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
@@ -50,7 +57,8 @@ CardAction * ScriptedPlayer::OnExecuteSpecialAction()
 
 CardAction* ScriptedPlayer::OnExecuteBusterAction()
 {
-  sol::object obj = script["execute_buster_attack"](this);
+  Character& character = *this;
+  sol::object obj = script["execute_buster_attack"](character);
 
   if (obj.valid()) {
     auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
@@ -62,7 +70,8 @@ CardAction* ScriptedPlayer::OnExecuteBusterAction()
 
 CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
 {
-  sol::object obj = script["execute_charged_attack"](this);
+  Character& character = *this;
+  sol::object obj = script["execute_charged_attack"](character);
 
   if (obj.valid()) {
     auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
@@ -71,3 +80,5 @@ CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
 
   return nullptr;
 }
+
+#endif

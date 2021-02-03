@@ -15,7 +15,11 @@ private:
   static TextureResourceManager* textures;
   static AudioResourceManager* audio;
   static ShaderResourceManager* shaders;
+
+#ifdef BN_MOD_SUPPORT
   static ScriptResourceManager* scripts;
+#endif 
+
   //static FileResourceManager* files;
 
 public:
@@ -38,10 +42,12 @@ public:
     return *shaders; 
   }
 
+#ifdef BN_MOD_SUPPORT
   ScriptResourceManager& Scripts() {
     assert(scripts != nullptr && "script resource manager was nullptr!");
     return *scripts;
   }
+#endif
 
   //
   // const-qualified functions
@@ -61,8 +67,10 @@ public:
     return *shaders;
   }
 
+#ifdef BN_MOD_SUPPORT
   ScriptResourceManager& Scripts() const {
     assert(scripts != nullptr && "script resource manager was nullptr!");
     return *scripts;
   }
+#endif
 };

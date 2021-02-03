@@ -1,3 +1,4 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnScriptResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnTextureResourceManager.h"
@@ -14,6 +15,8 @@
 #include "bnBusterCardAction.h"
 #include "bnSwordCardAction.h"
 #include "bnBombCardAction.h"
+#include "bnFireBurnCardAction.h"
+#include "bnCannonCardAction.h"
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.open_libraries(sol::lib::base);
@@ -31,7 +34,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetPath", &AnimationComponent::SetPath
   );
 
-
   auto player_record = battle_namespace.new_usertype<Player>("Player",
     sol::base_classes, sol::bases<Character>()
   );
@@ -45,30 +47,47 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHealth", &ScriptedPlayer::SetHealth,
     "SetTexture", &ScriptedPlayer::setTexture,
     "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
+    "SetChargePosition", &ScriptedPlayer::SetChargePosition,
     "GetAnimation", &ScriptedPlayer::GetAnimationComponent,
     sol::base_classes, sol::bases<Player>()
     );
 
   auto busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
-    sol::factories([](Character& character, bool charged, int dmg) -> auto {
+    sol::factories([](Character& character, bool charged, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<BusterCardAction>(character, charged, dmg);
     }),
     sol::base_classes, sol::bases<CardAction>()
   );
 
   auto swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
-    sol::factories([](Character& character, int dmg) -> auto {
+    sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<SwordCardAction>(character, dmg);
     }),
     sol::base_classes, sol::bases<CardAction>()
   );
 
   auto bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
-    sol::factories([](Character& character, int dmg) -> auto {
+    sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
       return std::make_unique<BombCardAction>(character, dmg);
     }),
     sol::base_classes, sol::bases<CardAction>()
   );
+
+  auto fireburn_record = battle_namespace.new_usertype<FireBurnCardAction>("FireBurn",
+    sol::factories([](Character& character, FireBurn::Type type, int dmg) -> std::unique_ptr<CardAction> {
+      return std::make_unique<FireBurnCardAction>(character, type, dmg);
+    }),
+    sol::base_classes, sol::bases<CardAction>()
+  );
+
+
+  auto cannon_record = battle_namespace.new_usertype<CannonCardAction>("Cannon",
+    sol::factories([](Character& character, CannonCardAction::Type type, int dmg) -> std::unique_ptr<CardAction> {
+      return std::make_unique<CannonCardAction>(character, type, dmg);
+      }),
+    sol::base_classes, sol::bases<CardAction>()
+  );
+
 
   auto textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
     "LoadFile", &TextureResourceManager::LoadTextureFromFile
@@ -246,3 +265,4 @@ ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const
   auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
 }
+#endif

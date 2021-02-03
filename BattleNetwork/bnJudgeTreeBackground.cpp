@@ -8,8 +8,11 @@
 
 #define PATH std::string("resources/scenes/judge_tree/")
 
-JudgeTreeBackground::JudgeTreeBackground()
-  : x(0.0f), y(0.0f), Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
+JudgeTreeBackground::JudgeTreeBackground() : 
+  x(0.0f), 
+  y(0.0f), 
+  IBackground<JudgeTreeBackground>(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180) 
+{
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 
   animation = Animation(PATH + "bg.animation");

@@ -1,4 +1,6 @@
 #pragma once
+#ifdef BN_MOD_SUPPORT
+
 #include "bnLogger.h"
 
 #include <SFML/Graphics.hpp>
@@ -34,3 +36,5 @@ public:
 
   LoadScriptResult& LoadScript(const std::string& path);
 };
+
+#endif

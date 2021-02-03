@@ -1,4 +1,6 @@
 #pragma once
+#ifdef BN_MOD_SUPPORT
+
 #include <sol/sol.hpp>
 #include "../bnPlayer.h"
 #include "../bnPlayerState.h"
@@ -24,6 +26,7 @@ public:
 
   ScriptedPlayer(sol::state& script);
 
+  void SetChargePosition(const float x, const float y);
   void SetFullyChargeColor(const sf::Color& color);
   void SetHeight(const float& height);
   const float GetHeight() const;
@@ -33,3 +36,5 @@ public:
   CardAction* OnExecuteBusterAction() override final;
   CardAction* OnExecuteChargedBusterAction() override final;
 };
+
+#endif

@@ -144,15 +144,15 @@ void PlayerCardUseListener::OnCardUse(Battle::Card& card, Character& character, 
     player->QueueAction(action);
   }
   else if (name.size() >= 6 && name.substr(0, 6) == "Cannon") {
-    auto action = new CannonCardAction(*player, card.GetDamage());
+    auto action = new CannonCardAction(*player, CannonCardAction::Type::green, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "HiCannon") {
-    auto action = new CannonCardAction(*player, card.GetDamage(), CannonCardAction::Type::blue);
+    auto action = new CannonCardAction(*player, CannonCardAction::Type::blue, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "M-Cannon") {
-    auto action = new CannonCardAction(*player, card.GetDamage(), CannonCardAction::Type::red);
+    auto action = new CannonCardAction(*player, CannonCardAction::Type::red, card.GetDamage());
     player->QueueAction(action);
   }
   else if (name == "MiniBomb") {

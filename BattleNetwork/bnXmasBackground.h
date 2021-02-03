@@ -16,7 +16,7 @@ using std::vector;
  * @date 11/24/20
  * @brief Repurposed background from an excellent fangame
  */
-class XmasBackground final  : public Background
+class XmasBackground final  : public IBackground<XmasBackground>
 {
 public:
   XmasBackground();

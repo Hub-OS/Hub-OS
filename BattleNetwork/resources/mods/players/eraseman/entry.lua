@@ -29,10 +29,10 @@ end
 
 function execute_buster_attack(player)
     print("buster attack")
-    return Battle.Buster(player, false, 10)
+    return Battle.Buster.new(player, false, 10)
 end
 
 function execute_charged_attack(player)
     print("charged attack")
-    return Battle.Buster(player, true, 100)
+    return Battle.Buster.new(player, true, 100)
 end

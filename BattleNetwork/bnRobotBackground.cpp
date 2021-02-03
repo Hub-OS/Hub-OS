@@ -8,8 +8,11 @@
 
 #define PATH std::string("resources/scenes/robot/")
 
-RobotBackground::RobotBackground()
-  : x(0.0f), y(0.0f), Background(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180) {
+RobotBackground::RobotBackground() : 
+  x(0.0f), 
+  y(0.0f), 
+  IBackground<RobotBackground>(Textures().LoadTextureFromFile(PATH + "bg.png"), 240, 180) 
+{
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 
   animation = Animation(PATH + "bg.animation");

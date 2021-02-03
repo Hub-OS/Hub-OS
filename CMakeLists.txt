@@ -44,6 +44,12 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddFiles.cmake)
 add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
 add_compile_definitions(NOMINMAX)
 
+# This tells BN engine to define a ScriptResourceMananger and
+# load mods during the boot step
+# WARNING: sol2 bindings increase compile times by 2-3x! 
+#          Uncomment this only if you're working with scripting!
+# add_compile_definitions(BN_MOD_SUPPORT)
+
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
 

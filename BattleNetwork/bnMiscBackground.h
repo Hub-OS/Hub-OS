@@ -16,7 +16,7 @@ using std::vector;
  * @date 09/21/19
  * @brief misc bn4 background
  */
-class MiscBackground final : public Background
+class MiscBackground final : public IBackground<MiscBackground>
 {
 public:
   MiscBackground();
