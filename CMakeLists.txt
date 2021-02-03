@@ -21,10 +21,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 find_package(Poco REQUIRED Foundation Net)
 find_package(Threads REQUIRED)
 find_package(Lua REQUIRED)
-find_package(sol2 REQUIRED)
+# find_package(sol2 REQUIRED) # commented out until sol2 vcpkg is up to date
 
 include_directories(extern/Swoosh/src)
-
+include_directories(BattleNetwork/sol/include) # temporary sol2 bugfix
 add_subdirectory(extern/SFML)
 add_subdirectory(extern/WebAPI)
 
@@ -54,7 +54,7 @@ target_link_libraries(BattleNetwork WebAPI-client)
 target_link_libraries(BattleNetwork Poco::Net Poco::Foundation)
 target_link_libraries(BattleNetwork Threads::Threads)
 target_link_libraries(BattleNetwork ${LUA_LIBRARIES})
-target_link_libraries(BattleNetwork sol2::sol2)
+# target_link_libraries(BattleNetwork sol2::sol2)
 
 set_target_properties(BattleNetwork
     PROPERTIES

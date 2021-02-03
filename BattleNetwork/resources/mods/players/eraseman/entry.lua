@@ -19,16 +19,20 @@ function battle_init(player)
     player:SetHealth(1100)
     player:GetAnimation():SetPath(_modpath.."eraseman.animation")
     player:SetTexture(LoadTexture(_modpath.."navi_eraseman_atlas.png"), true)
+    player:SetFullyChargeColor(Color.new(255,0,0,255))
 end
 
 function execute_special_attack(player)
+    print("execute special")
     return nil
 end
 
 function execute_buster_attack(player)
-    return Battle.Buster.new(player, false, 10)
+    print("buster attack")
+    return Battle.Buster(player, false, 10)
 end
 
 function execute_charged_attack(player)
-    return Battle.Buster.new(player, true, 100)
+    print("charged attack")
+    return Battle.Buster(player, true, 100)
 end

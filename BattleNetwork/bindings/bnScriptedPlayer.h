@@ -1,5 +1,5 @@
 #pragma once
-
+#include <sol/sol.hpp>
 #include "../bnPlayer.h"
 #include "../bnPlayerState.h"
 #include "../bnTextureType.h"

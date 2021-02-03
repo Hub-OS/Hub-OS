@@ -41,8 +41,8 @@ CardAction * ScriptedPlayer::OnExecuteSpecialAction()
   sol::object obj = script["execute_special_attack"](this);
 
   if (obj.valid()) {
-    std::shared_ptr<CardAction> ptr = obj.as<std::shared_ptr<CardAction>>();
-    return ptr.get();
+    auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
+    return ptr.release();
   }
 
   return nullptr;
@@ -53,8 +53,8 @@ CardAction* ScriptedPlayer::OnExecuteBusterAction()
   sol::object obj = script["execute_buster_attack"](this);
 
   if (obj.valid()) {
-    std::shared_ptr<CardAction> ptr = obj.as<std::shared_ptr<CardAction>>();
-    return ptr.get();
+    auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
+    return ptr.release();
   }
 
   return nullptr;
@@ -65,8 +65,8 @@ CardAction* ScriptedPlayer::OnExecuteChargedBusterAction()
   sol::object obj = script["execute_charged_attack"](this);
 
   if (obj.valid()) {
-    std::shared_ptr<CardAction> ptr = obj.as<std::shared_ptr<CardAction>>();
-    return ptr.get();
+    auto& ptr = obj.as<std::unique_ptr<CardAction>&>();
+    return ptr.release();
   }
 
   return nullptr;

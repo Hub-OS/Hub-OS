@@ -32,5 +32,5 @@ public:
 
   ~ScriptResourceManager();
 
-  LoadScriptResult LoadScript(const std::string& path);
+  LoadScriptResult& LoadScript(const std::string& path);
 };

@@ -98,7 +98,7 @@ static inline void QueuNaviRegistration() {
     const auto& path = entry.path();
     std::string characterName = path.filename().string();
     std::string modpath = path.string() + "/";
-    auto res = handle.Scripts().LoadScript(modpath + "entry.lua");
+    auto& res = handle.Scripts().LoadScript(modpath + "entry.lua");
 
     if (res.result.valid()) {
       sol::state& state = *res.state;

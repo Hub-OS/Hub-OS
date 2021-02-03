@@ -22,29 +22,21 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   auto overworld_namespace = state.create_table("Overworld");
   auto engine_namespace = state.create_table("Engine");
 
+  // global namespace
+  auto color_record = state.new_usertype<sf::Color>("Color",
+    sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>()
+    );
+
   auto animation_record = battle_namespace.new_usertype<AnimationComponent>("Animation",
     "SetPath", &AnimationComponent::SetPath
   );
 
-  auto busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
-    sol::call_constructor, sol::factories([](Character& character, bool charged, int dmg) -> auto {
-      return std::make_shared<BusterCardAction>(character, charged, dmg);
-    })
+
+  auto player_record = battle_namespace.new_usertype<Player>("Player",
+    sol::base_classes, sol::bases<Character>()
   );
 
-  auto swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
-    sol::call_constructor,sol::factories([](Character& character, int dmg) -> auto {
-      return std::make_shared<SwordCardAction>(character, dmg);
-    })
-  );
-
-  auto bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
-    sol::call_constructor, sol::factories([](Character& character, int dmg) -> auto {
-      return std::make_shared<BombCardAction>(character, dmg);
-    })
-  );
-
-  auto player_record = battle_namespace.new_usertype<ScriptedPlayer>("ScriptedPlayer",
+  auto scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("ScriptedPlayer",
     "GetName", &ScriptedPlayer::GetName,
     "GetID", &ScriptedPlayer::GetID,
     "GetHealth", &ScriptedPlayer::GetHealth,
@@ -52,7 +44,30 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetName", &ScriptedPlayer::SetName,
     "SetHealth", &ScriptedPlayer::SetHealth,
     "SetTexture", &ScriptedPlayer::setTexture,
-    "GetAnimation", &ScriptedPlayer::GetAnimationComponent
+    "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
+    "GetAnimation", &ScriptedPlayer::GetAnimationComponent,
+    sol::base_classes, sol::bases<Player>()
+    );
+
+  auto busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
+    sol::factories([](Character& character, bool charged, int dmg) -> auto {
+      return std::make_unique<BusterCardAction>(character, charged, dmg);
+    }),
+    sol::base_classes, sol::bases<CardAction>()
+  );
+
+  auto swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
+    sol::factories([](Character& character, int dmg) -> auto {
+      return std::make_unique<SwordCardAction>(character, dmg);
+    }),
+    sol::base_classes, sol::bases<CardAction>()
+  );
+
+  auto bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
+    sol::factories([](Character& character, int dmg) -> auto {
+      return std::make_unique<BombCardAction>(character, dmg);
+    }),
+    sol::base_classes, sol::bases<CardAction>()
   );
 
   auto textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
@@ -106,11 +121,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetOverworldTexture", &NaviRegistration::NaviMeta::SetOverworldTexture,
     "SetPreviewTexture", &NaviRegistration::NaviMeta::SetPreviewTexture,
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
-  );
-
-  auto card_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
-    sol::constructors<ScriptedCardAction(Character&, int)>(),
-    sol::base_classes, sol::bases<CardAction>()
   );
 
   auto elements_table = battle_namespace.new_enum("Element",
@@ -220,7 +230,7 @@ ScriptResourceManager::~ScriptResourceManager()
   states.clear();
 }
 
-ScriptResourceManager::LoadScriptResult ScriptResourceManager::LoadScript(const std::string& path)
+ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::string& path)
 {
   auto iter = scriptTableHash.find(path);
 
@@ -232,7 +242,7 @@ ScriptResourceManager::LoadScriptResult ScriptResourceManager::LoadScript(const 
   ConfigureEnvironment(*lua);
   states.push_back(lua);
 
-  const auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
-  auto pair = scriptTableHash.insert({ path, {load_result, lua} });
+  auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
+  auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
   return pair.first->second;
 }
