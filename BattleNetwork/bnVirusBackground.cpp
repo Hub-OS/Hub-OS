@@ -10,12 +10,13 @@
 #define COMPONENT_WIDTH 128
 #define COMPONENT_HEIGHT 128
 
-VirusBackground::VirusBackground(void)
-  : x(0.0f), 
+VirusBackground::VirusBackground() :
+  x(0.0f), 
   y(0), 
   speed(0.0f),
   progress(0.0f), 
-  Background(Textures().LoadTextureFromFile("resources/scenes/virus/fg.png"), 240, 180) {
+  IBackground<VirusBackground>(Textures().LoadTextureFromFile("resources/scenes/virus/fg.png"), 240, 180) 
+{
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 }
 

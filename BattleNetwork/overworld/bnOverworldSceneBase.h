@@ -115,6 +115,8 @@ namespace Overworld {
     */
     void ClearMap(unsigned rows, unsigned cols);
 
+    void LoadBackground(const std::string& value);
+
 #ifdef __ANDROID__
     void StartupTouchControls();
     void ShutdownTouchControls();

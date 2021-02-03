@@ -21,10 +21,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake)
 find_package(Poco REQUIRED Foundation Net)
 find_package(Threads REQUIRED)
 find_package(Lua REQUIRED)
-find_package(sol2 REQUIRED)
+# find_package(sol2 REQUIRED) # commented out until sol2 vcpkg is up to date
 
 include_directories(extern/Swoosh/src)
-
+include_directories(BattleNetwork/sol/include) # temporary sol2 bugfix
 add_subdirectory(extern/SFML)
 add_subdirectory(extern/WebAPI)
 
@@ -33,12 +33,22 @@ file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
         "BattleNetwork/*.cpp"
 	"BattleNetwork/netplay/*.h"
 	"BattleNetwork/netplay/*.cpp"
+	"BattleNetwork/widgets/*.h"
+	"BattleNetwork/widgets/*.cpp"
+        "BattleNetwork/bindings/*.h"
+        "BattleNetwork/bindings/*.cpp"
         "BattleNetwork/mmbn.ico.c"
         )
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddFiles.cmake)
 add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
 add_compile_definitions(NOMINMAX)
+
+# This tells BN engine to define a ScriptResourceMananger and
+# load mods during the boot step
+# WARNING: sol2 bindings increase compile times by 2-3x! 
+#          Uncomment this only if you're working with scripting!
+# add_compile_definitions(BN_MOD_SUPPORT)
 
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${bnFiles})
 source_group(TREE ${PROJECT_SOURCE_DIR} FILES ${addBNFiles})
@@ -50,7 +60,7 @@ target_link_libraries(BattleNetwork WebAPI-client)
 target_link_libraries(BattleNetwork Poco::Net Poco::Foundation)
 target_link_libraries(BattleNetwork Threads::Threads)
 target_link_libraries(BattleNetwork ${LUA_LIBRARIES})
-target_link_libraries(BattleNetwork sol2::sol2)
+# target_link_libraries(BattleNetwork sol2::sol2)
 
 set_target_properties(BattleNetwork
     PROPERTIES

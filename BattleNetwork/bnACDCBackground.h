@@ -16,7 +16,7 @@ using std::vector;
  * @date 09/21/19
  * @brief ACDC background scrolls diagonally
  */
-class ACDCBackground final  : public Background
+class ACDCBackground final  : public IBackground<ACDCBackground>
 {
 public:
   ACDCBackground();

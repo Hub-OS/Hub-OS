@@ -45,7 +45,16 @@ using sf::Event;
 
 class SelectMobScene : public Scene
 {
+public:
+  struct Properties {
+    SelectedNavi navi;
+    CardFolder& folder;
+    PA& pa;
+    Background* background{ nullptr };
+  };
+
 private:
+  Properties props;
   SelectedNavi selectedNavi; /*!< The selected navi */
 
   PA& programAdvance;
@@ -110,7 +119,7 @@ public:
   /**
    * @brief Loads graphics and sets original state of all items
    */
-  SelectMobScene(swoosh::ActivityController&, SelectedNavi, CardFolder&, PA&);
+  SelectMobScene(swoosh::ActivityController&, const Properties& props);
   
   /**
    * @brief Deletes all allocated resource. If mob is non null, deletes the mob

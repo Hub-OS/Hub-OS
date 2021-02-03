@@ -219,6 +219,10 @@ namespace Overworld {
     std::getline(stream, line);
     std::string name = line;
 
+    // background or url
+    std::getline(stream, line);
+    std::string background = line;
+
     // rows x cols
     std::getline(stream, line);
     size_t space_index = line.find_first_of(" ");
@@ -297,6 +301,7 @@ namespace Overworld {
 
     map.Load(tileset, tiles, cols, rows);
     map.SetName(name);
+    map.SetBackgroundValue(background);
 
     return { true, tiles };
   }
@@ -357,14 +362,26 @@ namespace Overworld {
     return name;
   }
 
+  const std::string& Map::GetBackgroundValue() const
+  {
+    return background;
+  }
+
   void Map::SetName(const std::string& name)
   {
     this->name = name;
   }
+
+  void Map::SetBackgroundValue(const std::string& value)
+  {
+    background = value;
+  }
+
   const unsigned Map::GetCols() const
   {
     return this->cols;
   }
+
   const unsigned Map::GetRows() const
   {
     return this->rows;

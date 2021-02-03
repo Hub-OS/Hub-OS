@@ -15,7 +15,7 @@ using std::vector;
  * @date 01/05/19
  * @brief spooky cloud background that animates and moves
  */
-class GraveyardBackground final : public Background
+class GraveyardBackground final : public IBackground<GraveyardBackground>
 {
 public:
   GraveyardBackground();

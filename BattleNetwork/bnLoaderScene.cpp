@@ -4,11 +4,12 @@ void LoaderScene::ExecuteTasks()
 {
   while (tasks.HasMore()) {
     const std::string taskname = tasks.GetTaskName();
-    float progress = tasks.GetTaskNumber() / static_cast<float>(tasks.GetTotalTasks());
+    const unsigned int tasknumber = tasks.GetTaskNumber();
+    float progress = tasknumber / static_cast<float>(tasks.GetTotalTasks());
     this->onTaskBegin(taskname, progress);
     tasks.DoNextTask();
     
-    progress = tasks.GetTaskNumber() / static_cast<float>(tasks.GetTotalTasks());
+    progress = tasknumber / static_cast<float>(tasks.GetTotalTasks());
     this->onTaskComplete(taskname, progress);
   }
 }
@@ -27,7 +28,7 @@ LoaderScene::~LoaderScene()
 
 const bool LoaderScene::IsComplete() const
 {
-  return tasks.GetTotalTasks() == 0;
+  return tasks.HasMore() == false;
 }
 
 void LoaderScene::LaunchTasks()

@@ -16,7 +16,7 @@ using std::vector;
  * @date 09/21/19
  * @brief robot animates and scrolls upward
  */
-class RobotBackground final : public Background
+class RobotBackground final : public IBackground<RobotBackground>
 {
 public:
   RobotBackground();

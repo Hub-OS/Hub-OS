@@ -63,6 +63,14 @@ public:
    */
   void EnqueMessage(sf::Sprite speaker, std::string animationPath, MessageInterface* message);
   
+  /**
+   * @brief Adds message to queue
+   * @param message message object
+   * 
+   * This variation does not display a talking face
+   */
+  void EnqueMessage(MessageInterface* message);
+
   //void ReplaceText(std::string text);
 
   /**

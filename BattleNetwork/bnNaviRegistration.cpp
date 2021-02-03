@@ -170,8 +170,10 @@ void NaviRegistration::Register(NaviMeta * info)
 
 NaviRegistration::NaviMeta & NaviRegistration::At(int index)
 {
-  if (index < 0 || index >= (int)Size())
-    throw std::runtime_error("Roster index out of bounds");
+  if (index < 0 || index >= (int)Size()) {
+    Logger::Logf("Roster index out of bounds. Reverting to index #0");
+    index = 0;
+  }
 
   return *(roster.at(index));
 }

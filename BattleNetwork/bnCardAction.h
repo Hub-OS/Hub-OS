@@ -130,6 +130,7 @@ public:
 
   const ActionLockoutGroup GetLockoutGroup() const;
   const ActionLockoutType GetLockoutType() const;
+  const std::string& GetAnimState() const;
   const bool IsAnimationOver() const;
   const bool IsLockoutOver() const;
   const bool CanExecute() const;

@@ -10,8 +10,12 @@
 #define COMPONENT_WIDTH 128
 #define COMPONENT_HEIGHT 32
 
-GraveyardBackground::GraveyardBackground()
-  : x(0.0f), y(0.0f), progress(0.0f), Background(Textures().LoadTextureFromFile("resources/scenes/grave/fg.png"), 240, 180) {
+GraveyardBackground::GraveyardBackground() : 
+  x(0.0f), 
+  y(0.0f), 
+  progress(0.0f), 
+  IBackground<GraveyardBackground>(Textures().LoadTextureFromFile("resources/scenes/grave/fg.png"), 240, 180)
+{
   FillScreen(sf::Vector2u(COMPONENT_WIDTH, COMPONENT_HEIGHT));
 }
 

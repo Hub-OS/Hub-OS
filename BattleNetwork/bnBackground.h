@@ -16,7 +16,26 @@
  * the screen
  */
 
-class Background : public sf::Drawable, public sf::Transformable, public ResourceHandle
+class Background : public sf::Drawable, public sf::Transformable, public ResourceHandle {
+public:
+  /**
+  * @brief uses CRTP to implement this function in the child class IBackground
+  */
+  virtual Background* Clone() = 0;
+
+  virtual void setColor(sf::Color color) = 0;
+  
+  /**
+  * @brief Implement for custom animated backgrounds
+  * @param _elapsed in seconds
+  */
+  virtual void Update(double _elapsed) = 0;
+
+  virtual ~Background() {};
+};
+
+template<typename T>
+class IBackground : public Background
 {
 protected:
   /**
@@ -57,7 +76,7 @@ protected:
     occuranceX = std::max(occuranceX, (unsigned)1);
     occuranceY = std::max(occuranceY, (unsigned)1);
 
-    vertices.resize(static_cast<size_t>(occuranceX * occuranceY * (unsigned)6));
+    vertices.resize(static_cast<size_t>(occuranceX * occuranceY * 6));
 
     textureRect = sf::IntRect(0, 0, textureSize.x, textureSize.y);
 
@@ -96,7 +115,14 @@ public:
    * @param width of screen
    * @param height of screen
    */
-  Background(const std::shared_ptr<sf::Texture>& ref, int width, int height) : offset(0,0), textureRect(0, 0, width, height), width(width), height(height), texture(ref) {
+  IBackground(const std::shared_ptr<sf::Texture>& ref, int width, int height) : 
+    offset(0,0), 
+    textureRect(0, 0, width, height), 
+    width(width), 
+    height(height), 
+    texture(ref),
+    Background() 
+  {
       texture = ref;
       texture->setRepeated(true);
 
@@ -109,13 +135,7 @@ public:
       textureWrap = Shaders().GetShader(ShaderType::TEXEL_TEXTURE_WRAP);
   }
 
-  ~Background() { ;  }
-  
-  /**
-   * @brief Implement for custom animated backgrounds
-   * @param _elapsed in seconds
-   */
-  virtual void Update(double _elapsed) = 0;
+  virtual ~IBackground() { ;  }
 
   /**
    * @brief Draw the animated background with applied values
@@ -150,11 +170,16 @@ public:
    * @see bnUndernetBackground.h
    * @param color
    */
-  void setColor(sf::Color color) {
+  void setColor(sf::Color color) override final {
     for (int i = 0; i < vertices.getVertexCount(); i++) {
       vertices[i].color = color;
     }
   }
+
+  Background* Clone() override final {
+    return new T; // no arguments
+  }
+
 
 protected:
   sf::VertexArray vertices; /*!< Geometry */

@@ -16,7 +16,7 @@ using std::vector;
  * @date 09/21/19
  * @brief weather forecast background that moves
  */
-class WeatherBackground final : public Background
+class WeatherBackground final : public IBackground<WeatherBackground>
 {
 public:
   WeatherBackground();

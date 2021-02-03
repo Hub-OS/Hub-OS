@@ -11,6 +11,7 @@
 #include "bnTextureResourceManager.h"
 #include "bnAudioResourceManager.h"
 #include "bnShaderResourceManager.h"
+#include "bnScriptResourceManager.h"
 #include "bnInputManager.h"
 #include "cxxopts/cxxopts.hpp"
 
@@ -45,6 +46,9 @@ private:
   TextureResourceManager textureManager;
   AudioResourceManager audioManager;
   ShaderResourceManager shaderManager;
+#ifdef BN_MOD_SUPPORT 
+  ScriptResourceManager scriptManager; 
+#endif
   InputManager inputManager;
 
   DrawWindow& window;

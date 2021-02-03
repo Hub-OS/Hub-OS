@@ -22,8 +22,8 @@ CombatBattleState::CombatBattleState(Mob* mob, std::vector<Player*>& tracked, do
   // PAUSE
   pause.setTexture(*Textures().LoadTextureFromFile("resources/ui/pause.png"));
   pause.setScale(2.f, 2.f);
-  pause.setOrigin(pause.getLocalBounds().width / 2, pause.getLocalBounds().height * 2);
-  pause.setPosition(sf::Vector2f(240.f, 160.f));
+  pause.setOrigin(pause.getLocalBounds().width * 0.5f, pause.getLocalBounds().height * 0.5f);
+  pause.setPosition(sf::Vector2f(240.f, 145.f));
 
   // CHIP CUST GRAPHICS
   auto customBarTexture = Textures().LoadTextureFromFile("resources/ui/custom.png");
@@ -133,14 +133,11 @@ void CombatBattleState::onUpdate(double elapsed)
 
     if (isPaused) {
       // unpauses
-      //ENGINE.RevokeShader();
-
       // Require to stop the battle step timer and all battle-related component updates
       GetScene().StartBattleStepTimer();
     }
     else {
       // pauses
-
       Audio().Play(AudioType::PAUSE);
 
       // Require to start the timer again and all battle-related component updates
@@ -200,8 +197,6 @@ void CombatBattleState::onDraw(sf::RenderTexture& surface)
   }
 
   if (isPaused) {
-    //ENGINE.SetShader(&pauseShader);
-
     // render on top
     surface.draw(pause);
   }

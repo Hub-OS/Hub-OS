@@ -1,47 +1,167 @@
+#ifdef BN_MOD_SUPPORT
 #include "bnScriptResourceManager.h"
+#include "bnAudioResourceManager.h"
+#include "bnTextureResourceManager.h"
+#include "bnShaderResourceManager.h"
+#include "bnResourceHandle.h"
 #include "bnEntity.h"
-#include "bnScriptedCharacter.h"
 #include "bnElements.h"
-#include "bnScriptedCardAction.h"
 
-void ScriptResourceManager::ConfigureEnvironment() {
-  luaState.open_libraries(sol::lib::base);
+#include "bnNaviRegistration.h"
+#include "bindings/bnScriptedCardAction.h"
+#include "bindings/bnScriptedPlayer.h"
 
-  auto battle_namespace = luaState.create_table("Battle");
+// temporary proof of concept includes...
+#include "bnBusterCardAction.h"
+#include "bnSwordCardAction.h"
+#include "bnBombCardAction.h"
+#include "bnFireBurnCardAction.h"
+#include "bnCannonCardAction.h"
 
-  // make usertype metatable
-  auto character_record = battle_namespace.new_usertype<ScriptedCharacter>("Character",
-    sol::constructors<ScriptedCharacter(Character::Rank)>(),
-    sol::base_classes, sol::bases<Entity>(),
-    "GetName", &Character::GetName,
-    "GetID", &Entity::GetID,
-    "GetHealth", &Character::GetHealth,
-    "GetMaxHealth", &Character::GetMaxHealth,
-    "SetHealth", &Character::SetHealth
+void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
+  state.open_libraries(sol::lib::base);
+
+  auto battle_namespace = state.create_table("Battle");
+  auto overworld_namespace = state.create_table("Overworld");
+  auto engine_namespace = state.create_table("Engine");
+
+  // global namespace
+  auto color_record = state.new_usertype<sf::Color>("Color",
+    sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>()
     );
 
-  // TODO: register animation callback methods
-  auto card_record = battle_namespace.new_usertype<ScriptedCardAction>("CardAction",
-    sol::constructors<ScriptedCardAction(Character&, int)>(),
+  auto animation_record = battle_namespace.new_usertype<AnimationComponent>("Animation",
+    "SetPath", &AnimationComponent::SetPath
+  );
+
+  auto player_record = battle_namespace.new_usertype<Player>("Player",
+    sol::base_classes, sol::bases<Character>()
+  );
+
+  auto scriptedplayer_record = battle_namespace.new_usertype<ScriptedPlayer>("ScriptedPlayer",
+    "GetName", &ScriptedPlayer::GetName,
+    "GetID", &ScriptedPlayer::GetID,
+    "GetHealth", &ScriptedPlayer::GetHealth,
+    "GetMaxHealth", &ScriptedPlayer::GetMaxHealth,
+    "SetName", &ScriptedPlayer::SetName,
+    "SetHealth", &ScriptedPlayer::SetHealth,
+    "SetTexture", &ScriptedPlayer::setTexture,
+    "SetFullyChargeColor", &ScriptedPlayer::SetFullyChargeColor,
+    "SetChargePosition", &ScriptedPlayer::SetChargePosition,
+    "GetAnimation", &ScriptedPlayer::GetAnimationComponent,
+    sol::base_classes, sol::bases<Player>()
+    );
+
+  auto busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
+    sol::factories([](Character& character, bool charged, int dmg) -> std::unique_ptr<CardAction> {
+      return std::make_unique<BusterCardAction>(character, charged, dmg);
+    }),
     sol::base_classes, sol::bases<CardAction>()
-    );
+  );
 
-  auto elements_table = battle_namespace.new_enum("Element");
-  elements_table["FIRE"] = Element::fire;
-  elements_table["AQUA"] = Element::aqua;
-  elements_table["ELEC"] = Element::elec;
-  elements_table["WOOD"] = Element::wood;
-  elements_table["SWORD"] = Element::sword;
-  elements_table["WIND"] = Element::wind;
-  elements_table["CURSOR"] = Element::cursor;
-  elements_table["SUMMON"] = Element::summon;
-  elements_table["PLUS"] = Element::plus;
-  elements_table["BREAK"] = Element::breaker;
-  elements_table["NONE"] = Element::none;
-  elements_table["ICE"] = Element::ice;
+  auto swordaction_record = battle_namespace.new_usertype<SwordCardAction>("Sword",
+    sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
+      return std::make_unique<SwordCardAction>(character, dmg);
+    }),
+    sol::base_classes, sol::bases<CardAction>()
+  );
 
+  auto bombaction_record = battle_namespace.new_usertype<BombCardAction>("Bomb",
+    sol::factories([](Character& character, int dmg) -> std::unique_ptr<CardAction> {
+      return std::make_unique<BombCardAction>(character, dmg);
+    }),
+    sol::base_classes, sol::bases<CardAction>()
+  );
+
+  auto fireburn_record = battle_namespace.new_usertype<FireBurnCardAction>("FireBurn",
+    sol::factories([](Character& character, FireBurn::Type type, int dmg) -> std::unique_ptr<CardAction> {
+      return std::make_unique<FireBurnCardAction>(character, type, dmg);
+    }),
+    sol::base_classes, sol::bases<CardAction>()
+  );
+
+
+  auto cannon_record = battle_namespace.new_usertype<CannonCardAction>("Cannon",
+    sol::factories([](Character& character, CannonCardAction::Type type, int dmg) -> std::unique_ptr<CardAction> {
+      return std::make_unique<CannonCardAction>(character, type, dmg);
+      }),
+    sol::base_classes, sol::bases<CardAction>()
+  );
+
+
+  auto textureresource_record = engine_namespace.new_usertype<TextureResourceManager>("TextureResourceManager",
+    "LoadFile", &TextureResourceManager::LoadTextureFromFile
+  );
+
+  auto audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
+    "LoadFile", &AudioResourceManager::LoadFromFile
+  );
+
+  auto shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
+    "LoadFile", &ShaderResourceManager::LoadShaderFromFile
+  );
+
+  // make resource handle metatable
+  auto resourcehandle_record = engine_namespace.new_usertype<ResourceHandle>("ResourceHandle",
+    sol::constructors<ResourceHandle()>(),
+    "Textures", sol::property(sol::resolve<TextureResourceManager& ()>(&ResourceHandle::Textures)),
+    "Audio", sol::property(sol::resolve<AudioResourceManager& ()>(&ResourceHandle::Audio)),
+    "Shaders", sol::property(sol::resolve<ShaderResourceManager& ()>(&ResourceHandle::Shaders))
+  );
+
+  // make loading resources easier
+  // DOESNT WORK??
+  /*state.script(
+    "-- Shorthand load texture"
+    "function LoadTexture(path)"
+    "  return Engine.ResourceHandle.new().Textures:LoadFile(path)"
+    "end"
+
+    "-- Shorthand load audio"
+    "function LoadAudio(path)"
+    "  return Engine.ResourceHandle.new().Audio:LoadFile(path)"
+    "end"
+
+    "-- Shorthand load shader"
+    "function LoadShader(path)"
+    "  return Engine.ResourceHandle.new().Shaders:LoadFile(path)"
+    "end"
+  );*/
+
+  // make meta object info metatable
+  auto navimeta_table = engine_namespace.new_usertype<NaviRegistration::NaviMeta>("NaviMeta",
+    "SetSpecialDescription", &NaviRegistration::NaviMeta::SetSpecialDescription,
+    "SetAttack", &NaviRegistration::NaviMeta::SetAttack,
+    "SetChargedAttack", &NaviRegistration::NaviMeta::SetChargedAttack,
+    "SetSpeed", &NaviRegistration::NaviMeta::SetSpeed,
+    "SetHP", &NaviRegistration::NaviMeta::SetHP,
+    "SetIsSword", &NaviRegistration::NaviMeta::SetIsSword,
+    "SetOverworldAnimationPath", &NaviRegistration::NaviMeta::SetOverworldAnimationPath,
+    "SetOverworldTexture", &NaviRegistration::NaviMeta::SetOverworldTexture,
+    "SetPreviewTexture", &NaviRegistration::NaviMeta::SetPreviewTexture,
+    "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
+  );
+
+  auto elements_table = battle_namespace.new_enum("Element",
+    "FIRE", Element::fire,
+    "AQUA", Element::aqua,
+    "ELEC", Element::elec,
+    "WOOD", Element::wood,
+    "SWORD", Element::sword,
+    "WIND", Element::wind,
+    "CURSOR", Element::cursor,
+    "SUMMON", Element::summon,
+    "PLUS", Element::plus,
+    "BREAK", Element::breaker,
+    "NONE", Element::none,
+    "ICE", Element::ice
+  );
+
+
+  /*
+  * // Script for field class support
   try {
-    luaState.script(
+    state.script(
       "--[[This system EXPECTS type Entity to have a GetID() function"
       "call to return a unique identifier"
       "--]]"
@@ -111,13 +231,38 @@ void ScriptResourceManager::ConfigureEnvironment() {
   catch (const sol::error& err) {
     Logger::Logf("[ShaderResourceManager] Something went wrong while configuring the environment: thrown error, %s", err.what());
   }
+  */
 }
 
-void ScriptResourceManager::AddToPaths(FileMeta pathInfo)
+ScriptResourceManager& ScriptResourceManager::GetInstance()
 {
-  paths.push_back(pathInfo);
+    static ScriptResourceManager instance;
+    return instance;
 }
 
-void ScriptResourceManager::LoadAllScripts(std::atomic<int>& status)
+ScriptResourceManager::~ScriptResourceManager()
 {
+  scriptTableHash.clear();
+  for (auto ptr : states) {
+    delete ptr;
+  }
+  states.clear();
 }
+
+ScriptResourceManager::LoadScriptResult& ScriptResourceManager::LoadScript(const std::string& path)
+{
+  auto iter = scriptTableHash.find(path);
+
+  if (iter != scriptTableHash.end()) {
+    return iter->second;
+  }
+
+  sol::state* lua = new sol::state;
+  ConfigureEnvironment(*lua);
+  states.push_back(lua);
+
+  auto load_result = lua->safe_script_file(path, sol::script_pass_on_error);
+  auto pair = scriptTableHash.emplace(path, LoadScriptResult{std::move(load_result), lua} );
+  return pair.first->second;
+}
+#endif

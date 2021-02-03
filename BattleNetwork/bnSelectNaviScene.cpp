@@ -79,7 +79,9 @@ SelectNaviScene::SelectNaviScene(swoosh::ActivityController& controller, Selecte
   navi.setOrigin(navi.getLocalBounds().width / 2.f, navi.getLocalBounds().height / 2.f);
   navi.setPosition(100.f, 150.f);
 
-  navi.setTexture(NAVIS.At(currentChosen).GetPreviewTexture());
+  if (auto tex = NAVIS.At(currentChosen).GetPreviewTexture()) {
+    navi.setTexture(tex);
+  }
 
   naviLabel.SetString(sf::String(NAVIS.At(currentChosen).GetName().c_str()));
   speedLabel.SetString(sf::String(NAVIS.At(currentChosen).GetSpeedString().c_str()));
@@ -112,8 +114,8 @@ void SelectNaviScene::onDraw(sf::RenderTexture& surface) {
   surface.draw(*bg);
 
   // Navi preview shadow
-  auto originalPosition = navi.getPosition();
-  auto originalColor = navi.getColor();
+  const sf::Vector2f originalPosition = navi.getPosition();
+  const sf::Color originalColor = navi.getColor();
 
   // Make the shadow begin on the other side of the window by an arbitrary offset
   navi.setPosition(-20.0f + getController().getVirtualWindowSize().x - navi.getPosition().x, navi.getPosition().y);
@@ -313,7 +315,10 @@ void SelectNaviScene::onUpdate(double elapsed) {
     auto iconRect = sf::IntRect(14 * offset, 0, 14, 14);
     element.setTextureRect(iconRect);
 
-    navi.setTexture(NAVIS.At(currentChosen).GetPreviewTexture(), true);
+    if (auto tex = NAVIS.At(currentChosen).GetPreviewTexture()) {
+      navi.setTexture(tex, true);
+    }
+
     textbox.SetText(NAVIS.At(currentChosen).GetSpecialDescriptionString());
     loadNavi = true;
   }

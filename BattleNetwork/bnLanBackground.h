@@ -12,7 +12,7 @@ using sf::Drawable;
 #include "bnAnimation.h"
 
 /*! \brief Moves diagonally and animates */
-class LanBackground final : public Background {
+class LanBackground final : public IBackground<LanBackground> {
 public:
   LanBackground();
   ~LanBackground();

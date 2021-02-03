@@ -20,7 +20,7 @@ private:
   Type type;
 public:
 
-  CannonCardAction(Character& user, int damage, Type type = Type::green);
+  CannonCardAction(Character& user, Type type, int damage);
   ~CannonCardAction();
 
   void OnUpdate(double _elapsed);
