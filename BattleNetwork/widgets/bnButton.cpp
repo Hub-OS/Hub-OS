@@ -1,5 +1,7 @@
 #include "bnButton.h"
 
+#include <math.h>
+
 Button::Button(const std::string& labelStr) :
   label(Font::Style::thick), 
   Widget()
