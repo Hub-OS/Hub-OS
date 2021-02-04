@@ -432,7 +432,8 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
 
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  mapBuffer = reader.ReadString(buffer);
+  auto path = reader.ReadString(buffer);
+  mapBuffer = serverAssetManager.HasText(path) ? serverAssetManager.GetText(path) : "";
 
   // If we are still invalid after this, there's a problem
   if (mapBuffer.empty()) {

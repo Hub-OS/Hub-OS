@@ -6,7 +6,7 @@
 namespace Overworld
 {
   const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server/tree/proposed-packets";
-  const uint64_t VERSION_ITERATION = 1;
+  const uint64_t VERSION_ITERATION = 2;
 
   enum class Reliability : char
   {
