@@ -36,7 +36,7 @@ namespace Overworld {
     std::map<std::string, OnlinePlayer*> onlinePlayers;
     std::list<std::string> removePlayers;
     std::string mapBuffer;
-    Timer loadMapTime, movementTimer;
+    Timer movementTimer;
     Font font;
     Text name;
     size_t errorCount{};

@@ -40,9 +40,6 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
   }
 
   SetBackground(new XmasBackground);
-
-  loadMapTime.reverse(true);
-  loadMapTime.set(sf::seconds(MAX_TIMEOUT_SECONDS));
 }
 
 Overworld::OnlineArea::~OnlineArea()
@@ -110,22 +107,11 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
 
     removePlayers.clear();
 
-    loadMapTime.reset();
-    loadMapTime.pause();
-
     movementTimer.update(sf::seconds(static_cast<float>(elapsed)));
 
     if (movementTimer.getElapsed().asSeconds() > SECONDS_PER_MOVEMENT) {
       movementTimer.reset();
       sendPositionSignal();
-    }
-  }
-  else {
-    loadMapTime.update(sf::seconds(static_cast<float>(elapsed)));
-
-    if (loadMapTime.getElapsed().asSeconds() == 0) {
-      using effect = segue<PixelateBlackWashFade>;
-      getController().pop<effect>();
     }
   }
 }
@@ -140,9 +126,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
     int precision = 1;
 
     name.setPosition(view.x * 0.5f, view.y * 0.5f);
-    std::string secondsStr = std::to_string(loadMapTime.getElapsed().asSeconds());
-    std::string trimmed = secondsStr.substr(0, secondsStr.find(".") + precision + 1);
-    name.SetString("Connecting " + trimmed + "s...");
+    name.SetString("Connecting...");
     name.setOrigin(name.GetLocalBounds().width * 0.5f, name.GetLocalBounds().height * 0.5f);
     surface.draw(name);
   }
@@ -164,7 +148,6 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
 void Overworld::OnlineArea::onStart()
 {
   SceneBase::onStart();
-  loadMapTime.start();
   movementTimer.start();
   sendLoginSignal();
   Audio().Stream("resources/loops/loop_overworld.ogg", false);
