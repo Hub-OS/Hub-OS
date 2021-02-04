@@ -6,7 +6,7 @@
 namespace Overworld
 {
   const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server/tree/proposed-packets";
-  const uint64_t VERSION_ITERATION = 0;
+  const uint64_t VERSION_ITERATION = 1;
 
   enum class Reliability : char
   {
@@ -20,31 +20,42 @@ namespace Overworld
   // server expects uint16_t codes
   enum class ClientEvents : uint16_t
   {
-    ping = 0,      // 0
-    ack,           // 1 acknowledge packet
-    login,         // 2 login request
-    logout,        // 3 logout notification
-    ready,         // 4 avatar loaded map
-    position,      // 5 reporting avatar world location
-    avatar_change, // 6 avatar was switched
-    emote,         // 7 player emoted
+    ping = 0,
+    ack,
+    texture_stream,
+    animation_stream,
+    login,
+    logout,
+    ready,
+    position,
+    avatar_change,
+    emote,
     size,
     unknown = size
   };
 
   enum class ServerEvents : uint16_t
   {
-    pong = 0,        // 0
-    ack,             // 1
-    login,           // 2
-    map,             // 3
-    navi_connected,  // 4
-    navi_disconnect, // 5
-    navi_set_name,   // 6
-    navi_move_to,    // 7
-    navi_set_avatar, // 8
-    navi_emote,      // 9
+    pong = 0,
+    ack,
+    login,
+    asset_stream,
+    asset_stream_complete,
+    map,
+    navi_connected,
+    navi_disconnect,
+    navi_set_name,
+    navi_move_to,
+    navi_set_avatar,
+    navi_emote,
     size,
     unknown = size
+  };
+
+  enum class AssetType : char {
+    text = 0,
+    texture,
+    audio,
+    sfml_image
   };
 } // namespace Overworld

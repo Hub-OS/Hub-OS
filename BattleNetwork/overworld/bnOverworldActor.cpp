@@ -56,7 +56,7 @@ void Overworld::Actor::Face(const Direction& dir)
   this->state = MovementState::idle;
 }
 
-void Overworld::Actor::LoadAnimations(const std::string& path)
+void Overworld::Actor::LoadAnimations(const Animation& animation)
 {
   validStates.clear();
   anims.clear();
@@ -73,10 +73,9 @@ void Overworld::Actor::LoadAnimations(const std::string& path)
 
   auto loadDirectionalAnimationThunk = [=](Direction dir, MovementState state) {
     std::string str = MovementAnimStrPrefix(state) + "_" + DirectionAnimStrSuffix(dir);
-    Animation anim = Animation(path);
 
-    if (anim.HasAnimation(str)) {
-      const auto& [iter, success] = anims.insert(std::make_pair(str, anim));
+    if (animation.HasAnimation(str)) {
+      const auto& [iter, success] = anims.insert(std::make_pair(str, animation));
 
       if (success) {
         iter->second.SetAnimation(str);

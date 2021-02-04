@@ -689,7 +689,7 @@ void Overworld::SceneBase::RefreshNaviSprite()
     if (auto tex = meta.GetOverworldTexture()) {
       playerActor.setTexture(tex);
     }
-    playerActor.LoadAnimations(owPath);
+    playerActor.LoadAnimations(Animation(owPath));
 
     // move the emote above the player's head
     float h = playerActor.getLocalBounds().height;
@@ -860,7 +860,7 @@ void Overworld::SceneBase::ResetMap()
       auto* pathController = &pathControllers.back();
 
       // Test iceman
-      iceman->LoadAnimations("resources/mobs/iceman/iceman_OW.animation");
+      iceman->LoadAnimations(Animation("resources/mobs/iceman/iceman_OW.animation"));
       iceman->setTexture(Textures().LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
       iceman->setPosition(pos);
       iceman->SetCollisionRadius(6);
@@ -900,7 +900,7 @@ void Overworld::SceneBase::ResetMap()
       auto* pathController = &pathControllers.back();
 
       // Test Mr Prog
-      mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
+      mrprog->LoadAnimations(Animation("resources/ow/prog/prog_ow.animation"));
       mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
       mrprog->setPosition(pos);
       mrprog->SetCollisionRadius(3);
@@ -937,7 +937,7 @@ void Overworld::SceneBase::ResetMap()
       auto* pathController = &pathControllers.back();
 
       // Test Mr Prog
-      mrprog->LoadAnimations("resources/ow/prog/prog_ow.animation");
+      mrprog->LoadAnimations(Animation("resources/ow/prog/prog_ow.animation"));
       mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
       mrprog->setPosition(pos);
       mrprog->SetCollisionRadius(3);

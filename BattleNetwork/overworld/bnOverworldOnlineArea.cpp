@@ -66,8 +66,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
     SceneBase::onUpdate(elapsed);
 
     if (lastFrameNavi != GetCurrentNavi()) {
-      lastFrameNavi = GetCurrentNavi();
-      sendAvatarChangeSignal(lastFrameNavi);
+      sendAvatarChangeSignal();
     }
 
     for (auto player : onlinePlayers) {
@@ -251,8 +250,40 @@ void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
   sendEmoteSignal(emote);
 }
 
+void Overworld::OnlineArea::sendTextureStreamHeaders(uint16_t width, uint16_t height) {
+  ClientEvents event{ ClientEvents::texture_stream };
+  uint16_t size = sizeof(uint16_t) * 2;
+
+  Poco::Buffer<char> buffer{ 0 };
+  buffer.append((char*)&event, sizeof(ClientEvents));
+  buffer.append((char*)&size, sizeof(uint16_t));
+  buffer.append((char*)&width, sizeof(uint16_t));
+  buffer.append((char*)&height, sizeof(uint16_t));
+  packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+}
+
+void Overworld::OnlineArea::sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size) {
+  size_t remainingBytes = size;
+
+  while (remainingBytes > 0) {
+    const uint16_t availableRoom = NetPlayConfig::MAX_BUFFER_LEN - headerSize - 2;
+    uint16_t size = remainingBytes < availableRoom ? remainingBytes : availableRoom;
+    remainingBytes -= size;
+
+    Poco::Buffer<char> buffer{ 0 };
+    buffer.append((char*)&event, sizeof(ClientEvents));
+    buffer.append((char*)&size, sizeof(uint16_t));
+    buffer.append(data, size);
+    packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
+
+    data += size;
+  }
+}
+
 void Overworld::OnlineArea::sendLoginSignal()
 {
+  sendAvatarAssetStream();
+
   std::string username = "James";
   std::string password = ""; // No servers need passwords at this time
 
@@ -263,7 +294,6 @@ void Overworld::OnlineArea::sendLoginSignal()
   buffer.append(0);
   buffer.append(password.data(), password.length());
   buffer.append(0);
-  buffer.append((char*)&GetCurrentNavi(), sizeof(uint16_t));
   packetShipper.Send(client, Reliability::ReliableOrdered, buffer);
 }
 
@@ -301,14 +331,34 @@ void Overworld::OnlineArea::sendPositionSignal()
   packetShipper.Send(client, Reliability::UnreliableSequenced, buffer);
 }
 
-void Overworld::OnlineArea::sendAvatarChangeSignal(const SelectedNavi& navi)
+void Overworld::OnlineArea::sendAvatarChangeSignal()
 {
+  sendAvatarAssetStream();
+
+  // mark completion
   Poco::Buffer<char> buffer{ 0 };
-  uint16_t form = navi;
   ClientEvents type{ ClientEvents::avatar_change };
   buffer.append((char*)&type, sizeof(ClientEvents));
-  buffer.append((char*)&form, sizeof(uint16_t));
   packetShipper.Send(client, Reliability::Reliable, buffer);
+}
+
+void Overworld::OnlineArea::sendAvatarAssetStream() {
+  auto& naviMeta = NAVIS.At(GetCurrentNavi());
+
+  // send texture
+  auto naviImage = naviMeta.GetOverworldTexture()->copyToImage();
+  auto textureDimensions = naviImage.getSize();
+
+  size_t textureSize = textureDimensions.x * textureDimensions.y * 4;
+  const char* textureData = (const char*)naviImage.getPixelsPtr();
+
+  std::string animationData = FileUtil::Read(naviMeta.GetOverworldAnimationPath());
+
+  // + reliability type + id + packet type
+  auto packetHeaderSize = 1 + 8 + 2;
+  sendTextureStreamHeaders(textureDimensions.x, textureDimensions.y);
+  sendAssetStreamSignal(ClientEvents::texture_stream, packetHeaderSize, textureData, textureSize);
+  sendAssetStreamSignal(ClientEvents::animation_stream, packetHeaderSize, animationData.c_str(), animationData.length());
 }
 
 void Overworld::OnlineArea::sendEmoteSignal(const Overworld::Emotes emote)
@@ -330,6 +380,56 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   this->ticket = reader.ReadString(buffer);
 }
 
+void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto size = reader.Read<uint16_t>(buffer);
+
+  assetBuffer.append(buffer.begin() + reader.GetOffset() + 2, size);
+}
+
+void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
+  auto name = reader.ReadString(buffer);
+  auto type = reader.Read<AssetType>(buffer);
+
+  BufferReader assetReader;
+
+  switch (type) {
+  case AssetType::text:
+    assetBuffer.append(0);
+    serverAssetManager.EmplaceText(name, assetReader.ReadString(assetBuffer));
+    break;
+  case AssetType::texture:
+  {
+    auto texture = std::make_shared<sf::Texture>();
+    texture->loadFromMemory(assetBuffer.begin(), assetBuffer.size());
+    serverAssetManager.EmplaceTexture(name, texture);
+    break;
+  }
+  case AssetType::audio:
+  {
+    auto audio = std::make_shared<sf::SoundBuffer>();
+    audio->loadFromMemory(assetBuffer.begin(), assetBuffer.size());
+    serverAssetManager.EmplaceAudio(name, audio);
+    break;
+  }
+  case AssetType::sfml_image:
+  {
+    auto width = assetReader.Read<uint16_t>(assetBuffer);
+    auto height = assetReader.Read<uint16_t>(assetBuffer);
+
+    sf::Image image;
+    image.create(width, height, (const sf::Uint8*)assetBuffer.begin() + assetReader.GetOffset());
+
+    auto texture = std::make_shared<sf::Texture>();
+    texture->loadFromImage(image);
+    serverAssetManager.EmplaceTexture(name, texture);
+    break;
+  }
+  }
+
+  assetBuffer.setCapacity(0);
+}
+
+
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   mapBuffer = reader.ReadString(buffer);
@@ -344,6 +444,8 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
 {
   std::string user = reader.ReadString(buffer);
   std::string name = reader.ReadString(buffer);
+  std::string texturePath = reader.ReadString(buffer);
+  std::string animationPath = reader.ReadString(buffer);
   float x = reader.Read<float>(buffer);
   float y = reader.Read<float>(buffer);
   float z = reader.Read<float>(buffer);
@@ -370,7 +472,17 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   actor.AddNode(&onlinePlayer->emoteNode);
   actor.Rename(name);
   actor.setPosition(pos);
-  RefreshOnlinePlayerSprite(*onlinePlayer, SelectedNavi{ 0 });
+
+  if (serverAssetManager.HasTexture(texturePath)) {
+    actor.setTexture(serverAssetManager.GetTexture(texturePath));
+  }
+
+  if (serverAssetManager.HasText(animationPath)) {
+    Animation animation;
+    animation.LoadWithData(serverAssetManager.GetText(animationPath));
+    actor.LoadAnimations(animation);
+  }
+
   GetMap().AddSprite(&actor, 0);
 
   auto& teleportController = onlinePlayer->teleportController;
@@ -467,15 +579,27 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
 
 void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
-  uint16_t form = reader.Read<uint16_t>(buffer);
   std::string user = reader.ReadString(buffer);
+  std::string texturePath = reader.ReadString(buffer);
+  std::string animationPath = reader.ReadString(buffer);
 
   if (user == ticket) return;
 
   auto userIter = onlinePlayers.find(user);
 
-  if (userIter != onlinePlayers.end()) {
-    RefreshOnlinePlayerSprite(*userIter->second, form);
+  if (userIter == onlinePlayers.end()) return;
+
+  auto& player = userIter->second;;
+  auto& actor = player->actor;
+
+  if (serverAssetManager.HasTexture(texturePath)) {
+    actor.setTexture(serverAssetManager.GetTexture(texturePath));
+  }
+
+  if (serverAssetManager.HasText(animationPath)) {
+    Animation animation;
+    animation.LoadWithData(serverAssetManager.GetText(animationPath));
+    actor.LoadAnimations(animation);
   }
 }
 
@@ -536,6 +660,12 @@ void Overworld::OnlineArea::processIncomingPackets()
       case ServerEvents::login:
         receiveLoginSignal(reader, data);
         break;
+      case ServerEvents::asset_stream:
+        receiveAssetStreamSignal(reader, data);
+        break;
+      case ServerEvents::asset_stream_complete:
+        receiveAssetStreamCompleteSignal(reader, data);
+        break;
       case ServerEvents::map:
         receiveMapSignal(reader, data);
         break;
@@ -570,25 +700,6 @@ void Overworld::OnlineArea::processIncomingPackets()
 void Overworld::OnlineArea::Leave() {
   using effect = segue<PixelateBlackWashFade>;
   getController().pop<effect>();
-}
-
-void Overworld::OnlineArea::RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi)
-{
-  if (player.currNavi == navi) return;
-
-  auto& meta = NAVIS.At(navi);
-  auto owPath = meta.GetOverworldAnimationPath();
-
-  if (owPath.size()) {
-    player.actor.setTexture(meta.GetOverworldTexture());
-    player.actor.LoadAnimations(owPath);
-    player.currNavi = navi;
-
-    // move the emote above the player's head
-    float h = player.actor.getLocalBounds().height;
-    float y = h - (h - player.actor.getOrigin().y);
-    player.emoteNode.setPosition(sf::Vector2f(0, -y));
-  }
 }
 
 const bool Overworld::OnlineArea::IsMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src)

@@ -102,7 +102,7 @@ namespace Overworld {
     *      "WALK_UL" would be "Walking Up left"
     *      "RUN_D" would be "Run Down"
     */
-    void LoadAnimations(const std::string& path);
+    void LoadAnimations(const Animation& animation);
 
     /**
     * @brief Set the walk speed as pixels per second

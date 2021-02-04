@@ -8,15 +8,16 @@
 #include "bnPacketShipper.h"
 #include "bnPacketSorter.h"
 #include "bnBufferReader.h"
+#include "bnServerAssetManager.h"
 
 namespace Overworld {
   constexpr size_t LAG_WINDOW_LEN = 300;
 
   struct OnlinePlayer {
-    Overworld::Actor actor{"?"};
+    Overworld::Actor actor{ "?" };
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
-    SelectedNavi currNavi{std::numeric_limits<SelectedNavi>::max()};
+    SelectedNavi currNavi{ std::numeric_limits<SelectedNavi>::max() };
     sf::Vector2f startBroadcastPos{};
     sf::Vector2f endBroadcastPos{};
     long long timestamp{};
@@ -33,6 +34,8 @@ namespace Overworld {
     PacketShipper packetShipper;
     PacketSorter packetSorter;
     SelectedNavi lastFrameNavi{};
+    ServerAssetManager serverAssetManager;
+    Poco::Buffer<char> assetBuffer{0};
     std::map<std::string, OnlinePlayer*> onlinePlayers;
     std::list<std::string> removePlayers;
     std::string mapBuffer;
@@ -42,7 +45,6 @@ namespace Overworld {
     size_t errorCount{};
 
     void Leave();
-    void RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi);
     const bool IsMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src);
     const double CalculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
   public:
@@ -65,13 +67,18 @@ namespace Overworld {
     void OnTileCollision(const Map::Tile& tile) override;
     void OnEmoteSelected(Overworld::Emotes emote) override;
 
+    void sendTextureStreamHeaders(uint16_t width, uint16_t height);
+    void sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size);
     void sendLoginSignal();
     void sendLogoutSignal();
     void sendReadySignal();
     void sendPositionSignal();
-    void sendAvatarChangeSignal(const SelectedNavi& navi);
+    void sendAvatarChangeSignal();
+    void sendAvatarAssetStream();
     void sendEmoteSignal(const Overworld::Emotes emote);
     void receiveLoginSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void receiveAssetStreamCompleteSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviDisconnectedSignal(BufferReader& reader, const Poco::Buffer<char>&);
