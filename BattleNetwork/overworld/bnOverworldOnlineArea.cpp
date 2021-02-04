@@ -501,7 +501,7 @@ void Overworld::OnlineArea::processIncomingPackets()
     );
 
   if (timeDifference.count() > 5) {
-    TryLeave();
+    Leave();
     return;
   }
 
@@ -563,28 +563,13 @@ void Overworld::OnlineArea::processIncomingPackets()
   catch (Poco::Net::NetException& e) {
     Logger::Logf("OnlineArea Network exception: %s", e.what());
 
-    TryLeave();
+    Leave();
   }
 }
 
-void Overworld::OnlineArea::TryLeave() {
-  auto* teleportController = &GetTeleportControler();
-
-  if (teleportController->IsComplete()) {
-    auto& map = GetMap();
-    auto* playerController = &GetPlayerController();
-    auto* playerActor = &GetPlayer();
-
-    playerController->ReleaseActor();
-    auto& command = teleportController->TeleportOut(*playerActor);
-
-    auto teleportHome = [=] {
-      TeleportUponReturn(playerActor->getPosition());
-      getController().pop<segue<PixelateBlackWashFade>>();
-    };
-
-    command.onFinish.Slot(teleportHome);
-  }
+void Overworld::OnlineArea::Leave() {
+  using effect = segue<PixelateBlackWashFade>;
+  getController().pop<effect>();
 }
 
 void Overworld::OnlineArea::RefreshOnlinePlayerSprite(OnlinePlayer& player, SelectedNavi navi)
