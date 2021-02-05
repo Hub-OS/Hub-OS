@@ -40,6 +40,7 @@ namespace Overworld {
     std::list<std::string> removePlayers;
     std::string mapBuffer;
     Timer movementTimer;
+    double packetResendTimer;
     Font font;
     Text name;
     size_t errorCount{};
@@ -87,7 +88,7 @@ namespace Overworld {
     void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
 
-    void processIncomingPackets();
+    void processIncomingPackets(double elapsed);
 
   };
 }

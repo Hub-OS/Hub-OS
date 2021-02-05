@@ -26,6 +26,7 @@ Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool g
   packetSorter(remoteAddress)
 {
   lastFrameNavi = this->GetCurrentNavi();
+  packetResendTimer = PACKET_RESEND_RATE;
 
   int myPort = getController().CommandLineValue<int>("port");
   Poco::Net::SocketAddress sa(Poco::Net::IPAddress(), myPort);
@@ -58,7 +59,7 @@ Overworld::OnlineArea::~OnlineArea()
 
 void Overworld::OnlineArea::onUpdate(double elapsed)
 {
-  this->processIncomingPackets();
+  this->processIncomingPackets(elapsed);
 
   auto currentTime = CurrentTime::AsMilli();
 
@@ -619,7 +620,7 @@ void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const P
   }
 }
 
-void Overworld::OnlineArea::processIncomingPackets()
+void Overworld::OnlineArea::processIncomingPackets(double elapsed)
 {
   auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
     std::chrono::steady_clock::now() - packetSorter.GetLastMessageTime()
@@ -635,7 +636,12 @@ void Overworld::OnlineArea::processIncomingPackets()
   static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
 
   try {
-    packetShipper.ResendBackedUpPackets(client);
+    packetResendTimer -= elapsed;
+
+    if(packetResendTimer < 0) {
+      packetShipper.ResendBackedUpPackets(client);
+      packetResendTimer = PACKET_RESEND_RATE;
+    }
 
     Poco::Net::SocketAddress sender;
     int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);

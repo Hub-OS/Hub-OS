@@ -8,6 +8,8 @@ namespace Overworld
   const std::string VERSION_ID = "https://github.com/ArthurCose/Scriptable-OpenNetBattle-Server/tree/proposed-packets";
   const uint64_t VERSION_ITERATION = 2;
 
+  constexpr double PACKET_RESEND_RATE = 1.0 / 20.0;
+
   enum class Reliability : char
   {
     Unreliable = 0,
