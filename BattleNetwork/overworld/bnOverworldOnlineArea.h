@@ -45,28 +45,8 @@ namespace Overworld {
     Text name;
     size_t errorCount{};
 
-    void Leave();
-    const bool IsMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src);
-    const double CalculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
-  public:
-    /**
-     * @brief Loads the player's library data and loads graphics
-     */
-    OnlineArea(swoosh::ActivityController&, bool guestAccount);
 
-    /**
-    * @brief deconstructor
-    */
-    ~OnlineArea();
-
-    void onUpdate(double elapsed) override;
-    void onDraw(sf::RenderTexture& surface) override;
-    void onStart() override;
-    void onResume() override;
-
-    const std::pair<bool, Map::Tile**> FetchMapData() override;
-    void OnTileCollision(const Map::Tile& tile) override;
-    void OnEmoteSelected(Overworld::Emotes emote) override;
+    void processIncomingPackets(double elapsed);
 
     void sendTextureStreamHeaders(uint16_t width, uint16_t height);
     void sendAssetStreamSignal(ClientEvents event, uint16_t headerSize, const char* data, size_t size);
@@ -87,8 +67,27 @@ namespace Overworld {
     void receiveNaviMoveSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviSetAvatarSignal(BufferReader& reader, const Poco::Buffer<char>&);
     void receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>&);
+    void leave();
+    const bool isMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src);
+    const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
+  public:
+    /**
+     * @brief Loads the player's library data and loads graphics
+     */
+    OnlineArea(swoosh::ActivityController&, bool guestAccount);
 
-    void processIncomingPackets(double elapsed);
+    /**
+    * @brief deconstructor
+    */
+    ~OnlineArea();
 
+    void onUpdate(double elapsed) override;
+    void onDraw(sf::RenderTexture& surface) override;
+    void onStart() override;
+    void onResume() override;
+
+    const std::pair<bool, Map::Tile**> FetchMapData() override;
+    void OnTileCollision(const Map::Tile& tile) override;
+    void OnEmoteSelected(Overworld::Emotes emote) override;
   };
 }

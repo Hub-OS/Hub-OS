@@ -10,7 +10,6 @@
 #include "../netplay/bnNetPlayConfig.h"
 
 using namespace swoosh::types;
-constexpr int MAX_ERROR_COUNT = 10;
 constexpr float SECONDS_PER_MOVEMENT = 1.f / 5.f;
 constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
@@ -78,7 +77,7 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         auto deltaTime = static_cast<double>(currentTime - onlinePlayer->timestamp) / 1000.0;
         auto delta = player.second->endBroadcastPos - player.second->startBroadcastPos;
         float distance = std::sqrt(std::pow(delta.x, 2.0f) + std::pow(delta.y, 2.0f));
-        double expectedTime = CalculatePlayerLag(*onlinePlayer);
+        double expectedTime = calculatePlayerLag(*onlinePlayer);
         float alpha = static_cast<float>(ease::linear(deltaTime, expectedTime, 1.0));
         Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
 
@@ -132,7 +131,7 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   }
 
   for (auto player : onlinePlayers) {
-    if (IsMouseHovering(surface, player.second->actor)) {
+    if (isMouseHovering(surface, player.second->actor)) {
       std::string nameStr = player.second->actor.GetName();
       auto mousei = sf::Mouse::getPosition(getController().getWindow());
       auto mousef = sf::Vector2f(static_cast<float>(mousei.x), static_cast<float>(mousei.y));
@@ -249,6 +248,90 @@ void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
 {
   SceneBase::OnEmoteSelected(emote);
   sendEmoteSignal(emote);
+}
+
+void Overworld::OnlineArea::processIncomingPackets(double elapsed)
+{
+  auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
+    std::chrono::steady_clock::now() - packetSorter.GetLastMessageTime()
+    );
+
+  if (timeDifference.count() > MAX_TIMEOUT_SECONDS) {
+    leave();
+    return;
+  }
+
+  if (!client.available()) return;
+
+  static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
+
+  try {
+    packetResendTimer -= elapsed;
+
+    if (packetResendTimer < 0) {
+      packetShipper.ResendBackedUpPackets(client);
+      packetResendTimer = PACKET_RESEND_RATE;
+    }
+
+    Poco::Net::SocketAddress sender;
+    int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
+
+    if (sender != remoteAddress || read == 0) {
+      return;
+    }
+
+    Poco::Buffer<char> packet{ 0 };
+    packet.append(rawBuffer, size_t(read));
+
+    auto packetBodies = packetSorter.SortPacket(client, packet);
+
+    for (auto& data : packetBodies) {
+      BufferReader reader;
+
+      auto sig = reader.Read<ServerEvents>(data);
+
+      switch (sig) {
+      case ServerEvents::ack:
+        packetShipper.Acknowledged(reader.Read<Reliability>(data), reader.Read<uint64_t>(data));
+        break;
+      case ServerEvents::login:
+        receiveLoginSignal(reader, data);
+        break;
+      case ServerEvents::asset_stream:
+        receiveAssetStreamSignal(reader, data);
+        break;
+      case ServerEvents::asset_stream_complete:
+        receiveAssetStreamCompleteSignal(reader, data);
+        break;
+      case ServerEvents::map:
+        receiveMapSignal(reader, data);
+        break;
+      case ServerEvents::navi_connected:
+        receiveNaviConnectedSignal(reader, data);
+        break;
+      case ServerEvents::navi_disconnect:
+        receiveNaviDisconnectedSignal(reader, data);
+        break;
+      case ServerEvents::navi_set_name:
+        receiveNaviSetNameSignal(reader, data);
+        break;
+      case ServerEvents::navi_move_to:
+        receiveNaviMoveSignal(reader, data);
+        break;
+      case ServerEvents::navi_set_avatar:
+        receiveNaviSetAvatarSignal(reader, data);
+        break;
+      case ServerEvents::navi_emote:
+        receiveNaviEmoteSignal(reader, data);
+        break;
+      }
+    }
+  }
+  catch (Poco::Net::NetException& e) {
+    Logger::Logf("OnlineArea Network exception: %s", e.what());
+
+    leave();
+  }
 }
 
 void Overworld::OnlineArea::sendTextureStreamHeaders(uint16_t width, uint16_t height) {
@@ -553,7 +636,7 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     double incomingLag = (currentTime - static_cast<double>(onlinePlayer->timestamp)) / 1000.0;
 
     // Adjust the lag time by the lag of this incoming frame
-    double expectedTime = CalculatePlayerLag(*onlinePlayer, incomingLag);
+    double expectedTime = calculatePlayerLag(*onlinePlayer, incomingLag);
 
     Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
 
@@ -620,96 +703,12 @@ void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const P
   }
 }
 
-void Overworld::OnlineArea::processIncomingPackets(double elapsed)
-{
-  auto timeDifference = std::chrono::duration_cast<std::chrono::seconds>(
-    std::chrono::steady_clock::now() - packetSorter.GetLastMessageTime()
-    );
-
-  if (timeDifference.count() > 5) {
-    Leave();
-    return;
-  }
-
-  if (!client.available()) return;
-
-  static char rawBuffer[NetPlayConfig::MAX_BUFFER_LEN] = { 0 };
-
-  try {
-    packetResendTimer -= elapsed;
-
-    if(packetResendTimer < 0) {
-      packetShipper.ResendBackedUpPackets(client);
-      packetResendTimer = PACKET_RESEND_RATE;
-    }
-
-    Poco::Net::SocketAddress sender;
-    int read = client.receiveFrom(rawBuffer, NetPlayConfig::MAX_BUFFER_LEN, sender);
-
-    if (sender != remoteAddress || read == 0) {
-      return;
-    }
-
-    Poco::Buffer<char> packet{ 0 };
-    packet.append(rawBuffer, size_t(read));
-
-    auto packetBodies = packetSorter.SortPacket(client, packet);
-
-    for (auto& data : packetBodies) {
-      BufferReader reader;
-
-      auto sig = reader.Read<ServerEvents>(data);
-
-      switch (sig) {
-      case ServerEvents::ack:
-        packetShipper.Acknowledged(reader.Read<Reliability>(data), reader.Read<uint64_t>(data));
-        break;
-      case ServerEvents::login:
-        receiveLoginSignal(reader, data);
-        break;
-      case ServerEvents::asset_stream:
-        receiveAssetStreamSignal(reader, data);
-        break;
-      case ServerEvents::asset_stream_complete:
-        receiveAssetStreamCompleteSignal(reader, data);
-        break;
-      case ServerEvents::map:
-        receiveMapSignal(reader, data);
-        break;
-      case ServerEvents::navi_connected:
-        receiveNaviConnectedSignal(reader, data);
-        break;
-      case ServerEvents::navi_disconnect:
-        receiveNaviDisconnectedSignal(reader, data);
-        break;
-      case ServerEvents::navi_set_name:
-        receiveNaviSetNameSignal(reader, data);
-        break;
-      case ServerEvents::navi_move_to:
-        receiveNaviMoveSignal(reader, data);
-        break;
-      case ServerEvents::navi_set_avatar:
-        receiveNaviSetAvatarSignal(reader, data);
-        break;
-      case ServerEvents::navi_emote:
-        receiveNaviEmoteSignal(reader, data);
-        break;
-      }
-    }
-  }
-  catch (Poco::Net::NetException& e) {
-    Logger::Logf("OnlineArea Network exception: %s", e.what());
-
-    Leave();
-  }
-}
-
-void Overworld::OnlineArea::Leave() {
+void Overworld::OnlineArea::leave() {
   using effect = segue<PixelateBlackWashFade>;
   getController().pop<effect>();
 }
 
-const bool Overworld::OnlineArea::IsMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src)
+const bool Overworld::OnlineArea::isMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src)
 {
 
   // convert it to world coordinates
@@ -733,7 +732,7 @@ const bool Overworld::OnlineArea::IsMouseHovering(const sf::RenderTarget& target
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }
 
-const double Overworld::OnlineArea::CalculatePlayerLag(OnlinePlayer& player, double nextLag)
+const double Overworld::OnlineArea::calculatePlayerLag(OnlinePlayer& player, double nextLag)
 {
 
   size_t window_len = std::min(player.packets, player.lagWindow.size());
