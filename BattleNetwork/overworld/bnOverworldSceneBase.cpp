@@ -831,6 +831,19 @@ void Overworld::SceneBase::LoadBackground(const std::string& value)
   // TODO: else if (isPNG(value)) { WriteToDisc(".areaname.png.value"); /* should cache too */ }
 }
 
+std::string Overworld::SceneBase::GetText(const std::string& path) {
+  return FileUtil::Read(path);
+}
+
+std::shared_ptr<sf::Texture> Overworld::SceneBase::GetTexture(const std::string& path) {
+  return Textures().LoadTextureFromFile(path);
+}
+
+std::shared_ptr<sf::SoundBuffer> Overworld::SceneBase::GetAudio(const std::string& path) {
+  return Audio().LoadFromFile(path);
+}
+
+
 void Overworld::SceneBase::ResetMap()
 {
   // Load a map

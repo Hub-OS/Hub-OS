@@ -35,7 +35,7 @@ namespace Overworld {
     PacketSorter packetSorter;
     SelectedNavi lastFrameNavi{};
     ServerAssetManager serverAssetManager;
-    Poco::Buffer<char> assetBuffer{0};
+    Poco::Buffer<char> assetBuffer{ 0 };
     std::map<std::string, OnlinePlayer*> onlinePlayers;
     std::list<std::string> removePlayers;
     std::string mapBuffer;
@@ -70,6 +70,13 @@ namespace Overworld {
     void leave();
     const bool isMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src);
     const double calculatePlayerLag(OnlinePlayer& player, double nextLag = 0);
+
+  protected:
+    virtual std::string GetText(const std::string& path);
+    virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
+    virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
+
+
   public:
     /**
      * @brief Loads the player's library data and loads graphics

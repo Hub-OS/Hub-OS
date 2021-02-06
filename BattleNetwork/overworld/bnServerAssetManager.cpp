@@ -1,26 +1,25 @@
 #include "bnServerAssetManager.h"
 
-bool Overworld::ServerAssetManager::HasText(const std::string& name) {
-  return textAssets.find(name) != textAssets.end();
-}
-
 std::string Overworld::ServerAssetManager::GetText(const std::string& name) {
+  if (textAssets.find(name) == textAssets.end()) {
+    return "";
+  }
   return textAssets[name];
 }
 
-bool Overworld::ServerAssetManager::HasTexture(const std::string& name) {
-  return textureAssets.find(name) != textureAssets.end();
-}
-
 std::shared_ptr<sf::Texture> Overworld::ServerAssetManager::GetTexture(const std::string& name) {
+  if (textureAssets.find(name) == textureAssets.end()) {
+    return std::make_shared<sf::Texture>();
+  }
+
   return textureAssets[name];
 }
 
-bool Overworld::ServerAssetManager::HasAudio(const std::string& name) {
-  return audioAssets.find(name) != audioAssets.end();
-}
-
 std::shared_ptr<sf::SoundBuffer> Overworld::ServerAssetManager::GetAudio(const std::string& name) {
+  if (audioAssets.find(name) == audioAssets.end()) {
+    return std::make_shared<sf::SoundBuffer>();
+  }
+
   return audioAssets[name];
 }
 

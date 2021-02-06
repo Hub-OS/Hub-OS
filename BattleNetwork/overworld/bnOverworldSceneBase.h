@@ -122,6 +122,11 @@ namespace Overworld {
     void ShutdownTouchControls();
 #endif
 
+  protected:
+    virtual std::string GetText(const std::string& path);
+    virtual std::shared_ptr<sf::Texture> GetTexture(const std::string& path);
+    virtual std::shared_ptr<sf::SoundBuffer> GetAudio(const std::string& path);
+
   public:
 
     SceneBase() = delete;

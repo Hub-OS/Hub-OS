@@ -517,7 +517,7 @@ void Overworld::OnlineArea::receiveAssetStreamCompleteSignal(BufferReader& reade
 void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
   auto path = reader.ReadString(buffer);
-  mapBuffer = serverAssetManager.HasText(path) ? serverAssetManager.GetText(path) : "";
+  mapBuffer = GetText(path);
 
   // If we are still invalid after this, there's a problem
   if (mapBuffer.empty()) {
@@ -557,16 +557,11 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   actor.AddNode(&onlinePlayer->emoteNode);
   actor.Rename(name);
   actor.setPosition(pos);
+  actor.setTexture(GetTexture(texturePath));
 
-  if (serverAssetManager.HasTexture(texturePath)) {
-    actor.setTexture(serverAssetManager.GetTexture(texturePath));
-  }
-
-  if (serverAssetManager.HasText(animationPath)) {
-    Animation animation;
-    animation.LoadWithData(serverAssetManager.GetText(animationPath));
-    actor.LoadAnimations(animation);
-  }
+  Animation animation;
+  animation.LoadWithData(GetText(animationPath));
+  actor.LoadAnimations(animation);
 
   GetMap().AddSprite(&actor, 0);
 
@@ -677,15 +672,11 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
   auto& player = userIter->second;;
   auto& actor = player->actor;
 
-  if (serverAssetManager.HasTexture(texturePath)) {
-    actor.setTexture(serverAssetManager.GetTexture(texturePath));
-  }
+  actor.setTexture(GetTexture(texturePath));
 
-  if (serverAssetManager.HasText(animationPath)) {
-    Animation animation;
-    animation.LoadWithData(serverAssetManager.GetText(animationPath));
-    actor.LoadAnimations(animation);
-  }
+  Animation animation;
+  animation.LoadWithData(GetText(animationPath));
+  actor.LoadAnimations(animation);
 }
 
 void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -750,4 +741,25 @@ const double Overworld::OnlineArea::calculatePlayerLag(OnlinePlayer& player, dou
   avg = avg / static_cast<double>(window_len);
 
   return avg;
+}
+
+std::string Overworld::OnlineArea::GetText(const std::string& path) {
+  if (path.rfind("/server", 0) == 0) {
+    return serverAssetManager.GetText(path);
+  }
+  return Overworld::SceneBase::GetText(path);
+}
+
+std::shared_ptr<sf::Texture> Overworld::OnlineArea::GetTexture(const std::string& path) {
+  if (path.rfind("/server", 0) == 0) {
+    return serverAssetManager.GetTexture(path);
+  }
+  return Overworld::SceneBase::GetTexture(path);
+}
+
+std::shared_ptr<sf::SoundBuffer> Overworld::OnlineArea::GetAudio(const std::string& path) {
+  if (path.rfind("/server", 0) == 0) {
+    return serverAssetManager.GetAudio(path);
+  }
+  return Overworld::SceneBase::GetAudio(path);
 }
