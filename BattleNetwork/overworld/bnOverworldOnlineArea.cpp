@@ -701,24 +701,21 @@ void Overworld::OnlineArea::leave() {
 
 const bool Overworld::OnlineArea::isMouseHovering(const sf::RenderTarget& target, const SpriteProxyNode& src)
 {
+  auto mouse = target.mapPixelToCoords(sf::Mouse::getPosition(getController().getWindow()), GetCamera().GetView());
 
-  // convert it to world coordinates
-  sf::Vector2f world = target.mapPixelToCoords(sf::Mouse::getPosition(getController().getWindow()), GetCamera().GetView());
+  auto textureRect = src.getSprite().getTextureRect();
 
-  // consider the point on screen relative to the camera focus
-  //auto mouse = GetMap().WorldToScreen(world);
+  auto& map = GetMap();
+  auto& scale = map.getScale();
 
-  auto mouse = world;
-
-  sf::FloatRect bounds = src.getSprite().getLocalBounds();
-  bounds.left += src.getPosition().x - GetCamera().GetView().getCenter().x;
-  bounds.top += src.getPosition().y - GetCamera().GetView().getCenter().y;
-  bounds.left *= GetMap().getScale().x;
-  bounds.top *= GetMap().getScale().y;;
-  bounds.width = bounds.width * GetMap().getScale().x;
-  bounds.height = bounds.height * GetMap().getScale().y;
-
-  // Logger::Logf("mouse: {%f, %f} ... bounds: {%f, %f, %f, %f}", mouse.x, mouse.y, bounds.left, bounds.top, bounds.width, bounds.height);
+  auto position = src.getPosition();
+  auto screenPosition = map.ScreenToWorld(position);
+  auto bounds = sf::FloatRect(
+    (screenPosition.x - textureRect.width / 2) * scale.x,
+    (screenPosition.y - textureRect.height) * scale.y,
+    textureRect.width * scale.x,
+    textureRect.height * scale.y
+  );
 
   return (mouse.x >= bounds.left && mouse.x <= bounds.left + bounds.width && mouse.y >= bounds.top && mouse.y <= bounds.top + bounds.height);
 }
