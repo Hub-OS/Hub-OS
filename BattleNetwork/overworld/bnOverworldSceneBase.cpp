@@ -105,7 +105,7 @@ int DaysUntilXmas()
 }
 
 /// \brief Thunk to populate menu options to callbacks
-auto MakeOptions = [] (Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
+auto MakeOptions = [](Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
   return {
     { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
     { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
@@ -147,7 +147,7 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 
   auto windowSize = getController().getVirtualWindowSize();
   emote.setPosition(windowSize.x / 2.f, windowSize.y / 2.f);
-  
+
   gotoNextScene = true;
 
   /// WEB ACCOUNT LOADING
@@ -333,7 +333,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   }
 
   playerActor.Update(elapsed);
-  
+
   for (auto& npc : npcs) {
     npc.Update(elapsed);
   }
@@ -407,7 +407,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   lightsAnim.SyncTime(static_cast<float>(animElapsed));
 
-  static std::array<sf::Color,5> rgb = {
+  static std::array<sf::Color, 5> rgb = {
     sf::Color::Cyan,
     sf::Color{255, 182, 192}, // pinkish red
     sf::Color::Yellow,
@@ -415,18 +415,18 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     sf::Color::Magenta
   };
 
-  size_t inc = static_cast<size_t>(animElapsed/0.8); // in seconds to steps
+  size_t inc = static_cast<size_t>(animElapsed / 0.8); // in seconds to steps
   size_t offset = 0;
   for (auto& L : lights) {
     lightsAnim.Refresh(L->getSprite());
-    L->setColor(rgb[(offset+++inc)%rgb.size()]);
+    L->setColor(rgb[(offset++ + inc) % rgb.size()]);
   }
   offset = 0;
 
-  #ifdef __ANDROID__
-  if(gotoNextScene)
+#ifdef __ANDROID__
+  if (gotoNextScene)
     return; // keep the screen looking the same when we come back
-  #endif
+#endif
 
   if (WEBCLIENT.IsLoggedIn() && accountCommandResponse.valid() && is_ready(accountCommandResponse)) {
     try {
@@ -450,10 +450,10 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   bool currentConnectivity = WEBCLIENT.IsConnectedToWebServer();
   if (currentConnectivity != lastIsConnectedState) {
     if (WEBCLIENT.IsConnectedToWebServer()) {
-       webAccountAnimator.SetAnimation("OK_CONNECTION");
+      webAccountAnimator.SetAnimation("OK_CONNECTION");
     }
     else {
-       webAccountAnimator.SetAnimation("NO_CONNECTION");
+      webAccountAnimator.SetAnimation("NO_CONNECTION");
     }
 
     lastIsConnectedState = currentConnectivity;
@@ -464,7 +464,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   // Update the camera
   camera.Update((float)elapsed);
-  
+
   // Loop the bg
   bg->Update((float)elapsed);
 
@@ -482,7 +482,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   // Follow the navi
   sf::Vector2f pos = map.ScreenToWorld(playerActor.getPosition());
-  pos = sf::Vector2f(pos.x*map.getScale().x, pos.y*map.getScale().y);
+  pos = sf::Vector2f(pos.x * map.getScale().x, pos.y * map.getScale().y);
   camera.PlaceCamera(pos);
 
   if (!gotoNextScene && textbox.IsClosed()) {
@@ -590,9 +590,9 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 }
 
 void Overworld::SceneBase::onLeave() {
-    #ifdef __ANDROID__
-    ShutdownTouchControls();
-    #endif
+#ifdef __ANDROID__
+  ShutdownTouchControls();
+#endif
 }
 
 void Overworld::SceneBase::onExit()
@@ -628,8 +628,8 @@ void Overworld::SceneBase::onResume() {
     playerController.ReleaseActor();
 
     auto& command = teleportController.TeleportIn(
-      playerActor, 
-      returnPoint, 
+      playerActor,
+      returnPoint,
       Reverse(playerActor.GetHeading())
     );
 
@@ -792,8 +792,8 @@ void Overworld::SceneBase::LoadBackground(const std::string& value)
   std::string str = value;
   std::transform(str.begin(), str.end(), str.begin(), [](auto in) {
     return std::tolower(in);
-   });
-  
+  });
+
   if (value == "undernet") {
     SetBackground(new UndernetBackground);
   }
@@ -808,13 +808,13 @@ void Overworld::SceneBase::LoadBackground(const std::string& value)
   }
   else if (value == "weather") {
     SetBackground(new WeatherBackground);
-  } 
-  else if(value == "medical") {
+  }
+  else if (value == "medical") {
     SetBackground(new MedicalBackground);
   }
   else if (value == "acdc") {
     SetBackground(new ACDCBackground);
-  } 
+  }
   else if (value == "virus") {
     SetBackground(new VirusBackground);
   }
@@ -870,8 +870,8 @@ void Overworld::SceneBase::ResetMap()
         // Interrupt pathing until new condition is met
         pathController->InterruptUntil([=] {
           return textbox.IsClosed();
-          });
-        // if player interacted with us
+        });
+      // if player interacted with us
         if (&with == &playerActor && textbox.IsClosed()) {
           // Face them
           iceman->Face(Reverse(with.GetHeading()));
@@ -883,10 +883,10 @@ void Overworld::SceneBase::ResetMap()
           textbox.EnqueMessage(face, "resources/mobs/iceman/mug.animation", new Message(msgStr));
           textbox.Open();
         }
-        });
+      });
 
       pathController->ControlActor(*iceman);
-      map.AddSprite(iceman,0);
+      map.AddSprite(iceman, 0);
       quadTree.actors.push_back(iceman);
     }
 
@@ -916,7 +916,7 @@ void Overworld::SceneBase::ResetMap()
           sf::Sprite face;
           face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
           textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
-            onlineWarpAnim.GetAnimationString() == "OFF"? new Message("This is your homepage! But it looks like the next area is offline...")
+            onlineWarpAnim.GetAnimationString() == "OFF" ? new Message("This is your homepage! But it looks like the next area is offline...")
             : new Message("This is your homepage! Find an active telepad to take you into cyberspace!")
           );
           textbox.Open();
@@ -960,7 +960,7 @@ void Overworld::SceneBase::ResetMap()
           );
           textbox.Open();
         }
-        });
+      });
 
       pathController->ControlActor(*mrprog);
       map.AddSprite(mrprog, 0);
@@ -1045,7 +1045,7 @@ void Overworld::SceneBase::ResetMap()
         auto& command = teleportController.TeleportIn(playerActor, pos, Direction::up);
         command.onFinish.Slot([=] {
           playerController.ControlActor(playerActor);
-          });
+        });
       }
     }
 
@@ -1154,7 +1154,7 @@ void Overworld::SceneBase::ResetMap()
       star->SetLayer(-1);
       starAnim.Refresh(star->getSprite());
       new_tree->AddNode(star);
-      
+
       auto offset = treeAnim.GetPoint("top") - treeAnim.GetPoint("origin");
       star->setPosition(offset);
 
@@ -1328,112 +1328,112 @@ void Overworld::SceneBase::EnableNetWarps(bool enabled)
 }
 
 void Overworld::SceneBase::OnEmoteSelected(Emotes emote)
-{ 
+{
   emoteNode.Emote(emote);
 }
 
 #ifdef __ANDROID__
 void Overworld::SceneBase::StartupTouchControls() {
-    ui.setScale(2.f,2.f);
+  ui.setScale(2.f, 2.f);
 
-    uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
-    uiAnimator.SetFrame(1, ui);
-    ui.setPosition(100.f, 50.f);
+  uiAnimator.SetAnimation("CHIP_FOLDER_LABEL");
+  uiAnimator.SetFrame(1, ui);
+  ui.setPosition(100.f, 50.f);
 
-    auto bounds = ui.getGlobalBounds();
-    auto rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
-    auto& folderBtn = TouchArea::create(rect);
+  auto bounds = ui.getGlobalBounds();
+  auto rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
+  auto& folderBtn = TouchArea::create(rect);
 
-    folderBtn.onRelease([this](sf::Vector2i delta) {
-        Logger::Log("folder released");
+  folderBtn.onRelease([this](sf::Vector2i delta) {
+    Logger::Log("folder released");
 
-        gotoNextScene = true;
-        Audio().Play(AudioType::CHIP_DESC);
+    gotoNextScene = true;
+    Audio().Play(AudioType::CHIP_DESC);
 
-        using swoosh::intent::direction;
-        using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
-        getController().push<segue::to<FolderScene>>(data);
-    });
+    using swoosh::intent::direction;
+    using segue = swoosh::intent::segue<PushIn<direction::left>, swoosh::intent::milli<500>>;
+    getController().push<segue::to<FolderScene>>(data);
+  });
 
-    folderBtn.onTouch([this]() {
-        menuSelectionIndex = 0;
-    });
+  folderBtn.onTouch([this]() {
+    menuSelectionIndex = 0;
+  });
 
-    uiAnimator.SetAnimation("LIBRARY_LABEL");
-    uiAnimator.SetFrame(1, ui);
-    ui.setPosition(100.f, 120.f);
+  uiAnimator.SetAnimation("LIBRARY_LABEL");
+  uiAnimator.SetFrame(1, ui);
+  ui.setPosition(100.f, 120.f);
 
-    bounds = ui.getGlobalBounds();
-    rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
+  bounds = ui.getGlobalBounds();
+  rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
 
-    Logger::Log(std::string("rect: ") + std::to_string(rect.left) + ", " + std::to_string(rect.top) + ", " + std::to_string(rect.width) + ", " + std::to_string(rect.height));
+  Logger::Log(std::string("rect: ") + std::to_string(rect.left) + ", " + std::to_string(rect.top) + ", " + std::to_string(rect.width) + ", " + std::to_string(rect.height));
 
-    auto& libraryBtn = TouchArea::create(rect);
+  auto& libraryBtn = TouchArea::create(rect);
 
-    libraryBtn.onRelease([this](sf::Vector2i delta) {
-        Logger::Log("library released");
+  libraryBtn.onRelease([this](sf::Vector2i delta) {
+    Logger::Log("library released");
 
-        gotoNextScene = true;
-        Audio().Play(AudioType::CHIP_DESC);
+    gotoNextScene = true;
+    Audio().Play(AudioType::CHIP_DESC);
 
-        using swoosh::intent::direction;
-        using segue = swoosh::intent::segue<PushIn<direction::right>>;
-        getController().push<segue::to<LibraryScene>, swoosh::intent::milli<500>>();
-    });
+    using swoosh::intent::direction;
+    using segue = swoosh::intent::segue<PushIn<direction::right>>;
+    getController().push<segue::to<LibraryScene>, swoosh::intent::milli<500>>();
+  });
 
-    libraryBtn.onTouch([this]() {
-        menuSelectionIndex = 1;
-    });
+  libraryBtn.onTouch([this]() {
+    menuSelectionIndex = 1;
+  });
 
 
-    uiAnimator.SetAnimation("NAVI_LABEL");
-    uiAnimator.SetFrame(1, ui);
-    ui.setPosition(100.f, 190.f);
+  uiAnimator.SetAnimation("NAVI_LABEL");
+  uiAnimator.SetFrame(1, ui);
+  ui.setPosition(100.f, 190.f);
 
-    bounds = ui.getGlobalBounds();
-    rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
-    auto& naviBtn = TouchArea::create(rect);
+  bounds = ui.getGlobalBounds();
+  rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
+  auto& naviBtn = TouchArea::create(rect);
 
-    naviBtn.onRelease([this](sf::Vector2i delta) {
-        gotoNextScene = true;
-        Audio().Play(AudioType::CHIP_DESC);
-        using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>;
-        using intent = segue::to<SelectNaviScene>;
-        getController().push<intent>(currentNavi);
-    });
+  naviBtn.onRelease([this](sf::Vector2i delta) {
+    gotoNextScene = true;
+    Audio().Play(AudioType::CHIP_DESC);
+    using segue = swoosh::intent::segue<Checkerboard, swoosh::intent::milli<500>>;
+    using intent = segue::to<SelectNaviScene>;
+    getController().push<intent>(currentNavi);
+  });
 
-    naviBtn.onTouch([this]() {
-        menuSelectionIndex = 2;
-    });
+  naviBtn.onTouch([this]() {
+    menuSelectionIndex = 2;
+  });
 
-    uiAnimator.SetAnimation("MOB_SELECT_LABEL");
-    uiAnimator.SetFrame(1, ui);
-    ui.setPosition(100.f, 260.f);
+  uiAnimator.SetAnimation("MOB_SELECT_LABEL");
+  uiAnimator.SetFrame(1, ui);
+  ui.setPosition(100.f, 260.f);
 
-    bounds = ui.getGlobalBounds();
-    rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
-    auto& mobBtn = TouchArea::create(rect);
+  bounds = ui.getGlobalBounds();
+  rect = sf::IntRect(int(bounds.left), int(bounds.top), int(bounds.width), int(bounds.height));
+  auto& mobBtn = TouchArea::create(rect);
 
-    mobBtn.onRelease([this](sf::Vector2i delta) {
-        gotoNextScene = true;
+  mobBtn.onRelease([this](sf::Vector2i delta) {
+    gotoNextScene = true;
 
-        CardFolder* folder = nullptr;
+    CardFolder* folder = nullptr;
 
-        if (data.GetFolder("Default", folder)) {
-          Audio().Play(AudioType::CHIP_DESC);
-          using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
-          getController().push<segue>(currentNavi, *folder);
-        }
-        else {
-          Audio().Play(AudioType::CHIP_ERROR);
-          Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
-          gotoNextScene = false;
-        }
-    });
+    if (data.GetFolder("Default", folder)) {
+      Audio().Play(AudioType::CHIP_DESC);
+      using segue = swoosh::intent::segue<PixelateBlackWashFade, swoosh::intent::milli<500>>::to<SelectMobScene>;
+      getController().push<segue>(currentNavi, *folder);
+    }
+    else {
+      Audio().Play(AudioType::CHIP_ERROR);
+      Logger::Log("Cannot proceed to mob select. Error selecting folder 'Default'.");
+      gotoNextScene = false;
+    }
+  });
 
-    mobBtn.onTouch([this]() {
-        menuSelectionIndex = 3;
-    });
+  mobBtn.onTouch([this]() {
+    menuSelectionIndex = 3;
+  });
 }
 
 void Overworld::SceneBase::ShutdownTouchControls() {

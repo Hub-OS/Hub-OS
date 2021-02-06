@@ -66,20 +66,20 @@ namespace Overworld {
     Overworld::Map::Tile** tiles{ nullptr }; /*!< Loaded tiles from file */
     std::vector<SpriteProxyNode*> ribbons, stars, bulbs, lights;
 
-    std::vector<std::shared_ptr<SpriteProxyNode>> trees, 
-      warps, 
-      netWarps, 
+    std::vector<std::shared_ptr<SpriteProxyNode>> trees,
+      warps,
+      netWarps,
       homeWarps,
-      coffees, 
+      coffees,
       gates,
       onlineWarps; // onlineWarp is the warp that takes us online
 
-    std::shared_ptr<sf::Texture> 
-      treeTexture, 
-      gateTexture, 
-      ornamentTexture, 
-      coffeeTexture, 
-      warpTexture, 
+    std::shared_ptr<sf::Texture>
+      treeTexture,
+      gateTexture,
+      ornamentTexture,
+      coffeeTexture,
+      warpTexture,
       homeWarpTexture,
       netWarpTexture;
 
@@ -99,8 +99,8 @@ namespace Overworld {
     double animElapsed{};
 
     /*!< Current navi selection index */
-    SelectedNavi currentNavi{}, 
-      lastSelectedNavi{ std::numeric_limits<SelectedNavi>::max() }; 
+    SelectedNavi currentNavi{},
+      lastSelectedNavi{ std::numeric_limits<SelectedNavi>::max() };
 
     bool gotoNextScene{ false }; /*!< If true, player cannot interact with screen yet */
     bool guestAccount{ false };
@@ -222,7 +222,7 @@ namespace Overworld {
     SelectedNavi& GetCurrentNavi();
     Background* GetBackground();
     AnimatedTextBox& GetTextBox();
-    
+
     // TODO: temporary, remove
     void EnableNetWarps(bool enabled);
 
