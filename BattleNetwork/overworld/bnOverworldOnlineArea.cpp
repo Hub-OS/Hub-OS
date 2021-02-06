@@ -709,7 +709,7 @@ const bool Overworld::OnlineArea::isMouseHovering(const sf::RenderTarget& target
   auto& scale = map.getScale();
 
   auto position = src.getPosition();
-  auto screenPosition = map.ScreenToWorld(position);
+  auto screenPosition = map.WorldToScreen(position);
   auto bounds = sf::FloatRect(
     (screenPosition.x - textureRect.width / 2) * scale.x,
     (screenPosition.y - textureRect.height) * scale.y,

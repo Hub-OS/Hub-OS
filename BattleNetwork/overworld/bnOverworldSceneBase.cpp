@@ -481,7 +481,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   textbox.Update(elapsed);
 
   // Follow the navi
-  sf::Vector2f pos = map.ScreenToWorld(playerActor.getPosition());
+  sf::Vector2f pos = map.WorldToScreen(playerActor.getPosition());
   pos = sf::Vector2f(pos.x * map.getScale().x, pos.y * map.getScale().y);
   camera.PlaceCamera(pos);
 

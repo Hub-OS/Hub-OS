@@ -34,13 +34,12 @@ namespace Overworld {
 
   const sf::Vector2f Map::ScreenToWorld(sf::Vector2f screen) const
   {
-    return OrthoToIsometric(screen);
+    return OrthoToIsometric(sf::Vector2f{ screen.x / getScale().x, screen.y / getScale().y });
   }
 
   const sf::Vector2f Map::WorldToScreen(sf::Vector2f screen) const
   {
-    
-    return IsoToOrthogonal(sf::Vector2f{ screen.x / getScale().x, screen.y / getScale().y });
+    return IsoToOrthogonal(screen);
   }
 
   Map::~Map() {
@@ -152,7 +151,7 @@ namespace Overworld {
 
         sf::Sprite tileSprite = tileset.Graphic(ID);
         sf::Vector2f pos(static_cast<float>(j * tileWidth * 0.5f), static_cast<float>(i * tileHeight));
-        auto iso = OrthoToIsometric(pos);
+        auto iso = IsoToOrthogonal(pos);
         iso = sf::Vector2f(iso.x, iso.y);
         tileSprite.setPosition(iso);
 
@@ -176,7 +175,7 @@ namespace Overworld {
   void Map::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
     for (int i = 0; i < sprites.size(); i++) {
       auto ortho = sprites[i].node->getPosition();
-      auto iso = OrthoToIsometric(ortho);
+      auto iso = IsoToOrthogonal(ortho);
       iso = sf::Vector2f(iso.x, iso.y);
 
       auto tileSprite = sprites[i].node;
@@ -189,18 +188,19 @@ namespace Overworld {
       tileSprite->setPosition(ortho);
     }
   }
+
   const sf::Vector2f Map::OrthoToIsometric(const sf::Vector2f& ortho) const {
     sf::Vector2f iso{};
-    iso.x = (ortho.x - ortho.y);
-    iso.y = (ortho.x + ortho.y) * 0.5f;
+    iso.x = (2.0f * ortho.y + ortho.x) * 0.5f;
+    iso.y = (2.0f * ortho.y - ortho.x) * 0.5f;
 
     return iso;
   }
 
   const sf::Vector2f Map::IsoToOrthogonal(const sf::Vector2f& iso) const {
     sf::Vector2f ortho{};
-    ortho.x = (2.0f * iso.y + iso.x) * 0.5f;
-    ortho.y = (2.0f * iso.y - iso.x) * 0.5f;
+    ortho.x = (iso.x - iso.y);
+    ortho.y = (iso.x + iso.y) * 0.5f;
 
     return ortho;
   }
@@ -354,7 +354,7 @@ namespace Overworld {
   std::pair<unsigned, unsigned> Map::IsoToRowCol(const sf::Vector2f& iso) const
   {
     // convert from iso to ortho before converting to grid values
-    return OrthoToRowCol(IsoToOrthogonal({ iso.x, iso.y }));
+    return OrthoToRowCol(OrthoToIsometric({ iso.x, iso.y }));
   }
 
   const std::string& Map::GetName() const
