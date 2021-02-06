@@ -10,7 +10,7 @@
 #include "../netplay/bnNetPlayConfig.h"
 
 using namespace swoosh::types;
-constexpr float SECONDS_PER_MOVEMENT = 1.f / 5.f;
+constexpr float SECONDS_PER_MOVEMENT = 1.f / 10.f;
 constexpr sf::Int32 MAX_TIMEOUT_SECONDS = 5;
 
 Overworld::OnlineArea::OnlineArea(swoosh::ActivityController& controller, bool guestAccount) :
