@@ -93,8 +93,7 @@ namespace Overworld {
     void onStart() override;
     void onResume() override;
 
-    const std::pair<bool, Map::Tile**> FetchMapData() override;
-    void OnTileCollision(const Map::Tile& tile) override;
+    void OnTileCollision() override;
     void OnEmoteSelected(Overworld::Emotes emote) override;
   };
 }

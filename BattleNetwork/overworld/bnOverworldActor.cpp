@@ -18,9 +18,9 @@ Overworld::Actor::Actor(Actor&& other) noexcept
   std::swap(anims, other.anims);
   std::swap(validStates, other.validStates);
   std::swap(state, other.state);
-  std::swap(pos, other.pos); 
-  std::swap(name, other.name); 
-  std::swap(lastStateStr, other.lastStateStr); 
+  std::swap(pos, other.pos);
+  std::swap(name, other.name);
+  std::swap(lastStateStr, other.lastStateStr);
   std::swap(onInteractFunc, other.onInteractFunc);
   std::swap(collisionRadius, other.collisionRadius);
   std::swap(quadTree, other.quadTree);
@@ -140,7 +140,7 @@ const Direction Overworld::Actor::GetHeading() const
 
 sf::Vector2f Overworld::Actor::PositionInFrontOf() const
 {
-    return getPosition() + MakeVectorFromDirection(GetHeading(), 2.0f);
+  return getPosition() + MakeVectorFromDirection(GetHeading(), 2.0f);
 }
 
 void Overworld::Actor::Update(double elapsed)
@@ -168,7 +168,7 @@ void Overworld::Actor::Update(double elapsed)
       lastStateStr = stateStr;
     }
   }
-  
+
   if (state != MovementState::idle && moveThisFrame) {
     auto& [_, new_pos] = CanMoveTo(GetHeading(), state, elapsed);
 
@@ -288,33 +288,31 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
 
   /**
   * Check if colliding with the map
-  * This should be a cheaper check to do first 
+  * This should be a cheaper check to do first
   * before checking neighboring actors
   */
 
-  if (map && map->GetTileAt(newPos).solid) {
-    if (second != Direction::none) {
-      // split vector into parts and try each individual segment
-      auto diffx = offset;
-      diffx.y = 0;
+  if (map && map->GetLayerCount() > layer) {
+    auto& mapLayer = map->GetLayer(layer);
+    auto tileSize = sf::Vector2f(map->GetTileSize());
+    tileSize.x *= .5f;
 
-      auto diffy = offset;
-      diffy.x = 0;
+    if (mapLayer.GetTile(newPos.x / tileSize.x, newPos.y / tileSize.y).gid == 0) {
+      if (second != Direction::none) {
+        newPos = currPos;
 
-      newPos = currPos;
+        if (mapLayer.GetTile((currPos.x + offset.x) / tileSize.x, currPos.y / tileSize.y).gid != 0) {
+          newPos.x += offset.x;
+        }
+        else if (mapLayer.GetTile(currPos.x / tileSize.x, (currPos.y + offset.y) / tileSize.y).gid != 0) {
+          newPos.y += offset.y;
+        } 
 
-      if (map->GetTileAt(currPos + diffx).solid == false) {
-        newPos = currPos + diffx;
+        return { false, newPos };
       }
 
-      if (map->GetTileAt(currPos + diffy).solid == false) {
-        newPos = currPos + diffy;
-      }
-
-      return { false, newPos };
+      return { false, currPos }; // Otherwise, we cannot move
     }
-
-    return { false, currPos }; // Otherwise, we cannot move
   }
 
   /**
@@ -381,14 +379,14 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
   auto hasAnimStateThunk = [this](const Direction& dir, const MovementState& state) {
     auto iter = std::find_if(validStates.begin(), validStates.end(),
       [dir, state](const AnimStatePair& pair) {
-        return std::tie(dir, state) == std::tie(pair.dir, pair.movement);
-      });
+      return std::tie(dir, state) == std::tie(pair.dir, pair.movement);
+    });
 
     return std::tuple{ iter != validStates.end(), dir, state };
   };
 
   auto attemptThunk = [](const std::initializer_list<std::tuple<bool, Direction, MovementState>>& ts) {
-    for(auto& item : ts) {
+    for (auto& item : ts) {
       if (std::get<0>(item)) {
         return AnimStatePair{ std::get<2>(item), std::get<1>(item) };
       }
@@ -402,7 +400,7 @@ std::string Overworld::Actor::FindValidAnimState(const Direction& dir, const Mov
 
   if (anims.begin()->second.HasAnimation(str) == false) {
     const auto& [ud, lr] = Split(Isometric(dir));
-    
+
     std::map<Direction, std::initializer_list<std::tuple<bool, Direction, MovementState>>> attempts = {
       {
         Direction::left,

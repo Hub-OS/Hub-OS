@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.2" tiledversion="1.3.2" name="home_warp" tilewidth="60" tileheight="32" tilecount="5" columns="5">
+<tileset version="1.4" tiledversion="1.4.1" name="home_warp" tilewidth="60" tileheight="32" tilecount="5" columns="5" objectalignment="topleft">
  <image source="home_warp.png" width="300" height="32"/>
  <tile id="0">
   <animation>

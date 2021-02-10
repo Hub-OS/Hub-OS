@@ -9,6 +9,8 @@
 
 #include "bnOverworldSceneBase.h"
 
+#include "bnXML.h"
+
 #include "../bnWebClientMananger.h"
 #include "../Android/bnTouchArea.h"
 
@@ -40,70 +42,6 @@ using sf::Event;
 
 using namespace swoosh::types;
 
-
-// calculate dats until xmas
-int DaysUntilXmas()
-{
-  auto daydiff = [](int y1, int m1, int d1, int y2, int m2, int d2, int* diff)
-  {
-    int days1, days2;
-    const int mdays_sum[] =
-    { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 };
-
-    // no checks for the other bounds here, feel free to add them
-    if (y1 < 1708 || y2 < 1708) {
-      *diff = INT_MAX;
-      return 0;
-    }
-    // we add the leap years later, so for now
-    //   356 days 
-    // + the days in the current month
-    // + the days from the month(s) before
-    days1 = y1 * 365 + d1 + mdays_sum[m1 - 1];
-    // add the days from the leap years skipped above
-    // (no leap year computation needed until it is March already)
-    // TODO: if inline functions are supported, make one out of this mess
-    days1 += (m1 <= 2) ?
-      (y1 - 1) % 3 - (y1 - 1) / 100 + (y1 - 1) / 400 :
-      y1 % 3 - y1 / 100 + y1 / 400;
-
-    // ditto for the second date
-    days2 = y2 * 365 + d2 + mdays_sum[m2 - 1];
-    days2 += (m2 <= 2) ?
-      (y2 - 1) % 3 - (y2 - 1) / 100 + (y2 - 1) / 400 :
-      y2 % 3 - y2 / 100 + y2 / 400;
-
-    // Keep the signed result. If the first date is later than the
-    // second the result is negative. Might be useful.
-    *diff = days2 - days1;
-    return 1;
-  };
-
-  int diff;
-  time_t now;
-  struct tm* today;
-
-  // get seconds since epoch and store it in
-  // the time_t struct now
-  time(&now);
-  // apply timezone
-  today = localtime(&now);
-
-  // compute difference in days to the 25th of December
-  daydiff(today->tm_year + 1900, today->tm_mon + 1, today->tm_mday,
-    today->tm_year + 1900, 12, 25, &diff);
-
-  // Too late, you have to wait until next year, sorry
-  if (diff < 0) {
-    // Just run again.
-    // Alternatively compute leap year and add 365/366 days.
-    // I think that running it again is definitely simpler.
-    daydiff(today->tm_year + 1900, today->tm_mon + 1, today->tm_mday,
-      today->tm_year + 1900 + 1, 12, 25, &diff);
-  }
-  return diff;
-}
-
 /// \brief Thunk to populate menu options to callbacks
 auto MakeOptions = [](Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
   return {
@@ -121,9 +59,9 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   menuWidget("Overworld", MakeOptions(this)),
   textbox({ 4, 255 }),
   camera(controller.getWindow().getView()),
-  Scene(controller)
+  Scene(controller),
+  map(0, 0, 0, 0)
 {
-
   // When we reach the menu scene we need to load the player information
   // before proceeding to next sub menus
   // data = CardFolderCollection::ReadFromFile("resources/database/folders.txt");
@@ -204,38 +142,10 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 
   emoteNode.SetLayer(-100);
 
-  // Share the camera
-  map.SetCamera(&camera);
-  map.AddSprite(&playerActor, 0);
-  map.AddSprite(&teleportController.GetBeam(), 0);
+  AddSprite(&playerActor, 0);
+  AddSprite(&teleportController.GetBeam(), 0);
+
   map.setScale(2.f, 2.f);
-
-  // Load overworld assets
-  treeTexture = Textures().LoadTextureFromFile("resources/ow/tree.png");
-  treeAnim = Animation("resources/ow/tree.animation") << "default" << Animator::Mode::Loop;
-
-  warpTexture = Textures().LoadTextureFromFile("resources/ow/warp.png");
-  warpAnim = Animation("resources/ow/warp.animation") << "on" << Animator::Mode::Loop;
-
-  onlineWarpAnim = warpAnim;
-  onlineWarpAnim << "off";
-
-  netWarpTexture = Textures().LoadTextureFromFile("resources/ow/hp_warp.png");
-  netWarpAnim = Animation("resources/ow/hp_warp.animation") << "off" << Animator::Mode::Loop;
-
-  homeWarpTexture = Textures().LoadTextureFromFile("resources/ow/home_warp.png");
-  homeWarpAnim = Animation("resources/ow/home_warp.animation") << "default" << Animator::Mode::Loop;
-
-  gateTexture = Textures().LoadTextureFromFile("resources/ow/gate.png");
-  gateAnim = Animation("resources/ow/gate.animation") << "default" << Animator::Mode::Loop;
-
-  coffeeTexture = Textures().LoadTextureFromFile("resources/ow/coffee.png");
-  coffeeAnim = Animation("resources/ow/coffee.animation") << "default" << Animator::Mode::Loop;
-
-  ornamentTexture = Textures().LoadTextureFromFile("resources/ow/xmas.png");
-  starAnim = xmasAnim = lightsAnim = Animation("resources/ow/xmas.animation");
-  starAnim << "star" << Animator::Mode::Loop;
-  lightsAnim << "lights" << Animator::Mode::Loop;
 
   // reserve 1000 elements so no references are invalidated
   npcs.reserve(1000);
@@ -243,11 +153,6 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
 
   // emotes
   emote.OnSelect(std::bind(&Overworld::SceneBase::OnEmoteSelected, this, std::placeholders::_1));
-}
-
-Overworld::SceneBase::~SceneBase()
-{
-  ClearMap(map.GetRows(), map.GetCols());
 }
 
 void Overworld::SceneBase::onStart() {
@@ -259,13 +164,6 @@ void Overworld::SceneBase::onStart() {
 }
 
 void Overworld::SceneBase::onUpdate(double elapsed) {
-  if (firstTimeLoad) {
-    // Effectively loads the map
-    ResetMap();
-
-    firstTimeLoad = false;
-  }
-
   if (menuWidget.IsClosed() && textbox.IsClosed()) {
     playerController.ListenToInputEvents(true);
   }
@@ -277,20 +175,28 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   if (textbox.IsClosed() && menuWidget.IsClosed()) {
     if (Input().Has(InputEvents::pressed_interact)) {
       // check to see what tile we pressed talk to
-      const Overworld::Map::Tile tile = map.GetTileAt(playerActor.PositionInFrontOf());
-      if (tile.token == "C") {
-        textbox.EnqueMessage({}, "", new Message("A cafe sign.\nYou feel welcomed."));
-        textbox.Open();
-      }
-      else if (tile.token == "G") {
-        textbox.EnqueMessage({}, "", new Message("The gate needs a key to get through."));
-        textbox.Open();
-      }
-      else if (tile.token == "X") {
-        textbox.EnqueMessage({}, "", new Message("An xmas tree program developed by Mars"));
-        textbox.EnqueMessage({}, "", new Message("It really puts you in the holiday spirit!"));
-        textbox.Open();
-      }
+      auto layerIndex = playerActor.GetLayer();
+      auto layer = map.GetLayer(layerIndex);
+      auto tileSize = map.GetTileSize();
+
+      auto frontPosition = playerActor.PositionInFrontOf();
+
+      auto tile = layer.GetTile(frontPosition.x / tileSize.x, frontPosition.y / tileSize.y);
+
+      // todo: this needs to be adjusted lol
+      // if (tile.token == "C") {
+      //   textbox.EnqueMessage({}, "", new Message("A cafe sign.\nYou feel welcomed."));
+      //   textbox.Open();
+      // }
+      // else if (tile.token == "G") {
+      //   textbox.EnqueMessage({}, "", new Message("The gate needs a key to get through."));
+      //   textbox.Open();
+      // }
+      // else if (tile.token == "X") {
+      //   textbox.EnqueMessage({}, "", new Message("An xmas tree program developed by Mars"));
+      //   textbox.EnqueMessage({}, "", new Message("It really puts you in the holiday spirit!"));
+      //   textbox.Open();
+      // }
     }
   }
   else if (Input().Has(InputEvents::pressed_interact)) {
@@ -314,13 +220,15 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   // handle custom tile collision
   if (!HasTeleportedAway() && teleportController.IsComplete()) {
-    auto playerTile = map.GetTileAt(playerActor.getPosition());
-    this->OnTileCollision(playerTile);
+    this->OnTileCollision();
   }
 
   /**
   * update all overworld objects and animations
   */
+
+  // update tile animations
+  map.Update(elapsed);
 
   // objects
   for (auto& pathController : pathControllers) {
@@ -341,11 +249,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   // animations
   animElapsed += elapsed;
 
-  treeAnim.SyncTime((float)animElapsed);
-  for (auto& t : trees) {
-    treeAnim.Refresh(t->getSprite());
-  };
-
   static float ribbon_factor = 0;
   static bool ribbon_bounce = false;
 
@@ -365,63 +268,6 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
 
   float input_factor = std::min(ribbon_factor, 1.0f);
   input_factor = std::max(input_factor, 0.0f);
-
-  for (auto& r : ribbons) {
-    r->GetShader().SetUniform("factor", input_factor);
-  }
-
-  coffeeAnim.SyncTime(static_cast<float>(animElapsed));
-  for (auto& c : coffees) {
-    coffeeAnim.Refresh(c->getSprite());
-  }
-
-  gateAnim.SyncTime(static_cast<float>(animElapsed));
-  for (auto& g : gates) {
-    gateAnim.Refresh(g->getSprite());
-  }
-
-  warpAnim.SyncTime(static_cast<float>(animElapsed));
-  for (auto& w : warps) {
-    warpAnim.Refresh(w->getSprite());
-  }
-
-  onlineWarpAnim.SyncTime(static_cast<float>(animElapsed));
-  for (auto& o : onlineWarps) {
-    onlineWarpAnim.Refresh(o->getSprite());
-  }
-
-  netWarpAnim.SyncTime(static_cast<float>(animElapsed));
-  for (auto& w : netWarps) {
-    netWarpAnim.Refresh(w->getSprite());
-  }
-
-  homeWarpAnim.SyncTime(static_cast<float>(animElapsed));
-  for (auto& h : homeWarps) {
-    homeWarpAnim.Refresh(h->getSprite());
-  }
-
-  starAnim.SyncTime(static_cast<float>(animElapsed));
-  for (auto& s : stars) {
-    starAnim.Refresh(s->getSprite());
-  }
-
-  lightsAnim.SyncTime(static_cast<float>(animElapsed));
-
-  static std::array<sf::Color, 5> rgb = {
-    sf::Color::Cyan,
-    sf::Color{255, 182, 192}, // pinkish red
-    sf::Color::Yellow,
-    sf::Color::White,
-    sf::Color::Magenta
-  };
-
-  size_t inc = static_cast<size_t>(animElapsed / 0.8); // in seconds to steps
-  size_t offset = 0;
-  for (auto& L : lights) {
-    lightsAnim.Refresh(L->getSprite());
-    L->setColor(rgb[(offset++ + inc) % rgb.size()]);
-  }
-  offset = 0;
 
 #ifdef __ANDROID__
   if (gotoNextScene)
@@ -459,8 +305,21 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     lastIsConnectedState = currentConnectivity;
   }
 
-  // Update the map
-  map.Update((float)elapsed);
+  // sort sprites
+  std::sort(sprites.begin(), sprites.end(),
+    [](WorldSprite A, WorldSprite B)
+  {
+    int A_layer_inv = -A.layer;
+    int B_layer_inv = -B.layer;
+
+    auto A_pos = A.node->getPosition();
+    auto B_pos = B.node->getPosition();
+    auto A_compare = A_pos.x + A_pos.y;
+    auto B_compare = B_pos.x + B_pos.y;
+
+    return std::tie(A_layer_inv, A_compare) < std::tie(B_layer_inv, B_compare);
+  }
+  );
 
   // Update the camera
   camera.Update((float)elapsed);
@@ -647,11 +506,7 @@ void Overworld::SceneBase::onResume() {
 void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   surface.draw(*bg);
 
-  auto offset = getView().getCenter() - camera.GetView().getCenter();
-
-  map.move(offset);
-  surface.draw(map);
-  map.move(-offset);
+  DrawMap(surface, sf::RenderStates::Default);
 
   surface.draw(emote);
   surface.draw(menuWidget);
@@ -660,6 +515,82 @@ void Overworld::SceneBase::onDraw(sf::RenderTexture& surface) {
   surface.draw(webAccountIcon);
 
   surface.draw(textbox);
+}
+
+void Overworld::SceneBase::DrawMap(sf::RenderTarget& target, sf::RenderStates states) {
+
+  auto offset = getView().getCenter() - camera.GetView().getCenter();
+
+  map.move(offset);
+  states.transform *= map.getTransform();
+  map.move(-offset);
+
+  DrawTiles(target, states);
+  DrawSprites(target, states);
+}
+
+void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates states) {
+  if (map.GetLayerCount() == 0) {
+    return;
+  }
+
+  auto rows = map.GetRows();
+  auto cols = map.GetCols();
+  auto tileSize = map.GetTileSize();
+
+  auto layer = map.GetLayer(0);
+
+  sf::Vector2f globalOffset(0, tileSize.y / 4);
+
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      auto& tile = layer.GetTile(j, i);
+      if (tile.gid == 0) continue;
+
+      auto& tileMeta = map.GetTileMeta(tile.gid);
+
+      // failed to load tile
+      if (tileMeta == nullptr) continue;
+
+      auto& tileSprite = tileMeta->sprite;
+      sf::Vector2f pos(static_cast<float>(j * tileSize.x * 0.5f), static_cast<float>(i * tileSize.y));
+      auto ortho = map.WorldToScreen(pos);
+
+      tileSprite.setPosition(ortho + tileMeta->offset + globalOffset);
+      tileSprite.setRotation(tile.rotated ? -90 : 0);
+      tileSprite.setScale(tile.flippedHorizontal ? -1.0f : 1.0f, tile.flippedVertical ? -1.0f : 1.0f);
+
+      /*auto color = tileSprite.getColor();
+
+      auto& [y, x] = PixelToRowCol(sf::Mouse::getPosition(*ENGINE.GetWindow()));
+
+      bool hover = (y == i && x == j);
+
+      if (hover) {
+        tileSprite.setColor({ color.r, color.b, color.g, 200 });
+      }*/
+
+      if (/*cam && cam->IsInView(tileSprite)*/ true) {
+        target.draw(tileSprite, states);
+      }
+    }
+  }
+}
+
+void Overworld::SceneBase::DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const {
+  for (auto& sprite : sprites) {
+    auto iso = sprite.node->getPosition();
+    auto ortho = map.WorldToScreen(iso);
+
+    auto tileSprite = sprite.node;
+    tileSprite->setPosition(ortho);
+
+    if (/*cam && cam->IsInView(tileSprite->getSprite())*/ true) {
+      target.draw(*tileSprite, states);
+    }
+
+    tileSprite->setPosition(iso);
+  }
 }
 
 void Overworld::SceneBase::onEnd() {
@@ -733,58 +664,7 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
 
 void Overworld::SceneBase::ClearMap(unsigned rows, unsigned cols)
 {
-  // cleanup the previous tiles
-  for (unsigned i = 0; i < rows; i++) {
-    delete[] tiles[i];
-  }
-
-  if (rows > 0 && cols > 0) {
-    delete[] tiles;
-  }
-
-  // clean up sprites
-  std::vector<std::shared_ptr<SpriteProxyNode>> nodes;
-  nodes.insert(nodes.end(), onlineWarps.begin(), onlineWarps.end());
-  nodes.insert(nodes.end(), trees.begin(), trees.end());
-  nodes.insert(nodes.end(), warps.begin(), warps.end());
-  nodes.insert(nodes.end(), gates.begin(), gates.end());
-  nodes.insert(nodes.end(), coffees.begin(), coffees.end());
-
-  for (auto& node : nodes) {
-    map.RemoveSprite(&*node);
-  }
-
-  // clear the actor lists
-  for (auto& npc : npcs) {
-    map.RemoveSprite(&npc);
-  }
-
-  npcs.clear();
-  pathControllers.clear();
-  quadTree.actors.clear();
-
-  // delete allocated attachments
-  for (auto& node : stars) {
-    delete node;
-  }
-
-  for (auto& node : bulbs) {
-    delete node;
-  }
-
-  for (auto& node : lights) {
-    delete node;
-  }
-
-  onlineWarps.clear();
-  trees.clear();
-  lights.clear();
-  warps.clear();
-  gates.clear();
-  coffees.clear();
-  bulbs.clear();
-  stars.clear();
-  ribbons.clear();
+  // todo:
 }
 
 void Overworld::SceneBase::LoadBackground(const std::string& value)
@@ -844,359 +724,232 @@ std::shared_ptr<sf::SoundBuffer> Overworld::SceneBase::GetAudio(const std::strin
 }
 
 
-void Overworld::SceneBase::ResetMap()
+void Overworld::SceneBase::LoadMap(const std::string& data)
 {
-  // Load a map
-  unsigned lastMapRows = map.GetRows();
-  unsigned lastMapCols = map.GetCols();
+  XMLElement mapElement = parseXML(data);
 
-  auto result = FetchMapData();
-
-  if (!result.first) {
+  if (mapElement.name != "map") {
     Logger::Log("Failed to load map homepage.txt");
+    return;
   }
-  else {
-    LoadBackground(map.GetBackgroundValue());
 
-    ClearMap(lastMapRows, lastMapCols);
+  // organize elements
+  XMLElement propertiesElement;
+  std::vector<XMLElement> layerElements;
+  std::vector<XMLElement> tilesetElements;
 
-    // Pre-populate the quadtree with the player
-    quadTree.actors.push_back(&playerActor);
-
-    // Place some objects in the scene
-    auto iceman_pos = map.FindToken("I");;
-    for (auto pos : iceman_pos) {
-      npcs.emplace_back(Overworld::Actor{ "Iceman" });
-      auto* iceman = &npcs.back();
-
-      pathControllers.emplace_back(Overworld::PathController{});
-      auto* pathController = &pathControllers.back();
-
-      // Test iceman
-      iceman->LoadAnimations(Animation("resources/mobs/iceman/iceman_OW.animation"));
-      iceman->setTexture(Textures().LoadTextureFromFile("resources/mobs/iceman/iceman_OW.png"));
-      iceman->setPosition(pos);
-      iceman->SetCollisionRadius(6);
-      iceman->CollideWithMap(map);
-      iceman->CollideWithQuadTree(quadTree);
-      iceman->SetInteractCallback([=](Overworld::Actor& with) {
-        // Interrupt pathing until new condition is met
-        pathController->InterruptUntil([=] {
-          return textbox.IsClosed();
-        });
-      // if player interacted with us
-        if (&with == &playerActor && textbox.IsClosed()) {
-          // Face them
-          iceman->Face(Reverse(with.GetHeading()));
-
-          // Play message
-          sf::Sprite face;
-          face.setTexture(*Textures().LoadTextureFromFile("resources/mobs/iceman/ice_mug.png"));
-          std::string msgStr = "Can't talk! Xmas is only " + std::to_string(DaysUntilXmas()) + " days away!";
-          textbox.EnqueMessage(face, "resources/mobs/iceman/mug.animation", new Message(msgStr));
-          textbox.Open();
-        }
-      });
-
-      pathController->ControlActor(*iceman);
-      map.AddSprite(iceman, 0);
-      quadTree.actors.push_back(iceman);
+  for (auto& child : mapElement.children) {
+    if (child.name == "layer") {
+      layerElements.push_back(child);
     }
-
-    // Place some objects in the scene
-    auto mrprog_pos = map.FindToken("P");
-    for (auto pos : mrprog_pos) {
-      npcs.emplace_back(Overworld::Actor{ "Mr. Prog" });
-      auto* mrprog = &npcs.back();
-
-      pathControllers.emplace_back(Overworld::PathController{});
-      auto* pathController = &pathControllers.back();
-
-      // Test Mr Prog
-      mrprog->LoadAnimations(Animation("resources/ow/prog/prog_ow.animation"));
-      mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
-      mrprog->setPosition(pos);
-      mrprog->SetCollisionRadius(3);
-      mrprog->CollideWithMap(map);
-      mrprog->CollideWithQuadTree(quadTree);
-      mrprog->SetInteractCallback([=](Overworld::Actor& with) {
-        // if player interacted with us
-        if (&with == &playerActor && textbox.IsClosed()) {
-          // Face them
-          mrprog->Face(Reverse(with.GetHeading()));
-
-          // Play message
-          sf::Sprite face;
-          face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
-          textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
-            onlineWarpAnim.GetAnimationString() == "OFF" ? new Message("This is your homepage! But it looks like the next area is offline...")
-            : new Message("This is your homepage! Find an active telepad to take you into cyberspace!")
-          );
-          textbox.Open();
-        }
-      });
-
-      pathController->ControlActor(*mrprog);
-      map.AddSprite(mrprog, 0);
-      quadTree.actors.push_back(mrprog);
+    else if (child.name == "properties") {
+      propertiesElement = child;
     }
-
-    mrprog_pos = map.FindToken("P2");
-    for (auto pos : mrprog_pos) {
-      npcs.emplace_back(Overworld::Actor{ "Mr. Prog" });
-      auto* mrprog = &npcs.back();
-
-      pathControllers.emplace_back(Overworld::PathController{});
-      auto* pathController = &pathControllers.back();
-
-      // Test Mr Prog
-      mrprog->LoadAnimations(Animation("resources/ow/prog/prog_ow.animation"));
-      mrprog->setTexture(Textures().LoadTextureFromFile("resources/ow/prog/prog_ow.png"));
-      mrprog->setPosition(pos);
-      mrprog->SetCollisionRadius(3);
-      mrprog->CollideWithMap(map);
-      mrprog->CollideWithQuadTree(quadTree);
-      mrprog->SetInteractCallback([=](Overworld::Actor& with) {
-        // if player interacted with us
-        if (&with == &playerActor && textbox.IsClosed()) {
-          // Face them
-          mrprog->Face(Reverse(with.GetHeading()));
-
-          // Play message
-          sf::Sprite face;
-          face.setTexture(*Textures().LoadTextureFromFile("resources/ow/prog/prog_mug.png"));
-          textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
-            new Message("This is a bigger area than the one before!")
-          );
-          textbox.EnqueMessage(face, "resources/ow/prog/prog_mug.animation",
-            new Message("I can't wait to see how awesome this place turns into!")
-          );
-          textbox.Open();
-        }
-      });
-
-      pathController->ControlActor(*mrprog);
-      map.AddSprite(mrprog, 0);
-      quadTree.actors.push_back(mrprog);
+    else if (child.name == "tileset") {
+      tilesetElements.push_back(child);
     }
-
-    auto trees = map.FindToken("T");
-    auto treeWBulb = map.FindToken("L");
-    auto xmasTree = map.FindToken("X");
-    auto warps = map.FindToken("W");
-    auto coff = map.FindToken("C");
-    auto gates = map.FindToken("G");
-    auto paths = map.FindToken("#");
-    auto netWarps = map.FindToken("@");
-    auto homeWarps = map.FindToken("H");
-    auto cyberworldWarps = map.FindToken("N");
-
-    auto warp2 = map.FindToken("W2");
-    warps.insert(warps.end(), warp2.begin(), warp2.end());
-
-    playerController.ReleaseActor();
-
-    // Determine where to spawn the player...
-    bool firstWarp = true;
-
-    // coffee
-    for (auto pos : coff) {
-      auto new_coffee = std::make_shared<SpriteProxyNode>(*coffeeTexture);
-      new_coffee->setPosition(pos);
-      this->coffees.push_back(new_coffee);
-      map.AddSprite(&*new_coffee, 0);
-
-      // do not walk through coffee displays
-      auto tile = map.GetTileAt(pos);
-      tile.solid = true;
-      tile.ID = 2;
-      map.SetTileAt(pos, tile);
-    }
-
-    // gates
-    for (auto pos : gates) {
-      auto new_gate = std::make_shared<SpriteProxyNode>(*gateTexture);
-      new_gate->setPosition(pos);
-      this->gates.push_back(new_gate);
-      map.AddSprite(&*new_gate, 0);
-
-      // do not walk through gates
-      auto tile = map.GetTileAt(pos);
-      tile.solid = true;
-      tile.ID = 3; // make red
-      map.SetTileAt(pos, tile);
-    }
-
-    // warp that takes us online
-    for (auto pos : cyberworldWarps) {
-      auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
-
-      new_warp->setPosition(pos);
-      this->onlineWarps.push_back(new_warp);
-      map.AddSprite(&*new_warp, 1);
-    }
-
-    // warps
-    for (auto pos : warps) {
-      auto new_warp = std::make_shared<SpriteProxyNode>(*warpTexture);
-
-      new_warp->setPosition(pos);
-      this->warps.push_back(new_warp);
-      map.AddSprite(&*new_warp, 1);
-    }
-
-    // warp from net back to homepage
-    for (auto pos : homeWarps) {
-      auto new_warp = std::make_shared<SpriteProxyNode>(*homeWarpTexture);
-      new_warp->setPosition(pos);
-      this->homeWarps.push_back(new_warp);
-      map.AddSprite(&*new_warp, 1);
-
-      if (firstWarp) {
-        firstWarp = false;
-
-        auto& command = teleportController.TeleportIn(playerActor, pos, Direction::up);
-        command.onFinish.Slot([=] {
-          playerController.ControlActor(playerActor);
-        });
-      }
-    }
-
-    // warp from the computer to the net
-    for (auto pos : netWarps) {
-      auto new_warp = std::make_shared<SpriteProxyNode>(*netWarpTexture);
-      new_warp->setPosition(pos);
-      this->netWarps.push_back(new_warp);
-      map.AddSprite(&*new_warp, 1);
-
-      if (firstWarp) {
-        firstWarp = false;
-
-        auto& command = teleportController.TeleportIn(playerActor, pos, Direction::up);
-        command.onFinish.Slot([=] {
-          playerController.ControlActor(playerActor);
-        });
-      }
-    }
-
-    // trees
-    for (auto pos : trees) {
-      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
-      new_tree->setPosition(pos);
-
-      SpriteProxyNode* lights = new SpriteProxyNode();
-      lights->setTexture(ornamentTexture);
-      lights->SetLayer(-1);
-      lights->SetShader(Shaders().GetShader(ShaderType::COLORIZE));
-
-      xmasAnim << "lights";
-      xmasAnim.Refresh(lights->getSprite());
-      new_tree->AddNode(lights);
-
-      this->trees.push_back(new_tree);
-      this->lights.push_back(lights);
-      map.AddSprite(&*new_tree, 0);
-
-      // do not walk through trees
-      auto tile = map.GetTileAt(pos);
-      tile.solid = true;
-      map.SetTileAt(pos, tile);
-    }
-
-    // tree with xmas bulbs
-    for (auto pos : treeWBulb) {
-      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
-      new_tree->setPosition(pos);
-
-      SpriteProxyNode* bulbs = new SpriteProxyNode();
-      bulbs->setTexture(ornamentTexture);
-      bulbs->SetLayer(-1);
-      xmasAnim << "bulbs";
-      xmasAnim.Refresh(bulbs->getSprite());
-      new_tree->AddNode(bulbs);
-
-      SpriteProxyNode* lights = new SpriteProxyNode();
-      lights->setTexture(ornamentTexture);
-      lights->SetLayer(-1);
-      lights->SetShader(Shaders().GetShader(ShaderType::COLORIZE));
-      xmasAnim << "lights";
-      xmasAnim.Refresh(lights->getSprite());
-      new_tree->AddNode(lights);
-
-      map.AddSprite(&*new_tree, 0);
-
-      this->trees.push_back(new_tree);
-      this->bulbs.push_back(bulbs);
-      this->lights.push_back(lights);
-
-      // do not walk through trees
-      auto tile = map.GetTileAt(pos);
-      tile.solid = true;
-      map.SetTileAt(pos, tile);
-    }
-
-    // tree with xmas everything
-    for (auto pos : xmasTree) {
-      auto new_tree = std::make_shared<SpriteProxyNode>(*treeTexture);
-      new_tree->setPosition(pos);
-
-      SpriteProxyNode* bulbs = new SpriteProxyNode();
-      bulbs->setTexture(ornamentTexture);
-      bulbs->SetLayer(-1);
-      bulbs->SetShader(Shaders().GetShader(ShaderType::GRADIENT));
-
-      // hard-coded yellow to peach from original ribbon sprite
-      bulbs->GetShader().SetUniform("firstColor", { 248, 72, 4, 255 });
-      bulbs->GetShader().SetUniform("secondColor", { 248, 242, 114, 255 });
-
-      xmasAnim << "bulbs_w_ribbon";
-      xmasAnim.Refresh(bulbs->getSprite());
-      new_tree->AddNode(bulbs);
-      ribbons.push_back(bulbs);
-
-      SpriteProxyNode* lights = new SpriteProxyNode();
-      lights->setTexture(ornamentTexture);
-      lights->SetLayer(-1);
-      lights->SetShader(Shaders().GetShader(ShaderType::COLORIZE));
-      xmasAnim << "lights";
-      xmasAnim.Refresh(lights->getSprite());
-      new_tree->AddNode(lights);
-
-      SpriteProxyNode* star = new SpriteProxyNode();
-      star->setTexture(ornamentTexture);
-      star->SetLayer(-1);
-      starAnim.Refresh(star->getSprite());
-      new_tree->AddNode(star);
-
-      auto offset = treeAnim.GetPoint("top") - treeAnim.GetPoint("origin");
-      star->setPosition(offset);
-
-      map.AddSprite(&*new_tree, 0);
-
-      this->trees.push_back(new_tree);
-      this->bulbs.push_back(bulbs);
-      this->stars.push_back(star);
-      this->lights.push_back(lights);
-
-      // do not walk through trees
-      auto tile = map.GetTileAt(pos);
-      tile.solid = true;
-      map.SetTileAt(pos, tile);
-    }
-
-    // paths (NOTE: hacky for demo)
-    int first = 1;
-    for (auto pos : paths) {
-      pathControllers[0].AddPoint(pos);
-      if (first-- > 0) {
-        pathControllers[0].AddWait(frames(60));
-      }
-    }
-    pathControllers[0].AddWait(frames(60));
-
-    menuWidget.SetArea(map.GetName());
-    this->tiles = result.second;
   }
+
+  auto tileWidth = mapElement.GetAttributeInt("tilewidth");
+  auto tileHeight = mapElement.GetAttributeInt("tileheight");
+
+  // begin building map
+  auto map = Map(
+    mapElement.GetAttributeInt("width"),
+    mapElement.GetAttributeInt("height"),
+    tileWidth,
+    tileHeight);
+
+  // read custom properties
+  for (auto propertyElement : propertiesElement.children) {
+    auto propertyName = propertiesElement.GetAttribute("name");
+    auto propertyValue = propertiesElement.GetAttribute("value");
+
+    if (propertyName == "Background") {
+      map.SetBackgroundName(propertyValue);
+    }
+    else if (propertyName == "Name") {
+      map.SetName(propertyValue);
+    }
+    else if (propertyName == "Song") {
+      map.SetSongPath(propertyValue);
+    }
+  }
+
+  // load tilesets
+  for (auto& tilesetElement : tilesetElements) {
+    auto firstgid = static_cast<unsigned int>(tilesetElement.GetAttributeInt("firstgid"));
+    auto source = tilesetElement.GetAttribute("source");
+
+    if (source.rfind("/server", 0) != 0) {
+      // client path
+      // todo: hardcoded path oof, this will only be fine if all of our tiles are in this folder
+      source = "resources/ow/tiles" + source.substr(source.rfind('/'));
+    }
+
+    auto tilesetData = GetText(source);
+
+    auto tileset = ParseTileset(tileWidth, tileHeight, firstgid, tilesetData);
+
+    for (auto i = 0; i < tileset->tileCount; i++) {
+      map.SetTileset(firstgid + i, i, tileset);
+    }
+  }
+
+  // build layers
+  auto cols = map.GetCols();
+
+  for (auto it = layerElements.rbegin(); it != layerElements.rend(); it++) {
+    auto& layerElement = *it;
+
+    auto dataIt = std::find_if(layerElement.children.begin(), layerElement.children.end(), [](XMLElement& el) {return el.name == "data";});
+
+    if (dataIt == layerElement.children.end()) {
+      Logger::Log("Map layer missing data element!");
+    }
+
+    auto& dataElement = *dataIt;
+
+    auto& layer = map.AddLayer();
+    auto dataLen = dataElement.text.length();
+
+    auto col = 0;
+    auto row = 0;
+    auto sliceStart = 0;
+
+    for (auto i = 0; i < dataLen; i++) {
+      switch (dataElement.text[i]) {
+      case ',': {
+        auto tileId = static_cast<unsigned int>(stoul("0" + dataElement.text.substr(sliceStart, i)));
+
+        // https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tile-flipping
+        Map::Tile tile{
+          .gid = tileId << 3 >> 3,
+          .flippedHorizontal = (tileId >> 31 & 1) == 1,
+          .flippedVertical = (tileId >> 30 & 1) == 1,
+          .rotated = (tileId >> 29 & 1) == 1,
+        };
+
+        layer.SetTile(col, row, tile);
+
+        sliceStart = i + 1;
+        col++;
+        break;
+      }
+      case '\n':
+        sliceStart = i + 1;
+        col = 0;
+        row++;
+        break;
+      default:
+        break;
+      }
+    }
+  }
+
+  LoadBackground(map.GetBackgroundName());
+  menuWidget.SetArea(map.GetName());
+
+  this->map = std::move(map);
+}
+
+std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(int mapTileWidth, int mapTileHeight, unsigned int firstgid, const std::string& data) {
+  XMLElement tilesetElement = parseXML(data);
+  auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
+  auto tileWidth = tilesetElement.GetAttributeInt("tilewidth");
+  auto tileHeight = tilesetElement.GetAttributeInt("tileheight");
+  auto columns = tilesetElement.GetAttributeInt("columns");
+
+  sf::Vector2f offset;
+  std::string texturePath;
+  Animation animation;
+  std::string animationString;
+
+  std::vector<XMLElement> tileElements(tileCount);
+
+  for (auto& child : tilesetElement.children) {
+    if (child.name == "tileoffset") {
+      offset.x = child.GetAttributeInt("x");
+      offset.y = child.GetAttributeInt("y");
+    }
+    else if (child.name == "image") {
+      texturePath = child.GetAttribute("source");
+
+      if (texturePath.rfind("/server", 0) != 0) {
+        // client path
+        // hardcoded
+        texturePath = "resources/ow/tiles/" + texturePath;
+      }
+    }
+    else if (child.name == "tile") {
+      auto tileId = child.GetAttributeInt("id");
+
+      if (tileElements.size() <= tileId) {
+        tileElements.resize(tileId + 1);
+      }
+
+      tileElements[tileId] = child;
+    }
+  }
+
+  // todo: work with Animation class directly?
+  animationString = "imagePath=\"./" + texturePath + "\"\n\n";
+
+  std::string frameOffsetString = " originx=\"" + to_string(mapTileWidth / 2 - 1) + "\" originy=\"" + to_string(tileHeight - mapTileHeight + mapTileHeight / 4) + '"';
+  std::string frameSizeString = " w=\"" + to_string(tileWidth) + "\" h=\"" + to_string(tileHeight) + '"';
+
+  for (auto i = 0; i < tileElements.size(); i++) {
+    auto& tileElement = tileElements[i];
+    animationString += "animation state=\"" + to_string(i) + "\"\n";
+
+    bool foundAnimation = false;
+
+    for (auto& child : tileElement.children) {
+      if (child.name == "animation") {
+        for (auto& frameElement : child.children) {
+          if (frameElement.name != "frame") {
+            continue;
+          }
+
+          foundAnimation = true;
+
+          auto tileId = frameElement.GetAttributeInt("tileid");
+          auto duration = frameElement.GetAttributeInt("duration") / 1000.0;
+
+          auto col = tileId % columns;
+          auto row = tileId / columns;
+
+          animationString += "frame duration=\"" + to_string(duration) + '"';
+          animationString += " x=\"" + to_string(col * tileWidth) + "\" y=\"" + to_string(row * tileHeight) + '"';
+          animationString += frameSizeString + frameOffsetString + '\n';
+        }
+      }
+    }
+
+    if (!foundAnimation) {
+      auto col = i % columns;
+      auto row = i / columns;
+
+      animationString += "frame duration=\"0\"";
+      animationString += " x=\"" + to_string(col * tileWidth) + "\" y=\"" + to_string(row * tileHeight) + '"';
+      animationString += frameSizeString + frameOffsetString + '\n';
+    }
+
+    animationString += "\n";
+  }
+
+  animation.LoadWithData(animationString);
+
+  auto tileset = Overworld::Map::Tileset{
+   .name = tilesetElement.GetAttribute("name"),
+   .firstGid = firstgid,
+   .tileCount = tileCount,
+   .offset = offset,
+   .texture = GetTexture(texturePath),
+   .animation = animation,
+  };
+
+  return std::make_shared<Overworld::Map::Tileset>(tileset);
 }
 
 void Overworld::SceneBase::TeleportUponReturn(const sf::Vector2f& position)
@@ -1218,6 +971,18 @@ void Overworld::SceneBase::SetBackground(Background* background)
   }
 
   this->bg = background;
+}
+
+void Overworld::SceneBase::AddSprite(SpriteProxyNode* _sprite, int layer)
+{
+  sprites.push_back({ _sprite, layer });
+}
+
+void Overworld::SceneBase::RemoveSprite(const SpriteProxyNode* _sprite) {
+  auto pos = std::find_if(sprites.begin(), sprites.end(), [_sprite](WorldSprite in) { return in.node == _sprite; });
+
+  if (pos != sprites.end())
+    sprites.erase(pos);
 }
 
 void Overworld::SceneBase::GotoChipFolder()
@@ -1310,7 +1075,7 @@ Overworld::PlayerController& Overworld::SceneBase::GetPlayerController()
   return playerController;
 }
 
-Overworld::TeleportController& Overworld::SceneBase::GetTeleportControler()
+Overworld::TeleportController& Overworld::SceneBase::GetTeleportController()
 {
   return teleportController;
 }
@@ -1330,19 +1095,27 @@ AnimatedTextBox& Overworld::SceneBase::GetTextBox()
   return textbox;
 }
 
-void Overworld::SceneBase::EnableNetWarps(bool enabled)
-{
-  if (enabled) {
-    onlineWarpAnim << "on" << Animator::Mode::Loop;
-  }
-  else {
-    onlineWarpAnim << "off";
-  }
-}
-
 void Overworld::SceneBase::OnEmoteSelected(Emotes emote)
 {
   emoteNode.Emote(emote);
+}
+
+
+std::pair<unsigned, unsigned> Overworld::SceneBase::PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const
+{
+  sf::Vector2f ortho = window.mapPixelToCoords(px);
+
+  // consider the point on screen relative to the camera focus
+  auto pos = ortho - window.getView().getCenter() - camera.GetView().getCenter();
+  auto iso = map.ScreenToWorld(pos);
+
+  auto tileSize = map.GetTileSize();
+
+  // divide by the tile size to get the integer grid values
+  unsigned x = static_cast<unsigned>(iso.x / tileSize.x / 2);
+  unsigned y = static_cast<unsigned>(iso.y / tileSize.y);
+
+  return { y, x };
 }
 
 #ifdef __ANDROID__

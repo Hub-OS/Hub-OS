@@ -1,6 +1,38 @@
 #include "bnXML.h"
+
 #include <algorithm>
 #include <cctype>
+#include <string>
+
+bool XMLElement::HasAttribute(const std::string& name) const {
+  return attributes.find(name) != attributes.end();
+}
+
+std::string XMLElement::GetAttribute(const std::string& name) const {
+  return HasAttribute(name) ? attributes.at(name) : "";
+}
+
+int XMLElement::GetAttributeInt(const std::string& name) const {
+  try {
+    return stoi(GetAttribute(name));
+  }
+  catch (std::exception& e) {
+    // conversion failure, use default value (0)
+  }
+
+  return 0;
+}
+
+int XMLElement::GetAttributeFloat(const std::string& name) const {
+  try {
+    return stof(GetAttribute(name));
+  }
+  catch (std::exception& e) {
+    // conversion failure, use default value (0)
+  }
+
+  return 0.0;
+}
 
 enum XMLTokenType {
   element,

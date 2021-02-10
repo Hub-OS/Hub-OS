@@ -33,6 +33,11 @@ class Background; // forward decl
 namespace Overworld {
   class SceneBase : public Scene {
   private:
+    struct WorldSprite {
+      SpriteProxyNode* node{ nullptr };
+      int layer{ 0 };
+    };
+
     Overworld::Actor playerActor{ "You" };
     Overworld::EmoteWidget emote;
     Overworld::EmoteNode emoteNode;
@@ -44,7 +49,6 @@ namespace Overworld {
 
     Camera camera; /*!< camera in scene follows player */
     bool clicked{ false }, scaledmap{ false };
-    bool firstTimeLoad{ true };
     // Selection input delays
     double maxSelectInputCooldown; /*!< Maximum delay */
     double selectInputCooldown; /*!< timer to allow key presses again */
@@ -63,36 +67,7 @@ namespace Overworld {
     // Bunch of sprites and their attachments
     Background* bg{ nullptr }; /*!< Background image pointer */
     Overworld::Map map; /*!< Overworld map */
-    Overworld::Map::Tile** tiles{ nullptr }; /*!< Loaded tiles from file */
-    std::vector<SpriteProxyNode*> ribbons, stars, bulbs, lights;
-
-    std::vector<std::shared_ptr<SpriteProxyNode>> trees,
-      warps,
-      netWarps,
-      homeWarps,
-      coffees,
-      gates,
-      onlineWarps; // onlineWarp is the warp that takes us online
-
-    std::shared_ptr<sf::Texture>
-      treeTexture,
-      gateTexture,
-      ornamentTexture,
-      coffeeTexture,
-      warpTexture,
-      homeWarpTexture,
-      netWarpTexture;
-
-    Animation treeAnim,
-      starAnim,
-      lightsAnim,
-      xmasAnim,
-      gateAnim,
-      coffeeAnim,
-      warpAnim,
-      homeWarpAnim,
-      netWarpAnim,
-      onlineWarpAnim;
+    std::vector<WorldSprite> sprites;
 
     AnimatedTextBox textbox;
 
@@ -115,7 +90,11 @@ namespace Overworld {
     */
     void ClearMap(unsigned rows, unsigned cols);
 
+    std::shared_ptr<Map::Tileset> ParseTileset(int mapTileWidth, int mapTileHeight, unsigned int firstgid, const std::string& data);
     void LoadBackground(const std::string& value);
+    void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
+    void DrawTiles(sf::RenderTarget& target, sf::RenderStates states);
+    void DrawSprites(sf::RenderTarget& target, sf::RenderStates states) const;
 
 #ifdef __ANDROID__
     void StartupTouchControls();
@@ -136,11 +115,6 @@ namespace Overworld {
      * @brief Loads the player's library data and loads graphics
      */
     SceneBase(swoosh::ActivityController&, bool guestAccount);
-
-    /**
-    * @brief deconstructor
-    */
-    virtual ~SceneBase();
 
     /**
      * @brief Checks input events and listens for select buttons. Segues to new screens.
@@ -195,14 +169,26 @@ namespace Overworld {
     void NaviEquipSelectedFolder();
 
     /**
-    * @brief Effectively reloads the map and sets the scene
+    * @brief Effectively sets the scene
     */
-    void ResetMap();
+    void LoadMap(const std::string& data);
 
     void TeleportUponReturn(const sf::Vector2f& position);
     const bool HasTeleportedAway() const;
 
     void SetBackground(Background*);
+
+    /**
+     * @brief Add a sprite
+     * @param _sprite
+     */
+    void AddSprite(SpriteProxyNode* _sprite, int layer);
+
+    /**
+     * @brief Remove a sprite
+     * @param _sprite
+     */
+    void RemoveSprite(const SpriteProxyNode* _sprite);
 
     //
     // Menu selection callbacks
@@ -223,13 +209,10 @@ namespace Overworld {
     Map& GetMap();
     Actor& GetPlayer();
     PlayerController& GetPlayerController();
-    TeleportController& GetTeleportControler();
+    TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();
     Background* GetBackground();
     AnimatedTextBox& GetTextBox();
-
-    // TODO: temporary, remove
-    void EnableNetWarps(bool enabled);
 
     //
     // Optional events that can be decorated further
@@ -239,7 +222,7 @@ namespace Overworld {
     //
     // Required implementations
     //
-    virtual const std::pair<bool, Map::Tile**> FetchMapData() = 0;
-    virtual void OnTileCollision(const Map::Tile& tile) = 0;
+    virtual void OnTileCollision() = 0;
+    std::pair<unsigned, unsigned> PixelToRowCol(const sf::Vector2i& px, const sf::RenderWindow& window) const;
   };
 }

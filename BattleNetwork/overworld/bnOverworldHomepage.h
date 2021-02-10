@@ -15,6 +15,7 @@ namespace Overworld {
     swoosh::Timer pingServerTimer;
 
     void PingRemoteAreaServer();
+    void EnableNetWarps(bool enabled);
 
   public:
 
@@ -23,18 +24,12 @@ namespace Overworld {
      */
     Homepage(swoosh::ActivityController&, bool guestAccount);
 
-    /**
-    * @brief deconstructor
-    */
-    ~Homepage();
-
     void onUpdate(double elapsed) override;
     void onDraw(sf::RenderTexture& surface) override;
     void onStart() override;
     void onResume() override;
     void onLeave() override;
 
-    const std::pair<bool, Map::Tile**> FetchMapData() override;
-    void OnTileCollision(const Map::Tile& tile) override;
+    void OnTileCollision() override;
   };
 }

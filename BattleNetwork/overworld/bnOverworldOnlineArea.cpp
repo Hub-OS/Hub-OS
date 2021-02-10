@@ -47,7 +47,7 @@ Overworld::OnlineArea::~OnlineArea()
   auto& map = GetMap();
 
   for (auto player : onlinePlayers) {
-    map.RemoveSprite(&(player.second->actor));
+    RemoveSprite(&(player.second->actor));
     delete player.second;
   }
 
@@ -157,91 +157,85 @@ void Overworld::OnlineArea::onResume()
   Audio().Stream("resources/loops/loop_overworld.ogg", false);
 }
 
-const std::pair<bool, Overworld::Map::Tile**> Overworld::OnlineArea::FetchMapData()
-{
-  std::istringstream iss{ mapBuffer };
-  return Map::LoadFromStream(GetMap(), iss);
-}
-
 // NOTE: these are super hacky to make it look like maps have more going on for them (e.g. connected warps...)
 // TODO: replace
-void Overworld::OnlineArea::OnTileCollision(const Overworld::Map::Tile& tile)
+void Overworld::OnlineArea::OnTileCollision()
 {
   // on collision with warps
-  static size_t next_warp = 0, next_warp_2 = 1;
-  auto* teleportController = &GetTeleportControler();
+  // static size_t next_warp = 0, next_warp_2 = 1;
+  // auto* teleportController = &GetTeleportControler();
 
-  if (tile.token == "W" && teleportController->IsComplete()) {
-    auto& map = GetMap();
-    auto* playerController = &GetPlayerController();
-    auto* playerActor = &GetPlayer();
+  // if (tile.token == "W" && teleportController->IsComplete()) {
+  //   auto& map = GetMap();
+  //   auto* playerController = &GetPlayerController();
+  //   auto* playerActor = &GetPlayer();
 
-    auto warps = map.FindToken("W");
+  //   auto warps = map.FindToken("W");
 
-    if (warps.size()) {
-      if (++next_warp >= warps.size()) {
-        next_warp = 0;
-      }
+  //   if (warps.size()) {
+  //     if (++next_warp >= warps.size()) {
+  //       next_warp = 0;
+  //     }
 
-      auto teleportToNextWarp = [=] {
-        auto finishTeleport = [=] {
-          playerController->ControlActor(*playerActor);
-        };
+  //     auto teleportToNextWarp = [=] {
+  //       auto finishTeleport = [=] {
+  //         playerController->ControlActor(*playerActor);
+  //       };
 
-        auto& command = teleportController->TeleportIn(*playerActor, warps[next_warp], Direction::up);
-        command.onFinish.Slot(finishTeleport);
-      };
+  //       auto& command = teleportController->TeleportIn(*playerActor, warps[next_warp], Direction::up);
+  //       command.onFinish.Slot(finishTeleport);
+  //     };
 
-      playerController->ReleaseActor();
-      auto& command = teleportController->TeleportOut(*playerActor);
-      command.onFinish.Slot(teleportToNextWarp);
-    }
-  }
+  //     playerController->ReleaseActor();
+  //     auto& command = teleportController->TeleportOut(*playerActor);
+  //     command.onFinish.Slot(teleportToNextWarp);
+  //   }
+  // }
 
-  if (tile.token == "W2" && teleportController->IsComplete()) {
-    auto& map = GetMap();
-    auto* playerController = &GetPlayerController();
-    auto* playerActor = &GetPlayer();
+  // if (tile.token == "W2" && teleportController->IsComplete()) {
+  //   auto& map = GetMap();
+  //   auto* playerController = &GetPlayerController();
+  //   auto* playerActor = &GetPlayer();
 
-    auto warps = map.FindToken("W2");
+  //   auto warps = map.FindToken("W2");
 
-    if (warps.size()) {
-      if (++next_warp_2 >= warps.size()) {
-        next_warp_2 = 0;
-      }
+  //   if (warps.size()) {
+  //     if (++next_warp_2 >= warps.size()) {
+  //       next_warp_2 = 0;
+  //     }
 
-      auto teleportToNextWarp = [=] {
-        auto finishTeleport = [=] {
-          playerController->ControlActor(*playerActor);
-        };
+  //     auto teleportToNextWarp = [=] {
+  //       auto finishTeleport = [=] {
+  //         playerController->ControlActor(*playerActor);
+  //       };
 
-        auto& command = teleportController->TeleportIn(*playerActor, warps[next_warp_2], Direction::up);
-        command.onFinish.Slot(finishTeleport);
-      };
+  //       auto& command = teleportController->TeleportIn(*playerActor, warps[next_warp_2], Direction::up);
+  //       command.onFinish.Slot(finishTeleport);
+  //     };
 
-      playerController->ReleaseActor();
-      auto& command = teleportController->TeleportOut(*playerActor);
-      command.onFinish.Slot(teleportToNextWarp);
-    }
-  }
+  //     playerController->ReleaseActor();
+  //     auto& command = teleportController->TeleportOut(*playerActor);
+  //     command.onFinish.Slot(teleportToNextWarp);
+  //   }
+  // }
 
-  // on collision with homepage warps
-  if (tile.token == "H" && teleportController->IsComplete()) {
-    auto& map = GetMap();
-    auto* playerController = &GetPlayerController();
-    auto* playerActor = &GetPlayer();
+  // // on collision with homepage warps
+  // if (tile.token == "H" && teleportController->IsComplete()) {
+  //   auto& map = GetMap();
+  //   auto* playerController = &GetPlayerController();
+  //   auto* playerActor = &GetPlayer();
 
-    playerController->ReleaseActor();
-    auto& command = teleportController->TeleportOut(*playerActor);
+  //   playerController->ReleaseActor();
+  //   auto& command = teleportController->TeleportOut(*playerActor);
 
-    auto teleportHome = [=] {
-      TeleportUponReturn(playerActor->getPosition());
-      sendLogoutSignal();
-      getController().pop<segue<BlackWashFade>>();
-    };
+  //   auto teleportHome = [=] {
+  //     TeleportUponReturn(playerActor->getPosition());
+  //     sendLogoutSignal();
+  //     getController().pop<segue<BlackWashFade>>();
+  //   };
 
-    command.onFinish.Slot(teleportHome);
-  }
+  //   command.onFinish.Slot(teleportHome);
+  // }
 }
 
 void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
@@ -523,6 +517,8 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
   if (mapBuffer.empty()) {
     Logger::Logf("Server sent empty map data");
   }
+
+  LoadMap(mapBuffer);
 }
 
 void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
@@ -563,11 +559,11 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   animation.LoadWithData(GetText(animationPath));
   actor.LoadAnimations(animation);
 
-  GetMap().AddSprite(&actor, 0);
+  AddSprite(&actor, 0);
 
   auto& teleportController = onlinePlayer->teleportController;
   teleportController.EnableSound(false);
-  GetMap().AddSprite(&teleportController.GetBeam(), 0);
+  AddSprite(&teleportController.GetBeam(), 0);
 
   if (warp_in) {
     teleportController.TeleportIn(actor, pos, Direction::none);
@@ -583,8 +579,8 @@ void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, 
     auto* actor = &userIter->second->actor;
     auto* teleport = &userIter->second->teleportController;
     teleport->TeleportOut(*actor).onFinish.Slot([=] {
-      GetMap().RemoveSprite(actor);
-      GetMap().RemoveSprite(&teleport->GetBeam());
+      RemoveSprite(actor);
+      RemoveSprite(&teleport->GetBeam());
       removePlayers.push_back(user);
     });
   }
