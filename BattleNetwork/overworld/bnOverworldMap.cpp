@@ -152,7 +152,7 @@ namespace Overworld {
     return layers[layers.size() - 1];
   }
 
-  static Map::Tile nullTile = Map::Tile{ .gid = 0 };
+  static Map::Tile nullTile = Map::Tile(0);
 
   Map::Layer::Layer(std::size_t cols, std::size_t rows) {
     this->cols = cols;
@@ -163,6 +163,8 @@ namespace Overworld {
   Map::Tile& Map::Layer::GetTile(int x, int y)
   {
     if (x < 0 || y < 0 || x >= rows || y >= cols) {
+      // reset nullTile as it may have been mutated
+      nullTile = Map::Tile(0);
       return nullTile;
     }
 
@@ -181,12 +183,7 @@ namespace Overworld {
 
   Map::Tile& Map::Layer::SetTile(int x, int y, unsigned int gid)
   {
-    return tiles[y * rows + x] = Map::Tile{
-      .gid = gid,
-      .flippedHorizontal = false,
-      .flippedVertical = false,
-      .rotated = false,
-    };
+    return tiles[y * rows + x] = Map::Tile(gid);
   }
 
   Map::Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)

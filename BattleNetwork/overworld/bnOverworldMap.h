@@ -47,6 +47,14 @@ namespace Overworld {
       bool flippedHorizontal;
       bool flippedVertical;
       bool rotated;
+
+      Tile(unsigned int gid) {
+        // https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tile-flipping
+        this->gid = gid << 3 >> 3;
+        flippedHorizontal = (gid >> 31 & 1) == 1;
+        flippedVertical = (gid >> 30 & 1) == 1;
+        rotated = (gid >> 29 & 1) == 1;
+      }
     };
 
     class Layer {

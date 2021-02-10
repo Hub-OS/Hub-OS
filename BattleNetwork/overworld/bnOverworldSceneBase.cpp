@@ -822,15 +822,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
       case ',': {
         auto tileId = static_cast<unsigned int>(stoul("0" + dataElement.text.substr(sliceStart, i)));
 
-        // https://doc.mapeditor.org/en/stable/reference/tmx-map-format/#tile-flipping
-        Map::Tile tile{
-          .gid = tileId << 3 >> 3,
-          .flippedHorizontal = (tileId >> 31 & 1) == 1,
-          .flippedVertical = (tileId >> 30 & 1) == 1,
-          .rotated = (tileId >> 29 & 1) == 1,
-        };
-
-        layer.SetTile(col, row, tile);
+        layer.SetTile(col, row, tileId);
 
         sliceStart = i + 1;
         col++;
