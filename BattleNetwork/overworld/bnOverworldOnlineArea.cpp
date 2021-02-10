@@ -47,7 +47,7 @@ Overworld::OnlineArea::~OnlineArea()
   auto& map = GetMap();
 
   for (auto player : onlinePlayers) {
-    RemoveSprite(&(player.second->actor));
+    RemoveSprite(player.second->actor);
     delete player.second;
   }
 
@@ -82,21 +82,21 @@ void Overworld::OnlineArea::onUpdate(double elapsed)
         Direction newHeading = Actor::MakeDirectionFromVector(delta, 0.01f);
 
         if (distance <= 0.2f) {
-          actor.Face(actor.GetHeading());
+          actor->Face(actor->GetHeading());
         }
-        else if (distance <= actor.GetWalkSpeed() * expectedTime) {
-          actor.Walk(newHeading, false); // Don't actually move or collide, but animate
+        else if (distance <= actor->GetWalkSpeed() * expectedTime) {
+          actor->Walk(newHeading, false); // Don't actually move or collide, but animate
         }
         else {
-          actor.Run(newHeading, false);
+          actor->Run(newHeading, false);
         }
 
         auto newPos = player.second->startBroadcastPos + sf::Vector2f(delta.x * alpha, delta.y * alpha);
-        actor.setPosition(newPos);
+        actor->setPosition(newPos);
       }
 
       player.second->teleportController.Update(elapsed);
-      actor.Update(elapsed);
+      actor->Update(elapsed);
       player.second->emoteNode.Update(elapsed);
     }
 
@@ -131,8 +131,8 @@ void Overworld::OnlineArea::onDraw(sf::RenderTexture& surface)
   }
 
   for (auto player : onlinePlayers) {
-    if (isMouseHovering(surface, player.second->actor)) {
-      std::string nameStr = player.second->actor.GetName();
+    if (isMouseHovering(surface, *player.second->actor)) {
+      std::string nameStr = player.second->actor->GetName();
       auto mousei = sf::Mouse::getPosition(getController().getWindow());
       auto mousef = sf::Vector2f(static_cast<float>(mousei.x), static_cast<float>(mousei.y));
       name.setPosition(mousef);
@@ -168,7 +168,7 @@ void Overworld::OnlineArea::OnTileCollision()
   // if (tile.token == "W" && teleportController->IsComplete()) {
   //   auto& map = GetMap();
   //   auto* playerController = &GetPlayerController();
-  //   auto* playerActor = &GetPlayer();
+  //   auto playerActor = GetPlayer();
 
   //   auto warps = map.FindToken("W");
 
@@ -195,7 +195,7 @@ void Overworld::OnlineArea::OnTileCollision()
   // if (tile.token == "W2" && teleportController->IsComplete()) {
   //   auto& map = GetMap();
   //   auto* playerController = &GetPlayerController();
-  //   auto* playerActor = &GetPlayer();
+  //   auto playerActor = GetPlayer();
 
   //   auto warps = map.FindToken("W2");
 
@@ -223,7 +223,7 @@ void Overworld::OnlineArea::OnTileCollision()
   // if (tile.token == "H" && teleportController->IsComplete()) {
   //   auto& map = GetMap();
   //   auto* playerController = &GetPlayerController();
-  //   auto* playerActor = &GetPlayer();
+  //   auto playerActor = GetPlayer();
 
   //   playerController->ReleaseActor();
   //   auto& command = teleportController->TeleportOut(*playerActor);
@@ -395,7 +395,7 @@ void Overworld::OnlineArea::sendReadySignal()
 
 void Overworld::OnlineArea::sendPositionSignal()
 {
-  auto vec = GetPlayer().getPosition();
+  auto vec = GetPlayer()->getPosition();
   float x = vec.x;
   float y = vec.y;
   float z = 0;
@@ -540,7 +540,7 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
 
   if (userIter != onlinePlayers.end()) return;
 
-  auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ user });
+  auto [pair, success] = onlinePlayers.emplace(user, new Overworld::OnlinePlayer{ std::make_shared<Overworld::Actor>(user) });
 
   if (!success) return;
 
@@ -549,21 +549,21 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   onlinePlayer->startBroadcastPos = pos;
   onlinePlayer->endBroadcastPos = pos;
 
-  auto& actor = onlinePlayer->actor;
-  actor.AddNode(&onlinePlayer->emoteNode);
-  actor.Rename(name);
-  actor.setPosition(pos);
-  actor.setTexture(GetTexture(texturePath));
+  auto actor = onlinePlayer->actor;
+  actor->AddNode(&onlinePlayer->emoteNode);
+  actor->Rename(name);
+  actor->setPosition(pos);
+  actor->setTexture(GetTexture(texturePath));
 
   Animation animation;
   animation.LoadWithData(GetText(animationPath));
-  actor.LoadAnimations(animation);
+  actor->LoadAnimations(animation);
 
-  AddSprite(&actor, 0);
+  AddSprite(actor, 0);
 
   auto& teleportController = onlinePlayer->teleportController;
   teleportController.EnableSound(false);
-  AddSprite(&teleportController.GetBeam(), 0);
+  AddSprite(teleportController.GetBeam(), 0);
 
   if (warp_in) {
     teleportController.TeleportIn(actor, pos, Direction::none);
@@ -576,11 +576,11 @@ void Overworld::OnlineArea::receiveNaviDisconnectedSignal(BufferReader& reader, 
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
-    auto* actor = &userIter->second->actor;
+    auto actor = userIter->second->actor;
     auto* teleport = &userIter->second->teleportController;
-    teleport->TeleportOut(*actor).onFinish.Slot([=] {
+    teleport->TeleportOut(actor).onFinish.Slot([=] {
       RemoveSprite(actor);
-      RemoveSprite(&teleport->GetBeam());
+      RemoveSprite(teleport->GetBeam());
       removePlayers.push_back(user);
     });
   }
@@ -594,7 +594,7 @@ void Overworld::OnlineArea::receiveNaviSetNameSignal(BufferReader& reader, const
   auto userIter = onlinePlayers.find(user);
 
   if (userIter != onlinePlayers.end()) {
-    userIter->second->actor.Rename(name);
+    userIter->second->actor->Rename(name);
   }
 }
 
@@ -634,8 +634,8 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     // Do not attempt to animate the teleport over quick movements if already teleporting
     if (onlinePlayer->teleportController.IsComplete() && onlinePlayer->packets > 1) {
       // we can't possibly have moved this far away without teleporting
-      if (distance >= (onlinePlayer->actor.GetRunSpeed() * 2) * expectedTime) {
-        onlinePlayer->actor.setPosition(onlinePlayer->endBroadcastPos);
+      if (distance >= (onlinePlayer->actor->GetRunSpeed() * 2) * expectedTime) {
+        onlinePlayer->actor->setPosition(onlinePlayer->endBroadcastPos);
         auto& action = onlinePlayer->teleportController.TeleportOut(onlinePlayer->actor);
         action.onFinish.Slot([=] {
           onlinePlayer->teleportController.TeleportIn(onlinePlayer->actor, onlinePlayer->endBroadcastPos, Direction::none);
@@ -668,11 +668,11 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
   auto& player = userIter->second;;
   auto& actor = player->actor;
 
-  actor.setTexture(GetTexture(texturePath));
+  actor->setTexture(GetTexture(texturePath));
 
   Animation animation;
   animation.LoadWithData(GetText(animationPath));
-  actor.LoadAnimations(animation);
+  actor->LoadAnimations(animation);
 }
 
 void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

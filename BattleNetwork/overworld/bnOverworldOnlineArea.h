@@ -14,7 +14,7 @@ namespace Overworld {
   constexpr size_t LAG_WINDOW_LEN = 300;
 
   struct OnlinePlayer {
-    Overworld::Actor actor{ "?" };
+    std::shared_ptr<Overworld::Actor> actor;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
     SelectedNavi currNavi{ std::numeric_limits<SelectedNavi>::max() };

@@ -34,11 +34,11 @@ namespace Overworld {
   class SceneBase : public Scene {
   private:
     struct WorldSprite {
-      SpriteProxyNode* node{ nullptr };
+      std::shared_ptr<SpriteProxyNode> node;
       int layer{ 0 };
     };
 
-    Overworld::Actor playerActor{ "You" };
+    std::shared_ptr<Actor> playerActor;
     Overworld::EmoteWidget emote;
     Overworld::EmoteNode emoteNode;
     Overworld::TeleportController teleportController{};
@@ -182,13 +182,13 @@ namespace Overworld {
      * @brief Add a sprite
      * @param _sprite
      */
-    void AddSprite(SpriteProxyNode* _sprite, int layer);
+    void AddSprite(std::shared_ptr<SpriteProxyNode> _sprite, int layer);
 
     /**
      * @brief Remove a sprite
      * @param _sprite
      */
-    void RemoveSprite(const SpriteProxyNode* _sprite);
+    void RemoveSprite(const std::shared_ptr<SpriteProxyNode> _sprite);
 
     //
     // Menu selection callbacks
@@ -207,7 +207,7 @@ namespace Overworld {
     Overworld::QuadTree& GetQuadTree();
     Camera& GetCamera();
     Map& GetMap();
-    Actor& GetPlayer();
+    std::shared_ptr<Actor> GetPlayer();
     PlayerController& GetPlayerController();
     TeleportController& GetTeleportController();
     SelectedNavi& GetCurrentNavi();

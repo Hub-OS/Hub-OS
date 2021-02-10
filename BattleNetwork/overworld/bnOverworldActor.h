@@ -16,9 +16,9 @@ namespace Overworld {
   class Actor;
   // temp class
   struct QuadTree {
-    std::vector<Actor*> actors;
+    std::vector<std::shared_ptr<Actor>> actors;
 
-    std::vector<Actor*> GetActors() const;
+    std::vector<std::shared_ptr<Actor>> GetActors() const;
   };
 
   class Actor : public SpriteProxyNode {

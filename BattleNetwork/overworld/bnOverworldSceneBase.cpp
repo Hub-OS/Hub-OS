@@ -60,7 +60,8 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   textbox({ 4, 255 }),
   camera(controller.getWindow().getView()),
   Scene(controller),
-  map(0, 0, 0, 0)
+  map(0, 0, 0, 0),
+  playerActor(std::make_shared<Overworld::Actor>("You"))
 {
   // When we reach the menu scene we need to load the player information
   // before proceeding to next sub menus
@@ -134,16 +135,16 @@ Overworld::SceneBase::SceneBase(swoosh::ActivityController& controller, bool gue
   setView(sf::Vector2u(480, 320));
 
   // Spawn overworld player
-  playerActor.setPosition(200, 20);
-  playerActor.SetCollisionRadius(6);
-  playerActor.CollideWithMap(map);
-  playerActor.CollideWithQuadTree(quadTree);
-  playerActor.AddNode(&emoteNode);
+  playerActor->setPosition(200, 20);
+  playerActor->SetCollisionRadius(6);
+  playerActor->CollideWithMap(map);
+  playerActor->CollideWithQuadTree(quadTree);
+  playerActor->AddNode(&emoteNode);
 
   emoteNode.SetLayer(-100);
 
-  AddSprite(&playerActor, 0);
-  AddSprite(&teleportController.GetBeam(), 0);
+  AddSprite(playerActor, 0);
+  AddSprite(teleportController.GetBeam(), 0);
 
   map.setScale(2.f, 2.f);
 
@@ -175,11 +176,11 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   if (textbox.IsClosed() && menuWidget.IsClosed()) {
     if (Input().Has(InputEvents::pressed_interact)) {
       // check to see what tile we pressed talk to
-      auto layerIndex = playerActor.GetLayer();
+      auto layerIndex = playerActor->GetLayer();
       auto layer = map.GetLayer(layerIndex);
       auto tileSize = map.GetTileSize();
 
-      auto frontPosition = playerActor.PositionInFrontOf();
+      auto frontPosition = playerActor->PositionInFrontOf();
 
       auto tile = layer.GetTile(frontPosition.x / tileSize.x, frontPosition.y / tileSize.y);
 
@@ -240,7 +241,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
     teleportController.Update(elapsed);
   }
 
-  playerActor.Update(elapsed);
+  playerActor->Update(elapsed);
 
   for (auto& npc : npcs) {
     npc.Update(elapsed);
@@ -340,7 +341,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   textbox.Update(elapsed);
 
   // Follow the navi
-  sf::Vector2f pos = map.WorldToScreen(playerActor.getPosition());
+  sf::Vector2f pos = map.WorldToScreen(playerActor->getPosition());
   pos = sf::Vector2f(pos.x * map.getScale().x, pos.y * map.getScale().y);
   camera.PlaceCamera(pos);
 
@@ -489,7 +490,7 @@ void Overworld::SceneBase::onResume() {
     auto& command = teleportController.TeleportIn(
       playerActor,
       returnPoint,
-      Reverse(playerActor.GetHeading())
+      Reverse(playerActor->GetHeading())
     );
 
     command.onFinish.Slot([=] {
@@ -618,13 +619,13 @@ void Overworld::SceneBase::RefreshNaviSprite()
 
   if (owPath.size()) {
     if (auto tex = meta.GetOverworldTexture()) {
-      playerActor.setTexture(tex);
+      playerActor->setTexture(tex);
     }
-    playerActor.LoadAnimations(Animation(owPath));
+    playerActor->LoadAnimations(Animation(owPath));
 
     // move the emote above the player's head
-    float h = playerActor.getLocalBounds().height;
-    float y = h - (h - playerActor.getOrigin().y);
+    float h = playerActor->getLocalBounds().height;
+    float y = h - (h - playerActor->getOrigin().y);
     emoteNode.setPosition(sf::Vector2f(0, -y));
 
     auto iconTexture = meta.GetIconTexture();
@@ -965,12 +966,12 @@ void Overworld::SceneBase::SetBackground(Background* background)
   this->bg = background;
 }
 
-void Overworld::SceneBase::AddSprite(SpriteProxyNode* _sprite, int layer)
+void Overworld::SceneBase::AddSprite(std::shared_ptr<SpriteProxyNode> _sprite, int layer)
 {
   sprites.push_back({ _sprite, layer });
 }
 
-void Overworld::SceneBase::RemoveSprite(const SpriteProxyNode* _sprite) {
+void Overworld::SceneBase::RemoveSprite(const std::shared_ptr<SpriteProxyNode> _sprite) {
   auto pos = std::find_if(sprites.begin(), sprites.end(), [_sprite](WorldSprite in) { return in.node == _sprite; });
 
   if (pos != sprites.end())
@@ -1057,7 +1058,7 @@ Overworld::Map& Overworld::SceneBase::GetMap()
   return map;
 }
 
-Overworld::Actor& Overworld::SceneBase::GetPlayer()
+std::shared_ptr<Overworld::Actor> Overworld::SceneBase::GetPlayer()
 {
   return playerActor;
 }

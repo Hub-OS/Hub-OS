@@ -320,7 +320,7 @@ const std::pair<bool, sf::Vector2f> Overworld::Actor::CanMoveTo(Direction dir, M
   */
   if (quadTree) {
     for (auto actor : quadTree->actors) {
-      if (actor == this) continue;
+      if (actor.get() == this) continue;
 
       auto& [hit, circle_edge] = CollidesWith(*actor, offset);
 
@@ -506,7 +506,7 @@ std::string Overworld::Actor::DirectionAnimStrSuffix(const Direction& dir)
 
 // class QuadTree
 
-std::vector<Overworld::Actor*> Overworld::QuadTree::GetActors() const
+std::vector<std::shared_ptr<Overworld::Actor>> Overworld::QuadTree::GetActors() const
 {
   return this->actors;
 }

@@ -3,9 +3,9 @@
 #include "../bnInputManager.h"
 #include "bnOverworldActor.h"
 
-void Overworld::PlayerController::ControlActor(Actor& actor)
+void Overworld::PlayerController::ControlActor(std::shared_ptr<Actor> actor)
 {
-  this->actor = &actor;
+  this->actor = actor;
 }
 
 void Overworld::PlayerController::ReleaseActor()

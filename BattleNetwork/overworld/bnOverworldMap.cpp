@@ -97,6 +97,10 @@ namespace Overworld {
   }
 
   std::unique_ptr<Map::TileMeta>& Map::GetTileMeta(unsigned int tileGid) {
+    if(tileGid < 0 || tileGid >= tileMetas.size()) {
+      return tileMetas[0];
+    } 
+
     return tileMetas[tileGid];
   }
 
