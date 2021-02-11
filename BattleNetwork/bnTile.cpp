@@ -322,6 +322,7 @@ namespace Battle {
 
   bool Tile::IsReservedByCharacter()
   {
+    // TODO: character might be queued but not added so character.size() != 0 gives false values at intro time...
     return (reserved.size() != 0) && (characters.size() != 0);
   }
 

@@ -9,28 +9,11 @@
 #include <SFML/Graphics.hpp>
 #include "bnElements.h"
 #include "bnPlayer.h"
+#include "stx/tuple.h"
 
 class Player; // forward decl
 
 typedef int SelectedNavi;
-
-/**
- * Until this is needed elsewhere, just define this helper function here
- */
-namespace detail {
-  template <class T, class Tuple, std::size_t... I>
-  constexpr T* make_from_tuple_impl(Tuple&& t, std::index_sequence<I...>)
-  {
-    return new T(std::get<I>(std::forward<Tuple>(t))...);
-  }
-}
-
-template <class T, class Tuple>
-constexpr T* make_ptr_from_tuple(Tuple&& t)
-{
-  return detail::make_from_tuple_impl<T>(std::forward<Tuple>(t),
-    std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
-}
 
 /*! \brief Use this singleton to register custom navis and have them automatically appear on the select, overworld, and battle scenes
 */
@@ -278,8 +261,8 @@ public:
 template<class T, typename... Args>
 inline NaviRegistration::NaviMeta & NaviRegistration::NaviMeta::SetNaviClass(Args&&... args)
 {
-  loadNaviClass = [this, args = std::forward_as_tuple(std::forward<decltype(args)>(args)...)]() mutable {
-    navi = make_ptr_from_tuple<T>(args);
+  loadNaviClass = [this, args = std::make_tuple(std::forward<decltype(args)>(args)...)]() mutable {
+    navi = stx::make_ptr_from_tuple<T>(args);
     hp = navi->GetHealth();
   };
 

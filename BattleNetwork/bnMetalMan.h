@@ -19,7 +19,7 @@ class MetalMan : public Character, public BossPatternAI<MetalMan> {
 public:
     using DefaultState = MetalManIdleState;
 
-    MetalMan(Rank _rank);
+    MetalMan(Rank _rank = Rank::_1);
   
   /**
    * @brief deconstructor

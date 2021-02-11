@@ -158,7 +158,7 @@ CardAction::Attachment& CardAction::AddAttachment(Character& character, const st
     this->GetOwner()->AddNode(&node);
   }
 
-  return AddAttachment(animComp->GetAnimationObj(), point, node);
+  return AddAttachment(animComp->GetAnimationObject(), point, node);
 }
 
 void CardAction::OnUpdate(double _elapsed)

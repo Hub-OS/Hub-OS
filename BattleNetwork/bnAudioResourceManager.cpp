@@ -379,6 +379,10 @@ int AudioResourceManager::Stream(std::string path, bool loop, sf::Music::TimeSpa
   return 0;
 }
 
+int AudioResourceManager::Stream(std::string path, bool loop) {
+  return Stream(path, loop, {});
+}
+
 void AudioResourceManager::StopStream() {
   //std::scoped_lock lock(mutex);
   stream.stop();

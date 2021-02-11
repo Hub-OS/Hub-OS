@@ -11,7 +11,6 @@
  * @author mav
  * @date 05/05/19
  * @brief Classic cannon enemy waits for opponent to be in view.
- * @warning Legacy code. Should update code.
  */
 class Canodumb : public Character, public AI<Canodumb> {
   friend class CanodumbIdleState;

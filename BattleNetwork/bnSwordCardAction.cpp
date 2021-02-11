@@ -54,7 +54,7 @@ void SwordCardAction::OnExecute() {
 
     auto userAnim = GetOwner()->GetFirstComponent<AnimationComponent>();
 
-    auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObj(), "HILT", *hilt).UseAnimation(hiltAnim);
+    auto& hiltAttachment = AddAttachment(userAnim->GetAnimationObject(), "HILT", *hilt).UseAnimation(hiltAnim);
     hiltAttachment.AddAttachment(hiltAnim, "ENDPOINT", *blade).UseAnimation(bladeAnim);
   };
 

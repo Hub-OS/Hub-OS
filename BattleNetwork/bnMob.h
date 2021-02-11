@@ -4,6 +4,9 @@
 #include "bnBattleItem.h"
 #include "bnBackground.h"
 #include "bnField.h"
+#include "bnMobHealthUI.h"
+#include "stx/tuple.h"
+
 #include <vector>
 #include <map>
 #include <stdexcept>
@@ -14,10 +17,34 @@ class Mob
 public:
   /*! \brief Spawn info data object */
   struct MobData {
-    Character* mob; /*!< The character to spawn */
-    int tileX; /*!< The tile column to spawn on */
-    int tileY; /*!< The tile row to spawn on */
-    unsigned index; /*!< this character's spawn order */
+    Character* character{ nullptr }; /*!< The character to spawn */
+    int tileX{}; /*!< The tile column to spawn on */
+    int tileY{}; /*!< The tile row to spawn on */
+    unsigned index{}; /*!< this character's spawn order */
+  };
+
+  class Mutator {
+    friend class Mob;
+
+    MobData* data{ nullptr };
+    std::vector<std::function<void(Character& in)>> mutations;
+
+    MobData* GetSpawned() {
+      for (auto&& m : mutations) {
+        m(*data->character);
+      }
+
+      return data;
+    }
+
+  public:
+    Mutator(MobData* data) : data(data) {
+
+    }
+
+    void Mutate(const std::function<void(Character& in)>& mutation) {
+      mutations.push_back(mutation);
+    }
   };
 
 private:
@@ -26,15 +53,17 @@ private:
   bool isBoss{ false }; /*!< Flag to change rank and music */
   std::string music; /*!< Override with custom music */
   std::vector<Component*> components; /*!< Components to inject into the battle scene */
-  std::vector<MobData*> spawn; /*!< The enemies to spawn and manage */
+  std::vector<Mutator*> spawn; /*!< The enemies to spawn and manage */
   std::vector<Character*> tracked; /*! Enemies that are not spawned through the mob class but need to be considered */
   std::vector<std::function<void(Character*)>> defaultStateInvokers; /*!< Invoke the character's default state from the spawn policy */
   std::vector<std::function<void(Character*)>> pixelStateInvokers; /*!< Invoke the character's intro tate from the spawn policy */
   std::multimap<int, BattleItem> rewards; /*!< All possible rewards for this mob by rank */
   Field* field{ nullptr }; /*!< The field to play on */
-  Background* background; /*!< Override with custom background */
+  Background* background{ nullptr }; /*!< Override with custom background */
 
 public:
+  // forward decl
+  template<class ClassType> class Spawner;
 
   /**
    * @brief constructor
@@ -184,6 +213,7 @@ public:
 
   // todo: take both of these out
   void DelegateComponent(Component* component);
+
   std::vector<Component*> GetComponents();
 
   /**
@@ -195,47 +225,106 @@ public:
   MobData* GetNextMob();
 
   /**
-   * @brief Spawn an enemy with a custom spawn step
-   * @param tileX colum to spawn the enemy on
-   * @param tileY row to spawn the enemy on
-   * @return Mob* to chain
+   * @brief Create a spawner object to spawn typed enemies
+   * @param Args... constructor arguments for deferred loading
+   * @return Spawner<> object to reuse
    */
-  template<class CustomSpawnPolicy>
-  Mob* Spawn(int tileX, int tileY);
+  template<class ClassType, typename... Args>
+  Spawner<ClassType> CreateSpawner(Args&&...);
 
   void Track(Character& character);
 };
 
-template<class CustomSpawnPolicy>
-Mob* Mob::Spawn(int tileX, int tileY) {
-  // assert that tileX and tileY exist in field, otherwise abort
-  assert(tileX >= 1 && tileX <= field->GetWidth() && tileY >= 1 && tileY <= field->GetHeight());
-
-  // Create a new enemy spawn data object
-  MobData* data = new MobData();
-  
-  // Use a custom spawn policy
-  CustomSpawnPolicy* spawner = new CustomSpawnPolicy(*this);
-
-  // Assign the enemy to the spawn data object
-  data->mob = spawner->GetSpawned();
-  data->tileX = tileX;
-  data->tileY = tileY;
-  data->index = (unsigned)spawn.size();
-
-  field->GetAt(tileX, tileY)->ReserveEntityByID(data->mob->GetID());
-
-  // Use the intro and default state steps provided by the policies
-  pixelStateInvokers.push_back(std::move(spawner->GetIntroCallback()));
-  defaultStateInvokers.push_back(std::move(spawner->GetReadyCallback()));
-
-  // Delete the policy
-  delete spawner;
-
-  // Add the mob spawn data to our list of enemies to spawn
-  spawn.push_back(data);
-  tracked.push_back(data->mob);
-
-  // Return Mob* to chain
-  return this;
+template<class ClassType, typename... Args>
+Mob::Spawner<ClassType> Mob::CreateSpawner(Args&&... args) {
+  auto item = Mob::Spawner<ClassType>(std::forward<decltype(args)>(args)...);
+  item.SetMob(this);
+  return item;
 }
+
+//
+// Spawner implementation...
+//
+
+template<class ClassType>
+class Mob::Spawner {
+private:
+  std::function<ClassType*()> constructor;
+  Mob* mob{ nullptr };
+public:
+  // c-tors with arguments
+  template<typename... Args>
+  Spawner(Args&&... args) {
+    constructor = [args = std::make_tuple(std::forward<decltype(args)>(args)...)] () mutable -> ClassType* {
+      return stx::make_ptr_from_tuple<ClassType>(args);
+    };
+  }
+
+  // c-tors with zero arguments (or default args are provided)
+  Spawner() {
+    constructor = [] () mutable {
+      return new ClassType();
+    };
+  }
+
+  template<template<typename> class IntroState>
+  Mutator* SpawnAt(unsigned x, unsigned y) {
+    // assert that tileX and tileY exist in field
+    assert(x >= 1 && x <= static_cast<unsigned>(mob->field->GetWidth()) 
+        && y >= 1 && y <= static_cast<unsigned>(mob->field->GetHeight()));
+
+    // Create a new enemy spawn data object
+    MobData* data = new MobData();
+    Character* character = constructor();
+
+    character->CreateComponent<MobHealthUI>(character);
+
+    // Assign the enemy to the spawn data object
+    data->character = character;
+    data->tileX = x;
+    data->tileY = y;
+    data->index = (unsigned)mob->spawn.size();
+
+    mob->field->GetAt(x, y)->ReserveEntityByID(character->GetID());
+
+    auto mutator = new Mutator(data);
+
+    // TODO: custom intro invokers like Alpha?
+    //
+    // Thinking we need to remove AI inheritence and be another component on its own
+    Mob* mobPtr = this->mob;
+    auto pixelStateInvoker = [mobPtr](Character* character) {
+      auto onFinish = [mobPtr]() { mobPtr->FlagNextReady(); };
+
+      ClassType* enemy = static_cast<ClassType*>(character);
+
+      if (enemy) {
+        if constexpr (std::is_base_of<AI<ClassType>, ClassType>::value) {
+          enemy->template ChangeState<IntroState<ClassType>>(onFinish);
+        }
+        else {
+          enemy->template InterruptState<IntroState<ClassType>>(onFinish);
+        }
+      }
+    };
+
+    auto defaultStateInvoker = [](Character* character) {
+      ClassType* enemy = static_cast<ClassType*>(character);
+      if (enemy) { enemy->InvokeDefaultState(); }
+    };
+
+    mob->pixelStateInvokers.push_back(pixelStateInvoker);
+    mob->defaultStateInvokers.push_back(defaultStateInvoker);
+
+    // Add the mob spawn data to our list of enemies to spawn
+    mob->spawn.push_back(mutator);
+    mob->tracked.push_back(data->character);
+
+    // Return a mutator to change some spawn info
+    return mutator;
+  }
+
+  void SetMob(Mob* ptr) {
+    this->mob = ptr;
+  }
+};

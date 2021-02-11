@@ -3,8 +3,7 @@
 #include "bnCardUUIDs.h"
 #include "bnField.h"
 #include "bnTile.h"
-#include "bnSpawnPolicy.h"
-#include "bnCardsSpawnPolicy.h"
+#include "bnFadeInState.h"
 
 CanodumbMob::CanodumbMob(Field* field) : MobFactory(field)
 {
@@ -25,9 +24,10 @@ Mob* CanodumbMob::Build() {
   Battle::Tile* tile = field->GetAt(4, 2);
   if (!tile->IsWalkable()) { tile->SetState(TileState::normal); }
 
-  mob->Spawn< Rank1<Canodumb> >(5, 2);
-  mob->Spawn< Rank2<Canodumb> >(6, 1);
-  mob->Spawn< Rank3<Canodumb> >(6, 3);
+  auto spawner = mob->CreateSpawner<Canodumb>();
+  spawner.SpawnAt<FadeInState>(5, 2);
+  spawner.SpawnAt<FadeInState>(6, 1);
+  spawner.SpawnAt<FadeInState>(6, 3);
 
   return mob;
 }

@@ -53,9 +53,9 @@ public:
 private:
   ID_t ID;              /*!< IDs are used for tagging during battle & to identify entities in scripting. */
   static long numOfIDs; /*!< Internal counter to identify the next entity with. */
-  int alpha;            /*!< Control the transparency of an entity. */
+  int alpha{ 255 };            /*!< Control the transparency of an entity. */
   Component::ID_t lastComponentID; /*!< Entities keep track of new components to run through scene injection later. */
-  bool hasSpawned;      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
+  bool hasSpawned{ false };      /*!< Flag toggles true when the entity is first placed onto the field. Calls OnSpawn(). */
   float height;         /*!< Height of the entity relative to tile floor. Used for visual effects like projectiles or for hitbox detection */
   bool isUpdating{ false }; /*!< If an entity has updated once this frame, skip some update routines */
   EventBus::Channel channel; /*!< Our event bus channel to emit events */
@@ -440,14 +440,14 @@ public:
   void FinishMove();
 
 protected:
-  Battle::Tile* next; /**< Pointer to the next tile */
-  Battle::Tile* tile; /**< Current tile pointer */
-  Battle::Tile* previous; /**< Entities retain a previous pointer in case they need to be moved back */
-  sf::Vector2f tileOffset; /**< All entities draw at the center of the tile + tileOffset*/
-  sf::Vector2f slideStartPosition; /**< Used internally when sliding*/
-  Field* field;
-  Team team;
-  Element element;
+  Battle::Tile* next{ nullptr }; /**< Pointer to the next tile */
+  Battle::Tile* tile{ nullptr }; /**< Current tile pointer */
+  Battle::Tile* previous{ nullptr }; /**< Entities retain a previous pointer in case they need to be moved back */
+  sf::Vector2f tileOffset{ 0,0 }; /**< All entities draw at the center of the tile + tileOffset*/
+  sf::Vector2f slideStartPosition{ 0,0 }; /**< Used internally when sliding*/
+  Field* field{ nullptr };
+  Team team{};
+  Element element{};
 
   std::vector<Component*> components; /*!< List of all components attached to this entity*/
 
@@ -468,20 +468,20 @@ protected:
   const int GetMoveCount() const; /*!< Total intended movements made. Used to calculate rank*/
 
 private:
-  bool isTimeFrozen;
-  bool ownedByField; /*!< Must delete the entity manual if not owned by the field. */
-  bool passthrough;
-  bool floatShoe;
-  bool airShoe;
-  bool isSliding; /*!< If sliding/gliding to a tile */
-  bool deleted; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
-  bool flagForRemove; /*!< Used to remove this entity from the field immediately */
-  int moveCount; /*!< Used by battle results */
+  bool isTimeFrozen{};
+  bool ownedByField{}; /*!< Must delete the entity manual if not owned by the field. */
+  bool passthrough{};
+  bool floatShoe{};
+  bool airShoe{};
+  bool isSliding{}; /*!< If sliding/gliding to a tile */
+  bool deleted{}; /*!< Used to trigger OnDelete() callback and exclude entity from most update routines*/
+  bool flagForRemove{}; /*!< Used to remove this entity from the field immediately */
+  int moveCount{}; /*!< Used by battle results */
   sf::Time slideTime; /*!< how long slide behavior lasts */
   sf::Time defaultSlideTime; /*!< If slidetime is modified by outside source, the slide to return back to */
-  double elapsedSlideTime; /*!< When elapsedSlideTime is equal to slideTime, slide is over */
-  Direction direction;
-  Direction previousDirection;
+  double elapsedSlideTime{}; /*!< When elapsedSlideTime is equal to slideTime, slide is over */
+  Direction direction{};
+  Direction previousDirection{};
 
     /**
    * @brief Used internally before moving and updates the start position vector used in the sliding motion

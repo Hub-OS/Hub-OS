@@ -110,8 +110,8 @@ auto MakeOptions = [] (Overworld::SceneBase* scene) -> MenuWidget::OptionsList {
     { "chip_folder", std::bind(&Overworld::SceneBase::GotoChipFolder, scene) },
     { "navi",        std::bind(&Overworld::SceneBase::GotoNaviSelect, scene) },
     { "mob_select",  std::bind(&Overworld::SceneBase::GotoMobSelect, scene) },
-    { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) },
-    { "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }
+    { "config",      std::bind(&Overworld::SceneBase::GotoConfig, scene) }
+    /*{ "sync",        std::bind(&Overworld::SceneBase::GotoPVP, scene) }*/
   };
 };
 

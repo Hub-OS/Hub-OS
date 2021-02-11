@@ -40,7 +40,7 @@ animation state="MISSILE"
 frame duration="0.05" x="265" y="1077" w="42" h="30" originx="24" originy="25"
 frame duration="0.05" x="310" y="1077" w="48" h="30" originx="24" originy="25"
 
-animation state="overworld"
+animation state="IDLE_DL"
 frame duration="0.05" x="421" y="456" w="142" h="163" originx="66" originy="133"
 
 animation state="HAND_SWIPE_TOP_DOWN"
@@ -58,7 +58,7 @@ frame duration="0.05" x="166" y="630" w="112" h="146" originx="30" originy="114"
 point label="FACE" x="32" y="34"
 point label="NO_SHOOT" x="21" y="90"
 
-animation state="HANDLE_IDLE"
+animation state="HAND_IDLE"
 frame duration="0.05" x="239" y="1209" w="92" h="54" originx="19" originy="32"
 
 animation state="METEOR_PUNCH"

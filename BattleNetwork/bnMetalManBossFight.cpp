@@ -5,9 +5,8 @@
 #include "bnCard.h"
 #include "bnField.h"
 #include "bnTile.h"
-#include "bnSpawnPolicy.h"
 #include "bnGear.h"
-
+#include "bnFadeInState.h"
 #include "bnUndernetBackground.h"
 
 MetalManBossFight::MetalManBossFight(Field* field) : MobFactory(field)
@@ -30,7 +29,8 @@ Mob* MetalManBossFight::Build() {
   field->AddEntity(*new Gear(Team::blue, Direction::left), 3, 2);
   field->AddEntity(*new Gear(Team::blue, Direction::right), 4, 2);
 
-  mob->Spawn<Rank1<MetalMan>>(6, 2);
+  auto spawner = mob->CreateSpawner<MetalMan>();
+  spawner.SpawnAt<FadeInState>(6, 2);
 
   mob->ToggleBossFlag();
 

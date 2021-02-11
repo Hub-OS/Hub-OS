@@ -6,7 +6,6 @@
 #include "bnCard.h"
 #include "bnTile.h"
 #include "bnField.h"
-#include "bnSpawnPolicy.h"
 #include "bnFadeInState.h"
 #include "bnVirusBackground.h"
 
@@ -29,7 +28,9 @@ Mob* AlphaBossFight::Build() {
   mob->ToggleBossFlag();
   mob->StreamCustomMusic("resources/loops/proto.ogg");
   mob->SetBackground(bg);
-  mob->Spawn<Rank1<AlphaCore, FadeInState>>(5, 2);
+  
+  auto spawner = mob->CreateSpawner<AlphaCore>();
+  spawner.SpawnAt<FadeInState>(5, 2);
 
   Battle::Tile* tile = field->GetAt(5, 2);
   if (!tile->IsWalkable()) { tile->SetState(TileState::normal); }

@@ -6,9 +6,14 @@
 #include "bnResourceHandle.h"
 #include "bnEntity.h"
 #include "bnElements.h"
+#include "bnField.h"
+#include "bnTile.h"
 
 #include "bnNaviRegistration.h"
 #include "bindings/bnScriptedCardAction.h"
+#include "bindings/bnScriptedCharacter.h"
+//#include "bindings/bnScriptedSpell.h"
+//#include "bindings/bnScriptedObstacle.h"
 #include "bindings/bnScriptedPlayer.h"
 
 // temporary proof of concept includes...
@@ -28,13 +33,80 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   // global namespace
   auto color_record = state.new_usertype<sf::Color>("Color",
     sol::constructors<sf::Color(sf::Uint8, sf::Uint8, sf::Uint8, sf::Uint8)>()
-    );
+  );
 
-  auto animation_record = battle_namespace.new_usertype<AnimationComponent>("Animation",
-    "SetPath", &AnimationComponent::SetPath
+  auto animation_record = engine_namespace.new_usertype<Animation>("Animation",
+    sol::constructors<Animation(const std::string&), Animation(const Animation&)>(),
+    "Load", &Animation::Load,
+    "Update", &Animation::Update,
+    "Refresh", &Animation::Refresh,
+    "SetState", &Animation::SetAnimation,
+    "SetPlayback", sol::resolve<Animation&(char)>(&Animation::operator<<)
+  );
+
+  auto animationcomp_record = engine_namespace.new_usertype<AnimationComponent>("AnimationComponent",
+    "Load", &AnimationComponent::Load,
+    "SetPath", &AnimationComponent::SetPath,
+    "SetState", sol::resolve<void(std::string, char, FrameFinishCallback)>(&AnimationComponent::SetAnimation),
+    "Copy", &AnimationComponent::GetAnimationObject,
+    "Point", &AnimationComponent::GetPoint
+  );
+
+  auto node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
+    sol::constructors<SpriteProxyNode()>(),
+    "SetTexture", &SpriteProxyNode::setTexture,
+    "SetLayer", &SpriteProxyNode::SetLayer,
+    "SetPosition", sol::resolve<void(float, float)>(&SpriteProxyNode::setPosition),
+    "Sprite", &SpriteProxyNode::getSprite,
+    sol::base_classes, sol::bases<SceneNode>()
+  );
+
+  auto tile_record = battle_namespace.new_usertype<Battle::Tile>("Tile",
+    "X", &Battle::Tile::GetX,
+    "Y", &Battle::Tile::GetY,
+    "GetState", &Battle::Tile::GetState,
+    "SetState", &Battle::Tile::SetState,
+    "IsEdge", &Battle::Tile::IsEdgeTile,
+    "IsCracked", &Battle::Tile::IsCracked,
+    "IsHidden", &Battle::Tile::IsHidden,
+    "IsHole", &Battle::Tile::IsHole,
+    "IsWalkable", &Battle::Tile::IsWalkable,
+    "IsReserved", &Battle::Tile::IsReservedByCharacter,
+    "Team", &Battle::Tile::GetTeam
+  );
+
+  auto field_record = battle_namespace.new_usertype<Field>("Field",
+    "TileAt", &Field::GetAt,
+    "Width", &Field::GetWidth,
+    "Height", &Field::GetHeight
   );
 
   auto player_record = battle_namespace.new_usertype<Player>("Player",
+    sol::base_classes, sol::bases<Character>()
+  );
+
+  auto scriptedcharacter_record = battle_namespace.new_usertype<ScriptedCharacter>("ScriptedCharacter",
+    "GetName", &ScriptedCharacter::GetName,
+    "GetID", &ScriptedCharacter::GetID,
+    "GetRank", &ScriptedCharacter::GetRank,
+    "SetRank", &ScriptedCharacter::SetRank,
+    "GetHealth", &ScriptedCharacter::GetHealth,
+    "GetMaxHealth", &ScriptedCharacter::GetMaxHealth,
+    "SetName", &ScriptedCharacter::SetName,
+    "SetHealth", &ScriptedCharacter::SetHealth,
+    "SetHeight", &ScriptedCharacter::SetHeight,
+    "SetTexture", &ScriptedCharacter::setTexture,
+    "GetAnimation", &ScriptedCharacter::GetAnimationComponent,
+    "Tile", &ScriptedCharacter::GetTile,
+    "Field", &ScriptedCharacter::GetField,
+    "Target", &ScriptedCharacter::GetTarget,
+    "Move", &ScriptedCharacter::Move,
+    "SlideToTile", &ScriptedCharacter::SlideToTile,
+    "IsSliding", &ScriptedCharacter::IsSliding,
+    "SetSlideFrames", &ScriptedCharacter::SetSlideTimeFrames,
+    "ShareTile", &ScriptedCharacter::ShareTileSpace,
+    "Teammate", &ScriptedCharacter::Teammate,
+    "AddNode", &ScriptedCharacter::AddNode,
     sol::base_classes, sol::bases<Character>()
   );
 
@@ -50,7 +122,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetChargePosition", &ScriptedPlayer::SetChargePosition,
     "GetAnimation", &ScriptedPlayer::GetAnimationComponent,
     sol::base_classes, sol::bases<Player>()
-    );
+   );
 
   auto busteraction_record = battle_namespace.new_usertype<BusterCardAction>("Buster",
     sol::factories([](Character& character, bool charged, int dmg) -> std::unique_ptr<CardAction> {
@@ -94,7 +166,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   auto audioresource_record = engine_namespace.new_usertype<AudioResourceManager>("AudioResourceMananger",
-    "LoadFile", &AudioResourceManager::LoadFromFile
+    "LoadFile", &AudioResourceManager::LoadFromFile,
+    "Stream", sol::resolve<int(std::string, bool)>(&AudioResourceManager::Stream)
   );
 
   auto shaderresource_record = engine_namespace.new_usertype<ShaderResourceManager>("ShaderResourceManager",
@@ -143,20 +216,37 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   auto elements_table = battle_namespace.new_enum("Element",
-    "FIRE", Element::fire,
-    "AQUA", Element::aqua,
-    "ELEC", Element::elec,
-    "WOOD", Element::wood,
-    "SWORD", Element::sword,
-    "WIND", Element::wind,
-    "CURSOR", Element::cursor,
-    "SUMMON", Element::summon,
-    "PLUS", Element::plus,
-    "BREAK", Element::breaker,
-    "NONE", Element::none,
-    "ICE", Element::ice
+    "Fire", Element::fire,
+    "Aqua", Element::aqua,
+    "Elec", Element::elec,
+    "Wood", Element::wood,
+    "Sword", Element::sword,
+    "Wind", Element::wind,
+    "Cursor", Element::cursor,
+    "Summon", Element::summon,
+    "Plus", Element::plus,
+    "Break", Element::breaker,
+    "None", Element::none,
+    "Ice", Element::ice
   );
 
+  auto direction_table = state.new_enum("Direction",
+    "Up", Direction::up,
+    "Down", Direction::down,
+    "Left", Direction::left,
+    "Right", Direction::right,
+    "UpLeft", Direction::up_left,
+    "UpRight", Direction::up_right,
+    "DownLeft", Direction::down_left,
+    "DownRight", Direction::down_right
+  );
+
+  auto animation_mode_record = state.new_enum("Playback",
+    "Once", Animator::Mode::NoEffect,
+    "Loop", Animator::Mode::Loop,
+    "Bounce", Animator::Mode::Bounce,
+    "Reverse", Animator::Mode::Reverse
+  );
 
   /*
   * // Script for field class support

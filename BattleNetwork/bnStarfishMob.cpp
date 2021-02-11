@@ -1,10 +1,9 @@
 #include "bnStarfishMob.h"
 #include "bnMettaur.h"
 #include "bnField.h"
-#include "bnSpawnPolicy.h"
-#include "bnCardsSpawnPolicy.h"
 #include "bnWebClientMananger.h"
 #include "bnCardUUIDs.h"
+#include "bnFadeInState.h"
 
 StarfishMob::StarfishMob(Field* field) : MobFactory(field)
 {
@@ -19,8 +18,9 @@ Mob* StarfishMob::Build() {
   Mob* mob = new Mob(field);
   mob->RegisterRankedReward(1, BattleItem(WEBCLIENT.MakeBattleCardFromWebCardData(BuiltInCards::YoYo_M)));
 
-  mob->Spawn<Rank1<Starfish>>(4 + (rand() % 3), 1);
-  mob->Spawn<Rank1<Starfish>>(4 + (rand() % 3), 3);
+  auto spawner = mob->CreateSpawner<Starfish>();
+  spawner.SpawnAt<FadeInState>(4 + (rand() % 3), 1);
+  spawner.SpawnAt<FadeInState>(4 + (rand() % 3), 3);
 
   bool allIce = !(rand() % 10);
 

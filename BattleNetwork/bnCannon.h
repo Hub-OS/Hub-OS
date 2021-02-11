@@ -7,7 +7,6 @@
  * @author mav
  * @date 05/05/19
  * @brief Legacy code. Cannon's attack.
- * @warning should be update code. Uses old battle system logic. 
  */
 class Cannon : public Spell {
 public:

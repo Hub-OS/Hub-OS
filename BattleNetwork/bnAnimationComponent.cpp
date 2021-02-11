@@ -49,11 +49,6 @@ const std::string AnimationComponent::GetAnimationString() const
   return animation.GetAnimationString();
 }
 
-Animation& AnimationComponent::GetAnimationObj()
-{
-  return animation;
-}
-
 const std::string& AnimationComponent::GetFilePath() const
 {
   return path;

@@ -13,6 +13,7 @@
 #include "bnField.h"
 #include "bnMobFactory.h"
 #include "bnResourceHandle.h"
+#include "stx/tuple.h"
 
 class Mob;
 
@@ -52,7 +53,7 @@ public:
      * @brief Initializes the deffered loader
      * @return MobMeta& to chain
      */
-    template<class T> MobMeta& SetMobClass();
+    template<class T, typename... Args> MobMeta& SetMobClass(Args&&...);
     
     /**
      * @brief Sets the preview path to load
@@ -165,10 +166,10 @@ public:
    * @brief Creates a roster entry object, sets the deferred class type, and registers
    * @return MobMeta* to chain
    */
-  template<class T>
-  MobMeta* AddClass() {
+  template<class T, typename... Args>
+  MobMeta* AddClass(Args&&... args) {
     MobRegistration::MobMeta* info = new MobRegistration::MobMeta();
-    info->SetMobClass<T>();
+    info->SetMobClass<T>(args...);
     Register(info);
 
     return info;
@@ -202,16 +203,17 @@ public:
  * @brief Sets the deferred mob loader
  * @return MobMeta& to chain
  */
-template<class T>
-inline MobRegistration::MobMeta & MobRegistration::MobMeta::SetMobClass()
+template<class T, typename... Args>
+inline MobRegistration::MobMeta & MobRegistration::MobMeta::SetMobClass(Args&&... args)
 {
-  loadMobClass = [this]() {
+  auto* field = new Field(6, 3);
+  loadMobClass = [this, args = std::make_tuple(field, std::forward<decltype(args)>(args)...)]() mutable {
     if (mobFactory) {
       delete mobFactory;
       mobFactory = nullptr;
     }
 
-    mobFactory = new T(new Field(6, 3));
+    mobFactory = stx::make_ptr_from_tuple<T>(args);
 
     if (!placeholderTexture) {
       placeholderTexture = ResourceHandle().Textures().LoadTextureFromFile(GetPlaceholderTexturePath());

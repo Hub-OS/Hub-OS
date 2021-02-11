@@ -28,7 +28,7 @@ public:
 
   void SetChargePosition(const float x, const float y);
   void SetFullyChargeColor(const sf::Color& color);
-  void SetHeight(const float& height);
+  void SetHeight(const float height);
   const float GetHeight() const;
   AnimationComponent& GetAnimationComponent();
 

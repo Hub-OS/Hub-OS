@@ -1,6 +1,6 @@
 #include "bnFalzarMob.h"
-#include "bnSpawnPolicy.h"
 #include "bnVirusBackground.h"
+#include "bnFadeInState.h"
 #include "bnFalzar.h"
 
 FalzarMob::FalzarMob(Field* field) : MobFactory(field) {
@@ -28,7 +28,8 @@ Mob* FalzarMob::Build() {
         }
     }
 
-    mob->Spawn<Rank1<Falzar>>(5, 2);
+    auto spawner = mob->CreateSpawner<Falzar>();
+    spawner.SpawnAt<FadeInState>(5, 2);
 
     return mob;
 }

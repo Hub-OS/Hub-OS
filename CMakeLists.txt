@@ -37,10 +37,18 @@ file(GLOB_RECURSE bnFiles CONFIGURE_DEPENDS
 	"BattleNetwork/widgets/*.cpp"
         "BattleNetwork/bindings/*.h"
         "BattleNetwork/bindings/*.cpp"
+	"BattleNetwork/stx/tuple.h"
         "BattleNetwork/mmbn.ico.c"
         )
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AddFiles.cmake)
+
+# ScriptResourceManager has sol2 templates that generate massive number of obj sections...
+# further reading: https://docs.microsoft.com/en-us/cpp/build/reference/bigobj-increase-number-of-sections-in-dot-obj-file?view=msvc-160
+if(MSVC)
+	add_compile_options(/bigobj)
+endif()
+
 add_executable(BattleNetwork BattleNetwork/main.cpp ${bnFiles} ${addBNFiles})
 add_compile_definitions(NOMINMAX)
 

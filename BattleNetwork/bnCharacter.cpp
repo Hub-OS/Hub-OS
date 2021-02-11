@@ -93,8 +93,6 @@ CardAction* Character::DequeueAction()
 }
 
 void Character::Update(double _elapsed) {
-  hit = false; // reset our hit flag
-
   ResolveFrameBattleDamage();
 
   // normal color every start frame
@@ -192,6 +190,8 @@ void Character::Update(double _elapsed) {
 
   // If drag status is over, reset the flag
   if (!IsSliding() && slideFromDrag) slideFromDrag = false;
+
+  hit = false; // reset our hit flag
 }
 
 bool Character::CanMoveTo(Battle::Tile * next)
@@ -237,6 +237,10 @@ const bool Character::Hit(Hit::Properties props) {
 
   // Add to status queue for state resolution
   statusQueue.push(props);
+
+  if ((props.flags & Hit::impact) == Hit::impact) {
+    this->hit = true; // flash white immediately
+  }
 
   return true;
 }
@@ -430,9 +434,7 @@ void Character::ResolveFrameBattleDamage()
       flagCheckThunk(Hit::shake);
       flagCheckThunk(Hit::recoil);
 
-      hit = hit || props.damage;
-
-      if (hit) {
+      if (props.damage) {
         OnHit();
         SetHealth(GetHealth() - tileDamage);
         if (GetHealth() == 0) {

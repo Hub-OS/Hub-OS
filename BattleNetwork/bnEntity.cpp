@@ -12,6 +12,23 @@ bool EntityComparitor::operator()(Entity* f, Entity* s) const
   return f->GetID() < s->GetID();
 }
 
+// First entity ID begins at 1
+Entity::Entity() : 
+  slideTime(sf::milliseconds(100)),
+  defaultSlideTime(slideTime),
+  elapsedSlideTime(0),
+  lastComponentID(0),
+  height(0),
+  moveCount(0),
+  channel(nullptr)
+{
+  ID = ++Entity::numOfIDs;
+}
+
+Entity::~Entity() {
+  this->FreeAllComponents();
+}
+
 void Entity::SortComponents()
 {
   // Newest components appear first in the list for easy referencing
@@ -50,44 +67,7 @@ void Entity::InsertComponentsPendingRegistration()
     }
   }
 
-  sort? SortComponents() : (void(0));
-}
-
-// First entity ID begins at 1
-Entity::Entity()
-  : tile(nullptr),
-  next(nullptr),
-  previous(nullptr),
-  field(nullptr),
-  floatShoe(false),
-  airShoe(false),
-  previousDirection(Direction::none),
-  direction(Direction::none),
-  team(Team::unknown),
-  isTimeFrozen(false),
-  deleted(false),
-  passthrough(false),
-  ownedByField(false),
-  isSliding(false),
-  hasSpawned(false),
-  flagForRemove(false),
-  element(Element::none),
-  tileOffset(),
-  slideStartPosition(),
-  slideTime(sf::milliseconds(100)),
-  defaultSlideTime(slideTime),
-  elapsedSlideTime(0),
-  lastComponentID(0),
-  height(0),
-  moveCount(0),
-  alpha(255),
-  channel(nullptr)
-{
-  ID = ++Entity::numOfIDs;
-}
-
-Entity::~Entity() {
-  this->FreeAllComponents();
+  sort ? SortComponents() : (void(0));
 }
 
 void Entity::Spawn(Battle::Tile & start)
