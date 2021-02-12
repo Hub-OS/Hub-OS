@@ -129,10 +129,14 @@ private:
   sf::Shader& backdropShader;
   sf::Vector2u textureSize; /*!< Size of distorton effect */
 
+  // backdrop status enum
   enum class backdrop : int {
     fadeout = 0,
     fadein
   } backdropMode{};
+
+  // event bus
+  EventBus::Channel channel;
 
 protected:
   using ChangeCondition = BattleSceneState::ChangeCondition;

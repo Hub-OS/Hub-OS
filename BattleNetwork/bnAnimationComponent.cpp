@@ -44,6 +44,12 @@ void AnimationComponent::Reload() {
   animation.Reload();
 }
 
+void AnimationComponent::CopyFrom(const AnimationComponent& rhs)
+{
+  animation = rhs.animation;
+  path = rhs.path;
+}
+
 const std::string AnimationComponent::GetAnimationString() const
 {
   return animation.GetAnimationString();

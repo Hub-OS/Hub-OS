@@ -31,6 +31,10 @@ public:
   void OnDelete() override;
   bool CanMoveTo(Battle::Tile * next) override;
   void SetSlideTimeFrames(unsigned frames);
+
+  // duration in seconds
+  void ShakeCamera(double power, float duration);
+
   AnimationComponent& GetAnimationComponent();
 };
 

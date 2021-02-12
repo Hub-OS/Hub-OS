@@ -79,6 +79,7 @@ public:
    * @param y row
    */
   AddEntityStatus AddEntity(Spell& spell, int x, int y);
+  AddEntityStatus AddEntity(std::unique_ptr<Spell>& spell, int x, int y); // WARNING: STRICTLY FOR SOL2 BINDINGS! 
   AddEntityStatus AddEntity(Spell& spell, Battle::Tile& dest);
 
   /**

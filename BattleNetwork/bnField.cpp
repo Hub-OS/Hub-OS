@@ -151,6 +151,12 @@ Field::AddEntityStatus Field::AddEntity(Spell & spell, int x, int y)
   return Field::AddEntityStatus::deleted;
 }
 
+Field::AddEntityStatus Field::AddEntity(std::unique_ptr<Spell>& spell, int x, int y)
+{
+  Spell* ptr = spell.release();
+  return AddEntity(*ptr, x, y);
+}
+
 Field::AddEntityStatus Field::AddEntity(Spell & spell, Battle::Tile & dest)
 {
   return AddEntity(spell, dest.GetX(), dest.GetY());
@@ -440,7 +446,7 @@ void Field::SpawnPendingEntities()
 {
     
     while (pending.size()) {
-        auto next = pending.back();
+        auto& next = pending.back();
         pending.pop_back();
 
         switch (next.entity_type) {

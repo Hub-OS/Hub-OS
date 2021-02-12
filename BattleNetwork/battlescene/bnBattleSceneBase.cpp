@@ -44,7 +44,8 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   // cap of 8 cards, 8 cards drawn per turn
   cardCustGUI(props.folder, 8, 8),
   mobFont(Font::Style::thick),
-  camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) })
+  camera(sf::View{ sf::Vector2f(240, 160), sf::Vector2f(480, 320) }),
+  channel(this)
 {
   /*
   Set Scene*/
@@ -149,9 +150,15 @@ BattleSceneBase::BattleSceneBase(ActivityController& controller, const BattleSce
   HitListener::Subscribe(*player);
 
   setView(sf::Vector2u(480, 320));
+
+  // add the camera to our event bus
+  channel.Register(&camera);
 }
 
 BattleSceneBase::~BattleSceneBase() {
+  // drop the camera from our event bus
+  channel.Drop(&camera);
+
   for (auto elem : states) {
     delete elem;
   }

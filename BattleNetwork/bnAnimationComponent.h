@@ -55,6 +55,11 @@ public:
    * @brief Reload the animation object. Same as Load()
    */
   void Reload();
+
+  /**
+  * @brief Do not load from path, copy from an existing animation
+  */
+  void CopyFrom(const AnimationComponent& rhs);
   
   /**
    * @brief Get animation object's current animation name

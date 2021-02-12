@@ -69,6 +69,7 @@ void Camera::MoveCamera(sf::Vector2f destination, sf::Time duration) {
   progress = 0;
   dest = destination;
   dur = duration;
+
 }
 
 void Camera::PlaceCamera(sf::Vector2f pos) {

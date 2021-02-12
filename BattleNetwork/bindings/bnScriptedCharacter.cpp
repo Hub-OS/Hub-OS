@@ -32,6 +32,7 @@ void ScriptedCharacter::SetRank(Character::Rank rank)
 
 void ScriptedCharacter::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
+
   AI<ScriptedCharacter>::Update(_elapsed);
 }
 
@@ -45,7 +46,8 @@ const float ScriptedCharacter::GetHeight() const {
 
 void ScriptedCharacter::OnDelete() {
   // Explode if health depleted
-  ChangeState<ExplodeState<ScriptedCharacter>>(script["num_of_explosions"]());
+  int num_of_explosions = script["num_of_explosions"]();
+  ChangeState<ExplodeState<ScriptedCharacter>>(num_of_explosions);
 }
 
 void ScriptedCharacter::OnSpawn(Battle::Tile& start) {
@@ -67,6 +69,11 @@ bool ScriptedCharacter::CanMoveTo(Battle::Tile * next) {
 void ScriptedCharacter::SetSlideTimeFrames(unsigned frames)
 {
   this->SetSlideTime(time_cast<sf::Time>(::frames(frames)));
+}
+
+void ScriptedCharacter::ShakeCamera(double power, float duration)
+{
+  this->EventBus().Emit(&Camera::ShakeCamera, power, sf::seconds(duration));
 }
 
 AnimationComponent& ScriptedCharacter::GetAnimationComponent() { 

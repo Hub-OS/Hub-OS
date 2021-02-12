@@ -291,7 +291,7 @@ void Character::ResolveFrameBattleDamage()
     // a re-usable thunk for custom status effects
     auto flagCheckThunk = [props, this](const Hit::Flags& toCheck) {
       if ((props.flags & toCheck) == toCheck) {
-        auto func = statusCallbackHash[toCheck];
+        auto& func = statusCallbackHash[toCheck];
         func ? func() : (void(0));
       }
     };
