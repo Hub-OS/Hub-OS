@@ -19,7 +19,24 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
 
   LoadMap(FileUtil::Read("resources/ow/maps/homepage.tmx"));
 
-  auto spawnPos = sf::Vector2f(0, 0);
+  auto& map = GetMap();
+  sf::Vector2f spawnPos;
+
+  for (auto& tileObject : map.GetLayer(0).GetTileObjects()) {
+    if (tileObject.name == "Home Warp") {
+      spawnPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+    }
+    else if (tileObject.name == "Net Warp") {
+      auto centerPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+      auto tileSize = map.GetTileSize();
+
+      netWarpTilePos = sf::Vector2f(
+        std::floor(centerPos.x / tileSize.x),
+        std::floor(centerPos.y / tileSize.y)
+      );
+      netWarpObjectId = tileObject.id;
+    }
+  }
 
   // todo: this for onlinearea
   auto& command = GetTeleportController().TeleportIn(GetPlayer(), spawnPos, Direction::up);
@@ -69,7 +86,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
         isConnected = false;
         reconnecting = false;
         client.close();
-        EnableNetWarps(true);
+        EnableNetWarps(false);
       }
     };
 
@@ -102,7 +119,13 @@ void Overworld::Homepage::PingRemoteAreaServer()
 }
 
 void Overworld::Homepage::EnableNetWarps(bool enabled) {
-  // todo:
+  auto& map = GetMap();Logger::Logf("Enable: %s", enabled ? "true" : "false");
+
+  auto& netWarp = map.GetLayer(0).GetTileObject(netWarpObjectId);
+
+  auto tileset = map.GetTileset("warp");
+
+  netWarp.tile.gid = tileset->firstGid + (enabled ? 1 : 0);
 }
 
 void Overworld::Homepage::onUpdate(double elapsed)
@@ -204,62 +227,34 @@ void Overworld::Homepage::onLeave()
 
 void Overworld::Homepage::OnTileCollision()
 {
-  // // on collision with warps
-  // static size_t next_warp = 0;
-  // auto* teleportController = &GetTeleportControler();
+  auto playerActor = GetPlayer();
+  auto playerPos = playerActor->getPosition();
 
-  // if (tile.token == "W" && teleportController->IsComplete()) {
-  //   auto& map = GetMap();
-  //   auto* playerController = &GetPlayerController();
-  //   auto* playerActor = &GetPlayer();
+  auto& map = GetMap();
+  auto tileSize = sf::Vector2f(map.GetTileSize());
 
-  //   auto warps = map.FindToken("W");
+  auto tilePos = sf::Vector2f(
+    std::floor(playerPos.x / tileSize.x),
+    std::floor(playerPos.y / tileSize.y)
+  );
 
-  //   if (warps.size()) {
-  //     if (++next_warp >= warps.size()) {
-  //       next_warp = 0;
-  //     }
+  auto& teleportController = GetTeleportController();
 
-  //     auto teleportToNextWarp = [=] {
-  //       auto finishTeleport = [=] {
-  //         playerController->ControlActor(*playerActor);
-  //       };
+  if (netWarpTilePos == tilePos && teleportController.IsComplete() && isConnected) {
+    auto& playerController = GetPlayerController();
 
-  //       auto& command = teleportController->TeleportIn(*playerActor, warps[next_warp], Direction::up);
-  //       command.onFinish.Slot(finishTeleport);
-  //     };
+    // Calculate the origin by grabbing this tile's grid Y/X values
+    // return at the center origin of this tile
+    sf::Vector2f returnPoint = sf::Vector2f(tilePos + tileSize / 2.0f);
 
-  //     playerController->ReleaseActor();
-  //     auto& command = teleportController->TeleportOut(*playerActor);
-  //     command.onFinish.Slot(teleportToNextWarp);
-  //   }
-  // }
+    auto teleportToCyberworld = [=] {
+      this->TeleportUponReturn(returnPoint);
+      client.close();
+      getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(guest);
+    };
 
-  // if (tile.token == "N" && teleportController->IsComplete() && isConnected) {
-  //   auto& map = GetMap();
-  //   auto* playerController = &GetPlayerController();
-  //   auto* playerActor = &GetPlayer();
-
-  //   auto teleportToCyberworld = [=] {
-
-  //     auto tileSize = sf::Vector2f(map.GetTileSize());
-
-  //     // Calculate the origin by grabbing this tile's grid Y/X values
-  //     auto playerPos = playerActor->getPosition();
-
-  //     // return at the center origin of this tile
-  //     sf::Vector2f returnPoint = sf::Vector2f(
-  //       std::floor(playerPos.x / tileSize.x) + tileSize.x / 2,
-  //       std::floor(playerPos.y / tileSize.y) + tileSize.y / 2
-  //     );
-
-  //     this->TeleportUponReturn(returnPoint);
-  //     client.close();
-  //     getController().push<segue<BlackWashFade>::to<Overworld::OnlineArea>>(guest);
-  //   };
-
-  //   playerController->ReleaseActor();
-  //   auto& command = teleportController->TeleportOut(*playerActor);
-  //   command.onFinish.Slot(teleportToCyberworld);
-  // }
+    playerController.ReleaseActor();
+    auto& command = teleportController.TeleportOut(playerActor);
+    command.onFinish.Slot(teleportToCyberworld);
+  }
 }

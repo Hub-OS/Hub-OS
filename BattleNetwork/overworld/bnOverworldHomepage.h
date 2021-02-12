@@ -13,6 +13,8 @@ namespace Overworld {
     Poco::Net::SocketAddress remoteAddress; //!< server
     bool isConnected{ false }, reconnecting{ false };
     swoosh::Timer pingServerTimer;
+    sf::Vector2f netWarpTilePos;
+    unsigned int netWarpObjectId;
 
     void PingRemoteAreaServer();
     void EnableNetWarps(bool enabled);

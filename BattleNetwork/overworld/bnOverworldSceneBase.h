@@ -90,7 +90,7 @@ namespace Overworld {
     */
     void ClearMap(unsigned rows, unsigned cols);
 
-    std::shared_ptr<Map::Tileset> ParseTileset(int mapTileWidth, int mapTileHeight, unsigned int firstgid, const std::string& data);
+    std::shared_ptr<Map::Tileset> ParseTileset(unsigned int firstgid, const std::string& data);
     void LoadBackground(const std::string& value);
     void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
     void DrawTiles(sf::RenderTarget& target, sf::RenderStates states);

@@ -5,8 +5,11 @@
 #include <memory>
 
 #include "../bnAnimation.h"
+#include "../bnSpriteProxyNode.h"
 
 namespace Overworld {
+  class SceneBase;
+
   /*! \brief Incredibly simple overworld map class.
    *
    * This generates a WxH isometric map.
@@ -57,6 +60,31 @@ namespace Overworld {
       }
     };
 
+    class Layer;
+
+    struct TileObject {
+      unsigned int id;
+      Tile tile;
+      std::string name;
+      bool visible;
+      sf::Vector2f position;
+      sf::Vector2f size;
+      float rotation;
+
+      TileObject(unsigned int id, Tile tile) : id(id), tile(tile) {
+        visible = true;
+        spriteProxy = std::make_shared<SpriteProxyNode>();
+      }
+
+      TileObject(unsigned int id, unsigned int gid) : TileObject(id, Tile(gid)) {}
+
+    private:
+      std::shared_ptr<SpriteProxyNode> spriteProxy;
+
+      friend class Map;
+      friend class Layer;
+    };
+
     class Layer {
     public:
       Tile& GetTile(int x, int y);
@@ -65,14 +93,17 @@ namespace Overworld {
       Tile& SetTile(int x, int y, unsigned int gid);
       Tile& SetTile(float x, float y, unsigned int gid);
 
-
-      //todo add tile objects
+      TileObject& GetTileObject(unsigned int id);
+      const std::vector<TileObject>& GetTileObjects();
+      void AddTileObject(TileObject tileObject);
 
     private:
       Layer(size_t cols, size_t rows);
 
-      std::vector<Tile> tiles;
       size_t cols, rows;
+      std::vector<Tile> tiles;
+      std::vector<TileObject> tileObjects;
+      std::vector<std::shared_ptr<SpriteProxyNode>> spriteProxiesForAddition;
 
       friend class Map;
     };
@@ -83,10 +114,10 @@ namespace Overworld {
     Map(size_t cols, size_t rows, int tileWidth, int tileHeight);
 
     /**
-     * @brief Updates tile animations
+     * @brief Updates tile animations and tile objects
      * @param elapsed in seconds
      */
-    void Update(double elapsed);
+    void Update(SceneBase& scene, double elapsed);
 
     /**
      * @brief Transforms a point on the screen to in-world coordinates
@@ -103,13 +134,17 @@ namespace Overworld {
     const sf::Vector2f WorldToScreen(sf::Vector2f screen) const;
 
     /**
+     * @brief Transforms an ortho vector into an isometric vector
+     * @param ortho position in orthographic space
+     * @return vector in isometric space
+     */
+    const sf::Vector2f OrthoToIsometric(const sf::Vector2f& ortho) const;
+
+    /**
      * @brief Returns tile dimensions as a vector
      * @return const sf::Vector2i(tileWidth, tileHeight)
      */
     const sf::Vector2i GetTileSize() const;
-
-    std::pair<unsigned, unsigned> OrthoToRowCol(const sf::Vector2f& ortho) const;
-    std::pair<unsigned, unsigned> IsoToRowCol(const sf::Vector2f& iso) const;
 
     const std::string& GetName() const;
     const std::string& GetBackgroundName() const;
@@ -136,13 +171,6 @@ namespace Overworld {
     std::vector<std::shared_ptr<Tileset>> tileToTilesetMap;
     std::unordered_map<std::string, std::shared_ptr<Tileset>> tilesets;
     std::vector<std::unique_ptr<TileMeta>> tileMetas;
-
-    /**
-     * @brief Transforms an ortho vector into an isometric vector
-     * @param ortho position in orthographic space
-     * @return vector in isometric space
-     */
-    const sf::Vector2f OrthoToIsometric(const sf::Vector2f& ortho) const;
 
     /**
      * @brief Transforms an iso vector into an orthographic vector

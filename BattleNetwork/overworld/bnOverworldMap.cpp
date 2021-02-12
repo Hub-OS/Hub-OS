@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "bnOverworldMap.h"
+#include "bnOverworldSceneBase.h"
 
 
 namespace Overworld {
@@ -13,11 +14,61 @@ namespace Overworld {
     this->tileToTilesetMap.push_back(nullptr);
   }
 
-  void Map::Update(double elapsed) {
+  void Map::Update(SceneBase& scene, double elapsed) {
     for (auto& tileMeta : tileMetas) {
       if (tileMeta != nullptr) {
         tileMeta->animation.Update(elapsed, tileMeta->sprite);
       }
+    }
+
+    for (int i = 0; i < layers.size(); i++) {
+      auto& layer = layers[i];
+
+      for (auto& tileObject : layer.GetTileObjects()) {
+        auto& tileMeta = tileMetas[tileObject.tile.gid];
+
+        if (tileMeta == nullptr) {
+          continue;
+        }
+
+        auto& spriteProxy = *tileObject.spriteProxy;
+        auto& sprite = spriteProxy.getSprite();
+
+        if (!tileObject.visible) {
+          sprite.setTextureRect(sf::IntRect(0, 0, 0, 0));
+          continue;
+        }
+
+        sprite.setTexture(*tileMeta->sprite.getTexture());
+        sprite.setTextureRect(tileMeta->sprite.getTextureRect());
+        sprite.setOrigin(tileMeta->sprite.getOrigin());
+
+        auto horizontalMultiplier = tileObject.tile.flippedHorizontal ? -1.0f : 1.0f;
+        auto verticalMultiplier = tileObject.tile.flippedVertical ? -1.0f : 1.0f;
+        auto localBounds = sprite.getLocalBounds();
+
+        spriteProxy.setPosition(tileObject.position);
+        spriteProxy.setScale(horizontalMultiplier * tileObject.size.x / localBounds.width, verticalMultiplier * tileObject.size.y / localBounds.height);
+        spriteProxy.setRotation(tileObject.rotation);
+
+        // offset could be subtracted directly from the origin, if it didn't mess up sprite flipping
+        auto radians = tileObject.rotation / 180.f * M_PI;
+        auto offsetRadians = std::atan2(tileMeta->offset.y, tileMeta->offset.x);
+        auto offsetLength = std::hypotf(tileMeta->offset.x, tileMeta->offset.y);
+
+        auto offset = sf::Vector2f(
+          std::cos(offsetRadians + radians) * offsetLength,
+          std::sin(offsetRadians + radians) * offsetLength
+        );
+
+        spriteProxy.move(OrthoToIsometric(offset));
+      }
+
+      for (auto& spriteProxy : layer.spriteProxiesForAddition) {
+        scene.AddSprite(spriteProxy, i);
+      }
+
+      layer.spriteProxiesForAddition.clear();
     }
   }
 
@@ -97,9 +148,9 @@ namespace Overworld {
   }
 
   std::unique_ptr<Map::TileMeta>& Map::GetTileMeta(unsigned int tileGid) {
-    if(tileGid < 0 || tileGid >= tileMetas.size()) {
+    if (tileGid < 0 || tileGid >= tileMetas.size()) {
       return tileMetas[0];
-    } 
+    }
 
     return tileMetas[tileGid];
   }
@@ -193,6 +244,19 @@ namespace Overworld {
   Map::Tile& Map::Layer::SetTile(float x, float y, unsigned int gid)
   {
     return SetTile(std::floor(x), std::floor(y), gid);
+  }
+
+  Map::TileObject& Map::Layer::GetTileObject(unsigned int id) {
+    return *std::find_if(tileObjects.begin(), tileObjects.end(), [id](TileObject& tileObject) { return tileObject.id == id; });
+  }
+
+  const std::vector<Map::TileObject>& Map::Layer::GetTileObjects() {
+    return tileObjects;
+  }
+
+  void Map::Layer::AddTileObject(Map::TileObject tileObject) {
+    tileObjects.push_back(tileObject);
+    spriteProxiesForAddition.push_back(tileObject.spriteProxy);
   }
 }
 

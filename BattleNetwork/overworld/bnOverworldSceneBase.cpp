@@ -229,7 +229,7 @@ void Overworld::SceneBase::onUpdate(double elapsed) {
   */
 
   // update tile animations
-  map.Update(elapsed);
+  map.Update(*this, elapsed);
 
   // objects
   for (auto& pathController : pathControllers) {
@@ -541,8 +541,6 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
 
   auto layer = map.GetLayer(0);
 
-  sf::Vector2f globalOffset(0, tileSize.y / 4);
-
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
       auto& tile = layer.GetTile(j, i);
@@ -554,12 +552,21 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
       if (tileMeta == nullptr) continue;
 
       auto& tileSprite = tileMeta->sprite;
+      auto spriteBounds = tileSprite.getLocalBounds();
+
+      auto originalOrigin = tileSprite.getOrigin();
+      tileSprite.setOrigin(spriteBounds.width / 2, tileSize.y / 2);
+
       sf::Vector2f pos(static_cast<float>(j * tileSize.x * 0.5f), static_cast<float>(i * tileSize.y));
       auto ortho = map.WorldToScreen(pos);
+      auto tileOffset = sf::Vector2f(-tileSize.x / 2 + spriteBounds.width / 2, tileSize.y + tileSize.y / 2 - spriteBounds.height);
 
-      tileSprite.setPosition(ortho + tileMeta->offset + globalOffset);
+      tileSprite.setPosition(ortho + tileMeta->offset + tileOffset);
       tileSprite.setRotation(tile.rotated ? -90 : 0);
-      tileSprite.setScale(tile.flippedHorizontal ? -1.0f : 1.0f, tile.flippedVertical ? -1.0f : 1.0f);
+      tileSprite.setScale(
+        (tile.flippedHorizontal && !tile.rotated) || (tile.rotated && tile.flippedVertical) ? -1.0f : 1.0f,
+        (tile.flippedVertical && !tile.rotated) || (tile.rotated && tile.flippedHorizontal) ? -1.0f : 1.0f
+      );
 
       /*auto color = tileSprite.getColor();
 
@@ -574,6 +581,8 @@ void Overworld::SceneBase::DrawTiles(sf::RenderTarget& target, sf::RenderStates 
       if (/*cam && cam->IsInView(tileSprite)*/ true) {
         target.draw(tileSprite, states);
       }
+
+      tileSprite.setOrigin(originalOrigin);
     }
   }
 }
@@ -737,11 +746,15 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   // organize elements
   XMLElement propertiesElement;
   std::vector<XMLElement> layerElements;
+  std::vector<XMLElement> objectLayerElements;
   std::vector<XMLElement> tilesetElements;
 
   for (auto& child : mapElement.children) {
     if (child.name == "layer") {
       layerElements.push_back(child);
+    }
+    else if (child.name == "objectgroup") {
+      objectLayerElements.push_back(child);
     }
     else if (child.name == "properties") {
       propertiesElement = child;
@@ -790,7 +803,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
     auto tilesetData = GetText(source);
 
-    auto tileset = ParseTileset(tileWidth, tileHeight, firstgid, tilesetData);
+    auto tileset = ParseTileset(firstgid, tilesetData);
 
     for (auto i = 0; i < tileset->tileCount; i++) {
       map.SetTileset(firstgid + i, i, tileset);
@@ -800,42 +813,81 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   // build layers
   auto cols = map.GetCols();
 
-  for (auto it = layerElements.rbegin(); it != layerElements.rend(); it++) {
-    auto& layerElement = *it;
+  for (int i = std::max(layerElements.size(), objectLayerElements.size()) - 1; i >= 0; i--) {
+    auto& layer = map.AddLayer();
 
-    auto dataIt = std::find_if(layerElement.children.begin(), layerElement.children.end(), [](XMLElement& el) {return el.name == "data";});
+    // add tiles to layer
+    if (layerElements.size() > i) {
+      auto& layerElement = layerElements[i];
 
-    if (dataIt == layerElement.children.end()) {
-      Logger::Log("Map layer missing data element!");
+      auto dataIt = std::find_if(layerElement.children.begin(), layerElement.children.end(), [](XMLElement& el) {return el.name == "data";});
+
+      if (dataIt == layerElement.children.end()) {
+        Logger::Log("Map layer missing data element!");
+      }
+
+      auto& dataElement = *dataIt;
+
+      auto dataLen = dataElement.text.length();
+
+      auto col = 0;
+      auto row = 0;
+      auto sliceStart = 0;
+
+      for (auto i = 0; i < dataLen; i++) {
+        switch (dataElement.text[i]) {
+        case ',': {
+          auto tileId = static_cast<unsigned int>(stoul("0" + dataElement.text.substr(sliceStart, i)));
+
+          layer.SetTile(col, row, tileId);
+
+          sliceStart = i + 1;
+          col++;
+          break;
+        }
+        case '\n':
+          sliceStart = i + 1;
+          col = 0;
+          row++;
+          break;
+        default:
+          break;
+        }
+      }
     }
 
-    auto& dataElement = *dataIt;
+    // add objects to layer
+    if (objectLayerElements.size() > i) {
+      auto& objectLayerElement = objectLayerElements[i];
 
-    auto& layer = map.AddLayer();
-    auto dataLen = dataElement.text.length();
+      for (auto& child : objectLayerElement.children) {
+        if (child.name != "object") {
+          continue;
+        }
 
-    auto col = 0;
-    auto row = 0;
-    auto sliceStart = 0;
+        auto id = child.GetAttributeInt("id");
+        auto gid = static_cast<unsigned int>(stoul("0" + child.GetAttribute("gid")));
+        auto name = child.GetAttribute("name");
+        auto position = sf::Vector2f(
+          child.GetAttributeFloat("x"),
+          child.GetAttributeFloat("y")
+        );
+        auto size = sf::Vector2f(
+          child.GetAttributeFloat("width"),
+          child.GetAttributeFloat("height")
+        );
+        auto rotation = child.GetAttributeFloat("rotation");
+        auto visible = child.GetAttribute("visible") != "0";
 
-    for (auto i = 0; i < dataLen; i++) {
-      switch (dataElement.text[i]) {
-      case ',': {
-        auto tileId = static_cast<unsigned int>(stoul("0" + dataElement.text.substr(sliceStart, i)));
-
-        layer.SetTile(col, row, tileId);
-
-        sliceStart = i + 1;
-        col++;
-        break;
-      }
-      case '\n':
-        sliceStart = i + 1;
-        col = 0;
-        row++;
-        break;
-      default:
-        break;
+        if (gid > 0) {
+          auto tileObject = Map::TileObject(id, gid);
+          tileObject.name = name;
+          tileObject.visible = visible;
+          tileObject.position = position;
+          tileObject.size = size;
+          tileObject.rotation = rotation;
+          layer.AddTileObject(tileObject);
+        }
       }
     }
   }
@@ -846,7 +898,7 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   this->map = std::move(map);
 }
 
-std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(int mapTileWidth, int mapTileHeight, unsigned int firstgid, const std::string& data) {
+std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(unsigned int firstgid, const std::string& data) {
   XMLElement tilesetElement = parseXML(data);
   auto tileCount = static_cast<unsigned int>(tilesetElement.GetAttributeInt("tilecount"));
   auto tileWidth = tilesetElement.GetAttributeInt("tilewidth");
@@ -855,8 +907,6 @@ std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(int 
 
   sf::Vector2f offset;
   std::string texturePath;
-  Animation animation;
-  std::string animationString;
 
   std::vector<XMLElement> tileElements(tileCount);
 
@@ -886,9 +936,29 @@ std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(int 
   }
 
   // todo: work with Animation class directly?
-  animationString = "imagePath=\"./" + texturePath + "\"\n\n";
+  std::string animationString = "imagePath=\"./" + texturePath + "\"\n\n";
 
-  std::string frameOffsetString = " originx=\"" + to_string(mapTileWidth / 2 - 1) + "\" originy=\"" + to_string(tileHeight - mapTileHeight + mapTileHeight / 4) + '"';
+  auto objectAlignment = tilesetElement.GetAttribute("objectalignment");
+  // default to bottom right
+  auto origin = sf::Vector2f(tileWidth, tileHeight);
+
+  if (objectAlignment == "top") {
+    origin = sf::Vector2f(tileWidth / 2, 0);
+  }
+  else if (objectAlignment == "topleft") {
+    origin = sf::Vector2f(0, 0);
+  }
+  else if (objectAlignment == "topright") {
+    origin = sf::Vector2f(tileWidth, 0);
+  }
+  else if (objectAlignment == "bottom") {
+    origin = sf::Vector2f(tileWidth / 2, tileHeight);
+  }
+  else if (objectAlignment == "bottomleft") {
+    origin = sf::Vector2f(0, tileHeight);
+  }
+
+  std::string frameOffsetString = " originx=\"" + to_string(origin.x) + "\" originy=\"" + to_string(origin.y) + '"';
   std::string frameSizeString = " w=\"" + to_string(tileWidth) + "\" h=\"" + to_string(tileHeight) + '"';
 
   for (auto i = 0; i < tileElements.size(); i++) {
@@ -931,6 +1001,7 @@ std::shared_ptr<Overworld::Map::Tileset> Overworld::SceneBase::ParseTileset(int 
     animationString += "\n";
   }
 
+  Animation animation;
   animation.LoadWithData(animationString);
 
   auto tileset = Overworld::Map::Tileset{
