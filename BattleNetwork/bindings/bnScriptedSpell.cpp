@@ -8,6 +8,8 @@ ScriptedSpell::ScriptedSpell(Team _team) :
   shadow = new SpriteProxyNode();
   shadow->setTexture(LOAD_TEXTURE(MISC_SHADOW));
   shadow->SetLayer(1);
+  shadow->Hide(); // default: hidden
+  AddNode(shadow);
 
   animComponent = CreateComponent<AnimationComponent>(this);
 }
@@ -23,7 +25,7 @@ bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
 
 void ScriptedSpell::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - GetHeight());
-  shadow->setPosition(0, +GetHeight()); // counter offset the shadow node
+  //shadow->setPosition(0, +GetHeight()); // counter offset the shadow node
   updateCallback ? updateCallback(this, _elapsed) : (void)0;
 
 }

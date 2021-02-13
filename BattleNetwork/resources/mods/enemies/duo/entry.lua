@@ -20,9 +20,10 @@ local dir = Direction.Up
 function Missile()
     local missile = Battle.Spell.new(Team.Blue)
     missile:SetTexture(texture, true)
-    missile:SetSlideFrames(80)
+    missile:SetSlideFrames(30)
     missile:SetHeight(20.0)
-    missile:ShowShadow(true)
+    missile:SetLayer(-2)
+    missile:ShowShadow(false)
 
     local missileAnim = missile:GetAnimation()
     missileAnim:CopyFrom(anim)
@@ -31,21 +32,31 @@ function Missile()
     missile.updateFunc = function(self, dt) 
 
         if self:IsSliding() == false then
-            -- keep sliding
+            if self:Tile():IsEdge() then 
+                self:Delete()
+            end
+
+            -- otherwise keep sliding
             self:SlideToTile(true)
             self:Move(Direction.Left)
         end 
+
+        if self:Tile():IsHole() == false then 
+            missile:ShowShadow(true)
+        end
 
         -- every frame try to attack shared tile
         self:Tile():AttackEntities(self)
     end
 
     missile.attackFunc = function(self, other) 
+        local explosion = Battle.Explosion.new(1, 1)
+        self:Field():SpawnFX(explosion, self:Tile():X(), self:Tile():Y())
         self:Delete()
     end
 
     missile.deleteFunc = function(self) 
-        -- todo: spawn explosion
+        -- nothing
     end
 
     missile.canMoveToFunc = function(tile)
@@ -61,7 +72,7 @@ function battle_init(self)
 
     print("modpath: ".._modpath)
     self:SetName("Duo")
-    self:SetHealth(300)
+    self:SetHealth(3000)
     self:SetTexture(texture, true)
     self:SetHeight(60)
     self:SetSlideFrames(120)
@@ -108,6 +119,7 @@ function on_update(self, dt)
         if shake then
             self:ShakeCamera(3.0, 1.0)
             shake = false
+            middle:Hide() -- reveal red center
         end
         
         waitTime = waitTime - dt
@@ -136,6 +148,7 @@ function on_update(self, dt)
 
             waitTime = 1
             shake = true -- can shake again
+            middle:Show() -- coverup red center
             self:SlideToTile(true)
             self:Move(dir)
         end

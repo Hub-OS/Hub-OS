@@ -16,14 +16,15 @@
 //#include "bindings/bnScriptedObstacle.h"
 #include "bindings/bnScriptedPlayer.h"
 
+// Useful prefabs to use in scripts...
+#include "bnExplosion.h"
+
 // temporary proof of concept includes...
 #include "bnBusterCardAction.h"
 #include "bnSwordCardAction.h"
 #include "bnBombCardAction.h"
 #include "bnFireBurnCardAction.h"
 #include "bnCannonCardAction.h"
-
-SOL_BASE_CLASSES(ScriptedSpell, Spell);
 
 void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   state.open_libraries(sol::lib::base);
@@ -65,6 +66,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     sol::constructors<SpriteProxyNode()>(),
     "SetTexture", &SpriteProxyNode::setTexture,
     "SetLayer", &SpriteProxyNode::SetLayer,
+    "Show", &SpriteProxyNode::Reveal,
+    "Hide", &SpriteProxyNode::Hide,
     "SetPosition", sol::resolve<void(float, float)>(&SpriteProxyNode::setPosition),
     "Sprite", &SpriteProxyNode::getSprite,
     sol::base_classes, sol::bases<SceneNode>()
@@ -77,7 +80,6 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetState", &Battle::Tile::SetState,
     "IsEdge", &Battle::Tile::IsEdgeTile,
     "IsCracked", &Battle::Tile::IsCracked,
-    "IsHidden", &Battle::Tile::IsHidden,
     "IsHole", &Battle::Tile::IsHole,
     "IsWalkable", &Battle::Tile::IsWalkable,
     "IsReserved", &Battle::Tile::IsReservedByCharacter,
@@ -89,20 +91,29 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "TileAt", &Field::GetAt,
     "Width", &Field::GetWidth,
     "Height", &Field::GetHeight,
-    "SpawnSpell", sol::resolve<Field::AddEntityStatus(std::unique_ptr<Spell>&, int, int)>(&Field::AddEntity)
+    "SpawnSpell", sol::resolve<Field::AddEntityStatus(Spell&, int, int)>(&Field::AddEntity),
+    "SpawnFX", sol::resolve<Field::AddEntityStatus(Artifact&, int, int)>(&Field::AddEntity)
   );
 
   auto& player_record = battle_namespace.new_usertype<Player>("Player",
     sol::base_classes, sol::bases<Character>()
   );
 
+  auto& explosion_record = battle_namespace.new_usertype<Explosion>("Explosion",
+    sol::factories([](int count, double speed) {
+      return new Explosion(count, speed);
+    }),
+    sol::base_classes, sol::bases<Artifact>()
+  );
+
   auto& scriptedspell_record = battle_namespace.new_usertype<ScriptedSpell>("Spell",
     sol::factories([](Team team) {
-      return std::make_unique<ScriptedSpell>(team);
+      return new ScriptedSpell(team);
     }),
     "GetID", &ScriptedSpell::GetID,
     "SetHeight", &ScriptedSpell::SetHeight,
     "SetTexture", &ScriptedSpell::setTexture,
+    "SetLayer", &ScriptedSpell::SetLayer,
     "GetAnimation", &ScriptedSpell::GetAnimationComponent,
     "Tile", &ScriptedSpell::GetTile,
     "Field", &ScriptedSpell::GetField,
@@ -291,6 +302,12 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Red", Team::red,
     "Blue", Team::blue,
     "Other", Team::unknown
+  );
+
+  auto& add_status_record = state.new_enum("EntityStatus",
+    "Queued", Field::AddEntityStatus::queued,
+    "Added", Field::AddEntityStatus::added,
+    "Failed", Field::AddEntityStatus::deleted
   );
 
   /*

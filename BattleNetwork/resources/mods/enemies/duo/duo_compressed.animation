@@ -37,8 +37,8 @@ animation state="MINE"
 frame duration="0.05" x="222" y="146" w="28" h="34" originx="15" originy="29"
 
 animation state="MISSILE"
-frame duration="0.05" x="324" y="274" w="42" h="30" originx="24" originy="25"
-frame duration="0.05" x="456" y="156" w="48" h="30" originx="24" originy="25"
+frame duration="0.05" x="324" y="274" w="42" h="30" originx="14" originy="25"
+frame duration="0.05" x="456" y="156" w="48" h="30" originx="14" originy="25"
 
 animation state="IDLE_DL"
 frame duration="0.05" x="0" y="0" w="142" h="163" originx="66" originy="133"
