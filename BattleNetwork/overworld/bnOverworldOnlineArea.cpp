@@ -157,85 +157,45 @@ void Overworld::OnlineArea::onResume()
   Audio().Stream("resources/loops/loop_overworld.ogg", false);
 }
 
-// NOTE: these are super hacky to make it look like maps have more going on for them (e.g. connected warps...)
-// TODO: replace
 void Overworld::OnlineArea::OnTileCollision()
 {
-  // on collision with warps
-  // static size_t next_warp = 0, next_warp_2 = 1;
-  // auto* teleportController = &GetTeleportControler();
+  auto playerActor = GetPlayer();
+  auto playerPos = playerActor->getPosition();
 
-  // if (tile.token == "W" && teleportController->IsComplete()) {
-  //   auto& map = GetMap();
-  //   auto* playerController = &GetPlayerController();
-  //   auto playerActor = GetPlayer();
+  auto& map = GetMap();
+  auto tileSize = sf::Vector2f(map.GetTileSize());
 
-  //   auto warps = map.FindToken("W");
+  auto tilePos = sf::Vector2f(
+    std::floor(playerPos.x / tileSize.x * 2.0f),
+    std::floor(playerPos.y / tileSize.y)
+  );
 
-  //   if (warps.size()) {
-  //     if (++next_warp >= warps.size()) {
-  //       next_warp = 0;
-  //     }
+  auto& teleportController = GetTeleportController();
 
-  //     auto teleportToNextWarp = [=] {
-  //       auto finishTeleport = [=] {
-  //         playerController->ControlActor(*playerActor);
-  //       };
+  for (auto& tileObject : map.GetLayer(playerActor->GetLayer()).GetTileObjects()) {
+    if (tileObject.name != "Home Warp") {
+      continue;
+    }
 
-  //       auto& command = teleportController->TeleportIn(*playerActor, warps[next_warp], Direction::up);
-  //       command.onFinish.Slot(finishTeleport);
-  //     };
+    auto homeWarpPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+    auto homeWarpTilePos = sf::Vector2f(
+      std::floor(homeWarpPos.x / tileSize.x * 2.0f),
+      std::floor(homeWarpPos.y / tileSize.y)
+    );
 
-  //     playerController->ReleaseActor();
-  //     auto& command = teleportController->TeleportOut(*playerActor);
-  //     command.onFinish.Slot(teleportToNextWarp);
-  //   }
-  // }
+    if (homeWarpTilePos == tilePos && teleportController.IsComplete()) {
+      GetPlayerController().ReleaseActor();
+      auto& command = teleportController.TeleportOut(playerActor);
 
-  // if (tile.token == "W2" && teleportController->IsComplete()) {
-  //   auto& map = GetMap();
-  //   auto* playerController = &GetPlayerController();
-  //   auto playerActor = GetPlayer();
+      auto teleportHome = [=] {
+        TeleportUponReturn(playerActor->getPosition());
+        sendLogoutSignal();
+        getController().pop<segue<BlackWashFade>>();
+      };
 
-  //   auto warps = map.FindToken("W2");
-
-  //   if (warps.size()) {
-  //     if (++next_warp_2 >= warps.size()) {
-  //       next_warp_2 = 0;
-  //     }
-
-  //     auto teleportToNextWarp = [=] {
-  //       auto finishTeleport = [=] {
-  //         playerController->ControlActor(*playerActor);
-  //       };
-
-  //       auto& command = teleportController->TeleportIn(*playerActor, warps[next_warp_2], Direction::up);
-  //       command.onFinish.Slot(finishTeleport);
-  //     };
-
-  //     playerController->ReleaseActor();
-  //     auto& command = teleportController->TeleportOut(*playerActor);
-  //     command.onFinish.Slot(teleportToNextWarp);
-  //   }
-  // }
-
-  // // on collision with homepage warps
-  // if (tile.token == "H" && teleportController->IsComplete()) {
-  //   auto& map = GetMap();
-  //   auto* playerController = &GetPlayerController();
-  //   auto playerActor = GetPlayer();
-
-  //   playerController->ReleaseActor();
-  //   auto& command = teleportController->TeleportOut(*playerActor);
-
-  //   auto teleportHome = [=] {
-  //     TeleportUponReturn(playerActor->getPosition());
-  //     sendLogoutSignal();
-  //     getController().pop<segue<BlackWashFade>>();
-  //   };
-
-  //   command.onFinish.Slot(teleportHome);
-  // }
+      command.onFinish.Slot(teleportHome);
+    }
+  }
 }
 
 void Overworld::OnlineArea::OnEmoteSelected(Overworld::Emotes emote)
@@ -459,6 +419,20 @@ void Overworld::OnlineArea::receiveLoginSignal(BufferReader& reader, const Poco:
   isConnected = true;
 
   this->ticket = reader.ReadString(buffer);
+
+  auto& map = GetMap();
+  sf::Vector2f spawnPos;
+
+  for (auto& tileObject : map.GetLayer(0).GetTileObjects()) {
+    if (tileObject.name == "Home Warp") {
+      spawnPos = tileObject.position + map.OrthoToIsometric(sf::Vector2f(0, tileObject.size.y / 2.0f));
+    }
+  }
+
+  auto& command = GetTeleportController().TeleportIn(GetPlayer(), spawnPos, Direction::up);
+  command.onFinish.Slot([=] {
+    GetPlayerController().ControlActor(GetPlayer());
+  });
 }
 
 void Overworld::OnlineArea::receiveAssetStreamSignal(BufferReader& reader, const Poco::Buffer<char>& buffer) {
@@ -515,11 +489,6 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 {
   auto path = reader.ReadString(buffer);
   mapBuffer = GetText(path);
-
-  // If we are still invalid after this, there's a problem
-  if (mapBuffer.empty()) {
-    Logger::Logf("Server sent empty map data");
-  }
 
   LoadMap(mapBuffer);
 }

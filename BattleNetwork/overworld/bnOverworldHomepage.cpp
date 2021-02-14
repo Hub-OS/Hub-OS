@@ -38,7 +38,6 @@ Overworld::Homepage::Homepage(swoosh::ActivityController& controller, bool guest
     }
   }
 
-  // todo: this for onlinearea
   auto& command = GetTeleportController().TeleportIn(GetPlayer(), spawnPos, Direction::up);
   command.onFinish.Slot([=] {
     GetPlayerController().ControlActor(GetPlayer());
@@ -119,7 +118,7 @@ void Overworld::Homepage::PingRemoteAreaServer()
 }
 
 void Overworld::Homepage::EnableNetWarps(bool enabled) {
-  auto& map = GetMap();Logger::Logf("Enable: %s", enabled ? "true" : "false");
+  auto& map = GetMap();
 
   auto& netWarp = map.GetLayer(0).GetTileObject(netWarpObjectId);
 
@@ -245,7 +244,10 @@ void Overworld::Homepage::OnTileCollision()
 
     // Calculate the origin by grabbing this tile's grid Y/X values
     // return at the center origin of this tile
-    sf::Vector2f returnPoint = sf::Vector2f(tilePos + tileSize / 2.0f);
+    sf::Vector2f returnPoint = sf::Vector2f(
+      tilePos.x * tileSize.x + tileSize.x / 4.0f,
+      tilePos.y * tileSize.y + tileSize.y / 2.0f
+    );
 
     auto teleportToCyberworld = [=] {
       this->TeleportUponReturn(returnPoint);
