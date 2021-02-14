@@ -770,8 +770,8 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
 
   // read custom properties
   for (auto propertyElement : propertiesElement.children) {
-    auto propertyName = propertiesElement.GetAttribute("name");
-    auto propertyValue = propertiesElement.GetAttribute("value");
+    auto propertyName = propertyElement.GetAttribute("name");
+    auto propertyValue = propertyElement.GetAttribute("value");
 
     if (propertyName == "Background") {
       map.SetBackgroundName(propertyValue);
