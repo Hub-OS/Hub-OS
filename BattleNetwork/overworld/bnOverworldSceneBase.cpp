@@ -671,11 +671,6 @@ void Overworld::SceneBase::NaviEquipSelectedFolder()
   }
 }
 
-void Overworld::SceneBase::ClearMap(unsigned rows, unsigned cols)
-{
-  // todo:
-}
-
 void Overworld::SceneBase::LoadBackground(const std::string& value)
 {
   std::string str = value;
@@ -894,6 +889,10 @@ void Overworld::SceneBase::LoadMap(const std::string& data)
   LoadBackground(map.GetBackgroundName());
   menuWidget.SetArea(map.GetName());
 
+  // cleanup data from the previous map
+  this->map.RemoveSprites(*this);
+
+  // replace the previous map
   this->map = std::move(map);
 }
 

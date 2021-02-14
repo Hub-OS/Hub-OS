@@ -207,6 +207,14 @@ namespace Overworld {
     return layers[layers.size() - 1];
   }
 
+  void Map::RemoveSprites(SceneBase& scene) {
+    for (auto& layer : layers) {
+      for (auto& tileObject : layer.tileObjects) {
+        scene.RemoveSprite(tileObject.spriteProxy);
+      }
+    }
+  }
+
   static Map::Tile nullTile = Map::Tile(0);
 
   Map::Layer::Layer(std::size_t cols, std::size_t rows) {

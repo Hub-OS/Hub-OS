@@ -162,6 +162,7 @@ namespace Overworld {
     size_t GetLayerCount() const;
     Layer& GetLayer(size_t index);
     Layer& AddLayer();
+    void RemoveSprites(SceneBase& scene);
 
   protected:
     unsigned cols{}, rows{}; /*!< map is made out of Cols x Rows tiles */

@@ -85,11 +85,6 @@ namespace Overworld {
 
     std::future<WebAccounts::AccountState> accountCommandResponse; /*!< Response object that will wait for data from web server*/
 
-    /**
-    * @brief aux function clears the map object
-    */
-    void ClearMap(unsigned rows, unsigned cols);
-
     std::shared_ptr<Map::Tileset> ParseTileset(unsigned int firstgid, const std::string& data);
     void LoadBackground(const std::string& value);
     void DrawMap(sf::RenderTarget& target, sf::RenderStates states);
