@@ -395,9 +395,12 @@ void Overworld::OnlineArea::sendReadySignal()
 
 void Overworld::OnlineArea::sendPositionSignal()
 {
+  auto& map = GetMap();
+  auto tileSize = sf::Vector2f(map.GetTileSize());
+
   auto vec = GetPlayer()->getPosition();
-  float x = vec.x;
-  float y = vec.y;
+  float x = vec.x / tileSize.x * 2.0f;
+  float y = vec.y / tileSize.y;
   float z = 0;
 
   Poco::Buffer<char> buffer{ 0 };
@@ -523,12 +526,15 @@ void Overworld::OnlineArea::receiveMapSignal(BufferReader& reader, const Poco::B
 
 void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)
 {
+  auto& map = GetMap();
+  auto tileSize = sf::Vector2f(map.GetTileSize());
+
   std::string user = reader.ReadString(buffer);
   std::string name = reader.ReadString(buffer);
   std::string texturePath = reader.ReadString(buffer);
   std::string animationPath = reader.ReadString(buffer);
-  float x = reader.Read<float>(buffer);
-  float y = reader.Read<float>(buffer);
+  float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
+  float y = reader.Read<float>(buffer) * tileSize.y;
   float z = reader.Read<float>(buffer);
   bool warp_in = reader.Read<bool>(buffer);
 
@@ -613,8 +619,12 @@ void Overworld::OnlineArea::receiveNaviMoveSignal(BufferReader& reader, const Po
     return;
   }
 
-  float x = reader.Read<float>(buffer);
-  float y = reader.Read<float>(buffer);
+
+  auto& map = GetMap();
+  auto tileSize = sf::Vector2f(map.GetTileSize());
+
+  float x = reader.Read<float>(buffer) * tileSize.x / 2.0f;
+  float y = reader.Read<float>(buffer) * tileSize.y;
   float z = reader.Read<float>(buffer);
 
   auto userIter = onlinePlayers.find(user);
