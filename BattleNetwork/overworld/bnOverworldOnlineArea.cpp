@@ -550,7 +550,6 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   onlinePlayer->endBroadcastPos = pos;
 
   auto actor = onlinePlayer->actor;
-  actor->AddNode(&onlinePlayer->emoteNode);
   actor->Rename(name);
   actor->setPosition(pos);
   actor->setTexture(GetTexture(texturePath));
@@ -558,6 +557,11 @@ void Overworld::OnlineArea::receiveNaviConnectedSignal(BufferReader& reader, con
   Animation animation;
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
+
+  auto& emoteNode = onlinePlayer->emoteNode;
+  float emoteY = - actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+  emoteNode.setPosition(0, emoteY);
+  actor->AddNode(&emoteNode);
 
   AddSprite(actor, 0);
 
@@ -665,7 +669,7 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
 
   if (userIter == onlinePlayers.end()) return;
 
-  auto& player = userIter->second;;
+  auto& player = userIter->second;
   auto& actor = player->actor;
 
   actor->setTexture(GetTexture(texturePath));
@@ -673,6 +677,10 @@ void Overworld::OnlineArea::receiveNaviSetAvatarSignal(BufferReader& reader, con
   Animation animation;
   animation.LoadWithData(GetText(animationPath));
   actor->LoadAnimations(animation);
+
+  auto& emoteNode = player->emoteNode;
+  float emoteY = - actor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+  emoteNode.setPosition(0, emoteY);
 }
 
 void Overworld::OnlineArea::receiveNaviEmoteSignal(BufferReader& reader, const Poco::Buffer<char>& buffer)

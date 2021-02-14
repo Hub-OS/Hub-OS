@@ -633,9 +633,8 @@ void Overworld::SceneBase::RefreshNaviSprite()
     playerActor->LoadAnimations(Animation(owPath));
 
     // move the emote above the player's head
-    float h = playerActor->getLocalBounds().height;
-    float y = h - (h - playerActor->getOrigin().y);
-    emoteNode.setPosition(sf::Vector2f(0, -y));
+    float emoteY = -playerActor->getOrigin().y - emoteNode.getSprite().getLocalBounds().height / 2;
+    emoteNode.setPosition(0, emoteY);
 
     auto iconTexture = meta.GetIconTexture();
 
