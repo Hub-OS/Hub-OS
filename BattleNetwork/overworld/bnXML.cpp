@@ -85,8 +85,6 @@ static XMLToken nextToken(const std::string& data, XMLTokenType lastType, size_t
   auto len = data.length();
   char lastChar = '\0';
   bool inElement = lastType == XMLTokenType::element || lastType == XMLTokenType::attributeName || lastType == XMLTokenType::attributeValue;
-  bool opened = false;
-  bool containsText = false;
 
   while (index < len) {
     char currentChar = data[index];
@@ -95,7 +93,7 @@ static XMLToken nextToken(const std::string& data, XMLTokenType lastType, size_t
     {
     case '<':
       if (token.type == XMLTokenType::text) {
-        token.end = index - 1;
+        token.end = index;
         token.text = getTextTokenText(data, token);
         token.exit = index;
         return token;
@@ -103,7 +101,6 @@ static XMLToken nextToken(const std::string& data, XMLTokenType lastType, size_t
       break;
     case '?':
       if (lastChar != '<') {
-        containsText = true;
         break;
       }
 
@@ -113,7 +110,6 @@ static XMLToken nextToken(const std::string& data, XMLTokenType lastType, size_t
       break;
     case '!':
       if (lastChar != '<') {
-        containsText = true;
         break;
       }
 
@@ -122,8 +118,14 @@ static XMLToken nextToken(const std::string& data, XMLTokenType lastType, size_t
       currentChar = '\0';
       break;
     case '/': {
+      if (token.type == XMLTokenType::element) {
+        token.end = index;
+        token.text = data.substr(token.start, token.end - token.start);
+        token.exit = index;
+        return token;
+      }
+
       if (lastChar != '<') {
-        containsText = true;
         break;
       }
 
@@ -133,7 +135,7 @@ static XMLToken nextToken(const std::string& data, XMLTokenType lastType, size_t
       token.text = data.substr(token.start, token.end - token.start);
       trim(token.text);
 
-      token.exit = token.end + 2;
+      token.exit = token.end + 1;
       return token;
     }
     case '>':
