@@ -24,7 +24,7 @@ bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
 
 void ScriptedObstacle::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + Entity::tileOffset.x + ScriptedObstacle::scriptedOffset.x,
-    tile->getPosition().y + Entity::tileOffset.y + ScriptedObstacle::scriptedOffset.y);
+    tile->getPosition().y - this->height + Entity::tileOffset.y + ScriptedObstacle::scriptedOffset.y);
 
   //shadow->setPosition(0, +GetHeight()); // counter offset the shadow node
   ScriptedObstacle& so = *this;

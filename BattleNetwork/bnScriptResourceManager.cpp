@@ -49,14 +49,17 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Update", &Animation::Update,
     "Refresh", &Animation::Refresh,
     "SetState", &Animation::SetAnimation,
+    "State", &Animation::GetAnimationString,
     "Point", &Animation::GetPoint,
-    "SetPlayback", sol::resolve<Animation&(char)>(&Animation::operator<<)
+    "SetPlayback", sol::resolve<Animation&(char)>(&Animation::operator<<),
+    "OnComplete", sol::resolve<void(const FrameCallback&)>(&Animation::operator<<)
   );
 
   auto& animationcomp_record = engine_namespace.new_usertype<AnimationComponent>("AnimationComponent",
     "Load", &AnimationComponent::Load,
     "SetPath", &AnimationComponent::SetPath,
     "SetState", sol::resolve<void(std::string, char, FrameFinishCallback)>(&AnimationComponent::SetAnimation),
+    "State", &AnimationComponent::GetAnimationString,
     "Copy", &AnimationComponent::GetAnimationObject,
     "CopyFrom", &AnimationComponent::CopyFrom,
     "Point", &AnimationComponent::GetPoint,
@@ -72,6 +75,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetPosition", sol::resolve<void(float, float)>(&SpriteProxyNode::setPosition),
     "GetPosition", &SpriteProxyNode::getPosition,
     "Sprite", &SpriteProxyNode::getSprite,
+    "EnableParentShader", &SpriteProxyNode::EnableParentShader,
     sol::base_classes, sol::bases<SceneNode>()
   );
 
@@ -145,6 +149,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "AddNode", &ScriptedSpell::AddNode,
     "Delete", &ScriptedSpell::Delete,
     "HighlightTile", &ScriptedSpell::HighlightTile,
+    "GetHitProps", &ScriptedSpell::GetHitboxProperties,
+    "SetHitProps", &ScriptedSpell::SetHitboxProperties,
     "attackFunc", &ScriptedSpell::attackCallback,
     "deleteFunc", &ScriptedSpell::deleteCallback,
     "updateFunc", &ScriptedSpell::updateCallback,
@@ -191,6 +197,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "AddNode", &ScriptedObstacle::AddNode,
     "Delete", &ScriptedObstacle::Delete,
     "HighlightTile", &ScriptedObstacle::HighlightTile,
+    "GetHitProps", &ScriptedObstacle::GetHitboxProperties,
+    "SetHitProps", &ScriptedObstacle::SetHitboxProperties,
     "IgnoreCommonAggressor", &ScriptedObstacle::IgnoreCommonAggressor,
     "attackFunc", &ScriptedObstacle::attackCallback,
     "deleteFunc", &ScriptedObstacle::deleteCallback,
@@ -336,7 +344,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetIconTexture", &NaviRegistration::NaviMeta::SetIconTexture
   );
 
-  auto elements_table = battle_namespace.new_enum("Element",
+  auto elements_table = state.new_enum("Element",
     "Fire", Element::fire,
     "Aqua", Element::aqua,
     "Elec", Element::elec,
@@ -352,6 +360,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
   );
 
   auto& direction_table = state.new_enum("Direction",
+    "None", Direction::none,
     "Up", Direction::up,
     "Down", Direction::down,
     "Left", Direction::left,
@@ -385,6 +394,36 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Queued", Field::AddEntityStatus::queued,
     "Added", Field::AddEntityStatus::added,
     "Failed", Field::AddEntityStatus::deleted
+  );
+
+  auto& hitbox_flags_record = state.new_enum("Hit",
+    "None", Hit::none,
+    "Recoil", Hit::recoil,
+    "Flinch", Hit::flinch,
+    "Stun", Hit::stun,
+    "Impact", Hit::impact,
+    "Shake", Hit::shake,
+    "Pierce", Hit::pierce,
+    "Retangible", Hit::retangible,
+    "Breaking", Hit::breaking,
+    "Bubble", Hit::bubble,
+    "Freeze", Hit::freeze,
+    "Drag", Hit::drag
+  );
+
+  /**
+    int damage{};
+    Flags flags{ none };
+    Element element{ Element::none };
+    Character* aggressor{ nullptr };
+    Direction drag{ Direction::none }; // Used by dragging payload
+  */
+  state.set_function("HitProps", 
+    [](int damage, Hit::Flags flags, Element element, Character* aggressor, Direction drag) {
+      return Hit::Properties{
+        damage, flags, element, aggressor, drag
+      };
+    }
   );
 
   /*

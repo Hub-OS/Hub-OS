@@ -18,16 +18,27 @@ local middle = nil
 local miscAnim = nil
 local anim = nil
 local dir = Direction.Up
+local laserComplete = true
+local laserOpening = false
 local handTimer = 0
 local aiStateIndex = 1 
 local aiState = {} -- setup in the battle_init function
 local idleHandPos = {x=0, y=15.0}
+local idleDuoPos = {x=-15.0, y=0}
 
-function UpwardFist() 
+function UpwardFist(duo) 
     local fist = Battle.Spell.new(Team.Blue)
     fist:SetTexture(texture, true)
     fist:HighlightTile(Highlight.Flash)
     fist:SetSlideFrames(4)
+
+    fist:SetHitProps(HitProps(
+        50, 
+        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Element.None, 
+        duo, 
+        Direction.None)
+    )
 
     local fistAnim = fist:GetAnimation()
     fist.startSwinging = false
@@ -74,10 +85,18 @@ function UpwardFist()
     return fist
 end 
 
-function DownwardFist() 
+function DownwardFist(duo) 
     local fist = Battle.Spell.new(Team.Blue)
     fist:SetTexture(texture, true)
     fist:SetSlideFrames(4)
+
+    fist:SetHitProps(HitProps(
+        50, 
+        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Element.None, 
+        duo, 
+        Direction.None)
+    )
 
     local fistAnim = fist:GetAnimation()
     fist.startSwinging = false
@@ -124,10 +143,18 @@ function DownwardFist()
     return fist
 end 
 
-function Mine() 
+function Mine(duo) 
     local mine = Battle.Obstacle.new(Team.Blue)
     mine:SetHealth(20)
     mine:SetSlideFrames(MINE_SLIDE_FRAMES)
+
+    mine:SetHitProps(HitProps(
+        20, 
+        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Element.None, 
+        duo, 
+        Direction.None)
+    )
 
     mine.dir = Direction.Up
     mine.verticalDir = Direction.Up
@@ -226,7 +253,67 @@ function Mine()
     return mine
 end
 
-function Missile()
+function LaserBeam(duo)
+    laserComplete = false
+    local laser = Battle.Spell.new(Team.Blue) 
+
+    laser:SetTexture(texture, true)
+    laser:SetLayer(-2)
+
+    laser:SetHitProps(HitProps(
+        100, 
+        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Element.None, 
+        duo, 
+        Direction.None)
+    )
+
+    local origin = duo:GetAnimation():Point("origin")
+    local point  = duo:GetAnimation():Point("NO_SHOOT")
+    laser:SetPosition(point.x - origin.x + 20, point.y - origin.y)
+
+    local laserAnim = laser:GetAnimation()
+    laserAnim:CopyFrom(anim)
+
+    local onComplete = function() 
+        local laserRef = laser
+        local animRef = laserAnim
+        return function()
+            laserRef.laserCount = 0
+            animRef:SetState("LASER_BEAM", Playback.Loop, function() 
+                laserRef.laserCount = laserRef.laserCount + 1
+
+                if laserRef.laserCount > 40 then
+                    animRef:SetState("LASER_BEAM_OPEN", Playback.Reverse, function()
+                        laserComplete = true
+                        laserRef:Delete()
+                    end)
+                end
+            end)
+        end 
+    end 
+
+    laserAnim:SetState("LASER_BEAM_OPEN", Playback.Once, onComplete())
+
+    laser.updateFunc = function(self, dt) 
+        self:Tile():AttackEntities(self)
+    end
+
+    laser.attackFunc = function(self, other) 
+        -- nothing
+    end
+
+    laser.deleteFunc = function(self) 
+    end
+
+    laser.canMoveToFunc = function(tile)
+        return false
+    end
+
+    return laser
+end
+
+function Missile(duo)
     local missile = Battle.Obstacle.new(Team.Blue)
     missile:SetHealth(20)
     missile:SetTexture(texture, true)
@@ -235,6 +322,14 @@ function Missile()
     missile:SetLayer(-2)
     missile:ShowShadow(false)
     missile.waitTimer = 1 -- second
+
+    missile:SetHitProps(HitProps(
+        30, 
+        Hit.Impact | Hit.Recoil | Hit.Flinch, 
+        Element.None, 
+        duo, 
+        Direction.None)
+    )
 
     local missileAnim = missile:GetAnimation()
     missileAnim:CopyFrom(anim)
@@ -294,12 +389,18 @@ end
 function RestoreHand(self, dt) 
     hand:Show()
 
+    pos = hand:GetPosition()
+
+    -- slide in
+    hand:SetPosition(pos.x - (dt*5*60), pos.y + (dt*2*60))
+
     pos = self:GetPosition()
 
-    self:SetPosition(pos.x - (dt*20), pos.y)
+    self:SetPosition(pos.x - (dt*40), pos.y)
 
-    if self:GetPosition().x <= 0 then
-        self:SetPosition(0.0, 0.0)
+    if hand:GetPosition().x <= 0 then
+        self:SetPosition(idleDuoPos.x, idleDuoPos.y)
+        hand:SetPosition(idleHandPos.x, idleHandPos.y)
         NextState()
     end
 end
@@ -307,39 +408,59 @@ end
 function MoveHandAway(self, dt) 
     local pos = hand:GetPosition()
 
-    -- slide out and up 20px a frame
+    -- slide out and up 5px a frame
     hand:SetPosition(pos.x + (dt*5*60), pos.y - (dt*2*60))
 
     pos = self:GetPosition()
 
-    self:SetPosition(pos.x + (dt*20), pos.y)
+    self:SetPosition(pos.x + (dt*40), pos.y)
 
     if hand:GetPosition().x > 92 then
-        hand:SetPosition(idleHandPos.x, idleHandPos.y)
         hand:Hide()
         NextState()
     end
 end
 
+function ShootLaserState(self, dt)
+    if miscAnim:State() ~= "CHEST_GUN" then
+        laserOpening = true
+
+        function onComplete() 
+            local duoRef = self 
+            return function() 
+                -- laserComplete gets toggled to false when a laser beam is created
+                duoRef:Field():Spawn(LaserBeam(duoRef), duoRef:Tile():X()-1, duoRef:Tile():Y())
+                NextState()
+            end 
+        end
+
+        miscAnim:SetState("CHEST_GUN")
+        miscAnim:SetPlayback(Playback.Once)
+        miscAnim:OnComplete(onComplete())
+    end
+
+    miscAnim:Update(dt, middle:Sprite(), 1.0)
+end
+
 function ShootMissileState(self, dt)
-    self:Field():Spawn(Missile(), self:Tile():X()-1, self:Tile():Y())
+    self:Field():Spawn(Missile(self), self:Tile():X()-1, self:Tile():Y())
     NextState()
 end 
 
 function ShootMineState(self, dt) 
-    self:Field():Spawn(Mine(), self:Tile():X()-1, self:Tile():Y())
+    self:Field():Spawn(Mine(self), self:Tile():X()-1, self:Tile():Y())
     NextState()
 end 
 
 function DownwardFistState(self, dt)
-    self:Field():Spawn(DownwardFist(), 2, 0)
+    self:Field():Spawn(DownwardFist(self), 2, 0)
 
     NextState()
 end
 
 function UpwardFistState(self, dt)
     -- back-left corner
-    self:Field():Spawn(UpwardFist(), 1, 3)
+    self:Field():Spawn(UpwardFist(self), 1, 3)
 
     NextState()
 end
@@ -360,6 +481,23 @@ function SetWaitTimer(seconds)
 end 
 
 function WaitState(self, dt)
+    -- also wait for laser to complete
+    if laserComplete == false then 
+        if laserOpening == true then 
+            miscAnim:SetPlayback(Playback.Reverse)
+            miscAnim:OnComplete(function()
+                    miscAnim:SetState("NO_SHOOT")
+                    miscAnim:SetPlayback(Playback.Once)
+                    miscAnim:Refresh(middle:Sprite())
+                end)
+                
+            laserOpening = false
+        end
+
+        miscAnim:Update(dt, middle:Sprite(), 1.0) 
+        return 
+    end 
+
     waitTime = waitTime - dt 
 
     if waitTime <= 0 then
@@ -422,7 +560,7 @@ function battle_init(self)
         SetWaitTimer(IDLE_TIME),
         WaitState,
         MoveHandAway,
-        SetWaitTimer(IDLE_TIME),
+        SetWaitTimer(IDLE_TIME*0.5),
         WaitState,
         UpwardFistState,
         SetWaitTimer(IDLE_TIME),
@@ -431,6 +569,9 @@ function battle_init(self)
         SetWaitTimer(IDLE_TIME),
         WaitState,
         RestoreHand,
+        SetWaitTimer(IDLE_TIME*0.5),
+        WaitState,
+        ShootLaserState,
         SetWaitTimer(IDLE_TIME),
         WaitState,
     }
@@ -442,8 +583,9 @@ function battle_init(self)
     self:SetHealth(3000)
     self:SetTexture(texture, true)
     self:SetHeight(60)
-    self:SetSlideFrames(100)
+    self:SetSlideFrames(80)
     self:ShareTile(true)
+    self:SetPosition(idleDuoPos.x, idleDuoPos.y)
 
     anim = self:GetAnimation()
     anim:SetPath(_modpath.."duo_compressed.animation")
@@ -454,6 +596,7 @@ function battle_init(self)
     hand:SetTexture(texture, true)
     hand:SetPosition(idleHandPos.x, idleHandPos.y)
     hand:SetLayer(-2) -- put it in front at all times
+    hand:EnableParentShader(true)
     self:AddNode(hand)
 
     miscAnim = Engine.Animation.new(anim:Copy())

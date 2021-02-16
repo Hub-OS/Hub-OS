@@ -64,7 +64,7 @@ void Animator::operator() (double progress, sf::Sprite& target, FrameList& seque
     // If the playback mode is reverse, flip the frames
     // and the index
     if ((playbackMode & Mode::Reverse) == Mode::Reverse) {
-      iter = sequence.frames.end();
+      iter = sequence.frames.end()-1;
       index = sequence.frames.size();
     }
 

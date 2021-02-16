@@ -24,7 +24,7 @@ bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
 
 void ScriptedSpell::OnUpdate(double _elapsed) {
   setPosition(tile->getPosition().x + Entity::tileOffset.x + ScriptedSpell::scriptedOffset.x,
-    tile->getPosition().y + Entity::tileOffset.y + ScriptedSpell::scriptedOffset.y);
+    tile->getPosition().y - this->height + Entity::tileOffset.y + ScriptedSpell::scriptedOffset.y);
 
   //shadow->setPosition(0, +GetHeight()); // counter offset the shadow node
   ScriptedSpell& ss = *this;
