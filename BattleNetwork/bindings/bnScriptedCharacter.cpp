@@ -32,7 +32,8 @@ void ScriptedCharacter::SetRank(Character::Rank rank)
 }
 
 void ScriptedCharacter::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y);
+  setPosition(tile->getPosition().x + Entity::tileOffset.x + scriptedOffset.x,
+    tile->getPosition().y + Entity::tileOffset.y + scriptedOffset.y);
 
   AI<ScriptedCharacter>::Update(_elapsed);
 }
@@ -70,6 +71,16 @@ bool ScriptedCharacter::CanMoveTo(Battle::Tile * next) {
 void ScriptedCharacter::SetSlideTimeFrames(unsigned frames)
 {
   this->SetSlideTime(time_cast<sf::Time>(::frames(frames)));
+}
+
+const sf::Vector2f& ScriptedCharacter::GetTileOffset() const
+{
+  return ScriptedCharacter::scriptedOffset;
+}
+
+void ScriptedCharacter::SetTileOffset(float x, float y)
+{
+  ScriptedCharacter::scriptedOffset = { x, y };
 }
 
 void ScriptedCharacter::ShakeCamera(double power, float duration)

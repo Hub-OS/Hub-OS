@@ -23,7 +23,9 @@ bool ScriptedObstacle::CanMoveTo(Battle::Tile * next)
 }
 
 void ScriptedObstacle::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - GetHeight());
+  setPosition(tile->getPosition().x + Entity::tileOffset.x + ScriptedObstacle::scriptedOffset.x,
+    tile->getPosition().y + Entity::tileOffset.y + ScriptedObstacle::scriptedOffset.y);
+
   //shadow->setPosition(0, +GetHeight()); // counter offset the shadow node
   ScriptedObstacle& so = *this;
   updateCallback ? updateCallback(so, _elapsed) : (void)0;
@@ -76,4 +78,14 @@ AnimationComponent& ScriptedObstacle::GetAnimationComponent()
 void ScriptedObstacle::SetSlideTimeFrames(unsigned frames)
 {
   this->SetSlideTime(time_cast<sf::Time>(::frames(frames)));
+}
+
+const sf::Vector2f& ScriptedObstacle::GetTileOffset() const
+{
+  return ScriptedObstacle::scriptedOffset;
+}
+
+void ScriptedObstacle::SetTileOffset(float x, float y)
+{
+  ScriptedObstacle::scriptedOffset = { x, y };
 }

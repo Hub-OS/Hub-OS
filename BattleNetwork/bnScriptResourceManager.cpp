@@ -59,7 +59,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetState", sol::resolve<void(std::string, char, FrameFinishCallback)>(&AnimationComponent::SetAnimation),
     "Copy", &AnimationComponent::GetAnimationObject,
     "CopyFrom", &AnimationComponent::CopyFrom,
-    "Point", &AnimationComponent::GetPoint
+    "Point", &AnimationComponent::GetPoint,
+    "OnFrame", &AnimationComponent::AddCallback
   );
 
   auto& node_record = engine_namespace.new_usertype<SpriteProxyNode>("SpriteNode",
@@ -69,6 +70,7 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Show", &SpriteProxyNode::Reveal,
     "Hide", &SpriteProxyNode::Hide,
     "SetPosition", sol::resolve<void(float, float)>(&SpriteProxyNode::setPosition),
+    "GetPosition", &SpriteProxyNode::getPosition,
     "Sprite", &SpriteProxyNode::getSprite,
     sol::base_classes, sol::bases<SceneNode>()
   );
@@ -136,6 +138,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "Teleport", &ScriptedSpell::Teleport,
     "IsSliding", &ScriptedSpell::IsSliding,
     "SetSlideFrames", &ScriptedSpell::SetSlideTimeFrames,
+    "SetPosition", &ScriptedSpell::SetTileOffset,
+    "GetPosition", &ScriptedSpell::GetTileOffset,
     "ShowShadow", &ScriptedSpell::ShowShadow,
     "Teammate", &ScriptedSpell::Teammate,
     "AddNode", &ScriptedSpell::AddNode,
@@ -171,6 +175,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetHeight", &ScriptedObstacle::SetHeight,
     "SetLayer", &ScriptedObstacle::SetLayer,
     "GetAnimation", &ScriptedObstacle::GetAnimationComponent,
+    "SetPosition", &ScriptedObstacle::SetTileOffset,
+    "GetPosition", &ScriptedObstacle::GetTileOffset,
     "Tile", &ScriptedObstacle::GetTile,
     "Field", &ScriptedObstacle::GetField,
     "Move", &ScriptedObstacle::Move,
@@ -202,6 +208,8 @@ void ScriptResourceManager::ConfigureEnvironment(sol::state& state) {
     "SetRank", &ScriptedCharacter::SetRank,
     "GetHealth", &ScriptedCharacter::GetHealth,
     "GetMaxHealth", &ScriptedCharacter::GetMaxHealth,
+    "SetPosition", &ScriptedCharacter::SetTileOffset,
+    "GetPosition", &ScriptedCharacter::GetTileOffset,
     "SetName", &ScriptedCharacter::SetName,
     "SetHealth", &ScriptedCharacter::SetHealth,
     "SetHeight", &ScriptedCharacter::SetHeight,

@@ -23,7 +23,9 @@ bool ScriptedSpell::CanMoveTo(Battle::Tile * next)
 }
 
 void ScriptedSpell::OnUpdate(double _elapsed) {
-  setPosition(tile->getPosition().x + tileOffset.x, tile->getPosition().y + tileOffset.y - GetHeight());
+  setPosition(tile->getPosition().x + Entity::tileOffset.x + ScriptedSpell::scriptedOffset.x,
+    tile->getPosition().y + Entity::tileOffset.y + ScriptedSpell::scriptedOffset.y);
+
   //shadow->setPosition(0, +GetHeight()); // counter offset the shadow node
   ScriptedSpell& ss = *this;
   updateCallback ? updateCallback(ss, _elapsed) : (void)0;
@@ -76,4 +78,14 @@ AnimationComponent& ScriptedSpell::GetAnimationComponent()
 void ScriptedSpell::SetSlideTimeFrames(unsigned frames)
 {
   this->SetSlideTime(time_cast<sf::Time>(::frames(frames)));
+}
+
+const sf::Vector2f& ScriptedSpell::GetTileOffset() const
+{
+  return ScriptedSpell::scriptedOffset;
+}
+
+void ScriptedSpell::SetTileOffset(float x, float y)
+{
+  ScriptedSpell::scriptedOffset = { x, y };
 }

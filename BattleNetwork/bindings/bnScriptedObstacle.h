@@ -27,6 +27,8 @@ public:
 
   AnimationComponent& GetAnimationComponent();
   void SetSlideTimeFrames(unsigned frames);
+  const sf::Vector2f& GetTileOffset() const;
+  void SetTileOffset(float x, float y);
 
   std::function<void(ScriptedObstacle&, Battle::Tile&)> spawnCallback;
   std::function<void(ScriptedObstacle&, Character&)> attackCallback;
@@ -34,6 +36,7 @@ public:
   std::function<void(ScriptedObstacle&)> deleteCallback;
   std::function<void(ScriptedObstacle&, double)> updateCallback;
 private:
+  sf::Vector2f scriptedOffset{};
   float height{};
   SpriteProxyNode* shadow{ nullptr };
   AnimationComponent* animComponent{ nullptr };
